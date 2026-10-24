@@ -70,6 +70,39 @@ void main() {
     expect(row.isPlanned, isFalse);
   });
 
+  test('a dive center from a pre-v313 peer arrives open (#3379)', () async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await db
+        .into(db.diveCenters)
+        .insert(
+          DiveCentersCompanion.insert(
+            id: 'dc-1',
+            name: 'Toucan Diving',
+            createdAt: now,
+            updatedAt: now,
+          ),
+        );
+    final legacy = await legacyRecord('diveCenters', 'dc-1', [
+      'isPermanentlyClosed',
+    ]);
+    expect(legacy.containsKey('isPermanentlyClosed'), isFalse);
+    await (db.delete(db.diveCenters)..where((t) => t.id.equals('dc-1'))).go();
+
+    // Both apply paths: the single-record upsert and the batched replay.
+    await serializer.upsertRecord('diveCenters', legacy);
+    var row = await (db.select(
+      db.diveCenters,
+    )..where((t) => t.id.equals('dc-1'))).getSingle();
+    expect(row.isPermanentlyClosed, isFalse);
+
+    await (db.delete(db.diveCenters)..where((t) => t.id.equals('dc-1'))).go();
+    await serializer.upsertRecords('diveCenters', [legacy]);
+    row = await (db.select(
+      db.diveCenters,
+    )..where((t) => t.id.equals('dc-1'))).getSingle();
+    expect(row.isPermanentlyClosed, isFalse);
+  });
+
   test('replay hydrates a default-true bool with true, not false', () async {
     final now = DateTime.now().millisecondsSinceEpoch;
     await db

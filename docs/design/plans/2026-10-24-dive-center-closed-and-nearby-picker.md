@@ -36,9 +36,9 @@
 **Files:**
 - Modify: `lib/core/database/tables/site_tables.dart` (class `DiveCenters`, after `fillClosesAt`)
 - Modify: `lib/core/database/migrations/helpers/site_migrations.dart` (new helper)
-- Modify: `lib/core/database/migrations/ladder/rungs_v231_onward.dart` (v313 rung after v309)
+- Modify: `lib/core/database/migrations/ladder/rungs_v231_onward.dart` (v313 rung after v312)
 - Modify: `lib/core/database/migrations/before_open_child_columns.dart` (backstop call)
-- Modify: `lib/core/database/database.dart` (`currentSchemaVersion = 310`, `310` appended to `migrationVersions` with a comment)
+- Modify: `lib/core/database/database.dart` (`currentSchemaVersion = 313`, `313` appended to `migrationVersions` with a comment)
 - Modify: `lib/features/dive_centers/domain/entities/dive_center.dart`
 - Modify: `lib/features/dive_centers/data/repositories/dive_center_repository.dart` (insert companion, update companion, `_mapRowToDiveCenter`, `_mapCustomRowToDiveCenter`)
 - Modify: `lib/features/dive_log/data/repositories/dive_repository_impl.dart` (the two places near lines 4124 and 4557 that build a `DiveCenter` from a center row for a dive). UDDF export has no field for it and is left alone.
@@ -52,20 +52,20 @@
 
 - [ ] **Step 1: Write the failing tests**
 
-Migration test, modelled on `migration_v309_media_document_tags_test.dart`, with a v309 raw database containing a `divers` table and a `dive_centers` table with the pre-v313 columns and one row `('c1', 'Toucan Diving', ...)`:
+Migration test, modelled on `migration_v309_media_document_tags_test.dart`, with a v312 raw database containing a `divers` table and a `dive_centers` table with the pre-v313 columns and one row `('c1', 'Toucan Diving', ...)`:
 
 ```dart
 test('v313 is the current schema version and in the ladder', () {
-  expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(310));
-  expect(AppDatabase.migrationVersions, contains(310));
-  expect(AppDatabase.migrationStepCount(309), AppDatabase.migrationStepCount(310) + 1);
+  expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(313));
+  expect(AppDatabase.migrationVersions, contains(313));
+  expect(AppDatabase.migrationStepCount(312), AppDatabase.migrationStepCount(313) + 1);
   expect(AppDatabase.minimumCompatibleSchemaVersion, 308);
 });
 test('existing centers start open', () async {
   // SELECT is_permanently_closed FROM dive_centers WHERE id = 'c1' -> 0
 });
 test('a database stamped v313 without the column gets it back in beforeOpen', () async {
-  // user_version = 310, dive_centers without the column -> column present after open
+  // user_version = 313, dive_centers without the column -> column present after open
 });
 test('a fresh database matches the upgraded one', () async {
   // PRAGMA table_info('dive_centers') row for is_permanently_closed equal in both
@@ -85,7 +85,7 @@ Expected: compile errors on `isPermanentlyClosed` and failing version expectatio
 
 - Table: `BoolColumn get isPermanentlyClosed => boolean().withDefault(const Constant(false))();` with a doc comment naming #3379.
 - Helper: `_addColumnIfMissing('dive_centers', 'is_permanently_closed', 'INTEGER NOT NULL DEFAULT 0 CHECK (is_permanently_closed IN (0, 1))')`.
-- Rung: `if (from < 310) { await _assertDiveCenterClosedColumn(); } if (from < 310) await reportProgress();` with a comment: column only, no backfill, re-asserted in beforeOpen.
+- Rung: `if (from < 313) { await _assertDiveCenterClosedColumn(); } if (from < 313) await reportProgress();` with a comment: column only, no backfill, re-asserted in beforeOpen.
 - Backstop: call it from `_assertChildRowColumns` with a v313 comment (every center read selects the whole row).
 - Entity and repository: carry the field through every constructor, mapper and companion. The custom-row mapper reads `(row.data['is_permanently_closed'] as int? ?? 0) == 1`.
 - Run `dart run build_runner build --delete-conflicting-outputs` (or `bash scripts/setup.sh` if denied).
