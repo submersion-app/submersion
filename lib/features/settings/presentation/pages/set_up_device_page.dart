@@ -6,9 +6,8 @@ import 'package:submersion/features/settings/presentation/providers/set_up_card_
 import 'package:submersion/features/settings/presentation/providers/set_up_progress_provider.dart';
 import 'package:submersion/features/settings/presentation/widgets/set_up_device/set_up_account_step.dart';
 import 'package:submersion/features/settings/presentation/widgets/set_up_device/set_up_backups_step.dart';
-import 'package:submersion/features/settings/presentation/widgets/set_up_device/set_up_step_marks.dart';
+import 'package:submersion/features/settings/presentation/widgets/set_up_device/set_up_photos_step.dart';
 import 'package:submersion/features/settings/presentation/widgets/set_up_device/set_up_step_navigation.dart';
-import 'package:submersion/features/settings/presentation/widgets/set_up_device/set_up_step_scaffold.dart';
 import 'package:submersion/features/settings/presentation/widgets/set_up_device/set_up_sync_step.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/utils/device_kind.dart';
@@ -130,21 +129,6 @@ class _SetUpDevicePageState extends ConsumerState<SetUpDevicePage> {
         SetUpStep.account => SetUpAccountStep(navigation: navigation),
         SetUpStep.sync => SetUpSyncStep(navigation: navigation),
         SetUpStep.backups => SetUpBackupsStep(navigation: navigation),
-        _ => _placeholderStep(step, navigation),
+        SetUpStep.photos => SetUpPhotosStep(navigation: navigation),
       };
-
-  /// Until each step's own widget lands: its name and the navigation.
-  Widget _placeholderStep(SetUpStep step, SetUpStepNavigation navigation) {
-    final l10n = context.l10n;
-    return SetUpStepScaffold(
-      title: setUpStepName(l10n, step),
-      backLabel: step == SetUpStep.account
-          ? l10n.settings_setUpDevice_notNow
-          : l10n.common_action_back,
-      onBack: navigation.onBack,
-      primaryLabel: l10n.settings_setUpDevice_next,
-      onPrimary: navigation.onNext,
-      children: const [],
-    );
-  }
 }
