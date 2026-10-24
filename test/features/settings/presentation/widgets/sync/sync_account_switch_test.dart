@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart' show StateNotifier;
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -130,6 +131,7 @@ void main() {
     SyncRepository? repository,
     FakeCloudStorageProvider? cloudProvider,
     List<AccountGroup>? groups,
+    List<Override> extra = const [],
   }) async {
     final keys = keychain ?? InMemoryKeychain();
     SharedPreferences.setMockInitialValues({});
@@ -162,6 +164,7 @@ void main() {
             syncRepositoryProvider.overrideWithValue(repository),
           if (groups != null)
             accountGroupsProvider.overrideWith((ref) async => groups),
+          ...extra,
           syncInitializerProvider.overrideWithValue(
             SyncInitializer(syncRepository: SyncRepository(), prefs: prefs),
           ),
@@ -370,6 +373,54 @@ void main() {
       );
 
       expect(connected, isFalse);
+    });
+
+    testWidgets('reads which account syncs afresh after the switch, not a '
+        'usage snapshot from before it', (tester) async {
+      ConnectedAccount row(String id, AccountKind kind, String label) =>
+          ConnectedAccount(
+            id: id,
+            kind: kind,
+            label: label,
+            createdAt: _t,
+            updatedAt: _t,
+          );
+      var syncId = 'db';
+      final (context, ref) = await pumpHost(
+        tester,
+        extra: [
+          connectedAccountsWithStatusProvider.overrideWith(
+            (ref) async => [
+              (
+                row('db', AccountKind.dropbox, 'Dropbox'),
+                AccountStatus.signedIn,
+              ),
+              (
+                row('gd', AccountKind.googledrive, 'Google Drive'),
+                AccountStatus.signedIn,
+              ),
+            ],
+          ),
+          connectedAccountUsageProvider.overrideWith(
+            (ref) async => AccountUsageSnapshot(syncAccountId: syncId),
+          ),
+        ],
+      );
+      // The page keeps the groups, and with them a usage snapshot, alive.
+      ref.listenManual(accountGroupsProvider, (_, _) {});
+      final before = await ref.read(accountGroupsProvider.future);
+      ref.read(selectedCloudProviderTypeProvider.notifier).state =
+          CloudProviderType.dropbox;
+      // The switch moves sync; the sync event bus has not said so yet.
+      syncId = 'gd';
+
+      final connected = await const SetUpSyncActions().connect(
+        context,
+        ref,
+        before.singleWhere((g) => g.kind == AccountKind.googledrive),
+      );
+
+      expect(connected, isTrue);
     });
 
     testWidgets('reports the account sync already uses as connected', (

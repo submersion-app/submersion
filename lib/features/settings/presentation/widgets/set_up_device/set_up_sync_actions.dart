@@ -50,8 +50,10 @@ class SetUpSyncActions {
     }
     await useAccountForSync(context, ref, account, current: current);
     if (ref.read(selectedCloudProviderTypeProvider) == null) return false;
-    // Read again: the switch changes which account carries sync.
-    ref.invalidate(accountGroupsProvider);
+    // Read again: the switch changes which account carries sync. The usages
+    // too, not only the groups: they refresh on the sync event bus, which
+    // may not have delivered the switch yet.
+    refreshAccountState(ref.invalidate);
     final after = await ref.read(accountGroupsProvider.future);
     return currentSyncGroup(after)?.key == account.key;
   }
