@@ -6288,6 +6288,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveCenters_hint_website => 'www.centredeplongee.com';
 
   @override
+  String get diveCenters_hint_permanentlyClosed =>
+      'Conservé pour les plongées passées ; exclu des centres à proximité dans le sélecteur.';
+
+  @override
   String diveCenters_import_fromDatabase(Object count) {
     return 'Importer depuis la base de données ($count)';
   }
@@ -6361,6 +6365,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveCenters_label_website => 'Site web';
 
   @override
+  String get diveCenters_label_permanentlyClosed => 'Fermé définitivement';
+
+  @override
   String get diveCenters_map_addCoordinatesHint =>
       'Ajoutez des coordonnées à vos centres de plongée pour les voir sur la carte';
 
@@ -6369,10 +6376,21 @@ class AppLocalizationsFr extends AppLocalizations {
       'Aucun centre de plongée avec coordonnées';
 
   @override
+  String get diveCenters_picker_allCenters => 'Tous les centres de plongée';
+
+  @override
   String get diveCenters_picker_newCenter => 'Nouveau centre de plongée';
 
   @override
   String get diveCenters_picker_title => 'Sélectionner un centre de plongée';
+
+  @override
+  String diveCenters_picker_nearSite(String siteName) {
+    return 'Près de $siteName';
+  }
+
+  @override
+  String get diveCenters_picker_nearThisDive => 'Près de cette plongée';
 
   @override
   String diveCenters_search_noResults(Object query) {
@@ -6381,6 +6399,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get diveCenters_search_prompt => 'Rechercher des centres de plongée';
+
+  @override
+  String get diveCenters_tag_closed => 'Fermé';
 
   @override
   String get diveCenters_section_address => 'Adresse';
@@ -52843,6 +52864,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get query_centers_city => 'Ville';
+
+  @override
+  String get query_centers_closed => 'Fermé définitivement';
 
   @override
   String get query_centers_coordinates => 'Coordonnées';

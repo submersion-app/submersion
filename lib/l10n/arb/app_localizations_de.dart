@@ -6279,6 +6279,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveCenters_hint_website => 'www.tauchcenter.de';
 
   @override
+  String get diveCenters_hint_permanentlyClosed =>
+      'Bleibt für frühere Tauchgänge erhalten; erscheint in der Auswahl nicht bei den Tauchcentern in der Nähe.';
+
+  @override
   String diveCenters_import_fromDatabase(Object count) {
     return 'Aus Datenbank importieren ($count)';
   }
@@ -6351,6 +6355,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveCenters_label_website => 'Website';
 
   @override
+  String get diveCenters_label_permanentlyClosed => 'Dauerhaft geschlossen';
+
+  @override
   String get diveCenters_map_addCoordinatesHint =>
       'Fügen Sie Ihren Tauchcentern Koordinaten hinzu, um sie auf der Karte zu sehen';
 
@@ -6359,10 +6366,21 @@ class AppLocalizationsDe extends AppLocalizations {
       'Keine Tauchcenter mit Koordinaten';
 
   @override
+  String get diveCenters_picker_allCenters => 'Alle Tauchcenter';
+
+  @override
   String get diveCenters_picker_newCenter => 'Neues Tauchcenter';
 
   @override
   String get diveCenters_picker_title => 'Tauchcenter auswählen';
+
+  @override
+  String diveCenters_picker_nearSite(String siteName) {
+    return 'In der Nähe von $siteName';
+  }
+
+  @override
+  String get diveCenters_picker_nearThisDive => 'In der Nähe dieses Tauchgangs';
 
   @override
   String diveCenters_search_noResults(Object query) {
@@ -6371,6 +6389,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveCenters_search_prompt => 'Tauchcenter suchen';
+
+  @override
+  String get diveCenters_tag_closed => 'Geschlossen';
 
   @override
   String get diveCenters_section_address => 'Adresse';
@@ -52607,6 +52628,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get query_centers_city => 'Stadt';
+
+  @override
+  String get query_centers_closed => 'Dauerhaft geschlossen';
 
   @override
   String get query_centers_coordinates => 'Koordinaten';

@@ -9911,6 +9911,12 @@ abstract class AppLocalizations {
   /// **'www.divecenter.com'**
   String get diveCenters_hint_website;
 
+  /// No description provided for @diveCenters_hint_permanentlyClosed.
+  ///
+  /// In en, this message translates to:
+  /// **'Still kept for past dives; left out of nearby centers in the picker.'**
+  String get diveCenters_hint_permanentlyClosed;
+
   /// No description provided for @diveCenters_import_fromDatabase.
   ///
   /// In en, this message translates to:
@@ -10019,6 +10025,12 @@ abstract class AppLocalizations {
   /// **'Website'**
   String get diveCenters_label_website;
 
+  /// No description provided for @diveCenters_label_permanentlyClosed.
+  ///
+  /// In en, this message translates to:
+  /// **'Permanently closed'**
+  String get diveCenters_label_permanentlyClosed;
+
   /// No description provided for @diveCenters_map_addCoordinatesHint.
   ///
   /// In en, this message translates to:
@@ -10030,6 +10042,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No dive centers with coordinates'**
   String get diveCenters_map_noCoordinates;
+
+  /// No description provided for @diveCenters_picker_allCenters.
+  ///
+  /// In en, this message translates to:
+  /// **'All dive centers'**
+  String get diveCenters_picker_allCenters;
 
   /// No description provided for @diveCenters_picker_newCenter.
   ///
@@ -10043,6 +10061,18 @@ abstract class AppLocalizations {
   /// **'Select Dive Center'**
   String get diveCenters_picker_title;
 
+  /// Dive center picker section header: centers near the dive's site
+  ///
+  /// In en, this message translates to:
+  /// **'Near {siteName}'**
+  String diveCenters_picker_nearSite(String siteName);
+
+  /// No description provided for @diveCenters_picker_nearThisDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Near this dive'**
+  String get diveCenters_picker_nearThisDive;
+
   /// No description provided for @diveCenters_search_noResults.
   ///
   /// In en, this message translates to:
@@ -10054,6 +10084,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Search dive centers'**
   String get diveCenters_search_prompt;
+
+  /// No description provided for @diveCenters_tag_closed.
+  ///
+  /// In en, this message translates to:
+  /// **'Closed'**
+  String get diveCenters_tag_closed;
 
   /// No description provided for @diveCenters_section_address.
   ///
@@ -83588,6 +83624,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'City'**
   String get query_centers_city;
+
+  /// Query builder: whether a dive center is permanently closed
+  ///
+  /// In en, this message translates to:
+  /// **'Permanently closed'**
+  String get query_centers_closed;
 
   /// Query builder: whether a dive center has a map position
   ///

@@ -148,6 +148,9 @@ void main() {
       conflictFieldFor('diveCenters', 'fillOpensAt').kind,
       FieldKind.timeOfDay,
     );
+    final closed = conflictFieldFor('diveCenters', 'isPermanentlyClosed');
+    expect(closed.kind, FieldKind.boolean);
+    expect(closed.label(l10n), 'Permanently closed');
     // A species category and a checklist category are different things.
     expect(conflictFieldFor('species', 'category').kind, FieldKind.enumValue);
     expect(

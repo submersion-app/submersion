@@ -6276,6 +6276,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveCenters_hint_website => 'www.centrodebueo.com';
 
   @override
+  String get diveCenters_hint_permanentlyClosed =>
+      'Se conserva para inmersiones anteriores; no aparece entre los centros cercanos del selector.';
+
+  @override
   String diveCenters_import_fromDatabase(Object count) {
     return 'Importar de Base de Datos ($count)';
   }
@@ -6348,6 +6352,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveCenters_label_website => 'Sitio Web';
 
   @override
+  String get diveCenters_label_permanentlyClosed => 'Cerrado permanentemente';
+
+  @override
   String get diveCenters_map_addCoordinatesHint =>
       'Agrega coordenadas a tus centros de buceo para verlos en el mapa';
 
@@ -6356,10 +6363,21 @@ class AppLocalizationsEs extends AppLocalizations {
       'No hay centros de buceo con coordenadas';
 
   @override
+  String get diveCenters_picker_allCenters => 'Todos los centros de buceo';
+
+  @override
   String get diveCenters_picker_newCenter => 'Nuevo Centro de Buceo';
 
   @override
   String get diveCenters_picker_title => 'Seleccionar Centro de Buceo';
+
+  @override
+  String diveCenters_picker_nearSite(String siteName) {
+    return 'Cerca de $siteName';
+  }
+
+  @override
+  String get diveCenters_picker_nearThisDive => 'Cerca de esta inmersión';
 
   @override
   String diveCenters_search_noResults(Object query) {
@@ -6368,6 +6386,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveCenters_search_prompt => 'Buscar centros de buceo';
+
+  @override
+  String get diveCenters_tag_closed => 'Cerrado';
 
   @override
   String get diveCenters_section_address => 'Dirección';
@@ -52773,6 +52794,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get query_centers_city => 'Ciudad';
+
+  @override
+  String get query_centers_closed => 'Cerrado permanentemente';
 
   @override
   String get query_centers_coordinates => 'Coordenadas';

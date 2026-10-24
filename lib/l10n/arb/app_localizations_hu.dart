@@ -6258,6 +6258,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveCenters_hint_website => 'www.buvariskola.hu';
 
   @override
+  String get diveCenters_hint_permanentlyClosed =>
+      'A korábbi merülésekhez megmarad; a választóban nem szerepel a közeli búvárközpontok között.';
+
+  @override
   String diveCenters_import_fromDatabase(Object count) {
     return 'Importálás adatbázisból ($count)';
   }
@@ -6330,6 +6334,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveCenters_label_website => 'Weboldal';
 
   @override
+  String get diveCenters_label_permanentlyClosed => 'Véglegesen bezárt';
+
+  @override
   String get diveCenters_map_addCoordinatesHint =>
       'Add hozzá a koordinátákat a búvárközpontjaidhoz, hogy lásd őket a térképen';
 
@@ -6338,10 +6345,21 @@ class AppLocalizationsHu extends AppLocalizations {
       'Nincsenek koordinátákkal rendelkező búvárközpontok';
 
   @override
+  String get diveCenters_picker_allCenters => 'Összes búvárközpont';
+
+  @override
   String get diveCenters_picker_newCenter => 'Új búvárközpont';
 
   @override
   String get diveCenters_picker_title => 'Búvárközpont kiválasztása';
+
+  @override
+  String diveCenters_picker_nearSite(String siteName) {
+    return '$siteName közelében';
+  }
+
+  @override
+  String get diveCenters_picker_nearThisDive => 'E merülés közelében';
 
   @override
   String diveCenters_search_noResults(Object query) {
@@ -6350,6 +6368,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveCenters_search_prompt => 'Búvárközpontok keresése';
+
+  @override
+  String get diveCenters_tag_closed => 'Bezárt';
 
   @override
   String get diveCenters_section_address => 'Cím';
@@ -52438,6 +52459,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get query_centers_city => 'Város';
+
+  @override
+  String get query_centers_closed => 'Véglegesen bezárt';
 
   @override
   String get query_centers_coordinates => 'Koordináták';

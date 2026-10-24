@@ -5962,6 +5962,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveCenters_hint_website => 'www.divecenter.com';
 
   @override
+  String get diveCenters_hint_permanentlyClosed =>
+      '仍保留用于以往的潜水记录；在选择器中不会列入附近的潜水中心。';
+
+  @override
   String diveCenters_import_fromDatabase(Object count) {
     return '从数据库导入 ($count)';
   }
@@ -6033,10 +6037,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveCenters_label_website => '网站';
 
   @override
+  String get diveCenters_label_permanentlyClosed => '已永久关闭';
+
+  @override
   String get diveCenters_map_addCoordinatesHint => '为您的潜水中心添加坐标以在地图上显示';
 
   @override
   String get diveCenters_map_noCoordinates => '没有带坐标的潜水中心';
+
+  @override
+  String get diveCenters_picker_allCenters => '所有潜水中心';
 
   @override
   String get diveCenters_picker_newCenter => '新建潜水中心';
@@ -6045,12 +6055,23 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveCenters_picker_title => '选择潜水中心';
 
   @override
+  String diveCenters_picker_nearSite(String siteName) {
+    return '$siteName 附近';
+  }
+
+  @override
+  String get diveCenters_picker_nearThisDive => '此次潜水附近';
+
+  @override
   String diveCenters_search_noResults(Object query) {
     return '未找到“$query”的结果';
   }
 
   @override
   String get diveCenters_search_prompt => '搜索潜水中心';
+
+  @override
+  String get diveCenters_tag_closed => '已关闭';
 
   @override
   String get diveCenters_section_address => '地址';
@@ -49454,6 +49475,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get query_centers_city => '城市';
+
+  @override
+  String get query_centers_closed => '已永久关闭';
 
   @override
   String get query_centers_coordinates => '坐标';

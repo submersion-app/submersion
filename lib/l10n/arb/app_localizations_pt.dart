@@ -6272,6 +6272,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveCenters_hint_website => 'www.centrodemergulho.com';
 
   @override
+  String get diveCenters_hint_permanentlyClosed =>
+      'Mantido para mergulhos anteriores; fica fora dos centros próximos no seletor.';
+
+  @override
   String diveCenters_import_fromDatabase(Object count) {
     return 'Importar do Banco de Dados ($count)';
   }
@@ -6344,6 +6348,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveCenters_label_website => 'Site';
 
   @override
+  String get diveCenters_label_permanentlyClosed => 'Encerrado definitivamente';
+
+  @override
   String get diveCenters_map_addCoordinatesHint =>
       'Adicione coordenadas aos seus centros de mergulho para vê-los no mapa';
 
@@ -6352,10 +6359,21 @@ class AppLocalizationsPt extends AppLocalizations {
       'Nenhum centro de mergulho com coordenadas';
 
   @override
+  String get diveCenters_picker_allCenters => 'Todos os centros de mergulho';
+
+  @override
   String get diveCenters_picker_newCenter => 'Novo Centro de Mergulho';
 
   @override
   String get diveCenters_picker_title => 'Selecionar Centro de Mergulho';
+
+  @override
+  String diveCenters_picker_nearSite(String siteName) {
+    return 'Perto de $siteName';
+  }
+
+  @override
+  String get diveCenters_picker_nearThisDive => 'Perto deste mergulho';
 
   @override
   String diveCenters_search_noResults(Object query) {
@@ -6364,6 +6382,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diveCenters_search_prompt => 'Buscar centros de mergulho';
+
+  @override
+  String get diveCenters_tag_closed => 'Encerrado';
 
   @override
   String get diveCenters_section_address => 'Endereço';
@@ -52722,6 +52743,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get query_centers_city => 'Cidade';
+
+  @override
+  String get query_centers_closed => 'Encerrado definitivamente';
 
   @override
   String get query_centers_coordinates => 'Coordenadas';

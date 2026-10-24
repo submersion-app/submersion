@@ -6272,6 +6272,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveCenters_hint_website => 'www.centroimmersioni.com';
 
   @override
+  String get diveCenters_hint_permanentlyClosed =>
+      'Resta per le immersioni passate; escluso dai centri vicini nel selettore.';
+
+  @override
   String diveCenters_import_fromDatabase(Object count) {
     return 'Importa dal Database ($count)';
   }
@@ -6344,6 +6348,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveCenters_label_website => 'Sito Web';
 
   @override
+  String get diveCenters_label_permanentlyClosed => 'Chiuso definitivamente';
+
+  @override
   String get diveCenters_map_addCoordinatesHint =>
       'Aggiungi coordinate ai tuoi centri immersioni per vederli sulla mappa';
 
@@ -6352,10 +6359,21 @@ class AppLocalizationsIt extends AppLocalizations {
       'Nessun centro immersioni con coordinate';
 
   @override
+  String get diveCenters_picker_allCenters => 'Tutti i centri immersioni';
+
+  @override
   String get diveCenters_picker_newCenter => 'Nuovo Centro Immersioni';
 
   @override
   String get diveCenters_picker_title => 'Seleziona Centro Immersioni';
+
+  @override
+  String diveCenters_picker_nearSite(String siteName) {
+    return 'Vicino a $siteName';
+  }
+
+  @override
+  String get diveCenters_picker_nearThisDive => 'Vicino a questa immersione';
 
   @override
   String diveCenters_search_noResults(Object query) {
@@ -6364,6 +6382,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveCenters_search_prompt => 'Cerca centri immersioni';
+
+  @override
+  String get diveCenters_tag_closed => 'Chiuso';
 
   @override
   String get diveCenters_section_address => 'Indirizzo';
@@ -52731,6 +52752,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get query_centers_city => 'Città';
+
+  @override
+  String get query_centers_closed => 'Chiuso definitivamente';
 
   @override
   String get query_centers_coordinates => 'Coordinate';
