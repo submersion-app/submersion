@@ -62,9 +62,15 @@ class DiveCenterPickerSheet extends ConsumerWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                context.l10n.diveCenters_picker_title,
-                style: Theme.of(context).textTheme.titleLarge,
+              // Shrinks before the button, so a long translation cannot push
+              // "New Dive Center" off the sheet.
+              Flexible(
+                child: Text(
+                  context.l10n.diveCenters_picker_title,
+                  style: Theme.of(context).textTheme.titleLarge,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
               TextButton.icon(
                 onPressed: onCreateNewCenter,
