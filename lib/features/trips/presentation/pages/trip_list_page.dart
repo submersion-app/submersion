@@ -21,7 +21,6 @@ import 'package:submersion/shared/selection/table_selection_owner.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_column_picker.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
-import 'package:submersion/shared/widgets/master_detail/remembered_selection.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
 import 'package:submersion/shared/widgets/table_mode_layout/table_mode_layout.dart';
@@ -76,7 +75,7 @@ class _TripListPageState extends ConsumerState<TripListPage>
       return FocusTraversalGroup(
         child: TableModeLayout(
           sectionKey: 'trips',
-          rememberedSelectedId: _rememberedTripId(ref),
+          rememberedSelectedId: ref.watch(rememberedTripIdProvider),
           appBarTitle: context.l10n.nav_trips,
           appBarSubtitle: tripListCountLabel(context, ref),
           tableContent: TripListContent(
@@ -194,7 +193,7 @@ class _TripListPageState extends ConsumerState<TripListPage>
     if (ResponsiveBreakpoints.isMasterDetail(context)) {
       return MasterDetailScaffold(
         sectionId: 'trips',
-        rememberedSelectedId: _rememberedTripId(ref),
+        rememberedSelectedId: ref.watch(rememberedTripIdProvider),
         masterBuilder: (context, onItemSelected, selectedId) => TripListContent(
           onItemSelected: onItemSelected,
           selectedId: selectedId,
@@ -241,10 +240,3 @@ Widget _buildEditPane(
     ),
   );
 }
-
-/// The trip last opened, while the list still shows it (#3301).
-AsyncValue<String?> _rememberedTripId(WidgetRef ref) => rememberedListedId(
-  items: ref.watch(sortedFilteredTripsProvider),
-  rememberedId: ref.watch(highlightedTripIdProvider),
-  idOf: (t) => t.trip.id,
-);

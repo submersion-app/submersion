@@ -19,6 +19,7 @@ import 'package:submersion/features/settings/data/repositories/app_settings_repo
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/main_scaffold.dart';
+import 'package:submersion/shared/widgets/master_detail/list_memory_scope.dart';
 import 'package:submersion/shared/widgets/nav/nav_order_provider.dart';
 import 'package:submersion/shared/widgets/shell_chrome_scope.dart';
 import 'package:submersion/features/gas_calculators/domain/blending/blender_preferences.dart';
@@ -253,6 +254,15 @@ class _FakeRepo implements AppSettingsRepository {
 
 void main() {
   group('MainScaffold', () {
+    // The lists' memory follows records opened and diver switches anywhere
+    // in the shell (#3301).
+    testWidgets('keeps the lists\' memory for the whole shell', (tester) async {
+      await tester.pumpWidget(await _buildTestApp());
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ListMemoryScope), findsOneWidget);
+    });
+
     testWidgets('desktop layout shows NavigationRail', (tester) async {
       tester.view.physicalSize = const Size(1400, 900);
       tester.view.devicePixelRatio = 1.0;

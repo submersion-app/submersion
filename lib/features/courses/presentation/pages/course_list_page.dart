@@ -13,7 +13,6 @@ import 'package:submersion/shared/selection/table_selection_owner.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_column_picker.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
-import 'package:submersion/shared/widgets/master_detail/remembered_selection.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
 import 'package:submersion/shared/widgets/table_mode_layout/table_mode_layout.dart';
@@ -73,7 +72,7 @@ class _CourseListPageState extends ConsumerState<CourseListPage>
       return FocusTraversalGroup(
         child: TableModeLayout(
           sectionKey: 'courses',
-          rememberedSelectedId: _rememberedCourseId(ref),
+          rememberedSelectedId: ref.watch(rememberedCourseIdProvider),
           appBarTitle: context.l10n.nav_courses,
           appBarSubtitle: countLabel,
           appBarTitleWidget: widget.headerTitle?.build(
@@ -194,7 +193,7 @@ class _CourseListPageState extends ConsumerState<CourseListPage>
     if (ResponsiveBreakpoints.isMasterDetail(context)) {
       return MasterDetailScaffold(
         sectionId: 'courses',
-        rememberedSelectedId: _rememberedCourseId(ref),
+        rememberedSelectedId: ref.watch(rememberedCourseIdProvider),
         masterBuilder: (context, onItemSelected, selectedId) =>
             CourseListContent(
               onItemSelected: onItemSelected,
@@ -236,10 +235,3 @@ class _CourseListPageState extends ConsumerState<CourseListPage>
     );
   }
 }
-
-/// The course last opened, while the list still shows it (#3301).
-AsyncValue<String?> _rememberedCourseId(WidgetRef ref) => rememberedListedId(
-  items: ref.watch(filteredCoursesProvider),
-  rememberedId: ref.watch(highlightedCourseIdProvider),
-  idOf: (c) => c.id,
-);

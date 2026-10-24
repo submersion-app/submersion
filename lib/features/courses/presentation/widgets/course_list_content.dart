@@ -120,25 +120,23 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
       rememberedId: ref.read(highlightedCourseIdProvider),
       idOf: (item) => item.id,
       controller: _scrollController,
-      scrollTo: (id) => _scrollToSelectedItem(targetId: id, jump: true),
+      scrollTo: _jumpToCourse,
     );
   }
 
-  /// Scrolls to [targetId], or the selected course when omitted. [jump] moves
-  /// straight there, for a list being restored, which should not visibly
-  /// travel from the top.
-  void _scrollToSelectedItem({String? targetId, bool jump = false}) {
-    final target = targetId ?? widget.selectedId;
-    if (target == null || !_scrollController.hasClients) return;
+  /// Jumps the list to course [id], for a list being restored; a jump
+  /// rather than an animation, so the list does not visibly travel from the
+  /// top.
+  void _jumpToCourse(String id) {
     final items = ref.read(filteredCoursesProvider).value;
     if (items == null) return;
-    final index = items.indexWhere((item) => item.id == target);
+    final index = items.indexWhere((item) => item.id == id);
     if (index < 0) return;
     scrollToEstimatedRow(
       _scrollController,
       index: index,
       rowCount: items.length,
-      jump: jump,
+      jump: true,
     );
   }
 

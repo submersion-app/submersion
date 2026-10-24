@@ -299,6 +299,50 @@ void main() {
     expect(find.text('Gear 50'), findsOneWidget);
   });
 
+  // Once the diver scrolls, a regrouping no longer pulls the list back to
+  // the item it was restored to (#3301).
+  testWidgets('a scroll by the diver drops the restore target', (tester) async {
+    final items = [
+      for (var i = 0; i < 60; i++)
+        _makeEquipment(id: 'r$i', name: 'Gear ${i.toString().padLeft(2, '0')}'),
+    ];
+    final arrangement = StateProvider<EquipmentArrangement>(
+      (ref) => EquipmentArrangement.defaults,
+    );
+    final overrides = [
+      ...await _buildPhoneOverrides(
+        items: items,
+        highlightedEquipmentId: 'r50',
+      ),
+      equipmentArrangementProvider.overrideWith(
+        (ref) => ref.watch(arrangement),
+      ),
+    ];
+    await tester.pumpWidget(
+      testApp(
+        overrides: overrides,
+        child: const EquipmentListContent(showAppBar: true),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Gear 50'), findsOneWidget);
+
+    await tester.fling(
+      find.byType(Scrollable).first,
+      const Offset(0, 8000),
+      4000,
+    );
+    await tester.pumpAndSettle();
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(EquipmentListContent)),
+    );
+    container.read(arrangement.notifier).state = EquipmentArrangement.defaults
+        .copyWith(typeOrder: EquipmentTypeOrder.none);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Gear 00'), findsOneWidget);
+  });
+
   // A remembered item the list did not show when it was built is given up,
   // not jumped to whenever a later filter brings it into view (#3301).
   testWidgets('a highlighted item missing when built is not jumped to later', (

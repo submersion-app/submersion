@@ -13,7 +13,6 @@ import 'package:submersion/shared/selection/table_selection_owner.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_column_picker.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
-import 'package:submersion/shared/widgets/master_detail/remembered_selection.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
 import 'package:submersion/shared/widgets/table_mode_layout/table_mode_layout.dart';
@@ -95,7 +94,7 @@ class _DiveCenterListPageState extends ConsumerState<DiveCenterListPage>
       return TableModeLayout(
         sectionKey: 'diveCenters',
         paneSectionId: 'dive-centers',
-        rememberedSelectedId: _rememberedDiveCenterId(ref),
+        rememberedSelectedId: ref.watch(rememberedDiveCenterIdProvider),
         appBarTitle: context.l10n.nav_diveCenters,
         appBarSubtitle: diveCenterListCountLabel(context, ref),
         tableContent: DiveCenterListContent(
@@ -221,7 +220,7 @@ class _DiveCenterListPageState extends ConsumerState<DiveCenterListPage>
       return FocusTraversalGroup(
         child: MasterDetailScaffold(
           sectionId: 'dive-centers',
-          rememberedSelectedId: _rememberedDiveCenterId(ref),
+          rememberedSelectedId: ref.watch(rememberedDiveCenterIdProvider),
           masterBuilder: (context, onItemSelected, selectedId) =>
               DiveCenterListContent(
                 onItemSelected: onItemSelected,
@@ -269,11 +268,3 @@ class _DiveCenterListPageState extends ConsumerState<DiveCenterListPage>
     );
   }
 }
-
-/// The dive center last opened, while the list still shows it (#3301).
-AsyncValue<String?> _rememberedDiveCenterId(WidgetRef ref) =>
-    rememberedListedId(
-      items: ref.watch(filteredDiveCentersProvider),
-      rememberedId: ref.watch(highlightedDiveCenterIdProvider),
-      idOf: (c) => c.id,
-    );
