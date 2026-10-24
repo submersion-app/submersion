@@ -15,26 +15,34 @@ export '../../integration_test/helpers/color_encode_cases.dart';
 /// the in-app encode, and reads its output back with ffprobe and ffmpeg.
 /// Kept out of the app because the sandboxed macOS app may not run ffmpeg.
 
-/// Where inputs and outputs live: COLOR_IT_DIR, else the sandboxed macOS
-/// app's own temp folder, else the system temp folder (Windows).
-Directory colorItDir() {
+/// Where the app may look for inputs: COLOR_IT_DIR alone when set; else the
+/// system temp folder, plus on macOS the sandboxed app's own temp folder (an
+/// unsigned CI build runs without the sandbox and uses the system one).
+List<Directory> colorItDirs() {
   final env = Platform.environment['COLOR_IT_DIR'];
-  if (env != null && env.isNotEmpty) return Directory(env);
-  if (Platform.isMacOS) {
-    return Directory(
-      p.join(
-        Platform.environment['HOME']!,
-        'Library',
-        'Containers',
-        'app.submersion',
-        'Data',
-        'tmp',
-        colorItFolder,
+  if (env != null && env.isNotEmpty) return [Directory(env)];
+  return [
+    Directory(p.join(Directory.systemTemp.path, colorItFolder)),
+    if (Platform.isMacOS)
+      Directory(
+        p.join(
+          Platform.environment['HOME']!,
+          'Library',
+          'Containers',
+          'app.submersion',
+          'Data',
+          'tmp',
+          colorItFolder,
+        ),
       ),
-    );
-  }
-  return Directory(p.join(Directory.systemTemp.path, colorItFolder));
+  ];
 }
+
+/// The folder the app wrote its outputs into.
+Directory colorItOutputRoot() => colorItDirs().firstWhere(
+  (d) => Directory(p.join(d.path, 'out')).existsSync(),
+  orElse: () => colorItDirs().first,
+);
 
 const _width = 320;
 const _height = 240;

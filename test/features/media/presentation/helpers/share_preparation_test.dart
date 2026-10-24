@@ -96,6 +96,8 @@ void main() {
     ColorEncoder? encoder,
     bool noEncoder = false,
     String? Function(MediaItem)? pathFor,
+    bool pathThrows = false,
+    bool accessOpens = true,
   }) async {
     late WidgetRef widgetRef;
     await tester.pumpWidget(
@@ -103,10 +105,10 @@ void main() {
         overrides: [
           diverAutoColorCorrectionProvider.overrideWithValue(false),
           colorEncoderProvider.overrideWithValue(noEncoder ? null : encoder),
-          resolvedFilePathProvider.overrideWith(
-            (ref, item) async =>
-                pathFor != null ? pathFor(item) : '/videos/${item.id}.mov',
-          ),
+          resolvedFilePathProvider.overrideWith((ref, item) async {
+            if (pathThrows) throw StateError('store offline');
+            return pathFor != null ? pathFor(item) : '/videos/${item.id}.mov';
+          }),
           resolvedFullResolutionProvider.overrideWith(
             (ref, item) async => ResolvedAssetResult(
               bytes: Uint8List.fromList(item.id.codeUnits),
@@ -115,7 +117,7 @@ void main() {
           ),
           videoFileAccessProvider.overrideWithValue(
             <R>({path, bookmarkRef, required read}) async =>
-                path == null ? null : read(path),
+                path == null || !accessOpens ? null : read(path),
           ),
         ],
         child: Consumer(
@@ -345,6 +347,81 @@ void main() {
       encoder: _FakeEncoder([_Outcome.systemCancel]),
     );
     expect(result, isA<ShareInterrupted>());
+  });
+
+  testWidgets('a correction that comes out as nothing shares the original', (
+    tester,
+  ) async {
+    // Auto switched off for this clip and no sliders moved: it may need
+    // correcting by the look of it, but nothing would change.
+    final encoder = _FakeEncoder([]);
+    final result = await withRef(
+      tester,
+      (ref) => prepareShareFiles(
+        ref,
+        [_item('v1', adjustment: const ColorAdjustment(autoOverride: false))],
+        onProgress: (_) {},
+        cancel: ColorEncodeCancel(),
+      ),
+      encoder: encoder,
+    );
+    expect(encoder.calls, isEmpty);
+    expect((result as ShareReady).files.single.name, 'v1.mov');
+  });
+
+  testWidgets('a file that cannot be opened lists the video as failed', (
+    tester,
+  ) async {
+    final v1 = _item('v1', adjustment: _warm);
+    final encoder = _FakeEncoder([]);
+    final result = await withRef(
+      tester,
+      (ref) => prepareShareFiles(
+        ref,
+        [v1],
+        onProgress: (_) {},
+        cancel: ColorEncodeCancel(),
+      ),
+      encoder: encoder,
+      accessOpens: false,
+    );
+    expect((result as ShareReady).failedVideos, [v1]);
+    expect(encoder.calls, isEmpty);
+  });
+
+  testWidgets('a path that fails to resolve lists the video as failed', (
+    tester,
+  ) async {
+    final v1 = _item('v1', adjustment: _warm);
+    final result = await withRef(
+      tester,
+      (ref) => prepareShareFiles(
+        ref,
+        [v1],
+        onProgress: (_) {},
+        cancel: ColorEncodeCancel(),
+      ),
+      encoder: _FakeEncoder([]),
+      pathThrows: true,
+    );
+    expect((result as ShareReady).failedVideos, [v1]);
+  });
+
+  testWidgets('a cancel before anything starts prepares nothing', (
+    tester,
+  ) async {
+    final encoder = _FakeEncoder([]);
+    final result = await withRef(tester, (ref) {
+      final cancel = ColorEncodeCancel()..cancel();
+      return prepareShareFiles(
+        ref,
+        [_item('v1', adjustment: _warm)],
+        onProgress: (_) {},
+        cancel: cancel,
+      );
+    }, encoder: encoder);
+    expect(result, isA<ShareCancelled>());
+    expect(encoder.calls, isEmpty);
   });
 
   testWidgets('originalShareFiles writes the original bytes', (tester) async {

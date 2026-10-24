@@ -60,5 +60,9 @@ case "$(uname -s)" in
 esac
 
 flutter test tool/color_encode_it/prepare_test.dart
-flutter test "integration_test/${platform}_color_encode_test.dart" -d "$device"
+in_app=0
+flutter test "integration_test/${platform}_color_encode_test.dart" -d "$device" ||
+  in_app=$?
+# Checked either way: the reports say what went wrong.
 flutter test tool/color_encode_it/verify_test.dart
+exit "$in_app"

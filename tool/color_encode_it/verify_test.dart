@@ -12,7 +12,7 @@ import 'harness.dart';
 void main() {
   late String ffmpeg;
   late String ffprobe;
-  final root = colorItDir();
+  final root = colorItOutputRoot();
   File input(String name) => File(p.join(root.path, 'in', name));
   File output(String name) => File(p.join(root.path, 'out', name));
   Map<String, dynamic> report(String name) =>
@@ -131,6 +131,7 @@ void main() {
   test('colour encode cancels cleanly', () {
     final r = report(longCase.fileName);
     expect(r['cancelled'], isTrue, reason: 'outcome: $r');
+    expect(r['progressEvents'], greaterThan(0), reason: 'no progress: $r');
     expect(r['outputExists'], isFalse);
     expect(r['tmpLeft'], isFalse);
   });

@@ -87,5 +87,12 @@ jobs:
       - name: Run code generation
         run: dart run build_runner build --delete-conflicting-outputs
 
+      # The runner has no signing identity; the integration build is local.
+      - name: Disable code signing
+        run: |
+          echo 'CODE_SIGNING_ALLOWED = NO' >> macos/Runner/Configs/Debug.xcconfig
+          echo 'CODE_SIGNING_REQUIRED = NO' >> macos/Runner/Configs/Debug.xcconfig
+          echo 'CODE_SIGN_IDENTITY = ' >> macos/Runner/Configs/Debug.xcconfig
+
       - name: Synthesize, encode, verify
         run: scripts/run_color_encode_it.sh

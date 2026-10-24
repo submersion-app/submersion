@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -104,6 +105,11 @@ void colorEncodeInAppTests({
     final out = await output(longCase.fileName);
     final cancel = ColorEncodeCancel();
     var cancelled = false;
+    var progressEvents = 0;
+    String? error;
+    // Cancelled on the first progress past 5%, or after a second whether or
+    // not progress arrives, so the cancel itself is always exercised.
+    final timer = Timer(const Duration(seconds: 1), cancel.cancel);
     try {
       await colorEncoderForThisPlatform()!.encodeWithColor(
         source: source,
@@ -111,14 +117,21 @@ void colorEncodeInAppTests({
         timeline: testTimeline,
         cancel: cancel,
         onProgress: (f) {
+          progressEvents++;
           if (f > 0.05) cancel.cancel();
         },
       );
     } on TranscodeCancelledException {
       cancelled = true;
+    } on Object catch (e) {
+      error = '$e';
+    } finally {
+      timer.cancel();
     }
     await writeReport(out, {
       'cancelled': cancelled,
+      'error': error,
+      'progressEvents': progressEvents,
       'outputExists': await out.exists(),
       'tmpLeft': await File('${out.path}.tmp').exists(),
     });
