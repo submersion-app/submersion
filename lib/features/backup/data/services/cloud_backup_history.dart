@@ -46,7 +46,7 @@ BackupRecord? backupRecordFromCloudFile(
     // Stable across listings, so a pinned (adopted) row keeps its identity.
     id: '$cloudBackupIdPrefix${file.id}',
     filename: name,
-    timestamp: _timestampFromName(name) ?? file.modifiedTime,
+    timestamp: backupTimestampFromName(name) ?? file.modifiedTime,
     sizeBytes: file.sizeBytes ?? 0,
     location: BackupLocation.cloud,
     cloudFileId: file.id,
@@ -91,7 +91,9 @@ List<BackupRecord> mergeCloudBackups(
     ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
 }
 
-DateTime? _timestampFromName(String name) {
+/// The timestamp a backup's name starts with, in the local time of the device
+/// that wrote it, or null when the name carries none.
+DateTime? backupTimestampFromName(String name) {
   final match = _nameTimestamp.firstMatch(name);
   if (match == null) return null;
   final parts = [for (var i = 1; i <= 6; i++) int.parse(match.group(i)!)];
