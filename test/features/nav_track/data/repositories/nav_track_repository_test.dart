@@ -886,7 +886,14 @@ void main() {
   });
 
   group('setEquipment', () {
+    Future<void> insertEquipment(AppDatabase db, String id, String name) =>
+        db.customStatement(
+          "INSERT INTO equipment (id, diver_id, name, type, created_at, "
+          "updated_at) VALUES ('$id', NULL, '$name', 'dpv', 1, 1)",
+        );
+
     test('sets both fields and marks the row pending for sync', () async {
+      await insertEquipment(db, 'eq1', 'Scooter');
       final id = await repo.insertImportedRoute(
         points: _samplePoints(),
         source: NavTrackSource.seacraftEnc,
@@ -913,6 +920,7 @@ void main() {
     });
 
     test('clears both fields when called with neither argument', () async {
+      await insertEquipment(db, 'eq1', 'Scooter');
       final id = await repo.insertImportedRoute(
         points: _samplePoints(),
         source: NavTrackSource.seacraftEnc,
