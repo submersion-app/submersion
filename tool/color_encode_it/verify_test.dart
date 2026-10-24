@@ -85,6 +85,14 @@ void main() {
       // The timeline follows presentation time, the player's position: a
       // clip whose first frame is shown at 1.5 s gets the colour for 1.5 s.
       final first = await firstFrameSeconds(ffprobe, source);
+      // An engine may move a late-starting clip to start at 0 (Media
+      // Foundation drops the leading empty edit) or stretch its first frame
+      // back to 0 (AVFoundation): read each file at the same point of its
+      // content, lined up by the last frame.
+      final offset =
+          await lastFrameSeconds(ffprobe, copy) -
+          await lastFrameSeconds(ffprobe, source);
+      double inCopy(double t) => t + offset;
       List<double> expected(List<double> source, double t) => correctPixel(
         source,
         testTimeline.matrixAt((t * 1000).round()),
@@ -97,7 +105,12 @@ void main() {
       // timing difference cannot pass for a conversion shift.
       final steady = first + 2.2;
       final steadyBefore = await bandColors(ffmpeg, source, steady, hdr: hdr);
-      final steadyAfter = await bandColors(ffmpeg, copy, steady, hdr: hdr);
+      final steadyAfter = await bandColors(
+        ffmpeg,
+        copy,
+        inCopy(steady),
+        hdr: hdr,
+      );
       final shift = [
         for (var band = 0; band < steadyBefore.length; band++)
           [
@@ -110,7 +123,7 @@ void main() {
       }
       for (final t in [first + 0.5, first + 1.5]) {
         final before = await bandColors(ffmpeg, source, t, hdr: hdr);
-        final after = await bandColors(ffmpeg, copy, t, hdr: hdr);
+        final after = await bandColors(ffmpeg, copy, inCopy(t), hdr: hdr);
         for (var band = 0; band < before.length; band++) {
           final want = [
             for (var ch = 0; ch < 3; ch++)

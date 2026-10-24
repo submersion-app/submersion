@@ -244,6 +244,27 @@ Future<double> firstFrameSeconds(String ffprobe, File file) async {
   );
 }
 
+/// The presentation time of [file]'s last video frame, in seconds.
+Future<double> lastFrameSeconds(String ffprobe, File file) async {
+  final result = await Process.run(ffprobe, [
+    '-v',
+    'error',
+    '-select_streams',
+    'v:0',
+    '-show_entries',
+    'frame=best_effort_timestamp_time',
+    '-of',
+    'csv=p=0',
+    file.path,
+  ]);
+  final times = (result.stdout as String)
+      // Some streams add an empty field after the time ("2.466667,").
+      .split(RegExp(r'[\s,]+'))
+      .map(double.tryParse)
+      .whereType<double>();
+  return times.reduce((a, b) => a > b ? a : b);
+}
+
 /// The encoded R'G'B' (0..1) at the centre of each band in the first frame
 /// at or after presentation time [seconds], decoded the same way for every
 /// file: the clip's own YUV matrix, no transfer change, no rotation.
