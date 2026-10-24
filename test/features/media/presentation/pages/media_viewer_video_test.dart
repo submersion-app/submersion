@@ -151,6 +151,22 @@ class _UnreleasableVideoPlatform extends _FakeVideoPlatform {
   }
 }
 
+/// Installs [platform] as the player for this test, restoring the previous
+/// one when it ends: CI runs many test files in one isolate (#2500).
+void _usePlatform(VideoPlayerPlatform platform) {
+  final original = VideoPlayerPlatform.instance;
+  addTearDown(() => VideoPlayerPlatform.instance = original);
+  VideoPlayerPlatform.instance = platform;
+}
+
+/// Every log entry written from now until the test ends.
+List<LogEntry> _captureLogs() {
+  final logged = <LogEntry>[];
+  final subscription = LoggerService.logStream.listen(logged.add);
+  addTearDown(subscription.cancel);
+  return logged;
+}
+
 /// A clip path under the platform's temp directory. The fake platform never
 /// opens it; it only has to be a valid path on every OS (issue #2279).
 String _tempVideoPath(String id) =>
@@ -229,12 +245,8 @@ void main() {
 
   testWidgets('a player that cannot be created reports and logs the failure '
       'instead of spinning', (tester) async {
-    final originalPlatform = VideoPlayerPlatform.instance;
-    addTearDown(() => VideoPlayerPlatform.instance = originalPlatform);
-    VideoPlayerPlatform.instance = _UncreatableVideoPlatform();
-    final logged = <LogEntry>[];
-    final subscription = LoggerService.logStream.listen(logged.add);
-    addTearDown(subscription.cancel);
+    _usePlatform(_UncreatableVideoPlatform());
+    final logged = _captureLogs();
 
     await pump(tester, path: () async => _tempVideoPath('v1'));
 
@@ -254,9 +266,7 @@ void main() {
   testWidgets('a video that fails after its player was created reports the '
       'failure and still releases the player', (tester) async {
     final platform = _FakeVideoPlatform();
-    final originalPlatform = VideoPlayerPlatform.instance;
-    addTearDown(() => VideoPlayerPlatform.instance = originalPlatform);
-    VideoPlayerPlatform.instance = platform;
+    _usePlatform(platform);
 
     // pump() leaves initialize() waiting on the platform's events.
     await pump(tester, path: () async => _tempVideoPath('v1'));
@@ -276,9 +286,7 @@ void main() {
   testWidgets('a load that finishes after the viewer closed releases its '
       'player', (tester) async {
     final platform = _FakeVideoPlatform();
-    final originalPlatform = VideoPlayerPlatform.instance;
-    addTearDown(() => VideoPlayerPlatform.instance = originalPlatform);
-    VideoPlayerPlatform.instance = platform;
+    _usePlatform(platform);
 
     // pump() leaves initialize() waiting on the platform's events.
     await pump(tester, path: () async => _tempVideoPath('v1'));
@@ -297,12 +305,8 @@ void main() {
     tester,
   ) async {
     final platform = _UnreleasableVideoPlatform();
-    final originalPlatform = VideoPlayerPlatform.instance;
-    addTearDown(() => VideoPlayerPlatform.instance = originalPlatform);
-    VideoPlayerPlatform.instance = platform;
-    final logged = <LogEntry>[];
-    final subscription = LoggerService.logStream.listen(logged.add);
-    addTearDown(subscription.cancel);
+    _usePlatform(platform);
+    final logged = _captureLogs();
 
     await pump(tester, path: () async => _tempVideoPath('v1'));
     await tester.runAsync(() async {
@@ -329,9 +333,7 @@ void main() {
     tester,
   ) async {
     final platform = _FakeVideoPlatform();
-    final originalPlatform = VideoPlayerPlatform.instance;
-    addTearDown(() => VideoPlayerPlatform.instance = originalPlatform);
-    VideoPlayerPlatform.instance = platform;
+    _usePlatform(platform);
 
     await tester.runAsync(() async {
       await tester.pumpWidget(
@@ -376,9 +378,7 @@ void main() {
   testWidgets('in fullscreen a tap plays, reveals the controls, and they '
       'stay while paused', (tester) async {
     final platform = _FakeVideoPlatform();
-    final originalPlatform = VideoPlayerPlatform.instance;
-    addTearDown(() => VideoPlayerPlatform.instance = originalPlatform);
-    VideoPlayerPlatform.instance = platform;
+    _usePlatform(platform);
 
     await tester.runAsync(() async {
       await tester.pumpWidget(
@@ -465,9 +465,7 @@ void main() {
     tester,
   ) async {
     final platform = _FakeVideoPlatform();
-    final originalPlatform = VideoPlayerPlatform.instance;
-    addTearDown(() => VideoPlayerPlatform.instance = originalPlatform);
-    VideoPlayerPlatform.instance = platform;
+    _usePlatform(platform);
     final photo = MediaItem(
       id: 'p1',
       mediaType: MediaType.photo,
@@ -545,9 +543,7 @@ void main() {
   // off screen, and has to stop playing rather than carry on unseen.
   testWidgets('a playing video pauses when swiped away', (tester) async {
     final platform = _FakeVideoPlatform();
-    final originalPlatform = VideoPlayerPlatform.instance;
-    addTearDown(() => VideoPlayerPlatform.instance = originalPlatform);
-    VideoPlayerPlatform.instance = platform;
+    _usePlatform(platform);
     final photo = MediaItem(
       id: 'p1',
       mediaType: MediaType.photo,
@@ -631,9 +627,7 @@ void main() {
     tester,
   ) async {
     final platform = _FakeVideoPlatform();
-    final originalPlatform = VideoPlayerPlatform.instance;
-    addTearDown(() => VideoPlayerPlatform.instance = originalPlatform);
-    VideoPlayerPlatform.instance = platform;
+    _usePlatform(platform);
     final photo = MediaItem(
       id: 'p1',
       mediaType: MediaType.photo,
