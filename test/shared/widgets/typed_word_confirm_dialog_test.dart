@@ -20,7 +20,7 @@ void main() {
               onPressed: () async => result = await TypedWordConfirmDialog.show(
                 context,
                 title: 'Replace the dives here?',
-                body: 'They are set aside first.',
+                paragraphs: const ['They are set aside first.'],
                 word: 'Replace',
                 hint: 'Type "Replace" to confirm',
                 confirmLabel: 'Replace',

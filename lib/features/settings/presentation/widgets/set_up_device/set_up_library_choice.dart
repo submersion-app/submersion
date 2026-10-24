@@ -58,9 +58,9 @@ String setUpFoundSentence(
   String accountLabel,
   LibraryFound found,
 ) {
-  final device = found.deviceName;
+  final device = found.deviceName?.trim();
   final at = found.changedAt;
-  if (device == null || at == null) {
+  if (device == null || device.isEmpty || at == null) {
     return l10n.settings_setUpDevice_sync_foundPlain(accountLabel);
   }
   final now = DateTime.now();

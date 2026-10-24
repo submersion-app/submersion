@@ -85,12 +85,12 @@ class _SetUpSyncStepState extends ConsumerState<SetUpSyncStep> {
     if (connected) refreshSetUpLibrary(ref.invalidate);
   }
 
-  /// Check again: connects first when that is what failed.
+  /// Check again: connects first when that is what failed, once at a time.
   void _checkAgain() {
     if (_connected) {
       refreshSetUpLibrary(ref.invalidate);
-    } else {
-      _connect();
+    } else if (!_busy) {
+      _run(_connect);
     }
   }
 
@@ -128,7 +128,9 @@ class _SetUpSyncStepState extends ConsumerState<SetUpSyncStep> {
     final confirmed = await TypedWordConfirmDialog.show(
       context,
       title: l10n.settings_setUpDevice_replace_title,
-      body: l10n.settings_setUpDevice_replace_body(dives, account.label),
+      paragraphs: [
+        l10n.settings_setUpDevice_replace_body(dives, account.label),
+      ],
       word: l10n.settings_cloudSync_replaceLibrary_confirmWord,
       hint: l10n.settings_cloudSync_replaceLibrary_confirmHint,
       confirmLabel: l10n.settings_cloudSync_replaceLibrary_confirm,

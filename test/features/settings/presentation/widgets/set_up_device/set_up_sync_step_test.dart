@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
@@ -57,6 +59,9 @@ class _Actions extends SetUpSyncActions {
   final SetUpFirstSync firstSyncAnswer;
   final ReplaceJoinEnd? replaceEnd;
   bool connectAnswer;
+
+  /// Holds connect open until completed, when set.
+  Completer<void>? connectGate;
   final calls = <String>[];
   int? replacedCount;
   bool? replacedKeepInStep;
@@ -69,6 +74,7 @@ class _Actions extends SetUpSyncActions {
     AccountGroup account,
   ) async {
     calls.add('connect ${account.label}');
+    await connectGate?.future;
     return connectAnswer;
   }
 
@@ -189,6 +195,29 @@ void main() {
     expect(find.text('Turn on sync'), findsOneWidget);
   });
 
+  testWidgets('Check again connects once however often it is tapped', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      const NoLibrary(4),
+      withActions: _Actions(connectAnswer: false),
+    );
+    actions
+      ..connectAnswer = true
+      ..connectGate = Completer<void>();
+
+    await tester.tap(find.text('Check again'));
+    await tester.pump();
+    // Busy: the button shows progress in place of its label.
+    await tester.tap(find.byType(FilledButton), warnIfMissed: false);
+    await tester.pump();
+    actions.connectGate!.complete();
+    await tester.pumpAndSettle();
+
+    expect(actions.calls, ['connect Google Drive', 'connect Google Drive']);
+  });
+
   group('no library', () {
     testWidgets('the dives here become the library, and sync stays on', (
       tester,
@@ -252,6 +281,20 @@ void main() {
         ),
         findsOneWidget,
       );
+    });
+
+    testWidgets('a device with no name gives the plain sentence', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        LibraryFound(
+          localDives: 0,
+          deviceName: ' ',
+          changedAt: DateTime.now().subtract(const Duration(hours: 3)),
+        ),
+      );
+      expect(find.text('Found your library in Google Drive.'), findsOneWidget);
     });
 
     testWidgets('an empty device downloads it and realigns the diver', (
