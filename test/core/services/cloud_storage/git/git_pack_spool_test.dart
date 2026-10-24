@@ -78,10 +78,12 @@ void main() {
     Stream<List<int>> watched() async* {
       for (var i = 0; i < pack.length; i += 64) {
         if (i > pack.length ~/ 2 && !sawFile) {
-          // Let the pending write land, then look.
-          await Future<void>.delayed(const Duration(milliseconds: 20));
-          final files = dir.listSync().whereType<File>();
-          sawFile = files.any((f) => f.lengthSync() >= pack.length ~/ 4);
+          // Give the pending writes time to land, however slow the disk.
+          for (var tries = 0; tries < 100 && !sawFile; tries++) {
+            await Future<void>.delayed(const Duration(milliseconds: 20));
+            final files = dir.listSync().whereType<File>();
+            sawFile = files.any((f) => f.lengthSync() >= pack.length ~/ 4);
+          }
         }
         yield Uint8List.sublistView(pack, i, min(i + 64, pack.length));
       }
