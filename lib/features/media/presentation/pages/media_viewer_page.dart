@@ -9,9 +9,11 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
 
 import 'package:submersion/core/constants/feature_flags.dart';
+import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/router/section_navigation.dart';
 import 'package:submersion/core/services/lightroom/lightroom_api_client.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/source_profile.dart';
@@ -51,6 +53,8 @@ import 'package:submersion/features/media_store/presentation/widgets/media_reupl
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/media/presentation/match_confidence_display.dart';
+
+const _log = LoggerService('MediaViewerPage', category: LogCategory.media);
 
 /// Full-screen media viewer with pinch-to-zoom and swipe navigation over an
 /// arbitrary media list (a dive's media, a trip's flat list, or a library
@@ -1279,13 +1283,30 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
       // Ownership has moved to _controller; dispose() owns it from here.
       pending = null;
       widget.onControllerChanged(widget.item.id, controller);
-    } catch (e) {
-      await pending?.dispose();
+    } catch (e, stackTrace) {
+      final mediaId = widget.item.id;
+      _log.warning(
+        'Video $mediaId failed to load',
+        error: e,
+        stackTrace: stackTrace,
+      );
       if (!stale()) {
         setState(() {
           _error = 'failedToLoadVideo';
           _isLoading = false;
         });
+      }
+      // Released without waiting, after the error is on screen: when the
+      // platform's create() threw (no player on this platform, #3548), the
+      // controller never finishes creating and its dispose() waits on that
+      // forever.
+      final failed = pending;
+      if (failed != null) {
+        unawaited(
+          failed.dispose().catchError((Object e) {
+            _log.warning('Video $mediaId release failed', error: e);
+          }),
+        );
       }
     }
   }

@@ -6,7 +6,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/media/data/services/media_source_resolver_registry.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
@@ -117,6 +119,20 @@ class _FakeVideoPlatform extends VideoPlayerPlatform {
   }
 }
 
+/// A platform with no player, as on Windows before video_player_win (#3548):
+/// creation throws the platform interface's own UnimplementedError. The
+/// controller then never completes its creation, so its dispose() waits
+/// forever.
+class _UncreatableVideoPlatform extends _FakeVideoPlatform {
+  @override
+  Future<int?> create(DataSource dataSource) =>
+      throw UnimplementedError('create() has not been implemented.');
+
+  @override
+  Future<int?> createWithOptions(VideoCreationOptions options) =>
+      throw UnimplementedError('create() has not been implemented.');
+}
+
 /// A clip path under the platform's temp directory. The fake platform never
 /// opens it; it only has to be a valid path on every OS (issue #2279).
 String _tempVideoPath(String id) =>
@@ -190,6 +206,30 @@ void main() {
   ) async {
     await pump(tester, path: () async => throw StateError('resolver blew up'));
     expect(find.text('Failed to load video'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('a player that cannot be created reports and logs the failure '
+      'instead of spinning', (tester) async {
+    final originalPlatform = VideoPlayerPlatform.instance;
+    addTearDown(() => VideoPlayerPlatform.instance = originalPlatform);
+    VideoPlayerPlatform.instance = _UncreatableVideoPlatform();
+    final logged = <LogEntry>[];
+    final subscription = LoggerService.logStream.listen(logged.add);
+    addTearDown(subscription.cancel);
+
+    await pump(tester, path: () async => _tempVideoPath('v1'));
+
+    expect(find.text('Failed to load video'), findsOneWidget);
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+    expect(
+      logged.where(
+        (e) =>
+            e.category == LogCategory.media &&
+            e.message.contains('create() has not been implemented'),
+      ),
+      isNotEmpty,
+    );
     expect(tester.takeException(), isNull);
   });
 
