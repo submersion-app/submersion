@@ -10836,9 +10836,9 @@ class SyncDataSerializer {
     return rows.map((r) => r.toJson()).toList();
   }
 
-  /// The profiles a trip is shared with (v310, issue #2151), gated on the parent trip's
-  /// clock like [_exportTripEquipment]. A share travels on its own pending
-  /// mark, never by re-stamping the trip.
+  /// The profiles a trip is shared with (v310, issue #2151), gated on the
+  /// parent trip's clock like [_exportTripEquipment]. A share travels on its
+  /// own pending mark, never by re-stamping the trip.
   Future<List<Map<String, dynamic>>> _exportTripShares(String? hlcSince) async {
     if (hlcSince != null) {
       final trips = await (_db.select(

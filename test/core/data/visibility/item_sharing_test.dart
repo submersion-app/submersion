@@ -34,35 +34,53 @@ void main() {
     expect(sharing.reaches('daughter'), isFalse);
   });
 
-  test('narrows is true for Everyone to a profile and for a removed id', () {
+  const everyone = {'son', 'daughter'};
+
+  test('narrowsAmong is true when a profile that sees it now would not', () {
     expect(
-      ItemSharing.all.narrows(const ItemSharing(profileIds: {'son'})),
+      ItemSharing.all.narrowsAmong(
+        const ItemSharing(profileIds: {'son'}),
+        everyone,
+      ),
       isTrue,
     );
     expect(
       const ItemSharing(
         profileIds: {'son', 'daughter'},
-      ).narrows(const ItemSharing(profileIds: {'son'})),
+      ).narrowsAmong(const ItemSharing(profileIds: {'son'}), everyone),
       isTrue,
     );
     expect(
-      const ItemSharing(profileIds: {'son'}).narrows(ItemSharing.none),
+      const ItemSharing(
+        profileIds: {'son'},
+      ).narrowsAmong(ItemSharing.none, everyone),
       isTrue,
     );
   });
 
-  test('narrows is false for an added id and for Everyone', () {
+  test('narrowsAmong is false for an added id, for Everyone, and for every '
+      'current profile by name', () {
+    expect(
+      const ItemSharing(profileIds: {'son'}).narrowsAmong(
+        const ItemSharing(profileIds: {'son', 'daughter'}),
+        everyone,
+      ),
+      isFalse,
+    );
     expect(
       const ItemSharing(
         profileIds: {'son'},
-      ).narrows(const ItemSharing(profileIds: {'son', 'daughter'})),
+      ).narrowsAmong(ItemSharing.all, everyone),
       isFalse,
     );
     expect(
-      const ItemSharing(profileIds: {'son'}).narrows(ItemSharing.all),
+      ItemSharing.all.narrowsAmong(
+        const ItemSharing(profileIds: {'son', 'daughter'}),
+        everyone,
+      ),
       isFalse,
     );
-    expect(ItemSharing.none.narrows(ItemSharing.none), isFalse);
+    expect(ItemSharing.none.narrowsAmong(ItemSharing.none, everyone), isFalse);
   });
 
   test('without drops the owner', () {

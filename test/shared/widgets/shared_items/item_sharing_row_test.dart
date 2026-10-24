@@ -182,4 +182,28 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Only Me can change sharing'), findsOneWidget);
   });
+
+  testWidgets('Everyone to every current profile by name asks nothing', (
+    tester,
+  ) async {
+    final shares = await pump(tester, active: 'me', sharing: ItemSharing.all);
+    await tester.tap(find.text('Shared with'));
+    await tester.pumpAndSettle();
+    for (final name in ['Sam', 'Dana']) {
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.text(name),
+        ),
+      );
+      await tester.pump();
+    }
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    // Nobody who sees it now loses it, so there is nothing to confirm.
+    expect(find.text('Unshare this trip?'), findsNothing);
+    expect(shares.calls, [
+      const ItemSharing(profileIds: {'son', 'daughter'}),
+    ]);
+  });
 }

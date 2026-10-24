@@ -241,47 +241,6 @@ class TripRepository {
     }
   }
 
-  /// Flip the shared state of a single trip, when [actingDiverId] may
-  /// (issue #2594). Returns false, with nothing changed, for a trip another
-  /// profile owns or one that does not exist. Marks it pending for sync.
-  Future<bool> setShared(
-    String id,
-    bool isShared, {
-    String? actingDiverId,
-  }) async {
-    try {
-      final row = await (_db.select(
-        _db.trips,
-      )..where((t) => t.id.equals(id))).getSingleOrNull();
-      if (row == null ||
-          !canDestroySharedItem(
-            ownerId: row.diverId,
-            activeDiverId: actingDiverId,
-          )) {
-        return false;
-      }
-      _log.info('Setting trip $id isShared=$isShared');
-      final now = DateTime.now().millisecondsSinceEpoch;
-      await (_db.update(_db.trips)..where((t) => t.id.equals(id))).write(
-        TripsCompanion(isShared: Value(isShared), updatedAt: Value(now)),
-      );
-      await _syncRepository.markRecordPending(
-        entityType: 'trips',
-        recordId: id,
-        localUpdatedAt: now,
-      );
-      SyncEventBus.notifyLocalChange();
-      return true;
-    } catch (e, stackTrace) {
-      _log.error(
-        'Failed to set shared flag on trip $id',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      rethrow;
-    }
-  }
-
   /// Delete a trip and all associated child records, when [actingDiverId]
   /// may (issue #2594): its owner, anyone for an ownerless trip, and any
   /// caller that names no profile. Returns false, with nothing changed, for

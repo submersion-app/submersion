@@ -2635,13 +2635,6 @@ class _MockTripRepository implements TripRepository {
   Future<void> assignDivesToTrip(List<String> diveIds, String tripId) async {}
 
   @override
-  Future<bool> setShared(
-    String id,
-    bool isShared, {
-    String? actingDiverId,
-  }) async => true;
-
-  @override
   Stream<void> watchTripsChanges() => const Stream<void>.empty();
 }
 
@@ -2792,13 +2785,6 @@ class _MockTripRepositoryWithTrip implements TripRepository {
   Future<void> assignDivesToTrip(List<String> diveIds, String tripId) async {}
 
   @override
-  Future<bool> setShared(
-    String id,
-    bool isShared, {
-    String? actingDiverId,
-  }) async => true;
-
-  @override
   Stream<void> watchTripsChanges() => const Stream<void>.empty();
 }
 
@@ -2888,13 +2874,6 @@ class _MockTripRepositoryWithSharedTrip implements TripRepository {
 
   @override
   Future<void> assignDivesToTrip(List<String> diveIds, String tripId) async {}
-
-  @override
-  Future<bool> setShared(
-    String id,
-    bool isShared, {
-    String? actingDiverId,
-  }) async => true;
 
   @override
   Stream<void> watchTripsChanges() => const Stream<void>.empty();
@@ -3078,13 +3057,6 @@ class _SlowTripRepository implements TripRepository {
   Future<void> assignDivesToTrip(List<String> diveIds, String tripId) async {}
 
   @override
-  Future<bool> setShared(
-    String id,
-    bool isShared, {
-    String? actingDiverId,
-  }) async => true;
-
-  @override
   Stream<void> watchTripsChanges() => const Stream<void>.empty();
 }
 
@@ -3150,13 +3122,6 @@ class _ErrorTripRepository implements TripRepository {
 
   @override
   Future<void> assignDivesToTrip(List<String> diveIds, String tripId) async {}
-
-  @override
-  Future<bool> setShared(
-    String id,
-    bool isShared, {
-    String? actingDiverId,
-  }) async => true;
 
   @override
   Stream<void> watchTripsChanges() => const Stream<void>.empty();

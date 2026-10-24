@@ -3,11 +3,9 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/database/database.dart';
-import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/core/data/visibility/item_sharing.dart';
 import 'package:submersion/features/divers/data/repositories/item_shares_repository.dart';
 import 'package:submersion/features/divers/data/repositories/profile_hides_repository.dart';
-import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 
 import '../../../../helpers/shared_items_fixture.dart';
 import '../../../../helpers/test_database.dart';
@@ -126,12 +124,24 @@ void main() {
 
   group('an item its owner unshares (issue #2678)', () {
     Future<void> unshare({required bool shared}) async {
+      final sharing = shared ? ItemSharing.all : ItemSharing.none;
+      final shares = ItemSharesRepository();
       expect(
-        await TripRepository().setShared('shared', shared, actingDiverId: 'a'),
+        await shares.setSharing(
+          SharedItemKind.trip,
+          'shared',
+          sharing,
+          actingDiverId: 'a',
+        ),
         isTrue,
       );
       expect(
-        await SiteRepository().setShared('pier', shared, actingDiverId: 'a'),
+        await shares.setSharing(
+          SharedItemKind.site,
+          'pier',
+          sharing,
+          actingDiverId: 'a',
+        ),
         isTrue,
       );
     }

@@ -569,40 +569,6 @@ class SiteRepository {
     }
   }
 
-  /// Flip the shared state of a single site, when [actingDiverId] may
-  /// (issue #2594). Returns false, with nothing changed, for a site another
-  /// profile owns or one that does not exist. Marks it pending for sync.
-  Future<bool> setShared(
-    String id,
-    bool isShared, {
-    String? actingDiverId,
-  }) async {
-    try {
-      if ((await _siteOwnership([id], actingDiverId)).allowed.isEmpty) {
-        return false;
-      }
-      _log.info('Setting site $id isShared=$isShared');
-      final now = DateTime.now().millisecondsSinceEpoch;
-      await (_db.update(_db.diveSites)..where((t) => t.id.equals(id))).write(
-        DiveSitesCompanion(isShared: Value(isShared), updatedAt: Value(now)),
-      );
-      await _syncRepository.markRecordPending(
-        entityType: 'diveSites',
-        recordId: id,
-        localUpdatedAt: now,
-      );
-      SyncEventBus.notifyLocalChange();
-      return true;
-    } catch (e, stackTrace) {
-      _log.error(
-        'Failed to set shared flag on site $id',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      rethrow;
-    }
-  }
-
   /// The existing sites among [ids], split by whether [actingDiverId] may
   /// destroy them (issue #2594): its own, ownerless ones, and all of them
   /// for a caller that names no profile, against the other profiles'. An

@@ -207,7 +207,9 @@ Future<ItemSharing?> pickItemSharing(
     confirmLabel: l10n.common_action_save,
   );
   if (chosen == null || chosen == current || !context.mounted) return null;
-  if ((confirmAgainst ?? current).narrows(chosen) &&
+  if ((confirmAgainst ?? current).narrowsAmong(chosen, [
+        for (final p in profiles) p.id,
+      ]) &&
       await confirmUnshare(context, kind, itemName) != true) {
     return null;
   }

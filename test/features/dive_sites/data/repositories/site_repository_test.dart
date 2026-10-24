@@ -1064,20 +1064,6 @@ void main() {
               );
         }
       });
-
-      test('setShared toggles the field on a single site', () async {
-        final created = await repository.createSite(
-          const DiveSite(id: '', name: 'Flip', diverId: 'A'),
-        );
-
-        await repository.setShared(created.id, true);
-        final readShared = await repository.getSiteById(created.id);
-        expect(readShared!.isShared, isTrue);
-
-        await repository.setShared(created.id, false);
-        final readBack = await repository.getSiteById(created.id);
-        expect(readBack!.isShared, isFalse);
-      });
     });
 
     group('visibility filter', () {

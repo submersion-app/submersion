@@ -24,10 +24,12 @@ class ItemSharing {
   /// [diverId] sees the item through this sharing (its owner aside).
   bool reaches(String diverId) => everyone || profileIds.contains(diverId);
 
-  /// Moving to [next] takes the item away from a profile that sees it now,
-  /// which the owner confirms first.
-  bool narrows(ItemSharing next) =>
-      everyone ? !next.everyone : profileIds.any((id) => !next.reaches(id));
+  /// Moving to [next] takes the item away from one of [profileIds] (the
+  /// profiles other than the owner that exist now) that sees it, which the
+  /// owner confirms first. Everyone to every current profile by name takes
+  /// it from nobody today, so it is not a narrowing.
+  bool narrowsAmong(ItemSharing next, Iterable<String> profileIds) =>
+      profileIds.any((id) => reaches(id) && !next.reaches(id));
 
   /// This sharing without [diverId], the item's owner.
   ItemSharing without(String? diverId) => everyone || diverId == null

@@ -1,5 +1,6 @@
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/data/visibility/item_sharing.dart';
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_profile_link_repository.dart';
@@ -13,6 +14,7 @@ import 'package:submersion/features/dive_roles/data/repositories/dive_role_repos
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_roles/domain/services/dive_role_set.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_types/data/repositories/dive_type_repository.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/divers/data/repositories/item_shares_repository.dart';
@@ -20,6 +22,7 @@ import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
+import 'package:submersion/features/trips/domain/entities/trip.dart';
 
 /// A linked buddy on a dive whose profile has no sibling of it yet.
 typedef MirrorCandidate = ({Buddy buddy, Diver diver});
@@ -147,6 +150,9 @@ class DiveMirrorService {
           if (d.diverId != null) d.diverId!,
       };
       final sourceBuddies = await _buddies.getBuddiesForDive(sourceDiveId);
+      // The source's site and trip with their sharing, read once for every
+      // target: adding one target's share leaves the others' answers alone.
+      final items = await _readItems(source);
       final created = <String>[];
       final addedShares = <({String shareId, String diverId})>[];
       for (final target in targetDiverIds) {
@@ -156,6 +162,7 @@ class DiveMirrorService {
           sourceBuddies: sourceBuddies,
           targetDiverId: target,
           outingId: outingId,
+          items: items,
           addedShares: addedShares,
         );
         existingOwners.add(target);
@@ -196,6 +203,7 @@ class DiveMirrorService {
     required List<BuddyWithRole> sourceBuddies,
     required String targetDiverId,
     required String outingId,
+    required _SourceItems items,
     required List<({String shareId, String diverId})> addedShares,
   }) async {
     final sourceOwner = source.diverId;
@@ -218,15 +226,12 @@ class DiveMirrorService {
       targetDiverId: targetDiverId,
       outingId: outingId,
       includeSite: await _shareSite(
-        source.site?.id,
+        items,
         actingDiverId: source.diverId,
         targetDiverId: targetDiverId,
         addedShares: addedShares,
       ),
-      tripId: await _tripReaching(
-        source.tripId ?? source.trip?.id,
-        targetDiverId,
-      ),
+      tripId: _tripReaching(items, targetDiverId),
       includeDiveCenter: await _centerIsVisible(source.diveCenter?.id),
       diveTypeIds: await _resolveTypeIds(source.diveTypeIds, targetDiverId),
       tags: await _resolveTags(source.tags, targetDiverId),
@@ -287,20 +292,18 @@ class DiveMirrorService {
   /// [addedShares] for undo; a site private to another profile, whose
   /// sharing only its owner changes (#2594), is left off.
   Future<bool> _shareSite(
-    String? siteId, {
+    _SourceItems items, {
     required String? actingDiverId,
     required String targetDiverId,
     required List<({String shareId, String diverId})> addedShares,
   }) async {
-    if (siteId == null) return false;
-    final site = await _sites.getSiteById(siteId);
+    final site = items.site;
     if (site == null) return false;
     if (site.isLibrarySite || site.diverId == targetDiverId) return true;
-    final sharing = await _shares.sharingOf(SharedItemKind.site, siteId);
-    if (sharing.reaches(targetDiverId)) return true;
+    if (items.siteSharing.reaches(targetDiverId)) return true;
     final shareId = await _shares.shareWith(
       SharedItemKind.site,
-      siteId,
+      site.id,
       targetDiverId,
       actingDiverId: actingDiverId,
     );
@@ -312,13 +315,31 @@ class DiveMirrorService {
   /// The trip for the sibling: only one that reaches [targetDiverId] (its
   /// own, or shared with everyone or with it by name, issue #2151). The
   /// mirror never changes a trip's sharing.
-  Future<String?> _tripReaching(String? tripId, String targetDiverId) async {
-    if (tripId == null) return null;
-    final trip = await _trips.getTripById(tripId);
+  String? _tripReaching(_SourceItems items, String targetDiverId) {
+    final trip = items.trip;
     if (trip == null) return null;
-    if (trip.diverId == targetDiverId) return tripId;
-    final sharing = await _shares.sharingOf(SharedItemKind.trip, tripId);
-    return sharing.reaches(targetDiverId) ? tripId : null;
+    return trip.diverId == targetDiverId ||
+            items.tripSharing.reaches(targetDiverId)
+        ? trip.id
+        : null;
+  }
+
+  /// [source]'s site and trip, with who each is shared with.
+  Future<_SourceItems> _readItems(Dive source) async {
+    final siteId = source.site?.id;
+    final site = siteId == null ? null : await _sites.getSiteById(siteId);
+    final tripId = source.tripId ?? source.trip?.id;
+    final trip = tripId == null ? null : await _trips.getTripById(tripId);
+    return (
+      site: site,
+      siteSharing: site == null
+          ? ItemSharing.none
+          : await _shares.sharingOf(SharedItemKind.site, site.id),
+      trip: trip,
+      tripSharing: trip == null
+          ? ItemSharing.none
+          : await _shares.sharingOf(SharedItemKind.trip, trip.id),
+    );
   }
 
   Future<bool> _centerIsVisible(String? centerId) async {
@@ -421,3 +442,12 @@ class DiveMirrorService {
 
   static String _fold(String value) => value.trim().toLowerCase();
 }
+
+/// A mirrored dive's site and trip and who each is shared with, read once
+/// per mirror action.
+typedef _SourceItems = ({
+  DiveSite? site,
+  ItemSharing siteSharing,
+  Trip? trip,
+  ItemSharing tripSharing,
+});

@@ -815,20 +815,6 @@ void main() {
               );
         }
       });
-
-      test('setShared toggles the field on a single trip', () async {
-        final created = await repository.createTrip(
-          createTestTrip(name: 'Flip me').copyWith(diverId: 'A'),
-        );
-
-        await repository.setShared(created.id, true);
-        final readShared = await repository.getTripById(created.id);
-        expect(readShared!.isShared, isTrue);
-
-        await repository.setShared(created.id, false);
-        final readBack = await repository.getTripById(created.id);
-        expect(readBack!.isShared, isFalse);
-      });
     });
 
     group('visibility filter', () {
