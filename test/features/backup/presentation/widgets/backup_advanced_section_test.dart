@@ -315,6 +315,22 @@ void main() {
     expect(find.text('1 backup in the cloud folder uses 3 B'), findsOneWidget);
   });
 
+  testWidgets('turning it off needs no dialog and deletes nothing', (
+    tester,
+  ) async {
+    final name = seed(3);
+    await pump(
+      tester,
+      initial: {'backup_retention_all_devices_account': 'acct'},
+    );
+    expect(isOn(tester), isTrue);
+    await tester.tap(switchTile);
+    await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(savedOn(), isFalse);
+    expect(has(name), isTrue);
+  });
+
   group('with backups to remove', () {
     late List<String> names;
     setUp(() => names = [for (var d = 2; d <= 8; d++) seed(d)]);

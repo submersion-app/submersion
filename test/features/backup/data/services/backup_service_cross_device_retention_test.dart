@@ -1,13 +1,16 @@
 // Issue #3503: with the switch on, the "Keep" number is a ceiling on the
 // whole shared cloud folder, counting every device's backups.
 
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
+import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/services/cloud_storage/deferred_write_provider.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 import 'package:submersion/features/backup/data/services/backup_attribution.dart';
 import 'package:submersion/features/backup/data/services/backup_pin_markers.dart';
@@ -35,6 +38,14 @@ class _Device extends SyncRepository {
 }
 
 final _stamp = DateFormat('yyyy-MM-dd_HHmmss');
+
+/// A backend that defers writes (as Git does) and whose push fails.
+class _FailingPushCloud extends FakeCloudStorageProvider
+    implements DeferredWriteProvider {
+  @override
+  Future<void> flush({Duration? timeout}) async =>
+      throw StateError('push failed (test)');
+}
 
 /// Answers "not there" whenever it cannot tell, as Google Drive's
 /// `fileExists` does on any error.
@@ -266,6 +277,128 @@ void main() {
       expect(preferences.getHistory(), hasLength(2));
       expect(names.every(has), isTrue);
     });
+  });
+
+  group('failures stay contained', () {
+    test('a reconcile that cannot write leaves the state unrecorded', () async {
+      final name = seed(3, device: 'dev-A');
+      await preferences.addRecord(
+        BackupRecord(
+          id: name,
+          filename: name,
+          timestamp: DateTime.now().subtract(const Duration(days: 3)),
+          sizeBytes: 3,
+          location: BackupLocation.cloud,
+          cloudFileId: name,
+          cloudAccountId: 'acct',
+          pinned: true,
+        ),
+      );
+      cloud.failUploads = true;
+      await service().reconcilePinMarkers();
+      expect(preferences.getPinMarkersSynced(), isNull);
+    });
+
+    test(
+      'an orphan marker that cannot be deleted does not fail apply',
+      () async {
+        eight();
+        final gone = seed(20);
+        final marker = pinMarkerName(
+          backupFilename: gone,
+          pinningDeviceId: 'dev-B',
+        );
+        cloud.seedFile(
+          marker,
+          Uint8List(0),
+          modified: DateTime.now().subtract(const Duration(days: 20)),
+        );
+        await cloud.deleteFile(gone);
+        final s = service();
+        final plan = (await s.previewCrossDeviceRetention(5))!;
+        cloud.failDeletes = true;
+        expect(await s.applyCrossDeviceRetention(plan), 0);
+        expect(has(marker), isTrue);
+      },
+    );
+
+    test('a push that fails records nothing as gone', () async {
+      cloud = _FailingPushCloud();
+      final names = eight();
+      await preferences.addRecord(
+        BackupRecord(
+          id: 'cloud-only',
+          filename: names.last,
+          timestamp: DateTime.now().subtract(const Duration(days: 9)),
+          sizeBytes: 3,
+          location: BackupLocation.cloud,
+          cloudFileId: names.last,
+          cloudAccountId: 'acct',
+        ),
+      );
+      final s = service();
+      final plan = (await s.previewCrossDeviceRetention(5))!;
+      expect(await s.applyCrossDeviceRetention(plan), 0);
+      expect(preferences.getHistory().single.id, 'cloud-only');
+    });
+
+    test('an unpin whose marker cannot be deleted still unpins', () async {
+      final name = seed(3, device: 'dev-A');
+      await preferences.addRecord(
+        BackupRecord(
+          id: 'r',
+          filename: name,
+          timestamp: DateTime.now().subtract(const Duration(days: 3)),
+          sizeBytes: 3,
+          location: BackupLocation.cloud,
+          cloudFileId: name,
+          cloudAccountId: 'acct',
+        ),
+      );
+      final s = service();
+      await s.pinBackup('r');
+      cloud.failDeletes = true;
+      await s.unpinBackup('r');
+      expect(preferences.getHistory().single.pinned, isFalse);
+    });
+
+    test(
+      'a local copy that cannot be deleted keeps its record for next time',
+      () async {
+        final dir = Directory.systemTemp.createTempSync('locked_backups_');
+        addTearDown(() {
+          Process.runSync('chmod', ['755', dir.path]);
+          dir.deleteSync(recursive: true);
+        });
+        final names = [seed(3, device: 'dev-A'), seed(4, device: 'dev-A')];
+        for (final (i, n) in names.indexed) {
+          final local = File(p.join(dir.path, n))..writeAsStringSync('db');
+          await preferences.addRecord(
+            BackupRecord(
+              id: n,
+              filename: n,
+              timestamp: DateTime.now().subtract(Duration(days: 3 + i)),
+              sizeBytes: 3,
+              location: BackupLocation.both,
+              cloudFileId: n,
+              cloudAccountId: 'acct',
+              localPath: local.path,
+            ),
+          );
+        }
+        Process.runSync('chmod', ['555', dir.path]);
+        cloud.authenticated = false;
+
+        await service().pruneOldBackups(1);
+
+        final old = preferences.getHistory().firstWhere(
+          (r) => r.id == names[1],
+        );
+        expect(old.localPath, isNotNull);
+        expect(old.location, BackupLocation.both);
+      },
+      skip: Platform.isWindows ? 'needs POSIX permissions' : false,
+    );
   });
 
   group('preview and apply', () {
