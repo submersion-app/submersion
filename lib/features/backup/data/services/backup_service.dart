@@ -33,6 +33,7 @@ import 'package:submersion/core/services/database_service.dart'
 import 'package:submersion/features/backup/domain/exceptions/backup_encrypted_exception.dart';
 import 'package:submersion/features/backup/data/services/backup_attribution.dart';
 import 'package:submersion/features/backup/data/services/backup_pin_markers.dart';
+import 'package:submersion/features/backup/data/services/cross_device_retention.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 import 'package:submersion/features/marine_life/data/services/builtin_species_seed_version_store.dart';
 import 'package:submersion/features/backup/data/services/backup_database_adapter.dart';
@@ -1347,7 +1348,29 @@ class BackupService {
   ///
   /// Keeps the [keepCount] most recent unpinned manual backups and deletes
   /// the rest.
+  ///
+  /// The cloud folder is listed first so this device's pin markers can be
+  /// brought in line with its pins, and a record whose cloud copy another
+  /// device has pinned keeps that copy. With "count backups from all
+  /// devices" on for this folder, the whole folder is then pruned to
+  /// [keepCount] as well (issue #3503). Neither step can fail the prune.
   Future<void> pruneOldBackups(int keepCount) async {
+    final listing = await _listCloudFolder();
+    if (listing != null) await reconcilePinMarkers(listing: listing);
+    await _pruneOwnHistory(
+      keepCount,
+      pinnedElsewhere: await _stemsPinnedElsewhere(listing),
+    );
+    await _pruneAcrossDevices(keepCount);
+  }
+
+  /// [pruneOldBackups] for this device's own history: the records it made,
+  /// local and cloud copies both, except a cloud copy whose stem is in
+  /// [pinnedElsewhere], which stays in the folder.
+  Future<void> _pruneOwnHistory(
+    int keepCount, {
+    required Set<String> pinnedElsewhere,
+  }) async {
     final history = getBackupHistory(); // Already sorted newest-first
 
     final eligible = history
@@ -1371,8 +1394,10 @@ class BackupService {
       final here = await _cloudCopyCheck();
       for (final record in toDelete) {
         final id = record.cloudFileId;
-        // A copy in another account is left where it is.
+        // A copy in another account is left where it is, and so is one
+        // another device has pinned.
         if (id == null || !here(record)) continue;
+        if (pinnedElsewhere.contains(backupStem(record.filename))) continue;
         try {
           await provider.deleteFile(id);
           recorded++;

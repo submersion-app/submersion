@@ -92,6 +92,26 @@ class BackupRecord extends Equatable {
     );
   }
 
+  /// This record once its cloud copy is gone: kept on this device only.
+  /// copyWith cannot clear the cloud fields, so they are dropped here.
+  BackupRecord withoutCloudCopy() => BackupRecord(
+    id: id,
+    filename: filename,
+    timestamp: timestamp,
+    sizeBytes: sizeBytes,
+    location: BackupLocation.local,
+    diveCount: diveCount,
+    siteCount: siteCount,
+    localPath: localPath,
+    isAutomatic: isAutomatic,
+    type: type,
+    appVersion: appVersion,
+    fromSchemaVersion: fromSchemaVersion,
+    toSchemaVersion: toSchemaVersion,
+    pinned: pinned,
+    note: note,
+  );
+
   /// Formatted file size for display (e.g., "2.3 MB")
   String get formattedSize {
     if (sizeBytes < 1024) return '$sizeBytes B';

@@ -80,6 +80,164 @@ extension BackupServiceRetention on BackupService {
     if (changed) await _flushQuietly(provider);
   }
 
+  /// The key the switch stores for the folder backups go to now: the copy
+  /// account's id, or `''` when it cannot be read.
+  Future<String> crossDeviceRetentionAccountKey() async =>
+      await _copyAccountIdOrNull() ?? '';
+
+  /// Whether "count backups from all devices" is on for the folder backups
+  /// go to now. Off for any other folder, including one a scheduled backup
+  /// resolves differently, until the diver confirms it there.
+  Future<bool> crossDeviceRetentionActive() async =>
+      _cloudProvider != null &&
+      _preferences.getSettings().crossDeviceRetentionFor(
+        await _copyAccountIdOrNull(),
+      );
+
+  /// What pruning the folder to [keepCount] across devices would remove
+  /// now, or null when there is no folder to read or the listing fails.
+  Future<CrossDeviceRetentionPlan?> previewCrossDeviceRetention(
+    int keepCount,
+  ) async {
+    final files = await _listCloudFolder();
+    if (files == null) return null;
+    final here = await _cloudCopyCheck();
+    final pinned = [
+      for (final r in _preferences.getHistory())
+        if (r.pinned && r.cloudFileId != null && here(r)) r,
+    ];
+    return planCrossDeviceRetention(
+      listing: files,
+      keepCount: keepCount,
+      locallyPinnedStems: {for (final r in pinned) backupStem(r.filename)},
+      locallyPinnedFileIds: {for (final r in pinned) r.cloudFileId!},
+      thisDeviceId: await thisDeviceIdOrNull() ?? '',
+      now: DateTime.now(),
+    );
+  }
+
+  /// Deletes what [plan] lists from the cloud folder and returns how many
+  /// backups are gone. The folder is listed once more first: a backup that
+  /// has gained a pin marker since the plan is kept, and if that listing
+  /// fails nothing is deleted. A backup already gone counts as deleted.
+  ///
+  /// Only cloud copies are deleted. A record in this device's history whose
+  /// cloud copy went keeps its local copy, or is removed when it had none.
+  Future<int> applyCrossDeviceRetention(CrossDeviceRetentionPlan plan) async {
+    final provider = _cloudProvider;
+    if (provider == null || (plan.isEmpty && plan.orphanMarkers.isEmpty)) {
+      return 0;
+    }
+    final fresh = await _listCloudFolder();
+    if (fresh == null) return 0;
+    final liveIds = {for (final f in fresh) f.id};
+    final pinnedNow = {
+      for (final f in fresh) ?parsePinMarker(f.name)?.backupStem,
+    };
+
+    final gone = <String>{};
+    for (final candidate in plan.toDelete) {
+      final file = candidate.file;
+      if (pinnedNow.contains(backupStem(file.name))) continue;
+      if (!liveIds.contains(file.id)) {
+        gone.add(file.id);
+        continue;
+      }
+      try {
+        await provider.deleteFile(file.id);
+        gone.add(file.id);
+      } catch (e, st) {
+        if (!await _existsOrAssumeSo(provider, file.id)) {
+          gone.add(file.id);
+        } else {
+          _log.warning(
+            'Backup ${file.name} not removed; retried next prune',
+            error: e,
+            stackTrace: st,
+          );
+        }
+      }
+    }
+    for (final marker in plan.orphanMarkers) {
+      if (!liveIds.contains(marker.id)) continue;
+      try {
+        await provider.deleteFile(marker.id);
+      } catch (e) {
+        _log.warning('Orphan pin marker ${marker.name} not removed: $e');
+      }
+    }
+    try {
+      await flushDeferredWrites(provider);
+    } catch (e, st) {
+      // As for per-device pruning: nothing is gone until the push lands.
+      _log.warning(
+        'Cross-device prune not pushed; retried next prune',
+        error: e,
+        stackTrace: st,
+      );
+      return 0;
+    }
+
+    final here = await _cloudCopyCheck();
+    for (final r in _preferences.getHistory()) {
+      final id = r.cloudFileId;
+      if (id == null || !gone.contains(id) || !here(r)) continue;
+      if (r.localPath != null) {
+        await _preferences.updateRecord(r.withoutCloudCopy());
+      } else {
+        await _preferences.removeRecord(r.id);
+      }
+    }
+    if (gone.isNotEmpty) {
+      _log.info('Removed ${gone.length} backups across devices');
+    }
+    return gone.length;
+  }
+
+  /// The cross-device step of [BackupService.pruneOldBackups]. Never throws.
+  Future<void> _pruneAcrossDevices(int keepCount) async {
+    try {
+      if (!await crossDeviceRetentionActive()) return;
+      final plan = await previewCrossDeviceRetention(keepCount);
+      if (plan != null) await applyCrossDeviceRetention(plan);
+    } catch (e, st) {
+      _log.warning(
+        'Cross-device prune failed; retried next prune',
+        error: e,
+        stackTrace: st,
+      );
+    }
+  }
+
+  /// Stems of backups a device other than this one has pinned, from the
+  /// markers in [listing]. When this device's id is unknown every marker
+  /// counts, so an unreadable id can only keep a copy, never lose one.
+  Future<Set<String>> _stemsPinnedElsewhere(
+    List<CloudFileInfo>? listing,
+  ) async {
+    if (listing == null) return const {};
+    final id = await thisDeviceIdOrNull();
+    final myTag = id == null ? null : deviceTag(id);
+    return {
+      for (final f in listing)
+        if (parsePinMarker(f.name) case final m? when m.deviceTag != myTag)
+          m.backupStem,
+    };
+  }
+
+  /// Whether [fileId] is still in the folder; true when that cannot be told,
+  /// so an unanswerable check never records a backup as gone.
+  Future<bool> _existsOrAssumeSo(
+    CloudStorageProvider provider,
+    String fileId,
+  ) async {
+    try {
+      return await provider.fileExists(fileId);
+    } catch (_) {
+      return true;
+    }
+  }
+
   /// The cloud backup folder's listing, or null when it cannot be read.
   /// Unlike [getCloudBackups], a failure is not an empty folder: a missing
   /// pin marker must never be inferred from a listing that failed.
