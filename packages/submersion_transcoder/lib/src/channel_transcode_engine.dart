@@ -174,6 +174,9 @@ class ChannelTranscodeEngine implements TranscodeEngine, ColorEncoder {
     // location Android cameras write, and every one stamps its copy with the
     // moment it was made.
     final recording = await readMp4RecordingInfo(source);
+    // A cancel during that read would reach the plugin before the encode it
+    // names, and be dropped there.
+    if (cancel?.isCancelled ?? false) throw const TranscodeCancelledException();
     final progressId = 'p${_seq++}';
     // Pushed and polled progress both go through here, so a fraction is
     // reported once and never goes backwards.
@@ -236,21 +239,22 @@ class ChannelTranscodeEngine implements TranscodeEngine, ColorEncoder {
         'location': recording.location,
         'progressId': progressId,
       });
-      // An encoder that writes no location (Media Foundation) gets it added.
-      final location = recording.location;
-      if (location != null &&
-          (await readMp4RecordingInfo(output)).location == null) {
-        await addMp4Location(output, location);
-      }
+      final copy = await readMp4RecordingInfo(output);
       // An encoder that turned a rotated clip's frames upright (Media
       // Foundation) leaves the copy's matrix plain; give it the source's.
-      final sourceMatrix = await readMp4VideoMatrix(source);
-      final copyMatrix = await readMp4VideoMatrix(output);
+      // Done before the location is added: that rewrites the moov.
+      final sourceMatrix = recording.videoMatrix;
+      final copyMatrix = copy.videoMatrix;
       if (sourceMatrix != null &&
           copyMatrix != null &&
           !_sameMatrix(sourceMatrix, copyMatrix) &&
           _sameMatrix(copyMatrix, _identityMatrix)) {
         await setMp4VideoMatrix(output, sourceMatrix);
+      }
+      // An encoder that writes no location (Media Foundation) gets it added.
+      final location = recording.location;
+      if (location != null && copy.location == null) {
+        await addMp4Location(output, location);
       }
       final created = recording.created;
       if (created != null) await stampMp4CreationTime(output, created);

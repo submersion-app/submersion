@@ -34,10 +34,12 @@ std::array<float, 20> MatrixAt(const std::vector<TimelineKey>& keys,
   if (keys.empty()) return identity;
   if (t <= keys.front().time_ms) return keys.front().matrix;
   if (t >= keys.back().time_ms) return keys.back().matrix;
-  size_t i = 1;
-  while (keys[i].time_ms < t) ++i;
-  const auto& lo = keys[i - 1];
-  const auto& hi = keys[i];
+  // The first key at or after t, by binary search: asked per frame.
+  const auto found = std::lower_bound(
+      keys.begin() + 1, keys.end(), t,
+      [](const TimelineKey& key, double time) { return key.time_ms < time; });
+  const auto& lo = *(found - 1);
+  const auto& hi = *found;
   const float f =
       static_cast<float>((t - lo.time_ms) / (hi.time_ms - lo.time_ms));
   std::array<float, 20> out{};
@@ -397,9 +399,12 @@ ColorEncodeResult EncodeWithColor(const std::wstring& source,
     const GUID out_codec =
         is_h264 && !ten_bit ? MFVideoFormat_H264 : MFVideoFormat_HEVC;
     const GUID frame_format = ten_bit ? MFVideoFormat_P010 : MFVideoFormat_NV12;
+    // An untagged clip is read the way AVFoundation and Media3 read it:
+    // BT.2020 for HDR, BT.601 below HD, BT.709 otherwise.
     const UINT32 matrix = MFGetAttributeUINT32(
         native.Get(), MF_MT_YUV_MATRIX,
         transfer != Transfer::kSdr ? MFVideoTransferMatrix_BT2020_10
+        : height < 720             ? MFVideoTransferMatrix_BT601
                                    : MFVideoTransferMatrix_BT709);
     Ycc ycc{0.2126, 0.0722, ten_bit};
     ycc.full_range = MFGetAttributeUINT32(native.Get(), MF_MT_VIDEO_NOMINAL_RANGE,
@@ -561,7 +566,7 @@ ColorEncodeResult EncodeWithColor(const std::wstring& source,
     if (FAILED(hr)) return hr_fail("starting the output", hr);
 
     const size_t plane = static_cast<size_t>(width) * (ten_bit ? 2 : 1);
-    std::vector<uint8_t> frame(plane * height * 3 / 2);
+    const DWORD frame_size = static_cast<DWORD>(plane * height * 3 / 2);
     while (true) {
       if (cancelled.load()) {
         return fail(ColorEncodeOutcome::kCancelled, "cancelled");
@@ -604,10 +609,20 @@ ColorEncodeResult EncodeWithColor(const std::wstring& source,
         continue;
       }
 
-      // Video: the frame in a contiguous NV12/P010 copy, corrected, encoded.
+      // Video: copied straight into the encoder's buffer as tight NV12/P010,
+      // corrected there, encoded.
+      ComPtr<IMFMediaBuffer> out_buffer;
+      hr = MFCreateMemoryBuffer(frame_size, &out_buffer);
+      if (FAILED(hr)) return hr_fail("allocating a frame", hr);
+      BYTE* dst = nullptr;
+      hr = out_buffer->Lock(&dst, nullptr, nullptr);
+      if (FAILED(hr)) return hr_fail("locking a frame", hr);
       ComPtr<IMFMediaBuffer> in_buffer;
       hr = sample->ConvertToContiguousBuffer(&in_buffer);
-      if (FAILED(hr)) return hr_fail("reading a frame", hr);
+      if (FAILED(hr)) {
+        out_buffer->Unlock();
+        return hr_fail("reading a frame", hr);
+      }
       BYTE* src = nullptr;
       LONG src_pitch = default_stride;
       DWORD src_len = 0;
@@ -620,7 +635,10 @@ ColorEncodeResult EncodeWithColor(const std::wstring& source,
       } else {
         DWORD max_len = 0;
         hr = in_buffer->Lock(&src, &max_len, &src_len);
-        if (FAILED(hr)) return hr_fail("locking a frame", hr);
+        if (FAILED(hr)) {
+          out_buffer->Unlock();
+          return hr_fail("locking a frame", hr);
+        }
       }
       auto unlock = [&] {
         if (locked_2d) {
@@ -636,32 +654,26 @@ ColorEncodeResult EncodeWithColor(const std::wstring& source,
       if (src_pitch < static_cast<LONG>(plane) || coded_h < height ||
           src_len < needed) {
         unlock();
+        out_buffer->Unlock();
         return fail(ColorEncodeOutcome::kFailed,
                     "unexpected decoded frame layout");
       }
       const uint8_t* src_uv = src + static_cast<size_t>(src_pitch) * coded_h;
       for (UINT32 row = 0; row < height; ++row) {
-        std::memcpy(frame.data() + row * plane, src + row * src_pitch, plane);
+        std::memcpy(dst + row * plane, src + row * src_pitch, plane);
       }
       for (UINT32 row = 0; row < height / 2; ++row) {
-        std::memcpy(frame.data() + plane * height + row * plane,
+        std::memcpy(dst + plane * height + row * plane,
                     src_uv + row * src_pitch, plane);
       }
       unlock();
       // Presentation time, as the player's position reads it, which is what
       // the app's timeline is sampled against.
-      const Planes planes{frame.data(), frame.data() + plane * height,
-                          static_cast<LONG>(plane), width, height};
+      const Planes planes{dst, dst + plane * height, static_cast<LONG>(plane),
+                          width, height};
       CorrectFrame(planes, MatrixAt(keys, time / 10000.0), transfer, ycc);
-
-      ComPtr<IMFMediaBuffer> out_buffer;
-      hr = MFCreateMemoryBuffer(static_cast<DWORD>(frame.size()), &out_buffer);
-      if (FAILED(hr)) return hr_fail("allocating a frame", hr);
-      BYTE* dst = nullptr;
-      out_buffer->Lock(&dst, nullptr, nullptr);
-      std::memcpy(dst, frame.data(), frame.size());
       out_buffer->Unlock();
-      out_buffer->SetCurrentLength(static_cast<DWORD>(frame.size()));
+      out_buffer->SetCurrentLength(frame_size);
       ComPtr<IMFSample> out_sample;
       MFCreateSample(&out_sample);
       out_sample->AddBuffer(out_buffer.Get());

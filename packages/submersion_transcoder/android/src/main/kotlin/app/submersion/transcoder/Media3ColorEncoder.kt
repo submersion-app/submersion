@@ -71,6 +71,7 @@ object Media3ColorEncoder {
 
     private class Source(
         val transfer: SignalTransfer,
+        val tenBit: Boolean,
         val videoMime: String,
         val bitrate: Int,
     )
@@ -153,7 +154,7 @@ object Media3ColorEncoder {
                 val videoMime =
                     if (mime == MimeTypes.VIDEO_H264 && !tenBit) MimeTypes.VIDEO_H264
                     else MimeTypes.VIDEO_H265
-                return Source(transfer, videoMime, bitrateOf(path))
+                return Source(transfer, tenBit, videoMime, bitrateOf(path))
             }
             throw IllegalArgumentException("no video track in the source")
         } finally {
@@ -315,8 +316,7 @@ object Media3ColorEncoder {
                         // 10-bit clip cannot do this at all, which is not a
                         // fault (an emulator's software decoder is one).
                         val hdrCodecFailure =
-                            info.transfer != SignalTransfer.SDR &&
-                                exportException.errorCode in hdrCodecCodes
+                            info.tenBit && exportException.errorCode in hdrCodecCodes
                         val code =
                             if (exportException.errorCode in unsupportedCodes || hdrCodecFailure) {
                                 "unsupported"

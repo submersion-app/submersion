@@ -4,12 +4,15 @@ import 'dart:typed_data';
 
 /// When and where a clip was recorded, as its MP4 or QuickTime file says.
 class Mp4RecordingInfo {
-  const Mp4RecordingInfo({this.created, this.location});
+  const Mp4RecordingInfo({this.created, this.location, this.videoMatrix});
 
   final DateTime? created;
 
   /// ISO 6709, e.g. `+20.5000-087.0000/`.
   final String? location;
+
+  /// The video track's display matrix (see [readMp4VideoMatrix]).
+  final List<int>? videoMatrix;
 }
 
 /// Reads [file]'s recording date and location (issue #3521): QuickTime
@@ -48,9 +51,14 @@ Future<Mp4RecordingInfo> readMp4RecordingInfo(File file) async {
     final keyDate = DateTime.tryParse(
       keys['com.apple.quicktime.creationdate'] ?? '',
     );
+    final matrixAt = _videoMatrixOffset(bytes);
+    final data = ByteData.sublistView(bytes);
     return Mp4RecordingInfo(
       created: keyDate?.toUtc() ?? headerDate,
       location: keys['com.apple.quicktime.location.ISO6709'] ?? xyz ?? loci,
+      videoMatrix: matrixAt == null
+          ? null
+          : [for (var i = 0; i < 9; i++) data.getInt32(matrixAt + i * 4)],
     );
   } on Object {
     return const Mp4RecordingInfo();
@@ -386,14 +394,24 @@ Iterable<_Box> _dateHeaders(Uint8List bytes, int start, int end) sync* {
 }
 
 /// A 3GPP `loci` box as ISO 6709: version and flags, language, a
-/// NUL-terminated name, a role byte, then longitude, latitude and altitude
-/// as 16.16 fixed point.
+/// NUL-terminated name (UTF-8, or UTF-16 after a FE FF byte order mark), a
+/// role byte, then longitude, latitude and altitude as 16.16 fixed point.
 String? _lociText(Uint8List bytes, _Box box) {
   var pos = box.payloadStart + 6;
-  while (pos < box.end && bytes[pos] != 0) {
-    pos++;
+  final utf16 =
+      pos + 1 < box.end && bytes[pos] == 0xfe && bytes[pos + 1] == 0xff;
+  if (utf16) {
+    pos += 2;
+    while (pos + 1 < box.end && (bytes[pos] != 0 || bytes[pos + 1] != 0)) {
+      pos += 2;
+    }
+    pos += 3; // the name's two-byte NUL, the role
+  } else {
+    while (pos < box.end && bytes[pos] != 0) {
+      pos++;
+    }
+    pos += 2; // the name's NUL, the role
   }
-  pos += 2; // the name's NUL, the role
   if (pos + 12 > box.end) return null;
   final data = ByteData.sublistView(bytes);
   double fixed(int at) => data.getInt32(at) / 65536;

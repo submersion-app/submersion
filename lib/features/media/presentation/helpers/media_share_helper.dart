@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:submersion_transcoder/submersion_transcoder.dart';
@@ -34,6 +36,9 @@ Future<bool> shareMediaItems(
 }) => runShareFlow(
   context,
   anchor: anchor,
+  // Only mobile systems stop an app's encoding when it leaves the screen;
+  // a minimised desktop window keeps encoding.
+  systemStopsEncodes: Platform.isIOS || Platform.isAndroid,
   showVideoProgress: items.any((item) => videoMayNeedCorrection(ref, item)),
   prepare: (onProgress, cancel, backgroundEntries) => prepareShareFiles(
     ref,
@@ -62,6 +67,7 @@ Future<bool> runShareFlow(
   prepare,
   required Future<List<XFile>> Function(List<MediaItem> failed) originals,
   Rect? anchor,
+  bool systemStopsEncodes = true,
 }) async {
   final l10n = context.l10n;
   // Falls back to [context] so callers that only have a page or bar context
@@ -75,7 +81,11 @@ Future<bool> runShareFlow(
   // system (iOS suspends video encoding in the background), not by a fault:
   // count the trips away so each encode can tell whether one fell inside it.
   var backgroundEntries = 0;
-  final lifecycle = AppLifecycleListener(onHide: () => backgroundEntries++);
+  final lifecycle = AppLifecycleListener(
+    onHide: () {
+      if (systemStopsEncodes) backgroundEntries++;
+    },
+  );
 
   showDialog<void>(
     context: context,

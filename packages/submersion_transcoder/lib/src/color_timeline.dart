@@ -26,11 +26,17 @@ class ColorTimeline {
   List<double> matrixAt(int timeMs) {
     if (timeMs <= keys.first.timeMs) return keys.first.matrix;
     if (timeMs >= keys.last.timeMs) return keys.last.matrix;
-    var i = 1;
-    while (keys[i].timeMs < timeMs) {
-      i++;
+    // The first key at or after timeMs, by binary search: asked per frame.
+    var low = 1, high = keys.length - 1;
+    while (low < high) {
+      final mid = (low + high) >> 1;
+      if (keys[mid].timeMs < timeMs) {
+        low = mid + 1;
+      } else {
+        high = mid;
+      }
     }
-    final lo = keys[i - 1], hi = keys[i];
+    final lo = keys[low - 1], hi = keys[low];
     final t = (timeMs - lo.timeMs) / (hi.timeMs - lo.timeMs);
     return [
       for (var k = 0; k < 20; k++)

@@ -18,6 +18,7 @@ class ColorCase {
     required this.transfer,
     this.rotation = 0,
     this.startOffsetSeconds = 0,
+    this.tenBitSdr = false,
   });
 
   final String name;
@@ -31,12 +32,21 @@ class ColorCase {
   final int rotation;
   final double startOffsetSeconds;
 
-  bool get tenBit => transfer != SignalTransfer.sdr;
+  /// A 10-bit clip without HDR (GoPro and some Android phones).
+  final bool tenBitSdr;
+
+  bool get tenBit => tenBitSdr || transfer != SignalTransfer.sdr;
 }
 
 const colorCases = [
   ColorCase('h264 sdr', codec: 'h264', transfer: SignalTransfer.sdr),
   ColorCase('hevc sdr', codec: 'hevc', transfer: SignalTransfer.sdr),
+  ColorCase(
+    'hevc sdr 10-bit',
+    codec: 'hevc',
+    transfer: SignalTransfer.sdr,
+    tenBitSdr: true,
+  ),
   ColorCase('hevc hlg 10-bit', codec: 'hevc', transfer: SignalTransfer.hlg),
   ColorCase('hevc pq 10-bit', codec: 'hevc', transfer: SignalTransfer.pq),
   ColorCase(

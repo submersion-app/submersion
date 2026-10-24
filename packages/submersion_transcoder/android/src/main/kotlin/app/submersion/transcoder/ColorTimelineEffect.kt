@@ -2,6 +2,7 @@ package app.submersion.transcoder
 
 import android.content.Context
 import android.opengl.GLES20
+import androidx.media3.common.VideoFrameProcessingException
 import androidx.media3.common.util.GlProgram
 import androidx.media3.common.util.GlUtil
 import androidx.media3.common.util.Size
@@ -24,10 +25,15 @@ class ColorTimeline(keys: List<ColorTimelineKey>) {
         if (keys.isEmpty()) return IDENTITY
         if (timeMs <= keys.first().timeMs) return keys.first().matrix
         if (timeMs >= keys.last().timeMs) return keys.last().matrix
-        var i = 1
-        while (keys[i].timeMs < timeMs) i++
-        val lo = keys[i - 1]
-        val hi = keys[i]
+        // The first key at or after timeMs, by binary search: asked per frame.
+        var low = 1
+        var high = keys.size - 1
+        while (low < high) {
+            val mid = (low + high) ushr 1
+            if (keys[mid].timeMs < timeMs) low = mid + 1 else high = mid
+        }
+        val lo = keys[low - 1]
+        val hi = keys[low]
         val f = ((timeMs - lo.timeMs) / (hi.timeMs - lo.timeMs)).toFloat()
         return FloatArray(20) { lo.matrix[it] + (hi.matrix[it] - lo.matrix[it]) * f }
     }
@@ -55,8 +61,19 @@ class ColorTimelineEffect(
     private val timeline: ColorTimeline,
     private val transfer: SignalTransfer,
 ) : GlEffect {
-    override fun toGlShaderProgram(context: Context, useHdr: Boolean): GlShaderProgram =
-        ColorTimelineShaderProgram(timeline, if (useHdr) transfer else SignalTransfer.SDR, useHdr)
+    override fun toGlShaderProgram(context: Context, useHdr: Boolean): GlShaderProgram {
+        // Media3 found HDR the container did not declare: which curve the
+        // frames use is unknown, and SDR maths on linear light would come out
+        // wrong, so the encode fails (and the diver is offered the original).
+        if (useHdr && transfer == SignalTransfer.SDR) {
+            throw VideoFrameProcessingException("HDR frames with an unknown transfer")
+        }
+        return ColorTimelineShaderProgram(
+            timeline,
+            if (useHdr) transfer else SignalTransfer.SDR,
+            useHdr,
+        )
+    }
 }
 
 @UnstableApi

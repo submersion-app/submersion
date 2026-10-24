@@ -176,6 +176,26 @@ void main() {
     expect(cancel.isCancelled, isTrue);
   });
 
+  test('a cancel during the source read never starts the encode', () async {
+    var called = false;
+    messenger.setMockMethodCallHandler(methods, (call) async {
+      if (call.method == 'encodeWithColor') called = true;
+      return null;
+    });
+    final cancel = ColorEncodeCancel();
+    // The source does not exist, so the read fails fast; the cancel lands
+    // while it is in flight, before the encode is asked for.
+    final future = ChannelTranscodeEngine().encodeWithColor(
+      source: File('/in.mov'),
+      output: File('/out.mp4'),
+      timeline: timeline,
+      cancel: cancel,
+    );
+    cancel.cancel();
+    await expectLater(future, throwsA(isA<TranscodeCancelledException>()));
+    expect(called, isFalse);
+  });
+
   test('a cancel requested before the call never starts the encode', () async {
     var called = false;
     messenger.setMockMethodCallHandler(methods, (call) async {

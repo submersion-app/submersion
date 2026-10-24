@@ -199,6 +199,50 @@ void main() {
     );
   });
 
+  test('reads a loci location whose name is UTF-16', () async {
+    final name = [
+      0xfe,
+      0xff,
+      0x00,
+      0x52,
+      0x00,
+      0x65,
+      0x00,
+      0x65,
+      0x00,
+      0x66,
+      0x00,
+      0x00,
+    ];
+    final fixed = ByteData(12)
+      ..setInt32(0, (-87.0 * 65536).round())
+      ..setInt32(4, (20.5 * 65536).round())
+      ..setInt32(8, 0);
+    final box16 = box('loci', [
+      0,
+      0,
+      0,
+      0,
+      0x15,
+      0xc7,
+      ...name,
+      0,
+      ...fixed.buffer.asUint8List(),
+      0,
+      0,
+    ]);
+    final f = await write(movie([mvhd(date), box('udta', box16)]));
+    expect(
+      (await readMp4RecordingInfo(f)).location,
+      '+20.5000-087.0000+000.000/',
+    );
+  });
+
+  test('the recording info carries the video track matrix', () async {
+    final f = await write(movie([mvhd(date), trak(rotate90Matrix)]));
+    expect((await readMp4RecordingInfo(f)).videoMatrix, rotate90Matrix);
+  });
+
   test('reads a version 1 movie header', () async {
     final f = await write(movie([mvhd(date, version: 1)]));
     expect((await readMp4RecordingInfo(f)).created, date);

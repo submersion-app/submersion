@@ -190,7 +190,18 @@ final class ColorEncoder {
         }
       }
     }
-    group.wait()
+    // A writer that fails while an input is not ready stops calling that
+    // input's block, which would then never leave the group: watch for that
+    // (and for a cancel no pump is awake to see) instead of waiting blind.
+    var abandoned = false
+    while group.wait(timeout: .now() + 0.5) == .timedOut {
+      if writer.status == .failed || reader.status == .failed || isCancelled() {
+        abandoned = true
+        reader.cancelReading()
+        writer.cancelWriting()
+        break
+      }
+    }
 
     if isCancelled() {
       reader.cancelReading()
@@ -209,6 +220,10 @@ final class ColorEncoder {
       writer.cancelWriting()
       discard()
       throw classify(reader.error, stage: "reading")
+    }
+    if abandoned {
+      discard()
+      throw classify(writer.error, stage: "writing")
     }
     let done = DispatchSemaphore(value: 0)
     writer.finishWriting { done.signal() }
@@ -345,7 +360,7 @@ private struct SourceTraits {
     }
     let bits = (ext[kCMFormatDescriptionExtension_BitsPerComponent as String] as? NSNumber)?
       .intValue
-    tenBit = (bits ?? 8) > 8 || transfer != 0
+    tenBit = (bits ?? 8) > 8 || transfer != 0 || SourceTraits.hevcLumaBits(ext) > 8
     let isH264 = CMFormatDescriptionGetMediaSubType(format) == kCMVideoCodecType_H264
     // VideoToolbox has no 10-bit H.264 encoder; such a clip becomes HEVC.
     codec = isH264 && !tenBit ? .h264 : .hevc
@@ -395,6 +410,20 @@ private struct SourceTraits {
   }
 }
 
+extension SourceTraits {
+  /// The luma bit depth an HEVC track's configuration record (`hvcC`)
+  /// declares, or 8 when there is none: AVFoundation often leaves
+  /// BitsPerComponent out for 10-bit SDR HEVC.
+  static func hevcLumaBits(_ ext: [String: Any]) -> Int {
+    let atoms =
+      ext[kCMFormatDescriptionExtension_SampleDescriptionExtensionAtoms as String]
+      as? [String: Any]
+    guard let hvcC = atoms?["hvcC"] as? Data, hvcC.count > 17 else { return 8 }
+    // bitDepthLumaMinus8 sits in the low three bits of byte 17.
+    return 8 + Int(hvcC[hvcC.startIndex + 17] & 0x07)
+  }
+}
+
 /// The timeline, interpolated the way `ColorTimeline.matrixAt` does.
 private struct Timeline {
   let keys: [ColorTimelineKey]
@@ -409,9 +438,14 @@ private struct Timeline {
     }
     if t <= firstKey.timeMs { return firstKey.matrix }
     if t >= lastKey.timeMs { return lastKey.matrix }
-    var i = 1
-    while keys[i].timeMs < t { i += 1 }
-    let lo = keys[i - 1], hi = keys[i]
+    // The first key at or after t, by binary search: asked per frame.
+    var low = 1
+    var high = keys.count - 1
+    while low < high {
+      let mid = (low + high) / 2
+      if keys[mid].timeMs < t { low = mid + 1 } else { high = mid }
+    }
+    let lo = keys[low - 1], hi = keys[low]
     let f = Float((t - lo.timeMs) / (hi.timeMs - lo.timeMs))
     return (0..<20).map { lo.matrix[$0] + (hi.matrix[$0] - lo.matrix[$0]) * f }
   }

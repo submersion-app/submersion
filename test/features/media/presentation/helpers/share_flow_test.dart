@@ -57,6 +57,7 @@ void main() {
     WidgetTester tester, {
     required _Prepare prepare,
     bool showVideoProgress = true,
+    bool systemStopsEncodes = true,
     List<MediaItem>? items,
     List<MediaItem>? originalsAsked,
   }) async {
@@ -71,6 +72,7 @@ void main() {
               onPressed: () => runShareFlow(
                 context,
                 showVideoProgress: showVideoProgress,
+                systemStopsEncodes: systemStopsEncodes,
                 prepare: prepare,
                 originals: (failed) async {
                   originalsAsked?.addAll(failed);
@@ -256,6 +258,29 @@ void main() {
       findsOneWidget,
     );
     expect(platform.calls, isEmpty);
+  });
+
+  testWidgets('on desktop, hiding the window is not a background trip', (
+    tester,
+  ) async {
+    final gate = Completer<void>();
+    late int Function() trips;
+    await pumpHost(
+      tester,
+      systemStopsEncodes: false,
+      prepare: (_, _, backgroundEntries) async {
+        trips = backgroundEntries;
+        await gate.future;
+        return const ShareCancelled();
+      },
+    );
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+    expect(trips(), 0);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    gate.complete();
+    await tester.pumpAndSettle();
   });
 
   testWidgets('leaving the foreground is reported to the preparation', (
