@@ -291,6 +291,18 @@ void main() {
     expect(find.byType(AlertDialog), findsOneWidget);
   });
 
+  testWidgets('with the switch on, the page lists the folder once', (
+    tester,
+  ) async {
+    seed(3);
+    await pump(
+      tester,
+      initial: {'backup_retention_all_devices_account': 'acct'},
+    );
+    expect(find.text('1 backup in the cloud folder uses 3 B'), findsOneWidget);
+    expect(cloud.operationLog.where((o) => o == 'list'), hasLength(1));
+  });
+
   testWidgets('the folder footprint counts only what the folder holds', (
     tester,
   ) async {

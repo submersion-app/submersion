@@ -677,15 +677,19 @@ final backupHistoryProvider = FutureProvider.autoDispose<List<BackupRecord>>((
   final cloudFiles = service.getCloudBackups();
   final history = await service.getValidatedBackupHistory();
   final listing = await cloudFiles;
-  return markPinnedOnAnotherDevice(
-    mergeCloudBackups(
-      history,
+  final listedIds = {for (final f in listing) f.id};
+  return [
+    for (final r in markPinnedOnAnotherDevice(
+      mergeCloudBackups(
+        history,
+        listing,
+        accountId: await service.cloudCopyAccountId(),
+      ),
       listing,
-      accountId: await service.cloudCopyAccountId(),
-    ),
-    listing,
-    thisDeviceId: await service.thisDeviceIdOrNull(),
-  );
+      thisDeviceId: await service.thisDeviceIdOrNull(),
+    ))
+      listedIds.contains(r.cloudFileId) ? r.copyWith(cloudCopyListed: true) : r,
+  ];
 });
 
 // =============================================================================

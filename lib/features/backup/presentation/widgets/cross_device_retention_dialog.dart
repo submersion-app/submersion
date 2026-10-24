@@ -66,7 +66,11 @@ class _CrossDeviceRetentionDialog extends ConsumerWidget {
                           units.formatDateTime(c.timestamp, l10n: l10n),
                         ),
                         subtitle: Text(_source(context, c.ownership)),
-                        trailing: Text(formatBytes(c.file.sizeBytes ?? 0)),
+                        // An unknown size is left blank, never "0 B".
+                        trailing: switch (c.file.sizeBytes) {
+                          final size? => Text(formatBytes(size)),
+                          null => null,
+                        },
                       ),
                   ],
                 ),

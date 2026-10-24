@@ -229,7 +229,7 @@ extension BackupServiceRetention on BackupService {
     return gone.length;
   }
 
-  /// The cross-device step of [BackupService.pruneOldBackups], planned
+  /// The cross-device step of [BackupServicePruning.pruneOldBackups], planned
   /// from [listing] (the prune's own, less what it just deleted). Never
   /// throws.
   Future<void> _pruneAcrossDevices(

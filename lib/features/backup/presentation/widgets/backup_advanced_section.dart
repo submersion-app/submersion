@@ -124,17 +124,17 @@ class _RetentionSubtitle extends ConsumerWidget {
     final history = ref.watch(backupHistoryProvider).value;
     final explanation = Text(l10n.backup_schedule_retention_subtitle);
     // With the switch on the number governs the cloud folder, so the cost
-    // shown is the folder's, read from its listing (issue #3503).
+    // shown is the folder's: the rows its listing showed (issue #3503).
     final acrossDevices =
         ref.watch(crossDeviceRetentionActiveProvider).value ?? false;
     final String? footprint;
     if (acrossDevices) {
-      final folder = ref.watch(cloudFolderFootprintProvider).value;
-      footprint = folder == null || folder.count == 0
+      final listed = [...?history?.where((r) => r.cloudCopyListed)];
+      footprint = listed.isEmpty
           ? null
           : l10n.backup_retention_cloudFootprint(
-              folder.count,
-              formatBytes(folder.bytes),
+              listed.length,
+              formatBytes(listed.fold<int>(0, (sum, r) => sum + r.sizeBytes)),
             );
     } else {
       footprint = history == null || history.isEmpty

@@ -37,6 +37,11 @@ class BackupRecord extends Equatable {
   /// marker is the truth and another device can remove it at any time.
   final bool pinnedOnAnotherDevice;
 
+  /// Set on a row whose cloud copy the page's folder listing showed (issue
+  /// #3503), so the folder's footprint needs no second listing. Display only:
+  /// never stored.
+  final bool cloudCopyListed;
+
   const BackupRecord({
     required this.id,
     required this.filename,
@@ -56,6 +61,7 @@ class BackupRecord extends Equatable {
     this.note,
     this.cloudAccountId,
     this.pinnedOnAnotherDevice = false,
+    this.cloudCopyListed = false,
   });
 
   BackupRecord copyWith({
@@ -77,6 +83,7 @@ class BackupRecord extends Equatable {
     String? note,
     String? cloudAccountId,
     bool? pinnedOnAnotherDevice,
+    bool? cloudCopyListed,
   }) {
     return BackupRecord(
       id: id ?? this.id,
@@ -98,6 +105,7 @@ class BackupRecord extends Equatable {
       cloudAccountId: cloudAccountId ?? this.cloudAccountId,
       pinnedOnAnotherDevice:
           pinnedOnAnotherDevice ?? this.pinnedOnAnotherDevice,
+      cloudCopyListed: cloudCopyListed ?? this.cloudCopyListed,
     );
   }
 
@@ -219,5 +227,6 @@ class BackupRecord extends Equatable {
     note,
     cloudAccountId,
     pinnedOnAnotherDevice,
+    cloudCopyListed,
   ];
 }
