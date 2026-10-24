@@ -157,33 +157,16 @@ class _RetentionSubtitle extends ConsumerWidget {
 
 /// "Count backups from all devices" (issue #3503): off by default, and on
 /// only for the cloud folder it was confirmed for. Disabled while a change
-/// it started is still listing or pruning, so a second tap cannot start a
-/// second one.
-class _CrossDeviceRetentionTile extends ConsumerStatefulWidget {
+/// is still listing, asking or pruning, so a second tap cannot start
+/// another.
+class _CrossDeviceRetentionTile extends ConsumerWidget {
   const _CrossDeviceRetentionTile();
 
   @override
-  ConsumerState<_CrossDeviceRetentionTile> createState() =>
-      _CrossDeviceRetentionTileState();
-}
-
-class _CrossDeviceRetentionTileState
-    extends ConsumerState<_CrossDeviceRetentionTile> {
-  var _busy = false;
-
-  Future<void> _set(bool value) async {
-    setState(() => _busy = true);
-    try {
-      await setCrossDeviceRetention(context, ref, value);
-    } finally {
-      if (mounted) setState(() => _busy = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final on = ref.watch(crossDeviceRetentionActiveProvider).value ?? false;
+    final busy = ref.watch(crossDeviceRetentionBusyProvider);
     final keep = ref.watch(
       backupSettingsProvider.select((s) => s.retentionCount),
     );
@@ -196,7 +179,9 @@ class _CrossDeviceRetentionTileState
             : l10n.backup_retention_allDevices_off,
       ),
       value: on,
-      onChanged: _busy ? null : _set,
+      onChanged: busy
+          ? null
+          : (value) => setCrossDeviceRetention(context, ref, value),
     );
   }
 }

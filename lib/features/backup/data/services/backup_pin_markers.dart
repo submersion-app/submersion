@@ -20,8 +20,6 @@ import 'package:submersion/features/backup/data/services/backup_attribution.dart
 /// that keep only `.db`/`.sbe` backups never mistake a marker for a backup.
 const String pinMarkerExtension = '.pin';
 
-const String _backupPrefix = 'submersion_backup_';
-
 /// Separates the backup's name from the pinning device's tag.
 const String _pinnerMarker = '__p';
 
@@ -43,11 +41,11 @@ String pinMarkerName({
 
 /// The marker [name] describes, or null when it is not exactly a marker.
 PinMarker? parsePinMarker(String name) {
-  if (!name.startsWith(_backupPrefix)) return null;
+  if (!name.startsWith(backupFilePrefix)) return null;
   if (!name.endsWith(pinMarkerExtension)) return null;
   final body = name.substring(0, name.length - pinMarkerExtension.length);
   final at = body.lastIndexOf(_pinnerMarker);
-  if (at <= _backupPrefix.length) return null;
+  if (at <= backupFilePrefix.length) return null;
   final tag = body.substring(at + _pinnerMarker.length);
   if (!isDeviceTag(tag)) return null;
   return (backupStem: body.substring(0, at), deviceTag: tag);

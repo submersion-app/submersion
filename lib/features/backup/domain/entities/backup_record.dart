@@ -121,6 +121,26 @@ class BackupRecord extends Equatable {
     note: note,
   );
 
+  /// This record once its local copy is gone: kept in the cloud only.
+  BackupRecord withoutLocalCopy() => BackupRecord(
+    id: id,
+    filename: filename,
+    timestamp: timestamp,
+    sizeBytes: sizeBytes,
+    location: BackupLocation.cloud,
+    diveCount: diveCount,
+    siteCount: siteCount,
+    cloudFileId: cloudFileId,
+    isAutomatic: isAutomatic,
+    type: type,
+    appVersion: appVersion,
+    fromSchemaVersion: fromSchemaVersion,
+    toSchemaVersion: toSchemaVersion,
+    pinned: pinned,
+    note: note,
+    cloudAccountId: cloudAccountId,
+  );
+
   /// Formatted file size for display (e.g., "2.3 MB")
   String get formattedSize {
     if (sizeBytes < 1024) return '$sizeBytes B';

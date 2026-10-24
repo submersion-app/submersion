@@ -14,8 +14,6 @@ import 'package:submersion/features/backup/data/services/cloud_backup_history.da
 /// needed between devices: each removes only files outside the newest N it
 /// can see, and the folder's newest N are inside every device's newest N.
 
-const String _backupPrefix = 'submersion_backup_';
-
 /// Nothing younger than this is removed, whatever its rank, and no pin
 /// marker younger than this is treated as an orphan.
 ///
@@ -123,7 +121,7 @@ CrossDeviceRetentionPlan planCrossDeviceRetention({
   // manages: a pinned conflicted copy keeps its marker.
   final listedStems = {
     for (final f in listing)
-      if (f.name.startsWith(_backupPrefix) &&
+      if (f.name.startsWith(backupFilePrefix) &&
           backupFileExtensions.contains(p.extension(f.name)))
         backupStem(f.name),
   };
@@ -150,7 +148,7 @@ CrossDeviceRetentionPlan planCrossDeviceRetention({
 /// sync client's `(conflicted copy)` or a hand-renamed file is left for the
 /// diver to judge, never removed by a rule.
 final RegExp _backupName = RegExp(
-  '^$_backupPrefix\\d{4}-\\d{2}-\\d{2}_\\d{6}(__d[0-9a-f]{16})?\$',
+  '^$backupFilePrefix\\d{4}-\\d{2}-\\d{2}_\\d{6}(__d[0-9a-f]{16})?\$',
 );
 
 bool _isBackup(String name) =>

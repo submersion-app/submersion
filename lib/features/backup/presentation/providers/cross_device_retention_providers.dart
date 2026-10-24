@@ -29,3 +29,20 @@ final crossDeviceRetentionActiveProvider = FutureProvider.autoDispose<bool>((
 final backupCopyAccountIdProvider = FutureProvider.autoDispose<String?>(
   (ref) => ref.watch(backupServiceProvider).cloudCopyAccountId(),
 );
+
+/// Whether a cross-device change (turning the switch on, or lowering "Keep"
+/// while it is on) is listing, asking or pruning. One runs at a time.
+class CrossDeviceRetentionBusy extends Notifier<bool> {
+  @override
+  bool build() => false;
+
+  /// A no-op once the scope is gone (the app closing mid-prune).
+  void set(bool value) {
+    if (ref.mounted) state = value;
+  }
+}
+
+final crossDeviceRetentionBusyProvider =
+    NotifierProvider<CrossDeviceRetentionBusy, bool>(
+      CrossDeviceRetentionBusy.new,
+    );

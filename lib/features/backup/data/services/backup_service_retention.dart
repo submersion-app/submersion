@@ -28,7 +28,8 @@ extension BackupServiceRetention on BackupService {
     if (provider == null) return;
     final deviceId = await thisDeviceIdOrNull();
     if (deviceId == null) return;
-    final state = await _pinMarkerState();
+    final here = await _cloudCopyCheck();
+    final state = _pinMarkerState(here, await crossDeviceRetentionAccountKey());
     final files = listing ?? await _listCloudFolder();
     if (files == null) return;
 
@@ -38,7 +39,6 @@ extension BackupServiceRetention on BackupService {
       for (final f in files)
         if (parsePinMarker(f.name) == null) backupStem(f.name),
     };
-    final here = await _cloudCopyCheck();
     final pinnedStems = <String>{};
     for (final r in _preferences.getHistory()) {
       final id = r.cloudFileId;
@@ -81,7 +81,11 @@ extension BackupServiceRetention on BackupService {
       if (toWrite.isNotEmpty || toDelete.isNotEmpty) {
         await flushDeferredWrites(provider);
       }
-      await _preferences.setPinMarkersSynced(state);
+      // A pinned copy the listing did not show yet got no marker: leave the
+      // state unrecorded so the next prune tries again.
+      if (pinnedStems.containsAll(state.stems)) {
+        await _preferences.setPinMarkersSynced(state.encoded);
+      }
     } catch (e, st) {
       _log.warning(
         'Pin markers not reconciled; retried next prune',
@@ -102,13 +106,15 @@ extension BackupServiceRetention on BackupService {
   /// go to now. Off while cloud backup is off (the provider then only follows
   /// sync), and off for any other folder, including one a scheduled backup
   /// resolves differently, until the diver confirms it there.
-  Future<bool> crossDeviceRetentionActive() async {
+  Future<bool> crossDeviceRetentionActive() async =>
+      _crossDeviceRetentionActiveFor(await crossDeviceRetentionAccountKey());
+
+  /// [crossDeviceRetentionActive] for a folder key already read.
+  bool _crossDeviceRetentionActiveFor(String folderKey) {
     if (_cloudProvider == null) return false;
     final settings = _preferences.getSettings();
-    if (!settings.cloudBackupEnabled) return false;
-    return settings.crossDeviceRetentionFor(
-      await crossDeviceRetentionAccountKey(),
-    );
+    return settings.cloudBackupEnabled &&
+        settings.crossDeviceRetentionFor(folderKey);
   }
 
   /// What pruning the folder to [keepCount] across devices would remove
@@ -243,29 +249,32 @@ extension BackupServiceRetention on BackupService {
   /// Whether this device's markers may not match its pins: true when the
   /// pinned cloud copies differ from those the last reconcile recorded for
   /// this folder. False with no device id, since nothing could be written.
-  Future<bool> _pinMarkersStale() async {
+  Future<bool> _pinMarkersStale(
+    bool Function(BackupRecord) here,
+    String folderKey,
+  ) async {
     if (_cloudProvider == null) return false;
     if (await thisDeviceIdOrNull() == null) return false;
     final recorded = _preferences.getPinMarkersSynced();
-    final current = await _pinMarkerState();
+    final current = _pinMarkerState(here, folderKey);
     // Never reconciled and nothing pinned: there is nothing to mirror.
-    if (recorded == null) return current != _emptyMarkerState(current);
-    return recorded != current;
+    if (recorded == null) return current.stems.isNotEmpty;
+    return recorded != current.encoded;
   }
 
-  /// The folder key and the stems of the pinned cloud copies here, as one
-  /// string to compare with what the last reconcile recorded.
-  Future<String> _pinMarkerState() async {
-    final here = await _cloudCopyCheck();
+  /// The stems of this device's pinned cloud copies in [folderKey]'s folder,
+  /// and the two as one string to compare with what a reconcile recorded.
+  ({List<String> stems, String encoded}) _pinMarkerState(
+    bool Function(BackupRecord) here,
+    String folderKey,
+  ) {
     final stems = [
       for (final r in _preferences.getHistory())
         if (r.pinned && r.cloudFileId != null && here(r))
           backupStem(r.filename),
     ]..sort();
-    return [await crossDeviceRetentionAccountKey(), ...stems].join('\n');
+    return (stems: stems, encoded: [folderKey, ...stems].join('\n'));
   }
-
-  String _emptyMarkerState(String state) => state.split('\n').first;
 
   /// Stems of backups a device other than this one has pinned, from the
   /// markers in [listing]. When this device's id is unknown every marker
@@ -295,7 +304,7 @@ extension BackupServiceRetention on BackupService {
       if (folderId == null) return null;
       return await provider.listFiles(
         folderId: folderId,
-        namePattern: 'submersion_backup_',
+        namePattern: backupFilePrefix,
       );
     } catch (e, st) {
       _log.warning('Cloud backup folder unreadable', error: e, stackTrace: st);
@@ -316,9 +325,8 @@ extension BackupServiceRetention on BackupService {
         backupFilename: record.filename,
         pinningDeviceId: deviceId,
       );
-      // Some backends keep two files of one name side by side.
-      final files = await _listCloudFolder();
-      if (files == null || files.any((f) => f.name == name)) return;
+      // No listing first: a duplicate on a backend that allows two files of
+      // one name is harmless, and reconciliation removes it.
       final folderId = await _getOrCreateCloudBackupFolder();
       if (folderId == null) return;
       await provider.uploadFile(Uint8List(0), name, folderId: folderId);

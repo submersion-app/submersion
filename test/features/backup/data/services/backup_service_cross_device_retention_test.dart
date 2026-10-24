@@ -197,6 +197,49 @@ void main() {
       expect(lists(), 2);
     });
 
+    test('a pinned copy not yet listed gets its marker once it is', () async {
+      final at = DateTime.now().subtract(const Duration(days: 3));
+      final name =
+          'submersion_backup_${_stamp.format(at)}__d${deviceTag('dev-A')}.db';
+      await addOwn(name, 3, pinned: true);
+      await service().pruneOldBackups(5);
+      final marker = pinMarkerName(
+        backupFilename: name,
+        pinningDeviceId: 'dev-A',
+      );
+      expect(has(marker), isFalse);
+
+      cloud.seedFile(name, Uint8List.fromList([1]), modified: at);
+      await service().pruneOldBackups(5);
+      expect(has(marker), isTrue);
+    });
+
+    test('an unreadable folder still frees the local copies', () async {
+      final names = [seed(3, device: 'dev-A'), seed(4, device: 'dev-A')];
+      for (final (i, n) in names.indexed) {
+        await preferences.addRecord(
+          BackupRecord(
+            id: n,
+            filename: n,
+            timestamp: DateTime.now().subtract(Duration(days: 3 + i)),
+            sizeBytes: 3,
+            location: BackupLocation.both,
+            cloudFileId: n,
+            cloudAccountId: 'acct',
+            localPath: '/nowhere/$n',
+          ),
+        );
+      }
+      cloud.authenticated = false;
+      await service().pruneOldBackups(1);
+
+      final old = preferences.getHistory().firstWhere((r) => r.id == names[1]);
+      expect(old.localPath, isNull);
+      expect(old.location, BackupLocation.cloud);
+      expect(old.cloudFileId, names[1]);
+      expect(has(names[1]), isTrue);
+    });
+
     test('a failed listing keeps cloud copies for the next prune', () async {
       final names = [seed(3, device: 'dev-A'), seed(4, device: 'dev-A')];
       await addOwn(names[0], 3);

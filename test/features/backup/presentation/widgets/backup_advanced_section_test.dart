@@ -231,6 +231,50 @@ void main() {
     expect(find.text('1 backup in the cloud folder uses 3 B'), findsOneWidget);
   });
 
+  testWidgets('a second change while one runs starts nothing', (tester) async {
+    for (var d = 2; d <= 8; d++) {
+      seed(d);
+    }
+    final gated = _GatedCloud();
+    final seeded = cloud;
+    for (final f in await seeded.listFiles()) {
+      gated.seedFile(f.name, seeded.bytesOf(f.name)!, modified: f.modifiedTime);
+    }
+    cloud = gated;
+    await pump(
+      tester,
+      initial: {
+        'backup_retention_count': 10,
+        'backup_retention_all_devices_account': 'acct',
+      },
+    );
+    gated.release();
+    await tester.pumpAndSettle();
+    final gate2 = _GatedCloud();
+    for (final f in await gated.listFiles()) {
+      gate2.seedFile(f.name, gated.bytesOf(f.name)!, modified: f.modifiedTime);
+    }
+    cloud = gate2;
+    await pump(
+      tester,
+      initial: {
+        'backup_retention_count': 10,
+        'backup_retention_all_devices_account': 'acct',
+      },
+    );
+    for (var i = 0; i < 2; i++) {
+      await tester.tap(find.text('Keep the last 10 backups'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.tap(find.text('5').last);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+    }
+    gate2.release();
+    await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsOneWidget);
+  });
+
   group('with backups to remove', () {
     late List<String> names;
     setUp(() => names = [for (var d = 2; d <= 8; d++) seed(d)]);

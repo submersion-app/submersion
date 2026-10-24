@@ -1228,20 +1228,7 @@ class BackupService {
   }) async {
     _log.info('Deleting backup: ${record.filename}');
 
-    // Delete local file (filesystem path or SAF document URI)
-    if (record.localPath != null) {
-      final ref = record.localPath!;
-      if (isSafRef(ref)) {
-        await _safPort.delete(ref);
-        _log.info('Deleted SAF backup: $ref');
-      } else {
-        final file = File(ref);
-        if (await file.exists()) {
-          await file.delete();
-          _log.info('Deleted local file: $ref');
-        }
-      }
-    }
+    await _deleteLocalCopy(record);
 
     // Delete cloud file; a copy in another account is left where it is.
     if (deleteCloud && await _cloudCopyHere(record)) {
@@ -1367,8 +1354,9 @@ class BackupService {
     // service is a round trip, and on iCloud it can start downloads.
     final here = await _cloudCopyCheck();
     final ownCloud = toDelete.any((r) => r.cloudFileId != null && here(r));
-    final acrossDevices = await crossDeviceRetentionActive();
-    final markersStale = await _pinMarkersStale();
+    final folderKey = await crossDeviceRetentionAccountKey();
+    final acrossDevices = _crossDeviceRetentionActiveFor(folderKey);
+    final markersStale = await _pinMarkersStale(here, folderKey);
     final listing = ownCloud || acrossDevices || markersStale
         ? await _listCloudFolder()
         : null;
@@ -1395,6 +1383,23 @@ class BackupService {
     }
   }
 
+  /// Deletes [record]'s file on this device (a filesystem path or an SAF
+  /// document URI), if it has one.
+  Future<void> _deleteLocalCopy(BackupRecord record) async {
+    final ref = record.localPath;
+    if (ref == null) return;
+    if (isSafRef(ref)) {
+      await _safPort.delete(ref);
+      _log.info('Deleted SAF backup: $ref');
+    } else {
+      final file = File(ref);
+      if (await file.exists()) {
+        await file.delete();
+        _log.info('Deleted local file: $ref');
+      }
+    }
+  }
+
   /// [pruneOldBackups] for this device's own history: deletes [toDelete],
   /// local and cloud copies both, except a cloud copy whose stem is in
   /// [pinnedElsewhere], which stays in the folder. [here] says whether a
@@ -1410,9 +1415,29 @@ class BackupService {
     if (toDelete.isEmpty) return const {};
     _log.info('Pruning ${toDelete.length} old manual backups');
     if (holdCloudCopies) {
+      // The local copy still goes, so an unreadable folder (a signed-out
+      // provider) never lets backups pile up on the device; the record stays,
+      // cloud-only, for the next prune to finish.
+      final held = [
+        for (final r in toDelete)
+          if (r.cloudFileId != null && here(r)) r,
+      ];
+      for (final r in held) {
+        if (r.localPath == null) continue;
+        try {
+          await _deleteLocalCopy(r);
+          await _preferences.updateRecord(r.withoutLocalCopy());
+        } catch (e, st) {
+          _log.warning(
+            'Failed to prune local copy of ${r.filename}; will retry',
+            error: e,
+            stackTrace: st,
+          );
+        }
+      }
       toDelete = [
         for (final r in toDelete)
-          if (r.cloudFileId == null || !here(r)) r,
+          if (!held.contains(r)) r,
       ];
     }
 
