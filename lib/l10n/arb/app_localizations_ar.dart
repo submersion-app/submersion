@@ -55802,4 +55802,32 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_setUpDevice_skip => 'تخطٍّ';
+
+  @override
+  String get settings_setUpDevice_account_title =>
+      'أين يحفظ Submersion بياناتك؟';
+
+  @override
+  String get settings_setUpDevice_account_note =>
+      'تُحفظ غطساتك في الحساب الذي تختاره فقط. لا يملك Submersion خادمًا خاصًا به.';
+
+  @override
+  String get settings_setUpDevice_account_backupFile =>
+      'لديّ ملف نسخة احتياطية بدلًا من ذلك';
+
+  @override
+  String get settings_setUpDevice_offer_icloud =>
+      'يستخدم معرّف Apple الخاص بك. لا حاجة لتسجيل الدخول.';
+
+  @override
+  String get settings_setUpDevice_offer_googleDrive =>
+      'سجّل الدخول باستخدام Google';
+
+  @override
+  String get settings_setUpDevice_offer_dropbox =>
+      'سجّل الدخول باستخدام Dropbox';
+
+  @override
+  String get settings_setUpDevice_offer_ownServer =>
+      'تخزين متوافق مع S3 أو خادم WebDAV';
 }

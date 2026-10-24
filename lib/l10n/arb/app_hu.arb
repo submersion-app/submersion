@@ -16167,5 +16167,12 @@
   "settings_setUpDevice_item_signInBackups": "Jelentkezzen be újra ide: {account}. Addig a mentések szünetelnek.",
   "settings_setUpDevice_next": "Tovább",
   "settings_setUpDevice_notNow": "Most nem",
-  "settings_setUpDevice_skip": "Kihagyás"
+  "settings_setUpDevice_skip": "Kihagyás",
+  "settings_setUpDevice_account_title": "Hol tárolja a Submersion az adatait?",
+  "settings_setUpDevice_account_note": "A merülései csak az Ön által választott fiókban tárolódnak. A Submersionnek nincs saját szervere.",
+  "settings_setUpDevice_account_backupFile": "Inkább biztonsági mentés fájlom van",
+  "settings_setUpDevice_offer_icloud": "Az Apple ID-ját használja. Nem kell bejelentkezni.",
+  "settings_setUpDevice_offer_googleDrive": "Bejelentkezés Google-fiókkal",
+  "settings_setUpDevice_offer_dropbox": "Bejelentkezés Dropbox-fiókkal",
+  "settings_setUpDevice_offer_ownServer": "S3-kompatibilis tárhely vagy WebDAV-szerver"
 }

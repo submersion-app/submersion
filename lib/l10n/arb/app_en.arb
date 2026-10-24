@@ -32527,5 +32527,19 @@
   "settings_setUpDevice_notNow": "Not now",
   "@settings_setUpDevice_notNow": {"description": "Leaves the setup flow without finishing the step; nothing is changed"},
   "settings_setUpDevice_skip": "Skip",
-  "@settings_setUpDevice_skip": {"description": "Skips the optional photo step of the setup flow"}
+  "@settings_setUpDevice_skip": {"description": "Skips the optional photo step of the setup flow"},
+  "settings_setUpDevice_account_title": "Where should Submersion keep your data?",
+  "@settings_setUpDevice_account_title": {"description": "Title of setup step 1, choosing the account that keeps the data"},
+  "settings_setUpDevice_account_note": "Your dives are stored only in the account you choose. Submersion has no server of its own.",
+  "@settings_setUpDevice_account_note": {"description": "Note under the accounts in setup step 1"},
+  "settings_setUpDevice_account_backupFile": "I have a backup file instead",
+  "@settings_setUpDevice_account_backupFile": {"description": "Link in setup step 1 that restores from a backup file instead"},
+  "settings_setUpDevice_offer_icloud": "Uses your Apple ID. Nothing to sign in to.",
+  "@settings_setUpDevice_offer_icloud": {"description": "Under iCloud in setup step 1: what adding it takes"},
+  "settings_setUpDevice_offer_googleDrive": "Sign in with Google",
+  "@settings_setUpDevice_offer_googleDrive": {"description": "Under Google Drive in setup step 1: what adding it takes"},
+  "settings_setUpDevice_offer_dropbox": "Sign in with Dropbox",
+  "@settings_setUpDevice_offer_dropbox": {"description": "Under Dropbox in setup step 1: what adding it takes"},
+  "settings_setUpDevice_offer_ownServer": "S3-compatible storage or a WebDAV server",
+  "@settings_setUpDevice_offer_ownServer": {"description": "Under My own server in setup step 1: what it is"}
 }

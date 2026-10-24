@@ -55054,4 +55054,30 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_setUpDevice_skip => 'Salta';
+
+  @override
+  String get settings_setUpDevice_account_title =>
+      'Dove deve conservare i tuoi dati Submersion?';
+
+  @override
+  String get settings_setUpDevice_account_note =>
+      'Le tue immersioni sono salvate solo nell\'account che scegli. Submersion non ha un server proprio.';
+
+  @override
+  String get settings_setUpDevice_account_backupFile =>
+      'Ho invece un file di backup';
+
+  @override
+  String get settings_setUpDevice_offer_icloud =>
+      'Usa il tuo ID Apple. Nessun accesso da fare.';
+
+  @override
+  String get settings_setUpDevice_offer_googleDrive => 'Accedi con Google';
+
+  @override
+  String get settings_setUpDevice_offer_dropbox => 'Accedi con Dropbox';
+
+  @override
+  String get settings_setUpDevice_offer_ownServer =>
+      'Archiviazione compatibile con S3 o un server WebDAV';
 }

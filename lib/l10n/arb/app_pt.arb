@@ -16167,5 +16167,12 @@
   "settings_setUpDevice_item_signInBackups": "Inicie sessão novamente em {account}. Os backups ficam em pausa até lá.",
   "settings_setUpDevice_next": "Seguinte",
   "settings_setUpDevice_notNow": "Agora não",
-  "settings_setUpDevice_skip": "Ignorar"
+  "settings_setUpDevice_skip": "Ignorar",
+  "settings_setUpDevice_account_title": "Onde deve o Submersion guardar os seus dados?",
+  "settings_setUpDevice_account_note": "Os seus mergulhos são guardados apenas na conta que escolher. O Submersion não tem servidor próprio.",
+  "settings_setUpDevice_account_backupFile": "Tenho antes um ficheiro de backup",
+  "settings_setUpDevice_offer_icloud": "Usa o seu ID Apple. Não é preciso iniciar sessão.",
+  "settings_setUpDevice_offer_googleDrive": "Iniciar sessão com o Google",
+  "settings_setUpDevice_offer_dropbox": "Iniciar sessão com o Dropbox",
+  "settings_setUpDevice_offer_ownServer": "Armazenamento compatível com S3 ou um servidor WebDAV"
 }

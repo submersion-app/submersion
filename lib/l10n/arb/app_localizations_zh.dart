@@ -51708,4 +51708,26 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_setUpDevice_skip => '跳过';
+
+  @override
+  String get settings_setUpDevice_account_title => 'Submersion 应将你的数据保存在哪里？';
+
+  @override
+  String get settings_setUpDevice_account_note =>
+      '你的潜水记录只保存在你选择的账户中。Submersion 没有自己的服务器。';
+
+  @override
+  String get settings_setUpDevice_account_backupFile => '我有备份文件';
+
+  @override
+  String get settings_setUpDevice_offer_icloud => '使用你的 Apple ID，无需登录。';
+
+  @override
+  String get settings_setUpDevice_offer_googleDrive => '使用 Google 登录';
+
+  @override
+  String get settings_setUpDevice_offer_dropbox => '使用 Dropbox 登录';
+
+  @override
+  String get settings_setUpDevice_offer_ownServer => '兼容 S3 的存储或 WebDAV 服务器';
 }

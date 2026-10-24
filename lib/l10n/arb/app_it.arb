@@ -16167,5 +16167,12 @@
   "settings_setUpDevice_item_signInBackups": "Accedi di nuovo a {account}. I backup sono in pausa fino ad allora.",
   "settings_setUpDevice_next": "Avanti",
   "settings_setUpDevice_notNow": "Non ora",
-  "settings_setUpDevice_skip": "Salta"
+  "settings_setUpDevice_skip": "Salta",
+  "settings_setUpDevice_account_title": "Dove deve conservare i tuoi dati Submersion?",
+  "settings_setUpDevice_account_note": "Le tue immersioni sono salvate solo nell'account che scegli. Submersion non ha un server proprio.",
+  "settings_setUpDevice_account_backupFile": "Ho invece un file di backup",
+  "settings_setUpDevice_offer_icloud": "Usa il tuo ID Apple. Nessun accesso da fare.",
+  "settings_setUpDevice_offer_googleDrive": "Accedi con Google",
+  "settings_setUpDevice_offer_dropbox": "Accedi con Dropbox",
+  "settings_setUpDevice_offer_ownServer": "Archiviazione compatibile con S3 o un server WebDAV"
 }

@@ -54932,4 +54932,30 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_setUpDevice_skip => 'Überspringen';
+
+  @override
+  String get settings_setUpDevice_account_title =>
+      'Wo soll Submersion Ihre Daten aufbewahren?';
+
+  @override
+  String get settings_setUpDevice_account_note =>
+      'Ihre Tauchgänge werden nur in dem Konto gespeichert, das Sie wählen. Submersion hat keinen eigenen Server.';
+
+  @override
+  String get settings_setUpDevice_account_backupFile =>
+      'Ich habe stattdessen eine Sicherungsdatei';
+
+  @override
+  String get settings_setUpDevice_offer_icloud =>
+      'Nutzt Ihre Apple-ID. Keine Anmeldung nötig.';
+
+  @override
+  String get settings_setUpDevice_offer_googleDrive => 'Mit Google anmelden';
+
+  @override
+  String get settings_setUpDevice_offer_dropbox => 'Mit Dropbox anmelden';
+
+  @override
+  String get settings_setUpDevice_offer_ownServer =>
+      'S3-kompatibler Speicher oder ein WebDAV-Server';
 }

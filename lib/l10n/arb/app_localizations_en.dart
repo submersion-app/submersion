@@ -54183,4 +54183,30 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_setUpDevice_skip => 'Skip';
+
+  @override
+  String get settings_setUpDevice_account_title =>
+      'Where should Submersion keep your data?';
+
+  @override
+  String get settings_setUpDevice_account_note =>
+      'Your dives are stored only in the account you choose. Submersion has no server of its own.';
+
+  @override
+  String get settings_setUpDevice_account_backupFile =>
+      'I have a backup file instead';
+
+  @override
+  String get settings_setUpDevice_offer_icloud =>
+      'Uses your Apple ID. Nothing to sign in to.';
+
+  @override
+  String get settings_setUpDevice_offer_googleDrive => 'Sign in with Google';
+
+  @override
+  String get settings_setUpDevice_offer_dropbox => 'Sign in with Dropbox';
+
+  @override
+  String get settings_setUpDevice_offer_ownServer =>
+      'S3-compatible storage or a WebDAV server';
 }

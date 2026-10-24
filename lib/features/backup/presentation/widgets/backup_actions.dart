@@ -59,12 +59,12 @@ class RestoreFromFileTile extends ConsumerWidget {
       leading: const Icon(Icons.restore),
       title: Text(context.l10n.settings_backups_restoreFile),
       enabled: !busy,
-      onTap: () => _restoreFromFile(context, ref),
+      onTap: () => restoreFromFile(context, ref),
     );
   }
 }
 
-Future<void> _restoreFromFile(BuildContext context, WidgetRef ref) async {
+Future<void> restoreFromFile(BuildContext context, WidgetRef ref) async {
   final PlatformFile? picked;
   try {
     picked = await FilePicker.pickFile(type: FileType.any);

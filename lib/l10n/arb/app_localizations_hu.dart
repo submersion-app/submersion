@@ -54739,4 +54739,32 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_setUpDevice_skip => 'Kihagyás';
+
+  @override
+  String get settings_setUpDevice_account_title =>
+      'Hol tárolja a Submersion az adatait?';
+
+  @override
+  String get settings_setUpDevice_account_note =>
+      'A merülései csak az Ön által választott fiókban tárolódnak. A Submersionnek nincs saját szervere.';
+
+  @override
+  String get settings_setUpDevice_account_backupFile =>
+      'Inkább biztonsági mentés fájlom van';
+
+  @override
+  String get settings_setUpDevice_offer_icloud =>
+      'Az Apple ID-ját használja. Nem kell bejelentkezni.';
+
+  @override
+  String get settings_setUpDevice_offer_googleDrive =>
+      'Bejelentkezés Google-fiókkal';
+
+  @override
+  String get settings_setUpDevice_offer_dropbox =>
+      'Bejelentkezés Dropbox-fiókkal';
+
+  @override
+  String get settings_setUpDevice_offer_ownServer =>
+      'S3-kompatibilis tárhely vagy WebDAV-szerver';
 }

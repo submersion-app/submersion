@@ -16167,5 +16167,12 @@
   "settings_setUpDevice_item_signInBackups": "Reconnectez-vous à {account}. Les sauvegardes sont en pause d'ici là.",
   "settings_setUpDevice_next": "Suivant",
   "settings_setUpDevice_notNow": "Pas maintenant",
-  "settings_setUpDevice_skip": "Ignorer"
+  "settings_setUpDevice_skip": "Ignorer",
+  "settings_setUpDevice_account_title": "Où Submersion doit-il conserver vos données ?",
+  "settings_setUpDevice_account_note": "Vos plongées sont stockées uniquement dans le compte que vous choisissez. Submersion n'a pas de serveur à lui.",
+  "settings_setUpDevice_account_backupFile": "J'ai plutôt un fichier de sauvegarde",
+  "settings_setUpDevice_offer_icloud": "Utilise votre identifiant Apple. Rien à quoi se connecter.",
+  "settings_setUpDevice_offer_googleDrive": "Se connecter avec Google",
+  "settings_setUpDevice_offer_dropbox": "Se connecter avec Dropbox",
+  "settings_setUpDevice_offer_ownServer": "Stockage compatible S3 ou serveur WebDAV"
 }

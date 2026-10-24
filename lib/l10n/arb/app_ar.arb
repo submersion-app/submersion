@@ -16167,5 +16167,12 @@
   "settings_setUpDevice_item_signInBackups": "سجّل الدخول إلى {account} مجددًا. النسخ الاحتياطي متوقف مؤقتًا حتى تفعل.",
   "settings_setUpDevice_next": "التالي",
   "settings_setUpDevice_notNow": "ليس الآن",
-  "settings_setUpDevice_skip": "تخطٍّ"
+  "settings_setUpDevice_skip": "تخطٍّ",
+  "settings_setUpDevice_account_title": "أين يحفظ Submersion بياناتك؟",
+  "settings_setUpDevice_account_note": "تُحفظ غطساتك في الحساب الذي تختاره فقط. لا يملك Submersion خادمًا خاصًا به.",
+  "settings_setUpDevice_account_backupFile": "لديّ ملف نسخة احتياطية بدلًا من ذلك",
+  "settings_setUpDevice_offer_icloud": "يستخدم معرّف Apple الخاص بك. لا حاجة لتسجيل الدخول.",
+  "settings_setUpDevice_offer_googleDrive": "سجّل الدخول باستخدام Google",
+  "settings_setUpDevice_offer_dropbox": "سجّل الدخول باستخدام Dropbox",
+  "settings_setUpDevice_offer_ownServer": "تخزين متوافق مع S3 أو خادم WebDAV"
 }

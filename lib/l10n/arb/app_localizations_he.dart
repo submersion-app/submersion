@@ -53907,4 +53907,30 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_setUpDevice_skip => 'דילוג';
+
+  @override
+  String get settings_setUpDevice_account_title =>
+      'היכן ש-Submersion ישמור את הנתונים שלך?';
+
+  @override
+  String get settings_setUpDevice_account_note =>
+      'הצלילות שלך נשמרות רק בחשבון שבחרת. ל-Submersion אין שרת משלה.';
+
+  @override
+  String get settings_setUpDevice_account_backupFile =>
+      'יש לי קובץ גיבוי במקום';
+
+  @override
+  String get settings_setUpDevice_offer_icloud =>
+      'משתמש ב-Apple ID שלך. אין צורך להתחבר.';
+
+  @override
+  String get settings_setUpDevice_offer_googleDrive => 'התחברות עם Google';
+
+  @override
+  String get settings_setUpDevice_offer_dropbox => 'התחברות עם Dropbox';
+
+  @override
+  String get settings_setUpDevice_offer_ownServer =>
+      'אחסון תואם S3 או שרת WebDAV';
 }

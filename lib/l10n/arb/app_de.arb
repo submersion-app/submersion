@@ -16288,5 +16288,12 @@
   "settings_setUpDevice_item_signInBackups": "Melden Sie sich erneut bei {account} an. Sicherungen sind bis dahin pausiert.",
   "settings_setUpDevice_next": "Weiter",
   "settings_setUpDevice_notNow": "Nicht jetzt",
-  "settings_setUpDevice_skip": "Überspringen"
+  "settings_setUpDevice_skip": "Überspringen",
+  "settings_setUpDevice_account_title": "Wo soll Submersion Ihre Daten aufbewahren?",
+  "settings_setUpDevice_account_note": "Ihre Tauchgänge werden nur in dem Konto gespeichert, das Sie wählen. Submersion hat keinen eigenen Server.",
+  "settings_setUpDevice_account_backupFile": "Ich habe stattdessen eine Sicherungsdatei",
+  "settings_setUpDevice_offer_icloud": "Nutzt Ihre Apple-ID. Keine Anmeldung nötig.",
+  "settings_setUpDevice_offer_googleDrive": "Mit Google anmelden",
+  "settings_setUpDevice_offer_dropbox": "Mit Dropbox anmelden",
+  "settings_setUpDevice_offer_ownServer": "S3-kompatibler Speicher oder ein WebDAV-Server"
 }

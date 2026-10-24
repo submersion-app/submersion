@@ -87074,6 +87074,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Skip'**
   String get settings_setUpDevice_skip;
+
+  /// Title of setup step 1, choosing the account that keeps the data
+  ///
+  /// In en, this message translates to:
+  /// **'Where should Submersion keep your data?'**
+  String get settings_setUpDevice_account_title;
+
+  /// Note under the accounts in setup step 1
+  ///
+  /// In en, this message translates to:
+  /// **'Your dives are stored only in the account you choose. Submersion has no server of its own.'**
+  String get settings_setUpDevice_account_note;
+
+  /// Link in setup step 1 that restores from a backup file instead
+  ///
+  /// In en, this message translates to:
+  /// **'I have a backup file instead'**
+  String get settings_setUpDevice_account_backupFile;
+
+  /// Under iCloud in setup step 1: what adding it takes
+  ///
+  /// In en, this message translates to:
+  /// **'Uses your Apple ID. Nothing to sign in to.'**
+  String get settings_setUpDevice_offer_icloud;
+
+  /// Under Google Drive in setup step 1: what adding it takes
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with Google'**
+  String get settings_setUpDevice_offer_googleDrive;
+
+  /// Under Dropbox in setup step 1: what adding it takes
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with Dropbox'**
+  String get settings_setUpDevice_offer_dropbox;
+
+  /// Under My own server in setup step 1: what it is
+  ///
+  /// In en, this message translates to:
+  /// **'S3-compatible storage or a WebDAV server'**
+  String get settings_setUpDevice_offer_ownServer;
 }
 
 class _AppLocalizationsDelegate

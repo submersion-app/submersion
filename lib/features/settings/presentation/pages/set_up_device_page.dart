@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:submersion/features/settings/domain/setup/set_up_progress.dart';
 import 'package:submersion/features/settings/presentation/providers/set_up_card_prefs_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/set_up_progress_provider.dart';
+import 'package:submersion/features/settings/presentation/widgets/set_up_device/set_up_account_step.dart';
 import 'package:submersion/features/settings/presentation/widgets/set_up_device/set_up_step_marks.dart';
 import 'package:submersion/features/settings/presentation/widgets/set_up_device/set_up_step_navigation.dart';
 import 'package:submersion/features/settings/presentation/widgets/set_up_device/set_up_step_scaffold.dart';
@@ -109,7 +110,7 @@ class _SetUpDevicePageState extends ConsumerState<SetUpDevicePage> {
       );
       body = KeyedSubtree(
         key: ValueKey(step),
-        child: (widget.stepBody ?? _placeholderStep)(step, navigation),
+        child: (widget.stepBody ?? _stepBody)(step, navigation),
       );
     }
     return Scaffold(
@@ -121,6 +122,12 @@ class _SetUpDevicePageState extends ConsumerState<SetUpDevicePage> {
       body: SafeArea(child: body),
     );
   }
+
+  Widget _stepBody(SetUpStep step, SetUpStepNavigation navigation) =>
+      switch (step) {
+        SetUpStep.account => SetUpAccountStep(navigation: navigation),
+        _ => _placeholderStep(step, navigation),
+      };
 
   /// Until each step's own widget lands: its name and the navigation.
   Widget _placeholderStep(SetUpStep step, SetUpStepNavigation navigation) {

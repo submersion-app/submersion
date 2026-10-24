@@ -54713,4 +54713,30 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_setUpDevice_skip => 'Overslaan';
+
+  @override
+  String get settings_setUpDevice_account_title =>
+      'Waar moet Submersion je gegevens bewaren?';
+
+  @override
+  String get settings_setUpDevice_account_note =>
+      'Je duiken worden alleen opgeslagen in het account dat je kiest. Submersion heeft geen eigen server.';
+
+  @override
+  String get settings_setUpDevice_account_backupFile =>
+      'Ik heb in plaats daarvan een back-upbestand';
+
+  @override
+  String get settings_setUpDevice_offer_icloud =>
+      'Gebruikt je Apple ID. Je hoeft nergens in te loggen.';
+
+  @override
+  String get settings_setUpDevice_offer_googleDrive => 'Inloggen met Google';
+
+  @override
+  String get settings_setUpDevice_offer_dropbox => 'Inloggen met Dropbox';
+
+  @override
+  String get settings_setUpDevice_offer_ownServer =>
+      'S3-compatibele opslag of een WebDAV-server';
 }

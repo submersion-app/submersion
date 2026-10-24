@@ -16167,5 +16167,12 @@
   "settings_setUpDevice_item_signInBackups": "יש להתחבר שוב אל {account}. הגיבויים מושהים עד אז.",
   "settings_setUpDevice_next": "הבא",
   "settings_setUpDevice_notNow": "לא עכשיו",
-  "settings_setUpDevice_skip": "דילוג"
+  "settings_setUpDevice_skip": "דילוג",
+  "settings_setUpDevice_account_title": "היכן ש-Submersion ישמור את הנתונים שלך?",
+  "settings_setUpDevice_account_note": "הצלילות שלך נשמרות רק בחשבון שבחרת. ל-Submersion אין שרת משלה.",
+  "settings_setUpDevice_account_backupFile": "יש לי קובץ גיבוי במקום",
+  "settings_setUpDevice_offer_icloud": "משתמש ב-Apple ID שלך. אין צורך להתחבר.",
+  "settings_setUpDevice_offer_googleDrive": "התחברות עם Google",
+  "settings_setUpDevice_offer_dropbox": "התחברות עם Dropbox",
+  "settings_setUpDevice_offer_ownServer": "אחסון תואם S3 או שרת WebDAV"
 }
