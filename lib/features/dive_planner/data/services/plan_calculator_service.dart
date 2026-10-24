@@ -7,6 +7,7 @@ import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
 import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
+import 'package:submersion/core/deco/max_operating_depth.dart';
 import 'package:submersion/core/deco/o2_toxicity_calculator.dart';
 import 'package:submersion/core/utils/gas_compressibility.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -382,6 +383,7 @@ class PlanCalculatorService {
       segments: segments,
       tanks: tanks,
       runtime: runtime,
+      environment: environment,
     );
 
     // Determine if dive has deco obligation
@@ -423,14 +425,16 @@ class PlanCalculatorService {
   ///
   /// The simulated ascent breathes the best eligible carried gas at each depth
   /// via an [OptimalOcAscentGas] plan derived from [tanks]. Eligibility uses the
-  /// planner's deco ppO2 ceiling. Each stop reports the gas actually selected
-  /// at its depth. With a single carried gas this reduces to the legacy
-  /// fixed-gas ascent.
+  /// planner's deco ppO2 ceiling, with each switch depth measured in
+  /// [environment] (issue #3566, see [gasSwitchDepthMeters]).
+  /// Each stop reports the gas actually selected at its depth. With a single
+  /// carried gas this reduces to the legacy fixed-gas ascent.
   List<DecoStop> _buildDecoSchedule({
     required BuhlmannAlgorithm algorithm,
     required List<PlanSegment> segments,
     required List<DiveTank> tanks,
     required int runtime,
+    required DiveEnvironment environment,
   }) {
     if (segments.isEmpty) return [];
 
@@ -444,9 +448,10 @@ class PlanCalculatorService {
         AvailableGas(
           fN2: (100.0 - tank.gasMix.o2 - tank.gasMix.he) / 100.0,
           fHe: tank.gasMix.he / 100.0,
-          maxPpO2Mod: O2ToxicityCalculator.calculateMod(
+          maxPpO2Mod: gasSwitchDepthMeters(
             tank.gasMix.o2 / 100.0,
             maxPpO2: ppO2Critical,
+            environment: environment,
           ),
         ),
     ];

@@ -2099,7 +2099,6 @@ void main() {
       '/settings/shared-libraries/lib1/backups',
       '/settings/shared-libraries/lib1/connection',
       '/settings/photos-media',
-      '/settings/photos-media/setup',
       '/settings/photos-media/uploads',
       '/settings/media-sources',
       '/settings/media-sources/network-sources',

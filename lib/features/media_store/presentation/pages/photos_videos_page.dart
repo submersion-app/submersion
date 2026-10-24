@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media_store/presentation/providers/photos_copies_provider.dart';
 import 'package:submersion/features/media_store/presentation/widgets/photos_advanced_section.dart';
+import 'package:submersion/features/media_store/presentation/widgets/photos_moved_copies_notice.dart';
 import 'package:submersion/features/media_store/presentation/widgets/photos_status_line.dart';
 import 'package:submersion/features/media_store/presentation/widgets/photos_upload_settings.dart';
 import 'package:submersion/features/media_store/presentation/widgets/photos_using_row.dart';
-import 'package:submersion/features/settings/presentation/widgets/pending_setup_card.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_pane_navigator.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_section_helpers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -14,60 +14,21 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// Photos & videos (spec section 8.3): where copies are kept and what is
 /// true of them, how uploads run, where photos come from, then Advanced.
 /// It replaces the Photos & Media hub and the Media Storage page.
-class PhotosVideosPage extends ConsumerStatefulWidget {
+class PhotosVideosPage extends ConsumerWidget {
   const PhotosVideosPage({super.key});
 
-  /// This page's route: the media store setup items resolve here.
-  static const route = '/settings/photos-media';
-
   @override
-  ConsumerState<PhotosVideosPage> createState() => _PhotosVideosPageState();
-}
-
-class _PhotosVideosPageState extends ConsumerState<PhotosVideosPage> {
-  /// The Using row, whose Set up / Change is what resolves the media store
-  /// items the pending setup card lists on this page.
-  final _usingRowKey = GlobalKey();
-
-  void _showUsingRow() {
-    final usingRow = _usingRowKey.currentContext;
-    if (usingRow == null) return;
-    Scrollable.ensureVisible(
-      usingRow,
-      duration: const Duration(milliseconds: 250),
-      alignmentPolicy: ScrollPositionAlignmentPolicy.keepVisibleAtEnd,
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final attached = ref.watch(photosCopiesProvider).value?.attached ?? false;
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.settings_photosVideos_title),
-        actions: [
-          // Until the Set up this device card replaces it (phase 6).
-          IconButton(
-            tooltip: l10n.settings_photosMedia_guidedSetup,
-            icon: const Icon(Icons.checklist_outlined),
-            onPressed: () =>
-                context.pushSettingsPage('/settings/photos-media/setup'),
-          ),
-        ],
-      ),
+      appBar: AppBar(title: Text(l10n.settings_photosVideos_title)),
       body: ListView(
         padding: const EdgeInsets.only(bottom: 24),
         children: [
-          // A media item opens this very page: point at the Using row
-          // instead of stacking another copy of it.
-          PendingSetupCard(
-            margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-            hostRoute: PhotosVideosPage.route,
-            onHostRoute: _showUsingRow,
-          ),
           _header(context, l10n.settings_photos_cloudHeader),
-          KeyedSubtree(key: _usingRowKey, child: const PhotosUsingRow()),
+          const PhotosMovedCopiesNotice(),
+          const PhotosUsingRow(),
           const PhotosStatusLine(),
           // Keyed, like the Advanced section below: the list matches its
           // children by key, so attaching or detaching (which adds or drops

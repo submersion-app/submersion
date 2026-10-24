@@ -113,6 +113,8 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     Media,
     MediaEnrichment,
     MediaSpecies,
+    // Media tags (v309, issue #1970)
+    MediaTags,
     PendingPhotoSuggestions,
     MediaRepairLog,
     MediaSmartAlbums,
@@ -271,6 +273,8 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     // Documents store (v277, issue #2613)
     Documents,
     DocumentPages,
+    // Document tags (v309, issue #1970)
+    DocumentTags,
     // Shared dive-site library (v289, issue #2567)
     SharedLibraries,
     SharedLibraryMembers,
@@ -288,7 +292,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 309;
+  static const int currentSchemaVersion = 310;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1380,12 +1384,17 @@ class AppDatabase extends _$AppDatabase {
     // rebuild for dive_plans; raises the compatibility floor to 308 for
     // the whole v305-v308 nullability change. Renumbered from 306.
     308,
-    // v309: trip_shares and site_shares, the profiles a trip or site is
+    // v309: media and document tags (issue #1970). tags.applies_to_media and
+    // tags.applies_to_documents (off for every existing tag), and the
+    // media_tags and document_tags junctions with their unique indexes.
+    // Additive only, so the compatibility floor stays.
+    309,
+    // v310: trip_shares and site_shares, the profiles a trip or site is
     // shared with when it is not shared with everyone (issue #2151).
     // Table-only rung, no backfill; an older peer keeps the new entity types
     // as inert unknowns and sees such an item as private, so the floor does
-    // not move.
-    309,
+    // not move. Renumbered from 309, which #1970 shipped first.
+    310,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

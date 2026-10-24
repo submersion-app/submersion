@@ -211,6 +211,8 @@ class SyncRepository {
     'diveBuddyRoles': (table: 'dive_buddy_roles', pk: 'id'),
     'siteTags': (table: 'site_tags', pk: 'id'),
     'equipmentTags': (table: 'equipment_tags', pk: 'id'),
+    'mediaTags': (table: 'media_tags', pk: 'id'),
+    'documentTags': (table: 'document_tags', pk: 'id'),
     'equipmentShares': (table: 'equipment_shares', pk: 'id'),
     'tripEquipment': (table: 'trip_equipment', pk: 'id'),
     'diveComputerConnections': (table: 'dive_computer_connections', pk: 'id'),

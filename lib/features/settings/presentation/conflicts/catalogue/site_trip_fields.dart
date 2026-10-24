@@ -36,8 +36,16 @@ final Map<String, ConflictField> siteTripFields = {
     (l) => l.settings_conflict_field_appliesToDives,
     FieldKind.boolean,
   ),
+  'appliesToDocuments': ConflictField(
+    (l) => l.settings_conflict_field_appliesToDocuments,
+    FieldKind.boolean,
+  ),
   'appliesToEquipment': ConflictField(
     (l) => l.settings_conflict_field_appliesToEquipment,
+    FieldKind.boolean,
+  ),
+  'appliesToMedia': ConflictField(
+    (l) => l.settings_conflict_field_appliesToMedia,
     FieldKind.boolean,
   ),
   'appliesToSites': ConflictField(

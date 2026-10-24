@@ -19,6 +19,7 @@ import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/constants/sort_options_display.dart';
 import 'package:submersion/core/models/sort_state.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/export/pdf/diver_photo_loader.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
@@ -27,6 +28,7 @@ import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/divers/presentation/widgets/misplaced_logbook_banner.dart';
 import 'package:submersion/core/constants/pdf_templates.dart';
 import 'package:submersion/features/transfer/presentation/widgets/pdf_export_dialog.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -128,6 +130,8 @@ const double _kPrefetchViewports = 3;
 /// constant in MasterDetailScaffold) once its own padding is subtracted, so
 /// that pane always folds; narrow phones fold too, wide hosts do not.
 const double _kFoldSortWidth = 480;
+
+final _log = LoggerService.forClass(DiveListContent);
 
 class DiveListContent extends ConsumerStatefulWidget {
   /// Callback when an item is selected. Used in master-detail mode.
@@ -234,6 +238,11 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   /// rebuilds the row each time it re-enters the viewport. One pending kick is
   /// enough.
   bool _autoLoadKickScheduled = false;
+
+  /// End's loads of the dives past the end of the list still running, which
+  /// the scrubber shows as it does its own loads (#3302). A count, so a
+  /// second End does not lose the panel when the first load lands.
+  int _restLoads = 0;
   bool _selectionFromList =
       false; // Track if selection originated from list tap
 
@@ -427,6 +436,27 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
       }
     }
     return headers;
+  }
+
+  /// Loads every dive past the end of the list, so End lands on the last
+  /// dive rather than the last loaded one (#3302).
+  Future<void> _loadRestOfList() async {
+    final paginated = ref.read(paginatedDiveListProvider).value;
+    if (paginated == null || !paginated.hasMore) return;
+    setState(() => _restLoads++);
+    try {
+      // A failed read is logged and flagged for retry by the notifier; this
+      // catches anything else.
+      await ref.read(paginatedDiveListProvider.notifier).loadRest();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to load the rest of the dive list for End',
+        error: e,
+        stackTrace: stackTrace,
+      );
+    } finally {
+      if (mounted) setState(() => _restLoads--);
+    }
   }
 
   void _landOnDive(BuildContext context, String diveId, {required bool toTop}) {
@@ -1251,6 +1281,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                 onOpenDive: _openDive,
                 onEscape: selection.isActive ? _selection.exit : null,
               ),
+              const MisplacedLogbookBanner(),
               Expanded(child: content),
             ],
           );
@@ -1815,6 +1846,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                 onOpenDive: _openDive,
                 onEscape: selection.isActive ? _selection.exit : null,
               ),
+              const MisplacedLogbookBanner(),
               Expanded(child: content),
             ],
           );
@@ -2031,6 +2063,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
               keys: navStops.keys,
               currentKey:
                   widget.selectedId ?? ref.watch(highlightedDiveIdProvider),
+              onLoadRest: _loadRestOfList,
               onMove: (key) {
                 if (navStops.groupOfHeader(key) != null) return;
                 moveListCursor(
@@ -2072,6 +2105,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                 groupingEnabled: groupingEnabled,
                 collapsedTripIds: collapsedTripIds,
                 onLand: _landOnDive,
+                busy: _restLoads > 0,
                 selectedDiveId:
                     widget.selectedId ?? ref.watch(highlightedDiveIdProvider),
                 child: CustomScrollView(

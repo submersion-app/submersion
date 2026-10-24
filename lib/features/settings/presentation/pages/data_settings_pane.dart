@@ -18,7 +18,6 @@ import 'package:submersion/features/settings/presentation/pages/data_section_con
 import 'package:submersion/features/settings/presentation/pages/fix_dive_times_page.dart';
 import 'package:submersion/features/settings/presentation/pages/lightroom_settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/link_buddy_names_page.dart';
-import 'package:submersion/features/settings/presentation/pages/photos_media_setup_page.dart';
 import 'package:submersion/features/settings/presentation/pages/retype_other_gear_page.dart';
 import 'package:submersion/features/settings/presentation/pages/storage_settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/storage_usage_page.dart';
@@ -80,7 +79,6 @@ Widget? dataPanePage(Uri location) {
       libraryId: id,
     ),
     ['photos-media'] => const PhotosVideosPage(),
-    ['photos-media', 'setup'] => const PhotosMediaSetupPage(),
     ['photos-media', 'uploads'] => const TransfersPage(),
     ['media-sources'] => const MediaSourcesPage(),
     ['media-sources', 'network-sources'] => const NetworkSourcesPage(),

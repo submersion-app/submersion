@@ -2,20 +2,34 @@ import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/tag_scope_labels.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
-// Wording for what deleting or merging tags touches (#1902, #1942).
+// Wording for what deleting or merging tags touches (#1902, #1942, #1970).
 //
-// A tag can be scoped to any mix of dives, sites and equipment, and deleting
-// or merging it rewrites every item that carries it. Each message names only
-// what is actually affected. Every combination is one whole ICU message
-// rather than phrases joined here, so every locale controls its own word
-// order and list punctuation.
+// A tag can be scoped to any mix of dives, sites, equipment, media and
+// documents, and deleting or merging it rewrites every item that carries it.
+// Each message names only what is actually affected. A single affected scope
+// gets one whole ICU message, so every locale controls its own word order.
+// Two or more get a heading and one count line per scope: one message per
+// combination stopped scaling at five scopes (#1970).
 
-/// [usage] as three counts. A scope missing from the map counts zero.
-({int dives, int sites, int equipment}) _counts(Map<TagScope, int> usage) => (
-  dives: usage[TagScope.dives] ?? 0,
-  sites: usage[TagScope.sites] ?? 0,
-  equipment: usage[TagScope.equipment] ?? 0,
-);
+/// The scopes [usage] touches, in registry order. A scope missing from the
+/// map counts zero.
+List<TagScope> _affected(Map<TagScope, int> usage) => [
+  for (final scope in TagScope.values)
+    if ((usage[scope] ?? 0) > 0) scope,
+];
+
+/// [heading], then one bulleted count per affected scope, then [footer].
+String _listed(
+  AppLocalizations l10n,
+  String heading,
+  Map<TagScope, int> usage,
+  List<TagScope> scopes, {
+  String? footer,
+}) => [
+  heading,
+  for (final scope in scopes) '• ${tagScopeCount(l10n, scope, usage[scope]!)}',
+  ?footer,
+].join('\n');
 
 /// The confirmation for deleting one tag.
 String tagDeleteMessage(
@@ -23,70 +37,62 @@ String tagDeleteMessage(
   String tagName,
   Map<TagScope, int> usage,
 ) {
-  final (:dives, :sites, :equipment) = _counts(usage);
-  return switch ((dives > 0, sites > 0, equipment > 0)) {
-    (true, false, false) => l10n.tags_manage_deleteMessage(tagName, dives),
-    (false, true, false) => l10n.tags_manage_deleteMessage_sites(
-      tagName,
-      sites,
+  final affected = _affected(usage);
+  return switch (affected) {
+    [] => l10n.tags_manage_deleteMessage_unused(tagName),
+    [final scope] => switch (scope) {
+      TagScope.dives => l10n.tags_manage_deleteMessage(tagName, usage[scope]!),
+      TagScope.sites => l10n.tags_manage_deleteMessage_sites(
+        tagName,
+        usage[scope]!,
+      ),
+      TagScope.equipment => l10n.tags_manage_deleteMessage_equipment(
+        tagName,
+        usage[scope]!,
+      ),
+      TagScope.media => l10n.tags_manage_deleteMessage_media(
+        tagName,
+        usage[scope]!,
+      ),
+      TagScope.documents => l10n.tags_manage_deleteMessage_documents(
+        tagName,
+        usage[scope]!,
+      ),
+    },
+    _ => _listed(
+      l10n,
+      l10n.tags_manage_deleteMessage_several(tagName),
+      usage,
+      affected,
+      footer: l10n.tags_manage_cannotUndo,
     ),
-    (false, false, true) => l10n.tags_manage_deleteMessage_equipment(
-      tagName,
-      equipment,
-    ),
-    (true, true, false) => l10n.tags_manage_deleteMessage_divesAndSites(
-      tagName,
-      dives,
-      sites,
-    ),
-    (true, false, true) => l10n.tags_manage_deleteMessage_divesAndEquipment(
-      tagName,
-      dives,
-      equipment,
-    ),
-    (false, true, true) => l10n.tags_manage_deleteMessage_sitesAndEquipment(
-      tagName,
-      sites,
-      equipment,
-    ),
-    (true, true, true) => l10n.tags_manage_deleteMessage_all(
-      tagName,
-      dives,
-      sites,
-      equipment,
-    ),
-    (false, false, false) => l10n.tags_manage_deleteMessage_unused(tagName),
   };
 }
 
 /// The confirmation for deleting several tags. [usage] is the union across
 /// the selection, so an item carrying two of them counts once.
 String tagsBulkDeleteMessage(AppLocalizations l10n, Map<TagScope, int> usage) {
-  final (:dives, :sites, :equipment) = _counts(usage);
-  return switch ((dives > 0, sites > 0, equipment > 0)) {
-    (true, false, false) => l10n.tags_manage_bulkDeleteMessage(dives),
-    (false, true, false) => l10n.tags_manage_bulkDeleteMessage_sites(sites),
-    (false, false, true) => l10n.tags_manage_bulkDeleteMessage_equipment(
-      equipment,
+  final affected = _affected(usage);
+  return switch (affected) {
+    [] => l10n.tags_manage_bulkDeleteMessage_unused,
+    [final scope] => switch (scope) {
+      TagScope.dives => l10n.tags_manage_bulkDeleteMessage(usage[scope]!),
+      TagScope.sites => l10n.tags_manage_bulkDeleteMessage_sites(usage[scope]!),
+      TagScope.equipment => l10n.tags_manage_bulkDeleteMessage_equipment(
+        usage[scope]!,
+      ),
+      TagScope.media => l10n.tags_manage_bulkDeleteMessage_media(usage[scope]!),
+      TagScope.documents => l10n.tags_manage_bulkDeleteMessage_documents(
+        usage[scope]!,
+      ),
+    },
+    _ => _listed(
+      l10n,
+      l10n.tags_manage_bulkDeleteMessage_several,
+      usage,
+      affected,
+      footer: l10n.tags_manage_cannotUndo,
     ),
-    (true, true, false) => l10n.tags_manage_bulkDeleteMessage_divesAndSites(
-      dives,
-      sites,
-    ),
-    (true, false, true) => l10n.tags_manage_bulkDeleteMessage_divesAndEquipment(
-      dives,
-      equipment,
-    ),
-    (false, true, true) => l10n.tags_manage_bulkDeleteMessage_sitesAndEquipment(
-      sites,
-      equipment,
-    ),
-    (true, true, true) => l10n.tags_manage_bulkDeleteMessage_all(
-      dives,
-      sites,
-      equipment,
-    ),
-    (false, false, false) => l10n.tags_manage_bulkDeleteMessage_unused,
   };
 }
 
@@ -96,35 +102,27 @@ String tagsMergeAffectedMessage(
   AppLocalizations l10n,
   Map<TagScope, int> usage,
 ) {
-  final (:dives, :sites, :equipment) = _counts(usage);
-  return switch ((dives > 0, sites > 0, equipment > 0)) {
-    (true, false, false) => l10n.tags_manage_mergeAffectedDives(dives),
-    (false, true, false) => l10n.tags_manage_mergeAffected_sites(sites),
-    (false, false, true) => l10n.tags_manage_mergeAffected_equipment(equipment),
-    (true, true, false) => l10n.tags_manage_mergeAffected_divesAndSites(
-      dives,
-      sites,
-    ),
-    (true, false, true) => l10n.tags_manage_mergeAffected_divesAndEquipment(
-      dives,
-      equipment,
-    ),
-    (false, true, true) => l10n.tags_manage_mergeAffected_sitesAndEquipment(
-      sites,
-      equipment,
-    ),
-    (true, true, true) => l10n.tags_manage_mergeAffected_all(
-      dives,
-      sites,
-      equipment,
-    ),
-    (false, false, false) => l10n.tags_manage_mergeAffected_unused,
+  final affected = _affected(usage);
+  return switch (affected) {
+    [] => l10n.tags_manage_mergeAffected_unused,
+    [final scope] => switch (scope) {
+      TagScope.dives => l10n.tags_manage_mergeAffectedDives(usage[scope]!),
+      TagScope.sites => l10n.tags_manage_mergeAffected_sites(usage[scope]!),
+      TagScope.equipment => l10n.tags_manage_mergeAffected_equipment(
+        usage[scope]!,
+      ),
+      TagScope.media => l10n.tags_manage_mergeAffected_media(usage[scope]!),
+      TagScope.documents => l10n.tags_manage_mergeAffected_documents(
+        usage[scope]!,
+      ),
+    },
+    _ => _listed(l10n, l10n.tags_manage_mergeAffected_several, usage, affected),
   };
 }
 
-/// One tag's usage as a row subtitle: its dives always, then its sites and
-/// equipment items when any carry it, in registry order ("12 dives, 3 sites,
-/// 5 equipment items"). Shared by the Manage Tags list and the merge sheet.
+/// One tag's usage as a row subtitle: its dives always, then every other
+/// scope that carries it, in registry order ("12 dives, 3 sites, 5 equipment
+/// items"). Shared by the Manage Tags list and the merge sheet.
 String tagUsageCounts(AppLocalizations l10n, Map<TagScope, int> usage) => [
   for (final scope in TagScope.values)
     if (scope == TagScope.dives || (usage[scope] ?? 0) > 0)

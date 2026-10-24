@@ -18,10 +18,14 @@ import 'package:submersion/features/media/domain/entities/media_item.dart'
     as domain;
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/domain/services/photo_gps_point_selector.dart';
+import 'package:submersion/features/tags/data/repositories/tag_link_repository.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart'
+    show TagScope;
 
 class MediaRepository {
   AppDatabase get _db => DatabaseService.instance.database;
   final SyncRepository _syncRepository = SyncRepository();
+  final _tagLinks = TagLinkRepository(TagScope.media);
   final _uuid = const Uuid();
   final _log = LoggerService.forClass(MediaRepository);
 
@@ -533,6 +537,7 @@ class MediaRepository {
       _log.info('Deleting media: $id');
       await _db.transaction(() async {
         await _dropEnrichmentRows([id]);
+        await _tagLinks.deleteLinksFor([id]);
         await (_db.delete(_db.media)..where((t) => t.id.equals(id))).go();
         await _syncRepository.logDeletion(entityType: 'media', recordId: id);
       });
@@ -581,6 +586,8 @@ class MediaRepository {
         // the FK cascade, which removes them without logging anything. See
         // [_dropEnrichmentRows] for why the tombstone matters.
         await _dropEnrichmentRows(targets);
+        // The tag links likewise (issue #1970).
+        await _tagLinks.deleteLinksFor(targets);
         for (final id in targets) {
           await (_db.delete(_db.media)..where((t) => t.id.equals(id))).go();
           await _syncRepository.logDeletion(entityType: 'media', recordId: id);

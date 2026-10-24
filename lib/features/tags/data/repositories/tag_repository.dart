@@ -9,6 +9,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/text/text_sort.dart';
+import 'package:submersion/features/media/data/repositories/smart_album_tag_repoint.dart';
 import 'package:submersion/features/tags/data/mappers/tag_row_mapper.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart' as domain;
 
@@ -903,6 +904,16 @@ class TagRepository {
           entityType: 'tags',
           recordId: survivingTagId,
           localUpdatedAt: now,
+        );
+
+        // Smart albums filtered by a merged tag follow it to the survivor
+        // (issue #1970); its id is about to stop existing.
+        await repointSmartAlbumTags(
+          _db,
+          _syncRepository,
+          fromTagIds: sourceTagIds,
+          toTagId: survivingTagId,
+          now: now,
         );
 
         // Parents to re-stamp once at the end, by table: a dive link

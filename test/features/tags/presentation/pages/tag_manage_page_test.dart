@@ -1258,7 +1258,9 @@ void main() {
 
       expect(
         find.text(
-          'These tags will be removed from 12 dives and 3 sites total. '
+          'These tags will be removed from:\n'
+          '• 12 dives\n'
+          '• 3 sites\n'
           'This cannot be undone.',
         ),
         findsOneWidget,
@@ -1383,8 +1385,11 @@ void main() {
 
       expect(
         find.text(
-          'These tags will be removed from 12 dives, 3 sites, and 2 equipment '
-          'items total. This cannot be undone.',
+          'These tags will be removed from:\n'
+          '• 12 dives\n'
+          '• 3 sites\n'
+          '• 2 equipment items\n'
+          'This cannot be undone.',
         ),
         findsOneWidget,
       );

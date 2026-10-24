@@ -138,6 +138,21 @@ class SegmentOutcome extends Equatable {
   ];
 }
 
+/// Why a back-gas cylinder's turn pressure or minimum gas could not be
+/// worked out, so the results can name the missing input instead of
+/// leaving the figure blank (#3603).
+enum PlanGasLimitGap {
+  /// The cylinder has no start pressure to measure from.
+  noStartPressure,
+
+  /// The cylinder has no size, so a volume of gas cannot be read as bar.
+  noVolume,
+
+  /// No turn-pressure rule applies: the plan's rule and the diver's default
+  /// are both unset, or the rule is None.
+  noTurnRule,
+}
+
 /// Per-tank consumption result.
 class PlanTankUsage extends Equatable {
   final String tankId;
@@ -159,6 +174,14 @@ class PlanTankUsage extends Equatable {
   /// Rock-bottom minimum gas for a stressed shared ascent (bottom tanks).
   final double? minGasBar;
 
+  /// Why [turnPressureBar] is null on a cylinder it applies to; null when
+  /// it was computed or when the cylinder is not one turn pressure is for.
+  final PlanGasLimitGap? turnPressureGap;
+
+  /// Why [minGasBar] is null on a cylinder it applies to; null when it was
+  /// computed or when the cylinder is not one minimum gas is for.
+  final PlanGasLimitGap? minGasGap;
+
   const PlanTankUsage({
     required this.tankId,
     required this.litersUsed,
@@ -169,6 +192,8 @@ class PlanTankUsage extends Equatable {
     this.reserveViolation = false,
     this.turnPressureBar,
     this.minGasBar,
+    this.turnPressureGap,
+    this.minGasGap,
   });
 
   /// Pressure consumed, in bar; null when start or remaining is unknown.
@@ -203,6 +228,8 @@ class PlanTankUsage extends Equatable {
     reserveViolation,
     turnPressureBar,
     minGasBar,
+    turnPressureGap,
+    minGasGap,
   ];
 }
 

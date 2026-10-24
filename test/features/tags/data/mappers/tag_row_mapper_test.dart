@@ -9,16 +9,23 @@ import 'package:submersion/features/tags/domain/entities/tag.dart'
 /// The row mapper converts between the `tags` flag columns and a set of
 /// scopes (issue #1942).
 void main() {
-  Tag row({required bool dives, required bool sites, bool equipment = false}) =>
-      Tag(
-        id: 't',
-        name: 'T',
-        createdAt: 0,
-        updatedAt: 0,
-        appliesToDives: dives,
-        appliesToSites: sites,
-        appliesToEquipment: equipment,
-      );
+  Tag row({
+    required bool dives,
+    required bool sites,
+    bool equipment = false,
+    bool media = false,
+    bool documents = false,
+  }) => Tag(
+    id: 't',
+    name: 'T',
+    createdAt: 0,
+    updatedAt: 0,
+    appliesToDives: dives,
+    appliesToSites: sites,
+    appliesToEquipment: equipment,
+    appliesToMedia: media,
+    appliesToDocuments: documents,
+  );
 
   bool? flag(Map<String, Expression> columns, String column) =>
       (columns[column]! as Variable<bool>).value;
@@ -37,8 +44,25 @@ void main() {
     expect(tagScopesOf(row(dives: false, sites: false, equipment: true)), {
       TagScope.equipment,
     });
+  });
+
+  test('reads the media and document flags (v309)', () {
+    expect(tagScopesOf(row(dives: false, sites: false, media: true)), {
+      TagScope.media,
+    });
+    expect(tagScopesOf(row(dives: false, sites: false, documents: true)), {
+      TagScope.documents,
+    });
     expect(
-      tagScopesOf(row(dives: true, sites: true, equipment: true)),
+      tagScopesOf(
+        row(
+          dives: true,
+          sites: true,
+          equipment: true,
+          media: true,
+          documents: true,
+        ),
+      ),
       TagScope.values.toSet(),
     );
   });
@@ -49,6 +73,8 @@ void main() {
     expect(flag(columns, 'applies_to_sites'), isTrue);
     expect(flag(columns, 'applies_to_dives'), isFalse);
     expect(flag(columns, 'applies_to_equipment'), isFalse);
+    expect(flag(columns, 'applies_to_media'), isFalse);
+    expect(flag(columns, 'applies_to_documents'), isFalse);
   });
 
   test('columns and set round-trip for every combination of scopes', () {
@@ -64,6 +90,8 @@ void main() {
           dives: flag(columns, 'applies_to_dives')!,
           sites: flag(columns, 'applies_to_sites')!,
           equipment: flag(columns, 'applies_to_equipment')!,
+          media: flag(columns, 'applies_to_media')!,
+          documents: flag(columns, 'applies_to_documents')!,
         ),
       );
       expect(back, set, reason: 'scope mask $mask');

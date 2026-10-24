@@ -12,6 +12,8 @@ import 'package:submersion/features/media/presentation/providers/media_library_p
 import 'package:submersion/features/media/presentation/providers/media_smart_album_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/media_library_filter_labels.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart';
+import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
@@ -30,8 +32,8 @@ Future<void> showMediaLibraryFilterSheet(BuildContext context) {
 /// SiteFilterSheet pattern: local state previews the change and nothing
 /// reaches the provider until Apply.
 ///
-/// Owns five facets: media type, site, trip, date range, and the missing
-/// files health facet. It deliberately does NOT own sourceType, which the
+/// Owns the media type, site, trip, species, tag (issue #1970) and date
+/// range facets, and the missing files health facet. It deliberately does NOT own sourceType, which the
 /// Sources section sets programmatically and which Apply preserves.
 class MediaLibraryFilterSheet extends ConsumerStatefulWidget {
   const MediaLibraryFilterSheet({super.key});
@@ -50,6 +52,7 @@ class _MediaLibraryFilterSheetState
   DateTime? _fromDate;
   DateTime? _toDate;
   bool _missingOnly = false;
+  Set<String> _tagIds = const {};
 
   @override
   void initState() {
@@ -62,6 +65,7 @@ class _MediaLibraryFilterSheetState
     _fromDate = filter.fromDate;
     _toDate = filter.toDate;
     _missingOnly = filter.health == MediaHealthFilter.missing;
+    _tagIds = filter.tagIds;
   }
 
   void _clearAll() {
@@ -73,6 +77,7 @@ class _MediaLibraryFilterSheetState
       _fromDate = null;
       _toDate = null;
       _missingOnly = false;
+      _tagIds = const {};
     });
   }
 
@@ -90,6 +95,7 @@ class _MediaLibraryFilterSheetState
       fromDate: _fromDate,
       toDate: _toDate,
       health: _missingOnly ? MediaHealthFilter.missing : null,
+      tagIds: _tagIds,
     );
     Navigator.of(context).pop();
   }
@@ -149,6 +155,48 @@ class _MediaLibraryFilterSheetState
     });
   }
 
+  /// Media tags (issue #1970), any-of. Offers every media tag plus any tag
+  /// already selected, so a filter on a tag that has since lost its media
+  /// scope is still clearable from here.
+  Widget _buildTagSection() {
+    final tags = (ref.watch(tagsProvider).value ?? const <Tag>[])
+        .where((t) => t.appliesTo(TagScope.media) || _tagIds.contains(t.id))
+        .toList();
+    if (tags.isEmpty) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            context.l10n.media_library_filter_tags,
+            style: Theme.of(context).textTheme.bodyLarge,
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final tag in tags)
+                FilterChip(
+                  key: ValueKey('media_filter_tag_${tag.id}'),
+                  avatar: CircleAvatar(backgroundColor: tag.color, radius: 6),
+                  label: Text(tag.name),
+                  selected: _tagIds.contains(tag.id),
+                  onSelected: (selected) => setState(() {
+                    _tagIds = selected
+                        ? {..._tagIds, tag.id}
+                        : _tagIds.where((id) => id != tag.id).toSet();
+                  }),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _loadAlbum() async {
     final albums = ref.read(mediaSmartAlbumsProvider).value ?? const [];
     if (albums.isEmpty) return;
@@ -180,6 +228,7 @@ class _MediaLibraryFilterSheetState
                     _toDate = album.filter.toDate;
                     _missingOnly =
                         album.filter.health == MediaHealthFilter.missing;
+                    _tagIds = album.filter.tagIds;
                   });
                 },
               ),
@@ -351,6 +400,7 @@ class _MediaLibraryFilterSheetState
                           anyLabel: anyLabel,
                         ),
                       ),
+                      _buildTagSection(),
                       ListTile(
                         contentPadding: EdgeInsets.zero,
                         title: Text(l10n.media_library_filter_dates),

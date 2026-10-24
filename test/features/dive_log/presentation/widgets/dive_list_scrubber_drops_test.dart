@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
@@ -85,6 +86,22 @@ class _HeldNotifier extends StateNotifier<AsyncValue<PaginatedDiveListState>>
 
   @override
   Future<void> loadNextPage() async {}
+
+  /// End's loads of the rest, each held until [settleRest].
+  final restLoads = <Completer<void>>[];
+
+  @override
+  Future<void> loadRest() {
+    final load = Completer<void>();
+    restLoads.add(load);
+    return load.future;
+  }
+
+  /// Settles the [i]th load of the rest; any one of them loads every row.
+  void settleRest([int i = 0]) {
+    state = AsyncValue.data(state.value!.copyWith(dives: all, hasMore: false));
+    restLoads[i].complete();
+  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -312,6 +329,59 @@ void main() {
       refetch.complete(indexOf(rows));
       await settle(tester);
     });
+  });
+
+  testWidgets('End shows the scrubber loading until the rest lands (#3302)', (
+    tester,
+  ) async {
+    final notifier = await pumpList(tester, rows: dives('d', 300));
+    // Tab in: at phone width a tap would open the dive's page.
+    for (var tabs = 0; tabs < 40; tabs++) {
+      if (FocusManager.instance.primaryFocus?.debugLabel ==
+          KeyboardListNavigator.focusDebugLabel) {
+        break;
+      }
+      await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+      await tester.pump();
+    }
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.end);
+    await tester.pump();
+    expect(notifier.restLoads, hasLength(1));
+    expect(scrubber(tester).busyLabel, isNotNull);
+
+    notifier.settleRest();
+    await settle(tester);
+    expect(scrubber(tester).busyLabel, isNull);
+    expect(row('d299').hitTestable(), findsOneWidget);
+  });
+
+  testWidgets('a second End keeps the loading panel until its load lands', (
+    tester,
+  ) async {
+    final notifier = await pumpList(tester, rows: dives('d', 300));
+    for (var tabs = 0; tabs < 40; tabs++) {
+      if (FocusManager.instance.primaryFocus?.debugLabel ==
+          KeyboardListNavigator.focusDebugLabel) {
+        break;
+      }
+      await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+      await tester.pump();
+    }
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.end);
+    await tester.pump();
+    await tester.sendKeyEvent(LogicalKeyboardKey.end);
+    await tester.pump();
+    expect(notifier.restLoads, hasLength(2));
+
+    notifier.restLoads.first.complete();
+    await settle(tester);
+    expect(scrubber(tester).busyLabel, isNotNull);
+
+    notifier.settleRest(1);
+    await settle(tester);
+    expect(scrubber(tester).busyLabel, isNull);
   });
 
   // The drag already scrolls the list through loaded rows, so letting go

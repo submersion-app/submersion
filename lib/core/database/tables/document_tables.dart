@@ -14,6 +14,7 @@ import 'package:submersion/core/database/tables/dive_tables.dart';
 import 'package:submersion/core/database/tables/diver_tables.dart';
 import 'package:submersion/core/database/tables/equipment_tables.dart';
 import 'package:submersion/core/database/tables/site_tables.dart';
+import 'package:submersion/core/database/tables/tag_tables.dart';
 import 'package:submersion/core/database/tables/trip_tables.dart';
 
 /// One document (issue #2613). At most one owner link is set; none means a
@@ -99,4 +100,24 @@ class DocumentPages extends Table {
 
   @override
   Set<Column> get primaryKey => {id};
+}
+
+/// Junction table for a document's tags (many-to-many, v309, issue #1970),
+/// the twin of [EquipmentTags]. Surrogate uuid primary key, so a re-inserted
+/// pair never collides with its predecessor's tombstone (#347); the
+/// (document_id, tag_id) unique index lives in tag_uniqueness.dart.
+class DocumentTags extends Table {
+  TextColumn get id => text()();
+  TextColumn get documentId =>
+      text().references(Documents, #id, onDelete: KeyAction.cascade)();
+  TextColumn get tagId =>
+      text().references(Tags, #id, onDelete: KeyAction.cascade)();
+  IntColumn get createdAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+
+  /// This child's own clock, stamped when it is marked pending
+  /// (SyncDataSerializer.parentGatedChildEntities).
+  TextColumn get hlc => text().nullable()();
 }

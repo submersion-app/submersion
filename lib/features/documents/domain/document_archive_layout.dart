@@ -22,12 +22,16 @@ class ArchiveDocumentInput {
   /// Page metadata in any order; bytes are not needed here.
   final List<DocumentPage> pages;
 
+  /// The document's tag names, by name (issue #1970), for the manifest.
+  final List<String> tagNames;
+
   const ArchiveDocumentInput({
     required this.document,
     required this.displayTitle,
     required this.kindFolder,
     required this.recordFolder,
     required this.pages,
+    this.tagNames = const [],
   });
 }
 

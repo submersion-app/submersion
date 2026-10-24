@@ -28,7 +28,7 @@ class _FailingApplyService extends BulkEquipmentTagService {
 
   @override
   Future<Map<String, List<String>>> apply({
-    required List<String> equipmentIds,
+    required List<String> itemIds,
     required Set<String> addTagIds,
     required Set<String> removeTagIds,
   }) => Future.error(StateError('database unavailable'));

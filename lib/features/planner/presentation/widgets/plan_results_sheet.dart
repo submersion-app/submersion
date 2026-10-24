@@ -21,6 +21,7 @@ import 'package:submersion/features/planner/presentation/widgets/plan_status_chi
 import 'package:submersion/features/planner/presentation/widgets/range_table_section.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/planner/domain/services/plan_issue_grouping.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/number_field.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
@@ -676,20 +677,11 @@ class _GasRow extends StatelessWidget {
               ),
             ],
           ),
-          if (usage.turnPressureBar != null || usage.minGasBar != null)
+          if (_limitParts(l10n) case final parts when parts.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(top: 2),
               child: Text(
-                [
-                  if (usage.turnPressureBar != null)
-                    context.l10n.plannerCanvas_gas_turnAt(
-                      units.formatPressure(usage.turnPressureBar),
-                    ),
-                  if (usage.minGasBar != null)
-                    context.l10n.plannerCanvas_gas_minGas(
-                      units.formatPressure(usage.minGasBar),
-                    ),
-                ].join(' \u00b7 '),
+                parts.join(' \u00b7 '),
                 style: theme.textTheme.labelSmall?.copyWith(
                   color: theme.colorScheme.outline,
                 ),
@@ -700,6 +692,35 @@ class _GasRow extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  /// The turn-pressure and minimum-gas line: each figure where the engine
+  /// computed it, else the input it is missing (#3603), so a back gas never
+  /// just goes quiet. One missing start pressure blanks both figures, and
+  /// says so once.
+  List<String> _limitParts(AppLocalizations l10n) {
+    final turnGap = usage.turnPressureGap;
+    final minGap = usage.minGasGap;
+    if (turnGap == PlanGasLimitGap.noStartPressure &&
+        minGap == PlanGasLimitGap.noStartPressure) {
+      return [l10n.plannerCanvas_gas_limitsNoStartPressure];
+    }
+    return [
+      if (usage.turnPressureBar != null)
+        l10n.plannerCanvas_gas_turnAt(
+          units.formatPressure(usage.turnPressureBar),
+        )
+      else if (turnGap == PlanGasLimitGap.noTurnRule)
+        l10n.plannerCanvas_gas_noTurnRule
+      else if (turnGap == PlanGasLimitGap.noStartPressure)
+        l10n.plannerCanvas_gas_turnNoStartPressure,
+      if (usage.minGasBar != null)
+        l10n.plannerCanvas_gas_minGas(units.formatPressure(usage.minGasBar))
+      else if (minGap == PlanGasLimitGap.noStartPressure)
+        l10n.plannerCanvas_gas_minGasNoStartPressure
+      else if (minGap == PlanGasLimitGap.noVolume)
+        l10n.plannerCanvas_gas_minGasNoVolume,
+    ];
   }
 
   /// A cylinder that holds enough gas gets the ordinary single-colour bar.

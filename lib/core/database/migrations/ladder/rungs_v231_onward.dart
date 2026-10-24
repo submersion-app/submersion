@@ -546,13 +546,22 @@ extension RungsFromV231 on AppDatabase {
     }
     if (from < 308) await reportProgress();
 
-    // v309: the profiles a trip or site is shared with when it is not
-    // shared with everyone (issue #2151). Table-only rung, no backfill;
-    // re-asserted in beforeOpen.
+    // v309: media and document tags (issue #1970). Column-and-table rung, no
+    // backfill: existing tags stay off media and documents. Re-asserted in
+    // beforeOpen through _assertMediaAndDocumentTagSchema.
     if (from < 309) {
+      await _assertTagScopeColumns();
+      await _assertMediaAndDocumentTagSchema();
+    }
+    if (from < 309) await reportProgress();
+
+    // v310: the profiles a trip or site is shared with when it is not
+    // shared with everyone (issue #2151). Table-only rung, no backfill;
+    // re-asserted in beforeOpen. Renumbered from 309, which #1970 took.
+    if (from < 310) {
       await _assertTripSharesSchema();
       await _assertSiteSharesSchema();
     }
-    if (from < 309) await reportProgress();
+    if (from < 310) await reportProgress();
   }
 }

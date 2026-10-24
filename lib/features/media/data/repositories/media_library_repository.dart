@@ -114,6 +114,29 @@ class MediaLibraryRepository {
               ),
           );
     }
+    final tagIds = filter.tagIds;
+    if (tagIds.isNotEmpty) {
+      // Any of the tags (issue #1970). EXISTS for the same reason as the
+      // species facet: a photo carrying two of them must come back once.
+      // A tag that no longer exists (a saved album outliving it) has no
+      // links, so it is ignored among others; when none of the selected
+      // tags exists the facet is dropped rather than matching nothing.
+      final mt = _db.mediaTags;
+      final t = _db.tags;
+      final anySelectedTagExists = existsQuery(
+        _db.selectOnly(t)
+          ..addColumns([t.id])
+          ..where(t.id.isIn(tagIds)),
+      );
+      where =
+          where &
+          (anySelectedTagExists.not() |
+              existsQuery(
+                _db.selectOnly(mt)
+                  ..addColumns([mt.id])
+                  ..where(mt.mediaId.equalsExp(m.id) & mt.tagId.isIn(tagIds)),
+              ));
+    }
     // taken_at is stored as wall-clock-as-UTC millis, so a bound picked in
     // local time has to be normalised the same way before it can be
     // compared -- otherwise the window slides by the host's UTC offset.
@@ -482,13 +505,15 @@ class MediaLibraryRepository {
           _db.dives,
           _db.diveSites,
           _db.mediaSpecies,
+          _db.mediaTags,
         ]),
       )
       .debounce(MediaRepository.changeTickDebounce);
 
-  /// Emits whenever the media table changes. Deliberately coarse: consumers
-  /// reload page one rather than patching rows (per the Media section spec's
-  /// invalidation-storm avoidance).
+  /// Emits whenever the media table, or a photo's tags, change (a tag edit
+  /// can move a row into or out of a tag-filtered library, issue #1970).
+  /// Deliberately coarse: consumers reload page one rather than patching
+  /// rows (per the Media section spec's invalidation-storm avoidance).
   ///
   /// Built on `tableUpdates`, exactly like [MediaRepository.watchMediaChanges],
   /// and NOT on a watched COUNT query. A Drift query stream delivers its
@@ -505,6 +530,6 @@ class MediaLibraryRepository {
   /// `remote_uploaded_at` row by row as it drains -- collapse into one reload
   /// instead of one per write.
   Stream<void> watchMediaChanges() => _db
-      .tableUpdates(TableUpdateQuery.onTable(_db.media))
+      .tableUpdates(TableUpdateQuery.onAllTables([_db.media, _db.mediaTags]))
       .debounce(MediaRepository.changeTickDebounce);
 }

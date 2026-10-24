@@ -23,6 +23,7 @@ import 'package:submersion/features/divers/domain/entities/diver.dart';
 
 import '../../../../helpers/fake_cloud_storage_provider.dart';
 import '../../../../helpers/test_database.dart';
+import '../../../../helpers/shared_library_test_account.dart';
 
 void main() {
   late FakeCloudStorageProvider cloud;
@@ -53,6 +54,7 @@ void main() {
     dir = Directory.systemTemp.createTempSync('library_backups_');
     cloud = FakeCloudStorageProvider();
     memberships = SharedLibraryMembershipService(
+      accountById: anyTestAccount,
       store: SharedLibraryStore(),
       transportFor: ({required account, required prefix}) async =>
           SharedLibraryTransport(cloud, prefix: prefix),

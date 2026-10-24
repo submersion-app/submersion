@@ -124,7 +124,6 @@ import 'package:submersion/features/media_store/presentation/pages/transfers_pag
 import 'package:submersion/features/settings/presentation/pages/connected_accounts_page.dart';
 import 'package:submersion/features/settings/presentation/pages/account_detail_page.dart';
 import 'package:submersion/features/settings/presentation/pages/lightroom_settings_page.dart';
-import 'package:submersion/features/settings/presentation/pages/photos_media_setup_page.dart';
 import 'package:submersion/features/settings/presentation/pages/fix_dive_times_page.dart';
 import 'package:submersion/features/settings/presentation/pages/link_buddy_names_page.dart';
 import 'package:submersion/features/settings/presentation/pages/retype_other_gear_page.dart';
@@ -905,6 +904,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   initialType: DocumentType.values.asNameMap()[q['type']],
                   initialExpiringOnly: q['filter'] == 'expiring',
                   initialPersonalOnly: q['owner'] == 'personal',
+                  initialTagId: q['tag'],
                 ),
               );
             },
@@ -1681,11 +1681,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 name: 'photosMedia',
                 builder: (context, state) => const PhotosVideosPage(),
                 routes: [
-                  GoRoute(
-                    path: 'setup',
-                    name: 'photosMediaSetup',
-                    builder: (context, state) => const PhotosMediaSetupPage(),
-                  ),
                   GoRoute(
                     path: 'uploads',
                     name: 'photosUploads',

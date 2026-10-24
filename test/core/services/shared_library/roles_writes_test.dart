@@ -13,6 +13,7 @@ import 'package:submersion/features/divers/domain/entities/diver.dart';
 
 import '../../../helpers/fake_cloud_storage_provider.dart';
 import '../../../helpers/test_database.dart';
+import '../../../helpers/shared_library_test_account.dart';
 
 /// Owner actions write only roles every member will trust, and approve
 /// only the key an owner compared (issue #2567).
@@ -42,6 +43,7 @@ void main() {
     await diver('d2');
     cloud = FakeCloudStorageProvider();
     service = SharedLibraryMembershipService(
+      accountById: anyTestAccount,
       store: SharedLibraryStore(),
       transportFor: ({required account, required prefix}) async =>
           SharedLibraryTransport(cloud, prefix: prefix),

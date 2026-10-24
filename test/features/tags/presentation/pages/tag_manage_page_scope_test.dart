@@ -143,7 +143,9 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(
-      find.text('Choose at least one: dives, sites, or equipment'),
+      find.text(
+        'Choose at least one: dives, sites, equipment, media, or documents',
+      ),
       findsOneWidget,
     );
     await tester.tap(find.widgetWithText(TextButton, 'Save'));
@@ -151,7 +153,9 @@ void main() {
 
     // Still open, nothing written.
     expect(
-      find.text('Choose at least one: dives, sites, or equipment'),
+      find.text(
+        'Choose at least one: dives, sites, equipment, media, or documents',
+      ),
       findsOneWidget,
     );
   });

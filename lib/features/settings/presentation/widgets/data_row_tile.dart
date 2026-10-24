@@ -10,7 +10,8 @@ import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
 /// One row of Settings > Data (issue #3482): an icon, the feature's name
 /// with its health mark, a one-sentence status with a "Set up" action under
 /// it for a feature that is not set up, and a chevron. The whole row opens
-/// [route]; the button opens [setUpRoute], or [route] when none is given.
+/// [route] (after [onOpen], when given); the button opens [setUpRoute], or
+/// [route] when none is given.
 class DataRowTile extends StatelessWidget {
   const DataRowTile({
     super.key,
@@ -21,6 +22,7 @@ class DataRowTile extends StatelessWidget {
     this.health,
     this.offersSetUp = false,
     this.setUpRoute,
+    this.onOpen,
   });
 
   final IconData icon;
@@ -33,6 +35,10 @@ class DataRowTile extends StatelessWidget {
 
   final bool offersSetUp;
   final String? setUpRoute;
+
+  /// Runs before the row opens [route] (Set up this device again shows the
+  /// hidden card first).
+  final Future<void> Function()? onOpen;
 
   @override
   Widget build(BuildContext context) {
@@ -75,7 +81,11 @@ class DataRowTile extends StatelessWidget {
           : Text(subtitle),
       trailing: const Icon(Icons.chevron_right),
       // In the desktop detail pane when it can show the page (#3467).
-      onTap: () => context.pushSettingsPage(route),
+      onTap: () async {
+        await onOpen?.call();
+        if (!context.mounted) return;
+        await context.pushSettingsPage(route);
+      },
     );
   }
 }

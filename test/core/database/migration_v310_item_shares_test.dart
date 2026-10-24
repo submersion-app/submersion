@@ -5,14 +5,14 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 
-/// Schema v309: trip_shares and site_shares, the profiles a trip or site is
+/// Schema v310: trip_shares and site_shares, the profiles a trip or site is
 /// shared with when it is not shared with everyone (issue #2151).
 void main() {
-  /// A v308 database with only the parents the shares point at.
+  /// A v309 database with only the parents the shares point at.
   NativeDatabase setupDb({bool withParents = true}) => NativeDatabase.memory(
     setup: (rawDb) {
       rawDb.execute('PRAGMA foreign_keys = ON');
-      rawDb.execute('PRAGMA user_version = 308');
+      rawDb.execute('PRAGMA user_version = 309');
       rawDb.execute('CREATE TABLE divers (id TEXT NOT NULL PRIMARY KEY)');
       if (withParents) {
         rawDb.execute('CREATE TABLE trips (id TEXT NOT NULL PRIMARY KEY)');
@@ -26,15 +26,15 @@ void main() {
     return cols.map((c) => c.read<String>('name')).toSet();
   }
 
-  test('v309 is at or below the current schema version and in the ladder', () {
-    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(309));
-    expect(AppDatabase.migrationVersions, contains(309));
-    expect(AppDatabase.migrationStepCount(308), greaterThanOrEqualTo(1));
+  test('v310 is at or below the current schema version and in the ladder', () {
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(310));
+    expect(AppDatabase.migrationVersions, contains(310));
+    expect(AppDatabase.migrationStepCount(309), greaterThanOrEqualTo(1));
     // Additive tables: the floor stays where v308 put it.
     expect(AppDatabase.minimumCompatibleSchemaVersion, 308);
   });
 
-  test('upgrading from v308 creates trip_shares and site_shares', () async {
+  test('upgrading from v309 creates trip_shares and site_shares', () async {
     final db = AppDatabase(setupDb());
     addTearDown(db.close);
     await db.customSelect('SELECT 1').get();
@@ -113,12 +113,12 @@ void main() {
   });
 
   test(
-    'beforeOpen recreates the tables on a v309 database without them',
+    'beforeOpen recreates the tables on a v310 database without them',
     () async {
       final db = AppDatabase(
         NativeDatabase.memory(
           setup: (rawDb) {
-            rawDb.execute('PRAGMA user_version = 309');
+            rawDb.execute('PRAGMA user_version = 310');
             rawDb.execute('CREATE TABLE divers (id TEXT NOT NULL PRIMARY KEY)');
             rawDb.execute('CREATE TABLE trips (id TEXT NOT NULL PRIMARY KEY)');
             rawDb.execute(
