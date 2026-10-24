@@ -20022,7 +20022,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get nav_media => 'الوسائط';
 
   @override
-  String get nav_mediaDocumentsSubtitle => 'Media and documents';
+  String get nav_mediaDocumentsSubtitle => 'الوسائط والمستندات';
 
   @override
   String get nav_more => 'المزيد';

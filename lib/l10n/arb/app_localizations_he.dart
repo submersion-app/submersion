@@ -19298,7 +19298,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get nav_media => 'מדיה';
 
   @override
-  String get nav_mediaDocumentsSubtitle => 'Media and documents';
+  String get nav_mediaDocumentsSubtitle => 'מדיה ומסמכים';
 
   @override
   String get nav_more => 'עוד';

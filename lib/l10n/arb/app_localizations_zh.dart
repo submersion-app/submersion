@@ -18782,7 +18782,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get nav_media => '媒体';
 
   @override
-  String get nav_mediaDocumentsSubtitle => 'Media and documents';
+  String get nav_mediaDocumentsSubtitle => '媒体与文档';
 
   @override
   String get nav_more => '更多';

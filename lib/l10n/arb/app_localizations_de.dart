@@ -19713,7 +19713,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get nav_media => 'Medien';
 
   @override
-  String get nav_mediaDocumentsSubtitle => 'Media and documents';
+  String get nav_mediaDocumentsSubtitle => 'Medien und Dokumente';
 
   @override
   String get nav_more => 'Mehr';

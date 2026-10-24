@@ -19720,7 +19720,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get nav_media => 'Multimedia';
 
   @override
-  String get nav_mediaDocumentsSubtitle => 'Media and documents';
+  String get nav_mediaDocumentsSubtitle => 'Multimedia y documentos';
 
   @override
   String get nav_more => 'Más';
