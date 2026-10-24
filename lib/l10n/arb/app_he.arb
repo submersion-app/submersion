@@ -16164,5 +16164,8 @@
   "settings_setUpDevice_againSubtitle": "חשבון, סנכרון, גיבויים ותמונות",
   "settings_setUpDevice_stepSemantics": "{step}: {mark}",
   "settings_setUpDevice_item_signInSync": "יש להתחבר שוב אל {account}. הסנכרון מושהה עד אז.",
-  "settings_setUpDevice_item_signInBackups": "יש להתחבר שוב אל {account}. הגיבויים מושהים עד אז."
+  "settings_setUpDevice_item_signInBackups": "יש להתחבר שוב אל {account}. הגיבויים מושהים עד אז.",
+  "settings_setUpDevice_next": "הבא",
+  "settings_setUpDevice_notNow": "לא עכשיו",
+  "settings_setUpDevice_skip": "דילוג"
 }

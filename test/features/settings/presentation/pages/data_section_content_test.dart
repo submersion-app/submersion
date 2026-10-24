@@ -20,8 +20,6 @@ import 'package:submersion/features/settings/domain/setup/set_up_progress.dart';
 import 'package:submersion/features/settings/presentation/providers/debug_log_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/pending_setup_items_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/set_up_progress_provider.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/features/settings/data/set_up_card_prefs.dart';
 import 'package:submersion/features/settings/presentation/pages/data_section_content.dart';
 import 'package:submersion/features/settings/presentation/widgets/data_health/data_facts_line.dart';
 import 'package:submersion/features/settings/presentation/widgets/set_up_device/set_up_device_card.dart';
@@ -95,10 +93,12 @@ void main() {
           '/settings/cloud-sync',
           '/settings/photos-media',
           '/settings/connected-accounts',
+          '/settings/setup',
         ])
           GoRoute(
             path: path,
-            builder: (context, state) => Scaffold(body: Text('page $path')),
+            builder: (context, state) =>
+                Scaffold(body: Text('page ${state.uri}')),
           ),
       ],
     );
@@ -432,7 +432,7 @@ void main() {
       await tester.tap(inDataPage(find.text('Continue')));
       await tester.pumpAndSettle();
 
-      expect(find.text('page /settings/cloud-sync'), findsOneWidget);
+      expect(find.text('page /settings/setup?step=sync'), findsOneWidget);
     });
 
     testWidgets('on a master-detail window Continue opens the step in the '
@@ -446,10 +446,10 @@ void main() {
       await tester.tap(inDataPage(find.text('Continue')));
       await tester.pumpAndSettle();
 
-      expect(
-        router.routerDelegate.currentConfiguration.uri.toString(),
-        '/settings?selected=data&dataPage=cloud-sync',
-      );
+      expect(router.routerDelegate.currentConfiguration.uri.queryParameters, {
+        'selected': 'data',
+        'dataPage': 'setup?step=sync',
+      });
       expect(find.byType(SettingsListContent), findsOneWidget);
     });
   });
@@ -474,20 +474,14 @@ void main() {
       );
     });
 
-    testWidgets('on a hidden card, shows the card again and opens the '
-        'first step', (tester) async {
+    // The flow opened afresh shows a hidden card again (its own test).
+    testWidgets('on a hidden card, opens the flow afresh', (tester) async {
       await pumpData(tester, setUp: setUpProgressOf(hidden: true));
-      final container = ProviderScope.containerOf(
-        tester.element(find.byType(DataSectionContent)),
-      );
-      final prefs = container.read(sharedPreferencesProvider);
-      await prefs.setBool(SetUpCardPrefs.hiddenKey, true);
 
       await tester.tap(find.text('Set up this phone again'));
       await tester.pumpAndSettle();
 
-      expect(prefs.getBool(SetUpCardPrefs.hiddenKey), isFalse);
-      expect(find.text('page /settings/connected-accounts'), findsOneWidget);
+      expect(find.text('page /settings/setup?again=true'), findsOneWidget);
     });
   });
 

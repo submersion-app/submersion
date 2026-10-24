@@ -55161,4 +55161,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String settings_setUpDevice_item_signInBackups(String account) {
     return 'Reconnectez-vous à $account. Les sauvegardes sont en pause d\'ici là.';
   }
+
+  @override
+  String get settings_setUpDevice_next => 'Suivant';
+
+  @override
+  String get settings_setUpDevice_notNow => 'Pas maintenant';
+
+  @override
+  String get settings_setUpDevice_skip => 'Ignorer';
 }

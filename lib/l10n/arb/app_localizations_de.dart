@@ -54923,4 +54923,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String settings_setUpDevice_item_signInBackups(String account) {
     return 'Melden Sie sich erneut bei $account an. Sicherungen sind bis dahin pausiert.';
   }
+
+  @override
+  String get settings_setUpDevice_next => 'Weiter';
+
+  @override
+  String get settings_setUpDevice_notNow => 'Nicht jetzt';
+
+  @override
+  String get settings_setUpDevice_skip => 'Überspringen';
 }

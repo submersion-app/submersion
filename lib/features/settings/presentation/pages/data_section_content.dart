@@ -5,10 +5,8 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/settings/domain/data_health/data_row_status.dart';
 import 'package:submersion/features/settings/domain/data_health/feature_health.dart';
-import 'package:submersion/features/settings/domain/setup/set_up_progress.dart';
 import 'package:submersion/features/settings/presentation/providers/data_health_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/data_row_status_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/set_up_card_prefs_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/set_up_progress_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/storage_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/data_health/data_facts_line.dart';
@@ -193,10 +191,7 @@ class _DataSectionContentState extends ConsumerState<DataSectionContent> {
                 deviceKindArg(deviceKindOf(context)),
               ),
               subtitle: l10n.settings_setUpDevice_againSubtitle,
-              route: setUpStepRoute(SetUpStep.account),
-              onOpen: () => ref
-                  .read(setUpCardPrefsNotifierProvider.notifier)
-                  .setHidden(false),
+              route: setUpAgainRoute,
             ),
         ],
       ),

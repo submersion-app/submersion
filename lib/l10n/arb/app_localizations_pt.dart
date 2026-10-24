@@ -55034,4 +55034,13 @@ class AppLocalizationsPt extends AppLocalizations {
   String settings_setUpDevice_item_signInBackups(String account) {
     return 'Inicie sessão novamente em $account. Os backups ficam em pausa até lá.';
   }
+
+  @override
+  String get settings_setUpDevice_next => 'Seguinte';
+
+  @override
+  String get settings_setUpDevice_notNow => 'Agora não';
+
+  @override
+  String get settings_setUpDevice_skip => 'Ignorar';
 }

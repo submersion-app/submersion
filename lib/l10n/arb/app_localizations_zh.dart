@@ -51699,4 +51699,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String settings_setUpDevice_item_signInBackups(String account) {
     return '请重新登录 $account。在此之前，备份已暂停。';
   }
+
+  @override
+  String get settings_setUpDevice_next => '下一步';
+
+  @override
+  String get settings_setUpDevice_notNow => '以后再说';
+
+  @override
+  String get settings_setUpDevice_skip => '跳过';
 }

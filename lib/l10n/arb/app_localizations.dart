@@ -87056,6 +87056,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sign in to {account} again. Backups are paused until you do.'**
   String settings_setUpDevice_item_signInBackups(String account);
+
+  /// Primary button of a setup step that moves to the next step
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get settings_setUpDevice_next;
+
+  /// Leaves the setup flow without finishing the step; nothing is changed
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get settings_setUpDevice_notNow;
+
+  /// Skips the optional photo step of the setup flow
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get settings_setUpDevice_skip;
 }
 
 class _AppLocalizationsDelegate

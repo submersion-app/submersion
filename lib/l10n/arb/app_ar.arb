@@ -16164,5 +16164,8 @@
   "settings_setUpDevice_againSubtitle": "الحساب والمزامنة والنسخ الاحتياطية والصور",
   "settings_setUpDevice_stepSemantics": "{step}: {mark}",
   "settings_setUpDevice_item_signInSync": "سجّل الدخول إلى {account} مجددًا. المزامنة متوقفة مؤقتًا حتى تفعل.",
-  "settings_setUpDevice_item_signInBackups": "سجّل الدخول إلى {account} مجددًا. النسخ الاحتياطي متوقف مؤقتًا حتى تفعل."
+  "settings_setUpDevice_item_signInBackups": "سجّل الدخول إلى {account} مجددًا. النسخ الاحتياطي متوقف مؤقتًا حتى تفعل.",
+  "settings_setUpDevice_next": "التالي",
+  "settings_setUpDevice_notNow": "ليس الآن",
+  "settings_setUpDevice_skip": "تخطٍّ"
 }

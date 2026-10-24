@@ -16164,5 +16164,8 @@
   "settings_setUpDevice_againSubtitle": "Account, synchronisatie, back-ups en foto's",
   "settings_setUpDevice_stepSemantics": "{step}: {mark}",
   "settings_setUpDevice_item_signInSync": "Log opnieuw in bij {account}. Synchronisatie staat tot dan stil.",
-  "settings_setUpDevice_item_signInBackups": "Log opnieuw in bij {account}. Back-ups staan tot dan stil."
+  "settings_setUpDevice_item_signInBackups": "Log opnieuw in bij {account}. Back-ups staan tot dan stil.",
+  "settings_setUpDevice_next": "Volgende",
+  "settings_setUpDevice_notNow": "Niet nu",
+  "settings_setUpDevice_skip": "Overslaan"
 }

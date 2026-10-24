@@ -16164,5 +16164,8 @@
   "settings_setUpDevice_againSubtitle": "账户、同步、备份和照片",
   "settings_setUpDevice_stepSemantics": "{step}：{mark}",
   "settings_setUpDevice_item_signInSync": "请重新登录 {account}。在此之前，同步已暂停。",
-  "settings_setUpDevice_item_signInBackups": "请重新登录 {account}。在此之前，备份已暂停。"
+  "settings_setUpDevice_item_signInBackups": "请重新登录 {account}。在此之前，备份已暂停。",
+  "settings_setUpDevice_next": "下一步",
+  "settings_setUpDevice_notNow": "以后再说",
+  "settings_setUpDevice_skip": "跳过"
 }

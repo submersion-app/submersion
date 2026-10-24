@@ -58,9 +58,10 @@ void main() {
           builder: (context, state) => const Scaffold(body: Text('settings')),
           routes: [
             GoRoute(
-              path: 'cloud-sync',
-              builder: (context, state) =>
-                  const Scaffold(body: Text('sync page')),
+              path: 'setup',
+              builder: (context, state) => Scaffold(
+                body: Text('setup ${state.uri.queryParameters['step']}'),
+              ),
             ),
           ],
         ),
@@ -106,7 +107,7 @@ void main() {
       expect(location().path, '/settings');
       expect(location().queryParameters, {
         'selected': 'data',
-        'dataPage': 'cloud-sync',
+        'dataPage': 'setup?step=sync',
       });
     });
 
@@ -144,7 +145,7 @@ void main() {
     await tester.tap(find.text('Continue'));
     await tester.pumpAndSettle();
 
-    expect(find.text('sync page'), findsOneWidget);
+    expect(find.text('setup sync'), findsOneWidget);
     // Pushed over the list, so Back returns to it.
     expect(router.canPop(), isTrue);
   });

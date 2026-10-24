@@ -55045,4 +55045,13 @@ class AppLocalizationsIt extends AppLocalizations {
   String settings_setUpDevice_item_signInBackups(String account) {
     return 'Accedi di nuovo a $account. I backup sono in pausa fino ad allora.';
   }
+
+  @override
+  String get settings_setUpDevice_next => 'Avanti';
+
+  @override
+  String get settings_setUpDevice_notNow => 'Non ora';
+
+  @override
+  String get settings_setUpDevice_skip => 'Salta';
 }

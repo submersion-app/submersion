@@ -16164,5 +16164,8 @@
   "settings_setUpDevice_againSubtitle": "Compte, synchronisation, sauvegardes et photos",
   "settings_setUpDevice_stepSemantics": "{step} : {mark}",
   "settings_setUpDevice_item_signInSync": "Reconnectez-vous à {account}. La synchronisation est en pause d'ici là.",
-  "settings_setUpDevice_item_signInBackups": "Reconnectez-vous à {account}. Les sauvegardes sont en pause d'ici là."
+  "settings_setUpDevice_item_signInBackups": "Reconnectez-vous à {account}. Les sauvegardes sont en pause d'ici là.",
+  "settings_setUpDevice_next": "Suivant",
+  "settings_setUpDevice_notNow": "Pas maintenant",
+  "settings_setUpDevice_skip": "Ignorer"
 }

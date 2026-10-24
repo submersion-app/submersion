@@ -55793,4 +55793,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String settings_setUpDevice_item_signInBackups(String account) {
     return 'سجّل الدخول إلى $account مجددًا. النسخ الاحتياطي متوقف مؤقتًا حتى تفعل.';
   }
+
+  @override
+  String get settings_setUpDevice_next => 'التالي';
+
+  @override
+  String get settings_setUpDevice_notNow => 'ليس الآن';
+
+  @override
+  String get settings_setUpDevice_skip => 'تخطٍّ';
 }

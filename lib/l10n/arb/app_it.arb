@@ -16164,5 +16164,8 @@
   "settings_setUpDevice_againSubtitle": "Account, sincronizzazione, backup e foto",
   "settings_setUpDevice_stepSemantics": "{step}: {mark}",
   "settings_setUpDevice_item_signInSync": "Accedi di nuovo a {account}. La sincronizzazione è in pausa fino ad allora.",
-  "settings_setUpDevice_item_signInBackups": "Accedi di nuovo a {account}. I backup sono in pausa fino ad allora."
+  "settings_setUpDevice_item_signInBackups": "Accedi di nuovo a {account}. I backup sono in pausa fino ad allora.",
+  "settings_setUpDevice_next": "Avanti",
+  "settings_setUpDevice_notNow": "Non ora",
+  "settings_setUpDevice_skip": "Salta"
 }

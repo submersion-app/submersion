@@ -32521,5 +32521,11 @@
   "settings_setUpDevice_item_signInSync": "Sign in to {account} again. Sync is paused until you do.",
   "@settings_setUpDevice_item_signInSync": {"description": "Card item for an account sync uses (not the backup copy) that needs signing in again", "placeholders": {"account": {"type": "String"}}},
   "settings_setUpDevice_item_signInBackups": "Sign in to {account} again. Backups are paused until you do.",
-  "@settings_setUpDevice_item_signInBackups": {"description": "Card item for an account the backup copy uses (not sync) that needs signing in again", "placeholders": {"account": {"type": "String"}}}
+  "@settings_setUpDevice_item_signInBackups": {"description": "Card item for an account the backup copy uses (not sync) that needs signing in again", "placeholders": {"account": {"type": "String"}}},
+  "settings_setUpDevice_next": "Next",
+  "@settings_setUpDevice_next": {"description": "Primary button of a setup step that moves to the next step"},
+  "settings_setUpDevice_notNow": "Not now",
+  "@settings_setUpDevice_notNow": {"description": "Leaves the setup flow without finishing the step; nothing is changed"},
+  "settings_setUpDevice_skip": "Skip",
+  "@settings_setUpDevice_skip": {"description": "Skips the optional photo step of the setup flow"}
 }

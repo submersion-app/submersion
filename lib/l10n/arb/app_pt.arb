@@ -16164,5 +16164,8 @@
   "settings_setUpDevice_againSubtitle": "Conta, sincronização, backups e fotos",
   "settings_setUpDevice_stepSemantics": "{step}: {mark}",
   "settings_setUpDevice_item_signInSync": "Inicie sessão novamente em {account}. A sincronização fica em pausa até lá.",
-  "settings_setUpDevice_item_signInBackups": "Inicie sessão novamente em {account}. Os backups ficam em pausa até lá."
+  "settings_setUpDevice_item_signInBackups": "Inicie sessão novamente em {account}. Os backups ficam em pausa até lá.",
+  "settings_setUpDevice_next": "Seguinte",
+  "settings_setUpDevice_notNow": "Agora não",
+  "settings_setUpDevice_skip": "Ignorar"
 }

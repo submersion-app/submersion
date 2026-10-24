@@ -54704,4 +54704,13 @@ class AppLocalizationsNl extends AppLocalizations {
   String settings_setUpDevice_item_signInBackups(String account) {
     return 'Log opnieuw in bij $account. Back-ups staan tot dan stil.';
   }
+
+  @override
+  String get settings_setUpDevice_next => 'Volgende';
+
+  @override
+  String get settings_setUpDevice_notNow => 'Niet nu';
+
+  @override
+  String get settings_setUpDevice_skip => 'Overslaan';
 }

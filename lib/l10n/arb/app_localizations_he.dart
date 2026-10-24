@@ -53898,4 +53898,13 @@ class AppLocalizationsHe extends AppLocalizations {
   String settings_setUpDevice_item_signInBackups(String account) {
     return 'יש להתחבר שוב אל $account. הגיבויים מושהים עד אז.';
   }
+
+  @override
+  String get settings_setUpDevice_next => 'הבא';
+
+  @override
+  String get settings_setUpDevice_notNow => 'לא עכשיו';
+
+  @override
+  String get settings_setUpDevice_skip => 'דילוג';
 }

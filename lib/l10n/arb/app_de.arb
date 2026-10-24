@@ -16285,5 +16285,8 @@
   "settings_setUpDevice_againSubtitle": "Konto, Sync, Sicherungen und Fotos",
   "settings_setUpDevice_stepSemantics": "{step}: {mark}",
   "settings_setUpDevice_item_signInSync": "Melden Sie sich erneut bei {account} an. Sync ist bis dahin pausiert.",
-  "settings_setUpDevice_item_signInBackups": "Melden Sie sich erneut bei {account} an. Sicherungen sind bis dahin pausiert."
+  "settings_setUpDevice_item_signInBackups": "Melden Sie sich erneut bei {account} an. Sicherungen sind bis dahin pausiert.",
+  "settings_setUpDevice_next": "Weiter",
+  "settings_setUpDevice_notNow": "Nicht jetzt",
+  "settings_setUpDevice_skip": "Überspringen"
 }

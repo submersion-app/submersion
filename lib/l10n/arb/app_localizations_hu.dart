@@ -54730,4 +54730,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String settings_setUpDevice_item_signInBackups(String account) {
     return 'Jelentkezzen be újra ide: $account. Addig a mentések szünetelnek.';
   }
+
+  @override
+  String get settings_setUpDevice_next => 'Tovább';
+
+  @override
+  String get settings_setUpDevice_notNow => 'Most nem';
+
+  @override
+  String get settings_setUpDevice_skip => 'Kihagyás';
 }
