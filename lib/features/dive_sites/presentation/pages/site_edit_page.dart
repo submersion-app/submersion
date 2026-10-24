@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io' show Platform;
 
-import 'package:flutter/foundation.dart' show kIsWeb, setEquals;
+import 'package:flutter/foundation.dart' show kIsWeb, listEquals, setEquals;
 import 'package:flutter/material.dart';
 import 'package:submersion/core/built_ins/built_in_catalog.dart';
 import 'package:submersion/core/constants/enums.dart';
@@ -22,6 +22,7 @@ import 'package:submersion/features/settings/presentation/providers/hidden_built
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/domain/entry_method_list.dart';
 import 'package:submersion/features/dive_sites/domain/models/new_site_seed.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_classification.dart';
 import 'package:submersion/features/dive_sites/presentation/site_difficulty_display.dart';
@@ -141,8 +142,8 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
   double _rating = 0;
   SiteDifficulty? _difficulty;
   WaterType? _waterType;
-  EntryMethod? _entryMethod;
-  EntryMethod? _exitMethod;
+  List<EntryMethod> _entryMethods = const [];
+  List<EntryMethod> _exitMethods = const [];
   bool _isLoading = false;
   bool _isInitialized = false;
   bool _hasChanges = false;
@@ -169,8 +170,8 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
   final Map<String, int> _mergeFieldIndices = {};
   List<_MergeFieldCandidate<SiteDifficulty?>> _difficultyCandidates = [];
   List<_MergeFieldCandidate<WaterType?>> _waterTypeCandidates = [];
-  List<_MergeFieldCandidate<EntryMethod?>> _entryMethodCandidates = [];
-  List<_MergeFieldCandidate<EntryMethod?>> _exitMethodCandidates = [];
+  List<_MergeFieldCandidate<List<EntryMethod>>> _entryMethodCandidates = [];
+  List<_MergeFieldCandidate<List<EntryMethod>>> _exitMethodCandidates = [];
   List<_MergeFieldCandidate<double>> _ratingCandidates = [];
   List<_MergeFieldCandidate<_CoordinateCandidate>> _coordinateCandidates = [];
 
@@ -379,8 +380,8 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     _rating = site.rating ?? 0;
     _difficulty = site.difficulty;
     _waterType = site.waterType;
-    _entryMethod = site.entryMethod;
-    _exitMethod = site.exitMethod;
+    _entryMethods = site.entryMethods;
+    _exitMethods = site.exitMethods;
     _isShared = site.isShared;
     _altitudeController.text = site.altitude != null
         ? _altitudeForInput(units.convertAltitude(site.altitude!))
@@ -554,28 +555,30 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     _waterType =
         _waterTypeCandidates[_mergeFieldIndices['waterType'] ?? 0].value;
 
-    _entryMethodCandidates = _buildDistinctCandidates<EntryMethod?>(
+    // Each site's whole list is one candidate (issue #2054); lists are
+    // compared by content, not identity.
+    _entryMethodCandidates = _buildDistinctCandidates<List<EntryMethod>>(
       data.sites,
-      (site) => site.entryMethod,
-      equals: (a, b) => a == b,
+      (site) => site.entryMethods,
+      equals: listEquals,
     );
     _mergeFieldIndices['entryMethod'] = _firstMeaningfulIndex(
       _entryMethodCandidates,
-      (value) => value != null,
+      (value) => value.isNotEmpty,
     );
-    _entryMethod =
+    _entryMethods =
         _entryMethodCandidates[_mergeFieldIndices['entryMethod'] ?? 0].value;
 
-    _exitMethodCandidates = _buildDistinctCandidates<EntryMethod?>(
+    _exitMethodCandidates = _buildDistinctCandidates<List<EntryMethod>>(
       data.sites,
-      (site) => site.exitMethod,
-      equals: (a, b) => a == b,
+      (site) => site.exitMethods,
+      equals: listEquals,
     );
     _mergeFieldIndices['exitMethod'] = _firstMeaningfulIndex(
       _exitMethodCandidates,
-      (value) => value != null,
+      (value) => value.isNotEmpty,
     );
-    _exitMethod =
+    _exitMethods =
         _exitMethodCandidates[_mergeFieldIndices['exitMethod'] ?? 0].value;
 
     _ratingCandidates = _buildDistinctCandidates<double>(
@@ -887,7 +890,7 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
   Widget? _entrySuggestionChip() {
     if (!widget.isEditing || widget.siteId == null) return null;
     if (widget.isMerging) return null;
-    if (_entryMethod != null || _exitMethod != null) return null;
+    if (_entryMethods.isNotEmpty || _exitMethods.isNotEmpty) return null;
 
     return Consumer(
       builder: (context, ref, _) {
@@ -919,8 +922,8 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
                   avatar: const Icon(Icons.history, size: 18),
                   label: Text(label),
                   onPressed: () => setState(() {
-                    _entryMethod = suggestion.entry;
-                    _exitMethod = suggestion.exit;
+                    _entryMethods = [suggestion.entry];
+                    _exitMethods = [?suggestion.exit];
                     _hasChanges = true;
                   }),
                 ),
@@ -1004,14 +1007,17 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     if (_rating > 0) '★' * _rating.round(),
   ].join(' · ');
 
+  String _methodNames(List<EntryMethod> methods) =>
+      joinEntryMethodNames(methods, (m) => m.localizedName(context.l10n));
+
   String _accessSummary() => [
     if (_accessNotesController.text.trim().isNotEmpty)
       context.l10n.diveSites_edit_access_accessNotes_label,
-    if (_entryMethod != null) _entryMethod!.localizedName(context.l10n),
+    if (_entryMethods.isNotEmpty) _methodNames(_entryMethods),
     // Only when it differs, so the common mirrored case does not read
-    // "Boat Entry · Boat Entry".
-    if (_exitMethod != null && _exitMethod != _entryMethod)
-      _exitMethod!.localizedName(context.l10n),
+    // "Boat · Boat".
+    if (exitDiffersFromEntry(_entryMethods, _exitMethods))
+      _methodNames(_exitMethods),
     if (_mooringNumberController.text.trim().isNotEmpty)
       context.l10n.diveSites_edit_access_mooringNumber_label,
     if (_parkingInfoController.text.trim().isNotEmpty)
@@ -1156,14 +1162,14 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
             parkingInfoController: _parkingInfoController,
             hazardsController: _hazardsController,
             mergeExtras: widget.isMerging ? _mergeExtras : null,
-            entryMethod: _entryMethod,
-            exitMethod: _exitMethod,
+            entryMethods: _entryMethods,
+            exitMethods: _exitMethods,
             onEntryMethodChanged: (value) => setState(() {
-              _entryMethod = value;
+              _entryMethods = value;
               _hasChanges = true;
             }),
             onExitMethodChanged: (value) => setState(() {
-              _exitMethod = value;
+              _exitMethods = value;
               _hasChanges = true;
             }),
             entryMethodExtras: _entryMethodExtras(),
@@ -1487,7 +1493,7 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
           ((_mergeFieldIndices['entryMethod'] ?? 0) + 1) %
           _entryMethodCandidates.length;
       _mergeFieldIndices['entryMethod'] = nextIndex;
-      _entryMethod = _entryMethodCandidates[nextIndex].value;
+      _entryMethods = _entryMethodCandidates[nextIndex].value;
       _hasChanges = true;
     });
   }
@@ -1499,7 +1505,7 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
           ((_mergeFieldIndices['exitMethod'] ?? 0) + 1) %
           _exitMethodCandidates.length;
       _mergeFieldIndices['exitMethod'] = nextIndex;
-      _exitMethod = _exitMethodCandidates[nextIndex].value;
+      _exitMethods = _exitMethodCandidates[nextIndex].value;
       _hasChanges = true;
     });
   }
@@ -2060,8 +2066,8 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
             : _parkingInfoController.text.trim(),
         altitude: altitudeMeters,
         waterType: _waterType,
-        entryMethod: _entryMethod,
-        exitMethod: _exitMethod,
+        entryMethods: _entryMethods,
+        exitMethods: _exitMethods,
         isShared: _isShared,
       );
 

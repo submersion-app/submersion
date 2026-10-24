@@ -38,6 +38,7 @@ import 'package:submersion/shared/providers/entity_card_config_providers.dart';
 import 'package:submersion/shared/providers/entity_table_config_providers.dart';
 import 'package:submersion/core/utils/log_failure.dart';
 import 'package:submersion/features/documents/presentation/providers/document_providers.dart';
+import 'package:submersion/shared/widgets/master_detail/remembered_selection.dart';
 
 // ============================================================================
 // Site Filter State
@@ -1066,3 +1067,13 @@ final siteCompactCardConfigProvider =
       }
       return notifier;
     });
+
+/// The site a list returned to reopens and scrolls back to: the one last
+/// opened, while the list as filtered still shows it (#3301).
+final rememberedSiteIdProvider = Provider<AsyncValue<String?>>(
+  (ref) => rememberedListedId(
+    items: ref.watch(sortedSitesWithCountsProvider),
+    rememberedId: ref.watch(highlightedSiteIdProvider),
+    idOf: (entry) => entry.site.id,
+  ),
+);

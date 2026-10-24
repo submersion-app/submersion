@@ -13,6 +13,7 @@ import 'package:submersion/features/gps_log/presentation/widgets/gps_recording_s
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/global_drop_target.dart';
+import 'package:submersion/shared/widgets/master_detail/list_memory_scope.dart';
 import 'package:submersion/shared/widgets/nav/nav_destinations.dart';
 import 'package:submersion/shared/widgets/nav/nav_order_provider.dart';
 import 'package:submersion/shared/widgets/nav/nav_selection.dart';
@@ -249,11 +250,15 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
         if (didPop || upLocation == null) return;
         context.go(upLocation);
       },
-      child: ShellChromeScope(
-        controller: _chromeController,
-        child: _chromeController.isHidden
-            ? _buildChromelessScaffold()
-            : _buildScaffold(context),
+      // Lives as long as the shell, so a record opened or a diver switched
+      // anywhere in it keeps the lists' memory straight (#3301).
+      child: ListMemoryScope(
+        child: ShellChromeScope(
+          controller: _chromeController,
+          child: _chromeController.isHidden
+              ? _buildChromelessScaffold()
+              : _buildScaffold(context),
+        ),
       ),
     );
   }

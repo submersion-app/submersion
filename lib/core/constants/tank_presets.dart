@@ -33,6 +33,11 @@ class TankPreset {
 class TankPresets {
   TankPresets._();
 
+  /// The start pressure the dive planner gives a cylinder nothing else
+  /// fills: its default tank, a new tank in the tank dialog, and a saved
+  /// cylinder that has neither a start nor a working pressure (#3603).
+  static const double planFillPressureBar = 200.0;
+
   // Aluminum tanks (common in US)
   // Working pressures use exact PSI-to-bar conversions (1 psi = 1/14.5038 bar)
   // so displayed values round correctly in both bar and PSI.

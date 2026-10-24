@@ -24,9 +24,11 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_view.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/keyboard_list_navigator.dart';
+import 'package:submersion/shared/widgets/master_detail/list_position_restorer.dart';
 import 'package:submersion/shared/widgets/master_detail/keyboard_nav_stops.dart';
 import 'package:submersion/shared/widgets/master_detail/map_view_toggle_button.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_form_scope.dart';
+import 'package:submersion/shared/widgets/master_detail/remembered_selection.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/shared_items/shared_item_dialogs.dart';
 import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
@@ -110,6 +112,13 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
   String? _lastScrolledToId;
   bool _selectionFromList = false;
 
+  /// Brings the list back to the site last opened when it is built again
+  /// after the diver left it (#3301).
+  late final ListPositionRestorer _positionRestorer = ListPositionRestorer(
+    controller: _scrollController,
+    attempt: _restoreRememberedSite,
+  );
+
   /// The bulk-selection state machine for this list: the page's when it
   /// passes one, otherwise this list's own.
   late final SelectionController _selection = _adoptSelection();
@@ -168,15 +177,32 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
   @override
   void initState() {
     super.initState();
-    if (widget.selectedId != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _scrollToSelectedItem();
-      });
-    }
+    _positionRestorer.start(ref, sortedSitesWithCountsProvider);
+  }
+
+  /// One try at showing the selected site (one in the address) or, failing
+  /// that, the site last opened, for [_positionRestorer]: true once there is
+  /// nothing left to wait for. A list pushed over another page starts at its
+  /// top unless its address names a site.
+  bool _restoreRememberedSite() {
+    if (!mounted) return true;
+    return restoreListPosition(
+      context,
+      items: ref.read(sortedSitesWithCountsProvider),
+      selectedId: widget.selectedId,
+      rememberedId: ref.read(highlightedSiteIdProvider),
+      idOf: (entry) => entry.site.id,
+      controller: _scrollController,
+      scrollTo: (id) {
+        _lastScrolledToId = id;
+        _scrollToSelectedItem(targetId: id, jump: true);
+      },
+    );
   }
 
   @override
   void dispose() {
+    _positionRestorer.dispose();
     _scrollController.dispose();
     if (_ownsSelection) _selection.dispose();
     super.dispose();
@@ -197,8 +223,12 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
     }
   }
 
-  void _scrollToSelectedItem() {
-    if (widget.selectedId == null) return;
+  /// Scrolls to [targetId], or the selected site when omitted. [jump] moves
+  /// straight there, for a list being restored, which should not visibly
+  /// travel from the top.
+  void _scrollToSelectedItem({String? targetId, bool jump = false}) {
+    final target = targetId ?? widget.selectedId;
+    if (target == null) return;
 
     final sitesAsync = ref.read(sortedSitesWithCountsProvider);
     sitesAsync.whenData((sites) {
@@ -206,7 +236,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
       // can sit in a group the diver collapsed. Open it first, after this
       // frame since a provider cannot change mid-build, then scroll once the
       // list has rebuilt with it open.
-      final hiddenGroups = _collapsedGroupsOfSelected(sites);
+      final hiddenGroups = _collapsedGroupsOfSelected(sites, target);
       if (hiddenGroups != null) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted) return;
@@ -218,7 +248,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
             };
           }
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) _scrollToSelectedItem();
+            if (mounted) _scrollToSelectedItem(targetId: target, jump: jump);
           });
         });
         return;
@@ -227,11 +257,11 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
       // headers and sites, not its position in the flat list.
       final rows = _groupedView(sites, listen: false)?.rows;
       final index = rows == null
-          ? sites.indexWhere((s) => s.site.id == widget.selectedId)
+          ? sites.indexWhere((s) => s.site.id == target)
           : rows.indexWhere(
               (row) =>
                   row is SiteRow<SiteWithDiveCount> &&
-                  row.item.site.id == widget.selectedId,
+                  row.item.site.id == target,
             );
       final rowCount = rows?.length ?? sites.length;
       if (index >= 0 && _scrollController.hasClients) {
@@ -245,13 +275,20 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
           final targetOffset = (index * avgItemHeight) - (viewportHeight / 3);
           final clampedOffset = targetOffset.clamp(0.0, maxScroll);
 
-          _scrollController.animateTo(
-            clampedOffset,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeInOut,
-          );
-          _lastScrolledToId = widget.selectedId;
+          if (jump) {
+            _scrollController.jumpTo(clampedOffset);
+          } else {
+            _scrollController.animateTo(
+              clampedOffset,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+            );
+          }
+          _lastScrolledToId = target;
         });
+        // The measuring callback needs a frame to run in, which a settled
+        // list being restored would not otherwise schedule.
+        WidgetsBinding.instance.scheduleFrame();
       }
     });
   }
@@ -274,6 +311,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
     }
 
     ref.read(highlightedSiteIdProvider.notifier).state = site.id;
+    forgetClosedPane(ref, RecordListSection.sites);
 
     if (widget.onItemSelected != null) {
       _selectionFromList = true;
@@ -728,15 +766,16 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
   /// Delegates to [initialExpandedGroups] for the same site rather than
   /// re-deriving its outer/subgroup keys by hand, so this can never drift
   /// from what "freshly opening this list" would already have opened.
-  Set<String>? _collapsedGroupsOfSelected(List<SiteWithDiveCount> sites) {
+  Set<String>? _collapsedGroupsOfSelected(
+    List<SiteWithDiveCount> sites,
+    String targetId,
+  ) {
     final groupBy = ref.read(siteGroupByProvider);
     if (groupBy == SiteGroupBy.none) return null;
     if (ref.read(siteFilterProvider).hasActiveFilters) return null;
     final stored = ref.read(siteListExpandedGroupsProvider);
     if (stored == null) return null;
-    final selected = sites
-        .where((s) => s.site.id == widget.selectedId)
-        .firstOrNull;
+    final selected = sites.where((s) => s.site.id == targetId).firstOrNull;
     if (selected == null) return null;
     final required = initialExpandedGroups(
       _groupsFor(sites, groupBy),
@@ -1089,6 +1128,9 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
                     return;
                   }
                   ref.read(highlightedSiteIdProvider.notifier).state = id;
+                  // The same row again sets no new highlight; the pane is reopened all
+                  // the same, so it is no longer one the diver emptied (#3301).
+                  forgetClosedPane(ref, RecordListSection.sites);
                 },
                 onEntityTap: (id) {
                   // Table mode honours modifier and shift clicks too, so

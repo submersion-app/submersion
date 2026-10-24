@@ -28,6 +28,17 @@ class PlanSlateLabels {
   final String gas;
   final String turnAt;
   final String minGas;
+
+  /// What a back gas's Turn cell says when no turn rule applies (#3603).
+  final String noTurnRule;
+
+  /// What a back gas's Turn or Min gas cell says when the cylinder has no
+  /// start pressure to work from (#3603).
+  final String noStartPressure;
+
+  /// What a back gas's Min gas cell says when the cylinder has no size
+  /// (#3603).
+  final String noVolume;
   final String base;
 
   /// A duration in whole minutes, such as "12 min" (#2252).
@@ -49,10 +60,31 @@ class PlanSlateLabels {
     required this.gas,
     required this.turnAt,
     required this.minGas,
+    required this.noTurnRule,
+    required this.noStartPressure,
+    required this.noVolume,
     required this.base,
     required this.minutes,
     required this.maxPrefix,
   });
+}
+
+/// One Turn or Min gas cell of the slate's gas table: the figure where the
+/// engine computed it, the missing input on a back gas it could not compute
+/// for (#3603), and a dash on a cylinder the figure does not apply to.
+String planSlateGasLimitCell(
+  double? bar,
+  PlanGasLimitGap? gap,
+  UnitFormatter units,
+  PlanSlateLabels labels,
+) {
+  if (bar != null) return units.formatPressure(bar, decimals: 0);
+  return switch (gap) {
+    PlanGasLimitGap.noTurnRule => labels.noTurnRule,
+    PlanGasLimitGap.noStartPressure => labels.noStartPressure,
+    PlanGasLimitGap.noVolume => labels.noVolume,
+    null => '--',
+  };
 }
 
 /// The slate's header line: plan date, mode, gradient factors, and the
@@ -335,14 +367,20 @@ class PlanSlatePdfService {
               cell(units.convertVolume(usage.litersUsed).toStringAsFixed(0)),
               cell('${usage.percentUsed.toStringAsFixed(0)}%'),
               cell(
-                usage.turnPressureBar != null
-                    ? units.formatPressure(usage.turnPressureBar!, decimals: 0)
-                    : '--',
+                planSlateGasLimitCell(
+                  usage.turnPressureBar,
+                  usage.turnPressureGap,
+                  units,
+                  labels,
+                ),
               ),
               cell(
-                usage.minGasBar != null
-                    ? units.formatPressure(usage.minGasBar!, decimals: 0)
-                    : '--',
+                planSlateGasLimitCell(
+                  usage.minGasBar,
+                  usage.minGasGap,
+                  units,
+                  labels,
+                ),
               ),
             ],
           ),

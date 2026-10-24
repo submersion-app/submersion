@@ -36,7 +36,7 @@ void main() {
       ),
     );
     final site = (await SiteRepository().getAllSites(diverId: diverId)).single;
-    expect(site.entryMethod, EntryMethod.giantStride);
+    expect(site.entryMethods, [EntryMethod.giantStride]);
   });
 
   test('equipment keeps every attribute, not only size', () async {

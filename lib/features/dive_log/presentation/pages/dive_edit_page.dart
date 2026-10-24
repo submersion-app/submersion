@@ -731,18 +731,24 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     final settings = ref.read(settingsProvider);
     final presetName = settings.defaultTankPreset;
 
-    // Try synchronous built-in resolution first
+    // Built-in presets resolve synchronously so the first tank starts with
+    // them; the lookup below still runs, as the diver's own preset of the
+    // same name shadows the built-in, the way imports resolve it.
     final builtIn = presetName != null ? TankPresets.byName(presetName) : null;
     if (builtIn != null) {
       _defaultPreset = TankPresetEntity.fromBuiltIn(builtIn);
-      return;
     }
 
-    // Async fallback for custom presets
+    // Async lookup for custom presets
     if (presetName != null) {
       final repository = ref.read(tankPresetRepositoryProvider);
       final resolver = DefaultTankPresetResolver(repository: repository);
-      final preset = await resolver.resolve(presetName);
+      final preset = await resolver.resolve(
+        presetName,
+        diverId: await ref.read(validatedCurrentDiverIdProvider.future),
+      );
+      // Nothing shadows the built-in already applied.
+      if (builtIn != null && (preset == null || preset.isBuiltIn)) return;
       if (mounted) {
         setState(() {
           _defaultPreset = preset;

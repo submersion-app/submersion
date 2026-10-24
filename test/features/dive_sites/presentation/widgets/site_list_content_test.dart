@@ -111,6 +111,38 @@ class _MockSiteListNotifier extends StateNotifier<AsyncValue<List<DiveSite>>>
 }
 
 void main() {
+  // A selection made outside the list (the map, a deep link, the detail
+  // pane's previous and next) brings its row into view (#3301).
+  testWidgets('scrolls to a site selected from outside the list', (
+    tester,
+  ) async {
+    final overrides = await _buildPhoneOverrides(
+      sites: [
+        for (var i = 0; i < 60; i++)
+          _makeSite(id: 'r$i', name: 'Site ${i.toString().padLeft(2, '0')}'),
+      ],
+      viewMode: ListViewMode.detailed,
+    );
+    final selected = ValueNotifier<String?>(null);
+    addTearDown(selected.dispose);
+    await tester.pumpWidget(
+      testApp(
+        overrides: overrides,
+        child: ValueListenableBuilder<String?>(
+          valueListenable: selected,
+          builder: (_, id, _) =>
+              SiteListContent(showAppBar: true, selectedId: id),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    selected.value = 'r50';
+    await tester.pumpAndSettle();
+
+    expect(find.text('Site 50'), findsOneWidget);
+  });
+
   // The title's subtitle counts the list (#2669): "2 sites" unfiltered, and
   // against every site while a filter narrows it.
   group('entry count subtitle', () {

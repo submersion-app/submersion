@@ -29,22 +29,28 @@ class EntryExitSelection {
 /// 3. A still-linked exit follows the new entry, but only when the entry
 ///    actually changed. Without that guard, clearing the site or assigning a
 ///    site with no entry method would write exit = entry and materialize an
-///    exit method on a dive that had none.
+///    exit method on a dive that had none. It also does not follow when the
+///    site lists several exits: the site says the entry is not the only way
+///    out, so copying it would be a guess.
+///
+/// A site contributes an entry or exit only when it lists exactly one
+/// (issue #2054). With several there is no telling which one this dive used,
+/// so the dive keeps what it has.
 EntryExitSelection entryExitAfterSiteAssign({
   required EntryMethod? currentEntry,
   required EntryMethod? currentExit,
   required bool currentLinked,
   required DiveSite? site,
 }) {
-  final entry = site?.entryMethod ?? currentEntry;
+  final entry = site?.soleEntryMethod ?? currentEntry;
   final entryChanged = entry != currentEntry;
 
   final EntryMethod? exit;
   if (!currentLinked) {
     exit = currentExit;
-  } else if (site?.exitMethod != null) {
-    exit = site!.exitMethod;
-  } else if (entryChanged) {
+  } else if (site?.soleExitMethod != null) {
+    exit = site!.soleExitMethod;
+  } else if (entryChanged && (site?.exitMethods.length ?? 0) < 2) {
     exit = entry;
   } else {
     exit = currentExit;

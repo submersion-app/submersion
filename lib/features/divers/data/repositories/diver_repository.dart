@@ -8,7 +8,9 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/text/text_sort.dart';
+import 'package:submersion/core/utils/stream_debounce.dart';
 import 'package:submersion/features/dive_import/data/services/imported_file_reclaimer.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_computer_links.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
@@ -154,6 +156,47 @@ class DiverRepository {
       TableUpdateQuery.onTable(_db.documents),
     ]),
   );
+
+  /// Dive count per diver id, counted in SQL. A profile with no dives is
+  /// absent from the map, as are dives with no diver.
+  Future<Map<String, int>> getDiveCountsByDiver() async {
+    try {
+      final rows = await _db
+          .customSelect(
+            // stats-scope-exempt: which profile holds the logbook, matched
+            // to the Dives list count (every row, planned and excluded too),
+            // not a statistic.
+            'SELECT diver_id, COUNT(*) AS count FROM dives '
+            'WHERE diver_id IS NOT NULL GROUP BY diver_id',
+            readsFrom: {_db.dives},
+          )
+          .get();
+      return {
+        for (final row in rows)
+          row.read<String>('diver_id'): row.read<int>('count'),
+      };
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to count dives per diver',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// Emits whenever a write could change [getDiveCountsByDiver]: a dive
+  /// added, removed or moved, or a profile added or removed. Debounced like
+  /// the dive list's own tick, so a sync or import committing many dives runs
+  /// the GROUP BY once on the settled table instead of once per commit.
+  Stream<void> watchDiveCountChanges() => _db
+      .tableUpdates(
+        TableUpdateQuery.allOf([
+          TableUpdateQuery.onTable(_db.dives),
+          TableUpdateQuery.onTable(_db.divers),
+        ]),
+      )
+      .debounce(DiveRepository.changeTickDebounce);
 
   /// Get the default diver (or first if none marked default)
   Future<domain.Diver?> getDefaultDiver() async {

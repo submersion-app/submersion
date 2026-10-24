@@ -118,7 +118,13 @@ void main() {
       ),
       const [],
     );
-    final captured = [(document: permit, pages: const <DocumentPage>[])];
+    final captured = [
+      (
+        document: permit,
+        pages: const <DocumentPage>[],
+        tagIds: const <String>[],
+      ),
+    ];
     await repo.delete(permit.id);
 
     await c.read(documentMutationsProvider).restoreSnapshot(captured);

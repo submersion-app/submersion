@@ -86,6 +86,11 @@ const List<DiverDeleteStep> diverDiveSteps = [
     entityType: 'documentPages',
     where: 'document_id IN (SELECT id FROM documents WHERE diver_id = ?1)',
   ),
+  (
+    table: 'document_tags',
+    entityType: 'documentTags',
+    where: 'document_id IN (SELECT id FROM documents WHERE diver_id = ?1)',
+  ),
   (table: 'documents', entityType: 'documents', where: 'diver_id = ?1'),
   (table: 'dives', entityType: 'dives', where: 'diver_id = ?1'),
 ];

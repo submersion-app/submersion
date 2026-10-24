@@ -7,6 +7,7 @@ import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/performance/perf_timer.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/text/text_sort.dart';
@@ -752,6 +753,8 @@ final diveListNotifierProvider =
 ///
 /// Loads [DiveSummary] objects in pages of 50, with SQL-level filtering.
 /// Automatically reloads when the current diver or filter state changes.
+final _log = LoggerService.forClass(PaginatedDiveListNotifier);
+
 class PaginatedDiveListNotifier
     extends StateNotifier<AsyncValue<PaginatedDiveListState>> {
   final DiveRepository _repository;
@@ -1005,8 +1008,28 @@ class PaginatedDiveListNotifier
     return state.valueOrNull?.dives.any((d) => d.id == diveId) ?? false;
   }
 
-  /// A [jump] comes from [loadThrough]: it keeps the spinner flag of a page
-  /// load queued behind it, and preloads profiles around its target only.
+  /// Loads every row past the end of the list in one query, so End in the
+  /// list reaches the last dive rather than the last loaded one (#3302).
+  /// Asks for a page more than the count left; a count lagging rows written
+  /// since leaves that read full, and the next one picks up the rest.
+  Future<void> loadRest() => _enqueuePaging(() async {
+    while (mounted) {
+      final current = state.valueOrNull;
+      if (current == null || !current.hasMore) return;
+      final missing = current.totalCount - current.dives.length;
+      await _appendRows(
+        current,
+        limit: (missing > 0 ? missing : 0) + _pageSize,
+        jump: true,
+      );
+      // A failed read raises the flag; the Retry row takes it from there.
+      if (state.valueOrNull?.loadMoreFailed ?? true) return;
+    }
+  });
+
+  /// A [jump] comes from [loadThrough] or [loadRest]: it keeps the spinner
+  /// flag of a page load queued behind it, and preloads profiles around its
+  /// target only.
   Future<void> _appendRows(
     PaginatedDiveListState current, {
     required int limit,
@@ -1052,7 +1075,12 @@ class PaginatedDiveListNotifier
       } else {
         _loadBatchProfiles(ids);
       }
-    } catch (_) {
+    } catch (e, stackTrace) {
+      _log.error(
+        jump ? 'Failed to load dives for a jump' : 'Failed to load a page',
+        error: e,
+        stackTrace: stackTrace,
+      );
       // Record the failure rather than silently going idle: the trailing row
       // must be able to offer a retry instead of spinning on nothing (#1610).
       if (mounted) {

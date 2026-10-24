@@ -905,6 +905,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   initialType: DocumentType.values.asNameMap()[q['type']],
                   initialExpiringOnly: q['filter'] == 'expiring',
                   initialPersonalOnly: q['owner'] == 'personal',
+                  initialTagId: q['tag'],
                 ),
               );
             },

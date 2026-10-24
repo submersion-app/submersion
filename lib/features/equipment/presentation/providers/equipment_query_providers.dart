@@ -8,6 +8,7 @@ import 'package:submersion/features/equipment/query/equipment_filter_query.dart'
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/query/presentation/providers/narrow_by_ids.dart';
 import 'package:submersion/features/query/presentation/providers/query_id_set_providers.dart';
+import 'package:submersion/shared/widgets/master_detail/remembered_selection.dart';
 
 /// The ids the equipment filter selects (#2365). A query naming
 /// `serviceDue` waits for the service cache to mirror the engine first.
@@ -104,3 +105,13 @@ final equipmentStatusViewHasItemsProvider = Provider<bool>((ref) {
   ).value;
   return items != null && items.isNotEmpty;
 });
+
+/// The equipment item a list returned to reopens and scrolls back to: the one last
+/// opened, while the list as filtered still shows it (#3301).
+final rememberedEquipmentIdProvider = Provider<AsyncValue<String?>>(
+  (ref) => rememberedListedId(
+    items: ref.watch(filteredEquipmentProvider),
+    rememberedId: ref.watch(highlightedEquipmentIdProvider),
+    idOf: (item) => item.id,
+  ),
+);

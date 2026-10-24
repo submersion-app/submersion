@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/services/export/kml/kml_export_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -91,6 +92,45 @@ void main() {
 
       // Null bottomTime should show '?'
       expect(kmlContent, contains('?'));
+    });
+  });
+
+  group('site entry and exit methods (#2054)', () {
+    Future<String> kmlFor(DiveSite site) async {
+      final (kml, _) = await service.generateKmlContent(
+        sites: [site],
+        dives: const [],
+        depthUnit: DepthUnit.meters,
+        dateFormat: DateFormatPreference.yyyymmdd,
+      );
+      return kml;
+    }
+
+    test('lists every entry method on one line', () async {
+      final kml = await kmlFor(
+        const DiveSite(
+          id: 's',
+          name: 'Wall',
+          location: GeoPoint(17.3, -87.5),
+          entryMethods: [EntryMethod.backRoll, EntryMethod.giantStride],
+          exitMethods: [EntryMethod.ladder],
+        ),
+      );
+      expect(kml, contains('<b>Entry:</b> Back Roll, Giant Stride'));
+      expect(kml, contains('<b>Exit:</b> Ladder'));
+    });
+
+    test('omits an exit list that is the same set as entry', () async {
+      final kml = await kmlFor(
+        const DiveSite(
+          id: 's',
+          name: 'Wall',
+          location: GeoPoint(17.3, -87.5),
+          entryMethods: [EntryMethod.backRoll, EntryMethod.giantStride],
+          exitMethods: [EntryMethod.giantStride, EntryMethod.backRoll],
+        ),
+      );
+      expect(kml, isNot(contains('<b>Exit:</b>')));
     });
   });
 }

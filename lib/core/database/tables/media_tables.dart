@@ -14,6 +14,7 @@ import 'package:submersion/core/database/tables/dive_tables.dart';
 import 'package:submersion/core/database/tables/equipment_tables.dart';
 import 'package:submersion/core/database/tables/marine_life_tables.dart';
 import 'package:submersion/core/database/tables/site_tables.dart';
+import 'package:submersion/core/database/tables/tag_tables.dart';
 
 /// Photos and media files (also used for signatures)
 class Media extends Table {
@@ -391,4 +392,23 @@ class ConnectedAccounts extends Table {
 
   @override
   Set<Column> get primaryKey => {id};
+}
+
+/// Junction table for a media item's tags (many-to-many, v309, issue #1970),
+/// the twin of [EquipmentTags]. Surrogate uuid primary key, so a re-inserted
+/// pair never collides with its predecessor's tombstone (#347); the
+/// (media_id, tag_id) unique index lives in tag_uniqueness.dart.
+class MediaTags extends Table {
+  TextColumn get id => text()();
+  TextColumn get mediaId =>
+      text().references(Media, #id, onDelete: KeyAction.cascade)();
+  TextColumn get tagId =>
+      text().references(Tags, #id, onDelete: KeyAction.cascade)();
+  IntColumn get createdAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+
+  /// This link's own clock, stamped when it is marked pending.
+  TextColumn get hlc => text().nullable()();
 }

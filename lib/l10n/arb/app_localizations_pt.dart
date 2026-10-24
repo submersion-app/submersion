@@ -12234,6 +12234,63 @@ class AppLocalizationsPt extends AppLocalizations {
       'O nome de utilizador é obrigatório';
 
   @override
+  String get divers_misplacedLogbook_title =>
+      'Os seus mergulhos estão em outro perfil de mergulhador';
+
+  @override
+  String divers_misplacedLogbook_body(String target, int count, String active) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mergulhos',
+      one: '$count mergulho',
+    );
+    return '\"$target\" tem $_temp0. Este dispositivo mostra \"$active\", que não tem nenhum. Isso pode acontecer quando um dispositivo cria o seu próprio perfil antes da primeira sincronização.';
+  }
+
+  @override
+  String get divers_misplacedLogbook_switchTo => 'Mudar';
+
+  @override
+  String get divers_misplacedLogbook_merge => 'Mesclar';
+
+  @override
+  String get divers_misplacedLogbook_keepBoth => 'Manter ambos';
+
+  @override
+  String get divers_misplacedLogbook_confirmTitle =>
+      'Mesclar perfis de mergulhador?';
+
+  @override
+  String divers_misplacedLogbook_confirmBody(String active, String target) {
+    return 'Tudo em \"$active\" será movido para \"$target\" e \"$active\" será removido. \"$target\" mantém o seu nome e as suas definições. Esta ação pode ser desfeita logo após a mesclagem.';
+  }
+
+  @override
+  String get divers_misplacedLogbook_confirmCancel => 'Cancelar';
+
+  @override
+  String get divers_misplacedLogbook_confirmAction => 'Mesclar';
+
+  @override
+  String divers_misplacedLogbook_mergedSnack(String target) {
+    return 'Mesclado em $target';
+  }
+
+  @override
+  String get divers_misplacedLogbook_undo => 'Desfazer';
+
+  @override
+  String divers_misplacedLogbook_mergeFailed(String error) {
+    return 'Falha ao mesclar: $error';
+  }
+
+  @override
+  String divers_misplacedLogbook_undoFailed(String error) {
+    return 'Não foi possível desfazer: $error';
+  }
+
+  @override
   String get divers_detail_activeDiver => 'Mergulhador Ativo';
 
   @override
@@ -12634,7 +12691,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get enum_entryMethod_backRoll => 'Rolamento para Trás';
 
   @override
-  String get enum_entryMethod_boat => 'Entrada pelo Barco';
+  String get enum_entryMethod_boat => 'Barco';
 
   @override
   String get enum_entryMethod_frontRoll => 'Rolamento para a Frente';
@@ -12658,7 +12715,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get enum_entryMethod_seatedEntry => 'Entrada Sentado';
 
   @override
-  String get enum_entryMethod_shore => 'Entrada pela Praia';
+  String get enum_entryMethod_shore => 'Praia';
 
   @override
   String get enum_equipmentStatus_active => 'Ativo';
@@ -19613,6 +19670,9 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get plannerCanvas_chart_removeWaypoint => 'Remover ponto';
+
+  @override
   String get plannerCanvas_contingency_title => 'Contingências';
 
   @override
@@ -19658,6 +19718,25 @@ class AppLocalizationsPt extends AppLocalizations {
   String plannerCanvas_gas_turnAt(String pressure) {
     return 'retorno a $pressure';
   }
+
+  @override
+  String get plannerCanvas_gas_noTurnRule => 'sem regra de retorno';
+
+  @override
+  String get plannerCanvas_gas_turnNoStartPressure =>
+      'o retorno precisa de uma pressão inicial';
+
+  @override
+  String get plannerCanvas_gas_minGasNoStartPressure =>
+      'o gás mínimo precisa de uma pressão inicial';
+
+  @override
+  String get plannerCanvas_gas_minGasNoVolume =>
+      'o gás mínimo precisa de um tamanho de cilindro';
+
+  @override
+  String get plannerCanvas_gas_limitsNoStartPressure =>
+      'o retorno e o gás mínimo precisam de uma pressão inicial';
 
   @override
   String plannerCanvas_gas_usedReading(String reading) {
@@ -19828,6 +19907,15 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get plannerCanvas_slate_turn => 'Retorno';
+
+  @override
+  String get plannerCanvas_slate_noTurnRule => 'Sem regra';
+
+  @override
+  String get plannerCanvas_slate_noStartPressure => 'Sem pressão inicial';
+
+  @override
+  String get plannerCanvas_slate_noVolume => 'Sem tamanho';
 
   @override
   String get plannerCanvas_table_depth => 'Profundidade';
@@ -21572,6 +21660,21 @@ class AppLocalizationsPt extends AppLocalizations {
   String sharedLibrary_library_errorBanner(String error) {
     return 'A última sincronização falhou: $error';
   }
+
+  @override
+  String get sharedLibrary_syncError_accountMissing =>
+      'A conta desta biblioteca já não está neste dispositivo. Use Alterar ligação para a escolher novamente.';
+
+  @override
+  String get sharedLibrary_syncError_accountSignedOut =>
+      'Este dispositivo terminou a sessão na conta desta biblioteca. Inicie sessão novamente em Contas conectadas ou use Alterar ligação.';
+
+  @override
+  String get sharedLibrary_syncError_notALibrary =>
+      'Nenhuma biblioteca neste local.';
+
+  @override
+  String get sharedLibrary_syncError_failed => 'Algo correu mal.';
 
   @override
   String get sharedLibrary_library_addMySites => 'Adicionar os meus locais';
@@ -30122,7 +30225,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get tags_manage_scopeRequired =>
-      'Escolha pelo menos um: mergulhos, pontos ou equipamentos';
+      'Escolha pelo menos um: mergulhos, pontos, equipamentos, mídia ou documentos';
 
   @override
   String get tags_manage_scope_dives => 'Mergulhos';
@@ -30193,27 +30296,6 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String tags_manage_deleteMessage_divesAndSites(
-    String tagName,
-    int diveCount,
-    int siteCount,
-  ) {
-    String _temp0 = intl.Intl.pluralLogic(
-      diveCount,
-      locale: localeName,
-      other: '$diveCount mergulhos',
-      one: '$diveCount mergulho',
-    );
-    String _temp1 = intl.Intl.pluralLogic(
-      siteCount,
-      locale: localeName,
-      other: '$siteCount pontos',
-      one: '$siteCount ponto',
-    );
-    return '\"$tagName\" será removida de $_temp0 e $_temp1. Esta ação não pode ser desfeita.';
-  }
-
-  @override
   String tags_manage_deleteMessage_equipment(String tagName, int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -30225,78 +30307,8 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String tags_manage_deleteMessage_divesAndEquipment(
-    String tagName,
-    int diveCount,
-    int equipmentCount,
-  ) {
-    String _temp0 = intl.Intl.pluralLogic(
-      diveCount,
-      locale: localeName,
-      other: '$diveCount mergulhos',
-      one: '$diveCount mergulho',
-    );
-    String _temp1 = intl.Intl.pluralLogic(
-      equipmentCount,
-      locale: localeName,
-      other: '$equipmentCount equipamentos',
-      one: '$equipmentCount equipamento',
-    );
-    return '\"$tagName\" será removida de $_temp0 e $_temp1. Esta ação não pode ser desfeita.';
-  }
-
-  @override
-  String tags_manage_deleteMessage_sitesAndEquipment(
-    String tagName,
-    int siteCount,
-    int equipmentCount,
-  ) {
-    String _temp0 = intl.Intl.pluralLogic(
-      siteCount,
-      locale: localeName,
-      other: '$siteCount pontos',
-      one: '$siteCount ponto',
-    );
-    String _temp1 = intl.Intl.pluralLogic(
-      equipmentCount,
-      locale: localeName,
-      other: '$equipmentCount equipamentos',
-      one: '$equipmentCount equipamento',
-    );
-    return '\"$tagName\" será removida de $_temp0 e $_temp1. Esta ação não pode ser desfeita.';
-  }
-
-  @override
-  String tags_manage_deleteMessage_all(
-    String tagName,
-    int diveCount,
-    int siteCount,
-    int equipmentCount,
-  ) {
-    String _temp0 = intl.Intl.pluralLogic(
-      diveCount,
-      locale: localeName,
-      other: '$diveCount mergulhos',
-      one: '$diveCount mergulho',
-    );
-    String _temp1 = intl.Intl.pluralLogic(
-      siteCount,
-      locale: localeName,
-      other: '$siteCount pontos',
-      one: '$siteCount ponto',
-    );
-    String _temp2 = intl.Intl.pluralLogic(
-      equipmentCount,
-      locale: localeName,
-      other: '$equipmentCount equipamentos',
-      one: '$equipmentCount equipamento',
-    );
-    return '\"$tagName\" será removida de $_temp0, $_temp1 e $_temp2. Esta ação não pode ser desfeita.';
-  }
-
-  @override
   String tags_manage_deleteMessage_unused(String tagName) {
-    return '\"$tagName\" não é usada em nenhum mergulho, nenhum ponto nem nenhum equipamento. Esta ação não pode ser desfeita.';
+    return '\"$tagName\" não é usada em lugar nenhum. Esta ação não pode ser desfeita.';
   }
 
   @override
@@ -30328,26 +30340,6 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String tags_manage_bulkDeleteMessage_divesAndSites(
-    int diveCount,
-    int siteCount,
-  ) {
-    String _temp0 = intl.Intl.pluralLogic(
-      diveCount,
-      locale: localeName,
-      other: '$diveCount mergulhos',
-      one: '$diveCount mergulho',
-    );
-    String _temp1 = intl.Intl.pluralLogic(
-      siteCount,
-      locale: localeName,
-      other: '$siteCount pontos',
-      one: '$siteCount ponto',
-    );
-    return 'Estas etiquetas serão removidas de $_temp0 e $_temp1 no total. Esta ação não pode ser desfeita.';
-  }
-
-  @override
   String tags_manage_bulkDeleteMessage_equipment(int equipmentCount) {
     String _temp0 = intl.Intl.pluralLogic(
       equipmentCount,
@@ -30359,75 +30351,8 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String tags_manage_bulkDeleteMessage_divesAndEquipment(
-    int diveCount,
-    int equipmentCount,
-  ) {
-    String _temp0 = intl.Intl.pluralLogic(
-      diveCount,
-      locale: localeName,
-      other: '$diveCount mergulhos',
-      one: '$diveCount mergulho',
-    );
-    String _temp1 = intl.Intl.pluralLogic(
-      equipmentCount,
-      locale: localeName,
-      other: '$equipmentCount equipamentos',
-      one: '$equipmentCount equipamento',
-    );
-    return 'Estas etiquetas serão removidas de $_temp0 e $_temp1 no total. Esta ação não pode ser desfeita.';
-  }
-
-  @override
-  String tags_manage_bulkDeleteMessage_sitesAndEquipment(
-    int siteCount,
-    int equipmentCount,
-  ) {
-    String _temp0 = intl.Intl.pluralLogic(
-      siteCount,
-      locale: localeName,
-      other: '$siteCount pontos',
-      one: '$siteCount ponto',
-    );
-    String _temp1 = intl.Intl.pluralLogic(
-      equipmentCount,
-      locale: localeName,
-      other: '$equipmentCount equipamentos',
-      one: '$equipmentCount equipamento',
-    );
-    return 'Estas etiquetas serão removidas de $_temp0 e $_temp1 no total. Esta ação não pode ser desfeita.';
-  }
-
-  @override
-  String tags_manage_bulkDeleteMessage_all(
-    int diveCount,
-    int siteCount,
-    int equipmentCount,
-  ) {
-    String _temp0 = intl.Intl.pluralLogic(
-      diveCount,
-      locale: localeName,
-      other: '$diveCount mergulhos',
-      one: '$diveCount mergulho',
-    );
-    String _temp1 = intl.Intl.pluralLogic(
-      siteCount,
-      locale: localeName,
-      other: '$siteCount pontos',
-      one: '$siteCount ponto',
-    );
-    String _temp2 = intl.Intl.pluralLogic(
-      equipmentCount,
-      locale: localeName,
-      other: '$equipmentCount equipamentos',
-      one: '$equipmentCount equipamento',
-    );
-    return 'Estas etiquetas serão removidas de $_temp0, $_temp1 e $_temp2 no total. Esta ação não pode ser desfeita.';
-  }
-
-  @override
   String get tags_manage_bulkDeleteMessage_unused =>
-      'Estas etiquetas não são usadas em nenhum mergulho, nenhum ponto nem nenhum equipamento. Esta ação não pode ser desfeita.';
+      'Estas etiquetas não são usadas em lugar nenhum. Esta ação não pode ser desfeita.';
 
   @override
   String tags_manage_mergeTitle(int count) {
@@ -30464,23 +30389,6 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String tags_manage_mergeAffected_divesAndSites(int diveCount, int siteCount) {
-    String _temp0 = intl.Intl.pluralLogic(
-      diveCount,
-      locale: localeName,
-      other: '$diveCount mergulhos',
-      one: '$diveCount mergulho',
-    );
-    String _temp1 = intl.Intl.pluralLogic(
-      siteCount,
-      locale: localeName,
-      other: '$siteCount pontos',
-      one: '$siteCount ponto',
-    );
-    return 'Isso afetará $_temp0 e $_temp1 no total.';
-  }
-
-  @override
   String tags_manage_mergeAffected_equipment(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -30492,75 +30400,8 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String tags_manage_mergeAffected_divesAndEquipment(
-    int diveCount,
-    int equipmentCount,
-  ) {
-    String _temp0 = intl.Intl.pluralLogic(
-      diveCount,
-      locale: localeName,
-      other: '$diveCount mergulhos',
-      one: '$diveCount mergulho',
-    );
-    String _temp1 = intl.Intl.pluralLogic(
-      equipmentCount,
-      locale: localeName,
-      other: '$equipmentCount equipamentos',
-      one: '$equipmentCount equipamento',
-    );
-    return 'Isso afetará $_temp0 e $_temp1 no total.';
-  }
-
-  @override
-  String tags_manage_mergeAffected_sitesAndEquipment(
-    int siteCount,
-    int equipmentCount,
-  ) {
-    String _temp0 = intl.Intl.pluralLogic(
-      siteCount,
-      locale: localeName,
-      other: '$siteCount pontos',
-      one: '$siteCount ponto',
-    );
-    String _temp1 = intl.Intl.pluralLogic(
-      equipmentCount,
-      locale: localeName,
-      other: '$equipmentCount equipamentos',
-      one: '$equipmentCount equipamento',
-    );
-    return 'Isso afetará $_temp0 e $_temp1 no total.';
-  }
-
-  @override
-  String tags_manage_mergeAffected_all(
-    int diveCount,
-    int siteCount,
-    int equipmentCount,
-  ) {
-    String _temp0 = intl.Intl.pluralLogic(
-      diveCount,
-      locale: localeName,
-      other: '$diveCount mergulhos',
-      one: '$diveCount mergulho',
-    );
-    String _temp1 = intl.Intl.pluralLogic(
-      siteCount,
-      locale: localeName,
-      other: '$siteCount pontos',
-      one: '$siteCount ponto',
-    );
-    String _temp2 = intl.Intl.pluralLogic(
-      equipmentCount,
-      locale: localeName,
-      other: '$equipmentCount equipamentos',
-      one: '$equipmentCount equipamento',
-    );
-    return 'Isso afetará $_temp0, $_temp1 e $_temp2 no total.';
-  }
-
-  @override
   String get tags_manage_mergeAffected_unused =>
-      'Estas etiquetas não são usadas em nenhum mergulho, nenhum ponto nem nenhum equipamento.';
+      'Estas etiquetas não são usadas em lugar nenhum.';
 
   @override
   String get tags_manage_mergeAction => 'Mesclar';
@@ -54915,6 +54756,267 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_conflict_field_remoteStoreId => 'Enviado para';
+
+  @override
+  String get tags_manage_scope_media => 'Mídia';
+
+  @override
+  String get tags_manage_scope_documents => 'Documentos';
+
+  @override
+  String get tags_manage_useForMedia => 'Usar em mídia';
+
+  @override
+  String get tags_manage_useForDocuments => 'Usar em documentos';
+
+  @override
+  String tags_manage_mediaCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count itens de mídia',
+      one: '$count item de mídia',
+      zero: '0 itens de mídia',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tags_manage_documentCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count documentos',
+      one: '$count documento',
+      zero: '0 documentos',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tags_manage_narrowDialog_media(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Esta etiqueta está em $count itens de mídia. Desativar \"Usar em mídia\" remove-a desses itens.',
+      one:
+          'Esta etiqueta está em $count item de mídia. Desativar \"Usar em mídia\" remove-a desse item.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tags_manage_narrowDialog_documents(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Esta etiqueta está em $count documentos. Desativar \"Usar em documentos\" remove-a desses documentos.',
+      one:
+          'Esta etiqueta está em $count documento. Desativar \"Usar em documentos\" remove-a desse documento.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tags_manage_deleteMessage_media(String tagName, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count itens de mídia',
+      one: '$count item de mídia',
+    );
+    return '\"$tagName\" será removida de $_temp0. Esta ação não pode ser desfeita.';
+  }
+
+  @override
+  String tags_manage_deleteMessage_documents(String tagName, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count documentos',
+      one: '$count documento',
+    );
+    return '\"$tagName\" será removida de $_temp0. Esta ação não pode ser desfeita.';
+  }
+
+  @override
+  String tags_manage_bulkDeleteMessage_media(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count itens de mídia',
+      one: '$count item de mídia',
+    );
+    return 'Estas etiquetas serão removidas de $_temp0 no total. Esta ação não pode ser desfeita.';
+  }
+
+  @override
+  String tags_manage_bulkDeleteMessage_documents(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count documentos',
+      one: '$count documento',
+    );
+    return 'Estas etiquetas serão removidas de $_temp0 no total. Esta ação não pode ser desfeita.';
+  }
+
+  @override
+  String tags_manage_mergeAffected_media(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count itens de mídia',
+      one: '$count item de mídia',
+    );
+    return 'Isso afetará $_temp0 no total.';
+  }
+
+  @override
+  String tags_manage_mergeAffected_documents(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count documentos',
+      one: '$count documento',
+    );
+    return 'Isso afetará $_temp0 no total.';
+  }
+
+  @override
+  String tags_manage_deleteMessage_several(String tagName) {
+    return '\"$tagName\" será removida de:';
+  }
+
+  @override
+  String get tags_manage_bulkDeleteMessage_several =>
+      'Estas etiquetas serão removidas de:';
+
+  @override
+  String get tags_manage_mergeAffected_several => 'Isso afetará:';
+
+  @override
+  String get tags_manage_cannotUndo => 'Esta ação não pode ser desfeita.';
+
+  @override
+  String get tags_action_edit => 'Editar etiquetas';
+
+  @override
+  String get media_info_tags => 'Etiquetas';
+
+  @override
+  String get media_info_noTags => 'Ainda sem etiquetas';
+
+  @override
+  String media_info_showWithTag(String tagName) {
+    return 'Mostrar mídia com a etiqueta $tagName';
+  }
+
+  @override
+  String get media_library_filter_tags => 'Etiquetas';
+
+  @override
+  String media_bulkTags_confirmAdding(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Adicionando a todos os $count itens de mídia',
+      one: 'Adicionando a $count item de mídia',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkTags_confirmRemoving(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Removendo de todos os $count itens de mídia',
+      one: 'Removendo de $count item de mídia',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_bulkTags_empty => 'Ainda sem etiquetas de mídia';
+
+  @override
+  String get documents_field_tags => 'Etiquetas';
+
+  @override
+  String documents_detail_showWithTag(String tagName) {
+    return 'Mostrar documentos com a etiqueta $tagName';
+  }
+
+  @override
+  String tags_bulk_adding(int total) {
+    return 'adicionando a todos os $total';
+  }
+
+  @override
+  String tags_bulk_applied(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Etiquetas atualizadas em $count itens',
+      one: 'Etiquetas atualizadas em $count item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tags_bulk_confirmTitle => 'Aplicar alterações?';
+
+  @override
+  String tags_bulk_failed(String error) {
+    return 'Não foi possível atualizar as etiquetas: $error';
+  }
+
+  @override
+  String tags_bulk_onAll(int count) {
+    return 'em todos os $count';
+  }
+
+  @override
+  String tags_bulk_onSome(int count, int total) {
+    return 'em $count de $total';
+  }
+
+  @override
+  String get tags_bulk_removing => 'removendo de todos';
+
+  @override
+  String get tags_bulk_tagsLabel => 'Etiquetas';
+
+  @override
+  String tags_bulk_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Editar etiquetas de $count itens',
+      one: 'Editar etiquetas de $count item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tags_bulk_undo => 'Desfazer';
+
+  @override
+  String get tags_bulk_undoFailed =>
+      'Não foi possível desfazer a alteração das etiquetas.';
+
+  @override
+  String get settings_conflict_field_appliesToMedia => 'Disponível em mídia';
+
+  @override
+  String get settings_conflict_field_appliesToDocuments =>
+      'Disponível em documentos';
+
+  @override
+  String get documents_export_manifest_tags => 'Etiquetas';
 
   @override
   String settings_setUpDevice_title(String device) {

@@ -7,6 +7,8 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 const _d = TagScope.dives;
 const _s = TagScope.sites;
 const _e = TagScope.equipment;
+const _m = TagScope.media;
+const _doc = TagScope.documents;
 
 /// One combination of affected scopes and the English each family gives it.
 typedef _Case = ({
@@ -17,9 +19,9 @@ typedef _Case = ({
   String merge,
 });
 
-/// Every combination of affected scopes (#1902, #1942). A tag can carry any
-/// mix of dives, sites and equipment, and each message names exactly what a
-/// delete or merge rewrites, one whole sentence per combination.
+/// Affected-scope combinations (#1902, #1942, #1970). A single scope gets one
+/// whole sentence; two or more get a heading and one count line per scope,
+/// in registry order.
 const List<_Case> _cases = [
   (
     name: 'dives only',
@@ -51,59 +53,66 @@ const List<_Case> _cases = [
     merge: 'This will affect 5 equipment items total.',
   ),
   (
+    name: 'media only',
+    usage: {_m: 1},
+    delete: '"Reef" will be removed from 1 media item. This cannot be undone.',
+    bulk:
+        'These tags will be removed from 1 media item total. '
+        'This cannot be undone.',
+    merge: 'This will affect 1 media item total.',
+  ),
+  (
+    name: 'documents only',
+    usage: {_doc: 4},
+    delete: '"Reef" will be removed from 4 documents. This cannot be undone.',
+    bulk:
+        'These tags will be removed from 4 documents total. '
+        'This cannot be undone.',
+    merge: 'This will affect 4 documents total.',
+  ),
+  (
     name: 'dives and sites',
     usage: {_d: 12, _s: 1},
     delete:
-        '"Reef" will be removed from 12 dives and 1 site. '
+        '"Reef" will be removed from:\n• 12 dives\n• 1 site\n'
         'This cannot be undone.',
     bulk:
-        'These tags will be removed from 12 dives and 1 site total. '
+        'These tags will be removed from:\n• 12 dives\n• 1 site\n'
         'This cannot be undone.',
-    merge: 'This will affect 12 dives and 1 site total.',
+    merge: 'This will affect:\n• 12 dives\n• 1 site',
   ),
   (
-    name: 'dives and equipment',
-    usage: {_d: 1, _e: 2},
+    name: 'media and documents',
+    usage: {_doc: 2, _m: 7},
     delete:
-        '"Reef" will be removed from 1 dive and 2 equipment items. '
+        '"Reef" will be removed from:\n• 7 media items\n• 2 documents\n'
         'This cannot be undone.',
     bulk:
-        'These tags will be removed from 1 dive and 2 equipment items '
-        'total. This cannot be undone.',
-    merge: 'This will affect 1 dive and 2 equipment items total.',
+        'These tags will be removed from:\n• 7 media items\n'
+        '• 2 documents\nThis cannot be undone.',
+    merge: 'This will affect:\n• 7 media items\n• 2 documents',
   ),
   (
-    name: 'sites and equipment',
-    usage: {_s: 2, _e: 1},
+    name: 'every scope',
+    usage: {_d: 12, _s: 3, _e: 5, _m: 1, _doc: 1},
     delete:
-        '"Reef" will be removed from 2 sites and 1 equipment item. '
+        '"Reef" will be removed from:\n• 12 dives\n• 3 sites\n'
+        '• 5 equipment items\n• 1 media item\n• 1 document\n'
         'This cannot be undone.',
     bulk:
-        'These tags will be removed from 2 sites and 1 equipment item '
-        'total. This cannot be undone.',
-    merge: 'This will affect 2 sites and 1 equipment item total.',
-  ),
-  (
-    name: 'dives, sites and equipment',
-    usage: {_d: 12, _s: 3, _e: 5},
-    delete:
-        '"Reef" will be removed from 12 dives, 3 sites, and 5 equipment '
-        'items. This cannot be undone.',
-    bulk:
-        'These tags will be removed from 12 dives, 3 sites, and 5 '
-        'equipment items total. This cannot be undone.',
-    merge: 'This will affect 12 dives, 3 sites, and 5 equipment items total.',
+        'These tags will be removed from:\n• 12 dives\n• 3 sites\n'
+        '• 5 equipment items\n• 1 media item\n• 1 document\n'
+        'This cannot be undone.',
+    merge:
+        'This will affect:\n• 12 dives\n• 3 sites\n'
+        '• 5 equipment items\n• 1 media item\n• 1 document',
   ),
   (
     name: 'nothing',
-    usage: {_d: 0, _s: 0, _e: 0},
-    delete:
-        '"Reef" is not used on any dives, sites, or equipment. '
-        'This cannot be undone.',
-    bulk:
-        'These tags are not used on any dives, sites, or equipment. '
-        'This cannot be undone.',
-    merge: 'These tags are not used on any dives, sites, or equipment.',
+    usage: {_d: 0, _s: 0, _e: 0, _m: 0, _doc: 0},
+    delete: '"Reef" is not used anywhere. This cannot be undone.',
+    bulk: 'These tags are not used anywhere. This cannot be undone.',
+    merge: 'These tags are not used anywhere.',
   ),
 ];
 
@@ -151,8 +160,7 @@ void main() {
   test('a scope missing from the usage map counts as zero', () {
     expect(
       tagDeleteMessage(l10n, 'Reef', const {}),
-      '"Reef" is not used on any dives, sites, or equipment. '
-      'This cannot be undone.',
+      '"Reef" is not used anywhere. This cannot be undone.',
     );
     expect(
       tagsMergeAffectedMessage(l10n, const {_e: 5}),
@@ -181,6 +189,13 @@ void main() {
       expect(
         tagUsageCounts(l10n, const {_e: 5, _s: 3, _d: 12}),
         '12 dives, 3 sites, 5 equipment items',
+      );
+    });
+
+    test('adds media items and documents when some carry the tag (#1970)', () {
+      expect(
+        tagUsageCounts(l10n, const {_doc: 1, _m: 2, _d: 3}),
+        '3 dives, 2 media items, 1 document',
       );
     });
 

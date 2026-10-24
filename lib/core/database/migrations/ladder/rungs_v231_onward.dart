@@ -545,5 +545,14 @@ extension RungsFromV231 on AppDatabase {
       await _assertDivePlanReserveAndGfNullable();
     }
     if (from < 308) await reportProgress();
+
+    // v309: media and document tags (issue #1970). Column-and-table rung, no
+    // backfill: existing tags stay off media and documents. Re-asserted in
+    // beforeOpen through _assertMediaAndDocumentTagSchema.
+    if (from < 309) {
+      await _assertTagScopeColumns();
+      await _assertMediaAndDocumentTagSchema();
+    }
+    if (from < 309) await reportProgress();
   }
 }

@@ -359,7 +359,9 @@ class Dive extends Equatable {
   /// #1427). The entry-method twin of [effectiveWaterType], with the same
   /// reasoning: the site's value is snapped onto a dive when the site is
   /// assigned (issue #1104), so only dives predating that, or whose site was
-  /// filled in later, are left without one.
+  /// filled in later, are left without one. A site listing several entry
+  /// methods gives no fallback (issue #2054): which one the dive used is
+  /// unknown.
   ///
   /// [exitMethod] has no such getter on purpose. Its snap-on-assign rule turns
   /// on whether the diver has unlinked exit from entry, and that flag is dive
@@ -368,7 +370,7 @@ class Dive extends Equatable {
   ///
   /// Requires [site] to be hydrated; a dive loaded without its site reports
   /// only its own value.
-  EntryMethod? get effectiveEntryMethod => entryMethod ?? site?.entryMethod;
+  EntryMethod? get effectiveEntryMethod => entryMethod ?? site?.soleEntryMethod;
 
   /// The stored visibility range, or null when the dive has none.
   VisibilityRange? get visibilityRange =>

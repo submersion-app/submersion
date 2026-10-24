@@ -1874,6 +1874,12 @@ class SyncService {
             records: data.documentPages,
             hasUpdatedAt: true,
           ),
+          // After both parents (documents and tags), issue #1970.
+          (
+            type: 'documentTags',
+            records: data.documentTags,
+            hasUpdatedAt: false,
+          ),
           (
             type: 'serviceRecords',
             records: data.serviceRecords,
@@ -1914,6 +1920,8 @@ class SyncService {
             hasUpdatedAt: true,
           ),
           (type: 'media', records: data.media, hasUpdatedAt: false),
+          // After both parents (media and tags), issue #1970.
+          (type: 'mediaTags', records: data.mediaTags, hasUpdatedAt: false),
           (
             type: 'mediaEnrichment',
             records: data.mediaEnrichment,
@@ -2819,6 +2827,8 @@ class SyncService {
     'diveBuddyRoles': false,
     'siteTags': false,
     'equipmentTags': false,
+    'mediaTags': false,
+    'documentTags': false,
     'equipmentShares': false,
     'tripEquipment': false,
     'tripHides': false,
@@ -3246,6 +3256,15 @@ class SyncService {
     // v219: an equipment item's tags (issue #1942), the siteTags twin.
     'equipmentTags': [
       (field: 'equipmentId', parent: 'equipment', nullable: false),
+      (field: 'tagId', parent: 'tags', nullable: false),
+    ],
+    // v309: a photo's or video's tags and a document's tags (issue #1970).
+    'mediaTags': [
+      (field: 'mediaId', parent: 'media', nullable: false),
+      (field: 'tagId', parent: 'tags', nullable: false),
+    ],
+    'documentTags': [
+      (field: 'documentId', parent: 'documents', nullable: false),
       (field: 'tagId', parent: 'tags', nullable: false),
     ],
     // v234: equipment sharing (issue #2046). The diver keys are left to

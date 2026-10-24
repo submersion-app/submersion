@@ -40,6 +40,16 @@ class Tags extends Table {
   BoolColumn get appliesToEquipment =>
       boolean().withDefault(const Constant(false))();
 
+  /// Whether the tag is offered on photos and videos (v309, issue #1970). No
+  /// tag that existed before v309 is a media tag.
+  BoolColumn get appliesToMedia =>
+      boolean().withDefault(const Constant(false))();
+
+  /// Whether the tag is offered on documents (v309, issue #1970). No tag that
+  /// existed before v309 is a document tag.
+  BoolColumn get appliesToDocuments =>
+      boolean().withDefault(const Constant(false))();
+
   @override
   Set<Column> get primaryKey => {id};
 }

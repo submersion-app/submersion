@@ -873,13 +873,15 @@ class UniversalAdapter implements ImportSourceAdapter {
     );
   }
 
-  Future<UddfEntityImporter> _buildImporter() async {
+  /// [diverId] is the active diver, whose settings [settingsProvider] holds.
+  Future<UddfEntityImporter> _buildImporter({required String diverId}) async {
     final settings = readProvider(settingsProvider);
     final resolver = DefaultTankPresetResolver(
       repository: readProvider(tankPresetRepositoryProvider),
     );
     final defaultTankPreset = await resolver.resolve(
       settings.defaultTankPreset,
+      diverId: diverId,
     );
     return UddfEntityImporter(
       defaultTankPreset: defaultTankPreset,
@@ -1083,7 +1085,7 @@ class UniversalAdapter implements ImportSourceAdapter {
 
     final skipped = _countSkipped(selections, duplicateActions);
     final repos = universalImportRepositories(_container);
-    final importer = await _buildImporter();
+    final importer = await _buildImporter(diverId: currentDiver.id);
 
     // Every profile this import writes to, the active one first (#1893). A
     // payload the Divers step never split is one untargeted slice, imported

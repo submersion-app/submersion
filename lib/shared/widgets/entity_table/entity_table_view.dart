@@ -156,7 +156,21 @@ class _EntityTableViewState<T, F extends EntityField>
     _verticalGroup = LinkedScrollControllerGroup();
     _pinnedVerticalController = _verticalGroup.addAndGet();
     _scrollableVerticalController = _verticalGroup.addAndGet();
+    // A table built with a highlighted row (the list was returned to, #3301)
+    // shows that row rather than the top of the table.
+    if (widget.highlightedId != null) {
+      // Built with rows, the reveal is decided now, found or not: a row a
+      // later filter brings into view is not jumped to.
+      _revealedOnBuild = widget.entities.isNotEmpty;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _scrollToHighlightedRow(jump: true);
+      });
+    }
   }
+
+  /// Whether the highlighted row has been brought into view since this
+  /// table was built, so rows arriving after that do not move it again.
+  bool _revealedOnBuild = false;
 
   @override
   void didUpdateWidget(EntityTableView<T, F> oldWidget) {
@@ -164,10 +178,20 @@ class _EntityTableViewState<T, F extends EntityField>
     if (widget.highlightedId != null &&
         widget.highlightedId != oldWidget.highlightedId) {
       _scrollToHighlightedRow();
+    } else if (!_revealedOnBuild &&
+        widget.highlightedId != null &&
+        oldWidget.entities.isEmpty &&
+        widget.entities.isNotEmpty) {
+      // Built before its rows arrived: reveal the row once they do.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _scrollToHighlightedRow(jump: true);
+      });
     }
   }
 
-  void _scrollToHighlightedRow() {
+  /// Scrolls the highlighted row into view, by [jump] when the table is
+  /// being restored so it does not visibly travel from the top.
+  void _scrollToHighlightedRow({bool jump = false}) {
     if (widget.highlightedId == null) return;
 
     final sorted = _sortedEntities();
@@ -175,6 +199,7 @@ class _EntityTableViewState<T, F extends EntityField>
       (e) => widget.idExtractor(e) == widget.highlightedId,
     );
     if (index < 0) return;
+    if (jump) _revealedOnBuild = true;
 
     if (!_pinnedVerticalController.hasClients) return;
     final viewportHeight = _pinnedVerticalController.position.viewportDimension;
@@ -193,6 +218,10 @@ class _EntityTableViewState<T, F extends EntityField>
           _pinnedVerticalController.position.maxScrollExtent,
         );
 
+    if (jump) {
+      _pinnedVerticalController.jumpTo(targetOffset);
+      return;
+    }
     _pinnedVerticalController.animateTo(
       targetOffset,
       duration: const Duration(milliseconds: 300),

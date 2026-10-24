@@ -35,6 +35,7 @@ class DiveListScrubber extends ConsumerStatefulWidget {
     required this.onLand,
     required this.child,
     this.selectedDiveId,
+    this.busy = false,
   });
 
   final ScrollController controller;
@@ -55,6 +56,10 @@ class DiveListScrubber extends ConsumerStatefulWidget {
 
   /// The dive the detail pane shows, marked with a dot on the track.
   final String? selectedDiveId;
+
+  /// The list is loading rows for a jump of its own, like End's (#3302): the
+  /// scrubber shows its loading panel as it does for a drop's load.
+  final bool busy;
   final Widget child;
 
   @override
@@ -273,7 +278,7 @@ class _DiveListScrubberState extends ConsumerState<DiveListScrubber> {
       segments: _segments,
       contextTicks: _contextTicks,
       density: _density,
-      busyLabel: _loading ? l10n.common_label_loading : null,
+      busyLabel: _loading || widget.busy ? l10n.common_label_loading : null,
       onScrubEnd: (slot) => _land(slots[slot]),
       onActiveChanged: (active) => _scrubbing.state = active,
       child: widget.child,

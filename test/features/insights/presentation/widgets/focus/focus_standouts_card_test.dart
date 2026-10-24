@@ -90,7 +90,7 @@ void main() {
       findsOneWidget,
     );
     expect(
-      find.text('All 10 were Boat Entry (64% of all your dives)'),
+      find.text('All 10 were Boat (64% of all your dives)'),
       findsOneWidget,
     );
     expect(

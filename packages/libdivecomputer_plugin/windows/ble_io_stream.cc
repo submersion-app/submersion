@@ -966,8 +966,12 @@ int BleIoStream::IoctlCallback(void* userdata, unsigned int request,
     return LIBDC_STATUS_UNSUPPORTED;
 }
 
+// Every failure is logged here: libdivecomputer reports each one only as
+// "Failed to read the characteristic", and this platform sets no libdc log
+// callback, so nothing else would say why (issue #422).
 int BleIoStream::ReadCharacteristic(const winrt::guid& uuid, void* data,
                                     size_t size) {
+    const std::string prefix = "readCharacteristic: " + DescribeUuid(uuid);
     try {
         for (const auto& ch : all_characteristics_) {
             if (ch.Uuid() != uuid) continue;
@@ -979,23 +983,45 @@ int BleIoStream::ReadCharacteristic(const winrt::guid& uuid, void* data,
             const AsyncStatus waited = op.wait_for(std::chrono::seconds(10));
             if (waited == AsyncStatus::Started) {
                 op.Cancel();
+                NativeLogger::Warn(kBleCategory, prefix + " timed out");
                 return LIBDC_STATUS_TIMEOUT;
             }
             if (waited != AsyncStatus::Completed) {
+                NativeLogger::Warn(kBleCategory,
+                                   prefix + " failed (the read did not "
+                                            "complete)");
                 return LIBDC_STATUS_IO;
             }
             auto result = op.GetResults();
             if (result.Status() != GattCommunicationStatus::Success) {
+                NativeLogger::Warn(kBleCategory,
+                                   prefix + " failed (" +
+                                       DescribeGattStatus(result.Status()) +
+                                       ")");
                 return LIBDC_STATUS_IO;
             }
             auto reader = DataReader::FromBuffer(result.Value());
             std::vector<uint8_t> value(reader.UnconsumedBufferLength());
             reader.ReadBytes(value);
+            const size_t wanted = size - LIBDC_BLE_UUID_SIZE;
+            if (value.size() < wanted) {
+                NativeLogger::Warn(kBleCategory,
+                                   prefix + " returned " +
+                                       std::to_string(value.size()) +
+                                       " bytes, expected " +
+                                       std::to_string(wanted));
+            }
             return libdc_ble_characteristic_read_fill(
                 data, size, value.data(), value.size());
         }
+        NativeLogger::Warn(kBleCategory, prefix + " not found");
         return LIBDC_STATUS_NOACCESS;
+    } catch (const winrt::hresult_error& e) {
+        NativeLogger::Warn(kBleCategory,
+                           prefix + " failed: " + DescribeHresult(e));
+        return LIBDC_STATUS_IO;
     } catch (...) {
+        NativeLogger::Warn(kBleCategory, prefix + " failed");
         return LIBDC_STATUS_IO;
     }
 }

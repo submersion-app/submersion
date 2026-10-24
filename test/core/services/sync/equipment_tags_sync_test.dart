@@ -131,6 +131,26 @@ void main() {
     expect(rows.map((r) => r.id), ['local']);
   });
 
+  test(
+    'a peer copy of a pair settles on the lower id (#1970 review)',
+    () async {
+      await link('m-local', 'e1', 't1');
+
+      await serializer.upsertRecords('equipmentTags', [
+        {
+          'id': 'a-peer',
+          'equipmentId': 'e1',
+          'tagId': 't1',
+          'createdAt': 2,
+          'hlc': null,
+        },
+      ]);
+
+      final rows = await db.select(db.equipmentTags).get();
+      expect(rows.map((r) => r.id), ['a-peer']);
+    },
+  );
+
   test("applying a peer's link never marks the item pending", () async {
     await serializer.upsertRecord('equipmentTags', {
       'id': 'et1',

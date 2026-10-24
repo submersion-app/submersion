@@ -10,6 +10,7 @@ import 'package:submersion/core/deco/entities/breathing_config.dart';
 import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/deco/gas_density.dart';
+import 'package:submersion/core/deco/max_operating_depth.dart';
 import 'package:submersion/core/deco/o2_toxicity_calculator.dart';
 import 'package:submersion/core/deco/schedule_policy.dart';
 import 'package:submersion/core/utils/gas_compressibility.dart';
@@ -609,7 +610,7 @@ class PlanEngine {
                 ? 0.0
                 : lastLoopSegment.gasMix.he / 100.0,
           )
-        : _ascentPlanFor(plan.tanks);
+        : _ascentPlanFor(plan.tanks, environment);
 
     var state = startState ?? model.initial();
     var runtime = 0;
@@ -1306,6 +1307,8 @@ class PlanEngine {
                   hePercent: tank.gasMix.he,
                   model: config.gasModel,
                 );
+          final turn = _turnPressureFor(plan, tank);
+          final minGas = _minGasFor(plan, tank, environment);
           return PlanTankUsage(
             tankId: tank.id,
             litersUsed: used,
@@ -1317,8 +1320,10 @@ class PlanEngine {
                 : 0.0,
             reserveViolation:
                 remaining != null && remaining < config.reservePressure,
-            turnPressureBar: _turnPressureFor(plan, tank),
-            minGasBar: _minGasFor(plan, tank, environment),
+            turnPressureBar: turn.bar,
+            minGasBar: minGas.bar,
+            turnPressureGap: turn.gap,
+            minGasGap: minGas.gap,
           );
         }(),
     ];
@@ -1331,14 +1336,22 @@ class PlanEngine {
   /// Reads the rule/fraction from [config] (issue #3552), not [plan]
   /// directly: by this point [config] is already resolvedFor this plan,
   /// so an unset plan field already carries the diver's Settings default.
-  double? _turnPressureFor(domain.DivePlan plan, DiveTank tank) {
+  ///
+  /// A back gas it cannot compute for carries the missing input as `gap`
+  /// (#3603); any other cylinder gets neither. A missing rule comes first:
+  /// a start pressure alone would still leave the turn blank.
+  ({double? bar, PlanGasLimitGap? gap}) _turnPressureFor(
+    domain.DivePlan plan,
+    DiveTank tank,
+  ) {
+    if (tank.role != TankRole.backGas) return (bar: null, gap: null);
     final rule = config.turnPressureRuleFor(plan);
+    if (rule == null || rule == domain.TurnPressureRule.off) {
+      return (bar: null, gap: PlanGasLimitGap.noTurnRule);
+    }
     final start = tank.startPressure;
-    if (rule == null ||
-        rule == domain.TurnPressureRule.off ||
-        start == null ||
-        tank.role != TankRole.backGas) {
-      return null;
+    if (start == null) {
+      return (bar: null, gap: PlanGasLimitGap.noStartPressure);
     }
     final usable = (start - config.reservePressure).clamp(0.0, start);
     final fraction = switch (rule) {
@@ -1349,7 +1362,7 @@ class PlanEngine {
       domain.TurnPressureRule.custom =>
         config.turnPressureFractionFor(plan) ?? 1.0 / 3.0,
     };
-    return start - usable * fraction;
+    return (bar: start - usable * fraction, gap: null);
   }
 
   /// Rock-bottom minimum gas: a stressed, buddy-shared emergency exit from
@@ -1361,17 +1374,26 @@ class PlanEngine {
   /// explicit override, or bottom SAC x2.5 by default); [config]'s
   /// `buddyFactor` is resolved from the plan's own `sacFactor` by [compute]
   /// before this runs, so it always reflects that plan's Gas options.
-  double? _minGasFor(
+  ///
+  /// A back gas it cannot compute for carries the missing input as `gap`
+  /// (#3603). A loop plan, any other cylinder, or a plan with no depth yet
+  /// gets neither: minimum gas does not apply there.
+  ({double? bar, PlanGasLimitGap? gap}) _minGasFor(
     domain.DivePlan plan,
     DiveTank tank,
     DiveEnvironment environment,
   ) {
-    if (plan.mode == domain.PlanMode.ccr) return null;
-    if (tank.role != TankRole.backGas || tank.startPressure == null) {
-      return null;
-    }
     final maxDepth = plan.maxDepth;
-    if (maxDepth <= 0) return null;
+    if (plan.mode == domain.PlanMode.ccr ||
+        tank.role != TankRole.backGas ||
+        maxDepth <= 0) {
+      return (bar: null, gap: null);
+    }
+    if (tank.startPressure == null) {
+      return (bar: null, gap: PlanGasLimitGap.noStartPressure);
+    }
+    final volume = tank.volume ?? 11.0;
+    if (volume <= 0) return (bar: null, gap: PlanGasLimitGap.noVolume);
     // config.sacStressedFor/sacBottom/problemSolvingMinutes (issue #3552):
     // config is already resolvedFor this plan at this point.
     final sac = config.sacStressedFor(plan) * config.buddyFactor;
@@ -1385,8 +1407,7 @@ class PlanEngine {
             config.problemSolvingMinutes *
             environment.pressureAtDepth(maxDepth) +
         sac * ascentMinutes * environment.pressureAtDepth(maxDepth / 2.0);
-    final volume = tank.volume ?? 11.0;
-    return volume > 0 ? liters / volume : null;
+    return (bar: liters / volume, gap: null);
   }
 
   List<PlanIssue> _computeIssues(
@@ -1708,7 +1729,13 @@ class PlanEngine {
     minStopSecondsByDepth: plan.stopMinimums,
   );
 
-  AscentGasPlan _ascentPlanFor(List<DiveTank> tanks) {
+  /// Each gas becomes eligible at its switch depth in [environment], the
+  /// water the schedule's ppO2 is computed in, so no table line shows a gas
+  /// above the deco limit (issue #3566, see [gasSwitchDepthMeters]).
+  AscentGasPlan _ascentPlanFor(
+    List<DiveTank> tanks,
+    DiveEnvironment environment,
+  ) {
     if (tanks.isEmpty) {
       return FixedAscentGas(fN2: 0.7902);
     }
@@ -1719,9 +1746,10 @@ class PlanEngine {
           AvailableGas(
             fN2: (100.0 - tank.gasMix.o2 - tank.gasMix.he) / 100.0,
             fHe: tank.gasMix.he / 100.0,
-            maxPpO2Mod: O2ToxicityCalculator.calculateMod(
+            maxPpO2Mod: gasSwitchDepthMeters(
               tank.gasMix.o2 / 100.0,
               maxPpO2: config.ppO2Deco,
+              environment: environment,
             ),
           ),
       ],

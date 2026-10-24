@@ -152,6 +152,13 @@ class ConnectedAccountsRepository {
           mode: InsertMode.insertOrIgnore,
         );
     if (inserted != null) {
+      // A row written again at an id this device deleted (a library's row
+      // put back from its keys, issue #3563) drops the old tombstone, or
+      // this device would keep exporting the delete beside the live row.
+      await _syncRepository.removeDeletion(
+        entityType: 'connectedAccounts',
+        recordId: id,
+      );
       // Only the writer that actually inserted marks pending, so a losing
       // racer cannot stamp a second HLC on someone else's row.
       await _markPending(id, now);

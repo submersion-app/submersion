@@ -10,6 +10,8 @@ String tagScopeName(AppLocalizations l10n, TagScope scope) => switch (scope) {
   TagScope.dives => l10n.tags_manage_scope_dives,
   TagScope.sites => l10n.tags_manage_scope_sites,
   TagScope.equipment => l10n.tags_manage_scope_equipment,
+  TagScope.media => l10n.tags_manage_scope_media,
+  TagScope.documents => l10n.tags_manage_scope_documents,
 };
 
 /// The scope's checkbox in the tag editor.
@@ -18,6 +20,8 @@ String tagScopeUseForLabel(AppLocalizations l10n, TagScope scope) =>
       TagScope.dives => l10n.tags_manage_useForDives,
       TagScope.sites => l10n.tags_manage_useForSites,
       TagScope.equipment => l10n.tags_manage_useForEquipment,
+      TagScope.media => l10n.tags_manage_useForMedia,
+      TagScope.documents => l10n.tags_manage_useForDocuments,
     };
 
 /// How many items of the scope carry a tag, such as "3 sites".
@@ -26,6 +30,8 @@ String tagScopeCount(AppLocalizations l10n, TagScope scope, int count) =>
       TagScope.dives => l10n.tags_manage_diveCount(count),
       TagScope.sites => l10n.tags_manage_siteCount(count),
       TagScope.equipment => l10n.tags_manage_equipmentCount(count),
+      TagScope.media => l10n.tags_manage_mediaCount(count),
+      TagScope.documents => l10n.tags_manage_documentCount(count),
     };
 
 /// What turning the scope off removes, for the narrowing confirmation.
@@ -34,4 +40,6 @@ String tagScopeNarrowLine(AppLocalizations l10n, TagScope scope, int count) =>
       TagScope.dives => l10n.tags_manage_narrowDialog_dives(count),
       TagScope.sites => l10n.tags_manage_narrowDialog_sites(count),
       TagScope.equipment => l10n.tags_manage_narrowDialog_equipment(count),
+      TagScope.media => l10n.tags_manage_narrowDialog_media(count),
+      TagScope.documents => l10n.tags_manage_narrowDialog_documents(count),
     };

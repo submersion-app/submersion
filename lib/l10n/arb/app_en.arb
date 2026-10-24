@@ -7433,6 +7433,100 @@
   "divelogsImport_signIn_unreachable": "Could not reach divelogs.de. Check your connection and try again.",
   "divelogsImport_signIn_usernameLabel": "Username",
   "divelogsImport_signIn_usernameRequired": "Username is required",
+  "divers_misplacedLogbook_title": "Your dives are in another diver profile",
+  "@divers_misplacedLogbook_title": {
+    "description": "Title of the Dives list banner shown when this device's active diver profile has no dives and another profile holds them (issue #3549)."
+  },
+  "divers_misplacedLogbook_body": "\"{target}\" has {count, plural, =1{{count} dive} other{{count} dives}}. This device is showing \"{active}\", which has none. This can happen when a device creates its own profile before its first sync.",
+  "@divers_misplacedLogbook_body": {
+    "description": "Banner text naming the profile that holds the dives and the empty active profile.",
+    "placeholders": {
+      "target": {
+        "type": "String",
+        "example": "Dave"
+      },
+      "count": {
+        "type": "int",
+        "example": "212"
+      },
+      "active": {
+        "type": "String",
+        "example": "Diver"
+      }
+    }
+  },
+  "divers_misplacedLogbook_switchTo": "Switch",
+  "@divers_misplacedLogbook_switchTo": {
+    "description": "Banner button that makes the profile holding the dives the active one on this device."
+  },
+  "divers_misplacedLogbook_merge": "Merge",
+  "@divers_misplacedLogbook_merge": {
+    "description": "Banner button that opens the merge confirmation."
+  },
+  "divers_misplacedLogbook_keepBoth": "Keep both",
+  "@divers_misplacedLogbook_keepBoth": {
+    "description": "Banner button that hides the banner for this pair of profiles on this device."
+  },
+  "divers_misplacedLogbook_confirmTitle": "Merge diver profiles?",
+  "@divers_misplacedLogbook_confirmTitle": {
+    "description": "Title of the merge confirmation dialog opened from the Dives list banner."
+  },
+  "divers_misplacedLogbook_confirmBody": "Everything in \"{active}\" moves into \"{target}\", and \"{active}\" is removed. \"{target}\" keeps its name and settings. You can undo this right after merging.",
+  "@divers_misplacedLogbook_confirmBody": {
+    "description": "Body of the merge confirmation dialog: the empty active profile merges into the one holding the dives.",
+    "placeholders": {
+      "active": {
+        "type": "String",
+        "example": "Diver"
+      },
+      "target": {
+        "type": "String",
+        "example": "Dave"
+      }
+    }
+  },
+  "divers_misplacedLogbook_confirmCancel": "Cancel",
+  "@divers_misplacedLogbook_confirmCancel": {
+    "description": "Cancel button on the merge confirmation dialog."
+  },
+  "divers_misplacedLogbook_confirmAction": "Merge",
+  "@divers_misplacedLogbook_confirmAction": {
+    "description": "Confirm button on the merge confirmation dialog."
+  },
+  "divers_misplacedLogbook_mergedSnack": "Merged into {target}",
+  "@divers_misplacedLogbook_mergedSnack": {
+    "description": "Snackbar after the merge, naming the profile kept.",
+    "placeholders": {
+      "target": {
+        "type": "String",
+        "example": "Dave"
+      }
+    }
+  },
+  "divers_misplacedLogbook_undo": "Undo",
+  "@divers_misplacedLogbook_undo": {
+    "description": "Snackbar action that undoes the merge."
+  },
+  "divers_misplacedLogbook_mergeFailed": "Merge failed: {error}",
+  "@divers_misplacedLogbook_mergeFailed": {
+    "description": "Snackbar when the merge fails.",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "example": "database is locked"
+      }
+    }
+  },
+  "divers_misplacedLogbook_undoFailed": "Undo failed: {error}",
+  "@divers_misplacedLogbook_undoFailed": {
+    "description": "Snackbar when undoing the merge from the Dives list banner fails.",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "example": "database is locked"
+      }
+    }
+  },
   "divers_detail_activeDiver": "Active Diver",
   "divers_detail_cancelButton": "Cancel",
   "divers_detail_deleteButton": "Delete",
@@ -7595,7 +7689,7 @@
   "enum_diveMode_oc": "Open Circuit",
   "enum_diveMode_scr": "Semi-Closed Rebreather",
   "enum_entryMethod_backRoll": "Back Roll",
-  "enum_entryMethod_boat": "Boat Entry",
+  "enum_entryMethod_boat": "Boat",
   "enum_entryMethod_frontRoll": "Front Roll",
   "enum_entryMethod_giantStride": "Giant Stride",
   "enum_entryMethod_jetty": "Jetty/Dock",
@@ -7603,7 +7697,7 @@
   "enum_entryMethod_other": "Other",
   "enum_entryMethod_platform": "Platform",
   "enum_entryMethod_seatedEntry": "Seated Entry",
-  "enum_entryMethod_shore": "Shore Entry",
+  "enum_entryMethod_shore": "Shore",
   "enum_equipmentStatus_active": "Active",
   "enum_equipmentStatus_inService": "In Service",
   "enum_equipmentStatus_loaned": "Loaned Out",
@@ -12257,6 +12351,7 @@
       }
     }
   },
+  "plannerCanvas_chart_removeWaypoint": "Remove waypoint",
   "plannerCanvas_contingency_title": "Contingencies",
   "plannerCanvas_contingency_turnFraction": "Turn fraction",
   "plannerCanvas_contingency_turnRule": "Turn pressure rule",
@@ -12297,6 +12392,11 @@
       }
     }
   },
+  "plannerCanvas_gas_noTurnRule": "no turn rule set",
+  "plannerCanvas_gas_turnNoStartPressure": "turn needs a start pressure",
+  "plannerCanvas_gas_minGasNoStartPressure": "min gas needs a start pressure",
+  "plannerCanvas_gas_minGasNoVolume": "min gas needs a cylinder size",
+  "plannerCanvas_gas_limitsNoStartPressure": "turn and min gas need a start pressure",
   "plannerCanvas_gas_usedReading": "used: {reading}",
   "@plannerCanvas_gas_usedReading": {
     "placeholders": {
@@ -12452,6 +12552,9 @@
   "plannerCanvas_slate_minGas": "Min gas",
   "plannerCanvas_slate_saved": "Slate saved",
   "plannerCanvas_slate_turn": "Turn",
+  "plannerCanvas_slate_noTurnRule": "No rule",
+  "plannerCanvas_slate_noStartPressure": "No start pressure",
+  "plannerCanvas_slate_noVolume": "No size",
   "plannerCanvas_table_depth": "Depth",
   "plannerCanvas_table_gas": "Gas",
   "plannerCanvas_table_runtime": "RT",
@@ -13340,6 +13443,10 @@
   "sharedLibrary_library_removedBanner": "An owner removed you from this library. Its sites stay on this device, but you can no longer change them. Leaving the library keeps personal copies of the sites you dived.",
   "sharedLibrary_library_errorBanner": "Last sync failed: {error}",
   "@sharedLibrary_library_errorBanner": {"placeholders": {"error": {"type": "String"}}},
+  "sharedLibrary_syncError_accountMissing": "The account for this library is no longer on this device. Use Change connection to choose it again.",
+  "sharedLibrary_syncError_accountSignedOut": "This device is signed out of the account for this library. Sign in to it again in Connected accounts, or use Change connection.",
+  "sharedLibrary_syncError_notALibrary": "No library at this location.",
+  "sharedLibrary_syncError_failed": "Something went wrong.",
   "sharedLibrary_library_addMySites": "Add my sites",
   "sharedLibrary_library_suggestions": "Suggestions",
   "sharedLibrary_library_leave": "Leave library",
@@ -17480,7 +17587,7 @@
     }
   },
   "tags_manage_narrowDialog_title": "Remove tag from existing items?",
-  "tags_manage_scopeRequired": "Choose at least one: dives, sites, or equipment",
+  "tags_manage_scopeRequired": "Choose at least one: dives, sites, equipment, media, or documents",
   "tags_manage_scope_dives": "Dives",
   "tags_manage_scope_equipment": "Equipment",
   "tags_manage_scope_sites": "Sites",
@@ -17526,20 +17633,6 @@
       }
     }
   },
-  "tags_manage_deleteMessage_divesAndSites": "\"{tagName}\" will be removed from {diveCount, plural, =1{1 dive} other{{diveCount} dives}} and {siteCount, plural, =1{1 site} other{{siteCount} sites}}. This cannot be undone.",
-  "@tags_manage_deleteMessage_divesAndSites": {
-    "placeholders": {
-      "tagName": {
-        "type": "String"
-      },
-      "diveCount": {
-        "type": "int"
-      },
-      "siteCount": {
-        "type": "int"
-      }
-    }
-  },
   "tags_manage_deleteMessage_equipment": "\"{tagName}\" will be removed from {count, plural, =1{1 equipment item} other{{count} equipment items}}. This cannot be undone.",
   "@tags_manage_deleteMessage_equipment": {
     "placeholders": {
@@ -17551,52 +17644,7 @@
       }
     }
   },
-  "tags_manage_deleteMessage_divesAndEquipment": "\"{tagName}\" will be removed from {diveCount, plural, =1{1 dive} other{{diveCount} dives}} and {equipmentCount, plural, =1{1 equipment item} other{{equipmentCount} equipment items}}. This cannot be undone.",
-  "@tags_manage_deleteMessage_divesAndEquipment": {
-    "placeholders": {
-      "tagName": {
-        "type": "String"
-      },
-      "diveCount": {
-        "type": "int"
-      },
-      "equipmentCount": {
-        "type": "int"
-      }
-    }
-  },
-  "tags_manage_deleteMessage_sitesAndEquipment": "\"{tagName}\" will be removed from {siteCount, plural, =1{1 site} other{{siteCount} sites}} and {equipmentCount, plural, =1{1 equipment item} other{{equipmentCount} equipment items}}. This cannot be undone.",
-  "@tags_manage_deleteMessage_sitesAndEquipment": {
-    "placeholders": {
-      "tagName": {
-        "type": "String"
-      },
-      "siteCount": {
-        "type": "int"
-      },
-      "equipmentCount": {
-        "type": "int"
-      }
-    }
-  },
-  "tags_manage_deleteMessage_all": "\"{tagName}\" will be removed from {diveCount, plural, =1{1 dive} other{{diveCount} dives}}, {siteCount, plural, =1{1 site} other{{siteCount} sites}}, and {equipmentCount, plural, =1{1 equipment item} other{{equipmentCount} equipment items}}. This cannot be undone.",
-  "@tags_manage_deleteMessage_all": {
-    "placeholders": {
-      "tagName": {
-        "type": "String"
-      },
-      "diveCount": {
-        "type": "int"
-      },
-      "siteCount": {
-        "type": "int"
-      },
-      "equipmentCount": {
-        "type": "int"
-      }
-    }
-  },
-  "tags_manage_deleteMessage_unused": "\"{tagName}\" is not used on any dives, sites, or equipment. This cannot be undone.",
+  "tags_manage_deleteMessage_unused": "\"{tagName}\" is not used anywhere. This cannot be undone.",
   "@tags_manage_deleteMessage_unused": {
     "placeholders": {
       "tagName": {
@@ -17628,17 +17676,6 @@
       }
     }
   },
-  "tags_manage_bulkDeleteMessage_divesAndSites": "These tags will be removed from {diveCount, plural, =1{1 dive} other{{diveCount} dives}} and {siteCount, plural, =1{1 site} other{{siteCount} sites}} total. This cannot be undone.",
-  "@tags_manage_bulkDeleteMessage_divesAndSites": {
-    "placeholders": {
-      "diveCount": {
-        "type": "int"
-      },
-      "siteCount": {
-        "type": "int"
-      }
-    }
-  },
   "tags_manage_bulkDeleteMessage_equipment": "These tags will be removed from {equipmentCount, plural, =1{1 equipment item} other{{equipmentCount} equipment items}} total. This cannot be undone.",
   "@tags_manage_bulkDeleteMessage_equipment": {
     "placeholders": {
@@ -17647,43 +17684,7 @@
       }
     }
   },
-  "tags_manage_bulkDeleteMessage_divesAndEquipment": "These tags will be removed from {diveCount, plural, =1{1 dive} other{{diveCount} dives}} and {equipmentCount, plural, =1{1 equipment item} other{{equipmentCount} equipment items}} total. This cannot be undone.",
-  "@tags_manage_bulkDeleteMessage_divesAndEquipment": {
-    "placeholders": {
-      "diveCount": {
-        "type": "int"
-      },
-      "equipmentCount": {
-        "type": "int"
-      }
-    }
-  },
-  "tags_manage_bulkDeleteMessage_sitesAndEquipment": "These tags will be removed from {siteCount, plural, =1{1 site} other{{siteCount} sites}} and {equipmentCount, plural, =1{1 equipment item} other{{equipmentCount} equipment items}} total. This cannot be undone.",
-  "@tags_manage_bulkDeleteMessage_sitesAndEquipment": {
-    "placeholders": {
-      "siteCount": {
-        "type": "int"
-      },
-      "equipmentCount": {
-        "type": "int"
-      }
-    }
-  },
-  "tags_manage_bulkDeleteMessage_all": "These tags will be removed from {diveCount, plural, =1{1 dive} other{{diveCount} dives}}, {siteCount, plural, =1{1 site} other{{siteCount} sites}}, and {equipmentCount, plural, =1{1 equipment item} other{{equipmentCount} equipment items}} total. This cannot be undone.",
-  "@tags_manage_bulkDeleteMessage_all": {
-    "placeholders": {
-      "diveCount": {
-        "type": "int"
-      },
-      "siteCount": {
-        "type": "int"
-      },
-      "equipmentCount": {
-        "type": "int"
-      }
-    }
-  },
-  "tags_manage_bulkDeleteMessage_unused": "These tags are not used on any dives, sites, or equipment. This cannot be undone.",
+  "tags_manage_bulkDeleteMessage_unused": "These tags are not used anywhere. This cannot be undone.",
   "tags_manage_mergeTitle": "Merge {count} Tags",
   "@tags_manage_mergeTitle": {
     "placeholders": {
@@ -17710,17 +17711,6 @@
       }
     }
   },
-  "tags_manage_mergeAffected_divesAndSites": "This will affect {diveCount, plural, =1{1 dive} other{{diveCount} dives}} and {siteCount, plural, =1{1 site} other{{siteCount} sites}} total.",
-  "@tags_manage_mergeAffected_divesAndSites": {
-    "placeholders": {
-      "diveCount": {
-        "type": "int"
-      },
-      "siteCount": {
-        "type": "int"
-      }
-    }
-  },
   "tags_manage_mergeAffected_equipment": "This will affect {count, plural, =1{1 equipment item} other{{count} equipment items}} total.",
   "@tags_manage_mergeAffected_equipment": {
     "placeholders": {
@@ -17729,43 +17719,7 @@
       }
     }
   },
-  "tags_manage_mergeAffected_divesAndEquipment": "This will affect {diveCount, plural, =1{1 dive} other{{diveCount} dives}} and {equipmentCount, plural, =1{1 equipment item} other{{equipmentCount} equipment items}} total.",
-  "@tags_manage_mergeAffected_divesAndEquipment": {
-    "placeholders": {
-      "diveCount": {
-        "type": "int"
-      },
-      "equipmentCount": {
-        "type": "int"
-      }
-    }
-  },
-  "tags_manage_mergeAffected_sitesAndEquipment": "This will affect {siteCount, plural, =1{1 site} other{{siteCount} sites}} and {equipmentCount, plural, =1{1 equipment item} other{{equipmentCount} equipment items}} total.",
-  "@tags_manage_mergeAffected_sitesAndEquipment": {
-    "placeholders": {
-      "siteCount": {
-        "type": "int"
-      },
-      "equipmentCount": {
-        "type": "int"
-      }
-    }
-  },
-  "tags_manage_mergeAffected_all": "This will affect {diveCount, plural, =1{1 dive} other{{diveCount} dives}}, {siteCount, plural, =1{1 site} other{{siteCount} sites}}, and {equipmentCount, plural, =1{1 equipment item} other{{equipmentCount} equipment items}} total.",
-  "@tags_manage_mergeAffected_all": {
-    "placeholders": {
-      "diveCount": {
-        "type": "int"
-      },
-      "siteCount": {
-        "type": "int"
-      },
-      "equipmentCount": {
-        "type": "int"
-      }
-    }
-  },
-  "tags_manage_mergeAffected_unused": "These tags are not used on any dives, sites, or equipment.",
+  "tags_manage_mergeAffected_unused": "These tags are not used anywhere.",
   "tags_manage_mergeAction": "Merge",
   "tank_al100_description": "Aluminum 100 cu ft",
   "tank_al100_displayName": "AL100",
@@ -32474,6 +32428,69 @@
   "@settings_photos_startedSeparate": {"description": "Snackbar after choosing an account for photo copies that held none, so a new separate set was started instead of joining the library's copies. {account} is an account name.", "placeholders": {"account": {"type": "String"}}},
   "settings_conflict_field_remoteStoreId": "Uploaded to",
   "@settings_conflict_field_remoteStoreId": {"description": "Sync conflict field label: the photo copies store a media item's upload stamps refer to"},
+  "tags_manage_scope_media": "Media",
+  "tags_manage_scope_documents": "Documents",
+  "tags_manage_useForMedia": "Use for media",
+  "tags_manage_useForDocuments": "Use for documents",
+  "tags_manage_mediaCount": "{count, plural, =0{0 media items} =1{1 media item} other{{count} media items}}",
+  "@tags_manage_mediaCount": {"placeholders": {"count": {"type": "int"}}},
+  "tags_manage_documentCount": "{count, plural, =0{0 documents} =1{1 document} other{{count} documents}}",
+  "@tags_manage_documentCount": {"placeholders": {"count": {"type": "int"}}},
+  "tags_manage_narrowDialog_media": "{count, plural, =1{This tag is on 1 media item. Turning off \"Use for media\" removes it from that item.} other{This tag is on {count} media items. Turning off \"Use for media\" removes it from those items.}}",
+  "@tags_manage_narrowDialog_media": {"placeholders": {"count": {"type": "int"}}},
+  "tags_manage_narrowDialog_documents": "{count, plural, =1{This tag is on 1 document. Turning off \"Use for documents\" removes it from that document.} other{This tag is on {count} documents. Turning off \"Use for documents\" removes it from those documents.}}",
+  "@tags_manage_narrowDialog_documents": {"placeholders": {"count": {"type": "int"}}},
+  "tags_manage_deleteMessage_media": "\"{tagName}\" will be removed from {count, plural, =1{1 media item} other{{count} media items}}. This cannot be undone.",
+  "@tags_manage_deleteMessage_media": {"placeholders": {"tagName": {"type": "String"}, "count": {"type": "int"}}},
+  "tags_manage_deleteMessage_documents": "\"{tagName}\" will be removed from {count, plural, =1{1 document} other{{count} documents}}. This cannot be undone.",
+  "@tags_manage_deleteMessage_documents": {"placeholders": {"tagName": {"type": "String"}, "count": {"type": "int"}}},
+  "tags_manage_bulkDeleteMessage_media": "These tags will be removed from {count, plural, =1{1 media item} other{{count} media items}} total. This cannot be undone.",
+  "@tags_manage_bulkDeleteMessage_media": {"placeholders": {"count": {"type": "int"}}},
+  "tags_manage_bulkDeleteMessage_documents": "These tags will be removed from {count, plural, =1{1 document} other{{count} documents}} total. This cannot be undone.",
+  "@tags_manage_bulkDeleteMessage_documents": {"placeholders": {"count": {"type": "int"}}},
+  "tags_manage_mergeAffected_media": "This will affect {count, plural, =1{1 media item} other{{count} media items}} total.",
+  "@tags_manage_mergeAffected_media": {"placeholders": {"count": {"type": "int"}}},
+  "tags_manage_mergeAffected_documents": "This will affect {count, plural, =1{1 document} other{{count} documents}} total.",
+  "@tags_manage_mergeAffected_documents": {"placeholders": {"count": {"type": "int"}}},
+  "tags_manage_deleteMessage_several": "\"{tagName}\" will be removed from:",
+  "@tags_manage_deleteMessage_several": {"placeholders": {"tagName": {"type": "String"}}},
+  "tags_manage_bulkDeleteMessage_several": "These tags will be removed from:",
+  "tags_manage_mergeAffected_several": "This will affect:",
+  "tags_manage_cannotUndo": "This cannot be undone.",
+  "tags_action_edit": "Edit tags",
+  "media_info_tags": "Tags",
+  "media_info_noTags": "No tags yet",
+  "media_info_showWithTag": "Show media tagged {tagName}",
+  "@media_info_showWithTag": {"placeholders": {"tagName": {"type": "String"}}},
+  "media_library_filter_tags": "Tags",
+  "media_bulkTags_confirmAdding": "{count, plural, =1{Adding to 1 media item} other{Adding to all {count} media items}}",
+  "@media_bulkTags_confirmAdding": {"placeholders": {"count": {"type": "int"}}},
+  "media_bulkTags_confirmRemoving": "{count, plural, =1{Removing from 1 media item} other{Removing from all {count} media items}}",
+  "@media_bulkTags_confirmRemoving": {"placeholders": {"count": {"type": "int"}}},
+  "media_bulkTags_empty": "No media tags yet",
+  "documents_field_tags": "Tags",
+  "documents_detail_showWithTag": "Show documents tagged {tagName}",
+  "@documents_detail_showWithTag": {"placeholders": {"tagName": {"type": "String"}}},
+  "tags_bulk_adding": "adding to all {total}",
+  "@tags_bulk_adding": {"placeholders": {"total": {"type": "int"}}},
+  "tags_bulk_applied": "{count, plural, =1{Updated tags on 1 item} other{Updated tags on {count} items}}",
+  "@tags_bulk_applied": {"placeholders": {"count": {"type": "int"}}},
+  "tags_bulk_confirmTitle": "Apply changes?",
+  "tags_bulk_failed": "Could not update tags: {error}",
+  "@tags_bulk_failed": {"placeholders": {"error": {"type": "String"}}},
+  "tags_bulk_onAll": "on all {count}",
+  "@tags_bulk_onAll": {"placeholders": {"count": {"type": "int"}}},
+  "tags_bulk_onSome": "on {count} of {total}",
+  "@tags_bulk_onSome": {"placeholders": {"count": {"type": "int"}, "total": {"type": "int"}}},
+  "tags_bulk_removing": "removing from all",
+  "tags_bulk_tagsLabel": "Tags",
+  "tags_bulk_title": "{count, plural, =1{Edit tags on 1 item} other{Edit tags on {count} items}}",
+  "@tags_bulk_title": {"placeholders": {"count": {"type": "int"}}},
+  "tags_bulk_undo": "Undo",
+  "tags_bulk_undoFailed": "Couldn't undo the tag change.",
+  "settings_conflict_field_appliesToMedia": "Offered on media",
+  "settings_conflict_field_appliesToDocuments": "Offered on documents",
+  "documents_export_manifest_tags": "Tags",
   "settings_setUpDevice_title": "{device, select, phone{Set up this phone} tablet{Set up this tablet} computer{Set up this computer} other{Set up this device}}",
   "@settings_setUpDevice_title": {"description": "Title of the Set up this device card and flow; the device word comes from the platform", "placeholders": {"device": {"type": "String", "description": "phone, tablet, computer or other, from the platform"}}},
   "settings_setUpDevice_titleFinish": "{device, select, phone{Finish setting up this phone} tablet{Finish setting up this tablet} computer{Finish setting up this computer} other{Finish setting up this device}}",

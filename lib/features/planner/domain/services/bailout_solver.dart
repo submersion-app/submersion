@@ -5,7 +5,7 @@ import 'package:submersion/core/deco/ascent/ascent_gas_plan.dart';
 import 'package:submersion/core/deco/deco_model.dart';
 import 'package:submersion/core/deco/entities/breathing_config.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
-import 'package:submersion/core/deco/o2_toxicity_calculator.dart';
+import 'package:submersion/core/deco/max_operating_depth.dart';
 import 'package:submersion/core/deco/schedule_policy.dart';
 import 'package:submersion/core/utils/gas_compressibility.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -187,11 +187,9 @@ class BailoutSolver {
     if (segments.isEmpty) return null;
     final legs = const SegmentChain().resolve(segments);
 
-    final environment = DiveEnvironment.forConditions(
-      altitudeMeters: plan.altitude,
-      waterType: plan.waterType ?? WaterType.salt,
-      salinityPpt: plan.salinityPpt,
-    );
+    // The live plan's own water: an altitude of 0 is unset there (1.0 bar
+    // surface), not barometric sea level (issue #3566).
+    final environment = PlanEngine.environmentFor(plan);
     // Same policy PlanEngine._policyFor builds: a bailout schedule computed
     // with a plainer policy than the plan it bails out of would size and
     // print stops the plan's own configured minimums and whole-minute
@@ -226,9 +224,10 @@ class BailoutSolver {
           AvailableGas(
             fN2: (100.0 - tank.gasMix.o2 - tank.gasMix.he) / 100.0,
             fHe: tank.gasMix.he / 100.0,
-            maxPpO2Mod: O2ToxicityCalculator.calculateMod(
+            maxPpO2Mod: gasSwitchDepthMeters(
               tank.gasMix.o2 / 100.0,
               maxPpO2: config.ppO2Deco,
+              environment: environment,
             ),
           ),
       ],

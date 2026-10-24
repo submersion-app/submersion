@@ -6,6 +6,10 @@ import 'package:submersion/features/media/presentation/helpers/media_share_helpe
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/dive_picker_sheet.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
+import 'package:submersion/features/tags/data/services/bulk_tag_service.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart';
+import 'package:submersion/features/tags/presentation/providers/tag_link_providers.dart';
+import 'package:submersion/features/tags/presentation/widgets/bulk_tag_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/bulk_action.dart';
 import 'package:submersion/shared/selection/selection_app_bar.dart';
@@ -136,6 +140,26 @@ class MediaSelectionBar extends ConsumerWidget {
           icon: Icons.drive_file_move_outline,
           label: l10n.media_library_moveToDive,
           onInvoke: () => _moveToDive(context, ref),
+        ),
+        BulkAction(
+          id: 'edit_tags',
+          icon: Icons.label_outline,
+          label: l10n.tags_action_edit,
+          onInvoke: () => showBulkTagSheet(
+            context,
+            ref,
+            scope: TagScope.media,
+            service: BulkTagService(
+              ref.read(tagLinkRepositoryProvider(TagScope.media)),
+              itemTable: 'media',
+            ),
+            itemIds: _ids,
+            labels: (
+              confirmAdding: l10n.media_bulkTags_confirmAdding,
+              confirmRemoving: l10n.media_bulkTags_confirmRemoving,
+              empty: l10n.media_bulkTags_empty,
+            ),
+          ),
         ),
         BulkAction(
           id: 'unlink',

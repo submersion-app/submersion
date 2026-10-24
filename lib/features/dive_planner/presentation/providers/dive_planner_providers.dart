@@ -1,6 +1,7 @@
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/tank_presets.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 import 'package:submersion/core/deco/schedule_policy.dart' show AirBreakPolicy;
@@ -183,7 +184,7 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
       name: 'Primary',
       volume: 11.1, // AL80
       workingPressure: 207.0,
-      startPressure: 200.0,
+      startPressure: TankPresets.planFillPressureBar,
       gasMix: const GasMix(o2: 21, he: 0),
       role: TankRole.backGas,
       order: 0,

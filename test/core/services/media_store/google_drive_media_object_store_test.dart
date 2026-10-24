@@ -444,6 +444,124 @@ void main() {
     );
   });
 
+  group('an expired access token', () {
+    // The google_sign_in client carries a token that dies after about an
+    // hour. Without a refresh, every media transfer after that failed as an
+    // auth error until a sync call happened to replace the client (#3602).
+    final expired = MockClient(
+      (_) async => http.Response('{"error":{"code":401}}', 401),
+    );
+
+    test('is refreshed once and the request retried', () async {
+      http.Client current = expired;
+      final rejectedClients = <http.Client>[];
+      final store = GoogleDriveMediaObjectStore(
+        clientSupplier: () async => current,
+        onAuthRejected: (rejected) async {
+          rejectedClients.add(rejected);
+          current = server.client;
+          return true;
+        },
+        apiBase: 'https://fake.googleapis.test',
+      );
+
+      expect(await store.head('smv1/objects/aa/x.jpg'), isNull);
+      expect(rejectedClients, [same(expired)]);
+    });
+
+    test('a request body survives the retry', () async {
+      http.Client current = expired;
+      final store = GoogleDriveMediaObjectStore(
+        clientSupplier: () async => current,
+        onAuthRejected: (_) async {
+          current = server.client;
+          return true;
+        },
+        apiBase: 'https://fake.googleapis.test',
+      );
+      final src = File('${tmp.path}/retry.jpg')..writeAsBytesSync([1, 2, 3]);
+
+      await store.putFile(
+        'smv1/objects/aa/retry.jpg',
+        src,
+        contentType: 'image/jpeg',
+      );
+
+      expect(
+        server.filesById.values.map((f) => f.name),
+        contains('smv1/objects/aa/retry.jpg'),
+      );
+    });
+
+    test('fails as an auth error when the refresh fails', () async {
+      var refreshes = 0;
+      final store = GoogleDriveMediaObjectStore(
+        clientSupplier: () async => expired,
+        onAuthRejected: (_) async {
+          refreshes++;
+          return false;
+        },
+        apiBase: 'https://fake.googleapis.test',
+      );
+
+      await expectLater(
+        store.head('smv1/objects/aa/x.jpg'),
+        throwsA(
+          isA<MediaStoreException>()
+              .having((e) => e.kind, 'kind', MediaStoreErrorKind.auth)
+              // The queue shows this text as is, so it must say how to
+              // recover rather than quote an HTTP status.
+              .having((e) => e.message, 'message', contains('sign in again')),
+        ),
+      );
+      expect(refreshes, 1);
+    });
+
+    test('a refresh that throws is a transient failure', () async {
+      final store = GoogleDriveMediaObjectStore(
+        clientSupplier: () async => expired,
+        onAuthRejected: (_) async =>
+            throw const CloudStorageException('keychain locked'),
+        apiBase: 'https://fake.googleapis.test',
+      );
+
+      await expectLater(
+        store.head('smv1/objects/aa/x.jpg'),
+        throwsA(
+          isA<MediaStoreException>().having(
+            (e) => e.kind,
+            'kind',
+            MediaStoreErrorKind.transient,
+          ),
+        ),
+      );
+    });
+
+    test('is retried only once when the fresh token is refused too', () async {
+      var refreshes = 0;
+      final store = GoogleDriveMediaObjectStore(
+        clientSupplier: () async => expired,
+        onAuthRejected: (_) async {
+          refreshes++;
+          return true;
+        },
+        apiBase: 'https://fake.googleapis.test',
+      );
+
+      await expectLater(
+        store.head('smv1/objects/aa/x.jpg'),
+        throwsA(
+          isA<MediaStoreException>()
+              .having((e) => e.kind, 'kind', MediaStoreErrorKind.auth)
+              // The queue shows this text as is, so it must say how to
+              // recover rather than quote an HTTP status.
+              .having((e) => e.message, 'message', contains('sign in again')),
+        ),
+      );
+      expect(refreshes, 1);
+    });
+  });
+
   test('a supplier with no Google session fails as an auth error', () async {
     final store = GoogleDriveMediaObjectStore(
       clientSupplier: () async => null,

@@ -122,6 +122,8 @@ void main() {
     'dive_buddy_roles': 'diveBuddyRoles',
     'site_tags': 'siteTags',
     'equipment_tags': 'equipmentTags',
+    'media_tags': 'mediaTags',
+    'document_tags': 'documentTags',
     'equipment_shares': 'equipmentShares',
     'trip_equipment': 'tripEquipment',
     'trip_hides': 'tripHides',

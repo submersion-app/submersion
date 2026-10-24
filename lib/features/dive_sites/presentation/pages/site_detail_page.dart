@@ -32,6 +32,7 @@ import 'package:submersion/features/dive_log/presentation/navigation/open_dive_l
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/domain/entry_method_list.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_delete_usage.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_tags_card.dart';
@@ -1336,8 +1337,8 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
     return (site.accessNotes != null && site.accessNotes!.isNotEmpty) ||
         (site.mooringNumber != null && site.mooringNumber!.isNotEmpty) ||
         (site.parkingInfo != null && site.parkingInfo!.isNotEmpty) ||
-        site.entryMethod != null ||
-        site.exitMethod != null;
+        site.entryMethods.isNotEmpty ||
+        site.exitMethods.isNotEmpty;
   }
 
   /// The site's depth: what it is rated for, and what dives actually found.
@@ -2054,22 +2055,29 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
                 site.accessNotes!,
               ),
             ],
-            if (site.entryMethod != null) ...[
+            if (site.entryMethods.isNotEmpty) ...[
               _buildAccessRow(
                 context,
                 Icons.login,
                 context.l10n.diveSites_detail_access_entryMethod,
-                site.entryMethod!.localizedName(context.l10n),
+                joinEntryMethodNames(
+                  site.entryMethods,
+                  (m) => m.localizedName(context.l10n),
+                ),
               ),
             ],
             // Only when it differs: a mirrored exit repeats the entry row.
-            if (site.exitMethod != null &&
-                site.exitMethod != site.entryMethod) ...[
+            // Compared as sets, so the same methods in another order count
+            // as the same (issue #2054).
+            if (exitDiffersFromEntry(site.entryMethods, site.exitMethods)) ...[
               _buildAccessRow(
                 context,
                 Icons.logout,
                 context.l10n.diveSites_detail_access_exitMethod,
-                site.exitMethod!.localizedName(context.l10n),
+                joinEntryMethodNames(
+                  site.exitMethods,
+                  (m) => m.localizedName(context.l10n),
+                ),
               ),
             ],
             if (site.mooringNumber != null &&

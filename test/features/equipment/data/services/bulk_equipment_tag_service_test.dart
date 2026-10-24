@@ -53,7 +53,7 @@ void main() {
     'apply adds and removes on every item and returns the prior sets',
     () async {
       final prior = await service.apply(
-        equipmentIds: ids,
+        itemIds: ids,
         addTagIds: {'t3'},
         removeTagIds: {'t1'},
       );
@@ -78,7 +78,7 @@ void main() {
     () async {
       final before = await tagSets();
       final prior = await service.apply(
-        equipmentIds: ids,
+        itemIds: ids,
         addTagIds: {'t2', 't3'},
         removeTagIds: {'t1'},
       );
@@ -91,7 +91,7 @@ void main() {
 
   test('neither apply nor undo marks an equipment row pending', () async {
     final prior = await service.apply(
-      equipmentIds: ids,
+      itemIds: ids,
       addTagIds: {'t3'},
       removeTagIds: {'t1'},
     );
@@ -119,7 +119,7 @@ void main() {
 
   test('adding a tag an item already has is a no-op', () async {
     await service.apply(
-      equipmentIds: const ['e1'],
+      itemIds: const ['e1'],
       addTagIds: {'t1'},
       removeTagIds: const {},
     );
@@ -141,7 +141,7 @@ void main() {
     'an empty change writes nothing and returns an empty snapshot',
     () async {
       final prior = await service.apply(
-        equipmentIds: ids,
+        itemIds: ids,
         addTagIds: const {},
         removeTagIds: const {},
       );
@@ -157,7 +157,7 @@ void main() {
     addTearDown(sub.cancel);
 
     final prior = await service.apply(
-      equipmentIds: ids,
+      itemIds: ids,
       addTagIds: {'t3'},
       removeTagIds: {'t1'},
     );
@@ -179,7 +179,7 @@ void main() {
     );
 
     await expectLater(
-      service.apply(equipmentIds: ids, addTagIds: {'t3'}, removeTagIds: {'t1'}),
+      service.apply(itemIds: ids, addTagIds: {'t3'}, removeTagIds: {'t1'}),
       throwsA(anything),
     );
 
@@ -195,7 +195,7 @@ void main() {
 
   test('an item edit made between apply and undo survives the undo', () async {
     final prior = await service.apply(
-      equipmentIds: ids,
+      itemIds: ids,
       addTagIds: {'t3'},
       removeTagIds: const {},
     );
@@ -214,7 +214,7 @@ void main() {
 
   test('undo skips an item and a tag deleted since apply', () async {
     final prior = await service.apply(
-      equipmentIds: ids,
+      itemIds: ids,
       addTagIds: {'t3'},
       removeTagIds: {'t2'},
     );

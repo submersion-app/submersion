@@ -19,6 +19,7 @@ import 'package:submersion/features/divers/domain/entities/diver.dart';
 
 import '../../../helpers/fake_cloud_storage_provider.dart';
 import '../../../helpers/test_database.dart';
+import '../../../helpers/shared_library_test_account.dart';
 
 /// Sync with a member removed from a shared site library (issue #3481).
 /// Ann (d1) owns the library; the other profiles share her device unless a
@@ -38,6 +39,7 @@ void main() {
 
   SharedLibraryMembershipService memberships() =>
       SharedLibraryMembershipService(
+        accountById: anyTestAccount,
         store: SharedLibraryStore(),
         transportFor: ({required account, required prefix}) async =>
             SharedLibraryTransport(cloud, prefix: prefix),

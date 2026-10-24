@@ -57,6 +57,7 @@ import 'package:submersion/shared/selection/table_selection_owner.dart';
 import 'package:submersion/shared/utils/ink_centered_text_style.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
+import 'package:submersion/shared/widgets/master_detail/remembered_selection.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/table_mode_layout/table_mode_layout.dart';
 
@@ -185,6 +186,13 @@ class _DiveListPageState extends ConsumerState<DiveListPage>
 
       return TableModeLayout(
         sectionKey: 'dives',
+        // The table holds every dive the filter selects, so the dive is
+        // looked up there rather than paged for.
+        rememberedSelectedId: rememberedListedId(
+          items: ref.watch(allDivesForTableProvider),
+          rememberedId: ref.watch(highlightedDiveIdProvider),
+          idOf: (dive) => dive.id,
+        ),
         appBarTitle: context.l10n.nav_dives,
         appBarSubtitle: diveCountSubtitle(
           context,
@@ -369,7 +377,8 @@ class _DiveListPageState extends ConsumerState<DiveListPage>
     if (showMasterDetail) {
       // Desktop: Use master-detail layout
       return MasterDetailScaffold(
-        sectionId: 'dives',
+        sectionId: RecordListSection.dives,
+        rememberedSelectedId: ref.watch(rememberedDiveIdProvider),
         masterBuilder: (context, onItemSelected, selectedId) => DiveListContent(
           onItemSelected: onItemSelected,
           selectedId: selectedId,

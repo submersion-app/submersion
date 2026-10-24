@@ -1275,6 +1275,14 @@ class UddfExportBuilders {
                           'appliestoequipment',
                           nest: tag.appliesTo(TagScope.equipment).toString(),
                         );
+                        builder.element(
+                          'appliestomedia',
+                          nest: tag.appliesTo(TagScope.media).toString(),
+                        );
+                        builder.element(
+                          'appliestodocuments',
+                          nest: tag.appliesTo(TagScope.documents).toString(),
+                        );
                       },
                     );
                   }

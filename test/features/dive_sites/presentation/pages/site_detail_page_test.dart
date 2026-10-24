@@ -799,8 +799,8 @@ void main() {
           accessNotes: 'Walk in from the church parking lot',
           mooringNumber: 'M-12',
           parkingInfo: 'Free parking by the church',
-          entryMethod: EntryMethod.shore,
-          exitMethod: EntryMethod.boat,
+          entryMethods: [EntryMethod.shore],
+          exitMethods: [EntryMethod.boat],
         );
         _setMobileTestSurfaceSize(tester);
         final overrides = await getBaseOverrides();
@@ -827,8 +827,8 @@ void main() {
 
         final parkingY = topOf('Free parking by the church');
         final accessNotesY = topOf('Walk in from the church parking lot');
-        final entryY = topOf('Shore Entry');
-        final exitY = topOf('Boat Entry');
+        final entryY = topOf('Shore');
+        final exitY = topOf('Boat');
         final mooringY = topOf('M-12');
 
         expect(parkingY, lessThan(accessNotesY));

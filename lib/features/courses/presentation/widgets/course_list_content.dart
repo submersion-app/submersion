@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/sort_options_display.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/master_detail/estimated_row_scroll.dart';
 import 'package:submersion/shared/widgets/master_detail/keyboard_list_navigator.dart';
 import 'package:submersion/shared/selection/bulk_action.dart';
 import 'package:submersion/shared/selection/select_items_menu_entries.dart';
@@ -18,7 +19,9 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_view.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
+import 'package:submersion/shared/widgets/master_detail/list_position_restorer.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_form_scope.dart';
+import 'package:submersion/shared/widgets/master_detail/remembered_selection.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
 import 'package:submersion/features/courses/domain/constants/course_field.dart';
@@ -91,8 +94,55 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
 
   final ScrollController _scrollController = ScrollController();
 
+  /// Brings the list back to the course last opened when it is built again
+  /// after the diver left it (#3301).
+  late final ListPositionRestorer _positionRestorer = ListPositionRestorer(
+    controller: _scrollController,
+    attempt: _restoreRememberedCourse,
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    _positionRestorer.start(ref, filteredCoursesProvider);
+  }
+
+  /// One try at showing the selected course (one in the address) or, failing
+  /// that, the course last opened, for [_positionRestorer]: true once there
+  /// is nothing left to wait for. A list pushed over another page starts at
+  /// its top unless its address names one.
+  bool _restoreRememberedCourse() {
+    if (!mounted) return true;
+    return restoreListPosition(
+      context,
+      items: ref.read(filteredCoursesProvider),
+      selectedId: widget.selectedId,
+      rememberedId: ref.read(highlightedCourseIdProvider),
+      idOf: (item) => item.id,
+      controller: _scrollController,
+      scrollTo: _jumpToCourse,
+    );
+  }
+
+  /// Jumps the list to course [id], for a list being restored; a jump
+  /// rather than an animation, so the list does not visibly travel from the
+  /// top.
+  void _jumpToCourse(String id) {
+    final items = ref.read(filteredCoursesProvider).value;
+    if (items == null) return;
+    final index = items.indexWhere((item) => item.id == id);
+    if (index < 0) return;
+    scrollToEstimatedRow(
+      _scrollController,
+      index: index,
+      rowCount: items.length,
+      jump: true,
+    );
+  }
+
   @override
   void dispose() {
+    _positionRestorer.dispose();
     _scrollController.dispose();
     if (_ownsSelection) _selection.dispose();
     super.dispose();
@@ -100,6 +150,7 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
 
   void _handleItemTap(Course course) {
     ref.read(highlightedCourseIdProvider.notifier).state = course.id;
+    forgetClosedPane(ref, RecordListSection.courses);
     if (widget.onItemSelected != null) {
       widget.onItemSelected!(course.id);
     } else {
@@ -461,6 +512,9 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
           onHideColumn: notifier.hideColumn,
           onEntityTapDown: (id) {
             ref.read(highlightedCourseIdProvider.notifier).state = id;
+            // The same row again sets no new highlight; the pane is reopened all
+            // the same, so it is no longer one the diver emptied (#3301).
+            forgetClosedPane(ref, RecordListSection.courses);
           },
           onEntityTap: (id) {
             if (_isSelectionMode) _selection.toggle(id);

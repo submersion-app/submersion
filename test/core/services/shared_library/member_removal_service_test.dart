@@ -13,6 +13,7 @@ import 'package:submersion/features/divers/domain/entities/diver.dart';
 
 import '../../../helpers/fake_cloud_storage_provider.dart';
 import '../../../helpers/test_database.dart';
+import '../../../helpers/shared_library_test_account.dart';
 
 Future<void> _diver(String id) => DiverRepository().createDiver(
   Diver(id: id, name: id, createdAt: DateTime(2026), updatedAt: DateTime(2026)),
@@ -37,6 +38,7 @@ void main() {
     cloud = FakeCloudStorageProvider();
     t = SharedLibraryTransport(cloud, prefix: 'site-sync');
     service = SharedLibraryMembershipService(
+      accountById: anyTestAccount,
       store: SharedLibraryStore(),
       transportFor: ({required account, required prefix}) async =>
           SharedLibraryTransport(cloud, prefix: prefix),

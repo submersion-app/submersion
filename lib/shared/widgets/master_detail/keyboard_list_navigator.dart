@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
@@ -40,6 +41,11 @@ void moveListCursor(
 /// and Left go to [onExpand] and [onCollapse] for lists with collapsible
 /// groups, and do nothing otherwise rather than letting focus wander off.
 ///
+/// Home and End jump to the first and last rows, as do Cmd+Up and Cmd+Down
+/// on macOS. Page Down scrolls a page and moves the cursor to the row now at
+/// its height on screen; Page Up the same upwards (#3302). A list that loads
+/// in pages passes [onLoadRest], so End reaches its true last row.
+///
 /// Rows go inside a [KeyboardListItem], which takes them out of the focus
 /// order, gives the list focus and the cursor when one is clicked, and
 /// scrolls a newly reached row into view. Nothing is drawn around the
@@ -56,6 +62,7 @@ class KeyboardListNavigator extends StatefulWidget {
     this.onActivate,
     this.onExpand,
     this.onCollapse,
+    this.onLoadRest,
   });
 
   /// The debug label of the list's focus node, for tests.
@@ -82,6 +89,11 @@ class KeyboardListNavigator extends StatefulWidget {
   /// afterwards, typically the group header the row folded into, or null to
   /// leave it where it is.
   final String? Function(String key)? onCollapse;
+
+  /// Loads every row the list has not loaded yet, for End. The cursor lands
+  /// on the last of [keys] once it completes and the list has rebuilt. Null
+  /// for a list that holds all its rows.
+  final Future<void> Function()? onLoadRest;
 
   final Widget child;
 
@@ -140,6 +152,13 @@ class _KeyboardListNavigatorState extends State<KeyboardListNavigator> {
   static Duration get _now =>
       SchedulerBinding.instance.currentSystemFrameTimeStamp;
 
+  /// Counts key presses and clicks, so an End waiting on its load, or a page
+  /// waiting on its layout, can tell it has been overtaken.
+  int _presses = 0;
+
+  /// A page has scrolled and waits a frame to read where its rows landed.
+  bool _pageSettling = false;
+
   @override
   void didUpdateWidget(KeyboardListNavigator oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -186,12 +205,71 @@ class _KeyboardListNavigatorState extends State<KeyboardListNavigator> {
         keyboard.isMetaPressed;
   }
 
+  /// Cmd+Up and Cmd+Down, the top and bottom of a list on macOS, whose
+  /// laptops have no Home or End key.
+  static LogicalKeyboardKey? _macEdgeKey(LogicalKeyboardKey key) {
+    if (defaultTargetPlatform != TargetPlatform.macOS) return null;
+    final keyboard = HardwareKeyboard.instance;
+    if (!keyboard.isMetaPressed ||
+        keyboard.isShiftPressed ||
+        keyboard.isControlPressed ||
+        keyboard.isAltPressed) {
+      return null;
+    }
+    if (key == LogicalKeyboardKey.arrowUp) return LogicalKeyboardKey.home;
+    if (key == LogicalKeyboardKey.arrowDown) return LogicalKeyboardKey.end;
+    return null;
+  }
+
+  /// The keys the list acts on.
+  static final _navigationKeys = {
+    LogicalKeyboardKey.arrowUp,
+    LogicalKeyboardKey.arrowDown,
+    LogicalKeyboardKey.arrowLeft,
+    LogicalKeyboardKey.arrowRight,
+    LogicalKeyboardKey.home,
+    LogicalKeyboardKey.end,
+    LogicalKeyboardKey.pageUp,
+    LogicalKeyboardKey.pageDown,
+    LogicalKeyboardKey.enter,
+    LogicalKeyboardKey.numpadEnter,
+  };
+
   KeyEventResult _onKeyEvent(FocusNode node, KeyEvent event) {
     if (event is KeyUpEvent) return KeyEventResult.ignored;
+    final macEdge = _macEdgeKey(event.logicalKey);
     // A shortcut (Cmd+F and the like) is not navigating the list.
-    if (_anyModifierPressed()) return KeyEventResult.ignored;
-    final key = event.logicalKey;
+    if (macEdge == null && _anyModifierPressed()) {
+      return KeyEventResult.ignored;
+    }
+    final key = macEdge ?? event.logicalKey;
+    final isEdgeKey =
+        key == LogicalKeyboardKey.home || key == LogicalKeyboardKey.end;
+    final isPageKey =
+        key == LogicalKeyboardKey.pageDown || key == LogicalKeyboardKey.pageUp;
+    // A held Home or End lands once; its repeats must not supersede an End
+    // still loading. A held Page key can repeat before the last page has laid
+    // out, when the rows' positions are still the old ones.
+    if ((isEdgeKey && event is KeyRepeatEvent) ||
+        (isPageKey && _pageSettling)) {
+      return KeyEventResult.handled;
+    }
+    // Any other navigating press supersedes an End still waiting on its
+    // load, or a page waiting to settle; a key the list ignores does not.
+    if (_navigationKeys.contains(key)) _presses++;
 
+    if (isEdgeKey) {
+      _toEdge(last: key == LogicalKeyboardKey.end);
+      return KeyEventResult.handled;
+    }
+    if (key == LogicalKeyboardKey.pageDown) {
+      _page(forward: true);
+      return KeyEventResult.handled;
+    }
+    if (key == LogicalKeyboardKey.pageUp) {
+      _page(forward: false);
+      return KeyEventResult.handled;
+    }
     if (key == LogicalKeyboardKey.arrowDown) {
       _step(1);
       return KeyEventResult.handled;
@@ -244,6 +322,159 @@ class _KeyboardListNavigatorState extends State<KeyboardListNavigator> {
     _moveTo(next, forward: delta > 0);
   }
 
+  /// Home ([last] false) or End. End in a list that loads in pages waits for
+  /// the rest to load, so it lands on the true last row rather than opening
+  /// the last loaded one on the way.
+  void _toEdge({required bool last}) {
+    final loadRest = widget.onLoadRest;
+    if (!last || loadRest == null) {
+      _landOnEdge(last: last);
+      return;
+    }
+    _loadRestThenLand(loadRest, _presses);
+  }
+
+  Future<void> _loadRestThenLand(
+    Future<void> Function() loadRest,
+    int press,
+  ) async {
+    try {
+      await loadRest();
+    } catch (error, stack) {
+      // Land on the rows that did load rather than nowhere.
+      FlutterError.reportError(
+        FlutterErrorDetails(
+          exception: error,
+          stack: stack,
+          library: 'keyboard list navigator',
+          context: ErrorDescription('while loading the rest of a list for End'),
+        ),
+      );
+    }
+    if (!mounted || press != _presses) return;
+    // The loaded rows reach [KeyboardListNavigator.keys] on the next build.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && press == _presses) _landOnEdge(last: true);
+    });
+    WidgetsBinding.instance.scheduleFrame();
+  }
+
+  void _landOnEdge({required bool last}) {
+    final keys = widget.keys;
+    if (keys.isEmpty) return;
+    final edge = last ? keys.last : keys.first;
+    if (edge == _effectiveCursor) {
+      // Already there, perhaps scrolled out of sight: bring it back.
+      _cursor = edge;
+      _reveal(edge, forward: last);
+      return;
+    }
+    _moveTo(edge, forward: last);
+  }
+
+  /// Page Down ([forward]) or Page Up.
+  ///
+  /// With the cursor's row on screen, the list scrolls one viewport and the
+  /// cursor moves to the row now at the height the cursor's row was, so it
+  /// keeps its place on screen. With less than a page left to scroll it goes
+  /// to the first or last row instead. With the cursor scrolled out of sight
+  /// it moves a page's worth of rows on from where it is, and that row is
+  /// brought into view like an arrow's. With no cursor it starts at the top
+  /// (Page Down) or the bottom, as the arrows do.
+  void _page({required bool forward}) {
+    final keys = widget.keys;
+    if (keys.isEmpty) return;
+    final cursor = _effectiveCursor;
+    if (cursor == null) {
+      _moveTo(forward ? keys.first : keys.last, forward: forward);
+      return;
+    }
+    final edgeIndex = forward ? keys.length - 1 : 0;
+    final index = keys.indexOf(cursor);
+    if (index == edgeIndex) {
+      // Nowhere further to go, but the page is measured from the cursor, so
+      // a cursor scrolled out of sight comes back, as with Home and End.
+      _cursor = cursor;
+      _reveal(cursor, forward: forward);
+      return;
+    }
+
+    final visible = _rowsOnScreen();
+    final cursorRect = visible[cursor];
+    if (cursorRect == null) {
+      // Out of sight: as many rows on as fit on screen now.
+      final perPage = math.max(1, visible.length);
+      final target = (index + (forward ? perPage : -perPage)).clamp(
+        0,
+        keys.length - 1,
+      );
+      _moveTo(keys[target], forward: forward);
+      return;
+    }
+
+    final position = Scrollable.of(_rows[cursor]!).position;
+    final target =
+        position.pixels +
+        (forward ? position.viewportDimension : -position.viewportDimension);
+    if (target < position.minScrollExtent - precisionErrorTolerance ||
+        target > position.maxScrollExtent + precisionErrorTolerance) {
+      _moveTo(keys[edgeIndex], forward: forward);
+      return;
+    }
+    position.jumpTo(target);
+    final probe = cursorRect.center.dy;
+    final press = _presses;
+    _pageSettling = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _pageSettling = false;
+      if (!mounted || press != _presses) return;
+      final landed = _rowAt(probe);
+      if (landed != null && landed != cursor) {
+        _moveTo(landed, forward: forward);
+      }
+    });
+    WidgetsBinding.instance.scheduleFrame();
+  }
+
+  /// Where each built row of [KeyboardListNavigator.keys] sits within the
+  /// list's viewport, for the rows at least partly on screen.
+  Map<String, Rect> _rowsOnScreen() {
+    final keys = widget.keys.toSet();
+    final onScreen = <String, Rect>{};
+    // Every row sits in the one list, so its viewport is looked up once.
+    RenderObject? viewport;
+    for (final MapEntry(key: key, value: row) in _rows.entries) {
+      if (!keys.contains(key) || !row.mounted) continue;
+      viewport ??= Scrollable.maybeOf(row)?.context.findRenderObject();
+      final box = row.findRenderObject();
+      if (box is! RenderBox || !box.hasSize || viewport is! RenderBox) {
+        continue;
+      }
+      final rect =
+          box.localToGlobal(Offset.zero, ancestor: viewport) & box.size;
+      if (rect.bottom > 0 && rect.top < viewport.size.height) {
+        onScreen[key] = rect;
+      }
+    }
+    return onScreen;
+  }
+
+  /// The on-screen row covering the viewport height [dy], or the one nearest
+  /// it when [dy] falls between rows.
+  String? _rowAt(double dy) {
+    String? nearest;
+    var nearestDistance = double.infinity;
+    for (final MapEntry(key: key, value: rect) in _rowsOnScreen().entries) {
+      if (rect.top <= dy && dy < rect.bottom) return key;
+      final distance = (rect.center.dy - dy).abs();
+      if (distance < nearestDistance) {
+        nearest = key;
+        nearestDistance = distance;
+      }
+    }
+    return nearest;
+  }
+
   void _moveTo(String key, {required bool forward}) {
     _cursor = key;
     _unconfirmedMoves.add((key: key, at: _now));
@@ -282,6 +513,10 @@ class _KeyboardListNavigatorState extends State<KeyboardListNavigator> {
         }
       } else if (land) {
         Scrollable.ensureVisible(row);
+      } else if (attempt > 0) {
+        // Reached by a jump, so wherever the estimate happened to put it:
+        // settle it at the edge it was travelling towards, as a step would.
+        Scrollable.ensureVisible(row, alignment: forward ? 1.0 : 0.0);
       } else {
         Scrollable.ensureVisible(
           row,
@@ -343,6 +578,7 @@ class _KeyboardListNavigatorState extends State<KeyboardListNavigator> {
   /// does whatever opening or selecting it does; this only moves the cursor,
   /// which matters for rows a tap does not make current, like group headers.
   void _pointerDownOn(String key) {
+    _presses++;
     _focusNode.requestFocus();
     _unconfirmedMoves.clear();
     _cursor = key;

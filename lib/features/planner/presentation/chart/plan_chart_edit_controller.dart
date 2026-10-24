@@ -111,6 +111,43 @@ VertexDragResult dragVertex({
   ]);
 }
 
+/// Removes the waypoint at the end of segment [vertexIndex] without moving
+/// any other: the next leg absorbs the removed segment's time, so it runs
+/// straight from the previous waypoint to its own. This is the inverse of
+/// [splitSegmentAt]. The last waypoint has no next leg and is just dropped.
+///
+/// A gas switch at a waypoint is the next leg breathing something else, so
+/// removing the waypoint moves the switch to one end of the merged leg. The
+/// merged leg keeps the gas, setpoint and mode the plan already breathes at
+/// its deeper end: the removed leg's on an ascent or level leg, the next
+/// leg's on a descent. Either other choice can carry a gas past the depth it
+/// was planned for, such as a deco gas started at the bottom or a travel gas
+/// taken down to it.
+({String removeId, List<(String, PlanSegment)> updates}) removeVertex({
+  required List<PlanSegment> ordered,
+  required int vertexIndex,
+}) {
+  final removed = ordered[vertexIndex];
+  if (vertexIndex + 1 >= ordered.length) {
+    return (removeId: removed.id, updates: const []);
+  }
+  final next = ordered[vertexIndex + 1];
+  // The plan starts at the surface.
+  final startDepth = vertexIndex == 0
+      ? 0.0
+      : ordered[vertexIndex - 1].targetDepth;
+  final gasSource = next.targetDepth > startDepth ? next : removed;
+  // Built from the gas source so its null setpoint or mode carries over too.
+  final merged = gasSource.copyWith(
+    id: next.id,
+    targetDepth: next.targetDepth,
+    durationSeconds: next.durationSeconds + removed.durationSeconds,
+    splitAtConfiguredRate: next.splitAtConfiguredRate,
+    order: next.order,
+  );
+  return (removeId: removed.id, updates: [(next.id, merged)]);
+}
+
 ({String replaceId, List<PlanSegment> replacements})? splitSegmentAt({
   required List<PlanSegment> ordered,
   required double timeSeconds,

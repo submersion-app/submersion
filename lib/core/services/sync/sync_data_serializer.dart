@@ -25,6 +25,7 @@ import 'package:submersion/core/services/sync/view_config_merge.dart';
 import 'package:submersion/core/services/sync/changeset_log/sync_temp_dir.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/media/data/repositories/smart_album_tag_repoint.dart';
 import 'package:submersion/features/dive_import/data/services/imported_file_reclaimer.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_series_codec.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_series_codec_exception.dart';
@@ -372,6 +373,8 @@ class SyncData {
   final List<Map<String, dynamic>> diveBuddyRoles;
   final List<Map<String, dynamic>> siteTags;
   final List<Map<String, dynamic>> equipmentTags;
+  final List<Map<String, dynamic>> mediaTags;
+  final List<Map<String, dynamic>> documentTags;
   final List<Map<String, dynamic>> equipmentShares;
   final List<Map<String, dynamic>> tripEquipment;
   final List<Map<String, dynamic>> tripHides;
@@ -505,6 +508,8 @@ class SyncData {
     this.diveBuddyRoles = const [],
     this.siteTags = const [],
     this.equipmentTags = const [],
+    this.mediaTags = const [],
+    this.documentTags = const [],
     this.equipmentShares = const [],
     this.tripEquipment = const [],
     this.tripHides = const [],
@@ -632,6 +637,8 @@ class SyncData {
     'diveBuddyRoles': diveBuddyRoles,
     'siteTags': siteTags,
     'equipmentTags': equipmentTags,
+    'mediaTags': mediaTags,
+    'documentTags': documentTags,
     'equipmentShares': equipmentShares,
     'tripEquipment': tripEquipment,
     'tripHides': tripHides,
@@ -776,6 +783,8 @@ class SyncData {
       diveBuddyRoles: _parseList(json['diveBuddyRoles']),
       siteTags: _parseList(json['siteTags']),
       equipmentTags: _parseList(json['equipmentTags']),
+      mediaTags: _parseList(json['mediaTags']),
+      documentTags: _parseList(json['documentTags']),
       equipmentShares: _parseList(json['equipmentShares']),
       tripEquipment: _parseList(json['tripEquipment']),
       tripHides: _parseList(json['tripHides']),
@@ -1376,6 +1385,8 @@ class SyncDataSerializer {
     (key: 'diveBuddyRoles', table: _db.diveBuddyRoles, blob: false, full: null),
     (key: 'siteTags', table: _db.siteTags, blob: false, full: null),
     (key: 'equipmentTags', table: _db.equipmentTags, blob: false, full: null),
+    (key: 'mediaTags', table: _db.mediaTags, blob: false, full: null),
+    (key: 'documentTags', table: _db.documentTags, blob: false, full: null),
     (
       key: 'equipmentShares',
       table: _db.equipmentShares,
@@ -1836,6 +1847,8 @@ class SyncDataSerializer {
     'siteSiteTypes',
     'siteTags',
     'equipmentTags',
+    'mediaTags',
+    'documentTags',
     'equipmentShares',
     'tripEquipment',
     'tripHides',
@@ -2066,6 +2079,8 @@ class SyncDataSerializer {
     'diveBuddyRoles': 'dive_buddy_roles',
     'siteTags': 'site_tags',
     'equipmentTags': 'equipment_tags',
+    'mediaTags': 'media_tags',
+    'documentTags': 'document_tags',
     'equipmentShares': 'equipment_shares',
     'tripEquipment': 'trip_equipment',
     'tripHides': 'trip_hides',
@@ -2707,6 +2722,22 @@ class SyncDataSerializer {
         () async => _withPendingChildren(
           'equipmentTags',
           await _exportEquipmentTags(hlcSince),
+          pendingChildren,
+        ),
+      ),
+      mediaTags: await _safeExport(
+        'mediaTags',
+        () async => _withPendingChildren(
+          'mediaTags',
+          await _exportMediaTags(hlcSince),
+          pendingChildren,
+        ),
+      ),
+      documentTags: await _safeExport(
+        'documentTags',
+        () async => _withPendingChildren(
+          'documentTags',
+          await _exportDocumentTags(hlcSince),
           pendingChildren,
         ),
       ),
@@ -3389,6 +3420,16 @@ class SyncDataSerializer {
       case 'equipmentTags':
         final row = await (_db.select(
           _db.equipmentTags,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
+      case 'mediaTags':
+        final row = await (_db.select(
+          _db.mediaTags,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
+      case 'documentTags':
+        final row = await (_db.select(
+          _db.documentTags,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
         return row?.toJson();
       case 'equipmentShares':
@@ -4359,6 +4400,14 @@ class SyncDataSerializer {
     for (final junction in tagScopeTables) {
       await _foldTagLinks(junction, loser: loser, survivor: survivor);
     }
+    // Saved smart albums filtered by the loser follow it too (issue #1970).
+    await repointSmartAlbumTags(
+      _db,
+      _syncRepository,
+      fromTagIds: [loser],
+      toTagId: survivor,
+      now: DateTime.now().millisecondsSinceEpoch,
+    );
     await (_db.delete(_db.tags)..where((t) => t.id.equals(loser))).go();
     _tagIdAliases[loser] = survivor;
   }
@@ -4676,10 +4725,18 @@ class SyncDataSerializer {
   }
 
   /// Applies one incoming `equipment_tags` row (v219, issue #1942), the
-  /// equipment twin of [_applySiteTagRecord]: the (equipment, tag) unique
-  /// index makes a peer's copy of a pair this device holds under another id
-  /// a no-op instead of a throw.
+  /// equipment twin of [_applySiteTagRecord]: a link to a tag not offered on
+  /// equipment is refused, and a peer's copy of a pair this device holds
+  /// under another id is reconciled to the lower id, so a later tombstone
+  /// for either id removes the link on every device (#1970 review).
   Future<void> _applyEquipmentTagRecord(EquipmentTag record) async {
+    if (!await _reconcileScopedTagLink(equipmentTagScopeTable, (
+      parent: record.equipmentId,
+      child: record.tagId,
+      id: record.id,
+    ))) {
+      return;
+    }
     await _db
         .into(_db.equipmentTags)
         .insert(
@@ -4688,6 +4745,85 @@ class SyncDataSerializer {
             target: const [],
           ),
         );
+  }
+
+  /// Applies one incoming `media_tags` row (v309, issue #1970), the media
+  /// twin of [_applyEquipmentTagRecord].
+  Future<void> _applyMediaTagRecord(MediaTag record) async {
+    if (!await _reconcileScopedTagLink(mediaTagScopeTable, (
+      parent: record.mediaId,
+      child: record.tagId,
+      id: record.id,
+    ))) {
+      return;
+    }
+    await _db
+        .into(_db.mediaTags)
+        .insert(
+          record,
+          onConflict: DoNothing<$MediaTagsTable, MediaTag>(target: const []),
+        );
+  }
+
+  /// Applies one incoming `document_tags` row (v309, issue #1970), the
+  /// document twin of [_applyEquipmentTagRecord].
+  Future<void> _applyDocumentTagRecord(DocumentTag record) async {
+    if (!await _reconcileScopedTagLink(documentTagScopeTable, (
+      parent: record.documentId,
+      child: record.tagId,
+      id: record.id,
+    ))) {
+      return;
+    }
+    await _db
+        .into(_db.documentTags)
+        .insert(
+          record,
+          onConflict: DoNothing<$DocumentTagsTable, DocumentTag>(
+            target: const [],
+          ),
+        );
+  }
+
+  /// Readies one incoming tag link of [junction] for insertion: false when
+  /// its tag is not offered in that scope (the link is refused), otherwise
+  /// any local copy of the same pair under a higher id is dropped first, as
+  /// [_applySiteTagRecord] does.
+  Future<bool> _reconcileScopedTagLink(
+    TagScopeTable junction,
+    JunctionPair pair,
+  ) async {
+    if ((await _tagsOutsideScope(junction)).contains(pair.child)) return false;
+    await _reconcileJunctionIds(
+      junction.junctionTable,
+      parentColumn: junction.parentColumn,
+      childColumn: 'tag_id',
+      pairs: [pair],
+    );
+    return true;
+  }
+
+  /// [rows] of [junction] ready for a batch insert: links to tags not
+  /// offered in that scope dropped, one row per pair (the lowest id), and
+  /// any local copy of a pair under a higher id deleted, as the `siteTags`
+  /// batch does.
+  Future<List<T>> _reconcileScopedTagLinks<T>(
+    TagScopeTable junction,
+    List<T> rows,
+    JunctionPair Function(T row) pairOf,
+  ) async {
+    final offScope = await _tagsOutsideScope(junction);
+    final kept = _lowestIdPerPair(
+      rows.where((row) => !offScope.contains(pairOf(row).child)).toList(),
+      pairOf,
+    );
+    await _reconcileJunctionIds(
+      junction.junctionTable,
+      parentColumn: junction.parentColumn,
+      childColumn: 'tag_id',
+      pairs: [for (final row in kept) pairOf(row)],
+    );
+    return kept;
   }
 
   /// Applies one incoming `equipment_shares` row (v234, issue #2046). The
@@ -5307,6 +5443,14 @@ class SyncDataSerializer {
       case 'equipmentTags':
         await _applyEquipmentTagRecord(
           EquipmentTag.fromJson(_withTagAlias(data)),
+        );
+        return;
+      case 'mediaTags':
+        await _applyMediaTagRecord(MediaTag.fromJson(_withTagAlias(data)));
+        return;
+      case 'documentTags':
+        await _applyDocumentTagRecord(
+          DocumentTag.fromJson(_withTagAlias(data)),
         );
         return;
       case 'equipmentShares':
@@ -6702,13 +6846,46 @@ class SyncDataSerializer {
         );
         return;
       case 'equipmentTags':
+        final equipmentTagsRows = await _reconcileScopedTagLinks(
+          equipmentTagScopeTable,
+          records.map((r) => EquipmentTag.fromJson(_withTagAlias(r))).toList(),
+          (row) => (parent: row.equipmentId, child: row.tagId, id: row.id),
+        );
         await _db.batch(
           (b) => b.insertAll(
             _db.equipmentTags,
-            records
-                .map((r) => EquipmentTag.fromJson(_withTagAlias(r)))
-                .toList(),
+            equipmentTagsRows,
             onConflict: DoNothing<$EquipmentTagsTable, EquipmentTag>(
+              target: const [],
+            ),
+          ),
+        );
+        return;
+      case 'mediaTags':
+        final mediaTagsRows = await _reconcileScopedTagLinks(
+          mediaTagScopeTable,
+          records.map((r) => MediaTag.fromJson(_withTagAlias(r))).toList(),
+          (row) => (parent: row.mediaId, child: row.tagId, id: row.id),
+        );
+        await _db.batch(
+          (b) => b.insertAll(
+            _db.mediaTags,
+            mediaTagsRows,
+            onConflict: DoNothing<$MediaTagsTable, MediaTag>(target: const []),
+          ),
+        );
+        return;
+      case 'documentTags':
+        final documentTagsRows = await _reconcileScopedTagLinks(
+          documentTagScopeTable,
+          records.map((r) => DocumentTag.fromJson(_withTagAlias(r))).toList(),
+          (row) => (parent: row.documentId, child: row.tagId, id: row.id),
+        );
+        await _db.batch(
+          (b) => b.insertAll(
+            _db.documentTags,
+            documentTagsRows,
+            onConflict: DoNothing<$DocumentTagsTable, DocumentTag>(
               target: const [],
             ),
           ),
@@ -7495,6 +7672,10 @@ class SyncDataSerializer {
         return plain(_db.siteTags, _db.siteTags.id);
       case 'equipmentTags':
         return plain(_db.equipmentTags, _db.equipmentTags.id);
+      case 'mediaTags':
+        return plain(_db.mediaTags, _db.mediaTags.id);
+      case 'documentTags':
+        return plain(_db.documentTags, _db.documentTags.id);
       case 'equipmentShares':
         return plain(_db.equipmentShares, _db.equipmentShares.id);
       case 'tripEquipment':
@@ -7999,6 +8180,10 @@ class SyncDataSerializer {
         return _db.siteTags;
       case 'equipmentTags':
         return _db.equipmentTags;
+      case 'mediaTags':
+        return _db.mediaTags;
+      case 'documentTags':
+        return _db.documentTags;
       case 'equipmentShares':
         return _db.equipmentShares;
       case 'tripEquipment':
@@ -8570,6 +8755,16 @@ class SyncDataSerializer {
       case 'equipmentTags':
         await (_db.delete(
           _db.equipmentTags,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'mediaTags':
+        await (_db.delete(
+          _db.mediaTags,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'documentTags':
+        await (_db.delete(
+          _db.documentTags,
         )..where((t) => t.id.equals(recordId))).go();
         return;
       case 'equipmentShares':
@@ -10351,6 +10546,58 @@ class SyncDataSerializer {
       );
     }
     final rows = await _db.select(_db.equipmentTags).get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  /// Media tag links (v309, issue #1970), gated on the parent media row's
+  /// clock like [_exportEquipmentTags]. A changed link travels on its own
+  /// pending mark, never by re-stamping the photo.
+  Future<List<Map<String, dynamic>>> _exportMediaTags(String? hlcSince) async {
+    if (hlcSince != null) {
+      // Ids only: a media row can carry a signature's image bytes.
+      final ids =
+          await (_db.selectOnly(_db.media)
+                ..addColumns([_db.media.id])
+                ..where(_db.media.hlc.isBiggerThanValue(hlcSince)))
+              .map((r) => r.read(_db.media.id)!)
+              .get()
+              .then((ids) => ids.toSet());
+      if (ids.isEmpty) return [];
+
+      return _childRowsOf(
+        ids,
+        (chunk) => (_db.select(
+          _db.mediaTags,
+        )..where((t) => t.mediaId.isIn(chunk))).get(),
+      );
+    }
+    final rows = await _db.select(_db.mediaTags).get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  /// Document tag links (v309, issue #1970), gated on the parent document's
+  /// clock like [_exportEquipmentTags].
+  Future<List<Map<String, dynamic>>> _exportDocumentTags(
+    String? hlcSince,
+  ) async {
+    if (hlcSince != null) {
+      final ids =
+          await (_db.selectOnly(_db.documents)
+                ..addColumns([_db.documents.id])
+                ..where(_db.documents.hlc.isBiggerThanValue(hlcSince)))
+              .map((r) => r.read(_db.documents.id)!)
+              .get()
+              .then((ids) => ids.toSet());
+      if (ids.isEmpty) return [];
+
+      return _childRowsOf(
+        ids,
+        (chunk) => (_db.select(
+          _db.documentTags,
+        )..where((t) => t.documentId.isIn(chunk))).get(),
+      );
+    }
+    final rows = await _db.select(_db.documentTags).get();
     return rows.map((r) => r.toJson()).toList();
   }
 

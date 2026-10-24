@@ -105,6 +105,7 @@ import 'package:submersion/features/universal_import/data/services/import_tank_d
 import 'package:uuid/uuid.dart';
 import 'package:submersion/features/certification_agencies/data/repositories/custom_certification_repository.dart';
 import 'package:submersion/features/certification_agencies/data/services/certification_import_resolver.dart';
+import 'package:submersion/features/dive_sites/domain/entry_method_list.dart';
 
 /// Bundles all repositories needed for UDDF import.
 class ImportRepositories {
@@ -418,6 +419,16 @@ class UddfEntityImporter {
 
   /// Parse a value that may be either an enum instance or a string matching
   /// an enum name. Returns null if the value is null or unrecognised.
+  /// A site's entry or exit methods from an import payload value (stored
+  /// comma-joined names), or null when the payload carries none this build
+  /// can read, so an overwrite keeps the site's own list rather than
+  /// emptying it.
+  static List<EntryMethod>? _entryMethodsOrNull(Object? value) {
+    if (value is! String) return null;
+    final methods = decodeEntryMethods(value);
+    return methods.isEmpty ? null : methods;
+  }
+
   static T? _parseEnum<T extends Enum>(Object? value, List<T> values) {
     if (value == null) return null;
     if (value is T) return value;
@@ -2021,10 +2032,10 @@ class UddfEntityImporter {
         mooringNumber: siteData['mooringNumber'] as String?,
         parkingInfo: siteData['parkingInfo'] as String?,
         altitude: siteData['altitude'] as double?,
-        entryMethod: _parseEnum(siteData['entryMethod'], EntryMethod.values),
-        // A site's typical way out (issue #2201); null means the
-        // same as the entry, so an absent cell stays null.
-        exitMethod: _parseEnum(siteData['exitMethod'], EntryMethod.values),
+        // Null for an absent key, so the site keeps its own methods; a
+        // decoded list (even an empty one) would replace them (#2054).
+        entryMethods: _entryMethodsOrNull(siteData['entryMethod']),
+        exitMethods: _entryMethodsOrNull(siteData['exitMethod']),
       );
 
       // Core fields and the importer-only metadata columns go out as one
@@ -2112,10 +2123,10 @@ class UddfEntityImporter {
         mooringNumber: siteData['mooringNumber'] as String?,
         parkingInfo: siteData['parkingInfo'] as String?,
         altitude: siteData['altitude'] as double?,
-        entryMethod: _parseEnum(siteData['entryMethod'], EntryMethod.values),
+        entryMethods: decodeEntryMethods(siteData['entryMethod'] as String?),
         // A site's typical way out (issue #2201); null means the
         // same as the entry, so an absent cell stays null.
-        exitMethod: _parseEnum(siteData['exitMethod'], EntryMethod.values),
+        exitMethods: decodeEntryMethods(siteData['exitMethod'] as String?),
       );
 
       final createdSite = await repository.createSite(newSite);

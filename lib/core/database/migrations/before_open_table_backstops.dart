@@ -106,5 +106,10 @@ extension TableBackstopsFromV217 on AppDatabase {
     // v301 backstop: the logbook rules tables and indexes (parallel-branch
     // version-collision self-heal; idempotent).
     await _assertRuleSchema();
+
+    // v309 backstop: the media and document tag junctions and their indexes
+    // (parallel-branch version-collision self-heal; all idempotent).
+    // _beforeOpen asserts the scope columns earlier.
+    await _assertMediaAndDocumentTagSchema();
   }
 }

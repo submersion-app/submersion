@@ -24,6 +24,7 @@ import 'package:submersion/features/media/presentation/providers/media_providers
 import 'package:submersion/features/media/presentation/providers/media_serving_providers.dart';
 import 'package:submersion/features/media/presentation/providers/photo_access_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/limited_access_actions.dart';
+import 'package:submersion/features/media/presentation/widgets/media_info_tags_section.dart';
 import 'package:submersion/features/media/presentation/widgets/set_media_time_dialog.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -66,6 +67,8 @@ class MediaInfoPanel extends ConsumerWidget {
       children: [
         Text(l10n.media_info_title, style: _titleStyle(context)),
         const SizedBox(height: 16),
+        MediaInfoTagsSection(item: live),
+        const SizedBox(height: 12),
         _FileSection(item: live, units: units),
         const SizedBox(height: 12),
         _OriginSection(item: live, origin: provenance.origin, units: units),

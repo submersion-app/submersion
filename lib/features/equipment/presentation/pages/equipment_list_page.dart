@@ -16,10 +16,12 @@ import 'package:submersion/shared/selection/table_selection_owner.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_column_picker.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
+import 'package:submersion/shared/widgets/master_detail/remembered_selection.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/table_mode_layout/table_mode_layout.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_field.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_query_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_filter_sheet.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_list_content.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_list_sort_sheet.dart';
@@ -113,6 +115,7 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
       return FocusTraversalGroup(
         child: TableModeLayout(
           sectionKey: 'equipment',
+          rememberedSelectedId: ref.watch(rememberedEquipmentIdProvider),
           appBarTitle: context.l10n.nav_equipment,
           appBarSubtitle: equipmentListCountLabel(context, ref),
           tableContent: EquipmentListContent(
@@ -417,7 +420,8 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
   Widget _buildEquipmentMasterDetail() {
     return MasterDetailScaffold(
       key: const ValueKey('equipment-master-detail'),
-      sectionId: 'equipment',
+      sectionId: RecordListSection.equipment,
+      rememberedSelectedId: ref.watch(rememberedEquipmentIdProvider),
       masterBuilder: (context, onItemSelected, selectedId) =>
           EquipmentListContent(
             onItemSelected: onItemSelected,

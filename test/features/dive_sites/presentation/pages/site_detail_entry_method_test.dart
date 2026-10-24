@@ -50,11 +50,11 @@ void main() {
       const DiveSite(
         id: 'em-only',
         name: 'Blue Hole',
-        entryMethod: EntryMethod.boat,
+        entryMethods: [EntryMethod.boat],
       ),
     );
 
-    expect(find.text('Boat Entry'), findsOneWidget);
+    expect(find.text('Boat'), findsOneWidget);
   });
 
   testWidgets('the access card shows exit method when it differs', (
@@ -65,8 +65,8 @@ void main() {
       const DiveSite(
         id: 'em-pair',
         name: 'Blue Hole',
-        entryMethod: EntryMethod.giantStride,
-        exitMethod: EntryMethod.ladder,
+        entryMethods: [EntryMethod.giantStride],
+        exitMethods: [EntryMethod.ladder],
       ),
     );
 
@@ -80,12 +80,12 @@ void main() {
       const DiveSite(
         id: 'em-mirror',
         name: 'Blue Hole',
-        entryMethod: EntryMethod.boat,
-        exitMethod: EntryMethod.boat,
+        entryMethods: [EntryMethod.boat],
+        exitMethods: [EntryMethod.boat],
       ),
     );
 
-    expect(find.text('Boat Entry'), findsOneWidget);
+    expect(find.text('Boat'), findsOneWidget);
   });
 
   testWidgets('a site with no access data shows no entry method', (
@@ -96,5 +96,38 @@ void main() {
     for (final method in EntryMethod.values) {
       expect(find.text(method.displayName), findsNothing);
     }
+  });
+
+  testWidgets('several entry methods share one row (#2054)', (tester) async {
+    await pumpDetail(
+      tester,
+      const DiveSite(
+        id: 'em-multi',
+        name: 'Blue Hole',
+        entryMethods: [EntryMethod.backRoll, EntryMethod.giantStride],
+        exitMethods: [EntryMethod.ladder],
+      ),
+    );
+
+    expect(find.text('Back Roll, Giant Stride'), findsOneWidget);
+    expect(find.text('Ladder'), findsOneWidget);
+  });
+
+  testWidgets('exits that are the same set as entries are not repeated', (
+    tester,
+  ) async {
+    await pumpDetail(
+      tester,
+      const DiveSite(
+        id: 'em-same-set',
+        name: 'Blue Hole',
+        entryMethods: [EntryMethod.backRoll, EntryMethod.giantStride],
+        exitMethods: [EntryMethod.giantStride, EntryMethod.backRoll],
+      ),
+    );
+
+    expect(find.text('Back Roll, Giant Stride'), findsOneWidget);
+    expect(find.text('Giant Stride, Back Roll'), findsNothing);
+    expect(find.text('Exit'), findsNothing);
   });
 }

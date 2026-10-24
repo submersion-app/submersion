@@ -13,6 +13,8 @@ import 'package:submersion/features/media/presentation/providers/media_smart_alb
 import 'package:submersion/features/media/presentation/widgets/media_library_filter_labels.dart';
 import 'package:submersion/features/media/presentation/widgets/media_smart_album_name_dialog.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart';
+import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -51,6 +53,7 @@ class MediaLibraryActiveFilterChips extends ConsumerWidget {
     final sites = ref.watch(sitesProvider).value ?? const [];
     final trips = ref.watch(allTripsProvider).value ?? const [];
     final species = ref.watch(allSpeciesProvider).value ?? const [];
+    final tags = ref.watch(tagsProvider).value ?? const <Tag>[];
     final units = UnitFormatter(ref.watch(settingsProvider));
 
     Widget chip(String label, VoidCallback onClear) {
@@ -105,6 +108,23 @@ class MediaLibraryActiveFilterChips extends ConsumerWidget {
           l10n.media_library_filter_species;
       chips.add(
         chip(name, () => _update(ref, (f) => f.copyWith(speciesId: null))),
+      );
+    }
+
+    // One chip per selected tag (issue #1970), each clearing only itself.
+    for (final tagId in filter.tagIds) {
+      final name =
+          tags.where((t) => t.id == tagId).firstOrNull?.name ??
+          l10n.media_library_filter_tags;
+      chips.add(
+        chip(
+          name,
+          () => _update(
+            ref,
+            (f) =>
+                f.copyWith(tagIds: f.tagIds.where((id) => id != tagId).toSet()),
+          ),
+        ),
       );
     }
 

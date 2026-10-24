@@ -138,8 +138,10 @@ void main() {
       'Use for dives',
       'Use for sites',
       'Use for equipment',
+      'Use for media',
+      'Use for documents',
     ]);
-    expect(boxes.map((b) => b.value), [false, false, true]);
+    expect(boxes.map((b) => b.value), [false, false, true, false, false]);
   });
 
   testWidgets('turning off equipment confirms, then removes the links', (
