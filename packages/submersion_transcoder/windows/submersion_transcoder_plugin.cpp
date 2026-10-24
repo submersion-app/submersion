@@ -310,9 +310,11 @@ SubmersionTranscoderPlugin::SubmersionTranscoderPlugin(
     flutter::PluginRegistrarWindows* registrar)
     : registrar_(registrar) {
   // The transcode worker signals progress with PostMessage to the platform
-  // window; capture its HWND so ProgressDispatcher::Emit can reach it.
+  // window; capture its HWND so ProgressDispatcher::Emit can reach it. The
+  // view's own HWND is a child window, and the delegate below only sees
+  // messages sent to the top-level one, so post to the root window.
   if (auto* view = registrar_->GetView()) {
-    dispatcher_->SetWindow(view->GetNativeWindow());
+    dispatcher_->SetWindow(GetAncestor(view->GetNativeWindow(), GA_ROOT));
   }
   // Drain queued progress on the platform thread whenever the worker signals.
   window_proc_delegate_id_ = registrar_->RegisterTopLevelWindowProcDelegate(
