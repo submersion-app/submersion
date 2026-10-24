@@ -6,11 +6,11 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 void main() {
   testWidgets('reads Closed and is not a Chip', (tester) async {
     await tester.pumpWidget(
-      MaterialApp(
-        locale: const Locale('en'),
+      const MaterialApp(
+        locale: Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        home: const Scaffold(body: Center(child: DiveCenterClosedTag())),
+        home: Scaffold(body: Center(child: DiveCenterClosedTag())),
       ),
     );
     await tester.pumpAndSettle();
