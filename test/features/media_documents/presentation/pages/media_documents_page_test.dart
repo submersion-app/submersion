@@ -6,7 +6,14 @@ import 'package:submersion/core/router/media_documents_locations.dart';
 import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 import 'package:submersion/features/documents/presentation/providers/document_providers.dart';
+import 'package:submersion/features/media/domain/entities/media_source_type.dart';
+import 'package:submersion/features/media/presentation/pages/media_sources_section_view.dart';
+import 'package:submersion/features/media/presentation/providers/media_library_providers.dart';
+import 'package:submersion/features/media/presentation/providers/media_watcher_providers.dart';
 import 'package:submersion/features/media_documents/presentation/pages/media_documents_page.dart';
+import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
+import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
+import 'package:submersion/features/settings/data/repositories/app_settings_repository.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_link_providers.dart';
@@ -384,6 +391,25 @@ void main() {
             certificationCatalogSyncProvider.overrideWithValue(
               CertificationCatalog.builtInOnly,
             ),
+            // The Media tab, switched through below, builds the real
+            // MediaSectionPage -- these replace its own provider chain
+            // wholesale (mediaLibraryNotifierProvider's real implementation
+            // needs sharedPreferencesProvider, which this ProviderScope
+            // never initializes), the same overrides
+            // media_section_page_test.dart's own harness uses.
+            mediaLibraryNotifierProvider.overrideWith(
+              (ref) => _SeededLibraryNotifier(),
+            ),
+            appSettingsRepositoryProvider.overrideWithValue(
+              _FakeSettingsRepo(),
+            ),
+            mediaTransferEntriesProvider.overrideWith(
+              (ref) => Stream.value(const <MediaTransferQueueEntry>[]),
+            ),
+            sourceCountsProvider.overrideWith(
+              (ref) async => const <MediaSourceType, int>{},
+            ),
+            watchedRootsProvider.overrideWith((ref) async => const <String>[]),
           ],
           child: MaterialApp.router(
             routerConfig: router,
@@ -420,4 +446,31 @@ void main() {
       );
     });
   });
+}
+
+/// Minimal stand-ins for the real Media tab's own providers, mirroring
+/// `media_section_page_test.dart`'s harness: they replace
+/// `mediaLibraryNotifierProvider`/`appSettingsRepositoryProvider` wholesale,
+/// so their own `ref.watch` chains (which reach `sharedPreferencesProvider`)
+/// never run.
+class _SeededLibraryNotifier extends StateNotifier<MediaLibraryState>
+    implements MediaLibraryNotifier {
+  _SeededLibraryNotifier() : super(const MediaLibraryState());
+
+  @override
+  Future<void> loadFirstPage() async {}
+
+  @override
+  Future<void> loadMore() async {}
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _FakeSettingsRepo extends AppSettingsRepository {
+  @override
+  Future<String?> getRawSetting(String key) async => null;
+
+  @override
+  Future<void> setRawSetting(String key, String value) async {}
 }
