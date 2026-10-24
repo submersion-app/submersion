@@ -2485,6 +2485,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get backup_history_pinAction_unpin => 'בטל הצמדת גיבוי';
 
   @override
+  String get backup_history_pinnedOnAnotherDevice => 'מוצמד במכשיר אחר';
+
+  @override
   String get backup_history_pinError => 'לא ניתן לעדכן את מצב ההצמדה.';
 
   @override

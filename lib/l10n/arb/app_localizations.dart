@@ -3949,6 +3949,12 @@ abstract class AppLocalizations {
   /// **'Unpin backup'**
   String get backup_history_pinAction_unpin;
 
+  /// No description provided for @backup_history_pinnedOnAnotherDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Pinned on another device'**
+  String get backup_history_pinnedOnAnotherDevice;
+
   /// No description provided for @backup_history_pinError.
   ///
   /// In en, this message translates to:

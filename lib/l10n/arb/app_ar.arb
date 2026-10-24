@@ -9824,6 +9824,7 @@
   "settings_appearance_showProfilePanel_subtitle": "عرض مخطط ملف الغوصة فوق الجدول بشكل افتراضي",
   "backup_history_pinAction_pin": "تثبيت النسخة الاحتياطية",
   "backup_history_pinAction_unpin": "إلغاء تثبيت النسخة الاحتياطية",
+  "backup_history_pinnedOnAnotherDevice": "مثبتة على جهاز آخر",
   "backup_history_pinError": "تعذر تحديث حالة التثبيت.",
   "backup_history_preMigrationSubtitle": "نسخة احتياطية قبل الترحيل - {size}",
   "universalImport_bulk_consolidateMatched": "دمج المتطابقة ({count})",

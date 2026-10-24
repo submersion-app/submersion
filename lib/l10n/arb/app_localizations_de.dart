@@ -2518,6 +2518,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get backup_history_pinAction_unpin => 'Backup lösen';
 
   @override
+  String get backup_history_pinnedOnAnotherDevice =>
+      'Auf einem anderen Gerät angeheftet';
+
+  @override
   String get backup_history_pinError =>
       'Anheftstatus konnte nicht aktualisiert werden.';
 

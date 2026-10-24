@@ -9824,6 +9824,7 @@
   "settings_appearance_showProfilePanel_subtitle": "Exibir gráfico de perfil de mergulho acima da tabela por padrão",
   "backup_history_pinAction_pin": "Fixar backup",
   "backup_history_pinAction_unpin": "Desafixar backup",
+  "backup_history_pinnedOnAnotherDevice": "Fixado noutro dispositivo",
   "backup_history_pinError": "Não foi possível atualizar o estado de fixação.",
   "backup_history_preMigrationSubtitle": "Backup pré-migração - {size}",
   "universalImport_bulk_consolidateMatched": "Consolidar correspondentes ({count})",

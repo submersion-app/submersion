@@ -9824,6 +9824,7 @@
   "settings_appearance_showProfilePanel_subtitle": "הצג תרשים פרופיל צלילה מעל הטבלה כברירת מחדל",
   "backup_history_pinAction_pin": "הצמד גיבוי",
   "backup_history_pinAction_unpin": "בטל הצמדת גיבוי",
+  "backup_history_pinnedOnAnotherDevice": "מוצמד במכשיר אחר",
   "backup_history_pinError": "לא ניתן לעדכן את מצב ההצמדה.",
   "backup_history_preMigrationSubtitle": "גיבוי לפני העברה - {size}",
   "universalImport_bulk_consolidateMatched": "איחוד מתאימים ({count})",

@@ -2520,6 +2520,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get backup_history_pinAction_unpin => 'Rimuovi fissaggio backup';
 
   @override
+  String get backup_history_pinnedOnAnotherDevice =>
+      'Fissato su un altro dispositivo';
+
+  @override
   String get backup_history_pinError =>
       'Impossibile aggiornare lo stato di fissaggio.';
 

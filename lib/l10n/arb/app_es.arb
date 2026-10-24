@@ -9824,6 +9824,7 @@
   "settings_appearance_showProfilePanel_subtitle": "Mostrar gráfico de perfil de inmersión sobre la tabla por defecto",
   "backup_history_pinAction_pin": "Anclar copia de seguridad",
   "backup_history_pinAction_unpin": "Desanclar copia de seguridad",
+  "backup_history_pinnedOnAnotherDevice": "Anclada en otro dispositivo",
   "backup_history_pinError": "No se pudo actualizar el estado de anclaje.",
   "backup_history_preMigrationSubtitle": "Copia previa a la migración - {size}",
   "universalImport_bulk_consolidateMatched": "Consolidar coincidentes ({count})",

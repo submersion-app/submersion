@@ -2511,6 +2511,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get backup_history_pinAction_unpin => 'Rögzítés megszüntetése';
 
   @override
+  String get backup_history_pinnedOnAnotherDevice =>
+      'Egy másik eszközön rögzítve';
+
+  @override
   String get backup_history_pinError =>
       'Nem sikerült a rögzítés állapotát frissíteni.';
 

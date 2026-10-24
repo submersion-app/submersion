@@ -9824,6 +9824,7 @@
   "settings_appearance_showProfilePanel_subtitle": "Visualizza il grafico del profilo di immersione sopra la tabella per impostazione predefinita",
   "backup_history_pinAction_pin": "Fissa backup",
   "backup_history_pinAction_unpin": "Rimuovi fissaggio backup",
+  "backup_history_pinnedOnAnotherDevice": "Fissato su un altro dispositivo",
   "backup_history_pinError": "Impossibile aggiornare lo stato di fissaggio.",
   "backup_history_preMigrationSubtitle": "Backup pre-migrazione - {size}",
   "universalImport_bulk_consolidateMatched": "Consolida corrispondenti ({count})",

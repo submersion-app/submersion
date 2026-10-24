@@ -9956,6 +9956,7 @@
   "settings_appearance_showProfilePanel_subtitle": "Tauchprofildiagramm standardmäßig über der Tabelle anzeigen",
   "backup_history_pinAction_pin": "Backup anheften",
   "backup_history_pinAction_unpin": "Backup lösen",
+  "backup_history_pinnedOnAnotherDevice": "Auf einem anderen Gerät angeheftet",
   "backup_history_pinError": "Anheftstatus konnte nicht aktualisiert werden.",
   "backup_history_preMigrationSubtitle": "Vor-Migrations-Backup - {size}",
   "universalImport_bulk_consolidateMatched": "Übereinstimmende zusammenführen ({count})",

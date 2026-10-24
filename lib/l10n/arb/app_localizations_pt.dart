@@ -2516,6 +2516,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get backup_history_pinAction_unpin => 'Desafixar backup';
 
   @override
+  String get backup_history_pinnedOnAnotherDevice =>
+      'Fixado noutro dispositivo';
+
+  @override
   String get backup_history_pinError =>
       'Não foi possível atualizar o estado de fixação.';
 

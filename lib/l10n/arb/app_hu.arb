@@ -9824,6 +9824,7 @@
   "settings_appearance_showProfilePanel_subtitle": "Merülési profil diagram megjelenítése a táblázat felett alapértelmezetten",
   "backup_history_pinAction_pin": "Biztonsági mentés rögzítése",
   "backup_history_pinAction_unpin": "Rögzítés megszüntetése",
+  "backup_history_pinnedOnAnotherDevice": "Egy másik eszközön rögzítve",
   "backup_history_pinError": "Nem sikerült a rögzítés állapotát frissíteni.",
   "backup_history_preMigrationSubtitle": "Migráció előtti mentés - {size}",
   "universalImport_bulk_consolidateMatched": "Egyezőek összevonása ({count})",

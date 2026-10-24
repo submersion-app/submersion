@@ -9824,6 +9824,7 @@
   "settings_appearance_showProfilePanel_subtitle": "Afficher le graphique de profil de plongée au-dessus du tableau par défaut",
   "backup_history_pinAction_pin": "Épingler la sauvegarde",
   "backup_history_pinAction_unpin": "Désépingler la sauvegarde",
+  "backup_history_pinnedOnAnotherDevice": "Épinglée sur un autre appareil",
   "backup_history_pinError": "Impossible de mettre à jour l'état d'épinglage.",
   "backup_history_preMigrationSubtitle": "Sauvegarde avant migration - {size}",
   "universalImport_bulk_consolidateMatched": "Consolider les correspondances ({count})",

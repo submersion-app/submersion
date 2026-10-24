@@ -9824,6 +9824,7 @@
   "settings_appearance_showProfilePanel_subtitle": "Duikprofielgrafiek standaard boven de tabel weergeven",
   "backup_history_pinAction_pin": "Back-up vastmaken",
   "backup_history_pinAction_unpin": "Back-up losmaken",
+  "backup_history_pinnedOnAnotherDevice": "Vastgemaakt op een ander apparaat",
   "backup_history_pinError": "Kan vastmaakstatus niet bijwerken.",
   "backup_history_preMigrationSubtitle": "Back-up voor migratie - {size}",
   "universalImport_bulk_consolidateMatched": "Gematchte consolideren ({count})",

@@ -2,6 +2,7 @@ import 'package:path/path.dart' as p;
 
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/features/backup/data/services/backup_attribution.dart';
+import 'package:submersion/features/backup/data/services/backup_pin_markers.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 
 /// Cloud backups the local history has no record of (issue #3214).
@@ -93,6 +94,31 @@ List<BackupRecord> mergeCloudBackups(
 
 /// The timestamp a backup's name starts with, in the local time of the device
 /// that wrote it, or null when the name carries none.
+/// [rows] with every row another device has pinned marked as such (issue
+/// #3503), read from the pin markers in [listing]. A row pinned here is left
+/// as it is: its own pin already shows. When [thisDeviceId] is unknown, a
+/// marker cannot be told apart from this device's own, so none is read.
+List<BackupRecord> markPinnedOnAnotherDevice(
+  List<BackupRecord> rows,
+  Iterable<CloudFileInfo> listing, {
+  required String? thisDeviceId,
+}) {
+  if (thisDeviceId == null) return rows;
+  final myTag = deviceTag(thisDeviceId);
+  final elsewhere = {
+    for (final f in listing)
+      if (parsePinMarker(f.name) case final m? when m.deviceTag != myTag)
+        m.backupStem,
+  };
+  if (elsewhere.isEmpty) return rows;
+  return [
+    for (final r in rows)
+      !r.pinned && elsewhere.contains(backupStem(r.filename))
+          ? r.copyWith(pinnedOnAnotherDevice: true)
+          : r,
+  ];
+}
+
 DateTime? backupTimestampFromName(String name) {
   final match = _nameTimestamp.firstMatch(name);
   if (match == null) return null;

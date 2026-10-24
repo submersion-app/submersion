@@ -2493,6 +2493,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get backup_history_pinAction_unpin => 'Unpin backup';
 
   @override
+  String get backup_history_pinnedOnAnotherDevice => 'Pinned on another device';
+
+  @override
   String get backup_history_pinError => 'Could not update pin state.';
 
   @override

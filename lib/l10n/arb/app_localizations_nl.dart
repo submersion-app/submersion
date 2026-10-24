@@ -2507,6 +2507,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get backup_history_pinAction_unpin => 'Back-up losmaken';
 
   @override
+  String get backup_history_pinnedOnAnotherDevice =>
+      'Vastgemaakt op een ander apparaat';
+
+  @override
   String get backup_history_pinError => 'Kan vastmaakstatus niet bijwerken.';
 
   @override

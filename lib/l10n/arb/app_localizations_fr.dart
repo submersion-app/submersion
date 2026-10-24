@@ -2525,6 +2525,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get backup_history_pinAction_unpin => 'Désépingler la sauvegarde';
 
   @override
+  String get backup_history_pinnedOnAnotherDevice =>
+      'Épinglée sur un autre appareil';
+
+  @override
   String get backup_history_pinError =>
       'Impossible de mettre à jour l\'état d\'épinglage.';
 

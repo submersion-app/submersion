@@ -1556,6 +1556,7 @@
   },
   "backup_history_pinAction_pin": "Pin backup",
   "backup_history_pinAction_unpin": "Unpin backup",
+  "backup_history_pinnedOnAnotherDevice": "Pinned on another device",
   "backup_history_pinError": "Could not update pin state.",
   "backup_history_preMigrationSubtitle": "Pre-migration backup - {size}",
   "@backup_history_preMigrationSubtitle": {

@@ -9824,6 +9824,7 @@
   "settings_appearance_showProfilePanel_subtitle": "默认在表格上方显示潜水剖面图",
   "backup_history_pinAction_pin": "置顶备份",
   "backup_history_pinAction_unpin": "取消置顶备份",
+  "backup_history_pinnedOnAnotherDevice": "已在另一台设备上置顶",
   "backup_history_pinError": "无法更新置顶状态。",
   "backup_history_preMigrationSubtitle": "迁移前备份 - {size}",
   "universalImport_bulk_consolidateMatched": "合并匹配项 ({count})",

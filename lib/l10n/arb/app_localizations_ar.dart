@@ -2574,6 +2574,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get backup_history_pinAction_unpin => 'إلغاء تثبيت النسخة الاحتياطية';
 
   @override
+  String get backup_history_pinnedOnAnotherDevice => 'مثبتة على جهاز آخر';
+
+  @override
   String get backup_history_pinError => 'تعذر تحديث حالة التثبيت.';
 
   @override

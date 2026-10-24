@@ -32,6 +32,11 @@ class BackupRecord extends Equatable {
   /// made before accounts were noted, or with no cloud copy.
   final String? cloudAccountId;
 
+  /// Set on a cloud row another device has pinned (issue #3503), from that
+  /// device's marker in the folder. Display only: never stored, since the
+  /// marker is the truth and another device can remove it at any time.
+  final bool pinnedOnAnotherDevice;
+
   const BackupRecord({
     required this.id,
     required this.filename,
@@ -50,6 +55,7 @@ class BackupRecord extends Equatable {
     this.pinned = false,
     this.note,
     this.cloudAccountId,
+    this.pinnedOnAnotherDevice = false,
   });
 
   BackupRecord copyWith({
@@ -70,6 +76,7 @@ class BackupRecord extends Equatable {
     bool? pinned,
     String? note,
     String? cloudAccountId,
+    bool? pinnedOnAnotherDevice,
   }) {
     return BackupRecord(
       id: id ?? this.id,
@@ -89,6 +96,8 @@ class BackupRecord extends Equatable {
       pinned: pinned ?? this.pinned,
       note: note ?? this.note,
       cloudAccountId: cloudAccountId ?? this.cloudAccountId,
+      pinnedOnAnotherDevice:
+          pinnedOnAnotherDevice ?? this.pinnedOnAnotherDevice,
     );
   }
 
@@ -189,5 +198,6 @@ class BackupRecord extends Equatable {
     pinned,
     note,
     cloudAccountId,
+    pinnedOnAnotherDevice,
   ];
 }

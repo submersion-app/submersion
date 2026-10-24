@@ -676,10 +676,15 @@ final backupHistoryProvider = FutureProvider.autoDispose<List<BackupRecord>>((
   // unawaited on that path cannot surface an unhandled error.
   final cloudFiles = service.getCloudBackups();
   final history = await service.getValidatedBackupHistory();
-  return mergeCloudBackups(
-    history,
-    await cloudFiles,
-    accountId: await service.cloudCopyAccountId(),
+  final listing = await cloudFiles;
+  return markPinnedOnAnotherDevice(
+    mergeCloudBackups(
+      history,
+      listing,
+      accountId: await service.cloudCopyAccountId(),
+    ),
+    listing,
+    thisDeviceId: await service.thisDeviceIdOrNull(),
   );
 });
 

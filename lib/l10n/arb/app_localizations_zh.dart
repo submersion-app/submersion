@@ -2401,6 +2401,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get backup_history_pinAction_unpin => '取消置顶备份';
 
   @override
+  String get backup_history_pinnedOnAnotherDevice => '已在另一台设备上置顶';
+
+  @override
   String get backup_history_pinError => '无法更新置顶状态。';
 
   @override
