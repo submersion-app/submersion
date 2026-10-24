@@ -32,6 +32,7 @@ import 'package:submersion/core/services/database_service.dart'
     show DatabaseService;
 import 'package:submersion/features/backup/domain/exceptions/backup_encrypted_exception.dart';
 import 'package:submersion/features/backup/data/services/backup_attribution.dart';
+import 'package:submersion/features/backup/data/services/backup_pin_markers.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 import 'package:submersion/features/marine_life/data/services/builtin_species_seed_version_store.dart';
 import 'package:submersion/features/backup/data/services/backup_database_adapter.dart';
@@ -49,6 +50,7 @@ import 'package:submersion/features/backup/domain/entities/restore_mode.dart';
 export 'package:submersion/features/backup/data/services/backup_database_adapter.dart';
 
 part 'backup_service_cloud_copy.dart';
+part 'backup_service_retention.dart';
 
 /// A backups directory ready to write into, plus [release] to call when the
 /// caller is done -- which stops any security-scoped access that was armed to
@@ -1286,12 +1288,12 @@ class BackupService {
     if (!await _cloudCopyHere(record)) return;
     if (!await provider.fileExists(cloudFileId)) return;
     // Listed through this provider, so it is in the copy's account now.
-    await _preferences.addRecord(
-      record.copyWith(
-        pinned: true,
-        cloudAccountId: record.cloudAccountId ?? await _copyAccountIdOrNull(),
-      ),
+    final adopted = record.copyWith(
+      pinned: true,
+      cloudAccountId: record.cloudAccountId ?? await _copyAccountIdOrNull(),
     );
+    await _preferences.addRecord(adopted);
+    await _writePinMarker(adopted);
   }
 
   /// Whether deleting [record] may destroy another device's only copy.
@@ -1329,6 +1331,12 @@ class BackupService {
     }
     if (match == null) return;
     await _preferences.updateRecord(match.copyWith(pinned: pinned));
+    // Other devices see a pin only through its marker (issue #3503).
+    if (pinned) {
+      await _writePinMarker(match);
+    } else {
+      await _deletePinMarker(match);
+    }
   }
 
   /// Remove old backups beyond the retention count.
