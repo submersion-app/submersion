@@ -38,14 +38,18 @@ import 'package:submersion/features/import_wizard/domain/models/import_cancellat
 import 'package:submersion/features/import_wizard/domain/models/import_phase.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_notice.dart';
+import 'package:submersion/features/import_wizard/domain/models/diver_import_outcome.dart';
+import 'package:submersion/features/import_wizard/domain/models/import_target_choice.dart';
 import 'package:submersion/features/import_wizard/domain/models/unified_import_result.dart';
 import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/shared/widgets/wizard/wizard_step_def.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/dc_adapter_steps.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/downloaded_dive_summary.dart';
 
 part 'dive_computer_adapter_connections.dart';
 part 'dive_computer_adapter_import_steps.dart';
+part 'dive_computer_adapter_target.dart';
 
 // ---------------------------------------------------------------------------
 // Bridge providers
@@ -78,7 +82,8 @@ final dcAdapterDownloadCanAdvanceProvider = StateProvider<bool>((ref) => false);
 ///
 /// **Quick download (known computer)** -- [knownComputer] is provided.
 /// One acquisition step: Download (auto-scans for the known device).
-class DiveComputerAdapter implements ImportSourceAdapter {
+class DiveComputerAdapter
+    implements ImportSourceAdapter, RetargetableImportAdapter {
   static final _log = LoggerService.forClass(DiveComputerAdapter);
 
   DiveComputerAdapter({
@@ -93,6 +98,8 @@ class DiveComputerAdapter implements ImportSourceAdapter {
     bool forceFullDownload = false,
     PlannedDiveFillService? fillService,
     DiveComputerConnectionRepository? connectionRepository,
+    Future<bool> Function()? followComputerOwner,
+    DiverNameLookup? diverName,
   }) : _importService = importService,
        _connectionRepository = connectionRepository,
        _computerRepository = computerRepository,
@@ -106,7 +113,9 @@ class DiveComputerAdapter implements ImportSourceAdapter {
              importService: importService,
              consolidation: consolidationService,
            ),
-       _diverId = diverId,
+       _activeDiverId = diverId,
+       _followComputerOwner = followComputerOwner,
+       _diverName = diverName,
        _knownComputer = knownComputer,
        _ref = ref,
        _forceFullDownload = forceFullDownload,
@@ -128,7 +137,37 @@ class DiveComputerAdapter implements ImportSourceAdapter {
 
   /// Fills planned dives from downloads (issue #2002).
   final PlannedDiveFillService _fillService;
-  final String _diverId;
+
+  /// The profile that was active when the download started. A computer seen
+  /// for the first time is registered to it.
+  final String _activeDiverId;
+
+  /// Whether a computer owned by another profile defaults to that profile
+  /// (issue #2050); the diver's "Add downloads to the computer's owner",
+  /// read from [_ref]'s settings when not given. Read when the target is
+  /// resolved, so a wizard opened before settings load still honours it.
+  final Future<bool> Function()? _followComputerOwner;
+
+  /// Looks up a profile's name; read from [_ref] when not given.
+  final DiverNameLookup? _diverName;
+
+  /// The profile chosen for this download, or null for the active profile.
+  String? _chosenDiverId;
+
+  /// The computer's owner when it is another existing profile; see
+  /// [DiveComputerAdapterTarget.resolveTarget].
+  String? _ownerDiverId;
+
+  /// Profile names already looked up, standing in when a later lookup fails.
+  final Map<String, String> _diverNames = {};
+
+  /// Send this download to [diverId]. The computer's owner does not change.
+  @override
+  Future<void> setTargetDiver(String diverId) async {
+    _chosenDiverId = diverId;
+    await _lookUpDiverName(diverId);
+  }
+
   final DiveComputer? _knownComputer;
   final WidgetRef? _ref;
   final bool _forceFullDownload;
@@ -244,15 +283,17 @@ class DiveComputerAdapter implements ImportSourceAdapter {
   /// completes.
   Future<void> resolveKnownComputer(DiscoveredDevice device) async {
     if (computer != null) return;
-    if (_diverId.isNotEmpty && await _resolveByLocalConnection(device)) {
+    if (_activeDiverId.isNotEmpty && await _resolveByLocalConnection(device)) {
       return;
     }
     if (device.connectionType == DeviceConnectionType.ble ||
         device.connectionType == DeviceConnectionType.bluetoothClassic) {
-      if (_diverId.isEmpty) return;
-      final existing = await _computerRepository.findByBluetoothAddress(
-        device.address,
-        diverId: _diverId,
+      if (_activeDiverId.isEmpty) return;
+      final existing = await _findAcrossProfiles(
+        (diverId) => _computerRepository.findByBluetoothAddress(
+          device.address,
+          diverId: diverId,
+        ),
       );
       if (existing != null) {
         _computer = existing;
@@ -351,11 +392,13 @@ class DiveComputerAdapter implements ImportSourceAdapter {
     // either side is compatible, so a computer first registered by a file
     // import is found here too.
     if (normalizedSerial?.isNotEmpty == true) {
-      var existing = await _computerRepository.findByHardwareIdentity(
-        manufacturer: normalizedManufacturer,
-        model: normalizedModel,
-        serialNumber: normalizedSerial!,
-        diverId: _diverId,
+      var existing = await _findAcrossProfiles(
+        (diverId) => _computerRepository.findByHardwareIdentity(
+          manufacturer: normalizedManufacturer,
+          model: normalizedModel,
+          serialNumber: normalizedSerial!,
+          diverId: diverId,
+        ),
       );
       // A build before issue #422 saved the computer under the model it was
       // scanned as; find that record rather than creating a duplicate.
@@ -363,11 +406,13 @@ class DiveComputerAdapter implements ImportSourceAdapter {
           hasReported &&
           scannedModel?.isNotEmpty == true &&
           scannedModel != normalizedModel) {
-        existing = await _computerRepository.findByHardwareIdentity(
-          manufacturer: normalizedManufacturer,
-          model: scannedModel!,
-          serialNumber: normalizedSerial,
-          diverId: _diverId,
+        existing = await _findAcrossProfiles(
+          (diverId) => _computerRepository.findByHardwareIdentity(
+            manufacturer: normalizedManufacturer,
+            model: scannedModel!,
+            serialNumber: normalizedSerial!,
+            diverId: diverId,
+          ),
         );
       }
       if (existing != null) {
@@ -399,7 +444,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
               (hasReported
                   ? '${device.manufacturer} $reported'
                   : device.displayName),
-          diverId: _diverId,
+          diverId: _activeDiverId,
           manufacturer: device.manufacturer,
           model: hasReported ? reported : device.model,
         ).copyWith(
@@ -420,6 +465,8 @@ class DiveComputerAdapter implements ImportSourceAdapter {
   @override
   void resetState() {
     _sinceCutoff = null;
+    _chosenDiverId = null;
+    _ownerDiverId = null;
     _downloadInterrupted = false;
     _deliversOldestFirst = false;
     _pendingComputerSave = null;
@@ -573,6 +620,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
     // (contained segments, cross-computer consolidation) on that id. A
     // failure here is left for performImport to report.
     await _retryPendingComputerSave();
+    await resolveTarget();
 
     final items = _downloadedDives.map(_diveToEntityItem).toList();
 
@@ -603,6 +651,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
           autoSkipIndices: autoSkip.isEmpty ? null : autoSkip,
         ),
       },
+      targetChoice: _targetChoice,
     );
   }
 
@@ -617,14 +666,14 @@ class DiveComputerAdapter implements ImportSourceAdapter {
     // Prefetch the source-key map once for the whole download; the
     // fingerprint pass in detectDuplicate scans it per dive.
     final sourceKeysCache = await _diveRepository.getSourceKeysByDiveId(
-      diverId: _diverId,
+      diverId: targetDiverId,
     );
 
     for (var i = 0; i < _downloadedDives.length; i++) {
       final dive = _downloadedDives[i];
       final result = await _importService.detectDuplicate(
         dive,
-        diverId: _diverId,
+        diverId: targetDiverId,
         computerId: computer?.id,
         sourceKeysCache: sourceKeysCache,
       );
@@ -652,7 +701,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
     // becomes a fill. An empty diver id means an unscoped library, where
     // every planned dive is a candidate.
     final planned = await _diveRepository.getPlannedDives(
-      diverId: _diverId.isEmpty ? null : _diverId,
+      diverId: targetDiverId.isEmpty ? null : targetDiverId,
     );
     if (planned.isNotEmpty) {
       final unmatched = [
@@ -677,8 +726,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
       }
     }
 
-    return ImportBundle(
-      source: bundle.source,
+    return bundle.copyWith(
       groups: {
         ...bundle.groups,
         ImportEntityType.dives: EntityGroup(
@@ -895,7 +943,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
             conflict,
             ConflictResolution.replaceSource,
             comp.id,
-            diverId: _diverId,
+            diverId: targetDiverId,
             descriptorVendor: _descriptorVendor,
             descriptorProduct: _descriptorProduct,
             descriptorModel: _descriptorModel,
@@ -911,7 +959,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
         final diveId = await _importService.importSingleDiveAsNew(
           dive,
           computerId: comp.id,
-          diverId: _diverId,
+          diverId: targetDiverId,
           descriptorVendor: _descriptorVendor,
           descriptorProduct: _descriptorProduct,
           descriptorModel: _descriptorModel,
@@ -959,6 +1007,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
       diveRepository: _diveRepository,
       importedDiveIds: importedDiveIds,
     );
+    final diverOutcomes = await _diverOutcomes(importedDiveIds);
     return UnifiedImportResult(
       importedCounts: {ImportEntityType.dives: imported},
       consolidatedCount: consolidated,
@@ -966,7 +1015,11 @@ class DiveComputerAdapter implements ImportSourceAdapter {
       filledCount: filled,
       fillOutcomes: fillOutcomes,
       skippedCount: skipped,
-      importedDiveIds: importedDiveIds,
+      // "View Dives" and the quality count work in the active profile, so a
+      // download sent to another profile reports its dives only through
+      // diverOutcomes, as a multi-profile file import does (issue #2050).
+      importedDiveIds: diverOutcomes.isEmpty ? importedDiveIds : const [],
+      diverOutcomes: diverOutcomes,
       notices: [
         if (unmatched.isNotEmpty && writtenDives.isNotEmpty)
           ImportNotice(

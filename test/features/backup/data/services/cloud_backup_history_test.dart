@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/features/backup/data/services/backup_attribution.dart';
+import 'package:submersion/features/backup/data/services/backup_pin_markers.dart';
 import 'package:submersion/features/backup/data/services/cloud_backup_history.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 
@@ -200,5 +201,60 @@ void main() {
       ),
     ], accountId: 'acct-b');
     expect(merged.single.cloudAccountId, 'acct-b');
+  });
+
+  group('markPinnedOnAnotherDevice (#3503)', () {
+    const name = 'submersion_backup_2026-10-01_090000.db';
+    final row = backupRecordFromCloudFile(_file(name))!;
+    CloudFileInfo marker(String device) =>
+        _file(pinMarkerName(backupFilename: name, pinningDeviceId: device));
+
+    test('marks a row another device has pinned', () {
+      final rows = markPinnedOnAnotherDevice(
+        [row],
+        [_file(name), marker('dev-B')],
+        thisDeviceId: 'dev-A',
+      );
+      expect(rows.single.pinnedOnAnotherDevice, isTrue);
+    });
+
+    test('ignores this device\'s own marker', () {
+      final rows = markPinnedOnAnotherDevice(
+        [row],
+        [_file(name), marker('dev-A')],
+        thisDeviceId: 'dev-A',
+      );
+      expect(rows.single.pinnedOnAnotherDevice, isFalse);
+    });
+
+    test('leaves this device\'s own history rows pinnable', () {
+      final own = _tracked(
+        id: 'own',
+        filename: name,
+        timestamp: DateTime(2026, 10, 1, 9),
+        cloudFileId: 'id-$name',
+      );
+      final rows = markPinnedOnAnotherDevice(
+        [own],
+        [_file(name), marker('dev-B')],
+        thisDeviceId: 'dev-A',
+      );
+      expect(rows.single.pinnedOnAnotherDevice, isFalse);
+    });
+
+    test('leaves a row pinned here alone', () {
+      final pinned = row.copyWith(pinned: true);
+      final rows = markPinnedOnAnotherDevice(
+        [pinned],
+        [_file(name), marker('dev-B')],
+        thisDeviceId: 'dev-A',
+      );
+      expect(rows.single, pinned);
+    });
+
+    test('is never written to the stored record', () {
+      final marked = row.copyWith(pinnedOnAnotherDevice: true);
+      expect(marked.toJson().containsKey('pinnedOnAnotherDevice'), isFalse);
+    });
   });
 }

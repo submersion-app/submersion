@@ -100,60 +100,82 @@ class _PhotosUsingRowState extends ConsumerState<PhotosUsingRow> {
     );
     if (choice == null || !mounted) return;
     setState(() => _busy = true);
-    final messenger = ScaffoldMessenger.of(context);
     // The same decision the sheet's text came from. The account in use
     // again attaches again: that is how a marker mismatch or a store this
     // device could not reach is recovered.
-    final switching = isPhotosSwitch(copies, facts, choice);
-    final attach = container.read(mediaStoreAccountAttachProvider);
-    Future<MediaStoreConnectResult> run() => switching
-        ? attach.switchTo(choice)
-        : attach.attach(
-            choice,
-            storeAccountId: copies.store?.accountId,
-            storeId: copies.store?.id,
-          );
-    try {
-      MediaStoreConnectResult result;
-      try {
-        result = await run();
-      } on MediaStoreException catch (e) {
-        final untrusted = untrustedCertificateOf(e);
-        if (untrusted == null || !mounted) rethrow;
-        if (!await showWebDavTrustDialog(context, untrusted)) rethrow;
-        await attach.trustCertificate(choice, untrusted.certificate.sha256);
-        result = await run();
-      }
-      // Meant to join the library's copies, but the account held none: say
-      // a second set was started rather than claim the join.
-      final announced = copies.store?.id;
-      final startedSeparate =
-          !switching &&
-          result.createdNewStore &&
-          announced != null &&
-          announced != result.storeId;
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text(
-            startedSeparate
-                ? l10n.settings_photos_startedSeparate(choice.label)
-                : l10n.settings_photos_attached(choice.label),
-          ),
-        ),
-      );
-    } on MediaStoreException catch (e) {
-      messenger.showSnackBar(
-        SnackBar(content: Text(photosAttachErrorText(l10n, e, choice))),
-      );
-    } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text('$e')));
-    } finally {
-      // Every reader of the attachment and the accounts' uses re-reads,
-      // whichever way the choice went.
-      invalidateMediaStoreAttachmentWith(container.invalidate);
-      container.invalidate(photosCopiesProvider);
-      refreshAccountState(container.invalidate);
-      if (mounted) setState(() => _busy = false);
-    }
+    await attachPhotosAccount(
+      context,
+      choice,
+      copies: copies,
+      switching: isPhotosSwitch(copies, facts, choice),
+    );
+    if (mounted) setState(() => _busy = false);
   }
+}
+
+/// Attaches this device's photo copies to [choice]: joins the store
+/// [copies] names when it lives there, else starts one, or with
+/// [switching] moves them. An own server's untrusted certificate is
+/// offered for trust once, and the outcome is said in a snackbar. True when
+/// the copies are attached to [choice] afterwards.
+Future<bool> attachPhotosAccount(
+  BuildContext context,
+  AccountGroup choice, {
+  required PhotosCopies copies,
+  bool switching = false,
+}) async {
+  final l10n = context.l10n;
+  final container = ProviderScope.containerOf(context, listen: false);
+  final messenger = ScaffoldMessenger.of(context);
+  final attach = container.read(mediaStoreAccountAttachProvider);
+  Future<MediaStoreConnectResult> run() => switching
+      ? attach.switchTo(choice)
+      : attach.attach(
+          choice,
+          storeAccountId: copies.store?.accountId,
+          storeId: copies.store?.id,
+        );
+  try {
+    MediaStoreConnectResult result;
+    try {
+      result = await run();
+    } on MediaStoreException catch (e) {
+      final untrusted = untrustedCertificateOf(e);
+      if (untrusted == null || !context.mounted) rethrow;
+      if (!await showWebDavTrustDialog(context, untrusted)) rethrow;
+      await attach.trustCertificate(choice, untrusted.certificate.sha256);
+      result = await run();
+    }
+    // Meant to join the library's copies, but the account held none: say
+    // a second set was started rather than claim the join.
+    final announced = copies.store?.id;
+    final startedSeparate =
+        !switching &&
+        result.createdNewStore &&
+        announced != null &&
+        announced != result.storeId;
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(
+          startedSeparate
+              ? l10n.settings_photos_startedSeparate(choice.label)
+              : l10n.settings_photos_attached(choice.label),
+        ),
+      ),
+    );
+    return true;
+  } on MediaStoreException catch (e) {
+    messenger.showSnackBar(
+      SnackBar(content: Text(photosAttachErrorText(l10n, e, choice))),
+    );
+  } catch (e) {
+    messenger.showSnackBar(SnackBar(content: Text('$e')));
+  } finally {
+    // Every reader of the attachment and the accounts' uses re-reads,
+    // whichever way the choice went.
+    invalidateMediaStoreAttachmentWith(container.invalidate);
+    container.invalidate(photosCopiesProvider);
+    refreshAccountState(container.invalidate);
+  }
+  return false;
 }

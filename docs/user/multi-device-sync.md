@@ -89,12 +89,21 @@ want when adding a new device to an existing library.
 
 1. Install Submersion on the new device. In the first-run setup you can choose
    to bring in your existing data and connect cloud sync straight away.
-2. Otherwise, open **Settings > Data > Sync between devices**, tap **Set up**
-   and choose the **same account** as your other devices: the same iCloud,
-   Google or Dropbox account, or the same server. An account another device
-   added is already listed; for your own server you only type the key or
-   password.
-3. Run **Sync Now**, and at **Combine Libraries?** choose **Merge and Sync**.
+2. Otherwise, open the **Set up this device** card on **Settings > Data** and
+   choose the **same account** as your other devices: the same iCloud, Google
+   or Dropbox account, or the same server. An account another device added is
+   already listed; for your own server you only type the key or password.
+3. The next step finds your library and names the device that changed it last.
+   With no dives on the new device, **Download library** brings it down. With
+   dives there, choose:
+   - **Combine them**: the dives on the new device join the library.
+   - **Replace the dives here with the library**: a backup of the dives on the
+     new device is saved under Backups first, then the library replaces them
+     and Submersion reloads. Restore that backup if you change your mind.
+
+You can still connect from **Settings > Data > Sync between devices** with
+**Change**, then **Sync Now** and, at **Combine Libraries?**, **Merge and
+Sync**. See [Set Up This Device](set-up-this-device.md) for the whole flow.
 
 From then on, all connected devices share one library. If your library is
 encrypted, the new device asks for your passphrase; see

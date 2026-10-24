@@ -3,11 +3,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 
-/// Schema v310: dive_centers.is_permanently_closed (issue #3379).
+/// Schema v312: dive_centers.is_permanently_closed (issue #3379).
 void main() {
-  /// A v309 database: `dive_centers` with its pre-v310 columns and one
+  /// A v311 database: `dive_centers` with its pre-v312 columns and one
   /// center, Toucan Diving.
-  NativeDatabase setupDb({int userVersion = 309}) {
+  NativeDatabase setupDb({int userVersion = 311}) {
     return NativeDatabase.memory(
       setup: (rawDb) {
         rawDb.execute('PRAGMA user_version = $userVersion');
@@ -61,12 +61,12 @@ void main() {
     return null;
   }
 
-  test('v310 is the current schema version and in the ladder', () {
-    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(310));
-    expect(AppDatabase.migrationVersions, contains(310));
+  test('v312 is the current schema version and in the ladder', () {
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(312));
+    expect(AppDatabase.migrationVersions, contains(312));
     expect(
-      AppDatabase.migrationStepCount(309),
-      AppDatabase.migrationStepCount(310) + 1,
+      AppDatabase.migrationStepCount(311),
+      AppDatabase.migrationStepCount(312) + 1,
     );
     // Additive synced column: the sync compatibility floor does not move.
     expect(AppDatabase.minimumCompatibleSchemaVersion, 308);
@@ -85,9 +85,9 @@ void main() {
   });
 
   test(
-    'a database stamped v310 without the column gets it back in beforeOpen',
+    'a database stamped v312 without the column gets it back in beforeOpen',
     () async {
-      final db = AppDatabase(setupDb(userVersion: 310));
+      final db = AppDatabase(setupDb(userVersion: 312));
       addTearDown(db.close);
 
       expect(await closedColumn(db), isNotNull);

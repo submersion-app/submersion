@@ -24,7 +24,8 @@ apply plugin: "kotlin-android"
 
 android {
     namespace = "app.submersion.transcoder"
-    compileSdk = 34
+    // Media3 1.9 needs compileSdk 35 or later; the app compiles against 37.
+    compileSdk = 36
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
@@ -48,8 +49,14 @@ android {
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib:1.8.22"
     // AndroidX Media3 Transformer: native H.264/AAC transcoding, no vendored ffmpeg.
-    def media3 = "1.4.1"
+    // Kept on video_player_android's Media3 version: Gradle resolves one
+    // version of each Media3 module for the app, and a transformer older than
+    // the media3-common it gets crashes as soon as it applies an effect.
+    def media3 = "1.9.2"
     implementation "androidx.media3:media3-transformer:$media3"
     implementation "androidx.media3:media3-common:$media3"
     implementation "androidx.media3:media3-effect:$media3"
+    // Mp4LocationData, for the colour-corrected share's location (issue #3521).
+    implementation "androidx.media3:media3-container:$media3"
+    implementation "androidx.media3:media3-muxer:$media3"
 }

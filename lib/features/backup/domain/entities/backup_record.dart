@@ -32,6 +32,16 @@ class BackupRecord extends Equatable {
   /// made before accounts were noted, or with no cloud copy.
   final String? cloudAccountId;
 
+  /// Set on a cloud row another device has pinned (issue #3503), from that
+  /// device's marker in the folder. Display only: never stored, since the
+  /// marker is the truth and another device can remove it at any time.
+  final bool pinnedOnAnotherDevice;
+
+  /// Set on a row whose cloud copy the page's folder listing showed (issue
+  /// #3503), so the folder's footprint needs no second listing. Display only:
+  /// never stored.
+  final bool cloudCopyListed;
+
   const BackupRecord({
     required this.id,
     required this.filename,
@@ -50,6 +60,8 @@ class BackupRecord extends Equatable {
     this.pinned = false,
     this.note,
     this.cloudAccountId,
+    this.pinnedOnAnotherDevice = false,
+    this.cloudCopyListed = false,
   });
 
   BackupRecord copyWith({
@@ -70,6 +82,8 @@ class BackupRecord extends Equatable {
     bool? pinned,
     String? note,
     String? cloudAccountId,
+    bool? pinnedOnAnotherDevice,
+    bool? cloudCopyListed,
   }) {
     return BackupRecord(
       id: id ?? this.id,
@@ -89,8 +103,51 @@ class BackupRecord extends Equatable {
       pinned: pinned ?? this.pinned,
       note: note ?? this.note,
       cloudAccountId: cloudAccountId ?? this.cloudAccountId,
+      pinnedOnAnotherDevice:
+          pinnedOnAnotherDevice ?? this.pinnedOnAnotherDevice,
+      cloudCopyListed: cloudCopyListed ?? this.cloudCopyListed,
     );
   }
+
+  /// This record once its cloud copy is gone: kept on this device only.
+  /// copyWith cannot clear the cloud fields, so they are dropped here.
+  BackupRecord withoutCloudCopy() => BackupRecord(
+    id: id,
+    filename: filename,
+    timestamp: timestamp,
+    sizeBytes: sizeBytes,
+    location: BackupLocation.local,
+    diveCount: diveCount,
+    siteCount: siteCount,
+    localPath: localPath,
+    isAutomatic: isAutomatic,
+    type: type,
+    appVersion: appVersion,
+    fromSchemaVersion: fromSchemaVersion,
+    toSchemaVersion: toSchemaVersion,
+    pinned: pinned,
+    note: note,
+  );
+
+  /// This record once its local copy is gone: kept in the cloud only.
+  BackupRecord withoutLocalCopy() => BackupRecord(
+    id: id,
+    filename: filename,
+    timestamp: timestamp,
+    sizeBytes: sizeBytes,
+    location: BackupLocation.cloud,
+    diveCount: diveCount,
+    siteCount: siteCount,
+    cloudFileId: cloudFileId,
+    isAutomatic: isAutomatic,
+    type: type,
+    appVersion: appVersion,
+    fromSchemaVersion: fromSchemaVersion,
+    toSchemaVersion: toSchemaVersion,
+    pinned: pinned,
+    note: note,
+    cloudAccountId: cloudAccountId,
+  );
 
   /// Formatted file size for display (e.g., "2.3 MB")
   String get formattedSize {
@@ -169,5 +226,7 @@ class BackupRecord extends Equatable {
     pinned,
     note,
     cloudAccountId,
+    pinnedOnAnotherDevice,
+    cloudCopyListed,
   ];
 }

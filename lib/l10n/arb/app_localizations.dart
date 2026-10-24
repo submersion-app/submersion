@@ -3643,11 +3643,11 @@ abstract class AppLocalizations {
   /// **'Resize master pane'**
   String get accessibility_label_resizeMasterPane;
 
-  /// Screen-reader / tooltip label for the people icon shown on trip and site list tiles when a record is shared across dive profiles. Descriptive form (state), distinct from the imperative form used on the edit-page switch.
+  /// Screen-reader / tooltip label for the people icon shown on trip and site list tiles when a record is shared with other dive profiles, with every profile or with chosen ones. Descriptive form (state).
   ///
   /// In en, this message translates to:
-  /// **'Shared with all dive profiles'**
-  String get accessibility_label_sharedWithAllProfiles;
+  /// **'Shared with other dive profiles'**
+  String get accessibility_label_sharedWithProfiles;
 
   /// Tooltip for the button that shows the list pane when collapsed
   ///
@@ -3949,6 +3949,12 @@ abstract class AppLocalizations {
   /// **'Unpin backup'**
   String get backup_history_pinAction_unpin;
 
+  /// No description provided for @backup_history_pinnedOnAnotherDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Pinned on another device'**
+  String get backup_history_pinnedOnAnotherDevice;
+
   /// No description provided for @backup_history_pinError.
   ///
   /// In en, this message translates to:
@@ -4122,6 +4128,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Older backups are automatically removed'**
   String get backup_schedule_retention_subtitle;
+
+  /// No description provided for @backup_retention_allDevices_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Count backups from all devices'**
+  String get backup_retention_allDevices_title;
+
+  /// No description provided for @backup_retention_allDevices_off.
+  ///
+  /// In en, this message translates to:
+  /// **'Off: this device removes only the backups it made'**
+  String get backup_retention_allDevices_off;
+
+  /// No description provided for @backup_retention_allDevices_on.
+  ///
+  /// In en, this message translates to:
+  /// **'The cloud folder keeps the last {count} backups from every device. Pinned backups are kept. If other devices use this too, the smallest number wins. Update the app on every device first so their pins are seen.'**
+  String backup_retention_allDevices_on(int count);
+
+  /// No description provided for @backup_retention_cloudFootprint.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} backup in the cloud folder uses {size}} other{{count} backups in the cloud folder use {size}}}'**
+  String backup_retention_cloudFootprint(int count, String size);
+
+  /// No description provided for @backup_retention_confirm_title.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Remove {count} backup?} other{Remove {count} backups?}}'**
+  String backup_retention_confirm_title(int count);
+
+  /// No description provided for @backup_retention_confirm_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Keeping the last {keep} backups removes these from the cloud folder ({size} in all).'**
+  String backup_retention_confirm_body(int keep, String size);
+
+  /// No description provided for @backup_retention_confirm_pinnedKept.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} pinned backup is kept.} other{{count} pinned backups are kept.}}'**
+  String backup_retention_confirm_pinnedKept(int count);
+
+  /// No description provided for @backup_retention_confirm_action.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Remove {count} backup} other{Remove {count} backups}}'**
+  String backup_retention_confirm_action(int count);
+
+  /// No description provided for @backup_retention_source_thisDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'This device'**
+  String get backup_retention_source_thisDevice;
+
+  /// No description provided for @backup_retention_source_anotherDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Another device'**
+  String get backup_retention_source_anotherDevice;
+
+  /// No description provided for @backup_retention_source_unknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown device'**
+  String get backup_retention_source_unknown;
+
+  /// No description provided for @backup_retention_listFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not read the cloud backup folder, so nothing was changed.'**
+  String get backup_retention_listFailed;
+
+  /// No description provided for @backup_retention_removed.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Removed {count} backup from the cloud folder} other{Removed {count} backups from the cloud folder}}'**
+  String backup_retention_removed(int count);
 
   /// No description provided for @backup_section_history.
   ///
@@ -14964,6 +15048,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Jump to dive'**
   String get diveLog_search_jumpTitle;
+
+  /// No description provided for @diveLog_search_jumpNumberTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'#{number} · {title}'**
+  String diveLog_search_jumpNumberTitle(int number, String title);
 
   /// No description provided for @diveLog_ask_row.
   ///
@@ -29841,11 +29931,51 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{1 item} other{{count} items}}'**
   String media_photoPicker_files_itemCount(int count);
 
-  /// No description provided for @media_photoPicker_files_diveGroupTitle.
+  /// No description provided for @media_photoPicker_files_diveGroupNumberSite.
   ///
   /// In en, this message translates to:
-  /// **'Dive {diveId}'**
-  String media_photoPicker_files_diveGroupTitle(String diveId);
+  /// **'Dive #{number} · {site}'**
+  String media_photoPicker_files_diveGroupNumberSite(int number, String site);
+
+  /// No description provided for @media_photoPicker_files_diveGroupNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive #{number}'**
+  String media_photoPicker_files_diveGroupNumber(int number);
+
+  /// No description provided for @media_photoPicker_files_diveGroupSite.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive · {site}'**
+  String media_photoPicker_files_diveGroupSite(String site);
+
+  /// No description provided for @media_photoPicker_files_diveGroupUnnamed.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive'**
+  String get media_photoPicker_files_diveGroupUnnamed;
+
+  /// No description provided for @media_photoPicker_files_diveGroupWindow.
+  ///
+  /// In en, this message translates to:
+  /// **'{date} · {start} – {end}'**
+  String media_photoPicker_files_diveGroupWindow(
+    String date,
+    String start,
+    String end,
+  );
+
+  /// No description provided for @media_photoPicker_files_diveGroupStart.
+  ///
+  /// In en, this message translates to:
+  /// **'{date} · {start}'**
+  String media_photoPicker_files_diveGroupStart(String date, String start);
+
+  /// No description provided for @media_photoPicker_files_diveGroupSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{when} · {files}'**
+  String media_photoPicker_files_diveGroupSubtitle(String when, String files);
 
   /// No description provided for @media_photoPicker_files_groupCount.
   ///
@@ -30230,6 +30360,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Failed to share: {error}'**
   String media_photoViewer_failedToShare(Object error);
+
+  /// No description provided for @media_share_preparingVideo.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing video'**
+  String get media_share_preparingVideo;
+
+  /// No description provided for @media_share_preparingVideoOf.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing video {current} of {total}'**
+  String media_share_preparingVideoOf(int current, int total);
+
+  /// No description provided for @media_share_correctionFailedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t apply the color correction'**
+  String get media_share_correctionFailedTitle;
+
+  /// No description provided for @media_share_correctionFailedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{This video can still be shared without it.} other{{count} videos can still be shared without it.}}'**
+  String media_share_correctionFailedBody(int count);
+
+  /// No description provided for @media_share_shareOriginal.
+  ///
+  /// In en, this message translates to:
+  /// **'Share original'**
+  String get media_share_shareOriginal;
+
+  /// No description provided for @media_share_videoInterrupted.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing the video stopped when Submersion went into the background. Share again to start over.'**
+  String get media_share_videoInterrupted;
 
   /// No description provided for @media_photoViewer_failedToWriteMetadata.
   ///
@@ -35939,6 +36105,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tag imported dives'**
   String get settings_conflict_field_autoTagImports;
+
+  /// Label for the downloads-follow-computer-owner setting in a sync conflict
+  ///
+  /// In en, this message translates to:
+  /// **'Add downloads to the computer\'s owner'**
+  String get settings_conflict_field_downloadsFollowComputerOwner;
 
   /// No description provided for @settings_conflict_field_avgSpeed.
   ///
@@ -48367,6 +48539,18 @@ abstract class AppLocalizations {
   /// **'Every new import starts with a tag naming the source and date. You can change this for a single import in that import\'s options.'**
   String get settings_autoTagImports_subtitle;
 
+  /// Switch title, in Import options on Settings > Data, for adding a dive computer download to the profile that owns the computer
+  ///
+  /// In en, this message translates to:
+  /// **'Add downloads to the computer\'s owner'**
+  String get settings_downloadsFollowOwner_title;
+
+  /// Switch subtitle, in Import options on Settings > Data, explaining that a download from another profile's dive computer goes to that profile
+  ///
+  /// In en, this message translates to:
+  /// **'When a dive computer belongs to another profile, its dives go to that profile\'s log. You can change it on the review screen.'**
+  String get settings_downloadsFollowOwner_subtitle;
+
   /// No description provided for @tags_manage_searchHint.
   ///
   /// In en, this message translates to:
@@ -52032,6 +52216,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'New profile'**
   String get universalImport_summary_newProfile;
+
+  /// Name shown in the import summary's By profile section for a profile whose name could not be read
+  ///
+  /// In en, this message translates to:
+  /// **'Unnamed profile'**
+  String get universalImport_summary_unnamedProfile;
 
   /// Import summary hint on a profile that is not the active one
   ///
@@ -56584,6 +56774,18 @@ abstract class AppLocalizations {
   /// **'Import Options'**
   String get universalImport_title_importOptions;
 
+  /// Review step notice for a dive computer download when the computer belongs to another profile: names the owner and the profile the dives will be added to
+  ///
+  /// In en, this message translates to:
+  /// **'This computer belongs to {owner}. Dives will be added to {chosen}\'s log.'**
+  String universalImport_computerOwner_notice(String owner, String chosen);
+
+  /// Label of the profile picker beside the computer owner notice on the review step
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get universalImport_computerOwner_profileLabel;
+
   /// Label for the import options button
   ///
   /// In en, this message translates to:
@@ -56695,38 +56897,26 @@ abstract class AppLocalizations {
   /// Button/menu item to share all sites at once
   ///
   /// In en, this message translates to:
-  /// **'Share all my sites'**
+  /// **'Share all my sites...'**
   String get settings_shareAllSites_title;
 
   /// Button/menu item to share all trips at once
   ///
   /// In en, this message translates to:
-  /// **'Share all my trips'**
+  /// **'Share all my trips...'**
   String get settings_shareAllTrips_title;
 
   /// No description provided for @settings_shareAllSites_confirm.
   ///
   /// In en, this message translates to:
-  /// **'Make all {count} of your sites visible to every dive profile in this app? You can unshare individual sites later.'**
+  /// **'Choose who sees all {count} of your sites. To change one site later, open it and tap Shared with.'**
   String settings_shareAllSites_confirm(int count);
 
   /// No description provided for @settings_shareAllTrips_confirm.
   ///
   /// In en, this message translates to:
-  /// **'Make all {count} of your trips visible to every dive profile in this app? You can unshare individual trips later.'**
+  /// **'Choose who sees all {count} of your trips. To change one trip later, open it and tap Shared with.'**
   String settings_shareAllTrips_confirm(int count);
-
-  /// No description provided for @settings_shareAllSites_snackbar.
-  ///
-  /// In en, this message translates to:
-  /// **'Shared {count} sites with all dive profiles.'**
-  String settings_shareAllSites_snackbar(int count);
-
-  /// No description provided for @settings_shareAllTrips_snackbar.
-  ///
-  /// In en, this message translates to:
-  /// **'Shared {count} trips with all dive profiles.'**
-  String settings_shareAllTrips_snackbar(int count);
 
   /// Message shown when there are no sites/trips to share
   ///
@@ -56791,7 +56981,7 @@ abstract class AppLocalizations {
   /// Body of the confirmation dialog shown before un-sharing a trip.
   ///
   /// In en, this message translates to:
-  /// **'This will remove \'{name}\' from other dive profiles\' views. You can re-share it later.'**
+  /// **'Profiles you take off will no longer see \'{name}\'. Their dives stay linked to it, and you can share it with them again later.'**
   String trips_unshareConfirm_body(String name);
 
   /// Title of the confirmation dialog shown before un-sharing a dive site that is currently shared with all profiles.
@@ -56803,7 +56993,7 @@ abstract class AppLocalizations {
   /// Body of the confirmation dialog shown before un-sharing a dive site.
   ///
   /// In en, this message translates to:
-  /// **'This will remove \'{name}\' from other dive profiles\' views. You can re-share it later.'**
+  /// **'Profiles you take off will no longer see \'{name}\'. Their dives stay linked to it, and you can share it with them again later.'**
   String sites_unshareConfirm_body(String name);
 
   /// Title of the strengthened delete confirmation dialog shown when the trip being deleted is shared with other dive profiles.
@@ -56853,6 +57043,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, one{Remove {count} item from your profile?} other{Remove {count} items from your profile?}}'**
   String sharedItems_bulkRemoveTitle(int count);
+
+  /// Trip or site list selection action: share the selected items with chosen profiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Share with...'**
+  String get sharedItems_bulkShare_action;
+
+  /// Snackbar after a bulk share of trips or sites.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Shared {count} item} other{Shared {count} items}}'**
+  String sharedItems_bulkShare_done(int count);
+
+  /// Snackbar after a bulk share of trips or sites that skipped items another profile owns.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Shared {count} item} other{Shared {count} items}}, skipped {skipped} you do not own'**
+  String sharedItems_bulkShare_doneSkipped(int count, int skipped);
 
   /// Bulk delete confirmation line counting the deleted sites that are shared, so deleted for every profile.
   ///
@@ -56944,6 +57152,30 @@ abstract class AppLocalizations {
   /// **'Removed from your profile'**
   String get sharedItems_removedSnackbar;
 
+  /// Subtitle of the Everyone choice in the share dialog for a trip or site.
+  ///
+  /// In en, this message translates to:
+  /// **'Every dive profile, including ones added later'**
+  String get sharedItems_shareDialog_everyoneSubtitle;
+
+  /// Body of the dialog that picks who a dive site is shared with.
+  ///
+  /// In en, this message translates to:
+  /// **'Profiles you choose see this site and can log their own dives at it. Only you can delete it or change who it is shared with.'**
+  String get sharedItems_shareDialog_siteBody;
+
+  /// Title of the dialog that picks who a trip or site is shared with.
+  ///
+  /// In en, this message translates to:
+  /// **'Share with'**
+  String get sharedItems_shareDialog_title;
+
+  /// Body of the dialog that picks who a trip is shared with.
+  ///
+  /// In en, this message translates to:
+  /// **'Profiles you choose see this trip and can add their own dives to it. Only you can delete it or change who it is shared with.'**
+  String get sharedItems_shareDialog_tripBody;
+
   /// Helper under the disabled share switch when another profile owns the trip or site.
   ///
   /// In en, this message translates to:
@@ -56955,6 +57187,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Shared by {owner}'**
   String sharedItems_sharedBy(String owner);
+
+  /// A trip or site shared with every dive profile.
+  ///
+  /// In en, this message translates to:
+  /// **'Everyone'**
+  String get sharedItems_sharedWith_everyone;
+
+  /// Label of the row on a trip or site page showing who it is shared with.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared with'**
+  String get sharedItems_sharedWith_label;
+
+  /// A trip or site shared with nobody.
+  ///
+  /// In en, this message translates to:
+  /// **'Not shared'**
+  String get sharedItems_sharedWith_none;
 
   /// Snackbar action that undoes hiding a shared trip or site.
   ///
@@ -56985,6 +57235,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Diver deleted. {trips} shared {trips, plural, one{trip} other{trips}} and {sites} shared {sites, plural, one{site} other{sites}} reassigned to {name}.'**
   String divers_delete_reassigned_snackbar(int trips, int sites, String name);
+
+  /// Sentence in the snackbar after deleting a profile whose trips and sites shared with chosen profiles went to those profiles.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} shared trip or site went to the profile it was shared with.} other{{count} shared trips and sites went to the profiles they were shared with.}}'**
+  String divers_delete_handedOver(int count);
 
   /// Line in the delete-profile confirmation when some of the profile's gear is used by other profiles and will be handed to them.
   ///
@@ -87394,6 +87650,361 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sign in to {account} again. Backups are paused until you do.'**
   String settings_setUpDevice_item_signInBackups(String account);
+
+  /// Primary button of a setup step that moves to the next step
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get settings_setUpDevice_next;
+
+  /// Leaves the setup flow without finishing the step; nothing is changed
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get settings_setUpDevice_notNow;
+
+  /// Skips the optional photo step of the setup flow
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get settings_setUpDevice_skip;
+
+  /// Title of setup step 1, choosing the account that keeps the data
+  ///
+  /// In en, this message translates to:
+  /// **'Where should Submersion keep your data?'**
+  String get settings_setUpDevice_account_title;
+
+  /// Note under the accounts in setup step 1
+  ///
+  /// In en, this message translates to:
+  /// **'Your dives are stored only in the account you choose. Submersion has no server of its own.'**
+  String get settings_setUpDevice_account_note;
+
+  /// Link in setup step 1 that restores from a backup file instead
+  ///
+  /// In en, this message translates to:
+  /// **'I have a backup file instead'**
+  String get settings_setUpDevice_account_backupFile;
+
+  /// Under iCloud in setup step 1: what adding it takes
+  ///
+  /// In en, this message translates to:
+  /// **'Uses your Apple ID. Nothing to sign in to.'**
+  String get settings_setUpDevice_offer_icloud;
+
+  /// Under Google Drive in setup step 1: what adding it takes
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with Google'**
+  String get settings_setUpDevice_offer_googleDrive;
+
+  /// Under Dropbox in setup step 1: what adding it takes
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with Dropbox'**
+  String get settings_setUpDevice_offer_dropbox;
+
+  /// Under My own server in setup step 1: what it is
+  ///
+  /// In en, this message translates to:
+  /// **'S3-compatible storage or a WebDAV server'**
+  String get settings_setUpDevice_offer_ownServer;
+
+  /// Title of setup step 2, syncing dives between devices
+  ///
+  /// In en, this message translates to:
+  /// **'Dives on every device'**
+  String get settings_setUpDevice_sync_title;
+
+  /// Opening line of setup step 2
+  ///
+  /// In en, this message translates to:
+  /// **'Signed in to {account}'**
+  String settings_setUpDevice_sync_signedIn(String account);
+
+  /// Step 2: the account holds no library yet
+  ///
+  /// In en, this message translates to:
+  /// **'{account} has no Submersion library yet. The dives here will become the library all your devices share.'**
+  String settings_setUpDevice_sync_noLibrary(String account);
+
+  /// Step 2: a library exists; when is like 3 hours ago, device is the other device's name
+  ///
+  /// In en, this message translates to:
+  /// **'Found your library in {account}, last changed {when} on {device}.'**
+  String settings_setUpDevice_sync_found(
+    String account,
+    String when,
+    String device,
+  );
+
+  /// Step 2: a library exists, with no device or time known
+  ///
+  /// In en, this message translates to:
+  /// **'Found your library in {account}.'**
+  String settings_setUpDevice_sync_foundPlain(String account);
+
+  /// Step 2: this device has no dives, so the library is downloaded
+  ///
+  /// In en, this message translates to:
+  /// **'There are no dives here yet, so the library is simply downloaded.'**
+  String get settings_setUpDevice_sync_foundEmpty;
+
+  /// Step 2 choice: combine this device's dives with the library
+  ///
+  /// In en, this message translates to:
+  /// **'Combine them'**
+  String get settings_setUpDevice_sync_combine;
+
+  /// Explains combining in step 2
+  ///
+  /// In en, this message translates to:
+  /// **'The dives here join the library. A dive logged separately on both devices will appear twice.'**
+  String get settings_setUpDevice_sync_combineDetail;
+
+  /// Step 2 choice: replace this device's dives with the library
+  ///
+  /// In en, this message translates to:
+  /// **'Replace the dives here with the library'**
+  String get settings_setUpDevice_sync_replace;
+
+  /// Explains replacing in step 2
+  ///
+  /// In en, this message translates to:
+  /// **'A backup of the dives here is saved first, under Backups.'**
+  String get settings_setUpDevice_sync_replaceDetail;
+
+  /// Subtitle of Keep devices in step automatically in step 2
+  ///
+  /// In en, this message translates to:
+  /// **'A few seconds after each change, at launch and when the app returns'**
+  String get settings_setUpDevice_sync_keepInStepDetail;
+
+  /// Step 2 primary button: start syncing (no library yet)
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on sync'**
+  String get settings_setUpDevice_sync_turnOn;
+
+  /// Step 2 primary button: download the library onto an empty device
+  ///
+  /// In en, this message translates to:
+  /// **'Download library'**
+  String get settings_setUpDevice_sync_download;
+
+  /// Step 2 primary button: combine, then download
+  ///
+  /// In en, this message translates to:
+  /// **'Combine and download'**
+  String get settings_setUpDevice_sync_combineAndDownload;
+
+  /// Step 2 primary button: replace, then download
+  ///
+  /// In en, this message translates to:
+  /// **'Replace and download'**
+  String get settings_setUpDevice_sync_replaceAndDownload;
+
+  /// Step 2 opened with no account chosen
+  ///
+  /// In en, this message translates to:
+  /// **'Choose where your data is kept first.'**
+  String get settings_setUpDevice_sync_noAccount;
+
+  /// Title of the typed-word dialog that confirms replacing this device's dives
+  ///
+  /// In en, this message translates to:
+  /// **'Replace the dives here?'**
+  String get settings_setUpDevice_replace_title;
+
+  /// Shown while this device's dives are set aside and the library downloads
+  ///
+  /// In en, this message translates to:
+  /// **'Setting the dives here aside and downloading the library...'**
+  String get settings_setUpDevice_replace_working;
+
+  /// Title once the library replaced this device's dives
+  ///
+  /// In en, this message translates to:
+  /// **'Library downloaded'**
+  String get settings_setUpDevice_replace_doneTitle;
+
+  /// Replace refused: another device has not finished uploading
+  ///
+  /// In en, this message translates to:
+  /// **'The library is still being uploaded from another device. Try again once it finishes.'**
+  String get settings_setUpDevice_replace_stillUploading;
+
+  /// Replace refused: photo uploads are still finishing
+  ///
+  /// In en, this message translates to:
+  /// **'Photo uploads are still finishing. Try again in a moment.'**
+  String get settings_setUpDevice_replace_photosBusy;
+
+  /// Replace failed before anything changed
+  ///
+  /// In en, this message translates to:
+  /// **'The library could not be downloaded. Nothing was changed.'**
+  String get settings_setUpDevice_replace_failed;
+
+  /// Step 2 could not read the account
+  ///
+  /// In en, this message translates to:
+  /// **'Could not read {account}. Check the connection and try again.'**
+  String settings_setUpDevice_sync_unreachable(String account);
+
+  /// Replace refused: the account has no library
+  ///
+  /// In en, this message translates to:
+  /// **'{account} has no library to join yet.'**
+  String settings_setUpDevice_replace_noLibrary(String account);
+
+  /// Replace refused: other devices run a newer version; devices is a list of names
+  ///
+  /// In en, this message translates to:
+  /// **'{devices} use a newer version of Submersion. Update this device first.'**
+  String settings_setUpDevice_replace_newerSchema(String devices);
+
+  /// Note on the backup saved before replacing; date is a short date
+  ///
+  /// In en, this message translates to:
+  /// **'Before joining the library, {date}'**
+  String settings_setUpDevice_replace_backupNote(String date);
+
+  /// Body of the typed-word dialog that confirms replacing this device's dives
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{The 1 dive here is replaced by the library in {account}. A backup of it is saved first and stays under Backups.} other{The {count} dives here are replaced by the library in {account}. A backup of them is saved first and stays under Backups.}}'**
+  String settings_setUpDevice_replace_body(int count, String account);
+
+  /// Shown once this device's dives were set aside and the library downloaded
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Your 1 dive was set aside and the library was downloaded. Submersion will reload.} other{Your {count} dives were set aside and the library was downloaded. Submersion will reload.}}'**
+  String settings_setUpDevice_replace_doneBody(int count);
+
+  /// Title of setup step 3, automatic backups
+  ///
+  /// In en, this message translates to:
+  /// **'{device, select, phone{A backup that survives a lost phone} tablet{A backup that survives a lost tablet} computer{A backup that survives a lost computer} other{A backup that survives a lost device}}'**
+  String settings_setUpDevice_backups_title(String device);
+
+  /// Opening sentences of setup step 3
+  ///
+  /// In en, this message translates to:
+  /// **'Sync keeps devices in step. A backup is a copy from a moment in time that you can go back to.'**
+  String get settings_setUpDevice_backups_intro;
+
+  /// Subtitle of Back up automatically in step 3; frequency is like Weekly
+  ///
+  /// In en, this message translates to:
+  /// **'{frequency}. The last {count} are kept here.'**
+  String settings_setUpDevice_backups_autoDetail(String frequency, int count);
+
+  /// Subtitle of Back up automatically in step 3 on a computer; frequency is like Weekly
+  ///
+  /// In en, this message translates to:
+  /// **'{frequency}, while Submersion is open. The last {count} are kept here.'**
+  String settings_setUpDevice_backups_autoDetailDesktop(
+    String frequency,
+    int count,
+  );
+
+  /// Step 3 switch: also copy each backup to an account
+  ///
+  /// In en, this message translates to:
+  /// **'Also keep a copy in {account}'**
+  String settings_setUpDevice_backups_copy(String account);
+
+  /// Step 3 when no account exists for a copy
+  ///
+  /// In en, this message translates to:
+  /// **'A copy off this device needs an account or a backup folder.'**
+  String get settings_setUpDevice_backups_noAccount;
+
+  /// Link in step 3 that opens the Backups page
+  ///
+  /// In en, this message translates to:
+  /// **'Open Backups'**
+  String get settings_setUpDevice_backups_openBackups;
+
+  /// Note at the end of step 3
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule, folder, password protection and old backups are under Backups.'**
+  String get settings_setUpDevice_backups_note;
+
+  /// Title of setup step 4, sharing photo copies
+  ///
+  /// In en, this message translates to:
+  /// **'Photos on every device'**
+  String get settings_setUpDevice_photos_title;
+
+  /// Step 4 intro when no device keeps photo copies yet
+  ///
+  /// In en, this message translates to:
+  /// **'Keep copies of your photos and videos in {account} so your other devices can show them. Your originals stay where they are.'**
+  String settings_setUpDevice_photos_firstIntro(String account);
+
+  /// Step 4 switch on a first device
+  ///
+  /// In en, this message translates to:
+  /// **'Keep photo copies in {account}'**
+  String settings_setUpDevice_photos_keepCopies(String account);
+
+  /// Note in step 4 on a first device
+  ///
+  /// In en, this message translates to:
+  /// **'Turn it on later under Photos & videos. Nothing is uploaded until you do.'**
+  String get settings_setUpDevice_photos_firstNote;
+
+  /// Step 4 intro when the library keeps photo copies in an account
+  ///
+  /// In en, this message translates to:
+  /// **'Your other devices keep photo and video copies in {account}. Show them here too?'**
+  String settings_setUpDevice_photos_secondIntro(String account);
+
+  /// Step 4 switch on a second device
+  ///
+  /// In en, this message translates to:
+  /// **'Use the photo copies in {account}'**
+  String settings_setUpDevice_photos_useCopies(String account);
+
+  /// Subtitle when the photo copies are in the account just chosen
+  ///
+  /// In en, this message translates to:
+  /// **'Same account. Nothing to type.'**
+  String get settings_setUpDevice_photos_sameAccount;
+
+  /// Subtitle when the photo copies are in another account that needs signing in
+  ///
+  /// In en, this message translates to:
+  /// **'Signs in to {account} first.'**
+  String settings_setUpDevice_photos_signInFirst(String account);
+
+  /// Step 4 switch on a second device: upload photos added here
+  ///
+  /// In en, this message translates to:
+  /// **'Upload photos added here automatically'**
+  String get settings_setUpDevice_photos_autoUploadHere;
+
+  /// Subtitle of the step 4 switch: photos and videos attached to dives here
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No photos or videos attached yet} =1{{count} photo or video attached} other{{count} photos and videos attached}}'**
+  String settings_setUpDevice_photos_attachedCount(int count);
+
+  /// Heading of the screen after the last setup step
+  ///
+  /// In en, this message translates to:
+  /// **'{device, select, phone{This phone is set up} tablet{This tablet is set up} computer{This computer is set up} other{This device is set up}}'**
+  String settings_setUpDevice_done_title(String device);
+
+  /// Closing sentence of the setup done screen
+  ///
+  /// In en, this message translates to:
+  /// **'On your other devices, open Submersion, choose {account}, and the same library appears.'**
+  String settings_setUpDevice_done_otherDevices(String account);
 }
 
 class _AppLocalizationsDelegate

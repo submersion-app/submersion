@@ -85,7 +85,7 @@ extension _DiveComputerAdapterImportSteps on DiveComputerAdapter {
       newDiveId = await _importService.importSingleDiveAsNew(
         dive,
         computerId: comp.id,
-        diverId: _diverId,
+        diverId: targetDiverId,
         descriptorVendor: _descriptorVendor,
         descriptorProduct: _descriptorProduct,
         descriptorModel: _descriptorModel,

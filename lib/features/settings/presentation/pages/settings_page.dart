@@ -66,6 +66,8 @@ import 'package:submersion/features/settings/presentation/format_enum_display.da
 import 'package:submersion/shared/widgets/label_with_control.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_section_helpers.dart';
+import 'package:submersion/core/data/visibility/shared_item_policy.dart';
+import 'package:submersion/shared/widgets/shared_items/item_bulk_share.dart';
 
 /// The URL for the GitHub issues page, used by [launchReportIssue].
 const reportIssueUrl = 'https://github.com/submersion-app/submersion/issues';
@@ -1592,63 +1594,35 @@ class _NotificationsSectionContent extends ConsumerWidget {
 // SHARED DATA SECTION
 // ============================================================================
 
-/// Confirms and bulk-shares all private sites for the current diver.
+/// Shares every site the active profile owns with the profiles it picks
+/// (issue #2151): Everyone, or chosen profiles. Adds only: a site already
+/// shared keeps its sharing, and one site's sharing is changed on its page.
 Future<void> _confirmAndBulkShareSites(
   BuildContext context,
   WidgetRef ref,
 ) async {
   final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
-  if (diverId == null) return;
+  if (diverId == null || !context.mounted) return;
+  final owned = [
+    for (final site
+        in await ref.read(siteRepositoryProvider).getAllSites(diverId: diverId))
+      if (site.diverId == diverId && !site.isLibrarySite) site.id,
+  ];
   if (!context.mounted) return;
-
-  final siteRepo = ref.read(siteRepositoryProvider);
-  final allSites = await siteRepo.getAllSites(diverId: diverId);
-  final privateCount = allSites.where((s) => !s.isShared).length;
-
-  if (privateCount == 0) {
-    if (!context.mounted) return;
+  if (owned.isEmpty) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(context.l10n.settings_shareAll_noneToShare)),
     );
     return;
   }
-
-  if (!context.mounted) return;
-  final confirmed = await showDialog<bool>(
-    context: context,
-    builder: (ctx) => AlertDialog(
-      content: Text(context.l10n.settings_shareAllSites_confirm(privateCount)),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(ctx).pop(false),
-          child: Text(MaterialLocalizations.of(ctx).cancelButtonLabel),
-        ),
-        TextButton(
-          onPressed: () => Navigator.of(ctx).pop(true),
-          child: Text(context.l10n.common_action_share),
-        ),
-      ],
-    ),
+  await shareItemsWithProfiles(
+    context,
+    ref,
+    kind: SharedItemKind.site,
+    ids: owned,
+    activeDiverId: diverId,
+    body: context.l10n.settings_shareAllSites_confirm(owned.length),
   );
-  if (confirmed != true) return;
-
-  try {
-    final count = await siteRepo.shareAllForDiver(diverId);
-    if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(context.l10n.settings_shareAllSites_snackbar(count)),
-      ),
-    );
-  } catch (_) {
-    if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(context.l10n.common_error_tryAgain),
-        backgroundColor: Theme.of(context).colorScheme.errorContainer,
-      ),
-    );
-  }
 }
 
 /// Shares every item the active diver owns with the profiles picked in
@@ -1709,63 +1683,35 @@ Future<void> _confirmAndBulkShareEquipment(
   }
 }
 
-/// Confirms and bulk-shares all private trips for the current diver.
+/// Shares every trip the active profile owns with the profiles it picks
+/// (issue #2151): Everyone, or chosen profiles. Adds only: a trip already
+/// shared keeps its sharing, and one trip's sharing is changed on its page.
 Future<void> _confirmAndBulkShareTrips(
   BuildContext context,
   WidgetRef ref,
 ) async {
   final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
-  if (diverId == null) return;
+  if (diverId == null || !context.mounted) return;
+  final owned = [
+    for (final trip
+        in await ref.read(tripRepositoryProvider).getAllTrips(diverId: diverId))
+      if (trip.diverId == diverId) trip.id,
+  ];
   if (!context.mounted) return;
-
-  final tripRepo = ref.read(tripRepositoryProvider);
-  final allTrips = await tripRepo.getAllTrips(diverId: diverId);
-  final privateCount = allTrips.where((t) => !t.isShared).length;
-
-  if (privateCount == 0) {
-    if (!context.mounted) return;
+  if (owned.isEmpty) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(context.l10n.settings_shareAll_noneToShare)),
     );
     return;
   }
-
-  if (!context.mounted) return;
-  final confirmed = await showDialog<bool>(
-    context: context,
-    builder: (ctx) => AlertDialog(
-      content: Text(context.l10n.settings_shareAllTrips_confirm(privateCount)),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(ctx).pop(false),
-          child: Text(MaterialLocalizations.of(ctx).cancelButtonLabel),
-        ),
-        TextButton(
-          onPressed: () => Navigator.of(ctx).pop(true),
-          child: Text(context.l10n.common_action_share),
-        ),
-      ],
-    ),
+  await shareItemsWithProfiles(
+    context,
+    ref,
+    kind: SharedItemKind.trip,
+    ids: owned,
+    activeDiverId: diverId,
+    body: context.l10n.settings_shareAllTrips_confirm(owned.length),
   );
-  if (confirmed != true) return;
-
-  try {
-    final count = await tripRepo.shareAllForDiver(diverId);
-    if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(context.l10n.settings_shareAllTrips_snackbar(count)),
-      ),
-    );
-  } catch (_) {
-    if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(context.l10n.common_error_tryAgain),
-        backgroundColor: Theme.of(context).colorScheme.errorContainer,
-      ),
-    );
-  }
 }
 
 /// Shared data section content: default-sharing toggle and bulk-share actions.

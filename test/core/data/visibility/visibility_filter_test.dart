@@ -31,11 +31,12 @@ void main() {
       expect(
         frag.whereClause,
         equals(
-          ' AND (t.diver_id = ? OR t.is_shared = 1)'
+          ' AND (t.diver_id = ? OR t.is_shared = 1 OR t.id IN '
+          '(SELECT trip_id FROM trip_shares WHERE diver_id = ?))'
           ' AND t.id NOT IN (SELECT trip_id FROM trip_hides WHERE diver_id = ?)',
         ),
       );
-      expect(frag.variables.length, equals(2));
+      expect(frag.variables.length, equals(3));
       expect(frag.isEmpty, isFalse);
     });
 
@@ -50,6 +51,8 @@ void main() {
         frag.whereClause,
         equals(
           ' WHERE (trips.diver_id = ? OR trips.is_shared = 1 OR '
+          '(trips.shared_library_id IS NULL AND trips.id IN '
+          '(SELECT site_id FROM site_shares WHERE diver_id = ?)) OR '
           'trips.shared_library_id IN (SELECT library_id FROM '
           'shared_library_memberships WHERE diver_id = ?))'
           ' AND trips.id NOT IN '
@@ -63,7 +66,8 @@ void main() {
     // hiddenItems binds the viewer through its join (issue #2678).
     expect(
       VisibilityFilter.ownerOrSharedSql('t', 'h.diver_id'),
-      '(t.diver_id = h.diver_id OR t.is_shared = 1)',
+      '(t.diver_id = h.diver_id OR t.is_shared = 1 OR t.id IN '
+      '(SELECT trip_id FROM trip_shares WHERE diver_id = h.diver_id))',
     );
   });
 
@@ -140,6 +144,41 @@ void main() {
 
       expect(rows.map((r) => r.id).toSet(), equals({'t1', 't2'}));
     });
+
+    test('a trip shared with B is visible to B and not to C', () async {
+      await insertTrip('t1', 'A', false);
+      await db
+          .into(db.tripShares)
+          .insert(
+            TripSharesCompanion.insert(
+              id: 'x',
+              tripId: 't1',
+              diverId: 'B',
+              createdAt: 0,
+            ),
+          );
+      Future<List<String>> visibleTo(String diverId) async {
+        final query = db.select(db.trips);
+        VisibilityFilter.applyToTrips(db, query, diverId);
+        return [for (final r in await query.get()) r.id];
+      }
+
+      expect(await visibleTo('B'), ['t1']);
+      expect(await visibleTo('C'), isEmpty);
+      final frag = VisibilityFilter.sqlFragment(
+        tableAlias: 't',
+        diverId: 'B',
+        conjunction: 'WHERE',
+        kind: SharedItemKind.trip,
+      );
+      final raw = await db
+          .customSelect(
+            'SELECT t.id FROM trips t${frag.whereClause}',
+            variables: frag.variables,
+          )
+          .get();
+      expect(raw.map((r) => r.read<String>('id')), ['t1']);
+    });
   });
 
   group('VisibilityFilter.applyToDiveSites', () {
@@ -190,6 +229,84 @@ void main() {
       final rows = await query.get();
 
       expect(rows.map((r) => r.id).toSet(), equals({'s1', 's2'}));
+    });
+
+    test('a share row never shows a shared site library site to a profile '
+        'outside the library', () async {
+      // Pushed into a library after it was shared with B by name: the
+      // library's membership governs it from then on.
+      await db
+          .into(db.diveSites)
+          .insert(
+            DiveSitesCompanion.insert(
+              id: 'lib-site',
+              name: 'lib-site',
+              createdAt: 0,
+              updatedAt: 0,
+              sharedLibraryId: const Value('lib1'),
+            ),
+          );
+      await db
+          .into(db.siteShares)
+          .insert(
+            SiteSharesCompanion.insert(
+              id: 'x',
+              siteId: 'lib-site',
+              diverId: 'B',
+              createdAt: 0,
+            ),
+          );
+      final query = db.select(db.diveSites);
+      VisibilityFilter.applyToDiveSites(db, query, 'B');
+      expect(await query.get(), isEmpty);
+      final frag = VisibilityFilter.sqlFragment(
+        tableAlias: 's',
+        diverId: 'B',
+        conjunction: 'WHERE',
+        kind: SharedItemKind.site,
+      );
+      final raw = await db
+          .customSelect(
+            'SELECT s.id FROM dive_sites s${frag.whereClause}',
+            variables: frag.variables,
+          )
+          .get();
+      expect(raw, isEmpty);
+    });
+
+    test('a site shared with B is visible to B and not to C', () async {
+      await insertSite('s1', 'A', false);
+      await db
+          .into(db.siteShares)
+          .insert(
+            SiteSharesCompanion.insert(
+              id: 'x',
+              siteId: 's1',
+              diverId: 'B',
+              createdAt: 0,
+            ),
+          );
+      Future<List<String>> visibleTo(String diverId) async {
+        final query = db.select(db.diveSites);
+        VisibilityFilter.applyToDiveSites(db, query, diverId);
+        return [for (final r in await query.get()) r.id];
+      }
+
+      expect(await visibleTo('B'), ['s1']);
+      expect(await visibleTo('C'), isEmpty);
+      final frag = VisibilityFilter.sqlFragment(
+        tableAlias: 's',
+        diverId: 'B',
+        conjunction: 'WHERE',
+        kind: SharedItemKind.site,
+      );
+      final raw = await db
+          .customSelect(
+            'SELECT s.id FROM dive_sites s${frag.whereClause}',
+            variables: frag.variables,
+          )
+          .get();
+      expect(raw.map((r) => r.read<String>('id')), ['s1']);
     });
   });
 

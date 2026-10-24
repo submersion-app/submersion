@@ -51,10 +51,14 @@ final tripQueryEntity = QueryEntity(
     _text('resortName', 'resort_name'),
     _text('liveaboardName', 'liveaboard_name'),
     _text('notes', 'notes'),
+    // Shared with everyone, or with chosen profiles by name (issue #2151).
     const QueryField(
       key: 'shared',
       type: FieldType.bool,
-      sql: '{r}.is_shared',
+      sql:
+          '({r}.is_shared = 1 OR {r}.id IN '
+          '(SELECT trip_id FROM trip_shares))',
+      tables: ['trip_shares'],
       emptySql: '0',
       labelKey: 'query_trips_shared',
     ),

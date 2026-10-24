@@ -2347,8 +2347,8 @@ class AppLocalizationsHu extends AppLocalizations {
   String get accessibility_label_resizeMasterPane => 'Fő panel átméretezése';
 
   @override
-  String get accessibility_label_sharedWithAllProfiles =>
-      'Megosztva az összes búvárprofillal';
+  String get accessibility_label_sharedWithProfiles =>
+      'Megosztva más búvárprofilokkal';
 
   @override
   String get accessibility_label_showList => 'Lista megjelenítése';
@@ -2511,6 +2511,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get backup_history_pinAction_unpin => 'Rögzítés megszüntetése';
 
   @override
+  String get backup_history_pinnedOnAnotherDevice =>
+      'Egy másik eszközön rögzítve';
+
+  @override
   String get backup_history_pinError =>
       'Nem sikerült a rögzítés állapotát frissíteni.';
 
@@ -2615,6 +2619,92 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get backup_schedule_retention_subtitle =>
       'A régebbi mentések automatikusan eltávolításra kerülnek';
+
+  @override
+  String get backup_retention_allDevices_title =>
+      'Az összes eszköz mentéseinek számolása';
+
+  @override
+  String get backup_retention_allDevices_off =>
+      'Ki: ez az eszköz csak a saját mentéseit távolítja el';
+
+  @override
+  String backup_retention_allDevices_on(int count) {
+    return 'A felhőmappa az összes eszközről az utolsó $count biztonsági mentést tartja meg. A rögzített mentések megmaradnak. Ha más eszközök is ezt használják, a legkisebb szám érvényes. Először minden eszközön frissíteni kell az alkalmazást, hogy a rögzítéseik láthatók legyenek.';
+  }
+
+  @override
+  String backup_retention_cloudFootprint(int count, String size) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'A felhőmappában lévő $count mentés $size helyet foglal',
+      one: 'A felhőmappában lévő $count mentés $size helyet foglal',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backup_retention_confirm_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Eltávolít $count mentést?',
+      one: 'Eltávolít $count mentést?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backup_retention_confirm_body(int keep, String size) {
+    return 'Az utolsó $keep mentés megtartása ezeket eltávolítja a felhőmappából (összesen $size).';
+  }
+
+  @override
+  String backup_retention_confirm_pinnedKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count rögzített mentés megmarad.',
+      one: '$count rögzített mentés megmarad.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backup_retention_confirm_action(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mentés eltávolítása',
+      one: '$count mentés eltávolítása',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backup_retention_source_thisDevice => 'Ez az eszköz';
+
+  @override
+  String get backup_retention_source_anotherDevice => 'Másik eszköz';
+
+  @override
+  String get backup_retention_source_unknown => 'Ismeretlen eszköz';
+
+  @override
+  String get backup_retention_listFailed =>
+      'Nem sikerült beolvasni a felhőbeli mentési mappát, ezért semmi sem változott.';
+
+  @override
+  String backup_retention_removed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mentés eltávolítva a felhőmappából',
+      one: '$count mentés eltávolítva a felhőmappából',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get backup_section_history => 'Előzmények';
@@ -9388,6 +9478,11 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_search_jumpTitle => 'Ugrás a merüléshez';
+
+  @override
+  String diveLog_search_jumpNumberTitle(int number, String title) {
+    return '#$number. · $title';
+  }
 
   @override
   String diveLog_ask_row(String text) {
@@ -18614,8 +18709,40 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String media_photoPicker_files_diveGroupTitle(String diveId) {
-    return 'Merülés $diveId';
+  String media_photoPicker_files_diveGroupNumberSite(int number, String site) {
+    return '#$number. merülés · $site';
+  }
+
+  @override
+  String media_photoPicker_files_diveGroupNumber(int number) {
+    return '#$number. merülés';
+  }
+
+  @override
+  String media_photoPicker_files_diveGroupSite(String site) {
+    return 'Merülés · $site';
+  }
+
+  @override
+  String get media_photoPicker_files_diveGroupUnnamed => 'Merülés';
+
+  @override
+  String media_photoPicker_files_diveGroupWindow(
+    String date,
+    String start,
+    String end,
+  ) {
+    return '$date · $start – $end';
+  }
+
+  @override
+  String media_photoPicker_files_diveGroupStart(String date, String start) {
+    return '$date · $start';
+  }
+
+  @override
+  String media_photoPicker_files_diveGroupSubtitle(String when, String files) {
+    return '$when · $files';
   }
 
   @override
@@ -18887,6 +19014,36 @@ class AppLocalizationsHu extends AppLocalizations {
   String media_photoViewer_failedToShare(Object error) {
     return 'Nem sikerült a megosztás: $error';
   }
+
+  @override
+  String get media_share_preparingVideo => 'Videó előkészítése';
+
+  @override
+  String media_share_preparingVideoOf(int current, int total) {
+    return '$current. videó előkészítése ($total közül)';
+  }
+
+  @override
+  String get media_share_correctionFailedTitle =>
+      'Nem sikerült alkalmazni a színkorrekciót';
+
+  @override
+  String media_share_correctionFailedBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count videó enélkül is megosztható.',
+      one: 'Ez a videó enélkül is megosztható.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_share_shareOriginal => 'Eredeti megosztása';
+
+  @override
+  String get media_share_videoInterrupted =>
+      'A videó előkészítése leállt, amikor a Submersion a háttérbe került. Oszd meg újra az újrakezdéshez.';
 
   @override
   String get media_photoViewer_failedToWriteMetadata =>
@@ -22516,6 +22673,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_conflict_field_autoTagImports =>
       'Importált merülések címkézése';
+
+  @override
+  String get settings_conflict_field_downloadsFollowComputerOwner =>
+      'Letöltések hozzáadása a komputer tulajdonosához';
 
   @override
   String get settings_conflict_field_avgSpeed => 'Átlagsebesség';
@@ -30015,6 +30176,14 @@ class AppLocalizationsHu extends AppLocalizations {
       'Minden új import egy, a forrást és a dátumot megnevező címkével kezdődik. Ez egyetlen importra megváltoztatható az adott import beállításaiban.';
 
   @override
+  String get settings_downloadsFollowOwner_title =>
+      'Letöltések hozzáadása a komputer tulajdonosához';
+
+  @override
+  String get settings_downloadsFollowOwner_subtitle =>
+      'Ha egy búvárkomputer egy másik profilhoz tartozik, a merülései annak a profilnak a naplójába kerülnek. Ezt az ellenőrző képernyőn módosíthatod.';
+
+  @override
   String get tags_manage_searchHint => 'Címkék keresése...';
 
   @override
@@ -32549,6 +32718,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get universalImport_summary_newProfile => 'Új profil';
+
+  @override
+  String get universalImport_summary_unnamedProfile => 'Névtelen profil';
 
   @override
   String universalImport_summary_switchToSee(String name) {
@@ -35525,6 +35697,14 @@ class AppLocalizationsHu extends AppLocalizations {
   String get universalImport_title_importOptions => 'Importálási beállítások';
 
   @override
+  String universalImport_computerOwner_notice(String owner, String chosen) {
+    return 'Ez a komputer $owner tulajdona. A merülések $chosen naplójába kerülnek.';
+  }
+
+  @override
+  String get universalImport_computerOwner_profileLabel => 'Profil';
+
+  @override
   String get universalImport_label_options => 'Beállítások';
 
   @override
@@ -35591,29 +35771,20 @@ class AppLocalizationsHu extends AppLocalizations {
       'Új helyszínek és túrák megosztása alapértelmezetten';
 
   @override
-  String get settings_shareAllSites_title => 'Az összes helyszínem megosztása';
+  String get settings_shareAllSites_title =>
+      'Az összes merülőhelyem megosztása...';
 
   @override
-  String get settings_shareAllTrips_title => 'Az összes túrám megosztása';
+  String get settings_shareAllTrips_title => 'Az összes túrám megosztása...';
 
   @override
   String settings_shareAllSites_confirm(int count) {
-    return 'Mind a(z) $count helyszínedet láthatóvá teszed minden búvárprofilnak az alkalmazásban? Később egyesével megszüntetheted a megosztást.';
+    return 'Válaszd ki, ki lássa mind a(z) $count merülőhelyedet. Ha később egy helyet módosítanál, nyisd meg, és koppints a Megosztva elemre.';
   }
 
   @override
   String settings_shareAllTrips_confirm(int count) {
-    return 'Mind a(z) $count túrádat láthatóvá teszed minden búvárprofilnak az alkalmazásban? Később egyesével megszüntetheted a megosztást.';
-  }
-
-  @override
-  String settings_shareAllSites_snackbar(int count) {
-    return '$count helyszín megosztva minden búvárprofillal.';
-  }
-
-  @override
-  String settings_shareAllTrips_snackbar(int count) {
-    return '$count túra megosztva minden búvárprofillal.';
+    return 'Válaszd ki, ki lássa mind a(z) $count túrádat. Ha később egy túrát módosítanál, nyisd meg, és koppints a Megosztva elemre.';
   }
 
   @override
@@ -35650,7 +35821,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String trips_unshareConfirm_body(String name) {
-    return 'Ez eltávolítja a(z) „$name\" elemet a többi búvárprofil nézetéből. Később újra megoszthatod.';
+    return 'Az eltávolított profilok többé nem látják ezt: „$name\". A merüléseik továbbra is hozzá kapcsolódnak, és később újra megoszthatod velük.';
   }
 
   @override
@@ -35659,7 +35830,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String sites_unshareConfirm_body(String name) {
-    return 'Ez eltávolítja a(z) „$name\" elemet a többi búvárprofil nézetéből. Később újra megoszthatod.';
+    return 'Az eltávolított profilok többé nem látják ezt: „$name\". A merüléseik továbbra is hozzá kapcsolódnak, és később újra megoszthatod velük.';
   }
 
   @override
@@ -35734,6 +35905,31 @@ class AppLocalizationsHu extends AppLocalizations {
       one: 'Eltávolítasz $count elemet a profilodból?',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get sharedItems_bulkShare_action => 'Megosztás...';
+
+  @override
+  String sharedItems_bulkShare_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elem megosztva',
+      one: '$count elem megosztva',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedItems_bulkShare_doneSkipped(int count, int skipped) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elem megosztva',
+      one: '$count elem megosztva',
+    );
+    return '$_temp0, $skipped kihagyva, amely nem a tiéd';
   }
 
   @override
@@ -35834,6 +36030,21 @@ class AppLocalizationsHu extends AppLocalizations {
   String get sharedItems_removedSnackbar => 'Eltávolítva a profilodból';
 
   @override
+  String get sharedItems_shareDialog_everyoneSubtitle =>
+      'Minden búvárprofil, a később hozzáadottak is';
+
+  @override
+  String get sharedItems_shareDialog_siteBody =>
+      'A kiválasztott profilok látják ezt a merülőhelyet, és rögzíthetik itt a saját merüléseiket. Csak te törölheted, vagy módosíthatod, kivel van megosztva.';
+
+  @override
+  String get sharedItems_shareDialog_title => 'Megosztás';
+
+  @override
+  String get sharedItems_shareDialog_tripBody =>
+      'A kiválasztott profilok látják ezt a túrát, és hozzáadhatják a saját merüléseiket. Csak te törölheted, vagy módosíthatod, kivel van megosztva.';
+
+  @override
   String sharedItems_shareOwnerOnly(String owner) {
     return 'Csak $owner módosíthatja a megosztást';
   }
@@ -35842,6 +36053,15 @@ class AppLocalizationsHu extends AppLocalizations {
   String sharedItems_sharedBy(String owner) {
     return 'Megosztotta: $owner';
   }
+
+  @override
+  String get sharedItems_sharedWith_everyone => 'Mindenki';
+
+  @override
+  String get sharedItems_sharedWith_label => 'Megosztva';
+
+  @override
+  String get sharedItems_sharedWith_none => 'Nincs megosztva';
 
   @override
   String get sharedItems_undo => 'Visszavonás';
@@ -35872,6 +36092,19 @@ class AppLocalizationsHu extends AppLocalizations {
       one: 'helyszín',
     );
     return 'Búvár törölve. $trips megosztott $_temp0 és $sites megosztott $_temp1 átrendelve ehhez: $name.';
+  }
+
+  @override
+  String divers_delete_handedOver(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count megosztott túra és helyszín azokhoz a profilokhoz került, amelyekkel meg voltak osztva.',
+      one:
+          '$count megosztott túra vagy helyszín ahhoz a profilhoz került, amellyel meg volt osztva.',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -54855,5 +55088,291 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String settings_setUpDevice_item_signInBackups(String account) {
     return 'Jelentkezzen be újra ide: $account. Addig a mentések szünetelnek.';
+  }
+
+  @override
+  String get settings_setUpDevice_next => 'Tovább';
+
+  @override
+  String get settings_setUpDevice_notNow => 'Most nem';
+
+  @override
+  String get settings_setUpDevice_skip => 'Kihagyás';
+
+  @override
+  String get settings_setUpDevice_account_title =>
+      'Hol tárolja a Submersion az adatait?';
+
+  @override
+  String get settings_setUpDevice_account_note =>
+      'A merülései csak az Ön által választott fiókban tárolódnak. A Submersionnek nincs saját szervere.';
+
+  @override
+  String get settings_setUpDevice_account_backupFile =>
+      'Inkább biztonsági mentés fájlom van';
+
+  @override
+  String get settings_setUpDevice_offer_icloud =>
+      'Az Apple ID-ját használja. Nem kell bejelentkezni.';
+
+  @override
+  String get settings_setUpDevice_offer_googleDrive =>
+      'Bejelentkezés Google-fiókkal';
+
+  @override
+  String get settings_setUpDevice_offer_dropbox =>
+      'Bejelentkezés Dropbox-fiókkal';
+
+  @override
+  String get settings_setUpDevice_offer_ownServer =>
+      'S3-kompatibilis tárhely vagy WebDAV-szerver';
+
+  @override
+  String get settings_setUpDevice_sync_title => 'Merülések minden eszközön';
+
+  @override
+  String settings_setUpDevice_sync_signedIn(String account) {
+    return 'Bejelentkezve: $account';
+  }
+
+  @override
+  String settings_setUpDevice_sync_noLibrary(String account) {
+    return 'A(z) $account még nem tartalmaz Submersion-könyvtárat. Az itteni merülésekből lesz a könyvtár, amelyen minden eszköze osztozik.';
+  }
+
+  @override
+  String settings_setUpDevice_sync_found(
+    String account,
+    String when,
+    String device,
+  ) {
+    return 'Megtaláltuk a könyvtárát itt: $account. Utoljára módosítva: $when, ezen: $device.';
+  }
+
+  @override
+  String settings_setUpDevice_sync_foundPlain(String account) {
+    return 'Megtaláltuk a könyvtárát itt: $account.';
+  }
+
+  @override
+  String get settings_setUpDevice_sync_foundEmpty =>
+      'Itt még nincsenek merülések, így a könyvtár egyszerűen letöltődik.';
+
+  @override
+  String get settings_setUpDevice_sync_combine => 'Egyesítés';
+
+  @override
+  String get settings_setUpDevice_sync_combineDetail =>
+      'Az itteni merülések bekerülnek a könyvtárba. A mindkét eszközön külön rögzített merülés kétszer jelenik meg.';
+
+  @override
+  String get settings_setUpDevice_sync_replace =>
+      'Az itteni merülések cseréje a könyvtárra';
+
+  @override
+  String get settings_setUpDevice_sync_replaceDetail =>
+      'Előbb biztonsági mentés készül az itteni merülésekről a Mentések alatt.';
+
+  @override
+  String get settings_setUpDevice_sync_keepInStepDetail =>
+      'Néhány másodperccel minden módosítás után, indításkor és az alkalmazásba való visszatéréskor';
+
+  @override
+  String get settings_setUpDevice_sync_turnOn => 'Szinkronizálás bekapcsolása';
+
+  @override
+  String get settings_setUpDevice_sync_download => 'Könyvtár letöltése';
+
+  @override
+  String get settings_setUpDevice_sync_combineAndDownload =>
+      'Egyesítés és letöltés';
+
+  @override
+  String get settings_setUpDevice_sync_replaceAndDownload =>
+      'Csere és letöltés';
+
+  @override
+  String get settings_setUpDevice_sync_noAccount =>
+      'Előbb válassza ki, hol legyenek az adatai.';
+
+  @override
+  String get settings_setUpDevice_replace_title =>
+      'Lecseréli az itteni merüléseket?';
+
+  @override
+  String get settings_setUpDevice_replace_working =>
+      'Az itteni merülések félretétele és a könyvtár letöltése...';
+
+  @override
+  String get settings_setUpDevice_replace_doneTitle => 'Könyvtár letöltve';
+
+  @override
+  String get settings_setUpDevice_replace_stillUploading =>
+      'A könyvtár feltöltése egy másik eszközről még folyamatban van. Próbálja újra, ha befejeződött.';
+
+  @override
+  String get settings_setUpDevice_replace_photosBusy =>
+      'A fotófeltöltések még folyamatban vannak. Próbálja újra egy pillanat múlva.';
+
+  @override
+  String get settings_setUpDevice_replace_failed =>
+      'A könyvtárat nem sikerült letölteni. Semmi sem változott.';
+
+  @override
+  String settings_setUpDevice_sync_unreachable(String account) {
+    return 'A(z) $account nem olvasható. Ellenőrizze a kapcsolatot, és próbálja újra.';
+  }
+
+  @override
+  String settings_setUpDevice_replace_noLibrary(String account) {
+    return 'A(z) $account még nem tartalmaz csatlakozható könyvtárat.';
+  }
+
+  @override
+  String settings_setUpDevice_replace_newerSchema(String devices) {
+    return '$devices a Submersion újabb verzióját használja. Előbb frissítse ezt az eszközt.';
+  }
+
+  @override
+  String settings_setUpDevice_replace_backupNote(String date) {
+    return 'A könyvtárhoz csatlakozás előtt, $date';
+  }
+
+  @override
+  String settings_setUpDevice_replace_body(int count, String account) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Az itteni $count merülést a(z) $account könyvtára váltja fel. Előbb biztonsági mentés készül róluk, amely a Mentések alatt marad.',
+      one:
+          'Az itteni merülést a(z) $account könyvtára váltja fel. Előbb biztonsági mentés készül róla, amely a Mentések alatt marad.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_replace_doneBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'A(z) $count merülését félretettük, és letöltöttük a könyvtárat. A Submersion újratöltődik.',
+      one:
+          'A merülését félretettük, és letöltöttük a könyvtárat. A Submersion újratöltődik.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_backups_title(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'phone': 'Mentés, amely túléli a telefon elvesztését',
+      'tablet': 'Mentés, amely túléli a táblagép elvesztését',
+      'computer': 'Mentés, amely túléli a számítógép elvesztését',
+      'other': 'Mentés, amely túléli az eszköz elvesztését',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_setUpDevice_backups_intro =>
+      'A szinkronizálás összhangban tartja az eszközöket. A mentés egy adott pillanat másolata, amelyhez visszatérhet.';
+
+  @override
+  String settings_setUpDevice_backups_autoDetail(String frequency, int count) {
+    return '$frequency. Itt marad meg az utolsó $count.';
+  }
+
+  @override
+  String settings_setUpDevice_backups_autoDetailDesktop(
+    String frequency,
+    int count,
+  ) {
+    return '$frequency, amíg a Submersion meg van nyitva. Itt marad meg az utolsó $count.';
+  }
+
+  @override
+  String settings_setUpDevice_backups_copy(String account) {
+    return 'Másolat megőrzése itt is: $account';
+  }
+
+  @override
+  String get settings_setUpDevice_backups_noAccount =>
+      'Az eszközön kívüli másolathoz fiók vagy mentési mappa kell.';
+
+  @override
+  String get settings_setUpDevice_backups_openBackups => 'Mentések megnyitása';
+
+  @override
+  String get settings_setUpDevice_backups_note =>
+      'Az ütemezés, a mappa, a jelszavas védelem és a régi mentések a Mentések alatt találhatók.';
+
+  @override
+  String get settings_setUpDevice_photos_title => 'Fotók minden eszközön';
+
+  @override
+  String settings_setUpDevice_photos_firstIntro(String account) {
+    return 'Tároljon másolatot fotóiról és videóiról itt: $account, hogy a többi eszköze is megjeleníthesse őket. Az eredetik a helyükön maradnak.';
+  }
+
+  @override
+  String settings_setUpDevice_photos_keepCopies(String account) {
+    return 'Fotómásolatok tárolása itt: $account';
+  }
+
+  @override
+  String get settings_setUpDevice_photos_firstNote =>
+      'Később a Fotók és videók alatt bekapcsolhatja. Addig semmi sem töltődik fel.';
+
+  @override
+  String settings_setUpDevice_photos_secondIntro(String account) {
+    return 'A többi eszköze itt tárol fotó- és videómásolatokat: $account. Itt is megjelenjenek?';
+  }
+
+  @override
+  String settings_setUpDevice_photos_useCopies(String account) {
+    return 'Az itteni fotómásolatok használata: $account';
+  }
+
+  @override
+  String get settings_setUpDevice_photos_sameAccount =>
+      'Ugyanaz a fiók. Nem kell semmit beírni.';
+
+  @override
+  String settings_setUpDevice_photos_signInFirst(String account) {
+    return 'Előbb bejelentkezik ide: $account.';
+  }
+
+  @override
+  String get settings_setUpDevice_photos_autoUploadHere =>
+      'Az itt hozzáadott fotók automatikus feltöltése';
+
+  @override
+  String settings_setUpDevice_photos_attachedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count csatolt fotó és videó',
+      one: '$count csatolt fotó vagy videó',
+      zero: 'Még nincs csatolt fotó vagy videó',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_done_title(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'phone': 'Ez a telefon be van állítva',
+      'tablet': 'Ez a táblagép be van állítva',
+      'computer': 'Ez a számítógép be van állítva',
+      'other': 'Ez az eszköz be van állítva',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_done_otherDevices(String account) {
+    return 'A többi eszközén nyissa meg a Submersiont, válassza ezt: $account, és ugyanaz a könyvtár jelenik meg.';
   }
 }

@@ -54,6 +54,7 @@ On a wide enough window the rail shows a label next to each icon. **Home** alway
 1. **[Install Submersion](installation.md)** on your platform of choice.
 2. **[Log your first dive](first-dive.md)**: a five-minute walkthrough that sets up your diver profile and records a dive.
 3. Already have a logbook elsewhere? Bring it across with [import and export](import-export.md).
+4. **[Set up this device](set-up-this-device.md)**: choose where your data is kept, then turn on sync, backups and photo copies in four short steps.
 
 ## Help and source
 

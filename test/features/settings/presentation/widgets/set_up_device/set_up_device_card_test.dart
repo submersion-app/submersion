@@ -160,14 +160,14 @@ void main() {
     });
 
     testWidgets('reads "Finish setting up" once a step is done, and '
-        'Continue opens the next step\'s page', (tester) async {
+        'Continue opens the next step', (tester) async {
       await pump(tester, progress: setUpProgressOf(accountHere: true));
 
       expect(find.text('Finish setting up this phone'), findsOneWidget);
       expect(find.text('1 of 4'), findsOneWidget);
 
       await tester.tap(find.text('Continue'));
-      expect(opened, ['/settings/cloud-sync']);
+      expect(opened, ['/settings/setup?step=sync']);
     });
 
     // Issue #3482 review: the step's screen-reader label is one translatable
@@ -238,7 +238,7 @@ void main() {
       expect(find.byTooltip('Show menu'), findsNothing);
 
       await tester.tap(find.text('Continue'));
-      expect(opened, ['/settings/cloud-sync']);
+      expect(opened, ['/settings/setup?step=sync']);
     });
 
     // Issue #3482 review: the compact card draws no steps, so it cannot rely
@@ -515,7 +515,7 @@ void main() {
     });
 
     testWidgets('the attach item shows once photos were skipped, and Set up '
-        'opens the photo step\'s page', (tester) async {
+        'opens the photo step', (tester) async {
       await pump(
         tester,
         progress: setUpProgressOf(photosSkipped: true),
@@ -527,7 +527,7 @@ void main() {
       );
       expect(find.bySemanticsLabel('Set up Photos & videos'), findsOneWidget);
       await tester.tap(find.text('Set up'));
-      expect(opened, ['/settings/photos-media']);
+      expect(opened, ['/settings/setup?step=photos']);
     });
   });
 

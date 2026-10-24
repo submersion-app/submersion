@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/transmitters/data/repositories/transmitter_repository.dart';
 import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
@@ -12,7 +13,8 @@ import '../../../../helpers/test_database.dart';
 final _probe = Provider<Ref>((ref) => ref);
 
 void main() {
-  setUp(setUpTestDatabase);
+  late AppDatabase db;
+  setUp(() async => db = await setUpTestDatabase());
   tearDown(tearDownTestDatabase);
 
   test('loadTransmitterMatcher indexes the active diver entries', () async {
@@ -40,6 +42,53 @@ void main() {
     expect(
       matcher.match(serial: '180777', computerId: null, index: 0)?.id,
       'e1',
+    );
+  });
+
+  test('loadTransmitterMatcher reads the given diver, not the active one '
+      '(issue #2050)', () async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    for (final id in ['bill', 'mitchell']) {
+      await db
+          .into(db.divers)
+          .insert(
+            DiversCompanion.insert(
+              id: id,
+              name: id,
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
+    }
+    await TransmitterRepository().create(
+      Transmitter(
+        id: 'm1',
+        diverId: 'mitchell',
+        transmitterSerial: '180777',
+        label: 'O2',
+        role: TankRole.oxygenSupply,
+        createdAt: DateTime.utc(2026, 9, 1),
+        updatedAt: DateTime.utc(2026, 9, 1),
+      ),
+    );
+    final container = ProviderContainer(
+      overrides: [
+        validatedCurrentDiverIdProvider.overrideWith((ref) async => 'bill'),
+      ],
+    );
+    addTearDown(container.dispose);
+    final ref = container.read(_probe);
+
+    final forMitchell = await loadTransmitterMatcher(ref, diverId: 'mitchell');
+    final forActive = await loadTransmitterMatcher(ref);
+
+    expect(
+      forMitchell.match(serial: '180777', computerId: null, index: 0)?.id,
+      'm1',
+    );
+    expect(
+      forActive.match(serial: '180777', computerId: null, index: 0),
+      isNull,
     );
   });
 }

@@ -54,6 +54,8 @@ class ImportWizardState {
     this.duplicateActions = const {},
     this.pendingDuplicateReview = const {},
     this.retainSourceDiveNumbers = false,
+    this.duplicateCheckFailed = false,
+    this.isRetargeting = false,
     this.diveSortField = DiveReviewSortField.date,
     this.diveSortAscending = false,
     this.importTags = const [],
@@ -150,6 +152,15 @@ class ImportWizardState {
   /// The rules could not run after the import; the import stands.
   final bool rulesFailed;
 
+  /// Duplicate detection failed for the current bundle, which is shown
+  /// without it. The review step says so.
+  final bool duplicateCheckFailed;
+
+  /// The import is being sent to another profile and its bundle re-checked
+  /// (issue #2050). The rows still carry the previous profile's choices
+  /// until it lands, so importing is held off.
+  final bool isRetargeting;
+
   /// Rules the import skipped, and rules with an action naming a deleted
   /// item, for the summary to report.
   final List<String> ruleSkippedRules;
@@ -163,6 +174,8 @@ class ImportWizardState {
     Map<ImportEntityType, Map<int, DuplicateAction>>? duplicateActions,
     Map<ImportEntityType, Set<int>>? pendingDuplicateReview,
     bool? retainSourceDiveNumbers,
+    bool? duplicateCheckFailed,
+    bool? isRetargeting,
     DiveReviewSortField? diveSortField,
     bool? diveSortAscending,
     List<TagSelection>? importTags,
@@ -192,6 +205,8 @@ class ImportWizardState {
           pendingDuplicateReview ?? this.pendingDuplicateReview,
       retainSourceDiveNumbers:
           retainSourceDiveNumbers ?? this.retainSourceDiveNumbers,
+      duplicateCheckFailed: duplicateCheckFailed ?? this.duplicateCheckFailed,
+      isRetargeting: isRetargeting ?? this.isRetargeting,
       diveSortField: diveSortField ?? this.diveSortField,
       diveSortAscending: diveSortAscending ?? this.diveSortAscending,
       importTags: importTags ?? this.importTags,
@@ -288,6 +303,70 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
     _diverId = diverId;
   }
 
+  /// Send this import to another profile from the review step (issue #2050).
+  ///
+  /// Duplicate matches and planned-dive fills depend on whose dives the
+  /// download is compared with, so the bundle is rebuilt and re-checked for
+  /// [diverId] and its per-row choices start over. Until that lands,
+  /// [ImportWizardState.isRetargeting] holds importing off, and only the
+  /// latest of overlapping changes is applied. A failed check falls back to
+  /// the unchecked bundle and says so, as entering the review step does.
+  /// Import tags are kept. Does nothing unless the adapter can be retargeted
+  /// and the bundle offers a choice.
+  Future<void> changeTargetDiver(String diverId) async {
+    final adapter = _adapter;
+    if (adapter is! RetargetableImportAdapter) return;
+    if (state.bundle?.targetChoice == null) return;
+    final previous = state.bundle!.targetChoice!.chosenDiverId;
+    final retargetable = adapter as RetargetableImportAdapter;
+    final generation = ++_retargetGeneration;
+    state = state.copyWith(isRetargeting: true);
+    try {
+      await retargetable.setTargetDiver(diverId);
+      final ImportBundle bundle;
+      try {
+        bundle = await adapter.buildBundle();
+      } catch (e, stackTrace) {
+        // The review list still shows the previous profile's bundle, so the
+        // adapter goes back to it rather than writing elsewhere.
+        _log.error(
+          'Could not rebuild the import for profile $diverId; keeping '
+          '$previous',
+          error: e,
+          stackTrace: stackTrace,
+        );
+        if (generation == _retargetGeneration) {
+          await retargetable.setTargetDiver(previous);
+        }
+        return;
+      }
+      var checkFailed = false;
+      ImportBundle checked;
+      try {
+        checked = await adapter.checkDuplicates(bundle);
+      } catch (e, stackTrace) {
+        _log.error(
+          'Duplicate detection failed after changing profile; continuing '
+          'without it',
+          error: e,
+          stackTrace: stackTrace,
+        );
+        checked = bundle;
+        checkFailed = true;
+      }
+      if (!mounted || generation != _retargetGeneration) return;
+      setBundle(checked, duplicateCheckFailed: checkFailed);
+    } finally {
+      if (mounted && generation == _retargetGeneration) {
+        state = state.copyWith(isRetargeting: false);
+      }
+    }
+  }
+
+  /// Counts [changeTargetDiver] calls, so a slower earlier one cannot land
+  /// over a later one.
+  int _retargetGeneration = 0;
+
   /// Request cancellation of the running import. Cooperative — the adapter
   /// finishes the current work item (e.g. the current dive's transaction)
   /// before exiting the loop with a partial result.
@@ -365,7 +444,10 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
   /// fingerprint or source UUID is already one of the matched dive's
   /// `dive_data_sources` keys) — auto-consolidating it would fold the same
   /// data in a second time.
-  void setBundle(ImportBundle bundle) {
+  ///
+  /// [duplicateCheckFailed] records that [bundle] is shown without duplicate
+  /// detection, which the review step reports.
+  void setBundle(ImportBundle bundle, {bool duplicateCheckFailed = false}) {
     final selections = <ImportEntityType, Set<int>>{};
     final pendingReview = <ImportEntityType, Set<int>>{};
     final duplicateActions = <ImportEntityType, Map<int, DuplicateAction>>{};
@@ -466,6 +548,7 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
 
     state = state.copyWith(
       bundle: bundle,
+      duplicateCheckFailed: duplicateCheckFailed,
       selections: selections,
       duplicateActions: duplicateActions,
       pendingDuplicateReview: pendingReview,
@@ -816,11 +899,7 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
       );
     }
     state = state.copyWith(
-      bundle: ImportBundle(
-        source: bundle.source,
-        groups: {...bundle.groups, type: updatedGroup},
-        nextDiveNumberByTarget: bundle.nextDiveNumberByTarget,
-      ),
+      bundle: bundle.copyWith(groups: {...bundle.groups, type: updatedGroup}),
     );
 
     if (plannedDiveId != null) {
@@ -1021,6 +1100,9 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
   /// stores the result on success, or sets [ImportWizardState.error] on
   /// failure. Advances [currentStep] past the importing step on success.
   Future<void> performImport() async {
+    // A change of profile is re-checking the rows (issue #2050); importing
+    // now would apply the previous profile's choices.
+    if (state.isRetargeting) return;
     final bundle = state.bundle;
     if (bundle == null) {
       state = state.copyWith(

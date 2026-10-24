@@ -15,9 +15,15 @@ import 'package:submersion/core/providers/location_service_provider.dart';
 import 'package:submersion/core/services/geocoding/place_lookup.dart';
 import 'package:submersion/core/services/location_service.dart';
 import 'package:submersion/shared/widgets/forms/suggestion_form_row.dart';
+import 'package:submersion/shared/widgets/shared_items/item_sharing_row.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/life_notes_section.dart';
+import 'package:submersion/core/data/visibility/item_sharing.dart';
+import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
+import 'package:submersion/core/services/database_service.dart';
 
 import '../../../../helpers/test_database.dart';
 import '../../../../helpers/fake_hosts.dart';
+import '../../../../helpers/shared_items_fixture.dart';
 
 /// The v2 chrome renders row labels outside the text field, so
 /// widgetWithText(TextFormField, label) no longer matches; resolve the
@@ -139,15 +145,7 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      expect(
-        find.byWidgetPredicate(
-          (w) =>
-              w is SwitchListTile &&
-              w.title is Text &&
-              (w.title as Text).data == 'Share with all dive profiles',
-        ),
-        findsNothing,
-      );
+      expect(find.byType(SharingTile), findsNothing);
     });
 
     testWidgets('shows toggle reflecting AppSettings default with 2+ divers', (
@@ -187,16 +185,89 @@ void main() {
       await tester.tap(find.text('shared'));
       await tester.pumpAndSettle();
       await tester.scrollUntilVisible(
-        find.text('Share with all dive profiles'),
+        find.text('Shared with'),
         50.0,
         scrollable: find.byType(Scrollable).first,
       );
       await tester.pumpAndSettle();
 
-      final switchFinder = find.byType(Switch);
-      expect(switchFinder, findsOneWidget);
-      expect(tester.widget<Switch>(switchFinder).value, isTrue);
+      expect(find.byType(SharingTile), findsOneWidget);
+      expect(find.text('Everyone'), findsOneWidget);
     });
+  });
+
+  testWidgets('a new site shared with one profile saves its share', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(900, 3200);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    final twoDivers = [
+      for (final (id, name) in [('d1', 'One'), ('d2', 'Two')])
+        Diver(
+          id: id,
+          name: name,
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
+        ),
+    ];
+    // The site's owner must exist for the save's foreign key.
+    await seedDivers(DatabaseService.instance.database, ['d1', 'd2']);
+    final shares = FakeItemShares();
+    String? savedId;
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          allDiversProvider.overrideWith((_) async => twoDivers),
+          shareByDefaultProvider.overrideWith((_) async => false),
+          validatedCurrentDiverIdProvider.overrideWith((_) async => 'd1'),
+          itemSharesRepositoryProvider.overrideWithValue(shares),
+        ],
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: SiteEditPage(
+              embedded: true,
+              onSaved: (id) => savedId = id,
+              onCancel: () {},
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.enterText(_rowField('Site Name *'), 'Family Reef');
+    await tester.scrollUntilVisible(
+      find.text('Life & notes'),
+      50.0,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(find.text('Life & notes'));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('Shared with'),
+      50.0,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(find.byType(SharingTile));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.descendant(of: find.byType(AlertDialog), matching: find.text('Two')),
+    );
+    await tester.tap(find.text('Save').last);
+    await tester.pumpAndSettle();
+    expect(shares.setCalls, isEmpty, reason: 'nothing is stored before Save');
+
+    await tester.tap(find.text('Save'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(savedId, isNotNull);
+    expect(shares.setCalls, [
+      (savedId!, const ItemSharing(profileIds: {'d2'})),
+    ]);
   });
 
   group('unshare confirmation', () {
@@ -255,17 +326,23 @@ void main() {
       await tester.tap(find.text('shared'));
       await tester.pumpAndSettle();
       await tester.scrollUntilVisible(
-        find.text('Share with all dive profiles'),
+        find.text('Shared with'),
         50.0,
         scrollable: find.byType(Scrollable).first,
       );
       await tester.pumpAndSettle();
+      expect(find.text('Everyone'), findsOneWidget);
 
-      final switchFinder = find.byType(Switch);
-      expect(tester.widget<Switch>(switchFinder).value, isTrue);
-
-      // Tapping OFF should present the unshare confirmation dialog.
-      await tester.tap(switchFinder);
+      // Narrowing it to one profile asks to confirm first.
+      await tester.tap(find.byType(SharingTile));
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.text('Two'),
+        ),
+      );
+      await tester.tap(find.text('Save').last);
       await tester.pumpAndSettle();
 
       expect(find.text('Unshare this site?'), findsOneWidget);
@@ -985,19 +1062,12 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      // Scroll until the share toggle is visible.
-      await tester.scrollUntilVisible(
-        find.text('Share with all dive profiles'),
-        50.0,
-        scrollable: find.byType(Scrollable).first,
-      );
-      await tester.pumpAndSettle();
-
-      final switchFinder = find.byType(Switch);
-      expect(switchFinder, findsOneWidget);
+      // A merge keeps the sites' sharing (issue #2151): no picker here, and
+      // the Life & notes group's summary still says the site is shared.
+      expect(find.byType(SharingTile), findsNothing);
       expect(
-        tester.widget<Switch>(switchFinder).value,
-        isTrue,
+        tester.widget<LifeNotesSection>(find.byType(LifeNotesSection)).summary,
+        contains('shared'),
         reason:
             'Merging a shared primary site must preserve isShared=true; '
             '_initializeFromMerge was not setting _isShared before the fix.',

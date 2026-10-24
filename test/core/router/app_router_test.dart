@@ -2114,6 +2114,9 @@ void main() {
       '/settings/data-quality',
       '/settings/import-options',
       '/settings/data-tools',
+      '/settings/setup',
+      '/settings/setup?step=sync',
+      '/settings/setup?again=true',
     ];
 
     testWidgets('each location builds the page its route builds', (

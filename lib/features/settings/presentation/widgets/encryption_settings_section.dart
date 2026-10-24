@@ -14,6 +14,19 @@ import 'package:submersion/features/settings/presentation/widgets/enable_encrypt
 import 'package:submersion/features/settings/presentation/widgets/encryption_passphrase_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
+/// Unlocks the sync library with [secret], a passphrase or recovery code:
+/// derives the key against the sync account and holds it for this session.
+/// Throws [WrongPassphraseException] for a wrong secret, and a [StateError]
+/// when no sync account is selected.
+Future<void> unlockSyncLibrary(WidgetRef ref, String secret) async {
+  final provider = ref.read(cloudStorageProviderProvider);
+  if (provider == null) throw StateError('No sync account to unlock');
+  final key = await ref
+      .read(syncEncryptionServiceProvider)
+      .unlock(rawProvider: provider, secret: secret);
+  await ref.read(encryptionKeyNotifierProvider.notifier).setUnlocked(key);
+}
+
 /// Shared unlock flow: prompt for the passphrase/recovery code, unwrap the
 /// key from the cloud keyslot file, activate the session, and re-run sync.
 /// Used by the section's locked tile, the sync-page banner, the Troubleshoot
@@ -41,12 +54,7 @@ Future<bool> runEncryptionUnlockFlow(
     context,
     title: l10n.settings_cloudSync_encryption_unlockTitle,
     hint: l10n.settings_cloudSync_encryption_unlockHint,
-    onSubmit: (secret) async {
-      final key = await ref
-          .read(syncEncryptionServiceProvider)
-          .unlock(rawProvider: provider, secret: secret);
-      await ref.read(encryptionKeyNotifierProvider.notifier).setUnlocked(key);
-    },
+    onSubmit: (secret) => unlockSyncLibrary(ref, secret),
   );
   if (unlocked != null) {
     if (resync) {

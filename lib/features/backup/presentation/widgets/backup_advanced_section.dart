@@ -3,9 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/byte_format.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
+import 'package:submersion/features/backup/presentation/providers/cross_device_retention_providers.dart';
 import 'package:submersion/features/backup/presentation/widgets/backup_actions.dart';
 import 'package:submersion/features/backup/presentation/widgets/backup_choice_dialog.dart';
 import 'package:submersion/features/backup/presentation/widgets/backup_encryption_section.dart';
+import 'package:submersion/features/backup/presentation/widgets/cross_device_retention_actions.dart';
 import 'package:submersion/features/backup/presentation/widgets/quarantined_databases_section.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_section_helpers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -40,6 +42,8 @@ class BackupAdvancedSection extends ConsumerWidget {
           ),
         ),
         ListTile(
+          // A new number waits until a cross-device change in flight ends.
+          enabled: !ref.watch(crossDeviceRetentionBusyProvider),
           leading: const Icon(Icons.layers_outlined),
           title: Text(l10n.settings_backups_keepLast(settings.retentionCount)),
           subtitle: const _RetentionSubtitle(),
@@ -51,9 +55,13 @@ class BackupAdvancedSection extends ConsumerWidget {
               selected: settings.retentionCount,
               label: (n) => '$n',
             );
-            if (picked != null) await notifier.setRetentionCount(picked);
+            if (picked != null && context.mounted) {
+              await changeRetentionCount(context, ref, picked);
+            }
           },
         ),
+        if (ref.watch(crossDeviceRetentionAvailableProvider))
+          const _CrossDeviceRetentionTile(),
         ListTile(
           leading: const Icon(Icons.folder_outlined),
           title: Text(l10n.settings_backups_folder),
@@ -115,21 +123,66 @@ class _RetentionSubtitle extends ConsumerWidget {
     final l10n = context.l10n;
     final history = ref.watch(backupHistoryProvider).value;
     final explanation = Text(l10n.backup_schedule_retention_subtitle);
-    if (history == null || history.isEmpty) return explanation;
-    final bytes = history.fold<int>(0, (sum, r) => sum + r.sizeBytes);
+    // With the switch on the number governs the cloud folder, so the cost
+    // shown is the folder's: the rows its listing showed (issue #3503).
+    final acrossDevices =
+        ref.watch(crossDeviceRetentionActiveProvider).value ?? false;
+    final String? footprint;
+    if (acrossDevices) {
+      final listed = [...?history?.where((r) => r.cloudCopyListed)];
+      footprint = listed.isEmpty
+          ? null
+          : l10n.backup_retention_cloudFootprint(
+              listed.length,
+              formatBytes(listed.fold<int>(0, (sum, r) => sum + r.sizeBytes)),
+            );
+    } else {
+      footprint = history == null || history.isEmpty
+          ? null
+          : l10n.backup_schedule_retention_footprint(
+              history.length,
+              formatBytes(history.fold<int>(0, (sum, r) => sum + r.sizeBytes)),
+            );
+    }
+    if (footprint == null) return explanation;
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         explanation,
-        Text(
-          l10n.backup_schedule_retention_footprint(
-            history.length,
-            formatBytes(bytes),
-          ),
-          key: const ValueKey('backup_retention_footprint'),
-        ),
+        Text(footprint, key: const ValueKey('backup_retention_footprint')),
       ],
+    );
+  }
+}
+
+/// "Count backups from all devices" (issue #3503): off by default, and on
+/// only for the cloud folder it was confirmed for. Disabled while a change
+/// is still listing, asking or pruning, so a second tap cannot start
+/// another.
+class _CrossDeviceRetentionTile extends ConsumerWidget {
+  const _CrossDeviceRetentionTile();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final on = ref.watch(crossDeviceRetentionActiveProvider).value ?? false;
+    final busy = ref.watch(crossDeviceRetentionBusyProvider);
+    final keep = ref.watch(
+      backupSettingsProvider.select((s) => s.retentionCount),
+    );
+    return SwitchListTile(
+      secondary: const Icon(Icons.devices_outlined),
+      title: Text(l10n.backup_retention_allDevices_title),
+      subtitle: Text(
+        on
+            ? l10n.backup_retention_allDevices_on(keep)
+            : l10n.backup_retention_allDevices_off,
+      ),
+      value: on,
+      onChanged: busy
+          ? null
+          : (value) => setCrossDeviceRetention(context, ref, value),
     );
   }
 }

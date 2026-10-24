@@ -56,6 +56,9 @@ import 'package:submersion/shared/widgets/feature_accent.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_list_count_provider.dart';
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_providers.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/library_picker_dialog.dart';
+import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
+import 'package:submersion/shared/widgets/shared_items/item_bulk_share.dart';
+import 'package:submersion/core/data/visibility/item_sharing.dart';
 
 /// Content widget for the site list, used in master-detail layout.
 final _log = LoggerService.forClass(SiteListContent);
@@ -510,7 +513,9 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
     final split = splitForBulkDelete(
       selectedSites,
       ownerOf: (s) => s.diverId,
-      isSharedOf: (s) => s.isShared,
+      // A listed item another profile owns reaches this one only by being
+      // shared with it, with everyone or by a share row (issue #2151).
+      isSharedOf: (_) => true,
       isLibraryOf: (s) => s.isLibrarySite,
       activeDiverId: sharing.activeDiverId,
     );
@@ -518,8 +523,21 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
     final hideIds = [for (final s in split.hide) s.id];
     final deleteCount = destroyIds.length;
     final hideCount = hideIds.length;
+    // Shared with everyone or with chosen profiles (issue #2151).
+    final sharedByName = sharing.diverCount >= 2 && destroyIds.isNotEmpty
+        ? await ref.read(itemIdsWithSharesProvider(SharedItemKind.site).future)
+        : const <String>{};
+    if (!mounted) return BulkActionOutcome.cancelled;
     final sharedDeleteCount = sharing.diverCount >= 2
-        ? split.destroy.where((s) => s.isShared).length
+        ? split.destroy
+              .where(
+                (s) => isSharedWithAnyone(
+                  id: s.id,
+                  everyone: s.isShared,
+                  namedShares: sharedByName,
+                ),
+              )
+              .length
         : 0;
     final usage = deleteCount > 0
         ? await readSiteDeleteUsage(ref, destroyIds)
@@ -1316,6 +1334,9 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
   /// shared by both shells so the pane cannot drift from the full-width bar.
   List<BulkAction> _bulkActions(List<SiteWithDiveCount> sites) {
     final byId = {for (final s in sites) s.site.id: s.site};
+    final activeDiverId = ref.watch(validatedCurrentDiverIdProvider).value;
+    final multipleDivers =
+        (ref.watch(allDiversProvider).value?.length ?? 0) >= 2;
     return [
       BulkAction(
         id: 'merge',
@@ -1334,6 +1355,27 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
         isEnabled: (ids) => ids.every((id) => _mayPushToLibrary(byId[id])),
         onInvoke: _addToLibrary,
       ),
+      // The profile's own personal sites with chosen profiles (issue
+      // #2151). Adds only; a library site follows its library.
+      if (multipleDivers && activeDiverId != null)
+        BulkAction(
+          id: 'share',
+          icon: Icons.share,
+          label: context.l10n.sharedItems_bulkShare_action,
+          isEnabled: (ids) => ids.every((id) {
+            final site = byId[id];
+            return site != null &&
+                !site.isLibrarySite &&
+                site.diverId == activeDiverId;
+          }),
+          onInvoke: () => shareItemsWithProfiles(
+            context,
+            ref,
+            kind: SharedItemKind.site,
+            ids: _selectedIds.toList(),
+            activeDiverId: activeDiverId,
+          ),
+        ),
       // Logbook rules on the checked sites, previewed first (#3513). Library
       // sites and other profiles' sites are left out by the rules' scope.
       rulesBulkAction(
@@ -1607,7 +1649,17 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
         widget.selectedId == site.id ||
         ref.watch(highlightedSiteIdProvider) == site.id;
     final isChecked = _selectedIds.contains(site.id);
-    final showSharedBadge = site.isShared && diversCount >= 2;
+    // Sites shared with chosen profiles carry the badge too (issue #2151).
+    final sharedByName =
+        ref.watch(itemIdsWithSharesProvider(SharedItemKind.site)).value ??
+        const <String>{};
+    final showSharedBadge =
+        isSharedWithAnyone(
+          id: site.id,
+          everyone: site.isShared,
+          namedShares: sharedByName,
+        ) &&
+        diversCount >= 2;
 
     final viewMode = ref.watch(siteListViewModeProvider);
     final locationString = site.locationString.isNotEmpty

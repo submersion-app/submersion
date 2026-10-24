@@ -86,7 +86,7 @@ class CompactTripListTile extends ConsumerWidget {
                             Tooltip(
                               message: context
                                   .l10n
-                                  .accessibility_label_sharedWithAllProfiles,
+                                  .accessibility_label_sharedWithProfiles,
                               child: Icon(
                                 Icons.people_outline,
                                 size: 16,

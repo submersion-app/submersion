@@ -40,6 +40,7 @@ import 'package:submersion/features/documents/domain/entities/document_page.dart
 part 'before_open.dart';
 part 'before_open_backup_note.dart';
 part 'before_open_child_columns.dart';
+part 'before_open_settings_columns.dart';
 part 'before_open_course_links.dart';
 part 'before_open_table_backstops.dart';
 part 'before_open_view_configs.dart';
@@ -65,6 +66,7 @@ part 'helpers/media_migrations.dart';
 part 'helpers/planner_defaults_migrations.dart';
 part 'helpers/air_breaks_turn_pressure_migrations.dart';
 part 'helpers/reserve_pressure_gf_migrations.dart';
+part 'helpers/download_owner_migrations.dart';
 part 'helpers/pre_dive_migrations.dart';
 part 'helpers/profile_series_history_migrations.dart';
 part 'helpers/quality_migrations.dart';

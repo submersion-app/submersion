@@ -33,6 +33,8 @@ import 'package:submersion/features/planner/data/repositories/dive_plan_dive_lin
 import 'package:submersion/features/site_types/data/repositories/site_type_repository.dart';
 import 'package:submersion/features/equipment/data/services/equipment_transfer_service.dart';
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
+import 'package:submersion/features/divers/data/repositories/diver_share_handover.dart';
+import 'package:submersion/features/divers/data/repositories/item_shares_repository.dart';
 import 'package:submersion/features/divers/data/repositories/profile_hides_repository.dart';
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
 import 'package:submersion/features/documents/domain/document_ids.dart';
@@ -55,6 +57,11 @@ class DeleteDiverResult {
   /// The profiles that received kept gear, in handover order, no repeats.
   final List<String> keptEquipmentHeirNames;
 
+  /// Trips and sites the deleted profile shared with chosen profiles, each
+  /// handed to one of them (issue #2151); not in the reassigned counts,
+  /// which name one heir.
+  final int handedOverCount;
+
   const DeleteDiverResult({
     required this.reassignedTripsCount,
     required this.reassignedSitesCount,
@@ -62,6 +69,7 @@ class DeleteDiverResult {
     this.reassignedToDiverName,
     this.keptEquipmentCount = 0,
     this.keptEquipmentHeirNames = const [],
+    this.handedOverCount = 0,
   });
 
   bool get hasReassignments =>
@@ -582,6 +590,7 @@ class DiverRepository {
       int reassignedTrips = 0;
       int reassignedSites = 0;
       var keptEquipment = 0;
+      var handedOverCount = 0;
       final movedTransmitters = <String>[];
       final keptHeirIds = <String>[];
 
@@ -625,6 +634,18 @@ class DiverRepository {
           movedTransmitters.addAll(moved.movedTransmitterIds);
           if (!keptHeirIds.contains(kept.heirId)) keptHeirIds.add(kept.heirId);
         }
+
+        // Step 0-: Trips and sites shared with chosen profiles go to the
+        // first profile each was shared with (issue #2151), before the
+        // steps below treat them as private and delete them. They are not
+        // counted below: the message names only the heir of the trips and
+        // sites shared with everyone.
+        final handedOver = await handOverSharedItems(
+          _syncRepository,
+          fromDiverId: id,
+          now: DateTime.now().millisecondsSinceEpoch,
+        );
+        handedOverCount = handedOver.tripIds.length + handedOver.siteIds.length;
 
         // Step 0: Reassign shared records to the surviving diver (if any).
         if (targetId != null) {
@@ -685,6 +706,21 @@ class DiverRepository {
               localUpdatedAt: now,
             );
           }
+
+          // A share row naming the heir (left by a sync race beside the
+          // everyone flag) would share the item with its own owner
+          // (issue #2151).
+          final shares = ItemSharesRepository();
+          await shares.deleteShares(
+            SharedItemKind.trip,
+            sharedTripIds,
+            diverId: targetId,
+          );
+          await shares.deleteShares(
+            SharedItemKind.site,
+            sharedSiteIds,
+            diverId: targetId,
+          );
 
           // The heir now owns these; its own hides of them would leave it
           // owning items it cannot see (issue #2594).
@@ -944,6 +980,7 @@ class DiverRepository {
             ? targetName
             : null,
         keptEquipmentCount: keptEquipment,
+        handedOverCount: handedOverCount,
         keptEquipmentHeirNames: [
           for (final heirId in keptHeirIds)
             for (final r in allDiversRows)

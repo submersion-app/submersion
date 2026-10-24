@@ -11,14 +11,19 @@ final transmitterRepositoryProvider = Provider<TransmitterRepository>(
   (ref) => TransmitterRepository(),
 );
 
-/// The active diver's registry as a matcher. Read at import time, not at
-/// provider build time, so an entry saved a moment ago applies to the very
-/// next download or re-parse.
-Future<TransmitterMatcher> loadTransmitterMatcher(Ref ref) async {
-  final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+/// The registry of [diverId] (the active diver when null or empty, issue
+/// #2050) as a matcher. Read at import time, not at provider build time, so an
+/// entry saved a moment ago applies to the very next download or re-parse.
+Future<TransmitterMatcher> loadTransmitterMatcher(
+  Ref ref, {
+  String? diverId,
+}) async {
+  final target = diverId == null || diverId.isEmpty
+      ? await ref.read(validatedCurrentDiverIdProvider.future)
+      : diverId;
   final entries = await ref
       .read(transmitterRepositoryProvider)
-      .getForDiver(diverId);
+      .getForDiver(target);
   return TransmitterMatcher.fromEntries(entries);
 }
 

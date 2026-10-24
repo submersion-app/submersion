@@ -106,16 +106,24 @@ class BackupHistoryTile extends ConsumerWidget {
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          IconButton(
-            icon: Icon(
-              record.pinned ? Icons.push_pin : Icons.push_pin_outlined,
-              color: record.pinned ? theme.colorScheme.primary : null,
+          if (record.pinnedOnAnotherDevice)
+            // Only the device that pinned it can unpin it (issue #3503).
+            IconButton(
+              icon: const Icon(Icons.push_pin),
+              tooltip: context.l10n.backup_history_pinnedOnAnotherDevice,
+              onPressed: null,
+            )
+          else
+            IconButton(
+              icon: Icon(
+                record.pinned ? Icons.push_pin : Icons.push_pin_outlined,
+                color: record.pinned ? theme.colorScheme.primary : null,
+              ),
+              tooltip: record.pinned
+                  ? context.l10n.backup_history_pinAction_unpin
+                  : context.l10n.backup_history_pinAction_pin,
+              onPressed: onPinToggle,
             ),
-            tooltip: record.pinned
-                ? context.l10n.backup_history_pinAction_unpin
-                : context.l10n.backup_history_pinAction_pin,
-            onPressed: onPinToggle,
-          ),
           PopupMenuButton<String>(
             onSelected: (action) {
               switch (action) {

@@ -152,10 +152,20 @@ class _SuccessView extends StatelessWidget {
     // "Import notes" explain dives that imported. Dives that did not (rows
     // whose date could not be read, dives a parser could not read) get their
     // own card.
+    // A notice's action opens a page of the active profile, so it is
+    // dropped when every imported dive went to another profile (issue
+    // #2050): that page would not list them.
+    final divesInActiveProfile =
+        diverOutcomes.isEmpty || diverOutcomes.any((o) => o.isActive);
     final fileNotices = [
       for (final notice in notices)
         if (_fileNoticeWording(l10n, notice) case final wording?)
-          (notice: notice, wording: wording),
+          (
+            notice: notice,
+            wording: divesInActiveProfile
+                ? wording
+                : (title: wording.title, body: wording.body, action: null),
+          ),
     ];
 
     final String title;
@@ -365,7 +375,10 @@ class _SuccessView extends StatelessWidget {
                   onPressed: onDone,
                   child: Text(l10n.universalImport_action_done),
                 ),
-                if (hasActivity) ...[
+                // "View Dives" opens the active profile's list, which holds
+                // none of these dives when they all went elsewhere (#2050);
+                // the By profile section says where to find them instead.
+                if (hasActivity && divesInActiveProfile) ...[
                   const SizedBox(width: 16),
                   FilledButton(
                     onPressed: onViewDives,

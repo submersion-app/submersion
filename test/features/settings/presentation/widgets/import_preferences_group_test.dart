@@ -54,4 +54,29 @@ void main() {
       expect(notifier.state.autoTagImports, isFalse);
     });
   });
+  group('downloads follow the computer owner switch (issue #2050)', () {
+    Finder ownerSwitch() => find.widgetWithText(
+      SwitchListTile,
+      "Add downloads to the computer's owner",
+    );
+
+    testWidgets('is on by default', (tester) async {
+      await tester.pumpWidget(host(MockSettingsNotifier()));
+      await tester.pumpAndSettle();
+
+      expect(ownerSwitch(), findsOneWidget);
+      expect(tester.widget<SwitchListTile>(ownerSwitch()).value, isTrue);
+    });
+
+    testWidgets('toggling it records off', (tester) async {
+      final notifier = MockSettingsNotifier();
+      await tester.pumpWidget(host(notifier));
+      await tester.pumpAndSettle();
+
+      await tester.tap(ownerSwitch());
+      await tester.pumpAndSettle();
+
+      expect(notifier.state.downloadsFollowComputerOwner, isFalse);
+    });
+  });
 }

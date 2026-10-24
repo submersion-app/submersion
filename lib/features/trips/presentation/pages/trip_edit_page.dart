@@ -23,6 +23,10 @@ import 'package:submersion/shared/widgets/forms/number_field.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 import 'package:submersion/shared/widgets/shared_items/shared_item_dialogs.dart';
 import 'package:submersion/shared/widgets/label_with_control.dart';
+import 'package:submersion/core/data/visibility/item_sharing.dart';
+import 'package:submersion/core/data/visibility/shared_item_policy.dart';
+import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
+import 'package:submersion/shared/widgets/shared_items/item_sharing_row.dart';
 
 const _log = LoggerService('tripEditPage');
 
@@ -85,7 +89,18 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
   bool _isLoading = false;
   bool _isSaving = false;
   bool _hasChanges = false;
-  bool _isShared = false;
+  // Who the trip is shared with (issue #2151): the pending choice, and what
+  // is stored, so a save writes only a change.
+  ItemSharing _sharing = ItemSharing.none;
+  ItemSharing _originalSharing = ItemSharing.none;
+
+  /// The stored sharing could not be read: the field stays locked, so a
+  /// save never overwrites sharing the page never saw.
+  bool _sharingUnread = false;
+
+  /// Share rows stored beside the everyone flag (a sync race): an owner's
+  /// save clears them, or a later unshare would bring them back.
+  bool _staleShareRows = false;
   Trip? _originalTrip;
 
   bool get isEditing => widget.tripId != null;
@@ -123,7 +138,9 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         final shareByDefault = await ref.read(shareByDefaultProvider.future);
         if (!mounted) return;
-        setState(() => _isShared = shareByDefault);
+        setState(
+          () => _sharing = shareByDefault ? ItemSharing.all : ItemSharing.none,
+        );
       });
     }
     _nameController.addListener(_onFieldChanged);
@@ -157,6 +174,27 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
           .getTripById(widget.tripId!);
       if (trip != null && mounted) {
         _originalTrip = trip;
+        // The everyone flag comes with the trip; the read adds the chosen
+        // profiles. A failed read leaves the flag, so a save keeps it.
+        _originalSharing = ItemSharing(everyone: trip.isShared);
+        try {
+          final stored = await ref
+              .read(itemSharesRepositoryProvider)
+              .storedProfileIds(SharedItemKind.trip, trip.id);
+          _originalSharing = ItemSharing(
+            everyone: trip.isShared,
+            profileIds: stored,
+          );
+          _staleShareRows = trip.isShared && stored.isNotEmpty;
+        } catch (e, stackTrace) {
+          _sharingUnread = true;
+          _log.warning(
+            'Could not read who trip ${trip.id} is shared with',
+            error: e,
+            stackTrace: stackTrace,
+          );
+        }
+        if (!mounted) return;
         _nameController.text = trip.name;
         _locationController.text = trip.location ?? '';
         _resortController.text = trip.resortName ?? '';
@@ -190,7 +228,7 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
           _endDate = trip.endDate;
           _endDateTouched = true;
           _returnFlightAt = trip.returnFlightAt;
-          _isShared = trip.isShared;
+          _sharing = _originalSharing;
           _isLoading = false;
           _hasChanges = false;
         });
@@ -683,53 +721,27 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Share toggle — only shown when multiple diver profiles exist
-                  ref
-                      .watch(allDiversProvider)
-                      .maybeWhen(
-                        data: (divers) => divers.length >= 2
-                            ? SwitchListTile(
-                                title: Text(
-                                  context
-                                      .l10n
-                                      .common_label_shareWithAllProfiles,
-                                ),
-                                // Only the owner changes sharing (#2594).
-                                subtitle: _mayShare() != false
-                                    ? null
-                                    : Text(
-                                        context.l10n.sharedItems_shareOwnerOnly(
-                                          sharedItemOwnerName(
-                                            divers,
-                                            _originalTrip?.diverId,
-                                            context.l10n,
-                                          ),
-                                        ),
-                                      ),
-                                value: _isShared,
-                                onChanged: _mayShare() != true
-                                    ? null
-                                    : (v) async {
-                                        if (!v &&
-                                            isEditing &&
-                                            (_originalTrip?.isShared ??
-                                                false)) {
-                                          final confirmed =
-                                              await _showUnshareConfirmDialog(
-                                                context,
-                                              );
-                                          if (!mounted) return;
-                                          if (confirmed != true) return;
-                                        }
-                                        setState(() {
-                                          _isShared = v;
-                                          _hasChanges = true;
-                                        });
-                                      },
-                              )
-                            : const SizedBox.shrink(),
-                        orElse: () => const SizedBox.shrink(),
-                      ),
+                  // Who sees the trip, with two or more profiles (issue
+                  // #2151). Built only then, so a single profile's page
+                  // never reads the active profile for it.
+                  if (ref.watch(allDiversProvider).value?.length case final n?
+                      when n >= 2)
+                    ItemSharingField(
+                      kind: SharedItemKind.trip,
+                      value: _sharing,
+                      original: _originalSharing,
+                      mayShare: _sharingUnread ? null : _mayShare(),
+                      ownerId:
+                          _originalTrip?.diverId ??
+                          ref.watch(validatedCurrentDiverIdProvider).value,
+                      itemName: _nameController.text.trim().isNotEmpty
+                          ? _nameController.text.trim()
+                          : (_originalTrip?.name ?? ''),
+                      onChanged: (v) => setState(() {
+                        _sharing = v;
+                        _hasChanges = true;
+                      }),
+                    ),
                   const SizedBox(height: 16),
                   // No Save or Cancel buttons down here: the app bar's Save
                   // and back button (or the embedded header) are the form's
@@ -963,41 +975,18 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
     );
   }
 
-  /// Asks the user to confirm un-sharing an existing shared trip.
-  /// Returns [true] if confirmed, [false] or [null] to cancel.
   /// Whether the active profile may change this trip's sharing: always for
   /// a new trip, and only the owner for an existing one (issue #2594); null
   /// while the profile is unknown, which locks it without naming an owner
   /// (issue #2682). Read during build, so it watches the active profile.
   bool? _mayShare() => _originalTrip == null
-      ? true
+      // A new trip is the active profile's; until that profile is known the
+      // picker could offer it to itself, so sharing waits (issue #2151).
+      ? (ref.watch(validatedCurrentDiverIdProvider).hasValue ? true : null)
       : canDestroySharedItemOnceKnown(
           ref.watch(validatedCurrentDiverIdProvider),
           ownerId: _originalTrip?.diverId,
         );
-
-  Future<bool?> _showUnshareConfirmDialog(BuildContext ctx) {
-    final tripName = _nameController.text.trim().isNotEmpty
-        ? _nameController.text.trim()
-        : (_originalTrip?.name ?? '');
-    return showDialog<bool>(
-      context: ctx,
-      builder: (dialogCtx) => AlertDialog(
-        title: Text(dialogCtx.l10n.trips_unshareConfirm_title),
-        content: Text(dialogCtx.l10n.trips_unshareConfirm_body(tripName)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogCtx).pop(false),
-            child: Text(MaterialLocalizations.of(dialogCtx).cancelButtonLabel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(dialogCtx).pop(true),
-            child: Text(dialogCtx.l10n.common_action_unshare),
-          ),
-        ],
-      ),
-    );
-  }
 
   /// A whole number above zero, or null for blank and for zero or below,
   /// as before. The field validators have already stopped unreadable text,
@@ -1036,7 +1025,7 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
             : _liveaboardController.text.trim(),
         tripType: _tripType,
         notes: _notesController.text.trim(),
-        isShared: _isShared,
+        isShared: _sharing.everyone,
         returnFlightAt: _returnFlightAt,
         // Non-positive is not a plan, it is an empty field said twice:
         // the scrubber margin multiplies both of these, and a zero or a
@@ -1063,6 +1052,30 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
             .read(tripListNotifierProvider.notifier)
             .addTrip(trip);
         savedId = newTrip.id;
+      }
+
+      // The chosen profiles (issue #2151), only when the owner changed
+      // them; the save above already wrote the everyone flag. Checked in
+      // this order so an unchanged save never reads the active profile.
+      if (!_sharingUnread &&
+          (_sharing != _originalSharing ||
+              (_staleShareRows && _sharing.everyone)) &&
+          (!isEditing ||
+              canDestroySharedItemOnceKnown(
+                    ref.read(validatedCurrentDiverIdProvider),
+                    ownerId: _originalTrip?.diverId,
+                  ) ==
+                  true)) {
+        await ref
+            .read(itemSharesRepositoryProvider)
+            .setSharing(
+              SharedItemKind.trip,
+              savedId,
+              _sharing,
+              // The profile acting now, which the repository checks; never
+              // the owner on its behalf.
+              actingDiverId: ref.read(validatedCurrentDiverIdProvider).value,
+            );
       }
 
       // Save or clean up liveaboard details

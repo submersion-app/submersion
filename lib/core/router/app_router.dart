@@ -169,6 +169,7 @@ import 'package:submersion/features/settings/presentation/pages/debug_log_viewer
 import 'package:submersion/features/media/presentation/pages/media_sources_page.dart';
 import 'package:submersion/features/media/presentation/pages/network_sources_page.dart';
 import 'package:submersion/features/settings/presentation/pages/section_appearance_page.dart';
+import 'package:submersion/features/settings/presentation/pages/set_up_device_page.dart';
 import 'package:submersion/features/transfer/presentation/pages/transfer_page.dart';
 import 'package:submersion/features/dive_types/presentation/pages/dive_types_page.dart';
 import 'package:submersion/features/site_types/presentation/pages/site_types_page.dart';
@@ -1377,6 +1378,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'storage',
                 name: 'storageSettings',
                 builder: (context, state) => const StorageSettingsPage(),
+              ),
+              GoRoute(
+                path: 'setup',
+                name: 'setUpDevice',
+                builder: (context, state) => SetUpDevicePage.fromUri(state.uri),
               ),
               GoRoute(
                 path: 'import-options',

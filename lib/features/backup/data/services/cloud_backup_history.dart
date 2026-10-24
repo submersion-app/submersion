@@ -2,6 +2,7 @@ import 'package:path/path.dart' as p;
 
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/features/backup/data/services/backup_attribution.dart';
+import 'package:submersion/features/backup/data/services/backup_pin_markers.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 
 /// Cloud backups the local history has no record of (issue #3214).
@@ -46,7 +47,7 @@ BackupRecord? backupRecordFromCloudFile(
     // Stable across listings, so a pinned (adopted) row keeps its identity.
     id: '$cloudBackupIdPrefix${file.id}',
     filename: name,
-    timestamp: _timestampFromName(name) ?? file.modifiedTime,
+    timestamp: backupTimestampFromName(name) ?? file.modifiedTime,
     sizeBytes: file.sizeBytes ?? 0,
     location: BackupLocation.cloud,
     cloudFileId: file.id,
@@ -91,7 +92,38 @@ List<BackupRecord> mergeCloudBackups(
     ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
 }
 
-DateTime? _timestampFromName(String name) {
+/// [rows] with every cloud row another device has pinned marked as such
+/// (issue #3503), read from the pin markers in [listing]. Only rows found in
+/// the listing are marked: a row in this device's history stays pinnable
+/// here, and a row pinned here already shows its own pin. When
+/// [thisDeviceId] is unknown, a marker cannot be told apart from this
+/// device's own, so none is read.
+List<BackupRecord> markPinnedOnAnotherDevice(
+  List<BackupRecord> rows,
+  Iterable<CloudFileInfo> listing, {
+  required String? thisDeviceId,
+}) {
+  if (thisDeviceId == null) return rows;
+  final myTag = deviceTag(thisDeviceId);
+  final elsewhere = {
+    for (final f in listing)
+      if (parsePinMarker(f.name) case final m? when m.deviceTag != myTag)
+        m.backupStem,
+  };
+  if (elsewhere.isEmpty) return rows;
+  return [
+    for (final r in rows)
+      !r.pinned &&
+              r.id.startsWith(cloudBackupIdPrefix) &&
+              elsewhere.contains(backupStem(r.filename))
+          ? r.copyWith(pinnedOnAnotherDevice: true)
+          : r,
+  ];
+}
+
+/// The timestamp a backup's name starts with, in the local time of the device
+/// that wrote it, or null when the name carries none.
+DateTime? backupTimestampFromName(String name) {
   final match = _nameTimestamp.firstMatch(name);
   if (match == null) return null;
   final parts = [for (var i = 1; i <= 6; i++) int.parse(match.group(i)!)];

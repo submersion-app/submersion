@@ -126,6 +126,18 @@ class MediaRepository {
     }
   }
 
+  /// How many photos and videos the library holds, whatever they are
+  /// attached to: what a photo store would keep copies of. Signatures and
+  /// documents are not counted.
+  Future<int> countPhotosAndVideos() async {
+    final count = _db.media.id.count();
+    final query = _db.selectOnly(_db.media)
+      ..addColumns([count])
+      ..where(_db.media.fileType.isIn(const ['photo', 'video']));
+    final row = await query.getSingle();
+    return row.read(count) ?? 0;
+  }
+
   /// Count of media directly attached to a site (badges/headers).
   Future<int> getMediaCountForSite(String siteId) async {
     final count = _db.media.id.count();

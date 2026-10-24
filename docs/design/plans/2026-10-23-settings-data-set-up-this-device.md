@@ -253,6 +253,19 @@ The function `String setUpStepRoute(SetUpStep step)` holds this mapping, so Part
 
 ## Part B: the flow (Tasks 7-14)
 
+**Reconciled with PR 6a's review (Part B rulings):**
+
+- B1. `setUpStepRoute` returns `/settings/setup?step=<name>`; the card, the rows and the desktop list's `dataPaneLocation` follow, the query carried into the Data pane as `dataPage=setup?step=<name>`.
+- B2. "Set up this phone again" opens `/settings/setup?again=true`, and the page clears "hidden" when it opens that way (the destination carries the un-hide), so `DataRowTile.onOpen` goes.
+- B3. The page owns which step shows; `setUpFlowProvider` holds only the account chosen in step 1, which later steps read.
+- B4. The rows' Set up buttons, removed in 6a as a no-op, come back in Task 13 now that they open a step.
+- B5. Steps 3 and 4 take the `SetUpStepNavigation` object steps 1 and 2 take, not three callbacks.
+- B6. Step 4 on a later device names the account only ("Your other devices keep photo and video copies in {account}"): the announced store carries neither the peer's name nor a count. Copies whose account this device cannot name open the account sheet on Next, as the Photos row does. A flow account that cannot hold photos (Git) shows the note alone.
+- B7. Step 4 signs in first when the copies' account is not signed in here, whether or not it is the flow's account; "Same account. Nothing to type." shows when it is the flow's account.
+- B8. The photo count is the library's photos and videos (`MediaRepository.countPhotosAndVideos`), the same rows a store keeps copies of; signatures and documents are not counted.
+- B10. Sync's Set up always opens step 1 (PR review): the Sync row offers Set up only while sync is off, when step 2 has no account to read, and the card's account mark also counts a backup copy or photo store.
+- B9. The done view's four outcome lines are the Data page's own rows (Connected accounts, Sync, Backups, Photos & videos) through `dataRowStatusText`, so the two read the same words.
+
 ### Task 7: Flow page, route and shared scaffold
 
 **Files:**

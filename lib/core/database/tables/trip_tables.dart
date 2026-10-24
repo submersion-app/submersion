@@ -439,3 +439,35 @@ class TripHides extends Table {
   ];
   // coverage:ignore-end
 }
+
+/// A profile a trip is shared with when it is not shared with everyone
+/// (v311, issue #2151). "Everyone" stays `trips.is_shared`; the two forms
+/// never hold together for long (a reader that meets both treats the trip as
+/// shared with everyone). A parent-gated child of `trips`, like
+/// `trip_hides`: no updated_at, its own clock, never updated in place (a
+/// change of profile is a delete and a new row). Both parents cascade.
+@DataClassName('TripShareRow')
+class TripShares extends Table {
+  // coverage:ignore-start
+  TextColumn get id => text()();
+  TextColumn get tripId =>
+      text().references(Trips, #id, onDelete: KeyAction.cascade)();
+  TextColumn get diverId =>
+      text().references(Divers, #id, onDelete: KeyAction.cascade)();
+  IntColumn get createdAt => integer()();
+
+  /// This child's own clock, stamped when it is marked pending
+  /// (SyncDataSerializer.parentGatedChildEntities).
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+
+  /// Leads with the profile: every visibility read is "trips shared with
+  /// this profile".
+  @override
+  List<Set<Column>> get uniqueKeys => [
+    {diverId, tripId},
+  ];
+  // coverage:ignore-end
+}

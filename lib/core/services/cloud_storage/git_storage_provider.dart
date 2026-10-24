@@ -369,6 +369,14 @@ class GitStorageProvider
     // The keyslot file holds only a wrapped key, so it may land in a public
     // repository: without it, encryption could never be turned on.
     if (path == _keyslotPath) return;
+    // A backup pin marker is an empty file whose name is all it says (issue
+    // #3503); refusing it would leave pins invisible to other devices, which
+    // would then prune the pinned backup.
+    if (path.startsWith('$backupFolderName/') &&
+        path.endsWith('.pin') &&
+        await put.length() == 0) {
+      return;
+    }
     final head = await put.head(SyncEnvelope.magic.length);
     if (SyncEnvelope.hasMagic(head)) return;
     final bool public;

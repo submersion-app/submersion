@@ -1339,9 +1339,9 @@
   "@accessibility_label_resizeMasterPane": {
     "description": "Semantics label for the draggable divider between the master and detail panes in master-detail scaffold"
   },
-  "accessibility_label_sharedWithAllProfiles": "Shared with all dive profiles",
-  "@accessibility_label_sharedWithAllProfiles": {
-    "description": "Screen-reader / tooltip label for the people icon shown on trip and site list tiles when a record is shared across dive profiles. Descriptive form (state), distinct from the imperative form used on the edit-page switch."
+  "accessibility_label_sharedWithProfiles": "Shared with other dive profiles",
+  "@accessibility_label_sharedWithProfiles": {
+    "description": "Screen-reader / tooltip label for the people icon shown on trip and site list tiles when a record is shared with other dive profiles, with every profile or with chosen ones. Descriptive form (state)."
   },
   "accessibility_label_showList": "Show List",
   "accessibility_label_showMapView": "Show Map View",
@@ -1556,6 +1556,7 @@
   },
   "backup_history_pinAction_pin": "Pin backup",
   "backup_history_pinAction_unpin": "Unpin backup",
+  "backup_history_pinnedOnAnotherDevice": "Pinned on another device",
   "backup_history_pinError": "Could not update pin state.",
   "backup_history_preMigrationSubtitle": "Pre-migration backup - {size}",
   "@backup_history_preMigrationSubtitle": {
@@ -1614,6 +1615,26 @@
     }
   },
   "backup_schedule_retention_subtitle": "Older backups are automatically removed",
+  "backup_retention_allDevices_title": "Count backups from all devices",
+  "backup_retention_allDevices_off": "Off: this device removes only the backups it made",
+  "backup_retention_allDevices_on": "The cloud folder keeps the last {count} backups from every device. Pinned backups are kept. If other devices use this too, the smallest number wins. Update the app on every device first so their pins are seen.",
+  "@backup_retention_allDevices_on": {"placeholders": {"count": {"type": "int"}}},
+  "backup_retention_cloudFootprint": "{count, plural, one{{count} backup in the cloud folder uses {size}} other{{count} backups in the cloud folder use {size}}}",
+  "@backup_retention_cloudFootprint": {"placeholders": {"count": {"type": "int"}, "size": {"type": "String"}}},
+  "backup_retention_confirm_title": "{count, plural, one{Remove {count} backup?} other{Remove {count} backups?}}",
+  "@backup_retention_confirm_title": {"placeholders": {"count": {"type": "int"}}},
+  "backup_retention_confirm_body": "Keeping the last {keep} backups removes these from the cloud folder ({size} in all).",
+  "@backup_retention_confirm_body": {"placeholders": {"keep": {"type": "int"}, "size": {"type": "String"}}},
+  "backup_retention_confirm_pinnedKept": "{count, plural, one{{count} pinned backup is kept.} other{{count} pinned backups are kept.}}",
+  "@backup_retention_confirm_pinnedKept": {"placeholders": {"count": {"type": "int"}}},
+  "backup_retention_confirm_action": "{count, plural, one{Remove {count} backup} other{Remove {count} backups}}",
+  "@backup_retention_confirm_action": {"placeholders": {"count": {"type": "int"}}},
+  "backup_retention_source_thisDevice": "This device",
+  "backup_retention_source_anotherDevice": "Another device",
+  "backup_retention_source_unknown": "Unknown device",
+  "backup_retention_listFailed": "Could not read the cloud backup folder, so nothing was changed.",
+  "backup_retention_removed": "{count, plural, one{Removed {count} backup from the cloud folder} other{Removed {count} backups from the cloud folder}}",
+  "@backup_retention_removed": {"placeholders": {"count": {"type": "int"}}},
   "backup_section_history": "History",
   "backup_status_lastBackup": "Last backup: {time}",
   "@backup_status_lastBackup": {
@@ -5485,6 +5506,8 @@
   "diveLog_search_scopeWithin": "Within filters",
   "diveLog_search_scopeAll": "All dives",
   "diveLog_search_jumpTitle": "Jump to dive",
+  "diveLog_search_jumpNumberTitle": "#{number} · {title}",
+  "@diveLog_search_jumpNumberTitle": {"placeholders": {"number": {"type": "int"}, "title": {"type": "String"}}},
   "diveLog_ask_row": "Ask: {text}",
   "@diveLog_ask_row": {"placeholders": {"text": {"type": "String"}}},
   "diveLog_ask_running": "Asking the on-device model",
@@ -11216,10 +11239,66 @@
       }
     }
   },
-  "media_photoPicker_files_diveGroupTitle": "Dive {diveId}",
-  "@media_photoPicker_files_diveGroupTitle": {
+  "media_photoPicker_files_diveGroupNumberSite": "Dive #{number} · {site}",
+  "@media_photoPicker_files_diveGroupNumberSite": {
     "placeholders": {
-      "diveId": {
+      "number": {
+        "type": "int"
+      },
+      "site": {
+        "type": "String"
+      }
+    }
+  },
+  "media_photoPicker_files_diveGroupNumber": "Dive #{number}",
+  "@media_photoPicker_files_diveGroupNumber": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "media_photoPicker_files_diveGroupSite": "Dive · {site}",
+  "@media_photoPicker_files_diveGroupSite": {
+    "placeholders": {
+      "site": {
+        "type": "String"
+      }
+    }
+  },
+  "media_photoPicker_files_diveGroupUnnamed": "Dive",
+  "media_photoPicker_files_diveGroupWindow": "{date} · {start} – {end}",
+  "@media_photoPicker_files_diveGroupWindow": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "media_photoPicker_files_diveGroupStart": "{date} · {start}",
+  "@media_photoPicker_files_diveGroupStart": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "start": {
+        "type": "String"
+      }
+    }
+  },
+  "media_photoPicker_files_diveGroupSubtitle": "{when} · {files}",
+  "@media_photoPicker_files_diveGroupSubtitle": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      },
+      "files": {
         "type": "String"
       }
     }
@@ -11357,6 +11436,14 @@
   "media_photoViewer_errorLoadingPhotos": "Error loading photos: {error}",
   "media_photoViewer_failedToLoadVideo": "Failed to load video",
   "media_photoViewer_failedToShare": "Failed to share: {error}",
+  "media_share_preparingVideo": "Preparing video",
+  "media_share_preparingVideoOf": "Preparing video {current} of {total}",
+  "@media_share_preparingVideoOf": {"placeholders": {"current": {"type": "int"}, "total": {"type": "int"}}},
+  "media_share_correctionFailedTitle": "Couldn't apply the color correction",
+  "media_share_correctionFailedBody": "{count, plural, =1{This video can still be shared without it.} other{{count} videos can still be shared without it.}}",
+  "@media_share_correctionFailedBody": {"placeholders": {"count": {"type": "int"}}},
+  "media_share_shareOriginal": "Share original",
+  "media_share_videoInterrupted": "Preparing the video stopped when Submersion went into the background. Share again to start over.",
   "media_photoViewer_failedToWriteMetadata": "Failed to write metadata",
   "media_photoViewer_failedToWriteMetadataError": "Failed to write metadata: {error}",
   "media_photoViewer_nextTooltip": "Next media",
@@ -13745,6 +13832,10 @@
   "settings_conflict_field_autoApplyOnComputerImport": "Applied on dive computer import",
   "settings_conflict_field_autoAttach": "Scheduled automatically",
   "settings_conflict_field_autoTagImports": "Tag imported dives",
+  "settings_conflict_field_downloadsFollowComputerOwner": "Add downloads to the computer's owner",
+  "@settings_conflict_field_downloadsFollowComputerOwner": {
+    "description": "Label for the downloads-follow-computer-owner setting in a sync conflict"
+  },
   "settings_conflict_field_avgSpeed": "Average speed",
   "settings_conflict_field_batteryReserveFraction": "Battery reserve",
   "settings_conflict_field_bboxHeight": "Box height",
@@ -17554,6 +17645,14 @@
   "@settings_autoTagImports_subtitle": {
     "description": "Switch subtitle, in the Import card on Settings > Data, for auto-tagging every new import session"
   },
+  "settings_downloadsFollowOwner_title": "Add downloads to the computer's owner",
+  "@settings_downloadsFollowOwner_title": {
+    "description": "Switch title, in Import options on Settings > Data, for adding a dive computer download to the profile that owns the computer"
+  },
+  "settings_downloadsFollowOwner_subtitle": "When a dive computer belongs to another profile, its dives go to that profile's log. You can change it on the review screen.",
+  "@settings_downloadsFollowOwner_subtitle": {
+    "description": "Switch subtitle, in Import options on Settings > Data, explaining that a download from another profile's dive computer goes to that profile"
+  },
   "tags_manage_searchHint": "Search tags...",
   "tags_manage_diveCount": "{count, plural, =0{0 dives} =1{1 dive} other{{count} dives}}",
   "@tags_manage_diveCount": {
@@ -18918,6 +19017,10 @@
   "universalImport_divers_newLabel": "New: {name}",
   "universalImport_summary_byProfileTitle": "By profile",
   "universalImport_summary_newProfile": "New profile",
+  "universalImport_summary_unnamedProfile": "Unnamed profile",
+  "@universalImport_summary_unnamedProfile": {
+    "description": "Name shown in the import summary's By profile section for a profile whose name could not be read"
+  },
   "universalImport_summary_switchToSee": "Switch to {name} to see these dives",
   "@universalImport_divers_intro": {"description": "Explains the import wizard Divers step for a logbook holding several divers", "placeholders": {"count": {"type": "num"}}},
   "@universalImport_divers_diveCount": {"description": "Dive count of one diver row in the Divers step", "placeholders": {"count": {"type": "num"}}},
@@ -21499,6 +21602,24 @@
   "@universalImport_title_importOptions": {
     "description": "Title for the import options bottom sheet"
   },
+  "universalImport_computerOwner_notice": "This computer belongs to {owner}. Dives will be added to {chosen}'s log.",
+  "@universalImport_computerOwner_notice": {
+    "description": "Review step notice for a dive computer download when the computer belongs to another profile: names the owner and the profile the dives will be added to",
+    "placeholders": {
+      "owner": {
+        "type": "String",
+        "example": "Mitchell"
+      },
+      "chosen": {
+        "type": "String",
+        "example": "Bill"
+      }
+    }
+  },
+  "universalImport_computerOwner_profileLabel": "Profile",
+  "@universalImport_computerOwner_profileLabel": {
+    "description": "Label of the profile picker beside the computer owner notice on the review step"
+  },
   "universalImport_label_options": "Options",
   "@universalImport_label_options": {
     "description": "Label for the import options button"
@@ -21571,15 +21692,15 @@
   "@settings_shareByDefault_title": {
     "description": "Global setting: when ON, newly created trips and sites are shared with all dive profiles by default."
   },
-  "settings_shareAllSites_title": "Share all my sites",
+  "settings_shareAllSites_title": "Share all my sites...",
   "@settings_shareAllSites_title": {
     "description": "Button/menu item to share all sites at once"
   },
-  "settings_shareAllTrips_title": "Share all my trips",
+  "settings_shareAllTrips_title": "Share all my trips...",
   "@settings_shareAllTrips_title": {
     "description": "Button/menu item to share all trips at once"
   },
-  "settings_shareAllSites_confirm": "Make all {count} of your sites visible to every dive profile in this app? You can unshare individual sites later.",
+  "settings_shareAllSites_confirm": "Choose who sees all {count} of your sites. To change one site later, open it and tap Shared with.",
   "@settings_shareAllSites_confirm": {
     "placeholders": {
       "count": {
@@ -21588,26 +21709,8 @@
       }
     }
   },
-  "settings_shareAllTrips_confirm": "Make all {count} of your trips visible to every dive profile in this app? You can unshare individual trips later.",
+  "settings_shareAllTrips_confirm": "Choose who sees all {count} of your trips. To change one trip later, open it and tap Shared with.",
   "@settings_shareAllTrips_confirm": {
-    "placeholders": {
-      "count": {
-        "type": "int",
-        "example": "12"
-      }
-    }
-  },
-  "settings_shareAllSites_snackbar": "Shared {count} sites with all dive profiles.",
-  "@settings_shareAllSites_snackbar": {
-    "placeholders": {
-      "count": {
-        "type": "int",
-        "example": "12"
-      }
-    }
-  },
-  "settings_shareAllTrips_snackbar": "Shared {count} trips with all dive profiles.",
-  "@settings_shareAllTrips_snackbar": {
     "placeholders": {
       "count": {
         "type": "int",
@@ -21655,7 +21758,7 @@
   "@trips_unshareConfirm_title": {
     "description": "Title of the confirmation dialog shown before un-sharing a trip that is currently shared with all profiles."
   },
-  "trips_unshareConfirm_body": "This will remove '{name}' from other dive profiles' views. You can re-share it later.",
+  "trips_unshareConfirm_body": "Profiles you take off will no longer see '{name}'. Their dives stay linked to it, and you can share it with them again later.",
   "@trips_unshareConfirm_body": {
     "description": "Body of the confirmation dialog shown before un-sharing a trip.",
     "placeholders": {
@@ -21669,7 +21772,7 @@
   "@sites_unshareConfirm_title": {
     "description": "Title of the confirmation dialog shown before un-sharing a dive site that is currently shared with all profiles."
   },
-  "sites_unshareConfirm_body": "This will remove '{name}' from other dive profiles' views. You can re-share it later.",
+  "sites_unshareConfirm_body": "Profiles you take off will no longer see '{name}'. Their dives stay linked to it, and you can share it with them again later.",
   "@sites_unshareConfirm_body": {
     "description": "Body of the confirmation dialog shown before un-sharing a dive site.",
     "placeholders": {
@@ -21750,6 +21853,31 @@
       "count": {
         "type": "int",
         "example": "2"
+      }
+    }
+  },
+  "sharedItems_bulkShare_action": "Share with...",
+  "@sharedItems_bulkShare_action": {
+    "description": "Trip or site list selection action: share the selected items with chosen profiles."
+  },
+  "sharedItems_bulkShare_done": "{count, plural, one{Shared {count} item} other{Shared {count} items}}",
+  "@sharedItems_bulkShare_done": {
+    "description": "Snackbar after a bulk share of trips or sites.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sharedItems_bulkShare_doneSkipped": "{count, plural, one{Shared {count} item} other{Shared {count} items}}, skipped {skipped} you do not own",
+  "@sharedItems_bulkShare_doneSkipped": {
+    "description": "Snackbar after a bulk share of trips or sites that skipped items another profile owns.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
       }
     }
   },
@@ -21855,6 +21983,22 @@
   "@sharedItems_removedSnackbar": {
     "description": "Snackbar after hiding a shared trip or site from the active profile."
   },
+  "sharedItems_shareDialog_everyoneSubtitle": "Every dive profile, including ones added later",
+  "@sharedItems_shareDialog_everyoneSubtitle": {
+    "description": "Subtitle of the Everyone choice in the share dialog for a trip or site."
+  },
+  "sharedItems_shareDialog_siteBody": "Profiles you choose see this site and can log their own dives at it. Only you can delete it or change who it is shared with.",
+  "@sharedItems_shareDialog_siteBody": {
+    "description": "Body of the dialog that picks who a dive site is shared with."
+  },
+  "sharedItems_shareDialog_title": "Share with",
+  "@sharedItems_shareDialog_title": {
+    "description": "Title of the dialog that picks who a trip or site is shared with."
+  },
+  "sharedItems_shareDialog_tripBody": "Profiles you choose see this trip and can add their own dives to it. Only you can delete it or change who it is shared with.",
+  "@sharedItems_shareDialog_tripBody": {
+    "description": "Body of the dialog that picks who a trip is shared with."
+  },
   "sharedItems_shareOwnerOnly": "Only {owner} can change sharing",
   "@sharedItems_shareOwnerOnly": {
     "description": "Helper under the disabled share switch when another profile owns the trip or site.",
@@ -21874,6 +22018,18 @@
         "example": "Alice"
       }
     }
+  },
+  "sharedItems_sharedWith_everyone": "Everyone",
+  "@sharedItems_sharedWith_everyone": {
+    "description": "A trip or site shared with every dive profile."
+  },
+  "sharedItems_sharedWith_label": "Shared with",
+  "@sharedItems_sharedWith_label": {
+    "description": "Label of the row on a trip or site page showing who it is shared with."
+  },
+  "sharedItems_sharedWith_none": "Not shared",
+  "@sharedItems_sharedWith_none": {
+    "description": "A trip or site shared with nobody."
   },
   "sharedItems_undo": "Undo",
   "@sharedItems_undo": {
@@ -21912,6 +22068,16 @@
       "name": {
         "type": "String",
         "example": "Alice"
+      }
+    }
+  },
+  "divers_delete_handedOver": "{count, plural, one{{count} shared trip or site went to the profile it was shared with.} other{{count} shared trips and sites went to the profiles they were shared with.}}",
+  "@divers_delete_handedOver": {
+    "description": "Sentence in the snackbar after deleting a profile whose trips and sites shared with chosen profiles went to those profiles.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "2"
       }
     }
   },
@@ -32547,5 +32713,121 @@
   "settings_setUpDevice_item_signInSync": "Sign in to {account} again. Sync is paused until you do.",
   "@settings_setUpDevice_item_signInSync": {"description": "Card item for an account sync uses (not the backup copy) that needs signing in again", "placeholders": {"account": {"type": "String"}}},
   "settings_setUpDevice_item_signInBackups": "Sign in to {account} again. Backups are paused until you do.",
-  "@settings_setUpDevice_item_signInBackups": {"description": "Card item for an account the backup copy uses (not sync) that needs signing in again", "placeholders": {"account": {"type": "String"}}}
+  "@settings_setUpDevice_item_signInBackups": {"description": "Card item for an account the backup copy uses (not sync) that needs signing in again", "placeholders": {"account": {"type": "String"}}},
+  "settings_setUpDevice_next": "Next",
+  "@settings_setUpDevice_next": {"description": "Primary button of a setup step that moves to the next step"},
+  "settings_setUpDevice_notNow": "Not now",
+  "@settings_setUpDevice_notNow": {"description": "Leaves the setup flow without finishing the step; nothing is changed"},
+  "settings_setUpDevice_skip": "Skip",
+  "@settings_setUpDevice_skip": {"description": "Skips the optional photo step of the setup flow"},
+  "settings_setUpDevice_account_title": "Where should Submersion keep your data?",
+  "@settings_setUpDevice_account_title": {"description": "Title of setup step 1, choosing the account that keeps the data"},
+  "settings_setUpDevice_account_note": "Your dives are stored only in the account you choose. Submersion has no server of its own.",
+  "@settings_setUpDevice_account_note": {"description": "Note under the accounts in setup step 1"},
+  "settings_setUpDevice_account_backupFile": "I have a backup file instead",
+  "@settings_setUpDevice_account_backupFile": {"description": "Link in setup step 1 that restores from a backup file instead"},
+  "settings_setUpDevice_offer_icloud": "Uses your Apple ID. Nothing to sign in to.",
+  "@settings_setUpDevice_offer_icloud": {"description": "Under iCloud in setup step 1: what adding it takes"},
+  "settings_setUpDevice_offer_googleDrive": "Sign in with Google",
+  "@settings_setUpDevice_offer_googleDrive": {"description": "Under Google Drive in setup step 1: what adding it takes"},
+  "settings_setUpDevice_offer_dropbox": "Sign in with Dropbox",
+  "@settings_setUpDevice_offer_dropbox": {"description": "Under Dropbox in setup step 1: what adding it takes"},
+  "settings_setUpDevice_offer_ownServer": "S3-compatible storage or a WebDAV server",
+  "@settings_setUpDevice_offer_ownServer": {"description": "Under My own server in setup step 1: what it is"},
+  "settings_setUpDevice_sync_title": "Dives on every device",
+  "@settings_setUpDevice_sync_title": {"description": "Title of setup step 2, syncing dives between devices"},
+  "settings_setUpDevice_sync_signedIn": "Signed in to {account}",
+  "@settings_setUpDevice_sync_signedIn": {"description": "Opening line of setup step 2", "placeholders": {"account": {"type": "String"}}},
+  "settings_setUpDevice_sync_noLibrary": "{account} has no Submersion library yet. The dives here will become the library all your devices share.",
+  "@settings_setUpDevice_sync_noLibrary": {"description": "Step 2: the account holds no library yet", "placeholders": {"account": {"type": "String"}}},
+  "settings_setUpDevice_sync_found": "Found your library in {account}, last changed {when} on {device}.",
+  "@settings_setUpDevice_sync_found": {"description": "Step 2: a library exists; when is like 3 hours ago, device is the other device's name", "placeholders": {"account": {"type": "String"}, "when": {"type": "String"}, "device": {"type": "String"}}},
+  "settings_setUpDevice_sync_foundPlain": "Found your library in {account}.",
+  "@settings_setUpDevice_sync_foundPlain": {"description": "Step 2: a library exists, with no device or time known", "placeholders": {"account": {"type": "String"}}},
+  "settings_setUpDevice_sync_foundEmpty": "There are no dives here yet, so the library is simply downloaded.",
+  "@settings_setUpDevice_sync_foundEmpty": {"description": "Step 2: this device has no dives, so the library is downloaded"},
+  "settings_setUpDevice_sync_combine": "Combine them",
+  "@settings_setUpDevice_sync_combine": {"description": "Step 2 choice: combine this device's dives with the library"},
+  "settings_setUpDevice_sync_combineDetail": "The dives here join the library. A dive logged separately on both devices will appear twice.",
+  "@settings_setUpDevice_sync_combineDetail": {"description": "Explains combining in step 2"},
+  "settings_setUpDevice_sync_replace": "Replace the dives here with the library",
+  "@settings_setUpDevice_sync_replace": {"description": "Step 2 choice: replace this device's dives with the library"},
+  "settings_setUpDevice_sync_replaceDetail": "A backup of the dives here is saved first, under Backups.",
+  "@settings_setUpDevice_sync_replaceDetail": {"description": "Explains replacing in step 2"},
+  "settings_setUpDevice_sync_keepInStepDetail": "A few seconds after each change, at launch and when the app returns",
+  "@settings_setUpDevice_sync_keepInStepDetail": {"description": "Subtitle of Keep devices in step automatically in step 2"},
+  "settings_setUpDevice_sync_turnOn": "Turn on sync",
+  "@settings_setUpDevice_sync_turnOn": {"description": "Step 2 primary button: start syncing (no library yet)"},
+  "settings_setUpDevice_sync_download": "Download library",
+  "@settings_setUpDevice_sync_download": {"description": "Step 2 primary button: download the library onto an empty device"},
+  "settings_setUpDevice_sync_combineAndDownload": "Combine and download",
+  "@settings_setUpDevice_sync_combineAndDownload": {"description": "Step 2 primary button: combine, then download"},
+  "settings_setUpDevice_sync_replaceAndDownload": "Replace and download",
+  "@settings_setUpDevice_sync_replaceAndDownload": {"description": "Step 2 primary button: replace, then download"},
+  "settings_setUpDevice_sync_noAccount": "Choose where your data is kept first.",
+  "@settings_setUpDevice_sync_noAccount": {"description": "Step 2 opened with no account chosen"},
+  "settings_setUpDevice_replace_title": "Replace the dives here?",
+  "@settings_setUpDevice_replace_title": {"description": "Title of the typed-word dialog that confirms replacing this device's dives"},
+  "settings_setUpDevice_replace_working": "Setting the dives here aside and downloading the library...",
+  "@settings_setUpDevice_replace_working": {"description": "Shown while this device's dives are set aside and the library downloads"},
+  "settings_setUpDevice_replace_doneTitle": "Library downloaded",
+  "@settings_setUpDevice_replace_doneTitle": {"description": "Title once the library replaced this device's dives"},
+  "settings_setUpDevice_replace_stillUploading": "The library is still being uploaded from another device. Try again once it finishes.",
+  "@settings_setUpDevice_replace_stillUploading": {"description": "Replace refused: another device has not finished uploading"},
+  "settings_setUpDevice_replace_photosBusy": "Photo uploads are still finishing. Try again in a moment.",
+  "@settings_setUpDevice_replace_photosBusy": {"description": "Replace refused: photo uploads are still finishing"},
+  "settings_setUpDevice_replace_failed": "The library could not be downloaded. Nothing was changed.",
+  "@settings_setUpDevice_replace_failed": {"description": "Replace failed before anything changed"},
+  "settings_setUpDevice_sync_unreachable": "Could not read {account}. Check the connection and try again.",
+  "@settings_setUpDevice_sync_unreachable": {"description": "Step 2 could not read the account", "placeholders": {"account": {"type": "String"}}},
+  "settings_setUpDevice_replace_noLibrary": "{account} has no library to join yet.",
+  "@settings_setUpDevice_replace_noLibrary": {"description": "Replace refused: the account has no library", "placeholders": {"account": {"type": "String"}}},
+  "settings_setUpDevice_replace_newerSchema": "{devices} use a newer version of Submersion. Update this device first.",
+  "@settings_setUpDevice_replace_newerSchema": {"description": "Replace refused: other devices run a newer version; devices is a list of names", "placeholders": {"devices": {"type": "String"}}},
+  "settings_setUpDevice_replace_backupNote": "Before joining the library, {date}",
+  "@settings_setUpDevice_replace_backupNote": {"description": "Note on the backup saved before replacing; date is a short date", "placeholders": {"date": {"type": "String"}}},
+  "settings_setUpDevice_replace_body": "{count, plural, =1{The 1 dive here is replaced by the library in {account}. A backup of it is saved first and stays under Backups.} other{The {count} dives here are replaced by the library in {account}. A backup of them is saved first and stays under Backups.}}",
+  "@settings_setUpDevice_replace_body": {"description": "Body of the typed-word dialog that confirms replacing this device's dives", "placeholders": {"count": {"type": "int"}, "account": {"type": "String"}}},
+  "settings_setUpDevice_replace_doneBody": "{count, plural, =1{Your 1 dive was set aside and the library was downloaded. Submersion will reload.} other{Your {count} dives were set aside and the library was downloaded. Submersion will reload.}}",
+  "@settings_setUpDevice_replace_doneBody": {"description": "Shown once this device's dives were set aside and the library downloaded", "placeholders": {"count": {"type": "int"}}},
+  "settings_setUpDevice_backups_title": "{device, select, phone{A backup that survives a lost phone} tablet{A backup that survives a lost tablet} computer{A backup that survives a lost computer} other{A backup that survives a lost device}}",
+  "@settings_setUpDevice_backups_title": {"description": "Title of setup step 3, automatic backups", "placeholders": {"device": {"type": "String", "description": "phone, tablet, computer or other, from the platform"}}},
+  "settings_setUpDevice_backups_intro": "Sync keeps devices in step. A backup is a copy from a moment in time that you can go back to.",
+  "@settings_setUpDevice_backups_intro": {"description": "Opening sentences of setup step 3"},
+  "settings_setUpDevice_backups_autoDetail": "{frequency}. The last {count} are kept here.",
+  "@settings_setUpDevice_backups_autoDetail": {"description": "Subtitle of Back up automatically in step 3; frequency is like Weekly", "placeholders": {"frequency": {"type": "String"}, "count": {"type": "int"}}},
+  "settings_setUpDevice_backups_autoDetailDesktop": "{frequency}, while Submersion is open. The last {count} are kept here.",
+  "@settings_setUpDevice_backups_autoDetailDesktop": {"description": "Subtitle of Back up automatically in step 3 on a computer; frequency is like Weekly", "placeholders": {"frequency": {"type": "String"}, "count": {"type": "int"}}},
+  "settings_setUpDevice_backups_copy": "Also keep a copy in {account}",
+  "@settings_setUpDevice_backups_copy": {"description": "Step 3 switch: also copy each backup to an account", "placeholders": {"account": {"type": "String"}}},
+  "settings_setUpDevice_backups_noAccount": "A copy off this device needs an account or a backup folder.",
+  "@settings_setUpDevice_backups_noAccount": {"description": "Step 3 when no account exists for a copy"},
+  "settings_setUpDevice_backups_openBackups": "Open Backups",
+  "@settings_setUpDevice_backups_openBackups": {"description": "Link in step 3 that opens the Backups page"},
+  "settings_setUpDevice_backups_note": "Schedule, folder, password protection and old backups are under Backups.",
+  "@settings_setUpDevice_backups_note": {"description": "Note at the end of step 3"},
+  "settings_setUpDevice_photos_title": "Photos on every device",
+  "@settings_setUpDevice_photos_title": {"description": "Title of setup step 4, sharing photo copies"},
+  "settings_setUpDevice_photos_firstIntro": "Keep copies of your photos and videos in {account} so your other devices can show them. Your originals stay where they are.",
+  "@settings_setUpDevice_photos_firstIntro": {"description": "Step 4 intro when no device keeps photo copies yet", "placeholders": {"account": {"type": "String"}}},
+  "settings_setUpDevice_photos_keepCopies": "Keep photo copies in {account}",
+  "@settings_setUpDevice_photos_keepCopies": {"description": "Step 4 switch on a first device", "placeholders": {"account": {"type": "String"}}},
+  "settings_setUpDevice_photos_firstNote": "Turn it on later under Photos & videos. Nothing is uploaded until you do.",
+  "@settings_setUpDevice_photos_firstNote": {"description": "Note in step 4 on a first device"},
+  "settings_setUpDevice_photos_secondIntro": "Your other devices keep photo and video copies in {account}. Show them here too?",
+  "@settings_setUpDevice_photos_secondIntro": {"description": "Step 4 intro when the library keeps photo copies in an account", "placeholders": {"account": {"type": "String"}}},
+  "settings_setUpDevice_photos_useCopies": "Use the photo copies in {account}",
+  "@settings_setUpDevice_photos_useCopies": {"description": "Step 4 switch on a second device", "placeholders": {"account": {"type": "String"}}},
+  "settings_setUpDevice_photos_sameAccount": "Same account. Nothing to type.",
+  "@settings_setUpDevice_photos_sameAccount": {"description": "Subtitle when the photo copies are in the account just chosen"},
+  "settings_setUpDevice_photos_signInFirst": "Signs in to {account} first.",
+  "@settings_setUpDevice_photos_signInFirst": {"description": "Subtitle when the photo copies are in another account that needs signing in", "placeholders": {"account": {"type": "String"}}},
+  "settings_setUpDevice_photos_autoUploadHere": "Upload photos added here automatically",
+  "@settings_setUpDevice_photos_autoUploadHere": {"description": "Step 4 switch on a second device: upload photos added here"},
+  "settings_setUpDevice_photos_attachedCount": "{count, plural, =0{No photos or videos attached yet} =1{{count} photo or video attached} other{{count} photos and videos attached}}",
+  "@settings_setUpDevice_photos_attachedCount": {"description": "Subtitle of the step 4 switch: photos and videos attached to dives here", "placeholders": {"count": {"type": "int"}}},
+  "settings_setUpDevice_done_title": "{device, select, phone{This phone is set up} tablet{This tablet is set up} computer{This computer is set up} other{This device is set up}}",
+  "@settings_setUpDevice_done_title": {"description": "Heading of the screen after the last setup step", "placeholders": {"device": {"type": "String", "description": "phone, tablet, computer or other, from the platform"}}},
+  "settings_setUpDevice_done_otherDevices": "On your other devices, open Submersion, choose {account}, and the same library appears.",
+  "@settings_setUpDevice_done_otherDevices": {"description": "Closing sentence of the setup done screen", "placeholders": {"account": {"type": "String"}}}
 }

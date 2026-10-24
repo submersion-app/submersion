@@ -394,6 +394,12 @@ class AppSettings {
   /// default.
   final bool autoTagImports;
 
+  /// Whether a dive computer download defaults to the profile that owns the
+  /// computer when that is not the active profile (issue #2050). Off starts
+  /// the review step's profile picker on the active profile instead; the
+  /// computer is recognised either way.
+  final bool downloadsFollowComputerOwner;
+
   /// Which layout to use for the site list
   final ListViewMode siteListViewMode;
 
@@ -745,6 +751,7 @@ class AppSettings {
     this.diveListViewMode = ListViewMode.detailed,
     this.groupTripsInDiveList = false,
     this.autoTagImports = true,
+    this.downloadsFollowComputerOwner = true,
     this.siteListViewMode = ListViewMode.detailed,
     this.tripListViewMode = ListViewMode.detailed,
     this.equipmentListViewMode = ListViewMode.detailed,
@@ -961,6 +968,7 @@ class AppSettings {
     ListViewMode? diveListViewMode,
     bool? groupTripsInDiveList,
     bool? autoTagImports,
+    bool? downloadsFollowComputerOwner,
     ListViewMode? siteListViewMode,
     ListViewMode? tripListViewMode,
     ListViewMode? equipmentListViewMode,
@@ -1162,6 +1170,8 @@ class AppSettings {
       diveListViewMode: diveListViewMode ?? this.diveListViewMode,
       groupTripsInDiveList: groupTripsInDiveList ?? this.groupTripsInDiveList,
       autoTagImports: autoTagImports ?? this.autoTagImports,
+      downloadsFollowComputerOwner:
+          downloadsFollowComputerOwner ?? this.downloadsFollowComputerOwner,
       siteListViewMode: siteListViewMode ?? this.siteListViewMode,
       tripListViewMode: tripListViewMode ?? this.tripListViewMode,
       equipmentListViewMode:
@@ -2817,6 +2827,20 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 
   Future<void> setSiteMatchSensitivity(SiteMatchSensitivity value) async {
     state = state.copyWith(siteMatchSensitivity: value);
+    await _saveSettings();
+  }
+
+  /// Waits for [settingsLoaded] first, as [setAutoTagImports] does: a switch
+  /// flipped before the diver's row lands would otherwise be overwritten by
+  /// that load (issue #2050).
+  Future<void> setDownloadsFollowComputerOwner(bool value) async {
+    try {
+      await settingsLoaded;
+    } catch (_) {
+      // Already logged by the constructor; the defaults are the fallback.
+    }
+    if (!mounted) return;
+    state = state.copyWith(downloadsFollowComputerOwner: value);
     await _saveSettings();
   }
 

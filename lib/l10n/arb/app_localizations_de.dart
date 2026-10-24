@@ -2353,8 +2353,8 @@ class AppLocalizationsDe extends AppLocalizations {
       'Hauptbereich in der Größe ändern';
 
   @override
-  String get accessibility_label_sharedWithAllProfiles =>
-      'Mit allen Taucherprofilen geteilt';
+  String get accessibility_label_sharedWithProfiles =>
+      'Mit anderen Taucherprofilen geteilt';
 
   @override
   String get accessibility_label_showList => 'Liste anzeigen';
@@ -2518,6 +2518,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get backup_history_pinAction_unpin => 'Backup lösen';
 
   @override
+  String get backup_history_pinnedOnAnotherDevice =>
+      'Auf einem anderen Gerät angeheftet';
+
+  @override
   String get backup_history_pinError =>
       'Anheftstatus konnte nicht aktualisiert werden.';
 
@@ -2620,6 +2624,92 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get backup_schedule_retention_subtitle =>
       'Ältere Sicherungen werden automatisch entfernt';
+
+  @override
+  String get backup_retention_allDevices_title =>
+      'Sicherungen aller Geräte zählen';
+
+  @override
+  String get backup_retention_allDevices_off =>
+      'Aus: Dieses Gerät entfernt nur die Sicherungen, die es selbst erstellt hat';
+
+  @override
+  String backup_retention_allDevices_on(int count) {
+    return 'Der Cloud-Ordner behält die letzten $count Sicherungen aller Geräte. Angeheftete Sicherungen bleiben erhalten. Nutzen auch andere Geräte diese Einstellung, gilt die kleinste Zahl. Aktualisieren Sie zuerst die App auf allen Geräten, damit deren angeheftete Sicherungen erkannt werden.';
+  }
+
+  @override
+  String backup_retention_cloudFootprint(int count, String size) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Sicherungen im Cloud-Ordner belegen $size',
+      one: '$count Sicherung im Cloud-Ordner belegt $size',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backup_retention_confirm_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Sicherungen entfernen?',
+      one: '$count Sicherung entfernen?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backup_retention_confirm_body(int keep, String size) {
+    return 'Wenn die letzten $keep Sicherungen behalten werden, werden diese aus dem Cloud-Ordner entfernt ($size insgesamt).';
+  }
+
+  @override
+  String backup_retention_confirm_pinnedKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count angeheftete Sicherungen bleiben erhalten.',
+      one: '$count angeheftete Sicherung bleibt erhalten.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backup_retention_confirm_action(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Sicherungen entfernen',
+      one: '$count Sicherung entfernen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backup_retention_source_thisDevice => 'Dieses Gerät';
+
+  @override
+  String get backup_retention_source_anotherDevice => 'Anderes Gerät';
+
+  @override
+  String get backup_retention_source_unknown => 'Unbekanntes Gerät';
+
+  @override
+  String get backup_retention_listFailed =>
+      'Der Cloud-Sicherungsordner konnte nicht gelesen werden, daher wurde nichts geändert.';
+
+  @override
+  String backup_retention_removed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Sicherungen aus dem Cloud-Ordner entfernt',
+      one: '$count Sicherung aus dem Cloud-Ordner entfernt',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get backup_section_history => 'Verlauf';
@@ -9408,6 +9498,11 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveLog_search_jumpTitle => 'Zum Tauchgang springen';
+
+  @override
+  String diveLog_search_jumpNumberTitle(int number, String title) {
+    return '#$number · $title';
+  }
 
   @override
   String diveLog_ask_row(String text) {
@@ -18660,8 +18755,40 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String media_photoPicker_files_diveGroupTitle(String diveId) {
-    return 'Tauchgang $diveId';
+  String media_photoPicker_files_diveGroupNumberSite(int number, String site) {
+    return 'Tauchgang #$number · $site';
+  }
+
+  @override
+  String media_photoPicker_files_diveGroupNumber(int number) {
+    return 'Tauchgang #$number';
+  }
+
+  @override
+  String media_photoPicker_files_diveGroupSite(String site) {
+    return 'Tauchgang · $site';
+  }
+
+  @override
+  String get media_photoPicker_files_diveGroupUnnamed => 'Tauchgang';
+
+  @override
+  String media_photoPicker_files_diveGroupWindow(
+    String date,
+    String start,
+    String end,
+  ) {
+    return '$date · $start – $end';
+  }
+
+  @override
+  String media_photoPicker_files_diveGroupStart(String date, String start) {
+    return '$date · $start';
+  }
+
+  @override
+  String media_photoPicker_files_diveGroupSubtitle(String when, String files) {
+    return '$when · $files';
   }
 
   @override
@@ -18934,6 +19061,36 @@ class AppLocalizationsDe extends AppLocalizations {
   String media_photoViewer_failedToShare(Object error) {
     return 'Teilen fehlgeschlagen: $error';
   }
+
+  @override
+  String get media_share_preparingVideo => 'Video wird vorbereitet';
+
+  @override
+  String media_share_preparingVideoOf(int current, int total) {
+    return 'Video $current von $total wird vorbereitet';
+  }
+
+  @override
+  String get media_share_correctionFailedTitle =>
+      'Farbkorrektur konnte nicht angewendet werden';
+
+  @override
+  String media_share_correctionFailedBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Videos können trotzdem ohne sie geteilt werden.',
+      one: 'Dieses Video kann trotzdem ohne sie geteilt werden.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_share_shareOriginal => 'Original teilen';
+
+  @override
+  String get media_share_videoInterrupted =>
+      'Die Videovorbereitung wurde angehalten, als Submersion in den Hintergrund wechselte. Teile erneut, um neu zu beginnen.';
 
   @override
   String get media_photoViewer_failedToWriteMetadata =>
@@ -22563,6 +22720,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_conflict_field_autoTagImports =>
       'Importierte Tauchgänge markieren';
+
+  @override
+  String get settings_conflict_field_downloadsFollowComputerOwner =>
+      'Downloads dem Besitzer des Computers zuordnen';
 
   @override
   String get settings_conflict_field_avgSpeed => 'Durchschnittsgeschwindigkeit';
@@ -30110,6 +30271,14 @@ class AppLocalizationsDe extends AppLocalizations {
       'Jeder neue Import startet mit einem Tag, das Quelle und Datum nennt. Für einen einzelnen Import lässt sich dies in dessen Import-Optionen ändern.';
 
   @override
+  String get settings_downloadsFollowOwner_title =>
+      'Downloads dem Besitzer des Computers zuordnen';
+
+  @override
+  String get settings_downloadsFollowOwner_subtitle =>
+      'Gehört ein Tauchcomputer zu einem anderen Profil, landen seine Tauchgänge im Logbuch dieses Profils. Auf dem Prüfbildschirm lässt sich das ändern.';
+
+  @override
   String get tags_manage_searchHint => 'Tags suchen...';
 
   @override
@@ -32659,6 +32828,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get universalImport_summary_newProfile => 'Neues Profil';
+
+  @override
+  String get universalImport_summary_unnamedProfile => 'Unbenanntes Profil';
 
   @override
   String universalImport_summary_switchToSee(String name) {
@@ -35649,6 +35821,14 @@ class AppLocalizationsDe extends AppLocalizations {
   String get universalImport_title_importOptions => 'Importoptionen';
 
   @override
+  String universalImport_computerOwner_notice(String owner, String chosen) {
+    return 'Dieser Computer gehört $owner. Die Tauchgänge werden dem Logbuch von $chosen hinzugefügt.';
+  }
+
+  @override
+  String get universalImport_computerOwner_profileLabel => 'Profil';
+
+  @override
   String get universalImport_label_options => 'Optionen';
 
   @override
@@ -35714,29 +35894,19 @@ class AppLocalizationsDe extends AppLocalizations {
       'Neue Orte und Reisen standardmäßig teilen';
 
   @override
-  String get settings_shareAllSites_title => 'Alle meine Orte teilen';
+  String get settings_shareAllSites_title => 'Alle meine Tauchplätze teilen...';
 
   @override
-  String get settings_shareAllTrips_title => 'Alle meine Reisen teilen';
+  String get settings_shareAllTrips_title => 'Alle meine Reisen teilen...';
 
   @override
   String settings_shareAllSites_confirm(int count) {
-    return 'Alle $count deiner Orte für jedes Taucherprofil in dieser App sichtbar machen? Du kannst einzelne Orte später wieder privat machen.';
+    return 'Wähle aus, wer alle $count deiner Tauchplätze sieht. Um einen Tauchplatz später zu ändern, öffne ihn und tippe auf Geteilt mit.';
   }
 
   @override
   String settings_shareAllTrips_confirm(int count) {
-    return 'Alle $count deiner Reisen für jedes Taucherprofil in dieser App sichtbar machen? Du kannst einzelne Reisen später wieder privat machen.';
-  }
-
-  @override
-  String settings_shareAllSites_snackbar(int count) {
-    return '$count Orte mit allen Taucherprofilen geteilt.';
-  }
-
-  @override
-  String settings_shareAllTrips_snackbar(int count) {
-    return '$count Reisen mit allen Taucherprofilen geteilt.';
+    return 'Wähle aus, wer alle $count deiner Reisen sieht. Um eine Reise später zu ändern, öffne sie und tippe auf Geteilt mit.';
   }
 
   @override
@@ -35773,7 +35943,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String trips_unshareConfirm_body(String name) {
-    return '„$name\" wird aus den Ansichten anderer Taucherprofile entfernt. Du kannst die Reise später wieder teilen.';
+    return 'Profile, die du entfernst, sehen „$name\" nicht mehr. Ihre Tauchgänge bleiben damit verknüpft, und du kannst die Reise später wieder mit ihnen teilen.';
   }
 
   @override
@@ -35781,7 +35951,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String sites_unshareConfirm_body(String name) {
-    return '„$name\" wird aus den Ansichten anderer Taucherprofile entfernt. Du kannst den Ort später wieder teilen.';
+    return 'Profile, die du entfernst, sehen „$name\" nicht mehr. Ihre Tauchgänge bleiben damit verknüpft, und du kannst den Tauchplatz später wieder mit ihnen teilen.';
   }
 
   @override
@@ -35856,6 +36026,31 @@ class AppLocalizationsDe extends AppLocalizations {
       one: '$count Eintrag aus deinem Profil entfernen?',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get sharedItems_bulkShare_action => 'Teilen mit...';
+
+  @override
+  String sharedItems_bulkShare_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Elemente geteilt',
+      one: '$count Element geteilt',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedItems_bulkShare_doneSkipped(int count, int skipped) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Elemente geteilt',
+      one: '$count Element geteilt',
+    );
+    return '$_temp0, $skipped übersprungen, die dir nicht gehören';
   }
 
   @override
@@ -35956,6 +36151,21 @@ class AppLocalizationsDe extends AppLocalizations {
   String get sharedItems_removedSnackbar => 'Aus deinem Profil entfernt';
 
   @override
+  String get sharedItems_shareDialog_everyoneSubtitle =>
+      'Jedes Taucherprofil, auch später hinzugefügte';
+
+  @override
+  String get sharedItems_shareDialog_siteBody =>
+      'Die Profile, die du auswählst, sehen diesen Tauchplatz und können eigene Tauchgänge dort eintragen. Nur du kannst ihn löschen oder ändern, mit wem er geteilt wird.';
+
+  @override
+  String get sharedItems_shareDialog_title => 'Teilen mit';
+
+  @override
+  String get sharedItems_shareDialog_tripBody =>
+      'Die Profile, die du auswählst, sehen diese Reise und können eigene Tauchgänge hinzufügen. Nur du kannst sie löschen oder ändern, mit wem sie geteilt wird.';
+
+  @override
   String sharedItems_shareOwnerOnly(String owner) {
     return 'Nur $owner kann das Teilen ändern';
   }
@@ -35964,6 +36174,15 @@ class AppLocalizationsDe extends AppLocalizations {
   String sharedItems_sharedBy(String owner) {
     return 'Geteilt von $owner';
   }
+
+  @override
+  String get sharedItems_sharedWith_everyone => 'Alle';
+
+  @override
+  String get sharedItems_sharedWith_label => 'Geteilt mit';
+
+  @override
+  String get sharedItems_sharedWith_none => 'Nicht geteilt';
 
   @override
   String get sharedItems_undo => 'Rückgängig';
@@ -35994,6 +36213,19 @@ class AppLocalizationsDe extends AppLocalizations {
       one: 'geteilter Ort',
     );
     return 'Taucher gelöscht. $trips $_temp0 und $sites $_temp1 wurden $name zugewiesen.';
+  }
+
+  @override
+  String divers_delete_handedOver(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count geteilte Reisen und Orte gingen an die Profile, mit denen sie geteilt waren.',
+      one:
+          '$count geteilte Reise oder geteilter Ort ging an das Profil, mit dem sie geteilt war.',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -55049,5 +55281,290 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String settings_setUpDevice_item_signInBackups(String account) {
     return 'Melden Sie sich erneut bei $account an. Sicherungen sind bis dahin pausiert.';
+  }
+
+  @override
+  String get settings_setUpDevice_next => 'Weiter';
+
+  @override
+  String get settings_setUpDevice_notNow => 'Nicht jetzt';
+
+  @override
+  String get settings_setUpDevice_skip => 'Überspringen';
+
+  @override
+  String get settings_setUpDevice_account_title =>
+      'Wo soll Submersion Ihre Daten aufbewahren?';
+
+  @override
+  String get settings_setUpDevice_account_note =>
+      'Ihre Tauchgänge werden nur in dem Konto gespeichert, das Sie wählen. Submersion hat keinen eigenen Server.';
+
+  @override
+  String get settings_setUpDevice_account_backupFile =>
+      'Ich habe stattdessen eine Sicherungsdatei';
+
+  @override
+  String get settings_setUpDevice_offer_icloud =>
+      'Nutzt Ihre Apple-ID. Keine Anmeldung nötig.';
+
+  @override
+  String get settings_setUpDevice_offer_googleDrive => 'Mit Google anmelden';
+
+  @override
+  String get settings_setUpDevice_offer_dropbox => 'Mit Dropbox anmelden';
+
+  @override
+  String get settings_setUpDevice_offer_ownServer =>
+      'S3-kompatibler Speicher oder ein WebDAV-Server';
+
+  @override
+  String get settings_setUpDevice_sync_title => 'Tauchgänge auf jedem Gerät';
+
+  @override
+  String settings_setUpDevice_sync_signedIn(String account) {
+    return 'Angemeldet bei $account';
+  }
+
+  @override
+  String settings_setUpDevice_sync_noLibrary(String account) {
+    return '$account enthält noch keine Submersion-Bibliothek. Die Tauchgänge hier werden zur Bibliothek, die alle Ihre Geräte teilen.';
+  }
+
+  @override
+  String settings_setUpDevice_sync_found(
+    String account,
+    String when,
+    String device,
+  ) {
+    return 'Ihre Bibliothek in $account gefunden, zuletzt geändert $when auf $device.';
+  }
+
+  @override
+  String settings_setUpDevice_sync_foundPlain(String account) {
+    return 'Ihre Bibliothek in $account gefunden.';
+  }
+
+  @override
+  String get settings_setUpDevice_sync_foundEmpty =>
+      'Hier gibt es noch keine Tauchgänge, daher wird die Bibliothek einfach heruntergeladen.';
+
+  @override
+  String get settings_setUpDevice_sync_combine => 'Zusammenführen';
+
+  @override
+  String get settings_setUpDevice_sync_combineDetail =>
+      'Die Tauchgänge hier kommen zur Bibliothek hinzu. Ein Tauchgang, der auf beiden Geräten getrennt erfasst wurde, erscheint doppelt.';
+
+  @override
+  String get settings_setUpDevice_sync_replace =>
+      'Die Tauchgänge hier durch die Bibliothek ersetzen';
+
+  @override
+  String get settings_setUpDevice_sync_replaceDetail =>
+      'Zuerst wird eine Sicherung der Tauchgänge hier unter Sicherungen gespeichert.';
+
+  @override
+  String get settings_setUpDevice_sync_keepInStepDetail =>
+      'Wenige Sekunden nach jeder Änderung, beim Start und bei der Rückkehr zur App';
+
+  @override
+  String get settings_setUpDevice_sync_turnOn => 'Sync aktivieren';
+
+  @override
+  String get settings_setUpDevice_sync_download => 'Bibliothek herunterladen';
+
+  @override
+  String get settings_setUpDevice_sync_combineAndDownload =>
+      'Zusammenführen und herunterladen';
+
+  @override
+  String get settings_setUpDevice_sync_replaceAndDownload =>
+      'Ersetzen und herunterladen';
+
+  @override
+  String get settings_setUpDevice_sync_noAccount =>
+      'Wählen Sie zuerst, wo Ihre Daten liegen.';
+
+  @override
+  String get settings_setUpDevice_replace_title =>
+      'Die Tauchgänge hier ersetzen?';
+
+  @override
+  String get settings_setUpDevice_replace_working =>
+      'Die Tauchgänge hier werden beiseitegelegt und die Bibliothek heruntergeladen...';
+
+  @override
+  String get settings_setUpDevice_replace_doneTitle =>
+      'Bibliothek heruntergeladen';
+
+  @override
+  String get settings_setUpDevice_replace_stillUploading =>
+      'Die Bibliothek wird noch von einem anderen Gerät hochgeladen. Versuchen Sie es erneut, sobald das abgeschlossen ist.';
+
+  @override
+  String get settings_setUpDevice_replace_photosBusy =>
+      'Foto-Uploads laufen noch. Versuchen Sie es gleich noch einmal.';
+
+  @override
+  String get settings_setUpDevice_replace_failed =>
+      'Die Bibliothek konnte nicht heruntergeladen werden. Es wurde nichts geändert.';
+
+  @override
+  String settings_setUpDevice_sync_unreachable(String account) {
+    return '$account konnte nicht gelesen werden. Prüfen Sie die Verbindung und versuchen Sie es erneut.';
+  }
+
+  @override
+  String settings_setUpDevice_replace_noLibrary(String account) {
+    return '$account enthält noch keine Bibliothek zum Beitreten.';
+  }
+
+  @override
+  String settings_setUpDevice_replace_newerSchema(String devices) {
+    return '$devices nutzen eine neuere Version von Submersion. Aktualisieren Sie zuerst dieses Gerät.';
+  }
+
+  @override
+  String settings_setUpDevice_replace_backupNote(String date) {
+    return 'Vor dem Beitritt zur Bibliothek, $date';
+  }
+
+  @override
+  String settings_setUpDevice_replace_body(int count, String account) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Die $count Tauchgänge hier werden durch die Bibliothek in $account ersetzt. Zuerst wird eine Sicherung davon gespeichert, die unter Sicherungen bleibt.',
+      one:
+          'Der 1 Tauchgang hier wird durch die Bibliothek in $account ersetzt. Zuerst wird eine Sicherung davon gespeichert, die unter Sicherungen bleibt.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_replace_doneBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Ihre $count Tauchgänge wurden beiseitegelegt und die Bibliothek heruntergeladen. Submersion wird neu geladen.',
+      one:
+          'Ihr 1 Tauchgang wurde beiseitegelegt und die Bibliothek heruntergeladen. Submersion wird neu geladen.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_backups_title(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'phone': 'Eine Sicherung, die ein verlorenes Telefon übersteht',
+      'tablet': 'Eine Sicherung, die ein verlorenes Tablet übersteht',
+      'computer': 'Eine Sicherung, die einen verlorenen Computer übersteht',
+      'other': 'Eine Sicherung, die ein verlorenes Gerät übersteht',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_setUpDevice_backups_intro =>
+      'Sync hält Geräte auf demselben Stand. Eine Sicherung ist eine Kopie eines Zeitpunkts, zu dem Sie zurückkehren können.';
+
+  @override
+  String settings_setUpDevice_backups_autoDetail(String frequency, int count) {
+    return '$frequency. Die letzten $count werden hier aufbewahrt.';
+  }
+
+  @override
+  String settings_setUpDevice_backups_autoDetailDesktop(
+    String frequency,
+    int count,
+  ) {
+    return '$frequency, solange Submersion geöffnet ist. Die letzten $count werden hier aufbewahrt.';
+  }
+
+  @override
+  String settings_setUpDevice_backups_copy(String account) {
+    return 'Auch eine Kopie in $account aufbewahren';
+  }
+
+  @override
+  String get settings_setUpDevice_backups_noAccount =>
+      'Eine Kopie außerhalb dieses Geräts braucht ein Konto oder einen Sicherungsordner.';
+
+  @override
+  String get settings_setUpDevice_backups_openBackups => 'Sicherungen öffnen';
+
+  @override
+  String get settings_setUpDevice_backups_note =>
+      'Zeitplan, Ordner, Passwortschutz und ältere Sicherungen finden Sie unter Sicherungen.';
+
+  @override
+  String get settings_setUpDevice_photos_title => 'Fotos auf jedem Gerät';
+
+  @override
+  String settings_setUpDevice_photos_firstIntro(String account) {
+    return 'Bewahren Sie Kopien Ihrer Fotos und Videos in $account auf, damit Ihre anderen Geräte sie anzeigen können. Ihre Originale bleiben, wo sie sind.';
+  }
+
+  @override
+  String settings_setUpDevice_photos_keepCopies(String account) {
+    return 'Fotokopien in $account aufbewahren';
+  }
+
+  @override
+  String get settings_setUpDevice_photos_firstNote =>
+      'Sie können es später unter Fotos & Videos einschalten. Bis dahin wird nichts hochgeladen.';
+
+  @override
+  String settings_setUpDevice_photos_secondIntro(String account) {
+    return 'Ihre anderen Geräte bewahren Foto- und Videokopien in $account auf. Auch hier anzeigen?';
+  }
+
+  @override
+  String settings_setUpDevice_photos_useCopies(String account) {
+    return 'Die Fotokopien in $account verwenden';
+  }
+
+  @override
+  String get settings_setUpDevice_photos_sameAccount =>
+      'Dasselbe Konto. Nichts einzugeben.';
+
+  @override
+  String settings_setUpDevice_photos_signInFirst(String account) {
+    return 'Meldet sich zuerst bei $account an.';
+  }
+
+  @override
+  String get settings_setUpDevice_photos_autoUploadHere =>
+      'Hier hinzugefügte Fotos automatisch hochladen';
+
+  @override
+  String settings_setUpDevice_photos_attachedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Fotos und Videos verknüpft',
+      one: '$count Foto oder Video verknüpft',
+      zero: 'Noch keine Fotos oder Videos verknüpft',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_done_title(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'phone': 'Dieses Telefon ist eingerichtet',
+      'tablet': 'Dieses Tablet ist eingerichtet',
+      'computer': 'Dieser Computer ist eingerichtet',
+      'other': 'Dieses Gerät ist eingerichtet',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_done_otherDevices(String account) {
+    return 'Öffnen Sie Submersion auf Ihren anderen Geräten, wählen Sie $account, und dieselbe Bibliothek erscheint.';
   }
 }

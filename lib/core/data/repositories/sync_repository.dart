@@ -220,6 +220,8 @@ class SyncRepository {
     'librarySiteNotes': (table: 'library_site_notes', pk: 'id'),
     'tripHides': (table: 'trip_hides', pk: 'id'),
     'siteHides': (table: 'site_hides', pk: 'id'),
+    'tripShares': (table: 'trip_shares', pk: 'id'),
+    'siteShares': (table: 'site_shares', pk: 'id'),
     'equipmentOwnershipEvents': (table: 'equipment_ownership_events', pk: 'id'),
     'equipmentLocations': (table: 'equipment_locations', pk: 'id'),
     'equipmentLocationMoves': (table: 'equipment_location_moves', pk: 'id'),

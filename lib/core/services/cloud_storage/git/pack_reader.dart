@@ -1,10 +1,14 @@
+import 'dart:io';
+import 'dart:math';
 import 'dart:typed_data';
 
+import 'package:archive/archive.dart';
 import 'package:crypto/crypto.dart';
 
 import 'package:submersion/core/services/cloud_storage/git/git_errors.dart';
 import 'package:submersion/core/services/cloud_storage/git/git_object_id.dart';
 import 'package:submersion/core/services/cloud_storage/git/git_object_store.dart';
+import 'package:submersion/core/services/cloud_storage/git/pack_delta_stream.dart';
 import 'package:submersion/core/services/cloud_storage/git/pack_inflater.dart';
 
 GitException _corrupt(String what) => GitException(
@@ -15,148 +19,316 @@ GitException _corrupt(String what) => GitException(
 const int _ofsDelta = 6;
 const int _refDelta = 7;
 
-/// One pack entry before delta resolution.
-final class _Entry {
-  _Entry(this.offset, this.typeCode, this.data, {this.baseOffset, this.baseId});
+/// Objects (and deltas) up to this size are inflated and resolved in memory;
+/// larger ones go to and from the store in pieces, so a download is never
+/// held whole however large the file.
+const int kGitInMemoryObjectLimit = 4 * 1024 * 1024;
 
-  final int offset;
-  final int typeCode;
-  final Uint8List data;
+/// A delta whose base had not turned up when it was read: either a REF_DELTA
+/// against an object later in the pack, or a delta against such a delta.
+final class _Deferred {
+  _Deferred(
+    this.start,
+    this.dataStart,
+    this.size,
+    this.data, {
+    this.baseOffset,
+    this.baseId,
+  });
+
+  final int start;
+  final int dataStart;
+  final int size;
+
+  /// The inflated delta when it was small enough to keep; otherwise it is
+  /// inflated again from the pack when its base is ready.
+  final Uint8List? data;
   final int? baseOffset;
   final GitObjectId? baseId;
 }
 
-/// Parses a version 2 pack, resolves OFS_DELTA and REF_DELTA entries, and
-/// stores every object in [store]. A REF_DELTA base may be in the pack or
-/// already in [store] (a thin pack). Returns the ids in pack order.
+/// Parses a version 2 pack held in memory; see [readPackFile].
+Future<List<GitObjectId>> readPack(
+  Uint8List pack,
+  GitObjectStore store, {
+  int inMemoryLimit = kGitInMemoryObjectLimit,
+}) => _readPack(InputMemoryStream(pack), pack.length, store, inMemoryLimit);
+
+/// Parses the version 2 pack in [pack], resolves OFS_DELTA and REF_DELTA
+/// entries, and stores every object in [store] as it is resolved. A
+/// REF_DELTA base may be in the pack, before or after the delta, or already
+/// in [store] (a thin pack). Returns the ids in pack order.
+///
+/// An object above [inMemoryLimit] is never held whole: it is inflated
+/// straight into the store, and a delta against or producing one is applied
+/// a piece at a time.
 ///
 /// Throws [GitException] with [GitErrorCode.unexpected] on any malformed
 /// input: a bad header or trailer checksum, a corrupt stream, or a delta
 /// that does not fit its base; [GitDeltaBaseMissingException] for a delta
 /// whose base is neither in the pack nor in [store].
-Future<List<GitObjectId>> readPack(Uint8List pack, GitObjectStore store) async {
-  if (pack.length < 32 ||
-      pack[0] != 0x50 ||
-      pack[1] != 0x41 ||
-      pack[2] != 0x43 ||
-      pack[3] != 0x4b) {
+Future<List<GitObjectId>> readPackFile(
+  File pack,
+  GitObjectStore store, {
+  int inMemoryLimit = kGitInMemoryObjectLimit,
+}) async {
+  final length = await pack.length();
+  final input = InputFileStream(pack.path);
+  try {
+    return await _readPack(input, length, store, inMemoryLimit);
+  } finally {
+    await input.close();
+  }
+}
+
+Future<List<GitObjectId>> _readPack(
+  InputStream input,
+  int length,
+  GitObjectStore store,
+  int limit,
+) async {
+  if (length < 32) throw _corrupt('missing PACK signature');
+  input.setPosition(0);
+  final head = input.readBytes(12).toUint8List();
+  if (head[0] != 0x50 ||
+      head[1] != 0x41 ||
+      head[2] != 0x43 ||
+      head[3] != 0x4b) {
     throw _corrupt('missing PACK signature');
   }
-  final header = ByteData.sublistView(pack, 4, 12);
+  final header = ByteData.sublistView(head, 4, 12);
   if (header.getUint32(0) != 2) throw _corrupt('unsupported pack version');
   final count = header.getUint32(4);
-  final body = Uint8List.sublistView(pack, 0, pack.length - 20);
-  final trailer = Uint8List.sublistView(pack, pack.length - 20);
-  final digest = sha1.convert(body).bytes;
-  for (var i = 0; i < 20; i++) {
-    if (digest[i] != trailer[i]) throw _corrupt('checksum mismatch');
+  _verifyTrailer(input, length);
+
+  final end = length - 20;
+  final starts = <int>[];
+  final resolved = <int, GitObjectId>{};
+  final deferred = <_Deferred>[];
+  var pos = 12;
+
+  int next() {
+    if (pos >= end) throw _corrupt('truncated entry');
+    input.setPosition(pos++);
+    return input.readByte();
   }
 
-  final entries = <_Entry>[];
-  var pos = 12;
   for (var n = 0; n < count; n++) {
     final start = pos;
-    if (pos >= body.length) throw _corrupt('truncated entry header');
-    var byte = body[pos++];
+    var byte = next();
     final typeCode = (byte >> 4) & 0x07;
     var size = byte & 0x0f;
     var shift = 4;
     while (byte & 0x80 != 0) {
-      if (pos >= body.length) throw _corrupt('truncated entry size');
-      byte = body[pos++];
+      byte = next();
       size |= (byte & 0x7f) << shift;
       shift += 7;
     }
     int? baseOffset;
     GitObjectId? baseId;
     if (typeCode == _ofsDelta) {
-      if (pos >= body.length) throw _corrupt('truncated delta offset');
-      var c = body[pos++];
+      var c = next();
       var off = c & 0x7f;
       while (c & 0x80 != 0) {
-        if (pos >= body.length) throw _corrupt('truncated delta offset');
-        c = body[pos++];
+        c = next();
         off = ((off + 1) << 7) | (c & 0x7f);
       }
       baseOffset = start - off;
-      if (baseOffset < 12) throw _corrupt('delta offset out of range');
+      // Only an entry already read can be a base: that rules out itself.
+      if (!resolved.containsKey(baseOffset) &&
+          !deferred.any((d) => d.start == baseOffset)) {
+        throw _corrupt('delta base not in pack');
+      }
     } else if (typeCode == _refDelta) {
-      if (pos + 20 > body.length) throw _corrupt('truncated delta base id');
-      baseId = GitObjectId(Uint8List.sublistView(body, pos, pos + 20));
+      if (pos + 20 > end) throw _corrupt('truncated delta base id');
+      input.setPosition(pos);
+      baseId = GitObjectId(input.readBytes(20).toUint8List());
       pos += 20;
     } else if (typeCode < 1 || typeCode > 4) {
       throw _corrupt('object type $typeCode');
     }
-    final inflated = inflateAt(body, pos, expectedSize: size);
-    pos += inflated.consumed;
-    entries.add(
-      _Entry(
-        start,
-        typeCode,
-        inflated.data,
-        baseOffset: baseOffset,
-        baseId: baseId,
-      ),
-    );
-  }
-  if (pos != body.length) throw _corrupt('trailing bytes after objects');
 
-  final byOffset = {for (final e in entries) e.offset: e};
-  final resolvedByOffset = <int, GitStoredObject>{};
-  final resolvedById = <GitObjectId, GitStoredObject>{};
-
-  Future<GitStoredObject> resolve(_Entry e, int depth) async {
-    final done = resolvedByOffset[e.offset];
-    if (done != null) return done;
-    if (depth > 1000) throw _corrupt('delta chain too deep');
-    final GitStoredObject object;
-    if (e.typeCode != _ofsDelta && e.typeCode != _refDelta) {
-      final type = GitObjectType.fromPackCode(e.typeCode);
-      object = GitStoredObject(
-        id: hashGitObject(type, e.data),
-        type: type,
-        body: e.data,
-      );
+    if (baseOffset == null && baseId == null) {
+      final type = GitObjectType.fromPackCode(typeCode);
+      final whole = await _readWhole(input, pos, type, size, store, limit);
+      resolved[start] = whole.id;
+      pos += whole.consumed;
     } else {
-      GitStoredObject? base;
-      if (e.baseOffset != null) {
-        final baseEntry = byOffset[e.baseOffset!];
-        if (baseEntry == null) throw _corrupt('delta base not in pack');
-        base = await resolve(baseEntry, depth + 1);
+      final base = baseOffset != null
+          ? resolved[baseOffset]
+          : (await store.has(baseId!) ? baseId : null);
+      if (base != null) {
+        final delta = await _readDelta(
+          input,
+          pos,
+          size,
+          null,
+          base,
+          store,
+          limit,
+        );
+        resolved[start] = delta.id;
+        pos += delta.consumed;
       } else {
-        // Every whole object in the pack is already resolved (see below).
-        base = resolvedById[e.baseId!] ?? await store.get(e.baseId!);
-        if (base == null) throw GitDeltaBaseMissingException(e.baseId!);
+        final kept = size <= limit
+            ? inflateBytesAt(input, pos, expectedSize: size)
+            : null;
+        final consumed = kept?.consumed ?? _skip(input, pos, size);
+        deferred.add(
+          _Deferred(
+            start,
+            pos,
+            size,
+            kept?.data,
+            baseOffset: baseOffset,
+            baseId: baseId,
+          ),
+        );
+        pos += consumed;
       }
-      final result = applyGitDelta(base.body, e.data);
-      object = GitStoredObject(
-        id: hashGitObject(base.type, result),
-        type: base.type,
-        body: result,
-      );
     }
-    resolvedByOffset[e.offset] = object;
-    resolvedById[object.id] = object;
-    return object;
+    starts.add(start);
   }
+  if (pos != end) throw _corrupt('trailing bytes after objects');
 
-  final ids = <GitObjectId>[];
-  // Resolve non-deltas first so a REF_DELTA against an in-pack base finds it
-  // by id without a scan, then everything in pack order.
-  for (final e in entries.where((e) => e.typeCode < _ofsDelta)) {
-    await resolve(e, 0);
+  // Each round resolves every delta whose base has turned up since.
+  while (deferred.isNotEmpty) {
+    final ready = <_Deferred>[];
+    for (final d in deferred) {
+      final base = d.baseOffset != null
+          ? resolved[d.baseOffset]
+          : (await store.has(d.baseId!) ? d.baseId : null);
+      if (base == null) continue;
+      final delta = await _readDelta(
+        input,
+        d.dataStart,
+        d.size,
+        d.data,
+        base,
+        store,
+        limit,
+      );
+      resolved[d.start] = delta.id;
+      ready.add(d);
+    }
+    if (ready.isEmpty) {
+      for (final d in deferred) {
+        if (d.baseId != null) throw GitDeltaBaseMissingException(d.baseId!);
+      }
+      throw _corrupt('delta base not in pack');
+    }
+    deferred.removeWhere(ready.contains);
   }
-  for (final e in entries) {
-    final object = await resolve(e, 0);
-    await store.put(object);
-    ids.add(object.id);
-  }
-  return ids;
+  return [for (final s in starts) resolved[s]!];
 }
 
-/// Applies a Git delta to [base]. Throws [GitException] when the delta does
-/// not match its base or its declared result size.
-Uint8List applyGitDelta(Uint8List base, Uint8List delta) {
+/// Checks the trailing SHA-1 of everything before it, reading in pieces.
+void _verifyTrailer(InputStream input, int length) {
+  final digest = DigestCollector();
+  final hasher = sha1.startChunkedConversion(digest);
+  input.setPosition(0);
+  var left = length - 20;
+  while (left > 0) {
+    final n = min(left, 1024 * 1024);
+    hasher.add(input.readBytes(n).toUint8List());
+    left -= n;
+  }
+  hasher.close();
+  final trailer = input.readBytes(20).toUint8List();
+  final bytes = digest.value!.bytes;
+  for (var i = 0; i < 20; i++) {
+    if (bytes[i] != trailer[i]) throw _corrupt('checksum mismatch');
+  }
+}
+
+/// The stream length of an entry too large to keep, inflated to nowhere.
+int _skip(InputStream input, int offset, int size) =>
+    inflateStreamAt(input, offset, expectedSize: size, onData: (_) {}).consumed;
+
+/// Reads a whole (non-delta) object at [offset] and stores it.
+Future<({GitObjectId id, int consumed})> _readWhole(
+  InputStream input,
+  int offset,
+  GitObjectType type,
+  int size,
+  GitObjectStore store,
+  int limit,
+) async {
+  if (size <= limit) {
+    final r = inflateBytesAt(input, offset, expectedSize: size);
+    final id = hashGitObject(type, r.data);
+    await store.put(GitStoredObject(id: id, type: type, body: r.data));
+    return (id: id, consumed: r.consumed);
+  }
+  final writer = store.create(type, size);
+  try {
+    final r = inflateStreamAt(
+      input,
+      offset,
+      expectedSize: size,
+      onData: writer.add,
+    );
+    return (id: await writer.close(), consumed: r.consumed);
+  } catch (_) {
+    await writer.abort();
+    rethrow;
+  }
+}
+
+/// Applies the delta at [offset] (or [data], already inflated) to [baseId]
+/// and stores the result.
+Future<({GitObjectId id, int consumed})> _readDelta(
+  InputStream input,
+  int offset,
+  int size,
+  Uint8List? data,
+  GitObjectId baseId,
+  GitObjectStore store,
+  int limit,
+) async {
+  final base = await store.open(baseId);
+  if (base == null) throw GitDeltaBaseMissingException(baseId);
+  try {
+    var delta = data;
+    var consumed = 0;
+    if (delta == null && size <= limit) {
+      final r = inflateBytesAt(input, offset, expectedSize: size);
+      delta = r.data;
+      consumed = r.consumed;
+    }
+    if (delta != null &&
+        base.length <= limit &&
+        _deltaHeader(delta).targetSize <= limit) {
+      final result = applyGitDelta(base.readSync(0, base.length), delta);
+      final id = hashGitObject(base.type, result);
+      await store.put(GitStoredObject(id: id, type: base.type, body: result));
+      return (id: id, consumed: consumed);
+    }
+    final stream = GitDeltaStream(base, store.create);
+    try {
+      if (delta != null) {
+        stream.add(delta);
+      } else {
+        consumed = inflateStreamAt(
+          input,
+          offset,
+          expectedSize: size,
+          onData: stream.add,
+        ).consumed;
+      }
+      return (id: await stream.close(), consumed: consumed);
+    } catch (_) {
+      await stream.abort();
+      rethrow;
+    }
+  } finally {
+    await base.close();
+  }
+}
+
+/// A delta's header: the base size it expects and the result size it
+/// declares. [end] is where the commands start.
+({int sourceSize, int targetSize, int end}) _deltaHeader(Uint8List delta) {
   var pos = 0;
   int varint() {
     var result = 0;
@@ -172,6 +344,14 @@ Uint8List applyGitDelta(Uint8List base, Uint8List delta) {
 
   final sourceSize = varint();
   final targetSize = varint();
+  return (sourceSize: sourceSize, targetSize: targetSize, end: pos);
+}
+
+/// Applies a Git delta to [base]. Throws [GitException] when the delta does
+/// not match its base or its declared result size.
+Uint8List applyGitDelta(Uint8List base, Uint8List delta) {
+  final (:sourceSize, :targetSize, end: start) = _deltaHeader(delta);
+  var pos = start;
   if (sourceSize != base.length) throw _corrupt('delta base size mismatch');
   final out = Uint8List(targetSize);
   var written = 0;

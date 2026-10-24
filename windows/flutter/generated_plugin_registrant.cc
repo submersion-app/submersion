@@ -25,6 +25,7 @@
 #include <submersion_ocr/submersion_ocr_plugin_c_api.h>
 #include <submersion_transcoder/submersion_transcoder_plugin_c_api.h>
 #include <url_launcher_windows/url_launcher_windows.h>
+#include <video_player_win/video_player_win_plugin_c_api.h>
 #include <window_manager/window_manager_plugin.h>
 #include <window_to_front/window_to_front_plugin.h>
 
@@ -67,6 +68,8 @@ void RegisterPlugins(flutter::PluginRegistry* registry) {
       registry->GetRegistrarForPlugin("SubmersionTranscoderPluginCApi"));
   UrlLauncherWindowsRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("UrlLauncherWindows"));
+  VideoPlayerWinPluginCApiRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("VideoPlayerWinPluginCApi"));
   WindowManagerPluginRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("WindowManagerPlugin"));
   WindowToFrontPluginRegisterWithRegistrar(

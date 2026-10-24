@@ -70,8 +70,8 @@ class FakeCloudStorageProvider extends CloudStorageProvider
   final List<String> operationLog = [];
 
   /// Seed a file as though another device had uploaded it.
-  void seedFile(String name, Uint8List data) {
-    _files[name] = _FakeFile(data, DateTime.now());
+  void seedFile(String name, Uint8List data, {DateTime? modified}) {
+    _files[name] = _FakeFile(data, modified ?? DateTime.now());
   }
 
   /// Bytes of the single sync payload file present, regardless of its

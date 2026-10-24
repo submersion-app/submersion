@@ -129,6 +129,12 @@ final class PktLineReader {
     _done = true;
     return out.takeBytes();
   }
+
+  /// Stops reading, releasing the source (an HTTP body still open).
+  Future<void> cancel() async {
+    _done = true;
+    await _source.cancel();
+  }
 }
 
 /// Splits a side-band-64k response: band 1 is data (yielded in order), band

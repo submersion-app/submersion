@@ -8,6 +8,8 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/divers/presentation/providers/profile_hides_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
+import 'package:submersion/features/shared_library/presentation/providers/shared_library_providers.dart';
 
 final _log = LoggerService.forClass(SharedItemKind);
 
@@ -50,6 +52,54 @@ bool watchHiddenHere(
 }) =>
     !canDestroy &&
     (ref.watch(isHiddenProvider((kind: kind, id: id))).value ?? false);
+
+/// Whether this trip or site reaches the active profile through sharing,
+/// with everyone or by name (issue #2151), or, for a shared site library
+/// site ([libraryId]), through the profile's membership of that library:
+/// the condition for offering "Remove from my profile". False for an item
+/// opened by id that no longer reaches the profile, and until the reads
+/// have loaded. Watches, so call it during build.
+bool watchReachesHere(
+  WidgetRef ref,
+  SharedItemKind kind,
+  String id, {
+  String? libraryId,
+}) {
+  if (libraryId != null) {
+    return ref.watch(currentMembershipProvider(libraryId)).value != null;
+  }
+  final active = ref.watch(validatedCurrentDiverIdProvider).value;
+  final sharing = ref.watch(itemSharingProvider((kind: kind, id: id))).value;
+  return active != null && sharing != null && sharing.reaches(active);
+}
+
+/// Whether trip or site [id] is shared with anyone, read afresh for a delete
+/// confirmation, so a page that has not finished its own read still warns
+/// (issue #2151). A failed read logs, tells the diver to try again and gives
+/// null, so the delete stops before its dialog.
+Future<bool?> readSharedWithAnyone(
+  WidgetRef ref,
+  BuildContext context,
+  SharedItemKind kind,
+  String id,
+) async {
+  try {
+    return (await ref.read(itemSharesRepositoryProvider).sharingOf(kind, id))
+        .isShared;
+  } catch (e, stackTrace) {
+    _log.error(
+      'Could not read who ${kind.name} $id is shared with',
+      error: e,
+      stackTrace: stackTrace,
+    );
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.common_error_tryAgain)),
+      );
+    }
+    return null;
+  }
+}
 
 /// The active profile and how many profiles exist, for splitting a bulk
 /// selection and choosing its warning (issue #2594). A failed read of

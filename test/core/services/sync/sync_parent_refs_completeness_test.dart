@@ -128,6 +128,8 @@ void main() {
     'trip_equipment': 'tripEquipment',
     'trip_hides': 'tripHides',
     'site_hides': 'siteHides',
+    'trip_shares': 'tripShares',
+    'site_shares': 'siteShares',
     'equipment_ownership_events': 'equipmentOwnershipEvents',
     'equipment_locations': 'equipmentLocations',
     'equipment_location_moves': 'equipmentLocationMoves',

@@ -4,7 +4,7 @@
 
 **Goal:** Let a diver mark a dive center permanently closed, show that everywhere a center is listed, and make the dive center picker list centers near the dive first.
 
-**Architecture:** One synced boolean column on `dive_centers` (schema v310, additive, no backfill) carried through the entity and repository. A small shared `DiveCenterClosedTag` widget marks closed centers in the list tiles, table, detail page and picker. The picker's order comes from a pure ranking function over (centers, reference point), and the dive edit page resolves the reference point from site, entry GPS, exit GPS, then device location.
+**Architecture:** One synced boolean column on `dive_centers` (schema v312, additive, no backfill) carried through the entity and repository. A small shared `DiveCenterClosedTag` widget marks closed centers in the list tiles, table, detail page and picker. The picker's order comes from a pure ranking function over (centers, reference point), and the dive edit page resolves the reference point from site, entry GPS, exit GPS, then device location.
 
 **Tech Stack:** Flutter, Drift, Riverpod, flutter_test, ARB l10n.
 
@@ -23,7 +23,7 @@
 
 ## Review Focus
 
-1. A database restored from a pre-v310 backup or adopted through sync lacks the column: every center read selects the whole row, so the beforeOpen backstop must add it. Covered in Task 1 (fresh vs upgraded, and a v310-stamped database missing the column).
+1. A database restored from a pre-v312 backup or adopted through sync lacks the column: every center read selects the whole row, so the beforeOpen backstop must add it. Covered in Task 1 (fresh vs upgraded, and a v312-stamped database missing the column).
 2. Two centers at exactly the same distance: order must be by name, not by input order or an unstable sort. Covered in Task 5 (ties arrive in reverse-name order).
 3. A center exactly 50 km away counts as nearby; one at 50.001 km does not. Covered in Task 5.
 4. The center already on the dive is closed: it must still show, checked, in the alphabetical section. Covered in Task 6.
@@ -31,18 +31,18 @@
 
 ---
 
-### Task 1: Schema v310, entity and repository
+### Task 1: Schema v312, entity and repository
 
 **Files:**
 - Modify: `lib/core/database/tables/site_tables.dart` (class `DiveCenters`, after `fillClosesAt`)
 - Modify: `lib/core/database/migrations/helpers/site_migrations.dart` (new helper)
-- Modify: `lib/core/database/migrations/ladder/rungs_v231_onward.dart` (v310 rung after v309)
+- Modify: `lib/core/database/migrations/ladder/rungs_v231_onward.dart` (v312 rung after v309)
 - Modify: `lib/core/database/migrations/before_open_child_columns.dart` (backstop call)
 - Modify: `lib/core/database/database.dart` (`currentSchemaVersion = 310`, `310` appended to `migrationVersions` with a comment)
 - Modify: `lib/features/dive_centers/domain/entities/dive_center.dart`
 - Modify: `lib/features/dive_centers/data/repositories/dive_center_repository.dart` (insert companion, update companion, `_mapRowToDiveCenter`, `_mapCustomRowToDiveCenter`)
 - Modify: `lib/features/dive_log/data/repositories/dive_repository_impl.dart` (the two places near lines 4124 and 4557 that build a `DiveCenter` from a center row for a dive). UDDF export has no field for it and is left alone.
-- Test: `test/core/database/migration_v310_dive_center_closed_test.dart` (new)
+- Test: `test/core/database/migration_v312_dive_center_closed_test.dart` (new)
 - Test: `test/features/dive_centers/domain/entities/dive_center_test.dart`
 - Test: `test/features/dive_centers/data/repositories/dive_center_repository_test.dart`
 
@@ -52,10 +52,10 @@
 
 - [ ] **Step 1: Write the failing tests**
 
-Migration test, modelled on `migration_v309_media_document_tags_test.dart`, with a v309 raw database containing a `divers` table and a `dive_centers` table with the pre-v310 columns and one row `('c1', 'Toucan Diving', ...)`:
+Migration test, modelled on `migration_v309_media_document_tags_test.dart`, with a v309 raw database containing a `divers` table and a `dive_centers` table with the pre-v312 columns and one row `('c1', 'Toucan Diving', ...)`:
 
 ```dart
-test('v310 is the current schema version and in the ladder', () {
+test('v312 is the current schema version and in the ladder', () {
   expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(310));
   expect(AppDatabase.migrationVersions, contains(310));
   expect(AppDatabase.migrationStepCount(309), AppDatabase.migrationStepCount(310) + 1);
@@ -64,7 +64,7 @@ test('v310 is the current schema version and in the ladder', () {
 test('existing centers start open', () async {
   // SELECT is_permanently_closed FROM dive_centers WHERE id = 'c1' -> 0
 });
-test('a database stamped v310 without the column gets it back in beforeOpen', () async {
+test('a database stamped v312 without the column gets it back in beforeOpen', () async {
   // user_version = 310, dive_centers without the column -> column present after open
 });
 test('a fresh database matches the upgraded one', () async {
@@ -78,7 +78,7 @@ Repository test: create a center with `isPermanentlyClosed: true`, read it back 
 
 - [ ] **Step 2: Run tests to verify they fail**
 
-Run: `flutter test test/core/database/migration_v310_dive_center_closed_test.dart test/features/dive_centers/domain/entities/dive_center_test.dart test/features/dive_centers/data/repositories/dive_center_repository_test.dart`
+Run: `flutter test test/core/database/migration_v312_dive_center_closed_test.dart test/features/dive_centers/domain/entities/dive_center_test.dart test/features/dive_centers/data/repositories/dive_center_repository_test.dart`
 Expected: compile errors on `isPermanentlyClosed` and failing version expectations.
 
 - [ ] **Step 3: Implement**
@@ -86,7 +86,7 @@ Expected: compile errors on `isPermanentlyClosed` and failing version expectatio
 - Table: `BoolColumn get isPermanentlyClosed => boolean().withDefault(const Constant(false))();` with a doc comment naming #3379.
 - Helper: `_addColumnIfMissing('dive_centers', 'is_permanently_closed', 'INTEGER NOT NULL DEFAULT 0 CHECK (is_permanently_closed IN (0, 1))')`.
 - Rung: `if (from < 310) { await _assertDiveCenterClosedColumn(); } if (from < 310) await reportProgress();` with a comment: column only, no backfill, re-asserted in beforeOpen.
-- Backstop: call it from `_assertChildRowColumns` with a v310 comment (every center read selects the whole row).
+- Backstop: call it from `_assertChildRowColumns` with a v312 comment (every center read selects the whole row).
 - Entity and repository: carry the field through every constructor, mapper and companion. The custom-row mapper reads `(row.data['is_permanently_closed'] as int? ?? 0) == 1`.
 - Run `dart run build_runner build --delete-conflicting-outputs` (or `bash scripts/setup.sh` if denied).
 

@@ -36,7 +36,12 @@ class FeatureAccentColors extends ThemeExtension<FeatureAccentColors> {
       // every light-mode accent at or above the 3:1 WCAG contrast ratio for
       // graphical objects.
       'equipment': Color(0xFFE65100),
-      'buddies': Color(0xFFC2185B),
+      // A muted sage: the crimson pink this replaced read as an alert on
+      // every buddy card (#3584). Its low saturation is what keeps it apart
+      // from the vivid sites green at icon size, and it is deep enough to
+      // read at 4.5:1 as the small stat text and as the initials on their
+      // 15% tint of itself on every preset's buddy card.
+      'buddies': Color(0xFF40674C),
       'dive-centers': Color(0xFF6D4C41),
       'certifications': Color(0xFFB45309),
       'documents': Color(0xFF1565C0),
@@ -74,7 +79,7 @@ class FeatureAccentColors extends ThemeExtension<FeatureAccentColors> {
       'media': Color(0xFFCE93D8),
       'species': Color(0xFFDCE775),
       'equipment': Color(0xFFFFB74D),
-      'buddies': Color(0xFFF06292),
+      'buddies': Color(0xFFA5C8AE),
       'dive-centers': Color(0xFFBCAAA4),
       'certifications': Color(0xFFFFD54F),
       'documents': Color(0xFF90CAF9),

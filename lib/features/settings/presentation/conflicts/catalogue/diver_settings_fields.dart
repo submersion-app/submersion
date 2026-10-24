@@ -301,6 +301,10 @@ final Map<String, ConflictField> diverSettingsFields = {
     FieldKind.enumValue,
     enumLabel: listViewModeLabeler,
   ),
+  'downloadsFollowComputerOwner': ConflictField(
+    (l) => l.settings_conflict_field_downloadsFollowComputerOwner,
+    FieldKind.boolean,
+  ),
   'emergencyRegion': ConflictField(
     (l) => l.settings_conflict_field_emergencyRegion,
     FieldKind.shortText,

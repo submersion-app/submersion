@@ -82,8 +82,8 @@ extension SiteMigrations on AppDatabase {
     await Migrator(this).createTable(diveCenterGearNotes);
   }
 
-  /// dive_centers.is_permanently_closed (v310, issue #3379). Column only,
-  /// no backfill: every existing center stays open. Called from the v310
+  /// dive_centers.is_permanently_closed (v312, issue #3379). Column only,
+  /// no backfill: every existing center stays open. Called from the v312
   /// rung and the beforeOpen backstop.
   Future<void> _assertDiveCenterClosedColumn() async {
     await _addColumnIfMissing(
@@ -102,5 +102,15 @@ extension SiteMigrations on AppDatabase {
       if (!await _tableExists(parent)) return;
     }
     await Migrator(this).createTable(siteHides);
+  }
+
+  /// The site_shares table (v311, issue #2151). Called from the v311 rung
+  /// and the beforeOpen backstop. Skipped on a partial migration-test
+  /// fixture that lacks a parent table.
+  Future<void> _assertSiteSharesSchema() async {
+    for (final parent in const ['dive_sites', 'divers']) {
+      if (!await _tableExists(parent)) return;
+    }
+    await Migrator(this).createTable(siteShares);
   }
 }

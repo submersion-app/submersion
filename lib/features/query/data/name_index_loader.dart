@@ -54,6 +54,9 @@ class NameIndexLoader {
     'equipment_shares',
     'trip_hides',
     'site_hides',
+    // A share row makes a trip or site visible to one profile (#2151).
+    'trip_shares',
+    'site_shares',
     // Custom certification agencies and levels (issue #690).
     'custom_certification_agencies',
     'custom_certification_levels',
@@ -157,6 +160,12 @@ class NameIndexLoader {
         case QuerySubject.sites:
           visible.add('t.is_shared = 1');
           if (diverId != null) {
+            // Shared with this profile alone (issue #2151).
+            visible.add(
+              '(t.shared_library_id IS NULL AND t.${entity.idColumn} IN '
+              '(SELECT site_id FROM site_shares WHERE diver_id = ?))',
+            );
+            variables.add(Variable<String>(diverId));
             visible.add(
               't.shared_library_id IN (SELECT library_id '
               'FROM shared_library_memberships WHERE diver_id = ?)',
@@ -165,6 +174,13 @@ class NameIndexLoader {
           }
         case QuerySubject.trips:
           visible.add('t.is_shared = 1');
+          if (diverId != null) {
+            visible.add(
+              't.${entity.idColumn} IN (SELECT trip_id '
+              'FROM trip_shares WHERE diver_id = ?)',
+            );
+            variables.add(Variable<String>(diverId));
+          }
         case QuerySubject.equipment when diverId != null:
           visible.add(
             't.${entity.idColumn} IN (SELECT equipment_id '

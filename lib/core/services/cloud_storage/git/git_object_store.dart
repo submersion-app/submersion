@@ -19,6 +19,40 @@ final class GitStoredObject {
   final Uint8List body;
 }
 
+/// A stored object's body read in pieces, for one too large to hold whole.
+/// The caller closes it. One read at a time: [readSync] and a stream from
+/// [openRead] share a file position, so they must not be interleaved.
+abstract interface class GitObjectReader {
+  GitObjectType get type;
+
+  /// The body length.
+  int get length;
+
+  /// Up to [count] bytes from [offset]: fewer only at the end of the body.
+  /// Synchronous, for the synchronous delta loop that copies from a base.
+  Uint8List readSync(int offset, int count);
+
+  /// The whole body, read as it is consumed.
+  Stream<List<int>> openRead();
+
+  Future<void> close();
+}
+
+/// Writes one object in pieces. Its id is the hash of what was written, so
+/// it is known only once [close] has it all.
+abstract interface class GitObjectWriter {
+  /// Synchronous, so it can sit inside the synchronous inflate loop without
+  /// bytes piling up in a buffer behind it.
+  void add(List<int> chunk);
+
+  /// Stores the object and returns its id. Throws [FormatException], and
+  /// stores nothing, when the bytes added are not the size declared.
+  Future<GitObjectId> close();
+
+  /// Drops what was written.
+  Future<void> abort();
+}
+
 /// Where fetched and created objects live. Objects are immutable and
 /// addressed by content, so a store never needs invalidating, only bounding.
 abstract interface class GitObjectStore {
@@ -28,6 +62,13 @@ abstract interface class GitObjectStore {
   /// it just fetched; [trim] does that.
   Future<void> put(GitStoredObject object);
   Future<bool> has(GitObjectId id);
+
+  /// [id]'s body to read in pieces, or null when it is not here.
+  Future<GitObjectReader?> open(GitObjectId id);
+
+  /// A writer for an object of [type] whose body is [size] bytes. Like
+  /// [put], what it stores is never evicted until [trim].
+  GitObjectWriter create(GitObjectType type, int size);
 
   /// Deletes the least recently used objects until the store is within its
   /// bound, never one [keep] returns; [keep] is asked only when something
@@ -50,7 +91,71 @@ final class MemoryGitObjectStore implements GitObjectStore {
   Future<bool> has(GitObjectId id) async => _objects.containsKey(id);
 
   @override
+  Future<GitObjectReader?> open(GitObjectId id) async {
+    final object = _objects[id];
+    return object == null ? null : _MemoryObjectReader(object);
+  }
+
+  @override
+  GitObjectWriter create(GitObjectType type, int size) =>
+      _MemoryObjectWriter(this, type, size);
+
+  @override
   Future<void> trim({Future<Set<GitObjectId>> Function()? keep}) async {}
+}
+
+final class _MemoryObjectReader implements GitObjectReader {
+  _MemoryObjectReader(this._object);
+
+  final GitStoredObject _object;
+
+  @override
+  GitObjectType get type => _object.type;
+
+  @override
+  int get length => _object.body.length;
+
+  @override
+  Uint8List readSync(int offset, int count) => Uint8List.sublistView(
+    _object.body,
+    offset,
+    min(offset + count, _object.body.length),
+  );
+
+  @override
+  Stream<List<int>> openRead() => Stream.value(_object.body);
+
+  @override
+  Future<void> close() async {}
+}
+
+final class _MemoryObjectWriter implements GitObjectWriter {
+  _MemoryObjectWriter(this._store, this._type, int size)
+    : _hasher = GitObjectHasher(_type, size);
+
+  final MemoryGitObjectStore _store;
+  final GitObjectType _type;
+  final GitObjectHasher _hasher;
+  // Copies: a caller may reuse the buffer it hands to add.
+  final BytesBuilder _body = BytesBuilder();
+
+  @override
+  void add(List<int> chunk) {
+    _hasher.add(chunk);
+    _body.add(chunk);
+  }
+
+  @override
+  Future<GitObjectId> close() async {
+    final id = _hasher.close();
+    await _store.put(
+      GitStoredObject(id: id, type: _type, body: _body.takeBytes()),
+    );
+    return id;
+  }
+
+  @override
+  Future<void> abort() async => _body.clear();
 }
 
 /// A size-bounded on-disk store: one file per object at
@@ -201,18 +306,36 @@ final class FileGitObjectStore implements GitObjectStore {
     );
   }
 
+  /// Whether [file] is here already, perhaps written by another store on this
+  /// directory; that store may also have deleted one this index still lists.
+  Future<bool> _present(
+    Map<String, ({int size, int recency})> index,
+    File file,
+  ) async => await _entryFor(index, file) != null && await file.exists();
+
+  /// Counts [file], just renamed into place, unless a concurrent put of the
+  /// same object has counted it already.
+  void _record(
+    Map<String, ({int size, int recency})> index,
+    File file,
+    int size,
+  ) {
+    if (index.containsKey(file.path)) return;
+    index[file.path] = (size: size, recency: ++_clock);
+    _total += size;
+  }
+
+  /// A temp file name of its own: two writes of one object may run at once.
+  String _tmpName(String stem) =>
+      '$stem.${_random.nextInt(1 << 32).toRadixString(16)}$_tmpSuffix';
+
   @override
   Future<void> put(GitStoredObject object) async {
     final index = await _ensureIndex();
     final file = _fileFor(object.id);
-    // Already here, perhaps written by another store on this directory; that
-    // store may also have deleted one this index still lists.
-    if (await _entryFor(index, file) != null && await file.exists()) return;
+    if (await _present(index, file)) return;
     await file.parent.create(recursive: true);
-    // A name of its own: two puts of one object may run at once.
-    final tmp = File(
-      '${file.path}.${_random.nextInt(1 << 32).toRadixString(16)}$_tmpSuffix',
-    );
+    final tmp = File(_tmpName(file.path));
     // Header byte and body as one buffer: a List<int> spread would cost
     // about eight bytes per body byte.
     final bytes = Uint8List(object.body.length + 1)
@@ -220,11 +343,64 @@ final class FileGitObjectStore implements GitObjectStore {
       ..setRange(1, object.body.length + 1, object.body);
     await tmp.writeAsBytes(bytes, flush: true);
     await tmp.rename(file.path);
-    // A concurrent put of the same object has counted it already.
-    if (index.containsKey(file.path)) return;
-    final size = object.body.length + 1;
-    index[file.path] = (size: size, recency: ++_clock);
-    _total += size;
+    _record(index, file, bytes.length);
+  }
+
+  /// Moves [tmp], a finished object file for [id] of [size] bytes, into
+  /// place, or deletes it when the object is already here.
+  Future<void> _adopt(GitObjectId id, File tmp, int size) async {
+    final index = await _ensureIndex();
+    final file = _fileFor(id);
+    if (await _present(index, file)) {
+      await tmp.delete();
+      return;
+    }
+    await file.parent.create(recursive: true);
+    await tmp.rename(file.path);
+    _record(index, file, size);
+  }
+
+  @override
+  GitObjectWriter create(GitObjectType type, int size) {
+    root.createSync(recursive: true);
+    // In the root, so it is on the same disk as where it ends up and the
+    // move into place is a rename; the id, and so the folder, comes last.
+    final tmp = File(_tmpName(p.join(root.path, 'incoming')));
+    return _FileObjectWriter(this, tmp, type, size);
+  }
+
+  @override
+  Future<GitObjectReader?> open(GitObjectId id) async {
+    final index = await _ensureIndex();
+    final file = _fileFor(id);
+    if (await _entryFor(index, file) == null) return null;
+    final RandomAccessFile raf;
+    try {
+      raf = await file.open();
+    } on FileSystemException {
+      _forget(index, file.path);
+      return null;
+    }
+    final int length;
+    final GitObjectType type;
+    try {
+      length = await raf.length();
+      // Emptied by a crash: forgotten, so the next read fetches it.
+      if (length == 0) {
+        await raf.close();
+        _forget(index, file.path);
+        return null;
+      }
+      type = GitObjectType.fromPackCode((await raf.read(1))[0]);
+    } catch (_) {
+      await raf.close();
+      rethrow;
+    }
+    final current = index[file.path];
+    if (current != null) {
+      index[file.path] = (size: current.size, recency: ++_clock);
+    }
+    return _FileObjectReader(raf, type, length - 1);
   }
 
   @override
@@ -258,5 +434,98 @@ final class FileGitObjectStore implements GitObjectStore {
     if (await file.exists()) return true;
     _forget(index, file.path);
     return false;
+  }
+}
+
+/// Reads through one open handle, so an object trimmed while it is read
+/// stays readable where the platform allows deleting an open file.
+final class _FileObjectReader implements GitObjectReader {
+  _FileObjectReader(this._raf, this.type, this.length);
+
+  static const int _chunk = 256 * 1024;
+
+  final RandomAccessFile _raf;
+
+  @override
+  final GitObjectType type;
+
+  @override
+  final int length;
+
+  @override
+  Uint8List readSync(int offset, int count) {
+    // The body starts after the 1-byte type code.
+    if (offset >= length) return Uint8List(0);
+    _raf.setPositionSync(offset + 1);
+    return _raf.readSync(min(count, length - offset));
+  }
+
+  @override
+  Stream<List<int>> openRead() async* {
+    var pos = 0;
+    await _raf.setPosition(1);
+    while (pos < length) {
+      final chunk = await _raf.read(min(_chunk, length - pos));
+      if (chunk.isEmpty) {
+        throw FileSystemException('Object file ended early', _raf.path);
+      }
+      pos += chunk.length;
+      yield chunk;
+    }
+  }
+
+  @override
+  Future<void> close() => _raf.close();
+}
+
+/// Writes straight to a temp file, synchronously so nothing queues in
+/// memory, and renames it into place once the id is known.
+final class _FileObjectWriter implements GitObjectWriter {
+  _FileObjectWriter(this._store, this._tmp, GitObjectType type, int size)
+    : _hasher = GitObjectHasher(type, size),
+      _raf = _tmp.openSync(mode: FileMode.writeOnly)
+        ..writeByteSync(type.packCode);
+
+  final FileGitObjectStore _store;
+  final File _tmp;
+  final GitObjectHasher _hasher;
+  final RandomAccessFile _raf;
+  bool _open = true;
+
+  @override
+  void add(List<int> chunk) {
+    _hasher.add(chunk);
+    _raf.writeFromSync(chunk);
+  }
+
+  Future<void> _closeFile() async {
+    if (!_open) return;
+    _open = false;
+    await _raf.close();
+  }
+
+  @override
+  Future<GitObjectId> close() async {
+    final GitObjectId id;
+    try {
+      id = _hasher.close();
+      await _raf.flush();
+      await _closeFile();
+      await _store._adopt(id, _tmp, _hasher.size + 1);
+    } catch (_) {
+      await abort();
+      rethrow;
+    }
+    return id;
+  }
+
+  @override
+  Future<void> abort() async {
+    await _closeFile();
+    try {
+      await _tmp.delete();
+    } on FileSystemException {
+      // Never created, or already gone.
+    }
   }
 }
