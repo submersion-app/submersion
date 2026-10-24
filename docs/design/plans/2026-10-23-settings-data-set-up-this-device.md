@@ -253,6 +253,13 @@ The function `String setUpStepRoute(SetUpStep step)` holds this mapping, so Part
 
 ## Part B: the flow (Tasks 7-14)
 
+**Reconciled with PR 6a's review (Part B rulings):**
+
+- B1. `setUpStepRoute` returns `/settings/setup?step=<name>`; the card, the rows and the desktop list's `dataPaneLocation` follow, the query carried into the Data pane as `dataPage=setup?step=<name>`.
+- B2. "Set up this phone again" opens `/settings/setup?again=true`, and the page clears "hidden" when it opens that way (the destination carries the un-hide), so `DataRowTile.onOpen` goes.
+- B3. The page owns which step shows; `setUpFlowProvider` holds only the account chosen in step 1, which later steps read.
+- B4. The rows' Set up buttons, removed in 6a as a no-op, come back in Task 13 now that they open a step.
+
 ### Task 7: Flow page, route and shared scaffold
 
 **Files:**
