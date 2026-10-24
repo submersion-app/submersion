@@ -42,11 +42,17 @@ class SubmersionTranscoderPlugin : public flutter::Plugin {
       std::make_shared<ProgressDispatcher>();
 
  private:
-  // Colour encodes in flight (issue #3521), by progressId, for cancelEncode.
-  // Shared with each worker so a cancel after teardown is harmless.
+  // Colour encodes in flight (issue #3521), by progressId: the cancel flag
+  // cancelEncode sets, and the latest progress colorEncodeProgress answers
+  // (Dart asks for it, so it never depends on window messages reaching the
+  // platform thread). Shared with each worker so teardown is harmless.
+  struct EncodeState {
+    std::atomic<bool> cancelled{false};
+    std::atomic<double> fraction{0.0};
+  };
   struct CancelFlags {
     std::mutex mutex;
-    std::map<std::string, std::shared_ptr<std::atomic<bool>>> flags;
+    std::map<std::string, std::shared_ptr<EncodeState>> flags;
   };
   std::shared_ptr<CancelFlags> cancel_flags_ = std::make_shared<CancelFlags>();
 

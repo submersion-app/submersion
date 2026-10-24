@@ -17,15 +17,22 @@ import 'package:submersion_transcoder/src/video_probe.dart';
 /// absence is a normal state that maps onto the pipeline's upload-the-original
 /// fallback.
 class ChannelTranscodeEngine implements TranscodeEngine, ColorEncoder {
-  ChannelTranscodeEngine({MethodChannel? methods, EventChannel? progress})
-    : _methods =
-          methods ?? const MethodChannel('submersion_transcoder/methods'),
-      _progress =
-          progress ?? const EventChannel('submersion_transcoder/progress'),
-      _usesDefaultProgress = progress == null;
+  ChannelTranscodeEngine({
+    MethodChannel? methods,
+    EventChannel? progress,
+    this.progressPollInterval = const Duration(milliseconds: 250),
+  }) : _methods =
+           methods ?? const MethodChannel('submersion_transcoder/methods'),
+       _progress =
+           progress ?? const EventChannel('submersion_transcoder/progress'),
+       _usesDefaultProgress = progress == null;
 
   final MethodChannel _methods;
   final EventChannel _progress;
+
+  /// How often a colour encode's progress is asked for, from an engine that
+  /// keeps it rather than pushing it (the Windows plugin).
+  final Duration progressPollInterval;
 
   // True when no EventChannel was injected, i.e. we're on the default
   // production channel. Tests that inject their own channel get an isolated,
@@ -178,6 +185,31 @@ class ChannelTranscodeEngine implements TranscodeEngine, ColorEncoder {
       });
     }
     var finished = false;
+    // Progress is also asked for, for an engine that keeps it rather than
+    // pushing it on the event channel; one that does not answer the call
+    // (MissingPluginException, not implemented) is not asked again.
+    Timer? poll;
+    if (onProgress != null) {
+      var last = -1.0;
+      var asking = false;
+      poll = Timer.periodic(progressPollInterval, (timer) async {
+        if (asking || finished) return;
+        asking = true;
+        try {
+          final f = await _methods.invokeMethod<num>('colorEncodeProgress', {
+            'progressId': progressId,
+          });
+          if (f != null && !finished && f.toDouble() > last) {
+            last = f.toDouble();
+            onProgress(last.clamp(0.0, 1.0));
+          }
+        } on Object {
+          timer.cancel();
+        } finally {
+          asking = false;
+        }
+      });
+    }
     unawaited(
       cancel?.whenCancelled.then((_) async {
         if (finished) return;
@@ -221,6 +253,7 @@ class ChannelTranscodeEngine implements TranscodeEngine, ColorEncoder {
       throw const TranscodeException('transcoder plugin not registered');
     } finally {
       finished = true;
+      poll?.cancel();
       await sub?.cancel();
     }
   }

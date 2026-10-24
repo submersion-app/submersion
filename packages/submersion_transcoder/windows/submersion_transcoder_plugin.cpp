@@ -450,7 +450,7 @@ void SubmersionTranscoderPlugin::HandleMethodCall(
       }
       keys.push_back(key);
     }
-    auto flag = std::make_shared<std::atomic<bool>>(false);
+    auto flag = std::make_shared<EncodeState>();
     {
       std::lock_guard<std::mutex> lock(cancel_flags_->mutex);
       cancel_flags_->flags[*progress_id] = flag;
@@ -463,12 +463,13 @@ void SubmersionTranscoderPlugin::HandleMethodCall(
       const ColorEncodeResult outcome = EncodeWithColor(
           Wide(source), Wide(output), keys,
           [&](double fraction) {
+            flag->fraction.store(fraction);
             dispatcher->Emit(EncodableValue(EncodableMap{
                 {EncodableValue("progressId"), EncodableValue(id)},
                 {EncodableValue("fraction"), EncodableValue(fraction)},
             }));
           },
-          *flag);
+          flag->cancelled);
       {
         std::lock_guard<std::mutex> lock(flags->mutex);
         flags->flags.erase(id);
@@ -490,6 +491,24 @@ void SubmersionTranscoderPlugin::HandleMethodCall(
     }).detach();
     return;
   }
+  if (method == "colorEncodeProgress") {
+    const auto* args = std::get_if<EncodableMap>(method_call.arguments());
+    if (args) {
+      auto it = args->find(EncodableValue("progressId"));
+      if (it != args->end()) {
+        if (const auto* id = std::get_if<std::string>(&it->second)) {
+          std::lock_guard<std::mutex> lock(cancel_flags_->mutex);
+          auto found = cancel_flags_->flags.find(*id);
+          if (found != cancel_flags_->flags.end()) {
+            result->Success(EncodableValue(found->second->fraction.load()));
+            return;
+          }
+        }
+      }
+    }
+    result->Success(EncodableValue());
+    return;
+  }
   if (method == "cancelEncode") {
     const auto* args = std::get_if<EncodableMap>(method_call.arguments());
     if (args) {
@@ -498,7 +517,9 @@ void SubmersionTranscoderPlugin::HandleMethodCall(
         if (const auto* id = std::get_if<std::string>(&it->second)) {
           std::lock_guard<std::mutex> lock(cancel_flags_->mutex);
           auto found = cancel_flags_->flags.find(*id);
-          if (found != cancel_flags_->flags.end()) found->second->store(true);
+          if (found != cancel_flags_->flags.end()) {
+            found->second->cancelled.store(true);
+          }
         }
       }
     }

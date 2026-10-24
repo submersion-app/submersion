@@ -94,6 +94,59 @@ void main() {
     },
   );
 
+  test('progress is polled from an engine that keeps it (Windows)', () async {
+    final reported = <double>[];
+    final done = Completer<void>();
+    final polled = <double>[0.25, 0.25, 0.6];
+    messenger.setMockMethodCallHandler(methods, (call) async {
+      switch (call.method) {
+        case 'encodeWithColor':
+          await done.future;
+          return null;
+        case 'colorEncodeProgress':
+          expect((call.arguments as Map)['progressId'], isA<String>());
+          if (polled.isEmpty) {
+            if (!done.isCompleted) done.complete();
+            return 0.6;
+          }
+          return polled.removeAt(0);
+      }
+      return null;
+    });
+    await ChannelTranscodeEngine(
+      progressPollInterval: const Duration(milliseconds: 5),
+    ).encodeWithColor(
+      source: File('/in.mov'),
+      output: File('/out.mp4'),
+      timeline: timeline,
+      onProgress: reported.add,
+    );
+    expect(reported, [0.25, 0.6]);
+  });
+
+  test('an engine without polled progress is asked only once', () async {
+    var polls = 0;
+    final done = Completer<void>();
+    messenger.setMockMethodCallHandler(methods, (call) async {
+      if (call.method == 'colorEncodeProgress') {
+        polls++;
+        throw MissingPluginException();
+      }
+      await Future<void>.delayed(const Duration(milliseconds: 60));
+      done.complete();
+      return null;
+    });
+    await ChannelTranscodeEngine(
+      progressPollInterval: const Duration(milliseconds: 5),
+    ).encodeWithColor(
+      source: File('/in.mov'),
+      output: File('/out.mp4'),
+      timeline: timeline,
+      onProgress: (_) {},
+    );
+    expect(polls, 1);
+  });
+
   test('cancel sends cancelEncode with the same progressId', () async {
     final done = Completer<void>();
     String? encodeId;
