@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/names/name_index.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
@@ -154,6 +155,37 @@ void main() {
     await type(tester, '9999');
     expect(find.byKey(const ValueKey('dive-jump-swim')), findsOneWidget);
     await pressEnter(tester);
+    expect(opened, isNull);
+  });
+
+  testWidgets('Enter opens nothing once the text changed during the lookup', (
+    tester,
+  ) async {
+    final pending = Completer<List<DiveSummary>>();
+    var lookups = 0;
+    DiveSummary? opened;
+    await pumpHeader(
+      tester,
+      onOpenDive: (d) => opened = d,
+      rowsFor: (q) {
+        if (bareDiveNumber(q) != 500) return _rowsFor(q);
+        // The rows' own query answers; the lookup Enter starts waits.
+        return ++lookups == 1 ? _rowsFor(q) : pending.future;
+      },
+    );
+    await type(tester, '500');
+    // Drop the cached answer so Enter's lookup is the slow one.
+    final element = tester.element(find.byKey(kDiveSearchFieldKey));
+    ProviderScope.containerOf(
+      element,
+    ).invalidate(diveJumpResultsProvider(TextNode(['500'])));
+    await tester.testTextInput.receiveAction(TextInputAction.search);
+    await tester.pump();
+    await tester.enterText(find.byKey(kDiveSearchFieldKey), 'manta');
+    await tester.pump();
+    pending.complete([_d500]);
+    await tester.pumpAndSettle();
+    expect(lookups, greaterThan(1), reason: 'Enter waited on the slow lookup');
     expect(opened, isNull);
   });
 
