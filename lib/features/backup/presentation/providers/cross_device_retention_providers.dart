@@ -1,5 +1,6 @@
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/backup/data/services/backup_service.dart';
+import 'package:submersion/features/backup/data/services/cloud_backup_history.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_copy_providers.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 
@@ -27,11 +28,21 @@ final crossDeviceRetentionActiveProvider = FutureProvider.autoDispose<bool>((
   return ref.watch(backupServiceProvider).crossDeviceRetentionActive();
 });
 
-/// The account backups are copied to now, so the folder footprint counts
-/// only copies in that folder.
-final backupCopyAccountIdProvider = FutureProvider.autoDispose<String?>(
-  (ref) => ref.watch(backupServiceProvider).cloudCopyAccountId(),
-);
+/// How many backups the cloud folder holds and their total size, from the
+/// folder's own listing: a history record whose copy another device deleted
+/// is not in the folder. Re-reads whenever the history does (after a prune).
+final cloudFolderFootprintProvider =
+    FutureProvider.autoDispose<({int count, int bytes})>((ref) async {
+      ref.watch(backupHistoryProvider);
+      final files = await ref.watch(backupServiceProvider).getCloudBackups();
+      final ids = <String>{};
+      var bytes = 0;
+      for (final f in files) {
+        if (backupRecordFromCloudFile(f) == null || !ids.add(f.id)) continue;
+        bytes += f.sizeBytes ?? 0;
+      }
+      return (count: ids.length, bytes: bytes);
+    });
 
 /// Whether a cross-device change (turning the switch on, or lowering "Keep"
 /// while it is on) is listing, asking or pruning. One runs at a time.

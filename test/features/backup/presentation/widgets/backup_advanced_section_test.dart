@@ -291,6 +291,30 @@ void main() {
     expect(find.byType(AlertDialog), findsOneWidget);
   });
 
+  testWidgets('the folder footprint counts only what the folder holds', (
+    tester,
+  ) async {
+    seed(3);
+    final goneElsewhere = BackupRecord(
+      id: 'gone',
+      filename: 'submersion_backup_2026-01-01_090000.db',
+      timestamp: DateTime(2026),
+      sizeBytes: 500,
+      location: BackupLocation.both,
+      cloudFileId: 'deleted-by-another-device',
+      cloudAccountId: 'acct',
+      localPath: '/backups/gone.db',
+    );
+    await pump(
+      tester,
+      initial: {
+        'backup_retention_all_devices_account': 'acct',
+        'backup_history': jsonEncode([goneElsewhere.toJson()]),
+      },
+    );
+    expect(find.text('1 backup in the cloud folder uses 3 B'), findsOneWidget);
+  });
+
   group('with backups to remove', () {
     late List<String> names;
     setUp(() => names = [for (var d = 2; d <= 8; d++) seed(d)]);

@@ -124,34 +124,33 @@ class _RetentionSubtitle extends ConsumerWidget {
     final history = ref.watch(backupHistoryProvider).value;
     final explanation = Text(l10n.backup_schedule_retention_subtitle);
     // With the switch on the number governs the cloud folder, so the cost
-    // shown is the folder's (issue #3503).
+    // shown is the folder's, read from its listing (issue #3503).
     final acrossDevices =
         ref.watch(crossDeviceRetentionActiveProvider).value ?? false;
-    final account = ref.watch(backupCopyAccountIdProvider).value;
-    final counted = acrossDevices
-        ? [
-            ...?history?.where(
-              (r) =>
-                  r.cloudFileId != null &&
-                  (r.cloudAccountId == null || r.cloudAccountId == account),
-            ),
-          ]
-        : [...?history];
-    if (counted.isEmpty) return explanation;
-    final size = formatBytes(
-      counted.fold<int>(0, (sum, r) => sum + r.sizeBytes),
-    );
+    final String? footprint;
+    if (acrossDevices) {
+      final folder = ref.watch(cloudFolderFootprintProvider).value;
+      footprint = folder == null || folder.count == 0
+          ? null
+          : l10n.backup_retention_cloudFootprint(
+              folder.count,
+              formatBytes(folder.bytes),
+            );
+    } else {
+      footprint = history == null || history.isEmpty
+          ? null
+          : l10n.backup_schedule_retention_footprint(
+              history.length,
+              formatBytes(history.fold<int>(0, (sum, r) => sum + r.sizeBytes)),
+            );
+    }
+    if (footprint == null) return explanation;
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         explanation,
-        Text(
-          acrossDevices
-              ? l10n.backup_retention_cloudFootprint(counted.length, size)
-              : l10n.backup_schedule_retention_footprint(counted.length, size),
-          key: const ValueKey('backup_retention_footprint'),
-        ),
+        Text(footprint, key: const ValueKey('backup_retention_footprint')),
       ],
     );
   }
