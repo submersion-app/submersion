@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:linked_scroll_controller/linked_scroll_controller.dart';
@@ -408,13 +410,22 @@ class _EntityTableViewState<T, F extends EntityField>
               : BorderSide.none,
         ),
       ),
+      // The trailing widget keeps its natural width up to half the cell, so
+      // a long tag ellipsizes rather than overflowing a narrow column, and a
+      // right-aligned column stays right-aligned.
       child: trailing == null
           ? label
           : Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Flexible(child: label),
                 const SizedBox(width: 6),
-                trailing,
+                ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxWidth: math.max(0, (_widthOf(column) - 16 - 6) / 2),
+                  ),
+                  child: trailing,
+                ),
               ],
             ),
     );

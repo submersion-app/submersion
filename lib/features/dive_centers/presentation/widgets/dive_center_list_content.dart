@@ -928,19 +928,12 @@ class DiveCenterListTile extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        Flexible(
-                          child: Text(
-                            center.name,
-                            style: theme.textTheme.titleMedium,
-                          ),
-                        ),
-                        if (center.isPermanentlyClosed) ...[
-                          const SizedBox(width: 8),
-                          const DiveCenterClosedTag(),
-                        ],
-                      ],
+                    DiveCenterNameWithTag(
+                      closed: center.isPermanentlyClosed,
+                      name: Text(
+                        center.name,
+                        style: theme.textTheme.titleMedium,
+                      ),
                     ),
                     if (center.fullLocationString != null) ...[
                       const SizedBox(height: 4),

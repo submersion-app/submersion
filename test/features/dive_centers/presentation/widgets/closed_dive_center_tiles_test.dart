@@ -58,4 +58,48 @@ void main() {
       });
     }
   }
+
+  const phoneWidths = {'detailed': 420.0, 'compact': 380.0, 'dense': 320.0};
+
+  for (final entry in tiles.entries) {
+    testWidgets('${entry.key} tile fits the German tag on a phone', (
+      tester,
+    ) async {
+      // The narrowest width the open tile fits at under the test font.
+      tester.view.physicalSize = Size(phoneWidths[entry.key]!, 600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        testApp(
+          locale: const Locale('de'),
+          overrides: [diveCenterDiveCountProvider.overrideWith((ref, id) => 3)],
+          child: entry.value(
+            _center(
+              closed: true,
+            ).copyWith(name: 'Toucan Diving Kralendijk Bonaire Resort'),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(find.byType(DiveCenterClosedTag), findsOneWidget);
+    });
+
+    testWidgets('${entry.key} tile says Closed to a screen reader', (
+      tester,
+    ) async {
+      final handle = tester.ensureSemantics();
+      await tester.pumpWidget(
+        testApp(
+          overrides: [diveCenterDiveCountProvider.overrideWith((ref, id) => 3)],
+          child: entry.value(_center(closed: true)),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.bySemanticsLabel(RegExp('Closed')), findsWidgets);
+      handle.dispose();
+    });
+  }
 }

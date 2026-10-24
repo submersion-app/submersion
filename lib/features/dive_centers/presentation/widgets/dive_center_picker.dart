@@ -182,15 +182,7 @@ class DiveCenterPickerSheet extends ConsumerWidget {
                 : colorScheme.onPrimaryContainer,
           ),
         ),
-        title: Row(
-          children: [
-            Flexible(child: Text(center.name)),
-            if (closed) ...[
-              const SizedBox(width: 8),
-              const DiveCenterClosedTag(),
-            ],
-          ],
-        ),
+        title: DiveCenterNameWithTag(closed: closed, name: Text(center.name)),
         subtitle: center.displayLocation != null
             ? Text(center.displayLocation!)
             : null,

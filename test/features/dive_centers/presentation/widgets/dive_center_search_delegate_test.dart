@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_search_delegate.dart';
+import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_closed_tag.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
@@ -159,5 +160,25 @@ void main() {
     await tester.tap(find.byIcon(Icons.arrow_back));
     await tester.pumpAndSettle();
     expect(find.text('open search'), findsOneWidget);
+  });
+
+  testWidgets('a closed center is tagged and greyed in results (#3379)', (
+    tester,
+  ) async {
+    await _openSearch(
+      tester,
+      (_) async => [_center, _bare.copyWith(isPermanentlyClosed: true)],
+    );
+    await _type(tester, 'h');
+
+    expect(find.byType(DiveCenterClosedTag), findsOneWidget);
+    Finder greyed(String name) => find.ancestor(
+      of: find.text(name),
+      matching: find.byWidgetPredicate(
+        (w) => w is Opacity && w.opacity == kClosedDiveCenterOpacity,
+      ),
+    );
+    expect(greyed('Harbour Shop'), findsOneWidget);
+    expect(greyed('Blue Hole Divers'), findsNothing);
   });
 }

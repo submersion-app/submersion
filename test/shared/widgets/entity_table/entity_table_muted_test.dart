@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_view.dart';
+import 'package:submersion/shared/models/entity_table_config.dart';
 
 import 'entity_table_test_harness.dart';
 
@@ -52,5 +53,52 @@ void main() {
     await tester.pump();
 
     expect(mutedAround('Closed Center'), findsNothing);
+  });
+
+  testWidgets('a trailing tag in a narrow column shrinks instead of '
+      'overflowing', (tester) async {
+    await tester.pumpWidget(
+      buildTestTable(
+        entities: const [closed],
+        config: EntityTableViewConfig<TestField>(
+          columns: [
+            EntityTableColumnConfig(
+              field: TestField.entityName,
+              isPinned: true,
+              width: 60,
+            ),
+          ],
+        ),
+        cellTrailingBuilder: (e, f) => const Text(
+          'Geschlossen geschlossen',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('a trailing widget keeps a right-aligned cell on the right', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      buildTestTable(
+        entities: const [closed],
+        cellTrailingBuilder: (e, f) =>
+            f == TestField.entityCount ? const Text('T') : null,
+      ),
+    );
+    await tester.pump();
+
+    final tag = tester.getRect(find.text('T'));
+    final count = tester.getRect(find.text('2'));
+    final header = tester.getRect(find.text('Count'));
+    // Both sit in the right half of the count column.
+    expect(count.left, greaterThan(header.center.dx - 60));
+    expect(tag.right, greaterThan(count.right));
+    expect(tag.right, closeTo(header.right + 8, 40));
   });
 }

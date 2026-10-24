@@ -63,21 +63,16 @@ class DenseDiveCenterListTile extends StatelessWidget {
                 ),
                 // Center name (expanded)
                 Expanded(
-                  child: Row(
-                    children: [
-                      Flexible(
-                        child: Text(
-                          center.name,
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(fontWeight: FontWeight.w600),
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                  child: DiveCenterNameWithTag(
+                    closed: center.isPermanentlyClosed,
+                    gap: 6,
+                    name: Text(
+                      center.name,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        fontWeight: FontWeight.w600,
                       ),
-                      if (center.isPermanentlyClosed) ...[
-                        const SizedBox(width: 6),
-                        const DiveCenterClosedTag(),
-                      ],
-                    ],
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 8),

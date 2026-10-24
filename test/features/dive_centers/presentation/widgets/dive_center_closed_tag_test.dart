@@ -22,4 +22,23 @@ void main() {
   test('every closed surface greys to the same opacity', () {
     expect(kClosedDiveCenterOpacity, 0.6);
   });
+
+  testWidgets('the label uses onSurface so it stays readable when greyed', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        locale: Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(body: Center(child: DiveCenterClosedTag())),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final context = tester.element(find.byType(DiveCenterClosedTag));
+    final text = tester.widget<Text>(find.text('Closed'));
+    expect(text.style?.color, Theme.of(context).colorScheme.onSurface);
+    expect(text.overflow, TextOverflow.ellipsis);
+  });
 }
