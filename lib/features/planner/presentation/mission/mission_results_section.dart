@@ -23,10 +23,18 @@ class MissionResultsSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final mission = ref.watch(
+    final planMission = ref.watch(
       divePlanNotifierProvider.select((s) => s.mission),
     );
-    if (mission == null) return const SizedBox.shrink();
+    if (planMission == null) return const SizedBox.shrink();
+    // An unset reserve follows the diver's Settings (issue #3552), the same
+    // value MissionEngine.compute resolves before running, so the
+    // assumptions line and each member card state what was computed.
+    final mission = planMission.copyWith(
+      batteryReserveFraction:
+          planMission.batteryReserveFraction ??
+          ref.watch(plannerBatteryReserveFractionProvider),
+    );
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final units = UnitFormatter(ref.watch(settingsProvider));
@@ -114,7 +122,7 @@ class MissionResultsSection extends ConsumerWidget {
           Text(constraint, style: theme.textTheme.bodyMedium),
         Text(
           l10n.plannerMission_results_assumptions(
-            settingPercent(mission.batteryReserveFraction),
+            settingPercent(mission.batteryReserveFraction!),
           ),
           style: theme.textTheme.bodySmall,
         ),

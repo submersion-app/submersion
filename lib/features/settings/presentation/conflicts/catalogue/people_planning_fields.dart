@@ -32,6 +32,12 @@ final Map<String, ConflictField> peoplePlanningFields = {
     (l) => l.settings_conflict_field_airBreakO2Seconds,
     FieldKind.durationSeconds,
   ),
+  // True = no air breaks for this plan regardless of the diver's Settings
+  // default (issue #3552); the per-plan counterpart of airBreaks itself.
+  'airBreaksExplicitlyOff': ConflictField(
+    (l) => l.divePlanner_label_airBreaks,
+    FieldKind.boolean,
+  ),
   'allergies': ConflictField(
     (l) => l.settings_conflict_field_allergies,
     FieldKind.longText,

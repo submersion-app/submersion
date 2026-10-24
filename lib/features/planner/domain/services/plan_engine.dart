@@ -23,6 +23,8 @@ import 'package:submersion/features/planner/domain/services/tank_role_resolver.d
 import 'package:submersion/features/planner/domain/services/tank_usage_order.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
+import 'package:submersion/features/planner/domain/entities/mission/dpv_mission.dart'
+    show kDefaultBatteryReserveFraction, kDefaultWalkSpeedMps;
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 
 /// Thresholds and policy limits the engine evaluates plans against.
@@ -96,6 +98,59 @@ class PlanEngineConfig extends Equatable {
   /// from `gasModelProvider` (issue #828).
   final GasModel gasModel;
 
+  // Planner Setup-accordion global defaults (issue #3552). Resolved through
+  // descentRateFor/ascentRateFor/etc below, the same shape as
+  // setpointLowFor/setpointHighFor - a plan's own value always wins, these
+  // apply only where the plan's field is null.
+  final double descentRate;
+  final double ascentRate;
+  final double intermediateAscentRate;
+  final double shallowAscentRate;
+  final double finalAscentRate;
+  final double lastStopDepth;
+  final int gasSwitchStopSeconds;
+  final double sacBottom;
+  final double sacDeco;
+
+  /// Multiplier on [sacBottom] for the stressed/bailout SAC rate (issue
+  /// #3552) - resolved per plan through [sacStressedFor], not a plain
+  /// config field read directly, since the plan's own [sacStressed]
+  /// override is an absolute rate, not a factor.
+  final double sacStressedFactor;
+  final int problemSolvingMinutes;
+  final double deviationDepthDelta;
+  final int deviationTimeMinutes;
+
+  /// The diver's default turn-pressure rule/fraction and air-break policy
+  /// (issue #3552, follow-up to v304-306). Nullable, unlike the fields
+  /// above: "no rule"/"no policy" is itself a legitimate default, matching
+  /// today's behaviour for a diver who has not opted in to one. Resolved
+  /// per plan through [turnPressureRuleFor]/[turnPressureFractionFor]/
+  /// [airBreaksFor], not a plain `?? this.x` merge, because a plan's own
+  /// `TurnPressureRule.off` / [domain.DivePlan.airBreaksExplicitlyOff] must
+  /// win even though it resolves to the same "no tracking" outcome as an
+  /// unset config.
+  final domain.TurnPressureRule? turnPressureRule;
+  final double? turnPressureFraction;
+  final AirBreakPolicy? airBreakPolicy;
+
+  /// Gradient factors (0-100) and tank reserve pressure (bar) - previously
+  /// snapshot-on-create, now live-resolve like every other Setup field
+  /// (issue #3552, follow-up to v304-307). Merged through the plain
+  /// `?? this.x` [copyWith]/[resolvedFor] pattern, same as sacBottom/sacDeco:
+  /// a plan's own value always wins, there is no "explicit off" concept to
+  /// a gradient factor or a reserve margin.
+  final int gfLow;
+  final int gfHigh;
+  final double reservePressure;
+
+  /// The diver's DPV mission defaults (issue #3552): the fraction of
+  /// scooter burn time kept in reserve, and the shore-exit walking speed in
+  /// m/s. A mission's own value wins; MissionEngine.compute resolves an
+  /// unset one against these before any mission service reads it.
+  final double batteryReserveFraction;
+  final double walkSpeedMps;
+
   const PlanEngineConfig({
     this.ppO2Working = 1.4,
     this.ppO2Deco = 1.6,
@@ -116,6 +171,27 @@ class PlanEngineConfig extends Equatable {
     this.pscrRatio = 100.0,
     this.cnsMethod = CnsCalculationMethod.shearwater,
     this.gasModel = GasModel.real,
+    this.descentRate = 18.0,
+    this.ascentRate = 9.0,
+    this.intermediateAscentRate = 6.0,
+    this.shallowAscentRate = 3.0,
+    this.finalAscentRate = 1.0,
+    this.lastStopDepth = 3.0,
+    this.gasSwitchStopSeconds = 0,
+    this.sacBottom = 15.0,
+    this.sacDeco = 15.0,
+    this.sacStressedFactor = 2.5,
+    this.problemSolvingMinutes = 2,
+    this.deviationDepthDelta = 5.0,
+    this.deviationTimeMinutes = 5,
+    this.turnPressureRule,
+    this.turnPressureFraction,
+    this.airBreakPolicy,
+    this.gfLow = 50,
+    this.gfHigh = 85,
+    this.reservePressure = 50.0,
+    this.batteryReserveFraction = kDefaultBatteryReserveFraction,
+    this.walkSpeedMps = kDefaultWalkSpeedMps,
   });
 
   @override
@@ -139,6 +215,27 @@ class PlanEngineConfig extends Equatable {
     pscrRatio,
     cnsMethod,
     gasModel,
+    descentRate,
+    ascentRate,
+    intermediateAscentRate,
+    shallowAscentRate,
+    finalAscentRate,
+    lastStopDepth,
+    gasSwitchStopSeconds,
+    sacBottom,
+    sacDeco,
+    sacStressedFactor,
+    problemSolvingMinutes,
+    deviationDepthDelta,
+    deviationTimeMinutes,
+    turnPressureRule,
+    turnPressureFraction,
+    airBreakPolicy,
+    gfLow,
+    gfHigh,
+    reservePressure,
+    batteryReserveFraction,
+    walkSpeedMps,
   ];
 
   PlanEngineConfig copyWith({
@@ -161,6 +258,30 @@ class PlanEngineConfig extends Equatable {
     double? pscrRatio,
     CnsCalculationMethod? cnsMethod,
     GasModel? gasModel,
+    double? descentRate,
+    double? ascentRate,
+    double? intermediateAscentRate,
+    double? shallowAscentRate,
+    double? finalAscentRate,
+    double? lastStopDepth,
+    int? gasSwitchStopSeconds,
+    double? sacBottom,
+    double? sacDeco,
+    double? sacStressedFactor,
+    int? problemSolvingMinutes,
+    double? deviationDepthDelta,
+    int? deviationTimeMinutes,
+    domain.TurnPressureRule? turnPressureRule,
+    bool clearTurnPressureRule = false,
+    double? turnPressureFraction,
+    bool clearTurnPressureFraction = false,
+    AirBreakPolicy? airBreakPolicy,
+    bool clearAirBreakPolicy = false,
+    int? gfLow,
+    int? gfHigh,
+    double? reservePressure,
+    double? batteryReserveFraction,
+    double? walkSpeedMps,
   }) {
     return PlanEngineConfig(
       ppO2Working: ppO2Working ?? this.ppO2Working,
@@ -183,19 +304,49 @@ class PlanEngineConfig extends Equatable {
       pscrRatio: pscrRatio ?? this.pscrRatio,
       cnsMethod: cnsMethod ?? this.cnsMethod,
       gasModel: gasModel ?? this.gasModel,
+      descentRate: descentRate ?? this.descentRate,
+      ascentRate: ascentRate ?? this.ascentRate,
+      intermediateAscentRate:
+          intermediateAscentRate ?? this.intermediateAscentRate,
+      shallowAscentRate: shallowAscentRate ?? this.shallowAscentRate,
+      finalAscentRate: finalAscentRate ?? this.finalAscentRate,
+      lastStopDepth: lastStopDepth ?? this.lastStopDepth,
+      gasSwitchStopSeconds: gasSwitchStopSeconds ?? this.gasSwitchStopSeconds,
+      sacBottom: sacBottom ?? this.sacBottom,
+      sacDeco: sacDeco ?? this.sacDeco,
+      sacStressedFactor: sacStressedFactor ?? this.sacStressedFactor,
+      problemSolvingMinutes:
+          problemSolvingMinutes ?? this.problemSolvingMinutes,
+      deviationDepthDelta: deviationDepthDelta ?? this.deviationDepthDelta,
+      deviationTimeMinutes: deviationTimeMinutes ?? this.deviationTimeMinutes,
+      turnPressureRule: clearTurnPressureRule
+          ? null
+          : (turnPressureRule ?? this.turnPressureRule),
+      turnPressureFraction: clearTurnPressureFraction
+          ? null
+          : (turnPressureFraction ?? this.turnPressureFraction),
+      airBreakPolicy: clearAirBreakPolicy
+          ? null
+          : (airBreakPolicy ?? this.airBreakPolicy),
+      gfLow: gfLow ?? this.gfLow,
+      gfHigh: gfHigh ?? this.gfHigh,
+      reservePressure: reservePressure ?? this.reservePressure,
+      batteryReserveFraction:
+          batteryReserveFraction ?? this.batteryReserveFraction,
+      walkSpeedMps: walkSpeedMps ?? this.walkSpeedMps,
     );
   }
 
   /// Merges this app-wide config with [plan]'s per-plan gas-option
   /// overrides. A set plan value always wins; an unset (null) one falls back
-  /// to this config unchanged.
-  ///
-  /// `sacFactor` and `bestMixEndMeters` have no global-settings source today
-  /// (they are plain defaulted fields, not nullable overrides), so they
-  /// always replace [buddyFactor] and [bestMixEndMeters] for this plan.
-  /// Every other field, [endLimitMeters] (the diver's Settings END limit)
-  /// included, carries over through [copyWith], so a field added later
-  /// cannot silently fall back to its default here (issue #2640).
+  /// to this config unchanged. Every field, [endLimitMeters] (the diver's
+  /// Settings END limit) included, carries over through [copyWith], so a
+  /// field added later cannot silently fall back to its default here (issue
+  /// #2640). `sacFactor`/`bestMixEndMeters` (-> [buddyFactor]/
+  /// [bestMixEndMeters]) used to be plain defaulted `DivePlan` fields with
+  /// no global source, always replacing the config's own value; since issue
+  /// #3552 gave them one, a `null` plan value (now possible) resolves to
+  /// the diver's Settings the same way every other field here already does.
   PlanEngineConfig resolvedFor(domain.DivePlan plan) {
     return copyWith(
       ppO2Working: plan.ppO2Bottom,
@@ -203,6 +354,21 @@ class PlanEngineConfig extends Equatable {
       o2Narcotic: plan.o2Narcotic,
       bestMixEndMeters: plan.bestMixEndMeters,
       buddyFactor: plan.sacFactor,
+      descentRate: plan.descentRate,
+      ascentRate: plan.ascentRate,
+      intermediateAscentRate: plan.intermediateAscentRate,
+      shallowAscentRate: plan.shallowAscentRate,
+      finalAscentRate: plan.finalAscentRate,
+      lastStopDepth: plan.lastStopDepth,
+      gasSwitchStopSeconds: plan.gasSwitchStopSeconds,
+      sacBottom: plan.sacBottom,
+      sacDeco: plan.sacDeco,
+      problemSolvingMinutes: plan.problemSolvingMinutes,
+      deviationDepthDelta: plan.deviationDepthDelta,
+      deviationTimeMinutes: plan.deviationTimeMinutes,
+      gfLow: plan.gfLow,
+      gfHigh: plan.gfHigh,
+      reservePressure: plan.reservePressure,
     );
   }
 
@@ -211,10 +377,46 @@ class PlanEngineConfig extends Equatable {
   double setpointLowFor(domain.DivePlan plan) =>
       plan.setpointLow ?? ccrSetpointLow;
 
+  /// [plan]'s stressed (bailout/rock-bottom) SAC: its own [sacStressed]
+  /// override when set, else [sacBottom] (already resolved against this
+  /// plan - call this on a [resolvedFor] config) times the diver's
+  /// [sacStressedFactor] (issue #3552; was a hardcoded 2.5x of the plan's
+  /// raw `sacBottom`, see [domain.DivePlan.sacStressedEffective]).
+  double sacStressedFor(domain.DivePlan plan) =>
+      plan.sacStressed ?? sacBottom * sacStressedFactor;
+
   /// [plan]'s high (deep) setpoint: its own value when set, else the
   /// diver's [ccrSetpointHigh] (issue #2801).
   double setpointHighFor(domain.DivePlan plan) =>
       plan.setpointHigh ?? ccrSetpointHigh;
+
+  /// [plan]'s turn-pressure rule: its own value when set, else the diver's
+  /// Settings default (issue #3552), which may itself be null (no rule).
+  /// Never merged through [copyWith]'s plain `?? this.x`: the plan's own
+  /// [domain.TurnPressureRule.off] must win even when the config's default
+  /// is already null, and the two look identical to `??`.
+  domain.TurnPressureRule? turnPressureRuleFor(domain.DivePlan plan) =>
+      plan.turnPressureRule ?? turnPressureRule;
+
+  /// [plan]'s turn-pressure fraction, only meaningful when
+  /// [turnPressureRuleFor] resolves to [domain.TurnPressureRule.custom].
+  /// Taken from the same source as the rule: a plan that sets its own rule
+  /// uses its own fraction (null = the 1/3 the Setup field shows), and a
+  /// plan following the Settings rule uses the Settings fraction, never a
+  /// leftover fraction from an earlier plan-level Custom.
+  double? turnPressureFractionFor(domain.DivePlan plan) =>
+      plan.turnPressureRule != null
+      ? plan.turnPressureFraction
+      : turnPressureFraction;
+
+  /// [plan]'s air-break policy: `null` when [domain.DivePlan.airBreaksExplicitlyOff]
+  /// is set (explicit "off", wins regardless of the diver's default), else
+  /// the plan's own [domain.DivePlan.airBreaks] when set, else the diver's
+  /// Settings default (issue #3552), which may itself be null (no breaks).
+  AirBreakPolicy? airBreaksFor(domain.DivePlan plan) {
+    if (plan.airBreaksExplicitlyOff) return null;
+    return plan.airBreaks ?? airBreakPolicy;
+  }
 }
 
 /// Setpoint in force at [depth]: the segment's per-segment override if set,
@@ -357,8 +559,8 @@ class PlanEngine {
     final environment = environmentFor(plan);
     final policy = _policyFor(plan);
     final model = BuhlmannGf(
-      gfLow: plan.gfLow / 100.0,
-      gfHigh: plan.gfHigh / 100.0,
+      gfLow: config.gfLow / 100.0,
+      gfHigh: config.gfHigh / 100.0,
       environment: environment,
       policy: policy,
     );
@@ -374,8 +576,11 @@ class PlanEngine {
         List<PlanSegment>.from(plan.segments)
           ..sort((a, b) => a.order.compareTo(b.order)),
         plan,
+        descentRate: config.descentRate,
+        ascentRate: config.ascentRate,
       ),
       plan,
+      gasSwitchStopSeconds: config.gasSwitchStopSeconds,
     );
     // Waypoints carry only a target depth, so the profile they describe -
     // start depths, phases, rates - is resolved once here, and everything
@@ -910,7 +1115,7 @@ class PlanEngine {
                 tank.role != TankRole.bailout &&
                 remaining != null &&
                 used > 0 &&
-                remaining < plan.reservePressure,
+                remaining < config.reservePressure,
           );
         }(),
     ];
@@ -939,10 +1144,15 @@ class PlanEngine {
       liters[id] = (liters[id] ?? 0) + amount;
     }
 
+    // Reads sacBottom/sacDeco/problemSolvingMinutes from [config] (issue
+    // #3552), not [plan] directly: by this point [config] is already
+    // resolvedFor this plan, so an unset field already carries the diver's
+    // Settings default. sacFactor has no absolute global value of its own -
+    // it always resolves through config.buddyFactor (see resolvedFor).
     for (final leg in legs) {
       final sac = switch (leg.phase) {
-        SegmentPhase.descent || SegmentPhase.level => plan.sacBottom,
-        SegmentPhase.ascent || SegmentPhase.stop => plan.sacDecoEffective,
+        SegmentPhase.descent || SegmentPhase.level => config.sacBottom,
+        SegmentPhase.ascent || SegmentPhase.stop => config.sacDeco,
       };
       charge(
         leg.tankId,
@@ -955,7 +1165,7 @@ class PlanEngine {
     // Problem-solving time: extra N minutes at max depth on the working
     // gas, at bottom SAC x SAC factor, so the used/end figures include the
     // same bottom-hold term the gas-options row describes.
-    if (plan.problemSolvingMinutes > 0 && plan.maxDepth > 0) {
+    if (config.problemSolvingMinutes > 0 && plan.maxDepth > 0) {
       String? bottomTankId;
       for (final leg in legs) {
         if (leg.endDepth >= plan.maxDepth - 0.1 ||
@@ -965,9 +1175,9 @@ class PlanEngine {
       }
       charge(
         bottomTankId,
-        plan.sacBottom *
-            plan.sacFactor *
-            plan.problemSolvingMinutes *
+        config.sacBottom *
+            config.buddyFactor *
+            config.problemSolvingMinutes *
             environment.pressureAtDepth(plan.maxDepth),
       );
     }
@@ -1008,7 +1218,7 @@ class PlanEngine {
           final gas = ascentPlan.gasForDepth(legDepth);
           charge(
             _tankForGas(plan.tanks, 1.0 - gas.fN2 - gas.fHe, gas.fHe),
-            plan.sacDecoEffective *
+            config.sacDeco *
                 (subSeconds / 60.0) *
                 environment.pressureAtDepth((legDepth + legTo) / 2.0),
           );
@@ -1018,7 +1228,7 @@ class PlanEngine {
         final legAvg = (depth + stop.depthMeters) / 2.0;
         charge(
           stop.tankId,
-          plan.sacDecoEffective *
+          config.sacDeco *
               (legSeconds / 60.0) *
               environment.pressureAtDepth(legAvg),
         );
@@ -1027,7 +1237,7 @@ class PlanEngine {
       final primarySeconds = stop.durationSeconds - stop.airBreakSeconds;
       charge(
         stop.tankId,
-        plan.sacDecoEffective * (primarySeconds / 60.0) * stopPressure,
+        config.sacDeco * (primarySeconds / 60.0) * stopPressure,
       );
       if (stop.airBreakSeconds > 0) {
         final breakGas = ascentPlan.breakGasForDepth(stop.depthMeters);
@@ -1040,7 +1250,7 @@ class PlanEngine {
             : stop.tankId;
         charge(
           breakTankId,
-          plan.sacDecoEffective * (stop.airBreakSeconds / 60.0) * stopPressure,
+          config.sacDeco * (stop.airBreakSeconds / 60.0) * stopPressure,
         );
       }
       depth = stop.depthMeters;
@@ -1055,7 +1265,7 @@ class PlanEngine {
       final gas = ascentPlan.gasForDepth(depth);
       charge(
         _tankForGas(plan.tanks, 1.0 - gas.fN2 - gas.fHe, gas.fHe),
-        plan.sacDecoEffective *
+        config.sacDeco *
             (legSeconds / 60.0) *
             environment.pressureAtDepth(depth / 2.0),
       );
@@ -1106,7 +1316,7 @@ class PlanEngine {
                 ? (start - (remaining ?? 0)) / start * 100.0
                 : 0.0,
             reserveViolation:
-                remaining != null && remaining < plan.reservePressure,
+                remaining != null && remaining < config.reservePressure,
             turnPressureBar: _turnPressureFor(plan, tank),
             minGasBar: _minGasFor(plan, tank, environment),
           );
@@ -1117,18 +1327,27 @@ class PlanEngine {
   /// Turn pressure per the plan's rule; bottom tanks with a start pressure
   /// only. `usable = start - reserve`; turn when the rule's fraction of the
   /// usable gas is consumed.
+  ///
+  /// Reads the rule/fraction from [config] (issue #3552), not [plan]
+  /// directly: by this point [config] is already resolvedFor this plan,
+  /// so an unset plan field already carries the diver's Settings default.
   double? _turnPressureFor(domain.DivePlan plan, DiveTank tank) {
-    final rule = plan.turnPressureRule;
+    final rule = config.turnPressureRuleFor(plan);
     final start = tank.startPressure;
-    if (rule == null || start == null || tank.role != TankRole.backGas) {
+    if (rule == null ||
+        rule == domain.TurnPressureRule.off ||
+        start == null ||
+        tank.role != TankRole.backGas) {
       return null;
     }
-    final usable = (start - plan.reservePressure).clamp(0.0, start);
+    final usable = (start - config.reservePressure).clamp(0.0, start);
     final fraction = switch (rule) {
+      domain.TurnPressureRule.off => 0.0, // unreachable, handled above
       domain.TurnPressureRule.allUsable => 1.0,
       domain.TurnPressureRule.halves => 0.5,
       domain.TurnPressureRule.thirds => 1.0 / 3.0,
-      domain.TurnPressureRule.custom => plan.turnPressureFraction ?? 1.0 / 3.0,
+      domain.TurnPressureRule.custom =>
+        config.turnPressureFractionFor(plan) ?? 1.0 / 3.0,
     };
     return start - usable * fraction;
   }
@@ -1153,7 +1372,9 @@ class PlanEngine {
     }
     final maxDepth = plan.maxDepth;
     if (maxDepth <= 0) return null;
-    final sac = plan.sacStressedEffective * config.buddyFactor;
+    // config.sacStressedFor/sacBottom/problemSolvingMinutes (issue #3552):
+    // config is already resolvedFor this plan at this point.
+    final sac = config.sacStressedFor(plan) * config.buddyFactor;
     final ascentMinutes =
         _policyFor(
           plan,
@@ -1161,7 +1382,7 @@ class PlanEngine {
         60.0;
     final liters =
         sac *
-            plan.problemSolvingMinutes *
+            config.problemSolvingMinutes *
             environment.pressureAtDepth(maxDepth) +
         sac * ascentMinutes * environment.pressureAtDepth(maxDepth / 2.0);
     final volume = tank.volume ?? 11.0;
@@ -1393,10 +1614,10 @@ class PlanEngine {
             severity: PlanIssueSeverity.alert,
             message:
                 'Tank ends below the '
-                '${plan.reservePressure.toStringAsFixed(0)} bar reserve',
+                '${config.reservePressure.toStringAsFixed(0)} bar reserve',
             segmentId: usage.tankId,
             value: remaining,
-            threshold: plan.reservePressure,
+            threshold: config.reservePressure,
           ),
         );
       }
@@ -1467,17 +1688,23 @@ class PlanEngine {
   /// stop runtimes, rock-bottom), and every one of them has to agree with the
   /// legs the deco model actually loaded. One derivation from the plan keeps
   /// them from drifting apart.
+  ///
+  /// Reads the Deco/Rates/air-breaks fields from [config] (issue #3552),
+  /// not [plan] directly, because by the time this runs [config] is
+  /// already [PlanEngineConfig.resolvedFor] this plan - its own value
+  /// where set, the diver's Settings otherwise. `plan` is still needed for
+  /// [domain.DivePlan.stopMinimums], which has no global default.
   SchedulePolicy _policyFor(domain.DivePlan plan) => SchedulePolicy(
-    lastStopDepth: plan.lastStopDepth,
-    ascentRate: plan.ascentRate,
-    intermediateAscentRate: plan.intermediateAscentRate,
-    shallowAscentRate: plan.shallowAscentRate,
-    finalAscentRate: plan.finalAscentRate,
-    descentRate: plan.descentRate,
-    gasSwitchStopSeconds: plan.gasSwitchStopSeconds,
+    lastStopDepth: config.lastStopDepth,
+    ascentRate: config.ascentRate,
+    intermediateAscentRate: config.intermediateAscentRate,
+    shallowAscentRate: config.shallowAscentRate,
+    finalAscentRate: config.finalAscentRate,
+    descentRate: config.descentRate,
+    gasSwitchStopSeconds: config.gasSwitchStopSeconds,
     // A plan is read against a watch: stops end on whole minutes.
     snapStopsToWholeMinutes: true,
-    airBreaks: plan.airBreaks,
+    airBreaks: config.airBreaksFor(plan),
     minStopSecondsByDepth: plan.stopMinimums,
   );
 

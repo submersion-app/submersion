@@ -18,10 +18,11 @@ MissionLeg _leg() => MissionLeg(
 );
 
 void main() {
-  test('a mission defaults to overhead, a 0.8 m/s walk and no swim limit', () {
+  test('a mission defaults to overhead, an unset walk speed (#3552) and no '
+      'swim limit', () {
     final mission = DpvMission();
     expect(mission.environment, MissionEnvironment.overhead);
-    expect(mission.walkSpeedMps, 0.8);
+    expect(mission.walkSpeedMps, isNull);
     expect(kDefaultWalkSpeedMps, 0.8);
     expect(mission.surfaceSwimLimitM, isNull);
   });

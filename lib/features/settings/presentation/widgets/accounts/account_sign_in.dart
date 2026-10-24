@@ -21,6 +21,20 @@ import 'package:submersion/l10n/l10n_extension.dart';
 
 final _log = LoggerService.forClass(OwnServerForm);
 
+/// Whether this build can run [kind]'s sign-in at all: one with no Google
+/// client, or no Dropbox app key, cannot, and offers none (the account page
+/// applies the same rule to Sign in again).
+Future<bool> canSignInOnThisBuild(
+  ProviderContainer container,
+  AccountKind kind,
+) async => switch (kind) {
+  AccountKind.googledrive => await container.read(
+    googleDriveAvailableProvider.future,
+  ),
+  AccountKind.dropbox => container.read(dropboxConfiguredProvider),
+  _ => true,
+};
+
 /// Runs [group]'s own sign-in on this device ("Sign in again", spec section
 /// 7.6): Google and Dropbox their OAuth flows, an own server its form with
 /// only the secret to type. iCloud has none (the Apple ID manages it) and

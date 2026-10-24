@@ -429,13 +429,17 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     return headers;
   }
 
-  void _landOnDive(BuildContext context, String diveId) {
+  void _landOnDive(BuildContext context, String diveId, {required bool toTop}) {
     for (final (index, section) in _lastSections.indexed) {
       if (!section.entries.any((e) => e.dive.id == diveId)) continue;
       final key = section is TripSection && section.collapsed
           ? diveListTripHeaderKey(index, section.tripId)
           : diveId;
-      KeyboardListNavigator.revealRow(context, key);
+      if (toTop) {
+        KeyboardListNavigator.revealRow(context, key);
+      } else {
+        KeyboardListNavigator.keepRowVisible(context, key);
+      }
       return;
     }
   }

@@ -10527,6 +10527,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get divePlanner_label_airBreaksOnO2 => 'على O2 (دقيقة)';
 
   @override
+  String get divePlanner_label_airBreaksCustom => 'مخصص';
+
+  @override
+  String divePlanner_label_airBreaksCycle(int o2Minutes, int breakMinutes) {
+    return '$o2Minutes/$breakMinutes دقيقة';
+  }
+
+  @override
   String get divePlanner_label_altitude => 'الارتفاع:';
 
   @override
@@ -10537,6 +10545,14 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get divePlanner_label_decompression => 'تخفيف الضغط';
+
+  @override
+  String divePlanner_label_defaultWithValue(Object value) {
+    return 'الافتراضي ($value)';
+  }
+
+  @override
+  String get divePlanner_label_default => 'الافتراضي';
 
   @override
   String divePlanner_label_depthAxis(Object depthSymbol) {
@@ -10586,6 +10602,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get divePlanner_gasOptions_sacFactor => 'معامل RMV';
 
   @override
+  String get divePlanner_gasOptions_sacStressed => 'RMV تحت الضغط';
+
+  @override
+  String get divePlanner_gasOptions_sacStressedFactor => 'معامل RMV تحت الضغط';
+
+  @override
   String get divePlanner_gasOptions_problemSolvingMinutes => 'زمن حل المشكلة';
 
   @override
@@ -10603,6 +10625,12 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get divePlanner_gasOptions_o2Narcotic =>
       'اعتبار O₂ مخدرًا في هذه الخطة';
+
+  @override
+  String get divePlanner_label_on => 'تشغيل';
+
+  @override
+  String get divePlanner_label_off => 'إيقاف';
 
   @override
   String get divePlanner_label_tanks => 'الأسطوانات';
@@ -27261,6 +27289,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_section_decompression_title => 'تخفيف الضغط';
 
   @override
+  String get settings_section_plannerDefaults_title =>
+      'الإعدادات الافتراضية للمخطط';
+
+  @override
+  String get settings_section_plannerDefaults_subtitle =>
+      'المعدلات، الغاز، الخطط الاحتياطية، فريق DPV';
+
+  @override
   String get settings_section_diverProfile_subtitle =>
       'الغواص النشط والملفات الشخصية';
 
@@ -37518,30 +37554,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_sources_compareIn3d => 'مقارنة ثلاثية الأبعاد';
 
   @override
-  String get settings_setup_pendingTitle => 'أكمل إعداد هذا الجهاز';
-
-  @override
-  String settings_setup_mediaStoreAttach(String hint) {
-    return 'الاتصال بتخزين الوسائط ($hint)';
-  }
-
-  @override
-  String settings_setup_mediaStoreReconnect(String hint) {
-    return 'إعادة الاتصال بتخزين الوسائط ($hint)';
-  }
-
-  @override
-  String settings_setup_accountSignIn(String label) {
-    return 'تسجيل الدخول إلى $label';
-  }
-
-  @override
-  String get settings_setup_dismiss => 'تجاهل';
-
-  @override
-  String get settings_photosMedia_guidedSetup => 'إعداد موجه';
-
-  @override
   String get settings_photosMedia_photoSources_subtitle =>
       'المعرض والملفات وخيارات الاستيراد';
 
@@ -37589,43 +37601,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_connectedAccounts_removeConfirmBody =>
       'تتم إزالة الحساب من جميع الأجهزة المتزامنة. لا تُحذف بيانات الاعتماد المخزنة على الأجهزة الأخرى.';
-
-  @override
-  String get settings_setupGuide_title => 'إعداد الصور والوسائط';
-
-  @override
-  String get settings_setupGuide_intro =>
-      'اربط مصادر صورك وأماكن حفظ النسخ. يمكنك إعادة تشغيل هذا في أي وقت.';
-
-  @override
-  String get settings_setupGuide_stepSources => 'مصادر الصور';
-
-  @override
-  String get settings_setupGuide_stepSources_desc =>
-      'أرفق الصور من مكتبة الصور أو الملفات أو Lightroom.';
-
-  @override
-  String get settings_setupGuide_stepStorage => 'تخزين الوسائط';
-
-  @override
-  String get settings_setupGuide_stepStorage_desc =>
-      'احفظ نسخًا من صورك في سحابتك الخاصة حتى تعرضها جميع أجهزتك.';
-
-  @override
-  String get settings_setupGuide_stepSync => 'مزامنة سحابية';
-
-  @override
-  String get settings_setupGuide_stepSync_desc =>
-      'زامن بيانات الغوص بين الأجهزة.';
-
-  @override
-  String get settings_setupGuide_statusDone => 'تم الإعداد';
-
-  @override
-  String get settings_setupGuide_statusTodo => 'لم يتم الإعداد';
-
-  @override
-  String get settings_setupGuide_open => 'فتح';
 
   @override
   String get settings_connectedAccounts_loadError => 'تعذر تحميل الحسابات';
@@ -48166,6 +48141,37 @@ class AppLocalizationsAr extends AppLocalizations {
       'الحدود التي تستخدمها ألوان وأحداث سرعة الصعود في الملف. تحتفظ مراجعة السلامة بحدودها الثابتة الخاصة، لذا لا يؤدي تغيير هذه القيم أبدًا إلى تعديل الغطسات التي تمت مراجعتها.';
 
   @override
+  String get settings_decompression_header_plannerRates => 'معدلات المخطط';
+
+  @override
+  String get settings_decompression_header_plannerRates_subtitle =>
+      'معدلات النزول والصعود التي تبدأ بها خطة جديدة. تغيير أحدها داخل خطة يستبدله هناك فقط، دون تغيير هذا الإعداد الافتراضي.';
+
+  @override
+  String get settings_decompression_header_plannerGas => 'غاز المخطط';
+
+  @override
+  String get settings_decompression_header_plannerGas_subtitle =>
+      'القيم الافتراضية لاستهلاك الغاز التي تبدأ بها خطة جديدة. تغيير أحدها داخل خطة يستبدله هناك فقط، دون تغيير هذا الإعداد الافتراضي.';
+
+  @override
+  String get settings_decompression_header_plannerContingency => 'طوارئ المخطط';
+
+  @override
+  String get settings_decompression_header_plannerContingency_subtitle =>
+      'انحراف \"ماذا لو\" الذي تبدأ به خطة جديدة. تغييره داخل خطة يستبدله هناك فقط، دون تغيير هذا الإعداد الافتراضي.';
+
+  @override
+  String get settings_decompression_header_plannerDpvTeam => 'فريق DPV للمخطط';
+
+  @override
+  String get settings_decompression_header_plannerDpvTeam_subtitle =>
+      'احتياطي بطارية السكوتر وسرعة المشي التي تبدأ بها مهمة DPV جديدة. تغييرها داخل مهمة يستبدلها هناك فقط، دون تغيير هذا الإعداد الافتراضي.';
+
+  @override
+  String get settings_decompression_rates_finalAscent => 'معدل الصعود النهائي';
+
+  @override
   String get settings_decompression_ascentRateThresholds => 'حدود سرعة الصعود';
 
   @override
@@ -55672,4 +55678,119 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_conflict_field_remoteStoreId => 'تم الرفع إلى';
+
+  @override
+  String settings_setUpDevice_title(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'phone': 'إعداد هذا الهاتف',
+      'tablet': 'إعداد هذا الجهاز اللوحي',
+      'computer': 'إعداد هذا الحاسوب',
+      'other': 'إعداد هذا الجهاز',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_titleFinish(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'phone': 'إكمال إعداد هذا الهاتف',
+      'tablet': 'إكمال إعداد هذا الجهاز اللوحي',
+      'computer': 'إكمال إعداد هذا الحاسوب',
+      'other': 'إكمال إعداد هذا الجهاز',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_again(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'phone': 'إعداد هذا الهاتف مجددًا',
+      'tablet': 'إعداد هذا الجهاز اللوحي مجددًا',
+      'computer': 'إعداد هذا الحاسوب مجددًا',
+      'other': 'إعداد هذا الجهاز مجددًا',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_count(int done, int total) {
+    return '$done من $total';
+  }
+
+  @override
+  String settings_setUpDevice_countSemantics(int done, int total) {
+    return 'اكتملت $done من $total خطوات';
+  }
+
+  @override
+  String get settings_setUpDevice_hide => 'إخفاء هذه البطاقة';
+
+  @override
+  String get settings_setUpDevice_step_account => 'اختر مكان حفظ بياناتك';
+
+  @override
+  String get settings_setUpDevice_step_sync => 'الغطسات على كل جهاز';
+
+  @override
+  String get settings_setUpDevice_step_backups => 'النسخ الاحتياطي تلقائيًا';
+
+  @override
+  String get settings_setUpDevice_step_photos => 'مشاركة نسخ الصور (اختياري)';
+
+  @override
+  String get settings_setUpDevice_mark_done => 'تم';
+
+  @override
+  String get settings_setUpDevice_mark_next => 'التالي';
+
+  @override
+  String get settings_setUpDevice_mark_notYet => 'ليس بعد';
+
+  @override
+  String get settings_setUpDevice_mark_skipped => 'تم التخطي';
+
+  @override
+  String get settings_setUpDevice_item_signInAction => 'تسجيل الدخول';
+
+  @override
+  String get settings_setUpDevice_item_reconnectAction => 'إعادة الاتصال';
+
+  @override
+  String settings_setUpDevice_item_signIn(String account) {
+    return 'سجّل الدخول إلى $account مجددًا. المزامنة والنسخ الاحتياطي متوقفان مؤقتًا حتى تفعل.';
+  }
+
+  @override
+  String settings_setUpDevice_item_signInShort(String account) {
+    return 'سجّل الدخول إلى $account مجددًا.';
+  }
+
+  @override
+  String settings_setUpDevice_item_attach(String account) {
+    return 'تحتفظ أجهزتك الأخرى بنسخ من الصور في $account.';
+  }
+
+  @override
+  String settings_setUpDevice_item_reconnect(String account) {
+    return 'يلزم إعادة توصيل نسخ الصور في $account.';
+  }
+
+  @override
+  String get settings_setUpDevice_againSubtitle =>
+      'الحساب والمزامنة والنسخ الاحتياطية والصور';
+
+  @override
+  String settings_setUpDevice_stepSemantics(String step, String mark) {
+    return '$step: $mark';
+  }
+
+  @override
+  String settings_setUpDevice_item_signInSync(String account) {
+    return 'سجّل الدخول إلى $account مجددًا. المزامنة متوقفة مؤقتًا حتى تفعل.';
+  }
+
+  @override
+  String settings_setUpDevice_item_signInBackups(String account) {
+    return 'سجّل الدخول إلى $account مجددًا. النسخ الاحتياطي متوقف مؤقتًا حتى تفعل.';
+  }
 }

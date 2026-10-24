@@ -70,6 +70,7 @@ import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/features/dive_types/presentation/dive_type_display.dart';
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
+import 'package:submersion/features/tags/presentation/widgets/tag_form_block.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_input_widget.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_picker_sheet.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
@@ -3423,30 +3424,14 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   }
 
   Widget _tagsChild() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        FormOverline(
-          label: context.l10n.diveLog_edit_section_tags,
-          actions: [
-            FormOverlineAction(
-              label: context.l10n.tags_action_browse,
-              icon: Icons.label_outline,
-              onPressed: _showTagPicker,
-            ),
-          ],
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(14, 8, 14, 12),
-          child: TagInputWidget(
-            selectedTags: _selectedTags,
-            onTagsChanged: (tags) {
-              _markDirty();
-              setState(() => _selectedTags = tags);
-            },
-          ),
-        ),
-      ],
+    return TagFormBlock(
+      label: context.l10n.diveLog_edit_section_tags,
+      selectedTags: _selectedTags,
+      onTagsChanged: (tags) {
+        _markDirty();
+        setState(() => _selectedTags = tags);
+      },
+      scope: TagScope.dives,
     );
   }
 
@@ -3462,14 +3447,6 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     selected: selected,
     onPicked: onPicked,
     host: host,
-  );
-
-  void _showTagPicker() => _showTagPickerFor(
-    selected: _selectedTags,
-    onPicked: (tags) {
-      _markDirty();
-      setState(() => _selectedTags = tags);
-    },
   );
 
   /// Opens the profile editor, first asking which source's profile to start

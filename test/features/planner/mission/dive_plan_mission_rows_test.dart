@@ -69,7 +69,6 @@ void main() {
       planId: 'plan-1',
       batteryReserveFraction: 0.25,
       environment: 'overhead',
-      walkSpeedMps: 0.8,
       createdAt: 1,
       updatedAt: 1,
     );

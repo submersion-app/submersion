@@ -101,6 +101,30 @@ void main() {
       expect(blocks.single.isNight, isFalse);
     });
 
+    test('a profile-only dive is measured by its profile span', () {
+      // No runtime, exit or bottom time (issue #3537). The trip story's
+      // dives carry their merged profile, so its span is the runtime Time
+      // patterns reads in SQL: 06:05 plus 60 minutes crosses the 06:49
+      // sunrise, so Dawn, drawn one hour wide rather than the 45 minute
+      // stand-in.
+      final entry = DateTime.utc(2025, 3, 1, 6, 5);
+      final blocks = computeRhythmBlocks([
+        Dive(
+          id: 'profile-only',
+          dateTime: entry,
+          entryTime: entry,
+          site: bonaire,
+          profile: const [
+            DiveProfilePoint(timestamp: 0, depth: 0),
+            DiveProfilePoint(timestamp: 1800, depth: 12),
+            DiveProfilePoint(timestamp: 3600, depth: 0),
+          ],
+        ),
+      ]);
+      expect(blocks.single.isNight, isFalse);
+      expect(blocks.single.widthFraction, closeTo(1 / 24, 0.001));
+    });
+
     test('a dive with no site uses the 06:00 and 18:00 fallback', () {
       final blocks = computeRhythmBlocks([
         dive(

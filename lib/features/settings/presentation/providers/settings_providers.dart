@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:submersion/core/built_ins/built_in_catalog.dart';
+import 'package:submersion/core/deco/schedule_policy.dart' show AirBreakPolicy;
 import 'package:submersion/core/constants/card_color.dart';
 import 'package:submersion/core/constants/dive_detail_layout.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
@@ -26,6 +27,9 @@ import 'package:submersion/features/equipment/domain/entities/equipment_finding.
 import 'package:submersion/features/insights/domain/observations/observation_rule_id.dart';
 import 'package:submersion/features/insights/domain/trend_gap_threshold.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_default_view.dart';
+import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
+    as domain
+    show TurnPressureRule;
 import 'package:submersion/features/dive_log/presentation/profile_colors/profile_metric.dart';
 import 'package:submersion/features/dive_log/presentation/profile_colors/profile_metric_color_overrides.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
@@ -547,6 +551,44 @@ class AppSettings {
   /// taken at (issue #3520). Off by default; files are never changed.
   final bool autoColorCorrection;
 
+  // Planner Setup-accordion global defaults (issue #3552). A new plan
+  // resolves each of these when its own field is unset, the same way
+  // ppO2MaxWorking/ppO2MaxDeco/o2Narcotic/ccrSetpointLow/ccrSetpointHigh/
+  // lastStopDepth already do.
+  final double plannerDescentRate;
+  final double plannerAscentRate;
+  final double plannerIntermediateAscentRate;
+  final double plannerShallowAscentRate;
+  final double plannerFinalAscentRate;
+  final int plannerGasSwitchStopSeconds;
+  final double plannerSacBottom;
+  final double plannerSacDeco;
+
+  /// Multiplier on [plannerSacBottom] for the stressed/bailout SAC rate -
+  /// not an absolute rate, so it tracks bottom SAC instead of silently
+  /// diverging from it.
+  final double plannerSacStressedFactor;
+  final double plannerBuddyFactor;
+  final int plannerProblemSolvingMinutes;
+  final double plannerBestMixEndMeters;
+  final double plannerDeviationDepthDelta;
+  final int plannerDeviationTimeMinutes;
+  final double plannerBatteryReserveFraction;
+  final double plannerWalkSpeedMps;
+
+  /// Turn-pressure/air-break global defaults (issue #3552, follow-up to
+  /// v304-306). Nullable, unlike the fields above: null = no rule/no
+  /// breaks, matching today's behaviour for a diver who has not opted in.
+  final domain.TurnPressureRule? plannerTurnPressureRule;
+  final double? plannerTurnPressureFraction;
+  final int? plannerAirBreakO2Seconds;
+  final int? plannerAirBreakBreakSeconds;
+
+  /// The diver's tank reserve-pressure default (issue #3552, follow-up to
+  /// v304-307) - previously hardcoded to the pressure unit's convention (50
+  /// bar / 500 psi) with no Settings override at all.
+  final double plannerReservePressure;
+
   /// Show profile panel in table view by default
   final bool showProfilePanelInTableView;
 
@@ -756,6 +798,27 @@ class AppSettings {
     this.showDataSourceBadges = true,
     this.showDiveFigure = false,
     this.autoColorCorrection = false,
+    this.plannerDescentRate = 18.0,
+    this.plannerAscentRate = 9.0,
+    this.plannerIntermediateAscentRate = 6.0,
+    this.plannerShallowAscentRate = 3.0,
+    this.plannerFinalAscentRate = 1.0,
+    this.plannerGasSwitchStopSeconds = 0,
+    this.plannerSacBottom = 15.0,
+    this.plannerSacDeco = 15.0,
+    this.plannerSacStressedFactor = 2.5,
+    this.plannerBuddyFactor = 2.0,
+    this.plannerProblemSolvingMinutes = 2,
+    this.plannerBestMixEndMeters = 30.0,
+    this.plannerDeviationDepthDelta = 5.0,
+    this.plannerDeviationTimeMinutes = 5,
+    this.plannerBatteryReserveFraction = 1.0 / 3.0,
+    this.plannerWalkSpeedMps = 0.8,
+    this.plannerTurnPressureRule,
+    this.plannerTurnPressureFraction,
+    this.plannerAirBreakO2Seconds,
+    this.plannerAirBreakBreakSeconds,
+    this.plannerReservePressure = 50.0,
     this.showProfilePanelInTableView = true,
     this.showDetailsPaneDives = false,
     this.showDetailsPaneSites = false,
@@ -950,6 +1013,31 @@ class AppSettings {
     bool? showDataSourceBadges,
     bool? showDiveFigure,
     bool? autoColorCorrection,
+    double? plannerDescentRate,
+    double? plannerAscentRate,
+    double? plannerIntermediateAscentRate,
+    double? plannerShallowAscentRate,
+    double? plannerFinalAscentRate,
+    int? plannerGasSwitchStopSeconds,
+    double? plannerSacBottom,
+    double? plannerSacDeco,
+    double? plannerSacStressedFactor,
+    double? plannerBuddyFactor,
+    int? plannerProblemSolvingMinutes,
+    double? plannerBestMixEndMeters,
+    double? plannerDeviationDepthDelta,
+    int? plannerDeviationTimeMinutes,
+    double? plannerBatteryReserveFraction,
+    double? plannerWalkSpeedMps,
+    domain.TurnPressureRule? plannerTurnPressureRule,
+    bool clearPlannerTurnPressureRule = false,
+    double? plannerTurnPressureFraction,
+    bool clearPlannerTurnPressureFraction = false,
+    int? plannerAirBreakO2Seconds,
+    bool clearPlannerAirBreakO2Seconds = false,
+    int? plannerAirBreakBreakSeconds,
+    bool clearPlannerAirBreakBreakSeconds = false,
+    double? plannerReservePressure,
     bool? showProfilePanelInTableView,
     bool? showDetailsPaneDives,
     bool? showDetailsPaneSites,
@@ -1146,6 +1234,46 @@ class AppSettings {
       showDataSourceBadges: showDataSourceBadges ?? this.showDataSourceBadges,
       showDiveFigure: showDiveFigure ?? this.showDiveFigure,
       autoColorCorrection: autoColorCorrection ?? this.autoColorCorrection,
+      plannerDescentRate: plannerDescentRate ?? this.plannerDescentRate,
+      plannerAscentRate: plannerAscentRate ?? this.plannerAscentRate,
+      plannerIntermediateAscentRate:
+          plannerIntermediateAscentRate ?? this.plannerIntermediateAscentRate,
+      plannerShallowAscentRate:
+          plannerShallowAscentRate ?? this.plannerShallowAscentRate,
+      plannerFinalAscentRate:
+          plannerFinalAscentRate ?? this.plannerFinalAscentRate,
+      plannerGasSwitchStopSeconds:
+          plannerGasSwitchStopSeconds ?? this.plannerGasSwitchStopSeconds,
+      plannerSacBottom: plannerSacBottom ?? this.plannerSacBottom,
+      plannerSacDeco: plannerSacDeco ?? this.plannerSacDeco,
+      plannerSacStressedFactor:
+          plannerSacStressedFactor ?? this.plannerSacStressedFactor,
+      plannerBuddyFactor: plannerBuddyFactor ?? this.plannerBuddyFactor,
+      plannerProblemSolvingMinutes:
+          plannerProblemSolvingMinutes ?? this.plannerProblemSolvingMinutes,
+      plannerBestMixEndMeters:
+          plannerBestMixEndMeters ?? this.plannerBestMixEndMeters,
+      plannerDeviationDepthDelta:
+          plannerDeviationDepthDelta ?? this.plannerDeviationDepthDelta,
+      plannerDeviationTimeMinutes:
+          plannerDeviationTimeMinutes ?? this.plannerDeviationTimeMinutes,
+      plannerBatteryReserveFraction:
+          plannerBatteryReserveFraction ?? this.plannerBatteryReserveFraction,
+      plannerWalkSpeedMps: plannerWalkSpeedMps ?? this.plannerWalkSpeedMps,
+      plannerTurnPressureRule: clearPlannerTurnPressureRule
+          ? null
+          : (plannerTurnPressureRule ?? this.plannerTurnPressureRule),
+      plannerTurnPressureFraction: clearPlannerTurnPressureFraction
+          ? null
+          : (plannerTurnPressureFraction ?? this.plannerTurnPressureFraction),
+      plannerAirBreakO2Seconds: clearPlannerAirBreakO2Seconds
+          ? null
+          : (plannerAirBreakO2Seconds ?? this.plannerAirBreakO2Seconds),
+      plannerAirBreakBreakSeconds: clearPlannerAirBreakBreakSeconds
+          ? null
+          : (plannerAirBreakBreakSeconds ?? this.plannerAirBreakBreakSeconds),
+      plannerReservePressure:
+          plannerReservePressure ?? this.plannerReservePressure,
       showProfilePanelInTableView:
           showProfilePanelInTableView ?? this.showProfilePanelInTableView,
       showDetailsPaneDives: showDetailsPaneDives ?? this.showDetailsPaneDives,
@@ -1802,8 +1930,27 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   }
 
   Future<void> setPressureUnit(PressureUnit unit) async {
-    state = state.copyWith(pressureUnit: unit);
+    state = state.copyWith(
+      pressureUnit: unit,
+      plannerReservePressure: _plannerReserveFor(unit),
+    );
     await _saveSettings();
+  }
+
+  /// The planner reserve-pressure default after a switch to [unit] (issue
+  /// #3552): a reserve still on a unit's convention (50 bar, or 500 psi)
+  /// moves to [unit]'s convention, as every new plan's reserve did before
+  /// it became a Setting, so a diver who picks psi after the row was
+  /// created gets 500 psi rather than 725. A reserve the diver set to any
+  /// other value is kept.
+  double _plannerReserveFor(PressureUnit unit) {
+    const metric = 50.0;
+    final imperial = PressureUnit.psi.convert(500, PressureUnit.bar);
+    final current = state.plannerReservePressure;
+    final onConvention =
+        (current - metric).abs() < 0.01 || (current - imperial).abs() < 0.01;
+    if (!onConvention) return current;
+    return unit == PressureUnit.psi ? imperial : metric;
   }
 
   Future<void> setVolumeUnit(VolumeUnit unit) async {
@@ -2297,6 +2444,151 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   Future<void> setLastStopDepth(double value) async {
     final clamped = value.clamp(3.0, 6.0);
     state = state.copyWith(lastStopDepth: clamped);
+    await _saveSettings();
+  }
+
+  // Planner Setup-accordion global defaults (issue #3552). The rates clamp
+  // to the same band the Setup accordion's per-plan rate fields accept
+  // ([kPlannerRateMinMetersPerMinute]..[kPlannerRateMaxMetersPerMinute]),
+  // since every plan that leaves a rate unset computes with this value.
+
+  static double _clampRate(double value) => value.clamp(
+    kPlannerRateMinMetersPerMinute,
+    kPlannerRateMaxMetersPerMinute,
+  );
+
+  Future<void> setPlannerDescentRate(double value) async {
+    state = state.copyWith(plannerDescentRate: _clampRate(value));
+    await _saveSettings();
+  }
+
+  Future<void> setPlannerAscentRate(double value) async {
+    state = state.copyWith(plannerAscentRate: _clampRate(value));
+    await _saveSettings();
+  }
+
+  Future<void> setPlannerIntermediateAscentRate(double value) async {
+    state = state.copyWith(plannerIntermediateAscentRate: _clampRate(value));
+    await _saveSettings();
+  }
+
+  Future<void> setPlannerShallowAscentRate(double value) async {
+    state = state.copyWith(plannerShallowAscentRate: _clampRate(value));
+    await _saveSettings();
+  }
+
+  Future<void> setPlannerFinalAscentRate(double value) async {
+    state = state.copyWith(plannerFinalAscentRate: _clampRate(value));
+    await _saveSettings();
+  }
+
+  Future<void> setPlannerGasSwitchStopSeconds(int value) async {
+    state = state.copyWith(plannerGasSwitchStopSeconds: value);
+    await _saveSettings();
+  }
+
+  Future<void> setPlannerSacBottom(double value) async {
+    state = state.copyWith(plannerSacBottom: value);
+    await _saveSettings();
+  }
+
+  Future<void> setPlannerSacDeco(double value) async {
+    state = state.copyWith(plannerSacDeco: value);
+    await _saveSettings();
+  }
+
+  Future<void> setPlannerSacStressedFactor(double value) async {
+    state = state.copyWith(plannerSacStressedFactor: value);
+    await _saveSettings();
+  }
+
+  Future<void> setPlannerBuddyFactor(double value) async {
+    state = state.copyWith(plannerBuddyFactor: value);
+    await _saveSettings();
+  }
+
+  Future<void> setPlannerProblemSolvingMinutes(int value) async {
+    state = state.copyWith(plannerProblemSolvingMinutes: value);
+    await _saveSettings();
+  }
+
+  Future<void> setPlannerBestMixEndMeters(double value) async {
+    state = state.copyWith(plannerBestMixEndMeters: value);
+    await _saveSettings();
+  }
+
+  Future<void> setPlannerDeviationDepthDelta(double value) async {
+    state = state.copyWith(plannerDeviationDepthDelta: value);
+    await _saveSettings();
+  }
+
+  Future<void> setPlannerDeviationTimeMinutes(int value) async {
+    state = state.copyWith(plannerDeviationTimeMinutes: value);
+    await _saveSettings();
+  }
+
+  Future<void> setPlannerBatteryReserveFraction(double value) async {
+    state = state.copyWith(plannerBatteryReserveFraction: value);
+    await _saveSettings();
+  }
+
+  Future<void> setPlannerWalkSpeedMps(double value) async {
+    state = state.copyWith(plannerWalkSpeedMps: value);
+    await _saveSettings();
+  }
+
+  Future<void> setPlannerTurnPressureRule(
+    domain.TurnPressureRule? value,
+  ) async {
+    state = state.copyWith(
+      plannerTurnPressureRule: value,
+      clearPlannerTurnPressureRule: value == null,
+    );
+    await _saveSettings();
+  }
+
+  Future<void> setPlannerTurnPressureFraction(double? value) async {
+    state = state.copyWith(
+      plannerTurnPressureFraction: value,
+      clearPlannerTurnPressureFraction: value == null,
+    );
+    await _saveSettings();
+  }
+
+  Future<void> setPlannerAirBreakO2Seconds(int? value) async {
+    state = state.copyWith(
+      plannerAirBreakO2Seconds: value,
+      clearPlannerAirBreakO2Seconds: value == null,
+    );
+    await _saveSettings();
+  }
+
+  Future<void> setPlannerAirBreakBreakSeconds(int? value) async {
+    state = state.copyWith(
+      plannerAirBreakBreakSeconds: value,
+      clearPlannerAirBreakBreakSeconds: value == null,
+    );
+    await _saveSettings();
+  }
+
+  /// Sets or clears both air-break seconds fields together in one save, so
+  /// toggling the Settings default on/off can never persist one half of
+  /// the pair without the other (issue #3552).
+  Future<void> setPlannerAirBreakPolicy({
+    int? o2Seconds,
+    int? breakSeconds,
+  }) async {
+    state = state.copyWith(
+      plannerAirBreakO2Seconds: o2Seconds,
+      clearPlannerAirBreakO2Seconds: o2Seconds == null,
+      plannerAirBreakBreakSeconds: breakSeconds,
+      clearPlannerAirBreakBreakSeconds: breakSeconds == null,
+    );
+    await _saveSettings();
+  }
+
+  Future<void> setPlannerReservePressure(double value) async {
+    state = state.copyWith(plannerReservePressure: value);
     await _saveSettings();
   }
 
@@ -2896,6 +3188,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       depthUnit: DepthUnit.meters,
       temperatureUnit: TemperatureUnit.celsius,
       pressureUnit: PressureUnit.bar,
+      plannerReservePressure: _plannerReserveFor(PressureUnit.bar),
       volumeUnit: VolumeUnit.liters,
       weightUnit: WeightUnit.kilograms,
       altitudeUnit: AltitudeUnit.meters,
@@ -2910,6 +3203,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       depthUnit: DepthUnit.feet,
       temperatureUnit: TemperatureUnit.fahrenheit,
       pressureUnit: PressureUnit.psi,
+      plannerReservePressure: _plannerReserveFor(PressureUnit.psi),
       volumeUnit: VolumeUnit.cubicFeet,
       weightUnit: WeightUnit.pounds,
       altitudeUnit: AltitudeUnit.feet,
@@ -3126,6 +3420,126 @@ final showNdlOnProfileProvider = Provider<bool>((ref) {
 
 final lastStopDepthProvider = Provider<double>((ref) {
   return ref.watch(settingsProvider.select((s) => s.lastStopDepth));
+});
+
+/// The band, in m/min, a planner descent or ascent rate may take: the
+/// Setup accordion's per-plan rate fields and the Settings defaults they
+/// fall back to share it (issue #3552). The floor sits at 0.9 rather than 1
+/// so that 3 ft/min (0.91 m/min), the imperial face of the 1 m/min
+/// final-ascent default, stays legal.
+const double kPlannerRateMinMetersPerMinute = 0.9;
+const double kPlannerRateMaxMetersPerMinute = 30.0;
+
+// Planner Setup-accordion global defaults (issue #3552).
+final plannerDescentRateProvider = Provider<double>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.plannerDescentRate));
+});
+
+final plannerAscentRateProvider = Provider<double>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.plannerAscentRate));
+});
+
+final plannerIntermediateAscentRateProvider = Provider<double>((ref) {
+  return ref.watch(
+    settingsProvider.select((s) => s.plannerIntermediateAscentRate),
+  );
+});
+
+final plannerShallowAscentRateProvider = Provider<double>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.plannerShallowAscentRate));
+});
+
+final plannerFinalAscentRateProvider = Provider<double>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.plannerFinalAscentRate));
+});
+
+final plannerGasSwitchStopSecondsProvider = Provider<int>((ref) {
+  return ref.watch(
+    settingsProvider.select((s) => s.plannerGasSwitchStopSeconds),
+  );
+});
+
+final plannerSacBottomProvider = Provider<double>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.plannerSacBottom));
+});
+
+final plannerSacDecoProvider = Provider<double>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.plannerSacDeco));
+});
+
+final plannerSacStressedFactorProvider = Provider<double>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.plannerSacStressedFactor));
+});
+
+final plannerBuddyFactorProvider = Provider<double>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.plannerBuddyFactor));
+});
+
+final plannerProblemSolvingMinutesProvider = Provider<int>((ref) {
+  return ref.watch(
+    settingsProvider.select((s) => s.plannerProblemSolvingMinutes),
+  );
+});
+
+final plannerBestMixEndMetersProvider = Provider<double>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.plannerBestMixEndMeters));
+});
+
+final plannerDeviationDepthDeltaProvider = Provider<double>((ref) {
+  return ref.watch(
+    settingsProvider.select((s) => s.plannerDeviationDepthDelta),
+  );
+});
+
+final plannerDeviationTimeMinutesProvider = Provider<int>((ref) {
+  return ref.watch(
+    settingsProvider.select((s) => s.plannerDeviationTimeMinutes),
+  );
+});
+
+final plannerBatteryReserveFractionProvider = Provider<double>((ref) {
+  return ref.watch(
+    settingsProvider.select((s) => s.plannerBatteryReserveFraction),
+  );
+});
+
+final plannerWalkSpeedMpsProvider = Provider<double>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.plannerWalkSpeedMps));
+});
+
+/// The diver's default turn-pressure rule; null = no rule (issue #3552).
+final plannerTurnPressureRuleProvider = Provider<domain.TurnPressureRule?>((
+  ref,
+) {
+  return ref.watch(settingsProvider.select((s) => s.plannerTurnPressureRule));
+});
+
+/// The diver's default turn-pressure fraction, only meaningful alongside
+/// [domain.TurnPressureRule.custom] (issue #3552).
+final plannerTurnPressureFractionProvider = Provider<double?>((ref) {
+  return ref.watch(
+    settingsProvider.select((s) => s.plannerTurnPressureFraction),
+  );
+});
+
+/// The diver's default air-break policy; null = no breaks (issue #3552).
+/// Built from the two Settings columns rather than stored as one, same
+/// shape as [AirBreakPolicy] itself: either both are set or neither is.
+final plannerAirBreakPolicyProvider = Provider<AirBreakPolicy?>((ref) {
+  final o2Seconds = ref.watch(
+    settingsProvider.select((s) => s.plannerAirBreakO2Seconds),
+  );
+  final breakSeconds = ref.watch(
+    settingsProvider.select((s) => s.plannerAirBreakBreakSeconds),
+  );
+  if (o2Seconds == null || breakSeconds == null) return null;
+  return AirBreakPolicy(o2Seconds: o2Seconds, breakSeconds: breakSeconds);
+});
+
+/// The diver's tank reserve-pressure default (issue #3552, follow-up to
+/// v304-307).
+final plannerReservePressureProvider = Provider<double>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.plannerReservePressure));
 });
 
 /// The diver's passive-SCR ratio (Subsurface `pscr_ratio`, default 100).

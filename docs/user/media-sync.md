@@ -15,8 +15,8 @@ up separately from Sync between devices.
 > **In the app this lives under Settings > Data > Photos & videos.** The page
 > covers two ideas: **Copies in the cloud**, which is this guide, and **Where
 > photos come from** (your gallery, files, URLs; see
-> [Marine Life & Photos](marine-life-and-photos.md)). **Guided setup**, the
-> checklist icon at the top of the page, walks through both.
+> [Marine Life & Photos](marine-life-and-photos.md)). The **Set up this device**
+> card on Settings > Data walks through photos with sync and backups.
 
 ## What Media Sync Solves
 
@@ -71,7 +71,8 @@ Your other devices learn which account holds the copies, without its
 credentials. A device that is signed in to that account joins by choosing it the
 same way: the copies already there are found and adopted, so there is nothing to
 type. A device that is not signed in yet shows **Finish setting up this device**
-on the page and at the top of Settings. The credentials themselves never leave
+on the page, and the setup card on Settings > Data and at the top of Settings
+says the other devices keep copies there. The credentials themselves never leave
 the device they were entered on.
 
 ### The status line
@@ -84,7 +85,7 @@ the device they were entered on.
 | **{n} waiting to retry** | Uploads that failed and will try again |
 | **Uploads paused: ...** | The account could not be checked, this device is no longer connected, or the account now holds different copies than this device joined (**Uploads paused: choose the account again**: tap **Copies in {account}** and choose the same account) |
 | **Could not reach {account}** | The account could not be opened with this device's keys |
-| **Finish setting up this device** | The library keeps copies this device has not joined yet. A device already keeping copies reports on its own copies instead, even when the library has since moved to another account; the card at the top of the page offers the move |
+| **Finish setting up this device** | The library keeps copies this device has not joined yet. A device already keeping copies reports on its own copies instead, even when the library has since moved to another account; a line above **Copies in {account}** then says where the copies went, and choosing that account there follows the move |
 
 ## What Gets Uploaded
 

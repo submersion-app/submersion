@@ -124,7 +124,6 @@ import 'package:submersion/features/media_store/presentation/pages/transfers_pag
 import 'package:submersion/features/settings/presentation/pages/connected_accounts_page.dart';
 import 'package:submersion/features/settings/presentation/pages/account_detail_page.dart';
 import 'package:submersion/features/settings/presentation/pages/lightroom_settings_page.dart';
-import 'package:submersion/features/settings/presentation/pages/photos_media_setup_page.dart';
 import 'package:submersion/features/settings/presentation/pages/fix_dive_times_page.dart';
 import 'package:submersion/features/settings/presentation/pages/link_buddy_names_page.dart';
 import 'package:submersion/features/settings/presentation/pages/retype_other_gear_page.dart';
@@ -148,6 +147,7 @@ import 'package:submersion/features/safety/presentation/pages/incidents_list_pag
 import 'package:submersion/features/safety/presentation/pages/emergency_card_page.dart';
 import 'package:submersion/features/settings/presentation/pages/equipment_condition_settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/decompression_settings_page.dart';
+import 'package:submersion/features/settings/presentation/pages/planner_defaults_settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/safety_hub_page.dart';
 import 'package:submersion/features/settings/presentation/pages/safety_review_settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/language_settings_page.dart';
@@ -1506,6 +1506,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                         const DecompressionSettingsPage(),
                   ),
                   GoRoute(
+                    path: 'planner-defaults',
+                    name: 'plannerDefaultsSettings',
+                    builder: (context, state) =>
+                        const PlannerDefaultsSettingsPage(),
+                  ),
+                  GoRoute(
                     path: 'equipment-condition',
                     name: 'equipmentConditionSettings',
                     builder: (context, state) =>
@@ -1674,11 +1680,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 name: 'photosMedia',
                 builder: (context, state) => const PhotosVideosPage(),
                 routes: [
-                  GoRoute(
-                    path: 'setup',
-                    name: 'photosMediaSetup',
-                    builder: (context, state) => const PhotosMediaSetupPage(),
-                  ),
                   GoRoute(
                     path: 'uploads',
                     name: 'photosUploads',

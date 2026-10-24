@@ -34,9 +34,11 @@ List<MissionIssue> validateMission(DpvMission mission) {
     );
   }
   // Burn must be allowed and reserved within the battery: a negative reserve
-  // would let a scooter run past its rated burn time.
+  // would let a scooter run past its rated burn time. An unset reserve
+  // (issue #3552) follows the diver's Settings, which is never invalid by
+  // construction, so only an explicit override is checked here.
   final reserve = mission.batteryReserveFraction;
-  if (!_isNonNegative(reserve) || reserve > 1) {
+  if (reserve != null && (!_isNonNegative(reserve) || reserve > 1)) {
     issues.add(
       const MissionIssue(
         type: MissionIssueType.batteryReserveInvalid,
@@ -100,8 +102,11 @@ List<MissionIssue> validateMission(DpvMission mission) {
     // A negative distance would always pass the swim limit and win as the
     // fastest route, reporting an exit that does not exist.
     final limit = mission.surfaceSwimLimitM;
+    // An unset walk speed (issue #3552) follows the diver's Settings, never
+    // invalid by construction, so only an explicit override is checked.
+    final walkSpeedMps = mission.walkSpeedMps;
     if ((limit != null && !_isNonNegative(limit)) ||
-        !_isNonNegative(mission.walkSpeedMps)) {
+        (walkSpeedMps != null && !_isNonNegative(walkSpeedMps))) {
       issues.add(
         const MissionIssue(
           type: MissionIssueType.openWaterInputInvalid,

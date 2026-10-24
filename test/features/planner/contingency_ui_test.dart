@@ -370,8 +370,10 @@ void main() {
       tester.element(find.byType(ContingencySettingsSection)),
     );
 
-    final fields = find.byType(TextFormField);
-    // Depth delta and time delta fields (fraction appears only for custom).
+    // Depth delta and time delta are PlanNumberField (plain TextField,
+    // issue #3552); the turn-pressure fraction below still uses the older
+    // NumberField (TextFormField).
+    final fields = find.byType(TextField);
     await tester.enterText(fields.at(0), '8');
     await tester.enterText(fields.at(1), '12');
     await tester.pumpAndSettle();

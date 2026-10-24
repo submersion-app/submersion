@@ -106,6 +106,10 @@ Future<List<int>> _build(domain.DivePlan plan) {
     bailout: const BailoutSolver().solve(plan),
     units: const UnitFormatter(AppSettings()),
     labels: _labels,
+    deviationDepthDelta: plan.deviationDepthDelta ?? 5.0,
+    deviationTimeMinutes: plan.deviationTimeMinutes ?? 5,
+    gfLow: plan.gfLow ?? 50,
+    gfHigh: plan.gfHigh ?? 85,
   );
 }
 
@@ -143,6 +147,8 @@ void main() {
         AppSettings(dateFormat: DateFormatPreference.ddmmyyyy),
       ),
       _labels,
+      gfLow: plan.gfLow!,
+      gfHigh: plan.gfHigh!,
     );
 
     expect(line, startsWith('05/07/2026'));
@@ -173,6 +179,8 @@ void main() {
         minutes: (value) => '$value Min.',
         maxPrefix: 'max.',
       ),
+      gfLow: plan.gfLow!,
+      gfHigh: plan.gfHigh!,
     );
 
     expect(line, contains(' Min.'));

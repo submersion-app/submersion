@@ -10396,6 +10396,14 @@ class AppLocalizationsEs extends AppLocalizations {
   String get divePlanner_label_airBreaksOnO2 => 'Con O2 (min)';
 
   @override
+  String get divePlanner_label_airBreaksCustom => 'Personalizado';
+
+  @override
+  String divePlanner_label_airBreaksCycle(int o2Minutes, int breakMinutes) {
+    return '$o2Minutes/$breakMinutes min';
+  }
+
+  @override
   String get divePlanner_label_altitude => 'Altitud:';
 
   @override
@@ -10406,6 +10414,14 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get divePlanner_label_decompression => 'Descompresión';
+
+  @override
+  String divePlanner_label_defaultWithValue(Object value) {
+    return 'Predeterminado ($value)';
+  }
+
+  @override
+  String get divePlanner_label_default => 'Predeterminado';
 
   @override
   String divePlanner_label_depthAxis(Object depthSymbol) {
@@ -10455,6 +10471,13 @@ class AppLocalizationsEs extends AppLocalizations {
   String get divePlanner_gasOptions_sacFactor => 'Factor de RMV';
 
   @override
+  String get divePlanner_gasOptions_sacStressed => 'RMV en estrés';
+
+  @override
+  String get divePlanner_gasOptions_sacStressedFactor =>
+      'Factor de RMV en estrés';
+
+  @override
   String get divePlanner_gasOptions_problemSolvingMinutes =>
       'Tiempo de resolución del problema';
 
@@ -10474,6 +10497,12 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get divePlanner_gasOptions_o2Narcotic =>
       'Considerar el O₂ narcótico en este plan';
+
+  @override
+  String get divePlanner_label_on => 'Activado';
+
+  @override
+  String get divePlanner_label_off => 'Desactivado';
 
   @override
   String get divePlanner_label_tanks => 'Botellas';
@@ -27048,6 +27077,14 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings_section_decompression_title => 'Descompresión';
 
   @override
+  String get settings_section_plannerDefaults_title =>
+      'Valores predeterminados del planificador';
+
+  @override
+  String get settings_section_plannerDefaults_subtitle =>
+      'Velocidades, gas, contingencia, equipo DPV';
+
+  @override
   String get settings_section_diverProfile_subtitle =>
       'Buceador activo y perfiles';
 
@@ -37033,31 +37070,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_sources_compareIn3d => 'Comparar en 3D';
 
   @override
-  String get settings_setup_pendingTitle =>
-      'Termina de configurar este dispositivo';
-
-  @override
-  String settings_setup_mediaStoreAttach(String hint) {
-    return 'Conectar almacenamiento de medios ($hint)';
-  }
-
-  @override
-  String settings_setup_mediaStoreReconnect(String hint) {
-    return 'Volver a conectar el almacenamiento de medios ($hint)';
-  }
-
-  @override
-  String settings_setup_accountSignIn(String label) {
-    return 'Iniciar sesión en $label';
-  }
-
-  @override
-  String get settings_setup_dismiss => 'Descartar';
-
-  @override
-  String get settings_photosMedia_guidedSetup => 'Configuración guiada';
-
-  @override
   String get settings_photosMedia_photoSources_subtitle =>
       'Galería, archivos y opciones de importación';
 
@@ -37108,43 +37120,6 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get settings_connectedAccounts_removeConfirmBody =>
       'La cuenta se quita de todos los dispositivos sincronizados. Las credenciales guardadas en otros dispositivos no se eliminan.';
-
-  @override
-  String get settings_setupGuide_title => 'Configurar fotos y medios';
-
-  @override
-  String get settings_setupGuide_intro =>
-      'Conecta de dónde vienen tus fotos y dónde se guardan las copias. Puedes volver a ejecutar esto cuando quieras.';
-
-  @override
-  String get settings_setupGuide_stepSources => 'Fuentes de fotos';
-
-  @override
-  String get settings_setupGuide_stepSources_desc =>
-      'Adjunta fotos desde tu biblioteca, archivos o Lightroom.';
-
-  @override
-  String get settings_setupGuide_stepStorage => 'Almacenamiento de medios';
-
-  @override
-  String get settings_setupGuide_stepStorage_desc =>
-      'Guarda copias de tus fotos en tu propia nube para que todos los dispositivos puedan mostrarlas.';
-
-  @override
-  String get settings_setupGuide_stepSync => 'Sincronización en la nube';
-
-  @override
-  String get settings_setupGuide_stepSync_desc =>
-      'Sincroniza los datos de buceo entre dispositivos.';
-
-  @override
-  String get settings_setupGuide_statusDone => 'Configurado';
-
-  @override
-  String get settings_setupGuide_statusTodo => 'Sin configurar';
-
-  @override
-  String get settings_setupGuide_open => 'Abrir';
 
   @override
   String get settings_connectedAccounts_loadError =>
@@ -47609,6 +47584,41 @@ class AppLocalizationsEs extends AppLocalizations {
       'Los límites que usan los colores y eventos de velocidad de ascenso del perfil. La revisión de seguridad mantiene sus propios límites fijos, así que cambiarlos nunca altera las inmersiones ya revisadas.';
 
   @override
+  String get settings_decompression_header_plannerRates =>
+      'Velocidades del planificador';
+
+  @override
+  String get settings_decompression_header_plannerRates_subtitle =>
+      'Las velocidades de descenso y ascenso con las que comienza un nuevo plan. Cambiar una dentro de un plan solo la sobrescribe ahí, sin cambiar este valor predeterminado.';
+
+  @override
+  String get settings_decompression_header_plannerGas => 'Gas del planificador';
+
+  @override
+  String get settings_decompression_header_plannerGas_subtitle =>
+      'Los valores predeterminados de consumo de gas con los que comienza un nuevo plan. Cambiar uno dentro de un plan solo lo sobrescribe ahí, sin cambiar este valor predeterminado.';
+
+  @override
+  String get settings_decompression_header_plannerContingency =>
+      'Contingencia del planificador';
+
+  @override
+  String get settings_decompression_header_plannerContingency_subtitle =>
+      'La desviación hipotética con la que comienza un nuevo plan. Cambiarla dentro de un plan solo la sobrescribe ahí, sin cambiar este valor predeterminado.';
+
+  @override
+  String get settings_decompression_header_plannerDpvTeam =>
+      'Equipo DPV del planificador';
+
+  @override
+  String get settings_decompression_header_plannerDpvTeam_subtitle =>
+      'La reserva de batería del scooter y la velocidad de caminata con las que comienza una nueva misión DPV. Cambiarlas dentro de una misión solo las sobrescribe ahí, sin cambiar este valor predeterminado.';
+
+  @override
+  String get settings_decompression_rates_finalAscent =>
+      'Velocidad de ascenso final';
+
+  @override
   String get settings_decompression_ascentRateThresholds =>
       'Umbrales de velocidad de ascenso';
 
@@ -54958,4 +54968,123 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_conflict_field_remoteStoreId => 'Subido a';
+
+  @override
+  String settings_setUpDevice_title(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'phone': 'Configura este teléfono',
+      'tablet': 'Configura esta tableta',
+      'computer': 'Configura este ordenador',
+      'other': 'Configura este dispositivo',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_titleFinish(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'phone': 'Termina de configurar este teléfono',
+      'tablet': 'Termina de configurar esta tableta',
+      'computer': 'Termina de configurar este ordenador',
+      'other': 'Termina de configurar este dispositivo',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_again(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'phone': 'Vuelve a configurar este teléfono',
+      'tablet': 'Vuelve a configurar esta tableta',
+      'computer': 'Vuelve a configurar este ordenador',
+      'other': 'Vuelve a configurar este dispositivo',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_count(int done, int total) {
+    return '$done de $total';
+  }
+
+  @override
+  String settings_setUpDevice_countSemantics(int done, int total) {
+    return '$done de $total pasos hechos';
+  }
+
+  @override
+  String get settings_setUpDevice_hide => 'Ocultar esta tarjeta';
+
+  @override
+  String get settings_setUpDevice_step_account =>
+      'Elige dónde se guardan tus datos';
+
+  @override
+  String get settings_setUpDevice_step_sync =>
+      'Inmersiones en todos tus dispositivos';
+
+  @override
+  String get settings_setUpDevice_step_backups =>
+      'Copia de seguridad automática';
+
+  @override
+  String get settings_setUpDevice_step_photos =>
+      'Compartir copias de fotos (opcional)';
+
+  @override
+  String get settings_setUpDevice_mark_done => 'Hecho';
+
+  @override
+  String get settings_setUpDevice_mark_next => 'Siguiente';
+
+  @override
+  String get settings_setUpDevice_mark_notYet => 'Todavía no';
+
+  @override
+  String get settings_setUpDevice_mark_skipped => 'Omitido';
+
+  @override
+  String get settings_setUpDevice_item_signInAction => 'Iniciar sesión';
+
+  @override
+  String get settings_setUpDevice_item_reconnectAction => 'Reconectar';
+
+  @override
+  String settings_setUpDevice_item_signIn(String account) {
+    return 'Vuelve a iniciar sesión en $account. La sincronización y las copias de seguridad están en pausa hasta entonces.';
+  }
+
+  @override
+  String settings_setUpDevice_item_signInShort(String account) {
+    return 'Vuelve a iniciar sesión en $account.';
+  }
+
+  @override
+  String settings_setUpDevice_item_attach(String account) {
+    return 'Tus otros dispositivos guardan copias de fotos en $account.';
+  }
+
+  @override
+  String settings_setUpDevice_item_reconnect(String account) {
+    return 'Hay que volver a conectar las copias de fotos de $account.';
+  }
+
+  @override
+  String get settings_setUpDevice_againSubtitle =>
+      'Cuenta, sincronización, copias de seguridad y fotos';
+
+  @override
+  String settings_setUpDevice_stepSemantics(String step, String mark) {
+    return '$step: $mark';
+  }
+
+  @override
+  String settings_setUpDevice_item_signInSync(String account) {
+    return 'Vuelve a iniciar sesión en $account. La sincronización está en pausa hasta entonces.';
+  }
+
+  @override
+  String settings_setUpDevice_item_signInBackups(String account) {
+    return 'Vuelve a iniciar sesión en $account. Las copias de seguridad están en pausa hasta entonces.';
+  }
 }

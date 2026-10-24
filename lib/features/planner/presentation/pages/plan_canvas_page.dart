@@ -171,7 +171,11 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
               const SizedBox(width: 6),
               PlanChip(
                 label: 'GF',
-                value: '${planState.gfLow}/${planState.gfHigh}',
+                // The plan's own factors, else the diver's Settings (#3552).
+                value: () {
+                  final resolved = ref.watch(resolvedPlanEngineConfigProvider);
+                  return '${resolved.gfLow}/${resolved.gfHigh}';
+                }(),
                 onTap: () => _focusSetup('deco'),
               ),
               const SizedBox(width: 6),

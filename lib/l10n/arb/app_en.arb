@@ -6364,10 +6364,14 @@
   "divePlanner_label_airBreaks": "Air breaks",
   "divePlanner_label_airBreaksBreak": "Break (min)",
   "divePlanner_label_airBreaksOnO2": "On O2 (min)",
+  "divePlanner_label_airBreaksCustom": "Custom",
+  "divePlanner_label_airBreaksCycle": "{o2Minutes}/{breakMinutes} min",
   "divePlanner_label_altitude": "Altitude:",
   "divePlanner_label_deco": "DECO",
   "divePlanner_label_decoSchedule": "Decompression Schedule",
   "divePlanner_label_decompression": "Decompression",
+  "divePlanner_label_defaultWithValue": "Default ({value})",
+  "divePlanner_label_default": "Default",
   "divePlanner_label_depthAxis": "Depth ({depthSymbol})",
   "divePlanner_label_empty": "EMPTY",
   "divePlanner_label_gasConsumption": "Gas Consumption",
@@ -6383,6 +6387,8 @@
   "divePlanner_gasOptions_sacBottom": "Bottom RMV",
   "divePlanner_gasOptions_sacDeco": "Deco RMV",
   "divePlanner_gasOptions_sacFactor": "RMV factor",
+  "divePlanner_gasOptions_sacStressed": "Stressed RMV",
+  "divePlanner_gasOptions_sacStressedFactor": "Stressed RMV factor",
   "divePlanner_gasOptions_problemSolvingMinutes": "Problem solving time",
   "divePlanner_gasOptions_gasSwitchStopSeconds": "Gas switch stop",
   "@divePlanner_gasOptions_gasSwitchStopSeconds": {
@@ -6392,6 +6398,8 @@
   "divePlanner_gasOptions_ppO2Deco": "Deco ppO₂",
   "divePlanner_gasOptions_bestMixEnd": "Best mix END",
   "divePlanner_gasOptions_o2Narcotic": "Treat O₂ as narcotic for this plan",
+  "divePlanner_label_on": "On",
+  "divePlanner_label_off": "Off",
   "divePlanner_label_tanks": "Tanks",
   "divePlanner_label_loopGases": "Loop",
   "@divePlanner_label_loopGases": {
@@ -15389,6 +15397,8 @@
   "settings_section_appearance_title": "Appearance",
   "settings_section_data_title": "Data",
   "settings_section_decompression_title": "Decompression",
+  "settings_section_plannerDefaults_title": "Planner Defaults",
+  "settings_section_plannerDefaults_subtitle": "Rates, gas, contingency, DPV team",
   "settings_section_diverProfile_subtitle": "Active diver & profiles",
   "settings_section_diverProfile_title": "Diver Profile",
   "settings_section_manage_subtitle": "Dive types & tank presets",
@@ -19782,6 +19792,23 @@
       }
     }
   },
+  "@divePlanner_label_defaultWithValue": {
+    "placeholders": {
+      "value": {
+        "type": "Object"
+      }
+    }
+  },
+  "@divePlanner_label_airBreaksCycle": {
+    "placeholders": {
+      "o2Minutes": {
+        "type": "int"
+      },
+      "breakMinutes": {
+        "type": "int"
+      }
+    }
+  },
   "@divePlanner_label_depthAxis": {
     "placeholders": {
       "depthSymbol": {
@@ -22576,34 +22603,6 @@
   "@diveLog_selection_tooltip_compare3d": {},
   "diveLog_sources_compareIn3d": "Compare in 3D",
   "@diveLog_sources_compareIn3d": {},
-  "settings_setup_pendingTitle": "Finish setting up this device",
-  "settings_setup_mediaStoreAttach": "Connect media storage ({hint})",
-  "@settings_setup_mediaStoreAttach": {
-    "placeholders": {
-      "hint": {
-        "type": "String"
-      }
-    }
-  },
-  "settings_setup_mediaStoreReconnect": "Reconnect media storage ({hint})",
-  "@settings_setup_mediaStoreReconnect": {
-    "description": "Pending setup item when the media store no longer carries this device's marker",
-    "placeholders": {
-      "hint": {
-        "type": "String"
-      }
-    }
-  },
-  "settings_setup_accountSignIn": "Sign in to {label}",
-  "@settings_setup_accountSignIn": {
-    "placeholders": {
-      "label": {
-        "type": "String"
-      }
-    }
-  },
-  "settings_setup_dismiss": "Dismiss",
-  "settings_photosMedia_guidedSetup": "Guided setup",
   "settings_photosMedia_photoSources_subtitle": "Gallery, files and import options",
   "settings_photosMedia_networkSources_title": "Network sources",
   "settings_photosMedia_networkSources_subtitle": "URLs and manifest feeds (advanced)",
@@ -22627,17 +22626,6 @@
   },
   "settings_connectedAccounts_removeConfirmTitle": "Remove account?",
   "settings_connectedAccounts_removeConfirmBody": "The account is removed from every synced device. Credentials stored on other devices are not deleted.",
-  "settings_setupGuide_title": "Set up photos & media",
-  "settings_setupGuide_intro": "Connect where your photos come from and where copies are kept. You can re-run this any time.",
-  "settings_setupGuide_stepSources": "Photo sources",
-  "settings_setupGuide_stepSources_desc": "Attach photos from your photo library, files, or Lightroom.",
-  "settings_setupGuide_stepStorage": "Media storage",
-  "settings_setupGuide_stepStorage_desc": "Keep copies of your photos in your own cloud so every device can show them.",
-  "settings_setupGuide_stepSync": "Cloud sync",
-  "settings_setupGuide_stepSync_desc": "Sync dive data between devices.",
-  "settings_setupGuide_statusDone": "Set up",
-  "settings_setupGuide_statusTodo": "Not set up",
-  "settings_setupGuide_open": "Open",
   "settings_connectedAccounts_loadError": "Could not load accounts",
   "settings_connectedAccounts_usage_label": "Used for: {uses}",
   "@settings_connectedAccounts_usage_label": {
@@ -27419,6 +27407,15 @@
   "settings_decompression_header_ascent_subtitle": "Which carried cylinders the simulated ascent (TTS, ceiling and stops) may switch to at each depth. Only gases recorded on the dive are considered.",
   "settings_decompression_header_ascentRate": "Ascent rate",
   "settings_decompression_header_ascentRate_subtitle": "The rates the profile's ascent-rate colours and events use. The safety review keeps its own fixed limits, so changing these never alters reviewed dives.",
+  "settings_decompression_header_plannerRates": "Planner Rates",
+  "settings_decompression_header_plannerRates_subtitle": "The descent and ascent rates a new plan starts with. Changing one inside a plan overrides it there only, without changing this default.",
+  "settings_decompression_header_plannerGas": "Planner Gas",
+  "settings_decompression_header_plannerGas_subtitle": "The gas consumption defaults a new plan starts with. Changing one inside a plan overrides it there only, without changing this default.",
+  "settings_decompression_header_plannerContingency": "Planner Contingency",
+  "settings_decompression_header_plannerContingency_subtitle": "The what-if deviation a new plan starts with. Changing it inside a plan overrides it there only, without changing this default.",
+  "settings_decompression_header_plannerDpvTeam": "Planner DPV Team",
+  "settings_decompression_header_plannerDpvTeam_subtitle": "The scooter battery reserve and walking speed a new DPV mission starts with. Changing one inside a mission overrides it there only, without changing this default.",
+  "settings_decompression_rates_finalAscent": "Final ascent rate",
   "settings_decompression_ascentRateThresholds": "Ascent rate thresholds",
   "settings_decompression_ascentRateThresholds_subtitle": "Warning {warning}, critical {critical}",
   "@settings_decompression_ascentRateThresholds_subtitle": {
@@ -32476,5 +32473,53 @@
   "settings_photos_startedSeparate": "No copies were found in {account}, so this device started separate copies there.",
   "@settings_photos_startedSeparate": {"description": "Snackbar after choosing an account for photo copies that held none, so a new separate set was started instead of joining the library's copies. {account} is an account name.", "placeholders": {"account": {"type": "String"}}},
   "settings_conflict_field_remoteStoreId": "Uploaded to",
-  "@settings_conflict_field_remoteStoreId": {"description": "Sync conflict field label: the photo copies store a media item's upload stamps refer to"}
+  "@settings_conflict_field_remoteStoreId": {"description": "Sync conflict field label: the photo copies store a media item's upload stamps refer to"},
+  "settings_setUpDevice_title": "{device, select, phone{Set up this phone} tablet{Set up this tablet} computer{Set up this computer} other{Set up this device}}",
+  "@settings_setUpDevice_title": {"description": "Title of the Set up this device card and flow; the device word comes from the platform", "placeholders": {"device": {"type": "String", "description": "phone, tablet, computer or other, from the platform"}}},
+  "settings_setUpDevice_titleFinish": "{device, select, phone{Finish setting up this phone} tablet{Finish setting up this tablet} computer{Finish setting up this computer} other{Finish setting up this device}}",
+  "@settings_setUpDevice_titleFinish": {"description": "Card title once at least one step is done", "placeholders": {"device": {"type": "String", "description": "phone, tablet, computer or other, from the platform"}}},
+  "settings_setUpDevice_again": "{device, select, phone{Set up this phone again} tablet{Set up this tablet again} computer{Set up this computer again} other{Set up this device again}}",
+  "@settings_setUpDevice_again": {"description": "Advanced row that reopens the setup flow from step 1", "placeholders": {"device": {"type": "String", "description": "phone, tablet, computer or other, from the platform"}}},
+  "settings_setUpDevice_count": "{done} of {total}",
+  "@settings_setUpDevice_count": {"description": "How many setup steps are settled, e.g. 2 of 4", "placeholders": {"done": {"type": "int"}, "total": {"type": "int"}}},
+  "settings_setUpDevice_countSemantics": "{done} of {total} steps done",
+  "@settings_setUpDevice_countSemantics": {"description": "Screen reader label for the step count", "placeholders": {"done": {"type": "int"}, "total": {"type": "int"}}},
+  "settings_setUpDevice_hide": "Hide this card",
+  "@settings_setUpDevice_hide": {"description": "Card menu item that hides the card on this device"},
+  "settings_setUpDevice_step_account": "Choose where your data is kept",
+  "@settings_setUpDevice_step_account": {"description": "Setup step 1 on the card"},
+  "settings_setUpDevice_step_sync": "Keep dives on every device",
+  "@settings_setUpDevice_step_sync": {"description": "Setup step 2 on the card"},
+  "settings_setUpDevice_step_backups": "Back up automatically",
+  "@settings_setUpDevice_step_backups": {"description": "Setup step 3 on the card"},
+  "settings_setUpDevice_step_photos": "Share photo copies (optional)",
+  "@settings_setUpDevice_step_photos": {"description": "Setup step 4 on the card; the step can be skipped"},
+  "settings_setUpDevice_mark_done": "Done",
+  "@settings_setUpDevice_mark_done": {"description": "Screen reader label for a done step"},
+  "settings_setUpDevice_mark_next": "Next",
+  "@settings_setUpDevice_mark_next": {"description": "Screen reader label for the step Continue opens"},
+  "settings_setUpDevice_mark_notYet": "Not yet",
+  "@settings_setUpDevice_mark_notYet": {"description": "Screen reader label for a later step"},
+  "settings_setUpDevice_mark_skipped": "Skipped",
+  "@settings_setUpDevice_mark_skipped": {"description": "Screen reader label for a skipped step"},
+  "settings_setUpDevice_item_signInAction": "Sign in",
+  "@settings_setUpDevice_item_signInAction": {"description": "Button on a card item that signs in to an account"},
+  "settings_setUpDevice_item_reconnectAction": "Reconnect",
+  "@settings_setUpDevice_item_reconnectAction": {"description": "Button on a card item that opens Photos and videos to reconnect"},
+  "settings_setUpDevice_item_signIn": "Sign in to {account} again. Sync and backups are paused until you do.",
+  "@settings_setUpDevice_item_signIn": {"description": "Card item for an account sync or backups use that needs signing in again", "placeholders": {"account": {"type": "String"}}},
+  "settings_setUpDevice_item_signInShort": "Sign in to {account} again.",
+  "@settings_setUpDevice_item_signInShort": {"description": "Card item for another account that needs signing in again", "placeholders": {"account": {"type": "String"}}},
+  "settings_setUpDevice_item_attach": "Your other devices keep photo copies in {account}.",
+  "@settings_setUpDevice_item_attach": {"description": "Card item: the library keeps photo copies in an account this device has not joined", "placeholders": {"account": {"type": "String"}}},
+  "settings_setUpDevice_item_reconnect": "The photo copies in {account} need reconnecting.",
+  "@settings_setUpDevice_item_reconnect": {"description": "Card item: the photo copies' storage no longer matches and needs reconnecting", "placeholders": {"account": {"type": "String"}}},
+  "settings_setUpDevice_againSubtitle": "Account, sync, backups and photos",
+  "@settings_setUpDevice_againSubtitle": {"description": "Subtitle of the Advanced row that reopens the setup flow"},
+  "settings_setUpDevice_stepSemantics": "{step}: {mark}",
+  "@settings_setUpDevice_stepSemantics": {"description": "Screen reader label for one setup step: its name and its mark (Done, Next, Not yet, Skipped)", "placeholders": {"step": {"type": "String"}, "mark": {"type": "String"}}},
+  "settings_setUpDevice_item_signInSync": "Sign in to {account} again. Sync is paused until you do.",
+  "@settings_setUpDevice_item_signInSync": {"description": "Card item for an account sync uses (not the backup copy) that needs signing in again", "placeholders": {"account": {"type": "String"}}},
+  "settings_setUpDevice_item_signInBackups": "Sign in to {account} again. Backups are paused until you do.",
+  "@settings_setUpDevice_item_signInBackups": {"description": "Card item for an account the backup copy uses (not sync) that needs signing in again", "placeholders": {"account": {"type": "String"}}}
 }

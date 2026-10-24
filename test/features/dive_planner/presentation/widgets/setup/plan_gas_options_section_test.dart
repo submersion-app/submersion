@@ -42,19 +42,43 @@ void main() {
     final container = ProviderScope.containerOf(
       tester.element(find.byType(PlanGasOptionsSection)),
     );
-    // Declaration order in PlanGasOptionsSection: Deco RMV, RMV factor,
-    // problem solving time, gas switch stop, ppO2 bottom, ppO2 deco,
-    // best-mix END.
+    // Declaration order in PlanGasOptionsSection: Deco RMV, stressed RMV
+    // (issue #3552), RMV factor, problem solving time, gas switch stop,
+    // ppO2 bottom, ppO2 deco, best-mix END.
     final fields = tester
         .widgetList<TextField>(find.byType(TextField))
         .toList();
-    expect(fields, hasLength(7));
+    expect(fields, hasLength(8));
     expect(fields.first.decoration?.hintText, '15');
 
-    await tester.enterText(find.byType(TextField).at(1), '3');
+    await tester.enterText(find.byType(TextField).at(2), '3');
     await tester.pumpAndSettle();
 
     expect(container.read(divePlanNotifierProvider).sacFactor, 3.0);
+  });
+
+  testWidgets('stressed RMV is an absolute rate, hinted from Settings', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_harness());
+    await tester.pumpAndSettle();
+
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(PlanGasOptionsSection)),
+    );
+    final stressed = tester.widgetList<TextField>(find.byType(TextField));
+    // Unset: bottom RMV 15 (Settings) times the 2.5 Settings factor.
+    expect(stressed.elementAt(1).decoration?.hintText, '37.5');
+
+    await tester.enterText(find.byType(TextField).at(1), '45');
+    await tester.pumpAndSettle();
+    expect(container.read(divePlanNotifierProvider).sacStressed, 45.0);
+
+    // A later bottom RMV change leaves the typed value exactly as typed,
+    // instead of re-deriving it as a drifting multiple.
+    container.read(divePlanNotifierProvider.notifier).updateSacRate(20);
+    await tester.pumpAndSettle();
+    expect(container.read(divePlanNotifierProvider).sacStressed, 45.0);
   });
 
   testWidgets('editing problem solving time updates the notifier state', (
@@ -66,7 +90,7 @@ void main() {
     final container = ProviderScope.containerOf(
       tester.element(find.byType(PlanGasOptionsSection)),
     );
-    await tester.enterText(find.byType(TextField).at(2), '4');
+    await tester.enterText(find.byType(TextField).at(3), '4');
     await tester.pumpAndSettle();
 
     expect(container.read(divePlanNotifierProvider).problemSolvingMinutes, 4);
@@ -80,9 +104,12 @@ void main() {
     final container = ProviderScope.containerOf(
       tester.element(find.byType(PlanGasOptionsSection)),
     );
-    expect(container.read(divePlanNotifierProvider).gasSwitchStopSeconds, 0);
+    expect(
+      container.read(divePlanNotifierProvider).gasSwitchStopSeconds,
+      isNull,
+    );
 
-    await tester.enterText(find.byType(TextField).at(3), '2');
+    await tester.enterText(find.byType(TextField).at(4), '2');
     await tester.pumpAndSettle();
 
     expect(container.read(divePlanNotifierProvider).gasSwitchStopSeconds, 120);
@@ -109,36 +136,46 @@ void main() {
     },
   );
 
-  testWidgets('toggling O2 narcotic updates the notifier state', (
-    tester,
-  ) async {
-    await tester.pumpWidget(_harness());
-    await tester.pumpAndSettle();
+  testWidgets(
+    'Default/On/Off choice for O2 narcotic updates the notifier state '
+    '(issue #3552)',
+    (tester) async {
+      await tester.pumpWidget(_harness());
+      await tester.pumpAndSettle();
 
-    final container = ProviderScope.containerOf(
-      tester.element(find.byType(PlanGasOptionsSection)),
-    );
-    // AppSettings default is true; the plan has no override yet, so the
-    // switch reflects the global default.
-    final switchTile = tester.widget<SwitchListTile>(
-      find.byType(SwitchListTile),
-    );
-    expect(switchTile.value, isTrue);
-    expect(container.read(divePlanNotifierProvider).o2Narcotic, isNull);
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(PlanGasOptionsSection)),
+      );
+      // A fresh plan has no override: "Default" is selected and the plan's
+      // own field stays unset, following the diver's Settings default
+      // (true in AppSettings()).
+      expect(container.read(divePlanNotifierProvider).o2Narcotic, isNull);
 
-    await tester.tap(find.byType(SwitchListTile));
-    await tester.pumpAndSettle();
+      await tester.tap(find.text('Off'));
+      await tester.pumpAndSettle();
+      expect(container.read(divePlanNotifierProvider).o2Narcotic, isFalse);
 
-    expect(container.read(divePlanNotifierProvider).o2Narcotic, isFalse);
-  });
+      await tester.tap(find.text('On'));
+      await tester.pumpAndSettle();
+      expect(container.read(divePlanNotifierProvider).o2Narcotic, isTrue);
+
+      // The Default chip shows the resolved value (issue #3552 follow-up):
+      // AppSettings() defaults o2Narcotic to true.
+      await tester.tap(find.text('Default (On)'));
+      await tester.pumpAndSettle();
+      expect(container.read(divePlanNotifierProvider).o2Narcotic, isNull);
+    },
+  );
 
   testWidgets('best mix END shows meters by default', (tester) async {
     await tester.pumpWidget(_harness());
     await tester.pumpAndSettle();
 
-    // bestMixEndMeters defaults to 30 m; the last field is Best mix END.
+    // bestMixEndMeters is unset on a fresh plan (issue #3552): the field is
+    // empty, following the diver's Settings default (30 m) as its hint.
     final bestMixField = tester.widget<TextField>(find.byType(TextField).last);
-    expect(bestMixField.controller!.text, '30');
+    expect(bestMixField.controller!.text, '');
+    expect(bestMixField.decoration?.hintText, '30');
   });
 
   testWidgets('best mix END shows feet when the depth unit is imperial', (
@@ -147,9 +184,9 @@ void main() {
     await tester.pumpWidget(_harness(depthUnit: DepthUnit.feet));
     await tester.pumpAndSettle();
 
-    // 30 m == ~98 ft.
+    // 30 m == ~98 ft, shown as the hint since the field is unset.
     final bestMixField = tester.widget<TextField>(find.byType(TextField).last);
-    expect(bestMixField.controller!.text, '98');
+    expect(bestMixField.decoration?.hintText, '98');
 
     final container = ProviderScope.containerOf(
       tester.element(find.byType(PlanGasOptionsSection)),

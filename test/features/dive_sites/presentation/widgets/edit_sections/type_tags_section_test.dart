@@ -6,7 +6,10 @@ import 'package:submersion/features/site_types/domain/entities/site_type_entity.
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
+import 'package:submersion/features/tags/presentation/widgets/tag_input_widget.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/forms/form_overline.dart';
+import 'package:submersion/shared/widgets/forms/form_section.dart';
 
 /// The site edit page's Type & Tags section (issue #1765).
 void main() {
@@ -45,6 +48,7 @@ void main() {
           tagStatisticsProvider.overrideWith((ref) async => tagStats),
         ],
         child: MaterialApp(
+          locale: const Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(body: SingleChildScrollView(child: child)),
@@ -170,6 +174,71 @@ void main() {
 
     expect(reported?.map((t) => t.id), ['avoid', 'try']);
     expect(find.byType(CheckboxListTile), findsNothing, reason: 'sheet closed');
+  });
+
+  group('layout (issue #3578)', () {
+    Widget section({VoidCallback? onManageTypes}) => harness(
+      TypeTagsSection(
+        allTypes: types,
+        selectedTypeIds: const {},
+        onTypesChanged: (_) {},
+        selectedTags: const [],
+        onTagsChanged: (_) {},
+        onManageTypes: onManageTypes,
+      ),
+    );
+
+    testWidgets('types and tags are two rows, with one divider between', (
+      tester,
+    ) async {
+      await tester.pumpWidget(section());
+
+      // The section draws a divider under its header and one between each
+      // pair of rows; loose label/spacer children each drew one more.
+      final dividers = find.descendant(
+        of: find.byType(FormSection),
+        matching: find.byType(Divider),
+      );
+      expect(dividers, findsNWidgets(2));
+    });
+
+    testWidgets('both sub-headers use the section overline style', (
+      tester,
+    ) async {
+      await tester.pumpWidget(section(onManageTypes: () {}));
+
+      expect(find.byType(FormOverline), findsNWidgets(2));
+      expect(find.text('SITE TYPES'), findsOneWidget);
+      expect(find.text('TAGS'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(FormOverline).first,
+          matching: find.text('Manage types'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: find.byType(Wrap),
+          matching: find.text('Manage types'),
+        ),
+        findsNothing,
+      );
+    });
+
+    testWidgets('chips and the tag field are inset from the card edge', (
+      tester,
+    ) async {
+      await tester.pumpWidget(section());
+
+      final card = tester.getRect(find.byType(FormSection));
+      final chip = tester.getRect(find.byType(FilterChip).first);
+      final tagField = tester.getRect(find.byType(TagInputWidget));
+      expect(chip.left - card.left, greaterThanOrEqualTo(14));
+      expect(tagField.left - card.left, greaterThanOrEqualTo(14));
+      expect(card.right - tagField.right, greaterThanOrEqualTo(14));
+      expect(card.bottom - tagField.bottom, greaterThanOrEqualTo(12));
+    });
   });
 
   testWidgets('hidden built-in types leave the chips', (tester) async {

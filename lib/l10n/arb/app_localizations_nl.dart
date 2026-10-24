@@ -10331,6 +10331,14 @@ class AppLocalizationsNl extends AppLocalizations {
   String get divePlanner_label_airBreaksOnO2 => 'Op O2 (min)';
 
   @override
+  String get divePlanner_label_airBreaksCustom => 'Aangepast';
+
+  @override
+  String divePlanner_label_airBreaksCycle(int o2Minutes, int breakMinutes) {
+    return '$o2Minutes/$breakMinutes min';
+  }
+
+  @override
   String get divePlanner_label_altitude => 'Hoogte:';
 
   @override
@@ -10341,6 +10349,14 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get divePlanner_label_decompression => 'Decompressie';
+
+  @override
+  String divePlanner_label_defaultWithValue(Object value) {
+    return 'Standaard ($value)';
+  }
+
+  @override
+  String get divePlanner_label_default => 'Standaard';
 
   @override
   String divePlanner_label_depthAxis(Object depthSymbol) {
@@ -10390,6 +10406,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get divePlanner_gasOptions_sacFactor => 'RMV-factor';
 
   @override
+  String get divePlanner_gasOptions_sacStressed => 'RMV onder stress';
+
+  @override
+  String get divePlanner_gasOptions_sacStressedFactor => 'Gestreste RMV-factor';
+
+  @override
   String get divePlanner_gasOptions_problemSolvingMinutes =>
       'Tijd voor probleemoplossing';
 
@@ -10409,6 +10431,12 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get divePlanner_gasOptions_o2Narcotic =>
       'O₂ als narcotisch behandelen voor dit plan';
+
+  @override
+  String get divePlanner_label_on => 'Aan';
+
+  @override
+  String get divePlanner_label_off => 'Uit';
 
   @override
   String get divePlanner_label_tanks => 'Flessen';
@@ -26857,6 +26885,14 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_section_decompression_title => 'Decompressie';
 
   @override
+  String get settings_section_plannerDefaults_title =>
+      'Standaardwaarden planner';
+
+  @override
+  String get settings_section_plannerDefaults_subtitle =>
+      'Snelheden, gas, calamiteiten, DPV-team';
+
+  @override
   String get settings_section_diverProfile_subtitle =>
       'Actieve duiker & profielen';
 
@@ -36756,31 +36792,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_sources_compareIn3d => 'Vergelijken in 3D';
 
   @override
-  String get settings_setup_pendingTitle =>
-      'Voltooi het instellen van dit apparaat';
-
-  @override
-  String settings_setup_mediaStoreAttach(String hint) {
-    return 'Mediaopslag koppelen ($hint)';
-  }
-
-  @override
-  String settings_setup_mediaStoreReconnect(String hint) {
-    return 'Mediaopslag opnieuw koppelen ($hint)';
-  }
-
-  @override
-  String settings_setup_accountSignIn(String label) {
-    return 'Aanmelden bij $label';
-  }
-
-  @override
-  String get settings_setup_dismiss => 'Negeren';
-
-  @override
-  String get settings_photosMedia_guidedSetup => 'Begeleide installatie';
-
-  @override
   String get settings_photosMedia_photoSources_subtitle =>
       'Galerij, bestanden en importopties';
 
@@ -36829,43 +36840,6 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_connectedAccounts_removeConfirmBody =>
       'Het account wordt van elk gesynchroniseerd apparaat verwijderd. Op andere apparaten opgeslagen inloggegevens worden niet gewist.';
-
-  @override
-  String get settings_setupGuide_title => 'Foto\'s en media instellen';
-
-  @override
-  String get settings_setupGuide_intro =>
-      'Koppel waar je foto\'s vandaan komen en waar kopieën worden bewaard. Je kunt dit altijd opnieuw uitvoeren.';
-
-  @override
-  String get settings_setupGuide_stepSources => 'Fotobronnen';
-
-  @override
-  String get settings_setupGuide_stepSources_desc =>
-      'Voeg foto\'s toe uit je fotobibliotheek, bestanden of Lightroom.';
-
-  @override
-  String get settings_setupGuide_stepStorage => 'Mediaopslag';
-
-  @override
-  String get settings_setupGuide_stepStorage_desc =>
-      'Bewaar kopieën van je foto\'s in je eigen cloud zodat elk apparaat ze kan tonen.';
-
-  @override
-  String get settings_setupGuide_stepSync => 'Cloudsynchronisatie';
-
-  @override
-  String get settings_setupGuide_stepSync_desc =>
-      'Synchroniseer duikgegevens tussen apparaten.';
-
-  @override
-  String get settings_setupGuide_statusDone => 'Ingesteld';
-
-  @override
-  String get settings_setupGuide_statusTodo => 'Niet ingesteld';
-
-  @override
-  String get settings_setupGuide_open => 'Openen';
 
   @override
   String get settings_connectedAccounts_loadError =>
@@ -47270,6 +47244,39 @@ class AppLocalizationsNl extends AppLocalizations {
       'De grenzen die de kleuren en gebeurtenissen voor opstijgsnelheid in het profiel gebruiken. De veiligheidscontrole houdt haar eigen vaste grenzen aan, dus deze wijzigen verandert nooit al gecontroleerde duiken.';
 
   @override
+  String get settings_decompression_header_plannerRates => 'Plannertempo\'s';
+
+  @override
+  String get settings_decompression_header_plannerRates_subtitle =>
+      'De afdaal- en stijgsnelheden waarmee een nieuw plan begint. Een wijziging binnen een plan overschrijft dit alleen daar, zonder deze standaardwaarde te wijzigen.';
+
+  @override
+  String get settings_decompression_header_plannerGas => 'Plannergas';
+
+  @override
+  String get settings_decompression_header_plannerGas_subtitle =>
+      'De standaardwaarden voor gasverbruik waarmee een nieuw plan begint. Een wijziging binnen een plan overschrijft dit alleen daar, zonder deze standaardwaarde te wijzigen.';
+
+  @override
+  String get settings_decompression_header_plannerContingency =>
+      'Plannernoodscenario';
+
+  @override
+  String get settings_decompression_header_plannerContingency_subtitle =>
+      'De wat-als-afwijking waarmee een nieuw plan begint. Een wijziging binnen een plan overschrijft dit alleen daar, zonder deze standaardwaarde te wijzigen.';
+
+  @override
+  String get settings_decompression_header_plannerDpvTeam => 'Planner DPV-team';
+
+  @override
+  String get settings_decompression_header_plannerDpvTeam_subtitle =>
+      'De scooterbatterijreserve en looptempo waarmee een nieuwe DPV-missie begint. Een wijziging binnen een missie overschrijft dit alleen daar, zonder deze standaardwaarde te wijzigen.';
+
+  @override
+  String get settings_decompression_rates_finalAscent =>
+      'Laatste stijgsnelheid';
+
+  @override
   String get settings_decompression_ascentRateThresholds =>
       'Grenzen voor opstijgsnelheid';
 
@@ -54580,4 +54587,121 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_conflict_field_remoteStoreId => 'Geüpload naar';
+
+  @override
+  String settings_setUpDevice_title(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'phone': 'Deze telefoon instellen',
+      'tablet': 'Deze tablet instellen',
+      'computer': 'Deze computer instellen',
+      'other': 'Dit apparaat instellen',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_titleFinish(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'phone': 'Het instellen van deze telefoon afronden',
+      'tablet': 'Het instellen van deze tablet afronden',
+      'computer': 'Het instellen van deze computer afronden',
+      'other': 'Het instellen van dit apparaat afronden',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_again(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'phone': 'Deze telefoon opnieuw instellen',
+      'tablet': 'Deze tablet opnieuw instellen',
+      'computer': 'Deze computer opnieuw instellen',
+      'other': 'Dit apparaat opnieuw instellen',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_count(int done, int total) {
+    return '$done van $total';
+  }
+
+  @override
+  String settings_setUpDevice_countSemantics(int done, int total) {
+    return '$done van $total stappen klaar';
+  }
+
+  @override
+  String get settings_setUpDevice_hide => 'Deze kaart verbergen';
+
+  @override
+  String get settings_setUpDevice_step_account => 'Kies waar je gegevens staan';
+
+  @override
+  String get settings_setUpDevice_step_sync => 'Duiken op elk apparaat';
+
+  @override
+  String get settings_setUpDevice_step_backups =>
+      'Automatisch een back-up maken';
+
+  @override
+  String get settings_setUpDevice_step_photos =>
+      'Fotokopieën delen (optioneel)';
+
+  @override
+  String get settings_setUpDevice_mark_done => 'Klaar';
+
+  @override
+  String get settings_setUpDevice_mark_next => 'Volgende';
+
+  @override
+  String get settings_setUpDevice_mark_notYet => 'Nog niet';
+
+  @override
+  String get settings_setUpDevice_mark_skipped => 'Overgeslagen';
+
+  @override
+  String get settings_setUpDevice_item_signInAction => 'Inloggen';
+
+  @override
+  String get settings_setUpDevice_item_reconnectAction => 'Opnieuw verbinden';
+
+  @override
+  String settings_setUpDevice_item_signIn(String account) {
+    return 'Log opnieuw in bij $account. Synchronisatie en back-ups staan tot dan stil.';
+  }
+
+  @override
+  String settings_setUpDevice_item_signInShort(String account) {
+    return 'Log opnieuw in bij $account.';
+  }
+
+  @override
+  String settings_setUpDevice_item_attach(String account) {
+    return 'Je andere apparaten bewaren fotokopieën in $account.';
+  }
+
+  @override
+  String settings_setUpDevice_item_reconnect(String account) {
+    return 'De fotokopieën in $account moeten opnieuw worden verbonden.';
+  }
+
+  @override
+  String get settings_setUpDevice_againSubtitle =>
+      'Account, synchronisatie, back-ups en foto\'s';
+
+  @override
+  String settings_setUpDevice_stepSemantics(String step, String mark) {
+    return '$step: $mark';
+  }
+
+  @override
+  String settings_setUpDevice_item_signInSync(String account) {
+    return 'Log opnieuw in bij $account. Synchronisatie staat tot dan stil.';
+  }
+
+  @override
+  String settings_setUpDevice_item_signInBackups(String account) {
+    return 'Log opnieuw in bij $account. Back-ups staan tot dan stil.';
+  }
 }

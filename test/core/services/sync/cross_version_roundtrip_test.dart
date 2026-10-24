@@ -47,6 +47,14 @@
 // missing the `sectionId` key (never carrying it as an explicit null),
 // still applies its own edit without nulling out a `sectionId` this
 // device already backfilled or set locally.
+//
+// The floor moved 300 -> 308 with the planner Setup defaults (#3552):
+// v305/v306/v308 make synced dive_plans and dive_plan_missions columns
+// nullable, and an older reader's fromJson throws on the NULL that now
+// means "follow Settings". v305-v308 add no key an older peer omits, so no
+// new projection is needed. The direction the floor cannot reach, an older
+// peer's concrete value arriving here, decodes as a plain override; the
+// migration_v305/v306/v308 tests pin the floor itself.
 import 'dart:convert';
 import 'dart:typed_data';
 

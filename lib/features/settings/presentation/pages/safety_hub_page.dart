@@ -5,6 +5,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/router/section_navigation.dart';
 import 'package:submersion/features/settings/presentation/pages/decompression_settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/equipment_condition_settings_page.dart';
+import 'package:submersion/features/settings/presentation/pages/planner_defaults_settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/safety_review_settings_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/safety_hub_summaries.dart';
@@ -15,6 +16,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 enum SafetySubPage {
   review('review'),
   decompression('decompression'),
+  plannerDefaults('planner-defaults'),
   equipmentCondition('equipment-condition');
 
   /// The page's path segment on phone and its `safetyPage` value on desktop.
@@ -83,6 +85,15 @@ class SafetyHubPage extends ConsumerWidget {
           ),
           const Divider(height: 1),
           _SafetyHubRow(
+            page: SafetySubPage.plannerDefaults,
+            icon: Icons.tune,
+            accentId: 'decompression',
+            title: l10n.settings_section_plannerDefaults_title,
+            subtitle: l10n.settings_section_plannerDefaults_subtitle,
+            onTap: open,
+          ),
+          const Divider(height: 1),
+          _SafetyHubRow(
             page: SafetySubPage.equipmentCondition,
             icon: Icons.build_circle_outlined,
             accentId: 'safety',
@@ -128,6 +139,10 @@ class SafetySettingsPane extends StatelessWidget {
       ),
       SafetySubPage.decompression => DecompressionSettingsPage(
         key: const ValueKey('safety-decompression'),
+        onBack: back,
+      ),
+      SafetySubPage.plannerDefaults => PlannerDefaultsSettingsPage(
+        key: const ValueKey('safety-planner-defaults'),
         onBack: back,
       ),
       SafetySubPage.equipmentCondition => EquipmentConditionSettingsPage(

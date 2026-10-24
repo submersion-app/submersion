@@ -31,7 +31,7 @@ import 'package:submersion/features/settings/presentation/providers/data_health_
 import 'package:submersion/features/settings/presentation/providers/data_row_status_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
-import 'package:submersion/features/settings/presentation/widgets/pending_setup_card.dart';
+import 'package:submersion/features/settings/presentation/providers/pending_setup_items_provider.dart';
 
 const _r2Host = '149b84f66d5479265f3e4d4ad4740926.r2.cloudflarestorage.com';
 

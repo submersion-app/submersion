@@ -339,7 +339,10 @@ final QueryEntity diveQueryEntity = QueryEntity(
       '(${diveSurfaceIntervalSecondsSql('{r}')} / 60)',
       dimension: FieldDimension.minutes,
       emptySql: '(${diveSurfaceIntervalSecondsSql('{r}')}) IS NULL',
-      tables: const ['dive_profile_series'],
+      // The profile span fallback also reads the series history, which is
+      // only written alongside a dive_profile_series row, so that tick
+      // covers it (issue #3537).
+      tables: const ['dive_profile_series', 'dive_data_sources'],
     ),
     _num(
       'cnsEnd',

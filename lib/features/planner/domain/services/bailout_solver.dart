@@ -178,8 +178,11 @@ class BailoutSolver {
         List<PlanSegment>.from(plan.segments)
           ..sort((a, b) => a.order.compareTo(b.order)),
         plan,
+        descentRate: config.descentRate,
+        ascentRate: config.ascentRate,
       ),
       plan,
+      gasSwitchStopSeconds: config.gasSwitchStopSeconds,
     );
     if (segments.isEmpty) return null;
     final legs = const SegmentChain().resolve(segments);
@@ -193,21 +196,26 @@ class BailoutSolver {
     // with a plainer policy than the plan it bails out of would size and
     // print stops the plan's own configured minimums and whole-minute
     // snapping never agreed to (caught by a Copilot review).
+    //
+    // Reads the Deco/Rates fields from [config] (issue #3552), not [plan]
+    // directly: by this point [config] is already resolvedFor this plan
+    // (see [solve]), so an unset plan field already carries the diver's
+    // Settings default.
     final policy = SchedulePolicy(
-      lastStopDepth: plan.lastStopDepth,
-      ascentRate: plan.ascentRate,
-      intermediateAscentRate: plan.intermediateAscentRate,
-      shallowAscentRate: plan.shallowAscentRate,
-      finalAscentRate: plan.finalAscentRate,
-      descentRate: plan.descentRate,
-      gasSwitchStopSeconds: plan.gasSwitchStopSeconds,
+      lastStopDepth: config.lastStopDepth,
+      ascentRate: config.ascentRate,
+      intermediateAscentRate: config.intermediateAscentRate,
+      shallowAscentRate: config.shallowAscentRate,
+      finalAscentRate: config.finalAscentRate,
+      descentRate: config.descentRate,
+      gasSwitchStopSeconds: config.gasSwitchStopSeconds,
       snapStopsToWholeMinutes: true,
-      airBreaks: plan.airBreaks,
+      airBreaks: config.airBreaksFor(plan),
       minStopSecondsByDepth: plan.stopMinimums,
     );
     final model = BuhlmannGf(
-      gfLow: plan.gfLow / 100.0,
-      gfHigh: plan.gfHigh / 100.0,
+      gfLow: config.gfLow / 100.0,
+      gfHigh: config.gfHigh / 100.0,
       environment: environment,
       policy: policy,
     );
@@ -305,7 +313,7 @@ class BailoutSolver {
               litersRequired: _ascentLiters(
                 schedule,
                 fromDepth: chunkEndDepth,
-                sac: plan.sacStressedEffective,
+                sac: config.sacStressedFor(plan),
                 policy: policy,
                 environment: environment,
               ),
@@ -332,7 +340,7 @@ class BailoutSolver {
       bailoutPlan: bailoutPlan,
       policy: policy,
       environment: environment,
-      sac: plan.sacStressedEffective,
+      sac: config.sacStressedFor(plan),
     );
     return BailoutOutcome(
       points: points,

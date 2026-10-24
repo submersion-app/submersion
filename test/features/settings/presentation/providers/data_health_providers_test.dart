@@ -1,8 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/services/accounts/account_usage_service.dart';
 import 'package:submersion/core/services/accounts/pending_setup_service.dart';
-import 'package:submersion/features/settings/presentation/widgets/pending_setup_card.dart';
+import 'package:submersion/features/settings/presentation/providers/pending_setup_items_provider.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 import 'package:submersion/features/media_store/domain/media_transfer_summary.dart';
 import 'package:submersion/features/settings/domain/data_health/media_health.dart';
@@ -183,32 +184,53 @@ void main() {
   });
 
   group('countMediaSetupItems', () {
-    PendingSetupItem item(SetupItemKind kind, String route) =>
-        PendingSetupItem(kind: kind, key: route, label: 'x', route: route);
+    PendingSetupItem item(SetupItemKind kind) =>
+        PendingSetupItem(kind: kind, key: kind.name, label: 'x', route: '/x');
+    PendingSetupItem signIn(
+      Set<AccountUsageKind> usages, {
+      String route = '/x',
+      bool dismissed = false,
+    }) => PendingSetupItem(
+      kind: SetupItemKind.accountSignIn,
+      key: 'account_${usages.map((u) => u.name).join()}',
+      label: 'x',
+      route: route,
+      usages: usages,
+      dismissed: dismissed,
+    );
 
     test('media health counts only media setup items', () {
       expect(
         countMediaSetupItems([
-          item(SetupItemKind.mediaStoreAttach, '/settings/photos-media'),
-          item(SetupItemKind.mediaStoreReconnect, '/settings/photos-media'),
-          item(SetupItemKind.accountSignIn, '/settings/photos-media'),
-          item(SetupItemKind.accountSignIn, '/settings/lightroom'),
-          item(SetupItemKind.accountSignIn, '/settings/cloud-sync'),
+          item(SetupItemKind.mediaStoreAttach),
+          item(SetupItemKind.mediaStoreReconnect),
+          signIn({AccountUsageKind.mediaStorage}),
+          signIn({AccountUsageKind.lightroom}),
+          signIn({AccountUsageKind.databaseSync}),
         ]),
         4,
+      );
+    });
+
+    // Issue #3482 review: one account can drive sync and the photo copies;
+    // its sign-in routes to the Sync page, yet the photo uploads stop too.
+    test('a sign-in for an account sync and the photo copies share counts '
+        'against photos', () {
+      expect(
+        countMediaSetupItems([
+          signIn({
+            AccountUsageKind.databaseSync,
+            AccountUsageKind.mediaStorage,
+          }, route: '/settings/cloud-sync'),
+        ]),
+        1,
       );
     });
 
     test('a dismissed sign-in does not count against photos', () {
       expect(
         countMediaSetupItems([
-          const PendingSetupItem(
-            kind: SetupItemKind.accountSignIn,
-            key: 'account_1',
-            label: 'x',
-            route: '/settings/photos-media',
-            dismissed: true,
-          ),
+          signIn({AccountUsageKind.mediaStorage}, dismissed: true),
         ]),
         0,
       );

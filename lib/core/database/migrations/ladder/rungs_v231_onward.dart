@@ -496,5 +496,54 @@ extension RungsFromV231 on AppDatabase {
     // re-asserted in beforeOpen.
     if (from < 303) await _assertMediaRemoteStoreColumn();
     if (from < 303) await reportProgress();
+
+    // v304: diver_settings planner Setup-accordion global defaults (issue
+    // #3552). Columns only; re-asserted in beforeOpen through
+    // _assertPlannerDefaultColumns. Renumbered from 302 as #3482 shipped
+    // 302-303 first.
+    if (from < 304) {
+      await _assertPlannerDefaultColumns();
+    }
+    if (from < 304) await reportProgress();
+
+    // v305: dive_plans Setup-accordion columns created NOT NULL in the
+    // initial schema drop that constraint, so a plan can store "unset,
+    // follow Settings" (issue #3552). Table rebuild; re-asserted in
+    // beforeOpen through _assertDivePlanSetupFieldsNullable. Review focus:
+    // this rewrites dive_plans' stored schema in place - see the helper's
+    // doc comment for why it is safe (transactional, additive-only
+    // substitution of the targeted NOT NULL clauses). Renumbered from 303.
+    if (from < 305) {
+      await _assertDivePlanSetupFieldsNullable();
+    }
+    if (from < 305) await reportProgress();
+
+    // v306: dive_plan_missions battery_reserve_fraction and walk_speed_mps
+    // made nullable (issue #3552) - the DPV Team counterpart of v305.
+    // Table rebuild; re-asserted in beforeOpen through
+    // _assertDivePlanMissionFieldsNullable. Renumbered from 304.
+    if (from < 306) {
+      await _assertDivePlanMissionFieldsNullable();
+    }
+    if (from < 306) await reportProgress();
+
+    // v307: diver_settings air-break/turn-pressure defaults and
+    // dive_plans.air_breaks_explicitly_off (issue #3552, follow-up to
+    // v304-306). Additive columns only, re-asserted in beforeOpen through
+    // _assertAirBreaksTurnPressureDefaultColumns. Renumbered from 305.
+    if (from < 307) {
+      await _assertAirBreaksTurnPressureDefaultColumns();
+    }
+    if (from < 307) await reportProgress();
+
+    // v308: reserve pressure and gradient factors join the live-resolve
+    // group (issue #3552, follow-up to v304-307) - dive_plans columns made
+    // nullable (table rebuild), diver_settings gains the reserve-pressure
+    // default (gfLow/gfHigh already had one). Re-asserted in beforeOpen
+    // through _assertDivePlanReserveAndGfNullable. Renumbered from 306.
+    if (from < 308) {
+      await _assertDivePlanReserveAndGfNullable();
+    }
+    if (from < 308) await reportProgress();
   }
 }

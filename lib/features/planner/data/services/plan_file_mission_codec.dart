@@ -71,13 +71,13 @@ DpvMission missionFromFileMap(
   return DpvMission(
     legs: legs,
     team: team,
-    batteryReserveFraction:
-        (map['batteryReserveFraction'] as num?)?.toDouble() ??
-        kDefaultBatteryReserveFraction,
+    // Unset here means "follow Settings" (issue #3552); coercing an absent
+    // field to the spec constant would create a per-mission override on
+    // import instead of letting it resolve through the diver's defaults.
+    batteryReserveFraction: (map['batteryReserveFraction'] as num?)?.toDouble(),
     defaultCurrent: _currentFromMap(map['defaultCurrent'], 'defaultCurrent'),
     environment: _environmentFromMap(map['environment']),
-    walkSpeedMps:
-        (map['walkSpeedMps'] as num?)?.toDouble() ?? kDefaultWalkSpeedMps,
+    walkSpeedMps: (map['walkSpeedMps'] as num?)?.toDouble(),
     surfaceSwimLimitM: (map['surfaceSwimLimitM'] as num?)?.toDouble(),
   );
 }

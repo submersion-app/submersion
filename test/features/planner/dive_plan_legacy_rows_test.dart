@@ -35,8 +35,8 @@ void main() {
           db.DivePlansCompanion.insert(
             id: 'plan-legacy',
             name: 'Legacy plan',
-            gfLow: 30,
-            gfHigh: 70,
+            gfLow: const Value(30),
+            gfHigh: const Value(70),
             createdAt: now,
             updatedAt: now,
           ),

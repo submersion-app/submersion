@@ -267,9 +267,11 @@ class PlanResultsSheet extends ConsumerWidget {
     }
 
     String deviationLabel(String key) {
+      // The plan's own deviation, else the diver's Settings default (#3552).
+      final resolved = ref.watch(resolvedPlanEngineConfigProvider);
       final depth =
-          '+${units.formatDepth(state.deviationDepthDelta, decimals: 0)}';
-      final time = '+${state.deviationTimeMinutes}\u2032';
+          '+${units.formatDepth(resolved.deviationDepthDelta, decimals: 0)}';
+      final time = '+${resolved.deviationTimeMinutes}\u2032';
       return switch (key) {
         'deeper' => depth,
         'longer' => time,

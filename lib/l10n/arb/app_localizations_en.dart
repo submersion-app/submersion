@@ -10236,6 +10236,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get divePlanner_label_airBreaksOnO2 => 'On O2 (min)';
 
   @override
+  String get divePlanner_label_airBreaksCustom => 'Custom';
+
+  @override
+  String divePlanner_label_airBreaksCycle(int o2Minutes, int breakMinutes) {
+    return '$o2Minutes/$breakMinutes min';
+  }
+
+  @override
   String get divePlanner_label_altitude => 'Altitude:';
 
   @override
@@ -10246,6 +10254,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get divePlanner_label_decompression => 'Decompression';
+
+  @override
+  String divePlanner_label_defaultWithValue(Object value) {
+    return 'Default ($value)';
+  }
+
+  @override
+  String get divePlanner_label_default => 'Default';
 
   @override
   String divePlanner_label_depthAxis(Object depthSymbol) {
@@ -10295,6 +10311,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get divePlanner_gasOptions_sacFactor => 'RMV factor';
 
   @override
+  String get divePlanner_gasOptions_sacStressed => 'Stressed RMV';
+
+  @override
+  String get divePlanner_gasOptions_sacStressedFactor => 'Stressed RMV factor';
+
+  @override
   String get divePlanner_gasOptions_problemSolvingMinutes =>
       'Problem solving time';
 
@@ -10313,6 +10335,12 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get divePlanner_gasOptions_o2Narcotic =>
       'Treat O₂ as narcotic for this plan';
+
+  @override
+  String get divePlanner_label_on => 'On';
+
+  @override
+  String get divePlanner_label_off => 'Off';
 
   @override
   String get divePlanner_label_tanks => 'Tanks';
@@ -26580,6 +26608,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_section_decompression_title => 'Decompression';
 
   @override
+  String get settings_section_plannerDefaults_title => 'Planner Defaults';
+
+  @override
+  String get settings_section_plannerDefaults_subtitle =>
+      'Rates, gas, contingency, DPV team';
+
+  @override
   String get settings_section_diverProfile_subtitle =>
       'Active diver & profiles';
 
@@ -36388,30 +36423,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_sources_compareIn3d => 'Compare in 3D';
 
   @override
-  String get settings_setup_pendingTitle => 'Finish setting up this device';
-
-  @override
-  String settings_setup_mediaStoreAttach(String hint) {
-    return 'Connect media storage ($hint)';
-  }
-
-  @override
-  String settings_setup_mediaStoreReconnect(String hint) {
-    return 'Reconnect media storage ($hint)';
-  }
-
-  @override
-  String settings_setup_accountSignIn(String label) {
-    return 'Sign in to $label';
-  }
-
-  @override
-  String get settings_setup_dismiss => 'Dismiss';
-
-  @override
-  String get settings_photosMedia_guidedSetup => 'Guided setup';
-
-  @override
   String get settings_photosMedia_photoSources_subtitle =>
       'Gallery, files and import options';
 
@@ -36459,43 +36470,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_connectedAccounts_removeConfirmBody =>
       'The account is removed from every synced device. Credentials stored on other devices are not deleted.';
-
-  @override
-  String get settings_setupGuide_title => 'Set up photos & media';
-
-  @override
-  String get settings_setupGuide_intro =>
-      'Connect where your photos come from and where copies are kept. You can re-run this any time.';
-
-  @override
-  String get settings_setupGuide_stepSources => 'Photo sources';
-
-  @override
-  String get settings_setupGuide_stepSources_desc =>
-      'Attach photos from your photo library, files, or Lightroom.';
-
-  @override
-  String get settings_setupGuide_stepStorage => 'Media storage';
-
-  @override
-  String get settings_setupGuide_stepStorage_desc =>
-      'Keep copies of your photos in your own cloud so every device can show them.';
-
-  @override
-  String get settings_setupGuide_stepSync => 'Cloud sync';
-
-  @override
-  String get settings_setupGuide_stepSync_desc =>
-      'Sync dive data between devices.';
-
-  @override
-  String get settings_setupGuide_statusDone => 'Set up';
-
-  @override
-  String get settings_setupGuide_statusTodo => 'Not set up';
-
-  @override
-  String get settings_setupGuide_open => 'Open';
 
   @override
   String get settings_connectedAccounts_loadError => 'Could not load accounts';
@@ -46864,6 +46838,38 @@ class AppLocalizationsEn extends AppLocalizations {
       'The rates the profile\'s ascent-rate colours and events use. The safety review keeps its own fixed limits, so changing these never alters reviewed dives.';
 
   @override
+  String get settings_decompression_header_plannerRates => 'Planner Rates';
+
+  @override
+  String get settings_decompression_header_plannerRates_subtitle =>
+      'The descent and ascent rates a new plan starts with. Changing one inside a plan overrides it there only, without changing this default.';
+
+  @override
+  String get settings_decompression_header_plannerGas => 'Planner Gas';
+
+  @override
+  String get settings_decompression_header_plannerGas_subtitle =>
+      'The gas consumption defaults a new plan starts with. Changing one inside a plan overrides it there only, without changing this default.';
+
+  @override
+  String get settings_decompression_header_plannerContingency =>
+      'Planner Contingency';
+
+  @override
+  String get settings_decompression_header_plannerContingency_subtitle =>
+      'The what-if deviation a new plan starts with. Changing it inside a plan overrides it there only, without changing this default.';
+
+  @override
+  String get settings_decompression_header_plannerDpvTeam => 'Planner DPV Team';
+
+  @override
+  String get settings_decompression_header_plannerDpvTeam_subtitle =>
+      'The scooter battery reserve and walking speed a new DPV mission starts with. Changing one inside a mission overrides it there only, without changing this default.';
+
+  @override
+  String get settings_decompression_rates_finalAscent => 'Final ascent rate';
+
+  @override
   String get settings_decompression_ascentRateThresholds =>
       'Ascent rate thresholds';
 
@@ -54051,4 +54057,121 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_conflict_field_remoteStoreId => 'Uploaded to';
+
+  @override
+  String settings_setUpDevice_title(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'phone': 'Set up this phone',
+      'tablet': 'Set up this tablet',
+      'computer': 'Set up this computer',
+      'other': 'Set up this device',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_titleFinish(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'phone': 'Finish setting up this phone',
+      'tablet': 'Finish setting up this tablet',
+      'computer': 'Finish setting up this computer',
+      'other': 'Finish setting up this device',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_again(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'phone': 'Set up this phone again',
+      'tablet': 'Set up this tablet again',
+      'computer': 'Set up this computer again',
+      'other': 'Set up this device again',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_count(int done, int total) {
+    return '$done of $total';
+  }
+
+  @override
+  String settings_setUpDevice_countSemantics(int done, int total) {
+    return '$done of $total steps done';
+  }
+
+  @override
+  String get settings_setUpDevice_hide => 'Hide this card';
+
+  @override
+  String get settings_setUpDevice_step_account =>
+      'Choose where your data is kept';
+
+  @override
+  String get settings_setUpDevice_step_sync => 'Keep dives on every device';
+
+  @override
+  String get settings_setUpDevice_step_backups => 'Back up automatically';
+
+  @override
+  String get settings_setUpDevice_step_photos =>
+      'Share photo copies (optional)';
+
+  @override
+  String get settings_setUpDevice_mark_done => 'Done';
+
+  @override
+  String get settings_setUpDevice_mark_next => 'Next';
+
+  @override
+  String get settings_setUpDevice_mark_notYet => 'Not yet';
+
+  @override
+  String get settings_setUpDevice_mark_skipped => 'Skipped';
+
+  @override
+  String get settings_setUpDevice_item_signInAction => 'Sign in';
+
+  @override
+  String get settings_setUpDevice_item_reconnectAction => 'Reconnect';
+
+  @override
+  String settings_setUpDevice_item_signIn(String account) {
+    return 'Sign in to $account again. Sync and backups are paused until you do.';
+  }
+
+  @override
+  String settings_setUpDevice_item_signInShort(String account) {
+    return 'Sign in to $account again.';
+  }
+
+  @override
+  String settings_setUpDevice_item_attach(String account) {
+    return 'Your other devices keep photo copies in $account.';
+  }
+
+  @override
+  String settings_setUpDevice_item_reconnect(String account) {
+    return 'The photo copies in $account need reconnecting.';
+  }
+
+  @override
+  String get settings_setUpDevice_againSubtitle =>
+      'Account, sync, backups and photos';
+
+  @override
+  String settings_setUpDevice_stepSemantics(String step, String mark) {
+    return '$step: $mark';
+  }
+
+  @override
+  String settings_setUpDevice_item_signInSync(String account) {
+    return 'Sign in to $account again. Sync is paused until you do.';
+  }
+
+  @override
+  String settings_setUpDevice_item_signInBackups(String account) {
+    return 'Sign in to $account again. Backups are paused until you do.';
+  }
 }

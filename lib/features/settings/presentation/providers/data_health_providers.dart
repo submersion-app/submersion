@@ -1,4 +1,5 @@
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/accounts/account_usage_service.dart';
 import 'package:submersion/core/services/accounts/pending_setup_service.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
@@ -13,7 +14,7 @@ import 'package:submersion/features/settings/domain/data_health/shared_library_h
 import 'package:submersion/features/settings/domain/data_health/sync_health.dart';
 import 'package:submersion/features/settings/presentation/providers/storage_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
-import 'package:submersion/features/settings/presentation/widgets/pending_setup_card.dart';
+import 'package:submersion/features/settings/presentation/providers/pending_setup_items_provider.dart';
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_providers.dart';
 
 // One health model behind the Settings > Data status strip and the row marks
@@ -122,10 +123,10 @@ final sharedLibrariesHealthProvider = Provider.autoDispose<FeatureHealth>((
 });
 
 /// Pending setup items that belong to photos and media: attaching or
-/// reconnecting the store, and sign-ins for the store's account or
-/// Lightroom. The setup service already routes each sign-in to the page that
-/// owns its account, so the route says which feature it belongs to. A
-/// dismissed prompt does not count: the diver chose not to be told.
+/// reconnecting the store, and sign-ins for an account the store or
+/// Lightroom uses, even one that sync uses too (its sign-in routes to the
+/// Sync page, yet the uploads stop as well). A dismissed prompt does not
+/// count: the diver chose not to be told.
 int countMediaSetupItems(List<PendingSetupItem> items) => items
     .where(
       (i) =>
@@ -134,8 +135,8 @@ int countMediaSetupItems(List<PendingSetupItem> items) => items
             SetupItemKind.mediaStoreAttach => true,
             SetupItemKind.mediaStoreReconnect => true,
             SetupItemKind.accountSignIn =>
-              i.route == '/settings/photos-media' ||
-                  i.route == '/settings/lightroom',
+              i.usages.contains(AccountUsageKind.mediaStorage) ||
+                  i.usages.contains(AccountUsageKind.lightroom),
           },
     )
     .length;

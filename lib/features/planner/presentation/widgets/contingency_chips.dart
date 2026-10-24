@@ -24,9 +24,11 @@ class ContingencyChips extends ConsumerWidget {
     final selected = ref.watch(selectedDeviationProvider);
     final units = UnitFormatter(ref.watch(settingsProvider));
 
+    // The plan's own deviation, else the diver's Settings default (#3552).
+    final resolved = ref.watch(resolvedPlanEngineConfigProvider);
     final depthLabel =
-        '+${units.formatDepth(state.deviationDepthDelta, decimals: 0)}';
-    final timeLabel = '+${state.deviationTimeMinutes}′';
+        '+${units.formatDepth(resolved.deviationDepthDelta, decimals: 0)}';
+    final timeLabel = '+${resolved.deviationTimeMinutes}′';
 
     void select(String? key) {
       ref.read(selectedDeviationProvider.notifier).state = key;

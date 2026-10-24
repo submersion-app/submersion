@@ -87,6 +87,9 @@ class _ListScrubberState extends State<ListScrubber> {
   bool _hovering = false;
   int? _dragSlot;
   int? _lastSlot;
+
+  /// The slot the drag last scrolled the list to, or found it showing.
+  int? _followedSlot;
   double _dragTop = 0;
   Timer? _hideTimer;
   bool _active = false;
@@ -329,6 +332,11 @@ class _ListScrubberState extends State<ListScrubber> {
                               onVerticalDragStart: (_) {
                                 _hideTimer?.cancel();
                                 _dragTop = thumbTop;
+                                // A busy thumb rests on a dropped slot the
+                                // list is not showing yet.
+                                _followedSlot = widget.busyLabel == null
+                                    ? slot
+                                    : null;
                                 setState(() => _dragSlot = slot);
                               },
                               onVerticalDragUpdate: (details) =>
@@ -416,22 +424,36 @@ class _ListScrubberState extends State<ListScrubber> {
       _maxSlot,
     );
     if (slot != _dragSlot) setState(() => _dragSlot = slot);
+    _follow(slot);
+  }
+
+  /// Scrolls the list to [slot] when it is a loaded row.
+  void _follow(int slot) {
     final controller = widget.controller;
-    if (slot < widget.loadedSlotCount && controller.hasClients) {
-      controller.jumpTo(
-        scrollForSlot(
-          slot: slot,
-          maxScrollExtent: controller.position.maxScrollExtent,
-          loadedSlotCount: widget.loadedSlotCount,
-        ),
-      );
-    }
+    if (slot >= widget.loadedSlotCount || !controller.hasClients) return;
+    _followedSlot = slot;
+    controller.jumpTo(
+      scrollForSlot(
+        slot: slot,
+        maxScrollExtent: controller.position.maxScrollExtent,
+        loadedSlotCount: widget.loadedSlotCount,
+      ),
+    );
   }
 
   void _endDrag() {
     final slot = _dragSlot;
     if (slot == null) return;
     final clamped = math.min(slot, _maxSlot);
+    // Rows that loaded while the thumb held still past them were never
+    // scrolled to; a drop leaves the list showing the dropped row. The jump
+    // waits a frame so the list's extent includes those rows.
+    if (clamped != _followedSlot) {
+      SchedulerBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _dragSlot == null) _follow(clamped);
+      });
+    }
+    _followedSlot = null;
     setState(() {
       _dragSlot = null;
       _lastSlot = clamped;

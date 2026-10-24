@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
@@ -7,16 +8,18 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart'
 
 import '../../../../helpers/test_database.dart';
 
-/// Covers the profile-span SQL directly: the legacy span was
-/// `MAX(timestamp) - MIN(timestamp)` over every `dive_profiles` row of the
-/// dive, with no `is_primary` filter, so the series replacement must span
-/// every series of the dive too.
+/// Covers the profile-span SQL directly. The span is
+/// `MAX(end_timestamp) - MIN(start_timestamp)` over the series the merged
+/// profile read keeps, which includes demoted recordings; only a saved
+/// edit's superseded originals and inactive revisions drop out (issue #3537,
+/// see profile_span_sql_parity_test.dart).
 void main() {
+  late AppDatabase db;
   late DiveRepository repository;
   late ProfileSeriesRepository series;
 
   setUp(() async {
-    await setUpTestDatabase();
+    db = await setUpTestDatabase();
     repository = DiveRepository();
     series = ProfileSeriesRepository();
   });
@@ -31,8 +34,24 @@ void main() {
         bottomTime: const Duration(minutes: 40),
       ),
     );
+    // Two computers' recordings, neither of them an edit: a primary series
+    // with no computer would be a saved edit, which supersedes the rest.
+    final now = DateTime.utc(2026, 8, 1).millisecondsSinceEpoch;
+    for (final id in ['comp-1', 'comp-2']) {
+      await db
+          .into(db.diveComputers)
+          .insert(
+            DiveComputersCompanion.insert(
+              id: id,
+              name: id,
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
+    }
     await series.insertSeries(
       diveId: 'multi-series',
+      computerId: 'comp-1',
       isPrimary: true,
       samples: [
         for (var t = 0; t <= 600; t += 60)
@@ -41,6 +60,7 @@ void main() {
     );
     await series.insertSeries(
       diveId: 'multi-series',
+      computerId: 'comp-2',
       isPrimary: false,
       samples: [
         for (var t = 0; t <= 900; t += 60)
@@ -51,8 +71,8 @@ void main() {
     final times = await repository.getDiveTimes('multi-series');
     expect(times, isNotNull);
     // No runtime, no exit/entry pair, so the resolution falls to the
-    // profile span; the span is over ALL series, not just the primary
-    // one, so the 900 s demoted series wins over the 600 s primary one.
+    // profile span; the span covers the demoted recording too, so the
+    // 900 s demoted series wins over the 600 s primary one.
     expect(times!.effectiveRuntime, const Duration(seconds: 900));
   });
 

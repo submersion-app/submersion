@@ -10394,6 +10394,14 @@ class AppLocalizationsDe extends AppLocalizations {
   String get divePlanner_label_airBreaksOnO2 => 'Auf O2 (Min.)';
 
   @override
+  String get divePlanner_label_airBreaksCustom => 'Eigene Werte';
+
+  @override
+  String divePlanner_label_airBreaksCycle(int o2Minutes, int breakMinutes) {
+    return '$o2Minutes/$breakMinutes Min.';
+  }
+
+  @override
   String get divePlanner_label_altitude => 'Höhe:';
 
   @override
@@ -10404,6 +10412,14 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get divePlanner_label_decompression => 'Dekompression';
+
+  @override
+  String divePlanner_label_defaultWithValue(Object value) {
+    return 'Standard ($value)';
+  }
+
+  @override
+  String get divePlanner_label_default => 'Standard';
 
   @override
   String divePlanner_label_depthAxis(Object depthSymbol) {
@@ -10453,6 +10469,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get divePlanner_gasOptions_sacFactor => 'AMV-Faktor';
 
   @override
+  String get divePlanner_gasOptions_sacStressed => 'AMV unter Stress';
+
+  @override
+  String get divePlanner_gasOptions_sacStressedFactor =>
+      'Gestresster AMV-Faktor';
+
+  @override
   String get divePlanner_gasOptions_problemSolvingMinutes =>
       'Zeit zur Problemlösung';
 
@@ -10472,6 +10495,12 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get divePlanner_gasOptions_o2Narcotic =>
       'O₂ für diesen Plan als narkotisch werten';
+
+  @override
+  String get divePlanner_label_on => 'Ein';
+
+  @override
+  String get divePlanner_label_off => 'Aus';
 
   @override
   String get divePlanner_label_tanks => 'Flaschen';
@@ -26987,6 +27016,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_section_decompression_title => 'Dekompression';
 
   @override
+  String get settings_section_plannerDefaults_title => 'Planer-Standardwerte';
+
+  @override
+  String get settings_section_plannerDefaults_subtitle =>
+      'Raten, Gas, Eventualpläne, DPV-Team';
+
+  @override
   String get settings_section_diverProfile_subtitle =>
       'Aktiver Taucher & Profile';
 
@@ -36931,31 +36967,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_sources_compareIn3d => 'In 3D vergleichen';
 
   @override
-  String get settings_setup_pendingTitle =>
-      'Einrichtung dieses Geräts abschließen';
-
-  @override
-  String settings_setup_mediaStoreAttach(String hint) {
-    return 'Medienspeicher verbinden ($hint)';
-  }
-
-  @override
-  String settings_setup_mediaStoreReconnect(String hint) {
-    return 'Medienspeicher erneut verbinden ($hint)';
-  }
-
-  @override
-  String settings_setup_accountSignIn(String label) {
-    return 'Bei $label anmelden';
-  }
-
-  @override
-  String get settings_setup_dismiss => 'Ausblenden';
-
-  @override
-  String get settings_photosMedia_guidedSetup => 'Geführte Einrichtung';
-
-  @override
   String get settings_photosMedia_photoSources_subtitle =>
       'Galerie, Dateien und Importoptionen';
 
@@ -37004,43 +37015,6 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_connectedAccounts_removeConfirmBody =>
       'Das Konto wird von allen synchronisierten Geräten entfernt. Auf anderen Geräten gespeicherte Zugangsdaten werden nicht gelöscht.';
-
-  @override
-  String get settings_setupGuide_title => 'Fotos & Medien einrichten';
-
-  @override
-  String get settings_setupGuide_intro =>
-      'Verbinde die Quellen deiner Fotos und wo Kopien aufbewahrt werden. Du kannst dies jederzeit erneut ausführen.';
-
-  @override
-  String get settings_setupGuide_stepSources => 'Fotoquellen';
-
-  @override
-  String get settings_setupGuide_stepSources_desc =>
-      'Fotos aus deiner Fotobibliothek, Dateien oder Lightroom anhängen.';
-
-  @override
-  String get settings_setupGuide_stepStorage => 'Medienspeicher';
-
-  @override
-  String get settings_setupGuide_stepStorage_desc =>
-      'Bewahre Kopien deiner Fotos in deiner eigenen Cloud auf, damit jedes Gerät sie anzeigen kann.';
-
-  @override
-  String get settings_setupGuide_stepSync => 'Cloud-Synchronisierung';
-
-  @override
-  String get settings_setupGuide_stepSync_desc =>
-      'Tauchdaten zwischen Geräten synchronisieren.';
-
-  @override
-  String get settings_setupGuide_statusDone => 'Eingerichtet';
-
-  @override
-  String get settings_setupGuide_statusTodo => 'Nicht eingerichtet';
-
-  @override
-  String get settings_setupGuide_open => 'Öffnen';
 
   @override
   String get settings_connectedAccounts_loadError =>
@@ -47474,6 +47448,38 @@ class AppLocalizationsDe extends AppLocalizations {
       'Die Grenzwerte für die Farben und Ereignisse der Aufstiegsgeschwindigkeit im Profil. Die Sicherheitsüberprüfung nutzt eigene feste Grenzwerte, daher ändern diese Werte nie bereits geprüfte Tauchgänge.';
 
   @override
+  String get settings_decompression_header_plannerRates => 'Planer-Raten';
+
+  @override
+  String get settings_decompression_header_plannerRates_subtitle =>
+      'Die Sink- und Aufstiegsraten, mit denen ein neuer Plan startet. Eine Änderung innerhalb eines Plans überschreibt sie nur dort, ohne diesen Standardwert zu ändern.';
+
+  @override
+  String get settings_decompression_header_plannerGas => 'Planer-Gas';
+
+  @override
+  String get settings_decompression_header_plannerGas_subtitle =>
+      'Die Gasverbrauchs-Standardwerte, mit denen ein neuer Plan startet. Eine Änderung innerhalb eines Plans überschreibt sie nur dort, ohne diesen Standardwert zu ändern.';
+
+  @override
+  String get settings_decompression_header_plannerContingency =>
+      'Planer-Eventualplan';
+
+  @override
+  String get settings_decompression_header_plannerContingency_subtitle =>
+      'Die Was-wäre-wenn-Abweichung, mit der ein neuer Plan startet. Eine Änderung innerhalb eines Plans überschreibt sie nur dort, ohne diesen Standardwert zu ändern.';
+
+  @override
+  String get settings_decompression_header_plannerDpvTeam => 'Planer-DPV-Team';
+
+  @override
+  String get settings_decompression_header_plannerDpvTeam_subtitle =>
+      'Die Scooter-Akku-Reserve und Gehgeschwindigkeit, mit denen eine neue DPV-Mission startet. Eine Änderung innerhalb einer Mission überschreibt sie nur dort, ohne diesen Standardwert zu ändern.';
+
+  @override
+  String get settings_decompression_rates_finalAscent => 'Finale Aufstiegsrate';
+
+  @override
   String get settings_decompression_ascentRateThresholds =>
       'Grenzwerte der Aufstiegsgeschwindigkeit';
 
@@ -54801,4 +54807,120 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_conflict_field_remoteStoreId => 'Hochgeladen in';
+
+  @override
+  String settings_setUpDevice_title(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'phone': 'Dieses Telefon einrichten',
+      'tablet': 'Dieses Tablet einrichten',
+      'computer': 'Diesen Computer einrichten',
+      'other': 'Dieses Gerät einrichten',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_titleFinish(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'phone': 'Einrichtung dieses Telefons abschließen',
+      'tablet': 'Einrichtung dieses Tablets abschließen',
+      'computer': 'Einrichtung dieses Computers abschließen',
+      'other': 'Einrichtung dieses Geräts abschließen',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_again(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'phone': 'Dieses Telefon erneut einrichten',
+      'tablet': 'Dieses Tablet erneut einrichten',
+      'computer': 'Diesen Computer erneut einrichten',
+      'other': 'Dieses Gerät erneut einrichten',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_count(int done, int total) {
+    return '$done von $total';
+  }
+
+  @override
+  String settings_setUpDevice_countSemantics(int done, int total) {
+    return '$done von $total Schritten erledigt';
+  }
+
+  @override
+  String get settings_setUpDevice_hide => 'Diese Karte ausblenden';
+
+  @override
+  String get settings_setUpDevice_step_account =>
+      'Wählen, wo Ihre Daten liegen';
+
+  @override
+  String get settings_setUpDevice_step_sync => 'Tauchgänge auf jedem Gerät';
+
+  @override
+  String get settings_setUpDevice_step_backups => 'Automatisch sichern';
+
+  @override
+  String get settings_setUpDevice_step_photos => 'Fotokopien teilen (optional)';
+
+  @override
+  String get settings_setUpDevice_mark_done => 'Erledigt';
+
+  @override
+  String get settings_setUpDevice_mark_next => 'Als Nächstes';
+
+  @override
+  String get settings_setUpDevice_mark_notYet => 'Noch nicht';
+
+  @override
+  String get settings_setUpDevice_mark_skipped => 'Übersprungen';
+
+  @override
+  String get settings_setUpDevice_item_signInAction => 'Anmelden';
+
+  @override
+  String get settings_setUpDevice_item_reconnectAction => 'Neu verbinden';
+
+  @override
+  String settings_setUpDevice_item_signIn(String account) {
+    return 'Melden Sie sich erneut bei $account an. Sync und Sicherungen sind bis dahin pausiert.';
+  }
+
+  @override
+  String settings_setUpDevice_item_signInShort(String account) {
+    return 'Melden Sie sich erneut bei $account an.';
+  }
+
+  @override
+  String settings_setUpDevice_item_attach(String account) {
+    return 'Ihre anderen Geräte bewahren Fotokopien in $account auf.';
+  }
+
+  @override
+  String settings_setUpDevice_item_reconnect(String account) {
+    return 'Die Fotokopien in $account müssen neu verbunden werden.';
+  }
+
+  @override
+  String get settings_setUpDevice_againSubtitle =>
+      'Konto, Sync, Sicherungen und Fotos';
+
+  @override
+  String settings_setUpDevice_stepSemantics(String step, String mark) {
+    return '$step: $mark';
+  }
+
+  @override
+  String settings_setUpDevice_item_signInSync(String account) {
+    return 'Melden Sie sich erneut bei $account an. Sync ist bis dahin pausiert.';
+  }
+
+  @override
+  String settings_setUpDevice_item_signInBackups(String account) {
+    return 'Melden Sie sich erneut bei $account an. Sicherungen sind bis dahin pausiert.';
+  }
 }

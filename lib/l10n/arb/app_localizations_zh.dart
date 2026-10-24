@@ -9902,6 +9902,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get divePlanner_label_airBreaksOnO2 => '吸 O2（分钟）';
 
   @override
+  String get divePlanner_label_airBreaksCustom => '自定义';
+
+  @override
+  String divePlanner_label_airBreaksCycle(int o2Minutes, int breakMinutes) {
+    return '$o2Minutes/$breakMinutes 分钟';
+  }
+
+  @override
   String get divePlanner_label_altitude => '高海拔:';
 
   @override
@@ -9912,6 +9920,14 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get divePlanner_label_decompression => '减压';
+
+  @override
+  String divePlanner_label_defaultWithValue(Object value) {
+    return '默认（$value）';
+  }
+
+  @override
+  String get divePlanner_label_default => '默认';
 
   @override
   String divePlanner_label_depthAxis(Object depthSymbol) {
@@ -9961,6 +9977,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get divePlanner_gasOptions_sacFactor => 'RMV 系数';
 
   @override
+  String get divePlanner_gasOptions_sacStressed => '压力 RMV';
+
+  @override
+  String get divePlanner_gasOptions_sacStressedFactor => '压力 RMV 系数';
+
+  @override
   String get divePlanner_gasOptions_problemSolvingMinutes => '问题处理时间';
 
   @override
@@ -9977,6 +9999,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get divePlanner_gasOptions_o2Narcotic => '在此计划中将 O₂ 视为麻醉性气体';
+
+  @override
+  String get divePlanner_label_on => '开';
+
+  @override
+  String get divePlanner_label_off => '关';
 
   @override
   String get divePlanner_label_tanks => '气瓶';
@@ -25524,6 +25552,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_section_decompression_title => '减压';
 
   @override
+  String get settings_section_plannerDefaults_title => '计划器默认值';
+
+  @override
+  String get settings_section_plannerDefaults_subtitle => '速率、气体、应急方案、DPV 团队';
+
+  @override
   String get settings_section_diverProfile_subtitle => '当前潜水员与档案';
 
   @override
@@ -34860,30 +34894,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_sources_compareIn3d => '3D 比较';
 
   @override
-  String get settings_setup_pendingTitle => '完成此设备的设置';
-
-  @override
-  String settings_setup_mediaStoreAttach(String hint) {
-    return '连接媒体存储（$hint）';
-  }
-
-  @override
-  String settings_setup_mediaStoreReconnect(String hint) {
-    return '重新连接媒体存储（$hint）';
-  }
-
-  @override
-  String settings_setup_accountSignIn(String label) {
-    return '登录 $label';
-  }
-
-  @override
-  String get settings_setup_dismiss => '忽略';
-
-  @override
-  String get settings_photosMedia_guidedSetup => '引导设置';
-
-  @override
   String get settings_photosMedia_photoSources_subtitle => '图库、文件与导入选项';
 
   @override
@@ -34927,41 +34937,6 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get settings_connectedAccounts_removeConfirmBody =>
       '该账户将从所有同步设备中移除。存储在其他设备上的凭据不会被删除。';
-
-  @override
-  String get settings_setupGuide_title => '设置照片与媒体';
-
-  @override
-  String get settings_setupGuide_intro => '连接照片来源以及副本保存位置。你可以随时重新运行。';
-
-  @override
-  String get settings_setupGuide_stepSources => '照片来源';
-
-  @override
-  String get settings_setupGuide_stepSources_desc =>
-      '从照片图库、文件或 Lightroom 附加照片。';
-
-  @override
-  String get settings_setupGuide_stepStorage => '媒体存储';
-
-  @override
-  String get settings_setupGuide_stepStorage_desc =>
-      '将照片副本保存在你自己的云端，让每台设备都能显示。';
-
-  @override
-  String get settings_setupGuide_stepSync => '云同步';
-
-  @override
-  String get settings_setupGuide_stepSync_desc => '在设备之间同步潜水数据。';
-
-  @override
-  String get settings_setupGuide_statusDone => '已设置';
-
-  @override
-  String get settings_setupGuide_statusTodo => '未设置';
-
-  @override
-  String get settings_setupGuide_open => '打开';
 
   @override
   String get settings_connectedAccounts_loadError => '无法加载账户';
@@ -44731,6 +44706,37 @@ class AppLocalizationsZh extends AppLocalizations {
       '剖面图中上升速度颜色和事件所用的阈值。安全回顾使用自己固定的限值，因此修改这些值不会改变已回顾的潜水。';
 
   @override
+  String get settings_decompression_header_plannerRates => '计划器速率';
+
+  @override
+  String get settings_decompression_header_plannerRates_subtitle =>
+      '新计划开始时使用的下潜和上升速率。在计划内更改某一项仅会覆盖该计划，不会更改此默认值。';
+
+  @override
+  String get settings_decompression_header_plannerGas => '计划器气体';
+
+  @override
+  String get settings_decompression_header_plannerGas_subtitle =>
+      '新计划开始时使用的气体消耗默认值。在计划内更改某一项仅会覆盖该计划，不会更改此默认值。';
+
+  @override
+  String get settings_decompression_header_plannerContingency => '计划器应急方案';
+
+  @override
+  String get settings_decompression_header_plannerContingency_subtitle =>
+      '新计划开始时使用的假设偏差。在计划内更改仅会覆盖该计划，不会更改此默认值。';
+
+  @override
+  String get settings_decompression_header_plannerDpvTeam => '计划器 DPV 团队';
+
+  @override
+  String get settings_decompression_header_plannerDpvTeam_subtitle =>
+      '新 DPV 任务开始时使用的水下推进器电池备用量和步行速度。在任务内更改仅会覆盖该任务，不会更改此默认值。';
+
+  @override
+  String get settings_decompression_rates_finalAscent => '最终上升速率';
+
+  @override
   String get settings_decompression_ascentRateThresholds => '上升速度阈值';
 
   @override
@@ -51579,4 +51585,118 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_conflict_field_remoteStoreId => '上传至';
+
+  @override
+  String settings_setUpDevice_title(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'phone': '设置此手机',
+      'tablet': '设置此平板',
+      'computer': '设置此电脑',
+      'other': '设置此设备',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_titleFinish(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'phone': '完成此手机的设置',
+      'tablet': '完成此平板的设置',
+      'computer': '完成此电脑的设置',
+      'other': '完成此设备的设置',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_again(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'phone': '重新设置此手机',
+      'tablet': '重新设置此平板',
+      'computer': '重新设置此电脑',
+      'other': '重新设置此设备',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_count(int done, int total) {
+    return '$done/$total';
+  }
+
+  @override
+  String settings_setUpDevice_countSemantics(int done, int total) {
+    return '已完成 $done/$total 步';
+  }
+
+  @override
+  String get settings_setUpDevice_hide => '隐藏此卡片';
+
+  @override
+  String get settings_setUpDevice_step_account => '选择数据的存放位置';
+
+  @override
+  String get settings_setUpDevice_step_sync => '让每台设备都有潜水记录';
+
+  @override
+  String get settings_setUpDevice_step_backups => '自动备份';
+
+  @override
+  String get settings_setUpDevice_step_photos => '共享照片副本（可选）';
+
+  @override
+  String get settings_setUpDevice_mark_done => '已完成';
+
+  @override
+  String get settings_setUpDevice_mark_next => '下一步';
+
+  @override
+  String get settings_setUpDevice_mark_notYet => '尚未完成';
+
+  @override
+  String get settings_setUpDevice_mark_skipped => '已跳过';
+
+  @override
+  String get settings_setUpDevice_item_signInAction => '登录';
+
+  @override
+  String get settings_setUpDevice_item_reconnectAction => '重新连接';
+
+  @override
+  String settings_setUpDevice_item_signIn(String account) {
+    return '请重新登录 $account。在此之前，同步和备份已暂停。';
+  }
+
+  @override
+  String settings_setUpDevice_item_signInShort(String account) {
+    return '请重新登录 $account。';
+  }
+
+  @override
+  String settings_setUpDevice_item_attach(String account) {
+    return '你的其他设备在 $account 中保存照片副本。';
+  }
+
+  @override
+  String settings_setUpDevice_item_reconnect(String account) {
+    return '$account 中的照片副本需要重新连接。';
+  }
+
+  @override
+  String get settings_setUpDevice_againSubtitle => '账户、同步、备份和照片';
+
+  @override
+  String settings_setUpDevice_stepSemantics(String step, String mark) {
+    return '$step：$mark';
+  }
+
+  @override
+  String settings_setUpDevice_item_signInSync(String account) {
+    return '请重新登录 $account。在此之前，同步已暂停。';
+  }
+
+  @override
+  String settings_setUpDevice_item_signInBackups(String account) {
+    return '请重新登录 $account。在此之前，备份已暂停。';
+  }
 }

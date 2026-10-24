@@ -11,9 +11,16 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
+import 'package:submersion/core/deco/schedule_policy.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
+
+/// AirBreakPolicy has no value equality of its own (plain fields, no
+/// Equatable), so the fixture and its copyWith counterpart must share one
+/// instance - two separately built ones with identical fields would compare
+/// unequal and fail "copyWith airBreakPolicy replaces only that field".
+final _testAirBreakPolicy = AirBreakPolicy(o2Seconds: 100, breakSeconds: 50);
 
 /// One config per field, each differing from the defaults in that field
 /// alone. Keyed by field name so the source check below can prove the map
@@ -38,6 +45,29 @@ final Map<String, PlanEngineConfig> _oneFieldChanged = {
   'pscrRatio': PlanEngineConfig(pscrRatio: 90),
   'cnsMethod': PlanEngineConfig(cnsMethod: CnsCalculationMethod.subsurface),
   'gasModel': PlanEngineConfig(gasModel: GasModel.ideal),
+  'descentRate': PlanEngineConfig(descentRate: 24.0),
+  'ascentRate': PlanEngineConfig(ascentRate: 12.0),
+  'intermediateAscentRate': PlanEngineConfig(intermediateAscentRate: 8.0),
+  'shallowAscentRate': PlanEngineConfig(shallowAscentRate: 4.0),
+  'finalAscentRate': PlanEngineConfig(finalAscentRate: 2.0),
+  'lastStopDepth': PlanEngineConfig(lastStopDepth: 4.5),
+  'gasSwitchStopSeconds': PlanEngineConfig(gasSwitchStopSeconds: 60),
+  'sacBottom': PlanEngineConfig(sacBottom: 20.0),
+  'sacDeco': PlanEngineConfig(sacDeco: 12.0),
+  'sacStressedFactor': PlanEngineConfig(sacStressedFactor: 3.0),
+  'problemSolvingMinutes': PlanEngineConfig(problemSolvingMinutes: 5),
+  'deviationDepthDelta': PlanEngineConfig(deviationDepthDelta: 6.0),
+  'deviationTimeMinutes': PlanEngineConfig(deviationTimeMinutes: 8),
+  'turnPressureRule': PlanEngineConfig(
+    turnPressureRule: domain.TurnPressureRule.thirds,
+  ),
+  'turnPressureFraction': PlanEngineConfig(turnPressureFraction: 0.4),
+  'airBreakPolicy': PlanEngineConfig(airBreakPolicy: _testAirBreakPolicy),
+  'gfLow': PlanEngineConfig(gfLow: 35),
+  'gfHigh': PlanEngineConfig(gfHigh: 75),
+  'reservePressure': PlanEngineConfig(reservePressure: 70.0),
+  'batteryReserveFraction': PlanEngineConfig(batteryReserveFraction: 0.5),
+  'walkSpeedMps': PlanEngineConfig(walkSpeedMps: 1.2),
 };
 
 /// The same one-field changes as [_oneFieldChanged], made through copyWith,
@@ -62,6 +92,28 @@ final Map<String, PlanEngineConfig Function(PlanEngineConfig)> _copyOneField = {
   'pscrRatio': (c) => c.copyWith(pscrRatio: 90),
   'cnsMethod': (c) => c.copyWith(cnsMethod: CnsCalculationMethod.subsurface),
   'gasModel': (c) => c.copyWith(gasModel: GasModel.ideal),
+  'descentRate': (c) => c.copyWith(descentRate: 24.0),
+  'ascentRate': (c) => c.copyWith(ascentRate: 12.0),
+  'intermediateAscentRate': (c) => c.copyWith(intermediateAscentRate: 8.0),
+  'shallowAscentRate': (c) => c.copyWith(shallowAscentRate: 4.0),
+  'finalAscentRate': (c) => c.copyWith(finalAscentRate: 2.0),
+  'lastStopDepth': (c) => c.copyWith(lastStopDepth: 4.5),
+  'gasSwitchStopSeconds': (c) => c.copyWith(gasSwitchStopSeconds: 60),
+  'sacBottom': (c) => c.copyWith(sacBottom: 20.0),
+  'sacDeco': (c) => c.copyWith(sacDeco: 12.0),
+  'sacStressedFactor': (c) => c.copyWith(sacStressedFactor: 3.0),
+  'problemSolvingMinutes': (c) => c.copyWith(problemSolvingMinutes: 5),
+  'deviationDepthDelta': (c) => c.copyWith(deviationDepthDelta: 6.0),
+  'deviationTimeMinutes': (c) => c.copyWith(deviationTimeMinutes: 8),
+  'turnPressureRule': (c) =>
+      c.copyWith(turnPressureRule: domain.TurnPressureRule.thirds),
+  'turnPressureFraction': (c) => c.copyWith(turnPressureFraction: 0.4),
+  'airBreakPolicy': (c) => c.copyWith(airBreakPolicy: _testAirBreakPolicy),
+  'gfLow': (c) => c.copyWith(gfLow: 35),
+  'gfHigh': (c) => c.copyWith(gfHigh: 75),
+  'reservePressure': (c) => c.copyWith(reservePressure: 70.0),
+  'batteryReserveFraction': (c) => c.copyWith(batteryReserveFraction: 0.5),
+  'walkSpeedMps': (c) => c.copyWith(walkSpeedMps: 1.2),
 };
 
 /// A config with every field away from its default, so a field that
@@ -78,6 +130,8 @@ PlanEngineConfig _everyFieldChanged({
   bool o2Narcotic = false,
   double bestMixEndMeters = 35,
   double buddyFactor = 1.5,
+  int gfLow = 35,
+  int gfHigh = 75,
 }) => PlanEngineConfig(
   ppO2Working: ppO2Working,
   ppO2Deco: ppO2Deco,
@@ -98,6 +152,27 @@ PlanEngineConfig _everyFieldChanged({
   pscrRatio: 90,
   cnsMethod: CnsCalculationMethod.subsurface,
   gasModel: GasModel.ideal,
+  descentRate: 24.0,
+  ascentRate: 12.0,
+  intermediateAscentRate: 8.0,
+  shallowAscentRate: 4.0,
+  finalAscentRate: 2.0,
+  lastStopDepth: 4.5,
+  gasSwitchStopSeconds: 60,
+  sacBottom: 20.0,
+  sacDeco: 12.0,
+  sacStressedFactor: 3.0,
+  problemSolvingMinutes: 5,
+  deviationDepthDelta: 6.0,
+  deviationTimeMinutes: 8,
+  turnPressureRule: domain.TurnPressureRule.thirds,
+  turnPressureFraction: 0.4,
+  airBreakPolicy: _testAirBreakPolicy,
+  gfLow: gfLow,
+  gfHigh: gfHigh,
+  reservePressure: 70.0,
+  batteryReserveFraction: 0.5,
+  walkSpeedMps: 1.2,
 );
 
 /// A plan that overrides nothing: its nullable gas options are unset, and
@@ -109,6 +184,8 @@ domain.DivePlan _plan({
   bool? o2Narcotic,
   double sacFactor = 2.0,
   double bestMixEndMeters = 30.0,
+  int gfLow = 40,
+  int gfHigh = 80,
 }) {
   final now = DateTime.utc(2026, 9, 30);
   return domain.DivePlan(
@@ -116,8 +193,8 @@ domain.DivePlan _plan({
     name: 'resolvedFor test',
     createdAt: now,
     updatedAt: now,
-    gfLow: 40,
-    gfHigh: 80,
+    gfLow: gfLow,
+    gfHigh: gfHigh,
     ppO2Bottom: ppO2Bottom,
     ppO2Deco: ppO2Deco,
     o2Narcotic: o2Narcotic,
@@ -222,11 +299,16 @@ void main() {
 
       final resolved = config.resolvedFor(plan);
 
-      // sacFactor and bestMixEndMeters always come from the plan; every
-      // other field is the config's own.
+      // sacFactor, bestMixEndMeters, gfLow and gfHigh always come from the
+      // plan; every other field is the config's own.
       expect(
         resolved,
-        _everyFieldChanged(buddyFactor: 2.0, bestMixEndMeters: 30.0),
+        _everyFieldChanged(
+          buddyFactor: 2.0,
+          bestMixEndMeters: 30.0,
+          gfLow: 40,
+          gfHigh: 80,
+        ),
       );
     });
 
@@ -238,6 +320,8 @@ void main() {
         o2Narcotic: true,
         sacFactor: 1.8,
         bestMixEndMeters: 33,
+        gfLow: 42,
+        gfHigh: 82,
       );
 
       expect(
@@ -248,6 +332,8 @@ void main() {
           o2Narcotic: true,
           buddyFactor: 1.8,
           bestMixEndMeters: 33,
+          gfLow: 42,
+          gfHigh: 82,
         ),
       );
     });

@@ -10377,6 +10377,14 @@ class AppLocalizationsHu extends AppLocalizations {
   String get divePlanner_label_airBreaksOnO2 => 'O2-n (perc)';
 
   @override
+  String get divePlanner_label_airBreaksCustom => 'Egyéni';
+
+  @override
+  String divePlanner_label_airBreaksCycle(int o2Minutes, int breakMinutes) {
+    return '$o2Minutes/$breakMinutes perc';
+  }
+
+  @override
   String get divePlanner_label_altitude => 'Magasság:';
 
   @override
@@ -10387,6 +10395,14 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get divePlanner_label_decompression => 'Dekompresszió';
+
+  @override
+  String divePlanner_label_defaultWithValue(Object value) {
+    return 'Alapértelmezett ($value)';
+  }
+
+  @override
+  String get divePlanner_label_default => 'Alapértelmezett';
 
   @override
   String divePlanner_label_depthAxis(Object depthSymbol) {
@@ -10436,6 +10452,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get divePlanner_gasOptions_sacFactor => 'RMV-szorzó';
 
   @override
+  String get divePlanner_gasOptions_sacStressed => 'Stresszelt RMV';
+
+  @override
+  String get divePlanner_gasOptions_sacStressedFactor =>
+      'Stresszelt RMV-szorzó';
+
+  @override
   String get divePlanner_gasOptions_problemSolvingMinutes =>
       'Problémamegoldási idő';
 
@@ -10455,6 +10478,12 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get divePlanner_gasOptions_o2Narcotic =>
       'O₂ narkotikusként kezelése ebben a tervben';
+
+  @override
+  String get divePlanner_label_on => 'Be';
+
+  @override
+  String get divePlanner_label_off => 'Ki';
 
   @override
   String get divePlanner_label_tanks => 'Palackok';
@@ -26904,6 +26933,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_section_decompression_title => 'Dekompresszió';
 
   @override
+  String get settings_section_plannerDefaults_title => 'Tervező alapértékei';
+
+  @override
+  String get settings_section_plannerDefaults_subtitle =>
+      'Sebességek, gáz, vészhelyzet, DPV csapat';
+
+  @override
   String get settings_section_diverProfile_subtitle =>
       'Aktív merülő és profilok';
 
@@ -36785,30 +36821,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_sources_compareIn3d => 'Összehasonlítás 3D-ben';
 
   @override
-  String get settings_setup_pendingTitle => 'Fejezze be az eszköz beállítását';
-
-  @override
-  String settings_setup_mediaStoreAttach(String hint) {
-    return 'Médiatároló csatlakoztatása ($hint)';
-  }
-
-  @override
-  String settings_setup_mediaStoreReconnect(String hint) {
-    return 'Médiatároló újracsatlakoztatása ($hint)';
-  }
-
-  @override
-  String settings_setup_accountSignIn(String label) {
-    return 'Bejelentkezés: $label';
-  }
-
-  @override
-  String get settings_setup_dismiss => 'Elvetés';
-
-  @override
-  String get settings_photosMedia_guidedSetup => 'Vezetett beállítás';
-
-  @override
   String get settings_photosMedia_photoSources_subtitle =>
       'Galéria, fájlok és importálási beállítások';
 
@@ -36858,43 +36870,6 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_connectedAccounts_removeConfirmBody =>
       'A fiók minden szinkronizált eszközről eltávolításra kerül. A más eszközökön tárolt hitelesítő adatok nem törlődnek.';
-
-  @override
-  String get settings_setupGuide_title => 'Fotók és média beállítása';
-
-  @override
-  String get settings_setupGuide_intro =>
-      'Kapcsold össze, honnan érkeznek a fotóid és hol tárolod a másolatokat. Bármikor újrafuttathatod.';
-
-  @override
-  String get settings_setupGuide_stepSources => 'Fotóforrások';
-
-  @override
-  String get settings_setupGuide_stepSources_desc =>
-      'Csatolj fotókat a fotótáradból, fájlokból vagy a Lightroomból.';
-
-  @override
-  String get settings_setupGuide_stepStorage => 'Médiatároló';
-
-  @override
-  String get settings_setupGuide_stepStorage_desc =>
-      'Tárold fotóid másolatait a saját felhődben, hogy minden eszköz megjeleníthesse őket.';
-
-  @override
-  String get settings_setupGuide_stepSync => 'Felhőszinkronizálás';
-
-  @override
-  String get settings_setupGuide_stepSync_desc =>
-      'Merülési adatok szinkronizálása eszközök között.';
-
-  @override
-  String get settings_setupGuide_statusDone => 'Beállítva';
-
-  @override
-  String get settings_setupGuide_statusTodo => 'Nincs beállítva';
-
-  @override
-  String get settings_setupGuide_open => 'Megnyitás';
 
   @override
   String get settings_connectedAccounts_loadError =>
@@ -47308,6 +47283,40 @@ class AppLocalizationsHu extends AppLocalizations {
       'A profil feljövetelsebesség-színei és -eseményei által használt határértékek. A biztonsági áttekintés saját, rögzített határértékeket használ, így ezek módosítása soha nem változtatja meg a már áttekintett merüléseket.';
 
   @override
+  String get settings_decompression_header_plannerRates => 'Tervező sebességek';
+
+  @override
+  String get settings_decompression_header_plannerRates_subtitle =>
+      'A merülési és felszállási sebességek, amelyekkel egy új terv kezdődik. Egy terven belüli módosítás csak ott írja felül, anélkül, hogy ezt az alapértelmezett értéket megváltoztatná.';
+
+  @override
+  String get settings_decompression_header_plannerGas => 'Tervező gáz';
+
+  @override
+  String get settings_decompression_header_plannerGas_subtitle =>
+      'A gázfogyasztási alapértékek, amelyekkel egy új terv kezdődik. Egy terven belüli módosítás csak ott írja felül, anélkül, hogy ezt az alapértelmezett értéket megváltoztatná.';
+
+  @override
+  String get settings_decompression_header_plannerContingency =>
+      'Tervező vészhelyzet';
+
+  @override
+  String get settings_decompression_header_plannerContingency_subtitle =>
+      'A mi lenne ha eltérés, amellyel egy új terv kezdődik. Egy terven belüli módosítás csak ott írja felül, anélkül, hogy ezt az alapértelmezett értéket megváltoztatná.';
+
+  @override
+  String get settings_decompression_header_plannerDpvTeam =>
+      'Tervező DPV csapat';
+
+  @override
+  String get settings_decompression_header_plannerDpvTeam_subtitle =>
+      'A robogó akkumulátor-rezerv és gyaloglási sebesség, amellyel egy új DPV-küldetés kezdődik. Egy küldetésen belüli módosítás csak ott írja felül, anélkül, hogy ezt az alapértelmezett értéket megváltoztatná.';
+
+  @override
+  String get settings_decompression_rates_finalAscent =>
+      'Végső felszállási sebesség';
+
+  @override
   String get settings_decompression_ascentRateThresholds =>
       'Feljövetelsebesség határértékei';
 
@@ -54603,4 +54612,122 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_conflict_field_remoteStoreId => 'Feltöltés helye';
+
+  @override
+  String settings_setUpDevice_title(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'phone': 'A telefon beállítása',
+      'tablet': 'A táblagép beállítása',
+      'computer': 'A számítógép beállítása',
+      'other': 'Az eszköz beállítása',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_titleFinish(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'phone': 'A telefon beállításának befejezése',
+      'tablet': 'A táblagép beállításának befejezése',
+      'computer': 'A számítógép beállításának befejezése',
+      'other': 'Az eszköz beállításának befejezése',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_again(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'phone': 'A telefon újbóli beállítása',
+      'tablet': 'A táblagép újbóli beállítása',
+      'computer': 'A számítógép újbóli beállítása',
+      'other': 'Az eszköz újbóli beállítása',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_count(int done, int total) {
+    return '$done/$total';
+  }
+
+  @override
+  String settings_setUpDevice_countSemantics(int done, int total) {
+    return '$total lépésből $done kész';
+  }
+
+  @override
+  String get settings_setUpDevice_hide => 'A kártya elrejtése';
+
+  @override
+  String get settings_setUpDevice_step_account =>
+      'Válassza ki, hol legyenek az adatai';
+
+  @override
+  String get settings_setUpDevice_step_sync => 'Merülések minden eszközön';
+
+  @override
+  String get settings_setUpDevice_step_backups =>
+      'Automatikus biztonsági mentés';
+
+  @override
+  String get settings_setUpDevice_step_photos =>
+      'Fotómásolatok megosztása (nem kötelező)';
+
+  @override
+  String get settings_setUpDevice_mark_done => 'Kész';
+
+  @override
+  String get settings_setUpDevice_mark_next => 'Következő';
+
+  @override
+  String get settings_setUpDevice_mark_notYet => 'Még nem';
+
+  @override
+  String get settings_setUpDevice_mark_skipped => 'Kihagyva';
+
+  @override
+  String get settings_setUpDevice_item_signInAction => 'Bejelentkezés';
+
+  @override
+  String get settings_setUpDevice_item_reconnectAction => 'Újracsatlakozás';
+
+  @override
+  String settings_setUpDevice_item_signIn(String account) {
+    return 'Jelentkezzen be újra ide: $account. Addig a szinkronizálás és a mentések szünetelnek.';
+  }
+
+  @override
+  String settings_setUpDevice_item_signInShort(String account) {
+    return 'Jelentkezzen be újra ide: $account.';
+  }
+
+  @override
+  String settings_setUpDevice_item_attach(String account) {
+    return 'A többi eszköze itt tárol fotómásolatokat: $account.';
+  }
+
+  @override
+  String settings_setUpDevice_item_reconnect(String account) {
+    return 'Az itt tárolt fotómásolatokat újra kell csatlakoztatni: $account.';
+  }
+
+  @override
+  String get settings_setUpDevice_againSubtitle =>
+      'Fiók, szinkronizálás, mentések és fotók';
+
+  @override
+  String settings_setUpDevice_stepSemantics(String step, String mark) {
+    return '$step: $mark';
+  }
+
+  @override
+  String settings_setUpDevice_item_signInSync(String account) {
+    return 'Jelentkezzen be újra ide: $account. Addig a szinkronizálás szünetel.';
+  }
+
+  @override
+  String settings_setUpDevice_item_signInBackups(String account) {
+    return 'Jelentkezzen be újra ide: $account. Addig a mentések szünetelnek.';
+  }
 }

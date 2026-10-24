@@ -10175,6 +10175,14 @@ class AppLocalizationsHe extends AppLocalizations {
   String get divePlanner_label_airBreaksOnO2 => 'על O2 (דק\')';
 
   @override
+  String get divePlanner_label_airBreaksCustom => 'מותאם אישית';
+
+  @override
+  String divePlanner_label_airBreaksCycle(int o2Minutes, int breakMinutes) {
+    return '$o2Minutes/$breakMinutes דק׳';
+  }
+
+  @override
   String get divePlanner_label_altitude => 'גובה:';
 
   @override
@@ -10185,6 +10193,14 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get divePlanner_label_decompression => 'דקומפרסיה';
+
+  @override
+  String divePlanner_label_defaultWithValue(Object value) {
+    return 'ברירת מחדל ($value)';
+  }
+
+  @override
+  String get divePlanner_label_default => 'ברירת מחדל';
 
   @override
   String divePlanner_label_depthAxis(Object depthSymbol) {
@@ -10234,6 +10250,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get divePlanner_gasOptions_sacFactor => 'מקדם RMV';
 
   @override
+  String get divePlanner_gasOptions_sacStressed => 'RMV בלחץ';
+
+  @override
+  String get divePlanner_gasOptions_sacStressedFactor => 'מקדם RMV בלחץ';
+
+  @override
   String get divePlanner_gasOptions_problemSolvingMinutes => 'זמן לפתרון תקלה';
 
   @override
@@ -10251,6 +10273,12 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get divePlanner_gasOptions_o2Narcotic =>
       'התייחס ל-O₂ כנרקוטי בתוכנית זו';
+
+  @override
+  String get divePlanner_label_on => 'פעיל';
+
+  @override
+  String get divePlanner_label_off => 'כבוי';
 
   @override
   String get divePlanner_label_tanks => 'מיכלים';
@@ -26357,6 +26385,13 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_section_decompression_title => 'דקומפרסיה';
 
   @override
+  String get settings_section_plannerDefaults_title => 'ברירות מחדל למתכנן';
+
+  @override
+  String get settings_section_plannerDefaults_subtitle =>
+      'קצבים, גז, תרחישי חירום, צוות DPV';
+
+  @override
   String get settings_section_diverProfile_subtitle => 'צולל פעיל ופרופילים';
 
   @override
@@ -36093,30 +36128,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_sources_compareIn3d => 'השוואה בתלת-ממד';
 
   @override
-  String get settings_setup_pendingTitle => 'השלם את הגדרת המכשיר הזה';
-
-  @override
-  String settings_setup_mediaStoreAttach(String hint) {
-    return 'חיבור אחסון מדיה ($hint)';
-  }
-
-  @override
-  String settings_setup_mediaStoreReconnect(String hint) {
-    return 'חיבור מחדש של אחסון מדיה ($hint)';
-  }
-
-  @override
-  String settings_setup_accountSignIn(String label) {
-    return 'התחברות אל $label';
-  }
-
-  @override
-  String get settings_setup_dismiss => 'התעלם';
-
-  @override
-  String get settings_photosMedia_guidedSetup => 'הגדרה מודרכת';
-
-  @override
   String get settings_photosMedia_photoSources_subtitle =>
       'גלריה, קבצים ואפשרויות ייבוא';
 
@@ -36164,43 +36175,6 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_connectedAccounts_removeConfirmBody =>
       'החשבון מוסר מכל המכשירים המסונכרנים. אישורים השמורים במכשירים אחרים אינם נמחקים.';
-
-  @override
-  String get settings_setupGuide_title => 'הגדרת תמונות ומדיה';
-
-  @override
-  String get settings_setupGuide_intro =>
-      'חבר את מקורות התמונות ואת מקום שמירת העותקים. אפשר להריץ זאת שוב בכל עת.';
-
-  @override
-  String get settings_setupGuide_stepSources => 'מקורות תמונות';
-
-  @override
-  String get settings_setupGuide_stepSources_desc =>
-      'צרף תמונות מספריית התמונות, מקבצים או מ-Lightroom.';
-
-  @override
-  String get settings_setupGuide_stepStorage => 'אחסון מדיה';
-
-  @override
-  String get settings_setupGuide_stepStorage_desc =>
-      'שמור עותקים של התמונות בענן שלך כדי שכל מכשיר יוכל להציגן.';
-
-  @override
-  String get settings_setupGuide_stepSync => 'סנכרון ענן';
-
-  @override
-  String get settings_setupGuide_stepSync_desc =>
-      'סנכרן נתוני צלילה בין מכשירים.';
-
-  @override
-  String get settings_setupGuide_statusDone => 'מוגדר';
-
-  @override
-  String get settings_setupGuide_statusTodo => 'לא מוגדר';
-
-  @override
-  String get settings_setupGuide_open => 'פתח';
 
   @override
   String get settings_connectedAccounts_loadError => 'לא ניתן לטעון חשבונות';
@@ -46552,6 +46526,38 @@ class AppLocalizationsHe extends AppLocalizations {
       'הספים שבהם משתמשים הצבעים והאירועים של קצב העלייה בפרופיל. סקירת הבטיחות שומרת על מגבלות קבועות משלה, כך ששינוי ערכים אלה אינו משנה צלילות שכבר נסקרו.';
 
   @override
+  String get settings_decompression_header_plannerRates => 'קצבי מתכנן';
+
+  @override
+  String get settings_decompression_header_plannerRates_subtitle =>
+      'קצבי הירידה והעלייה שאיתם מתחילה תוכנית חדשה. שינוי אחד בתוך תוכנית יחליף אותו רק שם, מבלי לשנות ברירת מחדל זו.';
+
+  @override
+  String get settings_decompression_header_plannerGas => 'גז מתכנן';
+
+  @override
+  String get settings_decompression_header_plannerGas_subtitle =>
+      'ברירות המחדל לצריכת גז שאיתן מתחילה תוכנית חדשה. שינוי אחת בתוך תוכנית יחליף אותה רק שם, מבלי לשנות ברירת מחדל זו.';
+
+  @override
+  String get settings_decompression_header_plannerContingency =>
+      'תרחיש חירום מתכנן';
+
+  @override
+  String get settings_decompression_header_plannerContingency_subtitle =>
+      'סטיית ה\'מה אם\' שאיתה מתחילה תוכנית חדשה. שינוי בתוך תוכנית יחליף אותה רק שם, מבלי לשנות ברירת מחדל זו.';
+
+  @override
+  String get settings_decompression_header_plannerDpvTeam => 'צוות DPV מתכנן';
+
+  @override
+  String get settings_decompression_header_plannerDpvTeam_subtitle =>
+      'רזרבת הסקוטר וקצב ההליכה שאיתם מתחילה משימת DPV חדשה. שינוי בתוך משימה יחליף אותו רק שם, מבלי לשנות ברירת מחדל זו.';
+
+  @override
+  String get settings_decompression_rates_finalAscent => 'קצב עלייה סופי';
+
+  @override
   String get settings_decompression_ascentRateThresholds => 'ספי קצב עלייה';
 
   @override
@@ -53775,4 +53781,121 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_conflict_field_remoteStoreId => 'הועלה אל';
+
+  @override
+  String settings_setUpDevice_title(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'phone': 'הגדרת הטלפון הזה',
+      'tablet': 'הגדרת הטאבלט הזה',
+      'computer': 'הגדרת המחשב הזה',
+      'other': 'הגדרת המכשיר הזה',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_titleFinish(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'phone': 'סיום ההגדרה של הטלפון הזה',
+      'tablet': 'סיום ההגדרה של הטאבלט הזה',
+      'computer': 'סיום ההגדרה של המחשב הזה',
+      'other': 'סיום ההגדרה של המכשיר הזה',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_again(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'phone': 'הגדרת הטלפון הזה מחדש',
+      'tablet': 'הגדרת הטאבלט הזה מחדש',
+      'computer': 'הגדרת המחשב הזה מחדש',
+      'other': 'הגדרת המכשיר הזה מחדש',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_count(int done, int total) {
+    return '$done מתוך $total';
+  }
+
+  @override
+  String settings_setUpDevice_countSemantics(int done, int total) {
+    return 'שלבים שהושלמו: $done מתוך $total';
+  }
+
+  @override
+  String get settings_setUpDevice_hide => 'הסתרת הכרטיס הזה';
+
+  @override
+  String get settings_setUpDevice_step_account =>
+      'בחירת המקום שבו הנתונים נשמרים';
+
+  @override
+  String get settings_setUpDevice_step_sync => 'הצלילות בכל מכשיר';
+
+  @override
+  String get settings_setUpDevice_step_backups => 'גיבוי אוטומטי';
+
+  @override
+  String get settings_setUpDevice_step_photos =>
+      'שיתוף עותקים של תמונות (רשות)';
+
+  @override
+  String get settings_setUpDevice_mark_done => 'הושלם';
+
+  @override
+  String get settings_setUpDevice_mark_next => 'הבא';
+
+  @override
+  String get settings_setUpDevice_mark_notYet => 'עדיין לא';
+
+  @override
+  String get settings_setUpDevice_mark_skipped => 'דולג';
+
+  @override
+  String get settings_setUpDevice_item_signInAction => 'התחברות';
+
+  @override
+  String get settings_setUpDevice_item_reconnectAction => 'חיבור מחדש';
+
+  @override
+  String settings_setUpDevice_item_signIn(String account) {
+    return 'יש להתחבר שוב אל $account. הסנכרון והגיבויים מושהים עד אז.';
+  }
+
+  @override
+  String settings_setUpDevice_item_signInShort(String account) {
+    return 'יש להתחבר שוב אל $account.';
+  }
+
+  @override
+  String settings_setUpDevice_item_attach(String account) {
+    return 'המכשירים האחרים שלך שומרים עותקים של תמונות ב-$account.';
+  }
+
+  @override
+  String settings_setUpDevice_item_reconnect(String account) {
+    return 'יש לחבר מחדש את עותקי התמונות ב-$account.';
+  }
+
+  @override
+  String get settings_setUpDevice_againSubtitle =>
+      'חשבון, סנכרון, גיבויים ותמונות';
+
+  @override
+  String settings_setUpDevice_stepSemantics(String step, String mark) {
+    return '$step: $mark';
+  }
+
+  @override
+  String settings_setUpDevice_item_signInSync(String account) {
+    return 'יש להתחבר שוב אל $account. הסנכרון מושהה עד אז.';
+  }
+
+  @override
+  String settings_setUpDevice_item_signInBackups(String account) {
+    return 'יש להתחבר שוב אל $account. הגיבויים מושהים עד אז.';
+  }
 }

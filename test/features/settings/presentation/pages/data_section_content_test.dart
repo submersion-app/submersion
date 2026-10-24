@@ -16,7 +16,15 @@ import 'package:submersion/core/services/log_file_service.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/settings/domain/data_health/feature_health.dart';
+import 'package:submersion/features/settings/domain/setup/set_up_progress.dart';
 import 'package:submersion/features/settings/presentation/providers/debug_log_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/pending_setup_items_provider.dart';
+import 'package:submersion/features/settings/presentation/providers/set_up_progress_provider.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/settings/data/set_up_card_prefs.dart';
+import 'package:submersion/features/settings/presentation/pages/data_section_content.dart';
+import 'package:submersion/features/settings/presentation/widgets/data_health/data_facts_line.dart';
+import 'package:submersion/features/settings/presentation/widgets/set_up_device/set_up_device_card.dart';
 import 'package:submersion/features/settings/presentation/pages/settings_page.dart';
 import 'package:submersion/features/settings/presentation/widgets/data_health/data_health_strip.dart';
 import 'package:submersion/features/settings/presentation/widgets/data_health/health_symbol.dart';
@@ -24,6 +32,7 @@ import 'package:submersion/features/settings/presentation/widgets/settings_list_
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import '../../set_up_progress_fixture.dart';
 
 void main() {
   const health = [
@@ -58,11 +67,16 @@ void main() {
     Size size = const Size(400, 2400),
     double textScale = 1,
     bool storeAttachedHere = false,
+    SetUpProgress? setUp,
   }) async {
     // MediaQuery follows the view, which the layout breakpoints read.
     tester.view.devicePixelRatio = 1;
     tester.view.physicalSize = size;
+    // The set up card's device word follows the display.
+    tester.view.display.devicePixelRatio = 1;
+    tester.view.display.size = size;
     addTearDown(tester.view.reset);
+    addTearDown(tester.view.display.reset);
     final router = GoRouter(
       initialLocation: '/settings?selected=data',
       routes: [
@@ -80,6 +94,7 @@ void main() {
           '/settings/data-tools',
           '/settings/cloud-sync',
           '/settings/photos-media',
+          '/settings/connected-accounts',
         ])
           GoRoute(
             path: path,
@@ -104,6 +119,9 @@ void main() {
           logFileServiceProvider.overrideWithValue(
             LogFileService(logDirectory: logDir.path),
           ),
+          // Null unless a test sets it: no set up card, no again row.
+          setUpProgressProvider.overrideWithValue(setUp),
+          pendingSetupItemsProvider.overrideWith((ref) async => const []),
         ],
         child: MaterialApp.router(
           locale: const Locale('en'),
@@ -386,6 +404,91 @@ void main() {
     expect(find.text('page /settings/import-options'), findsOneWidget);
     expect(router.canPop(), isTrue);
     expect(find.text('Your data'), findsNothing);
+  });
+
+  Finder inDataPage(Finder f) =>
+      find.descendant(of: find.byType(DataSectionContent), matching: f);
+
+  group('the set up card', () {
+    testWidgets('sits between the strip and the facts line', (tester) async {
+      await pumpData(tester, setUp: setUpProgressOf(accountHere: true));
+
+      final card = inDataPage(find.byType(SetUpDeviceCard));
+      expect(card, findsOneWidget);
+      expect(tester.widget<SetUpDeviceCard>(card).compact, isFalse);
+      expect(
+        tester.getTopLeft(find.byType(DataHealthStrip)).dy,
+        lessThan(tester.getTopLeft(card).dy),
+      );
+      expect(
+        tester.getTopLeft(card).dy,
+        lessThan(tester.getTopLeft(find.byType(DataFactsLine)).dy),
+      );
+    });
+
+    testWidgets('on a phone Continue pushes the next step', (tester) async {
+      await pumpData(tester, setUp: setUpProgressOf(accountHere: true));
+
+      await tester.tap(inDataPage(find.text('Continue')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('page /settings/cloud-sync'), findsOneWidget);
+    });
+
+    testWidgets('on a master-detail window Continue opens the step in the '
+        'Data pane', (tester) async {
+      final router = await pumpData(
+        tester,
+        size: const Size(1400, 2400),
+        setUp: setUpProgressOf(accountHere: true),
+      );
+
+      await tester.tap(inDataPage(find.text('Continue')));
+      await tester.pumpAndSettle();
+
+      expect(
+        router.routerDelegate.currentConfiguration.uri.toString(),
+        '/settings?selected=data&dataPage=cloud-sync',
+      );
+      expect(find.byType(SettingsListContent), findsOneWidget);
+    });
+  });
+
+  group('Set up this device again', () {
+    testWidgets('is not offered while the card shows its steps', (
+      tester,
+    ) async {
+      await pumpData(tester, setUp: setUpProgressOf(accountHere: true));
+      expect(find.text('Set up this phone again'), findsNothing);
+    });
+
+    testWidgets('is offered under Advanced once setup is complete', (
+      tester,
+    ) async {
+      await pumpData(tester, setUp: setUpProgressOf(everything: true));
+
+      expect(find.text('Set up this phone again'), findsOneWidget);
+      expect(
+        tester.getTopLeft(find.text('Advanced')).dy,
+        lessThan(tester.getTopLeft(find.text('Set up this phone again')).dy),
+      );
+    });
+
+    testWidgets('on a hidden card, shows the card again and opens the '
+        'first step', (tester) async {
+      await pumpData(tester, setUp: setUpProgressOf(hidden: true));
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(DataSectionContent)),
+      );
+      final prefs = container.read(sharedPreferencesProvider);
+      await prefs.setBool(SetUpCardPrefs.hiddenKey, true);
+
+      await tester.tap(find.text('Set up this phone again'));
+      await tester.pumpAndSettle();
+
+      expect(prefs.getBool(SetUpCardPrefs.hiddenKey), isFalse);
+      expect(find.text('page /settings/connected-accounts'), findsOneWidget);
+    });
   });
 
   testWidgets('a Lightroom-only photos row draws no healthy mark', (

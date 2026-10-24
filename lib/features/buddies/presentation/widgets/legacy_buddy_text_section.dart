@@ -16,7 +16,14 @@ class LegacyBuddyTextSection extends StatefulWidget {
   /// Whether [dive] has legacy text that parses to at least one name. A
   /// text holding only a placeholder such as `None` does not count.
   static bool hasContent(Dive dive) =>
-      LegacyNameParser.parse(dive.buddy).isNotEmpty ||
+      hasBuddyText(dive) || hasDiveMasterText(dive);
+
+  /// Whether [Dive.buddy] names anyone, by the same rule as [hasContent].
+  static bool hasBuddyText(Dive dive) =>
+      LegacyNameParser.parse(dive.buddy).isNotEmpty;
+
+  /// Whether [Dive.diveMaster] names anyone, by the same rule as [hasContent].
+  static bool hasDiveMasterText(Dive dive) =>
       LegacyNameParser.parse(dive.diveMaster).isNotEmpty;
 
   @override
@@ -42,8 +49,8 @@ class _LegacyBuddyTextSectionState extends State<LegacyBuddyTextSection> {
     final dive = widget.dive;
     final l10n = context.l10n;
     final colorScheme = Theme.of(context).colorScheme;
-    final showBuddy = LegacyNameParser.parse(dive.buddy).isNotEmpty;
-    final showDiveMaster = LegacyNameParser.parse(dive.diveMaster).isNotEmpty;
+    final showBuddy = LegacyBuddyTextSection.hasBuddyText(dive);
+    final showDiveMaster = LegacyBuddyTextSection.hasDiveMasterText(dive);
     if (!showBuddy && !showDiveMaster) return const SizedBox.shrink();
 
     // There is no record behind the text yet, so the tile opens nothing.

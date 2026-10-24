@@ -53,6 +53,8 @@ Future<PlanExportFile> planSlateExport(
   required PdfLocalization localization,
 }) async {
   final state = ref.read(divePlanNotifierProvider);
+  // The plan's own values, else the diver's Settings defaults (#3552).
+  final resolved = ref.read(resolvedPlanEngineConfigProvider);
   final bytes = await const PlanSlatePdfService().buildSlate(
     plan: divePlanFromState(state),
     outcome: ref.read(planOutcomeProvider),
@@ -63,6 +65,10 @@ Future<PlanExportFile> planSlateExport(
     bailout: ref.read(planBailoutProvider),
     units: UnitFormatter(ref.read(settingsProvider)),
     labels: labels,
+    deviationDepthDelta: resolved.deviationDepthDelta,
+    deviationTimeMinutes: resolved.deviationTimeMinutes,
+    gfLow: resolved.gfLow,
+    gfHigh: resolved.gfHigh,
   );
   return (
     bytes: bytes,
