@@ -377,7 +377,7 @@ class _DiveListPageState extends ConsumerState<DiveListPage>
     if (showMasterDetail) {
       // Desktop: Use master-detail layout
       return MasterDetailScaffold(
-        sectionId: 'dives',
+        sectionId: RecordListSection.dives,
         rememberedSelectedId: ref.watch(rememberedDiveIdProvider),
         masterBuilder: (context, onItemSelected, selectedId) => DiveListContent(
           onItemSelected: onItemSelected,

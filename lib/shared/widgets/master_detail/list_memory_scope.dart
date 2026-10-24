@@ -36,14 +36,14 @@ class ListMemoryScope extends ConsumerWidget {
 
   /// Each list's highlight and the section its details pane is keyed by.
   static final _sections = <(StateProvider<String?>, String)>[
-    (highlightedDiveIdProvider, 'dives'),
-    (highlightedSiteIdProvider, 'sites'),
-    (highlightedEquipmentIdProvider, 'equipment'),
-    (highlightedBuddyIdProvider, 'buddies'),
-    (highlightedTripIdProvider, 'trips'),
-    (highlightedDiveCenterIdProvider, 'dive-centers'),
-    (highlightedCertificationIdProvider, 'certifications'),
-    (highlightedCourseIdProvider, 'courses'),
+    (highlightedDiveIdProvider, RecordListSection.dives),
+    (highlightedSiteIdProvider, RecordListSection.sites),
+    (highlightedEquipmentIdProvider, RecordListSection.equipment),
+    (highlightedBuddyIdProvider, RecordListSection.buddies),
+    (highlightedTripIdProvider, RecordListSection.trips),
+    (highlightedDiveCenterIdProvider, RecordListSection.diveCenters),
+    (highlightedCertificationIdProvider, RecordListSection.certifications),
+    (highlightedCourseIdProvider, RecordListSection.courses),
   ];
 
   @override

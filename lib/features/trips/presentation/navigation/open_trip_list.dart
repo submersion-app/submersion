@@ -40,11 +40,12 @@ class TripListReturn implements ListReturn {
         highlightController.state = highlightedTripId;
       }
       if (closedPanesController.mounted) {
-        final closed = {...closedPanesController.state}..remove('trips');
+        final closed = {...closedPanesController.state}
+          ..remove(RecordListSection.trips);
         final id = closedPaneTripId;
         closedPanesController.state = id == null
             ? closed
-            : {...closed, 'trips': id};
+            : {...closed, RecordListSection.trips: id};
       }
     };
   }
@@ -70,7 +71,9 @@ void openTripList(BuildContext context, WidgetRef ref, TripFilterState filter) {
   final returnTo = TripListReturn(
     filter: ref.read(tripFilterProvider),
     highlightedTripId: ref.read(highlightedTripIdProvider),
-    closedPaneTripId: ref.read(closedPaneRecordProvider)['trips'],
+    closedPaneTripId: ref.read(
+      closedPaneRecordProvider,
+    )[RecordListSection.trips],
   );
   ref.read(tripFilterProvider.notifier).state = filter;
   context.push(location, extra: returnTo);

@@ -6,6 +6,8 @@ import 'package:submersion/features/buddies/presentation/providers/buddy_provide
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
+import 'package:submersion/features/dive_log/presentation/navigation/open_dive_list.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/highlight_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -120,5 +122,48 @@ void main() {
     await tester.pump();
 
     expect(container.read(closedPaneRecordProvider), {'sites': 's1'});
+  });
+
+  // A pushed dive list puts back the tab's highlight and then its emptied
+  // pane; the highlight coming back must not clear the pane it restores.
+  testWidgets('a pushed list going away keeps the tab\'s emptied pane', (
+    tester,
+  ) async {
+    container = ProviderContainer(
+      overrides: [
+        currentDiverIdProvider.overrideWith(
+          (ref) => MockCurrentDiverIdNotifier(),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+    late VoidCallback restore;
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: ListMemoryScope(
+          child: Consumer(
+            builder: (context, ref, _) {
+              restore = const DiveListReturn(
+                filter: DiveFilterState(),
+                highlightedDiveId: 'd0',
+                closedPaneDiveId: 'd0',
+              ).bindRestore(ref);
+              return const SizedBox();
+            },
+          ),
+        ),
+      ),
+    );
+    // In the pushed list the diver picked another dive.
+    container.read(highlightedDiveIdProvider.notifier).state = 'd5';
+    container.read(closedPaneRecordProvider.notifier).state = const {};
+    await tester.pump();
+
+    restore();
+    await tester.pump();
+
+    expect(container.read(highlightedDiveIdProvider), 'd0');
+    expect(container.read(closedPaneRecordProvider), {'dives': 'd0'});
   });
 }

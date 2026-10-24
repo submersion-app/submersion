@@ -179,7 +179,7 @@ class _TripListContentState extends ConsumerState<TripListContent> {
 
   void _handleItemTap(Trip trip) {
     ref.read(highlightedTripIdProvider.notifier).state = trip.id;
-    forgetClosedPane(ref, 'trips');
+    forgetClosedPane(ref, RecordListSection.trips);
     if (widget.onItemSelected != null) {
       _selectionFromList = true;
       widget.onItemSelected!(trip.id);
@@ -591,7 +591,7 @@ class _TripListContentState extends ConsumerState<TripListContent> {
                   ref.read(highlightedTripIdProvider.notifier).state = id;
                   // The same row again sets no new highlight; the pane is reopened all
                   // the same, so it is no longer one the diver emptied (#3301).
-                  forgetClosedPane(ref, 'trips');
+                  forgetClosedPane(ref, RecordListSection.trips);
                 },
                 onEntityTap: (id) {
                   if (_isSelectionMode) _selection.toggle(id);

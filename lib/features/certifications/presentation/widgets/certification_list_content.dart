@@ -175,7 +175,7 @@ class _CertificationListContentState
 
   void _handleItemTap(Certification cert) {
     ref.read(highlightedCertificationIdProvider.notifier).state = cert.id;
-    forgetClosedPane(ref, 'certifications');
+    forgetClosedPane(ref, RecordListSection.certifications);
     if (widget.onItemSelected != null) {
       _selectionFromList = true;
       widget.onItemSelected!(cert.id);
@@ -524,7 +524,7 @@ class _CertificationListContentState
             ref.read(highlightedCertificationIdProvider.notifier).state = id;
             // The same row again sets no new highlight; the pane is reopened all
             // the same, so it is no longer one the diver emptied (#3301).
-            forgetClosedPane(ref, 'certifications');
+            forgetClosedPane(ref, RecordListSection.certifications);
           },
           onEntityTap: (id) {
             if (_isSelectionMode) _selection.toggle(id);

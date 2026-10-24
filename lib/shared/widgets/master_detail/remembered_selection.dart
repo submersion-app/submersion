@@ -31,6 +31,21 @@ AsyncValue<String?> rememberedListedId<T>({
   );
 }
 
+/// The section ids of the record lists that come back to the record last
+/// opened (#3301): each list's `MasterDetailScaffold.sectionId`, and the
+/// keys of [closedPaneRecordProvider]. Named once, so the scaffold, its table
+/// and every place that clears a list's memory agree on the key.
+abstract final class RecordListSection {
+  static const dives = 'dives';
+  static const sites = 'sites';
+  static const equipment = 'equipment';
+  static const buddies = 'buddies';
+  static const trips = 'trips';
+  static const diveCenters = 'dive-centers';
+  static const certifications = 'certifications';
+  static const courses = 'courses';
+}
+
 /// Per list section, the record the details pane showed when the diver
 /// closed it.
 ///

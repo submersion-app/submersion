@@ -150,7 +150,7 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
 
   void _handleItemTap(Course course) {
     ref.read(highlightedCourseIdProvider.notifier).state = course.id;
-    forgetClosedPane(ref, 'courses');
+    forgetClosedPane(ref, RecordListSection.courses);
     if (widget.onItemSelected != null) {
       widget.onItemSelected!(course.id);
     } else {
@@ -514,7 +514,7 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
             ref.read(highlightedCourseIdProvider.notifier).state = id;
             // The same row again sets no new highlight; the pane is reopened all
             // the same, so it is no longer one the diver emptied (#3301).
-            forgetClosedPane(ref, 'courses');
+            forgetClosedPane(ref, RecordListSection.courses);
           },
           onEntityTap: (id) {
             if (_isSelectionMode) _selection.toggle(id);

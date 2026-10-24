@@ -300,7 +300,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
 
   void _handleItemTap(EquipmentItem equipment) {
     ref.read(highlightedEquipmentIdProvider.notifier).state = equipment.id;
-    forgetClosedPane(ref, 'equipment');
+    forgetClosedPane(ref, RecordListSection.equipment);
     if (widget.onItemSelected != null) {
       _selectionFromList = true;
       widget.onItemSelected!(equipment.id);
@@ -920,7 +920,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
             ref.read(highlightedEquipmentIdProvider.notifier).state = id;
             // The same row again sets no new highlight; the pane is reopened all
             // the same, so it is no longer one the diver emptied (#3301).
-            forgetClosedPane(ref, 'equipment');
+            forgetClosedPane(ref, RecordListSection.equipment);
           },
           onEntityTap: (id) {
             if (_isSelectionMode) _selection.toggle(id);

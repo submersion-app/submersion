@@ -201,7 +201,7 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
     }
 
     ref.read(highlightedDiveCenterIdProvider.notifier).state = center.id;
-    forgetClosedPane(ref, 'dive-centers');
+    forgetClosedPane(ref, RecordListSection.diveCenters);
 
     if (widget.onItemSelected != null) {
       _selectionFromList = true;
@@ -560,7 +560,7 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
             ref.read(highlightedDiveCenterIdProvider.notifier).state = id;
             // The same row again sets no new highlight; the pane is reopened all
             // the same, so it is no longer one the diver emptied (#3301).
-            forgetClosedPane(ref, 'dive-centers');
+            forgetClosedPane(ref, RecordListSection.diveCenters);
           },
           onEntityTap: (id) {
             if (_isSelectionMode) _selection.toggle(id);

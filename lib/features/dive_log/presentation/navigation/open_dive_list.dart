@@ -41,11 +41,12 @@ class DiveListReturn implements ListReturn {
         highlightController.state = highlightedDiveId;
       }
       if (closedPanesController.mounted) {
-        final closed = {...closedPanesController.state}..remove('dives');
+        final closed = {...closedPanesController.state}
+          ..remove(RecordListSection.dives);
         final id = closedPaneDiveId;
         closedPanesController.state = id == null
             ? closed
-            : {...closed, 'dives': id};
+            : {...closed, RecordListSection.dives: id};
       }
     };
   }
@@ -76,7 +77,9 @@ void openDiveList(
   final returnTo = DiveListReturn(
     filter: ref.read(diveFilterProvider),
     highlightedDiveId: ref.read(highlightedDiveIdProvider),
-    closedPaneDiveId: ref.read(closedPaneRecordProvider)['dives'],
+    closedPaneDiveId: ref.read(
+      closedPaneRecordProvider,
+    )[RecordListSection.dives],
   );
   ref.read(diveFilterProvider.notifier).state = filter;
   context.push(location, extra: returnTo);

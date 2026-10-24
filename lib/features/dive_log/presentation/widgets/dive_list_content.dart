@@ -1216,7 +1216,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
 
     // Highlight the dive in all modes.
     ref.read(highlightedDiveIdProvider.notifier).state = dive.id;
-    forgetClosedPane(ref, 'dives');
+    forgetClosedPane(ref, RecordListSection.dives);
 
     // In card/list modes, also navigate (table mode uses double-tap instead).
     if (widget.onItemSelected != null) {
@@ -1917,7 +1917,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                   ref.read(highlightedDiveIdProvider.notifier).state = id;
                   // The same row again sets no new highlight; the pane is reopened all
                   // the same, so it is no longer one the diver emptied (#3301).
-                  forgetClosedPane(ref, 'dives');
+                  forgetClosedPane(ref, RecordListSection.dives);
                 },
                 onDiveTap: (id) {
                   // Table mode now honours modifier and shift clicks too, so
