@@ -56,6 +56,10 @@ import 'package:submersion/features/trips/presentation/providers/trip_providers.
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/features/gas_calculators/domain/blending/blender_preferences.dart';
 import 'package:submersion/core/constants/o2_cell_unit.dart';
+import 'package:submersion/core/data/visibility/item_sharing.dart';
+import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
+
+import '../../../../helpers/shared_items_fixture.dart';
 
 /// Records a Share all my equipment call (issue #2046).
 class _FakeShareRepository extends EquipmentShareRepository {
@@ -74,22 +78,10 @@ class _FakeShareRepository extends EquipmentShareRepository {
 /// Minimal fake SiteRepository for bulk-share smoke tests.
 class _FakeSiteRepository implements SiteRepository {
   final List<domain.DiveSite> _sites;
-  String? shareAllForDiverCalledFor;
-  int shareAllForDiverResult;
-
-  _FakeSiteRepository({
-    required List<domain.DiveSite> sites,
-    this.shareAllForDiverResult = 0,
-  }) : _sites = sites;
+  _FakeSiteRepository({required List<domain.DiveSite> sites}) : _sites = sites;
 
   @override
   Future<List<domain.DiveSite>> getAllSites({String? diverId}) async => _sites;
-
-  @override
-  Future<int> shareAllForDiver(String diverId) async {
-    shareAllForDiverCalledFor = diverId;
-    return shareAllForDiverResult;
-  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => throw UnimplementedError(
@@ -100,22 +92,10 @@ class _FakeSiteRepository implements SiteRepository {
 /// Minimal fake TripRepository for bulk-share smoke tests.
 class _FakeTripRepository implements TripRepository {
   final List<trips.Trip> _trips;
-  String? shareAllForDiverCalledFor;
-  int shareAllForDiverResult;
-
-  _FakeTripRepository({
-    required List<trips.Trip> tripList,
-    this.shareAllForDiverResult = 0,
-  }) : _trips = tripList;
+  _FakeTripRepository({required List<trips.Trip> tripList}) : _trips = tripList;
 
   @override
   Future<List<trips.Trip>> getAllTrips({String? diverId}) async => _trips;
-
-  @override
-  Future<int> shareAllForDiver(String diverId) async {
-    shareAllForDiverCalledFor = diverId;
-    return shareAllForDiverResult;
-  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => throw UnimplementedError(
@@ -1239,12 +1219,12 @@ void main() {
       // Three private sites owned by diver-1.
       final fakeSiteRepo = _FakeSiteRepository(
         sites: [
-          const domain.DiveSite(id: 's1', name: 'Site 1', isShared: false),
-          const domain.DiveSite(id: 's2', name: 'Site 2', isShared: false),
-          const domain.DiveSite(id: 's3', name: 'Site 3', isShared: false),
+          const domain.DiveSite(id: 's1', name: 'Site 1', diverId: 'diver-1'),
+          const domain.DiveSite(id: 's2', name: 'Site 2', diverId: 'diver-1'),
+          const domain.DiveSite(id: 's3', name: 'Site 3', diverId: 'diver-1'),
         ],
-        shareAllForDiverResult: 3,
       );
+      final itemShares = FakeItemShares();
 
       Widget buildWithBulkShare(Widget child) {
         fakeAppSettings = _FakeAppSettingsRepository();
@@ -1272,6 +1252,7 @@ void main() {
                 (ref) async => fakeAppSettings.getShareByDefault(),
               ),
               siteRepositoryProvider.overrideWithValue(fakeSiteRepo),
+              itemSharesRepositoryProvider.overrideWithValue(itemShares),
             ],
             child: MaterialApp(
               localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -1287,28 +1268,34 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Tap "Share all my sites".
-      final siteTile = find.text('Share all my sites');
+      // Tap "Share all my sites...".
+      final siteTile = find.text('Share all my sites...');
       expect(siteTile, findsOneWidget);
       await tester.tap(siteTile);
       await tester.pumpAndSettle();
 
-      // Confirmation dialog should appear with the private count (3).
+      // The picker says how many sites and how to change one later.
       expect(find.byType(AlertDialog), findsOneWidget);
-      expect(find.textContaining('3'), findsWidgets);
+      expect(
+        find.text(
+          'Choose who sees all 3 of your sites. To change one site later, '
+          'open it and tap Shared with.',
+        ),
+        findsOneWidget,
+      );
 
-      // Tap the Share button.
-      final shareButton = find.text('Share');
-      expect(shareButton, findsOneWidget);
-      await tester.tap(shareButton);
+      // Choose the other profile, then Share.
+      await tester.tap(find.text('Diver diver-2'));
+      await tester.pump();
+      await tester.tap(find.text('Share'));
       await tester.pumpAndSettle();
+      await tester.pump();
 
-      // Success snackbar should appear.
-      expect(find.byType(SnackBar), findsOneWidget);
-      expect(find.textContaining('3'), findsWidgets);
-
-      // Repository action was called for diver-1.
-      expect(fakeSiteRepo.shareAllForDiverCalledFor, equals('diver-1'));
+      // Every owned site gains the profile; nothing is taken away.
+      final (ids, added) = itemShares.addCalls.single;
+      expect(ids, ['s1', 's2', 's3']);
+      expect(added, const ItemSharing(profileIds: {'diver-2'}));
+      expect(find.text('Shared 3 items'), findsOneWidget);
     });
 
     testWidgets('bulk-share trips: tap, confirm, see snackbar with count', (
@@ -1327,7 +1314,7 @@ void main() {
             endDate: now,
             createdAt: now,
             updatedAt: now,
-            isShared: false,
+            diverId: 'diver-1',
           ),
           trips.Trip(
             id: 't2',
@@ -1336,11 +1323,11 @@ void main() {
             endDate: now,
             createdAt: now,
             updatedAt: now,
-            isShared: false,
+            diverId: 'diver-1',
           ),
         ],
-        shareAllForDiverResult: 2,
       );
+      final itemShares = FakeItemShares();
 
       Widget buildWithBulkShare(Widget child) {
         fakeAppSettings = _FakeAppSettingsRepository();
@@ -1368,6 +1355,7 @@ void main() {
                 (ref) async => fakeAppSettings.getShareByDefault(),
               ),
               tripRepositoryProvider.overrideWithValue(fakeTripRepo),
+              itemSharesRepositoryProvider.overrideWithValue(itemShares),
             ],
             child: MaterialApp(
               localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -1383,28 +1371,33 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Tap "Share all my trips".
-      final tripTile = find.text('Share all my trips');
+      // Tap "Share all my trips...".
+      final tripTile = find.text('Share all my trips...');
       expect(tripTile, findsOneWidget);
       await tester.tap(tripTile);
       await tester.pumpAndSettle();
 
-      // Confirmation dialog should appear with the private count (2).
+      // The picker says how many trips and how to change one later.
       expect(find.byType(AlertDialog), findsOneWidget);
-      expect(find.textContaining('2'), findsWidgets);
+      expect(
+        find.text(
+          'Choose who sees all 2 of your trips. To change one trip later, '
+          'open it and tap Shared with.',
+        ),
+        findsOneWidget,
+      );
 
-      // Tap the Share button.
-      final shareButton = find.text('Share');
-      expect(shareButton, findsOneWidget);
-      await tester.tap(shareButton);
+      // Choose Everyone, then Share.
+      await tester.tap(find.text('Everyone'));
+      await tester.pump();
+      await tester.tap(find.text('Share'));
       await tester.pumpAndSettle();
+      await tester.pump();
 
-      // Success snackbar should appear.
-      expect(find.byType(SnackBar), findsOneWidget);
-      expect(find.textContaining('2'), findsWidgets);
-
-      // Repository action was called for diver-1.
-      expect(fakeTripRepo.shareAllForDiverCalledFor, equals('diver-1'));
+      final (ids, added) = itemShares.addCalls.single;
+      expect(ids, ['t1', 't2']);
+      expect(added, ItemSharing.all);
+      expect(find.text('Shared 2 items'), findsOneWidget);
     });
   });
 }

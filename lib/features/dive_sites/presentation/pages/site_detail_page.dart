@@ -39,6 +39,7 @@ import 'package:submersion/features/dive_sites/presentation/widgets/site_tags_ca
 import 'package:submersion/features/site_types/presentation/site_type_display.dart';
 import 'package:submersion/features/dive_sites/presentation/site_difficulty_display.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_detail_header.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/duplicate_site_action.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_detail_properties_menu.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_rating_stars.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_detail_section_list.dart';
@@ -68,6 +69,7 @@ import 'package:submersion/core/services/shared_library/shared_library_models.da
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_providers.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/library_picker_dialog.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/site_edit_history_sheet.dart';
+import 'package:submersion/shared/widgets/shared_items/item_sharing_row.dart';
 
 class SiteDetailPage extends ConsumerStatefulWidget {
   final String siteId;
@@ -229,7 +231,13 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
             kind: SharedItemKind.site,
             itemId: site.id,
             ownerId: site.diverId,
-            isShared: site.isShared,
+          ),
+          ItemSharingRow(
+            kind: SharedItemKind.site,
+            itemId: site.id,
+            ownerId: site.diverId,
+            itemName: site.name,
+            isLibrarySite: site.isLibrarySite,
           ),
           const SizedBox(height: kSiteDetailCardGap),
           SiteDetailSectionList(
@@ -278,6 +286,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
                   _handleMenuAction(context, ref, value, site),
               itemBuilder: (context) => [
                 openInConnectionsMenuItem(context),
+                duplicateSiteMenuItem(context),
                 displayOptionsMenuItem(context, 'displayOptions'),
                 ..._libraryMenuItems(context, ref, site),
               ],
@@ -438,6 +447,13 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
       site.id,
       canDestroy: canDestroy != false,
     );
+    // Remove only while the site reaches this profile (issue #2151).
+    final reachesHere = watchReachesHere(
+      ref,
+      SharedItemKind.site,
+      site.id,
+      libraryId: site.sharedLibraryId,
+    );
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
@@ -524,6 +540,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
                   _handleMenuAction(context, ref, value, site),
               itemBuilder: (context) => [
                 openInConnectionsMenuItem(context),
+                duplicateSiteMenuItem(context),
                 displayOptionsMenuItem(context, 'displayOptions'),
                 ..._libraryMenuItems(context, ref, site),
                 // Delete for the owner; another profile only removes the
@@ -550,7 +567,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
                       contentPadding: EdgeInsets.zero,
                     ),
                   )
-                else if (canDestroy == false)
+                else if (canDestroy == false && reachesHere)
                   PopupMenuItem(
                     value: 'remove',
                     child: ListTile(
@@ -804,6 +821,10 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
       _displayOptionsMenu.open();
       return;
     }
+    if (action == kDuplicateSiteAction) {
+      await openDuplicateSite(context, ref, site.id);
+      return;
+    }
     if (action == 'remove') {
       await _removeFromProfile(context, ref, site);
       return;
@@ -834,7 +855,18 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
       final divers = await ref.read(allDiversProvider.future);
       final usage = await readSiteDeleteUsage(ref, [site.id]);
       final diverCount = divers.length;
-      final isSharedDelete = site.isShared && diverCount >= 2;
+      if (!context.mounted) return;
+      // Shared with everyone or with chosen profiles (issue #2151).
+      final shared = diverCount < 2
+          ? false
+          : await readSharedWithAnyone(
+              ref,
+              context,
+              SharedItemKind.site,
+              site.id,
+            );
+      if (shared == null) return;
+      final isSharedDelete = shared;
       // The other profiles' dives that lose the site (issue #2594).
       final others = isSharedDelete
           ? (await readDiveLinkCounts(ref, SharedItemKind.site, site.id)).others

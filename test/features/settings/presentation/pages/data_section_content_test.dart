@@ -17,11 +17,10 @@ import 'package:submersion/features/backup/data/repositories/backup_preferences.
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/settings/domain/data_health/feature_health.dart';
 import 'package:submersion/features/settings/domain/setup/set_up_progress.dart';
+import 'package:submersion/features/settings/presentation/providers/account_group_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/debug_log_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/pending_setup_items_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/set_up_progress_provider.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/features/settings/data/set_up_card_prefs.dart';
 import 'package:submersion/features/settings/presentation/pages/data_section_content.dart';
 import 'package:submersion/features/settings/presentation/widgets/data_health/data_facts_line.dart';
 import 'package:submersion/features/settings/presentation/widgets/set_up_device/set_up_device_card.dart';
@@ -95,10 +94,12 @@ void main() {
           '/settings/cloud-sync',
           '/settings/photos-media',
           '/settings/connected-accounts',
+          '/settings/setup',
         ])
           GoRoute(
             path: path,
-            builder: (context, state) => Scaffold(body: Text('page $path')),
+            builder: (context, state) =>
+                Scaffold(body: Text('page ${state.uri}')),
           ),
       ],
     );
@@ -122,6 +123,8 @@ void main() {
           // Null unless a test sets it: no set up card, no again row.
           setUpProgressProvider.overrideWithValue(setUp),
           pendingSetupItemsProvider.overrideWith((ref) async => const []),
+          // The flow opened in the pane lists the accounts.
+          accountGroupsProvider.overrideWith((ref) async => const []),
         ],
         child: MaterialApp.router(
           locale: const Locale('en'),
@@ -230,7 +233,40 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text('page /settings/cloud-sync'), findsOneWidget);
+    // No account chosen yet: Set up starts from the account step.
+    expect(find.text('page /settings/setup?step=account'), findsOneWidget);
+  });
+
+  // Sync offers Set up only while it is off, so step 2 would have no
+  // account to read even when a backup copy or photos name one.
+  testWidgets('with another feature naming an account, Sync still starts '
+      'from the account step', (tester) async {
+    await pumpData(
+      tester,
+      dataHealth: [
+        health[0],
+        const FeatureHealth(
+          feature: DataFeature.sync,
+          level: HealthLevel.attention,
+          reason: HealthReason.syncOff,
+        ),
+        health[2],
+        health[3],
+      ],
+      setUp: setUpProgressOf(accountHere: true),
+    );
+
+    await tester.tap(
+      find.descendant(
+        of: find.ancestor(
+          of: find.text('Only on this device'),
+          matching: find.byType(ListTile),
+        ),
+        matching: find.text('Set up'),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('page /settings/setup?step=account'), findsOneWidget);
   });
 
   testWidgets('photos row offers set up when copies are not kept', (
@@ -249,7 +285,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text('page /settings/photos-media'), findsOneWidget);
+    expect(find.text('page /settings/setup?step=photos'), findsOneWidget);
   });
 
   testWidgets('advanced rows push their pages', (tester) async {
@@ -432,7 +468,7 @@ void main() {
       await tester.tap(inDataPage(find.text('Continue')));
       await tester.pumpAndSettle();
 
-      expect(find.text('page /settings/cloud-sync'), findsOneWidget);
+      expect(find.text('page /settings/setup?step=sync'), findsOneWidget);
     });
 
     testWidgets('on a master-detail window Continue opens the step in the '
@@ -446,10 +482,10 @@ void main() {
       await tester.tap(inDataPage(find.text('Continue')));
       await tester.pumpAndSettle();
 
-      expect(
-        router.routerDelegate.currentConfiguration.uri.toString(),
-        '/settings?selected=data&dataPage=cloud-sync',
-      );
+      expect(router.routerDelegate.currentConfiguration.uri.queryParameters, {
+        'selected': 'data',
+        'dataPage': 'setup?step=sync',
+      });
       expect(find.byType(SettingsListContent), findsOneWidget);
     });
   });
@@ -474,20 +510,14 @@ void main() {
       );
     });
 
-    testWidgets('on a hidden card, shows the card again and opens the '
-        'first step', (tester) async {
+    // The flow opened afresh shows a hidden card again (its own test).
+    testWidgets('on a hidden card, opens the flow afresh', (tester) async {
       await pumpData(tester, setUp: setUpProgressOf(hidden: true));
-      final container = ProviderScope.containerOf(
-        tester.element(find.byType(DataSectionContent)),
-      );
-      final prefs = container.read(sharedPreferencesProvider);
-      await prefs.setBool(SetUpCardPrefs.hiddenKey, true);
 
       await tester.tap(find.text('Set up this phone again'));
       await tester.pumpAndSettle();
 
-      expect(prefs.getBool(SetUpCardPrefs.hiddenKey), isFalse);
-      expect(find.text('page /settings/connected-accounts'), findsOneWidget);
+      expect(find.text('page /settings/setup?again=true'), findsOneWidget);
     });
   });
 

@@ -29,14 +29,12 @@ import 'package:submersion/features/dive_log/presentation/widgets/computer_mix_n
 import 'package:submersion/features/dive_log/presentation/widgets/own_cylinder_picker_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_preset_dropdown.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/tank_regulator_pickers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_role_option.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/cylinder_passports/presentation/utils/import_tag_fill.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
-import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
-import 'package:submersion/features/equipment/presentation/utils/equipment_row_labels_of.dart';
-import 'package:submersion/features/equipment/presentation/widgets/equipment_dropdown_label.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_state.dart';
 import 'package:submersion/features/trips/domain/services/trip_cylinder_tank_link.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_cylinder_display.dart';
@@ -133,22 +131,15 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   /// which it would otherwise overwrite.
   int _specChoice = 0;
 
-  /// The regulator breathed from this cylinder (v202). Null until the diver
-  /// picks one or a preset prefills it from the last pairing.
-  String? _regulatorEquipmentId;
+  /// The regulators breathed from this cylinder (v202; more than one from
+  /// v312, issue #3375): the first, then the extras. Empty until the diver
+  /// picks one or a preset prefills them from the last pairing.
+  List<String> _regulatorIds = const [];
 
   /// The tagged cylinder this tank came from (issue #2650). Set by a scan
   /// or a cylinder pick, cleared by a preset or a trip slot, kept by hand
   /// edits.
   String? _passportId;
-
-  /// Whether the regulator dropdown also lists retired and sold regulators,
-  /// which the diver asks for with its last item (#3210).
-  bool _showLeftKitRegulators = false;
-
-  /// The value of that last item. Not a regulator: choosing it changes the
-  /// list, not the tank.
-  static const _showLeftKitValue = '__show-left-kit-regulators__';
 
   /// The last O2/He value each field actually parsed to, tracked separately
   /// from [widget.tank]: `_notifyChange` fires on every keystroke, so a
@@ -249,7 +240,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     _mndController = TextEditingController();
     _role = widget.tank.role;
     _material = widget.tank.material;
-    _regulatorEquipmentId = widget.tank.regulatorEquipmentId;
+    _regulatorIds = widget.tank.regulatorIds;
     _passportId = widget.tank.passportId;
     // Initialize selected preset from tank's presetName
     // Check built-in presets first, async lookup for custom presets happens in build
@@ -477,7 +468,6 @@ class _TankEditorState extends ConsumerState<TankEditor> {
       sourceId: widget.tank.sourceId,
       sourceTankIndex: widget.tank.sourceTankIndex,
       sharedComputerIds: widget.tank.sharedComputerIds,
-      regulatorEquipmentId: _regulatorEquipmentId,
       // Only the trip cylinder picker changes the link; every other edit
       // carries it, or updateDive would wipe it on the next save.
       tripCylinderId: widget.tank.tripCylinderId,
@@ -486,7 +476,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
       // Import-owned (issue #1496): carried so the edited tank still
       // reports what the source log recorded.
       usageDuration: widget.tank.usageDuration,
-    );
+    ).withRegulators(_regulatorIds);
   }
 
   void _notifyChange() => widget.onChanged(_currentTank());
@@ -531,7 +521,13 @@ class _TankEditorState extends ConsumerState<TankEditor> {
             // contact reaches the regulator's service clocks.
             if (widget.tripCylinderStates case final states?)
               _buildTripCylinderPicker(states),
-            _buildRegulatorPicker(),
+            TankRegulatorPickers(
+              regulatorIds: _regulatorIds,
+              onChanged: (ids) {
+                setState(() => _regulatorIds = ids);
+                _notifyChange();
+              },
+            ),
             const SizedBox(height: 12),
 
             // Gas mix with templates
@@ -760,87 +756,6 @@ class _TankEditorState extends ConsumerState<TankEditor> {
           // replaces it (issue #2650).
           ? current.copyWith(clearTripCylinderId: true)
           : tankFromTripCylinder(current, slot),
-    );
-  }
-
-  Widget _buildRegulatorPicker() {
-    final regs =
-        // `value`, not `valueOrNull`: it keeps the previous list while the
-        // provider reloads, so the tank's regulator does not flicker to None.
-        (ref.watch(activeEquipmentProvider).value ?? const <EquipmentItem>[])
-            .where((e) => e.type == EquipmentType.regulator)
-            // Spare regulators are not offered (#1803), except the one this
-            // tank already uses, so an existing dive never reads "None".
-            .where(
-              (e) =>
-                  e.status != EquipmentStatus.spare ||
-                  e.id == _regulatorEquipmentId,
-            )
-            .toList();
-    final leftKit =
-        (ref.watch(leftKitEquipmentProvider).value ?? const <EquipmentItem>[])
-            .where((e) => e.type == EquipmentType.regulator)
-            .toList();
-    // Retired and sold regulators only on request (#3210), except the one
-    // this tank already uses, so a dive breathing from a regulator since
-    // retired never reads "None".
-    final options = [
-      ...regs,
-      for (final r in leftKit)
-        if (_showLeftKitRegulators || r.id == _regulatorEquipmentId) r,
-    ];
-    final offerShowLeftKit = options.length < regs.length + leftKit.length;
-    final known = options.any((r) => r.id == _regulatorEquipmentId);
-    // Labelled as one list, so regulators sharing a name show their ID and,
-    // if that is not enough, the next detail that differs (#1549, #3191).
-    final labels = equipmentRowLabelsOf(context, ref, options);
-    // Keyed on the show choice: the field holds its value internally, and
-    // choosing the show item would otherwise leave it on that item's value.
-    // A fresh field starts again from the tank's regulator.
-    return KeyedSubtree(
-      key: ValueKey(_showLeftKitRegulators),
-      child: DropdownButtonFormField<String?>(
-        key: const Key('tank-regulator-picker'),
-        initialValue: known ? _regulatorEquipmentId : null,
-        isExpanded: true,
-        decoration: InputDecoration(
-          labelText: context.l10n.diveLog_tank_regulatorLabel,
-          isDense: true,
-        ),
-        items: [
-          DropdownMenuItem<String?>(
-            value: null,
-            child: Text(context.l10n.diveLog_tank_regulatorNone),
-          ),
-          for (final r in options)
-            DropdownMenuItem<String?>(
-              value: r.id,
-              child: EquipmentDropdownLabel(
-                item: r,
-                label: labels[r.id],
-                note: r.hasLeftKit
-                    ? r.effectiveStatus.localizedName(context.l10n)
-                    : null,
-              ),
-            ),
-          if (offerShowLeftKit)
-            DropdownMenuItem<String?>(
-              value: _showLeftKitValue,
-              child: Text(
-                context.l10n.diveLog_tank_regulatorShowLeftKit,
-                style: TextStyle(color: Theme.of(context).colorScheme.primary),
-              ),
-            ),
-        ],
-        onChanged: (value) {
-          if (value == _showLeftKitValue) {
-            setState(() => _showLeftKitRegulators = true);
-            return;
-          }
-          setState(() => _regulatorEquipmentId = value);
-          _notifyChange();
-        },
-      ),
     );
   }
 
@@ -1182,26 +1097,24 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     );
   }
 
-  /// Prefill the regulator from the last dive that paired one with this
+  /// Prefill the regulators from the last dive that paired any with this
   /// preset, but never overwrite a choice already made on this tank.
   void _prefillRegulatorFor(String presetName) {
-    if (_regulatorEquipmentId != null) return;
+    if (_regulatorIds.isNotEmpty) return;
     // A convenience, not a requirement: a host without a database (widget
     // tests, previews) must not break preset selection.
-    Future<String?> lookup;
+    Future<List<String>> lookup;
     try {
       lookup = ref
           .read(equipmentRepositoryProvider)
-          .getLastRegulatorForPreset(presetName);
+          .getLastRegulatorsForPreset(presetName);
     } catch (_) {
       return;
     }
     lookup
-        .then((reg) {
-          if (!mounted || reg == null || _regulatorEquipmentId != null) {
-            return;
-          }
-          setState(() => _regulatorEquipmentId = reg);
+        .then((regs) {
+          if (!mounted || regs.isEmpty || _regulatorIds.isNotEmpty) return;
+          setState(() => _regulatorIds = regs);
           _notifyChange();
         })
         .catchError((Object _) {});

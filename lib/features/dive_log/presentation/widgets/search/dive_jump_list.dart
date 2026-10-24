@@ -5,11 +5,13 @@ import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_search_providers.dart';
+import 'package:submersion/features/dive_log/query/dive_number_query.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The newest dives matching the typed query over the WHOLE log, ignoring
-/// the list's other filters (#2773, the Search overlay's old job).
+/// the list's other filters (#2773, the Search overlay's old job). A typed
+/// dive number's dives lead, titled by their number (#3455).
 class DiveJumpList extends ConsumerStatefulWidget {
   const DiveJumpList({super.key, required this.query, required this.onOpen});
 
@@ -25,6 +27,10 @@ class _DiveJumpListState extends ConsumerState<DiveJumpList> {
   /// list does not collapse and reappear as the diver types.
   List<DiveSummary> _shown = const [];
 
+  /// The dive number of the query that answered [_shown], so rows kept
+  /// while the next query loads keep their own labels.
+  int? _shownNumber;
+
   @override
   Widget build(BuildContext context) {
     final result = ref.watch(diveJumpResultsProvider(widget.query));
@@ -34,11 +40,21 @@ class _DiveJumpListState extends ConsumerState<DiveJumpList> {
       _shown = const [];
     } else if (result.value case final latest?) {
       _shown = latest;
+      _shownNumber = bareDiveNumber(widget.query);
     }
     final dives = _shown;
     if (dives.isEmpty) return const SizedBox.shrink();
     final units = UnitFormatter(ref.watch(settingsProvider));
     final theme = Theme.of(context);
+    final number = _shownNumber;
+    String title(DiveSummary d) {
+      final name =
+          d.siteName ?? d.name ?? units.formatMonthDayWithYear(d.dateTime);
+      return number != null && d.diveNumber == number
+          ? context.l10n.diveLog_search_jumpNumberTitle(number, name)
+          : name;
+    }
+
     // Inside the field's tap region: on desktop a mouse press anywhere
     // else unfocuses the field, which would hide these rows before the
     // click on one of them landed.
@@ -61,9 +77,7 @@ class _DiveJumpListState extends ConsumerState<DiveJumpList> {
                 key: ValueKey('dive-jump-${d.id}'),
                 dense: true,
                 title: Text(
-                  d.siteName ??
-                      d.name ??
-                      units.formatMonthDayWithYear(d.dateTime),
+                  title(d),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),

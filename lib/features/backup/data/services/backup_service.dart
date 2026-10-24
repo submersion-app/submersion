@@ -32,6 +32,8 @@ import 'package:submersion/core/services/database_service.dart'
     show DatabaseService;
 import 'package:submersion/features/backup/domain/exceptions/backup_encrypted_exception.dart';
 import 'package:submersion/features/backup/data/services/backup_attribution.dart';
+import 'package:submersion/features/backup/data/services/backup_pin_markers.dart';
+import 'package:submersion/features/backup/data/services/cross_device_retention.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 import 'package:submersion/features/marine_life/data/services/builtin_species_seed_version_store.dart';
 import 'package:submersion/features/backup/data/services/backup_database_adapter.dart';
@@ -49,6 +51,8 @@ import 'package:submersion/features/backup/domain/entities/restore_mode.dart';
 export 'package:submersion/features/backup/data/services/backup_database_adapter.dart';
 
 part 'backup_service_cloud_copy.dart';
+part 'backup_service_pruning.dart';
+part 'backup_service_retention.dart';
 
 /// A backups directory ready to write into, plus [release] to call when the
 /// caller is done -- which stops any security-scoped access that was armed to
@@ -1225,20 +1229,7 @@ class BackupService {
   }) async {
     _log.info('Deleting backup: ${record.filename}');
 
-    // Delete local file (filesystem path or SAF document URI)
-    if (record.localPath != null) {
-      final ref = record.localPath!;
-      if (isSafRef(ref)) {
-        await _safPort.delete(ref);
-        _log.info('Deleted SAF backup: $ref');
-      } else {
-        final file = File(ref);
-        if (await file.exists()) {
-          await file.delete();
-          _log.info('Deleted local file: $ref');
-        }
-      }
-    }
+    await _deleteLocalCopy(record);
 
     // Delete cloud file; a copy in another account is left where it is.
     if (deleteCloud && await _cloudCopyHere(record)) {
@@ -1286,12 +1277,12 @@ class BackupService {
     if (!await _cloudCopyHere(record)) return;
     if (!await provider.fileExists(cloudFileId)) return;
     // Listed through this provider, so it is in the copy's account now.
-    await _preferences.addRecord(
-      record.copyWith(
-        pinned: true,
-        cloudAccountId: record.cloudAccountId ?? await _copyAccountIdOrNull(),
-      ),
+    final adopted = record.copyWith(
+      pinned: true,
+      cloudAccountId: record.cloudAccountId ?? await _copyAccountIdOrNull(),
     );
+    await _preferences.addRecord(adopted);
+    await _writePinMarker(adopted);
   }
 
   /// Whether deleting [record] may destroy another device's only copy.
@@ -1329,88 +1320,11 @@ class BackupService {
     }
     if (match == null) return;
     await _preferences.updateRecord(match.copyWith(pinned: pinned));
-  }
-
-  /// Remove old backups beyond the retention count.
-  ///
-  /// Only prunes manual, unpinned records. Pre-migration records have their
-  /// own retention managed by PreMigrationBackupService. Pinned records are
-  /// exempt from all automatic retention.
-  ///
-  /// Keeps the [keepCount] most recent unpinned manual backups and deletes
-  /// the rest.
-  Future<void> pruneOldBackups(int keepCount) async {
-    final history = getBackupHistory(); // Already sorted newest-first
-
-    final eligible = history
-        .where((r) => r.type == BackupType.manual && !r.pinned)
-        .toList();
-    if (eligible.length <= keepCount) return;
-
-    final toDelete = eligible.sublist(keepCount);
-    _log.info(
-      'Pruning ${toDelete.length} old manual backups (keeping $keepCount)',
-    );
-
-    // Cloud copies first, pushed in one batch on a backend that defers
-    // deletes (Git). A record goes only after that push: if it fails, the
-    // records whose cloud copy it covered stay, local copy and all, and the
-    // next prune deletes them again.
-    final provider = _cloudProvider;
-    var cloudPushed = true;
-    if (provider != null) {
-      var recorded = 0;
-      final here = await _cloudCopyCheck();
-      for (final record in toDelete) {
-        final id = record.cloudFileId;
-        // A copy in another account is left where it is.
-        if (id == null || !here(record)) continue;
-        try {
-          await provider.deleteFile(id);
-          recorded++;
-        } catch (e, st) {
-          // As for a single delete: a cloud copy this backend refuses to
-          // delete does not keep its record in history.
-          _log.warning(
-            'Failed to delete pruned cloud backup ${record.filename}',
-            error: e,
-            stackTrace: st,
-          );
-        }
-      }
-      if (recorded > 0) {
-        try {
-          await flushDeferredWrites(provider);
-        } catch (e, st) {
-          cloudPushed = false;
-          _log.warning(
-            'Pruned backups not deleted from the cloud; retried next prune',
-            error: e,
-            stackTrace: st,
-          );
-        }
-      }
-    }
-
-    for (final record in toDelete) {
-      if (!cloudPushed && record.cloudFileId != null) continue;
-      try {
-        await _deleteBackup(record, deleteCloud: false);
-      } catch (e, st) {
-        // Best-effort: pruning is a side effect of the operation that
-        // triggered it (a fresh backup, or the safety snapshot restoreFromFile
-        // takes before swapping the database in). A single old backup this
-        // platform refuses to delete -- outside the sandbox, on a locked
-        // network share, whatever the cause -- must not abort that operation.
-        // Left in history, it is retried on every future prune rather than
-        // silently forgotten.
-        _log.warning(
-          'Failed to prune old backup ${record.filename}; will retry next '
-          'time',
-          error: e,
-          stackTrace: st,
-        );
-      }
+    // Other devices see a pin only through its marker (issue #3503).
+    if (pinned) {
+      await _writePinMarker(match);
+    } else {
+      await _deletePinMarker(match);
     }
   }
 

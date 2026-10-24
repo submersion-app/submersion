@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/services/cloud_storage/deferred_write_provider.dart';
 import 'package:submersion/core/services/cloud_storage/git/git_errors.dart';
 import 'package:submersion/core/services/sync/crypto/sync_envelope.dart';
 
@@ -107,6 +108,49 @@ void main() {
       },
       skip: skip,
     );
+  });
+
+  group('pin markers in a public repository (#3503)', () {
+    late GitTestServer server;
+    late Directory repo;
+
+    setUp(() async {
+      server = await startGitTestServer(
+        requireUser: 'diver',
+        requirePassword: 'tok',
+        anonymousRead: true,
+      );
+      repo = await server.createBareRepo('open');
+    });
+
+    test('accepts an empty pin marker: it carries no data', () async {
+      final p = await gitTestProvider(server.repoUrl('open'));
+      await p.uploadFile(
+        Uint8List(0),
+        'submersion_backup_2026-10-01_090000__p0123456789abcdef.pin',
+        folderId: 'Submersion Backups',
+      );
+      await flushDeferredWrites(p);
+      expect(
+        await syncBranchFiles(repo),
+        contains(
+          'Submersion Backups/'
+          'submersion_backup_2026-10-01_090000__p0123456789abcdef.pin',
+        ),
+      );
+    }, skip: skip);
+
+    test('refuses a .pin that is not empty', () async {
+      final p = await gitTestProvider(server.repoUrl('open'));
+      await expectLater(
+        p.uploadFile(
+          _plain('secret'),
+          'submersion_backup_X__p0123456789abcdef.pin',
+          folderId: 'Submersion Backups',
+        ),
+        _refusedAs(GitErrorCode.publicRepoUnencrypted),
+      );
+    }, skip: skip);
   });
 
   test('an unclear answer on whether the repository is public holds plaintext '

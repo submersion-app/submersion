@@ -6,7 +6,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/media/data/services/media_source_resolver_registry.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
@@ -115,6 +117,54 @@ class _FakeVideoPlatform extends VideoPlayerPlatform {
       ),
     );
   }
+
+  /// Reports a clip the decoder cannot open, after its player was created;
+  /// VideoPlayerController.initialize() then throws.
+  void failInitialization() {
+    _events.addError(
+      PlatformException(code: 'VideoError', message: 'Unsupported codec'),
+    );
+  }
+}
+
+/// A platform with no player, as on Windows before video_player_win (#3548):
+/// creation throws the platform interface's own UnimplementedError. The
+/// controller then never completes its creation, so its dispose() waits
+/// forever.
+class _UncreatableVideoPlatform extends _FakeVideoPlatform {
+  @override
+  Future<int?> create(DataSource dataSource) =>
+      throw UnimplementedError('create() has not been implemented.');
+
+  @override
+  Future<int?> createWithOptions(VideoCreationOptions options) =>
+      throw UnimplementedError('create() has not been implemented.');
+}
+
+/// A platform whose native release fails, so VideoPlayerController.dispose()
+/// throws.
+class _UnreleasableVideoPlatform extends _FakeVideoPlatform {
+  @override
+  Future<void> dispose(int playerId) async {
+    disposed++;
+    throw PlatformException(code: 'VideoError', message: 'release blew up');
+  }
+}
+
+/// Installs [platform] as the player for this test, restoring the previous
+/// one when it ends: CI runs many test files in one isolate (#2500).
+void _usePlatform(VideoPlayerPlatform platform) {
+  final original = VideoPlayerPlatform.instance;
+  addTearDown(() => VideoPlayerPlatform.instance = original);
+  VideoPlayerPlatform.instance = platform;
+}
+
+/// Every log entry written from now until the test ends.
+List<LogEntry> _captureLogs() {
+  final logged = <LogEntry>[];
+  final subscription = LoggerService.logStream.listen(logged.add);
+  addTearDown(subscription.cancel);
+  return logged;
 }
 
 /// A clip path under the platform's temp directory. The fake platform never
@@ -193,13 +243,97 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('a player that cannot be created reports and logs the failure '
+      'instead of spinning', (tester) async {
+    _usePlatform(_UncreatableVideoPlatform());
+    final logged = _captureLogs();
+
+    await pump(tester, path: () async => _tempVideoPath('v1'));
+
+    expect(find.text('Failed to load video'), findsOneWidget);
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+    expect(
+      logged.where(
+        (e) =>
+            e.category == LogCategory.media &&
+            e.message.contains('create() has not been implemented'),
+      ),
+      isNotEmpty,
+    );
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('a video that fails after its player was created reports the '
+      'failure and still releases the player', (tester) async {
+    final platform = _FakeVideoPlatform();
+    _usePlatform(platform);
+
+    // pump() leaves initialize() waiting on the platform's events.
+    await pump(tester, path: () async => _tempVideoPath('v1'));
+    await tester.runAsync(() async {
+      platform.failInitialization();
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+      await tester.pump();
+    });
+
+    expect(find.text('Failed to load video'), findsOneWidget);
+    expect(platform.created, 1);
+    // The native decoder is not left behind for the process lifetime.
+    expect(platform.disposed, 1);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('a load that finishes after the viewer closed releases its '
+      'player', (tester) async {
+    final platform = _FakeVideoPlatform();
+    _usePlatform(platform);
+
+    // pump() leaves initialize() waiting on the platform's events.
+    await pump(tester, path: () async => _tempVideoPath('v1'));
+    await tester.runAsync(() async {
+      await tester.pumpWidget(const SizedBox());
+      platform.completeInitialization();
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+    });
+
+    expect(platform.created, 1);
+    expect(platform.disposed, 1);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('a release that fails is logged, not left unhandled', (
+    tester,
+  ) async {
+    final platform = _UnreleasableVideoPlatform();
+    _usePlatform(platform);
+    final logged = _captureLogs();
+
+    await pump(tester, path: () async => _tempVideoPath('v1'));
+    await tester.runAsync(() async {
+      platform.failInitialization();
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+      await tester.pump();
+    });
+
+    expect(find.text('Failed to load video'), findsOneWidget);
+    expect(platform.disposed, 1);
+    expect(
+      logged.where(
+        (e) =>
+            e.category == LogCategory.media &&
+            e.message.contains('release failed') &&
+            e.message.contains('release blew up'),
+      ),
+      isNotEmpty,
+    );
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('a resolvable video reaches the player and its controls', (
     tester,
   ) async {
     final platform = _FakeVideoPlatform();
-    final originalPlatform = VideoPlayerPlatform.instance;
-    addTearDown(() => VideoPlayerPlatform.instance = originalPlatform);
-    VideoPlayerPlatform.instance = platform;
+    _usePlatform(platform);
 
     await tester.runAsync(() async {
       await tester.pumpWidget(
@@ -244,9 +378,7 @@ void main() {
   testWidgets('in fullscreen a tap plays, reveals the controls, and they '
       'stay while paused', (tester) async {
     final platform = _FakeVideoPlatform();
-    final originalPlatform = VideoPlayerPlatform.instance;
-    addTearDown(() => VideoPlayerPlatform.instance = originalPlatform);
-    VideoPlayerPlatform.instance = platform;
+    _usePlatform(platform);
 
     await tester.runAsync(() async {
       await tester.pumpWidget(
@@ -333,9 +465,7 @@ void main() {
     tester,
   ) async {
     final platform = _FakeVideoPlatform();
-    final originalPlatform = VideoPlayerPlatform.instance;
-    addTearDown(() => VideoPlayerPlatform.instance = originalPlatform);
-    VideoPlayerPlatform.instance = platform;
+    _usePlatform(platform);
     final photo = MediaItem(
       id: 'p1',
       mediaType: MediaType.photo,
@@ -413,9 +543,7 @@ void main() {
   // off screen, and has to stop playing rather than carry on unseen.
   testWidgets('a playing video pauses when swiped away', (tester) async {
     final platform = _FakeVideoPlatform();
-    final originalPlatform = VideoPlayerPlatform.instance;
-    addTearDown(() => VideoPlayerPlatform.instance = originalPlatform);
-    VideoPlayerPlatform.instance = platform;
+    _usePlatform(platform);
     final photo = MediaItem(
       id: 'p1',
       mediaType: MediaType.photo,
@@ -499,9 +627,7 @@ void main() {
     tester,
   ) async {
     final platform = _FakeVideoPlatform();
-    final originalPlatform = VideoPlayerPlatform.instance;
-    addTearDown(() => VideoPlayerPlatform.instance = originalPlatform);
-    VideoPlayerPlatform.instance = platform;
+    _usePlatform(platform);
     final photo = MediaItem(
       id: 'p1',
       mediaType: MediaType.photo,

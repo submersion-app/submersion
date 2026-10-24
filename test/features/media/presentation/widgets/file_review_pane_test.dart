@@ -2,7 +2,11 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/services/local_bookmark_storage.dart';
 import 'package:submersion/features/media/data/services/local_media_platform.dart';
@@ -40,11 +44,15 @@ Future<void> _pumpPane(
   bool flat = false,
   String? assignableDiveId,
   List<dynamic>? overrides,
+  List<Dive> dives = const [],
 }) async {
   await tester.pumpWidget(
     testApp(
       locale: const Locale('en'),
-      overrides: overrides,
+      overrides: [
+        divesProvider.overrideWith((ref) async => dives),
+        ...?overrides,
+      ],
       child: FileReviewPane(
         state: state,
         flat: flat,
@@ -88,6 +96,44 @@ void main() {
     expect(find.textContaining('3 files'), findsOneWidget);
     expect(find.textContaining('1 dive'), findsOneWidget);
     expect(find.textContaining('1 unmatched'), findsOneWidget);
+  });
+
+  testWidgets('a dive group is headed by the dive, not its id', (tester) async {
+    // Issue #3423: the header printed "Dive <uuid>", an id shown nowhere else
+    // in the app, so the user could not tell which dive the photos landed on.
+    // The header's date comes from DateFormat, which reads the process-global
+    // Intl.defaultLocale rather than testApp's MaterialApp locale; pin it.
+    final previousLocale = Intl.defaultLocale;
+    Intl.defaultLocale = 'en';
+    addTearDown(() => Intl.defaultLocale = previousLocale);
+    final entry = DateTime.utc(2016, 8, 11, 9, 40);
+    final dive = Dive(
+      id: 'd1',
+      diveNumber: 142,
+      dateTime: entry,
+      entryTime: entry,
+      exitTime: DateTime.utc(2016, 8, 11, 10, 35),
+      site: const DiveSite(id: 's1', name: 'Blue Hole'),
+    );
+
+    await _pumpPane(tester, _staged(), dives: [dive]);
+
+    expect(find.text('Dive #142 · Blue Hole'), findsOneWidget);
+    expect(
+      find.text('Aug 11, 2016 · 9:40 AM – 10:35 AM · 2 files'),
+      findsOneWidget,
+    );
+    expect(find.textContaining('d1'), findsNothing);
+  });
+
+  testWidgets('a group whose dive is not loaded is headed "Dive", not its id', (
+    tester,
+  ) async {
+    // The dive list may still be loading, or the dive was deleted mid-review.
+    await _pumpPane(tester, _staged());
+
+    expect(find.text('Dive'), findsOneWidget);
+    expect(find.textContaining('d1'), findsNothing);
   });
 
   testWidgets('the offset bar is shown while files are staged', (tester) async {

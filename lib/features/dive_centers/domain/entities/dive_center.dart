@@ -23,6 +23,10 @@ class DiveCenter extends Equatable {
   /// cylinders, for the trip fill forecast's deadline. Both or neither.
   final int? fillOpensAt;
   final int? fillClosesAt;
+
+  /// Out of business (v313, #3379). Kept for past dives and statistics, but
+  /// never offered as a nearby center in the picker.
+  final bool isPermanentlyClosed;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -45,6 +49,7 @@ class DiveCenter extends Equatable {
     this.notes = '',
     this.fillOpensAt,
     this.fillClosesAt,
+    this.isPermanentlyClosed = false,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -118,6 +123,7 @@ class DiveCenter extends Equatable {
     String? notes,
     Object? fillOpensAt = _undefined,
     Object? fillClosesAt = _undefined,
+    bool? isPermanentlyClosed,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -144,6 +150,7 @@ class DiveCenter extends Equatable {
       fillClosesAt: fillClosesAt == _undefined
           ? this.fillClosesAt
           : fillClosesAt as int?,
+      isPermanentlyClosed: isPermanentlyClosed ?? this.isPermanentlyClosed,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -175,6 +182,7 @@ class DiveCenter extends Equatable {
     notes,
     fillOpensAt,
     fillClosesAt,
+    isPermanentlyClosed,
     createdAt,
     updatedAt,
   ];

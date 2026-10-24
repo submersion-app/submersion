@@ -29,6 +29,13 @@ class BackupSettingsNotifier extends StateNotifier<BackupSettings> {
     state = state.copyWith(retentionCount: count);
   }
 
+  /// Turns "count backups from all devices" on for [accountKey], or off when
+  /// null (issue #3503). Re-read rather than copied: copyWith cannot clear.
+  Future<void> setCrossDeviceRetentionAccount(String? accountKey) async {
+    await _prefs.setCrossDeviceRetentionAccount(accountKey);
+    state = _prefs.getSettings();
+  }
+
   /// The cloud copy and a backup folder are independent (spec section 8.2):
   /// turning the copy on or off never touches the folder, and choosing a
   /// folder never touches the copy.

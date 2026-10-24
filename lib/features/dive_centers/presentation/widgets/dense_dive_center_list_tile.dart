@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
+import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_closed_tag.dart';
 import 'package:submersion/shared/selection/selection_checkbox_slot.dart';
 
 /// Single-row flat tile for the dive center list (maximum density).
@@ -35,7 +36,7 @@ class DenseDiveCenterListTile extends StatelessWidget {
     final secondaryTextColor = colorScheme.onSurfaceVariant;
     final locationString = center.fullLocationString;
 
-    return Semantics(
+    final row = Semantics(
       button: true,
       label: center.name,
       child: DecoratedBox(
@@ -62,12 +63,16 @@ class DenseDiveCenterListTile extends StatelessWidget {
                 ),
                 // Center name (expanded)
                 Expanded(
-                  child: Text(
-                    center.name,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      fontWeight: FontWeight.w600,
+                  child: DiveCenterNameWithTag(
+                    closed: center.isPermanentlyClosed,
+                    gap: 6,
+                    name: Text(
+                      center.name,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -109,5 +114,7 @@ class DenseDiveCenterListTile extends StatelessWidget {
         ),
       ),
     );
+    // A permanently closed center stays listed, greyed (#3379).
+    return greyIfClosed(closed: center.isPermanentlyClosed, child: row);
   }
 }

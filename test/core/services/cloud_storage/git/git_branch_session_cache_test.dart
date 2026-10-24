@@ -8,6 +8,7 @@ import 'package:submersion/core/services/cloud_storage/git/git_object_id.dart';
 import 'package:submersion/core/services/cloud_storage/git/git_object_store.dart';
 
 import '../../../../helpers/git_cli.dart';
+import '../../../../helpers/git_delegating_store.dart';
 import '../../../../helpers/git_http_backend_server.dart';
 import '../../../../helpers/git_test_session.dart';
 
@@ -170,17 +171,8 @@ void main() {
 }
 
 /// A store whose disk cannot be scanned when it is trimmed.
-final class _TrimFails implements GitObjectStore {
-  final _inner = MemoryGitObjectStore();
-
-  @override
-  Future<GitStoredObject?> get(GitObjectId id) => _inner.get(id);
-
-  @override
-  Future<void> put(GitStoredObject object) => _inner.put(object);
-
-  @override
-  Future<bool> has(GitObjectId id) => _inner.has(id);
+final class _TrimFails extends DelegatingGitObjectStore {
+  _TrimFails() : super(MemoryGitObjectStore());
 
   @override
   Future<void> trim({Future<Set<GitObjectId>> Function()? keep}) async {

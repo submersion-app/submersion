@@ -3,9 +3,9 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/database/database.dart';
-import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
+import 'package:submersion/core/data/visibility/item_sharing.dart';
+import 'package:submersion/features/divers/data/repositories/item_shares_repository.dart';
 import 'package:submersion/features/divers/data/repositories/profile_hides_repository.dart';
-import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 
 import '../../../../helpers/shared_items_fixture.dart';
 import '../../../../helpers/test_database.dart';
@@ -47,6 +47,21 @@ void main() {
     expect(await repository.hide(SharedItemKind.trip, 'private', 'b'), isFalse);
     expect(await repository.hide(SharedItemKind.trip, 'nope', 'b'), isFalse);
     expect(await db.select(db.tripHides).get(), isEmpty);
+  });
+
+  test('a profile hides a trip shared with it specifically', () async {
+    await seedDivers(db, ['c']);
+    await ItemSharesRepository().setSharing(
+      SharedItemKind.trip,
+      'private',
+      const ItemSharing(profileIds: {'b'}),
+      actingDiverId: 'a',
+    );
+    expect(await repository.hide(SharedItemKind.trip, 'private', 'b'), isTrue);
+    expect(await repository.hide(SharedItemKind.trip, 'private', 'c'), isFalse);
+    expect((await repository.hiddenItems('b')).map((i) => (i.id, i.isShared)), [
+      ('private', true),
+    ]);
   });
 
   test('hideAll hides a batch in one go and counts what is hidden', () async {
@@ -109,12 +124,24 @@ void main() {
 
   group('an item its owner unshares (issue #2678)', () {
     Future<void> unshare({required bool shared}) async {
+      final sharing = shared ? ItemSharing.all : ItemSharing.none;
+      final shares = ItemSharesRepository();
       expect(
-        await TripRepository().setShared('shared', shared, actingDiverId: 'a'),
+        await shares.setSharing(
+          SharedItemKind.trip,
+          'shared',
+          sharing,
+          actingDiverId: 'a',
+        ),
         isTrue,
       );
       expect(
-        await SiteRepository().setShared('pier', shared, actingDiverId: 'a'),
+        await shares.setSharing(
+          SharedItemKind.site,
+          'pier',
+          sharing,
+          actingDiverId: 'a',
+        ),
         isTrue,
       );
     }
@@ -299,6 +326,23 @@ void main() {
       mine: 0,
       others: 0,
     ));
+  });
+
+  test('watchChanges emits on a share row write (issue #2151)', () async {
+    final tick = repository.watchChanges().first.timeout(
+      const Duration(seconds: 5),
+    );
+    await db
+        .into(db.siteShares)
+        .insert(
+          SiteSharesCompanion.insert(
+            id: 'x',
+            siteId: 'pier',
+            diverId: 'b',
+            createdAt: 1,
+          ),
+        );
+    await expectLater(tick, completes);
   });
 
   test('watchChanges emits on a hide', () async {

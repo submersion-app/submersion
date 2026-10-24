@@ -11,11 +11,15 @@ subprojects {
         resolutionStrategy {
             // Force compatible versions of media libraries
             force("androidx.media:media:1.7.0")
-            // Force media3 exoplayer versions to be consistent
-            force("androidx.media3:media3-common:1.3.1")
-            force("androidx.media3:media3-exoplayer:1.3.1")
-            force("androidx.media3:media3-exoplayer-dash:1.3.1")
-            force("androidx.media3:media3-exoplayer-hls:1.3.1")
+            // Force one Media3 version for every module: the version
+            // video_player_android is built against, which
+            // submersion_transcoder matches. Mixing versions crashes as soon
+            // as the transformer applies an effect (issue #3521).
+            val media3 = "1.9.2"
+            force("androidx.media3:media3-common:$media3")
+            force("androidx.media3:media3-exoplayer:$media3")
+            force("androidx.media3:media3-exoplayer-dash:$media3")
+            force("androidx.media3:media3-exoplayer-hls:$media3")
         }
     }
 }

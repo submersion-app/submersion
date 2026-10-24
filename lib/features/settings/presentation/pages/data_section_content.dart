@@ -8,7 +8,6 @@ import 'package:submersion/features/settings/domain/data_health/feature_health.d
 import 'package:submersion/features/settings/domain/setup/set_up_progress.dart';
 import 'package:submersion/features/settings/presentation/providers/data_health_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/data_row_status_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/set_up_card_prefs_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/set_up_progress_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/storage_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/data_health/data_facts_line.dart';
@@ -85,6 +84,7 @@ class _DataSectionContentState extends ConsumerState<DataSectionContent> {
       required DataRowStatus status,
       required String route,
       DataFeature? healthOf,
+      SetUpStep? setUpStep,
     }) => DataRowTile(
       icon: icon,
       title: title,
@@ -94,6 +94,7 @@ class _DataSectionContentState extends ConsumerState<DataSectionContent> {
           ? null
           : health[healthOf],
       offersSetUp: status.offersSetUp,
+      setUpRoute: setUpStep == null ? null : setUpStepRoute(setUpStep),
     );
 
     Widget advanced(
@@ -123,6 +124,7 @@ class _DataSectionContentState extends ConsumerState<DataSectionContent> {
             status: ref.watch(backupsRowStatusProvider),
             route: '/settings/backup',
             healthOf: DataFeature.backup,
+            setUpStep: SetUpStep.backups,
           ),
           // Available on every platform (iCloud on Apple devices, other
           // accounts everywhere); the sync page gates which each one sees.
@@ -132,6 +134,9 @@ class _DataSectionContentState extends ConsumerState<DataSectionContent> {
             status: ref.watch(syncRowStatusProvider),
             route: '/settings/cloud-sync',
             healthOf: DataFeature.sync,
+            // Offered only while sync is off, when step 2 has no account to
+            // read: the account step starts from the current one.
+            setUpStep: SetUpStep.account,
           ),
           feature(
             icon: Icons.perm_media_outlined,
@@ -139,6 +144,7 @@ class _DataSectionContentState extends ConsumerState<DataSectionContent> {
             status: ref.watch(photosRowStatusProvider),
             route: '/settings/photos-media',
             healthOf: DataFeature.media,
+            setUpStep: SetUpStep.photos,
           ),
           // Shared site libraries (issue #2567).
           feature(
@@ -193,10 +199,7 @@ class _DataSectionContentState extends ConsumerState<DataSectionContent> {
                 deviceKindArg(deviceKindOf(context)),
               ),
               subtitle: l10n.settings_setUpDevice_againSubtitle,
-              route: setUpStepRoute(SetUpStep.account),
-              onOpen: () => ref
-                  .read(setUpCardPrefsNotifierProvider.notifier)
-                  .setHidden(false),
+              route: setUpAgainRoute,
             ),
         ],
       ),

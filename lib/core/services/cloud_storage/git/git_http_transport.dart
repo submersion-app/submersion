@@ -10,7 +10,7 @@ import 'package:submersion/core/services/cloud_storage/git/git_object_id.dart';
 import 'package:submersion/core/services/cloud_storage/git/git_object_store.dart';
 import 'package:submersion/core/services/cloud_storage/git/git_push_refusal.dart';
 import 'package:submersion/core/services/cloud_storage/git/git_remote.dart';
-import 'package:submersion/core/services/cloud_storage/git/pack_reader.dart';
+import 'package:submersion/core/services/cloud_storage/git/git_pack_spool.dart';
 import 'package:submersion/core/services/cloud_storage/git/pkt_line.dart';
 import 'package:submersion/core/services/cloud_storage/http_timeouts.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_tls.dart';
@@ -66,7 +66,9 @@ class GitHttpTransport {
     this.remote, {
     http.Client? client,
     this.pushDeadline = pushDeadlineFor,
-  }) : _recorder = client == null
+    Directory? spoolDirectory,
+  }) : _spoolDirectory = spoolDirectory,
+       _recorder = client == null
            ? CertificateTrustRecorder(
                expectedHost: remote.host,
                expectedPort: remote.port,
@@ -80,6 +82,10 @@ class GitHttpTransport {
 
   /// How long a push of a pack of that many bytes may take.
   final Duration Function(int packBytes) pushDeadline;
+
+  /// Where a fetched pack is written as it arrives; unless given,
+  /// [defaultGitSpoolDirectory].
+  final Directory? _spoolDirectory;
   final CertificateTrustRecorder? _recorder;
   late final http.Client _client;
   _UploadPackCaps? _caps;
@@ -153,13 +159,15 @@ class GitHttpTransport {
     }
   }
 
-  Future<Uint8List> _readBody(http.StreamedResponse response) async {
-    final out = BytesBuilder(copy: false);
+  /// The body as it arrives, with a dropped or stalled connection as a
+  /// [GitErrorCode.unreachable] error.
+  Stream<List<int>> _bodyStream(http.StreamedResponse response) async* {
     try {
+      // Not yield*: that would pass errors on unmapped.
       await for (final chunk in response.stream.timeout(
         TimeoutHttpClient.defaultIdleTimeout,
       )) {
-        out.add(chunk);
+        yield chunk;
       }
     } on Object catch (e) {
       if (e is GitException) rethrow;
@@ -170,6 +178,11 @@ class GitHttpTransport {
         cause: e,
       );
     }
+  }
+
+  Future<Uint8List> _readBody(http.StreamedResponse response) async {
+    final out = BytesBuilder(copy: false);
+    await _bodyStream(response).forEach(out.add);
     return out.takeBytes();
   }
 
@@ -224,10 +237,12 @@ class GitHttpTransport {
     );
   }
 
+  /// With [stream], the reply is read as it arrives; the caller cancels it.
   Future<PktLineReader> _post(
     String service,
     List<int> body, {
     bool v2 = false,
+    bool stream = false,
   }) async {
     final request = http.Request('POST', _endpoint(service))
       ..headers.addAll(_headers(v2: v2))
@@ -237,6 +252,7 @@ class GitHttpTransport {
       ..bodyBytes = body;
     final response = await _send(request);
     await _check(response, 'application/x-$service-result');
+    if (stream) return PktLineReader(_bodyStream(response));
     return PktLineReader(Stream.value(await _readBody(response)));
   }
 
@@ -495,8 +511,17 @@ class GitHttpTransport {
       body
         ..add(pktText('done'))
         ..add(pktFlushBytes);
-      final reader = await _post('git-upload-pack', body.takeBytes(), v2: true);
-      await _readV2FetchResponse(reader, into);
+      final reader = await _post(
+        'git-upload-pack',
+        body.takeBytes(),
+        v2: true,
+        stream: true,
+      );
+      try {
+        await _readV2FetchResponse(reader, into);
+      } finally {
+        await reader.cancel();
+      }
       return;
     }
     final body = BytesBuilder(copy: false);
@@ -521,22 +546,30 @@ class GitHttpTransport {
       body.add(pktText('have ${id.hex}'));
     }
     body.add(pktText('done'));
-    final reader = await _post('git-upload-pack', body.takeBytes());
-    if (deepen != null) {
-      while (true) {
-        final pkt = await reader.next();
-        if (pkt == null) throw _protocol('fetch ended before the pack');
-        if (pkt is PktFlush) break;
-        _throwIfErr(pkt);
+    final reader = await _post(
+      'git-upload-pack',
+      body.takeBytes(),
+      stream: true,
+    );
+    try {
+      if (deepen != null) {
+        while (true) {
+          final pkt = await reader.next();
+          if (pkt == null) throw _protocol('fetch ended before the pack');
+          if (pkt is PktFlush) break;
+          _throwIfErr(pkt);
+        }
       }
+      final ack = await reader.next();
+      _throwIfErr(ack);
+      if (ack is! PktData ||
+          !(ack.text.startsWith('NAK') || ack.text.startsWith('ACK'))) {
+        throw _protocol('no ACK or NAK');
+      }
+      await _readSideBandPack(reader, into);
+    } finally {
+      await reader.cancel();
     }
-    final ack = await reader.next();
-    _throwIfErr(ack);
-    if (ack is! PktData ||
-        !(ack.text.startsWith('NAK') || ack.text.startsWith('ACK'))) {
-      throw _protocol('no ACK or NAK');
-    }
-    await _readSideBandPack(reader, into);
   }
 
   static void _throwIfErr(Pkt? pkt) {
@@ -574,15 +607,16 @@ class GitHttpTransport {
     }
   }
 
+  /// Spools the pack to disk as it arrives, so it is never held in memory.
   Future<void> _readSideBandPack(
     PktLineReader reader,
     GitObjectStore into,
   ) async {
-    final pack = BytesBuilder(copy: false);
-    await for (final chunk in demuxSideBand(reader)) {
-      pack.add(chunk);
-    }
-    await readPack(pack.takeBytes(), into);
+    await readSpooledPack(
+      demuxSideBand(reader),
+      into,
+      directory: _spoolDirectory,
+    );
   }
 
   // ---- Push -----------------------------------------------------------------

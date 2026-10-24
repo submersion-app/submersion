@@ -4,17 +4,19 @@ import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/database/database.dart';
 
 /// Applies owner-or-shared visibility predicates: an `is_shared` flag on
-/// trips and dive_sites (nullable `diver_id`), minus the ones the profile
-/// has hidden from itself (`trip_hides` / `site_hides`, issue #2594), and
+/// trips and dive_sites (nullable `diver_id`) or a share row naming the
+/// profile (`trip_shares` / `site_shares`, issue #2151), minus the ones the
+/// profile has hidden from itself (`trip_hides` / `site_hides`, issue #2594),
+/// and
 /// per-profile share rows for equipment (issue #2046). When `diverId` is
 /// `null`, every entry point is a no-op so existing "all divers /
 /// unfiltered" call sites keep working unchanged.
 class VisibilityFilter {
   const VisibilityFilter._();
 
-  /// Applies `(diver_id = diverId OR is_shared = true) AND id NOT IN
-  /// (diverId's hidden trips)` to a Drift select on the `trips` table
-  /// (issue #2594).
+  /// Applies `(diver_id = diverId OR is_shared = true OR id IN (trips
+  /// shared with diverId)) AND id NOT IN (diverId's hidden trips)` to a
+  /// Drift select on the `trips` table (issues #2594, #2151).
   static void applyToTrips(
     AppDatabase db,
     SimpleSelectStatement<$TripsTable, Trip> query,
@@ -22,9 +24,16 @@ class VisibilityFilter {
   ) {
     if (diverId == null) return;
     final hides = db.tripHides;
+    final shares = db.tripShares;
     query.where(
       (t) =>
-          (t.diverId.equals(diverId) | t.isShared.equals(true)) &
+          (t.diverId.equals(diverId) |
+              t.isShared.equals(true) |
+              t.id.isInQuery(
+                db.selectOnly(shares)
+                  ..addColumns([shares.tripId])
+                  ..where(shares.diverId.equals(diverId)),
+              )) &
           t.id.isNotInQuery(
             db.selectOnly(hides)
               ..addColumns([hides.tripId])
@@ -41,11 +50,20 @@ class VisibilityFilter {
   ) {
     if (diverId == null) return;
     final hides = db.siteHides;
+    final shares = db.siteShares;
     final memberships = db.sharedLibraryMemberships;
     query.where(
       (t) =>
           (t.diverId.equals(diverId) |
               t.isShared.equals(true) |
+              // A share row counts only for a personal site: a shared site
+              // library site follows its membership (issue #2151).
+              (t.sharedLibraryId.isNull() &
+                  t.id.isInQuery(
+                    db.selectOnly(shares)
+                      ..addColumns([shares.siteId])
+                      ..where(shares.diverId.equals(diverId)),
+                  )) |
               // A shared site library's sites, for its members (issue #2567).
               t.sharedLibraryId.isInQuery(
                 db.selectOnly(memberships)
@@ -109,17 +127,23 @@ class VisibilityFilter {
     );
   }
 
-  /// The owner-or-shared half of [sqlFragment], with the viewer named by
-  /// any SQL expression [viewer]: `?`, or a column such as a hide's
-  /// `h.diver_id` (issue #2678). Parenthesised, with no conjunction.
+  /// The owner-or-shared half of [sqlFragment] for `trips`, with the viewer
+  /// named by any SQL expression [viewer]: `?`, or a column such as a hide's
+  /// `h.diver_id` (issue #2678). Shared means with everyone or by a share
+  /// row naming the viewer (issue #2151). [viewer] appears twice, so a `?`
+  /// placeholder needs two variables. Parenthesised, with no conjunction.
   static String ownerOrSharedSql(String tableAlias, String viewer) =>
-      '($tableAlias.diver_id = $viewer OR $tableAlias.is_shared = 1)';
+      '($tableAlias.diver_id = $viewer OR $tableAlias.is_shared = 1 OR '
+      '$tableAlias.id IN (SELECT trip_id FROM trip_shares WHERE '
+      'diver_id = $viewer))';
 
   /// [ownerOrSharedSql] for `dive_sites`, which a shared site library's members
-  /// also see (issue #2567). [viewer] appears twice, so a `?` placeholder
-  /// needs two variables.
+  /// also see (issue #2567); a share row counts only for a personal site. [viewer] appears three times, so a `?`
+  /// placeholder needs three variables.
   static String ownerOrSharedOrLibrarySql(String tableAlias, String viewer) =>
       '($tableAlias.diver_id = $viewer OR $tableAlias.is_shared = 1 OR '
+      '($tableAlias.shared_library_id IS NULL AND $tableAlias.id IN '
+      '(SELECT site_id FROM site_shares WHERE diver_id = $viewer)) OR '
       '$tableAlias.shared_library_id IN (SELECT library_id FROM '
       'shared_library_memberships WHERE diver_id = $viewer))';
 
@@ -158,6 +182,9 @@ class VisibilityFilter {
     return SqlFragment(
       whereClause: clause,
       variables: [
+        // The visible half names the viewer twice for a trip (owner, share
+        // row) and three times for a site (and library); the hides once.
+        Variable.withString(diverId),
         Variable.withString(diverId),
         if (kind == SharedItemKind.site) Variable.withString(diverId),
         Variable.withString(diverId),

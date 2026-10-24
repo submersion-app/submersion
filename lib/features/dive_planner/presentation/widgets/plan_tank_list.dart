@@ -712,6 +712,7 @@ class _TankEditDialogState extends State<_TankEditDialog> {
       transmitterSerial: original?.transmitterSerial,
       sourceTankIndex: original?.sourceTankIndex,
       regulatorEquipmentId: original?.regulatorEquipmentId,
+      extraRegulatorIds: original?.extraRegulatorIds ?? const [],
       equipmentId: original?.equipmentId,
       decoSwitchDepth: original?.decoSwitchDepth,
       gasMix: widget.lockedOxygenSlot

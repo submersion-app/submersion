@@ -13,6 +13,8 @@ import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_detail_page.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
+import 'package:submersion/core/data/visibility/item_sharing.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/shared_items_fixture.dart';
@@ -48,6 +50,7 @@ void main() {
     GatedActiveProfile? activeProfile,
     bool profileUnreadable = false,
     bool hidden = false,
+    ItemSharing sharing = ItemSharing.all,
   }) async {
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = const Size(390, 844);
@@ -81,6 +84,9 @@ void main() {
           ),
           profileHidesRepositoryProvider.overrideWithValue(
             _FakeHides(hidden: hidden),
+          ),
+          itemSharesRepositoryProvider.overrideWithValue(
+            FakeItemShares({trip.id: sharing}),
           ),
         ],
         // The page pops through go_router after a remove, so it sits one
@@ -315,6 +321,34 @@ void main() {
       find.textContaining('5 dives in other profiles will lose this trip.'),
       findsOneWidget,
     );
+  });
+
+  testWidgets('a profile the trip no longer reaches is not offered Remove '
+      '(issue #2151)', (tester) async {
+    // Opened by id from one of this profile's dives after its owner took
+    // the trip away from it: there is nothing to remove it from.
+    await pump(
+      tester,
+      active: 'd2',
+      sharing: const ItemSharing(profileIds: {'d3'}),
+    );
+    expect(find.textContaining('Shared by'), findsNothing);
+    await tester.tap(find.byIcon(Icons.more_vert).first);
+    await tester.pumpAndSettle();
+    expect(find.text('Remove from my profile'), findsNothing);
+  });
+
+  testWidgets('a profile the trip is shared with by name is offered Remove', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      active: 'd2',
+      sharing: const ItemSharing(profileIds: {'d2'}),
+    );
+    await tester.tap(find.byIcon(Icons.more_vert).first);
+    await tester.pumpAndSettle();
+    expect(find.text('Remove from my profile'), findsOneWidget);
   });
 }
 

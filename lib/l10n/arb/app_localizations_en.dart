@@ -2329,8 +2329,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get accessibility_label_resizeMasterPane => 'Resize master pane';
 
   @override
-  String get accessibility_label_sharedWithAllProfiles =>
-      'Shared with all dive profiles';
+  String get accessibility_label_sharedWithProfiles =>
+      'Shared with other dive profiles';
 
   @override
   String get accessibility_label_showList => 'Show List';
@@ -2493,6 +2493,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get backup_history_pinAction_unpin => 'Unpin backup';
 
   @override
+  String get backup_history_pinnedOnAnotherDevice => 'Pinned on another device';
+
+  @override
   String get backup_history_pinError => 'Could not update pin state.';
 
   @override
@@ -2593,6 +2596,92 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get backup_schedule_retention_subtitle =>
       'Older backups are automatically removed';
+
+  @override
+  String get backup_retention_allDevices_title =>
+      'Count backups from all devices';
+
+  @override
+  String get backup_retention_allDevices_off =>
+      'Off: this device removes only the backups it made';
+
+  @override
+  String backup_retention_allDevices_on(int count) {
+    return 'The cloud folder keeps the last $count backups from every device. Pinned backups are kept. If other devices use this too, the smallest number wins. Update the app on every device first so their pins are seen.';
+  }
+
+  @override
+  String backup_retention_cloudFootprint(int count, String size) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count backups in the cloud folder use $size',
+      one: '$count backup in the cloud folder uses $size',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backup_retention_confirm_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Remove $count backups?',
+      one: 'Remove $count backup?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backup_retention_confirm_body(int keep, String size) {
+    return 'Keeping the last $keep backups removes these from the cloud folder ($size in all).';
+  }
+
+  @override
+  String backup_retention_confirm_pinnedKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count pinned backups are kept.',
+      one: '$count pinned backup is kept.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backup_retention_confirm_action(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Remove $count backups',
+      one: 'Remove $count backup',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backup_retention_source_thisDevice => 'This device';
+
+  @override
+  String get backup_retention_source_anotherDevice => 'Another device';
+
+  @override
+  String get backup_retention_source_unknown => 'Unknown device';
+
+  @override
+  String get backup_retention_listFailed =>
+      'Could not read the cloud backup folder, so nothing was changed.';
+
+  @override
+  String backup_retention_removed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Removed $count backups from the cloud folder',
+      one: 'Removed $count backup from the cloud folder',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get backup_section_history => 'History';
@@ -6177,6 +6266,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveCenters_hint_website => 'www.divecenter.com';
 
   @override
+  String get diveCenters_hint_permanentlyClosed =>
+      'Still kept for past dives; left out of nearby centers in the picker.';
+
+  @override
   String diveCenters_import_fromDatabase(Object count) {
     return 'Import from Database ($count)';
   }
@@ -6249,6 +6342,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveCenters_label_website => 'Website';
 
   @override
+  String get diveCenters_label_permanentlyClosed => 'Permanently closed';
+
+  @override
   String get diveCenters_map_addCoordinatesHint =>
       'Add coordinates to your dive centers to see them on the map';
 
@@ -6257,10 +6353,24 @@ class AppLocalizationsEn extends AppLocalizations {
       'No dive centers with coordinates';
 
   @override
+  String get diveCenters_picker_allCenters => 'All dive centers';
+
+  @override
   String get diveCenters_picker_newCenter => 'New Dive Center';
 
   @override
   String get diveCenters_picker_title => 'Select Dive Center';
+
+  @override
+  String diveCenters_picker_nearSite(String siteName) {
+    return 'Near $siteName';
+  }
+
+  @override
+  String get diveCenters_picker_nearThisDive => 'Near this dive';
+
+  @override
+  String get diveCenters_picker_nearYourLocation => 'Near your location';
 
   @override
   String diveCenters_search_noResults(Object query) {
@@ -6269,6 +6379,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveCenters_search_prompt => 'Search dive centers';
+
+  @override
+  String get diveCenters_tag_closed => 'Closed';
 
   @override
   String get diveCenters_section_address => 'Address';
@@ -8518,6 +8631,17 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get diveSites_detail_duplicateMenu_label => 'Duplicate';
+
+  @override
+  String get diveSites_edit_appBar_duplicateSite => 'Duplicate Site';
+
+  @override
+  String diveSites_edit_duplicateName(String name) {
+    return '$name (copy)';
+  }
+
+  @override
   String get diveSites_edit_group_accessSafety => 'Access & safety';
 
   @override
@@ -8534,6 +8658,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveSites_edit_group_typeTags => 'Type & Tags';
+
+  @override
+  String get diveSites_edit_snackbar_featuresNotCopied =>
+      'Site added, but its map features could not be copied.';
 
   @override
   String get diveSites_edit_typeTags_manageTypes => 'Manage types';
@@ -9244,6 +9372,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_search_jumpTitle => 'Jump to dive';
 
   @override
+  String diveLog_search_jumpNumberTitle(int number, String title) {
+    return '#$number · $title';
+  }
+
+  @override
   String diveLog_ask_row(String text) {
     return 'Ask: $text';
   }
@@ -9921,6 +10054,17 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get diveLog_tank_regulatorShowLeftKit =>
       'Show retired and sold regulators';
+
+  @override
+  String get diveLog_tank_addRegulator => 'Add regulator';
+
+  @override
+  String diveLog_tank_regulatorNumbered(int number) {
+    return 'Regulator $number';
+  }
+
+  @override
+  String get diveLog_tank_removeRegulator => 'Remove regulator';
 
   @override
   String get diveLog_tank_tripCylinderLabel => 'Trip cylinder';
@@ -18386,8 +18530,40 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String media_photoPicker_files_diveGroupTitle(String diveId) {
-    return 'Dive $diveId';
+  String media_photoPicker_files_diveGroupNumberSite(int number, String site) {
+    return 'Dive #$number · $site';
+  }
+
+  @override
+  String media_photoPicker_files_diveGroupNumber(int number) {
+    return 'Dive #$number';
+  }
+
+  @override
+  String media_photoPicker_files_diveGroupSite(String site) {
+    return 'Dive · $site';
+  }
+
+  @override
+  String get media_photoPicker_files_diveGroupUnnamed => 'Dive';
+
+  @override
+  String media_photoPicker_files_diveGroupWindow(
+    String date,
+    String start,
+    String end,
+  ) {
+    return '$date · $start – $end';
+  }
+
+  @override
+  String media_photoPicker_files_diveGroupStart(String date, String start) {
+    return '$date · $start';
+  }
+
+  @override
+  String media_photoPicker_files_diveGroupSubtitle(String when, String files) {
+    return '$when · $files';
   }
 
   @override
@@ -18652,6 +18828,36 @@ class AppLocalizationsEn extends AppLocalizations {
   String media_photoViewer_failedToShare(Object error) {
     return 'Failed to share: $error';
   }
+
+  @override
+  String get media_share_preparingVideo => 'Preparing video';
+
+  @override
+  String media_share_preparingVideoOf(int current, int total) {
+    return 'Preparing video $current of $total';
+  }
+
+  @override
+  String get media_share_correctionFailedTitle =>
+      'Couldn\'t apply the color correction';
+
+  @override
+  String media_share_correctionFailedBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count videos can still be shared without it.',
+      one: 'This video can still be shared without it.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_share_shareOriginal => 'Share original';
+
+  @override
+  String get media_share_videoInterrupted =>
+      'Preparing the video stopped when Submersion went into the background. Share again to start over.';
 
   @override
   String get media_photoViewer_failedToWriteMetadata =>
@@ -23668,6 +23874,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_conflict_field_sharedComputerIds =>
       'Shared with computers';
+
+  @override
+  String get settings_conflict_field_extraRegulatorIds => 'Extra regulators';
 
   @override
   String get settings_conflict_field_shoreSwimM => 'Shore swim';
@@ -35183,29 +35392,19 @@ class AppLocalizationsEn extends AppLocalizations {
       'Share new sites and trips by default';
 
   @override
-  String get settings_shareAllSites_title => 'Share all my sites';
+  String get settings_shareAllSites_title => 'Share all my sites...';
 
   @override
-  String get settings_shareAllTrips_title => 'Share all my trips';
+  String get settings_shareAllTrips_title => 'Share all my trips...';
 
   @override
   String settings_shareAllSites_confirm(int count) {
-    return 'Make all $count of your sites visible to every dive profile in this app? You can unshare individual sites later.';
+    return 'Choose who sees all $count of your sites. To change one site later, open it and tap Shared with.';
   }
 
   @override
   String settings_shareAllTrips_confirm(int count) {
-    return 'Make all $count of your trips visible to every dive profile in this app? You can unshare individual trips later.';
-  }
-
-  @override
-  String settings_shareAllSites_snackbar(int count) {
-    return 'Shared $count sites with all dive profiles.';
-  }
-
-  @override
-  String settings_shareAllTrips_snackbar(int count) {
-    return 'Shared $count trips with all dive profiles.';
+    return 'Choose who sees all $count of your trips. To change one trip later, open it and tap Shared with.';
   }
 
   @override
@@ -35242,7 +35441,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String trips_unshareConfirm_body(String name) {
-    return 'This will remove \'$name\' from other dive profiles\' views. You can re-share it later.';
+    return 'Profiles you take off will no longer see \'$name\'. Their dives stay linked to it, and you can share it with them again later.';
   }
 
   @override
@@ -35250,7 +35449,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String sites_unshareConfirm_body(String name) {
-    return 'This will remove \'$name\' from other dive profiles\' views. You can re-share it later.';
+    return 'Profiles you take off will no longer see \'$name\'. Their dives stay linked to it, and you can share it with them again later.';
   }
 
   @override
@@ -35325,6 +35524,31 @@ class AppLocalizationsEn extends AppLocalizations {
       one: 'Remove $count item from your profile?',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get sharedItems_bulkShare_action => 'Share with...';
+
+  @override
+  String sharedItems_bulkShare_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Shared $count items',
+      one: 'Shared $count item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedItems_bulkShare_doneSkipped(int count, int skipped) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Shared $count items',
+      one: 'Shared $count item',
+    );
+    return '$_temp0, skipped $skipped you do not own';
   }
 
   @override
@@ -35423,6 +35647,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sharedItems_removedSnackbar => 'Removed from your profile';
 
   @override
+  String get sharedItems_shareDialog_everyoneSubtitle =>
+      'Every dive profile, including ones added later';
+
+  @override
+  String get sharedItems_shareDialog_siteBody =>
+      'Profiles you choose see this site and can log their own dives at it. Only you can delete it or change who it is shared with.';
+
+  @override
+  String get sharedItems_shareDialog_title => 'Share with';
+
+  @override
+  String get sharedItems_shareDialog_tripBody =>
+      'Profiles you choose see this trip and can add their own dives to it. Only you can delete it or change who it is shared with.';
+
+  @override
   String sharedItems_shareOwnerOnly(String owner) {
     return 'Only $owner can change sharing';
   }
@@ -35431,6 +35670,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String sharedItems_sharedBy(String owner) {
     return 'Shared by $owner';
   }
+
+  @override
+  String get sharedItems_sharedWith_everyone => 'Everyone';
+
+  @override
+  String get sharedItems_sharedWith_label => 'Shared with';
+
+  @override
+  String get sharedItems_sharedWith_none => 'Not shared';
 
   @override
   String get sharedItems_undo => 'Undo';
@@ -35461,6 +35709,18 @@ class AppLocalizationsEn extends AppLocalizations {
       one: 'site',
     );
     return 'Diver deleted. $trips shared $_temp0 and $sites shared $_temp1 reassigned to $name.';
+  }
+
+  @override
+  String divers_delete_handedOver(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count shared trips and sites went to the profiles they were shared with.',
+      one: '$count shared trip or site went to the profile it was shared with.',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -51915,6 +52175,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get query_centers_city => 'City';
 
   @override
+  String get query_centers_closed => 'Permanently closed';
+
+  @override
   String get query_centers_coordinates => 'Coordinates';
 
   @override
@@ -54296,5 +54559,288 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String settings_setUpDevice_item_signInBackups(String account) {
     return 'Sign in to $account again. Backups are paused until you do.';
+  }
+
+  @override
+  String get settings_setUpDevice_next => 'Next';
+
+  @override
+  String get settings_setUpDevice_notNow => 'Not now';
+
+  @override
+  String get settings_setUpDevice_skip => 'Skip';
+
+  @override
+  String get settings_setUpDevice_account_title =>
+      'Where should Submersion keep your data?';
+
+  @override
+  String get settings_setUpDevice_account_note =>
+      'Your dives are stored only in the account you choose. Submersion has no server of its own.';
+
+  @override
+  String get settings_setUpDevice_account_backupFile =>
+      'I have a backup file instead';
+
+  @override
+  String get settings_setUpDevice_offer_icloud =>
+      'Uses your Apple ID. Nothing to sign in to.';
+
+  @override
+  String get settings_setUpDevice_offer_googleDrive => 'Sign in with Google';
+
+  @override
+  String get settings_setUpDevice_offer_dropbox => 'Sign in with Dropbox';
+
+  @override
+  String get settings_setUpDevice_offer_ownServer =>
+      'S3-compatible storage or a WebDAV server';
+
+  @override
+  String get settings_setUpDevice_sync_title => 'Dives on every device';
+
+  @override
+  String settings_setUpDevice_sync_signedIn(String account) {
+    return 'Signed in to $account';
+  }
+
+  @override
+  String settings_setUpDevice_sync_noLibrary(String account) {
+    return '$account has no Submersion library yet. The dives here will become the library all your devices share.';
+  }
+
+  @override
+  String settings_setUpDevice_sync_found(
+    String account,
+    String when,
+    String device,
+  ) {
+    return 'Found your library in $account, last changed $when on $device.';
+  }
+
+  @override
+  String settings_setUpDevice_sync_foundPlain(String account) {
+    return 'Found your library in $account.';
+  }
+
+  @override
+  String get settings_setUpDevice_sync_foundEmpty =>
+      'There are no dives here yet, so the library is simply downloaded.';
+
+  @override
+  String get settings_setUpDevice_sync_combine => 'Combine them';
+
+  @override
+  String get settings_setUpDevice_sync_combineDetail =>
+      'The dives here join the library. A dive logged separately on both devices will appear twice.';
+
+  @override
+  String get settings_setUpDevice_sync_replace =>
+      'Replace the dives here with the library';
+
+  @override
+  String get settings_setUpDevice_sync_replaceDetail =>
+      'A backup of the dives here is saved first, under Backups.';
+
+  @override
+  String get settings_setUpDevice_sync_keepInStepDetail =>
+      'A few seconds after each change, at launch and when the app returns';
+
+  @override
+  String get settings_setUpDevice_sync_turnOn => 'Turn on sync';
+
+  @override
+  String get settings_setUpDevice_sync_download => 'Download library';
+
+  @override
+  String get settings_setUpDevice_sync_combineAndDownload =>
+      'Combine and download';
+
+  @override
+  String get settings_setUpDevice_sync_replaceAndDownload =>
+      'Replace and download';
+
+  @override
+  String get settings_setUpDevice_sync_noAccount =>
+      'Choose where your data is kept first.';
+
+  @override
+  String get settings_setUpDevice_replace_title => 'Replace the dives here?';
+
+  @override
+  String get settings_setUpDevice_replace_working =>
+      'Setting the dives here aside and downloading the library...';
+
+  @override
+  String get settings_setUpDevice_replace_doneTitle => 'Library downloaded';
+
+  @override
+  String get settings_setUpDevice_replace_stillUploading =>
+      'The library is still being uploaded from another device. Try again once it finishes.';
+
+  @override
+  String get settings_setUpDevice_replace_photosBusy =>
+      'Photo uploads are still finishing. Try again in a moment.';
+
+  @override
+  String get settings_setUpDevice_replace_failed =>
+      'The library could not be downloaded. Nothing was changed.';
+
+  @override
+  String settings_setUpDevice_sync_unreachable(String account) {
+    return 'Could not read $account. Check the connection and try again.';
+  }
+
+  @override
+  String settings_setUpDevice_replace_noLibrary(String account) {
+    return '$account has no library to join yet.';
+  }
+
+  @override
+  String settings_setUpDevice_replace_newerSchema(String devices) {
+    return '$devices use a newer version of Submersion. Update this device first.';
+  }
+
+  @override
+  String settings_setUpDevice_replace_backupNote(String date) {
+    return 'Before joining the library, $date';
+  }
+
+  @override
+  String settings_setUpDevice_replace_body(int count, String account) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'The $count dives here are replaced by the library in $account. A backup of them is saved first and stays under Backups.',
+      one:
+          'The 1 dive here is replaced by the library in $account. A backup of it is saved first and stays under Backups.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_replace_doneBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Your $count dives were set aside and the library was downloaded. Submersion will reload.',
+      one:
+          'Your 1 dive was set aside and the library was downloaded. Submersion will reload.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_backups_title(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'phone': 'A backup that survives a lost phone',
+      'tablet': 'A backup that survives a lost tablet',
+      'computer': 'A backup that survives a lost computer',
+      'other': 'A backup that survives a lost device',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_setUpDevice_backups_intro =>
+      'Sync keeps devices in step. A backup is a copy from a moment in time that you can go back to.';
+
+  @override
+  String settings_setUpDevice_backups_autoDetail(String frequency, int count) {
+    return '$frequency. The last $count are kept here.';
+  }
+
+  @override
+  String settings_setUpDevice_backups_autoDetailDesktop(
+    String frequency,
+    int count,
+  ) {
+    return '$frequency, while Submersion is open. The last $count are kept here.';
+  }
+
+  @override
+  String settings_setUpDevice_backups_copy(String account) {
+    return 'Also keep a copy in $account';
+  }
+
+  @override
+  String get settings_setUpDevice_backups_noAccount =>
+      'A copy off this device needs an account or a backup folder.';
+
+  @override
+  String get settings_setUpDevice_backups_openBackups => 'Open Backups';
+
+  @override
+  String get settings_setUpDevice_backups_note =>
+      'Schedule, folder, password protection and old backups are under Backups.';
+
+  @override
+  String get settings_setUpDevice_photos_title => 'Photos on every device';
+
+  @override
+  String settings_setUpDevice_photos_firstIntro(String account) {
+    return 'Keep copies of your photos and videos in $account so your other devices can show them. Your originals stay where they are.';
+  }
+
+  @override
+  String settings_setUpDevice_photos_keepCopies(String account) {
+    return 'Keep photo copies in $account';
+  }
+
+  @override
+  String get settings_setUpDevice_photos_firstNote =>
+      'Turn it on later under Photos & videos. Nothing is uploaded until you do.';
+
+  @override
+  String settings_setUpDevice_photos_secondIntro(String account) {
+    return 'Your other devices keep photo and video copies in $account. Show them here too?';
+  }
+
+  @override
+  String settings_setUpDevice_photos_useCopies(String account) {
+    return 'Use the photo copies in $account';
+  }
+
+  @override
+  String get settings_setUpDevice_photos_sameAccount =>
+      'Same account. Nothing to type.';
+
+  @override
+  String settings_setUpDevice_photos_signInFirst(String account) {
+    return 'Signs in to $account first.';
+  }
+
+  @override
+  String get settings_setUpDevice_photos_autoUploadHere =>
+      'Upload photos added here automatically';
+
+  @override
+  String settings_setUpDevice_photos_attachedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count photos and videos attached',
+      one: '$count photo or video attached',
+      zero: 'No photos or videos attached yet',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_done_title(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'phone': 'This phone is set up',
+      'tablet': 'This tablet is set up',
+      'computer': 'This computer is set up',
+      'other': 'This device is set up',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_done_otherDevices(String account) {
+    return 'On your other devices, open Submersion, choose $account, and the same library appears.';
   }
 }

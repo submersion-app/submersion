@@ -93,6 +93,32 @@ Widget _wrap(Widget child) {
 }
 
 void main() {
+  testWidgets('a backup pinned on another device shows a locked pin (#3503)', (
+    tester,
+  ) async {
+    var toggled = false;
+    await tester.pumpWidget(
+      _wrap(
+        BackupHistoryTile(
+          record: _manual().copyWith(pinnedOnAnotherDevice: true),
+          leadingIcon: Icons.cloud_outlined,
+          onPinToggle: () => toggled = true,
+          onRestore: () {},
+          onDelete: () {},
+        ),
+      ),
+    );
+    final button = find.widgetWithIcon(IconButton, Icons.push_pin);
+    expect(button, findsOneWidget);
+    expect(
+      tester.widget<IconButton>(button).tooltip,
+      'Pinned on another device',
+    );
+    expect(tester.widget<IconButton>(button).onPressed, isNull);
+    await tester.tap(button, warnIfMissed: false);
+    expect(toggled, isFalse);
+  });
+
   group('BackupHistoryTile rendering', () {
     testWidgets('a noted backup shows its note above the counts', (
       tester,

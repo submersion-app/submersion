@@ -21,6 +21,7 @@ import 'package:submersion/features/settings/presentation/pages/link_buddy_names
 import 'package:submersion/features/settings/presentation/pages/retype_other_gear_page.dart';
 import 'package:submersion/features/settings/presentation/pages/storage_settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/storage_usage_page.dart';
+import 'package:submersion/features/settings/presentation/pages/set_up_device_page.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_pane_navigator.dart';
 import 'package:submersion/features/shared_library/presentation/pages/change_library_connection_page.dart';
 import 'package:submersion/features/shared_library/presentation/pages/connect_shared_library_page.dart';
@@ -78,6 +79,7 @@ Widget? dataPanePage(Uri location) {
     ['shared-libraries', final id, 'connection'] => ChangeLibraryConnectionPage(
       libraryId: id,
     ),
+    ['setup'] => SetUpDevicePage.fromUri(location),
     ['photos-media'] => const PhotosVideosPage(),
     ['photos-media', 'uploads'] => const TransfersPage(),
     ['media-sources'] => const MediaSourcesPage(),

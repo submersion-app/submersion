@@ -28,6 +28,9 @@ import 'package:submersion/shared/selection/select_items_menu_entries.dart';
 import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_form_scope.dart';
+import 'package:submersion/core/data/visibility/item_sharing.dart';
+import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
+import 'package:submersion/core/services/database_service.dart';
 
 import '../../../../helpers/list_create_router.dart';
 import '../../../../helpers/mock_providers.dart';
@@ -35,6 +38,7 @@ import '../../../../helpers/select_items_menu.dart';
 import '../../../../helpers/selection_contract.dart';
 import '../../../../helpers/test_app.dart';
 import '../../../../helpers/test_database.dart';
+import '../../../../helpers/shared_items_fixture.dart';
 
 void _setMobileTestSurfaceSize(WidgetTester tester) {
   tester.view.devicePixelRatio = 1.0;
@@ -1119,6 +1123,71 @@ void main() {
         expect(find.text('0 selected'), findsNothing);
       },
     );
+
+    testWidgets('Share with... adds a profile to the selected own sites '
+        '(issue #2151)', (tester) async {
+      _setMobileTestSurfaceSize(tester);
+      await seedDivers(DatabaseService.instance.database, ['me', 'son']);
+      await siteRepository.createSite(
+        const DiveSite(id: 's1', name: 'First Site', diverId: 'me'),
+      );
+      await siteRepository.createSite(
+        const DiveSite(id: 's2', name: 'Second Site', diverId: 'me'),
+      );
+      final itemShares = FakeItemShares();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            siteRepositoryProvider.overrideWithValue(siteRepository),
+            validatedCurrentDiverIdProvider.overrideWith((ref) async => 'me'),
+            allDiversProvider.overrideWith(
+              (ref) async => [
+                for (final id in ['me', 'son'])
+                  Diver(
+                    id: id,
+                    name: 'Diver $id',
+                    createdAt: DateTime(2024),
+                    updatedAt: DateTime(2024),
+                  ),
+              ],
+            ),
+            itemSharesRepositoryProvider.overrideWithValue(itemShares),
+          ],
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(body: SiteListContent(showAppBar: false)),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await enterSelectionViaMenu(tester);
+      await tester.tap(find.byIcon(Icons.select_all));
+      await tester.pumpAndSettle();
+      final inBar = find.byKey(const ValueKey('selection_action_share'));
+      if (inBar.evaluate().isEmpty) {
+        await tester.tap(find.byKey(const ValueKey('selection_overflow')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const ValueKey('selection_menu_share')));
+      } else {
+        await tester.tap(inBar);
+      }
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.text('Diver son'),
+        ),
+      );
+      await tester.pump();
+      await tester.tap(find.widgetWithText(FilledButton, 'Share'));
+      await tester.pumpAndSettle();
+      await tester.pump();
+      final (ids, added) = itemShares.addCalls.single;
+      expect(ids.toSet(), {'s1', 's2'});
+      expect(added, const ItemSharing(profileIds: {'son'}));
+    });
 
     testWidgets('long-press on a site does not enter selection mode', (
       tester,

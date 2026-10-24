@@ -26,6 +26,7 @@ import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_dive_statistics.dart';
 import 'package:submersion/features/dive_sites/query/site_query_entity.dart'
     show dartWhitespaceSqlChars;
+import 'package:submersion/features/equipment/data/repositories/tank_regulator_sql.dart';
 import 'package:submersion/features/insights/data/repositories/site_entry_method_sql.dart';
 import 'package:submersion/features/insights/data/repositories/visibility_band_sql.dart';
 import 'package:submersion/features/insights/data/dive_filter_sql.dart';
@@ -2502,6 +2503,8 @@ class InsightsRepository {
           UNION
           SELECT dive_id, equipment_id FROM dive_tanks
           WHERE equipment_id IS NOT NULL
+          -- Tank regulators, first and extra (#3375).
+          UNION $tankRegulatorPairsSql
         ) u ON u.equipment_id = e.id
         JOIN dives d ON d.id = u.dive_id
         WHERE 1=1 $diverFilter ${df.clause}

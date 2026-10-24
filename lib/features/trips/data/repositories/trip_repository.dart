@@ -13,6 +13,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/checklists/data/repositories/trip_checklist_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_parent_links.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/divers/data/repositories/item_shares_repository.dart';
 import 'package:submersion/features/divers/data/repositories/profile_hides_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/trip_cylinder_links.dart';
 import 'package:submersion/features/trips/data/repositories/itinerary_day_repository.dart';
@@ -37,13 +38,15 @@ class TripRepository {
   final _uuid = const Uuid();
   final _log = LoggerService.forClass(TripRepository);
 
-  /// Emits whenever the `trips` table, or a profile's hidden trips, change,
-  /// so list providers refresh after a sync or any other write (a hide
-  /// changes which trips a profile sees, issue #2594).
+  /// Emits whenever the `trips` table, or a profile's hidden or shared
+  /// trips, change, so list providers refresh after a sync or any other
+  /// write (a hide or a share changes which trips a profile sees, issues
+  /// #2594, #2151).
   Stream<void> watchTripsChanges() => _db.tableUpdates(
     TableUpdateQuery.allOf([
       TableUpdateQuery.onTable(_db.trips),
       TableUpdateQuery.onTable(_db.tripHides),
+      TableUpdateQuery.onTable(_db.tripShares),
     ]),
   );
 
@@ -238,90 +241,6 @@ class TripRepository {
     }
   }
 
-  /// Flip the shared state of a single trip, when [actingDiverId] may
-  /// (issue #2594). Returns false, with nothing changed, for a trip another
-  /// profile owns or one that does not exist. Marks it pending for sync.
-  Future<bool> setShared(
-    String id,
-    bool isShared, {
-    String? actingDiverId,
-  }) async {
-    try {
-      final row = await (_db.select(
-        _db.trips,
-      )..where((t) => t.id.equals(id))).getSingleOrNull();
-      if (row == null ||
-          !canDestroySharedItem(
-            ownerId: row.diverId,
-            activeDiverId: actingDiverId,
-          )) {
-        return false;
-      }
-      _log.info('Setting trip $id isShared=$isShared');
-      final now = DateTime.now().millisecondsSinceEpoch;
-      await (_db.update(_db.trips)..where((t) => t.id.equals(id))).write(
-        TripsCompanion(isShared: Value(isShared), updatedAt: Value(now)),
-      );
-      await _syncRepository.markRecordPending(
-        entityType: 'trips',
-        recordId: id,
-        localUpdatedAt: now,
-      );
-      SyncEventBus.notifyLocalChange();
-      return true;
-    } catch (e, stackTrace) {
-      _log.error(
-        'Failed to set shared flag on trip $id',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      rethrow;
-    }
-  }
-
-  /// Mark every private trip owned by [diverId] as shared. Returns the
-  /// count of rows updated. All updated rows are marked pending for sync.
-  Future<int> shareAllForDiver(String diverId) async {
-    try {
-      _log.info('Bulk sharing all private trips for diver $diverId');
-      final now = DateTime.now().millisecondsSinceEpoch;
-
-      return await _db.transaction(() async {
-        final toShare =
-            await (_db.select(_db.trips)..where(
-                  (t) => t.diverId.equals(diverId) & t.isShared.equals(false),
-                ))
-                .get();
-
-        if (toShare.isEmpty) return 0;
-
-        await _db.customUpdate(
-          'UPDATE trips SET is_shared = 1, updated_at = ? '
-          'WHERE diver_id = ? AND is_shared = 0',
-          variables: [Variable.withInt(now), Variable.withString(diverId)],
-          updates: {_db.trips},
-        );
-
-        for (final row in toShare) {
-          await _syncRepository.markRecordPending(
-            entityType: 'trips',
-            recordId: row.id,
-            localUpdatedAt: now,
-          );
-        }
-        SyncEventBus.notifyLocalChange();
-        return toShare.length;
-      });
-    } catch (e, stackTrace) {
-      _log.error(
-        'Failed to bulk-share trips for diver $diverId',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      rethrow;
-    }
-  }
-
   /// Delete a trip and all associated child records, when [actingDiverId]
   /// may (issue #2594): its owner, anyone for an ownerless trip, and any
   /// caller that names no profile. Returns false, with nothing changed, for
@@ -372,6 +291,8 @@ class TripRepository {
 
         // Every profile's hide of the trip (issue #2594), tombstoned.
         await ProfileHidesRepository().deleteHides(SharedItemKind.trip, [id]);
+        // Every share row of the trip (issue #2151), tombstoned.
+        await ItemSharesRepository().deleteShares(SharedItemKind.trip, [id]);
         // Every profile's dives lose the trip, stamped and marked pending.
         await clearDiveTripLinks(_db, _syncRepository, [id], now: now);
         // Its documents go with it, tombstoned (issue #2613).

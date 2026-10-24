@@ -3,6 +3,9 @@ import 'dart:io';
 
 import 'package:flutter/services.dart';
 
+import 'package:submersion_transcoder/src/color_encoder.dart';
+import 'package:submersion_transcoder/src/color_timeline.dart';
+import 'package:submersion_transcoder/src/mp4_recording_info.dart';
 import 'package:submersion_transcoder/src/transcode_engine.dart';
 import 'package:submersion_transcoder/src/transcode_target.dart';
 import 'package:submersion_transcoder/src/video_probe.dart';
@@ -13,16 +16,23 @@ import 'package:submersion_transcoder/src/video_probe.dart';
 /// "unavailable" when the plugin is not registered (e.g. `flutter test`), so
 /// absence is a normal state that maps onto the pipeline's upload-the-original
 /// fallback.
-class ChannelTranscodeEngine implements TranscodeEngine {
-  ChannelTranscodeEngine({MethodChannel? methods, EventChannel? progress})
-    : _methods =
-          methods ?? const MethodChannel('submersion_transcoder/methods'),
-      _progress =
-          progress ?? const EventChannel('submersion_transcoder/progress'),
-      _usesDefaultProgress = progress == null;
+class ChannelTranscodeEngine implements TranscodeEngine, ColorEncoder {
+  ChannelTranscodeEngine({
+    MethodChannel? methods,
+    EventChannel? progress,
+    this.progressPollInterval = const Duration(milliseconds: 250),
+  }) : _methods =
+           methods ?? const MethodChannel('submersion_transcoder/methods'),
+       _progress =
+           progress ?? const EventChannel('submersion_transcoder/progress'),
+       _usesDefaultProgress = progress == null;
 
   final MethodChannel _methods;
   final EventChannel _progress;
+
+  /// How often a colour encode's progress is asked for, from an engine that
+  /// keeps it rather than pushing it (the Windows plugin).
+  final Duration progressPollInterval;
 
   // True when no EventChannel was injected, i.e. we're on the default
   // production channel. Tests that inject their own channel get an isolated,
@@ -150,4 +160,131 @@ class ChannelTranscodeEngine implements TranscodeEngine {
       await sub?.cancel();
     }
   }
+
+  @override
+  Future<void> encodeWithColor({
+    required File source,
+    required File output,
+    required ColorTimeline timeline,
+    ColorEncodeCancel? cancel,
+    void Function(double fraction)? onProgress,
+  }) async {
+    if (cancel?.isCancelled ?? false) throw const TranscodeCancelledException();
+    // Read here, once, for every platform: encoders do not all read the
+    // location Android cameras write, and every one stamps its copy with the
+    // moment it was made.
+    final recording = await readMp4RecordingInfo(source);
+    // A cancel during that read would reach the plugin before the encode it
+    // names, and be dropped there.
+    if (cancel?.isCancelled ?? false) throw const TranscodeCancelledException();
+    final progressId = 'p${_seq++}';
+    // Pushed and polled progress both go through here, so a fraction is
+    // reported once and never goes backwards.
+    var reported = -1.0;
+    void report(double fraction) {
+      final f = fraction.clamp(0.0, 1.0);
+      if (onProgress == null || f <= reported) return;
+      reported = f;
+      onProgress(f);
+    }
+
+    StreamSubscription<dynamic>? sub;
+    if (onProgress != null) {
+      sub = _progressStream.listen((event) {
+        if (event is Map && event['progressId'] == progressId) {
+          report((event['fraction'] as num).toDouble());
+        }
+      });
+    }
+    var finished = false;
+    // Progress is also asked for, for an engine that keeps it rather than
+    // pushing it on the event channel; one that does not answer the call
+    // (MissingPluginException, not implemented) is not asked again.
+    Timer? poll;
+    if (onProgress != null) {
+      var asking = false;
+      poll = Timer.periodic(progressPollInterval, (timer) async {
+        if (asking || finished) return;
+        asking = true;
+        try {
+          final f = await _methods.invokeMethod<num>('colorEncodeProgress', {
+            'progressId': progressId,
+          });
+          if (f != null && !finished) report(f.toDouble());
+        } on Object {
+          timer.cancel();
+        } finally {
+          asking = false;
+        }
+      });
+    }
+    unawaited(
+      cancel?.whenCancelled.then((_) async {
+        if (finished) return;
+        try {
+          await _methods.invokeMethod<void>('cancelEncode', {
+            'progressId': progressId,
+          });
+        } on Object {
+          // The encode reports its own outcome; a cancel that cannot be
+          // delivered (no plugin, already finished) changes nothing.
+        }
+      }),
+    );
+    try {
+      await _methods.invokeMethod<void>('encodeWithColor', {
+        'source': source.path,
+        'output': output.path,
+        'timeline': timeline.toChannel(),
+        'location': recording.location,
+        'progressId': progressId,
+      });
+      final copy = await readMp4RecordingInfo(output);
+      // An encoder that turned a rotated clip's frames upright (Media
+      // Foundation) leaves the copy's matrix plain; give it the source's.
+      // Done before the location is added: that rewrites the moov.
+      final sourceMatrix = recording.videoMatrix;
+      final copyMatrix = copy.videoMatrix;
+      if (sourceMatrix != null &&
+          copyMatrix != null &&
+          !_sameMatrix(sourceMatrix, copyMatrix) &&
+          _sameMatrix(copyMatrix, _identityMatrix)) {
+        await setMp4VideoMatrix(output, sourceMatrix);
+      }
+      // An encoder that writes no location (Media Foundation) gets it added.
+      final location = recording.location;
+      if (location != null && copy.location == null) {
+        await addMp4Location(output, location);
+      }
+      final created = recording.created;
+      if (created != null) await stampMp4CreationTime(output, created);
+      // Polled progress can miss the end, which comes between two polls.
+      report(1.0);
+    } on PlatformException catch (e) {
+      final detail = e.message ?? e.details?.toString() ?? e.code;
+      switch (e.code) {
+        case 'cancelled':
+          throw const TranscodeCancelledException();
+        case 'unsupported':
+          throw TranscodeUnsupportedException(detail);
+        default:
+          throw TranscodeException('colour encode failed: $detail');
+      }
+    } on MissingPluginException {
+      throw const TranscodeException('transcoder plugin not registered');
+    } finally {
+      finished = true;
+      poll?.cancel();
+      await sub?.cancel();
+    }
+  }
+}
+
+const _identityMatrix = [0x10000, 0, 0, 0, 0x10000, 0, 0, 0, 0x40000000];
+
+bool _sameMatrix(List<int> a, List<int> b) {
+  for (var i = 0; i < 9; i++) {
+    if (a[i] != b[i]) return false;
+  }
+  return true;
 }

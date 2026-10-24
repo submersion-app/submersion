@@ -1,18 +1,13 @@
-import 'package:submersion/features/settings/domain/data_health/feature_health.dart';
 import 'package:submersion/features/settings/domain/setup/set_up_progress.dart';
 import 'package:submersion/features/settings/presentation/pages/data_settings_pane.dart';
-import 'package:submersion/features/settings/presentation/widgets/data_health/health_text.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_pane_navigator.dart';
 
-/// The settings page that resolves [step]. Until the setup flow's own step
-/// pages exist, each step opens the page that does that job today: the same
-/// page the feature's strip item and row open.
-String setUpStepRoute(SetUpStep step) => switch (step) {
-  SetUpStep.account => '/settings/connected-accounts',
-  SetUpStep.sync => dataFeatureRoute(DataFeature.sync),
-  SetUpStep.backups => dataFeatureRoute(DataFeature.backup),
-  SetUpStep.photos => dataFeatureRoute(DataFeature.media),
-};
+/// [step] of the Set up this device flow.
+String setUpStepRoute(SetUpStep step) => '/settings/setup?step=${step.name}';
+
+/// The flow from its first step with every step shown, showing a hidden
+/// card again.
+const setUpAgainRoute = '/settings/setup?again=true';
 
 /// [route], a page reached from Settings > Data, as a location that opens it
 /// in the desktop Data pane, over the Data hub. For the desktop settings list

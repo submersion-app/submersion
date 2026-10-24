@@ -560,5 +560,33 @@ extension RungsFromV231 on AppDatabase {
     // 309 as #3605 shipped 309 first.
     if (from < 310) await _assertDownloadOwnerColumn();
     if (from < 310) await reportProgress();
+
+    // v311: the profiles a trip or site is shared with when it is not
+    // shared with everyone (issue #2151). Table-only rung, no backfill;
+    // re-asserted in beforeOpen. Renumbered from 309 and 310, which #1970
+    // and #2050 took.
+    if (from < 311) {
+      await _assertTripSharesSchema();
+      await _assertSiteSharesSchema();
+    }
+    if (from < 311) await reportProgress();
+
+    // v312: dive_tanks.extra_regulator_ids (issue #3375). Column only, no
+    // backfill: a tank's single regulator stays the first. Re-asserted in
+    // beforeOpen through _assertTankExtraRegulatorIds. Renumbered from 310
+    // and 311 as #3611 and #2151 shipped them first.
+    if (from < 312) {
+      await _assertTankExtraRegulatorIds();
+    }
+    if (from < 312) await reportProgress();
+
+    // v313: dive_centers.is_permanently_closed (issue #3379). Column only, no
+    // backfill: every existing center stays open. Re-asserted in beforeOpen
+    // through _assertDiveCenterClosedColumn. Renumbered from 310 and 312,
+    // which #2050 and #3375 took.
+    if (from < 313) {
+      await _assertDiveCenterClosedColumn();
+    }
+    if (from < 313) await reportProgress();
   }
 }

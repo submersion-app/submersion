@@ -188,6 +188,32 @@ void main() {
     });
   });
 
+  group('BackupPreferences cross-device retention (#3503)', () {
+    test('is off by default', () {
+      final settings = backupPreferences.getSettings();
+      expect(settings.crossDeviceRetentionAccount, isNull);
+      expect(settings.crossDeviceRetentionFor('acct'), isFalse);
+      expect(settings.crossDeviceRetentionFor(''), isFalse);
+    });
+
+    test('is on only for the folder key it was confirmed for', () async {
+      await backupPreferences.setCrossDeviceRetentionAccount('acct');
+      final settings = backupPreferences.getSettings();
+      expect(settings.crossDeviceRetentionFor('acct'), isTrue);
+      expect(settings.crossDeviceRetentionFor('other'), isFalse);
+      expect(settings.crossDeviceRetentionFor('provider:fake'), isFalse);
+    });
+
+    test('null turns it off', () async {
+      await backupPreferences.setCrossDeviceRetentionAccount('acct');
+      await backupPreferences.setCrossDeviceRetentionAccount(null);
+      expect(
+        backupPreferences.getSettings().crossDeviceRetentionFor('acct'),
+        isFalse,
+      );
+    });
+  });
+
   group('BackupPreferences backup-location bookmark', () {
     test('getBackupLocationBookmark returns null by default', () {
       expect(backupPreferences.getBackupLocationBookmark(), isNull);

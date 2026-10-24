@@ -2409,8 +2409,8 @@ class AppLocalizationsAr extends AppLocalizations {
       'تغيير حجم اللوحة الرئيسية';
 
   @override
-  String get accessibility_label_sharedWithAllProfiles =>
-      'مشترك مع جميع ملفات الغوص';
+  String get accessibility_label_sharedWithProfiles =>
+      'مشترك مع ملفات غوص أخرى';
 
   @override
   String get accessibility_label_showList => 'عرض القائمة';
@@ -2574,6 +2574,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get backup_history_pinAction_unpin => 'إلغاء تثبيت النسخة الاحتياطية';
 
   @override
+  String get backup_history_pinnedOnAnotherDevice => 'مثبتة على جهاز آخر';
+
+  @override
   String get backup_history_pinError => 'تعذر تحديث حالة التثبيت.';
 
   @override
@@ -2676,6 +2679,112 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get backup_schedule_retention_subtitle =>
       'تتم إزالة النسخ الاحتياطية القديمة تلقائياً';
+
+  @override
+  String get backup_retention_allDevices_title =>
+      'احتساب النسخ الاحتياطية من كل الأجهزة';
+
+  @override
+  String get backup_retention_allDevices_off =>
+      'متوقف: يزيل هذا الجهاز النسخ الاحتياطية التي أنشأها فقط';
+
+  @override
+  String backup_retention_allDevices_on(int count) {
+    return 'يحتفظ مجلد السحابة بأحدث النسخ الاحتياطية من كل الأجهزة، وعددها $count. تُحفظ النسخ المثبتة. إذا استخدمت أجهزة أخرى هذا الخيار أيضًا، فالعدد الأصغر هو المعتمد. حدّث التطبيق على كل الأجهزة أولًا حتى تظهر النسخ المثبتة عليها.';
+  }
+
+  @override
+  String backup_retention_cloudFootprint(int count, String size) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count نسخة احتياطية في مجلد السحابة تشغل $size',
+      many: '$count نسخة احتياطية في مجلد السحابة تشغل $size',
+      few: '$count نسخ احتياطية في مجلد السحابة تشغل $size',
+      two: 'نسختان احتياطيتان في مجلد السحابة تشغلان $size',
+      one: 'نسخة احتياطية واحدة في مجلد السحابة تشغل $size',
+      zero: '$count نسخة احتياطية في مجلد السحابة تشغل $size',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backup_retention_confirm_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'إزالة $count نسخة احتياطية؟',
+      many: 'إزالة $count نسخة احتياطية؟',
+      few: 'إزالة $count نسخ احتياطية؟',
+      two: 'إزالة نسختين احتياطيتين؟',
+      one: 'إزالة نسخة احتياطية واحدة؟',
+      zero: 'إزالة $count نسخة احتياطية؟',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backup_retention_confirm_body(int keep, String size) {
+    return 'الاحتفاظ بأحدث النسخ وعددها $keep يزيل هذه النسخ من مجلد السحابة (المجموع $size).';
+  }
+
+  @override
+  String backup_retention_confirm_pinnedKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تُحفظ $count نسخة مثبتة.',
+      many: 'تُحفظ $count نسخة مثبتة.',
+      few: 'تُحفظ $count نسخ مثبتة.',
+      two: 'تُحفظ نسختان مثبتتان.',
+      one: 'تُحفظ نسخة مثبتة واحدة.',
+      zero: 'لا توجد نسخ مثبتة.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backup_retention_confirm_action(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'إزالة $count نسخة',
+      many: 'إزالة $count نسخة',
+      few: 'إزالة $count نسخ',
+      two: 'إزالة نسختين',
+      one: 'إزالة نسخة واحدة',
+      zero: 'إزالة $count نسخة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backup_retention_source_thisDevice => 'هذا الجهاز';
+
+  @override
+  String get backup_retention_source_anotherDevice => 'جهاز آخر';
+
+  @override
+  String get backup_retention_source_unknown => 'جهاز غير معروف';
+
+  @override
+  String get backup_retention_listFailed =>
+      'تعذرت قراءة مجلد النسخ الاحتياطية في السحابة، لذا لم يتغير شيء.';
+
+  @override
+  String backup_retention_removed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'أُزيلت $count نسخة من مجلد السحابة',
+      many: 'أُزيلت $count نسخة من مجلد السحابة',
+      few: 'أُزيلت $count نسخ من مجلد السحابة',
+      two: 'أُزيلت نسختان من مجلد السحابة',
+      one: 'أُزيلت نسخة واحدة من مجلد السحابة',
+      zero: 'لم تُزل أي نسخة من مجلد السحابة',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get backup_section_history => 'السجل';
@@ -6362,6 +6471,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveCenters_hint_website => 'www.divecenter.com';
 
   @override
+  String get diveCenters_hint_permanentlyClosed =>
+      'يبقى محفوظًا للغطسات السابقة؛ ولا يظهر ضمن المراكز القريبة في أداة الاختيار.';
+
+  @override
   String diveCenters_import_fromDatabase(Object count) {
     return 'استيراد من قاعدة البيانات ($count)';
   }
@@ -6437,11 +6550,17 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveCenters_label_website => 'الموقع الإلكتروني';
 
   @override
+  String get diveCenters_label_permanentlyClosed => 'مغلق نهائيًا';
+
+  @override
   String get diveCenters_map_addCoordinatesHint =>
       'أضف الإحداثيات إلى مراكز الغوص لرؤيتها على الخريطة';
 
   @override
   String get diveCenters_map_noCoordinates => 'لا توجد مراكز غوص مع إحداثيات';
+
+  @override
+  String get diveCenters_picker_allCenters => 'جميع مراكز الغوص';
 
   @override
   String get diveCenters_picker_newCenter => 'مركز غوص جديد';
@@ -6450,12 +6569,26 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveCenters_picker_title => 'اختيار مركز الغوص';
 
   @override
+  String diveCenters_picker_nearSite(String siteName) {
+    return 'بالقرب من $siteName';
+  }
+
+  @override
+  String get diveCenters_picker_nearThisDive => 'بالقرب من هذه الغطسة';
+
+  @override
+  String get diveCenters_picker_nearYourLocation => 'بالقرب من موقعك';
+
+  @override
   String diveCenters_search_noResults(Object query) {
     return 'لا توجد نتائج لـ \"$query\"';
   }
 
   @override
   String get diveCenters_search_prompt => 'البحث عن مراكز الغوص';
+
+  @override
+  String get diveCenters_tag_closed => 'مغلق';
 
   @override
   String get diveCenters_section_address => 'العنوان';
@@ -8776,6 +8909,17 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get diveSites_detail_duplicateMenu_label => 'تكرار';
+
+  @override
+  String get diveSites_edit_appBar_duplicateSite => 'تكرار الموقع';
+
+  @override
+  String diveSites_edit_duplicateName(String name) {
+    return '$name (نسخة)';
+  }
+
+  @override
   String get diveSites_edit_group_accessSafety => 'الوصول والسلامة';
 
   @override
@@ -8792,6 +8936,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveSites_edit_group_typeTags => 'النوع والوسوم';
+
+  @override
+  String get diveSites_edit_snackbar_featuresNotCopied =>
+      'تمت إضافة الموقع، لكن تعذر نسخ معالمه على الخريطة.';
 
   @override
   String get diveSites_edit_typeTags_manageTypes => 'إدارة الأنواع';
@@ -9522,6 +9670,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_search_jumpTitle => 'الانتقال إلى غوصة';
 
   @override
+  String diveLog_search_jumpNumberTitle(int number, String title) {
+    return '#$number · $title';
+  }
+
+  @override
   String diveLog_ask_row(String text) {
     return 'اسأل: $text';
   }
@@ -10207,6 +10360,17 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get diveLog_tank_regulatorShowLeftKit =>
       'عرض منظمات التنفس المتقاعدة والمباعة';
+
+  @override
+  String get diveLog_tank_addRegulator => 'إضافة منظم تنفس';
+
+  @override
+  String diveLog_tank_regulatorNumbered(int number) {
+    return 'منظم التنفس $number';
+  }
+
+  @override
+  String get diveLog_tank_removeRegulator => 'إزالة منظم التنفس';
 
   @override
   String get diveLog_tank_tripCylinderLabel => 'أسطوانة الرحلة';
@@ -18918,8 +19082,40 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String media_photoPicker_files_diveGroupTitle(String diveId) {
-    return 'الغوصة $diveId';
+  String media_photoPicker_files_diveGroupNumberSite(int number, String site) {
+    return 'غوصة #$number · $site';
+  }
+
+  @override
+  String media_photoPicker_files_diveGroupNumber(int number) {
+    return 'غوصة #$number';
+  }
+
+  @override
+  String media_photoPicker_files_diveGroupSite(String site) {
+    return 'غوصة · $site';
+  }
+
+  @override
+  String get media_photoPicker_files_diveGroupUnnamed => 'غوصة';
+
+  @override
+  String media_photoPicker_files_diveGroupWindow(
+    String date,
+    String start,
+    String end,
+  ) {
+    return '$date · $start – $end';
+  }
+
+  @override
+  String media_photoPicker_files_diveGroupStart(String date, String start) {
+    return '$date · $start';
+  }
+
+  @override
+  String media_photoPicker_files_diveGroupSubtitle(String when, String files) {
+    return '$when · $files';
   }
 
   @override
@@ -19205,6 +19401,38 @@ class AppLocalizationsAr extends AppLocalizations {
   String media_photoViewer_failedToShare(Object error) {
     return 'فشل في المشاركة: $error';
   }
+
+  @override
+  String get media_share_preparingVideo => 'جارٍ تجهيز الفيديو';
+
+  @override
+  String media_share_preparingVideoOf(int current, int total) {
+    return 'جارٍ تجهيز الفيديو $current من $total';
+  }
+
+  @override
+  String get media_share_correctionFailedTitle => 'تعذّر تطبيق تصحيح الألوان';
+
+  @override
+  String media_share_correctionFailedBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'لا يزال من الممكن مشاركة $count مقطع فيديو بدونه.',
+      many: 'لا يزال من الممكن مشاركة $count مقطع فيديو بدونه.',
+      few: 'لا يزال من الممكن مشاركة $count مقاطع فيديو بدونه.',
+      two: 'لا يزال من الممكن مشاركة مقطعي الفيديو بدونه.',
+      one: 'لا يزال من الممكن مشاركة هذا الفيديو بدونه.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_share_shareOriginal => 'مشاركة الأصل';
+
+  @override
+  String get media_share_videoInterrupted =>
+      'توقف تجهيز الفيديو عندما انتقل Submersion إلى الخلفية. شارك مرة أخرى للبدء من جديد.';
 
   @override
   String get media_photoViewer_failedToWriteMetadata =>
@@ -24284,6 +24512,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_conflict_field_sharedComputerIds => 'مشترك مع الحواسيب';
+
+  @override
+  String get settings_conflict_field_extraRegulatorIds => 'منظمات تنفس إضافية';
 
   @override
   String get settings_conflict_field_shoreSwimM => 'السباحة إلى الشاطئ';
@@ -36179,29 +36410,19 @@ class AppLocalizationsAr extends AppLocalizations {
       'مشاركة المواقع والرحلات الجديدة تلقائيًا';
 
   @override
-  String get settings_shareAllSites_title => 'مشاركة جميع مواقعي';
+  String get settings_shareAllSites_title => 'مشاركة جميع مواقعي...';
 
   @override
-  String get settings_shareAllTrips_title => 'مشاركة جميع رحلاتي';
+  String get settings_shareAllTrips_title => 'مشاركة جميع رحلاتي...';
 
   @override
   String settings_shareAllSites_confirm(int count) {
-    return 'هل تريد جعل كل $count من مواقعك مرئية لكل ملفات الغوص في هذا التطبيق؟ يمكنك إلغاء مشاركة مواقع فردية لاحقًا.';
+    return 'اختر من يرى كل $count من مواقعك. لتغيير موقع واحد لاحقًا، افتحه واضغط على مُشارَك مع.';
   }
 
   @override
   String settings_shareAllTrips_confirm(int count) {
-    return 'هل تريد جعل كل $count من رحلاتك مرئية لكل ملفات الغوص في هذا التطبيق؟ يمكنك إلغاء مشاركة رحلات فردية لاحقًا.';
-  }
-
-  @override
-  String settings_shareAllSites_snackbar(int count) {
-    return 'تمت مشاركة $count من المواقع مع جميع ملفات الغوص.';
-  }
-
-  @override
-  String settings_shareAllTrips_snackbar(int count) {
-    return 'تمت مشاركة $count من الرحلات مع جميع ملفات الغوص.';
+    return 'اختر من يرى كل $count من رحلاتك. لتغيير رحلة واحدة لاحقًا، افتحها واضغط على مُشارَك مع.';
   }
 
   @override
@@ -36237,7 +36458,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String trips_unshareConfirm_body(String name) {
-    return 'سيؤدي هذا إلى إزالة «$name» من عروض ملفات الغوص الأخرى. يمكنك مشاركتها مرة أخرى لاحقًا.';
+    return 'لن ترى الملفات التي تزيلها «$name» بعد الآن. تبقى غطساتها مرتبطة بها، ويمكنك مشاركتها معها مجددًا لاحقًا.';
   }
 
   @override
@@ -36245,7 +36466,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String sites_unshareConfirm_body(String name) {
-    return 'سيؤدي هذا إلى إزالة «$name» من عروض ملفات الغوص الأخرى. يمكنك مشاركته مرة أخرى لاحقًا.';
+    return 'لن ترى الملفات التي تزيلها «$name» بعد الآن. تبقى غطساتها مرتبطة به، ويمكنك مشاركته معها مجددًا لاحقًا.';
   }
 
   @override
@@ -36338,6 +36559,39 @@ class AppLocalizationsAr extends AppLocalizations {
       one: 'إزالة $count عنصر من ملفك؟',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get sharedItems_bulkShare_action => 'مشاركة مع...';
+
+  @override
+  String sharedItems_bulkShare_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تمت مشاركة $count عنصر',
+      many: 'تمت مشاركة $count عنصرًا',
+      few: 'تمت مشاركة $count عناصر',
+      two: 'تمت مشاركة عنصرين',
+      one: 'تمت مشاركة عنصر واحد',
+      zero: 'لم تتم مشاركة أي عنصر',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedItems_bulkShare_doneSkipped(int count, int skipped) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تمت مشاركة $count عنصر',
+      many: 'تمت مشاركة $count عنصرًا',
+      few: 'تمت مشاركة $count عناصر',
+      two: 'تمت مشاركة عنصرين',
+      one: 'تمت مشاركة عنصر واحد',
+      zero: 'لم تتم مشاركة أي عنصر',
+    );
+    return '$_temp0، وتم تخطي $skipped لا تملكها';
   }
 
   @override
@@ -36447,6 +36701,21 @@ class AppLocalizationsAr extends AppLocalizations {
   String get sharedItems_removedSnackbar => 'تمت الإزالة من ملفك';
 
   @override
+  String get sharedItems_shareDialog_everyoneSubtitle =>
+      'كل ملفات الغوص، بما فيها التي تُضاف لاحقًا';
+
+  @override
+  String get sharedItems_shareDialog_siteBody =>
+      'ترى الملفات التي تختارها هذا الموقع ويمكنها تسجيل غطساتها فيه. أنت وحدك يمكنك حذفه أو تغيير من يُشارَك معه.';
+
+  @override
+  String get sharedItems_shareDialog_title => 'مشاركة مع';
+
+  @override
+  String get sharedItems_shareDialog_tripBody =>
+      'ترى الملفات التي تختارها هذه الرحلة ويمكنها إضافة غطساتها إليها. أنت وحدك يمكنك حذفها أو تغيير من تُشارَك معه.';
+
+  @override
   String sharedItems_shareOwnerOnly(String owner) {
     return 'يمكن لـ $owner فقط تغيير المشاركة';
   }
@@ -36455,6 +36724,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String sharedItems_sharedBy(String owner) {
     return 'تمت المشاركة بواسطة $owner';
   }
+
+  @override
+  String get sharedItems_sharedWith_everyone => 'الجميع';
+
+  @override
+  String get sharedItems_sharedWith_label => 'مُشارَك مع';
+
+  @override
+  String get sharedItems_sharedWith_none => 'غير مُشارَك';
 
   @override
   String get sharedItems_undo => 'تراجع';
@@ -36491,6 +36769,21 @@ class AppLocalizationsAr extends AppLocalizations {
       one: 'موقع مشترك واحد',
     );
     return 'تم حذف الغواص. $_temp0 و$_temp1 أُعيد تعيينها إلى $name.';
+  }
+
+  @override
+  String divers_delete_handedOver(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'انتقلت $count رحلة وموقع مشترك إلى الملفات التي شوركت معها.',
+      many: 'انتقلت $count رحلة وموقعًا مشتركًا إلى الملفات التي شوركت معها.',
+      few: 'انتقلت $count رحلات ومواقع مشتركة إلى الملفات التي شوركت معها.',
+      two: 'انتقلت رحلتان أو موقعان مشتركان إلى الملفات التي شوركت معها.',
+      one: 'انتقلت رحلة أو موقع مشترك واحد إلى الملف الذي شورك معه.',
+      zero: 'لم تنتقل أي رحلة أو موقع مشترك.',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -53368,6 +53661,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get query_centers_city => 'المدينة';
 
   @override
+  String get query_centers_closed => 'مغلق نهائيًا';
+
+  @override
   String get query_centers_coordinates => 'الإحداثيات';
 
   @override
@@ -55882,5 +56178,302 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String settings_setUpDevice_item_signInBackups(String account) {
     return 'سجّل الدخول إلى $account مجددًا. النسخ الاحتياطي متوقف مؤقتًا حتى تفعل.';
+  }
+
+  @override
+  String get settings_setUpDevice_next => 'التالي';
+
+  @override
+  String get settings_setUpDevice_notNow => 'ليس الآن';
+
+  @override
+  String get settings_setUpDevice_skip => 'تخطٍّ';
+
+  @override
+  String get settings_setUpDevice_account_title =>
+      'أين يحفظ Submersion بياناتك؟';
+
+  @override
+  String get settings_setUpDevice_account_note =>
+      'تُحفظ غطساتك في الحساب الذي تختاره فقط. لا يملك Submersion خادمًا خاصًا به.';
+
+  @override
+  String get settings_setUpDevice_account_backupFile =>
+      'لديّ ملف نسخة احتياطية بدلًا من ذلك';
+
+  @override
+  String get settings_setUpDevice_offer_icloud =>
+      'يستخدم معرّف Apple الخاص بك. لا حاجة لتسجيل الدخول.';
+
+  @override
+  String get settings_setUpDevice_offer_googleDrive =>
+      'سجّل الدخول باستخدام Google';
+
+  @override
+  String get settings_setUpDevice_offer_dropbox =>
+      'سجّل الدخول باستخدام Dropbox';
+
+  @override
+  String get settings_setUpDevice_offer_ownServer =>
+      'تخزين متوافق مع S3 أو خادم WebDAV';
+
+  @override
+  String get settings_setUpDevice_sync_title => 'الغطسات على كل جهاز';
+
+  @override
+  String settings_setUpDevice_sync_signedIn(String account) {
+    return 'تم تسجيل الدخول إلى $account';
+  }
+
+  @override
+  String settings_setUpDevice_sync_noLibrary(String account) {
+    return 'لا تحتوي $account على مكتبة Submersion بعد. ستصبح الغطسات هنا المكتبة التي تتشاركها كل أجهزتك.';
+  }
+
+  @override
+  String settings_setUpDevice_sync_found(
+    String account,
+    String when,
+    String device,
+  ) {
+    return 'عُثر على مكتبتك في $account، آخر تغيير $when على $device.';
+  }
+
+  @override
+  String settings_setUpDevice_sync_foundPlain(String account) {
+    return 'عُثر على مكتبتك في $account.';
+  }
+
+  @override
+  String get settings_setUpDevice_sync_foundEmpty =>
+      'لا توجد غطسات هنا بعد، لذا تُنزَّل المكتبة ببساطة.';
+
+  @override
+  String get settings_setUpDevice_sync_combine => 'دمجها';
+
+  @override
+  String get settings_setUpDevice_sync_combineDetail =>
+      'تنضم الغطسات هنا إلى المكتبة. الغطسة المسجّلة على الجهازين بشكل منفصل ستظهر مرتين.';
+
+  @override
+  String get settings_setUpDevice_sync_replace =>
+      'استبدال الغطسات هنا بالمكتبة';
+
+  @override
+  String get settings_setUpDevice_sync_replaceDetail =>
+      'تُحفظ أولًا نسخة احتياطية من الغطسات هنا ضمن النسخ الاحتياطية.';
+
+  @override
+  String get settings_setUpDevice_sync_keepInStepDetail =>
+      'بعد ثوانٍ من كل تغيير، وعند التشغيل، وعند العودة إلى التطبيق';
+
+  @override
+  String get settings_setUpDevice_sync_turnOn => 'تشغيل المزامنة';
+
+  @override
+  String get settings_setUpDevice_sync_download => 'تنزيل المكتبة';
+
+  @override
+  String get settings_setUpDevice_sync_combineAndDownload => 'الدمج والتنزيل';
+
+  @override
+  String get settings_setUpDevice_sync_replaceAndDownload =>
+      'الاستبدال والتنزيل';
+
+  @override
+  String get settings_setUpDevice_sync_noAccount =>
+      'اختر أولًا مكان حفظ بياناتك.';
+
+  @override
+  String get settings_setUpDevice_replace_title => 'استبدال الغطسات هنا؟';
+
+  @override
+  String get settings_setUpDevice_replace_working =>
+      'جارٍ وضع الغطسات هنا جانبًا وتنزيل المكتبة...';
+
+  @override
+  String get settings_setUpDevice_replace_doneTitle => 'تم تنزيل المكتبة';
+
+  @override
+  String get settings_setUpDevice_replace_stillUploading =>
+      'لا تزال المكتبة تُرفع من جهاز آخر. حاول مجددًا عند الانتهاء.';
+
+  @override
+  String get settings_setUpDevice_replace_photosBusy =>
+      'لا تزال عمليات رفع الصور جارية. حاول مجددًا بعد لحظة.';
+
+  @override
+  String get settings_setUpDevice_replace_failed =>
+      'تعذّر تنزيل المكتبة. لم يتغير شيء.';
+
+  @override
+  String settings_setUpDevice_sync_unreachable(String account) {
+    return 'تعذّرت قراءة $account. تحقّق من الاتصال وحاول مجددًا.';
+  }
+
+  @override
+  String settings_setUpDevice_replace_noLibrary(String account) {
+    return 'لا تحتوي $account على مكتبة للانضمام إليها بعد.';
+  }
+
+  @override
+  String settings_setUpDevice_replace_newerSchema(String devices) {
+    return '$devices تستخدم إصدارًا أحدث من Submersion. حدّث هذا الجهاز أولًا.';
+  }
+
+  @override
+  String settings_setUpDevice_replace_backupNote(String date) {
+    return 'قبل الانضمام إلى المكتبة، $date';
+  }
+
+  @override
+  String settings_setUpDevice_replace_body(int count, String account) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'تُستبدل $count غطسة هنا بالمكتبة في $account. تُحفظ نسخة احتياطية منها أولًا وتبقى ضمن النسخ الاحتياطية.',
+      many:
+          'تُستبدل $count غطسة هنا بالمكتبة في $account. تُحفظ نسخة احتياطية منها أولًا وتبقى ضمن النسخ الاحتياطية.',
+      few:
+          'تُستبدل $count غطسات هنا بالمكتبة في $account. تُحفظ نسخة احتياطية منها أولًا وتبقى ضمن النسخ الاحتياطية.',
+      two:
+          'تُستبدل الغطستان هنا بالمكتبة في $account. تُحفظ نسخة احتياطية منهما أولًا وتبقى ضمن النسخ الاحتياطية.',
+      one:
+          'تُستبدل الغطسة هنا بالمكتبة في $account. تُحفظ نسخة احتياطية منها أولًا وتبقى ضمن النسخ الاحتياطية.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_replace_doneBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'وُضعت $count غطسة جانبًا ونُزّلت المكتبة. سيُعاد تحميل Submersion.',
+      many:
+          'وُضعت $count غطسة جانبًا ونُزّلت المكتبة. سيُعاد تحميل Submersion.',
+      few:
+          'وُضعت غطساتك الـ $count جانبًا ونُزّلت المكتبة. سيُعاد تحميل Submersion.',
+      two: 'وُضعت غطستاك جانبًا ونُزّلت المكتبة. سيُعاد تحميل Submersion.',
+      one: 'وُضعت غطستك جانبًا ونُزّلت المكتبة. سيُعاد تحميل Submersion.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_backups_title(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'phone': 'نسخة احتياطية تصمد أمام فقدان الهاتف',
+      'tablet': 'نسخة احتياطية تصمد أمام فقدان الجهاز اللوحي',
+      'computer': 'نسخة احتياطية تصمد أمام فقدان الحاسوب',
+      'other': 'نسخة احتياطية تصمد أمام فقدان الجهاز',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_setUpDevice_backups_intro =>
+      'تُبقي المزامنة الأجهزة متطابقة. النسخة الاحتياطية نسخة من لحظة معيّنة يمكنك الرجوع إليها.';
+
+  @override
+  String settings_setUpDevice_backups_autoDetail(String frequency, int count) {
+    return '$frequency. تُحفظ هنا آخر $count.';
+  }
+
+  @override
+  String settings_setUpDevice_backups_autoDetailDesktop(
+    String frequency,
+    int count,
+  ) {
+    return '$frequency، أثناء فتح Submersion. تُحفظ هنا آخر $count.';
+  }
+
+  @override
+  String settings_setUpDevice_backups_copy(String account) {
+    return 'الاحتفاظ أيضًا بنسخة في $account';
+  }
+
+  @override
+  String get settings_setUpDevice_backups_noAccount =>
+      'تحتاج النسخة خارج هذا الجهاز إلى حساب أو مجلد نسخ احتياطي.';
+
+  @override
+  String get settings_setUpDevice_backups_openBackups => 'فتح النسخ الاحتياطية';
+
+  @override
+  String get settings_setUpDevice_backups_note =>
+      'الجدولة والمجلد والحماية بكلمة مرور والنسخ القديمة ضمن النسخ الاحتياطية.';
+
+  @override
+  String get settings_setUpDevice_photos_title => 'الصور على كل جهاز';
+
+  @override
+  String settings_setUpDevice_photos_firstIntro(String account) {
+    return 'احتفظ بنسخ من صورك ومقاطع الفيديو في $account لتعرضها أجهزتك الأخرى. تبقى الأصول في مكانها.';
+  }
+
+  @override
+  String settings_setUpDevice_photos_keepCopies(String account) {
+    return 'الاحتفاظ بنسخ الصور في $account';
+  }
+
+  @override
+  String get settings_setUpDevice_photos_firstNote =>
+      'شغّله لاحقًا ضمن الصور والفيديوهات. لا يُرفع شيء حتى تفعل.';
+
+  @override
+  String settings_setUpDevice_photos_secondIntro(String account) {
+    return 'تحتفظ أجهزتك الأخرى بنسخ من الصور والفيديو في $account. هل تعرضها هنا أيضًا؟';
+  }
+
+  @override
+  String settings_setUpDevice_photos_useCopies(String account) {
+    return 'استخدام نسخ الصور في $account';
+  }
+
+  @override
+  String get settings_setUpDevice_photos_sameAccount =>
+      'الحساب نفسه. لا حاجة لكتابة شيء.';
+
+  @override
+  String settings_setUpDevice_photos_signInFirst(String account) {
+    return 'يسجّل الدخول إلى $account أولًا.';
+  }
+
+  @override
+  String get settings_setUpDevice_photos_autoUploadHere =>
+      'رفع الصور المضافة هنا تلقائيًا';
+
+  @override
+  String settings_setUpDevice_photos_attachedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count صورة ومقطع فيديو مرتبط',
+      many: '$count صورة ومقطع فيديو مرتبط',
+      few: '$count صور ومقاطع فيديو مرتبطة',
+      two: 'صورتان أو مقطعا فيديو مرتبطان',
+      one: 'صورة أو فيديو واحد مرتبط',
+      zero: 'لا توجد صور أو مقاطع فيديو مرتبطة بعد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_done_title(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'phone': 'تم إعداد هذا الهاتف',
+      'tablet': 'تم إعداد هذا الجهاز اللوحي',
+      'computer': 'تم إعداد هذا الحاسوب',
+      'other': 'تم إعداد هذا الجهاز',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_done_otherDevices(String account) {
+    return 'على أجهزتك الأخرى، افتح Submersion واختر $account، وستظهر المكتبة نفسها.';
   }
 }

@@ -11,6 +11,16 @@ import 'package:submersion/core/services/shared_library/shared_library_models.da
 /// The two kinds of item shared through an `is_shared` flag.
 enum SharedItemKind { trip, site }
 
+/// The item is the active profile's own: owned by it, ownerless (a
+/// built-in, or from before profiles), or there is no active profile to
+/// tell apart. A copy of another profile's shared item (a cloned piece of
+/// gear, a duplicated site) keeps only the tags and types this holds for
+/// (issues #2046, #3575).
+bool isOwnOrUnowned({
+  required String? ownerId,
+  required String? activeDiverId,
+}) => activeDiverId == null || ownerId == null || ownerId == activeDiverId;
+
 /// The active profile may delete, merge away or re-share the item. An
 /// ownerless item and a caller that names no profile behave as they did
 /// before sharing existed.
@@ -20,11 +30,13 @@ bool canDestroySharedItem({
   bool isLibrarySite = false,
 }) =>
     !isLibrarySite &&
-    (activeDiverId == null || ownerId == null || ownerId == activeDiverId);
+    isOwnOrUnowned(ownerId: ownerId, activeDiverId: activeDiverId);
 
 /// The active profile sees the item only because another profile shared
-/// it, so it may hide it from itself. For any owned shared item exactly one
-/// of this and [canDestroySharedItem] holds.
+/// it, so it may hide it from itself. [isShared] means shared with the
+/// active profile: with everyone, or by a share row naming it (issue
+/// #2151). For any owned shared item exactly one of this and
+/// [canDestroySharedItem] holds.
 bool canHideSharedItem({
   required String? ownerId,
   required bool isShared,

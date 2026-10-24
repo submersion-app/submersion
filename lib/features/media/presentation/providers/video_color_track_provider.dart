@@ -55,17 +55,17 @@ class VideoTrackKey extends Equatable {
   ];
 }
 
-/// Reads a video's frames with [read], given a path to open. A row linked
-/// through a security-scoped bookmark (iOS and macOS) is opened through it,
-/// with access held only for the read: the sandboxed macOS build may stat a
-/// linked file by its path after a relaunch but not open it, and an iOS row
-/// keeps no path at all. Otherwise [path] as it is. Null when the file
-/// cannot be opened.
+/// Reads a video with [read] (its frames, or a corrected copy of it),
+/// given a path to open. A row linked through a security-scoped bookmark
+/// (iOS and macOS) is opened through it, with access held only for the
+/// read: the sandboxed macOS build may stat a linked file by its path after
+/// a relaunch but not open it, and an iOS row keeps no path at all.
+/// Otherwise [path] as it is. Null when the file cannot be opened.
 typedef VideoFileAccess =
-    Future<List<Uint8List?>?> Function({
+    Future<T?> Function<T>({
       String? path,
       String? bookmarkRef,
-      required Future<List<Uint8List?>> Function(String path) read,
+      required Future<T> Function(String path) read,
     });
 
 /// Whether this platform links files through security-scoped bookmarks.
@@ -77,7 +77,7 @@ final videoFileAccessProvider = Provider<VideoFileAccess>((ref) {
   final storage = ref.watch(localBookmarkStorageProvider);
   final platform = ref.watch(localMediaPlatformProvider);
   final bookmarksApply = ref.watch(videoBookmarksApplyProvider);
-  return ({path, bookmarkRef, required read}) async {
+  return <T>({path, bookmarkRef, required read}) async {
     if (bookmarksApply && bookmarkRef != null && bookmarkRef.isNotEmpty) {
       ResolvedBookmark? lease;
       try {

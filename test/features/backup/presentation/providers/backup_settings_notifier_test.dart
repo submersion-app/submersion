@@ -35,6 +35,18 @@ void main() {
     });
   });
 
+  test(
+    'setCrossDeviceRetentionAccount persists and shows the switch',
+    () async {
+      await notifier.setCrossDeviceRetentionAccount('acct');
+      expect(notifier.state.crossDeviceRetentionFor('acct'), isTrue);
+      expect(prefs.getSettings().crossDeviceRetentionFor('acct'), isTrue);
+
+      await notifier.setCrossDeviceRetentionAccount(null);
+      expect(notifier.state.crossDeviceRetentionAccount, isNull);
+    },
+  );
+
   group('the backup folder and the cloud copy are independent', () {
     test('cloud backup starts disabled', () {
       expect(notifier.state.cloudBackupEnabled, isFalse);

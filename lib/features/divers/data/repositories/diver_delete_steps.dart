@@ -154,6 +154,21 @@ const List<DiverDeleteStep> diverTripAndSiteSteps = [
         'diver_id = ?1 OR '
         'site_id IN (SELECT id FROM dive_sites WHERE diver_id = ?1)',
   ),
+  // The shares naming the diver, and every share of the diver's trips and
+  // sites (issue #2151), tombstoned for the same reason. Those it shared
+  // with chosen profiles were handed over before these steps run.
+  (
+    table: 'trip_shares',
+    entityType: 'tripShares',
+    where: 'diver_id = ?1 OR $_ofDiverTrips',
+  ),
+  (
+    table: 'site_shares',
+    entityType: 'siteShares',
+    where:
+        'diver_id = ?1 OR '
+        'site_id IN (SELECT id FROM dive_sites WHERE diver_id = ?1)',
+  ),
   (table: 'trips', entityType: 'trips', where: 'diver_id = ?1'),
   (table: 'dive_sites', entityType: 'diveSites', where: 'diver_id = ?1'),
 ];

@@ -12,6 +12,7 @@ import 'package:submersion/core/query/names/name_index.dart';
 import 'package:submersion/core/query/presentation/query_editor_context.dart';
 import 'package:submersion/core/query/presentation/query_text_field.dart';
 import 'package:submersion/features/dive_log/query/dive_filter_query.dart';
+import 'package:submersion/features/dive_log/query/dive_number_query.dart';
 import 'package:submersion/core/query/presentation/query_tree_edit.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_ask_providers.dart';
@@ -280,6 +281,34 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
     }
   }
 
+  /// Enter: remembers the search and, when the field holds only a dive
+  /// number that a dive has, opens the newest such dive (#3455). It asks
+  /// for the field's text as it is now, not the rows on screen, which may
+  /// still answer text from before the debounce.
+  Future<void> _onSubmitted() async {
+    final node = _local;
+    unawaited(_recordTyped());
+    final number = bareDiveNumber(node);
+    if (node == null || number == null || !_fieldValid) return;
+    final provider = diveJumpResultsProvider(node);
+    // Held open while it loads: the rows' own listener may be gone.
+    final sub = ref.listenManual(provider, (_, _) {});
+    final List<DiveSummary> rows;
+    try {
+      rows = await ref.read(provider.future);
+    } catch (e, stackTrace) {
+      _log.warning('No dive to jump to', error: e, stackTrace: stackTrace);
+      return;
+    } finally {
+      sub.close();
+    }
+    if (!mounted || _local != node) return;
+    final dive = rows.where((d) => d.diveNumber == number).firstOrNull;
+    if (dive == null) return;
+    _focus.unfocus();
+    widget.onOpenDive(dive);
+  }
+
   /// A saved search is the whole search (spec 5.4): the axes clear.
   void _applySaved(SavedQueryLoad load) {
     _debounce?.cancel();
@@ -448,7 +477,7 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
                   focusNode: _focus,
                   onValidityChanged: _onValidityChanged,
                   onTextChanged: _onTextChanged,
-                  onSubmitted: _recordTyped,
+                  onSubmitted: _onSubmitted,
                   textOverride: _textOverride,
                   shortcuts: {
                     if (ref.watch(exploreEnabledProvider))

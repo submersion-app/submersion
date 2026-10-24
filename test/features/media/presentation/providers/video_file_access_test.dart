@@ -102,6 +102,17 @@ void main() {
     expect(platform.released, isEmpty);
   });
 
+  test('access returns a non-list result through the bookmark', () async {
+    final platform = _Platform();
+    final opened = await access(platform)<String>(
+      path: null,
+      bookmarkRef: 'bm-1',
+      read: (path) async => 'opened:$path',
+    );
+    expect(opened, 'opened:/scoped/dive.mp4');
+    expect(platform.released, ['lease-1']);
+  });
+
   test('no bookmark reads the path; neither is nothing to read', () async {
     final platform = _Platform();
     await access(platform)(path: '/plain/dive.mp4', read: reader);

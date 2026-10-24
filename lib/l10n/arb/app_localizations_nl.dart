@@ -2343,8 +2343,8 @@ class AppLocalizationsNl extends AppLocalizations {
       'Hoofdvenster formaat aanpassen';
 
   @override
-  String get accessibility_label_sharedWithAllProfiles =>
-      'Gedeeld met alle duikersprofielen';
+  String get accessibility_label_sharedWithProfiles =>
+      'Gedeeld met andere duikersprofielen';
 
   @override
   String get accessibility_label_showList => 'Lijst tonen';
@@ -2507,6 +2507,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get backup_history_pinAction_unpin => 'Back-up losmaken';
 
   @override
+  String get backup_history_pinnedOnAnotherDevice =>
+      'Vastgemaakt op een ander apparaat';
+
+  @override
   String get backup_history_pinError => 'Kan vastmaakstatus niet bijwerken.';
 
   @override
@@ -2609,6 +2613,92 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get backup_schedule_retention_subtitle =>
       'Oudere back-ups worden automatisch verwijderd';
+
+  @override
+  String get backup_retention_allDevices_title =>
+      'Back-ups van alle apparaten meetellen';
+
+  @override
+  String get backup_retention_allDevices_off =>
+      'Uit: dit apparaat verwijdert alleen de back-ups die het zelf maakte';
+
+  @override
+  String backup_retention_allDevices_on(int count) {
+    return 'De cloudmap bewaart de laatste $count back-ups van alle apparaten. Vastgemaakte back-ups blijven bewaard. Gebruiken andere apparaten dit ook, dan geldt het kleinste aantal. Werk eerst de app op elk apparaat bij, zodat hun vastgemaakte back-ups zichtbaar zijn.';
+  }
+
+  @override
+  String backup_retention_cloudFootprint(int count, String size) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count back-ups in de cloudmap gebruiken $size',
+      one: '$count back-up in de cloudmap gebruikt $size',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backup_retention_confirm_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count back-ups verwijderen?',
+      one: '$count back-up verwijderen?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backup_retention_confirm_body(int keep, String size) {
+    return 'Door de laatste $keep back-ups te bewaren worden deze uit de cloudmap verwijderd ($size in totaal).';
+  }
+
+  @override
+  String backup_retention_confirm_pinnedKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count vastgemaakte back-ups blijven bewaard.',
+      one: '$count vastgemaakte back-up blijft bewaard.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backup_retention_confirm_action(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count back-ups verwijderen',
+      one: '$count back-up verwijderen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backup_retention_source_thisDevice => 'Dit apparaat';
+
+  @override
+  String get backup_retention_source_anotherDevice => 'Ander apparaat';
+
+  @override
+  String get backup_retention_source_unknown => 'Onbekend apparaat';
+
+  @override
+  String get backup_retention_listFailed =>
+      'De back-upmap in de cloud kon niet worden gelezen, dus er is niets gewijzigd.';
+
+  @override
+  String backup_retention_removed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count back-ups uit de cloudmap verwijderd',
+      one: '$count back-up uit de cloudmap verwijderd',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get backup_section_history => 'Geschiedenis';
@@ -6234,6 +6324,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveCenters_hint_website => 'www.duikcentrum.nl';
 
   @override
+  String get diveCenters_hint_permanentlyClosed =>
+      'Blijft bewaard voor eerdere duiken; staat in de kiezer niet bij de duikcentra in de buurt.';
+
+  @override
   String diveCenters_import_fromDatabase(Object count) {
     return 'Importeren uit database ($count)';
   }
@@ -6306,11 +6400,17 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveCenters_label_website => 'Website';
 
   @override
+  String get diveCenters_label_permanentlyClosed => 'Permanent gesloten';
+
+  @override
   String get diveCenters_map_addCoordinatesHint =>
       'Voeg coördinaten toe aan je duikcentra om ze op de kaart te zien';
 
   @override
   String get diveCenters_map_noCoordinates => 'Geen duikcentra met coördinaten';
+
+  @override
+  String get diveCenters_picker_allCenters => 'Alle duikcentra';
 
   @override
   String get diveCenters_picker_newCenter => 'Nieuw duikcentrum';
@@ -6319,12 +6419,27 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveCenters_picker_title => 'Selecteer duikcentrum';
 
   @override
+  String diveCenters_picker_nearSite(String siteName) {
+    return 'In de buurt van $siteName';
+  }
+
+  @override
+  String get diveCenters_picker_nearThisDive => 'In de buurt van deze duik';
+
+  @override
+  String get diveCenters_picker_nearYourLocation =>
+      'In de buurt van je locatie';
+
+  @override
   String diveCenters_search_noResults(Object query) {
     return 'Geen resultaten voor \"$query\"';
   }
 
   @override
   String get diveCenters_search_prompt => 'Zoek duikcentra';
+
+  @override
+  String get diveCenters_tag_closed => 'Gesloten';
 
   @override
   String get diveCenters_section_address => 'Adres';
@@ -8597,6 +8712,17 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get diveSites_detail_duplicateMenu_label => 'Dupliceren';
+
+  @override
+  String get diveSites_edit_appBar_duplicateSite => 'Stek dupliceren';
+
+  @override
+  String diveSites_edit_duplicateName(String name) {
+    return '$name (kopie)';
+  }
+
+  @override
   String get diveSites_edit_group_accessSafety => 'Toegang & veiligheid';
 
   @override
@@ -8613,6 +8739,10 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveSites_edit_group_typeTags => 'Type & labels';
+
+  @override
+  String get diveSites_edit_snackbar_featuresNotCopied =>
+      'Stek toegevoegd, maar de kenmerken op de kaart konden niet worden gekopieerd.';
 
   @override
   String get diveSites_edit_typeTags_manageTypes => 'Types beheren';
@@ -9330,6 +9460,11 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_search_jumpTitle => 'Naar duik springen';
 
   @override
+  String diveLog_search_jumpNumberTitle(int number, String title) {
+    return '#$number · $title';
+  }
+
+  @override
   String diveLog_ask_row(String text) {
     return 'Vraag: $text';
   }
@@ -10015,6 +10150,17 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get diveLog_tank_regulatorShowLeftKit =>
       'Ademautomaten die uit gebruik of verkocht zijn tonen';
+
+  @override
+  String get diveLog_tank_addRegulator => 'Ademautomaat toevoegen';
+
+  @override
+  String diveLog_tank_regulatorNumbered(int number) {
+    return 'Ademautomaat $number';
+  }
+
+  @override
+  String get diveLog_tank_removeRegulator => 'Ademautomaat verwijderen';
 
   @override
   String get diveLog_tank_tripCylinderLabel => 'Fles van de reis';
@@ -18536,8 +18682,40 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String media_photoPicker_files_diveGroupTitle(String diveId) {
-    return 'Duik $diveId';
+  String media_photoPicker_files_diveGroupNumberSite(int number, String site) {
+    return 'Duik #$number · $site';
+  }
+
+  @override
+  String media_photoPicker_files_diveGroupNumber(int number) {
+    return 'Duik #$number';
+  }
+
+  @override
+  String media_photoPicker_files_diveGroupSite(String site) {
+    return 'Duik · $site';
+  }
+
+  @override
+  String get media_photoPicker_files_diveGroupUnnamed => 'Duik';
+
+  @override
+  String media_photoPicker_files_diveGroupWindow(
+    String date,
+    String start,
+    String end,
+  ) {
+    return '$date · $start – $end';
+  }
+
+  @override
+  String media_photoPicker_files_diveGroupStart(String date, String start) {
+    return '$date · $start';
+  }
+
+  @override
+  String media_photoPicker_files_diveGroupSubtitle(String when, String files) {
+    return '$when · $files';
   }
 
   @override
@@ -18808,6 +18986,36 @@ class AppLocalizationsNl extends AppLocalizations {
   String media_photoViewer_failedToShare(Object error) {
     return 'Delen mislukt: $error';
   }
+
+  @override
+  String get media_share_preparingVideo => 'Video voorbereiden';
+
+  @override
+  String media_share_preparingVideoOf(int current, int total) {
+    return 'Video $current van $total voorbereiden';
+  }
+
+  @override
+  String get media_share_correctionFailedTitle =>
+      'Kleurcorrectie kon niet worden toegepast';
+
+  @override
+  String media_share_correctionFailedBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count video\'s kunnen nog steeds zonder worden gedeeld.',
+      one: 'Deze video kan nog steeds zonder worden gedeeld.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_share_shareOriginal => 'Origineel delen';
+
+  @override
+  String get media_share_videoInterrupted =>
+      'Het voorbereiden van de video stopte toen Submersion naar de achtergrond ging. Deel opnieuw om opnieuw te beginnen.';
 
   @override
   String get media_photoViewer_failedToWriteMetadata =>
@@ -23917,6 +24125,9 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_conflict_field_sharedComputerIds =>
       'Gedeeld met computers';
+
+  @override
+  String get settings_conflict_field_extraRegulatorIds => 'Extra ademautomaten';
 
   @override
   String get settings_conflict_field_shoreSwimM => 'Zwemmen naar de kant';
@@ -35545,29 +35756,19 @@ class AppLocalizationsNl extends AppLocalizations {
       'Nieuwe sites en trips standaard delen';
 
   @override
-  String get settings_shareAllSites_title => 'Al mijn sites delen';
+  String get settings_shareAllSites_title => 'Al mijn duikplekken delen...';
 
   @override
-  String get settings_shareAllTrips_title => 'Al mijn trips delen';
+  String get settings_shareAllTrips_title => 'Al mijn trips delen...';
 
   @override
   String settings_shareAllSites_confirm(int count) {
-    return 'Al je $count sites zichtbaar maken voor elk duikersprofiel in deze app? Je kunt individuele sites later ontdelen.';
+    return 'Kies wie al je $count duikplekken ziet. Om één duikplek later te wijzigen, open je hem en tik je op Gedeeld met.';
   }
 
   @override
   String settings_shareAllTrips_confirm(int count) {
-    return 'Al je $count trips zichtbaar maken voor elk duikersprofiel in deze app? Je kunt individuele trips later ontdelen.';
-  }
-
-  @override
-  String settings_shareAllSites_snackbar(int count) {
-    return '$count sites gedeeld met alle duikersprofielen.';
-  }
-
-  @override
-  String settings_shareAllTrips_snackbar(int count) {
-    return '$count trips gedeeld met alle duikersprofielen.';
+    return 'Kies wie al je $count trips ziet. Om één trip later te wijzigen, open je hem en tik je op Gedeeld met.';
   }
 
   @override
@@ -35604,7 +35805,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String trips_unshareConfirm_body(String name) {
-    return 'Hiermee wordt ‘$name’ uit de weergaven van andere duikersprofielen verwijderd. Je kunt het later weer delen.';
+    return 'Profielen die je weghaalt zien „$name\" niet meer. Hun duiken blijven eraan gekoppeld en je kunt de trip later weer met ze delen.';
   }
 
   @override
@@ -35612,7 +35813,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String sites_unshareConfirm_body(String name) {
-    return 'Hiermee wordt ‘$name’ uit de weergaven van andere duikersprofielen verwijderd. Je kunt het later weer delen.';
+    return 'Profielen die je weghaalt zien „$name\" niet meer. Hun duiken blijven eraan gekoppeld en je kunt de duikplek later weer met ze delen.';
   }
 
   @override
@@ -35687,6 +35888,31 @@ class AppLocalizationsNl extends AppLocalizations {
       one: '$count item uit je profiel verwijderen?',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get sharedItems_bulkShare_action => 'Delen met...';
+
+  @override
+  String sharedItems_bulkShare_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items gedeeld',
+      one: '$count item gedeeld',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedItems_bulkShare_doneSkipped(int count, int skipped) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items gedeeld',
+      one: '$count item gedeeld',
+    );
+    return '$_temp0, $skipped overgeslagen die niet van jou zijn';
   }
 
   @override
@@ -35787,6 +36013,21 @@ class AppLocalizationsNl extends AppLocalizations {
   String get sharedItems_removedSnackbar => 'Uit je profiel verwijderd';
 
   @override
+  String get sharedItems_shareDialog_everyoneSubtitle =>
+      'Elk duikersprofiel, ook profielen die later worden toegevoegd';
+
+  @override
+  String get sharedItems_shareDialog_siteBody =>
+      'De profielen die je kiest zien deze duikplek en kunnen er hun eigen duiken op vastleggen. Alleen jij kunt hem verwijderen of wijzigen met wie hij wordt gedeeld.';
+
+  @override
+  String get sharedItems_shareDialog_title => 'Delen met';
+
+  @override
+  String get sharedItems_shareDialog_tripBody =>
+      'De profielen die je kiest zien deze trip en kunnen er hun eigen duiken aan toevoegen. Alleen jij kunt hem verwijderen of wijzigen met wie hij wordt gedeeld.';
+
+  @override
   String sharedItems_shareOwnerOnly(String owner) {
     return 'Alleen $owner kan het delen wijzigen';
   }
@@ -35795,6 +36036,15 @@ class AppLocalizationsNl extends AppLocalizations {
   String sharedItems_sharedBy(String owner) {
     return 'Gedeeld door $owner';
   }
+
+  @override
+  String get sharedItems_sharedWith_everyone => 'Iedereen';
+
+  @override
+  String get sharedItems_sharedWith_label => 'Gedeeld met';
+
+  @override
+  String get sharedItems_sharedWith_none => 'Niet gedeeld';
 
   @override
   String get sharedItems_undo => 'Ongedaan maken';
@@ -35825,6 +36075,19 @@ class AppLocalizationsNl extends AppLocalizations {
       one: 'site',
     );
     return 'Duiker verwijderd. $trips gedeelde $_temp0 en $sites gedeelde $_temp1 toegewezen aan $name.';
+  }
+
+  @override
+  String divers_delete_handedOver(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count gedeelde trips en sites gingen naar de profielen waarmee ze gedeeld waren.',
+      one:
+          '$count gedeelde trip of site ging naar het profiel waarmee hij gedeeld was.',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -52412,6 +52675,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get query_centers_city => 'Stad';
 
   @override
+  String get query_centers_closed => 'Permanent gesloten';
+
+  @override
   String get query_centers_coordinates => 'Coördinaten';
 
   @override
@@ -54827,5 +55093,288 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String settings_setUpDevice_item_signInBackups(String account) {
     return 'Log opnieuw in bij $account. Back-ups staan tot dan stil.';
+  }
+
+  @override
+  String get settings_setUpDevice_next => 'Volgende';
+
+  @override
+  String get settings_setUpDevice_notNow => 'Niet nu';
+
+  @override
+  String get settings_setUpDevice_skip => 'Overslaan';
+
+  @override
+  String get settings_setUpDevice_account_title =>
+      'Waar moet Submersion je gegevens bewaren?';
+
+  @override
+  String get settings_setUpDevice_account_note =>
+      'Je duiken worden alleen opgeslagen in het account dat je kiest. Submersion heeft geen eigen server.';
+
+  @override
+  String get settings_setUpDevice_account_backupFile =>
+      'Ik heb in plaats daarvan een back-upbestand';
+
+  @override
+  String get settings_setUpDevice_offer_icloud =>
+      'Gebruikt je Apple ID. Je hoeft nergens in te loggen.';
+
+  @override
+  String get settings_setUpDevice_offer_googleDrive => 'Inloggen met Google';
+
+  @override
+  String get settings_setUpDevice_offer_dropbox => 'Inloggen met Dropbox';
+
+  @override
+  String get settings_setUpDevice_offer_ownServer =>
+      'S3-compatibele opslag of een WebDAV-server';
+
+  @override
+  String get settings_setUpDevice_sync_title => 'Duiken op elk apparaat';
+
+  @override
+  String settings_setUpDevice_sync_signedIn(String account) {
+    return 'Ingelogd bij $account';
+  }
+
+  @override
+  String settings_setUpDevice_sync_noLibrary(String account) {
+    return '$account heeft nog geen Submersion-bibliotheek. De duiken hier worden de bibliotheek die al je apparaten delen.';
+  }
+
+  @override
+  String settings_setUpDevice_sync_found(
+    String account,
+    String when,
+    String device,
+  ) {
+    return 'Je bibliotheek gevonden in $account, laatst gewijzigd $when op $device.';
+  }
+
+  @override
+  String settings_setUpDevice_sync_foundPlain(String account) {
+    return 'Je bibliotheek gevonden in $account.';
+  }
+
+  @override
+  String get settings_setUpDevice_sync_foundEmpty =>
+      'Hier staan nog geen duiken, dus de bibliotheek wordt gewoon gedownload.';
+
+  @override
+  String get settings_setUpDevice_sync_combine => 'Samenvoegen';
+
+  @override
+  String get settings_setUpDevice_sync_combineDetail =>
+      'De duiken hier komen bij de bibliotheek. Een duik die op beide apparaten apart is gelogd, verschijnt twee keer.';
+
+  @override
+  String get settings_setUpDevice_sync_replace =>
+      'De duiken hier vervangen door de bibliotheek';
+
+  @override
+  String get settings_setUpDevice_sync_replaceDetail =>
+      'Eerst wordt een back-up van de duiken hier opgeslagen, onder Back-ups.';
+
+  @override
+  String get settings_setUpDevice_sync_keepInStepDetail =>
+      'Een paar seconden na elke wijziging, bij het starten en wanneer je terugkeert naar de app';
+
+  @override
+  String get settings_setUpDevice_sync_turnOn => 'Synchronisatie aanzetten';
+
+  @override
+  String get settings_setUpDevice_sync_download => 'Bibliotheek downloaden';
+
+  @override
+  String get settings_setUpDevice_sync_combineAndDownload =>
+      'Samenvoegen en downloaden';
+
+  @override
+  String get settings_setUpDevice_sync_replaceAndDownload =>
+      'Vervangen en downloaden';
+
+  @override
+  String get settings_setUpDevice_sync_noAccount =>
+      'Kies eerst waar je gegevens staan.';
+
+  @override
+  String get settings_setUpDevice_replace_title => 'De duiken hier vervangen?';
+
+  @override
+  String get settings_setUpDevice_replace_working =>
+      'De duiken hier worden opzijgezet en de bibliotheek wordt gedownload...';
+
+  @override
+  String get settings_setUpDevice_replace_doneTitle => 'Bibliotheek gedownload';
+
+  @override
+  String get settings_setUpDevice_replace_stillUploading =>
+      'De bibliotheek wordt nog geüpload vanaf een ander apparaat. Probeer het opnieuw zodra dat klaar is.';
+
+  @override
+  String get settings_setUpDevice_replace_photosBusy =>
+      'Foto-uploads zijn nog bezig. Probeer het zo meteen opnieuw.';
+
+  @override
+  String get settings_setUpDevice_replace_failed =>
+      'De bibliotheek kon niet worden gedownload. Er is niets gewijzigd.';
+
+  @override
+  String settings_setUpDevice_sync_unreachable(String account) {
+    return '$account kon niet worden gelezen. Controleer de verbinding en probeer het opnieuw.';
+  }
+
+  @override
+  String settings_setUpDevice_replace_noLibrary(String account) {
+    return '$account heeft nog geen bibliotheek om bij aan te sluiten.';
+  }
+
+  @override
+  String settings_setUpDevice_replace_newerSchema(String devices) {
+    return '$devices gebruiken een nieuwere versie van Submersion. Werk eerst dit apparaat bij.';
+  }
+
+  @override
+  String settings_setUpDevice_replace_backupNote(String date) {
+    return 'Voor het aansluiten bij de bibliotheek, $date';
+  }
+
+  @override
+  String settings_setUpDevice_replace_body(int count, String account) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'De $count duiken hier worden vervangen door de bibliotheek in $account. Eerst wordt er een back-up van opgeslagen, die onder Back-ups blijft.',
+      one:
+          'De duik hier wordt vervangen door de bibliotheek in $account. Eerst wordt er een back-up van opgeslagen, die onder Back-ups blijft.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_replace_doneBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Je $count duiken zijn opzijgezet en de bibliotheek is gedownload. Submersion wordt opnieuw geladen.',
+      one:
+          'Je duik is opzijgezet en de bibliotheek is gedownload. Submersion wordt opnieuw geladen.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_backups_title(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'phone': 'Een back-up die een verloren telefoon overleeft',
+      'tablet': 'Een back-up die een verloren tablet overleeft',
+      'computer': 'Een back-up die een verloren computer overleeft',
+      'other': 'Een back-up die een verloren apparaat overleeft',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_setUpDevice_backups_intro =>
+      'Synchronisatie houdt apparaten gelijk. Een back-up is een kopie van een moment waar je naar terug kunt.';
+
+  @override
+  String settings_setUpDevice_backups_autoDetail(String frequency, int count) {
+    return '$frequency. De laatste $count worden hier bewaard.';
+  }
+
+  @override
+  String settings_setUpDevice_backups_autoDetailDesktop(
+    String frequency,
+    int count,
+  ) {
+    return '$frequency, zolang Submersion open is. De laatste $count worden hier bewaard.';
+  }
+
+  @override
+  String settings_setUpDevice_backups_copy(String account) {
+    return 'Ook een kopie in $account bewaren';
+  }
+
+  @override
+  String get settings_setUpDevice_backups_noAccount =>
+      'Een kopie buiten dit apparaat heeft een account of een back-upmap nodig.';
+
+  @override
+  String get settings_setUpDevice_backups_openBackups => 'Back-ups openen';
+
+  @override
+  String get settings_setUpDevice_backups_note =>
+      'Planning, map, wachtwoordbeveiliging en oude back-ups staan onder Back-ups.';
+
+  @override
+  String get settings_setUpDevice_photos_title => 'Foto\'s op elk apparaat';
+
+  @override
+  String settings_setUpDevice_photos_firstIntro(String account) {
+    return 'Bewaar kopieën van je foto\'s en video\'s in $account, zodat je andere apparaten ze kunnen tonen. Je originelen blijven waar ze zijn.';
+  }
+
+  @override
+  String settings_setUpDevice_photos_keepCopies(String account) {
+    return 'Fotokopieën in $account bewaren';
+  }
+
+  @override
+  String get settings_setUpDevice_photos_firstNote =>
+      'Zet het later aan onder Foto\'s en video\'s. Tot dan wordt er niets geüpload.';
+
+  @override
+  String settings_setUpDevice_photos_secondIntro(String account) {
+    return 'Je andere apparaten bewaren kopieën van foto\'s en video\'s in $account. Ook hier tonen?';
+  }
+
+  @override
+  String settings_setUpDevice_photos_useCopies(String account) {
+    return 'De fotokopieën in $account gebruiken';
+  }
+
+  @override
+  String get settings_setUpDevice_photos_sameAccount =>
+      'Hetzelfde account. Niets in te typen.';
+
+  @override
+  String settings_setUpDevice_photos_signInFirst(String account) {
+    return 'Logt eerst in bij $account.';
+  }
+
+  @override
+  String get settings_setUpDevice_photos_autoUploadHere =>
+      'Hier toegevoegde foto\'s automatisch uploaden';
+
+  @override
+  String settings_setUpDevice_photos_attachedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count foto\'s en video\'s gekoppeld',
+      one: '$count foto of video gekoppeld',
+      zero: 'Nog geen foto\'s of video\'s gekoppeld',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_done_title(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'phone': 'Deze telefoon is ingesteld',
+      'tablet': 'Deze tablet is ingesteld',
+      'computer': 'Deze computer is ingesteld',
+      'other': 'Dit apparaat is ingesteld',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_done_otherDevices(String account) {
+    return 'Open Submersion op je andere apparaten, kies $account, en dezelfde bibliotheek verschijnt.';
   }
 }

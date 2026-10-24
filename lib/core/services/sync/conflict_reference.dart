@@ -1,4 +1,5 @@
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
+import 'package:submersion/features/dive_log/domain/entities/tank_extra_regulators.dart';
 
 /// The built-in row a reference's [ConflictReference.name] was read from.
 typedef ConflictBuiltInSource = ({String targetType, String id});
@@ -142,6 +143,12 @@ class ConflictReferenceResolver {
     'templateId': 'checklistTemplates',
   };
 
+  /// Columns holding a JSON list of row ids rather than one id (#3375),
+  /// resolved one reference per id, all under the column's name.
+  static const _listTargets = <String, String>{
+    'extraRegulatorIds': 'equipment',
+  };
+
   /// Owning entity type -> column -> target, for column names the schema
   /// reuses across unrelated tables or that are generic words elsewhere.
   static const _targetOverrides = <String, Map<String, String>>{
@@ -220,6 +227,14 @@ class ConflictReferenceResolver {
   ) async {
     final references = <ConflictReference>[];
     for (final entry in data.entries) {
+      final listTarget = _listTargets[entry.key];
+      if (listTarget != null) {
+        final raw = entry.value;
+        for (final id in decodeExtraRegulatorIds(raw is String ? raw : null)) {
+          references.add(await _resolveOne(entry.key, listTarget, id));
+        }
+        continue;
+      }
       final target = targetTypeFor(entityType, entry.key);
       if (target == null) continue;
       final id = entry.value;

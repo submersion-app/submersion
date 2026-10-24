@@ -344,6 +344,10 @@ class _HeaderSection extends StatelessWidget {
                       center.name,
                       style: Theme.of(context).textTheme.headlineSmall,
                     ),
+                    if (center.isPermanentlyClosed) ...[
+                      const SizedBox(height: 4),
+                      const _ClosedNote(),
+                    ],
                     if (center.rating != null) ...[
                       const SizedBox(height: 4),
                       Row(
@@ -909,6 +913,29 @@ class _DivesSection extends ConsumerWidget {
         ),
         error: (e, st) => const SizedBox.shrink(),
       ),
+    );
+  }
+}
+
+/// "Permanently closed" under a closed center's name (#3379).
+class _ClosedNote extends StatelessWidget {
+  const _ClosedNote();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final color = theme.colorScheme.onSurfaceVariant;
+    return Row(
+      children: [
+        Icon(Icons.do_not_disturb_on_outlined, size: 18, color: color),
+        const SizedBox(width: 6),
+        Flexible(
+          child: Text(
+            context.l10n.diveCenters_label_permanentlyClosed,
+            style: theme.textTheme.bodyMedium?.copyWith(color: color),
+          ),
+        ),
+      ],
     );
   }
 }

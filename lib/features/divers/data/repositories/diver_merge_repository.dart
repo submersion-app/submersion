@@ -65,6 +65,11 @@ class DiverMergeSnapshot {
   /// duplicate's. Undo deletes and tombstones them.
   final List<String> createdShareIds;
 
+  /// The same for `trip_shares` and `site_shares` (issue #2151), each row
+  /// with its table.
+  final List<({String table, Map<String, dynamic> row})> deletedItemShareRows;
+  final List<({String table, String id})> createdItemShareIds;
+
   /// `equipment_ownership_events` whose `from_diver_id` or `to_diver_id`
   /// named the duplicate (neither is a `diver_id` column, so the generic
   /// repoint skips them), with their prior values for undo.
@@ -80,6 +85,8 @@ class DiverMergeSnapshot {
     this.repointedLinkedBuddies = const [],
     this.deletedShareRows = const [],
     this.createdShareIds = const [],
+    this.deletedItemShareRows = const [],
+    this.createdItemShareIds = const [],
     this.repointedOwnershipEvents = const [],
   });
 }
@@ -118,6 +125,15 @@ class DiverMergeRepository {
   /// Moved by [_recreateDuplicateShares] instead of the generic repoint.
   static const _sharesTable = 'equipment_shares';
 
+  /// Every share table: each pairs an item ([itemTable] by [itemColumn])
+  /// with a profile that is not its owner (issues #2046, #2151). All are
+  /// moved by [_dropCollidingShares] and [_recreateDuplicateShares].
+  static const _shareSpecs = <_ShareSpec>[
+    (table: _sharesTable, itemTable: 'equipment', itemColumn: 'equipment_id'),
+    (table: 'trip_shares', itemTable: 'trips', itemColumn: 'trip_id'),
+    (table: 'site_shares', itemTable: 'dive_sites', itemColumn: 'site_id'),
+  ];
+
   final _uuid = const Uuid();
 
   /// Repoint all references from [duplicateId] to [keeperId], then delete the
@@ -139,6 +155,8 @@ class DiverMergeRepository {
     final repointedLinks = <String>[];
     final deletedShares = <Map<String, dynamic>>[];
     final createdShares = <String>[];
+    final deletedItemShares = <({String table, Map<String, dynamic> row})>[];
+    final createdItemShares = <({String table, String id})>[];
     final repointedEvents =
         <({String rowId, String? priorFrom, String? priorTo})>[];
 
@@ -158,22 +176,36 @@ class DiverMergeRepository {
       // Shares never go through the generic repoint below: the ones whose
       // move would hit the pair index or create a self-share are dropped
       // (issue #2046), and the rest are re-created for the keeper (#2670).
-      deletedShares.addAll(
-        await _dropCollidingShares(
+      for (final spec in _shareSpecs) {
+        final dropped = await _dropCollidingShares(
+          spec,
           keeperId: keeperId,
           duplicateId: duplicateId,
-        ),
-      );
-      final recreated = await _recreateDuplicateShares(
-        keeperId: keeperId,
-        duplicateId: duplicateId,
-        now: now,
-      );
-      deletedShares.addAll(recreated.deleted);
-      createdShares.addAll(recreated.created);
+        );
+        final recreated = await _recreateDuplicateShares(
+          spec,
+          keeperId: keeperId,
+          duplicateId: duplicateId,
+          now: now,
+        );
+        if (spec.table == _sharesTable) {
+          deletedShares
+            ..addAll(dropped)
+            ..addAll(recreated.deleted);
+          createdShares.addAll(recreated.created);
+        } else {
+          deletedItemShares.addAll([
+            for (final row in [...dropped, ...recreated.deleted])
+              (table: spec.table, row: row),
+          ]);
+          createdItemShares.addAll([
+            for (final id in recreated.created) (table: spec.table, id: id),
+          ]);
+        }
+      }
 
       for (final table in tables) {
-        if (table == _sharesTable) {
+        if (_shareSpecs.any((spec) => spec.table == table)) {
           continue;
         } else if (_singletonConfigTables.contains(table)) {
           // Keeper's config wins; drop the duplicate's. Capture each row
@@ -264,6 +296,8 @@ class DiverMergeRepository {
       repointedLinkedBuddies: repointedLinks,
       deletedShareRows: deletedShares,
       createdShareIds: createdShares,
+      deletedItemShareRows: deletedItemShares,
+      createdItemShareIds: createdItemShares,
       repointedOwnershipEvents: repointedEvents,
     );
   }
@@ -320,19 +354,21 @@ class DiverMergeRepository {
   /// item (never written, but a peer could hold one), and the keeper's share
   /// of an item the duplicate owns (the item moves to the keeper). Deleted and
   /// tombstoned; returned whole for undo.
-  Future<List<Map<String, dynamic>>> _dropCollidingShares({
+  Future<List<Map<String, dynamic>>> _dropCollidingShares(
+    _ShareSpec spec, {
     required String keeperId,
     required String duplicateId,
   }) async {
+    final (:table, :itemTable, :itemColumn) = spec;
     final rows = await _db
         .customSelect(
           '''
-      SELECT s.* FROM equipment_shares s
-      JOIN equipment e ON e.id = s.equipment_id
+      SELECT s.* FROM $table s
+      JOIN $itemTable e ON e.id = s.$itemColumn
       WHERE (s.diver_id = ?1 AND (
               e.diver_id IN (?1, ?2)
-              OR EXISTS (SELECT 1 FROM equipment_shares k
-                         WHERE k.equipment_id = s.equipment_id
+              OR EXISTS (SELECT 1 FROM $table k
+                         WHERE k.$itemColumn = s.$itemColumn
                            AND k.diver_id = ?2)))
          OR (s.diver_id = ?2 AND e.diver_id = ?1)
       ''',
@@ -344,18 +380,16 @@ class DiverMergeRepository {
         .get();
     final dropped = [for (final r in rows) r.data];
     for (final row in dropped) {
-      await _deleteShare(row['id'] as String);
+      await _deleteShare(table, row['id'] as String);
     }
     return dropped;
   }
 
-  /// Deletes one share and tombstones it.
-  Future<void> _deleteShare(String id) async {
-    await _db.customStatement('DELETE FROM equipment_shares WHERE id = ?', [
-      id,
-    ]);
+  /// Deletes one share from [table] and tombstones it.
+  Future<void> _deleteShare(String table, String id) async {
+    await _db.customStatement('DELETE FROM $table WHERE id = ?', [id]);
     await _syncRepository.logDeletion(
-      entityType: 'equipmentShares',
+      entityType: _entityTypeFor(table),
       recordId: id,
     );
   }
@@ -366,24 +400,25 @@ class DiverMergeRepository {
   /// share whose diver changed in place never reaches a peer that holds it
   /// (#2670). Returns the deleted rows whole and the new ids, for undo.
   Future<({List<Map<String, dynamic>> deleted, List<String> created})>
-  _recreateDuplicateShares({
+  _recreateDuplicateShares(
+    _ShareSpec spec, {
     required String keeperId,
     required String duplicateId,
     required int now,
   }) async {
-    final deleted = await _rowsByDiverId(_sharesTable, duplicateId);
+    final deleted = await _rowsByDiverId(spec.table, duplicateId);
     final created = <String>[];
     for (final row in deleted) {
-      await _deleteShare(row['id'] as String);
+      await _deleteShare(spec.table, row['id'] as String);
       final newId = _uuid.v4();
-      await _insertRowMap(_sharesTable, {
+      await _insertRowMap(spec.table, {
         ...row,
         'id': newId,
         'diver_id': keeperId,
         'hlc': null,
       });
       await _syncRepository.markRecordPending(
-        entityType: 'equipmentShares',
+        entityType: _entityTypeFor(spec.table),
         recordId: newId,
         localUpdatedAt: now,
       );
@@ -510,10 +545,16 @@ class DiverMergeRepository {
 
       // Shares the merge created go, and the ones it deleted come back.
       for (final id in snapshot.createdShareIds) {
-        await _deleteShare(id);
+        await _deleteShare(_sharesTable, id);
+      }
+      for (final entry in snapshot.createdItemShareIds) {
+        await _deleteShare(entry.table, entry.id);
       }
       for (final row in snapshot.deletedShareRows) {
         await _restoreDeletedRow(_sharesTable, row, now: now);
+      }
+      for (final entry in snapshot.deletedItemShareRows) {
+        await _restoreDeletedRow(entry.table, entry.row, now: now);
       }
     });
 
@@ -689,3 +730,6 @@ class DiverMergeRepository {
     return groups;
   }
 }
+
+/// A share table, the item table it points into, and its item column.
+typedef _ShareSpec = ({String table, String itemTable, String itemColumn});

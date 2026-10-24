@@ -43,6 +43,7 @@ import 'package:submersion/features/query/presentation/widgets/query_chips_frame
 import 'package:submersion/features/query/presentation/providers/query_id_set_providers.dart';
 import 'package:submersion/features/query/presentation/widgets/query_filter_sheet.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_list_count_provider.dart';
+import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_closed_tag.dart';
 
 /// Content widget for the dive center list, used in master-detail layout.
 class DiveCenterListContent extends ConsumerStatefulWidget {
@@ -571,6 +572,13 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
             context.push('/dive-centers/$id');
           },
           highlightedId: ref.watch(highlightedDiveCenterIdProvider),
+          // A permanently closed center: greyed, tagged by name (#3379).
+          isEntityMuted: (row) => row.center.isPermanentlyClosed,
+          cellTrailingBuilder: (row, field) =>
+              row.center.isPermanentlyClosed &&
+                  field == DiveCenterField.centerName
+              ? const DiveCenterClosedTag()
+              : null,
         );
       },
     );
@@ -885,7 +893,7 @@ class DiveCenterListTile extends ConsumerWidget {
     final theme = Theme.of(context);
     final diveCountAsync = ref.watch(diveCenterDiveCountProvider(center.id));
 
-    return Card(
+    final card = Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       color: isSelected
           ? theme.colorScheme.primaryContainer.withValues(alpha: 0.5)
@@ -920,7 +928,13 @@ class DiveCenterListTile extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(center.name, style: theme.textTheme.titleMedium),
+                    DiveCenterNameWithTag(
+                      closed: center.isPermanentlyClosed,
+                      name: Text(
+                        center.name,
+                        style: theme.textTheme.titleMedium,
+                      ),
+                    ),
                     if (center.fullLocationString != null) ...[
                       const SizedBox(height: 4),
                       Row(
@@ -1005,5 +1019,7 @@ class DiveCenterListTile extends ConsumerWidget {
         ),
       ),
     );
+    // A permanently closed center stays listed, greyed (#3379).
+    return greyIfClosed(closed: center.isPermanentlyClosed, child: card);
   }
 }

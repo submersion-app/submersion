@@ -35,8 +35,10 @@ import 'package:submersion/features/trips/presentation/providers/trip_equipment_
 import 'package:submersion/features/trips/presentation/providers/trip_fill_forecast_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/gear/trip_gear_tab.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/shared_items_fixture.dart';
 
 void _setMobileTestSurfaceSize(WidgetTester tester) {
   // The default widget test surface width is 800px, which trips the app's
@@ -595,6 +597,9 @@ void main() {
             overrides: [
               // No active profile, as before sharing: every action is the owner's.
               validatedCurrentDiverIdProvider.overrideWith((_) async => null),
+              itemSharesRepositoryProvider.overrideWithValue(
+                FakeItemShares.everyone([sharedTrip.id]),
+              ),
               tripWithStatsProvider(sharedTrip.id).overrideWith((ref) {
                 return Future.value(sharedTripWithStats);
               }),

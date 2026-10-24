@@ -97,6 +97,36 @@ GitObjectId hashGitObject(GitObjectType type, List<int> body) {
   return GitObjectId(Uint8List.fromList(digest.value!.bytes));
 }
 
+/// The id of an object of [type] and [size] whose body arrives in pieces, so
+/// a body too large to hold is hashed without ever being whole.
+final class GitObjectHasher {
+  GitObjectHasher(GitObjectType type, this.size) {
+    _sink = sha1.startChunkedConversion(_digest)
+      ..add(ascii.encode('${type.wireName} $size'))
+      ..add(const [0]);
+  }
+
+  /// The body length the header declares.
+  final int size;
+  final DigestCollector _digest = DigestCollector();
+  late final ByteConversionSink _sink;
+  int _added = 0;
+
+  void add(List<int> chunk) {
+    _added += chunk.length;
+    _sink.add(chunk);
+  }
+
+  /// The id. Throws [FormatException] when the bytes added are not [size].
+  GitObjectId close() {
+    if (_added != size) {
+      throw FormatException('Object declared $size bytes but had $_added');
+    }
+    _sink.close();
+    return GitObjectId(Uint8List.fromList(_digest.value!.bytes));
+  }
+}
+
 /// Collects the single digest a chunked hash conversion emits (the crypto
 /// package does not export a sink for it).
 final class DigestCollector implements Sink<Digest> {

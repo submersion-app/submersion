@@ -111,42 +111,60 @@ class BackupCopyRow extends ConsumerWidget {
       },
     );
     if (choice == null || !context.mounted) return;
-    final backup = ref.read(backupSettingsProvider.notifier);
-    switch (choice) {
-      case ChoseNone():
-        await backup.setNoCopy();
-      case ChoseAccount(:final group) when group.key == groups.syncing?.key:
-        await backup.setCopyFollowsSync();
-      case ChoseAccount(:final group):
-        final ConnectedAccount row;
-        try {
-          row = await _syncRowOf(ref, group);
-        } on Object {
-          // No keys for the server here (StateError), or the keychain or
-          // roster refused: the copy stays where it was, and the diver hears
-          // the one step that fixes the common case.
-          if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(l10n.settings_accounts_signInTo(group.label)),
-              ),
-            );
-          }
-          return;
-        }
-        await backup.setCopyTo(row);
+    final applied = await applyBackupCopyChoice(
+      ref,
+      choice,
+      syncGroup: groups.syncing,
+    );
+    // No keys for the server here, or the keychain or roster refused: the
+    // copy stays where it was, and the diver hears the one step that fixes
+    // the common case.
+    if (!applied && choice is ChoseAccount && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.settings_accounts_signInTo(choice.group.label)),
+        ),
+      );
     }
   }
+}
 
-  /// The row the copy goes through: an own server's sync-folder row,
-  /// created with the account's keys when it has none yet (spec section
-  /// 12), else the account's own row.
-  Future<ConnectedAccount> _syncRowOf(WidgetRef ref, AccountGroup group) async {
-    if (group.kind == AccountKind.s3 || group.kind == AccountKind.webdav) {
-      return ref
-          .read(accountGroupServiceProvider)
-          .ensureRole(group, AccountRole.sync);
-    }
-    return group.rowFor(AccountRole.sync) ?? group.rows.first;
+/// Writes where the backup copy goes for [choice]: no copy, the account
+/// sync uses ([syncGroup], so the copy follows sync), or any other account,
+/// which pins the copy to it. False when an own server's row could not be
+/// made here (no keys, or the keychain or roster refused); nothing changes
+/// then.
+Future<bool> applyBackupCopyChoice(
+  WidgetRef ref,
+  AccountSheetChoice choice, {
+  AccountGroup? syncGroup,
+}) async {
+  final backup = ref.read(backupSettingsProvider.notifier);
+  switch (choice) {
+    case ChoseNone():
+      await backup.setNoCopy();
+    case ChoseAccount(:final group) when group.key == syncGroup?.key:
+      await backup.setCopyFollowsSync();
+    case ChoseAccount(:final group):
+      final ConnectedAccount row;
+      try {
+        row = await _syncRowOf(ref, group);
+      } on Object {
+        return false;
+      }
+      await backup.setCopyTo(row);
   }
+  return true;
+}
+
+/// The row the copy goes through: an own server's sync-folder row, created
+/// with the account's keys when it has none yet (spec section 12), else the
+/// account's own row.
+Future<ConnectedAccount> _syncRowOf(WidgetRef ref, AccountGroup group) async {
+  if (group.kind == AccountKind.s3 || group.kind == AccountKind.webdav) {
+    return ref
+        .read(accountGroupServiceProvider)
+        .ensureRole(group, AccountRole.sync);
+  }
+  return group.rowFor(AccountRole.sync) ?? group.rows.first;
 }

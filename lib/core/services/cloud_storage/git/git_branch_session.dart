@@ -359,34 +359,44 @@ class GitBranchSession {
     return stored.body;
   }
 
-  /// A blob's bytes, fetched on demand. Hosts that refuse single-blob wants
-  /// get a full fetch of [tip] instead.
-  Future<Uint8List> _blob(GitObjectId id, GitObjectId tip) async {
-    if (!await store.has(id)) {
-      try {
-        await transport.fetchBlobs([id], store);
-      } on GitException catch (e) {
-        if (e.code != GitErrorCode.unexpected) rethrow;
-      }
-      if (!await store.has(id)) {
-        await transport.fetch([tip], store);
-      }
+  /// Makes sure a blob is in the store, fetching it on demand. Hosts that
+  /// refuse single-blob wants get a full fetch of [tip] instead.
+  Future<void> _ensureBlob(GitObjectId id, GitObjectId tip) async {
+    if (await store.has(id)) return;
+    try {
+      await transport.fetchBlobs([id], store);
+    } on GitException catch (e) {
+      if (e.code != GitErrorCode.unexpected) rethrow;
     }
+    if (!await store.has(id)) {
+      await transport.fetch([tip], store);
+    }
+  }
+
+  /// A blob's bytes, fetched on demand.
+  Future<Uint8List> _blob(GitObjectId id, GitObjectId tip) async {
+    await _ensureBlob(id, tip);
     return _objectBody(id);
+  }
+
+  /// The blob [path] holds in [snap].
+  Future<GitObjectId> _fileBlob(GitBranchSnapshot snap, String path) async {
+    final entry = await lookupTreePath(store, snap.rootTree, path);
+    if (entry == null || entry.isTree) {
+      throw GitException(
+        '$path is not on the branch.',
+        code: GitErrorCode.notFound,
+      );
+    }
+    return entry.id;
   }
 
   Future<Uint8List> readFile(String path) async {
     final snap = _current ?? await open();
     return _refetchingOnce(snap.tip, () async {
-      final entry = await lookupTreePath(store, snap.rootTree, path);
-      if (entry == null || entry.isTree) {
-        throw GitException(
-          '$path is not on the branch.',
-          code: GitErrorCode.notFound,
-        );
-      }
-      final bytes = await _blob(entry.id, snap.tip);
-      _learnSize(path, entry.id, bytes.length);
+      final id = await _fileBlob(snap, path);
+      final bytes = await _blob(id, snap.tip);
+      _learnSize(path, id, bytes.length);
       return bytes;
     });
   }
@@ -408,12 +418,32 @@ class GitBranchSession {
     );
   }
 
-  /// Writes the file to [destination] whole, or not at all.
+  /// Writes the file to [destination] whole, or not at all. It is copied
+  /// from the store a piece at a time, so it is never held in memory.
   Future<void> readFileTo(String path, File destination) async {
-    final bytes = await readFile(path);
+    final snap = _current ?? await open();
     final tmp = File('${destination.path}.part');
     try {
-      await tmp.writeAsBytes(bytes, flush: true);
+      await _refetchingOnce(snap.tip, () async {
+        final id = await _fileBlob(snap, path);
+        await _ensureBlob(id, snap.tip);
+        final reader = await store.open(id);
+        if (reader == null) throw GitObjectMissing(id);
+        try {
+          final out = await tmp.open(mode: FileMode.writeOnly);
+          try {
+            await for (final chunk in reader.openRead()) {
+              await out.writeFrom(chunk);
+            }
+            await out.flush();
+          } finally {
+            await out.close();
+          }
+          _learnSize(path, id, reader.length);
+        } finally {
+          await reader.close();
+        }
+      });
       await tmp.rename(destination.path);
     } catch (_) {
       if (await tmp.exists()) await tmp.delete();

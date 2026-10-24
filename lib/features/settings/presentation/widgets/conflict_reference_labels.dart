@@ -32,6 +32,7 @@ String conflictReferenceLabel(
     case 'diverRole':
       return l10n.settings_conflict_ref_yourRole;
     case 'regulatorEquipmentId':
+    case 'extraRegulatorIds':
       return l10n.settings_conflict_ref_regulator;
     case 'viaEquipmentId':
       return l10n.settings_conflict_ref_attachedThrough;

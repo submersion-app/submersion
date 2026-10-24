@@ -22,6 +22,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   submersion_ocr
   submersion_transcoder
   url_launcher_windows
+  video_player_win
   window_manager
   window_to_front
 )

@@ -23,7 +23,10 @@ enum BackupOwnership {
 /// historic name is `submersion_backup_<date>_<time>.db`.
 const String _deviceMarker = '__d';
 
-const String _backupPrefix = 'submersion_backup_';
+/// The prefix every backup this app writes starts with.
+const String backupFilePrefix = 'submersion_backup_';
+
+const String _backupPrefix = backupFilePrefix;
 
 /// Extensions a backup artifact can carry: the plaintext `.db` and the
 /// encrypted framed variant (`BackupCrypto.fileExtension`). Named here rather
@@ -43,6 +46,9 @@ const int _tagHexLength = 16;
 
 /// A tag is exactly [_tagHexLength] lowercase hex digits, a SHA-1 prefix.
 final RegExp _tagPattern = RegExp('^[0-9a-f]{$_tagHexLength}\$');
+
+/// Whether [tag] has the shape [deviceTag] produces.
+bool isDeviceTag(String tag) => _tagPattern.hasMatch(tag);
 
 /// A short, stable, filesystem-safe tag for [deviceId].
 ///
