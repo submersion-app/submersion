@@ -55,6 +55,12 @@ class BackupSettings extends Equatable {
   final String? copyAccountId;
   final AccountKind? copyAccountKind;
 
+  /// The cloud account the "count backups from all devices" switch was
+  /// confirmed for (issue #3503), `''` for an account whose id is unknown,
+  /// null when the switch is off. Kept as the account rather than a flag so a
+  /// different backup folder reads as off until the diver confirms it too.
+  final String? crossDeviceRetentionAccount;
+
   const BackupSettings({
     this.enabled = false,
     this.frequency = BackupFrequency.weekly,
@@ -70,6 +76,7 @@ class BackupSettings extends Equatable {
     this.lastBackupCloudAccountId,
     this.copyAccountId,
     this.copyAccountKind,
+    this.crossDeviceRetentionAccount,
   });
 
   BackupSettings copyWith({
@@ -87,6 +94,7 @@ class BackupSettings extends Equatable {
     String? lastBackupCloudAccountId,
     String? copyAccountId,
     AccountKind? copyAccountKind,
+    String? crossDeviceRetentionAccount,
   }) {
     return BackupSettings(
       enabled: enabled ?? this.enabled,
@@ -108,6 +116,8 @@ class BackupSettings extends Equatable {
           lastBackupCloudAccountId ?? this.lastBackupCloudAccountId,
       copyAccountId: copyAccountId ?? this.copyAccountId,
       copyAccountKind: copyAccountKind ?? this.copyAccountKind,
+      crossDeviceRetentionAccount:
+          crossDeviceRetentionAccount ?? this.crossDeviceRetentionAccount,
     );
   }
 
@@ -130,6 +140,12 @@ class BackupSettings extends Equatable {
     return DateTime.now().difference(lastBackupTime!) >= frequencyDuration;
   }
 
+  /// Whether the cross-device rule applies to the cloud folder in
+  /// [accountId], the account backups are copied to now.
+  bool crossDeviceRetentionFor(String? accountId) =>
+      crossDeviceRetentionAccount != null &&
+      crossDeviceRetentionAccount == (accountId ?? '');
+
   @override
   List<Object?> get props => [
     enabled,
@@ -146,5 +162,6 @@ class BackupSettings extends Equatable {
     lastBackupCloudAccountId,
     copyAccountId,
     copyAccountKind,
+    crossDeviceRetentionAccount,
   ];
 }
