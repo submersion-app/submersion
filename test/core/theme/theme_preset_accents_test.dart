@@ -55,9 +55,13 @@ void main() {
     // the surface it actually sits on, not the 3:1 icon bar (#3584).
     for (final preset in AppThemeRegistry.presets) {
       for (final theme in [preset.lightTheme, preset.darkTheme]) {
-        // Material 3 cards default to surfaceContainerLow.
-        final card =
-            theme.cardTheme.color ?? theme.colorScheme.surfaceContainerLow;
+        // Material 3 cards default to surfaceContainerLow. The deep preset's
+        // dark card is translucent, so composite it over the scaffold the
+        // way it paints before measuring.
+        final card = Color.alphaBlend(
+          theme.cardTheme.color ?? theme.colorScheme.surfaceContainerLow,
+          theme.scaffoldBackgroundColor,
+        );
         final accent = theme.extension<FeatureAccentColors>()!.of('buddies')!;
         expect(
           _contrast(accent, card),
