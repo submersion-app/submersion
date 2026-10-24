@@ -121,7 +121,8 @@ void main() {
       timeline: timeline,
       onProgress: reported.add,
     );
-    expect(reported, [0.25, 0.6]);
+    // Finished between polls: the end is reported once the encode returns.
+    expect(reported, [0.25, 0.6, 1.0]);
   });
 
   test('an engine without polled progress is asked only once', () async {

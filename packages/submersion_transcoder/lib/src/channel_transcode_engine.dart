@@ -175,12 +175,21 @@ class ChannelTranscodeEngine implements TranscodeEngine, ColorEncoder {
     // moment it was made.
     final recording = await readMp4RecordingInfo(source);
     final progressId = 'p${_seq++}';
+    // Pushed and polled progress both go through here, so a fraction is
+    // reported once and never goes backwards.
+    var reported = -1.0;
+    void report(double fraction) {
+      final f = fraction.clamp(0.0, 1.0);
+      if (onProgress == null || f <= reported) return;
+      reported = f;
+      onProgress(f);
+    }
+
     StreamSubscription<dynamic>? sub;
     if (onProgress != null) {
       sub = _progressStream.listen((event) {
         if (event is Map && event['progressId'] == progressId) {
-          final f = (event['fraction'] as num).toDouble();
-          onProgress(f.clamp(0.0, 1.0));
+          report((event['fraction'] as num).toDouble());
         }
       });
     }
@@ -190,7 +199,6 @@ class ChannelTranscodeEngine implements TranscodeEngine, ColorEncoder {
     // (MissingPluginException, not implemented) is not asked again.
     Timer? poll;
     if (onProgress != null) {
-      var last = -1.0;
       var asking = false;
       poll = Timer.periodic(progressPollInterval, (timer) async {
         if (asking || finished) return;
@@ -199,10 +207,7 @@ class ChannelTranscodeEngine implements TranscodeEngine, ColorEncoder {
           final f = await _methods.invokeMethod<num>('colorEncodeProgress', {
             'progressId': progressId,
           });
-          if (f != null && !finished && f.toDouble() > last) {
-            last = f.toDouble();
-            onProgress(last.clamp(0.0, 1.0));
-          }
+          if (f != null && !finished) report(f.toDouble());
         } on Object {
           timer.cancel();
         } finally {
@@ -239,6 +244,8 @@ class ChannelTranscodeEngine implements TranscodeEngine, ColorEncoder {
       }
       final created = recording.created;
       if (created != null) await stampMp4CreationTime(output, created);
+      // Polled progress can miss the end, which comes between two polls.
+      report(1.0);
     } on PlatformException catch (e) {
       final detail = e.message ?? e.details?.toString() ?? e.code;
       switch (e.code) {
