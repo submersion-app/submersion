@@ -380,19 +380,26 @@ final class FileGitObjectStore implements GitObjectStore {
       _forget(index, file.path);
       return null;
     }
-    final length = await raf.length();
-    // Emptied by a crash: forgotten, so the next read fetches it.
-    if (length == 0) {
+    final int length;
+    final GitObjectType type;
+    try {
+      length = await raf.length();
+      // Emptied by a crash: forgotten, so the next read fetches it.
+      if (length == 0) {
+        await raf.close();
+        _forget(index, file.path);
+        return null;
+      }
+      type = GitObjectType.fromPackCode((await raf.read(1))[0]);
+    } catch (_) {
       await raf.close();
-      _forget(index, file.path);
-      return null;
+      rethrow;
     }
-    final code = (await raf.read(1))[0];
     final current = index[file.path];
     if (current != null) {
       index[file.path] = (size: current.size, recency: ++_clock);
     }
-    return _FileObjectReader(raf, GitObjectType.fromPackCode(code), length - 1);
+    return _FileObjectReader(raf, type, length - 1);
   }
 
   @override
@@ -447,6 +454,7 @@ final class _FileObjectReader implements GitObjectReader {
   @override
   Uint8List readSync(int offset, int count) {
     // The body starts after the 1-byte type code.
+    if (offset >= length) return Uint8List(0);
     _raf.setPositionSync(offset + 1);
     return _raf.readSync(min(count, length - offset));
   }
@@ -454,8 +462,8 @@ final class _FileObjectReader implements GitObjectReader {
   @override
   Stream<List<int>> openRead() async* {
     var pos = 0;
+    await _raf.setPosition(1);
     while (pos < length) {
-      await _raf.setPosition(pos + 1);
       final chunk = await _raf.read(min(_chunk, length - pos));
       if (chunk.isEmpty) {
         throw FileSystemException('Object file ended early', _raf.path);

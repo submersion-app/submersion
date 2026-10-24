@@ -296,7 +296,9 @@ Future<({GitObjectId id, int consumed})> _readDelta(
       delta = r.data;
       consumed = r.consumed;
     }
-    if (delta != null && base.length <= limit && _targetSize(delta) <= limit) {
+    if (delta != null &&
+        base.length <= limit &&
+        _deltaHeader(delta).targetSize <= limit) {
       final result = applyGitDelta(base.readSync(0, base.length), delta);
       final id = hashGitObject(base.type, result);
       await store.put(GitStoredObject(id: id, type: base.type, body: result));
@@ -324,28 +326,9 @@ Future<({GitObjectId id, int consumed})> _readDelta(
   }
 }
 
-/// The result size a delta declares, after its base size.
-int _targetSize(Uint8List delta) {
-  var pos = 0;
-  int varint() {
-    var result = 0;
-    var shift = 0;
-    while (true) {
-      if (pos >= delta.length) throw _corrupt('truncated delta size');
-      final b = delta[pos++];
-      result |= (b & 0x7f) << shift;
-      if (b & 0x80 == 0) return result;
-      shift += 7;
-    }
-  }
-
-  varint();
-  return varint();
-}
-
-/// Applies a Git delta to [base]. Throws [GitException] when the delta does
-/// not match its base or its declared result size.
-Uint8List applyGitDelta(Uint8List base, Uint8List delta) {
+/// A delta's header: the base size it expects and the result size it
+/// declares. [end] is where the commands start.
+({int sourceSize, int targetSize, int end}) _deltaHeader(Uint8List delta) {
   var pos = 0;
   int varint() {
     var result = 0;
@@ -361,6 +344,14 @@ Uint8List applyGitDelta(Uint8List base, Uint8List delta) {
 
   final sourceSize = varint();
   final targetSize = varint();
+  return (sourceSize: sourceSize, targetSize: targetSize, end: pos);
+}
+
+/// Applies a Git delta to [base]. Throws [GitException] when the delta does
+/// not match its base or its declared result size.
+Uint8List applyGitDelta(Uint8List base, Uint8List delta) {
+  final (:sourceSize, :targetSize, end: start) = _deltaHeader(delta);
+  var pos = start;
   if (sourceSize != base.length) throw _corrupt('delta base size mismatch');
   final out = Uint8List(targetSize);
   var written = 0;
