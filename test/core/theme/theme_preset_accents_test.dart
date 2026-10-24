@@ -1,6 +1,7 @@
 import 'dart:async';
+import 'dart:math' as math;
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/theme/app_theme_registry.dart';
 import 'package:submersion/core/theme/feature_accent_colors.dart';
@@ -47,4 +48,30 @@ void main() {
       );
     }
   });
+
+  test('buddies accent text reads at 4.5:1 on every preset card', () {
+    // The buddies accent colours the dive count, last-dive date and initials
+    // on each buddy card, so it is held to the WCAG AA bar for small text on
+    // the surface it actually sits on, not the 3:1 icon bar (#3584).
+    for (final preset in AppThemeRegistry.presets) {
+      for (final theme in [preset.lightTheme, preset.darkTheme]) {
+        // Material 3 cards default to surfaceContainerLow.
+        final card =
+            theme.cardTheme.color ?? theme.colorScheme.surfaceContainerLow;
+        final accent = theme.extension<FeatureAccentColors>()!.of('buddies')!;
+        expect(
+          _contrast(accent, card),
+          greaterThanOrEqualTo(4.5),
+          reason: '${preset.id} ${theme.brightness.name} card',
+        );
+      }
+    }
+  });
+}
+
+// WCAG 2.1 contrast ratio.
+double _contrast(Color a, Color b) {
+  final la = a.computeLuminance();
+  final lb = b.computeLuminance();
+  return (math.max(la, lb) + 0.05) / (math.min(la, lb) + 0.05);
 }
