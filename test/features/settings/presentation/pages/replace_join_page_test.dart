@@ -28,6 +28,7 @@ void main() {
   late _FakeService service;
   late ReplaceJoinEnd? end;
   late int restarts;
+  late List<String> order;
 
   Future<void> pump(
     WidgetTester tester,
@@ -36,6 +37,7 @@ void main() {
     service = _FakeService(answer);
     end = null;
     restarts = 0;
+    order = [];
     await tester.pumpWidget(
       ProviderScope(
         overrides: [replaceAndJoinServiceProvider.overrideWithValue(service)],
@@ -51,6 +53,7 @@ void main() {
                   diveCount: 12,
                   backupNote: 'Before joining the library, 24 Oct 2026',
                   restart: () => restarts++,
+                  onReplaced: () async => order.add('replaced'),
                 ),
                 child: const Text('replace'),
               ),
@@ -77,8 +80,10 @@ void main() {
     );
     expect(service.note, 'Before joining the library, 24 Oct 2026');
 
+    expect(order, isEmpty);
     done.complete(const ReplaceJoinResult(ReplaceJoinOutcome.replaced));
     await tester.pumpAndSettle();
+    expect(order, ['replaced']);
 
     expect(
       find.text(
@@ -103,6 +108,7 @@ void main() {
 
     expect(find.text('replace'), findsOneWidget);
     expect(end, isA<ReplaceJoinRefused>());
+    expect(order, isEmpty);
     expect(
       (end! as ReplaceJoinRefused).result.outcome,
       ReplaceJoinOutcome.photosBusy,

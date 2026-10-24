@@ -65,12 +65,7 @@ class SetUpSyncActions {
       return SetUpFirstSync.blocked;
     }
     if (state.status == SyncStatus.error) return SetUpFirstSync.failed;
-    if (keepInStep) {
-      final behavior = ref.read(syncBehaviorProvider.notifier);
-      await behavior.setAutoSyncEnabled(true);
-      await behavior.setSyncOnLaunch(true);
-      await behavior.setSyncOnResume(true);
-    }
+    if (keepInStep) await _keepInStep(ref);
     if (realignDiver) {
       await realignActiveDiverAfterDataReplace(
         ref.read(sharedPreferencesProvider),
@@ -78,6 +73,15 @@ class SetUpSyncActions {
       ref.invalidate(allDiversProvider);
     }
     return SetUpFirstSync.synced;
+  }
+
+  /// Automatic sync with its launch and resume companions, as Sync's Keep
+  /// devices in step turns them on.
+  Future<void> _keepInStep(WidgetRef ref) async {
+    final behavior = ref.read(syncBehaviorProvider.notifier);
+    await behavior.setAutoSyncEnabled(true);
+    await behavior.setSyncOnLaunch(true);
+    await behavior.setSyncOnResume(true);
   }
 
   /// Unlocks an encrypted library; throws for a wrong secret.
@@ -96,14 +100,19 @@ class SetUpSyncActions {
         null;
   }
 
-  /// Replace and join, behind its full-screen page.
+  /// Replace and join, behind its full-screen page; with [keepInStep],
+  /// automatic sync is turned on once the library has replaced the dives,
+  /// before the reload.
   Future<ReplaceJoinEnd?> replace(
-    BuildContext context, {
+    BuildContext context,
+    WidgetRef ref, {
     required int diveCount,
     required String backupNote,
+    required bool keepInStep,
   }) => ReplaceJoinPage.show(
     context,
     diveCount: diveCount,
     backupNote: backupNote,
+    onReplaced: keepInStep ? () => _keepInStep(ref) : null,
   );
 }

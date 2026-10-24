@@ -48,12 +48,18 @@ class _FakeSync extends StateNotifier<SyncState> implements SyncNotifier {
 }
 
 class _Actions extends SetUpSyncActions {
-  _Actions({this.firstSyncAnswer = SetUpFirstSync.synced, this.replaceEnd});
+  _Actions({
+    this.firstSyncAnswer = SetUpFirstSync.synced,
+    this.replaceEnd,
+    this.connectAnswer = true,
+  });
 
   final SetUpFirstSync firstSyncAnswer;
   final ReplaceJoinEnd? replaceEnd;
+  bool connectAnswer;
   final calls = <String>[];
   int? replacedCount;
+  bool? replacedKeepInStep;
   ({bool keepInStep, bool realignDiver})? firstSyncArgs;
 
   @override
@@ -63,7 +69,7 @@ class _Actions extends SetUpSyncActions {
     AccountGroup account,
   ) async {
     calls.add('connect ${account.label}');
-    return true;
+    return connectAnswer;
   }
 
   @override
@@ -79,6 +85,7 @@ class _Actions extends SetUpSyncActions {
   @override
   Future<void> unlock(WidgetRef ref, String secret) async {
     calls.add('unlock');
+    if (secret == 'offline') throw StateError('network');
     if (secret != 'right') throw const WrongPassphraseException();
   }
 
@@ -94,11 +101,14 @@ class _Actions extends SetUpSyncActions {
 
   @override
   Future<ReplaceJoinEnd?> replace(
-    BuildContext context, {
+    BuildContext context,
+    WidgetRef ref, {
     required int diveCount,
     required String backupNote,
+    required bool keepInStep,
   }) async {
     replacedCount = diveCount;
+    replacedKeepInStep = keepInStep;
     return replaceEnd;
   }
 }
@@ -154,6 +164,29 @@ void main() {
     await pump(tester, const NoLibrary(4));
     expect(actions.calls, ['connect Google Drive']);
     expect(find.text('Signed in to Google Drive'), findsOneWidget);
+  });
+
+  testWidgets('a connect that does not finish offers to try again, and '
+      'Check again connects again', (tester) async {
+    await pump(
+      tester,
+      const NoLibrary(4),
+      withActions: _Actions(connectAnswer: false),
+    );
+    expect(
+      find.text(
+        'Could not read Google Drive. Check the connection and try again.',
+      ),
+      findsOneWidget,
+    );
+    expect(probes, 0);
+
+    actions.connectAnswer = true;
+    await tester.tap(find.text('Check again'));
+    await tester.pumpAndSettle();
+
+    expect(actions.calls, ['connect Google Drive', 'connect Google Drive']);
+    expect(find.text('Turn on sync'), findsOneWidget);
   });
 
   group('no library', () {
@@ -279,6 +312,8 @@ void main() {
 
       await tester.tap(find.text('Replace the dives here with the library'));
       await tester.pumpAndSettle();
+      // Replacing still keeps the devices in step afterwards.
+      expect(find.text('Keep devices in step automatically'), findsOneWidget);
       await tester.tap(find.text('Replace and download'));
       await tester.pumpAndSettle();
       await tester.enterText(find.byType(TextField), 'Replace');
@@ -287,6 +322,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(actions.replacedCount, 12);
+      expect(actions.replacedKeepInStep, isTrue);
       expect(
         find.text('Photo uploads are still finishing. Try again in a moment.'),
         findsOneWidget,
@@ -315,6 +351,23 @@ void main() {
       await tester.tap(find.text('Unlock'));
       await tester.pumpAndSettle();
       expect(probes, before + 1);
+    });
+
+    testWidgets('an unlock that fails for another reason says the account '
+        'could not be read', (tester) async {
+      await pump(tester, const LibraryLocked());
+
+      await tester.enterText(find.byType(TextField), 'offline');
+      await tester.tap(find.text('Unlock'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text(
+          'Could not read Google Drive. Check the connection and try again.',
+        ),
+        findsOneWidget,
+      );
+      expect(tester.takeException(), isNull);
     });
   });
 

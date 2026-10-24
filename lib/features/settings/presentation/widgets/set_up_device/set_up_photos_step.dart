@@ -78,26 +78,36 @@ class _SetUpPhotosStepState extends ConsumerState<SetUpPhotosStep> {
       return;
     }
     setState(() => _busy = true);
+    var done = false;
+    try {
+      done = await _attach(copies, account);
+    } on Object {
+      done = false;
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+    if (done && mounted) widget.navigation.onNext();
+  }
+
+  /// True when the copies are attached and the upload switches applied.
+  Future<bool> _attach(PhotosCopies copies, AccountGroup? account) async {
     final firstDevice = copies.store == null;
     var target = firstDevice
         ? account
         : copies.group ?? await widget.actions.chooseAccount(context);
-    if (target != null && target.status != AccountStatus.signedIn) {
-      if (!mounted) return;
-      if (!await widget.actions.signIn(context, ref, target)) target = null;
+    if (target == null || !mounted) return false;
+    if (target.status != AccountStatus.signedIn) {
+      if (!await widget.actions.signIn(context, ref, target)) return false;
+      // By a row, as the account sheet does: the sign-in can regroup it.
+      final fresh = await ref.read(accountGroupsProvider.future);
+      target = fresh.holding(target.rows.first.id) ?? target;
+      if (!mounted) return false;
     }
-    if (!mounted) return;
-    final attached =
-        target != null && await widget.actions.attach(context, target, copies);
-    if (!mounted) return;
-    if (attached) {
-      final policies = ref.read(mediaStorePoliciesProvider);
-      await policies.setAutoUpload(_auto);
-      if (firstDevice) await policies.setPhotosOnCellular(_cellular);
-      if (!mounted) return;
-      widget.navigation.onNext();
-    }
-    setState(() => _busy = false);
+    if (!await widget.actions.attach(context, target, copies)) return false;
+    final policies = ref.read(mediaStorePoliciesProvider);
+    await policies.setAutoUpload(_auto);
+    if (firstDevice) await policies.setPhotosOnCellular(_cellular);
+    return true;
   }
 
   Future<void> _skip() async {

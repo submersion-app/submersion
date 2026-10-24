@@ -73,9 +73,10 @@ class _Flow extends SetUpFlowNotifier {
 }
 
 class _Actions extends SetUpPhotosActions {
-  _Actions({this.signInAnswer = true});
+  _Actions({this.signInAnswer = true, this.signInThrows = false});
 
   final bool signInAnswer;
+  final bool signInThrows;
   final calls = <String>[];
 
   @override
@@ -85,6 +86,7 @@ class _Actions extends SetUpPhotosActions {
     AccountGroup group,
   ) async {
     calls.add('signIn ${group.label}');
+    if (signInThrows) throw StateError('oauth');
     return signInAnswer;
   }
 
@@ -243,6 +245,21 @@ void main() {
       expect(actions.calls, ['signIn Dropbox']);
       expect(nav, isEmpty);
     });
+  });
+
+  testWidgets('a sign-in that throws leaves the step usable', (tester) async {
+    await pump(
+      tester,
+      _announced(_dropbox),
+      withActions: _Actions(signInThrows: true),
+    );
+
+    await tester.tap(find.text('Next'));
+    await tester.pumpAndSettle();
+    expect(nav, isEmpty);
+
+    await tester.tap(find.text('Back'));
+    expect(nav, ['back']);
   });
 
   testWidgets('Skip settles the step', (tester) async {

@@ -40,23 +40,28 @@ class _SetUpBackupsStepState extends ConsumerState<SetUpBackupsStep> {
       _busy = true;
       _line = null;
     });
-    final backup = ref.read(backupSettingsProvider.notifier);
-    await backup.setEnabled(_auto);
-    var applied = true;
-    if (account != null) {
-      applied = await applyBackupCopyChoice(
-        ref,
-        _copy ? ChoseAccount(account) : const ChoseNone(),
-        syncGroup: syncGroup,
-      );
+    var applied = false;
+    try {
+      final backup = ref.read(backupSettingsProvider.notifier);
+      await backup.setEnabled(_auto);
+      applied =
+          account == null ||
+          await applyBackupCopyChoice(
+            ref,
+            _copy ? ChoseAccount(account) : const ChoseNone(),
+            syncGroup: syncGroup,
+          );
+    } on Object {
+      applied = false;
+    } finally {
+      if (mounted) setState(() => _busy = false);
     }
     if (!mounted) return;
-    setState(() => _busy = false);
     if (applied) {
       widget.navigation.onNext();
-    } else {
+    } else if (account != null) {
       setState(
-        () => _line = context.l10n.settings_accounts_signInTo(account!.label),
+        () => _line = context.l10n.settings_accounts_signInTo(account.label),
       );
     }
   }

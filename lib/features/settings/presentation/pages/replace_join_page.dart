@@ -35,10 +35,15 @@ class ReplaceJoinPage extends ConsumerStatefulWidget {
     required this.diveCount,
     required this.backupNote,
     this.restart = restartApp,
+    this.onReplaced,
   });
 
   final int diveCount;
   final String backupNote;
+
+  /// Runs once the library has replaced this device's dives, before the
+  /// reload (the step's own choices, such as keeping devices in step).
+  final Future<void> Function()? onReplaced;
 
   /// Reloads the app; tests pass their own.
   final VoidCallback restart;
@@ -49,6 +54,7 @@ class ReplaceJoinPage extends ConsumerStatefulWidget {
     required int diveCount,
     required String backupNote,
     VoidCallback restart = restartApp,
+    Future<void> Function()? onReplaced,
   }) => Navigator.of(context, rootNavigator: true).push(
     MaterialPageRoute(
       fullscreenDialog: true,
@@ -56,6 +62,7 @@ class ReplaceJoinPage extends ConsumerStatefulWidget {
         diveCount: diveCount,
         backupNote: backupNote,
         restart: restart,
+        onReplaced: onReplaced,
       ),
     ),
   );
@@ -87,6 +94,13 @@ class _ReplaceJoinPageState extends ConsumerState<ReplaceJoinPage> {
       Navigator.of(context).pop(ReplaceJoinRefused(result));
       return;
     }
+    // The replace has committed; a failure here must not hide that.
+    try {
+      await widget.onReplaced?.call();
+    } catch (e, stackTrace) {
+      _log.error('After replace and join', error: e, stackTrace: stackTrace);
+    }
+    if (!mounted) return;
     // The pages behind would show the replaced library's old state; only
     // the reload remains.
     Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(

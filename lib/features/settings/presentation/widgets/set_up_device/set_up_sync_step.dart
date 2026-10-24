@@ -41,6 +41,9 @@ class SetUpSyncStep extends ConsumerStatefulWidget {
 class _SetUpSyncStepState extends ConsumerState<SetUpSyncStep> {
   final _secret = TextEditingController();
   bool _connected = false;
+
+  /// Sync could not be pointed at the account; Check again tries again.
+  bool _connectFailed = false;
   bool _busy = false;
   bool _keepInStep = true;
   SetUpLibraryChoice _choice = SetUpLibraryChoice.combine;
@@ -66,12 +69,29 @@ class _SetUpSyncStepState extends ConsumerState<SetUpSyncStep> {
       currentSyncGroup(await ref.read(accountGroupsProvider.future));
 
   Future<void> _connect() async {
-    final account = await _account();
-    if (!mounted || account == null) return;
-    await widget.actions.connect(context, ref, account);
+    bool connected;
+    try {
+      final account = await _account();
+      if (!mounted || account == null) return;
+      connected = await widget.actions.connect(context, ref, account);
+    } on Object {
+      connected = false;
+    }
     if (!mounted) return;
-    setState(() => _connected = true);
-    refreshSetUpLibrary(ref.invalidate);
+    setState(() {
+      _connected = connected;
+      _connectFailed = !connected;
+    });
+    if (connected) refreshSetUpLibrary(ref.invalidate);
+  }
+
+  /// Check again: connects first when that is what failed.
+  void _checkAgain() {
+    if (_connected) {
+      refreshSetUpLibrary(ref.invalidate);
+    } else {
+      _connect();
+    }
   }
 
   Future<void> _run(Future<void> Function() action) async {
@@ -120,10 +140,18 @@ class _SetUpSyncStepState extends ConsumerState<SetUpSyncStep> {
     await _run(() async {
       final end = await widget.actions.replace(
         context,
+        ref,
         diveCount: dives,
         backupNote: note,
+        keepInStep: _keepInStep,
       );
       if (!mounted) return;
+      if (end case ReplaceJoinRefused(
+        result: ReplaceJoinResult(outcome: ReplaceJoinOutcome.needsPassphrase),
+      )) {
+        // The library turned out locked: the step reads it again and asks.
+        refreshSetUpLibrary(ref.invalidate);
+      }
       final line = switch (end) {
         null => null,
         ReplaceJoinFailed() => l10n.settings_setUpDevice_replace_failed,
@@ -149,17 +177,10 @@ class _SetUpSyncStepState extends ConsumerState<SetUpSyncStep> {
       ),
     ReplaceJoinOutcome.photosBusy =>
       l10n.settings_setUpDevice_replace_photosBusy,
-    // The library turned out locked: the step reads it again and asks.
-    ReplaceJoinOutcome.needsPassphrase => _readAgain(),
-    ReplaceJoinOutcome.replaced => null,
+    ReplaceJoinOutcome.needsPassphrase || ReplaceJoinOutcome.replaced => null,
   };
 
-  String? _readAgain() {
-    refreshSetUpLibrary(ref.invalidate);
-    return null;
-  }
-
-  Future<void> _unlock() async {
+  Future<void> _unlock(AccountGroup account) async {
     final secret = _secret.text;
     if (secret.isEmpty) return;
     await _run(() async {
@@ -174,6 +195,16 @@ class _SetUpSyncStepState extends ConsumerState<SetUpSyncStep> {
             () => _secretError =
                 context.l10n.settings_cloudSync_encryption_wrongPassphrase,
           );
+        }
+      } on Object {
+        // The key could not be read at all: the account, not the secret.
+        if (mounted) {
+          setState(() {
+            _secretError = null;
+            _line = context.l10n.settings_setUpDevice_sync_unreachable(
+              account.label,
+            );
+          });
         }
       }
     });
@@ -206,7 +237,11 @@ class _SetUpSyncStepState extends ConsumerState<SetUpSyncStep> {
         children: const [],
       );
     }
-    final library = _connected ? ref.watch(setUpLibraryProvider).value : null;
+    final library = _connectFailed
+        ? const LibraryUnreachable()
+        : _connected
+        ? ref.watch(setUpLibraryProvider).value
+        : null;
     final (children, primaryLabel, onPrimary) = _forLibrary(
       l10n,
       account,
@@ -274,8 +309,7 @@ class _SetUpSyncStepState extends ConsumerState<SetUpSyncStep> {
             choice: _choice,
             onChanged: (choice) => setState(() => _choice = choice),
           ),
-        if (_choice == SetUpLibraryChoice.combine || localDives == 0)
-          _keepInStepSwitch(l10n),
+        _keepInStepSwitch(l10n),
       ],
       localDives == 0
           ? l10n.settings_setUpDevice_sync_download
@@ -304,11 +338,11 @@ class _SetUpSyncStepState extends ConsumerState<SetUpSyncStep> {
             errorText: _secretError,
             border: const OutlineInputBorder(),
           ),
-          onSubmitted: (_) => _unlock(),
+          onSubmitted: (_) => _unlock(account),
         ),
       ],
       l10n.settings_cloudSync_encryption_unlock,
-      _unlock,
+      () => _unlock(account),
     ),
     LibraryIncomplete() => (
       [
@@ -319,7 +353,7 @@ class _SetUpSyncStepState extends ConsumerState<SetUpSyncStep> {
         Text(l10n.setup_syncPull_incomplete_message),
       ],
       l10n.setup_syncPull_incomplete_retry,
-      () => refreshSetUpLibrary(ref.invalidate),
+      _checkAgain,
     ),
     LibraryAwaitingAdoption(:final marker) => (
       [
@@ -345,7 +379,7 @@ class _SetUpSyncStepState extends ConsumerState<SetUpSyncStep> {
     LibraryUnreachable() => (
       [Text(l10n.settings_setUpDevice_sync_unreachable(account.label))],
       l10n.setup_syncPull_incomplete_retry,
-      () => refreshSetUpLibrary(ref.invalidate),
+      _checkAgain,
     ),
   };
 
