@@ -2883,6 +2883,7 @@
   "diveLog_search_scopeWithin": "Dentro dos filtros",
   "diveLog_search_scopeAll": "Todos os mergulhos",
   "diveLog_search_jumpTitle": "Ir para o mergulho",
+  "diveLog_search_jumpNumberTitle": "#{number} · {title}",
   "diveLog_ask_row": "Perguntar: {text}",
   "diveLog_ask_running": "Consultando o modelo no dispositivo",
   "diveLog_ask_couldNotUse": "Não foi possível usar:",

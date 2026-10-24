@@ -9423,6 +9423,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_search_jumpTitle => 'Aller à la plongée';
 
   @override
+  String diveLog_search_jumpNumberTitle(int number, String title) {
+    return 'n°$number · $title';
+  }
+
+  @override
   String diveLog_ask_row(String text) {
     return 'Demander : $text';
   }

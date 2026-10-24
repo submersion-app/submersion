@@ -2883,6 +2883,7 @@
   "diveLog_search_scopeWithin": "Dentro de los filtros",
   "diveLog_search_scopeAll": "Todas las inmersiones",
   "diveLog_search_jumpTitle": "Ir a la inmersión",
+  "diveLog_search_jumpNumberTitle": "#{number} · {title}",
   "diveLog_ask_row": "Preguntar: {text}",
   "diveLog_ask_running": "Consultando el modelo del dispositivo",
   "diveLog_ask_couldNotUse": "No se pudo usar:",

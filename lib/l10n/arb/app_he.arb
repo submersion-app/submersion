@@ -2783,6 +2783,7 @@
   "diveLog_search_scopeWithin": "בתוך המסננים",
   "diveLog_search_scopeAll": "כל הצלילות",
   "diveLog_search_jumpTitle": "מעבר לצלילה",
+  "diveLog_search_jumpNumberTitle": "#{number} · {title}",
   "diveLog_ask_row": "שאל: {text}",
   "diveLog_ask_running": "שואל את המודל במכשיר",
   "diveLog_ask_couldNotUse": "לא ניתן להשתמש:",

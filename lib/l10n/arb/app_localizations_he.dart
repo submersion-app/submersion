@@ -9189,6 +9189,11 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_search_jumpTitle => 'מעבר לצלילה';
 
   @override
+  String diveLog_search_jumpNumberTitle(int number, String title) {
+    return '#$number · $title';
+  }
+
+  @override
   String diveLog_ask_row(String text) {
     return 'שאל: $text';
   }

@@ -2908,6 +2908,7 @@
   "diveLog_search_scopeWithin": "Innerhalb der Filter",
   "diveLog_search_scopeAll": "Alle Tauchgänge",
   "diveLog_search_jumpTitle": "Zum Tauchgang springen",
+  "diveLog_search_jumpNumberTitle": "#{number} · {title}",
   "diveLog_ask_row": "Fragen: {text}",
   "diveLog_ask_running": "Das Modell auf dem Gerät wird gefragt",
   "diveLog_ask_couldNotUse": "Nicht verwendet:",

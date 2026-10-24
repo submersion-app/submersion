@@ -9522,6 +9522,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_search_jumpTitle => 'الانتقال إلى غوصة';
 
   @override
+  String diveLog_search_jumpNumberTitle(int number, String title) {
+    return '#$number · $title';
+  }
+
+  @override
   String diveLog_ask_row(String text) {
     return 'اسأل: $text';
   }

@@ -2998,6 +2998,7 @@
   "diveLog_search_scopeWithin": "在筛选范围内",
   "diveLog_search_scopeAll": "全部潜水",
   "diveLog_search_jumpTitle": "跳转到潜水",
+  "diveLog_search_jumpNumberTitle": "#{number} · {title}",
   "diveLog_ask_row": "提问：{text}",
   "diveLog_ask_running": "正在询问设备端模型",
   "diveLog_ask_couldNotUse": "无法使用：",

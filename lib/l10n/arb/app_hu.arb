@@ -2783,6 +2783,7 @@
   "diveLog_search_scopeWithin": "A szűrőkön belül",
   "diveLog_search_scopeAll": "Összes merülés",
   "diveLog_search_jumpTitle": "Ugrás a merüléshez",
+  "diveLog_search_jumpNumberTitle": "#{number}. · {title}",
   "diveLog_ask_row": "Kérdezd: {text}",
   "diveLog_ask_running": "Az eszközön futó modell válaszol",
   "diveLog_ask_couldNotUse": "Nem használható:",

@@ -2783,6 +2783,7 @@
   "diveLog_search_scopeWithin": "Dans les filtres",
   "diveLog_search_scopeAll": "Toutes les plongées",
   "diveLog_search_jumpTitle": "Aller à la plongée",
+  "diveLog_search_jumpNumberTitle": "n°{number} · {title}",
   "diveLog_ask_row": "Demander : {text}",
   "diveLog_ask_running": "Interrogation du modèle sur l'appareil",
   "diveLog_ask_couldNotUse": "Non utilisé :",

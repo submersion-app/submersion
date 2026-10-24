@@ -8930,6 +8930,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_search_jumpTitle => '跳转到潜水';
 
   @override
+  String diveLog_search_jumpNumberTitle(int number, String title) {
+    return '#$number · $title';
+  }
+
+  @override
   String diveLog_ask_row(String text) {
     return '提问：$text';
   }

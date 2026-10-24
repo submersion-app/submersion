@@ -9391,6 +9391,11 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_search_jumpTitle => 'Vai all\'immersione';
 
   @override
+  String diveLog_search_jumpNumberTitle(int number, String title) {
+    return '#$number · $title';
+  }
+
+  @override
   String diveLog_ask_row(String text) {
     return 'Chiedi: $text';
   }
