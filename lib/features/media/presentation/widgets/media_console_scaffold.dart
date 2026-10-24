@@ -23,23 +23,47 @@ enum MediaConsoleSection { library, sources, transfers, importMedia }
 /// would otherwise take; when they do not, they drop to the bar's bottom, the
 /// phone layout. There is no sidebar at any width, so the library grid and
 /// the other views always get the whole page.
+///
+/// [title] is a widget rather than a plain string so Media and Documents'
+/// shared tab switch (#3631) can sit here exactly as it does on Documents'
+/// own app bar -- this section's own Library/Sources/Transfers/Import strip
+/// is independent chrome on a separate row, never competing with that switch
+/// for the same row's width. [titleWidth] is that title's own pre-measured
+/// width, needed because [appBarTabsFitInline] cannot measure an arbitrary
+/// widget the way it measures a plain string. [toolbarHeight] and
+/// [appBarPin] forward the title's own height and pinning needs (see
+/// [SectionHeaderTitle]) so the host that owns the title can still hold it
+/// still while this page's body slides, on phone, during an outer tab
+/// switch.
 class MediaConsoleScaffold extends StatefulWidget {
   const MediaConsoleScaffold({
     super.key,
     required this.title,
+    required this.titleWidth,
     required this.selected,
     required this.onSelect,
     required this.child,
     this.badgeCounts = const {},
+    this.toolbarHeight,
+    this.appBarPin,
   });
 
-  final String title;
+  final Widget title;
+  final double titleWidth;
   final MediaConsoleSection selected;
   final ValueChanged<MediaConsoleSection> onSelect;
   final Widget child;
 
   /// Section id to attention count; zero or absent hides the badge.
   final Map<MediaConsoleSection, int> badgeCounts;
+
+  /// The app bar's toolbar height, set by the title's own header title when
+  /// it needs more than the default to fit (a count line under the switch).
+  final double? toolbarHeight;
+
+  /// Wraps the finished app bar so a host sliding this page sideways can
+  /// hold it still. Null leaves it as it is.
+  final PreferredSizeWidget Function(PreferredSizeWidget bar)? appBarPin;
 
   @override
   State<MediaConsoleScaffold> createState() => _MediaConsoleScaffoldState();
@@ -147,7 +171,7 @@ class _MediaConsoleScaffoldState extends State<MediaConsoleScaffold>
         final inline = appBarTabsFitInline(
           context,
           barWidth: constraints.maxWidth,
-          title: widget.title,
+          titleWidth: widget.titleWidth,
           labels: labels,
           labelStyle: labelStyle,
         );
@@ -157,24 +181,26 @@ class _MediaConsoleScaffoldState extends State<MediaConsoleScaffold>
           colors: colors,
           inline: inline,
         );
+        final appBar = AppBar(
+          // Inline tabs start right after the title, so it must not be
+          // centred (the iOS default).
+          centerTitle: inline ? false : null,
+          toolbarHeight: widget.toolbarHeight,
+          title: inline
+              ? Row(
+                  children: [
+                    widget.title,
+                    const SizedBox(width: kAppBarInlineTabGap),
+                    // Flexible so a measurement a pixel short degrades to a
+                    // scrolling strip instead of an overflow.
+                    Flexible(child: tabs),
+                  ],
+                )
+              : widget.title,
+          bottom: inline ? null : tabs,
+        );
         return Scaffold(
-          appBar: AppBar(
-            // Inline tabs start right after the title, so it must not be
-            // centred (the iOS default).
-            centerTitle: inline ? false : null,
-            title: inline
-                ? Row(
-                    children: [
-                      Text(widget.title),
-                      const SizedBox(width: kAppBarInlineTabGap),
-                      // Flexible so a measurement a pixel short degrades to
-                      // a scrolling strip instead of an overflow.
-                      Flexible(child: tabs),
-                    ],
-                  )
-                : Text(widget.title),
-            bottom: inline ? null : tabs,
-          ),
+          appBar: widget.appBarPin?.call(appBar) ?? appBar,
           body: widget.child,
         );
       },

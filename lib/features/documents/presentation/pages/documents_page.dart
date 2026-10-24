@@ -22,6 +22,7 @@ import 'package:submersion/features/tags/presentation/providers/tag_providers.da
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
+import 'package:submersion/shared/widgets/section_header_title.dart';
 
 /// Every document of the active diver (issue #2613): what needs attention
 /// first, then grouped by what each is filed under.
@@ -33,12 +34,17 @@ class DocumentsPage extends ConsumerWidget {
   /// Shows only the documents carrying this tag (a detail page's tag chip).
   final String? initialTagId;
 
+  /// Replaces every layout's header title, as the Media and Documents tab
+  /// switch does (#3631).
+  final SectionHeaderTitle? headerTitle;
+
   const DocumentsPage({
     super.key,
     this.initialType,
     this.initialExpiringOnly = false,
     this.initialPersonalOnly = false,
     this.initialTagId,
+    this.headerTitle,
   });
 
   @override
@@ -84,6 +90,7 @@ class DocumentsPage extends ConsumerWidget {
       onOpen: (id) =>
           onSelected != null ? onSelected(id) : context.push('/documents/$id'),
       floatingActionButton: showAppBar ? fab : null,
+      headerTitle: headerTitle,
     );
     if (!ResponsiveBreakpoints.isMasterDetail(context)) {
       return list(showAppBar: true);
@@ -135,6 +142,7 @@ class DocumentsListContent extends ConsumerStatefulWidget {
   final String? selectedId;
   final ValueChanged<String> onOpen;
   final Widget? floatingActionButton;
+  final SectionHeaderTitle? headerTitle;
 
   const DocumentsListContent({
     super.key,
@@ -146,6 +154,7 @@ class DocumentsListContent extends ConsumerStatefulWidget {
     this.initialTagId,
     this.selectedId,
     this.floatingActionButton,
+    this.headerTitle,
   });
 
   @override
@@ -375,11 +384,16 @@ class _DocumentsListContentState extends ConsumerState<DocumentsListContent> {
         ],
       );
     }
+    final headerTitle = widget.headerTitle;
+    final appBar = AppBar(
+      title:
+          headerTitle?.build(context, SectionHeaderSlot.appBar, null) ??
+          Text(l10n.documents_title),
+      toolbarHeight: headerTitle?.appBarHeight(context, null),
+      actions: [_menu(context)],
+    );
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.documents_title),
-        actions: [_menu(context)],
-      ),
+      appBar: headerTitle?.pinAppBar(appBar) ?? appBar,
       floatingActionButton: widget.floatingActionButton,
       body: body,
     );
@@ -405,6 +419,15 @@ class _DocumentsListContentState extends ConsumerState<DocumentsListContent> {
   /// bar of its own.
   Widget _compactHeader(BuildContext context) {
     final theme = Theme.of(context);
+    final headerTitle = widget.headerTitle;
+    final title =
+        headerTitle?.build(context, SectionHeaderSlot.pane, null) ??
+        Text(
+          context.l10n.documents_title,
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+        );
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
@@ -416,14 +439,7 @@ class _DocumentsListContentState extends ConsumerState<DocumentsListContent> {
       child: Row(
         children: [
           const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              context.l10n.documents_title,
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
+          Expanded(child: title),
           _menu(context, iconSize: 20),
         ],
       ),

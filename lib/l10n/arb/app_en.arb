@@ -12294,6 +12294,7 @@
   },
   "nav_home": "Home",
   "nav_media": "Media",
+  "nav_mediaDocumentsSubtitle": "Media and documents",
   "nav_more": "More",
   "nav_planning": "Planning",
   "nav_planningSubtitle": "Dive Planner, Calculators",
@@ -12338,7 +12339,10 @@
     "description": "Navigation label for home/dashboard"
   },
   "@nav_media": {
-    "description": "Navigation label for the media section"
+    "description": "Navigation label for the Media and Documents section; also labels the Media tab inside it"
+  },
+  "@nav_mediaDocumentsSubtitle": {
+    "description": "Subtitle for the Media and Documents menu item in the More sheet"
   },
   "@nav_more": {
     "description": "Navigation label for the 'more' menu on mobile"

@@ -19732,6 +19732,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get nav_media => 'Mídia';
 
   @override
+  String get nav_mediaDocumentsSubtitle => 'Media and documents';
+
+  @override
   String get nav_more => 'Mais';
 
   @override

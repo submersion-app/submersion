@@ -22,10 +22,17 @@ const double kAppBarInlineTabGap = 24;
 bool appBarTabsFitInline(
   BuildContext context, {
   required double barWidth,
-  required String title,
+  String? title,
+  double? titleWidth,
   required List<String> labels,
   required TextStyle labelStyle,
 }) {
+  assert(
+    (title == null) != (titleWidth == null),
+    'Pass exactly one of title (a plain string title) or titleWidth (a '
+    'pre-measured width, for a title that is a widget rather than a '
+    'string, such as a section switch).',
+  );
   final theme = Theme.of(context);
   final appBarTheme = theme.appBarTheme;
   final textScaler = MediaQuery.textScalerOf(context);
@@ -51,7 +58,8 @@ bool appBarTabsFitInline(
     (sum, label) =>
         sum + widthOf(label, labelStyle) + kTabLabelPadding.horizontal,
   );
-  final required = widthOf(title, titleStyle) + kAppBarInlineTabGap + tabsWidth;
+  final resolvedTitleWidth = titleWidth ?? widthOf(title!, titleStyle);
+  final required = resolvedTitleWidth + kAppBarInlineTabGap + tabsWidth;
 
   final hasLeading = ModalRoute.of(context)?.impliesAppBarDismissal ?? false;
   final leadingWidth = hasLeading

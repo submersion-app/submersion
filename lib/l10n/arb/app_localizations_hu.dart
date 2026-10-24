@@ -19666,6 +19666,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get nav_media => 'Média';
 
   @override
+  String get nav_mediaDocumentsSubtitle => 'Media and documents';
+
+  @override
   String get nav_more => 'Tovább';
 
   @override

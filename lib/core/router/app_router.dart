@@ -198,7 +198,9 @@ import 'package:submersion/features/nav_track/presentation/pages/nav_track_detai
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_seascape_page.dart';
 import 'package:submersion/features/gps_log/presentation/pages/gps_track_detail_page.dart';
 import 'package:submersion/core/router/track_locations.dart';
+import 'package:submersion/core/router/media_documents_locations.dart';
 import 'package:submersion/core/router/training_locations.dart';
+import 'package:submersion/features/media_documents/presentation/pages/media_documents_page.dart';
 import 'package:submersion/features/training/presentation/pages/training_page.dart';
 import 'package:submersion/features/tracks/domain/track_kind.dart';
 import 'package:submersion/features/tracks/presentation/pages/tracks_map_page.dart';
@@ -895,19 +897,29 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             ],
           ),
 
-          // Documents (issue #2613)
+          // Documents (issue #2613), merged with Media into two tabs of one
+          // host (#3631), the way Training merged Certifications and
+          // Courses (#3437).
           GoRoute(
             path: '/documents',
             name: 'documents',
             pageBuilder: (context, state) {
               final q = state.uri.queryParameters;
-              return NoTransitionPage(
-                key: state.pageKey,
-                child: DocumentsPage(
-                  initialType: DocumentType.values.asNameMap()[q['type']],
-                  initialExpiringOnly: q['filter'] == 'expiring',
-                  initialPersonalOnly: q['owner'] == 'personal',
-                  initialTagId: q['tag'],
+              return mediaDocumentsHostPage(
+                MediaDocumentsPage(
+                  tab: MediaDocumentsTab.documents,
+                  tabBodyBuilder: (context, tab, headerTitle) => switch (tab) {
+                    MediaDocumentsTab.media => MediaSectionPage(
+                      headerTitle: headerTitle,
+                    ),
+                    MediaDocumentsTab.documents => DocumentsPage(
+                      initialType: DocumentType.values.asNameMap()[q['type']],
+                      initialExpiringOnly: q['filter'] == 'expiring',
+                      initialPersonalOnly: q['owner'] == 'personal',
+                      initialTagId: q['tag'],
+                      headerTitle: headerTitle,
+                    ),
+                  },
                 ),
               );
             },
@@ -1077,13 +1089,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             ],
           ),
 
-          // Media section (DAM console)
+          // Media section (DAM console), merged with Documents into two
+          // tabs of one host (#3631).
           GoRoute(
             path: '/media',
             name: 'media',
-            pageBuilder: (context, state) => NoTransitionPage(
-              key: state.pageKey,
-              child: const MediaSectionPage(),
+            pageBuilder: (context, state) => mediaDocumentsHostPage(
+              const MediaDocumentsPage(tab: MediaDocumentsTab.media),
             ),
           ),
 

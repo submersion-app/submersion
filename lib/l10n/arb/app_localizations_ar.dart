@@ -20022,6 +20022,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get nav_media => 'الوسائط';
 
   @override
+  String get nav_mediaDocumentsSubtitle => 'Media and documents';
+
+  @override
   String get nav_more => 'المزيد';
 
   @override

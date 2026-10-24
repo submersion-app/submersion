@@ -31435,11 +31435,17 @@ abstract class AppLocalizations {
   /// **'Home'**
   String get nav_home;
 
-  /// Navigation label for the media section
+  /// Navigation label for the Media and Documents section; also labels the Media tab inside it
   ///
   /// In en, this message translates to:
   /// **'Media'**
   String get nav_media;
+
+  /// Subtitle for the Media and Documents menu item in the More sheet
+  ///
+  /// In en, this message translates to:
+  /// **'Media and documents'**
+  String get nav_mediaDocumentsSubtitle;
 
   /// Navigation label for the 'more' menu on mobile
   ///

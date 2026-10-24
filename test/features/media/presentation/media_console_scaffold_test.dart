@@ -6,6 +6,27 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 
 const _contentKey = Key('content');
 
+/// The width [text] renders at in the app bar's title style, on one line,
+/// at the context's text scale -- what [MediaConsoleScaffold.titleWidth]
+/// stands in for when there is no header title and the title stays a plain
+/// string, mirroring the production fallback in `media_section_page.dart`.
+double _measureTitleWidth(BuildContext context, String text) {
+  final theme = Theme.of(context);
+  final style =
+      theme.appBarTheme.titleTextStyle ??
+      theme.textTheme.titleLarge ??
+      const TextStyle();
+  final painter = TextPainter(
+    text: TextSpan(text: text, style: style),
+    textDirection: Directionality.of(context),
+    textScaler: MediaQuery.textScalerOf(context),
+    maxLines: 1,
+  )..layout();
+  final width = painter.width;
+  painter.dispose();
+  return width;
+}
+
 void main() {
   Widget host({
     required MediaConsoleSection selected,
@@ -26,12 +47,15 @@ void main() {
               data: MediaQuery.of(context).copyWith(textScaler: textScaler),
               child: child!,
             ),
-      home: MediaConsoleScaffold(
-        title: title,
-        selected: selected,
-        onSelect: onSelect,
-        badgeCounts: badgeCounts,
-        child: const SizedBox.expand(key: _contentKey),
+      home: Builder(
+        builder: (context) => MediaConsoleScaffold(
+          title: Text(title),
+          titleWidth: _measureTitleWidth(context, title),
+          selected: selected,
+          onSelect: onSelect,
+          badgeCounts: badgeCounts,
+          child: const SizedBox.expand(key: _contentKey),
+        ),
       ),
     );
   }
@@ -172,11 +196,14 @@ void main() {
           locale: const Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: MediaConsoleScaffold(
-            title: 'Media',
-            selected: MediaConsoleSection.library,
-            onSelect: (_) {},
-            child: const SizedBox.expand(),
+          home: Builder(
+            builder: (context) => MediaConsoleScaffold(
+              title: const Text('Media'),
+              titleWidth: _measureTitleWidth(context, 'Media'),
+              selected: MediaConsoleSection.library,
+              onSelect: (_) {},
+              child: const SizedBox.expand(),
+            ),
           ),
         ),
       );
@@ -184,8 +211,9 @@ void main() {
 
       navigator.currentState!.push(
         MaterialPageRoute<void>(
-          builder: (_) => MediaConsoleScaffold(
-            title: 'Media',
+          builder: (context) => MediaConsoleScaffold(
+            title: const Text('Media'),
+            titleWidth: _measureTitleWidth(context, 'Media'),
             selected: MediaConsoleSection.library,
             onSelect: (_) {},
             child: const SizedBox.expand(),
