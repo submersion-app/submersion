@@ -55975,4 +55975,103 @@ class AppLocalizationsAr extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String settings_setUpDevice_backups_title(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'phone': 'نسخة احتياطية تصمد أمام فقدان الهاتف',
+      'tablet': 'نسخة احتياطية تصمد أمام فقدان الجهاز اللوحي',
+      'computer': 'نسخة احتياطية تصمد أمام فقدان الحاسوب',
+      'other': 'نسخة احتياطية تصمد أمام فقدان الجهاز',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_setUpDevice_backups_intro =>
+      'تُبقي المزامنة الأجهزة متطابقة. النسخة الاحتياطية نسخة من لحظة معيّنة يمكنك الرجوع إليها.';
+
+  @override
+  String settings_setUpDevice_backups_autoDetail(String frequency, int count) {
+    return '$frequency. تُحفظ هنا آخر $count.';
+  }
+
+  @override
+  String settings_setUpDevice_backups_autoDetailDesktop(
+    String frequency,
+    int count,
+  ) {
+    return '$frequency، أثناء فتح Submersion. تُحفظ هنا آخر $count.';
+  }
+
+  @override
+  String settings_setUpDevice_backups_copy(String account) {
+    return 'الاحتفاظ أيضًا بنسخة في $account';
+  }
+
+  @override
+  String get settings_setUpDevice_backups_noAccount =>
+      'تحتاج النسخة خارج هذا الجهاز إلى حساب أو مجلد نسخ احتياطي.';
+
+  @override
+  String get settings_setUpDevice_backups_openBackups => 'فتح النسخ الاحتياطية';
+
+  @override
+  String get settings_setUpDevice_backups_note =>
+      'الجدولة والمجلد والحماية بكلمة مرور والنسخ القديمة ضمن النسخ الاحتياطية.';
+
+  @override
+  String get settings_setUpDevice_photos_title => 'الصور على كل جهاز';
+
+  @override
+  String settings_setUpDevice_photos_firstIntro(String account) {
+    return 'احتفظ بنسخ من صورك ومقاطع الفيديو في $account لتعرضها أجهزتك الأخرى. تبقى الأصول في مكانها.';
+  }
+
+  @override
+  String settings_setUpDevice_photos_keepCopies(String account) {
+    return 'الاحتفاظ بنسخ الصور في $account';
+  }
+
+  @override
+  String get settings_setUpDevice_photos_firstNote =>
+      'شغّله لاحقًا ضمن الصور والفيديوهات. لا يُرفع شيء حتى تفعل.';
+
+  @override
+  String settings_setUpDevice_photos_secondIntro(String account) {
+    return 'تحتفظ أجهزتك الأخرى بنسخ من الصور والفيديو في $account. هل تعرضها هنا أيضًا؟';
+  }
+
+  @override
+  String settings_setUpDevice_photos_useCopies(String account) {
+    return 'استخدام نسخ الصور في $account';
+  }
+
+  @override
+  String get settings_setUpDevice_photos_sameAccount =>
+      'الحساب نفسه. لا حاجة لكتابة شيء.';
+
+  @override
+  String settings_setUpDevice_photos_signInFirst(String account) {
+    return 'يسجّل الدخول إلى $account أولًا.';
+  }
+
+  @override
+  String get settings_setUpDevice_photos_autoUploadHere =>
+      'رفع الصور المضافة هنا تلقائيًا';
+
+  @override
+  String settings_setUpDevice_photos_attachedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count صورة ومقطع فيديو مرتبط',
+      many: '$count صورة ومقطع فيديو مرتبط',
+      few: '$count صور ومقاطع فيديو مرتبطة',
+      two: 'صورتان أو مقطعا فيديو مرتبطان',
+      one: 'صورة أو فيديو واحد مرتبط',
+      zero: 'لا توجد صور أو مقاطع فيديو مرتبطة بعد',
+    );
+    return '$_temp0';
+  }
 }

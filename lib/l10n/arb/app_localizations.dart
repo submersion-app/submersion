@@ -87288,6 +87288,117 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{Your 1 dive was set aside and the library was downloaded. Submersion will reload.} other{Your {count} dives were set aside and the library was downloaded. Submersion will reload.}}'**
   String settings_setUpDevice_replace_doneBody(int count);
+
+  /// Title of setup step 3, automatic backups
+  ///
+  /// In en, this message translates to:
+  /// **'{device, select, phone{A backup that survives a lost phone} tablet{A backup that survives a lost tablet} computer{A backup that survives a lost computer} other{A backup that survives a lost device}}'**
+  String settings_setUpDevice_backups_title(String device);
+
+  /// Opening sentences of setup step 3
+  ///
+  /// In en, this message translates to:
+  /// **'Sync keeps devices in step. A backup is a copy from a moment in time that you can go back to.'**
+  String get settings_setUpDevice_backups_intro;
+
+  /// Subtitle of Back up automatically in step 3; frequency is like Weekly
+  ///
+  /// In en, this message translates to:
+  /// **'{frequency}. The last {count} are kept here.'**
+  String settings_setUpDevice_backups_autoDetail(String frequency, int count);
+
+  /// Subtitle of Back up automatically in step 3 on a computer; frequency is like Weekly
+  ///
+  /// In en, this message translates to:
+  /// **'{frequency}, while Submersion is open. The last {count} are kept here.'**
+  String settings_setUpDevice_backups_autoDetailDesktop(
+    String frequency,
+    int count,
+  );
+
+  /// Step 3 switch: also copy each backup to an account
+  ///
+  /// In en, this message translates to:
+  /// **'Also keep a copy in {account}'**
+  String settings_setUpDevice_backups_copy(String account);
+
+  /// Step 3 when no account exists for a copy
+  ///
+  /// In en, this message translates to:
+  /// **'A copy off this device needs an account or a backup folder.'**
+  String get settings_setUpDevice_backups_noAccount;
+
+  /// Link in step 3 that opens the Backups page
+  ///
+  /// In en, this message translates to:
+  /// **'Open Backups'**
+  String get settings_setUpDevice_backups_openBackups;
+
+  /// Note at the end of step 3
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule, folder, password protection and old backups are under Backups.'**
+  String get settings_setUpDevice_backups_note;
+
+  /// Title of setup step 4, sharing photo copies
+  ///
+  /// In en, this message translates to:
+  /// **'Photos on every device'**
+  String get settings_setUpDevice_photos_title;
+
+  /// Step 4 intro when no device keeps photo copies yet
+  ///
+  /// In en, this message translates to:
+  /// **'Keep copies of your photos and videos in {account} so your other devices can show them. Your originals stay where they are.'**
+  String settings_setUpDevice_photos_firstIntro(String account);
+
+  /// Step 4 switch on a first device
+  ///
+  /// In en, this message translates to:
+  /// **'Keep photo copies in {account}'**
+  String settings_setUpDevice_photos_keepCopies(String account);
+
+  /// Note in step 4 on a first device
+  ///
+  /// In en, this message translates to:
+  /// **'Turn it on later under Photos & videos. Nothing is uploaded until you do.'**
+  String get settings_setUpDevice_photos_firstNote;
+
+  /// Step 4 intro when the library keeps photo copies in an account
+  ///
+  /// In en, this message translates to:
+  /// **'Your other devices keep photo and video copies in {account}. Show them here too?'**
+  String settings_setUpDevice_photos_secondIntro(String account);
+
+  /// Step 4 switch on a second device
+  ///
+  /// In en, this message translates to:
+  /// **'Use the photo copies in {account}'**
+  String settings_setUpDevice_photos_useCopies(String account);
+
+  /// Subtitle when the photo copies are in the account just chosen
+  ///
+  /// In en, this message translates to:
+  /// **'Same account. Nothing to type.'**
+  String get settings_setUpDevice_photos_sameAccount;
+
+  /// Subtitle when the photo copies are in another account that needs signing in
+  ///
+  /// In en, this message translates to:
+  /// **'Signs in to {account} first.'**
+  String settings_setUpDevice_photos_signInFirst(String account);
+
+  /// Step 4 switch on a second device: upload photos added here
+  ///
+  /// In en, this message translates to:
+  /// **'Upload photos added here automatically'**
+  String get settings_setUpDevice_photos_autoUploadHere;
+
+  /// Subtitle of the step 4 switch: photos and videos attached to dives here
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No photos or videos attached yet} =1{{count} photo or video attached} other{{count} photos and videos attached}}'**
+  String settings_setUpDevice_photos_attachedCount(int count);
 }
 
 class _AppLocalizationsDelegate

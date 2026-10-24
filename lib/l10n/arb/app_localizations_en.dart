@@ -54345,4 +54345,100 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String settings_setUpDevice_backups_title(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'phone': 'A backup that survives a lost phone',
+      'tablet': 'A backup that survives a lost tablet',
+      'computer': 'A backup that survives a lost computer',
+      'other': 'A backup that survives a lost device',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_setUpDevice_backups_intro =>
+      'Sync keeps devices in step. A backup is a copy from a moment in time that you can go back to.';
+
+  @override
+  String settings_setUpDevice_backups_autoDetail(String frequency, int count) {
+    return '$frequency. The last $count are kept here.';
+  }
+
+  @override
+  String settings_setUpDevice_backups_autoDetailDesktop(
+    String frequency,
+    int count,
+  ) {
+    return '$frequency, while Submersion is open. The last $count are kept here.';
+  }
+
+  @override
+  String settings_setUpDevice_backups_copy(String account) {
+    return 'Also keep a copy in $account';
+  }
+
+  @override
+  String get settings_setUpDevice_backups_noAccount =>
+      'A copy off this device needs an account or a backup folder.';
+
+  @override
+  String get settings_setUpDevice_backups_openBackups => 'Open Backups';
+
+  @override
+  String get settings_setUpDevice_backups_note =>
+      'Schedule, folder, password protection and old backups are under Backups.';
+
+  @override
+  String get settings_setUpDevice_photos_title => 'Photos on every device';
+
+  @override
+  String settings_setUpDevice_photos_firstIntro(String account) {
+    return 'Keep copies of your photos and videos in $account so your other devices can show them. Your originals stay where they are.';
+  }
+
+  @override
+  String settings_setUpDevice_photos_keepCopies(String account) {
+    return 'Keep photo copies in $account';
+  }
+
+  @override
+  String get settings_setUpDevice_photos_firstNote =>
+      'Turn it on later under Photos & videos. Nothing is uploaded until you do.';
+
+  @override
+  String settings_setUpDevice_photos_secondIntro(String account) {
+    return 'Your other devices keep photo and video copies in $account. Show them here too?';
+  }
+
+  @override
+  String settings_setUpDevice_photos_useCopies(String account) {
+    return 'Use the photo copies in $account';
+  }
+
+  @override
+  String get settings_setUpDevice_photos_sameAccount =>
+      'Same account. Nothing to type.';
+
+  @override
+  String settings_setUpDevice_photos_signInFirst(String account) {
+    return 'Signs in to $account first.';
+  }
+
+  @override
+  String get settings_setUpDevice_photos_autoUploadHere =>
+      'Upload photos added here automatically';
+
+  @override
+  String settings_setUpDevice_photos_attachedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count photos and videos attached',
+      one: '$count photo or video attached',
+      zero: 'No photos or videos attached yet',
+    );
+    return '$_temp0';
+  }
 }

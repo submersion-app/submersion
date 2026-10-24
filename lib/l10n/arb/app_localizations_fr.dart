@@ -55337,4 +55337,101 @@ class AppLocalizationsFr extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String settings_setUpDevice_backups_title(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'phone': 'Une sauvegarde qui survit à la perte du téléphone',
+      'tablet': 'Une sauvegarde qui survit à la perte de la tablette',
+      'computer': 'Une sauvegarde qui survit à la perte de l\'ordinateur',
+      'other': 'Une sauvegarde qui survit à la perte de l\'appareil',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_setUpDevice_backups_intro =>
+      'La synchronisation garde les appareils à jour. Une sauvegarde est une copie d\'un instant précis à laquelle vous pouvez revenir.';
+
+  @override
+  String settings_setUpDevice_backups_autoDetail(String frequency, int count) {
+    return '$frequency. Les $count dernières sont conservées ici.';
+  }
+
+  @override
+  String settings_setUpDevice_backups_autoDetailDesktop(
+    String frequency,
+    int count,
+  ) {
+    return '$frequency, tant que Submersion est ouvert. Les $count dernières sont conservées ici.';
+  }
+
+  @override
+  String settings_setUpDevice_backups_copy(String account) {
+    return 'Conserver aussi une copie dans $account';
+  }
+
+  @override
+  String get settings_setUpDevice_backups_noAccount =>
+      'Une copie hors de cet appareil nécessite un compte ou un dossier de sauvegarde.';
+
+  @override
+  String get settings_setUpDevice_backups_openBackups => 'Ouvrir Sauvegardes';
+
+  @override
+  String get settings_setUpDevice_backups_note =>
+      'La planification, le dossier, la protection par mot de passe et les anciennes sauvegardes sont sous Sauvegardes.';
+
+  @override
+  String get settings_setUpDevice_photos_title =>
+      'Les photos sur chaque appareil';
+
+  @override
+  String settings_setUpDevice_photos_firstIntro(String account) {
+    return 'Conservez des copies de vos photos et vidéos dans $account pour que vos autres appareils puissent les afficher. Vos originaux restent où ils sont.';
+  }
+
+  @override
+  String settings_setUpDevice_photos_keepCopies(String account) {
+    return 'Conserver des copies des photos dans $account';
+  }
+
+  @override
+  String get settings_setUpDevice_photos_firstNote =>
+      'Vous pourrez l\'activer plus tard sous Photos et vidéos. Rien n\'est envoyé d\'ici là.';
+
+  @override
+  String settings_setUpDevice_photos_secondIntro(String account) {
+    return 'Vos autres appareils conservent des copies des photos et vidéos dans $account. Les afficher ici aussi ?';
+  }
+
+  @override
+  String settings_setUpDevice_photos_useCopies(String account) {
+    return 'Utiliser les copies des photos de $account';
+  }
+
+  @override
+  String get settings_setUpDevice_photos_sameAccount =>
+      'Même compte. Rien à saisir.';
+
+  @override
+  String settings_setUpDevice_photos_signInFirst(String account) {
+    return 'Se connecte d\'abord à $account.';
+  }
+
+  @override
+  String get settings_setUpDevice_photos_autoUploadHere =>
+      'Envoyer automatiquement les photos ajoutées ici';
+
+  @override
+  String settings_setUpDevice_photos_attachedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count photos et vidéos liées',
+      one: '$count photo ou vidéo liée',
+      zero: 'Aucune photo ni vidéo liée pour l\'instant',
+    );
+    return '$_temp0';
+  }
 }

@@ -5,6 +5,7 @@ import 'package:submersion/features/settings/domain/setup/set_up_progress.dart';
 import 'package:submersion/features/settings/presentation/providers/set_up_card_prefs_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/set_up_progress_provider.dart';
 import 'package:submersion/features/settings/presentation/widgets/set_up_device/set_up_account_step.dart';
+import 'package:submersion/features/settings/presentation/widgets/set_up_device/set_up_backups_step.dart';
 import 'package:submersion/features/settings/presentation/widgets/set_up_device/set_up_step_marks.dart';
 import 'package:submersion/features/settings/presentation/widgets/set_up_device/set_up_step_navigation.dart';
 import 'package:submersion/features/settings/presentation/widgets/set_up_device/set_up_step_scaffold.dart';
@@ -128,6 +129,7 @@ class _SetUpDevicePageState extends ConsumerState<SetUpDevicePage> {
       switch (step) {
         SetUpStep.account => SetUpAccountStep(navigation: navigation),
         SetUpStep.sync => SetUpSyncStep(navigation: navigation),
+        SetUpStep.backups => SetUpBackupsStep(navigation: navigation),
         _ => _placeholderStep(step, navigation),
       };
 

@@ -54875,4 +54875,100 @@ class AppLocalizationsNl extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String settings_setUpDevice_backups_title(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'phone': 'Een back-up die een verloren telefoon overleeft',
+      'tablet': 'Een back-up die een verloren tablet overleeft',
+      'computer': 'Een back-up die een verloren computer overleeft',
+      'other': 'Een back-up die een verloren apparaat overleeft',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_setUpDevice_backups_intro =>
+      'Synchronisatie houdt apparaten gelijk. Een back-up is een kopie van een moment waar je naar terug kunt.';
+
+  @override
+  String settings_setUpDevice_backups_autoDetail(String frequency, int count) {
+    return '$frequency. De laatste $count worden hier bewaard.';
+  }
+
+  @override
+  String settings_setUpDevice_backups_autoDetailDesktop(
+    String frequency,
+    int count,
+  ) {
+    return '$frequency, zolang Submersion open is. De laatste $count worden hier bewaard.';
+  }
+
+  @override
+  String settings_setUpDevice_backups_copy(String account) {
+    return 'Ook een kopie in $account bewaren';
+  }
+
+  @override
+  String get settings_setUpDevice_backups_noAccount =>
+      'Een kopie buiten dit apparaat heeft een account of een back-upmap nodig.';
+
+  @override
+  String get settings_setUpDevice_backups_openBackups => 'Back-ups openen';
+
+  @override
+  String get settings_setUpDevice_backups_note =>
+      'Planning, map, wachtwoordbeveiliging en oude back-ups staan onder Back-ups.';
+
+  @override
+  String get settings_setUpDevice_photos_title => 'Foto\'s op elk apparaat';
+
+  @override
+  String settings_setUpDevice_photos_firstIntro(String account) {
+    return 'Bewaar kopieën van je foto\'s en video\'s in $account, zodat je andere apparaten ze kunnen tonen. Je originelen blijven waar ze zijn.';
+  }
+
+  @override
+  String settings_setUpDevice_photos_keepCopies(String account) {
+    return 'Fotokopieën in $account bewaren';
+  }
+
+  @override
+  String get settings_setUpDevice_photos_firstNote =>
+      'Zet het later aan onder Foto\'s en video\'s. Tot dan wordt er niets geüpload.';
+
+  @override
+  String settings_setUpDevice_photos_secondIntro(String account) {
+    return 'Je andere apparaten bewaren kopieën van foto\'s en video\'s in $account. Ook hier tonen?';
+  }
+
+  @override
+  String settings_setUpDevice_photos_useCopies(String account) {
+    return 'De fotokopieën in $account gebruiken';
+  }
+
+  @override
+  String get settings_setUpDevice_photos_sameAccount =>
+      'Hetzelfde account. Niets in te typen.';
+
+  @override
+  String settings_setUpDevice_photos_signInFirst(String account) {
+    return 'Logt eerst in bij $account.';
+  }
+
+  @override
+  String get settings_setUpDevice_photos_autoUploadHere =>
+      'Hier toegevoegde foto\'s automatisch uploaden';
+
+  @override
+  String settings_setUpDevice_photos_attachedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count foto\'s en video\'s gekoppeld',
+      one: '$count foto of video gekoppeld',
+      zero: 'Nog geen foto\'s of video\'s gekoppeld',
+    );
+    return '$_temp0';
+  }
 }

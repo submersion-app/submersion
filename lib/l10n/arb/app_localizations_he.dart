@@ -54066,4 +54066,100 @@ class AppLocalizationsHe extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String settings_setUpDevice_backups_title(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'phone': 'גיבוי ששורד אובדן של הטלפון',
+      'tablet': 'גיבוי ששורד אובדן של הטאבלט',
+      'computer': 'גיבוי ששורד אובדן של המחשב',
+      'other': 'גיבוי ששורד אובדן של המכשיר',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_setUpDevice_backups_intro =>
+      'סנכרון שומר על המכשירים מתואמים. גיבוי הוא עותק מרגע מסוים שאפשר לחזור אליו.';
+
+  @override
+  String settings_setUpDevice_backups_autoDetail(String frequency, int count) {
+    return '$frequency. $count האחרונים נשמרים כאן.';
+  }
+
+  @override
+  String settings_setUpDevice_backups_autoDetailDesktop(
+    String frequency,
+    int count,
+  ) {
+    return '$frequency, כל עוד Submersion פתוח. $count האחרונים נשמרים כאן.';
+  }
+
+  @override
+  String settings_setUpDevice_backups_copy(String account) {
+    return 'לשמור גם עותק ב-$account';
+  }
+
+  @override
+  String get settings_setUpDevice_backups_noAccount =>
+      'עותק מחוץ למכשיר הזה דורש חשבון או תיקיית גיבוי.';
+
+  @override
+  String get settings_setUpDevice_backups_openBackups => 'פתיחת גיבויים';
+
+  @override
+  String get settings_setUpDevice_backups_note =>
+      'התזמון, התיקייה, ההגנה בסיסמה והגיבויים הישנים נמצאים תחת גיבויים.';
+
+  @override
+  String get settings_setUpDevice_photos_title => 'התמונות בכל מכשיר';
+
+  @override
+  String settings_setUpDevice_photos_firstIntro(String account) {
+    return 'שמירת עותקים של התמונות והסרטונים ב-$account כדי שהמכשירים האחרים שלך יוכלו להציג אותם. המקוריים נשארים במקומם.';
+  }
+
+  @override
+  String settings_setUpDevice_photos_keepCopies(String account) {
+    return 'לשמור עותקים של תמונות ב-$account';
+  }
+
+  @override
+  String get settings_setUpDevice_photos_firstNote =>
+      'אפשר להפעיל זאת אחר כך תחת תמונות וסרטונים. עד אז שום דבר לא מועלה.';
+
+  @override
+  String settings_setUpDevice_photos_secondIntro(String account) {
+    return 'המכשירים האחרים שלך שומרים עותקים של תמונות וסרטונים ב-$account. להציג אותם גם כאן?';
+  }
+
+  @override
+  String settings_setUpDevice_photos_useCopies(String account) {
+    return 'להשתמש בעותקי התמונות ב-$account';
+  }
+
+  @override
+  String get settings_setUpDevice_photos_sameAccount =>
+      'אותו חשבון. אין מה להקליד.';
+
+  @override
+  String settings_setUpDevice_photos_signInFirst(String account) {
+    return 'מתחבר קודם אל $account.';
+  }
+
+  @override
+  String get settings_setUpDevice_photos_autoUploadHere =>
+      'להעלות אוטומטית תמונות שנוספו כאן';
+
+  @override
+  String settings_setUpDevice_photos_attachedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count תמונות וסרטונים מקושרים',
+      one: 'תמונה או סרטון אחד מקושר',
+      zero: 'עדיין אין תמונות או סרטונים מקושרים',
+    );
+    return '$_temp0';
+  }
 }

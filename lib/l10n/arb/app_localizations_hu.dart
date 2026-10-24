@@ -54904,4 +54904,100 @@ class AppLocalizationsHu extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String settings_setUpDevice_backups_title(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'phone': 'Mentés, amely túléli a telefon elvesztését',
+      'tablet': 'Mentés, amely túléli a táblagép elvesztését',
+      'computer': 'Mentés, amely túléli a számítógép elvesztését',
+      'other': 'Mentés, amely túléli az eszköz elvesztését',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_setUpDevice_backups_intro =>
+      'A szinkronizálás összhangban tartja az eszközöket. A mentés egy adott pillanat másolata, amelyhez visszatérhet.';
+
+  @override
+  String settings_setUpDevice_backups_autoDetail(String frequency, int count) {
+    return '$frequency. Itt marad meg az utolsó $count.';
+  }
+
+  @override
+  String settings_setUpDevice_backups_autoDetailDesktop(
+    String frequency,
+    int count,
+  ) {
+    return '$frequency, amíg a Submersion meg van nyitva. Itt marad meg az utolsó $count.';
+  }
+
+  @override
+  String settings_setUpDevice_backups_copy(String account) {
+    return 'Másolat megőrzése itt is: $account';
+  }
+
+  @override
+  String get settings_setUpDevice_backups_noAccount =>
+      'Az eszközön kívüli másolathoz fiók vagy mentési mappa kell.';
+
+  @override
+  String get settings_setUpDevice_backups_openBackups => 'Mentések megnyitása';
+
+  @override
+  String get settings_setUpDevice_backups_note =>
+      'Az ütemezés, a mappa, a jelszavas védelem és a régi mentések a Mentések alatt találhatók.';
+
+  @override
+  String get settings_setUpDevice_photos_title => 'Fotók minden eszközön';
+
+  @override
+  String settings_setUpDevice_photos_firstIntro(String account) {
+    return 'Tároljon másolatot fotóiról és videóiról itt: $account, hogy a többi eszköze is megjeleníthesse őket. Az eredetik a helyükön maradnak.';
+  }
+
+  @override
+  String settings_setUpDevice_photos_keepCopies(String account) {
+    return 'Fotómásolatok tárolása itt: $account';
+  }
+
+  @override
+  String get settings_setUpDevice_photos_firstNote =>
+      'Később a Fotók és videók alatt bekapcsolhatja. Addig semmi sem töltődik fel.';
+
+  @override
+  String settings_setUpDevice_photos_secondIntro(String account) {
+    return 'A többi eszköze itt tárol fotó- és videómásolatokat: $account. Itt is megjelenjenek?';
+  }
+
+  @override
+  String settings_setUpDevice_photos_useCopies(String account) {
+    return 'Az itteni fotómásolatok használata: $account';
+  }
+
+  @override
+  String get settings_setUpDevice_photos_sameAccount =>
+      'Ugyanaz a fiók. Nem kell semmit beírni.';
+
+  @override
+  String settings_setUpDevice_photos_signInFirst(String account) {
+    return 'Előbb bejelentkezik ide: $account.';
+  }
+
+  @override
+  String get settings_setUpDevice_photos_autoUploadHere =>
+      'Az itt hozzáadott fotók automatikus feltöltése';
+
+  @override
+  String settings_setUpDevice_photos_attachedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count csatolt fotó és videó',
+      one: '$count csatolt fotó vagy videó',
+      zero: 'Még nincs csatolt fotó vagy videó',
+    );
+    return '$_temp0';
+  }
 }

@@ -55209,4 +55209,101 @@ class AppLocalizationsPt extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String settings_setUpDevice_backups_title(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'phone': 'Uma cópia que resiste à perda do telefone',
+      'tablet': 'Uma cópia que resiste à perda do tablet',
+      'computer': 'Uma cópia que resiste à perda do computador',
+      'other': 'Uma cópia que resiste à perda do dispositivo',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_setUpDevice_backups_intro =>
+      'A sincronização mantém os dispositivos alinhados. Uma cópia de segurança é uma cópia de um momento a que pode voltar.';
+
+  @override
+  String settings_setUpDevice_backups_autoDetail(String frequency, int count) {
+    return '$frequency. As últimas $count ficam guardadas aqui.';
+  }
+
+  @override
+  String settings_setUpDevice_backups_autoDetailDesktop(
+    String frequency,
+    int count,
+  ) {
+    return '$frequency, enquanto o Submersion está aberto. As últimas $count ficam guardadas aqui.';
+  }
+
+  @override
+  String settings_setUpDevice_backups_copy(String account) {
+    return 'Guardar também uma cópia em $account';
+  }
+
+  @override
+  String get settings_setUpDevice_backups_noAccount =>
+      'Uma cópia fora deste dispositivo precisa de uma conta ou de uma pasta de cópias.';
+
+  @override
+  String get settings_setUpDevice_backups_openBackups => 'Abrir Backups';
+
+  @override
+  String get settings_setUpDevice_backups_note =>
+      'O agendamento, a pasta, a proteção por palavra-passe e as cópias antigas estão em Backups.';
+
+  @override
+  String get settings_setUpDevice_photos_title =>
+      'Fotos em todos os dispositivos';
+
+  @override
+  String settings_setUpDevice_photos_firstIntro(String account) {
+    return 'Guarde cópias das suas fotos e vídeos em $account para os seus outros dispositivos as poderem mostrar. Os originais ficam onde estão.';
+  }
+
+  @override
+  String settings_setUpDevice_photos_keepCopies(String account) {
+    return 'Guardar cópias das fotos em $account';
+  }
+
+  @override
+  String get settings_setUpDevice_photos_firstNote =>
+      'Pode ativar mais tarde em Fotos e vídeos. Até lá nada é enviado.';
+
+  @override
+  String settings_setUpDevice_photos_secondIntro(String account) {
+    return 'Os seus outros dispositivos guardam cópias de fotos e vídeos em $account. Mostrá-las também aqui?';
+  }
+
+  @override
+  String settings_setUpDevice_photos_useCopies(String account) {
+    return 'Usar as cópias das fotos em $account';
+  }
+
+  @override
+  String get settings_setUpDevice_photos_sameAccount =>
+      'A mesma conta. Nada a escrever.';
+
+  @override
+  String settings_setUpDevice_photos_signInFirst(String account) {
+    return 'Inicia primeiro sessão em $account.';
+  }
+
+  @override
+  String get settings_setUpDevice_photos_autoUploadHere =>
+      'Enviar automaticamente as fotos adicionadas aqui';
+
+  @override
+  String settings_setUpDevice_photos_attachedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fotos e vídeos ligados',
+      one: '$count foto ou vídeo ligado',
+      zero: 'Ainda não há fotos nem vídeos ligados',
+    );
+    return '$_temp0';
+  }
 }

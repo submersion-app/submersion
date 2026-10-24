@@ -51851,4 +51851,96 @@ class AppLocalizationsZh extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String settings_setUpDevice_backups_title(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'phone': '丢了手机也不怕的备份',
+      'tablet': '丢了平板也不怕的备份',
+      'computer': '丢了电脑也不怕的备份',
+      'other': '丢了设备也不怕的备份',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_setUpDevice_backups_intro =>
+      '同步让各设备保持一致。备份是某一时刻的副本，你可以随时回到那一刻。';
+
+  @override
+  String settings_setUpDevice_backups_autoDetail(String frequency, int count) {
+    return '$frequency。此处保留最近 $count 份。';
+  }
+
+  @override
+  String settings_setUpDevice_backups_autoDetailDesktop(
+    String frequency,
+    int count,
+  ) {
+    return '$frequency，在 Submersion 打开时进行。此处保留最近 $count 份。';
+  }
+
+  @override
+  String settings_setUpDevice_backups_copy(String account) {
+    return '同时在 $account 中保留一份副本';
+  }
+
+  @override
+  String get settings_setUpDevice_backups_noAccount =>
+      '要在此设备之外保留副本，需要一个账户或备份文件夹。';
+
+  @override
+  String get settings_setUpDevice_backups_openBackups => '打开备份';
+
+  @override
+  String get settings_setUpDevice_backups_note => '计划、文件夹、密码保护和旧备份都在“备份”中。';
+
+  @override
+  String get settings_setUpDevice_photos_title => '让每台设备都有照片';
+
+  @override
+  String settings_setUpDevice_photos_firstIntro(String account) {
+    return '在 $account 中保留照片和视频的副本，让你的其他设备也能显示它们。原件保持原样。';
+  }
+
+  @override
+  String settings_setUpDevice_photos_keepCopies(String account) {
+    return '在 $account 中保留照片副本';
+  }
+
+  @override
+  String get settings_setUpDevice_photos_firstNote =>
+      '之后可在“照片和视频”中开启。在此之前不会上传任何内容。';
+
+  @override
+  String settings_setUpDevice_photos_secondIntro(String account) {
+    return '你的其他设备在 $account 中保存了照片和视频副本。也要在这里显示吗？';
+  }
+
+  @override
+  String settings_setUpDevice_photos_useCopies(String account) {
+    return '使用 $account 中的照片副本';
+  }
+
+  @override
+  String get settings_setUpDevice_photos_sameAccount => '同一账户，无需输入任何内容。';
+
+  @override
+  String settings_setUpDevice_photos_signInFirst(String account) {
+    return '将先登录 $account。';
+  }
+
+  @override
+  String get settings_setUpDevice_photos_autoUploadHere => '自动上传在这里添加的照片';
+
+  @override
+  String settings_setUpDevice_photos_attachedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已关联 $count 张照片和视频',
+      zero: '尚未关联照片或视频',
+    );
+    return '$_temp0';
+  }
 }
