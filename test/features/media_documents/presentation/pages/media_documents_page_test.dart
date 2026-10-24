@@ -3,8 +3,14 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/router/media_documents_locations.dart';
+import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
+import 'package:submersion/features/documents/presentation/providers/document_providers.dart';
 import 'package:submersion/features/media_documents/presentation/pages/media_documents_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart';
+import 'package:submersion/features/tags/presentation/providers/tag_link_providers.dart';
+import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/models/subtitle_text.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
@@ -335,5 +341,83 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(tester.takeException(), isNull);
+  });
+
+  group('real Documents body (no tabBodyBuilder)', () {
+    GoRouter realRouter(String initialLocation) => GoRouter(
+      initialLocation: initialLocation,
+      routes: [
+        GoRoute(
+          path: '/media',
+          pageBuilder: (_, _) => mediaDocumentsHostPage(
+            const MediaDocumentsPage(tab: MediaDocumentsTab.media),
+          ),
+        ),
+        GoRoute(
+          path: '/documents',
+          pageBuilder: (_, _) => mediaDocumentsHostPage(
+            const MediaDocumentsPage(tab: MediaDocumentsTab.documents),
+          ),
+        ),
+      ],
+    );
+
+    Future<GoRouter> pumpReal(
+      WidgetTester tester, {
+      required String initialLocation,
+    }) async {
+      tester.view.physicalSize = const Size(1200, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final router = realRouter(initialLocation);
+      addTearDown(router.dispose);
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+            allDocumentsProvider.overrideWith((ref) async => const []),
+            tagsProvider.overrideWith((ref) async => const <Tag>[]),
+            tagsByItemProvider(
+              TagScope.documents,
+            ).overrideWith((ref) async => const <String, List<Tag>>{}),
+            certificationCatalogSyncProvider.overrideWithValue(
+              CertificationCatalog.builtInOnly,
+            ),
+          ],
+          child: MaterialApp.router(
+            routerConfig: router,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      return router;
+    }
+
+    testWidgets("Documents' personal-only filter survives a round trip through "
+        'Media (#3631 code review)', (tester) async {
+      await pumpReal(tester, initialLocation: '/documents?owner=personal');
+
+      expect(
+        find.byKey(const ValueKey('documents-filter-personal')),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.text('Media').first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Documents').last);
+      await tester.pumpAndSettle();
+
+      // Before the fix, switching through Media rebuilt the host with
+      // /media's route, whose default body builder has no query to give
+      // Documents, resetting this filter while the Documents tab sat
+      // hidden.
+      expect(
+        find.byKey(const ValueKey('documents-filter-personal')),
+        findsOneWidget,
+      );
+    });
   });
 }

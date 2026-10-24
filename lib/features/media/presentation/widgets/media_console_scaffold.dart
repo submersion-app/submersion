@@ -189,7 +189,13 @@ class _MediaConsoleScaffoldState extends State<MediaConsoleScaffold>
           title: inline
               ? Row(
                   children: [
-                    widget.title,
+                    // Flexible: when section-header accents are on,
+                    // [widget.title] is a Row of its own (the accent icon
+                    // beside the switch) and needs bounded constraints from
+                    // this outer Row, or Flutter's unbounded-flex assertion
+                    // fires the moment the inner Row's own Flexible lays
+                    // out (#3631 code review).
+                    Flexible(child: widget.title),
                     const SizedBox(width: kAppBarInlineTabGap),
                     // Flexible so a measurement a pixel short degrades to a
                     // scrolling strip instead of an overflow.

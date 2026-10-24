@@ -34,7 +34,6 @@ import 'package:submersion/features/marine_life/presentation/providers/species_p
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/presentation/pages/document_detail_page.dart';
 import 'package:submersion/features/documents/presentation/pages/document_edit_page.dart';
-import 'package:submersion/features/documents/presentation/pages/documents_page.dart';
 import 'package:submersion/features/certifications/presentation/pages/certification_detail_page.dart';
 import 'package:submersion/features/certifications/presentation/pages/certification_edit_page.dart';
 import 'package:submersion/features/certifications/presentation/pages/certification_wallet_page.dart';
@@ -85,7 +84,6 @@ import 'package:submersion/features/equipment/presentation/pages/equipment_locat
 import 'package:submersion/features/equipment/presentation/pages/service_kind_list_page.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_set_detail_page.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_set_edit_page.dart';
-import 'package:submersion/features/media/presentation/pages/media_section_page.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_edit_navigation.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_list_page.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_detail_page.dart';
@@ -903,26 +901,20 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/documents',
             name: 'documents',
-            pageBuilder: (context, state) {
-              final q = state.uri.queryParameters;
-              return mediaDocumentsHostPage(
-                MediaDocumentsPage(
-                  tab: MediaDocumentsTab.documents,
-                  tabBodyBuilder: (context, tab, headerTitle) => switch (tab) {
-                    MediaDocumentsTab.media => MediaSectionPage(
-                      headerTitle: headerTitle,
-                    ),
-                    MediaDocumentsTab.documents => DocumentsPage(
-                      initialType: DocumentType.values.asNameMap()[q['type']],
-                      initialExpiringOnly: q['filter'] == 'expiring',
-                      initialPersonalOnly: q['owner'] == 'personal',
-                      initialTagId: q['tag'],
-                      headerTitle: headerTitle,
-                    ),
-                  },
-                ),
-              );
-            },
+            // No route-level tabBodyBuilder: unlike Training's two tabs,
+            // Documents' body depends on this route's own query parameters
+            // (type/filter/owner/tag), which only this route's state
+            // carries. A builder closure captured here would go stale the
+            // moment the shared host rebuilds for the OTHER route
+            // (/media), which supplies no such builder and would reset
+            // Documents' filters on every tab switch (#3631 code review).
+            // MediaDocumentsPage's default body builder reads the same
+            // parameters from its own per-tab `_queries` cache instead,
+            // which both routes keep current regardless of which one is
+            // active.
+            pageBuilder: (context, state) => mediaDocumentsHostPage(
+              const MediaDocumentsPage(tab: MediaDocumentsTab.documents),
+            ),
             routes: [
               GoRoute(
                 path: 'new',

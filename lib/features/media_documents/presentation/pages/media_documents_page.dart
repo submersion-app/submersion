@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/router/media_documents_locations.dart';
 import 'package:submersion/core/router/section_navigation.dart';
+import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/presentation/pages/documents_page.dart';
 import 'package:submersion/features/media/presentation/pages/media_section_page.dart';
 import 'package:submersion/features/media_documents/presentation/widgets/media_documents_section_toggle.dart';
@@ -213,8 +214,25 @@ class _MediaDocumentsPageState extends State<MediaDocumentsPage>
     if (builder != null) return builder(context, tab, headerTitle);
     return switch (tab) {
       MediaDocumentsTab.media => MediaSectionPage(headerTitle: headerTitle),
-      MediaDocumentsTab.documents => DocumentsPage(headerTitle: headerTitle),
+      MediaDocumentsTab.documents => _documentsPage(headerTitle),
     };
+  }
+
+  /// Documents' body, with its initial filters read from this tab's own
+  /// `_queries` entry rather than from whichever route last rebuilt this
+  /// page. Both `/documents` and `/media` keep that entry current (see
+  /// [build]'s `_queries` update), so the filters survive a round trip
+  /// through the Media tab instead of resetting whenever the active route
+  /// is `/media` (#3631 code review).
+  Widget _documentsPage(SectionHeaderTitle headerTitle) {
+    final q = Uri.splitQueryString(_queries[MediaDocumentsTab.documents] ?? '');
+    return DocumentsPage(
+      initialType: DocumentType.values.asNameMap()[q['type']],
+      initialExpiringOnly: q['filter'] == 'expiring',
+      initialPersonalOnly: q['owner'] == 'personal',
+      initialTagId: q['tag'],
+      headerTitle: headerTitle,
+    );
   }
 
   @override

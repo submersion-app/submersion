@@ -185,14 +185,18 @@ Training pattern.
   loss of granularity Training already accepted: neither Library/Sources/
   Transfers/Import nor the Media/Documents split gets its own pinnable
   shortcut, only the top-level `media-documents` entry does.
-- **l10n.** Two new keys, `nav_mediaDocuments` (the merged entry's label) and
-  `nav_mediaDocumentsSubtitle` (mirroring `nav_trainingSubtitle`, "Media and
-  documents" or similar), added to every `app_<locale>.arb` file, not just
-  `app_en.arb`. `nav_media` and `nav_documents` stay as-is; they still label
-  the two tabs via `SectionTitleToggle`'s `labels`, the same way
-  `nav_certifications`/`nav_courses` still label Training's two tabs
-  (`training_section_toggle.dart:37-40`) even though `nav_training` is the
-  nav entry's own label.
+- **l10n.** One new key, `nav_mediaDocumentsSubtitle` (mirroring
+  `nav_trainingSubtitle`, "Media and documents" or similar), added to every
+  `app_<locale>.arb` file, not just `app_en.arb`. The merged entry's own
+  label reuses `nav_media` rather than adding a dedicated
+  `nav_mediaDocuments` key - Media is the entry's default landing tab
+  (`route: '/media'`), so its existing label already reads correctly as the
+  entry's label, the same way reusing an existing string would for any
+  other default-tab nav entry. `nav_media` and `nav_documents` stay as-is
+  beyond that; they still label the two tabs via `SectionTitleToggle`'s
+  `labels`, the same way `nav_certifications`/`nav_courses` still label
+  Training's two tabs (`training_section_toggle.dart:37-40`) even though
+  `nav_training` is the nav entry's own, separate label.
 
 ## UI implications
 
