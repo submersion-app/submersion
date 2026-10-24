@@ -410,10 +410,21 @@ ColorEncodeResult EncodeWithColor(const std::wstring& source,
     decoded->SetGUID(MF_MT_SUBTYPE, frame_format);
     hr = s.reader->SetCurrentMediaType(video_stream, nullptr, decoded.Get());
     if (FAILED(hr)) return hr_fail("decoding the video", hr);
-    ComPtr<IMFMediaType> current;
-    s.reader->GetCurrentMediaType(video_stream, &current);
+    // The decoder's buffer layout: its coded (possibly padded) size and row
+    // stride. Read again whenever the decoder changes its output type.
     UINT32 coded_w = width, coded_h = height;
-    MFGetAttributeSize(current.Get(), MF_MT_FRAME_SIZE, &coded_w, &coded_h);
+    LONG default_stride = 0;
+    auto read_layout = [&] {
+      ComPtr<IMFMediaType> current;
+      if (FAILED(s.reader->GetCurrentMediaType(video_stream, &current))) return;
+      MFGetAttributeSize(current.Get(), MF_MT_FRAME_SIZE, &coded_w, &coded_h);
+      UINT32 stride = 0;
+      default_stride = SUCCEEDED(current->GetUINT32(MF_MT_DEFAULT_STRIDE,
+                                                    &stride))
+                           ? static_cast<LONG>(stride)
+                           : static_cast<LONG>(coded_w * (ten_bit ? 2 : 1));
+    };
+    read_layout();
 
     // Bitrate from the source, between 4 and 100 Mbit/s.
     UINT32 bitrate = MFGetAttributeUINT32(native.Get(), MF_MT_AVG_BITRATE, 0);
@@ -556,6 +567,10 @@ ColorEncodeResult EncodeWithColor(const std::wstring& source,
         if (!any_left) break;
         continue;
       }
+      if (stream == video_stream &&
+          (flags & MF_SOURCE_READERF_CURRENTMEDIATYPECHANGED)) {
+        read_layout();
+      }
       if (!sample) continue;
 
       if (stream != video_stream) {
@@ -574,16 +589,35 @@ ColorEncodeResult EncodeWithColor(const std::wstring& source,
       hr = sample->ConvertToContiguousBuffer(&in_buffer);
       if (FAILED(hr)) return hr_fail("reading a frame", hr);
       BYTE* src = nullptr;
-      LONG src_pitch = static_cast<LONG>(coded_w * (ten_bit ? 2 : 1));
+      LONG src_pitch = default_stride;
+      DWORD src_len = 0;
       ComPtr<IMF2DBuffer> two_d;
       bool locked_2d = false;
       if (SUCCEEDED(in_buffer.As(&two_d)) &&
           SUCCEEDED(two_d->Lock2D(&src, &src_pitch))) {
         locked_2d = true;
+        in_buffer->GetCurrentLength(&src_len);
       } else {
-        DWORD max_len = 0, len = 0;
-        hr = in_buffer->Lock(&src, &max_len, &len);
+        DWORD max_len = 0;
+        hr = in_buffer->Lock(&src, &max_len, &src_len);
         if (FAILED(hr)) return hr_fail("locking a frame", hr);
+      }
+      auto unlock = [&] {
+        if (locked_2d) {
+          two_d->Unlock2D();
+        } else {
+          in_buffer->Unlock();
+        }
+      };
+      // Never read past the decoder's buffer: a layout this code does not
+      // expect (a bottom-up or short buffer) fails the encode instead.
+      const size_t needed =
+          static_cast<size_t>(src_pitch) * (coded_h + coded_h / 2);
+      if (src_pitch < static_cast<LONG>(plane) || coded_h < height ||
+          src_len < needed) {
+        unlock();
+        return fail(ColorEncodeOutcome::kFailed,
+                    "unexpected decoded frame layout");
       }
       const uint8_t* src_uv = src + static_cast<size_t>(src_pitch) * coded_h;
       for (UINT32 row = 0; row < height; ++row) {
@@ -593,11 +627,7 @@ ColorEncodeResult EncodeWithColor(const std::wstring& source,
         std::memcpy(frame.data() + plane * height + row * plane,
                     src_uv + row * src_pitch, plane);
       }
-      if (locked_2d) {
-        two_d->Unlock2D();
-      } else {
-        in_buffer->Unlock();
-      }
+      unlock();
       // Presentation time, as the player's position reads it, which is what
       // the app's timeline is sampled against.
       const Planes planes{frame.data(), frame.data() + plane * height,

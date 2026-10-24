@@ -85,10 +85,34 @@ Future<SharePreparation> prepareShareFiles(
   required ColorEncodeCancel cancel,
   int Function()? backgroundEntries,
 }) async {
+  final written = <File>[];
+  try {
+    return await _prepare(
+      ref,
+      items,
+      onProgress: onProgress,
+      cancel: cancel,
+      backgroundEntries: backgroundEntries,
+      written: written,
+    );
+  } catch (_) {
+    // A resolve that throws part-way leaves no corrected copy behind.
+    await deleteShareCopies(written);
+    rethrow;
+  }
+}
+
+Future<SharePreparation> _prepare(
+  WidgetRef ref,
+  List<MediaItem> items, {
+  required void Function(VideoShareProgress progress) onProgress,
+  required ColorEncodeCancel cancel,
+  required int Function()? backgroundEntries,
+  required List<File> written,
+}) async {
   final total = items.where((i) => videoMayNeedCorrection(ref, i)).length;
   final files = <XFile>[];
   final failed = <MediaItem>[];
-  final written = <File>[];
   var index = 0;
 
   Future<SharePreparation> abandon(SharePreparation outcome) async {

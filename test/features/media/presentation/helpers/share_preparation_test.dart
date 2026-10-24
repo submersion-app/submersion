@@ -98,6 +98,7 @@ void main() {
     String? Function(MediaItem)? pathFor,
     bool pathThrows = false,
     bool accessOpens = true,
+    String? throwsFor,
   }) async {
     late WidgetRef widgetRef;
     await tester.pumpWidget(
@@ -109,12 +110,13 @@ void main() {
             if (pathThrows) throw StateError('store offline');
             return pathFor != null ? pathFor(item) : '/videos/${item.id}.mov';
           }),
-          resolvedFullResolutionProvider.overrideWith(
-            (ref, item) async => ResolvedAssetResult(
+          resolvedFullResolutionProvider.overrideWith((ref, item) async {
+            if (item.id == throwsFor) throw StateError('resolve failed');
+            return ResolvedAssetResult(
               bytes: Uint8List.fromList(item.id.codeUnits),
               status: ResolutionStatus.resolved,
-            ),
-          ),
+            );
+          }),
           videoFileAccessProvider.overrideWithValue(
             <R>({path, bookmarkRef, required read}) async =>
                 path == null || !accessOpens ? null : read(path),
@@ -422,6 +424,35 @@ void main() {
     }, encoder: encoder);
     expect(result, isA<ShareCancelled>());
     expect(encoder.calls, isEmpty);
+  });
+
+  testWidgets('a resolve that throws later deletes written copies', (
+    tester,
+  ) async {
+    final first = p.join(temp.path, 'share', 'v1', 'v1.mp4');
+    Object? error;
+    await withRef(
+      tester,
+      (ref) async {
+        try {
+          await prepareShareFiles(
+            ref,
+            [
+              _item('v1', adjustment: _warm),
+              _item('boom', type: MediaType.photo),
+            ],
+            onProgress: (_) {},
+            cancel: ColorEncodeCancel(),
+          );
+        } on Object catch (e) {
+          error = e;
+        }
+      },
+      encoder: _FakeEncoder([_Outcome.ok]),
+      throwsFor: 'boom',
+    );
+    expect(error, isA<StateError>());
+    expect(await exists(tester, first), isFalse);
   });
 
   testWidgets('originalShareFiles writes the original bytes', (tester) async {

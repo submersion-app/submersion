@@ -52,6 +52,7 @@ object Media3ColorEncoder {
     // encode started (while the source was still being inspected). Touched on
     // the main looper only.
     private val jobs = HashMap<String, Job>()
+    private val starting = HashSet<String>()
     private val cancelledEarly = HashSet<String>()
     private val main = Handler(Looper.getMainLooper())
 
@@ -86,6 +87,7 @@ object Media3ColorEncoder {
     ) {
         val tmp = File("$output.tmp")
         if (tmp.exists()) tmp.delete()
+        main.post { starting.add(progressId) }
         // Reading the track formats can be slow on large clips; the
         // Transformer itself is Looper-bound, so start it on the main looper.
         Thread {
@@ -93,6 +95,7 @@ object Media3ColorEncoder {
                 inspect(source)
             } catch (e: Exception) {
                 main.post {
+                    starting.remove(progressId)
                     cancelledEarly.remove(progressId)
                     done.call("transcode_failed", e.message ?: "unreadable source")
                 }
@@ -108,7 +111,9 @@ object Media3ColorEncoder {
         main.post {
             val job = jobs.remove(progressId)
             if (job == null) {
-                cancelledEarly.add(progressId)
+                // Not started yet: stop it when it does. A cancel for an
+                // encode that already finished is dropped.
+                if (progressId in starting) cancelledEarly.add(progressId)
                 return@post
             }
             main.removeCallbacks(job.poll)
@@ -198,6 +203,7 @@ object Media3ColorEncoder {
         onProgress: (Double) -> Unit,
         done: Done,
     ) {
+        starting.remove(progressId)
         if (cancelledEarly.remove(progressId)) {
             done.call("cancelled", null)
             return
