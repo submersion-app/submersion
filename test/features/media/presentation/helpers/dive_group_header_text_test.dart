@@ -68,6 +68,19 @@ void main() {
     expect(text.subtitle, 'Aug 11, 2016 · 9:40 AM · 1 file');
   });
 
+  test('never stands bottom time in for the dive end', () {
+    // Bottom time is not runtime; start plus bottom time is not the end.
+    final dive = _dive().copyWith(bottomTime: const Duration(minutes: 40));
+
+    expect(header(dive).subtitle, 'Aug 11, 2016 · 9:40 AM · 4 files');
+  });
+
+  test('ignores an exit recorded before the entry', () {
+    final text = header(_dive(exit: DateTime.utc(2016, 8, 11, 8, 55)));
+
+    expect(text.subtitle, 'Aug 11, 2016 · 9:40 AM · 4 files');
+  });
+
   test('drops whichever of number and site the dive lacks', () {
     expect(header(_dive(number: null)).title, 'Dive · Blue Hole');
     expect(header(_dive(site: null)).title, 'Dive #142');

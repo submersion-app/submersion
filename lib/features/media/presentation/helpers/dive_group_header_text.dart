@@ -50,16 +50,21 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 
 /// The dive's date and its start-to-end window.
 ///
-/// The end is the recorded exit, else start plus runtime. With neither, only
-/// the start is shown: the matcher's one-hour fallback window is a guess made
-/// to stay generous, and printing it would state an end the log never had.
+/// The end is the recorded exit, else start plus the recorded runtime. With
+/// neither, only the start is shown: the matcher's one-hour fallback window is
+/// a guess made to stay generous, and printing it would state an end the log
+/// never had. For the same reason this reads [Dive.runtime] rather than
+/// [Dive.effectiveRuntime], whose last resort is bottom time, which is not
+/// runtime. An exit recorded before the entry is ignored rather than printed
+/// as a backwards window.
 String _when(Dive dive, AppLocalizations l10n, UnitFormatter units) {
   // Dive times are wall-clock UTC by codebase convention, like the photo
   // capture times listed under the header, so format their UTC components.
   final start = dive.effectiveEntryTime.toUtc();
-  final runtime = dive.effectiveRuntime;
-  final end =
+  final runtime = dive.runtime;
+  final candidate =
       dive.exitTime?.toUtc() ?? (runtime == null ? null : start.add(runtime));
+  final end = candidate != null && candidate.isAfter(start) ? candidate : null;
   final date = units.formatDate(start);
   if (end == null) {
     return l10n.media_photoPicker_files_diveGroupStart(
