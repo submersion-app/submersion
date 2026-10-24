@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
@@ -100,6 +101,11 @@ void main() {
   testWidgets('a dive group is headed by the dive, not its id', (tester) async {
     // Issue #3423: the header printed "Dive <uuid>", an id shown nowhere else
     // in the app, so the user could not tell which dive the photos landed on.
+    // The header's date comes from DateFormat, which reads the process-global
+    // Intl.defaultLocale rather than testApp's MaterialApp locale; pin it.
+    final previousLocale = Intl.defaultLocale;
+    Intl.defaultLocale = 'en';
+    addTearDown(() => Intl.defaultLocale = previousLocale);
     final entry = DateTime.utc(2016, 8, 11, 9, 40);
     final dive = Dive(
       id: 'd1',

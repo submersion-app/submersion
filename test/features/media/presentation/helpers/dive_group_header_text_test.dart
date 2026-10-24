@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:intl/intl.dart';
 
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -34,6 +36,17 @@ void main() {
 
   setUpAll(() async {
     l10n = await AppLocalizations.delegate.load(const Locale('en'));
+    await initializeDateFormatting('en');
+  });
+
+  // UnitFormatter's DateFormat resolves month names against Intl.defaultLocale,
+  // a process global, not the AppLocalizations loaded above. Pin it so the
+  // "Aug 11, 2016" assertions state that dependency, and restore it so the
+  // global stays contained when CI bundles test files in one isolate.
+  setUp(() {
+    final previousLocale = Intl.defaultLocale;
+    Intl.defaultLocale = 'en';
+    addTearDown(() => Intl.defaultLocale = previousLocale);
   });
 
   ({String title, String subtitle}) header(
