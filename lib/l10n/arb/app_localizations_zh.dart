@@ -6144,6 +6144,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveCenters_picker_nearThisDive => '此次潜水附近';
 
   @override
+  String get diveCenters_picker_nearYourLocation => '你的位置附近';
+
+  @override
   String diveCenters_search_noResults(Object query) {
     return '未找到“$query”的结果';
   }

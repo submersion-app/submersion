@@ -125,6 +125,21 @@ void main() {
     expect(find.textContaining('Near Salt Pier'), findsNothing);
   });
 
+  testWidgets('a point from the device says "Near your location"', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      reference: const DiveCenterPickerReference(
+        point: saltPier,
+        source: DiveCenterReferenceSource.device,
+      ),
+    );
+
+    expect(find.text('Near your location'), findsOneWidget);
+    expect(find.text('Near this dive'), findsNothing);
+  });
+
   testWidgets('without a reference there are no headers, closed last', (
     tester,
   ) async {

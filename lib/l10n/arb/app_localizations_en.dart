@@ -6370,6 +6370,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveCenters_picker_nearThisDive => 'Near this dive';
 
   @override
+  String get diveCenters_picker_nearYourLocation => 'Near your location';
+
+  @override
   String diveCenters_search_noResults(Object query) {
     return 'No results for \"$query\"';
   }

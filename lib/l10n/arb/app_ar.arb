@@ -1897,6 +1897,7 @@
   "diveCenters_picker_title": "اختيار مركز الغوص",
   "diveCenters_picker_nearSite": "بالقرب من {siteName}",
   "diveCenters_picker_nearThisDive": "بالقرب من هذه الغطسة",
+  "diveCenters_picker_nearYourLocation": "بالقرب من موقعك",
   "diveCenters_search_noResults": "لا توجد نتائج لـ \"{query}\"",
   "diveCenters_search_prompt": "البحث عن مراكز الغوص",
   "diveCenters_tag_closed": "مغلق",

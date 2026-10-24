@@ -1897,6 +1897,7 @@
   "diveCenters_picker_title": "Selecteer duikcentrum",
   "diveCenters_picker_nearSite": "In de buurt van {siteName}",
   "diveCenters_picker_nearThisDive": "In de buurt van deze duik",
+  "diveCenters_picker_nearYourLocation": "In de buurt van je locatie",
   "diveCenters_search_noResults": "Geen resultaten voor \"{query}\"",
   "diveCenters_search_prompt": "Zoek duikcentra",
   "diveCenters_tag_closed": "Gesloten",

@@ -75,6 +75,15 @@ void main() {
       );
       expect(fromDevice!.point, device);
       expect(fromDevice.siteName, isNull);
+      expect(fromDevice.source, DiveCenterReferenceSource.device);
+      expect(
+        resolveDiveCenterPickerReference(entryLocation: entry)!.source,
+        DiveCenterReferenceSource.dive,
+      );
+      expect(
+        resolveDiveCenterPickerReference(site: siteWithCoords)!.source,
+        DiveCenterReferenceSource.site,
+      );
     });
 
     test('a site with a blank name heads the section as "this dive"', () {

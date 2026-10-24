@@ -6466,6 +6466,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveCenters_picker_nearThisDive => 'Vicino a questa immersione';
 
   @override
+  String get diveCenters_picker_nearYourLocation => 'Vicino alla tua posizione';
+
+  @override
   String diveCenters_search_noResults(Object query) {
     return 'Nessun risultato per \"$query\"';
   }

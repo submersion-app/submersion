@@ -1922,6 +1922,7 @@
   "diveCenters_picker_title": "Tauchcenter auswählen",
   "diveCenters_picker_nearSite": "In der Nähe von {siteName}",
   "diveCenters_picker_nearThisDive": "In der Nähe dieses Tauchgangs",
+  "diveCenters_picker_nearYourLocation": "In der Nähe des aktuellen Standorts",
   "diveCenters_search_noResults": "Keine Ergebnisse für \"{query}\"",
   "diveCenters_search_prompt": "Tauchcenter suchen",
   "diveCenters_tag_closed": "Geschlossen",

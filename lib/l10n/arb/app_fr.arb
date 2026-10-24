@@ -1897,6 +1897,7 @@
   "diveCenters_picker_title": "Sélectionner un centre de plongée",
   "diveCenters_picker_nearSite": "Près de {siteName}",
   "diveCenters_picker_nearThisDive": "Près de cette plongée",
+  "diveCenters_picker_nearYourLocation": "Près de votre position",
   "diveCenters_search_noResults": "Aucun résultat pour « {query} »",
   "diveCenters_search_prompt": "Rechercher des centres de plongée",
   "diveCenters_tag_closed": "Fermé",

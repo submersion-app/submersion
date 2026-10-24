@@ -1897,6 +1897,7 @@
   "diveCenters_picker_title": "Seleziona Centro Immersioni",
   "diveCenters_picker_nearSite": "Vicino a {siteName}",
   "diveCenters_picker_nearThisDive": "Vicino a questa immersione",
+  "diveCenters_picker_nearYourLocation": "Vicino alla tua posizione",
   "diveCenters_search_noResults": "Nessun risultato per \"{query}\"",
   "diveCenters_search_prompt": "Cerca centri immersioni",
   "diveCenters_tag_closed": "Chiuso",

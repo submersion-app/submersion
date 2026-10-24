@@ -10157,6 +10157,12 @@ abstract class AppLocalizations {
   /// **'Near this dive'**
   String get diveCenters_picker_nearThisDive;
 
+  /// Dive center picker section header: centers near where the device is now, for a new dive with no site or GPS
+  ///
+  /// In en, this message translates to:
+  /// **'Near your location'**
+  String get diveCenters_picker_nearYourLocation;
+
   /// No description provided for @diveCenters_search_noResults.
   ///
   /// In en, this message translates to:

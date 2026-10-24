@@ -6473,6 +6473,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveCenters_picker_nearThisDive => 'In der Nähe dieses Tauchgangs';
 
   @override
+  String get diveCenters_picker_nearYourLocation =>
+      'In der Nähe des aktuellen Standorts';
+
+  @override
   String diveCenters_search_noResults(Object query) {
     return 'Keine Ergebnisse für \"$query\"';
   }

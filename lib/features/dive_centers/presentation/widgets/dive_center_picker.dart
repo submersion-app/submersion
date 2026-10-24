@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_centers/domain/services/dive_center_pic
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_closed_tag.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
 /// A bottom sheet widget for selecting a dive center from a list.
 ///
@@ -114,13 +115,7 @@ class DiveCenterPickerSheet extends ConsumerWidget {
               final l10n = context.l10n;
               final items = <Widget Function()>[
                 if (sections.nearby.isNotEmpty) ...[
-                  () => _SectionHeader(
-                    reference?.siteName == null
-                        ? l10n.diveCenters_picker_nearThisDive
-                        : l10n.diveCenters_picker_nearSite(
-                            reference!.siteName!,
-                          ),
-                  ),
+                  () => _SectionHeader(_nearbyHeading(l10n)),
                   for (final near in sections.nearby)
                     () => _buildRow(
                       context,
@@ -150,6 +145,14 @@ class DiveCenterPickerSheet extends ConsumerWidget {
         ),
       ],
     );
+  }
+
+  String _nearbyHeading(AppLocalizations l10n) {
+    final siteName = reference?.siteName;
+    if (siteName != null) return l10n.diveCenters_picker_nearSite(siteName);
+    return reference?.source == DiveCenterReferenceSource.device
+        ? l10n.diveCenters_picker_nearYourLocation
+        : l10n.diveCenters_picker_nearThisDive;
   }
 
   Widget _buildRow(

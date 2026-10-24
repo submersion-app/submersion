@@ -8,15 +8,34 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 /// country.
 const double kNearbyDiveCenterRadiusMeters = 50000;
 
+/// What the picker's reference point came from, which names its section.
+enum DiveCenterReferenceSource {
+  /// The dive's site.
+  site,
+
+  /// The dive's own entry or exit GPS.
+  dive,
+
+  /// Where the device is now, for a new dive with neither: possibly far from
+  /// the dive itself, so the section says so.
+  device,
+}
+
 /// Where the picker measures "nearby" from.
 class DiveCenterPickerReference {
-  const DiveCenterPickerReference({required this.point, this.siteName});
+  const DiveCenterPickerReference({
+    required this.point,
+    this.siteName,
+    this.source = DiveCenterReferenceSource.dive,
+  });
 
   final GeoPoint point;
 
   /// The site's name when [point] is the site's location; null when it came
   /// from the dive's own GPS or the device.
   final String? siteName;
+
+  final DiveCenterReferenceSource source;
 }
 
 /// The point to measure from, in order: the site's coordinates, the dive's
@@ -34,10 +53,19 @@ DiveCenterPickerReference? resolveDiveCenterPickerReference({
     return DiveCenterPickerReference(
       point: siteLocation,
       siteName: name.isEmpty ? null : name,
+      source: DiveCenterReferenceSource.site,
     );
   }
-  final point = entryLocation ?? exitLocation ?? deviceLocation;
-  return point == null ? null : DiveCenterPickerReference(point: point);
+  final divePoint = entryLocation ?? exitLocation;
+  if (divePoint != null) {
+    return DiveCenterPickerReference(point: divePoint);
+  }
+  return deviceLocation == null
+      ? null
+      : DiveCenterPickerReference(
+          point: deviceLocation,
+          source: DiveCenterReferenceSource.device,
+        );
 }
 
 /// An open center within [kNearbyDiveCenterRadiusMeters] of the dive.

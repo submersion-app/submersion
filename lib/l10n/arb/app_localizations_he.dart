@@ -6336,6 +6336,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveCenters_picker_nearThisDive => 'ליד הצלילה הזו';
 
   @override
+  String get diveCenters_picker_nearYourLocation => 'ליד המיקום שלך';
+
+  @override
   String diveCenters_search_noResults(Object query) {
     return 'אין תוצאות עבור \"$query\"';
   }

@@ -1897,6 +1897,7 @@
   "diveCenters_picker_title": "Búvárközpont kiválasztása",
   "diveCenters_picker_nearSite": "{siteName} közelében",
   "diveCenters_picker_nearThisDive": "E merülés közelében",
+  "diveCenters_picker_nearYourLocation": "A jelenlegi hely közelében",
   "diveCenters_search_noResults": "Nincs találat erre: \"{query}\"",
   "diveCenters_search_prompt": "Búvárközpontok keresése",
   "diveCenters_tag_closed": "Bezárt",

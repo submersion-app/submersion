@@ -6577,6 +6577,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveCenters_picker_nearThisDive => 'بالقرب من هذه الغطسة';
 
   @override
+  String get diveCenters_picker_nearYourLocation => 'بالقرب من موقعك';
+
+  @override
   String diveCenters_search_noResults(Object query) {
     return 'لا توجد نتائج لـ \"$query\"';
   }

@@ -6427,6 +6427,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveCenters_picker_nearThisDive => 'In de buurt van deze duik';
 
   @override
+  String get diveCenters_picker_nearYourLocation =>
+      'In de buurt van je locatie';
+
+  @override
   String diveCenters_search_noResults(Object query) {
     return 'Geen resultaten voor \"$query\"';
   }

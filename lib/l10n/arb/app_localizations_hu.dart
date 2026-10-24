@@ -6452,6 +6452,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveCenters_picker_nearThisDive => 'E merülés közelében';
 
   @override
+  String get diveCenters_picker_nearYourLocation =>
+      'A jelenlegi hely közelében';
+
+  @override
   String diveCenters_search_noResults(Object query) {
     return 'Nincs találat erre: \"$query\"';
   }

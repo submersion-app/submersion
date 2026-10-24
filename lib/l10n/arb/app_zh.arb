@@ -1984,6 +1984,7 @@
   "diveCenters_picker_title": "选择潜水中心",
   "diveCenters_picker_nearSite": "{siteName} 附近",
   "diveCenters_picker_nearThisDive": "此次潜水附近",
+  "diveCenters_picker_nearYourLocation": "你的位置附近",
   "diveCenters_search_noResults": "未找到“{query}”的结果",
   "diveCenters_search_prompt": "搜索潜水中心",
   "diveCenters_tag_closed": "已关闭",

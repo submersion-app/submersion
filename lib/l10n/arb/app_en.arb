@@ -3995,6 +3995,8 @@
   "diveCenters_picker_nearSite": "Near {siteName}",
   "@diveCenters_picker_nearSite": {"description": "Dive center picker section header: centers near the dive's site", "placeholders": {"siteName": {"type": "String"}}},
   "diveCenters_picker_nearThisDive": "Near this dive",
+  "diveCenters_picker_nearYourLocation": "Near your location",
+  "@diveCenters_picker_nearYourLocation": {"description": "Dive center picker section header: centers near where the device is now, for a new dive with no site or GPS"},
   "diveCenters_search_noResults": "No results for \"{query}\"",
   "diveCenters_search_prompt": "Search dive centers",
   "diveCenters_tag_closed": "Closed",
