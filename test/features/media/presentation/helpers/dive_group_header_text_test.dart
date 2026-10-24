@@ -94,6 +94,24 @@ void main() {
     expect(text.subtitle, 'Aug 11, 2016 · 9:40 AM · 4 files');
   });
 
+  test('dates the end too when the dive runs past midnight', () {
+    // A time alone would hide the day change, so a photo from just after
+    // midnight would look like it belonged to a different day.
+    final entry = DateTime.utc(2016, 8, 11, 23, 30);
+    final dive = Dive(
+      id: 'd1',
+      diveNumber: 142,
+      dateTime: entry,
+      entryTime: entry,
+      exitTime: DateTime.utc(2016, 8, 12, 0, 20),
+    );
+
+    expect(
+      header(dive).subtitle,
+      'Aug 11, 2016 · 11:30 PM – Aug 12, 2016 12:20 AM · 4 files',
+    );
+  });
+
   test('drops whichever of number and site the dive lacks', () {
     expect(header(_dive(number: null)).title, 'Dive · Blue Hole');
     expect(header(_dive(site: null)).title, 'Dive #142');

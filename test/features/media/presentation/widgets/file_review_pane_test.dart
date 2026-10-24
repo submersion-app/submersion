@@ -126,6 +126,16 @@ void main() {
     expect(find.textContaining('d1'), findsNothing);
   });
 
+  testWidgets('a group whose dive is not loaded is headed "Dive", not its id', (
+    tester,
+  ) async {
+    // The dive list may still be loading, or the dive was deleted mid-review.
+    await _pumpPane(tester, _staged());
+
+    expect(find.text('Dive'), findsOneWidget);
+    expect(find.textContaining('d1'), findsNothing);
+  });
+
   testWidgets('the offset bar is shown while files are staged', (tester) async {
     await _pumpPane(tester, _staged());
 

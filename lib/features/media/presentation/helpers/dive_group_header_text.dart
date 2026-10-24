@@ -56,7 +56,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 /// never had. For the same reason this reads [Dive.runtime] rather than
 /// [Dive.effectiveRuntime], whose last resort is bottom time, which is not
 /// runtime. An exit recorded before the entry is ignored rather than printed
-/// as a backwards window.
+/// as a backwards window, and an end on a later day is printed with its date.
 String _when(Dive dive, AppLocalizations l10n, UnitFormatter units) {
   // Dive times are wall-clock UTC by codebase convention, like the photo
   // capture times listed under the header, so format their UTC components.
@@ -72,9 +72,14 @@ String _when(Dive dive, AppLocalizations l10n, UnitFormatter units) {
       units.formatTime(start),
     );
   }
+  // An end on a later day carries its own date: a bare time would hide that
+  // the dive ran past midnight, and photos from after it would look misplaced.
+  final endDate = units.formatDate(end);
   return l10n.media_photoPicker_files_diveGroupWindow(
     date,
     units.formatTime(start),
-    units.formatTime(end),
+    endDate == date
+        ? units.formatTime(end)
+        : '$endDate ${units.formatTime(end)}',
   );
 }
