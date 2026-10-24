@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 
 import 'package:submersion_transcoder/src/color_encoder.dart';
 import 'package:submersion_transcoder/src/color_timeline.dart';
+import 'package:submersion_transcoder/src/mp4_recording_info.dart';
 import 'package:submersion_transcoder/src/transcode_engine.dart';
 import 'package:submersion_transcoder/src/transcode_target.dart';
 import 'package:submersion_transcoder/src/video_probe.dart';
@@ -162,6 +163,10 @@ class ChannelTranscodeEngine implements TranscodeEngine, ColorEncoder {
     void Function(double fraction)? onProgress,
   }) async {
     if (cancel?.isCancelled ?? false) throw const TranscodeCancelledException();
+    // Read here, once, for every platform: encoders do not all read the
+    // location Android cameras write, and every one stamps its copy with the
+    // moment it was made.
+    final recording = await readMp4RecordingInfo(source);
     final progressId = 'p${_seq++}';
     StreamSubscription<dynamic>? sub;
     if (onProgress != null) {
@@ -191,8 +196,11 @@ class ChannelTranscodeEngine implements TranscodeEngine, ColorEncoder {
         'source': source.path,
         'output': output.path,
         'timeline': timeline.toChannel(),
+        'location': recording.location,
         'progressId': progressId,
       });
+      final created = recording.created;
+      if (created != null) await stampMp4CreationTime(output, created);
     } on PlatformException catch (e) {
       final detail = e.message ?? e.details?.toString() ?? e.code;
       switch (e.code) {

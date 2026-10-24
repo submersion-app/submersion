@@ -5,7 +5,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion_transcoder/submersion_transcoder.dart';
 
+import 'package:path/path.dart' as p;
+
 import 'color_timeline_test.dart' show gains20, identity20;
+import 'mp4_recording_info_test.dart' show box, movie, mvhd, xyz;
 
 /// Issue #3521: the colour-corrected encode over the transcoder channel.
 void main() {
@@ -177,6 +180,58 @@ void main() {
 
   test('missing plugin throws TranscodeException', () async {
     await expectLater(encode(), throwsA(isA<TranscodeException>()));
+  });
+
+  group('recording date and place', () {
+    late Directory dir;
+    setUp(() async => dir = await Directory.systemTemp.createTemp('enc_meta'));
+    tearDown(() => dir.delete(recursive: true));
+
+    test(
+      'the source location is sent and its date stamped on the copy',
+      () async {
+        final recorded = DateTime.utc(2026, 5, 1, 10);
+        final source = File(p.join(dir.path, 'in.mp4'))
+          ..writeAsBytesSync(
+            movie([mvhd(recorded), box('udta', xyz('+20.5000-087.0000/'))]),
+          );
+        final output = File(p.join(dir.path, 'out.mp4'));
+        Object? location;
+        messenger.setMockMethodCallHandler(methods, (call) async {
+          location = (call.arguments as Map)['location'];
+          // The native encoder stamps the copy with the moment it was made.
+          output.writeAsBytesSync(movie([mvhd(DateTime.utc(2030))]));
+          return null;
+        });
+        await ChannelTranscodeEngine().encodeWithColor(
+          source: source,
+          output: output,
+          timeline: timeline,
+        );
+        expect(location, '+20.5000-087.0000/');
+        expect((await readMp4RecordingInfo(output)).created, recorded);
+      },
+    );
+
+    test('a source with no date leaves the copy as written', () async {
+      final source = File(p.join(dir.path, 'in.mp4'))
+        ..writeAsBytesSync([1, 2, 3]);
+      final output = File(p.join(dir.path, 'out.mp4'));
+      final made = DateTime.utc(2030);
+      Map<Object?, Object?>? args;
+      messenger.setMockMethodCallHandler(methods, (call) async {
+        args = call.arguments as Map<Object?, Object?>;
+        output.writeAsBytesSync(movie([mvhd(made)]));
+        return null;
+      });
+      await ChannelTranscodeEngine().encodeWithColor(
+        source: source,
+        output: output,
+        timeline: timeline,
+      );
+      expect(args!['location'], isNull);
+      expect((await readMp4RecordingInfo(output)).created, made);
+    });
   });
 
   test('colorEncoderForThisPlatform is null on Linux only', () {
