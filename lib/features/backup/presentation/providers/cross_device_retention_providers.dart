@@ -18,8 +18,11 @@ final crossDeviceRetentionAvailableProvider = Provider.autoDispose<bool>(
 final crossDeviceRetentionActiveProvider = FutureProvider.autoDispose<bool>((
   ref,
 ) {
+  // Both settings the answer reads: turning cloud backup off turns it off.
   ref.watch(
-    backupSettingsProvider.select((s) => s.crossDeviceRetentionAccount),
+    backupSettingsProvider.select(
+      (s) => (s.crossDeviceRetentionAccount, s.cloudBackupEnabled),
+    ),
   );
   return ref.watch(backupServiceProvider).crossDeviceRetentionActive();
 });

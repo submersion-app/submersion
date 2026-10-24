@@ -42,6 +42,8 @@ class BackupAdvancedSection extends ConsumerWidget {
           ),
         ),
         ListTile(
+          // A new number waits until a cross-device change in flight ends.
+          enabled: !ref.watch(crossDeviceRetentionBusyProvider),
           leading: const Icon(Icons.layers_outlined),
           title: Text(l10n.settings_backups_keepLast(settings.retentionCount)),
           subtitle: const _RetentionSubtitle(),

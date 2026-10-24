@@ -22,9 +22,13 @@ class _Device extends SyncRepository {
 
   final String deviceId;
   final String? account;
+  var deviceIdReads = 0;
 
   @override
-  Future<String> getDeviceId() async => deviceId;
+  Future<String> getDeviceId() async {
+    deviceIdReads++;
+    return deviceId;
+  }
 
   @override
   Future<String?> getSyncAccountId() async => account;
@@ -174,6 +178,19 @@ void main() {
       await addOwn(seed(3, device: 'dev-A'), 3);
       await service().pruneOldBackups(5);
       expect(lists(), 0);
+    });
+
+    test('a prune reads the device id once', () async {
+      final name = seed(3, device: 'dev-A');
+      await addOwn(name, 3, pinned: true);
+      final device = _Device('dev-A');
+      await BackupService(
+        dbAdapter: UnusedBackupDatabaseAdapter(),
+        preferences: preferences,
+        cloudProvider: cloud,
+        syncRepository: device,
+      ).pruneOldBackups(5);
+      expect(device.deviceIdReads, 1);
     });
 
     test('a pin change is reconciled once, then not again', () async {

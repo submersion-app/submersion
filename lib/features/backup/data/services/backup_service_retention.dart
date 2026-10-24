@@ -23,10 +23,15 @@ extension BackupServiceRetention on BackupService {
   ///
   /// Best-effort: it covers pins made before markers existed and marker
   /// writes that failed (offline), and is retried on every prune.
-  Future<void> reconcilePinMarkers({List<CloudFileInfo>? listing}) async {
+  ///
+  /// [deviceId] is this device's id when the caller has already read it.
+  Future<void> reconcilePinMarkers({
+    List<CloudFileInfo>? listing,
+    String? deviceId,
+  }) async {
     final provider = _cloudProvider;
     if (provider == null) return;
-    final deviceId = await thisDeviceIdOrNull();
+    deviceId ??= await thisDeviceIdOrNull();
     if (deviceId == null) return;
     final here = await _cloudCopyCheck();
     final state = _pinMarkerState(here, await crossDeviceRetentionAccountKey());
@@ -249,12 +254,12 @@ extension BackupServiceRetention on BackupService {
   /// Whether this device's markers may not match its pins: true when the
   /// pinned cloud copies differ from those the last reconcile recorded for
   /// this folder. False with no device id, since nothing could be written.
-  Future<bool> _pinMarkersStale(
+  bool _pinMarkersStale(
     bool Function(BackupRecord) here,
-    String folderKey,
-  ) async {
-    if (_cloudProvider == null) return false;
-    if (await thisDeviceIdOrNull() == null) return false;
+    String folderKey, {
+    required String? deviceId,
+  }) {
+    if (_cloudProvider == null || deviceId == null) return false;
     final recorded = _preferences.getPinMarkersSynced();
     final current = _pinMarkerState(here, folderKey);
     // Never reconciled and nothing pinned: there is nothing to mirror.
@@ -279,12 +284,12 @@ extension BackupServiceRetention on BackupService {
   /// Stems of backups a device other than this one has pinned, from the
   /// markers in [listing]. When this device's id is unknown every marker
   /// counts, so an unreadable id can only keep a copy, never lose one.
-  Future<Set<String>> _stemsPinnedElsewhere(
-    List<CloudFileInfo>? listing,
-  ) async {
+  Set<String> _stemsPinnedElsewhere(
+    List<CloudFileInfo>? listing, {
+    required String? deviceId,
+  }) {
     if (listing == null) return const {};
-    final id = await thisDeviceIdOrNull();
-    final myTag = id == null ? null : deviceTag(id);
+    final myTag = deviceId == null ? null : deviceTag(deviceId);
     return {
       for (final f in listing)
         if (parsePinMarker(f.name) case final m? when m.deviceTag != myTag)

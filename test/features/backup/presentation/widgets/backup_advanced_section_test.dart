@@ -180,6 +180,15 @@ void main() {
     await tester.pump();
     expect(tester.widget<SwitchListTile>(switchTile).onChanged, isNull);
 
+    expect(
+      tester
+          .widget<ListTile>(
+            find.widgetWithText(ListTile, 'Keep the last 5 backups'),
+          )
+          .enabled,
+      isFalse,
+    );
+
     gated.release();
     await tester.pumpAndSettle();
     expect(tester.widget<SwitchListTile>(switchTile).onChanged, isNotNull);
@@ -262,14 +271,21 @@ void main() {
         'backup_retention_all_devices_account': 'acct',
       },
     );
-    for (var i = 0; i < 2; i++) {
-      await tester.tap(find.text('Keep the last 10 backups'));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 500));
-      await tester.tap(find.text('5').last);
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 500));
-    }
+    await tester.tap(find.text('Keep the last 10 backups'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.tap(find.text('5').last);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+
+    // The first change is still listing: neither control starts another.
+    final keep = find.widgetWithText(ListTile, 'Keep the last 10 backups');
+    expect(tester.widget<ListTile>(keep).enabled, isFalse);
+    expect(tester.widget<SwitchListTile>(switchTile).onChanged, isNull);
+    await tester.tap(keep, warnIfMissed: false);
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(find.byType(SimpleDialog), findsNothing);
+
     gate2.release();
     await tester.pumpAndSettle();
     expect(find.byType(AlertDialog), findsOneWidget);

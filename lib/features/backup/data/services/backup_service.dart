@@ -1356,18 +1356,19 @@ class BackupService {
     final ownCloud = toDelete.any((r) => r.cloudFileId != null && here(r));
     final folderKey = await crossDeviceRetentionAccountKey();
     final acrossDevices = _crossDeviceRetentionActiveFor(folderKey);
-    final markersStale = await _pinMarkersStale(here, folderKey);
+    final deviceId = await thisDeviceIdOrNull();
+    final markersStale = _pinMarkersStale(here, folderKey, deviceId: deviceId);
     final listing = ownCloud || acrossDevices || markersStale
         ? await _listCloudFolder()
         : null;
     if (listing != null && markersStale) {
-      await reconcilePinMarkers(listing: listing);
+      await reconcilePinMarkers(listing: listing, deviceId: deviceId);
     }
 
     final deleted = await _pruneOwnHistory(
       toDelete,
       here: here,
-      pinnedElsewhere: await _stemsPinnedElsewhere(listing),
+      pinnedElsewhere: _stemsPinnedElsewhere(listing, deviceId: deviceId),
       // Without a listing the pins of other devices are unknown, so no cloud
       // copy goes this round; its record waits for the next prune.
       holdCloudCopies: ownCloud && listing == null,
