@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
+import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_closed_tag.dart';
 
 /// Summary widget shown when no dive center is selected.
 class DiveCenterSummaryWidget extends ConsumerWidget {
@@ -202,7 +203,7 @@ class DiveCenterSummaryWidget extends ConsumerWidget {
         Card(
           child: Column(
             children: previewCenters.map((center) {
-              return ListTile(
+              final tile = ListTile(
                 leading: Container(
                   width: 40,
                   height: 40,
@@ -215,7 +216,10 @@ class DiveCenterSummaryWidget extends ConsumerWidget {
                     color: Theme.of(context).colorScheme.onPrimaryContainer,
                   ),
                 ),
-                title: Text(center.name),
+                title: DiveCenterNameWithTag(
+                  closed: center.isPermanentlyClosed,
+                  name: Text(center.name),
+                ),
                 subtitle: center.fullLocationString != null
                     ? Text(center.fullLocationString!)
                     : null,
@@ -236,6 +240,11 @@ class DiveCenterSummaryWidget extends ConsumerWidget {
                   final currentPath = state.uri.path;
                   context.go('$currentPath?selected=${center.id}');
                 },
+              );
+              // A permanently closed center stays listed, greyed (#3379).
+              return greyIfClosed(
+                closed: center.isPermanentlyClosed,
+                child: tile,
               );
             }).toList(),
           ),
