@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/form_row.dart';
 
-/// The multi-select twin of [EnumPickerRow]: a [FormRow.picker] showing the
+/// The multi-select twin of `EnumPickerRow`: a [FormRow.picker] showing the
 /// selected values joined by ", ", opening a modal bottom sheet of
 /// checkboxes. Each toggle reports the new selection at once, in [values]
 /// order, as the dive-type checklist does; an empty selection is allowed.

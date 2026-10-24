@@ -1738,6 +1738,34 @@ void main() {
       expect(site.exitMethods, [EntryMethod.ladder]);
     });
 
+    test('keeps methods when the payload names only unknown ones', () async {
+      await importer.import(
+        data: const UddfImportResult(
+          sites: [
+            {
+              'name': 'Blue Hole',
+              'uddfId': 'site-1',
+              'entryMethod': 'jetpack',
+              'exitMethod': 'teleport',
+            },
+          ],
+        ),
+        selections: const UddfImportSelections(
+          siteOverrides: {0: 'existing-site-1'},
+        ),
+        repositories: repos,
+        diverId: diverId,
+      );
+
+      final site =
+          verify(
+                mockSiteRepo.updateSiteWithImportedMetadata(captureAny, any),
+              ).captured.single
+              as DiveSite;
+      expect(site.entryMethods, [EntryMethod.shore, EntryMethod.boat]);
+      expect(site.exitMethods, [EntryMethod.ladder]);
+    });
+
     test('replaces entry and exit methods the payload supplies', () async {
       await importer.import(
         data: const UddfImportResult(

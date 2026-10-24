@@ -420,10 +420,14 @@ class UddfEntityImporter {
   /// Parse a value that may be either an enum instance or a string matching
   /// an enum name. Returns null if the value is null or unrecognised.
   /// A site's entry or exit methods from an import payload value (stored
-  /// comma-joined names), or null when the payload carries none, so an
-  /// overwrite keeps the site's own list.
-  static List<EntryMethod>? _entryMethodsOrNull(Object? value) =>
-      value is String ? decodeEntryMethods(value) : null;
+  /// comma-joined names), or null when the payload carries none this build
+  /// can read, so an overwrite keeps the site's own list rather than
+  /// emptying it.
+  static List<EntryMethod>? _entryMethodsOrNull(Object? value) {
+    if (value is! String) return null;
+    final methods = decodeEntryMethods(value);
+    return methods.isEmpty ? null : methods;
+  }
 
   static T? _parseEnum<T extends Enum>(Object? value, List<T> values) {
     if (value == null) return null;
