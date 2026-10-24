@@ -44,6 +44,9 @@ const int _tagHexLength = 16;
 /// A tag is exactly [_tagHexLength] lowercase hex digits, a SHA-1 prefix.
 final RegExp _tagPattern = RegExp('^[0-9a-f]{$_tagHexLength}\$');
 
+/// Whether [tag] has the shape [deviceTag] produces.
+bool isDeviceTag(String tag) => _tagPattern.hasMatch(tag);
+
 /// A short, stable, filesystem-safe tag for [deviceId].
 ///
 /// Hashed rather than truncated so nothing about the device identity leaks
