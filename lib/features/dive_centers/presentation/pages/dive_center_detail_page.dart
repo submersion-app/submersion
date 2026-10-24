@@ -344,6 +344,32 @@ class _HeaderSection extends StatelessWidget {
                       center.name,
                       style: Theme.of(context).textTheme.headlineSmall,
                     ),
+                    if (center.isPermanentlyClosed) ...[
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.do_not_disturb_on_outlined,
+                            size: 18,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
+                          ),
+                          const SizedBox(width: 6),
+                          Flexible(
+                            child: Text(
+                              context.l10n.diveCenters_label_permanentlyClosed,
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
+                                  ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                     if (center.rating != null) ...[
                       const SizedBox(height: 4),
                       Row(

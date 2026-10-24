@@ -240,6 +240,10 @@ final Map<String, ConflictField> siteTripFields = {
     (l) => l.settings_conflict_field_isPackage,
     FieldKind.boolean,
   ),
+  'isPermanentlyClosed': ConflictField(
+    (l) => l.diveCenters_label_permanentlyClosed,
+    FieldKind.boolean,
+  ),
   'isShared': ConflictField(
     (l) => l.settings_conflict_field_isShared,
     FieldKind.boolean,

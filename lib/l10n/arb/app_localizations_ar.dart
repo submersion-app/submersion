@@ -6471,6 +6471,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveCenters_hint_website => 'www.divecenter.com';
 
   @override
+  String get diveCenters_hint_permanentlyClosed =>
+      'يبقى محفوظًا للغطسات السابقة؛ ولا يظهر ضمن المراكز القريبة في أداة الاختيار.';
+
+  @override
   String diveCenters_import_fromDatabase(Object count) {
     return 'استيراد من قاعدة البيانات ($count)';
   }
@@ -6546,11 +6550,17 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveCenters_label_website => 'الموقع الإلكتروني';
 
   @override
+  String get diveCenters_label_permanentlyClosed => 'مغلق نهائيًا';
+
+  @override
   String get diveCenters_map_addCoordinatesHint =>
       'أضف الإحداثيات إلى مراكز الغوص لرؤيتها على الخريطة';
 
   @override
   String get diveCenters_map_noCoordinates => 'لا توجد مراكز غوص مع إحداثيات';
+
+  @override
+  String get diveCenters_picker_allCenters => 'جميع مراكز الغوص';
 
   @override
   String get diveCenters_picker_newCenter => 'مركز غوص جديد';
@@ -6559,12 +6569,23 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveCenters_picker_title => 'اختيار مركز الغوص';
 
   @override
+  String diveCenters_picker_nearSite(String siteName) {
+    return 'بالقرب من $siteName';
+  }
+
+  @override
+  String get diveCenters_picker_nearThisDive => 'بالقرب من هذه الغطسة';
+
+  @override
   String diveCenters_search_noResults(Object query) {
     return 'لا توجد نتائج لـ \"$query\"';
   }
 
   @override
   String get diveCenters_search_prompt => 'البحث عن مراكز الغوص';
+
+  @override
+  String get diveCenters_tag_closed => 'مغلق';
 
   @override
   String get diveCenters_section_address => 'العنوان';
@@ -53635,6 +53656,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get query_centers_city => 'المدينة';
+
+  @override
+  String get query_centers_closed => 'مغلق نهائيًا';
 
   @override
   String get query_centers_coordinates => 'الإحداثيات';

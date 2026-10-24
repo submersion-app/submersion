@@ -6266,6 +6266,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveCenters_hint_website => 'www.divecenter.com';
 
   @override
+  String get diveCenters_hint_permanentlyClosed =>
+      'Still kept for past dives; left out of nearby centers in the picker.';
+
+  @override
   String diveCenters_import_fromDatabase(Object count) {
     return 'Import from Database ($count)';
   }
@@ -6338,6 +6342,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveCenters_label_website => 'Website';
 
   @override
+  String get diveCenters_label_permanentlyClosed => 'Permanently closed';
+
+  @override
   String get diveCenters_map_addCoordinatesHint =>
       'Add coordinates to your dive centers to see them on the map';
 
@@ -6346,10 +6353,21 @@ class AppLocalizationsEn extends AppLocalizations {
       'No dive centers with coordinates';
 
   @override
+  String get diveCenters_picker_allCenters => 'All dive centers';
+
+  @override
   String get diveCenters_picker_newCenter => 'New Dive Center';
 
   @override
   String get diveCenters_picker_title => 'Select Dive Center';
+
+  @override
+  String diveCenters_picker_nearSite(String siteName) {
+    return 'Near $siteName';
+  }
+
+  @override
+  String get diveCenters_picker_nearThisDive => 'Near this dive';
 
   @override
   String diveCenters_search_noResults(Object query) {
@@ -6358,6 +6376,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveCenters_search_prompt => 'Search dive centers';
+
+  @override
+  String get diveCenters_tag_closed => 'Closed';
 
   @override
   String get diveCenters_section_address => 'Address';
@@ -52149,6 +52170,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get query_centers_city => 'City';
+
+  @override
+  String get query_centers_closed => 'Permanently closed';
 
   @override
   String get query_centers_coordinates => 'Coordinates';

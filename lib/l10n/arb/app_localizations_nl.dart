@@ -6324,6 +6324,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveCenters_hint_website => 'www.duikcentrum.nl';
 
   @override
+  String get diveCenters_hint_permanentlyClosed =>
+      'Blijft bewaard voor eerdere duiken; staat in de kiezer niet bij de duikcentra in de buurt.';
+
+  @override
   String diveCenters_import_fromDatabase(Object count) {
     return 'Importeren uit database ($count)';
   }
@@ -6396,11 +6400,17 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveCenters_label_website => 'Website';
 
   @override
+  String get diveCenters_label_permanentlyClosed => 'Permanent gesloten';
+
+  @override
   String get diveCenters_map_addCoordinatesHint =>
       'Voeg coördinaten toe aan je duikcentra om ze op de kaart te zien';
 
   @override
   String get diveCenters_map_noCoordinates => 'Geen duikcentra met coördinaten';
+
+  @override
+  String get diveCenters_picker_allCenters => 'Alle duikcentra';
 
   @override
   String get diveCenters_picker_newCenter => 'Nieuw duikcentrum';
@@ -6409,12 +6419,23 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveCenters_picker_title => 'Selecteer duikcentrum';
 
   @override
+  String diveCenters_picker_nearSite(String siteName) {
+    return 'In de buurt van $siteName';
+  }
+
+  @override
+  String get diveCenters_picker_nearThisDive => 'In de buurt van deze duik';
+
+  @override
   String diveCenters_search_noResults(Object query) {
     return 'Geen resultaten voor \"$query\"';
   }
 
   @override
   String get diveCenters_search_prompt => 'Zoek duikcentra';
+
+  @override
+  String get diveCenters_tag_closed => 'Gesloten';
 
   @override
   String get diveCenters_section_address => 'Adres';
@@ -52648,6 +52669,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get query_centers_city => 'Stad';
+
+  @override
+  String get query_centers_closed => 'Permanent gesloten';
 
   @override
   String get query_centers_coordinates => 'Coördinaten';

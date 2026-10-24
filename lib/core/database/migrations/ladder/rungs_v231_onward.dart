@@ -579,5 +579,14 @@ extension RungsFromV231 on AppDatabase {
       await _assertTankExtraRegulatorIds();
     }
     if (from < 312) await reportProgress();
+
+    // v313: dive_centers.is_permanently_closed (issue #3379). Column only, no
+    // backfill: every existing center stays open. Re-asserted in beforeOpen
+    // through _assertDiveCenterClosedColumn. Renumbered from 310 and 312,
+    // which #2050 and #3375 took.
+    if (from < 313) {
+      await _assertDiveCenterClosedColumn();
+    }
+    if (from < 313) await reportProgress();
   }
 }

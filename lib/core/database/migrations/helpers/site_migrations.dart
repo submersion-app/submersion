@@ -82,6 +82,18 @@ extension SiteMigrations on AppDatabase {
     await Migrator(this).createTable(diveCenterGearNotes);
   }
 
+  /// dive_centers.is_permanently_closed (v313, issue #3379). Column only,
+  /// no backfill: every existing center stays open. Called from the v313
+  /// rung and the beforeOpen backstop.
+  Future<void> _assertDiveCenterClosedColumn() async {
+    await _addColumnIfMissing(
+      'dive_centers',
+      'is_permanently_closed',
+      'INTEGER NOT NULL DEFAULT 0 '
+          'CHECK (is_permanently_closed IN (0, 1))',
+    );
+  }
+
   /// The site_hides table (v250, issue #2594). Called from the v250 rung
   /// and the beforeOpen backstop. Skipped on a partial migration-test
   /// fixture that lacks a parent table.

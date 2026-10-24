@@ -21,6 +21,8 @@ import 'package:submersion/features/query/presentation/providers/query_id_set_pr
 import 'package:submersion/features/query/presentation/widgets/query_chips_frame.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_form_scope.dart';
+import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_closed_tag.dart';
+import 'package:submersion/shared/widgets/entity_table/entity_table_view.dart';
 
 import '../../../../helpers/list_create_router.dart';
 import '../../../../helpers/mock_providers.dart';
@@ -495,6 +497,42 @@ void main() {
       expect(find.text('Blue Water Dive'), findsOneWidget);
       expect(find.text('Red Sea Divers'), findsOneWidget);
       expect(find.text('Pacific Reef Dive'), findsOneWidget);
+    });
+
+    testWidgets('greys and tags a permanently closed center (#3379)', (
+      tester,
+    ) async {
+      final centers = [
+        _makeCenter(id: 'dc1', name: 'Blue Water Dive'),
+        _makeCenter(
+          id: 'dc2',
+          name: 'Toucan Diving',
+        ).copyWith(isPermanentlyClosed: true),
+      ];
+
+      final overrides = await _buildOverrides(centers: centers);
+
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const DiveCenterListContent(showAppBar: true),
+        ),
+      );
+      await tester.pump();
+
+      Finder muted(String text) => find.ancestor(
+        of: find.text(text),
+        matching: find.byWidgetPredicate(
+          (w) => w is Opacity && w.opacity == kEntityTableMutedOpacity,
+        ),
+      );
+      expect(find.byType(DiveCenterClosedTag), findsOneWidget);
+      expect(muted('Toucan Diving'), findsOneWidget);
+      expect(muted('Blue Water Dive'), findsNothing);
+      expect(
+        tester.getCenter(find.byType(DiveCenterClosedTag)).dy,
+        tester.getCenter(find.text('Toucan Diving')).dy,
+      );
     });
 
     testWidgets('shows empty state when no centers', (tester) async {

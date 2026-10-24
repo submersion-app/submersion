@@ -6233,6 +6233,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveCenters_hint_website => 'www.divecenter.com';
 
   @override
+  String get diveCenters_hint_permanentlyClosed =>
+      'נשמר עבור צלילות קודמות; לא מוצג בין המרכזים הקרובים בבורר.';
+
+  @override
   String diveCenters_import_fromDatabase(Object count) {
     return 'ייבא ממאגר נתונים ($count)';
   }
@@ -6305,11 +6309,17 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveCenters_label_website => 'אתר אינטרנט';
 
   @override
+  String get diveCenters_label_permanentlyClosed => 'סגור לצמיתות';
+
+  @override
   String get diveCenters_map_addCoordinatesHint =>
       'הוסף קואורדינטות למרכזי הצלילה שלך כדי לראות אותם במפה';
 
   @override
   String get diveCenters_map_noCoordinates => 'אין מרכזי צלילה עם קואורדינטות';
+
+  @override
+  String get diveCenters_picker_allCenters => 'כל מרכזי הצלילה';
 
   @override
   String get diveCenters_picker_newCenter => 'מרכז צלילה חדש';
@@ -6318,12 +6328,23 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveCenters_picker_title => 'בחר מרכז צלילה';
 
   @override
+  String diveCenters_picker_nearSite(String siteName) {
+    return 'ליד $siteName';
+  }
+
+  @override
+  String get diveCenters_picker_nearThisDive => 'ליד הצלילה הזו';
+
+  @override
   String diveCenters_search_noResults(Object query) {
     return 'אין תוצאות עבור \"$query\"';
   }
 
   @override
   String get diveCenters_search_prompt => 'חפש מרכזי צלילה';
+
+  @override
+  String get diveCenters_tag_closed => 'סגור';
 
   @override
   String get diveCenters_section_address => 'כתובת';
@@ -51859,6 +51880,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get query_centers_city => 'עיר';
+
+  @override
+  String get query_centers_closed => 'סגור לצמיתות';
 
   @override
   String get query_centers_coordinates => 'קואורדינטות';

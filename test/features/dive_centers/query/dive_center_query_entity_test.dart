@@ -66,4 +66,12 @@ void main() {
     expect(await ids('dives:none'), {'lake'});
     expect(await ids('"zug"'), {'lake'});
   });
+
+  test('a permanently closed center is queryable (#3379)', () async {
+    await db.customStatement(
+      "UPDATE dive_centers SET is_permanently_closed = 1 WHERE id = 'lake'",
+    );
+    expect(await ids('closed = true'), {'lake'});
+    expect(await ids('closed = false'), {'reef'});
+  });
 }

@@ -22,5 +22,9 @@ extension BeforeOpenChildColumns on AppDatabase {
 
     // v270: the weight name columns (issue #956), defaulted to ''.
     await _assertWeightLabelColumns();
+
+    // v313: dive_centers.is_permanently_closed (issue #3379). Every center
+    // read selects the whole row, for the same reason as the tank columns.
+    await _assertDiveCenterClosedColumn();
   }
 }

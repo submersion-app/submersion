@@ -134,6 +134,11 @@ class DiveCenters extends Table {
   /// midnight; null when unknown.
   IntColumn get fillOpensAt => integer().nullable()();
   IntColumn get fillClosesAt => integer().nullable()();
+
+  /// v313: the center is out of business (issue #3379). Kept for past dives
+  /// and statistics; the picker leaves it out of nearby centers.
+  BoolColumn get isPermanentlyClosed =>
+      boolean().withDefault(const Constant(false))();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 
