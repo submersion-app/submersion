@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:submersion/core/providers/account_providers.dart';
 import 'package:submersion/core/services/accounts/account_group.dart';
+import 'package:submersion/core/services/accounts/account_group_service.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
 import 'package:submersion/core/services/accounts/account_usage_service.dart';
@@ -45,6 +47,20 @@ final _drive = _group(
   syncs: true,
 );
 final _dropbox = _group('db', AccountKind.dropbox, 'Dropbox');
+final _server = _group('s3', AccountKind.s3, 'My bucket');
+
+/// An own server with no keys on this device: its sync row cannot be made.
+class _NoKeysService implements AccountGroupService {
+  @override
+  Future<ConnectedAccount> ensureRole(
+    AccountGroup group,
+    AccountRole role, {
+    String? libraryFolder,
+  }) async => throw StateError('no keys');
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
 
 /// Step 3, "A backup that survives a lost device" (issue #3482, Part B
 /// Task 11).
@@ -72,6 +88,7 @@ void main() {
         accountGroupsProvider.overrideWith(
           (ref) async => groups ?? [_drive, _dropbox],
         ),
+        accountGroupServiceProvider.overrideWithValue(_NoKeysService()),
       ],
     );
     addTearDown(container.dispose);
@@ -144,6 +161,20 @@ void main() {
     expect(settings().cloudBackupEnabled, isTrue);
     expect(settings().copyAccountId, 'db');
     expect(nav, ['next']);
+  });
+
+  testWidgets('a copy that cannot be made changes nothing and stays', (
+    tester,
+  ) async {
+    await pump(tester, chosen: _server, groups: [_drive, _server]);
+
+    await tester.tap(find.text('Next'));
+    await tester.pumpAndSettle();
+
+    expect(settings().enabled, isFalse);
+    expect(settings().cloudBackupEnabled, isFalse);
+    expect(find.text('Sign in to My bucket'), findsOneWidget);
+    expect(nav, isEmpty);
   });
 
   testWidgets('with the copy off, Next keeps no copy off this device', (

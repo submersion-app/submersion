@@ -205,10 +205,11 @@ class _SetUpPhotosStepState extends ConsumerState<SetUpPhotosStep> {
     final group = copies.group;
     final label = copies.label ?? copies.store!.displayHint;
     final String? detail;
-    if (group != null && group.key == account?.key) {
-      detail = l10n.settings_setUpDevice_photos_sameAccount;
-    } else if (group == null || group.status != AccountStatus.signedIn) {
+    // Signing in comes first: Next signs in to it whichever account it is.
+    if (group == null || group.status != AccountStatus.signedIn) {
       detail = l10n.settings_setUpDevice_photos_signInFirst(label);
+    } else if (group.key == account?.key) {
+      detail = l10n.settings_setUpDevice_photos_sameAccount;
     } else {
       detail = null;
     }

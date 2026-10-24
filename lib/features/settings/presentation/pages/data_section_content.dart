@@ -77,12 +77,6 @@ class _DataSectionContentState extends ConsumerState<DataSectionContent> {
     final offerSetUpAgain = ref.watch(
       setUpProgressProvider.select((p) => p != null && !p.showsSteps),
     );
-    // Sync's Set up starts from the account step until one is chosen.
-    final accountChosen = ref.watch(
-      setUpProgressProvider.select(
-        (p) => p?.marks[SetUpStep.account] == SetUpMark.done,
-      ),
-    );
 
     Widget feature({
       required IconData icon,
@@ -140,7 +134,9 @@ class _DataSectionContentState extends ConsumerState<DataSectionContent> {
             status: ref.watch(syncRowStatusProvider),
             route: '/settings/cloud-sync',
             healthOf: DataFeature.sync,
-            setUpStep: accountChosen ? SetUpStep.sync : SetUpStep.account,
+            // Offered only while sync is off, when step 2 has no account to
+            // read: the account step starts from the current one.
+            setUpStep: SetUpStep.account,
           ),
           feature(
             icon: Icons.perm_media_outlined,

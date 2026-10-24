@@ -263,6 +263,7 @@ The function `String setUpStepRoute(SetUpStep step)` holds this mapping, so Part
 - B6. Step 4 on a later device names the account only ("Your other devices keep photo and video copies in {account}"): the announced store carries neither the peer's name nor a count. Copies whose account this device cannot name open the account sheet on Next, as the Photos row does. A flow account that cannot hold photos (Git) shows the note alone.
 - B7. Step 4 signs in first when the copies' account is not signed in here, whether or not it is the flow's account; "Same account. Nothing to type." shows when it is the flow's account.
 - B8. The photo count is the library's photos and videos (`MediaRepository.countPhotosAndVideos`), the same rows a store keeps copies of; signatures and documents are not counted.
+- B10. Sync's Set up always opens step 1 (PR review): the Sync row offers Set up only while sync is off, when step 2 has no account to read, and the card's account mark also counts a backup copy or photo store.
 - B9. The done view's four outcome lines are the Data page's own rows (Connected accounts, Sync, Backups, Photos & videos) through `dataRowStatusText`, so the two read the same words.
 
 ### Task 7: Flow page, route and shared scaffold

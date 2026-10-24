@@ -32,6 +32,8 @@ import 'package:submersion/core/services/sync/sync_initializer.dart';
 import 'package:submersion/features/settings/presentation/providers/git_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/account_group_providers.dart';
+import 'package:submersion/features/settings/presentation/widgets/set_up_device/set_up_sync_actions.dart';
 import 'package:submersion/features/settings/presentation/widgets/sync/sync_account_switch.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -127,6 +129,7 @@ void main() {
     InMemoryKeychain? keychain,
     SyncRepository? repository,
     FakeCloudStorageProvider? cloudProvider,
+    List<AccountGroup>? groups,
   }) async {
     final keys = keychain ?? InMemoryKeychain();
     SharedPreferences.setMockInitialValues({});
@@ -157,6 +160,8 @@ void main() {
           ),
           if (repository != null)
             syncRepositoryProvider.overrideWithValue(repository),
+          if (groups != null)
+            accountGroupsProvider.overrideWith((ref) async => groups),
           syncInitializerProvider.overrideWithValue(
             SyncInitializer(syncRepository: SyncRepository(), prefs: prefs),
           ),
@@ -340,6 +345,48 @@ void main() {
       ref.read(selectedCloudProviderTypeProvider),
       isNot(CloudProviderType.git),
     );
+  });
+
+  group("Set up's connect", () {
+    testWidgets('reports a Git account without keys here as not connected, '
+        'though another account is still selected', (tester) async {
+      final git = _group(
+        'gitrow',
+        AccountKind.git,
+        'you/dive-log @ github.com',
+      );
+      final (context, ref) = await pumpHost(
+        tester,
+        lastSync: _t,
+        groups: [dropbox, git],
+      );
+      ref.read(selectedCloudProviderTypeProvider.notifier).state =
+          CloudProviderType.dropbox;
+
+      final connected = await const SetUpSyncActions().connect(
+        context,
+        ref,
+        git,
+      );
+
+      expect(connected, isFalse);
+    });
+
+    testWidgets('reports the account sync already uses as connected', (
+      tester,
+    ) async {
+      final (context, ref) = await pumpHost(tester, groups: [dropbox, drive]);
+      ref.read(selectedCloudProviderTypeProvider.notifier).state =
+          CloudProviderType.dropbox;
+
+      final connected = await const SetUpSyncActions().connect(
+        context,
+        ref,
+        dropbox,
+      );
+
+      expect(connected, isTrue);
+    });
   });
 
   testWidgets('choosing a Git account points sync at it, with its keys', (

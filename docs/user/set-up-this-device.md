@@ -116,8 +116,8 @@ with any dives already there. For more on how devices share one library, see
 
 Every step is also its own page under Settings > Data. A row that is not set up
 shows **Set up** under its status, which opens that step of this flow: Backups
-opens step 3, Photos & videos step 4, and Sync between devices step 2, or step 1
-while no account has been chosen.
+opens step 3, Photos & videos step 4, and Sync between devices step 1, starting
+from the account sync last used.
 
 ## See also
 

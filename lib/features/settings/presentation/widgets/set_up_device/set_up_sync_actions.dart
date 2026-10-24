@@ -32,8 +32,10 @@ class SetUpSyncActions {
   const SetUpSyncActions();
 
   /// Points sync at [account] (plan ruling 3): the same write the Sync
-  /// page's Change makes, with no sync run. True when sync then names an
-  /// account. The step keeps the account groups watched while it shows.
+  /// page's Change makes, with no sync run. True only when sync then names
+  /// [account] itself: the switch can stop short (an account with no keys
+  /// here, a cancelled sign-in) and leave the previous account selected. The
+  /// step keeps the account groups watched while it shows.
   Future<bool> connect(
     BuildContext context,
     WidgetRef ref,
@@ -42,11 +44,16 @@ class SetUpSyncActions {
     final groups = await ref.read(accountGroupsProvider.future);
     if (!context.mounted) return false;
     final current = currentSyncGroup(groups);
-    if (current?.key != account.key ||
-        ref.read(selectedCloudProviderTypeProvider) == null) {
-      await useAccountForSync(context, ref, account, current: current);
+    if (current?.key == account.key &&
+        ref.read(selectedCloudProviderTypeProvider) != null) {
+      return true;
     }
-    return ref.read(selectedCloudProviderTypeProvider) != null;
+    await useAccountForSync(context, ref, account, current: current);
+    if (ref.read(selectedCloudProviderTypeProvider) == null) return false;
+    // Read again: the switch changes which account carries sync.
+    ref.invalidate(accountGroupsProvider);
+    final after = await ref.read(accountGroupsProvider.future);
+    return currentSyncGroup(after)?.key == account.key;
   }
 
   /// The first sync, as Sync now runs it once its Combine question has been

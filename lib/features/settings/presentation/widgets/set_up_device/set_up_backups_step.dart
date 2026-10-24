@@ -42,8 +42,8 @@ class _SetUpBackupsStepState extends ConsumerState<SetUpBackupsStep> {
     });
     var applied = false;
     try {
-      final backup = ref.read(backupSettingsProvider.notifier);
-      await backup.setEnabled(_auto);
+      // The copy first: it is the write that can be refused, and a refusal
+      // must leave automatic backups as they were.
       applied =
           account == null ||
           await applyBackupCopyChoice(
@@ -51,6 +51,9 @@ class _SetUpBackupsStepState extends ConsumerState<SetUpBackupsStep> {
             _copy ? ChoseAccount(account) : const ChoseNone(),
             syncGroup: syncGroup,
           );
+      if (applied) {
+        await ref.read(backupSettingsProvider.notifier).setEnabled(_auto);
+      }
     } on Object {
       applied = false;
     } finally {

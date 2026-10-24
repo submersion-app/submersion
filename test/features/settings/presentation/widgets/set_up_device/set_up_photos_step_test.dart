@@ -217,6 +217,21 @@ void main() {
       expect(nav, ['next']);
     });
 
+    testWidgets('copies in the same account that needs signing in say so', (
+      tester,
+    ) async {
+      final lapsed = _group(
+        'gd',
+        AccountKind.googledrive,
+        'Google Drive',
+        status: AccountStatus.needsSignIn,
+      );
+      await pump(tester, _announced(lapsed));
+
+      expect(find.text('Same account. Nothing to type.'), findsNothing);
+      expect(find.text('Signs in to Google Drive first.'), findsOneWidget);
+    });
+
     testWidgets('copies in another account sign in to it first', (
       tester,
     ) async {

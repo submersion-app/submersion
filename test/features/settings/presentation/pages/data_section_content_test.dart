@@ -237,9 +237,10 @@ void main() {
     expect(find.text('page /settings/setup?step=account'), findsOneWidget);
   });
 
-  testWidgets('with an account chosen, the sync row sets up sync', (
-    tester,
-  ) async {
+  // Sync offers Set up only while it is off, so step 2 would have no
+  // account to read even when a backup copy or photos name one.
+  testWidgets('with another feature naming an account, Sync still starts '
+      'from the account step', (tester) async {
     await pumpData(
       tester,
       dataHealth: [
@@ -265,7 +266,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text('page /settings/setup?step=sync'), findsOneWidget);
+    expect(find.text('page /settings/setup?step=account'), findsOneWidget);
   });
 
   testWidgets('photos row offers set up when copies are not kept', (
