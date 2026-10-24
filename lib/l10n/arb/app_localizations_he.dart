@@ -2602,7 +2602,13 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String backup_retention_cloudFootprint(int count, String size) {
-    return '$count גיבויים בתיקיית הענן תופסים $size';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count גיבויים בתיקיית הענן תופסים $size',
+      one: 'גיבוי אחד בתיקיית הענן תופס $size',
+    );
+    return '$_temp0';
   }
 
   @override

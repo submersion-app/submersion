@@ -2641,7 +2641,13 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String backup_retention_cloudFootprint(int count, String size) {
-    return '$count backups na pasta na nuvem ocupam $size';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count backups na pasta na nuvem ocupam $size',
+      one: '$count backup na pasta na nuvem ocupa $size',
+    );
+    return '$_temp0';
   }
 
   @override

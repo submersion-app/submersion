@@ -92,12 +92,12 @@ List<BackupRecord> mergeCloudBackups(
     ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
 }
 
-/// The timestamp a backup's name starts with, in the local time of the device
-/// that wrote it, or null when the name carries none.
-/// [rows] with every row another device has pinned marked as such (issue
-/// #3503), read from the pin markers in [listing]. A row pinned here is left
-/// as it is: its own pin already shows. When [thisDeviceId] is unknown, a
-/// marker cannot be told apart from this device's own, so none is read.
+/// [rows] with every cloud row another device has pinned marked as such
+/// (issue #3503), read from the pin markers in [listing]. Only rows found in
+/// the listing are marked: a row in this device's history stays pinnable
+/// here, and a row pinned here already shows its own pin. When
+/// [thisDeviceId] is unknown, a marker cannot be told apart from this
+/// device's own, so none is read.
 List<BackupRecord> markPinnedOnAnotherDevice(
   List<BackupRecord> rows,
   Iterable<CloudFileInfo> listing, {
@@ -113,12 +113,16 @@ List<BackupRecord> markPinnedOnAnotherDevice(
   if (elsewhere.isEmpty) return rows;
   return [
     for (final r in rows)
-      !r.pinned && elsewhere.contains(backupStem(r.filename))
+      !r.pinned &&
+              r.id.startsWith(cloudBackupIdPrefix) &&
+              elsewhere.contains(backupStem(r.filename))
           ? r.copyWith(pinnedOnAnotherDevice: true)
           : r,
   ];
 }
 
+/// The timestamp a backup's name starts with, in the local time of the device
+/// that wrote it, or null when the name carries none.
 DateTime? backupTimestampFromName(String name) {
   final match = _nameTimestamp.firstMatch(name);
   if (match == null) return null;

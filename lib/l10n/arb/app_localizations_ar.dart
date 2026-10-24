@@ -2695,7 +2695,17 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String backup_retention_cloudFootprint(int count, String size) {
-    return 'النسخ الاحتياطية في مجلد السحابة: $count، وتشغل $size';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count نسخة احتياطية في مجلد السحابة تشغل $size',
+      many: '$count نسخة احتياطية في مجلد السحابة تشغل $size',
+      few: '$count نسخ احتياطية في مجلد السحابة تشغل $size',
+      two: 'نسختان احتياطيتان في مجلد السحابة تشغلان $size',
+      one: 'نسخة احتياطية واحدة في مجلد السحابة تشغل $size',
+      zero: '$count نسخة احتياطية في مجلد السحابة تشغل $size',
+    );
+    return '$_temp0';
   }
 
   @override

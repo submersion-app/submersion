@@ -55,10 +55,11 @@ class BackupSettings extends Equatable {
   final String? copyAccountId;
   final AccountKind? copyAccountKind;
 
-  /// The cloud account the "count backups from all devices" switch was
-  /// confirmed for (issue #3503), `''` for an account whose id is unknown,
-  /// null when the switch is off. Kept as the account rather than a flag so a
-  /// different backup folder reads as off until the diver confirms it too.
+  /// The cloud folder the "count backups from all devices" switch was
+  /// confirmed for (issue #3503): its account id, or `provider:<id>` when the
+  /// account is unknown; null when the switch is off. Kept as the folder
+  /// rather than a flag so a different backup folder reads as off until the
+  /// diver confirms it too.
   final String? crossDeviceRetentionAccount;
 
   const BackupSettings({
@@ -140,11 +141,10 @@ class BackupSettings extends Equatable {
     return DateTime.now().difference(lastBackupTime!) >= frequencyDuration;
   }
 
-  /// Whether the cross-device rule applies to the cloud folder in
-  /// [accountId], the account backups are copied to now.
-  bool crossDeviceRetentionFor(String? accountId) =>
-      crossDeviceRetentionAccount != null &&
-      crossDeviceRetentionAccount == (accountId ?? '');
+  /// Whether the cross-device rule applies to the cloud folder [folderKey]
+  /// names (`BackupServiceRetention.crossDeviceRetentionAccountKey`).
+  bool crossDeviceRetentionFor(String folderKey) =>
+      crossDeviceRetentionAccount == folderKey;
 
   @override
   List<Object?> get props => [

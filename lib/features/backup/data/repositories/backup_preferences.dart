@@ -19,6 +19,7 @@ class BackupPreferences {
   static const String _retentionCountKey = 'backup_retention_count';
   static const String _crossDeviceRetentionAccountKey =
       'backup_retention_all_devices_account';
+  static const String _pinMarkersSyncedKey = 'backup_pin_markers_synced';
   static const String _lastBackupTimeKey = 'backup_last_time';
   static const String _cloudBackupEnabledKey = 'backup_cloud_enabled';
   static const String _backupLocationKey = 'backup_location';
@@ -101,14 +102,23 @@ class BackupPreferences {
     await _prefs.setInt(_retentionCountKey, count);
   }
 
-  /// Turns the cross-device retention switch on for [accountKey] (the
-  /// account's id, or `''` when unknown), or off when null (issue #3503).
+  /// Turns the cross-device retention switch on for the cloud folder
+  /// [accountKey] names, or off when null (issue #3503).
   Future<void> setCrossDeviceRetentionAccount(String? accountKey) async {
     if (accountKey == null) {
       await _prefs.remove(_crossDeviceRetentionAccountKey);
     } else {
       await _prefs.setString(_crossDeviceRetentionAccountKey, accountKey);
     }
+  }
+
+  /// What the last successful pin-marker reconcile mirrored (issue #3503):
+  /// the folder key and the pinned stems. A prune lists the cloud folder to
+  /// reconcile only when this no longer matches the pins.
+  String? getPinMarkersSynced() => _prefs.getString(_pinMarkersSyncedKey);
+
+  Future<void> setPinMarkersSynced(String state) async {
+    await _prefs.setString(_pinMarkersSyncedKey, state);
   }
 
   Future<void> setLastBackupTime(DateTime time) async {

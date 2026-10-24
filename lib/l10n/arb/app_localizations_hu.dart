@@ -2635,7 +2635,13 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String backup_retention_cloudFootprint(int count, String size) {
-    return 'A felhőmappában lévő $count mentés $size helyet foglal';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'A felhőmappában lévő $count mentés $size helyet foglal',
+      one: 'A felhőmappában lévő $count mentés $size helyet foglal',
+    );
+    return '$_temp0';
   }
 
   @override

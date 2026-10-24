@@ -63,6 +63,7 @@ Future<void> _confirmThenPrune(
   final messenger = ScaffoldMessenger.of(context);
   final l10n = context.l10n;
   final plan = await service.previewCrossDeviceRetention(keepCount);
+  if (!context.mounted) return;
   if (plan == null) {
     messenger.showSnackBar(
       SnackBar(content: Text(l10n.backup_retention_listFailed)),
@@ -70,7 +71,6 @@ Future<void> _confirmThenPrune(
     return;
   }
   if (!plan.isEmpty) {
-    if (!context.mounted) return;
     if (!await showCrossDeviceRetentionDialog(context, plan)) return;
   }
   await save();
@@ -80,5 +80,6 @@ Future<void> _confirmThenPrune(
       SnackBar(content: Text(l10n.backup_retention_removed(removed))),
     );
   }
-  ref.invalidate(backupHistoryProvider);
+  // The page may have closed while the folder was pruned.
+  if (context.mounted) ref.invalidate(backupHistoryProvider);
 }

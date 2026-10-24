@@ -736,7 +736,7 @@
   "backup_retention_allDevices_title": "Az összes eszköz mentéseinek számolása",
   "backup_retention_allDevices_off": "Ki: ez az eszköz csak a saját mentéseit távolítja el",
   "backup_retention_allDevices_on": "A felhőmappa az összes eszközről az utolsó {count} biztonsági mentést tartja meg. A rögzített mentések megmaradnak. Ha más eszközök is ezt használják, a legkisebb szám érvényes. Először minden eszközön frissíteni kell az alkalmazást, hogy a rögzítéseik láthatók legyenek.",
-  "backup_retention_cloudFootprint": "A felhőmappában lévő {count} mentés {size} helyet foglal",
+  "backup_retention_cloudFootprint": "{count, plural, one{A felhőmappában lévő {count} mentés {size} helyet foglal} other{A felhőmappában lévő {count} mentés {size} helyet foglal}}",
   "backup_retention_confirm_title": "{count, plural, one{Eltávolít {count} mentést?} other{Eltávolít {count} mentést?}}",
   "backup_retention_confirm_body": "Az utolsó {keep} mentés megtartása ezeket eltávolítja a felhőmappából (összesen {size}).",
   "backup_retention_confirm_pinnedKept": "{count, plural, one{{count} rögzített mentés megmarad.} other{{count} rögzített mentés megmarad.}}",

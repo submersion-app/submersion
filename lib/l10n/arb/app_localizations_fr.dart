@@ -2650,7 +2650,13 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String backup_retention_cloudFootprint(int count, String size) {
-    return '$count sauvegardes du dossier cloud occupent $size';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count sauvegardes du dossier cloud occupent $size',
+      one: '$count sauvegarde du dossier cloud occupe $size',
+    );
+    return '$_temp0';
   }
 
   @override

@@ -4150,7 +4150,7 @@ abstract class AppLocalizations {
   /// No description provided for @backup_retention_cloudFootprint.
   ///
   /// In en, this message translates to:
-  /// **'{count} backups in the cloud folder use {size}'**
+  /// **'{count, plural, one{{count} backup in the cloud folder uses {size}} other{{count} backups in the cloud folder use {size}}}'**
   String backup_retention_cloudFootprint(int count, String size);
 
   /// No description provided for @backup_retention_confirm_title.

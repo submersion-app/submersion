@@ -193,22 +193,15 @@ void main() {
       final settings = backupPreferences.getSettings();
       expect(settings.crossDeviceRetentionAccount, isNull);
       expect(settings.crossDeviceRetentionFor('acct'), isFalse);
-      expect(settings.crossDeviceRetentionFor(null), isFalse);
+      expect(settings.crossDeviceRetentionFor(''), isFalse);
     });
 
-    test('is on only for the account it was confirmed for', () async {
+    test('is on only for the folder key it was confirmed for', () async {
       await backupPreferences.setCrossDeviceRetentionAccount('acct');
       final settings = backupPreferences.getSettings();
       expect(settings.crossDeviceRetentionFor('acct'), isTrue);
       expect(settings.crossDeviceRetentionFor('other'), isFalse);
-      expect(settings.crossDeviceRetentionFor(null), isFalse);
-    });
-
-    test('an empty key stands for an account whose id is unknown', () async {
-      await backupPreferences.setCrossDeviceRetentionAccount('');
-      final settings = backupPreferences.getSettings();
-      expect(settings.crossDeviceRetentionFor(null), isTrue);
-      expect(settings.crossDeviceRetentionFor('acct'), isFalse);
+      expect(settings.crossDeviceRetentionFor('provider:fake'), isFalse);
     });
 
     test('null turns it off', () async {

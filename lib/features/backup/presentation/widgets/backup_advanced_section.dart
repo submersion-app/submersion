@@ -125,8 +125,15 @@ class _RetentionSubtitle extends ConsumerWidget {
     // shown is the folder's (issue #3503).
     final acrossDevices =
         ref.watch(crossDeviceRetentionActiveProvider).value ?? false;
+    final account = ref.watch(backupCopyAccountIdProvider).value;
     final counted = acrossDevices
-        ? [...?history?.where((r) => r.cloudFileId != null)]
+        ? [
+            ...?history?.where(
+              (r) =>
+                  r.cloudFileId != null &&
+                  (r.cloudAccountId == null || r.cloudAccountId == account),
+            ),
+          ]
         : [...?history];
     if (counted.isEmpty) return explanation;
     final size = formatBytes(
@@ -149,12 +156,32 @@ class _RetentionSubtitle extends ConsumerWidget {
 }
 
 /// "Count backups from all devices" (issue #3503): off by default, and on
-/// only for the cloud folder it was confirmed for.
-class _CrossDeviceRetentionTile extends ConsumerWidget {
+/// only for the cloud folder it was confirmed for. Disabled while a change
+/// it started is still listing or pruning, so a second tap cannot start a
+/// second one.
+class _CrossDeviceRetentionTile extends ConsumerStatefulWidget {
   const _CrossDeviceRetentionTile();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_CrossDeviceRetentionTile> createState() =>
+      _CrossDeviceRetentionTileState();
+}
+
+class _CrossDeviceRetentionTileState
+    extends ConsumerState<_CrossDeviceRetentionTile> {
+  var _busy = false;
+
+  Future<void> _set(bool value) async {
+    setState(() => _busy = true);
+    try {
+      await setCrossDeviceRetention(context, ref, value);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = context.l10n;
     final on = ref.watch(crossDeviceRetentionActiveProvider).value ?? false;
     final keep = ref.watch(
@@ -169,7 +196,7 @@ class _CrossDeviceRetentionTile extends ConsumerWidget {
             : l10n.backup_retention_allDevices_off,
       ),
       value: on,
-      onChanged: (value) => setCrossDeviceRetention(context, ref, value),
+      onChanged: _busy ? null : _set,
     );
   }
 }

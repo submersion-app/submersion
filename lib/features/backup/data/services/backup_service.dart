@@ -1355,33 +1355,66 @@ class BackupService {
   /// devices" on for this folder, the whole folder is then pruned to
   /// [keepCount] as well (issue #3503). Neither step can fail the prune.
   Future<void> pruneOldBackups(int keepCount) async {
-    final listing = await _listCloudFolder();
-    if (listing != null) await reconcilePinMarkers(listing: listing);
-    await _pruneOwnHistory(
-      keepCount,
-      pinnedElsewhere: await _stemsPinnedElsewhere(listing),
-    );
-    await _pruneAcrossDevices(keepCount);
-  }
-
-  /// [pruneOldBackups] for this device's own history: the records it made,
-  /// local and cloud copies both, except a cloud copy whose stem is in
-  /// [pinnedElsewhere], which stays in the folder.
-  Future<void> _pruneOwnHistory(
-    int keepCount, {
-    required Set<String> pinnedElsewhere,
-  }) async {
     final history = getBackupHistory(); // Already sorted newest-first
-
     final eligible = history
         .where((r) => r.type == BackupType.manual && !r.pinned)
         .toList();
-    if (eligible.length <= keepCount) return;
+    final toDelete = eligible.length <= keepCount
+        ? const <BackupRecord>[]
+        : eligible.sublist(keepCount);
 
-    final toDelete = eligible.sublist(keepCount);
-    _log.info(
-      'Pruning ${toDelete.length} old manual backups (keeping $keepCount)',
+    // The folder is listed only when something needs it: listing a cloud
+    // service is a round trip, and on iCloud it can start downloads.
+    final here = await _cloudCopyCheck();
+    final ownCloud = toDelete.any((r) => r.cloudFileId != null && here(r));
+    final acrossDevices = await crossDeviceRetentionActive();
+    final markersStale = await _pinMarkersStale();
+    final listing = ownCloud || acrossDevices || markersStale
+        ? await _listCloudFolder()
+        : null;
+    if (listing != null && markersStale) {
+      await reconcilePinMarkers(listing: listing);
+    }
+
+    final deleted = await _pruneOwnHistory(
+      toDelete,
+      here: here,
+      pinnedElsewhere: await _stemsPinnedElsewhere(listing),
+      // Without a listing the pins of other devices are unknown, so no cloud
+      // copy goes this round; its record waits for the next prune.
+      holdCloudCopies: ownCloud && listing == null,
     );
+    if (acrossDevices && listing != null) {
+      await _pruneAcrossDevices(
+        keepCount,
+        listing: [
+          for (final f in listing)
+            if (!deleted.contains(f.id)) f,
+        ],
+      );
+    }
+  }
+
+  /// [pruneOldBackups] for this device's own history: deletes [toDelete],
+  /// local and cloud copies both, except a cloud copy whose stem is in
+  /// [pinnedElsewhere], which stays in the folder. [here] says whether a
+  /// record's cloud copy is in this folder. With [holdCloudCopies],
+  /// a record with a cloud copy here is left for the next prune. Returns the
+  /// ids of the cloud copies deleted.
+  Future<Set<String>> _pruneOwnHistory(
+    List<BackupRecord> toDelete, {
+    required bool Function(BackupRecord) here,
+    required Set<String> pinnedElsewhere,
+    required bool holdCloudCopies,
+  }) async {
+    if (toDelete.isEmpty) return const {};
+    _log.info('Pruning ${toDelete.length} old manual backups');
+    if (holdCloudCopies) {
+      toDelete = [
+        for (final r in toDelete)
+          if (r.cloudFileId == null || !here(r)) r,
+      ];
+    }
 
     // Cloud copies first, pushed in one batch on a backend that defers
     // deletes (Git). A record goes only after that push: if it fails, the
@@ -1389,9 +1422,8 @@ class BackupService {
     // next prune deletes them again.
     final provider = _cloudProvider;
     var cloudPushed = true;
+    final deleted = <String>{};
     if (provider != null) {
-      var recorded = 0;
-      final here = await _cloudCopyCheck();
       for (final record in toDelete) {
         final id = record.cloudFileId;
         // A copy in another account is left where it is, and so is one
@@ -1400,7 +1432,7 @@ class BackupService {
         if (pinnedElsewhere.contains(backupStem(record.filename))) continue;
         try {
           await provider.deleteFile(id);
-          recorded++;
+          deleted.add(id);
         } catch (e, st) {
           // As for a single delete: a cloud copy this backend refuses to
           // delete does not keep its record in history.
@@ -1411,11 +1443,12 @@ class BackupService {
           );
         }
       }
-      if (recorded > 0) {
+      if (deleted.isNotEmpty) {
         try {
           await flushDeferredWrites(provider);
         } catch (e, st) {
           cloudPushed = false;
+          deleted.clear();
           _log.warning(
             'Pruned backups not deleted from the cloud; retried next prune',
             error: e,
@@ -1445,6 +1478,7 @@ class BackupService {
         );
       }
     }
+    return deleted;
   }
 
   // ===========================================================================

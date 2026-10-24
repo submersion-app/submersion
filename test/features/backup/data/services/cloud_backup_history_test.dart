@@ -227,6 +227,21 @@ void main() {
       expect(rows.single.pinnedOnAnotherDevice, isFalse);
     });
 
+    test('leaves this device\'s own history rows pinnable', () {
+      final own = _tracked(
+        id: 'own',
+        filename: name,
+        timestamp: DateTime(2026, 10, 1, 9),
+        cloudFileId: 'id-$name',
+      );
+      final rows = markPinnedOnAnotherDevice(
+        [own],
+        [_file(name), marker('dev-B')],
+        thisDeviceId: 'dev-A',
+      );
+      expect(rows.single.pinnedOnAnotherDevice, isFalse);
+    });
+
     test('leaves a row pinned here alone', () {
       final pinned = row.copyWith(pinned: true);
       final rows = markPinnedOnAnotherDevice(

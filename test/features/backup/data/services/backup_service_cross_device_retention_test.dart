@@ -18,18 +18,27 @@ import '../../../../helpers/fake_cloud_storage_provider.dart';
 import '../../../../helpers/unused_backup_database_adapter.dart';
 
 class _Device extends SyncRepository {
-  _Device(this.deviceId);
+  _Device(this.deviceId, {this.account = 'acct'});
 
   final String deviceId;
+  final String? account;
 
   @override
   Future<String> getDeviceId() async => deviceId;
 
   @override
-  Future<String?> getSyncAccountId() async => 'acct';
+  Future<String?> getSyncAccountId() async => account;
 }
 
 final _stamp = DateFormat('yyyy-MM-dd_HHmmss');
+
+/// Answers "not there" whenever it cannot tell, as Google Drive's
+/// `fileExists` does on any error.
+class _DriveLikeCloud extends FakeCloudStorageProvider {
+  @override
+  Future<bool> fileExists(String fileId) async =>
+      failDeletes ? false : super.fileExists(fileId);
+}
 
 void main() {
   late BackupPreferences preferences;
@@ -64,8 +73,10 @@ void main() {
 
   bool has(String name) => cloud.bytesOf(name) != null;
 
-  Future<void> switchOn([String account = 'acct']) =>
-      preferences.setCrossDeviceRetentionAccount(account);
+  Future<void> switchOn([String account = 'acct']) async {
+    await preferences.setCloudBackupEnabled(true);
+    await preferences.setCrossDeviceRetentionAccount(account);
+  }
 
   /// Eight backups 2 to 9 days old from three devices, newest first.
   List<String> eight() => [
@@ -96,6 +107,14 @@ void main() {
     test('a switch confirmed for another account does nothing', () async {
       final names = eight();
       await switchOn('other');
+      await service().pruneOldBackups(5);
+      expect(names.every(has), isTrue);
+    });
+
+    test('with cloud backup turned off, the rule does not run', () async {
+      final names = eight();
+      await switchOn();
+      await preferences.setCloudBackupEnabled(false);
       await service().pruneOldBackups(5);
       expect(names.every(has), isTrue);
     });
@@ -132,6 +151,61 @@ void main() {
         expect(has(names[1]), isTrue);
       },
     );
+  });
+
+  group('cloud round trips', () {
+    int lists() => cloud.operationLog.where((o) => o == 'list').length;
+
+    Future<void> addOwn(String name, int daysAgo, {bool pinned = false}) =>
+        preferences.addRecord(
+          BackupRecord(
+            id: name,
+            filename: name,
+            timestamp: DateTime.now().subtract(Duration(days: daysAgo)),
+            sizeBytes: 3,
+            location: BackupLocation.cloud,
+            cloudFileId: name,
+            cloudAccountId: 'acct',
+            pinned: pinned,
+          ),
+        );
+
+    test('switch off, nothing pinned, nothing to prune: no listing', () async {
+      await addOwn(seed(3, device: 'dev-A'), 3);
+      await service().pruneOldBackups(5);
+      expect(lists(), 0);
+    });
+
+    test('a pin change is reconciled once, then not again', () async {
+      final name = seed(3, device: 'dev-A');
+      await addOwn(name, 3, pinned: true);
+      await service().pruneOldBackups(5);
+      expect(lists(), 1);
+      expect(
+        has(pinMarkerName(backupFilename: name, pinningDeviceId: 'dev-A')),
+        isTrue,
+      );
+      cloud.operationLog.clear();
+      await service().pruneOldBackups(5);
+      expect(lists(), 0);
+    });
+
+    test('switch on: one listing to plan, one to re-check', () async {
+      eight();
+      await switchOn();
+      await service().pruneOldBackups(5);
+      expect(lists(), 2);
+    });
+
+    test('a failed listing keeps cloud copies for the next prune', () async {
+      final names = [seed(3, device: 'dev-A'), seed(4, device: 'dev-A')];
+      await addOwn(names[0], 3);
+      await addOwn(names[1], 4);
+      cloud.failLists = true;
+      await service().pruneOldBackups(1);
+      expect(preferences.getHistory(), hasLength(2));
+      expect(names.every(has), isTrue);
+    });
   });
 
   group('preview and apply', () {
@@ -173,15 +247,42 @@ void main() {
       expect(await s.applyCrossDeviceRetention(plan), 3);
     });
 
+    test('a delete that fails is not recorded as done', () async {
+      cloud = _DriveLikeCloud();
+      final names = eight();
+      await preferences.addRecord(
+        BackupRecord(
+          id: 'cloud-only',
+          filename: names.last,
+          timestamp: DateTime.now().subtract(const Duration(days: 9)),
+          sizeBytes: 3,
+          location: BackupLocation.cloud,
+          cloudFileId: names.last,
+          cloudAccountId: 'acct',
+          note: 'before the trip',
+        ),
+      );
+      final s = service();
+      final plan = (await s.previewCrossDeviceRetention(5))!;
+      cloud.failDeletes = true;
+
+      expect(await s.applyCrossDeviceRetention(plan), 0);
+      expect(preferences.getHistory().single.note, 'before the trip');
+    });
+
     test('orphan markers are removed', () async {
       eight();
       final gone = seed(20);
-      pinOn(gone, 'dev-B');
-      await cloud.deleteFile(gone);
       final marker = pinMarkerName(
         backupFilename: gone,
         pinningDeviceId: 'dev-B',
       );
+      cloud.seedFile(
+        marker,
+        Uint8List(0),
+        modified: DateTime.now().subtract(const Duration(days: 20)),
+      );
+      await cloud.deleteFile(gone);
       final s = service();
 
       await s.applyCrossDeviceRetention(
@@ -190,6 +291,33 @@ void main() {
 
       expect(has(marker), isFalse);
     });
+
+    test(
+      'an orphan marker whose backup arrives before apply is kept',
+      () async {
+        eight();
+        final late = seed(20);
+        final marker = pinMarkerName(
+          backupFilename: late,
+          pinningDeviceId: 'dev-B',
+        );
+        cloud.seedFile(
+          marker,
+          Uint8List(0),
+          modified: DateTime.now().subtract(const Duration(days: 20)),
+        );
+        final bytes = cloud.bytesOf(late)!;
+        await cloud.deleteFile(late);
+        final s = service();
+        final plan = (await s.previewCrossDeviceRetention(5))!;
+        expect(plan.orphanMarkers.map((m) => m.name), [marker]);
+        cloud.seedFile(late, bytes);
+
+        await s.applyCrossDeviceRetention(plan);
+
+        expect(has(marker), isTrue);
+      },
+    );
 
     test(
       'this device\'s record keeps its local copy, or goes when cloud-only',
@@ -272,6 +400,23 @@ void main() {
       },
     );
   });
+
+  test(
+    'an unknown account is keyed by the provider, never by nothing',
+    () async {
+      final s = BackupService(
+        dbAdapter: UnusedBackupDatabaseAdapter(),
+        preferences: preferences,
+        cloudProvider: cloud,
+        syncRepository: _Device('dev-A', account: null),
+      );
+      expect(await s.crossDeviceRetentionAccountKey(), 'provider:fake');
+      await switchOn('');
+      expect(await s.crossDeviceRetentionActive(), isFalse);
+      await switchOn('provider:fake');
+      expect(await s.crossDeviceRetentionActive(), isTrue);
+    },
+  );
 
   test('crossDeviceRetentionAccountKey is the copy account', () async {
     expect(await service().crossDeviceRetentionAccountKey(), 'acct');

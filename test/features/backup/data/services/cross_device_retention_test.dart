@@ -26,12 +26,20 @@ CloudFileInfo _backup(
   );
 }
 
-CloudFileInfo _marker(CloudFileInfo backup, String pinner) {
+CloudFileInfo _marker(
+  CloudFileInfo backup,
+  String pinner, {
+  DateTime? modified,
+}) {
   final name = pinMarkerName(
     backupFilename: backup.name,
     pinningDeviceId: pinner,
   );
-  return CloudFileInfo(id: 'id-$name', name: name, modifiedTime: _now);
+  return CloudFileInfo(
+    id: 'id-$name',
+    name: name,
+    modifiedTime: modified ?? _now,
+  );
 }
 
 CrossDeviceRetentionPlan _plan(
@@ -161,13 +169,37 @@ void main() {
     expect(_names(_plan([...files, files[0]], keep: 2)), [files[0].name]);
   });
 
-  test('a marker whose backup is not listed is an orphan', () {
+  test('an old marker whose backup is not listed is an orphan', () {
     final gone = _backup(1);
     final kept = _backup(2);
-    final orphan = _marker(gone, 'dev-B');
-    final live = _marker(kept, 'dev-B');
+    final old = DateTime(2026, 10, 1);
+    final orphan = _marker(gone, 'dev-B', modified: old);
+    final live = _marker(kept, 'dev-B', modified: old);
     final plan = _plan([kept, orphan, live]);
     expect([for (final m in plan.orphanMarkers) m.name], [orphan.name]);
+  });
+
+  test(
+    'a young marker is never an orphan: its backup may still be on the way',
+    () {
+      final arriving = _backup(1);
+      final young = _marker(
+        arriving,
+        'dev-B',
+        modified: _now.subtract(const Duration(hours: 1)),
+      );
+      expect(_plan([young]).orphanMarkers, isEmpty);
+    },
+  );
+
+  test('a marker for a backup the rule does not manage is not an orphan', () {
+    final conflicted = CloudFileInfo(
+      id: 'c',
+      name: 'submersion_backup_2026-09-02_090000 (conflicted copy).db',
+      modifiedTime: DateTime(2026, 9, 2),
+    );
+    final marker = _marker(conflicted, 'dev-B', modified: DateTime(2026, 9, 3));
+    expect(_plan([conflicted, marker]).orphanMarkers, isEmpty);
   });
 
   test('ownership comes from the name', () {

@@ -1,6 +1,8 @@
 // Issue #3503: the "count backups from all devices" switch, its confirmation,
 // and lowering "Keep" while it is on.
 
+import 'dart:async';
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -15,9 +17,11 @@ import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
 import 'package:submersion/core/services/accounts/account_usage_service.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart';
+import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 import 'package:submersion/features/backup/data/services/backup_attribution.dart';
 import 'package:submersion/features/backup/data/services/backup_service.dart';
+import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_copy_providers.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/backup/presentation/providers/quarantined_database_providers.dart';
@@ -35,6 +39,22 @@ class _Device extends SyncRepository {
 
   @override
   Future<String?> getSyncAccountId() async => 'acct';
+}
+
+/// Holds every listing until [release] is called.
+class _GatedCloud extends FakeCloudStorageProvider {
+  final gate = Completer<void>();
+
+  void release() => gate.complete();
+
+  @override
+  Future<List<CloudFileInfo>> listFiles({
+    String? folderId,
+    String? namePattern,
+  }) async {
+    await gate.future;
+    return super.listFiles(folderId: folderId, namePattern: namePattern);
+  }
 }
 
 final _t = DateTime.utc(2026);
@@ -148,6 +168,67 @@ void main() {
     expect(savedOn(), isTrue);
     expect(isOn(tester), isTrue);
     expect(find.textContaining('keeps the last 5 backups'), findsOneWidget);
+  });
+
+  testWidgets('the switch is disabled while turning it on is in flight', (
+    tester,
+  ) async {
+    final gated = _GatedCloud();
+    cloud = gated;
+    await pump(tester);
+    await tester.tap(switchTile);
+    await tester.pump();
+    expect(tester.widget<SwitchListTile>(switchTile).onChanged, isNull);
+
+    gated.release();
+    await tester.pumpAndSettle();
+    expect(tester.widget<SwitchListTile>(switchTile).onChanged, isNotNull);
+    expect(isOn(tester), isTrue);
+  });
+
+  testWidgets('leaving the page while it runs does not throw', (tester) async {
+    final gated = _GatedCloud();
+    cloud = gated;
+    await pump(tester);
+    await tester.tap(switchTile);
+    await tester.pump();
+    await tester.pumpWidget(const SizedBox());
+
+    gated.release();
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('one backup in the folder reads in the singular', (tester) async {
+    seed(3);
+    await pump(
+      tester,
+      initial: {'backup_retention_all_devices_account': 'acct'},
+    );
+    expect(find.text('1 backup in the cloud folder uses 3 B'), findsOneWidget);
+  });
+
+  testWidgets('the folder footprint leaves out copies in another account', (
+    tester,
+  ) async {
+    seed(3);
+    final elsewhere = BackupRecord(
+      id: 'elsewhere',
+      filename: 'submersion_backup_2026-01-01_090000.db',
+      timestamp: DateTime(2026),
+      sizeBytes: 500,
+      location: BackupLocation.cloud,
+      cloudFileId: 'gone',
+      cloudAccountId: 'other',
+    );
+    await pump(
+      tester,
+      initial: {
+        'backup_retention_all_devices_account': 'acct',
+        'backup_history': jsonEncode([elsewhere.toJson()]),
+      },
+    );
+    expect(find.text('1 backup in the cloud folder uses 3 B'), findsOneWidget);
   });
 
   group('with backups to remove', () {

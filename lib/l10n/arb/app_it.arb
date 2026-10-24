@@ -736,7 +736,7 @@
   "backup_retention_allDevices_title": "Conta i backup di tutti i dispositivi",
   "backup_retention_allDevices_off": "Disattivato: questo dispositivo rimuove solo i backup che ha creato",
   "backup_retention_allDevices_on": "La cartella cloud conserva gli ultimi {count} backup di tutti i dispositivi. I backup fissati vengono conservati. Se anche altri dispositivi usano questa opzione, vale il numero più piccolo. Aggiorna prima l'app su tutti i dispositivi, così i loro backup fissati vengono riconosciuti.",
-  "backup_retention_cloudFootprint": "{count} backup nella cartella cloud occupano {size}",
+  "backup_retention_cloudFootprint": "{count, plural, one{{count} backup nella cartella cloud occupa {size}} other{{count} backup nella cartella cloud occupano {size}}}",
   "backup_retention_confirm_title": "{count, plural, one{Rimuovere {count} backup?} other{Rimuovere {count} backup?}}",
   "backup_retention_confirm_body": "Conservare gli ultimi {keep} backup rimuove questi dalla cartella cloud ({size} in totale).",
   "backup_retention_confirm_pinnedKept": "{count, plural, one{{count} backup fissato viene conservato.} other{{count} backup fissati vengono conservati.}}",

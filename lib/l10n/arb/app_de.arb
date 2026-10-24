@@ -761,7 +761,7 @@
   "backup_retention_allDevices_title": "Sicherungen aller Geräte zählen",
   "backup_retention_allDevices_off": "Aus: Dieses Gerät entfernt nur die Sicherungen, die es selbst erstellt hat",
   "backup_retention_allDevices_on": "Der Cloud-Ordner behält die letzten {count} Sicherungen aller Geräte. Angeheftete Sicherungen bleiben erhalten. Nutzen auch andere Geräte diese Einstellung, gilt die kleinste Zahl. Aktualisieren Sie zuerst die App auf allen Geräten, damit deren angeheftete Sicherungen erkannt werden.",
-  "backup_retention_cloudFootprint": "{count} Sicherungen im Cloud-Ordner belegen {size}",
+  "backup_retention_cloudFootprint": "{count, plural, one{{count} Sicherung im Cloud-Ordner belegt {size}} other{{count} Sicherungen im Cloud-Ordner belegen {size}}}",
   "backup_retention_confirm_title": "{count, plural, one{{count} Sicherung entfernen?} other{{count} Sicherungen entfernen?}}",
   "backup_retention_confirm_body": "Wenn die letzten {keep} Sicherungen behalten werden, werden diese aus dem Cloud-Ordner entfernt ({size} insgesamt).",
   "backup_retention_confirm_pinnedKept": "{count, plural, one{{count} angeheftete Sicherung bleibt erhalten.} other{{count} angeheftete Sicherungen bleiben erhalten.}}",

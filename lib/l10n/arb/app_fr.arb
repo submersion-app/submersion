@@ -736,7 +736,7 @@
   "backup_retention_allDevices_title": "Compter les sauvegardes de tous les appareils",
   "backup_retention_allDevices_off": "Désactivé : cet appareil ne supprime que ses propres sauvegardes",
   "backup_retention_allDevices_on": "Le dossier cloud conserve les {count} dernières sauvegardes de tous les appareils. Les sauvegardes épinglées sont conservées. Si d'autres appareils utilisent aussi ce réglage, le plus petit nombre l'emporte. Mettez d'abord l'app à jour sur tous les appareils pour que leurs épingles soient prises en compte.",
-  "backup_retention_cloudFootprint": "{count} sauvegardes du dossier cloud occupent {size}",
+  "backup_retention_cloudFootprint": "{count, plural, one{{count} sauvegarde du dossier cloud occupe {size}} other{{count} sauvegardes du dossier cloud occupent {size}}}",
   "backup_retention_confirm_title": "{count, plural, one{Supprimer {count} sauvegarde ?} other{Supprimer {count} sauvegardes ?}}",
   "backup_retention_confirm_body": "Conserver les {keep} dernières sauvegardes supprime celles-ci du dossier cloud ({size} au total).",
   "backup_retention_confirm_pinnedKept": "{count, plural, one{{count} sauvegarde épinglée est conservée.} other{{count} sauvegardes épinglées sont conservées.}}",

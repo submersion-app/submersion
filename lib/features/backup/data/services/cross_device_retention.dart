@@ -16,10 +16,16 @@ import 'package:submersion/features/backup/data/services/cloud_backup_history.da
 
 const String _backupPrefix = 'submersion_backup_';
 
-/// Nothing younger than this is removed, whatever its rank. Names carry the
-/// writing device's local time, so devices in different time zones can
-/// mis-order recent backups by up to about a day; inside the grace period
-/// that skew can only keep a backup, never remove one.
+/// Nothing younger than this is removed, whatever its rank, and no pin
+/// marker younger than this is treated as an orphan.
+///
+/// Names carry the writing device's local time, so two devices can read a
+/// backup's age wrongly by up to 26 hours (UTC+14 against UTC-12). The
+/// modified time, which the cloud service stamps, is checked too, so a
+/// backup just uploaded is inside the grace whatever its name says. Beyond
+/// the grace the skew can still order two backups from different zones the
+/// wrong way round, keeping the older; the spec accepts that for a sort key
+/// every device agrees on.
 const Duration crossDeviceRetentionGrace = Duration(hours: 24);
 
 /// One backup a plan removes.
@@ -113,16 +119,27 @@ CrossDeviceRetentionPlan planCrossDeviceRetention({
       now.difference(c.timestamp) < crossDeviceRetentionGrace ||
       now.difference(c.file.modifiedTime) < crossDeviceRetentionGrace;
 
-  final listedStems = {for (final f in backups) backupStem(f.name)};
+  // Any backup-like name counts here, not only the strict ones the rule
+  // manages: a pinned conflicted copy keeps its marker.
+  final listedStems = {
+    for (final f in listing)
+      if (f.name.startsWith(_backupPrefix) &&
+          backupFileExtensions.contains(p.extension(f.name)))
+        backupStem(f.name),
+  };
   return CrossDeviceRetentionPlan(
     keepCount: keepCount,
     toDelete: [
       for (final c in unpinned.skip(keepCount))
         if (!inGrace(c)) c,
     ],
+    // A young marker may have arrived before its backup (a sync-folder
+    // backend delivers the empty file first), so only an old one is gone.
     orphanMarkers: [
       for (final (file, m) in markers)
-        if (!listedStems.contains(m.backupStem)) file,
+        if (!listedStems.contains(m.backupStem) &&
+            now.difference(file.modifiedTime) >= crossDeviceRetentionGrace)
+          file,
     ],
     pinnedKept: backups.length - unpinned.length,
   );

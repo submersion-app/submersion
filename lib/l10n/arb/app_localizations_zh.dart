@@ -2513,7 +2513,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String backup_retention_cloudFootprint(int count, String size) {
-    return '云文件夹中的 $count 个备份占用 $size';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '云文件夹中的 $count 个备份占用 $size',
+    );
+    return '$_temp0';
   }
 
   @override

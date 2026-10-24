@@ -140,7 +140,12 @@ them visible:
   whose cloud copy is in the listed folder and lacks this device's marker, and
   deletes this device's markers for backups it no longer has pinned. It runs
   whether or not the switch is on, and it never touches another device's
-  markers. A failure is logged and retried next time.
+  markers. A failure is logged and retried next time. A successful pass
+  records what it mirrored, so a prune lists the folder for it only when the
+  pins have changed since (listing is a round trip, and on iCloud it can
+  start downloads). A prune lists the folder at all only when it needs to:
+  the switch is on, a pin changed, or a cloud copy of this device's own is
+  due to go. When that listing fails, no cloud copy goes that round.
 - A cloud row discovered from the listing (not in this device's history) that
   has another device's marker shows as pinned, with "Pinned on another device"
   as its explanation, and offers no unpin here (only the device that pinned it
@@ -191,8 +196,9 @@ or changing it with the switch off, saves it with no dialog, as today.
 
 ### The switch belongs to the folder it was confirmed for
 
-The setting stores the cloud account id the diver confirmed it for, beside
-the on/off flag. The rule only runs when the folder being pruned is in that
+The setting stores the cloud account id the diver confirmed it for (or
+`provider:<id>` when the account id cannot be read, never an empty key that
+two unknown accounts could share). The rule only runs when the folder being pruned is in that
 account. When the backup destination changes (a different account or
 provider, or cloud backup turned off), the switch reads as off and turning it
 on again goes through the confirmation for the new folder. Scheduled

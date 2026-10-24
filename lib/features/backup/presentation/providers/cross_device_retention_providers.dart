@@ -23,3 +23,9 @@ final crossDeviceRetentionActiveProvider = FutureProvider.autoDispose<bool>((
   );
   return ref.watch(backupServiceProvider).crossDeviceRetentionActive();
 });
+
+/// The account backups are copied to now, so the folder footprint counts
+/// only copies in that folder.
+final backupCopyAccountIdProvider = FutureProvider.autoDispose<String?>(
+  (ref) => ref.watch(backupServiceProvider).cloudCopyAccountId(),
+);
