@@ -233,7 +233,39 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text('page /settings/cloud-sync'), findsOneWidget);
+    // No account chosen yet: Set up starts from the account step.
+    expect(find.text('page /settings/setup?step=account'), findsOneWidget);
+  });
+
+  testWidgets('with an account chosen, the sync row sets up sync', (
+    tester,
+  ) async {
+    await pumpData(
+      tester,
+      dataHealth: [
+        health[0],
+        const FeatureHealth(
+          feature: DataFeature.sync,
+          level: HealthLevel.attention,
+          reason: HealthReason.syncOff,
+        ),
+        health[2],
+        health[3],
+      ],
+      setUp: setUpProgressOf(accountHere: true),
+    );
+
+    await tester.tap(
+      find.descendant(
+        of: find.ancestor(
+          of: find.text('Only on this device'),
+          matching: find.byType(ListTile),
+        ),
+        matching: find.text('Set up'),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('page /settings/setup?step=sync'), findsOneWidget);
   });
 
   testWidgets('photos row offers set up when copies are not kept', (
@@ -252,7 +284,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text('page /settings/photos-media'), findsOneWidget);
+    expect(find.text('page /settings/setup?step=photos'), findsOneWidget);
   });
 
   testWidgets('advanced rows push their pages', (tester) async {

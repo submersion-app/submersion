@@ -16220,5 +16220,7 @@
   "settings_setUpDevice_photos_sameAccount": "Ugyanaz a fiók. Nem kell semmit beírni.",
   "settings_setUpDevice_photos_signInFirst": "Előbb bejelentkezik ide: {account}.",
   "settings_setUpDevice_photos_autoUploadHere": "Az itt hozzáadott fotók automatikus feltöltése",
-  "settings_setUpDevice_photos_attachedCount": "{count, plural, =0{Még nincs csatolt fotó vagy videó} =1{{count} csatolt fotó vagy videó} other{{count} csatolt fotó és videó}}"
+  "settings_setUpDevice_photos_attachedCount": "{count, plural, =0{Még nincs csatolt fotó vagy videó} =1{{count} csatolt fotó vagy videó} other{{count} csatolt fotó és videó}}",
+  "settings_setUpDevice_done_title": "{device, select, phone{Ez a telefon be van állítva} tablet{Ez a táblagép be van állítva} computer{Ez a számítógép be van állítva} other{Ez az eszköz be van állítva}}",
+  "settings_setUpDevice_done_otherDevices": "A többi eszközén nyissa meg a Submersiont, válassza ezt: {account}, és ugyanaz a könyvtár jelenik meg."
 }

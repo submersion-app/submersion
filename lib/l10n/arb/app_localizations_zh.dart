@@ -51943,4 +51943,20 @@ class AppLocalizationsZh extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String settings_setUpDevice_done_title(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'phone': '这部手机已设置完成',
+      'tablet': '这台平板已设置完成',
+      'computer': '这台电脑已设置完成',
+      'other': '此设备已设置完成',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_done_otherDevices(String account) {
+    return '在你的其他设备上打开 Submersion，选择 $account，就会出现同一个资料库。';
+  }
 }

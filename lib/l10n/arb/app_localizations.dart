@@ -87399,6 +87399,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =0{No photos or videos attached yet} =1{{count} photo or video attached} other{{count} photos and videos attached}}'**
   String settings_setUpDevice_photos_attachedCount(int count);
+
+  /// Heading of the screen after the last setup step
+  ///
+  /// In en, this message translates to:
+  /// **'{device, select, phone{This phone is set up} tablet{This tablet is set up} computer{This computer is set up} other{This device is set up}}'**
+  String settings_setUpDevice_done_title(String device);
+
+  /// Closing sentence of the setup done screen
+  ///
+  /// In en, this message translates to:
+  /// **'On your other devices, open Submersion, choose {account}, and the same library appears.'**
+  String settings_setUpDevice_done_otherDevices(String account);
 }
 
 class _AppLocalizationsDelegate

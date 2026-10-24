@@ -56074,4 +56074,20 @@ class AppLocalizationsAr extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String settings_setUpDevice_done_title(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'phone': 'تم إعداد هذا الهاتف',
+      'tablet': 'تم إعداد هذا الجهاز اللوحي',
+      'computer': 'تم إعداد هذا الحاسوب',
+      'other': 'تم إعداد هذا الجهاز',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_done_otherDevices(String account) {
+    return 'على أجهزتك الأخرى، افتح Submersion واختر $account، وستظهر المكتبة نفسها.';
+  }
 }

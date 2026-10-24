@@ -5,6 +5,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/settings/domain/data_health/data_row_status.dart';
 import 'package:submersion/features/settings/domain/data_health/feature_health.dart';
+import 'package:submersion/features/settings/domain/setup/set_up_progress.dart';
 import 'package:submersion/features/settings/presentation/providers/data_health_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/data_row_status_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/set_up_progress_provider.dart';
@@ -76,6 +77,12 @@ class _DataSectionContentState extends ConsumerState<DataSectionContent> {
     final offerSetUpAgain = ref.watch(
       setUpProgressProvider.select((p) => p != null && !p.showsSteps),
     );
+    // Sync's Set up starts from the account step until one is chosen.
+    final accountChosen = ref.watch(
+      setUpProgressProvider.select(
+        (p) => p?.marks[SetUpStep.account] == SetUpMark.done,
+      ),
+    );
 
     Widget feature({
       required IconData icon,
@@ -83,6 +90,7 @@ class _DataSectionContentState extends ConsumerState<DataSectionContent> {
       required DataRowStatus status,
       required String route,
       DataFeature? healthOf,
+      SetUpStep? setUpStep,
     }) => DataRowTile(
       icon: icon,
       title: title,
@@ -92,6 +100,7 @@ class _DataSectionContentState extends ConsumerState<DataSectionContent> {
           ? null
           : health[healthOf],
       offersSetUp: status.offersSetUp,
+      setUpRoute: setUpStep == null ? null : setUpStepRoute(setUpStep),
     );
 
     Widget advanced(
@@ -121,6 +130,7 @@ class _DataSectionContentState extends ConsumerState<DataSectionContent> {
             status: ref.watch(backupsRowStatusProvider),
             route: '/settings/backup',
             healthOf: DataFeature.backup,
+            setUpStep: SetUpStep.backups,
           ),
           // Available on every platform (iCloud on Apple devices, other
           // accounts everywhere); the sync page gates which each one sees.
@@ -130,6 +140,7 @@ class _DataSectionContentState extends ConsumerState<DataSectionContent> {
             status: ref.watch(syncRowStatusProvider),
             route: '/settings/cloud-sync',
             healthOf: DataFeature.sync,
+            setUpStep: accountChosen ? SetUpStep.sync : SetUpStep.account,
           ),
           feature(
             icon: Icons.perm_media_outlined,
@@ -137,6 +148,7 @@ class _DataSectionContentState extends ConsumerState<DataSectionContent> {
             status: ref.watch(photosRowStatusProvider),
             route: '/settings/photos-media',
             healthOf: DataFeature.media,
+            setUpStep: SetUpStep.photos,
           ),
           // Shared site libraries (issue #2567).
           feature(

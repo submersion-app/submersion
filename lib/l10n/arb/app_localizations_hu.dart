@@ -55000,4 +55000,20 @@ class AppLocalizationsHu extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String settings_setUpDevice_done_title(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'phone': 'Ez a telefon be van állítva',
+      'tablet': 'Ez a táblagép be van állítva',
+      'computer': 'Ez a számítógép be van állítva',
+      'other': 'Ez az eszköz be van állítva',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_done_otherDevices(String account) {
+    return 'A többi eszközén nyissa meg a Submersiont, válassza ezt: $account, és ugyanaz a könyvtár jelenik meg.';
+  }
 }

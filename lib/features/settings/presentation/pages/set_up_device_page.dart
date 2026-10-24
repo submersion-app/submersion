@@ -6,6 +6,7 @@ import 'package:submersion/features/settings/presentation/providers/set_up_card_
 import 'package:submersion/features/settings/presentation/providers/set_up_progress_provider.dart';
 import 'package:submersion/features/settings/presentation/widgets/set_up_device/set_up_account_step.dart';
 import 'package:submersion/features/settings/presentation/widgets/set_up_device/set_up_backups_step.dart';
+import 'package:submersion/features/settings/presentation/widgets/set_up_device/set_up_done_view.dart';
 import 'package:submersion/features/settings/presentation/widgets/set_up_device/set_up_photos_step.dart';
 import 'package:submersion/features/settings/presentation/widgets/set_up_device/set_up_step_navigation.dart';
 import 'package:submersion/features/settings/presentation/widgets/set_up_device/set_up_sync_step.dart';
@@ -94,9 +95,9 @@ class _SetUpDevicePageState extends ConsumerState<SetUpDevicePage> {
     final l10n = context.l10n;
     final Widget body;
     if (_done) {
-      body = const KeyedSubtree(
+      body = KeyedSubtree(
         key: SetUpDevicePage.doneKey,
-        child: SizedBox(),
+        child: SetUpDoneView(onDone: _close),
       );
     } else if (step == null) {
       body = const Center(child: CircularProgressIndicator());

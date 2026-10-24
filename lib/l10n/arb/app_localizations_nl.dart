@@ -54971,4 +54971,20 @@ class AppLocalizationsNl extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String settings_setUpDevice_done_title(String device) {
+    String _temp0 = intl.Intl.selectLogic(device, {
+      'phone': 'Deze telefoon is ingesteld',
+      'tablet': 'Deze tablet is ingesteld',
+      'computer': 'Deze computer is ingesteld',
+      'other': 'Dit apparaat is ingesteld',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_done_otherDevices(String account) {
+    return 'Open Submersion op je andere apparaten, kies $account, en dezelfde bibliotheek verschijnt.';
+  }
 }
