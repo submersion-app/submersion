@@ -161,6 +161,34 @@ object Media3ColorEncoder {
         }
     }
 
+    /** The transfer of [path]'s video track, or null when it cannot be read. */
+    private fun transferOf(path: String): SignalTransfer? = try {
+        val extractor = MediaExtractor()
+        try {
+            extractor.setDataSource(path)
+            (0 until extractor.trackCount)
+                .map { extractor.getTrackFormat(it) }
+                .firstOrNull { it.getString(MediaFormat.KEY_MIME)?.startsWith("video/") == true }
+                ?.let { format ->
+                    when (
+                        if (format.containsKey(MediaFormat.KEY_COLOR_TRANSFER)) {
+                            format.getInteger(MediaFormat.KEY_COLOR_TRANSFER)
+                        } else {
+                            0
+                        }
+                    ) {
+                        MediaFormat.COLOR_TRANSFER_ST2084 -> SignalTransfer.PQ
+                        MediaFormat.COLOR_TRANSFER_HLG -> SignalTransfer.HLG
+                        else -> SignalTransfer.SDR
+                    }
+                }
+        } finally {
+            extractor.release()
+        }
+    } catch (e: Exception) {
+        null
+    }
+
     private val TEN_BIT_PROFILES = setOf(
         MediaCodecInfo.CodecProfileLevel.HEVCProfileMain10,
         MediaCodecInfo.CodecProfileLevel.HEVCProfileMain10HDR10,
@@ -256,6 +284,15 @@ object Media3ColorEncoder {
                         if (jobs.remove(progressId) == null) return
                         main.removeCallbacks(poll)
                         onProgress(1.0)
+                        // An HDR source must come out HDR: a device that
+                        // tone-mapped it instead cannot do this encode.
+                        if (info.transfer != SignalTransfer.SDR &&
+                            transferOf(tmp.absolutePath) != info.transfer
+                        ) {
+                            tmp.delete()
+                            done.call("unsupported", "HDR could not be kept on this device")
+                            return
+                        }
                         val outputFile = File(output)
                         outputFile.delete()
                         if (tmp.renameTo(outputFile)) {

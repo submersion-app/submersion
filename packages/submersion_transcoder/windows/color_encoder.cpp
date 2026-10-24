@@ -157,19 +157,24 @@ void Correct(double rgb[3], const std::array<float, 20>& m, Transfer t) {
 struct Ycc {
   double kr, kb;
   bool ten_bit;
-  double ToY(int code) const {
-    return ten_bit ? (code - 64) / 876.0 : (code - 16) / 219.0;
-  }
-  double ToC(int code) const {
-    return ten_bit ? (code - 512) / 896.0 : (code - 128) / 224.0;
-  }
+  // Full range (0..255) rather than video range (16..235, chroma 16..240),
+  // as the source's MF_MT_VIDEO_NOMINAL_RANGE says.
+  bool full_range = false;
+  double Max() const { return ten_bit ? 1023.0 : 255.0; }
+  double Scale() const { return ten_bit ? 4.0 : 1.0; }
+  double YOffset() const { return full_range ? 0 : 16 * Scale(); }
+  double YSpan() const { return full_range ? Max() : 219 * Scale(); }
+  double CSpan() const { return full_range ? Max() : 224 * Scale(); }
+  double CMid() const { return 128 * Scale(); }
+  double ToY(int code) const { return (code - YOffset()) / YSpan(); }
+  double ToC(int code) const { return (code - CMid()) / CSpan(); }
   int FromY(double y) const {
-    const double v = ten_bit ? 64 + y * 876.0 : 16 + y * 219.0;
-    return static_cast<int>(std::lround(std::clamp(v, 0.0, ten_bit ? 1023.0 : 255.0)));
+    return static_cast<int>(
+        std::lround(std::clamp(YOffset() + y * YSpan(), 0.0, Max())));
   }
   int FromC(double c) const {
-    const double v = ten_bit ? 512 + c * 896.0 : 128 + c * 224.0;
-    return static_cast<int>(std::lround(std::clamp(v, 0.0, ten_bit ? 1023.0 : 255.0)));
+    return static_cast<int>(
+        std::lround(std::clamp(CMid() + c * CSpan(), 0.0, Max())));
   }
   void ToRgb(double y, double cb, double cr, double rgb[3]) const {
     const double kg = 1 - kr - kb;
@@ -363,10 +368,14 @@ ColorEncodeResult EncodeWithColor(const std::wstring& source,
     native->GetGUID(MF_MT_SUBTYPE, &codec);
     UINT32 width = 0, height = 0;
     MFGetAttributeSize(native.Get(), MF_MT_FRAME_SIZE, &width, &height);
-    width &= ~1u;
-    height &= ~1u;
     if (width == 0 || height == 0) {
       return fail(ColorEncodeOutcome::kFailed, "the video has no frame size");
+    }
+    // 4:2:0 frames have even sides; an odd-sized source would have to be
+    // cropped, which the copy must never do silently.
+    if ((width & 1u) != 0 || (height & 1u) != 0) {
+      return fail(ColorEncodeOutcome::kUnsupported,
+                  "an odd frame size cannot be encoded as 4:2:0");
     }
     const UINT32 transfer_fn =
         MFGetAttributeUINT32(native.Get(), MF_MT_TRANSFER_FUNCTION,
@@ -393,6 +402,9 @@ ColorEncodeResult EncodeWithColor(const std::wstring& source,
         transfer != Transfer::kSdr ? MFVideoTransferMatrix_BT2020_10
                                    : MFVideoTransferMatrix_BT709);
     Ycc ycc{0.2126, 0.0722, ten_bit};
+    ycc.full_range = MFGetAttributeUINT32(native.Get(), MF_MT_VIDEO_NOMINAL_RANGE,
+                                          MFNominalRange_16_235) ==
+                     MFNominalRange_0_255;
     if (matrix == MFVideoTransferMatrix_BT2020_10 ||
         matrix == MFVideoTransferMatrix_BT2020_12) {
       ycc.kr = 0.2627;
@@ -505,12 +517,17 @@ ColorEncodeResult EncodeWithColor(const std::wstring& source,
         audio.emplace_back(i, out_stream);
         continue;
       }
-      const UINT32 rate = MFGetAttributeUINT32(
-          type.Get(), MF_MT_AUDIO_SAMPLES_PER_SECOND, 48000);
+      // The AAC encoder takes 44.1 or 48 kHz and 1, 2 or 6 channels; any
+      // other source is not re-encoded into something it was not.
+      const UINT32 aac_rate = MFGetAttributeUINT32(
+          type.Get(), MF_MT_AUDIO_SAMPLES_PER_SECOND, 0);
       const UINT32 channels =
-          std::min<UINT32>(2, MFGetAttributeUINT32(
-                                  type.Get(), MF_MT_AUDIO_NUM_CHANNELS, 2));
-      const UINT32 aac_rate = rate == 44100 ? 44100 : 48000;
+          MFGetAttributeUINT32(type.Get(), MF_MT_AUDIO_NUM_CHANNELS, 0);
+      if ((aac_rate != 44100 && aac_rate != 48000) ||
+          (channels != 1 && channels != 2 && channels != 6)) {
+        return fail(ColorEncodeOutcome::kUnsupported,
+                    "the audio's rate or channel count cannot be kept in AAC");
+      }
       ComPtr<IMFMediaType> pcm, aac;
       MFCreateMediaType(&pcm);
       pcm->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Audio);

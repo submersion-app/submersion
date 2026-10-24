@@ -111,7 +111,10 @@ final class ColorEncoder {
         kCVPixelBufferIOSurfacePropertiesKey as String: [:],
       ])
 
-    let audio = addAudioTracks(of: asset, reader: reader, writer: writer)
+    let audio = try addAudioTracks(of: asset, reader: reader, writer: writer)
+    // Built before reading starts, so a kernel that cannot compile leaves
+    // nothing to clean up.
+    let kernel = try ColorKernel(transfer: traits.transfer)
 
     guard reader.startReading() else {
       discard()
@@ -130,7 +133,6 @@ final class ColorEncoder {
     let firstPts = CMSampleBufferGetPresentationTimeStamp(first)
     writer.startSession(atSourceTime: firstPts)
 
-    let kernel = try ColorKernel(transfer: traits.transfer)
     let timeline = Timeline(keys: keys)
     let durationSec = max(0.001, CMTimeGetSeconds(asset.duration))
     let group = DispatchGroup()
@@ -248,10 +250,12 @@ final class ColorEncoder {
   }
 
   /// Every audio track, copied as it is where MP4 can hold it, otherwise
-  /// re-encoded as AAC at its own rate and channel count.
+  /// re-encoded as AAC at its own rate and channel count. A track that can
+  /// be written neither way makes the encode unsupported: the copy keeps
+  /// every audio track or is not made.
   private static func addAudioTracks(
     of asset: AVAsset, reader: AVAssetReader, writer: AVAssetWriter
-  ) -> [(AVAssetWriterInput, AVAssetReaderTrackOutput)] {
+  ) throws -> [(AVAssetWriterInput, AVAssetReaderTrackOutput)] {
     var pairs: [(AVAssetWriterInput, AVAssetReaderTrackOutput)] = []
     for track in asset.tracks(withMediaType: .audio) {
       let hint = track.formatDescriptions.first.map { $0 as! CMFormatDescription }
@@ -292,11 +296,13 @@ final class ColorEncoder {
           AVEncoderBitRateKey: 96_000 * max(1, channels),
         ])
       aac.expectsMediaDataInRealTime = false
-      if reader.canAdd(out), writer.canAdd(aac) {
-        reader.add(out)
-        writer.add(aac)
-        pairs.append((aac, out))
+      guard reader.canAdd(out), writer.canAdd(aac) else {
+        throw ColorEncodeError.unsupported(
+          "an audio track (\(rate) Hz, \(channels) channels) cannot be written to MP4")
       }
+      reader.add(out)
+      writer.add(aac)
+      pairs.append((aac, out))
     }
     return pairs
   }
