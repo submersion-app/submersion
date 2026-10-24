@@ -174,6 +174,82 @@ Uint8List _lociBox(double lat, double lon, double alt) {
   ]);
 }
 
+/// The display matrix of [file]'s video track (its `tkhd`, nine 32-bit
+/// fixed-point values), which carries the clip's rotation. Null when there
+/// is no video track or the file cannot be read.
+Future<List<int>?> readMp4VideoMatrix(File file) async {
+  RandomAccessFile? raf;
+  try {
+    raf = await file.open();
+    final moov = await _findTopLevel(raf, 'moov');
+    if (moov == null) return null;
+    await raf.setPosition(moov.payloadStart);
+    final bytes = await raf.read(moov.payloadLength);
+    final at = _videoMatrixOffset(bytes);
+    if (at == null) return null;
+    final data = ByteData.sublistView(bytes);
+    return [for (var i = 0; i < 9; i++) data.getInt32(at + i * 4)];
+  } on Object {
+    return null;
+  } finally {
+    await raf?.close();
+  }
+}
+
+/// Writes [matrix] (nine values) into [file]'s video track header, in place
+/// (issue #3521), for an encoder that turned a rotated clip's frames
+/// instead of keeping its rotation. Returns whether it was written.
+Future<bool> setMp4VideoMatrix(File file, List<int> matrix) async {
+  if (matrix.length != 9) return false;
+  final raf = await file.open(mode: FileMode.append);
+  try {
+    final moov = await _findTopLevel(raf, 'moov');
+    if (moov == null) return false;
+    await raf.setPosition(moov.payloadStart);
+    final bytes = await raf.read(moov.payloadLength);
+    final at = _videoMatrixOffset(bytes);
+    if (at == null) return false;
+    final field = ByteData(36);
+    for (var i = 0; i < 9; i++) {
+      field.setInt32(i * 4, matrix[i]);
+    }
+    await raf.setPosition(moov.payloadStart + at);
+    await raf.writeFrom(field.buffer.asUint8List());
+    return true;
+  } on Object {
+    return false;
+  } finally {
+    await raf.close();
+  }
+}
+
+/// Where, in a moov payload, the video track's tkhd matrix starts.
+int? _videoMatrixOffset(Uint8List moov) {
+  for (final trak in _children(moov, 0, moov.length)) {
+    if (trak.type != 'trak') continue;
+    _Box? tkhd;
+    var video = false;
+    for (final child in _children(moov, trak.payloadStart, trak.end)) {
+      if (child.type == 'tkhd') tkhd = child;
+      if (child.type != 'mdia') continue;
+      for (final m in _children(moov, child.payloadStart, child.end)) {
+        if (m.type == 'hdlr' && m.payloadLength >= 12) {
+          video =
+              latin1.decode(
+                moov.sublist(m.payloadStart + 8, m.payloadStart + 12),
+              ) ==
+              'vide';
+        }
+      }
+    }
+    if (!video || tkhd == null) continue;
+    // version 1 has 64-bit times and duration: 12 more bytes before it.
+    final at = tkhd.payloadStart + (moov[tkhd.payloadStart] == 1 ? 52 : 40);
+    return at + 36 <= tkhd.end ? at : null;
+  }
+  return null;
+}
+
 final _epoch = DateTime.utc(1904);
 
 class _Box {

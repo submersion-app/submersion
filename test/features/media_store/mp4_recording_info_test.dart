@@ -73,6 +73,34 @@ Uint8List trackHeader(String type, DateTime t) => box(type, [
   ...List.filled(type == 'tkhd' ? 76 : 12, 0),
 ]);
 
+const identityMatrix = [0x10000, 0, 0, 0, 0x10000, 0, 0, 0, 0x40000000];
+const rotate90Matrix = [0, 0x10000, 0, -0x10000, 0, 0, 0, 0, 0x40000000];
+
+/// A trak with a version 0 track header carrying [matrix], whose media
+/// handler is [handler] ('vide' or 'soun').
+Uint8List trak(List<int> matrix, {String handler = 'vide'}) {
+  final tkhd = ByteData(84)..setUint32(12, 1);
+  for (var i = 0; i < 9; i++) {
+    tkhd.setInt32(40 + i * 4, matrix[i]);
+  }
+  final hdlr = [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    ...latin1.encode(handler),
+    ...List.filled(13, 0),
+  ];
+  return box('trak', [
+    ...box('tkhd', tkhd.buffer.asUint8List()),
+    ...box('mdia', box('hdlr', hdlr)),
+  ]);
+}
+
 DateTime trackHeaderDate(Uint8List file, String type) {
   final at = _indexOf(file, latin1.encode(type));
   final seconds = ByteData.sublistView(file).getUint32(at + 8);
@@ -245,6 +273,35 @@ void main() {
     final bytes = await f.readAsBytes();
     expect(trackHeaderDate(bytes, 'tkhd'), date);
     expect(trackHeaderDate(bytes, 'mdhd'), date);
+  });
+
+  group('video matrix', () {
+    test('reads the video track matrix, not the sound one', () async {
+      final f = await write(
+        movie([
+          mvhd(date),
+          trak(identityMatrix, handler: 'soun'),
+          trak(rotate90Matrix),
+        ]),
+      );
+      expect(await readMp4VideoMatrix(f), rotate90Matrix);
+    });
+
+    test('writes the video track matrix in place', () async {
+      final f = await write(
+        movie([mvhd(date), trak(identityMatrix)], moovLast: true),
+      );
+      final before = await f.length();
+      expect(await setMp4VideoMatrix(f, rotate90Matrix), isTrue);
+      expect(await readMp4VideoMatrix(f), rotate90Matrix);
+      expect(await f.length(), before);
+    });
+
+    test('a file with no video track gives no matrix', () async {
+      final f = await write(movie([mvhd(date)]));
+      expect(await readMp4VideoMatrix(f), isNull);
+      expect(await setMp4VideoMatrix(f, rotate90Matrix), isFalse);
+    });
   });
 
   group('addMp4Location', () {

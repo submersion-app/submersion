@@ -8,7 +8,8 @@ import 'package:submersion_transcoder/submersion_transcoder.dart';
 import 'package:path/path.dart' as p;
 
 import 'color_timeline_test.dart' show gains20, identity20;
-import 'mp4_recording_info_test.dart' show box, movie, mvhd, xyz;
+import 'mp4_recording_info_test.dart'
+    show box, identityMatrix, movie, mvhd, rotate90Matrix, trak, xyz;
 
 /// Issue #3521: the colour-corrected encode over the transcoder channel.
 void main() {
@@ -292,6 +293,26 @@ void main() {
         (await readMp4RecordingInfo(output)).location,
         '+01.0000+002.0000+000.000/',
       );
+    });
+
+    test('a copy that lost the rotation gets the source one', () async {
+      final source = File(p.join(dir.path, 'in.mp4'))
+        ..writeAsBytesSync(
+          movie([mvhd(DateTime.utc(2026)), trak(rotate90Matrix)]),
+        );
+      final output = File(p.join(dir.path, 'out.mp4'));
+      messenger.setMockMethodCallHandler(methods, (call) async {
+        output.writeAsBytesSync(
+          movie([mvhd(DateTime.utc(2030)), trak(identityMatrix)]),
+        );
+        return null;
+      });
+      await ChannelTranscodeEngine().encodeWithColor(
+        source: source,
+        output: output,
+        timeline: timeline,
+      );
+      expect(await readMp4VideoMatrix(output), rotate90Matrix);
     });
 
     test('a source with no date leaves the copy as written', () async {

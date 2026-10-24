@@ -91,16 +91,18 @@ void main() {
         c.transfer,
       );
       // An engine's YUV and RGB conversions can shift every frame by the
-      // same amount (an Android emulator's do): measured on the first
-      // frame, held to a loose bound, and taken out of the check of the
-      // correction itself.
-      final firstBefore = await bandColors(ffmpeg, source, first, hdr: hdr);
-      final firstAfter = await bandColors(ffmpeg, copy, first, hdr: hdr);
+      // same amount (an Android emulator's do): measured once, held to a
+      // loose bound, and taken out of the check of the correction itself.
+      // Measured where the timeline no longer changes (from 2 s), so a
+      // timing difference cannot pass for a conversion shift.
+      final steady = first + 2.2;
+      final steadyBefore = await bandColors(ffmpeg, source, steady, hdr: hdr);
+      final steadyAfter = await bandColors(ffmpeg, copy, steady, hdr: hdr);
       final shift = [
-        for (var band = 0; band < firstBefore.length; band++)
+        for (var band = 0; band < steadyBefore.length; band++)
           [
             for (var ch = 0; ch < 3; ch++)
-              firstAfter[band][ch] - expected(firstBefore[band], first)[ch],
+              steadyAfter[band][ch] - expected(steadyBefore[band], steady)[ch],
           ],
       ];
       for (final s in shift.expand((band) => band)) {

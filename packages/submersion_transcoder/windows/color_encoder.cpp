@@ -462,6 +462,9 @@ ColorEncodeResult EncodeWithColor(const std::wstring& source,
                                    &s.writer);
     if (FAILED(hr)) return hr_fail("creating the output", hr);
 
+    // No MF_MT_VIDEO_ROTATION here: given one, the sink writer turns the
+    // frames upright and letterboxes them. The Dart side copies the source's
+    // rotation matrix into the finished copy instead.
     auto describe = [&](IMFMediaType* type) {
       type->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Video);
       MFSetAttributeSize(type, MF_MT_FRAME_SIZE, width, height);
@@ -469,7 +472,7 @@ ColorEncodeResult EncodeWithColor(const std::wstring& source,
       for (const GUID& key :
            {MF_MT_FRAME_RATE, MF_MT_PIXEL_ASPECT_RATIO, MF_MT_YUV_MATRIX,
             MF_MT_VIDEO_PRIMARIES, MF_MT_TRANSFER_FUNCTION,
-            MF_MT_VIDEO_NOMINAL_RANGE, MF_MT_VIDEO_ROTATION,
+            MF_MT_VIDEO_NOMINAL_RANGE,
             MF_MT_MAX_MASTERING_LUMINANCE, MF_MT_MIN_MASTERING_LUMINANCE,
             MF_MT_MAX_LUMINANCE_LEVEL, MF_MT_MAX_FRAME_AVERAGE_LUMINANCE_LEVEL,
             MF_MT_CUSTOM_VIDEO_PRIMARIES}) {

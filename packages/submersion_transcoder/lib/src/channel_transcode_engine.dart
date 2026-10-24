@@ -242,6 +242,16 @@ class ChannelTranscodeEngine implements TranscodeEngine, ColorEncoder {
           (await readMp4RecordingInfo(output)).location == null) {
         await addMp4Location(output, location);
       }
+      // An encoder that turned a rotated clip's frames upright (Media
+      // Foundation) leaves the copy's matrix plain; give it the source's.
+      final sourceMatrix = await readMp4VideoMatrix(source);
+      final copyMatrix = await readMp4VideoMatrix(output);
+      if (sourceMatrix != null &&
+          copyMatrix != null &&
+          !_sameMatrix(sourceMatrix, copyMatrix) &&
+          _sameMatrix(copyMatrix, _identityMatrix)) {
+        await setMp4VideoMatrix(output, sourceMatrix);
+      }
       final created = recording.created;
       if (created != null) await stampMp4CreationTime(output, created);
       // Polled progress can miss the end, which comes between two polls.
@@ -264,4 +274,13 @@ class ChannelTranscodeEngine implements TranscodeEngine, ColorEncoder {
       await sub?.cancel();
     }
   }
+}
+
+const _identityMatrix = [0x10000, 0, 0, 0, 0x10000, 0, 0, 0, 0x40000000];
+
+bool _sameMatrix(List<int> a, List<int> b) {
+  for (var i = 0; i < 9; i++) {
+    if (a[i] != b[i]) return false;
+  }
+  return true;
 }
