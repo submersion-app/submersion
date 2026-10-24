@@ -55197,4 +55197,144 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settings_setUpDevice_offer_ownServer =>
       'Stockage compatible S3 ou serveur WebDAV';
+
+  @override
+  String get settings_setUpDevice_sync_title =>
+      'Les plongées sur chaque appareil';
+
+  @override
+  String settings_setUpDevice_sync_signedIn(String account) {
+    return 'Connecté à $account';
+  }
+
+  @override
+  String settings_setUpDevice_sync_noLibrary(String account) {
+    return '$account ne contient pas encore de bibliothèque Submersion. Les plongées d\'ici deviendront la bibliothèque que partagent tous vos appareils.';
+  }
+
+  @override
+  String settings_setUpDevice_sync_found(
+    String account,
+    String when,
+    String device,
+  ) {
+    return 'Votre bibliothèque a été trouvée dans $account, modifiée pour la dernière fois $when sur $device.';
+  }
+
+  @override
+  String settings_setUpDevice_sync_foundPlain(String account) {
+    return 'Votre bibliothèque a été trouvée dans $account.';
+  }
+
+  @override
+  String get settings_setUpDevice_sync_foundEmpty =>
+      'Il n\'y a encore aucune plongée ici, la bibliothèque est donc simplement téléchargée.';
+
+  @override
+  String get settings_setUpDevice_sync_combine => 'Les combiner';
+
+  @override
+  String get settings_setUpDevice_sync_combineDetail =>
+      'Les plongées d\'ici rejoignent la bibliothèque. Une plongée enregistrée séparément sur les deux appareils apparaîtra deux fois.';
+
+  @override
+  String get settings_setUpDevice_sync_replace =>
+      'Remplacer les plongées d\'ici par la bibliothèque';
+
+  @override
+  String get settings_setUpDevice_sync_replaceDetail =>
+      'Une sauvegarde des plongées d\'ici est d\'abord enregistrée, sous Sauvegardes.';
+
+  @override
+  String get settings_setUpDevice_sync_keepInStepDetail =>
+      'Quelques secondes après chaque modification, au lancement et au retour dans l\'app';
+
+  @override
+  String get settings_setUpDevice_sync_turnOn => 'Activer la synchronisation';
+
+  @override
+  String get settings_setUpDevice_sync_download =>
+      'Télécharger la bibliothèque';
+
+  @override
+  String get settings_setUpDevice_sync_combineAndDownload =>
+      'Combiner et télécharger';
+
+  @override
+  String get settings_setUpDevice_sync_replaceAndDownload =>
+      'Remplacer et télécharger';
+
+  @override
+  String get settings_setUpDevice_sync_noAccount =>
+      'Choisissez d\'abord où vos données sont conservées.';
+
+  @override
+  String get settings_setUpDevice_replace_title =>
+      'Remplacer les plongées d\'ici ?';
+
+  @override
+  String get settings_setUpDevice_replace_working =>
+      'Mise de côté des plongées d\'ici et téléchargement de la bibliothèque...';
+
+  @override
+  String get settings_setUpDevice_replace_doneTitle =>
+      'Bibliothèque téléchargée';
+
+  @override
+  String get settings_setUpDevice_replace_stillUploading =>
+      'La bibliothèque est encore en cours d\'envoi depuis un autre appareil. Réessayez quand ce sera terminé.';
+
+  @override
+  String get settings_setUpDevice_replace_photosBusy =>
+      'Des envois de photos sont encore en cours. Réessayez dans un instant.';
+
+  @override
+  String get settings_setUpDevice_replace_failed =>
+      'Impossible de télécharger la bibliothèque. Rien n\'a été modifié.';
+
+  @override
+  String settings_setUpDevice_sync_unreachable(String account) {
+    return 'Impossible de lire $account. Vérifiez la connexion et réessayez.';
+  }
+
+  @override
+  String settings_setUpDevice_replace_noLibrary(String account) {
+    return '$account n\'a pas encore de bibliothèque à rejoindre.';
+  }
+
+  @override
+  String settings_setUpDevice_replace_newerSchema(String devices) {
+    return '$devices utilisent une version plus récente de Submersion. Mettez d\'abord cet appareil à jour.';
+  }
+
+  @override
+  String settings_setUpDevice_replace_backupNote(String date) {
+    return 'Avant de rejoindre la bibliothèque, $date';
+  }
+
+  @override
+  String settings_setUpDevice_replace_body(int count, String account) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Les $count plongées d\'ici sont remplacées par la bibliothèque de $account. Une sauvegarde en est d\'abord enregistrée et reste sous Sauvegardes.',
+      one:
+          'La plongée d\'ici est remplacée par la bibliothèque de $account. Une sauvegarde en est d\'abord enregistrée et reste sous Sauvegardes.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_replace_doneBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Vos $count plongées ont été mises de côté et la bibliothèque téléchargée. Submersion va se recharger.',
+      one:
+          'Votre plongée a été mise de côté et la bibliothèque téléchargée. Submersion va se recharger.',
+    );
+    return '$_temp0';
+  }
 }

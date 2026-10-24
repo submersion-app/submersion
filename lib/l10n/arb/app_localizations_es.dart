@@ -55123,4 +55123,142 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get settings_setUpDevice_offer_ownServer =>
       'Almacenamiento compatible con S3 o un servidor WebDAV';
+
+  @override
+  String get settings_setUpDevice_sync_title =>
+      'Inmersiones en todos tus dispositivos';
+
+  @override
+  String settings_setUpDevice_sync_signedIn(String account) {
+    return 'Sesión iniciada en $account';
+  }
+
+  @override
+  String settings_setUpDevice_sync_noLibrary(String account) {
+    return '$account aún no tiene una biblioteca de Submersion. Las inmersiones de aquí serán la biblioteca que compartirán todos tus dispositivos.';
+  }
+
+  @override
+  String settings_setUpDevice_sync_found(
+    String account,
+    String when,
+    String device,
+  ) {
+    return 'Encontramos tu biblioteca en $account, modificada por última vez $when en $device.';
+  }
+
+  @override
+  String settings_setUpDevice_sync_foundPlain(String account) {
+    return 'Encontramos tu biblioteca en $account.';
+  }
+
+  @override
+  String get settings_setUpDevice_sync_foundEmpty =>
+      'Aquí aún no hay inmersiones, así que la biblioteca simplemente se descarga.';
+
+  @override
+  String get settings_setUpDevice_sync_combine => 'Combinarlas';
+
+  @override
+  String get settings_setUpDevice_sync_combineDetail =>
+      'Las inmersiones de aquí se suman a la biblioteca. Una inmersión registrada por separado en ambos dispositivos aparecerá dos veces.';
+
+  @override
+  String get settings_setUpDevice_sync_replace =>
+      'Reemplazar las inmersiones de aquí por la biblioteca';
+
+  @override
+  String get settings_setUpDevice_sync_replaceDetail =>
+      'Primero se guarda una copia de seguridad de las inmersiones de aquí, en Copias de seguridad.';
+
+  @override
+  String get settings_setUpDevice_sync_keepInStepDetail =>
+      'Unos segundos después de cada cambio, al abrir la app y al volver a ella';
+
+  @override
+  String get settings_setUpDevice_sync_turnOn => 'Activar sincronización';
+
+  @override
+  String get settings_setUpDevice_sync_download => 'Descargar biblioteca';
+
+  @override
+  String get settings_setUpDevice_sync_combineAndDownload =>
+      'Combinar y descargar';
+
+  @override
+  String get settings_setUpDevice_sync_replaceAndDownload =>
+      'Reemplazar y descargar';
+
+  @override
+  String get settings_setUpDevice_sync_noAccount =>
+      'Primero elige dónde se guardan tus datos.';
+
+  @override
+  String get settings_setUpDevice_replace_title =>
+      '¿Reemplazar las inmersiones de aquí?';
+
+  @override
+  String get settings_setUpDevice_replace_working =>
+      'Apartando las inmersiones de aquí y descargando la biblioteca...';
+
+  @override
+  String get settings_setUpDevice_replace_doneTitle => 'Biblioteca descargada';
+
+  @override
+  String get settings_setUpDevice_replace_stillUploading =>
+      'La biblioteca aún se está subiendo desde otro dispositivo. Vuelve a intentarlo cuando termine.';
+
+  @override
+  String get settings_setUpDevice_replace_photosBusy =>
+      'Las subidas de fotos aún están terminando. Vuelve a intentarlo en un momento.';
+
+  @override
+  String get settings_setUpDevice_replace_failed =>
+      'No se pudo descargar la biblioteca. No se cambió nada.';
+
+  @override
+  String settings_setUpDevice_sync_unreachable(String account) {
+    return 'No se pudo leer $account. Comprueba la conexión y vuelve a intentarlo.';
+  }
+
+  @override
+  String settings_setUpDevice_replace_noLibrary(String account) {
+    return '$account aún no tiene una biblioteca a la que unirse.';
+  }
+
+  @override
+  String settings_setUpDevice_replace_newerSchema(String devices) {
+    return '$devices usan una versión más reciente de Submersion. Actualiza primero este dispositivo.';
+  }
+
+  @override
+  String settings_setUpDevice_replace_backupNote(String date) {
+    return 'Antes de unirse a la biblioteca, $date';
+  }
+
+  @override
+  String settings_setUpDevice_replace_body(int count, String account) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Las $count inmersiones de aquí se reemplazan por la biblioteca de $account. Antes se guarda una copia de seguridad, que queda en Copias de seguridad.',
+      one:
+          'La inmersión de aquí se reemplaza por la biblioteca de $account. Antes se guarda una copia de seguridad, que queda en Copias de seguridad.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_replace_doneBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Tus $count inmersiones se apartaron y se descargó la biblioteca. Submersion se volverá a cargar.',
+      one:
+          'Tu inmersión se apartó y se descargó la biblioteca. Submersion se volverá a cargar.',
+    );
+    return '$_temp0';
+  }
 }

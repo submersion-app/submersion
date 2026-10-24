@@ -17,6 +17,7 @@ import 'package:submersion/features/backup/data/repositories/backup_preferences.
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/settings/domain/data_health/feature_health.dart';
 import 'package:submersion/features/settings/domain/setup/set_up_progress.dart';
+import 'package:submersion/features/settings/presentation/providers/account_group_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/debug_log_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/pending_setup_items_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/set_up_progress_provider.dart';
@@ -122,6 +123,8 @@ void main() {
           // Null unless a test sets it: no set up card, no again row.
           setUpProgressProvider.overrideWithValue(setUp),
           pendingSetupItemsProvider.overrideWith((ref) async => const []),
+          // The flow opened in the pane lists the accounts.
+          accountGroupsProvider.overrideWith((ref) async => const []),
         ],
         child: MaterialApp.router(
           locale: const Locale('en'),

@@ -54209,4 +54209,140 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_setUpDevice_offer_ownServer =>
       'S3-compatible storage or a WebDAV server';
+
+  @override
+  String get settings_setUpDevice_sync_title => 'Dives on every device';
+
+  @override
+  String settings_setUpDevice_sync_signedIn(String account) {
+    return 'Signed in to $account';
+  }
+
+  @override
+  String settings_setUpDevice_sync_noLibrary(String account) {
+    return '$account has no Submersion library yet. The dives here will become the library all your devices share.';
+  }
+
+  @override
+  String settings_setUpDevice_sync_found(
+    String account,
+    String when,
+    String device,
+  ) {
+    return 'Found your library in $account, last changed $when on $device.';
+  }
+
+  @override
+  String settings_setUpDevice_sync_foundPlain(String account) {
+    return 'Found your library in $account.';
+  }
+
+  @override
+  String get settings_setUpDevice_sync_foundEmpty =>
+      'There are no dives here yet, so the library is simply downloaded.';
+
+  @override
+  String get settings_setUpDevice_sync_combine => 'Combine them';
+
+  @override
+  String get settings_setUpDevice_sync_combineDetail =>
+      'The dives here join the library. A dive logged separately on both devices will appear twice.';
+
+  @override
+  String get settings_setUpDevice_sync_replace =>
+      'Replace the dives here with the library';
+
+  @override
+  String get settings_setUpDevice_sync_replaceDetail =>
+      'A backup of the dives here is saved first, under Backups.';
+
+  @override
+  String get settings_setUpDevice_sync_keepInStepDetail =>
+      'A few seconds after each change, at launch and when the app returns';
+
+  @override
+  String get settings_setUpDevice_sync_turnOn => 'Turn on sync';
+
+  @override
+  String get settings_setUpDevice_sync_download => 'Download library';
+
+  @override
+  String get settings_setUpDevice_sync_combineAndDownload =>
+      'Combine and download';
+
+  @override
+  String get settings_setUpDevice_sync_replaceAndDownload =>
+      'Replace and download';
+
+  @override
+  String get settings_setUpDevice_sync_noAccount =>
+      'Choose where your data is kept first.';
+
+  @override
+  String get settings_setUpDevice_replace_title => 'Replace the dives here?';
+
+  @override
+  String get settings_setUpDevice_replace_working =>
+      'Setting the dives here aside and downloading the library...';
+
+  @override
+  String get settings_setUpDevice_replace_doneTitle => 'Library downloaded';
+
+  @override
+  String get settings_setUpDevice_replace_stillUploading =>
+      'The library is still being uploaded from another device. Try again once it finishes.';
+
+  @override
+  String get settings_setUpDevice_replace_photosBusy =>
+      'Photo uploads are still finishing. Try again in a moment.';
+
+  @override
+  String get settings_setUpDevice_replace_failed =>
+      'The library could not be downloaded. Nothing was changed.';
+
+  @override
+  String settings_setUpDevice_sync_unreachable(String account) {
+    return 'Could not read $account. Check the connection and try again.';
+  }
+
+  @override
+  String settings_setUpDevice_replace_noLibrary(String account) {
+    return '$account has no library to join yet.';
+  }
+
+  @override
+  String settings_setUpDevice_replace_newerSchema(String devices) {
+    return '$devices use a newer version of Submersion. Update this device first.';
+  }
+
+  @override
+  String settings_setUpDevice_replace_backupNote(String date) {
+    return 'Before joining the library, $date';
+  }
+
+  @override
+  String settings_setUpDevice_replace_body(int count, String account) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'The $count dives here are replaced by the library in $account. A backup of them is saved first and stays under Backups.',
+      one:
+          'The 1 dive here is replaced by the library in $account. A backup of it is saved first and stays under Backups.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_replace_doneBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Your $count dives were set aside and the library was downloaded. Submersion will reload.',
+      one:
+          'Your 1 dive was set aside and the library was downloaded. Submersion will reload.',
+    );
+    return '$_temp0';
+  }
 }

@@ -54767,4 +54767,141 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_setUpDevice_offer_ownServer =>
       'S3-kompatibilis tárhely vagy WebDAV-szerver';
+
+  @override
+  String get settings_setUpDevice_sync_title => 'Merülések minden eszközön';
+
+  @override
+  String settings_setUpDevice_sync_signedIn(String account) {
+    return 'Bejelentkezve: $account';
+  }
+
+  @override
+  String settings_setUpDevice_sync_noLibrary(String account) {
+    return 'A(z) $account még nem tartalmaz Submersion-könyvtárat. Az itteni merülésekből lesz a könyvtár, amelyen minden eszköze osztozik.';
+  }
+
+  @override
+  String settings_setUpDevice_sync_found(
+    String account,
+    String when,
+    String device,
+  ) {
+    return 'Megtaláltuk a könyvtárát itt: $account. Utoljára módosítva: $when, ezen: $device.';
+  }
+
+  @override
+  String settings_setUpDevice_sync_foundPlain(String account) {
+    return 'Megtaláltuk a könyvtárát itt: $account.';
+  }
+
+  @override
+  String get settings_setUpDevice_sync_foundEmpty =>
+      'Itt még nincsenek merülések, így a könyvtár egyszerűen letöltődik.';
+
+  @override
+  String get settings_setUpDevice_sync_combine => 'Egyesítés';
+
+  @override
+  String get settings_setUpDevice_sync_combineDetail =>
+      'Az itteni merülések bekerülnek a könyvtárba. A mindkét eszközön külön rögzített merülés kétszer jelenik meg.';
+
+  @override
+  String get settings_setUpDevice_sync_replace =>
+      'Az itteni merülések cseréje a könyvtárra';
+
+  @override
+  String get settings_setUpDevice_sync_replaceDetail =>
+      'Előbb biztonsági mentés készül az itteni merülésekről a Mentések alatt.';
+
+  @override
+  String get settings_setUpDevice_sync_keepInStepDetail =>
+      'Néhány másodperccel minden módosítás után, indításkor és az alkalmazásba való visszatéréskor';
+
+  @override
+  String get settings_setUpDevice_sync_turnOn => 'Szinkronizálás bekapcsolása';
+
+  @override
+  String get settings_setUpDevice_sync_download => 'Könyvtár letöltése';
+
+  @override
+  String get settings_setUpDevice_sync_combineAndDownload =>
+      'Egyesítés és letöltés';
+
+  @override
+  String get settings_setUpDevice_sync_replaceAndDownload =>
+      'Csere és letöltés';
+
+  @override
+  String get settings_setUpDevice_sync_noAccount =>
+      'Előbb válassza ki, hol legyenek az adatai.';
+
+  @override
+  String get settings_setUpDevice_replace_title =>
+      'Lecseréli az itteni merüléseket?';
+
+  @override
+  String get settings_setUpDevice_replace_working =>
+      'Az itteni merülések félretétele és a könyvtár letöltése...';
+
+  @override
+  String get settings_setUpDevice_replace_doneTitle => 'Könyvtár letöltve';
+
+  @override
+  String get settings_setUpDevice_replace_stillUploading =>
+      'A könyvtár feltöltése egy másik eszközről még folyamatban van. Próbálja újra, ha befejeződött.';
+
+  @override
+  String get settings_setUpDevice_replace_photosBusy =>
+      'A fotófeltöltések még folyamatban vannak. Próbálja újra egy pillanat múlva.';
+
+  @override
+  String get settings_setUpDevice_replace_failed =>
+      'A könyvtárat nem sikerült letölteni. Semmi sem változott.';
+
+  @override
+  String settings_setUpDevice_sync_unreachable(String account) {
+    return 'A(z) $account nem olvasható. Ellenőrizze a kapcsolatot, és próbálja újra.';
+  }
+
+  @override
+  String settings_setUpDevice_replace_noLibrary(String account) {
+    return 'A(z) $account még nem tartalmaz csatlakozható könyvtárat.';
+  }
+
+  @override
+  String settings_setUpDevice_replace_newerSchema(String devices) {
+    return '$devices a Submersion újabb verzióját használja. Előbb frissítse ezt az eszközt.';
+  }
+
+  @override
+  String settings_setUpDevice_replace_backupNote(String date) {
+    return 'A könyvtárhoz csatlakozás előtt, $date';
+  }
+
+  @override
+  String settings_setUpDevice_replace_body(int count, String account) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Az itteni $count merülést a(z) $account könyvtára váltja fel. Előbb biztonsági mentés készül róluk, amely a Mentések alatt marad.',
+      one:
+          'Az itteni merülést a(z) $account könyvtára váltja fel. Előbb biztonsági mentés készül róla, amely a Mentések alatt marad.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_replace_doneBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'A(z) $count merülését félretettük, és letöltöttük a könyvtárat. A Submersion újratöltődik.',
+      one:
+          'A merülését félretettük, és letöltöttük a könyvtárat. A Submersion újratöltődik.',
+    );
+    return '$_temp0';
+  }
 }

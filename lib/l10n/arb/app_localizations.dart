@@ -87116,6 +87116,178 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'S3-compatible storage or a WebDAV server'**
   String get settings_setUpDevice_offer_ownServer;
+
+  /// Title of setup step 2, syncing dives between devices
+  ///
+  /// In en, this message translates to:
+  /// **'Dives on every device'**
+  String get settings_setUpDevice_sync_title;
+
+  /// Opening line of setup step 2
+  ///
+  /// In en, this message translates to:
+  /// **'Signed in to {account}'**
+  String settings_setUpDevice_sync_signedIn(String account);
+
+  /// Step 2: the account holds no library yet
+  ///
+  /// In en, this message translates to:
+  /// **'{account} has no Submersion library yet. The dives here will become the library all your devices share.'**
+  String settings_setUpDevice_sync_noLibrary(String account);
+
+  /// Step 2: a library exists; when is like 3 hours ago, device is the other device's name
+  ///
+  /// In en, this message translates to:
+  /// **'Found your library in {account}, last changed {when} on {device}.'**
+  String settings_setUpDevice_sync_found(
+    String account,
+    String when,
+    String device,
+  );
+
+  /// Step 2: a library exists, with no device or time known
+  ///
+  /// In en, this message translates to:
+  /// **'Found your library in {account}.'**
+  String settings_setUpDevice_sync_foundPlain(String account);
+
+  /// Step 2: this device has no dives, so the library is downloaded
+  ///
+  /// In en, this message translates to:
+  /// **'There are no dives here yet, so the library is simply downloaded.'**
+  String get settings_setUpDevice_sync_foundEmpty;
+
+  /// Step 2 choice: combine this device's dives with the library
+  ///
+  /// In en, this message translates to:
+  /// **'Combine them'**
+  String get settings_setUpDevice_sync_combine;
+
+  /// Explains combining in step 2
+  ///
+  /// In en, this message translates to:
+  /// **'The dives here join the library. A dive logged separately on both devices will appear twice.'**
+  String get settings_setUpDevice_sync_combineDetail;
+
+  /// Step 2 choice: replace this device's dives with the library
+  ///
+  /// In en, this message translates to:
+  /// **'Replace the dives here with the library'**
+  String get settings_setUpDevice_sync_replace;
+
+  /// Explains replacing in step 2
+  ///
+  /// In en, this message translates to:
+  /// **'A backup of the dives here is saved first, under Backups.'**
+  String get settings_setUpDevice_sync_replaceDetail;
+
+  /// Subtitle of Keep devices in step automatically in step 2
+  ///
+  /// In en, this message translates to:
+  /// **'A few seconds after each change, at launch and when the app returns'**
+  String get settings_setUpDevice_sync_keepInStepDetail;
+
+  /// Step 2 primary button: start syncing (no library yet)
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on sync'**
+  String get settings_setUpDevice_sync_turnOn;
+
+  /// Step 2 primary button: download the library onto an empty device
+  ///
+  /// In en, this message translates to:
+  /// **'Download library'**
+  String get settings_setUpDevice_sync_download;
+
+  /// Step 2 primary button: combine, then download
+  ///
+  /// In en, this message translates to:
+  /// **'Combine and download'**
+  String get settings_setUpDevice_sync_combineAndDownload;
+
+  /// Step 2 primary button: replace, then download
+  ///
+  /// In en, this message translates to:
+  /// **'Replace and download'**
+  String get settings_setUpDevice_sync_replaceAndDownload;
+
+  /// Step 2 opened with no account chosen
+  ///
+  /// In en, this message translates to:
+  /// **'Choose where your data is kept first.'**
+  String get settings_setUpDevice_sync_noAccount;
+
+  /// Title of the typed-word dialog that confirms replacing this device's dives
+  ///
+  /// In en, this message translates to:
+  /// **'Replace the dives here?'**
+  String get settings_setUpDevice_replace_title;
+
+  /// Shown while this device's dives are set aside and the library downloads
+  ///
+  /// In en, this message translates to:
+  /// **'Setting the dives here aside and downloading the library...'**
+  String get settings_setUpDevice_replace_working;
+
+  /// Title once the library replaced this device's dives
+  ///
+  /// In en, this message translates to:
+  /// **'Library downloaded'**
+  String get settings_setUpDevice_replace_doneTitle;
+
+  /// Replace refused: another device has not finished uploading
+  ///
+  /// In en, this message translates to:
+  /// **'The library is still being uploaded from another device. Try again once it finishes.'**
+  String get settings_setUpDevice_replace_stillUploading;
+
+  /// Replace refused: photo uploads are still finishing
+  ///
+  /// In en, this message translates to:
+  /// **'Photo uploads are still finishing. Try again in a moment.'**
+  String get settings_setUpDevice_replace_photosBusy;
+
+  /// Replace failed before anything changed
+  ///
+  /// In en, this message translates to:
+  /// **'The library could not be downloaded. Nothing was changed.'**
+  String get settings_setUpDevice_replace_failed;
+
+  /// Step 2 could not read the account
+  ///
+  /// In en, this message translates to:
+  /// **'Could not read {account}. Check the connection and try again.'**
+  String settings_setUpDevice_sync_unreachable(String account);
+
+  /// Replace refused: the account has no library
+  ///
+  /// In en, this message translates to:
+  /// **'{account} has no library to join yet.'**
+  String settings_setUpDevice_replace_noLibrary(String account);
+
+  /// Replace refused: other devices run a newer version; devices is a list of names
+  ///
+  /// In en, this message translates to:
+  /// **'{devices} use a newer version of Submersion. Update this device first.'**
+  String settings_setUpDevice_replace_newerSchema(String devices);
+
+  /// Note on the backup saved before replacing; date is a short date
+  ///
+  /// In en, this message translates to:
+  /// **'Before joining the library, {date}'**
+  String settings_setUpDevice_replace_backupNote(String date);
+
+  /// Body of the typed-word dialog that confirms replacing this device's dives
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{The 1 dive here is replaced by the library in {account}. A backup of it is saved first and stays under Backups.} other{The {count} dives here are replaced by the library in {account}. A backup of them is saved first and stays under Backups.}}'**
+  String settings_setUpDevice_replace_body(int count, String account);
+
+  /// Shown once this device's dives were set aside and the library downloaded
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Your 1 dive was set aside and the library was downloaded. Submersion will reload.} other{Your {count} dives were set aside and the library was downloaded. Submersion will reload.}}'**
+  String settings_setUpDevice_replace_doneBody(int count);
 }
 
 class _AppLocalizationsDelegate

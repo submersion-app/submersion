@@ -1,5 +1,6 @@
 import 'package:collection/collection.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show ProviderOrFamily;
 
 import 'package:submersion/core/providers/ref_invalidate_on_change.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -143,3 +144,13 @@ final setUpLibraryProvider = FutureProvider.autoDispose<SetUpLibrary>((
     changedAt: newest?.publishedAt ?? newest?.lastModified,
   );
 });
+
+/// Reads the account again (Check again, after an unlock): every input, not
+/// only the combination, which would serve their cached answers.
+void refreshSetUpLibrary(void Function(ProviderOrFamily provider) invalidate) {
+  invalidate(setUpPeerLibraryStateProvider);
+  invalidate(setUpReplaceMarkerProvider);
+  invalidate(setUpLocalDiveCountProvider);
+  invalidate(syncDeviceFootprintListProvider);
+  invalidate(setUpLibraryProvider);
+}

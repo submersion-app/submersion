@@ -51730,4 +51730,125 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_setUpDevice_offer_ownServer => '兼容 S3 的存储或 WebDAV 服务器';
+
+  @override
+  String get settings_setUpDevice_sync_title => '让每台设备都有潜水记录';
+
+  @override
+  String settings_setUpDevice_sync_signedIn(String account) {
+    return '已登录 $account';
+  }
+
+  @override
+  String settings_setUpDevice_sync_noLibrary(String account) {
+    return '$account 中还没有 Submersion 资料库。这里的潜水记录将成为你所有设备共享的资料库。';
+  }
+
+  @override
+  String settings_setUpDevice_sync_found(
+    String account,
+    String when,
+    String device,
+  ) {
+    return '已在 $account 中找到你的资料库，最后于$when在 $device 上更改。';
+  }
+
+  @override
+  String settings_setUpDevice_sync_foundPlain(String account) {
+    return '已在 $account 中找到你的资料库。';
+  }
+
+  @override
+  String get settings_setUpDevice_sync_foundEmpty => '这里还没有潜水记录，因此只需下载资料库。';
+
+  @override
+  String get settings_setUpDevice_sync_combine => '合并';
+
+  @override
+  String get settings_setUpDevice_sync_combineDetail =>
+      '这里的潜水记录会加入资料库。在两台设备上分别记录的同一次潜水会出现两次。';
+
+  @override
+  String get settings_setUpDevice_sync_replace => '用资料库替换这里的潜水记录';
+
+  @override
+  String get settings_setUpDevice_sync_replaceDetail => '会先在“备份”中保存这里潜水记录的备份。';
+
+  @override
+  String get settings_setUpDevice_sync_keepInStepDetail =>
+      '每次更改后几秒内、启动时以及返回应用时';
+
+  @override
+  String get settings_setUpDevice_sync_turnOn => '开启同步';
+
+  @override
+  String get settings_setUpDevice_sync_download => '下载资料库';
+
+  @override
+  String get settings_setUpDevice_sync_combineAndDownload => '合并并下载';
+
+  @override
+  String get settings_setUpDevice_sync_replaceAndDownload => '替换并下载';
+
+  @override
+  String get settings_setUpDevice_sync_noAccount => '请先选择数据的存放位置。';
+
+  @override
+  String get settings_setUpDevice_replace_title => '替换这里的潜水记录？';
+
+  @override
+  String get settings_setUpDevice_replace_working => '正在搁置这里的潜水记录并下载资料库...';
+
+  @override
+  String get settings_setUpDevice_replace_doneTitle => '资料库已下载';
+
+  @override
+  String get settings_setUpDevice_replace_stillUploading =>
+      '资料库仍在从另一台设备上传。完成后再试。';
+
+  @override
+  String get settings_setUpDevice_replace_photosBusy => '照片上传仍在进行。请稍后再试。';
+
+  @override
+  String get settings_setUpDevice_replace_failed => '无法下载资料库，未做任何更改。';
+
+  @override
+  String settings_setUpDevice_sync_unreachable(String account) {
+    return '无法读取 $account。请检查连接后重试。';
+  }
+
+  @override
+  String settings_setUpDevice_replace_noLibrary(String account) {
+    return '$account 中还没有可加入的资料库。';
+  }
+
+  @override
+  String settings_setUpDevice_replace_newerSchema(String devices) {
+    return '$devices 使用的是较新版本的 Submersion。请先更新此设备。';
+  }
+
+  @override
+  String settings_setUpDevice_replace_backupNote(String date) {
+    return '加入资料库之前，$date';
+  }
+
+  @override
+  String settings_setUpDevice_replace_body(int count, String account) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '这里的 $count 条潜水记录将被 $account 中的资料库替换。会先保存备份，并保留在“备份”中。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_replace_doneBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '你的 $count 条潜水记录已搁置，资料库已下载。Submersion 将重新加载。',
+    );
+    return '$_temp0';
+  }
 }

@@ -53933,4 +53933,137 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_setUpDevice_offer_ownServer =>
       'אחסון תואם S3 או שרת WebDAV';
+
+  @override
+  String get settings_setUpDevice_sync_title => 'הצלילות בכל מכשיר';
+
+  @override
+  String settings_setUpDevice_sync_signedIn(String account) {
+    return 'מחובר אל $account';
+  }
+
+  @override
+  String settings_setUpDevice_sync_noLibrary(String account) {
+    return 'ב-$account עדיין אין ספריית Submersion. הצלילות כאן יהפכו לספרייה שכל המכשירים שלך חולקים.';
+  }
+
+  @override
+  String settings_setUpDevice_sync_found(
+    String account,
+    String when,
+    String device,
+  ) {
+    return 'הספרייה שלך נמצאה ב-$account, שונתה לאחרונה $when ב-$device.';
+  }
+
+  @override
+  String settings_setUpDevice_sync_foundPlain(String account) {
+    return 'הספרייה שלך נמצאה ב-$account.';
+  }
+
+  @override
+  String get settings_setUpDevice_sync_foundEmpty =>
+      'עדיין אין כאן צלילות, ולכן הספרייה פשוט מורדת.';
+
+  @override
+  String get settings_setUpDevice_sync_combine => 'לשלב אותן';
+
+  @override
+  String get settings_setUpDevice_sync_combineDetail =>
+      'הצלילות כאן מצטרפות לספרייה. צלילה שתועדה בנפרד בשני המכשירים תופיע פעמיים.';
+
+  @override
+  String get settings_setUpDevice_sync_replace =>
+      'להחליף את הצלילות כאן בספרייה';
+
+  @override
+  String get settings_setUpDevice_sync_replaceDetail =>
+      'קודם נשמר גיבוי של הצלילות כאן, תחת גיבויים.';
+
+  @override
+  String get settings_setUpDevice_sync_keepInStepDetail =>
+      'כמה שניות אחרי כל שינוי, בהפעלה ובחזרה לאפליקציה';
+
+  @override
+  String get settings_setUpDevice_sync_turnOn => 'הפעלת סנכרון';
+
+  @override
+  String get settings_setUpDevice_sync_download => 'הורדת הספרייה';
+
+  @override
+  String get settings_setUpDevice_sync_combineAndDownload => 'שילוב והורדה';
+
+  @override
+  String get settings_setUpDevice_sync_replaceAndDownload => 'החלפה והורדה';
+
+  @override
+  String get settings_setUpDevice_sync_noAccount =>
+      'קודם יש לבחור היכן הנתונים נשמרים.';
+
+  @override
+  String get settings_setUpDevice_replace_title => 'להחליף את הצלילות כאן?';
+
+  @override
+  String get settings_setUpDevice_replace_working =>
+      'מניחים בצד את הצלילות כאן ומורידים את הספרייה...';
+
+  @override
+  String get settings_setUpDevice_replace_doneTitle => 'הספרייה הורדה';
+
+  @override
+  String get settings_setUpDevice_replace_stillUploading =>
+      'הספרייה עדיין מועלית ממכשיר אחר. אפשר לנסות שוב כשזה יסתיים.';
+
+  @override
+  String get settings_setUpDevice_replace_photosBusy =>
+      'העלאות התמונות עדיין מסתיימות. אפשר לנסות שוב בעוד רגע.';
+
+  @override
+  String get settings_setUpDevice_replace_failed =>
+      'לא ניתן היה להוריד את הספרייה. שום דבר לא השתנה.';
+
+  @override
+  String settings_setUpDevice_sync_unreachable(String account) {
+    return 'לא ניתן לקרוא את $account. יש לבדוק את החיבור ולנסות שוב.';
+  }
+
+  @override
+  String settings_setUpDevice_replace_noLibrary(String account) {
+    return 'ב-$account עדיין אין ספרייה להצטרף אליה.';
+  }
+
+  @override
+  String settings_setUpDevice_replace_newerSchema(String devices) {
+    return '$devices משתמשים בגרסה חדשה יותר של Submersion. יש לעדכן קודם את המכשיר הזה.';
+  }
+
+  @override
+  String settings_setUpDevice_replace_backupNote(String date) {
+    return 'לפני ההצטרפות לספרייה, $date';
+  }
+
+  @override
+  String settings_setUpDevice_replace_body(int count, String account) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count הצלילות כאן מוחלפות בספרייה ב-$account. קודם נשמר מהן גיבוי, שנשאר תחת גיבויים.',
+      one:
+          'הצלילה כאן מוחלפת בספרייה ב-$account. קודם נשמר ממנה גיבוי, שנשאר תחת גיבויים.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_replace_doneBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count הצלילות שלך הונחו בצד והספרייה הורדה. Submersion ייטען מחדש.',
+      one: 'הצלילה שלך הונחה בצד והספרייה הורדה. Submersion ייטען מחדש.',
+    );
+    return '$_temp0';
+  }
 }

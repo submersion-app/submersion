@@ -8,6 +8,7 @@ import 'package:submersion/features/settings/presentation/widgets/set_up_device/
 import 'package:submersion/features/settings/presentation/widgets/set_up_device/set_up_step_marks.dart';
 import 'package:submersion/features/settings/presentation/widgets/set_up_device/set_up_step_navigation.dart';
 import 'package:submersion/features/settings/presentation/widgets/set_up_device/set_up_step_scaffold.dart';
+import 'package:submersion/features/settings/presentation/widgets/set_up_device/set_up_sync_step.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/utils/device_kind.dart';
 
@@ -126,6 +127,7 @@ class _SetUpDevicePageState extends ConsumerState<SetUpDevicePage> {
   Widget _stepBody(SetUpStep step, SetUpStepNavigation navigation) =>
       switch (step) {
         SetUpStep.account => SetUpAccountStep(navigation: navigation),
+        SetUpStep.sync => SetUpSyncStep(navigation: navigation),
         _ => _placeholderStep(step, navigation),
       };
 

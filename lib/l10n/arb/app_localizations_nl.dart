@@ -54739,4 +54739,140 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_setUpDevice_offer_ownServer =>
       'S3-compatibele opslag of een WebDAV-server';
+
+  @override
+  String get settings_setUpDevice_sync_title => 'Duiken op elk apparaat';
+
+  @override
+  String settings_setUpDevice_sync_signedIn(String account) {
+    return 'Ingelogd bij $account';
+  }
+
+  @override
+  String settings_setUpDevice_sync_noLibrary(String account) {
+    return '$account heeft nog geen Submersion-bibliotheek. De duiken hier worden de bibliotheek die al je apparaten delen.';
+  }
+
+  @override
+  String settings_setUpDevice_sync_found(
+    String account,
+    String when,
+    String device,
+  ) {
+    return 'Je bibliotheek gevonden in $account, laatst gewijzigd $when op $device.';
+  }
+
+  @override
+  String settings_setUpDevice_sync_foundPlain(String account) {
+    return 'Je bibliotheek gevonden in $account.';
+  }
+
+  @override
+  String get settings_setUpDevice_sync_foundEmpty =>
+      'Hier staan nog geen duiken, dus de bibliotheek wordt gewoon gedownload.';
+
+  @override
+  String get settings_setUpDevice_sync_combine => 'Samenvoegen';
+
+  @override
+  String get settings_setUpDevice_sync_combineDetail =>
+      'De duiken hier komen bij de bibliotheek. Een duik die op beide apparaten apart is gelogd, verschijnt twee keer.';
+
+  @override
+  String get settings_setUpDevice_sync_replace =>
+      'De duiken hier vervangen door de bibliotheek';
+
+  @override
+  String get settings_setUpDevice_sync_replaceDetail =>
+      'Eerst wordt een back-up van de duiken hier opgeslagen, onder Back-ups.';
+
+  @override
+  String get settings_setUpDevice_sync_keepInStepDetail =>
+      'Een paar seconden na elke wijziging, bij het starten en wanneer je terugkeert naar de app';
+
+  @override
+  String get settings_setUpDevice_sync_turnOn => 'Synchronisatie aanzetten';
+
+  @override
+  String get settings_setUpDevice_sync_download => 'Bibliotheek downloaden';
+
+  @override
+  String get settings_setUpDevice_sync_combineAndDownload =>
+      'Samenvoegen en downloaden';
+
+  @override
+  String get settings_setUpDevice_sync_replaceAndDownload =>
+      'Vervangen en downloaden';
+
+  @override
+  String get settings_setUpDevice_sync_noAccount =>
+      'Kies eerst waar je gegevens staan.';
+
+  @override
+  String get settings_setUpDevice_replace_title => 'De duiken hier vervangen?';
+
+  @override
+  String get settings_setUpDevice_replace_working =>
+      'De duiken hier worden opzijgezet en de bibliotheek wordt gedownload...';
+
+  @override
+  String get settings_setUpDevice_replace_doneTitle => 'Bibliotheek gedownload';
+
+  @override
+  String get settings_setUpDevice_replace_stillUploading =>
+      'De bibliotheek wordt nog geüpload vanaf een ander apparaat. Probeer het opnieuw zodra dat klaar is.';
+
+  @override
+  String get settings_setUpDevice_replace_photosBusy =>
+      'Foto-uploads zijn nog bezig. Probeer het zo meteen opnieuw.';
+
+  @override
+  String get settings_setUpDevice_replace_failed =>
+      'De bibliotheek kon niet worden gedownload. Er is niets gewijzigd.';
+
+  @override
+  String settings_setUpDevice_sync_unreachable(String account) {
+    return '$account kon niet worden gelezen. Controleer de verbinding en probeer het opnieuw.';
+  }
+
+  @override
+  String settings_setUpDevice_replace_noLibrary(String account) {
+    return '$account heeft nog geen bibliotheek om bij aan te sluiten.';
+  }
+
+  @override
+  String settings_setUpDevice_replace_newerSchema(String devices) {
+    return '$devices gebruiken een nieuwere versie van Submersion. Werk eerst dit apparaat bij.';
+  }
+
+  @override
+  String settings_setUpDevice_replace_backupNote(String date) {
+    return 'Voor het aansluiten bij de bibliotheek, $date';
+  }
+
+  @override
+  String settings_setUpDevice_replace_body(int count, String account) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'De $count duiken hier worden vervangen door de bibliotheek in $account. Eerst wordt er een back-up van opgeslagen, die onder Back-ups blijft.',
+      one:
+          'De duik hier wordt vervangen door de bibliotheek in $account. Eerst wordt er een back-up van opgeslagen, die onder Back-ups blijft.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_setUpDevice_replace_doneBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Je $count duiken zijn opzijgezet en de bibliotheek is gedownload. Submersion wordt opnieuw geladen.',
+      one:
+          'Je duik is opzijgezet en de bibliotheek is gedownload. Submersion wordt opnieuw geladen.',
+    );
+    return '$_temp0';
+  }
 }
