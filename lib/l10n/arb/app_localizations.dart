@@ -14929,6 +14929,12 @@ abstract class AppLocalizations {
   /// **'Jump to dive'**
   String get diveLog_search_jumpTitle;
 
+  /// No description provided for @diveLog_search_jumpNumberTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'#{number} · {title}'**
+  String diveLog_search_jumpNumberTitle(int number, String title);
+
   /// No description provided for @diveLog_ask_row.
   ///
   /// In en, this message translates to:
