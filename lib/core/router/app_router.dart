@@ -185,6 +185,7 @@ import 'package:submersion/features/weight_presets/presentation/pages/weight_pre
 import 'package:submersion/features/weight_presets/presentation/pages/weight_presets_page.dart';
 import 'package:submersion/features/tank_presets/presentation/pages/tank_preset_edit_page.dart';
 import 'package:submersion/features/transmitters/presentation/pages/transmitter_edit_page.dart';
+import 'package:submersion/features/transmitters/presentation/pages/transmitter_item_redirect.dart';
 import 'package:submersion/features/transmitters/presentation/pages/transmitters_page.dart';
 import 'package:submersion/features/marine_life/presentation/pages/species_manage_page.dart';
 import 'package:submersion/features/marine_life/presentation/pages/species_page.dart';
@@ -783,6 +784,25 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                       equipmentId: state.pathParameters['equipmentId']!,
                       scannedTag: scannedTagFrom(state.extra),
                     ),
+                  ),
+                  // A Transmitter item's setup (issue #3676): add a key, or
+                  // edit one; role and cylinder go onto every key.
+                  GoRoute(
+                    path: 'transmitter',
+                    name: 'transmitterSetup',
+                    builder: (context, state) => TransmitterEditPage(
+                      equipmentId: state.pathParameters['equipmentId']!,
+                    ),
+                    routes: [
+                      GoRoute(
+                        path: ':transmitterId',
+                        name: 'transmitterKeyEdit',
+                        builder: (context, state) => TransmitterEditPage(
+                          equipmentId: state.pathParameters['equipmentId']!,
+                          transmitterId: state.pathParameters['transmitterId'],
+                        ),
+                      ),
+                    ],
                   ),
                   // Any other gear's tag page (issue #2652).
                   GoRoute(
@@ -1916,18 +1936,19 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             name: 'transmitters',
             builder: (context, state) => const TransmittersPage(),
             routes: [
+              // A transmitter is an Equipment item (issue #3676): adding one
+              // is adding the item, and an old edit link forwards to it.
               GoRoute(
                 path: 'new',
                 name: 'newTransmitter',
-                builder: (context, state) => TransmitterEditPage(
-                  initialSerial: state.uri.queryParameters['serial'],
-                ),
+                redirect: (context, state) =>
+                    '/equipment/new?type=${EquipmentType.transmitter.name}',
               ),
               GoRoute(
                 path: ':transmitterId/edit',
                 name: 'editTransmitter',
-                builder: (context, state) => TransmitterEditPage(
-                  transmitterId: state.pathParameters['transmitterId'],
+                builder: (context, state) => TransmitterItemRedirect(
+                  transmitterId: state.pathParameters['transmitterId']!,
                 ),
               ),
             ],

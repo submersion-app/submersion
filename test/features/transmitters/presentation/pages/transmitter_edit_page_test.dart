@@ -9,7 +9,6 @@ import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/database/database.dart' show DiveTanksCompanion;
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
-import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/transmitters/data/repositories/transmitter_repository.dart';
 import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
@@ -22,8 +21,8 @@ import '../../../../helpers/test_database.dart';
 Widget _buildPage(
   MockCurrentDiverIdNotifier diverIdNotifier,
   SharedPreferences prefs, {
+  String equipmentId = 'tx-gear',
   String? transmitterId,
-  String? initialSerial,
   MockSettingsNotifier? settings,
 }) {
   final router = GoRouter(
@@ -36,8 +35,8 @@ Widget _buildPage(
       GoRoute(
         path: '/edit',
         builder: (context, state) => TransmitterEditPage(
+          equipmentId: equipmentId,
           transmitterId: transmitterId,
-          initialSerial: initialSerial,
         ),
       ),
     ],
@@ -84,159 +83,22 @@ void main() {
       "INSERT INTO divers (id, name, created_at, updated_at) "
       "VALUES ('diver-1', 'A', 1, 1)",
     );
+    // The Transmitter item being set up (issue #3676).
+    await DatabaseService.instance.database.customStatement(
+      "INSERT INTO equipment (id, diver_id, name, type, created_at, "
+      "updated_at) VALUES ('tx-gear', 'diver-1', 'Back gas tx', "
+      "'transmitter', 1, 1)",
+    );
     diverIdNotifier = MockCurrentDiverIdNotifier();
     await diverIdNotifier.setCurrentDiver('diver-1');
   });
   tearDown(tearDownTestDatabase);
-
-  testWidgets('prefills the serial and saves a new entry for the diver', (
-    tester,
-  ) async {
-    await _pumpPage(
-      tester,
-      _buildPage(diverIdNotifier, prefs, initialSerial: '555'),
-    );
-
-    expect(find.widgetWithText(TextFormField, '555'), findsOneWidget);
-    await tester.enterText(find.byKey(const Key('transmitter_label')), 'Stage');
-    await tester.enterText(find.byKey(const Key('transmitter_volume')), '11.1');
-    await tester.enterText(
-      find.byKey(const Key('transmitter_working_pressure')),
-      '207',
-    );
-    await tester.tap(find.text('Save'));
-    await tester.pumpAndSettle();
-
-    final saved = await TransmitterRepository().getForDiver('diver-1');
-    expect(saved.single.transmitterSerial, '555');
-    expect(saved.single.label, 'Stage');
-    expect(saved.single.volumeL, closeTo(11.1, 0.01));
-    expect(saved.single.workingPressureBar, 207);
-    expect(find.text('LIST'), findsOneWidget);
-    // Saved from an Assign flow: the snackbar offers the retroactive apply.
-    expect(find.text('Apply to existing dives'), findsOneWidget);
-  });
-
-  testWidgets('names the transmitter gear item the entry is', (tester) async {
-    // Beside the cylinder it feeds, an entry names the transmitter item it
-    // is, which is how the dropout rules find that item's serials.
-    await DatabaseService.instance.database.customStatement(
-      "INSERT INTO equipment (id, diver_id, name, type, created_at, "
-      "updated_at) VALUES ('tx', 'diver-1', 'Perdix Tx', 'transmitter', 1, 1), "
-      "('tank', 'diver-1', 'Blue AL80', 'tank', 1, 1)",
-    );
-    await _pumpPage(
-      tester,
-      _buildPage(diverIdNotifier, prefs, initialSerial: '555'),
-    );
-
-    await tester.tap(find.text('Transmitter from gear'));
-    await tester.pumpAndSettle();
-    expect(find.text('Blue AL80'), findsNothing, reason: 'transmitters only');
-    await tester.tap(find.text('Perdix Tx'));
-    await tester.pumpAndSettle();
-    expect(find.text('Perdix Tx'), findsOneWidget, reason: 'shown on the tile');
-
-    await tester.enterText(find.byKey(const Key('transmitter_label')), 'Main');
-    await tester.tap(find.text('Save'));
-    await tester.pumpAndSettle();
-
-    final saved = await TransmitterRepository().getForDiver('diver-1');
-    expect(saved.single.transmitterEquipmentId, 'tx');
-    expect(saved.single.equipmentId, isNull, reason: 'no cylinder picked');
-  });
-
-  testWidgets(
-    'saving a transmitter link refreshes the items it moves between',
-    (tester) async {
-      // The dropout findings read serials through this link, and the stored
-      // findings are read without the engine, so both the item it left and the
-      // item it names must be refreshed when the entry is saved.
-      final requested = <String>{};
-      SensorSummaryScheduler.instance.findingsRequestListener =
-          requested.addAll;
-      addTearDown(
-        () => SensorSummaryScheduler.instance.findingsRequestListener = null,
-      );
-      await DatabaseService.instance.database.customStatement(
-        "INSERT INTO equipment (id, diver_id, name, type, created_at, "
-        "updated_at) VALUES ('old-tx', 'diver-1', 'Old Tx', 'transmitter', 1, "
-        "1), ('new-tx', 'diver-1', 'New Tx', 'transmitter', 1, 1)",
-      );
-      final now = DateTime.utc(2026);
-      await TransmitterRepository().create(
-        Transmitter(
-          id: 'r1',
-          diverId: 'diver-1',
-          transmitterSerial: '555',
-          label: 'Main',
-          transmitterEquipmentId: 'old-tx',
-          createdAt: now,
-          updatedAt: now,
-        ),
-      );
-      await _pumpPage(
-        tester,
-        _buildPage(diverIdNotifier, prefs, transmitterId: 'r1'),
-      );
-
-      await tester.tap(find.text('Transmitter from gear'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('New Tx'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Save'));
-      await tester.pumpAndSettle();
-
-      expect(requested, {'old-tx', 'new-tx'});
-    },
-  );
-
-  testWidgets('clearing the transmitter gear saves the entry unlinked', (
-    tester,
-  ) async {
-    await DatabaseService.instance.database.customStatement(
-      "INSERT INTO equipment (id, diver_id, name, type, created_at, "
-      "updated_at) VALUES ('tx', 'diver-1', 'Perdix Tx', 'transmitter', 1, 1)",
-    );
-    final now = DateTime.utc(2026);
-    await TransmitterRepository().create(
-      Transmitter(
-        id: 'r1',
-        diverId: 'diver-1',
-        transmitterSerial: '555',
-        label: 'Main',
-        transmitterEquipmentId: 'tx',
-        createdAt: now,
-        updatedAt: now,
-      ),
-    );
-    await _pumpPage(
-      tester,
-      _buildPage(diverIdNotifier, prefs, transmitterId: 'r1'),
-    );
-    expect(find.text('Perdix Tx'), findsOneWidget);
-
-    await tester.tap(
-      find.descendant(
-        of: find.byKey(const Key('transmitter_transmitter_gear')),
-        matching: find.byIcon(Icons.clear),
-      ),
-    );
-    await tester.pumpAndSettle();
-    expect(find.text('Perdix Tx'), findsNothing);
-    await tester.tap(find.text('Save'));
-    await tester.pumpAndSettle();
-
-    final saved = await TransmitterRepository().getForDiver('diver-1');
-    expect(saved.single.transmitterEquipmentId, isNull);
-  });
 
   testWidgets('refuses an entry with neither serial nor channel', (
     tester,
   ) async {
     await _pumpPage(tester, _buildPage(diverIdNotifier, prefs));
 
-    await tester.enterText(find.byKey(const Key('transmitter_label')), 'T1');
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
 
@@ -254,7 +116,6 @@ void main() {
   ) async {
     await _pumpPage(tester, _buildPage(diverIdNotifier, prefs));
 
-    await tester.enterText(find.byKey(const Key('transmitter_label')), 'T1');
     await tester.enterText(find.byKey(const Key('transmitter_serial')), '777');
     await tester.enterText(find.byKey(const Key('transmitter_channel')), '1.5');
     await tester.tap(find.text('Save'));
@@ -281,12 +142,9 @@ void main() {
         updatedAt: DateTime.utc(2026, 9, 1),
       ),
     );
-    await _pumpPage(
-      tester,
-      _buildPage(diverIdNotifier, prefs, initialSerial: '555'),
-    );
+    await _pumpPage(tester, _buildPage(diverIdNotifier, prefs));
 
-    await tester.enterText(find.byKey(const Key('transmitter_label')), 'Other');
+    await tester.enterText(find.byKey(const Key('transmitter_serial')), '555');
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
 
@@ -316,10 +174,7 @@ void main() {
               tankRole: const Value('sidemountLeft'),
             ),
           );
-      await _pumpPage(
-        tester,
-        _buildPage(diverIdNotifier, prefs, initialSerial: '555'),
-      );
+      await _pumpPage(tester, _buildPage(diverIdNotifier, prefs));
 
       await tester.tap(find.text('Cylinder from gear'));
       await tester.pumpAndSettle();
@@ -337,10 +192,7 @@ void main() {
         "INSERT INTO equipment (id, diver_id, name, type, created_at, "
         "updated_at) VALUES ('tank1', 'diver-1', 'Fresh AL80', 'tank', 1, 1)",
       );
-      await _pumpPage(
-        tester,
-        _buildPage(diverIdNotifier, prefs, initialSerial: '555'),
-      );
+      await _pumpPage(tester, _buildPage(diverIdNotifier, prefs));
 
       await tester.tap(find.text('Cylinder from gear'));
       await tester.pumpAndSettle();
@@ -374,10 +226,7 @@ void main() {
               tankRole: const Value('sidemountLeft'),
             ),
           );
-      await _pumpPage(
-        tester,
-        _buildPage(diverIdNotifier, prefs, initialSerial: '555'),
-      );
+      await _pumpPage(tester, _buildPage(diverIdNotifier, prefs));
 
       await tester.tap(find.byType(DropdownButtonFormField<TankRole>));
       await tester.pumpAndSettle();
@@ -403,10 +252,7 @@ void main() {
         "INSERT INTO equipment (id, diver_id, name, type, created_at, "
         "updated_at) VALUES ('tank1', 'diver-1', 'Fresh AL80', 'tank', 1, 1)",
       );
-      await _pumpPage(
-        tester,
-        _buildPage(diverIdNotifier, prefs, initialSerial: '555'),
-      );
+      await _pumpPage(tester, _buildPage(diverIdNotifier, prefs));
       expect(
         find.byKey(const Key('transmitter_missing_size_hint')),
         findsNothing,
@@ -463,207 +309,6 @@ void main() {
     },
   );
 
-  testWidgets(
-    'offers to copy the serial onto a freshly picked transmitter gear item '
-    'with no serial (#3367)',
-    (tester) async {
-      await DatabaseService.instance.database.customStatement(
-        "INSERT INTO equipment (id, diver_id, name, type, created_at, "
-        "updated_at) VALUES ('tx', 'diver-1', 'Perdix Tx', 'transmitter', 1, "
-        "1)",
-      );
-      await _pumpPage(
-        tester,
-        _buildPage(diverIdNotifier, prefs, initialSerial: '555'),
-      );
-
-      await tester.tap(find.text('Transmitter from gear'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Perdix Tx'));
-      await tester.pumpAndSettle();
-      await tester.enterText(find.byKey(const Key('transmitter_label')), 'M');
-      await tester.tap(find.text('Save'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Copy the serial to "Perdix Tx"?'), findsOneWidget);
-      await tester.tap(find.text('Copy'));
-      await tester.pumpAndSettle();
-
-      final db = DatabaseService.instance.database;
-      final row = await (db.select(
-        db.equipment,
-      )..where((t) => t.id.equals('tx'))).getSingle();
-      expect(row.serialNumber, '555');
-    },
-  );
-
-  testWidgets('declining the serial-copy offer still saves the entry (#3367)', (
-    tester,
-  ) async {
-    await DatabaseService.instance.database.customStatement(
-      "INSERT INTO equipment (id, diver_id, name, type, created_at, "
-      "updated_at) VALUES ('tx', 'diver-1', 'Perdix Tx', 'transmitter', 1, "
-      "1)",
-    );
-    await _pumpPage(
-      tester,
-      _buildPage(diverIdNotifier, prefs, initialSerial: '555'),
-    );
-
-    await tester.tap(find.text('Transmitter from gear'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Perdix Tx'));
-    await tester.pumpAndSettle();
-    await tester.enterText(find.byKey(const Key('transmitter_label')), 'M');
-    await tester.tap(find.text('Save'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Cancel'));
-    await tester.pumpAndSettle();
-
-    final db = DatabaseService.instance.database;
-    final row = await (db.select(
-      db.equipment,
-    )..where((t) => t.id.equals('tx'))).getSingle();
-    expect(row.serialNumber, isNull);
-    final saved = await TransmitterRepository().getForDiver('diver-1');
-    expect(saved.single.transmitterEquipmentId, 'tx');
-  });
-
-  testWidgets(
-    'does not offer to copy onto a gear item that already has a serial '
-    '(#3367)',
-    (tester) async {
-      await DatabaseService.instance.database.customStatement(
-        "INSERT INTO equipment (id, diver_id, name, type, serial_number, "
-        "created_at, updated_at) VALUES ('tx', 'diver-1', 'Perdix Tx', "
-        "'transmitter', '999', 1, 1)",
-      );
-      await _pumpPage(
-        tester,
-        _buildPage(diverIdNotifier, prefs, initialSerial: '555'),
-      );
-
-      await tester.tap(find.text('Transmitter from gear'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Perdix Tx'));
-      await tester.pumpAndSettle();
-      await tester.enterText(find.byKey(const Key('transmitter_label')), 'M');
-      await tester.tap(find.text('Save'));
-      await tester.pumpAndSettle();
-
-      expect(find.textContaining('Copy the serial'), findsNothing);
-    },
-  );
-
-  testWidgets('offers the copy onto a gear item whose serial is an all-zero '
-      'placeholder, as the mismatch detector reads it (#3540)', (tester) async {
-    await DatabaseService.instance.database.customStatement(
-      "INSERT INTO equipment (id, diver_id, name, type, serial_number, "
-      "created_at, updated_at) VALUES ('tx', 'diver-1', 'Perdix Tx', "
-      "'transmitter', '000', 1, 1)",
-    );
-    await _pumpPage(
-      tester,
-      _buildPage(diverIdNotifier, prefs, initialSerial: '555'),
-    );
-
-    await tester.tap(find.text('Transmitter from gear'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Perdix Tx'));
-    await tester.pumpAndSettle();
-    await tester.enterText(find.byKey(const Key('transmitter_label')), 'M');
-    await tester.tap(find.text('Save'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Copy'));
-    await tester.pumpAndSettle();
-
-    final db = DatabaseService.instance.database;
-    final row = await (db.select(
-      db.equipment,
-    )..where((t) => t.id.equals('tx'))).getSingle();
-    expect(row.serialNumber, '555');
-    expect(find.text('LIST'), findsOneWidget, reason: 'the save completes');
-  });
-
-  testWidgets(
-    'does not copy an all-zero sentinel serial onto the gear item (#3540)',
-    (tester) async {
-      final db = DatabaseService.instance.database;
-      await db.customStatement(
-        "INSERT INTO equipment (id, diver_id, name, type, created_at, "
-        "updated_at) VALUES ('tx', 'diver-1', 'Perdix Tx', 'transmitter', 1, "
-        "1)",
-      );
-      await db.customStatement(
-        "INSERT INTO dive_computers (id, diver_id, name, created_at, "
-        "updated_at) VALUES ('c1', 'diver-1', 'Perdix', 1, 1)",
-      );
-      await _pumpPage(tester, _buildPage(diverIdNotifier, prefs));
-
-      await tester.enterText(find.byKey(const Key('transmitter_label')), 'M');
-      await tester.enterText(
-        find.byKey(const Key('transmitter_serial')),
-        '000',
-      );
-      await tester.tap(find.byType(DropdownButtonFormField<String?>).first);
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Perdix').last);
-      await tester.pumpAndSettle();
-      await tester.enterText(find.byKey(const Key('transmitter_channel')), '1');
-      await tester.tap(find.text('Transmitter from gear'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Perdix Tx'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Save'));
-      await tester.pumpAndSettle();
-
-      expect(find.textContaining('Copy the serial'), findsNothing);
-      final row = await (db.select(
-        db.equipment,
-      )..where((t) => t.id.equals('tx'))).getSingle();
-      expect(row.serialNumber, isNull);
-      final saved = await TransmitterRepository().getForDiver('diver-1');
-      expect(saved.single.transmitterSerial, isNull, reason: 'normalized away');
-    },
-  );
-
-  testWidgets(
-    'does not re-offer the serial copy on a later save of an existing link '
-    '(#3367)',
-    (tester) async {
-      await DatabaseService.instance.database.customStatement(
-        "INSERT INTO equipment (id, diver_id, name, type, created_at, "
-        "updated_at) VALUES ('tx', 'diver-1', 'Perdix Tx', 'transmitter', 1, "
-        "1)",
-      );
-      final now = DateTime.utc(2026, 9, 1);
-      await TransmitterRepository().create(
-        Transmitter(
-          id: 'e1',
-          diverId: 'diver-1',
-          transmitterSerial: '555',
-          label: 'Main',
-          transmitterEquipmentId: 'tx',
-          createdAt: now,
-          updatedAt: now,
-        ),
-      );
-      await _pumpPage(
-        tester,
-        _buildPage(diverIdNotifier, prefs, transmitterId: 'e1'),
-      );
-
-      await tester.enterText(
-        find.byKey(const Key('transmitter_label')),
-        'Main 2',
-      );
-      await tester.tap(find.text('Save'));
-      await tester.pumpAndSettle();
-
-      expect(find.textContaining('Copy the serial'), findsNothing);
-    },
-  );
-
   testWidgets('shows volume in cubic feet and stores liters', (tester) async {
     final settings = MockSettingsNotifier();
     await settings.setVolumeUnit(VolumeUnit.cubicFeet);
@@ -694,5 +339,87 @@ void main() {
     // 11.1 L at 207 bar is 81.1 cuft; 207 bar is 3002 psi.
     expect(find.widgetWithText(TextFormField, '81.1'), findsOneWidget);
     expect(find.widgetWithText(TextFormField, '3002'), findsOneWidget);
+  });
+
+  testWidgets('adds a key under the item, labelled with its name, configured '
+      'and offered the apply (#3676)', (tester) async {
+    await _pumpPage(tester, _buildPage(diverIdNotifier, prefs));
+
+    await tester.enterText(find.byKey(const Key('transmitter_serial')), '555');
+    await tester.enterText(find.byKey(const Key('transmitter_volume')), '11.1');
+    await tester.enterText(
+      find.byKey(const Key('transmitter_working_pressure')),
+      '207',
+    );
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    final saved = (await TransmitterRepository().getForDiver('diver-1')).single;
+    expect(saved.transmitterSerial, '555');
+    expect(saved.label, 'Back gas tx');
+    expect(saved.transmitterEquipmentId, 'tx-gear');
+    expect(saved.isConfigured, isTrue);
+    expect(saved.volumeL, closeTo(11.1, 0.01));
+    expect(find.text('LIST'), findsOneWidget);
+    expect(find.text('Apply to existing dives'), findsOneWidget);
+  });
+
+  testWidgets('saving the setup writes it to every key of the item (#3676)', (
+    tester,
+  ) async {
+    await TransmitterRepository().create(
+      Transmitter(
+        id: 'e2',
+        diverId: 'diver-1',
+        transmitterSerial: '777',
+        label: 'Back gas tx',
+        transmitterEquipmentId: 'tx-gear',
+        isConfigured: false,
+        createdAt: DateTime.utc(2026, 9, 1),
+        updatedAt: DateTime.utc(2026, 9, 1),
+      ),
+    );
+    await _pumpPage(tester, _buildPage(diverIdNotifier, prefs));
+
+    await tester.enterText(find.byKey(const Key('transmitter_serial')), '555');
+    await tester.enterText(find.byKey(const Key('transmitter_volume')), '11.1');
+    await tester.enterText(
+      find.byKey(const Key('transmitter_working_pressure')),
+      '207',
+    );
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    final other = await TransmitterRepository().getById('e2');
+    expect(other!.isConfigured, isTrue);
+    expect(other.volumeL, closeTo(11.1, 0.01));
+    expect(other.workingPressureBar, 207);
+  });
+
+  testWidgets("a key fills the item's blank serial (#3676)", (tester) async {
+    await _pumpPage(tester, _buildPage(diverIdNotifier, prefs));
+
+    await tester.enterText(find.byKey(const Key('transmitter_serial')), '555');
+    await tester.enterText(find.byKey(const Key('transmitter_volume')), '11.1');
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    final row = await DatabaseService.instance.database
+        .customSelect(
+          "SELECT serial_number FROM equipment WHERE id = 'tx-gear'",
+        )
+        .getSingle();
+    expect(row.read<String?>('serial_number'), '555');
+  });
+
+  testWidgets("a first key starts from the item's serial (#3676)", (
+    tester,
+  ) async {
+    await DatabaseService.instance.database.customStatement(
+      "UPDATE equipment SET serial_number = '9D0001' WHERE id = 'tx-gear'",
+    );
+    await _pumpPage(tester, _buildPage(diverIdNotifier, prefs));
+
+    expect(find.widgetWithText(TextFormField, '9D0001'), findsOneWidget);
   });
 }

@@ -45,6 +45,17 @@ Future<TransmitterMatcher> loadTransmitterMatcher(
   return TransmitterMatcher.fromEntries(entries);
 }
 
+/// One registry key, for the old edit route's forward to its item (issue
+/// #3676). Self-invalidates on registry changes.
+final transmitterByIdProvider = FutureProvider.family<Transmitter?, String>((
+  ref,
+  id,
+) async {
+  final repository = ref.watch(transmitterRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchTransmittersChanges());
+  return repository.getById(id);
+});
+
 /// The registry keys behind one Transmitter item (issue #3676), for its
 /// Transmitter section. Self-invalidates on registry changes.
 final transmittersForEquipmentProvider =
