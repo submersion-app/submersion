@@ -9,6 +9,7 @@ import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:drift/drift.dart' show Variable;
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/database/device_gear_heal.dart';
 import 'package:submersion/core/database/database.dart'
     show AppDatabase, SyncRecord, DeletionLogData;
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
@@ -884,6 +885,17 @@ class SyncService {
         } catch (e) {
           _log.warning('Keyslot self-heal failed (non-fatal): $e');
         }
+      }
+
+      // A peer's computer or transmitter may have arrived without its
+      // Equipment item, or an older peer may have deleted one as "unlink
+      // only" (issue #3676). Give each its item back BEFORE the tombstone GC
+      // below, while the deleted id's tombstone still steers the re-mint.
+      // Local-only and deterministic, so it publishes nothing.
+      try {
+        await ensureDeviceGearLinks(DatabaseService.instance.database);
+      } catch (e) {
+        _log.warning('Device gear heal failed (non-fatal): $e');
       }
 
       // Advance state only on a clean apply (idempotent re-pull otherwise).

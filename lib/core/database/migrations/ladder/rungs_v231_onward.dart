@@ -596,9 +596,17 @@ extension RungsFromV231 on AppDatabase {
     if (from < 314) await reportProgress();
 
     // v315: one Equipment entry per dive computer and transmitter (issue
-    // #3676). transmitters.is_configured, re-asserted in beforeOpen.
+    // #3676). transmitters.is_configured, re-asserted in beforeOpen; then
+    // every device gets its item (also run on every open), names and notes
+    // are aligned, serials seen in downloads are registered, and transmitter
+    // items join the dives that carry them. The last three are ladder-only:
+    // each acts on history once (device_gear_upgrade.dart).
     if (from < 315) {
       await _assertTransmitterConfiguredColumn();
+      await ensureDeviceGearLinks(this);
+      await alignComputerNamesAndNotes(this);
+      await registerUnassignedSerials(this);
+      await linkTransmitterGearToDives(this);
     }
     if (from < 315) await reportProgress();
   }

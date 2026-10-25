@@ -15,6 +15,8 @@ import 'package:drift/drift.dart';
 
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/dive_computer_connection_seed.dart';
+import 'package:submersion/core/database/device_gear_heal.dart';
+import 'package:submersion/core/database/device_gear_upgrade.dart';
 import 'package:submersion/core/database/dive_computer_gear_backfill.dart';
 import 'package:submersion/core/database/dive_course_links_schema.dart';
 import 'package:submersion/core/database/dive_role_link_uniqueness.dart';
@@ -42,6 +44,7 @@ part 'before_open_backup_note.dart';
 part 'before_open_child_columns.dart';
 part 'before_open_settings_columns.dart';
 part 'before_open_course_links.dart';
+part 'before_open_device_gear.dart';
 part 'before_open_table_backstops.dart';
 part 'before_open_view_configs.dart';
 part 'helpers/buddy_migrations.dart';

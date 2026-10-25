@@ -9,9 +9,10 @@ import 'package:submersion/core/database/dive_computer_gear_identity.dart';
 
 /// The #1288 self-heal registers computers named by file-imported dives with a
 /// raw INSERT OR IGNORE, bypassing createComputer and therefore the gear-twin
-/// hook there. It needs its own mint, and that mint must fire ONLY where the
-/// computer row was genuinely inserted: otherwise a user who deleted the gear
-/// item would get it back on the next app open.
+/// hook there. It needs its own mint. Since #3676 a computer never exists
+/// without its Equipment item (deleting the item deletes the computer), so a
+/// computer that lost its item, here by a raw delete, gets it back on the
+/// next open from the device gear heal.
 void main() {
   late Directory tempDir;
   late File dbFile;
@@ -27,7 +28,8 @@ void main() {
     if (await tempDir.exists()) await tempDir.delete(recursive: true);
   });
 
-  test('the heal mints a twin and does not re-mint a deleted one', () async {
+  test('the heal mints a twin, and a computer that lost it gets it back on '
+      'the next open (#3676)', () async {
     final t = DateTime.now().millisecondsSinceEpoch;
 
     // Open once to create the schema, and seed a file-imported dive that names
@@ -65,13 +67,13 @@ void main() {
     ]);
     await second.close();
 
-    // Reopen: the heal must NOT resurrect it. The computer row already exists,
-    // so INSERT OR IGNORE changes nothing and the mint is never reached.
+    // Reopen: the device gear heal gives the computer its item back. No
+    // tombstone names the deleted id, so it is re-minted at the same one.
     final third = AppDatabase(NativeDatabase(dbFile));
     addTearDown(third.close);
     final after = await third
-        .customSelect('SELECT COUNT(*) AS c FROM equipment')
+        .customSelect('SELECT equipment_id FROM dive_computers')
         .getSingle();
-    expect(after.read<int>('c'), 0);
+    expect(after.read<String?>('equipment_id'), twinId);
   });
 }
