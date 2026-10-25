@@ -18,6 +18,8 @@ import 'package:submersion/features/connections/domain/views/highlight_mode.dart
 import 'package:submersion/features/connections/presentation/canvas/connections_painter.dart';
 import 'package:submersion/features/connections/presentation/connections_links.dart';
 import 'package:submersion/features/connections/presentation/pages/connections_page.dart';
+import 'package:submersion/features/connections/domain/views/connections_display.dart';
+import 'package:submersion/features/connections/presentation/providers/connections_display_provider.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_filter_provider.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_providers.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_selection_provider.dart';
@@ -118,6 +120,72 @@ void main() {
     expect(find.byKey(const ValueKey('connections-panel')), findsOneWidget);
     expect(find.text('Whole map'), findsOneWidget);
     expect(find.byKey(const ValueKey('connections-sheet')), findsNothing);
+  });
+
+  group('caption', () {
+    NodeRef s(String id) => NodeRef(ConnectionKind.site, id);
+    final islands = ConnectionGraph(
+      nodes: [
+        ConnectionNode(ref: _b('jane'), label: 'Jane', diveCount: 3),
+        ConnectionNode(ref: s('s1'), label: 'Reef', diveCount: 2),
+        ConnectionNode(ref: s('s2'), label: 'Wall', diveCount: 1),
+      ],
+      edges: const [],
+    );
+
+    for (final (name, size) in [('desktop', _desktop), ('phone', _phone)]) {
+      testWidgets('$name: names the map above the overlays', (tester) async {
+        await _pump(tester, size: size);
+        await tester.pump(const Duration(milliseconds: 50));
+        final caption = find.byKey(const ValueKey('connections-caption'));
+        expect(caption, findsOneWidget);
+        expect(
+          find.descendant(of: caption, matching: find.text('Who dives where')),
+          findsOneWidget,
+        );
+        expect(
+          tester
+              .getTopLeft(find.byKey(const ValueKey('connections-hidden-chip')))
+              .dy,
+          greaterThanOrEqualTo(tester.getBottomLeft(caption).dy),
+        );
+      });
+    }
+
+    testWidgets('Who dives where with no lines shows the buddies message', (
+      tester,
+    ) async {
+      await _pump(tester, graph: (_, _) => islands);
+      await tester.pump(const Duration(milliseconds: 50));
+      expect(find.byType(ConnectionsEmptyState), findsOneWidget);
+      expect(find.textContaining('No buddies are linked'), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey('connections-canvas-paint')),
+        findsNothing,
+      );
+    });
+
+    testWidgets('other maps keep their islands', (tester) async {
+      final c = await _pump(tester, graph: (_, _) => islands);
+      await c
+          .read(connectionsViewProvider.notifier)
+          .update((v) => v.applyPreset(ConnectionPresets.byId('circle')!));
+      await tester.pump(const Duration(milliseconds: 50));
+      expect(find.byType(ConnectionsEmptyState), findsNothing);
+      expect(
+        find.byKey(const ValueKey('connections-canvas-paint')),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('the tables carry no caption', (tester) async {
+      final c = await _pump(tester);
+      await c
+          .read(connectionsDisplayProvider.notifier)
+          .update((d) => d.copyWith(view: ConnectionsViewKind.matrix));
+      await tester.pump(const Duration(milliseconds: 50));
+      expect(find.byKey(const ValueKey('connections-caption')), findsNothing);
+    });
   });
 
   testWidgets('phone: canvas and the panel in a sheet', (tester) async {
@@ -900,7 +968,7 @@ void main() {
     await tester.pump();
     expect(painter().frame.settled, isTrue);
   });
-  testWidgets('with no insight tiles the overlays sit at the top', (
+  testWidgets('with no insight tiles the overlays sit below the caption', (
     tester,
   ) async {
     // Entities that share no dives: nothing for the strip to say.
@@ -912,12 +980,19 @@ void main() {
       edges: const [],
       hiddenNodeCount: 3,
     );
-    await _pump(tester, graph: (ref, budget) => loners);
+    final c = await _pump(tester, graph: (ref, budget) => loners);
+    // Dive circle keeps islands; Who dives where would show the empty state.
+    await c
+        .read(connectionsViewProvider.notifier)
+        .update((v) => v.applyPreset(ConnectionPresets.byId('circle')!));
+    await tester.pump(const Duration(milliseconds: 50));
+    // The caption reports its height after its first frame.
+    await tester.pump();
     expect(find.byKey(const ValueKey('insight-mostConnected')), findsNothing);
-    final canvasTop = tester
-        .getTopLeft(find.byKey(const ValueKey('connections-canvas-paint')))
+    final captionBottom = tester
+        .getBottomLeft(find.byKey(const ValueKey('connections-caption')))
         .dy;
     final chipTop = tester.getTopLeft(find.byType(HiddenNodesChip)).dy;
-    expect(chipTop - canvasTop, 12);
+    expect(chipTop - captionBottom, 12);
   });
 }
