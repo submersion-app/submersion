@@ -255,8 +255,10 @@ class _ListScrubberState extends State<ListScrubber> {
               viewportDimension: position.viewportDimension,
             );
         if (!wanted) {
+          // The region unmounts without an exit.
           _hovering = false;
           _edgeHover = false;
+          _inside = false;
           _noteActive(false);
           if (_dragSlot != null) {
             _dragSlot = null;

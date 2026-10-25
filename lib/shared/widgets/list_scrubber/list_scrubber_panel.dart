@@ -166,7 +166,11 @@ class ListScrubberPanel extends StatefulWidget {
       if (widest >= width) break;
     }
     painter.dispose();
-    return math.min(width, widest + _markerPadding * 2 + thumbInset);
+    // Whole pixels, so the widest label is never ellipsized by rounding.
+    return math.min(
+      width,
+      widest.ceilToDouble() + _markerPadding * 2 + thumbInset,
+    );
   }
 
   static const _ellipsis = '\u2026';

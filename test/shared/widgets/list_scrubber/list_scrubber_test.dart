@@ -952,4 +952,29 @@ void main() {
     await gesture.removePointer();
     await tester.pump(ListScrubber.idleHide);
   });
+
+  testWidgets('a mouse lost with its unmounted region holds nothing open', (
+    tester,
+  ) async {
+    await tester.pumpWidget(host());
+    await tester.drag(find.byType(ListView), const Offset(0, -10));
+    await tester.pump();
+    final mouse = await hoverScrubberThumb(tester);
+
+    await tester.pumpWidget(host(slotCount: 5));
+    await mouse.removePointer();
+    await tester.pumpWidget(host());
+    await tester.drag(find.byType(ListView), const Offset(0, -10));
+    await tester.pump();
+
+    final touch = await tester.startGesture(
+      tester.getCenter(find.byKey(ListScrubber.thumbKey)),
+    );
+    await touch.moveBy(const Offset(0, 100));
+    await tester.pumpAndSettle();
+    await touch.up();
+    await tester.pumpAndSettle();
+    expect(panel(), findsNothing);
+    await tester.pump(ListScrubber.idleHide);
+  });
 }

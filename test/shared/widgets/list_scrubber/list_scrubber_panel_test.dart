@@ -387,7 +387,7 @@ void main() {
         '2024',
         '1999',
       ].map(textWidth).reduce((a, b) => a > b ? a : b);
-      expect(column, closeTo(widest + 2 * 2 + thumbInset, 0.5));
+      expect(column, widest.ceilToDouble() + 2 * 2 + thumbInset);
       expect(column, lessThan(ListScrubberPanel.width));
 
       final capped = ListScrubberPanel.labelColumnFor(context, const [
