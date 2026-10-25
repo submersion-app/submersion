@@ -45,6 +45,15 @@ Future<TransmitterMatcher> loadTransmitterMatcher(
   return TransmitterMatcher.fromEntries(entries);
 }
 
+/// The registry keys behind one Transmitter item (issue #3676), for its
+/// Transmitter section. Self-invalidates on registry changes.
+final transmittersForEquipmentProvider =
+    FutureProvider.family<List<Transmitter>, String>((ref, equipmentId) async {
+      final repository = ref.watch(transmitterRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchTransmittersChanges());
+      return repository.getForEquipment(equipmentId);
+    });
+
 /// The active diver's registry entries, label order. Self-invalidates on
 /// table changes so a sync write refreshes the page.
 final transmittersProvider = FutureProvider<List<Transmitter>>((ref) async {

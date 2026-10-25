@@ -61,6 +61,53 @@ class TransmitterRepository {
     return sortedByText(rows, (r) => r.label).map(_map).toList();
   }
 
+  /// The registry keys behind Transmitter item [equipmentId] (issue #3676),
+  /// most recently updated first: usually one serial, or a channel per
+  /// computer that reports channels only.
+  Future<List<Transmitter>> getForEquipment(String equipmentId) async {
+    final rows =
+        await (_db.select(_db.transmitters)
+              ..where((t) => t.transmitterEquipmentId.equals(equipmentId))
+              ..orderBy([
+                (t) => OrderingTerm.desc(t.updatedAt),
+                (t) => OrderingTerm.asc(t.id),
+              ]))
+            .get();
+    return rows.map(_map).toList();
+  }
+
+  /// Saves the diver's setup of Transmitter item [equipmentId] onto every
+  /// key behind it, and marks each configured (issue #3676): role and
+  /// cylinder belong to the physical transmitter, not to one key.
+  Future<void> saveSetup(
+    String equipmentId, {
+    required TankRole role,
+    String? cylinderId,
+    double? volumeL,
+    double? workingPressureBar,
+    TankMaterial? material,
+    String? presetName,
+  }) async {
+    for (final key in await getForEquipment(equipmentId)) {
+      await update(
+        key.copyWith(
+          role: role,
+          equipmentId: cylinderId,
+          clearEquipmentId: cylinderId == null,
+          volumeL: volumeL,
+          clearVolumeL: volumeL == null,
+          workingPressureBar: workingPressureBar,
+          clearWorkingPressureBar: workingPressureBar == null,
+          material: material,
+          clearMaterial: material == null,
+          presetName: presetName,
+          clearPresetName: presetName == null,
+          isConfigured: true,
+        ),
+      );
+    }
+  }
+
   Future<Transmitter?> getById(String id) async {
     final row = await (_db.select(
       _db.transmitters,
