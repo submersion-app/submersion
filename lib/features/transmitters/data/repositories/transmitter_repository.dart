@@ -208,6 +208,46 @@ class TransmitterRepository {
     });
   }
 
+  /// Before computer [computerId] is deleted (issue #3676): a row keyed only
+  /// by its channel on that computer could never match again, so it is
+  /// deleted and tombstoned; a row with a serial keeps the serial key and
+  /// loses the channel, staged rather than nulled by the FK. The transmitter
+  /// item stays, as gear.
+  Future<void> detachFromDeletedComputer(String computerId) async {
+    final rows = await (_db.select(
+      _db.transmitters,
+    )..where((t) => t.diveComputerId.equals(computerId))).get();
+    if (rows.isEmpty) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    for (final row in rows) {
+      if (normalizeTransmitterSerial(row.transmitterSerial) == null) {
+        await (_db.delete(
+          _db.transmitters,
+        )..where((t) => t.id.equals(row.id))).go();
+        await _syncRepository.logDeletion(
+          entityType: _entity,
+          recordId: row.id,
+        );
+      } else {
+        await (_db.update(
+          _db.transmitters,
+        )..where((t) => t.id.equals(row.id))).write(
+          TransmittersCompanion(
+            diveComputerId: const Value(null),
+            channelIndex: const Value(null),
+            updatedAt: Value(now),
+          ),
+        );
+        await _syncRepository.markRecordPending(
+          entityType: _entity,
+          recordId: row.id,
+          localUpdatedAt: now,
+        );
+      }
+    }
+    SyncEventBus.notifyLocalChange();
+  }
+
   Future<void> update(Transmitter t) async {
     final normalized = _normalized(t);
     await _checkConflicts(normalized);

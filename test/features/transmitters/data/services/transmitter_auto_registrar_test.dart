@@ -219,9 +219,8 @@ void main() {
     final rows = await TransmitterRepository().getForDiver('d1');
     expect(rows.map((r) => r.transmitterSerial), ['7C0B19']);
     final links = await db.select(db.diveEquipment).get();
-    expect(
-      links.map((l) => (l.diveId, l.equipmentId)),
-      [('dive1', rows.single.transmitterEquipmentId)],
-    );
+    expect(links.map((l) => (l.diveId, l.equipmentId)), [
+      ('dive1', rows.single.transmitterEquipmentId),
+    ]);
   });
 }

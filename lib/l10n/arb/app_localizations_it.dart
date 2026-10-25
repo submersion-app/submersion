@@ -14640,6 +14640,14 @@ class AppLocalizationsIt extends AppLocalizations {
       'Sei sicuro di voler eliminare questa attrezzatura? Questa azione non può essere annullata.';
 
   @override
+  String get equipment_deleteDialog_content_computer =>
+      'Delete this dive computer? Its download history goes with it, so the next download from it reads every dive again. Your dives stay. Connecting the computer again adds it back.';
+
+  @override
+  String get equipment_deleteDialog_content_transmitter =>
+      'Delete this transmitter? Its cylinder setup goes with it. A later download that carries its serial adds it back. To keep it out of the way instead, mark it Retired.';
+
+  @override
   String get equipment_deleteDialog_title => 'Elimina attrezzatura';
 
   @override
@@ -51543,6 +51551,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String diveComputer_merge_intro(int count) {
     return '$count schede diventeranno una sola. Immersioni, profili e cronologia dei download passano alla scheda che conservi. Le altre schede vengono eliminate.';
   }
+
+  @override
+  String get diveComputer_merge_gearNote =>
+      'Each other record\'s Equipment item stays, with its service history. Delete it from Equipment if you no longer need it.';
 
   @override
   String get diveComputer_merge_keepLabel => 'Conserva questa scheda';

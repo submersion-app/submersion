@@ -3,6 +3,7 @@ import 'package:submersion/features/connections/domain/entities/connection_kind.
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
 import 'package:submersion/features/connections/presentation/widgets/open_in_connections.dart';
 import 'package:submersion/features/equipment/domain/services/equipment_ownership.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_delete_dialog.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_history_card.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_share_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -1070,28 +1071,13 @@ class _EquipmentDetailContent extends ConsumerWidget {
           }
         }
       case 'delete':
-        final confirmed = await showDialog<bool>(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: Text(context.l10n.equipment_deleteDialog_title),
-            content: Text(context.l10n.equipment_deleteDialog_content),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
-                child: Text(context.l10n.equipment_deleteDialog_cancel),
-              ),
-              FilledButton(
-                onPressed: () => Navigator.of(context).pop(true),
-                style: FilledButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.error,
-                ),
-                child: Text(context.l10n.equipment_deleteDialog_confirm),
-              ),
-            ],
-          ),
+        final type = ref.read(equipmentItemProvider(equipmentId)).value?.type;
+        final confirmed = await confirmEquipmentDelete(
+          context,
+          type ?? EquipmentType.other,
         );
 
-        if (confirmed == true) {
+        if (confirmed) {
           final deleted = await notifier.deleteEquipment(equipmentId);
           if (!deleted) {
             // Delete is owner-only (issue #2046): the item was kept, so stay

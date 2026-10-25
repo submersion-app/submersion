@@ -23671,6 +23671,18 @@ abstract class AppLocalizations {
   /// **'Are you sure you want to delete this equipment? This action cannot be undone.'**
   String get equipment_deleteDialog_content;
 
+  /// No description provided for @equipment_deleteDialog_content_computer.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this dive computer? Its download history goes with it, so the next download from it reads every dive again. Your dives stay. Connecting the computer again adds it back.'**
+  String get equipment_deleteDialog_content_computer;
+
+  /// No description provided for @equipment_deleteDialog_content_transmitter.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this transmitter? Its cylinder setup goes with it. A later download that carries its serial adds it back. To keep it out of the way instead, mark it Retired.'**
+  String get equipment_deleteDialog_content_transmitter;
+
   /// No description provided for @equipment_deleteDialog_title.
   ///
   /// In en, this message translates to:
@@ -81741,6 +81753,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count} records will become one. Dives, profiles and download history move to the record you keep. The other records are deleted.'**
   String diveComputer_merge_intro(int count);
+
+  /// No description provided for @diveComputer_merge_gearNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Each other record\'s Equipment item stays, with its service history. Delete it from Equipment if you no longer need it.'**
+  String get diveComputer_merge_gearNote;
 
   /// No description provided for @diveComputer_merge_keepLabel.
   ///

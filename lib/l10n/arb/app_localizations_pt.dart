@@ -14642,6 +14642,14 @@ class AppLocalizationsPt extends AppLocalizations {
       'Tem certeza de que deseja excluir este equipamento? Esta ação não pode ser desfeita.';
 
   @override
+  String get equipment_deleteDialog_content_computer =>
+      'Delete this dive computer? Its download history goes with it, so the next download from it reads every dive again. Your dives stay. Connecting the computer again adds it back.';
+
+  @override
+  String get equipment_deleteDialog_content_transmitter =>
+      'Delete this transmitter? Its cylinder setup goes with it. A later download that carries its serial adds it back. To keep it out of the way instead, mark it Retired.';
+
+  @override
   String get equipment_deleteDialog_title => 'Excluir Equipamento';
 
   @override
@@ -51540,6 +51548,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String diveComputer_merge_intro(int count) {
     return '$count registros se tornarão um. Mergulhos, perfis e histórico de download passam para o registro que você mantiver. Os outros registros são excluídos.';
   }
+
+  @override
+  String get diveComputer_merge_gearNote =>
+      'Each other record\'s Equipment item stays, with its service history. Delete it from Equipment if you no longer need it.';
 
   @override
   String get diveComputer_merge_keepLabel => 'Manter este registro';

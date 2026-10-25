@@ -24,6 +24,7 @@ import 'package:submersion/core/profile/tank_pressure_glitches.dart';
 import 'package:submersion/core/services/sync/event_scope_tombstone.dart';
 import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/core/utils/stream_debounce.dart';
+import 'package:submersion/features/transmitters/data/repositories/transmitter_repository.dart';
 import 'package:submersion/features/dive_computer/data/repositories/dive_computer_connection_repository.dart';
 import 'package:submersion/features/dive_computer/data/services/libdc_sample_units.dart';
 import 'package:submersion/features/dive_computer/domain/services/dive_computer_merge_rules.dart'
@@ -498,6 +499,9 @@ class DiveComputerRepository {
       // the connections with no tombstone, and a peer would keep them
       // (issue #3106).
       await DiveComputerConnectionRepository().deleteForComputer(id);
+      // Its channel-only transmitter keys go with it; a serial key stays
+      // (issue #3676).
+      await TransmitterRepository().detachFromDeletedComputer(id);
 
       await (_db.delete(_db.diveComputers)..where((t) => t.id.equals(id))).go();
       await _syncRepository.logDeletion(

@@ -208,6 +208,7 @@ class DiveComputerMergeRepository {
 
         await _bumpDives(affectedDives.toList(growable: false), now);
         await _writeSurvivor(merged, now);
+        await _repointTransmitterChannels(duplicates, survivorId, now);
         // Before the duplicates go: their connections would cascade away
         // with no tombstone. Folded onto the survivor instead (#3106).
         await _connections.foldInto(
@@ -411,6 +412,58 @@ class DiveComputerMergeRepository {
       'WHERE computer_id IN ($placeholders)',
       [toId, ...fromIds],
     );
+  }
+
+  /// Moves the duplicates' transmitter keys onto the survivor (issue
+  /// #3676): the FK would null them, and a channel key without its computer
+  /// never matches again. A channel the survivor already has a key for is
+  /// the same transmitter twice, so the duplicate's channel-only row is
+  /// deleted, and a serial row just drops the clashing channel.
+  Future<void> _repointTransmitterChannels(
+    List<String> fromIds,
+    String toId,
+    int now,
+  ) async {
+    final rows = await (_db.select(
+      _db.transmitters,
+    )..where((t) => t.diveComputerId.isIn(fromIds))).get();
+    if (rows.isEmpty) return;
+    final taken = {
+      for (final r in await (_db.select(
+        _db.transmitters,
+      )..where((t) => t.diveComputerId.equals(toId))).get())
+        ?r.channelIndex,
+    };
+    for (final row in rows) {
+      final clash =
+          row.channelIndex != null && taken.contains(row.channelIndex);
+      final hasSerial = (row.transmitterSerial ?? '').trim().isNotEmpty;
+      if (clash && !hasSerial) {
+        await (_db.delete(
+          _db.transmitters,
+        )..where((t) => t.id.equals(row.id))).go();
+        await _syncRepository.logDeletion(
+          entityType: 'transmitters',
+          recordId: row.id,
+        );
+        continue;
+      }
+      await (_db.update(
+        _db.transmitters,
+      )..where((t) => t.id.equals(row.id))).write(
+        db.TransmittersCompanion(
+          diveComputerId: Value(clash ? null : toId),
+          channelIndex: clash ? const Value(null) : const Value.absent(),
+          updatedAt: Value(now),
+        ),
+      );
+      if (row.channelIndex != null && !clash) taken.add(row.channelIndex!);
+      await _syncRepository.markRecordPending(
+        entityType: 'transmitters',
+        recordId: row.id,
+        localUpdatedAt: now,
+      );
+    }
   }
 
   /// Moves `dive_equipment` links from each duplicate's gear twin onto the

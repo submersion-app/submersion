@@ -13981,6 +13981,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_deleteDialog_content => '确定要删除此装备吗？此操作无法撤销。';
 
   @override
+  String get equipment_deleteDialog_content_computer =>
+      'Delete this dive computer? Its download history goes with it, so the next download from it reads every dive again. Your dives stay. Connecting the computer again adds it back.';
+
+  @override
+  String get equipment_deleteDialog_content_transmitter =>
+      'Delete this transmitter? Its cylinder setup goes with it. A later download that carries its serial adds it back. To keep it out of the way instead, mark it Retired.';
+
+  @override
   String get equipment_deleteDialog_title => '删除装备';
 
   @override
@@ -48342,6 +48350,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String diveComputer_merge_intro(int count) {
     return '$count 条记录将合并为一条。潜水、剖面和下载历史会移到你保留的记录中，其余记录将被删除。';
   }
+
+  @override
+  String get diveComputer_merge_gearNote =>
+      'Each other record\'s Equipment item stays, with its service history. Delete it from Equipment if you no longer need it.';
 
   @override
   String get diveComputer_merge_keepLabel => '保留此记录';

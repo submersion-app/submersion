@@ -132,6 +132,15 @@ class _DiveComputerMergeSheetState
                 color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
+            const SizedBox(height: 8),
+            // The duplicates' gear items stay (#3676): they may hold service
+            // history, and the Dive Computers list now shows them.
+            Text(
+              l10n.diveComputer_merge_gearNote,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
             if (conflict) ...[
               const SizedBox(height: 12),
               const _SerialMismatchWarning(

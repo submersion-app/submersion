@@ -12,6 +12,7 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/text/text_sort.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_location_move_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_share_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_tag_repository.dart';
@@ -574,6 +575,21 @@ class EquipmentRepository {
   /// cascade-deleted by SQLite, but cascades emit no deletion-log entries, so
   /// each is tombstoned explicitly (mirrors EquipmentSetRepository.deleteSet).
   /// Cylinders linked to the item are cleared and staged for sync.
+  Future<void> _deleteDevicesOf(String itemId) async {
+    final computers = await (_db.select(
+      _db.diveComputers,
+    )..where((t) => t.equipmentId.equals(itemId))).get();
+    for (final c in computers) {
+      await DiveComputerRepository().deleteComputer(c.id);
+    }
+    final keys = await (_db.select(
+      _db.transmitters,
+    )..where((t) => t.transmitterEquipmentId.equals(itemId))).get();
+    for (final k in keys) {
+      await TransmitterRepository().delete(k.id);
+    }
+  }
+
   Future<void> deleteEquipment(String id) async {
     try {
       _log.info('Deleting equipment: $id');
@@ -582,6 +598,10 @@ class EquipmentRepository {
       // and every step is individually idempotent/tombstoned. Same shape and
       // same reasoning as SiteRepository's media cascade.
       await _cascadeMediaForEquipmentDeletion([id]);
+      // One delete for a device and its item (issue #3676): the dive
+      // computer or transmitter rows behind it go first, each through its
+      // own repository so it is tombstoned and its dives are kept.
+      await _deleteDevicesOf(id);
       await _db.transaction(() async {
         // Its documents go with it, tombstoned (issue #2613).
         await DocumentRepository().deleteForOwner(

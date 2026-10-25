@@ -14604,6 +14604,14 @@ class AppLocalizationsHu extends AppLocalizations {
       'Biztosan törli ezt a felszerelést? Ez a művelet nem vonható vissza.';
 
   @override
+  String get equipment_deleteDialog_content_computer =>
+      'Delete this dive computer? Its download history goes with it, so the next download from it reads every dive again. Your dives stay. Connecting the computer again adds it back.';
+
+  @override
+  String get equipment_deleteDialog_content_transmitter =>
+      'Delete this transmitter? Its cylinder setup goes with it. A later download that carries its serial adds it back. To keep it out of the way instead, mark it Retired.';
+
+  @override
   String get equipment_deleteDialog_title => 'Felszerelés törlése';
 
   @override
@@ -51260,6 +51268,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String diveComputer_merge_intro(int count) {
     return '$count bejegyzésből egy lesz. A merülések, profilok és a letöltési előzmények a megtartott bejegyzéshez kerülnek. A többi bejegyzés törlődik.';
   }
+
+  @override
+  String get diveComputer_merge_gearNote =>
+      'Each other record\'s Equipment item stays, with its service history. Delete it from Equipment if you no longer need it.';
 
   @override
   String get diveComputer_merge_keepLabel => 'Ezt a bejegyzést megtartom';

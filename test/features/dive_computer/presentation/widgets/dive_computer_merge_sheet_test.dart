@@ -166,6 +166,17 @@ void main() {
       );
     });
 
+    testWidgets('says the other records keep their Equipment items (#3676)', (
+      tester,
+    ) async {
+      await pumpSheet(tester, [
+        _computer(id: 'a', name: 'Petrel 3'),
+        _computer(id: 'b', name: 'ssss'),
+      ]);
+
+      expect(find.textContaining('Equipment item stays'), findsOneWidget);
+    });
+
     testWidgets('hides the serial warning when every serial agrees', (
       tester,
     ) async {
