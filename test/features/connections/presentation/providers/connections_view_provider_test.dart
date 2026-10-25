@@ -9,6 +9,7 @@ import 'package:submersion/features/connections/domain/entities/node_ref.dart';
 import 'package:submersion/features/connections/domain/views/connection_presets.dart';
 import 'package:submersion/features/connections/domain/views/connections_view_state.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_view_provider.dart';
+import 'package:submersion/features/connections/presentation/providers/connections_start_reset.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -18,7 +19,11 @@ const _jane = NodeRef(ConnectionKind.buddy, 'jane');
 Future<(ProviderContainer, SharedPreferences)> _container(
   Map<String, Object> prefs,
 ) async {
-  SharedPreferences.setMockInitialValues(prefs);
+  // The one-time move to the start has run (see connections_start_reset).
+  SharedPreferences.setMockInitialValues({
+    kConnectionsStartResetKey: true,
+    ...prefs,
+  });
   final sp = await SharedPreferences.getInstance();
   final c = ProviderContainer(
     overrides: [sharedPreferencesProvider.overrideWithValue(sp)],
@@ -28,7 +33,7 @@ Future<(ProviderContainer, SharedPreferences)> _container(
 }
 
 void main() {
-  test('starts at the Dive circle preset with nothing stored', () async {
+  test('starts at the Who dives where preset with nothing stored', () async {
     final (c, _) = await _container({});
     expect(c.read(connectionsViewProvider), ConnectionsViewState.initial);
   });
