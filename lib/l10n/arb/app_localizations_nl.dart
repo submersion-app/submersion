@@ -55377,4 +55377,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String settings_setUpDevice_done_otherDevices(String account) {
     return 'Open Submersion op je andere apparaten, kies $account, en dezelfde bibliotheek verschijnt.';
   }
+
+  @override
+  String settings_setUpDevice_sync_inStep(String account) {
+    return 'De duiken hier zijn gelijk met je bibliotheek in $account.';
+  }
+
+  @override
+  String get setup_syncPull_startFresh => 'Een nieuw logboek beginnen';
 }

@@ -52312,4 +52312,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String settings_setUpDevice_done_otherDevices(String account) {
     return '在你的其他设备上打开 Submersion，选择 $account，就会出现同一个资料库。';
   }
+
+  @override
+  String settings_setUpDevice_sync_inStep(String account) {
+    return '此处的潜水记录已与你在 $account 中的资料库保持一致。';
+  }
+
+  @override
+  String get setup_syncPull_startFresh => '开始新的日志';
 }

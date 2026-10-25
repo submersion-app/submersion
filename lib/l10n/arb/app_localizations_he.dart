@@ -54558,4 +54558,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String settings_setUpDevice_done_otherDevices(String account) {
     return 'במכשירים האחרים שלך, פתחו את Submersion, בחרו $account, ואותה ספרייה תופיע.';
   }
+
+  @override
+  String settings_setUpDevice_sync_inStep(String account) {
+    return 'הצלילות כאן מתואמות עם הספרייה שלך ב-$account.';
+  }
+
+  @override
+  String get setup_syncPull_startFresh => 'התחלת יומן חדש';
 }

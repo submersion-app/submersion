@@ -55767,4 +55767,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String settings_setUpDevice_done_otherDevices(String account) {
     return 'En tus otros dispositivos, abre Submersion, elige $account y aparecerá la misma biblioteca.';
   }
+
+  @override
+  String settings_setUpDevice_sync_inStep(String account) {
+    return 'Las inmersiones de aquí están al día con tu biblioteca de $account.';
+  }
+
+  @override
+  String get setup_syncPull_startFresh => 'Empezar un nuevo diario';
 }

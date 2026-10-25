@@ -55601,4 +55601,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String settings_setUpDevice_done_otherDevices(String account) {
     return 'Öffnen Sie Submersion auf Ihren anderen Geräten, wählen Sie $account, und dieselbe Bibliothek erscheint.';
   }
+
+  @override
+  String settings_setUpDevice_sync_inStep(String account) {
+    return 'Die Tauchgänge hier sind mit Ihrer Bibliothek in $account abgeglichen.';
+  }
+
+  @override
+  String get setup_syncPull_startFresh => 'Neues Logbuch beginnen';
 }

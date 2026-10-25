@@ -55408,4 +55408,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String settings_setUpDevice_done_otherDevices(String account) {
     return 'A többi eszközén nyissa meg a Submersiont, válassza ezt: $account, és ugyanaz a könyvtár jelenik meg.';
   }
+
+  @override
+  String settings_setUpDevice_sync_inStep(String account) {
+    return 'Az itteni merülések összhangban vannak a könyvtárával itt: $account.';
+  }
+
+  @override
+  String get setup_syncPull_startFresh => 'Új napló kezdése';
 }

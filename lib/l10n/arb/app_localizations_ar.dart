@@ -56476,4 +56476,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String settings_setUpDevice_done_otherDevices(String account) {
     return 'على أجهزتك الأخرى، افتح Submersion واختر $account، وستظهر المكتبة نفسها.';
   }
+
+  @override
+  String settings_setUpDevice_sync_inStep(String account) {
+    return 'الغطسات هنا متطابقة مع مكتبتك في $account.';
+  }
+
+  @override
+  String get setup_syncPull_startFresh => 'بدء سجل جديد';
 }

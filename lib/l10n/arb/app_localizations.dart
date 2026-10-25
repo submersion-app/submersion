@@ -88059,6 +88059,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'On your other devices, open Submersion, choose {account}, and the same library appears.'**
   String settings_setUpDevice_done_otherDevices(String account);
+
+  /// Step 2 when this device already syncs with the chosen account
+  ///
+  /// In en, this message translates to:
+  /// **'The dives here are in step with your library in {account}.'**
+  String settings_setUpDevice_sync_inStep(String account);
+
+  /// First-run wizard: the account holds no library, so begin a new logbook
+  ///
+  /// In en, this message translates to:
+  /// **'Start a new logbook'**
+  String get setup_syncPull_startFresh;
 }
 
 class _AppLocalizationsDelegate

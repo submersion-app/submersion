@@ -16457,5 +16457,7 @@
   "settings_setUpDevice_photos_autoUploadHere": "Hier hinzugefügte Fotos automatisch hochladen",
   "settings_setUpDevice_photos_attachedCount": "{count, plural, =0{Noch keine Fotos oder Videos verknüpft} =1{{count} Foto oder Video verknüpft} other{{count} Fotos und Videos verknüpft}}",
   "settings_setUpDevice_done_title": "{device, select, phone{Dieses Telefon ist eingerichtet} tablet{Dieses Tablet ist eingerichtet} computer{Dieser Computer ist eingerichtet} other{Dieses Gerät ist eingerichtet}}",
-  "settings_setUpDevice_done_otherDevices": "Öffnen Sie Submersion auf Ihren anderen Geräten, wählen Sie {account}, und dieselbe Bibliothek erscheint."
+  "settings_setUpDevice_done_otherDevices": "Öffnen Sie Submersion auf Ihren anderen Geräten, wählen Sie {account}, und dieselbe Bibliothek erscheint.",
+  "settings_setUpDevice_sync_inStep": "Die Tauchgänge hier sind mit Ihrer Bibliothek in {account} abgeglichen.",
+  "setup_syncPull_startFresh": "Neues Logbuch beginnen"
 }
