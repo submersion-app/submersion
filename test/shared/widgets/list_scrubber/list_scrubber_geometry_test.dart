@@ -39,6 +39,49 @@ void main() {
     expect(trackForSlot(slot: 0, trackExtent: 500, slotCount: 1), 0);
   });
 
+  test('positions between slots are fractional, so motion is continuous', () {
+    expect(
+      slotPositionForScroll(
+        pixels: 450,
+        maxScrollExtent: 900,
+        loadedSlotCount: 11,
+      ),
+      5,
+    );
+    expect(
+      slotPositionForScroll(
+        pixels: 45,
+        maxScrollExtent: 900,
+        loadedSlotCount: 11,
+      ),
+      closeTo(0.5, 1e-9),
+    );
+    expect(
+      slotPositionForScroll(
+        pixels: 10,
+        maxScrollExtent: 0,
+        loadedSlotCount: 11,
+      ),
+      0,
+    );
+    expect(
+      slotPositionForTrack(dy: 126, trackExtent: 500, slotCount: 101),
+      closeTo(25.2, 1e-9),
+    );
+    expect(
+      slotPositionForTrack(dy: 900, trackExtent: 500, slotCount: 101),
+      100,
+    );
+    expect(
+      trackForSlot(slot: 25.2, trackExtent: 500, slotCount: 101),
+      closeTo(126, 1e-9),
+    );
+    expect(
+      scrollForSlot(slot: 0.5, maxScrollExtent: 900, loadedSlotCount: 11),
+      closeTo(45, 1e-9),
+    );
+  });
+
   test('wanted only past three viewports of estimated content', () {
     // 10 loaded rows fill 1.5 viewports; 30 slots in all estimate 4.5.
     expect(

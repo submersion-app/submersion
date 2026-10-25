@@ -293,19 +293,22 @@ class _ListScrubberState extends State<ListScrubber> {
         final dragSlot = _dragSlot == null
             ? null
             : math.min(_dragSlot!, _maxSlot);
-        final slot =
-            dragSlot ??
-            (widget.busyLabel != null ? _lastSlot : null) ??
-            slotForScroll(
-              pixels: position.pixels,
-              maxScrollExtent: position.maxScrollExtent,
-              loadedSlotCount: widget.loadedSlotCount,
-            );
-        final thumbTop = trackForSlot(
-          slot: math.min(slot, _maxSlot),
-          trackExtent: trackExtent,
-          slotCount: widget.slotCount,
+        final busySlot = widget.busyLabel != null ? _lastSlot : null;
+        // Between slots, so the thumb follows every pixel of scrolling.
+        final scrolled = slotPositionForScroll(
+          pixels: position.pixels,
+          maxScrollExtent: position.maxScrollExtent,
+          loadedSlotCount: widget.loadedSlotCount,
         );
+        final slot = dragSlot ?? busySlot ?? scrolled.round();
+        // A dragged thumb stays under the pointer.
+        final thumbTop = dragSlot != null
+            ? math.min(_dragTop, trackExtent)
+            : trackForSlot(
+                slot: math.min(busySlot ?? scrolled, _maxSlot),
+                trackExtent: trackExtent,
+                slotCount: widget.slotCount,
+              );
         _thumbTop = thumbTop;
         final active =
             _hovering || dragSlot != null || widget.busyLabel != null;
@@ -524,26 +527,26 @@ class _ListScrubberState extends State<ListScrubber> {
 
   void _dragTo(double dy, double trackExtent) {
     _dragTop = (_dragTop + dy).clamp(0.0, trackExtent);
-    final slot = math.min(
-      slotForTrack(
-        dy: _dragTop,
-        trackExtent: trackExtent,
-        slotCount: widget.slotCount,
-      ),
-      _maxSlot,
+    final position = slotPositionForTrack(
+      dy: _dragTop,
+      trackExtent: trackExtent,
+      slotCount: widget.slotCount,
     );
-    if (slot != _dragSlot) setState(() => _dragSlot = slot);
-    _follow(slot);
+    // The thumb moves with every update, even within one slot.
+    setState(() => _dragSlot = math.min(position.round(), _maxSlot));
+    _follow(position);
   }
 
-  /// Scrolls the list to [slot] when it is a loaded row.
-  void _follow(int slot) {
+  /// Scrolls the list to [position], which may fall between two slots, when
+  /// it rounds to a loaded row.
+  void _follow(num position) {
     final controller = widget.controller;
+    final slot = position.round();
     if (slot >= widget.loadedSlotCount || !controller.hasClients) return;
     _followedSlot = slot;
     controller.jumpTo(
       scrollForSlot(
-        slot: slot,
+        slot: position,
         maxScrollExtent: controller.position.maxScrollExtent,
         loadedSlotCount: widget.loadedSlotCount,
       ),

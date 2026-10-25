@@ -413,7 +413,7 @@ void main() {
 
   double expectedThumbTop(WidgetTester tester) {
     final position = controller.position;
-    final slot = slotForScroll(
+    final slot = slotPositionForScroll(
       pixels: position.pixels,
       maxScrollExtent: position.maxScrollExtent,
       loadedSlotCount: 200,
@@ -436,7 +436,7 @@ void main() {
     expect(controller.offset, greaterThan(3000));
     expect(
       tester.getTopLeft(find.byKey(ListScrubber.thumbKey)).dy,
-      closeTo(expectedThumbTop(tester), 1),
+      closeTo(expectedThumbTop(tester), 0.01),
     );
     await tester.pump(ListScrubber.idleHide);
   });
@@ -456,10 +456,10 @@ void main() {
     await tester.pump();
     await gesture.moveBy(const Offset(0, 1));
     await tester.pump();
-    // A jump snaps to a slot; one slot is 9400 / 199 px of scroll and 2 px
-    // of track is under two slots.
+    // The list follows the pointer by the pixel: 2 px of track is
+    // 2 * 9400 / 552 px of scroll, with no snap to a slot on the grab.
     expect(find.byKey(ListScrubber.currentValueKey), findsOneWidget);
-    expect(controller.offset, closeTo(before, 100));
+    expect(controller.offset, closeTo(before, 2 * 9400 / 552 + 0.01));
     await gesture.up();
     await tester.pump(ListScrubber.idleHide);
   });
@@ -625,7 +625,8 @@ void main() {
     final slim = tester.getRect(handle());
     final area = tester.getRect(find.byType(ListScrubber));
     expect(slim.width, 4);
-    expect(slim.height, 48);
+    // The thumb sits between whole pixels as the list scrolls.
+    expect(slim.height, moreOrLessEquals(48));
     expect(slim.left, greaterThanOrEqualTo(area.right - 8));
     await tester.pump(ListScrubber.idleHide);
   });

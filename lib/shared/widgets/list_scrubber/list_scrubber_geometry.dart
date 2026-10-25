@@ -1,17 +1,30 @@
 import 'package:submersion/shared/widgets/list_scrubber/scrubber_marker.dart';
 
-int slotForScroll({
+/// Where [pixels] falls among the loaded slots, between slots as a fraction,
+/// so the thumb can follow every pixel of scrolling.
+double slotPositionForScroll({
   required double pixels,
   required double maxScrollExtent,
   required int loadedSlotCount,
 }) {
   if (loadedSlotCount <= 1 || maxScrollExtent <= 0) return 0;
   final share = (pixels / maxScrollExtent).clamp(0.0, 1.0);
-  return (share * (loadedSlotCount - 1)).round();
+  return share * (loadedSlotCount - 1);
 }
 
+int slotForScroll({
+  required double pixels,
+  required double maxScrollExtent,
+  required int loadedSlotCount,
+}) => slotPositionForScroll(
+  pixels: pixels,
+  maxScrollExtent: maxScrollExtent,
+  loadedSlotCount: loadedSlotCount,
+).round();
+
+/// The scroll offset showing [slot], which may fall between two slots.
 double scrollForSlot({
-  required int slot,
+  required num slot,
   required double maxScrollExtent,
   required int loadedSlotCount,
 }) {
@@ -20,18 +33,31 @@ double scrollForSlot({
   return share * maxScrollExtent;
 }
 
-int slotForTrack({
+/// Where [dy] falls among all slots, between slots as a fraction, so a drag
+/// can scroll the list by the pixel.
+double slotPositionForTrack({
   required double dy,
   required double trackExtent,
   required int slotCount,
 }) {
   if (slotCount <= 1 || trackExtent <= 0) return 0;
   final share = (dy / trackExtent).clamp(0.0, 1.0);
-  return (share * (slotCount - 1)).round();
+  return share * (slotCount - 1);
 }
 
+int slotForTrack({
+  required double dy,
+  required double trackExtent,
+  required int slotCount,
+}) => slotPositionForTrack(
+  dy: dy,
+  trackExtent: trackExtent,
+  slotCount: slotCount,
+).round();
+
+/// The track position of [slot], which may fall between two slots.
 double trackForSlot({
-  required int slot,
+  required num slot,
   required double trackExtent,
   required int slotCount,
 }) {
