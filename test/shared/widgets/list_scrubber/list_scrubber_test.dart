@@ -977,4 +977,34 @@ void main() {
     expect(panel(), findsNothing);
     await tester.pump(ListScrubber.idleHide);
   });
+
+  testWidgets('the edge column beside the thumb shows only the thumb', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
+    try {
+      await tester.pumpWidget(host());
+      await tester.pump();
+      final area = tester.getRect(find.byType(ListScrubber));
+      final thumb = tester.getRect(find.byKey(ListScrubber.thumbKey));
+      // Desktop: an 8 px thumb 2 px in, so 14 px in is past it but still in
+      // the edge column.
+      final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+      await mouse.addPointer(
+        location: Offset(area.right - 14, thumb.center.dy),
+      );
+      await tester.pumpAndSettle();
+      expect(opacity(tester), 1);
+      expect(panel(), findsNothing);
+
+      await mouse.moveTo(Offset(area.right - 6, thumb.center.dy));
+      await tester.pumpAndSettle();
+      expect(panel(), findsOneWidget);
+      await mouse.removePointer();
+      await tester.pumpAndSettle();
+      await tester.pump(ListScrubber.idleHide);
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+    }
+  });
 }

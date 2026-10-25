@@ -111,6 +111,10 @@ class _ListScrubberState extends State<ListScrubber> {
   /// thumb's when that is wider.
   double _grip = ListScrubber.gripWidth;
 
+  /// How far in from the end edge the drawn thumb reaches: its margin plus
+  /// its thickness. Only a hover this close to the edge opens the panel.
+  double _thumbReach = ListScrubber.gripWidth;
+
   /// Where the thumb and the hover region were last laid out, for placing a
   /// hover against them.
   double _thumbTop = 0;
@@ -216,7 +220,8 @@ class _ListScrubberState extends State<ListScrubber> {
   }
 
   /// Tracks a hover over the region: the end edge's column shows the thumb,
-  /// and the thumb itself opens the panel, which then stays open until the
+  /// and the drawn thumb itself (or the margin between it and the edge)
+  /// opens the panel, which then stays open until the
   /// pointer leaves the region.
   void _hover(PointerEvent event) {
     _inside = true;
@@ -227,7 +232,10 @@ class _ListScrubberState extends State<ListScrubber> {
         : _regionWidth - x;
     final edge = fromEnd <= _grip;
     final y = event.localPosition.dy;
-    final onThumb = edge && y >= _thumbTop && y <= _thumbTop + _thumbHeight;
+    final onThumb =
+        fromEnd <= _thumbReach &&
+        y >= _thumbTop &&
+        y <= _thumbTop + _thumbHeight;
     final hovering = _hovering || onThumb;
     if (hovering == _hovering && edge == _edgeHover) return;
     setState(() {
@@ -317,6 +325,7 @@ class _ListScrubberState extends State<ListScrubber> {
           ListScrubberThumbStyle.statesFor(active: true, dragging: false),
         );
         final thumbInset = hoverStyle.crossAxisMargin + hoverStyle.thickness;
+        _thumbReach = thumbInset;
         _grip = math.max(
           ListScrubber.gripWidth,
           hoverStyle.thickness + hoverStyle.crossAxisMargin * 2,

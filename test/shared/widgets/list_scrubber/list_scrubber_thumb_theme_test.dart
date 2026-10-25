@@ -238,9 +238,9 @@ void main() {
     await tester.pump();
     final area = tester.getRect(find.byType(ListScrubber));
     final thumb = tester.getRect(find.byKey(ListScrubber.thumbKey));
-    // Over the handle's start edge, past the default grip width.
+    // On the handle (3 px in, 14 px wide), past the default grip width.
     final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
-    await mouse.addPointer(location: Offset(area.right - 18, thumb.center.dy));
+    await mouse.addPointer(location: Offset(area.right - 16, thumb.center.dy));
     await tester.pumpAndSettle();
     expect(find.byKey(ListScrubber.panelKey), findsOneWidget);
     await mouse.removePointer();
