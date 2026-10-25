@@ -37459,6 +37459,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get navTrack3d_metric_batteryVoltage => 'البطارية';
 
   @override
+  String get navTrack3d_noProfile =>
+      'لا تتوفر بيانات كافية لهذا المسار لعرض ثلاثي الأبعاد.';
+
+  @override
   String get dive3d_metric_ascentRate => 'الصعود';
 
   @override

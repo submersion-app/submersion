@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_3d/domain/geometry/dive_axes.dart';
+import 'package:submersion/features/dive_3d/domain/scene_3d.dart';
 import 'package:submersion/features/dive_3d/presentation/dive_chrome.dart';
 import 'package:submersion/features/dive_3d/presentation/renderer/hover_picker.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/dive_3d_interactive_viewport.dart';
@@ -107,28 +108,48 @@ class _NavTrack3dPageState extends ConsumerState<NavTrack3dPage>
   }
 
   Widget _buildBody() {
-    final sceneData = ref
-        .watch(navTrack3dSceneDataProvider(widget.trackId))
-        .value;
-    if (sceneData == null) {
-      return const Center(child: CircularProgressIndicator());
-    }
+    final sceneDataAsync = ref.watch(
+      navTrack3dSceneDataProvider(widget.trackId),
+    );
+    return sceneDataAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (_, _) =>
+          Center(child: Text(context.l10n.navTrack_common_trackLoadError)),
+      data: (sceneData) {
+        if (sceneData == null) {
+          return Center(child: Text(context.l10n.navTrack3d_noProfile));
+        }
+        return _buildScene(sceneData);
+      },
+    );
+  }
+
+  Widget _buildScene(NavTrack3dSceneData sceneData) {
     _initZ(sceneData);
     if (!sceneData.availableMetrics.contains(_colorMetric)) {
       _colorMetric = TrackSceneMetric.depth;
     }
-    final scene = ref
-        .watch(
-          navTrack3dGeometryProvider((
-            trackId: widget.trackId,
-            colorMetric: _colorMetric,
-            zMetric: _zMetric,
-          )),
-        )
-        .value;
-    if (scene == null) {
-      return const Center(child: CircularProgressIndicator());
-    }
+    final sceneAsync = ref.watch(
+      navTrack3dGeometryProvider((
+        trackId: widget.trackId,
+        colorMetric: _colorMetric,
+        zMetric: _zMetric,
+      )),
+    );
+    return sceneAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (_, _) =>
+          Center(child: Text(context.l10n.navTrack_common_trackLoadError)),
+      data: (scene) {
+        if (scene == null) {
+          return Center(child: Text(context.l10n.navTrack3d_noProfile));
+        }
+        return _buildViewport(sceneData, scene);
+      },
+    );
+  }
+
+  Widget _buildViewport(NavTrack3dSceneData sceneData, Scene3d scene) {
     final zAxis = ref.watch(
       navTrack3dZAxisProvider((trackId: widget.trackId, zMetric: _zMetric)),
     );

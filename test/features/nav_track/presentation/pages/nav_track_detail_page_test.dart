@@ -432,6 +432,34 @@ void main() {
     },
   );
 
+  testWidgets('a route crossing the antimeridian still fits without crashing '
+      '(Copilot review on PR #3637: a raw LatLngBounds.fromPoints asserts '
+      'east <= 180 and cannot express a wrapped route)', (tester) async {
+    // Anchor just west of the dateline; an 11 km east offset pushes the
+    // second point past 180 deg, where it wraps to a negative longitude.
+    final route = _route(anchorLatitude: 0, anchorLongitude: 179.95).copyWith(
+      points: [
+        for (final east in [0.0, 11000.0])
+          NavTrackPoint(
+            timestamp: 1755856800 + east.toInt(),
+            north: 0,
+            east: east,
+            depth: 5,
+          ),
+      ],
+    );
+    await _pump(tester, route: route);
+
+    final map = tester.widget<FlutterMap>(find.byType(FlutterMap));
+    // The wrap means no legal LatLngBounds exists, so TrackCamera falls
+    // back to its centre+zoom framing instead of initialCameraFit.
+    expect(map.options.initialCameraFit, isNull);
+    expect(
+      map.options.initialCenter.longitude,
+      inInclusiveRange(-180.0, 180.0),
+    );
+  });
+
   testWidgets(
     'falls back to the anchor-centered fixed zoom when there is nothing '
     'to fit a camera to',

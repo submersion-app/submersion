@@ -95,4 +95,83 @@ void main() {
       expect(find.text('Z axis: None'), findsOneWidget);
     },
   );
+
+  group('terminal states (Copilot review on PR #3637: a profileless or '
+      'errored route used to spin forever)', () {
+    Future<void> pumpWith(
+      WidgetTester tester, {
+      required Override routeOverride,
+    }) async {
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        testApp(
+          overrides: [...overrides, routeOverride],
+          child: const NavTrack3dPage(trackId: 'r1'),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 50));
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+
+    testWidgets('a route with fewer than two active samples shows the '
+        'no-profile message, not a spinner', (tester) async {
+      await pumpWith(
+        tester,
+        routeOverride: navTrackByIdProvider('r1').overrideWith(
+          (ref) async => NavTrack(
+            id: 'r1',
+            source: NavTrackSource.seacraftEnc,
+            startTime: 0,
+            endTime: 0,
+            pointCount: 1,
+            points: [_p(0, 0)],
+            createdAt: DateTime(2026),
+            updatedAt: DateTime(2026),
+          ),
+        ),
+      );
+
+      expect(
+        find.text("This track doesn't have enough data for a 3D preview."),
+        findsOneWidget,
+      );
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+    });
+
+    testWidgets('a missing route shows the no-profile message', (tester) async {
+      await pumpWith(
+        tester,
+        routeOverride: navTrackByIdProvider(
+          'r1',
+        ).overrideWith((ref) async => null),
+      );
+
+      expect(
+        find.text("This track doesn't have enough data for a 3D preview."),
+        findsOneWidget,
+      );
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+    });
+
+    testWidgets('a provider error shows the load-error message, not a '
+        'spinner', (tester) async {
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            ...overrides,
+            navTrackByIdProvider(
+              'r1',
+            ).overrideWith((ref) async => throw Exception('boom')),
+          ],
+          child: const NavTrack3dPage(trackId: 'r1'),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Could not load this track.'), findsOneWidget);
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+    });
+  });
 }

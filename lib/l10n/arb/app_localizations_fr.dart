@@ -37103,6 +37103,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get navTrack3d_metric_batteryVoltage => 'Batterie';
 
   @override
+  String get navTrack3d_noProfile =>
+      'Ce parcours ne contient pas assez de données pour une vue 3D.';
+
+  @override
   String get dive3d_metric_ascentRate => 'Remontée';
 
   @override

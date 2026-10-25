@@ -11,6 +11,7 @@ import 'package:submersion/features/dive_sites/presentation/widgets/site_picker/
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/gps_log/presentation/widgets/track_camera.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_corner_controls.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_interaction_options.dart';
@@ -403,12 +404,16 @@ class _RouteMapState extends ConsumerState<_RouteMap> {
     // Fit the camera to the whole drawn route rather than a fixed zoom on
     // the anchor alone: a long route no longer got cut off at the map's
     // edge, and centering on only the start point left most of a long
-    // route off-screen. The anchor-centered fixed zoom stays as the
-    // fallback for the (rare) case of fewer than two drawable points.
+    // route off-screen. TrackCamera (shared with the Tracks overview map)
+    // falls back to a centre+zoom fit for a route crossing the
+    // antimeridian, which a raw LatLngBounds.fromPoints cannot express at
+    // all (flutter_map asserts east <= 180). The anchor-centered fixed
+    // zoom stays as the fallback for the (rare) case of fewer than two
+    // drawable points.
     final drawn = navTrackDrawnPoints(widget.route);
-    final cameraFit = drawn.length >= 2
-        ? CameraFit.bounds(
-            bounds: LatLngBounds.fromPoints(drawn),
+    final camera = drawn.length >= 2
+        ? TrackCamera.forLatLngs(
+            drawn,
             padding: const EdgeInsets.all(32),
             maxZoom: 17,
           )
@@ -416,9 +421,10 @@ class _RouteMapState extends ConsumerState<_RouteMap> {
     return FlutterMap(
       mapController: _controller,
       options: MapOptions(
-        initialCenter: LatLng(anchor.latitude, anchor.longitude),
-        initialZoom: 15,
-        initialCameraFit: cameraFit,
+        initialCenter:
+            camera?.center ?? LatLng(anchor.latitude, anchor.longitude),
+        initialZoom: camera?.zoom ?? 15,
+        initialCameraFit: camera?.fit,
         interactionOptions: rotatableMapInteraction,
       ),
       children: [

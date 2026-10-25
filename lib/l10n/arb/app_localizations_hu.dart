@@ -36776,6 +36776,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get navTrack3d_metric_batteryVoltage => 'Akku';
 
   @override
+  String get navTrack3d_noProfile =>
+      'Ehhez a nyomvonalhoz nincs elég adat a 3D nézethez.';
+
+  @override
   String get dive3d_metric_ascentRate => 'Emelkedés';
 
   @override

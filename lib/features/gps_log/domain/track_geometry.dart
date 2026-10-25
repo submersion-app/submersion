@@ -129,29 +129,38 @@ List<GpsTrackPoint> windowTrack(
   ]);
 }
 
-/// Bounding box of [points], or null when empty.
+/// Bounding box of [points], or null when empty. Generic over any point
+/// type via [latOf]/[lonOf] -- not just [GpsTrackPoint] -- so an underwater
+/// track's `LatLng` route can share this same antimeridian-safe extent
+/// instead of a second copy of the unwrap logic (`LatLngBounds.fromPoints`
+/// asserts `east <= 180` and cannot express a wrapped track at all).
 ///
 /// Longitudes are unwrapped across the antimeridian: a track running from
 /// 179.9 E to 179.9 W reports minLon 179.9 and maxLon 180.1 (a 0.2 deg span)
 /// rather than the 359.8 deg span a naive min/max would produce, which would
 /// fit the camera to the entire globe.
-({double minLat, double maxLat, double minLon, double maxLon})? trackBounds(
-  List<GpsTrackPoint> points,
-) {
-  if (points.isEmpty) return null;
+({double minLat, double maxLat, double minLon, double maxLon})? trackBounds<T>(
+  Iterable<T> points, {
+  required double Function(T) latOf,
+  required double Function(T) lonOf,
+}) {
+  final list = points is List<T> ? points : points.toList(growable: false);
+  if (list.isEmpty) return null;
 
-  var minLat = points.first.latitude;
-  var maxLat = points.first.latitude;
-  for (final p in points) {
-    if (p.latitude < minLat) minLat = p.latitude;
-    if (p.latitude > maxLat) maxLat = p.latitude;
+  var minLat = latOf(list.first);
+  var maxLat = minLat;
+  for (final p in list) {
+    final lat = latOf(p);
+    if (lat < minLat) minLat = lat;
+    if (lat > maxLat) maxLat = lat;
   }
 
-  var minLon = points.first.longitude;
-  var maxLon = points.first.longitude;
-  for (final p in points) {
-    if (p.longitude < minLon) minLon = p.longitude;
-    if (p.longitude > maxLon) maxLon = p.longitude;
+  var minLon = lonOf(list.first);
+  var maxLon = minLon;
+  for (final p in list) {
+    final lon = lonOf(p);
+    if (lon < minLon) minLon = lon;
+    if (lon > maxLon) maxLon = lon;
   }
 
   // A raw span wider than half the globe means the track almost certainly
@@ -160,8 +169,9 @@ List<GpsTrackPoint> windowTrack(
   if (maxLon - minLon > 180.0) {
     var shiftedMin = double.infinity;
     var shiftedMax = double.negativeInfinity;
-    for (final p in points) {
-      final lon = p.longitude < 0 ? p.longitude + 360.0 : p.longitude;
+    for (final p in list) {
+      final raw = lonOf(p);
+      final lon = raw < 0 ? raw + 360.0 : raw;
       if (lon < shiftedMin) shiftedMin = lon;
       if (lon > shiftedMax) shiftedMax = lon;
     }
@@ -171,6 +181,12 @@ List<GpsTrackPoint> windowTrack(
 
   return (minLat: minLat, maxLat: maxLat, minLon: minLon, maxLon: maxLon);
 }
+
+/// [trackBounds] for [GpsTrackPoint]s, saving every call site the
+/// boilerplate accessors.
+({double minLat, double maxLat, double minLon, double maxLon})? gpsTrackBounds(
+  List<GpsTrackPoint> points,
+) => trackBounds(points, latOf: (p) => p.latitude, lonOf: (p) => p.longitude);
 
 /// Whether [bounds] was unwrapped past the antimeridian by [trackBounds].
 ///

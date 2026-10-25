@@ -34821,6 +34821,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get navTrack3d_metric_batteryVoltage => '电池';
 
   @override
+  String get navTrack3d_noProfile => '此轨迹没有足够的数据生成3D视图。';
+
+  @override
   String get dive3d_metric_ascentRate => '上升';
 
   @override

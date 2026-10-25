@@ -10464,6 +10464,7 @@
   "navTrack3d_previewTitle": "Vista 3D",
   "navTrack3d_metric_speed": "Velocidad",
   "navTrack3d_metric_batteryVoltage": "Batería",
+  "navTrack3d_noProfile": "Este track no tiene suficientes datos para una vista 3D.",
   "@dive3d_metric_temperature": {},
   "dive3d_metric_ascentRate": "Ascenso",
   "@dive3d_metric_ascentRate": {},

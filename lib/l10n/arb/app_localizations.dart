@@ -58348,6 +58348,12 @@ abstract class AppLocalizations {
   /// **'Battery'**
   String get navTrack3d_metric_batteryVoltage;
 
+  /// No description provided for @navTrack3d_noProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'This track doesn\'t have enough data for a 3D preview.'**
+  String get navTrack3d_noProfile;
+
   /// No description provided for @dive3d_metric_ascentRate.
   ///
   /// In en, this message translates to:

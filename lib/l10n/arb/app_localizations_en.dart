@@ -36373,6 +36373,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navTrack3d_metric_batteryVoltage => 'Battery';
 
   @override
+  String get navTrack3d_noProfile =>
+      'This track doesn\'t have enough data for a 3D preview.';
+
+  @override
   String get dive3d_metric_ascentRate => 'Ascent';
 
   @override

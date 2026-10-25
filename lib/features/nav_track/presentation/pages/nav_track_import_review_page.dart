@@ -552,7 +552,10 @@ class _SummaryGrid extends StatelessWidget {
       ),
       (l10n.navTrack_review_row_maxDepth, units.formatDepth(stats.maxDepth)),
       if (stats.maxSpeed != null)
-        (l10n.navTrack_review_row_maxSpeed, units.formatSpeed(stats.maxSpeed!)),
+        (
+          l10n.navTrack_review_row_maxSpeed,
+          units.formatTrackSpeed(stats.maxSpeed!),
+        ),
     ];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

@@ -36746,6 +36746,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get navTrack3d_metric_batteryVoltage => 'Batterij';
 
   @override
+  String get navTrack3d_noProfile =>
+      'Dit traject heeft niet genoeg gegevens voor een 3D-weergave.';
+
+  @override
   String get dive3d_metric_ascentRate => 'Opstijging';
 
   @override

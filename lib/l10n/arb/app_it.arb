@@ -10464,6 +10464,7 @@
   "navTrack3d_previewTitle": "Vista 3D",
   "navTrack3d_metric_speed": "Velocità",
   "navTrack3d_metric_batteryVoltage": "Batteria",
+  "navTrack3d_noProfile": "Questo percorso non ha dati sufficienti per una vista 3D.",
   "@dive3d_metric_temperature": {},
   "dive3d_metric_ascentRate": "Risalita",
   "@dive3d_metric_ascentRate": {},
