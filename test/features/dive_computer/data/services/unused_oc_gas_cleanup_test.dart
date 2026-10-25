@@ -212,4 +212,44 @@ void main() {
       );
     });
   });
+
+  group('sortUnusedOcGasRows', () {
+    DiveTank stored(String id, int? sourceIndex, {String role = 'bailout'}) =>
+        DiveTank(
+          id: id,
+          diveId: 'd1',
+          o2Percent: 21.0,
+          hePercent: 0.0,
+          tankOrder: 3,
+          tankRole: role,
+          sourceTankIndex: sourceIndex,
+        );
+
+    test('splits own rows into edited and importer-written', () {
+      final sorted = sortUnusedOcGasRows(
+        [tank(2, unused: true), tank(3, unused: true)],
+        {2: stored('a', 2), 3: stored('b', 3, role: 'stage')},
+      );
+
+      expect(sorted.importers, {2});
+      expect(sorted.edited, {3});
+    });
+
+    test('ignores a row reached through the order fallback', () {
+      final sorted = sortUnusedOcGasRows(
+        [tank(3, unused: true)],
+        {3: stored('by-hand', null)},
+      );
+
+      expect(sorted.importers, isEmpty);
+      expect(sorted.edited, isEmpty);
+    });
+
+    test('ignores cylinders that are not unused gases', () {
+      final sorted = sortUnusedOcGasRows([tank(3)], {3: stored('a', 3)});
+
+      expect(sorted.importers, isEmpty);
+      expect(sorted.edited, isEmpty);
+    });
+  });
 }

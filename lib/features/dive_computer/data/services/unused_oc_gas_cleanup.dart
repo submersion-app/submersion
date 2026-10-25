@@ -34,6 +34,30 @@ UnusedOcGasDrop dropUnusedOcGases(
   );
 }
 
+/// The parsed indices of unused open-circuit gases whose own stored row (its
+/// source index names the gas, so not a row the diver added by hand that
+/// reaches the index through the order fallback) the diver [edited], and those
+/// whose row holds only what an importer wrote ([importers]). A re-parse keeps
+/// the first and lets the claim and the drop treat the second as the
+/// computer's own cylinder again.
+({Set<int> edited, Set<int> importers}) sortUnusedOcGasRows(
+  List<TankData> parsedTanks,
+  Map<int, DiveTank> matches, {
+  TankPresetEntity? defaultPreset,
+}) {
+  final edited = <int>{};
+  final importers = <int>{};
+  for (final tank in parsedTanks) {
+    if (!tank.unusedOcGas) continue;
+    final row = matches[tank.index];
+    if (row == null || row.sourceTankIndex != tank.index) continue;
+    unusedOcGasEditedByDiver(row, tank, defaultPreset: defaultPreset)
+        ? edited.add(tank.index)
+        : importers.add(tank.index);
+  }
+  return (edited: edited, importers: importers);
+}
+
 /// Whether a stored cylinder for an unused open-circuit gas carries anything
 /// the diver set, so a re-parse must keep it rather than delete it.
 ///

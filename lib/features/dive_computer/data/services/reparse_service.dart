@@ -974,8 +974,13 @@ class ReparseService {
     // or preset fill, is the computer's own cylinder again: it takes this
     // parse's role and can be claimed, so a bailout transmitter still gets
     // its gas before the row goes.
-    final unusedRows = omitUnusedOcGases
-        ? await _sortUnusedOcGasRows(parsedTanks, matches)
+    final unusedRows =
+        omitUnusedOcGases && parsedTanks.any((t) => t.unusedOcGas)
+        ? sortUnusedOcGasRows(
+            parsedTanks,
+            matches,
+            defaultPreset: await _loadCleanupTankPreset(),
+          )
         : (edited: const <int>{}, importers: const <int>{});
 
     // A bailout transmitter claims the computer's pressureless cylinder for
@@ -1155,32 +1160,6 @@ class ReparseService {
     }
 
     return tankIdsByIndex;
-  }
-
-  /// The parsed indices of unused open-circuit gases (issue #3668) whose own
-  /// stored row (its source index names the gas) the diver [edited], and
-  /// those whose row holds only what an importer wrote ([importers]).
-  Future<({Set<int> edited, Set<int> importers})> _sortUnusedOcGasRows(
-    List<TankData> parsedTanks,
-    Map<int, DiveTank> matches,
-  ) async {
-    final owned = [
-      for (final tank in parsedTanks)
-        if (tank.unusedOcGas)
-          if (matches[tank.index] case final row?
-              when row.sourceTankIndex == tank.index)
-            (tank: tank, row: row),
-    ];
-    if (owned.isEmpty) return (edited: const <int>{}, importers: const <int>{});
-    final preset = await _loadCleanupTankPreset();
-    final edited = <int>{};
-    final importers = <int>{};
-    for (final (:tank, :row) in owned) {
-      unusedOcGasEditedByDiver(row, tank, defaultPreset: preset)
-          ? edited.add(tank.index)
-          : importers.add(tank.index);
-    }
-    return (edited: edited, importers: importers);
   }
 
   /// A stored cylinder that carries something only the diver adds, or a mix

@@ -444,10 +444,14 @@ Map<int, String> _inferSensorlessRoles(
 /// Whether the gas at a gas-list index is an unused open-circuit gas on
 /// [parsed] (issue #3668): a rebreather dive, a gas with no usage tag, and
 /// never breathed. Nothing is unused when the computer reported no per-sample
-/// gas at all, since then "never breathed" cannot be told from "not logged".
+/// gas at all, since then "never breathed" cannot be told from "not logged",
+/// nor when it tagged no gas as a diluent: many parsers (Atomics, Halcyon,
+/// Oceanic, Suunto D9 and more) leave the loop gas untagged, and one that
+/// logs a gas only at a switch would make the diluent itself look unused.
 bool Function(int gasIndex) _unusedOcGasTest(pigeon.ParsedDive parsed) {
   final onTheLoop = parsed.diveMode == 'ccr' || parsed.diveMode == 'scr';
   if (!onTheLoop) return (_) => false;
+  if (!parsed.gasMixes.any((g) => g.usage == 2)) return (_) => false;
   final breathed = {for (final b in breathedGasSequence(parsed)) b.gasIndex};
   if (breathed.isEmpty) return (_) => false;
   return (i) => !_hasReportedUsage(parsed.gasMixes[i]) && !breathed.contains(i);

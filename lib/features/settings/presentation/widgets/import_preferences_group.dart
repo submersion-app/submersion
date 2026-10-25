@@ -15,8 +15,8 @@ import 'package:submersion/shared/widgets/label_with_control.dart';
 /// logger, from a photo import and from a dive's suggestion card), whether
 /// cylinder end pressure is read at the moment of surfacing (applied on dive
 /// computer downloads, file imports and reparses), whether a rebreather
-/// download leaves out the open-circuit gases no transmitter read and the
-/// diver never breathed (issue #3668), and whether every new
+/// download or re-parse leaves out the open-circuit gases no transmitter read
+/// and the diver never breathed (issue #3668), and whether every new
 /// import session starts with a tag naming its source and date (issue #998;
 /// moved here from Settings > Manage > Tags in issue #3193), and whether a
 /// dive computer download defaults to the profile that owns the computer

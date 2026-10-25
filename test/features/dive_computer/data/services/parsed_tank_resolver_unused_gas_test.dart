@@ -147,6 +147,30 @@ void main() {
     expect(tanks.where((t) => t.unusedOcGas), isEmpty);
   });
 
+  test('a CCR computer that tags no diluent marks nothing', () {
+    // Many parsers (Atomics, Halcyon, Oceanic, Suunto D9 and more) report
+    // CCR but never tag a diluent, so the loop gas looks like any other.
+    // Logging only the switch to bailout must not make the diluent unused.
+    final tanks = resolveParsedTanks(
+      dive(
+        tanks: const [],
+        gasMixes: [
+          pigeon.GasMix(index: 0, o2Percent: 21.0, hePercent: 0.0),
+          pigeon.GasMix(index: 1, o2Percent: 50.0, hePercent: 0.0),
+          pigeon.GasMix(index: 2, o2Percent: 18.0, hePercent: 45.0),
+        ],
+        samples: [
+          sample(0, 0.0, null),
+          sample(1800, 40.0, null),
+          sample(2400, 21.0, 1),
+          sample(3000, 0.0, 1),
+        ],
+      ),
+    );
+
+    expect(tanks.where((t) => t.unusedOcGas), isEmpty);
+  });
+
   test('open circuit is never marked', () {
     final tanks = resolveParsedTanks(
       dive(
