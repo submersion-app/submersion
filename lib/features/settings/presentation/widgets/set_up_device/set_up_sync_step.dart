@@ -247,6 +247,10 @@ class _SetUpSyncStepState extends ConsumerState<SetUpSyncStep> {
         onBack: widget.navigation.onBack,
         primaryLabel: l10n.settings_setUpDevice_next,
         onPrimary: widget.navigation.onNext,
+        secondary: TextButton(
+          onPressed: widget.navigation.onNotNow,
+          child: Text(l10n.settings_setUpDevice_notNow),
+        ),
         children: [Text(l10n.settings_setUpDevice_sync_inStep(account.label))],
       );
     }

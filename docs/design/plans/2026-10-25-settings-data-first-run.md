@@ -111,7 +111,7 @@
 
 **Interfaces:**
 - Consumes: Tasks 1 to 4.
-- Produces: page-level step labels from new short strings `setup_step_account` ("Account"), `setup_step_sync` ("Sync"), `setup_step_backups` ("Backups"), `setup_step_photos` ("Photos") in 11 locales; `setup_step_backup` deleted.
+- Produces: the step indicator shows the four set up steps as one dot labelled with the existing `settings_section_data_title` ("Data"), so the fresh path keeps four dots and fits a phone (changed in review from four per-step labels, which overflowed at 320 pt); `setup_step_backup` deleted.
 
 - [ ] **Step 1: Write the failing tests** (step bodies stubbed where a step needs the network, through the existing page test harness):
   - fresh path pages in spec order, the bottom bar hidden on the four steps;

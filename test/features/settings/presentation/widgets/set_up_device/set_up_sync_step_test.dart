@@ -239,7 +239,8 @@ void main() {
     expect(probes, 0);
 
     await tester.tap(find.text('Next'));
-    expect(nav, ['next']);
+    await tester.tap(find.text('Not now'));
+    expect(nav, ['next', 'notNow']);
   });
 
   group('no library', () {
