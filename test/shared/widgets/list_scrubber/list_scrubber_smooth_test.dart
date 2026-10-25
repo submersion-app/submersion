@@ -131,6 +131,41 @@ void main() {
     await tester.pump(ListScrubber.idleHide);
   });
 
+  testWidgets('rows that load under a held thumb are followed on the next '
+      'update, even one with no vertical move', (tester) async {
+    await tester.pumpWidget(host(rows: 100, slotCount: 400));
+    controller.jumpTo(10);
+    await tester.pump();
+
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.byKey(ListScrubber.thumbKey)),
+    );
+    await gesture.moveBy(const Offset(0, 40));
+    await tester.pump();
+    final top = thumbTop(tester);
+
+    await tester.pumpWidget(host(rows: 200, slotCount: 400));
+    // Rows added off screen leave the list's extent stale until it lays
+    // out again, which the first follow's jump brings about; the second
+    // update then follows against the full extent.
+    for (var i = 0; i < 2; i++) {
+      await gesture.moveBy(const Offset(-5, 0));
+      await tester.pump();
+    }
+
+    expect(thumbTop(tester), closeTo(top, 0.01));
+    expect(
+      controller.offset,
+      closeTo(
+        top / track * 399 / 199 * controller.position.maxScrollExtent,
+        0.01,
+      ),
+    );
+
+    await gesture.up();
+    await tester.pump(ListScrubber.idleHide);
+  });
+
   testWidgets('over loaded rows of a longer list the drag still follows '
       'by the pixel', (tester) async {
     await tester.pumpWidget(host(rows: 100, slotCount: 400));

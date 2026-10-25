@@ -579,11 +579,14 @@ class _ListScrubberState extends State<ListScrubber> {
       slotCount: widget.slotCount,
     );
     final slot = math.min(position.round(), _maxSlot);
-    // A pointer past either end of the track moves nothing, unless rows
-    // loaded or slots changed while it was held there.
+    final target = _followTarget(position);
+    // An update that would move neither the thumb nor the list, like one
+    // past either end of the track, rebuilds nothing. Rows that loaded
+    // under a held thumb change the target, so they are still followed.
     if (top == _dragTop &&
         slot == _dragSlot &&
-        (slot >= widget.loadedSlotCount || slot == _followedSlot)) {
+        (target == null ||
+            (target == widget.controller.offset && slot == _followedSlot))) {
       return;
     }
     _dragTop = top;
@@ -592,20 +595,26 @@ class _ListScrubberState extends State<ListScrubber> {
     _follow(position);
   }
 
-  /// Scrolls the list to [position], which may fall between two slots, when
-  /// it rounds to a loaded row.
-  void _follow(num position) {
+  /// The scroll offset showing [position], which may fall between two
+  /// slots, or null when it rounds past the loaded rows.
+  double? _followTarget(num position) {
     final controller = widget.controller;
-    final slot = position.round();
-    if (slot >= widget.loadedSlotCount || !controller.hasClients) return;
-    _followedSlot = slot;
-    controller.jumpTo(
-      scrollForSlot(
-        slot: position,
-        maxScrollExtent: controller.position.maxScrollExtent,
-        loadedSlotCount: widget.loadedSlotCount,
-      ),
+    if (position.round() >= widget.loadedSlotCount || !controller.hasClients) {
+      return null;
+    }
+    return scrollForSlot(
+      slot: position,
+      maxScrollExtent: controller.position.maxScrollExtent,
+      loadedSlotCount: widget.loadedSlotCount,
     );
+  }
+
+  /// Scrolls the list to [position] when it rounds to a loaded row.
+  void _follow(num position) {
+    final target = _followTarget(position);
+    if (target == null) return;
+    _followedSlot = position.round();
+    widget.controller.jumpTo(target);
   }
 
   void _endDrag() {
