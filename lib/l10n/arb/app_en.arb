@@ -17648,7 +17648,7 @@
   "@settings_omitUnusedOcGases_title": {
     "description": "Switch title, in Import options on Settings > Data, for leaving out open-circuit gases a rebreather dive computer reports but the diver never carried or breathed"
   },
-  "settings_omitUnusedOcGases_subtitle": "On rebreather downloads, leave out a gas with no transmitter that was never breathed",
+  "settings_omitUnusedOcGases_subtitle": "On rebreather downloads and re-parses, leave out a gas with no transmitter that was never breathed",
   "@settings_omitUnusedOcGases_subtitle": {
     "description": "Switch subtitle, in Import options on Settings > Data, explaining which gases a rebreather download leaves out"
   },

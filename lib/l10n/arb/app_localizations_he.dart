@@ -29576,7 +29576,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_omitUnusedOcGases_subtitle =>
-      'בהורדות ממעגל סגור, משמיט גז ללא משדר שמעולם לא נשמו ממנו';
+      'בהורדות ובעיבוד מחדש ממעגל סגור, משמיט גז ללא משדר שמעולם לא נשמו ממנו';
 
   @override
   String get tags_manage_searchHint => 'חיפוש תגיות...';

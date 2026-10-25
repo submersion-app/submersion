@@ -8295,7 +8295,7 @@
   "settings_downloadsFollowOwner_title": "Letöltések hozzáadása a komputer tulajdonosához",
   "settings_downloadsFollowOwner_subtitle": "Ha egy búvárkomputer egy másik profilhoz tartozik, a merülései annak a profilnak a naplójába kerülnek. Ezt az ellenőrző képernyőn módosíthatod.",
   "settings_omitUnusedOcGases_title": "Nem használt bailout gázok kihagyása",
-  "settings_omitUnusedOcGases_subtitle": "Rebreather-letöltéseknél kihagyja a jeladó nélküli gázt, amelyből soha nem lélegzett",
+  "settings_omitUnusedOcGases_subtitle": "Rebreather-letöltéseknél és újraolvasáskor kihagyja a jeladó nélküli gázt, amelyből soha nem lélegzett",
   "tags_manage_bulkDeleteMessage": "Ezek a címkék eltávolításra kerülnek összesen {diveCount, plural, =0{0 merülésből} =1{1 merülésből} other{{diveCount} merülésből}}. Ez nem vonható vissza.",
   "tags_manage_bulkDeleteMessage_sites": "Ezek a címkék eltávolításra kerülnek összesen {siteCount, plural, =1{1 merülőhelyről} other{{siteCount} merülőhelyről}}. Ez nem vonható vissza.",
   "tags_manage_bulkDeleteMessage_equipment": "Ezek a címkék eltávolításra kerülnek összesen {equipmentCount, plural, =1{1 felszerelésről} other{{equipmentCount} felszerelésről}}. Ez nem vonható vissza.",

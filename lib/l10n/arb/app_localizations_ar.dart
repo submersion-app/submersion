@@ -30578,7 +30578,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_omitUnusedOcGases_subtitle =>
-      'في تنزيلات أجهزة إعادة التنفس، يستبعد غازًا بلا جهاز إرسال لم يُتنفَّس منه قط';
+      'في تنزيلات أجهزة إعادة التنفس وإعادة تحليلها، يستبعد غازًا بلا جهاز إرسال لم يُتنفَّس منه قط';
 
   @override
   String get tags_manage_searchHint => 'البحث في الوسوم...';

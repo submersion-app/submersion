@@ -48523,7 +48523,7 @@ abstract class AppLocalizations {
   /// Switch subtitle, in Import options on Settings > Data, explaining which gases a rebreather download leaves out
   ///
   /// In en, this message translates to:
-  /// **'On rebreather downloads, leave out a gas with no transmitter that was never breathed'**
+  /// **'On rebreather downloads and re-parses, leave out a gas with no transmitter that was never breathed'**
   String get settings_omitUnusedOcGases_subtitle;
 
   /// No description provided for @tags_manage_searchHint.

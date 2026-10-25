@@ -30332,7 +30332,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_omitUnusedOcGases_subtitle =>
-      'Nos downloads de rebreather, omite um gás sem transmissor que nunca foi respirado';
+      'Nos downloads e reprocessamentos de rebreather, omite um gás sem transmissor que nunca foi respirado';
 
   @override
   String get tags_manage_searchHint => 'Buscar etiquetas...';

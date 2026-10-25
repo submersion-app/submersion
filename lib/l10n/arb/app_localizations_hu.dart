@@ -30179,7 +30179,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_omitUnusedOcGases_subtitle =>
-      'Rebreather-letöltéseknél kihagyja a jeladó nélküli gázt, amelyből soha nem lélegzett';
+      'Rebreather-letöltéseknél és újraolvasáskor kihagyja a jeladó nélküli gázt, amelyből soha nem lélegzett';
 
   @override
   String get tags_manage_searchHint => 'Címkék keresése...';

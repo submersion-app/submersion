@@ -8295,7 +8295,7 @@
   "settings_downloadsFollowOwner_title": "Ajouter les téléchargements au propriétaire de l'ordinateur",
   "settings_downloadsFollowOwner_subtitle": "Si un ordinateur de plongée appartient à un autre profil, ses plongées vont dans le carnet de ce profil. Vous pouvez le modifier sur l'écran de vérification.",
   "settings_omitUnusedOcGases_title": "Ignorer les gaz de secours inutilisés",
-  "settings_omitUnusedOcGases_subtitle": "Lors des téléchargements de recycleur, omet un gaz sans transmetteur qui n'a jamais été respiré",
+  "settings_omitUnusedOcGases_subtitle": "Lors des téléchargements et réanalyses de recycleur, omet un gaz sans transmetteur qui n'a jamais été respiré",
   "tags_manage_bulkDeleteMessage": "Ces étiquettes seront retirées de {diveCount, plural, =0{0 plongées} =1{{diveCount} plongée} other{{diveCount} plongées}} au total. Cette action est irréversible.",
   "tags_manage_bulkDeleteMessage_sites": "Ces étiquettes seront retirées de {siteCount, plural, =1{{siteCount} site} other{{siteCount} sites}} au total. Cette action est irréversible.",
   "tags_manage_bulkDeleteMessage_equipment": "Ces étiquettes seront retirées de {equipmentCount, plural, =1{{equipmentCount} équipement} other{{equipmentCount} équipements}} au total. Cette action est irréversible.",

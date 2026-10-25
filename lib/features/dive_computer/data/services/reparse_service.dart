@@ -8,6 +8,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/profile/tank_pressure_glitches.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/event_scope_tombstone.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_computer/data/services/bailout_gas_claim.dart';
@@ -44,6 +45,7 @@ import 'package:submersion/features/tank_presets/domain/entities/tank_preset_ent
 /// This is the single point where the allowlist is enforced. Both the
 /// `replaceSource` path and the manual re-parse path call through here.
 class ReparseService {
+  static final _log = LoggerService.forClass(ReparseService);
   final AppDatabase db;
   final _uuid = const Uuid();
 
@@ -106,12 +108,20 @@ class ReparseService {
     }
   }
 
+  /// Logged rather than silent: without the preset, every cylinder an earlier
+  /// download filled from it is kept, and the diver would see the switch
+  /// apparently do nothing.
   Future<TankPresetEntity?> _loadCleanupTankPreset() async {
     final loader = _cleanupTankPresetLoader;
     if (loader == null) return null;
     try {
       return await loader();
-    } catch (_) {
+    } catch (e, st) {
+      _log.warning(
+        'Default tank preset unavailable; keeping preset-filled cylinders',
+        error: e,
+        stackTrace: st,
+      );
       return null;
     }
   }
@@ -957,6 +967,17 @@ class ReparseService {
         (existing.roleSource == null &&
             existing.tankRole == nameDerivedRoles[index]);
 
+    // With the diver's switch on, sort the stored rows of unused open-circuit
+    // gases before the claim (issue #3668), judged against this parse rather
+    // than the role overlay below, which would hide a role the diver changed.
+    // A row the importer wrote, including an older importer's back-gas guess
+    // or preset fill, is the computer's own cylinder again: it takes this
+    // parse's role and can be claimed, so a bailout transmitter still gets
+    // its gas before the row goes.
+    final unusedRows = omitUnusedOcGases
+        ? await _sortUnusedOcGasRows(parsedTanks, matches)
+        : (edited: const <int>{}, importers: const <int>{});
+
     // A bailout transmitter claims the computer's pressureless cylinder for
     // its gas (#3307). Stored roles the diver set count, so a transmitter the
     // diver made the bailout keeps the cylinder merged; a stored cylinder the
@@ -965,7 +986,9 @@ class ReparseService {
       tanks: [
         for (final tank in parsedTanks)
           switch (matches[tank.index]) {
-            final existing? when !roleIsComputers(existing, tank.index) =>
+            final existing?
+                when !roleIsComputers(existing, tank.index) &&
+                    !unusedRows.importers.contains(tank.index) =>
               tank.copyWith(role: existing.tankRole, clearRoleSource: true),
             _ => tank,
           },
@@ -988,17 +1011,18 @@ class ReparseService {
       keep: {
         for (final tank in parsedTanks)
           if (matches[tank.index] case final row?)
-            if (_isDiverEdited(row, tank)) tank.index,
+            if (_isDiverEdited(row, tank) &&
+                !unusedRows.importers.contains(tank.index))
+              tank.index,
       },
     );
 
-    // With the diver's switch on, the cylinders of unused open-circuit gases
-    // go, after the claim has seen them (issue #3668). Only a stored row that
-    // is that gas's own (its source index names it) is the gas; a row the
-    // diver added in the editor reaches the same index only through the
-    // order fallback and is left alone, as is one the diver edited.
+    // Then the cylinders of unused open-circuit gases go, after the claim has
+    // seen them, except one whose own row the diver edited. A row the diver
+    // added in the editor reaches a dropped index only through the order
+    // fallback and is left alone below.
     final unused = omitUnusedOcGases
-        ? await _dropUnusedOcGases(claim.tanks, matches)
+        ? dropUnusedOcGases(claim.tanks, keep: unusedRows.edited)
         : (tanks: claim.tanks, dropped: const <int>{});
 
     // Claimed cylinders are gone from [claim.tanks]; a role overlaid above
@@ -1133,25 +1157,30 @@ class ReparseService {
     return tankIdsByIndex;
   }
 
-  /// [tanks] without the unused open-circuit gases (issue #3668), keeping any
-  /// whose own stored row the diver edited.
-  Future<UnusedOcGasDrop> _dropUnusedOcGases(
-    List<TankData> tanks,
+  /// The parsed indices of unused open-circuit gases (issue #3668) whose own
+  /// stored row (its source index names the gas) the diver [edited], and
+  /// those whose row holds only what an importer wrote ([importers]).
+  Future<({Set<int> edited, Set<int> importers})> _sortUnusedOcGasRows(
+    List<TankData> parsedTanks,
     Map<int, DiveTank> matches,
   ) async {
-    if (!tanks.any((t) => t.unusedOcGas)) {
-      return (tanks: tanks, dropped: const <int>{});
-    }
-    final preset = await _loadCleanupTankPreset();
-    final keep = <int>{
-      for (final tank in tanks)
+    final owned = [
+      for (final tank in parsedTanks)
         if (tank.unusedOcGas)
           if (matches[tank.index] case final row?
-              when row.sourceTankIndex == tank.index &&
-                  unusedOcGasEditedByDiver(row, tank, defaultPreset: preset))
-            tank.index,
-    };
-    return dropUnusedOcGases(tanks, keep: keep);
+              when row.sourceTankIndex == tank.index)
+            (tank: tank, row: row),
+    ];
+    if (owned.isEmpty) return (edited: const <int>{}, importers: const <int>{});
+    final preset = await _loadCleanupTankPreset();
+    final edited = <int>{};
+    final importers = <int>{};
+    for (final (:tank, :row) in owned) {
+      unusedOcGasEditedByDiver(row, tank, defaultPreset: preset)
+          ? edited.add(tank.index)
+          : importers.add(tank.index);
+    }
+    return (edited: edited, importers: importers);
   }
 
   /// A stored cylinder that carries something only the diver adds, or a mix

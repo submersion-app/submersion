@@ -152,7 +152,7 @@ void main() {
       expect(
         unusedOcGasEditedByDiver(
           row(role: 'deco', o2: 100.0),
-          TankData(index: 2, o2Percent: 100.0, role: 'bailout'),
+          const TankData(index: 2, o2Percent: 100.0, role: 'bailout'),
         ),
         isFalse,
       );

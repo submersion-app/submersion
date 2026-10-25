@@ -30364,7 +30364,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_omitUnusedOcGases_subtitle =>
-      'En las descargas de rebreather, omite un gas sin transmisor que nunca se respiró';
+      'En las descargas y reprocesados de rebreather, omite un gas sin transmisor que nunca se respiró';
 
   @override
   String get tags_manage_searchHint => 'Buscar etiquetas...';

@@ -8395,7 +8395,7 @@
   "settings_downloadsFollowOwner_title": "Downloads toevoegen aan de eigenaar van de computer",
   "settings_downloadsFollowOwner_subtitle": "Hoort een duikcomputer bij een ander profiel, dan gaan de duiken naar het logboek van dat profiel. Je kunt dit wijzigen op het controlescherm.",
   "settings_omitUnusedOcGases_title": "Ongebruikte bailoutgassen overslaan",
-  "settings_omitUnusedOcGases_subtitle": "Laat bij rebreatherdownloads een gas zonder zender weg dat nooit is geademd",
+  "settings_omitUnusedOcGases_subtitle": "Laat bij rebreatherdownloads en opnieuw inlezen een gas zonder zender weg dat nooit is geademd",
   "tags_manage_bulkDeleteMessage": "Deze tags worden verwijderd van in totaal {diveCount, plural, =0{0 duiken} =1{1 duik} other{{diveCount} duiken}}. Dit kan niet ongedaan worden gemaakt.",
   "tags_manage_bulkDeleteMessage_sites": "Deze tags worden verwijderd van in totaal {siteCount, plural, =1{1 duikstek} other{{siteCount} duikstekken}}. Dit kan niet ongedaan worden gemaakt.",
   "tags_manage_bulkDeleteMessage_equipment": "Deze tags worden verwijderd van in totaal {equipmentCount, plural, =1{1 uitrustingsstuk} other{{equipmentCount} uitrustingsstukken}}. Dit kan niet ongedaan worden gemaakt.",

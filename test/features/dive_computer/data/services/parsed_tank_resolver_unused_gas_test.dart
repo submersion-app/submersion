@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 import 'package:submersion/features/dive_computer/data/services/dive_parser.dart';
+import 'package:submersion/features/dive_computer/data/services/parsed_dive_mapper.dart';
 import 'package:submersion/features/dive_computer/data/services/parsed_tank_resolver.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 
@@ -201,6 +202,18 @@ void main() {
         tanks.firstWhere((t) => t.transmitterSerial == '818'),
       ).unusedOcGas,
       isFalse,
+    );
+  });
+
+  test('the download mapping carries the flag to the importer', () {
+    final downloaded = parsedDiveToDownloaded(dive(), vendor: 'Shearwater');
+
+    expect(downloaded.tanks.where((t) => t.unusedOcGas), hasLength(2));
+    expect(
+      downloaded.tanks
+          .where((t) => t.transmitterSerial != null)
+          .every((t) => !t.unusedOcGas),
+      isTrue,
     );
   });
 

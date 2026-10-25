@@ -29825,7 +29825,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_omitUnusedOcGases_subtitle =>
-      'On rebreather downloads, leave out a gas with no transmitter that was never breathed';
+      'On rebreather downloads and re-parses, leave out a gas with no transmitter that was never breathed';
 
   @override
   String get tags_manage_searchHint => 'Search tags...';

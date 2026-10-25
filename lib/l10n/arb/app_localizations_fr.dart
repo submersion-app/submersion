@@ -30436,7 +30436,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_omitUnusedOcGases_subtitle =>
-      'Lors des téléchargements de recycleur, omet un gaz sans transmetteur qui n\'a jamais été respiré';
+      'Lors des téléchargements et réanalyses de recycleur, omet un gaz sans transmetteur qui n\'a jamais été respiré';
 
   @override
   String get tags_manage_searchHint => 'Rechercher des étiquettes...';

@@ -28602,7 +28602,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_omitUnusedOcGases_subtitle =>
-      '下载循环呼吸器潜水时，略过没有发射器且从未呼吸过的气体';
+      '下载或重新解析循环呼吸器潜水时，略过没有发射器且从未呼吸过的气体';
 
   @override
   String get tags_manage_searchHint => '搜索标签...';

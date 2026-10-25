@@ -367,6 +367,135 @@ void main() {
     },
   );
 
+  test('a gas cylinder whose role the diver changed is kept', () async {
+    await storeTransmitters();
+    await storeGas(airRole: 'stage');
+
+    await reparse(switchedOn());
+
+    expect(await storedIds(), {'dil', 'o2', 'gas-air'});
+  });
+
+  group('with a registered bailout transmitter (#3307)', () {
+    ReparseService withBailoutEntry({TankPresetEntity? preset}) =>
+        ReparseService(
+          db: db,
+          omitUnusedOcGases: true,
+          cleanupTankPresetLoader: () async => preset,
+          transmitterMatcherLoader: () async => TransmitterMatcher.fromEntries([
+            Transmitter(
+              id: 'e1',
+              transmitterSerial: '555',
+              label: 'Bailout',
+              role: TankRole.bailout,
+              createdAt: DateTime.utc(2026, 9, 1),
+              updatedAt: DateTime.utc(2026, 9, 1),
+            ),
+          ]),
+        );
+
+    final withBailoutTransmitter = reporterParse(
+      extraTanks: [
+        pigeon.TankInfo(
+          index: 4,
+          gasMixIndex: unknownGasMixIndex,
+          startPressureBar: 200.0,
+          endPressureBar: 200.0,
+          usage: 1,
+          transmitterSerial: 555,
+        ),
+      ],
+    );
+
+    /// The transmitter row and the two gas rows an earlier download stored;
+    /// with the transmitter at index 4 the gases sit at 5 (O2) and 6 (Air).
+    Future<void> storeEarlierDownload({
+      required String airRole,
+      bool presetFilled = false,
+    }) async {
+      await storeTransmitters();
+      await storeTank(
+        't555',
+        sourceTankIndex: 4,
+        tankOrder: 4,
+        o2: 100.0,
+        role: 'oxygenSupply',
+        serial: '555',
+      );
+      await storeTank(
+        'gas-o2',
+        sourceTankIndex: 5,
+        tankOrder: 5,
+        o2: 100.0,
+        role: 'deco',
+      );
+      await storeTank(
+        'gas-air',
+        sourceTankIndex: 6,
+        tankOrder: 6,
+        o2: 21.0,
+        role: airRole,
+        volume: presetFilled ? al80.volumeLiters : null,
+        workingPressure: presetFilled ? al80.workingPressureBar : null,
+        material: presetFilled ? al80.material.name : null,
+        presetName: presetFilled ? al80.name : null,
+      );
+    }
+
+    Future<DiveTank> transmitter() => (db.select(
+      db.diveTanks,
+    )..where((t) => t.id.equals('t555'))).getSingle();
+
+    test(
+      'a pre-v1.8.1 back-gas Air row gives the transmitter its Air',
+      () async {
+        await storeEarlierDownload(airRole: 'backGas');
+
+        await reparse(withBailoutEntry(), parsed: withBailoutTransmitter);
+
+        expect((await transmitter()).o2Percent, 21.0);
+        expect((await transmitter()).tankRole, 'bailout');
+        expect(await storedIds(), {'dil', 'o2', 't555'});
+      },
+    );
+
+    test(
+      'a preset-filled pre-v1.8.1 Air row gives the transmitter its Air',
+      () async {
+        await storeEarlierDownload(airRole: 'backGas', presetFilled: true);
+
+        await reparse(
+          withBailoutEntry(preset: al80),
+          parsed: withBailoutTransmitter,
+        );
+
+        expect((await transmitter()).o2Percent, 21.0);
+        expect(await storedIds(), {'dil', 'o2', 't555'});
+      },
+    );
+
+    test(
+      'a post-v1.8.1 bailout Air row gives the transmitter its Air',
+      () async {
+        await storeEarlierDownload(airRole: 'bailout');
+
+        await reparse(withBailoutEntry(), parsed: withBailoutTransmitter);
+
+        expect((await transmitter()).o2Percent, 21.0);
+        expect(await storedIds(), {'dil', 'o2', 't555'});
+        expect(await tombstonedTanks(), containsAll(['gas-o2', 'gas-air']));
+      },
+    );
+
+    test('an Air row the diver edited stays and keeps its gas', () async {
+      await storeEarlierDownload(airRole: 'stage');
+
+      await reparse(withBailoutEntry(), parsed: withBailoutTransmitter);
+
+      expect(await storedIds(), {'dil', 'o2', 't555', 'gas-air'});
+    });
+  });
+
   test('a parse with no per-sample gas deletes nothing', () async {
     await storeTransmitters();
     await storeGas();

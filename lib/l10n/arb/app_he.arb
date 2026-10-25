@@ -8395,7 +8395,7 @@
   "settings_downloadsFollowOwner_title": "הוספת הורדות לבעלים של המחשב",
   "settings_downloadsFollowOwner_subtitle": "כשמחשב צלילה שייך לפרופיל אחר, הצלילות שלו נכנסות ליומן של אותו פרופיל. אפשר לשנות זאת במסך הסקירה.",
   "settings_omitUnusedOcGases_title": "דילוג על גזי חילוץ שלא נוצלו",
-  "settings_omitUnusedOcGases_subtitle": "בהורדות ממעגל סגור, משמיט גז ללא משדר שמעולם לא נשמו ממנו",
+  "settings_omitUnusedOcGases_subtitle": "בהורדות ובעיבוד מחדש ממעגל סגור, משמיט גז ללא משדר שמעולם לא נשמו ממנו",
   "tags_manage_bulkDeleteMessage": "תגיות אלו יוסרו מ-{diveCount, plural, =0{0 צלילות} =1{צלילה אחת} other{{diveCount} צלילות}} בסך הכל. לא ניתן לבטל פעולה זו.",
   "tags_manage_bulkDeleteMessage_sites": "תגיות אלו יוסרו מ-{siteCount, plural, =1{אתר אחד} other{{siteCount} אתרים}} בסך הכל. לא ניתן לבטל פעולה זו.",
   "tags_manage_bulkDeleteMessage_equipment": "תגיות אלו יוסרו מ-{equipmentCount, plural, =1{פריט ציוד אחד} other{{equipmentCount} פריטי ציוד}} בסך הכל. לא ניתן לבטל פעולה זו.",

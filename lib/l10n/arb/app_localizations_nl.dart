@@ -30134,7 +30134,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_omitUnusedOcGases_subtitle =>
-      'Laat bij rebreatherdownloads een gas zonder zender weg dat nooit is geademd';
+      'Laat bij rebreatherdownloads en opnieuw inlezen een gas zonder zender weg dat nooit is geademd';
 
   @override
   String get tags_manage_searchHint => 'Tags zoeken...';

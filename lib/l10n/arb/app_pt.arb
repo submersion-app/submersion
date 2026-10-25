@@ -8395,7 +8395,7 @@
   "settings_downloadsFollowOwner_title": "Adicionar downloads ao dono do computador",
   "settings_downloadsFollowOwner_subtitle": "Quando um computador de mergulho pertence a outro perfil, os mergulhos dele vão para o registro desse perfil. Você pode mudar isso na tela de revisão.",
   "settings_omitUnusedOcGases_title": "Ignorar gases de bailout não usados",
-  "settings_omitUnusedOcGases_subtitle": "Nos downloads de rebreather, omite um gás sem transmissor que nunca foi respirado",
+  "settings_omitUnusedOcGases_subtitle": "Nos downloads e reprocessamentos de rebreather, omite um gás sem transmissor que nunca foi respirado",
   "tags_manage_bulkDeleteMessage": "Estas etiquetas serão removidas de {diveCount, plural, =0{0 mergulhos} =1{{diveCount} mergulho} other{{diveCount} mergulhos}} no total. Esta ação não pode ser desfeita.",
   "tags_manage_bulkDeleteMessage_sites": "Estas etiquetas serão removidas de {siteCount, plural, =1{{siteCount} ponto} other{{siteCount} pontos}} no total. Esta ação não pode ser desfeita.",
   "tags_manage_bulkDeleteMessage_equipment": "Estas etiquetas serão removidas de {equipmentCount, plural, =1{{equipmentCount} equipamento} other{{equipmentCount} equipamentos}} no total. Esta ação não pode ser desfeita.",

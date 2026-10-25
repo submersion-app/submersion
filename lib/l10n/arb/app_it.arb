@@ -8291,7 +8291,7 @@
   "settings_downloadsFollowOwner_title": "Aggiungi i download al proprietario del computer",
   "settings_downloadsFollowOwner_subtitle": "Se un computer subacqueo appartiene a un altro profilo, le sue immersioni vanno nel registro di quel profilo. Puoi cambiarlo nella schermata di revisione.",
   "settings_omitUnusedOcGases_title": "Salta i gas di bailout inutilizzati",
-  "settings_omitUnusedOcGases_subtitle": "Nei download da rebreather, omette un gas senza trasmettitore che non è mai stato respirato",
+  "settings_omitUnusedOcGases_subtitle": "Nei download e nelle rielaborazioni da rebreather, omette un gas senza trasmettitore che non è mai stato respirato",
   "tags_manage_bulkDeleteMessage": "Questi tag verranno rimossi da {diveCount, plural, =0{0 immersioni} =1{1 immersione} other{{diveCount} immersioni}} in totale. Questa azione non può essere annullata.",
   "tags_manage_bulkDeleteMessage_sites": "Questi tag verranno rimossi da {siteCount, plural, =1{1 sito} other{{siteCount} siti}} in totale. Questa azione non può essere annullata.",
   "tags_manage_bulkDeleteMessage_equipment": "Questi tag verranno rimossi da {equipmentCount, plural, =1{1 attrezzatura} other{{equipmentCount} attrezzature}} in totale. Questa azione non può essere annullata.",
