@@ -13645,12 +13645,6 @@ abstract class AppLocalizations {
   /// **'Unrated'**
   String get diveLog_scrubber_unrated;
 
-  /// Dive list scrubber value while dragging over a dive on a trip in date sort: the month, then the trip name
-  ///
-  /// In en, this message translates to:
-  /// **'{value} · {trip}'**
-  String diveLog_scrubber_valueWithTrip(String value, String trip);
-
   /// Tooltip: decrease the sighting count
   ///
   /// In en, this message translates to:

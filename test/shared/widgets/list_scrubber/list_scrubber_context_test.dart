@@ -1,10 +1,11 @@
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/shared/widgets/list_scrubber/list_scrubber.dart';
 import 'package:submersion/shared/widgets/list_scrubber/list_scrubber_context_painter.dart';
 import 'package:submersion/shared/widgets/list_scrubber/list_scrubber_geometry.dart';
 import 'package:submersion/shared/widgets/list_scrubber/scrubber_marker.dart';
+
+import 'scrubber_hover.dart';
 
 void main() {
   late ScrollController controller;
@@ -81,12 +82,7 @@ void main() {
   double y(int slot) =>
       24 + trackForSlot(slot: slot, trackExtent: 552, slotCount: 200);
 
-  Future<TestGesture> hover(WidgetTester tester, {double x = 780}) async {
-    final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
-    await mouse.addPointer(location: Offset(x, 400));
-    await tester.pumpAndSettle();
-    return mouse;
-  }
+  Future<TestGesture> hover(WidgetTester tester) => hoverScrubberThumb(tester);
 
   Future<void> leave(WidgetTester tester, TestGesture mouse) async {
     await mouse.removePointer();
@@ -149,7 +145,7 @@ void main() {
   ) async {
     await tester.pumpWidget(host(direction: TextDirection.rtl));
     await tester.pump();
-    final mouse = await hover(tester, x: 20);
+    final mouse = await hover(tester);
     final panel = tester.getRect(find.byKey(ListScrubber.panelKey));
     expect(panel.left, 0);
     final painter = painterOf(tester);
@@ -200,6 +196,7 @@ void main() {
       List<ScrubberSegment> segments = segments,
       List<ScrubberTick> ticks = ticks,
       int slotCount = 200,
+      ({double top, double bottom})? clear,
     }) => ListScrubberContextPainter(
       segments: segments,
       ticks: ticks,
@@ -207,7 +204,40 @@ void main() {
       trackExtent: 400,
       offset: 24,
       textDirection: TextDirection.ltr,
+      clear: clear,
     );
+
+    test('stripes and ticks leave out the clear band', () {
+      const size = Size(64, 448);
+      // Slot 25 is mid-stripe, slot 60 is the first tick.
+      final band = (
+        top: 24 + trackForSlot(slot: 25, trackExtent: 400, slotCount: 200),
+        bottom: 24 + trackForSlot(slot: 65, trackExtent: 400, slotCount: 200),
+      );
+      final painted = painter(clear: band).paintedRects(size);
+      for (final (_, rect) in painted) {
+        expect(
+          rect.bottom <= band.top + 0.01 || rect.top >= band.bottom - 0.01,
+          isTrue,
+          reason: '$rect crosses the band',
+        );
+      }
+      final stripes = painted.where((p) => p.$1 == stripe).toList();
+      expect(stripes, hasLength(1));
+      expect(stripes.single.$2.bottom, closeTo(band.top, 0.01));
+      expect(painted.where((p) => p.$1 == warn), hasLength(1));
+      expect(painted.where((p) => p.$1 == deep), hasLength(1));
+    });
+
+    test('without a clear band every stripe and tick is painted whole', () {
+      const size = Size(64, 448);
+      final p = painter();
+      expect(p.paintedRects(size), [
+        for (final (i, r) in p.segmentRects(size).indexed)
+          (segments[i].color, r),
+        for (final (i, r) in p.tickRects(size).indexed) (ticks[i].color, r),
+      ]);
+    });
 
     test('touching segments keep a 1 px gap', () {
       final rects = painter(
@@ -232,6 +262,7 @@ void main() {
       expect(a.shouldRepaint(painter()), isFalse);
       expect(a.shouldRepaint(painter(segments: [...segments])), isTrue);
       expect(a.shouldRepaint(painter(ticks: [...ticks])), isTrue);
+      expect(a.shouldRepaint(painter(clear: (top: 10, bottom: 20))), isTrue);
     });
   });
 }

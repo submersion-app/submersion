@@ -2699,7 +2699,6 @@
   "diveLog_fetchConditions_summaryUnchanged": "{count, plural, =1{لا يوجد ما يُملأ في غطسة واحدة} two{لا يوجد ما يُملأ في غطستين} few{لا يوجد ما يُملأ في {count} غطسات} many{لا يوجد ما يُملأ في {count} غطسة} other{لا يوجد ما يُملأ في {count} غطسة}}",
   "diveLog_fetchConditions_summaryCancelled": "{count, plural, =1{توقّف مبكرًا؛ تمت معالجة غطسة واحدة.} two{توقّف مبكرًا؛ تمت معالجة غطستين.} few{توقّف مبكرًا؛ تمت معالجة {count} غطسات.} many{توقّف مبكرًا؛ تمت معالجة {count} غطسة.} other{توقّف مبكرًا؛ تمت معالجة {count} غطسة.}}",
   "diveLog_scrubber_unrated": "غير مقيّم",
-  "diveLog_scrubber_valueWithTrip": "{value} · {trip}",
   "diveLog_sighting_decreaseCount": "تقليل العدد",
   "diveLog_sighting_increaseCount": "زيادة العدد",
   "diveLog_speciesPicker_errorLoading": "خطأ في تحميل الأنواع: {error}",

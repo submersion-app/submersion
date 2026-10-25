@@ -8520,11 +8520,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_scrubber_unrated => 'Unrated';
 
   @override
-  String diveLog_scrubber_valueWithTrip(String value, String trip) {
-    return '$value · $trip';
-  }
-
-  @override
   String get diveLog_sighting_decreaseCount => 'Decrease count';
 
   @override

@@ -2724,7 +2724,6 @@
   "diveLog_fetchConditions_summaryUnchanged": "{count, plural, =1{Bei 1 Tauchgang gab es nichts zu füllen} other{Bei {count} Tauchgängen gab es nichts zu füllen}}",
   "diveLog_fetchConditions_summaryCancelled": "{count, plural, =1{Vorzeitig beendet; 1 Tauchgang wurde verarbeitet.} other{Vorzeitig beendet; {count} Tauchgänge wurden verarbeitet.}}",
   "diveLog_scrubber_unrated": "Unbewertet",
-  "diveLog_scrubber_valueWithTrip": "{value} · {trip}",
   "diveLog_sighting_decreaseCount": "Anzahl verringern",
   "diveLog_sighting_increaseCount": "Anzahl erhöhen",
   "diveLog_speciesPicker_errorLoading": "Fehler beim Laden der Arten: {error}",

@@ -2599,7 +2599,6 @@
   "diveLog_fetchConditions_summaryUnchanged": "{count, plural, =1{1 merülésnél nem volt mit kitölteni} other{{count} merülésnél nem volt mit kitölteni}}",
   "diveLog_fetchConditions_summaryCancelled": "{count, plural, =1{Korán leállt; 1 merülés lett feldolgozva.} other{Korán leállt; {count} merülés lett feldolgozva.}}",
   "diveLog_scrubber_unrated": "Nem értékelt",
-  "diveLog_scrubber_valueWithTrip": "{value} · {trip}",
   "diveLog_sighting_decreaseCount": "Darabszám csökkentése",
   "diveLog_sighting_increaseCount": "Darabszám növelése",
   "diveLog_speciesPicker_errorLoading": "Hiba a fajok betöltésekor: {error}",

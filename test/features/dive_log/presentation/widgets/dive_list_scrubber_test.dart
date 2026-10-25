@@ -32,6 +32,8 @@ import '../../../../helpers/test_app.dart';
 import 'dive_list_trip_grouping_test.dart' show makeDive;
 import 'dive_scrubber_index_override.dart';
 
+import '../../../../shared/widgets/list_scrubber/scrubber_hover.dart';
+
 class _ScrubNotifier extends StateNotifier<AsyncValue<PaginatedDiveListState>>
     implements PaginatedDiveListNotifier {
   _ScrubNotifier(this.all, int loaded)
@@ -314,16 +316,17 @@ void main() {
       expect(scrubber(tester).segments.single.lastSlot, tripFirst);
     });
 
-    testWidgets('the value names the trip under the thumb in date sort', (
+    testWidgets('the detail names the trip under the thumb in date sort', (
       tester,
     ) async {
       await pumpList(tester, entries: () => indexOf(fixture(trip: true)));
-      final plain = scrubber(tester).labelFor(tripFirst - 1);
-      expect(plain, 'Jan 1970');
-      expect(scrubber(tester).labelFor(tripFirst + 3), 'Jan 1970 · Red Sea');
+      expect(scrubber(tester).labelFor(tripFirst - 1), 'Jan 1970');
+      expect(scrubber(tester).detailFor!(tripFirst - 1), isNull);
+      expect(scrubber(tester).labelFor(tripFirst + 3), 'Jan 1970');
+      expect(scrubber(tester).detailFor!(tripFirst + 3), 'Red Sea');
 
       await sortBy(tester, DiveSortField.diveNumber);
-      expect(scrubber(tester).labelFor(tripFirst + 3), isNot(contains('·')));
+      expect(scrubber(tester).detailFor!(tripFirst + 3), isNull);
     });
 
     testWidgets(
@@ -449,9 +452,7 @@ void main() {
       expect(bars, findsNothing);
 
       final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
-      await mouse.addPointer(
-        location: tester.getCenter(find.byKey(ListScrubber.thumbKey)),
-      );
+      await mouse.addPointer(location: scrubberThumbHoverPoint(tester));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 200));
       final painter =

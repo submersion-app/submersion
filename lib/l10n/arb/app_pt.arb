@@ -2699,7 +2699,6 @@
   "diveLog_fetchConditions_summaryUnchanged": "{count, plural, =1{{count} mergulho sem nada para preencher} other{{count} mergulhos sem nada para preencher}}",
   "diveLog_fetchConditions_summaryCancelled": "{count, plural, =1{Interrompido antes do fim; {count} mergulho foi processado.} other{Interrompido antes do fim; {count} mergulhos foram processados.}}",
   "diveLog_scrubber_unrated": "Sem avaliação",
-  "diveLog_scrubber_valueWithTrip": "{value} · {trip}",
   "diveLog_sighting_decreaseCount": "Diminuir contagem",
   "diveLog_sighting_increaseCount": "Aumentar contagem",
   "diveLog_speciesPicker_errorLoading": "Erro ao carregar espécies: {error}",

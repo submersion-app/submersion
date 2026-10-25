@@ -263,13 +263,12 @@ class _DiveListScrubberState extends ConsumerState<DiveListScrubber> {
       controller: widget.controller,
       slotCount: slots.length,
       loadedSlotCount: _loadedSlotCount,
-      labelFor: (slot) {
-        final entry = slots[slot].entry;
-        final value = diveScrubberValue(entry, field, units: units, l10n: l10n);
-        final trip = entry.tripName?.trim();
-        return field == DiveSortField.date && trip != null && trip.isNotEmpty
-            ? l10n.diveLog_scrubber_valueWithTrip(value, trip)
-            : value;
+      labelFor: (slot) =>
+          diveScrubberValue(slots[slot].entry, field, units: units, l10n: l10n),
+      detailFor: (slot) {
+        if (field != DiveSortField.date) return null;
+        final trip = slots[slot].entry.tripName?.trim();
+        return trip == null || trip.isEmpty ? null : trip;
       },
       markers: _markers,
       highlightSlot: _selectedSlot,

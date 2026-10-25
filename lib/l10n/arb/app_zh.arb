@@ -2814,7 +2814,6 @@
   "diveLog_fetchConditions_summaryUnchanged": "{count, plural, other{{count} 次潜水没有可填充的内容}}",
   "diveLog_fetchConditions_summaryCancelled": "{count, plural, other{提前停止；已处理 {count} 次潜水。}}",
   "diveLog_scrubber_unrated": "未评分",
-  "diveLog_scrubber_valueWithTrip": "{value} · {trip}",
   "diveLog_sighting_decreaseCount": "减少数量",
   "diveLog_sighting_increaseCount": "增加数量",
   "diveLog_speciesPicker_errorLoading": "加载物种时出错：{error}",

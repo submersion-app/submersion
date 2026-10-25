@@ -2699,7 +2699,6 @@
   "diveLog_fetchConditions_summaryUnchanged": "{count, plural, =1{1 inmersión sin nada que rellenar} other{{count} inmersiones sin nada que rellenar}}",
   "diveLog_fetchConditions_summaryCancelled": "{count, plural, =1{Detenido antes de tiempo; se procesó 1 inmersión.} other{Detenido antes de tiempo; se procesaron {count} inmersiones.}}",
   "diveLog_scrubber_unrated": "Sin valorar",
-  "diveLog_scrubber_valueWithTrip": "{value} · {trip}",
   "diveLog_sighting_decreaseCount": "Disminuir cantidad",
   "diveLog_sighting_increaseCount": "Aumentar cantidad",
   "diveLog_speciesPicker_errorLoading": "Error al cargar especies: {error}",

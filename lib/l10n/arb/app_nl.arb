@@ -2699,7 +2699,6 @@
   "diveLog_fetchConditions_summaryUnchanged": "{count, plural, =1{Bij 1 duik viel niets in te vullen} other{Bij {count} duiken viel niets in te vullen}}",
   "diveLog_fetchConditions_summaryCancelled": "{count, plural, =1{Voortijdig gestopt; 1 duik is verwerkt.} other{Voortijdig gestopt; {count} duiken zijn verwerkt.}}",
   "diveLog_scrubber_unrated": "Niet beoordeeld",
-  "diveLog_scrubber_valueWithTrip": "{value} · {trip}",
   "diveLog_sighting_decreaseCount": "Aantal verlagen",
   "diveLog_sighting_increaseCount": "Aantal verhogen",
   "diveLog_speciesPicker_errorLoading": "Fout bij laden van soorten: {error}",

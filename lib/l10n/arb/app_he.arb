@@ -2599,7 +2599,6 @@
   "diveLog_fetchConditions_summaryUnchanged": "{count, plural, =1{בצלילה אחת לא היה מה למלא} other{ב-{count} צלילות לא היה מה למלא}}",
   "diveLog_fetchConditions_summaryCancelled": "{count, plural, =1{הופסק מוקדם; צלילה אחת עובדה.} other{הופסק מוקדם; {count} צלילות עובדו.}}",
   "diveLog_scrubber_unrated": "ללא דירוג",
-  "diveLog_scrubber_valueWithTrip": "{value} · {trip}",
   "diveLog_sighting_decreaseCount": "הקטנת הכמות",
   "diveLog_sighting_increaseCount": "הגדלת הכמות",
   "diveLog_speciesPicker_errorLoading": "שגיאה בטעינת מינים: {error}",

@@ -1,9 +1,10 @@
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/shared/widgets/list_scrubber/list_scrubber.dart';
 import 'package:submersion/shared/widgets/list_scrubber/list_scrubber_panel.dart';
 import 'package:submersion/shared/widgets/list_scrubber/scrubber_marker.dart';
+
+import 'scrubber_hover.dart';
 
 void main() {
   late ScrollController controller;
@@ -57,13 +58,7 @@ void main() {
     return box.decoration as BoxDecoration;
   }
 
-  Future<TestGesture> hover(WidgetTester tester) async {
-    final area = tester.getRect(find.byType(ListScrubber));
-    final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
-    await mouse.addPointer(location: Offset(area.right - 10, area.top + 400));
-    await tester.pumpAndSettle();
-    return mouse;
-  }
+  Future<TestGesture> hover(WidgetTester tester) => hoverScrubberThumb(tester);
 
   Color onSurfaceAlpha(ThemeData theme, double opacity) =>
       theme.colorScheme.onSurface.withAlpha((255.0 * opacity).round());
