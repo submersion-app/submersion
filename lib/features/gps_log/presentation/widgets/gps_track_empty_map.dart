@@ -42,6 +42,9 @@ class _GpsTrackEmptyMapState extends ConsumerState<GpsTrackEmptyMap> {
         // Zooms and scrolls like the map it stands in for (#3664).
         TrackpadZoomMap(
           controller: _controller,
+          // The map's own range, or a zoom past either end slides it.
+          minZoom: 2.0,
+          maxZoom: 18.0,
           child: FlutterMap(
             mapController: _controller,
             options: const MapOptions(

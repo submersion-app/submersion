@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -263,5 +264,32 @@ void main() {
     controller.move(const LatLng(89, -87), 2);
     await tester.pump();
     expect(controller.camera.center.latitude, lessThan(80));
+  });
+
+  testWidgets('a trackpad zoom-out at the minimum zoom leaves the map where '
+      'it is instead of sliding it (#3664)', (tester) async {
+    final controller = await _pump(
+      tester,
+      items: [GpsTrackItem(_gps('t1', 20))],
+    );
+    controller.move(const LatLng(20, -87), 2);
+    await tester.pump();
+    final before = controller.camera.center;
+
+    // Off centre, so a pivot toward a refused zoom would move the centre.
+    final topLeft = tester.getTopLeft(find.byType(FlutterMap));
+    final cursor = topLeft + const Offset(100, 100);
+    final gesture = await tester.createGesture(
+      kind: PointerDeviceKind.trackpad,
+    );
+    await gesture.panZoomStart(cursor);
+    await tester.pump();
+    await gesture.panZoomUpdate(cursor, pan: const Offset(0, -100));
+    await tester.pump();
+    await gesture.panZoomEnd();
+    await tester.pump();
+
+    expect(controller.camera.zoom, 2.0);
+    expect(controller.camera.center, before);
   });
 }
