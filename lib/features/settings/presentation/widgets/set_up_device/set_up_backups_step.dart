@@ -31,6 +31,18 @@ class _SetUpBackupsStepState extends ConsumerState<SetUpBackupsStep> {
   bool _auto = true;
   bool _copy = true;
   bool _busy = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // The Setup assistant revisits what is set; elsewhere both start on.
+    if (widget.navigation.host == SetUpHost.assistant) {
+      final settings = ref.read(backupSettingsProvider);
+      _auto = settings.enabled;
+      _copy = settings.cloudBackupEnabled;
+    }
+  }
+
   String? _line;
 
   /// Writes the two choices, keeping the schedule: the copy follows sync
@@ -123,13 +135,20 @@ class _SetUpBackupsStepState extends ConsumerState<SetUpBackupsStep> {
           ListTile(
             leading: const Icon(Icons.cloud_off_outlined),
             title: Text(l10n.settings_setUpDevice_backups_noAccount),
-            subtitle: Align(
-              alignment: AlignmentDirectional.centerStart,
-              child: TextButton(
-                onPressed: () => context.pushSettingsPage('/settings/backup'),
-                child: Text(l10n.settings_setUpDevice_backups_openBackups),
-              ),
-            ),
+            // No Settings page opens before the first diver exists: the
+            // router would send it back to the wizard.
+            subtitle: widget.navigation.host == SetUpHost.firstRun
+                ? null
+                : Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: TextButton(
+                      onPressed: () =>
+                          context.pushSettingsPage('/settings/backup'),
+                      child: Text(
+                        l10n.settings_setUpDevice_backups_openBackups,
+                      ),
+                    ),
+                  ),
           ),
         if (_line != null) ...[
           const SizedBox(height: 8),

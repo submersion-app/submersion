@@ -43,10 +43,21 @@ class SetUpAccountStep extends ConsumerWidget {
     // Run again, the step starts from the account sync already uses.
     final current = currentSyncGroup(groups);
     final account = chosen ?? current;
+    final host = navigation.host;
     return SetUpStepScaffold(
       title: l10n.settings_setUpDevice_account_title,
-      backLabel: l10n.settings_setUpDevice_notNow,
+      // In the wizard the first step has a step before it, and Not now
+      // moves on without an account (spec 6.6).
+      backLabel: host.inWizard
+          ? l10n.common_action_back
+          : l10n.settings_setUpDevice_notNow,
       onBack: navigation.onBack,
+      secondary: host.inWizard
+          ? TextButton(
+              onPressed: navigation.onNotNow,
+              child: Text(l10n.settings_setUpDevice_notNow),
+            )
+          : null,
       primaryLabel: l10n.settings_setUpDevice_next,
       onPrimary: account == null
           ? null
@@ -77,13 +88,15 @@ class SetUpAccountStep extends ConsumerWidget {
           l10n.settings_setUpDevice_account_note,
           style: Theme.of(context).textTheme.bodySmall,
         ),
-        Align(
-          alignment: AlignmentDirectional.centerStart,
-          child: TextButton(
-            onPressed: onRestoreFile ?? () => restoreFromFile(context, ref),
-            child: Text(l10n.settings_setUpDevice_account_backupFile),
+        // First run offers its own Restore a backup file instead.
+        if (host != SetUpHost.firstRun)
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: TextButton(
+              onPressed: onRestoreFile ?? () => restoreFromFile(context, ref),
+              child: Text(l10n.settings_setUpDevice_account_backupFile),
+            ),
           ),
-        ),
       ],
     );
   }
