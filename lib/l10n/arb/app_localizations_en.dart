@@ -54123,7 +54123,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_photos_status_pausedMismatch =>
-      'Uploads paused: choose the account again';
+      'Uploads paused: the copies need reconnecting';
 
   @override
   String get settings_photos_status_finishSetup =>
@@ -54140,7 +54140,95 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_photos_suspended_mismatch =>
-      'This device and the account no longer agree on which copies are in use. Choosing the account again adopts the copies it holds now.';
+      'The account no longer holds the copies this device was using. Reconnect to choose what happens next.';
+
+  @override
+  String get settings_photos_reconnect_title => 'Reconnect photo copies';
+
+  @override
+  String settings_photos_reconnect_checking(String account) {
+    return 'Checking $account…';
+  }
+
+  @override
+  String settings_photos_reconnect_resolved(String account) {
+    return 'The copies in $account match this device again. Uploads resume.';
+  }
+
+  @override
+  String settings_photos_reconnect_otherKnown(String account) {
+    return '$account now holds copies another of your devices set up.';
+  }
+
+  @override
+  String settings_photos_reconnect_otherUnknown(String account) {
+    return '$account now holds copies this logbook has no record of.';
+  }
+
+  @override
+  String settings_photos_reconnect_noMarker(String account) {
+    return 'The copies in $account were removed or reset.';
+  }
+
+  @override
+  String settings_photos_reconnect_unreadable(String account) {
+    return 'Could not check $account.';
+  }
+
+  @override
+  String get settings_photos_reconnect_needsAccount =>
+      'This device can no longer open the account the copies were in.';
+
+  @override
+  String get settings_photos_reconnect_adopt => 'Use the copies there now';
+
+  @override
+  String get settings_photos_reconnect_adoptBody =>
+      'Photos already there stay. Anything missing uploads again from this device.';
+
+  @override
+  String settings_photos_reconnect_adoptUnknownBody(String account) {
+    return 'Choose this only if $account is meant for this logbook. Photos already there stay, and anything missing uploads again from this device.';
+  }
+
+  @override
+  String get settings_photos_reconnect_rebuild => 'Start the copies again';
+
+  @override
+  String settings_photos_reconnect_rebuildBody(String account) {
+    return 'New copies start in $account. Photos still there are kept, and everything on this device uploads again.';
+  }
+
+  @override
+  String get settings_photos_reconnect_chooseAccount =>
+      'Choose the account again';
+
+  @override
+  String get settings_photos_reconnect_chooseAccountBody =>
+      'Opens Photos & videos to pick the account or sign in again.';
+
+  @override
+  String settings_photos_reconnect_heldOnly(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count photos and videos are kept only in the cloud. They open again only if the account still holds them.',
+      one:
+          '$count photo or video is kept only in the cloud. It opens again only if the account still holds it.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_photos_reconnect_joined(String account) {
+    return 'Now using the copies in $account';
+  }
+
+  @override
+  String settings_photos_reconnect_started(String account) {
+    return 'New copies started in $account';
+  }
 
   @override
   String get media_info_actionCopyNow => 'Copy now';

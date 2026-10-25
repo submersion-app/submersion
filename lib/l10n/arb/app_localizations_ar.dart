@@ -55692,7 +55692,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_photos_status_pausedMismatch =>
-      'تم إيقاف الرفع مؤقتًا: اختر الحساب مرة أخرى';
+      'الرفع متوقف مؤقتًا: يجب إعادة ربط النسخ';
 
   @override
   String get settings_photos_status_finishSetup => 'إنهاء إعداد هذا الجهاز';
@@ -55708,7 +55708,101 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_photos_suspended_mismatch =>
-      'لم يعد هذا الجهاز والحساب متفقين على النسخ المستخدمة. يؤدي اختيار الحساب مرة أخرى إلى اعتماد النسخ الموجودة فيه الآن.';
+      'لم يعد الحساب يحتوي على النسخ التي كان هذا الجهاز يستخدمها. أعد الربط لتختار ما يحدث بعد ذلك.';
+
+  @override
+  String get settings_photos_reconnect_title => 'إعادة ربط نسخ الصور';
+
+  @override
+  String settings_photos_reconnect_checking(String account) {
+    return 'جارٍ فحص $account…';
+  }
+
+  @override
+  String settings_photos_reconnect_resolved(String account) {
+    return 'النسخ في $account تطابق هذا الجهاز من جديد. يُستأنف الرفع.';
+  }
+
+  @override
+  String settings_photos_reconnect_otherKnown(String account) {
+    return 'يحتوي $account الآن على نسخ أعدّها جهاز آخر من أجهزتك.';
+  }
+
+  @override
+  String settings_photos_reconnect_otherUnknown(String account) {
+    return 'يحتوي $account الآن على نسخ لا يعرفها هذا السجل.';
+  }
+
+  @override
+  String settings_photos_reconnect_noMarker(String account) {
+    return 'أُزيلت النسخ في $account أو أُعيد ضبطها.';
+  }
+
+  @override
+  String settings_photos_reconnect_unreadable(String account) {
+    return 'تعذّر فحص $account.';
+  }
+
+  @override
+  String get settings_photos_reconnect_needsAccount =>
+      'لم يعد هذا الجهاز قادرًا على فتح الحساب الذي كانت فيه النسخ.';
+
+  @override
+  String get settings_photos_reconnect_adopt =>
+      'استخدام النسخ الموجودة هناك الآن';
+
+  @override
+  String get settings_photos_reconnect_adoptBody =>
+      'تبقى الصور الموجودة هناك. ويُرفع كل ما ينقص من جديد من هذا الجهاز.';
+
+  @override
+  String settings_photos_reconnect_adoptUnknownBody(String account) {
+    return 'اختر هذا فقط إذا كان $account مخصصًا لهذا السجل. تبقى الصور الموجودة هناك، ويُرفع كل ما ينقص من جديد من هذا الجهاز.';
+  }
+
+  @override
+  String get settings_photos_reconnect_rebuild => 'بدء النسخ من جديد';
+
+  @override
+  String settings_photos_reconnect_rebuildBody(String account) {
+    return 'تبدأ نسخ جديدة في $account. تُحفظ الصور التي ما زالت هناك، ويُرفع كل ما على هذا الجهاز من جديد.';
+  }
+
+  @override
+  String get settings_photos_reconnect_chooseAccount => 'اختيار الحساب من جديد';
+
+  @override
+  String get settings_photos_reconnect_chooseAccountBody =>
+      'يفتح الصور والفيديوهات لاختيار الحساب أو تسجيل الدخول من جديد.';
+
+  @override
+  String settings_photos_reconnect_heldOnly(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count صورة وفيديو محفوظة في السحابة فقط. لن تُفتح من جديد إلا إذا بقيت في الحساب.',
+      many:
+          '$count صورة وفيديو محفوظة في السحابة فقط. لن تُفتح من جديد إلا إذا بقيت في الحساب.',
+      few:
+          '$count صور وفيديوهات محفوظة في السحابة فقط. لن تُفتح من جديد إلا إذا بقيت في الحساب.',
+      two:
+          'صورتان أو فيديوهان محفوظان في السحابة فقط. لن يُفتحا من جديد إلا إذا بقيا في الحساب.',
+      one:
+          '$count صورة أو فيديو محفوظ في السحابة فقط. لن يُفتح من جديد إلا إذا بقي في الحساب.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_photos_reconnect_joined(String account) {
+    return 'تُستخدم الآن النسخ في $account';
+  }
+
+  @override
+  String settings_photos_reconnect_started(String account) {
+    return 'بدأت نسخ جديدة في $account';
+  }
 
   @override
   String get media_info_actionCopyNow => 'النسخ الآن';

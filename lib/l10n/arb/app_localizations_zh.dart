@@ -51627,7 +51627,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_photos_status_pausedDetached => '上传已暂停：此设备未连接到这些副本';
 
   @override
-  String get settings_photos_status_pausedMismatch => '上传已暂停：请重新选择账户';
+  String get settings_photos_status_pausedMismatch => '上传已暂停：需要重新连接副本';
 
   @override
   String get settings_photos_status_finishSetup => '完成此设备的设置';
@@ -51643,7 +51643,90 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_photos_suspended_mismatch =>
-      '此设备与账户对正在使用哪些副本已不一致。重新选择该账户将采用其中现有的副本。';
+      '该账户已不再保存此设备所用的副本。请重新连接，以选择接下来的处理方式。';
+
+  @override
+  String get settings_photos_reconnect_title => '重新连接照片副本';
+
+  @override
+  String settings_photos_reconnect_checking(String account) {
+    return '正在检查 $account…';
+  }
+
+  @override
+  String settings_photos_reconnect_resolved(String account) {
+    return '$account 中的副本再次与此设备一致，上传将继续。';
+  }
+
+  @override
+  String settings_photos_reconnect_otherKnown(String account) {
+    return '$account 现在保存着您另一台设备设置的副本。';
+  }
+
+  @override
+  String settings_photos_reconnect_otherUnknown(String account) {
+    return '$account 现在保存着此日志没有记录的副本。';
+  }
+
+  @override
+  String settings_photos_reconnect_noMarker(String account) {
+    return '$account 中的副本已被移除或重置。';
+  }
+
+  @override
+  String settings_photos_reconnect_unreadable(String account) {
+    return '无法检查 $account。';
+  }
+
+  @override
+  String get settings_photos_reconnect_needsAccount => '此设备已无法打开副本所在的账户。';
+
+  @override
+  String get settings_photos_reconnect_adopt => '改用那里现有的副本';
+
+  @override
+  String get settings_photos_reconnect_adoptBody =>
+      '已在那里的照片会保留，缺少的内容将从此设备重新上传。';
+
+  @override
+  String settings_photos_reconnect_adoptUnknownBody(String account) {
+    return '仅当 $account 用于此日志时才选择此项。已在那里的照片会保留，缺少的内容将从此设备重新上传。';
+  }
+
+  @override
+  String get settings_photos_reconnect_rebuild => '重新开始副本';
+
+  @override
+  String settings_photos_reconnect_rebuildBody(String account) {
+    return '将在 $account 中开始新的副本。仍在那里的照片会保留，此设备上的所有内容将重新上传。';
+  }
+
+  @override
+  String get settings_photos_reconnect_chooseAccount => '重新选择账户';
+
+  @override
+  String get settings_photos_reconnect_chooseAccountBody =>
+      '打开照片与视频以选择账户或重新登录。';
+
+  @override
+  String settings_photos_reconnect_heldOnly(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 张照片和视频仅保存在云端。只有账户中仍有它们时才能再次打开。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_photos_reconnect_joined(String account) {
+    return '现在使用 $account 中的副本';
+  }
+
+  @override
+  String settings_photos_reconnect_started(String account) {
+    return '已在 $account 中开始新的副本';
+  }
 
   @override
   String get media_info_actionCopyNow => '立即复制';

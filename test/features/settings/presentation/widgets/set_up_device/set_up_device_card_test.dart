@@ -10,6 +10,7 @@ import 'package:submersion/core/services/accounts/account_usage_service.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart';
 import 'package:submersion/core/services/accounts/pending_setup_service.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
+import 'package:submersion/features/media_store/presentation/providers/media_store_reconnect_provider.dart';
 import 'package:submersion/features/settings/data/set_up_card_prefs.dart';
 import 'package:submersion/features/settings/domain/setup/set_up_progress.dart';
 import 'package:submersion/features/settings/presentation/providers/account_group_providers.dart';
@@ -21,6 +22,7 @@ import 'package:submersion/features/settings/presentation/widgets/set_up_device/
 import 'package:submersion/features/settings/presentation/widgets/set_up_device/set_up_step_marks.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
+import '../../../../../helpers/fake_media_store_reconnect.dart';
 import '../../../set_up_progress_fixture.dart';
 
 PendingSetupItem _signInItem({
@@ -81,6 +83,7 @@ void main() {
   late List<String> opened;
   late List<AccountGroup> signedIn;
   late int runtimeBuilds;
+  late FakeMediaStoreReconnect reconnect;
 
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
@@ -88,6 +91,7 @@ void main() {
     opened = [];
     signedIn = [];
     runtimeBuilds = 0;
+    reconnect = FakeMediaStoreReconnect();
   });
 
   Future<void> pump(
@@ -124,6 +128,7 @@ void main() {
             runtimeBuilds++;
             return null;
           }),
+          mediaStoreReconnectProvider.overrideWithValue(reconnect),
         ],
         child: MaterialApp(
           locale: locale,
@@ -460,9 +465,8 @@ void main() {
       expect(runtimeBuilds, 1);
     });
 
-    testWidgets('Reconnect opens the item\'s page through the host', (
-      tester,
-    ) async {
+    // Issue #2303: the card offers the way out itself, not just the page.
+    testWidgets('Reconnect opens the guided reconnect', (tester) async {
       await pump(
         tester,
         progress: setUpProgressOf(hidden: true),
@@ -470,7 +474,17 @@ void main() {
       );
 
       await tester.tap(find.text('Reconnect'));
-      expect(opened, ['/settings/photos-media']);
+      await tester.pumpAndSettle();
+
+      expect(opened, isEmpty);
+      expect(reconnect.inspectCalls, 1);
+      expect(find.text('Reconnect photo copies'), findsOneWidget);
+      expect(
+        find.text(
+          'The copies in Dropbox match this device again. Uploads resume.',
+        ),
+        findsOneWidget,
+      );
     });
 
     testWidgets('dismissing an item records it for this device', (

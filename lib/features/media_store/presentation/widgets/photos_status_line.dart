@@ -7,9 +7,11 @@ import 'package:submersion/features/media_store/domain/photos_status.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_upload_progress_provider.dart';
 import 'package:submersion/features/media_store/presentation/providers/photos_copies_provider.dart';
+import 'package:submersion/features/media_store/presentation/widgets/media_store_reconnect_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/pending_setup_items_provider.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
 
 /// The one sentence that says what is true of photo copies here (spec
 /// section 8.3), including the runtime fact that the store could be opened
@@ -52,6 +54,21 @@ class PhotosStatusLine extends ConsumerWidget {
         color: attention ? theme.colorScheme.error : null,
       ),
       title: Text(photosStatusText(l10n, status, copies.label ?? '')),
+      // A mismatch is the one pause the diver resolves: the guided
+      // reconnect (issue #2303) says what each way out does.
+      subtitle:
+          status is PhotosPaused &&
+              status.kind == MediaTransferHoldKind.markerMismatch
+          ? TileSubtitleAction(
+              actionKey: const Key('photos-status-reconnect'),
+              label: l10n.settings_setUpDevice_item_reconnectAction,
+              onPressed: () => showMediaStoreReconnectSheet(
+                context,
+                account: copies.label,
+                openPhotosPage: false,
+              ),
+            )
+          : null,
     );
   }
 }

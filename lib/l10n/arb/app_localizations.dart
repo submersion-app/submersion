@@ -87234,7 +87234,7 @@ abstract class AppLocalizations {
   /// Status: uploads held because the account now holds different copies
   ///
   /// In en, this message translates to:
-  /// **'Uploads paused: choose the account again'**
+  /// **'Uploads paused: the copies need reconnecting'**
   String get settings_photos_status_pausedMismatch;
 
   /// Status: the library keeps copies this device has not joined yet
@@ -87258,8 +87258,116 @@ abstract class AppLocalizations {
   /// Uploads page notice: the account now holds different copies than this device attached to
   ///
   /// In en, this message translates to:
-  /// **'This device and the account no longer agree on which copies are in use. Choosing the account again adopts the copies it holds now.'**
+  /// **'The account no longer holds the copies this device was using. Reconnect to choose what happens next.'**
   String get settings_photos_suspended_mismatch;
+
+  /// Title of the sheet that reconnects photo copies after the account's copies changed
+  ///
+  /// In en, this message translates to:
+  /// **'Reconnect photo copies'**
+  String get settings_photos_reconnect_title;
+
+  /// Reconnect sheet: checking what the account holds now
+  ///
+  /// In en, this message translates to:
+  /// **'Checking {account}…'**
+  String settings_photos_reconnect_checking(String account);
+
+  /// Reconnect sheet: the account holds this device's copies again, nothing to choose
+  ///
+  /// In en, this message translates to:
+  /// **'The copies in {account} match this device again. Uploads resume.'**
+  String settings_photos_reconnect_resolved(String account);
+
+  /// Reconnect sheet: the account holds copies another of the diver's devices set up
+  ///
+  /// In en, this message translates to:
+  /// **'{account} now holds copies another of your devices set up.'**
+  String settings_photos_reconnect_otherKnown(String account);
+
+  /// Reconnect sheet: the account holds copies the logbook has no record of
+  ///
+  /// In en, this message translates to:
+  /// **'{account} now holds copies this logbook has no record of.'**
+  String settings_photos_reconnect_otherUnknown(String account);
+
+  /// Reconnect sheet: the copies in the account were removed or reset
+  ///
+  /// In en, this message translates to:
+  /// **'The copies in {account} were removed or reset.'**
+  String settings_photos_reconnect_noMarker(String account);
+
+  /// Reconnect sheet: the account could not be checked; the raw error follows
+  ///
+  /// In en, this message translates to:
+  /// **'Could not check {account}.'**
+  String settings_photos_reconnect_unreadable(String account);
+
+  /// Reconnect sheet: this device cannot open the account the copies were in
+  ///
+  /// In en, this message translates to:
+  /// **'This device can no longer open the account the copies were in.'**
+  String get settings_photos_reconnect_needsAccount;
+
+  /// Reconnect choice: use the copies the account holds now
+  ///
+  /// In en, this message translates to:
+  /// **'Use the copies there now'**
+  String get settings_photos_reconnect_adopt;
+
+  /// Reconnect choice explanation: what using the copies there does
+  ///
+  /// In en, this message translates to:
+  /// **'Photos already there stay. Anything missing uploads again from this device.'**
+  String get settings_photos_reconnect_adoptBody;
+
+  /// Reconnect choice explanation: using copies the logbook has no record of
+  ///
+  /// In en, this message translates to:
+  /// **'Choose this only if {account} is meant for this logbook. Photos already there stay, and anything missing uploads again from this device.'**
+  String settings_photos_reconnect_adoptUnknownBody(String account);
+
+  /// Reconnect choice: start a new set of copies in the account
+  ///
+  /// In en, this message translates to:
+  /// **'Start the copies again'**
+  String get settings_photos_reconnect_rebuild;
+
+  /// Reconnect choice explanation: what starting the copies again does
+  ///
+  /// In en, this message translates to:
+  /// **'New copies start in {account}. Photos still there are kept, and everything on this device uploads again.'**
+  String settings_photos_reconnect_rebuildBody(String account);
+
+  /// Reconnect choice: open Photos & videos to choose the account again
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the account again'**
+  String get settings_photos_reconnect_chooseAccount;
+
+  /// Reconnect choice explanation: choosing the account again
+  ///
+  /// In en, this message translates to:
+  /// **'Opens Photos & videos to pick the account or sign in again.'**
+  String get settings_photos_reconnect_chooseAccountBody;
+
+  /// Reconnect sheet warning: items whose only copy is in the cloud
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} photo or video is kept only in the cloud. It opens again only if the account still holds it.} other{{count} photos and videos are kept only in the cloud. They open again only if the account still holds them.}}'**
+  String settings_photos_reconnect_heldOnly(int count);
+
+  /// Snackbar after reconnecting to the copies the account holds
+  ///
+  /// In en, this message translates to:
+  /// **'Now using the copies in {account}'**
+  String settings_photos_reconnect_joined(String account);
+
+  /// Snackbar after starting new copies in the account
+  ///
+  /// In en, this message translates to:
+  /// **'New copies started in {account}'**
+  String settings_photos_reconnect_started(String account);
 
   /// Media info panel: copy this item to the cloud now
   ///

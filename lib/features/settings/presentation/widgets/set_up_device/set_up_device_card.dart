@@ -9,6 +9,7 @@ import 'package:submersion/core/services/accounts/account_usage_service.dart';
 import 'package:submersion/core/services/accounts/pending_setup_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
+import 'package:submersion/features/media_store/presentation/widgets/media_store_reconnect_sheet.dart';
 import 'package:submersion/features/settings/domain/setup/set_up_progress.dart';
 import 'package:submersion/features/settings/presentation/providers/account_group_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/pending_setup_items_provider.dart';
@@ -100,6 +101,8 @@ class SetUpDeviceCard extends ConsumerWidget {
               items: items,
               onOpen: (route) => _open(context, route),
               onSignIn: (item) => _signIn(context, ref, item),
+              onReconnect: (item) =>
+                  showMediaStoreReconnectSheet(context, account: item.label),
               onDismiss: (item) => _dismiss(context, item),
             ),
         ],

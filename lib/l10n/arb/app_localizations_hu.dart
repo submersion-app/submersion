@@ -54683,7 +54683,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_photos_status_pausedMismatch =>
-      'Feltöltések szüneteltetve: válassza ki újra a fiókot';
+      'A feltöltések szünetelnek: a másolatokat újra kell csatlakoztatni';
 
   @override
   String get settings_photos_status_finishSetup =>
@@ -54700,7 +54700,97 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_photos_suspended_mismatch =>
-      'Ez az eszköz és a fiók már nem egyezik abban, mely másolatok vannak használatban. A fiók újbóli kiválasztása átveszi a benne most lévő másolatokat.';
+      'A fiók már nem tartalmazza azokat a másolatokat, amelyeket ez az eszköz használt. Csatlakoztassa újra, hogy eldönthesse, mi legyen.';
+
+  @override
+  String get settings_photos_reconnect_title =>
+      'Fotómásolatok újracsatlakoztatása';
+
+  @override
+  String settings_photos_reconnect_checking(String account) {
+    return '$account ellenőrzése…';
+  }
+
+  @override
+  String settings_photos_reconnect_resolved(String account) {
+    return 'A(z) $account másolatai újra egyeznek ezzel az eszközzel. A feltöltések folytatódnak.';
+  }
+
+  @override
+  String settings_photos_reconnect_otherKnown(String account) {
+    return 'A(z) $account most olyan másolatokat tartalmaz, amelyeket egy másik eszköze állított be.';
+  }
+
+  @override
+  String settings_photos_reconnect_otherUnknown(String account) {
+    return 'A(z) $account most olyan másolatokat tartalmaz, amelyekről ennek a naplónak nincs nyilvántartása.';
+  }
+
+  @override
+  String settings_photos_reconnect_noMarker(String account) {
+    return 'A(z) $account másolatait eltávolították vagy alaphelyzetbe állították.';
+  }
+
+  @override
+  String settings_photos_reconnect_unreadable(String account) {
+    return 'A(z) $account nem ellenőrizhető.';
+  }
+
+  @override
+  String get settings_photos_reconnect_needsAccount =>
+      'Ez az eszköz már nem tudja megnyitni azt a fiókot, amelyben a másolatok voltak.';
+
+  @override
+  String get settings_photos_reconnect_adopt =>
+      'Az ott lévő másolatok használata';
+
+  @override
+  String get settings_photos_reconnect_adoptBody =>
+      'A már ott lévő fotók maradnak. Ami hiányzik, azt ez az eszköz újra feltölti.';
+
+  @override
+  String settings_photos_reconnect_adoptUnknownBody(String account) {
+    return 'Csak akkor válassza ezt, ha a(z) $account ehhez a naplóhoz tartozik. A már ott lévő fotók maradnak, és ami hiányzik, azt ez az eszköz újra feltölti.';
+  }
+
+  @override
+  String get settings_photos_reconnect_rebuild => 'A másolatok újrakezdése';
+
+  @override
+  String settings_photos_reconnect_rebuildBody(String account) {
+    return 'Új másolatok indulnak a(z) $account fiókban. A még ott lévő fotók megmaradnak, és az eszközön lévő minden elem újra feltöltődik.';
+  }
+
+  @override
+  String get settings_photos_reconnect_chooseAccount =>
+      'A fiók újbóli kiválasztása';
+
+  @override
+  String get settings_photos_reconnect_chooseAccountBody =>
+      'Megnyitja a(z) Fotók és videók oldalt a fiók kiválasztásához vagy az újbóli bejelentkezéshez.';
+
+  @override
+  String settings_photos_reconnect_heldOnly(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count fotó és videó csak a felhőben van meg. Csak akkor nyithatók meg újra, ha a fiók még tartalmazza őket.',
+      one:
+          '$count fotó vagy videó csak a felhőben van meg. Csak akkor nyitható meg újra, ha a fiók még tartalmazza.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_photos_reconnect_joined(String account) {
+    return 'Most a(z) $account másolatai vannak használatban';
+  }
+
+  @override
+  String settings_photos_reconnect_started(String account) {
+    return 'Új másolatok indultak a(z) $account fiókban';
+  }
 
   @override
   String get media_info_actionCopyNow => 'Másolás most';

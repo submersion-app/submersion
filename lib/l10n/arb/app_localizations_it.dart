@@ -54999,7 +54999,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_photos_status_pausedMismatch =>
-      'Caricamenti in pausa: scegli di nuovo l\'account';
+      'Caricamenti in pausa: le copie vanno ricollegate';
 
   @override
   String get settings_photos_status_finishSetup =>
@@ -55016,7 +55016,96 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_photos_suspended_mismatch =>
-      'Questo dispositivo e l\'account non concordano più su quali copie sono in uso. Scegliere di nuovo l\'account adotta le copie che contiene ora.';
+      'L\'account non contiene più le copie che usava questo dispositivo. Ricollega per scegliere cosa fare.';
+
+  @override
+  String get settings_photos_reconnect_title => 'Ricollega le copie delle foto';
+
+  @override
+  String settings_photos_reconnect_checking(String account) {
+    return 'Controllo di $account…';
+  }
+
+  @override
+  String settings_photos_reconnect_resolved(String account) {
+    return 'Le copie in $account corrispondono di nuovo a questo dispositivo. I caricamenti riprendono.';
+  }
+
+  @override
+  String settings_photos_reconnect_otherKnown(String account) {
+    return '$account ora contiene copie configurate da un altro dei tuoi dispositivi.';
+  }
+
+  @override
+  String settings_photos_reconnect_otherUnknown(String account) {
+    return '$account ora contiene copie di cui questo logbook non ha traccia.';
+  }
+
+  @override
+  String settings_photos_reconnect_noMarker(String account) {
+    return 'Le copie in $account sono state rimosse o reimpostate.';
+  }
+
+  @override
+  String settings_photos_reconnect_unreadable(String account) {
+    return 'Impossibile controllare $account.';
+  }
+
+  @override
+  String get settings_photos_reconnect_needsAccount =>
+      'Questo dispositivo non riesce più ad aprire l\'account in cui si trovavano le copie.';
+
+  @override
+  String get settings_photos_reconnect_adopt =>
+      'Usa ora le copie che si trovano lì';
+
+  @override
+  String get settings_photos_reconnect_adoptBody =>
+      'Le foto già presenti restano. Ciò che manca viene caricato di nuovo da questo dispositivo.';
+
+  @override
+  String settings_photos_reconnect_adoptUnknownBody(String account) {
+    return 'Sceglilo solo se $account è destinato a questo logbook. Le foto già presenti restano, e ciò che manca viene caricato di nuovo da questo dispositivo.';
+  }
+
+  @override
+  String get settings_photos_reconnect_rebuild => 'Ricomincia le copie';
+
+  @override
+  String settings_photos_reconnect_rebuildBody(String account) {
+    return 'Nuove copie iniziano in $account. Le foto ancora presenti vengono mantenute, e tutto ciò che è su questo dispositivo viene caricato di nuovo.';
+  }
+
+  @override
+  String get settings_photos_reconnect_chooseAccount =>
+      'Scegli di nuovo l\'account';
+
+  @override
+  String get settings_photos_reconnect_chooseAccountBody =>
+      'Apre Foto e video per scegliere l\'account o accedere di nuovo.';
+
+  @override
+  String settings_photos_reconnect_heldOnly(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count foto e video sono solo nel cloud. Si potranno riaprire solo se l\'account li contiene ancora.',
+      one:
+          '$count foto o video è solo nel cloud. Si potrà riaprire solo se l\'account lo contiene ancora.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_photos_reconnect_joined(String account) {
+    return 'Ora si usano le copie in $account';
+  }
+
+  @override
+  String settings_photos_reconnect_started(String account) {
+    return 'Nuove copie iniziate in $account';
+  }
 
   @override
   String get media_info_actionCopyNow => 'Copia ora';

@@ -53844,7 +53844,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_photos_status_pausedMismatch =>
-      'ההעלאות מושהות: בחרו שוב את החשבון';
+      'ההעלאות מושהות: יש לחבר מחדש את העותקים';
 
   @override
   String get settings_photos_status_finishSetup => 'סיום הגדרת המכשיר הזה';
@@ -53860,7 +53860,95 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_photos_suspended_mismatch =>
-      'המכשיר הזה והחשבון כבר אינם מסכימים אילו עותקים בשימוש. בחירה מחדש בחשבון מאמצת את העותקים שהוא מחזיק עכשיו.';
+      'החשבון כבר לא מחזיק את העותקים שהמכשיר הזה השתמש בהם. התחברו מחדש כדי לבחור מה יקרה עכשיו.';
+
+  @override
+  String get settings_photos_reconnect_title => 'חיבור מחדש של עותקי התמונות';
+
+  @override
+  String settings_photos_reconnect_checking(String account) {
+    return 'בודקים את $account…';
+  }
+
+  @override
+  String settings_photos_reconnect_resolved(String account) {
+    return 'העותקים ב-$account תואמים שוב למכשיר הזה. ההעלאות ממשיכות.';
+  }
+
+  @override
+  String settings_photos_reconnect_otherKnown(String account) {
+    return '$account מחזיק עכשיו עותקים שהגדיר מכשיר אחר שלכם.';
+  }
+
+  @override
+  String settings_photos_reconnect_otherUnknown(String account) {
+    return '$account מחזיק עכשיו עותקים שליומן הזה אין עליהם תיעוד.';
+  }
+
+  @override
+  String settings_photos_reconnect_noMarker(String account) {
+    return 'העותקים ב-$account הוסרו או אופסו.';
+  }
+
+  @override
+  String settings_photos_reconnect_unreadable(String account) {
+    return 'לא ניתן היה לבדוק את $account.';
+  }
+
+  @override
+  String get settings_photos_reconnect_needsAccount =>
+      'המכשיר הזה כבר לא יכול לפתוח את החשבון שבו היו העותקים.';
+
+  @override
+  String get settings_photos_reconnect_adopt =>
+      'שימוש בעותקים שנמצאים שם עכשיו';
+
+  @override
+  String get settings_photos_reconnect_adoptBody =>
+      'תמונות שכבר נמצאות שם נשארות. מה שחסר יועלה שוב מהמכשיר הזה.';
+
+  @override
+  String settings_photos_reconnect_adoptUnknownBody(String account) {
+    return 'בחרו בזה רק אם $account מיועד ליומן הזה. תמונות שכבר נמצאות שם נשארות, ומה שחסר יועלה שוב מהמכשיר הזה.';
+  }
+
+  @override
+  String get settings_photos_reconnect_rebuild => 'התחלת העותקים מחדש';
+
+  @override
+  String settings_photos_reconnect_rebuildBody(String account) {
+    return 'עותקים חדשים מתחילים ב-$account. תמונות שעדיין שם נשמרות, וכל מה שבמכשיר הזה יועלה שוב.';
+  }
+
+  @override
+  String get settings_photos_reconnect_chooseAccount => 'בחירה מחדש בחשבון';
+
+  @override
+  String get settings_photos_reconnect_chooseAccountBody =>
+      'פותח את תמונות וסרטונים כדי לבחור את החשבון או להתחבר שוב.';
+
+  @override
+  String settings_photos_reconnect_heldOnly(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count תמונות וסרטונים נשמרים רק בענן. הם ייפתחו שוב רק אם החשבון עדיין מחזיק בהם.',
+      one:
+          '$count תמונה או סרטון נשמרים רק בענן. הם ייפתחו שוב רק אם החשבון עדיין מחזיק בהם.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_photos_reconnect_joined(String account) {
+    return 'עכשיו בשימוש העותקים ב-$account';
+  }
+
+  @override
+  String settings_photos_reconnect_started(String account) {
+    return 'עותקים חדשים התחילו ב-$account';
+  }
 
   @override
   String get media_info_actionCopyNow => 'העתקה עכשיו';

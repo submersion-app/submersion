@@ -115,7 +115,13 @@ screen.
 - An attachment with no account (a legacy, pre-accounts S3 attachment), or
   whose account row is gone, cannot be re-attached through an account row.
   There the sheet offers **Choose the account again** (opens Photos and
-  videos) in place of adopt or rebuild, plus detach.
+  videos) in place of adopt or rebuild, plus detach. The page opens from the
+  context that opened the sheet, so the desktop settings pane shows it in
+  the pane; opened from Photos and videos itself, the choice just closes
+  the sheet, leaving the diver on the page where the account is chosen.
+- Every entry point reuses the existing "Reconnect" action label. The two
+  existing mismatch strings that said "choose the account again" now point
+  at reconnecting instead.
 
 ## 6. Structure (builder's calls)
 
