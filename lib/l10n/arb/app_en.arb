@@ -13823,6 +13823,10 @@
   "@settings_conflict_field_downloadsFollowComputerOwner": {
     "description": "Label for the downloads-follow-computer-owner setting in a sync conflict"
   },
+  "settings_conflict_field_omitUnusedOcGases": "Skip unused bailout gases",
+  "@settings_conflict_field_omitUnusedOcGases": {
+    "description": "Label for the skip-unused-bailout-gases setting in a sync conflict"
+  },
   "settings_conflict_field_avgSpeed": "Average speed",
   "settings_conflict_field_batteryReserveFraction": "Battery reserve",
   "settings_conflict_field_bboxHeight": "Box height",
@@ -17639,6 +17643,14 @@
   "settings_downloadsFollowOwner_subtitle": "When a dive computer belongs to another profile, its dives go to that profile's log. You can change it on the review screen.",
   "@settings_downloadsFollowOwner_subtitle": {
     "description": "Switch subtitle, in Import options on Settings > Data, explaining that a download from another profile's dive computer goes to that profile"
+  },
+  "settings_omitUnusedOcGases_title": "Skip unused bailout gases",
+  "@settings_omitUnusedOcGases_title": {
+    "description": "Switch title, in Import options on Settings > Data, for leaving out open-circuit gases a rebreather dive computer reports but the diver never carried or breathed"
+  },
+  "settings_omitUnusedOcGases_subtitle": "On rebreather downloads, leave out a gas with no transmitter that was never breathed",
+  "@settings_omitUnusedOcGases_subtitle": {
+    "description": "Switch subtitle, in Import options on Settings > Data, explaining which gases a rebreather download leaves out"
   },
   "tags_manage_searchHint": "Search tags...",
   "tags_manage_diveCount": "{count, plural, =0{0 dives} =1{1 dive} other{{count} dives}}",

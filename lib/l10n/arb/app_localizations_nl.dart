@@ -22601,6 +22601,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Downloads toevoegen aan de eigenaar van de computer';
 
   @override
+  String get settings_conflict_field_omitUnusedOcGases =>
+      'Ongebruikte bailoutgassen overslaan';
+
+  @override
   String get settings_conflict_field_avgSpeed => 'Gemiddelde snelheid';
 
   @override
@@ -30123,6 +30127,14 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_downloadsFollowOwner_subtitle =>
       'Hoort een duikcomputer bij een ander profiel, dan gaan de duiken naar het logboek van dat profiel. Je kunt dit wijzigen op het controlescherm.';
+
+  @override
+  String get settings_omitUnusedOcGases_title =>
+      'Ongebruikte bailoutgassen overslaan';
+
+  @override
+  String get settings_omitUnusedOcGases_subtitle =>
+      'Laat bij rebreatherdownloads een gas zonder zender weg dat nooit is geademd';
 
   @override
   String get tags_manage_searchHint => 'Tags zoeken...';

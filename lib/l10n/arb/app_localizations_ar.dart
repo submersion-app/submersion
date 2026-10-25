@@ -23045,6 +23045,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'إضافة التنزيلات إلى مالك الكمبيوتر';
 
   @override
+  String get settings_conflict_field_omitUnusedOcGases =>
+      'تخطي غازات الطوارئ غير المستخدمة';
+
+  @override
   String get settings_conflict_field_avgSpeed => 'متوسط السرعة';
 
   @override
@@ -30567,6 +30571,14 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_downloadsFollowOwner_subtitle =>
       'عندما يخص كمبيوتر الغوص ملف غواص آخر، تذهب غطساته إلى سجل ذلك الملف. يمكنك تغيير ذلك في شاشة المراجعة.';
+
+  @override
+  String get settings_omitUnusedOcGases_title =>
+      'تخطي غازات الطوارئ غير المستخدمة';
+
+  @override
+  String get settings_omitUnusedOcGases_subtitle =>
+      'في تنزيلات أجهزة إعادة التنفس، يستبعد غازًا بلا جهاز إرسال لم يُتنفَّس منه قط';
 
   @override
   String get tags_manage_searchHint => 'البحث في الوسوم...';

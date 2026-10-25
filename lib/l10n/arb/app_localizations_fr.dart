@@ -22801,6 +22801,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Ajouter les téléchargements au propriétaire de l\'ordinateur';
 
   @override
+  String get settings_conflict_field_omitUnusedOcGases =>
+      'Ignorer les gaz de secours inutilisés';
+
+  @override
   String get settings_conflict_field_avgSpeed => 'Vitesse moyenne';
 
   @override
@@ -30425,6 +30429,14 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settings_downloadsFollowOwner_subtitle =>
       'Si un ordinateur de plongée appartient à un autre profil, ses plongées vont dans le carnet de ce profil. Vous pouvez le modifier sur l\'écran de vérification.';
+
+  @override
+  String get settings_omitUnusedOcGases_title =>
+      'Ignorer les gaz de secours inutilisés';
+
+  @override
+  String get settings_omitUnusedOcGases_subtitle =>
+      'Lors des téléchargements de recycleur, omet un gaz sans transmetteur qui n\'a jamais été respiré';
 
   @override
   String get tags_manage_searchHint => 'Rechercher des étiquettes...';

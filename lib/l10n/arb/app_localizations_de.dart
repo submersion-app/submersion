@@ -22712,6 +22712,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Downloads dem Besitzer des Computers zuordnen';
 
   @override
+  String get settings_conflict_field_omitUnusedOcGases =>
+      'Ungenutzte Bailout-Gase auslassen';
+
+  @override
   String get settings_conflict_field_avgSpeed => 'Durchschnittsgeschwindigkeit';
 
   @override
@@ -30263,6 +30267,14 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_downloadsFollowOwner_subtitle =>
       'Gehört ein Tauchcomputer zu einem anderen Profil, landen seine Tauchgänge im Logbuch dieses Profils. Auf dem Prüfbildschirm lässt sich das ändern.';
+
+  @override
+  String get settings_omitUnusedOcGases_title =>
+      'Ungenutzte Bailout-Gase auslassen';
+
+  @override
+  String get settings_omitUnusedOcGases_subtitle =>
+      'Bei Rebreather-Downloads ein Gas ohne Transmitter weglassen, das nie geatmet wurde';
 
   @override
   String get tags_manage_searchHint => 'Tags suchen...';

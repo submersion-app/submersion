@@ -387,6 +387,10 @@ final Map<String, ConflictField> diverSettingsFields = {
     (l) => l.settings_conflict_field_notificationsEnabled,
     FieldKind.boolean,
   ),
+  'omitUnusedOcGases': ConflictField(
+    (l) => l.settings_conflict_field_omitUnusedOcGases,
+    FieldKind.boolean,
+  ),
   'placeNameLanguage': ConflictField(
     (l) => l.settings_conflict_field_placeNameLanguage,
     FieldKind.shortText,

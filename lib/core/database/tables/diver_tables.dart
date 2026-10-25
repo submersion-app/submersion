@@ -324,6 +324,12 @@ class DiverSettings extends Table {
   /// starting choice: the computer is recognised either way.
   BoolColumn get downloadsFollowComputerOwner =>
       boolean().withDefault(const Constant(true))();
+
+  /// Whether a rebreather download leaves out an open-circuit gas that no
+  /// transmitter read and the diver never breathed (v315, issue #3668). Off
+  /// keeps every gas the computer reports.
+  BoolColumn get omitUnusedOcGases =>
+      boolean().withDefault(const Constant(false))();
   // List view modes for other features (v52)
   TextColumn get siteListViewMode =>
       text().withDefault(const Constant('detailed'))();

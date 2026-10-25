@@ -22666,6 +22666,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Letöltések hozzáadása a komputer tulajdonosához';
 
   @override
+  String get settings_conflict_field_omitUnusedOcGases =>
+      'Nem használt bailout gázok kihagyása';
+
+  @override
   String get settings_conflict_field_avgSpeed => 'Átlagsebesség';
 
   @override
@@ -30168,6 +30172,14 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_downloadsFollowOwner_subtitle =>
       'Ha egy búvárkomputer egy másik profilhoz tartozik, a merülései annak a profilnak a naplójába kerülnek. Ezt az ellenőrző képernyőn módosíthatod.';
+
+  @override
+  String get settings_omitUnusedOcGases_title =>
+      'Nem használt bailout gázok kihagyása';
+
+  @override
+  String get settings_omitUnusedOcGases_subtitle =>
+      'Rebreather-letöltéseknél kihagyja a jeladó nélküli gázt, amelyből soha nem lélegzett';
 
   @override
   String get tags_manage_searchHint => 'Címkék keresése...';

@@ -22741,6 +22741,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Añadir las descargas al propietario del ordenador';
 
   @override
+  String get settings_conflict_field_omitUnusedOcGases =>
+      'Omitir gases de bailout sin usar';
+
+  @override
   String get settings_conflict_field_avgSpeed => 'Velocidad media';
 
   @override
@@ -30353,6 +30357,14 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get settings_downloadsFollowOwner_subtitle =>
       'Si un ordenador de buceo pertenece a otro perfil, sus inmersiones van al registro de ese perfil. Puedes cambiarlo en la pantalla de revisión.';
+
+  @override
+  String get settings_omitUnusedOcGases_title =>
+      'Omitir gases de bailout sin usar';
+
+  @override
+  String get settings_omitUnusedOcGases_subtitle =>
+      'En las descargas de rebreather, omite un gas sin transmisor que nunca se respiró';
 
   @override
   String get tags_manage_searchHint => 'Buscar etiquetas...';

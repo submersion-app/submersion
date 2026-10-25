@@ -22399,6 +22399,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Add downloads to the computer\'s owner';
 
   @override
+  String get settings_conflict_field_omitUnusedOcGases =>
+      'Skip unused bailout gases';
+
+  @override
   String get settings_conflict_field_avgSpeed => 'Average speed';
 
   @override
@@ -29815,6 +29819,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_downloadsFollowOwner_subtitle =>
       'When a dive computer belongs to another profile, its dives go to that profile\'s log. You can change it on the review screen.';
+
+  @override
+  String get settings_omitUnusedOcGases_title => 'Skip unused bailout gases';
+
+  @override
+  String get settings_omitUnusedOcGases_subtitle =>
+      'On rebreather downloads, leave out a gas with no transmitter that was never breathed';
 
   @override
   String get tags_manage_searchHint => 'Search tags...';

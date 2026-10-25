@@ -22739,6 +22739,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Adicionar downloads ao dono do computador';
 
   @override
+  String get settings_conflict_field_omitUnusedOcGases =>
+      'Ignorar gases de bailout não usados';
+
+  @override
   String get settings_conflict_field_avgSpeed => 'Velocidade média';
 
   @override
@@ -30321,6 +30325,14 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_downloadsFollowOwner_subtitle =>
       'Quando um computador de mergulho pertence a outro perfil, os mergulhos dele vão para o registro desse perfil. Você pode mudar isso na tela de revisão.';
+
+  @override
+  String get settings_omitUnusedOcGases_title =>
+      'Ignorar gases de bailout não usados';
+
+  @override
+  String get settings_omitUnusedOcGases_subtitle =>
+      'Nos downloads de rebreather, omite um gás sem transmissor que nunca foi respirado';
 
   @override
   String get tags_manage_searchHint => 'Buscar etiquetas...';

@@ -22224,6 +22224,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'הוספת הורדות לבעלים של המחשב';
 
   @override
+  String get settings_conflict_field_omitUnusedOcGases =>
+      'דילוג על גזי חילוץ שלא נוצלו';
+
+  @override
   String get settings_conflict_field_avgSpeed => 'מהירות ממוצעת';
 
   @override
@@ -29566,6 +29570,13 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_downloadsFollowOwner_subtitle =>
       'כשמחשב צלילה שייך לפרופיל אחר, הצלילות שלו נכנסות ליומן של אותו פרופיל. אפשר לשנות זאת במסך הסקירה.';
+
+  @override
+  String get settings_omitUnusedOcGases_title => 'דילוג על גזי חילוץ שלא נוצלו';
+
+  @override
+  String get settings_omitUnusedOcGases_subtitle =>
+      'בהורדות ממעגל סגור, משמיט גז ללא משדר שמעולם לא נשמו ממנו';
 
   @override
   String get tags_manage_searchHint => 'חיפוש תגיות...';

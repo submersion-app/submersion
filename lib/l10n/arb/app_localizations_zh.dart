@@ -21579,6 +21579,9 @@ class AppLocalizationsZh extends AppLocalizations {
       '将下载的记录添加到电脑所属的潜水员';
 
   @override
+  String get settings_conflict_field_omitUnusedOcGases => '跳过未使用的应急气体';
+
+  @override
   String get settings_conflict_field_avgSpeed => '平均速度';
 
   @override
@@ -28593,6 +28596,13 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get settings_downloadsFollowOwner_subtitle =>
       '当潜水电脑属于另一个潜水员档案时，它的潜水记录会添加到该档案的日志中。你可以在核对页面中更改。';
+
+  @override
+  String get settings_omitUnusedOcGases_title => '跳过未使用的应急气体';
+
+  @override
+  String get settings_omitUnusedOcGases_subtitle =>
+      '下载循环呼吸器潜水时，略过没有发射器且从未呼吸过的气体';
 
   @override
   String get tags_manage_searchHint => '搜索标签...';

@@ -22742,6 +22742,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Aggiungi i download al proprietario del computer';
 
   @override
+  String get settings_conflict_field_omitUnusedOcGases =>
+      'Salta i gas di bailout inutilizzati';
+
+  @override
   String get settings_conflict_field_avgSpeed => 'Velocità media';
 
   @override
@@ -30340,6 +30344,14 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get settings_downloadsFollowOwner_subtitle =>
       'Se un computer subacqueo appartiene a un altro profilo, le sue immersioni vanno nel registro di quel profilo. Puoi cambiarlo nella schermata di revisione.';
+
+  @override
+  String get settings_omitUnusedOcGases_title =>
+      'Salta i gas di bailout inutilizzati';
+
+  @override
+  String get settings_omitUnusedOcGases_subtitle =>
+      'Nei download da rebreather, omette un gas senza trasmettitore che non è mai stato respirato';
 
   @override
   String get tags_manage_searchHint => 'Cerca tag...';

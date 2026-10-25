@@ -36069,6 +36069,12 @@ abstract class AppLocalizations {
   /// **'Add downloads to the computer\'s owner'**
   String get settings_conflict_field_downloadsFollowComputerOwner;
 
+  /// Label for the skip-unused-bailout-gases setting in a sync conflict
+  ///
+  /// In en, this message translates to:
+  /// **'Skip unused bailout gases'**
+  String get settings_conflict_field_omitUnusedOcGases;
+
   /// No description provided for @settings_conflict_field_avgSpeed.
   ///
   /// In en, this message translates to:
@@ -48507,6 +48513,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'When a dive computer belongs to another profile, its dives go to that profile\'s log. You can change it on the review screen.'**
   String get settings_downloadsFollowOwner_subtitle;
+
+  /// Switch title, in Import options on Settings > Data, for leaving out open-circuit gases a rebreather dive computer reports but the diver never carried or breathed
+  ///
+  /// In en, this message translates to:
+  /// **'Skip unused bailout gases'**
+  String get settings_omitUnusedOcGases_title;
+
+  /// Switch subtitle, in Import options on Settings > Data, explaining which gases a rebreather download leaves out
+  ///
+  /// In en, this message translates to:
+  /// **'On rebreather downloads, leave out a gas with no transmitter that was never breathed'**
+  String get settings_omitUnusedOcGases_subtitle;
 
   /// No description provided for @tags_manage_searchHint.
   ///
