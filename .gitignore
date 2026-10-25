@@ -85,3 +85,4 @@ scripts/sample_data/
 
 # Test bundles, generated per run by scripts/bundle_tests.py (issue #2500)
 test/.bundles/
+/.gitattributes

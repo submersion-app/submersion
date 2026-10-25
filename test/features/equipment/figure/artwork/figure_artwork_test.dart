@@ -8,6 +8,22 @@ import 'package:path_parsing/path_parsing.dart';
 import 'package:submersion/features/equipment/figure/artwork/figure_artwork.gen.dart';
 import 'package:submersion/features/equipment/figure/domain/figure_space.dart';
 
+List<int> _normalizeLineEndings(List<int> bytes) {
+  final out = <int>[];
+  for (var i = 0; i < bytes.length; i++) {
+    final b = bytes[i];
+    if (b == 13) {
+      if (i + 1 < bytes.length && bytes[i + 1] == 10) {
+        i++;
+      }
+      out.add(10);
+      continue;
+    }
+    out.add(b);
+  }
+  return out;
+}
+
 /// The generated artwork is a build artefact checked in like the icon font.
 /// CI does not run the Python generator, so these tests are what keep the
 /// file honest: its digest must match the sources it was built from, and
@@ -29,7 +45,8 @@ void main() {
     final bytes = <int>[];
     for (final file in files) {
       bytes.addAll(utf8.encode('${p.basename(file.path)}\n'));
-      bytes.addAll(file.readAsBytesSync());
+      final normalized = _normalizeLineEndings(file.readAsBytesSync());
+      bytes.addAll(normalized);
     }
     expect(
       figureArtworkDigest,
