@@ -554,7 +554,7 @@
   "settings_cloudSync_postRestore_synced": "Wiederhergestellte Bibliothek synchronisiert.",
   "settings_cloudSync_replace_reviewAction": "Überprüfen",
   "settings_manage_setupAssistant": "Einrichtungsassistent",
-  "settings_manage_setupAssistant_subtitle": "Einheiten, Darstellung und Backup-Einstellungen erneut durchgehen",
+  "settings_manage_setupAssistant_subtitle": "Einheiten, Sicherungen, Sync und Fotos erneut durchgehen",
   "setup_common_back": "Zurück",
   "setup_common_next": "Weiter",
   "setup_common_skip": "Überspringen",

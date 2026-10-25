@@ -529,7 +529,7 @@
   "settings_cloudSync_postRestore_synced": "تمت مزامنة المكتبة المستعادة.",
   "settings_cloudSync_replace_reviewAction": "مراجعة",
   "settings_manage_setupAssistant": "مساعد الإعداد",
-  "settings_manage_setupAssistant_subtitle": "مراجعة الوحدات والمظهر وخيارات النسخ الاحتياطي",
+  "settings_manage_setupAssistant_subtitle": "مراجعة الوحدات والنسخ الاحتياطية والمزامنة والصور",
   "setup_common_back": "رجوع",
   "setup_common_next": "التالي",
   "setup_common_skip": "تخطي",

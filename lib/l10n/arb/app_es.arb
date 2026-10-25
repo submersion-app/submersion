@@ -529,7 +529,7 @@
   "settings_cloudSync_postRestore_synced": "Biblioteca restaurada sincronizada.",
   "settings_cloudSync_replace_reviewAction": "Revisar",
   "settings_manage_setupAssistant": "Asistente de configuración",
-  "settings_manage_setupAssistant_subtitle": "Revisa unidades, apariencia y opciones de copia de seguridad",
+  "settings_manage_setupAssistant_subtitle": "Revisa unidades, copias de seguridad, sincronización y fotos",
   "setup_common_back": "Atrás",
   "setup_common_next": "Siguiente",
   "setup_common_skip": "Omitir",

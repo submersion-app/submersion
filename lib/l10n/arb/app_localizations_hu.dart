@@ -8842,7 +8842,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_manage_setupAssistant_subtitle =>
-      'Mértékegységek, megjelenés és biztonsági mentés áttekintése';
+      'Mértékegységek, mentések, szinkronizálás és fotók áttekintése';
 
   @override
   String get setup_common_back => 'Vissza';

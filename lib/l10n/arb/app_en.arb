@@ -5182,7 +5182,7 @@
     }
   },
   "settings_manage_setupAssistant": "Setup assistant",
-  "settings_manage_setupAssistant_subtitle": "Revisit units, appearance, and backup choices",
+  "settings_manage_setupAssistant_subtitle": "Revisit units, backups, sync and photos",
   "setup_common_back": "Back",
   "setup_common_next": "Next",
   "setup_common_skip": "Skip",

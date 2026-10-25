@@ -8861,7 +8861,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_manage_setupAssistant_subtitle =>
-      'Rivedi unità, aspetto e opzioni di backup';
+      'Rivedi unità, backup, sincronizzazione e foto';
 
   @override
   String get setup_common_back => 'Indietro';

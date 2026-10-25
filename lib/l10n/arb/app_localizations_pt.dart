@@ -8859,7 +8859,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_manage_setupAssistant_subtitle =>
-      'Reveja unidades, aparência e opções de backup';
+      'Reveja unidades, backups, sincronização e fotos';
 
   @override
   String get setup_common_back => 'Voltar';

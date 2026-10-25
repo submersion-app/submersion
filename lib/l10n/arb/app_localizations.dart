@@ -13996,7 +13996,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_manage_setupAssistant_subtitle.
   ///
   /// In en, this message translates to:
-  /// **'Revisit units, appearance, and backup choices'**
+  /// **'Revisit units, backups, sync and photos'**
   String get settings_manage_setupAssistant_subtitle;
 
   /// No description provided for @setup_common_back.

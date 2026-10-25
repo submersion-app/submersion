@@ -529,7 +529,7 @@
   "settings_cloudSync_postRestore_synced": "Libreria ripristinata sincronizzata.",
   "settings_cloudSync_replace_reviewAction": "Rivedi",
   "settings_manage_setupAssistant": "Assistente di configurazione",
-  "settings_manage_setupAssistant_subtitle": "Rivedi unità, aspetto e opzioni di backup",
+  "settings_manage_setupAssistant_subtitle": "Rivedi unità, backup, sincronizzazione e foto",
   "setup_common_back": "Indietro",
   "setup_common_next": "Avanti",
   "setup_common_skip": "Salta",

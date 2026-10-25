@@ -529,7 +529,7 @@
   "settings_cloudSync_postRestore_synced": "A visszaállított könyvtár szinkronizálva.",
   "settings_cloudSync_replace_reviewAction": "Áttekintés",
   "settings_manage_setupAssistant": "Beállítási varázsló",
-  "settings_manage_setupAssistant_subtitle": "Mértékegységek, megjelenés és biztonsági mentés áttekintése",
+  "settings_manage_setupAssistant_subtitle": "Mértékegységek, mentések, szinkronizálás és fotók áttekintése",
   "setup_common_back": "Vissza",
   "setup_common_next": "Tovább",
   "setup_common_skip": "Kihagyás",

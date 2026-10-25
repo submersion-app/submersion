@@ -8673,7 +8673,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_manage_setupAssistant_subtitle =>
-      'עיון מחדש ביחידות, במראה ובאפשרויות הגיבוי';
+      'עיון מחדש ביחידות, בגיבויים, בסנכרון ובתמונות';
 
   @override
   String get setup_common_back => 'חזרה';

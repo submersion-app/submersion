@@ -567,7 +567,7 @@
     }
   },
   "settings_manage_setupAssistant": "设置向导",
-  "settings_manage_setupAssistant_subtitle": "重新设置单位、外观和备份选项",
+  "settings_manage_setupAssistant_subtitle": "重新设置单位、备份、同步和照片",
   "setup_common_back": "返回",
   "setup_common_next": "下一步",
   "setup_common_skip": "跳过",

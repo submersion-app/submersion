@@ -9005,7 +9005,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_manage_setupAssistant_subtitle =>
-      'مراجعة الوحدات والمظهر وخيارات النسخ الاحتياطي';
+      'مراجعة الوحدات والنسخ الاحتياطية والمزامنة والصور';
 
   @override
   String get setup_common_back => 'رجوع';

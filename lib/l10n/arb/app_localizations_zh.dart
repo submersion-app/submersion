@@ -8417,7 +8417,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_manage_setupAssistant => '设置向导';
 
   @override
-  String get settings_manage_setupAssistant_subtitle => '重新设置单位、外观和备份选项';
+  String get settings_manage_setupAssistant_subtitle => '重新设置单位、备份、同步和照片';
 
   @override
   String get setup_common_back => '返回';

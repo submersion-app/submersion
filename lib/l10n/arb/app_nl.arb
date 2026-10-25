@@ -529,7 +529,7 @@
   "settings_cloudSync_postRestore_synced": "Herstelde bibliotheek gesynchroniseerd.",
   "settings_cloudSync_replace_reviewAction": "Controleren",
   "settings_manage_setupAssistant": "Configuratie-assistent",
-  "settings_manage_setupAssistant_subtitle": "Eenheden, weergave en back-upkeuzes opnieuw bekijken",
+  "settings_manage_setupAssistant_subtitle": "Eenheden, back-ups, synchronisatie en foto's opnieuw bekijken",
   "setup_common_back": "Terug",
   "setup_common_next": "Volgende",
   "setup_common_skip": "Overslaan",

@@ -8861,7 +8861,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_manage_setupAssistant_subtitle =>
-      'Revisa unidades, apariencia y opciones de copia de seguridad';
+      'Revisa unidades, copias de seguridad, sincronización y fotos';
 
   @override
   String get setup_common_back => 'Atrás';

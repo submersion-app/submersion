@@ -8890,7 +8890,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_manage_setupAssistant_subtitle =>
-      'Revoir les unités, l\'apparence et les choix de sauvegarde';
+      'Revoir les unités, les sauvegardes, la synchro et les photos';
 
   @override
   String get setup_common_back => 'Retour';

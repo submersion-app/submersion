@@ -8723,7 +8723,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_manage_setupAssistant_subtitle =>
-      'Revisit units, appearance, and backup choices';
+      'Revisit units, backups, sync and photos';
 
   @override
   String get setup_common_back => 'Back';
