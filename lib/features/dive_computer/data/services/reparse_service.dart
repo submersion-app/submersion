@@ -1019,6 +1019,9 @@ class ReparseService {
             if (_isDiverEdited(row, tank) &&
                 !unusedRows.importers.contains(tank.index))
               tank.index,
+        // The wider unused-gas test: a hand-entered pressure, regulator, trip
+        // cylinder or passport on such a row would go with a claim.
+        ...unusedRows.edited,
       },
     );
 

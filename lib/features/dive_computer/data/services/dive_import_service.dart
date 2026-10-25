@@ -446,6 +446,7 @@ class DiveImportService {
                 duplicateResult.matchingDiveId!,
                 computer.id,
                 omitUnusedOcGases: omitUnusedOcGases,
+                transmitterMatcher: transmitterMatcher,
                 descriptorVendor: descriptorVendor,
                 descriptorProduct: descriptorProduct,
                 descriptorModel: descriptorModel,
@@ -480,6 +481,7 @@ class DiveImportService {
               duplicateResult.matchingDiveId!,
               computer.id,
               omitUnusedOcGases: omitUnusedOcGases,
+              transmitterMatcher: transmitterMatcher,
               descriptorVendor: descriptorVendor,
               descriptorProduct: descriptorProduct,
               descriptorModel: descriptorModel,
@@ -780,23 +782,7 @@ class DiveImportService {
     }
     // A transmitter the registry made the bailout takes the gas list's
     // bailout cylinder, and switches to that cylinder follow it (#3307).
-    final claim = claimBailoutGasesInDive(
-      tanks: matchedTanks,
-      diveMode: dive.diveMode.code,
-      switches: dive.gasSwitches,
-      samples: [
-        for (final s in dive.profile)
-          (
-            timeSeconds: s.timeSeconds,
-            pressureBar: s.pressure,
-            tankIndex: s.tankIndex,
-            tankPressuresBar: s.tankPressures,
-          ),
-      ],
-      depths: [
-        for (final s in dive.profile) (t: s.timeSeconds, depth: s.depth),
-      ],
-    );
+    final claim = _claimBailoutGases(dive, matchedTanks);
     // After the claim, so a bailout transmitter has taken an unused gas's mix
     // before that gas's own cylinder goes (issue #3668).
     final kept = omitUnusedOcGases
@@ -900,6 +886,27 @@ class DiveImportService {
     );
   }
 
+  /// [_importNewDive]'s bailout transmitter claim (#3307) for [dive]'s
+  /// cylinders, shared with the re-download path's unused-gas drop.
+  BailoutClaim _claimBailoutGases(DownloadedDive dive, List<TankData> tanks) =>
+      claimBailoutGasesInDive(
+        tanks: tanks,
+        diveMode: dive.diveMode.code,
+        switches: dive.gasSwitches,
+        samples: [
+          for (final s in dive.profile)
+            (
+              timeSeconds: s.timeSeconds,
+              pressureBar: s.pressure,
+              tankIndex: s.tankIndex,
+              tankPressuresBar: s.tankPressures,
+            ),
+        ],
+        depths: [
+          for (final s in dive.profile) (t: s.timeSeconds, depth: s.depth),
+        ],
+      );
+
   /// Replace an existing dive's source data with a fresh download.
   ///
   /// Clears the old profile and data source rows for this computer, then
@@ -911,6 +918,7 @@ class DiveImportService {
     String existingDiveId,
     String computerId, {
     bool omitUnusedOcGases = false,
+    TransmitterMatcher? transmitterMatcher,
     String? descriptorVendor,
     String? descriptorProduct,
     int? descriptorModel,
@@ -925,18 +933,39 @@ class DiveImportService {
 
     final profilePoints = _parser.parseProfile(dive);
     final events = _convertEvents(dive.events);
-    final gasSwitches = _parser.parseGasSwitches(dive);
+    var gasSwitches = _parser.parseGasSwitches(dive);
     // Tanks are passed so gas switches can be matched to the existing
     // cylinders by gas mix rather than by a possibly-stale cylinder index.
     // importProfile keeps the stored cylinders, which may be the diver's
     // edits, and adds only those this parse reports at an index none of them
-    // holds, such as a sidemount pair's second transmitter (#2517). With the
-    // unused-gas switch on, a gas the diver never carried is not re-added
-    // (issue #3668); nothing on this path claims a gas first.
-    final parsedTanks = _parser.parseTanks(dive);
-    final tanks = omitUnusedOcGases
-        ? dropUnusedOcGases(parsedTanks).tanks
-        : parsedTanks;
+    // holds, such as a sidemount pair's second transmitter (#2517).
+    var tanks = _parser.parseTanks(dive);
+    // With the unused-gas switch on, a gas the diver never carried is not
+    // re-added (issue #3668). A bailout transmitter this download adds as a
+    // new cylinder takes its gas first, as on a new dive; a stored cylinder
+    // keeps what it holds.
+    if (omitUnusedOcGases) {
+      final claim = _claimBailoutGases(
+        dive,
+        transmitterMatcher == null
+            ? tanks
+            : applyTransmitterRegistry(
+                tanks,
+                transmitterMatcher,
+                computerId: computerId,
+              ),
+      );
+      tanks = dropUnusedOcGases(claim.tanks).tanks;
+      gasSwitches = [
+        for (final sw in gasSwitches)
+          GasSwitchData(
+            timestamp: sw.timestamp,
+            depth: sw.depth,
+            toTankIndex:
+                claim.remappedIndices[sw.toTankIndex] ?? sw.toTankIndex,
+          ),
+      ];
+    }
 
     // Re-import using the existing dive's start time so that importProfile
     // matches it back to the same dive row.
@@ -1067,6 +1096,7 @@ class DiveImportService {
           conflict.existingDiveId,
           computerId,
           omitUnusedOcGases: await _loadOmitUnusedOcGases(diverId),
+          transmitterMatcher: await _loadTransmitterMatcher(diverId),
           descriptorVendor: descriptorVendor,
           descriptorProduct: descriptorProduct,
           descriptorModel: descriptorModel,

@@ -487,6 +487,20 @@ void main() {
       },
     );
 
+    test('an Air row with a hand-entered pressure is never claimed', () async {
+      await storeEarlierDownload(airRole: 'bailout');
+      await (db.update(db.diveTanks)..where((t) => t.id.equals('gas-air')))
+          .write(const DiveTanksCompanion(startPressure: Value(200.0)));
+
+      await reparse(withBailoutEntry(), parsed: withBailoutTransmitter);
+
+      final air = await (db.select(
+        db.diveTanks,
+      )..where((t) => t.id.equals('gas-air'))).getSingle();
+      expect(air.startPressure, 200.0);
+      expect(await storedIds(), {'dil', 'o2', 't555', 'gas-air'});
+    });
+
     test('an Air row the diver edited stays and keeps its gas', () async {
       await storeEarlierDownload(airRole: 'stage');
 

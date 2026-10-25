@@ -314,6 +314,61 @@ void main() {
   );
 
   test(
+    'a re-download lets a registered bailout transmitter take the Air first',
+    () async {
+      final service = DiveImportService(
+        repository: repo,
+        diveRepository: diveRepo,
+        omitUnusedOcGasesForImports: (_) async => true,
+        transmitterMatcherForImports: (_) async =>
+            TransmitterMatcher.fromEntries([
+              Transmitter(
+                id: 'e1',
+                transmitterSerial: '555',
+                label: 'Bailout',
+                role: TankRole.bailout,
+                createdAt: DateTime.utc(2026, 9, 1),
+                updatedAt: DateTime.utc(2026, 9, 1),
+              ),
+            ]),
+      );
+      final conflict = ImportConflict(
+        downloaded: reporterDive(
+          extra: const [
+            DownloadedTank(
+              index: 2,
+              o2Percent: 21.0,
+              startPressure: 200.0,
+              endPressure: 200.0,
+              role: 'backGas',
+              transmitterSerial: '555',
+              mixRecorded: false,
+            ),
+          ],
+        ),
+        existingDiveId: 'existing',
+        duplicateResult: const DuplicateResult(
+          matchingDiveId: 'existing',
+          confidence: DuplicateConfidence.exact,
+          score: 0.95,
+        ),
+      );
+
+      await service.resolveConflict(
+        conflict,
+        ConflictResolution.replaceSource,
+        computer.id,
+      );
+
+      final tanks = writtenTanks();
+      expect(tanks.map((t) => t.index), [0, 1, 2]);
+      final bailout = tanks.firstWhere((t) => t.index == 2);
+      expect(bailout.o2Percent, 21.0);
+      expect(bailout.mixRecorded, isTrue, reason: 'claimed the Air gas');
+    },
+  );
+
+  test(
     're-downloading into an existing dive keeps every gas when off',
     () async {
       final conflict = ImportConflict(
