@@ -4423,6 +4423,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 Text(
                   title,
                   style: theme.textTheme.bodyMedium,
+                  maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 if (subtitle != null)
@@ -4431,6 +4432,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
+                    maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
               ],

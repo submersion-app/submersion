@@ -59,6 +59,7 @@ class _CourseRow extends StatelessWidget {
                 child: Text(
                   course.name,
                   style: theme.textTheme.bodyMedium,
+                  maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
               ),

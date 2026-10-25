@@ -125,6 +125,11 @@ void main() {
       tester.getTopRight(find.text(name)).dx,
       lessThanOrEqualTo(tester.getTopRight(detailRowFor('Dive Center')).dx),
     );
+    // One ellipsized line, as tall as the label, rather than word-wrapping.
+    expect(
+      tester.getSize(find.text(name)).height,
+      tester.getSize(find.text('Dive Center')).height,
+    );
   });
 
   testWidgets('no rows for empty or blank values', (tester) async {
