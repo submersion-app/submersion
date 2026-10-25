@@ -20,9 +20,13 @@ class FakeMediaStoreReconnect implements MediaStoreReconnect {
   /// When set, [reconnect] waits for it before answering.
   Completer<void>? gate;
 
+  /// When set, [inspect] waits for it before answering.
+  Completer<void>? inspectGate;
+
   @override
   Future<MediaStoreReconnectSituation> inspect() async {
     final i = inspectCalls++;
+    await inspectGate?.future;
     return situations[i < situations.length ? i : situations.length - 1];
   }
 

@@ -157,7 +157,15 @@ void main() {
     expect(find.text('network down'), findsOneWidget);
     expect(find.byKey(const Key('reconnect-adopt')), findsNothing);
 
+    final gate = fake.inspectGate = Completer<void>();
     await tester.tap(find.byKey(const Key('reconnect-retry')));
+    await tester.pump();
+
+    // Checking again, not the stale answer with its Try again.
+    expect(find.byKey(const Key('reconnect-checking')), findsOneWidget);
+    expect(find.byKey(const Key('reconnect-retry')), findsNothing);
+
+    gate.complete();
     await tester.pumpAndSettle();
 
     expect(fake.inspectCalls, 2);

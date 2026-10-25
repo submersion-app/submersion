@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/media_store/media_object_store.dart';
 import 'package:submersion/features/media_store/data/media_store_service.dart';
 import 'package:submersion/features/media_store/domain/media_store_reconnect_situation.dart';
@@ -83,10 +84,12 @@ class _MediaStoreReconnectSheetState
   }
 
   Future<MediaStoreReconnectSituation> _inspect() async {
+    // Read before the await: the sheet may be dismissed during the read.
+    final container = ref.container;
     final found = await ref.read(mediaStoreReconnectProvider).inspect();
     // The marker matches again and the flag is cleared: wake the queue
     // rather than leave it to the suspended worker's retry window.
-    if (found is ReconnectResolved) unawaited(_drain(ref.container));
+    if (found is ReconnectResolved) unawaited(_drain(container));
     return found;
   }
 
@@ -100,7 +103,10 @@ class _MediaStoreReconnectSheetState
     return FutureBuilder<MediaStoreReconnectSituation>(
       future: _situation,
       builder: (context, snapshot) {
-        final found = snapshot.data;
+        // A retry hands over a new future, and FutureBuilder keeps the old
+        // answer while it loads: show the check, not the stale choices.
+        final loading = snapshot.connectionState != ConnectionState.done;
+        final found = loading ? null : snapshot.data;
         return SingleChildScrollView(
           padding: const EdgeInsets.only(bottom: 16),
           child: Column(
@@ -114,7 +120,7 @@ class _MediaStoreReconnectSheetState
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
               ),
-              if (snapshot.hasError)
+              if (!loading && snapshot.hasError)
                 ..._unreadable(l10n, account, '${snapshot.error}')
               else if (found == null)
                 _checking(l10n, account)
@@ -360,9 +366,21 @@ class _MediaStoreReconnectSheetState
     refreshAccountState(container.invalidate);
   }
 
-  /// Runs the queue now, on whatever runtime the attachment builds.
+  /// Runs the queue now, on whatever runtime the attachment builds. Fired
+  /// and forgotten, so a failure is logged here: the paused notice and the
+  /// status line report a queue that still cannot run.
   static Future<void> _drain(ProviderContainer container) async {
-    final runtime = await container.read(mediaStoreRuntimeProvider.future);
-    await runtime?.worker?.drain();
+    try {
+      final runtime = await container.read(mediaStoreRuntimeProvider.future);
+      await runtime?.worker?.drain();
+    } catch (e, stackTrace) {
+      _log.warning(
+        'Drain after reconnect failed',
+        error: e,
+        stackTrace: stackTrace,
+      );
+    }
   }
+
+  static final _log = LoggerService.forClass(MediaStoreReconnectSheet);
 }
