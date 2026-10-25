@@ -14,11 +14,10 @@ XmlElement? dictValue(XmlElement dict, String key) {
   return null;
 }
 
-/// The top-level dict of the plist at [path].
-XmlElement plistRoot(String path) => XmlDocument.parse(
-  File(path).readAsStringSync(),
-).rootElement.getElement('dict')!;
-
 /// The value element that follows [key] in a plist's top-level dict.
-XmlElement? plistValue(String path, String key) =>
-    dictValue(plistRoot(path), key);
+XmlElement? plistValue(String path, String key) => dictValue(
+  XmlDocument.parse(
+    File(path).readAsStringSync(),
+  ).rootElement.getElement('dict')!,
+  key,
+);
