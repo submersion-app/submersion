@@ -64,4 +64,13 @@ final class RendererDartProject: FlutterDartProject {
   }
 
   @objc var enableImpeller: Bool { impellerEnabled }
+
+  /// Flutter finds icudtl.dat in `[NSBundle bundleForClass:[self class]]`,
+  /// which for this subclass is the app, not FlutterMacOS.framework, so the
+  /// engine would start without ICU and text would ignore line breaks
+  /// (issue #3639). Point it back at the framework's copy. Private like
+  /// `enableImpeller`, and pinned by RunnerTests the same way.
+  @objc(ICUDataPath) var icuDataPath: String? {
+    Bundle(for: FlutterDartProject.self).path(forResource: "icudtl.dat", ofType: nil)
+  }
 }
