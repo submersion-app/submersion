@@ -112,6 +112,19 @@ void main() {
     expect(column, lessThan(700));
   });
 
+  testWidgets('the Dives count stays tappable, and a zero count does not', (
+    tester,
+  ) async {
+    await pumpWide(tester);
+
+    InkWell inkWellOf(String text) => tester.widget<InkWell>(
+      find.ancestor(of: find.text(text), matching: find.byType(InkWell)).first,
+    );
+    // Three dives open the dive list; no trips leave nothing to open.
+    expect(inkWellOf('3 dives').onTap, isNotNull);
+    expect(inkWellOf('0 trips').onTap, isNull);
+  });
+
   testWidgets('the Dives chevron follows the count', (tester) async {
     await pumpWide(tester);
 

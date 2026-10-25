@@ -46,6 +46,12 @@ class DetailLabelColumn extends ChangeNotifier {
 /// row built by another widget, or one that appears once its data loads,
 /// joins the nearest group. Nested groups are independent; a row joins the
 /// nearest one.
+///
+/// Rows must be built in an ordinary build pass, not by a builder that runs
+/// during layout (a `LayoutBuilder`, or a lazy list such as
+/// `ListView.builder`) below the group. A row built there reports its width
+/// after its siblings have laid out for the frame, and they keep the old
+/// column. Put the group inside such a builder instead.
 class DetailRowGroup extends StatefulWidget {
   const DetailRowGroup({super.key, required this.child});
 

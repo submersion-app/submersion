@@ -16,7 +16,7 @@ import 'package:submersion/shared/widgets/detail_row/render_detail_row.dart';
 ///
 /// The row adds no semantics of its own: a caller that reads the row as
 /// one node, or makes it a button, wraps it as before.
-class DetailRow extends StatelessWidget {
+class DetailRow extends StatefulWidget {
   const DetailRow({
     super.key,
     required this.label,
@@ -86,30 +86,58 @@ class DetailRow extends StatelessWidget {
   final EdgeInsetsGeometry padding;
 
   @override
+  State<DetailRow> createState() => _DetailRowState();
+}
+
+class _DetailRowState extends State<DetailRow> {
+  @override
+  void initState() {
+    super.initState();
+    // A font that arrives after the first frame (a theme's font fetched at
+    // runtime) changes the label's width, so measure it again.
+    PaintingBinding.instance.systemFonts.addListener(_fontsChanged);
+  }
+
+  @override
+  void dispose() {
+    PaintingBinding.instance.systemFonts.removeListener(_fontsChanged);
+    super.dispose();
+  }
+
+  void _fontsChanged() => setState(() {});
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final style = DefaultTextStyle.of(context).style.merge(
-      labelStyle ??
+    var style = DefaultTextStyle.of(context).style.merge(
+      widget.labelStyle ??
           theme.textTheme.bodyMedium?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
           ),
     );
+    // Measured as Text renders it: bold under the Bold Text setting.
+    if (MediaQuery.boldTextOf(context)) {
+      style = style.merge(const TextStyle(fontWeight: FontWeight.bold));
+    }
 
     // Measured while building, so every row of a group has reported its
     // width before any of them lays out.
     final painter = TextPainter(
-      text: TextSpan(text: label, style: style),
+      text: TextSpan(text: widget.label, style: style),
       textDirection: Directionality.of(context),
       textScaler: MediaQuery.textScalerOf(context),
+      locale: Localizations.maybeLocaleOf(context),
     )..layout();
-    final textWidth = label.isEmpty ? 0.0 : painter.width;
+    final textWidth = widget.label.isEmpty ? 0.0 : painter.width;
     final lineHeight = painter.preferredLineHeight;
     painter.dispose();
 
-    final hasIcon = icon != null;
+    final hasIcon = widget.icon != null;
     // The first line is as tall as the taller of the icon and a line of
     // text; whichever is shorter is centred on it.
-    final firstLine = hasIcon ? math.max(lineHeight, iconSize) : lineHeight;
+    final firstLine = hasIcon
+        ? math.max(lineHeight, widget.iconSize)
+        : lineHeight;
     final textTop = (firstLine - lineHeight) / 2;
 
     final labelCell = Row(
@@ -118,39 +146,40 @@ class DetailRow extends StatelessWidget {
       children: [
         if (hasIcon) ...[
           SizedBox(
-            width: iconSize,
+            width: widget.iconSize,
             height: firstLine,
             child: Center(
               child: Icon(
-                icon,
-                size: iconSize,
-                color: iconColor ?? theme.colorScheme.primary,
+                widget.icon,
+                size: widget.iconSize,
+                color: widget.iconColor ?? theme.colorScheme.primary,
               ),
             ),
           ),
-          SizedBox(width: iconGap),
+          SizedBox(width: widget.iconGap),
         ],
         Flexible(
           child: Padding(
             padding: EdgeInsets.only(top: textTop),
-            child: Text(label, style: style),
+            child: Text(widget.label, style: style),
           ),
         ),
       ],
     );
 
     return Padding(
-      padding: padding,
+      padding: widget.padding,
       child: DetailRowLayout(
         label: labelCell,
         value: Padding(
           padding: EdgeInsets.only(top: textTop),
-          child: value,
+          child: widget.value,
         ),
         column: DetailRowGroup.maybeOf(context),
-        ownLabelWidth: textWidth + (hasIcon ? iconSize + iconGap : 0),
-        gap: gap,
-        maxLabelShare: maxLabelShare,
+        ownLabelWidth:
+            textWidth + (hasIcon ? widget.iconSize + widget.iconGap : 0),
+        gap: DetailRow.gap,
+        maxLabelShare: DetailRow.maxLabelShare,
       ),
     );
   }

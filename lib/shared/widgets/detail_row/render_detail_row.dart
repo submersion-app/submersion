@@ -202,7 +202,7 @@ class RenderDetailRow extends RenderBox
   @override
   double computeMinIntrinsicWidth(double height) =>
       _label!.getMinIntrinsicWidth(height) +
-      _gap +
+      _gapAfter(_columnWidth(double.infinity)) +
       _value!.getMinIntrinsicWidth(height);
 
   @override
@@ -232,6 +232,18 @@ class RenderDetailRow extends RenderBox
   @override
   double computeMaxIntrinsicHeight(double width) =>
       _intrinsicHeight(width, (child, w) => child.getMaxIntrinsicHeight(w));
+
+  @override
+  double? computeDryBaseline(
+    covariant BoxConstraints constraints,
+    TextBaseline baseline,
+  ) {
+    // The label sits at the top of the row, so its own baseline is the row's.
+    return _label!.getDryBaseline(
+      BoxConstraints(maxWidth: _columnWidth(constraints.maxWidth)),
+      baseline,
+    );
+  }
 
   @override
   double? computeDistanceToActualBaseline(TextBaseline baseline) {

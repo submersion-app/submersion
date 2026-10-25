@@ -1,8 +1,12 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/shared/widgets/detail_row/detail_row.dart';
 import 'package:submersion/shared/widgets/detail_row/detail_row_group.dart';
+import 'package:submersion/shared/widgets/detail_row/render_detail_row.dart';
 
 /// Pumps [child] at [width] logical pixels, pinned to the top start corner.
 Future<void> _pump(
@@ -11,13 +15,17 @@ Future<void> _pump(
   double width = 700,
   TextDirection textDirection = TextDirection.ltr,
   double textScale = 1,
+  bool boldText = false,
 }) {
   return tester.pumpWidget(
     MaterialApp(
       home: Directionality(
         textDirection: textDirection,
         child: MediaQuery(
-          data: MediaQueryData(textScaler: TextScaler.linear(textScale)),
+          data: MediaQueryData(
+            textScaler: TextScaler.linear(textScale),
+            boldText: boldText,
+          ),
           child: Scaffold(
             body: Align(
               alignment: AlignmentDirectional.topStart,
@@ -31,6 +39,31 @@ Future<void> _pump(
 }
 
 void main() {
+  // A real font, registered mid-test to stand in for a theme font that
+  // google_fonts fetches after the first frame. Read here: file reads in a
+  // testWidgets body deadlock under its fake clock.
+  late ByteData lateFont;
+  const boldFamily = 'DetailRowBoldFont';
+  setUpAll(() async {
+    final root =
+        Platform.environment['FLUTTER_ROOT'] ??
+        File(
+          Platform.resolvedExecutable,
+        ).parent.parent.parent.parent.parent.parent.path;
+    Future<ByteData> font(String name) async => ByteData.sublistView(
+      await File(
+        '$root/bin/cache/artifacts/material_fonts/$name.ttf',
+      ).readAsBytes(),
+    );
+    lateFont = await font('Roboto-Regular');
+    // Regular and bold faces of one family, so bold text really is wider,
+    // which the test font's square glyphs are not.
+    await (FontLoader(boldFamily)
+          ..addFont(font('Roboto-Regular'))
+          ..addFont(font('Roboto-Bold')))
+        .load();
+  });
+
   double left(WidgetTester tester, String text) =>
       tester.getTopLeft(find.text(text)).dx;
   double right(WidgetTester tester, String text) =>
@@ -253,6 +286,92 @@ void main() {
     );
 
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Bold Text keeps the widest label on one line', (tester) async {
+    const style = TextStyle(fontFamily: boldFamily, fontSize: 14);
+    await _pump(
+      tester,
+      DetailRowGroup(
+        child: Column(
+          children: [
+            DetailRow.text(
+              label: 'Manufacturer',
+              labelStyle: style,
+              value: 'Shearwater',
+            ),
+            DetailRow.text(label: 'Model', labelStyle: style, value: 'Perdix'),
+          ],
+        ),
+      ),
+      boldText: true,
+    );
+
+    expect(
+      tester.getSize(find.text('Manufacturer')).height,
+      tester.getSize(find.text('Model')).height,
+    );
+    expect(
+      left(tester, 'Shearwater'),
+      right(tester, 'Manufacturer') + DetailRow.gap,
+    );
+  });
+
+  testWidgets('a font that loads after the first frame re-measures the '
+      'column', (tester) async {
+    const family = 'DetailRowLateFont';
+    const style = TextStyle(fontFamily: family, fontSize: 14);
+    await _pump(
+      tester,
+      DetailRow.text(label: 'Manufacturer', labelStyle: style, value: 'x'),
+    );
+
+    await tester.runAsync(
+      () => (FontLoader(family)..addFont(Future.value(lateFont))).load(),
+    );
+    await tester.pump();
+
+    expect(left(tester, 'x'), right(tester, 'Manufacturer') + DetailRow.gap);
+  });
+
+  testWidgets('the dry baseline is the label baseline', (tester) async {
+    await _pump(tester, DetailRow.text(label: 'Brand', value: 'Apeks'));
+
+    final row = tester.renderObject<RenderBox>(find.byType(DetailRowLayout));
+    // The label sits at the row's top, so the row's baseline is its own.
+    final painter = TextPainter(
+      text: TextSpan(
+        text: 'Brand',
+        style: tester.widget<Text>(find.text('Brand')).style,
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    addTearDown(painter.dispose);
+    expect(
+      row.getDryBaseline(
+        BoxConstraints(maxWidth: row.size.width),
+        TextBaseline.alphabetic,
+      ),
+      painter.computeDistanceToActualBaseline(TextBaseline.alphabetic),
+    );
+  });
+
+  testWidgets('a label-less row adds no gap to its min intrinsic width', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      DetailRowGroup(
+        child: DetailRow.text(label: '', value: 'Served'),
+      ),
+    );
+
+    final row = tester.renderObject<RenderBox>(find.byType(DetailRowLayout));
+    final value = tester.renderObject<RenderBox>(find.text('Served'));
+    expect(
+      row.getMinIntrinsicWidth(double.infinity),
+      value.getMinIntrinsicWidth(double.infinity),
+    );
   });
 
   testWidgets('taps inside the value land', (tester) async {
