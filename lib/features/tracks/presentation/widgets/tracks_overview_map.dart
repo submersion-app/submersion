@@ -76,6 +76,17 @@ class _TracksOverviewMapState extends ConsumerState<TracksOverviewMap> {
     final allPoints = <GpsTrackPoint>[];
     final anchored = <UnderwaterTrackItem>[];
 
+    // The dive site the selection belongs to, if any -- selecting one
+    // underwater track frames every track at the same site, not just that
+    // one (#3648), since a site with several tracks otherwise left all but
+    // the selected one out of the visible extent.
+    String? selectedSiteId;
+    for (final item in widget.items) {
+      if (item.selectionKey == selectedKey && item is UnderwaterTrackItem) {
+        selectedSiteId = item.track.siteId;
+      }
+    }
+
     for (final item in widget.items) {
       final isSelected = item.selectionKey == selectedKey;
       switch (item) {
@@ -118,35 +129,36 @@ class _TracksOverviewMapState extends ConsumerState<TracksOverviewMap> {
               longitude: anchor.longitude,
             );
             allPoints.add(anchorPoint);
-            if (isSelected) {
-              // The selected track is the one case hydrating is cheap --
-              // _HydratedUnderwaterPolyline already pays for it below to
-              // draw the route, so framing reuses the same provider rather
-              // than settling for the anchor alone (which used to frame a
-              // long route's start point with the rest cut off screen).
+            final sameSite =
+                selectedSiteId != null && track.siteId == selectedSiteId;
+            if (isSelected || sameSite) {
+              // The selected track (and any sibling at its site) is the
+              // one case hydrating is cheap -- _HydratedUnderwaterPolyline
+              // already pays for it below to draw the route, so framing
+              // reuses the same provider rather than settling for the
+              // anchor alone (which used to frame a long route's start
+              // point with the rest cut off screen).
               final hydrated = ref.watch(navTrackByIdProvider(item.id)).value;
               final drawn = hydrated == null
                   ? const <LatLng>[]
                   : navTrackDrawnPoints(hydrated);
-              if (drawn.length >= 2) {
-                final routePoints = [
-                  for (final geo in drawn)
-                    GpsTrackPoint(
-                      timestamp: 0,
-                      latitude: geo.latitude,
-                      longitude: geo.longitude,
-                    ),
-                ];
-                selectedPoints = routePoints;
-                // Folded into the library's own point count too, so the
-                // framing signature changes once hydration lands after the
-                // first (anchor-only) frame and the re-frame effect below
-                // actually fires instead of leaving the first, narrower
-                // framing in place.
-                allPoints.addAll(routePoints);
-              } else {
-                selectedPoints = [anchorPoint];
-              }
+              final framedPoints = drawn.length >= 2
+                  ? [
+                      for (final geo in drawn)
+                        GpsTrackPoint(
+                          timestamp: 0,
+                          latitude: geo.latitude,
+                          longitude: geo.longitude,
+                        ),
+                    ]
+                  : [anchorPoint];
+              selectedPoints = [...?selectedPoints, ...framedPoints];
+              // Folded into the library's own point count too, so the
+              // framing signature changes once a sibling's hydration lands
+              // after the first (anchor-only) frame and the re-frame
+              // effect below actually fires instead of leaving the first,
+              // narrower framing in place.
+              allPoints.addAll(framedPoints);
             }
           }
       }

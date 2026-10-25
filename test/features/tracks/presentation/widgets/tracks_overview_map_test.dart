@@ -34,6 +34,7 @@ NavTrack _uw(
   String id, {
   double? lat,
   double? lon,
+  String? siteId,
   List<NavTrackPoint> points = const [],
 }) => NavTrack(
   id: id,
@@ -43,6 +44,7 @@ NavTrack _uw(
   pointCount: points.length,
   anchorLatitude: lat,
   anchorLongitude: lon,
+  siteId: siteId,
   points: points,
   createdAt: DateTime(2026),
   updatedAt: DateTime(2026),
@@ -199,5 +201,45 @@ void main() {
     );
     expect(controller.camera.center.latitude, closeTo(47.1, 0.01));
     expect(controller.camera.center.longitude, closeTo(8.3, 0.01));
+  });
+
+  group('framing a track also frames its dive-site siblings (#3648)', () {
+    testWidgets(
+      'selecting one of two tracks at the same site frames both, not just '
+      'the selected one',
+      (tester) async {
+        final controller = await _pump(
+          tester,
+          items: [
+            UnderwaterTrackItem(_uw('u1', lat: 47.0, lon: 8.0, siteId: 's1')),
+            UnderwaterTrackItem(_uw('u2', lat: 47.2, lon: 8.2, siteId: 's1')),
+          ],
+          selectedKey: 'underwater:u1',
+        );
+
+        // Both anchors (47.0/8.0 and 47.2/8.2) in frame puts the center near
+        // their midpoint, not at u1's own anchor alone.
+        expect(controller.camera.center.latitude, closeTo(47.1, 0.05));
+        expect(controller.camera.center.longitude, closeTo(8.1, 0.05));
+      },
+    );
+
+    testWidgets(
+      'selecting a track frames only its own route when no other track '
+      'shares its site',
+      (tester) async {
+        final controller = await _pump(
+          tester,
+          items: [
+            UnderwaterTrackItem(_uw('u1', lat: 47.0, lon: 8.0, siteId: 's1')),
+            UnderwaterTrackItem(_uw('u2', lat: 47.2, lon: 8.2, siteId: 's2')),
+          ],
+          selectedKey: 'underwater:u1',
+        );
+
+        expect(controller.camera.center.latitude, closeTo(47.0, 0.01));
+        expect(controller.camera.center.longitude, closeTo(8.0, 0.01));
+      },
+    );
   });
 }
