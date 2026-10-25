@@ -21,6 +21,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_p
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/detail_row_finders.dart';
 
 /// The history section needs a notifier that never touches the database.
 class _MockServiceRecordNotifier
@@ -168,6 +169,15 @@ void main() {
     expect(find.textContaining('10 days ago'), findsOneWidget);
     // The age line carries the date, so the plain row would repeat it.
     expect(plainInstalledRow, findsNothing);
+  });
+
+  testWidgets('the host and install age line up with the other values '
+      '(#3678)', (tester) async {
+    await pump(tester, child: cell(), parent: host);
+
+    final column = detailValueLeft(tester, 'Status');
+    expect(tester.getTopLeft(find.text('JJ-CCR')).dx, column);
+    expect(tester.getTopLeft(find.textContaining('10 days ago')).dx, column);
   });
 
   testWidgets('tapping the host opens its detail page', (tester) async {

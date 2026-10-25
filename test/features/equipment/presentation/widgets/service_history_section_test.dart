@@ -17,6 +17,7 @@ import 'package:submersion/features/equipment/presentation/widgets/service_histo
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/detail_row_finders.dart';
 
 void main() {
   final t0 = DateTime(2026, 1, 1);
@@ -376,6 +377,26 @@ void main() {
       expect(find.textContaining('12'), findsWidgets);
       expect(find.text('Total Service Cost (EUR)'), findsOneWidget);
       expect(find.text('Total Service Cost (USD)'), findsOneWidget);
+    });
+
+    testWidgets('totals sit beside their labels on one column (#3678)', (
+      tester,
+    ) async {
+      await pumpSection(
+        tester,
+        records: [
+          record(id: 'r1', kindId: 'disinfect', cost: 45, currency: 'EUR'),
+          record(id: 'r2', kindId: 'disinfect', cost: 12, currency: 'USD'),
+        ],
+        kinds: [kind('disinfect', 'Disinfect')],
+      );
+
+      final eur = detailValueLeft(tester, 'Total Service Cost (EUR)');
+      expect(detailValueLeft(tester, 'Total Service Cost (USD)'), eur);
+      expect(
+        eur,
+        tester.getTopRight(find.text('Total Service Cost (EUR)')).dx + 16,
+      );
     });
 
     testWidgets('a zero total is not shown at all', (tester) async {
