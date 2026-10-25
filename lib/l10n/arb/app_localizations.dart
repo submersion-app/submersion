@@ -164,6 +164,78 @@ abstract class AppLocalizations {
   /// **'Show'**
   String get connections_around_show;
 
+  /// No description provided for @connections_caption_circle.
+  ///
+  /// In en, this message translates to:
+  /// **'A line joins two buddies who dived together.'**
+  String get connections_caption_circle;
+
+  /// No description provided for @connections_caption_where.
+  ///
+  /// In en, this message translates to:
+  /// **'A line means you dived at that site with that buddy.'**
+  String get connections_caption_where;
+
+  /// No description provided for @connections_caption_trips.
+  ///
+  /// In en, this message translates to:
+  /// **'A line means that buddy was on that trip.'**
+  String get connections_caption_trips;
+
+  /// No description provided for @connections_caption_life.
+  ///
+  /// In en, this message translates to:
+  /// **'A line means you saw that species at that site.'**
+  String get connections_caption_life;
+
+  /// No description provided for @connections_caption_gear.
+  ///
+  /// In en, this message translates to:
+  /// **'A line joins gear used on the same dive.'**
+  String get connections_caption_gear;
+
+  /// No description provided for @connections_caption_centers.
+  ///
+  /// In en, this message translates to:
+  /// **'A line means you dived with that buddy through that center.'**
+  String get connections_caption_centers;
+
+  /// No description provided for @connections_caption_travel.
+  ///
+  /// In en, this message translates to:
+  /// **'Buddies, trips and sites; a line means they share dives.'**
+  String get connections_caption_travel;
+
+  /// No description provided for @connections_caption_reef.
+  ///
+  /// In en, this message translates to:
+  /// **'Sites, marine life and dive types; a line means they share dives.'**
+  String get connections_caption_reef;
+
+  /// No description provided for @connections_caption_gearRoad.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear, trips and centers; a line means they share dives.'**
+  String get connections_caption_gearRoad;
+
+  /// No description provided for @connections_caption_custom.
+  ///
+  /// In en, this message translates to:
+  /// **'A line joins two entries that share a dive.'**
+  String get connections_caption_custom;
+
+  /// No description provided for @connections_caption_around.
+  ///
+  /// In en, this message translates to:
+  /// **'{hops, plural, =1{Everything that shares a dive with this centre.} other{Everything within {hops} steps of this centre, linked by shared dives.}}'**
+  String connections_caption_around(int hops);
+
+  /// No description provided for @connections_caption_thicker.
+  ///
+  /// In en, this message translates to:
+  /// **'Thicker lines mean more dives.'**
+  String get connections_caption_thicker;
+
   /// No description provided for @connections_editor_kinds.
   ///
   /// In en, this message translates to:

@@ -37,6 +37,62 @@ class AppLocalizationsHu extends AppLocalizations {
   String get connections_around_show => 'Megjelenítés';
 
   @override
+  String get connections_caption_circle =>
+      'Egy vonal két búvártársat köt össze, akik együtt merültek.';
+
+  @override
+  String get connections_caption_where =>
+      'Egy vonal azt jelenti, hogy azzal a társsal merültél azon a helyen.';
+
+  @override
+  String get connections_caption_trips =>
+      'Egy vonal azt jelenti, hogy az a társ ott volt azon az úton.';
+
+  @override
+  String get connections_caption_life =>
+      'Egy vonal azt jelenti, hogy azt a fajt láttad azon a helyen.';
+
+  @override
+  String get connections_caption_gear =>
+      'Egy vonal az ugyanazon merülésen használt felszerelést köti össze.';
+
+  @override
+  String get connections_caption_centers =>
+      'Egy vonal azt jelenti, hogy azzal a társsal azon a búvárközponton keresztül merültél.';
+
+  @override
+  String get connections_caption_travel =>
+      'Búvártársak, utak és merülőhelyek; egy vonal közös merüléseket jelent.';
+
+  @override
+  String get connections_caption_reef =>
+      'Merülőhelyek, tengeri élővilág és merüléstípusok; egy vonal közös merüléseket jelent.';
+
+  @override
+  String get connections_caption_gearRoad =>
+      'Felszerelés, utak és búvárközpontok; egy vonal közös merüléseket jelent.';
+
+  @override
+  String get connections_caption_custom =>
+      'Egy vonal két olyan elemet köt össze, amelyeknek van közös merülésük.';
+
+  @override
+  String connections_caption_around(int hops) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hops,
+      locale: localeName,
+      other:
+          'Minden $hops lépésen belül ettől a középponttól, közös merülésekkel összekötve.',
+      one: 'Minden, aminek van közös merülése ezzel a középponttal.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_caption_thicker =>
+      'A vastagabb vonal több merülést jelent.';
+
+  @override
   String get connections_editor_kinds => 'Típusok';
 
   @override

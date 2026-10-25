@@ -35,6 +35,50 @@ class AppLocalizationsZh extends AppLocalizations {
   String get connections_around_show => '显示';
 
   @override
+  String get connections_caption_circle => '连线表示两位潜伴一起潜过水。';
+
+  @override
+  String get connections_caption_where => '连线表示你和该潜伴在该潜点潜过水。';
+
+  @override
+  String get connections_caption_trips => '连线表示该潜伴参加了该行程。';
+
+  @override
+  String get connections_caption_life => '连线表示你在该潜点见过该物种。';
+
+  @override
+  String get connections_caption_gear => '连线连接同一次潜水中使用的装备。';
+
+  @override
+  String get connections_caption_centers => '连线表示你通过该潜店和该潜伴一起潜过水。';
+
+  @override
+  String get connections_caption_travel => '潜伴、行程和潜点；连线表示它们有共同的潜水。';
+
+  @override
+  String get connections_caption_reef => '潜点、海洋生物和潜水类型；连线表示它们有共同的潜水。';
+
+  @override
+  String get connections_caption_gearRoad => '装备、行程和潜店；连线表示它们有共同的潜水。';
+
+  @override
+  String get connections_caption_custom => '连线连接两个有共同潜水的条目。';
+
+  @override
+  String connections_caption_around(int hops) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hops,
+      locale: localeName,
+      other: '距此中心 $hops 步以内、由共同潜水相连的一切。',
+      one: '与此中心有共同潜水的一切。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_caption_thicker => '线越粗表示潜水越多。';
+
+  @override
   String get connections_editor_kinds => '类型';
 
   @override

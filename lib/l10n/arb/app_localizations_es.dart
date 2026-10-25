@@ -37,6 +37,62 @@ class AppLocalizationsEs extends AppLocalizations {
   String get connections_around_show => 'Mostrar';
 
   @override
+  String get connections_caption_circle =>
+      'Una línea une a dos compañeros que bucearon juntos.';
+
+  @override
+  String get connections_caption_where =>
+      'Una línea indica que buceaste en ese punto con ese compañero.';
+
+  @override
+  String get connections_caption_trips =>
+      'Una línea indica que ese compañero estuvo en ese viaje.';
+
+  @override
+  String get connections_caption_life =>
+      'Una línea indica que viste esa especie en ese punto.';
+
+  @override
+  String get connections_caption_gear =>
+      'Una línea une equipo usado en la misma inmersión.';
+
+  @override
+  String get connections_caption_centers =>
+      'Una línea indica que buceaste con ese compañero a través de ese centro.';
+
+  @override
+  String get connections_caption_travel =>
+      'Compañeros, viajes y puntos; una línea indica que comparten inmersiones.';
+
+  @override
+  String get connections_caption_reef =>
+      'Puntos, vida marina y tipos de inmersión; una línea indica que comparten inmersiones.';
+
+  @override
+  String get connections_caption_gearRoad =>
+      'Equipo, viajes y centros; una línea indica que comparten inmersiones.';
+
+  @override
+  String get connections_caption_custom =>
+      'Una línea une dos elementos que comparten una inmersión.';
+
+  @override
+  String connections_caption_around(int hops) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hops,
+      locale: localeName,
+      other:
+          'Todo lo que está a $hops pasos de este centro, unido por inmersiones compartidas.',
+      one: 'Todo lo que comparte una inmersión con este centro.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_caption_thicker =>
+      'Las líneas más gruesas indican más inmersiones.';
+
+  @override
   String get connections_editor_kinds => 'Tipos';
 
   @override

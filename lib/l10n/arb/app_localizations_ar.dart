@@ -37,6 +37,62 @@ class AppLocalizationsAr extends AppLocalizations {
   String get connections_around_show => 'إظهار';
 
   @override
+  String get connections_caption_circle => 'يربط الخط بين رفيقين غاصا معًا.';
+
+  @override
+  String get connections_caption_where =>
+      'يعني الخط أنك غصت في ذلك الموقع مع ذلك الرفيق.';
+
+  @override
+  String get connections_caption_trips =>
+      'يعني الخط أن ذلك الرفيق كان في تلك الرحلة.';
+
+  @override
+  String get connections_caption_life =>
+      'يعني الخط أنك رأيت ذلك النوع في ذلك الموقع.';
+
+  @override
+  String get connections_caption_gear =>
+      'يربط الخط بين معدات استُخدمت في الغوصة نفسها.';
+
+  @override
+  String get connections_caption_centers =>
+      'يعني الخط أنك غصت مع ذلك الرفيق عبر ذلك المركز.';
+
+  @override
+  String get connections_caption_travel =>
+      'الرفقاء والرحلات والمواقع؛ يعني الخط أن بينها غوصات مشتركة.';
+
+  @override
+  String get connections_caption_reef =>
+      'المواقع والحياة البحرية وأنواع الغوص؛ يعني الخط أن بينها غوصات مشتركة.';
+
+  @override
+  String get connections_caption_gearRoad =>
+      'المعدات والرحلات والمراكز؛ يعني الخط أن بينها غوصات مشتركة.';
+
+  @override
+  String get connections_caption_custom =>
+      'يربط الخط بين عنصرين يشتركان في غوصة.';
+
+  @override
+  String connections_caption_around(int hops) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hops,
+      locale: localeName,
+      other: 'كل ما يقع ضمن $hops خطوة من هذا المركز، مرتبطًا بغوصات مشتركة.',
+      many: 'كل ما يقع ضمن $hops خطوة من هذا المركز، مرتبطًا بغوصات مشتركة.',
+      few: 'كل ما يقع ضمن $hops خطوات من هذا المركز، مرتبطًا بغوصات مشتركة.',
+      two: 'كل ما يقع ضمن خطوتين من هذا المركز، مرتبطًا بغوصات مشتركة.',
+      one: 'كل ما يشترك في غوصة مع هذا المركز.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_caption_thicker => 'الخطوط الأسمك تعني غوصات أكثر.';
+
+  @override
   String get connections_editor_kinds => 'الأنواع';
 
   @override

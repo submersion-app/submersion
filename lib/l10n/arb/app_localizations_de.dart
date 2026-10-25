@@ -37,6 +37,62 @@ class AppLocalizationsDe extends AppLocalizations {
   String get connections_around_show => 'Anzeigen';
 
   @override
+  String get connections_caption_circle =>
+      'Eine Linie verbindet zwei Buddys, die zusammen getaucht sind.';
+
+  @override
+  String get connections_caption_where =>
+      'Eine Linie heißt: Du warst mit diesem Buddy an diesem Tauchplatz.';
+
+  @override
+  String get connections_caption_trips =>
+      'Eine Linie heißt: Dieser Buddy war auf dieser Reise dabei.';
+
+  @override
+  String get connections_caption_life =>
+      'Eine Linie heißt: Du hast diese Art an diesem Tauchplatz gesehen.';
+
+  @override
+  String get connections_caption_gear =>
+      'Eine Linie verbindet Ausrüstung, die beim selben Tauchgang benutzt wurde.';
+
+  @override
+  String get connections_caption_centers =>
+      'Eine Linie heißt: Du warst mit diesem Buddy über diese Tauchbasis tauchen.';
+
+  @override
+  String get connections_caption_travel =>
+      'Buddys, Reisen und Tauchplätze; eine Linie heißt, sie teilen Tauchgänge.';
+
+  @override
+  String get connections_caption_reef =>
+      'Tauchplätze, Meeresleben und Tauchgangsarten; eine Linie heißt, sie teilen Tauchgänge.';
+
+  @override
+  String get connections_caption_gearRoad =>
+      'Ausrüstung, Reisen und Tauchbasen; eine Linie heißt, sie teilen Tauchgänge.';
+
+  @override
+  String get connections_caption_custom =>
+      'Eine Linie verbindet zwei Einträge mit einem gemeinsamen Tauchgang.';
+
+  @override
+  String connections_caption_around(int hops) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hops,
+      locale: localeName,
+      other:
+          'Alles im Umkreis von $hops Schritten um dieses Zentrum, verbunden durch gemeinsame Tauchgänge.',
+      one: 'Alles, was einen Tauchgang mit diesem Zentrum teilt.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_caption_thicker =>
+      'Dickere Linien bedeuten mehr Tauchgänge.';
+
+  @override
   String get connections_editor_kinds => 'Arten';
 
   @override

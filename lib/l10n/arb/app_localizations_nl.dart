@@ -37,6 +37,62 @@ class AppLocalizationsNl extends AppLocalizations {
   String get connections_around_show => 'Tonen';
 
   @override
+  String get connections_caption_circle =>
+      'Een lijn verbindt twee buddy\'s die samen hebben gedoken.';
+
+  @override
+  String get connections_caption_where =>
+      'Een lijn betekent dat je met die buddy op die duikplek hebt gedoken.';
+
+  @override
+  String get connections_caption_trips =>
+      'Een lijn betekent dat die buddy mee was op die reis.';
+
+  @override
+  String get connections_caption_life =>
+      'Een lijn betekent dat je die soort op die duikplek hebt gezien.';
+
+  @override
+  String get connections_caption_gear =>
+      'Een lijn verbindt uitrusting die bij dezelfde duik is gebruikt.';
+
+  @override
+  String get connections_caption_centers =>
+      'Een lijn betekent dat je via dat duikcentrum met die buddy hebt gedoken.';
+
+  @override
+  String get connections_caption_travel =>
+      'Buddy\'s, reizen en duikplekken; een lijn betekent gedeelde duiken.';
+
+  @override
+  String get connections_caption_reef =>
+      'Duikplekken, zeeleven en duiktypen; een lijn betekent gedeelde duiken.';
+
+  @override
+  String get connections_caption_gearRoad =>
+      'Uitrusting, reizen en duikcentra; een lijn betekent gedeelde duiken.';
+
+  @override
+  String get connections_caption_custom =>
+      'Een lijn verbindt twee items die een duik delen.';
+
+  @override
+  String connections_caption_around(int hops) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hops,
+      locale: localeName,
+      other:
+          'Alles binnen $hops stappen van dit middelpunt, verbonden door gedeelde duiken.',
+      one: 'Alles wat een duik deelt met dit middelpunt.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_caption_thicker =>
+      'Dikkere lijnen betekenen meer duiken.';
+
+  @override
   String get connections_editor_kinds => 'Soorten';
 
   @override
