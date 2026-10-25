@@ -87282,7 +87282,7 @@ abstract class AppLocalizations {
   /// Reconnect sheet: the account holds copies another of the diver's devices set up
   ///
   /// In en, this message translates to:
-  /// **'{account} now holds copies another of your devices set up.'**
+  /// **'{account} now holds copies set up by another of your devices.'**
   String settings_photos_reconnect_otherKnown(String account);
 
   /// Reconnect sheet: the account holds copies the logbook has no record of

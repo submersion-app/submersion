@@ -59,7 +59,7 @@ void main() {
     ]);
 
     expect(
-      find.text('Dropbox now holds copies another of your devices set up.'),
+      find.text('Dropbox now holds copies set up by another of your devices.'),
       findsOneWidget,
     );
     expect(

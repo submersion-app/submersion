@@ -231,6 +231,18 @@ void main() {
       expect(other.heldOnlyInCloud, 4);
     });
 
+    // Copilot review: read() answers null for a malformed marker too, and
+    // starting again over it would mint over a marker other devices use.
+    test('a marker that is there but malformed is unreadable, not '
+        'missing', () async {
+      await attachedWithMismatch('store-a');
+      store.objects['smv1/store.json'] = utf8.encode('{not json');
+
+      final found = await reconnect().inspect();
+
+      expect(found, isA<ReconnectUnreadable>());
+    });
+
     test('a marker that cannot be read reports the error', () async {
       await attachedWithMismatch('store-a');
       store.failNextWith = const MediaStoreException(
@@ -311,6 +323,43 @@ void main() {
       expect(done.result.storeId, isNot('store-a'));
       expect(store.objects.containsKey('smv1/store.json'), isTrue);
       expect(await attachState.attachedStoreId(), done.result.storeId);
+    });
+
+    test('starting again over a malformed marker is refused, leaving it '
+        'in place', () async {
+      await attachedWithMismatch('store-a');
+      final malformed = utf8.encode('{"storeId": ""}');
+      store.objects['smv1/store.json'] = malformed;
+
+      await expectLater(
+        reconnect().reconnect(),
+        throwsA(isA<MediaStoreException>()),
+      );
+      expect(store.objects['smv1/store.json'], malformed);
+      expect(await attachState.attachedStoreId(), 'store-a');
+      expect(backfill.calls, 0);
+    });
+
+    // Copilot review: an attach change landing during the reconnect's own
+    // marker check must not be claimed for or overwritten.
+    test('an attach change during the reconnect is refused, leaving the '
+        'newer attachment', () async {
+      await attachedWithMismatch('store-a');
+      _writeMarker(store, 'store-b');
+      store.onGetFile = () async {
+        await attachState.setAttached(
+          'store-c',
+          providerType: _row('db-row').kind.cloudProviderType!,
+          accountId: 'db-row',
+        );
+      };
+
+      await expectLater(
+        reconnect().reconnect(),
+        throwsA(isA<MediaStoreException>()),
+      );
+      expect(await attachState.attachedStoreId(), 'store-c');
+      expect(backfill.calls, 0);
     });
 
     test('an account with no keys is refused with nothing changed', () async {

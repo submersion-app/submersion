@@ -54157,7 +54157,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String settings_photos_reconnect_otherKnown(String account) {
-    return '$account now holds copies another of your devices set up.';
+    return '$account now holds copies set up by another of your devices.';
   }
 
   @override

@@ -32614,7 +32614,7 @@
   "@settings_photos_reconnect_checking": {"description": "Reconnect sheet: checking what the account holds now", "placeholders": {"account": {"type": "String"}}},
   "settings_photos_reconnect_resolved": "The copies in {account} match this device again. Uploads resume.",
   "@settings_photos_reconnect_resolved": {"description": "Reconnect sheet: the account holds this device's copies again, nothing to choose", "placeholders": {"account": {"type": "String"}}},
-  "settings_photos_reconnect_otherKnown": "{account} now holds copies another of your devices set up.",
+  "settings_photos_reconnect_otherKnown": "{account} now holds copies set up by another of your devices.",
   "@settings_photos_reconnect_otherKnown": {"description": "Reconnect sheet: the account holds copies another of the diver's devices set up", "placeholders": {"account": {"type": "String"}}},
   "settings_photos_reconnect_otherUnknown": "{account} now holds copies this logbook has no record of.",
   "@settings_photos_reconnect_otherUnknown": {"description": "Reconnect sheet: the account holds copies the logbook has no record of", "placeholders": {"account": {"type": "String"}}},
