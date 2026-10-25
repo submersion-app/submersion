@@ -169,6 +169,8 @@ class _ProfileEditorChartState extends ConsumerState<ProfileEditorChart> {
     ColorScheme colorScheme,
     UnitFormatter units,
   ) {
+    // Read once here: fl_chart calls getDotPainter during paint, per frame.
+    final ring = backdropColorOf(context);
     return LineChartBarData(
       spots: widget.editedProfile
           .map(
@@ -204,7 +206,7 @@ class _ProfileEditorChartState extends ConsumerState<ProfileEditorChart> {
                 radius: 6,
                 color: Colors.blue,
                 strokeWidth: 2,
-                strokeColor: backdropColorOf(context),
+                strokeColor: ring,
               );
             }
           }

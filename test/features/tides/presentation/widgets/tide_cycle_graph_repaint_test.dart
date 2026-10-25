@@ -1,23 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/units.dart';
-import 'package:submersion/core/tide/entities/tide_extremes.dart';
-import 'package:submersion/features/tides/domain/entities/tide_record.dart';
 import 'package:submersion/features/tides/presentation/widgets/tide_cycle_graph.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
-final _record = TideRecord(
-  id: 'tide-1',
-  diveId: 'dive-1',
-  heightMeters: 1.6,
-  tideState: TideState.rising,
-  rateOfChange: 0.4,
-  highTideHeight: 2.4,
-  highTideTime: DateTime.utc(2026, 3, 28, 14, 20),
-  lowTideHeight: 0.4,
-  lowTideTime: DateTime.utc(2026, 3, 28, 8, 20),
-  createdAt: DateTime.utc(2026, 3, 28, 12),
-);
+import 'tide_record_fixture.dart';
 
 Widget _graph({
   DepthUnit depthUnit = DepthUnit.meters,
@@ -31,7 +18,7 @@ Widget _graph({
       child: SizedBox(
         width: 400,
         child: TideCycleGraph(
-          record: _record,
+          record: risingTideRecord,
           referenceTime: DateTime.utc(2026, 3, 28, 10),
           height: 80,
           depthUnit: depthUnit,

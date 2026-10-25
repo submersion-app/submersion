@@ -7146,6 +7146,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     final markers = widget.markers;
 
     if (markers == null || markers.isEmpty) return lines;
+    // Resolved once per build: fl_chart calls getDotPainter during paint.
+    final ring = backdropColorOf(context);
 
     for (final marker in markers) {
       // Skip max depth markers if setting is off or locally toggled off
@@ -7164,6 +7166,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           marker,
           units,
           band,
+          ring: ring,
           minPressure: minPressure,
           maxPressure: maxPressure,
         ),
@@ -7174,17 +7177,17 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   }
 
   /// Build a single marker as a LineChartBarData with a visible dot
+  /// [ring] is the colour behind the chart, which rings the max-depth dot.
   LineChartBarData _buildSingleMarkerLine(
     ProfileMarker marker,
     UnitFormatter units,
     MetricBand band, {
+    required Color ring,
     double? minPressure,
     double? maxPressure,
   }) {
     final color = _markerColor(marker);
     final size = marker.markerSize;
-    // Read once here: fl_chart calls getDotPainter during paint, per frame.
-    final ring = backdropColorOf(context);
 
     // Calculate Y position based on marker type
     double yPosition;

@@ -4,10 +4,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
 import 'package:submersion/core/theme/full_themes/submersion_theme.dart';
 import 'package:submersion/core/tide/tide.dart';
-import 'package:submersion/features/tides/domain/entities/tide_record.dart';
 import 'package:submersion/features/tides/presentation/widgets/tide_chart.dart';
 import 'package:submersion/features/tides/presentation/widgets/tide_cycle_graph.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+
+import 'tide_record_fixture.dart';
 
 // The high and low tide dots wore a fixed white ring to punch them out of
 // the curve. On a dark chart that ring glared as a bright halo; it should
@@ -103,18 +104,7 @@ void main() {
         _host(
           onCard,
           TideCycleGraph(
-            record: TideRecord(
-              id: 'tide-1',
-              diveId: 'dive-1',
-              heightMeters: 1.6,
-              tideState: TideState.rising,
-              rateOfChange: 0.4,
-              highTideHeight: 2.4,
-              highTideTime: DateTime.utc(2026, 3, 28, 14, 20),
-              lowTideHeight: 0.4,
-              lowTideTime: DateTime.utc(2026, 3, 28, 8, 20),
-              createdAt: DateTime.utc(2026, 3, 28, 12),
-            ),
+            record: risingTideRecord,
             referenceTime: DateTime.utc(2026, 3, 28, 10),
             height: 80,
           ),
