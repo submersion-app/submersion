@@ -51922,6 +51922,19 @@ class AppLocalizationsFr extends AppLocalizations {
       'Aucun émetteur pour le moment. Ajoutez-en un, ou associez un numéro de série après votre prochain téléchargement.';
 
   @override
+  String get transmitters_noCylinder => 'No cylinder set up';
+
+  @override
+  String get transmitters_section_noKey =>
+      'No serial or channel yet. Add the one your dive computer reports for this transmitter.';
+
+  @override
+  String get transmitters_section_addKey => 'Add serial or channel';
+
+  @override
+  String get transmitters_section_setUp => 'Set up';
+
+  @override
   String get transmitters_action_assign => 'Associer';
 
   @override

@@ -82071,6 +82071,30 @@ abstract class AppLocalizations {
   /// **'No transmitters yet. Add one, or assign a serial after your next download.'**
   String get transmitters_empty;
 
+  /// No description provided for @transmitters_noCylinder.
+  ///
+  /// In en, this message translates to:
+  /// **'No cylinder set up'**
+  String get transmitters_noCylinder;
+
+  /// No description provided for @transmitters_section_noKey.
+  ///
+  /// In en, this message translates to:
+  /// **'No serial or channel yet. Add the one your dive computer reports for this transmitter.'**
+  String get transmitters_section_noKey;
+
+  /// No description provided for @transmitters_section_addKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Add serial or channel'**
+  String get transmitters_section_addKey;
+
+  /// No description provided for @transmitters_section_setUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up'**
+  String get transmitters_section_setUp;
+
   /// No description provided for @transmitters_action_assign.
   ///
   /// In en, this message translates to:

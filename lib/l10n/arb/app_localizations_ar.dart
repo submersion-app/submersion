@@ -52441,6 +52441,19 @@ class AppLocalizationsAr extends AppLocalizations {
       'لا توجد أجهزة إرسال بعد. أضف واحدًا، أو عيّن رقمًا تسلسليًا بعد التنزيل التالي.';
 
   @override
+  String get transmitters_noCylinder => 'No cylinder set up';
+
+  @override
+  String get transmitters_section_noKey =>
+      'No serial or channel yet. Add the one your dive computer reports for this transmitter.';
+
+  @override
+  String get transmitters_section_addKey => 'Add serial or channel';
+
+  @override
+  String get transmitters_section_setUp => 'Set up';
+
+  @override
   String get transmitters_action_assign => 'تعيين';
 
   @override

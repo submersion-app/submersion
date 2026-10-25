@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:submersion/features/transmitters/presentation/widgets/transmitter_section.dart';
 import 'package:submersion/features/dive_computer/presentation/widgets/dive_computer_section.dart';
 import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
@@ -231,6 +232,9 @@ class _EquipmentDetailContent extends ConsumerWidget {
           // The device's controls (issue #3676): this item is its one entry.
           if (equipment.type == EquipmentType.computer) ...[
             DiveComputerSection(equipmentId: equipmentId),
+            const SizedBox(height: 24),
+          ] else if (equipment.type == EquipmentType.transmitter) ...[
+            TransmitterSection(equipmentId: equipmentId),
             const SizedBox(height: 24),
           ],
           EquipmentLocationCard(equipment: equipment),

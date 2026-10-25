@@ -48589,6 +48589,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get transmitters_empty => '还没有发射器。添加一个，或在下次下载后分配序列号。';
 
   @override
+  String get transmitters_noCylinder => 'No cylinder set up';
+
+  @override
+  String get transmitters_section_noKey =>
+      'No serial or channel yet. Add the one your dive computer reports for this transmitter.';
+
+  @override
+  String get transmitters_section_addKey => 'Add serial or channel';
+
+  @override
+  String get transmitters_section_setUp => 'Set up';
+
+  @override
   String get transmitters_action_assign => '分配';
 
   @override
