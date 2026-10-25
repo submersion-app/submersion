@@ -943,8 +943,8 @@ class DiveImportService {
     // With the unused-gas switch on, a gas the diver never carried is not
     // re-added (issue #3668). A bailout transmitter this download adds as a
     // new cylinder takes its gas first, as on a new dive; a stored cylinder
-    // keeps what it holds.
-    if (omitUnusedOcGases) {
+    // keeps what it holds. With nothing to drop, the switch changes nothing.
+    if (omitUnusedOcGases && tanks.any((t) => t.unusedOcGas)) {
       final claim = _claimBailoutGases(
         dive,
         transmitterMatcher == null
@@ -1091,12 +1091,17 @@ class DiveImportService {
         return null;
 
       case ConflictResolution.replaceSource:
+        // The registry only feeds the unused-gas claim, so it is read only
+        // when the switch is on.
+        final omitUnusedOcGases = await _loadOmitUnusedOcGases(diverId);
         await _updateExistingDive(
           conflict.downloaded,
           conflict.existingDiveId,
           computerId,
-          omitUnusedOcGases: await _loadOmitUnusedOcGases(diverId),
-          transmitterMatcher: await _loadTransmitterMatcher(diverId),
+          omitUnusedOcGases: omitUnusedOcGases,
+          transmitterMatcher: omitUnusedOcGases
+              ? await _loadTransmitterMatcher(diverId)
+              : null,
           descriptorVendor: descriptorVendor,
           descriptorProduct: descriptorProduct,
           descriptorModel: descriptorModel,

@@ -368,6 +368,136 @@ void main() {
     },
   );
 
+  group('re-download with a registered bailout transmitter', () {
+    TransmitterMatcher bailoutEntry() => TransmitterMatcher.fromEntries([
+      Transmitter(
+        id: 'e1',
+        transmitterSerial: '555',
+        label: 'Bailout',
+        role: TankRole.bailout,
+        createdAt: DateTime.utc(2026, 9, 1),
+        updatedAt: DateTime.utc(2026, 9, 1),
+      ),
+    ]);
+
+    const bailoutTransmitter = DownloadedTank(
+      index: 2,
+      o2Percent: 21.0,
+      startPressure: 200.0,
+      endPressure: 200.0,
+      role: 'backGas',
+      transmitterSerial: '555',
+      mixRecorded: false,
+    );
+
+    ImportConflict conflictFor(DownloadedDive dive) => ImportConflict(
+      downloaded: dive,
+      existingDiveId: 'existing',
+      duplicateResult: const DuplicateResult(
+        matchingDiveId: 'existing',
+        confidence: DuplicateConfidence.exact,
+        score: 0.95,
+      ),
+    );
+
+    test('with nothing unused, the switch changes nothing', () async {
+      // The diver bailed out onto the Air, so no gas is unused.
+      final dive = DownloadedDive(
+        fingerprint: 'fp-bailed',
+        startTime: DateTime(2026, 10, 20, 9, 0),
+        durationSeconds: 3000,
+        maxDepth: 30.0,
+        diveMode: DiveMode.ccr,
+        profile: const [],
+        events: const [],
+        tanks: const [
+          DownloadedTank(
+            index: 0,
+            o2Percent: 21.0,
+            role: 'diluent',
+            transmitterSerial: '818',
+          ),
+          bailoutTransmitter,
+          DownloadedTank(index: 4, o2Percent: 21.0, role: 'bailout'),
+        ],
+      );
+      final service = DiveImportService(
+        repository: repo,
+        diveRepository: diveRepo,
+        omitUnusedOcGasesForImports: (_) async => true,
+        transmitterMatcherForImports: (_) async => bailoutEntry(),
+      );
+
+      await service.resolveConflict(
+        conflictFor(dive),
+        ConflictResolution.replaceSource,
+        computer.id,
+      );
+
+      final tanks = writtenTanks();
+      expect(tanks.map((t) => t.index), [0, 2, 4]);
+      expect(tanks.firstWhere((t) => t.index == 2).mixRecorded, isFalse);
+    });
+
+    test('with the switch off, the registry is never read', () async {
+      var reads = 0;
+      final service = DiveImportService(
+        repository: repo,
+        diveRepository: diveRepo,
+        omitUnusedOcGasesForImports: (_) async => false,
+        transmitterMatcherForImports: (_) async {
+          reads++;
+          return bailoutEntry();
+        },
+      );
+
+      await service.resolveConflict(
+        conflictFor(reporterDive()),
+        ConflictResolution.replaceSource,
+        computer.id,
+      );
+
+      expect(reads, 0);
+    });
+
+    test('a batch re-download hands the registry to the claim', () async {
+      when(
+        repo.findMatchingDiveWithScore(
+          profileStartTime: anyNamed('profileStartTime'),
+          toleranceMinutes: anyNamed('toleranceMinutes'),
+          durationSeconds: anyNamed('durationSeconds'),
+          maxDepth: anyNamed('maxDepth'),
+          diverId: anyNamed('diverId'),
+        ),
+      ).thenAnswer(
+        (_) async => const DiveMatchResult(
+          diveId: 'existing',
+          score: 0.95,
+          timeDifferenceMs: 0,
+        ),
+      );
+      final service = DiveImportService(
+        repository: repo,
+        diveRepository: diveRepo,
+        omitUnusedOcGasesForImports: (_) async => true,
+        transmitterMatcherForImports: (_) async => bailoutEntry(),
+      );
+
+      await service.importDives(
+        dives: [
+          reporterDive(extra: const [bailoutTransmitter]),
+        ],
+        computer: computer,
+        mode: ImportMode.replaceSource,
+      );
+
+      final tanks = writtenTanks();
+      expect(tanks.map((t) => t.index), [0, 1, 2]);
+      expect(tanks.firstWhere((t) => t.index == 2).o2Percent, 21.0);
+      expect(tanks.firstWhere((t) => t.index == 2).mixRecorded, isTrue);
+    });
+  });
+
   test(
     're-downloading into an existing dive keeps every gas when off',
     () async {
