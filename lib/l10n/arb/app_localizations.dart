@@ -24928,6 +24928,12 @@ abstract class AppLocalizations {
   /// **'Type *'**
   String get equipment_edit_typeLabel;
 
+  /// No description provided for @equipment_edit_typeLockedHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'A connected dive computer or transmitter keeps its type.'**
+  String get equipment_edit_typeLockedHelper;
+
   /// No description provided for @equipment_edit_useCustomReminders.
   ///
   /// In en, this message translates to:

@@ -15479,6 +15479,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get equipment_edit_typeLabel => 'Typ *';
 
   @override
+  String get equipment_edit_typeLockedHelper =>
+      'A connected dive computer or transmitter keeps its type.';
+
+  @override
   String get equipment_edit_useCustomReminders =>
       'Eigene Erinnerungen verwenden';
 

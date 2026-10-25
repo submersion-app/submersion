@@ -9208,6 +9208,7 @@
   "equipment_edit_focalLengthHint": "e.g., 60 or 15-45",
   "equipment_edit_webLinkHint": "e.g., shop.example.com/product",
   "equipment_edit_typeLabel": "Type *",
+  "equipment_edit_typeLockedHelper": "A connected dive computer or transmitter keeps its type.",
   "equipment_edit_useCustomReminders": "Use Custom Reminders",
   "equipment_edit_useCustomRemindersSubtitle": "Set different reminder days for this item",
   "equipment_fab_addEquipment": "Add Equipment",

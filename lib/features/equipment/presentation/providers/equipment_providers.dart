@@ -314,6 +314,16 @@ Comparator<EquipmentItem> equipmentSortComparator(
 }
 
 /// Single equipment item provider
+/// Whether the item is a dive computer's or transmitter's one entry (issue
+/// #3676), so its type is fixed.
+final equipmentHasDeviceProvider = FutureProvider.family<bool, String>((
+  ref,
+  id,
+) async {
+  final repository = ref.watch(equipmentRepositoryProvider);
+  return repository.hasDeviceRecord(id);
+});
+
 final equipmentItemProvider = FutureProvider.family<EquipmentItem?, String>((
   ref,
   id,

@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/accessibility/app_shortcuts.dart';
 import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -660,6 +661,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 builder: (context, state) => EquipmentEditPage(
                   initialParentId: state.uri.queryParameters['parent'],
                   cloneFromId: state.uri.queryParameters['cloneFrom'],
+                  // The Dive Computers and Transmitters lists' "add by hand"
+                  // (issue #3676).
+                  initialType: EquipmentType.values
+                      .asNameMap()[state.uri.queryParameters['type']],
                 ),
               ),
               GoRoute(

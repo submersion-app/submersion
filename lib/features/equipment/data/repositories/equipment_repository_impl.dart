@@ -497,6 +497,7 @@ class EquipmentRepository {
         recordId: equipment.id,
         localUpdatedAt: now,
       );
+      await _mirrorNameToDevices(equipment, now);
       if (notify) SyncEventBus.notifyLocalChange();
       _log.info('Updated equipment: ${equipment.id}');
     } catch (e, stackTrace) {
@@ -506,6 +507,74 @@ class EquipmentRepository {
         stackTrace: stackTrace,
       );
       rethrow;
+    }
+  }
+
+  /// Whether item [id] is a dive computer's or a transmitter's one entry
+  /// (issue #3676): a device record names it.
+  Future<bool> hasDeviceRecord(String id) async {
+    final computer =
+        await (_db.select(_db.diveComputers)
+              ..where((t) => t.equipmentId.equals(id))
+              ..limit(1))
+            .getSingleOrNull();
+    if (computer != null) return true;
+    final key =
+        await (_db.select(_db.transmitters)
+              ..where((t) => t.transmitterEquipmentId.equals(id))
+              ..limit(1))
+            .getSingleOrNull();
+    return key != null;
+  }
+
+  /// A device's item is its one entry (issue #3676): its name and notes are
+  /// the dive computer's, and its name is the transmitter rows' label, so
+  /// anything that still reads those columns (a data-source label, a tank
+  /// name the registry stamps) shows the same text. Only rows that differ
+  /// are written, and each is staged.
+  Future<void> _mirrorNameToDevices(EquipmentItem item, int now) async {
+    final computers =
+        await (_db.select(_db.diveComputers)..where(
+              (t) =>
+                  t.equipmentId.equals(item.id) &
+                  (t.name.equals(item.name).not() |
+                      t.notes.equals(item.notes).not()),
+            ))
+            .get();
+    for (final c in computers) {
+      await (_db.update(
+        _db.diveComputers,
+      )..where((t) => t.id.equals(c.id))).write(
+        DiveComputersCompanion(
+          name: Value(item.name),
+          notes: Value(item.notes),
+          updatedAt: Value(now),
+        ),
+      );
+      await _syncRepository.markRecordPending(
+        entityType: 'diveComputers',
+        recordId: c.id,
+        localUpdatedAt: now,
+      );
+    }
+    final keys =
+        await (_db.select(_db.transmitters)..where(
+              (t) =>
+                  t.transmitterEquipmentId.equals(item.id) &
+                  t.label.equals(item.name).not(),
+            ))
+            .get();
+    for (final k in keys) {
+      await (_db.update(
+        _db.transmitters,
+      )..where((t) => t.id.equals(k.id))).write(
+        TransmittersCompanion(label: Value(item.name), updatedAt: Value(now)),
+      );
+      await _syncRepository.markRecordPending(
+        entityType: 'transmitters',
+        recordId: k.id,
+        localUpdatedAt: now,
+      );
     }
   }
 
