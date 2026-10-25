@@ -2016,10 +2016,6 @@ class AppLocalizationsNl extends AppLocalizations {
       'iCloud-synchronisatie is niet beschikbaar in deze build van Submersion. Gebruik S3-synchronisatie of de App Store-versie.';
 
   @override
-  String get settings_cloudSync_provider_icloud_unsupportedSubtitle =>
-      'Niet beschikbaar in deze build — gebruik S3 of de App Store-versie';
-
-  @override
   String get settings_cloudSync_encryption_title => 'End-to-end-versleuteling';
 
   @override
@@ -8813,34 +8809,6 @@ class AppLocalizationsNl extends AppLocalizations {
       'Eenheden, weergave en back-upkeuzes opnieuw bekijken';
 
   @override
-  String get setup_backup_cloudCopy => 'Back-ups opslaan in de cloud';
-
-  @override
-  String get setup_backup_frequency => 'Frequentie';
-
-  @override
-  String get setup_backup_frequency_daily => 'Dagelijks';
-
-  @override
-  String get setup_backup_frequency_monthly => 'Maandelijks';
-
-  @override
-  String get setup_backup_frequency_weekly => 'Wekelijks';
-
-  @override
-  String get setup_backup_scheduleSubtitle =>
-      'Maak volgens schema een back-up van je gegevens';
-
-  @override
-  String get setup_backup_scheduleToggle => 'Automatische back-ups';
-
-  @override
-  String get setup_backup_subtitle => 'Bescherm je gegevens vanaf dag één.';
-
-  @override
-  String get setup_backup_title => 'Back-ups en synchronisatie';
-
-  @override
   String get setup_common_back => 'Terug';
 
   @override
@@ -8949,9 +8917,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get setup_restore_title => 'Back-up terugzetten';
 
   @override
-  String get setup_step_backup => 'Back-up';
-
-  @override
   String get setup_step_finish => 'Klaar';
 
   @override
@@ -8959,9 +8924,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get setup_step_units => 'Eenheden';
-
-  @override
-  String get setup_syncPull_continue => 'Doorgaan';
 
   @override
   String get setup_syncPull_incomplete_message =>
@@ -8987,51 +8949,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get setup_syncPull_noLibrary_title => 'Geen bibliotheek gevonden';
-
-  @override
-  String get setup_syncPull_success => 'Bibliotheek overgenomen';
-
-  @override
-  String get setup_syncPull_syncing => 'Bibliotheek ophalen...';
-
-  @override
-  String get setup_sync_changeProvider => 'Provider wijzigen';
-
-  @override
-  String setup_sync_connectedTo(String provider) {
-    return 'Verbonden met $provider';
-  }
-
-  @override
-  String setup_sync_error(Object error) {
-    return 'Kon geen verbinding maken: $error';
-  }
-
-  @override
-  String get setup_sync_header => 'Cloudsynchronisatie';
-
-  @override
-  String get setup_sync_libraryFound_adopt => 'Bestaande bibliotheek overnemen';
-
-  @override
-  String get setup_sync_libraryFound_keepFresh => 'Opnieuw beginnen';
-
-  @override
-  String get setup_sync_libraryFound_message =>
-      'Dit account bevat al een Submersion-bibliotheek. Deze overnemen in plaats van opnieuw te beginnen?';
-
-  @override
-  String get setup_sync_libraryFound_title => 'Bestaande bibliotheek gevonden';
-
-  @override
-  String get setup_sync_manageInSettings => 'Beheren in Instellingen';
-
-  @override
-  String get setup_sync_notConnected => 'Niet verbonden';
-
-  @override
-  String get setup_sync_subtitle =>
-      'Synchroniseer je gegevens tussen apparaten';
 
   @override
   String get setup_units_advanced => 'Eenheden verfijnen';
@@ -55385,4 +55302,16 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get setup_syncPull_startFresh => 'Een nieuw logboek beginnen';
+
+  @override
+  String get setup_step_account => 'Account';
+
+  @override
+  String get setup_step_sync => 'Synchronisatie';
+
+  @override
+  String get setup_step_backups => 'Back-ups';
+
+  @override
+  String get setup_step_photos => 'Foto\'s';
 }

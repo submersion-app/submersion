@@ -2010,10 +2010,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'iCloud sync isn\'t available in this build of Submersion. Use S3 sync, or the App Store version.';
 
   @override
-  String get settings_cloudSync_provider_icloud_unsupportedSubtitle =>
-      'Not available in this build — use S3 or the App Store version';
-
-  @override
   String get settings_cloudSync_encryption_title => 'End-to-end encryption';
 
   @override
@@ -8730,33 +8726,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Revisit units, appearance, and backup choices';
 
   @override
-  String get setup_backup_cloudCopy => 'Store backups in the cloud';
-
-  @override
-  String get setup_backup_frequency => 'Frequency';
-
-  @override
-  String get setup_backup_frequency_daily => 'Daily';
-
-  @override
-  String get setup_backup_frequency_monthly => 'Monthly';
-
-  @override
-  String get setup_backup_frequency_weekly => 'Weekly';
-
-  @override
-  String get setup_backup_scheduleSubtitle => 'Back up your data on a schedule';
-
-  @override
-  String get setup_backup_scheduleToggle => 'Automatic backups';
-
-  @override
-  String get setup_backup_subtitle => 'Protect your data from day one.';
-
-  @override
-  String get setup_backup_title => 'Backups & Sync';
-
-  @override
   String get setup_common_back => 'Back';
 
   @override
@@ -8864,9 +8833,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get setup_restore_title => 'Restore backup';
 
   @override
-  String get setup_step_backup => 'Backup';
-
-  @override
   String get setup_step_finish => 'Done';
 
   @override
@@ -8874,9 +8840,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get setup_step_units => 'Units';
-
-  @override
-  String get setup_syncPull_continue => 'Continue';
 
   @override
   String get setup_syncPull_incomplete_message =>
@@ -8901,50 +8864,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get setup_syncPull_noLibrary_title => 'No library found';
-
-  @override
-  String get setup_syncPull_success => 'Library adopted';
-
-  @override
-  String get setup_syncPull_syncing => 'Pulling your library...';
-
-  @override
-  String get setup_sync_changeProvider => 'Change provider';
-
-  @override
-  String setup_sync_connectedTo(String provider) {
-    return 'Connected to $provider';
-  }
-
-  @override
-  String setup_sync_error(Object error) {
-    return 'Could not connect: $error';
-  }
-
-  @override
-  String get setup_sync_header => 'Cloud sync';
-
-  @override
-  String get setup_sync_libraryFound_adopt => 'Adopt existing library';
-
-  @override
-  String get setup_sync_libraryFound_keepFresh => 'Start fresh';
-
-  @override
-  String get setup_sync_libraryFound_message =>
-      'This account already contains a Submersion library. Adopt it instead of starting fresh?';
-
-  @override
-  String get setup_sync_libraryFound_title => 'Existing library found';
-
-  @override
-  String get setup_sync_manageInSettings => 'Manage in Settings';
-
-  @override
-  String get setup_sync_notConnected => 'Not connected';
-
-  @override
-  String get setup_sync_subtitle => 'Sync your data across devices';
 
   @override
   String get setup_units_advanced => 'Fine-tune units';
@@ -54851,4 +54770,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get setup_syncPull_startFresh => 'Start a new logbook';
+
+  @override
+  String get setup_step_account => 'Account';
+
+  @override
+  String get setup_step_sync => 'Sync';
+
+  @override
+  String get setup_step_backups => 'Backups';
+
+  @override
+  String get setup_step_photos => 'Photos';
 }

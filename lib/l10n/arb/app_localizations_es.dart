@@ -2026,10 +2026,6 @@ class AppLocalizationsEs extends AppLocalizations {
       'La sincronización con iCloud no está disponible en esta versión de Submersion. Usa la sincronización S3 o la versión de la App Store.';
 
   @override
-  String get settings_cloudSync_provider_icloud_unsupportedSubtitle =>
-      'No disponible en esta versión: usa S3 o la versión de la App Store';
-
-  @override
   String get settings_cloudSync_encryption_title =>
       'Cifrado de extremo a extremo';
 
@@ -8868,35 +8864,6 @@ class AppLocalizationsEs extends AppLocalizations {
       'Revisa unidades, apariencia y opciones de copia de seguridad';
 
   @override
-  String get setup_backup_cloudCopy =>
-      'Almacena copias de seguridad en la nube';
-
-  @override
-  String get setup_backup_frequency => 'Frecuencia';
-
-  @override
-  String get setup_backup_frequency_daily => 'Diaria';
-
-  @override
-  String get setup_backup_frequency_monthly => 'Mensual';
-
-  @override
-  String get setup_backup_frequency_weekly => 'Semanal';
-
-  @override
-  String get setup_backup_scheduleSubtitle =>
-      'Haz copias de seguridad de tus datos según una programación';
-
-  @override
-  String get setup_backup_scheduleToggle => 'Copias de seguridad automáticas';
-
-  @override
-  String get setup_backup_subtitle => 'Protege tus datos desde el primer día.';
-
-  @override
-  String get setup_backup_title => 'Copias de seguridad y sincronización';
-
-  @override
   String get setup_common_back => 'Atrás';
 
   @override
@@ -9007,9 +8974,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get setup_restore_title => 'Restaurar copia de seguridad';
 
   @override
-  String get setup_step_backup => 'Copia';
-
-  @override
   String get setup_step_finish => 'Listo';
 
   @override
@@ -9017,9 +8981,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get setup_step_units => 'Unidades';
-
-  @override
-  String get setup_syncPull_continue => 'Continuar';
 
   @override
   String get setup_syncPull_incomplete_message =>
@@ -9045,51 +9006,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get setup_syncPull_noLibrary_title => 'No se encontró biblioteca';
-
-  @override
-  String get setup_syncPull_success => 'Biblioteca adoptada';
-
-  @override
-  String get setup_syncPull_syncing => 'Descargando tu biblioteca...';
-
-  @override
-  String get setup_sync_changeProvider => 'Cambiar proveedor';
-
-  @override
-  String setup_sync_connectedTo(String provider) {
-    return 'Conectado a $provider';
-  }
-
-  @override
-  String setup_sync_error(Object error) {
-    return 'No se pudo conectar: $error';
-  }
-
-  @override
-  String get setup_sync_header => 'Sincronización en la nube';
-
-  @override
-  String get setup_sync_libraryFound_adopt => 'Adoptar biblioteca existente';
-
-  @override
-  String get setup_sync_libraryFound_keepFresh => 'Empezar de cero';
-
-  @override
-  String get setup_sync_libraryFound_message =>
-      'Esta cuenta ya contiene una biblioteca de Submersion. ¿Adoptarla en lugar de empezar de cero?';
-
-  @override
-  String get setup_sync_libraryFound_title =>
-      'Se encontró una biblioteca existente';
-
-  @override
-  String get setup_sync_manageInSettings => 'Gestionar en Ajustes';
-
-  @override
-  String get setup_sync_notConnected => 'No conectado';
-
-  @override
-  String get setup_sync_subtitle => 'Sincroniza tus datos entre dispositivos';
 
   @override
   String get setup_units_advanced => 'Ajustar unidades';
@@ -55775,4 +55691,16 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get setup_syncPull_startFresh => 'Empezar un nuevo diario';
+
+  @override
+  String get setup_step_account => 'Cuenta';
+
+  @override
+  String get setup_step_sync => 'Sincronización';
+
+  @override
+  String get setup_step_backups => 'Copias';
+
+  @override
+  String get setup_step_photos => 'Fotos';
 }

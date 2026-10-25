@@ -1222,7 +1222,6 @@
   "settings_cloudSync_error_icloudSignedOut": "iCloud is not available. Please sign in to iCloud in your device settings.",
   "settings_cloudSync_error_icloudUnknown": "Couldn't reach iCloud. Please try again.",
   "settings_cloudSync_error_icloudUnsupported": "iCloud sync isn't available in this build of Submersion. Use S3 sync, or the App Store version.",
-  "settings_cloudSync_provider_icloud_unsupportedSubtitle": "Not available in this build — use S3 or the App Store version",
   "settings_cloudSync_encryption_title": "End-to-end encryption",
   "settings_cloudSync_encryption_subtitleOff": "Encrypt all sync data and cloud backups before upload",
   "settings_cloudSync_encryption_subtitleNeedsProvider": "Select a cloud provider first",
@@ -5184,15 +5183,6 @@
   },
   "settings_manage_setupAssistant": "Setup assistant",
   "settings_manage_setupAssistant_subtitle": "Revisit units, appearance, and backup choices",
-  "setup_backup_cloudCopy": "Store backups in the cloud",
-  "setup_backup_frequency": "Frequency",
-  "setup_backup_frequency_daily": "Daily",
-  "setup_backup_frequency_monthly": "Monthly",
-  "setup_backup_frequency_weekly": "Weekly",
-  "setup_backup_scheduleSubtitle": "Back up your data on a schedule",
-  "setup_backup_scheduleToggle": "Automatic backups",
-  "setup_backup_subtitle": "Protect your data from day one.",
-  "setup_backup_title": "Backups & Sync",
   "setup_common_back": "Back",
   "setup_common_next": "Next",
   "setup_common_skip": "Skip",
@@ -5232,11 +5222,9 @@
   "setup_restore_inProgress": "Restoring...",
   "setup_restore_pick": "Choose backup file",
   "setup_restore_title": "Restore backup",
-  "setup_step_backup": "Backup",
   "setup_step_finish": "Done",
   "setup_step_profile": "Profile",
   "setup_step_units": "Units",
-  "setup_syncPull_continue": "Continue",
   "setup_syncPull_incomplete_message": "This account holds a Submersion library that was never finished uploading. Let your other device finish syncing, then try again.",
   "setup_syncPull_incomplete_retry": "Check again",
   "setup_syncPull_incomplete_title": "Library upload unfinished",
@@ -5244,33 +5232,6 @@
   "setup_syncPull_locked_title": "This library is encrypted",
   "setup_syncPull_noLibrary_message": "No existing Submersion library was found on this account. Start fresh instead? Your connection will be kept.",
   "setup_syncPull_noLibrary_title": "No library found",
-  "setup_syncPull_success": "Library adopted",
-  "setup_syncPull_syncing": "Pulling your library...",
-  "setup_sync_changeProvider": "Change provider",
-  "setup_sync_connectedTo": "Connected to {provider}",
-  "@setup_sync_connectedTo": {
-    "placeholders": {
-      "provider": {
-        "type": "String"
-      }
-    }
-  },
-  "setup_sync_error": "Could not connect: {error}",
-  "@setup_sync_error": {
-    "placeholders": {
-      "error": {
-        "type": "Object"
-      }
-    }
-  },
-  "setup_sync_header": "Cloud sync",
-  "setup_sync_libraryFound_adopt": "Adopt existing library",
-  "setup_sync_libraryFound_keepFresh": "Start fresh",
-  "setup_sync_libraryFound_message": "This account already contains a Submersion library. Adopt it instead of starting fresh?",
-  "setup_sync_libraryFound_title": "Existing library found",
-  "setup_sync_manageInSettings": "Manage in Settings",
-  "setup_sync_notConnected": "Not connected",
-  "setup_sync_subtitle": "Sync your data across devices",
   "setup_units_advanced": "Fine-tune units",
   "setup_units_altitude": "Altitude",
   "setup_units_distance": "Distance",
@@ -32854,5 +32815,13 @@
   "settings_setUpDevice_sync_inStep": "The dives here are in step with your library in {account}.",
   "@settings_setUpDevice_sync_inStep": {"description": "Step 2 when this device already syncs with the chosen account", "placeholders": {"account": {"type": "String"}}},
   "setup_syncPull_startFresh": "Start a new logbook",
-  "@setup_syncPull_startFresh": {"description": "First-run wizard: the account holds no library, so begin a new logbook"}
+  "@setup_syncPull_startFresh": {"description": "First-run wizard: the account holds no library, so begin a new logbook"},
+  "setup_step_account": "Account",
+  "@setup_step_account": {"description": "Setup wizard step indicator: choose the account"},
+  "setup_step_sync": "Sync",
+  "@setup_step_sync": {"description": "Setup wizard step indicator: sync between devices"},
+  "setup_step_backups": "Backups",
+  "@setup_step_backups": {"description": "Setup wizard step indicator: automatic backups"},
+  "setup_step_photos": "Photos",
+  "@setup_step_photos": {"description": "Setup wizard step indicator: photo copies"}
 }

@@ -2086,10 +2086,6 @@ class AppLocalizationsAr extends AppLocalizations {
       'مزامنة iCloud غير متوفرة في هذا الإصدار من Submersion. استخدم مزامنة S3 أو نسخة App Store.';
 
   @override
-  String get settings_cloudSync_provider_icloud_unsupportedSubtitle =>
-      'غير متوفر في هذا الإصدار — استخدم S3 أو نسخة App Store';
-
-  @override
   String get settings_cloudSync_encryption_title => 'التشفير من طرف إلى طرف';
 
   @override
@@ -9012,34 +9008,6 @@ class AppLocalizationsAr extends AppLocalizations {
       'مراجعة الوحدات والمظهر وخيارات النسخ الاحتياطي';
 
   @override
-  String get setup_backup_cloudCopy => 'تخزين النسخ الاحتياطية في السحابة';
-
-  @override
-  String get setup_backup_frequency => 'التكرار';
-
-  @override
-  String get setup_backup_frequency_daily => 'يوميًا';
-
-  @override
-  String get setup_backup_frequency_monthly => 'شهريًا';
-
-  @override
-  String get setup_backup_frequency_weekly => 'أسبوعيًا';
-
-  @override
-  String get setup_backup_scheduleSubtitle =>
-      'انسخ بياناتك احتياطيًا وفق جدول زمني';
-
-  @override
-  String get setup_backup_scheduleToggle => 'نسخ احتياطي تلقائي';
-
-  @override
-  String get setup_backup_subtitle => 'احمِ بياناتك من اليوم الأول.';
-
-  @override
-  String get setup_backup_title => 'النسخ الاحتياطي والمزامنة';
-
-  @override
   String get setup_common_back => 'رجوع';
 
   @override
@@ -9146,9 +9114,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get setup_restore_title => 'استعادة النسخة الاحتياطية';
 
   @override
-  String get setup_step_backup => 'نسخ احتياطي';
-
-  @override
   String get setup_step_finish => 'تم';
 
   @override
@@ -9156,9 +9121,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get setup_step_units => 'الوحدات';
-
-  @override
-  String get setup_syncPull_continue => 'متابعة';
 
   @override
   String get setup_syncPull_incomplete_message =>
@@ -9183,50 +9145,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get setup_syncPull_noLibrary_title => 'لم يتم العثور على مكتبة';
-
-  @override
-  String get setup_syncPull_success => 'تم اعتماد المكتبة';
-
-  @override
-  String get setup_syncPull_syncing => 'جارٍ سحب مكتبتك...';
-
-  @override
-  String get setup_sync_changeProvider => 'تغيير المزوّد';
-
-  @override
-  String setup_sync_connectedTo(String provider) {
-    return 'متصل بـ $provider';
-  }
-
-  @override
-  String setup_sync_error(Object error) {
-    return 'تعذّر الاتصال: $error';
-  }
-
-  @override
-  String get setup_sync_header => 'مزامنة السحابة';
-
-  @override
-  String get setup_sync_libraryFound_adopt => 'اعتماد المكتبة الحالية';
-
-  @override
-  String get setup_sync_libraryFound_keepFresh => 'البدء من جديد';
-
-  @override
-  String get setup_sync_libraryFound_message =>
-      'يحتوي هذا الحساب بالفعل على مكتبة Submersion. هل تريد اعتمادها بدلًا من البدء من جديد؟';
-
-  @override
-  String get setup_sync_libraryFound_title => 'تم العثور على مكتبة موجودة';
-
-  @override
-  String get setup_sync_manageInSettings => 'الإدارة في الإعدادات';
-
-  @override
-  String get setup_sync_notConnected => 'غير متصل';
-
-  @override
-  String get setup_sync_subtitle => 'زامن بياناتك عبر الأجهزة';
 
   @override
   String get setup_units_advanced => 'ضبط الوحدات';
@@ -56484,4 +56402,16 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get setup_syncPull_startFresh => 'بدء سجل جديد';
+
+  @override
+  String get setup_step_account => 'الحساب';
+
+  @override
+  String get setup_step_sync => 'المزامنة';
+
+  @override
+  String get setup_step_backups => 'النسخ الاحتياطية';
+
+  @override
+  String get setup_step_photos => 'الصور';
 }

@@ -2021,10 +2021,6 @@ class AppLocalizationsHu extends AppLocalizations {
       'Az iCloud-szinkronizálás nem érhető el a Submersion ezen buildjében. Használd az S3-szinkronizálást vagy az App Store-verziót.';
 
   @override
-  String get settings_cloudSync_provider_icloud_unsupportedSubtitle =>
-      'Ebben a buildben nem érhető el – használj S3-at vagy az App Store-verziót';
-
-  @override
   String get settings_cloudSync_encryption_title =>
       'Végpontok közötti titkosítás';
 
@@ -8849,35 +8845,6 @@ class AppLocalizationsHu extends AppLocalizations {
       'Mértékegységek, megjelenés és biztonsági mentés áttekintése';
 
   @override
-  String get setup_backup_cloudCopy =>
-      'Biztonsági mentések tárolása a felhőben';
-
-  @override
-  String get setup_backup_frequency => 'Gyakoriság';
-
-  @override
-  String get setup_backup_frequency_daily => 'Naponta';
-
-  @override
-  String get setup_backup_frequency_monthly => 'Havonta';
-
-  @override
-  String get setup_backup_frequency_weekly => 'Hetente';
-
-  @override
-  String get setup_backup_scheduleSubtitle =>
-      'Adatok rendszeres biztonsági mentése';
-
-  @override
-  String get setup_backup_scheduleToggle => 'Automatikus biztonsági mentés';
-
-  @override
-  String get setup_backup_subtitle => 'Védje adatait az első naptól kezdve.';
-
-  @override
-  String get setup_backup_title => 'Biztonsági mentés és szinkronizálás';
-
-  @override
   String get setup_common_back => 'Vissza';
 
   @override
@@ -8986,9 +8953,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get setup_restore_title => 'Biztonsági mentés visszaállítása';
 
   @override
-  String get setup_step_backup => 'Mentés';
-
-  @override
   String get setup_step_finish => 'Kész';
 
   @override
@@ -8996,9 +8960,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get setup_step_units => 'Egységek';
-
-  @override
-  String get setup_syncPull_continue => 'Folytatás';
 
   @override
   String get setup_syncPull_incomplete_message =>
@@ -9024,50 +8985,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get setup_syncPull_noLibrary_title => 'Nem található könyvtár';
-
-  @override
-  String get setup_syncPull_success => 'Könyvtár átvéve';
-
-  @override
-  String get setup_syncPull_syncing => 'Könyvtár letöltése...';
-
-  @override
-  String get setup_sync_changeProvider => 'Szolgáltató módosítása';
-
-  @override
-  String setup_sync_connectedTo(String provider) {
-    return 'Csatlakoztatva: $provider';
-  }
-
-  @override
-  String setup_sync_error(Object error) {
-    return 'Nem sikerült csatlakozni: $error';
-  }
-
-  @override
-  String get setup_sync_header => 'Felhőszinkronizálás';
-
-  @override
-  String get setup_sync_libraryFound_adopt => 'Meglévő könyvtár átvétele';
-
-  @override
-  String get setup_sync_libraryFound_keepFresh => 'Új kezdés';
-
-  @override
-  String get setup_sync_libraryFound_message =>
-      'Ez a fiók már tartalmaz Submersion-könyvtárat. Átveszi ahelyett, hogy újat kezdene?';
-
-  @override
-  String get setup_sync_libraryFound_title => 'Meglévő könyvtár található';
-
-  @override
-  String get setup_sync_manageInSettings => 'Kezelés a beállításokban';
-
-  @override
-  String get setup_sync_notConnected => 'Nincs csatlakoztatva';
-
-  @override
-  String get setup_sync_subtitle => 'Adatok szinkronizálása az eszközök között';
 
   @override
   String get setup_units_advanced => 'Egységek finomhangolása';
@@ -55416,4 +55333,16 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get setup_syncPull_startFresh => 'Új napló kezdése';
+
+  @override
+  String get setup_step_account => 'Fiók';
+
+  @override
+  String get setup_step_sync => 'Szinkronizálás';
+
+  @override
+  String get setup_step_backups => 'Mentések';
+
+  @override
+  String get setup_step_photos => 'Fotók';
 }
