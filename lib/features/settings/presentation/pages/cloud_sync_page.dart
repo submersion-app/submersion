@@ -384,10 +384,7 @@ class _CloudSyncPageState extends ConsumerState<CloudSyncPage>
                     child: SizedBox(
                       width: 20,
                       height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
+                      child: CircularProgressIndicator(strokeWidth: 2),
                     ),
                   )
                 : const Icon(Icons.sync),

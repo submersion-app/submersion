@@ -435,7 +435,7 @@ class _DiveActivityMapPageState extends ConsumerState<DiveActivityMapPage>
         child: Text(
           diveCount.toString(),
           style: TextStyle(
-            color: Colors.white,
+            color: isSelected ? colorScheme.onPrimary : Colors.white,
             fontWeight: FontWeight.bold,
             fontSize: isSelected ? 14 : 12,
           ),
