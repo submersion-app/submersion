@@ -34,6 +34,10 @@ class TransmitterMatcher {
     final bySerial = <String, Transmitter>{};
     final byChannel = <(String, int), Transmitter>{};
     for (final entry in ordered) {
+      // An entry the app created from a download is not configuration yet
+      // (#3676): it must not stamp its placeholder name or guessed role on a
+      // tank, and its serial stays unmatched so the download still nudges.
+      if (!entry.isConfigured) continue;
       final serial = normalizeTransmitterSerial(entry.transmitterSerial);
       if (serial != null) bySerial[serial] = entry;
       if (entry.hasChannel) {

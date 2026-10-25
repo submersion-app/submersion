@@ -4,6 +4,7 @@ import 'package:drift/drift.dart';
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/features/transmitters/data/services/transmitter_auto_registrar.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
@@ -345,6 +346,9 @@ class ReparseService {
     // After commit, so an auto-sync publishes it. A non-primary re-parse
     // writes no series, whose repositories otherwise announce the change.
     SyncEventBus.notifyLocalChange();
+    // A serial the re-parse reads for the first time gets its Transmitter
+    // item and joins the dive, as a download's does (issue #3676).
+    await registerTransmittersForDives([diveId]);
     return outcome;
   }
 

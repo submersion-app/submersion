@@ -247,6 +247,27 @@ class TransmitterRepository {
     await _rescanAffectedDives(rows.map(_map));
   }
 
+  /// The canonical serials of the diver's entries that are not set up
+  /// (issue #3676): unconfigured, or naming no cylinder. What the
+  /// post-download notice and the data-quality nudge ask about.
+  Future<Set<String>> serialsNeedingSetup(String? diverId) async => {
+    for (final t in await getForDiver(diverId))
+      if (!t.isSetUp) ?normalizeTransmitterSerial(t.transmitterSerial),
+  };
+
+  /// The Transmitter item of the entry whose serial is [serial], if any.
+  Future<String?> itemIdForSerial(String serial, {String? diverId}) async {
+    final wanted = normalizeTransmitterSerial(serial);
+    if (wanted == null) return null;
+    for (final t in await getForDiver(diverId)) {
+      if (normalizeTransmitterSerial(t.transmitterSerial) == wanted &&
+          t.transmitterEquipmentId != null) {
+        return t.transmitterEquipmentId;
+      }
+    }
+    return null;
+  }
+
   /// Distinct normalized serials on the diver's downloaded tanks with no
   /// registry entry, with how many dives each appears on. Rows whose serial
   /// normalizes to null (blank, all zeros) are skipped.

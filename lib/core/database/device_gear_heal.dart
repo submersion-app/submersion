@@ -144,7 +144,7 @@ Future<({int linked, int minted})> _healComputers(
       computerId,
     );
     String? itemId = await _existingId(db, chainId);
-    itemId ??= await _matchComputerItem(
+    itemId ??= await matchComputerItem(
       db,
       manufacturer: manufacturer,
       model: model,
@@ -167,7 +167,7 @@ Future<({int linked, int minted})> _healComputers(
       mintedHere = true;
       minted++;
     } else {
-      await _fillBlankSerial(db, itemId, serial);
+      await fillBlankItemSerial(db, itemId, serial);
     }
     await db.customStatement(
       'UPDATE dive_computers SET equipment_id = ? WHERE id = ?',
@@ -181,8 +181,9 @@ Future<({int linked, int minted})> _healComputers(
 
 /// The item a computer adopts: one match among the items no other computer
 /// owns, or, by serial only, an item a computer with the same serial owns
-/// (one physical device registered twice shares one item).
-Future<String?> _matchComputerItem(
+/// (one physical device registered twice shares one item). Shared with
+/// `DiveComputerGearResolver`, so discovery and the heal agree.
+Future<String?> matchComputerItem(
   DatabaseConnectionUser db, {
   required String? manufacturer,
   required String? model,
@@ -317,7 +318,7 @@ Future<({int linked, int minted})> _healTransmitters(
       );
       minted++;
     } else {
-      await _fillBlankSerial(db, itemId, serial);
+      await fillBlankItemSerial(db, itemId, serial);
     }
     await db.customStatement(
       'UPDATE transmitters SET transmitter_equipment_id = ? WHERE id = ?',
@@ -394,17 +395,24 @@ Future<void> _mint(
   );
 }
 
-Future<void> _fillBlankSerial(
+/// Writes [serial] onto item [itemId] when the item has none, as adopting a
+/// hand-added item through the blank-serial fallback does. Returns whether
+/// it wrote.
+Future<bool> fillBlankItemSerial(
   DatabaseConnectionUser db,
   String itemId,
   String? serial,
 ) async {
-  if (serial == null || serial.trim().isEmpty) return;
+  if (serial == null || serial.trim().isEmpty) return false;
   await db.customStatement(
     'UPDATE equipment SET serial_number = ? WHERE id = ? '
     "AND (serial_number IS NULL OR TRIM(serial_number) = '')",
     [serial, itemId],
   );
+  final changed = await db
+      .customSelect('SELECT changes() AS changed')
+      .getSingle();
+  return changed.read<int>('changed') > 0;
 }
 
 Future<String?> _existingId(DatabaseConnectionUser db, String id) async {

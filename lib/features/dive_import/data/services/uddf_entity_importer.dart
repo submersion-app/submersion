@@ -8,6 +8,7 @@ import 'package:submersion/core/database/database.dart'
     show DiveDataSourcesCompanion, DiveSitesCompanion, DivesCompanion;
 import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/core/services/shared_library/library_edit_stamper.dart';
+import 'package:submersion/features/transmitters/data/services/transmitter_auto_registrar.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_passport_repository.dart';
 import 'package:submersion/features/cylinder_passports/data/services/csv_fill_importer.dart';
@@ -3476,6 +3477,10 @@ class UddfEntityImporter {
       usedConnections,
       usedAt: now,
     );
+
+    // A transmitter serial the file brings in gets its Transmitter item and
+    // joins its dives, as a download's does (issue #3676).
+    await registerTransmittersForDives(importedDiveIds);
 
     return _DiveImportResult(
       count,

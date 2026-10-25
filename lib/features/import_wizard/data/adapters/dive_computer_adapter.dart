@@ -43,6 +43,10 @@ import 'package:submersion/features/import_wizard/domain/models/import_target_ch
 import 'package:submersion/features/import_wizard/domain/models/unified_import_result.dart';
 import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/transmitters/data/repositories/transmitter_repository.dart';
+import 'package:submersion/features/transmitters/data/services/transmitter_auto_registrar.dart';
+import 'package:submersion/features/transmitters/data/services/transmitter_gear_linker.dart';
+import 'package:submersion/features/transmitters/presentation/providers/transmitter_providers.dart';
 import 'package:submersion/shared/widgets/wizard/wizard_step_def.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/dc_adapter_steps.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/downloaded_dive_summary.dart';
@@ -100,7 +104,13 @@ class DiveComputerAdapter
     DiveComputerConnectionRepository? connectionRepository,
     Future<bool> Function()? followComputerOwner,
     DiverNameLookup? diverName,
+    TransmitterAutoRegistrar? transmitterRegistrar,
+    TransmitterGearLinker? transmitterGearLinker,
+    TransmitterRepository? transmitterRepository,
   }) : _importService = importService,
+       _transmitterRegistrar = transmitterRegistrar,
+       _transmitterGearLinker = transmitterGearLinker,
+       _transmitterRepository = transmitterRepository,
        _connectionRepository = connectionRepository,
        _computerRepository = computerRepository,
        _diveRepository = diveRepository,
@@ -134,6 +144,20 @@ class DiveComputerAdapter
   DiveComputerConnectionRepository? get _connections =>
       _connectionRepository ??
       _ref?.read(diveComputerConnectionRepositoryProvider);
+
+  /// The transmitter seams of a download (issue #3676): each new serial gets
+  /// its item, every transmitter joins its dives, and the notice asks about
+  /// each one not set up. Read from [_ref] when not given; absent in a bare
+  /// test, which then registers nothing.
+  final TransmitterAutoRegistrar? _transmitterRegistrar;
+  final TransmitterGearLinker? _transmitterGearLinker;
+  final TransmitterRepository? _transmitterRepository;
+  TransmitterAutoRegistrar? get _registrar =>
+      _transmitterRegistrar ?? _ref?.read(transmitterAutoRegistrarProvider);
+  TransmitterGearLinker? get _gearLinker =>
+      _transmitterGearLinker ?? _ref?.read(transmitterGearLinkerProvider);
+  TransmitterRepository? get _transmitters =>
+      _transmitterRepository ?? _ref?.read(transmitterRepositoryProvider);
 
   /// Fills planned dives from downloads (issue #2002).
   final PlannedDiveFillService _fillService;
@@ -994,6 +1018,8 @@ class DiveComputerAdapter
     scheduleDerivedMetricsRefresh(importedDiveIds);
 
     final unmatched = _importService.unmatchedTransmitterSerials;
+    final needingSetup = await _registerTransmitters(unmatched, writtenDives);
+    final needsSetupDives = _divesCarrying(needingSetup, writtenDives);
     // A fill skips the import service, so its own outcome says whether it
     // kept a role read off a transmitter's name.
     final nameRoleDives =
@@ -1021,10 +1047,12 @@ class DiveComputerAdapter
       importedDiveIds: diverOutcomes.isEmpty ? importedDiveIds : const [],
       diverOutcomes: diverOutcomes,
       notices: [
-        if (unmatched.isNotEmpty && writtenDives.isNotEmpty)
+        // Counted over this download's dives: a transmitter not set up that
+        // none of them carries is the inbox's to raise, not this summary's.
+        if (needsSetupDives > 0)
           ImportNotice(
             kind: ImportNoticeKind.unknownTransmitter,
-            count: _divesCarrying(unmatched, writtenDives),
+            count: needsSetupDives,
           ),
         if (nameRoleDives > 0)
           ImportNotice(
@@ -1043,6 +1071,37 @@ class DiveComputerAdapter
   /// off the transmitter's name counts (issue #2595). A matched serial's
   /// registry entry replaced that role on import, so the unmatched serials
   /// are exactly the ones still carrying it.
+  /// Registers each serial no registry row knows, puts every transmitter in
+  /// this download on its dives, and returns the serials the notice asks
+  /// about: new ones and any not set up (issue #3676). Best-effort: a failure
+  /// leaves the download imported and falls back to the unmatched serials.
+  Future<List<String>> _registerTransmitters(
+    List<String> unmatched,
+    List<DownloadedDive> written,
+  ) async {
+    final diverId = targetDiverId.isEmpty ? null : targetDiverId;
+    try {
+      final registrar = _registrar;
+      if (registrar != null && unmatched.isNotEmpty) {
+        await registrar.registerNewSerials(unmatched, diverId: diverId);
+      }
+      final seen = {
+        for (final dive in written)
+          for (final tank in dive.tanks)
+            ?normalizeTransmitterSerial(tank.transmitterSerial),
+      };
+      if (seen.isNotEmpty) {
+        await _gearLinker?.linkSerials(seen, diverId: diverId);
+      }
+      final notSetUp =
+          await _transmitters?.serialsNeedingSetup(diverId) ?? const {};
+      return {...unmatched, ...notSetUp}.toList();
+    } catch (e) {
+      _log.warning('Transmitter registration failed (non-fatal): $e');
+      return unmatched;
+    }
+  }
+
   int _divesCarrying(
     List<String> unmatched,
     List<DownloadedDive> written, {
