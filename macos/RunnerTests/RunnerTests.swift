@@ -56,4 +56,19 @@ class RendererDartProjectTests: XCTestCase {
     XCTAssertEqual(impeller.value(forKey: "enableImpeller") as? Bool, true)
   }
 
+  /// Flutter finds icudtl.dat in the bundle of the project's class. For this
+  /// subclass that is the app, which has no copy, so without the override the
+  /// engine starts without ICU and text ignores line breaks (issue #3639).
+  func testFlutterStillDeclaresTheICUDataPathSelector() {
+    XCTAssertTrue(
+      FlutterDartProject.instancesRespond(to: NSSelectorFromString("ICUDataPath")))
+  }
+
+  func testProjectHandsTheEngineFluttersICUData() throws {
+    let path = try XCTUnwrap(
+      RendererDartProject(impellerEnabled: true).value(forKey: "ICUDataPath") as? String)
+    XCTAssertTrue(FileManager.default.fileExists(atPath: path))
+    XCTAssertEqual(path, FlutterDartProject().value(forKey: "ICUDataPath") as? String)
+  }
+
 }

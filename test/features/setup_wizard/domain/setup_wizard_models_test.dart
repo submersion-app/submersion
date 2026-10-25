@@ -19,8 +19,14 @@ void main() {
         SetupStepId.welcomeFork,
         SetupStepId.profile,
         SetupStepId.units,
-        SetupStepId.backupSync,
+        ...kSetUpWizardSteps,
         SetupStepId.finish,
+      ]);
+      expect(kSetUpWizardSteps, [
+        SetupStepId.setUpAccount,
+        SetupStepId.setUpSync,
+        SetupStepId.setUpBackups,
+        SetupStepId.setUpPhotos,
       ]);
     });
 
@@ -63,7 +69,22 @@ void main() {
         path: SetupPath.existingData,
         source: ExistingDataSource.cloudSync,
       );
-      expect(computeSteps(sync).last, SetupStepId.syncConnect);
+      expect(computeSteps(sync), [
+        SetupStepId.welcomeFork,
+        SetupStepId.existingChoice,
+        ...kSetUpWizardSteps,
+        SetupStepId.finish,
+      ]);
+
+      // A downloaded library with no diver: Finish asks for a name.
+      final syncNeedsName = sync.copyWith(needsProfile: true);
+      expect(computeSteps(syncNeedsName), [
+        SetupStepId.welcomeFork,
+        SetupStepId.existingChoice,
+        ...kSetUpWizardSteps,
+        SetupStepId.profile,
+        SetupStepId.finish,
+      ]);
 
       const folder = SetupWizardDraft(
         mode: SetupWizardMode.firstRun,
@@ -77,9 +98,21 @@ void main() {
       const draft = SetupWizardDraft(mode: SetupWizardMode.settings);
       expect(computeSteps(draft), [
         SetupStepId.units,
-        SetupStepId.backupSync,
+        ...kSetUpWizardSteps,
         SetupStepId.finish,
       ]);
+    });
+
+    test('a fresh path that needs a name already asks for it', () {
+      const draft = SetupWizardDraft(
+        mode: SetupWizardMode.firstRun,
+        path: SetupPath.fresh,
+        needsProfile: true,
+      );
+      expect(
+        computeSteps(draft).where((s) => s == SetupStepId.profile).length,
+        1,
+      );
     });
   });
 

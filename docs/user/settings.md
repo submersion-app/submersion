@@ -240,7 +240,7 @@ where you'll run into them:
 
 | Item | What it manages |
 |------|-----------------|
-| **Setup assistant** | Revisit the first-run choices for units, appearance and backup |
+| **Setup assistant** | Revisit units, backups, sync and photos: the units step, then the four steps of [Set Up This Device](set-up-this-device.md) |
 
 ## Data
 

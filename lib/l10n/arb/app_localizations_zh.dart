@@ -1952,10 +1952,6 @@ class AppLocalizationsZh extends AppLocalizations {
       '此 Submersion 版本不支持 iCloud 同步。请使用 S3 同步或 App Store 版本。';
 
   @override
-  String get settings_cloudSync_provider_icloud_unsupportedSubtitle =>
-      '此版本不可用 — 请使用 S3 或 App Store 版本';
-
-  @override
   String get settings_cloudSync_encryption_title => '端到端加密';
 
   @override
@@ -8421,34 +8417,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_manage_setupAssistant => '设置向导';
 
   @override
-  String get settings_manage_setupAssistant_subtitle => '重新设置单位、外观和备份选项';
-
-  @override
-  String get setup_backup_cloudCopy => '在云端存储备份';
-
-  @override
-  String get setup_backup_frequency => '频率';
-
-  @override
-  String get setup_backup_frequency_daily => '每天';
-
-  @override
-  String get setup_backup_frequency_monthly => '每月';
-
-  @override
-  String get setup_backup_frequency_weekly => '每周';
-
-  @override
-  String get setup_backup_scheduleSubtitle => '按计划备份你的数据';
-
-  @override
-  String get setup_backup_scheduleToggle => '自动备份';
-
-  @override
-  String get setup_backup_subtitle => '从第一天起保护你的数据。';
-
-  @override
-  String get setup_backup_title => '备份与同步';
+  String get settings_manage_setupAssistant_subtitle => '重新设置单位、备份、同步和照片';
 
   @override
   String get setup_common_back => '返回';
@@ -8549,9 +8518,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get setup_restore_title => '恢复备份';
 
   @override
-  String get setup_step_backup => '备份';
-
-  @override
   String get setup_step_finish => '完成';
 
   @override
@@ -8559,9 +8525,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get setup_step_units => '单位';
-
-  @override
-  String get setup_syncPull_continue => '继续';
 
   @override
   String get setup_syncPull_incomplete_message =>
@@ -8585,50 +8548,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get setup_syncPull_noLibrary_title => '未找到资料库';
-
-  @override
-  String get setup_syncPull_success => '已采用资料库';
-
-  @override
-  String get setup_syncPull_syncing => '正在拉取资料库...';
-
-  @override
-  String get setup_sync_changeProvider => '更换服务商';
-
-  @override
-  String setup_sync_connectedTo(String provider) {
-    return '已连接到 $provider';
-  }
-
-  @override
-  String setup_sync_error(Object error) {
-    return '无法连接：$error';
-  }
-
-  @override
-  String get setup_sync_header => '云同步';
-
-  @override
-  String get setup_sync_libraryFound_adopt => '采用现有资料库';
-
-  @override
-  String get setup_sync_libraryFound_keepFresh => '重新开始';
-
-  @override
-  String get setup_sync_libraryFound_message =>
-      '此账户已包含 Submersion 资料库。要采用它而不是重新开始吗？';
-
-  @override
-  String get setup_sync_libraryFound_title => '发现现有资料库';
-
-  @override
-  String get setup_sync_manageInSettings => '在设置中管理';
-
-  @override
-  String get setup_sync_notConnected => '未连接';
-
-  @override
-  String get setup_sync_subtitle => '在多设备间同步数据';
 
   @override
   String get setup_units_advanced => '微调单位';
@@ -51627,7 +51546,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_photos_status_pausedDetached => '上传已暂停：此设备未连接到这些副本';
 
   @override
-  String get settings_photos_status_pausedMismatch => '上传已暂停：请重新选择账户';
+  String get settings_photos_status_pausedMismatch => '上传已暂停：需要重新连接副本';
 
   @override
   String get settings_photos_status_finishSetup => '完成此设备的设置';
@@ -51643,7 +51562,90 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_photos_suspended_mismatch =>
-      '此设备与账户对正在使用哪些副本已不一致。重新选择该账户将采用其中现有的副本。';
+      '该账户已不再保存此设备所用的副本。请重新连接，以选择接下来的处理方式。';
+
+  @override
+  String get settings_photos_reconnect_title => '重新连接照片副本';
+
+  @override
+  String settings_photos_reconnect_checking(String account) {
+    return '正在检查 $account…';
+  }
+
+  @override
+  String settings_photos_reconnect_resolved(String account) {
+    return '$account 中的副本再次与此设备一致，上传将继续。';
+  }
+
+  @override
+  String settings_photos_reconnect_otherKnown(String account) {
+    return '$account 现在保存着您另一台设备设置的副本。';
+  }
+
+  @override
+  String settings_photos_reconnect_otherUnknown(String account) {
+    return '$account 现在保存着此日志没有记录的副本。';
+  }
+
+  @override
+  String settings_photos_reconnect_noMarker(String account) {
+    return '$account 中的副本已被移除或重置。';
+  }
+
+  @override
+  String settings_photos_reconnect_unreadable(String account) {
+    return '无法检查 $account。';
+  }
+
+  @override
+  String get settings_photos_reconnect_needsAccount => '此设备已无法打开副本所在的账户。';
+
+  @override
+  String get settings_photos_reconnect_adopt => '改用那里现有的副本';
+
+  @override
+  String get settings_photos_reconnect_adoptBody =>
+      '已在那里的照片会保留，缺少的内容将从此设备重新上传。';
+
+  @override
+  String settings_photos_reconnect_adoptUnknownBody(String account) {
+    return '仅当 $account 用于此日志时才选择此项。已在那里的照片会保留，缺少的内容将从此设备重新上传。';
+  }
+
+  @override
+  String get settings_photos_reconnect_rebuild => '重新开始副本';
+
+  @override
+  String settings_photos_reconnect_rebuildBody(String account) {
+    return '将在 $account 中开始新的副本。仍在那里的照片会保留，此设备上的所有内容将重新上传。';
+  }
+
+  @override
+  String get settings_photos_reconnect_chooseAccount => '重新选择账户';
+
+  @override
+  String get settings_photos_reconnect_chooseAccountBody =>
+      '打开照片与视频以选择账户或重新登录。';
+
+  @override
+  String settings_photos_reconnect_heldOnly(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 张照片和视频仅保存在云端。只有账户中仍有它们时才能再次打开。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_photos_reconnect_joined(String account) {
+    return '现在使用 $account 中的副本';
+  }
+
+  @override
+  String settings_photos_reconnect_started(String account) {
+    return '已在 $account 中开始新的副本';
+  }
 
   @override
   String get media_info_actionCopyNow => '立即复制';
@@ -52312,4 +52314,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String settings_setUpDevice_done_otherDevices(String account) {
     return '在你的其他设备上打开 Submersion，选择 $account，就会出现同一个资料库。';
   }
+
+  @override
+  String settings_setUpDevice_sync_inStep(String account) {
+    return '此处的潜水记录已与你在 $account 中的资料库保持一致。';
+  }
+
+  @override
+  String get setup_syncPull_startFresh => '开始新的日志';
 }

@@ -2021,10 +2021,6 @@ class AppLocalizationsHu extends AppLocalizations {
       'Az iCloud-szinkronizálás nem érhető el a Submersion ezen buildjében. Használd az S3-szinkronizálást vagy az App Store-verziót.';
 
   @override
-  String get settings_cloudSync_provider_icloud_unsupportedSubtitle =>
-      'Ebben a buildben nem érhető el – használj S3-at vagy az App Store-verziót';
-
-  @override
   String get settings_cloudSync_encryption_title =>
       'Végpontok közötti titkosítás';
 
@@ -8846,36 +8842,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_manage_setupAssistant_subtitle =>
-      'Mértékegységek, megjelenés és biztonsági mentés áttekintése';
-
-  @override
-  String get setup_backup_cloudCopy =>
-      'Biztonsági mentések tárolása a felhőben';
-
-  @override
-  String get setup_backup_frequency => 'Gyakoriság';
-
-  @override
-  String get setup_backup_frequency_daily => 'Naponta';
-
-  @override
-  String get setup_backup_frequency_monthly => 'Havonta';
-
-  @override
-  String get setup_backup_frequency_weekly => 'Hetente';
-
-  @override
-  String get setup_backup_scheduleSubtitle =>
-      'Adatok rendszeres biztonsági mentése';
-
-  @override
-  String get setup_backup_scheduleToggle => 'Automatikus biztonsági mentés';
-
-  @override
-  String get setup_backup_subtitle => 'Védje adatait az első naptól kezdve.';
-
-  @override
-  String get setup_backup_title => 'Biztonsági mentés és szinkronizálás';
+      'Mértékegységek, mentések, szinkronizálás és fotók áttekintése';
 
   @override
   String get setup_common_back => 'Vissza';
@@ -8986,9 +8953,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get setup_restore_title => 'Biztonsági mentés visszaállítása';
 
   @override
-  String get setup_step_backup => 'Mentés';
-
-  @override
   String get setup_step_finish => 'Kész';
 
   @override
@@ -8996,9 +8960,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get setup_step_units => 'Egységek';
-
-  @override
-  String get setup_syncPull_continue => 'Folytatás';
 
   @override
   String get setup_syncPull_incomplete_message =>
@@ -9024,50 +8985,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get setup_syncPull_noLibrary_title => 'Nem található könyvtár';
-
-  @override
-  String get setup_syncPull_success => 'Könyvtár átvéve';
-
-  @override
-  String get setup_syncPull_syncing => 'Könyvtár letöltése...';
-
-  @override
-  String get setup_sync_changeProvider => 'Szolgáltató módosítása';
-
-  @override
-  String setup_sync_connectedTo(String provider) {
-    return 'Csatlakoztatva: $provider';
-  }
-
-  @override
-  String setup_sync_error(Object error) {
-    return 'Nem sikerült csatlakozni: $error';
-  }
-
-  @override
-  String get setup_sync_header => 'Felhőszinkronizálás';
-
-  @override
-  String get setup_sync_libraryFound_adopt => 'Meglévő könyvtár átvétele';
-
-  @override
-  String get setup_sync_libraryFound_keepFresh => 'Új kezdés';
-
-  @override
-  String get setup_sync_libraryFound_message =>
-      'Ez a fiók már tartalmaz Submersion-könyvtárat. Átveszi ahelyett, hogy újat kezdene?';
-
-  @override
-  String get setup_sync_libraryFound_title => 'Meglévő könyvtár található';
-
-  @override
-  String get setup_sync_manageInSettings => 'Kezelés a beállításokban';
-
-  @override
-  String get setup_sync_notConnected => 'Nincs csatlakoztatva';
-
-  @override
-  String get setup_sync_subtitle => 'Adatok szinkronizálása az eszközök között';
 
   @override
   String get setup_units_advanced => 'Egységek finomhangolása';
@@ -54683,7 +54600,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_photos_status_pausedMismatch =>
-      'Feltöltések szüneteltetve: válassza ki újra a fiókot';
+      'A feltöltések szünetelnek: a másolatokat újra kell csatlakoztatni';
 
   @override
   String get settings_photos_status_finishSetup =>
@@ -54700,7 +54617,97 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_photos_suspended_mismatch =>
-      'Ez az eszköz és a fiók már nem egyezik abban, mely másolatok vannak használatban. A fiók újbóli kiválasztása átveszi a benne most lévő másolatokat.';
+      'A fiók már nem tartalmazza azokat a másolatokat, amelyeket ez az eszköz használt. Csatlakoztassa újra, hogy eldönthesse, mi legyen.';
+
+  @override
+  String get settings_photos_reconnect_title =>
+      'Fotómásolatok újracsatlakoztatása';
+
+  @override
+  String settings_photos_reconnect_checking(String account) {
+    return '$account ellenőrzése…';
+  }
+
+  @override
+  String settings_photos_reconnect_resolved(String account) {
+    return 'A(z) $account másolatai újra egyeznek ezzel az eszközzel. A feltöltések folytatódnak.';
+  }
+
+  @override
+  String settings_photos_reconnect_otherKnown(String account) {
+    return 'A(z) $account most olyan másolatokat tartalmaz, amelyeket egy másik eszköze állított be.';
+  }
+
+  @override
+  String settings_photos_reconnect_otherUnknown(String account) {
+    return 'A(z) $account most olyan másolatokat tartalmaz, amelyekről ennek a naplónak nincs nyilvántartása.';
+  }
+
+  @override
+  String settings_photos_reconnect_noMarker(String account) {
+    return 'A(z) $account másolatait eltávolították vagy alaphelyzetbe állították.';
+  }
+
+  @override
+  String settings_photos_reconnect_unreadable(String account) {
+    return 'A(z) $account nem ellenőrizhető.';
+  }
+
+  @override
+  String get settings_photos_reconnect_needsAccount =>
+      'Ez az eszköz már nem tudja megnyitni azt a fiókot, amelyben a másolatok voltak.';
+
+  @override
+  String get settings_photos_reconnect_adopt =>
+      'Az ott lévő másolatok használata';
+
+  @override
+  String get settings_photos_reconnect_adoptBody =>
+      'A már ott lévő fotók maradnak. Ami hiányzik, azt ez az eszköz újra feltölti.';
+
+  @override
+  String settings_photos_reconnect_adoptUnknownBody(String account) {
+    return 'Csak akkor válassza ezt, ha a(z) $account ehhez a naplóhoz tartozik. A már ott lévő fotók maradnak, és ami hiányzik, azt ez az eszköz újra feltölti.';
+  }
+
+  @override
+  String get settings_photos_reconnect_rebuild => 'A másolatok újrakezdése';
+
+  @override
+  String settings_photos_reconnect_rebuildBody(String account) {
+    return 'Új másolatok indulnak a(z) $account fiókban. A még ott lévő fotók megmaradnak, és az eszközön lévő minden elem újra feltöltődik.';
+  }
+
+  @override
+  String get settings_photos_reconnect_chooseAccount =>
+      'A fiók újbóli kiválasztása';
+
+  @override
+  String get settings_photos_reconnect_chooseAccountBody =>
+      'Megnyitja a(z) Fotók és videók oldalt a fiók kiválasztásához vagy az újbóli bejelentkezéshez.';
+
+  @override
+  String settings_photos_reconnect_heldOnly(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count fotó és videó csak a felhőben van meg. Csak akkor nyithatók meg újra, ha a fiók még tartalmazza őket.',
+      one:
+          '$count fotó vagy videó csak a felhőben van meg. Csak akkor nyitható meg újra, ha a fiók még tartalmazza.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_photos_reconnect_joined(String account) {
+    return 'Most a(z) $account másolatai vannak használatban';
+  }
+
+  @override
+  String settings_photos_reconnect_started(String account) {
+    return 'Új másolatok indultak a(z) $account fiókban';
+  }
 
   @override
   String get media_info_actionCopyNow => 'Másolás most';
@@ -55408,4 +55415,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String settings_setUpDevice_done_otherDevices(String account) {
     return 'A többi eszközén nyissa meg a Submersiont, válassza ezt: $account, és ugyanaz a könyvtár jelenik meg.';
   }
+
+  @override
+  String settings_setUpDevice_sync_inStep(String account) {
+    return 'Az itteni merülések összhangban vannak a könyvtárával itt: $account.';
+  }
+
+  @override
+  String get setup_syncPull_startFresh => 'Új napló kezdése';
 }

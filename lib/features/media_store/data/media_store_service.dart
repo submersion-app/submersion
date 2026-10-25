@@ -157,10 +157,17 @@ class MediaStoreService {
   /// attachment stands until the marker check succeeds, and only then is
   /// it replaced and the legacy key blob cleared, so a failure leaves the
   /// device on the copies it had.
+  ///
+  /// With [withinGeneration], the attach goes ahead only while the
+  /// attachment is still the one of that [MediaStoreAttachState.attachGeneration]
+  /// once the marker check has answered: a caller deciding from what it read
+  /// earlier (the guided reconnect, issue #2303) must not claim stamps for,
+  /// or overwrite, an attachment made since. It throws, with nothing changed.
   Future<MediaStoreConnectResult> attachToAccountRow(
     domain.ConnectedAccount row,
     MediaObjectStore? store, {
     bool replacing = false,
+    int? withinGeneration,
   }) async {
     final type = row.kind.cloudProviderType;
     if (store == null || type == null) {
@@ -174,6 +181,13 @@ class MediaStoreService {
         await _attachState.attachedStoreId() ??
         (await _storesRepository.getActive())?.id;
     final ensured = await _ensureMarker(store);
+    if (withinGeneration != null &&
+        await _attachState.attachGeneration() != withinGeneration) {
+      throw const MediaStoreException(
+        'The photo copies changed on this device while reconnecting',
+        kind: MediaStoreErrorKind.transient,
+      );
+    }
     final newId = ensured.marker.storeId;
     // Stamps naming no store were made in the store this device was on, or
     // else the one the library announces. Claim them for it before moving,

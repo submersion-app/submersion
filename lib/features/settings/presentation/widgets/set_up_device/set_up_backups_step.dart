@@ -31,6 +31,24 @@ class _SetUpBackupsStepState extends ConsumerState<SetUpBackupsStep> {
   bool _auto = true;
   bool _copy = true;
   bool _busy = false;
+
+  /// The Setup assistant revisits what is set: both switches start from the
+  /// current settings, and only a switch the diver flips is written, so a
+  /// copy pinned to another account is never moved by an untouched Next.
+  bool get _revisits => widget.navigation.host == SetUpHost.assistant;
+  bool _autoFlipped = false;
+  bool _copyFlipped = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (_revisits) {
+      final settings = ref.read(backupSettingsProvider);
+      _auto = settings.enabled;
+      _copy = settings.cloudBackupEnabled;
+    }
+  }
+
   String? _line;
 
   /// Writes the two choices, keeping the schedule: the copy follows sync
@@ -46,12 +64,13 @@ class _SetUpBackupsStepState extends ConsumerState<SetUpBackupsStep> {
       // must leave automatic backups as they were.
       applied =
           account == null ||
+          (_revisits && !_copyFlipped) ||
           await applyBackupCopyChoice(
             ref,
             _copy ? ChoseAccount(account) : const ChoseNone(),
             syncGroup: syncGroup,
           );
-      if (applied) {
+      if (applied && (!_revisits || _autoFlipped)) {
         await ref.read(backupSettingsProvider.notifier).setEnabled(_auto);
       }
     } on Object {
@@ -74,8 +93,13 @@ class _SetUpBackupsStepState extends ConsumerState<SetUpBackupsStep> {
     final l10n = context.l10n;
     final groups = ref.watch(accountGroupsProvider).value ?? const [];
     final syncGroup = groups.syncing;
-    final account = ref.watch(setUpFlowProvider) ?? syncGroup;
     final settings = ref.watch(backupSettingsProvider);
+    // Revisited, a copy pinned to another account is named as it is: the
+    // switch is about that copy, not a new one in the flow's account.
+    final pinned = _revisits && settings.cloudBackupEnabled
+        ? groups.holding(settings.copyAccountId)
+        : null;
+    final account = pinned ?? ref.watch(setUpFlowProvider) ?? syncGroup;
     final device = deviceKindOf(context);
     final frequency = backupFrequencyLabel(l10n, settings.frequency);
     final textTheme = Theme.of(context).textTheme;
@@ -107,7 +131,12 @@ class _SetUpBackupsStepState extends ConsumerState<SetUpBackupsStep> {
                   ),
           ),
           value: _auto,
-          onChanged: _busy ? null : (v) => setState(() => _auto = v),
+          onChanged: _busy
+              ? null
+              : (v) => setState(() {
+                  _auto = v;
+                  _autoFlipped = true;
+                }),
         ),
         if (account != null)
           SwitchListTile(
@@ -117,19 +146,31 @@ class _SetUpBackupsStepState extends ConsumerState<SetUpBackupsStep> {
                 ? Text(l10n.settings_backups_copySameAsSync)
                 : null,
             value: _copy,
-            onChanged: _busy ? null : (v) => setState(() => _copy = v),
+            onChanged: _busy
+                ? null
+                : (v) => setState(() {
+                    _copy = v;
+                    _copyFlipped = true;
+                  }),
           )
         else
           ListTile(
             leading: const Icon(Icons.cloud_off_outlined),
             title: Text(l10n.settings_setUpDevice_backups_noAccount),
-            subtitle: Align(
-              alignment: AlignmentDirectional.centerStart,
-              child: TextButton(
-                onPressed: () => context.pushSettingsPage('/settings/backup'),
-                child: Text(l10n.settings_setUpDevice_backups_openBackups),
-              ),
-            ),
+            // No Settings page opens before the first diver exists: the
+            // router would send it back to the wizard.
+            subtitle: widget.navigation.host == SetUpHost.firstRun
+                ? null
+                : Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: TextButton(
+                      onPressed: () =>
+                          context.pushSettingsPage('/settings/backup'),
+                      child: Text(
+                        l10n.settings_setUpDevice_backups_openBackups,
+                      ),
+                    ),
+                  ),
           ),
         if (_line != null) ...[
           const SizedBox(height: 8),

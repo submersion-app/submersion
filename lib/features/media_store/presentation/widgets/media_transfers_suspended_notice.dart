@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media_store/domain/media_transfer_hold.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
+import 'package:submersion/features/media_store/presentation/widgets/media_store_reconnect_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
 
 /// Tells the user the transfer queue is paused because the store could not
 /// be verified (issue #1356). Nothing while the worker is not suspended.
@@ -11,7 +13,8 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// The rows underneath still read "Waiting" / "N queued", which is true: the
 /// worker leaves them untouched. This is what says why they are not moving
 /// and what to do about it, since the retry is automatic but the one repair
-/// the user can make (reconnecting) is not.
+/// the user can make (reconnecting) is not. A mismatch carries the action
+/// that opens the guided reconnect (issue #2303).
 ///
 /// Names the queue's hold (media sync program spec 7.1): a detached device,
 /// a store that could not be checked, or, by default, a marker mismatch. The
@@ -37,6 +40,7 @@ class MediaTransfersSuspendedNotice extends ConsumerWidget {
             '${hold!.message}',
       _ => l10n.settings_photos_suspended_mismatch,
     };
+    final mismatch = hold?.kind == MediaTransferHoldKind.markerMismatch;
     return ListTile(
       key: const Key('media-transfers-suspended'),
       contentPadding: contentPadding,
@@ -45,7 +49,19 @@ class MediaTransfersSuspendedNotice extends ConsumerWidget {
         color: theme.colorScheme.tertiary,
       ),
       title: Text(l10n.settings_photos_suspended_title),
-      subtitle: Text(subtitle),
+      subtitle: !mismatch
+          ? Text(subtitle)
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(subtitle),
+                TileSubtitleAction(
+                  actionKey: const Key('media-transfers-reconnect'),
+                  label: l10n.settings_setUpDevice_item_reconnectAction,
+                  onPressed: () => showMediaStoreReconnectSheet(context),
+                ),
+              ],
+            ),
     );
   }
 }

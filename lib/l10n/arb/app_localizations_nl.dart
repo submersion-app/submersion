@@ -2016,10 +2016,6 @@ class AppLocalizationsNl extends AppLocalizations {
       'iCloud-synchronisatie is niet beschikbaar in deze build van Submersion. Gebruik S3-synchronisatie of de App Store-versie.';
 
   @override
-  String get settings_cloudSync_provider_icloud_unsupportedSubtitle =>
-      'Niet beschikbaar in deze build — gebruik S3 of de App Store-versie';
-
-  @override
   String get settings_cloudSync_encryption_title => 'End-to-end-versleuteling';
 
   @override
@@ -8810,35 +8806,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_manage_setupAssistant_subtitle =>
-      'Eenheden, weergave en back-upkeuzes opnieuw bekijken';
-
-  @override
-  String get setup_backup_cloudCopy => 'Back-ups opslaan in de cloud';
-
-  @override
-  String get setup_backup_frequency => 'Frequentie';
-
-  @override
-  String get setup_backup_frequency_daily => 'Dagelijks';
-
-  @override
-  String get setup_backup_frequency_monthly => 'Maandelijks';
-
-  @override
-  String get setup_backup_frequency_weekly => 'Wekelijks';
-
-  @override
-  String get setup_backup_scheduleSubtitle =>
-      'Maak volgens schema een back-up van je gegevens';
-
-  @override
-  String get setup_backup_scheduleToggle => 'Automatische back-ups';
-
-  @override
-  String get setup_backup_subtitle => 'Bescherm je gegevens vanaf dag één.';
-
-  @override
-  String get setup_backup_title => 'Back-ups en synchronisatie';
+      'Eenheden, back-ups, synchronisatie en foto\'s opnieuw bekijken';
 
   @override
   String get setup_common_back => 'Terug';
@@ -8949,9 +8917,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get setup_restore_title => 'Back-up terugzetten';
 
   @override
-  String get setup_step_backup => 'Back-up';
-
-  @override
   String get setup_step_finish => 'Klaar';
 
   @override
@@ -8959,9 +8924,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get setup_step_units => 'Eenheden';
-
-  @override
-  String get setup_syncPull_continue => 'Doorgaan';
 
   @override
   String get setup_syncPull_incomplete_message =>
@@ -8987,51 +8949,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get setup_syncPull_noLibrary_title => 'Geen bibliotheek gevonden';
-
-  @override
-  String get setup_syncPull_success => 'Bibliotheek overgenomen';
-
-  @override
-  String get setup_syncPull_syncing => 'Bibliotheek ophalen...';
-
-  @override
-  String get setup_sync_changeProvider => 'Provider wijzigen';
-
-  @override
-  String setup_sync_connectedTo(String provider) {
-    return 'Verbonden met $provider';
-  }
-
-  @override
-  String setup_sync_error(Object error) {
-    return 'Kon geen verbinding maken: $error';
-  }
-
-  @override
-  String get setup_sync_header => 'Cloudsynchronisatie';
-
-  @override
-  String get setup_sync_libraryFound_adopt => 'Bestaande bibliotheek overnemen';
-
-  @override
-  String get setup_sync_libraryFound_keepFresh => 'Opnieuw beginnen';
-
-  @override
-  String get setup_sync_libraryFound_message =>
-      'Dit account bevat al een Submersion-bibliotheek. Deze overnemen in plaats van opnieuw te beginnen?';
-
-  @override
-  String get setup_sync_libraryFound_title => 'Bestaande bibliotheek gevonden';
-
-  @override
-  String get setup_sync_manageInSettings => 'Beheren in Instellingen';
-
-  @override
-  String get setup_sync_notConnected => 'Niet verbonden';
-
-  @override
-  String get setup_sync_subtitle =>
-      'Synchroniseer je gegevens tussen apparaten';
 
   @override
   String get setup_units_advanced => 'Eenheden verfijnen';
@@ -54657,7 +54574,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_photos_status_pausedMismatch =>
-      'Uploads gepauzeerd: kies het account opnieuw';
+      'Uploads gepauzeerd: de kopieën moeten opnieuw worden verbonden';
 
   @override
   String get settings_photos_status_finishSetup =>
@@ -54674,7 +54591,95 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_photos_suspended_mismatch =>
-      'Dit apparaat en het account zijn het niet meer eens over welke kopieën in gebruik zijn. Als u het account opnieuw kiest, worden de kopieën overgenomen die het nu bevat.';
+      'Het account bevat niet meer de kopieën die dit apparaat gebruikte. Verbind opnieuw om te kiezen wat er nu gebeurt.';
+
+  @override
+  String get settings_photos_reconnect_title => 'Fotokopieën opnieuw verbinden';
+
+  @override
+  String settings_photos_reconnect_checking(String account) {
+    return '$account wordt gecontroleerd…';
+  }
+
+  @override
+  String settings_photos_reconnect_resolved(String account) {
+    return 'De kopieën in $account passen weer bij dit apparaat. De uploads gaan verder.';
+  }
+
+  @override
+  String settings_photos_reconnect_otherKnown(String account) {
+    return '$account bevat nu kopieën die een ander apparaat van je heeft ingesteld.';
+  }
+
+  @override
+  String settings_photos_reconnect_otherUnknown(String account) {
+    return '$account bevat nu kopieën die dit logboek niet kent.';
+  }
+
+  @override
+  String settings_photos_reconnect_noMarker(String account) {
+    return 'De kopieën in $account zijn verwijderd of opnieuw ingesteld.';
+  }
+
+  @override
+  String settings_photos_reconnect_unreadable(String account) {
+    return '$account kon niet worden gecontroleerd.';
+  }
+
+  @override
+  String get settings_photos_reconnect_needsAccount =>
+      'Dit apparaat kan het account waarin de kopieën stonden niet meer openen.';
+
+  @override
+  String get settings_photos_reconnect_adopt => 'Nu de kopieën daar gebruiken';
+
+  @override
+  String get settings_photos_reconnect_adoptBody =>
+      'Foto\'s die er al staan, blijven. Wat ontbreekt, wordt opnieuw vanaf dit apparaat geüpload.';
+
+  @override
+  String settings_photos_reconnect_adoptUnknownBody(String account) {
+    return 'Kies dit alleen als $account voor dit logboek bedoeld is. Foto\'s die er al staan, blijven, en wat ontbreekt, wordt opnieuw vanaf dit apparaat geüpload.';
+  }
+
+  @override
+  String get settings_photos_reconnect_rebuild => 'De kopieën opnieuw beginnen';
+
+  @override
+  String settings_photos_reconnect_rebuildBody(String account) {
+    return 'In $account beginnen nieuwe kopieën. Foto\'s die er nog staan, blijven bewaard, en alles op dit apparaat wordt opnieuw geüpload.';
+  }
+
+  @override
+  String get settings_photos_reconnect_chooseAccount =>
+      'Het account opnieuw kiezen';
+
+  @override
+  String get settings_photos_reconnect_chooseAccountBody =>
+      'Opent Foto\'s en video\'s om het account te kiezen of opnieuw in te loggen.';
+
+  @override
+  String settings_photos_reconnect_heldOnly(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count foto\'s en video\'s staan alleen in de cloud. Ze openen alleen weer als het account ze nog bevat.',
+      one:
+          '$count foto of video staat alleen in de cloud. Die opent alleen weer als het account hem nog bevat.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_photos_reconnect_joined(String account) {
+    return 'Nu worden de kopieën in $account gebruikt';
+  }
+
+  @override
+  String settings_photos_reconnect_started(String account) {
+    return 'Nieuwe kopieën begonnen in $account';
+  }
 
   @override
   String get media_info_actionCopyNow => 'Nu kopiëren';
@@ -55377,4 +55382,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String settings_setUpDevice_done_otherDevices(String account) {
     return 'Open Submersion op je andere apparaten, kies $account, en dezelfde bibliotheek verschijnt.';
   }
+
+  @override
+  String settings_setUpDevice_sync_inStep(String account) {
+    return 'De duiken hier zijn gelijk met je bibliotheek in $account.';
+  }
+
+  @override
+  String get setup_syncPull_startFresh => 'Een nieuw logboek beginnen';
 }

@@ -53,12 +53,12 @@ class _Actions extends SetUpSyncActions {
   _Actions({
     this.firstSyncAnswer = SetUpFirstSync.synced,
     this.replaceEnd,
-    this.connectAnswer = true,
+    this.connectAnswer = SetUpConnect.connected,
   });
 
   final SetUpFirstSync firstSyncAnswer;
   final ReplaceJoinEnd? replaceEnd;
-  bool connectAnswer;
+  SetUpConnect connectAnswer;
 
   /// Holds connect open until completed, when set.
   Completer<void>? connectGate;
@@ -68,7 +68,7 @@ class _Actions extends SetUpSyncActions {
   ({bool keepInStep, bool realignDiver})? firstSyncArgs;
 
   @override
-  Future<bool> connect(
+  Future<SetUpConnect> connect(
     BuildContext context,
     WidgetRef ref,
     AccountGroup account,
@@ -129,6 +129,7 @@ void main() {
     WidgetTester tester,
     SetUpLibrary library, {
     _Actions? withActions,
+    bool offerNewLogbook = false,
   }) async {
     actions = withActions ?? _Actions();
     nav = [];
@@ -156,6 +157,9 @@ void main() {
                 onNext: () => nav.add('next'),
                 onBack: () => nav.add('back'),
                 onNotNow: () => nav.add('notNow'),
+                onNoLibrary: offerNewLogbook
+                    ? () => nav.add('newLogbook')
+                    : null,
               ),
               actions: actions,
             ),
@@ -177,7 +181,7 @@ void main() {
     await pump(
       tester,
       const NoLibrary(4),
-      withActions: _Actions(connectAnswer: false),
+      withActions: _Actions(connectAnswer: SetUpConnect.failed),
     );
     expect(
       find.text(
@@ -187,7 +191,7 @@ void main() {
     );
     expect(probes, 0);
 
-    actions.connectAnswer = true;
+    actions.connectAnswer = SetUpConnect.connected;
     await tester.tap(find.text('Check again'));
     await tester.pumpAndSettle();
 
@@ -201,10 +205,10 @@ void main() {
     await pump(
       tester,
       const NoLibrary(4),
-      withActions: _Actions(connectAnswer: false),
+      withActions: _Actions(connectAnswer: SetUpConnect.failed),
     );
     actions
-      ..connectAnswer = true
+      ..connectAnswer = SetUpConnect.connected
       ..connectGate = Completer<void>();
 
     await tester.tap(find.text('Check again'));
@@ -218,7 +222,40 @@ void main() {
     expect(actions.calls, ['connect Google Drive', 'connect Google Drive']);
   });
 
+  testWidgets('a device already in step with the account says so, reads '
+      'nothing, and Next moves on', (tester) async {
+    await pump(
+      tester,
+      const NoLibrary(4),
+      withActions: _Actions(connectAnswer: SetUpConnect.inStep),
+    );
+
+    expect(
+      find.text(
+        'The dives here are in step with your library in Google Drive.',
+      ),
+      findsOneWidget,
+    );
+    expect(probes, 0);
+
+    await tester.tap(find.text('Next'));
+    await tester.tap(find.text('Not now'));
+    expect(nav, ['next', 'notNow']);
+  });
+
   group('no library', () {
+    testWidgets('a host that would rather start a new logbook offers it', (
+      tester,
+    ) async {
+      await pump(tester, const NoLibrary(0), offerNewLogbook: true);
+
+      expect(find.text('No library found'), findsOneWidget);
+      expect(find.text('Turn on sync'), findsNothing);
+
+      await tester.tap(find.text('Start a new logbook'));
+      expect(nav, ['newLogbook']);
+    });
+
     testWidgets('the dives here become the library, and sync stays on', (
       tester,
     ) async {
