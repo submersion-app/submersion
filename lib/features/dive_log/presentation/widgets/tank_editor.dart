@@ -28,6 +28,7 @@ import 'package:submersion/features/dive_log/domain/services/computer_recorded_t
 import 'package:submersion/features/dive_log/presentation/widgets/computer_mix_note.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/own_cylinder_picker_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/tank_mnd_field.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_preset_dropdown.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_regulator_pickers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_role_option.dart';
@@ -118,9 +119,6 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   late TextEditingController _endPressureController;
   late TextEditingController _o2Controller;
   late TextEditingController _heController;
-  late TextEditingController _mndController;
-  late FocusNode _mndFocusNode;
-  bool _mndDriven = false;
   late TankRole _role;
   late TankMaterial? _material;
   TankPresetEntity? _selectedPreset;
@@ -163,14 +161,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   @override
   void initState() {
     super.initState();
-    _mndFocusNode = FocusNode()..addListener(_onMndFocusChanged);
     _initializeControllers();
-  }
-
-  void _onMndFocusChanged() {
-    // Leaving the box always rebuilds, so it syncs back to the mix's MND,
-    // including after an unreadable entry that left _mndDriven false.
-    if (!_mndFocusNode.hasFocus) setState(() => _mndDriven = false);
   }
 
   void _initializeControllers() {
@@ -237,7 +228,6 @@ class _TankEditorState extends ConsumerState<TankEditor> {
       ..resolve(_workingPressureController.text);
     _startPressure = LiveNumber(null)..resolve(_startPressureController.text);
     _endPressure = LiveNumber(null)..resolve(_endPressureController.text);
-    _mndController = TextEditingController();
     _role = widget.tank.role;
     _material = widget.tank.material;
     _regulatorIds = widget.tank.regulatorIds;
@@ -263,7 +253,6 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     // or the next keystroke would write the old text back over the fill.
     if (oldWidget.tank.id != widget.tank.id ||
         oldWidget.tank.tripCylinderId != widget.tank.tripCylinderId) {
-      _mndDriven = false;
       _disposeControllers();
       _initializeControllers();
     }
@@ -276,14 +265,11 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     _endPressureController.dispose();
     _o2Controller.dispose();
     _heController.dispose();
-    _mndController.dispose();
   }
 
   @override
   void dispose() {
     _disposeControllers();
-    _mndFocusNode.removeListener(_onMndFocusChanged);
-    _mndFocusNode.dispose();
     super.dispose();
   }
 
@@ -536,7 +522,18 @@ class _TankEditorState extends ConsumerState<TankEditor> {
             // MND input for trimix planning
             if (gasMix.he > 0) ...[
               const SizedBox(height: 8),
-              _buildMndInput(gasMix, units, settings),
+              Row(
+                children: [
+                  Expanded(
+                    child: TankMndField(
+                      gas: gasMix,
+                      units: units,
+                      onHeChanged: _setHeFromMnd,
+                    ),
+                  ),
+                  const Spacer(flex: 2),
+                ],
+              ),
             ],
 
             if (widget.showPressures) ...[
@@ -864,7 +861,6 @@ class _TankEditorState extends ConsumerState<TankEditor> {
                 autovalidateMode: AutovalidateMode.onUserInteraction,
                 validator: _validateGasPercent,
                 onChanged: (value) {
-                  _mndDriven = false;
                   if (readNumber(value) case NumberValue(:final value)) {
                     _lastValidO2 = value;
                   }
@@ -888,7 +884,6 @@ class _TankEditorState extends ConsumerState<TankEditor> {
                 autovalidateMode: AutovalidateMode.onUserInteraction,
                 validator: _validateGasPercent,
                 onChanged: (value) {
-                  _mndDriven = false;
                   if (readNumber(value) case NumberValue(:final value)) {
                     _lastValidHe = value;
                   }
@@ -968,81 +963,13 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     );
   }
 
-  Widget _buildMndInput(
-    GasMix gasMix,
-    UnitFormatter units,
-    AppSettings settings,
-  ) {
-    final currentMnd = gasMix.mnd(
-      endLimit: settings.endLimit,
-      o2Narcotic: settings.o2Narcotic,
-    );
-
-    // Sync controller if not actively editing MND. While the box has focus
-    // it keeps what the diver typed, so an unreadable entry can say why
-    // rather than be overwritten; leaving the box syncs it again.
-    if (!_mndDriven && !_mndFocusNode.hasFocus) {
-      final displayValue = currentMnd.isFinite
-          ? formatDecimalForInput(
-              units.convertDepth(currentMnd).roundToDouble(),
-            )
-          : '';
-      if (_mndController.text != displayValue) {
-        _mndController.text = displayValue;
-      }
-    }
-
-    return Row(
-      children: [
-        Expanded(
-          child: TextFormField(
-            controller: _mndController,
-            focusNode: _mndFocusNode,
-            decoration: InputDecoration(
-              labelText: 'MND',
-              suffixText: units.depthSymbol,
-              isDense: true,
-              helperText: context.l10n.diveLog_tank_mndHelper,
-              // A helper that is not saved, so it says why without blocking
-              // the dive's save (#1900 review).
-              errorText: invalidNumberText(
-                context,
-                _mndController.text,
-                allowNegative: false,
-              ),
-              errorMaxLines: 3,
-            ),
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            inputFormatters: numberInputFormatters(),
-            onChanged: (value) {
-              final parsed = switch (readNumber(value, allowNegative: false)) {
-                NumberValue(:final value) => value,
-                // No MND to drive He from; the field says why.
-                NumberBlank() || NumberInvalid() => null,
-              };
-              if (parsed != null && parsed > 0) {
-                _mndDriven = true;
-                final mndMeters = units.depthToMeters(parsed);
-                final newHe = GasMix.heForMnd(
-                  mndMeters,
-                  gasMix.o2,
-                  endLimit: settings.endLimit,
-                  o2Narcotic: settings.o2Narcotic,
-                );
-                _lastValidHe = newHe.roundToDouble();
-                _heController.text = formatDecimalForInput(_lastValidHe);
-                setState(() {});
-                _notifyChange();
-              } else {
-                // Rebuild for the error line; nothing else changed.
-                setState(() => _mndDriven = false);
-              }
-            },
-          ),
-        ),
-        const Spacer(flex: 2),
-      ],
-    );
+  /// Puts the He an MND worked out in the He field and reports the tank.
+  void _setHeFromMnd(double he) {
+    setState(() {
+      _lastValidHe = he;
+      _heController.text = formatDecimalForInput(he);
+    });
+    _notifyChange();
   }
 
   Widget _buildModInfo(
@@ -1386,7 +1313,6 @@ class _TankEditorState extends ConsumerState<TankEditor> {
       }
       if (material != null) _material = material;
       if (fillMix != null) {
-        _mndDriven = false;
         _o2Controller.text = formatDecimalForInput(fillMix.o2);
         _heController.text = formatDecimalForInput(fillMix.he);
         _lastValidO2 = fillMix.o2;
@@ -1439,7 +1365,6 @@ class _TankEditorState extends ConsumerState<TankEditor> {
 
   /// Puts [mix] in the O2/He fields and reports the tank.
   void _setGasMix(GasMix mix) {
-    _mndDriven = false;
     setState(() {
       _o2Controller.text = formatDecimalForInput(mix.o2);
       _heController.text = formatDecimalForInput(mix.he);
