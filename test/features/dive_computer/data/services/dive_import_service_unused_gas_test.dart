@@ -261,6 +261,36 @@ void main() {
   );
 
   test(
+    'a batch re-download in replace mode passes no unused gas when on',
+    () async {
+      when(
+        repo.findMatchingDiveWithScore(
+          profileStartTime: anyNamed('profileStartTime'),
+          toleranceMinutes: anyNamed('toleranceMinutes'),
+          durationSeconds: anyNamed('durationSeconds'),
+          maxDepth: anyNamed('maxDepth'),
+          diverId: anyNamed('diverId'),
+        ),
+      ).thenAnswer(
+        (_) async => const DiveMatchResult(
+          diveId: 'existing',
+          score: 0.95,
+          timeDifferenceMs: 0,
+        ),
+      );
+
+      final result = await serviceWith((_) async => true).importDives(
+        dives: [reporterDive()],
+        computer: computer,
+        mode: ImportMode.replaceSource,
+      );
+
+      expect(result.updated, 1);
+      expect(writtenTanks().map((t) => t.index), [0, 1]);
+    },
+  );
+
+  test(
     're-downloading into an existing dive passes no unused gas when on',
     () async {
       final conflict = ImportConflict(
