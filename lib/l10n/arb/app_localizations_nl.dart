@@ -55302,16 +55302,4 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get setup_syncPull_startFresh => 'Een nieuw logboek beginnen';
-
-  @override
-  String get setup_step_account => 'Account';
-
-  @override
-  String get setup_step_sync => 'Synchronisatie';
-
-  @override
-  String get setup_step_backups => 'Back-ups';
-
-  @override
-  String get setup_step_photos => 'Foto\'s';
 }

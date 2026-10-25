@@ -55766,16 +55766,4 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get setup_syncPull_startFresh => 'Commencer un nouveau carnet';
-
-  @override
-  String get setup_step_account => 'Compte';
-
-  @override
-  String get setup_step_sync => 'Synchro';
-
-  @override
-  String get setup_step_backups => 'Sauvegardes';
-
-  @override
-  String get setup_step_photos => 'Photos';
 }

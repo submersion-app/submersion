@@ -12,7 +12,7 @@ The first time you open Submersion, a short setup wizard starts with **Welcome t
 
 <!-- screenshot: images/first-dive/welcome.png: setup wizard welcome screen -->
 
-**Set up a new profile** takes you through a few short steps. Use **Next** to move on, or **Not now** where you do not want to decide yet.
+**Set up a new profile** takes you through a few short steps. Use **Next** to move on, or **Skip** (on Units) and **Not now** (on the account, sync and backup steps) where you do not want to decide yet.
 
 1. **Profile:** enter your name in **Your Name**. This is the only thing the wizard needs; **Next** stays disabled until it is filled in.
 2. **Units:** choose **Metric** or **Imperial**. **Fine-tune units** lets you set depth, temperature, pressure, volume, weight and the rest one by one.

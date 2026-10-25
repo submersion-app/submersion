@@ -87921,30 +87921,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Start a new logbook'**
   String get setup_syncPull_startFresh;
-
-  /// Setup wizard step indicator: choose the account
-  ///
-  /// In en, this message translates to:
-  /// **'Account'**
-  String get setup_step_account;
-
-  /// Setup wizard step indicator: sync between devices
-  ///
-  /// In en, this message translates to:
-  /// **'Sync'**
-  String get setup_step_sync;
-
-  /// Setup wizard step indicator: automatic backups
-  ///
-  /// In en, this message translates to:
-  /// **'Backups'**
-  String get setup_step_backups;
-
-  /// Setup wizard step indicator: photo copies
-  ///
-  /// In en, this message translates to:
-  /// **'Photos'**
-  String get setup_step_photos;
 }
 
 class _AppLocalizationsDelegate

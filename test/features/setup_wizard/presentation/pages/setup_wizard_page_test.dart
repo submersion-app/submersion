@@ -13,6 +13,8 @@ import 'package:submersion/features/setup_wizard/domain/setup_wizard_models.dart
 import 'package:submersion/features/setup_wizard/presentation/pages/setup_wizard_page.dart';
 import 'package:submersion/features/settings/domain/setup/set_up_progress.dart';
 import 'package:submersion/features/settings/presentation/providers/set_up_flow_provider.dart';
+import 'package:submersion/features/settings/presentation/providers/account_group_providers.dart';
+import 'package:submersion/shared/widgets/wizard/wizard_step_indicator.dart';
 import 'package:submersion/features/settings/presentation/widgets/set_up_device/set_up_step_navigation.dart';
 import 'package:submersion/core/services/accounts/account_group.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
@@ -530,5 +532,51 @@ void main() {
       await tapStub(tester, 'stub next');
     }
     expect(find.text("You're all set"), findsOneWidget);
+  });
+
+  testWidgets('the four set up steps share one indicator dot, so a phone '
+      'never overflows', (tester) async {
+    tester.view.physicalSize = const Size(320, 640);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    await pumpStubbed(tester, SetupWizardMode.firstRun);
+    await throughProfileAndUnits(tester);
+
+    final indicator = find.byType(WizardStepIndicator);
+    expect(tester.widget<WizardStepIndicator>(indicator).labels, [
+      'Profile',
+      'Units',
+      'Data',
+      'Done',
+    ]);
+    expect(tester.widget<WizardStepIndicator>(indicator).currentStep, 2);
+    await tapStub(tester, 'stub next');
+    expect(tester.widget<WizardStepIndicator>(indicator).currentStep, 2);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('a real set up step lays out inside the wizard card', (
+    tester,
+  ) async {
+    final overrides = await getBaseOverrides();
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          ...overrides,
+          accountGroupsProvider.overrideWith((ref) async => const []),
+          offerableAccountKindsProvider.overrideWithValue(const []),
+        ],
+        child: const SetupWizardPage(mode: SetupWizardMode.settings),
+      ),
+    );
+    await pumpWizard(tester);
+    await tester.tap(find.widgetWithText(FilledButton, 'Next'));
+    await pumpWizard(tester); // -> the real account step
+    expect(find.text('Where should Submersion keep your data?'), findsOne);
+
+    await tester.tap(find.text('Not now'));
+    await pumpWizard(tester); // -> the real backups step
+    expect(find.text('Back up automatically'), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 }

@@ -16313,9 +16313,5 @@
   "settings_setUpDevice_done_title": "{device, select, phone{Ce téléphone est configuré} tablet{Cette tablette est configurée} computer{Cet ordinateur est configuré} other{Cet appareil est configuré}}",
   "settings_setUpDevice_done_otherDevices": "Sur vos autres appareils, ouvrez Submersion, choisissez {account}, et la même bibliothèque apparaît.",
   "settings_setUpDevice_sync_inStep": "Les plongées ici sont à jour avec votre bibliothèque dans {account}.",
-  "setup_syncPull_startFresh": "Commencer un nouveau carnet",
-  "setup_step_account": "Compte",
-  "setup_step_sync": "Synchro",
-  "setup_step_backups": "Sauvegardes",
-  "setup_step_photos": "Photos"
+  "setup_syncPull_startFresh": "Commencer un nouveau carnet"
 }

@@ -55691,16 +55691,4 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get setup_syncPull_startFresh => 'Empezar un nuevo diario';
-
-  @override
-  String get setup_step_account => 'Cuenta';
-
-  @override
-  String get setup_step_sync => 'Sincronización';
-
-  @override
-  String get setup_step_backups => 'Copias';
-
-  @override
-  String get setup_step_photos => 'Fotos';
 }

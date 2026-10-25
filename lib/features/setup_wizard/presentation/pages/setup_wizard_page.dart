@@ -51,6 +51,11 @@ const _barZone = {SetupStepId.profile, SetupStepId.units};
 /// Steps that show the progress indicator, with Finish.
 const _indicatorZone = {..._barZone, ...kSetUpWizardSteps};
 
+/// The indicator dot a step lights: the four Set up this device steps share
+/// one, "Data", so the row fits a phone.
+SetupStepId _indicatorDot(SetupStepId id) =>
+    kSetUpWizardSteps.contains(id) ? SetupStepId.setUpAccount : id;
+
 /// The shared step each wizard step id runs.
 const _setUpSteps = {
   SetupStepId.setUpAccount: SetUpStep.account,
@@ -146,14 +151,12 @@ class _SetupWizardPageState extends ConsumerState<SetupWizardPage> {
         return l10n.setup_step_profile;
       case SetupStepId.units:
         return l10n.setup_step_units;
-      case SetupStepId.setUpAccount:
-        return l10n.setup_step_account;
-      case SetupStepId.setUpSync:
-        return l10n.setup_step_sync;
-      case SetupStepId.setUpBackups:
-        return l10n.setup_step_backups;
-      case SetupStepId.setUpPhotos:
-        return l10n.setup_step_photos;
+      // The dot the four Set up this device steps share.
+      case SetupStepId.setUpAccount ||
+          SetupStepId.setUpSync ||
+          SetupStepId.setUpBackups ||
+          SetupStepId.setUpPhotos:
+        return l10n.settings_section_data_title;
       case SetupStepId.finish:
         return l10n.setup_step_finish;
       default:
@@ -277,8 +280,10 @@ class _SetupWizardPageState extends ConsumerState<SetupWizardPage> {
     // units onward, plus finish); choice steps stay indicator-free.
     final labelledIds = steps
         .where((s) => _indicatorZone.contains(s) || s == SetupStepId.finish)
+        .map(_indicatorDot)
+        .toSet()
         .toList();
-    final labelledIndex = labelledIds.indexOf(currentId);
+    final labelledIndex = labelledIds.indexOf(_indicatorDot(currentId));
 
     final oceanBrightness = resolveStartupBrightness(
       ref.watch(sharedPreferencesProvider),
@@ -398,15 +403,25 @@ class _SetupWizardPageState extends ConsumerState<SetupWizardPage> {
                 onPressed: _back,
                 child: Text(l10n.setup_common_back),
               ),
-            const Spacer(),
-            if (_currentIndex < _stepCount() - 1 &&
-                _skippable(_currentStepId()))
-              TextButton(
-                onPressed: _advance,
-                child: Text(l10n.setup_common_skip),
-              ),
             const SizedBox(width: 8),
-            _NextButton(def: def, onNext: _advance),
+            // On a narrow phone Skip and Next stack rather than overflow.
+            Expanded(
+              child: OverflowBar(
+                alignment: MainAxisAlignment.end,
+                overflowAlignment: OverflowBarAlignment.end,
+                spacing: 8,
+                overflowSpacing: 8,
+                children: [
+                  if (_currentIndex < _stepCount() - 1 &&
+                      _skippable(_currentStepId()))
+                    TextButton(
+                      onPressed: _advance,
+                      child: Text(l10n.setup_common_skip),
+                    ),
+                  _NextButton(def: def, onNext: _advance),
+                ],
+              ),
+            ),
           ],
         ),
       ),

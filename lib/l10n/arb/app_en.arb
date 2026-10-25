@@ -32815,13 +32815,5 @@
   "settings_setUpDevice_sync_inStep": "The dives here are in step with your library in {account}.",
   "@settings_setUpDevice_sync_inStep": {"description": "Step 2 when this device already syncs with the chosen account", "placeholders": {"account": {"type": "String"}}},
   "setup_syncPull_startFresh": "Start a new logbook",
-  "@setup_syncPull_startFresh": {"description": "First-run wizard: the account holds no library, so begin a new logbook"},
-  "setup_step_account": "Account",
-  "@setup_step_account": {"description": "Setup wizard step indicator: choose the account"},
-  "setup_step_sync": "Sync",
-  "@setup_step_sync": {"description": "Setup wizard step indicator: sync between devices"},
-  "setup_step_backups": "Backups",
-  "@setup_step_backups": {"description": "Setup wizard step indicator: automatic backups"},
-  "setup_step_photos": "Photos",
-  "@setup_step_photos": {"description": "Setup wizard step indicator: photo copies"}
+  "@setup_syncPull_startFresh": {"description": "First-run wizard: the account holds no library, so begin a new logbook"}
 }

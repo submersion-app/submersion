@@ -55333,16 +55333,4 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get setup_syncPull_startFresh => 'Új napló kezdése';
-
-  @override
-  String get setup_step_account => 'Fiók';
-
-  @override
-  String get setup_step_sync => 'Szinkronizálás';
-
-  @override
-  String get setup_step_backups => 'Mentések';
-
-  @override
-  String get setup_step_photos => 'Fotók';
 }

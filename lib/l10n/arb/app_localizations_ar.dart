@@ -56402,16 +56402,4 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get setup_syncPull_startFresh => 'بدء سجل جديد';
-
-  @override
-  String get setup_step_account => 'الحساب';
-
-  @override
-  String get setup_step_sync => 'المزامنة';
-
-  @override
-  String get setup_step_backups => 'النسخ الاحتياطية';
-
-  @override
-  String get setup_step_photos => 'الصور';
 }

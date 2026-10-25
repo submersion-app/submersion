@@ -52239,16 +52239,4 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get setup_syncPull_startFresh => '开始新的日志';
-
-  @override
-  String get setup_step_account => '账户';
-
-  @override
-  String get setup_step_sync => '同步';
-
-  @override
-  String get setup_step_backups => '备份';
-
-  @override
-  String get setup_step_photos => '照片';
 }

@@ -54770,16 +54770,4 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get setup_syncPull_startFresh => 'Start a new logbook';
-
-  @override
-  String get setup_step_account => 'Account';
-
-  @override
-  String get setup_step_sync => 'Sync';
-
-  @override
-  String get setup_step_backups => 'Backups';
-
-  @override
-  String get setup_step_photos => 'Photos';
 }

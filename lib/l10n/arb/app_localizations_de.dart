@@ -55525,16 +55525,4 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get setup_syncPull_startFresh => 'Neues Logbuch beginnen';
-
-  @override
-  String get setup_step_account => 'Konto';
-
-  @override
-  String get setup_step_sync => 'Sync';
-
-  @override
-  String get setup_step_backups => 'Sicherungen';
-
-  @override
-  String get setup_step_photos => 'Fotos';
 }

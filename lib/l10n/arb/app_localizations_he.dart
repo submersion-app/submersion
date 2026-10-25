@@ -54485,16 +54485,4 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get setup_syncPull_startFresh => 'התחלת יומן חדש';
-
-  @override
-  String get setup_step_account => 'חשבון';
-
-  @override
-  String get setup_step_sync => 'סנכרון';
-
-  @override
-  String get setup_step_backups => 'גיבויים';
-
-  @override
-  String get setup_step_photos => 'תמונות';
 }

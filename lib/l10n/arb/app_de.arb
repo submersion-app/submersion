@@ -16434,9 +16434,5 @@
   "settings_setUpDevice_done_title": "{device, select, phone{Dieses Telefon ist eingerichtet} tablet{Dieses Tablet ist eingerichtet} computer{Dieser Computer ist eingerichtet} other{Dieses Gerät ist eingerichtet}}",
   "settings_setUpDevice_done_otherDevices": "Öffnen Sie Submersion auf Ihren anderen Geräten, wählen Sie {account}, und dieselbe Bibliothek erscheint.",
   "settings_setUpDevice_sync_inStep": "Die Tauchgänge hier sind mit Ihrer Bibliothek in {account} abgeglichen.",
-  "setup_syncPull_startFresh": "Neues Logbuch beginnen",
-  "setup_step_account": "Konto",
-  "setup_step_sync": "Sync",
-  "setup_step_backups": "Sicherungen",
-  "setup_step_photos": "Fotos"
+  "setup_syncPull_startFresh": "Neues Logbuch beginnen"
 }

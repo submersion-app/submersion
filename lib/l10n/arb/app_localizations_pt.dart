@@ -55639,16 +55639,4 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get setup_syncPull_startFresh => 'Começar um novo registo';
-
-  @override
-  String get setup_step_account => 'Conta';
-
-  @override
-  String get setup_step_sync => 'Sincronização';
-
-  @override
-  String get setup_step_backups => 'Backups';
-
-  @override
-  String get setup_step_photos => 'Fotos';
 }

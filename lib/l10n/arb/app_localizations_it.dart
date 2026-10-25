@@ -55648,16 +55648,4 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get setup_syncPull_startFresh => 'Inizia un nuovo logbook';
-
-  @override
-  String get setup_step_account => 'Account';
-
-  @override
-  String get setup_step_sync => 'Sincronizzazione';
-
-  @override
-  String get setup_step_backups => 'Backup';
-
-  @override
-  String get setup_step_photos => 'Foto';
 }
