@@ -83,7 +83,7 @@ class ListScrubber extends StatefulWidget {
   static const reveal = Duration(milliseconds: 250);
 
   /// The column at the end edge where a hover shows the thumb, and the
-  /// thumb's hover target within it.
+  /// thumb's hover target within it; wider when the themed thumb is.
   static const gripWidth = 16.0;
 
   @override
@@ -102,6 +102,14 @@ class _ListScrubberState extends State<ListScrubber> {
 
   /// The pointer is over the end edge's column, which shows the thumb.
   bool _edgeHover = false;
+
+  /// A mouse is over the hover region, button held or not, so a drag that
+  /// ends there leaves the panel open.
+  bool _inside = false;
+
+  /// The edge column's width: [ListScrubber.gripWidth], or the themed
+  /// thumb's when that is wider.
+  double _grip = ListScrubber.gripWidth;
 
   /// Where the thumb and the hover region were last laid out, for placing a
   /// hover against them.
@@ -211,12 +219,13 @@ class _ListScrubberState extends State<ListScrubber> {
   /// and the thumb itself opens the panel, which then stays open until the
   /// pointer leaves the region.
   void _hover(PointerEvent event) {
+    _inside = true;
     if (event.down) return;
     final x = event.localPosition.dx;
     final fromEnd = Directionality.of(context) == TextDirection.rtl
         ? x
         : _regionWidth - x;
-    final edge = fromEnd <= ListScrubber.gripWidth;
+    final edge = fromEnd <= _grip;
     final y = event.localPosition.dy;
     final onThumb = edge && y >= _thumbTop && y <= _thumbTop + _thumbHeight;
     final hovering = _hovering || onThumb;
@@ -306,6 +315,10 @@ class _ListScrubberState extends State<ListScrubber> {
           ListScrubberThumbStyle.statesFor(active: true, dragging: false),
         );
         final thumbInset = hoverStyle.crossAxisMargin + hoverStyle.thickness;
+        _grip = math.max(
+          ListScrubber.gripWidth,
+          hoverStyle.thickness + hoverStyle.crossAxisMargin * 2,
+        );
         final labelColumn = _labelColumn(context, thumbInset);
         final highlight = widget.highlightSlot;
         final busy = widget.busyLabel;
@@ -391,6 +404,7 @@ class _ListScrubberState extends State<ListScrubber> {
                 onEnter: _hover,
                 onHover: _hover,
                 onExit: (_) {
+                  _inside = false;
                   if (_hovering || _edgeHover) {
                     setState(() {
                       _hovering = false;
@@ -541,6 +555,8 @@ class _ListScrubberState extends State<ListScrubber> {
     setState(() {
       _dragSlot = null;
       _lastSlot = clamped;
+      // A mouse released over the panel keeps it open, as a hover would.
+      if (_inside) _hovering = true;
     });
     _scheduleHide();
     widget.onScrubEnd(clamped);

@@ -927,4 +927,29 @@ void main() {
     expect(find.byKey(ListScrubberPanel.currentDetailKey), findsNothing);
     await tester.pump(ListScrubber.idleHide);
   });
+
+  testWidgets('a mouse drag released over the panel keeps it open', (
+    tester,
+  ) async {
+    await tester.pumpWidget(host());
+    await tester.drag(find.byType(ListView), const Offset(0, -10));
+    await tester.pump();
+    final thumb = tester.getRect(find.byKey(ListScrubber.thumbKey));
+    // In the thumb's hit box but outside the edge column.
+    final gesture = await tester.startGesture(
+      Offset(thumb.right - 30, thumb.center.dy),
+      kind: PointerDeviceKind.mouse,
+    );
+    await gesture.moveBy(const Offset(0, 100));
+    await tester.pumpAndSettle();
+    await gesture.up();
+    await tester.pumpAndSettle();
+    expect(panel(), findsOneWidget);
+
+    await gesture.moveTo(Offset.zero);
+    await tester.pumpAndSettle();
+    expect(panel(), findsNothing);
+    await gesture.removePointer();
+    await tester.pump(ListScrubber.idleHide);
+  });
 }

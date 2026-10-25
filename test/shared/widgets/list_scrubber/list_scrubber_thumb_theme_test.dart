@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/shared/widgets/list_scrubber/list_scrubber.dart';
@@ -219,5 +220,31 @@ void main() {
       await mouse.removePointer();
       await tester.pumpAndSettle(ListScrubber.idleHide);
     });
+  });
+
+  testWidgets('a wide themed handle can be hovered across its width', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      host(
+        ThemeData(
+          scrollbarTheme: const ScrollbarThemeData(
+            thickness: WidgetStatePropertyAll(14),
+            crossAxisMargin: 3,
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    final area = tester.getRect(find.byType(ListScrubber));
+    final thumb = tester.getRect(find.byKey(ListScrubber.thumbKey));
+    // Over the handle's start edge, past the default grip width.
+    final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+    await mouse.addPointer(location: Offset(area.right - 18, thumb.center.dy));
+    await tester.pumpAndSettle();
+    expect(find.byKey(ListScrubber.panelKey), findsOneWidget);
+    await mouse.removePointer();
+    await tester.pumpAndSettle();
+    await tester.pump(ListScrubber.idleHide);
   });
 }
