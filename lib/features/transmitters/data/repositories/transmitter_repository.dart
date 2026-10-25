@@ -24,9 +24,6 @@ class TransmitterConflictException implements Exception {
       'TransmitterConflictException: conflicts with ${existing.label}';
 }
 
-/// A serial seen on downloaded tanks that has no registry entry.
-typedef UnassignedTransmitterSerial = ({String serial, int diveCount});
-
 /// Outcome of [TransmitterRepository.applyToExistingDives].
 /// [mixesKept]: dives where a bailout entry changed the role but found no
 /// bailout mix to give the tank, so it kept the one it had (issue #3307).
@@ -353,38 +350,6 @@ class TransmitterRepository {
       }
     }
     return null;
-  }
-
-  /// Distinct normalized serials on the diver's downloaded tanks with no
-  /// registry entry, with how many dives each appears on. Rows whose serial
-  /// normalizes to null (blank, all zeros) are skipped.
-  Future<List<UnassignedTransmitterSerial>> getUnassignedSerials(
-    String? diverId,
-  ) async {
-    final known = Transmitter.knownSerials(await getForDiver(diverId));
-    final rows = await _db
-        .customSelect(
-          'SELECT dt.transmitter_serial AS serial, dt.dive_id AS dive_id '
-          'FROM dive_tanks dt JOIN dives d ON d.id = dt.dive_id '
-          'WHERE dt.transmitter_serial IS NOT NULL '
-          'AND (? IS NULL OR d.diver_id = ?)',
-          variables: [Variable<String>(diverId), Variable<String>(diverId)],
-          readsFrom: {_db.diveTanks, _db.dives},
-        )
-        .get();
-    final divesBySerial = <String, Set<String>>{};
-    for (final row in rows) {
-      final serial = normalizeTransmitterSerial(row.read<String>('serial'));
-      if (serial == null || known.contains(serial)) continue;
-      divesBySerial
-          .putIfAbsent(serial, () => {})
-          .add(row.read<String>('dive_id'));
-    }
-    final out = [
-      for (final e in divesBySerial.entries)
-        (serial: e.key, diveCount: e.value.length),
-    ]..sort((a, b) => a.serial.compareTo(b.serial));
-    return out;
   }
 
   /// How many distinct serials seen on [computerId]'s dives have an entry,

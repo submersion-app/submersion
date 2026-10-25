@@ -33837,6 +33837,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveComputer_list_findComputers => 'Számítógépek keresése';
 
   @override
+  String get diveComputer_list_addByHand => 'Add by hand';
+
+  @override
+  String get diveComputer_list_notConnected => 'Not connected yet';
+
+  @override
   String get diveComputer_list_helpBluetooth =>
       '- Bluetooth LE (legtöbb modern számítógép)';
 
@@ -51522,6 +51528,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get transmitters_empty =>
       'Még nincs jeladó. Adj hozzá egyet, vagy rendelj hozzá sorozatszámot a következő letöltés után.';
+
+  @override
+  String get transmitters_emptyItems =>
+      'No transmitters yet. A download that reads one adds it here, or add one by hand.';
 
   @override
   String get transmitters_noCylinder => 'No cylinder set up';

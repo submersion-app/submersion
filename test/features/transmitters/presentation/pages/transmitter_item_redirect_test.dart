@@ -30,7 +30,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          transmitterByIdProvider('tx1').overrideWith(
+          transmitterProvider('tx1').overrideWith(
             (ref) async => Transmitter(
               id: 'tx1',
               transmitterSerial: '4A21F',
@@ -40,7 +40,7 @@ void main() {
               updatedAt: DateTime(2026),
             ),
           ),
-          transmitterByIdProvider('gone').overrideWith((ref) async => null),
+          transmitterProvider('gone').overrideWith((ref) async => null),
         ],
         child: MaterialApp.router(
           routerConfig: router,

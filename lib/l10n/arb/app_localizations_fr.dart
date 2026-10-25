@@ -34120,6 +34120,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveComputer_list_findComputers => 'Rechercher des ordinateurs';
 
   @override
+  String get diveComputer_list_addByHand => 'Add by hand';
+
+  @override
+  String get diveComputer_list_notConnected => 'Not connected yet';
+
+  @override
   String get diveComputer_list_helpBluetooth =>
       '- Bluetooth LE (ordinateurs modernes)';
 
@@ -51920,6 +51926,10 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get transmitters_empty =>
       'Aucun émetteur pour le moment. Ajoutez-en un, ou associez un numéro de série après votre prochain téléchargement.';
+
+  @override
+  String get transmitters_emptyItems =>
+      'No transmitters yet. A download that reads one adds it here, or add one by hand.';
 
   @override
   String get transmitters_noCylinder => 'No cylinder set up';

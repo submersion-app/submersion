@@ -34010,6 +34010,12 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveComputer_list_findComputers => 'Buscar Computadores';
 
   @override
+  String get diveComputer_list_addByHand => 'Add by hand';
+
+  @override
+  String get diveComputer_list_notConnected => 'Not connected yet';
+
+  @override
   String get diveComputer_list_helpBluetooth =>
       '- Bluetooth LE (computadores mais recentes)';
 
@@ -51800,6 +51806,10 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get transmitters_empty =>
       'Ainda não há transmissores. Adicione um ou atribua um número de série após o próximo download.';
+
+  @override
+  String get transmitters_emptyItems =>
+      'No transmitters yet. A download that reads one adds it here, or add one by hand.';
 
   @override
   String get transmitters_noCylinder => 'No cylinder set up';

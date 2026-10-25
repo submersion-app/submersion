@@ -14,6 +14,16 @@ typedef ComputerItem = ({EquipmentItem item, List<DiveComputer> computers});
 /// A Transmitter item and the registry keys behind it (issue #3676).
 typedef TransmitterItem = ({EquipmentItem item, List<Transmitter> keys});
 
+/// Deletes a device's Equipment item, and with it the device (issue
+/// #3676). Returns false when the diver does not own the item. Its own
+/// provider so the lists' bulk delete can be tested without the notifier.
+final deviceItemDeleterProvider = Provider<Future<bool> Function(String)>(
+  (ref) =>
+      (itemId) => ref
+          .read(equipmentListNotifierProvider.notifier)
+          .deleteEquipment(itemId),
+);
+
 /// The Dive Computers list (issue #3676): every Dive Computer item the
 /// active diver has, whether discovered, imported or added by hand, except
 /// gear only wanted. Derived from the equipment and computer lists, so it

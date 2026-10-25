@@ -6,6 +6,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_computer_mer
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 
+import '../../../../helpers/computer_items_override.dart';
 import '../../../../helpers/test_app.dart';
 
 DiveComputer _makeComputer({
@@ -71,6 +72,7 @@ void main() {
       testApp(
         locale: const Locale('en'),
         overrides: [
+          computerItemsFromComputers,
           allDiveComputersProvider.overrideWith((ref) async => computers),
           diveComputerNotifierProvider.overrideWith((ref) => notifier),
           diveComputerMergeRepositoryProvider.overrideWithValue(

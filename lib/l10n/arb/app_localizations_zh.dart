@@ -32031,6 +32031,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveComputer_list_findComputers => '查找潜水电脑';
 
   @override
+  String get diveComputer_list_addByHand => 'Add by hand';
+
+  @override
+  String get diveComputer_list_notConnected => 'Not connected yet';
+
+  @override
   String get diveComputer_list_helpBluetooth => '• 低功耗蓝牙（大多数现代电脑）';
 
   @override
@@ -48587,6 +48593,10 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get transmitters_empty => '还没有发射器。添加一个，或在下次下载后分配序列号。';
+
+  @override
+  String get transmitters_emptyItems =>
+      'No transmitters yet. A download that reads one adds it here, or add one by hand.';
 
   @override
   String get transmitters_noCylinder => 'No cylinder set up';

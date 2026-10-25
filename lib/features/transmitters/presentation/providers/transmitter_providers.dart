@@ -45,17 +45,6 @@ Future<TransmitterMatcher> loadTransmitterMatcher(
   return TransmitterMatcher.fromEntries(entries);
 }
 
-/// One registry key, for the old edit route's forward to its item (issue
-/// #3676). Self-invalidates on registry changes.
-final transmitterByIdProvider = FutureProvider.family<Transmitter?, String>((
-  ref,
-  id,
-) async {
-  final repository = ref.watch(transmitterRepositoryProvider);
-  ref.invalidateSelfWhen(repository.watchTransmittersChanges());
-  return repository.getById(id);
-});
-
 /// The registry keys behind one Transmitter item (issue #3676), for its
 /// Transmitter section. Self-invalidates on registry changes.
 final transmittersForEquipmentProvider =
@@ -73,15 +62,6 @@ final transmittersProvider = FutureProvider<List<Transmitter>>((ref) async {
   ref.invalidateSelfWhen(repository.watchTransmittersChanges());
   return repository.getForDiver(diverId);
 });
-
-/// Serials seen on the diver's downloaded tanks that have no entry yet.
-final unassignedTransmitterSerialsProvider =
-    FutureProvider<List<UnassignedTransmitterSerial>>((ref) async {
-      final repository = ref.watch(transmitterRepositoryProvider);
-      final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
-      ref.invalidateSelfWhen(repository.watchUnassignedChanges());
-      return repository.getUnassignedSerials(diverId);
-    });
 
 final transmitterProvider = FutureProvider.family<Transmitter?, String>((
   ref,

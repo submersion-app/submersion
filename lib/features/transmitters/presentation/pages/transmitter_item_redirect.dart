@@ -15,7 +15,7 @@ class TransmitterItemRedirect extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final key = ref.watch(transmitterByIdProvider(transmitterId));
+    final key = ref.watch(transmitterProvider(transmitterId));
     final itemId = key.valueOrNull?.transmitterEquipmentId;
     if (itemId != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {

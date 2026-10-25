@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/core/constants/enums.dart';
+import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_computer/presentation/pages/device_list_page.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/device_item_providers.dart';
 
+import '../../../../helpers/computer_items_override.dart';
 import '../../../../helpers/bulk_delete_contract.dart';
 import '../../../../helpers/selection_contract.dart';
 import '../../../../helpers/test_app.dart';
@@ -34,6 +40,7 @@ void main() {
       ];
 
       final overrides = <dynamic>[
+        computerItemsFromComputers,
         _visibleComputersProvider.overrideWith((ref) => all),
         allDiveComputersProvider.overrideWith(
           (ref) async => ref.watch(_visibleComputersProvider),
@@ -64,20 +71,24 @@ void main() {
       );
     });
 
-    testWidgets('deletes every checked computer and reports the count', (
-      tester,
-    ) async {
-      final notifier = _CapturingComputerNotifier();
+    testWidgets('deletes every checked computer item and reports the count '
+        '(#3676)', (tester) async {
+      final deleted = <String>[];
       final widget = testApp(
         locale: const Locale('en'),
         overrides: [
+          computerItemsFromComputers,
           allDiveComputersProvider.overrideWith(
             (ref) async => [
               _makeComputer(id: 'c1', name: 'Aaa Perdix'),
               _makeComputer(id: 'c2', name: 'Bbb Teric'),
             ],
           ),
-          diveComputerNotifierProvider.overrideWith((ref) => notifier),
+          // Deleting the item deletes the computer behind it.
+          deviceItemDeleterProvider.overrideWithValue((id) async {
+            deleted.add(id);
+            return true;
+          }),
         ],
         child: const DeviceListPage(),
       );
@@ -89,7 +100,7 @@ void main() {
         expectedDeletedCount: 2,
       );
 
-      expect(notifier.deleted, ['c1', 'c2']);
+      expect(deleted, ['gear-c1', 'gear-c2']);
       expect(find.text('2 deleted'), findsOneWidget);
     });
 
@@ -99,6 +110,7 @@ void main() {
       await tester.pumpWidget(
         testApp(
           overrides: [
+            computerItemsFromComputers,
             allDiveComputersProvider.overrideWith(
               (ref) async => [_makeComputer(id: 'c1', name: 'Perdix')],
             ),
@@ -125,6 +137,7 @@ void main() {
         await tester.pumpWidget(
           testApp(
             overrides: [
+              computerItemsFromComputers,
               allDiveComputersProvider.overrideWith(
                 (ref) async => [
                   DiveComputer(
@@ -157,6 +170,81 @@ void main() {
     }
   });
 
+  group('DeviceListPage items (#3676)', () {
+    Widget listWith(List<ComputerItem> rows, {GoRouter? router}) {
+      final scope = ProviderScope(
+        overrides: [
+          computerItemsProvider.overrideWith((ref) async => rows),
+          allDiveComputersProvider.overrideWith((ref) async => const []),
+        ],
+        child: MaterialApp.router(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          routerConfig:
+              router ??
+              GoRouter(
+                routes: [
+                  GoRoute(path: '/', builder: (_, _) => const DeviceListPage()),
+                ],
+              ),
+        ),
+      );
+      return scope;
+    }
+
+    testWidgets('shows a hand-added computer item', (tester) async {
+      await tester.pumpWidget(
+        listWith(const [
+          (
+            item: EquipmentItem(
+              id: 'backup',
+              name: 'Backup gauge',
+              type: EquipmentType.computer,
+            ),
+            computers: <DiveComputer>[],
+          ),
+        ]),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Backup gauge'), findsOneWidget);
+      expect(find.text('Not connected yet'), findsOneWidget);
+      expect(find.byIcon(Icons.download), findsNothing);
+    });
+
+    testWidgets('tapping a computer opens its Equipment page', (tester) async {
+      final router = GoRouter(
+        routes: [
+          GoRoute(path: '/', builder: (_, _) => const DeviceListPage()),
+          GoRoute(
+            path: '/equipment/:id',
+            builder: (_, s) =>
+                Scaffold(body: Text('ITEM ${s.pathParameters['id']}')),
+          ),
+        ],
+      );
+      await tester.pumpWidget(
+        listWith([
+          (
+            item: const EquipmentItem(
+              id: 'gear-1',
+              name: 'Teric',
+              type: EquipmentType.computer,
+            ),
+            computers: [_makeComputer(id: 'c1', name: 'Teric')],
+          ),
+        ], router: router),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Teric').first);
+      await tester.pumpAndSettle();
+
+      expect(find.text('ITEM gear-1'), findsOneWidget);
+    });
+  });
+
   group('DeviceListPage help dialog', () {
     // Garmin has no libdivecomputer backend, so the help dialog must not list
     // it among the brands downloaded over Bluetooth or USB, and must say
@@ -165,6 +253,7 @@ void main() {
       await tester.pumpWidget(
         testApp(
           overrides: [
+            computerItemsFromComputers,
             allDiveComputersProvider.overrideWith((ref) async => const []),
           ],
           locale: locale,
@@ -209,19 +298,4 @@ void main() {
       );
     });
   });
-}
-
-/// Records the ids bulk delete reached the notifier with.
-class _CapturingComputerNotifier
-    extends StateNotifier<AsyncValue<List<DiveComputer>>>
-    implements DiveComputerNotifier {
-  _CapturingComputerNotifier() : super(const AsyncValue.data([]));
-
-  final deleted = <String>[];
-
-  @override
-  Future<void> delete(String id) async => deleted.add(id);
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => null;
 }

@@ -14,6 +14,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_compute
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
+import '../../../../helpers/computer_items_override.dart';
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
 
@@ -70,6 +71,7 @@ void main() {
   };
 
   List<dynamic> overrides() => [
+    computerItemsFromComputers,
     settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
     allDiveComputersProvider.overrideWith((ref) async => [file, ble]),
     allDiveComputerConnectionsProvider.overrideWith((ref) async => connections),

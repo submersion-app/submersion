@@ -169,22 +169,6 @@ void main() {
     expect(mine.map((t) => t.id), ['a']);
   });
 
-  test(
-    'getUnassignedSerials lists serials seen on dives with no entry',
-    () async {
-      await seedDiverAndDive();
-      await seedDiverAndDive(diveId: 'd2');
-      await seedTank(id: 'k1', diveId: 'd1', serial: '180777');
-      await seedTank(id: 'k2', diveId: 'd2', serial: '180777', order: 0);
-      await seedTank(id: 'k3', diveId: 'd2', serial: '109623', order: 1);
-      await seedTank(id: 'k4', diveId: 'd2', serial: '000000', order: 2);
-      await repo.create(_entry(serial: '109623'));
-
-      final unassigned = await repo.getUnassignedSerials('diver-1');
-      expect(unassigned, [(serial: '180777', diveCount: 2)]);
-    },
-  );
-
   test('serialCountsForComputer splits known from unassigned', () async {
     await seedDiverAndDive(computerId: 'c1');
     await seedTank(id: 'k1', diveId: 'd1', serial: '180777', computerId: 'c1');

@@ -53776,6 +53776,18 @@ abstract class AppLocalizations {
   /// **'Find Computers'**
   String get diveComputer_list_findComputers;
 
+  /// No description provided for @diveComputer_list_addByHand.
+  ///
+  /// In en, this message translates to:
+  /// **'Add by hand'**
+  String get diveComputer_list_addByHand;
+
+  /// No description provided for @diveComputer_list_notConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Not connected yet'**
+  String get diveComputer_list_notConnected;
+
   /// No description provided for @diveComputer_list_helpBluetooth.
   ///
   /// In en, this message translates to:
@@ -82070,6 +82082,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No transmitters yet. Add one, or assign a serial after your next download.'**
   String get transmitters_empty;
+
+  /// No description provided for @transmitters_emptyItems.
+  ///
+  /// In en, this message translates to:
+  /// **'No transmitters yet. A download that reads one adds it here, or add one by hand.'**
+  String get transmitters_emptyItems;
 
   /// No description provided for @transmitters_noCylinder.
   ///
