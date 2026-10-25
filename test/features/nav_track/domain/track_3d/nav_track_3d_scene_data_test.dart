@@ -25,8 +25,8 @@ NavTrackPoint _p({
 NavTrack _route(List<NavTrackPoint> points) => NavTrack(
   id: 'r1',
   source: NavTrackSource.seacraftEnc,
-  startTime: points.first.timestamp * 1000,
-  endTime: points.last.timestamp * 1000,
+  startTime: points.isEmpty ? 0 : points.first.timestamp * 1000,
+  endTime: points.isEmpty ? 0 : points.last.timestamp * 1000,
   pointCount: points.length,
   points: points,
   createdAt: DateTime(2026),
@@ -76,6 +76,12 @@ void main() {
       final data = NavTrack3dSceneData.fromRoute(_route(points));
       expect(data.times.length, 5);
       expect(data.times.last, 80);
+    });
+
+    test('an empty route returns empty series, not a RangeError', () {
+      final data = NavTrack3dSceneData.fromRoute(_route([]));
+      expect(data.times, isEmpty);
+      expect(data.hasProfile, isFalse);
     });
 
     test('hasProfile is false for fewer than two active samples', () {
