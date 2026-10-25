@@ -14348,11 +14348,11 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_deleteDialog_content_computer =>
-      'Delete this dive computer? Its download history goes with it, so the next download from it reads every dive again. Your dives stay. Connecting the computer again adds it back.';
+      'למחוק את מחשב הצלילה הזה? היסטוריית ההורדות שלו תימחק יחד איתו, כך שההורדה הבאה ממנו תקרא שוב את כל הצלילות. הצלילות שלך נשמרות. חיבור המחשב מחדש יוסיף אותו שוב.';
 
   @override
   String get equipment_deleteDialog_content_transmitter =>
-      'Delete this transmitter? Its cylinder setup goes with it. A later download that carries its serial adds it back. To keep it out of the way instead, mark it Retired.';
+      'למחוק את המשדר הזה? הגדרת המיכל שלו תימחק יחד איתו. הורדה מאוחרת יותר שמכילה את המספר הסידורי שלו תוסיף אותו שוב. כדי להזיז אותו הצידה במקום זאת, סמן אותו כהוצא משימוש.';
 
   @override
   String get equipment_deleteDialog_title => 'מחק ציוד';
@@ -15177,7 +15177,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_edit_typeLockedHelper =>
-      'A connected dive computer or transmitter keeps its type.';
+      'מחשב צלילה או משדר מחוברים שומרים על הסוג שלהם.';
 
   @override
   String get equipment_edit_useCustomReminders => 'השתמש בתזכורות מותאמות';
@@ -32902,34 +32902,17 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveComputer_connections_cloudOther => 'ייבוא מהענן';
 
   @override
-  String diveComputer_detail_deleteDialogContent(String name) {
-    return 'האם אתה בטוח שברצונך להסיר את \"$name\"? פעולה זו לא תמחק צלילות שיובאו ממחשב זה.';
-  }
-
-  @override
-  String get diveComputer_detail_deleteDialogTitle => 'למחוק את המחשב?';
-
-  @override
   String get diveComputer_detail_divesImported => 'צלילות שיובאו';
 
   @override
   String get diveComputer_detail_downloadDivesButton => 'הורד צלילות';
 
   @override
-  String get diveComputer_section_connect => 'Connect and download';
+  String get diveComputer_section_connect => 'חבר והורד';
 
   @override
   String get diveComputer_section_notConnected =>
-      'This computer has not been connected yet. Connect it to download its dives.';
-
-  @override
-  String get diveComputer_detail_editDialogTitle => 'ערוך מחשב';
-
-  @override
-  String get diveComputer_detail_editNameHint => 'לדוגמה, ה-Perdix שלי';
-
-  @override
-  String get diveComputer_detail_editNotesHint => 'הערות אופציונליות';
+      'מחשב זה עדיין לא חובר. חבר אותו כדי להוריד את הצלילות שלו.';
 
   @override
   String get diveComputer_detail_labelManufacturer => 'יצרן';
@@ -32938,16 +32921,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveComputer_detail_labelModel => 'דגם';
 
   @override
-  String get diveComputer_detail_labelName => 'שם';
-
-  @override
   String get diveComputer_detail_lastDownload => 'הורדה אחרונה';
-
-  @override
-  String get diveComputer_detail_linkedGear => 'פריט ציוד';
-
-  @override
-  String get diveComputer_detail_notesTitle => 'הערות';
 
   @override
   String get diveComputer_detail_reimportAllButton => 'ייבא מחדש את כל הצלילות';
@@ -33182,10 +33156,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveComputer_list_findComputers => 'חפש מחשבים';
 
   @override
-  String get diveComputer_list_addByHand => 'Add by hand';
+  String get diveComputer_list_addByHand => 'הוסף ידנית';
 
   @override
-  String get diveComputer_list_notConnected => 'Not connected yet';
+  String get diveComputer_list_notConnected => 'עדיין לא חובר';
 
   @override
   String get diveComputer_list_helpBluetooth =>
@@ -50475,7 +50449,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveComputer_merge_gearNote =>
-      'Each other record\'s Equipment item stays, with its service history. Delete it from Equipment if you no longer need it.';
+      'פריט הציוד של כל רשומה אחרת נשמר, יחד עם היסטוריית השירות שלו. מחק אותו מהציוד אם אינך צריך אותו עוד.';
 
   @override
   String get diveComputer_merge_keepLabel => 'לשמור רשומה זו';
@@ -50701,40 +50675,21 @@ class AppLocalizationsHe extends AppLocalizations {
   String get transmitters_add => 'הוספת משדר';
 
   @override
-  String get transmitters_header_assigned => 'משדרים משויכים';
-
-  @override
-  String get transmitters_header_unassigned => 'נראו בהורדות, לא משויכים';
-
-  @override
-  String get transmitters_empty =>
-      'אין משדרים עדיין. הוסיפו אחד, או שייכו מספר סידורי אחרי ההורדה הבאה.';
-
-  @override
   String get transmitters_emptyItems =>
-      'No transmitters yet. A download that reads one adds it here, or add one by hand.';
+      'עדיין אין משדרים. הורדה שקוראת משדר תוסיף אותו כאן, או הוסף משדר ידנית.';
 
   @override
-  String get transmitters_noCylinder => 'No cylinder set up';
+  String get transmitters_noCylinder => 'לא הוגדר מיכל';
 
   @override
   String get transmitters_section_noKey =>
-      'No serial or channel yet. Add the one your dive computer reports for this transmitter.';
+      'עדיין אין מספר סידורי או ערוץ. הוסף את מה שמחשב הצלילה שלך מדווח עבור משדר זה.';
 
   @override
-  String get transmitters_section_addKey => 'Add serial or channel';
+  String get transmitters_section_addKey => 'הוסף מספר סידורי או ערוץ';
 
   @override
-  String get transmitters_section_setUp => 'Set up';
-
-  @override
-  String get transmitters_action_assign => 'שיוך';
-
-  @override
-  String get transmitters_action_edit => 'עריכת משדר';
-
-  @override
-  String get transmitters_action_delete => 'מחיקת משדר';
+  String get transmitters_section_setUp => 'הגדר';
 
   @override
   String get transmitters_action_apply => 'החלה על צלילות קיימות';
@@ -50756,14 +50711,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get transmitters_apply_nothing => 'אף מיכל אינו נושא משדר זה';
 
   @override
-  String get transmitters_delete_title => 'למחוק את המשדר?';
-
-  @override
-  String transmitters_delete_content(String label) {
-    return 'הורדות עתידיות מ-$label ישתמשו שוב בהגדרה המוגדרת כברירת מחדל.';
-  }
-
-  @override
   String transmitters_channel(String computer, int channel) {
     return '$computer, ערוץ $channel';
   }
@@ -50774,28 +50721,10 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String transmitters_dives(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count צלילות',
-      one: 'צלילה אחת',
-    );
-    return '$_temp0';
-  }
-
-  @override
   String get transmitters_edit_title => 'עריכת משדר';
 
   @override
   String get transmitters_new_title => 'משדר חדש';
-
-  @override
-  String get transmitters_field_label => 'תווית';
-
-  @override
-  String get transmitters_field_label_helper =>
-      'הופך לשם המיכל בצלילה ברגע שהמשדר הזה משויך';
 
   @override
   String get transmitters_field_serial => 'מספר סידורי של המשדר';
@@ -50816,13 +50745,6 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get transmitters_field_gear_subtitle =>
       'המיכל שעבורו משדר זה מדווח על הלחץ';
-
-  @override
-  String get transmitters_field_transmitterGear => 'משדר מהציוד';
-
-  @override
-  String get transmitters_field_transmitterGear_subtitle =>
-      'מעקב סוללה/תחזוקה, לא משמש להתאמה';
 
   @override
   String get transmitters_field_material => 'חומר';
@@ -50848,16 +50770,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get transmitters_saved => 'המשדר נשמר';
-
-  @override
-  String transmitters_copySerial_title(String gearName) {
-    return 'להעתיק את המספר הסידורי אל \"$gearName\"?';
-  }
-
-  @override
-  String transmitters_copySerial_content(String serial) {
-    return 'המספר הסידורי שעליו רשומה זו מתאימה ($serial) אינו רשום עדיין בפריט הציוד של המשדר.';
-  }
 
   @override
   String get diveComputer_detail_transmitters => 'משדרים';
@@ -50925,15 +50837,15 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get universalImport_summary_noticeDeviceOtherItemTitle =>
-      'This computer is already in Equipment';
+      'מחשב זה כבר נמצא בציוד';
 
   @override
   String get universalImport_summary_noticeDeviceOtherItemBody =>
-      'The computer you connected is already another Equipment item, so its dives were added there. The item you started from was left as it was.';
+      'המחשב שחיברת הוא כבר פריט ציוד אחר, ולכן הצלילות שלו נוספו לשם. הפריט שממנו התחלת נשאר כפי שהיה.';
 
   @override
   String get universalImport_summary_noticeDeviceOtherItemAction =>
-      'Open that item';
+      'פתח את הפריט הזה';
 
   @override
   String get universalImport_summary_noticeDiveNumberConflictTitle =>

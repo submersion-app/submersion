@@ -33168,14 +33168,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveComputer_connections_cloudOther => 'Cloud import';
 
   @override
-  String diveComputer_detail_deleteDialogContent(String name) {
-    return 'Are you sure you want to remove \"$name\"? This will not delete any dives that were imported from this computer.';
-  }
-
-  @override
-  String get diveComputer_detail_deleteDialogTitle => 'Delete Computer?';
-
-  @override
   String get diveComputer_detail_divesImported => 'Dives Imported';
 
   @override
@@ -33189,31 +33181,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'This computer has not been connected yet. Connect it to download its dives.';
 
   @override
-  String get diveComputer_detail_editDialogTitle => 'Edit Computer';
-
-  @override
-  String get diveComputer_detail_editNameHint => 'e.g., My Perdix';
-
-  @override
-  String get diveComputer_detail_editNotesHint => 'Optional notes';
-
-  @override
   String get diveComputer_detail_labelManufacturer => 'Manufacturer';
 
   @override
   String get diveComputer_detail_labelModel => 'Model';
 
   @override
-  String get diveComputer_detail_labelName => 'Name';
-
-  @override
   String get diveComputer_detail_lastDownload => 'Last Download';
-
-  @override
-  String get diveComputer_detail_linkedGear => 'Gear item';
-
-  @override
-  String get diveComputer_detail_notesTitle => 'Notes';
 
   @override
   String get diveComputer_detail_reimportAllButton => 'Re-import all dives';
@@ -50986,17 +50960,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get transmitters_add => 'Add transmitter';
 
   @override
-  String get transmitters_header_assigned => 'Assigned transmitters';
-
-  @override
-  String get transmitters_header_unassigned =>
-      'Seen in downloads, not assigned';
-
-  @override
-  String get transmitters_empty =>
-      'No transmitters yet. Add one, or assign a serial after your next download.';
-
-  @override
   String get transmitters_emptyItems =>
       'No transmitters yet. A download that reads one adds it here, or add one by hand.';
 
@@ -51012,15 +50975,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get transmitters_section_setUp => 'Set up';
-
-  @override
-  String get transmitters_action_assign => 'Assign';
-
-  @override
-  String get transmitters_action_edit => 'Edit transmitter';
-
-  @override
-  String get transmitters_action_delete => 'Delete transmitter';
 
   @override
   String get transmitters_action_apply => 'Apply to existing dives';
@@ -51043,14 +50997,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'No cylinders carry this transmitter';
 
   @override
-  String get transmitters_delete_title => 'Delete transmitter?';
-
-  @override
-  String transmitters_delete_content(String label) {
-    return 'Future downloads from $label will use the default preset again.';
-  }
-
-  @override
   String transmitters_channel(String computer, int channel) {
     return '$computer, channel $channel';
   }
@@ -51061,28 +51007,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String transmitters_dives(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count dives',
-      one: '1 dive',
-    );
-    return '$_temp0';
-  }
-
-  @override
   String get transmitters_edit_title => 'Edit transmitter';
 
   @override
   String get transmitters_new_title => 'New transmitter';
-
-  @override
-  String get transmitters_field_label => 'Label';
-
-  @override
-  String get transmitters_field_label_helper =>
-      'Becomes the cylinder\'s name on the dive once this transmitter is matched';
 
   @override
   String get transmitters_field_serial => 'Transmitter serial';
@@ -51103,13 +51031,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get transmitters_field_gear_subtitle =>
       'The cylinder this transmitter reports pressure for';
-
-  @override
-  String get transmitters_field_transmitterGear => 'Transmitter from gear';
-
-  @override
-  String get transmitters_field_transmitterGear_subtitle =>
-      'Battery/service tracking, not matching';
 
   @override
   String get transmitters_field_material => 'Material';
@@ -51136,16 +51057,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get transmitters_saved => 'Transmitter saved';
-
-  @override
-  String transmitters_copySerial_title(String gearName) {
-    return 'Copy the serial to \"$gearName\"?';
-  }
-
-  @override
-  String transmitters_copySerial_content(String serial) {
-    return 'The serial this entry matches on ($serial) is not recorded on the transmitter gear item yet.';
-  }
 
   @override
   String get diveComputer_detail_transmitters => 'Transmitters';

@@ -14852,11 +14852,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get equipment_deleteDialog_content_computer =>
-      'Delete this dive computer? Its download history goes with it, so the next download from it reads every dive again. Your dives stay. Connecting the computer again adds it back.';
+      'هل تريد حذف حاسوب الغوص هذا؟ يُحذف معه سجل التنزيل، لذا سيقرأ التنزيل التالي منه كل الغطسات من جديد. تبقى غطساتك. توصيل الكمبيوتر مرة أخرى يعيد إضافته.';
 
   @override
   String get equipment_deleteDialog_content_transmitter =>
-      'Delete this transmitter? Its cylinder setup goes with it. A later download that carries its serial adds it back. To keep it out of the way instead, mark it Retired.';
+      'هل تريد حذف جهاز الإرسال هذا؟ يُحذف معه إعداد الأسطوانة. أي تنزيل لاحق يحمل رقمه التسلسلي يعيد إضافته. لإبعاده دون حذفه، ضع عليه حالة متقاعد.';
 
   @override
   String get equipment_deleteDialog_title => 'حذف المعدات';
@@ -15713,7 +15713,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get equipment_edit_typeLockedHelper =>
-      'A connected dive computer or transmitter keeps its type.';
+      'يحتفظ حاسوب الغوص أو جهاز الإرسال المتصل بنوعه.';
 
   @override
   String get equipment_edit_useCustomReminders => 'استخدام تذكيرات مخصصة';
@@ -34151,34 +34151,17 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveComputer_connections_cloudOther => 'استيراد من السحابة';
 
   @override
-  String diveComputer_detail_deleteDialogContent(String name) {
-    return 'هل تريد حقا إزالة \"$name\"؟ لن يؤدي هذا إلى حذف أي غطسات تم استيرادها من هذا الكمبيوتر.';
-  }
-
-  @override
-  String get diveComputer_detail_deleteDialogTitle => 'حذف الكمبيوتر؟';
-
-  @override
   String get diveComputer_detail_divesImported => 'الغطسات المستوردة';
 
   @override
   String get diveComputer_detail_downloadDivesButton => 'تنزيل الغطسات';
 
   @override
-  String get diveComputer_section_connect => 'Connect and download';
+  String get diveComputer_section_connect => 'الاتصال والتنزيل';
 
   @override
   String get diveComputer_section_notConnected =>
-      'This computer has not been connected yet. Connect it to download its dives.';
-
-  @override
-  String get diveComputer_detail_editDialogTitle => 'تعديل الكمبيوتر';
-
-  @override
-  String get diveComputer_detail_editNameHint => 'مثال: Perdix الخاص بي';
-
-  @override
-  String get diveComputer_detail_editNotesHint => 'ملاحظات اختيارية';
+      'لم يتم توصيل هذا الكمبيوتر بعد. وصّله لتنزيل غطساته.';
 
   @override
   String get diveComputer_detail_labelManufacturer => 'الشركة المصنعة';
@@ -34187,16 +34170,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveComputer_detail_labelModel => 'الطراز';
 
   @override
-  String get diveComputer_detail_labelName => 'الاسم';
-
-  @override
   String get diveComputer_detail_lastDownload => 'آخر تنزيل';
-
-  @override
-  String get diveComputer_detail_linkedGear => 'قطعة المعدات';
-
-  @override
-  String get diveComputer_detail_notesTitle => 'الملاحظات';
 
   @override
   String get diveComputer_detail_reimportAllButton =>
@@ -34438,10 +34412,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveComputer_list_findComputers => 'البحث عن كمبيوترات';
 
   @override
-  String get diveComputer_list_addByHand => 'Add by hand';
+  String get diveComputer_list_addByHand => 'إضافة يدويًا';
 
   @override
-  String get diveComputer_list_notConnected => 'Not connected yet';
+  String get diveComputer_list_notConnected => 'لم يتم الاتصال بعد';
 
   @override
   String get diveComputer_list_helpBluetooth =>
@@ -52191,7 +52165,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveComputer_merge_gearNote =>
-      'Each other record\'s Equipment item stays, with its service history. Delete it from Equipment if you no longer need it.';
+      'يبقى عنصر المعدات الخاص بكل سجل آخر، مع سجل صيانته. احذفه من المعدات إذا لم تعد بحاجة إليه.';
 
   @override
   String get diveComputer_merge_keepLabel => 'الاحتفاظ بهذا السجل';
@@ -52437,40 +52411,21 @@ class AppLocalizationsAr extends AppLocalizations {
   String get transmitters_add => 'إضافة جهاز إرسال';
 
   @override
-  String get transmitters_header_assigned => 'أجهزة إرسال معيّنة';
-
-  @override
-  String get transmitters_header_unassigned => 'ظهرت في التنزيلات ولم تُعيّن';
-
-  @override
-  String get transmitters_empty =>
-      'لا توجد أجهزة إرسال بعد. أضف واحدًا، أو عيّن رقمًا تسلسليًا بعد التنزيل التالي.';
-
-  @override
   String get transmitters_emptyItems =>
-      'No transmitters yet. A download that reads one adds it here, or add one by hand.';
+      'لا توجد أجهزة إرسال بعد. أي تنزيل يقرأ جهازًا منها يضيفه هنا، أو أضف واحدًا يدويًا.';
 
   @override
-  String get transmitters_noCylinder => 'No cylinder set up';
+  String get transmitters_noCylinder => 'لم يتم إعداد أسطوانة';
 
   @override
   String get transmitters_section_noKey =>
-      'No serial or channel yet. Add the one your dive computer reports for this transmitter.';
+      'لا يوجد رقم تسلسلي أو قناة بعد. أضف ما يعرضه حاسوب الغوص لجهاز الإرسال هذا.';
 
   @override
-  String get transmitters_section_addKey => 'Add serial or channel';
+  String get transmitters_section_addKey => 'إضافة رقم تسلسلي أو قناة';
 
   @override
-  String get transmitters_section_setUp => 'Set up';
-
-  @override
-  String get transmitters_action_assign => 'تعيين';
-
-  @override
-  String get transmitters_action_edit => 'تعديل جهاز الإرسال';
-
-  @override
-  String get transmitters_action_delete => 'حذف جهاز الإرسال';
+  String get transmitters_section_setUp => 'إعداد';
 
   @override
   String get transmitters_action_apply => 'تطبيق على الغطسات الحالية';
@@ -52493,14 +52448,6 @@ class AppLocalizationsAr extends AppLocalizations {
       'لا توجد أسطوانة تحمل جهاز الإرسال هذا';
 
   @override
-  String get transmitters_delete_title => 'حذف جهاز الإرسال؟';
-
-  @override
-  String transmitters_delete_content(String label) {
-    return 'ستستخدم التنزيلات القادمة من $label الإعداد الافتراضي مجددًا.';
-  }
-
-  @override
   String transmitters_channel(String computer, int channel) {
     return '$computer، القناة $channel';
   }
@@ -52511,31 +52458,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String transmitters_dives(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count غطسة',
-      many: '$count غطسة',
-      few: '$count غطسات',
-      two: 'غطستان',
-      one: 'غطسة واحدة',
-    );
-    return '$_temp0';
-  }
-
-  @override
   String get transmitters_edit_title => 'تعديل جهاز الإرسال';
 
   @override
   String get transmitters_new_title => 'جهاز إرسال جديد';
-
-  @override
-  String get transmitters_field_label => 'التسمية';
-
-  @override
-  String get transmitters_field_label_helper =>
-      'يصبح اسم الأسطوانة في الغطسة بمجرد مطابقة جهاز الإرسال هذا';
 
   @override
   String get transmitters_field_serial => 'الرقم التسلسلي لجهاز الإرسال';
@@ -52556,13 +52482,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get transmitters_field_gear_subtitle =>
       'الأسطوانة التي يبلغ جهاز الإرسال هذا عن ضغطها';
-
-  @override
-  String get transmitters_field_transmitterGear => 'جهاز إرسال من المعدات';
-
-  @override
-  String get transmitters_field_transmitterGear_subtitle =>
-      'تتبع البطارية/الصيانة، لا يُستخدم للمطابقة';
 
   @override
   String get transmitters_field_material => 'المادة';
@@ -52588,16 +52507,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get transmitters_saved => 'تم حفظ جهاز الإرسال';
-
-  @override
-  String transmitters_copySerial_title(String gearName) {
-    return 'نسخ الرقم التسلسلي إلى \"$gearName\"؟';
-  }
-
-  @override
-  String transmitters_copySerial_content(String serial) {
-    return 'الرقم التسلسلي الذي يطابقه هذا الإدخال ($serial) غير مسجَّل بعد على عنصر معدات جهاز الإرسال.';
-  }
 
   @override
   String get diveComputer_detail_transmitters => 'أجهزة الإرسال';
@@ -52669,15 +52578,15 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get universalImport_summary_noticeDeviceOtherItemTitle =>
-      'This computer is already in Equipment';
+      'هذا الكمبيوتر موجود بالفعل في المعدات';
 
   @override
   String get universalImport_summary_noticeDeviceOtherItemBody =>
-      'The computer you connected is already another Equipment item, so its dives were added there. The item you started from was left as it was.';
+      'الكمبيوتر الذي وصّلته هو بالفعل عنصر آخر في المعدات، لذا أُضيفت غطساته إليه. وبقي العنصر الذي بدأت منه كما هو.';
 
   @override
   String get universalImport_summary_noticeDeviceOtherItemAction =>
-      'Open that item';
+      'فتح ذلك العنصر';
 
   @override
   String get universalImport_summary_noticeDiveNumberConflictTitle =>

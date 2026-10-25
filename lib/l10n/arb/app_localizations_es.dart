@@ -14641,11 +14641,11 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get equipment_deleteDialog_content_computer =>
-      'Delete this dive computer? Its download history goes with it, so the next download from it reads every dive again. Your dives stay. Connecting the computer again adds it back.';
+      '¿Eliminar este ordenador de buceo? Su historial de descargas se elimina con él, así que la próxima descarga leerá de nuevo todas las inmersiones. Tus inmersiones se conservan. Si vuelves a conectar el ordenador, se añadirá de nuevo.';
 
   @override
   String get equipment_deleteDialog_content_transmitter =>
-      'Delete this transmitter? Its cylinder setup goes with it. A later download that carries its serial adds it back. To keep it out of the way instead, mark it Retired.';
+      '¿Eliminar este transmisor? Su configuración de botella se elimina con él. Una descarga posterior que incluya su número de serie lo volverá a añadir. Para apartarlo sin eliminarlo, márcalo como Retirado.';
 
   @override
   String get equipment_deleteDialog_title => 'Eliminar equipo';
@@ -15482,7 +15482,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get equipment_edit_typeLockedHelper =>
-      'A connected dive computer or transmitter keeps its type.';
+      'Un ordenador de buceo o transmisor conectado conserva su tipo.';
 
   @override
   String get equipment_edit_useCustomReminders =>
@@ -33754,34 +33754,17 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveComputer_connections_cloudOther => 'Importación desde la nube';
 
   @override
-  String diveComputer_detail_deleteDialogContent(String name) {
-    return 'Seguro que quieres eliminar \"$name\"? Esto no borrará las inmersiones importadas desde este ordenador.';
-  }
-
-  @override
-  String get diveComputer_detail_deleteDialogTitle => 'Eliminar ordenador?';
-
-  @override
   String get diveComputer_detail_divesImported => 'Inmersiones importadas';
 
   @override
   String get diveComputer_detail_downloadDivesButton => 'Descargar inmersiones';
 
   @override
-  String get diveComputer_section_connect => 'Connect and download';
+  String get diveComputer_section_connect => 'Conectar y descargar';
 
   @override
   String get diveComputer_section_notConnected =>
-      'This computer has not been connected yet. Connect it to download its dives.';
-
-  @override
-  String get diveComputer_detail_editDialogTitle => 'Editar ordenador';
-
-  @override
-  String get diveComputer_detail_editNameHint => 'Por ejemplo, Mi Perdix';
-
-  @override
-  String get diveComputer_detail_editNotesHint => 'Notas opcionales';
+      'Este ordenador aún no se ha conectado. Conéctalo para descargar sus inmersiones.';
 
   @override
   String get diveComputer_detail_labelManufacturer => 'Fabricante';
@@ -33790,16 +33773,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveComputer_detail_labelModel => 'Modelo';
 
   @override
-  String get diveComputer_detail_labelName => 'Nombre';
-
-  @override
   String get diveComputer_detail_lastDownload => 'Última descarga';
-
-  @override
-  String get diveComputer_detail_linkedGear => 'Equipo';
-
-  @override
-  String get diveComputer_detail_notesTitle => 'Notas';
 
   @override
   String get diveComputer_detail_reimportAllButton =>
@@ -34045,10 +34019,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveComputer_list_findComputers => 'Buscar ordenadores';
 
   @override
-  String get diveComputer_list_addByHand => 'Add by hand';
+  String get diveComputer_list_addByHand => 'Añadir a mano';
 
   @override
-  String get diveComputer_list_notConnected => 'Not connected yet';
+  String get diveComputer_list_notConnected => 'Aún no conectado';
 
   @override
   String get diveComputer_list_helpBluetooth =>
@@ -51620,7 +51594,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveComputer_merge_gearNote =>
-      'Each other record\'s Equipment item stays, with its service history. Delete it from Equipment if you no longer need it.';
+      'El elemento de Equipo de cada uno de los otros registros se conserva, con su historial de mantenimiento. Elimínalo desde Equipo si ya no lo necesitas.';
 
   @override
   String get diveComputer_merge_keepLabel => 'Conservar este registro';
@@ -51850,41 +51824,21 @@ class AppLocalizationsEs extends AppLocalizations {
   String get transmitters_add => 'Añadir transmisor';
 
   @override
-  String get transmitters_header_assigned => 'Transmisores asignados';
-
-  @override
-  String get transmitters_header_unassigned =>
-      'Vistos en descargas, sin asignar';
-
-  @override
-  String get transmitters_empty =>
-      'Aún no hay transmisores. Añade uno o asigna un número de serie tras tu próxima descarga.';
-
-  @override
   String get transmitters_emptyItems =>
-      'No transmitters yet. A download that reads one adds it here, or add one by hand.';
+      'Aún no hay transmisores. Una descarga que lea uno lo añadirá aquí, o añade uno a mano.';
 
   @override
-  String get transmitters_noCylinder => 'No cylinder set up';
+  String get transmitters_noCylinder => 'Ninguna botella configurada';
 
   @override
   String get transmitters_section_noKey =>
-      'No serial or channel yet. Add the one your dive computer reports for this transmitter.';
+      'Aún no hay número de serie ni canal. Añade el que tu ordenador de buceo indica para este transmisor.';
 
   @override
-  String get transmitters_section_addKey => 'Add serial or channel';
+  String get transmitters_section_addKey => 'Añadir número de serie o canal';
 
   @override
-  String get transmitters_section_setUp => 'Set up';
-
-  @override
-  String get transmitters_action_assign => 'Asignar';
-
-  @override
-  String get transmitters_action_edit => 'Editar transmisor';
-
-  @override
-  String get transmitters_action_delete => 'Eliminar transmisor';
+  String get transmitters_section_setUp => 'Configurar';
 
   @override
   String get transmitters_action_apply => 'Aplicar a inmersiones existentes';
@@ -51907,14 +51861,6 @@ class AppLocalizationsEs extends AppLocalizations {
       'Ninguna botella lleva este transmisor';
 
   @override
-  String get transmitters_delete_title => '¿Eliminar transmisor?';
-
-  @override
-  String transmitters_delete_content(String label) {
-    return 'Las próximas descargas de $label volverán a usar el preajuste predeterminado.';
-  }
-
-  @override
   String transmitters_channel(String computer, int channel) {
     return '$computer, canal $channel';
   }
@@ -51925,28 +51871,10 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String transmitters_dives(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count inmersiones',
-      one: '1 inmersión',
-    );
-    return '$_temp0';
-  }
-
-  @override
   String get transmitters_edit_title => 'Editar transmisor';
 
   @override
   String get transmitters_new_title => 'Nuevo transmisor';
-
-  @override
-  String get transmitters_field_label => 'Etiqueta';
-
-  @override
-  String get transmitters_field_label_helper =>
-      'Se convierte en el nombre de la botella en la inmersión una vez que este transmisor coincide';
 
   @override
   String get transmitters_field_serial => 'Número de serie del transmisor';
@@ -51967,13 +51895,6 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get transmitters_field_gear_subtitle =>
       'La botella cuya presión reporta este transmisor';
-
-  @override
-  String get transmitters_field_transmitterGear => 'Transmisor del equipo';
-
-  @override
-  String get transmitters_field_transmitterGear_subtitle =>
-      'Seguimiento de batería/mantenimiento, no para la coincidencia';
 
   @override
   String get transmitters_field_material => 'Material';
@@ -52000,16 +51921,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get transmitters_saved => 'Transmisor guardado';
-
-  @override
-  String transmitters_copySerial_title(String gearName) {
-    return '¿Copiar el número de serie a \"$gearName\"?';
-  }
-
-  @override
-  String transmitters_copySerial_content(String serial) {
-    return 'El número de serie con el que coincide esta entrada ($serial) aún no está registrado en el artículo de equipo del transmisor.';
-  }
 
   @override
   String get diveComputer_detail_transmitters => 'Transmisores';
@@ -52078,15 +51989,15 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get universalImport_summary_noticeDeviceOtherItemTitle =>
-      'This computer is already in Equipment';
+      'Este ordenador ya está en Equipo';
 
   @override
   String get universalImport_summary_noticeDeviceOtherItemBody =>
-      'The computer you connected is already another Equipment item, so its dives were added there. The item you started from was left as it was.';
+      'El ordenador que conectaste ya es otro elemento de Equipo, así que sus inmersiones se añadieron allí. El elemento desde el que empezaste se dejó como estaba.';
 
   @override
   String get universalImport_summary_noticeDeviceOtherItemAction =>
-      'Open that item';
+      'Abrir ese elemento';
 
   @override
   String get universalImport_summary_noticeDiveNumberConflictTitle =>
