@@ -452,14 +452,23 @@ void main() {
       tester.getCenter(find.byKey(ListScrubber.thumbKey)),
       kind: PointerDeviceKind.mouse,
     );
-    await gesture.moveBy(const Offset(0, 1));
+    // Past the mouse's drag slop, so the drag has started.
+    await gesture.moveBy(const Offset(0, 4));
     await tester.pump();
-    await gesture.moveBy(const Offset(0, 1));
-    await tester.pump();
-    // The list follows the pointer by the pixel: 2 px of track is
-    // 2 * 9400 / 552 px of scroll, with no snap to a slot on the grab.
     expect(find.byKey(ListScrubber.currentValueKey), findsOneWidget);
-    expect(controller.offset, closeTo(before, 2 * 9400 / 552 + 0.01));
+    // No snap to a slot on the grab: the list sits where the thumb is.
+    final thumb =
+        tester.getTopLeft(find.byKey(ListScrubber.thumbKey)).dy -
+        tester.getTopLeft(find.byType(ListScrubber)).dy;
+    expect(controller.offset, closeTo(thumb / 552 * 9400, 0.01));
+    expect(controller.offset, closeTo(before, 4 * 9400 / 552 + 0.01));
+
+    // The list follows the pointer by the pixel: 10 px of track is
+    // 10 * 9400 / 552 px of scroll.
+    final grabbed = controller.offset;
+    await gesture.moveBy(const Offset(0, 10));
+    await tester.pump();
+    expect(controller.offset, closeTo(grabbed + 10 * 9400 / 552, 0.01));
     await gesture.up();
     await tester.pump(ListScrubber.idleHide);
   });
@@ -625,7 +634,8 @@ void main() {
     final slim = tester.getRect(handle());
     final area = tester.getRect(find.byType(ListScrubber));
     expect(slim.width, 4);
-    // The thumb sits between whole pixels as the list scrolls.
+    // The handle is 48 px, but its top falls between whole pixels as the
+    // list scrolls, so the rect's bottom minus top is off in the last bit.
     expect(slim.height, moreOrLessEquals(48));
     expect(slim.left, greaterThanOrEqualTo(area.right - 8));
     await tester.pump(ListScrubber.idleHide);
