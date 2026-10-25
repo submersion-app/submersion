@@ -493,6 +493,7 @@ class TransmitterRepository {
     presetName: Value(t.presetName),
     equipmentId: Value(t.equipmentId),
     transmitterEquipmentId: Value(t.transmitterEquipmentId),
+    isConfigured: Value(t.isConfigured),
     createdAt: createdAt != null ? Value(createdAt) : const Value.absent(),
     updatedAt: Value(now),
   );
@@ -519,6 +520,7 @@ class TransmitterRepository {
     presetName: r.presetName,
     equipmentId: r.equipmentId,
     transmitterEquipmentId: r.transmitterEquipmentId,
+    isConfigured: r.isConfigured,
     createdAt: DateTime.fromMillisecondsSinceEpoch(r.createdAt),
     updatedAt: DateTime.fromMillisecondsSinceEpoch(r.updatedAt),
   );

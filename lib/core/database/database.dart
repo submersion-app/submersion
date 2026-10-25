@@ -292,7 +292,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 314;
+  static const int currentSchemaVersion = 315;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1412,6 +1412,12 @@ class AppDatabase extends _$AppDatabase {
     // and nullable, and an older peer omits it, so the floor stays.
     // Renumbered from 304, which #3552 took.
     314,
+    // v315: transmitters.is_configured (issue #3676). Additive with a default
+    // of 1, and an older peer omits it, so the floor stays. The known cost: a
+    // peer still on v314 ignores the column, so it treats an entry this
+    // build created from a download as the diver's own configuration and
+    // names its tanks after it until it updates.
+    315,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading
