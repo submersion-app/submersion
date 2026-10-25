@@ -52645,6 +52645,18 @@ class AppLocalizationsAr extends AppLocalizations {
       'أخذ كمبيوتر الغوص بعض أدوار الأكسجين والمخفف من الأسماء المعطاة لأجهزة الإرسال: الاسم الذي يبدأ بـ O يُقرأ أكسجين، والذي يبدأ بـ D يُقرأ مخففًا. عيّن أجهزة الإرسال لتأكيد هذه الأدوار أو تصحيحها.';
 
   @override
+  String get universalImport_summary_noticeDeviceOtherItemTitle =>
+      'This computer is already in Equipment';
+
+  @override
+  String get universalImport_summary_noticeDeviceOtherItemBody =>
+      'The computer you connected is already another Equipment item, so its dives were added there. The item you started from was left as it was.';
+
+  @override
+  String get universalImport_summary_noticeDeviceOtherItemAction =>
+      'Open that item';
+
+  @override
   String get universalImport_summary_noticeDiveNumberConflictTitle =>
       'أرقام الغطسات مستخدمة بالفعل';
 

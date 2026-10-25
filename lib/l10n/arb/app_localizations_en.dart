@@ -51190,6 +51190,18 @@ class AppLocalizationsEn extends AppLocalizations {
       'The dive computer took some oxygen and diluent roles from the names given to its transmitters: a name starting with O reads as oxygen, one starting with D as diluent. Assign the transmitters to confirm or correct those roles.';
 
   @override
+  String get universalImport_summary_noticeDeviceOtherItemTitle =>
+      'This computer is already in Equipment';
+
+  @override
+  String get universalImport_summary_noticeDeviceOtherItemBody =>
+      'The computer you connected is already another Equipment item, so its dives were added there. The item you started from was left as it was.';
+
+  @override
+  String get universalImport_summary_noticeDeviceOtherItemAction =>
+      'Open that item';
+
+  @override
   String get universalImport_summary_noticeDiveNumberConflictTitle =>
       'Dive numbers already in use';
 

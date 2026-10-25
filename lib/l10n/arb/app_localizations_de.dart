@@ -51892,6 +51892,18 @@ class AppLocalizationsDe extends AppLocalizations {
       'Der Tauchcomputer hat einige Sauerstoff- und Diluent-Rollen aus den Namen seiner Sender übernommen: Ein Name, der mit O beginnt, gilt als Sauerstoff, einer mit D als Diluent. Weise die Sender zu, um diese Rollen zu bestätigen oder zu korrigieren.';
 
   @override
+  String get universalImport_summary_noticeDeviceOtherItemTitle =>
+      'This computer is already in Equipment';
+
+  @override
+  String get universalImport_summary_noticeDeviceOtherItemBody =>
+      'The computer you connected is already another Equipment item, so its dives were added there. The item you started from was left as it was.';
+
+  @override
+  String get universalImport_summary_noticeDeviceOtherItemAction =>
+      'Open that item';
+
+  @override
   String get universalImport_summary_noticeDiveNumberConflictTitle =>
       'Tauchgangsnummern bereits vergeben';
 

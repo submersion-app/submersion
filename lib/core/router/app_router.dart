@@ -2091,8 +2091,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'discover',
                 name: 'discoverDevice',
                 onExit: confirmLeaveRunningImport,
-                builder: (context, state) =>
-                    const _DiveComputerDiscoveryWizardRoute(),
+                // ?equipment= binds the device it finds to that hand-added
+                // Dive Computer item (issue #3676).
+                builder: (context, state) => _DiveComputerDiscoveryWizardRoute(
+                  bindEquipmentId: state.uri.queryParameters['equipment'],
+                ),
               ),
               GoRoute(
                 path: ':computerId',
@@ -2214,7 +2217,9 @@ class _HealthKitUnavailableScreen extends StatelessWidget {
 
 /// Wrapper that creates a [DiveComputerAdapter] for device discovery.
 class _DiveComputerDiscoveryWizardRoute extends ConsumerWidget {
-  const _DiveComputerDiscoveryWizardRoute();
+  const _DiveComputerDiscoveryWizardRoute({this.bindEquipmentId});
+
+  final String? bindEquipmentId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -2232,6 +2237,7 @@ class _DiveComputerDiscoveryWizardRoute extends ConsumerWidget {
         consolidationService: consolidationService,
         diverId: diverId,
         ref: ref,
+        bindEquipmentId: bindEquipmentId,
       ),
     );
   }

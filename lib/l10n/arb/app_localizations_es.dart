@@ -52054,6 +52054,18 @@ class AppLocalizationsEs extends AppLocalizations {
       'El ordenador de buceo tomó algunos roles de oxígeno y diluyente de los nombres de sus transmisores: un nombre que empieza por O se lee como oxígeno y uno que empieza por D como diluyente. Asigna los transmisores para confirmar o corregir esos roles.';
 
   @override
+  String get universalImport_summary_noticeDeviceOtherItemTitle =>
+      'This computer is already in Equipment';
+
+  @override
+  String get universalImport_summary_noticeDeviceOtherItemBody =>
+      'The computer you connected is already another Equipment item, so its dives were added there. The item you started from was left as it was.';
+
+  @override
+  String get universalImport_summary_noticeDeviceOtherItemAction =>
+      'Open that item';
+
+  @override
   String get universalImport_summary_noticeDiveNumberConflictTitle =>
       'Números de inmersión ya en uso';
 

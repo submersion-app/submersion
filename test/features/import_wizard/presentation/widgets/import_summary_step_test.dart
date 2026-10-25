@@ -1516,6 +1516,65 @@ void main() {
       expect(find.text('TRANSMITTERS_PAGE'), findsOneWidget);
     });
 
+    testWidgets('a device that is already another item offers to open it '
+        '(#3676)', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(800, 900));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final notifier = _makeNotifier();
+      notifier.state = notifier.state.copyWith(
+        importResult: const UnifiedImportResult(
+          importedCounts: {ImportEntityType.dives: 3},
+          consolidatedCount: 0,
+          skippedCount: 0,
+          notices: [
+            ImportNotice(
+              kind: ImportNoticeKind.deviceBelongsToOtherItem,
+              count: 1,
+              targetId: 'other-item',
+            ),
+          ],
+        ),
+      );
+      final router = GoRouter(
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (context, state) => Scaffold(
+              body: ImportSummaryStep(onDone: () {}, onViewDives: () {}),
+            ),
+          ),
+          GoRoute(
+            path: '/equipment/:id',
+            builder: (context, state) =>
+                Scaffold(body: Text('ITEM ${state.pathParameters['id']}')),
+          ),
+        ],
+      );
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            importWizardNotifierProvider.overrideWith((_) => notifier),
+          ],
+          child: MaterialApp.router(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            routerConfig: router,
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(
+        find.text('This computer is already in Equipment'),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.text('Open that item'));
+      await tester.pumpAndSettle();
+      expect(find.text('ITEM other-item'), findsOneWidget);
+    });
+
     testWidgets('explains roles read from transmitter names (#2595)', (
       tester,
     ) async {

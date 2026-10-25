@@ -104,10 +104,12 @@ class DiveComputerAdapter
     DiveComputerConnectionRepository? connectionRepository,
     Future<bool> Function()? followComputerOwner,
     DiverNameLookup? diverName,
+    String? bindEquipmentId,
     TransmitterAutoRegistrar? transmitterRegistrar,
     TransmitterGearLinker? transmitterGearLinker,
     TransmitterRepository? transmitterRepository,
-  }) : _importService = importService,
+  }) : _bindEquipmentId = bindEquipmentId,
+       _importService = importService,
        _transmitterRegistrar = transmitterRegistrar,
        _transmitterGearLinker = transmitterGearLinker,
        _transmitterRepository = transmitterRepository,
@@ -144,6 +146,24 @@ class DiveComputerAdapter
   DiveComputerConnectionRepository? get _connections =>
       _connectionRepository ??
       _ref?.read(diveComputerConnectionRepositoryProvider);
+
+  /// The hand-added Dive Computer item "Connect and download" started from
+  /// (issue #3676): a device seen for the first time is created on it.
+  final String? _bindEquipmentId;
+
+  /// The other item the discovered device already stands for, when it is not
+  /// [_bindEquipmentId]'s. The device stays where it is and the summary says
+  /// so; it is never rebound silently.
+  String? _boundToOtherItemId;
+  String? get boundToOtherItemId => _boundToOtherItemId;
+
+  void _noteItemOf(DiveComputer existing) {
+    final bind = _bindEquipmentId;
+    final item = existing.equipmentId;
+    if (bind != null && item != null && item != bind) {
+      _boundToOtherItemId = item;
+    }
+  }
 
   /// The transmitter seams of a download (issue #3676): each new serial gets
   /// its item, every transmitter joins its dives, and the notice asks about
@@ -400,7 +420,8 @@ class DiveComputerAdapter
       _resolvedByAddress = false;
     }
 
-    if (computer != null) {
+    if (computer case final known?) {
+      _noteItemOf(known);
       await _recordDirectConnection(device, serialNumber);
       return;
     }
@@ -452,6 +473,7 @@ class DiveComputerAdapter
             );
         await _computerRepository.updateComputer(rebound);
         _computer = rebound;
+        _noteItemOf(rebound);
         await _recordDirectConnection(device, normalizedSerial);
         return;
       }
@@ -476,6 +498,7 @@ class DiveComputerAdapter
           firmwareVersion: firmwareVersion,
           connectionType: connectionTypeStr,
           bluetoothAddress: device.address,
+          equipmentId: _bindEquipmentId,
         );
 
     _computer = await _computerRepository.createComputer(newComputer);
@@ -495,6 +518,7 @@ class DiveComputerAdapter
     _deliversOldestFirst = false;
     _pendingComputerSave = null;
     _computerSaveError = null;
+    _boundToOtherItemId = null;
     _pendingClockSyncStatus = null;
     final ref = _ref;
     if (ref == null) return;
@@ -1053,6 +1077,12 @@ class DiveComputerAdapter
           ImportNotice(
             kind: ImportNoticeKind.unknownTransmitter,
             count: needsSetupDives,
+          ),
+        if (_boundToOtherItemId case final other?)
+          ImportNotice(
+            kind: ImportNoticeKind.deviceBelongsToOtherItem,
+            count: 1,
+            targetId: other,
           ),
         if (nameRoleDives > 0)
           ImportNotice(

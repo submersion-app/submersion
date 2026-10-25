@@ -50901,6 +50901,18 @@ class AppLocalizationsHe extends AppLocalizations {
       'מחשב הצלילה לקח חלק מתפקידי החמצן והמדלל משמות המשדרים: שם שמתחיל ב-O נקרא כחמצן, ושם שמתחיל ב-D כמדלל. שייכו את המשדרים כדי לאשר או לתקן תפקידים אלה.';
 
   @override
+  String get universalImport_summary_noticeDeviceOtherItemTitle =>
+      'This computer is already in Equipment';
+
+  @override
+  String get universalImport_summary_noticeDeviceOtherItemBody =>
+      'The computer you connected is already another Equipment item, so its dives were added there. The item you started from was left as it was.';
+
+  @override
+  String get universalImport_summary_noticeDeviceOtherItemAction =>
+      'Open that item';
+
+  @override
   String get universalImport_summary_noticeDiveNumberConflictTitle =>
       'מספרי צלילה כבר בשימוש';
 

@@ -46,6 +46,12 @@ enum ImportNoticeKind {
   /// #2595). [ImportNotice.count] is the number of imported dives affected.
   transmitterNameRoles,
 
+  /// "Connect and download" on a hand-added Dive Computer item found a device
+  /// another item already stands for (issue #3676). Its dives went to that
+  /// item, and this one was left as it was. [ImportNotice.targetId] is the
+  /// other item.
+  deviceBelongsToOtherItem,
+
   /// Auto-mapped CSV columns left out because another column already fills
   /// the same field. [ImportNotice.names] lists the columns.
   columnsNotImported,
@@ -136,6 +142,7 @@ enum ImportNoticeKind {
     diveNumberConflict => true,
     divesSkipped ||
     unreadableDates ||
+    deviceBelongsToOtherItem ||
     columnsNotImported ||
     valuesNotConverted ||
     photosSkipped ||
@@ -167,10 +174,14 @@ class ImportNotice {
   /// [ImportNoticeKind.unreadableDates] fills it in.
   final List<int> rowNumbers;
 
+  /// The record the notice's action opens, for kinds that have one.
+  final String? targetId;
+
   const ImportNotice({
     required this.kind,
     required this.count,
     this.names = const [],
     this.rowNumbers = const [],
+    this.targetId,
   });
 }

@@ -48778,6 +48778,18 @@ class AppLocalizationsZh extends AppLocalizations {
       '潜水电脑根据发射器的名称识别了部分氧气和稀释气用途：以 O 开头的名称视为氧气，以 D 开头的视为稀释气。请分配发射器以确认或更正这些用途。';
 
   @override
+  String get universalImport_summary_noticeDeviceOtherItemTitle =>
+      'This computer is already in Equipment';
+
+  @override
+  String get universalImport_summary_noticeDeviceOtherItemBody =>
+      'The computer you connected is already another Equipment item, so its dives were added there. The item you started from was left as it was.';
+
+  @override
+  String get universalImport_summary_noticeDeviceOtherItemAction =>
+      'Open that item';
+
+  @override
   String get universalImport_summary_noticeDiveNumberConflictTitle =>
       '潜水编号已被使用';
 

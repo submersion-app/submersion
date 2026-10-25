@@ -51723,6 +51723,18 @@ class AppLocalizationsHu extends AppLocalizations {
       'A merülőkomputer néhány oxigén- és hígítógáz-szerepet a jeladóknak adott nevekből vett át: az O-val kezdődő név oxigénnek, a D-vel kezdődő hígítógáznak számít. Rendeld hozzá a jeladókat, hogy megerősítsd vagy javítsd ezeket a szerepeket.';
 
   @override
+  String get universalImport_summary_noticeDeviceOtherItemTitle =>
+      'This computer is already in Equipment';
+
+  @override
+  String get universalImport_summary_noticeDeviceOtherItemBody =>
+      'The computer you connected is already another Equipment item, so its dives were added there. The item you started from was left as it was.';
+
+  @override
+  String get universalImport_summary_noticeDeviceOtherItemAction =>
+      'Open that item';
+
+  @override
   String get universalImport_summary_noticeDiveNumberConflictTitle =>
       'A merülésszámok már foglaltak';
 

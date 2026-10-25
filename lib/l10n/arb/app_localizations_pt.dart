@@ -52001,6 +52001,18 @@ class AppLocalizationsPt extends AppLocalizations {
       'O computador de mergulho obteve algumas funções de oxigênio e diluente dos nomes dados aos transmissores: um nome que começa com O é lido como oxigênio, e um que começa com D como diluente. Atribua os transmissores para confirmar ou corrigir essas funções.';
 
   @override
+  String get universalImport_summary_noticeDeviceOtherItemTitle =>
+      'This computer is already in Equipment';
+
+  @override
+  String get universalImport_summary_noticeDeviceOtherItemBody =>
+      'The computer you connected is already another Equipment item, so its dives were added there. The item you started from was left as it was.';
+
+  @override
+  String get universalImport_summary_noticeDeviceOtherItemAction =>
+      'Open that item';
+
+  @override
   String get universalImport_summary_noticeDiveNumberConflictTitle =>
       'Números de mergulho já em uso';
 

@@ -82371,6 +82371,24 @@ abstract class AppLocalizations {
   /// **'The dive computer took some oxygen and diluent roles from the names given to its transmitters: a name starting with O reads as oxygen, one starting with D as diluent. Assign the transmitters to confirm or correct those roles.'**
   String get universalImport_summary_noticeTransmitterNameRolesBody;
 
+  /// No description provided for @universalImport_summary_noticeDeviceOtherItemTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'This computer is already in Equipment'**
+  String get universalImport_summary_noticeDeviceOtherItemTitle;
+
+  /// No description provided for @universalImport_summary_noticeDeviceOtherItemBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The computer you connected is already another Equipment item, so its dives were added there. The item you started from was left as it was.'**
+  String get universalImport_summary_noticeDeviceOtherItemBody;
+
+  /// No description provided for @universalImport_summary_noticeDeviceOtherItemAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Open that item'**
+  String get universalImport_summary_noticeDeviceOtherItemAction;
+
   /// No description provided for @universalImport_summary_noticeDiveNumberConflictTitle.
   ///
   /// In en, this message translates to:

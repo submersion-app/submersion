@@ -51677,6 +51677,18 @@ class AppLocalizationsNl extends AppLocalizations {
       'De duikcomputer heeft sommige zuurstof- en diluentrollen afgeleid uit de namen van zijn zenders: een naam die met O begint geldt als zuurstof, een die met D begint als diluent. Wijs de zenders toe om die rollen te bevestigen of te corrigeren.';
 
   @override
+  String get universalImport_summary_noticeDeviceOtherItemTitle =>
+      'This computer is already in Equipment';
+
+  @override
+  String get universalImport_summary_noticeDeviceOtherItemBody =>
+      'The computer you connected is already another Equipment item, so its dives were added there. The item you started from was left as it was.';
+
+  @override
+  String get universalImport_summary_noticeDeviceOtherItemAction =>
+      'Open that item';
+
+  @override
   String get universalImport_summary_noticeDiveNumberConflictTitle =>
       'Duiknummers al in gebruik';
 

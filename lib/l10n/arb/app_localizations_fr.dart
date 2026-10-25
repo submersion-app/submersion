@@ -52121,6 +52121,18 @@ class AppLocalizationsFr extends AppLocalizations {
       'L\'ordinateur de plongée a tiré certains rôles oxygène et diluant des noms donnés à ses émetteurs : un nom commençant par O est lu comme oxygène, un nom commençant par D comme diluant. Associez les émetteurs pour confirmer ou corriger ces rôles.';
 
   @override
+  String get universalImport_summary_noticeDeviceOtherItemTitle =>
+      'This computer is already in Equipment';
+
+  @override
+  String get universalImport_summary_noticeDeviceOtherItemBody =>
+      'The computer you connected is already another Equipment item, so its dives were added there. The item you started from was left as it was.';
+
+  @override
+  String get universalImport_summary_noticeDeviceOtherItemAction =>
+      'Open that item';
+
+  @override
   String get universalImport_summary_noticeDiveNumberConflictTitle =>
       'Numéros de plongée déjà utilisés';
 
