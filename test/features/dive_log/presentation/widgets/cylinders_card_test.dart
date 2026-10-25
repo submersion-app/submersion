@@ -337,6 +337,33 @@ void main() {
       expect(find.text('--'), findsNWidgets(3));
     });
 
+    testWidgets('a tank carried but not breathed used 0, not unknown', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _buildCard(
+          dive: _makeDive([_makeTank(startPressure: 200, endPressure: 200)]),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('0'), findsOneWidget);
+      expect(find.text('--'), findsNothing);
+    });
+
+    testWidgets('each pressure cell reads out its column and unit', (
+      tester,
+    ) async {
+      final semantics = tester.ensureSemantics();
+      await tester.pumpWidget(_buildCard(dive: _makeDive([_makeTank()])));
+      await tester.pumpAndSettle();
+
+      expect(find.bySemanticsLabel('Start 200 bar'), findsOneWidget);
+      expect(find.bySemanticsLabel('End 50 bar'), findsOneWidget);
+      expect(find.bySemanticsLabel('Used 150 bar'), findsOneWidget);
+      semantics.dispose();
+    });
+
     testWidgets('a linked cylinder whose item does not resolve keeps its SAC '
         'block', (tester) async {
       // Only the check-in chip depends on the linked item; while it loads,

@@ -71,7 +71,7 @@ class CylindersCard extends ConsumerWidget {
     // Serials with a registry entry get a plain caption; the rest get an
     // Assign button (issue #1365). Read through `.value`, which keeps the
     // previous list while a diver change reloads the provider; `valueOrNull`
-    // would drop to an empty registry and flash the chip for every tank.
+    // would drop to an empty registry and flash the button for every tank.
     final knownSerials = Transmitter.knownSerials(
       ref.watch(transmittersProvider).value ?? const <Transmitter>[],
     );
@@ -212,7 +212,12 @@ class CylindersCard extends ConsumerWidget {
     final pressureUsed = pressures.$1 != null && pressures.$2 != null
         ? pressures.$1! - pressures.$2!
         : null;
+    // A tank carried but not breathed used 0, which is not missing data;
+    // only a rise (a sensor or entry error) has no meaningful figure.
     final hasUsed = pressureUsed != null && pressureUsed > 0;
+    final usedText = pressureUsed != null && pressureUsed >= 0
+        ? units.formatPressureValue(pressureUsed)
+        : '--';
 
     // Preset display name, falling back to formatted volume.
     final preset = tank.presetName != null
@@ -246,7 +251,7 @@ class CylindersCard extends ConsumerWidget {
         ? units.formatDepthFloor(mndValue, decimals: 0)
         : '--';
     // The pressure drop and the gas volume are one fact in two units; the
-    // volume leads the detail line under the Used column.
+    // volume opens the detail line (after the source badge, when shown).
     final gasUsedLiters = cylinderSac?.gasUsedLiters;
 
     return CylinderTableRow(
@@ -263,7 +268,13 @@ class CylindersCard extends ConsumerWidget {
       gasMix: tank.gasMix,
       start: units.formatPressureValue(pressures.$1),
       end: units.formatPressureValue(pressures.$2),
-      used: hasUsed ? units.formatPressureValue(pressureUsed) : '--',
+      used: usedText,
+      columnLabels: (
+        start: l10n.diveLog_cylinders_columnStart,
+        end: l10n.diveLog_cylinders_columnEnd,
+        used: l10n.diveLog_cylinders_columnUsed,
+      ),
+      unit: units.pressureSymbol,
       details: [
         DotJoinedWrap(
           children: [

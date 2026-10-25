@@ -63,23 +63,27 @@ class CylinderTableHeader extends StatelessWidget {
       ),
     );
 
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Expanded(
-            flex: _tankFlex,
-            child: label(tank, style, AlignmentDirectional.centerStart),
-          ),
-          Expanded(
-            flex: _gasFlex,
-            child: label(gas, style, AlignmentDirectional.centerStart),
-          ),
-          pressure(start),
-          pressure(end),
-          pressure(used),
-        ],
+    // Each pressure cell announces its own column and unit, so the visual
+    // header would only be read a second time.
+    return ExcludeSemantics(
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 6),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Expanded(
+              flex: _tankFlex,
+              child: label(tank, style, AlignmentDirectional.centerStart),
+            ),
+            Expanded(
+              flex: _gasFlex,
+              child: label(gas, style, AlignmentDirectional.centerStart),
+            ),
+            pressure(start),
+            pressure(end),
+            pressure(used),
+          ],
+        ),
       ),
     );
   }
@@ -98,6 +102,8 @@ class CylinderTableRow extends StatelessWidget {
     required this.start,
     required this.end,
     required this.used,
+    required this.columnLabels,
+    required this.unit,
     this.details = const [],
     this.trailing,
   });
@@ -114,6 +120,13 @@ class CylinderTableRow extends StatelessWidget {
   final String start;
   final String end;
   final String used;
+
+  /// The Start, End and Used column names, read out with each cell, since
+  /// a screen reader does not pair a cell with the header above it.
+  final ({String start, String end, String used}) columnLabels;
+
+  /// The pressure unit, read out with each cell for the same reason.
+  final String unit;
   final List<Widget> details;
   final Widget? trailing;
 
@@ -125,22 +138,28 @@ class CylinderTableRow extends StatelessWidget {
     );
     final number = theme.textTheme.bodyMedium;
 
-    Widget pressure(String value, {bool emphasised = false}) => Expanded(
-      flex: _pressureFlex,
-      child: Align(
-        alignment: AlignmentDirectional.topEnd,
-        child: FittedBox(
-          fit: BoxFit.scaleDown,
-          child: Text(
-            value,
-            maxLines: 1,
-            style: emphasised
-                ? number?.copyWith(fontWeight: FontWeight.w700)
-                : number,
+    Widget pressure(String label, String value, {bool emphasised = false}) =>
+        Expanded(
+          flex: _pressureFlex,
+          child: Semantics(
+            container: true,
+            label: '$label $value $unit',
+            excludeSemantics: true,
+            child: Align(
+              alignment: AlignmentDirectional.topEnd,
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  value,
+                  maxLines: 1,
+                  style: emphasised
+                      ? number?.copyWith(fontWeight: FontWeight.w700)
+                      : number,
+                ),
+              ),
+            ),
           ),
-        ),
-      ),
-    );
+        );
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
@@ -187,9 +206,9 @@ class CylinderTableRow extends StatelessWidget {
                   ),
                 ),
               ),
-              pressure(start),
-              pressure(end),
-              pressure(used, emphasised: true),
+              pressure(columnLabels.start, start),
+              pressure(columnLabels.end, end),
+              pressure(columnLabels.used, used, emphasised: true),
             ],
           ),
           if (details.isNotEmpty || trailing != null)
