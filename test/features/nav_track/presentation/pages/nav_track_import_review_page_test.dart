@@ -498,6 +498,18 @@ void main() {
     expect(summary.data, contains('no GPS fix after the dive'));
   });
 
+  testWidgets('shows max speed in m/min, not km/h -- the diving/DPV convention '
+      '(Copilot review on PR #3637: this row still called formatSpeed after '
+      'the detail page and 3D preview switched to formatTrackSpeed)', (
+    tester,
+  ) async {
+    await _pump(tester, preview: _preview());
+
+    // _points()' speed is 0.3 m/s -> 18.0 m/min.
+    expect(find.textContaining('18.0 m/min'), findsOneWidget);
+    expect(find.textContaining('km/h'), findsNothing);
+  });
+
   testWidgets('shows the source file name and segment summary', (tester) async {
     await _pump(tester, preview: _preview());
     expect(find.text('005.DAT.csv'), findsOneWidget);

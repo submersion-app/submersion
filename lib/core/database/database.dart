@@ -292,7 +292,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 313;
+  static const int currentSchemaVersion = 314;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1408,6 +1408,10 @@ class AppDatabase extends _$AppDatabase {
     // column, no backfill: an older peer ignores the field, so the floor
     // stays. Renumbered from 310 and 312, which #2050 and #3375 took.
     313,
+    // v314: cylinder_config_items.deco_switch_depth (issue #3567). Additive
+    // and nullable, and an older peer omits it, so the floor stays.
+    // Renumbered from 304, which #3552 took.
+    314,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

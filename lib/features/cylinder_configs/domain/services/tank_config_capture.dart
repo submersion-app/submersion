@@ -5,9 +5,11 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 /// `DiveTankConfigAdapter`, so a rig entered once in the planner can be saved
 /// and picked again.
 ///
-/// Mapping is field for field. `endPressure`, `computerId`, `presetName`,
-/// `decoSwitchDepth` and `isTravelGas` are not part of a configuration - they
-/// describe one dive or one plan, not the cylinder - and are dropped.
+/// Mapping is field for field. `endPressure`, `computerId`, `presetName` and
+/// `isTravelGas` are not part of a configuration - they describe one dive or
+/// one plan, not the cylinder - and are dropped. `decoSwitchDepth` is kept:
+/// a MOD the diver set belongs to the cylinder (issue #3567). Only plan
+/// tanks carry one; a logged dive's tanks never store it.
 ///
 /// Pure: [newId] mints item ids and [now] stamps them, so this stays
 /// testable. An empty id is also acceptable, since the repository mints one
@@ -38,6 +40,7 @@ class TankConfigCapture {
           o2Percent: sorted[i].gasMix.o2,
           hePercent: sorted[i].gasMix.he,
           defaultStartPressureBar: sorted[i].startPressure,
+          decoSwitchDepth: sorted[i].decoSwitchDepth,
           createdAt: stamp,
           updatedAt: stamp,
         ),

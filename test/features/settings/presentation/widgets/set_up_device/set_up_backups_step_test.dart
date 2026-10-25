@@ -75,6 +75,7 @@ void main() {
     AccountGroup? chosen,
     List<AccountGroup>? groups,
     Map<String, Object> prefs = const {},
+    SetUpHost host = SetUpHost.settingsPage,
   }) async {
     nav = [];
     SharedPreferences.setMockInitialValues(prefs);
@@ -107,6 +108,7 @@ void main() {
                 onNext: () => nav.add('next'),
                 onBack: () => nav.add('back'),
                 onNotNow: () => nav.add('notNow'),
+                host: host,
               ),
             ),
           ),
@@ -241,6 +243,110 @@ void main() {
     expect(settings().enabled, isTrue);
     expect(settings().cloudBackupEnabled, isFalse);
     expect(nav, ['next']);
+  });
+
+  testWidgets('first run hides Open Backups: no Settings page opens before '
+      'the diver exists', (tester) async {
+    await pump(tester, groups: const [], host: SetUpHost.firstRun);
+
+    expect(
+      find.text('A copy off this device needs an account or a backup folder.'),
+      findsOneWidget,
+    );
+    expect(find.text('Open Backups'), findsNothing);
+  });
+
+  group('the Setup assistant starts from the current settings', () {
+    testWidgets('both off when backups are off', (tester) async {
+      await pump(
+        tester,
+        chosen: _drive,
+        prefs: {'backup_enabled': false, 'backup_cloud_enabled': false},
+        host: SetUpHost.assistant,
+      );
+
+      expect(switchOn(tester, 'Back up automatically'), isFalse);
+      expect(switchOn(tester, 'Also keep a copy in Google Drive'), isFalse);
+    });
+
+    testWidgets('Next with nothing touched leaves a copy pinned elsewhere '
+        'where it is', (tester) async {
+      await pump(
+        tester,
+        chosen: _drive,
+        prefs: {
+          'backup_enabled': true,
+          'backup_cloud_enabled': true,
+          'backup_copy_account_id': 'db',
+          'backup_copy_account_kind': AccountKind.dropbox.name,
+        },
+        host: SetUpHost.assistant,
+      );
+
+      await tester.tap(find.text('Next'));
+      await tester.pumpAndSettle();
+
+      expect(settings().enabled, isTrue);
+      expect(settings().cloudBackupEnabled, isTrue);
+      expect(settings().copyAccountId, 'db');
+      expect(nav, ['next']);
+    });
+
+    testWidgets('a copy pinned elsewhere is named, and stays there when its '
+        'switch is flipped off and on', (tester) async {
+      await pump(
+        tester,
+        chosen: _drive,
+        prefs: {
+          'backup_enabled': true,
+          'backup_cloud_enabled': true,
+          'backup_copy_account_id': 'db',
+          'backup_copy_account_kind': AccountKind.dropbox.name,
+        },
+        host: SetUpHost.assistant,
+      );
+      expect(switchOn(tester, 'Also keep a copy in Dropbox'), isTrue);
+      expect(find.text('Same account as sync'), findsNothing);
+
+      await tester.tap(find.text('Also keep a copy in Dropbox'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Also keep a copy in Dropbox'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Next'));
+      await tester.pumpAndSettle();
+
+      expect(settings().cloudBackupEnabled, isTrue);
+      expect(settings().copyAccountId, 'db');
+    });
+
+    testWidgets('a switch the diver flips is written', (tester) async {
+      await pump(
+        tester,
+        chosen: _drive,
+        prefs: {'backup_enabled': true, 'backup_cloud_enabled': false},
+        host: SetUpHost.assistant,
+      );
+
+      await tester.tap(find.text('Back up automatically'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Next'));
+      await tester.pumpAndSettle();
+
+      expect(settings().enabled, isFalse);
+      expect(settings().cloudBackupEnabled, isFalse);
+    });
+
+    testWidgets('both on when they are on', (tester) async {
+      await pump(
+        tester,
+        chosen: _drive,
+        prefs: {'backup_enabled': true, 'backup_cloud_enabled': true},
+        host: SetUpHost.assistant,
+      );
+
+      expect(switchOn(tester, 'Back up automatically'), isTrue);
+      expect(switchOn(tester, 'Also keep a copy in Google Drive'), isTrue);
+    });
   });
 }
 

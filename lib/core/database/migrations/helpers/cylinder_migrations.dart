@@ -79,6 +79,23 @@ extension CylinderMigrations on AppDatabase {
     );
   }
 
+  /// Idempotent DDL for the v314 cylinder_config_items.deco_switch_depth
+  /// column (issue #3567): the MOD a diver set on a saved cylinder. Called
+  /// from the v314 onUpgrade step and the beforeOpen backstop, self-guarding
+  /// when the table is absent.
+  Future<void> _assertCylinderConfigItemModColumn() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('cylinder_config_items')",
+    ).get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('deco_switch_depth')) {
+      await customStatement(
+        'ALTER TABLE cylinder_config_items ADD COLUMN deco_switch_depth REAL',
+      );
+    }
+  }
+
   /// Test hook: re-assert the v139 tables on demand so tests can prove the
   /// stranded-database self-heal path is idempotent.
   Future<void> assertCylinderConfigSchemaForTest() =>

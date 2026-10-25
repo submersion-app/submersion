@@ -42,6 +42,7 @@ class DiveTankConfigAdapter {
     gasMix: GasMix(o2: item.o2Percent, he: item.hePercent),
     role: item.tankRole,
     material: item.tankMaterial,
+    decoSwitchDepth: item.decoSwitchDepth,
     order: order,
   );
 

@@ -1,4 +1,3 @@
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/shared/widgets/list_scrubber/list_scrubber.dart';
@@ -6,6 +5,8 @@ import 'package:submersion/shared/widgets/list_scrubber/list_scrubber_geometry.d
 import 'package:submersion/shared/widgets/list_scrubber/list_scrubber_panel.dart';
 import 'package:submersion/shared/widgets/list_scrubber/list_scrubber_tick_painter.dart';
 import 'package:submersion/shared/widgets/list_scrubber/scrubber_marker.dart';
+
+import 'scrubber_hover.dart';
 
 void main() {
   late ScrollController controller;
@@ -74,12 +75,7 @@ void main() {
     ),
   );
 
-  Future<TestGesture> hover(WidgetTester tester) async {
-    final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
-    await mouse.addPointer(location: const Offset(780, 400));
-    await tester.pumpAndSettle();
-    return mouse;
-  }
+  Future<TestGesture> hover(WidgetTester tester) => hoverScrubberThumb(tester);
 
   Future<void> leave(WidgetTester tester, TestGesture mouse) async {
     await mouse.removePointer();
@@ -144,9 +140,7 @@ void main() {
         host(highlightSlot: 120, direction: TextDirection.rtl),
       );
       await tester.pump();
-      final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
-      await mouse.addPointer(location: const Offset(20, 400));
-      await tester.pumpAndSettle();
+      final mouse = await hover(tester);
       expect(dot(tester).center.dx, closeTo(2, 1.01));
       await leave(tester, mouse);
     });
@@ -239,9 +233,7 @@ void main() {
     testWidgets('mirror beside the thumb on the left in RTL', (tester) async {
       await tester.pumpWidget(host(direction: TextDirection.rtl));
       await tester.pump();
-      final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
-      await mouse.addPointer(location: const Offset(20, 400));
-      await tester.pumpAndSettle();
+      final mouse = await hover(tester);
       final thumb = thumbRect(tester);
       expect(thumb.left, lessThan(20));
       for (final r in tickRects(tester)) {

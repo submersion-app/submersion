@@ -5,7 +5,6 @@ import 'package:submersion/core/deco/ascent/ascent_gas_plan.dart';
 import 'package:submersion/core/deco/deco_model.dart';
 import 'package:submersion/core/deco/entities/breathing_config.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
-import 'package:submersion/core/deco/max_operating_depth.dart';
 import 'package:submersion/core/deco/schedule_policy.dart';
 import 'package:submersion/core/utils/gas_compressibility.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -19,6 +18,7 @@ import 'package:submersion/features/planner/domain/services/diluent_switch_time.
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 import 'package:submersion/features/planner/domain/services/segment_rate_split.dart';
 import 'package:submersion/features/planner/domain/services/segment_chain.dart';
+import 'package:submersion/features/planner/domain/services/tank_mod.dart';
 import 'package:submersion/features/planner/domain/services/tank_role_resolver.dart';
 import 'package:submersion/features/planner/domain/services/tank_usage_order.dart';
 
@@ -217,20 +217,16 @@ class BailoutSolver {
       environment: environment,
       policy: policy,
     );
+    // Each bailout gas joins at its cylinder's MOD (issue #3567): the one
+    // the diver set, or the default for a bailout of its mix.
     final bailoutPlan = OptimalOcAscentGas(
       maxPpO2: config.ppO2Deco,
-      gases: [
-        for (final tank in bailoutTanks)
-          AvailableGas(
-            fN2: (100.0 - tank.gasMix.o2 - tank.gasMix.he) / 100.0,
-            fHe: tank.gasMix.he / 100.0,
-            maxPpO2Mod: gasSwitchDepthMeters(
-              tank.gasMix.o2 / 100.0,
-              maxPpO2: config.ppO2Deco,
-              environment: environment,
-            ),
-          ),
-      ],
+      gases: ascentGasesFor(
+        bailoutTanks,
+        bottomPpO2: config.ppO2Working,
+        decoPpO2: config.ppO2Deco,
+        environment: environment,
+      ),
     );
 
     final availableLiters = bailoutTanks.fold<double>(

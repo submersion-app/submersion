@@ -54,6 +54,7 @@ void main() {
     WidgetTester tester, {
     List<AccountGroup> groups = const [],
     String? Function(AccountGroup)? consequenceOf,
+    SetUpHost host = SetUpHost.settingsPage,
   }) async {
     SharedPreferences.setMockInitialValues({});
     prefs = await SharedPreferences.getInstance();
@@ -82,6 +83,7 @@ void main() {
                 onNext: () => calls.add('next'),
                 onBack: () => calls.add('back'),
                 onNotNow: () => calls.add('notNow'),
+                host: host,
               ),
               consequenceOf: consequenceOf ?? (_) => null,
               onRestoreFile: () async => calls.add('restore'),
@@ -185,5 +187,30 @@ void main() {
     await pump(tester);
     await tester.tap(find.text('I have a backup file instead'));
     expect(calls, ['restore']);
+  });
+
+  group('in the first-run wizard', () {
+    testWidgets('offers no backup file: the wizard has its own restore', (
+      tester,
+    ) async {
+      await pump(tester, host: SetUpHost.firstRun);
+
+      expect(find.text('I have a backup file instead'), findsNothing);
+    });
+
+    testWidgets('Back goes back, and Not now moves on', (tester) async {
+      await pump(tester, host: SetUpHost.firstRun);
+
+      await tester.tap(find.text('Back'));
+      await tester.tap(find.text('Not now'));
+
+      expect(calls, ['back', 'notNow']);
+    });
+  });
+
+  testWidgets('the Setup assistant keeps the backup file link', (tester) async {
+    await pump(tester, host: SetUpHost.assistant);
+
+    expect(find.text('I have a backup file instead'), findsOneWidget);
   });
 }

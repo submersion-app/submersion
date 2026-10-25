@@ -112,6 +112,24 @@ account** in step 1. Step 2 finds your library and downloads it, or combines it
 with any dives already there. For more on how devices share one library, see
 [Multi-Device Sync](multi-device-sync.md).
 
+## On first launch
+
+The first-run wizard runs the same four steps after **Profile** and **Units**,
+and choosing **I have existing Submersion data**, then **Connect cloud sync**
+runs them too. Each step takes effect when you press its button, exactly as
+here. In the wizard:
+
+- **Not now** on the account step skips sync and goes to backups, which still
+  work on this device alone; on the sync and backups steps it moves on.
+- If the account already holds a library, **Download library** brings it with
+  its divers, and the name you typed on **Profile** is not used.
+- If you chose existing data but the account holds no library,
+  **Start a new logbook** takes you to **Profile** and **Units**, keeping the
+  account you chose.
+
+**Settings > Manage > Setup assistant** runs **Units** and the four steps
+again, starting from your current settings.
+
 ## Each feature on its own
 
 Every step is also its own page under Settings > Data. A row that is not set up

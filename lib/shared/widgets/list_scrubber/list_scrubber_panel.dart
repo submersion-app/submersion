@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -10,9 +11,10 @@ import 'package:submersion/shared/widgets/list_scrubber/list_scrubber_tick_paint
 import 'package:submersion/shared/widgets/list_scrubber/list_scrubber_thumb_style.dart';
 import 'package:submersion/shared/widgets/list_scrubber/scrubber_marker.dart';
 
-/// The opaque panel behind an active scrubber, with [markers] centred
-/// at their track positions and, while dragging, [currentLabel] beside a
-/// marker line on a band level with the thumb at [thumbTop].
+/// The frosted panel behind an active scrubber, with [markers] centred
+/// at their track positions and, while dragging, [currentLabel] (with
+/// [currentDetail] under it) beside a marker line on a band level with the
+/// thumb at [thumbTop]. It fades in and out with [reveal].
 class ListScrubberPanel extends StatefulWidget {
   const ListScrubberPanel({
     super.key,
@@ -22,8 +24,11 @@ class ListScrubberPanel extends StatefulWidget {
     required this.thumbHeight,
     required this.thumbTop,
     this.currentLabel,
-    this.currentLabelHeight,
+    this.currentDetail,
+    this.currentHeight,
     this.currentWidth = width,
+    this.labelColumn = width,
+    this.reveal = 1,
     this.ticks = const [],
     this.tickColor,
     this.thumbInset = 0,
@@ -32,18 +37,31 @@ class ListScrubberPanel extends StatefulWidget {
     this.density = const [],
   });
 
+  /// The widest the label column gets; longer marker labels end in "...".
   static const width = 64.0;
 
-  /// The panel's width: [width], plus a column at its start edge for
-  /// density bars when there are any.
-  static double widthFor({required bool density}) =>
-      density ? width + ListScrubberDensityPainter.columnEnd : width;
-  static const maxBandWidth = 160.0;
+  /// The panel's width: its [labelColumn], plus [densityColumn] at its start
+  /// edge for density bars when there are any.
+  static double widthFor({
+    required double labelColumn,
+    required bool density,
+  }) => density ? labelColumn + densityColumn : labelColumn;
+
+  /// The density bars' column, with a gap before the markers.
+  static const densityColumn = ListScrubberDensityPainter.columnEnd + 2;
+  static const maxBandWidth = 230.0;
+
+  /// How much of the panel's fill covers the blurred list behind it.
+  static const fillAlpha = 0.6;
+
+  /// The blur of the list behind the panel, fully revealed.
+  static const blurSigma = 8.0;
 
   /// Marks the padded box around each marker label.
   static const labelBackingKey = ValueKey('list-scrubber-label-backing');
   static const currentBandKey = ValueKey('listScrubber.currentBand');
   static const currentValueKey = ValueKey('listScrubber.currentValue');
+  static const currentDetailKey = ValueKey('listScrubber.currentDetail');
   static const currentMarkerKey = ValueKey('listScrubber.currentMarker');
   static const _ticksKey = ValueKey('listScrubber.ticks');
   static const _contextKey = ValueKey('listScrubber.context');
@@ -55,6 +73,7 @@ class ListScrubberPanel extends StatefulWidget {
   static const _labelGap = 4.0;
   static const _minLine = 12.0;
   static const _labelPadding = 6.0;
+  static const _markerPadding = 2.0;
   static const _bandPadding = 4.0;
 
   static TextStyle? markerStyle(ThemeData theme) => theme.textTheme.labelSmall
@@ -63,27 +82,98 @@ class ListScrubberPanel extends StatefulWidget {
   static TextStyle? currentStyle(ThemeData theme) =>
       markerStyle(theme)?.copyWith(fontWeight: FontWeight.w700);
 
-  /// The size [label] takes in [currentStyle].
-  static Size labelSize(BuildContext context, String label) {
+  /// The size [value] in [currentStyle] and, under it, [detail] in
+  /// [markerStyle] on up to two lines take within [maxWidth].
+  static Size textSize(
+    BuildContext context, {
+    required String value,
+    String? detail,
+    required double maxWidth,
+  }) {
+    final theme = Theme.of(context);
+    final direction = Directionality.of(context);
+    final scaler = MediaQuery.textScalerOf(context);
+    final valuePainter = TextPainter(
+      text: TextSpan(text: value, style: currentStyle(theme)),
+      maxLines: 1,
+      ellipsis: _ellipsis,
+      textDirection: direction,
+      textScaler: scaler,
+    )..layout(maxWidth: maxWidth);
+    var width = valuePainter.width;
+    var height = valuePainter.height;
+    valuePainter.dispose();
+    if (detail != null) {
+      final detailPainter = TextPainter(
+        text: TextSpan(text: detail, style: markerStyle(theme)),
+        maxLines: 2,
+        ellipsis: _ellipsis,
+        textDirection: direction,
+        textScaler: scaler,
+        textWidthBasis: TextWidthBasis.longestLine,
+      )..layout(maxWidth: maxWidth);
+      width = math.max(width, detailPainter.width);
+      height += detailPainter.height;
+      detailPainter.dispose();
+    }
+    return Size(width, height);
+  }
+
+  /// The current band that fits [value] and [detail] in a host [hostWidth]
+  /// wide, at least as wide as the panel's [panelWidth].
+  static Size bandSize(
+    BuildContext context, {
+    required String value,
+    String? detail,
+    required double hostWidth,
+    required double panelWidth,
+  }) {
+    final cap = math.max(0.0, math.min(maxBandWidth, hostWidth - 16));
+    final text = textSize(
+      context,
+      value: value,
+      detail: detail,
+      maxWidth: math.max(0.0, cap - _labelPadding * 2 - _chrome),
+    );
+    final needed = text.width + _labelPadding * 2 + _chrome;
+    return Size(
+      math.min(math.max(needed, panelWidth), cap),
+      text.height + _bandPadding * 2,
+    );
+  }
+
+  /// The label column that fits the widest of [markers] beside a thumb
+  /// [thumbInset] wide, at most [width].
+  static double labelColumnFor(
+    BuildContext context,
+    List<ScrubberMarker> markers, {
+    required double thumbInset,
+  }) {
+    final style = markerStyle(Theme.of(context));
     final painter = TextPainter(
-      text: TextSpan(text: label, style: currentStyle(Theme.of(context))),
       maxLines: 1,
       textDirection: Directionality.of(context),
       textScaler: MediaQuery.textScalerOf(context),
-    )..layout();
-    final size = painter.size;
+    );
+    final seen = <String>{};
+    var widest = 0.0;
+    for (final marker in markers) {
+      if (!seen.add(marker.label)) continue;
+      painter
+        ..text = TextSpan(text: marker.label, style: style)
+        ..layout();
+      widest = math.max(widest, painter.width);
+      if (widest >= width) break;
+    }
     painter.dispose();
-    return size;
+    // Whole pixels, so the widest label is never ellipsized by rounding.
+    return math.min(
+      width,
+      widest.ceilToDouble() + _markerPadding * 2 + thumbInset,
+    );
   }
 
-  /// The current band width that fits a label [labelWidth] wide in a host
-  /// [hostWidth] wide.
-  static double bandWidthFor(double labelWidth, double hostWidth) {
-    final cap = math.min(maxBandWidth, hostWidth - 16);
-    final needed = labelWidth + _labelPadding * 2 + _chrome;
-    return math.max(0.0, math.min(math.max(needed, width), cap));
-  }
-
+  static const _ellipsis = '\u2026';
   static const _chrome = _startPadding + _labelGap + _minLine + _thumbReserve;
 
   final List<ScrubberMarker> markers;
@@ -93,13 +183,22 @@ class ListScrubberPanel extends StatefulWidget {
   final double thumbTop;
   final String? currentLabel;
 
-  /// [currentLabel]'s height in [currentStyle], when the caller has laid it
-  /// out already; measured here when null.
-  final double? currentLabelHeight;
+  /// A second line under [currentLabel], such as the trip a dive is on.
+  final String? currentDetail;
 
-  /// The width of the current band; beyond [width] it sticks out past the
-  /// panel's start edge.
+  /// The current band's height, when the caller has laid it out already
+  /// with [bandSize]; measured here when null.
+  final double? currentHeight;
+
+  /// The width of the current band; beyond the panel's width it sticks out
+  /// past the panel's start edge.
   final double currentWidth;
+
+  /// The width of the column holding the markers and the thumb.
+  final double labelColumn;
+
+  /// How far the panel has faded in, from 0 (hidden) to 1.
+  final double reveal;
 
   /// Slots marked with a tick beside the thumb track.
   final List<int> ticks;
@@ -221,115 +320,183 @@ class _ListScrubberPanelState extends State<ListScrubberPanel> {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
     final style = ListScrubberPanel.markerStyle(theme);
-    final fill = colors.surfaceContainerHigh;
+    final fill = colors.surfaceContainerHigh.withValues(
+      alpha: ListScrubberPanel.fillAlpha,
+    );
     final centre = widget.thumbHeight / 2;
     final current = widget.currentLabel;
     final bandHeight = current == null
         ? 0.0
-        : (widget.currentLabelHeight ??
-                  ListScrubberPanel.labelSize(context, current).height) +
-              ListScrubberPanel._bandPadding * 2;
+        : widget.currentHeight ??
+              ListScrubberPanel.textSize(
+                    context,
+                    value: current,
+                    detail: widget.currentDetail,
+                    maxWidth: math.max(
+                      0.0,
+                      _labelMax - ListScrubberPanel._labelPadding * 2,
+                    ),
+                  ).height +
+                  ListScrubberPanel._bandPadding * 2;
     final bandTop = widget.thumbTop + centre - bandHeight / 2;
+    final band = current == null
+        ? null
+        : (top: bandTop, bottom: bandTop + bandHeight);
     final panelWidth = ListScrubberPanel.widthFor(
+      labelColumn: widget.labelColumn,
       density: widget.density.isNotEmpty,
     );
     final overhang = widget.currentWidth - panelWidth;
-    return DecoratedBox(
-      decoration: BoxDecoration(color: fill),
-      child: CustomPaint(
-        painter: ListScrubberPanelEdge(
-          fill: fill,
-          edge: colors.outlineVariant,
-          textDirection: Directionality.of(context),
-          tab: current != null && overhang > 0
-              ? (top: bandTop, bottom: bandTop + bandHeight, overhang: overhang)
-              : null,
-        ),
-        child: SizedBox.expand(
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              for (final m in _visibleMarkers())
-                PositionedDirectional(
-                  end: 2,
-                  width: ListScrubberPanel.width - 4,
-                  top: m.top + centre,
-                  child: FractionalTranslation(
-                    translation: const Offset(0, -0.5),
-                    child: Center(
-                      child: _padded(
-                        key: ListScrubberPanel.labelBackingKey,
-                        child: Text(
-                          m.marker.label,
-                          textAlign: TextAlign.center,
-                          maxLines: 1,
-                          softWrap: false,
-                          overflow: TextOverflow.ellipsis,
-                          style: style,
+    final tab = band != null && overhang > 0
+        ? (top: band.top, bottom: band.bottom, overhang: overhang)
+        : null;
+    final sigma = ListScrubberPanel.blurSigma * widget.reveal;
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Positioned.fill(child: _frost(sigma)),
+        if (tab != null)
+          PositionedDirectional(
+            start: -tab.overhang,
+            width: tab.overhang,
+            top: tab.top,
+            height: tab.bottom - tab.top,
+            child: _frost(sigma),
+          ),
+        Positioned.fill(
+          child: Opacity(
+            opacity: widget.reveal,
+            child: DecoratedBox(
+              decoration: BoxDecoration(color: fill),
+              child: CustomPaint(
+                painter: ListScrubberPanelEdge(
+                  fill: fill,
+                  edge: colors.outlineVariant,
+                  textDirection: Directionality.of(context),
+                  tab: tab,
+                ),
+                child: SizedBox.expand(
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      for (final m in _visibleMarkers())
+                        PositionedDirectional(
+                          end: widget.thumbInset,
+                          width: math.max(
+                            0.0,
+                            widget.labelColumn - widget.thumbInset,
+                          ),
+                          top: m.top + centre,
+                          child: FractionalTranslation(
+                            translation: const Offset(0, -0.5),
+                            child: Center(
+                              child: Padding(
+                                key: ListScrubberPanel.labelBackingKey,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: ListScrubberPanel._markerPadding,
+                                ),
+                                child: Text(
+                                  m.marker.label,
+                                  textAlign: TextAlign.center,
+                                  maxLines: 1,
+                                  softWrap: false,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: style,
+                                ),
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
+                      if (widget.segments.isNotEmpty ||
+                          widget.contextTicks.isNotEmpty)
+                        Positioned.fill(
+                          key: ListScrubberPanel._contextKey,
+                          child: RepaintBoundary(
+                            child: CustomPaint(
+                              painter: ListScrubberContextPainter(
+                                segments: widget.segments,
+                                ticks: widget.contextTicks,
+                                slotCount: widget.slotCount,
+                                trackExtent: widget.trackExtent,
+                                offset: centre,
+                                textDirection: Directionality.of(context),
+                                clear: band,
+                              ),
+                            ),
+                          ),
+                        ),
+                      if (widget.density.isNotEmpty)
+                        Positioned.fill(
+                          child: RepaintBoundary(
+                            child: CustomPaint(
+                              painter: ListScrubberDensityPainter(
+                                bins: widget.density,
+                                slotCount: widget.slotCount,
+                                trackExtent: widget.trackExtent,
+                                offset: centre,
+                                color: colors.onSurfaceVariant.withValues(
+                                  alpha: 0.35,
+                                ),
+                                textDirection: Directionality.of(context),
+                                clear: band,
+                              ),
+                            ),
+                          ),
+                        ),
+                      if (widget.ticks.isNotEmpty)
+                        Positioned.fill(
+                          key: ListScrubberPanel._ticksKey,
+                          child: RepaintBoundary(
+                            child: CustomPaint(
+                              painter: ListScrubberTickPainter(
+                                ticks: widget.ticks,
+                                slotCount: widget.slotCount,
+                                trackExtent: widget.trackExtent,
+                                offset: centre,
+                                endInset: widget.thumbInset,
+                                color: widget.tickColor ?? colors.primary,
+                                textDirection: Directionality.of(context),
+                              ),
+                            ),
+                          ),
+                        ),
+                      if (current != null)
+                        _currentRow(
+                          theme,
+                          current,
+                          bandTop,
+                          bandHeight,
+                          panelWidth,
+                        ),
+                    ],
                   ),
                 ),
-              if (widget.segments.isNotEmpty || widget.contextTicks.isNotEmpty)
-                Positioned.fill(
-                  key: ListScrubberPanel._contextKey,
-                  child: RepaintBoundary(
-                    child: CustomPaint(
-                      painter: ListScrubberContextPainter(
-                        segments: widget.segments,
-                        ticks: widget.contextTicks,
-                        slotCount: widget.slotCount,
-                        trackExtent: widget.trackExtent,
-                        offset: centre,
-                        textDirection: Directionality.of(context),
-                      ),
-                    ),
-                  ),
-                ),
-              if (widget.density.isNotEmpty)
-                Positioned.fill(
-                  child: RepaintBoundary(
-                    child: CustomPaint(
-                      painter: ListScrubberDensityPainter(
-                        bins: widget.density,
-                        slotCount: widget.slotCount,
-                        trackExtent: widget.trackExtent,
-                        offset: centre,
-                        color: colors.onSurfaceVariant.withValues(alpha: 0.35),
-                        textDirection: Directionality.of(context),
-                        clear: current == null
-                            ? null
-                            : (top: bandTop, bottom: bandTop + bandHeight),
-                      ),
-                    ),
-                  ),
-                ),
-              if (widget.ticks.isNotEmpty)
-                Positioned.fill(
-                  key: ListScrubberPanel._ticksKey,
-                  child: RepaintBoundary(
-                    child: CustomPaint(
-                      painter: ListScrubberTickPainter(
-                        ticks: widget.ticks,
-                        slotCount: widget.slotCount,
-                        trackExtent: widget.trackExtent,
-                        offset: centre,
-                        endInset: widget.thumbInset,
-                        color: widget.tickColor ?? colors.primary,
-                        textDirection: Directionality.of(context),
-                      ),
-                    ),
-                  ),
-                ),
-              if (current != null)
-                _currentRow(theme, current, bandTop, bandHeight, panelWidth),
-            ],
+              ),
+            ),
           ),
         ),
-      ),
+      ],
     );
   }
+
+  /// Blurs the list behind the panel, outside the fade so it reads the list
+  /// rather than the fade's own empty layer.
+  Widget _frost(double sigma) => ClipRect(
+    child: BackdropFilter(
+      filter: ImageFilter.blur(sigmaX: sigma, sigmaY: sigma),
+      child: const SizedBox.expand(),
+    ),
+  );
+
+  /// The widest the current value and its detail may be, padding included.
+  double get _labelMax => math.max(
+    0.0,
+    widget.currentWidth -
+        ListScrubberPanel._startPadding -
+        ListScrubberPanel._thumbReserve -
+        ListScrubberPanel._labelGap -
+        ListScrubberPanel._minLine,
+  );
 
   Widget _padded({Key? key, required Widget child}) => Padding(
     key: key,
@@ -339,8 +506,9 @@ class _ListScrubberPanelState extends State<ListScrubberPanel> {
     child: child,
   );
 
-  /// The current value, styled like a marker but bold, and its marker line
-  /// on a band level with the thumb. A band wider than the panel sticks out
+  /// The current value, styled like a marker but bold, with its detail under
+  /// it in the marker style, and its marker line on a band level with the
+  /// thumb. A band wider than the panel sticks out
   /// past its start edge over the tab the edge painter draws.
   Widget _currentRow(
     ThemeData theme,
@@ -354,14 +522,8 @@ class _ListScrubberPanelState extends State<ListScrubberPanel> {
     final bandWidth = fits
         ? math.max(0.0, widget.currentWidth - 1)
         : widget.currentWidth;
-    final labelMax = math.max(
-      0.0,
-      widget.currentWidth -
-          ListScrubberPanel._startPadding -
-          ListScrubberPanel._thumbReserve -
-          ListScrubberPanel._labelGap -
-          ListScrubberPanel._minLine,
-    );
+    final labelMax = _labelMax;
+    final detail = widget.currentDetail;
     return PositionedDirectional(
       end: 0,
       width: bandWidth,
@@ -381,13 +543,28 @@ class _ListScrubberPanelState extends State<ListScrubberPanel> {
               ConstrainedBox(
                 constraints: BoxConstraints(maxWidth: labelMax),
                 child: _padded(
-                  child: Text(
-                    label,
-                    key: ListScrubberPanel.currentValueKey,
-                    maxLines: 1,
-                    softWrap: false,
-                    overflow: TextOverflow.ellipsis,
-                    style: ListScrubberPanel.currentStyle(theme),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        label,
+                        key: ListScrubberPanel.currentValueKey,
+                        maxLines: 1,
+                        softWrap: false,
+                        overflow: TextOverflow.ellipsis,
+                        style: ListScrubberPanel.currentStyle(theme),
+                      ),
+                      if (detail != null)
+                        Text(
+                          detail,
+                          key: ListScrubberPanel.currentDetailKey,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          textWidthBasis: TextWidthBasis.longestLine,
+                          style: ListScrubberPanel.markerStyle(theme),
+                        ),
+                    ],
                   ),
                 ),
               ),

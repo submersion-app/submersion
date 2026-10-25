@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/setup_wizard/domain/setup_wizard_models.dart';
 import 'package:submersion/features/setup_wizard/presentation/providers/setup_wizard_providers.dart';
@@ -27,35 +26,26 @@ void main() {
     notifier.choosePath(SetupPath.fresh);
     notifier.setName('  Eric  ');
     notifier.applyUnitPreset(UnitPreset.imperial);
-    notifier.setBackupEnabled(true);
 
     final draft = container.read(setupWizardProvider(SetupWizardMode.firstRun));
     expect(draft.path, SetupPath.fresh);
     expect(draft.name, 'Eric');
     expect(draft.settings.unitPreset, UnitPreset.imperial);
-    expect(draft.backupEnabled, isTrue);
-    expect(computeSteps(draft), contains(SetupStepId.backupSync));
+    expect(computeSteps(draft), containsAll(kSetUpWizardSteps));
   });
 
-  test('setConnectedProvider(null) clears a previous connection', () {
+  test('requireProfile adds the Profile step to the existing-data path', () {
     final container = makeContainer();
     final notifier = container.read(
       setupWizardProvider(SetupWizardMode.firstRun).notifier,
     );
-    notifier.setConnectedProvider(CloudProviderType.s3);
-    expect(
-      container
-          .read(setupWizardProvider(SetupWizardMode.firstRun))
-          .connectedProvider,
-      CloudProviderType.s3,
-    );
-    notifier.setConnectedProvider(null);
-    expect(
-      container
-          .read(setupWizardProvider(SetupWizardMode.firstRun))
-          .connectedProvider,
-      isNull,
-    );
+    notifier
+      ..choosePath(SetupPath.existingData)
+      ..chooseSource(ExistingDataSource.cloudSync)
+      ..requireProfile();
+    final draft = container.read(setupWizardProvider(SetupWizardMode.firstRun));
+    expect(draft.needsProfile, isTrue);
+    expect(computeSteps(draft), contains(SetupStepId.profile));
   });
 
   test('requestSkip trims the fresh path', () {

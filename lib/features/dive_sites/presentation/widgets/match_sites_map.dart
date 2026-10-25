@@ -103,7 +103,9 @@ class _MatchSitesMapState extends ConsumerState<MatchSitesMap> {
                               ? scheme.secondary
                               : (c.isExisting ? Colors.teal : Colors.indigo),
                           Icons.place,
-                          Colors.white,
+                          c.id == widget.selectedCandidateId
+                              ? scheme.onSecondary
+                              : Colors.white,
                         ),
                       ),
                     ),

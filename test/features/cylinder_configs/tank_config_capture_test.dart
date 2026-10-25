@@ -60,6 +60,8 @@ void main() {
     expect(s.o2Percent, 50);
     expect(s.hePercent, 0);
     expect(s.defaultStartPressureBar, 200);
+    // The MOD the diver set on it is part of the cylinder (#3567).
+    expect(s.decoSwitchDepth, 21);
     expect(s.createdAt, now);
   });
 
@@ -82,9 +84,9 @@ void main() {
     expect(picked.gasMix, stage.gasMix);
     expect(picked.role, stage.role);
     expect(picked.material, stage.material);
+    expect(picked.decoSwitchDepth, 21);
     // What a configuration deliberately does not carry: plan-specific facts.
     expect(picked.isTravelGas, isFalse);
-    expect(picked.decoSwitchDepth, isNull);
   });
 
   group('a saved cylinder with no start pressure (#3603)', () {

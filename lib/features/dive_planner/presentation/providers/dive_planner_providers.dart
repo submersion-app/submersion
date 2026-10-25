@@ -28,6 +28,7 @@ import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
 import 'package:submersion/features/planner/domain/services/ccr_loop_slots.dart';
 import 'package:submersion/features/planner/domain/services/dive_plan_state_mapper.dart';
 import 'package:submersion/features/planner/domain/services/segment_chain.dart';
+import 'package:submersion/features/planner/domain/services/tank_role_resolver.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_repository_providers.dart';
 
 const _uuid = Uuid();
@@ -46,6 +47,7 @@ final planCalculatorServiceProvider = Provider<PlanCalculatorService>((ref) {
   final gfHigh = ref.watch(gfHighProvider);
   final ppO2MaxWorking = ref.watch(ppO2MaxWorkingProvider);
   final ppO2MaxDeco = ref.watch(ppO2MaxDecoProvider);
+  final ccrDiluentModPpO2 = ref.watch(ccrDiluentModPpO2Provider);
   final cnsWarningThreshold = ref.watch(cnsWarningThresholdProvider);
 
   return PlanCalculatorService(
@@ -53,6 +55,7 @@ final planCalculatorServiceProvider = Provider<PlanCalculatorService>((ref) {
     gfHigh: gfHigh,
     ppO2Warning: ppO2MaxWorking,
     ppO2Critical: ppO2MaxDeco,
+    ccrDiluentModPpO2: ccrDiluentModPpO2,
     cnsWarningThreshold: cnsWarningThreshold,
     cnsMethod: ref.watch(cnsCalculationMethodProvider),
     gasModel: ref.watch(gasModelProvider),
@@ -1270,6 +1273,11 @@ final planResultsProvider = Provider<PlanResult>((ref) {
   return calculator.calculatePlan(
     segments: state.segments,
     tanks: state.tanks,
+    // Each tank's default MOD depends on its derived role and the plan's own
+    // ppO2 limits, as on the plan canvas (issue #3567).
+    tankRoles: const TankRoleResolver().rolesFor(divePlanFromState(state)),
+    bottomPpO2: state.ppO2Bottom,
+    decoPpO2: state.ppO2Deco,
     sacRate: resolved.sacBottom,
     reservePressure: resolved.reservePressure,
     initialTissueState: state.initialTissueState,

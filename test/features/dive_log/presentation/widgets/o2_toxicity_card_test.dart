@@ -4,7 +4,9 @@ import 'package:submersion/core/deco/entities/o2_exposure.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/o2_toxicity_card.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
+import '../../../../helpers/contrast_ratio.dart';
 import '../../../../helpers/l10n_test_helpers.dart';
 
 void main() {
@@ -172,5 +174,68 @@ void main() {
       expect(find.text('30 / 300 OTU (10%)'), findsOneWidget);
       expect(find.textContaining('270 / 300'), findsNothing);
     });
+  });
+
+  // The badge label was fixed white, which read at about 2:1 on the orange
+  // warning fill in every theme and about 1.5:1 on the light dark-mode error
+  // fill.
+  group('warning and critical badges stay readable', () {
+    Widget buildThemed(Widget child, Brightness brightness) => MaterialApp(
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF0077B6),
+          brightness: brightness,
+        ),
+      ),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      locale: const Locale('en'),
+      home: Scaffold(body: SingleChildScrollView(child: child)),
+    );
+
+    double labelContrast(WidgetTester tester, String label) {
+      final text = tester.widget<Text>(find.text(label));
+      final badge = tester.widget<Container>(
+        find
+            .ancestor(of: find.text(label), matching: find.byType(Container))
+            .first,
+      );
+      final fill = (badge.decoration! as BoxDecoration).color!;
+      return contrastRatio(text.style!.color!, fill);
+    }
+
+    const levels = {
+      'CRITICAL': O2Exposure(cnsEnd: 100),
+      'WARNING': O2Exposure(cnsEnd: 85),
+    };
+
+    for (final brightness in Brightness.values) {
+      for (final MapEntry(key: label, value: exposure) in levels.entries) {
+        testWidgets('card $label badge in ${brightness.name} mode', (
+          tester,
+        ) async {
+          await tester.pumpWidget(
+            buildThemed(
+              O2ToxicityCard(exposure: exposure, units: units),
+              brightness,
+            ),
+          );
+          await tester.pumpAndSettle();
+
+          expect(labelContrast(tester, label), greaterThanOrEqualTo(4.5));
+        });
+
+        testWidgets('compact panel $label badge in ${brightness.name} mode', (
+          tester,
+        ) async {
+          await tester.pumpWidget(
+            buildThemed(CompactO2ToxicityPanel(exposure: exposure), brightness),
+          );
+          await tester.pumpAndSettle();
+
+          expect(labelContrast(tester, label), greaterThanOrEqualTo(4.5));
+        });
+      }
+    }
   });
 }

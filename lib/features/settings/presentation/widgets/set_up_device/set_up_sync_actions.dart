@@ -12,6 +12,19 @@ import 'package:submersion/features/settings/presentation/widgets/adopt_replaced
 import 'package:submersion/features/settings/presentation/widgets/encryption_settings_section.dart';
 import 'package:submersion/features/settings/presentation/widgets/sync/sync_account_switch.dart';
 
+/// How pointing sync at the chosen account ended.
+enum SetUpConnect {
+  /// Sync now names the account.
+  connected,
+
+  /// Sync already named the account and this device has synced with it:
+  /// the library is the one the device shares, with nothing to choose.
+  inStep,
+
+  /// Sync does not name the account: the switch stopped short.
+  failed,
+}
+
 /// How the first sync of step 2 ended.
 enum SetUpFirstSync {
   /// In step: the library is uploaded or downloaded.
@@ -32,30 +45,36 @@ class SetUpSyncActions {
   const SetUpSyncActions();
 
   /// Points sync at [account] (plan ruling 3): the same write the Sync
-  /// page's Change makes, with no sync run. True only when sync then names
-  /// [account] itself: the switch can stop short (an account with no keys
-  /// here, a cancelled sign-in) and leave the previous account selected. The
-  /// step keeps the account groups watched while it shows.
-  Future<bool> connect(
+  /// page's Change makes, with no sync run. Connected only when sync then
+  /// names [account] itself: the switch can stop short (an account with no
+  /// keys here, a cancelled sign-in) and leave the previous account
+  /// selected. The step keeps the account groups watched while it shows.
+  Future<SetUpConnect> connect(
     BuildContext context,
     WidgetRef ref,
     AccountGroup account,
   ) async {
     final groups = await ref.read(accountGroupsProvider.future);
-    if (!context.mounted) return false;
+    if (!context.mounted) return SetUpConnect.failed;
     final current = currentSyncGroup(groups);
     if (current?.key == account.key &&
         ref.read(selectedCloudProviderTypeProvider) != null) {
-      return true;
+      return ref.read(syncStateProvider).lastSync == null
+          ? SetUpConnect.connected
+          : SetUpConnect.inStep;
     }
     await useAccountForSync(context, ref, account, current: current);
-    if (ref.read(selectedCloudProviderTypeProvider) == null) return false;
+    if (ref.read(selectedCloudProviderTypeProvider) == null) {
+      return SetUpConnect.failed;
+    }
     // Read again: the switch changes which account carries sync. The usages
     // too, not only the groups: they refresh on the sync event bus, which
     // may not have delivered the switch yet.
     refreshAccountState(ref.invalidate);
     final after = await ref.read(accountGroupsProvider.future);
-    return currentSyncGroup(after)?.key == account.key;
+    return currentSyncGroup(after)?.key == account.key
+        ? SetUpConnect.connected
+        : SetUpConnect.failed;
   }
 
   /// The first sync, as Sync now runs it once its Combine question has been

@@ -18,6 +18,7 @@ class SetUpPendingItems extends StatelessWidget {
     required this.items,
     required this.onOpen,
     required this.onSignIn,
+    required this.onReconnect,
     required this.onDismiss,
   });
 
@@ -26,6 +27,9 @@ class SetUpPendingItems extends StatelessWidget {
   /// Opens a settings page through the card's host.
   final ValueChanged<String> onOpen;
   final Future<void> Function(PendingSetupItem item) onSignIn;
+
+  /// Opens the guided reconnect for a store marker mismatch (issue #2303).
+  final Future<void> Function(PendingSetupItem item) onReconnect;
   final Future<void> Function(PendingSetupItem item) onDismiss;
 
   @override
@@ -60,7 +64,7 @@ class SetUpPendingItems extends StatelessWidget {
               ),
               SetupItemKind.mediaStoreReconnect => TileSubtitleAction(
                 label: l10n.settings_setUpDevice_item_reconnectAction,
-                onPressed: () => onOpen(item.route),
+                onPressed: () => onReconnect(item),
               ),
               SetupItemKind.accountSignIn => TileSubtitleAction(
                 label: l10n.settings_setUpDevice_item_signInAction,

@@ -866,10 +866,7 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
                   ? const SizedBox(
                       width: 20,
                       height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
+                      child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   : Text(context.l10n.trips_edit_button_save),
             ),

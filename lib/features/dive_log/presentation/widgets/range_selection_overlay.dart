@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/theme/backdrop_color.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_range_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/range_selection_layout.dart';
@@ -324,16 +325,19 @@ class _HandleGrip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return Container(
       width: isActive ? 16 : 12,
       height: isActive ? 16 : 12,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: color,
-        border: Border.all(color: Colors.white, width: 2),
+        // The colour behind the chart punches the grip out of it; a fixed
+        // white glared on a dark one.
+        border: Border.all(color: backdropColorOf(context), width: 2),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2),
+            color: scheme.shadow.withValues(alpha: 0.2),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),

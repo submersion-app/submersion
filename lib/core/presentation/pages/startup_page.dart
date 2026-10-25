@@ -1899,17 +1899,13 @@ class _StartupWrapperState extends State<StartupWrapper>
       MediaQuery.platformBrightnessOf(context),
     );
     final isDark = brightness == Brightness.dark;
-    final backgroundColor = isDark ? const Color(0xFF121212) : Colors.white;
-    final textColor = isDark ? Colors.white : Colors.black87;
-    final subtitleColor = isDark ? Colors.white70 : Colors.black54;
 
-    // The splash paints its plain text from the palette above, but every
-    // themed descendant (the restore Card, the buttons, the progress
-    // indicators, the escape-hatch dialogs) reads Theme.of instead. A
-    // MaterialApp with no theme gets Flutter's default, which is always
-    // LIGHT: in dark mode that put a near-white card surface under white
-    // text and made the restore offer unreadable. The theme therefore has to
-    // follow the same brightness the palette does.
+    // Every themed descendant (the restore Card, the buttons, the progress
+    // indicators, the escape-hatch dialogs) reads Theme.of. A MaterialApp
+    // with no theme gets Flutter's default, which is always LIGHT: in dark
+    // mode that put a near-white card surface under white text and made the
+    // restore offer unreadable. The theme therefore has to follow the
+    // diver's brightness.
     //
     // The preset comes from the same pre-database mirror the brightness does,
     // so a diver on Console or Deep is not handed an ocean-blue error screen.
@@ -1917,6 +1913,12 @@ class _StartupWrapperState extends State<StartupWrapper>
       resolveStartupThemePreset(widget.prefs),
       brightness,
     );
+
+    // The error and recovery screens paint their plain text from the same
+    // theme, so it agrees with the restore card beneath it on every preset.
+    final backgroundColor = splashTheme.colorScheme.surface;
+    final textColor = splashTheme.colorScheme.onSurface;
+    final subtitleColor = splashTheme.colorScheme.onSurfaceVariant;
 
     final isReady = _state == _StartupState.ready;
 

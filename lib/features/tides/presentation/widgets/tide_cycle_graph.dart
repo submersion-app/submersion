@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' show DateFormat;
 
+import 'package:submersion/core/theme/backdrop_color.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/tide/entities/tide_extremes.dart';
 import 'package:submersion/features/tides/domain/entities/tide_record.dart';
@@ -89,6 +90,7 @@ class TideCycleGraph extends StatelessWidget {
             waveColor: colorScheme.primary,
             fillColor: colorScheme.primary.withValues(alpha: 0.1),
             markerColor: _getStateColor(record.tideState),
+            ringColor: backdropColorOf(context),
             gridColor: colorScheme.outlineVariant.withValues(alpha: 0.3),
             labelColor: colorScheme.onSurfaceVariant,
             labelStyle: textTheme.labelSmall ?? const TextStyle(fontSize: 10),
@@ -171,6 +173,10 @@ class _TideCyclePainter extends CustomPainter {
   final Color waveColor;
   final Color fillColor;
   final Color markerColor;
+
+  /// Rings the marker to punch it out of the wave: the colour behind the
+  /// graph (its card), which a fixed white was not on a dark chart.
+  final Color ringColor;
   final Color gridColor;
   final Color labelColor;
   final TextStyle labelStyle;
@@ -190,6 +196,7 @@ class _TideCyclePainter extends CustomPainter {
     required this.waveColor,
     required this.fillColor,
     required this.markerColor,
+    required this.ringColor,
     required this.gridColor,
     required this.labelColor,
     required this.labelStyle,
@@ -225,7 +232,7 @@ class _TideCyclePainter extends CustomPainter {
       ..style = PaintingStyle.fill;
 
     final markerStrokePaint = Paint()
-      ..color = Colors.white
+      ..color = ringColor
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.0;
 
@@ -501,14 +508,25 @@ class _TideCyclePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _TideCyclePainter oldDelegate) {
+    // Every field is drawn, so every field is compared: the labels follow the
+    // diver's unit and clock, and the colours follow the theme.
     return cyclePosition != oldDelegate.cyclePosition ||
         tideState != oldDelegate.tideState ||
         waveColor != oldDelegate.waveColor ||
+        fillColor != oldDelegate.fillColor ||
         markerColor != oldDelegate.markerColor ||
+        ringColor != oldDelegate.ringColor ||
+        gridColor != oldDelegate.gridColor ||
+        labelColor != oldDelegate.labelColor ||
+        labelStyle != oldDelegate.labelStyle ||
         showLabels != oldDelegate.showLabels ||
         currentHeight != oldDelegate.currentHeight ||
+        highTideHeight != oldDelegate.highTideHeight ||
+        lowTideHeight != oldDelegate.lowTideHeight ||
         highTideTime != oldDelegate.highTideTime ||
         lowTideTime != oldDelegate.lowTideTime ||
-        referenceTime != oldDelegate.referenceTime;
+        referenceTime != oldDelegate.referenceTime ||
+        timeFormat != oldDelegate.timeFormat ||
+        depthUnit != oldDelegate.depthUnit;
   }
 }

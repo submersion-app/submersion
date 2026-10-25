@@ -53,6 +53,7 @@ import 'package:submersion/l10n/arb/app_localizations_en.dart';
 
 import '../../../../helpers/fake_cloud_storage_provider.dart';
 import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/glyph_contrast.dart';
 
 /// In-memory [S3CredentialsStore] for testing -- no FlutterSecureStorage.
 class _MemoryCredentialsStore implements S3CredentialsStore {
@@ -1089,6 +1090,27 @@ void main() {
       );
       expect(button.onPressed, isNull);
       expect(handles.sync.performSyncCalls, 0);
+    });
+
+    // The spinner was fixed white, which vanished on the pale disabled fill.
+    testWidgets('the syncing spinner reads on the disabled button', (
+      tester,
+    ) async {
+      await pumpPage(
+        tester,
+        settle: false,
+        selectedProvider: CloudProviderType.icloud,
+        syncState: const SyncState(status: SyncStatus.syncing),
+      );
+
+      final spinner = find.descendant(
+        of: find.widgetWithText(FilledButton, 'Syncing...'),
+        matching: find.byType(CircularProgressIndicator),
+      );
+      expect(
+        spinnerOnDisabledFilledButtonContrast(tester, spinner),
+        greaterThanOrEqualTo(3.0),
+      );
     });
 
     testWidgets(

@@ -40,10 +40,11 @@ class SetUpSyncStep extends ConsumerStatefulWidget {
 
 class _SetUpSyncStepState extends ConsumerState<SetUpSyncStep> {
   final _secret = TextEditingController();
-  bool _connected = false;
 
-  /// Sync could not be pointed at the account; Check again tries again.
-  bool _connectFailed = false;
+  /// How pointing sync at the account ended; null while it runs.
+  SetUpConnect? _connection;
+
+  bool get _connected => _connection == SetUpConnect.connected;
   bool _busy = false;
   bool _keepInStep = true;
   SetUpLibraryChoice _choice = SetUpLibraryChoice.combine;
@@ -69,20 +70,19 @@ class _SetUpSyncStepState extends ConsumerState<SetUpSyncStep> {
       currentSyncGroup(await ref.read(accountGroupsProvider.future));
 
   Future<void> _connect() async {
-    bool connected;
+    SetUpConnect connection;
     try {
       final account = await _account();
       if (!mounted || account == null) return;
-      connected = await widget.actions.connect(context, ref, account);
+      connection = await widget.actions.connect(context, ref, account);
     } on Object {
-      connected = false;
+      connection = SetUpConnect.failed;
     }
     if (!mounted) return;
-    setState(() {
-      _connected = connected;
-      _connectFailed = !connected;
-    });
-    if (connected) refreshSetUpLibrary(ref.invalidate);
+    setState(() => _connection = connection);
+    if (connection == SetUpConnect.connected) {
+      refreshSetUpLibrary(ref.invalidate);
+    }
   }
 
   /// Check again: connects first when that is what failed, once at a time.
@@ -239,11 +239,26 @@ class _SetUpSyncStepState extends ConsumerState<SetUpSyncStep> {
         children: const [],
       );
     }
-    final library = _connectFailed
-        ? const LibraryUnreachable()
-        : _connected
-        ? ref.watch(setUpLibraryProvider).value
-        : null;
+    if (_connection == SetUpConnect.inStep) {
+      return SetUpStepScaffold(
+        title: l10n.settings_setUpDevice_sync_title,
+        intro: l10n.settings_setUpDevice_sync_signedIn(account.label),
+        backLabel: l10n.common_action_back,
+        onBack: widget.navigation.onBack,
+        primaryLabel: l10n.settings_setUpDevice_next,
+        onPrimary: widget.navigation.onNext,
+        secondary: TextButton(
+          onPressed: widget.navigation.onNotNow,
+          child: Text(l10n.settings_setUpDevice_notNow),
+        ),
+        children: [Text(l10n.settings_setUpDevice_sync_inStep(account.label))],
+      );
+    }
+    final library = switch (_connection) {
+      SetUpConnect.failed => const LibraryUnreachable(),
+      SetUpConnect.connected => ref.watch(setUpLibraryProvider).value,
+      _ => null,
+    };
     final (children, primaryLabel, onPrimary) = _forLibrary(
       l10n,
       account,
@@ -292,6 +307,18 @@ class _SetUpSyncStepState extends ConsumerState<SetUpSyncStep> {
       const [Center(child: CircularProgressIndicator())],
       l10n.settings_setUpDevice_next,
       null,
+    ),
+    // The wizard's existing-data path starts a new logbook instead.
+    NoLibrary() when widget.navigation.onNoLibrary != null => (
+      [
+        Text(
+          l10n.setup_syncPull_noLibrary_title,
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
+        Text(l10n.setup_syncPull_noLibrary_message),
+      ],
+      l10n.setup_syncPull_startFresh,
+      widget.navigation.onNoLibrary,
     ),
     NoLibrary() => (
       [

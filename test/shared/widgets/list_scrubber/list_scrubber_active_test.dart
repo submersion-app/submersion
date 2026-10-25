@@ -4,6 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/shared/widgets/list_scrubber/list_scrubber.dart';
 import 'package:submersion/shared/widgets/list_scrubber/scrubber_marker.dart';
 
+import 'scrubber_hover.dart';
+
 void main() {
   late ScrollController controller;
   setUp(() => controller = ScrollController());
@@ -47,8 +49,7 @@ void main() {
   ) async {
     await tester.pumpWidget(host());
     await tester.pump();
-    final area = tester.getRect(find.byType(ListScrubber));
-    final inside = Offset(area.right - 10, area.top + 400);
+    final inside = scrubberThumbHoverPoint(tester);
     final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
     await mouse.addPointer(location: Offset.zero);
     await tester.pump(quick);
@@ -71,9 +72,7 @@ void main() {
   testWidgets('resizing the host while hovered throws nothing', (tester) async {
     await tester.pumpWidget(host());
     await tester.pump();
-    final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
-    await mouse.addPointer(location: const Offset(780, 400));
-    await tester.pumpAndSettle();
+    final mouse = await hoverScrubberThumb(tester);
     expect(find.byKey(ListScrubber.panelKey), findsOneWidget);
 
     for (final width in <double>[760, 700, 790, 640, 800, 720, 770, 600, 800]) {
@@ -125,10 +124,9 @@ void main() {
     final reports = <bool>[];
     await tester.pumpWidget(host(onActiveChanged: reports.add));
     await tester.pump();
-    final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
-    await mouse.addPointer(location: const Offset(780, 400));
-    await tester.pumpAndSettle();
-    await mouse.moveTo(const Offset(770, 300));
+    final mouse = await hoverScrubberThumb(tester);
+    // Off the thumb but still over the panel.
+    await mouse.moveTo(scrubberThumbHoverPoint(tester) + const Offset(-8, 100));
     await tester.pumpAndSettle();
     expect(reports, [true]);
 
@@ -178,13 +176,14 @@ void main() {
     );
     await mouse.addPointer(location: const Offset(400, 400));
     await mouse.down(const Offset(400, 400));
-    await mouse.moveTo(const Offset(780, 400));
+    final onThumb = scrubberThumbHoverPoint(tester);
+    await mouse.moveTo(onThumb);
     await tester.pump(quick);
     await mouse.up();
     await tester.pump(quick);
     expect(reports, isEmpty);
 
-    await mouse.moveTo(const Offset(781, 400));
+    await mouse.moveTo(onThumb + const Offset(0, 1));
     await tester.pumpAndSettle();
     expect(reports, [true]);
     expect(find.byKey(ListScrubber.panelKey), findsOneWidget);

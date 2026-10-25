@@ -2004,10 +2004,6 @@ class AppLocalizationsHe extends AppLocalizations {
       'סנכרון iCloud אינו זמין בגרסה זו של Submersion. השתמש בסנכרון S3 או בגרסת App Store.';
 
   @override
-  String get settings_cloudSync_provider_icloud_unsupportedSubtitle =>
-      'לא זמין בגרסה זו — השתמש ב-S3 או בגרסת App Store';
-
-  @override
   String get settings_cloudSync_encryption_title => 'הצפנה מקצה לקצה';
 
   @override
@@ -8474,11 +8470,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_scrubber_unrated => 'ללא דירוג';
 
   @override
-  String diveLog_scrubber_valueWithTrip(String value, String trip) {
-    return '$value · $trip';
-  }
-
-  @override
   String get diveLog_sighting_decreaseCount => 'הקטנת הכמות';
 
   @override
@@ -8677,34 +8668,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_manage_setupAssistant_subtitle =>
-      'עיון מחדש ביחידות, במראה ובאפשרויות הגיבוי';
-
-  @override
-  String get setup_backup_cloudCopy => 'אחסון גיבויים בענן';
-
-  @override
-  String get setup_backup_frequency => 'תדירות';
-
-  @override
-  String get setup_backup_frequency_daily => 'יומי';
-
-  @override
-  String get setup_backup_frequency_monthly => 'חודשי';
-
-  @override
-  String get setup_backup_frequency_weekly => 'שבועי';
-
-  @override
-  String get setup_backup_scheduleSubtitle => 'גיבוי הנתונים לפי לוח זמנים';
-
-  @override
-  String get setup_backup_scheduleToggle => 'גיבויים אוטומטיים';
-
-  @override
-  String get setup_backup_subtitle => 'הגנו על הנתונים שלכם מהיום הראשון.';
-
-  @override
-  String get setup_backup_title => 'גיבויים וסנכרון';
+      'עיון מחדש ביחידות, בגיבויים, בסנכרון ובתמונות';
 
   @override
   String get setup_common_back => 'חזרה';
@@ -8812,9 +8776,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get setup_restore_title => 'שחזור גיבוי';
 
   @override
-  String get setup_step_backup => 'גיבוי';
-
-  @override
   String get setup_step_finish => 'סיום';
 
   @override
@@ -8822,9 +8783,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get setup_step_units => 'יחידות';
-
-  @override
-  String get setup_syncPull_continue => 'המשך';
 
   @override
   String get setup_syncPull_incomplete_message =>
@@ -8849,50 +8807,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get setup_syncPull_noLibrary_title => 'לא נמצאה ספרייה';
-
-  @override
-  String get setup_syncPull_success => 'הספרייה אומצה';
-
-  @override
-  String get setup_syncPull_syncing => 'מושך את הספרייה...';
-
-  @override
-  String get setup_sync_changeProvider => 'החלפת ספק';
-
-  @override
-  String setup_sync_connectedTo(String provider) {
-    return 'מחובר אל $provider';
-  }
-
-  @override
-  String setup_sync_error(Object error) {
-    return 'החיבור נכשל: $error';
-  }
-
-  @override
-  String get setup_sync_header => 'סנכרון ענן';
-
-  @override
-  String get setup_sync_libraryFound_adopt => 'אימוץ הספרייה הקיימת';
-
-  @override
-  String get setup_sync_libraryFound_keepFresh => 'התחלה חדשה';
-
-  @override
-  String get setup_sync_libraryFound_message =>
-      'חשבון זה כבר מכיל ספריית Submersion. לאמץ אותה במקום להתחיל מחדש?';
-
-  @override
-  String get setup_sync_libraryFound_title => 'נמצאה ספרייה קיימת';
-
-  @override
-  String get setup_sync_manageInSettings => 'ניהול בהגדרות';
-
-  @override
-  String get setup_sync_notConnected => 'לא מחובר';
-
-  @override
-  String get setup_sync_subtitle => 'סנכרון הנתונים בין מכשירים';
 
   @override
   String get setup_units_advanced => 'כוונון יחידות';
@@ -14659,6 +14573,51 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get cylinderConfigs_fromPreset => 'מתבנית';
+
+  @override
+  String get tankMod_label => 'MOD';
+
+  @override
+  String tankMod_default(String ppO2, String limit) {
+    return 'ברירת מחדל ב-ppO2 $ppO2 ($limit)';
+  }
+
+  @override
+  String get tankMod_limitBottom => 'מגבלת קרקעית';
+
+  @override
+  String get tankMod_limitDeco => 'מגבלת דקו';
+
+  @override
+  String get tankMod_limitDiluent => 'MOD מדלל';
+
+  @override
+  String tankMod_overridden(String depth) {
+    return 'הוגדר על ידך · ברירת מחדל $depth';
+  }
+
+  @override
+  String tankMod_ppO2At(String ppO2, String depth) {
+    return 'ppO2 $ppO2 ב-$depth';
+  }
+
+  @override
+  String tankMod_exceeds(
+    String ppO2,
+    String depth,
+    String limit,
+    String limitPpO2,
+  ) {
+    return 'ppO2 $ppO2 ב-$depth, מעל $limit $limitPpO2';
+  }
+
+  @override
+  String get tankMod_reset => 'איפוס';
+
+  @override
+  String tankMod_chip(String depth) {
+    return 'MOD $depth';
+  }
 
   @override
   String get cylinderConfigs_applyAction => 'החל תצורה';
@@ -22512,9 +22471,6 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_conflict_field_decoStopIncrement =>
       'מרווח בין עצירות דקו';
-
-  @override
-  String get settings_conflict_field_decoSwitchDepth => 'עומק המעבר לגז דקו';
 
   @override
   String get settings_conflict_field_deepDiveThresholdM => 'סף צלילה עמוקה';
@@ -36065,6 +36021,19 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get dive3d_metric_temperature => 'טמפ';
+
+  @override
+  String get navTrack3d_previewTitle => 'תצוגת תלת־ממד';
+
+  @override
+  String get navTrack3d_metric_speed => 'מהירות';
+
+  @override
+  String get navTrack3d_metric_batteryVoltage => 'סוללה';
+
+  @override
+  String get navTrack3d_noProfile =>
+      'אין מספיק נתונים במסלול הזה לתצוגת תלת-ממד.';
 
   @override
   String get dive3d_metric_ascentRate => 'עלייה';
@@ -51290,6 +51259,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get navTrack_detail_menuChangeSite => 'שינוי אתר';
 
   @override
+  String get navTrack_detail_menuChangeDevice => 'שינוי מכשיר';
+
+  @override
   String get navTrack_detail_noMapYet =>
       'קבע את נקודת ההתחלה כדי לראות זאת על מפה.';
 
@@ -51307,16 +51279,6 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get navTrack_detail_correctionStatus_gpsFix =>
       'הסיום נקבע מתיקון ה-GPS של ההקלטה.';
-
-  @override
-  String navTrack_detail_device(String name) {
-    return 'מכשיר: $name';
-  }
-
-  @override
-  String navTrack_detail_equipment(String name) {
-    return 'ציוד: $name';
-  }
 
   @override
   String navTrack_detail_distance(String value) {
@@ -51359,6 +51321,12 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get navTrack_detail_chooseSite => 'בחר אתר';
+
+  @override
+  String get navTrack_detail_noEquipment => 'אין מכשיר';
+
+  @override
+  String get navTrack_detail_chooseDevice => 'בחר מכשיר';
 
   @override
   String get navTrack_review_importTrackTitle => 'ייבוא מסלול תת-ימי';
@@ -53844,7 +53812,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_photos_status_pausedMismatch =>
-      'ההעלאות מושהות: בחרו שוב את החשבון';
+      'ההעלאות מושהות: יש לחבר מחדש את העותקים';
 
   @override
   String get settings_photos_status_finishSetup => 'סיום הגדרת המכשיר הזה';
@@ -53860,7 +53828,95 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_photos_suspended_mismatch =>
-      'המכשיר הזה והחשבון כבר אינם מסכימים אילו עותקים בשימוש. בחירה מחדש בחשבון מאמצת את העותקים שהוא מחזיק עכשיו.';
+      'החשבון כבר לא מחזיק את העותקים שהמכשיר הזה השתמש בהם. התחברו מחדש כדי לבחור מה יקרה עכשיו.';
+
+  @override
+  String get settings_photos_reconnect_title => 'חיבור מחדש של עותקי התמונות';
+
+  @override
+  String settings_photos_reconnect_checking(String account) {
+    return 'בודקים את $account…';
+  }
+
+  @override
+  String settings_photos_reconnect_resolved(String account) {
+    return 'העותקים ב-$account תואמים שוב למכשיר הזה. ההעלאות ממשיכות.';
+  }
+
+  @override
+  String settings_photos_reconnect_otherKnown(String account) {
+    return '$account מחזיק עכשיו עותקים שהגדיר מכשיר אחר שלכם.';
+  }
+
+  @override
+  String settings_photos_reconnect_otherUnknown(String account) {
+    return '$account מחזיק עכשיו עותקים שליומן הזה אין עליהם תיעוד.';
+  }
+
+  @override
+  String settings_photos_reconnect_noMarker(String account) {
+    return 'העותקים ב-$account הוסרו או אופסו.';
+  }
+
+  @override
+  String settings_photos_reconnect_unreadable(String account) {
+    return 'לא ניתן היה לבדוק את $account.';
+  }
+
+  @override
+  String get settings_photos_reconnect_needsAccount =>
+      'המכשיר הזה כבר לא יכול לפתוח את החשבון שבו היו העותקים.';
+
+  @override
+  String get settings_photos_reconnect_adopt =>
+      'שימוש בעותקים שנמצאים שם עכשיו';
+
+  @override
+  String get settings_photos_reconnect_adoptBody =>
+      'תמונות שכבר נמצאות שם נשארות. מה שחסר יועלה שוב מהמכשיר הזה.';
+
+  @override
+  String settings_photos_reconnect_adoptUnknownBody(String account) {
+    return 'בחרו בזה רק אם $account מיועד ליומן הזה. תמונות שכבר נמצאות שם נשארות, ומה שחסר יועלה שוב מהמכשיר הזה.';
+  }
+
+  @override
+  String get settings_photos_reconnect_rebuild => 'התחלת העותקים מחדש';
+
+  @override
+  String settings_photos_reconnect_rebuildBody(String account) {
+    return 'עותקים חדשים מתחילים ב-$account. תמונות שעדיין שם נשמרות, וכל מה שבמכשיר הזה יועלה שוב.';
+  }
+
+  @override
+  String get settings_photos_reconnect_chooseAccount => 'בחירה מחדש בחשבון';
+
+  @override
+  String get settings_photos_reconnect_chooseAccountBody =>
+      'פותח את תמונות וסרטונים כדי לבחור את החשבון או להתחבר שוב.';
+
+  @override
+  String settings_photos_reconnect_heldOnly(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count תמונות וסרטונים נשמרים רק בענן. הם ייפתחו שוב רק אם החשבון עדיין מחזיק בהם.',
+      one:
+          '$count תמונה או סרטון נשמרים רק בענן. הם ייפתחו שוב רק אם החשבון עדיין מחזיק בהם.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_photos_reconnect_joined(String account) {
+    return 'עכשיו בשימוש העותקים ב-$account';
+  }
+
+  @override
+  String settings_photos_reconnect_started(String account) {
+    return 'עותקים חדשים התחילו ב-$account';
+  }
 
   @override
   String get media_info_actionCopyNow => 'העתקה עכשיו';
@@ -54558,4 +54614,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String settings_setUpDevice_done_otherDevices(String account) {
     return 'במכשירים האחרים שלך, פתחו את Submersion, בחרו $account, ואותה ספרייה תופיע.';
   }
+
+  @override
+  String settings_setUpDevice_sync_inStep(String account) {
+    return 'הצלילות כאן מתואמות עם הספרייה שלך ב-$account.';
+  }
+
+  @override
+  String get setup_syncPull_startFresh => 'התחלת יומן חדש';
 }

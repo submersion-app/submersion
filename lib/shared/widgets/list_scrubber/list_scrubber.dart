@@ -21,6 +21,7 @@ class ListScrubber extends StatefulWidget {
     required this.markers,
     required this.onScrubEnd,
     required this.child,
+    this.detailFor,
     this.busyLabel,
     this.onActiveChanged,
     this.highlightSlot,
@@ -35,6 +36,9 @@ class ListScrubber extends StatefulWidget {
   final int slotCount;
   final int loadedSlotCount;
   final String Function(int slot) labelFor;
+
+  /// A second line under the dragged slot's label, or null for none.
+  final String? Function(int slot)? detailFor;
   final List<ScrubberMarker> markers;
   final void Function(int slot) onScrubEnd;
 
@@ -42,8 +46,8 @@ class ListScrubber extends StatefulWidget {
   /// visible, while the caller works toward a dropped slot.
   final String? busyLabel;
 
-  /// Called after a frame in which the scrubber became active (hovered,
-  /// dragged or busy) or idle again.
+  /// Called after a frame in which the scrubber became active (its thumb
+  /// hovered, dragged or busy) or idle again.
   final ValueChanged<bool>? onActiveChanged;
 
   /// The slot of the item the caller shows as selected, marked with a dot.
@@ -75,6 +79,13 @@ class ListScrubber extends StatefulWidget {
   static const highlightKey = ValueKey('listScrubber.highlight');
   static const idleHide = Duration(milliseconds: 1500);
 
+  /// How long the panel takes to fade in or out.
+  static const reveal = Duration(milliseconds: 250);
+
+  /// The column at the end edge where a hover shows the thumb, and the
+  /// thumb's hover target within it; wider when the themed thumb is.
+  static const gripWidth = 16.0;
+
   @override
   State<ListScrubber> createState() => _ListScrubberState();
 }
@@ -84,7 +95,36 @@ class _ListScrubberState extends State<ListScrubber> {
   static const _strip = 48.0;
 
   bool _scrolling = false;
+
+  /// The pointer reached the thumb; the panel stays open while it is over
+  /// the hover region.
   bool _hovering = false;
+
+  /// The pointer is over the end edge's column, which shows the thumb.
+  bool _edgeHover = false;
+
+  /// A mouse is over the hover region, button held or not, so a drag that
+  /// ends there leaves the panel open.
+  bool _inside = false;
+
+  /// The edge column's width: [ListScrubber.gripWidth], or the themed
+  /// thumb's when that is wider.
+  double _grip = ListScrubber.gripWidth;
+
+  /// How far in from the end edge the drawn thumb reaches: its margin plus
+  /// its thickness. Only a hover this close to the edge opens the panel.
+  double _thumbReach = ListScrubber.gripWidth;
+
+  /// Where the thumb and the hover region were last laid out, for placing a
+  /// hover against them.
+  double _thumbTop = 0;
+  double _regionWidth = _strip;
+
+  List<ScrubberMarker>? _columnMarkers;
+  double? _columnInset;
+  TextScaler? _columnScaler;
+  TextStyle? _columnStyle;
+  double _column = ListScrubberPanel.width;
   int? _dragSlot;
   int? _lastSlot;
 
@@ -157,10 +197,52 @@ class _ListScrubberState extends State<ListScrubber> {
     });
   }
 
-  /// The default fade, left unkeyed so a child that returns while its
-  /// previous copy still fades out does not duplicate a key.
-  static Widget _fade(Widget child, Animation<double> animation) =>
-      FadeTransition(opacity: animation, child: child);
+  /// The label column for the markers beside a thumb [inset] wide, measured
+  /// again only when they or the text style change.
+  double _labelColumn(BuildContext context, double inset) {
+    final scaler = MediaQuery.textScalerOf(context);
+    final style = ListScrubberPanel.markerStyle(Theme.of(context));
+    if (!identical(_columnMarkers, widget.markers) ||
+        _columnInset != inset ||
+        _columnScaler != scaler ||
+        _columnStyle != style) {
+      _columnMarkers = widget.markers;
+      _columnInset = inset;
+      _columnScaler = scaler;
+      _columnStyle = style;
+      _column = ListScrubberPanel.labelColumnFor(
+        context,
+        widget.markers,
+        thumbInset: inset,
+      );
+    }
+    return _column;
+  }
+
+  /// Tracks a hover over the region: the end edge's column shows the thumb,
+  /// and the drawn thumb itself (or the margin between it and the edge)
+  /// opens the panel, which then stays open until the
+  /// pointer leaves the region.
+  void _hover(PointerEvent event) {
+    _inside = true;
+    if (event.down) return;
+    final x = event.localPosition.dx;
+    final fromEnd = Directionality.of(context) == TextDirection.rtl
+        ? x
+        : _regionWidth - x;
+    final edge = fromEnd <= _grip;
+    final y = event.localPosition.dy;
+    final onThumb =
+        fromEnd <= _thumbReach &&
+        y >= _thumbTop &&
+        y <= _thumbTop + _thumbHeight;
+    final hovering = _hovering || onThumb;
+    if (hovering == _hovering && edge == _edgeHover) return;
+    setState(() {
+      _hovering = hovering;
+      _edgeHover = edge;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -181,7 +263,10 @@ class _ListScrubberState extends State<ListScrubber> {
               viewportDimension: position.viewportDimension,
             );
         if (!wanted) {
+          // The region unmounts without an exit.
           _hovering = false;
+          _edgeHover = false;
+          _inside = false;
           _noteActive(false);
           if (_dragSlot != null) {
             _dragSlot = null;
@@ -221,10 +306,11 @@ class _ListScrubberState extends State<ListScrubber> {
           trackExtent: trackExtent,
           slotCount: widget.slotCount,
         );
+        _thumbTop = thumbTop;
         final active =
             _hovering || dragSlot != null || widget.busyLabel != null;
         _noteActive(active);
-        final visible = _scrolling || active;
+        final visible = _scrolling || _edgeHover || active;
         final thumbStyle = ListScrubberThumbStyle.resolve(
           context,
           ListScrubberThumbStyle.statesFor(
@@ -232,23 +318,41 @@ class _ListScrubberState extends State<ListScrubber> {
             dragging: dragSlot != null,
           ),
         );
+        // The column is sized for the hovered thumb, so it holds still
+        // between hovering and dragging.
+        final hoverStyle = ListScrubberThumbStyle.resolve(
+          context,
+          ListScrubberThumbStyle.statesFor(active: true, dragging: false),
+        );
+        final thumbInset = hoverStyle.crossAxisMargin + hoverStyle.thickness;
+        _thumbReach = thumbInset;
+        _grip = math.max(
+          ListScrubber.gripWidth,
+          hoverStyle.thickness + hoverStyle.crossAxisMargin * 2,
+        );
+        final labelColumn = _labelColumn(context, thumbInset);
         final highlight = widget.highlightSlot;
+        final busy = widget.busyLabel;
         final value =
-            widget.busyLabel ??
-            (dragSlot == null ? null : widget.labelFor(dragSlot));
+            busy ?? (dragSlot == null ? null : widget.labelFor(dragSlot));
+        final detail = busy != null || dragSlot == null
+            ? null
+            : widget.detailFor?.call(dragSlot);
         final panelWidth = ListScrubberPanel.widthFor(
+          labelColumn: labelColumn,
           density: widget.density.isNotEmpty,
         );
         // Laid out once here; the panel takes the height from it.
-        final valueSize = value == null
+        final band = value == null
             ? null
-            : ListScrubberPanel.labelSize(context, value);
-        final bandWidth = valueSize == null
-            ? ListScrubberPanel.width
-            : ListScrubberPanel.bandWidthFor(
-                valueSize.width,
-                constraints.maxWidth,
+            : ListScrubberPanel.bandSize(
+                context,
+                value: value,
+                detail: detail,
+                hostWidth: constraints.maxWidth,
+                panelWidth: panelWidth,
               );
+        _regionWidth = active ? math.max(panelWidth, _strip) : _strip;
 
         return Stack(
           fit: StackFit.passthrough,
@@ -267,11 +371,14 @@ class _ListScrubberState extends State<ListScrubber> {
                         bottom: 0,
                         end: 0,
                         width: panelWidth,
-                        child: AnimatedSwitcher(
-                          duration: const Duration(milliseconds: 150),
-                          transitionBuilder: _fade,
-                          child: active
-                              ? ListScrubberPanel(
+                        child: TweenAnimationBuilder<double>(
+                          tween: Tween(end: active ? 1 : 0),
+                          duration: ListScrubber.reveal,
+                          curve: Curves.easeOut,
+                          builder: (context, reveal, _) =>
+                              reveal == 0 && !active
+                              ? const SizedBox.shrink()
+                              : ListScrubberPanel(
                                   key: ListScrubber.panelKey,
                                   markers: widget.markers,
                                   slotCount: widget.slotCount,
@@ -279,18 +386,18 @@ class _ListScrubberState extends State<ListScrubber> {
                                   thumbHeight: _thumbHeight,
                                   thumbTop: thumbTop,
                                   currentLabel: value,
-                                  currentLabelHeight: valueSize?.height,
-                                  currentWidth: bandWidth,
+                                  currentDetail: detail,
+                                  currentHeight: band?.height,
+                                  currentWidth: band?.width ?? panelWidth,
+                                  labelColumn: labelColumn,
+                                  reveal: reveal,
                                   ticks: widget.highlightTicks,
                                   tickColor: widget.highlightTickColor,
                                   segments: widget.segments,
                                   contextTicks: widget.contextTicks,
                                   density: widget.density,
-                                  thumbInset:
-                                      thumbStyle.crossAxisMargin +
-                                      thumbStyle.thickness,
-                                )
-                              : const SizedBox.shrink(),
+                                  thumbInset: thumbInset,
+                                ),
                         ),
                       ),
                     ],
@@ -302,17 +409,19 @@ class _ListScrubberState extends State<ListScrubber> {
               top: 0,
               bottom: 0,
               end: 0,
-              width: active ? panelWidth : _strip,
+              width: _regionWidth,
               child: MouseRegion(
                 hitTestBehavior: HitTestBehavior.translucent,
-                onEnter: (event) {
-                  if (!event.down) setState(() => _hovering = true);
-                },
-                onHover: (_) {
-                  if (!_hovering) setState(() => _hovering = true);
-                },
+                onEnter: _hover,
+                onHover: _hover,
                 onExit: (_) {
-                  if (_hovering) setState(() => _hovering = false);
+                  _inside = false;
+                  if (_hovering || _edgeHover) {
+                    setState(() {
+                      _hovering = false;
+                      _edgeHover = false;
+                    });
+                  }
                   _scheduleHide();
                 },
                 child: ExcludeSemantics(
@@ -457,6 +566,8 @@ class _ListScrubberState extends State<ListScrubber> {
     setState(() {
       _dragSlot = null;
       _lastSlot = clamped;
+      // A mouse released over the panel keeps it open, as a hover would.
+      if (_inside) _hovering = true;
     });
     _scheduleHide();
     widget.onScrubEnd(clamped);

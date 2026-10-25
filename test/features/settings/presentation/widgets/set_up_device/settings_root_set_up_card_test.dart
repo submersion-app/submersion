@@ -21,9 +21,9 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../set_up_progress_fixture.dart';
 
-const _reconnect = PendingSetupItem(
-  kind: SetupItemKind.mediaStoreReconnect,
-  key: 'store_marker_s1',
+const _attach = PendingSetupItem(
+  kind: SetupItemKind.mediaStoreAttach,
+  key: 'store_s1',
   label: 'Dropbox',
   route: '/settings/photos-media',
 );
@@ -112,16 +112,17 @@ void main() {
     });
 
     // Issue #3482 review: the card's items open where its steps do, in the
-    // Data pane, not over the whole window.
+    // Data pane, not over the whole window. (A reconnect opens its own sheet
+    // instead, issue #2303.)
     testWidgets('an item\'s page opens in the Data pane too', (tester) async {
-      await pump(tester, const SettingsListContent(), items: [_reconnect]);
+      await pump(tester, const SettingsListContent(), items: [_attach]);
 
-      await tester.tap(find.text('Reconnect'));
+      await tester.tap(find.text('Set up'));
       await tester.pumpAndSettle();
 
       expect(location().queryParameters, {
         'selected': 'data',
-        'dataPage': 'photos-media',
+        'dataPage': 'setup?step=photos',
       });
     });
 

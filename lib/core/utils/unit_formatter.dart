@@ -591,6 +591,27 @@ class UnitFormatter {
     return '${formatFixedForDisplay(converted, decimals)} $speedSymbol';
   }
 
+  /// Format an underwater track's (DPV) speed from m/s in the diver's
+  /// preferred unit: m/min in metric, ft/min in imperial -- the
+  /// diving/scooter convention (a dive computer's ascent/descent rate uses
+  /// the same per-minute pacing), not [formatSpeed]'s km/h-or-knots marine
+  /// convention for a GPS surface track's boat speed. Reuses [DepthUnit]'s
+  /// own meters<->feet conversion rather than adding a third one.
+  String formatTrackSpeed(double metersPerSecond, {int decimals = 1}) {
+    final converted = convertTrackSpeed(metersPerSecond);
+    return '${formatFixedForDisplay(converted, decimals)} $trackSpeedSymbol';
+  }
+
+  /// [formatTrackSpeed]'s unit conversion without the string formatting,
+  /// for callers (the track 3D Z axis) that need the numeric value.
+  double convertTrackSpeed(double metersPerSecond) =>
+      convertDepth(metersPerSecond * 60);
+
+  /// [formatTrackSpeed]'s unit symbol on its own: the same per-minute depth
+  /// unit as an ascent rate, so it comes from [depthRateSymbol] rather than
+  /// a second hand-built "/min".
+  String get trackSpeedSymbol => depthRateSymbol;
+
   // ============================================================================
   // Date/Time Formatting
   // ============================================================================

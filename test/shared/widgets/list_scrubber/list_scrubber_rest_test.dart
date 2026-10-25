@@ -1,10 +1,11 @@
 import 'dart:collection';
 
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/shared/widgets/list_scrubber/list_scrubber.dart';
 import 'package:submersion/shared/widgets/list_scrubber/scrubber_marker.dart';
+
+import 'scrubber_hover.dart';
 
 /// Counts how often the panel walks the markers.
 class _CountingMarkers extends ListBase<ScrubberMarker> {
@@ -74,10 +75,7 @@ void main() {
   Future<TestGesture> hover(WidgetTester tester) async {
     await tester.pumpWidget(host());
     await tester.pump();
-    final area = tester.getRect(find.byType(ListScrubber));
-    final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
-    await mouse.addPointer(location: Offset(area.right - 10, area.top + 300));
-    await tester.pumpAndSettle();
+    final mouse = await hoverScrubberThumb(tester);
     expect(find.byKey(ListScrubber.panelKey), findsOneWidget);
     return mouse;
   }

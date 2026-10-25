@@ -759,7 +759,9 @@ class _MigrationInProgressView extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             context.l10n.settings_migrationProgress_doNotClose,
-            style: const TextStyle(color: Colors.grey),
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
         ],
       ),

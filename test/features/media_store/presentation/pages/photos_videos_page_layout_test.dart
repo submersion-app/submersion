@@ -19,12 +19,15 @@ import 'package:submersion/features/media_store/domain/media_transfer_hold.dart'
 import 'package:submersion/features/media_store/domain/media_transfer_summary.dart';
 import 'package:submersion/features/media_store/presentation/pages/photos_videos_page.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
+import 'package:submersion/features/media_store/presentation/providers/media_store_reconnect_provider.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_upload_progress_provider.dart';
 import 'package:submersion/features/media_store/presentation/providers/photos_copies_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/account_group_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/pending_setup_items_provider.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+
+import '../../../../helpers/fake_media_store_reconnect.dart';
 
 final _t = DateTime.utc(2026);
 
@@ -135,6 +138,9 @@ void main() {
           accountGroupsProvider.overrideWith((ref) async => [_dropbox, _drive]),
           offerableAccountKindsProvider.overrideWithValue(const []),
           mediaStoreAccountAttachProvider.overrideWithValue(attach),
+          mediaStoreReconnectProvider.overrideWithValue(
+            FakeMediaStoreReconnect(),
+          ),
         ],
         child: const MaterialApp(
           locale: Locale('en'),
@@ -480,9 +486,7 @@ void main() {
 
     // The preflight that finds a mismatch also yields the reconnect item,
     // so the two always arrive together.
-    testWidgets('a marker mismatch asks to choose the account again', (
-      tester,
-    ) async {
+    testWidgets('a marker mismatch asks to reconnect', (tester) async {
       await pumpStatus(
         tester,
         summary: held(MediaTransferHoldKind.markerMismatch),
@@ -491,10 +495,31 @@ void main() {
       expect(
         find.descendant(
           of: find.byKey(const Key('photos-status')),
-          matching: find.text('Uploads paused: choose the account again'),
+          matching: find.text('Uploads paused: the copies need reconnecting'),
         ),
         findsOneWidget,
       );
+    });
+
+    // Issue #2303: the line itself opens the guided reconnect.
+    testWidgets('a marker mismatch offers the guided reconnect', (
+      tester,
+    ) async {
+      await pumpStatus(
+        tester,
+        summary: held(MediaTransferHoldKind.markerMismatch),
+        items: const [reconnectItem],
+      );
+
+      await tester.tap(find.byKey(const Key('photos-status-reconnect')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Reconnect photo copies'), findsOneWidget);
+    });
+
+    testWidgets('other holds offer no reconnect', (tester) async {
+      await pumpStatus(tester, summary: held(MediaTransferHoldKind.detached));
+      expect(find.byKey(const Key('photos-status-reconnect')), findsNothing);
     });
 
     testWidgets('detached says so', (tester) async {
@@ -527,14 +552,12 @@ void main() {
       expect(find.text('7 of 10 copied, 3 uploading'), findsOneWidget);
     });
 
-    testWidgets('a pending reconnect asks to choose the account again', (
-      tester,
-    ) async {
+    testWidgets('a pending reconnect asks to reconnect', (tester) async {
       await pumpStatus(tester, items: const [reconnectItem]);
       expect(
         find.descendant(
           of: find.byKey(const Key('photos-status')),
-          matching: find.text('Uploads paused: choose the account again'),
+          matching: find.text('Uploads paused: the copies need reconnecting'),
         ),
         findsOneWidget,
       );

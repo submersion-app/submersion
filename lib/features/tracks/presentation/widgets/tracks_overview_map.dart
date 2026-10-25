@@ -39,6 +39,24 @@ String tracksMapFramingSignature({
   return '$keys:$pointCount:$selectedKey:$anchors';
 }
 
+/// An anchored underwater track's drawn route as framing points, empty until
+/// its points have loaded. Derived once per hydration rather than in the
+/// map's build: the map rebuilds far more often than a track's points
+/// change, and each derivation segments and corrects the whole recording.
+final _underwaterFramingPointsProvider =
+    Provider.family<List<GpsTrackPoint>, String>((ref, trackId) {
+      final hydrated = ref.watch(navTrackByIdProvider(trackId)).value;
+      if (hydrated == null) return const [];
+      return [
+        for (final geo in navTrackDrawnPoints(hydrated))
+          GpsTrackPoint(
+            timestamp: 0,
+            latitude: geo.latitude,
+            longitude: geo.longitude,
+          ),
+      ];
+    });
+
 /// Every given track on one map: GPS tracks as polylines (the selected one
 /// on top), underwater tracks through their own layer.
 class TracksOverviewMap extends ConsumerStatefulWidget {
@@ -76,6 +94,17 @@ class _TracksOverviewMapState extends ConsumerState<TracksOverviewMap> {
     final allPoints = <GpsTrackPoint>[];
     final anchored = <UnderwaterTrackItem>[];
 
+    // The dive site the selection belongs to, if any -- selecting one
+    // underwater track frames every track at the same site, not just that
+    // one (#3648), since a site with several tracks otherwise left all but
+    // the selected one out of the visible extent.
+    String? selectedSiteId;
+    for (final item in widget.items) {
+      if (item.selectionKey == selectedKey && item is UnderwaterTrackItem) {
+        selectedSiteId = item.track.siteId;
+      }
+    }
+
     for (final item in widget.items) {
       final isSelected = item.selectionKey == selectedKey;
       switch (item) {
@@ -109,16 +138,36 @@ class _TracksOverviewMapState extends ConsumerState<TracksOverviewMap> {
           final anchor = track.anchor;
           if (anchor != null) {
             anchored.add(item);
-            // Framing reads the anchor alone: hydrating every underwater
-            // track's points just to frame the map would cost a blob decode
-            // per track before anything is drawn.
-            final point = GpsTrackPoint(
+            // Framing reads the anchor alone for every track in the
+            // library: hydrating every one of them just to frame the map
+            // would cost a blob decode per track before anything is drawn.
+            final anchorPoint = GpsTrackPoint(
               timestamp: 0,
               latitude: anchor.latitude,
               longitude: anchor.longitude,
             );
-            allPoints.add(point);
-            if (isSelected) selectedPoints = [point];
+            allPoints.add(anchorPoint);
+            final sameSite =
+                selectedSiteId != null && track.siteId == selectedSiteId;
+            if (isSelected || sameSite) {
+              // The selected track (and any sibling at its site) is the
+              // one case hydrating is cheap -- _HydratedUnderwaterPolyline
+              // already pays for it below to draw the route, so framing
+              // reuses the same provider rather than settling for the
+              // anchor alone (which used to frame a long route's start
+              // point with the rest cut off screen).
+              final drawn = ref.watch(
+                _underwaterFramingPointsProvider(item.id),
+              );
+              final framedPoints = drawn.length >= 2 ? drawn : [anchorPoint];
+              selectedPoints = [...?selectedPoints, ...framedPoints];
+              // Folded into the library's own point count too, so the
+              // framing signature changes once a sibling's hydration lands
+              // after the first (anchor-only) frame and the re-frame
+              // effect below actually fires instead of leaving the first,
+              // narrower framing in place.
+              allPoints.addAll(framedPoints);
+            }
           }
       }
     }

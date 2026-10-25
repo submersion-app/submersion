@@ -3115,12 +3115,6 @@ abstract class AppLocalizations {
   /// **'iCloud sync isn\'t available in this build of Submersion. Use S3 sync, or the App Store version.'**
   String get settings_cloudSync_error_icloudUnsupported;
 
-  /// No description provided for @settings_cloudSync_provider_icloud_unsupportedSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Not available in this build — use S3 or the App Store version'**
-  String get settings_cloudSync_provider_icloud_unsupportedSubtitle;
-
   /// No description provided for @settings_cloudSync_encryption_title.
   ///
   /// In en, this message translates to:
@@ -13651,12 +13645,6 @@ abstract class AppLocalizations {
   /// **'Unrated'**
   String get diveLog_scrubber_unrated;
 
-  /// Dive list scrubber value while dragging over a dive on a trip in date sort: the month, then the trip name
-  ///
-  /// In en, this message translates to:
-  /// **'{value} · {trip}'**
-  String diveLog_scrubber_valueWithTrip(String value, String trip);
-
   /// Tooltip: decrease the sighting count
   ///
   /// In en, this message translates to:
@@ -14002,62 +13990,8 @@ abstract class AppLocalizations {
   /// No description provided for @settings_manage_setupAssistant_subtitle.
   ///
   /// In en, this message translates to:
-  /// **'Revisit units, appearance, and backup choices'**
+  /// **'Revisit units, backups, sync and photos'**
   String get settings_manage_setupAssistant_subtitle;
-
-  /// No description provided for @setup_backup_cloudCopy.
-  ///
-  /// In en, this message translates to:
-  /// **'Store backups in the cloud'**
-  String get setup_backup_cloudCopy;
-
-  /// No description provided for @setup_backup_frequency.
-  ///
-  /// In en, this message translates to:
-  /// **'Frequency'**
-  String get setup_backup_frequency;
-
-  /// No description provided for @setup_backup_frequency_daily.
-  ///
-  /// In en, this message translates to:
-  /// **'Daily'**
-  String get setup_backup_frequency_daily;
-
-  /// No description provided for @setup_backup_frequency_monthly.
-  ///
-  /// In en, this message translates to:
-  /// **'Monthly'**
-  String get setup_backup_frequency_monthly;
-
-  /// No description provided for @setup_backup_frequency_weekly.
-  ///
-  /// In en, this message translates to:
-  /// **'Weekly'**
-  String get setup_backup_frequency_weekly;
-
-  /// No description provided for @setup_backup_scheduleSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Back up your data on a schedule'**
-  String get setup_backup_scheduleSubtitle;
-
-  /// No description provided for @setup_backup_scheduleToggle.
-  ///
-  /// In en, this message translates to:
-  /// **'Automatic backups'**
-  String get setup_backup_scheduleToggle;
-
-  /// No description provided for @setup_backup_subtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Protect your data from day one.'**
-  String get setup_backup_subtitle;
-
-  /// No description provided for @setup_backup_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Backups & Sync'**
-  String get setup_backup_title;
 
   /// No description provided for @setup_common_back.
   ///
@@ -14251,12 +14185,6 @@ abstract class AppLocalizations {
   /// **'Restore backup'**
   String get setup_restore_title;
 
-  /// No description provided for @setup_step_backup.
-  ///
-  /// In en, this message translates to:
-  /// **'Backup'**
-  String get setup_step_backup;
-
   /// No description provided for @setup_step_finish.
   ///
   /// In en, this message translates to:
@@ -14274,12 +14202,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Units'**
   String get setup_step_units;
-
-  /// No description provided for @setup_syncPull_continue.
-  ///
-  /// In en, this message translates to:
-  /// **'Continue'**
-  String get setup_syncPull_continue;
 
   /// No description provided for @setup_syncPull_incomplete_message.
   ///
@@ -14322,84 +14244,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No library found'**
   String get setup_syncPull_noLibrary_title;
-
-  /// No description provided for @setup_syncPull_success.
-  ///
-  /// In en, this message translates to:
-  /// **'Library adopted'**
-  String get setup_syncPull_success;
-
-  /// No description provided for @setup_syncPull_syncing.
-  ///
-  /// In en, this message translates to:
-  /// **'Pulling your library...'**
-  String get setup_syncPull_syncing;
-
-  /// No description provided for @setup_sync_changeProvider.
-  ///
-  /// In en, this message translates to:
-  /// **'Change provider'**
-  String get setup_sync_changeProvider;
-
-  /// No description provided for @setup_sync_connectedTo.
-  ///
-  /// In en, this message translates to:
-  /// **'Connected to {provider}'**
-  String setup_sync_connectedTo(String provider);
-
-  /// No description provided for @setup_sync_error.
-  ///
-  /// In en, this message translates to:
-  /// **'Could not connect: {error}'**
-  String setup_sync_error(Object error);
-
-  /// No description provided for @setup_sync_header.
-  ///
-  /// In en, this message translates to:
-  /// **'Cloud sync'**
-  String get setup_sync_header;
-
-  /// No description provided for @setup_sync_libraryFound_adopt.
-  ///
-  /// In en, this message translates to:
-  /// **'Adopt existing library'**
-  String get setup_sync_libraryFound_adopt;
-
-  /// No description provided for @setup_sync_libraryFound_keepFresh.
-  ///
-  /// In en, this message translates to:
-  /// **'Start fresh'**
-  String get setup_sync_libraryFound_keepFresh;
-
-  /// No description provided for @setup_sync_libraryFound_message.
-  ///
-  /// In en, this message translates to:
-  /// **'This account already contains a Submersion library. Adopt it instead of starting fresh?'**
-  String get setup_sync_libraryFound_message;
-
-  /// No description provided for @setup_sync_libraryFound_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Existing library found'**
-  String get setup_sync_libraryFound_title;
-
-  /// No description provided for @setup_sync_manageInSettings.
-  ///
-  /// In en, this message translates to:
-  /// **'Manage in Settings'**
-  String get setup_sync_manageInSettings;
-
-  /// No description provided for @setup_sync_notConnected.
-  ///
-  /// In en, this message translates to:
-  /// **'Not connected'**
-  String get setup_sync_notConnected;
-
-  /// No description provided for @setup_sync_subtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Sync your data across devices'**
-  String get setup_sync_subtitle;
 
   /// No description provided for @setup_units_advanced.
   ///
@@ -24196,6 +24040,71 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'From preset'**
   String get cylinderConfigs_fromPreset;
+
+  /// Label of a cylinder's maximum operating depth field. MOD is the standard diving abbreviation.
+  ///
+  /// In en, this message translates to:
+  /// **'MOD'**
+  String get tankMod_label;
+
+  /// Under the MOD field when the diver has not set one: the ppO2 limit the default comes from. {limit} is tankMod_limitBottom or tankMod_limitDeco.
+  ///
+  /// In en, this message translates to:
+  /// **'Default at ppO2 {ppO2} ({limit})'**
+  String tankMod_default(String ppO2, String limit);
+
+  /// Name of the bottom (working) ppO2 limit, used inside other MOD strings.
+  ///
+  /// In en, this message translates to:
+  /// **'bottom limit'**
+  String get tankMod_limitBottom;
+
+  /// Name of the decompression ppO2 limit, used inside other MOD strings.
+  ///
+  /// In en, this message translates to:
+  /// **'deco limit'**
+  String get tankMod_limitDeco;
+
+  /// Name of the CCR diluent ppO2 limit, used inside other MOD strings. Matches the "Dil MOD" term on the Settings page.
+  ///
+  /// In en, this message translates to:
+  /// **'Dil MOD'**
+  String get tankMod_limitDiluent;
+
+  /// Under the MOD field when the diver typed a depth: says so and gives the default it replaces.
+  ///
+  /// In en, this message translates to:
+  /// **'Set by you · default {depth}'**
+  String tankMod_overridden(String depth);
+
+  /// The ppO2 the gas reaches at the MOD the diver set.
+  ///
+  /// In en, this message translates to:
+  /// **'ppO2 {ppO2} at {depth}'**
+  String tankMod_ppO2At(String ppO2, String depth);
+
+  /// Warning when the MOD the diver set gives a ppO2 above the limit for the cylinder.
+  ///
+  /// In en, this message translates to:
+  /// **'ppO2 {ppO2} at {depth}, above the {limit} {limitPpO2}'**
+  String tankMod_exceeds(
+    String ppO2,
+    String depth,
+    String limit,
+    String limitPpO2,
+  );
+
+  /// Button that clears a MOD set by hand, back to the default.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get tankMod_reset;
+
+  /// Shown on a dive plan tank chip when the diver set its MOD by hand.
+  ///
+  /// In en, this message translates to:
+  /// **'MOD {depth}'**
+  String tankMod_chip(String depth);
 
   /// No description provided for @cylinderConfigs_applyAction.
   ///
@@ -36627,12 +36536,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Deco stop increment'**
   String get settings_conflict_field_decoStopIncrement;
-
-  /// No description provided for @settings_conflict_field_decoSwitchDepth.
-  ///
-  /// In en, this message translates to:
-  /// **'Deco gas switch depth'**
-  String get settings_conflict_field_decoSwitchDepth;
 
   /// No description provided for @settings_conflict_field_deepDiveThresholdM.
   ///
@@ -58329,6 +58232,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Temp'**
   String get dive3d_metric_temperature;
+
+  /// No description provided for @navTrack3d_previewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'3D View'**
+  String get navTrack3d_previewTitle;
+
+  /// No description provided for @navTrack3d_metric_speed.
+  ///
+  /// In en, this message translates to:
+  /// **'Speed'**
+  String get navTrack3d_metric_speed;
+
+  /// No description provided for @navTrack3d_metric_batteryVoltage.
+  ///
+  /// In en, this message translates to:
+  /// **'Battery'**
+  String get navTrack3d_metric_batteryVoltage;
+
+  /// No description provided for @navTrack3d_noProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'This track doesn\'t have enough data for a 3D preview.'**
+  String get navTrack3d_noProfile;
 
   /// No description provided for @dive3d_metric_ascentRate.
   ///
@@ -82995,6 +82922,12 @@ abstract class AppLocalizations {
   /// **'Change site'**
   String get navTrack_detail_menuChangeSite;
 
+  /// No description provided for @navTrack_detail_menuChangeDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Change device'**
+  String get navTrack_detail_menuChangeDevice;
+
   /// No description provided for @navTrack_detail_noMapYet.
   ///
   /// In en, this message translates to:
@@ -83024,18 +82957,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'End set from the recording\'s GPS fix.'**
   String get navTrack_detail_correctionStatus_gpsFix;
-
-  /// No description provided for @navTrack_detail_device.
-  ///
-  /// In en, this message translates to:
-  /// **'Device: {name}'**
-  String navTrack_detail_device(String name);
-
-  /// No description provided for @navTrack_detail_equipment.
-  ///
-  /// In en, this message translates to:
-  /// **'Equipment: {name}'**
-  String navTrack_detail_equipment(String name);
 
   /// No description provided for @navTrack_detail_distance.
   ///
@@ -83096,6 +83017,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Choose site'**
   String get navTrack_detail_chooseSite;
+
+  /// No description provided for @navTrack_detail_noEquipment.
+  ///
+  /// In en, this message translates to:
+  /// **'No device'**
+  String get navTrack_detail_noEquipment;
+
+  /// No description provided for @navTrack_detail_chooseDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose device'**
+  String get navTrack_detail_chooseDevice;
 
   /// No description provided for @navTrack_review_importTrackTitle.
   ///
@@ -87234,7 +87167,7 @@ abstract class AppLocalizations {
   /// Status: uploads held because the account now holds different copies
   ///
   /// In en, this message translates to:
-  /// **'Uploads paused: choose the account again'**
+  /// **'Uploads paused: the copies need reconnecting'**
   String get settings_photos_status_pausedMismatch;
 
   /// Status: the library keeps copies this device has not joined yet
@@ -87258,8 +87191,116 @@ abstract class AppLocalizations {
   /// Uploads page notice: the account now holds different copies than this device attached to
   ///
   /// In en, this message translates to:
-  /// **'This device and the account no longer agree on which copies are in use. Choosing the account again adopts the copies it holds now.'**
+  /// **'The account no longer holds the copies this device was using. Reconnect to choose what happens next.'**
   String get settings_photos_suspended_mismatch;
+
+  /// Title of the sheet that reconnects photo copies after the account's copies changed
+  ///
+  /// In en, this message translates to:
+  /// **'Reconnect photo copies'**
+  String get settings_photos_reconnect_title;
+
+  /// Reconnect sheet: checking what the account holds now
+  ///
+  /// In en, this message translates to:
+  /// **'Checking {account}…'**
+  String settings_photos_reconnect_checking(String account);
+
+  /// Reconnect sheet: the account holds this device's copies again, nothing to choose
+  ///
+  /// In en, this message translates to:
+  /// **'The copies in {account} match this device again. Uploads resume.'**
+  String settings_photos_reconnect_resolved(String account);
+
+  /// Reconnect sheet: the account holds copies another of the diver's devices set up
+  ///
+  /// In en, this message translates to:
+  /// **'{account} now holds copies set up by another of your devices.'**
+  String settings_photos_reconnect_otherKnown(String account);
+
+  /// Reconnect sheet: the account holds copies the logbook has no record of
+  ///
+  /// In en, this message translates to:
+  /// **'{account} now holds copies this logbook has no record of.'**
+  String settings_photos_reconnect_otherUnknown(String account);
+
+  /// Reconnect sheet: the copies in the account were removed or reset
+  ///
+  /// In en, this message translates to:
+  /// **'The copies in {account} were removed or reset.'**
+  String settings_photos_reconnect_noMarker(String account);
+
+  /// Reconnect sheet: the account could not be checked; the raw error follows
+  ///
+  /// In en, this message translates to:
+  /// **'Could not check {account}.'**
+  String settings_photos_reconnect_unreadable(String account);
+
+  /// Reconnect sheet: this device cannot open the account the copies were in
+  ///
+  /// In en, this message translates to:
+  /// **'This device can no longer open the account the copies were in.'**
+  String get settings_photos_reconnect_needsAccount;
+
+  /// Reconnect choice: use the copies the account holds now
+  ///
+  /// In en, this message translates to:
+  /// **'Use the copies there now'**
+  String get settings_photos_reconnect_adopt;
+
+  /// Reconnect choice explanation: what using the copies there does
+  ///
+  /// In en, this message translates to:
+  /// **'Photos already there stay. Anything missing uploads again from this device.'**
+  String get settings_photos_reconnect_adoptBody;
+
+  /// Reconnect choice explanation: using copies the logbook has no record of
+  ///
+  /// In en, this message translates to:
+  /// **'Choose this only if {account} is meant for this logbook. Photos already there stay, and anything missing uploads again from this device.'**
+  String settings_photos_reconnect_adoptUnknownBody(String account);
+
+  /// Reconnect choice: start a new set of copies in the account
+  ///
+  /// In en, this message translates to:
+  /// **'Start the copies again'**
+  String get settings_photos_reconnect_rebuild;
+
+  /// Reconnect choice explanation: what starting the copies again does
+  ///
+  /// In en, this message translates to:
+  /// **'New copies start in {account}. Photos still there are kept, and everything on this device uploads again.'**
+  String settings_photos_reconnect_rebuildBody(String account);
+
+  /// Reconnect choice: open Photos & videos to choose the account again
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the account again'**
+  String get settings_photos_reconnect_chooseAccount;
+
+  /// Reconnect choice explanation: choosing the account again
+  ///
+  /// In en, this message translates to:
+  /// **'Opens Photos & videos to pick the account or sign in again.'**
+  String get settings_photos_reconnect_chooseAccountBody;
+
+  /// Reconnect sheet warning: items whose only copy is in the cloud
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} photo or video is kept only in the cloud. It opens again only if the account still holds it.} other{{count} photos and videos are kept only in the cloud. They open again only if the account still holds them.}}'**
+  String settings_photos_reconnect_heldOnly(int count);
+
+  /// Snackbar after reconnecting to the copies the account holds
+  ///
+  /// In en, this message translates to:
+  /// **'Now using the copies in {account}'**
+  String settings_photos_reconnect_joined(String account);
+
+  /// Snackbar after starting new copies in the account
+  ///
+  /// In en, this message translates to:
+  /// **'New copies started in {account}'**
+  String settings_photos_reconnect_started(String account);
 
   /// Media info panel: copy this item to the cloud now
   ///
@@ -88059,6 +88100,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'On your other devices, open Submersion, choose {account}, and the same library appears.'**
   String settings_setUpDevice_done_otherDevices(String account);
+
+  /// Step 2 when this device already syncs with the chosen account
+  ///
+  /// In en, this message translates to:
+  /// **'The dives here are in step with your library in {account}.'**
+  String settings_setUpDevice_sync_inStep(String account);
+
+  /// First-run wizard: the account holds no library, so begin a new logbook
+  ///
+  /// In en, this message translates to:
+  /// **'Start a new logbook'**
+  String get setup_syncPull_startFresh;
 }
 
 class _AppLocalizationsDelegate

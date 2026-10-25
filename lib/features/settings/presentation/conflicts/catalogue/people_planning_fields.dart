@@ -84,10 +84,9 @@ final Map<String, ConflictField> peoplePlanningFields = {
     (l) => l.settings_conflict_field_currentSpeedMps,
     FieldKind.speed,
   ),
-  'decoSwitchDepth': ConflictField(
-    (l) => l.settings_conflict_field_decoSwitchDepth,
-    FieldKind.depth,
-  ),
+  // The MOD set by hand on a plan tank or a saved cylinder, for any role
+  // (issue #3567), labelled as its field is.
+  'decoSwitchDepth': ConflictField((l) => l.tankMod_label, FieldKind.depth),
   'defaultCurrentSetsTowardDeg': ConflictField(
     (l) => l.settings_conflict_field_defaultCurrentSetsTowardDeg,
     FieldKind.number,

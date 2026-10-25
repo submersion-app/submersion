@@ -1,5 +1,6 @@
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/core/deco/ascent/ascent_gas_plan.dart';
 import 'package:submersion/core/deco/buhlmann_algorithm.dart';
@@ -15,6 +16,7 @@ import 'package:submersion/features/dive_planner/domain/entities/plan_result.dar
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:submersion/features/planner/domain/entities/segment_phase.dart';
 import 'package:submersion/features/planner/domain/services/segment_chain.dart';
+import 'package:submersion/features/planner/domain/services/tank_mod.dart';
 
 /// Service for calculating dive plan results.
 ///
@@ -36,6 +38,11 @@ class PlanCalculatorService {
 
   /// ppO2 critical threshold (typically 1.6 bar).
   final double ppO2Critical;
+
+  /// CCR Dil MOD limit: the ppO2 a diluent may reach on a flush, from the
+  /// diver's "ppO2 limits CCR" Settings (issue #3567). A diluent's ascent
+  /// gas MOD follows this rather than [ppO2Warning].
+  final double ccrDiluentModPpO2;
 
   /// CNS warning threshold percentage (typically 80).
   final int cnsWarningThreshold;
@@ -60,6 +67,7 @@ class PlanCalculatorService {
     this.gfHigh = 70,
     this.ppO2Warning = 1.4,
     this.ppO2Critical = 1.6,
+    this.ccrDiluentModPpO2 = 1.6,
     this.cnsWarningThreshold = 80,
     this.defaultAscentRate = 9.0,
     this.defaultDescentRate = 18.0,
@@ -79,6 +87,7 @@ class PlanCalculatorService {
       gfHigh: gfHigh,
       ppO2Warning: ppO2Warning,
       ppO2Critical: ppO2Critical,
+      ccrDiluentModPpO2: ccrDiluentModPpO2,
       cnsWarningThreshold: cnsWarningThreshold,
       defaultAscentRate: defaultAscentRate,
       defaultDescentRate: defaultDescentRate,
@@ -101,6 +110,9 @@ class PlanCalculatorService {
     double reservePressure = DivePlanState.kDefaultReservePressureBar,
     List<TissueCompartment>? initialTissueState,
     DiveEnvironment environment = DiveEnvironment.standard,
+    Map<String, TankRole>? tankRoles,
+    double? bottomPpO2,
+    double? decoPpO2,
   }) {
     if (segments.isEmpty) {
       return PlanResult.empty();
@@ -381,8 +393,18 @@ class PlanCalculatorService {
     final decoSchedule = _buildDecoSchedule(
       algorithm: algorithm,
       segments: segments,
-      tanks: tanks,
+      // The planner stores most roles as a placeholder; the caller hands in
+      // the resolved ones, which decide each tank's default MOD (#3567).
+      tanks: [
+        for (final tank in tanks)
+          switch (tankRoles?[tank.id]) {
+            final role? => tank.copyWith(role: role),
+            null => tank,
+          },
+      ],
       runtime: runtime,
+      bottomPpO2: bottomPpO2 ?? ppO2Warning,
+      decoPpO2: decoPpO2 ?? ppO2Critical,
       environment: environment,
     );
 
@@ -424,9 +446,10 @@ class PlanCalculatorService {
   /// Build deco schedule from current algorithm state.
   ///
   /// The simulated ascent breathes the best eligible carried gas at each depth
-  /// via an [OptimalOcAscentGas] plan derived from [tanks]. Eligibility uses the
-  /// planner's deco ppO2 ceiling, with each switch depth measured in
-  /// [environment] (issue #3566, see [gasSwitchDepthMeters]).
+  /// via an [OptimalOcAscentGas] plan derived from [tanks]. Each gas is
+  /// eligible from its cylinder's MOD up: the one set by hand, or the switch
+  /// depth for its role's limit at [bottomPpO2] / [decoPpO2] (issue #3567),
+  /// measured in [environment] (issue #3566, see [gasSwitchDepthMeters]).
   /// Each stop reports the gas actually selected at its depth. With a single
   /// carried gas this reduces to the legacy fixed-gas ascent.
   List<DecoStop> _buildDecoSchedule({
@@ -434,6 +457,8 @@ class PlanCalculatorService {
     required List<PlanSegment> segments,
     required List<DiveTank> tanks,
     required int runtime,
+    required double bottomPpO2,
+    required double decoPpO2,
     required DiveEnvironment environment,
   }) {
     if (segments.isEmpty) return [];
@@ -443,18 +468,15 @@ class PlanCalculatorService {
 
     if (currentDepth <= 0) return [];
 
-    final ascentGases = <AvailableGas>[
-      for (final tank in tanks)
-        AvailableGas(
-          fN2: (100.0 - tank.gasMix.o2 - tank.gasMix.he) / 100.0,
-          fHe: tank.gasMix.he / 100.0,
-          maxPpO2Mod: gasSwitchDepthMeters(
-            tank.gasMix.o2 / 100.0,
-            maxPpO2: ppO2Critical,
-            environment: environment,
-          ),
-        ),
-    ];
+    // Each gas joins at its cylinder's MOD (issue #3567): the one the diver
+    // set, or the default for its role.
+    final ascentGases = ascentGasesFor(
+      tanks,
+      bottomPpO2: bottomPpO2,
+      decoPpO2: decoPpO2,
+      environment: environment,
+      diluentPpO2: ccrDiluentModPpO2,
+    );
     final AscentGasPlan? ascentGas = ascentGases.isEmpty
         ? null
         : OptimalOcAscentGas(gases: ascentGases, maxPpO2: ppO2Critical);
