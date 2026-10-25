@@ -491,19 +491,21 @@ void main() {
           ],
         );
 
-    testWidgets('metric (default): m/s', (tester) async {
+    testWidgets('metric (default): m/min', (tester) async {
       await _pump(tester, route: routeWithSpeed(2));
 
-      expect(find.textContaining('2.00 m/s'), findsWidgets);
+      // 2 m/s = 120 m/min.
+      expect(find.textContaining('120.0 m/min'), findsWidgets);
     });
 
-    testWidgets('imperial: ft/s, not m/s', (tester) async {
+    testWidgets('imperial: ft/min, not m/min', (tester) async {
       final settings = MockSettingsNotifier();
       await settings.setDepthUnit(DepthUnit.feet);
       await _pump(tester, route: routeWithSpeed(2), settingsNotifier: settings);
 
-      expect(find.textContaining('6.56 ft/s'), findsWidgets);
-      expect(find.textContaining('m/s'), findsNothing);
+      // 120 m/min x 3.28084 ft/m.
+      expect(find.textContaining('393.7 ft/min'), findsWidgets);
+      expect(find.textContaining('m/min'), findsNothing);
     });
   });
 
