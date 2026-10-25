@@ -17,6 +17,38 @@ import 'package:submersion/features/nav_track/domain/nav_track_segmenter.dart';
 /// draw at without one, and the caller shows "Set the start point..." text
 /// instead of this layer. Segments never bridge a fix event or an
 /// out-of-water run, matching `NavTrackPathAdapter`'s rule for the 3D ribbon.
+/// Every point [NavTrackPolylineLayer] actually draws for [route], in
+/// order -- the same anchor-relative-offset-to-LatLng conversion, active
+/// range and kind filtering the layer itself applies, factored out so a
+/// map that embeds the layer can fit its camera to the real drawn extent
+/// instead of a fixed zoom on the anchor alone (which cut a long route off
+/// at the map's edge instead of showing and centering all of it).
+List<LatLng> navTrackDrawnPoints(NavTrack route) {
+  final anchor = route.anchor;
+  final points = route.points;
+  if (anchor == null || points.length < 2) return const [];
+
+  final kinds = NavTrackSegmenter.classify(points).kinds;
+  final corrected = NavTrackCorrector.apply(points, route.correction);
+  final activeStart = NavTrackCorrector.activeRangeStartIndex(points);
+  final activeEnd = NavTrackCorrector.activeRangeEndIndex(points);
+  bool kept(int i) =>
+      kinds[i] == NavTrackSampleKind.underwater ||
+      kinds[i] == NavTrackSampleKind.surfaceReckoned;
+
+  final result = <LatLng>[];
+  for (var i = activeStart; i <= activeEnd && i < corrected.length; i++) {
+    if (!kept(i)) continue;
+    final geo = offsetToGeoPoint(
+      anchor,
+      east: corrected[i].east,
+      north: corrected[i].north,
+    );
+    result.add(LatLng(geo.latitude, geo.longitude));
+  }
+  return result;
+}
+
 class NavTrackPolylineLayer extends StatelessWidget {
   const NavTrackPolylineLayer({super.key, required this.route});
 

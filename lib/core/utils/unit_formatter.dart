@@ -591,6 +591,19 @@ class UnitFormatter {
     return '${formatFixedForDisplay(converted, decimals)} $speedSymbol';
   }
 
+  /// Format an underwater track's (DPV) speed from m/s in the diver's
+  /// preferred unit: m/s in metric, ft/s in imperial -- the per-second
+  /// diving/scooter convention, not [formatSpeed]'s km/h-or-knots marine
+  /// convention for a GPS surface track's boat speed. Reuses [DepthUnit]'s
+  /// own meters<->feet conversion rather than adding a third one.
+  String formatTrackSpeed(double metersPerSecond, {int decimals = 2}) {
+    final converted = DepthUnit.meters.convert(
+      metersPerSecond,
+      settings.depthUnit,
+    );
+    return '${formatFixedForDisplay(converted, decimals)} ${settings.depthUnit.symbol}/s';
+  }
+
   // ============================================================================
   // Date/Time Formatting
   // ============================================================================

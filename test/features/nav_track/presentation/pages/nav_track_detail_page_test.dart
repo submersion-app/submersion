@@ -5,8 +5,10 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:latlong2/latlong.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_picker/site_picker_sheet.dart';
@@ -134,8 +136,9 @@ Future<_RecordingNavTrackRepository> _pump(
   List<DiveSite>? allSites,
   Locale? locale,
   _RecordingNavTrackRepository? repository,
+  MockSettingsNotifier? settingsNotifier,
 }) async {
-  final overrides = await getBaseOverrides();
+  final overrides = await getBaseOverrides(settingsNotifier: settingsNotifier);
   final effectiveRepository = repository ?? _RecordingNavTrackRepository();
   final effectiveOverrides = [
     ...overrides,
@@ -393,6 +396,45 @@ void main() {
   );
 
   testWidgets(
+    'the inline map fits its camera to the whole route, not a fixed zoom '
+    'on the anchor alone (a long route was cut off at the map edge)',
+    (tester) async {
+      final route = _route(anchorLatitude: 47.1, anchorLongitude: 8.3).copyWith(
+        points: [
+          for (var i = 0; i < 5; i++)
+            NavTrackPoint(
+              timestamp: 1755856800 + i,
+              // A route spread far wider than a fixed zoom 15 would show,
+              // in metres east of the anchor.
+              north: 0,
+              east: i * 2000.0,
+              depth: 5,
+            ),
+        ],
+      );
+      await _pump(tester, route: route);
+
+      final map = tester.widget<FlutterMap>(find.byType(FlutterMap));
+      expect(map.options.initialCameraFit, isNotNull);
+    },
+  );
+
+  testWidgets(
+    'falls back to the anchor-centered fixed zoom when there is nothing '
+    'to fit a camera to',
+    (tester) async {
+      await _pump(
+        tester,
+        route: _route(anchorLatitude: 47.1, anchorLongitude: 8.3),
+      );
+
+      final map = tester.widget<FlutterMap>(find.byType(FlutterMap));
+      expect(map.options.initialCameraFit, isNull);
+      expect(map.options.initialCenter, const LatLng(47.1, 8.3));
+    },
+  );
+
+  testWidgets(
     'the inline map can rotate, so it carries a compass that resets it to '
     'north (#3386)',
     (tester) async {
@@ -413,12 +455,53 @@ void main() {
 
       controller!.rotate(45);
       await tester.pump();
+      // The new equipment row (#3635) pushed the map further down the
+      // ListView, past the default 800x600 test surface -- scroll it into
+      // view before tapping, same as any other widget below the fold.
+      await tester.ensureVisible(find.byType(MapCompassButton));
       await tester.tap(find.byType(MapCompassButton));
       await tester.pumpAndSettle();
 
       expect(controller.camera.rotation % 360, closeTo(0, 0.01));
     },
   );
+
+  group('speed stats respect the depth-unit setting', () {
+    NavTrack routeWithSpeed(double metersPerSecond) =>
+        _route(anchorLatitude: 47.1, anchorLongitude: 8.3).copyWith(
+          points: [
+            NavTrackPoint(
+              timestamp: 1755856800,
+              north: 0,
+              east: 0,
+              depth: 0,
+              speed: metersPerSecond,
+            ),
+            NavTrackPoint(
+              timestamp: 1755856801,
+              north: 1,
+              east: 0,
+              depth: 0,
+              speed: metersPerSecond,
+            ),
+          ],
+        );
+
+    testWidgets('metric (default): m/s', (tester) async {
+      await _pump(tester, route: routeWithSpeed(2));
+
+      expect(find.textContaining('2.00 m/s'), findsWidgets);
+    });
+
+    testWidgets('imperial: ft/s, not m/s', (tester) async {
+      final settings = MockSettingsNotifier();
+      await settings.setDepthUnit(DepthUnit.feet);
+      await _pump(tester, route: routeWithSpeed(2), settingsNotifier: settings);
+
+      expect(find.textContaining('6.56 ft/s'), findsWidgets);
+      expect(find.textContaining('m/s'), findsNothing);
+    });
+  });
 
   group('the battery row', () {
     testWidgets(

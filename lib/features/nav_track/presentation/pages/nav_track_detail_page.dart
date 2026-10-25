@@ -24,7 +24,6 @@ import 'package:submersion/features/nav_track/presentation/providers/nav_track_p
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_dive_choice_sheet.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_equipment_picker_sheet.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_polyline_layer.dart';
-import 'package:submersion/features/nav_track/presentation/widgets/nav_track_row_stats.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -390,11 +389,25 @@ class _RouteMapState extends ConsumerState<_RouteMap> {
   @override
   Widget build(BuildContext context) {
     final anchor = widget.route.anchor!;
+    // Fit the camera to the whole drawn route rather than a fixed zoom on
+    // the anchor alone: a long route no longer got cut off at the map's
+    // edge, and centering on only the start point left most of a long
+    // route off-screen. The anchor-centered fixed zoom stays as the
+    // fallback for the (rare) case of fewer than two drawable points.
+    final drawn = navTrackDrawnPoints(widget.route);
+    final cameraFit = drawn.length >= 2
+        ? CameraFit.bounds(
+            bounds: LatLngBounds.fromPoints(drawn),
+            padding: const EdgeInsets.all(32),
+            maxZoom: 17,
+          )
+        : null;
     return FlutterMap(
       mapController: _controller,
       options: MapOptions(
         initialCenter: LatLng(anchor.latitude, anchor.longitude),
         initialZoom: 15,
+        initialCameraFit: cameraFit,
         interactionOptions: rotatableMapInteraction,
       ),
       children: [
@@ -443,13 +456,13 @@ class _StatsCard extends ConsumerWidget {
             if (stats.maxSpeed != null)
               Text(
                 l10n.navTrack_detail_maxSpeed(
-                  formatMetersPerSecond(stats.maxSpeed!),
+                  units.formatTrackSpeed(stats.maxSpeed!),
                 ),
               ),
             if (stats.avgSpeed != null)
               Text(
                 l10n.navTrack_detail_avgSpeed(
-                  formatMetersPerSecond(stats.avgSpeed!),
+                  units.formatTrackSpeed(stats.avgSpeed!),
                 ),
               ),
             Text(
