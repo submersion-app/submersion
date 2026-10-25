@@ -27,6 +27,7 @@ import 'package:submersion/shared/selection/selection_app_bar.dart';
 import 'package:submersion/shared/widgets/app_bar_tab_metrics.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
+import 'package:submersion/shared/widgets/section_title_toggle.dart';
 
 import '../../../../helpers/equipment_query_fakes.dart';
 import '../../../../helpers/mock_providers.dart';
@@ -172,9 +173,20 @@ bool _overlapVertically(Rect a, Rect b) =>
 
 /// The toggle precedes the actions: strictly above them, or to their left on a
 /// shared row.
+///
+/// The action is its button's slot, not the glyph inside it: the icons centre
+/// on the toggle and the count together, so the toggle's own centre sits
+/// above the glyph's middle, but well within the row the button takes.
 void _expectTogglePrecedesActions(WidgetTester tester) {
   final toggle = tester.getRect(_switcher);
-  final action = tester.getRect(find.byIcon(Icons.search).first);
+  final action = tester.getRect(
+    find
+        .ancestor(
+          of: find.byIcon(Icons.search).first,
+          matching: find.byType(IconButton),
+        )
+        .first,
+  );
 
   final above = toggle.bottom <= action.top + 0.5;
   final leftOfOnSameRow =
@@ -431,6 +443,32 @@ void main() {
       }
     }
 
+    // The count is its own line, not pressed against the selected name's
+    // underline (#3663).
+    for (final (label, window, pane) in <(String, Size, double?)>[
+      ('desktop', const Size(1400, 900), 440),
+      ('phone', const Size(390, 844), null),
+    ]) {
+      testWidgets('$label: the count sits a gap under the underline', (
+        tester,
+      ) async {
+        await _pump(tester, window: window, paneWidth: pane);
+        final l10n = await en();
+        final host = pane == null
+            ? find.byType(AppBar)
+            : find.byType(EquipmentHeaderBar);
+
+        final count = find.descendant(
+          of: host,
+          matching: find.text(l10n.equipment_list_count(0)),
+        );
+        expect(
+          tester.getTopLeft(count).dy - tester.getRect(_switcher).bottom,
+          closeTo(SectionTitleToggle.subtitleGap, 0.5),
+        );
+      });
+    }
+
     testWidgets('tapping the Sets label switches to Sets', (tester) async {
       await _pump(tester, window: const Size(390, 844));
       final l10n = await en();
@@ -668,7 +706,9 @@ void main() {
       expect(tester.getSize(toolbar).height, kToolbarHeight);
     });
 
-    testWidgets('each name keeps a 40px tap area', (tester) async {
+    // 34px tabs and the 2px underline: what leaves the gap and the count
+    // room in the standard bar.
+    testWidgets('each name keeps a 36px tap area', (tester) async {
       await _pump(tester, window: const Size(390, 844));
       final l10n = await en();
       final ink = find.ancestor(
@@ -678,7 +718,7 @@ void main() {
         ),
         matching: find.byType(InkWell),
       );
-      expect(tester.getSize(ink.first).height, 40);
+      expect(tester.getSize(ink.first).height, 36);
     });
 
     // The phone page listens to the selection it hands the list, so the list

@@ -85,11 +85,12 @@ SectionHeaderTitle trainingHeaderTitle({
     );
     final count = subtitle == null
         ? 0.0
-        : TitleWithSubtitle.subtitleLineHeight(
-            context,
-            text: subtitle.full,
-            textScaler: scaler,
-          );
+        : SectionTitleToggle.subtitleGap +
+              TitleWithSubtitle.subtitleLineHeight(
+                context,
+                text: subtitle.full,
+                textScaler: scaler,
+              );
     return math.max(kToolbarHeight, toggle + count);
   },
   // Counts the accent icon whether or not it shows: the pane bar only needs
@@ -141,6 +142,7 @@ class _TrainingHeader extends ConsumerWidget {
     return TitleWithSubtitle(
       title: DefaultTextStyle.merge(style: style, child: toggle),
       subtitle: subtitle,
+      subtitleGap: SectionTitleToggle.subtitleGap,
       subtitleIndent: SectionTitleToggle.textInset(
         withAccentIcon: SectionTitleToggle.showsAccentIcon(
           context,
