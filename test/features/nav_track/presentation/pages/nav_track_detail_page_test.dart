@@ -438,6 +438,14 @@ void main() {
     'the inline map can rotate, so it carries a compass that resets it to '
     'north (#3386)',
     (tester) async {
+      // The new equipment row (#3635) pushed the map further down the
+      // ListView, past the default 800x600 test surface -- ensureVisible
+      // alone left the compass button's hit-test point just outside the
+      // viewport (off by a few dozen px), so this gives the page the room
+      // the earlier, shorter content didn't need.
+      await tester.binding.setSurfaceSize(const Size(800, 1400));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
       await _pump(
         tester,
         route: _route(anchorLatitude: 47.1, anchorLongitude: 8.3),
@@ -455,10 +463,6 @@ void main() {
 
       controller!.rotate(45);
       await tester.pump();
-      // The new equipment row (#3635) pushed the map further down the
-      // ListView, past the default 800x600 test surface -- scroll it into
-      // view before tapping, same as any other widget below the fold.
-      await tester.ensureVisible(find.byType(MapCompassButton));
       await tester.tap(find.byType(MapCompassButton));
       await tester.pumpAndSettle();
 
