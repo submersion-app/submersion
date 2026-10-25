@@ -67,8 +67,8 @@ class CylinderTableHeader extends StatelessWidget {
       ),
     );
 
-    // Each pressure cell announces its own column and unit, so the visual
-    // header would only be read a second time.
+    // Every cell in a row announces its own column (and the pressure cells
+    // their unit), so the visual header would only be read a second time.
     return ExcludeSemantics(
       child: Padding(
         padding: const EdgeInsets.only(bottom: 6),
@@ -125,9 +125,10 @@ class CylinderTableRow extends StatelessWidget {
   final String end;
   final String used;
 
-  /// The Start, End and Used column names, read out with each cell, since
-  /// a screen reader does not pair a cell with the header above it.
-  final ({String start, String end, String used}) columnLabels;
+  /// Every column's name, read out with its cell, since a screen reader
+  /// does not pair a cell with the header above it.
+  final ({String tank, String gas, String start, String end, String used})
+  columnLabels;
 
   /// The pressure unit, read out with each cell for the same reason.
   final String unit;
@@ -185,17 +186,24 @@ class CylinderTableRow extends StatelessWidget {
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
                     const SizedBox(width: _iconIndent - _iconSize),
+                    // One node that reads the column name, then the title and
+                    // the items under it.
                     Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(title, style: theme.textTheme.titleSmall),
-                          if (subtitle.isNotEmpty)
-                            DefaultTextStyle.merge(
-                              style: muted,
-                              child: DotJoinedWrap(children: subtitle),
-                            ),
-                        ],
+                      child: MergeSemantics(
+                        child: Semantics(
+                          label: columnLabels.tank,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(title, style: theme.textTheme.titleSmall),
+                              if (subtitle.isNotEmpty)
+                                DefaultTextStyle.merge(
+                                  style: muted,
+                                  child: DotJoinedWrap(children: subtitle),
+                                ),
+                            ],
+                          ),
+                        ),
                       ),
                     ),
                   ],
@@ -203,11 +211,16 @@ class CylinderTableRow extends StatelessWidget {
               ),
               Expanded(
                 flex: _gasFlex,
-                child: Align(
-                  alignment: AlignmentDirectional.topStart,
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: GasMixPill(gasMix: gasMix),
+                child: Semantics(
+                  container: true,
+                  label: '${columnLabels.gas} ${gasMix.name}',
+                  excludeSemantics: true,
+                  child: Align(
+                    alignment: AlignmentDirectional.topStart,
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: GasMixPill(gasMix: gasMix),
+                    ),
                   ),
                 ),
               ),

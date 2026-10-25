@@ -270,6 +270,8 @@ class CylindersCard extends ConsumerWidget {
       end: units.formatPressureValue(pressures.$2),
       used: usedText,
       columnLabels: (
+        tank: l10n.diveLog_cylinders_columnTank,
+        gas: l10n.diveLog_cylinders_columnGas,
         start: l10n.diveLog_cylinders_columnStart,
         end: l10n.diveLog_cylinders_columnEnd,
         used: l10n.diveLog_cylinders_columnUsed,

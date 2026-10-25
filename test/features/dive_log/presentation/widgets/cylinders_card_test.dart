@@ -364,6 +364,21 @@ void main() {
       semantics.dispose();
     });
 
+    testWidgets('the tank and gas cells read out their column', (tester) async {
+      // The visual header is hidden from screen readers, so each cell must
+      // say which column it is in.
+      final semantics = tester.ensureSemantics();
+      await tester.pumpWidget(_buildCard(dive: _makeDive([_makeTank()])));
+      await tester.pumpAndSettle();
+
+      expect(find.bySemanticsLabel('Gas EAN32'), findsOneWidget);
+      expect(
+        find.bySemanticsLabel(RegExp(r'^Tank\s+11\.1 L$')),
+        findsOneWidget,
+      );
+      semantics.dispose();
+    });
+
     testWidgets('a missing pressure is read out without a unit', (
       tester,
     ) async {
