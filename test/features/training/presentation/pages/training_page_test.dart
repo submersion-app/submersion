@@ -354,6 +354,15 @@ void main() {
     final count = tester.getRect(find.text('3 entries'));
     final bar = tester.getRect(find.byType(AppBar));
     expect(count.bottom, lessThanOrEqualTo(bar.bottom));
+    // Grown by exactly the switch, the gap and the count: no dead space
+    // under the count, and none of it cut off (#3663).
+    final toolbar = tester.getRect(
+      find.descendant(
+        of: find.byType(AppBar),
+        matching: find.byType(NavigationToolbar),
+      ),
+    );
+    expect(count.bottom, closeTo(toolbar.bottom, 0.5));
     // A name too long for the bar scrolls into reach rather than clipping.
     final tabBar = tester.widget<TabBar>(
       find.byKey(const ValueKey('training_section_toggle')),
