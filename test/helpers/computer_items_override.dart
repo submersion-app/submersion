@@ -1,5 +1,4 @@
 import 'package:submersion/core/constants/enums.dart';
-import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/device_item_providers.dart';

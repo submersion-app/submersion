@@ -82,9 +82,8 @@ void main() {
 
     await repo.updateEquipment(gear.copyWith(name: 'New mask'));
 
-    expect(
-      (await db.select(db.syncRecords).get()).map((r) => r.entityType),
-      ['equipment'],
-    );
+    expect((await db.select(db.syncRecords).get()).map((r) => r.entityType), [
+      'equipment',
+    ]);
   });
 }

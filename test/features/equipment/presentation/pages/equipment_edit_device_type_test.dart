@@ -66,7 +66,11 @@ void main() {
     late String gearId;
     await tester.runAsync(() async {
       final gear = await EquipmentRepository().createEquipment(
-        const EquipmentItem(id: '', name: 'Teric', type: EquipmentType.computer),
+        const EquipmentItem(
+          id: '',
+          name: 'Teric',
+          type: EquipmentType.computer,
+        ),
       );
       gearId = gear.id;
       final db = DatabaseService.instance.database;
@@ -92,7 +96,11 @@ void main() {
     late String gearId;
     await tester.runAsync(() async {
       final gear = await EquipmentRepository().createEquipment(
-        const EquipmentItem(id: '', name: 'Teric', type: EquipmentType.computer),
+        const EquipmentItem(
+          id: '',
+          name: 'Teric',
+          type: EquipmentType.computer,
+        ),
       );
       gearId = gear.id;
     });
