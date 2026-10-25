@@ -52491,6 +52491,12 @@ class AppLocalizationsIt extends AppLocalizations {
   String get navTrack_detail_chooseSite => 'Scegli sito';
 
   @override
+  String get navTrack_detail_noEquipment => 'Nessun dispositivo';
+
+  @override
+  String get navTrack_detail_chooseDevice => 'Scegli dispositivo';
+
+  @override
   String get navTrack_review_importTrackTitle => 'Importa traccia subacquea';
 
   @override

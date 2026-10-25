@@ -15461,6 +15461,8 @@
   "navTrack_detail_chooseDive": "Duik kiezen",
   "navTrack_detail_noSite": "Geen duikstek",
   "navTrack_detail_chooseSite": "Duikstek kiezen",
+  "navTrack_detail_noEquipment": "Geen apparaat",
+  "navTrack_detail_chooseDevice": "Apparaat kiezen",
   "navTrack_review_importTrackTitle": "Onderwatertrack importeren",
   "navTrack_review_segmentSummaryNoFix": "{underwater} metingen onder water, geen GPS-fix na de duik.",
   "navTrack_review_segmentSummaryWithFix": "{underwater} metingen onder water, {surface} metingen aan de oppervlakte, GPS-fix {vector} van het berekende einde.",

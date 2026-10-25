@@ -83103,6 +83103,18 @@ abstract class AppLocalizations {
   /// **'Choose site'**
   String get navTrack_detail_chooseSite;
 
+  /// No description provided for @navTrack_detail_noEquipment.
+  ///
+  /// In en, this message translates to:
+  /// **'No device'**
+  String get navTrack_detail_noEquipment;
+
+  /// No description provided for @navTrack_detail_chooseDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose device'**
+  String get navTrack_detail_chooseDevice;
+
   /// No description provided for @navTrack_review_importTrackTitle.
   ///
   /// In en, this message translates to:

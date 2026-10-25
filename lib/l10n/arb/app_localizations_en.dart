@@ -51655,6 +51655,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navTrack_detail_chooseSite => 'Choose site';
 
   @override
+  String get navTrack_detail_noEquipment => 'No device';
+
+  @override
+  String get navTrack_detail_chooseDevice => 'Choose device';
+
+  @override
   String get navTrack_review_importTrackTitle => 'Import Underwater Track';
 
   @override

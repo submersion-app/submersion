@@ -52484,6 +52484,12 @@ class AppLocalizationsPt extends AppLocalizations {
   String get navTrack_detail_chooseSite => 'Escolher ponto de mergulho';
 
   @override
+  String get navTrack_detail_noEquipment => 'Nenhum dispositivo';
+
+  @override
+  String get navTrack_detail_chooseDevice => 'Escolher dispositivo';
+
+  @override
   String get navTrack_review_importTrackTitle => 'Importar trilha subaquática';
 
   @override

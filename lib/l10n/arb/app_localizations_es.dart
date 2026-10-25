@@ -52535,6 +52535,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get navTrack_detail_chooseSite => 'Elegir punto de buceo';
 
   @override
+  String get navTrack_detail_noEquipment => 'Sin dispositivo';
+
+  @override
+  String get navTrack_detail_chooseDevice => 'Elegir dispositivo';
+
+  @override
   String get navTrack_review_importTrackTitle => 'Importar track submarino';
 
   @override

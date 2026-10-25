@@ -15461,6 +15461,8 @@
   "navTrack_detail_chooseDive": "Merülés választása",
   "navTrack_detail_noSite": "Nincs merülőhely",
   "navTrack_detail_chooseSite": "Merülőhely választása",
+  "navTrack_detail_noEquipment": "Nincs eszköz",
+  "navTrack_detail_chooseDevice": "Eszköz választása",
   "navTrack_review_importTrackTitle": "Víz alatti nyomvonal importálása",
   "navTrack_review_segmentSummaryNoFix": "{underwater} minta víz alatt, nincs GPS-fix a merülés után.",
   "navTrack_review_segmentSummaryWithFix": "{underwater} minta víz alatt, {surface} minta a felszínen, a GPS-fix {vector} távolságra van a becsült végponttól.",

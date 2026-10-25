@@ -31180,6 +31180,8 @@
   "navTrack_detail_chooseDive": "Choose dive",
   "navTrack_detail_noSite": "No site",
   "navTrack_detail_chooseSite": "Choose site",
+  "navTrack_detail_noEquipment": "No device",
+  "navTrack_detail_chooseDevice": "Choose device",
   "navTrack_review_importTrackTitle": "Import Underwater Track",
   "navTrack_review_segmentSummaryNoFix": "{underwater} samples underwater, no GPS fix after the dive.",
   "@navTrack_review_segmentSummaryNoFix": {

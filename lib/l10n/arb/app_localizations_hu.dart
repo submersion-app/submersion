@@ -52198,6 +52198,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get navTrack_detail_chooseSite => 'Merülőhely választása';
 
   @override
+  String get navTrack_detail_noEquipment => 'Nincs eszköz';
+
+  @override
+  String get navTrack_detail_chooseDevice => 'Eszköz választása';
+
+  @override
   String get navTrack_review_importTrackTitle =>
       'Víz alatti nyomvonal importálása';
 

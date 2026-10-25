@@ -15461,6 +15461,8 @@
   "navTrack_detail_chooseDive": "Escolher mergulho",
   "navTrack_detail_noSite": "Nenhum ponto de mergulho",
   "navTrack_detail_chooseSite": "Escolher ponto de mergulho",
+  "navTrack_detail_noEquipment": "Nenhum dispositivo",
+  "navTrack_detail_chooseDevice": "Escolher dispositivo",
   "navTrack_review_importTrackTitle": "Importar trilha subaquática",
   "navTrack_review_segmentSummaryNoFix": "{underwater} amostras subaquáticas, nenhum fix de GPS após o mergulho.",
   "navTrack_review_segmentSummaryWithFix": "{underwater} amostras subaquáticas, {surface} amostras de superfície, fix de GPS a {vector} do fim estimado.",

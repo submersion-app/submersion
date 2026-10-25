@@ -15609,6 +15609,8 @@
   "navTrack_detail_chooseDive": "Tauchgang wählen",
   "navTrack_detail_noSite": "Kein Tauchplatz",
   "navTrack_detail_chooseSite": "Tauchplatz wählen",
+  "navTrack_detail_noEquipment": "Kein Gerät",
+  "navTrack_detail_chooseDevice": "Gerät wählen",
   "navTrack_review_importTrackTitle": "Unterwasser-Track importieren",
   "navTrack_review_segmentSummaryNoFix": "{underwater} Messpunkte unter Wasser, kein GPS-Fix nach dem Tauchgang.",
   "navTrack_review_segmentSummaryWithFix": "{underwater} Messpunkte unter Wasser, {surface} Messpunkte an der Oberfläche, GPS-Fix {vector} vom rekonstruierten Ende entfernt.",

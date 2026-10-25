@@ -52600,6 +52600,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get navTrack_detail_chooseSite => 'Choisir un site';
 
   @override
+  String get navTrack_detail_noEquipment => 'Aucun appareil';
+
+  @override
+  String get navTrack_detail_chooseDevice => 'Choisir un appareil';
+
+  @override
   String get navTrack_review_importTrackTitle =>
       'Importer une trace sous-marine';
 

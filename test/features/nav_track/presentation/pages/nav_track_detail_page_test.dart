@@ -19,6 +19,7 @@ import 'package:submersion/features/maps/presentation/providers/map_tile_provide
 import 'package:submersion/features/maps/presentation/widgets/map_compass_button.dart';
 import 'package:submersion/features/nav_track/data/repositories/nav_track_repository.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
+import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_corrector.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_detail_page.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
@@ -329,29 +330,49 @@ void main() {
     expect(find.text('No correction applied yet.'), findsOneWidget);
   });
 
-  testWidgets('shows the linked equipment name when equipmentId is set', (
-    tester,
-  ) async {
-    const scooter = EquipmentItem(
-      id: 'eq1',
-      name: 'Test Scooter',
-      type: EquipmentType.dpv,
+  group('the equipment row', () {
+    testWidgets('shows the linked equipment name and "Change device" when '
+        'equipmentId is set', (tester) async {
+      const scooter = EquipmentItem(
+        id: 'eq1',
+        name: 'Test Scooter',
+        type: EquipmentType.dpv,
+      );
+      await _pump(
+        tester,
+        route: _route(equipmentId: 'eq1'),
+        equipment: scooter,
+      );
+
+      expect(
+        find.byKey(const ValueKey('nav-track-equipment-row')),
+        findsOneWidget,
+      );
+      expect(find.text('Test Scooter'), findsOneWidget);
+      expect(find.text('Change device'), findsOneWidget);
+    });
+
+    testWidgets(
+      'shows a "no device" placeholder and "Choose device" when unset',
+      (tester) async {
+        await _pump(tester, route: _route());
+
+        expect(find.text('No device'), findsOneWidget);
+        expect(find.text('Choose device'), findsOneWidget);
+      },
     );
-    await _pump(
-      tester,
-      route: _route(equipmentId: 'eq1'),
-      equipment: scooter,
+
+    testWidgets(
+      'no "Change device" entry left in the overflow menu (moved to its '
+      'own row)',
+      (tester) async {
+        await _pump(tester, route: _route());
+
+        await tester.tap(find.byType(PopupMenuButton<String>));
+        await tester.pumpAndSettle();
+        expect(find.text('Change device'), findsNothing);
+      },
     );
-
-    expect(find.text('Equipment: Test Scooter'), findsOneWidget);
-  });
-
-  testWidgets('shows no equipment line when equipmentId is not set', (
-    tester,
-  ) async {
-    await _pump(tester, route: _route());
-
-    expect(find.textContaining('Equipment:'), findsNothing);
   });
 
   testWidgets(
@@ -398,6 +419,66 @@ void main() {
       expect(controller.camera.rotation % 360, closeTo(0, 0.01));
     },
   );
+
+  group('the battery row', () {
+    testWidgets(
+      'skips a leading 0.00V sample (sensor not settled yet) when picking '
+      'the start reading (018.DAT.csv: row 1 reads 0, row 2 reads the real '
+      '3.9)',
+      (tester) async {
+        final route = _route(anchorLatitude: 47.1, anchorLongitude: 8.3)
+            .copyWith(
+              points: const [
+                NavTrackPoint(
+                  timestamp: 1755856800,
+                  north: 0,
+                  east: 0,
+                  depth: 0,
+                  batteryVolts: 0,
+                ),
+                NavTrackPoint(
+                  timestamp: 1755856801,
+                  north: 0,
+                  east: 0,
+                  depth: 0,
+                  batteryVolts: 3.9,
+                ),
+                NavTrackPoint(
+                  timestamp: 1755857000,
+                  north: 0,
+                  east: 0,
+                  depth: 0,
+                  batteryVolts: 3.78,
+                ),
+              ],
+            );
+        await _pump(tester, route: route);
+
+        expect(find.text('Battery: 3.90 V -> 3.78 V'), findsOneWidget);
+        expect(find.textContaining('0.00 V'), findsNothing);
+      },
+    );
+
+    testWidgets('no battery row when every sample is 0V or null', (
+      tester,
+    ) async {
+      final route = _route(anchorLatitude: 47.1, anchorLongitude: 8.3).copyWith(
+        points: const [
+          NavTrackPoint(timestamp: 1755856800, north: 0, east: 0, depth: 0),
+          NavTrackPoint(
+            timestamp: 1755856801,
+            north: 0,
+            east: 0,
+            depth: 0,
+            batteryVolts: 0,
+          ),
+        ],
+      );
+      await _pump(tester, route: route);
+
+      expect(find.textContaining('Battery:'), findsNothing);
+    });
+  });
 
   group('the site row (item 4)', () {
     testWidgets(
@@ -749,9 +830,7 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        await tester.tap(find.byType(PopupMenuButton<String>));
-        await tester.pumpAndSettle();
-        await tester.tap(find.text('Change device'));
+        await tester.tap(find.byKey(const ValueKey('nav-track-change-device')));
         await tester.pumpAndSettle();
         await tester.tap(find.text('Test Scooter'));
         await tester.pumpAndSettle();
@@ -785,9 +864,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byType(PopupMenuButton<String>));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Change device'));
+      await tester.tap(find.byKey(const ValueKey('nav-track-change-device')));
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('nav-track-equipment-none')));
       await tester.pumpAndSettle();

@@ -174,6 +174,35 @@ duration included) and only gets the title-row/badge change:
       look to confirm nothing was missed (none expected per the File
       Structure section above, but confirm rather than assume).
 
+## Addendum: changes made during the user's own review
+
+Found while the user tested the Hot Build, fixed in the same branch since
+they touch files this plan already modifies:
+
+- **Dive link label restyled again**, to `TagChip.unsaved` -- see the
+  revised spec section 5. `PlannedDiveChip` (the first revision) was also
+  wrong; the user's reference turned out to be a dive's own auto-generated
+  import tag.
+- **"Change device" moved from the overflow menu to its own row**
+  (`_EquipmentCard`, mirroring `_SiteCard` exactly), per explicit feedback:
+  "ich bleibe hier beim Tauchplatz... ich möchte auch so ein Feld haben".
+  The popup menu entry is gone; `_StatsCard`'s inline equipment/device line
+  moved into this new row too, so equipment has exactly one display place
+  the way site already does.
+- **Speed stats fixed to m/s.** `_StatsCard` was feeding max/avg speed
+  through `UnitFormatter.formatSpeed`, which is wind-speed formatting
+  (km/h or knots, driven by the diver's weather-unit setting) -- a
+  mismatched reuse that made a DPV's speed read in the wrong unit entirely
+  for the diving context. New `formatMetersPerSecond` in
+  `nav_track_row_stats.dart` formats directly in m/s, the diving/DPV
+  convention, independent of the diver's wind-speed preference.
+- **Battery start reading fixed.** `_StatsCard` read
+  `route.points.first.batteryVolts` unfiltered; confirmed against a real
+  Seacraft ENC log (018.DAT.csv, user-provided) that a fresh recording's
+  very first sample can read an implausible 0.00V before the sensor
+  settles (row 1: `BattV=0`; row 2, one second later: the real `3.9`). New
+  `_firstBattery`/`_lastBattery` skip exact-zero samples from both ends.
+
 ## Open design decisions (flag for review, do not block on)
 
 - Exact wording for `navTrack_detail_menuChangeDevice` (`"Change device"`

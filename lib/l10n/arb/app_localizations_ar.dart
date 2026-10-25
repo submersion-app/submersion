@@ -53128,6 +53128,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get navTrack_detail_chooseSite => 'اختيار موقع';
 
   @override
+  String get navTrack_detail_noEquipment => 'لا يوجد جهاز';
+
+  @override
+  String get navTrack_detail_chooseDevice => 'اختيار جهاز';
+
+  @override
   String get navTrack_review_importTrackTitle => 'استيراد مسار تحت الماء';
 
   @override

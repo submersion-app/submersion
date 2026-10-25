@@ -24,6 +24,7 @@ import 'package:submersion/features/nav_track/presentation/providers/nav_track_p
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_dive_choice_sheet.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_equipment_picker_sheet.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_polyline_layer.dart';
+import 'package:submersion/features/nav_track/presentation/widgets/nav_track_row_stats.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -287,8 +288,6 @@ class NavTrackDetailPage extends ConsumerWidget {
                   switch (value) {
                     case 'rename':
                       await _rename(context, ref, route);
-                    case 'changeDevice':
-                      await _changeDevice(context, ref, route);
                     case 'unlink':
                       await _unlink(ref, route);
                     case 'delete':
@@ -299,10 +298,6 @@ class NavTrackDetailPage extends ConsumerWidget {
                   PopupMenuItem(
                     value: 'rename',
                     child: Text(l10n.navTrack_detail_menuRename),
-                  ),
-                  PopupMenuItem(
-                    value: 'changeDevice',
-                    child: Text(l10n.navTrack_detail_menuChangeDevice),
                   ),
                   if (route.diveId != null)
                     PopupMenuItem(
@@ -330,6 +325,11 @@ class NavTrackDetailPage extends ConsumerWidget {
               _SiteCard(
                 route: route,
                 onChangeSite: () => _changeSite(context, ref, route),
+              ),
+              const SizedBox(height: 16),
+              _EquipmentCard(
+                route: route,
+                onChangeDevice: () => _changeDevice(context, ref, route),
               ),
               const SizedBox(height: 16),
               Card(
@@ -426,20 +426,12 @@ class _StatsCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final duration = Duration(seconds: stats.durationSeconds);
     final l10n = context.l10n;
-    final equipmentId = route.equipmentId;
-    final equipmentName = equipmentId == null
-        ? null
-        : ref.watch(equipmentItemProvider(equipmentId)).value?.name;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (equipmentName != null)
-              Text(l10n.navTrack_detail_equipment(equipmentName))
-            else if (route.deviceName != null)
-              Text(l10n.navTrack_detail_device(route.deviceName!)),
             Text(
               l10n.navTrack_detail_distance(
                 units.formatDistance(stats.totalDistance),
@@ -451,13 +443,13 @@ class _StatsCard extends ConsumerWidget {
             if (stats.maxSpeed != null)
               Text(
                 l10n.navTrack_detail_maxSpeed(
-                  units.formatSpeed(stats.maxSpeed!),
+                  formatMetersPerSecond(stats.maxSpeed!),
                 ),
               ),
             if (stats.avgSpeed != null)
               Text(
                 l10n.navTrack_detail_avgSpeed(
-                  units.formatSpeed(stats.avgSpeed!),
+                  formatMetersPerSecond(stats.avgSpeed!),
                 ),
               ),
             Text(
@@ -466,11 +458,10 @@ class _StatsCard extends ConsumerWidget {
                 duration.inMinutes.remainder(60),
               ),
             ),
-            if (route.points.isNotEmpty &&
-                route.points.first.batteryVolts != null)
+            if (_firstBattery(route) != null)
               Text(
                 l10n.navTrack_detail_battery(
-                  route.points.first.batteryVolts!.toStringAsFixed(2),
+                  _firstBattery(route)!.toStringAsFixed(2),
                   _lastBattery(route)?.toStringAsFixed(2) ?? '?',
                 ),
               ),
@@ -480,9 +471,28 @@ class _StatsCard extends ConsumerWidget {
     );
   }
 
+  /// The first plausible battery reading, skipping an exact 0.00V sample.
+  ///
+  /// A brand-new recording's very first sample can read 0V before the
+  /// device's battery sensor has settled -- confirmed against a real
+  /// Seacraft ENC log (018.DAT.csv): row 1 reads `BattV=0`, row 2, one
+  /// second later at the same timestamp, already reads the real `3.9`.
+  /// `route.points.first.batteryVolts` took that literal first sample
+  /// unfiltered, so the detail page showed "0.00 V -> 3.78 V" for a pack
+  /// that was actually never anywhere near empty (issue reported during
+  /// #3634/#3635 review). A real pack discharging to exactly 0.00V while
+  /// still logging is not a case this needs to handle: the device would
+  /// have stopped recording first.
+  double? _firstBattery(NavTrack route) {
+    for (final p in route.points) {
+      if (p.batteryVolts != null && p.batteryVolts != 0) return p.batteryVolts;
+    }
+    return null;
+  }
+
   double? _lastBattery(NavTrack route) {
     for (final p in route.points.reversed) {
-      if (p.batteryVolts != null) return p.batteryVolts;
+      if (p.batteryVolts != null && p.batteryVolts != 0) return p.batteryVolts;
     }
     return null;
   }
@@ -547,6 +557,42 @@ class _SiteCard extends ConsumerWidget {
           ? l10n.navTrack_detail_chooseSite
           : l10n.navTrack_detail_menuChangeSite,
       onAction: onChangeSite,
+    );
+  }
+}
+
+/// The route's device/equipment row, built from the same [_ActionCard] as
+/// [_SiteCard]: an equipment or device name, or a "no device" placeholder,
+/// with "Change device" / "Choose device" below it. Mirrors the site row
+/// so the two "set this once at import, change it any time afterward"
+/// fields read the same way.
+class _EquipmentCard extends ConsumerWidget {
+  const _EquipmentCard({required this.route, required this.onChangeDevice});
+
+  final NavTrack route;
+  final VoidCallback onChangeDevice;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final equipmentId = route.equipmentId;
+    // A picked equipment item's own name wins over the stored deviceName
+    // (set once at import, possibly stale) once equipment has resolved;
+    // deviceName alone covers an import that named a device without
+    // picking a catalog equipment item.
+    final equipmentName = equipmentId == null
+        ? null
+        : ref.watch(equipmentItemProvider(equipmentId)).value?.name;
+    final label = equipmentName ?? route.deviceName;
+    return _ActionCard(
+      key: const ValueKey('nav-track-equipment-row'),
+      icon: Icons.directions_boat_filled_outlined,
+      label: label ?? l10n.navTrack_detail_noEquipment,
+      actionKey: const ValueKey('nav-track-change-device'),
+      actionLabel: label == null
+          ? l10n.navTrack_detail_chooseDevice
+          : l10n.navTrack_detail_menuChangeDevice,
+      onAction: onChangeDevice,
     );
   }
 }

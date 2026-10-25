@@ -52151,6 +52151,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get navTrack_detail_chooseSite => 'Duikstek kiezen';
 
   @override
+  String get navTrack_detail_noEquipment => 'Geen apparaat';
+
+  @override
+  String get navTrack_detail_chooseDevice => 'Apparaat kiezen';
+
+  @override
   String get navTrack_review_importTrackTitle => 'Onderwatertrack importeren';
 
   @override

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/tracks/presentation/widgets/track_stat_row.dart';
@@ -50,6 +51,15 @@ List<TrackStat> navTrackStats(
     ),
   TrackStat(icon: Icons.schedule, text: formatNavTrackDuration(l10n, route)),
 ];
+
+/// A dead-reckoned track's speed, always in m/s -- the diving/DPV
+/// convention, not `UnitFormatter.formatSpeed`'s wind-speed units (km/h or
+/// knots, driven by the diver's weather-unit preference). That formatter
+/// was a mismatched reuse: a scooter's speed has nothing to do with the
+/// diver's wind-speed setting, and km/h reads wrong for a value that is
+/// typically well under walking pace.
+String formatMetersPerSecond(double metersPerSecond, {int decimals = 2}) =>
+    '${formatFixedForDisplay(metersPerSecond, decimals)} m/s';
 
 /// [route]'s date and device name only (distance/maxDepth/duration moved to
 /// [navTrackStats] instead), for the list row's meta line.

@@ -112,11 +112,19 @@ Apply the dive list's visual language to `GpsTrackListTile` and
    Unlinked rows are unaffected: there is no site to promote, so the title
    stays `name ?? sourceRef ?? id` as today.
 5. **Dive link as a label.** Replace the outlined link chip
-   (`NavTrackListRow._linkChip`) with a filled, rounded-rect label using
-   `PlannedDiveChip`'s shape and the same kind of theme container tokens
-   (`secondaryContainer`/`onSecondaryContainer` when linked, a neutral
-   surface tone for "unlinked"). It keeps its existing tap-to-open-the-dive
-   behavior when linked.
+   (`NavTrackListRow._linkChip`) with `TagChip.unsaved` -- **revised again
+   after the first revision**: the user's reference screenshot turned out to
+   be a dive's own auto-generated `"{source} Import {date}"` tag, rendered
+   through `TagChips`/`TagChip`, the one widget "every tag chip in the app
+   renders through... in a dive list row, on a detail card, beside a site
+   and beside a piece of equipment" (its own doc comment). `PlannedDiveChip`
+   was the wrong model entirely; `TagChip.unsaved` (no backing `Tag` row
+   needed) gives the exact look with no new widget. Color: `colorScheme
+   .primary` when linked (no tag color to borrow), `colorScheme.outline`
+   when not. It keeps its existing tap-to-open-the-dive behavior when
+   linked, and incidentally fixes the earlier accessibility gap for free --
+   `TagChip` is the already-reviewed, already-shipped interactive pattern
+   used everywhere else in the app, not a bespoke one.
 
 No change to `GpsTrackListTile`'s or `NavTrackListRow`'s leading icon
 (`Icons.route` vs. shape thumbnail): out of scope, not requested by either

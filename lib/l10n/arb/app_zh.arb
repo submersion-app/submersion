@@ -15461,6 +15461,8 @@
   "navTrack_detail_chooseDive": "选择潜水记录",
   "navTrack_detail_noSite": "无潜点",
   "navTrack_detail_chooseSite": "选择潜点",
+  "navTrack_detail_noEquipment": "无设备",
+  "navTrack_detail_chooseDevice": "选择设备",
   "navTrack_review_importTrackTitle": "导入水下轨迹",
   "navTrack_review_segmentSummaryNoFix": "{underwater} 个水下采样点，潜水结束后没有 GPS 定位。",
   "navTrack_review_segmentSummaryWithFix": "{underwater} 个水下采样点，{surface} 个水面采样点，GPS 定位距推算终点 {vector}。",

@@ -51364,6 +51364,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get navTrack_detail_chooseSite => 'בחר אתר';
 
   @override
+  String get navTrack_detail_noEquipment => 'אין מכשיר';
+
+  @override
+  String get navTrack_detail_chooseDevice => 'בחר מכשיר';
+
+  @override
   String get navTrack_review_importTrackTitle => 'ייבוא מסלול תת-ימי';
 
   @override

@@ -15461,6 +15461,8 @@
   "navTrack_detail_chooseDive": "Choisir une plongée",
   "navTrack_detail_noSite": "Aucun site",
   "navTrack_detail_chooseSite": "Choisir un site",
+  "navTrack_detail_noEquipment": "Aucun appareil",
+  "navTrack_detail_chooseDevice": "Choisir un appareil",
   "navTrack_review_importTrackTitle": "Importer une trace sous-marine",
   "navTrack_review_segmentSummaryNoFix": "{underwater} échantillons sous l'eau, aucun fix GPS après la plongée.",
   "navTrack_review_segmentSummaryWithFix": "{underwater} échantillons sous l'eau, {surface} échantillons en surface, fix GPS à {vector} de la fin estimée.",

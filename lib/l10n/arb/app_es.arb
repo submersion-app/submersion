@@ -15461,6 +15461,8 @@
   "navTrack_detail_chooseDive": "Elegir inmersión",
   "navTrack_detail_noSite": "Sin punto de buceo",
   "navTrack_detail_chooseSite": "Elegir punto de buceo",
+  "navTrack_detail_noEquipment": "Sin dispositivo",
+  "navTrack_detail_chooseDevice": "Elegir dispositivo",
   "navTrack_review_importTrackTitle": "Importar track submarino",
   "navTrack_review_segmentSummaryNoFix": "{underwater} muestras bajo el agua, sin fix GPS después de la inmersión.",
   "navTrack_review_segmentSummaryWithFix": "{underwater} muestras bajo el agua, {surface} muestras en superficie, fix GPS a {vector} del final estimado.",

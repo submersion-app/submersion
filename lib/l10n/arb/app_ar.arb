@@ -15461,6 +15461,8 @@
   "navTrack_detail_chooseDive": "اختيار غطسة",
   "navTrack_detail_noSite": "لا يوجد موقع غوص",
   "navTrack_detail_chooseSite": "اختيار موقع",
+  "navTrack_detail_noEquipment": "لا يوجد جهاز",
+  "navTrack_detail_chooseDevice": "اختيار جهاز",
   "navTrack_review_importTrackTitle": "استيراد مسار تحت الماء",
   "navTrack_review_segmentSummaryNoFix": "{underwater} عينات تحت الماء، لا يوجد إصلاح GPS بعد الغوص.",
   "navTrack_review_segmentSummaryWithFix": "{underwater} عينات تحت الماء، {surface} عينات على السطح، إصلاح GPS على بعد {vector} من النهاية المقدَّرة.",

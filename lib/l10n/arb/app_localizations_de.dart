@@ -52371,6 +52371,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get navTrack_detail_chooseSite => 'Tauchplatz wählen';
 
   @override
+  String get navTrack_detail_noEquipment => 'Kein Gerät';
+
+  @override
+  String get navTrack_detail_chooseDevice => 'Gerät wählen';
+
+  @override
   String get navTrack_review_importTrackTitle =>
       'Unterwasser-Track importieren';
 
