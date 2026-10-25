@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 
 import 'package:submersion/shared/widgets/detail_row/detail_row.dart';
 import 'package:submersion/shared/widgets/detail_row/detail_row_group.dart';
@@ -38,22 +39,33 @@ Future<void> _pump(
   );
 }
 
+/// The SDK's bundled Roboto fonts: under FLUTTER_ROOT when it is set,
+/// otherwise found by walking up from the test binary to the SDK root.
+String _materialFontsDir() {
+  String fontsUnder(String root) =>
+      p.join(root, 'bin', 'cache', 'artifacts', 'material_fonts');
+  final root = Platform.environment['FLUTTER_ROOT'];
+  if (root != null) return fontsUnder(root);
+  var dir = p.dirname(Platform.resolvedExecutable);
+  while (p.dirname(dir) != dir) {
+    if (Directory(fontsUnder(dir)).existsSync()) return fontsUnder(dir);
+    dir = p.dirname(dir);
+  }
+  throw StateError('No Flutter SDK above ${Platform.resolvedExecutable}');
+}
+
 void main() {
   // A real font, registered mid-test to stand in for a theme font that
   // google_fonts fetches after the first frame. Read here: file reads in a
-  // testWidgets body deadlock under its fake clock.
+  // testWidgets body deadlock under its fake clock. The engine cannot
+  // unload a font, so both families are named for this file alone and no
+  // other test can render with them.
   late ByteData lateFont;
   const boldFamily = 'DetailRowBoldFont';
   setUpAll(() async {
-    final root =
-        Platform.environment['FLUTTER_ROOT'] ??
-        File(
-          Platform.resolvedExecutable,
-        ).parent.parent.parent.parent.parent.parent.path;
+    final fonts = _materialFontsDir();
     Future<ByteData> font(String name) async => ByteData.sublistView(
-      await File(
-        '$root/bin/cache/artifacts/material_fonts/$name.ttf',
-      ).readAsBytes(),
+      await File(p.join(fonts, '$name.ttf')).readAsBytes(),
     );
     lateFont = await font('Roboto-Regular');
     // Regular and bold faces of one family, so bold text really is wider,
