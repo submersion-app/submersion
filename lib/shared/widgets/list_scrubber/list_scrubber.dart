@@ -125,6 +125,14 @@ class _ListScrubberState extends State<ListScrubber> {
   TextScaler? _columnScaler;
   TextStyle? _columnStyle;
   double _column = ListScrubberPanel.width;
+  String? _bandValue;
+  String? _bandDetail;
+  double? _bandHost;
+  double? _bandPanel;
+  ThemeData? _bandTheme;
+  TextDirection? _bandDirection;
+  TextScaler? _bandScaler;
+  Size? _band;
   int? _dragSlot;
   int? _lastSlot;
 
@@ -217,6 +225,44 @@ class _ListScrubberState extends State<ListScrubber> {
       );
     }
     return _column;
+  }
+
+  /// The current band for [value] and [detail], laid out again only when
+  /// they or what sizes them change, not on every pixel of a drag.
+  Size _bandFor(
+    BuildContext context, {
+    required String value,
+    required String? detail,
+    required double hostWidth,
+    required double panelWidth,
+  }) {
+    final theme = Theme.of(context);
+    final direction = Directionality.of(context);
+    final scaler = MediaQuery.textScalerOf(context);
+    if (_band == null ||
+        _bandValue != value ||
+        _bandDetail != detail ||
+        _bandHost != hostWidth ||
+        _bandPanel != panelWidth ||
+        !identical(_bandTheme, theme) ||
+        _bandDirection != direction ||
+        _bandScaler != scaler) {
+      _bandValue = value;
+      _bandDetail = detail;
+      _bandHost = hostWidth;
+      _bandPanel = panelWidth;
+      _bandTheme = theme;
+      _bandDirection = direction;
+      _bandScaler = scaler;
+      _band = ListScrubberPanel.bandSize(
+        context,
+        value: value,
+        detail: detail,
+        hostWidth: hostWidth,
+        panelWidth: panelWidth,
+      );
+    }
+    return _band!;
   }
 
   /// Tracks a hover over the region: the end edge's column shows the thumb,
@@ -348,7 +394,7 @@ class _ListScrubberState extends State<ListScrubber> {
         // Laid out once here; the panel takes the height from it.
         final band = value == null
             ? null
-            : ListScrubberPanel.bandSize(
+            : _bandFor(
                 context,
                 value: value,
                 detail: detail,
@@ -526,14 +572,23 @@ class _ListScrubberState extends State<ListScrubber> {
   }
 
   void _dragTo(double dy, double trackExtent) {
-    _dragTop = (_dragTop + dy).clamp(0.0, trackExtent);
+    final top = (_dragTop + dy).clamp(0.0, trackExtent);
     final position = slotPositionForTrack(
-      dy: _dragTop,
+      dy: top,
       trackExtent: trackExtent,
       slotCount: widget.slotCount,
     );
+    final slot = math.min(position.round(), _maxSlot);
+    // A pointer past either end of the track moves nothing, unless rows
+    // loaded or slots changed while it was held there.
+    if (top == _dragTop &&
+        slot == _dragSlot &&
+        (slot >= widget.loadedSlotCount || slot == _followedSlot)) {
+      return;
+    }
+    _dragTop = top;
     // The thumb moves with every update, even within one slot.
-    setState(() => _dragSlot = math.min(position.round(), _maxSlot));
+    setState(() => _dragSlot = slot);
     _follow(position);
   }
 
