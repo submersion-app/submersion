@@ -122,8 +122,16 @@ class _TankMndFieldState extends State<TankMndField> {
         endLimit: settings.endLimit,
         o2Narcotic: settings.o2Narcotic,
       ).roundToDouble();
-      _drivenMix = GasMix(o2: o2, he: he);
-      widget.onHeChanged(he);
+      // An MND no deeper than the END limit needs no helium. It is most
+      // often the first key of a deeper one, and a He of 0 would make a
+      // host that shows this field only for a mix with helium take it away
+      // while the diver types, so it is not reported.
+      if (he > 0) {
+        _drivenMix = GasMix(o2: o2, he: he);
+        widget.onHeChanged(he);
+      } else {
+        _drivenMix = null;
+      }
     } else {
       // No MND to work the He out from; the field says why.
       _drivenMix = null;

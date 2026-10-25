@@ -222,6 +222,22 @@ void main() {
       expect(textOf(tester), '52');
     });
 
+    testWidgets('an MND no deeper than the END limit reports nothing, so a '
+        'host that shows the field only for a mix with helium keeps it while '
+        'the diver types', (tester) async {
+      await tester.pumpWidget(host(gas: const GasMix(o2: 21, he: 35)));
+      await tester.pumpAndSettle();
+
+      // The first key of "40": 4 m needs no helium at a 30 m END.
+      await tester.enterText(field, '4');
+      await tester.pumpAndSettle();
+      expect(reported, isEmpty);
+
+      await tester.enterText(field, '40');
+      await tester.pumpAndSettle();
+      expect(reported, [20]);
+    });
+
     testWidgets('zero reports nothing', (tester) async {
       await tester.pumpWidget(host(gas: const GasMix(o2: 21, he: 35)));
       await tester.pumpAndSettle();
