@@ -43,14 +43,16 @@ void main() {
         child: StatefulBuilder(
           builder: (context, setState) => Column(
             children: [
-              TankMndField(
-                gas: current,
-                units: units,
-                onHeChanged: (he) => setState(() {
-                  reported.add(he);
-                  current = GasMix(o2: current.o2, he: he);
-                }),
-              ),
+              // Shown only for a mix with helium, as both editors do.
+              if (current.he > 0)
+                TankMndField(
+                  gas: current,
+                  units: units,
+                  onHeChanged: (he) => setState(() {
+                    reported.add(he);
+                    current = GasMix(o2: current.o2, he: he);
+                  }),
+                ),
               // Changes the mix from outside the field, as the O2 and He
               // fields or a gas chip do.
               TextButton(
@@ -232,6 +234,7 @@ void main() {
       await tester.enterText(field, '4');
       await tester.pumpAndSettle();
       expect(reported, isEmpty);
+      expect(field, findsOneWidget);
 
       await tester.enterText(field, '40');
       await tester.pumpAndSettle();
