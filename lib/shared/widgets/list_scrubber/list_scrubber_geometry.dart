@@ -12,16 +12,6 @@ double slotPositionForScroll({
   return share * (loadedSlotCount - 1);
 }
 
-int slotForScroll({
-  required double pixels,
-  required double maxScrollExtent,
-  required int loadedSlotCount,
-}) => slotPositionForScroll(
-  pixels: pixels,
-  maxScrollExtent: maxScrollExtent,
-  loadedSlotCount: loadedSlotCount,
-).round();
-
 /// The scroll offset showing [slot], which may fall between two slots.
 double scrollForSlot({
   required num slot,
@@ -44,16 +34,6 @@ double slotPositionForTrack({
   final share = (dy / trackExtent).clamp(0.0, 1.0);
   return share * (slotCount - 1);
 }
-
-int slotForTrack({
-  required double dy,
-  required double trackExtent,
-  required int slotCount,
-}) => slotPositionForTrack(
-  dy: dy,
-  trackExtent: trackExtent,
-  slotCount: slotCount,
-).round();
 
 /// The track position of [slot], which may fall between two slots.
 double trackForSlot({
