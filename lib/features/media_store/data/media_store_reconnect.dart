@@ -66,6 +66,9 @@ class MediaStoreReconnect {
     } on MediaStoreException catch (e) {
       return ReconnectUnreadable(e.message, heldOnlyInCloud: held);
     }
+    // The read is a network call: an attach change landing during it makes
+    // this answer about an attachment the device has left. Look again.
+    if (await _attachState.attachGeneration() != generation) return inspect();
     if (marker == null) return ReconnectNoMarker(heldOnlyInCloud: held);
     if (marker.storeId == storeId) {
       await _attachState.setMarkerMismatch(false, withinGeneration: generation);

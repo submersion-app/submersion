@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -229,6 +231,28 @@ void main() {
 
     expect(fake.detachCalls, 1);
     expect(find.byKey(const Key('reconnect-detach')), findsNothing);
+  });
+
+  // Code review: a sheet dragged away while the attach runs must not pop
+  // the page beneath it when the attach finishes.
+  testWidgets('a sheet closed mid-reconnect leaves the page beneath', (
+    tester,
+  ) async {
+    final fake = await _open(tester, const [
+      ReconnectOtherStore(storeId: 'store-b', knownToLibrary: true),
+    ]);
+    final gate = fake.gate = Completer<void>();
+
+    await tester.tap(find.byKey(const Key('reconnect-adopt')));
+    await tester.pump();
+    // Tapping the barrier closes the sheet, as a drag would.
+    await tester.tapAt(const Offset(10, 10));
+    await tester.pumpAndSettle();
+    gate.complete();
+    await tester.pumpAndSettle();
+
+    expect(fake.reconnectCalls, 1);
+    expect(find.text('open'), findsOneWidget);
   });
 
   testWidgets('a refused reconnect says why and keeps the choices', (

@@ -101,8 +101,13 @@ class SetUpDeviceCard extends ConsumerWidget {
               items: items,
               onOpen: (route) => _open(context, route),
               onSignIn: (item) => _signIn(context, ref, item),
-              onReconnect: (item) =>
-                  showMediaStoreReconnectSheet(context, account: item.label),
+              onReconnect: (item) => showMediaStoreReconnectSheet(
+                context,
+                account: item.label,
+                // Through the card's host, so the desktop list opens the
+                // page in the Data pane like the card's other items.
+                onChooseAccount: () => _open(context, item.route),
+              ),
               onDismiss: (item) => _dismiss(context, item),
             ),
         ],

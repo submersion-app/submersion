@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -39,6 +40,23 @@ class _CountingBackfill extends MediaBackfillService {
   }
 }
 
+/// Runs [onGetFile] once before serving a read, to change state mid-read.
+class _HookedStore extends InMemoryMediaObjectStore {
+  Future<void> Function()? onGetFile;
+
+  @override
+  Future<void> getFile(
+    String key,
+    File destination, {
+    TransferProgressCallback? onProgress,
+  }) async {
+    final hook = onGetFile;
+    onGetFile = null;
+    await hook?.call();
+    return super.getFile(key, destination, onProgress: onProgress);
+  }
+}
+
 /// Answers a fixed count of items kept only in each store.
 class _HeldOnlyRepository extends MediaRepository {
   _HeldOnlyRepository(this.held);
@@ -68,7 +86,7 @@ void main() {
   late MediaStoresRepository stores;
   late MediaStoreService service;
   late _CountingBackfill backfill;
-  late InMemoryMediaObjectStore store;
+  late _HookedStore store;
   late Map<String, ConnectedAccount> accounts;
 
   setUp(() async {
@@ -86,7 +104,7 @@ void main() {
       markerRetryBackoff: const [],
     );
     backfill = _CountingBackfill();
-    store = InMemoryMediaObjectStore();
+    store = _HookedStore();
     accounts = {'db-row': _row('db-row')};
   });
 
@@ -177,6 +195,22 @@ void main() {
       final found = await reconnect().inspect() as ReconnectOtherStore;
 
       expect(found.knownToLibrary, isFalse);
+    });
+
+    test('an attach change during the read is answered for the new '
+        'attachment', () async {
+      await attachedWithMismatch('store-a');
+      _writeMarker(store, 'store-b');
+      store.onGetFile = () async {
+        // Another flow reattaches to the store the folder holds.
+        await attachState.setAttached(
+          'store-b',
+          providerType: _row('db-row').kind.cloudProviderType!,
+          accountId: 'db-row',
+        );
+      };
+
+      expect(await reconnect().inspect(), isA<ReconnectResolved>());
     });
 
     test('a store with no marker is offered for starting again', () async {

@@ -10,6 +10,7 @@ import 'package:submersion/core/services/accounts/account_usage_service.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart';
 import 'package:submersion/core/services/accounts/pending_setup_service.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
+import 'package:submersion/features/media_store/domain/media_store_reconnect_situation.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_reconnect_provider.dart';
 import 'package:submersion/features/settings/data/set_up_card_prefs.dart';
 import 'package:submersion/features/settings/domain/setup/set_up_progress.dart';
@@ -485,6 +486,27 @@ void main() {
         ),
         findsOneWidget,
       );
+    });
+
+    // Code review: the sheet's "Choose the account again" goes through the
+    // card's host, like its other items, so the desktop list opens it in the
+    // Data pane.
+    testWidgets('choosing the account again opens the page through the host', (
+      tester,
+    ) async {
+      reconnect = FakeMediaStoreReconnect(const [ReconnectNeedsAccount()]);
+      await pump(
+        tester,
+        progress: setUpProgressOf(hidden: true),
+        items: [_reconnect],
+      );
+
+      await tester.tap(find.text('Reconnect'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('reconnect-choose-account')));
+      await tester.pumpAndSettle();
+
+      expect(opened, ['/settings/photos-media']);
     });
 
     testWidgets('dismissing an item records it for this device', (

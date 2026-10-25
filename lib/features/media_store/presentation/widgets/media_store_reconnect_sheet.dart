@@ -4,10 +4,12 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/media_store/media_object_store.dart';
+import 'package:submersion/features/media_store/data/media_store_service.dart';
 import 'package:submersion/features/media_store/domain/media_store_reconnect_situation.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_reconnect_provider.dart';
 import 'package:submersion/features/media_store/presentation/providers/photos_copies_provider.dart';
+import 'package:submersion/features/settings/presentation/providers/account_group_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_pane_navigator.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -23,11 +25,13 @@ const _photosRoute = '/settings/photos-media';
 /// caller in the desktop settings pane opens it in the pane (the sheet's own
 /// navigator sits above the pane). A caller already on that page passes
 /// [openPhotosPage] false: closing the sheet leaves the diver where the
-/// account is chosen.
+/// account is chosen. A host that routes settings pages itself (the setup
+/// card's) passes [onChooseAccount] in place of either.
 Future<void> showMediaStoreReconnectSheet(
   BuildContext context, {
   String? account,
   bool openPhotosPage = true,
+  VoidCallback? onChooseAccount,
 }) => showModalBottomSheet<void>(
   context: context,
   isScrollControlled: true,
@@ -35,11 +39,13 @@ Future<void> showMediaStoreReconnectSheet(
   showDragHandle: true,
   builder: (_) => MediaStoreReconnectSheet(
     account: account,
-    onChooseAccount: () {
-      if (openPhotosPage && context.mounted) {
-        unawaited(context.pushSettingsPage(_photosRoute));
-      }
-    },
+    onChooseAccount:
+        onChooseAccount ??
+        () {
+          if (openPhotosPage && context.mounted) {
+            unawaited(context.pushSettingsPage(_photosRoute));
+          }
+        },
   ),
 );
 
@@ -175,10 +181,12 @@ class _MediaStoreReconnectSheetState
       ),
       _detach(l10n),
     ],
-    ReconnectUnreadable(:final message) => [
-      ..._unreadable(l10n, account, message),
-      ..._heldOnly(l10n, found),
-    ],
+    ReconnectUnreadable(:final message) => _unreadable(
+      l10n,
+      account,
+      message,
+      heldOnly: _heldOnly(l10n, found),
+    ),
     ReconnectNeedsAccount() => [
       _intro(l10n.settings_photos_reconnect_needsAccount),
       ..._heldOnly(l10n, found),
@@ -190,8 +198,9 @@ class _MediaStoreReconnectSheetState
   List<Widget> _unreadable(
     AppLocalizations l10n,
     String account,
-    String message,
-  ) => [
+    String message, {
+    List<Widget> heldOnly = const [],
+  }) => [
     _intro(l10n.settings_photos_reconnect_unreadable(account)),
     // Raw, as the paused notice shows it: the wording anyone searching for
     // the problem would recognize.
@@ -199,6 +208,7 @@ class _MediaStoreReconnectSheetState
       padding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
       child: Text(message, style: Theme.of(context).textTheme.bodySmall),
     ),
+    ...heldOnly,
     _choice(
       key: const Key('reconnect-retry'),
       icon: Icons.refresh,
@@ -291,25 +301,34 @@ class _MediaStoreReconnectSheetState
     final messenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context);
     setState(() => _busy = true);
+    final reconnect = ref.read(mediaStoreReconnectProvider);
+    final MediaStoreConnectResult result;
     try {
-      final done = await ref.read(mediaStoreReconnectProvider).reconnect();
-      _refresh(container);
-      unawaited(_drain(container));
-      navigator.pop();
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text(
-            done.result.createdNewStore
-                ? l10n.settings_photos_reconnect_started(account)
-                : l10n.settings_photos_reconnect_joined(account),
-          ),
-        ),
-      );
+      result = (await reconnect.reconnect()).result;
     } on MediaStoreException catch (e) {
       _failed(messenger, e.message);
+      return;
     } catch (e) {
       _failed(messenger, '$e');
+      return;
+    } finally {
+      // The attach may have landed even when the queueing after it failed.
+      // Before the drain: it reads the runtime this rebuilds.
+      _refresh(container);
     }
+    unawaited(_drain(container));
+    // A sheet dragged away meanwhile has already gone; popping again would
+    // close the page beneath it.
+    if (mounted) navigator.pop();
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(
+          result.createdNewStore
+              ? l10n.settings_photos_reconnect_started(account)
+              : l10n.settings_photos_reconnect_joined(account),
+        ),
+      ),
+    );
   }
 
   Future<void> _detachCopies() async {
@@ -317,12 +336,14 @@ class _MediaStoreReconnectSheetState
     final messenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context);
     setState(() => _busy = true);
+    final reconnect = ref.read(mediaStoreReconnectProvider);
     try {
-      await ref.read(mediaStoreReconnectProvider).detach();
-      _refresh(container);
-      navigator.pop();
+      await reconnect.detach();
+      if (mounted) navigator.pop();
     } catch (e) {
       _failed(messenger, '$e');
+    } finally {
+      _refresh(container);
     }
   }
 
@@ -331,10 +352,12 @@ class _MediaStoreReconnectSheetState
     messenger.showSnackBar(SnackBar(content: Text(message)));
   }
 
-  /// Every reader of the attachment re-reads, as after any attach change.
+  /// Every reader of the attachment and the accounts' uses re-reads, as
+  /// after any attach change (attachPhotosAccount does the same).
   static void _refresh(ProviderContainer container) {
     invalidateMediaStoreAttachmentWith(container.invalidate);
     container.invalidate(photosCopiesProvider);
+    refreshAccountState(container.invalidate);
   }
 
   /// Runs the queue now, on whatever runtime the attachment builds.

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:submersion/features/media_store/data/media_store_reconnect.dart';
 import 'package:submersion/features/media_store/data/media_store_service.dart';
 import 'package:submersion/features/media_store/domain/media_store_reconnect_situation.dart';
@@ -15,6 +17,9 @@ class FakeMediaStoreReconnect implements MediaStoreReconnect {
   bool createsNewStore = false;
   Object? reconnectFailure;
 
+  /// When set, [reconnect] waits for it before answering.
+  Completer<void>? gate;
+
   @override
   Future<MediaStoreReconnectSituation> inspect() async {
     final i = inspectCalls++;
@@ -24,6 +29,7 @@ class FakeMediaStoreReconnect implements MediaStoreReconnect {
   @override
   Future<({MediaStoreConnectResult result, int queued})> reconnect() async {
     reconnectCalls++;
+    await gate?.future;
     if (reconnectFailure case final f?) throw f;
     return (
       result: MediaStoreConnectResult(
