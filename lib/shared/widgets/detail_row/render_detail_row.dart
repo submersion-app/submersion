@@ -76,7 +76,6 @@ class RenderDetailRow extends RenderBox
        _textDirection = textDirection;
 
   DetailLabelColumn? _column;
-  DetailLabelColumn? get column => _column;
   set column(DetailLabelColumn? value) {
     if (value == _column) return;
     if (attached) _leave();
@@ -86,7 +85,6 @@ class RenderDetailRow extends RenderBox
   }
 
   double _ownLabelWidth;
-  double get ownLabelWidth => _ownLabelWidth;
   set ownLabelWidth(double value) {
     if (value == _ownLabelWidth) return;
     _ownLabelWidth = value;

@@ -386,6 +386,144 @@ void main() {
     );
   });
 
+  testWidgets('an unbounded row sizes to its label, gap and value', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Row(
+            children: [DetailRow.text(label: 'Brand', value: 'Apeks')],
+          ),
+        ),
+      ),
+    );
+
+    expect(tester.takeException(), isNull);
+    expect(left(tester, 'Apeks'), right(tester, 'Brand') + DetailRow.gap);
+    expect(
+      tester.getSize(find.byType(DetailRowLayout)).width,
+      right(tester, 'Apeks') - left(tester, 'Brand'),
+    );
+  });
+
+  testWidgets('dry layout and intrinsic heights match the real layout', (
+    tester,
+  ) async {
+    // A label over the 40% cap, so the label wraps and sets the height.
+    await _pump(
+      tester,
+      DetailRow.text(label: 'Surface interval label', value: 'x'),
+      width: 300,
+    );
+
+    final row = tester.renderObject<RenderBox>(find.byType(DetailRowLayout));
+    expect(row.getDryLayout(const BoxConstraints(maxWidth: 300)), row.size);
+    expect(row.getMinIntrinsicHeight(300), row.size.height);
+    expect(row.getMaxIntrinsicHeight(300), row.size.height);
+  });
+
+  testWidgets('max intrinsic width is the label column, gap and value', (
+    tester,
+  ) async {
+    await _pump(tester, DetailRow.text(label: 'Brand', value: 'Apeks'));
+
+    final row = tester.renderObject<RenderBox>(find.byType(DetailRowLayout));
+    expect(
+      row.getMaxIntrinsicWidth(double.infinity),
+      tester.getSize(find.text('Brand')).width +
+          DetailRow.gap +
+          tester.getSize(find.text('Apeks')).width,
+    );
+  });
+
+  testWidgets('a row moved to another group leaves the old column', (
+    tester,
+  ) async {
+    final key = GlobalKey();
+    Widget build({required bool inFirst}) => Column(
+      children: [
+        DetailRowGroup(
+          child: Column(
+            children: [
+              DetailRow.text(label: 'Model', value: 'A'),
+              if (inFirst)
+                DetailRow.text(key: key, label: 'Serial number', value: 'S'),
+            ],
+          ),
+        ),
+        DetailRowGroup(
+          child: Column(
+            children: [
+              DetailRow.text(label: 'Brand', value: 'B'),
+              if (!inFirst)
+                DetailRow.text(key: key, label: 'Serial number', value: 'S'),
+            ],
+          ),
+        ),
+      ],
+    );
+    await _pump(tester, build(inFirst: true));
+    expect(left(tester, 'A'), left(tester, 'S'));
+
+    await _pump(tester, build(inFirst: false));
+
+    expect(left(tester, 'A'), right(tester, 'Model') + DetailRow.gap);
+    expect(left(tester, 'B'), left(tester, 'S'));
+  });
+
+  testWidgets('switching direction mirrors a laid-out row', (tester) async {
+    await _pump(tester, DetailRow.text(label: 'Brand', value: 'Apeks'));
+    expect(left(tester, 'Apeks'), greaterThan(left(tester, 'Brand')));
+
+    await _pump(
+      tester,
+      DetailRow.text(label: 'Brand', value: 'Apeks'),
+      textDirection: TextDirection.rtl,
+    );
+
+    expect(right(tester, 'Apeks'), left(tester, 'Brand') - DetailRow.gap);
+  });
+
+  testWidgets('a baseline-aligned row lines up with the label', (tester) async {
+    await _pump(
+      tester,
+      Row(
+        crossAxisAlignment: CrossAxisAlignment.baseline,
+        textBaseline: TextBaseline.alphabetic,
+        children: [
+          const Text('Ref', style: TextStyle(fontSize: 30)),
+          Expanded(
+            child: DetailRow.text(
+              label: 'Brand',
+              value: 'Apeks',
+              padding: EdgeInsets.zero,
+            ),
+          ),
+        ],
+      ),
+    );
+
+    // Different sizes, so the texts' tops differ by exactly the difference
+    // between their baselines only when the row reports the label's.
+    double baselineOf(String text) {
+      final element = tester.element(find.text(text));
+      final style = DefaultTextStyle.of(
+        element,
+      ).style.merge(tester.widget<Text>(find.text(text)).style);
+      final painter = TextPainter(
+        text: TextSpan(text: text, style: style),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      addTearDown(painter.dispose);
+      return painter.computeDistanceToActualBaseline(TextBaseline.alphabetic);
+    }
+
+    final ref = tester.getTopLeft(find.text('Ref')).dy;
+    final brand = tester.getTopLeft(find.text('Brand')).dy;
+    expect(brand - ref, closeTo(baselineOf('Ref') - baselineOf('Brand'), 0.01));
+  });
+
   testWidgets('taps inside the value land', (tester) async {
     var tapped = false;
     await _pump(
