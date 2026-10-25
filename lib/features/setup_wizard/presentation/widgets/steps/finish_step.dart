@@ -22,7 +22,11 @@ const kSetupFinishFeatureRoutes = <String>[
 class FinishStep extends ConsumerStatefulWidget {
   final SetupWizardMode mode;
 
-  const FinishStep({super.key, required this.mode});
+  /// First run found no diver and no name to create one with: the host
+  /// asks for the profile.
+  final VoidCallback? onNeedsName;
+
+  const FinishStep({super.key, required this.mode, this.onNeedsName});
 
   @override
   ConsumerState<FinishStep> createState() => _FinishStepState();
@@ -38,7 +42,7 @@ class _FinishStepState extends ConsumerState<FinishStep> {
       final draft = ref.read(setupWizardProvider(widget.mode));
       final service = ref.read(setupApplyServiceProvider);
       if (widget.mode == SetupWizardMode.firstRun) {
-        await service.applyFirstRun(
+        final applied = await service.applyFirstRun(
           draft,
           deviceLanguageCodes: WidgetsBinding
               .instance
@@ -46,6 +50,11 @@ class _FinishStepState extends ConsumerState<FinishStep> {
               .locales
               .map((locale) => locale.languageCode),
         );
+        if (applied == FirstRunApply.needsName) {
+          if (mounted) setState(() => _applying = false);
+          widget.onNeedsName?.call();
+          return;
+        }
       } else {
         await service.applySettingsMode(draft);
       }

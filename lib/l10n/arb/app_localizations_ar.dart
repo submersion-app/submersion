@@ -2086,10 +2086,6 @@ class AppLocalizationsAr extends AppLocalizations {
       'مزامنة iCloud غير متوفرة في هذا الإصدار من Submersion. استخدم مزامنة S3 أو نسخة App Store.';
 
   @override
-  String get settings_cloudSync_provider_icloud_unsupportedSubtitle =>
-      'غير متوفر في هذا الإصدار — استخدم S3 أو نسخة App Store';
-
-  @override
   String get settings_cloudSync_encryption_title => 'التشفير من طرف إلى طرف';
 
   @override
@@ -9009,35 +9005,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_manage_setupAssistant_subtitle =>
-      'مراجعة الوحدات والمظهر وخيارات النسخ الاحتياطي';
-
-  @override
-  String get setup_backup_cloudCopy => 'تخزين النسخ الاحتياطية في السحابة';
-
-  @override
-  String get setup_backup_frequency => 'التكرار';
-
-  @override
-  String get setup_backup_frequency_daily => 'يوميًا';
-
-  @override
-  String get setup_backup_frequency_monthly => 'شهريًا';
-
-  @override
-  String get setup_backup_frequency_weekly => 'أسبوعيًا';
-
-  @override
-  String get setup_backup_scheduleSubtitle =>
-      'انسخ بياناتك احتياطيًا وفق جدول زمني';
-
-  @override
-  String get setup_backup_scheduleToggle => 'نسخ احتياطي تلقائي';
-
-  @override
-  String get setup_backup_subtitle => 'احمِ بياناتك من اليوم الأول.';
-
-  @override
-  String get setup_backup_title => 'النسخ الاحتياطي والمزامنة';
+      'مراجعة الوحدات والنسخ الاحتياطية والمزامنة والصور';
 
   @override
   String get setup_common_back => 'رجوع';
@@ -9146,9 +9114,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get setup_restore_title => 'استعادة النسخة الاحتياطية';
 
   @override
-  String get setup_step_backup => 'نسخ احتياطي';
-
-  @override
   String get setup_step_finish => 'تم';
 
   @override
@@ -9156,9 +9121,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get setup_step_units => 'الوحدات';
-
-  @override
-  String get setup_syncPull_continue => 'متابعة';
 
   @override
   String get setup_syncPull_incomplete_message =>
@@ -9183,50 +9145,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get setup_syncPull_noLibrary_title => 'لم يتم العثور على مكتبة';
-
-  @override
-  String get setup_syncPull_success => 'تم اعتماد المكتبة';
-
-  @override
-  String get setup_syncPull_syncing => 'جارٍ سحب مكتبتك...';
-
-  @override
-  String get setup_sync_changeProvider => 'تغيير المزوّد';
-
-  @override
-  String setup_sync_connectedTo(String provider) {
-    return 'متصل بـ $provider';
-  }
-
-  @override
-  String setup_sync_error(Object error) {
-    return 'تعذّر الاتصال: $error';
-  }
-
-  @override
-  String get setup_sync_header => 'مزامنة السحابة';
-
-  @override
-  String get setup_sync_libraryFound_adopt => 'اعتماد المكتبة الحالية';
-
-  @override
-  String get setup_sync_libraryFound_keepFresh => 'البدء من جديد';
-
-  @override
-  String get setup_sync_libraryFound_message =>
-      'يحتوي هذا الحساب بالفعل على مكتبة Submersion. هل تريد اعتمادها بدلًا من البدء من جديد؟';
-
-  @override
-  String get setup_sync_libraryFound_title => 'تم العثور على مكتبة موجودة';
-
-  @override
-  String get setup_sync_manageInSettings => 'الإدارة في الإعدادات';
-
-  @override
-  String get setup_sync_notConnected => 'غير متصل';
-
-  @override
-  String get setup_sync_subtitle => 'زامن بياناتك عبر الأجهزة';
 
   @override
   String get setup_units_advanced => 'ضبط الوحدات';
@@ -55692,7 +55610,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_photos_status_pausedMismatch =>
-      'تم إيقاف الرفع مؤقتًا: اختر الحساب مرة أخرى';
+      'الرفع متوقف مؤقتًا: يجب إعادة ربط النسخ';
 
   @override
   String get settings_photos_status_finishSetup => 'إنهاء إعداد هذا الجهاز';
@@ -55708,7 +55626,101 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_photos_suspended_mismatch =>
-      'لم يعد هذا الجهاز والحساب متفقين على النسخ المستخدمة. يؤدي اختيار الحساب مرة أخرى إلى اعتماد النسخ الموجودة فيه الآن.';
+      'لم يعد الحساب يحتوي على النسخ التي كان هذا الجهاز يستخدمها. أعد الربط لتختار ما يحدث بعد ذلك.';
+
+  @override
+  String get settings_photos_reconnect_title => 'إعادة ربط نسخ الصور';
+
+  @override
+  String settings_photos_reconnect_checking(String account) {
+    return 'جارٍ فحص $account…';
+  }
+
+  @override
+  String settings_photos_reconnect_resolved(String account) {
+    return 'النسخ في $account تطابق هذا الجهاز من جديد. يُستأنف الرفع.';
+  }
+
+  @override
+  String settings_photos_reconnect_otherKnown(String account) {
+    return 'يحتوي $account الآن على نسخ أعدّها جهاز آخر من أجهزتك.';
+  }
+
+  @override
+  String settings_photos_reconnect_otherUnknown(String account) {
+    return 'يحتوي $account الآن على نسخ لا يعرفها هذا السجل.';
+  }
+
+  @override
+  String settings_photos_reconnect_noMarker(String account) {
+    return 'أُزيلت النسخ في $account أو أُعيد ضبطها.';
+  }
+
+  @override
+  String settings_photos_reconnect_unreadable(String account) {
+    return 'تعذّر فحص $account.';
+  }
+
+  @override
+  String get settings_photos_reconnect_needsAccount =>
+      'لم يعد هذا الجهاز قادرًا على فتح الحساب الذي كانت فيه النسخ.';
+
+  @override
+  String get settings_photos_reconnect_adopt =>
+      'استخدام النسخ الموجودة هناك الآن';
+
+  @override
+  String get settings_photos_reconnect_adoptBody =>
+      'تبقى الصور الموجودة هناك. ويُرفع كل ما ينقص من جديد من هذا الجهاز.';
+
+  @override
+  String settings_photos_reconnect_adoptUnknownBody(String account) {
+    return 'اختر هذا فقط إذا كان $account مخصصًا لهذا السجل. تبقى الصور الموجودة هناك، ويُرفع كل ما ينقص من جديد من هذا الجهاز.';
+  }
+
+  @override
+  String get settings_photos_reconnect_rebuild => 'بدء النسخ من جديد';
+
+  @override
+  String settings_photos_reconnect_rebuildBody(String account) {
+    return 'تبدأ نسخ جديدة في $account. تُحفظ الصور التي ما زالت هناك، ويُرفع كل ما على هذا الجهاز من جديد.';
+  }
+
+  @override
+  String get settings_photos_reconnect_chooseAccount => 'اختيار الحساب من جديد';
+
+  @override
+  String get settings_photos_reconnect_chooseAccountBody =>
+      'يفتح الصور والفيديوهات لاختيار الحساب أو تسجيل الدخول من جديد.';
+
+  @override
+  String settings_photos_reconnect_heldOnly(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count صورة وفيديو محفوظة في السحابة فقط. لن تُفتح من جديد إلا إذا بقيت في الحساب.',
+      many:
+          '$count صورة وفيديو محفوظة في السحابة فقط. لن تُفتح من جديد إلا إذا بقيت في الحساب.',
+      few:
+          '$count صور وفيديوهات محفوظة في السحابة فقط. لن تُفتح من جديد إلا إذا بقيت في الحساب.',
+      two:
+          'صورتان أو فيديوهان محفوظان في السحابة فقط. لن يُفتحا من جديد إلا إذا بقيا في الحساب.',
+      one:
+          '$count صورة أو فيديو محفوظ في السحابة فقط. لن يُفتح من جديد إلا إذا بقي في الحساب.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_photos_reconnect_joined(String account) {
+    return 'تُستخدم الآن النسخ في $account';
+  }
+
+  @override
+  String settings_photos_reconnect_started(String account) {
+    return 'بدأت نسخ جديدة في $account';
+  }
 
   @override
   String get media_info_actionCopyNow => 'النسخ الآن';
@@ -56476,4 +56488,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String settings_setUpDevice_done_otherDevices(String account) {
     return 'على أجهزتك الأخرى، افتح Submersion واختر $account، وستظهر المكتبة نفسها.';
   }
+
+  @override
+  String settings_setUpDevice_sync_inStep(String account) {
+    return 'الغطسات هنا متطابقة مع مكتبتك في $account.';
+  }
+
+  @override
+  String get setup_syncPull_startFresh => 'بدء سجل جديد';
 }

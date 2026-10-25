@@ -87,8 +87,9 @@ want when adding a new device to an existing library.
 
 ## Adding More Devices
 
-1. Install Submersion on the new device. In the first-run setup you can choose
-   to bring in your existing data and connect cloud sync straight away.
+1. Install Submersion on the new device. In the first-run setup, choose
+   **I have existing Submersion data**, then **Connect cloud sync**: the same
+   account and sync steps as below run straight away.
 2. Otherwise, open the **Set up this device** card on **Settings > Data** and
    choose the **same account** as your other devices: the same iCloud, Google
    or Dropbox account, or the same server. An account another device added is

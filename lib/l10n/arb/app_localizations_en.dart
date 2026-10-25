@@ -2010,10 +2010,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'iCloud sync isn\'t available in this build of Submersion. Use S3 sync, or the App Store version.';
 
   @override
-  String get settings_cloudSync_provider_icloud_unsupportedSubtitle =>
-      'Not available in this build — use S3 or the App Store version';
-
-  @override
   String get settings_cloudSync_encryption_title => 'End-to-end encryption';
 
   @override
@@ -8727,34 +8723,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_manage_setupAssistant_subtitle =>
-      'Revisit units, appearance, and backup choices';
-
-  @override
-  String get setup_backup_cloudCopy => 'Store backups in the cloud';
-
-  @override
-  String get setup_backup_frequency => 'Frequency';
-
-  @override
-  String get setup_backup_frequency_daily => 'Daily';
-
-  @override
-  String get setup_backup_frequency_monthly => 'Monthly';
-
-  @override
-  String get setup_backup_frequency_weekly => 'Weekly';
-
-  @override
-  String get setup_backup_scheduleSubtitle => 'Back up your data on a schedule';
-
-  @override
-  String get setup_backup_scheduleToggle => 'Automatic backups';
-
-  @override
-  String get setup_backup_subtitle => 'Protect your data from day one.';
-
-  @override
-  String get setup_backup_title => 'Backups & Sync';
+      'Revisit units, backups, sync and photos';
 
   @override
   String get setup_common_back => 'Back';
@@ -8864,9 +8833,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get setup_restore_title => 'Restore backup';
 
   @override
-  String get setup_step_backup => 'Backup';
-
-  @override
   String get setup_step_finish => 'Done';
 
   @override
@@ -8874,9 +8840,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get setup_step_units => 'Units';
-
-  @override
-  String get setup_syncPull_continue => 'Continue';
 
   @override
   String get setup_syncPull_incomplete_message =>
@@ -8901,50 +8864,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get setup_syncPull_noLibrary_title => 'No library found';
-
-  @override
-  String get setup_syncPull_success => 'Library adopted';
-
-  @override
-  String get setup_syncPull_syncing => 'Pulling your library...';
-
-  @override
-  String get setup_sync_changeProvider => 'Change provider';
-
-  @override
-  String setup_sync_connectedTo(String provider) {
-    return 'Connected to $provider';
-  }
-
-  @override
-  String setup_sync_error(Object error) {
-    return 'Could not connect: $error';
-  }
-
-  @override
-  String get setup_sync_header => 'Cloud sync';
-
-  @override
-  String get setup_sync_libraryFound_adopt => 'Adopt existing library';
-
-  @override
-  String get setup_sync_libraryFound_keepFresh => 'Start fresh';
-
-  @override
-  String get setup_sync_libraryFound_message =>
-      'This account already contains a Submersion library. Adopt it instead of starting fresh?';
-
-  @override
-  String get setup_sync_libraryFound_title => 'Existing library found';
-
-  @override
-  String get setup_sync_manageInSettings => 'Manage in Settings';
-
-  @override
-  String get setup_sync_notConnected => 'Not connected';
-
-  @override
-  String get setup_sync_subtitle => 'Sync your data across devices';
 
   @override
   String get setup_units_advanced => 'Fine-tune units';
@@ -54123,7 +54042,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_photos_status_pausedMismatch =>
-      'Uploads paused: choose the account again';
+      'Uploads paused: the copies need reconnecting';
 
   @override
   String get settings_photos_status_finishSetup =>
@@ -54140,7 +54059,95 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_photos_suspended_mismatch =>
-      'This device and the account no longer agree on which copies are in use. Choosing the account again adopts the copies it holds now.';
+      'The account no longer holds the copies this device was using. Reconnect to choose what happens next.';
+
+  @override
+  String get settings_photos_reconnect_title => 'Reconnect photo copies';
+
+  @override
+  String settings_photos_reconnect_checking(String account) {
+    return 'Checking $account…';
+  }
+
+  @override
+  String settings_photos_reconnect_resolved(String account) {
+    return 'The copies in $account match this device again. Uploads resume.';
+  }
+
+  @override
+  String settings_photos_reconnect_otherKnown(String account) {
+    return '$account now holds copies set up by another of your devices.';
+  }
+
+  @override
+  String settings_photos_reconnect_otherUnknown(String account) {
+    return '$account now holds copies this logbook has no record of.';
+  }
+
+  @override
+  String settings_photos_reconnect_noMarker(String account) {
+    return 'The copies in $account were removed or reset.';
+  }
+
+  @override
+  String settings_photos_reconnect_unreadable(String account) {
+    return 'Could not check $account.';
+  }
+
+  @override
+  String get settings_photos_reconnect_needsAccount =>
+      'This device can no longer open the account the copies were in.';
+
+  @override
+  String get settings_photos_reconnect_adopt => 'Use the copies there now';
+
+  @override
+  String get settings_photos_reconnect_adoptBody =>
+      'Photos already there stay. Anything missing uploads again from this device.';
+
+  @override
+  String settings_photos_reconnect_adoptUnknownBody(String account) {
+    return 'Choose this only if $account is meant for this logbook. Photos already there stay, and anything missing uploads again from this device.';
+  }
+
+  @override
+  String get settings_photos_reconnect_rebuild => 'Start the copies again';
+
+  @override
+  String settings_photos_reconnect_rebuildBody(String account) {
+    return 'New copies start in $account. Photos still there are kept, and everything on this device uploads again.';
+  }
+
+  @override
+  String get settings_photos_reconnect_chooseAccount =>
+      'Choose the account again';
+
+  @override
+  String get settings_photos_reconnect_chooseAccountBody =>
+      'Opens Photos & videos to pick the account or sign in again.';
+
+  @override
+  String settings_photos_reconnect_heldOnly(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count photos and videos are kept only in the cloud. They open again only if the account still holds them.',
+      one:
+          '$count photo or video is kept only in the cloud. It opens again only if the account still holds it.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_photos_reconnect_joined(String account) {
+    return 'Now using the copies in $account';
+  }
+
+  @override
+  String settings_photos_reconnect_started(String account) {
+    return 'New copies started in $account';
+  }
 
   @override
   String get media_info_actionCopyNow => 'Copy now';
@@ -54843,4 +54850,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String settings_setUpDevice_done_otherDevices(String account) {
     return 'On your other devices, open Submersion, choose $account, and the same library appears.';
   }
+
+  @override
+  String settings_setUpDevice_sync_inStep(String account) {
+    return 'The dives here are in step with your library in $account.';
+  }
+
+  @override
+  String get setup_syncPull_startFresh => 'Start a new logbook';
 }
