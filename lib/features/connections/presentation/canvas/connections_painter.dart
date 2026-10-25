@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart' show mapEquals;
 import 'package:flutter/material.dart';
+import 'package:submersion/core/theme/foreground_on.dart';
 import 'package:submersion/features/connections/domain/entities/connection_graph.dart';
 import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
 import 'package:submersion/features/connections/domain/entities/connection_node.dart';
@@ -114,6 +115,19 @@ class ConnectionsPainter extends CustomPainter {
   }
 
   /// A node's fill before any selection dimming.
+  /// The glyph cached under [key], laid out again by [build] when its colour
+  /// is no longer [color]: the cache outlives a frame, and a node's fill (so
+  /// its glyph colour) changes with the highlight mode and the theme.
+  TextPainter _cachedGlyph(
+    (NodeRef, int) key,
+    Color color,
+    TextPainter Function() build,
+  ) {
+    final cached = initialsCache[key];
+    if (cached != null && cached.text?.style?.color == color) return cached;
+    return initialsCache[key] = build();
+  }
+
   Color fillFor(ConnectionNode n) {
     if (highlight != HighlightMode.groups) return colors.colorFor(n.ref.kind);
     final g = groupOf[n.ref];
@@ -230,6 +244,9 @@ class ConnectionsPainter extends CustomPainter {
       final isLit = isSelected || lit.contains(n.ref) || n.ref == hovered;
       final fill = fillFor(n).withValues(alpha: dim && !isLit ? 0.35 : 1);
       canvas.drawCircle(centre, r, Paint()..color = fill);
+      // Kind and group colours run from deep to pastel (the dark palette),
+      // so the glyph takes whichever of black or white reads on its disc.
+      final glyphColor = blackOrWhiteOn(fillFor(n));
       discs.add(Rect.fromCircle(center: centre, radius: r));
       final photo = photos[n.ref];
       final glyph = NodeMetrics.glyphFor(
@@ -254,8 +271,9 @@ class ConnectionsPainter extends CustomPainter {
         case NodeGlyph.icon:
           final size = (r * 1.1).round();
           final icon = connectionKindIcon(n.ref.kind);
-          final tp = initialsCache.putIfAbsent(
+          final tp = _cachedGlyph(
             (n.ref, -size),
+            glyphColor,
             () => TextPainter(
               text: TextSpan(
                 text: String.fromCharCode(icon.codePoint),
@@ -263,7 +281,7 @@ class ConnectionsPainter extends CustomPainter {
                   fontFamily: icon.fontFamily,
                   package: icon.fontPackage,
                   fontSize: size.toDouble(),
-                  color: Colors.white,
+                  color: glyphColor,
                 ),
               ),
               textDirection: TextDirection.ltr,
@@ -272,13 +290,14 @@ class ConnectionsPainter extends CustomPainter {
           tp.paint(canvas, centre - Offset(tp.width / 2, tp.height / 2));
         case NodeGlyph.initials:
           final fontSize = (r * 0.8).round();
-          final tp = initialsCache.putIfAbsent(
+          final tp = _cachedGlyph(
             (n.ref, fontSize),
+            glyphColor,
             () => TextPainter(
               text: TextSpan(
                 text: NodeMetrics.initialsFor(n.label),
                 style: labelStyle.copyWith(
-                  color: Colors.white,
+                  color: glyphColor,
                   fontSize: fontSize.toDouble(),
                   fontWeight: FontWeight.w600,
                 ),

@@ -8,13 +8,19 @@ import 'package:flutter/material.dart';
 /// a fixed white label on them read at about 1.5:1.
 ///
 /// Any other fill (a fixed status hue such as green or orange) gets black or
-/// white, whichever contrasts more with it.
+/// white from [blackOrWhiteOn].
 Color foregroundOn(ColorScheme scheme, Color fill) {
   if (fill == scheme.primary) return scheme.onPrimary;
   if (fill == scheme.secondary) return scheme.onSecondary;
   if (fill == scheme.tertiary) return scheme.onTertiary;
   if (fill == scheme.error) return scheme.onError;
+  return blackOrWhiteOn(fill);
+}
 
+/// Black or white, whichever contrasts more with [fill]: the foreground for
+/// a fill that is data rather than a theme role (a kind or group colour, a
+/// fixed status hue).
+Color blackOrWhiteOn(Color fill) {
   // WCAG contrast against white is 1.05 / (L + 0.05) and against black is
   // (L + 0.05) / 0.05; they are equal where L is about 0.179.
   final luminance = fill.computeLuminance();
