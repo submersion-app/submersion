@@ -364,6 +364,23 @@ void main() {
       semantics.dispose();
     });
 
+    testWidgets('a missing pressure is read out without a unit', (
+      tester,
+    ) async {
+      final semantics = tester.ensureSemantics();
+      await tester.pumpWidget(
+        _buildCard(
+          dive: _makeDive([_makeTank(startPressure: null, endPressure: null)]),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.bySemanticsLabel('Start --'), findsOneWidget);
+      expect(find.bySemanticsLabel('Used --'), findsOneWidget);
+      expect(find.bySemanticsLabel(RegExp(r'-- bar')), findsNothing);
+      semantics.dispose();
+    });
+
     testWidgets('a linked cylinder whose item does not resolve keeps its SAC '
         'block', (tester) async {
       // Only the check-in chip depends on the linked item; while it loads,

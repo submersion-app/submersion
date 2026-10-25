@@ -10,8 +10,12 @@ const _tankFlex = 32;
 const _gasFlex = 22;
 const _pressureFlex = 15;
 
-/// Space the tank's role icon and its gap take, so the detail lines under a
-/// row start where the tank's name does.
+/// The tank's role icon, and the space it and its gap take, so the detail
+/// lines under a row start where the tank's name does.
+const _iconSize = 20.0;
+
+/// What the card shows for a pressure it does not have.
+const _missing = '--';
 const _iconIndent = 28.0;
 
 /// Header of the Cylinders card's table: Tank, Gas, then the three pressure
@@ -143,7 +147,8 @@ class CylinderTableRow extends StatelessWidget {
           flex: _pressureFlex,
           child: Semantics(
             container: true,
-            label: '$label $value $unit',
+            // A missing value ("--") has no unit to read out.
+            label: value == _missing ? '$label $value' : '$label $value $unit',
             excludeSemantics: true,
             child: Align(
               alignment: AlignmentDirectional.topEnd,
@@ -176,10 +181,10 @@ class CylinderTableRow extends StatelessWidget {
                   children: [
                     Icon(
                       icon,
-                      size: 20,
+                      size: _iconSize,
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
-                    const SizedBox(width: _iconIndent - 20),
+                    const SizedBox(width: _iconIndent - _iconSize),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
