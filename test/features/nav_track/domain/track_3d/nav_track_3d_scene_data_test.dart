@@ -129,11 +129,12 @@ void main() {
     });
 
     group('zAxisMetrics', () {
-      test('depth is never offered -- it is already the Y axis', () {
+      test('depth is offered too, even though it is already the Y axis '
+          '-- the diver asked for every metric to be selectable', () {
         final data = NavTrack3dSceneData.fromRoute(
-          _route([_p(timestamp: 0, speed: 1.0), _p(timestamp: 10, speed: 1.2)]),
+          _route([_p(timestamp: 0, depth: 0), _p(timestamp: 10, depth: 5)]),
         );
-        expect(data.zAxisMetrics, isNot(contains(TrackSceneMetric.depth)));
+        expect(data.zAxisMetrics, contains(TrackSceneMetric.depth));
       });
 
       test('a metric with only one finite sample is not offered -- no path '

@@ -25,7 +25,10 @@ TrackZAxisInput? buildTrackZAxisInput(
   UnitFormatter units,
 ) {
   final (values, symbol) = switch (metric) {
-    TrackSceneMetric.depth => throw ArgumentError('depth is the Y axis'),
+    TrackSceneMetric.depth => (
+      <double?>[for (final d in data.depths) units.convertDepth(d)],
+      units.depthSymbol,
+    ),
     TrackSceneMetric.temperature => (
       [
         for (final t in data.temperatures)

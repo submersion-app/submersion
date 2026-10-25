@@ -95,9 +95,11 @@ class NavTrack3dSceneData {
       series.where((v) => v != null && v.isFinite).length;
 
   /// Metrics that can drive the Z axis: at least two finite samples so a
-  /// path exists between them. Depth is the Y axis and never offered,
-  /// mirroring `Dive3dSceneData.zAxisMetrics`.
+  /// path exists between them. Unlike `Dive3dSceneData.zAxisMetrics`,
+  /// depth is offered too -- the diver asked for every metric to be
+  /// selectable on Z, Y's own depth-as-the-vertical-axis role included.
   Set<TrackSceneMetric> get zAxisMetrics => {
+    if (depths.length >= 2) TrackSceneMetric.depth,
     if (_finiteCount(temperatures) >= 2) TrackSceneMetric.temperature,
     if (_finiteCount(speeds) >= 2) TrackSceneMetric.speed,
     if (_finiteCount(batteryVolts) >= 2) TrackSceneMetric.batteryVoltage,

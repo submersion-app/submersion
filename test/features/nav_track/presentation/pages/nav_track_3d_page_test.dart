@@ -82,8 +82,8 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('navTrack3dZAxisMenu')));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
-      // None, temperature, speed -- battery has no samples at all.
-      expect(find.byType(CheckedPopupMenuItem<String>), findsNWidgets(3));
+      // None, depth, temperature, speed -- battery has no samples at all.
+      expect(find.byType(CheckedPopupMenuItem<String>), findsNWidgets(4));
       await tester.tap(
         find.ancestor(
           of: find.text('None'),

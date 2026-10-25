@@ -70,14 +70,23 @@ void main() {
     expect(input, isNull);
   });
 
-  test('depth throws -- it is the Y axis, never a Z candidate', () {
-    expect(
-      () => buildTrackZAxisInput(
-        data,
-        TrackSceneMetric.depth,
-        const UnitFormatter(AppSettings()),
-      ),
-      throwsArgumentError,
+  test('depth is a valid Z candidate too, in the diver-s depth unit', () {
+    final input = buildTrackZAxisInput(
+      data,
+      TrackSceneMetric.depth,
+      const UnitFormatter(AppSettings()),
     );
+    expect(input, isNotNull);
+    expect(input!.values, [0, 5, 10]);
+    expect(input.spec.symbol, 'm');
+  });
+
+  test('converts depth to feet in imperial', () {
+    final input = buildTrackZAxisInput(
+      data,
+      TrackSceneMetric.depth,
+      const UnitFormatter(AppSettings(depthUnit: DepthUnit.feet)),
+    );
+    expect(input!.spec.symbol, 'ft');
   });
 }
