@@ -32,11 +32,17 @@ class _SetUpBackupsStepState extends ConsumerState<SetUpBackupsStep> {
   bool _copy = true;
   bool _busy = false;
 
+  /// The Setup assistant revisits what is set: both switches start from the
+  /// current settings, and only a switch the diver flips is written, so a
+  /// copy pinned to another account is never moved by an untouched Next.
+  bool get _revisits => widget.navigation.host == SetUpHost.assistant;
+  bool _autoFlipped = false;
+  bool _copyFlipped = false;
+
   @override
   void initState() {
     super.initState();
-    // The Setup assistant revisits what is set; elsewhere both start on.
-    if (widget.navigation.host == SetUpHost.assistant) {
+    if (_revisits) {
       final settings = ref.read(backupSettingsProvider);
       _auto = settings.enabled;
       _copy = settings.cloudBackupEnabled;
@@ -58,12 +64,13 @@ class _SetUpBackupsStepState extends ConsumerState<SetUpBackupsStep> {
       // must leave automatic backups as they were.
       applied =
           account == null ||
+          (_revisits && !_copyFlipped) ||
           await applyBackupCopyChoice(
             ref,
             _copy ? ChoseAccount(account) : const ChoseNone(),
             syncGroup: syncGroup,
           );
-      if (applied) {
+      if (applied && (!_revisits || _autoFlipped)) {
         await ref.read(backupSettingsProvider.notifier).setEnabled(_auto);
       }
     } on Object {
@@ -119,7 +126,12 @@ class _SetUpBackupsStepState extends ConsumerState<SetUpBackupsStep> {
                   ),
           ),
           value: _auto,
-          onChanged: _busy ? null : (v) => setState(() => _auto = v),
+          onChanged: _busy
+              ? null
+              : (v) => setState(() {
+                  _auto = v;
+                  _autoFlipped = true;
+                }),
         ),
         if (account != null)
           SwitchListTile(
@@ -129,7 +141,12 @@ class _SetUpBackupsStepState extends ConsumerState<SetUpBackupsStep> {
                 ? Text(l10n.settings_backups_copySameAsSync)
                 : null,
             value: _copy,
-            onChanged: _busy ? null : (v) => setState(() => _copy = v),
+            onChanged: _busy
+                ? null
+                : (v) => setState(() {
+                    _copy = v;
+                    _copyFlipped = true;
+                  }),
           )
         else
           ListTile(

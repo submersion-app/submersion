@@ -269,6 +269,46 @@ void main() {
       expect(switchOn(tester, 'Also keep a copy in Google Drive'), isFalse);
     });
 
+    testWidgets('Next with nothing touched leaves a copy pinned elsewhere '
+        'where it is', (tester) async {
+      await pump(
+        tester,
+        chosen: _drive,
+        prefs: {
+          'backup_enabled': true,
+          'backup_cloud_enabled': true,
+          'backup_copy_account_id': 'db',
+          'backup_copy_account_kind': AccountKind.dropbox.name,
+        },
+        host: SetUpHost.assistant,
+      );
+
+      await tester.tap(find.text('Next'));
+      await tester.pumpAndSettle();
+
+      expect(settings().enabled, isTrue);
+      expect(settings().cloudBackupEnabled, isTrue);
+      expect(settings().copyAccountId, 'db');
+      expect(nav, ['next']);
+    });
+
+    testWidgets('a switch the diver flips is written', (tester) async {
+      await pump(
+        tester,
+        chosen: _drive,
+        prefs: {'backup_enabled': true, 'backup_cloud_enabled': false},
+        host: SetUpHost.assistant,
+      );
+
+      await tester.tap(find.text('Back up automatically'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Next'));
+      await tester.pumpAndSettle();
+
+      expect(settings().enabled, isFalse);
+      expect(settings().cloudBackupEnabled, isFalse);
+    });
+
     testWidgets('both on when they are on', (tester) async {
       await pump(
         tester,
