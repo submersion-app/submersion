@@ -118,7 +118,9 @@ void main() {
   ) async {
     await _pump(
       tester,
-      DetailRowGroup(child: DetailRow.text(label: '', value: 'Served')),
+      DetailRowGroup(
+        child: DetailRow.text(label: '', value: 'Served'),
+      ),
     );
 
     expect(left(tester, 'Served'), 0);
