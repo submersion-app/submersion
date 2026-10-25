@@ -100,7 +100,7 @@ class _QualityFindingCardState extends State<QualityFindingCard> {
         l10n.dataQuality_repairLabel_reassignSeries,
       CompareSourcesRepair() => l10n.dataQuality_repairLabel_compare,
       GoToDiveRepair() => l10n.dataQuality_action_goToDive,
-      AssignTransmitterRepair() =>
+      SetUpTransmitterRepair() =>
         l10n.dataQuality_repairLabel_assignTransmitter,
       UseAsBailoutRepair() => l10n.dataQuality_repairLabel_useAsBailout,
       RemoveGearFromDiveRepair(:final diverName) =>

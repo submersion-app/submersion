@@ -119,7 +119,9 @@ class QualityContextBuilder {
     if (cached != null) return cached;
     Set<String> value;
     try {
-      value = Transmitter.knownSerials(await _transmitters(diverId));
+      // Set up, not merely registered (issue #3676): a download now
+      // registers every serial it sees, so "known" would never nudge.
+      value = Transmitter.setUpSerials(await _transmitters(diverId));
     } catch (_) {
       value = const {};
     }

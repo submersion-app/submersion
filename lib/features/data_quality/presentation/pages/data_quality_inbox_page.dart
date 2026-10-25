@@ -29,6 +29,8 @@ import 'package:submersion/features/dive_log/presentation/widgets/pickers/reassi
 import 'package:submersion/features/dive_log/presentation/widgets/combine_dives_dialog.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/transmitters/data/services/transmitter_setup_target.dart';
+import 'package:submersion/features/transmitters/presentation/providers/transmitter_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
@@ -410,15 +412,13 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
           executor: executor,
           withUndo: withUndo,
         );
-      case AssignTransmitterRepair(:final serial):
-        if (context.mounted) {
-          context.push(
-            Uri(
-              path: '/transmitters/new',
-              queryParameters: {'serial': serial},
-            ).toString(),
-          );
-        }
+      case SetUpTransmitterRepair(:final serial):
+        final itemId = await transmitterItemForSetup(
+          serial: serial,
+          diveId: f.diveId,
+          registrar: ref.read(transmitterAutoRegistrarProvider),
+        );
+        if (itemId != null && mounted) context.push('/equipment/$itemId');
       case GoToDiveRepair(:final diveId):
         if (context.mounted) context.push('/dives/$diveId');
     }

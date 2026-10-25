@@ -187,9 +187,10 @@ class GoToDiveRepair extends QualityRepairAction {
   final String diveId;
 }
 
-/// Navigate to the transmitter editor prefilled with [serial].
-class AssignTransmitterRepair extends QualityRepairAction {
-  const AssignTransmitterRepair(this.serial);
+/// Open the Equipment page of the transmitter [serial] names, to set up the
+/// cylinder it feeds (issue #3676).
+class SetUpTransmitterRepair extends QualityRepairAction {
+  const SetUpTransmitterRepair(this.serial);
   final String serial;
 }
 
@@ -405,7 +406,7 @@ List<QualityRepairAction> repairOptionsFor(QualityFinding f) {
     case 'unknown_transmitter':
       final serial = p['serial'] as String?;
       return [
-        if (serial != null) AssignTransmitterRepair(serial),
+        if (serial != null) SetUpTransmitterRepair(serial),
         GoToDiveRepair(diveId),
       ];
 
