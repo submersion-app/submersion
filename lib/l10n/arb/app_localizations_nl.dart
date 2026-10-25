@@ -52112,16 +52112,6 @@ class AppLocalizationsNl extends AppLocalizations {
       'Einde ingesteld vanaf de GPS-fix van de opname.';
 
   @override
-  String navTrack_detail_device(String name) {
-    return 'Apparaat: $name';
-  }
-
-  @override
-  String navTrack_detail_equipment(String name) {
-    return 'Uitrusting: $name';
-  }
-
-  @override
   String navTrack_detail_distance(String value) {
     return 'Afstand: $value';
   }

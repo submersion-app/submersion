@@ -10,10 +10,10 @@ import 'package:submersion/features/nav_track/domain/track_3d/track_z_axis_input
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
-/// Scene data for the track 3D preview. Null when the route has no
-/// usable profile (fewer than two active-range samples), mirroring
-/// `dive3dSceneDataProvider`'s own null-hides-the-entry-point contract.
-/// Reactivity comes from `navTrackByIdProvider`, already invalidated on
+/// Scene data for the track 3D preview. Null when the route is missing or
+/// has no usable profile (fewer than two active-range samples), which the
+/// page shows as its no-profile message rather than a spinner. Reactivity
+/// comes from `navTrackByIdProvider`, already invalidated on
 /// `NavTrackRepository.watchRouteChanges`.
 final navTrack3dSceneDataProvider =
     FutureProvider.family<NavTrack3dSceneData?, String>((ref, trackId) async {

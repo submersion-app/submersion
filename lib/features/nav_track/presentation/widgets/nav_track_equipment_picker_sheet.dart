@@ -43,7 +43,7 @@ class NavTrackEquipmentPickCancelled extends NavTrackEquipmentChoice {
 /// resolves to what the diver did.
 ///
 /// Shared by the import review screen (where a route is first saved) and
-/// the track detail page's "Change device" menu entry (for changing it
+/// the track detail page's "Change device" row (for changing it
 /// afterward) -- both open the exact same picker the exact same way, so
 /// this keeps them from drifting apart if that contract ever changes.
 Future<NavTrackEquipmentChoice> pickNavTrackEquipment(

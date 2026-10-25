@@ -51325,16 +51325,6 @@ class AppLocalizationsHe extends AppLocalizations {
       'הסיום נקבע מתיקון ה-GPS של ההקלטה.';
 
   @override
-  String navTrack_detail_device(String name) {
-    return 'מכשיר: $name';
-  }
-
-  @override
-  String navTrack_detail_equipment(String name) {
-    return 'ציוד: $name';
-  }
-
-  @override
   String navTrack_detail_distance(String value) {
     return 'מרחק: $value';
   }

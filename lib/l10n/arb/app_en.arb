@@ -31114,22 +31114,6 @@
   "navTrack_detail_correctionStatus_sameAsStart": "End set to same as start.",
   "navTrack_detail_correctionStatus_point": "End point set on the map.",
   "navTrack_detail_correctionStatus_gpsFix": "End set from the recording's GPS fix.",
-  "navTrack_detail_device": "Device: {name}",
-  "@navTrack_detail_device": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "navTrack_detail_equipment": "Equipment: {name}",
-  "@navTrack_detail_equipment": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
   "navTrack_detail_distance": "Distance: {value}",
   "@navTrack_detail_distance": {
     "placeholders": {

@@ -15605,8 +15605,6 @@
   "navTrack_detail_correctionStatus_sameAsStart": "Ende auf gleich wie Start gesetzt.",
   "navTrack_detail_correctionStatus_point": "Endpunkt auf der Karte gesetzt.",
   "navTrack_detail_correctionStatus_gpsFix": "Ende aus dem GPS-Fix der Aufzeichnung gesetzt.",
-  "navTrack_detail_device": "Gerät: {name}",
-  "navTrack_detail_equipment": "Ausrüstung: {name}",
   "navTrack_detail_distance": "Distanz: {value}",
   "navTrack_detail_maxDepth": "Max. Tiefe: {value}",
   "navTrack_detail_maxSpeed": "Max. Geschwindigkeit: {value}",

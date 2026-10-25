@@ -51616,16 +51616,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'End set from the recording\'s GPS fix.';
 
   @override
-  String navTrack_detail_device(String name) {
-    return 'Device: $name';
-  }
-
-  @override
-  String navTrack_detail_equipment(String name) {
-    return 'Equipment: $name';
-  }
-
-  @override
   String navTrack_detail_distance(String value) {
     return 'Distance: $value';
   }

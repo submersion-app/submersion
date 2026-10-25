@@ -476,6 +476,48 @@ void main() {
   );
 
   testWidgets(
+    'the inline map re-frames when the anchor moves, since initialCameraFit '
+    'only applies once (Change site can move the anchor to a new pin)',
+    (tester) async {
+      await tester.binding.setSurfaceSize(const Size(800, 1400));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      var current = _route(anchorLatitude: 47.1, anchorLongitude: 8.3);
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            navTrackByIdProvider('r1').overrideWith((ref) async => current),
+            navTrackRepositoryProvider.overrideWithValue(
+              _RecordingNavTrackRepository(),
+            ),
+          ],
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: NavTrackDetailPage(trackId: 'r1'),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final controller = tester
+          .widget<FlutterMap>(find.byType(FlutterMap))
+          .mapController!;
+      expect(controller.camera.center.latitude, closeTo(47.1, 0.01));
+
+      current = _route(anchorLatitude: 10.0, anchorLongitude: 20.0);
+      ProviderScope.containerOf(
+        tester.element(find.byType(NavTrackDetailPage)),
+      ).invalidate(navTrackByIdProvider('r1'));
+      await tester.pumpAndSettle();
+
+      expect(controller.camera.center.latitude, closeTo(10.0, 0.01));
+      expect(controller.camera.center.longitude, closeTo(20.0, 0.01));
+    },
+  );
+
+  testWidgets(
     'the inline map can rotate, so it carries a compass that resets it to '
     'north (#3386)',
     (tester) async {

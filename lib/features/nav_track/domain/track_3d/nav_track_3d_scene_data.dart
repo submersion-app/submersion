@@ -45,8 +45,10 @@ class NavTrack3dSceneData {
       );
     }
     final range = NavTrackCorrector.activeRange(route.points);
+    // Never empty: activeRange's end is at least its start on a non-empty
+    // recording.
     final active = route.points.sublist(range.start, range.end + 1);
-    final startTimestamp = active.isEmpty ? 0 : active.first.timestamp;
+    final startTimestamp = active.first.timestamp;
 
     var maxDepth = 0.0;
     for (final p in active) {
@@ -60,22 +62,13 @@ class NavTrack3dSceneData {
       depths: [for (final p in active) p.depth],
       temperatures: [for (final p in active) p.temperature],
       speeds: [for (final p in active) p.speed],
-      batteryVolts: [for (final p in active) _plausibleBattery(p.batteryVolts)],
-      durationSeconds: active.isEmpty
-          ? 0
-          : (active.last.timestamp - startTimestamp).toDouble(),
+      // Every sample, not just the first and last the detail page's summary
+      // reads, so the color ramp, Z axis and readout agree with it.
+      batteryVolts: [for (final p in active) p.plausibleBatteryVolts],
+      durationSeconds: (active.last.timestamp - startTimestamp).toDouble(),
       maxDepthMeters: maxDepth,
     );
   }
-
-  /// Treats an exact 0.00V reading as a missing sample rather than a real
-  /// voltage: a brand-new recording's very first sample can read 0V before
-  /// the device's battery sensor has settled -- confirmed against a real
-  /// Seacraft ENC log (018.DAT.csv), the same artifact the detail page's
-  /// `_firstBattery`/`_lastBattery` already skip for the summary line.
-  /// Filtering every sample here, not just the first/last, keeps the
-  /// color ramp, Z axis, and readout consistent with that summary.
-  static double? _plausibleBattery(double? volts) => volts == 0 ? null : volts;
 
   bool get hasProfile => times.length >= 2;
 

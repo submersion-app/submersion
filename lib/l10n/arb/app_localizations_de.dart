@@ -52332,16 +52332,6 @@ class AppLocalizationsDe extends AppLocalizations {
       'Ende aus dem GPS-Fix der Aufzeichnung gesetzt.';
 
   @override
-  String navTrack_detail_device(String name) {
-    return 'Gerät: $name';
-  }
-
-  @override
-  String navTrack_detail_equipment(String name) {
-    return 'Ausrüstung: $name';
-  }
-
-  @override
   String navTrack_detail_distance(String value) {
     return 'Distanz: $value';
   }

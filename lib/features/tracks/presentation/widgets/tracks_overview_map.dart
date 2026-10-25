@@ -39,6 +39,24 @@ String tracksMapFramingSignature({
   return '$keys:$pointCount:$selectedKey:$anchors';
 }
 
+/// An anchored underwater track's drawn route as framing points, empty until
+/// its points have loaded. Derived once per hydration rather than in the
+/// map's build: the map rebuilds far more often than a track's points
+/// change, and each derivation segments and corrects the whole recording.
+final _underwaterFramingPointsProvider =
+    Provider.family<List<GpsTrackPoint>, String>((ref, trackId) {
+      final hydrated = ref.watch(navTrackByIdProvider(trackId)).value;
+      if (hydrated == null) return const [];
+      return [
+        for (final geo in navTrackDrawnPoints(hydrated))
+          GpsTrackPoint(
+            timestamp: 0,
+            latitude: geo.latitude,
+            longitude: geo.longitude,
+          ),
+      ];
+    });
+
 /// Every given track on one map: GPS tracks as polylines (the selected one
 /// on top), underwater tracks through their own layer.
 class TracksOverviewMap extends ConsumerStatefulWidget {
@@ -138,20 +156,10 @@ class _TracksOverviewMapState extends ConsumerState<TracksOverviewMap> {
               // reuses the same provider rather than settling for the
               // anchor alone (which used to frame a long route's start
               // point with the rest cut off screen).
-              final hydrated = ref.watch(navTrackByIdProvider(item.id)).value;
-              final drawn = hydrated == null
-                  ? const <LatLng>[]
-                  : navTrackDrawnPoints(hydrated);
-              final framedPoints = drawn.length >= 2
-                  ? [
-                      for (final geo in drawn)
-                        GpsTrackPoint(
-                          timestamp: 0,
-                          latitude: geo.latitude,
-                          longitude: geo.longitude,
-                        ),
-                    ]
-                  : [anchorPoint];
+              final drawn = ref.watch(
+                _underwaterFramingPointsProvider(item.id),
+              );
+              final framedPoints = drawn.length >= 2 ? drawn : [anchorPoint];
               selectedPoints = [...?selectedPoints, ...framedPoints];
               // Folded into the library's own point count too, so the
               // framing signature changes once a sibling's hydration lands

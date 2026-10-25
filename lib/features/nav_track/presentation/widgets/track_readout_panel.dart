@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_3d/domain/profile_lookup.dart';
 import 'package:submersion/features/nav_track/domain/track_3d/nav_track_3d_scene_data.dart';
@@ -11,8 +12,8 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// One line of the track readout: a localized label and a unit-formatted
-/// value. [emphasized] marks the row of the metric currently driving the
-/// path color.
+/// value. [emphasized] marks the row of the metric on the Z axis, as
+/// `ReadoutRow` does for a dive.
 class TrackReadoutRow {
   final String label;
   final String value;
@@ -28,7 +29,14 @@ class TrackReadoutLookups {
   final NavTrack3dSceneData data;
   final ProfileLookup profile;
 
-  TrackReadoutLookups(this.data) : profile = ProfileLookup(data.times);
+  /// The nullable view of [NavTrack3dSceneData.depths] the interpolator
+  /// needs. `cast` allocates a wrapper, so it is held here rather than
+  /// re-derived on every playback tick.
+  final List<double?> depths;
+
+  TrackReadoutLookups(this.data)
+    : profile = ProfileLookup(data.times),
+      depths = data.depths.cast<double?>();
 }
 
 /// The single source of truth for what the track scrub readout shows at an
@@ -55,7 +63,7 @@ List<TrackReadoutRow> trackReadoutRows({
     rows.add(TrackReadoutRow(label, value, emphasized: metric == emphasize));
   }
 
-  final depth = at(data.depths.cast<double?>());
+  final depth = at(lookups.depths);
   add(
     TrackSceneMetric.depth,
     l10n.dive3d_metric_depth,
@@ -77,7 +85,7 @@ List<TrackReadoutRow> trackReadoutRows({
   add(
     TrackSceneMetric.batteryVoltage,
     l10n.navTrack3d_metric_batteryVoltage,
-    volts == null ? null : '${volts.toStringAsFixed(2)} V',
+    volts == null ? null : '${formatFixedForDisplay(volts, 2)} V',
   );
   return rows;
 }

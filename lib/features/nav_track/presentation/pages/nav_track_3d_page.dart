@@ -20,10 +20,10 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// Fullscreen interactive 3D scene for one underwater track. Built on top
 /// of the same CustomPaint renderer as [Dive3dPage]: depth runs up the
 /// left edge, elapsed time along the floor, and the path color follows
-/// whichever metric the diver picks. An optional Z metric (temperature,
-/// speed, or battery voltage) can be put on the third axis, the same way
-/// [Dive3dPage] offers one -- no markers, no tissue chrome, a track has
-/// neither.
+/// whichever metric the diver picks. Any of those metrics (depth included,
+/// although depth already drives the vertical axis) can be put on the
+/// optional Z axis, the same way [Dive3dPage] offers one. No markers and no
+/// tissue chrome: a track has neither.
 class NavTrack3dPage extends ConsumerStatefulWidget {
   final String trackId;
 
@@ -49,10 +49,25 @@ class _NavTrack3dPageState extends ConsumerState<NavTrack3dPage>
   // mirroring DiveReadoutLookups' own reason for caching it.
   TrackReadoutLookups? _readoutLookups;
 
-  void _initZ(NavTrack3dSceneData data) {
+  // availableMetrics and zAxisMetrics each rescan the full-resolution
+  // series, and every setState (play, a chip, the Z menu) rebuilds the
+  // controls that read them, so they are held once per scene data like the
+  // lookups above.
+  NavTrack3dSceneData? _metricsData;
+  Set<TrackSceneMetric> _availableMetrics = const {};
+  Set<TrackSceneMetric> _zAxisMetrics = const {};
+
+  void _cacheMetrics(NavTrack3dSceneData data) {
+    if (identical(_metricsData, data)) return;
+    _metricsData = data;
+    _availableMetrics = data.availableMetrics;
+    _zAxisMetrics = data.zAxisMetrics;
+  }
+
+  void _initZ() {
     if (_zInitialized) return;
     _zInitialized = true;
-    final z = data.zAxisMetrics.contains(TrackSceneMetric.temperature)
+    final z = _zAxisMetrics.contains(TrackSceneMetric.temperature)
         ? TrackSceneMetric.temperature
         : null;
     _zMetric = z;
@@ -111,7 +126,11 @@ class _NavTrack3dPageState extends ConsumerState<NavTrack3dPage>
     final sceneDataAsync = ref.watch(
       navTrack3dSceneDataProvider(widget.trackId),
     );
+    // A reload (navTrackByIdProvider refreshing for a write to this route)
+    // keeps the current scene on screen, as Dive3dPage's `.value` read
+    // does: a spinner would remount the viewport and lose the orbit.
     return sceneDataAsync.when(
+      skipLoadingOnReload: true,
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (_, _) =>
           Center(child: Text(context.l10n.navTrack_common_trackLoadError)),
@@ -125,8 +144,9 @@ class _NavTrack3dPageState extends ConsumerState<NavTrack3dPage>
   }
 
   Widget _buildScene(NavTrack3dSceneData sceneData) {
-    _initZ(sceneData);
-    if (!sceneData.availableMetrics.contains(_colorMetric)) {
+    _cacheMetrics(sceneData);
+    _initZ();
+    if (!_availableMetrics.contains(_colorMetric)) {
       _colorMetric = TrackSceneMetric.depth;
     }
     final sceneAsync = ref.watch(
@@ -137,6 +157,7 @@ class _NavTrack3dPageState extends ConsumerState<NavTrack3dPage>
       )),
     );
     return sceneAsync.when(
+      skipLoadingOnReload: true,
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (_, _) =>
           Center(child: Text(context.l10n.navTrack_common_trackLoadError)),
@@ -201,12 +222,7 @@ class _NavTrack3dPageState extends ConsumerState<NavTrack3dPage>
                   emphasize: _zMetric,
                 ),
               ),
-              Positioned(
-                top: 8,
-                left: 8,
-                right: 8,
-                child: _buildControls(sceneData),
-              ),
+              Positioned(top: 8, left: 8, right: 8, child: _buildControls()),
             ],
           ),
         ),
@@ -225,7 +241,7 @@ class _NavTrack3dPageState extends ConsumerState<NavTrack3dPage>
     );
   }
 
-  Widget _buildControls(NavTrack3dSceneData sceneData) {
+  Widget _buildControls() {
     return Wrap(
       spacing: 6,
       runSpacing: 6,
@@ -242,7 +258,7 @@ class _NavTrack3dPageState extends ConsumerState<NavTrack3dPage>
               checked: _zMetric == null,
               child: Text(context.l10n.dive3d_zAxis_none),
             ),
-            for (final metric in sceneData.zAxisMetrics)
+            for (final metric in _zAxisMetrics)
               CheckedPopupMenuItem(
                 value: metric.name,
                 checked: _zMetric == metric,
@@ -257,7 +273,7 @@ class _NavTrack3dPageState extends ConsumerState<NavTrack3dPage>
             ),
           ),
         ),
-        for (final metric in sceneData.availableMetrics)
+        for (final metric in _availableMetrics)
           ChoiceChip(
             label: Text(_metricLabel(metric)),
             selected: _colorMetric == metric,

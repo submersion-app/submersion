@@ -3,6 +3,7 @@ import 'package:submersion/features/dive_3d/domain/geometry/path_builder.dart';
 import 'package:submersion/features/dive_3d/domain/geometry/ribbon_builder.dart';
 import 'package:submersion/features/dive_3d/domain/geometry/scene_bounds.dart';
 import 'package:submersion/features/dive_3d/domain/geometry/z_series.dart';
+import 'package:submersion/features/dive_3d/domain/metric_palette.dart';
 import 'package:submersion/features/dive_3d/domain/scene_3d.dart';
 import 'package:submersion/features/nav_track/domain/track_3d/nav_track_3d_scene_data.dart';
 import 'package:submersion/features/nav_track/domain/track_3d/track_scene_metric.dart';
@@ -43,10 +44,10 @@ class NavTrackSceneGeometryService {
 
     final times = pickD(data.times);
     final depths = pickD(data.depths);
-    final colorValues = [
-      for (final i in indices) data.seriesFor(colorMetric)[i],
-    ];
-    final sampleColors = TrackMetricPalette.colorsFor(colorValues);
+    final colorSeries = data.seriesFor(colorMetric);
+    final sampleColors = MetricPalette.rampColorsFor([
+      for (final i in indices) colorSeries[i],
+    ]);
 
     final zValues = zAxis == null
         ? null

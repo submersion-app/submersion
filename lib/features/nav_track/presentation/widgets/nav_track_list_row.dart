@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/gps_log/presentation/widgets/track_title_row.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
 import 'package:submersion/features/nav_track/presentation/nav_track_dive_label.dart';
@@ -107,7 +108,6 @@ class NavTrackListRow extends ConsumerWidget {
     final showSiteAsTitle = site != null;
     final titleText = showSiteAsTitle ? site.name : ownName;
 
-    final badge = kindBadge;
     // The link label sits on its own line rather than in trailing: a
     // ListTile measures its trailing widget against the full tile width and
     // gives the title column whatever is left, so a text-bearing label
@@ -119,21 +119,7 @@ class NavTrackListRow extends ConsumerWidget {
       leading: anchored
           ? const Icon(Icons.route)
           : NavTrackShapeThumbnail(points: hydratedPoints),
-      title: badge == null
-          ? Text(titleText, overflow: TextOverflow.ellipsis, maxLines: 1)
-          : Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    titleText,
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                badge,
-              ],
-            ),
+      title: TrackTitleRow(title: titleText, badge: kindBadge),
       subtitle: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,

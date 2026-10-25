@@ -5,6 +5,7 @@ import 'package:submersion/features/gps_log/data/repositories/track_geometry_cac
 import 'package:submersion/features/gps_log/domain/entities/gps_track.dart';
 import 'package:submersion/features/gps_log/presentation/providers/gps_track_map_providers.dart';
 import 'package:submersion/features/gps_log/presentation/widgets/gps_track_list_tile.dart';
+import 'package:submersion/features/gps_log/presentation/widgets/track_title_row.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../helpers/mock_providers.dart';
@@ -61,7 +62,8 @@ void main() {
     expect(badge.bottom, lessThanOrEqualTo(detail.top));
 
     final tile = tester.widget<ListTile>(find.byType(ListTile));
-    expect(tile.title, isA<Row>());
+    expect(tile.title, isA<TrackTitleRow>());
+    expect((tile.title! as TrackTitleRow).badge, isNotNull);
     expect(tile.subtitle, isA<Text>());
   });
 

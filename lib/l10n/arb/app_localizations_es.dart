@@ -52496,16 +52496,6 @@ class AppLocalizationsEs extends AppLocalizations {
       'Fin establecido desde el fix GPS de la grabación.';
 
   @override
-  String navTrack_detail_device(String name) {
-    return 'Dispositivo: $name';
-  }
-
-  @override
-  String navTrack_detail_equipment(String name) {
-    return 'Equipo: $name';
-  }
-
-  @override
   String navTrack_detail_distance(String value) {
     return 'Distancia: $value';
   }

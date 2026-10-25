@@ -49184,16 +49184,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get navTrack_detail_correctionStatus_gpsFix => '终点已根据记录的 GPS 定位设置。';
 
   @override
-  String navTrack_detail_device(String name) {
-    return '设备：$name';
-  }
-
-  @override
-  String navTrack_detail_equipment(String name) {
-    return '装备：$name';
-  }
-
-  @override
   String navTrack_detail_distance(String value) {
     return '距离：$value';
   }

@@ -52159,16 +52159,6 @@ class AppLocalizationsHu extends AppLocalizations {
       'A vég a felvétel GPS-fixéből beállítva.';
 
   @override
-  String navTrack_detail_device(String name) {
-    return 'Eszköz: $name';
-  }
-
-  @override
-  String navTrack_detail_equipment(String name) {
-    return 'Felszerelés: $name';
-  }
-
-  @override
   String navTrack_detail_distance(String value) {
     return 'Távolság: $value';
   }

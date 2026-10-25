@@ -604,13 +604,13 @@ class UnitFormatter {
 
   /// [formatTrackSpeed]'s unit conversion without the string formatting,
   /// for callers (the track 3D Z axis) that need the numeric value.
-  double convertTrackSpeed(double metersPerSecond) {
-    final metersPerMinute = metersPerSecond * 60;
-    return DepthUnit.meters.convert(metersPerMinute, settings.depthUnit);
-  }
+  double convertTrackSpeed(double metersPerSecond) =>
+      convertDepth(metersPerSecond * 60);
 
-  /// [formatTrackSpeed]'s unit symbol on its own.
-  String get trackSpeedSymbol => '${settings.depthUnit.symbol}/min';
+  /// [formatTrackSpeed]'s unit symbol on its own: the same per-minute depth
+  /// unit as an ascent rate, so it comes from [depthRateSymbol] rather than
+  /// a second hand-built "/min".
+  String get trackSpeedSymbol => depthRateSymbol;
 
   // ============================================================================
   // Date/Time Formatting

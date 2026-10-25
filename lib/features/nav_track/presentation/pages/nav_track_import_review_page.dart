@@ -224,6 +224,7 @@ class _NavTrackImportReviewPageState
       context,
       selectedEquipmentId: _equipmentId,
     );
+    if (!mounted) return;
     switch (choice) {
       case NavTrackEquipmentChosen(:final item):
         setState(() {

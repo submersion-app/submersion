@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 
 import 'package:submersion/core/router/track_locations.dart';
+import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_picker/site_picker_sheet.dart';
@@ -114,6 +115,7 @@ class NavTrackDetailPage extends ConsumerWidget {
       context,
       selectedEquipmentId: route.equipmentId,
     );
+    if (!context.mounted) return;
     final repository = ref.read(navTrackRepositoryProvider);
     switch (choice) {
       case NavTrackEquipmentChosen(:final item):
@@ -391,6 +393,55 @@ class _RouteMap extends ConsumerStatefulWidget {
 
 class _RouteMapState extends ConsumerState<_RouteMap> {
   final _controller = MapController();
+  late TrackCamera _camera = _cameraFor(widget.route);
+
+  /// Fits the whole drawn route rather than a fixed zoom on the anchor
+  /// alone: centering on only the start point left most of a long route
+  /// off-screen. TrackCamera (shared with the Tracks overview map) falls
+  /// back to a centre and zoom for a route crossing the antimeridian, which
+  /// a raw LatLngBounds.fromPoints cannot express at all (flutter_map
+  /// asserts east <= 180). The anchor at a fixed zoom covers the rare route
+  /// with fewer than two drawable points.
+  static TrackCamera _cameraFor(NavTrack route) {
+    final drawn = navTrackDrawnPoints(route);
+    final fitted = drawn.length >= 2
+        ? TrackCamera.forLatLngs(
+            drawn,
+            padding: const EdgeInsets.all(32),
+            maxZoom: 17,
+          )
+        : null;
+    final anchor = route.anchor!;
+    return fitted ??
+        TrackCamera(
+          center: LatLng(anchor.latitude, anchor.longitude),
+          zoom: 15,
+        );
+  }
+
+  /// What the drawn route's extent depends on. Everything else (a rename,
+  /// a dive link) leaves the diver's own pan and zoom alone.
+  static Object _framingOf(NavTrack route) => (
+    route.anchor,
+    route.endMode,
+    route.endPoint,
+    route.trustFraction,
+    route.headingOffsetDeg,
+    route.points.length,
+  );
+
+  @override
+  void didUpdateWidget(covariant _RouteMap oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (_framingOf(oldWidget.route) == _framingOf(widget.route)) return;
+    // initialCameraFit is applied once and never again (see
+    // TrackCamera.applyTo), so a moved anchor or a new correction has to
+    // drive the camera itself, or the redrawn route lands off-screen.
+    final camera = _camera = _cameraFor(widget.route);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) camera.applyTo(_controller);
+    });
+  }
 
   @override
   void dispose() {
@@ -400,31 +451,15 @@ class _RouteMapState extends ConsumerState<_RouteMap> {
 
   @override
   Widget build(BuildContext context) {
+    final camera = _camera;
     final anchor = widget.route.anchor!;
-    // Fit the camera to the whole drawn route rather than a fixed zoom on
-    // the anchor alone: a long route no longer got cut off at the map's
-    // edge, and centering on only the start point left most of a long
-    // route off-screen. TrackCamera (shared with the Tracks overview map)
-    // falls back to a centre+zoom fit for a route crossing the
-    // antimeridian, which a raw LatLngBounds.fromPoints cannot express at
-    // all (flutter_map asserts east <= 180). The anchor-centered fixed
-    // zoom stays as the fallback for the (rare) case of fewer than two
-    // drawable points.
-    final drawn = navTrackDrawnPoints(widget.route);
-    final camera = drawn.length >= 2
-        ? TrackCamera.forLatLngs(
-            drawn,
-            padding: const EdgeInsets.all(32),
-            maxZoom: 17,
-          )
-        : null;
     return FlutterMap(
       mapController: _controller,
       options: MapOptions(
         initialCenter:
-            camera?.center ?? LatLng(anchor.latitude, anchor.longitude),
-        initialZoom: camera?.zoom ?? 15,
-        initialCameraFit: camera?.fit,
+            camera.center ?? LatLng(anchor.latitude, anchor.longitude),
+        initialZoom: camera.zoom ?? 15,
+        initialCameraFit: camera.fit,
         interactionOptions: rotatableMapInteraction,
       ),
       children: [
@@ -456,6 +491,8 @@ class _StatsCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final duration = Duration(seconds: stats.durationSeconds);
     final l10n = context.l10n;
+    final firstBattery = _firstBattery(route);
+    final lastBattery = firstBattery == null ? null : _lastBattery(route);
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -488,11 +525,13 @@ class _StatsCard extends ConsumerWidget {
                 duration.inMinutes.remainder(60),
               ),
             ),
-            if (_firstBattery(route) != null)
+            if (firstBattery != null)
               Text(
                 l10n.navTrack_detail_battery(
-                  _firstBattery(route)!.toStringAsFixed(2),
-                  _lastBattery(route)?.toStringAsFixed(2) ?? '?',
+                  formatFixedForDisplay(firstBattery, 2),
+                  lastBattery == null
+                      ? '?'
+                      : formatFixedForDisplay(lastBattery, 2),
                 ),
               ),
           ],
@@ -501,28 +540,22 @@ class _StatsCard extends ConsumerWidget {
     );
   }
 
-  /// The first plausible battery reading, skipping an exact 0.00V sample.
-  ///
-  /// A brand-new recording's very first sample can read 0V before the
-  /// device's battery sensor has settled -- confirmed against a real
-  /// Seacraft ENC log (018.DAT.csv): row 1 reads `BattV=0`, row 2, one
-  /// second later at the same timestamp, already reads the real `3.9`.
-  /// `route.points.first.batteryVolts` took that literal first sample
-  /// unfiltered, so the detail page showed "0.00 V -> 3.78 V" for a pack
-  /// that was actually never anywhere near empty (issue reported during
-  /// #3634/#3635 review). A real pack discharging to exactly 0.00V while
-  /// still logging is not a case this needs to handle: the device would
-  /// have stopped recording first.
-  double? _firstBattery(NavTrack route) {
+  /// The first plausible battery reading. Plausible, not literal: the
+  /// first sample can read 0V before the sensor settles, which once showed
+  /// "0.00 V -> 3.78 V" for a pack never near empty (see
+  /// [NavTrackPoint.plausibleBatteryVolts]).
+  static double? _firstBattery(NavTrack route) {
     for (final p in route.points) {
-      if (p.batteryVolts != null && p.batteryVolts != 0) return p.batteryVolts;
+      final volts = p.plausibleBatteryVolts;
+      if (volts != null) return volts;
     }
     return null;
   }
 
-  double? _lastBattery(NavTrack route) {
+  static double? _lastBattery(NavTrack route) {
     for (final p in route.points.reversed) {
-      if (p.batteryVolts != null && p.batteryVolts != 0) return p.batteryVolts;
+      final volts = p.plausibleBatteryVolts;
+      if (volts != null) return volts;
     }
     return null;
   }
@@ -614,14 +647,18 @@ class _EquipmentCard extends ConsumerWidget {
         ? null
         : ref.watch(equipmentItemProvider(equipmentId)).value?.name;
     final label = equipmentName ?? route.deviceName;
+    // Choose vs Change follows what is stored, as _SiteCard's does, not the
+    // resolved name: a route whose equipment is set but has not resolved
+    // yet (or carries no deviceName) still has a device to change.
+    final hasDevice = equipmentId != null || route.deviceName != null;
     return _ActionCard(
       key: const ValueKey('nav-track-equipment-row'),
       icon: Icons.directions_boat_filled_outlined,
       label: label ?? l10n.navTrack_detail_noEquipment,
       actionKey: const ValueKey('nav-track-change-device'),
-      actionLabel: label == null
-          ? l10n.navTrack_detail_chooseDevice
-          : l10n.navTrack_detail_menuChangeDevice,
+      actionLabel: hasDevice
+          ? l10n.navTrack_detail_menuChangeDevice
+          : l10n.navTrack_detail_chooseDevice,
       onAction: onChangeDevice,
     );
   }

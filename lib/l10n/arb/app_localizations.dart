@@ -83055,18 +83055,6 @@ abstract class AppLocalizations {
   /// **'End set from the recording\'s GPS fix.'**
   String get navTrack_detail_correctionStatus_gpsFix;
 
-  /// No description provided for @navTrack_detail_device.
-  ///
-  /// In en, this message translates to:
-  /// **'Device: {name}'**
-  String navTrack_detail_device(String name);
-
-  /// No description provided for @navTrack_detail_equipment.
-  ///
-  /// In en, this message translates to:
-  /// **'Equipment: {name}'**
-  String navTrack_detail_equipment(String name);
-
   /// No description provided for @navTrack_detail_distance.
   ///
   /// In en, this message translates to:

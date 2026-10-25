@@ -7,6 +7,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/gps_log/presentation/widgets/track_title_row.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
@@ -276,7 +277,7 @@ void main() {
         expect(find.text('Blue Hole'), findsOneWidget);
         expect(find.text('020.DAT.csv'), findsOneWidget);
         final tile = tester.widget<ListTile>(find.byType(ListTile));
-        expect((tile.title! as Text).data, 'Blue Hole');
+        expect((tile.title! as TrackTitleRow).title, 'Blue Hole');
       },
     );
 
@@ -291,7 +292,7 @@ void main() {
         );
 
         final tile = tester.widget<ListTile>(find.byType(ListTile));
-        expect((tile.title! as Text).data, '020.DAT.csv');
+        expect((tile.title! as TrackTitleRow).title, '020.DAT.csv');
       },
     );
 
@@ -310,7 +311,7 @@ void main() {
         );
 
         final tile = tester.widget<ListTile>(find.byType(ListTile));
-        expect((tile.title! as Text).data, '020.DAT.csv');
+        expect((tile.title! as TrackTitleRow).title, '020.DAT.csv');
       },
     );
 
@@ -323,7 +324,7 @@ void main() {
       );
 
       final tile = tester.widget<ListTile>(find.byType(ListTile));
-      expect((tile.title! as Text).data, '020.DAT.csv');
+      expect((tile.title! as TrackTitleRow).title, '020.DAT.csv');
     });
   });
 

@@ -53089,16 +53089,6 @@ class AppLocalizationsAr extends AppLocalizations {
       'تم تعيين النهاية من إصلاح GPS الخاص بالتسجيل.';
 
   @override
-  String navTrack_detail_device(String name) {
-    return 'الجهاز: $name';
-  }
-
-  @override
-  String navTrack_detail_equipment(String name) {
-    return 'المعدات: $name';
-  }
-
-  @override
   String navTrack_detail_distance(String value) {
     return 'المسافة: $value';
   }
