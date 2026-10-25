@@ -321,6 +321,7 @@ final equipmentHasDeviceProvider = FutureProvider.family<bool, String>((
   id,
 ) async {
   final repository = ref.watch(equipmentRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchDeviceRecordChanges());
   return repository.hasDeviceRecord(id);
 });
 
