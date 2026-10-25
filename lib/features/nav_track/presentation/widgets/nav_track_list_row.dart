@@ -141,6 +141,10 @@ class NavTrackListRow extends ConsumerWidget {
           if (showSiteAsTitle) Text(ownName),
           Text(navTrackMetaLine(units, route)),
           TrackStatRow(stats: navTrackStats(l10n, units, route)),
+          // Same gap the dive list uses between its stat row and its own
+          // tag chips (`dive_list_page.dart`, where this chip style came
+          // from) -- without it the link label crowded the stats above it.
+          const SizedBox(height: 4),
           NavTrackLinkLabel(label: _linkLabel(l10n, dive), diveId: diveId),
         ],
       ),
