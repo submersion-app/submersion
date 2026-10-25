@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/features/dive_computer/presentation/pages/device_detail_page.dart';
+import 'package:submersion/features/dive_computer/presentation/widgets/dive_computer_controls.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
@@ -71,8 +71,13 @@ Widget _buildTestWidget({
       ),
       GoRoute(
         path: '/dive-computers/:id',
-        builder: (context, state) =>
-            DeviceDetailPage(computerId: state.pathParameters['id']!),
+        builder: (context, state) => Scaffold(
+          body: SingleChildScrollView(
+            child: DiveComputerControls(
+              computerId: state.pathParameters['id']!,
+            ),
+          ),
+        ),
         routes: [
           GoRoute(
             path: 'download',
@@ -115,7 +120,7 @@ Widget _buildTestWidget({
 }
 
 void main() {
-  group('DeviceDetailPage - loading state', () {
+  group('DiveComputerControls - loading state', () {
     testWidgets('shows CircularProgressIndicator while loading', (
       tester,
     ) async {
@@ -127,8 +132,13 @@ void main() {
         routes: [
           GoRoute(
             path: '/dive-computers/:id',
-            builder: (context, state) =>
-                DeviceDetailPage(computerId: state.pathParameters['id']!),
+            builder: (context, state) => Scaffold(
+              body: SingleChildScrollView(
+                child: DiveComputerControls(
+                  computerId: state.pathParameters['id']!,
+                ),
+              ),
+            ),
           ),
         ],
       );
@@ -157,7 +167,7 @@ void main() {
     });
   });
 
-  group('DeviceDetailPage - error state', () {
+  group('DiveComputerControls - error state', () {
     testWidgets('shows error message when provider errors', (tester) async {
       await tester.pumpWidget(
         _buildTestWidget(computer: null, error: 'Something went wrong'),
@@ -168,25 +178,16 @@ void main() {
     });
   });
 
-  group('DeviceDetailPage - null computer', () {
-    testWidgets('shows not found text when computer is null', (tester) async {
+  group('DiveComputerControls - null computer', () {
+    testWidgets('renders nothing when the computer is gone', (tester) async {
       await tester.pumpWidget(_buildTestWidget(computer: null));
       await tester.pumpAndSettle();
 
-      expect(find.textContaining('not found'), findsOneWidget);
+      expect(find.text('Download Dives'), findsNothing);
     });
   });
 
-  group('DeviceDetailPage - content rendering', () {
-    testWidgets('shows app bar with display name', (tester) async {
-      await tester.pumpWidget(
-        _buildTestWidget(computer: _makeComputer(name: 'My Perdix')),
-      );
-      await tester.pumpAndSettle();
-
-      expect(find.text('My Perdix'), findsWidgets);
-    });
-
+  group('DiveComputerControls - content rendering', () {
     testWidgets('shows full name in info card', (tester) async {
       await tester.pumpWidget(
         _buildTestWidget(
@@ -207,33 +208,13 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Name'), findsOneWidget);
+      // The name is the Equipment item's (#3676), shown on its page.
+      expect(find.text('Name'), findsNothing);
       expect(find.text('Manufacturer'), findsOneWidget);
       expect(find.text('Model'), findsOneWidget);
       expect(find.text('Serial Number'), findsOneWidget);
       // The single Connection row gave way to the Connections card (#3106).
       expect(find.text('Connection'), findsNothing);
-    });
-
-    testWidgets('shows notes card when notes exist', (tester) async {
-      await tester.pumpWidget(
-        _buildTestWidget(
-          computer: _makeComputer(notes: 'Test notes about this computer'),
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      expect(find.text('Notes'), findsOneWidget);
-      expect(find.text('Test notes about this computer'), findsOneWidget);
-    });
-
-    testWidgets('hides notes card when notes are empty', (tester) async {
-      await tester.pumpWidget(
-        _buildTestWidget(computer: _makeComputer(notes: '')),
-      );
-      await tester.pumpAndSettle();
-
-      expect(find.text('Notes'), findsNothing);
     });
 
     testWidgets('shows dive count in stats', (tester) async {
@@ -247,7 +228,7 @@ void main() {
     });
   });
 
-  group('DeviceDetailPage - connection icon mapping', () {
+  group('DiveComputerControls - connection icon mapping', () {
     for (final entry in {
       'ble': Icons.bluetooth,
       'bluetooth': Icons.bluetooth,
@@ -285,7 +266,7 @@ void main() {
     });
   });
 
-  group('DeviceDetailPage - favorite button', () {
+  group('DiveComputerControls - favorite button', () {
     testWidgets('shows star_outline when not favorite', (tester) async {
       await tester.pumpWidget(
         _buildTestWidget(computer: _makeComputer(isFavorite: false)),
@@ -307,82 +288,7 @@ void main() {
     });
   });
 
-  group('DeviceDetailPage - popup menu', () {
-    testWidgets('shows edit and delete menu items', (tester) async {
-      await tester.pumpWidget(_buildTestWidget(computer: _makeComputer()));
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.byType(PopupMenuButton<String>));
-      await tester.pumpAndSettle();
-
-      expect(find.byIcon(Icons.edit), findsOneWidget);
-      expect(find.byIcon(Icons.delete), findsOneWidget);
-    });
-
-    testWidgets('edit opens dialog with pre-filled fields', (tester) async {
-      await tester.pumpWidget(
-        _buildTestWidget(
-          computer: _makeComputer(name: 'My Perdix', notes: 'some notes'),
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.byType(PopupMenuButton<String>));
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.byIcon(Icons.edit));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Edit Computer'), findsOneWidget);
-      expect(find.text('My Perdix'), findsWidgets);
-      expect(find.text('some notes'), findsWidgets);
-    });
-
-    testWidgets('cancel closes edit dialog', (tester) async {
-      await tester.pumpWidget(_buildTestWidget(computer: _makeComputer()));
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.byType(PopupMenuButton<String>));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byIcon(Icons.edit));
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.text('Cancel'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Edit Computer'), findsNothing);
-    });
-
-    testWidgets('delete opens confirmation dialog', (tester) async {
-      await tester.pumpWidget(_buildTestWidget(computer: _makeComputer()));
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.byType(PopupMenuButton<String>));
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.byIcon(Icons.delete));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Delete Computer?'), findsOneWidget);
-    });
-
-    testWidgets('cancel closes delete dialog', (tester) async {
-      await tester.pumpWidget(_buildTestWidget(computer: _makeComputer()));
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.byType(PopupMenuButton<String>));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byIcon(Icons.delete));
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.text('Cancel'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Delete Computer?'), findsNothing);
-    });
-  });
-
-  group('DeviceDetailPage - actions', () {
+  group('DiveComputerControls - actions', () {
     testWidgets('download button navigates to download page', (tester) async {
       await tester.pumpWidget(_buildTestWidget(computer: _makeComputer()));
       await tester.pumpAndSettle();

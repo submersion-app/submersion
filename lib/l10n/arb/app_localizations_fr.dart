@@ -33843,6 +33843,13 @@ class AppLocalizationsFr extends AppLocalizations {
       'Télécharger les plongées';
 
   @override
+  String get diveComputer_section_connect => 'Connect and download';
+
+  @override
+  String get diveComputer_section_notConnected =>
+      'This computer has not been connected yet. Connect it to download its dives.';
+
+  @override
   String get diveComputer_detail_editDialogTitle => 'Modifier l\'ordinateur';
 
   @override

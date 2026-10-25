@@ -216,7 +216,7 @@ import 'package:submersion/features/dive_computer/domain/entities/dive_computer_
 import 'package:submersion/features/dive_computer/domain/services/download_connection_selection.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/dive_computer_connection_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/pages/device_list_page.dart';
-import 'package:submersion/features/dive_computer/presentation/pages/device_detail_page.dart';
+import 'package:submersion/features/dive_computer/presentation/pages/dive_computer_item_redirect.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/download_providers.dart'
     show diveImportServiceProvider;
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
@@ -2097,7 +2097,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: ':computerId',
                 name: 'computerDetail',
-                builder: (context, state) => DeviceDetailPage(
+                // A dive computer's page is its Equipment item's (issue
+                // #3676); this forwards there, and its download child stays.
+                builder: (context, state) => DiveComputerItemRedirect(
                   computerId: state.pathParameters['computerId']!,
                 ),
                 routes: [

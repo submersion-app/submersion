@@ -20140,6 +20140,8 @@
   "diveComputer_detail_deleteDialogTitle": "Delete Computer?",
   "diveComputer_detail_divesImported": "Dives Imported",
   "diveComputer_detail_downloadDivesButton": "Download Dives",
+  "diveComputer_section_connect": "Connect and download",
+  "diveComputer_section_notConnected": "This computer has not been connected yet. Connect it to download its dives.",
   "diveComputer_detail_editDialogTitle": "Edit Computer",
   "diveComputer_detail_editNameHint": "e.g., My Perdix",
   "diveComputer_detail_editNotesHint": "Optional notes",

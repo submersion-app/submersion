@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:submersion/features/dive_computer/presentation/widgets/dive_computer_section.dart';
 import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
 import 'package:submersion/features/connections/presentation/widgets/open_in_connections.dart';
@@ -227,6 +228,11 @@ class _EquipmentDetailContent extends ConsumerWidget {
           const SizedBox(height: 24),
           _buildDetailsSection(context, ref, equipment, units),
           const SizedBox(height: 24),
+          // The device's controls (issue #3676): this item is its one entry.
+          if (equipment.type == EquipmentType.computer) ...[
+            DiveComputerSection(equipmentId: equipmentId),
+            const SizedBox(height: 24),
+          ],
           EquipmentLocationCard(equipment: equipment),
           const SizedBox(height: 24),
           if (equipment.type == EquipmentType.tank) ...[

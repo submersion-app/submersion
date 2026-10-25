@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/features/dive_computer/presentation/pages/device_detail_page.dart';
+import 'package:submersion/features/dive_computer/presentation/widgets/dive_computer_controls.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_merge_repository.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
@@ -26,6 +26,7 @@ DiveComputer _computer({
     serialNumber: serialNumber,
     connectionType: 'bluetooth',
     diveCount: diveCount,
+    equipmentId: 'gear-$id',
     createdAt: DateTime(2026),
     updatedAt: DateTime(2026),
   );
@@ -85,9 +86,19 @@ void main() {
       initialLocation: '/dive-computers/${computer.id}',
       routes: [
         GoRoute(
-          path: '/dive-computers/:id',
+          path: '/equipment/:id',
           builder: (context, state) =>
-              DeviceDetailPage(computerId: state.pathParameters['id']!),
+              Scaffold(body: Text('ITEM ${state.pathParameters['id']}')),
+        ),
+        GoRoute(
+          path: '/dive-computers/:id',
+          builder: (context, state) => Scaffold(
+            body: SingleChildScrollView(
+              child: DiveComputerControls(
+                computerId: state.pathParameters['id']!,
+              ),
+            ),
+          ),
         ),
       ],
     );
@@ -115,7 +126,7 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  group('DeviceDetailPage duplicate banner', () {
+  group('DiveComputerControls duplicate banner', () {
     testWidgets('names the record that shares this serial number', (
       tester,
     ) async {
@@ -180,7 +191,7 @@ void main() {
     });
   });
 
-  group('DeviceDetailPage merge menu', () {
+  group('DiveComputerControls merge action', () {
     testWidgets('lists the other computers with same-serial ones flagged', (
       tester,
     ) async {
@@ -189,9 +200,7 @@ void main() {
       final perdix = _computer(id: 'c', name: 'Perdix', serialNumber: '7');
 
       await pumpDetail(tester, computer: petrel, all: [perdix, petrel, ssss]);
-      await tester.tap(find.byType(PopupMenuButton<String>));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Merge with another computer'));
+      await tester.tap(find.byKey(const ValueKey('dive_computer_merge')));
       await tester.pumpAndSettle();
 
       expect(find.text('Merge with'), findsOneWidget);
@@ -205,9 +214,7 @@ void main() {
       final petrel = _computer(id: 'a', name: 'Petrel 3');
 
       await pumpDetail(tester, computer: petrel, all: [petrel]);
-      await tester.tap(find.byType(PopupMenuButton<String>));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Merge with another computer'));
+      await tester.tap(find.byKey(const ValueKey('dive_computer_merge')));
       await tester.pumpAndSettle();
 
       expect(
@@ -216,30 +223,27 @@ void main() {
       );
     });
 
-    testWidgets('moves to the surviving record when this one is folded in', (
-      tester,
-    ) async {
-      final petrel = _computer(id: 'a', name: 'Petrel 3', diveCount: 2);
-      final ssss = _computer(id: 'b', name: 'ssss', diveCount: 21);
+    testWidgets(
+      'moves to the surviving record\'s item when this one is folded in',
+      (tester) async {
+        final petrel = _computer(id: 'a', name: 'Petrel 3', diveCount: 2);
+        final ssss = _computer(id: 'b', name: 'ssss', diveCount: 21);
 
-      await pumpDetail(tester, computer: petrel, all: [petrel, ssss]);
-      await tester.tap(find.byType(PopupMenuButton<String>));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Merge with another computer'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const ValueKey('merge_pick_b')));
-      await tester.pumpAndSettle();
+        await pumpDetail(tester, computer: petrel, all: [petrel, ssss]);
+        await tester.tap(find.byKey(const ValueKey('dive_computer_merge')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const ValueKey('merge_pick_b')));
+        await tester.pumpAndSettle();
 
-      // ssss has more dives, so it is the default survivor.
-      await tester.tap(find.byKey(const ValueKey('merge_confirm')));
-      await tester.pumpAndSettle();
+        // ssss has more dives, so it is the default survivor.
+        await tester.tap(find.byKey(const ValueKey('merge_confirm')));
+        await tester.pumpAndSettle();
 
-      expect(notifier.survivorId, 'b');
-      expect(notifier.duplicateIds, ['a']);
-      final page = tester.widget<DeviceDetailPage>(
-        find.byType(DeviceDetailPage),
-      );
-      expect(page.computerId, 'b');
-    });
+        expect(notifier.survivorId, 'b');
+        expect(notifier.duplicateIds, ['a']);
+        // The survivor's Equipment item is the page now (#3676).
+        expect(find.text('ITEM gear-b'), findsOneWidget);
+      },
+    );
   });
 }

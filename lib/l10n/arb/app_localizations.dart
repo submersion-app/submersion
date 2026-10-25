@@ -53353,6 +53353,18 @@ abstract class AppLocalizations {
   /// **'Download Dives'**
   String get diveComputer_detail_downloadDivesButton;
 
+  /// No description provided for @diveComputer_section_connect.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect and download'**
+  String get diveComputer_section_connect;
+
+  /// No description provided for @diveComputer_section_notConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'This computer has not been connected yet. Connect it to download its dives.'**
+  String get diveComputer_section_notConnected;
+
   /// No description provided for @diveComputer_detail_editDialogTitle.
   ///
   /// In en, this message translates to:

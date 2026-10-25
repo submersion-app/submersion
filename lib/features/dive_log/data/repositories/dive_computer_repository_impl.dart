@@ -114,6 +114,27 @@ class DiveComputerRepository {
   // ============================================================================
 
   /// Get all dive computers
+  /// The registrations behind Equipment item [equipmentId] (issue #3676),
+  /// the most recently downloaded first. Usually one; a device registered
+  /// twice shows as one item until it is merged.
+  Future<List<domain.DiveComputer>> getComputersForEquipment(
+    String equipmentId,
+  ) async {
+    final rows =
+        await (_db.select(_db.diveComputers)
+              ..where((t) => t.equipmentId.equals(equipmentId))
+              ..orderBy([
+                (t) => OrderingTerm(
+                  expression: t.lastDownloadTimestamp,
+                  mode: OrderingMode.desc,
+                  nulls: NullsOrder.last,
+                ),
+                (t) => OrderingTerm.asc(t.id),
+              ]))
+            .get();
+    return rows.map(_mapRowToComputer).toList();
+  }
+
   Future<List<domain.DiveComputer>> getAllComputers({String? diverId}) async {
     try {
       final query = _db.select(_db.diveComputers)

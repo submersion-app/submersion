@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/features/dive_computer/presentation/pages/device_detail_page.dart';
+import 'package:submersion/features/dive_computer/presentation/widgets/dive_computer_controls.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -51,8 +51,13 @@ Widget _buildTestWidget({required DiveComputer computer}) {
       ),
       GoRoute(
         path: '/dive-computers/:id',
-        builder: (context, state) =>
-            DeviceDetailPage(computerId: state.pathParameters['id']!),
+        builder: (context, state) => Scaffold(
+          body: SingleChildScrollView(
+            child: DiveComputerControls(
+              computerId: state.pathParameters['id']!,
+            ),
+          ),
+        ),
         routes: [
           GoRoute(
             path: 'download',

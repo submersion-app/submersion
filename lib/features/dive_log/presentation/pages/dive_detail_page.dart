@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/features/dive_computer/presentation/navigation/dive_computer_location.dart';
 import 'package:submersion/core/router/section_navigation.dart';
 import 'package:submersion/core/text/blank_text.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
@@ -4381,7 +4382,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         computer.displayName,
       ),
       child: InkWell(
-        onTap: () => context.push('/dive-computers/${computer.id}'),
+        onTap: () => context.push(diveComputerLocation(computer)),
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 8),
           child: Row(

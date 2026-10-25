@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_computer/domain/entities/clock_sync.dart';
-import 'package:submersion/features/dive_computer/presentation/pages/device_detail_page.dart';
+import 'package:submersion/features/dive_computer/presentation/widgets/dive_computer_controls.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/clock_sync_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
@@ -45,8 +45,13 @@ Widget _build() {
     routes: [
       GoRoute(
         path: '/dive-computers/:id',
-        builder: (context, state) =>
-            DeviceDetailPage(computerId: state.pathParameters['id']!),
+        builder: (context, state) => Scaffold(
+          body: SingleChildScrollView(
+            child: DiveComputerControls(
+              computerId: state.pathParameters['id']!,
+            ),
+          ),
+        ),
       ),
     ],
   );
@@ -70,7 +75,9 @@ Widget _build() {
 }
 
 ProviderContainer _containerOf(WidgetTester tester) =>
-    ProviderScope.containerOf(tester.element(find.byType(DeviceDetailPage)));
+    ProviderScope.containerOf(
+      tester.element(find.byType(DiveComputerControls)),
+    );
 
 void main() {
   testWidgets('shows the override control defaulting to the app setting', (
