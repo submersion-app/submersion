@@ -93,8 +93,13 @@ class _SetUpBackupsStepState extends ConsumerState<SetUpBackupsStep> {
     final l10n = context.l10n;
     final groups = ref.watch(accountGroupsProvider).value ?? const [];
     final syncGroup = groups.syncing;
-    final account = ref.watch(setUpFlowProvider) ?? syncGroup;
     final settings = ref.watch(backupSettingsProvider);
+    // Revisited, a copy pinned to another account is named as it is: the
+    // switch is about that copy, not a new one in the flow's account.
+    final pinned = _revisits && settings.cloudBackupEnabled
+        ? groups.holding(settings.copyAccountId)
+        : null;
+    final account = pinned ?? ref.watch(setUpFlowProvider) ?? syncGroup;
     final device = deviceKindOf(context);
     final frequency = backupFrequencyLabel(l10n, settings.frequency);
     final textTheme = Theme.of(context).textTheme;

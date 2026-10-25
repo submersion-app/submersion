@@ -292,6 +292,33 @@ void main() {
       expect(nav, ['next']);
     });
 
+    testWidgets('a copy pinned elsewhere is named, and stays there when its '
+        'switch is flipped off and on', (tester) async {
+      await pump(
+        tester,
+        chosen: _drive,
+        prefs: {
+          'backup_enabled': true,
+          'backup_cloud_enabled': true,
+          'backup_copy_account_id': 'db',
+          'backup_copy_account_kind': AccountKind.dropbox.name,
+        },
+        host: SetUpHost.assistant,
+      );
+      expect(switchOn(tester, 'Also keep a copy in Dropbox'), isTrue);
+      expect(find.text('Same account as sync'), findsNothing);
+
+      await tester.tap(find.text('Also keep a copy in Dropbox'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Also keep a copy in Dropbox'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Next'));
+      await tester.pumpAndSettle();
+
+      expect(settings().cloudBackupEnabled, isTrue);
+      expect(settings().copyAccountId, 'db');
+    });
+
     testWidgets('a switch the diver flips is written', (tester) async {
       await pump(
         tester,
