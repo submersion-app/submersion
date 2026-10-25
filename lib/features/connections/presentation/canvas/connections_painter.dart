@@ -459,6 +459,7 @@ class ConnectionsPainter extends CustomPainter {
   bool shouldRepaint(ConnectionsPainter old) =>
       old.frame != frame ||
       old.graph != graph ||
+      old.colors != colors ||
       old.viewport.scale != viewport.scale ||
       old.viewport.offset != viewport.offset ||
       old.selection != selection ||

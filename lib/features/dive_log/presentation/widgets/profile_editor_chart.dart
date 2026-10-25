@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:submersion/core/theme/backdrop_color.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -203,7 +204,7 @@ class _ProfileEditorChartState extends ConsumerState<ProfileEditorChart> {
                 radius: 6,
                 color: Colors.blue,
                 strokeWidth: 2,
-                strokeColor: colorScheme.surface,
+                strokeColor: backdropColorOf(context),
               );
             }
           }

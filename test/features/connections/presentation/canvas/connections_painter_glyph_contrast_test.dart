@@ -163,4 +163,32 @@ void main() {
     expect(lit.length, lessThan(_nodes.length), reason: 'nothing was dimmed');
     expect(_unreadable(painter, glyphs, page: page, lit: lit), isEmpty);
   });
+
+  // The glyph colour follows the kind colours, so a palette change alone
+  // (light to dark) must repaint. The canvas builds a new ConnectionKindColors
+  // every frame, so an unchanged palette must not.
+  test('a palette change repaints, an equal palette does not', () {
+    final graph = ConnectionGraph(nodes: _nodes, edges: _edges);
+    final layout = WholeWebLayout(
+      nodes: _nodes.map((n) => n.ref).toList(),
+      edges: _edges,
+    )..advance(300);
+    final viewport = const GraphViewport().fitted(
+      layout.frame.bounds,
+      const Size(900, 900),
+    );
+    ConnectionsPainter painterFor(FeatureAccentColors palette) =>
+        ConnectionsPainter(
+          graph: graph,
+          frame: layout.frame,
+          viewport: viewport,
+          colors: ConnectionKindColors.fromPalette(palette, Colors.teal),
+          labelStyle: const TextStyle(fontSize: 12, color: Colors.black),
+        );
+
+    final light = painterFor(FeatureAccentColors.light);
+
+    expect(painterFor(FeatureAccentColors.dark).shouldRepaint(light), isTrue);
+    expect(painterFor(FeatureAccentColors.light).shouldRepaint(light), isFalse);
+  });
 }

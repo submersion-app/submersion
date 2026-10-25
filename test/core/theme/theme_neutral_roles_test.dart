@@ -149,4 +149,25 @@ void main() {
       );
     });
   });
+
+  // Material 3 puts the lowest container one step the other way, away from
+  // onSurface: white over a near-white page, darker under a dark one. Left
+  // equal to the surface, the entity table's alternate rows (which use it)
+  // had no stripe on the hand-built presets.
+  test('surfaceContainerLowest steps away from onSurface', () {
+    expectEveryScheme((scheme, expectThat) {
+      final lowest = contrastRatio(
+        scheme.onSurface,
+        scheme.surfaceContainerLowest,
+      );
+      final page = contrastRatio(scheme.onSurface, scheme.surface);
+      final roomLeft =
+          scheme.surface != Colors.white && scheme.surface != Colors.black;
+      expectThat(
+        'surfaceContainerLowest beyond the surface',
+        roomLeft ? lowest > page : lowest >= page,
+        '${ratio(lowest)} against ${ratio(page)}',
+      );
+    });
+  });
 }

@@ -5,6 +5,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:submersion/core/theme/backdrop_color.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/constants/enums.dart';
@@ -3683,7 +3684,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           // Gas switch markers (if showing and data available).
           // Zero-width dot markers, not a metric line.
           final gasSwitchMarkers = _showGasSwitchMarkers
-              ? _buildGasSwitchMarkers(units, colorScheme.surface)
+              ? _buildGasSwitchMarkers(units, backdropColorOf(context))
               : const <LineChartBarData>[];
 
           // Temperature line (if showing).
@@ -7183,7 +7184,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     final color = _markerColor(marker);
     final size = marker.markerSize;
     // Read once here: fl_chart calls getDotPainter during paint, per frame.
-    final ring = Theme.of(context).colorScheme.surface;
+    final ring = backdropColorOf(context);
 
     // Calculate Y position based on marker type
     double yPosition;
@@ -7210,8 +7211,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         show: true,
         getDotPainter: (spot, percent, bar, index) {
           if (marker.type == ProfileMarkerType.maxDepth) {
-            // Max depth: a dot ringed in the page colour, which punches it
-            // out of the line (a fixed white glared on a dark chart).
+            // Max depth: a dot ringed in the colour behind the chart, which
+            // punches it out of the line (a fixed white glared when dark).
             return FlDotCirclePainter(
               radius: size,
               color: color,

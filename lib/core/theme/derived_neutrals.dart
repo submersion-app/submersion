@@ -8,6 +8,11 @@ const double _containerStep = 0.05;
 const double _containerHighStep = 0.08;
 const double _containerHighestStep = 0.11;
 
+/// How far the lowest container steps the other way, toward white on a light
+/// page and black on a dark one. Material 3 puts it there (tone 100 over a
+/// tone-98 surface in light, 4 under 6 in dark).
+const double _containerLowestStep = 0.6;
+
 /// How strongly the decorative hairline (dividers, card edges) is drawn.
 const double _outlineVariantStrength = 0.20;
 
@@ -30,8 +35,8 @@ const double _readableMark = 3.0;
 /// surface and onSurface, so they keep the preset's hue.
 ///
 /// - surfaceContainer, High and Highest step from the surface toward
-///   onSurface. surfaceContainerLow and Lowest are left alone: the presets
-///   use surfaceContainerLow as their card colour.
+///   onSurface, and Lowest steps the other way. surfaceContainerLow is left
+///   alone: the presets use it as their card colour.
 /// - onSurfaceVariant is the quietest blend of onSurface that still reads at
 ///   7:1 on the surface and on every container.
 /// - outline is the quietest blend that still marks a boundary (3:1) on the
@@ -61,6 +66,13 @@ ColorScheme withDerivedNeutrals(ColorScheme scheme) {
     scheme.surfaceContainerHighest,
     _containerHighestStep,
   );
+  final containerLowest = scheme.surfaceContainerLowest == scheme.surface
+      ? Color.alphaBlend(
+          (scheme.brightness == Brightness.light ? Colors.white : Colors.black)
+              .withValues(alpha: _containerLowestStep),
+          scheme.surface,
+        )
+      : scheme.surfaceContainerLowest;
 
   /// The quietest blend of onSurface that reaches [minimum] on every
   /// colour in [backgrounds].
@@ -75,6 +87,7 @@ ColorScheme withDerivedNeutrals(ColorScheme scheme) {
   }
 
   return scheme.copyWith(
+    surfaceContainerLowest: containerLowest,
     surfaceContainer: surfaceContainer,
     surfaceContainerHigh: containerHigh,
     surfaceContainerHighest: containerHighest,

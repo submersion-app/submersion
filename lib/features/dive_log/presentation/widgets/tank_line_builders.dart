@@ -12,7 +12,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/profile_metric
 
 /// Build vertical markers for gas switch events on the profile.
 /// [ringColor] rings each dot to punch it out of the profile line; the
-/// chart passes its page colour.
+/// chart passes the colour behind it.
 List<LineChartBarData> buildGasSwitchMarkers(
   UnitFormatter units,
   List<GasSwitchWithTank>? gasSwitches,

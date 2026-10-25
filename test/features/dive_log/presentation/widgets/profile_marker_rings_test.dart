@@ -18,9 +18,14 @@ import '../../../../helpers/mock_providers.dart';
 
 // Marker dots and range grips wore a fixed white ring to punch them out of
 // the lines beneath. On a dark chart that ring glared as a bright halo; it
-// should be the page colour instead.
-final _theme = submersionDark;
-final _page = _theme.colorScheme.surface;
+// should be the colour behind the chart instead: the page, or the card it
+// sits on.
+// Presets give cards their own colour (Console dark's #1A2230 card on a
+// #141A22 page), and these charts usually sit on a card.
+const _cardColour = Color(0xFF1A2230);
+final _theme = submersionDark.copyWith(
+  cardTheme: const CardThemeData(color: _cardColour),
+);
 
 List<DiveProfilePoint> _profile() => List.generate(
   20,
@@ -30,13 +35,19 @@ List<DiveProfilePoint> _profile() => List.generate(
   ),
 );
 
-Widget _host(Widget chart) => ProviderScope(
+Widget _host(bool onCard, Widget chart) => ProviderScope(
   overrides: [settingsProvider.overrideWith((ref) => MockSettingsNotifier())],
   child: MaterialApp(
     theme: _theme,
     localizationsDelegates: AppLocalizations.localizationsDelegates,
     supportedLocales: AppLocalizations.supportedLocales,
-    home: Scaffold(body: SizedBox(width: 400, height: 300, child: chart)),
+    home: Scaffold(
+      body: SizedBox(
+        width: 400,
+        height: 300,
+        child: onCard ? Card(child: chart) : chart,
+      ),
+    ),
   ),
 );
 
@@ -55,92 +66,109 @@ List<Color> _ringColors(WidgetTester tester) => [
 ];
 
 void main() {
-  testWidgets('the max depth and gas switch dots ring in the page colour', (
-    tester,
-  ) async {
-    await tester.pumpWidget(
-      _host(
-        DiveProfileChart(
-          profile: _profile(),
-          showMaxDepthMarker: true,
-          markers: const [
-            ProfileMarker(
-              timestamp: 270,
-              depth: 18,
-              type: ProfileMarkerType.maxDepth,
+  for (final onCard in [false, true]) {
+    final backdrop = onCard ? _cardColour : _theme.colorScheme.surface;
+    final where = onCard ? 'on a card' : 'on the page';
+
+    testWidgets(
+      'the max depth and gas switch dots ring in the backdrop colour $where',
+      (tester) async {
+        await tester.pumpWidget(
+          _host(
+            onCard,
+            DiveProfileChart(
+              profile: _profile(),
+              showMaxDepthMarker: true,
+              markers: const [
+                ProfileMarker(
+                  timestamp: 270,
+                  depth: 18,
+                  type: ProfileMarkerType.maxDepth,
+                ),
+              ],
+              gasSwitches: [
+                GasSwitchWithTank(
+                  gasSwitch: GasSwitch(
+                    id: 'gs1',
+                    diveId: 'd1',
+                    timestamp: 300,
+                    tankId: 't1',
+                    depth: 12,
+                    createdAt: DateTime.utc(2026),
+                  ),
+                  tankName: 'Stage',
+                  gasMix: 'EAN50',
+                  o2Fraction: 0.5,
+                ),
+              ],
+              tooltipPresentation: TooltipPresentation.external,
             ),
-          ],
-          gasSwitches: [
-            GasSwitchWithTank(
-              gasSwitch: GasSwitch(
-                id: 'gs1',
-                diveId: 'd1',
-                timestamp: 300,
-                tankId: 't1',
-                depth: 12,
-                createdAt: DateTime.utc(2026),
-              ),
-              tankName: 'Stage',
-              gasMix: 'EAN50',
-              o2Fraction: 0.5,
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final rings = _ringColors(tester);
+        expect(rings, hasLength(2), reason: 'max depth and gas switch dots');
+        expect(rings, everyElement(backdrop));
+      },
+    );
+
+    testWidgets('a drawn waypoint rings in the backdrop colour $where', (
+      tester,
+    ) async {
+      final profile = _profile();
+      await tester.pumpWidget(
+        _host(
+          onCard,
+          ProfileEditorChart(
+            originalProfile: profile,
+            editedProfile: profile,
+            mode: EditorMode.draw,
+            waypoints: const [ProfileWaypoint(timestamp: 90, depth: 6)],
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final rings = _ringColors(tester);
+      expect(rings, isNotEmpty);
+      expect(rings, everyElement(backdrop));
+    });
+
+    testWidgets('the range grips ring in the backdrop colour $where', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _host(
+          onCard,
+          DiveProfileChart(
+            profile: _profile(),
+            rangeSelection: (
+              startSeconds: 60,
+              endSeconds: 480,
+              maxSeconds: 570,
             ),
-          ],
-          tooltipPresentation: TooltipPresentation.external,
+            onRangeChanged: (_, _) {},
+          ),
         ),
-      ),
-    );
-    await tester.pumpAndSettle();
+      );
+      await tester.pumpAndSettle();
 
-    final rings = _ringColors(tester);
-    expect(rings, hasLength(2), reason: 'max depth and gas switch dots');
-    expect(rings, everyElement(_page));
-  });
-
-  testWidgets('a drawn waypoint rings in the page colour', (tester) async {
-    final profile = _profile();
-    await tester.pumpWidget(
-      _host(
-        ProfileEditorChart(
-          originalProfile: profile,
-          editedProfile: profile,
-          mode: EditorMode.draw,
-          waypoints: const [ProfileWaypoint(timestamp: 90, depth: 6)],
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
-
-    final rings = _ringColors(tester);
-    expect(rings, isNotEmpty);
-    expect(rings, everyElement(_page));
-  });
-
-  testWidgets('the range grips ring in the page colour', (tester) async {
-    await tester.pumpWidget(
-      _host(
-        DiveProfileChart(
-          profile: _profile(),
-          rangeSelection: (startSeconds: 60, endSeconds: 480, maxSeconds: 570),
-          onRangeChanged: (_, _) {},
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
-
-    final gripBorders = [
-      for (final box in tester.widgetList<DecoratedBox>(
-        find.descendant(
-          of: find.byType(RangeSelectionOverlay),
-          matching: find.byType(DecoratedBox),
-        ),
-      ))
-        if (box.decoration case BoxDecoration(
-          shape: BoxShape.circle,
-          border: Border(:final top),
+      final gripBorders = [
+        for (final box in tester.widgetList<DecoratedBox>(
+          find.descendant(
+            of: find.byType(RangeSelectionOverlay),
+            matching: find.byType(DecoratedBox),
+          ),
         ))
-          top.color,
-    ];
-    expect(gripBorders, hasLength(4), reason: 'two grips per handle');
-    expect(gripBorders, everyElement(_page));
-  });
+          if (box.decoration case BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border(:final top),
+          ))
+            top.color,
+      ];
+      expect(gripBorders, hasLength(4), reason: 'two grips per handle');
+      expect(gripBorders, everyElement(backdrop));
+    });
+  }
 }

@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' show DateFormat;
 
+import 'package:submersion/core/theme/backdrop_color.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/tide/entities/tide_extremes.dart';
 import 'package:submersion/features/tides/domain/entities/tide_record.dart';
@@ -89,7 +90,7 @@ class TideCycleGraph extends StatelessWidget {
             waveColor: colorScheme.primary,
             fillColor: colorScheme.primary.withValues(alpha: 0.1),
             markerColor: _getStateColor(record.tideState),
-            ringColor: colorScheme.surface,
+            ringColor: backdropColorOf(context),
             gridColor: colorScheme.outlineVariant.withValues(alpha: 0.3),
             labelColor: colorScheme.onSurfaceVariant,
             labelStyle: textTheme.labelSmall ?? const TextStyle(fontSize: 10),
@@ -173,8 +174,8 @@ class _TideCyclePainter extends CustomPainter {
   final Color fillColor;
   final Color markerColor;
 
-  /// Rings the marker to punch it out of the wave: the page colour, which a
-  /// fixed white was not on a dark chart.
+  /// Rings the marker to punch it out of the wave: the colour behind the
+  /// graph (its card), which a fixed white was not on a dark chart.
   final Color ringColor;
   final Color gridColor;
   final Color labelColor;
