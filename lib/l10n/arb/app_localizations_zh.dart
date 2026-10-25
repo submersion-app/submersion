@@ -9558,13 +9558,43 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_tank_mndHelper => '设置自动计算 He%';
 
   @override
-  String diveLog_tank_gasUsed(String amount) {
-    return '（已用 $amount）';
+  String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd) {
+    return '最大作业深度：$mod（氧分压 $ppO2）| 最大等效氮深：$mnd';
   }
 
   @override
-  String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd) {
-    return '最大作业深度：$mod（氧分压 $ppO2）| 最大等效氮深：$mnd';
+  String get diveLog_cylinders_columnTank => '气瓶';
+
+  @override
+  String get diveLog_cylinders_columnGas => '气体';
+
+  @override
+  String get diveLog_cylinders_columnStart => '起始';
+
+  @override
+  String get diveLog_cylinders_columnEnd => '结束';
+
+  @override
+  String get diveLog_cylinders_columnUsed => '已用';
+
+  @override
+  String diveLog_cylinders_gasUsed(String amount) {
+    return '已用气体 $amount';
+  }
+
+  @override
+  String diveLog_cylinders_mod(String depth) {
+    return '最大作业深度 $depth';
+  }
+
+  @override
+  String diveLog_cylinders_mnd(String depth) {
+    return '最大等效氮深 $depth';
+  }
+
+  @override
+  String diveLog_cylinders_modNote(String ppO2) {
+    return '氧分压 $ppO2 时的最大作业深度';
   }
 
   @override

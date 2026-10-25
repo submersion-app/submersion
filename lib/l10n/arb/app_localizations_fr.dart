@@ -10083,13 +10083,43 @@ class AppLocalizationsFr extends AppLocalizations {
       'Régler pour calculer automatiquement He%';
 
   @override
-  String diveLog_tank_gasUsed(String amount) {
-    return '($amount utilisés)';
+  String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd) {
+    return 'PMU : $mod (ppO₂ $ppO2) | PNM : $mnd';
   }
 
   @override
-  String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd) {
-    return 'PMU : $mod (ppO₂ $ppO2) | PNM : $mnd';
+  String get diveLog_cylinders_columnTank => 'Bloc';
+
+  @override
+  String get diveLog_cylinders_columnGas => 'Gaz';
+
+  @override
+  String get diveLog_cylinders_columnStart => 'Début';
+
+  @override
+  String get diveLog_cylinders_columnEnd => 'Fin';
+
+  @override
+  String get diveLog_cylinders_columnUsed => 'Utilisé';
+
+  @override
+  String diveLog_cylinders_gasUsed(String amount) {
+    return 'Gaz utilisé $amount';
+  }
+
+  @override
+  String diveLog_cylinders_mod(String depth) {
+    return 'PMU $depth';
+  }
+
+  @override
+  String diveLog_cylinders_mnd(String depth) {
+    return 'PNM $depth';
+  }
+
+  @override
+  String diveLog_cylinders_modNote(String ppO2) {
+    return 'PMU à ppO₂ $ppO2';
   }
 
   @override
