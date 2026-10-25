@@ -282,4 +282,132 @@ void main() {
     );
     expect(twin?.id, 'g1');
   });
+
+  group('gearIdAvoiding (#3676)', () {
+    test('returns the first id when it was never deleted', () {
+      expect(gearIdAvoiding('a', 'c1', (_) => false), 'a');
+    });
+
+    test('skips a tombstoned id deterministically', () {
+      final second = nextGearRemintId('c1', 'a');
+      expect(second, isNot('a'));
+      expect(gearIdAvoiding('a', 'c1', (id) => id == 'a'), second);
+      expect(gearIdAvoiding('a', 'c1', (id) => id == 'a'), second);
+    });
+
+    test('follows the chain past two deletions', () {
+      final second = nextGearRemintId('c1', 'a');
+      final third = nextGearRemintId('c1', second);
+      expect(gearIdAvoiding('a', 'c1', {'a', second}.contains), third);
+    });
+
+    test('the chain is per device', () {
+      expect(nextGearRemintId('c1', 'a'), isNot(nextGearRemintId('c2', 'a')));
+    });
+  });
+
+  group('transmitter ids (#3676)', () {
+    test('the gear seed id is stable per diver and serial', () {
+      expect(
+        transmitterGearSeedId('d1', '4A21F'),
+        transmitterGearSeedId('d1', '4A21F'),
+      );
+      expect(
+        transmitterGearSeedId('d1', '4A21F'),
+        isNot(transmitterGearSeedId('d2', '4A21F')),
+      );
+    });
+
+    test('the auto row id differs from the gear id', () {
+      expect(
+        autoTransmitterRowId('d1', '4A21F'),
+        isNot(transmitterGearSeedId('d1', '4A21F')),
+      );
+    });
+  });
+
+  group('matchGearTwin serial fallback (#3676)', () {
+    final blankSerialTeric = candidate(
+      'g1',
+      diverId: 'd',
+      brand: 'Shearwater',
+      model: 'Teric',
+    );
+
+    test('a serial-bearing computer adopts the one same-model item with a '
+        'blank serial', () {
+      final match = matchGearTwin(
+        manufacturer: 'Shearwater',
+        model: 'Teric',
+        serialNumber: '1234',
+        diverId: 'd',
+        candidates: [blankSerialTeric],
+      );
+      expect(match?.id, 'g1');
+    });
+
+    test('an item with a different serial is never adopted', () {
+      final match = matchGearTwin(
+        manufacturer: 'Shearwater',
+        model: 'Teric',
+        serialNumber: '1234',
+        diverId: 'd',
+        candidates: [
+          candidate(
+            'g2',
+            diverId: 'd',
+            brand: 'Shearwater',
+            model: 'Teric',
+            serialNumber: '9999',
+          ),
+        ],
+      );
+      expect(match, isNull);
+    });
+
+    test('a serial match still wins over a blank-serial model match', () {
+      final match = matchGearTwin(
+        manufacturer: 'Shearwater',
+        model: 'Teric',
+        serialNumber: '1234',
+        diverId: 'd',
+        candidates: [
+          blankSerialTeric,
+          candidate(
+            'g3',
+            diverId: 'd',
+            brand: 'Shearwater',
+            model: 'Teric',
+            serialNumber: '1234',
+          ),
+        ],
+      );
+      expect(match?.id, 'g3');
+    });
+
+    test('two blank-serial same-model items are ambiguous', () {
+      final match = matchGearTwin(
+        manufacturer: 'Shearwater',
+        model: 'Teric',
+        serialNumber: '1234',
+        diverId: 'd',
+        candidates: [
+          blankSerialTeric,
+          candidate('g4', diverId: 'd', brand: 'Shearwater', model: 'Teric'),
+        ],
+      );
+      expect(match, isNull);
+    });
+
+    test('the fallback also reaches the combined-name tier', () {
+      final match = matchGearTwin(
+        manufacturer: null,
+        model: 'Shearwater Teric',
+        serialNumber: '1234',
+        diverId: 'd',
+        candidates: [blankSerialTeric],
+      );
+      expect(match?.id, 'g1');
+    });
+  });
 }
