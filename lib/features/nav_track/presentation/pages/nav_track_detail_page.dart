@@ -17,6 +17,8 @@ import 'package:submersion/features/maps/presentation/widgets/map_attribution.da
 import 'package:submersion/features/maps/presentation/widgets/map_corner_controls.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_interaction_options.dart';
 import 'package:submersion/features/maps/presentation/widgets/submersion_tile_layer.dart';
+import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
+import 'package:submersion/features/maps/presentation/widgets/world_copies.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_corrector.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_matcher.dart';
@@ -453,25 +455,33 @@ class _RouteMapState extends ConsumerState<_RouteMap> {
   Widget build(BuildContext context) {
     final camera = _camera;
     final anchor = widget.route.anchor!;
-    return FlutterMap(
-      mapController: _controller,
-      options: MapOptions(
-        initialCenter:
-            camera.center ?? LatLng(anchor.latitude, anchor.longitude),
-        initialZoom: camera.zoom ?? 15,
-        initialCameraFit: camera.fit,
-        interactionOptions: rotatableMapInteraction,
-      ),
-      children: [
-        submersionTileLayer(ref),
-        NavTrackPolylineLayer(route: widget.route),
-        const MapAttribution(),
-        Positioned(
-          top: 8,
-          right: 8,
-          child: MapCornerControls(controller: _controller),
+    // Wrapped so a two-finger trackpad gesture zooms it, and given the zoom
+    // range and pole stop every other map has (#3664).
+    return TrackpadZoomMap(
+      controller: _controller,
+      child: FlutterMap(
+        mapController: _controller,
+        options: MapOptions(
+          initialCenter:
+              camera.center ?? LatLng(anchor.latitude, anchor.longitude),
+          initialZoom: camera.zoom ?? 15,
+          initialCameraFit: camera.fit,
+          minZoom: 2.0,
+          maxZoom: 18.0,
+          interactionOptions: rotatableMapInteraction,
+          cameraConstraint: worldMapCameraConstraint,
         ),
-      ],
+        children: [
+          submersionTileLayer(ref),
+          NavTrackPolylineLayer(route: widget.route),
+          const MapAttribution(),
+          Positioned(
+            top: 8,
+            right: 8,
+            child: MapCornerControls(controller: _controller),
+          ),
+        ],
+      ),
     );
   }
 }

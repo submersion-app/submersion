@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:submersion/features/gps_log/data/repositories/track_geometry_cache_repository.dart';
 import 'package:submersion/features/gps_log/domain/entities/gps_track.dart';
 import 'package:submersion/features/gps_log/presentation/providers/gps_track_map_providers.dart';
@@ -15,6 +16,7 @@ import 'package:submersion/features/tracks/presentation/widgets/tracks_overview_
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/world_map_expectations.dart';
 
 GpsTrackPoint _p(int t, double base) => GpsTrackPoint(
   timestamp: t,
@@ -241,5 +243,25 @@ void main() {
         expect(controller.camera.center.longitude, closeTo(8.0, 0.01));
       },
     );
+  });
+
+  testWidgets('zooms and scrolls like the other maps (#3664)', (tester) async {
+    final controller = await _pump(
+      tester,
+      items: [GpsTrackItem(_gps('t1', 20))],
+    );
+    expectZoomsAndScrollsLikeOtherMaps(tester);
+
+    // The limits hold on the live camera, not only in the options: zooming
+    // past either end stops at it, and dragging north stops at the pole.
+    controller.move(const LatLng(20, -87), 0.5);
+    await tester.pump();
+    expect(controller.camera.zoom, 2.0);
+    controller.move(const LatLng(20, -87), 21);
+    await tester.pump();
+    expect(controller.camera.zoom, 18.0);
+    controller.move(const LatLng(89, -87), 2);
+    await tester.pump();
+    expect(controller.camera.center.latitude, lessThan(80));
   });
 }
