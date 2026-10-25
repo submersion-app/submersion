@@ -67,7 +67,9 @@ class DetailRow extends StatelessWidget {
   static const double maxLabelShare = 0.4;
 
   /// The field name. An empty label leaves the cell blank, so the value of
-  /// a continuation row lines up under the value above it.
+  /// a continuation row lines up under the value above it. A group whose
+  /// rows have no label at all has no gap either, so its values start at
+  /// the edge.
   final String label;
   final Widget value;
 

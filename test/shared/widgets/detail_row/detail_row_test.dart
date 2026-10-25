@@ -113,6 +113,17 @@ void main() {
     expect(left(tester, 'Nitrox'), left(tester, 'Open Water'));
   });
 
+  testWidgets('rows with no label at all start at the edge, with no gap', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      DetailRowGroup(child: DetailRow.text(label: '', value: 'Served')),
+    );
+
+    expect(left(tester, 'Served'), 0);
+  });
+
   testWidgets('long value wraps inside the value column', (tester) async {
     const value =
         'Long hose right post, bungeed necklace on the left, and a spare';

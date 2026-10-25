@@ -140,6 +140,10 @@ class RenderDetailRow extends RenderBox
     super.detach();
   }
 
+  /// The gap after a label column [column] wide: none when no row of the
+  /// group has a label, so label-less rows start at the edge.
+  double _gapAfter(double column) => column > 0 ? _gap : 0;
+
   /// The label column's width in a row [width] wide.
   double _columnWidth(double width) {
     final natural = math.max(_ownLabelWidth, _column?.width ?? 0);
@@ -153,14 +157,15 @@ class RenderDetailRow extends RenderBox
     final label = _label!;
     final value = _value!;
     final column = _columnWidth(constraints.maxWidth);
+    final gap = _gapAfter(column);
     final labelSize = layoutChild(label, BoxConstraints(maxWidth: column));
     final valueMax = constraints.maxWidth.isFinite
-        ? math.max(0.0, constraints.maxWidth - column - _gap)
+        ? math.max(0.0, constraints.maxWidth - column - gap)
         : double.infinity;
     final valueSize = layoutChild(value, BoxConstraints(maxWidth: valueMax));
     final width = constraints.maxWidth.isFinite
         ? constraints.maxWidth
-        : column + _gap + valueSize.width;
+        : column + gap + valueSize.width;
     final size = constraints.constrain(
       Size(width, math.max(labelSize.height, valueSize.height)),
     );
@@ -180,7 +185,7 @@ class RenderDetailRow extends RenderBox
     size = layout.size;
     final labelData = _label!.parentData! as BoxParentData;
     final valueData = _value!.parentData! as BoxParentData;
-    final valueStart = layout.column + _gap;
+    final valueStart = layout.column + _gapAfter(layout.column);
     switch (_textDirection) {
       case TextDirection.ltr:
         labelData.offset = Offset.zero;
@@ -201,10 +206,10 @@ class RenderDetailRow extends RenderBox
       _value!.getMinIntrinsicWidth(height);
 
   @override
-  double computeMaxIntrinsicWidth(double height) =>
-      _columnWidth(double.infinity) +
-      _gap +
-      _value!.getMaxIntrinsicWidth(height);
+  double computeMaxIntrinsicWidth(double height) {
+    final column = _columnWidth(double.infinity);
+    return column + _gapAfter(column) + _value!.getMaxIntrinsicWidth(height);
+  }
 
   double _intrinsicHeight(
     double width,
@@ -212,7 +217,7 @@ class RenderDetailRow extends RenderBox
   ) {
     final column = _columnWidth(width);
     final valueWidth = width.isFinite
-        ? math.max(0.0, width - column - _gap)
+        ? math.max(0.0, width - column - _gapAfter(column))
         : double.infinity;
     return math.max(
       childHeight(_label!, column),
