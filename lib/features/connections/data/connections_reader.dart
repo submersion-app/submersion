@@ -68,6 +68,7 @@ class ConnectionsReader {
     String? labelLike,
     int? limit,
     bool byRank = false,
+    ConnectionKind? sharedWith,
   }) async {
     final q = buildNodeSql(
       kind: kind,
@@ -77,6 +78,7 @@ class ConnectionsReader {
       labelLike: labelLike,
       limit: limit,
       byRank: byRank,
+      sharedWith: sharedWith,
     );
     final rows = await _db
         .customSelect(q.sql, variables: q.params.map(Variable.new).toList())
@@ -113,8 +115,14 @@ class ConnectionsReader {
     ConnectionKind kind, {
     required String? diverId,
     required DiveFilterState filter,
+    ConnectionKind? sharedWith,
   }) async {
-    final q = buildNodeCountSql(kind: kind, diverId: diverId, filter: filter);
+    final q = buildNodeCountSql(
+      kind: kind,
+      diverId: diverId,
+      filter: filter,
+      sharedWith: sharedWith,
+    );
     final row = await _db
         .customSelect(q.sql, variables: q.params.map(Variable.new).toList())
         .getSingle();

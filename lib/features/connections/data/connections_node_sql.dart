@@ -39,7 +39,9 @@ KindTable kindTable(ConnectionKind kind) => switch (kind) {
 };
 
 /// Every entity of [kind] with at least one dive in scope, with its own
-/// distinct dive count and the columns its subtitle needs.
+/// distinct dive count and the columns its subtitle needs. With
+/// [sharedWith], only dives that also have an entity of that kind count,
+/// so an entity seen only without one is left out.
 ///
 /// Rows come by dive count, then label. With [byRank] they come by dive
 /// count, then id: the order the node budget ranks in (see
@@ -52,8 +54,9 @@ KindTable kindTable(ConnectionKind kind) => switch (kind) {
   String? labelLike,
   int? limit,
   bool byRank = false,
+  ConnectionKind? sharedWith,
 }) {
-  final extraWhere = <String>[];
+  final extraWhere = <String>[?sharedWithClause(sharedWith)];
   final extraParams = <Object?>[];
   if (onlyIds != null) {
     final ids = onlyIds.toList();
@@ -90,14 +93,23 @@ ORDER BY c.dive_count DESC, ${byRank ? 't.id' : 'label'} ASC$limitClause''';
   return (sql: sql, params: [...params, ?labelLike, ?limit]);
 }
 
+/// The clause keeping only dives `d` that also have an entity of [kind];
+/// null when [kind] is null.
+String? sharedWithClause(ConnectionKind? kind) => kind == null
+    ? null
+    : 'EXISTS (SELECT 1 FROM (${membershipSql(kind)}) sw '
+          'WHERE sw.dive_id = d.id)';
+
 /// How many entities of [kind] have at least one dive in scope: the row
 /// count [buildNodeSql] would return with no limit.
 ({String sql, List<Object?> params}) buildNodeCountSql({
   required ConnectionKind kind,
   required String? diverId,
   required DiveFilterState filter,
+  ConnectionKind? sharedWith,
 }) {
   final scope = diveScopeSql(diverId: diverId, filter: filter);
+  final where = [...scope.clauses, ?sharedWithClause(sharedWith)];
   final t = kindTable(kind);
   final sql =
       '''
@@ -106,7 +118,7 @@ FROM (
   SELECT DISTINCT m.entity_id
   FROM (${membershipSql(kind)}) m
   JOIN dives d ON d.id = m.dive_id
-  WHERE ${scope.clauses.join(' AND ')}
+  WHERE ${where.join(' AND ')}
 ) c
 JOIN ${t.table} t ON t.id = c.entity_id''';
   return (sql: sql, params: scope.params);

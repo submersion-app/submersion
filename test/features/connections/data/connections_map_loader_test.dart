@@ -16,6 +16,25 @@ final _buddyMap = MapSpec.of(
   {KindLink(ConnectionKind.buddy, ConnectionKind.buddy)},
 );
 
+final _whereMap = MapSpec.of(
+  {ConnectionKind.buddy, ConnectionKind.site},
+  {KindLink(ConnectionKind.buddy, ConnectionKind.site)},
+);
+
+const _sitesNeedABuddy = {ConnectionKind.site: ConnectionKind.buddy};
+
+Future<ConnectionGraph> _loadWhere(
+  ConnectionsReader reader, {
+  Map<ConnectionKind, ConnectionKind> sharedWith = const {},
+  int budget = 80,
+}) => MapLoader(reader).load(
+  _whereMap,
+  diverId: 'me',
+  filter: const DiveFilterState(),
+  nodeBudget: budget,
+  sharedWith: sharedWith,
+);
+
 Future<ConnectionGraph> _load(ConnectionsReader reader, int budget) =>
     MapLoader(reader).load(
       _buddyMap,
@@ -79,5 +98,60 @@ void main() {
       whole.trimmed(4).nodes.map((n) => n.ref).toSet(),
     );
     expect(shown.hiddenNodeCount, 17, reason: '21 buddies, 4 shown');
+  });
+
+  group('sharedWith', () {
+    test('keeps only sites dived with a buddy, counting those dives', () async {
+      final d = DatabaseService.instance.database;
+      await seedSites(d);
+      final g = await _loadWhere(
+        ConnectionsReader(d),
+        sharedWith: _sitesNeedABuddy,
+      );
+      expect(g.nodes.map((n) => n.ref.id).toSet(), {'b', 's1', 's2'});
+      final s1 = g.nodes.firstWhere((n) => n.ref.id == 's1');
+      expect(s1.diveCount, 1, reason: 'the solo dive at s1 is not shared');
+      expect(g.edges, hasLength(2));
+      expect(g.hiddenNodeCount, 0);
+    });
+
+    test('without it the solo site stays as an island', () async {
+      final d = DatabaseService.instance.database;
+      await seedSites(d);
+      final g = await _loadWhere(ConnectionsReader(d));
+      expect(g.nodes.map((n) => n.ref.id), contains('s3'));
+      expect(g.nodes.firstWhere((n) => n.ref.id == 's1').diveCount, 2);
+    });
+
+    test('a log with no buddies gives an empty map', () async {
+      final d = DatabaseService.instance.database;
+      await seedSites(d, withBuddy: false);
+      final g = await _loadWhere(
+        ConnectionsReader(d),
+        sharedWith: _sitesNeedABuddy,
+      );
+      expect(g.isEmpty, isTrue);
+    });
+
+    test('the hidden count counts only shared sites', () async {
+      final d = DatabaseService.instance.database;
+      await seedSites(d);
+      final reader = ConnectionsReader(d);
+      expect(
+        await reader.nodeCount(
+          ConnectionKind.site,
+          diverId: 'me',
+          filter: const DiveFilterState(),
+          sharedWith: ConnectionKind.buddy,
+        ),
+        2,
+      );
+      final g = await _loadWhere(
+        reader,
+        sharedWith: _sitesNeedABuddy,
+        budget: 1,
+      );
+      expect(g.nodes.length + g.hiddenNodeCount, 3);
+    });
   });
 }
