@@ -16,6 +16,7 @@ class FakeMediaStoreReconnect implements MediaStoreReconnect {
   int detachCalls = 0;
   bool createsNewStore = false;
   Object? reconnectFailure;
+  Object? detachFailure;
 
   /// When set, [reconnect] waits for it before answering.
   Completer<void>? gate;
@@ -45,5 +46,8 @@ class FakeMediaStoreReconnect implements MediaStoreReconnect {
   }
 
   @override
-  Future<void> detach() async => detachCalls++;
+  Future<void> detach() async {
+    detachCalls++;
+    if (detachFailure case final f?) throw f;
+  }
 }

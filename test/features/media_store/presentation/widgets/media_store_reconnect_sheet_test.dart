@@ -14,10 +14,16 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/fake_media_store_reconnect.dart';
 
-Widget _host(FakeMediaStoreReconnect fake) => ProviderScope(
+Widget _host(
+  FakeMediaStoreReconnect fake, {
+  bool openPhotosPage = true,
+  bool runtimeFails = false,
+}) => ProviderScope(
   overrides: [
     mediaStoreReconnectProvider.overrideWithValue(fake),
-    mediaStoreRuntimeProvider.overrideWith((ref) async => null),
+    mediaStoreRuntimeProvider.overrideWith(
+      (ref) async => runtimeFails ? throw StateError('no runtime') : null,
+    ),
     photosCopiesProvider.overrideWith(
       (ref) async =>
           (attached: true, store: null, group: null, label: 'Dropbox'),
@@ -30,8 +36,11 @@ Widget _host(FakeMediaStoreReconnect fake) => ProviderScope(
     home: Scaffold(
       body: Builder(
         builder: (context) => TextButton(
-          onPressed: () =>
-              showMediaStoreReconnectSheet(context, account: 'Dropbox'),
+          onPressed: () => showMediaStoreReconnectSheet(
+            context,
+            account: 'Dropbox',
+            openPhotosPage: openPhotosPage,
+          ),
           child: const Text('open'),
         ),
       ),
@@ -41,10 +50,14 @@ Widget _host(FakeMediaStoreReconnect fake) => ProviderScope(
 
 Future<FakeMediaStoreReconnect> _open(
   WidgetTester tester,
-  List<MediaStoreReconnectSituation> situations,
-) async {
+  List<MediaStoreReconnectSituation> situations, {
+  bool openPhotosPage = true,
+  bool runtimeFails = false,
+}) async {
   final fake = FakeMediaStoreReconnect(situations);
-  await tester.pumpWidget(_host(fake));
+  await tester.pumpWidget(
+    _host(fake, openPhotosPage: openPhotosPage, runtimeFails: runtimeFails),
+  );
   await tester.tap(find.text('open'));
   await tester.pumpAndSettle();
   return fake;
@@ -260,6 +273,46 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(fake.reconnectCalls, 1);
+    expect(find.text('open'), findsOneWidget);
+  });
+
+  testWidgets('a refused detach says why and keeps the choices', (
+    tester,
+  ) async {
+    final fake = await _open(tester, const [ReconnectNoMarker()]);
+    fake.detachFailure = StateError('keychain locked');
+
+    await tester.tap(find.byKey(const Key('reconnect-detach')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Bad state: keychain locked'), findsOneWidget);
+    expect(find.byKey(const Key('reconnect-detach')), findsOneWidget);
+  });
+
+  // The queue is woken after a match; a runtime that cannot be built is
+  // logged, not thrown into the zone.
+  testWidgets('a match whose runtime cannot be built still reads whole', (
+    tester,
+  ) async {
+    await _open(tester, const [ReconnectResolved()], runtimeFails: true);
+
+    expect(find.byKey(const Key('reconnect-close')), findsOneWidget);
+  });
+
+  // From Photos & videos itself, choosing the account again just closes:
+  // the diver is already where the account is chosen.
+  testWidgets('choosing the account again from its own page only closes', (
+    tester,
+  ) async {
+    await _open(tester, const [
+      ReconnectNeedsAccount(heldOnlyInCloud: 2),
+    ], openPhotosPage: false);
+
+    expect(find.byKey(const Key('reconnect-held-only')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('reconnect-choose-account')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('reconnect-choose-account')), findsNothing);
     expect(find.text('open'), findsOneWidget);
   });
 
