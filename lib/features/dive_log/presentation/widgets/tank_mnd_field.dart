@@ -65,7 +65,9 @@ class _TankMndFieldState extends State<TankMndField> {
   void didUpdateWidget(covariant TankMndField oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (_drivenMix != null && widget.gas != _drivenMix) _drivenMix = null;
-    if (!_focus.hasFocus && _drivenMix == null) {
+    if (!_focus.hasFocus &&
+        _drivenMix == null &&
+        _controller.text != _expectedText()) {
       // After the frame: the field is a form field, and a controller change
       // now would mark the enclosing Form dirty in the middle of its build.
       WidgetsBinding.instance.addPostFrameCallback((_) {
