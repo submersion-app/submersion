@@ -62,10 +62,15 @@ const _loaderLog = LoggerService('DefaultTankPresetForDownloads');
 /// empty or the active diver reads the live settings, and another diver reads
 /// their saved settings (the defaults when they have none, and no preset when
 /// they cannot be read: a download must not fail over a cylinder default).
+///
+/// [ignoreImportOptIn] resolves the preset whatever the opt-in says: a
+/// re-parse uses it to recognise a cylinder an earlier download filled from
+/// the preset (issue #3668).
 @visibleForTesting
 Future<TankPresetEntity?> loadDefaultTankPresetForDownloads(
   Ref ref, {
   String? diverId,
+  bool ignoreImportOptIn = false,
 }) async {
   final otherDiver = _isOtherDiver(ref, diverId);
   final settings = await _importSettingsFor(
@@ -73,7 +78,8 @@ Future<TankPresetEntity?> loadDefaultTankPresetForDownloads(
     diverId,
     fallbackNote: 'importing without a default tank',
   );
-  if (settings == null || !settings.applyDefaultTankToImports) return null;
+  if (settings == null) return null;
+  if (!ignoreImportOptIn && !settings.applyDefaultTankToImports) return null;
   final resolver = DefaultTankPresetResolver(
     repository: ref.read(tankPresetRepositoryProvider),
   );
@@ -87,6 +93,12 @@ Future<TankPresetEntity?> loadDefaultTankPresetForDownloads(
         : await ref.read(validatedCurrentDiverIdProvider.future),
   );
 }
+
+/// The active diver's default tank preset whatever the import opt-in says, for
+/// a re-parse to recognise a cylinder an earlier download filled from it
+/// (issue #3668).
+Future<TankPresetEntity?> loadDefaultTankPresetForCleanup(Ref ref) =>
+    loadDefaultTankPresetForDownloads(ref, ignoreImportOptIn: true);
 
 /// Whether a rebreather download leaves out unused open-circuit gases (issue
 /// #3668), from the settings of the diver the dives are imported for, read the

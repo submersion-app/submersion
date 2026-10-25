@@ -31,9 +31,11 @@ import 'package:submersion/features/dive_computer/data/services/parsed_tank_reso
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 import 'package:submersion/features/dive_computer/data/services/dive_parser.dart';
 import 'package:submersion/features/dive_computer/data/services/transmitter_registry_matcher.dart';
+import 'package:submersion/features/dive_computer/data/services/unused_oc_gas_cleanup.dart';
 import 'package:submersion/features/dive_log/domain/services/tank_pressure_series.dart';
 import 'package:submersion/features/dive_computer/data/services/libdc_sample_units.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
+import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
 
 /// Service responsible for applying re-parsed dive computer data back to the
 /// database while respecting the computer-authored vs user-authored field
@@ -55,13 +57,27 @@ class ReparseService {
   /// saved a moment ago applies. Null (or a failing load) means no mapping.
   final TransmitterMatcherLoader? _transmitterMatcherLoader;
 
+  /// The diver's switch for leaving out open-circuit gases no transmitter
+  /// read and the diver never breathed (issue #3668). Re-parse is how an
+  /// already-imported dive sheds them, so it agrees with the download path.
+  final bool omitUnusedOcGases;
+
+  /// The diver's default tank preset, whatever the import opt-in says, so a
+  /// cylinder the pre-v1.8.1 importer filled from it is recognised as the
+  /// importer's and not the diver's (issue #3668). Null, or a failing load,
+  /// means no preset: such a cylinder then counts as edited and is kept.
+  final Future<TankPresetEntity?> Function()? _cleanupTankPresetLoader;
+
   ReparseService({
     required this.db,
     this.trimTankPressureAtSurfacing = true,
+    this.omitUnusedOcGases = false,
+    Future<TankPresetEntity?> Function()? cleanupTankPresetLoader,
     TransmitterMatcherLoader? transmitterMatcherLoader,
     ProfileSeriesRepository? profileSeries,
     TankPressureSeriesRepository? tankSeries,
   }) : _transmitterMatcherLoader = transmitterMatcherLoader,
+       _cleanupTankPresetLoader = cleanupTankPresetLoader,
        _sync = SyncRepository(database: db),
        _profileSeries =
            profileSeries ??
@@ -87,6 +103,16 @@ class ReparseService {
       return await loader();
     } catch (_) {
       return const TransmitterMatcher.empty();
+    }
+  }
+
+  Future<TankPresetEntity?> _loadCleanupTankPreset() async {
+    final loader = _cleanupTankPresetLoader;
+    if (loader == null) return null;
+    try {
+      return await loader();
+    } catch (_) {
+      return null;
     }
   }
 
@@ -966,10 +992,19 @@ class ReparseService {
       },
     );
 
+    // With the diver's switch on, the cylinders of unused open-circuit gases
+    // go, after the claim has seen them (issue #3668). Only a stored row that
+    // is that gas's own (its source index names it) is the gas; a row the
+    // diver added in the editor reaches the same index only through the
+    // order fallback and is left alone, as is one the diver edited.
+    final unused = omitUnusedOcGases
+        ? await _dropUnusedOcGases(claim.tanks, matches)
+        : (tanks: claim.tanks, dropped: const <int>{});
+
     // Claimed cylinders are gone from [claim.tanks]; a role overlaid above
     // is only on rows whose role this loop leaves alone.
     final newTankOrders = <int>{};
-    for (final tank in claim.tanks) {
+    for (final tank in unused.tanks) {
       newTankOrders.add(tank.index);
       final existing = matches[tank.index];
       if (existing != null) {
@@ -1064,6 +1099,16 @@ class ReparseService {
     // even though this parse matched it. A row the parse did not match keeps
     // the pre-v200 rule: its order still counts as taken.
     newTankOrders.addAll(claim.remappedIndices.keys);
+    // A row sitting at a dropped gas's order is never caught by the pre-v200
+    // rule below; the gas's own rows are deleted here instead, since they
+    // were matched and the loop below skips matched rows.
+    newTankOrders.addAll(unused.dropped);
+    for (final index in unused.dropped) {
+      final row = matches[index];
+      if (row == null || row.sourceTankIndex != index) continue;
+      await (db.delete(db.diveTanks)..where((t) => t.id.equals(row.id))).go();
+      await _sync.logDeletion(entityType: 'diveTanks', recordId: row.id);
+    }
     final claimedIds = {
       for (final index in claim.remappedIndices.keys)
         if (matches[index] != null) matches[index]!.id,
@@ -1086,6 +1131,27 @@ class ReparseService {
     }
 
     return tankIdsByIndex;
+  }
+
+  /// [tanks] without the unused open-circuit gases (issue #3668), keeping any
+  /// whose own stored row the diver edited.
+  Future<UnusedOcGasDrop> _dropUnusedOcGases(
+    List<TankData> tanks,
+    Map<int, DiveTank> matches,
+  ) async {
+    if (!tanks.any((t) => t.unusedOcGas)) {
+      return (tanks: tanks, dropped: const <int>{});
+    }
+    final preset = await _loadCleanupTankPreset();
+    final keep = <int>{
+      for (final tank in tanks)
+        if (tank.unusedOcGas)
+          if (matches[tank.index] case final row?
+              when row.sourceTankIndex == tank.index &&
+                  unusedOcGasEditedByDiver(row, tank, defaultPreset: preset))
+            tank.index,
+    };
+    return dropUnusedOcGases(tanks, keep: keep);
   }
 
   /// A stored cylinder that carries something only the diver adds, or a mix
