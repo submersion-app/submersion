@@ -60,13 +60,22 @@ class NavTrack3dSceneData {
       depths: [for (final p in active) p.depth],
       temperatures: [for (final p in active) p.temperature],
       speeds: [for (final p in active) p.speed],
-      batteryVolts: [for (final p in active) p.batteryVolts],
+      batteryVolts: [for (final p in active) _plausibleBattery(p.batteryVolts)],
       durationSeconds: active.isEmpty
           ? 0
           : (active.last.timestamp - startTimestamp).toDouble(),
       maxDepthMeters: maxDepth,
     );
   }
+
+  /// Treats an exact 0.00V reading as a missing sample rather than a real
+  /// voltage: a brand-new recording's very first sample can read 0V before
+  /// the device's battery sensor has settled -- confirmed against a real
+  /// Seacraft ENC log (018.DAT.csv), the same artifact the detail page's
+  /// `_firstBattery`/`_lastBattery` already skip for the summary line.
+  /// Filtering every sample here, not just the first/last, keeps the
+  /// color ramp, Z axis, and readout consistent with that summary.
+  static double? _plausibleBattery(double? volts) => volts == 0 ? null : volts;
 
   bool get hasProfile => times.length >= 2;
 
@@ -80,6 +89,18 @@ class NavTrack3dSceneData {
     if (_any(temperatures)) TrackSceneMetric.temperature,
     if (_any(speeds)) TrackSceneMetric.speed,
     if (_any(batteryVolts)) TrackSceneMetric.batteryVoltage,
+  };
+
+  int _finiteCount(List<double?> series) =>
+      series.where((v) => v != null && v.isFinite).length;
+
+  /// Metrics that can drive the Z axis: at least two finite samples so a
+  /// path exists between them. Depth is the Y axis and never offered,
+  /// mirroring `Dive3dSceneData.zAxisMetrics`.
+  Set<TrackSceneMetric> get zAxisMetrics => {
+    if (_finiteCount(temperatures) >= 2) TrackSceneMetric.temperature,
+    if (_finiteCount(speeds) >= 2) TrackSceneMetric.speed,
+    if (_finiteCount(batteryVolts) >= 2) TrackSceneMetric.batteryVoltage,
   };
 
   List<double?> seriesFor(TrackSceneMetric metric) => switch (metric) {

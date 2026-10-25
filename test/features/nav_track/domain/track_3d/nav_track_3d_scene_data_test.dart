@@ -91,6 +91,19 @@ void main() {
       expect(data.hasProfile, isFalse);
     });
 
+    test('an exact 0.00V battery sample is treated as missing, not a real '
+        'reading (sensor not settled yet, same artifact the detail page '
+        'skips in its summary line)', () {
+      final data = NavTrack3dSceneData.fromRoute(
+        _route([
+          _p(timestamp: 0, batteryVolts: 0),
+          _p(timestamp: 10, batteryVolts: 3.9),
+          _p(timestamp: 20, batteryVolts: 3.8),
+        ]),
+      );
+      expect(data.batteryVolts, [null, 3.9, 3.8]);
+    });
+
     group('availableMetrics', () {
       test('depth is always available', () {
         final data = NavTrack3dSceneData.fromRoute(
@@ -110,6 +123,41 @@ void main() {
         );
         expect(
           data.availableMetrics,
+          isNot(contains(TrackSceneMetric.batteryVoltage)),
+        );
+      });
+    });
+
+    group('zAxisMetrics', () {
+      test('depth is never offered -- it is already the Y axis', () {
+        final data = NavTrack3dSceneData.fromRoute(
+          _route([_p(timestamp: 0, speed: 1.0), _p(timestamp: 10, speed: 1.2)]),
+        );
+        expect(data.zAxisMetrics, isNot(contains(TrackSceneMetric.depth)));
+      });
+
+      test('a metric with only one finite sample is not offered -- no path '
+          'to draw', () {
+        final data = NavTrack3dSceneData.fromRoute(
+          _route([
+            _p(timestamp: 0, speed: 1.0),
+            _p(timestamp: 10, speed: null),
+          ]),
+        );
+        expect(data.zAxisMetrics, isNot(contains(TrackSceneMetric.speed)));
+      });
+
+      test('a metric with two or more finite samples is offered', () {
+        final data = NavTrack3dSceneData.fromRoute(
+          _route([
+            _p(timestamp: 0, speed: 1.0, temperature: 20),
+            _p(timestamp: 10, speed: 1.2, temperature: 18),
+          ]),
+        );
+        expect(data.zAxisMetrics, contains(TrackSceneMetric.speed));
+        expect(data.zAxisMetrics, contains(TrackSceneMetric.temperature));
+        expect(
+          data.zAxisMetrics,
           isNot(contains(TrackSceneMetric.batteryVoltage)),
         );
       });

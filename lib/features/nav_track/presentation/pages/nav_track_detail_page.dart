@@ -277,13 +277,6 @@ class NavTrackDetailPage extends ConsumerWidget {
                     context.push(underwaterTrackAlignLocation(route.id)),
               ),
               IconButton(
-                key: const ValueKey('nav-track-open-3d'),
-                icon: const Icon(Icons.terrain),
-                tooltip: l10n.navTrack_common_open3dTooltip,
-                onPressed: () =>
-                    context.push(underwaterTrackSeascapeLocation(route.id)),
-              ),
-              IconButton(
                 key: const ValueKey('nav-track-open-3d-preview'),
                 icon: const Icon(Icons.view_in_ar),
                 tooltip: l10n.navTrack3d_previewTitle,
@@ -292,6 +285,13 @@ class NavTrackDetailPage extends ConsumerWidget {
                     builder: (_) => NavTrack3dPage(trackId: route.id),
                   ),
                 ),
+              ),
+              IconButton(
+                key: const ValueKey('nav-track-open-3d'),
+                icon: const Icon(Icons.terrain),
+                tooltip: l10n.navTrack_common_open3dTooltip,
+                onPressed: () =>
+                    context.push(underwaterTrackSeascapeLocation(route.id)),
               ),
               PopupMenuButton<String>(
                 onSelected: (value) async {

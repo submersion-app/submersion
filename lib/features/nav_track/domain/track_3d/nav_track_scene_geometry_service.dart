@@ -2,27 +2,32 @@ import 'package:submersion/features/dive_log/presentation/widgets/profile_decima
 import 'package:submersion/features/dive_3d/domain/geometry/path_builder.dart';
 import 'package:submersion/features/dive_3d/domain/geometry/ribbon_builder.dart';
 import 'package:submersion/features/dive_3d/domain/geometry/scene_bounds.dart';
+import 'package:submersion/features/dive_3d/domain/geometry/z_series.dart';
 import 'package:submersion/features/dive_3d/domain/scene_3d.dart';
 import 'package:submersion/features/nav_track/domain/track_3d/nav_track_3d_scene_data.dart';
 import 'package:submersion/features/nav_track/domain/track_3d/track_scene_metric.dart';
+import 'package:submersion/features/nav_track/domain/track_3d/track_z_axis_input.dart';
 
 /// Pure, synchronous assembly of the single-track path scene. Isolate-
 /// friendly like its `dive_3d` counterpart (`SceneGeometryService`):
-/// callers wrap it in `compute()`. X = run time, Y = depth, Z stays flat
-/// at 0 everywhere -- a track has nothing worth putting on a third axis,
-/// which is also `SceneGeometryService`'s own default whenever no Z
-/// metric is picked (`Dive3dPage`'s own starting state).
+/// callers wrap it in `compute()`. X = run time, Y = depth, Z = the metric
+/// in [zAxis] (flat at 0 when null or when the series has too few samples
+/// to form a path -- `SceneGeometryService`'s own default too).
 ///
 /// Modeled on `SceneGeometryService.build`, with the dive-only pieces
 /// dropped: no strata (temperature-binned tissue bands), no shadows or
-/// ceiling (both deco-model concepts), no Z-axis metric, no markers (see
-/// the design spec's Out of scope).
+/// ceiling (both deco-model concepts), no markers (see the design spec's
+/// Out of scope).
 class NavTrackSceneGeometryService {
   static const int targetPoints = 2000;
 
   const NavTrackSceneGeometryService();
 
-  Scene3d build(NavTrack3dSceneData data, TrackSceneMetric colorMetric) {
+  Scene3d build(
+    NavTrack3dSceneData data,
+    TrackSceneMetric colorMetric, {
+    TrackZAxisInput? zAxis,
+  }) {
     final bounds = SceneBounds(
       durationSeconds: data.durationSeconds,
       maxDepthMeters: data.maxDepthMeters,
@@ -42,7 +47,14 @@ class NavTrackSceneGeometryService {
       for (final i in indices) data.seriesFor(colorMetric)[i],
     ];
     final sampleColors = TrackMetricPalette.colorsFor(colorValues);
-    final zs = List<double>.filled(times.length, 0);
+
+    final zValues = zAxis == null
+        ? null
+        : resampleZSeries(values: zAxis.values, indices: indices);
+    final hasZ = zAxis != null && zValues != null;
+    final zs = hasZ
+        ? [for (final v in zValues) zAxis.spec.zOf(v)]
+        : List<double>.filled(times.length, 0);
 
     final layers = [
       SceneLayer(

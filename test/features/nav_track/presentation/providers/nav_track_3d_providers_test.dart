@@ -70,7 +70,11 @@ void main() {
     test('is null for a profileless route', () async {
       final container = _makeContainer(_route([_p(0, 5)]));
       final scene = await container.read(
-        navTrack3dGeometryProvider(('r1', TrackSceneMetric.depth)).future,
+        navTrack3dGeometryProvider((
+          trackId: 'r1',
+          colorMetric: TrackSceneMetric.depth,
+          zMetric: null,
+        )).future,
       );
       expect(scene, isNull);
     });
@@ -84,10 +88,32 @@ void main() {
         ]),
       );
       final scene = await container.read(
-        navTrack3dGeometryProvider(('r1', TrackSceneMetric.speed)).future,
+        navTrack3dGeometryProvider((
+          trackId: 'r1',
+          colorMetric: TrackSceneMetric.speed,
+          zMetric: null,
+        )).future,
       );
       expect(scene, isNotNull);
       expect(scene!.layers, hasLength(2));
+    });
+
+    test('a Z metric moves the scrub path off the flat plane', () async {
+      final container = _makeContainer(
+        _route([
+          _p(0, 0, speed: 1.0),
+          _p(10, 5, speed: 1.2),
+          _p(20, 10, speed: 0.9),
+        ]),
+      );
+      final scene = await container.read(
+        navTrack3dGeometryProvider((
+          trackId: 'r1',
+          colorMetric: TrackSceneMetric.depth,
+          zMetric: TrackSceneMetric.speed,
+        )).future,
+      );
+      expect(scene!.scrubPath!.zs, isNot(everyElement(0)));
     });
   });
 }

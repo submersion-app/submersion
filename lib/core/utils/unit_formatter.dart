@@ -598,13 +598,19 @@ class UnitFormatter {
   /// convention for a GPS surface track's boat speed. Reuses [DepthUnit]'s
   /// own meters<->feet conversion rather than adding a third one.
   String formatTrackSpeed(double metersPerSecond, {int decimals = 1}) {
-    final metersPerMinute = metersPerSecond * 60;
-    final converted = DepthUnit.meters.convert(
-      metersPerMinute,
-      settings.depthUnit,
-    );
-    return '${formatFixedForDisplay(converted, decimals)} ${settings.depthUnit.symbol}/min';
+    final converted = convertTrackSpeed(metersPerSecond);
+    return '${formatFixedForDisplay(converted, decimals)} $trackSpeedSymbol';
   }
+
+  /// [formatTrackSpeed]'s unit conversion without the string formatting,
+  /// for callers (the track 3D Z axis) that need the numeric value.
+  double convertTrackSpeed(double metersPerSecond) {
+    final metersPerMinute = metersPerSecond * 60;
+    return DepthUnit.meters.convert(metersPerMinute, settings.depthUnit);
+  }
+
+  /// [formatTrackSpeed]'s unit symbol on its own.
+  String get trackSpeedSymbol => '${settings.depthUnit.symbol}/min';
 
   // ============================================================================
   // Date/Time Formatting

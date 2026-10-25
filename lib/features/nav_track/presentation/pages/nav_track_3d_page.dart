@@ -10,6 +10,7 @@ import 'package:submersion/features/dive_3d/presentation/widgets/dive_3d_interac
 import 'package:submersion/features/dive_3d/presentation/widgets/time_scrub_bar.dart';
 import 'package:submersion/features/nav_track/domain/track_3d/nav_track_3d_scene_data.dart';
 import 'package:submersion/features/nav_track/domain/track_3d/track_scene_metric.dart';
+import 'package:submersion/features/nav_track/domain/track_3d/track_z_axis_input.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_3d_providers.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/track_readout_panel.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -18,8 +19,10 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// Fullscreen interactive 3D scene for one underwater track. Built on top
 /// of the same CustomPaint renderer as [Dive3dPage]: depth runs up the
 /// left edge, elapsed time along the floor, and the path color follows
-/// whichever metric the diver picks. No Z metric, no markers, no tissue --
-/// a track has nothing to put on a third axis or event list.
+/// whichever metric the diver picks. An optional Z metric (temperature,
+/// speed, or battery voltage) can be put on the third axis, the same way
+/// [Dive3dPage] offers one -- no markers, no tissue chrome, a track has
+/// neither.
 class NavTrack3dPage extends ConsumerStatefulWidget {
   final String trackId;
 
@@ -34,11 +37,33 @@ class _NavTrack3dPageState extends ConsumerState<NavTrack3dPage>
   final ValueNotifier<double> _position = ValueNotifier(0);
   late final AnimationController _player;
   TrackSceneMetric _colorMetric = TrackSceneMetric.depth;
+  TrackSceneMetric? _zMetric;
+  bool _zInitialized = false;
+  // Color follows the Z metric until the diver picks a color chip,
+  // mirroring Dive3dPage's own _colorFollowsZ.
+  bool _colorFollowsZ = true;
 
   // One set of readout lookups per scene data: both the scrub panel (frame
   // rate) and a future hover tooltip would read through the same lookup,
   // mirroring DiveReadoutLookups' own reason for caching it.
   TrackReadoutLookups? _readoutLookups;
+
+  void _initZ(NavTrack3dSceneData data) {
+    if (_zInitialized) return;
+    _zInitialized = true;
+    final z = data.zAxisMetrics.contains(TrackSceneMetric.temperature)
+        ? TrackSceneMetric.temperature
+        : null;
+    _zMetric = z;
+    if (_colorFollowsZ) _colorMetric = z ?? TrackSceneMetric.depth;
+  }
+
+  void _selectZ(TrackSceneMetric? z) {
+    setState(() {
+      _zMetric = z;
+      if (_colorFollowsZ) _colorMetric = z ?? TrackSceneMetric.depth;
+    });
+  }
 
   TrackReadoutLookups _lookupsFor(NavTrack3dSceneData data) {
     final cached = _readoutLookups;
@@ -88,15 +113,25 @@ class _NavTrack3dPageState extends ConsumerState<NavTrack3dPage>
     if (sceneData == null) {
       return const Center(child: CircularProgressIndicator());
     }
+    _initZ(sceneData);
     if (!sceneData.availableMetrics.contains(_colorMetric)) {
       _colorMetric = TrackSceneMetric.depth;
     }
     final scene = ref
-        .watch(navTrack3dGeometryProvider((widget.trackId, _colorMetric)))
+        .watch(
+          navTrack3dGeometryProvider((
+            trackId: widget.trackId,
+            colorMetric: _colorMetric,
+            zMetric: _zMetric,
+          )),
+        )
         .value;
     if (scene == null) {
       return const Center(child: CircularProgressIndicator());
     }
+    final zAxis = ref.watch(
+      navTrack3dZAxisProvider((trackId: widget.trackId, zMetric: _zMetric)),
+    );
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
     final l10n = context.l10n;
@@ -108,8 +143,10 @@ class _NavTrack3dPageState extends ConsumerState<NavTrack3dPage>
         toDisplay: units.convertDepth,
       ),
       timeTicks: timeAxisTicks(sceneData.durationSeconds),
+      zAxis: zAxis?.spec,
       depthTitle: l10n.dive3d_axis_depth(units.depthSymbol),
       timeTitle: l10n.dive3d_axis_time,
+      zTitle: zAxis == null ? null : _zTitle(zAxis),
     );
     final scrubPath = scene.scrubPath!;
     final lookups = _lookupsFor(sceneData);
@@ -140,7 +177,7 @@ class _NavTrack3dPageState extends ConsumerState<NavTrack3dPage>
                 child: TrackReadoutPanel(
                   lookups: lookups,
                   position: _position,
-                  emphasize: _colorMetric,
+                  emphasize: _zMetric,
                 ),
               ),
               Positioned(
@@ -168,16 +205,55 @@ class _NavTrack3dPageState extends ConsumerState<NavTrack3dPage>
   }
 
   Widget _buildControls(NavTrack3dSceneData sceneData) {
-    return SegmentedButton<TrackSceneMetric>(
-      style: const ButtonStyle(visualDensity: VisualDensity.compact),
-      segments: [
+    return Wrap(
+      spacing: 6,
+      runSpacing: 6,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        PopupMenuButton<String>(
+          key: const ValueKey('navTrack3dZAxisMenu'),
+          tooltip: context.l10n.dive3d_zAxis,
+          onSelected: (v) =>
+              _selectZ(v == 'none' ? null : TrackSceneMetric.values.byName(v)),
+          itemBuilder: (context) => [
+            CheckedPopupMenuItem(
+              value: 'none',
+              checked: _zMetric == null,
+              child: Text(context.l10n.dive3d_zAxis_none),
+            ),
+            for (final metric in sceneData.zAxisMetrics)
+              CheckedPopupMenuItem(
+                value: metric.name,
+                checked: _zMetric == metric,
+                child: Text(_metricLabel(metric)),
+              ),
+          ],
+          child: Chip(
+            avatar: const Icon(Icons.swap_vert, size: 16),
+            label: Text(
+              '${context.l10n.dive3d_zAxis}: '
+              '${_zMetric == null ? context.l10n.dive3d_zAxis_none : _metricLabel(_zMetric!)}',
+            ),
+          ),
+        ),
         for (final metric in sceneData.availableMetrics)
-          ButtonSegment(value: metric, label: Text(_metricLabel(metric))),
+          ChoiceChip(
+            label: Text(_metricLabel(metric)),
+            selected: _colorMetric == metric,
+            onSelected: (_) => setState(() {
+              _colorMetric = metric;
+              _colorFollowsZ = false;
+            }),
+          ),
       ],
-      selected: {_colorMetric},
-      onSelectionChanged: (s) => setState(() => _colorMetric = s.first),
-      showSelectedIcon: false,
     );
+  }
+
+  String _zTitle(TrackZAxisInput z) {
+    final metric = _zMetric;
+    if (metric == null) return z.spec.symbol;
+    final name = _metricLabel(metric);
+    return z.spec.symbol.isEmpty ? name : '$name (${z.spec.symbol})';
   }
 
   String _metricLabel(TrackSceneMetric metric) {
