@@ -6,6 +6,8 @@ import 'package:submersion/features/dive_log/presentation/widgets/refine/refine_
 import 'package:submersion/features/dive_log/presentation/widgets/refine/show_refine_panel.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
+import '../../../../../helpers/theme_sentinels.dart';
+
 final _target = StateProvider<DiveFilterState>(
   (ref) => const DiveFilterState(minDepth: 30),
 );
@@ -18,6 +20,7 @@ void main() {
     Size size, {
     Locale locale = const Locale('en'),
     bool settle = true,
+    ThemeData? theme,
   }) async {
     tester.view.devicePixelRatio = 1;
     tester.view.physicalSize = size;
@@ -25,6 +28,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         child: MaterialApp(
+          theme: theme,
           locale: locale,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
@@ -112,5 +116,18 @@ void main() {
     await tester.pump(const Duration(milliseconds: 100));
     expect(tester.getRect(find.text('panel body')).left, lessThan(0));
     await tester.pumpAndSettle();
+  });
+
+  testWidgets('the side panel dims the list with the theme scrim', (
+    tester,
+  ) async {
+    await pumpHost(tester, const Size(1280, 800), theme: sentinelTheme());
+
+    final barriers = tester.widgetList<ModalBarrier>(find.byType(ModalBarrier));
+    expect(
+      barriers.any((b) => b.color != null && sameHue(b.color!, sentinelScrim)),
+      isTrue,
+      reason: 'the barrier is fixed black instead of the theme scrim',
+    );
   });
 }

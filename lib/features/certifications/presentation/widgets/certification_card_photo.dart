@@ -53,6 +53,7 @@ class CertificationCardPhoto extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final devicePixelRatio = MediaQuery.devicePixelRatioOf(context);
+    final shadow = Theme.of(context).colorScheme.shadow;
 
     return Container(
       decoration: BoxDecoration(
@@ -60,7 +61,7 @@ class CertificationCardPhoto extends StatelessWidget {
         boxShadow: showShadow
             ? [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.2),
+                  color: shadow.withValues(alpha: 0.2),
                   blurRadius: 12,
                   offset: const Offset(0, 6),
                 ),

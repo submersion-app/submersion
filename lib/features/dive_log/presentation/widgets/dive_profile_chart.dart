@@ -3683,7 +3683,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           // Gas switch markers (if showing and data available).
           // Zero-width dot markers, not a metric line.
           final gasSwitchMarkers = _showGasSwitchMarkers
-              ? _buildGasSwitchMarkers(units)
+              ? _buildGasSwitchMarkers(units, colorScheme.surface)
               : const <LineChartBarData>[];
 
           // Temperature line (if showing).
@@ -6025,13 +6025,16 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   }
 
   /// Build gas switch marker dots on the profile
-  List<LineChartBarData> _buildGasSwitchMarkers(UnitFormatter units) =>
-      buildGasSwitchMarkers(
-        units,
-        widget.gasSwitches,
-        _showTankPressure,
-        _findDepthAtTimestamp,
-      );
+  List<LineChartBarData> _buildGasSwitchMarkers(
+    UnitFormatter units,
+    Color ringColor,
+  ) => buildGasSwitchMarkers(
+    units,
+    widget.gasSwitches,
+    _showTankPressure,
+    _findDepthAtTimestamp,
+    ringColor: ringColor,
+  );
 
   /// Find the depth at a given timestamp by interpolating profile data
   double _findDepthAtTimestamp(int timestamp) {
@@ -7205,12 +7208,13 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         show: true,
         getDotPainter: (spot, percent, bar, index) {
           if (marker.type == ProfileMarkerType.maxDepth) {
-            // Max depth: red circle with white border
+            // Max depth: a dot ringed in the page colour, which punches it
+            // out of the line (a fixed white glared on a dark chart).
             return FlDotCirclePainter(
               radius: size,
               color: color,
               strokeWidth: 2,
-              strokeColor: Colors.white,
+              strokeColor: Theme.of(context).colorScheme.surface,
             );
           } else {
             // Pressure threshold: colored circle with darker border

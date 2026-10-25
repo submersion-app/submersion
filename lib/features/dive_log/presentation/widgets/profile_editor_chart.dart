@@ -203,7 +203,7 @@ class _ProfileEditorChartState extends ConsumerState<ProfileEditorChart> {
                 radius: 6,
                 color: Colors.blue,
                 strokeWidth: 2,
-                strokeColor: Colors.white,
+                strokeColor: colorScheme.surface,
               );
             }
           }

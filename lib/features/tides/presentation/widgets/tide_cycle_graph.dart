@@ -89,6 +89,7 @@ class TideCycleGraph extends StatelessWidget {
             waveColor: colorScheme.primary,
             fillColor: colorScheme.primary.withValues(alpha: 0.1),
             markerColor: _getStateColor(record.tideState),
+            ringColor: colorScheme.surface,
             gridColor: colorScheme.outlineVariant.withValues(alpha: 0.3),
             labelColor: colorScheme.onSurfaceVariant,
             labelStyle: textTheme.labelSmall ?? const TextStyle(fontSize: 10),
@@ -171,6 +172,10 @@ class _TideCyclePainter extends CustomPainter {
   final Color waveColor;
   final Color fillColor;
   final Color markerColor;
+
+  /// Rings the marker to punch it out of the wave: the page colour, which a
+  /// fixed white was not on a dark chart.
+  final Color ringColor;
   final Color gridColor;
   final Color labelColor;
   final TextStyle labelStyle;
@@ -190,6 +195,7 @@ class _TideCyclePainter extends CustomPainter {
     required this.waveColor,
     required this.fillColor,
     required this.markerColor,
+    required this.ringColor,
     required this.gridColor,
     required this.labelColor,
     required this.labelStyle,
@@ -225,7 +231,7 @@ class _TideCyclePainter extends CustomPainter {
       ..style = PaintingStyle.fill;
 
     final markerStrokePaint = Paint()
-      ..color = Colors.white
+      ..color = ringColor
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.0;
 
@@ -505,6 +511,7 @@ class _TideCyclePainter extends CustomPainter {
         tideState != oldDelegate.tideState ||
         waveColor != oldDelegate.waveColor ||
         markerColor != oldDelegate.markerColor ||
+        ringColor != oldDelegate.ringColor ||
         showLabels != oldDelegate.showLabels ||
         currentHeight != oldDelegate.currentHeight ||
         highTideTime != oldDelegate.highTideTime ||

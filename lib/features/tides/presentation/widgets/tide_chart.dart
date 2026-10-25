@@ -698,6 +698,9 @@ class _TideChartState extends State<TideChart> {
     if (widget.extremes == null || widget.extremes!.isEmpty) {
       return [];
     }
+    // The ring punches the dot out of the curve, so it takes the page
+    // colour: a fixed white glared as a halo on a dark chart.
+    final ring = Theme.of(context).colorScheme.surface;
 
     // Filter extremes within visible range
     final visibleExtremes = widget.extremes!
@@ -720,7 +723,7 @@ class _TideChartState extends State<TideChart> {
               radius: 6,
               color: color,
               strokeWidth: 2,
-              strokeColor: Colors.white,
+              strokeColor: ring,
             );
           },
         ),

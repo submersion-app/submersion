@@ -324,16 +324,19 @@ class _HandleGrip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return Container(
       width: isActive ? 16 : 12,
       height: isActive ? 16 : 12,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: color,
-        border: Border.all(color: Colors.white, width: 2),
+        // The page colour punches the grip out of the chart; a fixed white
+        // glared on a dark one.
+        border: Border.all(color: scheme.surface, width: 2),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2),
+            color: scheme.shadow.withValues(alpha: 0.2),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
