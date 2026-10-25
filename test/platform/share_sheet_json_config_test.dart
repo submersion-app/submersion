@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:xml/xml.dart';
 
+import 'plist_test_helpers.dart';
+
 /// Guards the platform wiring that offers Submersion in the Share sheet for a
 /// Suunto app JSON export (issue #3670). File assertions, because the sheet
 /// is built by the operating system from these declarations: a dropped entry
@@ -33,24 +35,9 @@ Map<String, Set<String>> androidMimeTypes(String action) {
   return byScheme;
 }
 
-/// The value element that follows [key] in [dict].
-XmlElement? dictValue(XmlElement dict, String key) {
-  final children = dict.childElements.toList();
-  for (var i = 0; i + 1 < children.length; i++) {
-    if (children[i].name.local == 'key' &&
-        children[i].innerText.trim() == key) {
-      return children[i + 1];
-    }
-  }
-  return null;
-}
-
 /// The CFBundleDocumentTypes entry of [path] that lists [contentType].
 XmlElement? documentTypeFor(String path, String contentType) {
-  final root = XmlDocument.parse(
-    File(path).readAsStringSync(),
-  ).rootElement.getElement('dict')!;
-  final types = dictValue(root, 'CFBundleDocumentTypes');
+  final types = plistValue(path, 'CFBundleDocumentTypes');
   if (types == null) return null;
   for (final type in types.findElements('dict')) {
     final items = dictValue(type, 'LSItemContentTypes');
