@@ -36067,6 +36067,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get dive3d_metric_temperature => 'טמפ';
 
   @override
+  String get navTrack3d_previewTitle => '3D View';
+
+  @override
+  String get navTrack3d_metric_speed => 'Speed';
+
+  @override
+  String get navTrack3d_metric_batteryVoltage => 'Battery';
+
+  @override
   String get dive3d_metric_ascentRate => 'עלייה';
 
   @override

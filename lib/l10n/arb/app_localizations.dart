@@ -58330,6 +58330,24 @@ abstract class AppLocalizations {
   /// **'Temp'**
   String get dive3d_metric_temperature;
 
+  /// No description provided for @navTrack3d_previewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'3D View'**
+  String get navTrack3d_previewTitle;
+
+  /// No description provided for @navTrack3d_metric_speed.
+  ///
+  /// In en, this message translates to:
+  /// **'Speed'**
+  String get navTrack3d_metric_speed;
+
+  /// No description provided for @navTrack3d_metric_batteryVoltage.
+  ///
+  /// In en, this message translates to:
+  /// **'Battery'**
+  String get navTrack3d_metric_batteryVoltage;
+
   /// No description provided for @dive3d_metric_ascentRate.
   ///
   /// In en, this message translates to:

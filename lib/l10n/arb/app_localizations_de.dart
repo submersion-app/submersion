@@ -36912,6 +36912,15 @@ class AppLocalizationsDe extends AppLocalizations {
   String get dive3d_metric_temperature => 'Temp';
 
   @override
+  String get navTrack3d_previewTitle => '3D-Ansicht';
+
+  @override
+  String get navTrack3d_metric_speed => 'Geschwindigkeit';
+
+  @override
+  String get navTrack3d_metric_batteryVoltage => 'Akku';
+
+  @override
   String get dive3d_metric_ascentRate => 'Aufstieg';
 
   @override

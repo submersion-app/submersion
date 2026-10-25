@@ -20,6 +20,7 @@ import 'package:submersion/features/nav_track/domain/nav_track_corrector.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_matcher.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_stats.dart';
 import 'package:submersion/features/nav_track/presentation/nav_track_dive_label.dart';
+import 'package:submersion/features/nav_track/presentation/pages/nav_track_3d_page.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_dive_choice_sheet.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_equipment_picker_sheet.dart';
@@ -281,6 +282,16 @@ class NavTrackDetailPage extends ConsumerWidget {
                 tooltip: l10n.navTrack_common_open3dTooltip,
                 onPressed: () =>
                     context.push(underwaterTrackSeascapeLocation(route.id)),
+              ),
+              IconButton(
+                key: const ValueKey('nav-track-open-3d-preview'),
+                icon: const Icon(Icons.view_in_ar),
+                tooltip: l10n.navTrack3d_previewTitle,
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => NavTrack3dPage(trackId: route.id),
+                  ),
+                ),
               ),
               PopupMenuButton<String>(
                 onSelected: (value) async {

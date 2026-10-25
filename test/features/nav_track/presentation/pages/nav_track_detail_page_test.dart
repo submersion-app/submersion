@@ -23,6 +23,7 @@ import 'package:submersion/features/nav_track/data/repositories/nav_track_reposi
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_corrector.dart';
+import 'package:submersion/features/nav_track/presentation/pages/nav_track_3d_page.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_detail_page.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -183,6 +184,18 @@ Future<_RecordingNavTrackRepository> _pump(
 }
 
 void main() {
+  testWidgets('tapping the 3D-preview button opens NavTrack3dPage', (
+    tester,
+  ) async {
+    await _pump(tester, route: _route());
+
+    await tester.tap(find.byKey(const ValueKey('nav-track-open-3d-preview')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+
+    expect(find.byType(NavTrack3dPage), findsOneWidget);
+  });
+
   testWidgets('shows "No dive linked" for an unlinked route', (tester) async {
     await _pump(tester, route: _route());
 
