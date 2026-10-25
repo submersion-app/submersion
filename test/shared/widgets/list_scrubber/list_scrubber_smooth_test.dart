@@ -14,6 +14,9 @@ void main() {
   const viewport = 600.0;
   const track = viewport - 48;
 
+  var labels = 0;
+  setUp(() => labels = 0);
+
   Widget host({required int rows, int? slotCount}) => MaterialApp(
     home: Scaffold(
       body: Align(
@@ -25,7 +28,10 @@ void main() {
             controller: controller,
             slotCount: slotCount ?? rows,
             loadedSlotCount: rows,
-            labelFor: (slot) => 'Slot $slot',
+            labelFor: (slot) {
+              labels++;
+              return 'Slot $slot';
+            },
             markers: const [ScrubberMarker(slot: 0, label: 'Top')],
             onScrubEnd: (_) {},
             child: ListView.builder(
@@ -91,6 +97,37 @@ void main() {
     await tester.pump();
     expect(controller.offset, dropped);
     expect(thumbTop(tester), closeTo(droppedTop, 0.01));
+    await tester.pump(ListScrubber.idleHide);
+  });
+
+  testWidgets('a pointer held past the end of the track moves nothing', (
+    tester,
+  ) async {
+    await tester.pumpWidget(host(rows: 60));
+    controller.jumpTo(10);
+    await tester.pump();
+
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.byKey(ListScrubber.thumbKey)),
+    );
+    await gesture.moveBy(const Offset(0, 40));
+    await gesture.moveBy(const Offset(0, track));
+    await tester.pump();
+    final offset = controller.offset;
+    expect(offset, controller.position.maxScrollExtent);
+    expect(thumbTop(tester), closeTo(track, 0.01));
+    final built = labels;
+
+    for (var i = 0; i < 3; i++) {
+      await gesture.moveBy(const Offset(0, 20));
+      await tester.pump();
+    }
+    expect(controller.offset, offset);
+    expect(thumbTop(tester), closeTo(track, 0.01));
+    // Nothing moved, so the scrubber did not rebuild for the updates.
+    expect(labels, built);
+
+    await gesture.up();
     await tester.pump(ListScrubber.idleHide);
   });
 
