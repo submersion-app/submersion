@@ -36737,13 +36737,13 @@ class AppLocalizationsNl extends AppLocalizations {
   String get dive3d_metric_temperature => 'Temp';
 
   @override
-  String get navTrack3d_previewTitle => '3D View';
+  String get navTrack3d_previewTitle => '3D-weergave';
 
   @override
-  String get navTrack3d_metric_speed => 'Speed';
+  String get navTrack3d_metric_speed => 'Snelheid';
 
   @override
-  String get navTrack3d_metric_batteryVoltage => 'Battery';
+  String get navTrack3d_metric_batteryVoltage => 'Batterij';
 
   @override
   String get dive3d_metric_ascentRate => 'Opstijging';

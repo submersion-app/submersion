@@ -36767,13 +36767,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get dive3d_metric_temperature => 'Hőm';
 
   @override
-  String get navTrack3d_previewTitle => '3D View';
+  String get navTrack3d_previewTitle => '3D nézet';
 
   @override
-  String get navTrack3d_metric_speed => 'Speed';
+  String get navTrack3d_metric_speed => 'Sebesség';
 
   @override
-  String get navTrack3d_metric_batteryVoltage => 'Battery';
+  String get navTrack3d_metric_batteryVoltage => 'Akku';
 
   @override
   String get dive3d_metric_ascentRate => 'Emelkedés';

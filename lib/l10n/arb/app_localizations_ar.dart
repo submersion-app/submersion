@@ -37450,13 +37450,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dive3d_metric_temperature => 'الحرارة';
 
   @override
-  String get navTrack3d_previewTitle => '3D View';
+  String get navTrack3d_previewTitle => 'عرض ثلاثي الأبعاد';
 
   @override
-  String get navTrack3d_metric_speed => 'Speed';
+  String get navTrack3d_metric_speed => 'السرعة';
 
   @override
-  String get navTrack3d_metric_batteryVoltage => 'Battery';
+  String get navTrack3d_metric_batteryVoltage => 'البطارية';
 
   @override
   String get dive3d_metric_ascentRate => 'الصعود';
