@@ -104,6 +104,10 @@ void main() {
       ],
     );
     addTearDown(c.dispose);
+    // The fixture dives have no site, so these tests read Dive circle.
+    await c
+        .read(connectionsViewProvider.notifier)
+        .update((s) => s.applyPreset(ConnectionPresets.byId('circle')!));
   });
 
   tearDown(() async => tearDownTestDatabase());

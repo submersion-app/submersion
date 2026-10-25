@@ -10,14 +10,50 @@ import 'package:submersion/features/connections/domain/views/map_spec.dart';
 const _jane = NodeRef(ConnectionKind.buddy, 'jane');
 
 void main() {
-  test('initial is the Dive circle preset in map mode', () {
+  test('initial is the Who dives where preset in map mode', () {
     final s = ConnectionsViewState.initial;
     expect(s.mode, ConnectionsMode.map);
-    expect(s.presetId, 'circle');
-    expect(s.mapSpec, ConnectionPresets.byId('circle')!.spec);
+    expect(s.presetId, 'where');
+    expect(ConnectionPresets.startId, 'where');
+    expect(s.mapSpec, ConnectionPresets.byId('where')!.spec);
     expect(s.aroundKinds, kDefaultAroundKinds);
     expect(s.hops, 1);
     expect(s.focus, isNull);
+  });
+
+  test('only the unedited Who dives where preset requires a buddy at a '
+      'site', () {
+    final start = ConnectionsViewState.initial;
+    expect(start.mapSharedWith, {ConnectionKind.site: ConnectionKind.buddy});
+    expect(start.editMap(start.mapSpec).mapSharedWith, isEmpty);
+    expect(start.applySavedMap('m1', start.mapSpec).mapSharedWith, isEmpty);
+    expect(start.showMap(start.mapSpec).mapSharedWith, isEmpty);
+    expect(start.centreOn(_jane).mapSharedWith, isEmpty);
+    expect(
+      start.applyPreset(ConnectionPresets.byId('circle')!).mapSharedWith,
+      isEmpty,
+    );
+  });
+
+  test('toStart keeps Around settings and drops saved and edited ids', () {
+    final s = ConnectionsViewState.initial
+        .applySavedMap('m1', ConnectionPresets.byId('gear')!.spec)
+        .withHops(3)
+        .withHighlight(HighlightMode.groups)
+        .centreOn(_jane);
+    final t = s.toStart();
+    expect(t.mode, ConnectionsMode.map);
+    expect(t.presetId, 'where');
+    expect(t.mapSpec, ConnectionPresets.byId('where')!.spec);
+    expect(t.savedMapId, isNull);
+    expect(t.editedFromPresetId, isNull);
+    expect(t.focus, _jane);
+    expect(t.hops, 3);
+    expect(t.highlight, HighlightMode.groups);
+    final edited = ConnectionsViewState.initial
+        .applyPreset(ConnectionPresets.byId('gear')!)
+        .editMap(ConnectionPresets.byId('trips')!.spec);
+    expect(edited.toStart().editedFromPresetId, isNull);
   });
 
   test('default around kinds are the six common ones', () {
