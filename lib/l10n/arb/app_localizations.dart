@@ -221,8 +221,14 @@ abstract class AppLocalizations {
   /// No description provided for @connections_caption_custom.
   ///
   /// In en, this message translates to:
-  /// **'A line joins two entries that share a dive.'**
-  String get connections_caption_custom;
+  /// **'{kinds}; a line means they share a dive.'**
+  String connections_caption_custom(String kinds);
+
+  /// No description provided for @connections_caption_kindSeparator.
+  ///
+  /// In en, this message translates to:
+  /// **', '**
+  String get connections_caption_kindSeparator;
 
   /// No description provided for @connections_caption_around.
   ///
@@ -8165,6 +8171,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No dives have a site yet.'**
   String get connections_empty_sites;
+
+  /// No description provided for @connections_empty_whereNoSites.
+  ///
+  /// In en, this message translates to:
+  /// **'None of your dives with a buddy has a site yet. Add sites to those dives to see where you dive together.'**
+  String get connections_empty_whereNoSites;
 
   /// No description provided for @connections_empty_filtered.
   ///

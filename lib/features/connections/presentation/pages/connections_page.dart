@@ -5,6 +5,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/connections/data/repositories/connections_repository.dart';
 import 'package:submersion/features/connections/domain/entities/connection_graph.dart';
+import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
 import 'package:submersion/features/connections/domain/entities/graph_selection.dart';
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
 import 'package:submersion/features/connections/domain/insights/graph_insights.dart';
@@ -468,6 +469,9 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
           view: view,
           hasAnyDives: ref.watch(connectionsDateSpanProvider).value != null,
           hasActiveFilter: hasActiveFilter,
+          buddiesWithoutSites:
+              nothingShared &&
+              graph.nodes.any((n) => n.ref.kind == ConnectionKind.buddy),
         );
         if (view.isAroundWithoutFocus) return empty;
         // A played year can be empty; the pill stays so play can be paused.

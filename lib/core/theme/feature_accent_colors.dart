@@ -5,8 +5,9 @@ import 'package:flutter/material.dart';
 /// theme changes. Keys are the stable `NavDestination.id` strings, plus
 /// `settings-<sectionId>` entries for the settings root sections, plus
 /// `connections` for the Connections explorer (reached from Insights rather
-/// than the nav). A missing key means "no accent" -- callers fall back to the
-/// ambient icon color.
+/// than the nav), plus `connections-buddy` for buddy nodes on its map. A
+/// missing key means "no accent" -- callers fall back to the ambient icon
+/// color.
 class FeatureAccentColors extends ThemeExtension<FeatureAccentColors> {
   const FeatureAccentColors({required this.colors});
 

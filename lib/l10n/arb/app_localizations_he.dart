@@ -70,16 +70,20 @@ class AppLocalizationsHe extends AppLocalizations {
       'ציוד, טיולים ומרכזי צלילה; קו פירושו צלילות משותפות.';
 
   @override
-  String get connections_caption_custom =>
-      'קו מחבר בין שני פריטים שחולקים צלילה.';
+  String connections_caption_custom(String kinds) {
+    return '$kinds; קו פירושו שהם חולקים צלילה.';
+  }
+
+  @override
+  String get connections_caption_kindSeparator => ', ';
 
   @override
   String connections_caption_around(int hops) {
     String _temp0 = intl.Intl.pluralLogic(
       hops,
       locale: localeName,
-      other: 'כל מה שנמצא עד $hops צעדים מהמרכז הזה, מחובר בצלילות משותפות.',
-      one: 'כל מה שחולק צלילה עם המרכז הזה.',
+      other: 'כל מה שנמצא עד $hops צעדים מהפריט שבמרכז, מחובר בצלילות משותפות.',
+      one: 'כל מה שחולק צלילה עם הפריט שבמרכז.',
     );
     return '$_temp0';
   }
@@ -5137,6 +5141,10 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get connections_empty_sites => 'לאף צלילה אין עדיין אתר.';
+
+  @override
+  String get connections_empty_whereNoSites =>
+      'לאף אחת מהצלילות שלך עם שותף עדיין אין אתר. הוסף אתרים לצלילות האלה כדי לראות איפה אתם צוללים יחד.';
 
   @override
   String get connections_empty_filtered => 'אין פריטים שמתאימים לסינון הנוכחי.';

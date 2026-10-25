@@ -2,8 +2,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/connections/data/connections_map_loader.dart';
 import 'package:submersion/features/connections/data/connections_reader.dart';
+import 'package:submersion/features/connections/data/repositories/connections_repository.dart';
 import 'package:submersion/features/connections/domain/entities/connection_graph.dart';
 import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
+import 'package:submersion/features/connections/domain/entities/graph_selection.dart';
+import 'package:submersion/features/connections/domain/entities/node_ref.dart';
 import 'package:submersion/features/connections/domain/views/kind_link.dart';
 import 'package:submersion/features/connections/domain/views/map_spec.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
@@ -101,19 +104,29 @@ void main() {
   });
 
   group('sharedWith', () {
-    test('keeps only sites dived with a buddy, counting those dives', () async {
-      final d = DatabaseService.instance.database;
-      await seedSites(d);
-      final g = await _loadWhere(
-        ConnectionsReader(d),
-        sharedWith: _sitesNeedABuddy,
-      );
-      expect(g.nodes.map((n) => n.ref.id).toSet(), {'b', 's1', 's2'});
-      final s1 = g.nodes.firstWhere((n) => n.ref.id == 's1');
-      expect(s1.diveCount, 1, reason: 'the solo dive at s1 is not shared');
-      expect(g.edges, hasLength(2));
-      expect(g.hiddenNodeCount, 0);
-    });
+    test(
+      'keeps only sites dived with a buddy, counting all their dives',
+      () async {
+        final d = DatabaseService.instance.database;
+        await seedSites(d);
+        final g = await _loadWhere(
+          ConnectionsReader(d),
+          sharedWith: _sitesNeedABuddy,
+        );
+        expect(g.nodes.map((n) => n.ref.id).toSet(), {'b', 's1', 's2'});
+        final s1 = g.nodes.firstWhere((n) => n.ref.id == 's1');
+        // The count must match what Show dives lists for the site.
+        final ids = await ConnectionsRepository().diveIdsFor(
+          const NodeSelection(NodeRef(ConnectionKind.site, 's1')),
+          diverId: 'me',
+          filter: const DiveFilterState(),
+        );
+        expect(s1.diveCount, 2);
+        expect(ids, hasLength(s1.diveCount));
+        expect(g.edges, hasLength(2));
+        expect(g.hiddenNodeCount, 0);
+      },
+    );
 
     test('without it the solo site stays as an island', () async {
       final d = DatabaseService.instance.database;

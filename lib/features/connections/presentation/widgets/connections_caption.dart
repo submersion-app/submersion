@@ -22,29 +22,32 @@ class ConnectionsCaption extends StatelessWidget {
     final theme = Theme.of(context);
     return _HeightReporter(
       onHeight: onHeight,
-      child: Card(
-        key: const ValueKey('connections-caption'),
-        margin: EdgeInsets.zero,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                text.title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.titleSmall,
-              ),
-              const SizedBox(height: 2),
-              Text(
-                text.sentence,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
+      // Read-only: a pan or pinch that starts on it moves the map.
+      child: IgnorePointer(
+        child: Card(
+          key: const ValueKey('connections-caption'),
+          margin: EdgeInsets.zero,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  text.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.titleSmall,
                 ),
-              ),
-            ],
+                const SizedBox(height: 2),
+                Text(
+                  text.sentence,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

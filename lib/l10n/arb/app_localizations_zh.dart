@@ -62,7 +62,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get connections_caption_gearRoad => '装备、行程和潜店；连线表示它们有共同的潜水。';
 
   @override
-  String get connections_caption_custom => '连线连接两个有共同潜水的条目。';
+  String connections_caption_custom(String kinds) {
+    return '$kinds；连线表示它们有共同的潜水。';
+  }
+
+  @override
+  String get connections_caption_kindSeparator => '、';
 
   @override
   String connections_caption_around(int hops) {
@@ -4965,6 +4970,10 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get connections_empty_sites => '还没有潜水记录了潜点。';
+
+  @override
+  String get connections_empty_whereNoSites =>
+      '你与潜伴的潜水都还没有潜点。为这些潜水添加潜点，即可看到你们在哪里一起潜水。';
 
   @override
   String get connections_empty_filtered => '没有符合当前筛选的内容。';

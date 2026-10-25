@@ -73,8 +73,12 @@ class AppLocalizationsNl extends AppLocalizations {
       'Uitrusting, reizen en duikcentra; een lijn betekent gedeelde duiken.';
 
   @override
-  String get connections_caption_custom =>
-      'Een lijn verbindt twee items die een duik delen.';
+  String connections_caption_custom(String kinds) {
+    return '$kinds; een lijn betekent dat ze een duik delen.';
+  }
+
+  @override
+  String get connections_caption_kindSeparator => ', ';
 
   @override
   String connections_caption_around(int hops) {
@@ -5216,6 +5220,10 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get connections_empty_sites => 'Nog geen duik heeft een duikplek.';
+
+  @override
+  String get connections_empty_whereNoSites =>
+      'Nog geen van je duiken met een buddy heeft een duikplek. Voeg duikplekken toe aan die duiken om te zien waar jullie samen duiken.';
 
   @override
   String get connections_empty_filtered =>

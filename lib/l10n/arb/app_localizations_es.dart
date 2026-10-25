@@ -73,8 +73,12 @@ class AppLocalizationsEs extends AppLocalizations {
       'Equipo, viajes y centros; una línea indica que comparten inmersiones.';
 
   @override
-  String get connections_caption_custom =>
-      'Una línea une dos elementos que comparten una inmersión.';
+  String connections_caption_custom(String kinds) {
+    return '$kinds; una línea indica que comparten una inmersión.';
+  }
+
+  @override
+  String get connections_caption_kindSeparator => ', ';
 
   @override
   String connections_caption_around(int hops) {
@@ -82,8 +86,8 @@ class AppLocalizationsEs extends AppLocalizations {
       hops,
       locale: localeName,
       other:
-          'Todo lo que está a $hops pasos de este centro, unido por inmersiones compartidas.',
-      one: 'Todo lo que comparte una inmersión con este centro.',
+          'Todo lo que está a $hops pasos o menos del elemento central, unido por inmersiones compartidas.',
+      one: 'Todo lo que comparte una inmersión con el elemento central.',
     );
     return '$_temp0';
   }
@@ -5245,6 +5249,10 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get connections_empty_sites =>
       'Ninguna inmersión tiene punto de buceo todavía.';
+
+  @override
+  String get connections_empty_whereNoSites =>
+      'Ninguna de tus inmersiones con un compañero tiene aún un punto de buceo. Añade puntos a esas inmersiones para ver dónde buceas con tus compañeros.';
 
   @override
   String get connections_empty_filtered =>

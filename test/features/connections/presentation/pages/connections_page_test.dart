@@ -27,6 +27,7 @@ import 'package:submersion/features/connections/presentation/providers/connectio
 import 'package:submersion/features/connections/presentation/providers/connections_view_provider.dart';
 import 'package:submersion/features/connections/presentation/providers/saved_connection_maps_provider.dart';
 import 'package:submersion/features/connections/presentation/widgets/connections_empty_state.dart';
+import 'package:submersion/features/connections/presentation/widgets/connections_legend.dart';
 import 'package:submersion/features/connections/presentation/widgets/hidden_nodes_chip.dart';
 import 'package:submersion/features/connections/presentation/widgets/insight_strip.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
@@ -152,10 +153,26 @@ void main() {
       });
     }
 
-    testWidgets('Who dives where with no lines shows the buddies message', (
+    testWidgets('Who dives where with buddies but no sites says so', (
       tester,
     ) async {
       await _pump(tester, graph: (_, _) => islands);
+      await tester.pump(const Duration(milliseconds: 50));
+      expect(find.byType(ConnectionsEmptyState), findsOneWidget);
+      expect(
+        find.textContaining('None of your dives with a buddy has a site'),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey('connections-canvas-paint')),
+        findsNothing,
+      );
+    });
+
+    testWidgets('Who dives where with no buddies shows the buddies message', (
+      tester,
+    ) async {
+      await _pump(tester, graph: (_, _) => ConnectionGraph.empty);
       await tester.pump(const Duration(milliseconds: 50));
       expect(find.byType(ConnectionsEmptyState), findsOneWidget);
       expect(find.textContaining('No buddies are linked'), findsOneWidget);
@@ -175,6 +192,30 @@ void main() {
       expect(
         find.byKey(const ValueKey('connections-canvas-paint')),
         findsOneWidget,
+      );
+    });
+
+    testWidgets('phone, large text: every overlay sits below the caption', (
+      tester,
+    ) async {
+      tester.platformDispatcher.textScaleFactorTestValue = 2;
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+      await _pump(tester, size: _phone);
+      await tester.pump(const Duration(milliseconds: 50));
+      await tester.pump();
+      final captionBottom = tester
+          .getBottomLeft(find.byKey(const ValueKey('connections-caption')))
+          .dy;
+      final strip = find.byKey(const ValueKey('connections-insights'));
+      expect(tester.getTopLeft(strip).dy, greaterThanOrEqualTo(captionBottom));
+      final stripBottom = tester.getBottomLeft(find.byType(InsightStrip)).dy;
+      expect(
+        tester.getTopLeft(find.byType(ConnectionsLegend)).dy,
+        greaterThanOrEqualTo(stripBottom),
+      );
+      expect(
+        tester.getTopLeft(find.byType(HiddenNodesChip)).dy,
+        greaterThanOrEqualTo(stripBottom),
       );
     });
 

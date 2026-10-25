@@ -155,7 +155,9 @@ under a caption about lines. The diver approved this:
 - **Who dives where shows only the places you dived with a buddy.** On
   that preset, a site is included only if at least one of its dives has a
   buddy (it has a buddy to site line). This is applied when the map loads,
-  before the node budget, so solo-only sites never take a budget slot.
+  before the node budget, so solo-only sites never take a budget slot. It
+  chooses which sites appear and nothing else: a site's dive count, size
+  and first dive still cover all its dives, so they match Show dives.
   Buddies are unaffected (a buddy with dives at sites always has a line).
   It matches the diver's own description of the map: "buddies and the
   places we've dived together".
@@ -170,10 +172,21 @@ under a caption about lines. The diver approved this:
   sited dives), and the page shows the existing
   `connections_empty_buddies` message, exactly as Dive circle does today
   for a diver with no buddies. `ConnectionsEmptyState` picks that message
-  for this preset as it does for Dive circle; any leftover buddy-only
-  islands count as empty for this purpose.
+  for this preset as it does for Dive circle. When buddies are on dives but
+  none of those dives has a site, the empty state says that instead
+  (`connections_empty_whereNoSites`), since "no buddies are linked" would
+  be untrue.
 - A filter that leaves nothing still shows `connections_empty_filtered`,
   as today.
+
+### 5. Buddy colour on the map
+
+Found while capturing screenshots and approved by the diver: the app-wide
+buddies accent (a muted sage) sits next to the sites green, so on Who dives
+where the two kinds were hard to tell apart. Buddy nodes on the Connections
+map take a Connections-only accent, `connections-buddy` (pink, the one hue
+no other kind on the map uses), in both palettes. The app-wide `buddies`
+accent and every buddy card are unchanged.
 
 ## Constraints
 

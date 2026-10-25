@@ -245,7 +245,7 @@ class ConnectionsViewState extends Equatable {
       final a = ConnectionKind.fromName(parts[1]);
       final b = ConnectionKind.fromName(parts[2]);
       if (a != null && b != null) {
-        // Not editMap: a legacy pair must not mark Dive circle as edited.
+        // Not editMap: a legacy pair must not mark the start as edited.
         return initial.showMap(MapSpec.of({a, b}, {KindLink(a, b)}));
       }
     }

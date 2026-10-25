@@ -73,8 +73,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'Gear, trips and centers; a line means they share dives.';
 
   @override
-  String get connections_caption_custom =>
-      'A line joins two entries that share a dive.';
+  String connections_caption_custom(String kinds) {
+    return '$kinds; a line means they share a dive.';
+  }
+
+  @override
+  String get connections_caption_kindSeparator => ', ';
 
   @override
   String connections_caption_around(int hops) {
@@ -5169,6 +5173,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get connections_empty_sites => 'No dives have a site yet.';
+
+  @override
+  String get connections_empty_whereNoSites =>
+      'None of your dives with a buddy has a site yet. Add sites to those dives to see where you dive together.';
 
   @override
   String get connections_empty_filtered =>

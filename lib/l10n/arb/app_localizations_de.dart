@@ -73,8 +73,12 @@ class AppLocalizationsDe extends AppLocalizations {
       'Ausrüstung, Reisen und Tauchbasen; eine Linie heißt, sie teilen Tauchgänge.';
 
   @override
-  String get connections_caption_custom =>
-      'Eine Linie verbindet zwei Einträge mit einem gemeinsamen Tauchgang.';
+  String connections_caption_custom(String kinds) {
+    return '$kinds; eine Linie heißt, sie teilen einen Tauchgang.';
+  }
+
+  @override
+  String get connections_caption_kindSeparator => ', ';
 
   @override
   String connections_caption_around(int hops) {
@@ -5248,6 +5252,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get connections_empty_sites =>
       'Noch kein Tauchgang hat einen Tauchplatz.';
+
+  @override
+  String get connections_empty_whereNoSites =>
+      'Noch keiner deiner Tauchgänge mit Buddy hat einen Tauchplatz. Füge diesen Tauchgängen Tauchplätze hinzu, um zu sehen, wo ihr zusammen taucht.';
 
   @override
   String get connections_empty_filtered =>

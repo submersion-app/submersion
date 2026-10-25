@@ -40,8 +40,9 @@ KindTable kindTable(ConnectionKind kind) => switch (kind) {
 
 /// Every entity of [kind] with at least one dive in scope, with its own
 /// distinct dive count and the columns its subtitle needs. With
-/// [sharedWith], only dives that also have an entity of that kind count,
-/// so an entity seen only without one is left out.
+/// [sharedWith], an entity is kept only if one of its dives also has an
+/// entity of that kind; every one of its dives still counts, so the count
+/// matches the dives Show dives lists.
 ///
 /// Rows come by dive count, then label. With [byRank] they come by dive
 /// count, then id: the order the node budget ranks in (see
@@ -56,7 +57,7 @@ KindTable kindTable(ConnectionKind kind) => switch (kind) {
   bool byRank = false,
   ConnectionKind? sharedWith,
 }) {
-  final extraWhere = <String>[?sharedWithClause(sharedWith)];
+  final extraWhere = <String>[];
   final extraParams = <Object?>[];
   if (onlyIds != null) {
     final ids = onlyIds.toList();
@@ -86,19 +87,20 @@ FROM (
   FROM (${membershipSql(kind)}) m
   JOIN dives d ON d.id = m.dive_id
   WHERE ${where.join(' AND ')}
-  GROUP BY m.entity_id
+  GROUP BY m.entity_id${sharedWithHaving(sharedWith)}
 ) c
 JOIN ${t.table} t ON t.id = c.entity_id$outerWhere
 ORDER BY c.dive_count DESC, ${byRank ? 't.id' : 'label'} ASC$limitClause''';
   return (sql: sql, params: [...params, ?labelLike, ?limit]);
 }
 
-/// The clause keeping only dives `d` that also have an entity of [kind];
-/// null when [kind] is null.
-String? sharedWithClause(ConnectionKind? kind) => kind == null
-    ? null
-    : 'EXISTS (SELECT 1 FROM (${membershipSql(kind)}) sw '
-          'WHERE sw.dive_id = d.id)';
+/// The HAVING clause, for a query grouped by `m.entity_id` over dives `d`,
+/// keeping an entity only if one of its dives also has an entity of
+/// [kind]; empty when [kind] is null.
+String sharedWithHaving(ConnectionKind? kind) => kind == null
+    ? ''
+    : '\n  HAVING MAX(EXISTS (SELECT 1 FROM (${membershipSql(kind)}) sw '
+          'WHERE sw.dive_id = d.id)) = 1';
 
 /// How many entities of [kind] have at least one dive in scope: the row
 /// count [buildNodeSql] would return with no limit.
@@ -109,16 +111,16 @@ String? sharedWithClause(ConnectionKind? kind) => kind == null
   ConnectionKind? sharedWith,
 }) {
   final scope = diveScopeSql(diverId: diverId, filter: filter);
-  final where = [...scope.clauses, ?sharedWithClause(sharedWith)];
   final t = kindTable(kind);
   final sql =
       '''
 SELECT COUNT(*) AS n
 FROM (
-  SELECT DISTINCT m.entity_id
+  SELECT m.entity_id
   FROM (${membershipSql(kind)}) m
   JOIN dives d ON d.id = m.dive_id
-  WHERE ${where.join(' AND ')}
+  WHERE ${scope.clauses.join(' AND ')}
+  GROUP BY m.entity_id${sharedWithHaving(sharedWith)}
 ) c
 JOIN ${t.table} t ON t.id = c.entity_id''';
   return (sql: sql, params: scope.params);

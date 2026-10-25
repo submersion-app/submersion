@@ -73,8 +73,12 @@ class AppLocalizationsPt extends AppLocalizations {
       'Equipamento, viagens e centros; uma linha indica mergulhos em comum.';
 
   @override
-  String get connections_caption_custom =>
-      'Uma linha liga dois elementos que compartilham um mergulho.';
+  String connections_caption_custom(String kinds) {
+    return '$kinds; uma linha indica que compartilham um mergulho.';
+  }
+
+  @override
+  String get connections_caption_kindSeparator => ', ';
 
   @override
   String connections_caption_around(int hops) {
@@ -82,8 +86,8 @@ class AppLocalizationsPt extends AppLocalizations {
       hops,
       locale: localeName,
       other:
-          'Tudo a até $hops passos deste centro, ligado por mergulhos em comum.',
-      one: 'Tudo o que compartilha um mergulho com este centro.',
+          'Tudo a até $hops passos do elemento central, ligado por mergulhos em comum.',
+      one: 'Tudo o que compartilha um mergulho com o elemento central.',
     );
     return '$_temp0';
   }
@@ -5244,6 +5248,10 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get connections_empty_sites => 'Nenhum mergulho tem ainda um local.';
+
+  @override
+  String get connections_empty_whereNoSites =>
+      'Nenhum dos seus mergulhos com um parceiro tem local ainda. Adicione locais a esses mergulhos para ver onde vocês mergulham juntos.';
 
   @override
   String get connections_empty_filtered => 'Nada corresponde ao filtro atual.';

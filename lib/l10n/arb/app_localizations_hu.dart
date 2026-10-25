@@ -73,8 +73,12 @@ class AppLocalizationsHu extends AppLocalizations {
       'Felszerelés, utak és búvárközpontok; egy vonal közös merüléseket jelent.';
 
   @override
-  String get connections_caption_custom =>
-      'Egy vonal két olyan elemet köt össze, amelyeknek van közös merülésük.';
+  String connections_caption_custom(String kinds) {
+    return '$kinds; egy vonal azt jelenti, hogy van közös merülésük.';
+  }
+
+  @override
+  String get connections_caption_kindSeparator => ', ';
 
   @override
   String connections_caption_around(int hops) {
@@ -5234,6 +5238,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get connections_empty_sites =>
       'Még egyik merülésnek sincs merülőhelye.';
+
+  @override
+  String get connections_empty_whereNoSites =>
+      'Egyik társas merülésednek sincs még merülőhelye. Adj merülőhelyet ezekhez a merülésekhez, hogy lásd, hol merültök együtt.';
 
   @override
   String get connections_empty_filtered =>

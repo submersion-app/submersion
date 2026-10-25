@@ -73,8 +73,12 @@ class AppLocalizationsFr extends AppLocalizations {
       'Équipement, voyages et centres ; une ligne signifie des plongées en commun.';
 
   @override
-  String get connections_caption_custom =>
-      'Une ligne relie deux éléments qui partagent une plongée.';
+  String connections_caption_custom(String kinds) {
+    return '$kinds ; une ligne signifie qu\'ils partagent une plongée.';
+  }
+
+  @override
+  String get connections_caption_kindSeparator => ', ';
 
   @override
   String connections_caption_around(int hops) {
@@ -82,8 +86,8 @@ class AppLocalizationsFr extends AppLocalizations {
       hops,
       locale: localeName,
       other:
-          'Tout ce qui se trouve à $hops pas de ce centre, relié par des plongées en commun.',
-      one: 'Tout ce qui partage une plongée avec ce centre.',
+          'Tout ce qui se trouve à $hops pas au plus de l\'élément central, relié par des plongées en commun.',
+      one: 'Tout ce qui partage une plongée avec l\'élément central.',
     );
     return '$_temp0';
   }
@@ -5255,6 +5259,10 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get connections_empty_sites => 'Aucune plongée n\'a encore de site.';
+
+  @override
+  String get connections_empty_whereNoSites =>
+      'Aucune de vos plongées avec un binôme n\'a encore de site. Ajoutez des sites à ces plongées pour voir où vous plongez ensemble.';
 
   @override
   String get connections_empty_filtered =>

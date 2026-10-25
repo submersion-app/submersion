@@ -73,8 +73,12 @@ class AppLocalizationsIt extends AppLocalizations {
       'Attrezzatura, viaggi e diving center; una linea indica immersioni in comune.';
 
   @override
-  String get connections_caption_custom =>
-      'Una linea unisce due elementi che condividono un\'immersione.';
+  String connections_caption_custom(String kinds) {
+    return '$kinds; una linea indica che condividono un\'immersione.';
+  }
+
+  @override
+  String get connections_caption_kindSeparator => ', ';
 
   @override
   String connections_caption_around(int hops) {
@@ -82,8 +86,8 @@ class AppLocalizationsIt extends AppLocalizations {
       hops,
       locale: localeName,
       other:
-          'Tutto ciò che è entro $hops passi da questo centro, unito da immersioni in comune.',
-      one: 'Tutto ciò che condivide un\'immersione con questo centro.',
+          'Tutto ciò che è entro $hops passi dall\'elemento centrale, unito da immersioni in comune.',
+      one: 'Tutto ciò che condivide un\'immersione con l\'elemento centrale.',
     );
     return '$_temp0';
   }
@@ -5241,6 +5245,10 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get connections_empty_sites => 'Nessuna immersione ha ancora un sito.';
+
+  @override
+  String get connections_empty_whereNoSites =>
+      'Nessuna delle tue immersioni con un compagno ha ancora un sito. Aggiungi i siti a quelle immersioni per vedere dove vi immergete insieme.';
 
   @override
   String get connections_empty_filtered =>

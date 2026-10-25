@@ -170,11 +170,12 @@ void main() {
         filter: const DiveFilterState(),
         sharedWith: ConnectionKind.buddy,
       );
+      // A having clause: it picks the sites, every dive still counts.
       expect(
         r.sql,
         contains(
-          'EXISTS (SELECT 1 FROM (SELECT dive_id, buddy_id AS entity_id '
-          'FROM dive_buddies) sw WHERE sw.dive_id = d.id)',
+          'HAVING MAX(EXISTS (SELECT 1 FROM (SELECT dive_id, buddy_id AS '
+          'entity_id FROM dive_buddies) sw WHERE sw.dive_id = d.id)) = 1',
         ),
       );
       expect(r.params, ['me']);
@@ -184,7 +185,7 @@ void main() {
         filter: const DiveFilterState(),
         sharedWith: ConnectionKind.buddy,
       );
-      expect(count.sql, contains('EXISTS (SELECT 1 FROM'));
+      expect(count.sql, contains('HAVING MAX(EXISTS (SELECT 1 FROM'));
       final plain = buildNodeSql(
         kind: ConnectionKind.site,
         diverId: 'me',

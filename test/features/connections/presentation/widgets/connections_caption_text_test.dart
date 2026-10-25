@@ -57,8 +57,12 @@ void main() {
     expect(c.title, 'Custom map');
     expect(
       c.sentence,
-      startsWith('A line joins two entries that share a dive.'),
+      startsWith('Buddies, Sites; a line means they share a dive.'),
     );
+    final withTrips = caption(
+      start.editMap(start.mapSpec.withKind(ConnectionKind.trip)),
+    );
+    expect(withTrips.sentence, startsWith('Buddies, Sites, Trips; '));
   });
 
   test('a saved map is named and read like a custom one', () {
@@ -68,7 +72,7 @@ void main() {
       saved: {'m1': 'Fiji 2024'},
     );
     expect(c.title, 'Fiji 2024');
-    expect(c.sentence, startsWith('A line joins two entries'));
+    expect(c.sentence, startsWith('Buddies, Sites; a line means'));
   });
 
   test('Around mode names the centre and its reach', () {

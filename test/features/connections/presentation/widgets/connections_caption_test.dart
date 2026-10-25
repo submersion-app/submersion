@@ -51,4 +51,35 @@ void main() {
     final small = (await _pump(tester)).last;
     expect(heights.last, greaterThan(small));
   });
+
+  testWidgets('touches on the caption reach the canvas below it', (
+    tester,
+  ) async {
+    var taps = 0;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Stack(
+          children: [
+            Positioned.fill(
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => taps++,
+              ),
+            ),
+            Positioned(
+              left: 12,
+              right: 12,
+              top: 8,
+              child: ConnectionsCaption(text: _text, onHeight: (_) {}),
+            ),
+          ],
+        ),
+      ),
+    );
+    await tester.tap(
+      find.byKey(const ValueKey('connections-caption')),
+      warnIfMissed: false,
+    );
+    expect(taps, 1);
+  });
 }

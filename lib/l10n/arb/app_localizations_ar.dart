@@ -72,19 +72,26 @@ class AppLocalizationsAr extends AppLocalizations {
       'المعدات والرحلات والمراكز؛ يعني الخط أن بينها غوصات مشتركة.';
 
   @override
-  String get connections_caption_custom =>
-      'يربط الخط بين عنصرين يشتركان في غوصة.';
+  String connections_caption_custom(String kinds) {
+    return '$kinds؛ يعني الخط أنها تشترك في غوصة.';
+  }
+
+  @override
+  String get connections_caption_kindSeparator => '، ';
 
   @override
   String connections_caption_around(int hops) {
     String _temp0 = intl.Intl.pluralLogic(
       hops,
       locale: localeName,
-      other: 'كل ما يقع ضمن $hops خطوة من هذا المركز، مرتبطًا بغوصات مشتركة.',
-      many: 'كل ما يقع ضمن $hops خطوة من هذا المركز، مرتبطًا بغوصات مشتركة.',
-      few: 'كل ما يقع ضمن $hops خطوات من هذا المركز، مرتبطًا بغوصات مشتركة.',
-      two: 'كل ما يقع ضمن خطوتين من هذا المركز، مرتبطًا بغوصات مشتركة.',
-      one: 'كل ما يشترك في غوصة مع هذا المركز.',
+      other:
+          'كل ما يقع ضمن $hops خطوة من العنصر المركزي، مرتبطًا بغوصات مشتركة.',
+      many:
+          'كل ما يقع ضمن $hops خطوة من العنصر المركزي، مرتبطًا بغوصات مشتركة.',
+      few:
+          'كل ما يقع ضمن $hops خطوات من العنصر المركزي، مرتبطًا بغوصات مشتركة.',
+      two: 'كل ما يقع ضمن خطوتين من العنصر المركزي، مرتبطًا بغوصات مشتركة.',
+      one: 'كل ما يشترك في غوصة مع العنصر المركزي.',
     );
     return '$_temp0';
   }
@@ -5352,6 +5359,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get connections_empty_sites => 'لا توجد غوصة لها موقع بعد.';
+
+  @override
+  String get connections_empty_whereNoSites =>
+      'لا تحتوي أي من غوصاتك مع رفيق على موقع بعد. أضف مواقع إلى تلك الغوصات لترى أين تغوصون معًا.';
 
   @override
   String get connections_empty_filtered => 'لا شيء يطابق التصفية الحالية.';
