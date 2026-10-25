@@ -1,6 +1,5 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
+import 'package:submersion/core/theme/contrast_ratio.dart';
 
 /// How far each tonal surface container steps from the surface toward
 /// onSurface. The seeded presets' highest container sits about 1.2:1 from
@@ -20,7 +19,7 @@ const double _variantText = 7.0;
 /// WCAG minimum for meaningful non-text marks (borders, focus rings).
 const double _readableMark = 3.0;
 
-/// Fills in the neutral roles of a hand-built [ColorScheme].
+/// Fills in the neutral roles a hand-built [ColorScheme] left unset.
 ///
 /// The plain [ColorScheme] constructor falls back to onSurface for an
 /// omitted onSurfaceVariant, outline and outlineVariant, and to the surface
@@ -45,16 +44,30 @@ ColorScheme withDerivedNeutrals(ColorScheme scheme) {
     scheme.surface,
   );
 
-  final container = toward(_containerStep);
-  final containerHigh = toward(_containerHighStep);
-  final containerHighest = toward(_containerHighestStep);
+  // Only a role still at Flutter's fallback is derived; one the preset sets
+  // itself is kept. The containers fall back to the surface, the rest to
+  // onSurface (outline via onBackground, which the presets leave unset).
+  Color container(Color role, double strength) =>
+      role == scheme.surface ? toward(strength) : role;
+  Color ink(Color role, Color Function() derive) =>
+      role == scheme.onSurface ? derive() : role;
+
+  final surfaceContainer = container(scheme.surfaceContainer, _containerStep);
+  final containerHigh = container(
+    scheme.surfaceContainerHigh,
+    _containerHighStep,
+  );
+  final containerHighest = container(
+    scheme.surfaceContainerHighest,
+    _containerHighestStep,
+  );
 
   /// The quietest blend of onSurface that reaches [minimum] on every
   /// colour in [backgrounds].
   Color quietest(double minimum, List<Color> backgrounds) {
     for (var percent = 30; percent < 100; percent++) {
       final candidate = toward(percent / 100);
-      if (backgrounds.every((bg) => _contrast(candidate, bg) >= minimum)) {
+      if (backgrounds.every((bg) => contrastRatio(candidate, bg) >= minimum)) {
         return candidate;
       }
     }
@@ -62,24 +75,26 @@ ColorScheme withDerivedNeutrals(ColorScheme scheme) {
   }
 
   return scheme.copyWith(
-    surfaceContainer: container,
+    surfaceContainer: surfaceContainer,
     surfaceContainerHigh: containerHigh,
     surfaceContainerHighest: containerHighest,
-    onSurfaceVariant: quietest(_variantText, [
-      scheme.surface,
-      scheme.surfaceContainerLow,
-      container,
-      containerHigh,
-      containerHighest,
-    ]),
-    outline: quietest(_readableMark, [scheme.surface, containerHighest]),
-    outlineVariant: toward(_outlineVariantStrength),
+    onSurfaceVariant: ink(
+      scheme.onSurfaceVariant,
+      () => quietest(_variantText, [
+        scheme.surface,
+        scheme.surfaceContainerLow,
+        surfaceContainer,
+        containerHigh,
+        containerHighest,
+      ]),
+    ),
+    outline: ink(
+      scheme.outline,
+      () => quietest(_readableMark, [scheme.surface, containerHighest]),
+    ),
+    outlineVariant: ink(
+      scheme.outlineVariant,
+      () => toward(_outlineVariantStrength),
+    ),
   );
-}
-
-/// WCAG 2.x contrast ratio between two opaque colours.
-double _contrast(Color a, Color b) {
-  final la = a.computeLuminance();
-  final lb = b.computeLuminance();
-  return (math.max(la, lb) + 0.05) / (math.min(la, lb) + 0.05);
 }

@@ -7182,6 +7182,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   }) {
     final color = _markerColor(marker);
     final size = marker.markerSize;
+    // Read once here: fl_chart calls getDotPainter during paint, per frame.
+    final ring = Theme.of(context).colorScheme.surface;
 
     // Calculate Y position based on marker type
     double yPosition;
@@ -7214,7 +7216,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               radius: size,
               color: color,
               strokeWidth: 2,
-              strokeColor: Theme.of(context).colorScheme.surface,
+              strokeColor: ring,
             );
           } else {
             // Pressure threshold: colored circle with darker border

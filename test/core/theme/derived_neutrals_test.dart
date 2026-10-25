@@ -18,4 +18,34 @@ void main() {
 
     expect(derived.onSurfaceVariant, scheme.onSurface);
   });
+
+  // A preset that sets a neutral role itself keeps it: only the roles Flutter
+  // fell back for (equal to onSurface or the surface) are derived.
+  test('a role the scheme sets itself is kept', () {
+    // The plain constructor, as the hand-built presets use it: no defaults
+    // beyond Flutter's fallbacks.
+    const scheme = ColorScheme(
+      brightness: Brightness.dark,
+      primary: Color(0xFF4AE0C0),
+      onPrimary: Color(0xFF0A1018),
+      secondary: Color(0xFF8FA6BF),
+      onSecondary: Color(0xFF0A1018),
+      error: Color(0xFFFFB4AB),
+      onError: Color(0xFF690005),
+      surface: Color(0xFF141A22),
+      onSurface: Color(0xFFE6EAF0),
+      onSurfaceVariant: Color(0xFFB0B8C4),
+      outline: Color(0xFF2A3A4A),
+      surfaceContainerHighest: Color(0xFF2B3440),
+    );
+
+    final derived = withDerivedNeutrals(scheme);
+
+    expect(derived.onSurfaceVariant, scheme.onSurfaceVariant);
+    expect(derived.outline, scheme.outline);
+    expect(derived.surfaceContainerHighest, scheme.surfaceContainerHighest);
+    // Left to their fallbacks, these are still derived.
+    expect(derived.outlineVariant, isNot(scheme.onSurface));
+    expect(derived.surfaceContainer, isNot(scheme.surface));
+  });
 }

@@ -7,6 +7,7 @@ import 'package:submersion/features/connections/domain/entities/connection_edge.
 import 'package:submersion/features/connections/domain/entities/connection_graph.dart';
 import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
 import 'package:submersion/features/connections/domain/entities/connection_node.dart';
+import 'package:submersion/features/connections/domain/entities/graph_selection.dart';
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
 import 'package:submersion/features/connections/domain/layout/whole_web_layout.dart';
 import 'package:submersion/features/connections/domain/views/connections_display.dart';
@@ -46,6 +47,8 @@ final _edges = [
   HighlightMode highlight = HighlightMode.byKind,
   Map<NodeRef, int> groupOf = const {},
   Map<(NodeRef, int), TextPainter>? cache,
+  GraphSelection? selection,
+  Color? haloColor,
 }) {
   final graph = ConnectionGraph(nodes: _nodes, edges: _edges);
   final layout = WholeWebLayout(
@@ -67,6 +70,8 @@ final _edges = [
     highlight: highlight,
     groupOf: groupOf,
     initialsCache: glyphs,
+    selection: selection,
+    haloColor: haloColor,
   );
   final recorder = ui.PictureRecorder();
   painter.paint(Canvas(recorder), const Size(900, 900));
@@ -76,14 +81,22 @@ final _edges = [
 
 /// Every glyph the painter drew, with its contrast against its own disc.
 /// An icon is cached under a negative size; initials under a positive one.
+///
+/// With a [page], nodes outside [lit] are dimmed: their disc paints at 35%
+/// over the page, so that is the colour their glyph has to read on.
 List<String> _unreadable(
   ConnectionsPainter painter,
-  Map<(NodeRef, int), TextPainter> glyphs,
-) {
+  Map<(NodeRef, int), TextPainter> glyphs, {
+  Color? page,
+  Set<NodeRef>? lit,
+}) {
   final failures = <String>[];
   for (final MapEntry(key: (ref, size), value: tp) in glyphs.entries) {
     final node = _nodes.firstWhere((n) => n.ref == ref);
-    final fill = painter.fillFor(node);
+    final opaque = painter.fillFor(node);
+    final fill = page == null || lit == null || lit.contains(ref)
+        ? opaque
+        : Color.alphaBlend(opaque.withValues(alpha: 0.35), page);
     final ratio = contrastRatio(tp.text!.style!.color!, fill);
     // Icons are marks (3:1); initials are text (4.5:1).
     final minimum = size < 0 ? 3.0 : 4.5;
@@ -130,5 +143,24 @@ void main() {
     _paint(FeatureAccentColors.light, cache: cache);
     final (:painter, :glyphs) = _paint(FeatureAccentColors.dark, cache: cache);
     expect(_unreadable(painter, glyphs), isEmpty);
+  });
+
+  // With a node selected, every unlit node dims to 35% over the page. On the
+  // dark page a pastel disc composites to a dark colour, so the glyph picked
+  // for the opaque pastel (black) vanished there.
+  test('glyphs read on dimmed discs while a node is selected', () {
+    const page = Color(0xFF111318);
+    final selection = NodeSelection(_nodes.first.ref);
+    final (:painter, :glyphs) = _paint(
+      FeatureAccentColors.dark,
+      selection: selection,
+      haloColor: page,
+    );
+    final lit = {
+      _nodes.first.ref,
+      ...ConnectionsPainter.neighboursOf(painter.graph, selection),
+    };
+    expect(lit.length, lessThan(_nodes.length), reason: 'nothing was dimmed');
+    expect(_unreadable(painter, glyphs, page: page, lit: lit), isEmpty);
   });
 }

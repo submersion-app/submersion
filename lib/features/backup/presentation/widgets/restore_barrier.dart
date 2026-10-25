@@ -97,9 +97,7 @@ class _RestoreOverlay extends StatelessWidget {
             // beneath can be tapped or scrolled during the restore.
             ModalBarrier(
               dismissible: false,
-              color: Theme.of(
-                context,
-              ).colorScheme.scrim.withValues(alpha: 0.54),
+              color: theme.colorScheme.scrim.withValues(alpha: 0.54),
             ),
             Center(
               child: Material(

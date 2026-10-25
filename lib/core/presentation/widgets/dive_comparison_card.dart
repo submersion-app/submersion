@@ -697,13 +697,13 @@ class _ActionButton extends StatelessWidget {
     final theme = Theme.of(context);
 
     // When the button is disabled (onPressed == null), skip the semantic
-    // color/border so Material's default disabled styling takes over — keeps
-    // the "not clickable" affordance visually clear.
+    // color/border so Material's default disabled styling takes over. That
+    // keeps the "not clickable" affordance visually clear.
     final isEnabled = onPressed != null;
     final effectiveColor = isEnabled ? color : null;
 
-    // The label on a filled button, read against its fill. Null leaves the
-    // disabled button's own foreground in charge.
+    // The label on an enabled filled button, read against its fill. When
+    // null, the labels keep the text theme's colours.
     final onFill = style == _ActionButtonStyle.filled && effectiveColor != null
         ? foregroundOn(theme.colorScheme, effectiveColor)
         : null;

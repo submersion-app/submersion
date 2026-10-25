@@ -507,15 +507,25 @@ class _TideCyclePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _TideCyclePainter oldDelegate) {
+    // Every field is drawn, so every field is compared: the labels follow the
+    // diver's unit and clock, and the colours follow the theme.
     return cyclePosition != oldDelegate.cyclePosition ||
         tideState != oldDelegate.tideState ||
         waveColor != oldDelegate.waveColor ||
+        fillColor != oldDelegate.fillColor ||
         markerColor != oldDelegate.markerColor ||
         ringColor != oldDelegate.ringColor ||
+        gridColor != oldDelegate.gridColor ||
+        labelColor != oldDelegate.labelColor ||
+        labelStyle != oldDelegate.labelStyle ||
         showLabels != oldDelegate.showLabels ||
         currentHeight != oldDelegate.currentHeight ||
+        highTideHeight != oldDelegate.highTideHeight ||
+        lowTideHeight != oldDelegate.lowTideHeight ||
         highTideTime != oldDelegate.highTideTime ||
         lowTideTime != oldDelegate.lowTideTime ||
-        referenceTime != oldDelegate.referenceTime;
+        referenceTime != oldDelegate.referenceTime ||
+        timeFormat != oldDelegate.timeFormat ||
+        depthUnit != oldDelegate.depthUnit;
   }
 }

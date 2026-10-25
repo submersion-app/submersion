@@ -2,12 +2,12 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/domain/entities/storage_config.dart';
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/theme/full_themes/submersion_theme.dart';
 import 'package:submersion/features/settings/presentation/pages/storage_settings_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -56,7 +56,7 @@ void main() {
   });
 
   tearDown(() async {
-    DatabaseService.instance.resetForTesting();
+    await tearDownTestDatabase();
     try {
       tempDir.deleteSync(recursive: true);
     } catch (_) {}
@@ -86,7 +86,7 @@ void main() {
                   ),
                 ),
                 currentDatabasePathProvider.overrideWith(
-                  (ref) async => '/tmp/db',
+                  (ref) async => p.join(tempDir.path, 'db'),
                 ),
               ],
               child: MaterialApp(

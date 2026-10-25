@@ -114,10 +114,10 @@ class ConnectionsPainter extends CustomPainter {
     }
   }
 
-  /// A node's fill before any selection dimming.
   /// The glyph cached under [key], laid out again by [build] when its colour
-  /// is no longer [color]: the cache outlives a frame, and a node's fill (so
-  /// its glyph colour) changes with the highlight mode and the theme.
+  /// is no longer [color]: the cache outlives a frame, and a node's disc (so
+  /// its glyph colour) changes with the highlight mode, the selection and the
+  /// theme.
   TextPainter _cachedGlyph(
     (NodeRef, int) key,
     Color color,
@@ -128,6 +128,16 @@ class ConnectionsPainter extends CustomPainter {
     return initialsCache[key] = build();
   }
 
+  /// Black or white, whichever reads on [disc] as painted. A dimmed disc is
+  /// translucent, so it is judged over the page ([haloColor]) beneath it:
+  /// a pastel at 35% over a dark page is dark, not pastel.
+  Color _glyphColorOn(Color disc) => blackOrWhiteOn(
+    haloColor == null
+        ? disc.withValues(alpha: 1)
+        : Color.alphaBlend(disc, haloColor!),
+  );
+
+  /// A node's fill before any selection dimming.
   Color fillFor(ConnectionNode n) {
     if (highlight != HighlightMode.groups) return colors.colorFor(n.ref.kind);
     final g = groupOf[n.ref];
@@ -244,9 +254,6 @@ class ConnectionsPainter extends CustomPainter {
       final isLit = isSelected || lit.contains(n.ref) || n.ref == hovered;
       final fill = fillFor(n).withValues(alpha: dim && !isLit ? 0.35 : 1);
       canvas.drawCircle(centre, r, Paint()..color = fill);
-      // Kind and group colours run from deep to pastel (the dark palette),
-      // so the glyph takes whichever of black or white reads on its disc.
-      final glyphColor = blackOrWhiteOn(fillFor(n));
       discs.add(Rect.fromCircle(center: centre, radius: r));
       final photo = photos[n.ref];
       final glyph = NodeMetrics.glyphFor(
@@ -271,6 +278,9 @@ class ConnectionsPainter extends CustomPainter {
         case NodeGlyph.icon:
           final size = (r * 1.1).round();
           final icon = connectionKindIcon(n.ref.kind);
+          // Kind and group colours run from deep to pastel (the dark
+          // palette), so the glyph takes whichever of black or white reads.
+          final glyphColor = _glyphColorOn(fill);
           final tp = _cachedGlyph(
             (n.ref, -size),
             glyphColor,
@@ -290,6 +300,7 @@ class ConnectionsPainter extends CustomPainter {
           tp.paint(canvas, centre - Offset(tp.width / 2, tp.height / 2));
         case NodeGlyph.initials:
           final fontSize = (r * 0.8).round();
+          final glyphColor = _glyphColorOn(fill);
           final tp = _cachedGlyph(
             (n.ref, fontSize),
             glyphColor,

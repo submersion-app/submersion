@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:submersion/core/theme/contrast_ratio.dart';
 
 /// The colour for text and icons drawn on a solid [fill].
 ///
@@ -20,11 +21,7 @@ Color foregroundOn(ColorScheme scheme, Color fill) {
 /// Black or white, whichever contrasts more with [fill]: the foreground for
 /// a fill that is data rather than a theme role (a kind or group colour, a
 /// fixed status hue).
-Color blackOrWhiteOn(Color fill) {
-  // WCAG contrast against white is 1.05 / (L + 0.05) and against black is
-  // (L + 0.05) / 0.05; they are equal where L is about 0.179.
-  final luminance = fill.computeLuminance();
-  return (luminance + 0.05) / 0.05 >= 1.05 / (luminance + 0.05)
-      ? Colors.black
-      : Colors.white;
-}
+Color blackOrWhiteOn(Color fill) =>
+    contrastRatio(Colors.black, fill) >= contrastRatio(Colors.white, fill)
+    ? Colors.black
+    : Colors.white;
