@@ -26,6 +26,8 @@ import 'package:submersion/features/certification_agencies/presentation/provider
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 import 'package:submersion/features/documents/presentation/widgets/documents_section.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
+import 'package:submersion/shared/widgets/detail_row/detail_row_group.dart';
+import 'package:submersion/shared/widgets/detail_row/detail_row.dart';
 
 class CourseDetailPage extends ConsumerWidget {
   final String courseId;
@@ -80,44 +82,46 @@ class CourseDetailPage extends ConsumerWidget {
           Card(
             child: Padding(
               padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildSectionHeader(
-                    context,
-                    context.l10n.courses_section_details,
-                    Icons.school,
-                  ),
-                  const SizedBox(height: 12),
-                  _buildDetailRow(
-                    context,
-                    context.l10n.courses_label_agency,
-                    context.certificationCatalog
-                        .agency(course.agency)
-                        .localizedName(context.l10n),
-                    Icons.business,
-                  ),
-                  _buildDetailRow(
-                    context,
-                    context.l10n.courses_label_startDate,
-                    formatter.formatDate(course.startDate),
-                    Icons.calendar_today,
-                  ),
-                  if (course.completionDate != null)
+              child: DetailRowGroup(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildSectionHeader(
+                      context,
+                      context.l10n.courses_section_details,
+                      Icons.school,
+                    ),
+                    const SizedBox(height: 12),
                     _buildDetailRow(
                       context,
-                      context.l10n.courses_label_completed,
-                      formatter.formatDate(course.completionDate!),
-                      Icons.check_circle,
+                      context.l10n.courses_label_agency,
+                      context.certificationCatalog
+                          .agency(course.agency)
+                          .localizedName(context.l10n),
+                      Icons.business,
                     ),
-                  if (course.location != null)
                     _buildDetailRow(
                       context,
-                      context.l10n.courses_label_location,
-                      course.location!,
-                      Icons.place,
+                      context.l10n.courses_label_startDate,
+                      formatter.formatDate(course.startDate),
+                      Icons.calendar_today,
                     ),
-                ],
+                    if (course.completionDate != null)
+                      _buildDetailRow(
+                        context,
+                        context.l10n.courses_label_completed,
+                        formatter.formatDate(course.completionDate!),
+                        Icons.check_circle,
+                      ),
+                    if (course.location != null)
+                      _buildDetailRow(
+                        context,
+                        context.l10n.courses_label_location,
+                        course.location!,
+                        Icons.place,
+                      ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -128,29 +132,31 @@ class CourseDetailPage extends ConsumerWidget {
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildSectionHeader(
-                      context,
-                      context.l10n.courses_section_instructor,
-                      Icons.person,
-                    ),
-                    const SizedBox(height: 12),
-                    _buildDetailRow(
-                      context,
-                      context.l10n.courses_label_name,
-                      course.instructorName!,
-                      Icons.badge,
-                    ),
-                    if (course.instructorNumber != null)
+                child: DetailRowGroup(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildSectionHeader(
+                        context,
+                        context.l10n.courses_section_instructor,
+                        Icons.person,
+                      ),
+                      const SizedBox(height: 12),
                       _buildDetailRow(
                         context,
-                        context.l10n.courses_label_instructorNumber,
-                        course.instructorNumber!,
-                        Icons.numbers,
+                        context.l10n.courses_label_name,
+                        course.instructorName!,
+                        Icons.badge,
                       ),
-                  ],
+                      if (course.instructorNumber != null)
+                        _buildDetailRow(
+                          context,
+                          context.l10n.courses_label_instructorNumber,
+                          course.instructorNumber!,
+                          Icons.numbers,
+                        ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -400,28 +406,15 @@ class CourseDetailPage extends ConsumerWidget {
     final colorScheme = Theme.of(context).colorScheme;
     return Semantics(
       label: '$label: $value',
-      child: Padding(
+      child: DetailRow.text(
+        icon: icon,
+        iconSize: 16,
+        iconGap: 8,
+        iconColor: colorScheme.onSurfaceVariant,
+        label: label,
+        value: value,
+        valueStyle: Theme.of(context).textTheme.bodyMedium,
         padding: const EdgeInsets.symmetric(vertical: 4),
-        child: Row(
-          children: [
-            ExcludeSemantics(
-              child: Icon(icon, size: 16, color: colorScheme.onSurfaceVariant),
-            ),
-            const SizedBox(width: 8),
-            SizedBox(
-              width: 100,
-              child: Text(
-                label,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ),
-            Expanded(
-              child: Text(value, style: Theme.of(context).textTheme.bodyMedium),
-            ),
-          ],
-        ),
       ),
     );
   }

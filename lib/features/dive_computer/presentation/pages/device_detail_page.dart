@@ -25,6 +25,8 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/transmitters/presentation/providers/transmitter_providers.dart';
+import 'package:submersion/shared/widgets/detail_row/detail_row_group.dart';
+import 'package:submersion/shared/widgets/detail_row/detail_row.dart';
 
 /// Page displaying details about a specific dive computer.
 class DeviceDetailPage extends ConsumerWidget {
@@ -228,82 +230,75 @@ class DeviceDetailPage extends ConsumerWidget {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  width: 56,
-                  height: 56,
-                  decoration: BoxDecoration(
-                    color: colorScheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(12),
+        child: DetailRowGroup(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      color: colorScheme.primaryContainer,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      icon,
+                      size: 32,
+                      color: colorScheme.onPrimaryContainer,
+                    ),
                   ),
-                  child: Icon(
-                    icon,
-                    size: 32,
-                    color: colorScheme.onPrimaryContainer,
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Text(
+                      computer.fullName,
+                      style: theme.textTheme.titleLarge,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Text(
-                    computer.fullName,
-                    style: theme.textTheme.titleLarge,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            const Divider(),
-            const SizedBox(height: 8),
-            _buildInfoRow(
-              context,
-              context.l10n.diveComputer_detail_labelName,
-              computer.name,
-            ),
-            _buildInfoRow(
-              context,
-              context.l10n.diveComputer_detail_labelManufacturer,
-              computer.manufacturer ?? context.l10n.diveComputer_detail_unknown,
-            ),
-            _buildInfoRow(
-              context,
-              context.l10n.diveComputer_detail_labelModel,
-              computer.model ?? context.l10n.diveComputer_detail_unknown,
-            ),
-            if (computer.serialNumber != null)
+                ],
+              ),
+              const SizedBox(height: 16),
+              const Divider(),
+              const SizedBox(height: 8),
               _buildInfoRow(
                 context,
-                context.l10n.diveLog_detail_label_serialNumber,
-                computer.serialNumber!,
+                context.l10n.diveComputer_detail_labelName,
+                computer.name,
               ),
-            if (computer.equipmentId != null)
-              _LinkedGearRow(equipmentId: computer.equipmentId!),
-            _TransmittersRow(computerId: computer.id),
-          ],
+              _buildInfoRow(
+                context,
+                context.l10n.diveComputer_detail_labelManufacturer,
+                computer.manufacturer ??
+                    context.l10n.diveComputer_detail_unknown,
+              ),
+              _buildInfoRow(
+                context,
+                context.l10n.diveComputer_detail_labelModel,
+                computer.model ?? context.l10n.diveComputer_detail_unknown,
+              ),
+              if (computer.serialNumber != null)
+                _buildInfoRow(
+                  context,
+                  context.l10n.diveLog_detail_label_serialNumber,
+                  computer.serialNumber!,
+                ),
+              if (computer.equipmentId != null)
+                _LinkedGearRow(equipmentId: computer.equipmentId!),
+              _TransmittersRow(computerId: computer.id),
+            ],
+          ),
         ),
       ),
     );
   }
 
   Widget _buildInfoRow(BuildContext context, String label, String value) {
-    final theme = Theme.of(context);
-    return Padding(
+    return DetailRow.text(
+      label: label,
+      value: value,
+      valueStyle: Theme.of(context).textTheme.bodyMedium,
       padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-          Text(value, style: theme.textTheme.bodyMedium),
-        ],
-      ),
     );
   }
 
@@ -970,34 +965,26 @@ class _TransmittersRow extends ConsumerWidget {
 
     return InkWell(
       onTap: () => context.push('/transmitters'),
-      child: Padding(
+      child: DetailRow(
+        label: context.l10n.diveComputer_detail_transmitters,
         padding: const EdgeInsets.symmetric(vertical: 4),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        value: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              context.l10n.diveComputer_detail_transmitters,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
+            Flexible(
+              child: Text(
+                context.l10n.diveComputer_detail_transmittersSummary(
+                  summary.known,
+                  summary.unassigned,
+                ),
+                style: theme.textTheme.bodyMedium,
               ),
             ),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  context.l10n.diveComputer_detail_transmittersSummary(
-                    summary.known,
-                    summary.unassigned,
-                  ),
-                  style: theme.textTheme.bodyMedium,
-                ),
-                const SizedBox(width: 4),
-                Icon(
-                  Icons.chevron_right,
-                  size: 18,
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ],
+            const SizedBox(width: 4),
+            Icon(
+              Icons.chevron_right,
+              size: 18,
+              color: theme.colorScheme.onSurfaceVariant,
             ),
           ],
         ),
@@ -1019,33 +1006,23 @@ class _LinkedGearRow extends ConsumerWidget {
 
     return InkWell(
       onTap: () => context.push('/equipment/$equipmentId'),
-      child: Padding(
+      child: DetailRow(
+        label: context.l10n.diveComputer_detail_linkedGear,
         padding: const EdgeInsets.symmetric(vertical: 4),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        value: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              context.l10n.diveComputer_detail_linkedGear,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
+            Flexible(child: Text(item.name, style: theme.textTheme.bodyMedium)),
+            const SizedBox(width: 6),
+            ServiceStatusIndicatorFor(
+              equipmentId: item.id,
+              density: ServiceIndicatorDensity.dot,
             ),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(item.name, style: theme.textTheme.bodyMedium),
-                const SizedBox(width: 6),
-                ServiceStatusIndicatorFor(
-                  equipmentId: item.id,
-                  density: ServiceIndicatorDensity.dot,
-                ),
-                const SizedBox(width: 4),
-                Icon(
-                  Icons.chevron_right,
-                  size: 18,
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ],
+            const SizedBox(width: 4),
+            Icon(
+              Icons.chevron_right,
+              size: 18,
+              color: theme.colorScheme.onSurfaceVariant,
             ),
           ],
         ),
