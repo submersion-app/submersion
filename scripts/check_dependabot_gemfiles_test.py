@@ -220,6 +220,19 @@ class CoverageTest(unittest.TestCase):
         )
         self.assertEqual(guard.bundler_directories(self.root), ["ios"])
 
+    def test_a_flow_style_directories_list_is_read(self):
+        _write(
+            self.root,
+            ".github/dependabot.yml",
+            "updates:\n"
+            '  - package-ecosystem: "bundler"\n'
+            "    directories: [\"/ios\", '/macos', /android]  # all three\n"
+            '    schedule:\n      interval: "monthly"\n',
+        )
+        self.assertEqual(
+            guard.bundler_directories(self.root), ["ios", "macos", "android"]
+        )
+
     def test_unindented_update_items_are_entries(self):
         _write(
             self.root,

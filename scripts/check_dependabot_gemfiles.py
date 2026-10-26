@@ -21,8 +21,8 @@ Every tracked Gemfile must also sit in a directory a `bundler` entry of
 .github/dependabot.yml lists. android/ gained a Gemfile in #2292 without one,
 so its fastlane never got a version update (#3495). The config is read with a
 line scanner rather than a YAML library, which CI's python3 may not have; it
-understands the `directory:` scalar and the `directories:` list, globs
-included, which is all that file uses. As in Dependabot, `*` in a directory
+understands the `directory:` scalar and the `directories:` list, in block or
+flow (`[...]`) style, globs included. As in Dependabot, `*` in a directory
 matches within one path segment and `**` across any number of them.
 
 Usage: check_dependabot_gemfiles.py [repo root]   (default: this checkout)
@@ -46,7 +46,10 @@ _ECOSYSTEM_RE = re.compile(
     r"""^\s*(-\s+)?package-ecosystem:\s*['"]?(?P<eco>[\w-]+)"""
 )
 _DIRECTORY_RE = re.compile(r"""^\s*(-\s+)?directory:\s*['"]?(?P<dir>[^'"\s#]+)""")
-_DIRECTORIES_RE = re.compile(r"^\s*(-\s+)?directories:\s*(#.*)?$")
+_DIRECTORIES_RE = re.compile(
+    r"^\s*(-\s+)?directories:\s*(?P<flow>\[[^\]]*\])?\s*(#.*)?$"
+)
+_FLOW_ITEM_RE = re.compile(r"""['"]?(?P<dir>[^'",\s\[\]]+)['"]?""")
 _LIST_ITEM_RE = re.compile(r"""^\s*-\s*['"]?(?P<dir>[^'"\s#]+)""")
 _DEPENDABOT_YML = os.path.join(".github", "dependabot.yml")
 
@@ -180,7 +183,13 @@ def bundler_directories(root):
             if item:
                 found.append(item.group("dir").strip("/"))
                 continue
-            in_list = bool(_DIRECTORIES_RE.match(line))
+            directories = _DIRECTORIES_RE.match(line)
+            in_list = bool(directories) and not directories.group("flow")
+            if directories and directories.group("flow"):
+                found.extend(
+                    m.group("dir").strip("/")
+                    for m in _FLOW_ITEM_RE.finditer(directories.group("flow"))
+                )
             directory = _DIRECTORY_RE.match(line)
             if directory:
                 found.append(directory.group("dir").strip("/"))
