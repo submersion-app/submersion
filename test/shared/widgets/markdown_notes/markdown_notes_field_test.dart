@@ -223,4 +223,16 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(find.text('Preview'), findsOneWidget);
   });
+
+  testWidgets('maxLength caps the notes and shows a counter', (tester) async {
+    controller.text = 'abc';
+    await tester.pumpWidget(
+      testApp(
+        locale: const Locale('en'),
+        child: MarkdownNotesField(controller: controller, maxLength: 10),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('3/10'), findsOneWidget);
+  });
 }

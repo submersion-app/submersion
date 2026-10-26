@@ -22,6 +22,7 @@ class MarkdownNotesField extends StatefulWidget {
     this.decoration,
     this.maxLines = 5,
     this.minLines,
+    this.maxLength,
     this.autofocus = false,
     this.validator,
     this.onChanged,
@@ -35,6 +36,7 @@ class MarkdownNotesField extends StatefulWidget {
   final InputDecoration? decoration;
   final int maxLines;
   final int? minLines;
+  final int? maxLength;
   final bool autofocus;
   final FormFieldValidator<String>? validator;
   final ValueChanged<String>? onChanged;
@@ -124,6 +126,7 @@ class _MarkdownNotesFieldState extends State<MarkdownNotesField> {
         autofocus: widget.autofocus,
         maxLines: widget.maxLines,
         minLines: widget.minLines,
+        maxLength: widget.maxLength,
         keyboardType: TextInputType.multiline,
         textCapitalization: widget.textCapitalization,
         inputFormatters: [NotesListContinuationFormatter()],
