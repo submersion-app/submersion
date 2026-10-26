@@ -14,7 +14,7 @@ final _linePrefix = RegExp(r'^(\s*)(#{1,6} |[-*+] (?:\[[ xX]\] )?|\d+[.)] )?');
 /// selection, inserts the pair with the caret between, ready to type.
 TextEditingValue toggleInlineMark(TextEditingValue value, String mark) {
   final text = value.text;
-  final sel = _normalized(value);
+  final sel = _hugWords(text, _normalized(value));
   final start = sel.start;
   final end = sel.end;
 
@@ -66,6 +66,24 @@ TextEditingValue toggleInlineMark(TextEditingValue value, String mark) {
       extentOffset: end + mark.length,
     ),
   );
+}
+
+/// [sel] shrunk to leave whitespace at its edges outside: Markdown marks
+/// only count when they touch the words (`**big **` stays literal), and a
+/// double tap often selects the space after a word. A selection of nothing
+/// but whitespace becomes a caret at its start.
+TextSelection _hugWords(String text, TextSelection sel) {
+  if (sel.isCollapsed) return sel;
+  var start = sel.start;
+  var end = sel.end;
+  while (start < end && text[start].trim().isEmpty) {
+    start++;
+  }
+  while (end > start && text[end - 1].trim().isEmpty) {
+    end--;
+  }
+  if (start == end) return TextSelection.collapsed(offset: sel.start);
+  return TextSelection(baseOffset: start, extentOffset: end);
 }
 
 /// Whether a run of [stars] asterisks contains [mark]: `*` lives in runs of

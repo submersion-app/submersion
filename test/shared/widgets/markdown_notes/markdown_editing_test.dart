@@ -169,4 +169,11 @@ void main() {
     );
     expect(toggleLinePrefix(value, NotesLinePrefix.bullet).text, '- a\nb');
   });
+
+  test('marks hug the words, leaving selected edge spaces outside', () {
+    expect(
+      show(toggleInlineMark(v('a [big ]turtle'), '**')),
+      'a **[big]** turtle',
+    );
+  });
 }

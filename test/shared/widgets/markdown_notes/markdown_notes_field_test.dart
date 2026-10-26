@@ -244,4 +244,38 @@ void main() {
     await tester.pump();
     expect(find.text('new notes'), findsOneWidget);
   });
+
+  testWidgets('Tab reaches the formatting bar and Preview', (tester) async {
+    await pump(tester, text: 'x');
+    final previewFocus = <bool>[];
+    for (var i = 0; i < 8; i++) {
+      await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+      await tester.pump();
+      final focused = FocusManager.instance.primaryFocus?.context;
+      previewFocus.add(
+        focused != null &&
+            find
+                .ancestor(
+                  of: find.byWidget(focused.widget),
+                  matching: find.byType(FilterChip),
+                )
+                .evaluate()
+                .isNotEmpty,
+      );
+    }
+    expect(previewFocus, contains(true));
+  });
+
+  testWidgets('the hidden field cannot take focus while previewing', (
+    tester,
+  ) async {
+    await pump(tester, text: 'x');
+    await tester.tap(find.text('Preview'));
+    await tester.pumpAndSettle();
+    for (var i = 0; i < 8; i++) {
+      await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+      await tester.pump();
+      expect(focusNode.hasFocus, isFalse);
+    }
+  });
 }

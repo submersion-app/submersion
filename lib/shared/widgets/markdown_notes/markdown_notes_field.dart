@@ -87,12 +87,13 @@ class _MarkdownNotesFieldState extends State<MarkdownNotesField> {
     if (on) {
       _focusNode.unfocus();
     } else {
-      _focusNode.requestFocus();
-      // Focus can move the caret; put back what the diver had selected.
+      // After the rebuild: until then the field is still out of focus
+      // traversal, and a focus request would be ignored. Focus can move the
+      // caret, so the diver's selection is put back after it.
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted && selection.isValid) {
-          widget.controller.selection = selection;
-        }
+        if (!mounted) return;
+        _focusNode.requestFocus();
+        if (selection.isValid) widget.controller.selection = selection;
       });
     }
   }
@@ -168,7 +169,12 @@ class _MarkdownNotesFieldState extends State<MarkdownNotesField> {
             ),
           ),
           // Mounted but hidden, so a Form still validates the notes.
-          Offstage(child: TickerMode(enabled: false, child: field)),
+          // Out of focus traversal too, so Tab cannot type into it unseen.
+          Offstage(
+            child: ExcludeFocus(
+              child: TickerMode(enabled: false, child: field),
+            ),
+          ),
         ] else
           field,
       ],
