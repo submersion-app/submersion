@@ -124,6 +124,14 @@ class CsvTransformer {
           continue;
         }
 
+        // MySSI's combined people cell keeps its leading whitespace: the run
+        // of tabs ending in an indent is what marks a lone dive centre
+        // (splitBuddyInstructorCenter, #3629).
+        if (col.targetField == 'buddyInstructorCenter') {
+          mapped[col.targetField] = row[colIdx];
+          continue;
+        }
+
         // Apply explicit transform if specified.
         if (col.transform != null) {
           final transformed = _applyTransform(

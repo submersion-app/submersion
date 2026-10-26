@@ -247,7 +247,7 @@ class CsvCorrelator {
 
     // Instructor field → buddyRoleRefs with the instructor role.
     final instructorRefs = [
-      for (final name in _names(row['instructor']))
+      for (final name in BuddyExtractor.splitNames(row['instructor']))
         ?extractor.buddyIdForName(name),
     ];
     if (instructorRefs.isNotEmpty) {
@@ -259,7 +259,7 @@ class CsvCorrelator {
 
     // Buddy field → buddyRefs (IDs of extracted buddy entities).
     final buddyRefs = [
-      for (final name in _names(updated['buddy']))
+      for (final name in BuddyExtractor.splitNames(updated['buddy']))
         ?extractor.buddyIdForName(name),
     ];
     if (buddyRefs.isNotEmpty) {
@@ -269,7 +269,7 @@ class CsvCorrelator {
 
     // DiveMaster field → unmatchedDiveGuideNames so the importer
     // creates/finds the buddy and links with diveGuide role.
-    final guideNames = _names(updated['diveMaster']).toList();
+    final guideNames = BuddyExtractor.splitNames(updated['diveMaster']);
     if (guideNames.isNotEmpty) {
       updated['unmatchedDiveGuideNames'] = guideNames;
       updated.remove('diveMaster');
@@ -277,12 +277,6 @@ class CsvCorrelator {
 
     return updated;
   }
-
-  /// The comma-separated names in a raw people field.
-  static Iterable<String> _names(Object? raw) => (raw?.toString() ?? '')
-      .split(',')
-      .map((s) => s.trim())
-      .where((s) => s.isNotEmpty);
 
   /// Set `diveCenterRef` on each dive to the dive centre extracted from the
   /// same row, as [UddfEntityImporter] expects. [dives] and [rows] are
@@ -354,7 +348,10 @@ class CsvCorrelator {
 
     void addNames(String field, List<String> names) {
       if (names.isEmpty) return;
-      updated[field] = [..._names(updated[field]), ...names].join(', ');
+      updated[field] = [
+        ...BuddyExtractor.splitNames(updated[field]),
+        ...names,
+      ].join(', ');
     }
 
     addNames('buddy', people.buddies);

@@ -26,6 +26,14 @@ void main() {
     expect(people.diveCenter, 'Example Dive Centre');
   });
 
+  test('a dive centre with nobody before it is still the dive centre', () {
+    final people = splitBuddyInstructorCenter(
+      '$tabs8${indent}Example Dive Centre',
+    );
+    expect(people.buddies, isEmpty);
+    expect(people.diveCenter, 'Example Dive Centre');
+  });
+
   test('a lone name is a buddy', () {
     final people = splitBuddyInstructorCenter('Pat Lee');
     expect(people.buddies, ['Pat Lee']);

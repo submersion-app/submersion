@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:submersion/features/universal_import/data/csv/transforms/month_name_date.dart';
 
 void main() {
@@ -24,9 +25,7 @@ void main() {
     });
 
     test('no name means two different months', () {
-      // Every name in the table is checked against every language: a word
-      // two languages give to different months would be dropped, so the
-      // ones a diver is likely to meet must all still read.
+      // Short names several languages share all mean the same month.
       for (final (name, month) in const [
         ('mar', 3),
         ('mai', 5),
@@ -36,6 +35,28 @@ void main() {
         ('dec', 12),
       ]) {
         expect(monthFromName(name), month, reason: name);
+      }
+    });
+
+    test("the written-out table holds every name intl gives the app's "
+        'languages', () {
+      final symbols = dateTimeSymbolMap();
+      for (final locale in monthNameLocales) {
+        final s = symbols[locale]!;
+        for (final names in [
+          s.MONTHS,
+          s.STANDALONEMONTHS,
+          s.SHORTMONTHS,
+          s.STANDALONESHORTMONTHS,
+        ]) {
+          for (var i = 0; i < 12; i++) {
+            expect(
+              monthFromName(names[i]),
+              i + 1,
+              reason: '$locale ${names[i]}',
+            );
+          }
+        }
       }
     });
 

@@ -29,7 +29,11 @@ void main() {
       '"Open Water Dive","Education","29 min",'
       '"46 ft  \t\t\t\t\t\t\t\t\t\t\t(14 m)",'
       '"Sam $tabs$tabs\t\tSSI Pro: Robin K. (98962) $tabs\t\t'
-      '${indent}Example Dive Centre"\n';
+      '${indent}Example Dive Centre"\n'
+      '"12","Blue Reef","United States","30. Jul 2023 14:11","Scuba",'
+      '"Boat Dive","Fun Dive","51 min",'
+      '"43 ft  \t\t\t\t\t\t\t\t\t\t\t(13 m)",'
+      '"$tabs${indent}Example Dive Centre"\n';
 
   Uint8List bytes() => Uint8List.fromList(utf8.encode(csv));
 
@@ -44,12 +48,14 @@ void main() {
       DateTime.utc(2024, 9, 29, 10, 11),
       DateTime.utc(2024, 9, 14, 14, 53),
       DateTime.utc(2023, 10, 2, 11, 26),
+      DateTime.utc(2023, 7, 30, 14, 11),
     ]);
-    expect(dives.map((d) => d['maxDepth']), [10.7, 14.3, 14.0]);
+    expect(dives.map((d) => d['maxDepth']), [10.7, 14.3, 14.0, 13.1]);
     expect(dives.map((d) => d['duration']), [
       const Duration(minutes: 31),
       const Duration(minutes: 10),
       const Duration(minutes: 29),
+      const Duration(minutes: 51),
     ]);
 
     final buddies = result.entitiesOf(ImportEntityType.buddies);
@@ -75,6 +81,11 @@ void main() {
       {'buddyRef': buddyIds['Robin K.'], 'roleId': DiveRole.instructorId},
     ]);
     expect(third['diveCenterRef'], centerId);
+
+    // A dive centre with nobody before it is not taken for a buddy.
+    final fourth = dives[3];
+    expect(fourth.containsKey('buddyRefs'), isFalse);
+    expect(fourth['diveCenterRef'], centerId);
 
     for (final dive in dives) {
       for (final rawKey in const [

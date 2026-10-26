@@ -363,9 +363,7 @@ class TimeResolver {
   /// Reads a year-last date in [order], trying the other order only if the
   /// first reading is not a real date.
   DateTime? _parseYearLast(YearLastDate date, DateOrder? order) {
-    final year = date.year.length == 2
-        ? expandTwoDigitYear(int.parse(date.year), now: _clock())
-        : int.parse(date.year);
+    final year = _expandYear(date.year);
     final preferred =
         order ??
         (date.separator == '/' ? DateOrder.monthFirst : DateOrder.dayFirst);
@@ -384,12 +382,13 @@ class TimeResolver {
 
   /// A month-name date at UTC midnight, with a two-digit year expanded as a
   /// numeric date's is, or null if the day is not in the month.
-  DateTime? _validNamedDate(MonthNameDate date) {
-    final year = date.year.length == 2
-        ? expandTwoDigitYear(int.parse(date.year), now: _clock())
-        : int.parse(date.year);
-    return _validDate(year, date.month, date.day);
-  }
+  DateTime? _validNamedDate(MonthNameDate date) =>
+      _validDate(_expandYear(date.year), date.month, date.day);
+
+  /// A year as written, two digits placed by [expandTwoDigitYear].
+  int _expandYear(String year) => year.length == 2
+      ? expandTwoDigitYear(int.parse(year), now: _clock())
+      : int.parse(year);
 
   /// A UTC midnight for the given parts, or null if they are not a real date
   /// (month 13, 30 February and so on).
