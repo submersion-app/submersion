@@ -637,6 +637,21 @@ class UddfEntityImporter {
         now,
         kindResolver,
       );
+      // A backup written before v317 restores clocks without the baseline
+      // the tank's inspection dates give them (issue #3662). After the
+      // records, so a clock with a service of its kind keeps counting
+      // from that service. Best-effort: the gear is already in.
+      try {
+        await repositories.serviceScheduleRepository
+            ?.anchorFromInspectionDates();
+      } catch (e, stackTrace) {
+        _log.error(
+          'Anchoring tank clocks on their inspection dates failed; the '
+          'gear was still imported',
+          error: e,
+          stackTrace: stackTrace,
+        );
+      }
     }
 
     // Cylinder fills (passports phase 5) are keyed by passport id, not by

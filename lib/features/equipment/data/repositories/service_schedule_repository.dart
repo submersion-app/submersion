@@ -222,6 +222,21 @@ class ServiceScheduleRepository {
     }
   }
 
+  /// Anchors every tank's VIP and hydro clock that has no baseline and no
+  /// service of its kind on the tank's inspection date: the v317 backfill
+  /// (issue #3662), for rows that reach the database without passing
+  /// through the equipment save, such as clocks restored from a backup
+  /// written before v317. Returns how many clocks it anchored.
+  Future<int> anchorFromInspectionDates() async {
+    final anchored = await _db.backfillTankInspectionBaselines();
+    if (anchored > 0) {
+      _db.notifyUpdates({
+        TableUpdate.onTable(_db.serviceSchedules, kind: UpdateKind.update),
+      });
+    }
+    return anchored;
+  }
+
   /// The built-in service kinds [diverId] hid from the pickers (issue #401).
   /// Read straight from diver_settings, as [getDueSoonWindowDays] does, so
   /// equipment creation does not depend on the settings notifier.
