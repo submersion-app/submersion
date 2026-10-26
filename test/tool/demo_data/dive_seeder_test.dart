@@ -51,6 +51,15 @@ void main() {
     expect(noPressure.read<int>('n'), 0);
   });
 
+  test('every dive has a bottom time, as an import would derive', () async {
+    final missing = await ctx.db
+        .customSelect(
+          'SELECT COUNT(*) AS n FROM dives WHERE bottom_time IS NULL',
+        )
+        .getSingle();
+    expect(missing.read<int>('n'), 0);
+  });
+
   test('CCR dives are in rebreather mode', () async {
     final ccr = await ctx.db
         .customSelect("SELECT COUNT(*) AS n FROM dives WHERE dive_mode = 'ccr'")

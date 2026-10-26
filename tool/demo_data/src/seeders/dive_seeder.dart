@@ -65,109 +65,114 @@ class DiveSeeder implements DemoSeeder {
       final runtime = Duration(seconds: shape.durationSec);
       final salt = !d.destination.freshwater;
 
+      final dive = Dive(
+        id: id,
+        diverId: DemoSeedContext.diverId,
+        diveNumber: d.number,
+        dateTime: d.start,
+        entryTime: d.start,
+        exitTime: d.start.add(runtime),
+        runtime: runtime,
+        maxDepth: shape.maxDepth,
+        avgDepth: _avg(shape),
+        site: DiveSite(id: ctx.siteId(site.id), name: site.name),
+        tripId: d.tripId,
+        tanks: [
+          for (var i = 0; i < tanks.length; i++)
+            DiveTank(
+              id: tankIds[i],
+              name: tanks[i].role == TankRole.backGas
+                  ? 'Back gas'
+                  : tanks[i].role.displayName,
+              volume: tanks[i].volumeL,
+              workingPressure: tanks[i].workingBar,
+              startPressure: shape.tanks[i].startBar,
+              endPressure: shape.tanks[i].endBar,
+              gasMix: GasMix(o2: tanks[i].o2, he: tanks[i].he),
+              role: tanks[i].role,
+              material: tanks[i].material,
+              presetName: tanks[i].presetName,
+              order: i,
+            ),
+        ],
+        profile: [
+          for (final s in shape.samples)
+            DiveProfilePoint(
+              timestamp: s.t,
+              depth: s.depth,
+              temperature: s.temp == null ? null : s.temp! + shift,
+              heartRate: s.heartRate,
+              ppO2: s.ppO2,
+              setpoint: s.setpoint,
+              o2Sensor1: s.cells != null && s.cells!.isNotEmpty
+                  ? s.cells![0]
+                  : null,
+              o2Sensor2: s.cells != null && s.cells!.length > 1
+                  ? s.cells![1]
+                  : null,
+              o2Sensor3: s.cells != null && s.cells!.length > 2
+                  ? s.cells![2]
+                  : null,
+            ),
+        ],
+        weights: _weights(d, id),
+        tags: _tags(ctx, d),
+        diveTypeIds: _types(d, trip),
+        diverRoleIds: [d.courseId != null ? 'student' : 'buddy'],
+        courseIds: [if (d.courseId != null) d.courseId!],
+        customFields: [
+          if (trip != null && trip.destination.liveaboard)
+            DiveCustomField(
+              id: 'demo-field-$id',
+              key: 'Boat',
+              value: 'MV Coral Spirit',
+              sortOrder: 0,
+            ),
+        ],
+        waterTemp: _minTemp(shape) == null ? null : _minTemp(shape)! + shift,
+        airTemp: (d.destination.waterTempC.$2 + ctx.between(0, 6))
+            .roundToDouble(),
+        visibilityMeters:
+            (d.destination.freshwater
+                    ? ctx.between(3, 12)
+                    : ctx.between(12, 35))
+                .roundToDouble(),
+        rating: 2 + ctx.random.nextInt(4),
+        notes: diveNote(ctx, d),
+        currentStrength: salt
+            ? CurrentStrength.values[ctx.random.nextInt(3)]
+            : CurrentStrength.none,
+        currentDirection: salt
+            ? CurrentDirection.values[ctx.random.nextInt(8)]
+            : null,
+        waterType: salt ? WaterType.salt : WaterType.fresh,
+        entryMethod: d.destination.key == 'home'
+            ? EntryMethod.shore
+            : EntryMethod.backRoll,
+        diveMode: d.diveMode == 'ccr' ? DiveMode.ccr : DiveMode.oc,
+        setpointLow: d.diveMode == 'ccr' ? 0.7 : null,
+        setpointHigh: d.diveMode == 'ccr' ? 1.3 : null,
+        setpointDeco: d.diveMode == 'ccr' ? 1.4 : null,
+        diluentGas: d.diveMode == 'ccr' ? const GasMix(o2: 21, he: 35) : null,
+        scrubber: d.diveMode == 'ccr'
+            ? const ScrubberInfo(type: 'Sofnolime 797', ratedMinutes: 180)
+            : null,
+        gradientFactorLow: 30 + (d.phase == StoryPhase.recreational ? 10 : 0),
+        gradientFactorHigh: d.phase == StoryPhase.recreational ? 85 : 75,
+        decoAlgorithm: 'buhlmann',
+        isFavorite: d.number % 37 == 0,
+        windSpeed: ctx.between(1, 9).roundToDouble(),
+        cloudCover: CloudCover.values[ctx.random.nextInt(4)],
+        precipitation: Precipitation.none,
+        humidity: ctx.between(50, 85).roundToDouble(),
+        weatherDescription: d.night ? 'Clear night' : 'Fair',
+        weatherSource: WeatherSource.manual,
+      );
+      // Bottom time is derived from the profile, as the import pipeline does,
+      // falling back to the runtime.
       await dives.createDive(
-        Dive(
-          id: id,
-          diverId: DemoSeedContext.diverId,
-          diveNumber: d.number,
-          dateTime: d.start,
-          entryTime: d.start,
-          exitTime: d.start.add(runtime),
-          runtime: runtime,
-          maxDepth: shape.maxDepth,
-          avgDepth: _avg(shape),
-          site: DiveSite(id: ctx.siteId(site.id), name: site.name),
-          tripId: d.tripId,
-          tanks: [
-            for (var i = 0; i < tanks.length; i++)
-              DiveTank(
-                id: tankIds[i],
-                name: tanks[i].role == TankRole.backGas
-                    ? 'Back gas'
-                    : tanks[i].role.displayName,
-                volume: tanks[i].volumeL,
-                workingPressure: tanks[i].workingBar,
-                startPressure: shape.tanks[i].startBar,
-                endPressure: shape.tanks[i].endBar,
-                gasMix: GasMix(o2: tanks[i].o2, he: tanks[i].he),
-                role: tanks[i].role,
-                material: tanks[i].material,
-                presetName: tanks[i].presetName,
-                order: i,
-              ),
-          ],
-          profile: [
-            for (final s in shape.samples)
-              DiveProfilePoint(
-                timestamp: s.t,
-                depth: s.depth,
-                temperature: s.temp == null ? null : s.temp! + shift,
-                heartRate: s.heartRate,
-                ppO2: s.ppO2,
-                setpoint: s.setpoint,
-                o2Sensor1: s.cells != null && s.cells!.isNotEmpty
-                    ? s.cells![0]
-                    : null,
-                o2Sensor2: s.cells != null && s.cells!.length > 1
-                    ? s.cells![1]
-                    : null,
-                o2Sensor3: s.cells != null && s.cells!.length > 2
-                    ? s.cells![2]
-                    : null,
-              ),
-          ],
-          weights: _weights(d, id),
-          tags: _tags(ctx, d),
-          diveTypeIds: _types(d, trip),
-          diverRoleIds: [d.courseId != null ? 'student' : 'buddy'],
-          courseIds: [if (d.courseId != null) d.courseId!],
-          customFields: [
-            if (trip != null && trip.destination.liveaboard)
-              DiveCustomField(
-                id: 'demo-field-$id',
-                key: 'Boat',
-                value: 'MV Coral Spirit',
-                sortOrder: 0,
-              ),
-          ],
-          waterTemp: _minTemp(shape) == null ? null : _minTemp(shape)! + shift,
-          airTemp: (d.destination.waterTempC.$2 + ctx.between(0, 6))
-              .roundToDouble(),
-          visibilityMeters:
-              (d.destination.freshwater
-                      ? ctx.between(3, 12)
-                      : ctx.between(12, 35))
-                  .roundToDouble(),
-          rating: 2 + ctx.random.nextInt(4),
-          notes: diveNote(ctx, d),
-          currentStrength: salt
-              ? CurrentStrength.values[ctx.random.nextInt(3)]
-              : CurrentStrength.none,
-          currentDirection: salt
-              ? CurrentDirection.values[ctx.random.nextInt(8)]
-              : null,
-          waterType: salt ? WaterType.salt : WaterType.fresh,
-          entryMethod: d.destination.key == 'home'
-              ? EntryMethod.shore
-              : EntryMethod.backRoll,
-          diveMode: d.diveMode == 'ccr' ? DiveMode.ccr : DiveMode.oc,
-          setpointLow: d.diveMode == 'ccr' ? 0.7 : null,
-          setpointHigh: d.diveMode == 'ccr' ? 1.3 : null,
-          setpointDeco: d.diveMode == 'ccr' ? 1.4 : null,
-          diluentGas: d.diveMode == 'ccr' ? const GasMix(o2: 21, he: 35) : null,
-          scrubber: d.diveMode == 'ccr'
-              ? const ScrubberInfo(type: 'Sofnolime 797', ratedMinutes: 180)
-              : null,
-          gradientFactorLow: 30 + (d.phase == StoryPhase.recreational ? 10 : 0),
-          gradientFactorHigh: d.phase == StoryPhase.recreational ? 85 : 75,
-          decoAlgorithm: 'buhlmann',
-          isFavorite: d.number % 37 == 0,
-          windSpeed: ctx.between(1, 9).roundToDouble(),
-          cloudCover: CloudCover.values[ctx.random.nextInt(4)],
-          precipitation: Precipitation.none,
-          humidity: ctx.between(50, 85).roundToDouble(),
-          weatherDescription: d.night ? 'Clear night' : 'Fair',
-          weatherSource: WeatherSource.manual,
+        dive.copyWith(
+          bottomTime: dive.calculateBottomTimeFromProfile() ?? runtime,
         ),
       );
       await dives.replaceGearRows(id, [
