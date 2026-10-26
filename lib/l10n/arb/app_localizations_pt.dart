@@ -51935,7 +51935,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get transmitters_key_removeBody =>
-      'O item do transmissor e as suas outras chaves continuam. Use isto para um canal errado ou um número de série digitado errado: um número de série que o seu computador de mergulho continua a informar volta a ser adicionado no próximo download, ainda não configurado.';
+      'O item do transmissor e as suas outras chaves continuam. Use isto para um canal errado ou um número de série digitado errado: um número de série que o seu computador de mergulho ainda informa volta a ser adicionado no próximo download, ainda não configurado.';
 
   @override
   String get transmitters_list_noKey => 'Ainda sem número de série nem canal';
