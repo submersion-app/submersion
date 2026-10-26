@@ -78,10 +78,12 @@ void main() {
   Future<String> importWith(
     ComputerTissueSnapshot? computerTissue, {
     bool forceNew = false,
+    bool isPrimary = false,
     String fromComputer = computerId,
   }) {
     return repository.importProfile(
       computerId: fromComputer,
+      isPrimary: isPrimary,
       profileStartTime: DateTime(2026, 5, 1, 9, 0),
       points: points,
       durationSeconds: 1800,
@@ -133,6 +135,24 @@ void main() {
 
       final reimportedId = await importWith(null);
 
+      expect(reimportedId, diveId);
+      expect(await storedTissueFor(diveId), isNull);
+    });
+
+    test('a re-import of the primary without a snapshot clears the stored one '
+        'on a dive a second computer also recorded', () async {
+      final diveId = await importWith(snapshot, forceNew: true);
+      await importWith(null, fromComputer: secondComputerId);
+      // As the replace-source path does: the cleared reading takes back the
+      // primary role it held.
+      final wasPrimary = await repository.clearSourceAndProfiles(
+        diveId: diveId,
+        computerId: computerId,
+      );
+
+      final reimportedId = await importWith(null, isPrimary: wasPrimary);
+
+      expect(wasPrimary, isTrue);
       expect(reimportedId, diveId);
       expect(await storedTissueFor(diveId), isNull);
     });
