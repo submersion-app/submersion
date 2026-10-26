@@ -21,7 +21,7 @@
 - Phase 1 screenshot marker, one per image, on its own line where the image will go:
   `<!-- screenshot: images/how-to/<guide-slug>/<nn>-<name>.png: <what it shows>; <mac|iphone>; <state> -->`
 - Phase 2 image line: `![<alt text describing the screen>](images/how-to/<guide-slug>/<nn>-<name>.png)`.
-- Every guide has these sections in this order: H1 title, one-sentence outcome, `## Before you start`, numbered step sections, `## Check it worked`, `## If something goes wrong`, `## Next steps`.
+- Every guide has these sections in this order: H1 title, one-sentence outcome, `## Before you start`, numbered step sections, `## Check it worked`, `## If something goes wrong`, `## Next steps`. A guide may add its own H2s where the flow needs them (a later-use section such as "Getting new dives later" after `## Check it worked`, or "When someone leaves" in the library guide).
 - Callouts use `> [!NOTE]`, `> [!TIP]`, `> [!WARNING]`, `> [!IMPORTANT]` only.
 - UI names are bold and copied from `lib/l10n/arb/app_en.arb` values, never from memory. Menu paths use the form **Settings > Data > Sync between devices**.
 - Where a phone and a desktop path differ, the step names both.
@@ -163,7 +163,7 @@ Every guide task follows these steps; each task below lists only its files, sour
 
 **Files:** Create `docs/user/how-to-move-from-subsurface.md`, `how-to-move-from-shearwater-cloud.md`, `how-to-move-from-diving-log.md`, `how-to-move-from-dan-divecloud.md`. Sources per guide: `subsurface_xml_parser.dart` and `parsers/subsurface/`; `shearwater_cloud_parser.dart`; `divinglog_sqlite_parser.dart`; `dan_dl7_import_parser.dart` and `parsers/dl7/`; each with its tests.
 
-- Same shape as Task 8. Subsurface covers the optional sample-data CSV. Diving Log says its XML export is not readable yet and to use the database file. DAN covers the DiveCloud ZIP.
+- Same shape as Task 8. (The optional Subsurface sample-data CSV is left out: no wizard step exposes it, so a reader could not follow the step.) Diving Log says its XML export is not readable yet and to use the database file. DAN covers the DiveCloud ZIP.
 - One commit per guide.
 
 ### Task 10: Cloud migrations

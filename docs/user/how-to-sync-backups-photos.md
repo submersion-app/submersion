@@ -20,7 +20,7 @@ You need:
 The first time you open Submersion, it walks you through a short setup. The four steps that set up sync, backups and photos are part of it.
 
 > [!TIP]
-> Already past the first-run setup, or tapped **Not now** along the way? Open **Settings** (on a phone it is under **More**), then **Data**. The card at the top reads **Set up this phone** (or tablet, or computer). Tap **Continue** and pick up from step 1 below.
+> Already past the first-run setup, or tapped **Not now** along the way? Open **Settings** (on a phone it is under **More**), then **Data**. The card at the top reads **Set up this phone** (or tablet, or computer), or **Finish setting up this phone** if you did some of it already. Tap **Continue** and pick up from step 2 below.
 
 ### 1. Create your profile
 
@@ -112,8 +112,8 @@ Your diver profile comes down with the library, so you do not create a new one o
 > [!IMPORTANT]
 > **Already logged dives on this device?** Instead of **Download library** you choose what happens to them:
 >
-> - **Combine them** (the default): the dives here join the library. A dive you logged separately on both devices appears twice, and you can delete the extra copy.
-> - **Replace the dives here with the library**: Submersion first saves a backup of the dives here (you find it under **Backups**), then swaps them for the library. You confirm by typing **Replace**, and Submersion restarts when it is done.
+> - **Combine them** (the default), then **Combine and download**: the dives here join the library. A dive you logged separately on both devices appears twice, and you can delete the extra copy.
+> - **Replace the dives here with the library**, then **Replace and download**: Submersion first saves a backup of the dives here (you find it under **Backups**), then swaps them for the library. You confirm by typing **Replace**, and Submersion restarts when it is done.
 
 ### 4. Backups and photos
 

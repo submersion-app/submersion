@@ -42,14 +42,13 @@ The first time, your device asks for permission to use Bluetooth. Allow it.
 
 ## 3. Download your dives
 
+**Already have dives in your logbook?** The first download from a new computer asks before it starts: choose **Download new dives** to skip the ones you already have, or **Download all dives** to fetch the lot. After the first time, Submersion fetches only dives that are new since the last download.
+
 The download starts. A percentage counts up, and **Downloaded Dives** fills in as each dive arrives.
 
 <!-- screenshot: images/how-to/log-a-dive/04-downloading.png: the download step with the progress percentage, before any dive rows appear; mac; maintainer's computer -->
 
 Stay on this screen until it finishes. If you switch to another part of the app, Submersion asks first, because leaving cancels the download.
-
-> [!TIP]
-> **Already have dives in your logbook?** The first download from a new computer asks whether to fetch everything or only newer dives. Choose **Download new dives** to skip the ones you already have, or **Download all dives** to fetch the lot. After the first time, Submersion fetches only dives that are new since the last download.
 
 ## 4. Check what came in
 
@@ -110,8 +109,8 @@ Open **Experience** to add a rating, the marine life you saw, notes and tags. Th
 
 Photos are added on **Dive Details**, not on the edit page. In **Photos & Video**:
 
-- **Scan gallery for photos** looks for photos taken around the time of the dive and offers to link them. Tap **Link Photos**.
-- Or tap **Add photo or video**, then **Add photos or videos**, and pick them yourself.
+- The search icon (**Scan gallery for photos**) looks for photos taken around the time of the dive and offers to link them. Tap **Link Photos**.
+- Or tap the add-photo icon (**Add photo or video**), then **Add photos or videos**, and pick them yourself.
 
 Submersion links to your photos where they are; it never copies or moves them. To see them on your other devices too, see [Set Up Sync, Backups and Photos](how-to-sync-backups-photos.md).
 
@@ -125,7 +124,7 @@ Open the dive again. **Dive Details** now shows the site in its header, then the
 
 ## If something goes wrong
 
-**Your computer does not appear in the list.** Check that it is switched on, in its Bluetooth or PC-connection mode, and close by, then tap **Scan Again**. On iPhone, iPad, Android and Mac, Submersion cannot tell when Bluetooth is off, so make sure it is on in your device's settings.
+**Your computer does not appear in the list.** Check that it is switched on, in its Bluetooth or PC-connection mode, and close by, then tap **Scan Again**. Everywhere except Windows, Submersion cannot tell when Bluetooth is off, so make sure it is on in your device's settings.
 
 **"Could not connect to dive computer."** Wake the computer, put it back into connection mode, and tap **Retry**.
 

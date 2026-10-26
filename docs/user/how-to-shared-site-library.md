@@ -46,7 +46,7 @@ Repeat this for every member, giving each person their own token. A separate key
 
 1. Open **Settings** (on a phone it is under **More**), then **Data**, then **Shared site libraries**.
 2. Tap **Connect a library**.
-3. Tap **Add account**, then **My own server**, and keep **S3-compatible** selected. Fill in your own key:
+3. Tap **Add account**, then **My own server**, and keep **S3-compatible** selected. (If the page shows **Using:** with an account you already have, such as the one you sync with, tap **Change** instead and add **My own server** from there. The library must not live in your sync bucket.) Fill in your own key:
 
    | Field | What to enter |
    |-------|---------------|
@@ -84,7 +84,7 @@ Send each person, through a private channel:
 ## For members: join the library
 
 1. Open **Settings** (on a phone it is under **More**), then **Data**, then **Shared site libraries**, and tap **Connect a library**.
-2. Tap **Add account**, then **My own server**, keep **S3-compatible**, and enter the endpoint, bucket and the key your organizer sent you. Tap **Check connection**, then **Save**.
+2. Tap **Add account**, then **My own server**, keep **S3-compatible**, and enter the endpoint, bucket and the key your organizer sent you. (If the page shows **Using:** with another account, tap **Change** and add **My own server** from there.) Tap **Check connection**, then **Save**.
 3. Type the folder name into **Folder (prefix)**, exactly as you were given it, and tap **Check location**.
 4. Submersion finds the library. Check **Your name in this library**, then tap **Join** followed by the library's name.
 
@@ -111,7 +111,7 @@ Approved members start as **Reader**: they see every site and can suggest change
 
 ## Everyone: using the shared sites
 
-Library sites appear among your own sites, marked with a group icon. You can filter or group your site list by **Library** and **Personal**.
+Library sites appear among your own sites, marked with a group icon. In your site list you can filter by library or **Personal sites**, and group by **Library** and **Personal**.
 
 - **Add your own sites** (editors and owners): open a site, then **Add to shared site library** in its menu. Or, on the library page, tap **Add my sites** to pick several at once. Before anything is added, Submersion lists exactly what every member will see, and confirms that your notes and rating stay yours.
 - **Suggest a change** (readers): open a library site and tap **Suggest changes**, edit the fields, and tap **Send**. An owner reviews it under **Suggestions**.

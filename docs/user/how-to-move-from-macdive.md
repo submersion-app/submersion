@@ -51,9 +51,11 @@ If your MacDive logbook holds dives for more than one diver, Submersion asks whe
 
 ## 4. Link your photos
 
-Submersion links to your photos where they are; it never copies them. When it asks, click **Choose photo folder...** and pick the folder where your dive photos are kept. Submersion matches the photos to your dives and tells you how many it found.
+MacDive keeps its own renamed copy of every photo you attached, inside its Application Support folder, and that is what Submersion looks for. When it asks, click **Choose photo folder...**, press Cmd-Shift-G, paste `~/Library/Application Support/MacDive/` and choose that folder. Submersion searches inside it, matches the photos to your dives, and shows how many it matched and how many it could not find.
 
-If your photos are not on this Mac, click **Skip photos**. You can link them to your dives later.
+Submersion links to photos where they are; it never copies them. So if you plan to remove MacDive later, first copy that folder somewhere permanent, such as your Pictures folder, and choose the copy instead.
+
+If you would rather link your photos later, click **Skip photos**.
 
 <!-- screenshot: images/how-to/move-from-macdive/02-photos.png: the Photos step with the photo count, Choose photo folder... and Skip photos; mac; sample MacDive database -->
 
@@ -82,7 +84,7 @@ Open a few dives and check their profile, site and buddies. If some dives have G
 
 **"Dive times read in this device's time zone".** Some dives had no time zone in MacDive, so Submersion used this Mac's. If you dived in other time zones, check those dives' times.
 
-**Some dives have no site.** Those dives had no site in MacDive. Add one from the dive; for dives with GPS, the summary's match button finds nearby sites.
+**"Some dives have no dive site".** Those dives pointed at a site the database does not describe, so they came in without one. Set a site by editing the dive; for dives with GPS, the summary's match button finds nearby sites.
 
 ## Using a MacDive XML export instead
 

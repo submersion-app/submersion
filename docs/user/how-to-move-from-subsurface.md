@@ -65,9 +65,13 @@ When **Successfully Imported** appears, tap **View Dives**. Open a dive that use
 
 ## If something goes wrong
 
-**"Some dives have no dive site".** Those dives had no site in Subsurface. Add one from the dive.
+**"Some dives have no dive site".** Those dives pointed at a site the file does not describe, so they came in without one. Set a site by editing the dive.
 
-**"Some photos skipped".** Some pictures were not in the folder you chose. Run the import again and choose the folder they are in; dives already imported are skipped automatically.
+**The Photos step says some photos were not found.** They are not in the folder you chose. Before importing, click **Choose photo folder...** again and pick the folder that holds them.
+
+**"Some photos skipped".** Those pictures had no file name in Subsurface, so they cannot be linked. Attach them to their dives by hand.
+
+**Importing the same file again?** Dives you already imported show up as duplicates. Choose **Skip** for them, or use the button that skips them all at once.
 
 **The file is not recognised.** Make sure you exported **Subsurface XML**, not CSV or UDDF. (Submersion reads UDDF too, but the Subsurface XML keeps more.)
 

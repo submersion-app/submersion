@@ -8,7 +8,7 @@ Submersion reads the Shearwater Cloud app's own database file, so you do not nee
 
 | Comes across | Does not come across |
 |---|---|
-| Dives with their full profiles | Gear |
+| Dives with their full profiles | Buddies and gear |
 | Tanks from your transmitters, with gases and pressures | Tags and trips |
 | Dive mode, gradient factors, deco model and CNS | Photos |
 | Entry and exit GPS positions | |

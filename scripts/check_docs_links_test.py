@@ -350,6 +350,7 @@ class UserDocsTests(unittest.TestCase):
         self._write_how_to()
         failures = guard.check_user_docs(self.root)
         self.assertEqual(len(failures), 1)
+        self.assertIn("how-to-media-sync.md", failures[0])
         self.assertIn("how-to-guides.md", failures[0])
 
 

@@ -28,11 +28,15 @@ You need:
 
 ## 1. Find your Diving Log database
 
-Diving Log keeps your whole logbook in one database file, often ending in `.sql`.
+Your whole logbook is one SQLite database file.
+
+**Diving Log on Windows:**
 
 1. **Close Diving Log**, so the file is not being changed while you copy it.
 2. In File Explorer, search your Documents folder, or the folder where Diving Log is installed, for files ending in `.sql`. Your logbook is usually the largest one.
 3. Copy that file somewhere easy to reach. If Submersion runs on a different device, copy it there, for example with a USB stick or a cloud folder.
+
+**DiveLogDT on Mac, iPhone, iPad or Android:** export your logbook as its SQLite file (not DL7), then move the file to the device where Submersion runs, for example through a cloud folder or AirDrop.
 
 > [!IMPORTANT]
 > Use the database file itself, not an export. Diving Log's DL7 export carries only depth and time, so sites, buddies, gear, weights and trips are missing from it, and Submersion cannot read Diving Log's XML export yet.
