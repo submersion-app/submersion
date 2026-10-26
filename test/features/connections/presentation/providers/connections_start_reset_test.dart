@@ -169,4 +169,16 @@ void main() {
     expect(written, [kConnectionsViewKey, kConnectionsDisplayKey]);
     expect(sp.getBool(kConnectionsStartResetKey), isTrue);
   });
+
+  test('a write that throws is logged and leaves the marker unset', () async {
+    final sp = await _prefs({kConnectionsLegacyLensKey: 'gear'});
+    await expectLater(
+      resetConnectionsStartOnce(
+        sp,
+        writeString: (_, _) => Future.error(StateError('disk full')),
+      ),
+      completes,
+    );
+    expect(sp.getBool(kConnectionsStartResetKey), isNull);
+  });
 }
