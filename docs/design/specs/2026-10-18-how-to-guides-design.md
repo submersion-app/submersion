@@ -214,6 +214,13 @@ Parts:
 
 ### GPS Track Logging on Mobile (`how-to-gps-track-logging.md`)
 
+> **On hold until issue #3704 is fixed (maintainer's choice, 2026-10-26).** A
+> dive computer download never matches dives to a recorded track today: the
+> import-time sweep lives in an import path nothing calls. Positions arrive
+> only on **Stop logging**, after a sync, or from **Match dives to GPS logs**.
+> This guide is written after the fix, so the boat-day story below holds as
+> written; the other guides go ahead without it.
+
 A boat day (maintainer's choice): start recording as the boat leaves, leave the
 phone on the boat during the dives, stop when back at the dock, download the
 dive computer, and see each dive pick up its position from the track. Shows the

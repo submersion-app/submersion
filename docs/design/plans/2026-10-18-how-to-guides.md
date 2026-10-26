@@ -128,6 +128,8 @@ Every guide task follows these steps; each task below lists only its files, sour
 
 ### Task 5: Log GPS Tracks on Your Phone
 
+> **On hold until issue #3704 merges.** Skip this task in phase 1; the draft PR (Task 11) lists it as outstanding and the PR does not leave draft without it. The sidebar and index gain its line only when the guide is written.
+
 **Files:** Create `docs/user/how-to-gps-track-logging.md`. Sources: `lib/features/gps_log/data/services/gps_track_recorder.dart`, `gps_track_match_service.dart`, `lib/features/gps_log/presentation/widgets/gps_record_card.dart`, `gps_recording_strip.dart`, `lib/features/tracks/presentation/pages/tracks_page.dart`, `gps_track_detail_page.dart`; platform permission strings in `ios/Runner/Info.plist` and `android/app/src/main/AndroidManifest.xml`.
 
 - The boat day: before leaving (location permission, including background where the platform asks), start recording as the boat leaves, phone stays on the boat, stop at the dock, download the computer (link to `how-to-log-a-dive.md`), each dive picks up its position from the track, see the track under **Tracks**.
