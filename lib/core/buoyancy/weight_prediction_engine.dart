@@ -72,6 +72,17 @@ class RigSpec extends Equatable {
 /// Where a breakdown term's value came from.
 enum TermSource { measured, userSpec, typeDefault, physics, bodyComposition }
 
+/// The breakdown source for a tank term: physics when the tank's material is
+/// known, a default estimate when [BuoyancyPhysics.tankMaterialAssumed] had to
+/// guess it.
+TermSource tankTermSource({String? presetName, TankMaterial? material}) =>
+    BuoyancyPhysics.tankMaterialAssumed(
+      presetName: presetName,
+      material: material,
+    )
+    ? TermSource.typeDefault
+    : TermSource.physics;
+
 class PredictionTerm extends Equatable {
   final String label;
   final double kg;
@@ -293,6 +304,7 @@ class WeightPredictionEngine {
       tankDryMass += BuoyancyPhysics.tankDryMassKg(
         presetName: tank.presetName,
         volumeL: tank.volumeL,
+        workingPressureBar: tank.workingPressureBar,
         material: tank.material,
       );
     }
@@ -423,6 +435,7 @@ class FittedWeightModel {
       tankDryMass += BuoyancyPhysics.tankDryMassKg(
         presetName: tank.presetName,
         volumeL: tank.volumeL,
+        workingPressureBar: tank.workingPressureBar,
         material: tank.material,
       );
       terms.add(
@@ -434,7 +447,10 @@ class FittedWeightModel {
             workingPressureBar: tank.workingPressureBar,
             material: tank.material,
           ),
-          source: TermSource.physics,
+          source: tankTermSource(
+            presetName: tank.presetName,
+            material: tank.material,
+          ),
         ),
       );
     }

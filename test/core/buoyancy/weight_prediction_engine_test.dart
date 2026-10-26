@@ -237,6 +237,19 @@ void main() {
     );
   });
 
+  test('a rig tank whose material is assumed is a default estimate', () {
+    final prediction = fit(const []).predict(
+      const RigSpec(
+        gear: [suit],
+        tanks: [TankSpec(volumeL: 24, workingPressureBar: 200)],
+        waterType: WaterType.salt,
+        bodyWeightKg: 80,
+      ),
+    );
+    final tank = prediction.terms.firstWhere((t) => t.label == 'tank');
+    expect(tank.source, TermSource.typeDefault);
+  });
+
   group('attribute-informed priors at the engine level', () {
     // With zero history, prediction = personal prior + gear priors + physics,
     // so a gear-prior difference flows straight through to the total. No

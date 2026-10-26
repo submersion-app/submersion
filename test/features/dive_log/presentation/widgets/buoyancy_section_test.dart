@@ -93,6 +93,25 @@ void main() {
     expect(find.textContaining('No tank material set'), findsOneWidget);
   });
 
+  testWidgets('a tank resolved only by its size still hints', (tester) async {
+    // 12 L @ 200 bar now takes Steel 12L's figures, but steel is still a
+    // guess from the size, so the hint stays.
+    await _pump(
+      tester,
+      buoyancyOutcome(
+        tanks: const [
+          TwinTankInput(
+            id: 't1',
+            label: 'tank',
+            volumeL: 12,
+            workingPressureBar: 200,
+          ),
+        ],
+      ),
+    );
+    expect(find.textContaining('No tank material set'), findsOneWidget);
+  });
+
   testWidgets('no tank material hint once material or preset is known', (
     tester,
   ) async {

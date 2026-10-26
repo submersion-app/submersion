@@ -84,6 +84,25 @@ void main() {
       expect(real.freeGasLiters!, lessThan(12 * 232));
     });
 
+    test('a size match never overrides the cylinder material', () {
+      // A steel cylinder sized like an AL80 must not take the AL80's
+      // aluminium buoyancy; the dive Buoyancy card applies the same rule.
+      final steel = PassportSpecMetrics.compute(
+        volumeL: 11.1,
+        workingPressureBar: 207,
+        material: TankMaterial.steel,
+        gasModel: GasModel.ideal,
+      );
+      expect(steel.emptyBuoyancyKg, closeTo(11.1 * -0.12, 1e-9));
+      final aluminium = PassportSpecMetrics.compute(
+        volumeL: 11.1,
+        workingPressureBar: 207,
+        material: TankMaterial.aluminum,
+        gasModel: GasModel.ideal,
+      );
+      expect(aluminium.emptyBuoyancyKg, closeTo(1.7, 1e-9));
+    });
+
     test('without a volume nothing is derived', () {
       final m = PassportSpecMetrics.compute(gasModel: GasModel.real);
       expect(m.freeGasLiters, isNull);

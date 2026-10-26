@@ -2,7 +2,7 @@ import 'package:submersion/core/buoyancy/buoyancy_physics.dart';
 import 'package:submersion/core/buoyancy/buoyancy_twin.dart';
 import 'package:submersion/core/buoyancy/suit_compression.dart';
 import 'package:submersion/core/buoyancy/weight_prediction_engine.dart'
-    show TermSource;
+    show TermSource, tankTermSource;
 
 /// How the final-stop anchor was chosen.
 enum TwinAnchorKind { detectedStop, shallowWindow, convention }
@@ -270,7 +270,10 @@ class TwinAnalyzer {
         TwinStaticTerm(
           label: tank.label,
           kg: twinTankKgAt(tank, pressure),
-          source: TermSource.physics,
+          source: tankTermSource(
+            presetName: tank.presetName,
+            material: tank.material,
+          ),
         ),
       );
     }

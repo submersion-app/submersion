@@ -205,6 +205,23 @@ void main() {
       expect(BuoyancyPhysics.tankDryMassKg(presetName: 'al80'), 14.2);
     });
 
+    test('catalog dry mass via spec match agrees with the buoyancy term', () {
+      // tankTermKg resolves 12 L @ 200 bar to steel12; the dry mass that
+      // scales the water term must come from the same catalog row.
+      expect(
+        BuoyancyPhysics.tankDryMassKg(volumeL: 12.0, workingPressureBar: 200),
+        14.5,
+      );
+      expect(
+        BuoyancyPhysics.tankDryMassKg(
+          volumeL: 12.0,
+          workingPressureBar: 200,
+          material: TankMaterial.aluminum,
+        ),
+        closeTo(15.6, 1e-9),
+      );
+    });
+
     test('fallback scales with volume', () {
       final mass = BuoyancyPhysics.tankDryMassKg(volumeL: 12.0);
       expect(mass, greaterThan(10));

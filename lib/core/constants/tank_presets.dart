@@ -215,18 +215,16 @@ class TankPresets {
   /// they hold should pass the slug instead of relying on this.
   ///
   /// That tie-break is only safe while indistinguishable presets agree on
-  /// everything a caller reads from the result. Two invariants hold it:
-  /// `tank_presets_test.dart` pins the AL40 tie, and `tank_catalog_test.dart`
-  /// asserts that any two presets this method cannot tell apart share the same
-  /// `kTankCatalog` row, so buoyancy never depends on list order.
+  /// everything a caller reads from the result. `tank_presets_test.dart` pins
+  /// the AL40 tie. Buoyancy resolves through [matchAnyBySpecs] instead, whose
+  /// list-order invariant `tank_catalog_test.dart` holds.
   static TankPreset? matchBySpecs(
     double volumeLiters,
     double workingPressureBar,
   ) {
     for (final preset in all) {
       if (preset.ratedCapacityCuft != null &&
-          (preset.volumeLiters - volumeLiters).abs() < 0.2 &&
-          (preset.workingPressureBar - workingPressureBar).abs() < 2.0) {
+          _specsMatch(preset, volumeLiters, workingPressureBar)) {
         return preset;
       }
     }
@@ -242,6 +240,10 @@ class TankPresets {
   /// 12 L / 200 bar cylinder resolves to Steel 12L here, while [matchBySpecs]
   /// leaves it unmatched. Rated presets come first in [all], so for them the
   /// result and the AL40 tie-break agree with [matchBySpecs].
+  ///
+  /// `tank_catalog_test.dart` asserts that any two presets this method cannot
+  /// tell apart share the same `kTankCatalog` row, so buoyancy never depends
+  /// on the order of [all].
   static TankPreset? matchAnyBySpecs(
     double volumeLiters,
     double workingPressureBar, {
@@ -249,13 +251,22 @@ class TankPresets {
   }) {
     for (final preset in all) {
       if ((material == null || preset.material == material) &&
-          (preset.volumeLiters - volumeLiters).abs() < 0.2 &&
-          (preset.workingPressureBar - workingPressureBar).abs() < 2.0) {
+          _specsMatch(preset, volumeLiters, workingPressureBar)) {
         return preset;
       }
     }
     return null;
   }
+
+  /// The size tolerance both spec matchers share: within 0.2 L of volume and
+  /// 2 bar of working pressure, which absorbs rounded imported values.
+  static bool _specsMatch(
+    TankPreset preset,
+    double volumeLiters,
+    double workingPressureBar,
+  ) =>
+      (preset.volumeLiters - volumeLiters).abs() < 0.2 &&
+      (preset.workingPressureBar - workingPressureBar).abs() < 2.0;
 
   /// The inverse of reading [TankPreset.ratedCapacityCuft] off
   /// [matchBySpecs]: the first preset rated at [ratedCuft] (within 0.05, the

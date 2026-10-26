@@ -83,9 +83,10 @@ void main() {
   // catalog row; otherwise reordering the list would silently change a
   // buoyancy prediction.
   group('spec-ambiguous presets cannot change a buoyancy result', () {
-    // matchAnyBySpecs accepts a preset when |dVolume| < 0.2 and |dPressure| < 2.0,
-    // so a single (volume, pressure) pair can match two presets exactly when
-    // they lie within the sum of those tolerances of each other.
+    // matchAnyBySpecs accepts a preset when |dVolume| < 0.2 and
+    // |dPressure| < 2.0, so a single (volume, pressure) pair can match two
+    // presets exactly when they lie within the sum of those tolerances of each
+    // other.
     bool indistinguishable(TankPreset a, TankPreset b) =>
         (a.volumeLiters - b.volumeLiters).abs() < 0.4 &&
         (a.workingPressureBar - b.workingPressureBar).abs() < 4.0;
