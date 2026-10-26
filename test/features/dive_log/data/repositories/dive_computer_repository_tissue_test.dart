@@ -157,6 +157,40 @@ void main() {
       expect(await storedTissueFor(diveId), isNull);
     });
 
+    test(
+      'a second computer with its own snapshot keeps the primary one',
+      () async {
+        final diveId = await importWith(snapshot, forceNew: true);
+        const secondary = ComputerTissueSnapshot(
+          algorithm: 'Suunto Fused2 RGBM',
+          end: ComputerTissueState(n2Bar: [1.0, 1.0, 1.0]),
+        );
+
+        final matchedId = await importWith(
+          secondary,
+          fromComputer: secondComputerId,
+        );
+
+        expect(matchedId, diveId);
+        expect(await storedTissueFor(diveId), snapshot);
+      },
+    );
+
+    test(
+      'a second computer fills a snapshot the primary did not report',
+      () async {
+        final diveId = await importWith(null, forceNew: true);
+
+        final matchedId = await importWith(
+          snapshot,
+          fromComputer: secondComputerId,
+        );
+
+        expect(matchedId, diveId);
+        expect(await storedTissueFor(diveId), snapshot);
+      },
+    );
+
     test('a second computer without a snapshot keeps the stored one', () async {
       final diveId = await importWith(snapshot, forceNew: true);
 

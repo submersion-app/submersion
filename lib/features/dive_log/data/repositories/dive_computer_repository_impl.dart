@@ -971,6 +971,16 @@ class DiveComputerRepository {
             ..limit(1))
           .getSingleOrNull();
 
+  /// Whether [diveId]'s row holds a computer tissue snapshot.
+  Future<bool> _hasStoredTissue(String diveId) async {
+    final row =
+        await (_db.selectOnly(_db.dives)
+              ..addColumns([_db.dives.computerTissueJson])
+              ..where(_db.dives.id.equals(diveId)))
+            .getSingleOrNull();
+    return row?.read(_db.dives.computerTissueJson) != null;
+  }
+
   /// Whether any reading of [diveId] holds the primary role: a primary
   /// source row or a primary profile series.
   Future<bool> _hasPrimaryReading(String diveId) async {
@@ -1452,8 +1462,8 @@ class DiveComputerRepository {
     double? diluentO2,
     double? diluentHe,
     // Tissue state the computer reported for the dive as a whole; stored
-    // verbatim. Null on an update clears the stored snapshot when this is
-    // the dive's primary reading and leaves it in place otherwise.
+    // verbatim. On an update the dive's primary reading replaces the stored
+    // snapshot, null included; a secondary one only fills a dive with none.
     ComputerTissueSnapshot? computerTissue,
     List<EventData>? events,
     List<GasSwitchData>? gasSwitches,
@@ -2202,6 +2212,15 @@ class DiveComputerRepository {
       }
 
       if (!isNewDive) {
+        // The primary reading owns the snapshot, so its re-import writes what
+        // it carries, none included: a snapshot the parser no longer emits
+        // must not outlive it (issue #2556). A reading that just took the
+        // role from another source, which stored the snapshot, replaces it
+        // only with one of its own. A secondary reading never replaces one;
+        // it only fills a dive that has none.
+        final writesTissue = isPrimary
+            ? !displacedPrimary || computerTissue != null
+            : computerTissue != null && !await _hasStoredTissue(diveId);
         await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
           DivesCompanion(
             updatedAt: Value(now),
@@ -2209,13 +2228,7 @@ class DiveComputerRepository {
             gradientFactorHigh: Value(gfHigh),
             decoAlgorithm: Value(decoAlgorithm),
             decoConservatism: Value(decoConservatism),
-            // The primary reading owns the snapshot, so its re-import writes
-            // what it carries, none included: a snapshot the parser no longer
-            // emits must not outlive it (issue #2556). A secondary reading
-            // with none leaves the stored one alone, and so does a reading
-            // that just took the role from another source, which stored it.
-            computerTissueJson:
-                (isPrimary && !displacedPrimary) || computerTissue != null
+            computerTissueJson: writesTissue
                 ? Value(computerTissue?.encode())
                 : const Value.absent(),
           ),
