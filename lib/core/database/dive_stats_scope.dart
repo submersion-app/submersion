@@ -24,6 +24,17 @@
 ///   hand-copied into seven queries in InsightsRepository; it now lives
 ///   here, which is the point.
 ///
+/// The [consumptionRate] variant adds one more to the gas variant, for SAC
+/// and RMV averages, trends and records (issue #3673):
+///
+/// - `dive_mode NOT IN ('ccr', 'scr')` keeps open-circuit dives. A
+///   rebreather's cylinders do not drain with the diver's breathing, so
+///   their drop is not a consumption rate, as `DerivedMetricsService` and
+///   `Dive.sac` already hold. It stays out of the gas variant because the
+///   gas mixes and the litres drawn on a loop are still real: gas-mix
+///   counts, gas used and the SAC breakdown by cylinder role keep these
+///   dives.
+///
 /// **This is deliberately NOT folded into `buildFilteredDiveIdSubquery`.**
 /// That function implements the diver's transient *view* filter and correctly
 /// returns an empty no-op when no axis is active. This scope is a persistent
@@ -49,15 +60,23 @@ class DiveStatsScope {
   ///
   /// [alias] must match the alias the query already gives the `dives` table
   /// (or `dives` itself when the query does not alias it). Queries that join
-  /// `dives` to itself need one call per alias.
-  static String predicate({String alias = 'd', bool gas = false}) {
+  /// `dives` to itself need one call per alias. [consumptionRate] implies
+  /// [gas].
+  static String predicate({
+    String alias = 'd',
+    bool gas = false,
+    bool consumptionRate = false,
+  }) {
     final parts = <String>[
       '$alias.excluded_from_stats = 0',
       '$alias.is_planned = 0',
     ];
-    if (gas) {
+    if (gas || consumptionRate) {
       parts.add('$alias.excluded_from_gas_stats = 0');
       parts.add("$alias.dive_mode <> 'gauge'");
+    }
+    if (consumptionRate) {
+      parts.add("$alias.dive_mode NOT IN ('ccr', 'scr')");
     }
     return parts.join(' AND ');
   }
@@ -65,6 +84,10 @@ class DiveStatsScope {
   /// The predicate prefixed with ` AND `, for appending into an existing
   /// WHERE clause. Emits no bind placeholders, so callers never thread params
   /// for the scope.
-  static String and({String alias = 'd', bool gas = false}) =>
-      ' AND ${predicate(alias: alias, gas: gas)}';
+  static String and({
+    String alias = 'd',
+    bool gas = false,
+    bool consumptionRate = false,
+  }) =>
+      ' AND ${predicate(alias: alias, gas: gas, consumptionRate: consumptionRate)}';
 }
