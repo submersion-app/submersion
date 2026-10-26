@@ -20,8 +20,13 @@ Widget _card(String tag) => Card(
   ),
 );
 
-/// Pumps [child] at [width] logical pixels inside a desktop-sized surface.
+/// Pumps [child] at [width] logical pixels inside the macOS window the
+/// assertion was seen in: 1280x860 logical.
 Future<void> _pump(WidgetTester tester, Widget child, {required double width}) {
+  tester.view
+    ..physicalSize = const Size(1280, 860)
+    ..devicePixelRatio = 1;
+  addTearDown(tester.view.reset);
   return tester.pumpWidget(
     MaterialApp(
       home: Scaffold(
@@ -35,15 +40,6 @@ Future<void> _pump(WidgetTester tester, Widget child, {required double width}) {
 }
 
 void main() {
-  setUp(() {
-    // The macOS window the assertion was seen in: 1280x860 logical.
-    final view =
-        TestWidgetsFlutterBinding.instance.platformDispatcher.views.first;
-    view.physicalSize = const Size(1280, 860);
-    view.devicePixelRatio = 1;
-    addTearDown(view.reset);
-  });
-
   testWidgets('a section pair switching to stacked drops its rows cleanly', (
     tester,
   ) async {
