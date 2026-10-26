@@ -38,8 +38,9 @@ _LITERAL_RE = re.compile(
     r"""^\s*\(?\s*(?P<q>['"])(?P<path>[^'"]*)(?P=q)\s*\)?\s*$"""
 )
 
-# An update entry starts at a list item whose first token is a key, at the
-# indentation of the first such item; the ecosystem key may come anywhere in it.
+# Under `updates:`, an entry starts at a list item whose first token is a key,
+# at the indentation of the first such item (column 0 is valid YAML too); the
+# ecosystem key may come anywhere in it.
 _ENTRY_RE = re.compile(r"^(?P<indent>\s*)-\s+[\w-]+:")
 _ECOSYSTEM_RE = re.compile(
     r"""^\s*(-\s+)?package-ecosystem:\s*['"]?(?P<eco>[\w-]+)"""
@@ -141,7 +142,7 @@ def _entries(lines):
     for line in lines:
         if not line.strip() or line.lstrip().startswith("#"):
             continue
-        if not line[0].isspace():
+        if not line[0].isspace() and not line.startswith("-"):
             # A top-level key: only the items under `updates:` are entries.
             in_updates = line.startswith("updates:")
             indent = None

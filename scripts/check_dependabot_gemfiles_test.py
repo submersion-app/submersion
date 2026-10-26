@@ -220,6 +220,20 @@ class CoverageTest(unittest.TestCase):
         )
         self.assertEqual(guard.bundler_directories(self.root), ["ios"])
 
+    def test_unindented_update_items_are_entries(self):
+        _write(
+            self.root,
+            ".github/dependabot.yml",
+            "version: 2\n"
+            "updates:\n"
+            '- package-ecosystem: "bundler"\n'
+            "  directories:\n"
+            '  - "/ios"\n'
+            '- package-ecosystem: "pub"\n'
+            '  directory: "/"\n',
+        )
+        self.assertEqual(guard.bundler_directories(self.root), ["ios"])
+
     def test_an_ignore_list_does_not_end_the_entry(self):
         _write(
             self.root,
