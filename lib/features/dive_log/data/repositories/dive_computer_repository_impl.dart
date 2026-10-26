@@ -2225,7 +2225,7 @@ class DiveComputerRepository {
         // what it reports, none included, and a secondary one that reports
         // none leaves the dive's alone rather than blanking them.
         Value<T?> reported<T>(T? value) =>
-            isPrimary || value != null ? Value(value) : const Value.absent();
+            isPrimary ? Value(value) : Value.absentIfNull(value);
         await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
           DivesCompanion(
             updatedAt: Value(now),
