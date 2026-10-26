@@ -5,6 +5,7 @@ import 'package:submersion/features/documents/data/repositories/document_reposit
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/presentation/widgets/document_details_panel.dart';
 import 'package:submersion/features/documents/presentation/widgets/document_expiry_badge.dart';
+import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_view.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
@@ -62,6 +63,13 @@ void main() {
     // Personal: the owner row names the kind.
     expect(find.text('Personal'), findsOneWidget);
     expect(find.byType(Card), findsOneWidget);
+  });
+
+  testWidgets('notes draw as Markdown (#3683)', (t) async {
+    final doc = insurance().copyWith(notes: '**Covers** chamber treatment');
+    await pump(t, DocumentDetailsCard(document: doc, ownerLabel: null));
+    expect(find.byType(MarkdownNotesView), findsOneWidget);
+    expect(find.text('Covers chamber treatment'), findsOneWidget);
   });
 
   testWidgets('flat, the card adds no card of its own', (t) async {

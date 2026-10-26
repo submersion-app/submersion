@@ -28,6 +28,7 @@ import 'package:submersion/features/certification_agencies/presentation/widgets/
 import 'package:submersion/features/certifications/presentation/widgets/certification_level_dropdown_items.dart';
 import 'package:submersion/shared/widgets/label_with_control.dart';
 import 'package:submersion/shared/widgets/tab_visibility.dart';
+import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
 
 class CertificationEditPage extends ConsumerStatefulWidget {
   final String? certificationId;
@@ -872,7 +873,7 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
                   const SizedBox(height: 12),
 
                   // Notes field
-                  TextFormField(
+                  MarkdownNotesField(
                     controller: _notesController,
                     decoration: InputDecoration(
                       labelText: context.l10n.certifications_edit_label_notes,

@@ -217,6 +217,16 @@ void main() {
       expect(status, isNotNull);
     });
 
+    test('returns Markdown notes as plain words', () {
+      expect(
+        adapter.extractValue(
+          CertificationField.notes,
+          testCert.copyWith(notes: '# Plan\n**Bring torch**'),
+        ),
+        'Plan\nBring torch',
+      );
+    });
+
     test('returns notes when non-empty', () {
       expect(
         adapter.extractValue(CertificationField.notes, testCert),
