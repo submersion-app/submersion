@@ -49,6 +49,9 @@ void main() {
             'comp-1',
           ).overrideWith((ref) async => computer),
           diveComputerByIdProvider('gone').overrideWith((ref) async => null),
+          diveComputerByIdProvider(
+            'broken',
+          ).overrideWith((ref) async => throw StateError('db closed')),
           diveComputerByIdProvider('bare').overrideWith(
             (ref) async => DiveComputer(
               id: 'bare',
@@ -88,6 +91,14 @@ void main() {
   testWidgets('a computer with no item says so instead of spinning '
       '(review)', (tester) async {
     await pumpAt(tester, '/dive-computers/bare');
+    expect(find.textContaining('not found'), findsOneWidget);
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+  });
+
+  testWidgets('a lookup that fails says so instead of spinning (review)', (
+    tester,
+  ) async {
+    await pumpAt(tester, '/dive-computers/broken');
     expect(find.textContaining('not found'), findsOneWidget);
     expect(find.byType(CircularProgressIndicator), findsNothing);
   });

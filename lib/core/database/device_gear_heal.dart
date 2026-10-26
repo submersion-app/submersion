@@ -393,6 +393,9 @@ Future<({int linked, int minted})> _healTransmitter(
       serial: serial,
     );
     minted++;
+    if (serial != null) {
+      await _linkTransmitterDives(db, serial, diverId, itemId);
+    }
   } else {
     await fillBlankItemSerial(db, itemId, serial);
   }
@@ -403,6 +406,33 @@ Future<({int linked, int minted})> _healTransmitter(
   );
   linked++;
   return (linked: linked, minted: minted);
+}
+
+/// Puts a just-minted transmitter item on the dives of [diverId] whose tanks
+/// carry [serial] (canonical, so trimmed), as a minted computer item joins
+/// its computer's dives.
+Future<void> _linkTransmitterDives(
+  DatabaseConnectionUser db,
+  String serial,
+  String? diverId,
+  String itemId,
+) async {
+  final junction = await _columnsOf(db, 'dive_equipment');
+  if (!junction.containsAll({'dive_id', 'equipment_id'}) ||
+      !(await _columnsOf(
+        db,
+        'dive_tanks',
+      )).containsAll({'dive_id', 'transmitter_serial'}) ||
+      !(await _columnsOf(db, 'dives')).containsAll({'id', 'diver_id'})) {
+    return;
+  }
+  await db.customStatement(
+    'INSERT OR IGNORE INTO dive_equipment (dive_id, equipment_id) '
+    'SELECT DISTINCT dt.dive_id, ? FROM dive_tanks dt '
+    'JOIN dives d ON d.id = dt.dive_id '
+    'WHERE TRIM(dt.transmitter_serial) = ? AND d.diver_id IS ?',
+    [itemId, serial, diverId],
+  );
 }
 
 /// The one Transmitter item of [diverId] whose canonical serial is [serial],

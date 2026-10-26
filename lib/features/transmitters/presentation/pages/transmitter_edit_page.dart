@@ -329,8 +329,8 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
       } else {
         await repo.create(entry);
       }
-      // Role and cylinder are the transmitter's, so every key behind the
-      // item takes them, and each is marked configured.
+      // Role and cylinder are the transmitter's, so every other key behind
+      // the item takes them too, and each is marked configured.
       await repo.saveSetup(
         widget.equipmentId,
         role: _role,
@@ -339,6 +339,7 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
         workingPressureBar: workingPressureBar,
         material: _material,
         presetName: _presetName,
+        exceptKeyId: entry.id,
       );
       // The dropout findings read serials through the transmitter link and
       // are stored, read without the engine, so the item refreshes now.
@@ -382,12 +383,21 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
                   // key's dives are filled, not just this one's.
                   var tanks = 0;
                   var dives = 0;
-                  for (final key in await repo.getForEquipment(
-                    widget.equipmentId,
-                  )) {
-                    final result = await repo.applyToExistingDives(key);
-                    tanks += result.tanksUpdated;
-                    dives += result.divesUpdated;
+                  try {
+                    for (final key in await repo.getForEquipment(
+                      widget.equipmentId,
+                    )) {
+                      final result = await repo.applyToExistingDives(key);
+                      tanks += result.tanksUpdated;
+                      dives += result.divesUpdated;
+                    }
+                  } catch (e) {
+                    // The page is gone, so the messenger is the only place
+                    // left to say the apply did not happen.
+                    messenger.showSnackBar(
+                      SnackBar(content: Text('${l10n.common_label_error}: $e')),
+                    );
+                    return;
                   }
                   messenger.showSnackBar(
                     SnackBar(

@@ -41,6 +41,9 @@ void main() {
             ),
           ),
           transmitterProvider('gone').overrideWith((ref) async => null),
+          transmitterProvider(
+            'broken',
+          ).overrideWith((ref) async => throw StateError('db closed')),
         ],
         child: MaterialApp.router(
           routerConfig: router,
@@ -60,6 +63,13 @@ void main() {
 
   testWidgets('an unknown transmitter says so', (tester) async {
     await pumpAt(tester, '/transmitters/gone/edit');
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+  });
+
+  testWidgets('a lookup that fails says so instead of spinning (review)', (
+    tester,
+  ) async {
+    await pumpAt(tester, '/transmitters/broken/edit');
     expect(find.byType(CircularProgressIndicator), findsNothing);
   });
 }

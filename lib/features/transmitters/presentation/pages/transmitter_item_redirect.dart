@@ -33,7 +33,8 @@ class _TransmitterItemRedirectState
         if (mounted) context.replace('/equipment/$itemId');
       });
     }
-    final gone = key.hasValue && itemId == null;
+    // A failed lookup reads as gone too, rather than a spinner forever.
+    final gone = (key.hasValue || key.hasError) && itemId == null;
     return Scaffold(
       appBar: AppBar(title: Text(context.l10n.transmitters_title)),
       body: Center(

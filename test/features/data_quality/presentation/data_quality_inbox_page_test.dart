@@ -1,11 +1,15 @@
 import 'dart:async';
 
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/database/database.dart'
+    show DiveTanksCompanion, EquipmentCompanion, TransmittersCompanion;
+import 'package:submersion/core/database/dive_computer_gear_identity.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/data_quality/data/repositories/quality_findings_repository.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
@@ -26,6 +30,8 @@ import 'package:submersion/features/dive_log/data/services/dive_split_service.da
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
+import 'package:submersion/features/transmitters/data/services/transmitter_auto_registrar.dart';
+import 'package:submersion/features/transmitters/presentation/providers/transmitter_providers.dart';
 
 import '../../../helpers/global_test_defaults.dart';
 import '../../../helpers/l10n_test_helpers.dart';
@@ -349,6 +355,130 @@ void main() {
     await tester.tap(find.byType(ListTile).first); // expand
     await tester.pumpAndSettle();
     expect(find.text('Go to dive'), findsOneWidget);
+  });
+
+  group('Assign transmitter (issue #3676)', () {
+    Future<void> pumpUnknownTransmitter(WidgetTester tester) async {
+      final prefs = await _prefs();
+      final router = GoRouter(
+        routes: [
+          GoRoute(path: '/', builder: (_, _) => const DataQualityInboxPage()),
+          GoRoute(
+            path: '/equipment/:id',
+            builder: (_, s) =>
+                Scaffold(body: Text('ITEM ${s.pathParameters['id']}')),
+          ),
+        ],
+      );
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ..._overrides(
+              prefs,
+              findings: [
+                _f(
+                  id: 'f-tx',
+                  detectorId: 'unknown_transmitter',
+                  category: QualityCategory.tank,
+                  severity: QualitySeverity.info,
+                  params: const {'serial': '4A21F'},
+                ),
+              ],
+            ),
+            transmitterAutoRegistrarProvider.overrideWithValue(
+              TransmitterAutoRegistrar(nameFor: (serial) => 'Tx $serial'),
+            ),
+          ].cast(),
+          child: MaterialApp.router(
+            routerConfig: router,
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find
+            .descendant(
+              of: find.byType(QualityFindingCard),
+              matching: find.byType(Icon),
+            )
+            .first,
+      ); // expand
+      await tester.pumpAndSettle();
+    }
+
+    Future<void> seedDiveCarrying(String serial) async {
+      await _seedDive('d1');
+      final db = DatabaseService.instance.database;
+      await db
+          .into(db.diveTanks)
+          .insert(
+            DiveTanksCompanion.insert(
+              id: 'tank-1',
+              diveId: 'd1',
+              transmitterSerial: Value(serial),
+            ),
+          );
+    }
+
+    testWidgets("opens the transmitter's item", (tester) async {
+      await tester.runAsync(() async {
+        await seedDiveCarrying('4A21F');
+        final db = DatabaseService.instance.database;
+        await db
+            .into(db.equipment)
+            .insert(
+              EquipmentCompanion.insert(
+                id: 'tx-gear',
+                name: 'Back gas tx',
+                type: 'transmitter',
+                createdAt: 0,
+                updatedAt: 0,
+              ),
+            );
+        await db
+            .into(db.transmitters)
+            .insert(
+              TransmittersCompanion.insert(
+                id: 'tx1',
+                label: 'Back gas tx',
+                tankRole: 'backGas',
+                transmitterSerial: const Value('4A21F'),
+                transmitterEquipmentId: const Value('tx-gear'),
+                createdAt: 0,
+                updatedAt: 0,
+              ),
+            );
+      });
+      await pumpUnknownTransmitter(tester);
+
+      await tester.runAsync(() async {
+        await tester.tap(find.text('Assign transmitter'));
+        await Future<void>.delayed(const Duration(milliseconds: 200));
+      });
+      await tester.pumpAndSettle();
+
+      expect(find.text('ITEM tx-gear'), findsOneWidget);
+    });
+
+    testWidgets('registers a serial no entry knows yet, then opens its new '
+        'item', (tester) async {
+      await tester.runAsync(() => seedDiveCarrying('4A21F'));
+      await pumpUnknownTransmitter(tester);
+
+      await tester.runAsync(() async {
+        await tester.tap(find.text('Assign transmitter'));
+        await Future<void>.delayed(const Duration(milliseconds: 400));
+      });
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('ITEM ${transmitterGearSeedId(null, '4A21F')}'),
+        findsOneWidget,
+      );
+    });
   });
 
   testWidgets('a split rebuilds the sensor summaries of both dives', (

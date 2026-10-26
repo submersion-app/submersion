@@ -173,11 +173,16 @@ Future<int> registerUnassignedSerials(DatabaseConnectionUser db) async {
       .get();
   var created = 0;
   final now = DateTime.now().millisecondsSinceEpoch;
+  final hasLog = (await _columnsOf(db, 'deletion_log')).isNotEmpty;
   for (final r in seen) {
     final serial = normalizeTransmitterSerial(r.read<String?>('serial'));
     if (serial == null) continue;
     final diverId = r.read<String?>('diver_id');
     if (!known.add('${diverId ?? ''}|$serial')) continue;
+    // A peer that upgraded first registered it and the diver deleted it
+    // there: re-creating it here would publish it back to every device.
+    final rowId = autoTransmitterRowId(diverId, serial);
+    if (hasLog && await _isTombstoned(db, 'transmitters', rowId)) continue;
 
     final name = 'Transmitter $serial';
     final itemId =
@@ -201,7 +206,7 @@ Future<int> registerUnassignedSerials(DatabaseConnectionUser db) async {
       'label, tank_role, transmitter_equipment_id, is_configured, '
       'created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, 0, ?, ?)',
       [
-        autoTransmitterRowId(diverId, serial),
+        rowId,
         diverId,
         serial,
         name,
@@ -271,6 +276,20 @@ Future<void> linkTransmitterGearToDives(DatabaseConnectionUser db) async {
     );
   }
 }
+
+Future<bool> _isTombstoned(
+  DatabaseConnectionUser db,
+  String entityType,
+  String id,
+) async =>
+    await db
+        .customSelect(
+          'SELECT 1 FROM deletion_log WHERE entity_type = ? '
+          'AND record_id = ? LIMIT 1',
+          variables: [Variable<String>(entityType), Variable<String>(id)],
+        )
+        .getSingleOrNull() !=
+    null;
 
 Future<Set<String>> _columnsOf(DatabaseConnectionUser db, String table) async {
   final rows = await db.customSelect("PRAGMA table_info('$table')").get();

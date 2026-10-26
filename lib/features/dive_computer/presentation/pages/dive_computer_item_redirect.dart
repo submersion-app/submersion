@@ -35,9 +35,10 @@ class _DiveComputerItemRedirectState
         if (mounted) context.replace('/equipment/$itemId');
       });
     }
-    // A computer with no item yet (the heal gives it one on the next open)
-    // is as unreachable as a missing one: say so rather than spin.
-    final notFound = computer.hasValue && itemId == null;
+    // A computer with no item yet (the heal gives it one on the next open),
+    // or a lookup that failed, is as unreachable as a missing one: say so
+    // rather than spin.
+    final notFound = (computer.hasValue || computer.hasError) && itemId == null;
     return Scaffold(
       appBar: AppBar(title: Text(context.l10n.diveComputer_title)),
       body: Center(

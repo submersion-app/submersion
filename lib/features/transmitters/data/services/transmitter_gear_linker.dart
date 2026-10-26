@@ -37,13 +37,21 @@ class TransmitterGearLinker {
             s: r.transmitterEquipmentId!,
       };
       if (itemBySerial.isEmpty) return;
+      // Only the tanks carrying these serials: a canonical serial is the
+      // trimmed one, so TRIM finds them without reading the diver's log.
+      final canonical = itemBySerial.keys.toList();
       final tanks = await _db
           .customSelect(
             'SELECT dt.dive_id AS dive_id, dt.transmitter_serial AS serial '
             'FROM dive_tanks dt JOIN dives d ON d.id = dt.dive_id '
-            'WHERE dt.transmitter_serial IS NOT NULL '
+            'WHERE TRIM(dt.transmitter_serial) IN '
+            '(${List.filled(canonical.length, '?').join(', ')}) '
             'AND (? IS NULL OR d.diver_id = ?)',
-            variables: [Variable<String>(diverId), Variable<String>(diverId)],
+            variables: [
+              for (final s in canonical) Variable<String>(s),
+              Variable<String>(diverId),
+              Variable<String>(diverId),
+            ],
             readsFrom: {_db.diveTanks, _db.dives},
           )
           .get();

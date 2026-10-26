@@ -293,6 +293,78 @@ void main() {
 
       expect(find.text('ITEM gear-1'), findsOneWidget);
     });
+
+    GoRouter routerWithTargets() => GoRouter(
+      routes: [
+        GoRoute(path: '/', builder: (_, _) => const DeviceListPage()),
+        GoRoute(
+          path: '/equipment/new',
+          builder: (_, s) =>
+              Scaffold(body: Text('NEW ${s.uri.queryParameters['type']}')),
+        ),
+        GoRoute(
+          path: '/dive-computers/discover',
+          builder: (_, _) => const Scaffold(body: Text('DISCOVER')),
+        ),
+      ],
+    );
+
+    testWidgets('Add by hand starts a Dive Computer item', (tester) async {
+      await tester.pumpWidget(listWith(const [], router: routerWithTargets()));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Add Computer'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Add by hand'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('NEW computer'), findsOneWidget);
+    });
+
+    testWidgets('Find Computers in the add sheet opens discovery', (
+      tester,
+    ) async {
+      await tester.pumpWidget(listWith(const [], router: routerWithTargets()));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Add Computer'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Find Computers').last);
+      await tester.pumpAndSettle();
+
+      expect(find.text('DISCOVER'), findsOneWidget);
+    });
+
+    testWidgets('a list that fails to load offers a retry', (tester) async {
+      var loads = 0;
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            computerItemsProvider.overrideWith((ref) async {
+              loads++;
+              throw StateError('database closed');
+            }),
+            allDiveComputersProvider.overrideWith((ref) async => const []),
+          ],
+          child: MaterialApp.router(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            routerConfig: GoRouter(
+              routes: [
+                GoRoute(path: '/', builder: (_, _) => const DeviceListPage()),
+              ],
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Failed to load dive computers'), findsOneWidget);
+      await tester.tap(find.text('Retry'));
+      await tester.pumpAndSettle();
+      expect(loads, 2);
+    });
   });
 
   group('DeviceListPage help dialog', () {

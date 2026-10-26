@@ -185,6 +185,30 @@ void main() {
     expect(counts, (known: 1, unassigned: 1));
   });
 
+  test('serialCountsForComputer counts an entry a download created, or one '
+      'naming no cylinder, as unassigned (issue #3676)', () async {
+    await seedDiverAndDive(computerId: 'c1');
+    for (final (i, serial) in ['180777', '109623', '555111'].indexed) {
+      await seedTank(
+        id: 'k$i',
+        diveId: 'd1',
+        serial: serial,
+        order: i,
+        computerId: 'c1',
+      );
+    }
+    await repo.create(_entry(id: 'set-up', serial: '180777'));
+    await repo.create(
+      _entry(id: 'auto', serial: '109623').copyWith(isConfigured: false),
+    );
+    await repo.create(
+      _entry(id: 'no-cylinder', serial: '555111', volumeL: null),
+    );
+
+    final counts = await repo.serialCountsForComputer('c1', diverId: 'diver-1');
+    expect(counts, (known: 1, unassigned: 2));
+  });
+
   test(
     'applyToExistingDives fills empty specs and only a backGas role',
     () async {

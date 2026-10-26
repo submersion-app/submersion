@@ -13,6 +13,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/transmitters/data/repositories/transmitter_repository.dart';
 import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
 import 'package:submersion/features/transmitters/presentation/pages/transmitter_edit_page.dart';
+import 'package:submersion/features/transmitters/presentation/providers/transmitter_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -24,6 +25,7 @@ Widget _buildPage(
   String equipmentId = 'tx-gear',
   String? transmitterId,
   MockSettingsNotifier? settings,
+  TransmitterRepository? repository,
 }) {
   final router = GoRouter(
     initialLocation: '/edit',
@@ -49,6 +51,8 @@ Widget _buildPage(
       ),
       currentDiverIdProvider.overrideWith((ref) => diverIdNotifier),
       validatedCurrentDiverIdProvider.overrideWith((ref) async => 'diver-1'),
+      if (repository != null)
+        transmitterRepositoryProvider.overrideWithValue(repository),
     ].cast(),
     child: MaterialApp.router(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -69,6 +73,13 @@ Future<void> _pumpPage(WidgetTester tester, Widget page) async {
   addTearDown(tester.view.reset);
   await tester.pumpWidget(page);
   await tester.pumpAndSettle();
+}
+
+/// A repository whose retroactive apply fails, as a closed database would.
+class _FailingApplyRepository extends TransmitterRepository {
+  @override
+  Future<ApplyToExistingResult> applyToExistingDives(Transmitter entry) =>
+      Future.error(StateError('database closed'));
 }
 
 void main() {
@@ -464,5 +475,21 @@ void main() {
       db.diveTanks,
     )..where((t) => t.id.equals('k777'))).getSingle();
     expect(tank.volume, closeTo(11.1, 0.01));
+  });
+
+  testWidgets('a post-save apply that fails says so (review)', (tester) async {
+    await _pumpPage(
+      tester,
+      _buildPage(diverIdNotifier, prefs, repository: _FailingApplyRepository()),
+    );
+
+    await tester.enterText(find.byKey(const Key('transmitter_serial')), '555');
+    await tester.enterText(find.byKey(const Key('transmitter_volume')), '11.1');
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Apply to existing dives'));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('database closed'), findsOneWidget);
   });
 }

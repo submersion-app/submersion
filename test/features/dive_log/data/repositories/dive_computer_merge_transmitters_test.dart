@@ -85,4 +85,20 @@ void main() {
       contains(('transmitters', 'clash')),
     );
   });
+
+  test('a colliding row whose serial is only zeros counts as channel-only, '
+      'as a computer delete treats it (review)', () async {
+    await channelRow('kept', 'survivor', 1);
+    await channelRow('clash', 'duplicate', 1);
+    await (db.update(db.transmitters)..where((t) => t.id.equals('clash')))
+        .write(const TransmittersCompanion(transmitterSerial: Value('000')));
+
+    await DiveComputerMergeRepository().mergeComputers(
+      survivorId: 'survivor',
+      duplicateIds: ['duplicate'],
+    );
+
+    final rows = await db.select(db.transmitters).get();
+    expect(rows.map((r) => r.id), ['kept']);
+  });
 }

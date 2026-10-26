@@ -8,7 +8,8 @@ extension BeforeOpenDeviceGear on AppDatabase {
   /// deleting an item now deletes its device too, so a device without one
   /// only arises from an older peer's delete or a sync, and must get one back.
   /// AFTER the #1288 pass, so a computer it just registered is covered.
-  /// Local-only, deterministic ids, no HLC bump.
+  /// Deterministic ids and no clock issued here: what it writes keeps a NULL
+  /// hlc, so the next sync publishes it.
   Future<void> _healDeviceGear() async {
     try {
       await ensureDeviceGearLinks(this);

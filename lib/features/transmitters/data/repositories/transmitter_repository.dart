@@ -76,6 +76,8 @@ class TransmitterRepository {
   /// Saves the diver's setup of Transmitter item [equipmentId] onto every
   /// key behind it, and marks each configured (issue #3676): role and
   /// cylinder belong to the physical transmitter, not to one key.
+  /// [exceptKeyId] is a key the caller has just saved with this setup, so it
+  /// is not written, staged and rescanned a second time.
   Future<void> saveSetup(
     String equipmentId, {
     required TankRole role,
@@ -84,8 +86,10 @@ class TransmitterRepository {
     double? workingPressureBar,
     TankMaterial? material,
     String? presetName,
+    String? exceptKeyId,
   }) async {
     for (final key in await getForEquipment(equipmentId)) {
+      if (key.id == exceptKeyId) continue;
       await update(
         key.copyWith(
           role: role,
@@ -352,13 +356,14 @@ class TransmitterRepository {
     return null;
   }
 
-  /// How many distinct serials seen on [computerId]'s dives have an entry,
-  /// and how many do not.
+  /// How many distinct serials seen on [computerId]'s dives have an entry
+  /// that is set up, and how many do not. Set up, not merely registered
+  /// (issue #3676): a download now registers every serial it sees.
   Future<({int known, int unassigned})> serialCountsForComputer(
     String computerId, {
     String? diverId,
   }) async {
-    final knownSerials = Transmitter.knownSerials(await getForDiver(diverId));
+    final knownSerials = Transmitter.setUpSerials(await getForDiver(diverId));
     final rows = await _db
         .customSelect(
           'SELECT DISTINCT dt.transmitter_serial AS serial '

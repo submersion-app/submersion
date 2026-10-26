@@ -891,7 +891,8 @@ class SyncService {
       // Equipment item, or an older peer may have deleted one as "unlink
       // only" (issue #3676). Give each its item back BEFORE the tombstone GC
       // below, while the deleted id's tombstone still steers the re-mint.
-      // Local-only and deterministic, so it publishes nothing.
+      // Ids are deterministic; what it writes keeps a NULL hlc, so the next
+      // sync publishes it.
       try {
         final db = DatabaseService.instance.database;
         final healed = await ensureDeviceGearLinks(db);

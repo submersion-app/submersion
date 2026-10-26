@@ -10,6 +10,7 @@ import 'package:submersion/features/dive_computer/domain/services/dive_computer_
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
+import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart'
     as domain;
 
@@ -437,7 +438,8 @@ class DiveComputerMergeRepository {
     for (final row in rows) {
       final clash =
           row.channelIndex != null && taken.contains(row.channelIndex);
-      final hasSerial = (row.transmitterSerial ?? '').trim().isNotEmpty;
+      final hasSerial =
+          normalizeTransmitterSerial(row.transmitterSerial) != null;
       if (clash && !hasSerial) {
         await (_db.delete(
           _db.transmitters,

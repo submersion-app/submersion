@@ -295,6 +295,31 @@ void main() {
       expect(item.diverId, 'd1');
     });
 
+    test('skips a serial whose row a peer already deleted', () async {
+      // A peer upgraded first, registered the serial and the diver deleted
+      // it there; this device applied the tombstone before it upgraded.
+      await diveWithSerial('dive1', 'd1', '7C0B19');
+      await db
+          .into(db.deletionLog)
+          .insert(
+            DeletionLogCompanion.insert(
+              id: 'tomb',
+              entityType: 'transmitters',
+              recordId: autoTransmitterRowId('d1', '7C0B19'),
+              deletedAt: 1,
+            ),
+          );
+
+      expect(await registerUnassignedSerials(db), 0);
+      expect(await db.select(db.transmitters).get(), isEmpty);
+      expect(
+        await (db.select(
+          db.equipment,
+        )..where((e) => e.type.equals('transmitter'))).get(),
+        isEmpty,
+      );
+    });
+
     test('skips a serial the diver already registered', () async {
       await diveWithSerial('dive1', 'd1', '4A21F');
       await db

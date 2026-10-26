@@ -326,6 +326,40 @@ void main() {
       },
     );
 
+    test('a minted item joins the dives whose tanks carry its serial, as a '
+        'minted computer item joins its dives (review)', () async {
+      for (final (dive, serial) in [('dive1', ' 4A21F '), ('dive2', '9Z9')]) {
+        await db
+            .into(db.dives)
+            .insert(
+              DivesCompanion.insert(
+                id: dive,
+                diveDateTime: t,
+                createdAt: t,
+                updatedAt: t,
+              ),
+            );
+        await db
+            .into(db.diveTanks)
+            .insert(
+              DiveTanksCompanion.insert(
+                id: 'tank-$dive',
+                diveId: dive,
+                transmitterSerial: Value(serial),
+              ),
+            );
+      }
+      await transmitter('tx1', serial: '4A21F');
+
+      await ensureDeviceGearLinks(db);
+
+      final links = await db.select(db.diveEquipment).get();
+      expect(
+        [for (final l in links) (l.diveId, l.equipmentId)],
+        [('dive1', transmitterGearSeedId(null, '4A21F'))],
+      );
+    });
+
     test('a row without a serial still gets its own item', () async {
       await transmitter('tx1', label: 'Channel 2');
 

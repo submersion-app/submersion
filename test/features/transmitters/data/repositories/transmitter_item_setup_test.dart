@@ -77,4 +77,24 @@ void main() {
       expect(k.isSetUp, isTrue);
     }
   });
+
+  test('the key the page just saved is not written a second time', () async {
+    await TransmitterRepository().saveSetup(
+      'tx-gear',
+      role: TankRole.stage,
+      cylinderId: 'cyl',
+      volumeL: 11.1,
+      exceptKeyId: 'a',
+    );
+
+    final a = await (db.select(
+      db.transmitters,
+    )..where((t) => t.id.equals('a'))).getSingle();
+    expect(a.updatedAt, 0);
+    expect(a.tankRole, 'backGas');
+    final b = await (db.select(
+      db.transmitters,
+    )..where((t) => t.id.equals('b'))).getSingle();
+    expect(b.tankRole, 'stage');
+  });
 }
