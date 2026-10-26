@@ -47105,19 +47105,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_filter_speciesSearchHint => 'Soorten zoeken';
 
   @override
-  String get explore_chip_favorite => 'Favoriet';
-
-  @override
   String get explore_chip_deco => 'Decompressieduik';
 
   @override
   String get explore_chip_noDeco => 'Zonder decompressie';
-
-  @override
-  String get explore_chip_noBuddy => 'Zonder buddy';
-
-  @override
-  String get explore_chip_noRole => 'Zonder rol';
 
   @override
   String explore_chip_rating(String op, String value) {
@@ -47175,49 +47166,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Het model op het apparaat begrijpt deze taal niet.';
 
   @override
-  String get explore_field_airTemp => 'Luchttemperatuur';
-
-  @override
-  String get explore_field_avgDepth => 'Gemiddelde diepte';
-
-  @override
   String get explore_field_bottomTime => 'Bodemtijd';
 
   @override
-  String get explore_field_currentStrength => 'Stroming';
-
-  @override
-  String get explore_field_depth => 'Diepte';
-
-  @override
-  String get explore_field_diveMode => 'Duikmodus';
-
-  @override
-  String get explore_field_diveNumber => 'Duiknummer';
-
-  @override
-  String get explore_field_diveType => 'Duiktype';
-
-  @override
-  String get explore_field_entryMethod => 'Instap';
-
-  @override
   String get explore_field_o2 => 'Zuurstof';
-
-  @override
-  String get explore_field_rating => 'Beoordeling';
-
-  @override
-  String get explore_field_visibility => 'Zicht';
-
-  @override
-  String get explore_field_waterTemp => 'Watertemperatuur';
-
-  @override
-  String get explore_field_waterType => 'Watertype';
-
-  @override
-  String get explore_field_weekday => 'Weekdag';
 
   @override
   String get explore_handoff_list => 'Openen in lijst';

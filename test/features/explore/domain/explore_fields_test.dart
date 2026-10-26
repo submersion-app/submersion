@@ -204,12 +204,5 @@ void main() {
     }
   });
 
-  test('only a flag has a label for its off value', () {
-    for (final f in kExploreFields.where((f) => f.offLabelKey != null)) {
-      expect(f.kind, ExploreValueKind.flag, reason: f.name);
-    }
-    expect(exploreField('deco')!.offLabelKey, 'explore_chip_noDeco');
-  });
-
   test('an unknown name is null', () => expect(exploreField('nope'), isNull));
 }

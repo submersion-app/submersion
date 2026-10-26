@@ -75579,12 +75579,6 @@ abstract class AppLocalizations {
   /// **'Search species'**
   String get diveLog_filter_speciesSearchHint;
 
-  /// No description provided for @explore_chip_favorite.
-  ///
-  /// In en, this message translates to:
-  /// **'Favourite'**
-  String get explore_chip_favorite;
-
   /// No description provided for @explore_chip_deco.
   ///
   /// In en, this message translates to:
@@ -75596,18 +75590,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No decompression'**
   String get explore_chip_noDeco;
-
-  /// No description provided for @explore_chip_noBuddy.
-  ///
-  /// In en, this message translates to:
-  /// **'No buddy'**
-  String get explore_chip_noBuddy;
-
-  /// No description provided for @explore_chip_noRole.
-  ///
-  /// In en, this message translates to:
-  /// **'No role'**
-  String get explore_chip_noRole;
 
   /// No description provided for @explore_chip_rating.
   ///
@@ -75693,95 +75675,17 @@ abstract class AppLocalizations {
   /// **'The on-device model does not understand this language.'**
   String get explore_error_unsupportedLocale;
 
-  /// No description provided for @explore_field_airTemp.
-  ///
-  /// In en, this message translates to:
-  /// **'Air temperature'**
-  String get explore_field_airTemp;
-
-  /// No description provided for @explore_field_avgDepth.
-  ///
-  /// In en, this message translates to:
-  /// **'Average depth'**
-  String get explore_field_avgDepth;
-
   /// No description provided for @explore_field_bottomTime.
   ///
   /// In en, this message translates to:
   /// **'Bottom time'**
   String get explore_field_bottomTime;
 
-  /// No description provided for @explore_field_currentStrength.
-  ///
-  /// In en, this message translates to:
-  /// **'Current'**
-  String get explore_field_currentStrength;
-
-  /// No description provided for @explore_field_depth.
-  ///
-  /// In en, this message translates to:
-  /// **'Depth'**
-  String get explore_field_depth;
-
-  /// No description provided for @explore_field_diveMode.
-  ///
-  /// In en, this message translates to:
-  /// **'Dive mode'**
-  String get explore_field_diveMode;
-
-  /// No description provided for @explore_field_diveNumber.
-  ///
-  /// In en, this message translates to:
-  /// **'Dive number'**
-  String get explore_field_diveNumber;
-
-  /// No description provided for @explore_field_diveType.
-  ///
-  /// In en, this message translates to:
-  /// **'Dive type'**
-  String get explore_field_diveType;
-
-  /// No description provided for @explore_field_entryMethod.
-  ///
-  /// In en, this message translates to:
-  /// **'Entry'**
-  String get explore_field_entryMethod;
-
   /// No description provided for @explore_field_o2.
   ///
   /// In en, this message translates to:
   /// **'Oxygen'**
   String get explore_field_o2;
-
-  /// No description provided for @explore_field_rating.
-  ///
-  /// In en, this message translates to:
-  /// **'Rating'**
-  String get explore_field_rating;
-
-  /// No description provided for @explore_field_visibility.
-  ///
-  /// In en, this message translates to:
-  /// **'Visibility'**
-  String get explore_field_visibility;
-
-  /// No description provided for @explore_field_waterTemp.
-  ///
-  /// In en, this message translates to:
-  /// **'Water temperature'**
-  String get explore_field_waterTemp;
-
-  /// No description provided for @explore_field_waterType.
-  ///
-  /// In en, this message translates to:
-  /// **'Water type'**
-  String get explore_field_waterType;
-
-  /// No description provided for @explore_field_weekday.
-  ///
-  /// In en, this message translates to:
-  /// **'Weekday'**
-  String get explore_field_weekday;
 
   /// No description provided for @explore_handoff_list.
   ///

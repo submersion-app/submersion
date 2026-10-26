@@ -47402,19 +47402,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_filter_speciesSearchHint => 'Pesquisar espécies';
 
   @override
-  String get explore_chip_favorite => 'Favorito';
-
-  @override
   String get explore_chip_deco => 'Mergulho com descompressão';
 
   @override
   String get explore_chip_noDeco => 'Sem descompressão';
-
-  @override
-  String get explore_chip_noBuddy => 'Sem parceiro';
-
-  @override
-  String get explore_chip_noRole => 'Sem função';
 
   @override
   String explore_chip_rating(String op, String value) {
@@ -47473,49 +47464,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'O modelo no dispositivo não compreende este idioma.';
 
   @override
-  String get explore_field_airTemp => 'Temperatura do ar';
-
-  @override
-  String get explore_field_avgDepth => 'Profundidade média';
-
-  @override
   String get explore_field_bottomTime => 'Tempo de fundo';
 
   @override
-  String get explore_field_currentStrength => 'Corrente';
-
-  @override
-  String get explore_field_depth => 'Profundidade';
-
-  @override
-  String get explore_field_diveMode => 'Modo de mergulho';
-
-  @override
-  String get explore_field_diveNumber => 'Número do mergulho';
-
-  @override
-  String get explore_field_diveType => 'Tipo de mergulho';
-
-  @override
-  String get explore_field_entryMethod => 'Entrada';
-
-  @override
   String get explore_field_o2 => 'Oxigénio';
-
-  @override
-  String get explore_field_rating => 'Avaliação';
-
-  @override
-  String get explore_field_visibility => 'Visibilidade';
-
-  @override
-  String get explore_field_waterTemp => 'Temperatura da água';
-
-  @override
-  String get explore_field_waterType => 'Tipo de água';
-
-  @override
-  String get explore_field_weekday => 'Dia da semana';
 
   @override
   String get explore_handoff_list => 'Abrir na lista';

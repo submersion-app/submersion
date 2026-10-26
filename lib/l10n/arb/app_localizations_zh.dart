@@ -44558,19 +44558,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_filter_speciesSearchHint => '搜索物种';
 
   @override
-  String get explore_chip_favorite => '收藏';
-
-  @override
   String get explore_chip_deco => '减压潜水';
 
   @override
   String get explore_chip_noDeco => '无减压';
-
-  @override
-  String get explore_chip_noBuddy => '无潜伴';
-
-  @override
-  String get explore_chip_noRole => '无角色';
 
   @override
   String explore_chip_rating(String op, String value) {
@@ -44621,49 +44612,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get explore_error_unsupportedLocale => '设备端模型不理解这种语言。';
 
   @override
-  String get explore_field_airTemp => '气温';
-
-  @override
-  String get explore_field_avgDepth => '平均深度';
-
-  @override
   String get explore_field_bottomTime => '水底时间';
 
   @override
-  String get explore_field_currentStrength => '水流';
-
-  @override
-  String get explore_field_depth => '深度';
-
-  @override
-  String get explore_field_diveMode => '潜水模式';
-
-  @override
-  String get explore_field_diveNumber => '潜水编号';
-
-  @override
-  String get explore_field_diveType => '潜水类型';
-
-  @override
-  String get explore_field_entryMethod => '入水方式';
-
-  @override
   String get explore_field_o2 => '氧气';
-
-  @override
-  String get explore_field_rating => '评分';
-
-  @override
-  String get explore_field_visibility => '能见度';
-
-  @override
-  String get explore_field_waterTemp => '水温';
-
-  @override
-  String get explore_field_waterType => '水体类型';
-
-  @override
-  String get explore_field_weekday => '星期';
 
   @override
   String get explore_handoff_list => '在列表中打开';

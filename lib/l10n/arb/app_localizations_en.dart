@@ -46705,19 +46705,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_filter_speciesSearchHint => 'Search species';
 
   @override
-  String get explore_chip_favorite => 'Favourite';
-
-  @override
   String get explore_chip_deco => 'Decompression dive';
 
   @override
   String get explore_chip_noDeco => 'No decompression';
-
-  @override
-  String get explore_chip_noBuddy => 'No buddy';
-
-  @override
-  String get explore_chip_noRole => 'No role';
 
   @override
   String explore_chip_rating(String op, String value) {
@@ -46775,49 +46766,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'The on-device model does not understand this language.';
 
   @override
-  String get explore_field_airTemp => 'Air temperature';
-
-  @override
-  String get explore_field_avgDepth => 'Average depth';
-
-  @override
   String get explore_field_bottomTime => 'Bottom time';
 
   @override
-  String get explore_field_currentStrength => 'Current';
-
-  @override
-  String get explore_field_depth => 'Depth';
-
-  @override
-  String get explore_field_diveMode => 'Dive mode';
-
-  @override
-  String get explore_field_diveNumber => 'Dive number';
-
-  @override
-  String get explore_field_diveType => 'Dive type';
-
-  @override
-  String get explore_field_entryMethod => 'Entry';
-
-  @override
   String get explore_field_o2 => 'Oxygen';
-
-  @override
-  String get explore_field_rating => 'Rating';
-
-  @override
-  String get explore_field_visibility => 'Visibility';
-
-  @override
-  String get explore_field_waterTemp => 'Water temperature';
-
-  @override
-  String get explore_field_waterType => 'Water type';
-
-  @override
-  String get explore_field_weekday => 'Weekday';
 
   @override
   String get explore_handoff_list => 'Open in list';
