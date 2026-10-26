@@ -51,6 +51,7 @@ class IdentitySection extends StatelessWidget {
     String? placeholder,
     String? Function(String?)? validator,
     int maxLines = 1,
+    bool markdown = false,
   }) {
     final extras = mergeExtras?.call(key);
     return SuggestionFormRow(
@@ -62,6 +63,7 @@ class IdentitySection extends StatelessWidget {
       placeholder: placeholder,
       validator: validator,
       maxLines: maxLines,
+      markdown: markdown,
       caption: extras?.sourceLabel,
       trailing: extras == null
           ? null
@@ -116,6 +118,7 @@ class IdentitySection extends StatelessWidget {
           controller: descriptionController,
           placeholder: l10n.diveSites_edit_field_description_hint,
           maxLines: 3,
+          markdown: true,
         ),
         _row(
           context,

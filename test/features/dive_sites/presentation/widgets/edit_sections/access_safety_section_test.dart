@@ -86,4 +86,12 @@ void main() {
       }
     },
   );
+
+  testWidgets('access notes edit as Markdown, other rows stay plain (#3683)', (
+    tester,
+  ) async {
+    await tester.pumpWidget(harness());
+    await tester.pumpAndSettle();
+    expect(find.byTooltip('Bold'), findsOneWidget);
+  });
 }
