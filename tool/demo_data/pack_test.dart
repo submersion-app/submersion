@@ -24,6 +24,9 @@ import 'src/seeders/seed_context.dart';
 ///   DEMO_PACK_SEED    optional, default 1
 ///   DEMO_PACK_ANCHOR  optional build date (yyyy-mm-dd), default today
 void main() {
+  // The species catalogue loads from the app's bundled assets.
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   test('build the demo logbook', () async {
     final env = Platform.environment;
     final shapesDir = env['DEMO_PACK_SHAPES'];
