@@ -2221,13 +2221,18 @@ class DiveComputerRepository {
         final writesTissue = isPrimary
             ? !displacedPrimary || computerTissue != null
             : computerTissue != null && !await _hasStoredTissue(diveId);
+        // The deco settings follow the same owner: the primary reading writes
+        // what it reports, none included, and a secondary one that reports
+        // none leaves the dive's alone rather than blanking them.
+        Value<T?> reported<T>(T? value) =>
+            isPrimary || value != null ? Value(value) : const Value.absent();
         await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
           DivesCompanion(
             updatedAt: Value(now),
-            gradientFactorLow: Value(gfLow),
-            gradientFactorHigh: Value(gfHigh),
-            decoAlgorithm: Value(decoAlgorithm),
-            decoConservatism: Value(decoConservatism),
+            gradientFactorLow: reported(gfLow),
+            gradientFactorHigh: reported(gfHigh),
+            decoAlgorithm: reported(decoAlgorithm),
+            decoConservatism: reported(decoConservatism),
             computerTissueJson: writesTissue
                 ? Value(computerTissue?.encode())
                 : const Value.absent(),
