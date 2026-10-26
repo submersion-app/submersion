@@ -260,6 +260,20 @@ void main() {
       );
     });
 
+    test('translates a built-in species whose reference has no name', () {
+      expect(
+        conflictReferenceName(
+          de,
+          ref(
+            targetType: 'species',
+            recordId: 'sp_whale_shark',
+            builtInSource: (targetType: 'species', id: 'sp_whale_shark'),
+          ),
+        ),
+        'Walhai',
+      );
+    });
+
     test('translates a name borrowed from a built-in row', () {
       expect(
         conflictReferenceValue(
