@@ -56,6 +56,13 @@ final demoModeServiceProvider = FutureProvider<DemoModeService>((ref) async {
   );
 });
 
+/// Leaves demo mode: restores the user's logbook and settings, removes every
+/// demo file, and restarts the app.
+final demoExitActionProvider = Provider<Future<void> Function()>(
+  (ref) =>
+      () async => (await ref.read(demoModeServiceProvider.future)).exit(),
+);
+
 /// Units and formats from the user's current settings, so the sample
 /// logbook reads in units they already know.
 DemoUnitSettings demoUnitsFromSettings(AppSettings s) => DemoUnitSettings({

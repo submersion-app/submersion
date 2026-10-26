@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
+import 'package:submersion/features/demo_mode/presentation/widgets/demo_exit_confirm.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Shown in place of a screen demo mode seals: the feature exists, and this
 /// says why it cannot be used while exploring the sample logbook.
-class DemoUnavailablePage extends StatelessWidget {
+class DemoUnavailablePage extends ConsumerWidget {
   const DemoUnavailablePage({super.key, required this.feature});
 
   final DemoSealedFeature feature;
@@ -15,7 +17,7 @@ class DemoUnavailablePage extends StatelessWidget {
       DemoSealedFeature.fileImport;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     return Scaffold(
@@ -45,6 +47,12 @@ class DemoUnavailablePage extends StatelessWidget {
                     l10n.demo_unavailable_body,
                     style: theme.textTheme.bodyMedium,
                     textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+                  FilledButton.icon(
+                    icon: const Icon(Icons.logout),
+                    label: Text(l10n.demo_strip_exit),
+                    onPressed: () => confirmAndExitDemo(context, ref),
                   ),
                 ],
               ),
