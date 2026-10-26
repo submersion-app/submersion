@@ -110,6 +110,17 @@ class GuardTest(unittest.TestCase):
         self.assertEqual(code, 1)
         self.assertIn("scan is broken", out)
 
+    def test_files_that_are_not_workflows_are_skipped(self):
+        self.write("beta.yml", _step("3.4"))
+        with open(
+            os.path.join(self.root, ".github", "workflows", "README.md"),
+            "w",
+            encoding="utf-8",
+        ) as fh:
+            fh.write("ruby-version: '3.2'\n")
+        code, out = self.run_main()
+        self.assertEqual(code, 0, out)
+
     def test_a_commented_out_pin_is_ignored(self):
         self.write(
             "beta.yml",

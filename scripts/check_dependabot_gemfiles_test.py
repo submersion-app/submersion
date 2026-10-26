@@ -233,6 +233,46 @@ class CoverageTest(unittest.TestCase):
             guard.bundler_directories(self.root), ["ios", "macos", "android"]
         )
 
+    def test_lists_under_other_top_level_keys_are_not_entries(self):
+        # A registries list before updates: its items are not update entries,
+        # even though they are key-led list items with a directory-like value.
+        _write(
+            self.root,
+            ".github/dependabot.yml",
+            "version: 2\n"
+            "registries:\n"
+            "  ruby-github:\n"
+            "    type: rubygems-server\n"
+            '    url: "https://rubygems.pkg.github.com/acme"\n'
+            "updates:\n"
+            '  - package-ecosystem: "bundler"\n'
+            '    directory: "/ios"\n',
+        )
+        self.assertEqual(guard.bundler_directories(self.root), ["ios"])
+
+    def test_a_double_star_slash_matches_any_depth_including_none(self):
+        _write(
+            self.root,
+            ".github/dependabot.yml",
+            'updates:\n  - package-ecosystem: "bundler"\n    directories:\n'
+            '      - "/**/fastlane"\n',
+        )
+        _write(self.root, "fastlane/Gemfile", 'gem "rake"\n')
+        _write(self.root, "ios/fastlane/Gemfile", 'gem "rake"\n')
+        _write(self.root, "ios/Gemfile", 'gem "rake"\n')
+        self.assertEqual(guard.uncovered(self.root), [os.path.join("ios", "Gemfile")])
+
+    def test_a_question_mark_matches_one_character_in_a_segment(self):
+        _write(
+            self.root,
+            ".github/dependabot.yml",
+            'updates:\n  - package-ecosystem: "bundler"\n    directories:\n'
+            '      - "/i?s"\n',
+        )
+        _write(self.root, "ios/Gemfile", 'gem "rake"\n')
+        _write(self.root, "iOS2/Gemfile", 'gem "rake"\n')
+        self.assertEqual(guard.uncovered(self.root), [os.path.join("iOS2", "Gemfile")])
+
     def test_unindented_update_items_are_entries(self):
         _write(
             self.root,
