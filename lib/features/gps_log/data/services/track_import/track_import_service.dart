@@ -228,12 +228,12 @@ class TrackImportService {
         ) ??
         deviceOffset;
 
+    // The same shift commit applies, so the span matches what it stores.
+    final shift = parsed.timesAreWallClock ? 0 : tzOffsetMinutes;
     final startMs =
-        toWallClockEpochSecondsAt(parsed.fixes.first.utc, tzOffsetMinutes) *
-        1000;
+        toWallClockEpochSecondsAt(parsed.fixes.first.utc, shift) * 1000;
     final endMs =
-        toWallClockEpochSecondsAt(parsed.fixes.last.utc, tzOffsetMinutes) *
-        1000;
+        toWallClockEpochSecondsAt(parsed.fixes.last.utc, shift) * 1000;
 
     // Same source only: a phone recording and a handheld recording of the
     // same boat day are two legitimate records, not a duplicate.

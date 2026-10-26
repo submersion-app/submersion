@@ -256,6 +256,18 @@ void main() {
       expect(second.duplicateOfTrackId, isNotNull);
     });
 
+    // Commit stores a wall-clock track unshifted, so the duplicate check
+    // must not shift it either, or a re-import outside UTC is missed.
+    test('flags a re-import of a wall-clock file as a duplicate', () async {
+      final bytes = _utf8Bytes(_naiveGpx('2026-05-22T13:00:00'));
+      final id = await service.commit(
+        await service.prepare(fileName: 'naive.gpx', bytes: bytes),
+      );
+
+      final second = await service.prepare(fileName: 'naive.gpx', bytes: bytes);
+      expect(second.duplicateOfTrackId, id);
+    });
+
     test(
       'does not flag an overlapping track from a different source',
       () async {
