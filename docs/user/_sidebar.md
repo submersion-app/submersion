@@ -13,6 +13,7 @@
   - [MacDive](how-to-move-from-macdive.md)
   - [Subsurface](how-to-move-from-subsurface.md)
   - [Shearwater Cloud](how-to-move-from-shearwater-cloud.md)
+  - [Diving Log](how-to-move-from-diving-log.md)
   - [Garmin Connect](how-to-move-from-garmin-connect.md)
   - [Suunto](how-to-move-from-suunto.md)
   - [divelogs.de](how-to-move-from-divelogs-de.md)
