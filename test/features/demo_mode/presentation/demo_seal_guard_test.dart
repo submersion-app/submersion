@@ -19,9 +19,8 @@ void main() {
         home: Scaffold(
           body: Builder(
             builder: (context) => TextButton(
-              onPressed: () => results.add(
-                demoSealGuard(context, DemoSealedFeature.export),
-              ),
+              onPressed: () =>
+                  results.add(demoSealGuard(context, DemoSealedFeature.export)),
               child: const Text('Export'),
             ),
           ),
