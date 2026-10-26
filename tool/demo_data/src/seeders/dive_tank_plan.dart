@@ -56,21 +56,23 @@ List<PlannedTank> planTanks(PlannedDive d, DiveShape shape, Random random) {
     ];
   }
   if (d.diveMode == 'ccr') {
+    final roles = _rebreatherRoles(shape.tanks);
     return [
-      for (final t in shape.tanks)
+      for (var i = 0; i < shape.tanks.length; i++)
         PlannedTank(
-          o2: t.o2,
-          he: t.he,
-          role: _role(t.role),
-          volumeL: t.role == 'bailout' ? 7 : 3,
+          o2: shape.tanks[i].o2,
+          he: shape.tanks[i].he,
+          role: roles[i],
+          volumeL: roles[i] == TankRole.bailout ? 7 : 3,
           workingBar: 232,
           startBar: 200,
-          material: t.role == 'bailout'
+          material: roles[i] == TankRole.bailout
               ? TankMaterial.aluminum
               : TankMaterial.steel,
         ),
     ];
   }
+  final bottomO2 = shape.tanks.first.o2;
   return [
     for (var i = 0; i < shape.tanks.length; i++)
       PlannedTank(
@@ -78,7 +80,10 @@ List<PlannedTank> planTanks(PlannedDive d, DiveShape shape, Random random) {
         he: shape.tanks[i].he,
         role: i == 0
             ? TankRole.backGas
-            : _role(shape.tanks[i].role, fallback: TankRole.deco),
+            : _specificRole(shape.tanks[i].role) ??
+                  (shape.tanks[i].o2 > bottomO2
+                      ? TankRole.deco
+                      : TankRole.stage),
         volumeL: i == 0 ? 24 : 7,
         workingBar: i == 0 ? 232 : 207,
         startBar: i == 0 ? 220 : 200,
@@ -87,5 +92,36 @@ List<PlannedTank> planTanks(PlannedDive d, DiveShape shape, Random random) {
   ];
 }
 
-TankRole _role(String name, {TankRole fallback = TankRole.backGas}) =>
-    TankRole.values.where((r) => r.name == name).firstOrNull ?? fallback;
+/// The source's role when it says more than back gas, the label many
+/// computers give every cylinder.
+TankRole? _specificRole(String name) {
+  final role = TankRole.values.where((r) => r.name == name).firstOrNull;
+  return role == TankRole.backGas ? null : role;
+}
+
+/// A rebreather dive's cylinders: a specific source role is kept, and the
+/// rest are read from the gas, as a diver would: 80 % oxygen or more is the
+/// oxygen supply, the leanest other gas the diluent, anything else bailout.
+List<TankRole> _rebreatherRoles(List<ShapeTank> tanks) {
+  final known = [for (final t in tanks) _specificRole(t.role)];
+  var needOxygen = !known.contains(TankRole.oxygenSupply);
+  int? diluent;
+  if (!known.contains(TankRole.diluent)) {
+    for (var i = 0; i < tanks.length; i++) {
+      if (known[i] != null || tanks[i].o2 >= 80) continue;
+      if (diluent == null || tanks[i].o2 < tanks[diluent].o2) diluent = i;
+    }
+  }
+  final roles = <TankRole>[];
+  for (var i = 0; i < tanks.length; i++) {
+    var role = known[i];
+    if (role == null && i == diluent) {
+      role = TankRole.diluent;
+    } else if (role == null && needOxygen && tanks[i].o2 >= 80) {
+      role = TankRole.oxygenSupply;
+      needOxygen = false;
+    }
+    roles.add(role ?? TankRole.bailout);
+  }
+  return roles;
+}
