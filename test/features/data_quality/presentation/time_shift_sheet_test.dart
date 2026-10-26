@@ -53,6 +53,19 @@ void main() {
     expect(results, isEmpty);
   });
 
+  testWidgets('a blank field applies no shift', (tester) async {
+    final results = await pumpSheet(
+      tester,
+      suggestedOffset: const Duration(hours: 2),
+    );
+
+    await tester.enterText(find.byType(TextField), '');
+    await tester.tap(find.byType(FilledButton));
+    await tester.pumpAndSettle();
+
+    expect(results.single, (offset: Duration.zero, widen: false));
+  });
+
   testWidgets('no widen label, no checkbox', (tester) async {
     await pumpSheet(tester, suggestedOffset: const Duration(hours: -1));
     expect(find.byType(CheckboxListTile), findsNothing);

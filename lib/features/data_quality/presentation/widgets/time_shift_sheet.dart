@@ -67,8 +67,9 @@ Future<({Duration offset, bool widen})?> showTimeShiftSheet(
                     integer: true,
                   )) {
                     NumberValue(:final value) => value.toInt(),
-                    NumberBlank() => 0, // no shift, as before
-                    NumberInvalid() => 0, // unreachable: validated above
+                    // Blank applies no shift, as before; invalid cannot
+                    // reach here, the form having validated above.
+                    NumberBlank() || NumberInvalid() => 0,
                   };
                   Navigator.of(
                     context,

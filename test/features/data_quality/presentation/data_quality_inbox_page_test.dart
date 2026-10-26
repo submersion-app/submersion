@@ -1580,6 +1580,73 @@ void main() {
     await tester.pumpAndSettle(const Duration(seconds: 6));
   });
 
+  testWidgets('the logbook shift moves this dive alone, forward to the '
+      'secondary (#3655)', (tester) async {
+    final entry = DateTime.utc(2026, 7, 1, 10);
+    await DiveRepository().createDive(
+      domain.Dive(id: 'd1', dateTime: entry, entryTime: entry),
+    );
+    final prefs = await _prefs();
+    await tester.pumpWidget(
+      _scope(
+        prefs,
+        findings: [
+          // No sourceId: the logbook shift is the only repair offered.
+          _f(
+            id: 'r-logbook',
+            detectorId: 'clock_offset',
+            category: QualityCategory.time,
+            params: const {'offsetHours': 2},
+          ),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Shift logbook time by +2 h'), findsOneWidget);
+    await tester.tap(find.byType(FilledButton).first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('OK'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Repair applied'), findsOneWidget);
+    expect(
+      (await DiveRepository().getDiveById('d1'))!.entryTime,
+      entry.add(const Duration(hours: 2)),
+    );
+    await tester.pumpAndSettle(const Duration(seconds: 6));
+  });
+
+  testWidgets('a failed source read before the clock fix is reported, '
+      'not dropped (#3655)', (tester) async {
+    final prefs = await _prefs();
+    await tester.pumpWidget(
+      _scope(
+        prefs,
+        findings: [
+          _f(
+            id: 'r-src-clock-failed',
+            detectorId: 'clock_offset',
+            category: QualityCategory.time,
+            params: const {'offsetHours': 1, 'sourceId': 'dc'},
+          ),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+    // The read the repair makes before its sheet now has no table to read.
+    await DatabaseService.instance.database.customStatement(
+      'DROP TABLE dive_data_sources',
+    );
+
+    await tester.tap(find.byType(FilledButton).first);
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Repair failed'), findsOneWidget);
+    expect(find.byType(TextField), findsNothing);
+    await tester.pumpAndSettle(const Duration(seconds: 6));
+  });
+
   testWidgets('the computer-wide checkbox follows the source as it is now, '
       'not the finding (#3655)', (tester) async {
     final entry = DateTime.utc(2026, 7, 1, 10);
