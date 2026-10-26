@@ -6,7 +6,8 @@ extension ComputerTissueMigrations on AppDatabase {
   /// v318: moves the CNS, OTU and deco model out of stored snapshots into
   /// their own columns (#2555). Guarded on the columns it reads and writes,
   /// as the other helpers are, for migration fixtures that build only part
-  /// of the schema.
+  /// of the schema: the dive rewrite needs the dive columns, and the source
+  /// fill runs only where the sources table has its own.
   Future<void> _moveComputerTissueScalars() async {
     final dives = await customSelect("PRAGMA table_info('dives')").get();
     final diveColumns = dives.map((c) => c.read<String>('name')).toSet();
@@ -15,22 +16,24 @@ extension ComputerTissueMigrations on AppDatabase {
     ).get();
     final sourceColumns = sources.map((c) => c.read<String>('name')).toSet();
     if (!diveColumns.containsAll(const [
-          'id',
-          'computer_tissue_json',
-          'cns_start',
-          'cns_end',
-          'otu',
-          'deco_algorithm',
-        ]) ||
-        !sourceColumns.containsAll(const [
-          'dive_id',
-          'is_primary',
-          'cns',
-          'otu',
-          'deco_algorithm',
-        ])) {
+      'id',
+      'computer_tissue_json',
+      'cns_start',
+      'cns_end',
+      'otu',
+      'deco_algorithm',
+    ])) {
       return;
     }
-    await moveComputerTissueScalars(this);
+    await moveComputerTissueScalars(
+      this,
+      fillSources: sourceColumns.containsAll(const [
+        'dive_id',
+        'is_primary',
+        'cns',
+        'otu',
+        'deco_algorithm',
+      ]),
+    );
   }
 }

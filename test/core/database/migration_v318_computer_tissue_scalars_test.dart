@@ -237,6 +237,45 @@ void main() {
     expect(after['d-none']!['computer_tissue_json'], isNull);
   });
 
+  test(
+    'still moves the dive values when the sources table is missing',
+    () async {
+      final db = AppDatabase(
+        NativeDatabase.memory(
+          setup: (rawDb) {
+            rawDb.execute('PRAGMA user_version = 315');
+            rawDb.execute('''
+            CREATE TABLE dives (
+              id TEXT NOT NULL PRIMARY KEY,
+              dive_date_time INTEGER NOT NULL,
+              cns_start REAL NOT NULL DEFAULT 0,
+              cns_end REAL,
+              otu REAL,
+              deco_algorithm TEXT,
+              computer_tissue_json TEXT,
+              created_at INTEGER NOT NULL,
+              updated_at INTEGER NOT NULL,
+              hlc TEXT
+            )
+          ''');
+            rawDb.execute(
+              'INSERT INTO dives (id, dive_date_time, computer_tissue_json, '
+              "created_at, updated_at) VALUES ('d', 0, "
+              '\'{"end":{"cns_percent":9.0,"gf99_percent":30.0}}\', 0, 0)',
+            );
+          },
+        ),
+      );
+      addTearDown(db.close);
+      final row = (await dives(db))['d']!;
+
+      expect(row['cns_end'], 9.0);
+      expect(jsonOf(row), {
+        'end': {'gf99_percent': 30.0},
+      });
+    },
+  );
+
   test('a database already at v318 is not rewritten again', () async {
     final db = AppDatabase(strandedAt(AppDatabase.currentSchemaVersion));
     addTearDown(db.close);

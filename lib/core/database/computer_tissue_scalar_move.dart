@@ -16,14 +16,18 @@ import 'package:submersion/features/dive_log/domain/entities/computer_tissue_leg
 /// 0 counting as empty; a value already there wins. The snapshot is then
 /// stored without the four, or cleared when nothing else was in it.
 ///
-/// Only snapshots naming one of the keys are read. The sync stamp
+/// [fillSources] false leaves the source rows out, for a database without
+/// the sources table. Only snapshots naming one of the keys are read. The sync stamp
 /// (`updated_at`, `hlc`) does not move: every device runs this same rewrite,
 /// so they agree without a sync round. A snapshot that does not parse as a
 /// JSON object is stepped over and left as it is.
 ///
 /// Raw SQL throughout, as the other ladder helpers, so it keeps compiling
 /// against any later shape of the generated classes.
-Future<int> moveComputerTissueScalars(DatabaseConnectionUser db) async {
+Future<int> moveComputerTissueScalars(
+  DatabaseConnectionUser db, {
+  bool fillSources = true,
+}) async {
   final candidates = await db.customSelect('''
     SELECT id, computer_tissue_json, cns_start FROM dives
     WHERE computer_tissue_json LIKE '%"algorithm"%'
@@ -61,6 +65,10 @@ Future<int> moveComputerTissueScalars(DatabaseConnectionUser db) async {
       ],
       updateKind: UpdateKind.update,
     );
+    if (!fillSources) {
+      rewritten++;
+      continue;
+    }
     await db.customUpdate(
       'UPDATE dive_data_sources SET cns = COALESCE(cns, ?), '
       'otu = COALESCE(otu, ?), '
