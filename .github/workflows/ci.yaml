@@ -842,6 +842,13 @@ jobs:
         # failed four Beta macOS builds in a row (issue #3488).
         run: ./scripts/release/notarize_dmg_test.sh
 
+      - name: Run TestFlight distribution test
+        # Drives the Beta workflow's Distribute to Public Beta group step with a
+        # stub fastlane. Apple's daily beta review submission limit must pass
+        # with a warning while every other error still fails: failing on the
+        # limit turned busy merge days into red macOS betas (issue #3715).
+        run: ./scripts/release/distribute_testflight_beta_test.sh
+
       - name: Run pre-push hook test
         # Guards two hook bugs that both rejected pushes for reasons unrelated
         # to the change being pushed: running the checks against the main
