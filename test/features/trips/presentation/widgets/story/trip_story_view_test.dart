@@ -181,13 +181,18 @@ void main() {
       );
     }
 
-    testWidgets('the Documents card comes last, after the final day', (
+    testWidgets('the Documents card comes last, under the notes', (
       tester,
     ) async {
       // Short, so the slivers after the lazily built days are laid out.
       final now = DateTime.now();
       final today = _dayOnly(now);
-      final trip = _trip(start: today, end: today.add(const Duration(days: 1)));
+      final trip = _trip(
+        start: today,
+        // Calendar arithmetic: a Duration of one day misses across DST.
+        end: DateTime(today.year, today.month, today.day + 1),
+        notes: 'Bring the reef hook',
+      );
       await pumpView(
         tester,
         _story(
@@ -201,9 +206,15 @@ void main() {
         skipOffstage: false,
       );
       final lastDay = find.byType(TripStoryDayHeader, skipOffstage: false).last;
+      final notes = find.text('Bring the reef hook', skipOffstage: false);
+      expect(find.byType(TripStoryDayHeader), findsNWidgets(2));
+      expect(
+        tester.getTopLeft(notes).dy,
+        greaterThan(tester.getTopLeft(lastDay).dy),
+      );
       expect(
         tester.getTopLeft(docs).dy,
-        greaterThan(tester.getTopLeft(lastDay).dy),
+        greaterThan(tester.getTopLeft(notes).dy),
       );
     });
 

@@ -171,7 +171,7 @@ class TripStoryView extends ConsumerWidget {
     final trailing = <Widget>[
       if (trip.notes.isNotEmpty)
         SliverPadding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
           sliver: SliverToBoxAdapter(
             child: Card(
               child: Padding(
@@ -194,9 +194,10 @@ class TripStoryView extends ConsumerWidget {
           ),
         ),
       // Last on the page, under the notes, as on the Overview before
-      // departure (issue #3711).
+      // departure (issue #3711). Its top inset and the 8px under the notes
+      // or the last day card keep the gap above it the same either way.
       SliverPadding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
         sliver: SliverToBoxAdapter(
           child: DocumentsSection(
             owner: DocumentOwner(DocumentOwnerKind.trip, trip.id),
