@@ -63233,6 +63233,24 @@ abstract class AppLocalizations {
   /// **'Shift all dives from this import'**
   String get dataQuality_repairLabel_shiftImport;
 
+  /// No description provided for @dataQuality_repairLabel_shiftLogbookTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift logbook time by {offset}'**
+  String dataQuality_repairLabel_shiftLogbookTime(String offset);
+
+  /// No description provided for @dataQuality_repairLabel_fixSourceClock.
+  ///
+  /// In en, this message translates to:
+  /// **'Fix this computer\'s clock by {offset}'**
+  String dataQuality_repairLabel_fixSourceClock(String offset);
+
+  /// No description provided for @dataQuality_repairLabel_fixSourceClockAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Also fix this computer on other dives with the same offset'**
+  String get dataQuality_repairLabel_fixSourceClockAll;
+
   /// No description provided for @dataQuality_repairLabel_consolidate.
   ///
   /// In en, this message translates to:

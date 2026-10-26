@@ -37707,6 +37707,20 @@ class AppLocalizationsZh extends AppLocalizations {
   String get dataQuality_repairLabel_shiftImport => '平移此次导入的所有潜水';
 
   @override
+  String dataQuality_repairLabel_shiftLogbookTime(String offset) {
+    return '将日志时间平移 $offset';
+  }
+
+  @override
+  String dataQuality_repairLabel_fixSourceClock(String offset) {
+    return '将此电脑的时钟校正 $offset';
+  }
+
+  @override
+  String get dataQuality_repairLabel_fixSourceClockAll =>
+      '同时校正此电脑在其他具有相同偏差的潜水中的时钟';
+
+  @override
   String get dataQuality_repairLabel_consolidate => '整合';
 
   @override

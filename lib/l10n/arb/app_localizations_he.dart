@@ -39031,6 +39031,20 @@ class AppLocalizationsHe extends AppLocalizations {
   String get dataQuality_repairLabel_shiftImport => 'הסטת כל הצלילות מייבוא זה';
 
   @override
+  String dataQuality_repairLabel_shiftLogbookTime(String offset) {
+    return 'הסטת זמן היומן ב-$offset';
+  }
+
+  @override
+  String dataQuality_repairLabel_fixSourceClock(String offset) {
+    return 'תיקון שעון המחשב הזה ב-$offset';
+  }
+
+  @override
+  String get dataQuality_repairLabel_fixSourceClockAll =>
+      'לתקן את המחשב הזה גם בצלילות אחרות עם אותה סטייה';
+
+  @override
   String get dataQuality_repairLabel_consolidate => 'איחוד';
 
   @override

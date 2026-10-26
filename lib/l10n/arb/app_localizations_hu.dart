@@ -39784,6 +39784,20 @@ class AppLocalizationsHu extends AppLocalizations {
       'Az import összes merülésének eltolása';
 
   @override
+  String dataQuality_repairLabel_shiftLogbookTime(String offset) {
+    return 'Naplóidő eltolása ennyivel: $offset';
+  }
+
+  @override
+  String dataQuality_repairLabel_fixSourceClock(String offset) {
+    return 'A számítógép órájának javítása ennyivel: $offset';
+  }
+
+  @override
+  String get dataQuality_repairLabel_fixSourceClockAll =>
+      'A számítógép javítása a többi, azonos eltérésű merülésnél is';
+
+  @override
   String get dataQuality_repairLabel_consolidate => 'Konszolidálás';
 
   @override

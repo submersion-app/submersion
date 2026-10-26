@@ -39935,6 +39935,20 @@ class AppLocalizationsDe extends AppLocalizations {
       'Alle Tauchgänge aus diesem Import verschieben';
 
   @override
+  String dataQuality_repairLabel_shiftLogbookTime(String offset) {
+    return 'Logbuchzeit um $offset verschieben';
+  }
+
+  @override
+  String dataQuality_repairLabel_fixSourceClock(String offset) {
+    return 'Uhr dieses Computers um $offset korrigieren';
+  }
+
+  @override
+  String get dataQuality_repairLabel_fixSourceClockAll =>
+      'Diesen Computer auch bei anderen Tauchgängen mit derselben Abweichung korrigieren';
+
+  @override
   String get dataQuality_repairLabel_consolidate => 'Konsolidieren';
 
   @override

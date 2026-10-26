@@ -40040,6 +40040,20 @@ class AppLocalizationsEs extends AppLocalizations {
       'Desplazar todas las inmersiones de esta importación';
 
   @override
+  String dataQuality_repairLabel_shiftLogbookTime(String offset) {
+    return 'Desplazar la hora del registro $offset';
+  }
+
+  @override
+  String dataQuality_repairLabel_fixSourceClock(String offset) {
+    return 'Corregir el reloj de este ordenador $offset';
+  }
+
+  @override
+  String get dataQuality_repairLabel_fixSourceClockAll =>
+      'Corregir también este ordenador en otras inmersiones con el mismo desfase';
+
+  @override
   String get dataQuality_repairLabel_consolidate => 'Consolidar';
 
   @override

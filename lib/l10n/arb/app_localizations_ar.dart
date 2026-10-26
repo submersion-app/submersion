@@ -40499,6 +40499,20 @@ class AppLocalizationsAr extends AppLocalizations {
       'إزاحة كل الغوصات من هذا الاستيراد';
 
   @override
+  String dataQuality_repairLabel_shiftLogbookTime(String offset) {
+    return 'إزاحة وقت السجل بمقدار $offset';
+  }
+
+  @override
+  String dataQuality_repairLabel_fixSourceClock(String offset) {
+    return 'تصحيح ساعة هذا الكمبيوتر بمقدار $offset';
+  }
+
+  @override
+  String get dataQuality_repairLabel_fixSourceClockAll =>
+      'تصحيح هذا الكمبيوتر أيضًا في الغوصات الأخرى ذات الفارق نفسه';
+
+  @override
   String get dataQuality_repairLabel_consolidate => 'توحيد';
 
   @override

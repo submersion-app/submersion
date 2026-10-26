@@ -39352,6 +39352,20 @@ class AppLocalizationsEn extends AppLocalizations {
       'Shift all dives from this import';
 
   @override
+  String dataQuality_repairLabel_shiftLogbookTime(String offset) {
+    return 'Shift logbook time by $offset';
+  }
+
+  @override
+  String dataQuality_repairLabel_fixSourceClock(String offset) {
+    return 'Fix this computer\'s clock by $offset';
+  }
+
+  @override
+  String get dataQuality_repairLabel_fixSourceClockAll =>
+      'Also fix this computer on other dives with the same offset';
+
+  @override
   String get dataQuality_repairLabel_consolidate => 'Consolidate';
 
   @override

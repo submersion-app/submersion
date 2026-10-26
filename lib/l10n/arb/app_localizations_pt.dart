@@ -39995,6 +39995,20 @@ class AppLocalizationsPt extends AppLocalizations {
       'Deslocar todos os mergulhos desta importação';
 
   @override
+  String dataQuality_repairLabel_shiftLogbookTime(String offset) {
+    return 'Deslocar a hora do registo em $offset';
+  }
+
+  @override
+  String dataQuality_repairLabel_fixSourceClock(String offset) {
+    return 'Corrigir o relógio deste computador em $offset';
+  }
+
+  @override
+  String get dataQuality_repairLabel_fixSourceClockAll =>
+      'Corrigir também este computador noutros mergulhos com o mesmo desvio';
+
+  @override
   String get dataQuality_repairLabel_consolidate => 'Consolidar';
 
   @override

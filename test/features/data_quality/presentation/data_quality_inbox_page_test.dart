@@ -1,11 +1,14 @@
 import 'dart:async';
 
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/database/database.dart'
+    show DiveDataSourcesCompanion;
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/data_quality/data/repositories/quality_findings_repository.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
@@ -1511,6 +1514,70 @@ void main() {
     expect(find.text('Repair applied'), findsOneWidget);
     // Exercise the undo action wired onto the SnackBar.
     await tester.tap(find.text('Undo'));
+    await tester.pumpAndSettle(const Duration(seconds: 6));
+  });
+
+  testWidgets('a source clock fix moves the secondary, never the logbook '
+      '(#3655)', (tester) async {
+    final entry = DateTime.utc(2026, 7, 1, 10);
+    await DiveRepository().createDive(
+      domain.Dive(id: 'd1', dateTime: entry, entryTime: entry),
+    );
+    final db = DatabaseService.instance.database;
+    for (final (id, primary, at) in [
+      ('uddf', true, entry),
+      ('dc', false, entry.add(const Duration(hours: 1))),
+    ]) {
+      await db
+          .into(db.diveDataSources)
+          .insert(
+            DiveDataSourcesCompanion(
+              id: Value(id),
+              diveId: const Value('d1'),
+              isPrimary: Value(primary),
+              entryTime: Value(at),
+              importedAt: Value(entry),
+              createdAt: Value(entry),
+            ),
+          );
+    }
+    final prefs = await _prefs();
+    await tester.pumpWidget(
+      _scope(
+        prefs,
+        findings: [
+          _f(
+            id: 'r-src-clock',
+            detectorId: 'clock_offset',
+            category: QualityCategory.time,
+            params: const {'offsetHours': 1, 'sourceId': 'dc'},
+          ),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(FilledButton).first);
+    await tester.pumpAndSettle();
+    // Pre-filled with the shift that brings the source onto the primary.
+    expect(find.widgetWithText(TextField, '-1'), findsOneWidget);
+    expect(
+      find.text('Also fix this computer on other dives with the same offset'),
+      findsOneWidget,
+    );
+    await tester.tap(find.text('OK'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Repair applied'), findsOneWidget);
+    final sources = await DiveRepository().getDataSources('d1');
+    expect(
+      sources
+          .firstWhere((s) => s.id == 'dc')
+          .entryTime!
+          .isAtSameMomentAs(entry),
+      isTrue,
+    );
+    expect((await DiveRepository().getDiveById('d1'))!.entryTime, entry);
     await tester.pumpAndSettle(const Duration(seconds: 6));
   });
 

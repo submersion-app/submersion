@@ -24474,6 +24474,23 @@
     }
   },
   "dataQuality_repairLabel_shiftImport": "Shift all dives from this import",
+  "dataQuality_repairLabel_shiftLogbookTime": "Shift logbook time by {offset}",
+  "@dataQuality_repairLabel_shiftLogbookTime": {
+    "placeholders": {
+      "offset": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_repairLabel_fixSourceClock": "Fix this computer's clock by {offset}",
+  "@dataQuality_repairLabel_fixSourceClock": {
+    "placeholders": {
+      "offset": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_repairLabel_fixSourceClockAll": "Also fix this computer on other dives with the same offset",
   "dataQuality_repairLabel_consolidate": "Consolidate",
   "dataQuality_repairLabel_deleteDuplicate": "Delete duplicate",
   "@dataQuality_repairLabel_deleteDuplicate": {

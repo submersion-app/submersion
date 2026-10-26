@@ -40018,6 +40018,20 @@ class AppLocalizationsIt extends AppLocalizations {
       'Sposta tutte le immersioni di questa importazione';
 
   @override
+  String dataQuality_repairLabel_shiftLogbookTime(String offset) {
+    return 'Sposta l\'orario del logbook di $offset';
+  }
+
+  @override
+  String dataQuality_repairLabel_fixSourceClock(String offset) {
+    return 'Correggi l\'orologio di questo computer di $offset';
+  }
+
+  @override
+  String get dataQuality_repairLabel_fixSourceClockAll =>
+      'Correggi questo computer anche nelle altre immersioni con lo stesso scarto';
+
+  @override
   String get dataQuality_repairLabel_consolidate => 'Consolida';
 
   @override
