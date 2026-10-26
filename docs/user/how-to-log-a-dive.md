@@ -59,7 +59,7 @@ When the download finishes, the review screen lists the dives on the **Dives** t
 
 Tap **Import Selected**. When **Successfully Imported** appears, tap **View Dives**.
 
-If your computer records GPS positions, you may also see a button such as **Match 3 dives to sites**. Tap it to attach the dives to nearby dive sites; see [Dive Sites](dive-sites.md#gps-auto-matching-of-dives-to-sites).
+If your computer records GPS positions, or your phone recorded a GPS track while you dived (see [Log GPS Tracks on Your Phone](how-to-gps-track-logging.md)), the dives arrive with positions and you may also see a button such as **Match 3 dives to sites**. Tap it to attach the dives to nearby dive sites; see [Dive Sites](dive-sites.md#gps-auto-matching-of-dives-to-sites).
 
 ## 5. Open your new dive
 
