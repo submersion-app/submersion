@@ -8321,6 +8321,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_filterChip_noBuddy => 'Sans binôme';
 
   @override
+  String get diveLog_filterChip_noRole => 'Aucun rôle';
+
+  @override
   String diveLog_filterChip_until(Object date) {
     return 'Jusqu\'au $date';
   }
@@ -8385,6 +8388,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_filter_noBuddyOnly => 'Aucun binôme assigné';
 
   @override
+  String get diveLog_filter_noRoleOnly => 'Aucun rôle assigné';
+
+  @override
   String get diveLog_filter_noTagsYet => 'Aucun tag créé pour le moment';
 
   @override
@@ -8447,6 +8453,10 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get diveLog_filter_showOnlyNoBuddy =>
       'Afficher uniquement les plongées sans binôme';
+
+  @override
+  String get diveLog_filter_showOnlyNoRole =>
+      'Afficher uniquement les plongées sans votre rôle';
 
   @override
   String get diveLog_filter_startDate => 'Date de début';
@@ -53439,6 +53449,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get query_dives_legacyBuddy => 'Binôme (ancien texte)';
+
+  @override
+  String get query_dives_role => 'Mon rôle';
 
   @override
   String get query_dives_media => 'Médias';

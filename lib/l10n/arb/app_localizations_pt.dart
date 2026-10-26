@@ -8298,6 +8298,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_filterChip_noBuddy => 'Sem Dupla';
 
   @override
+  String get diveLog_filterChip_noRole => 'Sem Função';
+
+  @override
   String diveLog_filterChip_until(Object date) {
     return 'Até $date';
   }
@@ -8361,6 +8364,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_filter_noBuddyOnly => 'Sem Dupla Atribuída';
 
   @override
+  String get diveLog_filter_noRoleOnly => 'Sem Função Atribuída';
+
+  @override
   String get diveLog_filter_noTagsYet => 'Nenhuma tag criada ainda';
 
   @override
@@ -8420,6 +8426,10 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get diveLog_filter_showOnlyNoBuddy =>
       'Mostrar apenas mergulhos sem dupla';
+
+  @override
+  String get diveLog_filter_showOnlyNoRole =>
+      'Mostrar apenas mergulhos sem a sua função';
 
   @override
   String get diveLog_filter_startDate => 'Data Inicial';
@@ -53320,6 +53330,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get query_dives_legacyBuddy => 'Dupla (texto antigo)';
+
+  @override
+  String get query_dives_role => 'Minha função';
 
   @override
   String get query_dives_media => 'Mídia';

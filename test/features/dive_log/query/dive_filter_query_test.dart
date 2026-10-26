@@ -31,6 +31,7 @@ void main() {
       excludedFromStatsOnly: true,
       decoOnly: false,
       noBuddyOnly: true,
+      noRoleOnly: true,
       tagIds: const ['tag1', 'tag2'],
       equipmentIds: const ['g1'],
       diveIds: const ['d1', 'd2'],
@@ -143,6 +144,7 @@ void main() {
         ),
         ConditionNode(FieldPath(['deco']), QueryOp.eq, const BoolValue(false)),
         ConditionNode(FieldPath(['buddies']), QueryOp.isEmpty, null),
+        ConditionNode(FieldPath(['role']), QueryOp.isEmpty, null),
         ConditionNode(
           FieldPath(['tags']),
           QueryOp.inList,

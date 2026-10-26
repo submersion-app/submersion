@@ -109,6 +109,7 @@ extension DiveFilterQuery on DiveFilterState {
       parts.add(c('deco', QueryOp.eq, BoolValue(decoOnly!)));
     }
     if (noBuddyOnly == true) parts.add(c('buddies', QueryOp.isEmpty, null));
+    if (noRoleOnly == true) parts.add(c('role', QueryOp.isEmpty, null));
     if (tagIds.isNotEmpty) parts.add(c('tags', QueryOp.inList, refs(tagIds)));
     if (equipmentIds.isNotEmpty) {
       parts.add(c('gear', QueryOp.inList, refs(equipmentIds)));

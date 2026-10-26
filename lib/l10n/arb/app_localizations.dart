@@ -13033,6 +13033,12 @@ abstract class AppLocalizations {
   /// **'No Buddy'**
   String get diveLog_filterChip_noBuddy;
 
+  /// No description provided for @diveLog_filterChip_noRole.
+  ///
+  /// In en, this message translates to:
+  /// **'No Role'**
+  String get diveLog_filterChip_noRole;
+
   /// No description provided for @diveLog_filterChip_until.
   ///
   /// In en, this message translates to:
@@ -13153,6 +13159,12 @@ abstract class AppLocalizations {
   /// **'No Buddy Assigned'**
   String get diveLog_filter_noBuddyOnly;
 
+  /// No description provided for @diveLog_filter_noRoleOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'No Role Assigned'**
+  String get diveLog_filter_noRoleOnly;
+
   /// No description provided for @diveLog_filter_noTagsYet.
   ///
   /// In en, this message translates to:
@@ -13266,6 +13278,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Show only dives without a buddy'**
   String get diveLog_filter_showOnlyNoBuddy;
+
+  /// No description provided for @diveLog_filter_showOnlyNoRole.
+  ///
+  /// In en, this message translates to:
+  /// **'Show only dives where your role is not set'**
+  String get diveLog_filter_showOnlyNoRole;
 
   /// No description provided for @diveLog_filter_startDate.
   ///
@@ -84467,6 +84485,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Buddy (legacy text)'**
   String get query_dives_legacyBuddy;
+
+  /// Field label in the query builder: whether the diver's own role on the dive is set
+  ///
+  /// In en, this message translates to:
+  /// **'My role'**
+  String get query_dives_role;
 
   /// Field label in the query builder
   ///

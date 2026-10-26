@@ -7870,6 +7870,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_filterChip_noBuddy => '无潜伴';
 
   @override
+  String get diveLog_filterChip_noRole => '无角色';
+
+  @override
   String diveLog_filterChip_until(Object date) {
     return '至 $date';
   }
@@ -7932,6 +7935,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_filter_noBuddyOnly => '无潜伴';
 
   @override
+  String get diveLog_filter_noRoleOnly => '无角色';
+
+  @override
   String get diveLog_filter_noTagsYet => '尚未创建标签';
 
   @override
@@ -7987,6 +7993,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_filter_showOnlyNoBuddy => '仅显示无潜伴的潜水';
+
+  @override
+  String get diveLog_filter_showOnlyNoRole => '仅显示未设置我的角色的潜水';
 
   @override
   String get diveLog_filter_startDate => '开始日期';
@@ -50021,6 +50030,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get query_dives_legacyBuddy => '潜伴（旧文本）';
+
+  @override
+  String get query_dives_role => '我的角色';
 
   @override
   String get query_dives_media => '媒体';

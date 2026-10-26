@@ -8294,6 +8294,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_filterChip_noBuddy => 'Kein Buddy';
 
   @override
+  String get diveLog_filterChip_noRole => 'Keine Rolle';
+
+  @override
   String diveLog_filterChip_until(Object date) {
     return 'Bis $date';
   }
@@ -8357,6 +8360,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_filter_noBuddyOnly => 'Kein Buddy zugewiesen';
 
   @override
+  String get diveLog_filter_noRoleOnly => 'Keine Rolle zugewiesen';
+
+  @override
   String get diveLog_filter_noTagsYet => 'Noch keine Tags erstellt';
 
   @override
@@ -8416,6 +8422,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get diveLog_filter_showOnlyNoBuddy =>
       'Nur Tauchgänge ohne Buddy anzeigen';
+
+  @override
+  String get diveLog_filter_showOnlyNoRole =>
+      'Nur Tauchgänge ohne eigene Rolle anzeigen';
 
   @override
   String get diveLog_filter_startDate => 'Startdatum';
@@ -53203,6 +53213,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get query_dives_legacyBuddy => 'Buddy (alter Text)';
+
+  @override
+  String get query_dives_role => 'Meine Rolle';
 
   @override
   String get query_dives_media => 'Medien';
