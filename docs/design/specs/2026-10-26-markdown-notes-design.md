@@ -180,8 +180,9 @@ field with no editor.
 strikethrough and code marks drop; `# Heading` becomes `Heading`; bullets become
 `- item`; numbered items stay `1. item`; task items become `[ ] item` /
 `[x] item`; links become `text (url)`, or just the address when text and address
-match; quotes drop the `>`; table rows become cells separated by ` | `; literal
-constructs (images, HTML, indented code) stay as typed.
+match; images become `alt (url)` like a link; quotes drop the `>`; table rows
+become cells separated by ` | `; literal constructs (HTML, indented code) stay
+as typed.
 
 ## The editor
 
