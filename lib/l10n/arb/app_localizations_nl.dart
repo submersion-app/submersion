@@ -55565,4 +55565,67 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get setup_syncPull_startFresh => 'Een nieuw logboek beginnen';
+
+  @override
+  String get demo_welcome_title => 'Verkennen met voorbeeldgegevens';
+
+  @override
+  String get demo_welcome_subtitle =>
+      'Bekijk een volledig voorbeeldlogboek voordat je je eigen gegevens invoert';
+
+  @override
+  String get demo_settings_enter_title => 'Verkennen met voorbeeldgegevens';
+
+  @override
+  String get demo_settings_enter_subtitle =>
+      'Je logboek wordt onaangeroerd apart gezet tot je afsluit';
+
+  @override
+  String get demo_settings_exit_title => 'Demo afsluiten';
+
+  @override
+  String get demo_settings_exit_subtitle =>
+      'Voorbeeldlogboek weggooien en terug naar je eigen logboek';
+
+  @override
+  String get demo_strip_label => 'Demomodus: je verkent voorbeeldgegevens';
+
+  @override
+  String get demo_strip_exit => 'Demo afsluiten';
+
+  @override
+  String get demo_exit_confirm_title => 'Demomodus afsluiten?';
+
+  @override
+  String get demo_exit_confirm_body =>
+      'Wijzigingen in het voorbeeldlogboek gaan verloren.';
+
+  @override
+  String get demo_exit_confirm_action => 'Demo afsluiten';
+
+  @override
+  String get demo_enter_downloading => 'Voorbeeldlogboek downloaden';
+
+  @override
+  String get demo_enter_preparing => 'Voorbeeldlogboek voorbereiden';
+
+  @override
+  String get demo_enter_opening => 'Voorbeeldlogboek openen';
+
+  @override
+  String get demo_enter_failed =>
+      'Het voorbeeldlogboek kon niet worden gedownload. Controleer je verbinding en probeer het opnieuw.';
+
+  @override
+  String get demo_sealed_note => 'Niet beschikbaar in demomodus';
+
+  @override
+  String get demo_unavailable_title => 'Niet beschikbaar in demomodus';
+
+  @override
+  String get demo_unavailable_body =>
+      'De demomodus houdt het voorbeeldlogboek gescheiden van je gegevens, dus er kan niets worden geïmporteerd, geëxporteerd, geback-upt of gesynchroniseerd.';
+
+  @override
+  String get demo_row_unavailable => 'Niet beschikbaar in demomodus';
 }

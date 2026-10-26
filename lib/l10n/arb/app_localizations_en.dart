@@ -55032,4 +55032,67 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get setup_syncPull_startFresh => 'Start a new logbook';
+
+  @override
+  String get demo_welcome_title => 'Explore with sample data';
+
+  @override
+  String get demo_welcome_subtitle =>
+      'Look around a complete sample logbook before entering your own';
+
+  @override
+  String get demo_settings_enter_title => 'Explore with sample data';
+
+  @override
+  String get demo_settings_enter_subtitle =>
+      'Your logbook is set aside, untouched, until you exit';
+
+  @override
+  String get demo_settings_exit_title => 'Exit demo';
+
+  @override
+  String get demo_settings_exit_subtitle =>
+      'Discard the sample logbook and return to your own';
+
+  @override
+  String get demo_strip_label => 'Demo mode: you are exploring sample data';
+
+  @override
+  String get demo_strip_exit => 'Exit demo';
+
+  @override
+  String get demo_exit_confirm_title => 'Exit demo mode?';
+
+  @override
+  String get demo_exit_confirm_body =>
+      'Changes you made to the sample logbook will be discarded.';
+
+  @override
+  String get demo_exit_confirm_action => 'Exit demo';
+
+  @override
+  String get demo_enter_downloading => 'Downloading sample logbook';
+
+  @override
+  String get demo_enter_preparing => 'Preparing sample logbook';
+
+  @override
+  String get demo_enter_opening => 'Opening sample logbook';
+
+  @override
+  String get demo_enter_failed =>
+      'The sample logbook could not be downloaded. Check your connection and try again.';
+
+  @override
+  String get demo_sealed_note => 'Not available in demo mode';
+
+  @override
+  String get demo_unavailable_title => 'Unavailable in demo mode';
+
+  @override
+  String get demo_unavailable_body =>
+      'Demo mode keeps the sample logbook separate from your data, so nothing can be imported, exported, backed up or synced.';
+
+  @override
+  String get demo_row_unavailable => 'Unavailable in demo mode';
 }

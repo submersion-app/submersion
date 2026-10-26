@@ -55914,4 +55914,68 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get setup_syncPull_startFresh => 'Inizia un nuovo logbook';
+
+  @override
+  String get demo_welcome_title => 'Esplora con dati di esempio';
+
+  @override
+  String get demo_welcome_subtitle =>
+      'Dai un\'occhiata a un logbook di esempio completo prima di inserire il tuo';
+
+  @override
+  String get demo_settings_enter_title => 'Esplora con dati di esempio';
+
+  @override
+  String get demo_settings_enter_subtitle =>
+      'Il tuo logbook resta da parte, intatto, finché non esci';
+
+  @override
+  String get demo_settings_exit_title => 'Esci dalla demo';
+
+  @override
+  String get demo_settings_exit_subtitle =>
+      'Scarta il logbook di esempio e torna al tuo';
+
+  @override
+  String get demo_strip_label =>
+      'Modalità demo: stai esplorando dati di esempio';
+
+  @override
+  String get demo_strip_exit => 'Esci dalla demo';
+
+  @override
+  String get demo_exit_confirm_title => 'Uscire dalla modalità demo?';
+
+  @override
+  String get demo_exit_confirm_body =>
+      'Le modifiche apportate al logbook di esempio andranno perse.';
+
+  @override
+  String get demo_exit_confirm_action => 'Esci dalla demo';
+
+  @override
+  String get demo_enter_downloading => 'Download del logbook di esempio';
+
+  @override
+  String get demo_enter_preparing => 'Preparazione del logbook di esempio';
+
+  @override
+  String get demo_enter_opening => 'Apertura del logbook di esempio';
+
+  @override
+  String get demo_enter_failed =>
+      'Impossibile scaricare il logbook di esempio. Controlla la connessione e riprova.';
+
+  @override
+  String get demo_sealed_note => 'Non disponibile in modalità demo';
+
+  @override
+  String get demo_unavailable_title => 'Non disponibile in modalità demo';
+
+  @override
+  String get demo_unavailable_body =>
+      'La modalità demo tiene il logbook di esempio separato dai tuoi dati, quindi non è possibile importare, esportare, eseguire il backup o sincronizzare nulla.';
+
+  @override
+  String get demo_row_unavailable => 'Non disponibile in modalità demo';
 }

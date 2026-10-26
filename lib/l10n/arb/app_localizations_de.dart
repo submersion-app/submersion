@@ -55791,4 +55791,67 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get setup_syncPull_startFresh => 'Neues Logbuch beginnen';
+
+  @override
+  String get demo_welcome_title => 'Mit Beispieldaten erkunden';
+
+  @override
+  String get demo_welcome_subtitle =>
+      'Sieh dir ein vollständiges Beispiel-Logbuch an, bevor du dein eigenes anlegst';
+
+  @override
+  String get demo_settings_enter_title => 'Mit Beispieldaten erkunden';
+
+  @override
+  String get demo_settings_enter_subtitle =>
+      'Dein Logbuch bleibt unberührt beiseite, bis du den Demomodus beendest';
+
+  @override
+  String get demo_settings_exit_title => 'Demo beenden';
+
+  @override
+  String get demo_settings_exit_subtitle =>
+      'Beispiel-Logbuch verwerfen und zu deinem eigenen zurückkehren';
+
+  @override
+  String get demo_strip_label => 'Demomodus: Du erkundest Beispieldaten';
+
+  @override
+  String get demo_strip_exit => 'Demo beenden';
+
+  @override
+  String get demo_exit_confirm_title => 'Demomodus beenden?';
+
+  @override
+  String get demo_exit_confirm_body =>
+      'Änderungen am Beispiel-Logbuch werden verworfen.';
+
+  @override
+  String get demo_exit_confirm_action => 'Demo beenden';
+
+  @override
+  String get demo_enter_downloading => 'Beispiel-Logbuch wird heruntergeladen';
+
+  @override
+  String get demo_enter_preparing => 'Beispiel-Logbuch wird vorbereitet';
+
+  @override
+  String get demo_enter_opening => 'Beispiel-Logbuch wird geöffnet';
+
+  @override
+  String get demo_enter_failed =>
+      'Das Beispiel-Logbuch konnte nicht heruntergeladen werden. Prüfe deine Verbindung und versuche es erneut.';
+
+  @override
+  String get demo_sealed_note => 'Im Demomodus nicht verfügbar';
+
+  @override
+  String get demo_unavailable_title => 'Im Demomodus nicht verfügbar';
+
+  @override
+  String get demo_unavailable_body =>
+      'Der Demomodus hält das Beispiel-Logbuch von deinen Daten getrennt, daher kann nichts importiert, exportiert, gesichert oder synchronisiert werden.';
+
+  @override
+  String get demo_row_unavailable => 'Im Demomodus nicht verfügbar';
 }

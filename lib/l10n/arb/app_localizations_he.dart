@@ -54745,4 +54745,66 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get setup_syncPull_startFresh => 'התחלת יומן חדש';
+
+  @override
+  String get demo_welcome_title => 'סיור עם נתוני דוגמה';
+
+  @override
+  String get demo_welcome_subtitle =>
+      'עיינו ביומן צלילות לדוגמה מלא לפני שתזינו את שלכם';
+
+  @override
+  String get demo_settings_enter_title => 'סיור עם נתוני דוגמה';
+
+  @override
+  String get demo_settings_enter_subtitle =>
+      'היומן שלכם נשמר בצד, ללא שינוי, עד שתצאו';
+
+  @override
+  String get demo_settings_exit_title => 'יציאה מההדגמה';
+
+  @override
+  String get demo_settings_exit_subtitle =>
+      'השלכת יומן הדוגמה וחזרה ליומן שלכם';
+
+  @override
+  String get demo_strip_label => 'מצב הדגמה: אתם מעיינים בנתוני דוגמה';
+
+  @override
+  String get demo_strip_exit => 'יציאה מההדגמה';
+
+  @override
+  String get demo_exit_confirm_title => 'לצאת ממצב ההדגמה?';
+
+  @override
+  String get demo_exit_confirm_body => 'השינויים שביצעתם ביומן הדוגמה יימחקו.';
+
+  @override
+  String get demo_exit_confirm_action => 'יציאה מההדגמה';
+
+  @override
+  String get demo_enter_downloading => 'מוריד את יומן הדוגמה';
+
+  @override
+  String get demo_enter_preparing => 'מכין את יומן הדוגמה';
+
+  @override
+  String get demo_enter_opening => 'פותח את יומן הדוגמה';
+
+  @override
+  String get demo_enter_failed =>
+      'לא ניתן היה להוריד את יומן הדוגמה. בדקו את החיבור ונסו שוב.';
+
+  @override
+  String get demo_sealed_note => 'לא זמין במצב הדגמה';
+
+  @override
+  String get demo_unavailable_title => 'לא זמין במצב הדגמה';
+
+  @override
+  String get demo_unavailable_body =>
+      'מצב ההדגמה שומר את יומן הדוגמה בנפרד מהנתונים שלכם, ולכן אי אפשר לייבא, לייצא, לגבות או לסנכרן דבר.';
+
+  @override
+  String get demo_row_unavailable => 'לא זמין במצב הדגמה';
 }

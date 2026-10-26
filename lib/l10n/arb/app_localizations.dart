@@ -88292,6 +88292,120 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Start a new logbook'**
   String get setup_syncPull_startFresh;
+
+  /// Demo mode (issue #3708)
+  ///
+  /// In en, this message translates to:
+  /// **'Explore with sample data'**
+  String get demo_welcome_title;
+
+  /// Demo mode (issue #3708)
+  ///
+  /// In en, this message translates to:
+  /// **'Look around a complete sample logbook before entering your own'**
+  String get demo_welcome_subtitle;
+
+  /// Demo mode (issue #3708)
+  ///
+  /// In en, this message translates to:
+  /// **'Explore with sample data'**
+  String get demo_settings_enter_title;
+
+  /// Demo mode (issue #3708)
+  ///
+  /// In en, this message translates to:
+  /// **'Your logbook is set aside, untouched, until you exit'**
+  String get demo_settings_enter_subtitle;
+
+  /// Demo mode (issue #3708)
+  ///
+  /// In en, this message translates to:
+  /// **'Exit demo'**
+  String get demo_settings_exit_title;
+
+  /// Demo mode (issue #3708)
+  ///
+  /// In en, this message translates to:
+  /// **'Discard the sample logbook and return to your own'**
+  String get demo_settings_exit_subtitle;
+
+  /// Demo mode (issue #3708)
+  ///
+  /// In en, this message translates to:
+  /// **'Demo mode: you are exploring sample data'**
+  String get demo_strip_label;
+
+  /// Demo mode (issue #3708)
+  ///
+  /// In en, this message translates to:
+  /// **'Exit demo'**
+  String get demo_strip_exit;
+
+  /// Demo mode (issue #3708)
+  ///
+  /// In en, this message translates to:
+  /// **'Exit demo mode?'**
+  String get demo_exit_confirm_title;
+
+  /// Demo mode (issue #3708)
+  ///
+  /// In en, this message translates to:
+  /// **'Changes you made to the sample logbook will be discarded.'**
+  String get demo_exit_confirm_body;
+
+  /// Demo mode (issue #3708)
+  ///
+  /// In en, this message translates to:
+  /// **'Exit demo'**
+  String get demo_exit_confirm_action;
+
+  /// Demo mode (issue #3708)
+  ///
+  /// In en, this message translates to:
+  /// **'Downloading sample logbook'**
+  String get demo_enter_downloading;
+
+  /// Demo mode (issue #3708)
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing sample logbook'**
+  String get demo_enter_preparing;
+
+  /// Demo mode (issue #3708)
+  ///
+  /// In en, this message translates to:
+  /// **'Opening sample logbook'**
+  String get demo_enter_opening;
+
+  /// Demo mode (issue #3708)
+  ///
+  /// In en, this message translates to:
+  /// **'The sample logbook could not be downloaded. Check your connection and try again.'**
+  String get demo_enter_failed;
+
+  /// Demo mode (issue #3708)
+  ///
+  /// In en, this message translates to:
+  /// **'Not available in demo mode'**
+  String get demo_sealed_note;
+
+  /// Demo mode (issue #3708)
+  ///
+  /// In en, this message translates to:
+  /// **'Unavailable in demo mode'**
+  String get demo_unavailable_title;
+
+  /// Demo mode (issue #3708)
+  ///
+  /// In en, this message translates to:
+  /// **'Demo mode keeps the sample logbook separate from your data, so nothing can be imported, exported, backed up or synced.'**
+  String get demo_unavailable_body;
+
+  /// Demo mode (issue #3708)
+  ///
+  /// In en, this message translates to:
+  /// **'Unavailable in demo mode'**
+  String get demo_row_unavailable;
 }
 
 class _AppLocalizationsDelegate
