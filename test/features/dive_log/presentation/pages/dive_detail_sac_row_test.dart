@@ -156,6 +156,23 @@ void main() {
     );
   });
 
+  testWidgets('a rebreather dive shows neither SAC nor RMV (#3673)', (
+    tester,
+  ) async {
+    for (final mode in [DiveMode.ccr, DiveMode.scr]) {
+      await pumpWith(
+        tester,
+        const AppSettings(),
+        dive: reportedDive().copyWith(diveMode: mode),
+      );
+
+      // The cylinders do not drain with the diver's breathing.
+      expect(laneRow('SAC'), findsNothing, reason: mode.name);
+      expect(laneRow('RMV'), findsNothing, reason: mode.name);
+      expect(find.byType(SacVolumeHint), findsNothing, reason: mode.name);
+    }
+  });
+
   group('RMV without a cylinder volume (issue #386)', () {
     testWidgets('falls back to the pressure lane and says why', (tester) async {
       // A dive-computer download: transmitter pressures, no cylinder size.
