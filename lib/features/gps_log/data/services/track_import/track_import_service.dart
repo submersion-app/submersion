@@ -202,11 +202,21 @@ class TrackImportService {
 
     final dives = await _diveRepository.getAllDives();
     // The device zone's offset when the track was recorded, not today's,
-    // which is an hour out for half the year in a daylight saving zone.
-    final deviceOffset = parsed.fixes.first.utc
-        .toLocal()
-        .timeZoneOffset
-        .inMinutes;
+    // which is an hour out for half the year in a daylight saving zone. A
+    // wall-clock track's components are a clock reading, not an instant, so
+    // its offset is looked up at that reading.
+    final firstFix = parsed.fixes.first.utc;
+    final recordedAt = parsed.timesAreWallClock
+        ? DateTime(
+            firstFix.year,
+            firstFix.month,
+            firstFix.day,
+            firstFix.hour,
+            firstFix.minute,
+            firstFix.second,
+          )
+        : firstFix.toLocal();
+    final deviceOffset = recordedAt.timeZoneOffset.inMinutes;
     // A dive can only CONSTRAIN the offset, never determine it, so the device
     // zone stays the prior and the review step remains the real answer.
     final tzOffsetMinutes =

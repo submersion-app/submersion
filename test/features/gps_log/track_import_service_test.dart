@@ -15,6 +15,19 @@ Uint8List _bytes(String name) =>
 
 Uint8List _utf8Bytes(String s) => Uint8List.fromList(utf8.encode(s));
 
+/// A two-fix GPX whose times carry no zone, starting at [start].
+String _naiveGpx(String start) {
+  final second = DateTime.parse(
+    '${start}Z',
+  ).add(const Duration(minutes: 2)).toIso8601String().replaceAll('.000Z', '');
+  return '<?xml version="1.0" encoding="UTF-8"?>'
+      '<gpx version="1.1" xmlns="http://www.topografix.com/GPX/1/1">'
+      '<trk><trkseg>'
+      '<trkpt lat="20.5" lon="-87.25"><time>$start</time></trkpt>'
+      '<trkpt lat="20.51" lon="-87.26"><time>$second</time></trkpt>'
+      '</trkseg></trk></gpx>';
+}
+
 void main() {
   late TrackImportService service;
   late GpsTrackRepository repo;
@@ -148,6 +161,22 @@ void main() {
       expect(
         candidate.tzOffsetMinutes,
         DateTime.utc(2026, 5, 22, 13).toLocal().timeZoneOffset.inMinutes,
+      );
+    });
+
+    // A file with no zone carries the device's clock reading, not an
+    // instant, so the offset is the one at that reading. 02:30 on 1 November
+    // 2026 is after New York falls back: UTC-5, where the same components
+    // read as a UTC instant land the evening before, at UTC-4.
+    test('takes a wall-clock track\'s offset at its clock reading', () async {
+      final candidate = await service.prepare(
+        fileName: 'naive.gpx',
+        bytes: _utf8Bytes(_naiveGpx('2026-11-01T02:30:00')),
+      );
+      expect(candidate.parsed.timesAreWallClock, isTrue);
+      expect(
+        candidate.tzOffsetMinutes,
+        DateTime(2026, 11, 1, 2, 30).timeZoneOffset.inMinutes,
       );
     });
 
