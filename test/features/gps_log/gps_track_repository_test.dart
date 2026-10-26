@@ -202,6 +202,73 @@ void main() {
       expect(tombstones.single.entityType, 'gpsTracks');
     });
   });
+
+  test('completed tracks listed without points carry every other field, '
+      'newest first, and leave out a recording in progress', () async {
+    Future<String> finished(int startMs) async {
+      final id = await repo.startTrack(
+        startTimeMs: startMs,
+        tzOffsetMinutes: 60,
+        deviceName: 'Phone',
+      );
+      await repo.appendBufferPoint(
+        id,
+        GpsTrackPoint(
+          timestamp: startMs ~/ 1000 + 10,
+          latitude: 1,
+          longitude: 2,
+        ),
+      );
+      await repo.finalizeTrack(id, endTimeMs: startMs + 60000);
+      return id;
+    }
+
+    final older = await finished(1700000000000);
+    final newer = await finished(1700100000000);
+    await repo.setTrimBounds(newer, startMs: 1700100005000);
+    await repo.startTrack(startTimeMs: 1700200000000, tzOffsetMinutes: 0);
+
+    final full = await repo.getCompletedTracks(includePoints: true);
+    final listed = await repo.getCompletedTracks();
+
+    expect([for (final t in listed) t.id], [newer, older]);
+    expect([for (final t in full) t.id], [newer, older]);
+    for (var i = 0; i < listed.length; i++) {
+      final a = listed[i];
+      final b = full[i];
+      expect(a.points, isEmpty);
+      expect(b.points, isNotEmpty);
+      expect(
+        (
+          a.startTime,
+          a.endTime,
+          a.tzOffsetMinutes,
+          a.deviceName,
+          a.pointCount,
+          a.source,
+          a.sourceRef,
+          a.name,
+          a.trimStartTime,
+          a.trimEndTime,
+        ),
+        (
+          b.startTime,
+          b.endTime,
+          b.tzOffsetMinutes,
+          b.deviceName,
+          b.pointCount,
+          b.source,
+          b.sourceRef,
+          b.name,
+          b.trimStartTime,
+          b.trimEndTime,
+        ),
+      );
+    }
+    expect(listed.first.trimStartTime, 1700100005000);
+    expect(listed.first.deviceName, 'Phone');
+    expect(listed.first.pointCount, 1);
+  });
 }
 
 /// Ages a track past the stale-orphan threshold so recovery will touch it.

@@ -8,6 +8,17 @@ import 'package:submersion/features/gps_log/domain/entities/gps_track.dart';
 
 import '../../helpers/test_database.dart';
 
+/// Counts the point loads the sweep makes.
+class _CountingTrackRepository extends GpsTrackRepository {
+  int loads = 0;
+
+  @override
+  Future<GpsTrack?> getTrack(String id, {bool includePoints = true}) {
+    loads++;
+    return super.getTrack(id, includePoints: includePoints);
+  }
+}
+
 void main() {
   late AppDatabase db;
   late GpsTrackRepository trackRepo;
@@ -146,5 +157,67 @@ void main() {
 
     expect((await readDive('dive-a')).entryLatitude, isNotNull);
     expect((await readDive('dive-b')).entryLatitude, isNull);
+  });
+
+  test('sweep finds each dive\'s own track among several, loading each '
+      'covering track\'s points once', () async {
+    await seedTrack();
+    // A second day: seconds 10000 to 11000, lat 30 -> 31, lon 40 -> 41.
+    final second = await trackRepo.startTrack(
+      startTimeMs: 10000000,
+      tzOffsetMinutes: 0,
+    );
+    await trackRepo.appendBufferPoint(
+      second,
+      const GpsTrackPoint(timestamp: 10000, latitude: 30, longitude: 40),
+    );
+    await trackRepo.appendBufferPoint(
+      second,
+      const GpsTrackPoint(timestamp: 11000, latitude: 31, longitude: 41),
+    );
+    await trackRepo.finalizeTrack(second, endTimeMs: 11000000);
+    await seedDive('day1-a', 1200000);
+    await seedDive('day1-b', 1600000);
+    await seedDive('day2', 10500000);
+    final counting = _CountingTrackRepository();
+
+    final stamped = await GpsTrackMatchService(
+      trackRepository: counting,
+      diveRepository: DiveRepository(),
+    ).sweep();
+
+    expect(stamped, unorderedEquals(['day1-a', 'day1-b', 'day2']));
+    expect((await readDive('day1-a')).entryLatitude, closeTo(10.2, 1e-9));
+    expect((await readDive('day1-b')).entryLatitude, closeTo(10.6, 1e-9));
+    expect((await readDive('day2')).entryLatitude, closeTo(30.5, 1e-9));
+    expect(counting.loads, 2);
+  });
+
+  test(
+    'sweep reads a trimmed track\'s kept points, not the raw ones',
+    () async {
+      final id = await seedTrack();
+      // Keep seconds 1000 to 1500, which holds only the first point.
+      await trackRepo.setTrimBounds(id, endMs: 1500000);
+      // Inside the trimmed window's tolerance; the raw points would
+      // interpolate this to lat 10.6.
+      await seedDive('dive-1', 1600000);
+
+      expect(await service.sweep(), ['dive-1']);
+
+      final dive = await readDive('dive-1');
+      expect(dive.entryLatitude, closeTo(10, 1e-9));
+      expect(dive.entryLongitude, closeTo(20, 1e-9));
+    },
+  );
+
+  test('sweep handles an import larger than SQLite\'s bound-variable '
+      'limit', () async {
+    await seedTrack();
+    await seedDive('dive-1', 1500000);
+    // Past the 32,766-variable ceiling a single IN (...) would hit.
+    final ids = [for (var i = 0; i < 40000; i++) 'absent-$i', 'dive-1'];
+
+    expect(await service.sweep(limitToIds: ids), ['dive-1']);
   });
 }
