@@ -49313,6 +49313,19 @@ class AppLocalizationsFr extends AppLocalizations {
       'Les montres Garmin enregistrent les plongées sous forme de fichiers FIT au lieu de proposer un téléchargement direct. Connectez la montre en USB, copiez les fichiers de son dossier GARMIN/Activity, puis importez-les.';
 
   @override
+  String importWizard_dc_notFoundNearby(String name) {
+    return '$name introuvable';
+  }
+
+  @override
+  String importWizard_dc_notFoundNearbyBody(String name) {
+    return 'Submersion a cherché via Bluetooth sans trouver $name à proximité, ou en a trouvé plusieurs du même modèle. Activez le Bluetooth de l\'ordinateur, approchez-le de cet appareil et réessayez.';
+  }
+
+  @override
+  String get importWizard_dc_tryAgain => 'Réessayer';
+
+  @override
   String get importWizard_dc_noNewDives =>
       'Aucune nouvelle plongée à télécharger';
 

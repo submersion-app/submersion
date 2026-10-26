@@ -78061,6 +78061,24 @@ abstract class AppLocalizations {
   /// **'Garmin watches store dives as FIT files instead of offering a direct download. Connect the watch by USB, copy the files from its GARMIN/Activity folder, then import them.'**
   String get importWizard_dc_noDirectDownloadGarminBody;
 
+  /// Download step title when a saved Bluetooth computer with no address on this device was not found by a scan for its make and model.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t find {name}'**
+  String importWizard_dc_notFoundNearby(String name);
+
+  /// Download step body when a scan found no device, or several, of a saved Bluetooth computer's make and model.
+  ///
+  /// In en, this message translates to:
+  /// **'Submersion searched over Bluetooth and found no {name} nearby, or found more than one of the same model. Turn on the computer\'s Bluetooth, hold it close to this device and try again.'**
+  String importWizard_dc_notFoundNearbyBody(String name);
+
+  /// Button that searches again for a saved Bluetooth computer that was not found.
+  ///
+  /// In en, this message translates to:
+  /// **'Try Again'**
+  String get importWizard_dc_tryAgain;
+
   /// No description provided for @importWizard_dc_noNewDives.
   ///
   /// In en, this message translates to:

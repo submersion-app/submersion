@@ -46189,6 +46189,19 @@ class AppLocalizationsZh extends AppLocalizations {
       'Garmin 手表将潜水记录存储为 FIT 文件，不提供直接下载。请通过 USB 连接手表，从其 GARMIN/Activity 文件夹复制文件，然后导入。';
 
   @override
+  String importWizard_dc_notFoundNearby(String name) {
+    return '找不到 $name';
+  }
+
+  @override
+  String importWizard_dc_notFoundNearbyBody(String name) {
+    return 'Submersion 通过蓝牙搜索，未在附近找到 $name，或找到多台同型号的电脑。请打开电脑的蓝牙，将其靠近此设备后重试。';
+  }
+
+  @override
+  String get importWizard_dc_tryAgain => '重试';
+
+  @override
   String get importWizard_dc_noNewDives => '没有可下载的新潜水记录';
 
   @override

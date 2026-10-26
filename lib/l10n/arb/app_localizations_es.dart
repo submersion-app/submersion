@@ -49247,6 +49247,19 @@ class AppLocalizationsEs extends AppLocalizations {
       'Los relojes Garmin guardan las inmersiones como archivos FIT en lugar de ofrecer una descarga directa. Conecte el reloj por USB, copie los archivos de su carpeta GARMIN/Activity y luego impórtelos.';
 
   @override
+  String importWizard_dc_notFoundNearby(String name) {
+    return 'No se encontró $name';
+  }
+
+  @override
+  String importWizard_dc_notFoundNearbyBody(String name) {
+    return 'Submersion buscó por Bluetooth y no encontró $name cerca, o encontró más de uno del mismo modelo. Active el Bluetooth del ordenador, acérquelo a este dispositivo y vuelva a intentarlo.';
+  }
+
+  @override
+  String get importWizard_dc_tryAgain => 'Reintentar';
+
+  @override
   String get importWizard_dc_noNewDives =>
       'No hay inmersiones nuevas para descargar';
 

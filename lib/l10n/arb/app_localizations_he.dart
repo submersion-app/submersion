@@ -48183,6 +48183,19 @@ class AppLocalizationsHe extends AppLocalizations {
       'שעוני Garmin שומרים צלילות כקובצי FIT במקום לאפשר הורדה ישירה. חבר את השעון ב-USB, העתק את הקבצים מהתיקייה GARMIN/Activity שלו, ולאחר מכן ייבא אותם.';
 
   @override
+  String importWizard_dc_notFoundNearby(String name) {
+    return 'לא נמצא $name';
+  }
+
+  @override
+  String importWizard_dc_notFoundNearbyBody(String name) {
+    return 'Submersion חיפש דרך Bluetooth ולא מצא את $name בקרבת מקום, או שמצא יותר ממחשב אחד מאותו דגם. הפעל את ה-Bluetooth במחשב, קרב אותו למכשיר הזה ונסה שוב.';
+  }
+
+  @override
+  String get importWizard_dc_tryAgain => 'נסה שוב';
+
+  @override
   String get importWizard_dc_noNewDives => 'אין צלילות חדשות להורדה';
 
   @override

@@ -48895,6 +48895,19 @@ class AppLocalizationsNl extends AppLocalizations {
       'Garmin-horloges slaan duiken op als FIT-bestanden in plaats van een directe download te bieden. Sluit het horloge via USB aan, kopieer de bestanden uit de map GARMIN/Activity en importeer ze daarna.';
 
   @override
+  String importWizard_dc_notFoundNearby(String name) {
+    return '$name niet gevonden';
+  }
+
+  @override
+  String importWizard_dc_notFoundNearbyBody(String name) {
+    return 'Submersion heeft via Bluetooth gezocht en $name niet in de buurt gevonden, of meer dan één van hetzelfde model. Zet Bluetooth op de computer aan, houd hem dicht bij dit apparaat en probeer het opnieuw.';
+  }
+
+  @override
+  String get importWizard_dc_tryAgain => 'Opnieuw proberen';
+
+  @override
   String get importWizard_dc_noNewDives =>
       'Geen nieuwe duiken om te downloaden';
 

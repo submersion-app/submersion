@@ -296,14 +296,46 @@ class DiscoveryNotifier extends StateNotifier<DiscoveryState> {
     String address, {
     required Duration timeout,
     bool stopScanWhenDone = true,
+  }) => _scanUntil(
+    (current) => current.discoveredDevices
+        .where((d) => bluetoothAddressesMatch(d.address, address))
+        .firstOrNull,
+    timeout: timeout,
+    stopScanWhenDone: stopScanWhenDone,
+  );
+
+  /// Scans for the whole of [timeout], or until native discovery ends, and
+  /// resolves with every device seen. [stopScanWhenDone] is as for
+  /// [scanForAddress].
+  ///
+  /// A saved Bluetooth computer with no address on this device (it was
+  /// saved on another one, issue #3710) is looked for by make and model,
+  /// and only a scan that ran its full length can say whether exactly one
+  /// device of that model is nearby.
+  Future<List<DiscoveredDevice>> scanForWindow({
+    required Duration timeout,
+    bool stopScanWhenDone = true,
+  }) async {
+    await _scanUntil(
+      (_) => null,
+      timeout: timeout,
+      stopScanWhenDone: stopScanWhenDone,
+    );
+    return state.discoveredDevices;
+  }
+
+  /// Scans until [found] names a device, native discovery ends, or
+  /// [timeout] elapses, and resolves with that device or null.
+  Future<DiscoveredDevice?> _scanUntil(
+    DiscoveredDevice? Function(DiscoveryState current) found, {
+    required Duration timeout,
+    required bool stopScanWhenDone,
   }) async {
     final completer = Completer<DiscoveredDevice?>();
 
     void check(DiscoveryState current) {
       if (completer.isCompleted) return;
-      final match = current.discoveredDevices
-          .where((d) => bluetoothAddressesMatch(d.address, address))
-          .firstOrNull;
+      final match = found(current);
       if (match != null) {
         completer.complete(match);
       } else if (!current.isScanning) {

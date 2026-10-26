@@ -171,4 +171,69 @@ void main() {
       },
     );
   });
+
+  // Issue #3710: a saved Bluetooth computer with no address on this device
+  // is looked for by make and model, which needs the whole window of devices
+  // a scan saw, not the first one.
+  group('DiscoveryNotifier.scanForWindow', () {
+    late _FakeHostApi hostApi;
+    late pigeon.DiveComputerService service;
+    late DiscoveryNotifier notifier;
+
+    setUp(() {
+      hostApi = _FakeHostApi();
+      service = pigeon.DiveComputerService(hostApi: hostApi);
+      notifier = DiscoveryNotifier(
+        service: service,
+        requiresRuntimePermissions: false,
+      );
+    });
+
+    tearDown(() {
+      notifier.dispose();
+    });
+
+    test('keeps scanning for the whole timeout and resolves with every '
+        'device seen', () async {
+      var done = false;
+      final pending = notifier
+          .scanForWindow(timeout: const Duration(milliseconds: 50))
+          .whenComplete(() => done = true);
+      await pumpEventQueue();
+      expect(hostApi.startDiscoveryCalls, 1);
+
+      service.onDeviceDiscovered(_advert(_savedAddress));
+      await pumpEventQueue();
+      expect(done, isFalse, reason: 'a device seen does not end the window');
+      service.onDeviceDiscovered(_advert('11:22:33:44:55:66'));
+
+      final devices = await pending;
+      expect(devices.map((d) => d.address), [
+        _savedAddress,
+        '11:22:33:44:55:66',
+      ]);
+      expect(hostApi.stopDiscoveryCalls, 1);
+      expect(notifier.state.isScanning, isFalse);
+    });
+
+    test('leaves the scan running when asked to', () async {
+      final devices = await notifier.scanForWindow(
+        timeout: const Duration(milliseconds: 20),
+        stopScanWhenDone: false,
+      );
+      expect(devices, isEmpty);
+      expect(hostApi.stopDiscoveryCalls, 0);
+      expect(notifier.state.isScanning, isTrue);
+      await notifier.stopScan();
+    });
+
+    test('resolves without waiting when the scan cannot start', () async {
+      hostApi.startDiscoveryError = StateError('adapter unavailable');
+      final devices = await notifier
+          .scanForWindow(timeout: const Duration(minutes: 5))
+          .timeout(const Duration(seconds: 2));
+      expect(devices, isEmpty);
+      expect(notifier.state.errorMessage, isNotNull);
+    });
+  });
 }

@@ -49089,6 +49089,19 @@ class AppLocalizationsDe extends AppLocalizations {
       'Garmin-Uhren speichern Tauchgänge als FIT-Dateien und bieten keinen direkten Download. Verbinden Sie die Uhr per USB, kopieren Sie die Dateien aus ihrem Ordner GARMIN/Activity und importieren Sie sie anschließend.';
 
   @override
+  String importWizard_dc_notFoundNearby(String name) {
+    return '$name nicht gefunden';
+  }
+
+  @override
+  String importWizard_dc_notFoundNearbyBody(String name) {
+    return 'Submersion hat per Bluetooth gesucht und $name nicht in der Nähe gefunden oder mehr als ein Gerät desselben Modells. Schalten Sie Bluetooth am Computer ein, halten Sie ihn nah an dieses Gerät und versuchen Sie es erneut.';
+  }
+
+  @override
+  String get importWizard_dc_tryAgain => 'Erneut versuchen';
+
+  @override
   String get importWizard_dc_noNewDives =>
       'Keine neuen Tauchgänge zum Herunterladen';
 

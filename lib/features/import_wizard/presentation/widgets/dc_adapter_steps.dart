@@ -19,6 +19,7 @@ import 'package:submersion/features/dive_computer/presentation/widgets/download_
 import 'package:submersion/features/dive_computer/presentation/widgets/scan_step_widget.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/import_wizard/data/adapters/dive_computer_adapter.dart';
+import 'package:submersion/features/import_wizard/presentation/widgets/dc_known_computer_not_found_view.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/dc_no_direct_download_view.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -320,6 +321,10 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
   bool _searchingForKnownDevice = false;
   bool _noDives = false;
 
+  /// Whether a search by make and model for a saved Bluetooth computer with
+  /// no address on this device found no device, or several (issue #3710).
+  bool _notFoundNearby = false;
+
   /// The discovery notifier whose scan this step started to re-acquire a
   /// saved computer and still owes a stop: the scan runs on through the
   /// connect, as it does in the scan-and-download flow (issue #3369), and
@@ -399,9 +404,19 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
     if (selected != null && !alreadyAcquired) {
       notifier.clearSelectedDevice();
     }
-    final isBluetooth =
-        _connectionTypeFromString(computer.connectionType) ==
-        DeviceConnectionType.ble;
+    final transport = _connectionTypeFromString(computer.connectionType);
+    final isBluetooth = transport == DeviceConnectionType.ble;
+
+    // Saved on another device: the Bluetooth connection synced, its
+    // per-device address did not (issue #3710). A missing type is not
+    // evidence of Bluetooth here, since a file-imported record has neither.
+    if (address == null &&
+        computer.connectionType != null &&
+        (isBluetooth || transport == DeviceConnectionType.bluetoothClassic) &&
+        canFindByModel(computer)) {
+      await _findByModel(computer);
+      return;
+    }
 
     if (address == null || !isBluetooth || alreadyAcquired) {
       setState(() => _computerResolved = true);
@@ -442,8 +457,56 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
     });
   }
 
+  /// Looks for a saved Bluetooth computer with no address on this device by
+  /// its make and model (issue #3710).
+  ///
+  /// The address is a per-device identifier that never syncs, so a computer
+  /// saved on a Mac reaches a phone with nothing to scan for. The scan runs
+  /// its full length, because only then can it say that exactly one device
+  /// of the saved model is nearby; a successful download then records this
+  /// device's address, once the serial it reports confirms the match. With
+  /// none, or several, the step says so and offers to search again.
+  Future<void> _findByModel(DiveComputer computer) async {
+    final notifier = ref.read(discoveryNotifierProvider.notifier);
+    setState(() {
+      _searchingForKnownDevice = true;
+      _notFoundNearby = false;
+    });
+    _ownedScan = notifier;
+    await notifier.scanForWindow(
+      timeout: DcAdapterDownloadStep.knownDeviceScanTimeout,
+      stopScanWhenDone: false,
+    );
+    if (!mounted) {
+      logFailure(
+        notifier.stopScan(),
+        DcAdapterDownloadStep,
+        'stop the re-acquire scan',
+      );
+      return;
+    }
+    final device = _sameModelFallback(computer, null);
+    if (device != null) {
+      notifier.selectDevice(device);
+    } else {
+      _releaseScan();
+    }
+    setState(() {
+      _searchingForKnownDevice = false;
+      _notFoundNearby = device == null;
+      _computerResolved = true;
+    });
+  }
+
+  /// Starts the search by make and model over after it found nothing.
+  void _retryFindByModel(DiveComputer computer) {
+    setState(() => _computerResolved = false);
+    unawaited(_findByModel(computer));
+  }
+
   /// The one device of [computer]'s make and model the scan saw while the
-  /// stored [address] stayed silent, or null.
+  /// stored [address] stayed silent, or null. With no [address] this device
+  /// holds none for the computer, and the scan looked for the model alone.
   ///
   /// Only a scan that actually ran can answer this. `scanForAddress` also
   /// resolves with null when the scan never started, in which case the
@@ -451,13 +514,14 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
   /// provider, and adopting a device from it would download from something
   /// this attempt never saw. An error message on the discovery state is
   /// exactly that signal: a scan that starts clears it.
-  DiscoveredDevice? _sameModelFallback(DiveComputer computer, String address) {
+  DiscoveredDevice? _sameModelFallback(DiveComputer computer, String? address) {
     final discovery = ref.read(discoveryNotifierProvider);
     final scanError = discovery.errorMessage;
+    final target = address ?? 'its make and model';
     if (scanError != null) {
       _log.warning(
         'Not looking for a same-model stand-in for ${computer.displayName}: '
-        'the scan for $address did not run ($scanError)',
+        'the scan for $target did not run ($scanError)',
         category: LogCategory.bluetooth,
       );
       return null;
@@ -467,10 +531,19 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
       discovered: discovery.discoveredDevices,
     );
     if (device != null) {
+      final why = address == null
+          ? 'No address on this device for ${computer.displayName}'
+          : 'Stored address $address for ${computer.displayName} did not '
+                'advertise';
       _log.info(
-        'Stored address $address for ${computer.displayName} did not '
-        'advertise; downloading from the only ${device.displayName} seen, '
+        '$why; downloading from the only ${device.displayName} seen, '
         '${device.name} (${device.address})',
+        category: LogCategory.bluetooth,
+      );
+    } else if (address == null) {
+      _log.info(
+        'No address on this device for ${computer.displayName}, and the '
+        'scan saw no single ${computer.displayName} to download from',
         category: LogCategory.bluetooth,
       );
     }
@@ -516,6 +589,15 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
     final discoveryState = ref.watch(discoveryNotifierProvider);
     var device = discoveryState.selectedDevice;
     final computer = widget.knownComputer ?? widget.adapter.computer;
+
+    final knownComputer = widget.knownComputer;
+    if (_notFoundNearby && knownComputer != null) {
+      return DcKnownComputerNotFoundView(
+        computer: knownComputer,
+        onRetry: () => _retryFindByModel(knownComputer),
+        onDone: () => context.pop(),
+      );
+    }
 
     // A USB computer saved on a desktop syncs here, but iOS has no USB host
     // (issue #2837). Sync strips the host-local port, so the synced copy has

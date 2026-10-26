@@ -49857,6 +49857,19 @@ class AppLocalizationsAr extends AppLocalizations {
       'تخزّن ساعات Garmin الغوصات كملفات FIT بدلاً من توفير تنزيل مباشر. وصّل الساعة عبر USB، وانسخ الملفات من مجلد GARMIN/Activity فيها، ثم استوردها.';
 
   @override
+  String importWizard_dc_notFoundNearby(String name) {
+    return 'تعذّر العثور على $name';
+  }
+
+  @override
+  String importWizard_dc_notFoundNearbyBody(String name) {
+    return 'بحث Submersion عبر Bluetooth ولم يعثر على $name في الجوار، أو عثر على أكثر من جهاز من الطراز نفسه. شغّل Bluetooth في الكمبيوتر، وقرّبه من هذا الجهاز، ثم أعد المحاولة.';
+  }
+
+  @override
+  String get importWizard_dc_tryAgain => 'إعادة المحاولة';
+
+  @override
   String get importWizard_dc_noNewDives => 'لا توجد غوصات جديدة للتنزيل';
 
   @override

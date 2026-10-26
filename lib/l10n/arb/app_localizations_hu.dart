@@ -48928,6 +48928,19 @@ class AppLocalizationsHu extends AppLocalizations {
       'A Garmin órák FIT-fájlokként tárolják a merüléseket, és nem kínálnak közvetlen letöltést. Csatlakoztassa az órát USB-n, másolja ki a fájlokat a GARMIN/Activity mappájából, majd importálja őket.';
 
   @override
+  String importWizard_dc_notFoundNearby(String name) {
+    return 'Nem található: $name';
+  }
+
+  @override
+  String importWizard_dc_notFoundNearbyBody(String name) {
+    return 'A Submersion Bluetooth-on keresett, de nem talált a közelben ilyet: $name, vagy több azonos modellt is talált. Kapcsolja be a számítógép Bluetooth-át, tartsa közel ehhez az eszközhöz, és próbálja újra.';
+  }
+
+  @override
+  String get importWizard_dc_tryAgain => 'Újra';
+
+  @override
   String get importWizard_dc_noNewDives => 'Nincs letöltendő új merülés';
 
   @override

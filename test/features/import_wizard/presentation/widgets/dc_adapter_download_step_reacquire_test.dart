@@ -11,6 +11,8 @@ import 'package:submersion/features/dive_computer/presentation/widgets/download_
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/import_wizard/data/adapters/dive_computer_adapter.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/dc_adapter_steps.dart';
+import 'package:submersion/features/import_wizard/presentation/widgets/dc_known_computer_not_found_view.dart';
+import 'package:submersion/features/import_wizard/presentation/widgets/dc_no_direct_download_view.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/fake_import_adapter_deps.dart';
@@ -106,14 +108,15 @@ const _savedAddress = 'E8:F8:BE:96:61:57';
 
 DiveComputer _savedComputer({
   String connectionType = 'bluetooth',
-  String bluetoothAddress = _savedAddress,
+  String? bluetoothAddress = _savedAddress,
+  String manufacturer = 'Shearwater',
 }) {
   final now = DateTime(2026, 8, 23);
   return DiveComputer(
     id: 'dc-1',
     diverId: 'diver-1',
     name: 'My Petrel',
-    manufacturer: 'Shearwater',
+    manufacturer: manufacturer,
     model: 'Petrel 3',
     connectionType: connectionType,
     bluetoothAddress: bluetoothAddress,
@@ -469,6 +472,134 @@ void main() {
       expect(h.hostApi.calls, ['startDownload']);
       expect(h.hostApi.downloads.single.address, _savedAddress);
       expect(_selectedDevice(tester), isNull);
+    });
+  });
+
+  // Issue #3710: a Bluetooth computer downloaded on a Mac syncs to a phone
+  // with its Bluetooth connection but no address, because the address is a
+  // per-device identifier that never syncs. The phone said there was no
+  // saved connection instead of looking for the computer. With no address
+  // to scan for, the step looks for the one device of the saved make and
+  // model, as the stale-address fallback of issue #1423 does.
+  group('DcAdapterDownloadStep with no address on this device', () {
+    const phoneAddress = 'C4E774E2-7D1F-DB41-EBD3-69D345D782F3';
+    final timeout =
+        DcAdapterDownloadStep.knownDeviceScanTimeout +
+        const Duration(seconds: 1);
+
+    testWidgets('scans and downloads from the only device of the saved model', (
+      tester,
+    ) async {
+      final h = _Harness();
+      await tester.pumpWidget(h.build(_savedComputer(bluetoothAddress: null)));
+      await tester.pump();
+
+      expect(h.hostApi.calls, ['startDiscovery']);
+      expect(find.text('Searching for My Petrel...'), findsOneWidget);
+      expect(find.byType(DcNoDirectDownloadView), findsNothing);
+
+      h.service.onDeviceDiscovered(_advert(phoneAddress));
+      await tester.pump(timeout);
+      await _settle(tester);
+
+      expect(h.hostApi.calls, ['startDiscovery', 'startDownload']);
+      final sent = h.hostApi.downloads.single;
+      expect(sent.address, phoneAddress);
+      expect(sent.product, 'Petrel 3');
+      expect(_selectedDevice(tester)?.address, phoneAddress);
+    });
+
+    testWidgets('says it could not find the computer when nothing of its '
+        'model advertises, and Try again scans again', (tester) async {
+      final h = _Harness();
+      await tester.pumpWidget(h.build(_savedComputer(bluetoothAddress: null)));
+      await tester.pump();
+      await tester.pump(timeout);
+      await _settle(tester);
+
+      expect(find.byType(DcKnownComputerNotFoundView), findsOneWidget);
+      expect(find.textContaining('My Petrel'), findsWidgets);
+      expect(find.byType(DcNoDirectDownloadView), findsNothing);
+      expect(h.hostApi.downloads, isEmpty);
+      // The search is over, so its scan is stopped.
+      expect(h.hostApi.calls, ['startDiscovery', 'stopDiscovery']);
+
+      await tester.tap(find.text('Try Again'));
+      await tester.pump();
+      expect(h.hostApi.calls, [
+        'startDiscovery',
+        'stopDiscovery',
+        'startDiscovery',
+      ]);
+      expect(find.text('Searching for My Petrel...'), findsOneWidget);
+
+      h.service.onDeviceDiscovered(_advert(phoneAddress));
+      await tester.pump(timeout);
+      await _settle(tester);
+      expect(h.hostApi.downloads.single.address, phoneAddress);
+    });
+
+    testWidgets('does not pick between two devices of the saved model', (
+      tester,
+    ) async {
+      final h = _Harness();
+      await tester.pumpWidget(h.build(_savedComputer(bluetoothAddress: null)));
+      await tester.pump();
+      h.service.onDeviceDiscovered(_advert(phoneAddress));
+      h.service.onDeviceDiscovered(_advert('11:22:33:44:55:66'));
+      await tester.pump(timeout);
+      await _settle(tester);
+
+      expect(find.byType(DcKnownComputerNotFoundView), findsOneWidget);
+      expect(h.hostApi.downloads, isEmpty);
+      expect(_selectedDevice(tester), isNull);
+    });
+
+    testWidgets('does not adopt a device left over from a scan that could '
+        'not start', (tester) async {
+      final h = _Harness(
+        seed: DiscoveryState(discoveredDevices: [_discovered(phoneAddress)]),
+        blockScan: true,
+      );
+      await tester.pumpWidget(h.build(_savedComputer(bluetoothAddress: null)));
+      await _settle(tester);
+
+      expect(find.byType(DcKnownComputerNotFoundView), findsOneWidget);
+      expect(h.hostApi.downloads, isEmpty);
+      expect(_selectedDevice(tester), isNull);
+    });
+
+    testWidgets('does not scan for a computer with no saved transport', (
+      tester,
+    ) async {
+      final h = _Harness();
+      final computer = DiveComputer(
+        id: 'dc-1',
+        diverId: 'diver-1',
+        name: 'My Petrel',
+        manufacturer: 'Shearwater',
+        model: 'Petrel 3',
+        createdAt: DateTime(2026, 8, 23),
+        updatedAt: DateTime(2026, 8, 23),
+      );
+      await tester.pumpWidget(h.build(computer));
+      await _settle(tester);
+
+      expect(h.hostApi.calls, isEmpty);
+      expect(find.byType(DcNoDirectDownloadView), findsOneWidget);
+    });
+
+    testWidgets('does not scan for a Garmin, which keeps its FIT guidance', (
+      tester,
+    ) async {
+      final h = _Harness();
+      await tester.pumpWidget(
+        h.build(_savedComputer(bluetoothAddress: null, manufacturer: 'Garmin')),
+      );
+      await _settle(tester);
+
+      expect(h.hostApi.calls, isEmpty);
+      expect(find.byType(DcNoDirectDownloadView), findsOneWidget);
     });
   });
 
