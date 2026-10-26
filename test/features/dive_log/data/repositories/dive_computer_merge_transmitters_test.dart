@@ -101,4 +101,55 @@ void main() {
     final rows = await db.select(db.transmitters).get();
     expect(rows.map((r) => r.id), ['kept']);
   });
+
+  test("the duplicate's item is folded into the survivor's, so one computer "
+      'shows once (issue #3676)', () async {
+    for (final id in ['survivor-gear', 'duplicate-gear']) {
+      await db
+          .into(db.equipment)
+          .insert(
+            EquipmentCompanion.insert(
+              id: id,
+              diverId: const Value('d1'),
+              name: id,
+              type: 'computer',
+              createdAt: 0,
+              updatedAt: 0,
+            ),
+          );
+    }
+    for (final (computer, gear) in [
+      ('survivor', 'survivor-gear'),
+      ('duplicate', 'duplicate-gear'),
+    ]) {
+      await (db.update(db.diveComputers)..where((t) => t.id.equals(computer)))
+          .write(DiveComputersCompanion(equipmentId: Value(gear)));
+    }
+    await db
+        .into(db.serviceRecords)
+        .insert(
+          ServiceRecordsCompanion.insert(
+            id: 'battery-swap',
+            equipmentId: 'duplicate-gear',
+            serviceCategory: 'battery',
+            serviceDate: 1,
+            createdAt: 0,
+            updatedAt: 0,
+          ),
+        );
+
+    await DiveComputerMergeRepository().mergeComputers(
+      survivorId: 'survivor',
+      duplicateIds: ['duplicate'],
+    );
+
+    final items = await (db.select(
+      db.equipment,
+    )..where((t) => t.type.equals('computer'))).get();
+    expect(items.map((e) => e.id), ['survivor-gear']);
+    final record = await (db.select(
+      db.serviceRecords,
+    )..where((t) => t.id.equals('battery-swap'))).getSingle();
+    expect(record.equipmentId, 'survivor-gear');
+  });
 }

@@ -603,11 +603,12 @@ void main() {
         expect(await hasTombstone('diveEquipment', 'd1|gear-b'), isTrue);
         expect(await hasTombstone('diveEquipment', 'd2|gear-b'), isTrue);
         expect((await computerRow('a'))!.equipmentId, 'gear-a');
-        // The duplicate's gear item itself is left for the user to manage.
+        // The duplicate's gear item is folded into the survivor's and goes,
+        // so the merged computer is listed once (issue #3676).
         final gearB = await (db.select(
           db.equipment,
         )..where((t) => t.id.equals('gear-b'))).getSingleOrNull();
-        expect(gearB, isNotNull);
+        expect(gearB, isNull);
       },
     );
 

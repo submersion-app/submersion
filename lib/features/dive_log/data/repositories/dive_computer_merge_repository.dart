@@ -7,6 +7,7 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_computer/data/repositories/dive_computer_connection_repository.dart';
 import 'package:submersion/features/dive_computer/domain/services/dive_computer_merge_rules.dart';
+import 'package:submersion/features/equipment/data/services/equipment_item_fold.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
@@ -50,15 +51,18 @@ class DiveComputerMergeRepository {
     ProfileSeriesRepository? profileSeries,
     TankPressureSeriesRepository? tankSeries,
     DiveComputerConnectionRepository? connections,
+    EquipmentItemFold? itemFold,
   }) : _syncRepository = syncRepository ?? SyncRepository(),
        _profileSeries = profileSeries ?? ProfileSeriesRepository(),
        _tankSeries = tankSeries ?? TankPressureSeriesRepository(),
-       _connections = connections ?? DiveComputerConnectionRepository();
+       _connections = connections ?? DiveComputerConnectionRepository(),
+       _itemFold = itemFold;
 
   final SyncRepository _syncRepository;
   final ProfileSeriesRepository _profileSeries;
   final TankPressureSeriesRepository _tankSeries;
   final DiveComputerConnectionRepository _connections;
+  final EquipmentItemFold? _itemFold;
   final _log = LoggerService.forClass(DiveComputerMergeRepository);
 
   db.AppDatabase get _db => DatabaseService.instance.database;
@@ -228,6 +232,8 @@ class DiveComputerMergeRepository {
           );
         }
       });
+
+      await _foldDuplicateItems(merged.equipmentId, duplicateTwinIds);
 
       SyncEventBus.notifyLocalChange();
       _log.info(
@@ -413,6 +419,34 @@ class DiveComputerMergeRepository {
       'WHERE computer_id IN ($placeholders)',
       [toId, ...fromIds],
     );
+  }
+
+  /// Folds each duplicate's Equipment item into the survivor's (issue
+  /// #3676): with its computer gone it is no device's entry, and the Dive
+  /// Computers list would show the merged computer twice. After the merge's
+  /// own transaction, and best-effort: the computers are merged either way,
+  /// and an item the fold refuses (another computer still stands for it, or
+  /// another diver owns it) stays as gear.
+  Future<void> _foldDuplicateItems(
+    String? survivorItemId,
+    Set<String> duplicateItemIds,
+  ) async {
+    if (survivorItemId == null) return;
+    for (final itemId in duplicateItemIds) {
+      if (itemId == survivorItemId) continue;
+      try {
+        await (_itemFold ?? EquipmentItemFold()).fold(
+          fromId: itemId,
+          intoId: survivorItemId,
+        );
+      } catch (e, stackTrace) {
+        _log.warning(
+          'Could not fold equipment $itemId into $survivorItemId',
+          error: e,
+          stackTrace: stackTrace,
+        );
+      }
+    }
   }
 
   /// Moves the duplicates' transmitter keys onto the survivor (issue
