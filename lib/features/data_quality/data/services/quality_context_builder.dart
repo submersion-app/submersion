@@ -203,11 +203,13 @@ class QualityContextBuilder {
 
     // A name-derived tank (#3307) and a loop cylinder (#3652) are judged
     // against their own computer's switches, so on their own computer's
-    // reading too.
+    // reading too. A loop cylinder no computer owns is judged on the merged
+    // series, so it needs no copy of its own.
     final ownComputerPressures = <String, List<QualityPressureSample>>{};
     for (final tank in dive.tanks) {
-      if (tank.roleSource != TankRoleSource.transmitterName &&
-          !isLoopTankRole(tank.role.name)) {
+      final ownedLoopTank =
+          tank.computerId != null && isLoopTankRole(tank.role.name);
+      if (tank.roleSource != TankRoleSource.transmitterName && !ownedLoopTank) {
         continue;
       }
       // Same pick getTankPressuresForComputer makes: this computer's series,

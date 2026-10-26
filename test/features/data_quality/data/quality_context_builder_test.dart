@@ -280,6 +280,7 @@ void main() {
             computerId: 'c1',
           ),
           domain.DiveTank(id: 'bo', order: 1, role: TankRole.bailout),
+          domain.DiveTank(id: 'dil', order: 2, role: TankRole.diluent),
         ],
       ),
     );
@@ -295,12 +296,20 @@ void main() {
       );
     }
 
+    await tankSeries.insertSeries(
+      diveId: 'dL',
+      tankId: 'dil',
+      samples: const [TankPressureSample(timestamp: 0, pressure: 200.0)],
+    );
+
     final ctx = (await builder.buildAll(['dL'])).single;
     expect(ctx.ownComputerPressuresByTankId['o2']!.map((s) => s.bar), [
       200.0,
       190.0,
     ]);
     expect(ctx.ownComputerPressuresByTankId.containsKey('bo'), isFalse);
+    // No computer owns the diluent: the merged series already is its own.
+    expect(ctx.ownComputerPressuresByTankId.containsKey('dil'), isFalse);
   });
 
   test("a neighbor's last depth matches the merged profile on an end-timestamp "
