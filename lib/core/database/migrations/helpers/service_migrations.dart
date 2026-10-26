@@ -195,8 +195,9 @@ extension ServiceMigrations on AppDatabase {
   /// v317 (issue #3662): a tank's last visual inspection and last hydro
   /// dates, saved before the edit form wrote them onto the clocks, become
   /// the VIP and hydro clocks' baselines. Only a clock with no baseline and
-  /// no service of its kind logged takes one, so nothing the diver set or
-  /// logged moves. Mirrors `kAttributeServiceKinds`.
+  /// no service of its kind logged takes one, so no baseline or service
+  /// moves; a baseline cleared from the clock's dialog while the date stays
+  /// on the form comes back from it. Mirrors `kAttributeServiceKinds`.
   ///
   /// Not stamped for sync: the result follows from synced rows alone, and
   /// stamping the set time with when the date was saved (rather than now)
