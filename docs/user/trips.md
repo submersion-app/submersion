@@ -60,6 +60,8 @@ Before the first day, the Overview is a preparation page: a countdown to the tri
 
 From the first day on, it becomes the trip's story: a header with the trip's numbers, then one chapter per day, each with its own map of that day's dives and a strip showing when you dived. Days with no dives show as surface days, and planned dives appear on the days they are planned for. While the trip is under way and you have entered a return flight, a card counts down to it.
 
+Both versions end with your notes, then the trip's **Documents** card, where you add and open the trip's paperwork.
+
 ### Itinerary
 
 The itinerary has one entry per day. If a trip has none yet, **Generate itinerary** builds it from the trip dates, and **Fill in missing days** adds any days that are missing after you change the dates. Tap a day to edit it (**Edit Day**):
