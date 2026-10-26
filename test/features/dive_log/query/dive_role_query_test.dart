@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/query/compiler/query_compiler.dart';
 import 'package:submersion/core/query/compiler/query_validator.dart';
+import 'package:submersion/core/query/domain/query_error_code.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/core/query/syntax/query_parser.dart';
 import 'package:submersion/core/query/units/unit_prefs.dart';
@@ -113,11 +114,11 @@ void main() {
 
   test('a named role is refused, not silently matched', () {
     final parsed = parser.parse('role:instructor');
-    if (parsed is ParseOk) {
-      expect(validateQuery(parsed.node, dives, appQueryRegistry), isNotEmpty);
-    } else {
-      expect(parsed, isNot(isA<ParseOk>()));
-    }
+    expect(parsed, isA<ParseFailure>());
+    expect(
+      (parsed as ParseFailure).error.code,
+      QueryErrorCode.opNotForFieldQuoted,
+    );
   });
 
   test('the No role filter axis matches role:none', () async {
