@@ -17,8 +17,8 @@ import 'package:submersion/features/demo_mode/domain/demo_manifest.dart';
 
 import '../checks/coverage_check.dart';
 import '../checks/privacy_check.dart';
+import '../checks/public_vocabulary.dart';
 import '../seeders/demo_seeding.dart';
-import '../seeders/gear_catalog.dart';
 import '../seeders/seed_context.dart';
 import '../shape/dive_shape.dart';
 import '../shape/shape_library.dart';
@@ -93,11 +93,16 @@ class DemoBuilder {
             sources: shapes,
             sourceStringHashes: sourceStringHashes,
             salt: salt,
-            publicStrings: {...catalog.publicStrings, ...demoGearProductNames},
+            publicStrings: {
+              ...catalog.publicStrings,
+              ...demoPublicVocabulary,
+              ...await appSeededStrings(),
+            },
           );
           if (violations.isNotEmpty) {
             throw DemoBuildRefused(
-              'privacy check failed: ${violations.take(10).join('; ')}',
+              'privacy check failed (${violations.length}): '
+              '${violations.take(40).join('; ')}',
             );
           }
         }

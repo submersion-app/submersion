@@ -71,6 +71,8 @@ void main() {
 
       expect(violations.single.kind, 'text');
       expect(violations.single.where, contains('divers.name'));
+      // The demo's own value, so the maintainer can see what to change.
+      expect(violations.single.where, contains('Jane Diver'));
     });
 
     test(

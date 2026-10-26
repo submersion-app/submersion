@@ -4,7 +4,7 @@
 
 import 'dart:math';
 
-import 'package:drift/drift.dart' show DriftSqlType;
+import 'package:drift/drift.dart' show DriftSqlType, GeneratedColumn;
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 
@@ -42,6 +42,11 @@ class PrivacyCheck {
 
   static const similarityThreshold = 0.04;
   static const _points = 200;
+
+  /// Whether [column] holds text the check compares against the sources.
+  static bool isPersonalText(GeneratedColumn<Object> column) =>
+      column.type == DriftSqlType.string &&
+      personalColumn.hasMatch(column.name);
 
   static final personalColumn = RegExp(
     r'(name|notes|note|description|serial|email|phone|address|buddy|'
@@ -97,9 +102,7 @@ class PrivacyCheck {
     final allowed = {for (final s in publicStrings) s.trim().toLowerCase()};
     for (final t in demoDb.allTables) {
       for (final c in t.$columns) {
-        if (c.type != DriftSqlType.string || !personalColumn.hasMatch(c.name)) {
-          continue;
-        }
+        if (!isPersonalText(c)) continue;
         final rows = await demoDb
             .customSelect(
               'SELECT DISTINCT "${c.name}" AS v FROM "${t.actualTableName}" '
@@ -110,8 +113,10 @@ class PrivacyCheck {
           final v = row.read<String>('v').trim();
           if (v.length < 3 || allowed.contains(v.toLowerCase())) continue;
           if (sourceStringHashes.contains(Harvester.hashString(salt, v))) {
+            // The value is the demo's own text, which would be published if
+            // it passed, so naming it here reveals nothing new.
             violations.add(
-              PrivacyViolation('text', '${t.actualTableName}.${c.name}'),
+              PrivacyViolation('text', '${t.actualTableName}.${c.name} "$v"'),
             );
           }
         }

@@ -37,6 +37,9 @@ class PlacesSeeder implements DemoSeeder {
     'Needs service': ('#FB8C00', {TagScope.equipment}),
   };
 
+  /// The demo's tag names, for the privacy check's allow list.
+  static Iterable<String> get tagNames => _tags.keys;
+
   @override
   Future<void> seed(DemoSeedContext ctx) async {
     final created = ctx.plan.dives.first.start;

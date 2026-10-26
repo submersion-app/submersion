@@ -43,10 +43,19 @@ class CatalogCenter {
 }
 
 class Catalog {
-  const Catalog({required this.sites, required this.centers});
+  const Catalog({
+    required this.sites,
+    required this.centers,
+    this.speciesStrings = const [],
+  });
 
   final List<CatalogSite> sites;
   final List<CatalogCenter> centers;
+
+  /// Every text value in `assets/data/species.json` (names, scientific
+  /// names, categories, descriptions): the app seeds this catalogue into
+  /// every logbook, so real ones carry the same strings.
+  final List<String> speciesStrings;
 
   /// Every catalogue name, for the privacy check's allow list: these are
   /// public, so a source that used the same name identifies nobody.
@@ -55,6 +64,7 @@ class Catalog {
     for (final s in sites)
       if (s.description != null) s.description!,
     for (final c in centers) c.name,
+    ...speciesStrings,
   };
 
   static Catalog load(String dataDir) {
@@ -89,6 +99,16 @@ class Catalog {
             longitude: asDouble(raw['longitude']),
           ),
     ];
-    return Catalog(sites: sites, centers: centers);
+    final speciesStrings = [
+      for (final raw in read('species.json')['species']! as List)
+        if (raw is Map)
+          for (final v in raw.values)
+            if (v is String) v,
+    ];
+    return Catalog(
+      sites: sites,
+      centers: centers,
+      speciesStrings: speciesStrings,
+    );
   }
 }
