@@ -16,9 +16,10 @@ typedef RangeGasConsumption = ({double? sac, double? rmv});
 /// start and end pressure read from its transmitter series at the range
 /// edges instead of the whole dive's. A cylinder without a series adds
 /// nothing: its logged start and end pressures say how much it dropped over
-/// the dive, not when. SAC follows `referencePressureDrop`, reading the
-/// reference cylinder alone on a rebreather ([isRebreather]); RMV sums every
-/// cylinder with a volume under [model].
+/// the dive, not when. SAC follows `referencePressureDrop`; RMV sums every
+/// cylinder with a volume under [model]. Neither exists on a rebreather
+/// ([isRebreather]), whose cylinders do not drain with the diver's
+/// breathing (issue #3673).
 RangeGasConsumption rangeGasConsumption({
   required List<DiveTank> tanks,
   required Map<String, List<TankPressurePoint>> tankPressures,
@@ -30,7 +31,7 @@ RangeGasConsumption rangeGasConsumption({
 }) {
   const none = (sac: null, rmv: null);
   final minutes = (endTimestamp - startTimestamp) / 60;
-  if (minutes <= 0 || tanks.isEmpty) return none;
+  if (isRebreather || minutes <= 0 || tanks.isEmpty) return none;
 
   final series = resolveTankPressureSeries(tanks, tankPressures);
   final pressures = <String, ({double start, double end})>{};
@@ -51,7 +52,6 @@ RangeGasConsumption rangeGasConsumption({
   final drop = referencePressureDrop(
     reference: sacReferenceTankOf(tanks)!,
     tanks: tanks,
-    referenceOnly: isRebreather,
     dropOf: (tank) {
       final p = pressures[tank.id];
       return p == null ? null : p.start - p.end;

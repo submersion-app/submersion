@@ -485,14 +485,18 @@ class Dive extends Equatable {
   /// This is the diver's property (how much gas their lungs move), so every
   /// cylinder counts. Its pressure-lane sibling [sac] is expressed in bar of
   /// one reference cylinder instead, because a pressure drop is a property
-  /// of that cylinder's size (discussions #354, #803).
+  /// of that cylinder's size (discussions #354, #803). Null on a rebreather
+  /// dive, where the lungs draw from the loop, not the cylinders (#3673).
   ///
   /// Takes the model as a parameter rather than reading a provider so the
   /// entity stays free of container dependencies. Callers source it from
   /// `gasModelProvider`. The runtime is used verbatim: nothing is added for
   /// a safety stop (issue #828).
   double? rmvFor(GasModel model) {
-    if (tanks.isEmpty || effectiveRuntime == null || avgDepth == null) {
+    if (isRebreather ||
+        tanks.isEmpty ||
+        effectiveRuntime == null ||
+        avgDepth == null) {
       return null;
     }
 
@@ -564,8 +568,8 @@ class Dive extends Equatable {
   /// SAC: surface air consumption as a tank-pressure drop rate, in bar/min
   /// at the surface, in bar of [sacReferenceTank]. Every other breathed
   /// cylinder adds its drop converted to that cylinder's size (issue #3109,
-  /// see [referencePressureDrop]); a rebreather dive reads the reference
-  /// cylinder alone.
+  /// see [referencePressureDrop]). Null on a rebreather dive, whose
+  /// cylinders do not drain with the diver's breathing (issue #3673).
   ///
   /// Needs no cylinder volume, so it exists for every dive-computer download
   /// that carries pressure. Not a unit conversion of [rmvFor] on multi-tank
@@ -573,7 +577,10 @@ class Dive extends Equatable {
   /// only converted by volume. A cylinder of unknown size is left out
   /// unless it pairs with the reference (see [isMatchedPair]).
   double? get sac {
-    if (tanks.isEmpty || effectiveRuntime == null || avgDepth == null) {
+    if (isRebreather ||
+        tanks.isEmpty ||
+        effectiveRuntime == null ||
+        avgDepth == null) {
       return null;
     }
 
@@ -585,7 +592,6 @@ class Dive extends Equatable {
     final pressureUsed = referencePressureDrop(
       reference: sacReferenceTank!,
       tanks: tanks,
-      referenceOnly: isRebreather,
     );
     if (pressureUsed == null) return null;
 
