@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'package:submersion/core/text/markdown/notes_plain_text.dart';
 import 'package:submersion/shared/widgets/forms/form_style.dart';
+import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
 
 /// A value derived from the dive profile, offered as a one-tap fill on a
 /// [FormRow.text] row. When [value] differs from the row's current text, the
@@ -46,6 +48,7 @@ class FormRow extends StatefulWidget {
     this.onChanged,
     this.decoration,
     this.profileSuggestion,
+    this.markdown = false,
   }) : _kind = _RowKind.text,
        enabled = true,
        helpText = null,
@@ -79,6 +82,7 @@ class FormRow extends StatefulWidget {
        inputFormatters = null,
        maxLines = 1,
        alwaysEditing = false,
+       markdown = false,
        validator = null,
        inputValidator = null,
        onChanged = null,
@@ -104,6 +108,7 @@ class FormRow extends StatefulWidget {
       textCapitalization = TextCapitalization.none,
       maxLines = 1,
       alwaysEditing = false,
+      markdown = false,
       validator = null,
       inputValidator = null,
       onChanged = null,
@@ -140,6 +145,7 @@ class FormRow extends StatefulWidget {
        textCapitalization = TextCapitalization.none,
        maxLines = 1,
        alwaysEditing = false,
+       markdown = false,
        validator = null,
        inputValidator = null,
        onChanged = null,
@@ -171,6 +177,7 @@ class FormRow extends StatefulWidget {
        textCapitalization = TextCapitalization.none,
        maxLines = 1,
        alwaysEditing = false,
+       markdown = false,
        validator = null,
        inputValidator = null,
        onChanged = null,
@@ -196,6 +203,7 @@ class FormRow extends StatefulWidget {
       textCapitalization = TextCapitalization.none,
       maxLines = 1,
       alwaysEditing = false,
+      markdown = false,
       validator = null,
       inputValidator = null,
       onChanged = null,
@@ -225,6 +233,10 @@ class FormRow extends StatefulWidget {
   final List<TextInputFormatter>? inputFormatters;
   final int maxLines;
   final bool alwaysEditing;
+
+  /// A Markdown notes row (#3683): editing shows the notes editor with its
+  /// formatting bar under the label, and the resting row shows plain words.
+  final bool markdown;
   final String? Function(String?)? validator;
 
   /// A validator for what the diver types, as opposed to [validator], which
@@ -259,6 +271,10 @@ class FormRow extends StatefulWidget {
 class _FormRowState extends State<FormRow> {
   bool _editing = false;
 
+  /// A Markdown row previewing its notes has no focused field, but is still
+  /// being edited: focus loss must not rest it.
+  bool _previewing = false;
+
   /// A row with a validator must keep its field mounted, or Form.validate()
   /// cannot see it.
   bool get _persistent => _alwaysMounted || _failsInputValidator;
@@ -282,6 +298,8 @@ class _FormRowState extends State<FormRow> {
         // because its text fails is edited in place. Count it as editing, or
         // fixing the text rests the row and unmounts the field mid-typing.
         if (!_editing) setState(() => _editing = true);
+      } else if (_previewing) {
+        return;
       } else if (_editing || widget.inputValidator != null) {
         setState(() => _editing = false);
       }
@@ -365,11 +383,51 @@ class _FormRowState extends State<FormRow> {
     return InkWell(onTap: onTap, child: content);
   }
 
+  /// The open Markdown row: label above, notes editor below (the formatting
+  /// bar needs the width). A tap outside the row rests it, which also ends a
+  /// preview, since a previewing row has no focused field to lose.
+  Widget _markdownEditor(BuildContext context) {
+    return TapRegion(
+      onTapOutside: (_) {
+        if (!_previewing && !_editing) return;
+        setState(() {
+          _previewing = false;
+          _editing = false;
+        });
+      },
+      child: Padding(
+        padding: FormStyle.rowPadding,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(widget.label, style: _labelTextStyle(context)),
+            const SizedBox(height: 4),
+            MarkdownNotesField(
+              controller: widget.controller!,
+              focusNode: _alwaysMounted ? null : _focusNode,
+              autofocus: _editing && !_alwaysMounted,
+              maxLines: widget.maxLines,
+              validator: widget.validator ?? widget.inputValidator,
+              onChanged: widget.onChanged,
+              textCapitalization: widget.textCapitalization,
+              style: Theme.of(context).textTheme.bodyMedium,
+              decoration: widget.decoration ?? _bareDecoration(context),
+              onPreviewChanged: (on) => _previewing = on,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     switch (widget._kind) {
       case _RowKind.text:
+        if (widget.markdown && (_persistent || _editing)) {
+          return _markdownEditor(context);
+        }
         if (_persistent || _editing) {
           return Padding(
             padding: FormStyle.rowPadding,
@@ -411,7 +469,9 @@ class _FormRowState extends State<FormRow> {
         return AnimatedBuilder(
           animation: widget.controller!,
           builder: (context, _) {
-            final text = widget.controller!.text;
+            final text = widget.markdown
+                ? markdownToPlainText(widget.controller!.text)
+                : widget.controller!.text;
             final empty = text.isEmpty;
             final shown = empty
                 ? (widget.placeholder ?? '')

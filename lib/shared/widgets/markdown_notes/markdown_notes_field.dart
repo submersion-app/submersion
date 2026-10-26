@@ -75,6 +75,9 @@ class _MarkdownNotesFieldState extends State<MarkdownNotesField> {
   void _setPreview(bool on) {
     if (on == _previewing) return;
     final selection = widget.controller.selection;
+    // Told first, so a host that rests on focus loss knows before the
+    // unfocus below reaches it.
+    widget.onPreviewChanged?.call(on);
     setState(() {
       _previewing = on;
       _previewHeight = on ? _fieldKey.currentContext?.size?.height : null;
@@ -90,7 +93,6 @@ class _MarkdownNotesFieldState extends State<MarkdownNotesField> {
         }
       });
     }
-    widget.onPreviewChanged?.call(on);
   }
 
   bool get _apple =>
