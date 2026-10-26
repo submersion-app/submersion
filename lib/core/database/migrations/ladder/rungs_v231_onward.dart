@@ -602,9 +602,10 @@ extension RungsFromV231 on AppDatabase {
 
     // v318: the computer tissue snapshot keeps only what has no dive column
     // (issue #2555). Moves the CNS, OTU and deco model stored snapshots
-    // held into dives and the primary source where those are empty. Rung
-    // only: new imports no longer write them, and the snapshot reader skips
-    // one that still arrives from an older peer. 316 and 317 are held by
+    // held into dives and the primary source where those are empty. New
+    // imports no longer write them, and SyncService runs the same move after
+    // applying a peer's rows, for a dive an older peer still sends in the
+    // old shape. 316 and 317 are held by
     // open branches (#3685, #3697).
     if (from < 318) await _moveComputerTissueScalars();
     if (from < 318) await reportProgress();

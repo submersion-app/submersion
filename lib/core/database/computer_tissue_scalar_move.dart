@@ -17,9 +17,13 @@ import 'package:submersion/features/dive_log/domain/entities/computer_tissue_leg
 /// stored without the four, or cleared when nothing else was in it.
 ///
 /// [fillSources] false leaves the source rows out, for a database without
-/// the sources table. Only snapshots naming one of the keys are read. The sync stamp
-/// (`updated_at`, `hlc`) does not move: every device runs this same rewrite,
-/// so they agree without a sync round. A snapshot that does not parse as a
+/// the sources table.
+///
+/// Only snapshots naming one of the keys are read, so it is cheap enough to
+/// run again after every inbound sync apply, which is how a dive from a peer
+/// below v318 gets the same move. The sync stamp (`updated_at`, `hlc`) does
+/// not move: every device runs this same rewrite, so they agree without a
+/// sync round. A snapshot that does not parse as a
 /// JSON object is stepped over and left as it is.
 ///
 /// Raw SQL throughout, as the other ladder helpers, so it keeps compiling

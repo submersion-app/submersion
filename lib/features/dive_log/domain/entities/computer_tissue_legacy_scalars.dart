@@ -5,9 +5,10 @@ import 'package:submersion/core/utils/number_utils.dart';
 ///
 /// Each has a dive column of its own (`deco_algorithm`, `cns_start`,
 /// `cns_end`, `otu`), so the snapshot no longer carries them. This reads
-/// them out of snapshot JSON written before that, for the two places such
-/// JSON still turns up: the v318 rung, which moves the stored ones into
-/// their columns, and the UDDF import of a backup made before it. Start OTU
+/// them out of snapshot JSON written before that, wherever such JSON still
+/// turns up: the v318 rung, which moves the stored ones into their columns,
+/// the same move after sync applies a dive from a peer below v318, and the
+/// UDDF import of a backup made before it. Start OTU
 /// is not read: no column holds it, and a computer's OTU at dive start is
 /// what earlier dives left, not this dive's.
 ///

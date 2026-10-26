@@ -9,6 +9,7 @@ import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:drift/drift.dart' show Variable;
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/database/computer_tissue_scalar_move.dart';
 import 'package:submersion/core/database/database.dart'
     show AppDatabase, SyncRecord, DeletionLogData;
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
@@ -1327,9 +1328,35 @@ class SyncService {
     // courseId points at a course in the same payload) fail immediately and
     // the affected rows never reach the receiving DB. See
     // docs/design/findings/2026-06-02-icloud-sync-diagnosis.md.
-    return _serializer.applyInDeferredFkTransaction(
-      () => _applyRemotePayloadInner(remotePayload, localLastSync),
-    );
+    return _serializer.applyInDeferredFkTransaction(() async {
+      final result = await _applyRemotePayloadInner(
+        remotePayload,
+        localLastSync,
+      );
+      await _moveLegacyComputerTissueScalars();
+      return result;
+    });
+  }
+
+  /// A peer below v318 still publishes the CNS, OTU and deco model inside a
+  /// dive's computer tissue snapshot, with the dive's own columns empty
+  /// (issue #2555). This database ran the v318 rung before that row
+  /// arrived, so run the same move over what was just applied: it reads
+  /// only snapshots that still name one of those keys, so it is a cheap
+  /// no-op once every peer is on v318. Leaves the sync stamp alone, as the
+  /// rung does: the sending peer makes the same move when it upgrades.
+  Future<void> _moveLegacyComputerTissueScalars() async {
+    try {
+      await moveComputerTissueScalars(DatabaseService.instance.database);
+    } catch (e, st) {
+      // The applied rows are already in place; losing this move costs only
+      // the old values, never the sync.
+      _log.warning(
+        'Moving legacy computer tissue values failed (non-fatal)',
+        error: e,
+        stackTrace: st,
+      );
+    }
   }
 
   Future<_MergeResult> _applyRemotePayloadInner(
@@ -2130,6 +2157,7 @@ class SyncService {
     } finally {
       await client?.dispose();
     }
+    await _moveLegacyComputerTissueScalars();
     progress.done();
     _log.info(
       'Peer base applied in ${stopwatch.elapsed.inSeconds}s: '

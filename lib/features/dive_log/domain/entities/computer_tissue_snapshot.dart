@@ -17,8 +17,9 @@ import 'package:submersion/core/utils/number_utils.dart';
 /// `dives.deco_algorithm`, the computer's CNS at dive start and end is
 /// `dives.cns_start` / `dives.cns_end` and its OTU is `dives.otu` (and the
 /// data source's `cns` / `otu`); importers write those, never this. Older
-/// snapshots carried all four; v318 moved them out, and [fromJson] reads
-/// past any that still arrive (see `LegacyTissueScalars`).
+/// snapshots carried all four; v318 moved them out, sync makes the same move
+/// on a dive an older peer sends, and [fromJson] reads past any left (see
+/// `LegacyTissueScalars`).
 class ComputerTissueSnapshot extends Equatable {
   const ComputerTissueSnapshot({this.start, this.end});
 
