@@ -61,6 +61,8 @@ import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/presentation/providers/document_providers.dart';
 import 'package:submersion/features/safety/domain/entities/incident.dart';
 import 'package:submersion/features/safety/presentation/providers/incident_providers.dart';
+import 'package:submersion/features/demo_mode/presentation/providers/demo_mode_providers.dart';
+import 'package:submersion/features/demo_mode/domain/demo_manifest.dart';
 
 typedef Override = riverpod.Override;
 
@@ -890,6 +892,7 @@ Dive createTestDiveWithBottomTime({
 /// because Riverpod refuses to override the same family twice in one
 /// container.
 Future<List<Override>> getBaseOverrides({
+  DemoPackage? demoPackage,
   MockSettingsNotifier? settingsNotifier,
   http.Client? weatherHttpClient,
   PreDiveSession? linkedPreDiveSession,
@@ -916,6 +919,9 @@ Future<List<Override>> getBaseOverrides({
   final prefs = await SharedPreferences.getInstance();
 
   return [
+    // No sample logbook is reachable unless a test says so: the real manifest
+    // fetch would reach the network (demo mode, issue #3708).
+    demoAvailabilityProvider.overrideWith((ref) async => demoPackage),
     sharedPreferencesProvider.overrideWithValue(prefs),
     settingsProvider.overrideWith(
       (ref) =>

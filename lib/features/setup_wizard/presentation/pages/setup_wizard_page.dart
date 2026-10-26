@@ -24,6 +24,9 @@ import 'package:submersion/features/setup_wizard/presentation/widgets/wizard_sur
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/wizard/wizard_step_def.dart';
 import 'package:submersion/shared/widgets/wizard/wizard_step_indicator.dart';
+import 'package:submersion/features/demo_mode/presentation/providers/demo_mode_providers.dart';
+import 'package:submersion/features/demo_mode/presentation/widgets/demo_enter_dialog.dart';
+import 'package:submersion/features/setup_wizard/domain/unit_preset_detector.dart';
 
 /// Multi-step setup wizard for new databases (first run) and Settings
 /// re-entry. See docs/design/specs/2026-07-10-setup-wizard-design.md.
@@ -164,6 +167,20 @@ class _SetupWizardPageState extends ConsumerState<SetupWizardPage> {
     }
   }
 
+  /// Demo mode from the first-run welcome screen (issue #3708), offered only
+  /// when a sample logbook this app can open is reachable. It leaves the
+  /// wizard rather than adding a step: entering restarts the app.
+  VoidCallback? _tryDemo(SetupWizardMode mode, {required bool available}) {
+    if (mode != SetupWizardMode.firstRun || !available) return null;
+    return () => showDemoEnterDialog(
+      context,
+      fromFirstRun: true,
+      units: demoUnitsForPreset(
+        presetForLocale(WidgetsBinding.instance.platformDispatcher.locale),
+      ),
+    );
+  }
+
   WizardStepDef _defFor(SetupStepId id) {
     final mode = widget.mode;
     final notifier = ref.read(setupWizardProvider(mode).notifier);
@@ -173,13 +190,19 @@ class _SetupWizardPageState extends ConsumerState<SetupWizardPage> {
           label: '',
           hideBottomBar: true,
           canAdvance: setupWizardProvider(mode).select((_) => true),
-          builder: (_) => WelcomeForkStep(
-            onStartFresh: () =>
-                _chooseAndAdvance(() => notifier.choosePath(SetupPath.fresh)),
-            onExistingData: () => _chooseAndAdvance(
-              () => notifier.choosePath(SetupPath.existingData),
+          builder: (_) => Consumer(
+            builder: (context, ref, _) => WelcomeForkStep(
+              onStartFresh: () =>
+                  _chooseAndAdvance(() => notifier.choosePath(SetupPath.fresh)),
+              onExistingData: () => _chooseAndAdvance(
+                () => notifier.choosePath(SetupPath.existingData),
+              ),
+              onSkipSetup: () => _chooseAndAdvance(notifier.requestSkip),
+              onTryDemo: _tryDemo(
+                mode,
+                available: ref.watch(demoAvailabilityProvider).value != null,
+              ),
             ),
-            onSkipSetup: () => _chooseAndAdvance(notifier.requestSkip),
           ),
         );
       case SetupStepId.profile:
