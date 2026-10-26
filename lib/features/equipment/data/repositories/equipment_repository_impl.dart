@@ -462,8 +462,8 @@ class EquipmentRepository {
   }
 
   /// Runs [action] in one database transaction, so an edit built from
-  /// several calls here commits all or nothing. [updateEquipment] writes the
-  /// row, its attributes and the pending mark in separate steps.
+  /// several calls here commits all or nothing. [updateEquipment] is atomic
+  /// on its own; [createEquipment] seeds its clocks outside its writes.
   Future<T> transaction<T>(Future<T> Function() action) =>
       _db.transaction(action);
 
@@ -476,52 +476,58 @@ class EquipmentRepository {
       _log.info('Updating equipment: ${equipment.id}');
       final now = DateTime.now().millisecondsSinceEpoch;
 
-      await (_db.update(
-        _db.equipment,
-      )..where((t) => t.id.equals(equipment.id))).write(
-        EquipmentCompanion(
-          name: Value(equipment.name),
-          type: Value(equipment.type.name),
-          brand: Value(equipment.brand),
-          model: Value(equipment.model),
-          serialNumber: Value(equipment.serialNumber),
-          status: Value(equipment.status.name),
-          purchaseDate: Value(equipment.purchaseDate?.millisecondsSinceEpoch),
-          purchasePrice: Value(equipment.purchasePrice),
-          purchaseCurrency: Value(equipment.purchaseCurrency),
-          lastServiceDate: Value(
-            equipment.lastServiceDate?.millisecondsSinceEpoch,
+      // One transaction: a clock baseline that fails to save must not leave
+      // its date stored, or a retry would see the date as unchanged and
+      // never anchor the clock (issue #3662).
+      await _db.transaction(() async {
+        await (_db.update(
+          _db.equipment,
+        )..where((t) => t.id.equals(equipment.id))).write(
+          EquipmentCompanion(
+            name: Value(equipment.name),
+            type: Value(equipment.type.name),
+            brand: Value(equipment.brand),
+            model: Value(equipment.model),
+            serialNumber: Value(equipment.serialNumber),
+            status: Value(equipment.status.name),
+            purchaseDate: Value(equipment.purchaseDate?.millisecondsSinceEpoch),
+            purchasePrice: Value(equipment.purchasePrice),
+            purchaseCurrency: Value(equipment.purchaseCurrency),
+            lastServiceDate: Value(
+              equipment.lastServiceDate?.millisecondsSinceEpoch,
+            ),
+            serviceIntervalDays: Value(equipment.serviceIntervalDays),
+            notes: Value(equipment.notes),
+            isActive: Value(equipment.isActive),
+            customReminderEnabled: Value(equipment.customReminderEnabled),
+            customReminderDays: Value(
+              equipment.customReminderDays != null
+                  ? jsonEncode(equipment.customReminderDays)
+                  : null,
+            ),
+            parentEquipmentId: Value(equipment.parentEquipmentId),
+            updatedAt: Value(now),
           ),
-          serviceIntervalDays: Value(equipment.serviceIntervalDays),
-          notes: Value(equipment.notes),
-          isActive: Value(equipment.isActive),
-          customReminderEnabled: Value(equipment.customReminderEnabled),
-          customReminderDays: Value(
-            equipment.customReminderDays != null
-                ? jsonEncode(equipment.customReminderDays)
-                : null,
+        );
+        final previous = await saveAttributes(
+          equipment.id,
+          equipment.attributes,
+        );
+        await _syncRepository.markRecordPending(
+          entityType: 'equipment',
+          recordId: equipment.id,
+          localUpdatedAt: now,
+        );
+        // Only a date entered or changed here moves a clock (issue #3662).
+        await ServiceScheduleRepository().applyBaselines(
+          equipment.id,
+          attributeServiceBaselines(
+            current: equipment.attributes,
+            previous: previous,
           ),
-          parentEquipmentId: Value(equipment.parentEquipmentId),
-          updatedAt: Value(now),
-        ),
-      );
-      // Read before the save: only a date entered or changed here moves a
-      // clock (issue #3662).
-      final baselines = attributeServiceBaselines(
-        current: equipment.attributes,
-        previous: await getAttributesForEquipment(equipment.id),
-      );
-      await saveAttributes(equipment.id, equipment.attributes);
-      await _syncRepository.markRecordPending(
-        entityType: 'equipment',
-        recordId: equipment.id,
-        localUpdatedAt: now,
-      );
-      await ServiceScheduleRepository().applyBaselines(
-        equipment.id,
-        baselines,
-        notify: false,
-      );
+          notify: false,
+        );
+      });
       if (notify) SyncEventBus.notifyLocalChange();
       _log.info('Updated equipment: ${equipment.id}');
     } catch (e, stackTrace) {
@@ -1942,7 +1948,9 @@ class EquipmentRepository {
   /// edit form shows only its type's fields and may have been opened before
   /// a synced id arrived, and neither is a reason to drop the tag's
   /// identity. The passport repository passes false to release a tag.
-  Future<void> saveAttributes(
+  ///
+  /// Returns the attributes as they were before the write.
+  Future<List<EquipmentAttribute>> saveAttributes(
     String equipmentId,
     List<EquipmentAttribute> desired, {
     bool preserveSystem = true,
@@ -2022,5 +2030,6 @@ class EquipmentRepository {
         localUpdatedAt: now,
       );
     }
+    return existingRows.map(_mapAttributeRow).toList();
   }
 }
