@@ -70,6 +70,18 @@ List<PlannedTank> planTanks(PlannedDive d, DiveShape shape, Random random) {
               ? TankMaterial.aluminum
               : TankMaterial.steel,
         ),
+      // Rebreather computers rarely log the oxygen cylinder; every
+      // rebreather dive has one.
+      if (!roles.contains(TankRole.oxygenSupply))
+        const PlannedTank(
+          o2: 100,
+          he: 0,
+          role: TankRole.oxygenSupply,
+          volumeL: 3,
+          workingBar: 232,
+          startBar: 200,
+          material: TankMaterial.steel,
+        ),
     ];
   }
   final bottomO2 = shape.tanks.first.o2;

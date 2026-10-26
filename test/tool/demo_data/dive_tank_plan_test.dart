@@ -65,8 +65,26 @@ void main() {
           _tank(21, role: 'diluent'),
           _tank(50, role: 'bailout'),
         ]),
-        [TankRole.diluent, TankRole.bailout],
+        [TankRole.diluent, TankRole.bailout, TankRole.oxygenSupply],
       );
+    });
+
+    test('an oxygen cylinder the source did not log is added', () {
+      // Rebreather computers rarely record the oxygen cylinder, but every
+      // rebreather dive has one.
+      final tanks = planTanks(
+        _dive(StoryPhase.rebreather, 'ccr'),
+        _shape('ccr', [_tank(21, he: 35), _tank(32)]),
+        Random(1),
+      );
+
+      expect(tanks.map((t) => t.role), [
+        TankRole.diluent,
+        TankRole.bailout,
+        TankRole.oxygenSupply,
+      ]);
+      expect(tanks.last.o2, 100);
+      expect(tanks.last.volumeL, 3);
     });
   });
 
