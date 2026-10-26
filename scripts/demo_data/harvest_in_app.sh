@@ -26,7 +26,7 @@ for source in "$@"; do
 done
 
 cd "$repo"
-flutter test integration_test/demo_harvest_test.dart -d macos \
+flutter test integration_test/darwin_demo_harvest_test.dart -d macos \
   --dart-define=DEMO_HARVEST_SALT="$salt"
 
 python3 - "$stage/out" "$harvest" <<'PY'
