@@ -183,6 +183,19 @@ void main() {
   });
 
   group('tankMaterialAssumed', () {
+    test('an assumed material is estimated as aluminum', () {
+      expect(
+        BuoyancyPhysics.tankTermKg(volumeL: 12.0, workingPressureBar: 232.0),
+        BuoyancyPhysics.tankTermKg(
+          volumeL: 12.0,
+          material: TankMaterial.aluminum,
+        ),
+        reason:
+            'buoyancy_tankMaterialAssumedHint tells the diver aluminum was '
+            'assumed; change that string if this fallback changes.',
+      );
+    });
+
     test('true when no preset, size match or material names it', () {
       expect(
         BuoyancyPhysics.tankMaterialAssumed(
@@ -219,6 +232,15 @@ void main() {
   group('tankDryMassKg', () {
     test('catalog dry mass for al80', () {
       expect(BuoyancyPhysics.tankDryMassKg(presetName: 'al80'), 14.2);
+    });
+
+    test('a tank resolved by specs takes its catalogued dry mass', () {
+      // 12 L / 200 bar with no material is steel12 for buoyancy, so its
+      // displaced mass must come from the same row (#3686).
+      expect(
+        BuoyancyPhysics.tankDryMassKg(volumeL: 12.0, workingPressureBar: 200.0),
+        14.5,
+      );
     });
 
     test('fallback scales with volume', () {

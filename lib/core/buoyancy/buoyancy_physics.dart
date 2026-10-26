@@ -105,9 +105,15 @@ class BuoyancyPhysics {
   static double tankDryMassKg({
     String? presetName,
     double? volumeL,
+    double? workingPressureBar,
     TankMaterial? material,
   }) {
-    final entry = _catalogEntry(presetName, volumeL, null, material);
+    final entry = _catalogEntry(
+      presetName,
+      volumeL,
+      workingPressureBar,
+      material,
+    );
     if (entry != null) return entry.dryMassKg;
     return (volumeL ?? _defaultVolumeL) * 1.3;
   }

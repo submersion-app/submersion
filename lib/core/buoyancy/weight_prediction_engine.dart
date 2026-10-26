@@ -23,6 +23,15 @@ class TankSpec extends Equatable {
     this.material,
   });
 
+  /// Whether the model had to guess this tank's material (see
+  /// [BuoyancyPhysics.tankMaterialAssumed]).
+  bool get materialAssumed => BuoyancyPhysics.tankMaterialAssumed(
+    presetName: presetName,
+    volumeL: volumeL,
+    workingPressureBar: workingPressureBar,
+    material: material,
+  );
+
   @override
   List<Object?> get props => [
     presetName,
@@ -293,6 +302,7 @@ class WeightPredictionEngine {
       tankDryMass += BuoyancyPhysics.tankDryMassKg(
         presetName: tank.presetName,
         volumeL: tank.volumeL,
+        workingPressureBar: tank.workingPressureBar,
         material: tank.material,
       );
     }
@@ -423,6 +433,7 @@ class FittedWeightModel {
       tankDryMass += BuoyancyPhysics.tankDryMassKg(
         presetName: tank.presetName,
         volumeL: tank.volumeL,
+        workingPressureBar: tank.workingPressureBar,
         material: tank.material,
       );
       terms.add(
@@ -435,13 +446,7 @@ class FittedWeightModel {
             material: tank.material,
           ),
           // A guessed material is an estimate, not physics (#3686).
-          source:
-              BuoyancyPhysics.tankMaterialAssumed(
-                presetName: tank.presetName,
-                volumeL: tank.volumeL,
-                workingPressureBar: tank.workingPressureBar,
-                material: tank.material,
-              )
+          source: tank.materialAssumed
               ? TermSource.typeDefault
               : TermSource.physics,
         ),
