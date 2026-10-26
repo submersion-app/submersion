@@ -14497,6 +14497,8 @@
   "importWizard_dc_tryAgain": "נסה שוב",
   "importWizard_dc_bluetoothOffBody": "ה-Bluetooth כבוי או לא זמין במכשיר הזה. הפעל אותו ואז הקש על נסה שוב.",
   "importWizard_dc_couldNotScanBody": "Submersion לא הצליח לחפש דרך Bluetooth. ודא שה-Bluetooth פועל ושל-Submersion יש הרשאה להשתמש בו, ואז הקש על נסה שוב.",
+  "importWizard_dc_anotherUnit": "זה לא היה {name}",
+  "importWizard_dc_anotherUnitBody": "ה-{model} שענה דיווח על מספר סידורי {reported}, לא {stored}, כך שזה מחשב אחר והצלילות שלו לא יובאו. כבה את ה-Bluetooth במחשב ההוא, קרב את {name} למכשיר הזה והורד שוב.",
   "importWizard_dc_noUsbOnThisPlatformBody": "{name} מתחבר בכבל USB, ש-Submersion לא יכול להשתמש בו ב-iPhone או ב-iPad. הורד את הצלילות שלו עם Submersion במחשב Mac, Windows או Linux, או ייבא אותן מקובץ.",
   "importWizard_dc_noNewDives": "אין צלילות חדשות להורדה",
   "importWizard_dc_noNewDivesBody": "כל הצלילות ממחשב הצלילה הזה כבר יובאו.",

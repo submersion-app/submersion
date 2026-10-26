@@ -207,7 +207,7 @@ void main() {
       expect(done, isFalse, reason: 'a device seen does not end the window');
       service.onDeviceDiscovered(_advert('11:22:33:44:55:66'));
 
-      await pending;
+      expect(await pending, isTrue, reason: 'the window ran its full length');
       expect(notifier.state.discoveredDevices.map((d) => d.address), [
         _savedAddress,
         '11:22:33:44:55:66',
@@ -229,11 +229,27 @@ void main() {
 
     test('resolves without waiting when the scan cannot start', () async {
       hostApi.startDiscoveryError = StateError('adapter unavailable');
-      await notifier
+      final ranFull = await notifier
           .scanForWindow(timeout: const Duration(minutes: 5))
           .timeout(const Duration(seconds: 2));
+      expect(ranFull, isFalse);
       expect(notifier.state.discoveredDevices, isEmpty);
       expect(notifier.state.errorMessage, isNotNull);
+    });
+
+    test('reports a window that native discovery ended early', () async {
+      // iOS and macOS start discovery without error when Bluetooth is off or
+      // not allowed, then end it at once; Android does the same when the
+      // adapter has no BLE scanner. Only the early end says the search
+      // never really ran.
+      final pending = notifier.scanForWindow(
+        timeout: const Duration(minutes: 5),
+      );
+      await pumpEventQueue();
+      service.onDeviceDiscovered(_advert(_savedAddress));
+      service.onDiscoveryComplete();
+
+      expect(await pending.timeout(const Duration(seconds: 2)), isFalse);
     });
 
     test('a notifier disposed during the window finishes without '

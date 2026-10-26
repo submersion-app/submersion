@@ -14497,6 +14497,8 @@
   "importWizard_dc_tryAgain": "Reintentar",
   "importWizard_dc_bluetoothOffBody": "Bluetooth está desactivado o no disponible en este dispositivo. Actívelo y toque Reintentar.",
   "importWizard_dc_couldNotScanBody": "Submersion no pudo buscar por Bluetooth. Compruebe que Bluetooth está activado y que Submersion tiene permiso para usarlo, y toque Reintentar.",
+  "importWizard_dc_anotherUnit": "No era {name}",
+  "importWizard_dc_anotherUnitBody": "El {model} que respondió indicó el número de serie {reported}, no {stored}, así que es otro ordenador y sus inmersiones no se importaron. Desactive el Bluetooth de ese ordenador, acerque {name} a este dispositivo y vuelva a descargar.",
   "importWizard_dc_noUsbOnThisPlatformBody": "{name} se conecta con un cable USB, que Submersion no puede usar en iPhone ni iPad. Descargue sus inmersiones con Submersion en un ordenador Mac, Windows o Linux, o impórtelas desde un archivo.",
   "importWizard_dc_noNewDives": "No hay inmersiones nuevas para descargar",
   "importWizard_dc_noNewDivesBody": "Todas las inmersiones de este ordenador ya se han importado.",

@@ -9,6 +9,7 @@ import 'package:submersion/features/import_wizard/data/adapters/dive_computer_ad
 import 'package:submersion/l10n/l10n_extension.dart';
 
 export 'package:submersion/features/import_wizard/presentation/widgets/dc_adapter_download_step.dart';
+export 'package:submersion/features/import_wizard/presentation/widgets/dc_no_new_dives_view.dart';
 
 class DcAdapterScanStep extends ConsumerWidget {
   const DcAdapterScanStep({super.key, required this.adapter});

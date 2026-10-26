@@ -48916,6 +48916,21 @@ class AppLocalizationsNl extends AppLocalizations {
       'Submersion kon niet via Bluetooth zoeken. Controleer of Bluetooth aan staat en Submersion het mag gebruiken, en tik daarna op Opnieuw proberen.';
 
   @override
+  String importWizard_dc_anotherUnit(String name) {
+    return 'Dat was niet $name';
+  }
+
+  @override
+  String importWizard_dc_anotherUnitBody(
+    String name,
+    String model,
+    String reported,
+    String stored,
+  ) {
+    return 'De $model die antwoordde meldde serienummer $reported, niet $stored. Het is dus een andere computer en de duiken zijn niet geïmporteerd. Zet Bluetooth op die computer uit, houd $name dicht bij dit apparaat en download opnieuw.';
+  }
+
+  @override
   String get importWizard_dc_noNewDives =>
       'Geen nieuwe duiken om te downloaden';
 

@@ -14497,6 +14497,8 @@
   "importWizard_dc_tryAgain": "Tentar novamente",
   "importWizard_dc_bluetoothOffBody": "O Bluetooth está desligado ou indisponível neste dispositivo. Ligue-o e toque em Tentar novamente.",
   "importWizard_dc_couldNotScanBody": "O Submersion não conseguiu procurar por Bluetooth. Verifique se o Bluetooth está ligado e se o Submersion tem permissão para usá-lo, depois toque em Tentar novamente.",
+  "importWizard_dc_anotherUnit": "Não era {name}",
+  "importWizard_dc_anotherUnitBody": "O {model} que respondeu informou o número de série {reported}, não {stored}, então é outro computador e os mergulhos dele não foram importados. Desligue o Bluetooth desse computador, aproxime {name} deste dispositivo e baixe novamente.",
   "importWizard_dc_noUsbOnThisPlatformBody": "{name} se conecta por cabo USB, que o Submersion não consegue usar no iPhone nem no iPad. Baixe os mergulhos com o Submersion em um computador Mac, Windows ou Linux, ou importe-os de um arquivo.",
   "importWizard_dc_noNewDives": "Nenhum mergulho novo para baixar",
   "importWizard_dc_noNewDivesBody": "Todos os mergulhos deste computador já foram importados.",

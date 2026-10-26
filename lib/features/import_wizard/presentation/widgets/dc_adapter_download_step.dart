@@ -17,8 +17,10 @@ import 'package:submersion/features/dive_computer/presentation/widgets/download_
 import 'package:submersion/features/dive_computer/presentation/widgets/scan_step_widget.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/import_wizard/data/adapters/dive_computer_adapter.dart';
+import 'package:submersion/features/import_wizard/presentation/widgets/dc_another_unit_view.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/dc_known_computer_not_found_view.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/dc_no_direct_download_view.dart';
+import 'package:submersion/features/import_wizard/presentation/widgets/dc_no_new_dives_view.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 class DcAdapterDownloadStep extends ConsumerStatefulWidget {
@@ -68,6 +70,18 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
   /// Whether a search by make and model for a saved Bluetooth computer with
   /// no address on this device found no device, or several (issue #3710).
   bool _notFoundNearby = false;
+
+  /// Whether that search ran its full length; false means Bluetooth was
+  /// off, not allowed, or the scan failed.
+  bool _searchRanFull = true;
+
+  /// Whether the download goes to a same-model stand-in rather than a device
+  /// carrying the saved address, so its serial must confirm it.
+  bool _adoptedStandIn = false;
+
+  /// The serial a stand-in reported that is not the saved computer's: it was
+  /// another unit, and none of its dives are imported.
+  String? _anotherUnitSerial;
 
   /// The discovery notifier whose scan this step started to re-acquire a
   /// saved computer and still owes a stop: the scan runs on through the
@@ -196,6 +210,7 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
       );
     } else {
       device = _sameModelFallback(computer, address);
+      _adoptedStandIn = device != null;
     }
     if (device != null) notifier.selectDevice(device);
     setState(() {
@@ -220,7 +235,7 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
       _notFoundNearby = false;
     });
     _ownedScan = notifier;
-    await notifier.scanForWindow(
+    final ranFull = await notifier.scanForWindow(
       timeout: DcAdapterDownloadStep.knownDeviceScanTimeout,
       stopScanWhenDone: false,
     );
@@ -232,8 +247,17 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
       );
       return;
     }
-    final device = _sameModelFallback(computer, null);
+    // A window cut short cannot say that only one such device is nearby.
+    final device = ranFull ? _sameModelFallback(computer, null) : null;
+    if (!ranFull) {
+      _log.warning(
+        'The search for ${computer.displayName} ended before its window: '
+        'Bluetooth is off, not allowed, or the scan failed',
+        category: LogCategory.bluetooth,
+      );
+    }
     if (device != null) {
+      _adoptedStandIn = true;
       notifier.selectDevice(device);
     } else {
       // Awaited, so a Try Again tapped next cannot start a scan that this
@@ -254,6 +278,7 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
     setState(() {
       _searchingForKnownDevice = false;
       _notFoundNearby = device == null;
+      _searchRanFull = ranFull;
       _computerResolved = true;
     });
   }
@@ -333,6 +358,16 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
       }
     });
 
+    final anotherUnit = _anotherUnitSerial;
+    final savedComputer = widget.knownComputer ?? widget.adapter.computer;
+    if (anotherUnit != null && savedComputer != null) {
+      return DcAnotherUnitView(
+        computer: savedComputer,
+        reportedSerial: anotherUnit,
+        onDone: () => context.pop(),
+      );
+    }
+
     // No new dives to import — show a terminal message.
     if (_noDives) {
       return DcNoNewDivesView(onDone: () => context.pop());
@@ -356,9 +391,9 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
     if (_notFoundNearby && knownComputer != null) {
       return DcKnownComputerNotFoundView(
         computer: knownComputer,
-        // The scan's error stays on the discovery state once it stops; a
-        // scan that starts clears it.
-        problem: discoveryState.errorMessage == null
+        // A scan that starts clears the error flag; one that could not keeps
+        // it once stopped.
+        problem: _searchRanFull
             ? null
             : discoveryState.bluetoothUnavailable
             ? DcSearchProblem.bluetoothOff
@@ -547,6 +582,24 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
     if (_captured) return;
     _captured = true;
     _releaseScan();
+
+    // A same-model stand-in that reports another serial is another unit,
+    // such as a buddy's: none of its dives belong in this log (#3710).
+    final reported = state.serialNumber?.trim() ?? '';
+    final usedDevice =
+        ref.read(discoveryNotifierProvider).selectedDevice ?? _downloadDevice;
+    if (_adoptedStandIn &&
+        usedDevice != null &&
+        widget.adapter.reportsAnotherUnit(usedDevice, reported)) {
+      _log.warning(
+        '${usedDevice.address} reported serial $reported, not the saved '
+        "computer's; importing none of its dives",
+        category: LogCategory.bluetooth,
+      );
+      ref.read(discoveryNotifierProvider.notifier).clearSelectedDevice();
+      if (mounted) setState(() => _anotherUnitSerial = reported);
+      return;
+    }
     widget.adapter.setSinceCutoff(state.sinceCutoff);
     widget.adapter.setDownloadedDives(
       state.downloadedDives,
@@ -681,65 +734,6 @@ class _KnownDeviceSearchView extends StatelessWidget {
             l10n.diveComputer_download_searchingForDevice(computer.displayName),
           ),
         ],
-      ),
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
-// No new dives view
-// ---------------------------------------------------------------------------
-
-class DcNoNewDivesView extends StatelessWidget {
-  const DcNoNewDivesView({super.key, required this.onDone});
-
-  final VoidCallback onDone;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final l10n = context.l10n;
-
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 120,
-              height: 120,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: colorScheme.primaryContainer,
-              ),
-              child: Icon(
-                Icons.check_circle_outline,
-                size: 64,
-                color: colorScheme.primary,
-              ),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              l10n.importWizard_dc_noNewDives,
-              style: theme.textTheme.titleMedium,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              l10n.importWizard_dc_noNewDivesBody,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 32),
-            FilledButton(
-              onPressed: onDone,
-              child: Text(l10n.universalImport_action_done),
-            ),
-          ],
-        ),
       ),
     );
   }

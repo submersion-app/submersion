@@ -49878,6 +49878,21 @@ class AppLocalizationsAr extends AppLocalizations {
       'تعذّر على Submersion البحث عبر Bluetooth. تأكد من تشغيل Bluetooth ومن السماح لـ Submersion باستخدامه، ثم اضغط على إعادة المحاولة.';
 
   @override
+  String importWizard_dc_anotherUnit(String name) {
+    return 'لم يكن هذا $name';
+  }
+
+  @override
+  String importWizard_dc_anotherUnitBody(
+    String name,
+    String model,
+    String reported,
+    String stored,
+  ) {
+    return 'أبلغ جهاز $model الذي استجاب عن الرقم التسلسلي $reported، وليس $stored، لذا فهو كمبيوتر آخر ولم يتم استيراد غوصاته. أوقف Bluetooth في ذلك الكمبيوتر، وقرّب $name من هذا الجهاز، ثم نزّل مجدداً.';
+  }
+
+  @override
   String get importWizard_dc_noNewDives => 'لا توجد غوصات جديدة للتنزيل';
 
   @override

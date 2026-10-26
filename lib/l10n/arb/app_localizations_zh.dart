@@ -46210,6 +46210,21 @@ class AppLocalizationsZh extends AppLocalizations {
       'Submersion 无法通过蓝牙搜索。请确认蓝牙已打开，并且已允许 Submersion 使用蓝牙，然后点按“重试”。';
 
   @override
+  String importWizard_dc_anotherUnit(String name) {
+    return '那不是 $name';
+  }
+
+  @override
+  String importWizard_dc_anotherUnitBody(
+    String name,
+    String model,
+    String reported,
+    String stored,
+  ) {
+    return '应答的 $model 报告的序列号为 $reported，而不是 $stored，因此这是另一台电脑，其潜水记录未导入。请关闭那台电脑的蓝牙，将 $name 靠近此设备，然后重新下载。';
+  }
+
+  @override
   String get importWizard_dc_noNewDives => '没有可下载的新潜水记录';
 
   @override

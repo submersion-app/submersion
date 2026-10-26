@@ -14497,6 +14497,8 @@
   "importWizard_dc_tryAgain": "Opnieuw proberen",
   "importWizard_dc_bluetoothOffBody": "Bluetooth staat uit of is niet beschikbaar op dit apparaat. Zet het aan en tik daarna op Opnieuw proberen.",
   "importWizard_dc_couldNotScanBody": "Submersion kon niet via Bluetooth zoeken. Controleer of Bluetooth aan staat en Submersion het mag gebruiken, en tik daarna op Opnieuw proberen.",
+  "importWizard_dc_anotherUnit": "Dat was niet {name}",
+  "importWizard_dc_anotherUnitBody": "De {model} die antwoordde meldde serienummer {reported}, niet {stored}. Het is dus een andere computer en de duiken zijn niet geïmporteerd. Zet Bluetooth op die computer uit, houd {name} dicht bij dit apparaat en download opnieuw.",
   "importWizard_dc_noUsbOnThisPlatformBody": "{name} maakt verbinding via een USB-kabel, die Submersion op iPhone en iPad niet kan gebruiken. Download de duiken met Submersion op een Mac-, Windows- of Linux-computer, of importeer ze uit een bestand.",
   "importWizard_dc_noNewDives": "Geen nieuwe duiken om te downloaden",
   "importWizard_dc_noNewDivesBody": "Alle duiken van deze computer zijn al geïmporteerd.",

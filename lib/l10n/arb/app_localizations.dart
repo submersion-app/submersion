@@ -78091,6 +78091,23 @@ abstract class AppLocalizations {
   /// **'Submersion could not search over Bluetooth. Check that Bluetooth is on and that Submersion is allowed to use it, then tap Try Again.'**
   String get importWizard_dc_couldNotScanBody;
 
+  /// Download step title when the one nearby device of a saved computer's make and model turned out to be another unit, such as a buddy's.
+  ///
+  /// In en, this message translates to:
+  /// **'That was not {name}'**
+  String importWizard_dc_anotherUnit(String name);
+
+  /// Download step body when a same-model device reported another serial number than the saved computer, so its dives were not imported.
+  ///
+  /// In en, this message translates to:
+  /// **'The {model} that answered reported serial number {reported}, not {stored}, so it is another computer and its dives were not imported. Turn off that computer\'s Bluetooth, keep {name} close to this device and download again.'**
+  String importWizard_dc_anotherUnitBody(
+    String name,
+    String model,
+    String reported,
+    String stored,
+  );
+
   /// No description provided for @importWizard_dc_noNewDives.
   ///
   /// In en, this message translates to:

@@ -48476,6 +48476,21 @@ class AppLocalizationsEn extends AppLocalizations {
       'Submersion could not search over Bluetooth. Check that Bluetooth is on and that Submersion is allowed to use it, then tap Try Again.';
 
   @override
+  String importWizard_dc_anotherUnit(String name) {
+    return 'That was not $name';
+  }
+
+  @override
+  String importWizard_dc_anotherUnitBody(
+    String name,
+    String model,
+    String reported,
+    String stored,
+  ) {
+    return 'The $model that answered reported serial number $reported, not $stored, so it is another computer and its dives were not imported. Turn off that computer\'s Bluetooth, keep $name close to this device and download again.';
+  }
+
+  @override
   String get importWizard_dc_noNewDives => 'No new dives to download';
 
   @override

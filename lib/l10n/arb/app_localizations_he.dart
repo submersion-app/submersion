@@ -48204,6 +48204,21 @@ class AppLocalizationsHe extends AppLocalizations {
       'Submersion לא הצליח לחפש דרך Bluetooth. ודא שה-Bluetooth פועל ושל-Submersion יש הרשאה להשתמש בו, ואז הקש על נסה שוב.';
 
   @override
+  String importWizard_dc_anotherUnit(String name) {
+    return 'זה לא היה $name';
+  }
+
+  @override
+  String importWizard_dc_anotherUnitBody(
+    String name,
+    String model,
+    String reported,
+    String stored,
+  ) {
+    return 'ה-$model שענה דיווח על מספר סידורי $reported, לא $stored, כך שזה מחשב אחר והצלילות שלו לא יובאו. כבה את ה-Bluetooth במחשב ההוא, קרב את $name למכשיר הזה והורד שוב.';
+  }
+
+  @override
   String get importWizard_dc_noNewDives => 'אין צלילות חדשות להורדה';
 
   @override

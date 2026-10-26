@@ -48949,6 +48949,21 @@ class AppLocalizationsHu extends AppLocalizations {
       'A Submersion nem tudott Bluetooth-on keresni. Ellenőrizze, hogy a Bluetooth be van-e kapcsolva, és hogy a Submersion használhatja-e, majd koppintson az Újra gombra.';
 
   @override
+  String importWizard_dc_anotherUnit(String name) {
+    return 'Nem ez volt: $name';
+  }
+
+  @override
+  String importWizard_dc_anotherUnitBody(
+    String name,
+    String model,
+    String reported,
+    String stored,
+  ) {
+    return 'A válaszoló $model a(z) $reported sorozatszámot jelentette, nem a(z) $stored számot, tehát egy másik számítógép, és a merülései nem lettek importálva. Kapcsolja ki annak a számítógépnek a Bluetooth-át, tartsa közel ezt: $name ehhez az eszközhöz, és töltse le újra.';
+  }
+
+  @override
   String get importWizard_dc_noNewDives => 'Nincs letöltendő új merülés';
 
   @override

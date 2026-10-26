@@ -72,6 +72,8 @@ extension _DiveComputerAdapterConnections on DiveComputerAdapter {
 
   /// Whether the download from [device] reported a serial that is not
   /// [computer]'s, which means another unit answered.
+  ///
+  /// [DiveComputerAdapterUnitCheck.reportsAnotherUnit] is the public face.
   bool _reportsAnotherComputer(
     DiveComputer computer,
     DiscoveredDevice device,
@@ -90,5 +92,18 @@ extension _DiveComputerAdapterConnections on DiveComputerAdapter {
         modelB: device.model,
       ),
     );
+  }
+}
+
+/// The serial check a download step needs before importing from a device it
+/// adopted by make and model alone (issue #3710).
+extension DiveComputerAdapterUnitCheck on DiveComputerAdapter {
+  /// Whether the download from [device] reported a serial that is not the
+  /// saved computer's, so another unit of the same model, such as a buddy's,
+  /// answered. False when either serial is unknown.
+  bool reportsAnotherUnit(DiscoveredDevice device, String? reportedSerial) {
+    final known = computer;
+    return known != null &&
+        _reportsAnotherComputer(known, device, reportedSerial);
   }
 }

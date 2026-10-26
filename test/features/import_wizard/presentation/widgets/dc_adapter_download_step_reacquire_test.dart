@@ -11,6 +11,7 @@ import 'package:submersion/features/dive_computer/presentation/widgets/download_
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/import_wizard/data/adapters/dive_computer_adapter.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/dc_adapter_steps.dart';
+import 'package:submersion/features/import_wizard/presentation/widgets/dc_another_unit_view.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/dc_known_computer_not_found_view.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/dc_no_direct_download_view.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -110,6 +111,7 @@ DiveComputer _savedComputer({
   String connectionType = 'bluetooth',
   String? bluetoothAddress = _savedAddress,
   String manufacturer = 'Shearwater',
+  String? serialNumber,
 }) {
   final now = DateTime(2026, 8, 23);
   return DiveComputer(
@@ -120,6 +122,7 @@ DiveComputer _savedComputer({
     model: 'Petrel 3',
     connectionType: connectionType,
     bluetoothAddress: bluetoothAddress,
+    serialNumber: serialNumber,
     lastDiveFingerprint: 'abc',
     createdAt: now,
     updatedAt: now,
@@ -410,6 +413,26 @@ void main() {
       },
     );
 
+    testWidgets('stops before importing when the stand-in reports another '
+        'serial', (tester) async {
+      final h = _Harness();
+      await tester.pumpWidget(h.build(_savedComputer(serialNumber: '12345')));
+      await tester.pump();
+      h.service.onDeviceDiscovered(_advert(freshAddress));
+      await tester.pump(
+        DcAdapterDownloadStep.knownDeviceScanTimeout +
+            const Duration(seconds: 1),
+      );
+      await _settle(tester);
+      expect(h.hostApi.downloads.single.address, freshAddress);
+
+      h.service.onDownloadComplete(0, '99999', null, null, null, null);
+      await _settle(tester);
+
+      expect(find.byType(DcAnotherUnitView), findsOneWidget);
+      expect(find.byType(DcNoNewDivesView), findsNothing);
+    });
+
     testWidgets('keeps the stored address when two devices of the saved model '
         'advertise', (tester) async {
       final h = _Harness();
@@ -618,6 +641,83 @@ void main() {
       expect(h.hostApi.calls.skip(1), isNotEmpty);
       expect(h.hostApi.calls.skip(1), everyElement('stopDiscovery'));
       expect(h.hostApi.downloads, isEmpty);
+    });
+
+    testWidgets('stops before importing when the adopted device reports '
+        'another serial, and says which', (tester) async {
+      // A buddy's unit of the same model was the only one awake: its log
+      // must not land in this diver's logbook under this computer.
+      final h = _Harness();
+      await tester.pumpWidget(
+        h.build(_savedComputer(bluetoothAddress: null, serialNumber: '12345')),
+      );
+      await tester.pump();
+      h.service.onDeviceDiscovered(_advert(phoneAddress));
+      await tester.pump(timeout);
+      await _settle(tester);
+      expect(h.hostApi.downloads.single.address, phoneAddress);
+
+      h.service.onDownloadComplete(0, '99999', null, null, null, null);
+      await _settle(tester);
+
+      expect(find.byType(DcAnotherUnitView), findsOneWidget);
+      // The download shows a Shearwater serial as the 8-digit hex the
+      // computer displays, so 99999 reads 0001869F.
+      expect(
+        find.textContaining('reported serial number 0001869F, not 12345'),
+        findsOneWidget,
+      );
+      expect(find.byType(DcNoNewDivesView), findsNothing);
+      expect(h.hostApi.calls.last, 'stopDiscovery');
+    });
+
+    testWidgets('carries on when the adopted device reports the saved serial', (
+      tester,
+    ) async {
+      final h = _Harness();
+      await tester.pumpWidget(
+        h.build(_savedComputer(bluetoothAddress: null, serialNumber: '12345')),
+      );
+      await tester.pump();
+      h.service.onDeviceDiscovered(_advert(phoneAddress));
+      await tester.pump(timeout);
+      await _settle(tester);
+
+      h.service.onDownloadComplete(0, '12345', null, null, null, null);
+      await _settle(tester);
+
+      expect(find.byType(DcAnotherUnitView), findsNothing);
+      expect(find.byType(DcNoNewDivesView), findsOneWidget);
+    });
+
+    testWidgets('says it could not search when native discovery ends at once, '
+        'as iOS does with Bluetooth off', (tester) async {
+      final h = _Harness();
+      await tester.pumpWidget(h.build(_savedComputer(bluetoothAddress: null)));
+      await tester.pump();
+      h.service.onDiscoveryComplete();
+      await _settle(tester);
+
+      expect(find.byType(DcKnownComputerNotFoundView), findsOneWidget);
+      expect(
+        find.textContaining('could not search over Bluetooth'),
+        findsOneWidget,
+      );
+      expect(find.textContaining('nearby'), findsNothing);
+    });
+
+    testWidgets('does not adopt the one device seen before discovery ended '
+        'early', (tester) async {
+      final h = _Harness();
+      await tester.pumpWidget(h.build(_savedComputer(bluetoothAddress: null)));
+      await tester.pump();
+      h.service.onDeviceDiscovered(_advert(phoneAddress));
+      h.service.onDiscoveryComplete();
+      await _settle(tester);
+
+      expect(find.byType(DcKnownComputerNotFoundView), findsOneWidget);
+      expect(h.hostApi.downloads, isEmpty);
+      expect(_selectedDevice(tester), isNull);
     });
 
     testWidgets('does not scan for a Bluetooth Classic computer, which BLE '

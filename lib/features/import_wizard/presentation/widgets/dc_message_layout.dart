@@ -3,16 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The layout the download step's terminal views share: an icon in a
-/// circle, a title, a body, one action and Done.
+/// circle, a title, a body, an optional action and Done.
 class DcMessageLayout extends StatelessWidget {
   const DcMessageLayout({
     super.key,
     required this.icon,
     required this.title,
     required this.body,
-    required this.actionIcon,
-    required this.actionLabel,
-    required this.onAction,
+    this.actionIcon,
+    this.actionLabel,
+    this.onAction,
     required this.onDone,
     this.bodyIsError = false,
   });
@@ -20,9 +20,11 @@ class DcMessageLayout extends StatelessWidget {
   final IconData icon;
   final String title;
   final String body;
-  final IconData actionIcon;
-  final String actionLabel;
-  final VoidCallback onAction;
+
+  /// The one action besides Done; with no [onAction] only Done shows.
+  final IconData? actionIcon;
+  final String? actionLabel;
+  final VoidCallback? onAction;
   final VoidCallback onDone;
 
   /// Whether [body] reports a problem, and is drawn in the error colour.
@@ -69,12 +71,14 @@ class DcMessageLayout extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 32),
-            FilledButton.icon(
-              onPressed: onAction,
-              icon: Icon(actionIcon),
-              label: Text(actionLabel),
-            ),
-            const SizedBox(height: 12),
+            if (onAction != null) ...[
+              FilledButton.icon(
+                onPressed: onAction,
+                icon: Icon(actionIcon),
+                label: Text(actionLabel ?? ''),
+              ),
+              const SizedBox(height: 12),
+            ],
             TextButton(
               onPressed: onDone,
               child: Text(context.l10n.universalImport_action_done),

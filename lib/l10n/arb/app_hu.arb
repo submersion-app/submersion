@@ -14497,6 +14497,8 @@
   "importWizard_dc_tryAgain": "Újra",
   "importWizard_dc_bluetoothOffBody": "A Bluetooth ki van kapcsolva, vagy nem érhető el ezen az eszközön. Kapcsolja be, majd koppintson az Újra gombra.",
   "importWizard_dc_couldNotScanBody": "A Submersion nem tudott Bluetooth-on keresni. Ellenőrizze, hogy a Bluetooth be van-e kapcsolva, és hogy a Submersion használhatja-e, majd koppintson az Újra gombra.",
+  "importWizard_dc_anotherUnit": "Nem ez volt: {name}",
+  "importWizard_dc_anotherUnitBody": "A válaszoló {model} a(z) {reported} sorozatszámot jelentette, nem a(z) {stored} számot, tehát egy másik számítógép, és a merülései nem lettek importálva. Kapcsolja ki annak a számítógépnek a Bluetooth-át, tartsa közel ezt: {name} ehhez az eszközhöz, és töltse le újra.",
   "importWizard_dc_noUsbOnThisPlatformBody": "Ez a számítógép ({name}) USB-kábellel csatlakozik, amelyet a Submersion iPhone-on és iPaden nem tud használni. Töltse le a merüléseit a Submersionnel egy Mac, Windows vagy Linux rendszerű számítógépen, vagy importálja őket fájlból.",
   "importWizard_dc_noNewDives": "Nincs letöltendő új merülés",
   "importWizard_dc_noNewDivesBody": "Ennek a búvárszámítógépnek az összes merülése már importálva lett.",

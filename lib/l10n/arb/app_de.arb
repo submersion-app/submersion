@@ -14649,6 +14649,8 @@
   "importWizard_dc_tryAgain": "Erneut versuchen",
   "importWizard_dc_bluetoothOffBody": "Bluetooth ist auf diesem Gerät ausgeschaltet oder nicht verfügbar. Schalten Sie es ein und tippen Sie dann auf „Erneut versuchen“.",
   "importWizard_dc_couldNotScanBody": "Submersion konnte nicht per Bluetooth suchen. Prüfen Sie, ob Bluetooth eingeschaltet ist und Submersion es verwenden darf, und tippen Sie dann auf „Erneut versuchen“.",
+  "importWizard_dc_anotherUnit": "Das war nicht {name}",
+  "importWizard_dc_anotherUnitBody": "Der antwortende {model} meldete die Seriennummer {reported}, nicht {stored}. Es ist also ein anderer Computer, und seine Tauchgänge wurden nicht importiert. Schalten Sie Bluetooth an diesem Computer aus, halten Sie {name} nah an dieses Gerät und laden Sie erneut herunter.",
   "importWizard_dc_noUsbOnThisPlatformBody": "{name} wird per USB-Kabel verbunden, das Submersion auf iPhone und iPad nicht nutzen kann. Laden Sie die Tauchgänge mit Submersion auf einem Mac-, Windows- oder Linux-Computer herunter, oder importieren Sie sie aus einer Datei.",
   "importWizard_dc_noNewDives": "Keine neuen Tauchgänge zum Herunterladen",
   "importWizard_dc_noNewDivesBody": "Alle Tauchgänge von diesem Computer wurden bereits importiert.",

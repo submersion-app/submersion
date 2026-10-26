@@ -49110,6 +49110,21 @@ class AppLocalizationsDe extends AppLocalizations {
       'Submersion konnte nicht per Bluetooth suchen. Prüfen Sie, ob Bluetooth eingeschaltet ist und Submersion es verwenden darf, und tippen Sie dann auf „Erneut versuchen“.';
 
   @override
+  String importWizard_dc_anotherUnit(String name) {
+    return 'Das war nicht $name';
+  }
+
+  @override
+  String importWizard_dc_anotherUnitBody(
+    String name,
+    String model,
+    String reported,
+    String stored,
+  ) {
+    return 'Der antwortende $model meldete die Seriennummer $reported, nicht $stored. Es ist also ein anderer Computer, und seine Tauchgänge wurden nicht importiert. Schalten Sie Bluetooth an diesem Computer aus, halten Sie $name nah an dieses Gerät und laden Sie erneut herunter.';
+  }
+
+  @override
   String get importWizard_dc_noNewDives =>
       'Keine neuen Tauchgänge zum Herunterladen';
 
