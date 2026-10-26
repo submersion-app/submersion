@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/core/database/database.dart' hide DiveComputer;
+import 'package:submersion/core/database/database.dart'
+    hide DiveComputer, EquipmentSet, EquipmentSetGeofence;
 import 'package:submersion/features/dive_computer/data/services/dive_import_service.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
@@ -11,6 +12,10 @@ import 'package:submersion/features/dive_log/data/services/dive_consolidation_se
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_set_repository_impl.dart';
+import 'package:submersion/features/equipment/data/services/dive_equipment_defaulter.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_set_geofence.dart';
 import 'package:submersion/features/gps_log/data/repositories/gps_track_repository.dart';
 import 'package:submersion/features/gps_log/data/services/gps_track_match_service.dart';
 import 'package:submersion/features/gps_log/domain/entities/gps_track.dart';
@@ -105,6 +110,7 @@ void main() {
   Future<ImportWizardNotifier> wizardWith(
     GpsTrackMatchService gpsTrackMatchService, {
     String? matching,
+    DiveEquipmentDefaulter? equipmentDefaulter,
   }) async {
     final computer = await computerRepository.createComputer(
       DiveComputer.create(id: 'computer-1', name: 'Computer', diverId: diverId),
@@ -156,6 +162,7 @@ void main() {
     return ImportWizardNotifier(
       adapter,
       gpsTrackMatchService: gpsTrackMatchService,
+      equipmentDefaulter: equipmentDefaulter,
     )..setBundle(bundle);
   }
 
@@ -236,4 +243,75 @@ void main() {
       expect(dive.entryLongitude, closeTo(20 + 1 / 3, 1e-6));
     });
   }
+
+  test('a downloaded dive positioned inside a geofence trades the default '
+      'set it was written with for the geofenced one', () async {
+    final now = DateTime.now();
+    for (final id in ['warm-suit', 'drysuit']) {
+      await db
+          .into(db.equipment)
+          .insert(
+            EquipmentCompanion.insert(
+              id: id,
+              name: id,
+              type: 'wetsuit',
+              createdAt: now.millisecondsSinceEpoch,
+              updatedAt: now.millisecondsSinceEpoch,
+            ),
+          );
+    }
+    final sets = EquipmentSetRepository();
+    await sets.createSet(
+      EquipmentSet(
+        id: 'warm',
+        diverId: diverId,
+        name: 'Warm',
+        equipmentIds: const ['warm-suit'],
+        isDefault: true,
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
+    await sets.setAsDefault('warm', diverId: diverId);
+    await sets.createSet(
+      EquipmentSet(
+        id: 'cold',
+        diverId: diverId,
+        name: 'Cold',
+        equipmentIds: const ['drysuit'],
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
+    // Around the dive's entry, a third of the way along the track.
+    await sets.addGeofence(
+      EquipmentSetGeofence(
+        id: 'fence',
+        setId: 'cold',
+        latitude: 10 + 1 / 3,
+        longitude: 20 + 1 / 3,
+        radiusMeters: 5000,
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
+    await seedTrack();
+    final wizard = await wizardWith(
+      realSweep(),
+      equipmentDefaulter: DiveEquipmentDefaulter(),
+    );
+
+    await wizard.performImport();
+
+    final dive = await onlyDive();
+    expect(dive.entryLatitude, isNotNull);
+    final gear = await (db.select(
+      db.diveEquipment,
+    )..where((t) => t.diveId.equals(dive.id))).get();
+    final bySet = {for (final r in gear) r.equipmentId: r.viaSetId};
+    expect(bySet['drysuit'], 'cold');
+    expect(bySet, isNot(contains('warm-suit')));
+    // The computer's own equipment entry came with the download, not a set.
+    expect(bySet.values.where((v) => v != null), ['cold']);
+  });
 }

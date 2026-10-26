@@ -5,8 +5,10 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/equipment/data/services/dive_equipment_defaulter.dart';
 import 'package:submersion/features/gps_log/data/services/gps_track_match_service.dart';
 import 'package:submersion/features/gps_log/data/services/import_track_stamp.dart';
+import 'package:submersion/features/import_wizard/data/services/import_positioned_equipment.dart';
 import 'package:submersion/features/import_wizard/domain/adapters/import_source_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
@@ -270,12 +272,14 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
     String? diverId,
     RuleEngine? ruleEngine,
     GpsTrackMatchService? gpsTrackMatchService,
+    DiveEquipmentDefaulter? equipmentDefaulter,
     ImportJobNotifier? job,
     bool continuesWithoutWizard = false,
   }) : _tagRepository = tagRepository,
        _diverId = diverId,
        _ruleEngine = ruleEngine,
        _gpsTrackMatchService = gpsTrackMatchService,
+       _equipmentDefaulter = equipmentDefaulter,
        _job = job,
        _continuesWithoutWizard = continuesWithoutWizard,
        super(const ImportWizardState());
@@ -289,6 +293,11 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
   /// Stamps the imported dives' entry and exit GPS from recorded surface
   /// tracks (issue #3704). Null in tests that do not need it.
   final GpsTrackMatchService? _gpsTrackMatchService;
+
+  /// Re-chooses the gear of dives the track sweep positioned, so a
+  /// geofenced set follows the new position. Null in tests that do not
+  /// need it.
+  final DiveEquipmentDefaulter? _equipmentDefaulter;
   String? _diverId;
 
   /// The app-wide job an import runs as (see [importJobProvider]): it owns
@@ -1186,7 +1195,18 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
       // not in an adapter, so every source gets it. Never throws.
       final gps = _gpsTrackMatchService;
       if (!token.isCancelled && gps != null) {
-        await stampImportedDivesFromTracks(gps, result);
+        final positioned = await stampImportedDivesFromTracks(gps, result);
+        // Gear was chosen when the dives were written, without the
+        // position; choose again now that it is known. Never throws.
+        final defaulter = _equipmentDefaulter;
+        if (defaulter != null) {
+          await reequipPositionedDives(
+            defaulter,
+            result,
+            positionedDiveIds: positioned,
+            sourceType: _adapter.sourceType,
+          );
+        }
       }
 
       // Apply import tags to all imported dives.

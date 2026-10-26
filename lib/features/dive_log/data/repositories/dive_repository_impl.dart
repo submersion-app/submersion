@@ -7319,6 +7319,34 @@ class DiveRepository {
     await _bumpDives(diveIds, now);
   }
 
+  /// Swap the gear [fromSetId] put on a dive for [equipmentIds] from
+  /// [toSetId] in one write, as the edit page does when the diver changes
+  /// set: gear both sets hold stays, now tagged with [toSetId], and gear
+  /// added any other way is untouched. No notify/txn.
+  Future<void> replaceSetEquipment(
+    String diveId, {
+    required String fromSetId,
+    required String toSetId,
+    required List<String> equipmentIds,
+  }) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final index = await _loadComponentsIndex();
+    final candidates = {
+      for (final id in equipmentIds) ...[id, ...index.descendantsOf(id)],
+    };
+    final active = await _activeIdsAmong(candidates);
+    final expanded = GearExpander.expand(
+      additions: [
+        for (final id in equipmentIds) (equipmentId: id, viaSetId: toSetId),
+      ],
+      index: index,
+      existing: GearExpander.removeSet(await _provenanceOf(diveId), fromSetId),
+      isActive: active.contains,
+    );
+    await _writeGearDiff(diveId, expanded, now);
+    await _bumpDives([diveId], now);
+  }
+
   /// {equipmentId: number of the given dives that reference it}. Junction PK
   /// is (diveId, equipmentId), so COUNT(diveId) equals the distinct-dive count.
   Future<Map<String, int>> equipmentCountsForDives(List<String> diveIds) async {
