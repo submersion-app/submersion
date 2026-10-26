@@ -26,6 +26,7 @@ import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.
 import 'package:submersion/features/signatures/data/services/signature_storage_service.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
+import 'package:submersion/core/services/pdf_templates/pdf_notes_markdown.dart';
 
 /// Handles PDF export for dive logbooks and trip reports.
 class PdfExportService {
@@ -190,9 +191,11 @@ class PdfExportService {
             if (dive.notes.isNotEmpty) ...[
               pw.SizedBox(height: 10),
               pw.Text(l10n.pdf_notesLabel),
-              // TextOverflow.span is what lets MultiPage break the notes
-              // across sheets.
-              pw.Text(dive.notes, overflow: pw.TextOverflow.span),
+              // One widget per block, each able to break across sheets.
+              ...notesMarkdownPdfBlocks(
+                dive.notes,
+                style: const pw.TextStyle(),
+              ),
             ],
           ],
         ),

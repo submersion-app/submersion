@@ -18,6 +18,7 @@ import 'package:submersion/features/dive_sites/domain/entry_method_list.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_session.dart';
+import 'package:submersion/core/text/markdown/notes_plain_text.dart';
 
 /// Handles Excel export with multiple worksheet sheets.
 class ExcelExportService {
@@ -314,7 +315,7 @@ class ExcelExportService {
         convertVolume(tank?.volume, volumeUnit),
         tank?.gasMix.o2.toStringAsFixed(0) ?? '',
         tank?.gasMix.he.toStringAsFixed(0) ?? '',
-        dive.notes.replaceAll('\n', ' '),
+        markdownToPlainText(dive.notes).replaceAll('\n', ' '),
         dive.windSpeed?.toStringAsFixed(1) ?? '',
         dive.windDirection?.displayName ?? '',
         dive.cloudCover?.displayName ?? '',
@@ -394,10 +395,10 @@ class ExcelExportService {
         joinEntryMethodNames(site.entryMethods, (m) => m.displayName),
         site.difficulty?.displayName ?? '',
         site.rating?.toStringAsFixed(1) ?? '',
-        site.description.replaceAll('\n', ' '),
+        markdownToPlainText(site.description).replaceAll('\n', ' '),
         site.hazards ?? '',
-        site.accessNotes ?? '',
-        site.notes.replaceAll('\n', ' '),
+        markdownToPlainText(site.accessNotes ?? '').replaceAll('\n', ' '),
+        markdownToPlainText(site.notes).replaceAll('\n', ' '),
       ];
 
       for (var col = 0; col < rowData.length; col++) {
@@ -469,7 +470,7 @@ class ExcelExportService {
             ? formatDateForExport(item.nextServiceDue!, dateFormat)
             : '',
         item.isActive ? 'Yes' : 'No',
-        item.notes.replaceAll('\n', ' '),
+        markdownToPlainText(item.notes).replaceAll('\n', ' '),
       ];
 
       for (var col = 0; col < rowData.length; col++) {
