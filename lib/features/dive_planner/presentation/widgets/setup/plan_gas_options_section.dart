@@ -132,6 +132,57 @@ class PlanGasOptionsSection extends ConsumerWidget {
             clearPpO2Deco: value == null,
           ),
         ),
+        if (ref.watch(ppO2DecoBandsEnabledProvider)) ...[
+          PlanNumberField(
+            label: context.l10n.divePlanner_gasOptions_ppO2DecoBand1,
+            value: state.ppO2DecoBand1,
+            hintValue: ref.watch(ppO2DecoBand1Provider),
+            suffixText: 'bar',
+            decimals: 2,
+            onChanged: (value) => notifier.updateGasOptions(
+              ppO2DecoBand1: value,
+              clearPpO2DecoBand1: value == null,
+            ),
+          ),
+          PlanNumberField(
+            label: context.l10n.divePlanner_gasOptions_ppO2DecoBand2,
+            value: state.ppO2DecoBand2,
+            hintValue: ref.watch(ppO2DecoBand2Provider),
+            suffixText: 'bar',
+            decimals: 2,
+            onChanged: (value) => notifier.updateGasOptions(
+              ppO2DecoBand2: value,
+              clearPpO2DecoBand2: value == null,
+            ),
+          ),
+          PlanNumberField(
+            label: context.l10n.divePlanner_gasOptions_ppO2DecoBand3,
+            value: state.ppO2DecoBand3,
+            hintValue: ref.watch(ppO2DecoBand3Provider),
+            suffixText: 'bar',
+            decimals: 2,
+            onChanged: (value) => notifier.updateGasOptions(
+              ppO2DecoBand3: value,
+              clearPpO2DecoBand3: value == null,
+            ),
+          ),
+        ],
+        if (ref.watch(maxO2DepthEnabledProvider))
+          PlanNumberField(
+            label: context.l10n.divePlanner_gasOptions_maxO2DepthMeters,
+            value: state.maxO2DepthMeters != null
+                ? units.convertDepth(state.maxO2DepthMeters!)
+                : null,
+            hintValue: units.convertDepth(ref.watch(maxO2DepthMetersProvider)),
+            suffixText: units.depthSymbol,
+            decimals: 1,
+            onChanged: (value) => notifier.updateGasOptions(
+              maxO2DepthMeters: value != null
+                  ? units.depthToMeters(value)
+                  : null,
+              clearMaxO2DepthMeters: value == null,
+            ),
+          ),
         PlanNumberField(
           label: context.l10n.divePlanner_gasOptions_bestMixEnd,
           value: state.bestMixEndMeters != null
