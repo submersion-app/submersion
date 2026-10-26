@@ -7,6 +7,7 @@
 - [All How-To Guides](how-to-guides.md)
 - [Set Up Sync, Backups and Photos](how-to-sync-backups-photos.md)
 - [Set Up a Shared Site Library](how-to-shared-site-library.md)
+- [Log GPS Tracks on Your Phone](how-to-gps-track-logging.md)
 - [Log a Dive from Your Computer](how-to-log-a-dive.md)
 - [Customize the Display](how-to-customize-display.md)
 - Moving from another app

@@ -11,6 +11,7 @@ The rest of this user guide is a reference that explains every option of each fe
 
 ## Use the app
 
+- [Log GPS Tracks on Your Phone](how-to-gps-track-logging.md): record a boat day so each dive gets its position.
 - [Log a Dive from Your Computer](how-to-log-a-dive.md): download your dives and turn one into a complete log entry.
 - [Customize the Display](how-to-customize-display.md): your theme, units, Dashboard, dive list and navigation.
 
