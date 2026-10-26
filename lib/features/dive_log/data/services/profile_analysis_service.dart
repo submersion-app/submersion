@@ -933,12 +933,16 @@ class ProfileAnalysisService {
       maxDepthTimestamp: maxDepthTimestamp,
     );
 
-    // Calculate SAC if pressure data available
+    // Calculate SAC if pressure data available. Not on a rebreather, whose
+    // cylinders do not drain with the diver's breathing (issue #3673), as
+    // Dive.sac and DerivedMetricsService hold.
     List<double>? sacCurve;
     List<double>? smoothedSacCurve;
     List<SacSegment>? sacSegments;
 
-    if (pressures != null && pressures.length == depths.length) {
+    if (!isRebreather &&
+        pressures != null &&
+        pressures.length == depths.length) {
       sacCurve = _calculateSacCurve(depths, timestamps, pressures);
 
       if (sacCurve != null) {
