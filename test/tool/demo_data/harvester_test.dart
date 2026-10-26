@@ -74,6 +74,15 @@ void main() {
     );
   });
 
+  test('a binary file that is not a dive log is skipped cleanly', () async {
+    final jpeg = p.join(dir.path, 'photo.jpg');
+    File(jpeg).writeAsBytesSync([0xFF, 0xD8, 0xFF, 0xE0, ...List.filled(64, 0)]);
+
+    final result = await harvester().harvest([jpeg]);
+
+    expect(result.skipped.single, contains('not a dive log'));
+  });
+
   test('a dive file is imported through the app and shaped', () async {
     final result = await harvester().harvest([_ratioFixture]);
 

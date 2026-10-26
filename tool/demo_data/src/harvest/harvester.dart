@@ -19,7 +19,11 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/parsers/parser_registry.dart';
 import 'package:submersion/features/universal_import/data/parsers/placeholder_parser.dart';
+import 'package:submersion/features/universal_import/data/services/divemate_schema.dart';
+import 'package:submersion/features/universal_import/data/services/divinglog_db_reader.dart';
 import 'package:submersion/features/universal_import/data/services/format_detector.dart';
+import 'package:submersion/features/universal_import/data/services/macdive_db_reader.dart';
+import 'package:submersion/features/universal_import/data/services/shearwater_db_reader.dart';
 
 import '../shape/dive_shape.dart';
 import '../shape/shape_extractor.dart';
@@ -132,11 +136,14 @@ class Harvester {
     }
   }
 
+  static const _sqliteMagic = 'SQLite format 3';
+
+  static bool _isSqlite(List<int> bytes) =>
+      bytes.length >= 16 &&
+      String.fromCharCodes(bytes.sublist(0, 15)) == _sqliteMagic;
+
   bool _isSubmersionDatabase(String path, List<int> bytes) {
-    if (bytes.length < 16 ||
-        ascii.decode(bytes.sublist(0, 15)) != 'SQLite format 3') {
-      return false;
-    }
+    if (!_isSqlite(bytes)) return false;
     final tables = _tableNames(path);
     return tables.containsAll(const {'divers', 'dives', 'diver_settings'});
   }
@@ -176,10 +183,9 @@ class Harvester {
 
   Future<void> _harvestFile(String path, List<int> bytes) async {
     final data = Uint8List.fromList(bytes);
-    final detected = const FormatDetector().detect(data);
-    final parser = parserForFormat(detected.format);
-    if (parser is PlaceholderParser ||
-        detected.format == ImportFormat.unknown) {
+    final format = await _detect(data);
+    final parser = parserForFormat(format);
+    if (parser is PlaceholderParser || format == ImportFormat.unknown) {
       _skipped.add('$path: not a dive log the app can import');
       return;
     }
@@ -213,6 +219,31 @@ class Harvester {
       container.dispose();
     }
     await _harvestDatabase(p.basename(path), db);
+  }
+
+  /// The app's own detection, including the SQLite flavours the import
+  /// screen resolves by probing the table names.
+  static Future<ImportFormat> _detect(Uint8List data) async {
+    final ImportFormat format;
+    try {
+      format = const FormatDetector().detect(data).format;
+    } on FormatException {
+      return ImportFormat.unknown;
+    }
+    if (format != ImportFormat.sqlite) return format;
+    final tables = await ShearwaterDbReader.probeSqliteTableNames(data);
+    if (ShearwaterDbReader.matchesTables(tables)) {
+      return ImportFormat.shearwaterDb;
+    }
+    if (MacDiveDbReader.matchesTables(tables)) {
+      return ImportFormat.macdiveSqlite;
+    }
+    if (DivingLogDbReader.matchesTables(tables)) {
+      return await DiveMateSchema.isDiveMateDb(data)
+          ? ImportFormat.diveMateDdb
+          : ImportFormat.divingLogSqlite;
+    }
+    return ImportFormat.unknown;
   }
 
   Future<void> _harvestDatabase(String source, AppDatabase db) async {
