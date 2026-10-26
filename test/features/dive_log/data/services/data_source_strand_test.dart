@@ -6,6 +6,8 @@ DiveDataSourcesData _row(
   String id, {
   String? computerId,
   int? mergeSourceSlot,
+  String? sourceFileName,
+  DateTime? importedAt,
   String? model = 'Perdix 2',
   String? serial,
   DateTime? entryTime,
@@ -22,7 +24,8 @@ DiveDataSourcesData _row(
   duration: duration,
   maxDepth: maxDepth,
   mergeSourceSlot: mergeSourceSlot,
-  importedAt: DateTime.utc(2026, 7, 2),
+  sourceFileName: sourceFileName,
+  importedAt: importedAt ?? DateTime.utc(2026, 7, 2),
   createdAt: DateTime.utc(2026, 7, 2),
 );
 
@@ -87,6 +90,34 @@ void main() {
       ]);
 
       expect(keys['rounded'], keys['full']);
+    });
+
+    // One file listing two computers of one model: the importer starts each
+    // at the dive's own start, so a shared start proves nothing there.
+    test('keeps apart two rows written by one import of one file', () {
+      final once = DateTime.utc(2026, 7, 2, 8);
+      final keys = dataSourceStrandKeysById([
+        _row('first', sourceFileName: 'log.ssrf', importedAt: once),
+        _row('second', sourceFileName: 'log.ssrf', importedAt: once),
+      ]);
+
+      expect(keys['second'], 'row:second');
+    });
+
+    test('still collapses one recording imported from two files, or from one '
+        'file twice', () {
+      final once = DateTime.utc(2026, 7, 2, 8);
+      final keys = dataSourceStrandKeysById([
+        _row('ssrf', sourceFileName: 'log.ssrf', importedAt: once),
+        _row('uddf', sourceFileName: 'log.uddf', importedAt: once),
+        _row(
+          'again',
+          sourceFileName: 'log.ssrf',
+          importedAt: once.add(const Duration(days: 1)),
+        ),
+      ]);
+
+      expect(keys.values.toSet(), {'row:ssrf'});
     });
 
     test('keeps different models apart', () {

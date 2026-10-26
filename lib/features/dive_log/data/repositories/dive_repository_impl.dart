@@ -1351,6 +1351,9 @@ class DiveRepository {
             ..orderBy([
               (t) => OrderingTerm.desc(t.isPrimary),
               (t) => OrderingTerm.asc(t.createdAt),
+              // Combine copies rows with one createdAt; the id keeps the row
+              // that speaks for a strand the same on every read.
+              (t) => OrderingTerm.asc(t.id),
             ]))
           .get();
 
@@ -6154,7 +6157,8 @@ class DiveRepository {
     final ordered = [...rows]
       ..sort((a, b) {
         if (a.isPrimary != b.isPrimary) return a.isPrimary ? -1 : 1;
-        return a.createdAt.compareTo(b.createdAt);
+        final byCreated = a.createdAt.compareTo(b.createdAt);
+        return byCreated != 0 ? byCreated : a.id.compareTo(b.id);
       });
     final sourceRows = _canonicalDataSourceRows(ordered);
     if (sourceRows.isEmpty) return (hasSources: false, computerId: null);
@@ -8180,6 +8184,8 @@ class DiveRepository {
           t.id,
           t.isPrimary,
           t.createdAt,
+          t.importedAt,
+          t.sourceFileName,
           t.computerId,
           t.mergeSourceSlot,
           t.computerModel,
@@ -8192,6 +8198,7 @@ class DiveRepository {
         ..orderBy([
           OrderingTerm.desc(t.isPrimary),
           OrderingTerm.asc(t.createdAt),
+          OrderingTerm.asc(t.id),
         ]);
       final rows = [
         for (final r in await query.get())
@@ -8199,9 +8206,9 @@ class DiveRepository {
             id: r.read(t.id)!,
             diveId: diveId,
             isPrimary: r.read(t.isPrimary)!,
-            // Not selected and not read by the strand rule.
-            importedAt: r.read(t.createdAt)!,
+            importedAt: r.read(t.importedAt)!,
             createdAt: r.read(t.createdAt)!,
+            sourceFileName: r.read(t.sourceFileName),
             computerId: r.read(t.computerId),
             mergeSourceSlot: r.read(t.mergeSourceSlot),
             computerModel: r.read(t.computerModel),

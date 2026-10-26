@@ -102,10 +102,15 @@ const double _sameRecordingDepthToleranceMeters = 0.1;
 ///   forms are one serial, per [computerSerialsMatch]);
 /// - the start to the second and the runtime to the second, which two
 ///   computers never share, and the maximum depth within rounding.
+///
+/// Two rows one import wrote from one file never match: the file listed
+/// them as separate computers, and the importer starts each at the dive's
+/// own start, so their shared start is no evidence of one recording.
 bool sameRecordingWithoutComputer(
   DiveDataSourcesData a,
   DiveDataSourcesData b,
 ) {
+  if (_sameImport(a, b)) return false;
   if (!_sameModel(a.computerModel, b.computerModel)) return false;
   if (!_compatibleSerials(a, b)) return false;
   final aStart = a.entryTime;
@@ -121,6 +126,11 @@ bool sameRecordingWithoutComputer(
   if (aDepth == null || bDepth == null) return false;
   return (aDepth - bDepth).abs() <= _sameRecordingDepthToleranceMeters;
 }
+
+bool _sameImport(DiveDataSourcesData a, DiveDataSourcesData b) =>
+    a.sourceFileName != null &&
+    a.sourceFileName == b.sourceFileName &&
+    a.importedAt == b.importedAt;
 
 bool _sameModel(String? a, String? b) {
   final left = normalizeComputerIdentityPart(a);
