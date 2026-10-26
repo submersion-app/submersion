@@ -41,13 +41,16 @@ void main() {
     final firstCcr = phases.indexOf(StoryPhase.rebreather);
     expect(firstTech, greaterThan(100));
     expect(firstCcr, greaterThan(firstTech));
-    expect(phases.sublist(firstTech).contains(StoryPhase.recreational), isFalse);
+    expect(
+      phases.sublist(firstTech).contains(StoryPhase.recreational),
+      isFalse,
+    );
     final ccr = plan.dives.where((d) => d.diveMode == 'ccr').length;
     expect(ccr, inInclusiveRange(8, 12));
     expect(
-      plan.dives.where((d) => d.diveMode == 'ccr').every(
-        (d) => d.phase == StoryPhase.rebreather,
-      ),
+      plan.dives
+          .where((d) => d.diveMode == 'ccr')
+          .every((d) => d.phase == StoryPhase.rebreather),
       isTrue,
     );
   });
