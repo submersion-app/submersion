@@ -379,6 +379,24 @@ void main() {
       semantics.dispose();
     });
 
+    testWidgets('the dots between detail items are not read out', (
+      tester,
+    ) async {
+      final semantics = tester.ensureSemantics();
+      await tester.pumpWidget(
+        _buildCard(dive: _makeDive([_makeTank()]), cylinderSacs: [_makeSac()]),
+      );
+      await tester.pumpAndSettle();
+
+      // The dots are drawn between the items...
+      expect(find.text(' · '), findsWidgets);
+      // ...but no semantics node carries one.
+      expect(find.bySemanticsLabel(RegExp('·')), findsNothing);
+      // The items themselves are still read.
+      expect(find.bySemanticsLabel(RegExp('Gas used 1665 L')), findsWidgets);
+      semantics.dispose();
+    });
+
     testWidgets('a missing pressure is read out without a unit', (
       tester,
     ) async {

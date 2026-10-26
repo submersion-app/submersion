@@ -13,10 +13,21 @@ const _pressureFlex = 15;
 /// The tank's role icon, and the space it and its gap take, so the detail
 /// lines under a row start where the tank's name does.
 const _iconSize = 20.0;
-
-/// What the card shows for a pressure it does not have.
-const _missing = '--';
 const _iconIndent = 28.0;
+
+/// What a pressure cell shows for a value the tank does not have.
+const _missing = '--';
+
+/// The table's column names: drawn once in [CylinderTableHeader], and read
+/// out with every cell by [CylinderTableRow], since a screen reader does not
+/// pair a cell with the header above it.
+typedef CylinderColumnLabels = ({
+  String tank,
+  String gas,
+  String start,
+  String end,
+  String used,
+});
 
 /// Header of the Cylinders card's table: Tank, Gas, then the three pressure
 /// columns with the pressure [unit] under each, so the cells below hold bare
@@ -24,19 +35,11 @@ const _iconIndent = 28.0;
 class CylinderTableHeader extends StatelessWidget {
   const CylinderTableHeader({
     super.key,
-    required this.tank,
-    required this.gas,
-    required this.start,
-    required this.end,
-    required this.used,
+    required this.labels,
     required this.unit,
   });
 
-  final String tank;
-  final String gas;
-  final String start;
-  final String end;
-  final String used;
+  final CylinderColumnLabels labels;
   final String unit;
 
   @override
@@ -77,15 +80,19 @@ class CylinderTableHeader extends StatelessWidget {
           children: [
             Expanded(
               flex: _tankFlex,
-              child: label(tank, style, AlignmentDirectional.centerStart),
+              child: label(
+                labels.tank,
+                style,
+                AlignmentDirectional.centerStart,
+              ),
             ),
             Expanded(
               flex: _gasFlex,
-              child: label(gas, style, AlignmentDirectional.centerStart),
+              child: label(labels.gas, style, AlignmentDirectional.centerStart),
             ),
-            pressure(start),
-            pressure(end),
-            pressure(used),
+            pressure(labels.start),
+            pressure(labels.end),
+            pressure(labels.used),
           ],
         ),
       ),
@@ -121,14 +128,12 @@ class CylinderTableRow extends StatelessWidget {
   /// role), joined by dots.
   final List<Widget> subtitle;
   final GasMix gasMix;
-  final String start;
-  final String end;
-  final String used;
 
-  /// Every column's name, read out with its cell, since a screen reader
-  /// does not pair a cell with the header above it.
-  final ({String tank, String gas, String start, String end, String used})
-  columnLabels;
+  /// The formatted pressures, each null when the tank does not have it.
+  final String? start;
+  final String? end;
+  final String? used;
+  final CylinderColumnLabels columnLabels;
 
   /// The pressure unit, read out with each cell for the same reason.
   final String unit;
@@ -143,20 +148,20 @@ class CylinderTableRow extends StatelessWidget {
     );
     final number = theme.textTheme.bodyMedium;
 
-    Widget pressure(String label, String value, {bool emphasised = false}) =>
+    Widget pressure(String label, String? value, {bool emphasised = false}) =>
         Expanded(
           flex: _pressureFlex,
           child: Semantics(
             container: true,
-            // A missing value ("--") has no unit to read out.
-            label: value == _missing ? '$label $value' : '$label $value $unit',
+            // A missing value has no unit to read out.
+            label: value == null ? '$label $_missing' : '$label $value $unit',
             excludeSemantics: true,
             child: Align(
               alignment: AlignmentDirectional.topEnd,
               child: FittedBox(
                 fit: BoxFit.scaleDown,
                 child: Text(
-                  value,
+                  value ?? _missing,
                   maxLines: 1,
                   style: emphasised
                       ? number?.copyWith(fontWeight: FontWeight.w700)
@@ -259,7 +264,8 @@ class CylinderTableRow extends StatelessWidget {
 }
 
 /// [children] in a wrapping line, each but the last followed by a dot, so a
-/// line breaks between items and never inside one.
+/// line breaks between items rather than inside one; only an item wider
+/// than the whole line wraps inside itself. The dots are not read out.
 class DotJoinedWrap extends StatelessWidget {
   const DotJoinedWrap({super.key, required this.children});
 
@@ -280,7 +286,7 @@ class DotJoinedWrap extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Flexible(child: children[i]),
-                    const Text(' · '),
+                    const ExcludeSemantics(child: Text(' · ')),
                   ],
                 ),
       ],

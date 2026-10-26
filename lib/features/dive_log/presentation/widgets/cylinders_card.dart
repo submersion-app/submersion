@@ -97,6 +97,13 @@ class CylindersCard extends ConsumerWidget {
 
     final l10n = context.l10n;
     final theme = Theme.of(context);
+    final columns = (
+      tank: l10n.diveLog_cylinders_columnTank,
+      gas: l10n.diveLog_cylinders_columnGas,
+      start: l10n.diveLog_cylinders_columnStart,
+      end: l10n.diveLog_cylinders_columnEnd,
+      used: l10n.diveLog_cylinders_columnUsed,
+    );
     final rows = [
       for (final entry in dive.tanks.asMap().entries)
         _tankRow(
@@ -111,6 +118,7 @@ class CylindersCard extends ConsumerWidget {
           knownSerials: knownSerials,
           slotLabel: slotLabels[entry.value.tripCylinderId],
           showRole: showRoles,
+          columns: columns,
         ),
     ];
 
@@ -125,14 +133,7 @@ class CylindersCard extends ConsumerWidget {
               style: theme.textTheme.titleMedium,
             ),
             const SizedBox(height: 12),
-            CylinderTableHeader(
-              tank: l10n.diveLog_cylinders_columnTank,
-              gas: l10n.diveLog_cylinders_columnGas,
-              start: l10n.diveLog_cylinders_columnStart,
-              end: l10n.diveLog_cylinders_columnEnd,
-              used: l10n.diveLog_cylinders_columnUsed,
-              unit: units.pressureSymbol,
-            ),
+            CylinderTableHeader(labels: columns, unit: units.pressureSymbol),
             const Divider(height: 1),
             for (var i = 0; i < rows.length; i++) ...[
               if (i > 0)
@@ -198,6 +199,7 @@ class CylindersCard extends ConsumerWidget {
     required Set<String> knownSerials,
     required TripCylinderTankLabel? slotLabel,
     required bool showRole,
+    required CylinderColumnLabels columns,
   }) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
@@ -217,7 +219,7 @@ class CylindersCard extends ConsumerWidget {
     final hasUsed = pressureUsed != null && pressureUsed > 0;
     final usedText = pressureUsed != null && pressureUsed >= 0
         ? units.formatPressureValue(pressureUsed)
-        : '--';
+        : null;
 
     // Preset display name, falling back to formatted volume.
     final preset = tank.presetName != null
@@ -266,16 +268,14 @@ class CylindersCard extends ConsumerWidget {
           ),
       ],
       gasMix: tank.gasMix,
-      start: units.formatPressureValue(pressures.$1),
-      end: units.formatPressureValue(pressures.$2),
+      start: pressures.$1 == null
+          ? null
+          : units.formatPressureValue(pressures.$1),
+      end: pressures.$2 == null
+          ? null
+          : units.formatPressureValue(pressures.$2),
       used: usedText,
-      columnLabels: (
-        tank: l10n.diveLog_cylinders_columnTank,
-        gas: l10n.diveLog_cylinders_columnGas,
-        start: l10n.diveLog_cylinders_columnStart,
-        end: l10n.diveLog_cylinders_columnEnd,
-        used: l10n.diveLog_cylinders_columnUsed,
-      ),
+      columnLabels: columns,
       unit: units.pressureSymbol,
       details: [
         DotJoinedWrap(
