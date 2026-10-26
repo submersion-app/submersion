@@ -5,6 +5,7 @@
 
 **How-To Guides**
 - [All How-To Guides](how-to-guides.md)
+- [Set Up Sync, Backups and Photos](how-to-sync-backups-photos.md)
 
 **Logging Your Dives**
 - [The Dashboard](dashboard.md)
