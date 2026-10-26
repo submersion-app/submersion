@@ -599,5 +599,14 @@ extension RungsFromV231 on AppDatabase {
     // off by default; re-asserted in beforeOpen.
     if (from < 315) await _assertOmitUnusedOcGasesColumn();
     if (from < 315) await reportProgress();
+
+    // v318: the computer tissue snapshot keeps only what has no dive column
+    // (issue #2555). Moves the CNS, OTU and deco model stored snapshots
+    // held into dives and the primary source where those are empty. Rung
+    // only: new imports no longer write them, and the snapshot reader skips
+    // one that still arrives from an older peer. 316 and 317 are held by
+    // open branches (#3685, #3697).
+    if (from < 318) await _moveComputerTissueScalars();
+    if (from < 318) await reportProgress();
   }
 }

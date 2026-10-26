@@ -152,6 +152,28 @@ void main() {
     expect(source.otu, 38.0);
   });
 
+  test('a reported start CNS lands on the new dive (issue #2555)', () async {
+    final reportedId = await computers.importProfile(
+      computerId: 'comp-1',
+      profileStartTime: DateTime(2026, 1, 1, 10),
+      points: slowAscent,
+      durationSeconds: 3600,
+      maxDepth: 20.0,
+      cnsStart: 6.0,
+    );
+    final unreportedId = await computers.importProfile(
+      computerId: 'comp-1',
+      profileStartTime: DateTime(2026, 1, 2, 10),
+      points: slowAscent,
+      durationSeconds: 3600,
+      maxDepth: 20.0,
+    );
+
+    expect((await getDive(reportedId)).cnsStart, 6.0);
+    // The column's default stands when the source reports none.
+    expect((await getDive(unreportedId)).cnsStart, 0.0);
+  });
+
   test('a download attached to an existing dive records its summary on its '
       'own source row and leaves the dive row alone', () async {
     final start = DateTime(2026, 1, 1, 10);
@@ -171,6 +193,7 @@ void main() {
       bottomTimeSeconds: 3300,
       surfaceIntervalSeconds: 5400,
       waterType: WaterType.salt,
+      cnsStart: 6.0,
       cnsEnd: 14.0,
       otu: 38.0,
     );
@@ -178,6 +201,7 @@ void main() {
 
     final dive = await getDive(diveId);
     expect(dive.bottomTime, 3000);
+    expect(dive.cnsStart, 0.0);
     expect(dive.cnsEnd, 11.0);
     expect(dive.otu, isNull);
     expect(dive.surfaceIntervalSeconds, isNull);

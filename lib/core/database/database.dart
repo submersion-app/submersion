@@ -292,7 +292,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 315;
+  static const int currentSchemaVersion = 318;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1415,6 +1415,12 @@ class AppDatabase extends _$AppDatabase {
     // v315: diver_settings.omit_unused_oc_gases (issue #3668). Additive, off
     // by default; the floor does not move.
     315,
+    // v318: moves the CNS, OTU and deco model stored computer tissue
+    // snapshots held into their own dive and source columns (issue #2555).
+    // Data only, and an older peer reads the slimmer snapshot as one that
+    // reported less, so the floor does not move. 316 and 317 are held by
+    // open branches (#3685, #3697).
+    318,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

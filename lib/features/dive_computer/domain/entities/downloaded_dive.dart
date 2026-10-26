@@ -141,8 +141,9 @@ class DownloadedDive {
   final int? decoConservatism;
 
   /// Dive-level tissue state the computer itself reported (start/end
-  /// compartment loadings, CNS, OTU), when the source carries one. Never
-  /// computed by the app; persisted verbatim on the dive.
+  /// compartment loadings), when the source carries one. Never computed by
+  /// the app; persisted verbatim on the dive. CNS and OTU are [cnsStart],
+  /// [cnsEnd] and [otu], never the snapshot (issue #2555).
   final ComputerTissueSnapshot? computerTissue;
 
   /// Dive events from the computer
@@ -176,6 +177,11 @@ class DownloadedDive {
 
   /// Water type the computer was set to for this dive, when it reports one.
   final WaterType? waterType;
+
+  /// CNS% at the start of the dive, as the source reported it (what earlier
+  /// dives left). Stored as `dives.cns_start`; null leaves the column at its
+  /// default of 0.
+  final double? cnsStart;
 
   /// CNS% at the end of the dive, as the source reported it. When null the
   /// import falls back to the highest per-sample CNS in [profile].
@@ -215,6 +221,7 @@ class DownloadedDive {
     this.bottomTimeSeconds,
     this.surfaceIntervalSeconds,
     this.waterType,
+    this.cnsStart,
     this.cnsEnd,
     this.otu,
   });

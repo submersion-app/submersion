@@ -159,6 +159,7 @@ class SuuntoDiveParser {
     final gfLow = (diving?['GfLow'] as num?)?.round();
     final gfHigh = (diving?['GfHigh'] as num?)?.round();
     final computerTissue = diving == null ? null : parseSuuntoTissue(diving);
+    final exposure = diving == null ? null : parseSuuntoExposure(diving);
 
     final tanks = _withSidemountPartners(
       _buildTanks(diving, {
@@ -198,6 +199,9 @@ class SuuntoDiveParser {
         hasGradientFactors: gfLow != null && gfHigh != null,
       ),
       computerTissue: computerTissue,
+      cnsStart: exposure?.cnsStart,
+      cnsEnd: exposure?.cnsEnd,
+      otu: exposure?.otu,
       events: profileResult.events,
     );
 
@@ -682,8 +686,7 @@ class SuuntoDiveParser {
   }
 
   /// The dive's deco model id from the header's `Algorithm` ("Suunto
-  /// Fused2 RGBM", "Bühlmann 16 GF"), so the dive agrees with its tissue
-  /// snapshot. RGBM and Bühlmann map to the app's ids; any other name is kept
+  /// Fused2 RGBM", "Bühlmann 16 GF"). RGBM and Bühlmann map to the app's ids; any other name is kept
   /// lowercased, as other importers do. Only a header without one falls back
   /// to the GF pair, which a Suunto writes whatever model it runs.
   static String? _decoAlgorithm(

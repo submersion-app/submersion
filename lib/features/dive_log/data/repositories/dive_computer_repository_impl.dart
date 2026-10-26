@@ -1477,10 +1477,13 @@ class DiveComputerRepository {
     // the profile (Garmin's FIT dive_summary, issue #1798). Like the diluent
     // above, the dive row only takes them when it is brand new; the
     // download's own data source row takes them either way, except the
-    // bottom time: that row keeps the measured runtime (issue #2421).
+    // bottom time: that row keeps the measured runtime (issue #2421). The
+    // start CNS has no column on the source row, so only a new dive keeps it
+    // (issue #2555).
     int? bottomTimeSeconds,
     int? surfaceIntervalSeconds,
     WaterType? waterType,
+    double? cnsStart,
     double? cnsEnd,
     double? otu,
     // Attach to this dive instead of matching by time (issue #2002). A
@@ -1581,6 +1584,11 @@ class DiveComputerRepository {
                 runtime: Value(durationSeconds),
                 maxDepth: Value(maxDepth),
                 avgDepth: Value(effectiveAvgDepth),
+                // NOT NULL with a default of 0, which stands when the
+                // source reports no start CNS.
+                cnsStart: cnsStart == null
+                    ? const Value.absent()
+                    : Value(cnsStart),
                 cnsEnd: Value(effectiveCnsEnd),
                 otu: Value(otu),
                 surfaceIntervalSeconds: Value(surfaceIntervalSeconds),

@@ -21,13 +21,8 @@ void main() {
     ProfilePointData(timestamp: 1200, depth: 6.0),
   ];
   const snapshot = ComputerTissueSnapshot(
-    algorithm: 'Suunto Fused2 RGBM',
     start: ComputerTissueState(n2Bar: [0.79, 0.79, 0.79]),
-    end: ComputerTissueState(
-      n2Bar: [0.89665, 0.97105, 1.16432],
-      cnsPercent: 13.2,
-      otu: 35.57,
-    ),
+    end: ComputerTissueState(n2Bar: [0.89665, 0.97105, 1.16432]),
   );
 
   setUp(() async {
@@ -98,7 +93,6 @@ void main() {
         computerId: computerId,
       );
       const updated = ComputerTissueSnapshot(
-        algorithm: 'Suunto Fused2 RGBM',
         end: ComputerTissueState(n2Bar: [1.0, 1.0, 1.0]),
       );
 

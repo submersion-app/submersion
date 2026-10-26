@@ -13,6 +13,7 @@ import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
 import 'package:drift/drift.dart';
 
+import 'package:submersion/core/database/computer_tissue_scalar_move.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/dive_computer_connection_seed.dart';
 import 'package:submersion/core/database/dive_computer_gear_backfill.dart';
@@ -47,6 +48,7 @@ part 'before_open_view_configs.dart';
 part 'helpers/buddy_migrations.dart';
 part 'helpers/certification_currency_migrations.dart';
 part 'helpers/checklist_section_migrations.dart';
+part 'helpers/computer_tissue_migrations.dart';
 part 'helpers/connection_migrations.dart';
 part 'helpers/course_link_migrations.dart';
 part 'helpers/cylinder_migrations.dart';

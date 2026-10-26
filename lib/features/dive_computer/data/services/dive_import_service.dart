@@ -848,6 +848,7 @@ class DiveImportService {
       bottomTimeSeconds: dive.bottomTimeSeconds,
       surfaceIntervalSeconds: dive.surfaceIntervalSeconds,
       waterType: dive.waterType,
+      cnsStart: dive.cnsStart,
       cnsEnd: dive.cnsEnd,
       otu: dive.otu,
     );
@@ -1008,6 +1009,7 @@ class DiveImportService {
       bottomTimeSeconds: dive.bottomTimeSeconds,
       surfaceIntervalSeconds: dive.surfaceIntervalSeconds,
       waterType: dive.waterType,
+      cnsStart: dive.cnsStart,
       cnsEnd: dive.cnsEnd,
       otu: dive.otu,
       addMissingTanks: true,
@@ -1062,6 +1064,7 @@ class DiveImportService {
       bottomTimeSeconds: dive.bottomTimeSeconds,
       surfaceIntervalSeconds: dive.surfaceIntervalSeconds,
       waterType: dive.waterType,
+      cnsStart: dive.cnsStart,
       cnsEnd: dive.cnsEnd,
       otu: dive.otu,
       targetDiveId: plannedDiveId,

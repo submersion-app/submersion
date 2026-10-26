@@ -19,7 +19,6 @@ void main() {
 
   ComputerTissueSnapshot snapshot(double start, double end) =>
       ComputerTissueSnapshot(
-        algorithm: 'zhl_16c',
         start: ComputerTissueState(n2LoadPercent: start),
         end: ComputerTissueState(n2LoadPercent: end),
       );
@@ -34,7 +33,6 @@ void main() {
     expect(
       merged.computerTissue,
       const ComputerTissueSnapshot(
-        algorithm: 'zhl_16c',
         start: ComputerTissueState(n2LoadPercent: 5),
         end: ComputerTissueState(n2LoadPercent: 55),
       ),
@@ -59,7 +57,6 @@ void main() {
 
     expect(merged.computerTissue!.start, isNull);
     expect(merged.computerTissue!.end!.n2LoadPercent, 55);
-    expect(merged.computerTissue!.algorithm, 'zhl_16c');
   });
 
   test('has no snapshot when neither end segment has one', () {
