@@ -136,7 +136,7 @@ void main() {
     );
     final result = await undo.undo(run);
     expect(await column('d35', 'notes'), '');
-    expect(await column('d40', 'notes'), 'Wall\nDeep dive and more');
+    expect(await column('d40', 'notes'), 'Wall\n\nDeep dive and more');
     expect(result.skippedEditedTargets, 1);
   });
 
@@ -214,7 +214,7 @@ void main() {
       actions: const [AppendDiveNotesAction('A')],
     );
     final run = await runRule(const AppendDiveNotesAction('B'), name: 'Second');
-    expect(await column('d40', 'notes'), 'Wall\nA\nB');
+    expect(await column('d40', 'notes'), 'Wall\n\nA\n\nB');
     final result = await undo.undo(run);
     expect(await column('d40', 'notes'), 'Wall');
     expect(await column('d35', 'notes'), '');

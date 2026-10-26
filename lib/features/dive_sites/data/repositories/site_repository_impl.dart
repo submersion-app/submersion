@@ -499,15 +499,16 @@ class SiteRepository {
     }
   }
 
-  /// Appends [text] to [siteId]'s description, on a new line when the
-  /// description already holds text (logbook rules, #3513). Marks the site
-  /// pending; the caller notifies.
+  /// Appends [text] to [siteId]'s description, as a new Markdown paragraph
+  /// when the description already holds text (logbook rules, #3513; #3683).
+  /// Marks the site pending; the caller notifies.
   Future<void> appendDescription(String siteId, String text) async {
     if (text.isEmpty) return;
     final now = DateTime.now().millisecondsSinceEpoch;
     await _db.customUpdate(
       "UPDATE dive_sites SET description = CASE WHEN description = '' "
-      "THEN ? ELSE description || char(10) || ? END, updated_at = ? "
+      "THEN ? ELSE description || char(10) || char(10) || ? END, "
+      'updated_at = ? '
       'WHERE id = ?',
       variables: [
         Variable.withString(text),

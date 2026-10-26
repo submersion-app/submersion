@@ -78,11 +78,12 @@ void main() {
   });
 
   group('bulkAppendNotes', () {
-    test('appends to existing notes and to empty notes', () async {
+    test('appends a new paragraph to existing notes and nothing else to '
+        'empty notes', () async {
       await seed('a', notes: 'Cozumel');
       await seed('b', notes: '');
 
-      await repository.bulkAppendNotes(['a', 'b'], '\nGreat viz');
+      await repository.bulkAppendNotes(['a', 'b'], 'Great viz');
 
       final ra = await (db.select(
         db.dives,
@@ -90,8 +91,8 @@ void main() {
       final rb = await (db.select(
         db.dives,
       )..where((t) => t.id.equals('b'))).getSingle();
-      expect(ra.notes, 'Cozumel\nGreat viz');
-      expect(rb.notes, '\nGreat viz');
+      expect(ra.notes, 'Cozumel\n\nGreat viz');
+      expect(rb.notes, 'Great viz');
     });
   });
 

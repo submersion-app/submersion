@@ -106,7 +106,7 @@ void main() {
     );
     final byId = {for (final c in r.changes) c.targetId: c};
     expect(byId['a']!.after, 'Strong currents');
-    expect(byId['b']!.after, 'Wall\nStrong currents');
+    expect(byId['b']!.after, 'Wall\n\nStrong currents');
   });
 
   test('a deleted site tag is skipped and flagged', () async {
