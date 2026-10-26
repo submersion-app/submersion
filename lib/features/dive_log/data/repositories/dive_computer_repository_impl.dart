@@ -1452,7 +1452,8 @@ class DiveComputerRepository {
     double? diluentO2,
     double? diluentHe,
     // Tissue state the computer reported for the dive as a whole; stored
-    // verbatim. Null on an update leaves any stored snapshot in place.
+    // verbatim. Null on an update clears the stored snapshot when this is
+    // the dive's primary reading and leaves it in place otherwise.
     ComputerTissueSnapshot? computerTissue,
     List<EventData>? events,
     List<GasSwitchData>? gasSwitches,
@@ -2202,9 +2203,13 @@ class DiveComputerRepository {
             gradientFactorHigh: Value(gfHigh),
             decoAlgorithm: Value(decoAlgorithm),
             decoConservatism: Value(decoConservatism),
-            computerTissueJson: computerTissue == null
-                ? const Value.absent()
-                : Value(computerTissue.encode()),
+            // The primary reading owns the snapshot, so its re-import writes
+            // what it carries, none included: a snapshot the parser no longer
+            // emits must not outlive it (issue #2556). A secondary reading
+            // with none leaves the stored one alone.
+            computerTissueJson: isPrimary || computerTissue != null
+                ? Value(computerTissue?.encode())
+                : const Value.absent(),
           ),
         );
         await _syncRepository.markRecordPending(

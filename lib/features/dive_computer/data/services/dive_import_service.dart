@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
+import 'package:submersion/features/dive_log/domain/entities/computer_tissue_snapshot.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 import 'package:submersion/features/dive_computer/data/services/bailout_gas_claim.dart';
 import 'package:submersion/features/dive_computer/data/services/dive_parser.dart';
@@ -1019,10 +1020,23 @@ class DiveImportService {
   /// a planned dive holds no source for this computer, and the target is
   /// named explicitly so a sibling dive at the same minute cannot be picked
   /// by the time match.
+  ///
+  /// The deco settings and tissue snapshot are the values the fill already
+  /// wrote onto the row, the download's own or the plan's where it reports
+  /// none. This reading becomes the dive's primary, so [importProfile] writes
+  /// them outright, and the raw download's nulls would blank the plan's.
   Future<void> attachToPlannedDive(
     DownloadedDive dive,
     String plannedDiveId,
     String computerId, {
+    required ({
+      int? gfLow,
+      int? gfHigh,
+      String? decoAlgorithm,
+      int? decoConservatism,
+      ComputerTissueSnapshot? computerTissue,
+    })
+    settled,
     String? descriptorVendor,
     String? descriptorProduct,
     int? descriptorModel,
@@ -1041,10 +1055,11 @@ class DiveImportService {
       avgDepth: dive.avgDepth,
       isPrimary: true,
       tanks: tanks,
-      decoAlgorithm: dive.decoAlgorithm,
-      gfLow: dive.gfLow,
-      gfHigh: dive.gfHigh,
-      decoConservatism: dive.decoConservatism,
+      decoAlgorithm: settled.decoAlgorithm,
+      gfLow: settled.gfLow,
+      gfHigh: settled.gfHigh,
+      decoConservatism: settled.decoConservatism,
+      computerTissue: settled.computerTissue,
       diveMode: dive.diveMode,
       events: events,
       gasSwitches: gasSwitches,

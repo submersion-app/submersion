@@ -8,13 +8,16 @@ import '../../../../helpers/test_database.dart';
 
 /// Tissue state a dive computer reports for the whole dive (Suunto SML
 /// `StartTissue` / `EndTissue`) travels with the download and lands on
-/// `dives.computer_tissue_json`; a re-import that carries none must not
-/// blank what an earlier import stored.
+/// `dives.computer_tissue_json`. The dive's primary reading owns it: a
+/// re-import of that reading writes its own value, none included, so a
+/// snapshot a parser no longer emits does not outlive it (issue #2556). A
+/// second computer matched onto the dive that carries none leaves it alone.
 void main() {
   late DiveComputerRepository repository;
   late AppDatabase db;
 
   const computerId = 'suunto-eon-core';
+  const secondComputerId = 'suunto-d5';
   const points = [
     ProfilePointData(timestamp: 0, depth: 1.0),
     ProfilePointData(timestamp: 600, depth: 18.0),
@@ -47,6 +50,18 @@ void main() {
             updatedAt: now,
           ),
         );
+    await db
+        .into(db.diveComputers)
+        .insert(
+          DiveComputersCompanion.insert(
+            id: secondComputerId,
+            name: 'Suunto D5',
+            manufacturer: const Value('Suunto'),
+            model: const Value('D5'),
+            createdAt: now,
+            updatedAt: now,
+          ),
+        );
   });
 
   tearDown(() async {
@@ -63,9 +78,10 @@ void main() {
   Future<String> importWith(
     ComputerTissueSnapshot? computerTissue, {
     bool forceNew = false,
+    String fromComputer = computerId,
   }) {
     return repository.importProfile(
-      computerId: computerId,
+      computerId: fromComputer,
       profileStartTime: DateTime(2026, 5, 1, 9, 0),
       points: points,
       durationSeconds: 1800,
@@ -108,7 +124,7 @@ void main() {
       expect(await storedTissueFor(diveId), updated);
     });
 
-    test('a re-import without a snapshot keeps the stored one', () async {
+    test('a re-import without a snapshot clears the stored one', () async {
       final diveId = await importWith(snapshot, forceNew: true);
       await repository.clearSourceAndProfiles(
         diveId: diveId,
@@ -116,6 +132,33 @@ void main() {
       );
 
       final reimportedId = await importWith(null);
+
+      expect(reimportedId, diveId);
+      expect(await storedTissueFor(diveId), isNull);
+    });
+
+    test('a second computer without a snapshot keeps the stored one', () async {
+      final diveId = await importWith(snapshot, forceNew: true);
+
+      final matchedId = await importWith(null, fromComputer: secondComputerId);
+
+      expect(matchedId, diveId);
+      expect(await storedTissueFor(diveId), snapshot);
+    });
+
+    test('a re-import of the second computer without a snapshot keeps the '
+        'stored one', () async {
+      final diveId = await importWith(snapshot, forceNew: true);
+      await importWith(null, fromComputer: secondComputerId);
+      await repository.clearSourceAndProfiles(
+        diveId: diveId,
+        computerId: secondComputerId,
+      );
+
+      final reimportedId = await importWith(
+        null,
+        fromComputer: secondComputerId,
+      );
 
       expect(reimportedId, diveId);
       expect(await storedTissueFor(diveId), snapshot);
