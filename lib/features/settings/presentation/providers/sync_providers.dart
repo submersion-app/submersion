@@ -69,6 +69,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/settings/presentation/providers/git_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/webdav_providers.dart';
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 
 /// Sync repository provider
 final syncRepositoryProvider = Provider<SyncRepository>((ref) {
@@ -1461,6 +1462,7 @@ class SyncNotifier extends StateNotifier<SyncState> {
   /// An auto sync defers this device's FIRST library-combining contact to a
   /// manual, user-confirmed Sync Now instead of merging unannounced.
   Future<void> performSync({bool auto = false}) async {
+    if (DemoModeGate.instance.isActive) return;
     _log.debug('performSync() called');
     if (_syncInFlight) {
       // One sync at a time, but a request is never lost: the flight runs it

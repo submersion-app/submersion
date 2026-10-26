@@ -2,6 +2,8 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/media_store/media_store_attach_state.dart';
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/core/services/sync/sync_service.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 
 /// The work around a replace and join that reaches past the sync engine,
 /// one method per step, so the order and the recovery are tested on their
@@ -61,8 +63,10 @@ class ReplaceAndJoinService {
   final MediaStoreAttachState _attachState;
   final _log = LoggerService.forClass(ReplaceAndJoinService);
 
-  Future<ReplaceJoinResult> run({required String backupNote}) =>
-      SyncCoordinator.run(() => _run(backupNote));
+  Future<ReplaceJoinResult> run({required String backupNote}) async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.sync);
+    return SyncCoordinator.run(() => _run(backupNote));
+  }
 
   Future<ReplaceJoinResult> _run(String backupNote) async {
     final step = await _steps.prepare();

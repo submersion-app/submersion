@@ -61,6 +61,8 @@ import 'package:submersion/core/services/sync/tag_fill_copy_merge.dart';
 import 'package:submersion/core/services/sync/sync_initializer.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 import 'package:uuid/uuid.dart';
 
 part 'sync_service_replace_join.dart';
@@ -566,6 +568,7 @@ class SyncService {
   /// One sync run. Whatever happens inside, deferred writes are pushed
   /// before it returns (see [_flushAfterRun]).
   Future<SyncResult> performSync() async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.sync);
     try {
       return await _performSyncRun();
     } finally {

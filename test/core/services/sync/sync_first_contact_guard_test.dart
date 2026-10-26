@@ -6,7 +6,9 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 
+import '../../../helpers/global_test_defaults.dart';
 import '../../../helpers/changeset_test_helpers.dart';
 import '../../../helpers/fake_cloud_storage_provider.dart';
 import '../../../helpers/mock_providers.dart';
@@ -166,6 +168,26 @@ void main() {
         reason: 'no upload may happen before the user confirms the merge',
       );
     });
+
+    test(
+      'demo mode: a timer-driven or manual sync uploads nothing (#3708)',
+      () async {
+        final container = await makeContainer();
+        final cloud =
+            container.read(cloudStorageProviderProvider)
+                as FakeCloudStorageProvider;
+        await seedLocalDive('local-demo');
+        final before = cloud.operationLog.length;
+        DemoModeGate.instance.debugActive = true;
+        addTearDown(applyGlobalTestDefaults);
+
+        final notifier = container.read(syncStateProvider.notifier);
+        await notifier.performSync(auto: true);
+        await notifier.performSync();
+
+        expect(cloud.operationLog.length, before);
+      },
+    );
 
     test('concurrent triggers run exactly one sync', () async {
       final container = await makeContainer();

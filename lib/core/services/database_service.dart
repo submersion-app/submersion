@@ -24,6 +24,8 @@ import 'package:submersion/core/services/restore_source_missing_exception.dart';
 import 'package:submersion/core/services/security/database_encryption_migrator.dart';
 import 'package:submersion/core/services/security/database_locked_exception.dart';
 import 'package:submersion/core/services/security/database_security_sidecar.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 
 /// Which executor path [DatabaseService] used for the most recent open.
 enum DatabaseOpenMode {
@@ -1031,6 +1033,7 @@ class DatabaseService {
     String backupPath, {
     void Function(int currentStep, int totalSteps)? onMigrationProgress,
   }) async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.restore);
     final backupFile = File(backupPath);
     final destinationPath = await databasePath;
 
@@ -1329,6 +1332,7 @@ class DatabaseService {
   /// If file deletion or reinitialize fails after backup succeeds,
   /// the error propagates and the caller should handle recovery.
   Future<void> resetDatabase({required String backupPath}) async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.databaseFile);
     final dbPath = await databasePath;
 
     // Step 1: Backup first (throws on failure, aborting the reset)

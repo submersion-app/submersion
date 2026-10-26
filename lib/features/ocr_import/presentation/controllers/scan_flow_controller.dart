@@ -7,6 +7,8 @@ import 'package:submersion/features/ocr_import/domain/services/logbook_parser.da
 import 'package:submersion/features/ocr_import/domain/services/ocr_engine.dart';
 import 'package:submersion/features/ocr_import/domain/services/site_resolver.dart';
 import 'package:submersion/features/ocr_import/domain/services/unit_context.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 
 /// Orchestrates photo -> OCR -> parse -> site resolution -> DivePrefill.
 ///
@@ -28,6 +30,7 @@ class ScanFlowController {
   });
 
   Future<DivePrefill> process(Uint8List imageBytes, String photoPath) async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.fileImport);
     ParsedDiveFields parsed;
     try {
       final ocr = await engine.recognize(imageBytes);

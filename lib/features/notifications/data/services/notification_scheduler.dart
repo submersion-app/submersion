@@ -20,6 +20,7 @@ import 'package:submersion/features/documents/domain/document_reminder_plan.dart
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/presentation/document_l10n.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 
 /// Schedules service-clock reminder notifications plus one pre-trip nag per
 /// upcoming trip with gear due before the trip ends.
@@ -62,6 +63,7 @@ class NotificationScheduler {
     required AppSettings settings,
     String? diverId,
   }) async {
+    if (DemoModeGate.instance.isActive) return;
     if (!settings.notificationsEnabled) {
       _log.info('Notifications disabled, skipping scheduling');
       return;
@@ -412,6 +414,7 @@ class NotificationScheduler {
     required AppSettings settings,
     String? diverId,
   }) async {
+    if (DemoModeGate.instance.isActive) return;
     _log.info('Rescheduling all notifications');
 
     // Cancel all existing notifications
@@ -427,6 +430,7 @@ class NotificationScheduler {
     required EquipmentItem item,
     required AppSettings globalSettings,
   }) async {
+    if (DemoModeGate.instance.isActive) return;
     // Cancel existing notifications for this item
     await _cancelForEquipment(item.id, [7, 14, 30]); // Cancel all possible days
 
@@ -477,6 +481,7 @@ class NotificationScheduler {
     Document document,
     AppSettings settings,
   ) async {
+    if (DemoModeGate.instance.isActive) return;
     await _notificationService.cancelDocumentReminders(document.id);
     if (!settings.notificationsEnabled) return;
     final l10n = l10nForLocaleTag(settings.locale);
