@@ -172,6 +172,7 @@ import 'package:submersion/features/rules/presentation/run_rules_flow.dart';
 import 'package:submersion/features/rules/domain/rule_subject.dart';
 import 'package:submersion/shared/widgets/detail_row/detail_row_group.dart';
 import 'package:submersion/shared/widgets/detail_row/detail_row.dart';
+import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_view.dart';
 
 class DiveDetailPage extends ConsumerStatefulWidget {
   final String diveId;
@@ -4874,10 +4875,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             ),
             const Divider(),
             if (dive.notes.isNotEmpty)
-              SelectableText(
-                dive.notes,
-                style: Theme.of(context).textTheme.bodyMedium,
-              )
+              MarkdownNotesView(dive.notes)
             else
               Text(
                 context.l10n.diveLog_detail_noNotes,
