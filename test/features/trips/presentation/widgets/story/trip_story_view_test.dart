@@ -50,6 +50,7 @@ Trip _trip({
   required DateTime start,
   required DateTime end,
   TripType type = TripType.resort,
+  String notes = '',
 }) {
   return Trip(
     id: 'trip-1',
@@ -57,6 +58,7 @@ Trip _trip({
     startDate: start,
     endDate: end,
     tripType: type,
+    notes: notes,
     createdAt: DateTime(2026, 1, 1),
     updatedAt: DateTime(2026, 1, 1),
   );
@@ -179,21 +181,29 @@ void main() {
       );
     }
 
-    testWidgets('the Documents card sits with the hero, above today', (
+    testWidgets('the Documents card comes last, after the final day', (
       tester,
     ) async {
-      await pumpView(tester, longTrip(todayOffset: 0));
+      // Short, so the slivers after the lazily built days are laid out.
+      final now = DateTime.now();
+      final today = _dayOnly(now);
+      final trip = _trip(start: today, end: today.add(const Duration(days: 1)));
+      await pumpView(
+        tester,
+        _story(
+          trip,
+          today: now,
+          dives: [_dive('d0', today.add(const Duration(hours: 9)))],
+        ),
+      );
       final docs = find.byKey(
         const ValueKey('documents-section-trip'),
         skipOffstage: false,
       );
-      final today = find.byType(TripStoryDayHeader).first;
-      expect(tester.getTopLeft(docs).dy, lessThan(tester.getTopLeft(today).dy));
+      final lastDay = find.byType(TripStoryDayHeader, skipOffstage: false).last;
       expect(
         tester.getTopLeft(docs).dy,
-        greaterThan(
-          tester.getTopLeft(find.byType(TripStatStrip, skipOffstage: false)).dy,
-        ),
+        greaterThan(tester.getTopLeft(lastDay).dy),
       );
     });
 
@@ -624,12 +634,13 @@ void main() {
     );
   });
 
-  testWidgets('a past trip shows its Documents before the first day', (
+  testWidgets('a past trip shows its Documents last, under the notes', (
     tester,
   ) async {
     final trip = _trip(
       start: DateTime(2026, 3, 27),
       end: DateTime(2026, 3, 29),
+      notes: 'Bring the reef hook',
     );
     final story = _story(
       trip,
@@ -640,7 +651,9 @@ void main() {
     final docs = tester.getTopLeft(
       find.byKey(const ValueKey('documents-section-trip')),
     );
-    final firstDay = tester.getTopLeft(find.byType(TripStoryDayHeader).first);
-    expect(docs.dy, lessThan(firstDay.dy));
+    final notes = tester.getTopLeft(find.text('Bring the reef hook'));
+    final lastDay = tester.getTopLeft(find.byType(TripStoryDayHeader).last);
+    expect(notes.dy, greaterThan(lastDay.dy));
+    expect(docs.dy, greaterThan(notes.dy));
   });
 }
