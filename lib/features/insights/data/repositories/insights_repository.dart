@@ -262,10 +262,10 @@ class InsightsRepository {
   /// into the subquery would make the exclusion evaporate for every diver who
   /// never opens the filter sheet.
   ///
-  /// Pass `gas: true` for SAC/RMV and gas-mix aggregates, which additionally
-  /// drop per-dive gas exclusions and gauge-mode dives, and
-  /// `consumptionRate: true` for the SAC/RMV averages, trends and records,
-  /// which drop rebreather dives as well (issue #3673).
+  /// Pass `gas: true` for the gas-mix, gas-used and by-tank-role aggregates,
+  /// which additionally drop per-dive gas exclusions and gauge-mode dives.
+  /// Pass `consumptionRate: true` for the SAC/RMV averages, trends and
+  /// records, which drop those and rebreather dives as well (issue #3673).
   ({String clause, List<Object?> params}) _diveFilter(
     DiveFilterState filter, {
     String alias = 'dives',
