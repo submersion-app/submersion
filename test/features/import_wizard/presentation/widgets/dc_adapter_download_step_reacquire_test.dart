@@ -567,6 +567,28 @@ void main() {
       expect(find.byType(DcKnownComputerNotFoundView), findsOneWidget);
       expect(h.hostApi.downloads, isEmpty);
       expect(_selectedDevice(tester), isNull);
+      // Says why the search could not run, not that nothing was nearby.
+      expect(
+        find.textContaining('Bluetooth permissions are required'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('does not scan for a Bluetooth Classic computer, which BLE '
+        'discovery can never find', (tester) async {
+      final h = _Harness();
+      await tester.pumpWidget(
+        h.build(
+          _savedComputer(
+            connectionType: 'bluetoothClassic',
+            bluetoothAddress: null,
+          ),
+        ),
+      );
+      await _settle(tester);
+
+      expect(h.hostApi.calls, isEmpty);
+      expect(find.byType(DcNoDirectDownloadView), findsOneWidget);
     });
 
     testWidgets('does not scan for a computer with no saved transport', (

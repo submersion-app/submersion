@@ -140,21 +140,45 @@ void main() {
       expect(view.bluetoothAddress, isNull);
     });
 
-    test('of several connections with no address here, the one used last '
-        'anywhere names the transport', () {
-      final classic = DiveComputerConnection(
-        id: 'classic-far',
+    test('with no address here, BLE wins over a newer connection of '
+        'another transport, since only BLE can be found by a scan', () {
+      DiveComputerConnection far(String id, DiveComputerConnectionKind kind) =>
+          DiveComputerConnection(
+            id: id,
+            computerId: 'dc',
+            kind: kind,
+            firstUsedAt: DateTime(2026),
+            lastUsedAt: DateTime(2026, 3),
+          );
+      final usbFar = far('usb-far', DiveComputerConnectionKind.usb);
+      final classicFar = far(
+        'classic-far',
+        DiveComputerConnectionKind.bluetoothClassic,
+      );
+      for (final rows in [
+        [elsewhere, usbFar],
+        [usbFar, elsewhere],
+        [classicFar, elsewhere],
+      ]) {
+        expect(
+          computerForDownload(_computer(), rows).connectionType,
+          'bluetooth',
+        );
+      }
+    });
+
+    test('without BLE, the connection another device used last names the '
+        'transport', () {
+      final usbOld = _connection('usb-old', DiveComputerConnectionKind.usb);
+      final classicNew = DiveComputerConnection(
+        id: 'classic-new',
         computerId: 'dc',
         kind: DiveComputerConnectionKind.bluetoothClassic,
         firstUsedAt: DateTime(2026),
         lastUsedAt: DateTime(2026, 3),
       );
       expect(
-        computerForDownload(_computer(), [elsewhere, classic]).connectionType,
-        'bluetoothClassic',
-      );
-      expect(
-        computerForDownload(_computer(), [classic, elsewhere]).connectionType,
+        computerForDownload(_computer(), [usbOld, classicNew]).connectionType,
         'bluetoothClassic',
       );
     });

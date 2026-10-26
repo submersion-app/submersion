@@ -325,6 +325,10 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
   /// no address on this device found no device, or several (issue #3710).
   bool _notFoundNearby = false;
 
+  /// Why that search could not run (Bluetooth off, permission denied), shown
+  /// instead of "not found nearby"; null when it ran.
+  String? _scanProblem;
+
   /// The discovery notifier whose scan this step started to re-acquire a
   /// saved computer and still owes a stop: the scan runs on through the
   /// connect, as it does in the scan-and-download flow (issue #3369), and
@@ -404,15 +408,18 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
     if (selected != null && !alreadyAcquired) {
       notifier.clearSelectedDevice();
     }
-    final transport = _connectionTypeFromString(computer.connectionType);
-    final isBluetooth = transport == DeviceConnectionType.ble;
+    final isBluetooth =
+        _connectionTypeFromString(computer.connectionType) ==
+        DeviceConnectionType.ble;
 
     // Saved on another device: the Bluetooth connection synced, its
     // per-device address did not (issue #3710). A missing type is not
     // evidence of Bluetooth here, since a file-imported record has neither.
+    // Native discovery scans BLE only, so a Bluetooth Classic computer could
+    // never turn up and keeps the no-direct-download explanation.
     if (address == null &&
         computer.connectionType != null &&
-        (isBluetooth || transport == DeviceConnectionType.bluetoothClassic) &&
+        isBluetooth &&
         canFindByModel(computer)) {
       await _findByModel(computer);
       return;
@@ -486,14 +493,34 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
       return;
     }
     final device = _sameModelFallback(computer, null);
+    final discovery = ref.read(discoveryNotifierProvider);
+    final scanProblem = discovery.errorMessage == null
+        ? null
+        : discovery.bluetoothUnavailable
+        ? context.l10n.diveComputer_scan_bluetoothUnavailable
+        : discovery.errorMessage;
     if (device != null) {
       notifier.selectDevice(device);
     } else {
-      _releaseScan();
+      // Awaited, so a Try Again tapped next cannot start a scan that this
+      // stop then marks as finished.
+      _ownedScan = null;
+      try {
+        await notifier.stopScan();
+      } catch (e, stackTrace) {
+        _log.error(
+          'Could not stop the search for ${computer.displayName}',
+          category: LogCategory.bluetooth,
+          error: e,
+          stackTrace: stackTrace,
+        );
+      }
+      if (!mounted) return;
     }
     setState(() {
       _searchingForKnownDevice = false;
       _notFoundNearby = device == null;
+      _scanProblem = scanProblem;
       _computerResolved = true;
     });
   }
@@ -594,6 +621,7 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
     if (_notFoundNearby && knownComputer != null) {
       return DcKnownComputerNotFoundView(
         computer: knownComputer,
+        problem: _scanProblem,
         onRetry: () => _retryFindByModel(knownComputer),
         onDone: () => context.pop(),
       );

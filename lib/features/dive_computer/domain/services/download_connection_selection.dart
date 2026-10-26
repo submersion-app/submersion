@@ -37,18 +37,30 @@ bool _usedLater(DiveComputerConnection a, DiveComputerConnection b) {
   return a.lastUsedAt.isAfter(b.lastUsedAt);
 }
 
-/// The direct connection another device recorded most recently, for a
-/// download on a device that holds no address for any of them; null when
-/// the computer has no direct connection at all.
+/// The direct connection to name the transport for a download on a device
+/// that holds no address for any of them; null when the computer has no
+/// direct connection at all.
+///
+/// A BLE connection wins over a newer USB, Classic or infrared one: it is
+/// the only transport the wizard can find again without an address, by a
+/// scan for the computer's make and model (issue #3710). Among the rest, or
+/// among several BLE ones, the one another device used last wins.
 DiveComputerConnection? _directConnectionElsewhere(
   List<DiveComputerConnection> connections,
 ) {
   DiveComputerConnection? best;
   for (final c in connections) {
     if (!c.isDirect) continue;
-    if (best == null || c.lastUsedAt.isAfter(best.lastUsedAt)) best = c;
+    if (best == null || _preferredElsewhere(c, best)) best = c;
   }
   return best;
+}
+
+bool _preferredElsewhere(DiveComputerConnection a, DiveComputerConnection b) {
+  final aBle = a.kind == DiveComputerConnectionKind.ble;
+  final bBle = b.kind == DiveComputerConnectionKind.ble;
+  if (aBle != bBle) return aBle;
+  return a.lastUsedAt.isAfter(b.lastUsedAt);
 }
 
 /// [computer] as the download wizard should see it, its `connectionType`
