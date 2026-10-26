@@ -163,5 +163,44 @@ void main() {
       expect(reimportedId, diveId);
       expect(await storedTissueFor(diveId), snapshot);
     });
+
+    test('a download taking the primary role from a UDDF source keeps the '
+        'snapshot that source stored', () async {
+      // A UDDF import writes the dive with its snapshot and a summary-only
+      // primary source row, and no samples.
+      final start = DateTime(2026, 5, 1, 9, 0).millisecondsSinceEpoch;
+      final now = DateTime.now();
+      const diveId = 'uddf-dive';
+      await db
+          .into(db.dives)
+          .insert(
+            DivesCompanion(
+              id: const Value(diveId),
+              diveDateTime: Value(start),
+              entryTime: Value(start),
+              maxDepth: const Value(18),
+              computerTissueJson: Value(snapshot.encode()),
+              createdAt: Value(now.millisecondsSinceEpoch),
+              updatedAt: Value(now.millisecondsSinceEpoch),
+            ),
+          );
+      await db
+          .into(db.diveDataSources)
+          .insert(
+            DiveDataSourcesCompanion.insert(
+              id: 'uddf-source',
+              diveId: diveId,
+              isPrimary: const Value(true),
+              sourceFileFormat: const Value('uddf'),
+              importedAt: now,
+              createdAt: now,
+            ),
+          );
+
+      final matchedId = await importWith(null);
+
+      expect(matchedId, diveId);
+      expect(await storedTissueFor(diveId), snapshot);
+    });
   });
 }

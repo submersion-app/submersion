@@ -1769,6 +1769,10 @@ class DiveComputerRepository {
       // re-download pass and the series had no owning source (issue #2002).
       // Primary when the dive had nothing yet, or when it takes back the
       // role a replaced reading held (#2582); a secondary otherwise.
+      //
+      // Whether this reading took the primary role from another source's
+      // row, whose tissue snapshot it then must not clear (#2556).
+      var displacedPrimary = false;
       if (!isNewDive && ownSource == null) {
         // A dive can already hold a summary-only source row and no series:
         // a UDDF import writes one for every dive it creates. The download
@@ -1776,17 +1780,19 @@ class DiveComputerRepository {
         // flag and any older primary loses it. Readers resolve "the"
         // primary with LIMIT 1, so two primaries would be ambiguous.
         if (isPrimary) {
-          await (_db.update(_db.diveDataSources)..where(
-                (t) => t.diveId.equals(diveId) & t.isPrimary.equals(true),
-              ))
-              .write(
-                DiveDataSourcesCompanion(
-                  isPrimary: const Value(false),
-                  // A fresh clock, so a peer's older copy cannot make it the
-                  // primary again (#2644).
-                  hlc: Value(await _syncRepository.issueRowClock()),
-                ),
-              );
+          final demoted =
+              await (_db.update(_db.diveDataSources)..where(
+                    (t) => t.diveId.equals(diveId) & t.isPrimary.equals(true),
+                  ))
+                  .write(
+                    DiveDataSourcesCompanion(
+                      isPrimary: const Value(false),
+                      // A fresh clock, so a peer's older copy cannot make it the
+                      // primary again (#2644).
+                      hlc: Value(await _syncRepository.issueRowClock()),
+                    ),
+                  );
+          displacedPrimary = demoted > 0;
         }
         final existingSampleTemps = points
             .map((p) => p.temperature)
@@ -2206,8 +2212,10 @@ class DiveComputerRepository {
             // The primary reading owns the snapshot, so its re-import writes
             // what it carries, none included: a snapshot the parser no longer
             // emits must not outlive it (issue #2556). A secondary reading
-            // with none leaves the stored one alone.
-            computerTissueJson: isPrimary || computerTissue != null
+            // with none leaves the stored one alone, and so does a reading
+            // that just took the role from another source, which stored it.
+            computerTissueJson:
+                (isPrimary && !displacedPrimary) || computerTissue != null
                 ? Value(computerTissue?.encode())
                 : const Value.absent(),
           ),
