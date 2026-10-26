@@ -3258,6 +3258,30 @@
   "@common_placeholder_noValue": {
     "description": "Placeholder shown when a value is null or unavailable"
   },
+  "notesEditor_action_heading": "Heading",
+  "@notesEditor_action_heading": {
+    "description": "Tooltip for the notes editor button that makes the current line a heading"
+  },
+  "notesEditor_action_bold": "Bold",
+  "@notesEditor_action_bold": {
+    "description": "Tooltip for the notes editor button that makes the selected text bold"
+  },
+  "notesEditor_action_italic": "Italic",
+  "@notesEditor_action_italic": {
+    "description": "Tooltip for the notes editor button that makes the selected text italic"
+  },
+  "notesEditor_action_bulletList": "Bulleted list",
+  "@notesEditor_action_bulletList": {
+    "description": "Tooltip for the notes editor button that turns lines into a bulleted list"
+  },
+  "notesEditor_action_numberedList": "Numbered list",
+  "@notesEditor_action_numberedList": {
+    "description": "Tooltip for the notes editor button that turns lines into a numbered list"
+  },
+  "notesEditor_action_preview": "Preview",
+  "@notesEditor_action_preview": {
+    "description": "Toggle in the notes editor that shows the notes formatted instead of the Markdown being typed"
+  },
   "common_error_tryAgain": "Something went wrong. Please try again.",
   "@common_error_tryAgain": {
     "description": "Generic error snackbar shown when an action fails and the user should retry."

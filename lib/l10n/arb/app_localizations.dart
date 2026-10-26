@@ -7980,6 +7980,42 @@ abstract class AppLocalizations {
   /// **'--'**
   String get common_placeholder_noValue;
 
+  /// Tooltip for the notes editor button that makes the current line a heading
+  ///
+  /// In en, this message translates to:
+  /// **'Heading'**
+  String get notesEditor_action_heading;
+
+  /// Tooltip for the notes editor button that makes the selected text bold
+  ///
+  /// In en, this message translates to:
+  /// **'Bold'**
+  String get notesEditor_action_bold;
+
+  /// Tooltip for the notes editor button that makes the selected text italic
+  ///
+  /// In en, this message translates to:
+  /// **'Italic'**
+  String get notesEditor_action_italic;
+
+  /// Tooltip for the notes editor button that turns lines into a bulleted list
+  ///
+  /// In en, this message translates to:
+  /// **'Bulleted list'**
+  String get notesEditor_action_bulletList;
+
+  /// Tooltip for the notes editor button that turns lines into a numbered list
+  ///
+  /// In en, this message translates to:
+  /// **'Numbered list'**
+  String get notesEditor_action_numberedList;
+
+  /// Toggle in the notes editor that shows the notes formatted instead of the Markdown being typed
+  ///
+  /// In en, this message translates to:
+  /// **'Preview'**
+  String get notesEditor_action_preview;
+
   /// Generic error snackbar shown when an action fails and the user should retry.
   ///
   /// In en, this message translates to:

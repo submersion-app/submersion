@@ -4848,6 +4848,24 @@ class AppLocalizationsZh extends AppLocalizations {
   String get common_placeholder_noValue => '--';
 
   @override
+  String get notesEditor_action_heading => 'Heading';
+
+  @override
+  String get notesEditor_action_bold => 'Bold';
+
+  @override
+  String get notesEditor_action_italic => 'Italic';
+
+  @override
+  String get notesEditor_action_bulletList => 'Bulleted list';
+
+  @override
+  String get notesEditor_action_numberedList => 'Numbered list';
+
+  @override
+  String get notesEditor_action_preview => 'Preview';
+
+  @override
   String get common_error_tryAgain => '发生错误，请重试。';
 
   @override
