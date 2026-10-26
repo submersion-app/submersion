@@ -10,13 +10,14 @@ import 'package:submersion/features/media/presentation/pages/media_sources_secti
 import 'package:submersion/features/media/presentation/providers/media_library_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_watcher_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/media_console_scaffold.dart';
-import 'package:submersion/features/media_documents/presentation/widgets/media_documents_section_toggle.dart';
+import 'package:submersion/features/media_documents/presentation/pages/media_documents_page.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 import 'package:submersion/features/media_store/presentation/widgets/transfers_view.dart';
 import 'package:submersion/features/settings/data/repositories/app_settings_repository.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/section_tabs/section_tabs_header_title.dart';
 
 class _SeededLibraryNotifier extends StateNotifier<MediaLibraryState>
     implements MediaLibraryNotifier {
@@ -41,7 +42,8 @@ class _FakeSettingsRepo extends AppSettingsRepository {
 }
 
 void main() {
-  Widget host() {
+  /// The real Media tab under the real Photos/Videos and Documents switch.
+  Widget host({bool accents = false}) {
     return ProviderScope(
       overrides: [
         mediaLibraryNotifierProvider.overrideWith(
@@ -55,12 +57,26 @@ void main() {
           (ref) async => const {MediaSourceType.platformGallery: 7},
         ),
         watchedRootsProvider.overrideWith((ref) async => const <String>[]),
+        if (accents) accentSectionHeadersProvider.overrideWithValue(true),
       ],
-      child: const MaterialApp(
-        locale: Locale('en'),
+      child: MaterialApp(
+        theme: AppThemeRegistry.resolveTheme(
+          AppThemeRegistry.findById('submersion'),
+          Brightness.light,
+        ),
+        locale: const Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        home: MediaSectionPage(),
+        home: _HeaderHarness(
+          builder: (controller) => MediaSectionPage(
+            headerTitle: sectionTabsHeaderTitle(
+              controller: controller,
+              tab: MediaDocumentsTab.media,
+              labels: MediaDocumentsPage.labels,
+              toggleKey: const ValueKey('media_documents_section_toggle'),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -103,8 +119,16 @@ void main() {
 
     await tester.pumpWidget(host());
     await tester.pumpAndSettle();
-    TabController controller() =>
-        tester.widget<TabBar>(find.byType(TabBar)).controller!;
+    // The section strip, not the Photos/Videos and Documents switch above
+    // it.
+    TabController controller() => tester
+        .widget<TabBar>(
+          find.ancestor(
+            of: find.text('Sources'),
+            matching: find.byType(TabBar),
+          ),
+        )
+        .controller!;
 
     await tester.tap(find.text('Sources'));
     await tester.pumpAndSettle();
@@ -118,74 +142,38 @@ void main() {
     expect(controller().index, MediaConsoleSection.library.index);
   });
 
-  group('with the real media-documents header title and accents on', () {
-    // The merged headerTitle (#3631): its title widget is the real
-    // MediaDocumentsSectionToggle/FeatureAppBarTitle.custom chain, not a
-    // bare Text, so this reproduces the actual inline-tabs layout a code
-    // review flagged (unbounded nested flex) and the accent-icon lookup a
-    // second finding flagged (missing media/documents entries once they
-    // left kNavDestinations).
-    Widget hostWithRealHeaderTitle() {
-      return ProviderScope(
-        overrides: [
-          mediaLibraryNotifierProvider.overrideWith(
-            (ref) => _SeededLibraryNotifier(),
-          ),
-          appSettingsRepositoryProvider.overrideWithValue(_FakeSettingsRepo()),
-          mediaTransferEntriesProvider.overrideWith(
-            (ref) => Stream.value(const <MediaTransferQueueEntry>[]),
-          ),
-          sourceCountsProvider.overrideWith(
-            (ref) async => const {MediaSourceType.platformGallery: 7},
-          ),
-          watchedRootsProvider.overrideWith((ref) async => const <String>[]),
-          accentSectionHeadersProvider.overrideWithValue(true),
-        ],
-        child: MaterialApp(
-          theme: AppThemeRegistry.resolveTheme(
-            AppThemeRegistry.findById('submersion'),
-            Brightness.light,
-          ),
-          locale: const Locale('en'),
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: _HeaderHarness(
-            builder: (controller) => MediaSectionPage(
-              headerTitle: mediaDocumentsHeaderTitle(
-                controller: controller,
-                tab: MediaDocumentsTab.media,
-              ),
-            ),
-          ),
-        ),
-      );
-    }
-
-    testWidgets(
-      'inline tabs beside the accented switch lay out without a RenderFlex '
-      'assertion',
-      (tester) async {
-        // Wide enough that Media's own Library/Sources/Transfers/Import
-        // strip fits inline beside the outer switch -- the layout this
-        // bug only reaches.
-        tester.view.physicalSize = const Size(1400, 900);
+  group('with the accented switch as the title', () {
+    // The section tabs sit under the Photos/Videos and Documents switch at
+    // every width, never beside it (#3631).
+    for (final size in [const Size(400, 800), const Size(1400, 900)]) {
+      testWidgets('at ${size.width.toInt()}px the section tabs sit under '
+          'the switch', (tester) async {
+        tester.view.physicalSize = size;
         tester.view.devicePixelRatio = 1.0;
         addTearDown(tester.view.resetPhysicalSize);
         addTearDown(tester.view.resetDevicePixelRatio);
 
-        await tester.pumpWidget(hostWithRealHeaderTitle());
+        await tester.pumpWidget(host(accents: true));
         await tester.pumpAndSettle();
 
         expect(tester.takeException(), isNull);
         expect(find.byIcon(Icons.photo_library), findsWidgets);
-      },
-    );
+        final toggle = find.byKey(
+          const ValueKey('media_documents_section_toggle'),
+        );
+        expect(find.text('Photos/Videos'), findsOneWidget);
+        expect(
+          tester.getTopLeft(find.text('Library')).dy,
+          greaterThanOrEqualTo(tester.getBottomLeft(toggle).dy),
+        );
+      });
+    }
   });
 }
 
 /// Builds [child] under a [TabController] this test owns, so the real
-/// `mediaDocumentsHeaderTitle` factory has a controller to drive, the same
-/// way [MediaDocumentsPage] supplies one in production.
+/// `sectionTabsHeaderTitle` factory has a controller to drive, the same way
+/// the host supplies one in production.
 class _HeaderHarness extends StatefulWidget {
   const _HeaderHarness({required this.builder});
 

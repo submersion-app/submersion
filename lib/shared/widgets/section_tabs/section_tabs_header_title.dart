@@ -3,53 +3,12 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/core/router/media_documents_locations.dart';
-import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/models/subtitle_text.dart';
 import 'package:submersion/shared/widgets/section_header_title.dart';
+import 'package:submersion/shared/widgets/section_tabs/section_tab.dart';
 import 'package:submersion/shared/widgets/section_title_toggle.dart';
 import 'package:submersion/shared/widgets/tab_pinned_app_bar.dart';
 import 'package:submersion/shared/widgets/title_with_subtitle.dart';
-
-/// The Media / Documents switch, as the header's own title (#3631).
-///
-/// A [SectionTitleToggle] driven by the Media and Documents page's
-/// [TabController]. Each tab's header leads it with that tab's own accent
-/// icon.
-class MediaDocumentsSectionToggle extends StatelessWidget {
-  const MediaDocumentsSectionToggle({
-    super.key,
-    required this.controller,
-    required this.tab,
-    this.tabHeight = SectionTitleToggle.defaultTabHeight,
-    this.onAppBar = false,
-  });
-
-  final TabController controller;
-
-  /// The tab whose header this switch titles; it picks the accent icon.
-  final MediaDocumentsTab tab;
-
-  final double tabHeight;
-
-  /// See [SectionTitleToggle.onAppBar].
-  final bool onAppBar;
-
-  static List<String> labels(BuildContext context) => [
-    context.l10n.nav_media,
-    context.l10n.nav_documents,
-  ];
-
-  @override
-  Widget build(BuildContext context) => SectionTitleToggle(
-    controller: controller,
-    featureId: tab.featureId,
-    labels: labels(context),
-    tabHeight: tabHeight,
-    onAppBar: onAppBar,
-    tabBarKey: const ValueKey('media_documents_section_toggle'),
-  );
-}
 
 /// The desktop pane bar's title style, as every list pane's compact bar uses.
 TextStyle _paneTitleStyle(BuildContext context) =>
@@ -57,16 +16,23 @@ TextStyle _paneTitleStyle(BuildContext context) =>
       fontWeight: FontWeight.w600,
     );
 
-/// The [SectionHeaderTitle] a Media/Documents tab shows: the switch, with
-/// the tab's own entry count under it. On phone, where the tabs slide, it
-/// holds the tab's app bar still so only the body under it moves.
-SectionHeaderTitle mediaDocumentsHeaderTitle({
+/// The [SectionHeaderTitle] a [SectionTabsHost] tab shows: the switch
+/// between the host's tabs, named by [labels], with the tab's own entry
+/// count under it. On phone, where the tabs slide, it holds the tab's app
+/// bar still so only the body under it moves (#3465).
+///
+/// [toggleKey] keys the switch's [TabBar], so tests can find it.
+SectionHeaderTitle sectionTabsHeaderTitle({
   required TabController controller,
-  required MediaDocumentsTab tab,
+  required SectionTab tab,
+  required List<String> Function(BuildContext context) labels,
+  required Key toggleKey,
 }) => SectionHeaderTitle(
-  build: (context, slot, subtitle) => _MediaDocumentsHeader(
+  build: (context, slot, subtitle) => _SectionTabsHeader(
     controller: controller,
     tab: tab,
+    labels: labels(context),
+    toggleKey: toggleKey,
     slot: slot,
     subtitle: subtitle,
   ),
@@ -79,7 +45,7 @@ SectionHeaderTitle mediaDocumentsHeaderTitle({
       SectionTitleToggle.fittedTabHeight(
         context,
         style,
-        labels: MediaDocumentsSectionToggle.labels(context),
+        labels: labels(context),
         minHeight: SectionTitleToggle.compactTabHeight,
         textScaler: scaler,
       ),
@@ -93,20 +59,13 @@ SectionHeaderTitle mediaDocumentsHeaderTitle({
           );
     return math.max(kToolbarHeight, toggle + count);
   },
+  // Counts the accent icon whether or not it shows: the pane bar only needs
+  // to know whether the names and its icons fit one row, and erring wide
+  // costs a second row, never a clipped name.
   paneTitleWidth: (context) => SectionTitleToggle.naturalWidth(
     context,
     _paneTitleStyle(context),
-    labels: MediaDocumentsSectionToggle.labels(context),
-    withAccentIcon: true,
-  ),
-  // Media's own tab strip (#3631) decides whether it fits beside this
-  // switch in the SAME app bar slot, so it needs this switch's width in
-  // the style it actually renders there -- the toolbar style, not the
-  // smaller pane style paneTitleWidth above measures.
-  appBarTitleWidth: (context) => SectionTitleToggle.naturalWidth(
-    context,
-    SectionTitleToggle.toolbarTitleStyle(context),
-    labels: MediaDocumentsSectionToggle.labels(context),
+    labels: labels(context),
     withAccentIcon: true,
   ),
   appBarPin: (bar) => TabPinnedAppBar(
@@ -116,29 +75,39 @@ SectionHeaderTitle mediaDocumentsHeaderTitle({
   ),
 );
 
-class _MediaDocumentsHeader extends ConsumerWidget {
-  const _MediaDocumentsHeader({
+class _SectionTabsHeader extends ConsumerWidget {
+  const _SectionTabsHeader({
     required this.controller,
     required this.tab,
+    required this.labels,
+    required this.toggleKey,
     required this.slot,
     required this.subtitle,
   });
 
   final TabController controller;
-  final MediaDocumentsTab tab;
+  final SectionTab tab;
+  final List<String> labels;
+  final Key toggleKey;
   final SectionHeaderSlot slot;
   final SubtitleText? subtitle;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // The phone app bar and the table header are both standard toolbars,
+    // which clip a title taller than they are, so both take the compact
+    // switch and the 18px names that leave the count line room under it.
     final inToolbar = slot != SectionHeaderSlot.pane;
-    final toggle = MediaDocumentsSectionToggle(
+    // Each tab's header leads the switch with that tab's own accent icon.
+    final toggle = SectionTitleToggle(
       controller: controller,
-      tab: tab,
+      featureId: tab.featureId,
+      labels: labels,
       tabHeight: inToolbar
           ? SectionTitleToggle.compactTabHeight
           : SectionTitleToggle.defaultTabHeight,
       onAppBar: inToolbar,
+      tabBarKey: toggleKey,
     );
     final style = inToolbar
         ? SectionTitleToggle.toolbarTitleStyle(context)

@@ -31435,17 +31435,23 @@ abstract class AppLocalizations {
   /// **'Home'**
   String get nav_home;
 
-  /// Navigation label for the Media and Documents section; also labels the Media tab inside it
+  /// Navigation label for the media section
   ///
   /// In en, this message translates to:
   /// **'Media'**
   String get nav_media;
 
-  /// Subtitle for the Media and Documents menu item in the More sheet
+  /// Subtitle for the Media menu item in the More sheet, naming its two tabs
   ///
   /// In en, this message translates to:
-  /// **'Media and documents'**
+  /// **'Photos, videos and documents'**
   String get nav_mediaDocumentsSubtitle;
+
+  /// Label of the Media section's tab for photos and videos, beside its Documents tab
+  ///
+  /// In en, this message translates to:
+  /// **'Photos/Videos'**
+  String get nav_photosVideos;
 
   /// Navigation label for the 'more' menu on mobile
   ///
@@ -39807,12 +39813,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Documents'**
   String get nav_documents;
-
-  /// No description provided for @documents_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Documents'**
-  String get documents_title;
 
   /// No description provided for @documents_type_insurance.
   ///

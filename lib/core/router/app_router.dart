@@ -901,17 +901,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/documents',
             name: 'documents',
-            // No route-level tabBodyBuilder: unlike Training's two tabs,
-            // Documents' body depends on this route's own query parameters
-            // (type/filter/owner/tag), which only this route's state
-            // carries. A builder closure captured here would go stale the
-            // moment the shared host rebuilds for the OTHER route
-            // (/media), which supplies no such builder and would reset
-            // Documents' filters on every tab switch (#3631 code review).
-            // MediaDocumentsPage's default body builder reads the same
-            // parameters from its own per-tab `_queries` cache instead,
-            // which both routes keep current regardless of which one is
-            // active.
+            // Documents' filters (type/filter/owner/tag) are not read from
+            // this route's state: the shared host also rebuilds for /media,
+            // which carries none of them. The host hands each tab its own
+            // cached query instead.
             pageBuilder: (context, state) => mediaDocumentsHostPage(
               const MediaDocumentsPage(tab: MediaDocumentsTab.documents),
             ),

@@ -27,7 +27,6 @@ class SectionHeaderTitle {
     required this.build,
     required this.appBarHeight,
     this.paneTitleWidth,
-    this.appBarTitleWidth,
     this.appBarPin,
   });
 
@@ -48,16 +47,6 @@ class SectionHeaderTitle {
   /// icons on one row when both fit. Null always gives the icons a row of
   /// their own.
   final double Function(BuildContext context)? paneTitleWidth;
-
-  /// The width [build]'s [SectionHeaderSlot.appBar] title needs, in the
-  /// style it actually renders in there, for a host that has to decide
-  /// whether that title fits beside something else in the same app bar
-  /// before anything is laid out (Media's own tab strip, #3631). This is
-  /// deliberately separate from [paneTitleWidth]: the pane title renders in
-  /// the desktop pane bar's own, smaller style, and reusing its width here
-  /// would under-measure the toolbar title and let a fit check pass when
-  /// the real, larger title would overflow.
-  final double Function(BuildContext context)? appBarTitleWidth;
 
   /// Wraps the phone app bar so a host that slides the list sideways can
   /// hold the bar still, as Training's tabs do. Null leaves it as it is.

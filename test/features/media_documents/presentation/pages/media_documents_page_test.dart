@@ -37,6 +37,7 @@ Widget _stubBody(
   BuildContext context,
   MediaDocumentsTab tab,
   SectionHeaderTitle header,
+  Map<String, String> _,
 ) {
   final desktop = ResponsiveBreakpoints.isMasterDetail(context);
   return Scaffold(
@@ -157,14 +158,14 @@ TabController _controller(WidgetTester tester) => tester
     .controller!;
 
 void main() {
-  testWidgets('opens on Media and builds Documents only when shown', (
+  testWidgets('opens on Photos/Videos and builds Documents only when shown', (
     tester,
   ) async {
     await _pump(tester);
 
     expect(find.text('built-media'), findsOneWidget);
     expect(find.text('built-documents'), findsNothing);
-    expect(find.text('Media'), findsWidgets);
+    expect(find.text('Photos/Videos'), findsWidgets);
     expect(find.text('Documents'), findsWidgets);
   });
 
@@ -176,7 +177,7 @@ void main() {
     expect(_location(router), '/documents');
     expect(find.text('built-documents'), findsOneWidget);
 
-    await tester.tap(find.text('Media').last);
+    await tester.tap(find.text('Photos/Videos').last);
     await tester.pumpAndSettle();
     expect(_location(router), '/media');
   });
@@ -245,7 +246,7 @@ void main() {
 
     await tester.tap(find.text('Documents').first);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Media').last);
+    await tester.tap(find.text('Photos/Videos').last);
     await tester.pumpAndSettle();
 
     expect(find.text('media item 60'), findsOneWidget);
@@ -277,7 +278,7 @@ void main() {
     router.go('/documents?selected=9');
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Media').last);
+    await tester.tap(find.text('Photos/Videos').last);
     await tester.pumpAndSettle();
     expect(_location(router), '/media?selected=1');
 
@@ -327,7 +328,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(mediaFocus.hasFocus, isFalse);
 
-    await tester.tap(find.text('Media').last);
+    await tester.tap(find.text('Photos/Videos').last);
     await tester.pumpAndSettle();
     expect(mediaFocus.hasFocus, isTrue);
   });
@@ -338,7 +339,7 @@ void main() {
     final router = await _pump(tester);
     await tester.tap(find.text('Documents').first);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Media').last);
+    await tester.tap(find.text('Photos/Videos').last);
     await tester.pumpAndSettle();
 
     router.push('/media/detail');
@@ -372,8 +373,10 @@ void main() {
     Future<GoRouter> pumpReal(
       WidgetTester tester, {
       required String initialLocation,
+      Size size = const Size(1200, 800),
+      double textScale = 1,
     }) async {
-      tester.view.physicalSize = const Size(1200, 800);
+      tester.view.physicalSize = size;
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
@@ -391,12 +394,12 @@ void main() {
             certificationCatalogSyncProvider.overrideWithValue(
               CertificationCatalog.builtInOnly,
             ),
-            // The Media tab, switched through below, builds the real
-            // MediaSectionPage -- these replace its own provider chain
-            // wholesale (mediaLibraryNotifierProvider's real implementation
-            // needs sharedPreferencesProvider, which this ProviderScope
-            // never initializes), the same overrides
-            // media_section_page_test.dart's own harness uses.
+            // The Photos/Videos tab builds the real MediaSectionPage. These
+            // replace its own provider chain wholesale
+            // (mediaLibraryNotifierProvider's real implementation needs
+            // sharedPreferencesProvider, which this ProviderScope never
+            // initializes), the same overrides media_section_page_test.dart's
+            // own harness uses.
             mediaLibraryNotifierProvider.overrideWith(
               (ref) => _SeededLibraryNotifier(),
             ),
@@ -415,6 +418,12 @@ void main() {
             routerConfig: router,
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
+            builder: (context, child) => MediaQuery(
+              data: MediaQuery.of(
+                context,
+              ).copyWith(textScaler: TextScaler.linear(textScale)),
+              child: child!,
+            ),
           ),
         ),
       );
@@ -423,7 +432,7 @@ void main() {
     }
 
     testWidgets("Documents' personal-only filter survives a round trip through "
-        'Media (#3631 code review)', (tester) async {
+        'Photos/Videos', (tester) async {
       await pumpReal(tester, initialLocation: '/documents?owner=personal');
 
       expect(
@@ -431,20 +440,57 @@ void main() {
         findsOneWidget,
       );
 
-      await tester.tap(find.text('Media').first);
+      await tester.tap(find.text('Photos/Videos').first);
       await tester.pumpAndSettle();
       await tester.tap(find.text('Documents').last);
       await tester.pumpAndSettle();
 
-      // Before the fix, switching through Media rebuilt the host with
-      // /media's route, whose default body builder has no query to give
-      // Documents, resetting this filter while the Documents tab sat
-      // hidden.
+      // Switching through Photos/Videos rebuilds the host for /media,
+      // whose address carries no query for Documents; the filter comes
+      // from Documents' own cached query instead.
       expect(
         find.byKey(const ValueKey('documents-filter-personal')),
         findsOneWidget,
       );
     });
+
+    testWidgets('desktop: the switch keeps its place and size across a '
+        'switch', (tester) async {
+      // Documents shows the switch in its list pane's bar, so Photos/Videos
+      // has to show it in the same bar, not in a full-width app bar.
+      // Smaller text, so the 440px list pane fits both names in the test
+      // font, which draws every glyph a full em wide; where they do not fit,
+      // the switch scrolls to keep the selected name in view.
+      await pumpReal(tester, initialLocation: '/documents', textScale: 0.75);
+      // The switch's row stretches to its bar, which is the list pane on
+      // Documents and the whole page on Photos/Videos, so compare where its
+      // names are drawn.
+      Rect label(String text) => tester.getRect(find.text(text).first);
+      final photosOnDocuments = label('Photos/Videos');
+      final documentsOnDocuments = label('Documents');
+
+      await tester.tap(find.text('Photos/Videos').first);
+      await tester.pumpAndSettle();
+
+      expect(label('Photos/Videos'), photosOnDocuments);
+      expect(label('Documents'), documentsOnDocuments);
+    });
+
+    for (final size in [const Size(400, 800), const Size(1200, 800)]) {
+      testWidgets('at ${size.width.toInt()}px the section tabs sit under '
+          'the switch', (tester) async {
+        await pumpReal(tester, initialLocation: '/media', size: size);
+        final toggle = find.byKey(
+          const ValueKey('media_documents_section_toggle'),
+        );
+
+        expect(
+          tester.getTopLeft(find.text('Library')).dy,
+          greaterThanOrEqualTo(tester.getBottomLeft(toggle.first).dy),
+        );
+        expect(tester.takeException(), isNull);
+      });
+    }
   });
 }
 

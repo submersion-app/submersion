@@ -12294,7 +12294,8 @@
   },
   "nav_home": "Home",
   "nav_media": "Media",
-  "nav_mediaDocumentsSubtitle": "Media and documents",
+  "nav_mediaDocumentsSubtitle": "Photos, videos and documents",
+  "nav_photosVideos": "Photos/Videos",
   "nav_more": "More",
   "nav_planning": "Planning",
   "nav_planningSubtitle": "Dive Planner, Calculators",
@@ -12339,10 +12340,13 @@
     "description": "Navigation label for home/dashboard"
   },
   "@nav_media": {
-    "description": "Navigation label for the Media and Documents section; also labels the Media tab inside it"
+    "description": "Navigation label for the media section"
   },
   "@nav_mediaDocumentsSubtitle": {
-    "description": "Subtitle for the Media and Documents menu item in the More sheet"
+    "description": "Subtitle for the Media menu item in the More sheet, naming its two tabs"
+  },
+  "@nav_photosVideos": {
+    "description": "Label of the Media section's tab for photos and videos, beside its Documents tab"
   },
   "@nav_more": {
     "description": "Navigation label for the 'more' menu on mobile"
@@ -14478,7 +14482,6 @@
   "settings_conflict_ref_attachedThrough": "Attached through",
   "settings_conflict_ref_buddy": "Buddy",
   "nav_documents": "Documents",
-  "documents_title": "Documents",
   "documents_type_insurance": "Insurance",
   "documents_type_medicalClearance": "Medical clearance",
   "documents_type_certificationCard": "Certification card",

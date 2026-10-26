@@ -19787,7 +19787,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get nav_media => 'Médias';
 
   @override
-  String get nav_mediaDocumentsSubtitle => 'Médias et documents';
+  String get nav_mediaDocumentsSubtitle => 'Photos, vidéos et documents';
+
+  @override
+  String get nav_photosVideos => 'Photos/Vidéos';
 
   @override
   String get nav_more => 'Plus';
@@ -24929,9 +24932,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get nav_documents => 'Documents';
-
-  @override
-  String get documents_title => 'Documents';
 
   @override
   String get documents_type_insurance => 'Assurance';

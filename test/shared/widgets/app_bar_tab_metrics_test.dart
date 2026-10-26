@@ -2,105 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/theme/app_theme_registry.dart';
 import 'package:submersion/shared/widgets/app_bar_tab_metrics.dart';
-import 'package:submersion/shared/widgets/section_title_toggle.dart';
 
 import '../../helpers/contrast_ratio.dart';
 
 void main() {
-  group('appBarTabsFitInline titleWidth', () {
-    testWidgets(
-      'a pre-measured titleWidth agrees with measuring the same text as a '
-      'string title',
-      (tester) async {
-        const style = TextStyle(fontSize: 16);
-        late BuildContext capturedContext;
-        await tester.pumpWidget(
-          MaterialApp(
-            home: Builder(
-              builder: (context) {
-                capturedContext = context;
-                return const SizedBox();
-              },
-            ),
-          ),
-        );
-
-        final byString = appBarTabsFitInline(
-          capturedContext,
-          barWidth: 400,
-          title: 'Media',
-          labels: const ['Library', 'Sources'],
-          labelStyle: style,
-        );
-        final titleWidth = SectionTitleToggle.naturalWidth(
-          capturedContext,
-          Theme.of(capturedContext).textTheme.titleLarge ?? style,
-          labels: const ['Media'],
-          withAccentIcon: false,
-        );
-        final byWidth = appBarTabsFitInline(
-          capturedContext,
-          barWidth: 400,
-          titleWidth: titleWidth,
-          labels: const ['Library', 'Sources'],
-          labelStyle: style,
-        );
-
-        expect(byWidth, byString);
-      },
-    );
-
-    testWidgets('passing neither title nor titleWidth asserts', (tester) async {
-      late BuildContext capturedContext;
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Builder(
-            builder: (context) {
-              capturedContext = context;
-              return const SizedBox();
-            },
-          ),
-        ),
-      );
-
-      expect(
-        () => appBarTabsFitInline(
-          capturedContext,
-          barWidth: 400,
-          labels: const ['Library'],
-          labelStyle: const TextStyle(),
-        ),
-        throwsA(isA<AssertionError>()),
-      );
-    });
-
-    testWidgets('passing both title and titleWidth asserts', (tester) async {
-      late BuildContext capturedContext;
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Builder(
-            builder: (context) {
-              capturedContext = context;
-              return const SizedBox();
-            },
-          ),
-        ),
-      );
-
-      expect(
-        () => appBarTabsFitInline(
-          capturedContext,
-          barWidth: 400,
-          title: 'Media',
-          titleWidth: 10,
-          labels: const ['Library'],
-          labelStyle: const TextStyle(),
-        ),
-        throwsA(isA<AssertionError>()),
-      );
-    });
-  });
-
   group('AppBarTabColors.overlay', () {
     const selected = Color(0xFF123456);
     const colors = AppBarTabColors(

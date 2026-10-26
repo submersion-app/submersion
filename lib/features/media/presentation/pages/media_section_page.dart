@@ -8,37 +8,20 @@ import 'package:submersion/features/media/presentation/providers/media_library_p
 import 'package:submersion/features/media/presentation/providers/media_watcher_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/media_console_scaffold.dart';
 import 'package:submersion/features/media_store/presentation/widgets/transfers_view.dart';
-import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/section_header_title.dart';
 
-/// Top-level Media section host: owns the selected console section and
-/// renders its content inside [MediaConsoleScaffold] (tabs in the app bar,
-/// inline beside the title when they fit).
+/// The Media screen's Photos/Videos tab: owns the selected console section
+/// and renders its content inside [MediaConsoleScaffold], whose section tabs
+/// sit under [headerTitle].
 class MediaSectionPage extends ConsumerStatefulWidget {
-  const MediaSectionPage({super.key, this.headerTitle});
+  const MediaSectionPage({super.key, required this.headerTitle});
 
-  /// Replaces the plain "Media" title with the Media and Documents tab
-  /// switch, as Training's tab switch does on its own tabs (#3631).
-  final SectionHeaderTitle? headerTitle;
+  /// The header's title: the Media screen's Photos/Videos and Documents
+  /// switch (#3631).
+  final SectionHeaderTitle headerTitle;
 
   @override
   ConsumerState<MediaSectionPage> createState() => _MediaSectionPageState();
-}
-
-/// The width [text] renders at in [style], on one line, at the context's
-/// text scale. Stands in for [headerTitle]'s own pre-measured width when
-/// there is no header title (a standalone Media page outside the Media and
-/// Documents host), where the title stays a plain string.
-double _measureTextWidth(BuildContext context, String text, TextStyle style) {
-  final painter = TextPainter(
-    text: TextSpan(text: text, style: style),
-    textDirection: Directionality.of(context),
-    textScaler: MediaQuery.textScalerOf(context),
-    maxLines: 1,
-  )..layout();
-  final width = painter.width;
-  painter.dispose();
-  return width;
 }
 
 class _MediaSectionPageState extends ConsumerState<MediaSectionPage> {
@@ -67,25 +50,9 @@ class _MediaSectionPageState extends ConsumerState<MediaSectionPage> {
     // Missing files live under the Library's health chip; the badge on the
     // Library tab is how a broken file gets noticed from another section.
     final missingCount = ref.watch(missingCountProvider).value ?? 0;
-    final headerTitle = widget.headerTitle;
-    final title =
-        headerTitle?.build(context, SectionHeaderSlot.appBar, null) ??
-        Text(context.l10n.nav_media);
-    final titleWidth =
-        headerTitle?.appBarTitleWidth?.call(context) ??
-        _measureTextWidth(
-          context,
-          context.l10n.nav_media,
-          Theme.of(context).appBarTheme.titleTextStyle ??
-              Theme.of(context).textTheme.titleLarge ??
-              const TextStyle(),
-        );
 
     return MediaConsoleScaffold(
-      title: title,
-      titleWidth: titleWidth,
-      toolbarHeight: headerTitle?.appBarHeight(context, null),
-      appBarPin: headerTitle?.pinAppBar,
+      headerTitle: widget.headerTitle,
       selected: _section,
       onSelect: (section) => setState(() => _section = section),
       badgeCounts: {MediaConsoleSection.library: missingCount},

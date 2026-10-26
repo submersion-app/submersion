@@ -21,6 +21,7 @@ import 'package:submersion/features/tags/presentation/providers/tag_link_provide
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
+import 'package:submersion/shared/widgets/master_detail/pane_header_bar.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/section_header_title.dart';
 
@@ -34,9 +35,9 @@ class DocumentsPage extends ConsumerWidget {
   /// Shows only the documents carrying this tag (a detail page's tag chip).
   final String? initialTagId;
 
-  /// Replaces every layout's header title, as the Media and Documents tab
-  /// switch does (#3631).
-  final SectionHeaderTitle? headerTitle;
+  /// The header's title in every layout: the Media screen's Photos/Videos
+  /// and Documents switch (#3631).
+  final SectionHeaderTitle headerTitle;
 
   const DocumentsPage({
     super.key,
@@ -44,7 +45,7 @@ class DocumentsPage extends ConsumerWidget {
     this.initialExpiringOnly = false,
     this.initialPersonalOnly = false,
     this.initialTagId,
-    this.headerTitle,
+    required this.headerTitle,
   });
 
   @override
@@ -142,7 +143,7 @@ class DocumentsListContent extends ConsumerStatefulWidget {
   final String? selectedId;
   final ValueChanged<String> onOpen;
   final Widget? floatingActionButton;
-  final SectionHeaderTitle? headerTitle;
+  final SectionHeaderTitle headerTitle;
 
   const DocumentsListContent({
     super.key,
@@ -154,7 +155,7 @@ class DocumentsListContent extends ConsumerStatefulWidget {
     this.initialTagId,
     this.selectedId,
     this.floatingActionButton,
-    this.headerTitle,
+    required this.headerTitle,
   });
 
   @override
@@ -385,15 +386,14 @@ class _DocumentsListContentState extends ConsumerState<DocumentsListContent> {
       );
     }
     final headerTitle = widget.headerTitle;
-    final appBar = AppBar(
-      title:
-          headerTitle?.build(context, SectionHeaderSlot.appBar, null) ??
-          Text(l10n.documents_title),
-      toolbarHeight: headerTitle?.appBarHeight(context, null),
-      actions: [_menu(context)],
-    );
     return Scaffold(
-      appBar: headerTitle?.pinAppBar(appBar) ?? appBar,
+      appBar: headerTitle.pinAppBar(
+        AppBar(
+          title: headerTitle.build(context, SectionHeaderSlot.appBar, null),
+          toolbarHeight: headerTitle.appBarHeight(context, null),
+          actions: [_menu(context)],
+        ),
+      ),
       floatingActionButton: widget.floatingActionButton,
       body: body,
     );
@@ -417,34 +417,10 @@ class _DocumentsListContentState extends ConsumerState<DocumentsListContent> {
 
   /// The master pane's title row on wide screens, where the list has no app
   /// bar of its own.
-  Widget _compactHeader(BuildContext context) {
-    final theme = Theme.of(context);
-    final headerTitle = widget.headerTitle;
-    final title =
-        headerTitle?.build(context, SectionHeaderSlot.pane, null) ??
-        Text(
-          context.l10n.documents_title,
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
-        );
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        border: Border(
-          bottom: BorderSide(color: theme.colorScheme.outlineVariant),
-        ),
-      ),
-      child: Row(
-        children: [
-          const SizedBox(width: 8),
-          Expanded(child: title),
-          _menu(context, iconSize: 20),
-        ],
-      ),
-    );
-  }
+  Widget _compactHeader(BuildContext context) => PaneHeaderBar(
+    title: widget.headerTitle.build(context, SectionHeaderSlot.pane, null),
+    actions: [_menu(context, iconSize: 20)],
+  );
 
   List<Widget> _group(
     BuildContext context,

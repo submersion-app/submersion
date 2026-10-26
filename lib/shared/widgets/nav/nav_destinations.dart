@@ -153,14 +153,14 @@ final List<NavDestination> kNavDestinations = List.unmodifiable([
     subtitle: (l10n) => l10n.nav_trainingSubtitle,
     accent: 'certifications',
   ),
-  // Media and Documents hold Media and Documents as two tabs (#3631), the
-  // same way Training holds Certifications and Courses (#3437): both are
+  // Media holds Photos/Videos and Documents as two tabs (#3631), the same
+  // way Training holds Certifications and Courses (#3437): both are
   // reference collections a diver browses, rather than the logging sections
   // at the top of the list, so they share one nav slot. The entry's own
-  // route is Media's existing address, not a new redirecting stub -- nav
-  // selection scores `route` and `extraMatchPaths` as independent prefixes
-  // (see nav_selection.dart), so no stub is needed to highlight this entry
-  // from either tab's address.
+  // route is the Photos/Videos tab's address, not a new redirecting stub:
+  // nav selection scores `route` and `extraMatchPaths` as independent
+  // prefixes (see nav_selection.dart), so no stub is needed to highlight
+  // this entry from either tab's address.
   NavDestination(
     id: 'media-documents',
     route: '/media',

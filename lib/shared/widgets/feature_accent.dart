@@ -122,8 +122,8 @@ class FeatureAppBarTitle extends ConsumerWidget {
 
   /// Header icons for sections that kept their own headers but share a nav
   /// entry with another section: Certifications and Courses are tabs of
-  /// Training (#3437); Media and Documents are tabs of the merged
-  /// media-documents entry (#3631).
+  /// Training (#3437), and Photos/Videos and Documents are tabs of Media
+  /// (#3631).
   static const Map<String, IconData> _sharedEntrySectionIcons = {
     'certifications': Icons.card_membership,
     'courses': Icons.school,
