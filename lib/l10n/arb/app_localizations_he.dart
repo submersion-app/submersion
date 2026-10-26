@@ -20333,6 +20333,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'לא נרשמו משקולות: הוסף משקולות לצלילה זו או משקל יבש לציוד המשקולות שלך';
 
   @override
+  String get buoyancy_tankMaterialAssumedHint =>
+      'חומר הבלון לא הוגדר, לכן הונח אלומיניום: הגדר את החומר או בחר תבנית בלון';
+
+  @override
   String get buoyancy_chartNet => 'נטו';
 
   @override

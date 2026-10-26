@@ -2093,6 +2093,7 @@
   "buoyancy_estimatedPressures": "As pressões dos cilindros são estimadas",
   "buoyancy_linkSuitHint": "Associe uma roupa de exposição a este mergulho para um quadro mais completo",
   "buoyancy_noLeadHint": "Nenhum lastro registado: adicione lastro a este mergulho ou um peso seco ao seu equipamento de lastro",
+  "buoyancy_tankMaterialAssumedHint": "Material do cilindro não definido, por isso assumiu-se alumínio: defina o material ou escolha um modelo de cilindro",
   "buoyancy_chartNet": "Líquido",
   "buoyancy_chartRig": "Equipamento + lastro",
   "buoyancy_chartMinutes": "Tempo (min)",

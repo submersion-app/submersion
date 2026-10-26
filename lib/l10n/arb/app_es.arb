@@ -2093,6 +2093,7 @@
   "buoyancy_estimatedPressures": "Las presiones de botella son estimadas",
   "buoyancy_linkSuitHint": "Asocia un traje a esta inmersión para un panorama más completo",
   "buoyancy_noLeadHint": "No se registró lastre: añade lastre a esta inmersión o un peso en seco a tu equipo de lastre",
+  "buoyancy_tankMaterialAssumedHint": "Material de la botella sin definir, así que se asumió aluminio: define el material o elige una plantilla de tanque",
   "buoyancy_chartNet": "Neto",
   "buoyancy_chartRig": "Equipo + lastre",
   "buoyancy_chartMinutes": "Tiempo (min)",

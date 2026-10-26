@@ -20844,6 +20844,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Aucun lest enregistré : ajoutez du lest à cette plongée ou un poids à sec à votre équipement de lestage';
 
   @override
+  String get buoyancy_tankMaterialAssumedHint =>
+      'Matériau du bloc non défini, aluminium supposé : définissez le matériau ou choisissez un modèle de bloc';
+
+  @override
   String get buoyancy_chartNet => 'Net';
 
   @override

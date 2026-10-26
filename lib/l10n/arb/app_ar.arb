@@ -2009,6 +2009,7 @@
   "buoyancy_estimatedPressures": "ضغوط الأسطوانات تقديرية",
   "buoyancy_linkSuitHint": "اربط بدلة تعرّض بهذه الغطسة للحصول على صورة أوفى",
   "buoyancy_noLeadHint": "لم يتم تسجيل أي أثقال: أضف أثقالًا إلى هذه الغطسة أو وزنًا جافًا إلى معدات الأثقال",
+  "buoyancy_tankMaterialAssumedHint": "لم يتم تحديد مادة الأسطوانة، لذا افتُرض أنها ألومنيوم: حدد المادة أو اختر قالب أسطوانة",
   "buoyancy_chartNet": "الصافي",
   "buoyancy_chartRig": "المعدات + الرصاص",
   "buoyancy_chartMinutes": "الزمن (دقيقة)",

@@ -9676,6 +9676,7 @@
   "buoyancy_estimatedPressures": "A palacknyomások becsültek",
   "buoyancy_linkSuitHint": "Kapcsolj egy búvárruhát ehhez a merüléshez a teljesebb képért",
   "buoyancy_noLeadHint": "Nincs rögzített ólom: adj ólmot ehhez a merüléshez, vagy száraz tömeget az ólomfelszerelésedhez",
+  "buoyancy_tankMaterialAssumedHint": "A palack anyaga nincs megadva, ezért alumíniumot feltételeztünk: add meg az anyagot, vagy válassz palacksablont",
   "buoyancy_chartNet": "Nettó",
   "buoyancy_chartRig": "Felszerelés + ólom",
   "buoyancy_chartMinutes": "Idő (perc)",

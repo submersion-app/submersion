@@ -20784,6 +20784,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Nessuna zavorra registrata: aggiungi zavorra a questa immersione o un peso a secco alla tua attrezzatura di zavorra';
 
   @override
+  String get buoyancy_tankMaterialAssumedHint =>
+      'Materiale della bombola non impostato, quindi è stato ipotizzato alluminio: imposta il materiale o scegli un modello di bombola';
+
+  @override
   String get buoyancy_chartNet => 'Netto';
 
   @override

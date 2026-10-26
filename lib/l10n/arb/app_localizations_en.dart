@@ -20482,6 +20482,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'No lead recorded: add weights to this dive, or a dry weight to your weights gear';
 
   @override
+  String get buoyancy_tankMaterialAssumedHint =>
+      'Tank material not set, so aluminum was assumed: set the material or pick a tank preset';
+
+  @override
   String get buoyancy_chartNet => 'Net';
 
   @override

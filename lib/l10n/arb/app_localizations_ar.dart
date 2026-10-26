@@ -21087,6 +21087,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'لم يتم تسجيل أي أثقال: أضف أثقالًا إلى هذه الغطسة أو وزنًا جافًا إلى معدات الأثقال';
 
   @override
+  String get buoyancy_tankMaterialAssumedHint =>
+      'لم يتم تحديد مادة الأسطوانة، لذا افتُرض أنها ألومنيوم: حدد المادة أو اختر قالب أسطوانة';
+
+  @override
   String get buoyancy_chartNet => 'الصافي';
 
   @override

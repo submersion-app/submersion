@@ -5837,6 +5837,7 @@
   "buoyancy_estimatedPressures": "לחצי המכלים משוערים",
   "buoyancy_linkSuitHint": "קשר חליפת חשיפה לצלילה זו לתמונה מלאה יותר",
   "buoyancy_noLeadHint": "לא נרשמו משקולות: הוסף משקולות לצלילה זו או משקל יבש לציוד המשקולות שלך",
+  "buoyancy_tankMaterialAssumedHint": "חומר הבלון לא הוגדר, לכן הונח אלומיניום: הגדר את החומר או בחר תבנית בלון",
   "buoyancy_chartNet": "נטו",
   "buoyancy_chartRig": "ציוד + משקולות",
   "buoyancy_chartMinutes": "זמן (דק')",

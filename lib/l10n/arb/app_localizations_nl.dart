@@ -20654,6 +20654,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Geen lood vastgelegd: voeg lood toe aan deze duik of een drooggewicht aan je loodmateriaal';
 
   @override
+  String get buoyancy_tankMaterialAssumedHint =>
+      'Flesmateriaal niet ingesteld, dus is aluminium aangenomen: stel het materiaal in of kies een flessjabloon';
+
+  @override
   String get buoyancy_chartNet => 'Netto';
 
   @override

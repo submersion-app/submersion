@@ -434,7 +434,16 @@ class FittedWeightModel {
             workingPressureBar: tank.workingPressureBar,
             material: tank.material,
           ),
-          source: TermSource.physics,
+          // A guessed material is an estimate, not physics (#3686).
+          source:
+              BuoyancyPhysics.tankMaterialAssumed(
+                presetName: tank.presetName,
+                volumeL: tank.volumeL,
+                workingPressureBar: tank.workingPressureBar,
+                material: tank.material,
+              )
+              ? TermSource.typeDefault
+              : TermSource.physics,
         ),
       );
     }

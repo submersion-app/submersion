@@ -2093,6 +2093,7 @@
   "buoyancy_estimatedPressures": "Flesdrukken zijn geschat",
   "buoyancy_linkSuitHint": "Koppel een duikpak aan deze duik voor een vollediger beeld",
   "buoyancy_noLeadHint": "Geen lood vastgelegd: voeg lood toe aan deze duik of een drooggewicht aan je loodmateriaal",
+  "buoyancy_tankMaterialAssumedHint": "Flesmateriaal niet ingesteld, dus is aluminium aangenomen: stel het materiaal in of kies een flessjabloon",
   "buoyancy_chartNet": "Netto",
   "buoyancy_chartRig": "Uitrusting + lood",
   "buoyancy_chartMinutes": "Tijd (min)",

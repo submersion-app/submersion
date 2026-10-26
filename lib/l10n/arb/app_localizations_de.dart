@@ -20760,6 +20760,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Kein Blei erfasst: Füge diesem Tauchgang Blei hinzu oder trage bei deiner Bleiausrüstung ein Trockengewicht ein';
 
   @override
+  String get buoyancy_tankMaterialAssumedHint =>
+      'Flaschenmaterial nicht festgelegt, daher wurde Aluminium angenommen: Lege das Material fest oder wähle eine Flaschenvorlage';
+
+  @override
   String get buoyancy_chartNet => 'Netto';
 
   @override

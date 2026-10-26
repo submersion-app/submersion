@@ -20718,6 +20718,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Nincs rögzített ólom: adj ólmot ehhez a merüléshez, vagy száraz tömeget az ólomfelszerelésedhez';
 
   @override
+  String get buoyancy_tankMaterialAssumedHint =>
+      'A palack anyaga nincs megadva, ezért alumíniumot feltételeztünk: add meg az anyagot, vagy válassz palacksablont';
+
+  @override
   String get buoyancy_chartNet => 'Nettó';
 
   @override

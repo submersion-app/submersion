@@ -33084,6 +33084,12 @@ abstract class AppLocalizations {
   /// **'No lead recorded: add weights to this dive, or a dry weight to your weights gear'**
   String get buoyancy_noLeadHint;
 
+  /// No description provided for @buoyancy_tankMaterialAssumedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tank material not set, so aluminum was assumed: set the material or pick a tank preset'**
+  String get buoyancy_tankMaterialAssumedHint;
+
   /// No description provided for @buoyancy_chartNet.
   ///
   /// In en, this message translates to:
