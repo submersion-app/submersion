@@ -14,6 +14,7 @@ domain.DiveTank tank({
   TankRole role = TankRole.backGas,
   TankRoleSource? roleSource,
   double o2 = 21.0,
+  String? computerId,
 }) => domain.DiveTank(
   id: id,
   volume: 3,
@@ -21,16 +22,22 @@ domain.DiveTank tank({
   order: order,
   role: role,
   roleSource: roleSource,
+  computerId: computerId,
 );
 
-GasSwitch sw({required String id, required int t, required String tankId}) =>
-    GasSwitch(
-      id: id,
-      diveId: 'd1',
-      timestamp: t,
-      tankId: tankId,
-      createdAt: DateTime.utc(2026, 7, 1),
-    );
+GasSwitch sw({
+  required String id,
+  required int t,
+  required String tankId,
+  String? computerId,
+}) => GasSwitch(
+  id: id,
+  diveId: 'd1',
+  timestamp: t,
+  tankId: tankId,
+  computerId: computerId,
+  createdAt: DateTime.utc(2026, 7, 1),
+);
 
 /// One sample every 10 s from [from] to [to] (inclusive), dropping
 /// [barPerMinute] from [startBar].
@@ -202,5 +209,65 @@ void main() {
     final out = det.detect(ctx);
     expect(out, hasLength(1));
     expect(out.single.params['tankId'], 'bo');
+  });
+
+  test('an O2 supply bleeding down topside after an OC ascent is not '
+      'flagged', () {
+    // Flat on the loop and on open circuit until the diver surfaces at 50
+    // minutes; closing the valve then bleeds the hose through the orifice.
+    // Samples after surfacing describe no breathing.
+    final ctx = makeContext(
+      dive: makeTestDive(
+        diveMode: DiveMode.ccr,
+        tanks: [
+          tank(id: 'dil', order: 0, role: TankRole.diluent),
+          tank(id: 'o2', order: 1, role: TankRole.oxygenSupply, o2: 100),
+          tank(id: 'bo', order: 2, role: TankRole.bailout, o2: 50),
+        ],
+      ),
+      samples: [
+        for (var t = 0; t <= 3600; t += 10)
+          QualitySample(t: t, depth: t <= 3000 ? 20 : 0),
+      ],
+      pressures: {
+        'o2': [...series(0, 3000, 200, 0), ...series(3010, 3600, 200, 5)],
+      },
+      gasSwitches: [sw(id: 'gs1', t: 2400, tankId: 'bo')],
+    );
+    expect(det.detect(ctx), isEmpty);
+  });
+
+  test("another computer's switch to open circuit does not judge a loop "
+      'tank', () {
+    // Two computers on one dive: only the second logged a bailout switch.
+    // What the first computer's O2 supply did is judged against the first
+    // computer's own switches, and it logged none to open circuit.
+    final ctx = makeContext(
+      dive: makeTestDive(
+        diveMode: DiveMode.ccr,
+        tanks: [
+          tank(id: 'dil', order: 0, role: TankRole.diluent, computerId: 'c1'),
+          tank(
+            id: 'o2',
+            order: 1,
+            role: TankRole.oxygenSupply,
+            o2: 100,
+            computerId: 'c1',
+          ),
+          tank(
+            id: 'bo',
+            order: 2,
+            role: TankRole.bailout,
+            o2: 50,
+            computerId: 'c2',
+          ),
+        ],
+      ),
+      pressures: {
+        'o2': [...series(0, 2390, 200, 0), ...series(2400, 3000, 200, 6)],
+      },
+      gasSwitches: [sw(id: 'gs1', t: 2400, tankId: 'bo', computerId: 'c2')],
+    );
+    expect(det.detect(ctx), isEmpty);
   });
 }

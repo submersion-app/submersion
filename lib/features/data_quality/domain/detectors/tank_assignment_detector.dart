@@ -127,17 +127,23 @@ class TankAssignmentDetector extends QualityDetector {
   /// a constant-mass-flow O2 supply bleeds at one rate throughout. Judged by
   /// role alone, so a rebreather dive logged in the wrong mode is covered.
   List<QualityFinding> _loopTankFindings(DiveQualityContext ctx) {
+    final candidates = [
+      for (final t in ctx.tanks)
+        if (isLoopTankRole(t.role.name) &&
+            !_leftToRoleCheck(ctx, t) &&
+            (ctx.pressuresByTankId[t.id]?.length ?? 0) >= 2)
+          t,
+    ];
+    // Most dives in a library scan are open circuit: skip the profile walk.
+    if (candidates.isEmpty) return const [];
+
     final roleById = {for (final t in ctx.tanks) t.id: t.role};
     final inWaterEnd = lastTimeBelowSurfaceThreshold(
       ctx.primarySamples.map((s) => (t: s.t, depth: s.depth)),
     );
     final out = <QualityFinding>[];
-    for (final tank in ctx.tanks) {
-      if (!isLoopTankRole(tank.role.name) || _leftToRoleCheck(ctx, tank)) {
-        continue;
-      }
-      final series = ctx.pressuresByTankId[tank.id] ?? const [];
-      if (series.length < 2) continue;
+    for (final tank in candidates) {
+      final series = ctx.pressuresByTankId[tank.id]!;
       // Only this cylinder's own computer's switches describe what was
       // breathed from it; a second computer logs its own switches.
       final evidence = bailoutEvidence<String>(
