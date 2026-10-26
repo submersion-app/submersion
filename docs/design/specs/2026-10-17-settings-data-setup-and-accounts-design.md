@@ -414,26 +414,58 @@ sync" pull step are replaced by the four steps above, rendered as wizard
 steps:
 
 - Fresh path: Welcome, Profile, Units, Step 1, Step 2, Step 3, Step 4, Finish.
-  "Skip setup" keeps skipping to Profile and Finish. Step 2 on the fresh path
-  handles "this account already holds a library" the way the wizard's pivot
-  does today (adopt it or start fresh), using the step's own second-device
-  wording.
+  "Skip setup" keeps skipping to Profile and Finish. When the account chosen in
+  Step 1 already holds a library, Step 2 offers only "Download library" in its
+  own second-device wording, and downloading moves the wizard onto the
+  existing-data ending: Finish creates no diver profile, the name typed on
+  Profile is not used, and the active diver is realigned to the library's. The
+  old "Keep fresh" choice is dropped (decided 2026-10-25): on a device with no
+  dives its only effect was a second profile of the same diver. A diver who
+  wants a separate logbook goes Back and picks another account.
 - Existing-data path: Welcome, the existing choice (Restore a backup file,
   Connect cloud sync, Open an existing folder). "Connect cloud sync" runs
   Step 1 and Step 2, then Step 3 and Step 4, then Finish. Restore and Open an
-  existing folder are unchanged.
-- The wizard draft keeps holding step choices until Finish applies them,
-  except where today's wizard already writes immediately (the provider
-  connection and the library pull), which the steps keep doing. On the
-  existing-data path Finish must not create a diver profile: the downloaded
-  library brought its divers, and the active diver is realigned as the pull
-  does today.
+  existing folder are unchanged. When the account holds no library, the wizard
+  switches to the fresh path at Profile, as today; Step 1 keeps the account
+  already chosen, and Step 2 then offers "Turn on sync" to upload the new
+  logbook.
+- Each step writes when its primary button is tapped, exactly as in Settings
+  (decided 2026-10-25): the account connection, the library download, the
+  backup switches and the photo copies. Finish applies only what the wizard
+  owns, the profile and the units, and the wizard draft no longer holds backup
+  or connected-provider fields. A diver who leaves the wizard partway keeps the
+  steps already done; the setup card shows what is left. Back to an earlier
+  step undoes nothing; its answer is changed by pressing its button again.
+- Finish creates the diver from the Profile name and the Units only when the
+  device holds no diver once the steps are done (decided 2026-10-25). A
+  downloaded library keeps its own divers and their units, and the active
+  diver is realigned as the pull does today, so on the existing-data path
+  Finish creates no diver profile. A wizard quit after Step 2 uploaded and
+  then rerun meets its own upload in Step 2, downloads it, and Finish still
+  creates the diver because the device has none: nobody is left without a
+  diver.
+- In the wizard, Step 1 does not show "I have a backup file instead": the
+  wizard's own "Restore a backup file" choice covers it. Step 1 has "Not now"
+  in the wizard (decided 2026-10-25): it skips Step 2, which has nothing to
+  sync without an account, and opens Step 3, which can still turn on
+  automatic backups on this device and explains that a copy needs an
+  account; Step 4 then shows its note. "Not now" on Steps 2 and 3 moves on to
+  the next step instead of closing the flow, since first launch has nowhere
+  to return to; the step stays outstanding and the card shows it later. Skip
+  on Step 4 settles it, as in Settings.
+- Step 2 has an "in step" state, for a device whose sync already names the
+  chosen account and has synced (the Setup assistant, Settings' Set up this
+  device again, or Back after a download): "The dives here are in step with
+  your library in {account}." with Next, instead of offering Combine or
+  Replace for a library the device already shares.
 - Settings > Manage > "Setup assistant" runs Units, then the four steps, then
   Finish, with every step pre-filled from the current state. Its subtitle
   becomes "Revisit units, backups, sync and photos".
 
 The step widgets are shared between the wizard and Settings; only the shell
-differs (the wizard's surface style versus a pushed page with an app bar).
+differs (the wizard's surface style versus a pushed page with an app bar). On
+the step pages the wizard hides its own bottom bar: each step keeps its own
+back and primary buttons.
 
 ## 7. Accounts
 

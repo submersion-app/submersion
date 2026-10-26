@@ -14,7 +14,9 @@ import 'package:submersion/shared/widgets/label_with_control.dart';
 /// (used wherever dives are matched to sites: after an import, from the GPS
 /// logger, from a photo import and from a dive's suggestion card), whether
 /// cylinder end pressure is read at the moment of surfacing (applied on dive
-/// computer downloads, file imports and reparses), and whether every new
+/// computer downloads, file imports and reparses), whether a rebreather
+/// download or re-parse leaves out the open-circuit gases no transmitter read
+/// and the diver never breathed (issue #3668), and whether every new
 /// import session starts with a tag naming its source and date (issue #998;
 /// moved here from Settings > Manage > Tags in issue #3193), and whether a
 /// dive computer download defaults to the profile that owns the computer
@@ -33,6 +35,9 @@ class ImportPreferencesGroup extends ConsumerWidget {
     );
     final trimAtSurfacing = ref.watch(
       settingsProvider.select((s) => s.trimTankPressureAtSurfacing),
+    );
+    final omitUnusedOcGases = ref.watch(
+      settingsProvider.select((s) => s.omitUnusedOcGases),
     );
     final autoTagImports = ref.watch(
       settingsProvider.select((s) => s.autoTagImports),
@@ -88,6 +93,14 @@ class ImportPreferencesGroup extends ConsumerWidget {
             onChanged: (value) => ref
                 .read(settingsProvider.notifier)
                 .setTrimTankPressureAtSurfacing(value),
+          ),
+          SwitchListTile(
+            secondary: const Icon(Icons.filter_alt_off_outlined),
+            title: Text(context.l10n.settings_omitUnusedOcGases_title),
+            subtitle: Text(context.l10n.settings_omitUnusedOcGases_subtitle),
+            value: omitUnusedOcGases,
+            onChanged: (value) =>
+                ref.read(settingsProvider.notifier).setOmitUnusedOcGases(value),
           ),
           SwitchListTile(
             secondary: const Icon(Icons.label_outline),

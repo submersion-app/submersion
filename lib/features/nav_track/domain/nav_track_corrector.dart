@@ -147,6 +147,18 @@ class NavTrackCorrector {
     return _activeRange(NavTrackSegmenter.classify(points), points.length);
   }
 
+  /// [activeRange] for a caller that already holds the recording's
+  /// [segmentation] (it needs the sample kinds too), so the recording is
+  /// not classified a second time. [length] is the number of points
+  /// [segmentation] was classified from.
+  static ({int start, int end}) activeRangeOf(
+    NavTrackSegmentation segmentation,
+    int length,
+  ) {
+    if (length == 0) return (start: 0, end: 0);
+    return _activeRange(segmentation, length);
+  }
+
   /// The GPS-fix event that calibrates the console before the dive, or null
   /// when the recording has none.
   ///

@@ -79,6 +79,7 @@ class CylinderConfigRepository {
         o2Percent: row.o2Percent,
         hePercent: row.hePercent,
         defaultStartPressureBar: row.defaultStartPressureBar,
+        decoSwitchDepth: row.decoSwitchDepth,
         createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
         updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt),
       );
@@ -288,6 +289,7 @@ class CylinderConfigRepository {
                 o2Percent: Value(item.o2Percent),
                 hePercent: Value(item.hePercent),
                 defaultStartPressureBar: Value(item.defaultStartPressureBar),
+                decoSwitchDepth: Value(item.decoSwitchDepth),
                 createdAt: Value(existing?.createdAt ?? now),
                 updatedAt: Value(now),
               ),

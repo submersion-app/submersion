@@ -384,6 +384,13 @@ class DownloadedTank {
   /// mix someone fixed.
   final bool mixRecorded;
 
+  /// True for a cylinder made from a gas on a rebreather computer's gas list
+  /// that no transmitter read, that the computer tagged with no usage, and
+  /// that the diver never breathed (issue #3668). The cylinder is still
+  /// resolved; a writer drops it when the diver asks for that, after the
+  /// bailout transmitter claim has seen it.
+  final bool unusedOcGas;
+
   const DownloadedTank({
     required this.index,
     required this.o2Percent,
@@ -395,6 +402,7 @@ class DownloadedTank {
     this.roleSource,
     this.transmitterSerial,
     this.mixRecorded = true,
+    this.unusedOcGas = false,
   });
 
   DownloadedTank copyWith({
@@ -408,6 +416,7 @@ class DownloadedTank {
     TankRoleSource? roleSource,
     String? transmitterSerial,
     bool? mixRecorded,
+    bool? unusedOcGas,
   }) => DownloadedTank(
     index: index ?? this.index,
     o2Percent: o2Percent ?? this.o2Percent,
@@ -419,6 +428,7 @@ class DownloadedTank {
     roleSource: roleSource ?? this.roleSource,
     transmitterSerial: transmitterSerial ?? this.transmitterSerial,
     mixRecorded: mixRecorded ?? this.mixRecorded,
+    unusedOcGas: unusedOcGas ?? this.unusedOcGas,
   );
 
   /// Whether this is air (21% O2)

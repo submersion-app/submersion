@@ -5,6 +5,8 @@ import 'package:submersion/shared/widgets/list_scrubber/list_scrubber.dart';
 import 'package:submersion/shared/widgets/list_scrubber/list_scrubber_panel.dart';
 import 'package:submersion/shared/widgets/list_scrubber/scrubber_marker.dart';
 
+import 'scrubber_hover.dart';
+
 void main() {
   late ScrollController controller;
   setUp(() => controller = ScrollController());
@@ -57,13 +59,7 @@ void main() {
     return box.decoration as BoxDecoration;
   }
 
-  Future<TestGesture> hover(WidgetTester tester) async {
-    final area = tester.getRect(find.byType(ListScrubber));
-    final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
-    await mouse.addPointer(location: Offset(area.right - 10, area.top + 400));
-    await tester.pumpAndSettle();
-    return mouse;
-  }
+  Future<TestGesture> hover(WidgetTester tester) => hoverScrubberThumb(tester);
 
   Color onSurfaceAlpha(ThemeData theme, double opacity) =>
       theme.colorScheme.onSurface.withAlpha((255.0 * opacity).round());
@@ -224,5 +220,31 @@ void main() {
       await mouse.removePointer();
       await tester.pumpAndSettle(ListScrubber.idleHide);
     });
+  });
+
+  testWidgets('a wide themed handle can be hovered across its width', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      host(
+        ThemeData(
+          scrollbarTheme: const ScrollbarThemeData(
+            thickness: WidgetStatePropertyAll(14),
+            crossAxisMargin: 3,
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    final area = tester.getRect(find.byType(ListScrubber));
+    final thumb = tester.getRect(find.byKey(ListScrubber.thumbKey));
+    // On the handle (3 px in, 14 px wide), past the default grip width.
+    final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+    await mouse.addPointer(location: Offset(area.right - 16, thumb.center.dy));
+    await tester.pumpAndSettle();
+    expect(find.byKey(ListScrubber.panelKey), findsOneWidget);
+    await mouse.removePointer();
+    await tester.pumpAndSettle();
+    await tester.pump(ListScrubber.idleHide);
   });
 }

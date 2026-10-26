@@ -3,24 +3,11 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:xml/xml.dart';
 
+import 'plist_test_helpers.dart';
+
 /// Guards the platform wiring for cylinder passport links and camera scanning
 /// (issue #2335). File assertions, because CI never runs a signed build that
 /// could exercise them: a missing key is invisible until a diver taps a label.
-
-/// The value element that follows [key] in a plist's top-level dict.
-XmlElement? plistValue(String path, String key) {
-  final dict = XmlDocument.parse(
-    File(path).readAsStringSync(),
-  ).rootElement.getElement('dict')!;
-  final children = dict.childElements.toList();
-  for (var i = 0; i + 1 < children.length; i++) {
-    if (children[i].name.local == 'key' &&
-        children[i].innerText.trim() == key) {
-      return children[i + 1];
-    }
-  }
-  return null;
-}
 
 /// Every URL scheme a plist's CFBundleURLTypes registers.
 Set<String> urlSchemes(String path) {

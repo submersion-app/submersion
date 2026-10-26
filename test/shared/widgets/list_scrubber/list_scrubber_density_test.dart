@@ -1,4 +1,3 @@
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/shared/widgets/list_scrubber/list_scrubber.dart';
@@ -7,6 +6,8 @@ import 'package:submersion/shared/widgets/list_scrubber/list_scrubber_density_pa
 import 'package:submersion/shared/widgets/list_scrubber/list_scrubber_geometry.dart';
 import 'package:submersion/shared/widgets/list_scrubber/list_scrubber_panel.dart';
 import 'package:submersion/shared/widgets/list_scrubber/scrubber_marker.dart';
+
+import 'scrubber_hover.dart';
 
 void main() {
   late ScrollController controller;
@@ -90,12 +91,7 @@ void main() {
   double y(int slot) =>
       24 + trackForSlot(slot: slot, trackExtent: 552, slotCount: 200);
 
-  Future<TestGesture> hover(WidgetTester tester, {double x = 780}) async {
-    final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
-    await mouse.addPointer(location: Offset(x, 300));
-    await tester.pumpAndSettle();
-    return mouse;
-  }
+  Future<TestGesture> hover(WidgetTester tester) => hoverScrubberThumb(tester);
 
   Future<void> leave(WidgetTester tester, TestGesture mouse) async {
     await mouse.removePointer();
@@ -139,13 +135,19 @@ void main() {
   });
 
   testWidgets('no bins, no column and no extra width', (tester) async {
+    await tester.pumpWidget(host());
+    await tester.pump();
+    var mouse = await hover(tester);
+    final withBins = tester.getRect(find.byKey(ListScrubber.panelKey)).width;
+    await leave(tester, mouse);
+
     await tester.pumpWidget(host(density: const []));
     await tester.pump();
-    final mouse = await hover(tester);
+    mouse = await hover(tester);
     expect(densityPaint(), findsNothing);
     expect(
       tester.getRect(find.byKey(ListScrubber.panelKey)).width,
-      ListScrubberPanel.width,
+      withBins - ListScrubberPanel.densityColumn,
     );
     await leave(tester, mouse);
   });
@@ -226,7 +228,7 @@ void main() {
   ) async {
     await tester.pumpWidget(host(direction: TextDirection.rtl));
     await tester.pump();
-    final mouse = await hover(tester, x: 20);
+    final mouse = await hover(tester);
     final panel = tester.getRect(find.byKey(ListScrubber.panelKey));
     expect(panel.left, 0);
     final rects = bars(tester);

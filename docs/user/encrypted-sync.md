@@ -89,8 +89,8 @@ anything:
 
 1. Install the latest Submersion on the new device and connect it to the same
    cloud provider as your others. (In the first-run setup, choose to bring in
-   your existing data and connect cloud sync; the setup says "This library is
-   encrypted" and asks for the passphrase there.)
+   your existing data and connect cloud sync; the sync step says "This library
+   is encrypted" and asks for the passphrase there.)
 2. Otherwise, run a sync. Sync pauses because this device has no key yet, and
    the Sync between devices page shows that a passphrase is needed, with an
    **Enter passphrase** button.

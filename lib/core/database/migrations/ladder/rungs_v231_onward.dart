@@ -588,5 +588,16 @@ extension RungsFromV231 on AppDatabase {
       await _assertDiveCenterClosedColumn();
     }
     if (from < 313) await reportProgress();
+
+    // v314: cylinder_config_items.deco_switch_depth (issue #3567), the MOD
+    // set by hand on a saved cylinder. Column only, no backfill;
+    // re-asserted in beforeOpen. Renumbered from 304, which #3552 took.
+    if (from < 314) await _assertCylinderConfigItemModColumn();
+    if (from < 314) await reportProgress();
+
+    // v315: diver_settings.omit_unused_oc_gases (issue #3668). Column only,
+    // off by default; re-asserted in beforeOpen.
+    if (from < 315) await _assertOmitUnusedOcGasesColumn();
+    if (from < 315) await reportProgress();
   }
 }

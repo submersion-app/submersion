@@ -372,7 +372,7 @@ void main() {
         git,
       );
 
-      expect(connected, isFalse);
+      expect(connected, SetUpConnect.failed);
     });
 
     testWidgets('reads which account syncs afresh after the switch, not a '
@@ -420,7 +420,26 @@ void main() {
         before.singleWhere((g) => g.kind == AccountKind.googledrive),
       );
 
-      expect(connected, isTrue);
+      expect(connected, SetUpConnect.connected);
+    });
+
+    testWidgets('reports a device that has synced with that account as in '
+        'step', (tester) async {
+      final (context, ref) = await pumpHost(
+        tester,
+        lastSync: _t,
+        groups: [dropbox, drive],
+      );
+      ref.read(selectedCloudProviderTypeProvider.notifier).state =
+          CloudProviderType.dropbox;
+
+      final connected = await const SetUpSyncActions().connect(
+        context,
+        ref,
+        dropbox,
+      );
+
+      expect(connected, SetUpConnect.inStep);
     });
 
     testWidgets('reports the account sync already uses as connected', (
@@ -436,7 +455,7 @@ void main() {
         dropbox,
       );
 
-      expect(connected, isTrue);
+      expect(connected, SetUpConnect.connected);
     });
   });
 

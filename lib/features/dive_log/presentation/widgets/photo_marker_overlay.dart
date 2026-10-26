@@ -234,7 +234,7 @@ class _PhotoMarkerOverlayState extends State<PhotoMarkerOverlay> {
               border: Border.all(color: colorScheme.primary, width: 1.5),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.25),
+                  color: colorScheme.shadow.withValues(alpha: 0.25),
                   blurRadius: 3,
                 ),
               ],

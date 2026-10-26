@@ -742,10 +742,7 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
                   ? const SizedBox(
                       width: 20,
                       height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
+                      child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   : Text(context.l10n.common_action_save),
             ),

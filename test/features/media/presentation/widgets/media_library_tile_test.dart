@@ -13,6 +13,7 @@ import 'package:submersion/features/media/presentation/widgets/media_status_badg
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
+import '../../../../helpers/glyph_contrast.dart';
 import '../../../../helpers/l10n_test_helpers.dart';
 import '../../../../helpers/mock_providers.dart';
 
@@ -125,7 +126,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(counts[0], 1, reason: 'the hold fell through to onTap');
-    expect(find.byIcon(Icons.check_circle), findsNothing);
+    expect(find.byIcon(Icons.check), findsNothing);
   });
 
   testWidgets('the selection check still renders when selected', (
@@ -133,7 +134,19 @@ void main() {
   ) async {
     await pump(tester, _entry(uploaded: true), selected: true);
 
-    expect(find.byIcon(Icons.check_circle), findsOneWidget);
+    expect(find.byIcon(Icons.check), findsOneWidget);
+  });
+
+  // The check was a bare white glyph over the photo, lost on bright photos
+  // and pale placeholders. It now sits on its own primary disc, as the
+  // dive and site media grids draw it.
+  testWidgets('the selection check reads on its own disc', (tester) async {
+    await pump(tester, _entry(uploaded: true), selected: true);
+
+    expect(
+      glyphOnFillContrast(tester, find.byIcon(Icons.check)),
+      greaterThanOrEqualTo(4.5),
+    );
   });
 
   /// The scrim drawn over unchecked tiles while the mode is active.

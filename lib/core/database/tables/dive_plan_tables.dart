@@ -165,8 +165,9 @@ class DivePlanTanks extends Table {
   TextColumn get material => text().nullable()();
   TextColumn get presetName => text().nullable()();
 
-  /// Deco gas-switch depth override in meters; null = auto (MOD at deco pO2).
-  /// Subsurface per-cylinder "Deco switch at" (v120).
+  /// MOD set by hand in meters, for any role (issue #3567); null means the
+  /// default for the cylinder's role and mix. The planner switches to the
+  /// gas at its MOD. Subsurface per-cylinder "Deco switch at" (v120).
   RealColumn get decoSwitchDepth => real().nullable()();
 
   /// Whether this cylinder also doubles as travel gas, breathed on the

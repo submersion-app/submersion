@@ -15,6 +15,7 @@ class TitleWithSubtitle extends StatelessWidget {
     required this.title,
     this.subtitle,
     this.subtitleIndent = 0,
+    this.subtitleGap = 0,
   });
 
   final Widget title;
@@ -25,6 +26,12 @@ class TitleWithSubtitle extends StatelessWidget {
   /// Space before the subtitle, for a [title] whose text starts in from its
   /// own edge (a name inside a pill), so the two lines still start together.
   final double subtitleIndent;
+
+  /// Space between [title] and the subtitle, for a [title] that ends in a
+  /// line of its own (a section switch's underline), which the subtitle
+  /// would otherwise sit flush against. A host that sizes itself from
+  /// [subtitleLineHeight] adds it on.
+  final double subtitleGap;
 
   /// The height a subtitle line showing [text] takes, at [textScaler] or
   /// else the context's text scale.
@@ -75,7 +82,10 @@ class TitleWithSubtitle extends StatelessWidget {
       children: [
         title,
         Padding(
-          padding: EdgeInsetsDirectional.only(start: subtitleIndent),
+          padding: EdgeInsetsDirectional.only(
+            start: subtitleIndent,
+            top: subtitleGap,
+          ),
           child: LayoutBuilder(
             builder: (context, constraints) => Text(
               _fitting(context, subtitle, style, constraints.maxWidth),

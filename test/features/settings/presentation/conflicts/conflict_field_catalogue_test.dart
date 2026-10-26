@@ -40,6 +40,16 @@ void main() {
     );
   });
 
+  test('a cylinder\'s MOD set by hand is labelled MOD on every role', () {
+    // decoSwitchDepth was once only a deco gas's switch depth; it now holds
+    // the MOD set by hand for any role (issue #3567).
+    for (final entity in ['divePlanTanks', 'cylinderConfigItems']) {
+      final field = conflictFieldFor(entity, 'decoSwitchDepth');
+      expect(field.label(l10n), 'MOD', reason: entity);
+      expect(field.kind, FieldKind.depth, reason: entity);
+    }
+  });
+
   test('bookkeeping and foreign keys are covered without an entry', () {
     expect(isConflictFieldCovered('dives', 'hlc'), isTrue);
     expect(isConflictFieldCovered('dives', 'siteId'), isTrue);

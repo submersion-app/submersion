@@ -5,6 +5,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:submersion/core/theme/backdrop_color.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/constants/enums.dart';
@@ -3683,7 +3684,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           // Gas switch markers (if showing and data available).
           // Zero-width dot markers, not a metric line.
           final gasSwitchMarkers = _showGasSwitchMarkers
-              ? _buildGasSwitchMarkers(units)
+              ? _buildGasSwitchMarkers(units, backdropColorOf(context))
               : const <LineChartBarData>[];
 
           // Temperature line (if showing).
@@ -6025,13 +6026,16 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   }
 
   /// Build gas switch marker dots on the profile
-  List<LineChartBarData> _buildGasSwitchMarkers(UnitFormatter units) =>
-      buildGasSwitchMarkers(
-        units,
-        widget.gasSwitches,
-        _showTankPressure,
-        _findDepthAtTimestamp,
-      );
+  List<LineChartBarData> _buildGasSwitchMarkers(
+    UnitFormatter units,
+    Color ringColor,
+  ) => buildGasSwitchMarkers(
+    units,
+    widget.gasSwitches,
+    _showTankPressure,
+    _findDepthAtTimestamp,
+    ringColor: ringColor,
+  );
 
   /// Find the depth at a given timestamp by interpolating profile data
   double _findDepthAtTimestamp(int timestamp) {
@@ -7142,6 +7146,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     final markers = widget.markers;
 
     if (markers == null || markers.isEmpty) return lines;
+    // Resolved once per build: fl_chart calls getDotPainter during paint.
+    final ring = backdropColorOf(context);
 
     for (final marker in markers) {
       // Skip max depth markers if setting is off or locally toggled off
@@ -7160,6 +7166,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           marker,
           units,
           band,
+          ring: ring,
           minPressure: minPressure,
           maxPressure: maxPressure,
         ),
@@ -7170,10 +7177,12 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   }
 
   /// Build a single marker as a LineChartBarData with a visible dot
+  /// [ring] is the colour behind the chart, which rings the max-depth dot.
   LineChartBarData _buildSingleMarkerLine(
     ProfileMarker marker,
     UnitFormatter units,
     MetricBand band, {
+    required Color ring,
     double? minPressure,
     double? maxPressure,
   }) {
@@ -7205,12 +7214,13 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         show: true,
         getDotPainter: (spot, percent, bar, index) {
           if (marker.type == ProfileMarkerType.maxDepth) {
-            // Max depth: red circle with white border
+            // Max depth: a dot ringed in the colour behind the chart, which
+            // punches it out of the line (a fixed white glared when dark).
             return FlDotCirclePainter(
               radius: size,
               color: color,
               strokeWidth: 2,
-              strokeColor: Colors.white,
+              strokeColor: ring,
             );
           } else {
             // Pressure threshold: colored circle with darker border

@@ -514,7 +514,7 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
         child: Icon(
           Icons.scuba_diving,
           size: isSelected ? 24 : 20,
-          color: Colors.white,
+          color: isSelected ? colorScheme.onPrimary : Colors.white,
         ),
       ),
     );

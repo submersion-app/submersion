@@ -90,13 +90,15 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
-            <!-- Handle files shared via the Share sheet (single file) -->
+            <!-- Handle files shared via the Share sheet (single file). JSON
+                 covers a dive shared from the Suunto app (#3670). -->
             <intent-filter>
                 <action android:name="android.intent.action.SEND"/>
                 <category android:name="android.intent.category.DEFAULT"/>
                 <data android:mimeType="text/*"/>
                 <data android:mimeType="application/octet-stream"/>
                 <data android:mimeType="application/xml"/>
+                <data android:mimeType="application/json"/>
                 <data android:mimeType="application/vnd.ant.fit"/>
                 <data android:mimeType="application/fit"/>
                 <data android:mimeType="application/zip"/>
@@ -112,6 +114,7 @@
                 <data android:mimeType="text/*"/>
                 <data android:mimeType="application/octet-stream"/>
                 <data android:mimeType="application/xml"/>
+                <data android:mimeType="application/json"/>
                 <data android:mimeType="application/vnd.ant.fit"/>
                 <data android:mimeType="application/fit"/>
                 <data android:mimeType="application/zip"/>
@@ -125,9 +128,11 @@
                 <data android:scheme="content" android:mimeType="text/*"/>
                 <data android:scheme="content" android:mimeType="application/octet-stream"/>
                 <data android:scheme="content" android:mimeType="application/xml"/>
+                <data android:scheme="content" android:mimeType="application/json"/>
                 <data android:scheme="file" android:mimeType="text/*"/>
                 <data android:scheme="file" android:mimeType="application/octet-stream"/>
                 <data android:scheme="file" android:mimeType="application/xml"/>
+                <data android:scheme="file" android:mimeType="application/json"/>
                 <data android:scheme="content" android:mimeType="application/vnd.ant.fit"/>
                 <data android:scheme="content" android:mimeType="application/fit"/>
                 <data android:scheme="content" android:mimeType="application/zip"/>

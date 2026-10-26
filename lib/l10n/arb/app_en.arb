@@ -1222,7 +1222,6 @@
   "settings_cloudSync_error_icloudSignedOut": "iCloud is not available. Please sign in to iCloud in your device settings.",
   "settings_cloudSync_error_icloudUnknown": "Couldn't reach iCloud. Please try again.",
   "settings_cloudSync_error_icloudUnsupported": "iCloud sync isn't available in this build of Submersion. Use S3 sync, or the App Store version.",
-  "settings_cloudSync_provider_icloud_unsupportedSubtitle": "Not available in this build — use S3 or the App Store version",
   "settings_cloudSync_encryption_title": "End-to-end encryption",
   "settings_cloudSync_encryption_subtitleOff": "Encrypt all sync data and cloud backups before upload",
   "settings_cloudSync_encryption_subtitleNeedsProvider": "Select a cloud provider first",
@@ -4997,20 +4996,6 @@
   "@diveLog_scrubber_unrated": {
     "description": "Track marker and current value for dives without a rating, in the dive list scrubber"
   },
-  "diveLog_scrubber_valueWithTrip": "{value} · {trip}",
-  "@diveLog_scrubber_valueWithTrip": {
-    "description": "Dive list scrubber value while dragging over a dive on a trip in date sort: the month, then the trip name",
-    "placeholders": {
-      "value": {
-        "type": "String",
-        "example": "Mar 2024"
-      },
-      "trip": {
-        "type": "String",
-        "example": "Red Sea"
-      }
-    }
-  },
   "diveLog_sighting_decreaseCount": "Decrease count",
   "@diveLog_sighting_decreaseCount": {
     "description": "Tooltip: decrease the sighting count"
@@ -5183,16 +5168,7 @@
     }
   },
   "settings_manage_setupAssistant": "Setup assistant",
-  "settings_manage_setupAssistant_subtitle": "Revisit units, appearance, and backup choices",
-  "setup_backup_cloudCopy": "Store backups in the cloud",
-  "setup_backup_frequency": "Frequency",
-  "setup_backup_frequency_daily": "Daily",
-  "setup_backup_frequency_monthly": "Monthly",
-  "setup_backup_frequency_weekly": "Weekly",
-  "setup_backup_scheduleSubtitle": "Back up your data on a schedule",
-  "setup_backup_scheduleToggle": "Automatic backups",
-  "setup_backup_subtitle": "Protect your data from day one.",
-  "setup_backup_title": "Backups & Sync",
+  "settings_manage_setupAssistant_subtitle": "Revisit units, backups, sync and photos",
   "setup_common_back": "Back",
   "setup_common_next": "Next",
   "setup_common_skip": "Skip",
@@ -5232,11 +5208,9 @@
   "setup_restore_inProgress": "Restoring...",
   "setup_restore_pick": "Choose backup file",
   "setup_restore_title": "Restore backup",
-  "setup_step_backup": "Backup",
   "setup_step_finish": "Done",
   "setup_step_profile": "Profile",
   "setup_step_units": "Units",
-  "setup_syncPull_continue": "Continue",
   "setup_syncPull_incomplete_message": "This account holds a Submersion library that was never finished uploading. Let your other device finish syncing, then try again.",
   "setup_syncPull_incomplete_retry": "Check again",
   "setup_syncPull_incomplete_title": "Library upload unfinished",
@@ -5244,33 +5218,6 @@
   "setup_syncPull_locked_title": "This library is encrypted",
   "setup_syncPull_noLibrary_message": "No existing Submersion library was found on this account. Start fresh instead? Your connection will be kept.",
   "setup_syncPull_noLibrary_title": "No library found",
-  "setup_syncPull_success": "Library adopted",
-  "setup_syncPull_syncing": "Pulling your library...",
-  "setup_sync_changeProvider": "Change provider",
-  "setup_sync_connectedTo": "Connected to {provider}",
-  "@setup_sync_connectedTo": {
-    "placeholders": {
-      "provider": {
-        "type": "String"
-      }
-    }
-  },
-  "setup_sync_error": "Could not connect: {error}",
-  "@setup_sync_error": {
-    "placeholders": {
-      "error": {
-        "type": "Object"
-      }
-    }
-  },
-  "setup_sync_header": "Cloud sync",
-  "setup_sync_libraryFound_adopt": "Adopt existing library",
-  "setup_sync_libraryFound_keepFresh": "Start fresh",
-  "setup_sync_libraryFound_message": "This account already contains a Submersion library. Adopt it instead of starting fresh?",
-  "setup_sync_libraryFound_title": "Existing library found",
-  "setup_sync_manageInSettings": "Manage in Settings",
-  "setup_sync_notConnected": "Not connected",
-  "setup_sync_subtitle": "Sync your data across devices",
   "setup_units_advanced": "Fine-tune units",
   "setup_units_altitude": "Altitude",
   "setup_units_distance": "Distance",
@@ -8843,6 +8790,26 @@
   "cylinderConfigs_role": "Role",
   "cylinderConfigs_label": "Label",
   "cylinderConfigs_fromPreset": "From preset",
+  "tankMod_label": "MOD",
+  "@tankMod_label": {"description": "Label of a cylinder's maximum operating depth field. MOD is the standard diving abbreviation."},
+  "tankMod_default": "Default at ppO2 {ppO2} ({limit})",
+  "@tankMod_default": {"description": "Under the MOD field when the diver has not set one: the ppO2 limit the default comes from. {limit} is tankMod_limitBottom or tankMod_limitDeco.", "placeholders": {"ppO2": {"type": "String"}, "limit": {"type": "String"}}},
+  "tankMod_limitBottom": "bottom limit",
+  "@tankMod_limitBottom": {"description": "Name of the bottom (working) ppO2 limit, used inside other MOD strings."},
+  "tankMod_limitDeco": "deco limit",
+  "@tankMod_limitDeco": {"description": "Name of the decompression ppO2 limit, used inside other MOD strings."},
+  "tankMod_limitDiluent": "Dil MOD",
+  "@tankMod_limitDiluent": {"description": "Name of the CCR diluent ppO2 limit, used inside other MOD strings. Matches the \"Dil MOD\" term on the Settings page."},
+  "tankMod_overridden": "Set by you · default {depth}",
+  "@tankMod_overridden": {"description": "Under the MOD field when the diver typed a depth: says so and gives the default it replaces.", "placeholders": {"depth": {"type": "String"}}},
+  "tankMod_ppO2At": "ppO2 {ppO2} at {depth}",
+  "@tankMod_ppO2At": {"description": "The ppO2 the gas reaches at the MOD the diver set.", "placeholders": {"ppO2": {"type": "String"}, "depth": {"type": "String"}}},
+  "tankMod_exceeds": "ppO2 {ppO2} at {depth}, above the {limit} {limitPpO2}",
+  "@tankMod_exceeds": {"description": "Warning when the MOD the diver set gives a ppO2 above the limit for the cylinder.", "placeholders": {"ppO2": {"type": "String"}, "depth": {"type": "String"}, "limit": {"type": "String"}, "limitPpO2": {"type": "String"}}},
+  "tankMod_reset": "Reset",
+  "@tankMod_reset": {"description": "Button that clears a MOD set by hand, back to the default."},
+  "tankMod_chip": "MOD {depth}",
+  "@tankMod_chip": {"description": "Shown on a dive plan tank chip when the diver set its MOD by hand.", "placeholders": {"depth": {"type": "String"}}},
   "cylinderConfigs_applyAction": "Apply configuration",
   "cylinderConfigs_applyAdded": "{count, plural, =1{Added 1 cylinder} other{Added {count} cylinders}}",
   "@cylinderConfigs_applyAdded": {
@@ -13864,6 +13831,10 @@
   "@settings_conflict_field_downloadsFollowComputerOwner": {
     "description": "Label for the downloads-follow-computer-owner setting in a sync conflict"
   },
+  "settings_conflict_field_omitUnusedOcGases": "Skip unused bailout gases",
+  "@settings_conflict_field_omitUnusedOcGases": {
+    "description": "Label for the skip-unused-bailout-gases setting in a sync conflict"
+  },
   "settings_conflict_field_avgSpeed": "Average speed",
   "settings_conflict_field_batteryReserveFraction": "Battery reserve",
   "settings_conflict_field_bboxHeight": "Box height",
@@ -13942,7 +13913,6 @@
   "settings_conflict_field_dayNumber": "Day number",
   "settings_conflict_field_dayType": "Day type",
   "settings_conflict_field_decoStopIncrement": "Deco stop increment",
-  "settings_conflict_field_decoSwitchDepth": "Deco gas switch depth",
   "settings_conflict_field_deepDiveThresholdM": "Deep dive threshold",
   "settings_conflict_field_defaultCategory": "Default category",
   "settings_conflict_field_defaultCeilingSource": "Ceiling data source",
@@ -17680,6 +17650,14 @@
   "settings_downloadsFollowOwner_subtitle": "When a dive computer belongs to another profile, its dives go to that profile's log. You can change it on the review screen.",
   "@settings_downloadsFollowOwner_subtitle": {
     "description": "Switch subtitle, in Import options on Settings > Data, explaining that a download from another profile's dive computer goes to that profile"
+  },
+  "settings_omitUnusedOcGases_title": "Skip unused bailout gases",
+  "@settings_omitUnusedOcGases_title": {
+    "description": "Switch title, in Import options on Settings > Data, for leaving out open-circuit gases a rebreather dive computer reports but the diver never carried or breathed"
+  },
+  "settings_omitUnusedOcGases_subtitle": "On rebreather downloads and re-parses, leave out a gas with no transmitter that was never breathed",
+  "@settings_omitUnusedOcGases_subtitle": {
+    "description": "Switch subtitle, in Import options on Settings > Data, explaining which gases a rebreather download leaves out"
   },
   "tags_manage_searchHint": "Search tags...",
   "tags_manage_diveCount": "{count, plural, =0{0 dives} =1{1 dive} other{{count} dives}}",
@@ -22603,6 +22581,14 @@
   "@dive3d_metric_depth": {},
   "dive3d_metric_temperature": "Temp",
   "@dive3d_metric_temperature": {},
+  "navTrack3d_previewTitle": "3D View",
+  "@navTrack3d_previewTitle": {},
+  "navTrack3d_metric_speed": "Speed",
+  "@navTrack3d_metric_speed": {},
+  "navTrack3d_metric_batteryVoltage": "Battery",
+  "@navTrack3d_metric_batteryVoltage": {},
+  "navTrack3d_noProfile": "This track doesn't have enough data for a 3D preview.",
+  "@navTrack3d_noProfile": {},
   "dive3d_metric_ascentRate": "Ascent",
   "@dive3d_metric_ascentRate": {},
   "dive3d_metric_ppO2": "ppO2",
@@ -31107,27 +31093,12 @@
   "navTrack_detail_defaultTrackTitle": "Underwater track",
   "navTrack_detail_menuRename": "Rename",
   "navTrack_detail_menuChangeSite": "Change site",
+  "navTrack_detail_menuChangeDevice": "Change device",
   "navTrack_detail_noMapYet": "Set the start point to see this on a map.",
   "navTrack_detail_correctionStatus_none": "No correction applied yet.",
   "navTrack_detail_correctionStatus_sameAsStart": "End set to same as start.",
   "navTrack_detail_correctionStatus_point": "End point set on the map.",
   "navTrack_detail_correctionStatus_gpsFix": "End set from the recording's GPS fix.",
-  "navTrack_detail_device": "Device: {name}",
-  "@navTrack_detail_device": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "navTrack_detail_equipment": "Equipment: {name}",
-  "@navTrack_detail_equipment": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
   "navTrack_detail_distance": "Distance: {value}",
   "@navTrack_detail_distance": {
     "placeholders": {
@@ -31186,6 +31157,8 @@
   "navTrack_detail_chooseDive": "Choose dive",
   "navTrack_detail_noSite": "No site",
   "navTrack_detail_chooseSite": "Choose site",
+  "navTrack_detail_noEquipment": "No device",
+  "navTrack_detail_chooseDevice": "Choose device",
   "navTrack_review_importTrackTitle": "Import Underwater Track",
   "navTrack_review_segmentSummaryNoFix": "{underwater} samples underwater, no GPS fix after the dive.",
   "@navTrack_review_segmentSummaryNoFix": {
@@ -32605,7 +32578,7 @@
   "@settings_photos_status_pausedUnreachable": {"description": "Status: uploads held because the account's copies could not be checked"},
   "settings_photos_status_pausedDetached": "Uploads paused: this device is not connected to these copies",
   "@settings_photos_status_pausedDetached": {"description": "Status: uploads held because this device is no longer connected to the copies"},
-  "settings_photos_status_pausedMismatch": "Uploads paused: choose the account again",
+  "settings_photos_status_pausedMismatch": "Uploads paused: the copies need reconnecting",
   "@settings_photos_status_pausedMismatch": {"description": "Status: uploads held because the account now holds different copies"},
   "settings_photos_status_finishSetup": "Finish setting up this device",
   "@settings_photos_status_finishSetup": {"description": "Status: the library keeps copies this device has not joined yet"},
@@ -32613,8 +32586,44 @@
   "@settings_photos_status_unreachable": {"description": "Status: the account holding the copies could not be opened", "placeholders": {"account": {"type": "String"}}},
   "settings_photos_suspended_detached": "This device is no longer connected to these copies. Choose the account again in Photos & videos.",
   "@settings_photos_suspended_detached": {"description": "Uploads page notice: this device was detached from the copies"},
-  "settings_photos_suspended_mismatch": "This device and the account no longer agree on which copies are in use. Choosing the account again adopts the copies it holds now.",
+  "settings_photos_suspended_mismatch": "The account no longer holds the copies this device was using. Reconnect to choose what happens next.",
   "@settings_photos_suspended_mismatch": {"description": "Uploads page notice: the account now holds different copies than this device attached to"},
+  "settings_photos_reconnect_title": "Reconnect photo copies",
+  "@settings_photos_reconnect_title": {"description": "Title of the sheet that reconnects photo copies after the account's copies changed"},
+  "settings_photos_reconnect_checking": "Checking {account}…",
+  "@settings_photos_reconnect_checking": {"description": "Reconnect sheet: checking what the account holds now", "placeholders": {"account": {"type": "String"}}},
+  "settings_photos_reconnect_resolved": "The copies in {account} match this device again. Uploads resume.",
+  "@settings_photos_reconnect_resolved": {"description": "Reconnect sheet: the account holds this device's copies again, nothing to choose", "placeholders": {"account": {"type": "String"}}},
+  "settings_photos_reconnect_otherKnown": "{account} now holds copies set up by another of your devices.",
+  "@settings_photos_reconnect_otherKnown": {"description": "Reconnect sheet: the account holds copies another of the diver's devices set up", "placeholders": {"account": {"type": "String"}}},
+  "settings_photos_reconnect_otherUnknown": "{account} now holds copies this logbook has no record of.",
+  "@settings_photos_reconnect_otherUnknown": {"description": "Reconnect sheet: the account holds copies the logbook has no record of", "placeholders": {"account": {"type": "String"}}},
+  "settings_photos_reconnect_noMarker": "The copies in {account} were removed or reset.",
+  "@settings_photos_reconnect_noMarker": {"description": "Reconnect sheet: the copies in the account were removed or reset", "placeholders": {"account": {"type": "String"}}},
+  "settings_photos_reconnect_unreadable": "Could not check {account}.",
+  "@settings_photos_reconnect_unreadable": {"description": "Reconnect sheet: the account could not be checked; the raw error follows", "placeholders": {"account": {"type": "String"}}},
+  "settings_photos_reconnect_needsAccount": "This device can no longer open the account the copies were in.",
+  "@settings_photos_reconnect_needsAccount": {"description": "Reconnect sheet: this device cannot open the account the copies were in"},
+  "settings_photos_reconnect_adopt": "Use the copies there now",
+  "@settings_photos_reconnect_adopt": {"description": "Reconnect choice: use the copies the account holds now"},
+  "settings_photos_reconnect_adoptBody": "Photos already there stay. Anything missing uploads again from this device.",
+  "@settings_photos_reconnect_adoptBody": {"description": "Reconnect choice explanation: what using the copies there does"},
+  "settings_photos_reconnect_adoptUnknownBody": "Choose this only if {account} is meant for this logbook. Photos already there stay, and anything missing uploads again from this device.",
+  "@settings_photos_reconnect_adoptUnknownBody": {"description": "Reconnect choice explanation: using copies the logbook has no record of", "placeholders": {"account": {"type": "String"}}},
+  "settings_photos_reconnect_rebuild": "Start the copies again",
+  "@settings_photos_reconnect_rebuild": {"description": "Reconnect choice: start a new set of copies in the account"},
+  "settings_photos_reconnect_rebuildBody": "New copies start in {account}. Photos still there are kept, and everything on this device uploads again.",
+  "@settings_photos_reconnect_rebuildBody": {"description": "Reconnect choice explanation: what starting the copies again does", "placeholders": {"account": {"type": "String"}}},
+  "settings_photos_reconnect_chooseAccount": "Choose the account again",
+  "@settings_photos_reconnect_chooseAccount": {"description": "Reconnect choice: open Photos & videos to choose the account again"},
+  "settings_photos_reconnect_chooseAccountBody": "Opens Photos & videos to pick the account or sign in again.",
+  "@settings_photos_reconnect_chooseAccountBody": {"description": "Reconnect choice explanation: choosing the account again"},
+  "settings_photos_reconnect_heldOnly": "{count, plural, one{{count} photo or video is kept only in the cloud. It opens again only if the account still holds it.} other{{count} photos and videos are kept only in the cloud. They open again only if the account still holds them.}}",
+  "@settings_photos_reconnect_heldOnly": {"description": "Reconnect sheet warning: items whose only copy is in the cloud", "placeholders": {"count": {"type": "int"}}},
+  "settings_photos_reconnect_joined": "Now using the copies in {account}",
+  "@settings_photos_reconnect_joined": {"description": "Snackbar after reconnecting to the copies the account holds", "placeholders": {"account": {"type": "String"}}},
+  "settings_photos_reconnect_started": "New copies started in {account}",
+  "@settings_photos_reconnect_started": {"description": "Snackbar after starting new copies in the account", "placeholders": {"account": {"type": "String"}}},
   "media_info_actionCopyNow": "Copy now",
   "@media_info_actionCopyNow": {"description": "Media info panel: copy this item to the cloud now"},
   "settings_photos_suspended_title": "Uploads paused",
@@ -32857,5 +32866,9 @@
   "settings_setUpDevice_done_title": "{device, select, phone{This phone is set up} tablet{This tablet is set up} computer{This computer is set up} other{This device is set up}}",
   "@settings_setUpDevice_done_title": {"description": "Heading of the screen after the last setup step", "placeholders": {"device": {"type": "String", "description": "phone, tablet, computer or other, from the platform"}}},
   "settings_setUpDevice_done_otherDevices": "On your other devices, open Submersion, choose {account}, and the same library appears.",
-  "@settings_setUpDevice_done_otherDevices": {"description": "Closing sentence of the setup done screen", "placeholders": {"account": {"type": "String"}}}
+  "@settings_setUpDevice_done_otherDevices": {"description": "Closing sentence of the setup done screen", "placeholders": {"account": {"type": "String"}}},
+  "settings_setUpDevice_sync_inStep": "The dives here are in step with your library in {account}.",
+  "@settings_setUpDevice_sync_inStep": {"description": "Step 2 when this device already syncs with the chosen account", "placeholders": {"account": {"type": "String"}}},
+  "setup_syncPull_startFresh": "Start a new logbook",
+  "@setup_syncPull_startFresh": {"description": "First-run wizard: the account holds no library, so begin a new logbook"}
 }

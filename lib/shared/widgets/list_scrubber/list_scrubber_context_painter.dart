@@ -5,7 +5,8 @@ import 'package:submersion/shared/widgets/list_scrubber/list_scrubber_geometry.d
 import 'package:submersion/shared/widgets/list_scrubber/scrubber_marker.dart';
 
 /// Paints [segments] as stripes and [ticks] as short marks in a narrow
-/// context column just inside the panel's start edge.
+/// context column just inside the panel's start edge. Both leave out the
+/// [clear] band.
 class ListScrubberContextPainter extends CustomPainter {
   const ListScrubberContextPainter({
     required this.segments,
@@ -14,6 +15,7 @@ class ListScrubberContextPainter extends CustomPainter {
     required this.trackExtent,
     required this.offset,
     required this.textDirection,
+    this.clear,
   });
 
   static const width = 4.0;
@@ -34,6 +36,9 @@ class ListScrubberContextPainter extends CustomPainter {
   /// Where slot 0 sits below the panel's top: half the thumb height.
   final double offset;
   final TextDirection textDirection;
+
+  /// A vertical band nothing is painted in, such as the current value's.
+  final ({double top, double bottom})? clear;
 
   double _left(Size size) =>
       textDirection == TextDirection.rtl ? size.width - inset - width : inset;
@@ -79,10 +84,32 @@ class ListScrubberContextPainter extends CustomPainter {
     ];
   }
 
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paths = <Color, Path>{};
-    void add(Color color, Rect rect) => (paths[color] ??= Path()).addRect(rect);
+  /// The stripes then the ticks with their colours, as painted: any part
+  /// inside [clear] is left out.
+  List<(Color, Rect)> paintedRects(Size size) {
+    final painted = <(Color, Rect)>[];
+    void add(Color color, Rect rect) {
+      final clear = this.clear;
+      if (clear == null ||
+          rect.bottom <= clear.top ||
+          rect.top >= clear.bottom) {
+        painted.add((color, rect));
+        return;
+      }
+      if (rect.top < clear.top) {
+        painted.add((
+          color,
+          Rect.fromLTRB(rect.left, rect.top, rect.right, clear.top),
+        ));
+      }
+      if (rect.bottom > clear.bottom) {
+        painted.add((
+          color,
+          Rect.fromLTRB(rect.left, clear.bottom, rect.right, rect.bottom),
+        ));
+      }
+    }
+
     final stripes = segmentRects(size);
     for (var i = 0; i < stripes.length; i++) {
       add(segments[i].color, stripes[i]);
@@ -90,6 +117,15 @@ class ListScrubberContextPainter extends CustomPainter {
     final marks = tickRects(size);
     for (var i = 0; i < marks.length; i++) {
       add(ticks[i].color, marks[i]);
+    }
+    return painted;
+  }
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paths = <Color, Path>{};
+    for (final (color, rect) in paintedRects(size)) {
+      (paths[color] ??= Path()).addRect(rect);
     }
     for (final MapEntry(key: color, value: path) in paths.entries) {
       canvas.drawPath(path, Paint()..color = color);
@@ -103,5 +139,6 @@ class ListScrubberContextPainter extends CustomPainter {
       oldDelegate.slotCount != slotCount ||
       oldDelegate.trackExtent != trackExtent ||
       oldDelegate.offset != offset ||
-      oldDelegate.textDirection != textDirection;
+      oldDelegate.textDirection != textDirection ||
+      oldDelegate.clear != clear;
 }

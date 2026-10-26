@@ -41,9 +41,12 @@ class MigrationConfirmationDialog extends StatelessWidget {
             const SizedBox(height: 12),
 
             // Arrow
-            const Center(
+            Center(
               child: ExcludeSemantics(
-                child: Icon(Icons.arrow_downward, color: Colors.grey),
+                child: Icon(
+                  Icons.arrow_downward,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
               ),
             ),
             const SizedBox(height: 12),

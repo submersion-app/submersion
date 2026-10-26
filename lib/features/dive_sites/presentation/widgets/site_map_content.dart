@@ -516,7 +516,7 @@ class _SiteMapContentState extends ConsumerState<SiteMapContent>
           // A shared site library site wears the group glyph (issue #2567).
           site.isLibrarySite ? Icons.groups : Icons.scuba_diving,
           size: isSelected ? 24 : 20,
-          color: Colors.white,
+          color: isSelected ? colorScheme.onPrimary : Colors.white,
         ),
       ),
     );

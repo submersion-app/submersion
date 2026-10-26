@@ -20,6 +20,7 @@ import 'package:submersion/features/planner/domain/entities/segment_phase.dart';
 import 'package:submersion/features/planner/domain/services/diluent_switch_time.dart';
 import 'package:submersion/features/planner/domain/services/segment_chain.dart';
 import 'package:submersion/features/planner/domain/services/segment_rate_split.dart';
+import 'package:submersion/features/planner/domain/services/tank_mod.dart';
 import 'package:submersion/features/planner/domain/services/tank_role_resolver.dart';
 import 'package:submersion/features/planner/domain/services/tank_usage_order.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
@@ -1681,6 +1682,7 @@ class PlanEngine {
       );
     }
 
+    issues.addAll(_modOverrideIssues(plan.tanks, environment));
     issues.sort((a, b) => b.severity.index.compareTo(a.severity.index));
     return issues;
   }
@@ -1729,9 +1731,11 @@ class PlanEngine {
     minStopSecondsByDepth: plan.stopMinimums,
   );
 
-  /// Each gas becomes eligible at its switch depth in [environment], the
-  /// water the schedule's ppO2 is computed in, so no table line shows a gas
-  /// above the deco limit (issue #3566, see [gasSwitchDepthMeters]).
+  /// Each gas joins the ascent at its cylinder's MOD (issue #3567): the one
+  /// the diver set, or the switch depth for its role's limit at this plan's
+  /// limits, measured in [environment], the water the schedule's ppO2 is
+  /// computed in (issue #3566, see [gasSwitchDepthMeters]).
+  /// [tanks] carry resolved roles: [compute] applies TankRoleResolver first.
   AscentGasPlan _ascentPlanFor(
     List<DiveTank> tanks,
     DiveEnvironment environment,
@@ -1741,20 +1745,49 @@ class PlanEngine {
     }
     return OptimalOcAscentGas(
       maxPpO2: config.ppO2Deco,
-      gases: [
-        for (final tank in tanks)
-          AvailableGas(
-            fN2: (100.0 - tank.gasMix.o2 - tank.gasMix.he) / 100.0,
-            fHe: tank.gasMix.he / 100.0,
-            maxPpO2Mod: gasSwitchDepthMeters(
-              tank.gasMix.o2 / 100.0,
-              maxPpO2: config.ppO2Deco,
-              environment: environment,
-            ),
-          ),
-      ],
+      gases: ascentGasesFor(
+        tanks,
+        bottomPpO2: config.ppO2Working,
+        decoPpO2: config.ppO2Deco,
+        environment: environment,
+        diluentPpO2: config.ccrDiluentModPpO2,
+      ),
     );
   }
+
+  /// A MOD set by hand deeper than its cylinder's limit allows is the
+  /// diver's call, and the plan uses it, but it is reported (issue #3567):
+  /// critical above the deco limit, a warning above the bottom limit. The
+  /// ppO2 is measured in [environment], as the schedule's is, so the issue
+  /// agrees with the table line the gas is breathed on.
+  List<PlanIssue> _modOverrideIssues(
+    List<DiveTank> tanks,
+    DiveEnvironment environment,
+  ) => [
+    for (final tank in tanks)
+      if (modOverrideCheck(
+            tank,
+            bottomPpO2: config.ppO2Working,
+            decoPpO2: config.ppO2Deco,
+            diluentPpO2: config.ccrDiluentModPpO2,
+            environment: environment,
+          )
+          case (:final ppO2, :final limitPpO2, exceedsLimit: true))
+        PlanIssue(
+          type: ppO2 > config.ppO2Deco
+              ? PlanIssueType.ppO2Critical
+              : PlanIssueType.ppO2High,
+          severity: ppO2 > config.ppO2Deco
+              ? PlanIssueSeverity.critical
+              : PlanIssueSeverity.warning,
+          message:
+              'ppO2 ${ppO2.toStringAsFixed(2)} bar at the MOD set on '
+              '${tank.name ?? tank.gasMix.name} exceeds its limit',
+          atDepth: tank.decoSwitchDepth,
+          value: ppO2,
+          threshold: limitPpO2,
+        ),
+  ];
 
   List<PlanStop> _mapStops(
     DecoSchedule schedule,

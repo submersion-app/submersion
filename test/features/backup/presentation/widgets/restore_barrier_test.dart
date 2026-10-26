@@ -4,6 +4,7 @@ import 'package:submersion/features/backup/presentation/providers/backup_provide
 import 'package:submersion/features/backup/presentation/widgets/restore_barrier.dart';
 
 import '../../../../helpers/test_app.dart';
+import '../../../../helpers/theme_sentinels.dart';
 
 void main() {
   // Pin the locale via the shared testApp helper for deterministic string
@@ -120,4 +121,25 @@ void main() {
       handle.dispose();
     },
   );
+
+  testWidgets('the restore barrier follows the theme scrim', (tester) async {
+    await tester.pumpWidget(
+      testApp(
+        locale: const Locale('en'),
+        overrides: [restoreInProgressProvider.overrideWithValue(true)],
+        child: Theme(
+          data: sentinelTheme(),
+          child: const RestoreBarrier(child: SizedBox()),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    final barriers = tester.widgetList<ModalBarrier>(find.byType(ModalBarrier));
+    expect(
+      barriers.any((b) => b.color != null && sameHue(b.color!, sentinelScrim)),
+      isTrue,
+      reason: 'the barrier is fixed black instead of the theme scrim',
+    );
+  });
 }

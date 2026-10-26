@@ -15,11 +15,11 @@ final _cozumel = [p(20.5, -87.25), p(20.51, -87.26), p(20.52, -87.27)];
 void main() {
   group('crossesAntimeridian', () {
     test('is true for an unwrapped span', () {
-      expect(crossesAntimeridian(trackBounds(_fiji)!), isTrue);
+      expect(crossesAntimeridian(gpsTrackBounds(_fiji)!), isTrue);
     });
 
     test('is false for an ordinary track', () {
-      expect(crossesAntimeridian(trackBounds(_cozumel)!), isFalse);
+      expect(crossesAntimeridian(gpsTrackBounds(_cozumel)!), isFalse);
     });
   });
 
@@ -65,15 +65,40 @@ void main() {
     });
   });
 
+  group('TrackCamera.forLatLngs', () {
+    LatLng ll(GpsTrackPoint p) => LatLng(p.latitude, p.longitude);
+
+    test('agrees with forPoints for an ordinary track', () {
+      final fromPoints = TrackCamera.forPoints(_cozumel)!;
+      final fromLatLngs = TrackCamera.forLatLngs(_cozumel.map(ll).toList())!;
+      expect(fromLatLngs.fit, isNotNull);
+      expect(fromLatLngs.center, fromPoints.center);
+    });
+
+    test('shares the antimeridian-safe centre/zoom fallback (Copilot '
+        'review on PR #3637: the underwater track detail page used a raw '
+        'LatLngBounds.fromPoints that could not express a wrapped route)', () {
+      final camera = TrackCamera.forLatLngs(_fiji.map(ll).toList())!;
+      expect(camera.fit, isNull);
+      expect(camera.center, isNotNull);
+      expect(camera.center!.longitude, greaterThanOrEqualTo(-180.0));
+      expect(camera.center!.longitude, lessThanOrEqualTo(180.0));
+    });
+
+    test('returns null when there is nothing to frame', () {
+      expect(TrackCamera.forLatLngs(const []), isNull);
+    });
+  });
+
   group('longitudeInBoundsFrame', () {
     test('shifts a western longitude into the unwrapped frame', () {
-      final bounds = trackBounds(_fiji)!;
+      final bounds = gpsTrackBounds(_fiji)!;
       expect(longitudeInBoundsFrame(-179.9, bounds), closeTo(180.1, 1e-9));
       expect(longitudeInBoundsFrame(179.9, bounds), closeTo(179.9, 1e-9));
     });
 
     test('leaves longitudes alone for an ordinary track', () {
-      final bounds = trackBounds(_cozumel)!;
+      final bounds = gpsTrackBounds(_cozumel)!;
       expect(longitudeInBoundsFrame(-87.25, bounds), closeTo(-87.25, 1e-9));
     });
   });
@@ -81,7 +106,7 @@ void main() {
   test('a LatLngBounds built from the fiji bounds WOULD assert', () {
     // Pins the reason TrackCamera exists. If flutter_map ever accepts an
     // unwrapped east, this test fails and the workaround can be removed.
-    final bounds = trackBounds(_fiji)!;
+    final bounds = gpsTrackBounds(_fiji)!;
     expect(
       () => LatLngBounds(
         LatLng(bounds.minLat, bounds.minLon),

@@ -228,6 +228,7 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
               subtitle: _isEquipmentTab && !selection.isActive
                   ? equipmentListCountLabel(context, ref)
                   : null,
+              subtitleGap: EquipmentSectionToggle.subtitleGap,
               subtitleIndent: EquipmentSectionToggle.textInset(
                 withAccentIcon: EquipmentSectionToggle.showsAccentIcon(
                   context,
@@ -293,6 +294,7 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
     return math.max(
       kToolbarHeight,
       switcher +
+          EquipmentSectionToggle.subtitleGap +
           TitleWithSubtitle.subtitleLineHeight(
             context,
             text:

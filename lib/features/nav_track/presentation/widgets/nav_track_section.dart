@@ -84,7 +84,7 @@ class _RouteRow extends ConsumerWidget {
             if (route.totalDistance != null)
               units.formatDistance(route.totalDistance!),
             if (route.maxDepth != null) units.formatDepth(route.maxDepth),
-            if (route.maxSpeed != null) units.formatSpeed(route.maxSpeed!),
+            if (route.maxSpeed != null) units.formatTrackSpeed(route.maxSpeed!),
             if (route.isPrimary) l10n.navTrack_section_primaryTag,
           ].join(' · '),
         ),

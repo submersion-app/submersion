@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show mapEquals;
 import 'package:flutter/material.dart';
 import 'package:submersion/core/theme/feature_accent_colors.dart';
 import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
@@ -31,4 +32,21 @@ class ConnectionKindColors {
   }, fallback);
 
   Color colorFor(ConnectionKind kind) => _colors[kind] ?? fallback;
+
+  // Value equality: the canvas builds a new instance every frame, and the
+  // painter repaints when the colours (so its glyph colours) change.
+  @override
+  bool operator ==(Object other) =>
+      other is ConnectionKindColors &&
+      other.fallback == fallback &&
+      mapEquals(other._colors, _colors);
+
+  @override
+  int get hashCode => Object.hash(
+    fallback,
+    Object.hashAllUnordered([
+      for (final MapEntry(:key, :value) in _colors.entries)
+        Object.hash(key, value),
+    ]),
+  );
 }
