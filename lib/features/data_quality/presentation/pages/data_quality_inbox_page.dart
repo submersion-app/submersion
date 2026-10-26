@@ -29,8 +29,6 @@ import 'package:submersion/features/dive_log/presentation/widgets/pickers/reassi
 import 'package:submersion/features/dive_log/presentation/widgets/combine_dives_dialog.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/features/transmitters/data/services/transmitter_setup_target.dart';
-import 'package:submersion/features/transmitters/presentation/providers/transmitter_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
@@ -413,12 +411,16 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
           withUndo: withUndo,
         );
       case SetUpTransmitterRepair(:final serial):
-        final itemId = await transmitterItemForSetup(
-          serial: serial,
-          diveId: f.diveId,
-          registrar: ref.read(transmitterAutoRegistrarProvider),
-        );
-        if (itemId != null && mounted) context.push('/equipment/$itemId');
+        // The same route the cylinders card's Assign chip opens: it finds or
+        // registers the transmitter's item, else starts one (issue #3676).
+        if (context.mounted) {
+          context.push(
+            Uri(
+              path: '/transmitters/new',
+              queryParameters: {'serial': serial, 'dive': f.diveId},
+            ).toString(),
+          );
+        }
       case GoToDiveRepair(:final diveId):
         if (context.mounted) context.push('/dives/$diveId');
     }

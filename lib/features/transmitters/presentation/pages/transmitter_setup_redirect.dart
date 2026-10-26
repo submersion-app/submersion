@@ -39,20 +39,21 @@ class _TransmitterSetupRedirectState
     try {
       if (serial != null) {
         final diveId = widget.diveId;
-        itemId = diveId != null
-            ? await transmitterItemForSetup(
-                serial: serial,
-                diveId: diveId,
-                registrar: ref.read(transmitterAutoRegistrarProvider),
-              )
-            : await ref
-                  .read(transmitterRepositoryProvider)
-                  .itemIdForSerial(
-                    serial,
-                    diverId: await ref.read(
-                      validatedCurrentDiverIdProvider.future,
-                    ),
-                  );
+        if (diveId != null) {
+          itemId = await transmitterItemForSetup(
+            serial: serial,
+            diveId: diveId,
+            registrar: ref.read(transmitterAutoRegistrarProvider),
+          );
+        }
+        // No dive, or one deleted since the link was made: the entry may
+        // still be known by its serial alone.
+        itemId ??= await ref
+            .read(transmitterRepositoryProvider)
+            .itemIdForSerial(
+              serial,
+              diverId: await ref.read(validatedCurrentDiverIdProvider.future),
+            );
       }
     } catch (_) {
       // A failed lookup still lands somewhere useful: a new item.

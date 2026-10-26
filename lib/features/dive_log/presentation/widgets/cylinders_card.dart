@@ -70,9 +70,10 @@ class CylindersCard extends ConsumerWidget {
     final computerNames = _computerDisplayNames(context, dataSources);
     // Serials of a transmitter that is set up get a plain caption; the rest
     // get an Assign button (issue #1365). Set up, not merely registered: a
-    // download registers every serial it sees (issue #3676). Read through `.value`, which keeps the
-    // previous list while a diver change reloads the provider; `valueOrNull`
-    // would drop to an empty registry and flash the button for every tank.
+    // download registers every serial it sees (issue #3676). Read through
+    // `.value`, which keeps the previous list while a diver change reloads
+    // the provider; `valueOrNull` would drop to an empty registry and flash
+    // the button for every tank.
     final knownSerials = Transmitter.setUpSerials(
       ref.watch(transmittersProvider).value ?? const <Transmitter>[],
     );

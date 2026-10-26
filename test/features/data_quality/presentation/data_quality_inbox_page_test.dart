@@ -31,6 +31,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/features/transmitters/data/services/transmitter_auto_registrar.dart';
+import 'package:submersion/features/transmitters/presentation/pages/transmitter_setup_redirect.dart';
 import 'package:submersion/features/transmitters/presentation/providers/transmitter_providers.dart';
 
 import '../../../helpers/global_test_defaults.dart';
@@ -367,6 +368,13 @@ void main() {
             path: '/equipment/:id',
             builder: (_, s) =>
                 Scaffold(body: Text('ITEM ${s.pathParameters['id']}')),
+          ),
+          GoRoute(
+            path: '/transmitters/new',
+            builder: (_, s) => TransmitterSetupRedirect(
+              serial: s.uri.queryParameters['serial'],
+              diveId: s.uri.queryParameters['dive'],
+            ),
           ),
         ],
       );

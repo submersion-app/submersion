@@ -110,4 +110,40 @@ void main() {
 
     expect(find.text('NEW transmitter 4A21F'), findsOneWidget);
   });
+
+  testWidgets('a dive that is gone still finds the entry by its serial', (
+    tester,
+  ) async {
+    await tester.runAsync(() async {
+      final db = DatabaseService.instance.database;
+      await db
+          .into(db.equipment)
+          .insert(
+            EquipmentCompanion.insert(
+              id: 'tx-gear',
+              name: 'Back gas tx',
+              type: 'transmitter',
+              createdAt: 0,
+              updatedAt: 0,
+            ),
+          );
+      await db
+          .into(db.transmitters)
+          .insert(
+            TransmittersCompanion.insert(
+              id: 'tx1',
+              label: 'Back gas tx',
+              tankRole: 'backGas',
+              transmitterSerial: const Value('4A21F'),
+              transmitterEquipmentId: const Value('tx-gear'),
+              createdAt: 0,
+              updatedAt: 0,
+            ),
+          );
+    });
+
+    await pumpAt(tester, '/transmitters/new?serial=4A21F&dive=gone');
+
+    expect(find.text('ITEM tx-gear'), findsOneWidget);
+  });
 }
