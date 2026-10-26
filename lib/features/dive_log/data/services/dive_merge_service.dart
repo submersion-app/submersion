@@ -276,14 +276,10 @@ class DiveMergeService {
           final byCreated = a.createdAt.compareTo(b.createdAt);
           return byCreated != 0 ? byCreated : a.id.compareTo(b.id);
         });
+        final strandOf = dataSourceStrandKeysById(rows);
         final slotByStrand = <String, int>{};
         for (final row in rows) {
-          final strand = dataSourceStrandKey(
-            rowId: row.id,
-            computerId: row.computerId,
-            mergeSourceSlot: row.mergeSourceSlot,
-          );
-          mergeSlotByRowId[row.id] = slotByStrand[strand] ??=
+          mergeSlotByRowId[row.id] = slotByStrand[strandOf[row.id]!] ??=
               slotByStrand.length;
         }
       }

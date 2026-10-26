@@ -221,4 +221,87 @@ void main() {
       expect(await repository.hasMultipleDataSources('dive-1'), isTrue);
     },
   );
+
+  // Issue #3654: one Perdix 2 download stored twice with no computer, once
+  // as 'Shearwater Perdix 2' with no serial and once as 'Perdix 2' with the
+  // serial the computer shows, beside a second computer's recording.
+  group('rows of one recording with no computer', () {
+    Future<void> insertSource(
+      String id, {
+      required bool isPrimary,
+      required String model,
+      String? serial,
+      required int duration,
+      required int day,
+    }) => db
+        .into(db.diveDataSources)
+        .insert(
+          DiveDataSourcesCompanion(
+            id: Value(id),
+            diveId: const Value('dive-1'),
+            isPrimary: Value(isPrimary),
+            computerModel: Value(model),
+            computerSerial: Value(serial),
+            entryTime: Value(DateTime.utc(2026, 7, 1, 9, 30, 12)),
+            duration: Value(duration),
+            maxDepth: const Value(6.2),
+            importedAt: Value(DateTime(2026, 1, day)),
+            createdAt: Value(DateTime(2026, 1, day)),
+          ),
+        );
+
+    test('show as one source', () async {
+      await insertSource(
+        'src-vendor',
+        isPrimary: true,
+        model: 'Shearwater Perdix 2',
+        duration: 440,
+        day: 1,
+      );
+      await insertSource(
+        'src-bare',
+        isPrimary: false,
+        model: 'Perdix 2',
+        serial: 'A5433DEA',
+        duration: 440,
+        day: 2,
+      );
+
+      final sources = await repository.getDataSources('dive-1');
+
+      expect(sources.map((s) => s.id).toList(), ['src-vendor']);
+      expect(await repository.hasMultipleDataSources('dive-1'), isFalse);
+    });
+
+    test('collapse onto whichever of them is primary, beside another '
+        'computer', () async {
+      await insertSource(
+        'src-vendor',
+        isPrimary: false,
+        model: 'Shearwater Perdix 2',
+        duration: 440,
+        day: 1,
+      );
+      await insertSource(
+        'src-bare',
+        isPrimary: true,
+        model: 'Perdix 2',
+        serial: 'A5433DEA',
+        duration: 440,
+        day: 2,
+      );
+      await insertSource(
+        'src-petrel',
+        isPrimary: false,
+        model: 'Petrel 3',
+        duration: 2481,
+        day: 3,
+      );
+
+      final sources = await repository.getDataSources('dive-1');
+
+      expect(sources.map((s) => s.id).toList(), ['src-bare', 'src-petrel']);
+      expect(await repository.hasMultipleDataSources('dive-1'), isTrue);
+    });
+  });
 }

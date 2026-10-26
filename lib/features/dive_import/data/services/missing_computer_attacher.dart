@@ -244,16 +244,11 @@ class MissingComputerAttacher {
   /// would claim an incoming computer the dive does not hold. Strands follow
   /// the rule the repository's own reads use.
   static List<String?> _identitiesOf(List<DiveDataSourcesData> sources) {
+    final strandOf = dataSourceStrandKeysById(sources);
     final seenStrands = <String>{};
     return [
       for (final s in sources)
-        if (seenStrands.add(
-          dataSourceStrandKey(
-            rowId: s.id,
-            computerId: s.computerId,
-            mergeSourceSlot: s.mergeSourceSlot,
-          ),
-        ))
+        if (seenStrands.add(strandOf[s.id]!))
           UddfEntityImporter.computerKeyFor(s.computerModel, s.computerSerial),
     ];
   }

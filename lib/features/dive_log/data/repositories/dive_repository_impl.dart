@@ -1294,7 +1294,9 @@ class DiveRepository {
   /// A row's strand is its computerId when it has one, else its
   /// mergeSourceSlot when a sequential Combine carried it here, else nothing
   /// at all: a manual entry or an edited profile has neither, so there is
-  /// nothing for it to collide on and it always survives.
+  /// nothing for it to collide on and it always survives, unless another
+  /// such row is the same recording of the same computer (issue #3654; see
+  /// [dataSourceStrandKeysById]).
   ///
   /// A sequential merge (DiveMergeService.apply, step 10) carries over every
   /// original dive's data source row as provenance, so a merged dive holds
@@ -1321,19 +1323,14 @@ class DiveRepository {
   List<DiveDataSourcesData> _canonicalDataSourceRows(
     List<DiveDataSourcesData> rows,
   ) {
+    final strandOf = dataSourceStrandKeysById(rows);
     final seenStrands = <String>{};
     final result = <DiveDataSourcesData>[];
     for (final row in rows) {
-      if (seenStrands.add(_strandOf(row))) result.add(row);
+      if (seenStrands.add(strandOf[row.id]!)) result.add(row);
     }
     return result;
   }
-
-  static String _strandOf(DiveDataSourcesData row) => dataSourceStrandKey(
-    rowId: row.id,
-    computerId: row.computerId,
-    mergeSourceSlot: row.mergeSourceSlot,
-  );
 
   /// Every source row of [diveId], primary first and then oldest: the order
   /// [_canonicalDataSourceRows] needs to keep the shown row of each strand.
@@ -1540,10 +1537,12 @@ class DiveRepository {
   /// shown sources finds the right one (issue #3067).
   Future<List<ProfileSeriesRevision>> getProfileHistory(String diveId) async {
     final revisions = await _profileSeries.getRevisionsForDive(diveId);
+    final rows = await _sourceRowsInShownOrder(diveId);
+    final strandOf = dataSourceStrandKeysById(rows);
     final shownIdByStrand = <String, String>{};
     final shownIdByRow = <String, String>{
-      for (final row in await _sourceRowsInShownOrder(diveId))
-        row.id: shownIdByStrand.putIfAbsent(_strandOf(row), () => row.id),
+      for (final row in rows)
+        row.id: shownIdByStrand.putIfAbsent(strandOf[row.id]!, () => row.id),
     };
     return [
       for (final revision in revisions)
@@ -1606,7 +1605,9 @@ class DiveRepository {
     if (owner == null || owner.isPrimary) return null;
     final ownerRow = rows.firstWhere((row) => row.id == owner.id);
     final primaryRow = rows.where((row) => row.isPrimary).firstOrNull;
-    if (primaryRow != null && _strandOf(primaryRow) == _strandOf(ownerRow)) {
+    final strandOf = dataSourceStrandKeysById(rows);
+    if (primaryRow != null &&
+        strandOf[primaryRow.id] == strandOf[ownerRow.id]) {
       return null;
     }
     return ownerRow;
@@ -8144,12 +8145,14 @@ class DiveRepository {
 
   /// Return true if a dive has readings from 2 or more sources.
   ///
-  /// Counts distinct canonical strands rather than raw rows, mirroring
-  /// [dataSourceStrandKey] in SQL: computer_id when there is one, else
+  /// Counts distinct canonical strands rather than raw rows, per
+  /// [dataSourceStrandKeysById]: computer_id when there is one, else
   /// merge_source_slot for a row a sequential Combine carried here, else the
-  /// row's own id (unique, so such a row is always its own strand). The two
+  /// row's own id unless another such row is the same recording. The two
   /// rows a Combine leaves behind therefore count as one, whether or not the
-  /// segments came from a computer download (issue #1451).
+  /// segments came from a computer download (issue #1451), and so do two
+  /// imports of one download with no computer to tie them (issue #3654).
+  /// Counted in Dart, not SQL, because that last rule compares rows.
   ///
   /// Deliberately the collapse rule alone, without the disjoint-span test the
   /// profile surfaces add on top of it (`usesPerSourceRendering`). That test
@@ -8161,17 +8164,8 @@ class DiveRepository {
   /// included.
   Future<bool> hasMultipleDataSources(String diveId) async {
     try {
-      final result = await _db
-          .customSelect(
-            'SELECT COUNT(DISTINCT COALESCE('
-            "'computer:' || computer_id, "
-            "'mergeSlot:' || merge_source_slot, "
-            "'row:' || id)) as cnt "
-            'FROM dive_data_sources WHERE dive_id = ?',
-            variables: [Variable(diveId)],
-          )
-          .getSingle();
-      return (result.data['cnt'] as int) >= 2;
+      final rows = await _sourceRowsInShownOrder(diveId);
+      return dataSourceStrandKeysById(rows).values.toSet().length >= 2;
     } catch (e, stackTrace) {
       _log.error(
         'Failed to count data source strands for dive: $diveId',
