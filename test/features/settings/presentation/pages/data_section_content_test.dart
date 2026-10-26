@@ -608,6 +608,8 @@ void main() {
         }
         expect(find.text('Unavailable in demo mode'), findsNWidgets(6));
         expect(find.byType(SetUpDeviceCard), findsNothing);
+        // The health strip would only recommend sealed backups and sync.
+        expect(find.byType(DataHealthStrip), findsNothing);
       },
     );
 

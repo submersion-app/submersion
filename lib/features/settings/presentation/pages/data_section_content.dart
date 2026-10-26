@@ -126,10 +126,13 @@ class _DataSectionContentState extends ConsumerState<DataSectionContent> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const DataHealthStrip(),
-          const SizedBox(height: 12),
-          if (!demoActive)
+          // In demo mode the strip could only recommend sealed backups and
+          // sync, so it goes with the set-up card.
+          if (!demoActive) ...[
+            const DataHealthStrip(),
+            const SizedBox(height: 12),
             const SetUpDeviceCard(margin: EdgeInsets.only(bottom: 12)),
+          ],
           const DataFactsLine(),
           const SizedBox(height: 12),
           const Divider(height: 1),
