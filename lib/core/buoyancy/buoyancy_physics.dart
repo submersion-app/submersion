@@ -141,11 +141,13 @@ class BuoyancyPhysics {
     // A stored preset name can come from a size match that ignored the
     // material (cylinder passports, the tank editor), so it never overrides
     // a material the tank states.
-    final preset = presetName != null ? TankPresets.byName(presetName) : null;
-    if (presetName != null &&
-        kTankCatalog.containsKey(presetName) &&
-        (material == null || preset?.material == material)) {
-      return kTankCatalog[presetName];
+    if (presetName != null && kTankCatalog.containsKey(presetName)) {
+      // Catalog keys are built-in slugs, so byName finds one without
+      // throwing; this runs per profile sample.
+      final presetMaterial = TankPresets.byName(presetName)?.material;
+      if (material == null || presetMaterial == material) {
+        return kTankCatalog[presetName];
+      }
     }
     if (volumeL != null && workingPressureBar != null) {
       final match = TankPresets.matchAnyBySpecs(
