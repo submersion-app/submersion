@@ -248,6 +248,18 @@ void main() {
       );
     });
 
+    // Issue #3669: a renamed built-in species keeps the diver's name.
+    test('keeps the name of a renamed built-in species', () {
+      expect(
+        conflictReferenceValue(
+          de,
+          units,
+          builtIn('species', 'sp_cowfish', 'Honeycomb Cowfish'),
+        ),
+        'Honeycomb Cowfish',
+      );
+    });
+
     test('translates a name borrowed from a built-in row', () {
       expect(
         conflictReferenceValue(

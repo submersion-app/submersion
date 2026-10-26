@@ -611,15 +611,14 @@ class SpeciesRepository {
     await seedBuiltInSpecies();
 
     // Publish the restored text of every edited row still in the catalog.
+    final catalogIds = builtInSpecies.map((s) => s.id).toSet();
     final now = DateTime.now().millisecondsSinceEpoch;
-    for (final species in builtInSpecies) {
-      if (editedIds.contains(species.id)) {
-        await _syncRepository.markRecordPending(
-          entityType: 'species',
-          recordId: species.id,
-          localUpdatedAt: now,
-        );
-      }
+    for (final id in editedIds.where(catalogIds.contains)) {
+      await _syncRepository.markRecordPending(
+        entityType: 'species',
+        recordId: id,
+        localUpdatedAt: now,
+      );
     }
 
     SyncEventBus.notifyLocalChange();

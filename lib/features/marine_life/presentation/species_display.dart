@@ -39,10 +39,10 @@ extension SpeciesCategoryDisplay on SpeciesCategory {
 
 final AppLocalizations _english = lookupAppLocalizations(const Locale('en'));
 
-/// [translated] when [stored] is still [catalog], the catalog's English text
-/// for the field; [stored] otherwise, including when there is no catalog text.
-String? _catalogOr(String? stored, String? catalog, String? translated) =>
-    catalog != null && stored == catalog ? (translated ?? stored) : stored;
+/// Whether [stored] still holds [catalog], the catalog's English text for the
+/// field. False when there is no catalog text (a custom or unknown id).
+bool _isCatalogText(String? stored, String? catalog) =>
+    catalog != null && stored == catalog;
 
 extension SpeciesDisplay on Species {
   /// Localized common name for an unedited built-in species; the stored name
@@ -56,12 +56,10 @@ extension SpeciesDisplay on Species {
   /// Localized description for an unedited built-in species; the stored
   /// description for an edited or custom one. Null when the row has no
   /// description at all, including a built-in whose description was cleared.
-  String? localizedDescription(AppLocalizations l10n) => isBuiltIn
-      ? _catalogOr(
-          description,
-          builtInSpeciesDescription(_english, id),
-          builtInSpeciesDescription(l10n, id),
-        )
+  String? localizedDescription(AppLocalizations l10n) =>
+      isBuiltIn &&
+          _isCatalogText(description, builtInSpeciesDescription(_english, id))
+      ? (builtInSpeciesDescription(l10n, id) ?? description)
       : description;
 }
 
@@ -78,11 +76,9 @@ String localizedSpeciesName(
   AppLocalizations l10n,
   String id,
   String storedName,
-) => _catalogOr(
-  storedName,
-  builtInSpeciesName(_english, id),
-  builtInSpeciesName(l10n, id),
-)!;
+) => _isCatalogText(storedName, builtInSpeciesName(_english, id))
+    ? (builtInSpeciesName(l10n, id) ?? storedName)
+    : storedName;
 
 /// Repository search hits plus catalog rows whose *localized* name matches.
 ///
