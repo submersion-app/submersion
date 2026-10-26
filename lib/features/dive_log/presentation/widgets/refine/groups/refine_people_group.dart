@@ -18,8 +18,8 @@ const kRefineNoBuddySwitchKey = ValueKey('refine-no-buddy');
 const kRefineNoRoleSwitchKey = ValueKey('refine-no-role');
 
 /// The Refine panel's People and life group (#2773): buddy names (several,
-/// comma separated, with suggestions), dives with no buddy, and species
-/// sighted.
+/// comma separated, with suggestions), dives with no buddy, dives where the
+/// diver's own role is not set (#3622), and species sighted.
 class RefinePeopleGroup extends ConsumerStatefulWidget {
   const RefinePeopleGroup({
     super.key,

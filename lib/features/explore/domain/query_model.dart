@@ -1,8 +1,8 @@
 /// The JSON contract between the native model adapter and the compiler.
 ///
-/// Schema version 1. Every payload the adapter returns is validated here
-/// before anything reads it; a mismatch is a [QuerySchemaException], never a
-/// guess. Pure Dart, no Flutter imports.
+/// Versioned by [kQuerySchemaVersion]. Every payload the adapter returns is
+/// validated here before anything reads it; a mismatch is a
+/// [QuerySchemaException], never a guess. Pure Dart, no Flutter imports.
 library;
 
 import 'dart:convert';

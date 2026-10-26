@@ -713,6 +713,7 @@ void main() {
       'favoritesOnly': const DiveFilterState(favoritesOnly: true),
       'buddyNameFilter': const DiveFilterState(buddyNameFilter: 'alice'),
       'noBuddyOnly': const DiveFilterState(noBuddyOnly: true),
+      'noRoleOnly': const DiveFilterState(noRoleOnly: true),
       'buddyId': const DiveFilterState(buddyId: 'b1'),
       // The buddy page's "View all" shape: a saved id list plus the live
       // link. d1 is in the list but only names Alice in legacy text.
