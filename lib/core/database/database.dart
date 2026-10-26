@@ -292,7 +292,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 317;
+  static const int currentSchemaVersion = 318;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1427,6 +1427,13 @@ class AppDatabase extends _$AppDatabase {
     // (issue #3662). Data only and unsynced, so the floor does not move. 316
     // is held by PR #3685.
     317,
+    // v318: moves the CNS, OTU and deco model stored computer tissue
+    // snapshots held into their own dive and source columns (issue #2555).
+    // Data only, so the floor does not move: an older peer reads the slimmer
+    // snapshot as one that reported less, and a dive it still sends in the
+    // old shape gets the same move once applied here (SyncService). 317 is
+    // #3662 (tank inspection baselines); 316 is held by PR #3685.
+    318,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

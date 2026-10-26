@@ -24,11 +24,16 @@ void main() {
         final tissue = dive['computerTissue'];
         expect(tissue, isA<ComputerTissueSnapshot>());
         final snapshot = tissue as ComputerTissueSnapshot;
-        expect(snapshot.algorithm, 'zhl_16c');
         expect(snapshot.start?.n2LoadPercent, 0);
         expect(snapshot.end?.n2LoadPercent, 86);
       },
     );
+
+    test('carries the CNS and the deco model as dive keys (issue #2555)', () {
+      expect(dive['decoAlgorithm'], 'zhl_16c');
+      expect(dive['cnsStart'], isA<double>());
+      expect(dive['cnsEnd'], isA<double>());
+    });
 
     test('carries the per-record N2 loading on the profile points', () {
       final profile = dive['profile'] as List<Map<String, dynamic>>;

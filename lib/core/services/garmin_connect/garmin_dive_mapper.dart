@@ -158,8 +158,12 @@ class GarminDiveMapper {
       bottomTimeSeconds: imported.bottomTimeSeconds,
       surfaceIntervalSeconds: imported.surfaceIntervalSeconds,
       waterType: _waterType(imported.waterType),
+      cnsStart: imported.cnsStart,
       cnsEnd: imported.cnsEnd,
       otu: imported.otu,
+      // The dive_summary N2 loading (issue #1977), which the download path
+      // stores like any computer's tissue snapshot.
+      computerTissue: imported.computerTissue,
     );
 
     return GarminParsedDive(

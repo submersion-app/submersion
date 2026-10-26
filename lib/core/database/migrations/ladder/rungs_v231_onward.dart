@@ -623,5 +623,15 @@ extension RungsFromV231 on AppDatabase {
     // peers below v317. 316 is held by PR #3685.
     if (from < 317) await backfillTankInspectionBaselines();
     if (from < 317) await reportProgress();
+
+    // v318: the computer tissue snapshot keeps only what has no dive column
+    // (issue #2555). Moves the CNS, OTU and deco model stored snapshots
+    // held into dives and the primary source where those are empty. New
+    // imports no longer write them, and SyncService runs the same move after
+    // applying a peer's rows, for a dive an older peer still sends in the
+    // old shape. 317 is #3662 (tank inspection baselines); 316 is held by
+    // PR #3685.
+    if (from < 318) await _moveComputerTissueScalars();
+    if (from < 318) await reportProgress();
   }
 }

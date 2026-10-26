@@ -12,19 +12,16 @@ import 'package:xml/xml.dart';
 /// block and the reader puts it back on the dive (issue #2557).
 void main() {
   const snapshot = ComputerTissueSnapshot(
-    algorithm: 'Suunto Fused2 RGBM',
     start: ComputerTissueState(
       n2Bar: [0.79, 0.81],
       heBar: [0.0, 0.0],
       n2LoadPercent: 12,
-      cnsPercent: 3,
     ),
     end: ComputerTissueState(
       n2Bar: [1.52, 1.21],
       loadPercent: [64.5, 48],
       gf99Percent: 37,
       surfaceGfPercent: 41.5,
-      otu: 22,
       rgbmNitrogen: 0.97,
       rgbmHelium: 1,
     ),

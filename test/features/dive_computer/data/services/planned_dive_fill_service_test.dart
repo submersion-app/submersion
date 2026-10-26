@@ -147,7 +147,6 @@ void main() {
 
   test('fill takes the tissue state the computer reported', () async {
     const tissue = ComputerTissueSnapshot(
-      algorithm: 'zhl_16c',
       end: ComputerTissueState(gf99Percent: 62, surfaceGfPercent: 48),
     );
     final planned = await plannedDive();
@@ -166,7 +165,6 @@ void main() {
     'fill keeps the planned tissue state a computer does not report',
     () async {
       const tissue = ComputerTissueSnapshot(
-        algorithm: 'zhl_16c',
         end: ComputerTissueState(gf99Percent: 55, surfaceGfPercent: 40),
       );
       final planned = await dives.createPlannedDive(

@@ -3157,18 +3157,27 @@ class UddfEntityImporter {
 
       // Write MacDive dive metadata columns that don't flow through the Dive
       // domain entity. Also plug `weather` into the existing weatherDescription
-      // column (it wasn't being populated for UDDF imports). Only issue the
-      // UPDATE when at least one value is present to avoid a no-op write.
+      // column (it wasn't being populated for UDDF imports), and the CNS and
+      // OTU the computer reported, which have no Dive field either; the
+      // source row below keeps its own copy of the end values, as a download
+      // does (issue #2555). Only issue the UPDATE when at least one value is
+      // present to avoid a no-op write.
       final boatName = diveData['boatName'] as String?;
       final boatCaptain = diveData['boatCaptain'] as String?;
       final diveOperator = diveData['diveOperator'] as String?;
       final surfaceConditions = diveData['surfaceConditions'] as String?;
       final weather = diveData['weather'] as String?;
+      final cnsStart = asDoubleOrNull(diveData['cnsStart']);
+      final cnsEnd = asDoubleOrNull(diveData['cnsEnd']);
+      final otu = asDoubleOrNull(diveData['otu']);
       if (boatName != null ||
           boatCaptain != null ||
           diveOperator != null ||
           surfaceConditions != null ||
-          weather != null) {
+          weather != null ||
+          cnsStart != null ||
+          cnsEnd != null ||
+          otu != null) {
         await repos.diveRepository.applyImportedMetadata(
           diveId,
           DivesCompanion(
@@ -3185,6 +3194,9 @@ class UddfEntityImporter {
             weatherDescription: weather != null
                 ? Value(weather)
                 : const Value.absent(),
+            cnsStart: cnsStart != null ? Value(cnsStart) : const Value.absent(),
+            cnsEnd: cnsEnd != null ? Value(cnsEnd) : const Value.absent(),
+            otu: otu != null ? Value(otu) : const Value.absent(),
           ),
         );
       }

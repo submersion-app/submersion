@@ -64,9 +64,8 @@ void main() {
       final snapshot = parseSuuntoTissue(_eonCoreDiving());
 
       expect(snapshot, isNotNull);
-      expect(snapshot!.algorithm, 'Suunto Fused2 RGBM');
 
-      final start = snapshot.start!;
+      final start = snapshot!.start!;
       expect(start.n2Bar, hasLength(15));
       expect(start.n2Bar!.first, 0.79);
       expect(start.n2Bar!.last, 0.85254);
@@ -76,8 +75,6 @@ void main() {
       final end = snapshot.end!;
       expect(end.n2Bar, hasLength(15));
       expect(end.n2Bar![4], 1.42849);
-      expect(end.cnsPercent, closeTo(13.2, 1e-9));
-      expect(end.otu, 35.57);
       expect(end.rgbmNitrogen, 0.98);
       expect(end.rgbmHelium, 0.985);
     });
@@ -120,8 +117,7 @@ void main() {
       });
 
       expect(snapshot, isNotNull);
-      expect(snapshot!.algorithm, 'Suunto Technical RGBM');
-      expect(snapshot.start!.n2Bar, hasLength(9));
+      expect(snapshot!.start!.n2Bar, hasLength(9));
       expect(snapshot.start!.n2Bar!.first, 0.79);
       expect(snapshot.start!.heBar, hasLength(9));
 
@@ -129,8 +125,6 @@ void main() {
       final end = snapshot.end!;
       expect(end.n2Bar, isNull);
       expect(end.hasCompartments, isFalse);
-      expect(end.cnsPercent, closeTo(4.0, 1e-9));
-      expect(end.otu, 12.0);
       expect(end.rgbmNitrogen, 0.9);
       expect(end.rgbmHelium, 1.0);
     });
@@ -148,21 +142,12 @@ void main() {
       expect(snapshot!.start!.n2Bar, [0.79, 0.8]);
     });
 
-    test('never reads OLF as CNS', () {
-      // OLF is the higher of CNS% and OTU%, so it overstates CNS whenever
-      // OTU is the binding limit.
-      final snapshot = parseSuuntoTissue({
-        'EndTissue': {'OLF': 0.25, 'OTU': 12.0},
-      });
-
-      expect(snapshot!.end!.cnsPercent, isNull);
-      expect(snapshot.end!.otu, 12.0);
-    });
-
-    test('a state holding only OLF has nothing to store', () {
+    test('a state holding only OLF, CNS and OTU has nothing to store', () {
+      // CNS and OTU go to the dive's own columns (issue #2555), so they
+      // never make a snapshot on their own.
       expect(
         parseSuuntoTissue({
-          'EndTissue': {'OLF': 0.25},
+          'EndTissue': {'OLF': 0.25, 'CNS': 0.04, 'OTU': 12.0},
         }),
         isNull,
       );
@@ -176,21 +161,6 @@ void main() {
 
     test('returns null when only the algorithm name is present', () {
       expect(parseSuuntoTissue({'Algorithm': 'Suunto Fused2 RGBM'}), isNull);
-    });
-
-    test('trims the algorithm and reads a blank one as absent', () {
-      // The dive's decoAlgorithm treats a blank Algorithm as missing, so the
-      // snapshot has to as well, or the two disagree.
-      Map<String, dynamic> header(String algorithm) => {
-        'Algorithm': algorithm,
-        'EndTissue': {'CNS': 0.04},
-      };
-
-      expect(parseSuuntoTissue(header('   '))!.algorithm, isNull);
-      expect(
-        parseSuuntoTissue(header(' Suunto Fused2 RGBM '))!.algorithm,
-        'Suunto Fused2 RGBM',
-      );
     });
 
     test('skips a state with no numeric content', () {
@@ -211,26 +181,69 @@ void main() {
       final snapshot = parseSuuntoTissue({
         'EndTissue': {
           'Nitrogen': [89665, 'x', 90000],
-          'CNS': 0.1,
+          'RgbmNitrogen': 0.9,
         },
       });
 
       expect(snapshot!.end!.n2Bar, isNull);
-      expect(snapshot.end!.cnsPercent, closeTo(10.0, 1e-9));
+      expect(snapshot.end!.rgbmNitrogen, 0.9);
     });
 
-    test('ignores a non-map tissue entry and a non-string algorithm', () {
+    test('ignores a non-map tissue entry', () {
       final snapshot = parseSuuntoTissue({
-        'Algorithm': 42,
         'StartTissue': 'bogus',
         'EndTissue': {
           'Nitrogen': [89665],
         },
       });
 
-      expect(snapshot!.algorithm, isNull);
-      expect(snapshot.start, isNull);
+      expect(snapshot!.start, isNull);
       expect(snapshot.end!.n2Bar, [0.89665]);
+    });
+  });
+
+  group('parseSuuntoExposure', () {
+    test('reads CNS in percent at start and end, and the end OTU', () {
+      final exposure = parseSuuntoExposure(_eonCoreDiving());
+
+      expect(exposure.cnsStart, 0.0);
+      expect(exposure.cnsEnd, closeTo(13.2, 1e-9));
+      expect(exposure.otu, 35.57);
+    });
+
+    test('never reads OLF as CNS', () {
+      // OLF is the higher of CNS% and OTU%, so it overstates CNS whenever
+      // OTU is the binding limit.
+      final exposure = parseSuuntoExposure({
+        'EndTissue': {'OLF': 0.25, 'OTU': 12.0},
+      });
+
+      expect(exposure.cnsEnd, isNull);
+      expect(exposure.otu, 12.0);
+    });
+
+    test('reads the start OTU as nothing', () {
+      // A computer's OTU at dive start is what earlier dives left; no dive
+      // column holds it.
+      final exposure = parseSuuntoExposure({
+        'StartTissue': {'OTU': 4.0},
+      });
+
+      expect(exposure.otu, isNull);
+    });
+
+    test('is all null without tissue entries or with malformed ones', () {
+      final none = parseSuuntoExposure({'GfLow': 30});
+      final junk = parseSuuntoExposure({
+        'StartTissue': 'bogus',
+        'EndTissue': {'CNS': 'high', 'OTU': true},
+      });
+
+      for (final exposure in [none, junk]) {
+        expect(exposure.cnsStart, isNull);
+        expect(exposure.cnsEnd, isNull);
+        expect(exposure.otu, isNull);
+      }
     });
   });
 }

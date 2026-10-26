@@ -86,7 +86,10 @@ void main() {
         expect(tissue, isA<ComputerTissueSnapshot>());
         final snapshot = tissue as ComputerTissueSnapshot;
 
-        expect(snapshot.algorithm, 'Buhlmann');
+        // The deco model and the CNS are the dive's own keys (#2555).
+        expect(dive['decoAlgorithm'], 'Buhlmann');
+        expect(dive['cnsStart'], 1.0);
+        expect(dive['cnsEnd'], 1.0);
 
         // First sample of the fixture.
         expect(snapshot.start?.loadPercent, hasLength(16));
@@ -95,7 +98,6 @@ void main() {
           7.0, 7.0, 7.0, 8.0, 8.0, 8.0, 8.0, 8.0, //
           0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
         ]);
-        expect(snapshot.start?.cnsPercent, 1.0);
 
         // Last sample of the fixture.
         expect(snapshot.end?.loadPercent, hasLength(16));
@@ -103,7 +105,6 @@ void main() {
           10.0, 12.0, 12.0, 12.0, 11.0, 11.0, 10.0, 10.0, //
           0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
         ]);
-        expect(snapshot.end?.cnsPercent, 1.0);
         expect(snapshot.hasCompartmentData, isTrue);
       },
     );
@@ -128,7 +129,7 @@ void main() {
       );
 
       final snapshot = dive['computerTissue'] as ComputerTissueSnapshot;
-      expect(snapshot.algorithm, 'VPM');
+      expect(dive['decoAlgorithm'], 'VPM');
       expect(snapshot.end?.loadPercent, [5.0, 6.0]);
     });
 
@@ -195,9 +196,38 @@ void main() {
 
       final snapshot = dive['computerTissue'] as ComputerTissueSnapshot;
       expect(snapshot.start?.loadPercent, [1.0, 2.0]);
-      expect(snapshot.start?.cnsPercent, 0.0);
       expect(snapshot.end?.loadPercent, [5.0, 6.0]);
-      expect(snapshot.end?.cnsPercent, 4.0);
+      expect(snapshot.toJson()['start'], {
+        'load_percent': [1.0, 2.0],
+      });
+      expect(dive['cnsStart'], 0.0);
+      expect(dive['cnsEnd'], 4.0);
+    });
+
+    test('takes the start CNS from the first sample reporting one', () async {
+      final dive = await _parseDive(
+        _ratioXml([
+          // The helper writes a CNS of 1 on every sample; unreadable text
+          // stands in for a sample without a reading.
+          _sample(10, extra: {'CNS': 'n/a'}),
+          _sample(20, extra: {'CNS': 3}),
+          _sample(30, extra: {'CNS': 5}),
+        ]),
+      );
+
+      expect(dive['cnsStart'], 3.0);
+      expect(dive['cnsEnd'], 5.0);
+    });
+
+    test('sets no start CNS when no sample reports one', () async {
+      final dive = await _parseDive(
+        _ratioXml([
+          _sample(10, extra: {'CNS': 'n/a'}),
+          _sample(20, extra: {'CNS': 'n/a'}),
+        ]),
+      );
+
+      expect(dive.containsKey('cnsStart'), isFalse);
     });
   });
 }

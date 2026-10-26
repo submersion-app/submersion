@@ -94,9 +94,8 @@ void main() {
 
   group('computer tissue', () {
     const snapshot = ComputerTissueSnapshot(
-      algorithm: 'Suunto Fused2 RGBM',
       start: ComputerTissueState(n2Bar: [0.79, 0.79]),
-      end: ComputerTissueState(n2Bar: [0.9, 1.1], cnsPercent: 13.2),
+      end: ComputerTissueState(n2Bar: [0.9, 1.1]),
     );
     final dive = DownloadedDive(
       fingerprint: 'fp-tissue',
@@ -1935,6 +1934,7 @@ void main() {
           bottomTimeSeconds: anyNamed('bottomTimeSeconds'),
           surfaceIntervalSeconds: anyNamed('surfaceIntervalSeconds'),
           waterType: anyNamed('waterType'),
+          cnsStart: anyNamed('cnsStart'),
           cnsEnd: anyNamed('cnsEnd'),
           otu: anyNamed('otu'),
         ),
@@ -1955,6 +1955,7 @@ void main() {
           bottomTimeSeconds: 3600,
           surfaceIntervalSeconds: 5400,
           waterType: WaterType.salt,
+          cnsStart: 2.0,
           cnsEnd: 14.0,
           otu: 38.0,
         ),
@@ -1989,12 +1990,13 @@ void main() {
           bottomTimeSeconds: captureAnyNamed('bottomTimeSeconds'),
           surfaceIntervalSeconds: captureAnyNamed('surfaceIntervalSeconds'),
           waterType: captureAnyNamed('waterType'),
+          cnsStart: captureAnyNamed('cnsStart'),
           cnsEnd: captureAnyNamed('cnsEnd'),
           otu: captureAnyNamed('otu'),
         ),
       ).captured;
 
-      expect(captured, [3600, 5400, WaterType.salt, 14.0, 38.0]);
+      expect(captured, [3600, 5400, WaterType.salt, 2.0, 14.0, 38.0]);
     });
   });
 
