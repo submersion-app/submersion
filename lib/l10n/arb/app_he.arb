@@ -14083,6 +14083,7 @@
   "explore_chip_deco": "צלילת דקומפרסיה",
   "explore_chip_noDeco": "ללא דקומפרסיה",
   "explore_chip_noBuddy": "ללא שותף",
+  "explore_chip_noRole": "ללא תפקיד",
   "explore_chip_rating": "דירוג {op} {value}",
   "explore_chip_numeric": "{field} {op} {value}",
   "explore_chip_between": "{field} {low} עד {high}",

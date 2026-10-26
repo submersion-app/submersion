@@ -14083,6 +14083,7 @@
   "explore_chip_deco": "Immersione con decompressione",
   "explore_chip_noDeco": "Senza decompressione",
   "explore_chip_noBuddy": "Senza compagno",
+  "explore_chip_noRole": "Senza ruolo",
   "explore_chip_rating": "Valutazione {op} {value}",
   "explore_chip_numeric": "{field} {op} {value}",
   "explore_chip_between": "{field} da {low} a {high}",

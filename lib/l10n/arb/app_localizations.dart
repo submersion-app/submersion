@@ -75603,6 +75603,12 @@ abstract class AppLocalizations {
   /// **'No buddy'**
   String get explore_chip_noBuddy;
 
+  /// No description provided for @explore_chip_noRole.
+  ///
+  /// In en, this message translates to:
+  /// **'No role'**
+  String get explore_chip_noRole;
+
   /// No description provided for @explore_chip_rating.
   ///
   /// In en, this message translates to:

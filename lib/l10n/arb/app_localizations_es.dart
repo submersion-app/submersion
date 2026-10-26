@@ -47451,6 +47451,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get explore_chip_noBuddy => 'Sin compañero';
 
   @override
+  String get explore_chip_noRole => 'Sin rol';
+
+  @override
   String explore_chip_rating(String op, String value) {
     return 'Valoración $op $value';
   }

@@ -47983,6 +47983,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get explore_chip_noBuddy => 'بدون رفيق';
 
   @override
+  String get explore_chip_noRole => 'بدون دور';
+
+  @override
   String explore_chip_rating(String op, String value) {
     return 'التقييم $op $value';
   }

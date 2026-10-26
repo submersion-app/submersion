@@ -14083,6 +14083,7 @@
   "explore_chip_deco": "Decompressieduik",
   "explore_chip_noDeco": "Zonder decompressie",
   "explore_chip_noBuddy": "Zonder buddy",
+  "explore_chip_noRole": "Zonder rol",
   "explore_chip_rating": "Beoordeling {op} {value}",
   "explore_chip_numeric": "{field} {op} {value}",
   "explore_chip_between": "{field} {low} tot {high}",

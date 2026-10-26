@@ -46717,6 +46717,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get explore_chip_noBuddy => 'No buddy';
 
   @override
+  String get explore_chip_noRole => 'No role';
+
+  @override
   String explore_chip_rating(String op, String value) {
     return 'Rating $op $value';
   }

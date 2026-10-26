@@ -27519,6 +27519,7 @@
   "explore_chip_deco": "Decompression dive",
   "explore_chip_noDeco": "No decompression",
   "explore_chip_noBuddy": "No buddy",
+  "explore_chip_noRole": "No role",
   "explore_chip_rating": "Rating {op} {value}",
   "@explore_chip_rating": {"placeholders": {"op": {"type": "String"}, "value": {"type": "String"}}},
   "explore_chip_numeric": "{field} {op} {value}",

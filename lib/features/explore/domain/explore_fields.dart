@@ -232,6 +232,12 @@ const List<ExploreField> kExploreFields = [
     labelKey: 'explore_chip_noBuddy',
   ),
   ExploreField(
+    'noRole',
+    ['role'],
+    ExploreValueKind.flag,
+    labelKey: 'explore_chip_noRole',
+  ),
+  ExploreField(
     'weekday',
     ['weekday'],
     ExploreValueKind.enumName,

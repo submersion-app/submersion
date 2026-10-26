@@ -46400,6 +46400,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get explore_chip_noBuddy => 'ללא שותף';
 
   @override
+  String get explore_chip_noRole => 'ללא תפקיד';
+
+  @override
   String explore_chip_rating(String op, String value) {
     return 'דירוג $op $value';
   }

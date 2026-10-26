@@ -35,6 +35,7 @@ void main() {
       'favorite',
       'deco',
       'noBuddy',
+      'noRole',
       'weekday',
       'diveType',
       'sac',

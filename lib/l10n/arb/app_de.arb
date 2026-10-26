@@ -14235,6 +14235,7 @@
   "explore_chip_deco": "Dekompressionstauchgang",
   "explore_chip_noDeco": "Ohne Dekompression",
   "explore_chip_noBuddy": "Ohne Buddy",
+  "explore_chip_noRole": "Ohne Rolle",
   "explore_chip_rating": "Bewertung {op} {value}",
   "explore_chip_numeric": "{field} {op} {value}",
   "explore_chip_between": "{field} {low} bis {high}",

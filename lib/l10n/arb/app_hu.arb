@@ -14083,6 +14083,7 @@
   "explore_chip_deco": "Dekompressziós merülés",
   "explore_chip_noDeco": "Dekompresszió nélkül",
   "explore_chip_noBuddy": "Társ nélkül",
+  "explore_chip_noRole": "Szerep nélkül",
   "explore_chip_rating": "Értékelés {op} {value}",
   "explore_chip_numeric": "{field} {op} {value}",
   "explore_chip_between": "{field} {low} és {high} között",

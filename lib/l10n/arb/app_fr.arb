@@ -14083,6 +14083,7 @@
   "explore_chip_deco": "Plongée avec décompression",
   "explore_chip_noDeco": "Sans décompression",
   "explore_chip_noBuddy": "Sans binôme",
+  "explore_chip_noRole": "Sans rôle",
   "explore_chip_rating": "Note {op} {value}",
   "explore_chip_numeric": "{field} {op} {value}",
   "explore_chip_between": "{field} {low} à {high}",

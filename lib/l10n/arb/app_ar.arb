@@ -14083,6 +14083,7 @@
   "explore_chip_deco": "غطسة تخفيف ضغط",
   "explore_chip_noDeco": "بدون تخفيف ضغط",
   "explore_chip_noBuddy": "بدون رفيق",
+  "explore_chip_noRole": "بدون دور",
   "explore_chip_rating": "التقييم {op} {value}",
   "explore_chip_numeric": "{field} {op} {value}",
   "explore_chip_between": "{field} {low} إلى {high}",

@@ -124,6 +124,11 @@ LoweredClause _flag(QueryClause c, ExploreField field) {
       QueryOp.isEmpty,
       null,
     ),
+    'noRole' when on => ConditionNode(
+      FieldPath(['role']),
+      QueryOp.isEmpty,
+      null,
+    ),
     _ => null,
   };
   if (node == null) return _fail('invalid');

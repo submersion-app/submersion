@@ -244,7 +244,7 @@ void main() {
       'clauses': const [],
     });
     expect(q.subject, ParsedSubject.dives);
-    expect(kQuerySchemaVersion, 4);
+    expect(kQuerySchemaVersion, 5);
   });
 
   group('time (#2838)', () {

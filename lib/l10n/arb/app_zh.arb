@@ -14083,6 +14083,7 @@
   "explore_chip_deco": "减压潜水",
   "explore_chip_noDeco": "无减压",
   "explore_chip_noBuddy": "无潜伴",
+  "explore_chip_noRole": "无角色",
   "explore_chip_rating": "评分{op} {value}",
   "explore_chip_numeric": "{field}{op} {value}",
   "explore_chip_between": "{field} {low} 至 {high}",

@@ -47159,6 +47159,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get explore_chip_noBuddy => 'Társ nélkül';
 
   @override
+  String get explore_chip_noRole => 'Szerep nélkül';
+
+  @override
   String explore_chip_rating(String op, String value) {
     return 'Értékelés $op $value';
   }

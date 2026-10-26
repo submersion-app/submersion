@@ -44570,6 +44570,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get explore_chip_noBuddy => '无潜伴';
 
   @override
+  String get explore_chip_noRole => '无角色';
+
+  @override
   String explore_chip_rating(String op, String value) {
     return '评分$op $value';
   }
