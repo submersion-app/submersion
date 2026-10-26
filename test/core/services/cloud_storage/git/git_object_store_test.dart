@@ -61,6 +61,8 @@ void main() {
   });
 
   group('FileGitObjectStore', () {
+    tearDown(FileGitObjectStore.debugResetRenameForTest);
+
     test('survives a new instance on the same directory', () async {
       final dir = tempDirForTest('git_store_');
       final a = _blob('persisted');
@@ -162,6 +164,62 @@ void main() {
       expect(await store.has(a.id), isTrue);
       expect(await store.has(b.id), isTrue);
     });
+
+    test('put adopts when rename loses a race to an existing target', () async {
+      final dir = tempDirForTest('git_store_');
+      final store = FileGitObjectStore(dir);
+      final object = _blob('rename-race-put');
+
+      FileGitObjectStore.debugSetRenameForTest((source, path) async {
+        await File(path).writeAsBytes(await source.readAsBytes(), flush: true);
+        throw FileSystemException(
+          'simulated race',
+          source.path,
+          OSError('', 1),
+        );
+      });
+
+      await store.put(object);
+
+      expect((await store.get(object.id))?.body, object.body);
+      final leftovers = dir
+          .listSync(recursive: true)
+          .whereType<File>()
+          .where((f) => f.path.endsWith('.tmp'));
+      expect(leftovers, isEmpty);
+    });
+
+    test(
+      'create close adopts when rename loses a race to an existing target',
+      () async {
+        final dir = tempDirForTest('git_store_');
+        final store = FileGitObjectStore(dir);
+        final body = Uint8List.fromList(utf8.encode('rename-race-adopt'));
+
+        FileGitObjectStore.debugSetRenameForTest((source, path) async {
+          await File(
+            path,
+          ).writeAsBytes(await source.readAsBytes(), flush: true);
+          throw FileSystemException(
+            'simulated race',
+            source.path,
+            OSError('', 1),
+          );
+        });
+
+        final writer = store.create(GitObjectType.blob, body.length);
+        writer.add(body);
+        final id = await writer.close();
+
+        expect(id, hashGitObject(GitObjectType.blob, body));
+        expect((await store.get(id))?.body, body);
+        final leftovers = dir
+            .listSync(recursive: true)
+            .whereType<File>()
+            .where((f) => f.path.endsWith('.tmp'));
+        expect(leftovers, isEmpty);
+      },
+    );
   });
 
   group('FileGitObjectStore, two stores on one directory', () {

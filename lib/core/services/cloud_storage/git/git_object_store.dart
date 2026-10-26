@@ -171,6 +171,22 @@ final class _MemoryObjectWriter implements GitObjectWriter {
 final class FileGitObjectStore implements GitObjectStore {
   FileGitObjectStore(this.root, {this.maxBytes = _defaultMaxBytes});
 
+  /// A rename hook for tests; production uses [File.rename].
+  static Future<File> Function(File source, String path) _renameFile =
+      (source, path) => source.rename(path);
+
+  /// Test-only override to force rename outcomes deterministically.
+  static void debugSetRenameForTest(
+    Future<File> Function(File source, String path) rename,
+  ) {
+    _renameFile = rename;
+  }
+
+  /// Restores default rename behavior after tests.
+  static void debugResetRenameForTest() {
+    _renameFile = (source, path) => source.rename(path);
+  }
+
   /// The store for [root] in this isolate, made on first use. Each store
   /// scans its whole directory once, which takes seconds on a full cache, and
   /// keeps its own index; sharing one does both once and keeps eviction in
@@ -343,7 +359,7 @@ final class FileGitObjectStore implements GitObjectStore {
       ..setRange(1, object.body.length + 1, object.body);
     await tmp.writeAsBytes(bytes, flush: true);
     try {
-      await tmp.rename(file.path);
+      await _renameFile(tmp, file.path);
     } on FileSystemException {
       // Another concurrent put may have landed the same object first.
       if (await file.exists()) {
@@ -366,7 +382,7 @@ final class FileGitObjectStore implements GitObjectStore {
     }
     await file.parent.create(recursive: true);
     try {
-      await tmp.rename(file.path);
+      await _renameFile(tmp, file.path);
     } on FileSystemException {
       // Another concurrent put may have landed the same object first.
       if (await file.exists()) {
