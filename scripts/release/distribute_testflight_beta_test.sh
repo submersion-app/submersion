@@ -9,8 +9,8 @@
 # way; the next beta after the limit clears goes to Public Beta. Every other
 # distribution error still fails the step.
 #
-# fastlane and sleep are exercised through stubs injected with FASTLANE= and
-# DISTRIBUTE_SLEEP=, so this suite runs on Linux and never touches the network.
+# fastlane and sleep are exercised through stubs injected with
+# DISTRIBUTE_FASTLANE= and DISTRIBUTE_SLEEP=, so this suite runs on Linux and never touches the network.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -60,7 +60,7 @@ run() {
   : > "$STUBDIR/calls"
   : > "$STUBDIR/sleeps"
   STATUS=0
-  OUT=$(FASTLANE="$STUBDIR/fastlane" \
+  OUT=$(DISTRIBUTE_FASTLANE="$STUBDIR/fastlane" \
     DISTRIBUTE_SLEEP="$STUBDIR/sleep" \
     APP_VERSION=1.8.3 BUILD_NUMBER=9072 \
     "$DISTRIBUTE" "$platform" 2>&1) || STATUS=$?
@@ -125,7 +125,7 @@ echo "$OUT" | grep -q "cd macos && bundle exec fastlane distribute_testflight_be
 usage_run() {
   : > "$STUBDIR/calls"
   STATUS=0
-  OUT=$(FASTLANE="$STUBDIR/fastlane" DISTRIBUTE_SLEEP="$STUBDIR/sleep" "$@" 2>&1) \
+  OUT=$(DISTRIBUTE_FASTLANE="$STUBDIR/fastlane" DISTRIBUTE_SLEEP="$STUBDIR/sleep" "$@" 2>&1) \
     || STATUS=$?
   [ ! -s "$STUBDIR/calls" ] || fail "fastlane ran despite a usage error: $OUT"
 }

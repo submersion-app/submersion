@@ -18,8 +18,8 @@
 set -euo pipefail
 
 DISTRIBUTE_SLEEP="${DISTRIBUTE_SLEEP:-sleep}"
-if [ -n "${FASTLANE:-}" ]; then
-  FASTLANE_CMD=("$FASTLANE")
+if [ -n "${DISTRIBUTE_FASTLANE:-}" ]; then
+  FASTLANE_CMD=("$DISTRIBUTE_FASTLANE")
 else
   FASTLANE_CMD=(bundle exec fastlane)
 fi
