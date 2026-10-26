@@ -1375,7 +1375,14 @@ class DiveRepository {
     try {
       final series = await _profileSeries.getSeriesForDive(diveId);
       final allRows = await _sourceRowsInShownOrder(diveId);
-      final sourceRows = _canonicalDataSourceRows(allRows);
+      // A series owned by a row that collapsed into another's chip belongs
+      // to the row that speaks for that strand (issue #3654), not to the
+      // primary, which may be a different computer.
+      final shownIdByRow = _shownIdByRow(allRows);
+      final sourceRows = [
+        for (final row in allRows)
+          if (shownIdByRow[row.id] == row.id) row,
+      ];
       if (sourceRows.isEmpty) {
         // Dives with series but no dive_data_sources row (older imports
         // predate that table): synthesize the primary source.
@@ -1400,10 +1407,6 @@ class DiveRepository {
         for (final s in sourceRows)
           if (s.computerId != null) s.computerId!: s.id,
       };
-      // A series owned by a row that collapsed into another's chip belongs
-      // to the row that speaks for that strand (issue #3654), not to the
-      // primary, which may be a different computer.
-      final shownIdByRow = _shownIdByRow(allRows);
       // The FK is authoritative; a series without one follows the pre-v154
       // computer convention (issue #1149).
       bool isPrimaryFamily(ProfileSeries s) =>
@@ -6149,20 +6152,18 @@ class DiveRepository {
   /// The primary-source answer for one dive's `dive_data_sources` [rows].
   ///
   /// Ordering happens here rather than in SQL so the batched read and the
-  /// single-dive read collapse duplicate computers in the same order, which is
-  /// what keeps the export and the on-screen chart on the same samples.
+  /// single-dive read pick the same row, which is what keeps the export and
+  /// the on-screen chart on the same samples. The first row in shown order
+  /// is always the one the dive's first source shows, so no strand pass is
+  /// needed to find it.
   ({bool hasSources, String? computerId}) _primaryFromRows(
     List<DiveDataSourcesData> rows,
   ) {
-    final ordered = [...rows]
-      ..sort((a, b) {
-        if (a.isPrimary != b.isPrimary) return a.isPrimary ? -1 : 1;
-        final byCreated = a.createdAt.compareTo(b.createdAt);
-        return byCreated != 0 ? byCreated : a.id.compareTo(b.id);
-      });
-    final sourceRows = _canonicalDataSourceRows(ordered);
-    if (sourceRows.isEmpty) return (hasSources: false, computerId: null);
-    return (hasSources: true, computerId: sourceRows.first.computerId);
+    if (rows.isEmpty) return (hasSources: false, computerId: null);
+    final first = rows.reduce(
+      (a, b) => compareDataSourcesInShownOrder(a, b) <= 0 ? a : b,
+    );
+    return (hasSources: true, computerId: first.computerId);
   }
 
   /// Lean hydration for decompression/exposure analysis: the dive row's

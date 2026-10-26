@@ -8,6 +8,8 @@ DiveDataSourcesData _row(
   int? mergeSourceSlot,
   String? sourceFileName,
   DateTime? importedAt,
+  bool isPrimary = false,
+  DateTime? createdAt,
   String? model = 'Perdix 2',
   String? serial,
   DateTime? entryTime,
@@ -17,7 +19,7 @@ DiveDataSourcesData _row(
   id: id,
   diveId: 'dive-1',
   computerId: computerId,
-  isPrimary: false,
+  isPrimary: isPrimary,
   computerModel: model,
   computerSerial: serial,
   entryTime: entryTime ?? DateTime.utc(2026, 7, 1, 9, 30, 12),
@@ -26,10 +28,22 @@ DiveDataSourcesData _row(
   mergeSourceSlot: mergeSourceSlot,
   sourceFileName: sourceFileName,
   importedAt: importedAt ?? DateTime.utc(2026, 7, 2),
-  createdAt: DateTime.utc(2026, 7, 2),
+  createdAt: createdAt ?? DateTime.utc(2026, 7, 2),
 );
 
 void main() {
+  test('compareDataSourcesInShownOrder puts the primary first, then the '
+      'oldest, then breaks a createdAt tie on id', () {
+    final rows = [
+      _row('b-tie'),
+      _row('newer', createdAt: DateTime.utc(2026, 7, 3)),
+      _row('a-tie'),
+      _row('primary', isPrimary: true, createdAt: DateTime.utc(2026, 7, 9)),
+    ]..sort(compareDataSourcesInShownOrder);
+
+    expect(rows.map((r) => r.id), ['primary', 'a-tie', 'b-tie', 'newer']);
+  });
+
   group('dataSourceStrandKeysById', () {
     test('keeps the per-row key for rows with a computer or a merge slot', () {
       final keys = dataSourceStrandKeysById([

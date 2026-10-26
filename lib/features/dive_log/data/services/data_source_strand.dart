@@ -37,10 +37,23 @@ String dataSourceStrandKey({
   (null, null) => 'row:$rowId',
 };
 
+/// The order a dive's source rows are shown in: primary first, then oldest,
+/// then by id, so rows a Combine copied with one createdAt still come back
+/// the same way every time. `DiveRepository` reads rows in this order in
+/// SQL; this is the same order for rows already in memory.
+int compareDataSourcesInShownOrder(
+  DiveDataSourcesData a,
+  DiveDataSourcesData b,
+) {
+  if (a.isPrimary != b.isPrimary) return a.isPrimary ? -1 : 1;
+  final byCreated = a.createdAt.compareTo(b.createdAt);
+  return byCreated != 0 ? byCreated : a.id.compareTo(b.id);
+}
+
 /// The strand key of each of one dive's [rows], by row id.
 ///
-/// [rows] come in shown order (primary first, then oldest), because the
-/// first row of a strand is the one that speaks for it.
+/// [rows] come in shown order ([compareDataSourcesInShownOrder]), because
+/// the first row of a strand is the one that speaks for it.
 ///
 /// Each row starts from its own [dataSourceStrandKey]. A row that key leaves
 /// on its own (no computer, no merge slot) then joins the first strand of

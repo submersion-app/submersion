@@ -611,6 +611,46 @@ void main() {
       expect(await diveRepo.hasMultipleDataSources(restoredId), isFalse);
     });
 
+    test('gives each computer of a restored segment its own slot', () async {
+      await seedDive('a', entry: DateTime.utc(2026, 7, 1, 9));
+      await seedDive(
+        'b',
+        entry: DateTime.utc(2026, 7, 1, 10),
+        depth: 20,
+        runtimeMin: 20,
+        computerId: 'dc-1',
+      );
+      await db
+          .into(db.diveDataSources)
+          .insert(
+            DiveDataSourcesCompanion.insert(
+              id: 'src-b-second',
+              diveId: 'b',
+              importedAt: DateTime.utc(2026, 7, 2),
+              createdAt: DateTime.utc(2026, 7, 2),
+            ).copyWith(computerId: const Value('dc-2')),
+          );
+      // Both recorded b's twenty minutes, so they form one segment.
+      final start = DateTime.utc(2026, 7, 1, 10);
+      await (db.update(
+        db.diveDataSources,
+      )..where((t) => t.diveId.equals('b'))).write(
+        DiveDataSourcesCompanion(
+          entryTime: Value(start),
+          exitTime: Value(start.add(const Duration(minutes: 20))),
+        ),
+      );
+      final mergedId = (await merge.apply(['a', 'b'])).mergedDive.id;
+
+      final restoredId = (await service.separate(diveId: mergedId)).single;
+
+      final rows = await (db.select(
+        db.diveDataSources,
+      )..where((t) => t.diveId.equals(restoredId))).get();
+      expect(rows.map((r) => r.mergeSourceSlot).toSet(), {0, 1});
+      expect(await diveRepo.getDataSources(restoredId), hasLength(2));
+    });
+
     test('drops the surface markers the merge wrote at the gap', () async {
       final mergedId = await mergeTwoImports();
 

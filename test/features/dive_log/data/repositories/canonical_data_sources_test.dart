@@ -235,6 +235,7 @@ void main() {
       String? serial,
       required int duration,
       required int day,
+      String? sourceFileName,
     }) => db
         .into(db.diveDataSources)
         .insert(
@@ -247,6 +248,7 @@ void main() {
             entryTime: Value(DateTime.utc(2026, 7, 1, 9, 30, 12)),
             duration: Value(duration),
             maxDepth: const Value(6.2),
+            sourceFileName: Value(sourceFileName),
             importedAt: Value(DateTime(2026, 1, day)),
             createdAt: Value(DateTime(2026, 1, day)),
           ),
@@ -303,6 +305,23 @@ void main() {
       final sources = await repository.getDataSources('dive-1');
 
       expect(sources.map((s) => s.id).toList(), ['src-bare', 'src-petrel']);
+      expect(await repository.hasMultipleDataSources('dive-1'), isTrue);
+    });
+
+    test('stay two sources, in the count too, when one import of one file '
+        'wrote both', () async {
+      for (final (id, primary) in [('src-one', true), ('src-two', false)]) {
+        await insertSource(
+          id,
+          isPrimary: primary,
+          model: 'Perdix 2',
+          duration: 440,
+          day: 1,
+          sourceFileName: 'log.ssrf',
+        );
+      }
+
+      expect(await repository.getDataSources('dive-1'), hasLength(2));
       expect(await repository.hasMultipleDataSources('dive-1'), isTrue);
     });
 
