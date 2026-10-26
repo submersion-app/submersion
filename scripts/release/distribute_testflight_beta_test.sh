@@ -10,7 +10,8 @@
 # distribution error still fails the step.
 #
 # fastlane and sleep are exercised through stubs injected with
-# DISTRIBUTE_FASTLANE= and DISTRIBUTE_SLEEP=, so this suite runs on Linux and never touches the network.
+# DISTRIBUTE_FASTLANE= and DISTRIBUTE_SLEEP=, so this suite runs on Linux and
+# never touches the network.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
