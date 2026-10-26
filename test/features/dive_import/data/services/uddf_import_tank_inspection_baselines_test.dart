@@ -121,4 +121,22 @@ void main() {
 
     expect(await hydroAnchor(), isNull);
   });
+
+  test('a clock that cannot be anchored does not fail the import', () async {
+    await db.customStatement('''
+      CREATE TRIGGER refuse_baseline
+      BEFORE UPDATE ON service_schedules
+      WHEN NEW.anchor_date IS NOT NULL
+      BEGIN SELECT RAISE(ABORT, 'no baseline'); END
+    ''');
+
+    await UddfEntityImporter().import(
+      data: backup(),
+      selections: const UddfImportSelections(equipment: {0}),
+      repositories: repositories(),
+      diverId: 'd1',
+    );
+
+    expect(await hydroAnchor(), isNull);
+  });
 }
