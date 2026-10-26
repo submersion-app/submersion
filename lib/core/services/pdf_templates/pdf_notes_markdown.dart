@@ -118,7 +118,7 @@ class _PdfNotesBuilder {
 
   pw.Widget _list(md.Element list, pw.TextStyle style, {required int depth}) {
     final ordered = list.tag == 'ol';
-    var number = int.tryParse(list.attributes['start'] ?? '') ?? 1;
+    var number = notesListStart(list);
     final rows = <pw.Widget>[];
     for (final item in list.children ?? const <md.Node>[]) {
       if (item is! md.Element) continue;
@@ -219,7 +219,7 @@ class _PdfNotesBuilder {
       case 'ul':
       case 'ol':
         final ordered = node.tag == 'ol';
-        var number = int.tryParse(node.attributes['start'] ?? '') ?? 1;
+        var number = notesListStart(node);
         final spans = <pw.InlineSpan>[];
         for (final item in children) {
           if (item is! md.Element) continue;

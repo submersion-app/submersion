@@ -52,6 +52,11 @@ md.Document _document() => md.Document(
   ],
 );
 
+/// The number a parsed list's first item carries: a numbered list may start
+/// anywhere (`3. ` gives 3); every other list starts at 1.
+int notesListStart(md.Element list) =>
+    int.tryParse(list.attributes['start'] ?? '') ?? 1;
+
 const _tappableSchemes = {'http', 'https', 'mailto'};
 
 /// Whether a link in a note may be opened: web and mail addresses only, so

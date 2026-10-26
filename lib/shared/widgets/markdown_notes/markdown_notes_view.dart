@@ -190,7 +190,7 @@ class _NotesBuilder {
 
   Widget _list(md.Element list, TextStyle style) {
     final ordered = list.tag == 'ol';
-    var number = int.tryParse(list.attributes['start'] ?? '') ?? 1;
+    var number = notesListStart(list);
     final rows = <Widget>[];
     for (final item in list.children ?? const <md.Node>[]) {
       if (item is! md.Element) continue;

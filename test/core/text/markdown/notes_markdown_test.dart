@@ -121,6 +121,14 @@ void main() {
     expect(isTappableNotesLink(null), isFalse);
   });
 
+  test('notesListStart reads where a numbered list starts', () {
+    md.Element list(String source) =>
+        parseNotesMarkdown(source).single as md.Element;
+    expect(notesListStart(list('3. a\n4. b')), 3);
+    expect(notesListStart(list('1. a')), 1);
+    expect(notesListStart(list('- a')), 1);
+  });
+
   test('appendMarkdownParagraph starts a new paragraph', () {
     expect(appendMarkdownParagraph('', 'x'), 'x');
     expect(appendMarkdownParagraph('- a', 'x'), '- a\n\nx');

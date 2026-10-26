@@ -44,7 +44,7 @@ List<String> _blocks(List<md.Node> nodes, {required String indent}) {
 
 List<String> _list(md.Element list, {required String indent}) {
   final ordered = list.tag == 'ol';
-  var number = int.tryParse(list.attributes['start'] ?? '') ?? 1;
+  var number = notesListStart(list);
   final lines = <String>[];
   for (final item in list.children ?? const <md.Node>[]) {
     if (item is! md.Element) continue;
