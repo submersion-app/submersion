@@ -214,4 +214,13 @@ void main() {
     await tester.pumpAndSettle();
     expect(formKey.currentState!.validate(), isFalse);
   });
+
+  testWidgets('the formatting bar fits a narrow phone', (tester) async {
+    tester.view.devicePixelRatio = 1.0;
+    tester.view.physicalSize = const Size(280, 600);
+    addTearDown(tester.view.reset);
+    await pump(tester, text: 'x');
+    expect(tester.takeException(), isNull);
+    expect(find.text('Preview'), findsOneWidget);
+  });
 }

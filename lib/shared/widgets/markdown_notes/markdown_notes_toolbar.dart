@@ -39,6 +39,8 @@ class MarkdownNotesToolbar extends StatelessWidget {
         tooltip: tooltip,
         iconSize: 20,
         visualDensity: VisualDensity.compact,
+        constraints: const BoxConstraints.tightFor(width: 40, height: 40),
+        padding: EdgeInsets.zero,
         onPressed: previewing ? null : onPressed,
       );
     }
@@ -47,24 +49,43 @@ class MarkdownNotesToolbar extends StatelessWidget {
       child: ExcludeFocus(
         child: Row(
           children: [
-            action(Icons.title, l10n.notesEditor_action_heading, onHeading),
-            action(Icons.format_bold, l10n.notesEditor_action_bold, onBold),
-            action(
-              Icons.format_italic,
-              l10n.notesEditor_action_italic,
-              onItalic,
+            // The buttons scroll sideways on a narrow phone; Preview
+            // always stays in view at the end.
+            Expanded(
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    action(
+                      Icons.title,
+                      l10n.notesEditor_action_heading,
+                      onHeading,
+                    ),
+                    action(
+                      Icons.format_bold,
+                      l10n.notesEditor_action_bold,
+                      onBold,
+                    ),
+                    action(
+                      Icons.format_italic,
+                      l10n.notesEditor_action_italic,
+                      onItalic,
+                    ),
+                    action(
+                      Icons.format_list_bulleted,
+                      l10n.notesEditor_action_bulletList,
+                      onBulletList,
+                    ),
+                    action(
+                      Icons.format_list_numbered,
+                      l10n.notesEditor_action_numberedList,
+                      onNumberedList,
+                    ),
+                  ],
+                ),
+              ),
             ),
-            action(
-              Icons.format_list_bulleted,
-              l10n.notesEditor_action_bulletList,
-              onBulletList,
-            ),
-            action(
-              Icons.format_list_numbered,
-              l10n.notesEditor_action_numberedList,
-              onNumberedList,
-            ),
-            const Spacer(),
+            const SizedBox(width: 4),
             FilterChip(
               avatar: Icon(
                 Icons.visibility_outlined,
