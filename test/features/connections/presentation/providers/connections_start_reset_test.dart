@@ -116,9 +116,9 @@ void main() {
 
   test('resetConnectionsStartOnce is idempotent', () async {
     final sp = await _prefs({kConnectionsLegacyLensKey: 'gear'});
-    resetConnectionsStartOnce(sp);
+    await resetConnectionsStartOnce(sp);
     final once = sp.getString(kConnectionsViewKey);
-    resetConnectionsStartOnce(sp);
+    await resetConnectionsStartOnce(sp);
     expect(sp.getString(kConnectionsViewKey), once);
   });
 
@@ -142,11 +142,31 @@ void main() {
     await resetConnectionsStartOnce(
       sp,
       writeString: (key, value) async {
+        // Each write is issued before the marker exists.
+        expect(sp.getBool(kConnectionsStartResetKey), isNull);
         written.add(key);
         return sp.setString(key, value);
       },
     );
     expect(written, {kConnectionsViewKey, kConnectionsDisplayKey});
+    expect(sp.getBool(kConnectionsStartResetKey), isTrue);
+  });
+
+  test('two providers building at once run the move once', () async {
+    final sp = await _prefs({
+      kConnectionsLegacyLensKey: 'gear',
+      kConnectionsDisplayKey: '{}',
+    });
+    final written = <String>[];
+    Future<bool> writer(String key, String value) {
+      written.add(key);
+      return sp.setString(key, value);
+    }
+
+    final first = resetConnectionsStartOnce(sp, writeString: writer);
+    final second = resetConnectionsStartOnce(sp, writeString: writer);
+    await Future.wait([first, second]);
+    expect(written, [kConnectionsViewKey, kConnectionsDisplayKey]);
     expect(sp.getBool(kConnectionsStartResetKey), isTrue);
   });
 }

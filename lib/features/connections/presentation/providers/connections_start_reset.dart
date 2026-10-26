@@ -13,6 +13,10 @@ const kConnectionsStartResetKey = 'connections_start_reset_3679';
 
 const _log = LoggerService('ConnectionsStartReset');
 
+/// The move in flight per preferences store, so the view and display
+/// providers building in one frame share one move instead of each writing.
+final _inFlight = Expando<Future<void>>('connectionsStartReset');
+
 /// Moves this device onto the starting view once: the remembered map
 /// becomes Who dives where and the Map layout and view return to the web
 /// graph. Around mode's settings and the other display options are kept.
@@ -26,9 +30,19 @@ const _log = LoggerService('ConnectionsStartReset');
 Future<void> resetConnectionsStartOnce(
   SharedPreferences prefs, {
   Future<bool> Function(String key, String value)? writeString,
-}) async {
-  if (prefs.getBool(kConnectionsStartResetKey) == true) return;
-  final write = writeString ?? prefs.setString;
+}) {
+  if (prefs.getBool(kConnectionsStartResetKey) == true) return Future.value();
+  final running = _inFlight[prefs];
+  if (running != null) return running;
+  final move = _move(prefs, writeString ?? prefs.setString);
+  _inFlight[prefs] = move;
+  return move.whenComplete(() => _inFlight[prefs] = null);
+}
+
+Future<void> _move(
+  SharedPreferences prefs,
+  Future<bool> Function(String key, String value) write,
+) async {
   final writes = <Future<bool>>[];
   if (prefs.containsKey(kConnectionsViewKey) ||
       prefs.containsKey(kConnectionsLegacyLensKey)) {
