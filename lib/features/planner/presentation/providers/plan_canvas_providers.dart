@@ -25,6 +25,12 @@ final planEngineConfigProvider = Provider<PlanEngineConfig>((ref) {
   return PlanEngineConfig(
     ppO2Working: ref.watch(ppO2MaxWorkingProvider),
     ppO2Deco: ref.watch(ppO2MaxDecoProvider),
+    ppO2DecoBandsEnabled: ref.watch(ppO2DecoBandsEnabledProvider),
+    ppO2DecoBand1: ref.watch(ppO2DecoBand1Provider),
+    ppO2DecoBand2: ref.watch(ppO2DecoBand2Provider),
+    ppO2DecoBand3: ref.watch(ppO2DecoBand3Provider),
+    maxO2DepthEnabled: ref.watch(maxO2DepthEnabledProvider),
+    maxO2DepthMeters: ref.watch(maxO2DepthMetersProvider),
     ccrDiluentModPpO2: ref.watch(ccrDiluentModPpO2Provider),
     ccrSetpointLow: ref.watch(ccrSetpointLowProvider),
     ccrSetpointHigh: ref.watch(ccrSetpointHighProvider),

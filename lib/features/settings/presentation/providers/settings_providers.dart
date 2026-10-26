@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:submersion/core/built_ins/built_in_catalog.dart';
-import 'package:submersion/core/deco/deco_ppo2_limits.dart';
 import 'package:submersion/core/deco/schedule_policy.dart' show AirBreakPolicy;
 import 'package:submersion/core/constants/card_color.dart';
 import 'package:submersion/core/constants/dive_detail_layout.dart';
@@ -2287,38 +2286,32 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   /// Per-O2-band deco ppO2 limits (issue #3580): same picker grid/range as
   /// [ppO2MaxMin]/[ppO2Ceiling], but each band is independent -- unlike
   /// [setPpO2Limits], there is no enforced ordering between them.
-  Future<void> setPpO2DecoBandsEnabled(bool value) async {
-    state = state.copyWith(ppO2DecoBandsEnabled: value);
-    await _saveSettings();
-  }
-
-  Future<void> setPpO2DecoBand1(double value) async {
-    state = state.copyWith(ppO2DecoBand1: value.clamp(ppO2MaxMin, ppO2Ceiling));
-    await _saveSettings();
-  }
-
-  Future<void> setPpO2DecoBand2(double value) async {
-    state = state.copyWith(ppO2DecoBand2: value.clamp(ppO2MaxMin, ppO2Ceiling));
-    await _saveSettings();
-  }
-
-  Future<void> setPpO2DecoBand3(double value) async {
-    state = state.copyWith(ppO2DecoBand3: value.clamp(ppO2MaxMin, ppO2Ceiling));
-    await _saveSettings();
-  }
-
   /// Explicit MOD for 100% O2 (issue #3580): 3-9 m in 0.5 m steps.
   static const double maxO2DepthMin = 3.0;
   static const double maxO2DepthMax = 9.0;
 
-  Future<void> setMaxO2DepthEnabled(bool value) async {
-    state = state.copyWith(maxO2DepthEnabled: value);
-    await _saveSettings();
-  }
-
-  Future<void> setMaxO2DepthMeters(double value) async {
-    final clamped = (value.clamp(maxO2DepthMin, maxO2DepthMax) * 2).round() / 2;
-    state = state.copyWith(maxO2DepthMeters: clamped);
+  /// Set both optional deco layers at once, in a single persisted write
+  /// (issue #3580): the per-O2-band toggle/values and the explicit-100%-O2-
+  /// depth toggle/value. Mirrors [setPpO2Limits]/[setGradientFactors],
+  /// which batch their pair of related values the same way.
+  Future<void> setPpO2DecoBandsConfig({
+    required bool bandsEnabled,
+    required double band1,
+    required double band2,
+    required double band3,
+    required bool maxO2DepthEnabled,
+    required double maxO2DepthMeters,
+  }) async {
+    state = state.copyWith(
+      ppO2DecoBandsEnabled: bandsEnabled,
+      ppO2DecoBand1: band1.clamp(ppO2MaxMin, ppO2Ceiling),
+      ppO2DecoBand2: band2.clamp(ppO2MaxMin, ppO2Ceiling),
+      ppO2DecoBand3: band3.clamp(ppO2MaxMin, ppO2Ceiling),
+      maxO2DepthEnabled: maxO2DepthEnabled,
+      maxO2DepthMeters:
+          (maxO2DepthMeters.clamp(maxO2DepthMin, maxO2DepthMax) * 2).round() /
+          2,
+    );
     await _saveSettings();
   }
 
@@ -3507,20 +3500,6 @@ final maxO2DepthEnabledProvider = Provider<bool>((ref) {
 
 final maxO2DepthMetersProvider = Provider<double>((ref) {
   return ref.watch(settingsProvider.select((s) => s.maxO2DepthMeters));
-});
-
-/// This config's deco ppO2 limits as a [DecoPpO2Limits] (issue #3580),
-/// Dive Planner only.
-final decoPpO2LimitsProvider = Provider<DecoPpO2Limits>((ref) {
-  return DecoPpO2Limits(
-    flat: ref.watch(ppO2MaxDecoProvider),
-    bandsEnabled: ref.watch(ppO2DecoBandsEnabledProvider),
-    band1: ref.watch(ppO2DecoBand1Provider),
-    band2: ref.watch(ppO2DecoBand2Provider),
-    band3: ref.watch(ppO2DecoBand3Provider),
-    explicitO2DepthEnabled: ref.watch(maxO2DepthEnabledProvider),
-    explicitO2DepthMeters: ref.watch(maxO2DepthMetersProvider),
-  );
 });
 
 final ccrSetpointLowProvider = Provider<double>((ref) {

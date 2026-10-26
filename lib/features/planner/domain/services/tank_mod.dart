@@ -133,6 +133,25 @@ double effectiveModMeters(
 double ppO2AtDepth(GasMix gas, double depthMeters) =>
     gas.o2 / 100.0 * (depthMeters / 10.0 + 1.0);
 
+/// The deco ppO2 ceiling [gas] calls for (issue #3580), independent of any
+/// cylinder role: the band/flat ppO2 for its O2 percentage, or -- for a gas
+/// under [DecoPpO2Limits.usesExplicitO2Depth] -- the ppO2 it reaches at the
+/// explicit depth in [environment]. Lets a caller judge how severe a
+/// breach is (e.g. [modOverrideCheckFor]'s deco branch, or a generic
+/// over-limit check) against the deco ceiling specifically, regardless of
+/// what role the gas actually sits in.
+double decoCeilingPpO2For(
+  GasMix gas,
+  DecoPpO2Limits decoPpO2, {
+  DiveEnvironment? environment,
+}) {
+  if (!decoPpO2.usesExplicitO2Depth(gas.o2)) return decoPpO2.ppO2For(gas.o2);
+  final depth = decoPpO2.explicitO2DepthMeters;
+  return environment == null
+      ? ppO2AtDepth(gas, depth)
+      : gas.o2 / 100.0 * environment.pressureAtDepth(depth);
+}
+
 /// What a MOD set by hand means for [tank]: the ppO2 it reaches there and
 /// the limit its role calls for. Null when [tank] has no override. See
 /// [modOverrideCheckFor] for [environment].
@@ -180,13 +199,11 @@ double ppO2AtDepth(GasMix gas, double depthMeters) =>
   double? diluentPpO2,
   DiveEnvironment? environment,
 }) {
-  double ppO2AtMeters(double meters) => environment == null
-      ? ppO2AtDepth(gas, meters)
-      : gas.o2 / 100.0 * environment.pressureAtDepth(meters);
-
-  final ppO2 = ppO2AtMeters(overrideMeters);
+  final ppO2 = environment == null
+      ? ppO2AtDepth(gas, overrideMeters)
+      : gas.o2 / 100.0 * environment.pressureAtDepth(overrideMeters);
   final limitPpO2 = usesDecoLimitByDepth(role, gas, decoPpO2)
-      ? ppO2AtMeters(decoPpO2.explicitO2DepthMeters)
+      ? decoCeilingPpO2For(gas, decoPpO2, environment: environment)
       : modPpO2For(
           role,
           gas,

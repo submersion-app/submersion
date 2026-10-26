@@ -1513,11 +1513,13 @@ class PlanEngine {
       final fO2 = segment.gasMix.o2 / 100.0;
       final fHe = segment.gasMix.he / 100.0;
       // The deco ceiling for THIS segment's own gas (issue #3580): its
-      // band when bands are on, otherwise the flat ppO2Deco, same as
-      // before. Always a ppO2 even for a gas under the explicit-O2-depth
-      // setting -- that setting only replaces the MOD/switch-depth
-      // formula (tank_mod.dart), not this generic over-limit alarm.
-      final segmentDecoPpO2 = config.decoLimits.ppO2For(segment.gasMix.o2);
+      // band when bands are on, the ppO2 at the explicit depth for a gas
+      // under that setting, otherwise the flat ppO2Deco, same as before.
+      final segmentDecoPpO2 = decoCeilingPpO2For(
+        segment.gasMix,
+        config.decoLimits,
+        environment: environment,
+      );
 
       if (outcome.maxPpO2 > segmentDecoPpO2) {
         issues.add(
@@ -1831,37 +1833,52 @@ class PlanEngine {
   List<PlanIssue> _modOverrideIssues(
     List<DiveTank> tanks,
     DiveEnvironment environment,
-  ) => [
-    for (final tank in tanks)
-      if (modOverrideCheck(
-            tank,
-            bottomPpO2: config.ppO2Working,
-            decoPpO2: config.decoLimits,
-            diluentPpO2: config.ccrDiluentModPpO2,
+  ) {
+    final issues = <PlanIssue>[];
+    for (final tank in tanks) {
+      final check = modOverrideCheck(
+        tank,
+        bottomPpO2: config.ppO2Working,
+        decoPpO2: config.decoLimits,
+        diluentPpO2: config.ccrDiluentModPpO2,
+        environment: environment,
+      );
+      if (check == null || !check.exceedsLimit) continue;
+      // Critical when the override's ppO2 breaches the deco ceiling for a
+      // gas of this O2% (issue #3580: per-band, or the ppO2 at the
+      // explicit depth for a gas under that setting, not always the flat
+      // ppO2Deco) -- even for a bottom-role tank, which can still breach
+      // it on a sufficiently deep hand-set MOD. A bottom-role tank under
+      // that ceiling is a warning (it already exceeded its own, lower,
+      // bottom limit to get here at all). decoCeilingPpO2For, not
+      // check.limitPpO2: that is whatever limit THIS tank's own role
+      // calls for (bottom or deco), not necessarily the deco ceiling.
+      final isCritical =
+          check.ppO2 >
+          decoCeilingPpO2For(
+            tank.gasMix,
+            config.decoLimits,
             environment: environment,
-          )
-          case (:final ppO2, :final limitPpO2, exceedsLimit: true))
+          );
+      issues.add(
         PlanIssue(
-          // Critical when the override's ppO2 breaches the deco ceiling
-          // for a gas of this O2% (issue #3580: per-band now, not always
-          // the flat ppO2Deco) -- even for a bottom-role tank, which can
-          // still breach it on a sufficiently deep hand-set MOD. A
-          // bottom-role tank under that ceiling is a warning (it already
-          // exceeded its own, lower, bottom limit to get here at all).
-          type: ppO2 > config.decoLimits.ppO2For(tank.gasMix.o2)
+          type: isCritical
               ? PlanIssueType.ppO2Critical
               : PlanIssueType.ppO2High,
-          severity: ppO2 > config.decoLimits.ppO2For(tank.gasMix.o2)
+          severity: isCritical
               ? PlanIssueSeverity.critical
               : PlanIssueSeverity.warning,
           message:
-              'ppO2 ${ppO2.toStringAsFixed(2)} bar at the MOD set on '
+              'ppO2 ${check.ppO2.toStringAsFixed(2)} bar at the MOD set on '
               '${tank.name ?? tank.gasMix.name} exceeds its limit',
           atDepth: tank.decoSwitchDepth,
-          value: ppO2,
-          threshold: limitPpO2,
+          value: check.ppO2,
+          threshold: check.limitPpO2,
         ),
-  ];
+      );
+    }
+    return issues;
+  }
 
   List<PlanStop> _mapStops(
     DecoSchedule schedule,

@@ -680,13 +680,16 @@ class DecompressionSettingsContent extends ConsumerWidget {
               maxO2DepthEnabled,
               maxO2DepthMeters,
             ) {
-              final notifier = ref.read(settingsProvider.notifier);
-              notifier.setPpO2DecoBandsEnabled(bandsEnabled);
-              notifier.setPpO2DecoBand1(band1);
-              notifier.setPpO2DecoBand2(band2);
-              notifier.setPpO2DecoBand3(band3);
-              notifier.setMaxO2DepthEnabled(maxO2DepthEnabled);
-              notifier.setMaxO2DepthMeters(maxO2DepthMeters);
+              ref
+                  .read(settingsProvider.notifier)
+                  .setPpO2DecoBandsConfig(
+                    bandsEnabled: bandsEnabled,
+                    band1: band1,
+                    band2: band2,
+                    band3: band3,
+                    maxO2DepthEnabled: maxO2DepthEnabled,
+                    maxO2DepthMeters: maxO2DepthMeters,
+                  );
             },
       ),
     );
