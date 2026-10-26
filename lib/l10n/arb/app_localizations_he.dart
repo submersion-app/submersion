@@ -5019,22 +5019,22 @@ class AppLocalizationsHe extends AppLocalizations {
   String get common_placeholder_noValue => '--';
 
   @override
-  String get notesEditor_action_heading => 'Heading';
+  String get notesEditor_action_heading => 'כותרת';
 
   @override
-  String get notesEditor_action_bold => 'Bold';
+  String get notesEditor_action_bold => 'מודגש';
 
   @override
-  String get notesEditor_action_italic => 'Italic';
+  String get notesEditor_action_italic => 'נטוי';
 
   @override
-  String get notesEditor_action_bulletList => 'Bulleted list';
+  String get notesEditor_action_bulletList => 'רשימת תבליטים';
 
   @override
-  String get notesEditor_action_numberedList => 'Numbered list';
+  String get notesEditor_action_numberedList => 'רשימה ממוספרת';
 
   @override
-  String get notesEditor_action_preview => 'Preview';
+  String get notesEditor_action_preview => 'תצוגה מקדימה';
 
   @override
   String get common_error_tryAgain => 'משהו השתבש. יש לנסות שוב.';

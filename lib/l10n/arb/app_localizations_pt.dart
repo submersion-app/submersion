@@ -5126,22 +5126,22 @@ class AppLocalizationsPt extends AppLocalizations {
   String get common_placeholder_noValue => '--';
 
   @override
-  String get notesEditor_action_heading => 'Heading';
+  String get notesEditor_action_heading => 'Título';
 
   @override
-  String get notesEditor_action_bold => 'Bold';
+  String get notesEditor_action_bold => 'Negrito';
 
   @override
-  String get notesEditor_action_italic => 'Italic';
+  String get notesEditor_action_italic => 'Itálico';
 
   @override
-  String get notesEditor_action_bulletList => 'Bulleted list';
+  String get notesEditor_action_bulletList => 'Lista com marcadores';
 
   @override
-  String get notesEditor_action_numberedList => 'Numbered list';
+  String get notesEditor_action_numberedList => 'Lista numerada';
 
   @override
-  String get notesEditor_action_preview => 'Preview';
+  String get notesEditor_action_preview => 'Pré-visualização';
 
   @override
   String get common_error_tryAgain => 'Algo correu mal. Tenta novamente.';

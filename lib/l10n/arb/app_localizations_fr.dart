@@ -5137,22 +5137,22 @@ class AppLocalizationsFr extends AppLocalizations {
   String get common_placeholder_noValue => '--';
 
   @override
-  String get notesEditor_action_heading => 'Heading';
+  String get notesEditor_action_heading => 'Titre';
 
   @override
-  String get notesEditor_action_bold => 'Bold';
+  String get notesEditor_action_bold => 'Gras';
 
   @override
-  String get notesEditor_action_italic => 'Italic';
+  String get notesEditor_action_italic => 'Italique';
 
   @override
-  String get notesEditor_action_bulletList => 'Bulleted list';
+  String get notesEditor_action_bulletList => 'Liste à puces';
 
   @override
-  String get notesEditor_action_numberedList => 'Numbered list';
+  String get notesEditor_action_numberedList => 'Liste numérotée';
 
   @override
-  String get notesEditor_action_preview => 'Preview';
+  String get notesEditor_action_preview => 'Aperçu';
 
   @override
   String get common_error_tryAgain =>

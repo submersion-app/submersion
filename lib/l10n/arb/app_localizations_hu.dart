@@ -5111,22 +5111,22 @@ class AppLocalizationsHu extends AppLocalizations {
   String get common_placeholder_noValue => '--';
 
   @override
-  String get notesEditor_action_heading => 'Heading';
+  String get notesEditor_action_heading => 'Címsor';
 
   @override
-  String get notesEditor_action_bold => 'Bold';
+  String get notesEditor_action_bold => 'Félkövér';
 
   @override
-  String get notesEditor_action_italic => 'Italic';
+  String get notesEditor_action_italic => 'Dőlt';
 
   @override
-  String get notesEditor_action_bulletList => 'Bulleted list';
+  String get notesEditor_action_bulletList => 'Felsorolás';
 
   @override
-  String get notesEditor_action_numberedList => 'Numbered list';
+  String get notesEditor_action_numberedList => 'Számozott lista';
 
   @override
-  String get notesEditor_action_preview => 'Preview';
+  String get notesEditor_action_preview => 'Előnézet';
 
   @override
   String get common_error_tryAgain =>
