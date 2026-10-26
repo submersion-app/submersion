@@ -201,6 +201,31 @@ void main() {
       expect(textOf(tester), '41');
     });
 
+    testWidgets('a mix changed elsewhere while the field still has focus '
+        'shows at once', (tester) async {
+      await tester.pumpWidget(host(gas: const GasMix(o2: 21, he: 10)));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(field, '40');
+      await tester.pumpAndSettle();
+
+      // A touch tap elsewhere, such as a gas chip, leaves the field focused.
+      await tester.tap(find.text('outside'));
+      await tester.pumpAndSettle();
+
+      expect(
+        tester
+            .widget<EditableText>(
+              find.descendant(of: field, matching: find.byType(EditableText)),
+            )
+            .focusNode
+            .hasFocus,
+        isTrue,
+      );
+      // 21/35: 51.5 m.
+      expect(textOf(tester), '52');
+    });
+
     testWidgets('an unreadable MND says why, reports nothing and does not '
         'block the form', (tester) async {
       final formKey = GlobalKey<FormState>();

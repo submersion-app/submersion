@@ -15,10 +15,9 @@ import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 /// read from [units].
 ///
 /// While the diver is typing the field keeps what they typed, so an
-/// unreadable entry can say why; leaving it shows the MND the mix really
-/// has. It also keeps the typed depth while [gas] is still the mix it
-/// produced, so the rounded He does not rewrite it; any other change to
-/// the mix shows again.
+/// unreadable entry can say why and the rounded He does not rewrite a typed
+/// depth; leaving it shows the MND the mix really has. A mix changed
+/// elsewhere, such as by a gas chip, shows at once, focus or not.
 ///
 /// The MND is a helper, never stored, so an unreadable entry shows an error
 /// without making an enclosing Form refuse to save.
@@ -64,14 +63,18 @@ class _TankMndFieldState extends State<TankMndField> {
   @override
   void didUpdateWidget(covariant TankMndField oldWidget) {
     super.didUpdateWidget(oldWidget);
+    // A mix that is not the one the typed MND produced was changed
+    // elsewhere: a gas chip, a fill, the O2 or He field. It shows at once,
+    // even with focus, which a touch tap elsewhere leaves on this field.
+    final changedElsewhere =
+        widget.gas != oldWidget.gas && widget.gas != _drivenMix;
     if (_drivenMix != null && widget.gas != _drivenMix) _drivenMix = null;
-    if (!_focus.hasFocus &&
-        _drivenMix == null &&
+    if ((changedElsewhere || (!_focus.hasFocus && _drivenMix == null)) &&
         _controller.text != _expectedText()) {
       // After the frame: the field is a form field, and a controller change
       // now would mark the enclosing Form dirty in the middle of its build.
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted && !_focus.hasFocus && _drivenMix == null) _syncText();
+        if (mounted) _syncText();
       });
     }
   }
