@@ -545,6 +545,14 @@ void main() {
       expect(ids(liveSeriesOf([reparse, edit])), ['a']);
     });
 
+    test('activation ranking is stable in both comparison directions', () {
+      final activated = series('a', activatedAt: 200, samples: span);
+      final neverActivated = series('z', samples: span);
+
+      expect(ids(liveSeriesOf([activated, neverActivated])), ['a']);
+      expect(ids(liveSeriesOf([neverActivated, activated])), ['a']);
+    });
+
     test('activation outranks the null-computer rule', () {
       // A downloaded original chosen again from history over its edit.
       final original = series(
