@@ -2224,10 +2224,17 @@ class DiveComputerRepository {
         // The deco settings follow the same owner: the primary reading writes
         // what it reports, none included. A secondary one, or one that just
         // took the role from the source that stored them, leaves them alone
-        // when it reports none rather than blanking them.
-        Value<T?> reported<T>(T? value) => isPrimary && !displacedPrimary
-            ? Value(value)
-            : Value.absentIfNull(value);
+        // when it reports none rather than blanking them. They go as one set
+        // either way: gradient factors from one computer beside another's
+        // algorithm describe a configuration no computer ran.
+        final writesDecoSettings =
+            (isPrimary && !displacedPrimary) ||
+            gfLow != null ||
+            gfHigh != null ||
+            decoAlgorithm != null ||
+            decoConservatism != null;
+        Value<T?> reported<T>(T? value) =>
+            writesDecoSettings ? Value(value) : const Value.absent();
         await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
           DivesCompanion(
             updatedAt: Value(now),

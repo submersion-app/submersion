@@ -162,4 +162,26 @@ void main() {
     expect(dive.decoAlgorithm, 'buhlmann');
     expect(dive.decoConservatism, 1);
   });
+
+  test('a second computer that reports some deco settings replaces them as a '
+      'set, never mixed with the stored ones', () async {
+    final diveId = await importWith(fromComputer: computerId, forceNew: true);
+
+    final matchedId = await repository.importProfile(
+      computerId: secondComputerId,
+      profileStartTime: DateTime(2026, 7, 4, 10, 0),
+      points: points,
+      durationSeconds: 2400,
+      maxDepth: 30.0,
+      decoAlgorithm: 'rgbm',
+      decoConservatism: 2,
+    );
+
+    expect(matchedId, diveId);
+    final dive = await storedDive(diveId);
+    expect(dive.decoAlgorithm, 'rgbm');
+    expect(dive.decoConservatism, 2);
+    expect(dive.gradientFactorLow, isNull);
+    expect(dive.gradientFactorHigh, isNull);
+  });
 }
