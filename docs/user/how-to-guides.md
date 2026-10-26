@@ -7,6 +7,7 @@ The rest of this user guide is a reference that explains every option of each fe
 ## Get set up
 
 - [Set Up Sync, Backups and Photos](how-to-sync-backups-photos.md): your logbook on your phone and computer, backed up, with photos on both.
+- [Set Up a Shared Site Library](how-to-shared-site-library.md): one list of dive sites for your club or dive group.
 
 ## Use the app
 
