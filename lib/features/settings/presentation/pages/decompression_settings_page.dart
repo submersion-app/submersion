@@ -14,6 +14,7 @@ import 'package:submersion/features/settings/presentation/widgets/ascent_rate_th
 import 'package:submersion/features/settings/presentation/widgets/ccr_ppo2_limit_dialog.dart';
 import 'package:submersion/features/settings/presentation/widgets/gradient_factor_dialog.dart';
 import 'package:submersion/features/settings/presentation/widgets/gtr_reserve_dialog.dart';
+import 'package:submersion/features/settings/presentation/widgets/ppo2_deco_bands_dialog.dart';
 import 'package:submersion/features/settings/presentation/widgets/ppo2_limit_dialog.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_section_helpers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -102,6 +103,18 @@ class DecompressionSettingsContent extends ConsumerWidget {
                   ),
                   trailing: const Icon(Icons.edit),
                   onTap: () => _showPpO2LimitPicker(context, ref, settings),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.tune),
+                  title: Text(
+                    context.l10n.settings_decompression_ppO2BandsTitle,
+                  ),
+                  subtitle: Text(
+                    context.l10n.settings_decompression_ppO2BandsSubtitle,
+                  ),
+                  trailing: const Icon(Icons.edit),
+                  onTap: () => _showPpO2DecoBandsPicker(context, ref, settings),
                 ),
                 const Divider(height: 1),
                 const CcrPpO2LimitTile(),
@@ -640,6 +653,41 @@ class DecompressionSettingsContent extends ConsumerWidget {
         onSave: (working, max) {
           ref.read(settingsProvider.notifier).setPpO2Limits(working, max);
         },
+      ),
+    );
+  }
+
+  void _showPpO2DecoBandsPicker(
+    BuildContext context,
+    WidgetRef ref,
+    AppSettings settings,
+  ) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => PpO2DecoBandsDialog(
+        initialBandsEnabled: settings.ppO2DecoBandsEnabled,
+        initialBand1: settings.ppO2DecoBand1,
+        initialBand2: settings.ppO2DecoBand2,
+        initialBand3: settings.ppO2DecoBand3,
+        initialMaxO2DepthEnabled: settings.maxO2DepthEnabled,
+        initialMaxO2DepthMeters: settings.maxO2DepthMeters,
+        onSave:
+            (
+              bandsEnabled,
+              band1,
+              band2,
+              band3,
+              maxO2DepthEnabled,
+              maxO2DepthMeters,
+            ) {
+              final notifier = ref.read(settingsProvider.notifier);
+              notifier.setPpO2DecoBandsEnabled(bandsEnabled);
+              notifier.setPpO2DecoBand1(band1);
+              notifier.setPpO2DecoBand2(band2);
+              notifier.setPpO2DecoBand3(band3);
+              notifier.setMaxO2DepthEnabled(maxO2DepthEnabled);
+              notifier.setMaxO2DepthMeters(maxO2DepthMeters);
+            },
       ),
     );
   }
