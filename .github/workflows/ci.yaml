@@ -997,8 +997,9 @@ jobs:
   # The fastlane lanes run only after merge (beta, promote, release), so a
   # bundle that will not install on CI's Ruby, or a Fastfile the locked
   # fastlane cannot load, used to surface as a failed upload (#3495). This
-  # installs each platform's bundle frozen, on the runner its lanes use, and
-  # loads its Fastfile. Gated on the `fastlane` output: Gemfile, Gemfile.lock
+  # installs each platform's bundle frozen and loads its Fastfile, on the
+  # runner the upload lanes use (macos-15 in beta, release and promote; the
+  # macos-26 build-all and screenshots jobs are not covered). Gated on the `fastlane` output: Gemfile, Gemfile.lock
   # and fastlane/ changes only. The Ruby must match the lanes'; the
   # check_ruby_versions.py step in script-tests enforces that.
   fastlane-bundles:
@@ -1019,7 +1020,6 @@ jobs:
             runner: ubuntu-latest
     env:
       LANG: en_US.UTF-8
-      LC_ALL: en_US.UTF-8
       FASTLANE_SKIP_UPDATE_CHECK: '1'
       FASTLANE_HIDE_CHANGELOG: '1'
       FASTLANE_OPT_OUT_USAGE: '1'

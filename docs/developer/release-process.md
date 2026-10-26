@@ -232,8 +232,9 @@ on the vulnerable 7.2.3 (#3495).
 The lanes run only in `beta.yml`, `promote.yml` and `release.yml`, after
 merge. So a pull request that changes a platform's `Gemfile`, `Gemfile.lock` or
 `fastlane/` folder runs the `Fastlane bundle` jobs in `ci.yaml`: each installs
-that platform's bundle frozen, on the runner and Ruby its lanes use, and loads
-its Fastfile with `fastlane lanes`. That catches a lockfile that will not
+that platform's bundle frozen, on the Ruby the lanes use and the runner the
+upload lanes use (macos-15 for iOS and macOS, ubuntu-latest for Android), and
+loads its Fastfile with `fastlane lanes`. That catches a lockfile that will not
 install and a Fastfile the locked fastlane cannot parse. It does not run a
 lane, so an option the new fastlane rejects at run time still first surfaces in
 a beta. `scripts/check_ruby_versions.py` fails CI when the workflows' setup-ruby

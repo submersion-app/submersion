@@ -32,7 +32,10 @@ def _indent(line):
 
 
 def _steps(lines):
-    """Yield (line of the uses: key, (ruby-version, its line) or None)."""
+    """Yield (uses: line, ruby-version or None, line to report it at).
+
+    A step with no ruby-version is reported at its uses: line.
+    """
     for i, line in enumerate(lines):
         uses = _USES_RE.match(line)
         if not uses:
@@ -44,7 +47,7 @@ def _steps(lines):
         while start > 0 and not _DASH_RE.match(lines[start]):
             start -= 1
         dash = _indent(lines[start])
-        version = None
+        version, at = None, i + 1
         for j in range(start, len(lines)):
             text = lines[j]
             if j > start and text.strip() and not text.lstrip().startswith("#"):
@@ -52,26 +55,26 @@ def _steps(lines):
                     break
             pin = _VERSION_RE.match(text)
             if pin:
-                version = (pin.group("v"), j + 1)
+                version, at = pin.group("v"), j + 1
                 break
-        yield i + 1, version
+        yield i + 1, version, at
 
 
 def pins(root):
     """Return [(workflow path, uses line, version or None, version line)]."""
     found = []
     directory = os.path.join(root, _WORKFLOWS)
-    for name in sorted(os.listdir(directory)):
+    try:
+        names = sorted(os.listdir(directory))
+    except FileNotFoundError:
+        return found
+    for name in names:
         if not name.endswith((".yml", ".yaml")):
             continue
         with open(os.path.join(directory, name), encoding="utf-8") as fh:
             lines = fh.read().splitlines()
         rel = os.path.join(_WORKFLOWS, name)
-        for uses_line, version in _steps(lines):
-            if version:
-                found.append((rel, uses_line, version[0], version[1]))
-            else:
-                found.append((rel, uses_line, None, uses_line))
+        found.extend((rel, *step) for step in _steps(lines))
     return found
 
 

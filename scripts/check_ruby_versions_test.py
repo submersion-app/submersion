@@ -84,6 +84,32 @@ class GuardTest(unittest.TestCase):
         code, out = self.run_main()
         self.assertEqual(code, 1)
 
+    def test_a_dash_led_uses_step_is_bounded_by_its_sibling(self):
+        # `- uses:` carries the step's dash itself; the next step's pin must
+        # not be read as this step's.
+        self.write(
+            "beta.yml",
+            "      - uses: ruby/setup-ruby@v1\n"
+            "        with:\n"
+            "          bundler-cache: true\n"
+            "      - uses: ruby/setup-ruby@v1\n"
+            "        with:\n"
+            "          ruby-version: '3.4'\n",
+        )
+        code, out = self.run_main()
+        self.assertEqual(code, 1)
+        self.assertIn(
+            os.path.join(".github", "workflows", "beta.yml")
+            + ":4: ruby/setup-ruby step has no ruby-version",
+            out,
+        )
+
+    def test_a_missing_workflows_directory_fails_without_a_traceback(self):
+        shutil.rmtree(os.path.join(self.root, ".github"))
+        code, out = self.run_main()
+        self.assertEqual(code, 1)
+        self.assertIn("scan is broken", out)
+
     def test_a_commented_out_pin_is_ignored(self):
         self.write(
             "beta.yml",
