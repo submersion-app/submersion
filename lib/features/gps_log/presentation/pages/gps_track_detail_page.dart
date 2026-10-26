@@ -452,9 +452,6 @@ class _TrackMapState extends ConsumerState<_TrackMap> {
         Positioned.fill(
           child: TrackpadZoomMap(
             controller: controller,
-            // The map's own range, or a zoom past either end slides it.
-            minZoom: 2.0,
-            maxZoom: 18.0,
             child: FlutterMap(
               mapController: controller,
               options: MapOptions(

@@ -193,9 +193,6 @@ class _TracksOverviewMapState extends ConsumerState<TracksOverviewMap> {
 
     return TrackpadZoomMap(
       controller: widget.controller,
-      // The map's own range, or a zoom past either end slides it.
-      minZoom: 2.0,
-      maxZoom: 18.0,
       child: FlutterMap(
         mapController: widget.controller,
         options: MapOptions(

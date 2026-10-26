@@ -4,6 +4,7 @@ import 'package:latlong2/latlong.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
+import 'package:submersion/features/maps/presentation/widgets/map_corner_controls.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_interaction_options.dart';
 import 'package:submersion/features/maps/presentation/widgets/submersion_tile_layer.dart';
 import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
@@ -25,7 +26,8 @@ class GpsTrackEmptyMap extends ConsumerStatefulWidget {
 }
 
 class _GpsTrackEmptyMapState extends ConsumerState<GpsTrackEmptyMap> {
-  /// Owned here because [TrackpadZoomMap] drives the camera through it.
+  /// Owned here because [TrackpadZoomMap] and the corner controls drive
+  /// the camera through it.
   final MapController _controller = MapController();
 
   @override
@@ -42,9 +44,6 @@ class _GpsTrackEmptyMapState extends ConsumerState<GpsTrackEmptyMap> {
         // Zooms and scrolls like the map it stands in for (#3664).
         TrackpadZoomMap(
           controller: _controller,
-          // The map's own range, or a zoom past either end slides it.
-          minZoom: 2.0,
-          maxZoom: 18.0,
           child: FlutterMap(
             mapController: _controller,
             options: const MapOptions(
@@ -55,7 +54,16 @@ class _GpsTrackEmptyMapState extends ConsumerState<GpsTrackEmptyMap> {
               interactionOptions: rotatableMapInteraction,
               cameraConstraint: worldMapCameraConstraint,
             ),
-            children: [submersionTileLayer(ref), const MapAttribution()],
+            children: [
+              submersionTileLayer(ref),
+              const MapAttribution(),
+              // It can rotate, so it needs the compass that resets north.
+              Positioned(
+                top: 8,
+                right: 8,
+                child: MapCornerControls(controller: _controller),
+              ),
+            ],
           ),
         ),
         Center(

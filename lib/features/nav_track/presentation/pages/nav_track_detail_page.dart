@@ -459,9 +459,6 @@ class _RouteMapState extends ConsumerState<_RouteMap> {
     // range and pole stop every other map has (#3664).
     return TrackpadZoomMap(
       controller: _controller,
-      // The map's own range, or a zoom past either end slides it.
-      minZoom: 2.0,
-      maxZoom: 18.0,
       child: FlutterMap(
         mapController: _controller,
         options: MapOptions(

@@ -15,19 +15,9 @@ void expectZoomsAndScrollsLikeOtherMaps(WidgetTester tester) {
   expect(options.maxZoom, 18.0, reason: 'zooms in no further than the tiles');
   expect(options.cameraConstraint, worldMapCameraConstraint);
   expect(options.interactionOptions, rotatableMapInteraction);
-  final trackpad = find.ancestor(
-    of: mapFinder,
-    matching: find.byType(TrackpadZoomMap),
-  );
   expect(
-    trackpad,
+    find.ancestor(of: mapFinder, matching: find.byType(TrackpadZoomMap)),
     findsOneWidget,
     reason: 'a two-finger trackpad gesture zooms the map',
   );
-  // The wrapper clamps on its own before moving the camera. Wider bounds
-  // than the map's let it pivot toward a zoom the map then refuses, which
-  // slides the map sideways at either end of its range.
-  final wrapper = tester.widget<TrackpadZoomMap>(trackpad);
-  expect(wrapper.minZoom, options.minZoom);
-  expect(wrapper.maxZoom, options.maxZoom);
 }

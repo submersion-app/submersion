@@ -433,9 +433,6 @@ class _AlignPageBody extends ConsumerWidget {
               children: [
                 TrackpadZoomMap(
                   controller: state._mapController,
-                  // The map's own range, or a zoom past either end slides it.
-                  minZoom: 2.0,
-                  maxZoom: 18.0,
                   child: FlutterMap(
                     mapController: state._mapController,
                     options: MapOptions(
