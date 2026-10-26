@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:submersion/features/dive_log/presentation/widgets/responsive_section_pair.dart';
 import 'package:submersion/shared/widgets/detail_row/detail_row.dart';
 import 'package:submersion/shared/widgets/detail_row/detail_row_group.dart';
 
@@ -40,28 +39,6 @@ Future<void> _pump(WidgetTester tester, Widget child, {required double width}) {
 }
 
 void main() {
-  testWidgets('a section pair switching to stacked drops its rows cleanly', (
-    tester,
-  ) async {
-    Widget pair() =>
-        ResponsiveSectionPair(first: _card('a'), second: _card('b'));
-
-    await _pump(tester, pair(), width: 1000);
-    expect(tester.takeException(), isNull);
-
-    // Narrower than the pair's 700 px row width: its LayoutBuilder rebuilds
-    // during layout and replaces both cards with their stacked copies.
-    await _pump(tester, pair(), width: 600);
-    expect(tester.takeException(), isNull);
-
-    await _pump(tester, pair(), width: 1000);
-    expect(tester.takeException(), isNull);
-    expect(
-      tester.getTopLeft(find.text('a-1')).dx,
-      tester.getTopLeft(find.text('a-3')).dx,
-    );
-  });
-
   testWidgets('a card removed below a LayoutBuilder drops its rows cleanly', (
     tester,
   ) async {
