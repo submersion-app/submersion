@@ -28,20 +28,6 @@ int _sydneyLikeLocalEpoch(DateTime wallClock) {
 
 void main() {
   group('Dive time migration', () {
-    test('computer-imported dives keep timestamps unchanged', () {
-      final originalEpoch = DateTime.utc(
-        2024,
-        6,
-        15,
-        8,
-        42,
-      ).millisecondsSinceEpoch;
-      expect(
-        originalEpoch,
-        DateTime.utc(2024, 6, 15, 8, 42).millisecondsSinceEpoch,
-      );
-    });
-
     // Issue #3656: the shift used today's offset, so in a daylight saving
     // zone a dive from the other half of the year moved by an hour. Both
     // halves are checked so the test fails in every such zone on every date.
