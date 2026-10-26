@@ -6,6 +6,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/device_gear_heal.dart';
 import 'package:submersion/core/database/dive_computer_gear_identity.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
 import 'package:submersion/features/transmitters/data/services/transmitter_gear_linker.dart';
@@ -205,7 +206,14 @@ Future<void> registerTransmittersForDives(
       await reg.registerNewSerials(e.value, diverId: e.key);
       await link.linkSerials(e.value, diverId: e.key);
     }
-  } catch (_) {
+  } catch (e, stackTrace) {
     // Best-effort: the import has already persisted its dives.
+    _log.warning(
+      'Registering transmitters for imported dives failed',
+      error: e,
+      stackTrace: stackTrace,
+    );
   }
 }
+
+final _log = LoggerService.forClass(TransmitterAutoRegistrar);

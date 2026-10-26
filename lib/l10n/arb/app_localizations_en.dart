@@ -51121,7 +51121,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get transmitters_key_removeBody =>
-      'Downloads stop matching this serial or channel to the transmitter. The transmitter item and its other keys stay.';
+      'The transmitter item and its other keys stay. Use this for a wrong channel or a mistyped serial: a serial your dive computer keeps reporting is added back by the next download, not yet set up.';
+
+  @override
+  String get transmitters_list_noKey => 'No serial or channel yet';
 
   @override
   String get transmitters_section_addKey => 'Add serial or channel';

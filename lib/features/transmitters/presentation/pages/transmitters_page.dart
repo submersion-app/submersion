@@ -95,7 +95,14 @@ class _ItemTile extends StatelessWidget {
               ),
             ),
           for (final key in row.keys) TransmitterKeyLabel(entry: key),
-          if (setup == null || !setup.isSetUp)
+          // An item added by hand needs its serial or channel before a
+          // cylinder means anything.
+          if (setup == null)
+            Text(
+              l10n.transmitters_list_noKey,
+              style: TextStyle(color: theme.colorScheme.tertiary),
+            )
+          else if (!setup.isSetUp)
             Text(
               l10n.transmitters_noCylinder,
               style: TextStyle(color: theme.colorScheme.tertiary),

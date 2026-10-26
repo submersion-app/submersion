@@ -51656,7 +51656,10 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get transmitters_key_removeBody =>
-      'A letöltések többé nem rendelik ezt a sorozatszámot vagy csatornát a jeladóhoz. A jeladó eleme és többi kulcsa megmarad.';
+      'A jeladó eleme és többi kulcsa megmarad. Rossz csatornához vagy elgépelt sorozatszámhoz használd: egy sorozatszámot, amelyet a búvárkomputered továbbra is jelent, a következő letöltés újra hozzáad, még beállítás nélkül.';
+
+  @override
+  String get transmitters_list_noKey => 'Még nincs sorozatszám vagy csatorna';
 
   @override
   String get transmitters_section_addKey =>

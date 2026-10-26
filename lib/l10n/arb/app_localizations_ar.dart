@@ -52581,7 +52581,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get transmitters_key_removeBody =>
-      'لن تربط التنزيلات هذا الرقم التسلسلي أو القناة بجهاز الإرسال بعد الآن. يبقى عنصر جهاز الإرسال ومفاتيحه الأخرى.';
+      'يبقى عنصر جهاز الإرسال ومفاتيحه الأخرى. استخدم هذا لقناة خاطئة أو رقم تسلسلي مكتوب خطأً: الرقم التسلسلي الذي يستمر كمبيوتر الغوص في الإبلاغ عنه يُضاف مجددًا في التنزيل التالي، دون إعداد بعد.';
+
+  @override
+  String get transmitters_list_noKey => 'لا يوجد رقم تسلسلي أو قناة بعد';
 
   @override
   String get transmitters_section_addKey => 'إضافة رقم تسلسلي أو قناة';

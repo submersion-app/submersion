@@ -141,6 +141,22 @@ void main() {
     expect(find.text('Retired'), findsOneWidget);
   });
 
+  testWidgets('a hand-added transmitter with no key asks for one, not for a '
+      'cylinder (review)', (tester) async {
+    await DatabaseService.instance.database.customStatement(
+      "INSERT INTO equipment (id, diver_id, name, type, created_at, "
+      "updated_at) VALUES ('bare-gear', 'diver-1', 'Spare tx', "
+      "'transmitter', 1, 1)",
+    );
+    await tester.pumpWidget(_buildPage(diverIdNotifier, prefs));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Spare tx'), findsOneWidget);
+    expect(find.text('No serial or channel yet'), findsOneWidget);
+    // Only the download-created one still asks for its cylinder.
+    expect(find.text('No cylinder set up'), findsOneWidget);
+  });
+
   testWidgets('the FAB adds a Transmitter item', (tester) async {
     await tester.pumpWidget(_buildPage(diverIdNotifier, prefs));
     await tester.pumpAndSettle();

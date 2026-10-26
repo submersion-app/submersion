@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/transmitters/data/services/transmitter_setup_target.dart';
@@ -27,6 +28,8 @@ class TransmitterSetupRedirect extends ConsumerStatefulWidget {
 
 class _TransmitterSetupRedirectState
     extends ConsumerState<TransmitterSetupRedirect> {
+  static final _log = LoggerService.forClass(TransmitterSetupRedirect);
+
   @override
   void initState() {
     super.initState();
@@ -55,8 +58,13 @@ class _TransmitterSetupRedirectState
               diverId: await ref.read(validatedCurrentDiverIdProvider.future),
             );
       }
-    } catch (_) {
+    } catch (e, stackTrace) {
       // A failed lookup still lands somewhere useful: a new item.
+      _log.warning(
+        'Finding the transmitter item for serial $serial failed',
+        error: e,
+        stackTrace: stackTrace,
+      );
       itemId = null;
     }
     if (!mounted) return;

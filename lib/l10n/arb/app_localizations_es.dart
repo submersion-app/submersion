@@ -51989,7 +51989,10 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get transmitters_key_removeBody =>
-      'Las descargas dejan de asociar este número de serie o canal con el transmisor. El artículo del transmisor y sus otras claves se conservan.';
+      'El artículo del transmisor y sus otras claves se conservan. Úsalo para un canal equivocado o un número de serie mal escrito: un número de serie que tu ordenador de buceo sigue informando vuelve a añadirse en la siguiente descarga, aún sin configurar.';
+
+  @override
+  String get transmitters_list_noKey => 'Aún sin número de serie ni canal';
 
   @override
   String get transmitters_section_addKey => 'Añadir número de serie o canal';

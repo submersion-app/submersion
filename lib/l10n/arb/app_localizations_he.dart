@@ -50833,7 +50833,10 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get transmitters_key_removeBody =>
-      'ההורדות יפסיקו לשייך מספר סידורי או ערוץ זה למשדר. פריט המשדר ושאר המפתחות שלו יישארו.';
+      'פריט המשדר ושאר המפתחות שלו יישארו. השתמש בזה לערוץ שגוי או למספר סידורי שהוקלד שגוי: מספר סידורי שמחשב הצלילה ממשיך לדווח עליו יתווסף שוב בהורדה הבאה, עדיין לא מוגדר.';
+
+  @override
+  String get transmitters_list_noKey => 'עדיין אין מספר סידורי או ערוץ';
 
   @override
   String get transmitters_section_addKey => 'הוסף מספר סידורי או ערוץ';

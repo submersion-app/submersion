@@ -52055,7 +52055,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get transmitters_key_removeBody =>
-      'Les téléchargements n\'associent plus ce numéro de série ou ce canal au transmetteur. L\'article du transmetteur et ses autres clés sont conservés.';
+      'L\'article du transmetteur et ses autres clés sont conservés. À utiliser pour un mauvais canal ou un numéro de série mal saisi : un numéro de série que votre ordinateur de plongée continue de signaler est rajouté au prochain téléchargement, pas encore configuré.';
+
+  @override
+  String get transmitters_list_noKey =>
+      'Pas encore de numéro de série ni de canal';
 
   @override
   String get transmitters_section_addKey =>

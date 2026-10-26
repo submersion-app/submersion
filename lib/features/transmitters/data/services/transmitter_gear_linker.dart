@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
@@ -12,6 +13,8 @@ import 'package:submersion/features/dive_log/domain/services/transmitter_serial.
 class TransmitterGearLinker {
   TransmitterGearLinker({DiveRepository? diveRepository})
     : _dives = diveRepository ?? DiveRepository();
+
+  static final _log = LoggerService.forClass(TransmitterGearLinker);
 
   final DiveRepository _dives;
 
@@ -68,8 +71,13 @@ class TransmitterGearLinker {
         await _dives.bulkAddEquipment(e.value.toList(), [e.key]);
       }
       if (divesByItem.isNotEmpty) SyncEventBus.notifyLocalChange();
-    } catch (_) {
+    } catch (e, stackTrace) {
       // Best-effort, like the computer gear linker.
+      _log.warning(
+        'Linking transmitter items to dives failed',
+        error: e,
+        stackTrace: stackTrace,
+      );
     }
   }
 }

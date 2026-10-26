@@ -51826,7 +51826,11 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get transmitters_key_removeBody =>
-      'Downloads ordnen diese Seriennummer oder diesen Kanal nicht mehr dem Sender zu. Der Sendereintrag und seine anderen Schlüssel bleiben erhalten.';
+      'Der Sendereintrag und seine anderen Schlüssel bleiben erhalten. Nutze dies für einen falschen Kanal oder eine vertippte Seriennummer: Eine Seriennummer, die dein Tauchcomputer weiter meldet, fügt der nächste Download wieder hinzu, noch nicht eingerichtet.';
+
+  @override
+  String get transmitters_list_noKey =>
+      'Noch keine Seriennummer und kein Kanal';
 
   @override
   String get transmitters_section_addKey =>

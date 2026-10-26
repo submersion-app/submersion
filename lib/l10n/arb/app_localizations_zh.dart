@@ -48705,7 +48705,10 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get transmitters_key_removeBody =>
-      '下载将不再把此序列号或通道匹配到该发射器。发射器条目及其其他标识会保留。';
+      '发射器条目及其其他标识会保留。适用于错误的通道或输错的序列号：潜水电脑仍在报告的序列号会在下次下载时重新加入，尚未设置。';
+
+  @override
+  String get transmitters_list_noKey => '尚无序列号或通道';
 
   @override
   String get transmitters_section_addKey => '添加序列号或通道';

@@ -82248,8 +82248,14 @@ abstract class AppLocalizations {
   /// No description provided for @transmitters_key_removeBody.
   ///
   /// In en, this message translates to:
-  /// **'Downloads stop matching this serial or channel to the transmitter. The transmitter item and its other keys stay.'**
+  /// **'The transmitter item and its other keys stay. Use this for a wrong channel or a mistyped serial: a serial your dive computer keeps reporting is added back by the next download, not yet set up.'**
   String get transmitters_key_removeBody;
+
+  /// No description provided for @transmitters_list_noKey.
+  ///
+  /// In en, this message translates to:
+  /// **'No serial or channel yet'**
+  String get transmitters_list_noKey;
 
   /// No description provided for @transmitters_section_addKey.
   ///

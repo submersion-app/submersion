@@ -51941,7 +51941,11 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get transmitters_key_removeBody =>
-      'I download non associano più questo numero di serie o canale al trasmettitore. L\'articolo del trasmettitore e le sue altre chiavi restano.';
+      'L\'articolo del trasmettitore e le sue altre chiavi restano. Usalo per un canale sbagliato o un numero di serie digitato male: un numero di serie che il computer subacqueo continua a segnalare viene aggiunto di nuovo al download successivo, non ancora configurato.';
+
+  @override
+  String get transmitters_list_noKey =>
+      'Ancora nessun numero di serie o canale';
 
   @override
   String get transmitters_section_addKey => 'Aggiungi numero di serie o canale';
