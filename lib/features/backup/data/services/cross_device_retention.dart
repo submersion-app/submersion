@@ -12,9 +12,12 @@ import 'package:submersion/features/backup/data/services/cloud_backup_history.da
 /// `BackupService` part that calls it does the deleting.
 ///
 /// Every device with the switch on applies its own keep count to the whole
-/// folder, so the folder settles at the smallest count among them. No lock is
-/// needed between devices: each removes only files outside the newest N it
-/// can see, and the folder's newest N are inside every device's newest N.
+/// folder, so the folder settles at the smallest count among them. Each
+/// device's newest backup takes one of those N slots first (issue #3632). No
+/// lock is needed between devices: every device ranks by the timestamp in the
+/// name with the name breaking a tie, each removes only files outside what it
+/// keeps of the folder it can see, and what the whole folder keeps is inside
+/// what every device keeps.
 
 /// Nothing younger than this is removed, whatever its rank, and no pin
 /// marker younger than this is treated as an orphan.
@@ -145,7 +148,7 @@ CrossDeviceRetentionPlan planCrossDeviceRetention({
             thisDeviceId: thisDeviceId,
           ),
         ),
-  ]..sort((a, b) => b.timestamp.compareTo(a.timestamp));
+  ]..sort((a, b) => _compareAge(b.file, a.file, stamps));
 
   // Pinned backups count here: a device whose newest is pinned already has
   // its recovery point, and reserves nothing more.
@@ -154,7 +157,7 @@ CrossDeviceRetentionPlan planCrossDeviceRetention({
     final tag = backupDeviceTagFromFilename(f.name);
     if (tag == null) continue;
     final current = newestByDevice[tag];
-    if (current == null || _newer(f, current, stamps)) {
+    if (current == null || _compareAge(f, current, stamps) > 0) {
       newestByDevice[tag] = f;
     }
   }
@@ -203,11 +206,16 @@ CrossDeviceRetentionPlan planCrossDeviceRetention({
   );
 }
 
-/// Whether [a] is newer than [b], by their [stamps] and then by name, so
-/// every device picks the same one of two backups stamped the same second.
-bool _newer(CloudFileInfo a, CloudFileInfo b, Map<String, DateTime> stamps) {
+/// Above zero when [a] is newer than [b], by their [stamps] and then by
+/// name, so every device ranks two backups stamped the same second alike,
+/// whatever order its listing returned them in.
+int _compareAge(
+  CloudFileInfo a,
+  CloudFileInfo b,
+  Map<String, DateTime> stamps,
+) {
   final byTime = stamps[a.id]!.compareTo(stamps[b.id]!);
-  return byTime != 0 ? byTime > 0 : a.name.compareTo(b.name) > 0;
+  return byTime != 0 ? byTime : a.name.compareTo(b.name);
 }
 
 /// Exactly the names this app writes: the timestamp, an optional device tag,

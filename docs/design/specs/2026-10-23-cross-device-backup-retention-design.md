@@ -84,7 +84,8 @@ safety snapshot a restore takes), and when the switch is confirmed on. It runs
    device's "Keep" number, after first reserving a slot for each device's
    newest backup (see "Each device's newest backup"). Order by the timestamp
    in the name, falling back to
-   the file's modified time, as `backupRecordFromCloudFile` already does.
+   the file's modified time, as `backupRecordFromCloudFile` already does,
+   with the name breaking a tie so listing order never decides.
    Every device must sort the same way for the concurrency argument below to
    hold, and a server's modified time is not available everywhere (iCloud
    reports a local file stat), so the name is the key.

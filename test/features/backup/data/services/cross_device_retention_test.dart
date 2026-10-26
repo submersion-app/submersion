@@ -179,6 +179,19 @@ void main() {
       expect(plan.deviceNewestKept, 0);
     });
 
+    test('two devices stamped the same second rank alike in any order', () {
+      final files = [
+        _backup(20, deviceId: 'B'),
+        _backup(20, deviceId: 'C'),
+        _backup(10, deviceId: 'B'),
+        _backup(10, deviceId: 'C'),
+      ];
+      // Both newest are reserved, leaving one slot for the two tied backups.
+      final forward = _names(_plan(files, keep: 3));
+      expect(forward, hasLength(1));
+      expect(_names(_plan(files.reversed, keep: 3)), forward);
+    });
+
     test('a plain prune reports no device newest kept', () {
       final files = [for (var d = 1; d <= 7; d++) _backup(d)];
       expect(_plan(files).deviceNewestKept, 0);
