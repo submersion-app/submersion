@@ -156,7 +156,11 @@ void main() {
     testWidgets('Who dives where with buddies but no sites says so', (
       tester,
     ) async {
-      await _pump(tester, graph: (_, _) => islands);
+      final buddiesOnly = ConnectionGraph(
+        nodes: [ConnectionNode(ref: _b('jane'), label: 'Jane', diveCount: 3)],
+        edges: const [],
+      );
+      await _pump(tester, graph: (_, _) => buddiesOnly);
       await tester.pump(const Duration(milliseconds: 50));
       expect(find.byType(ConnectionsEmptyState), findsOneWidget);
       expect(
@@ -179,6 +183,20 @@ void main() {
       expect(
         find.byKey(const ValueKey('connections-canvas-paint')),
         findsNothing,
+      );
+    });
+
+    testWidgets('sites whose buddies the budget cut still show', (
+      tester,
+    ) async {
+      // Every site on this map was dived with a buddy; no line means the
+      // budget dropped those buddies, so the map and its chip stay.
+      await _pump(tester, graph: (_, _) => islands);
+      await tester.pump(const Duration(milliseconds: 50));
+      expect(find.byType(ConnectionsEmptyState), findsNothing);
+      expect(
+        find.byKey(const ValueKey('connections-canvas-paint')),
+        findsOneWidget,
       );
     });
 

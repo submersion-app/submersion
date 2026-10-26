@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:submersion/features/connections/presentation/widgets/connections_caption_text.dart';
+import 'package:submersion/shared/widgets/size_reporter.dart';
 
 /// The card at the top of the canvas naming the map and saying how to read
 /// it. The sentence wraps rather than being cut short, so the card's height
@@ -20,8 +20,8 @@ class ConnectionsCaption extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return _HeightReporter(
-      onHeight: onHeight,
+    return SizeReporter(
+      onChange: (size) => onHeight(size.height),
       // Read-only: a pan or pinch that starts on it moves the map.
       child: IgnorePointer(
         child: Card(
@@ -52,40 +52,5 @@ class ConnectionsCaption extends StatelessWidget {
         ),
       ),
     );
-  }
-}
-
-class _HeightReporter extends SingleChildRenderObjectWidget {
-  const _HeightReporter({required this.onHeight, super.child});
-
-  final ValueChanged<double> onHeight;
-
-  @override
-  RenderObject createRenderObject(BuildContext context) =>
-      _RenderHeightReporter(onHeight);
-
-  @override
-  void updateRenderObject(
-    BuildContext context,
-    _RenderHeightReporter renderObject,
-  ) => renderObject.onHeight = onHeight;
-}
-
-class _RenderHeightReporter extends RenderProxyBox {
-  _RenderHeightReporter(this.onHeight);
-
-  ValueChanged<double> onHeight;
-  double? _reported;
-
-  @override
-  void performLayout() {
-    super.performLayout();
-    final height = size.height;
-    if (height == _reported) return;
-    _reported = height;
-    // Reported after the frame: the listener rebuilds the page.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (attached) onHeight(height);
-    });
   }
 }
