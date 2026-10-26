@@ -194,11 +194,21 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
             findingId: f.id,
           ),
         );
-      case SourceClockShiftRepair(
-        :final sourceId,
-        :final suggestedOffset,
-        :final offerComputerWide,
-      ):
+      case SourceClockShiftRepair(:final sourceId, :final suggestedOffset):
+        // Read the source as it is now: the finding's computerId is as of
+        // its last scan, and only a source naming a registered computer
+        // says which other dives share its clock. A failed read is reported
+        // like any failed repair rather than dropped with this Future.
+        final bool offerComputerWide;
+        try {
+          offerComputerWide = await executor.sourceNamesComputer(sourceId);
+        } catch (e) {
+          messenger.showSnackBar(
+            SnackBar(content: Text('${l10n.dataQuality_repair_failed}: $e')),
+          );
+          return;
+        }
+        if (!mounted) return;
         final choice = await showTimeShiftSheet(
           context,
           suggestedOffset: suggestedOffset,

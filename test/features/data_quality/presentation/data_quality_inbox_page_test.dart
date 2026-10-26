@@ -8,7 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/database/database.dart'
-    show DiveDataSourcesCompanion;
+    show DiveComputersCompanion, DiveDataSourcesCompanion;
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/data_quality/data/repositories/quality_findings_repository.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
@@ -1577,6 +1577,81 @@ void main() {
       isTrue,
     );
     expect((await DiveRepository().getDiveById('d1'))!.entryTime, entry);
+    await tester.pumpAndSettle(const Duration(seconds: 6));
+  });
+
+  testWidgets('the computer-wide checkbox follows the source as it is now, '
+      'not the finding (#3655)', (tester) async {
+    final entry = DateTime.utc(2026, 7, 1, 10);
+    await DiveRepository().createDive(
+      domain.Dive(id: 'd1', dateTime: entry, entryTime: entry),
+    );
+    final db = DatabaseService.instance.database;
+    await db
+        .into(db.diveComputers)
+        .insert(
+          const DiveComputersCompanion(
+            id: Value('pc1'),
+            name: Value('Perdix'),
+            createdAt: Value(0),
+            updatedAt: Value(0),
+          ),
+        );
+    for (final (id, primary, at, computer) in [
+      ('uddf', true, entry, null),
+      ('dc', false, entry.add(const Duration(hours: 1)), 'pc1'),
+    ]) {
+      await db
+          .into(db.diveDataSources)
+          .insert(
+            DiveDataSourcesCompanion(
+              id: Value(id),
+              diveId: const Value('d1'),
+              computerId: Value(computer),
+              isPrimary: Value(primary),
+              entryTime: Value(at),
+              importedAt: Value(entry),
+              createdAt: Value(entry),
+            ),
+          );
+    }
+    final prefs = await _prefs();
+    await tester.pumpWidget(
+      _scope(
+        prefs,
+        findings: [
+          // Scanned before the source was linked to its computer.
+          _f(
+            id: 'r-src-clock-linked',
+            detectorId: 'clock_offset',
+            category: QualityCategory.time,
+            params: const {'offsetHours': 1, 'sourceId': 'dc'},
+          ),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(FilledButton).first);
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Also fix this computer on other dives with the same offset'),
+      findsOneWidget,
+    );
+    await tester.tap(find.byType(CheckboxListTile));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('OK'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Repair applied'), findsOneWidget);
+    final sources = await DiveRepository().getDataSources('d1');
+    expect(
+      sources
+          .firstWhere((s) => s.id == 'dc')
+          .entryTime!
+          .isAtSameMomentAs(entry),
+      isTrue,
+    );
     await tester.pumpAndSettle(const Duration(seconds: 6));
   });
 

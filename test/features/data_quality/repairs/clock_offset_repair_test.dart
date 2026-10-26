@@ -311,4 +311,89 @@ void main() {
       expect((await source('d1-dc')).entryTime, at(shifted));
     });
   });
+
+  group('a dive with no source flagged primary', () {
+    // The detector then compares against the dive's oldest source (the
+    // shown order: primary first, then oldest), so that is the source a
+    // logbook shift has to carry and a same-offset lookup compares with.
+    Future<void> unflagPrimary(String diveId) =>
+        (db.update(db.diveDataSources)
+              ..where((t) => t.id.equals('$diveId-uddf')))
+            .write(const DiveDataSourcesCompanion(isPrimary: Value(false)));
+
+    test('the logbook shift moves its oldest source', () async {
+      await seedDive('d1');
+      await unflagPrimary('d1');
+      // The secondary was created after the logbook's own source.
+      await (db.update(
+        db.diveDataSources,
+      )..where((t) => t.id.equals('d1-dc'))).write(
+        DiveDataSourcesCompanion(
+          createdAt: Value(logbookEntry.add(const Duration(days: 1))),
+        ),
+      );
+      final finding = await seedFinding('d1');
+
+      await executor.shiftTimes(
+        diveIds: ['d1'],
+        offset: const Duration(hours: 1),
+        findingId: finding.id,
+      );
+
+      final shifted = logbookEntry.add(const Duration(hours: 1));
+      expect((await source('d1-uddf')).entryTime, at(shifted));
+      expect((await source('d1-dc')).entryTime, at(shifted));
+    });
+
+    test('the same-offset lookup compares with its oldest source', () async {
+      await seedDive('d1');
+      await seedDive('d2', entry: logbookEntry.add(const Duration(days: 1)));
+      await unflagPrimary('d2');
+      await (db.update(
+        db.diveDataSources,
+      )..where((t) => t.id.equals('d2-dc'))).write(
+        DiveDataSourcesCompanion(
+          createdAt: Value(logbookEntry.add(const Duration(days: 2))),
+        ),
+      );
+
+      final ids = await executor.sourcesWithSameClockOffset(
+        sourceId: 'd1-dc',
+        offset: const Duration(hours: -1),
+      );
+
+      expect(ids.toSet(), {'d1-dc', 'd2-dc'});
+    });
+  });
+
+  test('a library-wide shift stays under the SQLite variable limit', () async {
+    // One bound variable per dive would pass SQLite's 32,766 ceiling on an
+    // import this size; the lookups run in chunks instead.
+    await seedDive('d1');
+    final ids = [for (var i = 0; i < 40000; i++) 'missing-$i'];
+    final finding = await seedFinding('d1');
+
+    final result = await executor.shiftSourceTimes(
+      sourceIds: ids,
+      offset: const Duration(hours: -1),
+      findingId: finding.id,
+    );
+    expect(result.changed, isFalse);
+    await executor.shiftTimes(
+      diveIds: ids,
+      offset: const Duration(hours: 1),
+      findingId: finding.id,
+    );
+  });
+
+  group('sourceNamesComputer', () {
+    test('reads the source as it is now, not as the scan saw it', () async {
+      await seedDive('d1');
+      expect(await executor.sourceNamesComputer('d1-dc'), isTrue);
+      await (db.update(db.diveDataSources)..where((t) => t.id.equals('d1-dc')))
+          .write(const DiveDataSourcesCompanion(computerId: Value(null)));
+      expect(await executor.sourceNamesComputer('d1-dc'), isFalse);
+      expect(await executor.sourceNamesComputer('missing'), isFalse);
+    });
+  });
 }

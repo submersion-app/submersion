@@ -144,6 +144,11 @@ class QualityRepairExecutor {
     });
   }
 
+  /// Whether [sourceId] names a registered computer now, so "fix this
+  /// computer on every dive" can reach anything.
+  Future<bool> sourceNamesComputer(String sourceId) =>
+      _sourceClocks.namesComputer(sourceId);
+
   /// [sourceId] and every other source its computer recorded off by the
   /// same whole hours, for "fix this computer on every dive" (#3655).
   Future<List<String>> sourcesWithSameClockOffset({

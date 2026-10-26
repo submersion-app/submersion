@@ -3,6 +3,7 @@ import 'package:drift/drift.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 
 /// One source's stored provenance window, as it was before a shift.
 typedef SourceTimesSnapshot = ({
@@ -36,21 +37,27 @@ class SourceClockRepository {
   /// The windows of [sourceIds] that hold a time at all, for [shift] and
   /// [restore]. A source that is gone, or never had a window, is left out.
   Future<List<SourceTimesSnapshot>> snapshot(List<String> sourceIds) async {
-    if (sourceIds.isEmpty) return const [];
     final t = _db.diveDataSources;
-    return _windows(
-      t.id.isIn(sourceIds) & (t.entryTime.isNotNull() | t.exitTime.isNotNull()),
-    );
+    return [
+      for (final chunk in seriesIdChunks(sourceIds))
+        ...await _windows(
+          t.id.isIn(chunk) & (t.entryTime.isNotNull() | t.exitTime.isNotNull()),
+        ),
+    ];
   }
 
   /// The window columns alone. A full-row select would read and inflate
   /// every row's rawData blob just to compare two timestamps.
-  Future<List<SourceTimesSnapshot>> _windows(Expression<bool> where) async {
+  Future<List<SourceTimesSnapshot>> _windows(
+    Expression<bool> where, {
+    List<OrderingTerm> orderBy = const [],
+  }) async {
     final t = _db.diveDataSources;
     final rows =
         await (_db.selectOnly(t)
               ..addColumns([t.id, t.diveId, t.entryTime, t.exitTime])
-              ..where(where))
+              ..where(where)
+              ..orderBy(orderBy))
             .get();
     return [
       for (final r in rows)
@@ -99,66 +106,92 @@ class SourceClockRepository {
     }
   }
 
-  /// The primary source of each of [diveIds] that has one.
-  Future<List<String>> primarySourceIds(List<String> diveIds) async {
-    if (diveIds.isEmpty) return const [];
-    final rows =
-        await (_db.selectOnly(_db.diveDataSources)
-              ..addColumns([_db.diveDataSources.id])
-              ..where(
-                _db.diveDataSources.diveId.isIn(diveIds) &
-                    _db.diveDataSources.isPrimary.equals(true),
-              ))
-            .get();
-    return [for (final r in rows) r.read(_db.diveDataSources.id)!];
+  /// The source each of [diveIds] reads as its primary, by dive: the one
+  /// flagged primary, else its oldest. The same order the Sources panel
+  /// shows and the clock detector compares against, so a dive whose rows
+  /// carry no primary flag still has its reference source moved (#3655).
+  Future<Map<String, SourceTimesSnapshot>> _effectivePrimaries(
+    Iterable<String> diveIds,
+  ) async {
+    final t = _db.diveDataSources;
+    final byDive = <String, SourceTimesSnapshot>{};
+    for (final chunk in seriesIdChunks(diveIds.toSet().toList())) {
+      final rows = await _windows(
+        t.diveId.isIn(chunk),
+        orderBy: [
+          OrderingTerm.desc(t.isPrimary),
+          OrderingTerm.asc(t.createdAt),
+        ],
+      );
+      for (final r in rows) {
+        byDive.putIfAbsent(r.diveId, () => r);
+      }
+    }
+    return byDive;
   }
 
-  /// [sourceId] first, then every other secondary source from the same
-  /// computer that a shift of [offset] would also bring onto its dive's
-  /// primary: the same clock mistake, made on every dive the computer
-  /// downloaded before its clock was fixed. Within [toleranceMinutes] of
-  /// that, as the detector allows. Just [sourceId] when it names no
-  /// registered computer, since nothing then says which sources share it.
+  /// The primary source of each of [diveIds] that has any source, as
+  /// [_effectivePrimaries] picks it.
+  Future<List<String>> primarySourceIds(List<String> diveIds) async => [
+    for (final p in (await _effectivePrimaries(diveIds)).values) p.id,
+  ];
+
+  /// Whether [sourceId] names a registered computer now. A finding's own
+  /// computerId is as of its last scan, and the computer may have been
+  /// removed or linked since.
+  Future<bool> namesComputer(String sourceId) async =>
+      await _computerIdOf(sourceId) != null;
+
+  Future<String?> _computerIdOf(String sourceId) async {
+    final t = _db.diveDataSources;
+    final row =
+        await (_db.selectOnly(t)
+              ..addColumns([t.computerId])
+              ..where(t.id.equals(sourceId)))
+            .getSingleOrNull();
+    return row?.read(t.computerId);
+  }
+
+  /// [sourceId] first, then every other source from the same computer that
+  /// a shift of [offset] would also bring onto its dive's primary: the same
+  /// clock mistake, made on every dive the computer downloaded before its
+  /// clock was fixed. Within [toleranceMinutes] of that, as the detector
+  /// allows. Just [sourceId] when it names no registered computer, since
+  /// nothing then says which sources share it.
   Future<List<String>> sourcesSharingClockOffset({
     required String sourceId,
     required Duration offset,
     required int toleranceMinutes,
   }) async {
-    final t = _db.diveDataSources;
-    final own =
-        await (_db.selectOnly(t)
-              ..addColumns([t.computerId])
-              ..where(t.id.equals(sourceId)))
-            .getSingleOrNull();
-    final computerId = own?.read(t.computerId);
+    final computerId = await _computerIdOf(sourceId);
     if (computerId == null) return [sourceId];
 
+    final t = _db.diveDataSources;
     final candidates = await _windows(
       t.computerId.equals(computerId) &
-          t.isPrimary.equals(false) &
           t.entryTime.isNotNull() &
           t.id.equals(sourceId).not(),
     );
     if (candidates.isEmpty) return [sourceId];
-
-    final primaries = await _windows(
-      t.diveId.isIn({for (final c in candidates) c.diveId}) &
-          t.isPrimary.equals(true) &
-          t.entryTime.isNotNull(),
+    final primaries = await _effectivePrimaries(
+      candidates.map((c) => c.diveId),
     );
-    final primaryEntryByDive = {
-      for (final p in primaries) p.diveId: p.entryTime!,
-    };
 
     // The secondary reads -offset relative to its primary.
     final targetMinutes = -offset.inMinutes;
     return [
       sourceId,
       for (final c in candidates)
-        if (primaryEntryByDive[c.diveId] case final primaryEntry?)
-          if ((c.entryTime!.difference(primaryEntry).inMinutes - targetMinutes)
-                  .abs() <=
-              toleranceMinutes)
+        if (primaries[c.diveId] case (
+          id: final primaryId,
+          entryTime: final primaryEntry?,
+          diveId: _,
+          exitTime: _,
+        ))
+          if (primaryId != c.id &&
+              (c.entryTime!.difference(primaryEntry).inMinutes - targetMinutes)
+                      .abs() <=
+                  toleranceMinutes)
             c.id,
     ];
   }

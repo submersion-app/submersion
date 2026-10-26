@@ -6485,25 +6485,28 @@ class DiveRepository {
     if (diveIds.isEmpty || offset == Duration.zero) return;
     final now = DateTime.now().millisecondsSinceEpoch;
     final ms = offset.inMilliseconds;
-    final placeholders = List.filled(diveIds.length, '?').join(', ');
-    await _db.customUpdate(
-      'UPDATE dives SET '
-      'dive_date_time = dive_date_time + ?, '
-      'entry_time = CASE WHEN entry_time IS NULL THEN NULL '
-      'ELSE entry_time + ? END, '
-      'exit_time = CASE WHEN exit_time IS NULL THEN NULL '
-      'ELSE exit_time + ? END, '
-      'updated_at = ? '
-      'WHERE id IN ($placeholders)',
-      variables: [
-        Variable.withInt(ms),
-        Variable.withInt(ms),
-        Variable.withInt(ms),
-        Variable.withInt(now),
-        ...diveIds.map(Variable.withString),
-      ],
-      updates: {_db.dives},
-    );
+    // In chunks: "shift the whole import" binds one variable per dive.
+    for (final chunk in seriesIdChunks(diveIds)) {
+      final placeholders = List.filled(chunk.length, '?').join(', ');
+      await _db.customUpdate(
+        'UPDATE dives SET '
+        'dive_date_time = dive_date_time + ?, '
+        'entry_time = CASE WHEN entry_time IS NULL THEN NULL '
+        'ELSE entry_time + ? END, '
+        'exit_time = CASE WHEN exit_time IS NULL THEN NULL '
+        'ELSE exit_time + ? END, '
+        'updated_at = ? '
+        'WHERE id IN ($placeholders)',
+        variables: [
+          Variable.withInt(ms),
+          Variable.withInt(ms),
+          Variable.withInt(ms),
+          Variable.withInt(now),
+          ...chunk.map(Variable.withString),
+        ],
+        updates: {_db.dives},
+      );
+    }
     for (final diveId in diveIds) {
       await _syncRepository.markRecordPending(
         entityType: 'dives',
@@ -6524,18 +6527,17 @@ class DiveRepository {
   /// Prior time columns for [diveIds]; feed to [restoreDiveTimes] for undo.
   Future<List<({String id, int diveDateTime, int? entryTime, int? exitTime})>>
   getDiveTimesSnapshot(List<String> diveIds) async {
-    if (diveIds.isEmpty) return const [];
-    final rows = await (_db.select(
-      _db.dives,
-    )..where((t) => t.id.isIn(diveIds))).get();
     return [
-      for (final r in rows)
-        (
-          id: r.id,
-          diveDateTime: r.diveDateTime,
-          entryTime: r.entryTime,
-          exitTime: r.exitTime,
-        ),
+      for (final chunk in seriesIdChunks(diveIds))
+        for (final r in await (_db.select(
+          _db.dives,
+        )..where((t) => t.id.isIn(chunk))).get())
+          (
+            id: r.id,
+            diveDateTime: r.diveDateTime,
+            entryTime: r.entryTime,
+            exitTime: r.exitTime,
+          ),
     ];
   }
 

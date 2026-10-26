@@ -24,15 +24,10 @@ class SourceClockShiftRepair extends QualityRepairAction {
     required this.diveId,
     required this.sourceId,
     required this.suggestedOffset,
-    this.offerComputerWide = false,
   });
   final String diveId;
   final String sourceId;
   final Duration suggestedOffset;
-
-  /// Whether "fix this computer on every dive" can reach anything: only a
-  /// source that names a registered computer says which others share it.
-  final bool offerComputerWide;
 }
 
 /// Merge a likely duplicate pair as one dive recorded by two computers.
@@ -267,7 +262,6 @@ List<QualityRepairAction> repairOptionsFor(QualityFinding f) {
               diveId: diveId,
               sourceId: sourceId,
               suggestedOffset: Duration(hours: -hours),
-              offerComputerWide: f.computerId != null,
             ),
           TimeShiftRepair(
             suggestedOffset: Duration(hours: hours),
