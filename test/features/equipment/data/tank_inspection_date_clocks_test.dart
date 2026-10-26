@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
@@ -13,11 +14,12 @@ import '../../../helpers/test_database.dart';
 /// dates counts its VIP and hydro clocks from them, not from the purchase
 /// date.
 void main() {
+  late AppDatabase db;
   late ServiceScheduleRepository schedules;
   late EquipmentRepository equipment;
 
   setUp(() async {
-    await setUpTestDatabase();
+    db = await setUpTestDatabase();
     schedules = ServiceScheduleRepository();
     equipment = EquipmentRepository();
   });
@@ -161,4 +163,50 @@ void main() {
       expect((await clock(created.id, 'hydro')).anchorDate, fromDialog);
     },
   );
+
+  group('when a clock baseline cannot be saved', () {
+    Future<void> refuseBaselines() => db.customStatement('''
+      CREATE TRIGGER refuse_baseline
+      BEFORE UPDATE ON service_schedules
+      WHEN NEW.anchor_date IS NOT NULL
+      BEGIN SELECT RAISE(ABORT, 'no baseline'); END
+    ''');
+
+    test('creating the tank still succeeds', () async {
+      await refuseBaselines();
+
+      final created = await equipment.createEquipment(
+        tank(
+          attributes: [dateAttr(EquipmentAttrKeys.lastHydroTest, hydroDate)],
+        ),
+      );
+
+      expect(await equipment.getEquipmentById(created.id), isNotNull);
+      expect((await clock(created.id, 'hydro')).anchorDate, isNull);
+    });
+
+    test(
+      'an edit rolls back whole, so saving again anchors the clock',
+      () async {
+        final created = await equipment.createEquipment(tank());
+        await refuseBaselines();
+        final edited = created.copyWith(
+          attributes: [dateAttr(EquipmentAttrKeys.lastHydroTest, hydroDate)],
+        );
+
+        await expectLater(equipment.updateEquipment(edited), throwsA(anything));
+        expect(
+          (await equipment.getAttributesForEquipment(
+            created.id,
+          )).map((a) => a.key),
+          isNot(contains(EquipmentAttrKeys.lastHydroTest)),
+        );
+
+        await db.customStatement('DROP TRIGGER refuse_baseline');
+        await equipment.updateEquipment(edited);
+
+        expect((await clock(created.id, 'hydro')).anchorDate, hydroDate);
+      },
+    );
+  });
 }
