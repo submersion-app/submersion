@@ -11,6 +11,8 @@ The rest of this user guide is a reference that explains every option of each fe
 
 ## Use the app
 
+- [Customize the Display](how-to-customize-display.md): your theme, units, Dashboard, dive list and navigation.
+
 ## Moving from another app
 
 Each of these guides shows what comes across from your old app and what does not, before you start, so you know what to expect.
