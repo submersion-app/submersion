@@ -36,20 +36,28 @@ class SourceClockRepository {
   /// [restore]. A source that is gone, or never had a window, is left out.
   Future<List<SourceTimesSnapshot>> snapshot(List<String> sourceIds) async {
     if (sourceIds.isEmpty) return const [];
+    final t = _db.diveDataSources;
+    return _windows(
+      t.id.isIn(sourceIds) & (t.entryTime.isNotNull() | t.exitTime.isNotNull()),
+    );
+  }
+
+  /// The window columns alone. A full-row select would read and inflate
+  /// every row's rawData blob just to compare two timestamps.
+  Future<List<SourceTimesSnapshot>> _windows(Expression<bool> where) async {
+    final t = _db.diveDataSources;
     final rows =
-        await (_db.select(_db.diveDataSources)..where(
-              (t) =>
-                  t.id.isIn(sourceIds) &
-                  (t.entryTime.isNotNull() | t.exitTime.isNotNull()),
-            ))
+        await (_db.selectOnly(t)
+              ..addColumns([t.id, t.diveId, t.entryTime, t.exitTime])
+              ..where(where))
             .get();
     return [
       for (final r in rows)
         (
-          id: r.id,
-          diveId: r.diveId,
-          entryTime: r.entryTime,
-          exitTime: r.exitTime,
+          id: r.read(t.id)!,
+          diveId: r.read(t.diveId)!,
+          entryTime: r.read(t.entryTime),
+          exitTime: r.read(t.exitTime),
         ),
     ];
   }
@@ -115,32 +123,28 @@ class SourceClockRepository {
     required Duration offset,
     required int toleranceMinutes,
   }) async {
-    final table = _db.diveDataSources;
-    final own = await (_db.select(
-      table,
-    )..where((t) => t.id.equals(sourceId))).getSingleOrNull();
-    final computerId = own?.computerId;
+    final t = _db.diveDataSources;
+    final own =
+        await (_db.selectOnly(t)
+              ..addColumns([t.computerId])
+              ..where(t.id.equals(sourceId)))
+            .getSingleOrNull();
+    final computerId = own?.read(t.computerId);
     if (computerId == null) return [sourceId];
 
-    final candidates =
-        await (_db.select(table)..where(
-              (t) =>
-                  t.computerId.equals(computerId) &
-                  t.isPrimary.equals(false) &
-                  t.entryTime.isNotNull() &
-                  t.id.equals(sourceId).not(),
-            ))
-            .get();
+    final candidates = await _windows(
+      t.computerId.equals(computerId) &
+          t.isPrimary.equals(false) &
+          t.entryTime.isNotNull() &
+          t.id.equals(sourceId).not(),
+    );
     if (candidates.isEmpty) return [sourceId];
 
-    final primaries =
-        await (_db.select(table)..where(
-              (t) =>
-                  t.diveId.isIn({for (final c in candidates) c.diveId}) &
-                  t.isPrimary.equals(true) &
-                  t.entryTime.isNotNull(),
-            ))
-            .get();
+    final primaries = await _windows(
+      t.diveId.isIn({for (final c in candidates) c.diveId}) &
+          t.isPrimary.equals(true) &
+          t.entryTime.isNotNull(),
+    );
     final primaryEntryByDive = {
       for (final p in primaries) p.diveId: p.entryTime!,
     };

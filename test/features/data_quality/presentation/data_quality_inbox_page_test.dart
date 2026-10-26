@@ -1561,10 +1561,9 @@ void main() {
     await tester.pumpAndSettle();
     // Pre-filled with the shift that brings the source onto the primary.
     expect(find.widgetWithText(TextField, '-1'), findsOneWidget);
-    expect(
-      find.text('Also fix this computer on other dives with the same offset'),
-      findsOneWidget,
-    );
+    // The source names no registered computer, so no other dive can be
+    // said to share its clock and the computer-wide checkbox is absent.
+    expect(find.byType(CheckboxListTile), findsNothing);
     await tester.tap(find.text('OK'));
     await tester.pumpAndSettle();
 

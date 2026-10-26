@@ -45,6 +45,29 @@ void main() {
       expect(shift.offerImportWide, isTrue);
     });
 
+    test('offers the computer-wide fix only for a registered computer', () {
+      final bare = repairOptionsFor(finding).first as SourceClockShiftRepair;
+      expect(bare.offerComputerWide, isFalse);
+      final withComputer =
+          repairOptionsFor(
+                QualityFinding(
+                  id: 'f1',
+                  diveId: 'd1',
+                  computerId: 'pc1',
+                  detectorId: 'clock_offset',
+                  detectorVersion: 1,
+                  category: QualityCategory.time,
+                  severity: QualitySeverity.warning,
+                  status: QualityStatus.open,
+                  params: const {'offsetHours': 3, 'sourceId': 's2'},
+                  createdAt: DateTime.utc(2026, 7, 17),
+                  updatedAt: DateTime.utc(2026, 7, 17),
+                ),
+              ).first
+              as SourceClockShiftRepair;
+      expect(withComputer.offerComputerWide, isTrue);
+    });
+
     test('a finding without its source id offers the logbook only', () {
       final actions = repairOptionsFor(
         f(detectorId: 'clock_offset', params: {'offsetHours': -2}),

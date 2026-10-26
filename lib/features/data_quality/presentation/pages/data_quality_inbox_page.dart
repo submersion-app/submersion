@@ -182,32 +182,39 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
               : null,
         );
         if (choice == null) return;
-        final ids = choice.widen
-            ? await executor.divesInSameImport(f.diveId)
-            : [f.diveId];
+        // The widening lookup runs inside withUndo so a failed read is
+        // reported like any failed repair: the card drops this Future, so
+        // an escaped error would make the tap do nothing at all.
         await withUndo(
-          () => executor.shiftTimes(
-            diveIds: ids,
+          () async => executor.shiftTimes(
+            diveIds: choice.widen
+                ? await executor.divesInSameImport(f.diveId)
+                : [f.diveId],
             offset: choice.offset,
             findingId: f.id,
           ),
         );
-      case SourceClockShiftRepair(:final sourceId, :final suggestedOffset):
+      case SourceClockShiftRepair(
+        :final sourceId,
+        :final suggestedOffset,
+        :final offerComputerWide,
+      ):
         final choice = await showTimeShiftSheet(
           context,
           suggestedOffset: suggestedOffset,
-          widenLabel: l10n.dataQuality_repairLabel_fixSourceClockAll,
+          widenLabel: offerComputerWide
+              ? l10n.dataQuality_repairLabel_fixSourceClockAll
+              : null,
         );
         if (choice == null) return;
-        final ids = choice.widen
-            ? await executor.sourcesWithSameClockOffset(
-                sourceId: sourceId,
-                offset: choice.offset,
-              )
-            : [sourceId];
         await withUndo(
-          () => executor.shiftSourceTimes(
-            sourceIds: ids,
+          () async => executor.shiftSourceTimes(
+            sourceIds: choice.widen
+                ? await executor.sourcesWithSameClockOffset(
+                    sourceId: sourceId,
+                    offset: choice.offset,
+                  )
+                : [sourceId],
             offset: choice.offset,
             findingId: f.id,
           ),
