@@ -229,11 +229,16 @@ a security fix. cocoapods-core pulls activesupport in, and without the floor
 the resolver prefers minitest 6 and connection_pool 3, which hold activesupport
 on the vulnerable 7.2.3 (#3495).
 
-No PR-time job installs these bundles. The lanes run only in `beta.yml`,
-`promote.yml` and `release.yml`, after merge, so a lockfile that will not
-install or a Fastfile option the locked fastlane no longer accepts first
-surfaces as a failed upload or promotion. Check a lockfile change locally
-before merging it.
+The lanes run only in `beta.yml`, `promote.yml` and `release.yml`, after
+merge. So a pull request that changes a platform's `Gemfile`, `Gemfile.lock` or
+`fastlane/` folder runs the `Fastlane bundle` jobs in `ci.yaml`: each installs
+that platform's bundle frozen, on the runner and Ruby its lanes use, and loads
+its Fastfile with `fastlane lanes`. That catches a lockfile that will not
+install and a Fastfile the locked fastlane cannot parse. It does not run a
+lane, so an option the new fastlane rejects at run time still first surfaces in
+a beta. `scripts/check_ruby_versions.py` fails CI when the workflows' setup-ruby
+steps disagree on the Ruby version, so the check and the lanes cannot drift
+apart.
 
 To move Android to a newer fastlane:
 
