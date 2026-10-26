@@ -2222,10 +2222,12 @@ class DiveComputerRepository {
             ? !displacedPrimary || computerTissue != null
             : computerTissue != null && !await _hasStoredTissue(diveId);
         // The deco settings follow the same owner: the primary reading writes
-        // what it reports, none included, and a secondary one that reports
-        // none leaves the dive's alone rather than blanking them.
-        Value<T?> reported<T>(T? value) =>
-            isPrimary ? Value(value) : Value.absentIfNull(value);
+        // what it reports, none included. A secondary one, or one that just
+        // took the role from the source that stored them, leaves them alone
+        // when it reports none rather than blanking them.
+        Value<T?> reported<T>(T? value) => isPrimary && !displacedPrimary
+            ? Value(value)
+            : Value.absentIfNull(value);
         await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
           DivesCompanion(
             updatedAt: Value(now),

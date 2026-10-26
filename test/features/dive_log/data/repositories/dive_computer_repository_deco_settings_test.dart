@@ -113,4 +113,53 @@ void main() {
       expect(dive.decoConservatism, isNull);
     },
   );
+
+  test('a download taking the primary role from a UDDF source keeps the deco '
+      'settings that source stored when it reports none', () async {
+    // A UDDF import writes the dive with its settings and a summary-only
+    // primary source row, and no samples.
+    final start = DateTime(2026, 7, 4, 10, 0).millisecondsSinceEpoch;
+    final now = DateTime.now();
+    const diveId = 'uddf-dive';
+    await db
+        .into(db.dives)
+        .insert(
+          DivesCompanion(
+            id: const Value(diveId),
+            diveDateTime: Value(start),
+            entryTime: Value(start),
+            maxDepth: const Value(30),
+            gradientFactorLow: const Value(30),
+            gradientFactorHigh: const Value(70),
+            decoAlgorithm: const Value('buhlmann'),
+            decoConservatism: const Value(1),
+            createdAt: Value(now.millisecondsSinceEpoch),
+            updatedAt: Value(now.millisecondsSinceEpoch),
+          ),
+        );
+    await db
+        .into(db.diveDataSources)
+        .insert(
+          DiveDataSourcesCompanion.insert(
+            id: 'uddf-source',
+            diveId: diveId,
+            isPrimary: const Value(true),
+            sourceFileFormat: const Value('uddf'),
+            importedAt: now,
+            createdAt: now,
+          ),
+        );
+
+    final matchedId = await importWith(
+      fromComputer: computerId,
+      reportsDecoSettings: false,
+    );
+
+    expect(matchedId, diveId);
+    final dive = await storedDive(diveId);
+    expect(dive.gradientFactorLow, 30);
+    expect(dive.gradientFactorHigh, 70);
+    expect(dive.decoAlgorithm, 'buhlmann');
+    expect(dive.decoConservatism, 1);
+  });
 }
