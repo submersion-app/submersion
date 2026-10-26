@@ -270,4 +270,41 @@ void main() {
     );
     expect(det.detect(ctx), isEmpty);
   });
+
+  test("a loop tank is judged on its own computer's reading, not the merged "
+      'series', () {
+    // The merged series for this cylinder is a second computer's reading,
+    // which drains like a bailout; this computer's own reading is flat on
+    // open circuit. Its switches only describe its own reading.
+    final ctx = makeContext(
+      dive: makeTestDive(
+        diveMode: DiveMode.ccr,
+        tanks: [
+          tank(id: 'dil', order: 0, role: TankRole.diluent, computerId: 'c1'),
+          tank(
+            id: 'o2',
+            order: 1,
+            role: TankRole.oxygenSupply,
+            o2: 100,
+            computerId: 'c1',
+          ),
+          tank(
+            id: 'bo',
+            order: 2,
+            role: TankRole.bailout,
+            o2: 50,
+            computerId: 'c1',
+          ),
+        ],
+      ),
+      pressures: {
+        'o2': [...series(0, 2390, 200, 0), ...series(2400, 3000, 200, 6)],
+      },
+      ownComputerPressures: {
+        'o2': [...series(0, 2400, 200, 0.5), ...series(2410, 3000, 180, 0)],
+      },
+      gasSwitches: [sw(id: 'gs1', t: 2400, tankId: 'bo', computerId: 'c1')],
+    );
+    expect(det.detect(ctx), isEmpty);
+  });
 }

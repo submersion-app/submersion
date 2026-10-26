@@ -131,7 +131,7 @@ class TankAssignmentDetector extends QualityDetector {
       for (final t in ctx.tanks)
         if (isLoopTankRole(t.role.name) &&
             !_leftToRoleCheck(ctx, t) &&
-            (ctx.pressuresByTankId[t.id]?.length ?? 0) >= 2)
+            (_ownSeries(ctx, t)?.length ?? 0) >= 2)
           t,
     ];
     // Most dives in a library scan are open circuit: skip the profile walk.
@@ -143,9 +143,10 @@ class TankAssignmentDetector extends QualityDetector {
     );
     final out = <QualityFinding>[];
     for (final tank in candidates) {
-      final series = ctx.pressuresByTankId[tank.id]!;
+      final series = _ownSeries(ctx, tank)!;
       // Only this cylinder's own computer's switches describe what was
-      // breathed from it; a second computer logs its own switches.
+      // breathed from it; a second computer logs its own switches, and the
+      // merged series can be that computer's reading.
       final evidence = bailoutEvidence<String>(
         switches: [
           for (final sw in ctx.gasSwitches)
@@ -178,6 +179,15 @@ class TankAssignmentDetector extends QualityDetector {
     }
     return out;
   }
+
+  /// [tank]'s own computer's reading, or the merged series when no computer
+  /// owns it.
+  static List<QualityPressureSample>? _ownSeries(
+    DiveQualityContext ctx,
+    DiveTank tank,
+  ) =>
+      ctx.ownComputerPressuresByTankId[tank.id] ??
+      ctx.pressuresByTankId[tank.id];
 
   /// A name-derived loop role on a CCR dive, which `TransmitterRoleDetector`
   /// already judges by the same drain rates, with a repair that fixes the
