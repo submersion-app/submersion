@@ -599,5 +599,12 @@ extension RungsFromV231 on AppDatabase {
     // off by default; re-asserted in beforeOpen.
     if (from < 315) await _assertOmitUnusedOcGasesColumn();
     if (from < 315) await reportProgress();
+
+    // v317: a tank's last visual inspection and last hydro dates become its
+    // VIP and hydro clocks' baselines (issue #3662), where the clock has no
+    // baseline and no service of its kind. Data only, one time: from here
+    // on the equipment save writes them. 316 is held by PR #3685.
+    if (from < 317) await _backfillTankInspectionBaselines();
+    if (from < 317) await reportProgress();
   }
 }

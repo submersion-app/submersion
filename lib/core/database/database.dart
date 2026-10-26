@@ -292,7 +292,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 315;
+  static const int currentSchemaVersion = 317;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1415,6 +1415,10 @@ class AppDatabase extends _$AppDatabase {
     // v315: diver_settings.omit_unused_oc_gases (issue #3668). Additive, off
     // by default; the floor does not move.
     315,
+    // v317: the tank inspection dates become VIP and hydro clock baselines
+    // (issue #3662). Data only and unsynced, so the floor does not move. 316
+    // is held by PR #3685.
+    317,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

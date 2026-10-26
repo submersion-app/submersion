@@ -192,6 +192,27 @@ class ServiceScheduleRepository {
     }
   }
 
+  /// Sets each of [equipmentId]'s clocks named in [baselines] (service kind
+  /// id to date) to count from that date, as the clock's own dialog does
+  /// when the diver picks one (issue #3662). A kind the item has no clock
+  /// for is skipped. [notify] as for [createSchedule].
+  Future<void> applyBaselines(
+    String equipmentId,
+    Map<String, DateTime> baselines, {
+    bool notify = true,
+  }) async {
+    if (baselines.isEmpty) return;
+    final now = DateTime.now();
+    for (final schedule in await getSchedulesForEquipment(equipmentId)) {
+      final date = baselines[schedule.serviceKindId];
+      if (date == null) continue;
+      await updateSchedule(
+        schedule.withBaseline(date, now: now, picked: true),
+        notify: notify,
+      );
+    }
+  }
+
   /// The built-in service kinds [diverId] hid from the pickers (issue #401).
   /// Read straight from diver_settings, as [getDueSoonWindowDays] does, so
   /// equipment creation does not depend on the settings notifier.

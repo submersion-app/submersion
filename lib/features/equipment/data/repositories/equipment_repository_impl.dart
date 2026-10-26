@@ -24,6 +24,7 @@ import 'package:submersion/features/media_store/data/media_transfer_queue_reposi
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/services/attribute_service_baselines.dart';
 import 'package:submersion/features/equipment/domain/services/dive_sensor_summary_service.dart';
 import 'package:submersion/features/equipment/domain/services/equipment_ownership.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
@@ -385,6 +386,20 @@ class EquipmentRepository {
         );
       }
       try {
+        await ServiceScheduleRepository().applyBaselines(
+          id,
+          attributeServiceBaselines(current: equipment.attributes),
+          notify: notify,
+        );
+      } catch (e, stackTrace) {
+        _log.error(
+          'Setting service clock baselines from the inspection dates failed '
+          'for equipment $id; the equipment was still created',
+          error: e,
+          stackTrace: stackTrace,
+        );
+      }
+      try {
         await _attachLegacyIntervalClock(id, equipment, notify: notify);
       } catch (e, stackTrace) {
         _log.error(
@@ -490,11 +505,22 @@ class EquipmentRepository {
           updatedAt: Value(now),
         ),
       );
+      // Read before the save: only a date entered or changed here moves a
+      // clock (issue #3662).
+      final baselines = attributeServiceBaselines(
+        current: equipment.attributes,
+        previous: await getAttributesForEquipment(equipment.id),
+      );
       await saveAttributes(equipment.id, equipment.attributes);
       await _syncRepository.markRecordPending(
         entityType: 'equipment',
         recordId: equipment.id,
         localUpdatedAt: now,
+      );
+      await ServiceScheduleRepository().applyBaselines(
+        equipment.id,
+        baselines,
+        notify: false,
       );
       if (notify) SyncEventBus.notifyLocalChange();
       _log.info('Updated equipment: ${equipment.id}');
