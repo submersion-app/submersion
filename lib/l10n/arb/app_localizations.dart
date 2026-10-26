@@ -23683,6 +23683,12 @@ abstract class AppLocalizations {
   /// **'Delete this transmitter? Its cylinder setup goes with it. A later download that carries its serial adds it back. To keep it out of the way instead, mark it Retired.'**
   String get equipment_deleteDialog_content_transmitter;
 
+  /// No description provided for @equipment_bulkDelete_deviceNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive computers and transmitters in the selection are deleted with their download history and setup. Your dives stay.'**
+  String get equipment_bulkDelete_deviceNote;
+
   /// No description provided for @equipment_deleteDialog_title.
   ///
   /// In en, this message translates to:

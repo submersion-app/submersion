@@ -4201,6 +4201,7 @@
   "equipment_deleteDialog_content": "Weet je zeker dat je deze uitrusting wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.",
   "equipment_deleteDialog_content_computer": "Deze duikcomputer verwijderen? De downloadgeschiedenis wordt meeverwijderd, dus de volgende download leest alle duiken opnieuw. Je duiken blijven bewaard. Als je de computer opnieuw verbindt, wordt hij weer toegevoegd.",
   "equipment_deleteDialog_content_transmitter": "Deze zender verwijderen? De flesinstelling wordt meeverwijderd. Een latere download met het serienummer voegt hem weer toe. Zet hem op Uit gebruik om hem in plaats daarvan uit de weg te houden.",
+  "equipment_bulkDelete_deviceNote": "Duikcomputers en zenders in de selectie worden verwijderd met hun downloadgeschiedenis en instellingen. Je duiken blijven bewaard.",
   "equipment_deleteDialog_title": "Uitrusting verwijderen",
   "equipment_detail_brandLabel": "Merk",
   "equipment_detail_detailsTitle": "Details",

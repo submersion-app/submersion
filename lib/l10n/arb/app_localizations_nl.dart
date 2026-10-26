@@ -14557,6 +14557,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Deze zender verwijderen? De flesinstelling wordt meeverwijderd. Een latere download met het serienummer voegt hem weer toe. Zet hem op Uit gebruik om hem in plaats daarvan uit de weg te houden.';
 
   @override
+  String get equipment_bulkDelete_deviceNote =>
+      'Duikcomputers en zenders in de selectie worden verwijderd met hun downloadgeschiedenis en instellingen. Je duiken blijven bewaard.';
+
+  @override
   String get equipment_deleteDialog_title => 'Uitrusting verwijderen';
 
   @override

@@ -76,4 +76,31 @@ void main() {
     await tester.pumpAndSettle();
     expect(result, isTrue);
   });
+
+  group('bulkDeleteBody (review)', () {
+    final l10n = lookupAppLocalizations(const Locale('en'));
+
+    test('a selection with a device says the device goes too', () {
+      final body = bulkDeleteBody(l10n, [
+        EquipmentType.mask,
+        EquipmentType.computer,
+      ]);
+      expect(body, startsWith(l10n.common_bulkDelete_body));
+      expect(body, contains('download history'));
+    });
+
+    test('a selection with a transmitter says so too', () {
+      expect(
+        bulkDeleteBody(l10n, [EquipmentType.transmitter]),
+        contains('download history'),
+      );
+    });
+
+    test('other gear keeps the plain body', () {
+      expect(
+        bulkDeleteBody(l10n, [EquipmentType.mask, EquipmentType.fins]),
+        l10n.common_bulkDelete_body,
+      );
+    });
+  });
 }

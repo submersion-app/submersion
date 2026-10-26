@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 
+import 'package:submersion/core/database/imported_computer_identity.dart';
 import 'package:submersion/core/database/device_gear_heal.dart';
 import 'package:submersion/core/database/dive_computer_gear_identity.dart';
 import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
@@ -9,12 +10,15 @@ import 'package:submersion/features/dive_log/domain/services/transmitter_serial.
 ///
 /// Ladder-only because each acts on history once: rerunning the name and
 /// notes pass would keep appending notes, and rerunning the serial pass would
-/// bring back a transmitter the diver deleted. Local-only and HLC-neutral for
-/// the reason the heal gives: every input is synced and every id derived, so
-/// each device produces the same rows itself.
+/// bring back a transmitter the diver deleted. Rows are written with a NULL
+/// hlc, for the reason the heal gives: the next sync publishes them, so
+/// devices that upgraded from different states converge.
 
 /// Makes each linked computer and its item carry one name and one set of
-/// notes. The name of whichever row was edited later wins. Notes are never
+/// notes. The name the diver chose wins: a row still named after the device
+/// (its brand and model) gives way to the other. `updated_at` cannot decide
+/// it, since every download bumps the computer's. When both were renamed the
+/// item's name is kept, as the entry the diver edits from now on. Notes are never
 /// dropped: blank item notes take the computer's, and when both differ the
 /// computer's go below the item's, since the v175 twins were all seeded with
 /// blank notes and the old computer edit dialog was where divers wrote them.
@@ -25,39 +29,76 @@ Future<void> alignComputerNamesAndNotes(DatabaseConnectionUser db) async {
         'id',
         'name',
         'notes',
+        'manufacturer',
+        'model',
         'equipment_id',
-        'updated_at',
       }) ||
-      !equipmentCols.containsAll({'id', 'name', 'notes', 'updated_at'})) {
+      !equipmentCols.containsAll({'id', 'name', 'notes', 'brand', 'model'})) {
     return;
   }
   final pairs = await db
       .customSelect(
         'SELECT c.id AS cid, c.name AS cname, c.notes AS cnotes, '
-        'c.updated_at AS cupd, e.id AS eid, e.name AS ename, '
-        'e.notes AS enotes, e.updated_at AS eupd '
+        'c.manufacturer AS cmaker, c.model AS cmodel, e.id AS eid, '
+        'e.name AS ename, e.notes AS enotes, e.brand AS ebrand, '
+        'e.model AS emodel '
         'FROM dive_computers c JOIN equipment e ON e.id = c.equipment_id',
       )
       .get();
   for (final p in pairs) {
     final computerName = p.read<String>('cname');
     final itemName = p.read<String>('ename');
-    final name = p.read<int>('cupd') > p.read<int>('eupd')
-        ? computerName
-        : itemName;
+    final itemIsDefault = _isDeviceName(
+      itemName,
+      brands: [p.read<String?>('ebrand'), p.read<String?>('cmaker')],
+      models: [p.read<String?>('emodel'), p.read<String?>('cmodel')],
+    );
+    final computerIsDefault = _isDeviceName(
+      computerName,
+      brands: [p.read<String?>('cmaker'), p.read<String?>('ebrand')],
+      models: [p.read<String?>('cmodel'), p.read<String?>('emodel')],
+    );
+    final name = itemIsDefault && !computerIsDefault ? computerName : itemName;
     final notes = _mergedNotes(
       itemNotes: p.read<String>('enotes'),
       computerNotes: p.read<String>('cnotes'),
     );
-    await db.customStatement(
-      'UPDATE equipment SET name = ?, notes = ? WHERE id = ?',
-      [name, notes, p.read<String>('eid')],
-    );
-    await db.customStatement(
-      'UPDATE dive_computers SET name = ?, notes = ? WHERE id = ?',
-      [name, notes, p.read<String>('cid')],
-    );
+    // Only rows that change are written, each with a NULL hlc so the next
+    // sync publishes it (see ensureDeviceGearLinks).
+    if (name != itemName || notes != p.read<String>('enotes')) {
+      await db.customStatement(
+        'UPDATE equipment SET name = ?, notes = ?'
+        '${await clearHlcSql(db, 'equipment')} WHERE id = ?',
+        [name, notes, p.read<String>('eid')],
+      );
+    }
+    if (name != computerName || notes != p.read<String>('cnotes')) {
+      await db.customStatement(
+        'UPDATE dive_computers SET name = ?, notes = ?'
+        '${await clearHlcSql(db, 'dive_computers')} WHERE id = ?',
+        [name, notes, p.read<String>('cid')],
+      );
+    }
   }
+}
+
+/// Whether [name] is just the device's own name, "Shearwater Teric" or
+/// "Teric", rather than one the diver chose.
+bool _isDeviceName(
+  String name, {
+  required List<String?> brands,
+  required List<String?> models,
+}) {
+  final wanted = normalizeComputerIdentityPart(name);
+  if (wanted.isEmpty) return true;
+  for (final model in models) {
+    if (normalizeComputerIdentityPart(model).isEmpty) continue;
+    if (wanted == normalizeComputerIdentityPart(model)) return true;
+    for (final brand in brands) {
+      if (wanted == computerFullName(brand, model)) return true;
+    }
+  }
+  return false;
 }
 
 String _mergedNotes({
@@ -136,6 +177,7 @@ Future<int> registerUnassignedSerials(DatabaseConnectionUser db) async {
           db,
           transmitterGearSeedId(diverId, serial),
           transmitterGearDeviceKey(diverId, serial),
+          type: 'transmitter',
         );
     await mintDeviceGearItem(
       db,

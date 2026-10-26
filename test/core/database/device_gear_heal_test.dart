@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/device_gear_heal.dart';
 import 'package:submersion/core/database/dive_computer_gear_identity.dart';
@@ -248,6 +249,53 @@ void main() {
     });
   });
 
+  group('wrong-type links (review)', () {
+    test(
+      'a computer whose twin was retyped gets a computer item again',
+      () async {
+        // A v175 twin at the derived id, retyped by the diver before v315
+        // locked the type: the computer would drop out of every list.
+        await item(
+          diveComputerGearId('c1'),
+          type: 'instrument',
+          model: 'Perdix',
+        );
+        await computer('c1', equipmentId: diveComputerGearId('c1'));
+
+        await ensureDeviceGearLinks(db);
+
+        final linked = await linkOf('c1');
+        expect(linked, isNot(diveComputerGearId('c1')));
+        final row = await (db.select(
+          db.equipment,
+        )..where((r) => r.id.equals(linked!))).getSingle();
+        expect(row.type, 'computer');
+        final retyped = await (db.select(
+          db.equipment,
+        )..where((r) => r.id.equals(diveComputerGearId('c1')))).getSingle();
+        expect(
+          retyped.type,
+          'instrument',
+          reason: "the diver's item is left alone",
+        );
+      },
+    );
+
+    test('a transmitter row linked to an item of another type gets its own '
+        'item', () async {
+      await item('cyl', type: 'tank');
+      await transmitter('tx1', serial: '4A21F', itemId: 'cyl');
+
+      await ensureDeviceGearLinks(db);
+
+      final linked = await itemOfTransmitter('tx1');
+      final row = await (db.select(
+        db.equipment,
+      )..where((r) => r.id.equals(linked!))).getSingle();
+      expect(row.type, 'transmitter');
+    });
+  });
+
   group('transmitters', () {
     test('a row with no item adopts the one same-serial item, through '
         'normalization', () async {
@@ -322,15 +370,48 @@ void main() {
     expect(second.transmitterItemsMinted, 0);
   });
 
-  test('writes no hlc and marks nothing pending', () async {
-    await computer('c1');
+  test('leaves every row it changes for the next sync to publish, so a '
+      'fleet that healed from different states converges (review)', () async {
+    await item('hand-added');
+    await computer('c1', serial: '3A1F22');
+    await computer('c2', model: 'Perdix', name: 'Shearwater Perdix');
     await transmitter('tx1', serial: '4A21F');
+    for (final table in ['dive_computers', 'transmitters', 'equipment']) {
+      await db.customStatement("UPDATE $table SET hlc = 'old-clock'");
+    }
 
     await ensureDeviceGearLinks(db);
 
-    final items = await db.select(db.equipment).get();
-    expect(items, isNotEmpty);
-    expect(items.every((i) => i.hlc == null), isTrue);
-    expect(await db.select(db.syncRecords).get(), isEmpty);
+    Future<String?> hlcOf(String table, String id) async =>
+        (await db
+                .customSelect(
+                  'SELECT hlc FROM $table WHERE id = ?',
+                  variables: [Variable<String>(id)],
+                )
+                .getSingle())
+            .read<String?>('hlc');
+    expect(await hlcOf('dive_computers', 'c1'), isNull);
+    expect(await hlcOf('dive_computers', 'c2'), isNull);
+    expect(await hlcOf('transmitters', 'tx1'), isNull);
+    expect(
+      await hlcOf('equipment', 'hand-added'),
+      isNull,
+      reason: 'its serial was filled',
+    );
+    expect(await hlcOf('equipment', diveComputerGearId('c2')), isNull);
+
+    await SyncRepository(database: db).backfillMissingHlc();
+
+    final pending = await db.select(db.syncRecords).get();
+    expect(
+      pending.map((r) => '${r.entityType}/${r.recordId}').toSet(),
+      containsAll([
+        'diveComputers/c1',
+        'diveComputers/c2',
+        'transmitters/tx1',
+        'equipment/hand-added',
+        'equipment/${diveComputerGearId('c2')}',
+      ]),
+    );
   });
 }

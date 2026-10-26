@@ -13989,6 +13989,10 @@ class AppLocalizationsZh extends AppLocalizations {
       '删除此发射器？其气瓶设置也会一并删除。之后包含其序列号的下载会将其重新添加。如只想将其搁置，请将其标记为已退役。';
 
   @override
+  String get equipment_bulkDelete_deviceNote =>
+      '所选内容中的潜水电脑和发射器会连同其下载记录和设置一并删除。你的潜水记录会保留。';
+
+  @override
   String get equipment_deleteDialog_title => '删除装备';
 
   @override

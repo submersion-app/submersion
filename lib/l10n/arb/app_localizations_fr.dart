@@ -14692,6 +14692,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Supprimer cet émetteur ? Sa configuration de bouteille est supprimée avec lui. Un téléchargement ultérieur portant son numéro de série l\'ajoutera de nouveau. Pour simplement le mettre de côté, passe-le au statut Réforme.';
 
   @override
+  String get equipment_bulkDelete_deviceNote =>
+      'Les ordinateurs de plongée et les émetteurs de la sélection sont supprimés avec leur historique de téléchargement et leur configuration. Tes plongées sont conservées.';
+
+  @override
   String get equipment_deleteDialog_title => 'Supprimer l\'équipement';
 
   @override

@@ -6,7 +6,7 @@ import 'dart:typed_data';
 import 'package:crypto/crypto.dart';
 
 import 'package:flutter/foundation.dart' show visibleForTesting;
-import 'package:drift/drift.dart' show Variable;
+import 'package:drift/drift.dart' show TableUpdate, Variable;
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/device_gear_heal.dart';
@@ -893,7 +893,18 @@ class SyncService {
       // below, while the deleted id's tombstone still steers the re-mint.
       // Local-only and deterministic, so it publishes nothing.
       try {
-        await ensureDeviceGearLinks(DatabaseService.instance.database);
+        final db = DatabaseService.instance.database;
+        final healed = await ensureDeviceGearLinks(db);
+        // The heal writes raw SQL, which Drift's streams do not see; tell
+        // open screens, so a computer that just got its item appears.
+        if (healed.computersLinked + healed.transmittersLinked > 0) {
+          db.notifyUpdates({
+            TableUpdate.onTable(db.equipment),
+            TableUpdate.onTable(db.diveComputers),
+            TableUpdate.onTable(db.transmitters),
+            TableUpdate.onTable(db.diveEquipment),
+          });
+        }
       } catch (e) {
         _log.warning('Device gear heal failed (non-fatal): $e');
       }

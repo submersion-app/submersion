@@ -14648,6 +14648,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Eliminare questo trasmettitore? La configurazione della bombola viene eliminata con lui. Un download successivo che riporta il suo numero di serie lo aggiungerà di nuovo. Per metterlo da parte senza eliminarlo, impostalo su Dismesso.';
 
   @override
+  String get equipment_bulkDelete_deviceNote =>
+      'I computer subacquei e i trasmettitori nella selezione vengono eliminati con la loro cronologia di download e la loro configurazione. Le tue immersioni restano.';
+
+  @override
   String get equipment_deleteDialog_title => 'Elimina attrezzatura';
 
   @override

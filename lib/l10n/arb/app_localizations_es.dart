@@ -14648,6 +14648,10 @@ class AppLocalizationsEs extends AppLocalizations {
       '¿Eliminar este transmisor? Su configuración de botella se elimina con él. Una descarga posterior que incluya su número de serie lo volverá a añadir. Para apartarlo sin eliminarlo, márcalo como Retirado.';
 
   @override
+  String get equipment_bulkDelete_deviceNote =>
+      'Los ordenadores de buceo y transmisores de la selección se eliminan con su historial de descargas y su configuración. Tus inmersiones se conservan.';
+
+  @override
   String get equipment_deleteDialog_title => 'Eliminar equipo';
 
   @override

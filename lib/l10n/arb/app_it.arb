@@ -4101,6 +4101,7 @@
   "equipment_deleteDialog_content": "Sei sicuro di voler eliminare questa attrezzatura? Questa azione non può essere annullata.",
   "equipment_deleteDialog_content_computer": "Eliminare questo computer subacqueo? La sua cronologia di download viene eliminata con lui, quindi il prossimo download rileggerà tutte le immersioni. Le tue immersioni restano. Ricollegando il computer verrà aggiunto di nuovo.",
   "equipment_deleteDialog_content_transmitter": "Eliminare questo trasmettitore? La configurazione della bombola viene eliminata con lui. Un download successivo che riporta il suo numero di serie lo aggiungerà di nuovo. Per metterlo da parte senza eliminarlo, impostalo su Dismesso.",
+  "equipment_bulkDelete_deviceNote": "I computer subacquei e i trasmettitori nella selezione vengono eliminati con la loro cronologia di download e la loro configurazione. Le tue immersioni restano.",
   "equipment_deleteDialog_title": "Elimina attrezzatura",
   "equipment_detail_brandLabel": "Marca",
   "equipment_detail_detailsTitle": "Dettagli",

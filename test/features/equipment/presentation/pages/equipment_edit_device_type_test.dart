@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -24,6 +26,7 @@ void main() {
     WidgetTester tester, {
     String? equipmentId,
     EquipmentType? initialType,
+    List<dynamic> extra = const [],
   }) async {
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = const Size(800, 4000);
@@ -37,6 +40,7 @@ void main() {
         overrides: [
           ...overrides,
           equipmentRepositoryProvider.overrideWithValue(EquipmentRepository()),
+          ...extra,
         ].cast(),
         child: MaterialApp(
           locale: const Locale('en'),
@@ -116,5 +120,31 @@ void main() {
     await pumpEditor(tester, initialType: EquipmentType.transmitter);
 
     expect(dropdown(tester).value, EquipmentType.transmitter);
+  });
+
+  testWidgets('the type field stays locked while the device lookup loads '
+      '(review)', (tester) async {
+    late String gearId;
+    await tester.runAsync(() async {
+      final gear = await EquipmentRepository().createEquipment(
+        const EquipmentItem(
+          id: '',
+          name: 'Teric',
+          type: EquipmentType.computer,
+        ),
+      );
+      gearId = gear.id;
+    });
+    final never = Completer<bool>();
+
+    await pumpEditor(
+      tester,
+      equipmentId: gearId,
+      extra: [
+        equipmentHasDeviceProvider(gearId).overrideWith((ref) => never.future),
+      ],
+    );
+
+    expect(dropdown(tester).onChanged, isNull);
   });
 }

@@ -55,6 +55,7 @@ class TransmitterAutoRegistrar {
               _db,
               transmitterGearSeedId(diverId, serial),
               transmitterGearDeviceKey(diverId, serial),
+              type: 'transmitter',
             );
         if (!await _exists(itemId)) {
           await mintDeviceGearItem(

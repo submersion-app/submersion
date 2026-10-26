@@ -52,4 +52,34 @@ void main() {
     )..where((r) => r.id.equals('c1'))).getSingle();
     expect(computer.equipmentId, diveComputerGearId('c1'));
   });
+
+  test('a sync that heals a computer tells open screens (review)', () async {
+    final db = DatabaseService.instance.database;
+    await db
+        .into(db.diveComputers)
+        .insert(
+          DiveComputersCompanion.insert(
+            id: 'c1',
+            name: 'Shearwater Teric',
+            createdAt: 0,
+            updatedAt: 0,
+          ),
+        );
+    var ticks = 0;
+    final sub = db
+        .tableUpdates(TableUpdateQuery.onTable(db.equipment))
+        .listen((_) => ticks++);
+    addTearDown(sub.cancel);
+    await Future<void>.delayed(Duration.zero);
+    ticks = 0;
+
+    await SyncService(
+      syncRepository: SyncRepository(),
+      serializer: SyncDataSerializer(),
+      cloudProvider: FakeCloudStorageProvider(),
+    ).performSync();
+    await Future<void>.delayed(Duration.zero);
+
+    expect(ticks, greaterThan(0));
+  });
 }

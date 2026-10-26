@@ -14650,6 +14650,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Excluir este transmissor? A configuração do cilindro é excluída junto. Um download posterior que traga o número de série o adicionará outra vez. Para apenas deixá-lo de lado, marque-o como Aposentado.';
 
   @override
+  String get equipment_bulkDelete_deviceNote =>
+      'Os computadores de mergulho e transmissores da seleção são excluídos junto com o histórico de downloads e a configuração. Seus mergulhos são mantidos.';
+
+  @override
   String get equipment_deleteDialog_title => 'Excluir Equipamento';
 
   @override

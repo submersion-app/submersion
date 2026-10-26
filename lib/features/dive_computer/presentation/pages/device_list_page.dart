@@ -11,6 +11,7 @@ import 'package:submersion/features/dive_computer/presentation/utils/last_downlo
 import 'package:submersion/features/dive_computer/presentation/widgets/clock_sync_global_switch.dart';
 import 'package:submersion/features/dive_computer/presentation/widgets/raw_dive_data_discard.dart';
 import 'package:submersion/features/dive_computer/presentation/widgets/dive_computer_merge_sheet.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_delete_dialog.dart';
 import 'package:submersion/features/equipment/presentation/providers/device_item_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -241,7 +242,8 @@ class _DeviceListPageState extends ConsumerState<DeviceListPage> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(ctx.l10n.common_bulkDelete_title(ids.length)),
-        content: Text(ctx.l10n.common_bulkDelete_body),
+        // Every row is a computer's item, which takes the computer with it.
+        content: Text(bulkDeleteBody(ctx.l10n, [EquipmentType.computer])),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),

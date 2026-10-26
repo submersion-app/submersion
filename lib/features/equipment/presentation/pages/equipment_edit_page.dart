@@ -456,7 +456,9 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
     final editingId = widget.equipmentId;
     final typeLocked =
         editingId != null &&
-        (ref.watch(equipmentHasDeviceProvider(editingId)).value ?? false);
+        // Locked until the lookup answers, so the field is never briefly
+        // editable on a device's item.
+        (ref.watch(equipmentHasDeviceProvider(editingId)).value ?? true);
     final body = Form(
       key: _formKey,
       child: ListView(

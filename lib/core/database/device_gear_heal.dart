@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'package:drift/drift.dart';
 
 import 'package:submersion/core/database/dive_computer_gear_identity.dart';
@@ -30,19 +32,37 @@ Future<bool> isEquipmentTombstoned(DatabaseConnectionUser db, String id) async {
 }
 
 /// [firstId], or the first id after it in the [nextGearRemintId] chain that
-/// no tombstone names. The async form of [gearIdAvoiding].
+/// no tombstone names and no item of another type holds (a twin the diver
+/// retyped before v315 locked the type, issue #3676). The async form of
+/// [gearIdAvoiding]; [type] is the `equipment.type` the device's item needs.
 Future<String> liveGearId(
   DatabaseConnectionUser db,
   String firstId,
-  String deviceKey,
-) async {
+  String deviceKey, {
+  required String type,
+}) async {
   final hasLog = (await _columnsOf(db, 'deletion_log')).isNotEmpty;
   var id = firstId;
   for (var step = 0; step < 64; step++) {
-    if (!hasLog || !await isEquipmentTombstoned(db, id)) return id;
+    final tombstoned = hasLog && await isEquipmentTombstoned(db, id);
+    if (!tombstoned && !await _heldByOtherType(db, id, type)) return id;
     id = nextGearRemintId(deviceKey, id);
   }
   return id;
+}
+
+Future<bool> _heldByOtherType(
+  DatabaseConnectionUser db,
+  String id,
+  String type,
+) async {
+  final row = await db
+      .customSelect(
+        'SELECT type FROM equipment WHERE id = ?',
+        variables: [Variable<String>(id)],
+      )
+      .getSingleOrNull();
+  return row != null && row.read<String>('type') != type;
 }
 
 /// Gives every registered dive computer and every transmitter registry row
@@ -62,11 +82,14 @@ Future<String> liveGearId(
 /// Safe to run on every open and after every sync: a linked device is never
 /// touched, so a second pass changes nothing.
 ///
-/// LOCAL-ONLY AND HLC-NEUTRAL, deliberately, as the v175 backfill is: every
-/// input (computers, registry rows, equipment, tombstones) is synced and
-/// every minted id is derived from them, so each device produces the same
-/// rows on its own. Staging them would push one record per device from every
-/// device in the fleet, to make peers agree on rows they each derive anyway.
+/// Every row it writes is left with a NULL hlc, unlike the v175 backfill, so
+/// the next sync's `backfillMissingHlc` stamps and publishes it. The ids are
+/// derived, so devices healing from the same state agree on their own; but a
+/// device can heal before it has pulled a peer's item, or after the fleet has
+/// collected an old tombstone, and then only publishing lets last-writer-wins
+/// bring the fleet back to one link. The cost is a handful of records, once.
+/// No clock is issued here: this runs inside migrations and beforeOpen, where
+/// the sync clock may not be configured yet.
 Future<DeviceGearHealResult> ensureDeviceGearLinks(
   DatabaseConnectionUser db,
 ) async {
@@ -125,57 +148,107 @@ Future<({int linked, int minted})> _healComputers(
         'SELECT c.id, c.diver_id, c.name, c.manufacturer, c.model, '
         'c.serial_number FROM dive_computers c '
         'LEFT JOIN equipment e ON e.id = c.equipment_id '
-        'WHERE e.id IS NULL ORDER BY c.id',
+        // An item of another type is no entry for the device either: it
+        // would keep the computer out of the Dive Computers list.
+        "WHERE e.id IS NULL OR e.type != 'computer' ORDER BY c.id",
       )
       .get();
   var linked = 0;
   var minted = 0;
   for (final row in unlinked) {
-    final computerId = row.read<String>('id');
-    final diverId = row.read<String?>('diver_id');
-    final name = row.read<String>('name');
-    final manufacturer = row.read<String?>('manufacturer');
-    final model = row.read<String?>('model');
-    final serial = row.read<String?>('serial_number');
+    // One row's failure (a dangling diver, say) skips that row only: the
+    // heal runs inside the v315 migration and beforeOpen, and must never
+    // stop the library opening.
+    try {
+      final healed = await _healTransmitter(db, row);
+      linked += healed.linked;
+      minted += healed.minted;
+    } catch (e, st) {
+      developer.log(
+        'Device gear heal skipped transmitter row ${row.read<String>('id')}',
+        error: e,
+        stackTrace: st,
+      );
+    }
+  }
+  return (linked: linked, minted: minted);
+}
 
-    final chainId = await liveGearId(
-      db,
-      diveComputerGearId(computerId),
-      computerId,
+Future<({int linked, int minted})> _healTransmitter(
+  DatabaseConnectionUser db,
+  QueryRow row,
+) async {
+  var linked = 0;
+  var minted = 0;
+  // One row's failure (a dangling diver, say) skips that row only: the
+  // heal runs inside the v315 migration and beforeOpen, and must never
+  // stop the library opening.
+  try {
+    final healed = await _healComputer(db, row);
+    linked += healed.linked;
+    minted += healed.minted;
+  } catch (e, st) {
+    developer.log(
+      'Device gear heal skipped computer ${row.read<String>('id')}',
+      error: e,
+      stackTrace: st,
     );
-    String? itemId = await _existingId(db, chainId);
-    itemId ??= await matchComputerItem(
+  }
+  return (linked: linked, minted: minted);
+}
+
+Future<({int linked, int minted})> _healComputer(
+  DatabaseConnectionUser db,
+  QueryRow row,
+) async {
+  var linked = 0;
+  var minted = 0;
+  final computerId = row.read<String>('id');
+  final diverId = row.read<String?>('diver_id');
+  final name = row.read<String>('name');
+  final manufacturer = row.read<String?>('manufacturer');
+  final model = row.read<String?>('model');
+  final serial = row.read<String?>('serial_number');
+
+  final chainId = await liveGearId(
+    db,
+    diveComputerGearId(computerId),
+    computerId,
+    type: 'computer',
+  );
+  String? itemId = await _existingId(db, chainId);
+  itemId ??= await matchComputerItem(
+    db,
+    manufacturer: manufacturer,
+    model: model,
+    serial: serial,
+    diverId: diverId,
+  );
+  var mintedHere = false;
+  if (itemId == null) {
+    itemId = chainId;
+    await _mint(
       db,
-      manufacturer: manufacturer,
+      id: itemId,
+      diverId: diverId,
+      name: name,
+      type: 'computer',
+      brand: manufacturer,
       model: model,
       serial: serial,
-      diverId: diverId,
     );
-    var mintedHere = false;
-    if (itemId == null) {
-      itemId = chainId;
-      await _mint(
-        db,
-        id: itemId,
-        diverId: diverId,
-        name: name,
-        type: 'computer',
-        brand: manufacturer,
-        model: model,
-        serial: serial,
-      );
-      mintedHere = true;
-      minted++;
-    } else {
-      await fillBlankItemSerial(db, itemId, serial);
-    }
-    await db.customStatement(
-      'UPDATE dive_computers SET equipment_id = ? WHERE id = ?',
-      [itemId, computerId],
-    );
-    linked++;
-    if (mintedHere) await _linkComputerDives(db, computerId, itemId);
+    mintedHere = true;
+    minted++;
+  } else {
+    await fillBlankItemSerial(db, itemId, serial);
   }
+  await db.customStatement(
+    'UPDATE dive_computers SET equipment_id = ?'
+    '${await clearHlcSql(db, 'dive_computers')} WHERE id = ?',
+    [itemId, computerId],
+  );
+  linked++;
+  if (mintedHere) await _linkComputerDives(db, computerId, itemId);
   return (linked: linked, minted: minted);
 }
 
@@ -278,7 +351,7 @@ Future<({int linked, int minted})> _healTransmitters(
         'SELECT t.id, t.diver_id, t.transmitter_serial, t.label '
         'FROM transmitters t '
         'LEFT JOIN equipment e ON e.id = t.transmitter_equipment_id '
-        'WHERE e.id IS NULL ORDER BY t.id',
+        "WHERE e.id IS NULL OR e.type != 'transmitter' ORDER BY t.id",
       )
       .get();
   var linked = 0;
@@ -296,11 +369,13 @@ Future<({int linked, int minted})> _healTransmitters(
             db,
             nextGearRemintId('tx-row:$rowId', rowId),
             'tx-row:$rowId',
+            type: 'transmitter',
           )
         : await liveGearId(
             db,
             transmitterGearSeedId(diverId, serial),
             transmitterGearDeviceKey(diverId, serial),
+            type: 'transmitter',
           );
     String? itemId = await _existingId(db, chainId);
     if (itemId == null && serial != null) {
@@ -321,7 +396,8 @@ Future<({int linked, int minted})> _healTransmitters(
       await fillBlankItemSerial(db, itemId, serial);
     }
     await db.customStatement(
-      'UPDATE transmitters SET transmitter_equipment_id = ? WHERE id = ?',
+      'UPDATE transmitters SET transmitter_equipment_id = ?'
+      '${await clearHlcSql(db, 'transmitters')} WHERE id = ?',
       [itemId, rowId],
     );
     linked++;
@@ -405,7 +481,8 @@ Future<bool> fillBlankItemSerial(
 ) async {
   if (serial == null || serial.trim().isEmpty) return false;
   await db.customStatement(
-    'UPDATE equipment SET serial_number = ? WHERE id = ? '
+    'UPDATE equipment SET serial_number = ?'
+    '${await clearHlcSql(db, 'equipment')} WHERE id = ? '
     "AND (serial_number IS NULL OR TRIM(serial_number) = '')",
     [serial, itemId],
   );
@@ -424,6 +501,12 @@ Future<String?> _existingId(DatabaseConnectionUser db, String id) async {
       .getSingleOrNull();
   return row?.read<String>('id');
 }
+
+/// `, hlc = NULL` for [table], so the next sync's `backfillMissingHlc`
+/// publishes the row; empty on a pre-HLC fixture or mid-ladder database
+/// whose table has no clock column yet.
+Future<String> clearHlcSql(DatabaseConnectionUser db, String table) async =>
+    (await _columnsOf(db, table)).contains('hlc') ? ', hlc = NULL' : '';
 
 Future<Set<String>> _columnsOf(DatabaseConnectionUser db, String table) async {
   final rows = await db.customSelect("PRAGMA table_info('$table')").get();

@@ -14859,6 +14859,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'هل تريد حذف جهاز الإرسال هذا؟ يُحذف معه إعداد الأسطوانة. أي تنزيل لاحق يحمل رقمه التسلسلي يعيد إضافته. لإبعاده دون حذفه، ضع عليه حالة متقاعد.';
 
   @override
+  String get equipment_bulkDelete_deviceNote =>
+      'تُحذف أجهزة كمبيوتر الغوص وأجهزة الإرسال الموجودة في التحديد مع سجل التنزيل والإعداد الخاص بها. تبقى غطساتك.';
+
+  @override
   String get equipment_deleteDialog_title => 'حذف المعدات';
 
   @override

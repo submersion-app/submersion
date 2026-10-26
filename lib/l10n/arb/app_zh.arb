@@ -4328,6 +4328,7 @@
   "equipment_deleteDialog_content": "确定要删除此装备吗？此操作无法撤销。",
   "equipment_deleteDialog_content_computer": "删除此潜水电脑？其下载记录也会一并删除，因此下次下载会重新读取所有潜水。你的潜水记录会保留。再次连接该电脑会将其重新添加。",
   "equipment_deleteDialog_content_transmitter": "删除此发射器？其气瓶设置也会一并删除。之后包含其序列号的下载会将其重新添加。如只想将其搁置，请将其标记为已退役。",
+  "equipment_bulkDelete_deviceNote": "所选内容中的潜水电脑和发射器会连同其下载记录和设置一并删除。你的潜水记录会保留。",
   "equipment_deleteDialog_title": "删除装备",
   "equipment_detail_brandLabel": "品牌",
   "equipment_detail_detailsTitle": "详情",

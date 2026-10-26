@@ -8689,6 +8689,7 @@
   "equipment_deleteDialog_content": "Are you sure you want to delete this equipment? This action cannot be undone.",
   "equipment_deleteDialog_content_computer": "Delete this dive computer? Its download history goes with it, so the next download from it reads every dive again. Your dives stay. Connecting the computer again adds it back.",
   "equipment_deleteDialog_content_transmitter": "Delete this transmitter? Its cylinder setup goes with it. A later download that carries its serial adds it back. To keep it out of the way instead, mark it Retired.",
+  "equipment_bulkDelete_deviceNote": "Dive computers and transmitters in the selection are deleted with their download history and setup. Your dives stay.",
   "equipment_deleteDialog_title": "Delete Equipment",
   "equipment_detail_brandLabel": "Brand",
   "equipment_detail_detailsTitle": "Details",

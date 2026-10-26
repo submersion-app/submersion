@@ -14441,6 +14441,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Delete this transmitter? Its cylinder setup goes with it. A later download that carries its serial adds it back. To keep it out of the way instead, mark it Retired.';
 
   @override
+  String get equipment_bulkDelete_deviceNote =>
+      'Dive computers and transmitters in the selection are deleted with their download history and setup. Your dives stay.';
+
+  @override
   String get equipment_deleteDialog_title => 'Delete Equipment';
 
   @override

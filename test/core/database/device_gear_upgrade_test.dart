@@ -30,6 +30,10 @@ void main() {
   tearDown(() => db.close());
 
   Future<void> linkedPair({
+    String? manufacturer,
+    String? model,
+    String? brand,
+    String? itemModel,
     required String computerName,
     required int computerUpdated,
     required String computerNotes,
@@ -44,6 +48,8 @@ void main() {
             id: 'gear',
             name: itemName,
             type: 'computer',
+            brand: Value(brand),
+            model: Value(itemModel),
             notes: Value(itemNotes),
             createdAt: 0,
             updatedAt: itemUpdated,
@@ -55,6 +61,8 @@ void main() {
           DiveComputersCompanion.insert(
             id: 'c1',
             name: computerName,
+            manufacturer: Value(manufacturer),
+            model: Value(model),
             notes: Value(computerNotes),
             equipmentId: const Value('gear'),
             createdAt: 0,
@@ -87,13 +95,42 @@ void main() {
   }
 
   group('alignComputerNamesAndNotes', () {
-    test('the later-updated name wins on both rows', () async {
+    test('a name the diver gave the item survives a later download '
+        '(review, #3676)', () async {
+      // Every download bumps the computer's updated_at, so a timestamp rule
+      // would hand the item the device's own name back.
       await linkedPair(
-        computerName: 'My Teric',
-        computerUpdated: 20,
+        manufacturer: 'Shearwater',
+        model: 'Teric',
+        computerName: 'Shearwater Teric',
+        computerUpdated: 50,
         computerNotes: '',
-        itemName: 'Shearwater Teric',
+        brand: 'Shearwater',
+        itemModel: 'Teric',
+        itemName: 'Teric (yellow)',
         itemUpdated: 10,
+        itemNotes: '',
+      );
+
+      await alignComputerNamesAndNotes(db);
+
+      final p = await pair();
+      expect(p.itemName, 'Teric (yellow)');
+      expect(p.computerName, 'Teric (yellow)');
+    });
+
+    test('a name given in the old computer dialog survives an unrelated item '
+        'edit (review, #3676)', () async {
+      await linkedPair(
+        manufacturer: 'Shearwater',
+        model: 'Teric',
+        computerName: 'My Teric',
+        computerUpdated: 10,
+        computerNotes: '',
+        brand: 'Shearwater',
+        itemModel: 'Teric',
+        itemName: 'Shearwater Teric',
+        itemUpdated: 50,
         itemNotes: '',
       );
 
@@ -102,6 +139,25 @@ void main() {
       final p = await pair();
       expect(p.itemName, 'My Teric');
       expect(p.computerName, 'My Teric');
+    });
+
+    test('when both were renamed the item keeps its name', () async {
+      await linkedPair(
+        manufacturer: 'Shearwater',
+        model: 'Teric',
+        computerName: 'Old wrist unit',
+        computerUpdated: 50,
+        computerNotes: '',
+        brand: 'Shearwater',
+        itemModel: 'Teric',
+        itemName: 'Teric (yellow)',
+        itemUpdated: 10,
+        itemNotes: '',
+      );
+
+      await alignComputerNamesAndNotes(db);
+
+      expect((await pair()).itemName, 'Teric (yellow)');
     });
 
     test('blank item notes take the computer notes', () async {

@@ -14646,6 +14646,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Diesen Sender löschen? Seine Flascheneinrichtung wird mit gelöscht. Ein späterer Download mit seiner Seriennummer fügt ihn wieder hinzu. Um ihn stattdessen aus dem Weg zu räumen, setzen Sie ihn auf Ausgemustert.';
 
   @override
+  String get equipment_bulkDelete_deviceNote =>
+      'Tauchcomputer und Sender in der Auswahl werden mit ihrem Download-Verlauf und ihrer Einrichtung gelöscht. Ihre Tauchgänge bleiben erhalten.';
+
+  @override
   String get equipment_deleteDialog_title => 'Ausrüstung löschen';
 
   @override

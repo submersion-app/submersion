@@ -4101,6 +4101,7 @@
   "equipment_deleteDialog_content": "Biztosan törli ezt a felszerelést? Ez a művelet nem vonható vissza.",
   "equipment_deleteDialog_content_computer": "Törli ezt a búvárcomputert? A letöltési előzményei is törlődnek, így a következő letöltés újra beolvassa az összes merülést. A merülései megmaradnak. Ha újra csatlakoztatja a számítógépet, ismét felkerül.",
   "equipment_deleteDialog_content_transmitter": "Törli ezt a jeladót? A palackbeállítása is törlődik. Egy későbbi letöltés, amely tartalmazza a sorozatszámát, ismét felveszi. Ha csak félre szeretné tenni, állítsa Kivonva állapotúra.",
+  "equipment_bulkDelete_deviceNote": "A kijelölt búvárcomputerek és jeladók a letöltési előzményeikkel és a beállításaikkal együtt törlődnek. A merülései megmaradnak.",
   "equipment_deleteDialog_title": "Felszerelés törlése",
   "equipment_detail_brandLabel": "Márka",
   "equipment_detail_detailsTitle": "Részletek",

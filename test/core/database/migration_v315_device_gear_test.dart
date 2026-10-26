@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:drift/drift.dart' show Variable;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/dive_computer_gear_identity.dart';
 
@@ -236,6 +239,32 @@ void main() {
       // The serial pass is ladder-only: an open never registers serials.
       final rows = await db
           .customSelect('SELECT COUNT(*) AS n FROM transmitters')
+          .getSingle();
+      expect(rows.read<int>('n'), 1);
+    },
+  );
+
+  test(
+    'a heal that cannot write never stops the database opening (review)',
+    () async {
+      final dir = await Directory.systemTemp.createTemp('device_gear_open_');
+      addTearDown(() => dir.delete(recursive: true));
+      final file = File(p.join(dir.path, 'test.db'));
+
+      final first = AppDatabase(NativeDatabase(file));
+      // A computer whose diver no longer exists: minting its item violates the
+      // diver foreign key, which INSERT OR IGNORE does not suppress.
+      await first.customStatement('PRAGMA foreign_keys = OFF');
+      await first.customStatement(
+        'INSERT INTO dive_computers (id, diver_id, name, created_at, '
+        "updated_at) VALUES ('c1', 'ghost', 'Teric', 0, 0)",
+      );
+      await first.close();
+
+      final second = AppDatabase(NativeDatabase(file));
+      addTearDown(second.close);
+      final rows = await second
+          .customSelect('SELECT COUNT(*) AS n FROM dive_computers')
           .getSingle();
       expect(rows.read<int>('n'), 1);
     },

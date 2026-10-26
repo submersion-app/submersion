@@ -4201,6 +4201,7 @@
   "equipment_deleteDialog_content": "Tem certeza de que deseja excluir este equipamento? Esta ação não pode ser desfeita.",
   "equipment_deleteDialog_content_computer": "Excluir este computador de mergulho? O histórico de downloads é excluído junto, então o próximo download lerá todos os mergulhos novamente. Seus mergulhos são mantidos. Conectar o computador de novo o adiciona outra vez.",
   "equipment_deleteDialog_content_transmitter": "Excluir este transmissor? A configuração do cilindro é excluída junto. Um download posterior que traga o número de série o adicionará outra vez. Para apenas deixá-lo de lado, marque-o como Aposentado.",
+  "equipment_bulkDelete_deviceNote": "Os computadores de mergulho e transmissores da seleção são excluídos junto com o histórico de downloads e a configuração. Seus mergulhos são mantidos.",
   "equipment_deleteDialog_title": "Excluir Equipamento",
   "equipment_detail_brandLabel": "Marca",
   "equipment_detail_detailsTitle": "Detalhes",

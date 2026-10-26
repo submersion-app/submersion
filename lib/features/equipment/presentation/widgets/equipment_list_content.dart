@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/features/cylinder_passports/presentation/utils/scan_cylinder_tag.dart';
 import 'package:submersion/features/cylinder_passports/presentation/widgets/scan_tag_menu_entries.dart';
 import 'package:submersion/features/equipment/domain/services/equipment_ownership.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_delete_dialog.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_default_view_empty_state.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_bulk_share.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_bulk_transfer.dart';
@@ -707,7 +708,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
       actions: _bulkActions(equipment),
       shell: shell,
       maxInlineActions: shell == SelectionBarShell.pane ? 1 : 3,
-      onDelete: _confirmAndDelete,
+      onDelete: () => _confirmAndDelete(equipment),
     );
   }
 
@@ -742,15 +743,21 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     return BulkActionOutcome.completed;
   }
 
-  Future<BulkActionOutcome> _confirmAndDelete() async {
+  Future<BulkActionOutcome> _confirmAndDelete(
+    List<EquipmentItem> equipment,
+  ) async {
     final ids = _selectedIds.toList();
     if (ids.isEmpty) return BulkActionOutcome.cancelled;
+    final types = [
+      for (final e in equipment)
+        if (ids.contains(e.id)) e.type,
+    ];
 
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(ctx.l10n.common_bulkDelete_title(ids.length)),
-        content: Text(ctx.l10n.common_bulkDelete_body),
+        content: Text(bulkDeleteBody(ctx.l10n, types)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),

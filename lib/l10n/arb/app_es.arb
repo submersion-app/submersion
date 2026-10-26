@@ -4201,6 +4201,7 @@
   "equipment_deleteDialog_content": "Estás seguro de que deseas eliminar este equipo? Esta acción no se puede deshacer.",
   "equipment_deleteDialog_content_computer": "¿Eliminar este ordenador de buceo? Su historial de descargas se elimina con él, así que la próxima descarga leerá de nuevo todas las inmersiones. Tus inmersiones se conservan. Si vuelves a conectar el ordenador, se añadirá de nuevo.",
   "equipment_deleteDialog_content_transmitter": "¿Eliminar este transmisor? Su configuración de botella se elimina con él. Una descarga posterior que incluya su número de serie lo volverá a añadir. Para apartarlo sin eliminarlo, márcalo como Retirado.",
+  "equipment_bulkDelete_deviceNote": "Los ordenadores de buceo y transmisores de la selección se eliminan con su historial de descargas y su configuración. Tus inmersiones se conservan.",
   "equipment_deleteDialog_title": "Eliminar equipo",
   "equipment_detail_brandLabel": "Marca",
   "equipment_detail_detailsTitle": "Detalles",

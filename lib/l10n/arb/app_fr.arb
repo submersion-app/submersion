@@ -4101,6 +4101,7 @@
   "equipment_deleteDialog_content": "Es-tu sûr de vouloir supprimer cet équipement ? Cette action est irréversible.",
   "equipment_deleteDialog_content_computer": "Supprimer cet ordinateur de plongée ? Son historique de téléchargement est supprimé avec lui : le prochain téléchargement relira donc toutes les plongées. Tes plongées sont conservées. Reconnecter l'ordinateur l'ajoute de nouveau.",
   "equipment_deleteDialog_content_transmitter": "Supprimer cet émetteur ? Sa configuration de bouteille est supprimée avec lui. Un téléchargement ultérieur portant son numéro de série l'ajoutera de nouveau. Pour simplement le mettre de côté, passe-le au statut Réforme.",
+  "equipment_bulkDelete_deviceNote": "Les ordinateurs de plongée et les émetteurs de la sélection sont supprimés avec leur historique de téléchargement et leur configuration. Tes plongées sont conservées.",
   "equipment_deleteDialog_title": "Supprimer l'équipement",
   "equipment_detail_brandLabel": "Marque",
   "equipment_detail_detailsTitle": "Détails",

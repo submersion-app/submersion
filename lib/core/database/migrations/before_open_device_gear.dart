@@ -10,6 +10,16 @@ extension BeforeOpenDeviceGear on AppDatabase {
   /// AFTER the #1288 pass, so a computer it just registered is covered.
   /// Local-only, deterministic ids, no HLC bump.
   Future<void> _healDeviceGear() async {
-    await ensureDeviceGearLinks(this);
+    try {
+      await ensureDeviceGearLinks(this);
+    } catch (e, st) {
+      // Never block opening the library over a heal: the next open and the
+      // next sync try again.
+      developer.log(
+        'beforeOpen: device gear heal failed',
+        error: e,
+        stackTrace: st,
+      );
+    }
   }
 }

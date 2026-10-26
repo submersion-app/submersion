@@ -14355,6 +14355,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'למחוק את המשדר הזה? הגדרת המיכל שלו תימחק יחד איתו. הורדה מאוחרת יותר שמכילה את המספר הסידורי שלו תוסיף אותו שוב. כדי להזיז אותו הצידה במקום זאת, סמן אותו כהוצא משימוש.';
 
   @override
+  String get equipment_bulkDelete_deviceNote =>
+      'מחשבי צלילה ומשדרים שבבחירה נמחקים יחד עם היסטוריית ההורדות וההגדרות שלהם. הצלילות שלך נשמרות.';
+
+  @override
   String get equipment_deleteDialog_title => 'מחק ציוד';
 
   @override

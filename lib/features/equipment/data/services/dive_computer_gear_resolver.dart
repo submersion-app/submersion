@@ -56,6 +56,7 @@ class DiveComputerGearResolver {
         _db,
         diveComputerGearId(computer.id),
         computer.id,
+        type: EquipmentType.computer.name,
       );
 
       // The identity match below reads each row's CURRENT text while the id
