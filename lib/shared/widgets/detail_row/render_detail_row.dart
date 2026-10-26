@@ -117,19 +117,38 @@ class RenderDetailRow extends RenderBox
   RenderBox? get _value => childForSlot(DetailRowSlot.value);
 
   void _join() {
-    _column?.addListener(markNeedsLayout);
+    _column?.addListener(_columnChanged);
     _column?.report(this, _ownLabelWidth);
   }
 
   void _leave() {
-    _column?.removeListener(markNeedsLayout);
+    _column?.removeListener(_columnChanged);
     _column?.remove(this);
+  }
+
+  /// Relays out for the group's new column width, unless this row is in a
+  /// subtree being dropped (issue #3724).
+  ///
+  /// Flutter cuts a dropped subtree loose before detaching it node by node,
+  /// so the first row of a dropped card to detach narrows the column while
+  /// its siblings are still attached. When that happens inside a
+  /// `LayoutBuilder`'s layout, marking those siblings is a mutation outside
+  /// any active layout, which debug builds assert on. They are about to
+  /// detach anyway, and [attach] relays out any that come back.
+  void _columnChanged() {
+    for (var node = parent; node != null; node = node.parent) {
+      if (!node.attached) return;
+    }
+    markNeedsLayout();
   }
 
   @override
   void attach(PipelineOwner owner) {
     super.attach(owner);
     _join();
+    // The column may have changed while this row was detached, or while it
+    // sat in a dropped subtree and skipped the change.
+    markNeedsLayout();
   }
 
   @override
