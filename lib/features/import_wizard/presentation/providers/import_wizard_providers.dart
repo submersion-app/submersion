@@ -5,6 +5,8 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/gps_log/data/services/gps_track_match_service.dart';
+import 'package:submersion/features/gps_log/data/services/import_track_stamp.dart';
 import 'package:submersion/features/import_wizard/domain/adapters/import_source_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
@@ -267,11 +269,13 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
     TagRepository? tagRepository,
     String? diverId,
     RuleEngine? ruleEngine,
+    GpsTrackMatchService? gpsTrackMatchService,
     ImportJobNotifier? job,
     bool continuesWithoutWizard = false,
   }) : _tagRepository = tagRepository,
        _diverId = diverId,
        _ruleEngine = ruleEngine,
+       _gpsTrackMatchService = gpsTrackMatchService,
        _job = job,
        _continuesWithoutWizard = continuesWithoutWizard,
        super(const ImportWizardState());
@@ -281,6 +285,10 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
   final ImportSourceAdapter _adapter;
   final TagRepository? _tagRepository;
   final RuleEngine? _ruleEngine;
+
+  /// Stamps the imported dives' entry and exit GPS from recorded surface
+  /// tracks (issue #3704). Null in tests that do not need it.
+  final GpsTrackMatchService? _gpsTrackMatchService;
   String? _diverId;
 
   /// The app-wide job an import runs as (see [importJobProvider]): it owns
@@ -1172,6 +1180,14 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
       // The last photo phase would otherwise sit at 100% while the work
       // below runs (#3555).
       _report(token, ImportPhase.finishing, 0, 0);
+
+      // Position the dives from any recorded surface track before the
+      // summary, whose "Match sites" offer needs them (issue #3704). Here,
+      // not in an adapter, so every source gets it. Never throws.
+      final gps = _gpsTrackMatchService;
+      if (!token.isCancelled && gps != null) {
+        await stampImportedDivesFromTracks(gps, result);
+      }
 
       // Apply import tags to all imported dives.
       // Tag application is non-fatal: dives are already imported, so we
