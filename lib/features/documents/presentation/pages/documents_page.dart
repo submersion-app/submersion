@@ -21,7 +21,10 @@ import 'package:submersion/features/tags/presentation/providers/tag_link_provide
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
+import 'package:submersion/shared/widgets/master_detail/pane_header_bar.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
+import 'package:submersion/shared/widgets/section_header_title.dart';
+import 'package:submersion/shared/widgets/section_title_toggle.dart';
 
 /// Every document of the active diver (issue #2613): what needs attention
 /// first, then grouped by what each is filed under.
@@ -33,12 +36,17 @@ class DocumentsPage extends ConsumerWidget {
   /// Shows only the documents carrying this tag (a detail page's tag chip).
   final String? initialTagId;
 
+  /// The header's title in every layout: the Media screen's Photos/Videos
+  /// and Documents switch (#3631).
+  final SectionHeaderTitle headerTitle;
+
   const DocumentsPage({
     super.key,
     this.initialType,
     this.initialExpiringOnly = false,
     this.initialPersonalOnly = false,
     this.initialTagId,
+    required this.headerTitle,
   });
 
   @override
@@ -84,6 +92,7 @@ class DocumentsPage extends ConsumerWidget {
       onOpen: (id) =>
           onSelected != null ? onSelected(id) : context.push('/documents/$id'),
       floatingActionButton: showAppBar ? fab : null,
+      headerTitle: headerTitle,
     );
     if (!ResponsiveBreakpoints.isMasterDetail(context)) {
       return list(showAppBar: true);
@@ -135,6 +144,7 @@ class DocumentsListContent extends ConsumerStatefulWidget {
   final String? selectedId;
   final ValueChanged<String> onOpen;
   final Widget? floatingActionButton;
+  final SectionHeaderTitle headerTitle;
 
   const DocumentsListContent({
     super.key,
@@ -146,6 +156,7 @@ class DocumentsListContent extends ConsumerStatefulWidget {
     this.initialTagId,
     this.selectedId,
     this.floatingActionButton,
+    required this.headerTitle,
   });
 
   @override
@@ -375,10 +386,17 @@ class _DocumentsListContentState extends ConsumerState<DocumentsListContent> {
         ],
       );
     }
+    final headerTitle = widget.headerTitle;
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.documents_title),
-        actions: [_menu(context)],
+      appBar: headerTitle.pinAppBar(
+        AppBar(
+          titleSpacing: SectionTitleToggle.appBarTitleSpacing,
+          title: headerTitle.build(context, SectionHeaderSlot.appBar, null),
+          toolbarHeight: headerTitle.appBarHeight(context, null),
+          // The switch takes the whole title row, so the menu sits on a row
+          // under it, as Training's lists' icons do.
+          bottom: sectionHeaderActionsRow([_menu(context)]),
+        ),
       ),
       floatingActionButton: widget.floatingActionButton,
       body: body,
@@ -403,32 +421,11 @@ class _DocumentsListContentState extends ConsumerState<DocumentsListContent> {
 
   /// The master pane's title row on wide screens, where the list has no app
   /// bar of its own.
-  Widget _compactHeader(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        border: Border(
-          bottom: BorderSide(color: theme.colorScheme.outlineVariant),
-        ),
-      ),
-      child: Row(
-        children: [
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              context.l10n.documents_title,
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-          _menu(context, iconSize: 20),
-        ],
-      ),
-    );
-  }
+  Widget _compactHeader(BuildContext context) => PaneHeaderBar(
+    title: widget.headerTitle.build(context, SectionHeaderSlot.pane, null),
+    titleWidth: widget.headerTitle.paneTitleWidth?.call(context),
+    actions: [_menu(context, iconSize: 20)],
+  );
 
   List<Widget> _group(
     BuildContext context,

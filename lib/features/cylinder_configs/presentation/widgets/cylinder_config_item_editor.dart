@@ -9,6 +9,7 @@ import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/cylinder_configs/domain/entities/cylinder_config_item.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/tank_mnd_field.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_preset_dropdown.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_role_option.dart';
 import 'package:submersion/features/planner/domain/services/tank_mod.dart';
@@ -76,8 +77,6 @@ class _CylinderConfigItemEditorState extends State<CylinderConfigItemEditor> {
   late final TextEditingController _workingPressure;
   late final TextEditingController _o2;
   late final TextEditingController _he;
-  final TextEditingController _mnd = TextEditingController();
-  final FocusNode _mndFocus = FocusNode();
 
   /// The preset last picked this session, so the dropdown shows it. A saved
   /// cylinder records its size, not the preset it came from.
@@ -104,9 +103,6 @@ class _CylinderConfigItemEditorState extends State<CylinderConfigItemEditor> {
     );
     _o2 = TextEditingController(text: _trim(item.o2Percent));
     _he = TextEditingController(text: _trim(item.hePercent));
-    _mndFocus.addListener(() {
-      if (!_mndFocus.hasFocus) setState(() {});
-    });
   }
 
   @override
@@ -116,8 +112,6 @@ class _CylinderConfigItemEditorState extends State<CylinderConfigItemEditor> {
     _workingPressure.dispose();
     _o2.dispose();
     _he.dispose();
-    _mnd.dispose();
-    _mndFocus.dispose();
     super.dispose();
   }
 
@@ -253,34 +247,10 @@ class _CylinderConfigItemEditorState extends State<CylinderConfigItemEditor> {
     });
   }
 
-  /// MND for the current mix in the diver's depth unit, or blank when the
-  /// mix has none to show.
-  String _mndText() {
-    final settings = _units.settings;
-    final mnd = _gas.mnd(
-      endLimit: settings.endLimit,
-      o2Narcotic: settings.o2Narcotic,
-    );
-    return mnd.isFinite
-        ? formatDecimalForInput(_units.convertDepth(mnd).roundToDouble())
-        : '';
-  }
-
-  void _onMnd(String text) {
-    final read = readNumber(text, allowNegative: false);
-    if (read case NumberValue(:final value) when value > 0) {
-      final settings = _units.settings;
-      final he = GasMix.heForMnd(
-        _units.depthToMeters(value),
-        _item.o2Percent,
-        endLimit: settings.endLimit,
-        o2Narcotic: settings.o2Narcotic,
-      ).roundToDouble();
-      _emit(_item.copyWith(hePercent: he));
-      _he.text = _trim(he);
-    }
-    // Rebuild for the error line, if any.
-    setState(() {});
+  /// Puts the He an MND worked out on the cylinder and in the He field.
+  void _setHeFromMnd(double he) {
+    _emit(_item.copyWith(hePercent: he));
+    _he.text = _trim(he);
   }
 
   // --------------------------------------------------------------- build
@@ -293,12 +263,6 @@ class _CylinderConfigItemEditorState extends State<CylinderConfigItemEditor> {
     final item = _item;
     final gas = _gas;
     final settings = _units.settings;
-
-    // Kept in step with the mix while the diver is not typing in it.
-    if (gas.he > 0 && !_mndFocus.hasFocus) {
-      final expected = _mndText();
-      if (_mnd.text != expected) _mnd.text = expected;
-    }
 
     return Card(
       margin: EdgeInsets.zero,
@@ -532,26 +496,10 @@ class _CylinderConfigItemEditorState extends State<CylinderConfigItemEditor> {
               Row(
                 children: [
                   Expanded(
-                    child: TextField(
-                      controller: _mnd,
-                      focusNode: _mndFocus,
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
-                      ),
-                      inputFormatters: numberInputFormatters(),
-                      decoration: InputDecoration(
-                        labelText: 'MND',
-                        suffixText: _units.depthSymbol,
-                        helperText: l10n.diveLog_tank_mndHelper,
-                        isDense: true,
-                        errorText: invalidNumberText(
-                          context,
-                          _mnd.text,
-                          allowNegative: false,
-                        ),
-                        errorMaxLines: 3,
-                      ),
-                      onChanged: _onMnd,
+                    child: TankMndField(
+                      gas: gas,
+                      units: _units,
+                      onHeChanged: _setHeFromMnd,
                     ),
                   ),
                   const Spacer(flex: 2),

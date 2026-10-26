@@ -81,8 +81,11 @@ safety snapshot a restore takes), and when the switch is confirmed on. It runs
    extension `.db` or `.sbe`), minus any that are pinned (see "Pins across
    devices"), minus any this device's history records as pinned.
 3. Sort the candidates newest first and keep the newest N, where N is this
-   device's "Keep" number. Order by the timestamp in the name, falling back to
-   the file's modified time, as `backupRecordFromCloudFile` already does.
+   device's "Keep" number, after first reserving a slot for each device's
+   newest backup (see "Each device's newest backup"). Order by the timestamp
+   in the name, falling back to
+   the file's modified time, as `backupRecordFromCloudFile` already does,
+   with the name breaking a tie so listing order never decides.
    Every device must sort the same way for the concurrency argument below to
    hold, and a server's modified time is not available everywhere (iCloud
    reports a local file stat), so the name is the key.
@@ -109,6 +112,48 @@ construction. A test should pin that.
 A failure in the cross-device rule (offline, listing error, a delete refused)
 never fails the backup that triggered it; it is logged and retried on the next
 prune, matching today's best-effort pruning.
+
+### Each device's newest backup
+
+Added for issue [#3632](https://github.com/submersion-app/submersion/issues/3632).
+Ranking every device's backups together lets a device that backs up rarely
+(a laptop used only on dive trips) lose every one of its backups to the
+others' newer ones. So the rule never removes a device's own newest backup
+while that backup is recent.
+
+- **A device is a tag.** The device tag in the name (`__d<tag>`) identifies
+  the device. Unattributed names, written before attribution shipped, have no
+  device and get no reserved slot; they compete under the plain rule.
+- **Counted inside N.** "Keep" stays a ceiling on the folder. Each tag's
+  newest backup (by the timestamp in the name, as in step 3, with the name
+  breaking a tie) takes a slot first; the remaining `N - reserved` slots go
+  to the newest of the rest of the unpinned candidates. With Keep 10 and three devices, the folder holds each
+  device's newest plus the seven newest others.
+- **More devices than slots.** When the reserved backups alone reach N, all of
+  them are kept and nothing else is: the folder holds more than N rather than
+  losing some device's only backup.
+- **Stale devices drop out after 180 days.** A reinstall gets a new device id
+  and so a new tag, and a retired device keeps its tag forever. A device's
+  newest is reserved only while its name's timestamp is less than 180 days
+  old. Older, it competes under the plain rule: it is not deleted outright,
+  and stays until N newer backups exist. 180 days covers a seasonal diver's
+  off-season. The number is fixed, not a setting.
+- **Pins and grace are unchanged.** Pinned backups are not candidates, so a
+  device whose newest is pinned already has its recovery point and reserves
+  nothing more. The 24-hour grace still applies on top of the ranking.
+- **The confirmation** gains a line under the pinned one, "K backups are kept
+  as a device's newest", shown when K is above zero. K counts reserved
+  backups that sit outside the plain newest N, so the line appears only when
+  the reservation changed what goes. The switch subtitle says each device's
+  newest is kept unless it is over six months old.
+
+Concurrency still holds. A listing that lacks a device's newer backup
+reserves an older one of that device instead, which can only keep more.
+Two edge cases are accepted: a device's newest deleted by hand while another
+device is mid-prune can make that prune reserve one slot too many and remove
+one backup the folder would otherwise keep; and a backup right at 180 days
+can be reserved on one device and not on another, because each compares
+against its own clock, which only returns it to the plain rule early.
 
 ### Pins across devices
 

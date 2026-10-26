@@ -19,8 +19,10 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_corner_controls.dart';
+import 'package:submersion/features/maps/presentation/widgets/map_interaction_options.dart';
 import 'package:submersion/features/maps/presentation/widgets/submersion_tile_layer.dart';
 import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
+import 'package:submersion/features/maps/presentation/widgets/world_copies.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_corrector.dart';
@@ -436,6 +438,12 @@ class _AlignPageBody extends ConsumerWidget {
                     options: MapOptions(
                       initialCenter: initialCenter,
                       initialZoom: anchor != null ? 15 : 3,
+                      // The zoom range, pole stop and pinch handling every
+                      // other map has (#3664).
+                      minZoom: 2.0,
+                      maxZoom: 18.0,
+                      interactionOptions: rotatableMapInteraction,
+                      cameraConstraint: worldMapCameraConstraint,
                     ),
                     children: [
                       submersionTileLayer(ref),

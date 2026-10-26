@@ -8,6 +8,21 @@
   "connections_around_prompt": "Search for a buddy, site, trip or anything else to centre the map on it.",
   "connections_around_searchHint": "Search buddies, sites, trips and more",
   "connections_around_show": "Show",
+  "connections_caption_circle": "A line joins two buddies who dived together.",
+  "connections_caption_where": "A line means you dived at that site with that buddy.",
+  "connections_caption_trips": "A line means that buddy was on that trip.",
+  "connections_caption_life": "A line means you saw that species at that site.",
+  "connections_caption_gear": "A line joins gear used on the same dive.",
+  "connections_caption_centers": "A line means you dived with that buddy through that center.",
+  "connections_caption_travel": "Buddies, trips and sites; a line means they share dives.",
+  "connections_caption_reef": "Sites, marine life and dive types; a line means they share dives.",
+  "connections_caption_gearRoad": "Gear, trips and centers; a line means they share dives.",
+  "connections_caption_custom": "{kinds}; a line means they share a dive.",
+  "@connections_caption_custom": {"placeholders": {"kinds": {"type": "String"}}},
+  "connections_caption_kindSeparator": ", ",
+  "connections_caption_around": "{hops, plural, =1{Everything that shares a dive with this centre.} other{Everything within {hops} steps of this centre, linked by shared dives.}}",
+  "@connections_caption_around": {"placeholders": {"hops": {"type": "int"}}},
+  "connections_caption_thicker": "Thicker lines mean more dives.",
   "connections_editor_kinds": "Kinds",
   "connections_editor_link": "{a} with {b}",
   "@connections_editor_link": {"placeholders": {"a": {"type": "String"}, "b": {"type": "String"}}},
@@ -1616,7 +1631,7 @@
   "backup_schedule_retention_subtitle": "Older backups are automatically removed",
   "backup_retention_allDevices_title": "Count backups from all devices",
   "backup_retention_allDevices_off": "Off: this device removes only the backups it made",
-  "backup_retention_allDevices_on": "The cloud folder keeps the last {count} backups from every device. Pinned backups are kept. If other devices use this too, the smallest number wins. Update the app on every device first so their pins are seen.",
+  "backup_retention_allDevices_on": "The cloud folder keeps the last {count} backups from every device. Pinned backups are kept. Each device's newest backup is kept too, unless it is more than 6 months old. If other devices use this too, the smallest number wins. Update the app on every device first so their pins are seen.",
   "@backup_retention_allDevices_on": {"placeholders": {"count": {"type": "int"}}},
   "backup_retention_cloudFootprint": "{count, plural, one{{count} backup in the cloud folder uses {size}} other{{count} backups in the cloud folder use {size}}}",
   "@backup_retention_cloudFootprint": {"placeholders": {"count": {"type": "int"}, "size": {"type": "String"}}},
@@ -1626,6 +1641,8 @@
   "@backup_retention_confirm_body": {"placeholders": {"keep": {"type": "int"}, "size": {"type": "String"}}},
   "backup_retention_confirm_pinnedKept": "{count, plural, one{{count} pinned backup is kept.} other{{count} pinned backups are kept.}}",
   "@backup_retention_confirm_pinnedKept": {"placeholders": {"count": {"type": "int"}}},
+  "backup_retention_confirm_deviceNewestKept": "{count, plural, one{{count} backup is kept as its device's newest.} other{{count} backups are kept as their device's newest.}}",
+  "@backup_retention_confirm_deviceNewestKept": {"placeholders": {"count": {"type": "int"}}},
   "backup_retention_confirm_action": "{count, plural, one{Remove {count} backup} other{Remove {count} backups}}",
   "@backup_retention_confirm_action": {"placeholders": {"count": {"type": "int"}}},
   "backup_retention_source_thisDevice": "This device",
@@ -3282,6 +3299,7 @@
   "connections_empty_noDives": "No dives yet. Connections appear once your log has dives in it.",
   "connections_empty_buddies": "No buddies are linked to dives yet. Add buddies to your dives, or convert legacy buddy names under Settings > Data > Data tools.",
   "connections_empty_sites": "No dives have a site yet.",
+  "connections_empty_whereNoSites": "None of your dives with a buddy has a site yet. Add sites to those dives to see where you dive together.",
   "connections_empty_filtered": "Nothing matches the current filter.",
   "connections_focusMissing": "That item is no longer in the log.",
   "connections_error_load": "Could not load connections.",
@@ -5636,6 +5654,7 @@
   "diveLog_tank_label_endPressure": "End Pressure",
   "diveLog_tank_label_he": "He",
   "diveLog_tank_label_material": "Material",
+  "diveLog_tank_label_mnd": "MND",
   "diveLog_tank_label_n2": "N2",
   "diveLog_tank_label_o2": "O2",
   "diveLog_tank_label_role": "Role",
@@ -5644,8 +5663,16 @@
   "diveLog_tank_label_volume": "Volume",
   "diveLog_tank_label_workingPressure": "Working P",
   "diveLog_tank_mndHelper": "Set to auto-calculate He%",
-  "diveLog_tank_gasUsed": "({amount} used)",
   "diveLog_tank_modMndInfo": "MOD: {mod} (ppO₂ {ppO2}) | MND: {mnd}",
+  "diveLog_cylinders_columnTank": "Tank",
+  "diveLog_cylinders_columnGas": "Gas",
+  "diveLog_cylinders_columnStart": "Start",
+  "diveLog_cylinders_columnEnd": "End",
+  "diveLog_cylinders_columnUsed": "Used",
+  "diveLog_cylinders_gasUsed": "Gas used {amount}",
+  "diveLog_cylinders_mod": "MOD {depth}",
+  "diveLog_cylinders_mnd": "MND {depth}",
+  "diveLog_cylinders_modNote": "MOD at ppO₂ {ppO2}",
   "diveLog_tank_section_gasMix": "Gas Mix",
   "diveLog_tank_computerMix_matches": "Recorded by your dive computer",
   "diveLog_tank_computerMix_differs": "Your dive computer recorded {mix}",
@@ -6281,10 +6308,49 @@
       }
     }
   },
-  "@diveLog_tank_gasUsed": {
-    "description": "Trailing note on the tank pressure line: how much gas the dive consumed, e.g. \"(160 bar / 1920 L used)\"",
+  "@diveLog_cylinders_columnTank": {
+    "description": "Cylinders card table header over the tank size, name and role"
+  },
+  "@diveLog_cylinders_columnGas": {
+    "description": "Cylinders card table header over the gas mix"
+  },
+  "@diveLog_cylinders_columnStart": {
+    "description": "Cylinders card table header over the start pressure; the pressure unit is shown under it"
+  },
+  "@diveLog_cylinders_columnEnd": {
+    "description": "Cylinders card table header over the end pressure; the pressure unit is shown under it"
+  },
+  "@diveLog_cylinders_columnUsed": {
+    "description": "Cylinders card table header over the pressure used; the pressure unit is shown under it"
+  },
+  "@diveLog_cylinders_gasUsed": {
+    "description": "Cylinders card detail item: the volume of gas the dive consumed from this cylinder, e.g. \"Gas used 1665 L\"",
     "placeholders": {
       "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "@diveLog_cylinders_mod": {
+    "description": "Cylinders card detail item: maximum operating depth, e.g. \"MOD 33m\"",
+    "placeholders": {
+      "depth": {
+        "type": "String"
+      }
+    }
+  },
+  "@diveLog_cylinders_mnd": {
+    "description": "Cylinders card detail item: maximum narcotic depth, e.g. \"MND 30m\"",
+    "placeholders": {
+      "depth": {
+        "type": "String"
+      }
+    }
+  },
+  "@diveLog_cylinders_modNote": {
+    "description": "Note under the Cylinders card table: the working ppO2 every MOD on the card was computed at, e.g. \"MOD at ppO₂ 1.4\"",
+    "placeholders": {
+      "ppO2": {
         "type": "String"
       }
     }
@@ -8687,6 +8753,9 @@
   "equipment_deleteDialog_cancel": "Cancel",
   "equipment_deleteDialog_confirm": "Delete",
   "equipment_deleteDialog_content": "Are you sure you want to delete this equipment? This action cannot be undone.",
+  "equipment_deleteDialog_content_computer": "Delete this dive computer? Its download history goes with it, so the next download from it reads every dive again. Your dives stay. Connecting the computer again adds it back.",
+  "equipment_deleteDialog_content_transmitter": "Delete this transmitter? Its cylinder setup goes with it. A later download that carries its serial adds it back. To keep it out of the way instead, mark it Retired.",
+  "equipment_bulkDelete_deviceNote": "Dive computers and transmitters in the selection are deleted with their download history and setup. Your dives stay.",
   "equipment_deleteDialog_title": "Delete Equipment",
   "equipment_detail_brandLabel": "Brand",
   "equipment_detail_detailsTitle": "Details",
@@ -9206,6 +9275,7 @@
   "equipment_edit_focalLengthHint": "e.g., 60 or 15-45",
   "equipment_edit_webLinkHint": "e.g., shop.example.com/product",
   "equipment_edit_typeLabel": "Type *",
+  "equipment_edit_typeLockedHelper": "A connected dive computer or transmitter keeps its type.",
   "equipment_edit_useCustomReminders": "Use Custom Reminders",
   "equipment_edit_useCustomRemindersSubtitle": "Set different reminder days for this item",
   "equipment_fab_addEquipment": "Add Equipment",
@@ -12261,6 +12331,8 @@
   },
   "nav_home": "Home",
   "nav_media": "Media",
+  "nav_mediaDocumentsSubtitle": "Photos, videos and documents",
+  "nav_photosVideos": "Photos/Videos",
   "nav_more": "More",
   "nav_planning": "Planning",
   "nav_planningSubtitle": "Dive Planner, Calculators",
@@ -12306,6 +12378,12 @@
   },
   "@nav_media": {
     "description": "Navigation label for the media section"
+  },
+  "@nav_mediaDocumentsSubtitle": {
+    "description": "Subtitle for the Media menu item in the More sheet, naming its two tabs"
+  },
+  "@nav_photosVideos": {
+    "description": "Label of the Media section's tab for photos and videos, beside its Documents tab"
   },
   "@nav_more": {
     "description": "Navigation label for the 'more' menu on mobile"
@@ -13003,6 +13081,7 @@
   "buoyancy_estimatedPressures": "Tank pressures are estimated",
   "buoyancy_linkSuitHint": "Link an exposure suit to this dive for a fuller picture",
   "buoyancy_noLeadHint": "No lead recorded: add weights to this dive, or a dry weight to your weights gear",
+  "buoyancy_tankMaterialAssumedHint": "Tank material not set, so aluminum was assumed: set the material or pick a tank preset",
   "buoyancy_chartNet": "Net",
   "buoyancy_chartRig": "Rig + lead",
   "buoyancy_chartMinutes": "Time (min)",
@@ -13823,6 +13902,10 @@
   "@settings_conflict_field_downloadsFollowComputerOwner": {
     "description": "Label for the downloads-follow-computer-owner setting in a sync conflict"
   },
+  "settings_conflict_field_omitUnusedOcGases": "Skip unused bailout gases",
+  "@settings_conflict_field_omitUnusedOcGases": {
+    "description": "Label for the skip-unused-bailout-gases setting in a sync conflict"
+  },
   "settings_conflict_field_avgSpeed": "Average speed",
   "settings_conflict_field_batteryReserveFraction": "Battery reserve",
   "settings_conflict_field_bboxHeight": "Box height",
@@ -14440,7 +14523,6 @@
   "settings_conflict_ref_attachedThrough": "Attached through",
   "settings_conflict_ref_buddy": "Buddy",
   "nav_documents": "Documents",
-  "documents_title": "Documents",
   "documents_type_insurance": "Insurance",
   "documents_type_medicalClearance": "Medical clearance",
   "documents_type_certificationCard": "Certification card",
@@ -17640,6 +17722,14 @@
   "@settings_downloadsFollowOwner_subtitle": {
     "description": "Switch subtitle, in Import options on Settings > Data, explaining that a download from another profile's dive computer goes to that profile"
   },
+  "settings_omitUnusedOcGases_title": "Skip unused bailout gases",
+  "@settings_omitUnusedOcGases_title": {
+    "description": "Switch title, in Import options on Settings > Data, for leaving out open-circuit gases a rebreather dive computer reports but the diver never carried or breathed"
+  },
+  "settings_omitUnusedOcGases_subtitle": "On rebreather downloads and re-parses, leave out a gas with no transmitter that was never breathed",
+  "@settings_omitUnusedOcGases_subtitle": {
+    "description": "Switch subtitle, in Import options on Settings > Data, explaining which gases a rebreather download leaves out"
+  },
   "tags_manage_searchHint": "Search tags...",
   "tags_manage_diveCount": "{count, plural, =0{0 dives} =1{1 dive} other{{count} dives}}",
   "@tags_manage_diveCount": {
@@ -20126,26 +20216,13 @@
   "diveComputer_connections_cloudGarmin": "Garmin Connect",
   "diveComputer_connections_cloudSuunto": "Suunto app",
   "diveComputer_connections_cloudOther": "Cloud import",
-  "diveComputer_detail_deleteDialogContent": "Are you sure you want to remove \"{name}\"? This will not delete any dives that were imported from this computer.",
-  "@diveComputer_detail_deleteDialogContent": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "diveComputer_detail_deleteDialogTitle": "Delete Computer?",
   "diveComputer_detail_divesImported": "Dives Imported",
   "diveComputer_detail_downloadDivesButton": "Download Dives",
-  "diveComputer_detail_editDialogTitle": "Edit Computer",
-  "diveComputer_detail_editNameHint": "e.g., My Perdix",
-  "diveComputer_detail_editNotesHint": "Optional notes",
+  "diveComputer_section_connect": "Connect and download",
+  "diveComputer_section_notConnected": "This computer has not been connected yet. Connect it to download its dives.",
   "diveComputer_detail_labelManufacturer": "Manufacturer",
   "diveComputer_detail_labelModel": "Model",
-  "diveComputer_detail_labelName": "Name",
   "diveComputer_detail_lastDownload": "Last Download",
-  "diveComputer_detail_linkedGear": "Gear item",
-  "diveComputer_detail_notesTitle": "Notes",
   "diveComputer_detail_reimportAllButton": "Re-import all dives",
   "diveComputer_detail_reimportDialogBody": "Download every dive from {computerName} and review them against your log. This may take several minutes.",
   "@diveComputer_detail_reimportDialogBody": {
@@ -20328,6 +20405,8 @@
   "diveComputer_list_emptyMessage": "Connect your dive computer to download dives directly into the app.",
   "diveComputer_list_emptyTitle": "No Dive Computers",
   "diveComputer_list_findComputers": "Find Computers",
+  "diveComputer_list_addByHand": "Add by hand",
+  "diveComputer_list_notConnected": "Not connected yet",
   "diveComputer_list_helpBluetooth": "• Bluetooth LE (most modern computers)",
   "diveComputer_list_helpBluetoothClassic": "• Bluetooth Classic (older models)",
   "diveComputer_list_helpBrandsList": "Shearwater, Suunto, Mares, Scubapro, Oceanic, Aqualung, Cressi, and 50+ more models.",
@@ -24415,6 +24494,23 @@
     }
   },
   "dataQuality_repairLabel_shiftImport": "Shift all dives from this import",
+  "dataQuality_repairLabel_shiftLogbookTime": "Shift logbook time by {offset}",
+  "@dataQuality_repairLabel_shiftLogbookTime": {
+    "placeholders": {
+      "offset": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_repairLabel_fixSourceClock": "Fix this computer's clock by {offset}",
+  "@dataQuality_repairLabel_fixSourceClock": {
+    "placeholders": {
+      "offset": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_repairLabel_fixSourceClockAll": "Also fix this computer on other dives with the same offset",
   "dataQuality_repairLabel_consolidate": "Consolidate",
   "dataQuality_repairLabel_deleteDuplicate": "Delete duplicate",
   "@dataQuality_repairLabel_deleteDuplicate": {
@@ -30577,6 +30673,7 @@
   "profilePhoto_error_contactPermission": "Contacts permission is required to choose a photo.",
   "diveComputer_merge_title": "Merge Dive Computers",
   "diveComputer_merge_intro": "{count} records will become one. Dives, profiles and download history move to the record you keep. The other records are deleted.",
+  "diveComputer_merge_gearNote": "Each other record's Equipment item is folded into this one: its service history, documents and photos move here, and the emptied item is deleted.",
   "@diveComputer_merge_intro": {
     "placeholders": {
       "count": {
@@ -30753,12 +30850,15 @@
   "settings_manage_transmitters_subtitle": "Link air-integration transmitters to cylinders",
   "transmitters_title": "Transmitters",
   "transmitters_add": "Add transmitter",
-  "transmitters_header_assigned": "Assigned transmitters",
-  "transmitters_header_unassigned": "Seen in downloads, not assigned",
-  "transmitters_empty": "No transmitters yet. Add one, or assign a serial after your next download.",
-  "transmitters_action_assign": "Assign",
-  "transmitters_action_edit": "Edit transmitter",
-  "transmitters_action_delete": "Delete transmitter",
+  "transmitters_emptyItems": "No transmitters yet. A download that reads one adds it here, or add one by hand.",
+  "transmitters_noCylinder": "No cylinder set up",
+  "transmitters_section_noKey": "No serial or channel yet. Add the one your dive computer reports for this transmitter.",
+  "transmitters_key_remove": "Remove this key",
+  "transmitters_key_removeTitle": "Remove this key?",
+  "transmitters_key_removeBody": "The transmitter item and its other keys stay. Use this for a wrong channel or a mistyped serial: a serial your dive computer keeps reporting is added back by the next download, not yet set up.",
+  "transmitters_list_noKey": "No serial or channel yet",
+  "transmitters_section_addKey": "Add serial or channel",
+  "transmitters_section_setUp": "Set up",
   "transmitters_action_apply": "Apply to existing dives",
   "transmitters_apply_title": "Apply to existing dives?",
   "transmitters_apply_content": "{tanks} cylinders on {dives} dives carry this transmitter. Empty size, material, name and gear fields will be filled, and a role still set to Back Gas or read from the transmitter's name will be replaced.",
@@ -30776,13 +30876,6 @@
     }
   },
   "transmitters_apply_nothing": "No cylinders carry this transmitter",
-  "transmitters_delete_title": "Delete transmitter?",
-  "transmitters_delete_content": "Future downloads from {label} will use the default preset again.",
-  "@transmitters_delete_content": {
-    "placeholders": {
-      "label": { "type": "String" }
-    }
-  },
   "transmitters_channel": "{computer}, channel {channel}",
   "@transmitters_channel": {
     "placeholders": {
@@ -30796,24 +30889,14 @@
       "serial": { "type": "String" }
     }
   },
-  "transmitters_dives": "{count, plural, =1{1 dive} other{{count} dives}}",
-  "@transmitters_dives": {
-    "placeholders": {
-      "count": { "type": "int" }
-    }
-  },
   "transmitters_edit_title": "Edit transmitter",
   "transmitters_new_title": "New transmitter",
-  "transmitters_field_label": "Label",
-  "transmitters_field_label_helper": "Becomes the cylinder's name on the dive once this transmitter is matched",
   "transmitters_field_serial": "Transmitter serial",
   "transmitters_field_computer": "Dive computer (when no serial is reported)",
   "transmitters_field_channel": "Channel",
   "transmitters_field_role": "Role",
   "transmitters_field_gear": "Cylinder from gear",
   "transmitters_field_gear_subtitle": "The cylinder this transmitter reports pressure for",
-  "transmitters_field_transmitterGear": "Transmitter from gear",
-  "transmitters_field_transmitterGear_subtitle": "Battery/service tracking, not matching",
   "transmitters_field_material": "Material",
   "transmitters_gear_none": "None",
   "transmitters_hint_missingSize": "This cylinder has no size or pressure on file, so size will stay empty on the dive",
@@ -30826,18 +30909,6 @@
     }
   },
   "transmitters_saved": "Transmitter saved",
-  "transmitters_copySerial_title": "Copy the serial to \"{gearName}\"?",
-  "@transmitters_copySerial_title": {
-    "placeholders": {
-      "gearName": {"type": "String"}
-    }
-  },
-  "transmitters_copySerial_content": "The serial this entry matches on ({serial}) is not recorded on the transmitter gear item yet.",
-  "@transmitters_copySerial_content": {
-    "placeholders": {
-      "serial": {"type": "String"}
-    }
-  },
   "diveComputer_detail_transmitters": "Transmitters",
   "diveComputer_detail_transmittersSummary": "{known} known, {unassigned} unassigned",
   "@diveComputer_detail_transmittersSummary": {
@@ -30871,6 +30942,9 @@
   "universalImport_summary_noticeAssignTransmitters": "Assign transmitters",
   "universalImport_summary_noticeTransmitterNameRolesTitle": "Cylinder roles read from transmitter names",
   "universalImport_summary_noticeTransmitterNameRolesBody": "The dive computer took some oxygen and diluent roles from the names given to its transmitters: a name starting with O reads as oxygen, one starting with D as diluent. Assign the transmitters to confirm or correct those roles.",
+  "universalImport_summary_noticeDeviceOtherItemTitle": "This computer is already in Equipment",
+  "universalImport_summary_noticeDeviceOtherItemBody": "The computer you connected is already another Equipment item, so its dives were added there. The item you started from was left as it was.",
+  "universalImport_summary_noticeDeviceOtherItemAction": "Open that item",
   "universalImport_summary_noticeDiveNumberConflictTitle": "Dive numbers already in use",
   "universalImport_summary_noticeDiveNumberConflictBody": "These dives kept the number from their source, but other dives in your log already use the same numbers. Open Dive Numbering from the dive list menu to renumber them.",
   "dataQuality_detector_unknown_transmitter": "Unassigned transmitter",

@@ -29,6 +29,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/world_map_expectations.dart';
 
 /// Records `updateCorrection` calls instead of touching a real database.
 class _RecordingNavTrackRepository extends NavTrackRepository {
@@ -1524,5 +1525,12 @@ void main() {
       await pumpAlign(tester, () async => null);
       expect(find.text('Track not found.'), findsOneWidget);
     });
+  });
+
+  testWidgets('the map zooms and scrolls like the other maps (#3664)', (
+    tester,
+  ) async {
+    await _pump(tester, route: _route());
+    expectZoomsAndScrollsLikeOtherMaps(tester);
   });
 }

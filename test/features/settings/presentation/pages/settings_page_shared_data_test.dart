@@ -689,6 +689,9 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   Future<void> setDownloadsFollowComputerOwner(bool value) async =>
       state = state.copyWith(downloadsFollowComputerOwner: value);
   @override
+  Future<void> setOmitUnusedOcGases(bool value) async =>
+      state = state.copyWith(omitUnusedOcGases: value);
+  @override
   Future<void> setCardColorGradientPreset(String preset) async =>
       state = state.copyWith(cardColorGradientPreset: preset);
   @override

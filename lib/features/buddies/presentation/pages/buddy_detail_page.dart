@@ -28,6 +28,7 @@ import 'package:submersion/features/certification_agencies/presentation/provider
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 import 'package:submersion/features/documents/presentation/widgets/documents_section.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
+import 'package:submersion/shared/widgets/detail_row/detail_row_group.dart';
 
 class BuddyDetailPage extends ConsumerStatefulWidget {
   final String buddyId;
@@ -515,50 +516,52 @@ class _BuddyDetailContent extends ConsumerWidget {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              context.l10n.buddies_section_diveStatistics,
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            statsAsync.when(
-              data: (stats) => Column(
-                children: [
-                  IconDetailRow(
-                    icon: Icons.scuba_diving,
-                    label: context.l10n.buddies_stat_divesTogether,
-                    value: stats.totalDives.toString(),
-                  ),
-                  if (stats.firstDive != null)
-                    IconDetailRow(
-                      icon: Icons.first_page,
-                      label: context.l10n.buddies_stat_firstDive,
-                      value: units.formatDate(stats.firstDive),
-                    ),
-                  if (stats.lastDive != null)
-                    IconDetailRow(
-                      icon: Icons.last_page,
-                      label: context.l10n.buddies_stat_lastDive,
-                      value: units.formatDate(stats.lastDive),
-                    ),
-                  if (stats.favoriteSite != null)
-                    IconDetailRow(
-                      icon: Icons.place,
-                      label: context.l10n.buddies_stat_favoriteSite,
-                      value: stats.favoriteSite!,
-                    ),
-                ],
+        child: DetailRowGroup(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                context.l10n.buddies_section_diveStatistics,
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
               ),
-              loading: () =>
-                  const Center(child: CircularProgressIndicator.adaptive()),
-              error: (error, _) =>
-                  Text(context.l10n.buddies_error_unableToLoadStats),
-            ),
-          ],
+              const SizedBox(height: 12),
+              statsAsync.when(
+                data: (stats) => Column(
+                  children: [
+                    IconDetailRow(
+                      icon: Icons.scuba_diving,
+                      label: context.l10n.buddies_stat_divesTogether,
+                      value: stats.totalDives.toString(),
+                    ),
+                    if (stats.firstDive != null)
+                      IconDetailRow(
+                        icon: Icons.first_page,
+                        label: context.l10n.buddies_stat_firstDive,
+                        value: units.formatDate(stats.firstDive),
+                      ),
+                    if (stats.lastDive != null)
+                      IconDetailRow(
+                        icon: Icons.last_page,
+                        label: context.l10n.buddies_stat_lastDive,
+                        value: units.formatDate(stats.lastDive),
+                      ),
+                    if (stats.favoriteSite != null)
+                      IconDetailRow(
+                        icon: Icons.place,
+                        label: context.l10n.buddies_stat_favoriteSite,
+                        value: stats.favoriteSite!,
+                      ),
+                  ],
+                ),
+                loading: () =>
+                    const Center(child: CircularProgressIndicator.adaptive()),
+                error: (error, _) =>
+                    Text(context.l10n.buddies_error_unableToLoadStats),
+              ),
+            ],
+          ),
         ),
       ),
     );

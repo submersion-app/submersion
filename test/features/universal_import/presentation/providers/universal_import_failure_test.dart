@@ -345,8 +345,8 @@ void main() {
 
     const csv =
         'Date,Time,Max Depth\n'
-        '15 Apr 2024,10:00,20\n'
-        '16 Apr 2024,11:00,18\n';
+        'Spring 2024,10:00,20\n'
+        'Summer 2024,11:00,18\n';
 
     Future<UniversalImportNotifier> atMapFields({String? locale}) async {
       final notifier = await _notifier(locale: locale);

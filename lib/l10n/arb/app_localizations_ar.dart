@@ -37,6 +37,69 @@ class AppLocalizationsAr extends AppLocalizations {
   String get connections_around_show => 'إظهار';
 
   @override
+  String get connections_caption_circle => 'يربط الخط بين رفيقين غاصا معًا.';
+
+  @override
+  String get connections_caption_where =>
+      'يعني الخط أنك غصت في ذلك الموقع مع ذلك الرفيق.';
+
+  @override
+  String get connections_caption_trips =>
+      'يعني الخط أن ذلك الرفيق كان في تلك الرحلة.';
+
+  @override
+  String get connections_caption_life =>
+      'يعني الخط أنك رأيت ذلك النوع في ذلك الموقع.';
+
+  @override
+  String get connections_caption_gear =>
+      'يربط الخط بين معدات استُخدمت في الغوصة نفسها.';
+
+  @override
+  String get connections_caption_centers =>
+      'يعني الخط أنك غصت مع ذلك الرفيق عبر ذلك المركز.';
+
+  @override
+  String get connections_caption_travel =>
+      'الرفقاء والرحلات والمواقع؛ يعني الخط أن بينها غوصات مشتركة.';
+
+  @override
+  String get connections_caption_reef =>
+      'المواقع والحياة البحرية وأنواع الغوص؛ يعني الخط أن بينها غوصات مشتركة.';
+
+  @override
+  String get connections_caption_gearRoad =>
+      'المعدات والرحلات والمراكز؛ يعني الخط أن بينها غوصات مشتركة.';
+
+  @override
+  String connections_caption_custom(String kinds) {
+    return '$kinds؛ يعني الخط أنها تشترك في غوصة.';
+  }
+
+  @override
+  String get connections_caption_kindSeparator => '، ';
+
+  @override
+  String connections_caption_around(int hops) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hops,
+      locale: localeName,
+      other:
+          'كل ما يقع ضمن $hops خطوة من العنصر المركزي، مرتبطًا بغوصات مشتركة.',
+      many:
+          'كل ما يقع ضمن $hops خطوة من العنصر المركزي، مرتبطًا بغوصات مشتركة.',
+      few:
+          'كل ما يقع ضمن $hops خطوات من العنصر المركزي، مرتبطًا بغوصات مشتركة.',
+      two: 'كل ما يقع ضمن خطوتين من العنصر المركزي، مرتبطًا بغوصات مشتركة.',
+      one: 'كل ما يشترك في غوصة مع العنصر المركزي.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_caption_thicker => 'الخطوط الأسمك تعني غوصات أكثر.';
+
+  @override
   String get connections_editor_kinds => 'الأنواع';
 
   @override
@@ -2686,7 +2749,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String backup_retention_allDevices_on(int count) {
-    return 'يحتفظ مجلد السحابة بأحدث النسخ الاحتياطية من كل الأجهزة، وعددها $count. تُحفظ النسخ المثبتة. إذا استخدمت أجهزة أخرى هذا الخيار أيضًا، فالعدد الأصغر هو المعتمد. حدّث التطبيق على كل الأجهزة أولًا حتى تظهر النسخ المثبتة عليها.';
+    return 'يحتفظ مجلد السحابة بأحدث النسخ الاحتياطية من كل الأجهزة، وعددها $count. تُحفظ النسخ المثبتة. تُحفظ أيضًا أحدث نسخة من كل جهاز ما لم يمضِ عليها أكثر من 6 أشهر. إذا استخدمت أجهزة أخرى هذا الخيار أيضًا، فالعدد الأصغر هو المعتمد. حدّث التطبيق على كل الأجهزة أولًا حتى تظهر النسخ المثبتة عليها.';
   }
 
   @override
@@ -2735,6 +2798,21 @@ class AppLocalizationsAr extends AppLocalizations {
       two: 'تُحفظ نسختان مثبتتان.',
       one: 'تُحفظ نسخة مثبتة واحدة.',
       zero: 'لا توجد نسخ مثبتة.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backup_retention_confirm_deviceNewestKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تُحفظ $count نسخة بوصفها أحدث نسخة لأجهزتها.',
+      many: 'تُحفظ $count نسخة بوصفها أحدث نسخة لأجهزتها.',
+      few: 'تُحفظ $count نسخ بوصفها أحدث نسخة لأجهزتها.',
+      two: 'تُحفظ نسختان بوصفهما أحدث نسخة لجهازيهما.',
+      one: 'تُحفظ نسخة واحدة بوصفها أحدث نسخة لجهازها.',
+      zero: 'لا توجد نسخ محفوظة بوصفها أحدث نسخة لجهازها.',
     );
     return '$_temp0';
   }
@@ -5296,6 +5374,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get connections_empty_sites => 'لا توجد غوصة لها موقع بعد.';
+
+  @override
+  String get connections_empty_whereNoSites =>
+      'لا تحتوي أي من غوصاتك مع رفيق على موقع بعد. أضف مواقع إلى تلك الغوصات لترى أين تغوصون معًا.';
 
   @override
   String get connections_empty_filtered => 'لا شيء يطابق التصفية الحالية.';
@@ -10173,6 +10255,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_tank_label_material => 'المادة';
 
   @override
+  String get diveLog_tank_label_mnd => 'MND';
+
+  @override
   String get diveLog_tank_label_n2 => 'N2';
 
   @override
@@ -10197,13 +10282,43 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_tank_mndHelper => 'تعيين لحساب He% تلقائياً';
 
   @override
-  String diveLog_tank_gasUsed(String amount) {
-    return '(تم استخدام $amount)';
+  String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd) {
+    return 'MOD: $mod (ppO₂ $ppO2) | MND: $mnd';
   }
 
   @override
-  String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd) {
-    return 'MOD: $mod (ppO₂ $ppO2) | MND: $mnd';
+  String get diveLog_cylinders_columnTank => 'أسطوانة';
+
+  @override
+  String get diveLog_cylinders_columnGas => 'غاز';
+
+  @override
+  String get diveLog_cylinders_columnStart => 'البداية';
+
+  @override
+  String get diveLog_cylinders_columnEnd => 'النهاية';
+
+  @override
+  String get diveLog_cylinders_columnUsed => 'المستخدم';
+
+  @override
+  String diveLog_cylinders_gasUsed(String amount) {
+    return 'الغاز المستخدم $amount';
+  }
+
+  @override
+  String diveLog_cylinders_mod(String depth) {
+    return 'MOD $depth';
+  }
+
+  @override
+  String diveLog_cylinders_mnd(String depth) {
+    return 'MND $depth';
+  }
+
+  @override
+  String diveLog_cylinders_modNote(String ppO2) {
+    return 'MOD عند ppO₂ $ppO2';
   }
 
   @override
@@ -14851,6 +14966,18 @@ class AppLocalizationsAr extends AppLocalizations {
       'هل أنت متأكد من حذف هذه المعدات؟ لا يمكن التراجع عن هذا الإجراء.';
 
   @override
+  String get equipment_deleteDialog_content_computer =>
+      'هل تريد حذف حاسوب الغوص هذا؟ يُحذف معه سجل التنزيل، لذا سيقرأ التنزيل التالي منه كل الغطسات من جديد. تبقى غطساتك. توصيل الكمبيوتر مرة أخرى يعيد إضافته.';
+
+  @override
+  String get equipment_deleteDialog_content_transmitter =>
+      'هل تريد حذف جهاز الإرسال هذا؟ يُحذف معه إعداد الأسطوانة. أي تنزيل لاحق يحمل رقمه التسلسلي يعيد إضافته. لإبعاده دون حذفه، ضع عليه حالة متقاعد.';
+
+  @override
+  String get equipment_bulkDelete_deviceNote =>
+      'تُحذف أجهزة كمبيوتر الغوص وأجهزة الإرسال الموجودة في التحديد مع سجل التنزيل والإعداد الخاص بها. تبقى غطساتك.';
+
+  @override
   String get equipment_deleteDialog_title => 'حذف المعدات';
 
   @override
@@ -15702,6 +15829,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get equipment_edit_typeLabel => 'النوع *';
+
+  @override
+  String get equipment_edit_typeLockedHelper =>
+      'يحتفظ حاسوب الغوص أو جهاز الإرسال المتصل بنوعه.';
 
   @override
   String get equipment_edit_useCustomReminders => 'استخدام تذكيرات مخصصة';
@@ -19980,6 +20111,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get nav_media => 'الوسائط';
 
   @override
+  String get nav_mediaDocumentsSubtitle => 'الصور ومقاطع الفيديو والمستندات';
+
+  @override
+  String get nav_photosVideos => 'صور/فيديو';
+
+  @override
   String get nav_more => 'المزيد';
 
   @override
@@ -21055,6 +21192,10 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get buoyancy_noLeadHint =>
       'لم يتم تسجيل أي أثقال: أضف أثقالًا إلى هذه الغطسة أو وزنًا جافًا إلى معدات الأثقال';
+
+  @override
+  String get buoyancy_tankMaterialAssumedHint =>
+      'لم يتم تحديد مادة الأسطوانة، لذا افتُرض أنها ألومنيوم: حدد المادة أو اختر قالب أسطوانة';
 
   @override
   String get buoyancy_chartNet => 'الصافي';
@@ -23045,6 +23186,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'إضافة التنزيلات إلى مالك الكمبيوتر';
 
   @override
+  String get settings_conflict_field_omitUnusedOcGases =>
+      'تخطي غازات الطوارئ غير المستخدمة';
+
+  @override
   String get settings_conflict_field_avgSpeed => 'متوسط السرعة';
 
   @override
@@ -25027,9 +25172,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get nav_documents => 'المستندات';
-
-  @override
-  String get documents_title => 'المستندات';
 
   @override
   String get documents_type_insurance => 'التأمين';
@@ -30569,6 +30711,14 @@ class AppLocalizationsAr extends AppLocalizations {
       'عندما يخص كمبيوتر الغوص ملف غواص آخر، تذهب غطساته إلى سجل ذلك الملف. يمكنك تغيير ذلك في شاشة المراجعة.';
 
   @override
+  String get settings_omitUnusedOcGases_title =>
+      'تخطي غازات الطوارئ غير المستخدمة';
+
+  @override
+  String get settings_omitUnusedOcGases_subtitle =>
+      'في تنزيلات أجهزة إعادة التنفس وإعادة تحليلها، يستبعد غازًا بلا جهاز إرسال لم يُتنفَّس منه قط';
+
+  @override
   String get tags_manage_searchHint => 'البحث في الوسوم...';
 
   @override
@@ -34139,27 +34289,17 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveComputer_connections_cloudOther => 'استيراد من السحابة';
 
   @override
-  String diveComputer_detail_deleteDialogContent(String name) {
-    return 'هل تريد حقا إزالة \"$name\"؟ لن يؤدي هذا إلى حذف أي غطسات تم استيرادها من هذا الكمبيوتر.';
-  }
-
-  @override
-  String get diveComputer_detail_deleteDialogTitle => 'حذف الكمبيوتر؟';
-
-  @override
   String get diveComputer_detail_divesImported => 'الغطسات المستوردة';
 
   @override
   String get diveComputer_detail_downloadDivesButton => 'تنزيل الغطسات';
 
   @override
-  String get diveComputer_detail_editDialogTitle => 'تعديل الكمبيوتر';
+  String get diveComputer_section_connect => 'الاتصال والتنزيل';
 
   @override
-  String get diveComputer_detail_editNameHint => 'مثال: Perdix الخاص بي';
-
-  @override
-  String get diveComputer_detail_editNotesHint => 'ملاحظات اختيارية';
+  String get diveComputer_section_notConnected =>
+      'لم يتم توصيل هذا الكمبيوتر بعد. وصّله لتنزيل غطساته.';
 
   @override
   String get diveComputer_detail_labelManufacturer => 'الشركة المصنعة';
@@ -34168,16 +34308,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveComputer_detail_labelModel => 'الطراز';
 
   @override
-  String get diveComputer_detail_labelName => 'الاسم';
-
-  @override
   String get diveComputer_detail_lastDownload => 'آخر تنزيل';
-
-  @override
-  String get diveComputer_detail_linkedGear => 'قطعة المعدات';
-
-  @override
-  String get diveComputer_detail_notesTitle => 'الملاحظات';
 
   @override
   String get diveComputer_detail_reimportAllButton =>
@@ -34417,6 +34548,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveComputer_list_findComputers => 'البحث عن كمبيوترات';
+
+  @override
+  String get diveComputer_list_addByHand => 'إضافة يدويًا';
+
+  @override
+  String get diveComputer_list_notConnected => 'لم يتم الاتصال بعد';
 
   @override
   String get diveComputer_list_helpBluetooth =>
@@ -40455,6 +40592,20 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get dataQuality_repairLabel_shiftImport =>
       'إزاحة كل الغوصات من هذا الاستيراد';
+
+  @override
+  String dataQuality_repairLabel_shiftLogbookTime(String offset) {
+    return 'إزاحة وقت السجل بمقدار $offset';
+  }
+
+  @override
+  String dataQuality_repairLabel_fixSourceClock(String offset) {
+    return 'تصحيح ساعة هذا الكمبيوتر بمقدار $offset';
+  }
+
+  @override
+  String get dataQuality_repairLabel_fixSourceClockAll =>
+      'تصحيح هذا الكمبيوتر أيضًا في الغوصات الأخرى ذات الفارق نفسه';
 
   @override
   String get dataQuality_repairLabel_consolidate => 'توحيد';
@@ -52165,6 +52316,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get diveComputer_merge_gearNote =>
+      'يُدمج عنصر المعدات لكل سجل آخر في هذا العنصر: ينتقل سجل الصيانة والمستندات والصور إلى هنا، ويُحذف العنصر الفارغ.';
+
+  @override
   String get diveComputer_merge_keepLabel => 'الاحتفاظ بهذا السجل';
 
   @override
@@ -52408,23 +52563,34 @@ class AppLocalizationsAr extends AppLocalizations {
   String get transmitters_add => 'إضافة جهاز إرسال';
 
   @override
-  String get transmitters_header_assigned => 'أجهزة إرسال معيّنة';
+  String get transmitters_emptyItems =>
+      'لا توجد أجهزة إرسال بعد. أي تنزيل يقرأ جهازًا منها يضيفه هنا، أو أضف واحدًا يدويًا.';
 
   @override
-  String get transmitters_header_unassigned => 'ظهرت في التنزيلات ولم تُعيّن';
+  String get transmitters_noCylinder => 'لم يتم إعداد أسطوانة';
 
   @override
-  String get transmitters_empty =>
-      'لا توجد أجهزة إرسال بعد. أضف واحدًا، أو عيّن رقمًا تسلسليًا بعد التنزيل التالي.';
+  String get transmitters_section_noKey =>
+      'لا يوجد رقم تسلسلي أو قناة بعد. أضف ما يعرضه حاسوب الغوص لجهاز الإرسال هذا.';
 
   @override
-  String get transmitters_action_assign => 'تعيين';
+  String get transmitters_key_remove => 'إزالة هذا المفتاح';
 
   @override
-  String get transmitters_action_edit => 'تعديل جهاز الإرسال';
+  String get transmitters_key_removeTitle => 'هل تريد إزالة هذا المفتاح؟';
 
   @override
-  String get transmitters_action_delete => 'حذف جهاز الإرسال';
+  String get transmitters_key_removeBody =>
+      'يبقى عنصر جهاز الإرسال ومفاتيحه الأخرى. استخدم هذا لقناة خاطئة أو رقم تسلسلي مكتوب خطأً: الرقم التسلسلي الذي يستمر كمبيوتر الغوص في الإبلاغ عنه يُضاف مجددًا في التنزيل التالي، دون إعداد بعد.';
+
+  @override
+  String get transmitters_list_noKey => 'لا يوجد رقم تسلسلي أو قناة بعد';
+
+  @override
+  String get transmitters_section_addKey => 'إضافة رقم تسلسلي أو قناة';
+
+  @override
+  String get transmitters_section_setUp => 'إعداد';
 
   @override
   String get transmitters_action_apply => 'تطبيق على الغطسات الحالية';
@@ -52447,14 +52613,6 @@ class AppLocalizationsAr extends AppLocalizations {
       'لا توجد أسطوانة تحمل جهاز الإرسال هذا';
 
   @override
-  String get transmitters_delete_title => 'حذف جهاز الإرسال؟';
-
-  @override
-  String transmitters_delete_content(String label) {
-    return 'ستستخدم التنزيلات القادمة من $label الإعداد الافتراضي مجددًا.';
-  }
-
-  @override
   String transmitters_channel(String computer, int channel) {
     return '$computer، القناة $channel';
   }
@@ -52465,31 +52623,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String transmitters_dives(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count غطسة',
-      many: '$count غطسة',
-      few: '$count غطسات',
-      two: 'غطستان',
-      one: 'غطسة واحدة',
-    );
-    return '$_temp0';
-  }
-
-  @override
   String get transmitters_edit_title => 'تعديل جهاز الإرسال';
 
   @override
   String get transmitters_new_title => 'جهاز إرسال جديد';
-
-  @override
-  String get transmitters_field_label => 'التسمية';
-
-  @override
-  String get transmitters_field_label_helper =>
-      'يصبح اسم الأسطوانة في الغطسة بمجرد مطابقة جهاز الإرسال هذا';
 
   @override
   String get transmitters_field_serial => 'الرقم التسلسلي لجهاز الإرسال';
@@ -52510,13 +52647,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get transmitters_field_gear_subtitle =>
       'الأسطوانة التي يبلغ جهاز الإرسال هذا عن ضغطها';
-
-  @override
-  String get transmitters_field_transmitterGear => 'جهاز إرسال من المعدات';
-
-  @override
-  String get transmitters_field_transmitterGear_subtitle =>
-      'تتبع البطارية/الصيانة، لا يُستخدم للمطابقة';
 
   @override
   String get transmitters_field_material => 'المادة';
@@ -52542,16 +52672,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get transmitters_saved => 'تم حفظ جهاز الإرسال';
-
-  @override
-  String transmitters_copySerial_title(String gearName) {
-    return 'نسخ الرقم التسلسلي إلى \"$gearName\"؟';
-  }
-
-  @override
-  String transmitters_copySerial_content(String serial) {
-    return 'الرقم التسلسلي الذي يطابقه هذا الإدخال ($serial) غير مسجَّل بعد على عنصر معدات جهاز الإرسال.';
-  }
 
   @override
   String get diveComputer_detail_transmitters => 'أجهزة الإرسال';
@@ -52620,6 +52740,18 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get universalImport_summary_noticeTransmitterNameRolesBody =>
       'أخذ كمبيوتر الغوص بعض أدوار الأكسجين والمخفف من الأسماء المعطاة لأجهزة الإرسال: الاسم الذي يبدأ بـ O يُقرأ أكسجين، والذي يبدأ بـ D يُقرأ مخففًا. عيّن أجهزة الإرسال لتأكيد هذه الأدوار أو تصحيحها.';
+
+  @override
+  String get universalImport_summary_noticeDeviceOtherItemTitle =>
+      'هذا الكمبيوتر موجود بالفعل في المعدات';
+
+  @override
+  String get universalImport_summary_noticeDeviceOtherItemBody =>
+      'الكمبيوتر الذي وصّلته هو بالفعل عنصر آخر في المعدات، لذا أُضيفت غطساته إليه. وبقي العنصر الذي بدأت منه كما هو.';
+
+  @override
+  String get universalImport_summary_noticeDeviceOtherItemAction =>
+      'فتح ذلك العنصر';
 
   @override
   String get universalImport_summary_noticeDiveNumberConflictTitle =>

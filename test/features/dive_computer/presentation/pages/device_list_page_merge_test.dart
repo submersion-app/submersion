@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_computer/presentation/pages/device_list_page.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_merge_repository.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/presentation/providers/device_item_providers.dart';
 
+import '../../../../helpers/computer_items_override.dart';
 import '../../../../helpers/test_app.dart';
 
 DiveComputer _makeComputer({
@@ -71,6 +75,7 @@ void main() {
       testApp(
         locale: const Locale('en'),
         overrides: [
+          computerItemsFromComputers,
           allDiveComputersProvider.overrideWith((ref) async => computers),
           diveComputerNotifierProvider.overrideWith((ref) => notifier),
           diveComputerMergeRepositoryProvider.overrideWithValue(
@@ -131,6 +136,61 @@ void main() {
       expect(find.text('1 record merged into Petrel 3'), findsOneWidget);
       // Selection mode is left behind once the merge completes.
       expect(find.byKey(const ValueKey('enter_selection')), findsOneWidget);
+    });
+
+    testWidgets('merges every registration behind the checked items '
+        '(review)', (tester) async {
+      final a1 = _makeComputer(id: 'c1', name: 'Petrel 3', diveCount: 21);
+      final a2 = _makeComputer(id: 'c2', name: 'Petrel 3 (old)');
+      final b1 = _makeComputer(id: 'c3', name: 'ssss');
+      await tester.pumpWidget(
+        testApp(
+          locale: const Locale('en'),
+          overrides: [
+            computerItemsProvider.overrideWith(
+              (ref) async => [
+                (
+                  item: const EquipmentItem(
+                    id: 'gear-a',
+                    name: 'Petrel 3',
+                    type: EquipmentType.computer,
+                  ),
+                  computers: [a1, a2],
+                ),
+                (
+                  item: const EquipmentItem(
+                    id: 'gear-b',
+                    name: 'ssss',
+                    type: EquipmentType.computer,
+                  ),
+                  computers: [b1],
+                ),
+              ],
+            ),
+            allDiveComputersProvider.overrideWith((ref) async => [a1, a2, b1]),
+            diveComputerNotifierProvider.overrideWith((ref) => notifier),
+            diveComputerMergeRepositoryProvider.overrideWithValue(
+              _FakeMergeRepository(),
+            ),
+          ],
+          child: const DeviceListPage(),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const ValueKey('enter_selection')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('selection_select_all')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('selection_action_merge')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('merge_confirm')));
+      await tester.pumpAndSettle();
+
+      expect(
+        {notifier.survivorId, ...?notifier.duplicateIds},
+        {'c1', 'c2', 'c3'},
+      );
     });
 
     testWidgets('dismissing the sheet keeps the selection', (tester) async {

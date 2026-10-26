@@ -1,11 +1,20 @@
 import 'dart:async';
 
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/database/database.dart'
+    show
+        DiveComputersCompanion,
+        DiveDataSourcesCompanion,
+        DiveTanksCompanion,
+        EquipmentCompanion,
+        TransmittersCompanion;
+import 'package:submersion/core/database/dive_computer_gear_identity.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/data_quality/data/repositories/quality_findings_repository.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
@@ -26,6 +35,9 @@ import 'package:submersion/features/dive_log/data/services/dive_split_service.da
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
+import 'package:submersion/features/transmitters/data/services/transmitter_auto_registrar.dart';
+import 'package:submersion/features/transmitters/presentation/pages/transmitter_setup_redirect.dart';
+import 'package:submersion/features/transmitters/presentation/providers/transmitter_providers.dart';
 
 import '../../../helpers/global_test_defaults.dart';
 import '../../../helpers/l10n_test_helpers.dart';
@@ -349,6 +361,137 @@ void main() {
     await tester.tap(find.byType(ListTile).first); // expand
     await tester.pumpAndSettle();
     expect(find.text('Go to dive'), findsOneWidget);
+  });
+
+  group('Assign transmitter (issue #3676)', () {
+    Future<void> pumpUnknownTransmitter(WidgetTester tester) async {
+      final prefs = await _prefs();
+      final router = GoRouter(
+        routes: [
+          GoRoute(path: '/', builder: (_, _) => const DataQualityInboxPage()),
+          GoRoute(
+            path: '/equipment/:id',
+            builder: (_, s) =>
+                Scaffold(body: Text('ITEM ${s.pathParameters['id']}')),
+          ),
+          GoRoute(
+            path: '/transmitters/new',
+            builder: (_, s) => TransmitterSetupRedirect(
+              serial: s.uri.queryParameters['serial'],
+              diveId: s.uri.queryParameters['dive'],
+            ),
+          ),
+        ],
+      );
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ..._overrides(
+              prefs,
+              findings: [
+                _f(
+                  id: 'f-tx',
+                  detectorId: 'unknown_transmitter',
+                  category: QualityCategory.tank,
+                  severity: QualitySeverity.info,
+                  params: const {'serial': '4A21F'},
+                ),
+              ],
+            ),
+            transmitterAutoRegistrarProvider.overrideWithValue(
+              TransmitterAutoRegistrar(nameFor: (serial) => 'Tx $serial'),
+            ),
+          ].cast(),
+          child: MaterialApp.router(
+            routerConfig: router,
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find
+            .descendant(
+              of: find.byType(QualityFindingCard),
+              matching: find.byType(Icon),
+            )
+            .first,
+      ); // expand
+      await tester.pumpAndSettle();
+    }
+
+    Future<void> seedDiveCarrying(String serial) async {
+      await _seedDive('d1');
+      final db = DatabaseService.instance.database;
+      await db
+          .into(db.diveTanks)
+          .insert(
+            DiveTanksCompanion.insert(
+              id: 'tank-1',
+              diveId: 'd1',
+              transmitterSerial: Value(serial),
+            ),
+          );
+    }
+
+    testWidgets("opens the transmitter's item", (tester) async {
+      await tester.runAsync(() async {
+        await seedDiveCarrying('4A21F');
+        final db = DatabaseService.instance.database;
+        await db
+            .into(db.equipment)
+            .insert(
+              EquipmentCompanion.insert(
+                id: 'tx-gear',
+                name: 'Back gas tx',
+                type: 'transmitter',
+                createdAt: 0,
+                updatedAt: 0,
+              ),
+            );
+        await db
+            .into(db.transmitters)
+            .insert(
+              TransmittersCompanion.insert(
+                id: 'tx1',
+                label: 'Back gas tx',
+                tankRole: 'backGas',
+                transmitterSerial: const Value('4A21F'),
+                transmitterEquipmentId: const Value('tx-gear'),
+                createdAt: 0,
+                updatedAt: 0,
+              ),
+            );
+      });
+      await pumpUnknownTransmitter(tester);
+
+      await tester.runAsync(() async {
+        await tester.tap(find.text('Assign transmitter'));
+        await Future<void>.delayed(const Duration(milliseconds: 200));
+      });
+      await tester.pumpAndSettle();
+
+      expect(find.text('ITEM tx-gear'), findsOneWidget);
+    });
+
+    testWidgets('registers a serial no entry knows yet, then opens its new '
+        'item', (tester) async {
+      await tester.runAsync(() => seedDiveCarrying('4A21F'));
+      await pumpUnknownTransmitter(tester);
+
+      await tester.runAsync(() async {
+        await tester.tap(find.text('Assign transmitter'));
+        await Future<void>.delayed(const Duration(milliseconds: 400));
+      });
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('ITEM ${transmitterGearSeedId(null, '4A21F')}'),
+        findsOneWidget,
+      );
+    });
   });
 
   testWidgets('a split rebuilds the sensor summaries of both dives', (
@@ -1511,6 +1654,211 @@ void main() {
     expect(find.text('Repair applied'), findsOneWidget);
     // Exercise the undo action wired onto the SnackBar.
     await tester.tap(find.text('Undo'));
+    await tester.pumpAndSettle(const Duration(seconds: 6));
+  });
+
+  testWidgets('a source clock fix moves the secondary, never the logbook '
+      '(#3655)', (tester) async {
+    final entry = DateTime.utc(2026, 7, 1, 10);
+    await DiveRepository().createDive(
+      domain.Dive(id: 'd1', dateTime: entry, entryTime: entry),
+    );
+    final db = DatabaseService.instance.database;
+    for (final (id, primary, at) in [
+      ('uddf', true, entry),
+      ('dc', false, entry.add(const Duration(hours: 1))),
+    ]) {
+      await db
+          .into(db.diveDataSources)
+          .insert(
+            DiveDataSourcesCompanion(
+              id: Value(id),
+              diveId: const Value('d1'),
+              isPrimary: Value(primary),
+              entryTime: Value(at),
+              importedAt: Value(entry),
+              createdAt: Value(entry),
+            ),
+          );
+    }
+    final prefs = await _prefs();
+    await tester.pumpWidget(
+      _scope(
+        prefs,
+        findings: [
+          _f(
+            id: 'r-src-clock',
+            detectorId: 'clock_offset',
+            category: QualityCategory.time,
+            params: const {'offsetHours': 1, 'sourceId': 'dc'},
+          ),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(FilledButton).first);
+    await tester.pumpAndSettle();
+    // Pre-filled with the shift that brings the source onto the primary.
+    expect(find.widgetWithText(TextField, '-1'), findsOneWidget);
+    // The source names no registered computer, so no other dive can be
+    // said to share its clock and the computer-wide checkbox is absent.
+    expect(find.byType(CheckboxListTile), findsNothing);
+    await tester.tap(find.text('OK'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Repair applied'), findsOneWidget);
+    final sources = await DiveRepository().getDataSources('d1');
+    expect(
+      sources
+          .firstWhere((s) => s.id == 'dc')
+          .entryTime!
+          .isAtSameMomentAs(entry),
+      isTrue,
+    );
+    expect((await DiveRepository().getDiveById('d1'))!.entryTime, entry);
+    await tester.pumpAndSettle(const Duration(seconds: 6));
+  });
+
+  testWidgets('the logbook shift moves this dive alone, forward to the '
+      'secondary (#3655)', (tester) async {
+    final entry = DateTime.utc(2026, 7, 1, 10);
+    await DiveRepository().createDive(
+      domain.Dive(id: 'd1', dateTime: entry, entryTime: entry),
+    );
+    final prefs = await _prefs();
+    await tester.pumpWidget(
+      _scope(
+        prefs,
+        findings: [
+          // No sourceId: the logbook shift is the only repair offered.
+          _f(
+            id: 'r-logbook',
+            detectorId: 'clock_offset',
+            category: QualityCategory.time,
+            params: const {'offsetHours': 2},
+          ),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Shift logbook time by +2 h'), findsOneWidget);
+    await tester.tap(find.byType(FilledButton).first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('OK'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Repair applied'), findsOneWidget);
+    expect(
+      (await DiveRepository().getDiveById('d1'))!.entryTime,
+      entry.add(const Duration(hours: 2)),
+    );
+    await tester.pumpAndSettle(const Duration(seconds: 6));
+  });
+
+  testWidgets('a failed source read before the clock fix is reported, '
+      'not dropped (#3655)', (tester) async {
+    final prefs = await _prefs();
+    await tester.pumpWidget(
+      _scope(
+        prefs,
+        findings: [
+          _f(
+            id: 'r-src-clock-failed',
+            detectorId: 'clock_offset',
+            category: QualityCategory.time,
+            params: const {'offsetHours': 1, 'sourceId': 'dc'},
+          ),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+    // The read the repair makes before its sheet now has no table to read.
+    await DatabaseService.instance.database.customStatement(
+      'DROP TABLE dive_data_sources',
+    );
+
+    await tester.tap(find.byType(FilledButton).first);
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Repair failed'), findsOneWidget);
+    expect(find.byType(TextField), findsNothing);
+    await tester.pumpAndSettle(const Duration(seconds: 6));
+  });
+
+  testWidgets('the computer-wide checkbox follows the source as it is now, '
+      'not the finding (#3655)', (tester) async {
+    final entry = DateTime.utc(2026, 7, 1, 10);
+    await DiveRepository().createDive(
+      domain.Dive(id: 'd1', dateTime: entry, entryTime: entry),
+    );
+    final db = DatabaseService.instance.database;
+    await db
+        .into(db.diveComputers)
+        .insert(
+          const DiveComputersCompanion(
+            id: Value('pc1'),
+            name: Value('Perdix'),
+            createdAt: Value(0),
+            updatedAt: Value(0),
+          ),
+        );
+    for (final (id, primary, at, computer) in [
+      ('uddf', true, entry, null),
+      ('dc', false, entry.add(const Duration(hours: 1)), 'pc1'),
+    ]) {
+      await db
+          .into(db.diveDataSources)
+          .insert(
+            DiveDataSourcesCompanion(
+              id: Value(id),
+              diveId: const Value('d1'),
+              computerId: Value(computer),
+              isPrimary: Value(primary),
+              entryTime: Value(at),
+              importedAt: Value(entry),
+              createdAt: Value(entry),
+            ),
+          );
+    }
+    final prefs = await _prefs();
+    await tester.pumpWidget(
+      _scope(
+        prefs,
+        findings: [
+          // Scanned before the source was linked to its computer.
+          _f(
+            id: 'r-src-clock-linked',
+            detectorId: 'clock_offset',
+            category: QualityCategory.time,
+            params: const {'offsetHours': 1, 'sourceId': 'dc'},
+          ),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(FilledButton).first);
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Also fix this computer on other dives with the same offset'),
+      findsOneWidget,
+    );
+    await tester.tap(find.byType(CheckboxListTile));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('OK'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Repair applied'), findsOneWidget);
+    final sources = await DiveRepository().getDataSources('d1');
+    expect(
+      sources
+          .firstWhere((s) => s.id == 'dc')
+          .entryTime!
+          .isAtSameMomentAs(entry),
+      isTrue,
+    );
     await tester.pumpAndSettle(const Duration(seconds: 6));
   });
 

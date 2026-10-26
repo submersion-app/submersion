@@ -9,6 +9,7 @@ import 'package:submersion/features/equipment/presentation/utils/equipment_enum_
 import 'package:submersion/features/equipment/presentation/widgets/service_status_indicator.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/detail_row/detail_row.dart';
 
 /// The details row on a part's page naming the item it is installed in
 /// (`parentEquipmentId`, the link the host's children card lists from the
@@ -59,49 +60,35 @@ class InstalledInRow extends StatelessWidget {
         key: const ValueKey('equipment-detail-installed-in'),
         onTap: () => context.push('/equipment/${host.id}'),
         borderRadius: BorderRadius.circular(8),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+        child: DetailRow(
+          label: part.isFitted
+              ? l10n.equipment_detail_installedInLabel
+              : l10n.equipment_detail_wasInstalledInLabel,
+          // The install age sits under the host's name, in the value column.
+          value: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    part.isFitted
-                        ? l10n.equipment_detail_installedInLabel
-                        : l10n.equipment_detail_wasInstalledInLabel,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
+                  Flexible(
+                    child: Text(
+                      _hostLabel(l10n),
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.primary,
+                      ),
                     ),
                   ),
-                  const SizedBox(width: 16),
-                  Flexible(
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Flexible(
-                          child: Text(
-                            _hostLabel(l10n),
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: theme.colorScheme.primary,
-                            ),
-                            textAlign: TextAlign.end,
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        ServiceStatusIndicatorFor(
-                          equipmentId: host.id,
-                          density: ServiceIndicatorDensity.dot,
-                        ),
-                        const SizedBox(width: 4),
-                        Icon(
-                          Icons.chevron_right,
-                          size: 18,
-                          color: theme.colorScheme.primary,
-                        ),
-                      ],
-                    ),
+                  const SizedBox(width: 4),
+                  ServiceStatusIndicatorFor(
+                    equipmentId: host.id,
+                    density: ServiceIndicatorDensity.dot,
+                  ),
+                  const SizedBox(width: 4),
+                  Icon(
+                    Icons.chevron_right,
+                    size: 18,
+                    color: theme.colorScheme.primary,
                   ),
                 ],
               ),
@@ -111,7 +98,6 @@ class InstalledInRow extends StatelessWidget {
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
-                  textAlign: TextAlign.end,
                 ),
             ],
           ),

@@ -24,9 +24,6 @@ class TransmitterConflictException implements Exception {
       'TransmitterConflictException: conflicts with ${existing.label}';
 }
 
-/// A serial seen on downloaded tanks that has no registry entry.
-typedef UnassignedTransmitterSerial = ({String serial, int diveCount});
-
 /// Outcome of [TransmitterRepository.applyToExistingDives].
 /// [mixesKept]: dives where a bailout entry changed the role but found no
 /// bailout mix to give the tank, so it kept the one it had (issue #3307).
@@ -59,6 +56,57 @@ class TransmitterRepository {
     }
     final rows = await query.get();
     return sortedByText(rows, (r) => r.label).map(_map).toList();
+  }
+
+  /// The registry keys behind Transmitter item [equipmentId] (issue #3676),
+  /// most recently updated first: usually one serial, or a channel per
+  /// computer that reports channels only.
+  Future<List<Transmitter>> getForEquipment(String equipmentId) async {
+    final rows =
+        await (_db.select(_db.transmitters)
+              ..where((t) => t.transmitterEquipmentId.equals(equipmentId))
+              ..orderBy([
+                (t) => OrderingTerm.desc(t.updatedAt),
+                (t) => OrderingTerm.asc(t.id),
+              ]))
+            .get();
+    return rows.map(_map).toList();
+  }
+
+  /// Saves the diver's setup of Transmitter item [equipmentId] onto every
+  /// key behind it, and marks each configured (issue #3676): role and
+  /// cylinder belong to the physical transmitter, not to one key.
+  /// [exceptKeyId] is a key the caller has just saved with this setup, so it
+  /// is not written, staged and rescanned a second time.
+  Future<void> saveSetup(
+    String equipmentId, {
+    required TankRole role,
+    String? cylinderId,
+    double? volumeL,
+    double? workingPressureBar,
+    TankMaterial? material,
+    String? presetName,
+    String? exceptKeyId,
+  }) async {
+    for (final key in await getForEquipment(equipmentId)) {
+      if (key.id == exceptKeyId) continue;
+      await update(
+        key.copyWith(
+          role: role,
+          equipmentId: cylinderId,
+          clearEquipmentId: cylinderId == null,
+          volumeL: volumeL,
+          clearVolumeL: volumeL == null,
+          workingPressureBar: workingPressureBar,
+          clearWorkingPressureBar: workingPressureBar == null,
+          material: material,
+          clearMaterial: material == null,
+          presetName: presetName,
+          clearPresetName: presetName == null,
+          isConfigured: true,
+        ),
+      );
+    }
   }
 
   Future<Transmitter?> getById(String id) async {
@@ -208,6 +256,46 @@ class TransmitterRepository {
     });
   }
 
+  /// Before computer [computerId] is deleted (issue #3676): a row keyed only
+  /// by its channel on that computer could never match again, so it is
+  /// deleted and tombstoned; a row with a serial keeps the serial key and
+  /// loses the channel, staged rather than nulled by the FK. The transmitter
+  /// item stays, as gear.
+  Future<void> detachFromDeletedComputer(String computerId) async {
+    final rows = await (_db.select(
+      _db.transmitters,
+    )..where((t) => t.diveComputerId.equals(computerId))).get();
+    if (rows.isEmpty) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    for (final row in rows) {
+      if (normalizeTransmitterSerial(row.transmitterSerial) == null) {
+        await (_db.delete(
+          _db.transmitters,
+        )..where((t) => t.id.equals(row.id))).go();
+        await _syncRepository.logDeletion(
+          entityType: _entity,
+          recordId: row.id,
+        );
+      } else {
+        await (_db.update(
+          _db.transmitters,
+        )..where((t) => t.id.equals(row.id))).write(
+          TransmittersCompanion(
+            diveComputerId: const Value(null),
+            channelIndex: const Value(null),
+            updatedAt: Value(now),
+          ),
+        );
+        await _syncRepository.markRecordPending(
+          entityType: _entity,
+          recordId: row.id,
+          localUpdatedAt: now,
+        );
+      }
+    }
+    SyncEventBus.notifyLocalChange();
+  }
+
   Future<void> update(Transmitter t) async {
     final normalized = _normalized(t);
     await _checkConflicts(normalized);
@@ -247,45 +335,35 @@ class TransmitterRepository {
     await _rescanAffectedDives(rows.map(_map));
   }
 
-  /// Distinct normalized serials on the diver's downloaded tanks with no
-  /// registry entry, with how many dives each appears on. Rows whose serial
-  /// normalizes to null (blank, all zeros) are skipped.
-  Future<List<UnassignedTransmitterSerial>> getUnassignedSerials(
-    String? diverId,
-  ) async {
-    final known = Transmitter.knownSerials(await getForDiver(diverId));
-    final rows = await _db
-        .customSelect(
-          'SELECT dt.transmitter_serial AS serial, dt.dive_id AS dive_id '
-          'FROM dive_tanks dt JOIN dives d ON d.id = dt.dive_id '
-          'WHERE dt.transmitter_serial IS NOT NULL '
-          'AND (? IS NULL OR d.diver_id = ?)',
-          variables: [Variable<String>(diverId), Variable<String>(diverId)],
-          readsFrom: {_db.diveTanks, _db.dives},
-        )
-        .get();
-    final divesBySerial = <String, Set<String>>{};
-    for (final row in rows) {
-      final serial = normalizeTransmitterSerial(row.read<String>('serial'));
-      if (serial == null || known.contains(serial)) continue;
-      divesBySerial
-          .putIfAbsent(serial, () => {})
-          .add(row.read<String>('dive_id'));
+  /// The canonical serials of the diver's entries that are not set up
+  /// (issue #3676): unconfigured, or naming no cylinder. What the
+  /// post-download notice and the data-quality nudge ask about.
+  Future<Set<String>> serialsNeedingSetup(String? diverId) async => {
+    for (final t in await getForDiver(diverId))
+      if (!t.isSetUp) ?normalizeTransmitterSerial(t.transmitterSerial),
+  };
+
+  /// The Transmitter item of the entry whose serial is [serial], if any.
+  Future<String?> itemIdForSerial(String serial, {String? diverId}) async {
+    final wanted = normalizeTransmitterSerial(serial);
+    if (wanted == null) return null;
+    for (final t in await getForDiver(diverId)) {
+      if (normalizeTransmitterSerial(t.transmitterSerial) == wanted &&
+          t.transmitterEquipmentId != null) {
+        return t.transmitterEquipmentId;
+      }
     }
-    final out = [
-      for (final e in divesBySerial.entries)
-        (serial: e.key, diveCount: e.value.length),
-    ]..sort((a, b) => a.serial.compareTo(b.serial));
-    return out;
+    return null;
   }
 
-  /// How many distinct serials seen on [computerId]'s dives have an entry,
-  /// and how many do not.
+  /// How many distinct serials seen on [computerId]'s dives have an entry
+  /// that is set up, and how many do not. Set up, not merely registered
+  /// (issue #3676): a download now registers every serial it sees.
   Future<({int known, int unassigned})> serialCountsForComputer(
     String computerId, {
     String? diverId,
   }) async {
-    final knownSerials = Transmitter.knownSerials(await getForDiver(diverId));
+    final knownSerials = Transmitter.setUpSerials(await getForDiver(diverId));
     final rows = await _db
         .customSelect(
           'SELECT DISTINCT dt.transmitter_serial AS serial '
@@ -493,6 +571,7 @@ class TransmitterRepository {
     presetName: Value(t.presetName),
     equipmentId: Value(t.equipmentId),
     transmitterEquipmentId: Value(t.transmitterEquipmentId),
+    isConfigured: Value(t.isConfigured),
     createdAt: createdAt != null ? Value(createdAt) : const Value.absent(),
     updatedAt: Value(now),
   );
@@ -519,6 +598,7 @@ class TransmitterRepository {
     presetName: r.presetName,
     equipmentId: r.equipmentId,
     transmitterEquipmentId: r.transmitterEquipmentId,
+    isConfigured: r.isConfigured,
     createdAt: DateTime.fromMillisecondsSinceEpoch(r.createdAt),
     updatedAt: DateTime.fromMillisecondsSinceEpoch(r.updatedAt),
   );

@@ -9,6 +9,7 @@ import 'package:submersion/features/gps_log/presentation/providers/gps_track_map
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../helpers/mock_providers.dart';
+import '../../helpers/world_map_expectations.dart';
 
 GpsTrackPoint p(int t) =>
     GpsTrackPoint(timestamp: t, latitude: 20.0 + t * 0.001, longitude: -87.0);
@@ -117,5 +118,21 @@ void main() {
     );
 
     expect(find.text('This track has no recorded positions.'), findsOneWidget);
+  });
+
+  testWidgets('the map zooms and scrolls like the other maps (#3664)', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      overrides: [
+        gpsTrackDetailProvider('track-1').overrideWith((ref) async => _track()),
+        gpsTrackGeometryProvider((
+          'track-1',
+          TrackLod.detail,
+        )).overrideWith((ref) async => _points),
+      ],
+    );
+    expectZoomsAndScrollsLikeOtherMaps(tester);
   });
 }

@@ -37,6 +37,62 @@ class AppLocalizationsHe extends AppLocalizations {
   String get connections_around_show => 'הצגה';
 
   @override
+  String get connections_caption_circle => 'קו מחבר בין שני שותפים שצללו יחד.';
+
+  @override
+  String get connections_caption_where =>
+      'קו פירושו שצללת באתר הזה עם השותף הזה.';
+
+  @override
+  String get connections_caption_trips => 'קו פירושו שהשותף הזה היה בטיול הזה.';
+
+  @override
+  String get connections_caption_life =>
+      'קו פירושו שראית את המין הזה באתר הזה.';
+
+  @override
+  String get connections_caption_gear => 'קו מחבר בין ציוד ששימש באותה צלילה.';
+
+  @override
+  String get connections_caption_centers =>
+      'קו פירושו שצללת עם השותף הזה דרך מרכז הצלילה הזה.';
+
+  @override
+  String get connections_caption_travel =>
+      'שותפים, טיולים ואתרים; קו פירושו צלילות משותפות.';
+
+  @override
+  String get connections_caption_reef =>
+      'אתרים, חיים ימיים וסוגי צלילה; קו פירושו צלילות משותפות.';
+
+  @override
+  String get connections_caption_gearRoad =>
+      'ציוד, טיולים ומרכזי צלילה; קו פירושו צלילות משותפות.';
+
+  @override
+  String connections_caption_custom(String kinds) {
+    return '$kinds; קו פירושו שהם חולקים צלילה.';
+  }
+
+  @override
+  String get connections_caption_kindSeparator => ', ';
+
+  @override
+  String connections_caption_around(int hops) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hops,
+      locale: localeName,
+      other: 'כל מה שנמצא עד $hops צעדים מהפריט שבמרכז, מחובר בצלילות משותפות.',
+      one: 'כל מה שחולק צלילה עם הפריט שבמרכז.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_caption_thicker =>
+      'קווים עבים יותר פירושם יותר צלילות.';
+
+  @override
   String get connections_editor_kinds => 'סוגים';
 
   @override
@@ -2593,7 +2649,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String backup_retention_allDevices_on(int count) {
-    return 'תיקיית הענן שומרת את $count הגיבויים האחרונים מכל המכשירים. גיבויים מוצמדים נשמרים. אם גם מכשירים אחרים משתמשים בזה, המספר הקטן ביותר קובע. עדכנו קודם את האפליקציה בכל המכשירים כדי שההצמדות שלהם ייראו.';
+    return 'תיקיית הענן שומרת את $count הגיבויים האחרונים מכל המכשירים. גיבויים מוצמדים נשמרים. גם הגיבוי האחרון של כל מכשיר נשמר, אלא אם הוא בן יותר מ־6 חודשים. אם גם מכשירים אחרים משתמשים בזה, המספר הקטן ביותר קובע. עדכנו קודם את האפליקציה בכל המכשירים כדי שההצמדות שלהם ייראו.';
   }
 
   @override
@@ -2630,6 +2686,17 @@ class AppLocalizationsHe extends AppLocalizations {
       locale: localeName,
       other: '$count גיבויים מוצמדים נשמרים.',
       one: 'גיבוי מוצמד אחד נשמר.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backup_retention_confirm_deviceNewestKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count גיבויים נשמרים כגיבוי האחרון של המכשיר שלהם.',
+      one: 'גיבוי אחד נשמר כגיבוי האחרון של המכשיר שלו.',
     );
     return '$_temp0';
   }
@@ -5085,6 +5152,10 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get connections_empty_sites => 'לאף צלילה אין עדיין אתר.';
+
+  @override
+  String get connections_empty_whereNoSites =>
+      'לאף אחת מהצלילות שלך עם שותף עדיין אין אתר. הוסף אתרים לצלילות האלה כדי לראות איפה אתם צוללים יחד.';
 
   @override
   String get connections_empty_filtered => 'אין פריטים שמתאימים לסינון הנוכחי.';
@@ -9808,6 +9879,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_tank_label_material => 'חומר';
 
   @override
+  String get diveLog_tank_label_mnd => 'MND';
+
+  @override
   String get diveLog_tank_label_n2 => 'N2';
 
   @override
@@ -9832,13 +9906,43 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_tank_mndHelper => 'הגדר לחישוב אוטומטי של He%';
 
   @override
-  String diveLog_tank_gasUsed(String amount) {
-    return '($amount נוצלו)';
+  String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd) {
+    return 'MOD: $mod (ppO₂ $ppO2) | MND: $mnd';
   }
 
   @override
-  String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd) {
-    return 'MOD: $mod (ppO₂ $ppO2) | MND: $mnd';
+  String get diveLog_cylinders_columnTank => 'בלון';
+
+  @override
+  String get diveLog_cylinders_columnGas => 'גז';
+
+  @override
+  String get diveLog_cylinders_columnStart => 'התחלה';
+
+  @override
+  String get diveLog_cylinders_columnEnd => 'סיום';
+
+  @override
+  String get diveLog_cylinders_columnUsed => 'נוצל';
+
+  @override
+  String diveLog_cylinders_gasUsed(String amount) {
+    return 'גז שנוצל $amount';
+  }
+
+  @override
+  String diveLog_cylinders_mod(String depth) {
+    return 'MOD $depth';
+  }
+
+  @override
+  String diveLog_cylinders_mnd(String depth) {
+    return 'MND $depth';
+  }
+
+  @override
+  String diveLog_cylinders_modNote(String ppO2) {
+    return 'MOD ב-ppO₂ $ppO2';
   }
 
   @override
@@ -14347,6 +14451,18 @@ class AppLocalizationsHe extends AppLocalizations {
       'האם אתה בטוח שברצונך למחוק ציוד זה? פעולה זו אינה ניתנת לביטול.';
 
   @override
+  String get equipment_deleteDialog_content_computer =>
+      'למחוק את מחשב הצלילה הזה? היסטוריית ההורדות שלו תימחק יחד איתו, כך שההורדה הבאה ממנו תקרא שוב את כל הצלילות. הצלילות שלך נשמרות. חיבור המחשב מחדש יוסיף אותו שוב.';
+
+  @override
+  String get equipment_deleteDialog_content_transmitter =>
+      'למחוק את המשדר הזה? הגדרת המיכל שלו תימחק יחד איתו. הורדה מאוחרת יותר שמכילה את המספר הסידורי שלו תוסיף אותו שוב. כדי להזיז אותו הצידה במקום זאת, סמן אותו כהוצא משימוש.';
+
+  @override
+  String get equipment_bulkDelete_deviceNote =>
+      'מחשבי צלילה ומשדרים שבבחירה נמחקים יחד עם היסטוריית ההורדות וההגדרות שלהם. הצלילות שלך נשמרות.';
+
+  @override
   String get equipment_deleteDialog_title => 'מחק ציוד';
 
   @override
@@ -15166,6 +15282,10 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_edit_typeLabel => 'סוג *';
+
+  @override
+  String get equipment_edit_typeLockedHelper =>
+      'מחשב צלילה או משדר מחוברים שומרים על הסוג שלהם.';
 
   @override
   String get equipment_edit_useCustomReminders => 'השתמש בתזכורות מותאמות';
@@ -19257,6 +19377,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get nav_media => 'מדיה';
 
   @override
+  String get nav_mediaDocumentsSubtitle => 'תמונות, סרטונים ומסמכים';
+
+  @override
+  String get nav_photosVideos => 'תמונות/סרטונים';
+
+  @override
   String get nav_more => 'עוד';
 
   @override
@@ -20301,6 +20427,10 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get buoyancy_noLeadHint =>
       'לא נרשמו משקולות: הוסף משקולות לצלילה זו או משקל יבש לציוד המשקולות שלך';
+
+  @override
+  String get buoyancy_tankMaterialAssumedHint =>
+      'חומר הבלון לא הוגדר, לכן הונח אלומיניום: הגדר את החומר או בחר תבנית בלון';
 
   @override
   String get buoyancy_chartNet => 'נטו';
@@ -22222,6 +22352,10 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_conflict_field_downloadsFollowComputerOwner =>
       'הוספת הורדות לבעלים של המחשב';
+
+  @override
+  String get settings_conflict_field_omitUnusedOcGases =>
+      'דילוג על גזי חילוץ שלא נוצלו';
 
   @override
   String get settings_conflict_field_avgSpeed => 'מהירות ממוצעת';
@@ -24181,9 +24315,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get nav_documents => 'מסמכים';
-
-  @override
-  String get documents_title => 'מסמכים';
 
   @override
   String get documents_type_insurance => 'ביטוח';
@@ -29568,6 +29699,13 @@ class AppLocalizationsHe extends AppLocalizations {
       'כשמחשב צלילה שייך לפרופיל אחר, הצלילות שלו נכנסות ליומן של אותו פרופיל. אפשר לשנות זאת במסך הסקירה.';
 
   @override
+  String get settings_omitUnusedOcGases_title => 'דילוג על גזי חילוץ שלא נוצלו';
+
+  @override
+  String get settings_omitUnusedOcGases_subtitle =>
+      'בהורדות ובעיבוד מחדש ממעגל סגור, משמיט גז ללא משדר שמעולם לא נשמו ממנו';
+
+  @override
   String get tags_manage_searchHint => 'חיפוש תגיות...';
 
   @override
@@ -32890,27 +33028,17 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveComputer_connections_cloudOther => 'ייבוא מהענן';
 
   @override
-  String diveComputer_detail_deleteDialogContent(String name) {
-    return 'האם אתה בטוח שברצונך להסיר את \"$name\"? פעולה זו לא תמחק צלילות שיובאו ממחשב זה.';
-  }
-
-  @override
-  String get diveComputer_detail_deleteDialogTitle => 'למחוק את המחשב?';
-
-  @override
   String get diveComputer_detail_divesImported => 'צלילות שיובאו';
 
   @override
   String get diveComputer_detail_downloadDivesButton => 'הורד צלילות';
 
   @override
-  String get diveComputer_detail_editDialogTitle => 'ערוך מחשב';
+  String get diveComputer_section_connect => 'חבר והורד';
 
   @override
-  String get diveComputer_detail_editNameHint => 'לדוגמה, ה-Perdix שלי';
-
-  @override
-  String get diveComputer_detail_editNotesHint => 'הערות אופציונליות';
+  String get diveComputer_section_notConnected =>
+      'מחשב זה עדיין לא חובר. חבר אותו כדי להוריד את הצלילות שלו.';
 
   @override
   String get diveComputer_detail_labelManufacturer => 'יצרן';
@@ -32919,16 +33047,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveComputer_detail_labelModel => 'דגם';
 
   @override
-  String get diveComputer_detail_labelName => 'שם';
-
-  @override
   String get diveComputer_detail_lastDownload => 'הורדה אחרונה';
-
-  @override
-  String get diveComputer_detail_linkedGear => 'פריט ציוד';
-
-  @override
-  String get diveComputer_detail_notesTitle => 'הערות';
 
   @override
   String get diveComputer_detail_reimportAllButton => 'ייבא מחדש את כל הצלילות';
@@ -33161,6 +33280,12 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveComputer_list_findComputers => 'חפש מחשבים';
+
+  @override
+  String get diveComputer_list_addByHand => 'הוסף ידנית';
+
+  @override
+  String get diveComputer_list_notConnected => 'עדיין לא חובר';
 
   @override
   String get diveComputer_list_helpBluetooth =>
@@ -38988,6 +39113,20 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get dataQuality_repairLabel_shiftImport => 'הסטת כל הצלילות מייבוא זה';
+
+  @override
+  String dataQuality_repairLabel_shiftLogbookTime(String offset) {
+    return 'הסטת זמן היומן ב-$offset';
+  }
+
+  @override
+  String dataQuality_repairLabel_fixSourceClock(String offset) {
+    return 'תיקון שעון המחשב הזה ב-$offset';
+  }
+
+  @override
+  String get dataQuality_repairLabel_fixSourceClockAll =>
+      'לתקן את המחשב הזה גם בצלילות אחרות עם אותה סטייה';
 
   @override
   String get dataQuality_repairLabel_consolidate => 'איחוד';
@@ -50449,6 +50588,10 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get diveComputer_merge_gearNote =>
+      'פריט הציוד של כל רשומה אחרת מתמזג לפריט זה: היסטוריית השירות, המסמכים והתמונות עוברים לכאן, והפריט הריק נמחק.';
+
+  @override
   String get diveComputer_merge_keepLabel => 'לשמור רשומה זו';
 
   @override
@@ -50672,23 +50815,34 @@ class AppLocalizationsHe extends AppLocalizations {
   String get transmitters_add => 'הוספת משדר';
 
   @override
-  String get transmitters_header_assigned => 'משדרים משויכים';
+  String get transmitters_emptyItems =>
+      'עדיין אין משדרים. הורדה שקוראת משדר תוסיף אותו כאן, או הוסף משדר ידנית.';
 
   @override
-  String get transmitters_header_unassigned => 'נראו בהורדות, לא משויכים';
+  String get transmitters_noCylinder => 'לא הוגדר מיכל';
 
   @override
-  String get transmitters_empty =>
-      'אין משדרים עדיין. הוסיפו אחד, או שייכו מספר סידורי אחרי ההורדה הבאה.';
+  String get transmitters_section_noKey =>
+      'עדיין אין מספר סידורי או ערוץ. הוסף את מה שמחשב הצלילה שלך מדווח עבור משדר זה.';
 
   @override
-  String get transmitters_action_assign => 'שיוך';
+  String get transmitters_key_remove => 'הסרת מפתח זה';
 
   @override
-  String get transmitters_action_edit => 'עריכת משדר';
+  String get transmitters_key_removeTitle => 'להסיר מפתח זה?';
 
   @override
-  String get transmitters_action_delete => 'מחיקת משדר';
+  String get transmitters_key_removeBody =>
+      'פריט המשדר ושאר המפתחות שלו יישארו. השתמש בזה לערוץ שגוי או למספר סידורי שהוקלד שגוי: מספר סידורי שמחשב הצלילה ממשיך לדווח עליו יתווסף שוב בהורדה הבאה, עדיין לא מוגדר.';
+
+  @override
+  String get transmitters_list_noKey => 'עדיין אין מספר סידורי או ערוץ';
+
+  @override
+  String get transmitters_section_addKey => 'הוסף מספר סידורי או ערוץ';
+
+  @override
+  String get transmitters_section_setUp => 'הגדר';
 
   @override
   String get transmitters_action_apply => 'החלה על צלילות קיימות';
@@ -50710,14 +50864,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get transmitters_apply_nothing => 'אף מיכל אינו נושא משדר זה';
 
   @override
-  String get transmitters_delete_title => 'למחוק את המשדר?';
-
-  @override
-  String transmitters_delete_content(String label) {
-    return 'הורדות עתידיות מ-$label ישתמשו שוב בהגדרה המוגדרת כברירת מחדל.';
-  }
-
-  @override
   String transmitters_channel(String computer, int channel) {
     return '$computer, ערוץ $channel';
   }
@@ -50728,28 +50874,10 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String transmitters_dives(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count צלילות',
-      one: 'צלילה אחת',
-    );
-    return '$_temp0';
-  }
-
-  @override
   String get transmitters_edit_title => 'עריכת משדר';
 
   @override
   String get transmitters_new_title => 'משדר חדש';
-
-  @override
-  String get transmitters_field_label => 'תווית';
-
-  @override
-  String get transmitters_field_label_helper =>
-      'הופך לשם המיכל בצלילה ברגע שהמשדר הזה משויך';
 
   @override
   String get transmitters_field_serial => 'מספר סידורי של המשדר';
@@ -50770,13 +50898,6 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get transmitters_field_gear_subtitle =>
       'המיכל שעבורו משדר זה מדווח על הלחץ';
-
-  @override
-  String get transmitters_field_transmitterGear => 'משדר מהציוד';
-
-  @override
-  String get transmitters_field_transmitterGear_subtitle =>
-      'מעקב סוללה/תחזוקה, לא משמש להתאמה';
 
   @override
   String get transmitters_field_material => 'חומר';
@@ -50802,16 +50923,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get transmitters_saved => 'המשדר נשמר';
-
-  @override
-  String transmitters_copySerial_title(String gearName) {
-    return 'להעתיק את המספר הסידורי אל \"$gearName\"?';
-  }
-
-  @override
-  String transmitters_copySerial_content(String serial) {
-    return 'המספר הסידורי שעליו רשומה זו מתאימה ($serial) אינו רשום עדיין בפריט הציוד של המשדר.';
-  }
 
   @override
   String get diveComputer_detail_transmitters => 'משדרים';
@@ -50876,6 +50987,18 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get universalImport_summary_noticeTransmitterNameRolesBody =>
       'מחשב הצלילה לקח חלק מתפקידי החמצן והמדלל משמות המשדרים: שם שמתחיל ב-O נקרא כחמצן, ושם שמתחיל ב-D כמדלל. שייכו את המשדרים כדי לאשר או לתקן תפקידים אלה.';
+
+  @override
+  String get universalImport_summary_noticeDeviceOtherItemTitle =>
+      'מחשב זה כבר נמצא בציוד';
+
+  @override
+  String get universalImport_summary_noticeDeviceOtherItemBody =>
+      'המחשב שחיברת הוא כבר פריט ציוד אחר, ולכן הצלילות שלו נוספו לשם. הפריט שממנו התחלת נשאר כפי שהיה.';
+
+  @override
+  String get universalImport_summary_noticeDeviceOtherItemAction =>
+      'פתח את הפריט הזה';
 
   @override
   String get universalImport_summary_noticeDiveNumberConflictTitle =>

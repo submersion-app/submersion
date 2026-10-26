@@ -221,7 +221,7 @@ void main() {
             roleSource: TankRoleSource.transmitterName,
             computerId: 'c1',
           ),
-          domain.DiveTank(id: 'dil', order: 1, role: TankRole.diluent),
+          domain.DiveTank(id: 'bo', order: 1, role: TankRole.bailout),
         ],
       ),
     );
@@ -238,7 +238,7 @@ void main() {
     }
     await tankSeries.insertSeries(
       diveId: 'dC',
-      tankId: 'dil',
+      tankId: 'bo',
       samples: const [TankPressureSample(timestamp: 0, pressure: 200.0)],
     );
 
@@ -247,6 +247,68 @@ void main() {
       200.0,
       190.0,
     ]);
+    expect(ctx.ownComputerPressuresByTankId.containsKey('bo'), isFalse);
+  });
+
+  // Issue #3652: a loop cylinder is judged against its own computer's switch
+  // timeline, so it needs its own computer's reading too, whoever set the
+  // role.
+  test("keeps a diver-set loop tank's own computer's series", () async {
+    final entry = DateTime.utc(2026, 7, 4, 10);
+    for (final id in ['c1', 'c2']) {
+      await db
+          .into(db.diveComputers)
+          .insert(
+            DiveComputersCompanion(
+              id: Value(id),
+              name: Value('Computer $id'),
+              createdAt: const Value(0),
+              updatedAt: const Value(0),
+            ),
+          );
+    }
+    await diveRepo.createDive(
+      domain.Dive(
+        id: 'dL',
+        dateTime: entry,
+        entryTime: entry,
+        tanks: const [
+          domain.DiveTank(
+            id: 'o2',
+            order: 0,
+            role: TankRole.oxygenSupply,
+            computerId: 'c1',
+          ),
+          domain.DiveTank(id: 'bo', order: 1, role: TankRole.bailout),
+          domain.DiveTank(id: 'dil', order: 2, role: TankRole.diluent),
+        ],
+      ),
+    );
+    for (final (computer, end) in [('c1', 190.0), ('c2', 150.0)]) {
+      await tankSeries.insertSeries(
+        diveId: 'dL',
+        tankId: 'o2',
+        computerId: computer,
+        samples: [
+          const TankPressureSample(timestamp: 0, pressure: 200.0),
+          TankPressureSample(timestamp: 60, pressure: end),
+        ],
+      );
+    }
+
+    await tankSeries.insertSeries(
+      diveId: 'dL',
+      tankId: 'dil',
+      samples: const [TankPressureSample(timestamp: 0, pressure: 200.0)],
+    );
+
+    final ctx = (await builder.buildAll(['dL'])).single;
+    expect(ctx.ownComputerPressuresByTankId['o2']!.map((s) => s.bar), [
+      200.0,
+      190.0,
+    ]);
+    expect(ctx.ownComputerPressuresByTankId.containsKey('bo'), isFalse);
+    // No computer owns the diluent: the merged series already is its own.
     expect(ctx.ownComputerPressuresByTankId.containsKey('dil'), isFalse);
   });
 

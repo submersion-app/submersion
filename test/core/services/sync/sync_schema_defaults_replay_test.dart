@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
@@ -102,6 +103,47 @@ void main() {
     )..where((t) => t.id.equals('dc-1'))).getSingle();
     expect(row.isPermanentlyClosed, isFalse);
   });
+
+  test(
+    'a transmitter from a pre-v316 peer arrives configured (#3676)',
+    () async {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await db
+          .into(db.transmitters)
+          .insert(
+            TransmittersCompanion.insert(
+              id: 'tx-1',
+              label: 'Back gas',
+              tankRole: 'backGas',
+              transmitterSerial: const Value('4A21F'),
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
+      final legacy = await legacyRecord('transmitters', 'tx-1', [
+        'isConfigured',
+      ]);
+      expect(legacy.containsKey('isConfigured'), isFalse);
+      await (db.delete(
+        db.transmitters,
+      )..where((t) => t.id.equals('tx-1'))).go();
+
+      await serializer.upsertRecord('transmitters', legacy);
+      var row = await (db.select(
+        db.transmitters,
+      )..where((t) => t.id.equals('tx-1'))).getSingle();
+      expect(row.isConfigured, isTrue);
+
+      await (db.delete(
+        db.transmitters,
+      )..where((t) => t.id.equals('tx-1'))).go();
+      await serializer.upsertRecords('transmitters', [legacy]);
+      row = await (db.select(
+        db.transmitters,
+      )..where((t) => t.id.equals('tx-1'))).getSingle();
+      expect(row.isConfigured, isTrue);
+    },
+  );
 
   test('replay hydrates a default-true bool with true, not false', () async {
     final now = DateTime.now().millisecondsSinceEpoch;

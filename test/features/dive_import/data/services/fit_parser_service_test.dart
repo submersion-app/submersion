@@ -959,11 +959,11 @@ void main() {
 
         final tissue = dive.computerTissue;
         expect(tissue, isA<ComputerTissueSnapshot>());
-        expect(tissue!.algorithm, 'zhl_16c');
-        expect(tissue.start?.n2LoadPercent, 0);
-        expect(tissue.start?.cnsPercent, dive.cnsStart);
+        expect(tissue!.start?.n2LoadPercent, 0);
         expect(tissue.end?.n2LoadPercent, 86);
-        expect(tissue.end?.cnsPercent, dive.cnsEnd);
+        // CNS and the deco model ride on the dive itself (issue #2555).
+        expect(dive.decoModel, 'zhl_16c');
+        expect(dive.cnsEnd, isNotNull);
         expect(dive.profile.first.n2Load, isNull);
         expect(dive.profile.last.n2Load, 86);
       },

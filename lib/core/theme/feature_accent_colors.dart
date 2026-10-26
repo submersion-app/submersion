@@ -5,8 +5,9 @@ import 'package:flutter/material.dart';
 /// theme changes. Keys are the stable `NavDestination.id` strings, plus
 /// `settings-<sectionId>` entries for the settings root sections, plus
 /// `connections` for the Connections explorer (reached from Insights rather
-/// than the nav). A missing key means "no accent" -- callers fall back to the
-/// ambient icon color.
+/// than the nav), plus `connections-buddy` for buddy nodes on its map. A
+/// missing key means "no accent" -- callers fall back to the ambient icon
+/// color.
 class FeatureAccentColors extends ThemeExtension<FeatureAccentColors> {
   const FeatureAccentColors({required this.colors});
 
@@ -48,6 +49,11 @@ class FeatureAccentColors extends ThemeExtension<FeatureAccentColors> {
       'courses': Color(0xFF303F9F),
       'insights': Color(0xFF00796B),
       'connections': Color(0xFF00838F),
+      // Buddy nodes on the Connections map. The app-wide sage above sits
+      // next to the sites green, and Who dives where (the map Connections
+      // opens on) draws exactly those two kinds; pink is the hue no other
+      // kind on the map uses (#3679).
+      'connections-buddy': Color(0xFFAD1457),
       'planning': Color(0xFF512DA8),
       'transfer': Color(0xFF0097A7),
       'tracks': Color(0xFFD32F2F),
@@ -86,6 +92,7 @@ class FeatureAccentColors extends ThemeExtension<FeatureAccentColors> {
       'courses': Color(0xFF7986CB),
       'insights': Color(0xFF4DB6AC),
       'connections': Color(0xFF4DD0E1),
+      'connections-buddy': Color(0xFFF48FB1),
       'planning': Color(0xFF9575CD),
       'transfer': Color(0xFF4DD0E1),
       'tracks': Color(0xFFE57373),

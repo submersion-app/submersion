@@ -58,6 +58,14 @@ class EquipmentEditPage extends ConsumerStatefulWidget {
   /// clocks, sets and documents.
   final String? cloneFromId;
 
+  /// For a new item: the type the form starts on, as the Dive Computers and
+  /// Transmitters lists' "add by hand" asks for (issue #3676).
+  final EquipmentType? initialType;
+
+  /// For a new item: the serial the form starts with, as a transmitter
+  /// reached from its serial (an old "assign transmitter" link) hands over.
+  final String? initialSerial;
+
   const EquipmentEditPage({
     super.key,
     this.equipmentId,
@@ -66,6 +74,8 @@ class EquipmentEditPage extends ConsumerStatefulWidget {
     this.onCancel,
     this.initialParentId,
     this.cloneFromId,
+    this.initialType,
+    this.initialSerial,
   });
 
   bool get isEditing => equipmentId != null;
@@ -142,6 +152,10 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
       _initialCurrencyCode = ref.read(defaultCurrencyProvider);
       _purchaseCurrencyController.text = _initialCurrencyCode;
       _parentEquipmentId = widget.initialParentId;
+      if (widget.initialType case final type?) _selectedType = type;
+      if (widget.initialSerial case final serial?) {
+        _serialController.text = serial;
+      }
     }
     _nameController.addListener(_onFieldChanged);
     _brandController.addListener(_onFieldChanged);
@@ -445,6 +459,14 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
   }
 
   Widget _buildForm(BuildContext context, EquipmentItem? existingEquipment) {
+    // A device's item keeps its type (issue #3676): the dive computer or
+    // transmitter behind it would otherwise point at a mask.
+    final editingId = widget.equipmentId;
+    final typeLocked =
+        editingId != null &&
+        // Locked until the lookup answers, so the field is never briefly
+        // editable on a device's item.
+        (ref.watch(equipmentHasDeviceProvider(editingId)).value ?? true);
     final body = Form(
       key: _formKey,
       child: ListView(
@@ -456,6 +478,10 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
             decoration: InputDecoration(
               labelText: context.l10n.equipment_edit_typeLabel,
               prefixIcon: const Icon(Icons.category),
+              helperText: typeLocked
+                  ? context.l10n.equipment_edit_typeLockedHelper
+                  : null,
+              helperMaxLines: 2,
             ),
             items: [
               for (final type in EquipmentType.values.sortedByLocalizedName(
@@ -466,21 +492,23 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
                   child: Text(type.localizedName(context.l10n)),
                 ),
             ],
-            onChanged: (value) {
-              if (value != null) {
-                setState(() {
-                  _selectedType = value;
-                  // A parent chosen for the old type may not hold the new
-                  // one (a computer holds a battery, never an O2 cell), and
-                  // the picker would show "none" while the stale id was
-                  // still written on save. Keep it only if it can: a host's
-                  // "Add part" starts on a type that holds nothing, and its
-                  // parent must survive the switch to a cell or battery.
-                  _parentEquipmentId = _validParentIdFor(value);
-                  _hasChanges = true;
-                });
-              }
-            },
+            onChanged: typeLocked
+                ? null
+                : (value) {
+                    if (value != null) {
+                      setState(() {
+                        _selectedType = value;
+                        // A parent chosen for the old type may not hold the new
+                        // one (a computer holds a battery, never an O2 cell), and
+                        // the picker would show "none" while the stale id was
+                        // still written on save. Keep it only if it can: a host's
+                        // "Add part" starts on a type that holds nothing, and its
+                        // parent must survive the switch to a cell or battery.
+                        _parentEquipmentId = _validParentIdFor(value);
+                        _hasChanges = true;
+                      });
+                    }
+                  },
           ),
           const SizedBox(height: 16),
 

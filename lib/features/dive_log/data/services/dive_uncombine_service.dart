@@ -10,6 +10,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_source_links.dart';
+import 'package:submersion/features/dive_log/data/services/data_source_strand.dart';
 import 'package:submersion/features/dive_log/data/services/merge_gap_fill.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_series.dart'
@@ -428,7 +429,9 @@ class DiveUncombineService {
     // must each keep their own display strand. Re-slot them 0..n-1 within
     // the segment for that, or clear the slot entirely on a segment of one
     // so the restored dive looks exactly like a dive that was never
-    // combined.
+    // combined. Numbered per strand, not per row: two rows the combined dive
+    // already shows as one source (one recording imported twice, issue
+    // #3654) stay one source.
     //
     // The originals are not deleted until step 8, once every row that
     // references them has moved. dive_profile_series.source_id is ON DELETE
@@ -436,10 +439,15 @@ class DiveUncombineService {
     // series still pointing at it, which is the failure clearSource exists
     // to describe.
     final newSourceIdByOld = <String, String>{};
-    final soloSegment = segment.sourceIds.length == 1;
-    for (var i = 0; i < segment.sourceIds.length; i++) {
-      final oldId = segment.sourceIds[i];
-      final row = sourceById[oldId]!;
+    final segmentRows = [for (final id in segment.sourceIds) sourceById[id]!];
+    final strandOf = dataSourceStrandKeysById(segmentRows);
+    final slotByStrand = <String, int>{};
+    for (final row in segmentRows) {
+      slotByStrand.putIfAbsent(strandOf[row.id]!, () => slotByStrand.length);
+    }
+    final soloSegment = slotByStrand.length == 1;
+    for (final row in segmentRows) {
+      final oldId = row.id;
       final newSourceId = _uuid.v4();
       newSourceIdByOld[oldId] = newSourceId;
       await _db
@@ -451,7 +459,9 @@ class DiveUncombineService {
                   id: Value(newSourceId),
                   diveId: Value(newDiveId),
                   isPrimary: Value(oldId == lead.id),
-                  mergeSourceSlot: Value(soloSegment ? null : i),
+                  mergeSourceSlot: Value(
+                    soloSegment ? null : slotByStrand[strandOf[oldId]!],
+                  ),
                 ),
           );
     }

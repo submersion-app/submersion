@@ -27,6 +27,10 @@ class Transmitter extends Equatable {
   /// cylinder it feeds (condition phase 3b). The dropout rules read an
   /// item's serials through it.
   final String? transmitterEquipmentId;
+
+  /// False for an entry the app created from a download and the diver has
+  /// not saved yet (issue #3676).
+  final bool isConfigured;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -44,6 +48,7 @@ class Transmitter extends Equatable {
     this.presetName,
     this.equipmentId,
     this.transmitterEquipmentId,
+    this.isConfigured = true,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -55,12 +60,24 @@ class Transmitter extends Equatable {
 
   bool get hasChannel => diveComputerId != null && channelIndex != null;
 
+  /// Whether the diver set this transmitter up (issue #3676): saved it, and
+  /// named the cylinder it feeds by a gear link or a size. A transmitter that
+  /// is not set up is what the unknown-transmitter nudge asks about.
+  bool get isSetUp =>
+      isConfigured && (equipmentId != null || (volumeL ?? 0) > 0);
+
   /// The canonical serials of [entries], for membership checks against tank
   /// serials that are normalized the same way. Rows can arrive raw through a
   /// sync payload, so the repository's write-time normalization is not
   /// enough on its own; blank and all-zero values are dropped here too.
   static Set<String> knownSerials(Iterable<Transmitter> entries) => {
     for (final t in entries) ?normalizeTransmitterSerial(t.transmitterSerial),
+  };
+
+  /// The canonical serials of the entries in [entries] that are set up.
+  static Set<String> setUpSerials(Iterable<Transmitter> entries) => {
+    for (final t in entries)
+      if (t.isSetUp) ?normalizeTransmitterSerial(t.transmitterSerial),
   };
 
   Transmitter copyWith({
@@ -87,6 +104,7 @@ class Transmitter extends Equatable {
     bool clearEquipmentId = false,
     String? transmitterEquipmentId,
     bool clearTransmitterEquipmentId = false,
+    bool? isConfigured,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) => Transmitter(
@@ -113,6 +131,7 @@ class Transmitter extends Equatable {
     transmitterEquipmentId: clearTransmitterEquipmentId
         ? null
         : (transmitterEquipmentId ?? this.transmitterEquipmentId),
+    isConfigured: isConfigured ?? this.isConfigured,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
   );
@@ -134,5 +153,6 @@ class Transmitter extends Equatable {
     presetName,
     equipmentId,
     transmitterEquipmentId,
+    isConfigured,
   ];
 }

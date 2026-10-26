@@ -292,7 +292,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 314;
+  static const int currentSchemaVersion = 318;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1412,6 +1412,28 @@ class AppDatabase extends _$AppDatabase {
     // and nullable, and an older peer omits it, so the floor stays.
     // Renumbered from 304, which #3552 took.
     314,
+    // v315: diver_settings.omit_unused_oc_gases (issue #3668). Additive, off
+    // by default; the floor does not move.
+    315,
+    // v316: transmitters.is_configured (issue #3676). Additive with a default
+    // of 1, and an older peer omits it, so the floor stays. The known cost: a
+    // peer still on v315 ignores the column, so it treats an entry this
+    // build created from a download as the diver's own configuration and
+    // names its tanks after it until it updates; and an edit it publishes on
+    // such an entry drops the column, which then arrives here as configured.
+    // Renumbered from 315, which #3668 took.
+    316,
+    // v317: the tank inspection dates become VIP and hydro clock baselines
+    // (issue #3662). Data only and unsynced, so the floor does not move. 316
+    // is held by PR #3685.
+    317,
+    // v318: moves the CNS, OTU and deco model stored computer tissue
+    // snapshots held into their own dive and source columns (issue #2555).
+    // Data only, so the floor does not move: an older peer reads the slimmer
+    // snapshot as one that reported less, and a dive it still sends in the
+    // old shape gets the same move once applied here (SyncService). 317 is
+    // #3662 (tank inspection baselines); 316 is held by PR #3685.
+    318,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

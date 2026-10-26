@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/accessibility/app_shortcuts.dart';
 import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -34,7 +35,6 @@ import 'package:submersion/features/marine_life/presentation/providers/species_p
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/presentation/pages/document_detail_page.dart';
 import 'package:submersion/features/documents/presentation/pages/document_edit_page.dart';
-import 'package:submersion/features/documents/presentation/pages/documents_page.dart';
 import 'package:submersion/features/certifications/presentation/pages/certification_detail_page.dart';
 import 'package:submersion/features/certifications/presentation/pages/certification_edit_page.dart';
 import 'package:submersion/features/certifications/presentation/pages/certification_wallet_page.dart';
@@ -85,7 +85,6 @@ import 'package:submersion/features/equipment/presentation/pages/equipment_locat
 import 'package:submersion/features/equipment/presentation/pages/service_kind_list_page.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_set_detail_page.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_set_edit_page.dart';
-import 'package:submersion/features/media/presentation/pages/media_section_page.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_edit_navigation.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_list_page.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_detail_page.dart';
@@ -184,6 +183,8 @@ import 'package:submersion/features/weight_presets/presentation/pages/weight_pre
 import 'package:submersion/features/weight_presets/presentation/pages/weight_presets_page.dart';
 import 'package:submersion/features/tank_presets/presentation/pages/tank_preset_edit_page.dart';
 import 'package:submersion/features/transmitters/presentation/pages/transmitter_edit_page.dart';
+import 'package:submersion/features/transmitters/presentation/pages/transmitter_item_redirect.dart';
+import 'package:submersion/features/transmitters/presentation/pages/transmitter_setup_redirect.dart';
 import 'package:submersion/features/transmitters/presentation/pages/transmitters_page.dart';
 import 'package:submersion/features/marine_life/presentation/pages/species_manage_page.dart';
 import 'package:submersion/features/marine_life/presentation/pages/species_page.dart';
@@ -198,7 +199,9 @@ import 'package:submersion/features/nav_track/presentation/pages/nav_track_detai
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_seascape_page.dart';
 import 'package:submersion/features/gps_log/presentation/pages/gps_track_detail_page.dart';
 import 'package:submersion/core/router/track_locations.dart';
+import 'package:submersion/core/router/media_documents_locations.dart';
 import 'package:submersion/core/router/training_locations.dart';
+import 'package:submersion/features/media_documents/presentation/pages/media_documents_page.dart';
 import 'package:submersion/features/training/presentation/pages/training_page.dart';
 import 'package:submersion/features/tracks/domain/track_kind.dart';
 import 'package:submersion/features/tracks/presentation/pages/tracks_map_page.dart';
@@ -215,7 +218,7 @@ import 'package:submersion/features/dive_computer/domain/entities/dive_computer_
 import 'package:submersion/features/dive_computer/domain/services/download_connection_selection.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/dive_computer_connection_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/pages/device_list_page.dart';
-import 'package:submersion/features/dive_computer/presentation/pages/device_detail_page.dart';
+import 'package:submersion/features/dive_computer/presentation/pages/dive_computer_item_redirect.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/download_providers.dart'
     show diveImportServiceProvider;
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
@@ -660,6 +663,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 builder: (context, state) => EquipmentEditPage(
                   initialParentId: state.uri.queryParameters['parent'],
                   cloneFromId: state.uri.queryParameters['cloneFrom'],
+                  // The Dive Computers and Transmitters lists' "add by hand"
+                  // (issue #3676).
+                  initialType: EquipmentType.values
+                      .asNameMap()[state.uri.queryParameters['type']],
+                  initialSerial: state.uri.queryParameters['serial'],
                 ),
               ),
               GoRoute(
@@ -779,6 +787,25 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                       scannedTag: scannedTagFrom(state.extra),
                     ),
                   ),
+                  // A Transmitter item's setup (issue #3676): add a key, or
+                  // edit one; role and cylinder go onto every key.
+                  GoRoute(
+                    path: 'transmitter',
+                    name: 'transmitterSetup',
+                    builder: (context, state) => TransmitterEditPage(
+                      equipmentId: state.pathParameters['equipmentId']!,
+                    ),
+                    routes: [
+                      GoRoute(
+                        path: ':transmitterId',
+                        name: 'transmitterKeyEdit',
+                        builder: (context, state) => TransmitterEditPage(
+                          equipmentId: state.pathParameters['equipmentId']!,
+                          transmitterId: state.pathParameters['transmitterId'],
+                        ),
+                      ),
+                    ],
+                  ),
                   // Any other gear's tag page (issue #2652).
                   GoRoute(
                     path: 'gear-passport',
@@ -895,22 +922,19 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             ],
           ),
 
-          // Documents (issue #2613)
+          // Documents (issue #2613), merged with Media into two tabs of one
+          // host (#3631), the way Training merged Certifications and
+          // Courses (#3437).
           GoRoute(
             path: '/documents',
             name: 'documents',
-            pageBuilder: (context, state) {
-              final q = state.uri.queryParameters;
-              return NoTransitionPage(
-                key: state.pageKey,
-                child: DocumentsPage(
-                  initialType: DocumentType.values.asNameMap()[q['type']],
-                  initialExpiringOnly: q['filter'] == 'expiring',
-                  initialPersonalOnly: q['owner'] == 'personal',
-                  initialTagId: q['tag'],
-                ),
-              );
-            },
+            // Documents' filters (type/filter/owner/tag) are not read from
+            // this route's state: the shared host also rebuilds for /media,
+            // which carries none of them. The host hands each tab its own
+            // cached query instead.
+            pageBuilder: (context, state) => mediaDocumentsHostPage(
+              const MediaDocumentsPage(tab: MediaDocumentsTab.documents),
+            ),
             routes: [
               GoRoute(
                 path: 'new',
@@ -1077,13 +1101,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             ],
           ),
 
-          // Media section (DAM console)
+          // Media section (DAM console), merged with Documents into two
+          // tabs of one host (#3631).
           GoRoute(
             path: '/media',
             name: 'media',
-            pageBuilder: (context, state) => NoTransitionPage(
-              key: state.pageKey,
-              child: const MediaSectionPage(),
+            pageBuilder: (context, state) => mediaDocumentsHostPage(
+              const MediaDocumentsPage(tab: MediaDocumentsTab.media),
             ),
           ),
 
@@ -1911,18 +1935,22 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             name: 'transmitters',
             builder: (context, state) => const TransmittersPage(),
             routes: [
+              // A transmitter is an Equipment item (issue #3676): adding one
+              // opens the item behind the serial, or starts one carrying it,
+              // and an old edit link forwards to the item.
               GoRoute(
                 path: 'new',
                 name: 'newTransmitter',
-                builder: (context, state) => TransmitterEditPage(
-                  initialSerial: state.uri.queryParameters['serial'],
+                builder: (context, state) => TransmitterSetupRedirect(
+                  serial: state.uri.queryParameters['serial'],
+                  diveId: state.uri.queryParameters['dive'],
                 ),
               ),
               GoRoute(
                 path: ':transmitterId/edit',
                 name: 'editTransmitter',
-                builder: (context, state) => TransmitterEditPage(
-                  transmitterId: state.pathParameters['transmitterId'],
+                builder: (context, state) => TransmitterItemRedirect(
+                  transmitterId: state.pathParameters['transmitterId']!,
                 ),
               ),
             ],
@@ -2086,13 +2114,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'discover',
                 name: 'discoverDevice',
                 onExit: confirmLeaveRunningImport,
-                builder: (context, state) =>
-                    const _DiveComputerDiscoveryWizardRoute(),
+                // ?equipment= binds the device it finds to that hand-added
+                // Dive Computer item (issue #3676).
+                builder: (context, state) => _DiveComputerDiscoveryWizardRoute(
+                  bindEquipmentId: state.uri.queryParameters['equipment'],
+                ),
               ),
               GoRoute(
                 path: ':computerId',
                 name: 'computerDetail',
-                builder: (context, state) => DeviceDetailPage(
+                // A dive computer's page is its Equipment item's (issue
+                // #3676); this forwards there, and its download child stays.
+                builder: (context, state) => DiveComputerItemRedirect(
                   computerId: state.pathParameters['computerId']!,
                 ),
                 routes: [
@@ -2207,7 +2240,9 @@ class _HealthKitUnavailableScreen extends StatelessWidget {
 
 /// Wrapper that creates a [DiveComputerAdapter] for device discovery.
 class _DiveComputerDiscoveryWizardRoute extends ConsumerWidget {
-  const _DiveComputerDiscoveryWizardRoute();
+  const _DiveComputerDiscoveryWizardRoute({this.bindEquipmentId});
+
+  final String? bindEquipmentId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -2225,6 +2260,7 @@ class _DiveComputerDiscoveryWizardRoute extends ConsumerWidget {
         consolidationService: consolidationService,
         diverId: diverId,
         ref: ref,
+        bindEquipmentId: bindEquipmentId,
       ),
     );
   }

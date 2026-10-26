@@ -37,6 +37,65 @@ class AppLocalizationsEn extends AppLocalizations {
   String get connections_around_show => 'Show';
 
   @override
+  String get connections_caption_circle =>
+      'A line joins two buddies who dived together.';
+
+  @override
+  String get connections_caption_where =>
+      'A line means you dived at that site with that buddy.';
+
+  @override
+  String get connections_caption_trips =>
+      'A line means that buddy was on that trip.';
+
+  @override
+  String get connections_caption_life =>
+      'A line means you saw that species at that site.';
+
+  @override
+  String get connections_caption_gear =>
+      'A line joins gear used on the same dive.';
+
+  @override
+  String get connections_caption_centers =>
+      'A line means you dived with that buddy through that center.';
+
+  @override
+  String get connections_caption_travel =>
+      'Buddies, trips and sites; a line means they share dives.';
+
+  @override
+  String get connections_caption_reef =>
+      'Sites, marine life and dive types; a line means they share dives.';
+
+  @override
+  String get connections_caption_gearRoad =>
+      'Gear, trips and centers; a line means they share dives.';
+
+  @override
+  String connections_caption_custom(String kinds) {
+    return '$kinds; a line means they share a dive.';
+  }
+
+  @override
+  String get connections_caption_kindSeparator => ', ';
+
+  @override
+  String connections_caption_around(int hops) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hops,
+      locale: localeName,
+      other:
+          'Everything within $hops steps of this centre, linked by shared dives.',
+      one: 'Everything that shares a dive with this centre.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_caption_thicker => 'Thicker lines mean more dives.';
+
+  @override
   String get connections_editor_kinds => 'Kinds';
 
   @override
@@ -2603,7 +2662,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String backup_retention_allDevices_on(int count) {
-    return 'The cloud folder keeps the last $count backups from every device. Pinned backups are kept. If other devices use this too, the smallest number wins. Update the app on every device first so their pins are seen.';
+    return 'The cloud folder keeps the last $count backups from every device. Pinned backups are kept. Each device\'s newest backup is kept too, unless it is more than 6 months old. If other devices use this too, the smallest number wins. Update the app on every device first so their pins are seen.';
   }
 
   @override
@@ -2640,6 +2699,17 @@ class AppLocalizationsEn extends AppLocalizations {
       locale: localeName,
       other: '$count pinned backups are kept.',
       one: '$count pinned backup is kept.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backup_retention_confirm_deviceNewestKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count backups are kept as their device\'s newest.',
+      one: '$count backup is kept as its device\'s newest.',
     );
     return '$_temp0';
   }
@@ -5114,6 +5184,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get connections_empty_sites => 'No dives have a site yet.';
+
+  @override
+  String get connections_empty_whereNoSites =>
+      'None of your dives with a buddy has a site yet. Add sites to those dives to see where you dive together.';
 
   @override
   String get connections_empty_filtered =>
@@ -9868,6 +9942,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_tank_label_material => 'Material';
 
   @override
+  String get diveLog_tank_label_mnd => 'MND';
+
+  @override
   String get diveLog_tank_label_n2 => 'N2';
 
   @override
@@ -9892,13 +9969,43 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_tank_mndHelper => 'Set to auto-calculate He%';
 
   @override
-  String diveLog_tank_gasUsed(String amount) {
-    return '($amount used)';
+  String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd) {
+    return 'MOD: $mod (ppO₂ $ppO2) | MND: $mnd';
   }
 
   @override
-  String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd) {
-    return 'MOD: $mod (ppO₂ $ppO2) | MND: $mnd';
+  String get diveLog_cylinders_columnTank => 'Tank';
+
+  @override
+  String get diveLog_cylinders_columnGas => 'Gas';
+
+  @override
+  String get diveLog_cylinders_columnStart => 'Start';
+
+  @override
+  String get diveLog_cylinders_columnEnd => 'End';
+
+  @override
+  String get diveLog_cylinders_columnUsed => 'Used';
+
+  @override
+  String diveLog_cylinders_gasUsed(String amount) {
+    return 'Gas used $amount';
+  }
+
+  @override
+  String diveLog_cylinders_mod(String depth) {
+    return 'MOD $depth';
+  }
+
+  @override
+  String diveLog_cylinders_mnd(String depth) {
+    return 'MND $depth';
+  }
+
+  @override
+  String diveLog_cylinders_modNote(String ppO2) {
+    return 'MOD at ppO₂ $ppO2';
   }
 
   @override
@@ -14433,6 +14540,18 @@ class AppLocalizationsEn extends AppLocalizations {
       'Are you sure you want to delete this equipment? This action cannot be undone.';
 
   @override
+  String get equipment_deleteDialog_content_computer =>
+      'Delete this dive computer? Its download history goes with it, so the next download from it reads every dive again. Your dives stay. Connecting the computer again adds it back.';
+
+  @override
+  String get equipment_deleteDialog_content_transmitter =>
+      'Delete this transmitter? Its cylinder setup goes with it. A later download that carries its serial adds it back. To keep it out of the way instead, mark it Retired.';
+
+  @override
+  String get equipment_bulkDelete_deviceNote =>
+      'Dive computers and transmitters in the selection are deleted with their download history and setup. Your dives stay.';
+
+  @override
   String get equipment_deleteDialog_title => 'Delete Equipment';
 
   @override
@@ -15261,6 +15380,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get equipment_edit_typeLabel => 'Type *';
+
+  @override
+  String get equipment_edit_typeLockedHelper =>
+      'A connected dive computer or transmitter keeps its type.';
 
   @override
   String get equipment_edit_useCustomReminders => 'Use Custom Reminders';
@@ -19398,6 +19521,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nav_media => 'Media';
 
   @override
+  String get nav_mediaDocumentsSubtitle => 'Photos, videos and documents';
+
+  @override
+  String get nav_photosVideos => 'Photos/Videos';
+
+  @override
   String get nav_more => 'More';
 
   @override
@@ -20450,6 +20579,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get buoyancy_noLeadHint =>
       'No lead recorded: add weights to this dive, or a dry weight to your weights gear';
+
+  @override
+  String get buoyancy_tankMaterialAssumedHint =>
+      'Tank material not set, so aluminum was assumed: set the material or pick a tank preset';
 
   @override
   String get buoyancy_chartNet => 'Net';
@@ -22397,6 +22530,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_conflict_field_downloadsFollowComputerOwner =>
       'Add downloads to the computer\'s owner';
+
+  @override
+  String get settings_conflict_field_omitUnusedOcGases =>
+      'Skip unused bailout gases';
 
   @override
   String get settings_conflict_field_avgSpeed => 'Average speed';
@@ -24389,9 +24526,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get nav_documents => 'Documents';
-
-  @override
-  String get documents_title => 'Documents';
 
   @override
   String get documents_type_insurance => 'Insurance';
@@ -29817,6 +29951,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'When a dive computer belongs to another profile, its dives go to that profile\'s log. You can change it on the review screen.';
 
   @override
+  String get settings_omitUnusedOcGases_title => 'Skip unused bailout gases';
+
+  @override
+  String get settings_omitUnusedOcGases_subtitle =>
+      'On rebreather downloads and re-parses, leave out a gas with no transmitter that was never breathed';
+
+  @override
   String get tags_manage_searchHint => 'Search tags...';
 
   @override
@@ -33156,27 +33297,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveComputer_connections_cloudOther => 'Cloud import';
 
   @override
-  String diveComputer_detail_deleteDialogContent(String name) {
-    return 'Are you sure you want to remove \"$name\"? This will not delete any dives that were imported from this computer.';
-  }
-
-  @override
-  String get diveComputer_detail_deleteDialogTitle => 'Delete Computer?';
-
-  @override
   String get diveComputer_detail_divesImported => 'Dives Imported';
 
   @override
   String get diveComputer_detail_downloadDivesButton => 'Download Dives';
 
   @override
-  String get diveComputer_detail_editDialogTitle => 'Edit Computer';
+  String get diveComputer_section_connect => 'Connect and download';
 
   @override
-  String get diveComputer_detail_editNameHint => 'e.g., My Perdix';
-
-  @override
-  String get diveComputer_detail_editNotesHint => 'Optional notes';
+  String get diveComputer_section_notConnected =>
+      'This computer has not been connected yet. Connect it to download its dives.';
 
   @override
   String get diveComputer_detail_labelManufacturer => 'Manufacturer';
@@ -33185,16 +33316,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveComputer_detail_labelModel => 'Model';
 
   @override
-  String get diveComputer_detail_labelName => 'Name';
-
-  @override
   String get diveComputer_detail_lastDownload => 'Last Download';
-
-  @override
-  String get diveComputer_detail_linkedGear => 'Gear item';
-
-  @override
-  String get diveComputer_detail_notesTitle => 'Notes';
 
   @override
   String get diveComputer_detail_reimportAllButton => 'Re-import all dives';
@@ -33429,6 +33551,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveComputer_list_findComputers => 'Find Computers';
+
+  @override
+  String get diveComputer_list_addByHand => 'Add by hand';
+
+  @override
+  String get diveComputer_list_notConnected => 'Not connected yet';
 
   @override
   String get diveComputer_list_helpBluetooth =>
@@ -39309,6 +39437,20 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get dataQuality_repairLabel_shiftImport =>
       'Shift all dives from this import';
+
+  @override
+  String dataQuality_repairLabel_shiftLogbookTime(String offset) {
+    return 'Shift logbook time by $offset';
+  }
+
+  @override
+  String dataQuality_repairLabel_fixSourceClock(String offset) {
+    return 'Fix this computer\'s clock by $offset';
+  }
+
+  @override
+  String get dataQuality_repairLabel_fixSourceClockAll =>
+      'Also fix this computer on other dives with the same offset';
 
   @override
   String get dataQuality_repairLabel_consolidate => 'Consolidate';
@@ -50732,6 +50874,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get diveComputer_merge_gearNote =>
+      'Each other record\'s Equipment item is folded into this one: its service history, documents and photos move here, and the emptied item is deleted.';
+
+  @override
   String get diveComputer_merge_keepLabel => 'Keep this record';
 
   @override
@@ -50957,24 +51103,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String get transmitters_add => 'Add transmitter';
 
   @override
-  String get transmitters_header_assigned => 'Assigned transmitters';
+  String get transmitters_emptyItems =>
+      'No transmitters yet. A download that reads one adds it here, or add one by hand.';
 
   @override
-  String get transmitters_header_unassigned =>
-      'Seen in downloads, not assigned';
+  String get transmitters_noCylinder => 'No cylinder set up';
 
   @override
-  String get transmitters_empty =>
-      'No transmitters yet. Add one, or assign a serial after your next download.';
+  String get transmitters_section_noKey =>
+      'No serial or channel yet. Add the one your dive computer reports for this transmitter.';
 
   @override
-  String get transmitters_action_assign => 'Assign';
+  String get transmitters_key_remove => 'Remove this key';
 
   @override
-  String get transmitters_action_edit => 'Edit transmitter';
+  String get transmitters_key_removeTitle => 'Remove this key?';
 
   @override
-  String get transmitters_action_delete => 'Delete transmitter';
+  String get transmitters_key_removeBody =>
+      'The transmitter item and its other keys stay. Use this for a wrong channel or a mistyped serial: a serial your dive computer keeps reporting is added back by the next download, not yet set up.';
+
+  @override
+  String get transmitters_list_noKey => 'No serial or channel yet';
+
+  @override
+  String get transmitters_section_addKey => 'Add serial or channel';
+
+  @override
+  String get transmitters_section_setUp => 'Set up';
 
   @override
   String get transmitters_action_apply => 'Apply to existing dives';
@@ -50997,14 +51153,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'No cylinders carry this transmitter';
 
   @override
-  String get transmitters_delete_title => 'Delete transmitter?';
-
-  @override
-  String transmitters_delete_content(String label) {
-    return 'Future downloads from $label will use the default preset again.';
-  }
-
-  @override
   String transmitters_channel(String computer, int channel) {
     return '$computer, channel $channel';
   }
@@ -51015,28 +51163,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String transmitters_dives(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count dives',
-      one: '1 dive',
-    );
-    return '$_temp0';
-  }
-
-  @override
   String get transmitters_edit_title => 'Edit transmitter';
 
   @override
   String get transmitters_new_title => 'New transmitter';
-
-  @override
-  String get transmitters_field_label => 'Label';
-
-  @override
-  String get transmitters_field_label_helper =>
-      'Becomes the cylinder\'s name on the dive once this transmitter is matched';
 
   @override
   String get transmitters_field_serial => 'Transmitter serial';
@@ -51057,13 +51187,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get transmitters_field_gear_subtitle =>
       'The cylinder this transmitter reports pressure for';
-
-  @override
-  String get transmitters_field_transmitterGear => 'Transmitter from gear';
-
-  @override
-  String get transmitters_field_transmitterGear_subtitle =>
-      'Battery/service tracking, not matching';
 
   @override
   String get transmitters_field_material => 'Material';
@@ -51090,16 +51213,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get transmitters_saved => 'Transmitter saved';
-
-  @override
-  String transmitters_copySerial_title(String gearName) {
-    return 'Copy the serial to \"$gearName\"?';
-  }
-
-  @override
-  String transmitters_copySerial_content(String serial) {
-    return 'The serial this entry matches on ($serial) is not recorded on the transmitter gear item yet.';
-  }
 
   @override
   String get diveComputer_detail_transmitters => 'Transmitters';
@@ -51165,6 +51278,18 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get universalImport_summary_noticeTransmitterNameRolesBody =>
       'The dive computer took some oxygen and diluent roles from the names given to its transmitters: a name starting with O reads as oxygen, one starting with D as diluent. Assign the transmitters to confirm or correct those roles.';
+
+  @override
+  String get universalImport_summary_noticeDeviceOtherItemTitle =>
+      'This computer is already in Equipment';
+
+  @override
+  String get universalImport_summary_noticeDeviceOtherItemBody =>
+      'The computer you connected is already another Equipment item, so its dives were added there. The item you started from was left as it was.';
+
+  @override
+  String get universalImport_summary_noticeDeviceOtherItemAction =>
+      'Open that item';
 
   @override
   String get universalImport_summary_noticeDiveNumberConflictTitle =>

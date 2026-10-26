@@ -583,6 +583,16 @@ _FileNoticeWording? _fileNoticeWording(
         route: '/transmitters',
       ),
     ),
+    ImportNoticeKind.deviceBelongsToOtherItem => (
+      title: l10n.universalImport_summary_noticeDeviceOtherItemTitle,
+      body: l10n.universalImport_summary_noticeDeviceOtherItemBody,
+      action: notice.targetId == null
+          ? null
+          : (
+              label: l10n.universalImport_summary_noticeDeviceOtherItemAction,
+              route: '/equipment/${notice.targetId}',
+            ),
+    ),
     ImportNoticeKind.columnsNotImported => (
       title: l10n.universalImport_summary_noticeColumnsNotImportedTitle,
       body: l10n.universalImport_summary_noticeColumnsNotImportedBody(names),

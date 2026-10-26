@@ -35,6 +35,28 @@ void main() {
       expect(sql, contains('dives.excluded_from_gas_stats = 0'));
       expect(sql, contains("dives.dive_mode <> 'gauge'"));
     });
+
+    test('the gas variant keeps rebreather dives, for gas-mix counts', () {
+      expect(DiveStatsScope.predicate(gas: true), isNot(contains('ccr')));
+    });
+
+    test('the consumption-rate variant adds the rebreather rule to gas', () {
+      expect(
+        DiveStatsScope.predicate(consumptionRate: true),
+        '${DiveStatsScope.predicate(gas: true)} '
+        "AND d.dive_mode NOT IN ('ccr', 'scr')",
+      );
+    });
+
+    test('the consumption-rate variant honours a custom alias', () {
+      final sql = DiveStatsScope.predicate(
+        alias: 'dives',
+        consumptionRate: true,
+      );
+      expect(sql.contains('d.'), isFalse);
+      expect(sql, contains("dives.dive_mode NOT IN ('ccr', 'scr')"));
+      expect(sql, contains('dives.excluded_from_gas_stats = 0'));
+    });
   });
 
   group('DiveStatsScope.and', () {
@@ -49,6 +71,13 @@ void main() {
       expect(
         DiveStatsScope.and(alias: 'x', gas: true),
         ' AND ${DiveStatsScope.predicate(alias: 'x', gas: true)}',
+      );
+    });
+
+    test('carries the consumption-rate variant through', () {
+      expect(
+        DiveStatsScope.and(alias: 'x', consumptionRate: true),
+        ' AND ${DiveStatsScope.predicate(alias: 'x', consumptionRate: true)}',
       );
     });
 

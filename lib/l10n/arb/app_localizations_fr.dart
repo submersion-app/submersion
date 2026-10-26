@@ -37,6 +37,66 @@ class AppLocalizationsFr extends AppLocalizations {
   String get connections_around_show => 'Afficher';
 
   @override
+  String get connections_caption_circle =>
+      'Une ligne relie deux binômes qui ont plongé ensemble.';
+
+  @override
+  String get connections_caption_where =>
+      'Une ligne signifie que vous avez plongé sur ce site avec ce binôme.';
+
+  @override
+  String get connections_caption_trips =>
+      'Une ligne signifie que ce binôme était de ce voyage.';
+
+  @override
+  String get connections_caption_life =>
+      'Une ligne signifie que vous avez vu cette espèce sur ce site.';
+
+  @override
+  String get connections_caption_gear =>
+      'Une ligne relie l\'équipement utilisé lors d\'une même plongée.';
+
+  @override
+  String get connections_caption_centers =>
+      'Une ligne signifie que vous avez plongé avec ce binôme via ce centre.';
+
+  @override
+  String get connections_caption_travel =>
+      'Binômes, voyages et sites ; une ligne signifie des plongées en commun.';
+
+  @override
+  String get connections_caption_reef =>
+      'Sites, vie marine et types de plongée ; une ligne signifie des plongées en commun.';
+
+  @override
+  String get connections_caption_gearRoad =>
+      'Équipement, voyages et centres ; une ligne signifie des plongées en commun.';
+
+  @override
+  String connections_caption_custom(String kinds) {
+    return '$kinds ; une ligne signifie qu\'ils partagent une plongée.';
+  }
+
+  @override
+  String get connections_caption_kindSeparator => ', ';
+
+  @override
+  String connections_caption_around(int hops) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hops,
+      locale: localeName,
+      other:
+          'Tout ce qui se trouve à $hops pas au plus de l\'élément central, relié par des plongées en commun.',
+      one: 'Tout ce qui partage une plongée avec l\'élément central.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_caption_thicker =>
+      'Plus la ligne est épaisse, plus il y a de plongées.';
+
+  @override
   String get connections_editor_kinds => 'Types';
 
   @override
@@ -2641,7 +2701,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String backup_retention_allDevices_on(int count) {
-    return 'Le dossier cloud conserve les $count dernières sauvegardes de tous les appareils. Les sauvegardes épinglées sont conservées. Si d\'autres appareils utilisent aussi ce réglage, le plus petit nombre l\'emporte. Mettez d\'abord l\'app à jour sur tous les appareils pour que leurs épingles soient prises en compte.';
+    return 'Le dossier cloud conserve les $count dernières sauvegardes de tous les appareils. Les sauvegardes épinglées sont conservées. La sauvegarde la plus récente de chaque appareil est aussi conservée, sauf si elle a plus de 6 mois. Si d\'autres appareils utilisent aussi ce réglage, le plus petit nombre l\'emporte. Mettez d\'abord l\'app à jour sur tous les appareils pour que leurs épingles soient prises en compte.';
   }
 
   @override
@@ -2678,6 +2738,19 @@ class AppLocalizationsFr extends AppLocalizations {
       locale: localeName,
       other: '$count sauvegardes épinglées sont conservées.',
       one: '$count sauvegarde épinglée est conservée.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backup_retention_confirm_deviceNewestKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count sauvegardes sont conservées comme les plus récentes de leur appareil.',
+      one:
+          '$count sauvegarde est conservée comme la plus récente de son appareil.',
     );
     return '$_temp0';
   }
@@ -5199,6 +5272,10 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get connections_empty_sites => 'Aucune plongée n\'a encore de site.';
+
+  @override
+  String get connections_empty_whereNoSites =>
+      'Aucune de vos plongées avec un binôme n\'a encore de site. Ajoutez des sites à ces plongées pour voir où vous plongez ensemble.';
 
   @override
   String get connections_empty_filtered =>
@@ -10058,6 +10135,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_tank_label_material => 'Matériau';
 
   @override
+  String get diveLog_tank_label_mnd => 'MND';
+
+  @override
   String get diveLog_tank_label_n2 => 'N2';
 
   @override
@@ -10083,13 +10163,43 @@ class AppLocalizationsFr extends AppLocalizations {
       'Régler pour calculer automatiquement He%';
 
   @override
-  String diveLog_tank_gasUsed(String amount) {
-    return '($amount utilisés)';
+  String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd) {
+    return 'PMU : $mod (ppO₂ $ppO2) | PNM : $mnd';
   }
 
   @override
-  String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd) {
-    return 'PMU : $mod (ppO₂ $ppO2) | PNM : $mnd';
+  String get diveLog_cylinders_columnTank => 'Bloc';
+
+  @override
+  String get diveLog_cylinders_columnGas => 'Gaz';
+
+  @override
+  String get diveLog_cylinders_columnStart => 'Début';
+
+  @override
+  String get diveLog_cylinders_columnEnd => 'Fin';
+
+  @override
+  String get diveLog_cylinders_columnUsed => 'Utilisé';
+
+  @override
+  String diveLog_cylinders_gasUsed(String amount) {
+    return 'Gaz utilisé $amount';
+  }
+
+  @override
+  String diveLog_cylinders_mod(String depth) {
+    return 'PMU $depth';
+  }
+
+  @override
+  String diveLog_cylinders_mnd(String depth) {
+    return 'PNM $depth';
+  }
+
+  @override
+  String diveLog_cylinders_modNote(String ppO2) {
+    return 'PMU à ppO₂ $ppO2';
   }
 
   @override
@@ -14684,6 +14794,18 @@ class AppLocalizationsFr extends AppLocalizations {
       'Es-tu sûr de vouloir supprimer cet équipement ? Cette action est irréversible.';
 
   @override
+  String get equipment_deleteDialog_content_computer =>
+      'Supprimer cet ordinateur de plongée ? Son historique de téléchargement est supprimé avec lui : le prochain téléchargement relira donc toutes les plongées. Tes plongées sont conservées. Reconnecter l\'ordinateur l\'ajoute de nouveau.';
+
+  @override
+  String get equipment_deleteDialog_content_transmitter =>
+      'Supprimer cet émetteur ? Sa configuration de bouteille est supprimée avec lui. Un téléchargement ultérieur portant son numéro de série l\'ajoutera de nouveau. Pour simplement le mettre de côté, passe-le au statut Réforme.';
+
+  @override
+  String get equipment_bulkDelete_deviceNote =>
+      'Les ordinateurs de plongée et les émetteurs de la sélection sont supprimés avec leur historique de téléchargement et leur configuration. Tes plongées sont conservées.';
+
+  @override
   String get equipment_deleteDialog_title => 'Supprimer l\'équipement';
 
   @override
@@ -15519,6 +15641,10 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get equipment_edit_typeLabel => 'Type *';
+
+  @override
+  String get equipment_edit_typeLockedHelper =>
+      'Un ordinateur de plongée ou un émetteur connecté garde son type.';
 
   @override
   String get equipment_edit_useCustomReminders =>
@@ -19742,6 +19868,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get nav_media => 'Médias';
 
   @override
+  String get nav_mediaDocumentsSubtitle => 'Photos, vidéos et documents';
+
+  @override
+  String get nav_photosVideos => 'Photos/Vidéos';
+
+  @override
   String get nav_more => 'Plus';
 
   @override
@@ -20812,6 +20944,10 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get buoyancy_noLeadHint =>
       'Aucun lest enregistré : ajoutez du lest à cette plongée ou un poids à sec à votre équipement de lestage';
+
+  @override
+  String get buoyancy_tankMaterialAssumedHint =>
+      'Matériau du bloc non défini, aluminium supposé : définissez le matériau ou choisissez un modèle de bloc';
 
   @override
   String get buoyancy_chartNet => 'Net';
@@ -22799,6 +22935,10 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settings_conflict_field_downloadsFollowComputerOwner =>
       'Ajouter les téléchargements au propriétaire de l\'ordinateur';
+
+  @override
+  String get settings_conflict_field_omitUnusedOcGases =>
+      'Ignorer les gaz de secours inutilisés';
 
   @override
   String get settings_conflict_field_avgSpeed => 'Vitesse moyenne';
@@ -24877,9 +25017,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get nav_documents => 'Documents';
-
-  @override
-  String get documents_title => 'Documents';
 
   @override
   String get documents_type_insurance => 'Assurance';
@@ -30427,6 +30564,14 @@ class AppLocalizationsFr extends AppLocalizations {
       'Si un ordinateur de plongée appartient à un autre profil, ses plongées vont dans le carnet de ce profil. Vous pouvez le modifier sur l\'écran de vérification.';
 
   @override
+  String get settings_omitUnusedOcGases_title =>
+      'Ignorer les gaz de secours inutilisés';
+
+  @override
+  String get settings_omitUnusedOcGases_subtitle =>
+      'Lors des téléchargements et réanalyses de recycleur, omet un gaz sans transmetteur qui n\'a jamais été respiré';
+
+  @override
   String get tags_manage_searchHint => 'Rechercher des étiquettes...';
 
   @override
@@ -33815,15 +33960,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveComputer_connections_cloudOther => 'Import depuis le cloud';
 
   @override
-  String diveComputer_detail_deleteDialogContent(String name) {
-    return 'Voulez-vous vraiment supprimer \"$name\" ? Les plongées importées depuis cet ordinateur ne seront pas supprimées.';
-  }
-
-  @override
-  String get diveComputer_detail_deleteDialogTitle =>
-      'Supprimer l\'ordinateur ?';
-
-  @override
   String get diveComputer_detail_divesImported => 'Plongées importées';
 
   @override
@@ -33831,13 +33967,11 @@ class AppLocalizationsFr extends AppLocalizations {
       'Télécharger les plongées';
 
   @override
-  String get diveComputer_detail_editDialogTitle => 'Modifier l\'ordinateur';
+  String get diveComputer_section_connect => 'Connecter et télécharger';
 
   @override
-  String get diveComputer_detail_editNameHint => 'Par exemple, Mon Perdix';
-
-  @override
-  String get diveComputer_detail_editNotesHint => 'Notes facultatives';
+  String get diveComputer_section_notConnected =>
+      'Cet ordinateur n\'a pas encore été connecté. Connecte-le pour télécharger ses plongées.';
 
   @override
   String get diveComputer_detail_labelManufacturer => 'Fabricant';
@@ -33846,16 +33980,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveComputer_detail_labelModel => 'Modèle';
 
   @override
-  String get diveComputer_detail_labelName => 'Nom';
-
-  @override
   String get diveComputer_detail_lastDownload => 'Dernier téléchargement';
-
-  @override
-  String get diveComputer_detail_linkedGear => 'Équipement';
-
-  @override
-  String get diveComputer_detail_notesTitle => 'Notes';
 
   @override
   String get diveComputer_detail_reimportAllButton =>
@@ -34099,6 +34224,12 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get diveComputer_list_findComputers => 'Rechercher des ordinateurs';
+
+  @override
+  String get diveComputer_list_addByHand => 'Ajouter manuellement';
+
+  @override
+  String get diveComputer_list_notConnected => 'Pas encore connecté';
 
   @override
   String get diveComputer_list_helpBluetooth =>
@@ -40078,6 +40209,20 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get dataQuality_repairLabel_shiftImport =>
       'Décaler toutes les plongées de cet import';
+
+  @override
+  String dataQuality_repairLabel_shiftLogbookTime(String offset) {
+    return 'Décaler l\'heure du carnet de $offset';
+  }
+
+  @override
+  String dataQuality_repairLabel_fixSourceClock(String offset) {
+    return 'Corriger l\'horloge de cet ordinateur de $offset';
+  }
+
+  @override
+  String get dataQuality_repairLabel_fixSourceClockAll =>
+      'Corriger aussi cet ordinateur sur les autres plongées ayant le même décalage';
 
   @override
   String get dataQuality_repairLabel_consolidate => 'Consolider';
@@ -51658,6 +51803,10 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get diveComputer_merge_gearNote =>
+      'L\'article d\'équipement de chaque autre fiche est fusionné dans celui-ci : son historique d\'entretien, ses documents et ses photos y sont déplacés, et l\'article vidé est supprimé.';
+
+  @override
   String get diveComputer_merge_keepLabel => 'Conserver cette fiche';
 
   @override
@@ -51888,24 +52037,36 @@ class AppLocalizationsFr extends AppLocalizations {
   String get transmitters_add => 'Ajouter un émetteur';
 
   @override
-  String get transmitters_header_assigned => 'Émetteurs associés';
+  String get transmitters_emptyItems =>
+      'Aucun émetteur pour l\'instant. Un téléchargement qui en lit un l\'ajoute ici, ou ajoute-en un manuellement.';
 
   @override
-  String get transmitters_header_unassigned =>
-      'Vus dans les téléchargements, non associés';
+  String get transmitters_noCylinder => 'Aucune bouteille configurée';
 
   @override
-  String get transmitters_empty =>
-      'Aucun émetteur pour le moment. Ajoutez-en un, ou associez un numéro de série après votre prochain téléchargement.';
+  String get transmitters_section_noKey =>
+      'Pas encore de numéro de série ni de canal. Ajoute celui que ton ordinateur de plongée indique pour cet émetteur.';
 
   @override
-  String get transmitters_action_assign => 'Associer';
+  String get transmitters_key_remove => 'Retirer cette clé';
 
   @override
-  String get transmitters_action_edit => 'Modifier l\'émetteur';
+  String get transmitters_key_removeTitle => 'Retirer cette clé ?';
 
   @override
-  String get transmitters_action_delete => 'Supprimer l\'émetteur';
+  String get transmitters_key_removeBody =>
+      'L\'article du transmetteur et ses autres clés sont conservés. À utiliser pour un mauvais canal ou un numéro de série mal saisi : un numéro de série que votre ordinateur de plongée continue de signaler est rajouté au prochain téléchargement, pas encore configuré.';
+
+  @override
+  String get transmitters_list_noKey =>
+      'Pas encore de numéro de série ni de canal';
+
+  @override
+  String get transmitters_section_addKey =>
+      'Ajouter un numéro de série ou un canal';
+
+  @override
+  String get transmitters_section_setUp => 'Configurer';
 
   @override
   String get transmitters_action_apply => 'Appliquer aux plongées existantes';
@@ -51928,14 +52089,6 @@ class AppLocalizationsFr extends AppLocalizations {
       'Aucune bouteille ne porte cet émetteur';
 
   @override
-  String get transmitters_delete_title => 'Supprimer l\'émetteur ?';
-
-  @override
-  String transmitters_delete_content(String label) {
-    return 'Les prochains téléchargements de $label utiliseront de nouveau le préréglage par défaut.';
-  }
-
-  @override
   String transmitters_channel(String computer, int channel) {
     return '$computer, canal $channel';
   }
@@ -51946,28 +52099,10 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String transmitters_dives(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count plongées',
-      one: '$count plongée',
-    );
-    return '$_temp0';
-  }
-
-  @override
   String get transmitters_edit_title => 'Modifier l\'émetteur';
 
   @override
   String get transmitters_new_title => 'Nouvel émetteur';
-
-  @override
-  String get transmitters_field_label => 'Libellé';
-
-  @override
-  String get transmitters_field_label_helper =>
-      'Devient le nom de la bouteille dans la plongée une fois cet émetteur associé';
 
   @override
   String get transmitters_field_serial => 'Numéro de série de l\'émetteur';
@@ -51988,13 +52123,6 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get transmitters_field_gear_subtitle =>
       'La bouteille dont cet émetteur signale la pression';
-
-  @override
-  String get transmitters_field_transmitterGear => 'Émetteur de l’équipement';
-
-  @override
-  String get transmitters_field_transmitterGear_subtitle =>
-      'Suivi de la batterie/de l\'entretien, sans lien avec la correspondance';
 
   @override
   String get transmitters_field_material => 'Matériau';
@@ -52021,16 +52149,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get transmitters_saved => 'Émetteur enregistré';
-
-  @override
-  String transmitters_copySerial_title(String gearName) {
-    return 'Copier le numéro de série vers « $gearName » ?';
-  }
-
-  @override
-  String transmitters_copySerial_content(String serial) {
-    return 'Le numéro de série sur lequel correspond cette entrée ($serial) n\'est pas encore enregistré sur l\'article d\'équipement de l\'émetteur.';
-  }
 
   @override
   String get diveComputer_detail_transmitters => 'Émetteurs';
@@ -52096,6 +52214,18 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get universalImport_summary_noticeTransmitterNameRolesBody =>
       'L\'ordinateur de plongée a tiré certains rôles oxygène et diluant des noms donnés à ses émetteurs : un nom commençant par O est lu comme oxygène, un nom commençant par D comme diluant. Associez les émetteurs pour confirmer ou corriger ces rôles.';
+
+  @override
+  String get universalImport_summary_noticeDeviceOtherItemTitle =>
+      'Cet ordinateur est déjà dans Équipement';
+
+  @override
+  String get universalImport_summary_noticeDeviceOtherItemBody =>
+      'L\'ordinateur que tu as connecté est déjà un autre élément d\'équipement, ses plongées y ont donc été ajoutées. L\'élément d\'où tu es parti est resté tel quel.';
+
+  @override
+  String get universalImport_summary_noticeDeviceOtherItemAction =>
+      'Ouvrir cet élément';
 
   @override
   String get universalImport_summary_noticeDiveNumberConflictTitle =>

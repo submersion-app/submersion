@@ -18,6 +18,7 @@ import 'package:submersion/features/tags/presentation/widgets/tag_input_widget.d
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../helpers/mock_providers.dart';
+import '../../../helpers/plain_header_title.dart';
 import '../../../helpers/test_database.dart';
 
 /// Document tags in the documents UI (issue #1970): the edit page field,
@@ -81,8 +82,10 @@ void main() {
       routes: [
         GoRoute(
           path: '/documents',
-          builder: (context, state) =>
-              DocumentsPage(initialTagId: state.uri.queryParameters['tag']),
+          builder: (context, state) => DocumentsPage(
+            initialTagId: state.uri.queryParameters['tag'],
+            headerTitle: plainHeaderTitle('Documents'),
+          ),
           routes: [
             GoRoute(
               path: ':id',

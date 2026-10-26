@@ -400,6 +400,11 @@ class AppSettings {
   /// computer is recognised either way.
   final bool downloadsFollowComputerOwner;
 
+  /// Whether a rebreather download or re-parse leaves out an open-circuit gas
+  /// that no transmitter read and the diver never breathed (issue #3668). Off
+  /// keeps every gas the computer reports.
+  final bool omitUnusedOcGases;
+
   /// Which layout to use for the site list
   final ListViewMode siteListViewMode;
 
@@ -752,6 +757,7 @@ class AppSettings {
     this.groupTripsInDiveList = false,
     this.autoTagImports = true,
     this.downloadsFollowComputerOwner = true,
+    this.omitUnusedOcGases = false,
     this.siteListViewMode = ListViewMode.detailed,
     this.tripListViewMode = ListViewMode.detailed,
     this.equipmentListViewMode = ListViewMode.detailed,
@@ -969,6 +975,7 @@ class AppSettings {
     bool? groupTripsInDiveList,
     bool? autoTagImports,
     bool? downloadsFollowComputerOwner,
+    bool? omitUnusedOcGases,
     ListViewMode? siteListViewMode,
     ListViewMode? tripListViewMode,
     ListViewMode? equipmentListViewMode,
@@ -1172,6 +1179,7 @@ class AppSettings {
       autoTagImports: autoTagImports ?? this.autoTagImports,
       downloadsFollowComputerOwner:
           downloadsFollowComputerOwner ?? this.downloadsFollowComputerOwner,
+      omitUnusedOcGases: omitUnusedOcGases ?? this.omitUnusedOcGases,
       siteListViewMode: siteListViewMode ?? this.siteListViewMode,
       tripListViewMode: tripListViewMode ?? this.tripListViewMode,
       equipmentListViewMode:
@@ -2841,6 +2849,20 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     }
     if (!mounted) return;
     state = state.copyWith(downloadsFollowComputerOwner: value);
+    await _saveSettings();
+  }
+
+  /// Waits for [settingsLoaded] first, as [setDownloadsFollowComputerOwner]
+  /// does, so a switch flipped before the diver's row lands is not
+  /// overwritten by that load (issue #3668).
+  Future<void> setOmitUnusedOcGases(bool value) async {
+    try {
+      await settingsLoaded;
+    } catch (_) {
+      // Already logged by the constructor; the defaults are the fallback.
+    }
+    if (!mounted) return;
+    state = state.copyWith(omitUnusedOcGases: value);
     await _saveSettings();
   }
 

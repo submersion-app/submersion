@@ -14,14 +14,32 @@ CloudFileInfo _backup(
   String ext = '.db',
   DateTime? modified,
   int size = 100,
+}) => _backupAt(
+  DateTime(2026, 10, day, 9),
+  deviceId: deviceId,
+  ext: ext,
+  modified: modified,
+  size: size,
+);
+
+/// A backup named for [at], as for [_backup].
+CloudFileInfo _backupAt(
+  DateTime at, {
+  String? deviceId = 'dev-A',
+  String ext = '.db',
+  DateTime? modified,
+  int size = 100,
 }) {
-  final ts = '2026-10-${day.toString().padLeft(2, '0')}_090000';
+  String two(int n) => n.toString().padLeft(2, '0');
+  final ts =
+      '${at.year}-${two(at.month)}-${two(at.day)}_'
+      '${two(at.hour)}${two(at.minute)}00';
   final tag = deviceId == null ? '' : '__d${deviceTag(deviceId)}';
   final name = 'submersion_backup_$ts$tag$ext';
   return CloudFileInfo(
     id: 'id-$name',
     name: name,
-    modifiedTime: modified ?? DateTime(2026, 10, day, 9),
+    modifiedTime: modified ?? at,
     sizeBytes: size,
   );
 }
@@ -70,14 +88,114 @@ void main() {
     expect(plan.isEmpty, isFalse);
   });
 
-  test('counts every device and unattributed backups alike', () {
+  test('unattributed backups get no reserved slot', () {
     final files = [
       _backup(1, deviceId: null),
-      _backup(2, deviceId: 'dev-B'),
-      _backup(3, deviceId: 'dev-C'),
+      _backup(2, deviceId: null),
+      _backup(3),
       _backup(4),
     ];
     expect(_names(_plan(files, keep: 2)), [files[1].name, files[0].name]);
+  });
+
+  group("each device's newest backup (issue #3632)", () {
+    test('keeps its slot when newer backups from others fill the count', () {
+      final phone = [for (var d = 10; d <= 16; d++) _backup(d, deviceId: 'B')];
+      final laptop = _backup(2, deviceId: 'C');
+      final plan = _plan([...phone, laptop]);
+      // The laptop's only backup takes one of the five slots, so the folder
+      // still holds five: the laptop's and the phone's newest four.
+      expect(_names(plan), [phone[2].name, phone[1].name, phone[0].name]);
+      expect(plan.deviceNewestKept, 1);
+    });
+
+    test('this device is a device like any other', () {
+      final phone = [for (var d = 10; d <= 16; d++) _backup(d, deviceId: 'B')];
+      final mine = _backup(2);
+      expect(_names(_plan([...phone, mine])), isNot(contains(mine.name)));
+    });
+
+    test("more devices than slots: every device's newest, nothing else", () {
+      final files = [
+        for (final device in ['A', 'B', 'C']) ...[
+          _backup(5, deviceId: device),
+          _backup(10, deviceId: device),
+        ],
+      ];
+      final plan = _plan(files, keep: 2);
+      expect(
+        _names(plan),
+        unorderedEquals([
+          for (final f in files)
+            if (f.name.contains('-05_')) f.name,
+        ]),
+      );
+      // Two of the three newest were in the plain newest two anyway.
+      expect(plan.deviceNewestKept, 1);
+    });
+
+    test('a newest older than 180 days competes under the plain rule', () {
+      final phone = [for (var d = 10; d <= 16; d++) _backup(d, deviceId: 'B')];
+      final retired = _backupAt(DateTime(2026, 4, 20, 9), deviceId: 'C');
+      final plan = _plan([...phone, retired]);
+      expect(_names(plan), [phone[1].name, phone[0].name, retired.name]);
+      expect(plan.deviceNewestKept, 0);
+    });
+
+    test('a newest just inside 180 days keeps its slot', () {
+      final phone = [for (var d = 10; d <= 16; d++) _backup(d, deviceId: 'B')];
+      final seasonal = _backupAt(DateTime(2026, 4, 28, 9), deviceId: 'C');
+      expect(
+        _names(_plan([...phone, seasonal])),
+        isNot(contains(seasonal.name)),
+      );
+    });
+
+    test('a device whose newest is pinned reserves no other backup', () {
+      final phone = [for (var d = 10; d <= 16; d++) _backup(d, deviceId: 'B')];
+      final older = _backup(1, deviceId: 'C');
+      final newest = _backup(2, deviceId: 'C');
+      final plan = _plan([...phone, older, newest, _marker(newest, 'C')]);
+      expect(_names(plan), [phone[1].name, phone[0].name, older.name]);
+      expect(plan.deviceNewestKept, 0);
+      expect(plan.pinnedKept, 1);
+    });
+
+    test('two backups stamped the same second: the later name is newest', () {
+      final phone = [for (var d = 10; d <= 16; d++) _backup(d, deviceId: 'B')];
+      final plain = _backup(2, deviceId: 'C');
+      final encrypted = _backup(2, deviceId: 'C', ext: '.sbe');
+      final names = _names(_plan([...phone, encrypted, plain]));
+      expect(names, isNot(contains(encrypted.name)));
+      expect(names, contains(plain.name));
+    });
+
+    test('a reserved backup the grace keeps anyway is not counted', () {
+      final phone = [for (var d = 10; d <= 16; d++) _backup(d, deviceId: 'B')];
+      // Named three weeks ago but uploaded just now, so the grace keeps it.
+      final late = _backup(2, deviceId: 'C', modified: _now);
+      final plan = _plan([...phone, late]);
+      expect(_names(plan), isNot(contains(late.name)));
+      expect(plan.deviceNewestKept, 0);
+    });
+
+    test('two devices stamped the same second rank alike in any order', () {
+      final files = [
+        _backup(20, deviceId: 'B'),
+        _backup(20, deviceId: 'C'),
+        _backup(10, deviceId: 'B'),
+        _backup(10, deviceId: 'C'),
+      ];
+      // Both newest are reserved, leaving one slot for the two tied backups.
+      final forward = _names(_plan(files, keep: 3));
+      expect(forward, hasLength(1));
+      expect(_names(_plan(files.reversed, keep: 3)), forward);
+    });
+
+    test('a plain prune reports no device newest kept', () {
+      final files = [for (var d = 1; d <= 7; d++) _backup(d)];
+      expect(_plan(files).deviceNewestKept, 0);
+    });
   });
 
   test('a marker from any device pins its backup, whatever the extension', () {
@@ -214,10 +332,16 @@ void main() {
       {for (final c in plan.toDelete) c.file.name: c.ownership},
       {
         files[0].name: BackupOwnership.thisDevice,
-        files[1].name: BackupOwnership.otherDevice,
         files[2].name: BackupOwnership.unattributed,
       },
     );
     expect(plan.toDelete.first.timestamp, DateTime(2026, 10, 3, 9));
+
+    final another = _plan([
+      _backup(2),
+      _backup(3, deviceId: 'dev-B'),
+      _backup(1, deviceId: 'dev-B'),
+    ], keep: 1);
+    expect(another.toDelete.single.ownership, BackupOwnership.otherDevice);
   });
 }

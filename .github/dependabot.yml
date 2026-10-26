@@ -22,11 +22,14 @@ updates:
     commit-message:
       prefix: "chore"
 
-  # Ruby/Bundler (Fastlane) -- monthly, changes infrequently
+  # Ruby/Bundler (Fastlane) -- monthly, changes infrequently. Every Gemfile's
+  # directory belongs here; scripts/check_dependabot_gemfiles.py fails CI when
+  # one is missing (android/ was, #3495).
   - package-ecosystem: "bundler"
     directories:
       - "/ios"
       - "/macos"
+      - "/android"
     schedule:
       interval: "monthly"
     commit-message:

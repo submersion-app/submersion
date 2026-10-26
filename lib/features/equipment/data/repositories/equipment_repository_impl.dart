@@ -12,6 +12,7 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/text/text_sort.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_location_move_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_share_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_tag_repository.dart';
@@ -24,6 +25,7 @@ import 'package:submersion/features/media_store/data/media_transfer_queue_reposi
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/services/attribute_service_baselines.dart';
 import 'package:submersion/features/equipment/domain/services/dive_sensor_summary_service.dart';
 import 'package:submersion/features/equipment/domain/services/equipment_ownership.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
@@ -157,6 +159,12 @@ class EquipmentRepository {
   /// EquipmentComponentRepository.watchComponentEdgeChanges instead.
   Stream<void> watchEquipmentChanges() =>
       _db.tableUpdates(TableUpdateQuery.onTable(_db.equipment));
+
+  /// Ticks when a dive computer or transmitter record changes, which can
+  /// make an item a device's entry or stop it being one (issue #3676).
+  Stream<void> watchDeviceRecordChanges() => _db.tableUpdates(
+    TableUpdateQuery.onAllTables([_db.diveComputers, _db.transmitters]),
+  );
 
   /// Ticks when any item's attributes change (a cell slot, an install
   /// date). `saveAttributes` and a sync pull write only
@@ -385,6 +393,20 @@ class EquipmentRepository {
         );
       }
       try {
+        await ServiceScheduleRepository().applyBaselines(
+          id,
+          attributeServiceBaselines(current: equipment.attributes),
+          notify: notify,
+        );
+      } catch (e, stackTrace) {
+        _log.error(
+          'Setting service clock baselines from the inspection dates failed '
+          'for equipment $id; the equipment was still created',
+          error: e,
+          stackTrace: stackTrace,
+        );
+      }
+      try {
         await _attachLegacyIntervalClock(id, equipment, notify: notify);
       } catch (e, stackTrace) {
         _log.error(
@@ -447,8 +469,8 @@ class EquipmentRepository {
   }
 
   /// Runs [action] in one database transaction, so an edit built from
-  /// several calls here commits all or nothing. [updateEquipment] writes the
-  /// row, its attributes and the pending mark in separate steps.
+  /// several calls here commits all or nothing. [updateEquipment] is atomic
+  /// on its own; [createEquipment] seeds its clocks outside its writes.
   Future<T> transaction<T>(Future<T> Function() action) =>
       _db.transaction(action);
 
@@ -461,41 +483,66 @@ class EquipmentRepository {
       _log.info('Updating equipment: ${equipment.id}');
       final now = DateTime.now().millisecondsSinceEpoch;
 
-      await (_db.update(
-        _db.equipment,
-      )..where((t) => t.id.equals(equipment.id))).write(
-        EquipmentCompanion(
-          name: Value(equipment.name),
-          type: Value(equipment.type.name),
-          brand: Value(equipment.brand),
-          model: Value(equipment.model),
-          serialNumber: Value(equipment.serialNumber),
-          status: Value(equipment.status.name),
-          purchaseDate: Value(equipment.purchaseDate?.millisecondsSinceEpoch),
-          purchasePrice: Value(equipment.purchasePrice),
-          purchaseCurrency: Value(equipment.purchaseCurrency),
-          lastServiceDate: Value(
-            equipment.lastServiceDate?.millisecondsSinceEpoch,
+      // One transaction: a clock baseline that fails to save must not leave
+      // its date stored, or a retry would see the date as unchanged and
+      // never anchor the clock (issue #3662).
+      await _db.transaction(() async {
+        await (_db.update(
+          _db.equipment,
+        )..where((t) => t.id.equals(equipment.id))).write(
+          EquipmentCompanion(
+            name: Value(equipment.name),
+            type: Value(equipment.type.name),
+            brand: Value(equipment.brand),
+            model: Value(equipment.model),
+            serialNumber: Value(equipment.serialNumber),
+            status: Value(equipment.status.name),
+            purchaseDate: Value(equipment.purchaseDate?.millisecondsSinceEpoch),
+            purchasePrice: Value(equipment.purchasePrice),
+            purchaseCurrency: Value(equipment.purchaseCurrency),
+            lastServiceDate: Value(
+              equipment.lastServiceDate?.millisecondsSinceEpoch,
+            ),
+            serviceIntervalDays: Value(equipment.serviceIntervalDays),
+            notes: Value(equipment.notes),
+            isActive: Value(equipment.isActive),
+            customReminderEnabled: Value(equipment.customReminderEnabled),
+            customReminderDays: Value(
+              equipment.customReminderDays != null
+                  ? jsonEncode(equipment.customReminderDays)
+                  : null,
+            ),
+            parentEquipmentId: Value(equipment.parentEquipmentId),
+            updatedAt: Value(now),
           ),
-          serviceIntervalDays: Value(equipment.serviceIntervalDays),
-          notes: Value(equipment.notes),
-          isActive: Value(equipment.isActive),
-          customReminderEnabled: Value(equipment.customReminderEnabled),
-          customReminderDays: Value(
-            equipment.customReminderDays != null
-                ? jsonEncode(equipment.customReminderDays)
-                : null,
+        );
+        final previous = await saveAttributes(
+          equipment.id,
+          equipment.attributes,
+        );
+        await _syncRepository.markRecordPending(
+          entityType: 'equipment',
+          recordId: equipment.id,
+          localUpdatedAt: now,
+        );
+        // Only a date entered, changed or cleared here moves a clock
+        // (issue #3662).
+        await ServiceScheduleRepository().applyBaselines(
+          equipment.id,
+          attributeServiceBaselines(
+            current: equipment.attributes,
+            previous: previous,
           ),
-          parentEquipmentId: Value(equipment.parentEquipmentId),
-          updatedAt: Value(now),
-        ),
-      );
-      await saveAttributes(equipment.id, equipment.attributes);
-      await _syncRepository.markRecordPending(
-        entityType: 'equipment',
-        recordId: equipment.id,
-        localUpdatedAt: now,
-      );
+          cleared: clearedServiceBaselines(
+            current: equipment.attributes,
+            previous: previous,
+          ),
+          notify: false,
+        );
+        // Inside the save: the device's name and notes move with the item's
+        // (issue #3676).
+        await _mirrorNameToDevices(equipment, now);
+      });
       if (notify) SyncEventBus.notifyLocalChange();
       _log.info('Updated equipment: ${equipment.id}');
     } catch (e, stackTrace) {
@@ -505,6 +552,74 @@ class EquipmentRepository {
         stackTrace: stackTrace,
       );
       rethrow;
+    }
+  }
+
+  /// Whether item [id] is a dive computer's or a transmitter's one entry
+  /// (issue #3676): a device record names it.
+  Future<bool> hasDeviceRecord(String id) async {
+    final computer =
+        await (_db.select(_db.diveComputers)
+              ..where((t) => t.equipmentId.equals(id))
+              ..limit(1))
+            .getSingleOrNull();
+    if (computer != null) return true;
+    final key =
+        await (_db.select(_db.transmitters)
+              ..where((t) => t.transmitterEquipmentId.equals(id))
+              ..limit(1))
+            .getSingleOrNull();
+    return key != null;
+  }
+
+  /// A device's item is its one entry (issue #3676): its name and notes are
+  /// the dive computer's, and its name is the transmitter rows' label, so
+  /// anything that still reads those columns (a data-source label, a tank
+  /// name the registry stamps) shows the same text. Only rows that differ
+  /// are written, and each is staged.
+  Future<void> _mirrorNameToDevices(EquipmentItem item, int now) async {
+    final computers =
+        await (_db.select(_db.diveComputers)..where(
+              (t) =>
+                  t.equipmentId.equals(item.id) &
+                  (t.name.equals(item.name).not() |
+                      t.notes.equals(item.notes).not()),
+            ))
+            .get();
+    for (final c in computers) {
+      await (_db.update(
+        _db.diveComputers,
+      )..where((t) => t.id.equals(c.id))).write(
+        DiveComputersCompanion(
+          name: Value(item.name),
+          notes: Value(item.notes),
+          updatedAt: Value(now),
+        ),
+      );
+      await _syncRepository.markRecordPending(
+        entityType: 'diveComputers',
+        recordId: c.id,
+        localUpdatedAt: now,
+      );
+    }
+    final keys =
+        await (_db.select(_db.transmitters)..where(
+              (t) =>
+                  t.transmitterEquipmentId.equals(item.id) &
+                  t.label.equals(item.name).not(),
+            ))
+            .get();
+    for (final k in keys) {
+      await (_db.update(
+        _db.transmitters,
+      )..where((t) => t.id.equals(k.id))).write(
+        TransmittersCompanion(label: Value(item.name), updatedAt: Value(now)),
+      );
+      await _syncRepository.markRecordPending(
+        entityType: 'transmitters',
+        recordId: k.id,
+        localUpdatedAt: now,
+      );
     }
   }
 
@@ -568,6 +683,23 @@ class EquipmentRepository {
     }
   }
 
+  /// The dive computer and transmitter records an item is the one entry
+  /// for (issue #3676), deleted with it through their own repositories.
+  Future<void> _deleteDevicesOf(String itemId) async {
+    final computers = await (_db.select(
+      _db.diveComputers,
+    )..where((t) => t.equipmentId.equals(itemId))).get();
+    for (final c in computers) {
+      await DiveComputerRepository().deleteComputer(c.id);
+    }
+    final keys = await (_db.select(
+      _db.transmitters,
+    )..where((t) => t.transmitterEquipmentId.equals(itemId))).get();
+    for (final k in keys) {
+      await TransmitterRepository().delete(k.id);
+    }
+  }
+
   /// Delete equipment. Service schedules, service records, assembly
   /// component rows, tag links, shares and share events are first-class
   /// synced children
@@ -582,6 +714,10 @@ class EquipmentRepository {
       // and every step is individually idempotent/tombstoned. Same shape and
       // same reasoning as SiteRepository's media cascade.
       await _cascadeMediaForEquipmentDeletion([id]);
+      // One delete for a device and its item (issue #3676): the dive
+      // computer or transmitter rows behind it go first, each through its
+      // own repository so it is tombstoned and its dives are kept.
+      await _deleteDevicesOf(id);
       await _db.transaction(() async {
         // Its documents go with it, tombstoned (issue #2613).
         await DocumentRepository().deleteForOwner(
@@ -1916,7 +2052,9 @@ class EquipmentRepository {
   /// edit form shows only its type's fields and may have been opened before
   /// a synced id arrived, and neither is a reason to drop the tag's
   /// identity. The passport repository passes false to release a tag.
-  Future<void> saveAttributes(
+  ///
+  /// Returns the attributes as they were before the write.
+  Future<List<EquipmentAttribute>> saveAttributes(
     String equipmentId,
     List<EquipmentAttribute> desired, {
     bool preserveSystem = true,
@@ -1996,5 +2134,6 @@ class EquipmentRepository {
         localUpdatedAt: now,
       );
     }
+    return existingRows.map(_mapAttributeRow).toList();
   }
 }

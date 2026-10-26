@@ -3,7 +3,6 @@ import 'package:submersion/features/dive_log/domain/entities/computer_tissue_sna
 
 void main() {
   const full = ComputerTissueSnapshot(
-    algorithm: 'Suunto Fused2 RGBM',
     start: ComputerTissueState(
       n2Bar: [0.79, 0.8, 0.81],
       heBar: [0.0, 0.0, 0.0],
@@ -17,8 +16,6 @@ void main() {
       n2LoadPercent: 78.0,
       gf99Percent: 42.0,
       surfaceGfPercent: 61.0,
-      cnsPercent: 14.0,
-      otu: 22.0,
       rgbmNitrogen: 0.97,
       rgbmHelium: 1.0,
     ),
@@ -47,8 +44,6 @@ void main() {
         'n2_load_percent',
         'gf99_percent',
         'surface_gf_percent',
-        'cns_percent',
-        'otu',
         'rgbm_nitrogen',
         'rgbm_helium',
       });
@@ -76,7 +71,7 @@ void main() {
       final changed = full.end!.copyWith(gf99Percent: 50.0);
       expect(changed.gf99Percent, 50.0);
       expect(changed.n2Bar, full.end!.n2Bar);
-      expect(changed.otu, full.end!.otu);
+      expect(changed.rgbmNitrogen, full.end!.rgbmNitrogen);
     });
 
     test('copyWith with no arguments keeps every field', () {
@@ -94,8 +89,8 @@ void main() {
       expect(ComputerTissueSnapshot.decode(text), full);
     });
 
-    test('top-level JSON keys are algorithm, start and end', () {
-      expect(full.toJson().keys, {'algorithm', 'start', 'end'});
+    test('top-level JSON keys are start and end', () {
+      expect(full.toJson().keys, {'start', 'end'});
       expect(const ComputerTissueSnapshot().toJson(), isEmpty);
     });
 
@@ -149,15 +144,36 @@ void main() {
         ComputerTissueSnapshot.fromJson(const {}),
         const ComputerTissueSnapshot(),
       );
+    });
+
+    test('fromJson reads past the dive-level values older snapshots held', () {
+      // Snapshots stored before #2555 carried the algorithm, CNS and OTU,
+      // which have their own dive columns; v316 moved them there.
+      final parsed = ComputerTissueSnapshot.fromJson(const {
+        'algorithm': 'zhl_16c',
+        'start': {'cns_percent': 3.0, 'otu': 1.0, 'n2_load_percent': 10},
+        'end': {'cns_percent': 14.0, 'otu': 22.0, 'gf99_percent': 42},
+      });
+      final onlyLegacy = ComputerTissueSnapshot.fromJson(const {
+        'end': {'cns_percent': 14.0, 'otu': 22.0},
+      });
       expect(
-        ComputerTissueSnapshot.fromJson(const {'algorithm': 'zhl_16c'}),
-        const ComputerTissueSnapshot(algorithm: 'zhl_16c'),
+        parsed,
+        const ComputerTissueSnapshot(
+          start: ComputerTissueState(n2LoadPercent: 10.0),
+          end: ComputerTissueState(gf99Percent: 42.0),
+        ),
       );
+      expect(parsed.toJson(), {
+        'start': {'n2_load_percent': 10.0},
+        'end': {'gf99_percent': 42.0},
+      });
+      // A state holding nothing the snapshot knows reads as no state.
+      expect(onlyLegacy.end, isNull);
     });
 
     test('fromJson nulls malformed values instead of throwing', () {
       final parsed = ComputerTissueSnapshot.fromJson(const {
-        'algorithm': 7,
         'start': 'junk',
         'end': {
           'n2_bar': [1.0, 'x', 3.0],
@@ -166,14 +182,11 @@ void main() {
           'n2_load_percent': 'seventy',
           'gf99_percent': 42,
           'surface_gf_percent': null,
-          'cns_percent': true,
-          'otu': [1],
           'rgbm_nitrogen': {'a': 1},
           'rgbm_helium': 1.0,
           'unknown_key': 'ignored',
         },
       });
-      expect(parsed.algorithm, isNull);
       expect(parsed.start, isNull);
       final end = parsed.end!;
       // One junk element voids the list: compartment order is positional,
@@ -184,8 +197,6 @@ void main() {
       expect(end.n2LoadPercent, isNull);
       expect(end.gf99Percent, 42.0);
       expect(end.surfaceGfPercent, isNull);
-      expect(end.cnsPercent, isNull);
-      expect(end.otu, isNull);
       expect(end.rgbmNitrogen, isNull);
       expect(end.rgbmHelium, 1.0);
     });
@@ -211,13 +222,13 @@ void main() {
     });
 
     test('copyWith replaces only what is given', () {
-      final changed = full.copyWith(algorithm: 'buhlmann');
-      expect(changed.algorithm, 'buhlmann');
+      const end = ComputerTissueState(gf99Percent: 12.0);
+      final changed = full.copyWith(end: end);
       expect(changed.start, full.start);
-      expect(changed.end, full.end);
+      expect(changed.end, end);
     });
 
-    test('copyWith with no arguments keeps algorithm, start and end', () {
+    test('copyWith with no arguments keeps start and end', () {
       expect(full.copyWith(), full);
     });
   });

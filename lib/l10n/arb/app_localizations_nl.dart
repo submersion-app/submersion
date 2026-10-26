@@ -37,6 +37,66 @@ class AppLocalizationsNl extends AppLocalizations {
   String get connections_around_show => 'Tonen';
 
   @override
+  String get connections_caption_circle =>
+      'Een lijn verbindt twee buddy\'s die samen hebben gedoken.';
+
+  @override
+  String get connections_caption_where =>
+      'Een lijn betekent dat je met die buddy op die duikplek hebt gedoken.';
+
+  @override
+  String get connections_caption_trips =>
+      'Een lijn betekent dat die buddy mee was op die reis.';
+
+  @override
+  String get connections_caption_life =>
+      'Een lijn betekent dat je die soort op die duikplek hebt gezien.';
+
+  @override
+  String get connections_caption_gear =>
+      'Een lijn verbindt uitrusting die bij dezelfde duik is gebruikt.';
+
+  @override
+  String get connections_caption_centers =>
+      'Een lijn betekent dat je via dat duikcentrum met die buddy hebt gedoken.';
+
+  @override
+  String get connections_caption_travel =>
+      'Buddy\'s, reizen en duikplekken; een lijn betekent gedeelde duiken.';
+
+  @override
+  String get connections_caption_reef =>
+      'Duikplekken, zeeleven en duiktypen; een lijn betekent gedeelde duiken.';
+
+  @override
+  String get connections_caption_gearRoad =>
+      'Uitrusting, reizen en duikcentra; een lijn betekent gedeelde duiken.';
+
+  @override
+  String connections_caption_custom(String kinds) {
+    return '$kinds; een lijn betekent dat ze een duik delen.';
+  }
+
+  @override
+  String get connections_caption_kindSeparator => ', ';
+
+  @override
+  String connections_caption_around(int hops) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hops,
+      locale: localeName,
+      other:
+          'Alles binnen $hops stappen van dit middelpunt, verbonden door gedeelde duiken.',
+      one: 'Alles wat een duik deelt met dit middelpunt.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_caption_thicker =>
+      'Dikkere lijnen betekenen meer duiken.';
+
+  @override
   String get connections_editor_kinds => 'Soorten';
 
   @override
@@ -2620,7 +2680,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String backup_retention_allDevices_on(int count) {
-    return 'De cloudmap bewaart de laatste $count back-ups van alle apparaten. Vastgemaakte back-ups blijven bewaard. Gebruiken andere apparaten dit ook, dan geldt het kleinste aantal. Werk eerst de app op elk apparaat bij, zodat hun vastgemaakte back-ups zichtbaar zijn.';
+    return 'De cloudmap bewaart de laatste $count back-ups van alle apparaten. Vastgemaakte back-ups blijven bewaard. Ook de nieuwste back-up van elk apparaat blijft bewaard, tenzij die ouder is dan 6 maanden. Gebruiken andere apparaten dit ook, dan geldt het kleinste aantal. Werk eerst de app op elk apparaat bij, zodat hun vastgemaakte back-ups zichtbaar zijn.';
   }
 
   @override
@@ -2657,6 +2717,17 @@ class AppLocalizationsNl extends AppLocalizations {
       locale: localeName,
       other: '$count vastgemaakte back-ups blijven bewaard.',
       one: '$count vastgemaakte back-up blijft bewaard.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backup_retention_confirm_deviceNewestKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count back-ups blijven bewaard als nieuwste van hun apparaat.',
+      one: '$count back-up blijft bewaard als nieuwste van zijn apparaat.',
     );
     return '$_temp0';
   }
@@ -5160,6 +5231,10 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get connections_empty_sites => 'Nog geen duik heeft een duikplek.';
+
+  @override
+  String get connections_empty_whereNoSites =>
+      'Nog geen van je duiken met een buddy heeft een duikplek. Voeg duikplekken toe aan die duiken om te zien waar jullie samen duiken.';
 
   @override
   String get connections_empty_filtered =>
@@ -9960,6 +10035,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_tank_label_material => 'Materiaal';
 
   @override
+  String get diveLog_tank_label_mnd => 'MND';
+
+  @override
   String get diveLog_tank_label_n2 => 'N2';
 
   @override
@@ -9985,13 +10063,43 @@ class AppLocalizationsNl extends AppLocalizations {
       'Instellen op automatische He%-berekening';
 
   @override
-  String diveLog_tank_gasUsed(String amount) {
-    return '($amount gebruikt)';
+  String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd) {
+    return 'MOD: $mod (ppO₂ $ppO2) | MND: $mnd';
   }
 
   @override
-  String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd) {
-    return 'MOD: $mod (ppO₂ $ppO2) | MND: $mnd';
+  String get diveLog_cylinders_columnTank => 'Fles';
+
+  @override
+  String get diveLog_cylinders_columnGas => 'Gas';
+
+  @override
+  String get diveLog_cylinders_columnStart => 'Begin';
+
+  @override
+  String get diveLog_cylinders_columnEnd => 'Eind';
+
+  @override
+  String get diveLog_cylinders_columnUsed => 'Gebruikt';
+
+  @override
+  String diveLog_cylinders_gasUsed(String amount) {
+    return 'Gas gebruikt $amount';
+  }
+
+  @override
+  String diveLog_cylinders_mod(String depth) {
+    return 'MOD $depth';
+  }
+
+  @override
+  String diveLog_cylinders_mnd(String depth) {
+    return 'MND $depth';
+  }
+
+  @override
+  String diveLog_cylinders_modNote(String ppO2) {
+    return 'MOD bij ppO₂ $ppO2';
   }
 
   @override
@@ -14549,6 +14657,18 @@ class AppLocalizationsNl extends AppLocalizations {
       'Weet je zeker dat je deze uitrusting wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.';
 
   @override
+  String get equipment_deleteDialog_content_computer =>
+      'Deze duikcomputer verwijderen? De downloadgeschiedenis wordt meeverwijderd, dus de volgende download leest alle duiken opnieuw. Je duiken blijven bewaard. Als je de computer opnieuw verbindt, wordt hij weer toegevoegd.';
+
+  @override
+  String get equipment_deleteDialog_content_transmitter =>
+      'Deze zender verwijderen? De flesinstelling wordt meeverwijderd. Een latere download met het serienummer voegt hem weer toe. Zet hem op Uit gebruik om hem in plaats daarvan uit de weg te houden.';
+
+  @override
+  String get equipment_bulkDelete_deviceNote =>
+      'Duikcomputers en zenders in de selectie worden verwijderd met hun downloadgeschiedenis en instellingen. Je duiken blijven bewaard.';
+
+  @override
   String get equipment_deleteDialog_title => 'Uitrusting verwijderen';
 
   @override
@@ -15379,6 +15499,10 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get equipment_edit_typeLabel => 'Type *';
+
+  @override
+  String get equipment_edit_typeLockedHelper =>
+      'Een verbonden duikcomputer of zender behoudt zijn type.';
 
   @override
   String get equipment_edit_useCustomReminders =>
@@ -19565,6 +19689,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get nav_media => 'Media';
 
   @override
+  String get nav_mediaDocumentsSubtitle => 'Foto\'s, video\'s en documenten';
+
+  @override
+  String get nav_photosVideos => 'Foto\'s/Video\'s';
+
+  @override
   String get nav_more => 'Meer';
 
   @override
@@ -20622,6 +20752,10 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get buoyancy_noLeadHint =>
       'Geen lood vastgelegd: voeg lood toe aan deze duik of een drooggewicht aan je loodmateriaal';
+
+  @override
+  String get buoyancy_tankMaterialAssumedHint =>
+      'Flesmateriaal niet ingesteld, dus is aluminium aangenomen: stel het materiaal in of kies een flessjabloon';
 
   @override
   String get buoyancy_chartNet => 'Netto';
@@ -22599,6 +22733,10 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_conflict_field_downloadsFollowComputerOwner =>
       'Downloads toevoegen aan de eigenaar van de computer';
+
+  @override
+  String get settings_conflict_field_omitUnusedOcGases =>
+      'Ongebruikte bailoutgassen overslaan';
 
   @override
   String get settings_conflict_field_avgSpeed => 'Gemiddelde snelheid';
@@ -24649,9 +24787,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get nav_documents => 'Documenten';
-
-  @override
-  String get documents_title => 'Documenten';
 
   @override
   String get documents_type_insurance => 'Verzekering';
@@ -30125,6 +30260,14 @@ class AppLocalizationsNl extends AppLocalizations {
       'Hoort een duikcomputer bij een ander profiel, dan gaan de duiken naar het logboek van dat profiel. Je kunt dit wijzigen op het controlescherm.';
 
   @override
+  String get settings_omitUnusedOcGases_title =>
+      'Ongebruikte bailoutgassen overslaan';
+
+  @override
+  String get settings_omitUnusedOcGases_subtitle =>
+      'Laat bij rebreatherdownloads en opnieuw inlezen een gas zonder zender weg dat nooit is geademd';
+
+  @override
   String get tags_manage_searchHint => 'Tags zoeken...';
 
   @override
@@ -33491,27 +33634,17 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveComputer_connections_cloudOther => 'Cloudimport';
 
   @override
-  String diveComputer_detail_deleteDialogContent(String name) {
-    return 'Weet je zeker dat je \"$name\" wilt verwijderen? Dit verwijdert geen duiken die van deze computer zijn geïmporteerd.';
-  }
-
-  @override
-  String get diveComputer_detail_deleteDialogTitle => 'Computer verwijderen?';
-
-  @override
   String get diveComputer_detail_divesImported => 'Geïmporteerde duiken';
 
   @override
   String get diveComputer_detail_downloadDivesButton => 'Duiken downloaden';
 
   @override
-  String get diveComputer_detail_editDialogTitle => 'Computer bewerken';
+  String get diveComputer_section_connect => 'Verbinden en downloaden';
 
   @override
-  String get diveComputer_detail_editNameHint => 'Bijvoorbeeld Mijn Perdix';
-
-  @override
-  String get diveComputer_detail_editNotesHint => 'Optionele notities';
+  String get diveComputer_section_notConnected =>
+      'Deze computer is nog niet verbonden. Verbind hem om zijn duiken te downloaden.';
 
   @override
   String get diveComputer_detail_labelManufacturer => 'Fabrikant';
@@ -33520,16 +33653,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveComputer_detail_labelModel => 'Model';
 
   @override
-  String get diveComputer_detail_labelName => 'Naam';
-
-  @override
   String get diveComputer_detail_lastDownload => 'Laatste download';
-
-  @override
-  String get diveComputer_detail_linkedGear => 'Uitrustingsstuk';
-
-  @override
-  String get diveComputer_detail_notesTitle => 'Notities';
 
   @override
   String get diveComputer_detail_reimportAllButton =>
@@ -33770,6 +33894,12 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveComputer_list_findComputers => 'Computers zoeken';
+
+  @override
+  String get diveComputer_list_addByHand => 'Handmatig toevoegen';
+
+  @override
+  String get diveComputer_list_notConnected => 'Nog niet verbonden';
 
   @override
   String get diveComputer_list_helpBluetooth =>
@@ -39702,6 +39832,20 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get dataQuality_repairLabel_shiftImport =>
       'Alle duiken uit deze import verschuiven';
+
+  @override
+  String dataQuality_repairLabel_shiftLogbookTime(String offset) {
+    return 'Logboektijd verschuiven met $offset';
+  }
+
+  @override
+  String dataQuality_repairLabel_fixSourceClock(String offset) {
+    return 'Klok van deze computer corrigeren met $offset';
+  }
+
+  @override
+  String get dataQuality_repairLabel_fixSourceClockAll =>
+      'Deze computer ook corrigeren bij andere duiken met dezelfde afwijking';
 
   @override
   String get dataQuality_repairLabel_consolidate => 'Consolideren';
@@ -51216,6 +51360,10 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get diveComputer_merge_gearNote =>
+      'Het uitrustingsitem van elk ander record wordt hierin samengevoegd: onderhoudsgeschiedenis, documenten en foto\'s gaan hierheen, en het lege item wordt verwijderd.';
+
+  @override
   String get diveComputer_merge_keepLabel => 'Dit record bewaren';
 
   @override
@@ -51444,24 +51592,34 @@ class AppLocalizationsNl extends AppLocalizations {
   String get transmitters_add => 'Zender toevoegen';
 
   @override
-  String get transmitters_header_assigned => 'Toegewezen zenders';
+  String get transmitters_emptyItems =>
+      'Nog geen zenders. Een download die er een leest voegt hem hier toe, of voeg er handmatig een toe.';
 
   @override
-  String get transmitters_header_unassigned =>
-      'Gezien in downloads, niet toegewezen';
+  String get transmitters_noCylinder => 'Geen fles ingesteld';
 
   @override
-  String get transmitters_empty =>
-      'Nog geen zenders. Voeg er een toe, of wijs na je volgende download een serienummer toe.';
+  String get transmitters_section_noKey =>
+      'Nog geen serienummer of kanaal. Voeg toe wat je duikcomputer voor deze zender meldt.';
 
   @override
-  String get transmitters_action_assign => 'Toewijzen';
+  String get transmitters_key_remove => 'Deze sleutel verwijderen';
 
   @override
-  String get transmitters_action_edit => 'Zender bewerken';
+  String get transmitters_key_removeTitle => 'Deze sleutel verwijderen?';
 
   @override
-  String get transmitters_action_delete => 'Zender verwijderen';
+  String get transmitters_key_removeBody =>
+      'Het zenderitem en zijn andere sleutels blijven bestaan. Gebruik dit voor een verkeerd kanaal of een verkeerd getypt serienummer: een serienummer dat je duikcomputer blijft melden, voegt de volgende download opnieuw toe, nog niet ingesteld.';
+
+  @override
+  String get transmitters_list_noKey => 'Nog geen serienummer of kanaal';
+
+  @override
+  String get transmitters_section_addKey => 'Serienummer of kanaal toevoegen';
+
+  @override
+  String get transmitters_section_setUp => 'Instellen';
 
   @override
   String get transmitters_action_apply => 'Toepassen op bestaande duiken';
@@ -51484,14 +51642,6 @@ class AppLocalizationsNl extends AppLocalizations {
       'Geen enkele fles draagt deze zender';
 
   @override
-  String get transmitters_delete_title => 'Zender verwijderen?';
-
-  @override
-  String transmitters_delete_content(String label) {
-    return 'Toekomstige downloads van $label gebruiken weer de standaardvoorinstelling.';
-  }
-
-  @override
   String transmitters_channel(String computer, int channel) {
     return '$computer, kanaal $channel';
   }
@@ -51502,28 +51652,10 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String transmitters_dives(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count duiken',
-      one: '1 duik',
-    );
-    return '$_temp0';
-  }
-
-  @override
   String get transmitters_edit_title => 'Zender bewerken';
 
   @override
   String get transmitters_new_title => 'Nieuwe zender';
-
-  @override
-  String get transmitters_field_label => 'Label';
-
-  @override
-  String get transmitters_field_label_helper =>
-      'Wordt de naam van de fles in de duik zodra deze zender is gekoppeld';
 
   @override
   String get transmitters_field_serial => 'Serienummer van de zender';
@@ -51544,13 +51676,6 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get transmitters_field_gear_subtitle =>
       'De fles waarvan deze zender de druk meldt';
-
-  @override
-  String get transmitters_field_transmitterGear => 'Zender uit uitrusting';
-
-  @override
-  String get transmitters_field_transmitterGear_subtitle =>
-      'Batterij-/onderhoudsregistratie, niet voor koppeling';
 
   @override
   String get transmitters_field_material => 'Materiaal';
@@ -51577,16 +51702,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get transmitters_saved => 'Zender opgeslagen';
-
-  @override
-  String transmitters_copySerial_title(String gearName) {
-    return 'Serienummer kopiëren naar \"$gearName\"?';
-  }
-
-  @override
-  String transmitters_copySerial_content(String serial) {
-    return 'Het serienummer waarop deze registratie overeenkomt ($serial) is nog niet vastgelegd bij het zenderuitrustingsitem.';
-  }
 
   @override
   String get diveComputer_detail_transmitters => 'Zenders';
@@ -51652,6 +51767,18 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get universalImport_summary_noticeTransmitterNameRolesBody =>
       'De duikcomputer heeft sommige zuurstof- en diluentrollen afgeleid uit de namen van zijn zenders: een naam die met O begint geldt als zuurstof, een die met D begint als diluent. Wijs de zenders toe om die rollen te bevestigen of te corrigeren.';
+
+  @override
+  String get universalImport_summary_noticeDeviceOtherItemTitle =>
+      'Deze computer staat al in Uitrusting';
+
+  @override
+  String get universalImport_summary_noticeDeviceOtherItemBody =>
+      'De computer die je hebt verbonden is al een ander uitrustingsitem, dus de duiken zijn daar toegevoegd. Het item waarmee je begon, is ongewijzigd gebleven.';
+
+  @override
+  String get universalImport_summary_noticeDeviceOtherItemAction =>
+      'Dat item openen';
 
   @override
   String get universalImport_summary_noticeDiveNumberConflictTitle =>

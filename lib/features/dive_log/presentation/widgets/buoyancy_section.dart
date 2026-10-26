@@ -180,6 +180,11 @@ class BuoyancySection extends ConsumerWidget {
     if (outcome.result.input.leadKg <= 0) {
       hints.add(context.l10n.buoyancy_noLeadHint);
     }
+    // A tank with no material whose specs match no preset is modelled as
+    // aluminum, which reads a steel cylinder several kg too buoyant (#3686).
+    if (outcome.result.input.tanks.any((t) => t.materialAssumed)) {
+      hints.add(context.l10n.buoyancy_tankMaterialAssumedHint);
+    }
     return [
       for (final text in hints) ...[
         const SizedBox(height: 8),

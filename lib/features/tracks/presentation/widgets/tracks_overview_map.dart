@@ -12,6 +12,7 @@ import 'package:submersion/features/maps/presentation/widgets/map_corner_control
 import 'package:submersion/features/maps/presentation/widgets/map_interaction_options.dart';
 import 'package:submersion/features/maps/presentation/widgets/submersion_tile_layer.dart';
 import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
+import 'package:submersion/features/maps/presentation/widgets/world_copies.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_polyline_layer.dart';
 import 'package:submersion/features/tracks/domain/track_list_item.dart';
@@ -205,7 +206,11 @@ class _TracksOverviewMapState extends ConsumerState<TracksOverviewMap> {
           initialCameraFit: camera?.fit,
           initialCenter: camera?.center ?? const LatLng(20, 0),
           initialZoom: camera?.zoom ?? 2.0,
+          // The zoom range and pole stop every other map has (#3664).
+          minZoom: 2.0,
+          maxZoom: 18.0,
           interactionOptions: rotatableMapInteraction,
+          cameraConstraint: worldMapCameraConstraint,
         ),
         children: [
           submersionTileLayer(ref),

@@ -262,14 +262,21 @@ class InsightsRepository {
   /// into the subquery would make the exclusion evaporate for every diver who
   /// never opens the filter sheet.
   ///
-  /// Pass `gas: true` for SAC/RMV and gas-mix aggregates, which additionally
-  /// drop per-dive gas exclusions and gauge-mode dives.
+  /// Pass `gas: true` for the gas-mix, gas-used and by-tank-role aggregates,
+  /// which additionally drop per-dive gas exclusions and gauge-mode dives.
+  /// Pass `consumptionRate: true` for the SAC/RMV averages, trends and
+  /// records, which drop those and rebreather dives as well (issue #3673).
   ({String clause, List<Object?> params}) _diveFilter(
     DiveFilterState filter, {
     String alias = 'dives',
     bool gas = false,
+    bool consumptionRate = false,
   }) {
-    final scope = DiveStatsScope.and(alias: alias, gas: gas);
+    final scope = DiveStatsScope.and(
+      alias: alias,
+      gas: gas,
+      consumptionRate: consumptionRate,
+    );
     final f = buildFilteredDiveIdSubquery(filter);
     if (f.subquery.isEmpty) {
       return (clause: scope, params: const <Object?>[]);
@@ -312,7 +319,7 @@ class InsightsRepository {
   }) async {
     try {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
-      final df = _diveFilter(filter, alias: 'd', gas: true);
+      final df = _diveFilter(filter, alias: 'd', consumptionRate: true);
       final params = diverId != null ? [diverId, ...df.params] : [...df.params];
 
       final results = await _db.customSelect('''
@@ -424,7 +431,7 @@ class InsightsRepository {
   }) async {
     try {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
-      final df = _diveFilter(filter, alias: 'd', gas: true);
+      final df = _diveFilter(filter, alias: 'd', consumptionRate: true);
       final params = diverId != null ? [diverId, ...df.params] : [...df.params];
 
       final results = await _db.customSelect('''
@@ -527,7 +534,7 @@ class InsightsRepository {
   }) async {
     try {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
-      final df = _diveFilter(filter, alias: 'd', gas: true);
+      final df = _diveFilter(filter, alias: 'd', consumptionRate: true);
       final params = diverId != null ? [diverId, ...df.params] : [...df.params];
 
       final results = await _db.customSelect('''
@@ -654,7 +661,7 @@ class InsightsRepository {
   }) async {
     try {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
-      final df = _diveFilter(filter, alias: 'd', gas: true);
+      final df = _diveFilter(filter, alias: 'd', consumptionRate: true);
       final params = diverId != null ? [diverId, ...df.params] : [...df.params];
 
       final results = await _db.customSelect('''
@@ -706,6 +713,9 @@ class InsightsRepository {
   ///
   /// Returns a map of tank role to average SAC in L/min.
   /// Requires tank volume data.
+  ///
+  /// Each cylinder stands for its own role, so rebreather dives keep their
+  /// diluent and oxygen rows here (issue #3673).
   Future<Map<String, double>> getSacVolumeByTankRole({
     String? diverId,
     DiveFilterState filter = const DiveFilterState(),
@@ -789,6 +799,9 @@ class InsightsRepository {
   ///
   /// Returns a map of tank role to average SAC in bar/min.
   /// Does not require tank volume.
+  ///
+  /// Each cylinder stands for its own role, so rebreather dives keep their
+  /// diluent and oxygen rows here (issue #3673).
   Future<Map<String, double>> getSacPressureByTankRole({
     String? diverId,
     DiveFilterState filter = const DiveFilterState(),
