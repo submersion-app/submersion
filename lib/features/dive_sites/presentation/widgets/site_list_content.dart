@@ -59,6 +59,8 @@ import 'package:submersion/features/shared_library/presentation/widgets/library_
 import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
 import 'package:submersion/shared/widgets/shared_items/item_bulk_share.dart';
 import 'package:submersion/core/data/visibility/item_sharing.dart';
+import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 
 /// Content widget for the site list, used in master-detail layout.
 final _log = LoggerService.forClass(SiteListContent);
@@ -1415,6 +1417,9 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
           true;
 
   Future<BulkActionOutcome> _addToLibrary() async {
+    if (!demoSealGuard(context, DemoSealedFeature.sharedLibrary)) {
+      return BulkActionOutcome.failed;
+    }
     final selected = await _readSelectedSites(_selectedIds.toList());
     if (selected == null) return BulkActionOutcome.failed;
     final personal = [

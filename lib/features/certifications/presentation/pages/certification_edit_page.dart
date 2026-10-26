@@ -28,6 +28,8 @@ import 'package:submersion/features/certification_agencies/presentation/widgets/
 import 'package:submersion/features/certifications/presentation/widgets/certification_level_dropdown_items.dart';
 import 'package:submersion/shared/widgets/label_with_control.dart';
 import 'package:submersion/shared/widgets/tab_visibility.dart';
+import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 
 class CertificationEditPage extends ConsumerStatefulWidget {
   final String? certificationId;
@@ -211,6 +213,9 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
 
   /// Pick a photo from gallery or camera and return as bytes
   Future<Uint8List?> _pickPhoto() async {
+    if (!demoSealGuard(context, DemoSealedFeature.mediaImport)) {
+      return null;
+    }
     final source = await showModalBottomSheet<ImageSource>(
       context: context,
       builder: (context) => SafeArea(

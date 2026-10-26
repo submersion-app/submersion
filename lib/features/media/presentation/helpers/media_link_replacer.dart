@@ -9,6 +9,8 @@ import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/services/media_repair_types.dart';
 import 'package:submersion/features/media/presentation/providers/media_repair_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 
 /// Picks a replacement file for [item] and routes the re-link through the
 /// repair engine.
@@ -89,6 +91,7 @@ Future<bool> replaceMediaLink(
 }
 
 Future<String?> _pickImagePath() async {
+  DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.mediaImport);
   final result = await FilePicker.pickFile(type: FileType.image);
   return result?.path;
 }

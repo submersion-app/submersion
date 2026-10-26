@@ -9,6 +9,8 @@ import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
 import 'package:submersion/core/services/export/shared/unit_converters.dart';
 import 'package:submersion/features/equipment/domain/entities/service_record.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 
 /// One maintenance entry, flattened with the names it needs.
 ///
@@ -112,6 +114,7 @@ class MaintenanceExcelExportService {
     required DateFormatPreference dateFormat,
   }) async {
     final bytes = generateBytes(rows: rows, dateFormat: dateFormat);
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.export);
     final result = await FilePicker.saveFile(
       dialogTitle: 'Save Maintenance Log',
       fileName: _fileName(),

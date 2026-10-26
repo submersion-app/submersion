@@ -53,6 +53,9 @@ import 'package:submersion/core/services/sync/library_epoch.dart';
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_sync_notifier.dart';
 import 'package:submersion/features/import_wizard/presentation/providers/import_job_provider.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/background_import_notice.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
+import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
 
 const Locale _defaultFallbackLocale = Locale('en');
 const Set<String> _invalidSystemLocaleLanguageCodes = {'c', 'posix'};
@@ -433,6 +436,14 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
   /// reported here, by the root that opened it: the share handler that
   /// received it may belong to a root since replaced.
   Future<bool> _openShare(IncomingShare share) async {
+    // Demo mode (issue #3708): nothing comes in. The share is consumed with
+    // a note, so it is not imported into the sample logbook or held for later.
+    final messengerContext = _scaffoldMessengerKey.currentContext;
+    if (messengerContext != null &&
+        !demoSealGuard(messengerContext, DemoSealedFeature.fileImport)) {
+      return true;
+    }
+    if (DemoModeGate.instance.isActive) return true;
     try {
       return switch (share) {
         SharedFile(:final bytes, :final fileName) => await _handleIncomingFile(

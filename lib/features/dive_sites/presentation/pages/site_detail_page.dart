@@ -72,6 +72,8 @@ import 'package:submersion/features/shared_library/presentation/widgets/site_edi
 import 'package:submersion/shared/widgets/shared_items/item_sharing_row.dart';
 import 'package:submersion/shared/widgets/detail_row/detail_row_group.dart';
 import 'package:submersion/shared/widgets/detail_row/detail_row.dart';
+import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 
 class SiteDetailPage extends ConsumerStatefulWidget {
   final String siteId;
@@ -728,6 +730,9 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
     WidgetRef ref,
     DiveSite site,
   ) async {
+    if (!demoSealGuard(context, DemoSealedFeature.sharedLibrary)) {
+      return;
+    }
     final l10n = context.l10n;
     final confirmed = await showDialog<bool>(
       context: context,
@@ -777,6 +782,9 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
     WidgetRef ref,
     DiveSite site,
   ) async {
+    if (!demoSealGuard(context, DemoSealedFeature.sharedLibrary)) {
+      return;
+    }
     final library = await pickLibraryToAddTo(
       context,
       ref,
