@@ -128,15 +128,18 @@ CrossDeviceRetentionPlan planCrossDeviceRetention({
       pinnedStems.contains(backupStem(f.name)) ||
       locallyPinnedFileIds.contains(f.id);
 
-  DateTime timestampOf(CloudFileInfo f) =>
-      backupTimestampFromName(f.name) ?? f.modifiedTime;
+  // Ids are unique here, so each name is parsed once.
+  final stamps = {
+    for (final f in backups)
+      f.id: backupTimestampFromName(f.name) ?? f.modifiedTime,
+  };
 
   final unpinned = [
     for (final f in backups)
       if (!pinned(f))
         RetentionCandidate(
           file: f,
-          timestamp: timestampOf(f),
+          timestamp: stamps[f.id]!,
           ownership: classifyBackupFile(
             filename: f.name,
             thisDeviceId: thisDeviceId,
@@ -151,14 +154,13 @@ CrossDeviceRetentionPlan planCrossDeviceRetention({
     final tag = backupDeviceTagFromFilename(f.name);
     if (tag == null) continue;
     final current = newestByDevice[tag];
-    if (current == null || _newer(f, current, timestampOf)) {
+    if (current == null || _newer(f, current, stamps)) {
       newestByDevice[tag] = f;
     }
   }
   final reserved = {
     for (final f in newestByDevice.values)
-      if (!pinned(f) &&
-          now.difference(timestampOf(f)) < deviceNewestReservation)
+      if (!pinned(f) && now.difference(stamps[f.id]!) < deviceNewestReservation)
         f.id,
   };
   final rest = [
@@ -201,14 +203,10 @@ CrossDeviceRetentionPlan planCrossDeviceRetention({
   );
 }
 
-/// Whether [a] is newer than [b], by [timestampOf] and then by name, so
+/// Whether [a] is newer than [b], by their [stamps] and then by name, so
 /// every device picks the same one of two backups stamped the same second.
-bool _newer(
-  CloudFileInfo a,
-  CloudFileInfo b,
-  DateTime Function(CloudFileInfo) timestampOf,
-) {
-  final byTime = timestampOf(a).compareTo(timestampOf(b));
+bool _newer(CloudFileInfo a, CloudFileInfo b, Map<String, DateTime> stamps) {
+  final byTime = stamps[a.id]!.compareTo(stamps[b.id]!);
   return byTime != 0 ? byTime > 0 : a.name.compareTo(b.name) > 0;
 }
 

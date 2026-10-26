@@ -161,6 +161,24 @@ void main() {
       expect(plan.pinnedKept, 1);
     });
 
+    test('two backups stamped the same second: the later name is newest', () {
+      final phone = [for (var d = 10; d <= 16; d++) _backup(d, deviceId: 'B')];
+      final plain = _backup(2, deviceId: 'C');
+      final encrypted = _backup(2, deviceId: 'C', ext: '.sbe');
+      final names = _names(_plan([...phone, encrypted, plain]));
+      expect(names, isNot(contains(encrypted.name)));
+      expect(names, contains(plain.name));
+    });
+
+    test('a reserved backup the grace keeps anyway is not counted', () {
+      final phone = [for (var d = 10; d <= 16; d++) _backup(d, deviceId: 'B')];
+      // Named three weeks ago but uploaded just now, so the grace keeps it.
+      final late = _backup(2, deviceId: 'C', modified: _now);
+      final plan = _plan([...phone, late]);
+      expect(_names(plan), isNot(contains(late.name)));
+      expect(plan.deviceNewestKept, 0);
+    });
+
     test('a plain prune reports no device newest kept', () {
       final files = [for (var d = 1; d <= 7; d++) _backup(d)];
       expect(_plan(files).deviceNewestKept, 0);
