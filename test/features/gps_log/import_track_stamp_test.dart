@@ -27,12 +27,14 @@ class _RecordingGpsTrackMatchService extends GpsTrackMatchService {
 
 UnifiedImportResult _result({
   List<String> importedDiveIds = const [],
+  List<String> updatedExistingDiveIds = const [],
   List<DiverImportOutcome> diverOutcomes = const [],
 }) => UnifiedImportResult(
   importedCounts: const {},
   consolidatedCount: 0,
   skippedCount: 0,
   importedDiveIds: importedDiveIds,
+  updatedExistingDiveIds: updatedExistingDiveIds,
   diverOutcomes: diverOutcomes,
 );
 
@@ -74,6 +76,17 @@ void main() {
     );
 
     expect(service.sweeps.single, unorderedEquals(['a', 'b', 'c']));
+  });
+
+  test('sweeps the existing dives a download was merged into', () async {
+    final service = _RecordingGpsTrackMatchService();
+
+    await stampImportedDivesFromTracks(
+      service,
+      _result(importedDiveIds: ['new'], updatedExistingDiveIds: ['merged']),
+    );
+
+    expect(service.sweeps.single, unorderedEquals(['new', 'merged']));
   });
 
   test('an import that wrote no dives sweeps nothing', () async {

@@ -6,10 +6,12 @@ const _log = LoggerService('ImportTrackStamp');
 
 /// Every dive [result] wrote: the active profile's, or each profile's when
 /// the import wrote to several (a download sent to another profile reports
-/// its dives only through [UnifiedImportResult.diverOutcomes]).
-List<String> _importedDiveIdsOf(UnifiedImportResult result) => {
+/// its dives only through [UnifiedImportResult.diverOutcomes]), and the
+/// dives already in the log that it merged a download into.
+List<String> _writtenDiveIdsOf(UnifiedImportResult result) => {
   ...result.importedDiveIds,
   for (final outcome in result.diverOutcomes) ...outcome.diveIds,
+  ...result.updatedExistingDiveIds,
 }.toList();
 
 /// Stamps entry and exit GPS from recorded surface tracks onto the dives
@@ -22,7 +24,7 @@ Future<void> stampImportedDivesFromTracks(
   GpsTrackMatchService service,
   UnifiedImportResult result,
 ) async {
-  final diveIds = _importedDiveIdsOf(result);
+  final diveIds = _writtenDiveIdsOf(result);
   if (diveIds.isEmpty) return;
   try {
     await service.sweep(limitToIds: diveIds);

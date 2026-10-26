@@ -359,6 +359,8 @@ class GarminCloudAdapter implements ImportSourceAdapter {
     var importedWithoutProfile = 0;
     final importedCountByComputerId = <String, int>{};
     final importedDiveIds = <String>[];
+    // Dives already in the log that a download was merged into.
+    final updatedExistingDiveIds = <String>[];
 
     for (var i = 0; i < allIndices.length; i++) {
       if (cancelToken?.isCancelled ?? false) break;
@@ -384,6 +386,7 @@ class GarminCloudAdapter implements ImportSourceAdapter {
           switch (result.outcome) {
             case _ConsolidateOutcome.consolidated:
               consolidated++;
+              updatedExistingDiveIds.add(matchResult.diveId);
               importedCountByComputerId[comp.id] =
                   (importedCountByComputerId[comp.id] ?? 0) + 1;
               // The fold keeps the target's own header, so Connect's notes
@@ -428,6 +431,7 @@ class GarminCloudAdapter implements ImportSourceAdapter {
             descriptorProduct: parsed.deviceModel,
           );
           updated++;
+          updatedExistingDiveIds.add(matchResult.diveId);
           // The replaced source is the summary's, with no profile.
           if (parsed.profileMissing) importedWithoutProfile++;
           await _applyConnectExtras(matchResult.diveId, parsed);
@@ -485,6 +489,7 @@ class GarminCloudAdapter implements ImportSourceAdapter {
       updatedCount: updated,
       skippedCount: skipped,
       importedDiveIds: importedDiveIds,
+      updatedExistingDiveIds: updatedExistingDiveIds,
       notices: [
         if (importedWithoutProfile > 0)
           ImportNotice(

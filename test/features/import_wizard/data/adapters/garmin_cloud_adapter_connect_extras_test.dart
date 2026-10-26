@@ -157,7 +157,7 @@ void main() {
         mockDiveRepo.getComputerIdForDive('existing-dive'),
       ).thenAnswer((_) async => 'other-computer');
 
-      await adapter.performImport(
+      final result = await adapter.performImport(
         bundle,
         {
           ImportEntityType.dives: {0},
@@ -167,6 +167,7 @@ void main() {
         },
       );
 
+      expect(result.updatedExistingDiveIds, ['existing-dive']);
       // The fold keeps the target's own header, so the notes have to land
       // on the target rather than on the download that is folded away.
       verify(
@@ -212,7 +213,7 @@ void main() {
       adapter.setParsedDives([parsed(notes: 'Drift along the wall')]);
       final bundle = await bundleMatching('existing-dive');
 
-      await adapter.performImport(
+      final result = await adapter.performImport(
         bundle,
         {
           ImportEntityType.dives: {0},
@@ -222,6 +223,7 @@ void main() {
         },
       );
 
+      expect(result.updatedExistingDiveIds, ['existing-dive']);
       verify(
         mockDiveRepo.fillNotesIfEmpty('existing-dive', 'Drift along the wall'),
       ).called(1);

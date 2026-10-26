@@ -184,6 +184,8 @@ void main() {
         repo.shiftDiveTimes(['dive-1', 'dive-2'], const Duration(hours: -5)),
       );
       expect(result.timesCorrectedCount, 2);
+      // A corrected time can move a dive into a recorded GPS track.
+      expect(result.updatedExistingDiveIds, ['dive-1', 'dive-2']);
     });
 
     test('moves the saved dive to the wall clock and counts it', () async {

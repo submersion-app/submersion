@@ -1158,6 +1158,7 @@ class UniversalAdapter implements ImportSourceAdapter {
 
     var consolidated = 0;
     var removedDiveIds = const <String>{};
+    var consolidatedIntoDiveIds = const <String>{};
     if (consolidateIndices.isNotEmpty) {
       final summary = await performConsolidations(
         indices: consolidateIndices,
@@ -1172,6 +1173,7 @@ class UniversalAdapter implements ImportSourceAdapter {
       );
       consolidated = summary.consolidated;
       removedDiveIds = summary.removedDiveIds;
+      consolidatedIntoDiveIds = summary.consolidatedIntoDiveIds;
     }
 
     // Attach ZIP-bundled photos to the dives that survived import (skipping
@@ -1397,6 +1399,7 @@ class UniversalAdapter implements ImportSourceAdapter {
               for (final outcome in diverOutcomes)
                 if (outcome.isActive) ...outcome.siteIds,
             ],
+      updatedExistingDiveIds: consolidatedIntoDiveIds.toList(),
       fileOutcomes: fileOutcomes,
       attachedPhotoCount: attachedPhotos + resolvedPhotos + additional.attached,
       unmatchedPhotoCount:

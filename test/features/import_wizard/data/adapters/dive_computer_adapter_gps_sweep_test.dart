@@ -3,14 +3,19 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart' hide DiveComputer;
 import 'package:submersion/features/dive_computer/data/services/dive_import_service.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
-import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
+import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart'
+    hide DiveMatchResult;
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/services/dive_consolidation_service.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart'
+    as domain;
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/gps_log/data/repositories/gps_track_repository.dart';
 import 'package:submersion/features/gps_log/data/services/gps_track_match_service.dart';
 import 'package:submersion/features/gps_log/domain/entities/gps_track.dart';
 import 'package:submersion/features/import_wizard/data/adapters/dive_computer_adapter.dart';
+import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
 import 'package:submersion/features/import_wizard/presentation/providers/import_wizard_providers.dart';
 
@@ -95,10 +100,12 @@ void main() {
   }
 
   /// The wizard's notifier over a real dive computer adapter holding one
-  /// downloaded dive, with its bundle built and every dive selected.
+  /// downloaded dive, with its bundle built and every dive selected. With
+  /// [matching], the download is flagged as a duplicate of that dive.
   Future<ImportWizardNotifier> wizardWith(
-    GpsTrackMatchService gpsTrackMatchService,
-  ) async {
+    GpsTrackMatchService gpsTrackMatchService, {
+    String? matching,
+  }) async {
     final computer = await computerRepository.createComputer(
       DiveComputer.create(id: 'computer-1', name: 'Computer', diverId: diverId),
     );
@@ -127,7 +134,25 @@ void main() {
         ],
       ),
     ]);
-    final bundle = await adapter.buildBundle();
+    final built = await adapter.buildBundle();
+    final bundle = matching == null
+        ? built
+        : ImportBundle(
+            source: built.source,
+            groups: {
+              ImportEntityType.dives: EntityGroup(
+                items: built.groups[ImportEntityType.dives]!.items,
+                duplicateIndices: {0},
+                matchResults: {
+                  0: DiveMatchResult(
+                    diveId: matching,
+                    score: 0.9,
+                    timeDifferenceMs: 0,
+                  ),
+                },
+              ),
+            },
+          );
     return ImportWizardNotifier(
       adapter,
       gpsTrackMatchService: gpsTrackMatchService,
@@ -135,6 +160,11 @@ void main() {
   }
 
   Future<Dive> onlyDive() async => (await db.select(db.dives).get()).single;
+
+  GpsTrackMatchService realSweep() => GpsTrackMatchService(
+    trackRepository: trackRepository,
+    diveRepository: diveRepository,
+  );
 
   test('a downloaded dive inside a recorded track has its entry and exit '
       'GPS when the wizard reaches the summary', () async {
@@ -174,4 +204,36 @@ void main() {
     );
     expect((await onlyDive()).entryLatitude, isNull);
   });
+
+  // A dive already in the log with no position: logged by hand after the
+  // track was stopped, so the Stop logging sweep never saw it.
+  for (final action in [
+    DuplicateAction.consolidate,
+    DuplicateAction.replaceSource,
+  ]) {
+    test('a hand-logged dive a download is merged into (${action.name}) '
+        'gets its GPS from the track', () async {
+      await seedTrack();
+      await diveRepository.createDive(
+        domain.Dive(
+          id: 'hand-logged',
+          dateTime: diveStart,
+          entryTime: diveStart,
+          runtime: const Duration(hours: 1),
+          maxDepth: 18,
+          diverId: diverId,
+        ),
+      );
+      final wizard = await wizardWith(realSweep(), matching: 'hand-logged');
+      wizard.setDuplicateAction(ImportEntityType.dives, 0, action);
+
+      await wizard.performImport();
+
+      final dive = await (db.select(
+        db.dives,
+      )..where((t) => t.id.equals('hand-logged'))).getSingle();
+      expect(dive.entryLatitude, closeTo(10 + 1 / 3, 1e-6));
+      expect(dive.entryLongitude, closeTo(20 + 1 / 3, 1e-6));
+    });
+  }
 }
