@@ -26,6 +26,7 @@ void main() {
     WidgetTester tester, {
     String? equipmentId,
     EquipmentType? initialType,
+    String? initialSerial,
     List<dynamic> extra = const [],
   }) async {
     tester.view.devicePixelRatio = 1.0;
@@ -50,6 +51,7 @@ void main() {
             body: EquipmentEditPage(
               equipmentId: equipmentId,
               initialType: initialType,
+              initialSerial: initialSerial,
               embedded: true,
             ),
           ),
@@ -146,5 +148,17 @@ void main() {
     );
 
     expect(dropdown(tester).onChanged, isNull);
+  });
+
+  testWidgets('a serial handed over starts in the serial field (review)', (
+    tester,
+  ) async {
+    await pumpEditor(
+      tester,
+      initialType: EquipmentType.transmitter,
+      initialSerial: '4A21F',
+    );
+
+    expect(find.widgetWithText(TextFormField, '4A21F'), findsOneWidget);
   });
 }

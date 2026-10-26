@@ -15249,7 +15249,7 @@
   "profilePhoto_error_contactPermission": "L'autorisation d'accès aux contacts est requise pour choisir une photo.",
   "diveComputer_merge_title": "Fusionner les ordinateurs de plongée",
   "diveComputer_merge_intro": "{count} fiches n'en feront plus qu'une. Les plongées, les profils et l'historique des téléchargements passent sur la fiche que vous conservez. Les autres fiches sont supprimées.",
-  "diveComputer_merge_gearNote": "L'élément d'équipement de chacun des autres enregistrements est conservé, avec son historique d'entretien. Supprime-le depuis Équipement si tu n'en as plus besoin.",
+  "diveComputer_merge_gearNote": "L'article d'équipement de chaque autre fiche est fusionné dans celui-ci : son historique d'entretien, ses documents et ses photos y sont déplacés, et l'article vidé est supprimé.",
   "diveComputer_merge_keepLabel": "Conserver cette fiche",
   "diveComputer_merge_serialLabel": "Numéro de série {serial}",
   "diveComputer_merge_noSerial": "Pas de numéro de série",

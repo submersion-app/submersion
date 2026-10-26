@@ -15249,7 +15249,7 @@
   "profilePhoto_error_contactPermission": "È necessaria l'autorizzazione ai contatti per scegliere una foto.",
   "diveComputer_merge_title": "Unisci computer subacquei",
   "diveComputer_merge_intro": "{count} schede diventeranno una sola. Immersioni, profili e cronologia dei download passano alla scheda che conservi. Le altre schede vengono eliminate.",
-  "diveComputer_merge_gearNote": "La voce di attrezzatura di ciascun altro record resta, con la sua cronologia di manutenzione. Eliminala da Attrezzatura se non ti serve più.",
+  "diveComputer_merge_gearNote": "L'articolo di Attrezzatura di ogni altro record viene unito a questo: storico della manutenzione, documenti e foto passano qui e l'articolo svuotato viene eliminato.",
   "diveComputer_merge_keepLabel": "Conserva questa scheda",
   "diveComputer_merge_serialLabel": "Numero di serie {serial}",
   "diveComputer_merge_noSerial": "Nessun numero di serie",

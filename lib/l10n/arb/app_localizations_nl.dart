@@ -51265,7 +51265,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveComputer_merge_gearNote =>
-      'Het uitrustingsitem van elk ander record blijft bestaan, met de onderhoudsgeschiedenis. Verwijder het onder Uitrusting als je het niet meer nodig hebt.';
+      'Het uitrustingsitem van elk ander record wordt hierin samengevoegd: onderhoudsgeschiedenis, documenten en foto\'s gaan hierheen, en het lege item wordt verwijderd.';
 
   @override
   String get diveComputer_merge_keepLabel => 'Dit record bewaren';

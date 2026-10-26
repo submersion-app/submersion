@@ -15249,7 +15249,7 @@
   "profilePhoto_error_contactPermission": "选择照片需要通讯录访问权限。",
   "diveComputer_merge_title": "合并潜水电脑",
   "diveComputer_merge_intro": "{count} 条记录将合并为一条。潜水、剖面和下载历史会移到你保留的记录中，其余记录将被删除。",
-  "diveComputer_merge_gearNote": "其他每条记录的装备条目都会保留，连同其保养记录。如不再需要，可在装备中删除。",
+  "diveComputer_merge_gearNote": "其他记录的装备条目会合并到此条目：其保养记录、文档和照片都会移到这里，清空后的条目将被删除。",
   "diveComputer_merge_keepLabel": "保留此记录",
   "diveComputer_merge_serialLabel": "序列号 {serial}",
   "diveComputer_merge_noSerial": "无序列号",

@@ -15249,7 +15249,7 @@
   "profilePhoto_error_contactPermission": "Toegang tot contacten is vereist om een foto te kiezen.",
   "diveComputer_merge_title": "Duikcomputers samenvoegen",
   "diveComputer_merge_intro": "{count} records worden één. Duiken, profielen en downloadgeschiedenis gaan naar het record dat je bewaart. De andere records worden verwijderd.",
-  "diveComputer_merge_gearNote": "Het uitrustingsitem van elk ander record blijft bestaan, met de onderhoudsgeschiedenis. Verwijder het onder Uitrusting als je het niet meer nodig hebt.",
+  "diveComputer_merge_gearNote": "Het uitrustingsitem van elk ander record wordt hierin samengevoegd: onderhoudsgeschiedenis, documenten en foto's gaan hierheen, en het lege item wordt verwijderd.",
   "diveComputer_merge_keepLabel": "Dit record bewaren",
   "diveComputer_merge_serialLabel": "Serienummer {serial}",
   "diveComputer_merge_noSerial": "Geen serienummer",

@@ -186,6 +186,7 @@ import 'package:submersion/features/weight_presets/presentation/pages/weight_pre
 import 'package:submersion/features/tank_presets/presentation/pages/tank_preset_edit_page.dart';
 import 'package:submersion/features/transmitters/presentation/pages/transmitter_edit_page.dart';
 import 'package:submersion/features/transmitters/presentation/pages/transmitter_item_redirect.dart';
+import 'package:submersion/features/transmitters/presentation/pages/transmitter_setup_redirect.dart';
 import 'package:submersion/features/transmitters/presentation/pages/transmitters_page.dart';
 import 'package:submersion/features/marine_life/presentation/pages/species_manage_page.dart';
 import 'package:submersion/features/marine_life/presentation/pages/species_page.dart';
@@ -666,6 +667,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   // (issue #3676).
                   initialType: EquipmentType.values
                       .asNameMap()[state.uri.queryParameters['type']],
+                  initialSerial: state.uri.queryParameters['serial'],
                 ),
               ),
               GoRoute(
@@ -1937,12 +1939,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const TransmittersPage(),
             routes: [
               // A transmitter is an Equipment item (issue #3676): adding one
-              // is adding the item, and an old edit link forwards to it.
+              // opens the item behind the serial, or starts one carrying it,
+              // and an old edit link forwards to the item.
               GoRoute(
                 path: 'new',
                 name: 'newTransmitter',
-                redirect: (context, state) =>
-                    '/equipment/new?type=${EquipmentType.transmitter.name}',
+                builder: (context, state) => TransmitterSetupRedirect(
+                  serial: state.uri.queryParameters['serial'],
+                  diveId: state.uri.queryParameters['dive'],
+                ),
               ),
               GoRoute(
                 path: ':transmitterId/edit',

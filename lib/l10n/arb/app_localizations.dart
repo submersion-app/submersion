@@ -81817,7 +81817,7 @@ abstract class AppLocalizations {
   /// No description provided for @diveComputer_merge_gearNote.
   ///
   /// In en, this message translates to:
-  /// **'Each other record\'s Equipment item stays, with its service history. Delete it from Equipment if you no longer need it.'**
+  /// **'Each other record\'s Equipment item is folded into this one: its service history, documents and photos move here, and the emptied item is deleted.'**
   String get diveComputer_merge_gearNote;
 
   /// No description provided for @diveComputer_merge_keepLabel.

@@ -141,7 +141,12 @@ Widget _buildCard({
       ),
       GoRoute(
         path: '/transmitters/new',
-        builder: (context, state) => const Scaffold(body: Text('NEW_PAGE')),
+        builder: (context, state) => Scaffold(
+          body: Text(
+            'NEW_PAGE ${state.uri.queryParameters['serial']} '
+            '${state.uri.queryParameters['dive']}',
+          ),
+        ),
       ),
     ],
   );
@@ -826,6 +831,7 @@ void main() {
               id: 'e1',
               transmitterSerial: '180777',
               label: 'O2',
+              volumeL: 2,
               createdAt: DateTime.utc(2026, 9, 1),
               updatedAt: DateTime.utc(2026, 9, 1),
             ),
@@ -836,6 +842,28 @@ void main() {
 
       expect(find.text('Transmitter 180777'), findsOneWidget);
       expect(find.text('Assign transmitter'), findsNothing);
+    });
+
+    testWidgets('an entry a download created, not yet set up, still offers '
+        'the chip (issue #3676)', (tester) async {
+      await tester.pumpWidget(
+        _buildCard(
+          dive: diveWithSerial('180777'),
+          registry: [
+            Transmitter(
+              id: 'e1',
+              transmitterSerial: '180777',
+              label: 'Transmitter 180777',
+              isConfigured: false,
+              createdAt: DateTime.utc(2026, 9, 1),
+              updatedAt: DateTime.utc(2026, 9, 1),
+            ),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Assign transmitter'), findsOneWidget);
     });
 
     testWidgets('a registry serial with padding still counts as known', (
@@ -849,6 +877,7 @@ void main() {
               id: 'e1',
               transmitterSerial: ' 180777 ',
               label: 'O2',
+              volumeL: 2,
               createdAt: DateTime.utc(2026, 9, 1),
               updatedAt: DateTime.utc(2026, 9, 1),
             ),
@@ -904,14 +933,16 @@ void main() {
       expect(find.textContaining("transmitter's name"), findsNothing);
     });
 
-    testWidgets('the chip opens the editor with the serial', (tester) async {
+    testWidgets('the chip opens the setup with the serial and its dive', (
+      tester,
+    ) async {
       await tester.pumpWidget(_buildCard(dive: diveWithSerial('180777')));
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('Assign transmitter'));
       await tester.pumpAndSettle();
 
-      expect(find.text('NEW_PAGE'), findsOneWidget);
+      expect(find.text('NEW_PAGE 180777 dive-1'), findsOneWidget);
     });
   });
 

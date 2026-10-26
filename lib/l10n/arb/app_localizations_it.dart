@@ -51594,7 +51594,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveComputer_merge_gearNote =>
-      'La voce di attrezzatura di ciascun altro record resta, con la sua cronologia di manutenzione. Eliminala da Attrezzatura se non ti serve più.';
+      'L\'articolo di Attrezzatura di ogni altro record viene unito a questo: storico della manutenzione, documenti e foto passano qui e l\'articolo svuotato viene eliminato.';
 
   @override
   String get diveComputer_merge_keepLabel => 'Conserva questa scheda';

@@ -15249,7 +15249,7 @@
   "profilePhoto_error_contactPermission": "يلزم إذن الوصول إلى جهات الاتصال لاختيار صورة.",
   "diveComputer_merge_title": "دمج أجهزة كمبيوتر الغوص",
   "diveComputer_merge_intro": "ستصبح {count} سجلات سجلاً واحداً. تنتقل الغطسات والملفات وسجل التنزيل إلى السجل الذي تحتفظ به، وتُحذف السجلات الأخرى.",
-  "diveComputer_merge_gearNote": "يبقى عنصر المعدات الخاص بكل سجل آخر، مع سجل صيانته. احذفه من المعدات إذا لم تعد بحاجة إليه.",
+  "diveComputer_merge_gearNote": "يُدمج عنصر المعدات لكل سجل آخر في هذا العنصر: ينتقل سجل الصيانة والمستندات والصور إلى هنا، ويُحذف العنصر الفارغ.",
   "diveComputer_merge_keepLabel": "الاحتفاظ بهذا السجل",
   "diveComputer_merge_serialLabel": "الرقم التسلسلي {serial}",
   "diveComputer_merge_noSerial": "لا يوجد رقم تسلسلي",

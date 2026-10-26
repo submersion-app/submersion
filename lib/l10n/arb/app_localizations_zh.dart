@@ -48389,7 +48389,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveComputer_merge_gearNote =>
-      '其他每条记录的装备条目都会保留，连同其保养记录。如不再需要，可在装备中删除。';
+      '其他记录的装备条目会合并到此条目：其保养记录、文档和照片都会移到这里，清空后的条目将被删除。';
 
   @override
   String get diveComputer_merge_keepLabel => '保留此记录';

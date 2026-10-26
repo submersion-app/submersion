@@ -993,11 +993,9 @@ class _EquipmentDetailContent extends ConsumerWidget {
           }
         }
       case 'delete':
-        final type = ref.read(equipmentItemProvider(equipmentId)).value?.type;
-        final confirmed = await confirmEquipmentDelete(
-          context,
-          type ?? EquipmentType.other,
-        );
+        // The item this page shows, not a re-read: a reload in flight would
+        // drop the device warning a computer or transmitter needs.
+        final confirmed = await confirmEquipmentDelete(context, equipment.type);
 
         if (confirmed) {
           final deleted = await notifier.deleteEquipment(equipmentId);

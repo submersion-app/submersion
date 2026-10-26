@@ -51591,7 +51591,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diveComputer_merge_gearNote =>
-      'O item de equipamento de cada um dos outros registros permanece, com seu histórico de manutenção. Exclua-o em Equipamentos se não precisar mais dele.';
+      'O item de Equipamento de cada outro registro é incorporado a este: o histórico de manutenção, os documentos e as fotos passam para cá, e o item vazio é excluído.';
 
   @override
   String get diveComputer_merge_keepLabel => 'Manter este registro';

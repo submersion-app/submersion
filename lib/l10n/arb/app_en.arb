@@ -30630,7 +30630,7 @@
   "profilePhoto_error_contactPermission": "Contacts permission is required to choose a photo.",
   "diveComputer_merge_title": "Merge Dive Computers",
   "diveComputer_merge_intro": "{count} records will become one. Dives, profiles and download history move to the record you keep. The other records are deleted.",
-  "diveComputer_merge_gearNote": "Each other record's Equipment item stays, with its service history. Delete it from Equipment if you no longer need it.",
+  "diveComputer_merge_gearNote": "Each other record's Equipment item is folded into this one: its service history, documents and photos move here, and the emptied item is deleted.",
   "@diveComputer_merge_intro": {
     "placeholders": {
       "count": {

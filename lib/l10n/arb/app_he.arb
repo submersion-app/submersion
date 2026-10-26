@@ -15249,7 +15249,7 @@
   "profilePhoto_error_contactPermission": "נדרשת הרשאת גישה לאנשי הקשר כדי לבחור תמונה.",
   "diveComputer_merge_title": "מיזוג מחשבי צלילה",
   "diveComputer_merge_intro": "{count} רשומות יהפכו לאחת. הצלילות, הפרופילים והיסטוריית ההורדות יעברו לרשומה שתשמור. שאר הרשומות יימחקו.",
-  "diveComputer_merge_gearNote": "פריט הציוד של כל רשומה אחרת נשמר, יחד עם היסטוריית השירות שלו. מחק אותו מהציוד אם אינך צריך אותו עוד.",
+  "diveComputer_merge_gearNote": "פריט הציוד של כל רשומה אחרת מתמזג לפריט זה: היסטוריית השירות, המסמכים והתמונות עוברים לכאן, והפריט הריק נמחק.",
   "diveComputer_merge_keepLabel": "לשמור רשומה זו",
   "diveComputer_merge_serialLabel": "מספר סידורי {serial}",
   "diveComputer_merge_noSerial": "אין מספר סידורי",

@@ -104,6 +104,15 @@ void main() {
     expect(id, 'hand-made');
   });
 
+  test('a stored link to an item of another type is not the computer\'s '
+      'entry (review)', () async {
+    await insertGear('mask', type: 'mask');
+
+    final id = await resolver.resolveGearTwin(computer(equipmentId: 'mask'));
+
+    expect(id, diveComputerGearId('c1'));
+  });
+
   test('mints when the stored link points at a deleted row', () async {
     final id = await resolver.resolveGearTwin(computer(equipmentId: 'gone'));
 

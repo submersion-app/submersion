@@ -51479,7 +51479,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveComputer_merge_gearNote =>
-      'Der Ausrüstungseintrag jedes anderen Datensatzes bleibt mit seiner Wartungshistorie erhalten. Löschen Sie ihn unter Ausrüstung, wenn Sie ihn nicht mehr brauchen.';
+      'Der Ausrüstungseintrag jedes anderen Datensatzes wird mit diesem zusammengeführt: Wartungsverlauf, Dokumente und Fotos wandern hierher, und der leere Eintrag wird gelöscht.';
 
   @override
   String get diveComputer_merge_keepLabel => 'Diesen Eintrag behalten';

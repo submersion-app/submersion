@@ -133,8 +133,8 @@ class _DiveComputerMergeSheetState
               ),
             ),
             const SizedBox(height: 8),
-            // The duplicates' gear items stay (#3676): they may hold service
-            // history, and the Dive Computers list now shows them.
+            // The duplicates' gear items are folded into the survivor's
+            // (#3676), so the sheet says where their history goes.
             Text(
               l10n.diveComputer_merge_gearNote,
               style: theme.textTheme.bodyMedium?.copyWith(

@@ -153,7 +153,9 @@ class _CylinderRow extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final cylinder = ref.watch(equipmentItemProvider(cylinderId)).valueOrNull;
+    // `.value` keeps the last item through a reload, so the row stays put
+    // while the cylinder is edited or synced.
+    final cylinder = ref.watch(equipmentItemProvider(cylinderId)).value;
     if (cylinder == null) return const SizedBox.shrink();
     return ListTile(
       contentPadding: EdgeInsets.zero,

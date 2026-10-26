@@ -15401,7 +15401,7 @@
   "profilePhoto_error_contactPermission": "Für die Auswahl eines Fotos wird die Kontaktberechtigung benötigt.",
   "diveComputer_merge_title": "Tauchcomputer zusammenführen",
   "diveComputer_merge_intro": "{count} Einträge werden zu einem. Tauchgänge, Profile und Download-Verlauf wandern zu dem Eintrag, den du behältst. Die anderen Einträge werden gelöscht.",
-  "diveComputer_merge_gearNote": "Der Ausrüstungseintrag jedes anderen Datensatzes bleibt mit seiner Wartungshistorie erhalten. Löschen Sie ihn unter Ausrüstung, wenn Sie ihn nicht mehr brauchen.",
+  "diveComputer_merge_gearNote": "Der Ausrüstungseintrag jedes anderen Datensatzes wird mit diesem zusammengeführt: Wartungsverlauf, Dokumente und Fotos wandern hierher, und der leere Eintrag wird gelöscht.",
   "diveComputer_merge_keepLabel": "Diesen Eintrag behalten",
   "diveComputer_merge_serialLabel": "Seriennummer {serial}",
   "diveComputer_merge_noSerial": "Keine Seriennummer",

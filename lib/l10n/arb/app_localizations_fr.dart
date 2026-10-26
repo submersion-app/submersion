@@ -51706,7 +51706,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get diveComputer_merge_gearNote =>
-      'L\'élément d\'équipement de chacun des autres enregistrements est conservé, avec son historique d\'entretien. Supprime-le depuis Équipement si tu n\'en as plus besoin.';
+      'L\'article d\'équipement de chaque autre fiche est fusionné dans celui-ci : son historique d\'entretien, ses documents et ses photos y sont déplacés, et l\'article vidé est supprimé.';
 
   @override
   String get diveComputer_merge_keepLabel => 'Conserver cette fiche';

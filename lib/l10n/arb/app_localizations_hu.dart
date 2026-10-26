@@ -51311,7 +51311,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveComputer_merge_gearNote =>
-      'A többi rekord felszerelés-tétele megmarad a szervizelési előzményeivel együtt. Ha már nincs rá szüksége, törölje a Felszerelés alatt.';
+      'A többi rekord felszerelési eleme ebbe olvad bele: a szervizelési előzmények, a dokumentumok és a fotók ide kerülnek, a kiürült elem pedig törlődik.';
 
   @override
   String get diveComputer_merge_keepLabel => 'Ezt a bejegyzést megtartom';

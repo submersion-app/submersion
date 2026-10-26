@@ -15249,7 +15249,7 @@
   "profilePhoto_error_contactPermission": "Se necesita permiso de contactos para elegir una foto.",
   "diveComputer_merge_title": "Combinar ordenadores de buceo",
   "diveComputer_merge_intro": "{count} registros pasarán a ser uno. Las inmersiones, los perfiles y el historial de descargas se moverán al registro que conserves. Los demás registros se eliminarán.",
-  "diveComputer_merge_gearNote": "El elemento de Equipo de cada uno de los otros registros se conserva, con su historial de mantenimiento. Elimínalo desde Equipo si ya no lo necesitas.",
+  "diveComputer_merge_gearNote": "El artículo de Equipo de cada otro registro se integra en este: su historial de mantenimiento, documentos y fotos pasan aquí, y el artículo vacío se elimina.",
   "diveComputer_merge_keepLabel": "Conservar este registro",
   "diveComputer_merge_serialLabel": "Número de serie {serial}",
   "diveComputer_merge_noSerial": "Sin número de serie",

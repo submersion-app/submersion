@@ -51643,7 +51643,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveComputer_merge_gearNote =>
-      'El elemento de Equipo de cada uno de los otros registros se conserva, con su historial de mantenimiento. Elimínalo desde Equipo si ya no lo necesitas.';
+      'El artículo de Equipo de cada otro registro se integra en este: su historial de mantenimiento, documentos y fotos pasan aquí, y el artículo vacío se elimina.';
 
   @override
   String get diveComputer_merge_keepLabel => 'Conservar este registro';

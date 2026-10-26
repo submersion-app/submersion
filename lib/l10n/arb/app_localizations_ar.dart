@@ -52214,7 +52214,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveComputer_merge_gearNote =>
-      'يبقى عنصر المعدات الخاص بكل سجل آخر، مع سجل صيانته. احذفه من المعدات إذا لم تعد بحاجة إليه.';
+      'يُدمج عنصر المعدات لكل سجل آخر في هذا العنصر: ينتقل سجل الصيانة والمستندات والصور إلى هنا، ويُحذف العنصر الفارغ.';
 
   @override
   String get diveComputer_merge_keepLabel => 'الاحتفاظ بهذا السجل';

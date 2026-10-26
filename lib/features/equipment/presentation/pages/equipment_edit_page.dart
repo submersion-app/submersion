@@ -62,6 +62,10 @@ class EquipmentEditPage extends ConsumerStatefulWidget {
   /// Transmitters lists' "add by hand" asks for (issue #3676).
   final EquipmentType? initialType;
 
+  /// For a new item: the serial the form starts with, as a transmitter
+  /// reached from its serial (an old "assign transmitter" link) hands over.
+  final String? initialSerial;
+
   const EquipmentEditPage({
     super.key,
     this.equipmentId,
@@ -71,6 +75,7 @@ class EquipmentEditPage extends ConsumerStatefulWidget {
     this.initialParentId,
     this.cloneFromId,
     this.initialType,
+    this.initialSerial,
   });
 
   bool get isEditing => equipmentId != null;
@@ -148,6 +153,9 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
       _purchaseCurrencyController.text = _initialCurrencyCode;
       _parentEquipmentId = widget.initialParentId;
       if (widget.initialType case final type?) _selectedType = type;
+      if (widget.initialSerial case final serial?) {
+        _serialController.text = serial;
+      }
     }
     _nameController.addListener(_onFieldChanged);
     _brandController.addListener(_onFieldChanged);

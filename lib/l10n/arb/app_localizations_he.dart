@@ -50497,7 +50497,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveComputer_merge_gearNote =>
-      'פריט הציוד של כל רשומה אחרת נשמר, יחד עם היסטוריית השירות שלו. מחק אותו מהציוד אם אינך צריך אותו עוד.';
+      'פריט הציוד של כל רשומה אחרת מתמזג לפריט זה: היסטוריית השירות, המסמכים והתמונות עוברים לכאן, והפריט הריק נמחק.';
 
   @override
   String get diveComputer_merge_keepLabel => 'לשמור רשומה זו';

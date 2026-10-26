@@ -47,7 +47,12 @@ class DiveComputerGearResolver {
         final existing = await (_db.select(
           _db.equipment,
         )..where((t) => t.id.equals(stored))).getSingleOrNull();
-        if (existing != null) return stored;
+        // Only a computer item is the computer's entry: a link to a mask
+        // (an item retyped before #3676 locked the type) goes on to the
+        // chain and the matching below, as the device gear heal repairs it.
+        if (existing != null && existing.type == EquipmentType.computer.name) {
+          return stored;
+        }
       }
 
       // The derived id, or the next id in its chain when a peer deleted it

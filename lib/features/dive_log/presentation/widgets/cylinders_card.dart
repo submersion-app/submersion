@@ -68,11 +68,12 @@ class CylindersCard extends ConsumerWidget {
     // a single-source dive never needs attribution.
     final showSourceBadges = dataSources.length >= 2;
     final computerNames = _computerDisplayNames(context, dataSources);
-    // Serials with a registry entry get a plain caption; the rest get an
-    // Assign button (issue #1365). Read through `.value`, which keeps the
+    // Serials of a transmitter that is set up get a plain caption; the rest
+    // get an Assign button (issue #1365). Set up, not merely registered: a
+    // download registers every serial it sees (issue #3676). Read through `.value`, which keeps the
     // previous list while a diver change reloads the provider; `valueOrNull`
     // would drop to an empty registry and flash the button for every tank.
-    final knownSerials = Transmitter.knownSerials(
+    final knownSerials = Transmitter.setUpSerials(
       ref.watch(transmittersProvider).value ?? const <Transmitter>[],
     );
     // Linked tanks name their trip cylinder and the bottle it held when the
@@ -317,7 +318,8 @@ class CylindersCard extends ConsumerWidget {
                   onPressed: () => context.push(
                     Uri(
                       path: '/transmitters/new',
-                      queryParameters: {'serial': serial},
+                      // The dive lets an unregistered serial get its item.
+                      queryParameters: {'serial': serial, 'dive': dive.id},
                     ).toString(),
                   ),
                   child: Text(l10n.diveLog_tank_assignTransmitter),

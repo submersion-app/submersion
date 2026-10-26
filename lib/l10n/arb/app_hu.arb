@@ -15249,7 +15249,7 @@
   "profilePhoto_error_contactPermission": "A fénykép kiválasztásához névjegy-hozzáférési engedély szükséges.",
   "diveComputer_merge_title": "Búvárszámítógépek összevonása",
   "diveComputer_merge_intro": "{count} bejegyzésből egy lesz. A merülések, profilok és a letöltési előzmények a megtartott bejegyzéshez kerülnek. A többi bejegyzés törlődik.",
-  "diveComputer_merge_gearNote": "A többi rekord felszerelés-tétele megmarad a szervizelési előzményeivel együtt. Ha már nincs rá szüksége, törölje a Felszerelés alatt.",
+  "diveComputer_merge_gearNote": "A többi rekord felszerelési eleme ebbe olvad bele: a szervizelési előzmények, a dokumentumok és a fotók ide kerülnek, a kiürült elem pedig törlődik.",
   "diveComputer_merge_keepLabel": "Ezt a bejegyzést megtartom",
   "diveComputer_merge_serialLabel": "Sorozatszám: {serial}",
   "diveComputer_merge_noSerial": "Nincs sorozatszám",
