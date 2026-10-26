@@ -11,7 +11,9 @@ import '../../../../helpers/test_database.dart';
 /// `dives.computer_tissue_json`. The dive's primary reading owns it: a
 /// re-import of that reading writes its own value, none included, so a
 /// snapshot a parser no longer emits does not outlive it (issue #2556). A
-/// second computer matched onto the dive that carries none leaves it alone.
+/// download that takes the primary role from a UDDF source replaces the
+/// snapshot only with one of its own. A second computer matched onto the dive
+/// never replaces one; it only fills a dive that has none.
 void main() {
   late DiveComputerRepository repository;
   late AppDatabase db;

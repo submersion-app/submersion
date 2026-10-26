@@ -6,10 +6,11 @@ import 'package:submersion/features/dive_log/data/repositories/dive_computer_rep
 import '../../../../helpers/test_database.dart';
 
 /// The deco settings a computer reports for the dive (gradient factors,
-/// algorithm and conservatism) land on the dive row. A re-import of the
-/// dive's primary reading writes what it reports, none included; a second
-/// computer matched onto the dive that reports none leaves them alone
-/// (issue #2556).
+/// algorithm and conservatism) land on the dive row as one set. A re-import
+/// of the dive's primary reading writes what it reports, none included. A
+/// second computer matched onto the dive, or a download that takes the
+/// primary role from a UDDF source, leaves them alone when it reports none
+/// and replaces all four when it reports any (issue #2556).
 void main() {
   late DiveComputerRepository repository;
   late AppDatabase db;
