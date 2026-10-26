@@ -30,8 +30,17 @@ Computer-generated logbooks are refused by name: `Synthetic dives 1000.uddf`,
 - `salt.txt`: the salt.
 
 Shearwater Cloud databases decode their profiles through a platform plugin
-that `flutter test` does not have, so they yield no shapes here; harvest them
-inside the macOS app (see the integration test noted in the plan).
+that `flutter test` does not have, so they yield no shapes here. Harvest them
+inside the macOS app afterwards, into the same directory:
+
+```bash
+scripts/demo_data/harvest_in_app.sh <out_dir> <shearwater_db>...
+```
+
+It stages the files in the app's sandbox container, runs the same harvester
+as an integration test (scratch in-memory databases and mocked preferences
+only, never the app's own logbook), and merges the new shapes and hashes into
+`<out_dir>`.
 
 ## 2. Build and check the logbook
 
@@ -63,8 +72,11 @@ check fails:
   relative difference in duration, plus half the relative difference in
   maximum depth. A copy is at 0; the reshaper's smallest change lands near
   0.06. No personal text (names, notes, serials, contact details) may equal a
-  source value, apart from the app's public catalogue names and real product
-  names.
+  source value. The app's own vocabulary is allowed, because every real
+  logbook carries it too: the site, centre and species catalogues, tank
+  presets and roles, built-in list layouts, the rows a new empty logbook
+  seeds, real product names, and the seeders' fixed labels
+  (`src/checks/public_vocabulary.dart`). A refusal names the demo's value.
 
 Limits: the database 5 MB compressed, the whole package 15 MB.
 
