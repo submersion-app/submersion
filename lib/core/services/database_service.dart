@@ -187,12 +187,17 @@ class DatabaseService {
   /// for (issue #3333); null, the default, never compacts, so only the
   /// foreground launch, which passes it, can spend time rewriting the file.
   /// [onCompacting] is told just before that rewrite starts.
+  /// [pathOverride] opens that file instead of the location service's path,
+  /// without changing the location service: demo mode opens its sample
+  /// logbook this way and leaves the user's database location as it was
+  /// (issue #3708).
   Future<void> initialize({
     DatabaseLocationService? locationService,
     void Function(int currentStep, int totalSteps)? onMigrationProgress,
     bool allowSchemaUpgrade = true,
     DatabaseCompactionPrefs? compaction,
     void Function()? onCompacting,
+    String? pathOverride,
   }) async {
     if (_database != null) return;
     _openAttempted = false;
@@ -202,7 +207,7 @@ class DatabaseService {
     // there would make the reopen resolve the DEFAULT path, silently
     // abandoning a custom database location on every restore.
     _locationService = locationService ?? _locationService;
-    final dbPath = await _resolveDatabasePath();
+    final dbPath = pathOverride ?? await _resolveDatabasePath();
     _currentDatabasePath = dbPath;
 
     // Ensure directory exists
