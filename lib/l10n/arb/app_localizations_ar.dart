@@ -37,6 +37,69 @@ class AppLocalizationsAr extends AppLocalizations {
   String get connections_around_show => 'إظهار';
 
   @override
+  String get connections_caption_circle => 'يربط الخط بين رفيقين غاصا معًا.';
+
+  @override
+  String get connections_caption_where =>
+      'يعني الخط أنك غصت في ذلك الموقع مع ذلك الرفيق.';
+
+  @override
+  String get connections_caption_trips =>
+      'يعني الخط أن ذلك الرفيق كان في تلك الرحلة.';
+
+  @override
+  String get connections_caption_life =>
+      'يعني الخط أنك رأيت ذلك النوع في ذلك الموقع.';
+
+  @override
+  String get connections_caption_gear =>
+      'يربط الخط بين معدات استُخدمت في الغوصة نفسها.';
+
+  @override
+  String get connections_caption_centers =>
+      'يعني الخط أنك غصت مع ذلك الرفيق عبر ذلك المركز.';
+
+  @override
+  String get connections_caption_travel =>
+      'الرفقاء والرحلات والمواقع؛ يعني الخط أن بينها غوصات مشتركة.';
+
+  @override
+  String get connections_caption_reef =>
+      'المواقع والحياة البحرية وأنواع الغوص؛ يعني الخط أن بينها غوصات مشتركة.';
+
+  @override
+  String get connections_caption_gearRoad =>
+      'المعدات والرحلات والمراكز؛ يعني الخط أن بينها غوصات مشتركة.';
+
+  @override
+  String connections_caption_custom(String kinds) {
+    return '$kinds؛ يعني الخط أنها تشترك في غوصة.';
+  }
+
+  @override
+  String get connections_caption_kindSeparator => '، ';
+
+  @override
+  String connections_caption_around(int hops) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hops,
+      locale: localeName,
+      other:
+          'كل ما يقع ضمن $hops خطوة من العنصر المركزي، مرتبطًا بغوصات مشتركة.',
+      many:
+          'كل ما يقع ضمن $hops خطوة من العنصر المركزي، مرتبطًا بغوصات مشتركة.',
+      few:
+          'كل ما يقع ضمن $hops خطوات من العنصر المركزي، مرتبطًا بغوصات مشتركة.',
+      two: 'كل ما يقع ضمن خطوتين من العنصر المركزي، مرتبطًا بغوصات مشتركة.',
+      one: 'كل ما يشترك في غوصة مع العنصر المركزي.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_caption_thicker => 'الخطوط الأسمك تعني غوصات أكثر.';
+
+  @override
   String get connections_editor_kinds => 'الأنواع';
 
   @override
@@ -2686,7 +2749,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String backup_retention_allDevices_on(int count) {
-    return 'يحتفظ مجلد السحابة بأحدث النسخ الاحتياطية من كل الأجهزة، وعددها $count. تُحفظ النسخ المثبتة. إذا استخدمت أجهزة أخرى هذا الخيار أيضًا، فالعدد الأصغر هو المعتمد. حدّث التطبيق على كل الأجهزة أولًا حتى تظهر النسخ المثبتة عليها.';
+    return 'يحتفظ مجلد السحابة بأحدث النسخ الاحتياطية من كل الأجهزة، وعددها $count. تُحفظ النسخ المثبتة. تُحفظ أيضًا أحدث نسخة من كل جهاز ما لم يمضِ عليها أكثر من 6 أشهر. إذا استخدمت أجهزة أخرى هذا الخيار أيضًا، فالعدد الأصغر هو المعتمد. حدّث التطبيق على كل الأجهزة أولًا حتى تظهر النسخ المثبتة عليها.';
   }
 
   @override
@@ -2735,6 +2798,21 @@ class AppLocalizationsAr extends AppLocalizations {
       two: 'تُحفظ نسختان مثبتتان.',
       one: 'تُحفظ نسخة مثبتة واحدة.',
       zero: 'لا توجد نسخ مثبتة.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backup_retention_confirm_deviceNewestKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تُحفظ $count نسخة بوصفها أحدث نسخة لأجهزتها.',
+      many: 'تُحفظ $count نسخة بوصفها أحدث نسخة لأجهزتها.',
+      few: 'تُحفظ $count نسخ بوصفها أحدث نسخة لأجهزتها.',
+      two: 'تُحفظ نسختان بوصفهما أحدث نسخة لجهازيهما.',
+      one: 'تُحفظ نسخة واحدة بوصفها أحدث نسخة لجهازها.',
+      zero: 'لا توجد نسخ محفوظة بوصفها أحدث نسخة لجهازها.',
     );
     return '$_temp0';
   }
@@ -5296,6 +5374,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get connections_empty_sites => 'لا توجد غوصة لها موقع بعد.';
+
+  @override
+  String get connections_empty_whereNoSites =>
+      'لا تحتوي أي من غوصاتك مع رفيق على موقع بعد. أضف مواقع إلى تلك الغوصات لترى أين تغوصون معًا.';
 
   @override
   String get connections_empty_filtered => 'لا شيء يطابق التصفية الحالية.';
@@ -20013,6 +20095,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get nav_media => 'الوسائط';
 
   @override
+  String get nav_mediaDocumentsSubtitle => 'الصور ومقاطع الفيديو والمستندات';
+
+  @override
+  String get nav_photosVideos => 'صور/فيديو';
+
+  @override
   String get nav_more => 'المزيد';
 
   @override
@@ -21088,6 +21176,10 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get buoyancy_noLeadHint =>
       'لم يتم تسجيل أي أثقال: أضف أثقالًا إلى هذه الغطسة أو وزنًا جافًا إلى معدات الأثقال';
+
+  @override
+  String get buoyancy_tankMaterialAssumedHint =>
+      'لم يتم تحديد مادة الأسطوانة، لذا افتُرض أنها ألومنيوم: حدد المادة أو اختر قالب أسطوانة';
 
   @override
   String get buoyancy_chartNet => 'الصافي';
@@ -25064,9 +25156,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get nav_documents => 'المستندات';
-
-  @override
-  String get documents_title => 'المستندات';
 
   @override
   String get documents_type_insurance => 'التأمين';
@@ -40500,6 +40589,20 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get dataQuality_repairLabel_shiftImport =>
       'إزاحة كل الغوصات من هذا الاستيراد';
+
+  @override
+  String dataQuality_repairLabel_shiftLogbookTime(String offset) {
+    return 'إزاحة وقت السجل بمقدار $offset';
+  }
+
+  @override
+  String dataQuality_repairLabel_fixSourceClock(String offset) {
+    return 'تصحيح ساعة هذا الكمبيوتر بمقدار $offset';
+  }
+
+  @override
+  String get dataQuality_repairLabel_fixSourceClockAll =>
+      'تصحيح هذا الكمبيوتر أيضًا في الغوصات الأخرى ذات الفارق نفسه';
 
   @override
   String get dataQuality_repairLabel_consolidate => 'توحيد';

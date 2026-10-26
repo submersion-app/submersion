@@ -1,6 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
+import 'package:submersion/features/marine_life/data/services/species_seed_service.dart';
+import 'package:submersion/features/marine_life/domain/entities/bundled_species_catalog.dart';
+import 'package:submersion/features/marine_life/domain/entities/species.dart';
 
 import '../../../helpers/test_database.dart';
 
@@ -174,4 +178,55 @@ void main() {
       },
     );
   }
+
+  // Issue #3669: an edited built-in species exports, so the cloud base carries
+  // it when the cloud has the edit. One the base lacks is a local edit the
+  // replace must drop: it goes back to the catalog text, untouched, and the
+  // refill re-applies the cloud's copy when there is one.
+  test('deleteAllRecords(species) restores an edited built-in', () async {
+    SpeciesSeedService.overrideCatalog(
+      const BundledSpeciesCatalog(
+        version: 2,
+        species: [
+          Species(
+            id: 'sp_a',
+            commonName: 'Catalog A',
+            scientificName: 'A sci',
+            category: SpeciesCategory.fish,
+            description: 'Catalog A description',
+            isBuiltIn: true,
+          ),
+        ],
+      ),
+    );
+    addTearDown(SpeciesSeedService.clearCache);
+    final db = DatabaseService.instance.database;
+    await db.customStatement('DELETE FROM species');
+    await db.customStatement(
+      'INSERT INTO species (id, common_name, category, description, '
+      'is_built_in, hlc) VALUES (?, ?, ?, ?, 1, ?)',
+      ['sp_a', 'Mine', 'shark', 'My notes', '001700000000000:000000:device-a'],
+    );
+    await db.customStatement(_insert('species', id: 'b1', builtIn: true));
+
+    await SyncDataSerializer().deleteAllRecords('species');
+
+    final rows = await db
+        .customSelect(
+          'SELECT id, common_name, scientific_name, category, description, '
+          'hlc FROM species ORDER BY id',
+        )
+        .get();
+    final byId = {for (final r in rows) r.read<String>('id'): r.data};
+    expect(byId.keys, {'b1', 'sp_a'});
+    expect(byId['sp_a'], {
+      'id': 'sp_a',
+      'common_name': 'Catalog A',
+      'scientific_name': 'A sci',
+      'category': 'fish',
+      'description': 'Catalog A description',
+      'hlc': null,
+    });
+    expect(byId['b1']!['common_name'], 'b1');
+  });
 }

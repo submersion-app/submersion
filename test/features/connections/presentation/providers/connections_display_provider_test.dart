@@ -6,12 +6,17 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/connections/domain/views/connections_display.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_display_provider.dart';
+import 'package:submersion/features/connections/presentation/providers/connections_start_reset.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 Future<(ProviderContainer, SharedPreferences)> _container(
   Map<String, Object> prefs,
 ) async {
-  SharedPreferences.setMockInitialValues(prefs);
+  // The one-time move to the start has run (see connections_start_reset).
+  SharedPreferences.setMockInitialValues({
+    kConnectionsStartResetKey: true,
+    ...prefs,
+  });
   final sp = await SharedPreferences.getInstance();
   final c = ProviderContainer(
     overrides: [sharedPreferencesProvider.overrideWithValue(sp)],

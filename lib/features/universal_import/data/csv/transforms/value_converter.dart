@@ -385,6 +385,39 @@ class ValueConverter {
   }
 
   // ---------------------------------------------------------------------------
+  /// Parse [raw] as a number that may name its unit, such as `35 ft`, `82°F`
+  /// or my.divessi.com's `35 ft (11 m)` (#3629), for a field holding
+  /// [unitType].
+  ///
+  /// Only the leading number and the unit written right after it are read,
+  /// so the bracketed metres of `35 ft (11 m)` are not run into the feet.
+  /// The unit is null when the value names none, or names a unit of another
+  /// kind (`28 ft` for a temperature); the value is then read whole by
+  /// [parseDouble], as before. Returns null when no number can be read.
+  ({double value, DetectedUnit? unit})? parseMeasurement(
+    String? raw,
+    UnitType? unitType,
+  ) {
+    if (raw == null) return null;
+    final match = unitType == null ? null : _leadingMeasurement.firstMatch(raw);
+    if (match != null) {
+      final unit = UnitDetector.resolveUnitToken(match.group(2)!.toLowerCase());
+      final value = parseDouble(match.group(1));
+      if (unit != null && unit.$2 == unitType && value != null) {
+        return (value: value, unit: unit.$1);
+      }
+    }
+    final value = parseDouble(raw);
+    return value == null ? null : (value: value, unit: null);
+  }
+
+  /// A leading number (thousands commas allowed) and the unit word after it,
+  /// with an optional degree sign: `35 ft`, `3,000 psi`, `82°F`.
+  static final _leadingMeasurement = RegExp(
+    r'^\s*(-?\d[\d,]*(?:\.\d+)?)\s*°?\s*([A-Za-z]+)\b',
+  );
+
+  // ---------------------------------------------------------------------------
   /// Parse [raw] as an integer via [parseDouble] then rounding.
   ///
   /// Returns null for null, empty, or unparseable input.

@@ -37,6 +37,66 @@ class AppLocalizationsEs extends AppLocalizations {
   String get connections_around_show => 'Mostrar';
 
   @override
+  String get connections_caption_circle =>
+      'Una línea une a dos compañeros que bucearon juntos.';
+
+  @override
+  String get connections_caption_where =>
+      'Una línea indica que buceaste en ese punto con ese compañero.';
+
+  @override
+  String get connections_caption_trips =>
+      'Una línea indica que ese compañero estuvo en ese viaje.';
+
+  @override
+  String get connections_caption_life =>
+      'Una línea indica que viste esa especie en ese punto.';
+
+  @override
+  String get connections_caption_gear =>
+      'Una línea une equipo usado en la misma inmersión.';
+
+  @override
+  String get connections_caption_centers =>
+      'Una línea indica que buceaste con ese compañero a través de ese centro.';
+
+  @override
+  String get connections_caption_travel =>
+      'Compañeros, viajes y puntos; una línea indica que comparten inmersiones.';
+
+  @override
+  String get connections_caption_reef =>
+      'Puntos, vida marina y tipos de inmersión; una línea indica que comparten inmersiones.';
+
+  @override
+  String get connections_caption_gearRoad =>
+      'Equipo, viajes y centros; una línea indica que comparten inmersiones.';
+
+  @override
+  String connections_caption_custom(String kinds) {
+    return '$kinds; una línea indica que comparten una inmersión.';
+  }
+
+  @override
+  String get connections_caption_kindSeparator => ', ';
+
+  @override
+  String connections_caption_around(int hops) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hops,
+      locale: localeName,
+      other:
+          'Todo lo que está a $hops pasos o menos del elemento central, unido por inmersiones compartidas.',
+      one: 'Todo lo que comparte una inmersión con el elemento central.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_caption_thicker =>
+      'Las líneas más gruesas indican más inmersiones.';
+
+  @override
   String get connections_editor_kinds => 'Tipos';
 
   @override
@@ -2635,7 +2695,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String backup_retention_allDevices_on(int count) {
-    return 'La carpeta en la nube conserva las últimas $count copias de seguridad de todos los dispositivos. Las copias ancladas se conservan. Si otros dispositivos también lo usan, gana el número más pequeño. Actualiza primero la app en todos los dispositivos para que se vean sus copias ancladas.';
+    return 'La carpeta en la nube conserva las últimas $count copias de seguridad de todos los dispositivos. Las copias ancladas se conservan. También se conserva la copia más reciente de cada dispositivo, salvo que tenga más de 6 meses. Si otros dispositivos también lo usan, gana el número más pequeño. Actualiza primero la app en todos los dispositivos para que se vean sus copias ancladas.';
   }
 
   @override
@@ -2672,6 +2732,19 @@ class AppLocalizationsEs extends AppLocalizations {
       locale: localeName,
       other: 'Se conservan $count copias ancladas.',
       one: 'Se conserva $count copia anclada.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backup_retention_confirm_deviceNewestKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Se conservan $count copias por ser las más recientes de su dispositivo.',
+      one:
+          'Se conserva $count copia por ser la más reciente de su dispositivo.',
     );
     return '$_temp0';
   }
@@ -5189,6 +5262,10 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get connections_empty_sites =>
       'Ninguna inmersión tiene punto de buceo todavía.';
+
+  @override
+  String get connections_empty_whereNoSites =>
+      'Ninguna de tus inmersiones con un compañero tiene aún un punto de buceo. Añade puntos a esas inmersiones para ver dónde buceas con tus compañeros.';
 
   @override
   String get connections_empty_filtered =>
@@ -19709,6 +19786,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get nav_media => 'Multimedia';
 
   @override
+  String get nav_mediaDocumentsSubtitle => 'Fotos, vídeos y documentos';
+
+  @override
+  String get nav_photosVideos => 'Fotos/Vídeos';
+
+  @override
   String get nav_more => 'Más';
 
   @override
@@ -20780,6 +20863,10 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get buoyancy_noLeadHint =>
       'No se registró lastre: añade lastre a esta inmersión o un peso en seco a tu equipo de lastre';
+
+  @override
+  String get buoyancy_tankMaterialAssumedHint =>
+      'Material de la botella sin definir, así que se asumió aluminio: define el material o elige una plantilla de tanque';
 
   @override
   String get buoyancy_chartNet => 'Neto';
@@ -24858,9 +24945,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get nav_documents => 'Documentos';
-
-  @override
-  String get documents_title => 'Documentos';
 
   @override
   String get documents_type_insurance => 'Seguro';
@@ -40041,6 +40125,20 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get dataQuality_repairLabel_shiftImport =>
       'Desplazar todas las inmersiones de esta importación';
+
+  @override
+  String dataQuality_repairLabel_shiftLogbookTime(String offset) {
+    return 'Desplazar la hora del registro $offset';
+  }
+
+  @override
+  String dataQuality_repairLabel_fixSourceClock(String offset) {
+    return 'Corregir el reloj de este ordenador $offset';
+  }
+
+  @override
+  String get dataQuality_repairLabel_fixSourceClockAll =>
+      'Corregir también este ordenador en otras inmersiones con el mismo desfase';
 
   @override
   String get dataQuality_repairLabel_consolidate => 'Consolidar';

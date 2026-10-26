@@ -37,6 +37,66 @@ class AppLocalizationsDe extends AppLocalizations {
   String get connections_around_show => 'Anzeigen';
 
   @override
+  String get connections_caption_circle =>
+      'Eine Linie verbindet zwei Buddys, die zusammen getaucht sind.';
+
+  @override
+  String get connections_caption_where =>
+      'Eine Linie heißt: Du warst mit diesem Buddy an diesem Tauchplatz.';
+
+  @override
+  String get connections_caption_trips =>
+      'Eine Linie heißt: Dieser Buddy war auf dieser Reise dabei.';
+
+  @override
+  String get connections_caption_life =>
+      'Eine Linie heißt: Du hast diese Art an diesem Tauchplatz gesehen.';
+
+  @override
+  String get connections_caption_gear =>
+      'Eine Linie verbindet Ausrüstung, die beim selben Tauchgang benutzt wurde.';
+
+  @override
+  String get connections_caption_centers =>
+      'Eine Linie heißt: Du warst mit diesem Buddy über diese Tauchbasis tauchen.';
+
+  @override
+  String get connections_caption_travel =>
+      'Buddys, Reisen und Tauchplätze; eine Linie heißt, sie teilen Tauchgänge.';
+
+  @override
+  String get connections_caption_reef =>
+      'Tauchplätze, Meeresleben und Tauchgangsarten; eine Linie heißt, sie teilen Tauchgänge.';
+
+  @override
+  String get connections_caption_gearRoad =>
+      'Ausrüstung, Reisen und Tauchbasen; eine Linie heißt, sie teilen Tauchgänge.';
+
+  @override
+  String connections_caption_custom(String kinds) {
+    return '$kinds; eine Linie heißt, sie teilen einen Tauchgang.';
+  }
+
+  @override
+  String get connections_caption_kindSeparator => ', ';
+
+  @override
+  String connections_caption_around(int hops) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hops,
+      locale: localeName,
+      other:
+          'Alles im Umkreis von $hops Schritten um dieses Zentrum, verbunden durch gemeinsame Tauchgänge.',
+      one: 'Alles, was einen Tauchgang mit diesem Zentrum teilt.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_caption_thicker =>
+      'Dickere Linien bedeuten mehr Tauchgänge.';
+
+  @override
   String get connections_editor_kinds => 'Arten';
 
   @override
@@ -2631,7 +2691,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String backup_retention_allDevices_on(int count) {
-    return 'Der Cloud-Ordner behält die letzten $count Sicherungen aller Geräte. Angeheftete Sicherungen bleiben erhalten. Nutzen auch andere Geräte diese Einstellung, gilt die kleinste Zahl. Aktualisieren Sie zuerst die App auf allen Geräten, damit deren angeheftete Sicherungen erkannt werden.';
+    return 'Der Cloud-Ordner behält die letzten $count Sicherungen aller Geräte. Angeheftete Sicherungen bleiben erhalten. Die neueste Sicherung jedes Geräts bleibt ebenfalls erhalten, sofern sie nicht älter als 6 Monate ist. Nutzen auch andere Geräte diese Einstellung, gilt die kleinste Zahl. Aktualisieren Sie zuerst die App auf allen Geräten, damit deren angeheftete Sicherungen erkannt werden.';
   }
 
   @override
@@ -2668,6 +2728,17 @@ class AppLocalizationsDe extends AppLocalizations {
       locale: localeName,
       other: '$count angeheftete Sicherungen bleiben erhalten.',
       one: '$count angeheftete Sicherung bleibt erhalten.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backup_retention_confirm_deviceNewestKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Sicherungen bleiben als neueste ihres Geräts erhalten.',
+      one: '$count Sicherung bleibt als neueste ihres Geräts erhalten.',
     );
     return '$_temp0';
   }
@@ -5192,6 +5263,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get connections_empty_sites =>
       'Noch kein Tauchgang hat einen Tauchplatz.';
+
+  @override
+  String get connections_empty_whereNoSites =>
+      'Noch keiner deiner Tauchgänge mit Buddy hat einen Tauchplatz. Füge diesen Tauchgängen Tauchplätze hinzu, um zu sehen, wo ihr zusammen taucht.';
 
   @override
   String get connections_empty_filtered =>
@@ -19702,6 +19777,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get nav_media => 'Medien';
 
   @override
+  String get nav_mediaDocumentsSubtitle => 'Fotos, Videos und Dokumente';
+
+  @override
+  String get nav_photosVideos => 'Fotos/Videos';
+
+  @override
   String get nav_more => 'Mehr';
 
   @override
@@ -20761,6 +20842,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get buoyancy_noLeadHint =>
       'Kein Blei erfasst: Füge diesem Tauchgang Blei hinzu oder trage bei deiner Bleiausrüstung ein Trockengewicht ein';
+
+  @override
+  String get buoyancy_tankMaterialAssumedHint =>
+      'Flaschenmaterial nicht festgelegt, daher wurde Aluminium angenommen: Lege das Material fest oder wähle eine Flaschenvorlage';
 
   @override
   String get buoyancy_chartNet => 'Netto';
@@ -24796,9 +24881,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get nav_documents => 'Dokumente';
-
-  @override
-  String get documents_title => 'Dokumente';
 
   @override
   String get documents_type_insurance => 'Versicherung';
@@ -39936,6 +40018,20 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get dataQuality_repairLabel_shiftImport =>
       'Alle Tauchgänge aus diesem Import verschieben';
+
+  @override
+  String dataQuality_repairLabel_shiftLogbookTime(String offset) {
+    return 'Logbuchzeit um $offset verschieben';
+  }
+
+  @override
+  String dataQuality_repairLabel_fixSourceClock(String offset) {
+    return 'Uhr dieses Computers um $offset korrigieren';
+  }
+
+  @override
+  String get dataQuality_repairLabel_fixSourceClockAll =>
+      'Diesen Computer auch bei anderen Tauchgängen mit derselben Abweichung korrigieren';
 
   @override
   String get dataQuality_repairLabel_consolidate => 'Konsolidieren';

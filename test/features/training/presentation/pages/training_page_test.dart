@@ -25,6 +25,7 @@ Widget _stubBody(
   BuildContext context,
   TrainingTab tab,
   SectionHeaderTitle header,
+  Map<String, String> _,
 ) {
   final desktop = ResponsiveBreakpoints.isMasterDetail(context);
   return Scaffold(

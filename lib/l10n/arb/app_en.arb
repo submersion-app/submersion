@@ -8,6 +8,21 @@
   "connections_around_prompt": "Search for a buddy, site, trip or anything else to centre the map on it.",
   "connections_around_searchHint": "Search buddies, sites, trips and more",
   "connections_around_show": "Show",
+  "connections_caption_circle": "A line joins two buddies who dived together.",
+  "connections_caption_where": "A line means you dived at that site with that buddy.",
+  "connections_caption_trips": "A line means that buddy was on that trip.",
+  "connections_caption_life": "A line means you saw that species at that site.",
+  "connections_caption_gear": "A line joins gear used on the same dive.",
+  "connections_caption_centers": "A line means you dived with that buddy through that center.",
+  "connections_caption_travel": "Buddies, trips and sites; a line means they share dives.",
+  "connections_caption_reef": "Sites, marine life and dive types; a line means they share dives.",
+  "connections_caption_gearRoad": "Gear, trips and centers; a line means they share dives.",
+  "connections_caption_custom": "{kinds}; a line means they share a dive.",
+  "@connections_caption_custom": {"placeholders": {"kinds": {"type": "String"}}},
+  "connections_caption_kindSeparator": ", ",
+  "connections_caption_around": "{hops, plural, =1{Everything that shares a dive with this centre.} other{Everything within {hops} steps of this centre, linked by shared dives.}}",
+  "@connections_caption_around": {"placeholders": {"hops": {"type": "int"}}},
+  "connections_caption_thicker": "Thicker lines mean more dives.",
   "connections_editor_kinds": "Kinds",
   "connections_editor_link": "{a} with {b}",
   "@connections_editor_link": {"placeholders": {"a": {"type": "String"}, "b": {"type": "String"}}},
@@ -1616,7 +1631,7 @@
   "backup_schedule_retention_subtitle": "Older backups are automatically removed",
   "backup_retention_allDevices_title": "Count backups from all devices",
   "backup_retention_allDevices_off": "Off: this device removes only the backups it made",
-  "backup_retention_allDevices_on": "The cloud folder keeps the last {count} backups from every device. Pinned backups are kept. If other devices use this too, the smallest number wins. Update the app on every device first so their pins are seen.",
+  "backup_retention_allDevices_on": "The cloud folder keeps the last {count} backups from every device. Pinned backups are kept. Each device's newest backup is kept too, unless it is more than 6 months old. If other devices use this too, the smallest number wins. Update the app on every device first so their pins are seen.",
   "@backup_retention_allDevices_on": {"placeholders": {"count": {"type": "int"}}},
   "backup_retention_cloudFootprint": "{count, plural, one{{count} backup in the cloud folder uses {size}} other{{count} backups in the cloud folder use {size}}}",
   "@backup_retention_cloudFootprint": {"placeholders": {"count": {"type": "int"}, "size": {"type": "String"}}},
@@ -1626,6 +1641,8 @@
   "@backup_retention_confirm_body": {"placeholders": {"keep": {"type": "int"}, "size": {"type": "String"}}},
   "backup_retention_confirm_pinnedKept": "{count, plural, one{{count} pinned backup is kept.} other{{count} pinned backups are kept.}}",
   "@backup_retention_confirm_pinnedKept": {"placeholders": {"count": {"type": "int"}}},
+  "backup_retention_confirm_deviceNewestKept": "{count, plural, one{{count} backup is kept as its device's newest.} other{{count} backups are kept as their device's newest.}}",
+  "@backup_retention_confirm_deviceNewestKept": {"placeholders": {"count": {"type": "int"}}},
   "backup_retention_confirm_action": "{count, plural, one{Remove {count} backup} other{Remove {count} backups}}",
   "@backup_retention_confirm_action": {"placeholders": {"count": {"type": "int"}}},
   "backup_retention_source_thisDevice": "This device",
@@ -3282,6 +3299,7 @@
   "connections_empty_noDives": "No dives yet. Connections appear once your log has dives in it.",
   "connections_empty_buddies": "No buddies are linked to dives yet. Add buddies to your dives, or convert legacy buddy names under Settings > Data > Data tools.",
   "connections_empty_sites": "No dives have a site yet.",
+  "connections_empty_whereNoSites": "None of your dives with a buddy has a site yet. Add sites to those dives to see where you dive together.",
   "connections_empty_filtered": "Nothing matches the current filter.",
   "connections_focusMissing": "That item is no longer in the log.",
   "connections_error_load": "Could not load connections.",
@@ -12309,6 +12327,8 @@
   },
   "nav_home": "Home",
   "nav_media": "Media",
+  "nav_mediaDocumentsSubtitle": "Photos, videos and documents",
+  "nav_photosVideos": "Photos/Videos",
   "nav_more": "More",
   "nav_planning": "Planning",
   "nav_planningSubtitle": "Dive Planner, Calculators",
@@ -12354,6 +12374,12 @@
   },
   "@nav_media": {
     "description": "Navigation label for the media section"
+  },
+  "@nav_mediaDocumentsSubtitle": {
+    "description": "Subtitle for the Media menu item in the More sheet, naming its two tabs"
+  },
+  "@nav_photosVideos": {
+    "description": "Label of the Media section's tab for photos and videos, beside its Documents tab"
   },
   "@nav_more": {
     "description": "Navigation label for the 'more' menu on mobile"
@@ -13051,6 +13077,7 @@
   "buoyancy_estimatedPressures": "Tank pressures are estimated",
   "buoyancy_linkSuitHint": "Link an exposure suit to this dive for a fuller picture",
   "buoyancy_noLeadHint": "No lead recorded: add weights to this dive, or a dry weight to your weights gear",
+  "buoyancy_tankMaterialAssumedHint": "Tank material not set, so aluminum was assumed: set the material or pick a tank preset",
   "buoyancy_chartNet": "Net",
   "buoyancy_chartRig": "Rig + lead",
   "buoyancy_chartMinutes": "Time (min)",
@@ -14492,7 +14519,6 @@
   "settings_conflict_ref_attachedThrough": "Attached through",
   "settings_conflict_ref_buddy": "Buddy",
   "nav_documents": "Documents",
-  "documents_title": "Documents",
   "documents_type_insurance": "Insurance",
   "documents_type_medicalClearance": "Medical clearance",
   "documents_type_certificationCard": "Certification card",
@@ -24475,6 +24501,23 @@
     }
   },
   "dataQuality_repairLabel_shiftImport": "Shift all dives from this import",
+  "dataQuality_repairLabel_shiftLogbookTime": "Shift logbook time by {offset}",
+  "@dataQuality_repairLabel_shiftLogbookTime": {
+    "placeholders": {
+      "offset": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_repairLabel_fixSourceClock": "Fix this computer's clock by {offset}",
+  "@dataQuality_repairLabel_fixSourceClock": {
+    "placeholders": {
+      "offset": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_repairLabel_fixSourceClockAll": "Also fix this computer on other dives with the same offset",
   "dataQuality_repairLabel_consolidate": "Consolidate",
   "dataQuality_repairLabel_deleteDuplicate": "Delete duplicate",
   "@dataQuality_repairLabel_deleteDuplicate": {

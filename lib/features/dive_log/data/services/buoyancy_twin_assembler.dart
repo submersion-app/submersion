@@ -199,6 +199,7 @@ class BuoyancyTwinAssembler {
       tankDryMass += BuoyancyPhysics.tankDryMassKg(
         presetName: t.presetName,
         volumeL: t.volumeL,
+        workingPressureBar: t.workingPressureBar,
         material: t.material,
       );
     }

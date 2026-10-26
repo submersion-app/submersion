@@ -35,6 +35,55 @@ class AppLocalizationsZh extends AppLocalizations {
   String get connections_around_show => '显示';
 
   @override
+  String get connections_caption_circle => '连线表示两位潜伴一起潜过水。';
+
+  @override
+  String get connections_caption_where => '连线表示你和该潜伴在该潜点潜过水。';
+
+  @override
+  String get connections_caption_trips => '连线表示该潜伴参加了该行程。';
+
+  @override
+  String get connections_caption_life => '连线表示你在该潜点见过该物种。';
+
+  @override
+  String get connections_caption_gear => '连线连接同一次潜水中使用的装备。';
+
+  @override
+  String get connections_caption_centers => '连线表示你通过该潜店和该潜伴一起潜过水。';
+
+  @override
+  String get connections_caption_travel => '潜伴、行程和潜点；连线表示它们有共同的潜水。';
+
+  @override
+  String get connections_caption_reef => '潜点、海洋生物和潜水类型；连线表示它们有共同的潜水。';
+
+  @override
+  String get connections_caption_gearRoad => '装备、行程和潜店；连线表示它们有共同的潜水。';
+
+  @override
+  String connections_caption_custom(String kinds) {
+    return '$kinds；连线表示它们有共同的潜水。';
+  }
+
+  @override
+  String get connections_caption_kindSeparator => '、';
+
+  @override
+  String connections_caption_around(int hops) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hops,
+      locale: localeName,
+      other: '距此中心 $hops 步以内、由共同潜水相连的一切。',
+      one: '与此中心有共同潜水的一切。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_caption_thicker => '线越粗表示潜水越多。';
+
+  @override
   String get connections_editor_kinds => '类型';
 
   @override
@@ -2504,7 +2553,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String backup_retention_allDevices_on(int count) {
-    return '云文件夹保留所有设备最近的 $count 个备份。已置顶的备份会被保留。如果其他设备也开启此项，以最小的数字为准。请先在所有设备上更新应用，以便识别它们置顶的备份。';
+    return '云文件夹保留所有设备最近的 $count 个备份。已置顶的备份会被保留。 每台设备最新的备份也会保留，除非已超过 6 个月。如果其他设备也开启此项，以最小的数字为准。请先在所有设备上更新应用，以便识别它们置顶的备份。';
   }
 
   @override
@@ -2538,6 +2587,16 @@ class AppLocalizationsZh extends AppLocalizations {
       count,
       locale: localeName,
       other: '保留 $count 个已置顶的备份。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backup_retention_confirm_deviceNewestKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个备份因是其设备的最新备份而保留。',
     );
     return '$_temp0';
   }
@@ -4921,6 +4980,10 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get connections_empty_sites => '还没有潜水记录了潜点。';
+
+  @override
+  String get connections_empty_whereNoSites =>
+      '你与潜伴的潜水都还没有潜点。为这些潜水添加潜点，即可看到你们在哪里一起潜水。';
 
   @override
   String get connections_empty_filtered => '没有符合当前筛选的内容。';
@@ -18774,6 +18837,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get nav_media => '媒体';
 
   @override
+  String get nav_mediaDocumentsSubtitle => '照片、视频和文档';
+
+  @override
+  String get nav_photosVideos => '照片/视频';
+
+  @override
   String get nav_more => '更多';
 
   @override
@@ -19773,6 +19842,10 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get buoyancy_noLeadHint => '未记录配重：请为本次潜水添加配重，或为配重装备填写干重';
+
+  @override
+  String get buoyancy_tankMaterialAssumedHint =>
+      '未设置气瓶材质，因此按铝合金估算：请设置材质或选择气瓶预设';
 
   @override
   String get buoyancy_chartNet => '净值';
@@ -23457,9 +23530,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get nav_documents => '文档';
-
-  @override
-  String get documents_title => '文档';
 
   @override
   String get documents_type_insurance => '保险';
@@ -37708,6 +37778,20 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get dataQuality_repairLabel_shiftImport => '平移此次导入的所有潜水';
+
+  @override
+  String dataQuality_repairLabel_shiftLogbookTime(String offset) {
+    return '将日志时间平移 $offset';
+  }
+
+  @override
+  String dataQuality_repairLabel_fixSourceClock(String offset) {
+    return '将此电脑的时钟校正 $offset';
+  }
+
+  @override
+  String get dataQuality_repairLabel_fixSourceClockAll =>
+      '同时校正此电脑在其他具有相同偏差的潜水中的时钟';
 
   @override
   String get dataQuality_repairLabel_consolidate => '整合';

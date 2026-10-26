@@ -8,13 +8,17 @@ import 'package:submersion/features/media/presentation/providers/media_library_p
 import 'package:submersion/features/media/presentation/providers/media_watcher_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/media_console_scaffold.dart';
 import 'package:submersion/features/media_store/presentation/widgets/transfers_view.dart';
-import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/section_header_title.dart';
 
-/// Top-level Media section host: owns the selected console section and
-/// renders its content inside [MediaConsoleScaffold] (tabs in the app bar,
-/// inline beside the title when they fit).
+/// The Media screen's Photos/Videos tab: owns the selected console section
+/// and renders its content inside [MediaConsoleScaffold], whose section tabs
+/// sit under [headerTitle].
 class MediaSectionPage extends ConsumerStatefulWidget {
-  const MediaSectionPage({super.key});
+  const MediaSectionPage({super.key, required this.headerTitle});
+
+  /// The header's title: the Media screen's Photos/Videos and Documents
+  /// switch (#3631).
+  final SectionHeaderTitle headerTitle;
 
   @override
   ConsumerState<MediaSectionPage> createState() => _MediaSectionPageState();
@@ -48,7 +52,7 @@ class _MediaSectionPageState extends ConsumerState<MediaSectionPage> {
     final missingCount = ref.watch(missingCountProvider).value ?? 0;
 
     return MediaConsoleScaffold(
-      title: context.l10n.nav_media,
+      headerTitle: widget.headerTitle,
       selected: _section,
       onSelect: (section) => setState(() => _section = section),
       badgeCounts: {MediaConsoleSection.library: missingCount},

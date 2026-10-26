@@ -9,8 +9,10 @@ import 'package:submersion/features/data_quality/data/repositories/quality_findi
 import 'package:submersion/features/data_quality/data/services/profile_repair_service.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/data_quality/domain/entities/quality_finding.dart';
+import 'package:submersion/features/data_quality/domain/quality_thresholds.dart';
 import 'package:submersion/features/data_quality/domain/repairs/repair_predicates.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/data/repositories/source_clock_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_role_repair_repository.dart';
 import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
@@ -56,9 +58,11 @@ class QualityRepairExecutor {
     ProfileRepairService? profileRepairService,
     TankRoleRepairRepository? tankRoleRepository,
     TransmitterRepository? transmitterRepository,
+    SourceClockRepository? sourceClockRepository,
     Future<void> Function(List<DocumentSnapshotEntry> snapshot)?
     restoreDocuments,
   }) : _diveRepo = diveRepository ?? DiveRepository(),
+       _sourceClocks = sourceClockRepository ?? SourceClockRepository(),
        _tankRoles = tankRoleRepository ?? TankRoleRepairRepository(),
        _transmitters = transmitterRepository ?? TransmitterRepository(),
        _tankRepo = tankPressureRepository ?? TankPressureRepository(),
@@ -70,6 +74,7 @@ class QualityRepairExecutor {
   final Future<void> Function(List<DocumentSnapshotEntry> snapshot)
   _restoreDocuments;
   final DiveRepository _diveRepo;
+  final SourceClockRepository _sourceClocks;
   final TankRoleRepairRepository _tankRoles;
   final TransmitterRepository _transmitters;
   final TankPressureRepository _tankRepo;
@@ -109,17 +114,70 @@ class QualityRepairExecutor {
     return ids.isEmpty ? [diveId] : ids;
   }
 
+  /// Moves the logbook times of [diveIds], and each dive's primary source
+  /// with them: the primary is the recording the logbook mirrors, so a
+  /// logbook clock that was wrong was that source's clock too. Left behind,
+  /// it would go on disagreeing with every other source, and the clock
+  /// finding the shift answered would reopen on the next scan (#3655).
   Future<RepairResult> shiftTimes({
     required List<String> diveIds,
     required Duration offset,
     required String findingId,
   }) async {
     final snapshot = await _diveRepo.getDiveTimesSnapshot(diveIds);
-    await _db.transaction(() => _diveRepo.bulkShiftDiveTimes(diveIds, offset));
+    final primaries = await _sourceClocks.snapshot(
+      await _sourceClocks.primarySourceIds(diveIds),
+    );
+    await _db.transaction(() async {
+      await _diveRepo.bulkShiftDiveTimes(diveIds, offset);
+      await _sourceClocks.shift(primaries, offset);
+    });
     SyncEventBus.notifyLocalChange();
     await _finish(findingId, diveIds);
     return RepairResult.applied(() async {
-      await _db.transaction(() => _diveRepo.restoreDiveTimes(snapshot));
+      await _db.transaction(() async {
+        await _diveRepo.restoreDiveTimes(snapshot);
+        await _sourceClocks.restore(primaries);
+      });
+      SyncEventBus.notifyLocalChange();
+      _rescan(diveIds);
+    });
+  }
+
+  /// Whether [sourceId] names a registered computer now, so "fix this
+  /// computer on every dive" can reach anything.
+  Future<bool> sourceNamesComputer(String sourceId) =>
+      _sourceClocks.namesComputer(sourceId);
+
+  /// [sourceId] and every other source its computer recorded off by the
+  /// same whole hours, for "fix this computer on every dive" (#3655).
+  Future<List<String>> sourcesWithSameClockOffset({
+    required String sourceId,
+    required Duration offset,
+  }) => _sourceClocks.sourcesSharingClockOffset(
+    sourceId: sourceId,
+    offset: offset,
+    toleranceMinutes: QualityThresholds.hourOffsetRemainderToleranceMin,
+  );
+
+  /// Corrects the clock of [sourceIds] alone, leaving each dive's logbook
+  /// times as they are: the repair for a secondary computer whose clock was
+  /// wrong while the primary was right (#3655).
+  Future<RepairResult> shiftSourceTimes({
+    required List<String> sourceIds,
+    required Duration offset,
+    required String findingId,
+  }) async {
+    final snapshot = await _sourceClocks.snapshot(sourceIds);
+    if (snapshot.isEmpty || offset == Duration.zero) {
+      return const RepairResult.noChange();
+    }
+    await _db.transaction(() => _sourceClocks.shift(snapshot, offset));
+    SyncEventBus.notifyLocalChange();
+    final diveIds = {for (final s in snapshot) s.diveId};
+    await _finish(findingId, diveIds);
+    return RepairResult.applied(() async {
+      await _db.transaction(() => _sourceClocks.restore(snapshot));
       SyncEventBus.notifyLocalChange();
       _rescan(diveIds);
     });

@@ -971,6 +971,16 @@ class DiveComputerRepository {
             ..limit(1))
           .getSingleOrNull();
 
+  /// Whether [diveId]'s row holds a computer tissue snapshot.
+  Future<bool> _hasStoredTissue(String diveId) async {
+    final row =
+        await (_db.selectOnly(_db.dives)
+              ..addColumns([_db.dives.computerTissueJson])
+              ..where(_db.dives.id.equals(diveId)))
+            .getSingleOrNull();
+    return row?.read(_db.dives.computerTissueJson) != null;
+  }
+
   /// Whether any reading of [diveId] holds the primary role: a primary
   /// source row or a primary profile series.
   Future<bool> _hasPrimaryReading(String diveId) async {
@@ -1452,7 +1462,8 @@ class DiveComputerRepository {
     double? diluentO2,
     double? diluentHe,
     // Tissue state the computer reported for the dive as a whole; stored
-    // verbatim. Null on an update leaves any stored snapshot in place.
+    // verbatim. On an update the dive's primary reading replaces the stored
+    // snapshot, null included; a secondary one only fills a dive with none.
     ComputerTissueSnapshot? computerTissue,
     List<EventData>? events,
     List<GasSwitchData>? gasSwitches,
@@ -1776,6 +1787,10 @@ class DiveComputerRepository {
       // re-download pass and the series had no owning source (issue #2002).
       // Primary when the dive had nothing yet, or when it takes back the
       // role a replaced reading held (#2582); a secondary otherwise.
+      //
+      // Whether this reading took the primary role from another source's
+      // row, whose tissue snapshot it then must not clear (#2556).
+      var displacedPrimary = false;
       if (!isNewDive && ownSource == null) {
         // A dive can already hold a summary-only source row and no series:
         // a UDDF import writes one for every dive it creates. The download
@@ -1783,17 +1798,19 @@ class DiveComputerRepository {
         // flag and any older primary loses it. Readers resolve "the"
         // primary with LIMIT 1, so two primaries would be ambiguous.
         if (isPrimary) {
-          await (_db.update(_db.diveDataSources)..where(
-                (t) => t.diveId.equals(diveId) & t.isPrimary.equals(true),
-              ))
-              .write(
-                DiveDataSourcesCompanion(
-                  isPrimary: const Value(false),
-                  // A fresh clock, so a peer's older copy cannot make it the
-                  // primary again (#2644).
-                  hlc: Value(await _syncRepository.issueRowClock()),
-                ),
-              );
+          final demoted =
+              await (_db.update(_db.diveDataSources)..where(
+                    (t) => t.diveId.equals(diveId) & t.isPrimary.equals(true),
+                  ))
+                  .write(
+                    DiveDataSourcesCompanion(
+                      isPrimary: const Value(false),
+                      // A fresh clock, so a peer's older copy cannot make
+                      // it the primary again (#2644).
+                      hlc: Value(await _syncRepository.issueRowClock()),
+                    ),
+                  );
+          displacedPrimary = demoted > 0;
         }
         final existingSampleTemps = points
             .map((p) => p.temperature)
@@ -2203,6 +2220,29 @@ class DiveComputerRepository {
       }
 
       if (!isNewDive) {
+        // The primary reading owns the snapshot, so its re-import writes what
+        // it carries, none included: a snapshot the parser no longer emits
+        // must not outlive it (issue #2556). A reading that just took the
+        // role from another source, which stored the snapshot, replaces it
+        // only with one of its own. A secondary reading never replaces one;
+        // it only fills a dive that has none.
+        final writesTissue = isPrimary
+            ? !displacedPrimary || computerTissue != null
+            : computerTissue != null && !await _hasStoredTissue(diveId);
+        // The deco settings follow the same owner: the primary reading writes
+        // what it reports, none included. A secondary one, or one that just
+        // took the role from the source that stored them, leaves them alone
+        // when it reports none rather than blanking them. They go as one set
+        // either way: gradient factors from one computer beside another's
+        // algorithm describe a configuration no computer ran.
+        final writesDecoSettings =
+            (isPrimary && !displacedPrimary) ||
+            gfLow != null ||
+            gfHigh != null ||
+            decoAlgorithm != null ||
+            decoConservatism != null;
+        Value<T?> reported<T>(T? value) =>
+            writesDecoSettings ? Value(value) : const Value.absent();
         // A named target is a dive this download is the record of (the
         // planned-dive fill, #2002), so it takes the computer's O2 exposure
         // the way a new dive does. A dive matched by time keeps its own: the
@@ -2213,13 +2253,13 @@ class DiveComputerRepository {
         await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
           DivesCompanion(
             updatedAt: Value(now),
-            gradientFactorLow: Value(gfLow),
-            gradientFactorHigh: Value(gfHigh),
-            decoAlgorithm: Value(decoAlgorithm),
-            decoConservatism: Value(decoConservatism),
-            computerTissueJson: computerTissue == null
-                ? const Value.absent()
-                : Value(computerTissue.encode()),
+            gradientFactorLow: reported(gfLow),
+            gradientFactorHigh: reported(gfHigh),
+            decoAlgorithm: reported(decoAlgorithm),
+            decoConservatism: reported(decoConservatism),
+            computerTissueJson: writesTissue
+                ? Value(computerTissue?.encode())
+                : const Value.absent(),
             cnsStart: exposure(cnsStart),
             cnsEnd: exposure(cnsEnd),
             otu: exposure(otu),

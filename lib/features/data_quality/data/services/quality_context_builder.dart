@@ -11,6 +11,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart'
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_series.dart'
     as series;
+import 'package:submersion/features/dive_log/domain/services/ccr_bailout_timeline.dart';
 import 'package:submersion/features/dive_log/domain/services/profile_series_merge.dart';
 import 'package:submersion/features/data_quality/data/services/diver_data_sql.dart';
 import 'package:submersion/features/data_quality/domain/entities/dive_quality_context.dart';
@@ -200,10 +201,17 @@ class QualityContextBuilder {
       }
     }
 
-    // A name-derived tank is judged on its own computer's reading (#3307).
+    // A name-derived tank (#3307) and a loop cylinder (#3652) are judged
+    // against their own computer's switches, so on their own computer's
+    // reading too. A loop cylinder no computer owns is judged on the merged
+    // series, so it needs no copy of its own.
     final ownComputerPressures = <String, List<QualityPressureSample>>{};
     for (final tank in dive.tanks) {
-      if (tank.roleSource != TankRoleSource.transmitterName) continue;
+      final ownedLoopTank =
+          tank.computerId != null && isLoopTankRole(tank.role.name);
+      if (tank.roleSource != TankRoleSource.transmitterName && !ownedLoopTank) {
+        continue;
+      }
       // Same pick getTankPressuresForComputer makes: this computer's series,
       // then one source per stretch, so two recordings never interleave.
       final own = [

@@ -37,6 +37,66 @@ class AppLocalizationsPt extends AppLocalizations {
   String get connections_around_show => 'Mostrar';
 
   @override
+  String get connections_caption_circle =>
+      'Uma linha liga dois parceiros que mergulharam juntos.';
+
+  @override
+  String get connections_caption_where =>
+      'Uma linha indica que você mergulhou nesse local com esse parceiro.';
+
+  @override
+  String get connections_caption_trips =>
+      'Uma linha indica que esse parceiro estava nessa viagem.';
+
+  @override
+  String get connections_caption_life =>
+      'Uma linha indica que você viu essa espécie nesse local.';
+
+  @override
+  String get connections_caption_gear =>
+      'Uma linha liga equipamentos usados no mesmo mergulho.';
+
+  @override
+  String get connections_caption_centers =>
+      'Uma linha indica que você mergulhou com esse parceiro por esse centro.';
+
+  @override
+  String get connections_caption_travel =>
+      'Parceiros, viagens e locais; uma linha indica mergulhos em comum.';
+
+  @override
+  String get connections_caption_reef =>
+      'Locais, vida marinha e tipos de mergulho; uma linha indica mergulhos em comum.';
+
+  @override
+  String get connections_caption_gearRoad =>
+      'Equipamento, viagens e centros; uma linha indica mergulhos em comum.';
+
+  @override
+  String connections_caption_custom(String kinds) {
+    return '$kinds; uma linha indica que compartilham um mergulho.';
+  }
+
+  @override
+  String get connections_caption_kindSeparator => ', ';
+
+  @override
+  String connections_caption_around(int hops) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hops,
+      locale: localeName,
+      other:
+          'Tudo a até $hops passos do elemento central, ligado por mergulhos em comum.',
+      one: 'Tudo o que compartilha um mergulho com o elemento central.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_caption_thicker =>
+      'Linhas mais grossas indicam mais mergulhos.';
+
+  @override
   String get connections_editor_kinds => 'Tipos';
 
   @override
@@ -2632,7 +2692,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String backup_retention_allDevices_on(int count) {
-    return 'A pasta na nuvem mantém os últimos $count backups de todos os dispositivos. Os backups fixados são mantidos. Se outros dispositivos também usarem isto, vale o número mais pequeno. Atualize primeiro a app em todos os dispositivos para que os backups fixados neles sejam vistos.';
+    return 'A pasta na nuvem mantém os últimos $count backups de todos os dispositivos. Os backups fixados são mantidos. O backup mais recente de cada dispositivo também é mantido, a menos que tenha mais de 6 meses. Se outros dispositivos também usarem isto, vale o número mais pequeno. Atualize primeiro a app em todos os dispositivos para que os backups fixados neles sejam vistos.';
   }
 
   @override
@@ -2669,6 +2729,18 @@ class AppLocalizationsPt extends AppLocalizations {
       locale: localeName,
       other: '$count backups fixados são mantidos.',
       one: '$count backup fixado é mantido.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backup_retention_confirm_deviceNewestKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count backups são mantidos por serem os mais recentes do seu dispositivo.',
+      one: '$count backup é mantido por ser o mais recente do seu dispositivo.',
     );
     return '$_temp0';
   }
@@ -5188,6 +5260,10 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get connections_empty_sites => 'Nenhum mergulho tem ainda um local.';
+
+  @override
+  String get connections_empty_whereNoSites =>
+      'Nenhum dos seus mergulhos com um parceiro tem local ainda. Adicione locais a esses mergulhos para ver onde vocês mergulham juntos.';
 
   @override
   String get connections_empty_filtered => 'Nada corresponde ao filtro atual.';
@@ -19722,6 +19798,12 @@ class AppLocalizationsPt extends AppLocalizations {
   String get nav_media => 'Mídia';
 
   @override
+  String get nav_mediaDocumentsSubtitle => 'Fotos, vídeos e documentos';
+
+  @override
+  String get nav_photosVideos => 'Fotos/Vídeos';
+
+  @override
   String get nav_more => 'Mais';
 
   @override
@@ -20787,6 +20869,10 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get buoyancy_noLeadHint =>
       'Nenhum lastro registado: adicione lastro a este mergulho ou um peso seco ao seu equipamento de lastro';
+
+  @override
+  String get buoyancy_tankMaterialAssumedHint =>
+      'Material do cilindro não definido, por isso assumiu-se alumínio: defina o material ou escolha um modelo de cilindro';
 
   @override
   String get buoyancy_chartNet => 'Líquido';
@@ -24839,9 +24925,6 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get nav_documents => 'Documentos';
-
-  @override
-  String get documents_title => 'Documentos';
 
   @override
   String get documents_type_insurance => 'Seguro';
@@ -39996,6 +40079,20 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get dataQuality_repairLabel_shiftImport =>
       'Deslocar todos os mergulhos desta importação';
+
+  @override
+  String dataQuality_repairLabel_shiftLogbookTime(String offset) {
+    return 'Deslocar a hora do registo em $offset';
+  }
+
+  @override
+  String dataQuality_repairLabel_fixSourceClock(String offset) {
+    return 'Corrigir o relógio deste computador em $offset';
+  }
+
+  @override
+  String get dataQuality_repairLabel_fixSourceClockAll =>
+      'Corrigir também este computador noutros mergulhos com o mesmo desvio';
 
   @override
   String get dataQuality_repairLabel_consolidate => 'Consolidar';

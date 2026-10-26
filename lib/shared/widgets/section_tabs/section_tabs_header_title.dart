@@ -3,52 +3,12 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/core/router/training_locations.dart';
-import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/models/subtitle_text.dart';
 import 'package:submersion/shared/widgets/section_header_title.dart';
+import 'package:submersion/shared/widgets/section_tabs/section_tab.dart';
 import 'package:submersion/shared/widgets/section_title_toggle.dart';
 import 'package:submersion/shared/widgets/tab_pinned_app_bar.dart';
 import 'package:submersion/shared/widgets/title_with_subtitle.dart';
-
-/// The Certifications / Courses switch, as the header's own title (#3437).
-///
-/// A [SectionTitleToggle] driven by the Training page's [TabController]. Each
-/// tab's header leads it with that tab's own accent icon.
-class TrainingSectionToggle extends StatelessWidget {
-  const TrainingSectionToggle({
-    super.key,
-    required this.controller,
-    required this.tab,
-    this.tabHeight = SectionTitleToggle.defaultTabHeight,
-    this.onAppBar = false,
-  });
-
-  final TabController controller;
-
-  /// The tab whose header this switch titles; it picks the accent icon.
-  final TrainingTab tab;
-
-  final double tabHeight;
-
-  /// See [SectionTitleToggle.onAppBar].
-  final bool onAppBar;
-
-  static List<String> labels(BuildContext context) => [
-    context.l10n.nav_certifications,
-    context.l10n.nav_courses,
-  ];
-
-  @override
-  Widget build(BuildContext context) => SectionTitleToggle(
-    controller: controller,
-    featureId: tab.featureId,
-    labels: labels(context),
-    tabHeight: tabHeight,
-    onAppBar: onAppBar,
-    tabBarKey: const ValueKey('training_section_toggle'),
-  );
-}
 
 /// The desktop pane bar's title style, as every list pane's compact bar uses.
 TextStyle _paneTitleStyle(BuildContext context) =>
@@ -56,16 +16,23 @@ TextStyle _paneTitleStyle(BuildContext context) =>
       fontWeight: FontWeight.w600,
     );
 
-/// The [SectionHeaderTitle] a Training tab's list shows: the switch, with the
-/// list's own entry count under it. On phone, where the tabs slide, it holds
-/// the list's app bar still so only the list under it moves (#3465).
-SectionHeaderTitle trainingHeaderTitle({
+/// The [SectionHeaderTitle] a [SectionTabsHost] tab shows: the switch
+/// between the host's tabs, named by [labels], with the tab's own entry
+/// count under it. On phone, where the tabs slide, it holds the tab's app
+/// bar still so only the body under it moves (#3465).
+///
+/// [toggleKey] keys the switch's [TabBar], so tests can find it.
+SectionHeaderTitle sectionTabsHeaderTitle({
   required TabController controller,
-  required TrainingTab tab,
+  required SectionTab tab,
+  required List<String> Function(BuildContext context) labels,
+  required Key toggleKey,
 }) => SectionHeaderTitle(
-  build: (context, slot, subtitle) => _TrainingHeader(
+  build: (context, slot, subtitle) => _SectionTabsHeader(
     controller: controller,
     tab: tab,
+    labels: labels(context),
+    toggleKey: toggleKey,
     slot: slot,
     subtitle: subtitle,
   ),
@@ -78,7 +45,7 @@ SectionHeaderTitle trainingHeaderTitle({
       SectionTitleToggle.fittedTabHeight(
         context,
         style,
-        labels: TrainingSectionToggle.labels(context),
+        labels: labels(context),
         minHeight: SectionTitleToggle.compactTabHeight,
         textScaler: scaler,
       ),
@@ -99,8 +66,15 @@ SectionHeaderTitle trainingHeaderTitle({
   paneTitleWidth: (context) => SectionTitleToggle.naturalWidth(
     context,
     _paneTitleStyle(context),
-    labels: TrainingSectionToggle.labels(context),
+    labels: labels(context),
     withAccentIcon: true,
+  ),
+  titleTextInset: (context, ref) => SectionTitleToggle.textInset(
+    withAccentIcon: SectionTitleToggle.showsAccentIcon(
+      context,
+      ref,
+      featureId: tab.featureId,
+    ),
   ),
   appBarPin: (bar) => TabPinnedAppBar(
     animation: controller.animation!,
@@ -109,16 +83,20 @@ SectionHeaderTitle trainingHeaderTitle({
   ),
 );
 
-class _TrainingHeader extends ConsumerWidget {
-  const _TrainingHeader({
+class _SectionTabsHeader extends ConsumerWidget {
+  const _SectionTabsHeader({
     required this.controller,
     required this.tab,
+    required this.labels,
+    required this.toggleKey,
     required this.slot,
     required this.subtitle,
   });
 
   final TabController controller;
-  final TrainingTab tab;
+  final SectionTab tab;
+  final List<String> labels;
+  final Key toggleKey;
   final SectionHeaderSlot slot;
   final SubtitleText? subtitle;
 
@@ -128,13 +106,16 @@ class _TrainingHeader extends ConsumerWidget {
     // which clip a title taller than they are, so both take the compact
     // switch and the 18px names that leave the count line room under it.
     final inToolbar = slot != SectionHeaderSlot.pane;
-    final toggle = TrainingSectionToggle(
+    // Each tab's header leads the switch with that tab's own accent icon.
+    final toggle = SectionTitleToggle(
       controller: controller,
-      tab: tab,
+      featureId: tab.featureId,
+      labels: labels,
       tabHeight: inToolbar
           ? SectionTitleToggle.compactTabHeight
           : SectionTitleToggle.defaultTabHeight,
       onAppBar: inToolbar,
+      tabBarKey: toggleKey,
     );
     final style = inToolbar
         ? SectionTitleToggle.toolbarTitleStyle(context)

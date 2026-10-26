@@ -37,6 +37,66 @@ class AppLocalizationsHu extends AppLocalizations {
   String get connections_around_show => 'Megjelenítés';
 
   @override
+  String get connections_caption_circle =>
+      'Egy vonal két búvártársat köt össze, akik együtt merültek.';
+
+  @override
+  String get connections_caption_where =>
+      'Egy vonal azt jelenti, hogy azzal a társsal merültél azon a helyen.';
+
+  @override
+  String get connections_caption_trips =>
+      'Egy vonal azt jelenti, hogy az a társ ott volt azon az úton.';
+
+  @override
+  String get connections_caption_life =>
+      'Egy vonal azt jelenti, hogy azt a fajt láttad azon a helyen.';
+
+  @override
+  String get connections_caption_gear =>
+      'Egy vonal az ugyanazon merülésen használt felszerelést köti össze.';
+
+  @override
+  String get connections_caption_centers =>
+      'Egy vonal azt jelenti, hogy azzal a társsal azon a búvárközponton keresztül merültél.';
+
+  @override
+  String get connections_caption_travel =>
+      'Búvártársak, utak és merülőhelyek; egy vonal közös merüléseket jelent.';
+
+  @override
+  String get connections_caption_reef =>
+      'Merülőhelyek, tengeri élővilág és merüléstípusok; egy vonal közös merüléseket jelent.';
+
+  @override
+  String get connections_caption_gearRoad =>
+      'Felszerelés, utak és búvárközpontok; egy vonal közös merüléseket jelent.';
+
+  @override
+  String connections_caption_custom(String kinds) {
+    return '$kinds; egy vonal azt jelenti, hogy van közös merülésük.';
+  }
+
+  @override
+  String get connections_caption_kindSeparator => ', ';
+
+  @override
+  String connections_caption_around(int hops) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hops,
+      locale: localeName,
+      other:
+          'Minden $hops lépésen belül ettől a középponttól, közös merülésekkel összekötve.',
+      one: 'Minden, aminek van közös merülése ezzel a középponttal.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_caption_thicker =>
+      'A vastagabb vonal több merülést jelent.';
+
+  @override
   String get connections_editor_kinds => 'Típusok';
 
   @override
@@ -2626,7 +2686,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String backup_retention_allDevices_on(int count) {
-    return 'A felhőmappa az összes eszközről az utolsó $count biztonsági mentést tartja meg. A rögzített mentések megmaradnak. Ha más eszközök is ezt használják, a legkisebb szám érvényes. Először minden eszközön frissíteni kell az alkalmazást, hogy a rögzítéseik láthatók legyenek.';
+    return 'A felhőmappa az összes eszközről az utolsó $count biztonsági mentést tartja meg. A rögzített mentések megmaradnak. Minden eszköz legutóbbi mentése is megmarad, hacsak nem régebbi 6 hónapnál. Ha más eszközök is ezt használják, a legkisebb szám érvényes. Először minden eszközön frissíteni kell az alkalmazást, hogy a rögzítéseik láthatók legyenek.';
   }
 
   @override
@@ -2663,6 +2723,17 @@ class AppLocalizationsHu extends AppLocalizations {
       locale: localeName,
       other: '$count rögzített mentés megmarad.',
       one: '$count rögzített mentés megmarad.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backup_retention_confirm_deviceNewestKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mentés megmarad, mert az eszközük legutóbbi mentése.',
+      one: '$count mentés megmarad, mert az eszköze legutóbbi mentése.',
     );
     return '$_temp0';
   }
@@ -5178,6 +5249,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get connections_empty_sites =>
       'Még egyik merülésnek sincs merülőhelye.';
+
+  @override
+  String get connections_empty_whereNoSites =>
+      'Egyik társas merülésednek sincs még merülőhelye. Adj merülőhelyet ezekhez a merülésekhez, hogy lásd, hol merültök együtt.';
 
   @override
   String get connections_empty_filtered =>
@@ -19656,6 +19731,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get nav_media => 'Média';
 
   @override
+  String get nav_mediaDocumentsSubtitle => 'Fotók, videók és dokumentumok';
+
+  @override
+  String get nav_photosVideos => 'Fotók/Videók';
+
+  @override
   String get nav_more => 'Tovább';
 
   @override
@@ -20719,6 +20800,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get buoyancy_noLeadHint =>
       'Nincs rögzített ólom: adj ólmot ehhez a merüléshez, vagy száraz tömeget az ólomfelszerelésedhez';
+
+  @override
+  String get buoyancy_tankMaterialAssumedHint =>
+      'A palack anyaga nincs megadva, ezért alumíniumot feltételeztünk: add meg az anyagot, vagy válassz palacksablont';
 
   @override
   String get buoyancy_chartNet => 'Nettó';
@@ -24728,9 +24813,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get nav_documents => 'Dokumentumok';
-
-  @override
-  String get documents_title => 'Dokumentumok';
 
   @override
   String get documents_type_insurance => 'Biztosítás';
@@ -39785,6 +39867,20 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get dataQuality_repairLabel_shiftImport =>
       'Az import összes merülésének eltolása';
+
+  @override
+  String dataQuality_repairLabel_shiftLogbookTime(String offset) {
+    return 'Naplóidő eltolása ennyivel: $offset';
+  }
+
+  @override
+  String dataQuality_repairLabel_fixSourceClock(String offset) {
+    return 'A számítógép órájának javítása ennyivel: $offset';
+  }
+
+  @override
+  String get dataQuality_repairLabel_fixSourceClockAll =>
+      'A számítógép javítása a többi, azonos eltérésű merülésnél is';
 
   @override
   String get dataQuality_repairLabel_consolidate => 'Konszolidálás';

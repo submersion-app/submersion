@@ -44,6 +44,7 @@ import 'package:submersion/features/certifications/presentation/providers/certif
 import 'package:submersion/features/certification_agencies/presentation/certification_entry_display.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
+import 'package:submersion/shared/widgets/section_title_toggle.dart';
 
 /// Content widget for the certification list, used in master-detail layout.
 class CertificationListContent extends ConsumerStatefulWidget {
@@ -564,9 +565,7 @@ class _CertificationListContentState
       );
     }
     return AppBar(
-      // 8 here plus the switch's own 8px label padding puts the first name
-      // at the 16px every other app bar title sits at, as Equipment's does.
-      titleSpacing: 8,
+      titleSpacing: SectionTitleToggle.appBarTitleSpacing,
       toolbarHeight: header.appBarHeight(context, subtitle),
       title: header.build(context, SectionHeaderSlot.appBar, subtitle),
       bottom: sectionHeaderActionsRow(actions),
