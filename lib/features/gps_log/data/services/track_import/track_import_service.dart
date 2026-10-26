@@ -201,7 +201,12 @@ class TrackImportService {
     validateFixCount(parsed.fixes.length);
 
     final dives = await _diveRepository.getAllDives();
-    final deviceOffset = DateTime.now().timeZoneOffset.inMinutes;
+    // The device zone's offset when the track was recorded, not today's,
+    // which is an hour out for half the year in a daylight saving zone.
+    final deviceOffset = parsed.fixes.first.utc
+        .toLocal()
+        .timeZoneOffset
+        .inMinutes;
     // A dive can only CONSTRAIN the offset, never determine it, so the device
     // zone stays the prior and the review step remains the real answer.
     final tzOffsetMinutes =

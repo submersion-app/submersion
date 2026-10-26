@@ -138,6 +138,8 @@ void main() {
       expect(candidate.sourceRef, 'sample.gpx');
     });
 
+    // The device zone's offset at the track's own date, not today's: in a
+    // daylight saving zone the two differ for half the year (issue #3656).
     test('defaults the offset to device-local when no dives overlap', () async {
       final candidate = await service.prepare(
         fileName: 'sample.gpx',
@@ -145,7 +147,7 @@ void main() {
       );
       expect(
         candidate.tzOffsetMinutes,
-        DateTime.now().timeZoneOffset.inMinutes,
+        DateTime.utc(2026, 5, 22, 13).toLocal().timeZoneOffset.inMinutes,
       );
     });
 
