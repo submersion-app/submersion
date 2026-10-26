@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:xml/xml.dart';
 
 import 'package:submersion/features/dive_log/domain/entities/computer_tissue_legacy_scalars.dart';
@@ -114,10 +112,8 @@ abstract final class UddfComputerTissue {
   /// The snapshot element's JSON object, or null when it is absent, blank
   /// or not a JSON object.
   static Map<String, dynamic>? _snapshotJson(String? text) {
-    if (text == null || text.trim().isEmpty) return null;
     try {
-      final decoded = jsonDecode(text);
-      return decoded is Map<String, dynamic> ? decoded : null;
+      return ComputerTissueSnapshot.decodeObject(text);
     } on FormatException {
       return null;
     }

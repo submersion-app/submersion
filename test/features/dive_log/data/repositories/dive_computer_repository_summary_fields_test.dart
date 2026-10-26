@@ -219,6 +219,36 @@ void main() {
     expect(source.duration, 3600);
   });
 
+  test('a download filling a named dive puts its CNS and OTU on that dive '
+      '(issue #2555)', () async {
+    // The planned-dive fill names its target. The download is the record of
+    // that dive, so its exposure lands on the row, as a new dive's would.
+    final plannedId = await computers.importProfile(
+      computerId: 'comp-1',
+      profileStartTime: DateTime(2026, 1, 1, 10),
+      points: const [],
+      durationSeconds: 60,
+      maxDepth: 1.0,
+    );
+    final filledId = await computers.importProfile(
+      computerId: 'comp-2',
+      profileStartTime: DateTime(2026, 1, 1, 10),
+      points: slowAscent,
+      durationSeconds: 3600,
+      maxDepth: 20.0,
+      cnsStart: 6.0,
+      cnsEnd: 14.0,
+      otu: 38.0,
+      targetDiveId: plannedId,
+    );
+    expect(filledId, plannedId);
+
+    final dive = await getDive(plannedId);
+    expect(dive.cnsStart, 6.0);
+    expect(dive.cnsEnd, 14.0);
+    expect(dive.otu, 38.0);
+  });
+
   test('a download attached to an existing dive without a summary takes its '
       'source CNS from the samples', () async {
     final start = DateTime(2026, 1, 1, 10);

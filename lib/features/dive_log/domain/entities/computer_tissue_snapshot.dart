@@ -71,6 +71,14 @@ class ComputerTissueSnapshot extends Equatable {
   /// is nullable). Throws [FormatException] when [text] is not a JSON
   /// object; malformed values inside the object read as null.
   static ComputerTissueSnapshot? decode(String? text) {
+    final json = decodeObject(text);
+    return json == null ? null : ComputerTissueSnapshot.fromJson(json);
+  }
+
+  /// The JSON object [text] holds, before [fromJson] reads it: null for
+  /// null and blank text, a [FormatException] when it is not a JSON object.
+  /// For readers that need the raw keys, such as `LegacyTissueScalars`.
+  static Map<String, dynamic>? decodeObject(String? text) {
     if (text == null || text.trim().isEmpty) return null;
     final Object? decoded;
     try {
@@ -81,7 +89,7 @@ class ComputerTissueSnapshot extends Equatable {
     if (decoded is! Map<String, dynamic>) {
       throw const FormatException('computer tissue JSON is not an object');
     }
-    return ComputerTissueSnapshot.fromJson(decoded);
+    return decoded;
   }
 
   /// [decode] that answers null instead of throwing. For the storage read

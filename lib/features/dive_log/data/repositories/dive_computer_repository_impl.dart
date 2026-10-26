@@ -2203,6 +2203,13 @@ class DiveComputerRepository {
       }
 
       if (!isNewDive) {
+        // A named target is a dive this download is the record of (the
+        // planned-dive fill, #2002), so it takes the computer's O2 exposure
+        // the way a new dive does. A dive matched by time keeps its own: the
+        // download's values go to its source row only (#1798, #2555).
+        final fillsTarget = targetDiveId != null;
+        Value<double> exposure(double? value) =>
+            fillsTarget && value != null ? Value(value) : const Value.absent();
         await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
           DivesCompanion(
             updatedAt: Value(now),
@@ -2213,6 +2220,9 @@ class DiveComputerRepository {
             computerTissueJson: computerTissue == null
                 ? const Value.absent()
                 : Value(computerTissue.encode()),
+            cnsStart: exposure(cnsStart),
+            cnsEnd: exposure(cnsEnd),
+            otu: exposure(otu),
           ),
         );
         await _syncRepository.markRecordPending(
