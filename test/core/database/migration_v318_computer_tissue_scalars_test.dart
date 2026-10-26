@@ -61,6 +61,8 @@ void main() {
       cnsEnd: null,
     ),
     'd-corrupt': (json: '{not json', cnsStart: 0, cnsEnd: null),
+    // Valid JSON naming a key, but not an object.
+    'd-array': (json: '[{"otu": 1.0}]', cnsStart: 0, cnsEnd: null),
     'd-none': (json: null, cnsStart: 0, cnsEnd: null),
   };
 
@@ -233,6 +235,8 @@ void main() {
       expect(after[id]!['hlc'], 'hlc-$id', reason: id);
     }
     expect(after['d-corrupt']!['computer_tissue_json'], '{not json');
+    expect(after['d-array']!['computer_tissue_json'], '[{"otu": 1.0}]');
+    expect(after['d-array']!['otu'], isNull);
     expect(after['d-clean']!['computer_tissue_json'], seeded['d-clean']!.json);
     expect(after['d-none']!['computer_tissue_json'], isNull);
   });

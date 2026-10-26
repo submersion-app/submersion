@@ -5,6 +5,7 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/hlc.dart';
 import 'package:submersion/core/services/sync/sync_clock.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
@@ -102,6 +103,21 @@ void main() {
     await buildService().debugApplyPayload(payload);
 
     await expectMoved();
+  });
+
+  test('a move that fails does not fail the sync', () async {
+    final payload = await legacyPeerPayload();
+    // A local row the move cannot read: SQLite keeps text a REAL column
+    // cannot convert, so reading cns_start as a number throws.
+    await DatabaseService.instance.database.customStatement(
+      "UPDATE dives SET cns_start = 'junk', computer_tissue_json = "
+      '\'{"end":{"otu":1.0}}\' WHERE id = \'template\'',
+    );
+
+    final result = await buildService().debugApplyPayload(payload);
+
+    expect(result.recordsFailed, 0);
+    expect(await serializer.fetchRecord('dives', 'peer-dive'), isNotNull);
   });
 
   test(
