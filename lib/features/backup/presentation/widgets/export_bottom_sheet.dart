@@ -92,7 +92,7 @@ class _ExportBottomSheetState extends State<ExportBottomSheet> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Text(
-                  context.l10n.backup_export_bottomSheet_title,
+                  context.l10n.settings_backups_saveFile,
                   style: theme.textTheme.titleMedium,
                 ),
               ),
@@ -103,7 +103,7 @@ class _ExportBottomSheetState extends State<ExportBottomSheet> {
               ),
               ListTile(
                 leading: const Icon(Icons.save_alt),
-                title: Text(context.l10n.backup_export_saveToFile),
+                title: Text(context.l10n.settings_backups_saveToFolder),
                 subtitle: Text(context.l10n.backup_export_saveToFile_subtitle),
                 onTap: () => widget.onSaveToFile(_normalizedNote),
               ),

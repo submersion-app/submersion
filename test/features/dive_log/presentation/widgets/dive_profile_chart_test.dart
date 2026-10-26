@@ -5990,6 +5990,17 @@ void main() {
       expect(b.spots.length, profile.length);
       expect(b.spots.first.x, 0);
     });
+
+    testWidgets('draws the depth line at 1 px (issue #3496)', (tester) async {
+      final profile = [
+        for (var i = 0; i < 8; i++)
+          DiveProfilePoint(timestamp: i * 10, depth: i.toDouble()),
+      ];
+      await tester.pumpWidget(host(profile));
+      await tester.pumpAndSettle();
+
+      expect(bar(tester).barWidth, 1.0);
+    });
   });
 }
 

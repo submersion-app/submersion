@@ -42,10 +42,22 @@ domain.DivePlan _plan({
   updatedAt: DateTime(2026, 10, 11),
 );
 
+/// [expandRateSplitSegments] now takes its resolved rates as explicit
+/// parameters (issue #3552) rather than reading them off [plan] itself;
+/// every fixture plan below sets concrete values, so this just forwards
+/// them unresolved.
+List<PlanSegment> _split(List<PlanSegment> segments, domain.DivePlan plan) =>
+    expandRateSplitSegments(
+      segments,
+      plan,
+      descentRate: plan.descentRate!,
+      ascentRate: plan.ascentRate!,
+    );
+
 void main() {
   test('a segment with the flag off is returned exactly as it is', () {
     final segments = [_seg('s1', 100, durationSeconds: 600)];
-    final result = expandRateSplitSegments(segments, _plan(segments: segments));
+    final result = _split(segments, _plan(segments: segments));
     expect(result, [segments[0]]);
   });
 
@@ -54,7 +66,7 @@ void main() {
       _seg('s1', 100, durationSeconds: 300),
       _seg('s2', 100, durationSeconds: 600, splitAtConfiguredRate: true),
     ];
-    final result = expandRateSplitSegments(segments, _plan(segments: segments));
+    final result = _split(segments, _plan(segments: segments));
     expect(result, hasLength(2));
     expect(result[1], segments[1]);
   });
@@ -64,7 +76,7 @@ void main() {
     final segments = [
       _seg('s1', 100, durationSeconds: 600, splitAtConfiguredRate: true),
     ];
-    final result = expandRateSplitSegments(segments, _plan(segments: segments));
+    final result = _split(segments, _plan(segments: segments));
     expect(result, hasLength(2));
 
     final travel = result[0];
@@ -92,10 +104,7 @@ void main() {
         order: 1,
       ), // ascending 60 -> 30 at 9 m/min = 200 s
     ];
-    final result = expandRateSplitSegments(
-      segments,
-      _plan(segments: segments, ascentRate: 9.0),
-    );
+    final result = _split(segments, _plan(segments: segments, ascentRate: 9.0));
     expect(result, hasLength(3));
     expect(result[1].durationSeconds, 200); // (30/9*60).round()
     expect(result[2].durationSeconds, 300 - 200);
@@ -113,7 +122,7 @@ void main() {
     final segments = [
       _seg('s1', 100, durationSeconds: 600, splitAtConfiguredRate: true),
     ];
-    final result = expandRateSplitSegments(
+    final result = _split(
       segments,
       _plan(segments: segments, descentRate: 1.0),
     );
@@ -132,7 +141,7 @@ void main() {
       final segments = [
         _seg('s1', 100, durationSeconds: 600, splitAtConfiguredRate: true),
       ];
-      final result = expandRateSplitSegments(
+      final result = _split(
         segments,
         _plan(segments: segments, descentRate: 10.0),
       );
@@ -147,7 +156,7 @@ void main() {
       _seg('s1', 100, durationSeconds: 600, splitAtConfiguredRate: true),
       _seg('s2', 100, durationSeconds: 1200, order: 1), // bottom, unsplit
     ];
-    final result = expandRateSplitSegments(segments, _plan(segments: segments));
+    final result = _split(segments, _plan(segments: segments));
     expect(result, hasLength(3));
     expect(result[2].targetDepth, 100);
     expect(result[2].durationSeconds, 1200);

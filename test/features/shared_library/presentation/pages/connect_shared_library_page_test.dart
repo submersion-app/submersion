@@ -1,16 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/settings/presentation/providers/account_group_providers.dart';
+import 'package:submersion/features/shared_library/presentation/widgets/library_location_fields.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
+import 'package:submersion/core/services/accounts/account_location.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/shared_library/crypto/library_signer.dart';
 import 'package:submersion/core/services/shared_library/shared_library_membership_service.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
-import 'package:submersion/core/services/cloud_storage/s3/s3_config.dart';
-import 'package:submersion/core/services/cloud_storage/webdav/webdav_config.dart';
-import 'package:submersion/core/services/cloud_storage/webdav/webdav_errors.dart';
-import 'package:submersion/core/services/cloud_storage/webdav/webdav_tls.dart';
-import 'package:submersion/core/services/shared_library/library_account_setup.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
 import 'package:submersion/core/services/shared_library/shared_library_transport.dart';
@@ -20,6 +18,7 @@ import 'package:submersion/features/shared_library/presentation/pages/connect_sh
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_providers.dart';
 
 import '../../../../helpers/fake_cloud_storage_provider.dart';
+import '../../../../helpers/account_groups_fixture.dart';
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
 
@@ -93,7 +92,12 @@ Widget _connectApp(
 ) => testApp(
   overrides: [
     ...base,
-    eligibleLibraryAccountsProvider.overrideWith((ref) async => accounts()),
+    accountGroupsProvider.overrideWith(
+      (ref) async => signedInGroupsOf(accounts()),
+    ),
+    accountGroupsOfKindsProvider(
+      libraryKindsKey,
+    ).overrideWith((ref) async => signedInGroupsOf(accounts())),
     sharedLibraryMembershipServiceProvider.overrideWithValue(
       _FakeMembershipService(const {}),
     ),
@@ -111,51 +115,19 @@ Widget _connectApp(
   child: const ConnectSharedLibraryPage(),
 );
 
-/// The connect page with no account yet and [setup] saving new ones into
-/// [accounts].
-Widget _setupApp(
-  List<Override> base,
-  List<ConnectedAccount> accounts,
-  LibraryAccountSetup setup,
-) => testApp(
-  overrides: [
-    ...base,
-    eligibleLibraryAccountsProvider.overrideWith(
-      (ref) async => List.of(accounts),
-    ),
-    libraryAccountSetupProvider.overrideWithValue(setup),
-    validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd'),
-    currentDiverProvider.overrideWith((ref) async => null),
-  ],
-  locale: const Locale('en'),
-  child: const ConnectSharedLibraryPage(),
-);
-
-Future<void> _fillS3(WidgetTester tester) async {
-  await tester.enterText(
-    find.byKey(const Key('library-s3-endpoint')),
-    'https://s3.eu-west-1.amazonaws.com',
-  );
-  await tester.enterText(
-    find.byKey(const Key('library-s3-bucket')),
-    'submersion-sync',
-  );
-  await tester.enterText(find.byKey(const Key('library-s3-access-key')), 'k');
-  await tester.enterText(find.byKey(const Key('library-s3-secret-key')), 's');
-}
-
 void _tallView(WidgetTester tester) {
   tester.view.physicalSize = const Size(900, 2400);
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
 }
 
-ConnectedAccount _bucket() => ConnectedAccount(
+ConnectedAccount _bucket({AccountLocation? location}) => ConnectedAccount(
   id: 'a',
   kind: AccountKind.s3,
   label: 'Bucket',
   createdAt: DateTime.utc(2026),
   updatedAt: DateTime.utc(2026),
+  location: location,
 );
 
 void main() {
@@ -186,7 +158,12 @@ void main() {
       testApp(
         overrides: [
           ...await getBaseOverrides(),
-          eligibleLibraryAccountsProvider.overrideWith((ref) async => accounts),
+          accountGroupsProvider.overrideWith(
+            (ref) async => signedInGroupsOf(accounts),
+          ),
+          accountGroupsOfKindsProvider(
+            libraryKindsKey,
+          ).overrideWith((ref) async => signedInGroupsOf(accounts)),
           sharedLibraryMembershipServiceProvider.overrideWithValue(
             _FakeMembershipService(probes),
           ),
@@ -205,25 +182,25 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text('Bucket'), findsOneWidget);
+    expect(find.text('Using: Bucket'), findsOneWidget);
 
     await tester.enterText(
       find.byKey(const Key('library-prefix')),
       'site-sync',
     );
-    await tester.tap(find.text('Check'));
+    await tester.tap(find.text('Check location'));
     await tester.pumpAndSettle();
     expect(find.text('Join Reef Survey'), findsOneWidget);
     expect(find.text('Ann'), findsOneWidget, reason: 'display name prefilled');
 
     await tester.enterText(find.byKey(const Key('library-prefix')), 'other');
-    await tester.tap(find.text('Check'));
+    await tester.tap(find.text('Check location'));
     await tester.pumpAndSettle();
     expect(find.text('No library here yet.'), findsOneWidget);
     expect(find.text('Create library'), findsOneWidget);
 
     await tester.enterText(find.byKey(const Key('library-prefix')), 'old');
-    await tester.tap(find.text('Check'));
+    await tester.tap(find.text('Check location'));
     await tester.pumpAndSettle();
     expect(
       find.text('This library needs a newer version of Submersion.'),
@@ -236,9 +213,12 @@ void main() {
       testApp(
         overrides: [
           ...await getBaseOverrides(),
-          eligibleLibraryAccountsProvider.overrideWith(
-            (ref) async => [_bucket()],
+          accountGroupsProvider.overrideWith(
+            (ref) async => signedInGroupsOf([_bucket()]),
           ),
+          accountGroupsOfKindsProvider(
+            libraryKindsKey,
+          ).overrideWith((ref) async => signedInGroupsOf([_bucket()])),
           sharedLibraryMembershipServiceProvider.overrideWithValue(
             _FakeMembershipService(const {
               'site-sync': LibraryProbe(
@@ -261,7 +241,7 @@ void main() {
       find.byKey(const Key('library-prefix')),
       'site-sync',
     );
-    await tester.tap(find.text('Check'));
+    await tester.tap(find.text('Check location'));
     await tester.pumpAndSettle();
     expect(find.text('Sites our group dives'), findsOneWidget);
   });
@@ -272,7 +252,7 @@ void main() {
     );
     await tester.pumpAndSettle();
     await tester.enterText(find.byKey(const Key('library-prefix')), 'boom');
-    await tester.tap(find.text('Check'));
+    await tester.tap(find.text('Check location'));
     await tester.pumpAndSettle();
     expect(find.textContaining('probe failed'), findsOneWidget);
     await tester.enterText(find.byKey(const Key('library-prefix')), 'reef');
@@ -285,7 +265,12 @@ void main() {
       testApp(
         overrides: [
           ...await getBaseOverrides(),
-          eligibleLibraryAccountsProvider.overrideWith((ref) async => const []),
+          accountGroupsProvider.overrideWith(
+            (ref) async => signedInGroupsOf(const []),
+          ),
+          accountGroupsOfKindsProvider(
+            libraryKindsKey,
+          ).overrideWith((ref) async => signedInGroupsOf(const [])),
           validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd'),
           currentDiverProvider.overrideWith((ref) async => null),
         ],
@@ -311,7 +296,7 @@ void main() {
       find.byKey(const Key('library-prefix')),
       'site-sync',
     );
-    await tester.tap(find.text('Check'));
+    await tester.tap(find.text('Check location'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Create library'));
     await tester.pumpAndSettle();
@@ -335,118 +320,26 @@ void main() {
     final container = ProviderScope.containerOf(
       tester.element(find.byType(ConnectSharedLibraryPage)),
     );
-    container.invalidate(eligibleLibraryAccountsProvider);
+    container.invalidate(accountGroupsProvider);
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
-    expect(find.text('Bucket'), findsOneWidget);
+    expect(find.text('Using: Bucket'), findsOneWidget);
   });
 
-  testWidgets('a storage account is set up right on the connect page', (
+  // Issue #3482: a library's server is picked through the account sheet,
+  // restricted to S3 and WebDAV, in place of the inline account form.
+  testWidgets('with no account yet, Add account offers my own server only', (
     tester,
   ) async {
     _tallView(tester);
-    final accounts = <ConnectedAccount>[];
-    final setup = _RecordingSetup(onSave: accounts.add);
-    await tester.pumpWidget(
-      _setupApp(await getBaseOverrides(), accounts, setup),
-    );
+    await tester.pumpWidget(_connectApp(await getBaseOverrides(), () => []));
     await tester.pumpAndSettle();
 
-    // No account yet: set one up here instead of leaving for Settings.
-    await tester.tap(find.text('Add storage account'));
+    await tester.tap(find.text('Add account'));
     await tester.pumpAndSettle();
-    // The folder comes first: the account is saved for it.
-    final folderY = tester
-        .getTopLeft(find.byKey(const Key('library-prefix')))
-        .dy;
-    final formY = tester
-        .getTopLeft(find.byKey(const Key('library-s3-endpoint')))
-        .dy;
-    expect(folderY, lessThan(formY));
-    await tester.enterText(find.byKey(const Key('library-prefix')), 'reef');
-    await _fillS3(tester);
-    expect(find.byKey(const Key('library-s3-prefix')), findsNothing);
-    await tester.tap(find.text('Save account'));
-    await tester.pumpAndSettle();
-
-    expect(setup.s3.single.bucket, 'submersion-sync');
-    expect(setup.folders, ['reef']);
-    expect(
-      find.text('submersion-sync @ s3.eu-west-1.amazonaws.com'),
-      findsOneWidget,
-    );
-    expect(find.byKey(const Key('library-prefix')), findsOneWidget);
-    expect(find.text('Save account'), findsNothing);
-  });
-
-  testWidgets('the WebDAV form leaves the folder to the library', (
-    tester,
-  ) async {
-    tester.view.physicalSize = const Size(900, 2400);
-    tester.view.devicePixelRatio = 1;
-    addTearDown(tester.view.reset);
-    await tester.pumpWidget(
-      _connectApp(await getBaseOverrides(), () => [_bucket()]),
-    );
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Add storage account'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('WebDAV'));
-    await tester.pumpAndSettle();
-    expect(find.byKey(const Key('library-webdav-server-url')), findsOneWidget);
-    expect(find.byKey(const Key('library-webdav-folder')), findsNothing);
-  });
-
-  testWidgets('a WebDAV server offers its certificate for trust first', (
-    tester,
-  ) async {
-    _tallView(tester);
-    final accounts = <ConnectedAccount>[];
-    final setup = _RecordingSetup(onSave: accounts.add)..untrustedOnce = true;
-    await tester.pumpWidget(
-      _setupApp(await getBaseOverrides(), accounts, setup),
-    );
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Add storage account'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('WebDAV'));
-    await tester.pumpAndSettle();
-    await tester.enterText(
-      find.byKey(const Key('library-webdav-server-url')),
-      'https://nas.local:5006',
-    );
-    await tester.enterText(
-      find.byKey(const Key('library-webdav-username')),
-      'alice',
-    );
-    await tester.enterText(
-      find.byKey(const Key('library-webdav-password')),
-      'secret',
-    );
-    await tester.tap(find.text('Save account'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('webdav-trust')));
-    await tester.pumpAndSettle();
-
-    expect(setup.webdav.single.pinnedCertSha256, 'ab' * 32);
-    expect(find.text('Save account'), findsNothing);
-  });
-
-  testWidgets('a failed save says why when there is no account yet', (
-    tester,
-  ) async {
-    _tallView(tester);
-    final setup = _RecordingSetup(onSave: (_) {})
-      ..saveError = const CloudStorageException('keychain locked');
-    await tester.pumpWidget(_setupApp(await getBaseOverrides(), [], setup));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Add storage account'));
-    await tester.pumpAndSettle();
-    await _fillS3(tester);
-    await tester.tap(find.text('Save account'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('keychain locked'), findsOneWidget);
+    expect(find.text('Add an account'), findsOneWidget);
+    expect(find.text('My own server'), findsOneWidget);
+    expect(find.text('Google Drive'), findsNothing);
   });
 
   testWidgets('an encrypted library asks for its passphrase first', (
@@ -462,9 +355,12 @@ void main() {
       testApp(
         overrides: [
           ...await getBaseOverrides(),
-          eligibleLibraryAccountsProvider.overrideWith(
-            (ref) async => [_bucket()],
+          accountGroupsProvider.overrideWith(
+            (ref) async => signedInGroupsOf([_bucket()]),
           ),
+          accountGroupsOfKindsProvider(
+            libraryKindsKey,
+          ).overrideWith((ref) async => signedInGroupsOf([_bucket()])),
           sharedLibraryMembershipServiceProvider.overrideWithValue(service),
           validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd'),
           currentDiverProvider.overrideWith(
@@ -482,7 +378,7 @@ void main() {
     );
     await tester.pumpAndSettle();
     await tester.enterText(find.byKey(const Key('library-prefix')), 'sealed');
-    await tester.tap(find.text('Check'));
+    await tester.tap(find.text('Check location'));
     await tester.pumpAndSettle();
     expect(find.textContaining('Encrypted library'), findsOneWidget);
     expect(find.textContaining('Join'), findsNothing);
@@ -508,9 +404,12 @@ void main() {
       testApp(
         overrides: [
           ...await getBaseOverrides(),
-          eligibleLibraryAccountsProvider.overrideWith(
-            (ref) async => [_bucket()],
+          accountGroupsProvider.overrideWith(
+            (ref) async => signedInGroupsOf([_bucket()]),
           ),
+          accountGroupsOfKindsProvider(
+            libraryKindsKey,
+          ).overrideWith((ref) async => signedInGroupsOf([_bucket()])),
           sharedLibraryMembershipServiceProvider.overrideWithValue(
             _FakeMembershipService({
               'old': const LibraryProbe(
@@ -530,7 +429,7 @@ void main() {
     );
     await tester.pumpAndSettle();
     await tester.enterText(find.byKey(const Key('library-prefix')), 'old');
-    await tester.tap(find.text('Check'));
+    await tester.tap(find.text('Check location'));
     await tester.pumpAndSettle();
     expect(
       find.text(
@@ -559,9 +458,12 @@ void main() {
       testApp(
         overrides: [
           ...await getBaseOverrides(),
-          eligibleLibraryAccountsProvider.overrideWith(
-            (ref) async => [_bucket()],
+          accountGroupsProvider.overrideWith(
+            (ref) async => signedInGroupsOf([_bucket()]),
           ),
+          accountGroupsOfKindsProvider(
+            libraryKindsKey,
+          ).overrideWith((ref) async => signedInGroupsOf([_bucket()])),
           sharedLibraryMembershipServiceProvider.overrideWithValue(service),
           validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd'),
           currentDiverProvider.overrideWith(
@@ -579,7 +481,7 @@ void main() {
     );
     await tester.pumpAndSettle();
     await tester.enterText(find.byKey(const Key('library-prefix')), 'reef');
-    await tester.tap(find.text('Check'));
+    await tester.tap(find.text('Check location'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Create library'));
     await tester.pumpAndSettle();
@@ -591,10 +493,7 @@ void main() {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
     await tester.pumpWidget(
-      _connectApp([
-        ...await getBaseOverrides(),
-        libraryAccountSetupProvider.overrideWithValue(_BucketSetup()),
-      ], () => [_bucket()]),
+      _connectApp(await getBaseOverrides(), () => [_bucket()]),
     );
     await tester.pumpAndSettle();
     await tester.enterText(find.byKey(const Key('library-prefix')), 'reef');
@@ -609,13 +508,24 @@ void main() {
     tester.view.physicalSize = const Size(900, 2400);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
+    // The account's location names its bucket (the accounts list adds this
+    // device's stored settings as a location for a row that has none).
     await tester.pumpWidget(
-      _connectApp([
-        ...await getBaseOverrides(),
-        libraryAccountSetupProvider.overrideWithValue(
-          _BucketSetup('reef-bucket'),
-        ),
-      ], () => [_bucket()]),
+      _connectApp(
+        await getBaseOverrides(),
+        () => [
+          _bucket(
+            location: const S3AccountLocation(
+              displayHost: 'minio.home',
+              endpoint: 'https://minio.home',
+              bucket: 'reef-bucket',
+              region: 'us-east-1',
+              prefix: 'submersion-sync/',
+              pathStyle: true,
+            ),
+          ),
+        ],
+      ),
     );
     await tester.pumpAndSettle();
     await tester.enterText(find.byKey(const Key('library-prefix')), 'reef');
@@ -632,7 +542,7 @@ void main() {
     );
     await tester.pumpAndSettle();
     await tester.enterText(find.byKey(const Key('library-prefix')), 'reef*');
-    await tester.tap(find.text('Check'));
+    await tester.tap(find.text('Check location'));
     await tester.pumpAndSettle();
     expect(
       find.text('A library folder cannot contain *, ? or dollar signs.'),
@@ -641,7 +551,7 @@ void main() {
     expect(find.text('Create library'), findsNothing);
   });
 
-  testWidgets('the folder field sits above the account picker', (tester) async {
+  testWidgets('the folder field sits above the server', (tester) async {
     await tester.pumpWidget(
       _connectApp(await getBaseOverrides(), () => [_bucket()]),
     );
@@ -650,7 +560,7 @@ void main() {
         .getTopLeft(find.byKey(const Key('library-prefix')))
         .dy;
     final pickerY = tester
-        .getTopLeft(find.byType(DropdownButtonFormField<ConnectedAccount>))
+        .getTopLeft(find.byKey(const Key('library-server')))
         .dy;
     expect(folderY, lessThan(pickerY));
   });
@@ -663,7 +573,7 @@ void main() {
     );
     await tester.pumpAndSettle();
     await tester.enterText(find.byKey(const Key('library-prefix')), 'sites');
-    await tester.tap(find.text('Check'));
+    await tester.tap(find.text('Check location'));
     await tester.pumpAndSettle();
     expect(
       find.text(
@@ -684,7 +594,7 @@ void main() {
       find.byKey(const Key('library-prefix')),
       '../submersion-sync',
     );
-    await tester.tap(find.text('Check'));
+    await tester.tap(find.text('Check location'));
     await tester.pumpAndSettle();
 
     expect(
@@ -693,90 +603,4 @@ void main() {
     );
     expect(find.text('No library here yet.'), findsNothing);
   });
-}
-
-/// An account whose stored S3 settings name [bucket] (its label does not),
-/// or none, without reaching the device's secure storage.
-class _BucketSetup extends LibraryAccountSetup {
-  _BucketSetup([this.bucket]);
-
-  final String? bucket;
-
-  @override
-  Future<String?> s3Bucket(String accountId) async => bucket;
-}
-
-class _RecordingSetup extends LibraryAccountSetup {
-  _RecordingSetup({required this.onSave});
-
-  final void Function(ConnectedAccount) onSave;
-  final s3 = <S3Config>[];
-  final webdav = <WebDavConfig>[];
-
-  /// The next server reached presents a certificate nobody trusted yet.
-  bool untrustedOnce = false;
-
-  /// Thrown by the next save instead of saving.
-  Object? saveError;
-
-  ConnectedAccount _saved(AccountKind kind, String label) {
-    final error = saveError;
-    if (error != null) throw error;
-    final account = ConnectedAccount(
-      id: 'new',
-      kind: kind,
-      label: label,
-      createdAt: DateTime.utc(2026),
-      updatedAt: DateTime.utc(2026),
-    );
-    onSave(account);
-    return account;
-  }
-
-  /// The library folder each save was made for.
-  final folders = <String>[];
-
-  @override
-  Future<ConnectedAccount> saveS3(
-    S3Config server, {
-    required String folder,
-  }) async {
-    folders.add(folder);
-    final account = _saved(
-      AccountKind.s3,
-      '${server.bucket} @ ${server.displayHost}',
-    );
-    s3.add(server);
-    return account;
-  }
-
-  @override
-  Future<WebDavConfig> reachWebDav(WebDavConfig server) async {
-    if (untrustedOnce) {
-      untrustedOnce = false;
-      throw WebDavUntrustedCertificateException(
-        WebDavCertificateDetails(
-          host: 'nas.local',
-          port: 5006,
-          sha256: 'ab' * 32,
-          subject: 'CN=nas',
-          issuer: 'CN=nas',
-          startValidity: DateTime.utc(2026),
-          endValidity: DateTime.utc(2027),
-        ),
-      );
-    }
-    return server;
-  }
-
-  @override
-  Future<ConnectedAccount> saveWebDav(
-    WebDavConfig server, {
-    required String folder,
-  }) async {
-    folders.add(folder);
-    final account = _saved(AccountKind.webdav, server.displayLabel);
-    webdav.add(server);
-    return account;
-  }
 }

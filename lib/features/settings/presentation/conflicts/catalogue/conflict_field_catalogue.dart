@@ -6,6 +6,7 @@ import 'package:submersion/features/settings/presentation/conflicts/catalogue/do
 import 'package:submersion/features/settings/presentation/conflicts/catalogue/equipment_fields.dart';
 import 'package:submersion/features/settings/presentation/conflicts/catalogue/media_library_fields.dart';
 import 'package:submersion/features/settings/presentation/conflicts/catalogue/people_planning_fields.dart';
+import 'package:submersion/features/settings/presentation/conflicts/catalogue/rule_fields.dart';
 import 'package:submersion/features/settings/presentation/conflicts/catalogue/site_trip_fields.dart';
 import 'package:submersion/features/settings/presentation/conflicts/conflict_field.dart';
 import 'package:submersion/features/settings/presentation/widgets/conflict_reference_labels.dart';
@@ -46,6 +47,7 @@ final Map<String, ConflictField> conflictFieldOverrides = _merge([
   mediaLibraryOverrides,
   certificationCurrencyOverrides,
   documentOverrides,
+  ruleOverrides,
 ]);
 
 Map<String, ConflictField> _merge(List<Map<String, ConflictField>> maps) {

@@ -290,10 +290,11 @@ class CompactDiveListTile extends ConsumerWidget {
           (diveTypeShortLabelResolver ?? Dive.diveTypeDisplayName)(id),
     ];
 
-    // The highlight is the fill above, not an edge stripe -- the key marks the
-    // row for tests without decorating it.
+    // The highlight is the fill above, not an edge stripe; the key only marks
+    // the row for tests. It sits below the InkWell, never on the root: a tap
+    // highlights the dive in the same frame its ink splash starts, and a
+    // changed key rebuilds its whole subtree, splash and all (issue #3474).
     return Container(
-      key: isHighlighted ? const ValueKey('dive_row_highlight') : null,
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
       child: Card(
         margin: EdgeInsets.zero,
@@ -307,7 +308,8 @@ class CompactDiveListTile extends ConsumerWidget {
             onTap: onTap,
             onDoubleTap: onDoubleTap,
             borderRadius: BorderRadius.circular(12),
-            child: Padding(
+            child: Container(
+              key: isHighlighted ? const ValueKey('dive_row_highlight') : null,
               padding: const EdgeInsets.all(10),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

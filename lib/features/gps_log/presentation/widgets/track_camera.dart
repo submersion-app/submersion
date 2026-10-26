@@ -45,8 +45,26 @@ class TrackCamera {
     List<GpsTrackPoint> points, {
     double maxZoom = 16.0,
     EdgeInsets padding = const EdgeInsets.all(48),
+  }) => _forBounds(gpsTrackBounds(points), maxZoom: maxZoom, padding: padding);
+
+  /// [forPoints], for a route already expressed as `LatLng`s (an underwater
+  /// track's drawn points) rather than `GpsTrackPoint`s -- same
+  /// antimeridian-safe framing, no second copy of the unwrap math.
+  static TrackCamera? forLatLngs(
+    List<LatLng> points, {
+    double maxZoom = 16.0,
+    EdgeInsets padding = const EdgeInsets.all(48),
+  }) => _forBounds(
+    trackBounds(points, latOf: (p) => p.latitude, lonOf: (p) => p.longitude),
+    maxZoom: maxZoom,
+    padding: padding,
+  );
+
+  static TrackCamera? _forBounds(
+    ({double minLat, double maxLat, double minLon, double maxLon})? bounds, {
+    required double maxZoom,
+    required EdgeInsets padding,
   }) {
-    final bounds = trackBounds(points);
     if (bounds == null) return null;
 
     if (!crossesAntimeridian(bounds)) {

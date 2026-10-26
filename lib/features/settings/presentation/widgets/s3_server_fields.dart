@@ -180,6 +180,14 @@ class S3ServerFields extends StatelessWidget {
               if (uri.path.isNotEmpty && uri.path != '/') {
                 return l10n.settings_s3Config_validation_endpointPath;
               }
+              // The endpoint is synced with the account; keys or a token in
+              // it would travel to every device.
+              if (uri.userInfo.isNotEmpty) {
+                return l10n.settings_webdavConfig_validation_urlCredentials;
+              }
+              if (uri.hasQuery || uri.hasFragment) {
+                return l10n.settings_webdavConfig_validation_urlQuery;
+              }
               return null;
             },
           ),

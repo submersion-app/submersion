@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -5,7 +7,6 @@ import 'package:flutter/services.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/simple_plan_dialog.dart';
@@ -14,6 +15,7 @@ import 'package:submersion/features/planner/presentation/chart/plan_chart_edit_c
 import 'package:submersion/features/planner/presentation/chart/plan_chart_geometry.dart';
 import 'package:submersion/features/planner/presentation/chart/plan_chart_palette.dart';
 import 'package:submersion/features/planner/presentation/chart/plan_chart_series_painter.dart';
+import 'package:submersion/features/planner/presentation/chart/plan_waypoint_menu.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -49,10 +51,24 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
   Offset? _lastTapPosition;
   var _idCounter = 0;
 
+  /// Touch has no right button, so holding a finger still on a waypoint
+  /// opens its menu instead (issue #3564).
+  Timer? _longPressTimer;
+
+  /// Set when a press already did its job (a right-click, or a long-press
+  /// that opened the menu), so its pointer-up is not also read as a tap.
+  bool _pressHandled = false;
+
   @override
   void dispose() {
+    _longPressTimer?.cancel();
     _focusNode.dispose();
     super.dispose();
+  }
+
+  void _cancelLongPress() {
+    _longPressTimer?.cancel();
+    _longPressTimer = null;
   }
 
   String _newId() =>
@@ -119,55 +135,57 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
     }
   }
 
-  Future<void> _showGasMenu(
+  /// The menu for the waypoint at the end of [segmentId]. It is keyed by
+  /// segment, not index, because the plan can change while the menu is open.
+  Future<void> _showWaypointMenu(
     BuildContext context,
-    PlanChartGeometry geometry,
-    List<PlanVertex> vertices,
+    String segmentId,
     Offset globalPosition,
-    Offset local,
   ) async {
-    final index = hitTestVertex(
-      vertices: vertices,
-      geometry: geometry,
-      position: local,
-    );
-    if (index == null) return;
-    final tanks = ref.read(divePlanNotifierProvider).tanks;
-    if (tanks.isEmpty) return;
-
-    final overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
-    final selected = await showMenu<DiveTank>(
+    final action = await showWaypointMenu(
       context: context,
-      position: RelativeRect.fromRect(
-        globalPosition & const Size(1, 1),
-        Offset.zero & overlay.size,
-      ),
-      items: [
-        for (final tank in tanks)
-          PopupMenuItem<DiveTank>(
-            value: tank,
-            child: Text(
-              tank.name == null || tank.name!.isEmpty
-                  ? tank.gasMix.name
-                  : '${tank.name} · ${tank.gasMix.name}',
-            ),
-          ),
-      ],
+      globalPosition: globalPosition,
+      tanks: ref.read(divePlanNotifierProvider).tanks,
     );
-    if (selected == null) return;
+    if (action == null || !mounted || _readOnly) return;
 
+    switch (action) {
+      case RemoveWaypointAction():
+        _removeWaypoint(segmentId);
+      case SwitchGasAction(:final tank):
+        final ordered = _orderedSegments;
+        final index = ordered.indexWhere((s) => s.id == segmentId);
+        if (index < 0) return;
+        // A gas switch at vertex i applies to the FOLLOWING segment; fall
+        // back to the vertex's own segment when it is the last one.
+        final target = index + 1 < ordered.length
+            ? ordered[index + 1]
+            : ordered[index];
+        ref
+            .read(divePlanNotifierProvider.notifier)
+            .updateSegment(
+              target.id,
+              target.copyWith(gasMix: tank.gasMix, tankId: tank.id),
+            );
+    }
+  }
+
+  /// Removes the waypoint at the end of [segmentId], leaving every other
+  /// waypoint in place (see [removeVertex]).
+  void _removeWaypoint(String segmentId) {
     final ordered = _orderedSegments;
-    // A gas switch at vertex i applies to the FOLLOWING segment; fall back to
-    // the vertex's own segment when it is the last one.
-    final target = index + 1 < ordered.length
-        ? ordered[index + 1]
-        : ordered[index];
-    ref
-        .read(divePlanNotifierProvider.notifier)
-        .updateSegment(
-          target.id,
-          target.copyWith(gasMix: selected.gasMix, tankId: selected.id),
-        );
+    final index = ordered.indexWhere((s) => s.id == segmentId);
+    if (index < 0) return;
+    final removal = removeVertex(ordered: ordered, vertexIndex: index);
+    final notifier = ref.read(divePlanNotifierProvider.notifier);
+    // Update before removing: removal renumbers the orders, and the update
+    // carries the next leg's order from before it.
+    for (final (id, segment) in removal.updates) {
+      notifier.updateSegment(id, segment);
+    }
+    notifier.removeSegment(removal.removeId);
+    final selected = ref.read(selectedSegmentIdProvider.notifier);
+    if (selected.state == removal.removeId) selected.state = null;
   }
 
   KeyEventResult _onKey(KeyEvent event, PlanChartGeometry geometry) {
@@ -187,8 +205,7 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
 
     if (key == LogicalKeyboardKey.delete ||
         key == LogicalKeyboardKey.backspace) {
-      notifier.removeSegment(selectedId);
-      ref.read(selectedSegmentIdProvider.notifier).state = null;
+      _removeWaypoint(selectedId);
       return KeyEventResult.handled;
     }
     // Depth axis grows downward: ArrowDown deepens.
@@ -251,6 +268,7 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
     if (series.isEmpty) {
       // The Listener goes with the chart, so a drag in progress never sees
       // its pointer-up; drop it rather than freeze the next plan's axes.
+      _cancelLongPress();
       _dragVertex = null;
       _dragSegmentId = null;
       _hoverVertex = null;
@@ -335,16 +353,32 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
         // Raw pointer handling (not GestureDetector) so tap, double-tap,
         // drag, scrub, and right-click never fight in a gesture arena - the
         // soup of tap + double-tap + pan recognizers swallows single taps.
+        void endDrag() {
+          _dragVertex = null;
+          _dragSegmentId = null;
+          if (_frozenAxes != null) setState(() => _frozenAxes = null);
+        }
+
         void onPointerDown(PointerDownEvent event) {
           _focusNode.requestFocus();
+          _cancelLongPress();
+          _pressHandled = false;
           if (event.buttons & kSecondaryButton != 0 && !_readOnly) {
-            _showGasMenu(
-              context,
-              geometry,
-              vertices,
-              event.position,
-              event.localPosition,
+            // Off a waypoint no menu opens, so the pointer-up still arrives;
+            // two quick right-clicks there must not add a waypoint.
+            _pressHandled = true;
+            final hit = hitTestVertex(
+              vertices: vertices,
+              geometry: geometry,
+              position: event.localPosition,
             );
+            if (hit != null) {
+              _showWaypointMenu(
+                context,
+                vertices[hit].segmentId,
+                event.position,
+              );
+            }
             return;
           }
           _downPosition = event.localPosition;
@@ -353,6 +387,8 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
             vertices: vertices,
             geometry: geometry,
             position: event.localPosition,
+            // A fingertip needs the 48 px minimum touch target.
+            radius: event.kind == PointerDeviceKind.mouse ? 16 : 24,
           );
           final hit = _dragVertex;
           _dragSegmentId = hit == null ? null : vertices[hit].segmentId;
@@ -360,20 +396,34 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
             _scrubTo(geometry, event.localPosition);
           } else {
             _frozenAxes = (time: maxTime, depth: maxDepth);
+            // A mouse has right-click, and holding its button still on a
+            // handle is just a drag that has not moved yet.
+            if (event.kind != PointerDeviceKind.mouse && !_readOnly) {
+              final segmentId = vertices[hit].segmentId;
+              final globalPosition = event.position;
+              _longPressTimer = Timer(kLongPressTimeout, () {
+                _longPressTimer = null;
+                if (!mounted || _dragSegmentId != segmentId) return;
+                _pressHandled = true;
+                endDrag();
+                _clearScrub();
+                Feedback.forLongPress(context);
+                _showWaypointMenu(context, segmentId, globalPosition);
+              });
+            }
           }
-        }
-
-        void endDrag() {
-          _dragVertex = null;
-          _dragSegmentId = null;
-          if (_frozenAxes != null) setState(() => _frozenAxes = null);
         }
 
         void onPointerMove(PointerMoveEvent event) {
           final down = _downPosition;
           if (down != null && (event.localPosition - down).distance > 6) {
             _moved = true;
+            _cancelLongPress();
           }
+          // A touch still inside the slop may yet become a long-press, so
+          // finger jitter must not edit the waypoint. The drag maps the
+          // absolute position, so nothing is lost once it starts.
+          if (_longPressTimer != null) return;
           if (_dragVertex != null) {
             _applyDrag(geometry, event.localPosition);
           } else {
@@ -382,10 +432,12 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
         }
 
         void onPointerUp(PointerUpEvent event) {
+          _cancelLongPress();
           final wasDrag = _dragVertex != null;
           endDrag();
           _clearScrub();
-          if (wasDrag || _moved || _readOnly) {
+          if (wasDrag || _moved || _readOnly || _pressHandled) {
+            _pressHandled = false;
             _downPosition = null;
             return;
           }
@@ -437,6 +489,8 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
               onPointerMove: onPointerMove,
               onPointerUp: onPointerUp,
               onPointerCancel: (_) {
+                _cancelLongPress();
+                _pressHandled = false;
                 endDrag();
                 _clearScrub();
                 _downPosition = null;

@@ -9,6 +9,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/models/subtitle_text.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/section_header_title.dart';
+import 'package:submersion/shared/widgets/section_title_toggle.dart';
 
 import '../../../../helpers/mock_providers.dart';
 
@@ -24,6 +25,7 @@ Widget _stubBody(
   BuildContext context,
   TrainingTab tab,
   SectionHeaderTitle header,
+  Map<String, String> _,
 ) {
   final desktop = ResponsiveBreakpoints.isMasterDetail(context);
   return Scaffold(
@@ -34,9 +36,11 @@ Widget _stubBody(
     ),
     appBar: desktop
         ? null
-        : AppBar(
-            toolbarHeight: header.appBarHeight(context, _count),
-            title: header.build(context, SectionHeaderSlot.appBar, _count),
+        : header.pinAppBar(
+            AppBar(
+              toolbarHeight: header.appBarHeight(context, _count),
+              title: header.build(context, SectionHeaderSlot.appBar, _count),
+            ),
           ),
     body: Column(
       children: [
@@ -194,6 +198,50 @@ void main() {
     expect(_location(router), '/certifications');
   });
 
+  testWidgets('desktop: a tap shows the other tab in place, no slide', (
+    tester,
+  ) async {
+    await _pump(tester, size: const Size(1200, 800));
+
+    await tester.tap(find.text('Courses').first);
+    await tester.pump();
+
+    // On the very next frame, not after a slide: Courses fills the page and
+    // Certifications is gone from it.
+    expect(tester.getTopLeft(find.byKey(const ValueKey('list-courses'))).dx, 0);
+    expect(
+      find.byKey(const ValueKey('list-certifications')).hitTestable(),
+      findsNothing,
+    );
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('phone: the header holds still while the list slides', (
+    tester,
+  ) async {
+    await _pump(tester);
+
+    await tester.tap(find.text('Courses').first);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+
+    // Mid-switch: the list is on its way out...
+    expect(
+      tester.getTopLeft(find.byKey(const ValueKey('list-certifications'))).dx,
+      lessThan(0),
+    );
+    // ...with Courses sliding in, not a blank page on its first visit...
+    expect(find.text('built-courses'), findsOneWidget);
+    // ...while both tabs' app bars stay where the header always sits.
+    final bars = find.byType(AppBar).evaluate().toList();
+    expect(bars, hasLength(2));
+    for (final bar in bars) {
+      final box = bar.renderObject! as RenderBox;
+      expect(box.localToGlobal(Offset.zero).dx, 0);
+    }
+    await tester.pumpAndSettle();
+  });
+
   testWidgets('each tab keeps its scroll and text across a switch', (
     tester,
   ) async {
@@ -217,6 +265,25 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('certifications item 60'), findsOneWidget);
+    expect(find.text('abc'), findsOneWidget);
+  });
+
+  testWidgets('a tab keeps its text across a resize past the breakpoint', (
+    tester,
+  ) async {
+    await _pump(tester, size: const Size(1200, 800));
+    await tester.enterText(
+      find.byKey(const ValueKey('field-certifications')),
+      'abc',
+    );
+
+    // Desktop's in-place stack to the phone's sliding pages and back.
+    tester.view.physicalSize = const Size(400, 800);
+    await tester.pumpAndSettle();
+    expect(find.text('abc'), findsOneWidget);
+
+    tester.view.physicalSize = const Size(1200, 800);
+    await tester.pumpAndSettle();
     expect(find.text('abc'), findsOneWidget);
   });
 
@@ -288,11 +355,53 @@ void main() {
     final count = tester.getRect(find.text('3 entries'));
     final bar = tester.getRect(find.byType(AppBar));
     expect(count.bottom, lessThanOrEqualTo(bar.bottom));
+    // Grown by exactly the switch, the gap and the count: no dead space
+    // under the count, and none of it cut off (#3663).
+    final toolbar = tester.getRect(
+      find.descendant(
+        of: find.byType(AppBar),
+        matching: find.byType(NavigationToolbar),
+      ),
+    );
+    expect(count.bottom, closeTo(toolbar.bottom, 0.5));
     // A name too long for the bar scrolls into reach rather than clipping.
     final tabBar = tester.widget<TabBar>(
       find.byKey(const ValueKey('training_section_toggle')),
     );
     expect(tabBar.isScrollable, isTrue);
+  });
+
+  // The count is its own line, not pressed against the selected name's
+  // underline (#3663).
+  for (final (label, size) in <(String, Size)>[
+    ('phone', const Size(400, 800)),
+    ('desktop', const Size(1400, 900)),
+  ]) {
+    testWidgets('$label: the count sits a gap under the underline', (
+      tester,
+    ) async {
+      await _pump(tester, size: size);
+
+      final underline = tester
+          .getRect(find.byKey(const ValueKey('training_section_toggle')).first)
+          .bottom;
+      final count = tester.getRect(find.text('3 entries').first).top;
+      expect(count - underline, closeTo(SectionTitleToggle.subtitleGap, 0.5));
+    });
+  }
+
+  testWidgets('phone: the switch, gap and count fill the standard bar', (
+    tester,
+  ) async {
+    await _pump(tester);
+
+    final toolbar = find.descendant(
+      of: find.byType(AppBar),
+      matching: find.byType(NavigationToolbar),
+    );
+    expect(tester.getSize(toolbar).height, kToolbarHeight);
+    final count = tester.getRect(find.text('3 entries'));
+    expect(count.bottom, lessThanOrEqualTo(tester.getRect(toolbar).bottom));
   });
 
   testWidgets('focus leaves a tab when it is hidden and comes back with it', (

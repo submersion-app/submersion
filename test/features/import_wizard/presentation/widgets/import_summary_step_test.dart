@@ -595,6 +595,25 @@ void main() {
       expect(find.byType(CircularProgressIndicator), findsNothing);
     });
 
+    testWidgets('a refused import is explained in the diver language', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(800, 600));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final notifier = _makeNotifier();
+      notifier.state = notifier.state.copyWith(
+        importRefused: true,
+        error: 'Another import is still running',
+      );
+
+      await tester.pumpWidget(_buildWidget(notifier));
+      await tester.pump();
+
+      expect(find.textContaining('An import is still running'), findsOneWidget);
+      expect(find.text('Another import is still running'), findsNothing);
+    });
+
     testWidgets('error fallback shows Done button', (tester) async {
       await tester.binding.setSurfaceSize(const Size(800, 600));
       addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -1410,6 +1429,37 @@ void main() {
       expect(find.byKey(const Key('import_summary_notices')), findsNothing);
     });
 
+    testWidgets('offers no transmitter action for dives in another profile '
+        '(issue #2050)', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(800, 1200));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final notifier = _makeNotifier();
+      notifier.state = notifier.state.copyWith(
+        importResult: const UnifiedImportResult(
+          importedCounts: {ImportEntityType.dives: 3},
+          consolidatedCount: 0,
+          skippedCount: 0,
+          diverOutcomes: [
+            DiverImportOutcome(
+              diverId: 'mitchell',
+              name: 'Mitchell',
+              isNew: false,
+              isActive: false,
+              diveIds: ['d1', 'd2', 'd3'],
+            ),
+          ],
+          notices: [
+            ImportNotice(kind: ImportNoticeKind.unknownTransmitter, count: 3),
+          ],
+        ),
+      );
+      await tester.pumpWidget(_buildWidget(notifier));
+      await tester.pump();
+
+      expect(find.text('Unassigned transmitters'), findsOneWidget);
+      expect(find.text('Assign transmitters'), findsNothing);
+    });
+
     testWidgets('explains unassigned transmitters with an action', (
       tester,
     ) async {
@@ -1464,6 +1514,65 @@ void main() {
       await tester.tap(find.text('Assign transmitters'));
       await tester.pumpAndSettle();
       expect(find.text('TRANSMITTERS_PAGE'), findsOneWidget);
+    });
+
+    testWidgets('a device that is already another item offers to open it '
+        '(#3676)', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(800, 900));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final notifier = _makeNotifier();
+      notifier.state = notifier.state.copyWith(
+        importResult: const UnifiedImportResult(
+          importedCounts: {ImportEntityType.dives: 3},
+          consolidatedCount: 0,
+          skippedCount: 0,
+          notices: [
+            ImportNotice(
+              kind: ImportNoticeKind.deviceBelongsToOtherItem,
+              count: 1,
+              targetId: 'other-item',
+            ),
+          ],
+        ),
+      );
+      final router = GoRouter(
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (context, state) => Scaffold(
+              body: ImportSummaryStep(onDone: () {}, onViewDives: () {}),
+            ),
+          ),
+          GoRoute(
+            path: '/equipment/:id',
+            builder: (context, state) =>
+                Scaffold(body: Text('ITEM ${state.pathParameters['id']}')),
+          ),
+        ],
+      );
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            importWizardNotifierProvider.overrideWith((_) => notifier),
+          ],
+          child: MaterialApp.router(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            routerConfig: router,
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(
+        find.text('This computer is already in Equipment'),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.text('Open that item'));
+      await tester.pumpAndSettle();
+      expect(find.text('ITEM other-item'), findsOneWidget);
     });
 
     testWidgets('explains roles read from transmitter names (#2595)', (
@@ -1732,6 +1841,16 @@ void main() {
         ),
         title: 'Some photos not listed',
         bodyFragment: 'Photos for 4 dives could not be listed',
+        countLine: null,
+      );
+    });
+
+    testWidgets('counts photos listed without a usable link', (tester) async {
+      await expectCard(
+        tester,
+        const ImportNotice(kind: ImportNoticeKind.photosWithoutLink, count: 3),
+        title: 'Some photos without a link',
+        bodyFragment: '3 photos had no download link',
         countLine: null,
       );
     });
@@ -2021,6 +2140,69 @@ void main() {
         find.text('Imported Marci Glazer, then stopped before Alex'),
         findsOneWidget,
       );
+    });
+
+    testWidgets('a profile with no name is still named (issue #2050)', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(800, 1200));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final notifier = _makeNotifier();
+      notifier.state = notifier.state.copyWith(
+        importResult: const UnifiedImportResult(
+          importedCounts: {ImportEntityType.dives: 1},
+          consolidatedCount: 0,
+          skippedCount: 0,
+          diverOutcomes: [
+            DiverImportOutcome(
+              diverId: 'mitchell',
+              name: '',
+              isNew: false,
+              isActive: false,
+              diveIds: ['d1'],
+            ),
+          ],
+        ),
+      );
+      await tester.pumpWidget(_buildWidget(notifier));
+      await tester.pump();
+
+      expect(find.text('Unnamed profile'), findsOneWidget);
+      expect(
+        find.text('Switch to Unnamed profile to see these dives'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('offers no View Dives when every dive went to another '
+        'profile (issue #2050)', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(800, 1200));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final notifier = _makeNotifier();
+      notifier.state = notifier.state.copyWith(
+        importResult: const UnifiedImportResult(
+          importedCounts: {ImportEntityType.dives: 2},
+          consolidatedCount: 0,
+          skippedCount: 0,
+          diverOutcomes: [
+            DiverImportOutcome(
+              diverId: 'mitchell',
+              name: 'Mitchell',
+              isNew: false,
+              isActive: false,
+              diveIds: ['d1', 'd2'],
+            ),
+          ],
+        ),
+      );
+      await tester.pumpWidget(_buildWidget(notifier));
+      await tester.pump();
+
+      expect(
+        find.text('Switch to Mitchell to see these dives'),
+        findsOneWidget,
+      );
+      expect(find.text('View Dives'), findsNothing);
     });
 
     testWidgets('one active profile adds no section', (tester) async {

@@ -5,7 +5,6 @@ import 'package:submersion/core/deco/ascent/ascent_gas_plan.dart';
 import 'package:submersion/core/deco/deco_model.dart';
 import 'package:submersion/core/deco/entities/breathing_config.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
-import 'package:submersion/core/deco/o2_toxicity_calculator.dart';
 import 'package:submersion/core/deco/schedule_policy.dart';
 import 'package:submersion/core/utils/gas_compressibility.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -19,6 +18,7 @@ import 'package:submersion/features/planner/domain/services/diluent_switch_time.
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 import 'package:submersion/features/planner/domain/services/segment_rate_split.dart';
 import 'package:submersion/features/planner/domain/services/segment_chain.dart';
+import 'package:submersion/features/planner/domain/services/tank_mod.dart';
 import 'package:submersion/features/planner/domain/services/tank_role_resolver.dart';
 import 'package:submersion/features/planner/domain/services/tank_usage_order.dart';
 
@@ -178,52 +178,55 @@ class BailoutSolver {
         List<PlanSegment>.from(plan.segments)
           ..sort((a, b) => a.order.compareTo(b.order)),
         plan,
+        descentRate: config.descentRate,
+        ascentRate: config.ascentRate,
       ),
       plan,
+      gasSwitchStopSeconds: config.gasSwitchStopSeconds,
     );
     if (segments.isEmpty) return null;
     final legs = const SegmentChain().resolve(segments);
 
-    final environment = DiveEnvironment.forConditions(
-      altitudeMeters: plan.altitude,
-      waterType: plan.waterType ?? WaterType.salt,
-      salinityPpt: plan.salinityPpt,
-    );
+    // The live plan's own water: an altitude of 0 is unset there (1.0 bar
+    // surface), not barometric sea level (issue #3566).
+    final environment = PlanEngine.environmentFor(plan);
     // Same policy PlanEngine._policyFor builds: a bailout schedule computed
     // with a plainer policy than the plan it bails out of would size and
     // print stops the plan's own configured minimums and whole-minute
     // snapping never agreed to (caught by a Copilot review).
+    //
+    // Reads the Deco/Rates fields from [config] (issue #3552), not [plan]
+    // directly: by this point [config] is already resolvedFor this plan
+    // (see [solve]), so an unset plan field already carries the diver's
+    // Settings default.
     final policy = SchedulePolicy(
-      lastStopDepth: plan.lastStopDepth,
-      ascentRate: plan.ascentRate,
-      intermediateAscentRate: plan.intermediateAscentRate,
-      shallowAscentRate: plan.shallowAscentRate,
-      finalAscentRate: plan.finalAscentRate,
-      descentRate: plan.descentRate,
-      gasSwitchStopSeconds: plan.gasSwitchStopSeconds,
+      lastStopDepth: config.lastStopDepth,
+      ascentRate: config.ascentRate,
+      intermediateAscentRate: config.intermediateAscentRate,
+      shallowAscentRate: config.shallowAscentRate,
+      finalAscentRate: config.finalAscentRate,
+      descentRate: config.descentRate,
+      gasSwitchStopSeconds: config.gasSwitchStopSeconds,
       snapStopsToWholeMinutes: true,
-      airBreaks: plan.airBreaks,
+      airBreaks: config.airBreaksFor(plan),
       minStopSecondsByDepth: plan.stopMinimums,
     );
     final model = BuhlmannGf(
-      gfLow: plan.gfLow / 100.0,
-      gfHigh: plan.gfHigh / 100.0,
+      gfLow: config.gfLow / 100.0,
+      gfHigh: config.gfHigh / 100.0,
       environment: environment,
       policy: policy,
     );
+    // Each bailout gas joins at its cylinder's MOD (issue #3567): the one
+    // the diver set, or the default for a bailout of its mix.
     final bailoutPlan = OptimalOcAscentGas(
       maxPpO2: config.ppO2Deco,
-      gases: [
-        for (final tank in bailoutTanks)
-          AvailableGas(
-            fN2: (100.0 - tank.gasMix.o2 - tank.gasMix.he) / 100.0,
-            fHe: tank.gasMix.he / 100.0,
-            maxPpO2Mod: O2ToxicityCalculator.calculateMod(
-              tank.gasMix.o2 / 100.0,
-              maxPpO2: config.ppO2Deco,
-            ),
-          ),
-      ],
+      gases: ascentGasesFor(
+        bailoutTanks,
+        bottomPpO2: config.ppO2Working,
+        decoPpO2: config.ppO2Deco,
+        environment: environment,
+      ),
     );
 
     final availableLiters = bailoutTanks.fold<double>(
@@ -305,7 +308,7 @@ class BailoutSolver {
               litersRequired: _ascentLiters(
                 schedule,
                 fromDepth: chunkEndDepth,
-                sac: plan.sacStressedEffective,
+                sac: config.sacStressedFor(plan),
                 policy: policy,
                 environment: environment,
               ),
@@ -332,7 +335,7 @@ class BailoutSolver {
       bailoutPlan: bailoutPlan,
       policy: policy,
       environment: environment,
-      sac: plan.sacStressedEffective,
+      sac: config.sacStressedFor(plan),
     );
     return BailoutOutcome(
       points: points,

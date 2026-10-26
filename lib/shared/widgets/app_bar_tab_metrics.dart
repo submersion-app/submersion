@@ -2,71 +2,6 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-/// Space between an app bar title and tabs placed inline beside it.
-const double kAppBarInlineTabGap = 24;
-
-/// Whether [title] and a scrollable tab strip of [labels] fit side by side
-/// in the title slot of an [AppBar] [barWidth] wide.
-///
-/// Mirrors how the framework sizes that slot rather than guessing a
-/// breakpoint: [NavigationToolbar] gives the title the bar width minus the
-/// leading slot (present when the route can be dismissed) and its spacing on
-/// both sides, after the app bar's [SafeArea] has given up any horizontal
-/// insets. Each tab is its label plus [kTabLabelPadding], the layout a
-/// scrollable [TabBar] with [TabAlignment.start] uses. Measuring the labels
-/// with the user's text scale is what keeps a long translation or large text
-/// from cramming the tabs into a strip that scrolls.
-///
-/// [labelStyle] must be the style the [TabBar] is given, so the measurement
-/// and the rendered tabs agree.
-bool appBarTabsFitInline(
-  BuildContext context, {
-  required double barWidth,
-  required String title,
-  required List<String> labels,
-  required TextStyle labelStyle,
-}) {
-  final theme = Theme.of(context);
-  final appBarTheme = theme.appBarTheme;
-  final textScaler = MediaQuery.textScalerOf(context);
-  final textDirection = Directionality.of(context);
-
-  double widthOf(String text, TextStyle? style) {
-    final painter = TextPainter(
-      text: TextSpan(text: text, style: style),
-      textDirection: textDirection,
-      textScaler: textScaler,
-      maxLines: 1,
-    )..layout();
-    final width = painter.width.ceilToDouble();
-    painter.dispose();
-    return width;
-  }
-
-  // AppBar's own precedence: a theme's titleTextStyle replaces titleLarge
-  // outright rather than merging into it.
-  final titleStyle = appBarTheme.titleTextStyle ?? theme.textTheme.titleLarge;
-  final tabsWidth = labels.fold<double>(
-    0,
-    (sum, label) =>
-        sum + widthOf(label, labelStyle) + kTabLabelPadding.horizontal,
-  );
-  final required = widthOf(title, titleStyle) + kAppBarInlineTabGap + tabsWidth;
-
-  final hasLeading = ModalRoute.of(context)?.impliesAppBarDismissal ?? false;
-  final leadingWidth = hasLeading
-      ? appBarTheme.leadingWidth ?? kToolbarHeight
-      : 0.0;
-  final spacing = appBarTheme.titleSpacing ?? NavigationToolbar.kMiddleSpacing;
-  final available =
-      barWidth -
-      MediaQuery.paddingOf(context).horizontal -
-      leadingWidth -
-      spacing * 2;
-
-  return required <= available;
-}
-
 /// Label and indicator colours for a [TabBar] drawn on the app bar surface.
 ///
 /// A stock tab marks the selected label in `colorScheme.primary`, which
@@ -88,12 +23,24 @@ class AppBarTabColors {
 
   factory AppBarTabColors.of(ThemeData theme) {
     final appBarTheme = theme.appBarTheme;
-    final foreground =
-        appBarTheme.foregroundColor ?? theme.colorScheme.onSurface;
-    final background = Color.alphaBlend(
-      appBarTheme.backgroundColor ?? theme.colorScheme.surface,
-      theme.scaffoldBackgroundColor,
+    return AppBarTabColors.on(
+      theme,
+      background: Color.alphaBlend(
+        appBarTheme.backgroundColor ?? theme.colorScheme.surface,
+        theme.scaffoldBackgroundColor,
+      ),
+      foreground: appBarTheme.foregroundColor ?? theme.colorScheme.onSurface,
     );
+  }
+
+  /// The same colours for tabs on a bar of its own opaque [background], with
+  /// [foreground] its title colour: a desktop list pane's header, say, which
+  /// is drawn in the scheme's surface whatever colour the app bar takes.
+  factory AppBarTabColors.on(
+    ThemeData theme, {
+    required Color background,
+    required Color foreground,
+  }) {
     final primary = theme.colorScheme.primary;
     return AppBarTabColors(
       barMatchesPage: background == theme.scaffoldBackgroundColor,

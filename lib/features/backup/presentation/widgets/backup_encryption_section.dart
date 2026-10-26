@@ -28,7 +28,7 @@ class BackupEncryptionSection extends ConsumerWidget {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Text(
-            l10n.settings_backupEncryption_title,
+            l10n.settings_backups_passwordProtection,
             style: theme.textTheme.titleSmall?.copyWith(
               color: theme.colorScheme.primary,
             ),

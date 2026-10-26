@@ -3,7 +3,7 @@
 Record the creatures you encountered and the photos you took, side by side with your log data.
 
 > [!NOTE]
-> **Where to find it:** A dive's page has **Species** and **Photos** sections. **Species** and **Media** in the navigation list every species you have seen and every photo and video you have linked. The species catalog is under **Settings > Manage > Species**, and media settings under **Settings > Data > Photos & Media**.
+> **Where to find it:** A dive's page has **Species** and **Photos** sections. **Species** and **Media** in the navigation list every species you have seen and every photo and video you have linked. The species catalog is under **Settings > Manage > Species**, and media settings under **Settings > Data > Photos & videos**.
 
 <!-- screenshot: images/marine-life-and-photos/sighting.png: logging a sighting -->
 
@@ -136,7 +136,7 @@ You can link a species sighting directly to a photo by tagging it in the image. 
 
 ## Media sources
 
-Submersion can resolve photos from several sources. Which sources are available is configured in **Settings > Data > Photos & Media**: **Photo library & sources**, **Network sources**, and **Media Storage** (see [Media Sync](media-sync.md)).
+Submersion can resolve photos from several sources. Which sources are available is configured in **Settings > Data > Photos & videos**: **Photo library and files**, **Network sources** (under **Advanced**), and **Copies in the cloud** (see [Media Sync](media-sync.md)).
 
 <!-- screenshot: images/marine-life-and-photos/media-sources.png: media source config -->
 
@@ -162,7 +162,7 @@ You can add photos by pasting one or more HTTP/HTTPS URLs directly into the pick
 Per-host **credentials** can be saved under **Network sources**: enter a hostname and authentication details once, and the app attaches those credentials to every request to that host.
 
 > [!TIP]
-> **Settings > Data > Photos & Media > Network sources** lists all saved hosts, active manifest subscriptions, a cache-size indicator with a clear-cache action, and a **Scan all network media** button that re-verifies every URL-sourced photo in your library.
+> **Settings > Data > Photos & videos > Photo library & sources > Network sources** lists all saved hosts, active manifest subscriptions, a cache-size indicator with a clear-cache action, and a **Scan all network media** button that re-verifies every URL-sourced photo in your library.
 
 ---
 

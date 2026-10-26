@@ -5,8 +5,9 @@ import 'package:flutter/material.dart';
 /// theme changes. Keys are the stable `NavDestination.id` strings, plus
 /// `settings-<sectionId>` entries for the settings root sections, plus
 /// `connections` for the Connections explorer (reached from Insights rather
-/// than the nav). A missing key means "no accent" -- callers fall back to the
-/// ambient icon color.
+/// than the nav), plus `connections-buddy` for buddy nodes on its map. A
+/// missing key means "no accent" -- callers fall back to the ambient icon
+/// color.
 class FeatureAccentColors extends ThemeExtension<FeatureAccentColors> {
   const FeatureAccentColors({required this.colors});
 
@@ -36,13 +37,23 @@ class FeatureAccentColors extends ThemeExtension<FeatureAccentColors> {
       // every light-mode accent at or above the 3:1 WCAG contrast ratio for
       // graphical objects.
       'equipment': Color(0xFFE65100),
-      'buddies': Color(0xFFC2185B),
+      // A muted sage: the crimson pink this replaced read as an alert on
+      // every buddy card (#3584). Its low saturation is what keeps it apart
+      // from the vivid sites green at icon size, and it is deep enough to
+      // read at 4.5:1 as the small stat text and as the initials on their
+      // 15% tint of itself on every preset's buddy card.
+      'buddies': Color(0xFF40674C),
       'dive-centers': Color(0xFF6D4C41),
       'certifications': Color(0xFFB45309),
       'documents': Color(0xFF1565C0),
       'courses': Color(0xFF303F9F),
       'insights': Color(0xFF00796B),
       'connections': Color(0xFF00838F),
+      // Buddy nodes on the Connections map. The app-wide sage above sits
+      // next to the sites green, and Who dives where (the map Connections
+      // opens on) draws exactly those two kinds; pink is the hue no other
+      // kind on the map uses (#3679).
+      'connections-buddy': Color(0xFFAD1457),
       'planning': Color(0xFF512DA8),
       'transfer': Color(0xFF0097A7),
       'tracks': Color(0xFFD32F2F),
@@ -74,13 +85,14 @@ class FeatureAccentColors extends ThemeExtension<FeatureAccentColors> {
       'media': Color(0xFFCE93D8),
       'species': Color(0xFFDCE775),
       'equipment': Color(0xFFFFB74D),
-      'buddies': Color(0xFFF06292),
+      'buddies': Color(0xFFA5C8AE),
       'dive-centers': Color(0xFFBCAAA4),
       'certifications': Color(0xFFFFD54F),
       'documents': Color(0xFF90CAF9),
       'courses': Color(0xFF7986CB),
       'insights': Color(0xFF4DB6AC),
       'connections': Color(0xFF4DD0E1),
+      'connections-buddy': Color(0xFFF48FB1),
       'planning': Color(0xFF9575CD),
       'transfer': Color(0xFF4DD0E1),
       'tracks': Color(0xFFE57373),

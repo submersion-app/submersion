@@ -11,6 +11,7 @@ import 'package:submersion/core/constants/tank_preset_display.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_picker_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
@@ -24,23 +25,30 @@ import 'package:submersion/features/tank_presets/presentation/providers/tank_pre
 import 'package:submersion/features/transmitters/data/repositories/transmitter_repository.dart';
 import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
 import 'package:submersion/features/transmitters/presentation/providers/transmitter_providers.dart';
+import 'package:submersion/features/transmitters/presentation/widgets/transmitter_key_remove_dialog.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 import 'package:submersion/shared/widgets/forms/number_field.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
-/// Full-screen editor for one registry entry. Picking a gear cylinder or a
-/// preset copies its specs into the fields (snapshot rule); the fields stay
-/// editable afterward.
+/// Sets up a Transmitter item (issue #3676): one of its keys (a serial, or
+/// a computer and channel) plus the role and cylinder, which belong to the
+/// physical transmitter and are saved onto every key behind the item. The
+/// item's name is the keys' label; it is edited on the Equipment page.
+/// Picking a gear cylinder or a preset copies its specs into the fields
+/// (snapshot rule); the fields stay editable afterward.
 class TransmitterEditPage extends ConsumerStatefulWidget {
+  /// The Transmitter item being set up.
+  final String equipmentId;
+
+  /// The key being edited; null adds a key to the item.
   final String? transmitterId;
-  final String? initialSerial;
 
   const TransmitterEditPage({
     super.key,
+    required this.equipmentId,
     this.transmitterId,
-    this.initialSerial,
   });
 
   bool get isEditing => transmitterId != null;
@@ -56,7 +64,6 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
   final _formKey = GlobalKey<FormState>();
   final _uuid = const Uuid();
 
-  final _labelController = TextEditingController();
   final _serialController = TextEditingController();
   final _channelController = TextEditingController();
   final _volumeController = TextEditingController();
@@ -76,10 +83,10 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
   String? _equipmentId;
   String? _equipmentName;
 
-  /// The transmitter gear item this entry is (condition phase 3b), beside
-  /// the cylinder it feeds; the dropout rules read serials through it.
-  String? _transmitterEquipmentId;
-  String? _transmitterEquipmentName;
+  /// The item's name, the label every key carries, and its serial, which a
+  /// key with no serial of its own starts from.
+  String _itemName = '';
+  String? _itemSerial;
   Transmitter? _existing;
   bool _loading = false;
   String? _keyError;
@@ -88,13 +95,11 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
   @override
   void initState() {
     super.initState();
-    _serialController.text = widget.initialSerial ?? '';
-    if (widget.isEditing) _load();
+    _load();
   }
 
   @override
   void dispose() {
-    _labelController.dispose();
     _serialController.dispose();
     _channelController.dispose();
     _volumeController.dispose();
@@ -104,41 +109,51 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
 
   Future<void> _load() async {
     setState(() => _loading = true);
-    final entry = await ref
-        .read(transmitterRepositoryProvider)
-        .getById(widget.transmitterId!);
+    final repo = ref.read(transmitterRepositoryProvider);
+    final item = await ref.read(
+      equipmentItemProvider(widget.equipmentId).future,
+    );
+    final keys = await repo.getForEquipment(widget.equipmentId);
+    final editing = widget.transmitterId == null
+        ? null
+        : await repo.getById(widget.transmitterId!);
     if (!mounted) return;
     final settings = ref.read(settingsProvider);
     final units = UnitFormatter(settings);
+    // A new key starts from the setup the item's keys already share.
+    final setup = editing ?? keys.firstOrNull;
     setState(() {
-      _existing = entry;
+      _existing = editing;
       _loading = false;
-      if (entry == null) return;
-      _labelController.text = entry.label;
-      _serialController.text = entry.transmitterSerial ?? '';
-      _computerId = entry.diveComputerId;
-      _channelController.text = entry.channelIndex == null
-          ? ''
-          : '${entry.channelIndex! + 1}';
-      _role = entry.role;
-      _roleTouched = true;
-      _material = entry.material;
-      _presetName = entry.presetName;
-      _equipmentId = entry.equipmentId;
-      _transmitterEquipmentId = entry.transmitterEquipmentId;
-      _fillSpecFields(units, settings, entry.volumeL, entry.workingPressureBar);
+      _itemName = item?.name ?? '';
+      _itemSerial = normalizeTransmitterSerial(item?.serialNumber);
+      if (editing != null) {
+        _serialController.text = editing.transmitterSerial ?? '';
+        _computerId = editing.diveComputerId;
+        _channelController.text = editing.channelIndex == null
+            ? ''
+            : '${editing.channelIndex! + 1}';
+      } else if (keys.isEmpty) {
+        _serialController.text = _itemSerial ?? '';
+      }
+      if (setup != null) {
+        _role = setup.role;
+        _roleTouched = setup.isConfigured;
+        _material = setup.material;
+        _presetName = setup.presetName;
+        _equipmentId = setup.equipmentId;
+        _fillSpecFields(
+          units,
+          settings,
+          setup.volumeL,
+          setup.workingPressureBar,
+        );
+      }
     });
-    if (entry?.equipmentId != null) {
-      final gear = await ref.read(
-        equipmentItemProvider(entry!.equipmentId!).future,
-      );
+    final cylinderId = setup?.equipmentId;
+    if (cylinderId != null) {
+      final gear = await ref.read(equipmentItemProvider(cylinderId).future);
       if (mounted) setState(() => _equipmentName = gear?.name);
-    }
-    if (entry?.transmitterEquipmentId != null) {
-      final gear = await ref.read(
-        equipmentItemProvider(entry!.transmitterEquipmentId!).future,
-      );
-      if (mounted) setState(() => _transmitterEquipmentName = gear?.name);
     }
   }
 
@@ -253,31 +268,6 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
     );
   }
 
-  Future<void> _pickTransmitterGear() async {
-    await showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.7,
-        minChildSize: 0.5,
-        maxChildSize: 0.95,
-        expand: false,
-        builder: (context, scrollController) => EquipmentPickerSheet(
-          scrollController: scrollController,
-          selectedEquipmentIds: {?_transmitterEquipmentId},
-          typeFilter: EquipmentType.transmitter,
-          onEquipmentSelected: (item) {
-            setState(() {
-              _transmitterEquipmentId = item.id;
-              _transmitterEquipmentName = item.name;
-            });
-            Navigator.of(context).pop();
-          },
-        ),
-      ),
-    );
-  }
-
   Future<void> _save() async {
     final l10n = context.l10n;
     setState(() {
@@ -320,14 +310,15 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
       transmitterSerial: serialText.isEmpty ? null : serialText,
       diveComputerId: hasChannel ? _computerId : null,
       channelIndex: hasChannel ? channel - 1 : null,
-      label: _labelController.text.trim(),
+      label: _itemName,
       role: _role,
       volumeL: volumeL,
       workingPressureBar: workingPressureBar,
       material: _material,
       presetName: _presetName,
       equipmentId: _equipmentId,
-      transmitterEquipmentId: _transmitterEquipmentId,
+      transmitterEquipmentId: widget.equipmentId,
+      isConfigured: true,
       createdAt: _existing?.createdAt ?? now,
       updatedAt: now,
     );
@@ -339,14 +330,21 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
       } else {
         await repo.create(entry);
       }
+      // Role and cylinder are the transmitter's, so every other key behind
+      // the item takes them too, and each is marked configured.
+      await repo.saveSetup(
+        widget.equipmentId,
+        role: _role,
+        cylinderId: _equipmentId,
+        volumeL: volumeL,
+        workingPressureBar: workingPressureBar,
+        material: _material,
+        presetName: _presetName,
+        exceptKeyId: entry.id,
+      );
       // The dropout findings read serials through the transmitter link and
-      // are stored, read without the engine, so the item the entry left and
-      // the one it names both refresh now, not on the next page visit.
-      final touched = {
-        ?_existing?.transmitterEquipmentId,
-        ?entry.transmitterEquipmentId,
-      };
-      if (touched.isNotEmpty) scheduleConditionFindingsRefresh(touched);
+      // are stored, read without the engine, so the item refreshes now.
+      scheduleConditionFindingsRefresh({widget.equipmentId});
     } on TransmitterConflictException catch (e) {
       setState(
         () => _duplicateError = l10n.transmitters_validation_duplicate(
@@ -361,11 +359,18 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
       ).showSnackBar(SnackBar(content: Text('${l10n.common_label_error}: $e')));
       return;
     }
+    // Outside the save's try: the entry is already written. An item with no
+    // serial of its own takes the key's, as an item created from a serial
+    // does (issue #3676); one it already has is never overwritten.
+    final keySerial = normalizeTransmitterSerial(serialText);
+    if (keySerial != null && _itemSerial == null) {
+      await _fillItemSerial(keySerial);
+    }
     if (!mounted) return;
-    // A serial assigned straight after a download is the moment the diver
-    // most wants the dives just imported fixed too, so offer the retroactive
-    // apply once here (spec section 5). Edits never apply automatically.
-    final offerApply = _existing == null && widget.initialSerial != null;
+    // The first setup after a download is the moment the diver most wants
+    // the dives already imported fixed too, so offer the retroactive apply
+    // once here (spec section 5). Edits never apply automatically.
+    final offerApply = _existing == null || !_existing!.isConfigured;
     final messenger = ScaffoldMessenger.of(context);
     messenger.showSnackBar(
       SnackBar(
@@ -375,15 +380,29 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
             : SnackBarAction(
                 label: l10n.transmitters_action_apply,
                 onPressed: () async {
-                  final result = await repo.applyToExistingDives(entry);
+                  // The setup went onto every key of the item, so every
+                  // key's dives are filled, not just this one's.
+                  var tanks = 0;
+                  var dives = 0;
+                  try {
+                    for (final key in await repo.getForEquipment(
+                      widget.equipmentId,
+                    )) {
+                      final result = await repo.applyToExistingDives(key);
+                      tanks += result.tanksUpdated;
+                      dives += result.divesUpdated;
+                    }
+                  } catch (e) {
+                    // The page is gone, so the messenger is the only place
+                    // left to say the apply did not happen.
+                    messenger.showSnackBar(
+                      SnackBar(content: Text('${l10n.common_label_error}: $e')),
+                    );
+                    return;
+                  }
                   messenger.showSnackBar(
                     SnackBar(
-                      content: Text(
-                        l10n.transmitters_apply_done(
-                          result.tanksUpdated,
-                          result.divesUpdated,
-                        ),
-                      ),
+                      content: Text(l10n.transmitters_apply_done(tanks, dives)),
                     ),
                   );
                 },
@@ -394,6 +413,27 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
       context.pop();
     } else {
       context.go('/');
+    }
+  }
+
+  /// Writes [serial] onto the item, which has none. Through the list
+  /// notifier, as the equipment editor saves, so the lists refresh. A
+  /// failure is reported and swallowed: the key is already saved.
+  Future<void> _fillItemSerial(String serial) async {
+    try {
+      final gear = await ref.read(
+        equipmentItemProvider(widget.equipmentId).future,
+      );
+      if (gear == null) return;
+      await ref
+          .read(equipmentListNotifierProvider.notifier)
+          .updateEquipment(gear.copyWith(serialNumber: serial));
+    } catch (e, stackTrace) {
+      _log.warning(
+        'Could not copy the serial onto the transmitter item',
+        error: e,
+        stackTrace: stackTrace,
+      );
     }
   }
 
@@ -446,16 +486,6 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
               child: ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
-                  TextFormField(
-                    key: const Key('transmitter_label'),
-                    controller: _labelController,
-                    decoration: InputDecoration(
-                      labelText: l10n.transmitters_field_label,
-                      helperText: l10n.transmitters_field_label_helper,
-                    ),
-                    textCapitalization: TextCapitalization.words,
-                  ),
-                  const SizedBox(height: 16),
                   TextFormField(
                     key: const Key('transmitter_serial'),
                     controller: _serialController,
@@ -553,25 +583,6 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
                             }),
                           ),
                     onTap: _pickGear,
-                  ),
-                  _FieldNote(l10n.transmitters_field_transmitterGear_subtitle),
-                  ListTile(
-                    key: const Key('transmitter_transmitter_gear'),
-                    contentPadding: EdgeInsets.zero,
-                    title: Text(l10n.transmitters_field_transmitterGear),
-                    subtitle: Text(
-                      _transmitterEquipmentName ?? l10n.transmitters_gear_none,
-                    ),
-                    trailing: _transmitterEquipmentId == null
-                        ? const Icon(Icons.chevron_right)
-                        : IconButton(
-                            icon: const Icon(Icons.clear),
-                            onPressed: () => setState(() {
-                              _transmitterEquipmentId = null;
-                              _transmitterEquipmentName = null;
-                            }),
-                          ),
-                    onTap: _pickTransmitterGear,
                   ),
                   const SizedBox(height: 8),
                   presets.when(
@@ -694,10 +705,52 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
                     ],
                     onChanged: (m) => setState(() => _material = m),
                   ),
+                  if (_existing != null) ...[
+                    const SizedBox(height: 24),
+                    Align(
+                      alignment: AlignmentDirectional.centerStart,
+                      child: TextButton.icon(
+                        key: const Key('transmitter_remove_key'),
+                        style: TextButton.styleFrom(
+                          foregroundColor: Theme.of(context).colorScheme.error,
+                        ),
+                        onPressed: _confirmRemoveKey,
+                        icon: const Icon(Icons.delete_outline),
+                        label: Text(l10n.transmitters_key_remove),
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
     );
+  }
+
+  /// Removes the key being edited, alone (issue #3676): a wrong channel or
+  /// a mistyped serial goes without the item, its other keys or its gear
+  /// history. Deleting the whole transmitter is the item's delete.
+  Future<void> _confirmRemoveKey() async {
+    final existing = _existing;
+    if (existing == null) return;
+    final confirmed = await confirmRemoveTransmitterKey(context);
+    if (!confirmed || !mounted) return;
+    try {
+      await ref.read(transmitterRepositoryProvider).delete(existing.id);
+      // The dropout findings read the item's serials through its keys.
+      scheduleConditionFindingsRefresh({widget.equipmentId});
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('${context.l10n.common_label_error}: $e')),
+      );
+      return;
+    }
+    if (!mounted) return;
+    if (context.canPop()) {
+      context.pop();
+    } else {
+      context.go('/');
+    }
   }
 }
 

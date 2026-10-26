@@ -1,5 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/services/accounts/account_kind.dart';
+import 'package:submersion/core/services/accounts/connected_account.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 
@@ -33,37 +35,78 @@ void main() {
     });
   });
 
-  group('cloud backup and custom location are mutually exclusive', () {
+  test(
+    'setCrossDeviceRetentionAccount persists and shows the switch',
+    () async {
+      await notifier.setCrossDeviceRetentionAccount('acct');
+      expect(notifier.state.crossDeviceRetentionFor('acct'), isTrue);
+      expect(prefs.getSettings().crossDeviceRetentionFor('acct'), isTrue);
+
+      await notifier.setCrossDeviceRetentionAccount(null);
+      expect(notifier.state.crossDeviceRetentionAccount, isNull);
+    },
+  );
+
+  group('the backup folder and the cloud copy are independent', () {
     test('cloud backup starts disabled', () {
       expect(notifier.state.cloudBackupEnabled, isFalse);
     });
 
-    test('enabling cloud backup clears a custom backup location', () async {
+    test('turning the copy on keeps the chosen folder', () async {
       await notifier.setBackupLocation('/custom/path');
       await notifier.setCloudBackupEnabled(true);
 
       expect(notifier.state.cloudBackupEnabled, isTrue);
-      expect(notifier.state.backupLocation, isNull);
-      expect(prefs.getSettings().backupLocation, isNull);
+      expect(notifier.state.backupLocation, '/custom/path');
+      expect(prefs.getSettings().backupLocation, '/custom/path');
     });
 
-    test('choosing a custom location turns cloud backup off', () async {
+    test('choosing a folder keeps the cloud copy on', () async {
       await notifier.setCloudBackupEnabled(true);
       await notifier.setBackupLocation('/custom/path');
 
-      expect(notifier.state.cloudBackupEnabled, isFalse);
+      expect(notifier.state.cloudBackupEnabled, isTrue);
+      expect(prefs.getSettings().cloudBackupEnabled, isTrue);
+    });
+
+    test('a bookmarked folder keeps the cloud copy on', () async {
+      await notifier.setCloudBackupEnabled(true);
+      await notifier.setBackupLocationWithBookmark('/icloud/dir', [9]);
+
+      expect(notifier.state.cloudBackupEnabled, isTrue);
+      expect(notifier.state.backupLocation, '/icloud/dir');
+    });
+
+    test('a SAF folder keeps the cloud copy on', () async {
+      await notifier.setCloudBackupEnabled(true);
+      await notifier.setSafBackupLocation('content://tree/1', 'Backups');
+
+      expect(notifier.state.cloudBackupEnabled, isTrue);
+      expect(notifier.state.backupLocation, 'content://tree/1');
+    });
+
+    test('turning the copy off and on again keeps the folder', () async {
+      await notifier.setBackupLocation('/custom/path');
+      await notifier.setNoCopy();
+      await notifier.setCopyFollowsSync();
+
+      expect(notifier.state.cloudBackupEnabled, isTrue);
       expect(notifier.state.backupLocation, '/custom/path');
-      expect(prefs.getSettings().cloudBackupEnabled, isFalse);
     });
 
     test(
-      'clearing the location back to default keeps cloud backup state',
+      'useDefaultBackupLocation clears the folder, bookmark and label',
       () async {
-        await notifier.setBackupLocation('/custom/path');
-        await notifier.setBackupLocation(null);
+        await notifier.setCloudBackupEnabled(true);
+        await notifier.setBackupLocationWithBookmark('/icloud/dir', [1, 2]);
+        await prefs.setBackupLocationLabel('Backups');
+
+        await notifier.useDefaultBackupLocation();
 
         expect(notifier.state.backupLocation, isNull);
-        expect(notifier.state.cloudBackupEnabled, isFalse);
+        expect(prefs.getBackupLocationBookmark(), isNull);
+        expect(prefs.backupLocationLabel, isNull);
+        expect(notifier.state.cloudBackupEnabled, isTrue);
       },
     );
   });
@@ -77,15 +120,6 @@ void main() {
       expect(prefs.getBackupLocationBookmark(), [1, 2, 3]);
     });
 
-    test('turns cloud backup off (mutually exclusive destinations)', () async {
-      await notifier.setCloudBackupEnabled(true);
-
-      await notifier.setBackupLocationWithBookmark('/icloud/dir', [9]);
-
-      expect(notifier.state.cloudBackupEnabled, isFalse);
-      expect(notifier.state.backupLocation, '/icloud/dir');
-    });
-
     test('accepts a null bookmark (desktop bare-path case)', () async {
       await notifier.setBackupLocationWithBookmark('/desktop/dir', null);
 
@@ -94,105 +128,59 @@ void main() {
     });
   });
 
-  group('disableCloudBackup (cloud sync sign-out hook)', () {
-    test('turns cloud backup off and resets the location', () async {
-      await notifier.setCloudBackupEnabled(true);
-
-      await notifier.disableCloudBackup();
-
-      expect(notifier.state.cloudBackupEnabled, isFalse);
-      expect(notifier.state.backupLocation, isNull);
-      expect(prefs.getSettings().cloudBackupEnabled, isFalse);
+  group('copy destination', () {
+    test('starts as the same account as sync', () {
+      expect(notifier.state.copyAccountId, isNull);
+      expect(notifier.state.copyAccountKind, isNull);
     });
 
-    test('leaves an unrelated custom location untouched', () async {
-      await notifier.setBackupLocation('/custom/path');
+    test('setCopyTo stores the row and turns the copy on', () async {
+      await notifier.setCopyTo(_row('acct-b', AccountKind.s3));
 
-      await notifier.disableCloudBackup();
-
-      expect(notifier.state.cloudBackupEnabled, isFalse);
-      expect(notifier.state.backupLocation, '/custom/path');
-    });
-  });
-
-  group('mutual exclusion holds across partial writes', () {
-    // The two keys are written in separate awaited steps. If the app is killed
-    // between them, whatever was persisted by the first step is the durable
-    // state -- so no intermediate write may leave BOTH cloud backup enabled
-    // AND a custom location set. This recording subclass snapshots the
-    // persisted combination after every underlying write.
-    test('enabling cloud backup never persists an enabled+custom-location '
-        'combination, even transiently', () async {
-      final recording = _RecordingBackupPreferences(
-        await SharedPreferences.getInstance(),
-      );
-      final n = BackupSettingsNotifier(recording);
-      await n.setBackupLocation('/custom/path');
-      recording.snapshots.clear();
-
-      await n.setCloudBackupEnabled(true);
-
-      expect(
-        recording.snapshots.where((s) => s.cloudBackupEnabled && s.hasLocation),
-        isEmpty,
-        reason:
-            'clearing the location must be persisted before enabling cloud '
-            'backup, so a crash between writes cannot strand the invalid '
-            'enabled+custom-location combination',
-      );
-      expect(n.state.cloudBackupEnabled, isTrue);
-      expect(n.state.backupLocation, isNull);
+      expect(notifier.state.cloudBackupEnabled, isTrue);
+      final read = prefs.getSettings();
+      expect(read.copyAccountId, 'acct-b');
+      expect(read.copyAccountKind, AccountKind.s3);
+      expect(read.cloudBackupEnabled, isTrue);
     });
 
-    test('choosing a custom location never persists an enabled+custom-location '
-        'combination, even transiently', () async {
-      final recording = _RecordingBackupPreferences(
-        await SharedPreferences.getInstance(),
-      );
-      final n = BackupSettingsNotifier(recording);
-      await n.setCloudBackupEnabled(true);
-      recording.snapshots.clear();
+    test('setCopyFollowsSync clears the row and keeps the copy on', () async {
+      await notifier.setCopyTo(_row('acct-b', AccountKind.dropbox));
 
-      await n.setBackupLocation('/custom/path');
+      await notifier.setCopyFollowsSync();
 
-      expect(
-        recording.snapshots.where((s) => s.cloudBackupEnabled && s.hasLocation),
-        isEmpty,
-        reason:
-            'disabling cloud backup must be persisted before setting the '
-            'custom location',
-      );
-      expect(n.state.cloudBackupEnabled, isFalse);
-      expect(n.state.backupLocation, '/custom/path');
+      final read = prefs.getSettings();
+      expect(read.copyAccountId, isNull);
+      expect(read.copyAccountKind, isNull);
+      expect(read.cloudBackupEnabled, isTrue);
+    });
+
+    test('setNoCopy turns the copy off and clears the row', () async {
+      await notifier.setCopyTo(_row('acct-b', AccountKind.dropbox));
+
+      await notifier.setNoCopy();
+
+      final read = prefs.getSettings();
+      expect(read.cloudBackupEnabled, isFalse);
+      expect(read.copyAccountId, isNull);
+      expect(notifier.state.copyAccountId, isNull);
+    });
+
+    test('pinCopyTo stores the row without turning the copy on', () async {
+      await notifier.pinCopyTo(_row('acct-c', AccountKind.icloud));
+
+      final read = prefs.getSettings();
+      expect(read.copyAccountId, 'acct-c');
+      expect(read.copyAccountKind, AccountKind.icloud);
+      expect(read.cloudBackupEnabled, isFalse);
     });
   });
 }
 
-/// Records the persisted (cloudBackupEnabled, hasLocation) combination after
-/// every underlying write, so tests can assert the mutual-exclusion invariant
-/// is never violated between the notifier's two awaited steps.
-class _RecordingBackupPreferences extends BackupPreferences {
-  _RecordingBackupPreferences(super.prefs);
-
-  final List<({bool cloudBackupEnabled, bool hasLocation})> snapshots = [];
-
-  void _snapshot() {
-    final s = getSettings();
-    snapshots.add((
-      cloudBackupEnabled: s.cloudBackupEnabled,
-      hasLocation: s.backupLocation != null,
-    ));
-  }
-
-  @override
-  Future<void> setCloudBackupEnabled(bool value) async {
-    await super.setCloudBackupEnabled(value);
-    _snapshot();
-  }
-
-  @override
-  Future<void> setBackupLocation(String? path) async {
-    await super.setBackupLocation(path);
-    _snapshot();
-  }
-}
+ConnectedAccount _row(String id, AccountKind kind) => ConnectedAccount(
+  id: id,
+  kind: kind,
+  label: id,
+  createdAt: DateTime(2026),
+  updatedAt: DateTime(2026),
+);

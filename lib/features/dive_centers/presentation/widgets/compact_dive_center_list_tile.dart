@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
+import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_closed_tag.dart';
 import 'package:submersion/shared/selection/selection_checkbox_slot.dart';
 
 /// Two-line compact card tile for the dive center list.
@@ -35,7 +36,7 @@ class CompactDiveCenterListTile extends StatelessWidget {
         : null;
     final secondaryTextColor = colorScheme.onSurfaceVariant;
 
-    return Card(
+    final card = Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
       color: cardColor,
       child: Semantics(
@@ -63,11 +64,15 @@ class CompactDiveCenterListTile extends StatelessWidget {
                       Row(
                         children: [
                           Expanded(
-                            child: Text(
-                              center.name,
-                              style: Theme.of(context).textTheme.bodyMedium
-                                  ?.copyWith(fontWeight: FontWeight.w600),
-                              overflow: TextOverflow.ellipsis,
+                            child: DiveCenterNameWithTag(
+                              closed: center.isPermanentlyClosed,
+                              gap: 6,
+                              name: Text(
+                                center.name,
+                                style: Theme.of(context).textTheme.bodyMedium
+                                    ?.copyWith(fontWeight: FontWeight.w600),
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
                           ),
                           const SizedBox(width: 8),
@@ -104,5 +109,7 @@ class CompactDiveCenterListTile extends StatelessWidget {
         ),
       ),
     );
+    // A permanently closed center stays listed, greyed (#3379).
+    return greyIfClosed(closed: center.isPermanentlyClosed, child: card);
   }
 }

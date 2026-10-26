@@ -29,6 +29,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/world_map_expectations.dart';
 
 /// Records `updateCorrection` calls instead of touching a real database.
 class _RecordingNavTrackRepository extends NavTrackRepository {
@@ -164,6 +165,67 @@ void main() {
   );
 
   testWidgets(
+    'picking a suggestion chip while "Start auf der Karte setzen" is still '
+    'awaiting a map tap cancels that crosshair flow, so a later accidental '
+    'tap of the still-visible "Set start here" button cannot silently '
+    'overwrite the chip\'s choice (code review)',
+    (tester) async {
+      const site = DiveSite(
+        id: 'site-1',
+        name: 'Test Site',
+        location: GeoPoint(47.1, 8.3),
+      );
+      await _pump(
+        tester,
+        route: _route(siteId: 'site-1'),
+        site: site,
+      );
+
+      await tester.tap(
+        find.byKey(const ValueKey('nav-track-align-place-start')),
+      );
+      await tester.pump();
+      expect(
+        find.byKey(const ValueKey('nav-track-align-set-here')),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.byKey(const ValueKey('nav-track-align-from-site')));
+      await tester.pump();
+
+      expect(
+        find.byKey(const ValueKey('nav-track-align-set-here')),
+        findsNothing,
+      );
+    },
+  );
+
+  testWidgets(
+    'picking an end-mode chip while "Ende auf der Karte setzen" is still '
+    'awaiting a map tap cancels that crosshair flow the same way',
+    (tester) async {
+      await _pump(tester, route: _route());
+
+      await tester.tap(find.byKey(const ValueKey('nav-track-align-place-end')));
+      await tester.pump();
+      expect(
+        find.byKey(const ValueKey('nav-track-align-set-here')),
+        findsOneWidget,
+      );
+
+      await tester.tap(
+        find.byKey(const ValueKey('nav-track-align-end-same-as-start')),
+      );
+      await tester.pump();
+
+      expect(
+        find.byKey(const ValueKey('nav-track-align-set-here')),
+        findsNothing,
+      );
+    },
+  );
+
+  testWidgets(
     'the "From dive entry" chip sets the anchor from the linked dive',
     (tester) async {
       final dive = Dive(
@@ -215,6 +277,91 @@ void main() {
 
     expect(repository.lastCorrection?.anchor, const GeoPoint(47.1, 8.3));
   });
+
+  testWidgets(
+    'the start row mirrors the end row: picking a suggestion chip marks '
+    'that chip selected, not the "place on map" button, and no other chip',
+    (tester) async {
+      const site = DiveSite(
+        id: 'site-1',
+        name: 'Test Site',
+        location: GeoPoint(47.1, 8.3),
+      );
+      final dive = Dive(
+        id: 'dive-1',
+        diveNumber: 1,
+        dateTime: DateTime(2026, 8, 22, 10, 8),
+        entryLocation: const GeoPoint(46.9, 7.2),
+      );
+      await _pump(
+        tester,
+        route: _route(diveId: 'dive-1', siteId: 'site-1'),
+        linkedDive: dive,
+        site: site,
+      );
+
+      FilterChip chipByKey(String key) =>
+          tester.widget<FilterChip>(find.byKey(ValueKey(key)));
+      bool placeButtonChecked() => find
+          .descendant(
+            of: find.byKey(const ValueKey('nav-track-align-place-start')),
+            matching: find.byIcon(Icons.check),
+          )
+          .evaluate()
+          .isNotEmpty;
+
+      expect(chipByKey('nav-track-align-from-site').selected, isFalse);
+      expect(placeButtonChecked(), isFalse);
+
+      await tester.tap(find.byKey(const ValueKey('nav-track-align-from-site')));
+      await tester.pump();
+
+      expect(chipByKey('nav-track-align-from-site').selected, isTrue);
+      expect(chipByKey('nav-track-align-from-dive-entry').selected, isFalse);
+      expect(placeButtonChecked(), isFalse);
+    },
+  );
+
+  testWidgets(
+    'manually placing the start point (not from a suggestion) checks the '
+    '"Start auf der Karte setzen" button instead of any chip',
+    (tester) async {
+      final dive = Dive(
+        id: 'dive-1',
+        diveNumber: 1,
+        dateTime: DateTime(2026, 8, 22, 10, 8),
+        entryLocation: const GeoPoint(46.9, 7.2),
+      );
+      await _pump(
+        tester,
+        route: _route(diveId: 'dive-1'),
+        linkedDive: dive,
+      );
+
+      await tester.tap(
+        find.byKey(const ValueKey('nav-track-align-place-start')),
+      );
+      await tester.pump();
+      await tester.tap(find.byKey(const ValueKey('nav-track-align-set-here')));
+      await tester.pump();
+
+      expect(
+        find.descendant(
+          of: find.byKey(const ValueKey('nav-track-align-place-start')),
+          matching: find.byIcon(Icons.check),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        tester
+            .widget<FilterChip>(
+              find.byKey(const ValueKey('nav-track-align-from-dive-entry')),
+            )
+            .selected,
+        isFalse,
+      );
+    },
+  );
 
   testWidgets(
     'the "From site" chip still works after other controls triggered a '
@@ -330,6 +477,89 @@ void main() {
   );
 
   testWidgets(
+    'the "From GPS" chip stays selected across an unrelated rebuild (code '
+    'review: its suggestion is a GeoPoint re-derived by floating-point '
+    'arithmetic on every build, not a cached value, so the chip must not '
+    'rely on exact == equality against the anchor stored at selection time)',
+    (tester) async {
+      const site = DiveSite(
+        id: 'site-1',
+        name: 'Test Site',
+        location: GeoPoint(47.1, 8.3),
+      );
+      final preDiveFixPoints = [
+        const NavTrackPoint(timestamp: 1755856800, north: 0, east: 0, depth: 0),
+        const NavTrackPoint(
+          timestamp: 1755856802,
+          north: 100,
+          east: 0,
+          depth: 0,
+        ),
+        const NavTrackPoint(
+          timestamp: 1755856804,
+          north: 100,
+          east: 0,
+          depth: 0,
+        ),
+        const NavTrackPoint(
+          timestamp: 1755856806,
+          north: 100,
+          east: 0,
+          depth: 5,
+        ),
+        const NavTrackPoint(
+          timestamp: 1755856808,
+          north: 105,
+          east: 2,
+          depth: 8,
+        ),
+      ];
+      final route = NavTrack(
+        id: 'r1',
+        siteId: 'site-1',
+        source: NavTrackSource.seacraftEnc,
+        sourceRef: 'r1.csv',
+        startTime: 1755856800000,
+        endTime: 1755856808000,
+        pointCount: preDiveFixPoints.length,
+        points: preDiveFixPoints,
+        createdAt: DateTime(2026, 8, 22),
+        updatedAt: DateTime(2026, 8, 22),
+      );
+
+      await _pump(tester, route: route, site: site);
+
+      await tester.tap(find.byKey(const ValueKey('nav-track-align-from-gps')));
+      await tester.pump();
+      expect(
+        tester
+            .widget<FilterChip>(
+              find.byKey(const ValueKey('nav-track-align-from-gps')),
+            )
+            .selected,
+        isTrue,
+      );
+
+      // An unrelated control rebuilds _ControlsPanel, which re-derives the
+      // "From GPS" suggestion from scratch again.
+      await tester.drag(
+        find.byKey(const ValueKey('nav-track-align-trust-slider')),
+        const Offset(20, 0),
+      );
+      await tester.pump();
+
+      expect(
+        tester
+            .widget<FilterChip>(
+              find.byKey(const ValueKey('nav-track-align-from-gps')),
+            )
+            .selected,
+        isTrue,
+      );
+    },
+  );
+
+  testWidgets(
     'the "From GPS" chip does not appear for a route with no pre-dive fix',
     (tester) async {
       const site = DiveSite(
@@ -392,21 +622,184 @@ void main() {
     );
   });
 
-  testWidgets('the end mode dropdown switches to "same as start"', (
+  testWidgets('the "Same as start" end chip switches the end mode', (
     tester,
   ) async {
     final repository = await _pump(tester, route: _route());
 
-    await tester.tap(find.byKey(const ValueKey('nav-track-align-end-mode')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Same as start').last);
-    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const ValueKey('nav-track-align-end-same-as-start')),
+    );
+    await tester.pump();
 
     await tester.tap(find.byKey(const ValueKey('nav-track-align-save')));
     await tester.pumpAndSettle();
 
     expect(repository.lastCorrection?.endMode, NavTrackEndMode.sameAsStart);
   });
+
+  testWidgets(
+    'the end chips mirror the start chips\' button+chips look, and only '
+    'one end mode is selected at a time',
+    (tester) async {
+      await _pump(tester, route: _route());
+
+      FilterChip chipByKey(String key) =>
+          tester.widget<FilterChip>(find.byKey(ValueKey(key)));
+
+      // "None" is the default end mode, so its chip starts selected.
+      expect(chipByKey('nav-track-align-end-none').selected, isTrue);
+      expect(chipByKey('nav-track-align-end-same-as-start').selected, isFalse);
+
+      await tester.tap(
+        find.byKey(const ValueKey('nav-track-align-end-same-as-start')),
+      );
+      await tester.pump();
+
+      expect(chipByKey('nav-track-align-end-none').selected, isFalse);
+      expect(chipByKey('nav-track-align-end-same-as-start').selected, isTrue);
+    },
+  );
+
+  testWidgets(
+    'the "GPS position at surfacing" end chip only appears for a route '
+    'with a post-dive fix, and selecting it sets the end mode',
+    (tester) async {
+      final track = parseSeacraftEncCsv(
+        File(
+          'test/fixtures/nav_tracks/seacraft_enc3_gps_fix.csv',
+        ).readAsBytesSync(),
+      );
+      final fixRoute = NavTrack(
+        id: 'r-fix',
+        source: NavTrackSource.seacraftEnc,
+        sourceRef: 'fix.csv',
+        startTime: track.points.first.timestamp * 1000,
+        endTime: track.points.last.timestamp * 1000,
+        pointCount: track.points.length,
+        points: track.points,
+        anchorLatitude: 47.1,
+        anchorLongitude: 8.3,
+        createdAt: DateTime(2026, 9, 6),
+        updatedAt: DateTime(2026, 9, 6),
+      );
+
+      final repository = await _pump(tester, route: fixRoute);
+
+      final chipFinder = find.byKey(
+        const ValueKey('nav-track-align-end-gps-fix'),
+      );
+      expect(chipFinder, findsOneWidget);
+      await tester.tap(chipFinder);
+      await tester.pump();
+
+      await tester.tap(find.byKey(const ValueKey('nav-track-align-save')));
+      await tester.pumpAndSettle();
+
+      expect(repository.lastCorrection?.endMode, NavTrackEndMode.gpsFix);
+    },
+  );
+
+  testWidgets(
+    'the "GPS position at surfacing" end chip does not appear for a route '
+    'with no fix event',
+    (tester) async {
+      await _pump(tester, route: _route());
+
+      expect(
+        find.byKey(const ValueKey('nav-track-align-end-gps-fix')),
+        findsNothing,
+      );
+    },
+  );
+
+  testWidgets(
+    'the "GPS position at surfacing" end chip does not appear for a route '
+    'with only a pre-dive fix (review finding: hasFix alone is true for '
+    'ANY fix event, but NavTrackEndMode.gpsFix only ever resolves against '
+    'a post-dive one, so gating on hasFix would show a chip that silently '
+    'did nothing)',
+    (tester) async {
+      final preDiveFixOnlyPoints = [
+        const NavTrackPoint(timestamp: 1755856800, north: 0, east: 0, depth: 0),
+        // A pre-dive GPS re-calibration jump, before any underwater sample.
+        const NavTrackPoint(
+          timestamp: 1755856802,
+          north: 100,
+          east: 0,
+          depth: 0,
+        ),
+        const NavTrackPoint(
+          timestamp: 1755856804,
+          north: 100,
+          east: 0,
+          depth: 0,
+        ),
+        // Now descending and staying underwater until the recording ends:
+        // no post-dive fix at all.
+        const NavTrackPoint(
+          timestamp: 1755856806,
+          north: 100,
+          east: 0,
+          depth: 5,
+        ),
+        const NavTrackPoint(
+          timestamp: 1755856808,
+          north: 105,
+          east: 2,
+          depth: 8,
+        ),
+      ];
+      final route = NavTrack(
+        id: 'r1',
+        source: NavTrackSource.seacraftEnc,
+        sourceRef: 'r1.csv',
+        startTime: 1755856800000,
+        endTime: 1755856808000,
+        pointCount: preDiveFixOnlyPoints.length,
+        points: preDiveFixOnlyPoints,
+        createdAt: DateTime(2026, 8, 22),
+        updatedAt: DateTime(2026, 8, 22),
+      );
+
+      await _pump(tester, route: route);
+
+      expect(
+        find.byKey(const ValueKey('nav-track-align-end-gps-fix')),
+        findsNothing,
+      );
+    },
+  );
+
+  testWidgets(
+    'the "Place end on map" button starts the crosshair flow and sets the '
+    'point end mode once placed',
+    (tester) async {
+      final repository = await _pump(tester, route: _route());
+
+      await tester.tap(find.byKey(const ValueKey('nav-track-align-place-end')));
+      await tester.pump();
+      await tester.tap(find.byKey(const ValueKey('nav-track-align-set-here')));
+      await tester.pump();
+
+      // The dropdown this replaces always showed the current mode; the
+      // button mirrors that by switching to a checked, filled look once the
+      // point mode is active, instead of silently losing the indicator.
+      expect(
+        find.descendant(
+          of: find.byKey(const ValueKey('nav-track-align-place-end')),
+          matching: find.byIcon(Icons.check),
+        ),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.byKey(const ValueKey('nav-track-align-save')));
+      await tester.pumpAndSettle();
+
+      expect(repository.lastCorrection?.endMode, NavTrackEndMode.point);
+      expect(repository.lastCorrection?.endPoint, isNotNull);
+    },
+  );
 
   testWidgets(
     'dragging the trust slider updates the trust fraction and readout',
@@ -553,6 +946,23 @@ void main() {
       expect(repository.lastRouteId, 'r1');
       expect(repository.lastCorrection, isNotNull);
       expect(find.text('ROUTE_3D_PAGE'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'the "Open 3D" button uses the same icon as "3D-Unterwasserwelt" on the '
+    'dive detail page (Icons.terrain), not the unrelated AR-cube icon the '
+    "dive profile's own 3D preview uses",
+    (tester) async {
+      await _pump(tester, route: _route());
+
+      expect(
+        find.descendant(
+          of: find.byKey(const ValueKey('nav-track-align-3d')),
+          matching: find.byIcon(Icons.terrain),
+        ),
+        findsOneWidget,
+      );
     },
   );
 
@@ -1115,5 +1525,12 @@ void main() {
       await pumpAlign(tester, () async => null);
       expect(find.text('Track not found.'), findsOneWidget);
     });
+  });
+
+  testWidgets('the map zooms and scrolls like the other maps (#3664)', (
+    tester,
+  ) async {
+    await _pump(tester, route: _route());
+    expectZoomsAndScrollsLikeOtherMaps(tester);
   });
 }

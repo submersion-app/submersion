@@ -13,6 +13,7 @@ import 'package:submersion/features/gps_log/presentation/widgets/gps_recording_s
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/global_drop_target.dart';
+import 'package:submersion/shared/widgets/master_detail/list_memory_scope.dart';
 import 'package:submersion/shared/widgets/nav/nav_destinations.dart';
 import 'package:submersion/shared/widgets/nav/nav_order_provider.dart';
 import 'package:submersion/shared/widgets/nav/nav_selection.dart';
@@ -31,9 +32,9 @@ class MainScaffold extends ConsumerStatefulWidget {
 class _MainScaffoldState extends ConsumerState<MainScaffold> {
   /// Manual override for the rail's expanded/collapsed state, set by tapping
   /// the collapse arrow. `null` means "no manual override yet, follow
-  /// [navAlwaysHideLabelsProvider]'s default"; a non-null value means the
-  /// user overrode it for this session (#1424), same as before this setting
-  /// existed -- it is not persisted, so it resets on restart.
+  /// [navAlwaysHideLabelsDesktopProvider]'s default"; a non-null value means
+  /// the user overrode it for this session (#1424), same as before this
+  /// setting existed -- it is not persisted, so it resets on restart.
   bool? _isCollapsedOverride;
 
   /// Hide requests from pages inside the shell, such as the media viewer's
@@ -249,11 +250,15 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
         if (didPop || upLocation == null) return;
         context.go(upLocation);
       },
-      child: ShellChromeScope(
-        controller: _chromeController,
-        child: _chromeController.isHidden
-            ? _buildChromelessScaffold()
-            : _buildScaffold(context),
+      // Lives as long as the shell, so a record opened or a diver switched
+      // anywhere in it keeps the lists' memory straight (#3301).
+      child: ListMemoryScope(
+        child: ShellChromeScope(
+          controller: _chromeController,
+          child: _chromeController.isHidden
+              ? _buildChromelessScaffold()
+              : _buildScaffold(context),
+        ),
       ),
     );
   }
@@ -264,8 +269,12 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
     final isWideScreen = screenWidth >= 800;
     final isDesktopExtended = screenWidth >= 1200;
     final navAccent = _navAccentLookup(context);
-    final alwaysHideLabels =
-        ref.watch(navAlwaysHideLabelsProvider).value ?? false;
+    // Each surface reads its own setting (#3222); only one of the two is
+    // ever rendered per build, matching how railDestinations below only
+    // watches its provider on wide screens.
+    final alwaysHideLabels = isWideScreen
+        ? ref.watch(navAlwaysHideLabelsDesktopProvider).value ?? false
+        : ref.watch(navAlwaysHideLabelsPhoneProvider).value ?? false;
     // Watched only on wide screens: building this provider kicks off a
     // settings read for the rail order, and a phone never renders a rail.
     // Riverpod rebuilds subscriptions each build, so a resize into rail

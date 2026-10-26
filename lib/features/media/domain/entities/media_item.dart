@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:equatable/equatable.dart';
+import 'package:submersion/features/media/domain/color/color_adjustment.dart';
 import 'package:submersion/features/media/domain/entities/media_dive_window.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/domain/entities/site_attachment_category.dart';
@@ -121,6 +122,10 @@ class MediaItem extends Equatable {
   final int? compressedSizeBytes;
   final DateTime? remoteCompressedUploadedAt;
 
+  /// The media store the three remote stamps refer to (issue #3482); null
+  /// for stamps from before stores were recorded.
+  final String? remoteStoreId;
+
   /// Media section Phase 2: explicitly kept in the library while unlinked.
   /// The orphan sweep never GCs retained rows' store blobs.
   final bool retainInLibrary;
@@ -139,6 +144,10 @@ class MediaItem extends Equatable {
   /// The diver's size choice for this attachment, or null to follow
   /// [siteCategory]'s default (issue #1039).
   final AttachmentDisplaySize? displaySizeOverride;
+
+  /// The diver's hand colour adjustment (issue #3520), or null for none.
+  /// Display-only: applied when the item is drawn, never written to a file.
+  final ColorAdjustment? colorAdjustment;
 
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -185,10 +194,12 @@ class MediaItem extends Equatable {
     this.compressedLevel,
     this.compressedSizeBytes,
     this.remoteCompressedUploadedAt,
+    this.remoteStoreId,
     this.retainInLibrary = false,
     this.manualElapsedSeconds,
     this.siteCategory,
     this.displaySizeOverride,
+    this.colorAdjustment,
     required this.createdAt,
     required this.updatedAt,
     this.enrichment,
@@ -343,10 +354,12 @@ class MediaItem extends Equatable {
     Object? compressedLevel = _undefined,
     Object? compressedSizeBytes = _undefined,
     Object? remoteCompressedUploadedAt = _undefined,
+    Object? remoteStoreId = _undefined,
     bool? retainInLibrary,
     Object? manualElapsedSeconds = _undefined,
     Object? siteCategory = _undefined,
     Object? displaySizeOverride = _undefined,
+    Object? colorAdjustment = _undefined,
     DateTime? createdAt,
     DateTime? updatedAt,
     Object? enrichment = _undefined,
@@ -440,6 +453,9 @@ class MediaItem extends Equatable {
       remoteCompressedUploadedAt: remoteCompressedUploadedAt == _undefined
           ? this.remoteCompressedUploadedAt
           : remoteCompressedUploadedAt as DateTime?,
+      remoteStoreId: remoteStoreId == _undefined
+          ? this.remoteStoreId
+          : remoteStoreId as String?,
       retainInLibrary: retainInLibrary ?? this.retainInLibrary,
       manualElapsedSeconds: manualElapsedSeconds == _undefined
           ? this.manualElapsedSeconds
@@ -450,6 +466,9 @@ class MediaItem extends Equatable {
       displaySizeOverride: displaySizeOverride == _undefined
           ? this.displaySizeOverride
           : displaySizeOverride as AttachmentDisplaySize?,
+      colorAdjustment: colorAdjustment == _undefined
+          ? this.colorAdjustment
+          : colorAdjustment as ColorAdjustment?,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       enrichment: enrichment == _undefined
@@ -500,10 +519,12 @@ class MediaItem extends Equatable {
     compressedLevel,
     compressedSizeBytes,
     remoteCompressedUploadedAt,
+    remoteStoreId,
     retainInLibrary,
     manualElapsedSeconds,
     siteCategory,
     displaySizeOverride,
+    colorAdjustment,
     createdAt,
     updatedAt,
     enrichment,

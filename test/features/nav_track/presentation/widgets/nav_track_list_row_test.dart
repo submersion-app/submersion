@@ -6,6 +6,8 @@ import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/gps_log/presentation/widgets/track_title_row.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
@@ -117,17 +119,26 @@ void main() {
     expect(line, endsWith('10min'));
   });
 
-  testWidgets('a kind badge sits on the chip line, below the status line', (
+  testWidgets('a kind badge sits in the title row, above the status line', (
     tester,
   ) async {
     await _pumpRow(
       tester,
-      route: _route(id: 'r1', name: 'Wreck dive', distance: 1050, maxDepth: 38),
+      route: _route(
+        id: 'r1',
+        name: 'Wreck dive',
+        deviceName: 'Seacraft ENC3',
+        distance: 1050,
+        maxDepth: 38,
+      ),
       kindBadge: const SizedBox(key: ValueKey('badge'), width: 10, height: 10),
     );
+    // The meta line (date + device, still joined with ' · ') is what used to
+    // be called the "status line"; distance/depth/duration moved out of it
+    // into the stat row below.
     final status = tester.getRect(find.textContaining(' · '));
     final badge = tester.getRect(find.byKey(const ValueKey('badge')));
-    expect(badge.top, greaterThanOrEqualTo(status.bottom));
+    expect(badge.bottom, lessThanOrEqualTo(status.top));
   });
 
   testWidgets('no delete button without a delete callback', (tester) async {
@@ -203,7 +214,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const ValueKey('nav-track-link-chip')));
+    await tester.tap(find.byKey(const ValueKey('nav-track-link-label')));
     await tester.pumpAndSettle();
 
     expect(find.text('dive page dive-1'), findsOneWidget);
@@ -246,13 +257,84 @@ void main() {
     expect(find.textContaining('#412'), findsOneWidget);
   });
 
+  group('site as title', () {
+    testWidgets(
+      'a linked route whose dive has a site shows the site as the title, '
+      'the route\'s own name demoted to a meta line',
+      (tester) async {
+        final dive = Dive(
+          id: 'dive-1',
+          diveNumber: 412,
+          dateTime: DateTime(2026, 8, 22, 10, 8),
+          site: const DiveSite(id: 'site-1', name: 'Blue Hole'),
+        );
+        await _pumpRow(
+          tester,
+          route: _route(id: 'r1', name: '020.DAT.csv', diveId: 'dive-1'),
+          linkedDive: dive,
+        );
+
+        expect(find.text('Blue Hole'), findsOneWidget);
+        expect(find.text('020.DAT.csv'), findsOneWidget);
+        final tile = tester.widget<ListTile>(find.byType(ListTile));
+        expect((tile.title! as TrackTitleRow).title, 'Blue Hole');
+      },
+    );
+
+    testWidgets(
+      'a linked route whose dive is still loading shows the route\'s own '
+      'name, not a blank title',
+      (tester) async {
+        await _pumpRow(
+          tester,
+          route: _route(id: 'r1', name: '020.DAT.csv', diveId: 'dive-1'),
+          // No `linkedDive` override: diveProvider('dive-1') stays pending.
+        );
+
+        final tile = tester.widget<ListTile>(find.byType(ListTile));
+        expect((tile.title! as TrackTitleRow).title, '020.DAT.csv');
+      },
+    );
+
+    testWidgets(
+      'a linked route whose dive has no site shows the route\'s own name',
+      (tester) async {
+        final dive = Dive(
+          id: 'dive-1',
+          diveNumber: 412,
+          dateTime: DateTime(2026, 8, 22, 10, 8),
+        );
+        await _pumpRow(
+          tester,
+          route: _route(id: 'r1', name: '020.DAT.csv', diveId: 'dive-1'),
+          linkedDive: dive,
+        );
+
+        final tile = tester.widget<ListTile>(find.byType(ListTile));
+        expect((tile.title! as TrackTitleRow).title, '020.DAT.csv');
+      },
+    );
+
+    testWidgets('an unlinked route shows its own name, unaffected', (
+      tester,
+    ) async {
+      await _pumpRow(
+        tester,
+        route: _route(id: 'r1', name: '020.DAT.csv'),
+      );
+
+      final tile = tester.widget<ListTile>(find.byType(ListTile));
+      expect((tile.title! as TrackTitleRow).title, '020.DAT.csv');
+    });
+  });
+
   testWidgets(
     'a linked row keeps its name and status line readable on a narrow '
     'phone in German (#2692)',
     (tester) async {
       // "Tauchgang #412" is far wider than "Dive #412". A ListTile measures
-      // its trailing widget against the full tile width first, so a link chip
-      // there starved the file name down to one fragment per line.
+      // its trailing widget against the full tile width first, so a link
+      // label there starved the file name down to one fragment per line.
       await tester.binding.setSurfaceSize(const Size(360, 800));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
@@ -278,8 +360,8 @@ void main() {
 
       final title = tester.getRect(find.text(name));
       final status = tester.getRect(find.textContaining(' · '));
-      final chip = tester.getRect(
-        find.byKey(const ValueKey('nav-track-link-chip')),
+      final label = tester.getRect(
+        find.byKey(const ValueKey('nav-track-link-label')),
       );
 
       expect(
@@ -287,13 +369,13 @@ void main() {
         greaterThan(150),
         reason:
             'Name collapsed to ${title.width}px wide on a 360px screen; the '
-            'link chip is starving the ListTile text column.',
+            'link label is starving the ListTile text column.',
       );
       expect(status.width, greaterThan(150));
       expect(
-        chip.top,
+        label.top,
         greaterThanOrEqualTo(status.bottom),
-        reason: 'The link chip belongs on its own line below the status line.',
+        reason: 'The link label belongs on its own line below the status line.',
       );
     },
   );

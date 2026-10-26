@@ -5,6 +5,7 @@ import 'package:submersion/features/media/domain/entities/media_source_type.dart
 import 'package:submersion/features/media/domain/services/media_source_resolver.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
 import 'package:submersion/features/media/domain/value_objects/verify_result.dart';
+import 'package:submersion/features/media_store/domain/media_backup_status.dart';
 
 /// The remote fetch shape of MediaStoreResolver.tryResolveRemote, taken as a
 /// tear-off so this resolver composes the existing store fallback instead of
@@ -22,9 +23,15 @@ typedef RemoteResolve =
 /// [remote] is read per call so connecting or disconnecting a store takes
 /// effect without rebuilding the resolver registry's consumers.
 class MediaStoreSourceResolver implements MediaSourceResolver {
-  MediaStoreSourceResolver({required this.remote});
+  MediaStoreSourceResolver({required this.remote, this.storeId});
 
   final RemoteResolve? Function() remote;
+
+  /// The attached store's id, read per call like [remote]. [verify] reads a
+  /// row's stamp through it (issue #3482): a stamp made in another store
+  /// says nothing about this one. Null, or a null answer, reads every stamp
+  /// as it stands.
+  final String? Function()? storeId;
 
   @override
   MediaSourceType get sourceType => MediaSourceType.mediaStore;
@@ -72,7 +79,14 @@ class MediaStoreSourceResolver implements MediaSourceResolver {
     // Store unreachable/unconfigured is transient: cloud-backed rows must
     // never orphan for a reason that is not about the store's contents.
     if (remote() == null) return VerifyResult.transientError;
-    return (item.contentHash != null && item.remoteUploadedAt != null)
+    final attached = storeId?.call();
+    // Stamped in another store (issue #3569): the bytes are there, out of
+    // this device's reach while it stays on this one. notFound would set the
+    // sticky, synced missing flag on every device, so it reads as a reach
+    // problem, which the verifier never writes.
+    if (stampedElsewhere(item, attached)) return VerifyResult.fromOtherDevice;
+    final seen = stampsInStore(item, attached);
+    return (seen.contentHash != null && seen.remoteUploadedAt != null)
         ? VerifyResult.available
         : VerifyResult.notFound;
   }

@@ -120,6 +120,23 @@ void main() {
     expect(kept.every((k) => k.heirId == 'anna'), isTrue);
   });
 
+  test('an extra regulator on another profile tank counts (#3375)', () async {
+    await addItem('reg2', 'bill');
+    await addDive('d1', 'anna', 1000);
+    await db
+        .into(db.diveTanks)
+        .insert(
+          DiveTanksCompanion.insert(
+            id: 'dt1',
+            diveId: 'd1',
+            extraRegulatorIds: const Value('["reg2"]'),
+          ),
+        );
+    final kept = await service.keptUnitsForDiver('bill');
+    expect({for (final k in kept) ...k.unit}, {'reg2'});
+    expect(kept.single.heirId, 'anna');
+  });
+
   test('the whole unit is kept when one of its items is needed', () async {
     await addItem('ccr', 'bill');
     await addItem('cell', 'bill', host: 'ccr');

@@ -75,7 +75,7 @@ class UnitDetector {
     if (match == null) return null;
 
     final rawUnit = match.group(1)!.trim().toLowerCase();
-    final unitAndType = _resolveUnitString(rawUnit);
+    final unitAndType = resolveUnitToken(rawUnit);
     if (unitAndType == null) return null;
 
     return ColumnUnitDetection(
@@ -185,7 +185,7 @@ class UnitDetector {
   /// Resolve a lowercase unit token to a ([DetectedUnit], [UnitType]) pair.
   ///
   /// Returns null for unrecognised tokens.
-  (DetectedUnit, UnitType)? _resolveUnitString(String unit) {
+  static (DetectedUnit, UnitType)? resolveUnitToken(String unit) {
     switch (unit) {
       case 'm':
       case 'meters':

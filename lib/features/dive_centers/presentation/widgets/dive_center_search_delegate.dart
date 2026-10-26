@@ -4,6 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
+import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_closed_tag.dart';
 import 'package:submersion/shared/widgets/debounced_search_results.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
 
@@ -49,7 +50,7 @@ class DiveCenterSearchDelegate extends SearchDelegate<DiveCenter?> {
           itemCount: centers.length,
           itemBuilder: (context, index) {
             final center = centers[index];
-            return ListTile(
+            final tile = ListTile(
               leading: Builder(
                 builder: (context) {
                   final accent = resolveFeatureAccent(
@@ -76,7 +77,10 @@ class DiveCenterSearchDelegate extends SearchDelegate<DiveCenter?> {
                   );
                 },
               ),
-              title: Text(center.name),
+              title: DiveCenterNameWithTag(
+                closed: center.isPermanentlyClosed,
+                name: Text(center.name),
+              ),
               subtitle: center.fullLocationString != null
                   ? Text(center.fullLocationString!)
                   : null,
@@ -97,6 +101,11 @@ class DiveCenterSearchDelegate extends SearchDelegate<DiveCenter?> {
               // Opened over the search rather than in place of it, so back
               // from the detail returns to these results (#3377).
               onTap: () => context.push('/dive-centers/${center.id}'),
+            );
+            // A permanently closed center stays findable, greyed (#3379).
+            return greyIfClosed(
+              closed: center.isPermanentlyClosed,
+              child: tile,
             );
           },
         );

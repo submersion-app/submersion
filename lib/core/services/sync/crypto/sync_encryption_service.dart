@@ -5,6 +5,7 @@ import 'package:cryptography/cryptography.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
+import 'package:submersion/core/services/cloud_storage/deferred_write_provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/crypto/crypto_errors.dart';
 import 'package:submersion/core/services/sync/crypto/encryption_key_store.dart';
@@ -160,6 +161,8 @@ class SyncEncryptionService {
     final match = await _findKeyslotFile(rawProvider);
     if (match != null) {
       await rawProvider.deleteFile(match.id);
+      // A backend that batches deletes (Git) has only recorded it so far.
+      await flushDeferredWrites(rawProvider);
     }
   }
 

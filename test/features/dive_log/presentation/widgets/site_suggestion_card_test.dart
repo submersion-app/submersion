@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/query/names/name_index.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
@@ -10,6 +11,10 @@ import 'package:submersion/features/dive_log/presentation/widgets/site_suggestio
 import 'package:submersion/features/dive_sites/data/services/site_matching_service.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_suggestion_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/rules/data/services/rule_engine.dart';
+import 'package:submersion/features/rules/domain/entities/rule_run.dart';
+import 'package:submersion/features/rules/presentation/providers/rule_providers.dart';
 
 import '../../../media/presentation/support/media_widget_harness.dart';
 import '../support/fake_matching_service.dart';
@@ -23,6 +28,35 @@ class _BlockingMatchingService extends FakeMatchingService {
   Future<ApplyResult> applyConfirmed(List<ConfirmedMatch> confirmed) async {
     await gate.future;
     return super.applyConfirmed(confirmed);
+  }
+}
+
+/// Materialises the bundled candidate it is asked to, once let go.
+class _BlockingCreatingService extends FakeMatchingService {
+  final gate = Completer<void>();
+
+  @override
+  Future<ApplyResult> applyConfirmed(List<ConfirmedMatch> confirmed) async {
+    await gate.future;
+    applied.addAll(confirmed);
+    return const ApplyResult(
+      divesLinked: 1,
+      sitesCreated: 1,
+      createdSiteIds: ['new'],
+    );
+  }
+}
+
+/// Notes when the logbook rules run, and changes nothing.
+class _RecordingEngine extends RuleEngine {
+  _RecordingEngine(this.order) : super(names: (_) async => NameIndex(const []));
+
+  final List<String> order;
+
+  @override
+  Future<RuleRunResult> run(RuleRunRequest request) async {
+    order.add('rules');
+    return RuleRunResult.noRules;
   }
 }
 
@@ -72,12 +106,17 @@ void main() {
     SiteSuggestion? suggestion, {
     DiveSite? currentSite,
     void Function(DiveSite)? onSiteChanged,
+    List<String>? rulesLog,
   }) => mediaTestApp(
     overrides: [
       siteSuggestionForDiveProvider(
         'd1',
       ).overrideWith((ref) async => suggestion),
       diveRepositoryProvider.overrideWithValue(dives),
+      // A site the card creates runs the logbook rules inside its write;
+      // these tests have no database for the real engine.
+      ruleEngineProvider.overrideWithValue(_RecordingEngine(rulesLog ?? [])),
+      validatedCurrentDiverIdProvider.overrideWith((ref) async => 'me'),
     ],
     home: Scaffold(
       body: SiteSuggestionCard(
@@ -296,6 +335,68 @@ void main() {
     expect(service.created.single.name, 'Wall');
     expect(reported?.id, 'created');
     expect(find.textContaining('Created site: Wall'), findsOneWidget);
+  });
+
+  testWidgets('a created site\'s rules run before the form takes it', (
+    tester,
+  ) async {
+    // The form copies the site's water type, entry and dive types: it must
+    // copy them as the site's rules (#3513) left them, as a site made in
+    // the site editor is.
+    final order = <String>[];
+    await tester.pumpWidget(
+      await host(
+        suggestionFor(service, status: ProposalStatus.none),
+        onSiteChanged: (_) => order.add('form'),
+        rulesLog: order,
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Create Site'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextFormField).first, 'Wall');
+    await tester.tap(find.widgetWithText(FilledButton, 'Create Site').last);
+    await tester.pumpAndSettle();
+    expect(order, ['rules', 'form']);
+  });
+
+  testWidgets('a site made as the card went away still gets its rules', (
+    tester,
+  ) async {
+    final order = <String>[];
+    final blocking = _BlockingCreatingService();
+    dives = _StubDiveRepository(
+      linkedSite: const DiveSite(id: 'new', name: 'Blue Hole'),
+    );
+    await tester.pumpWidget(
+      await host(
+        suggestionFor(
+          blocking,
+          recommended: 'osm_1',
+          candidates: const [
+            MatchCandidateView(
+              id: 'osm_1',
+              name: 'Blue Hole',
+              isExisting: false,
+              distanceMeters: 40,
+              location: GeoPoint(0, 0),
+            ),
+          ],
+        ),
+        rulesLog: order,
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.textContaining('Assign Blue Hole'));
+    await tester.pump();
+    // The diver leaves while the site is being made.
+    await tester.pumpWidget(
+      const MaterialApp(home: Scaffold(body: SizedBox())),
+    );
+    await tester.pumpAndSettle();
+    blocking.gate.complete();
+    await tester.pumpAndSettle();
+    expect(order, ['rules']);
   });
 
   testWidgets('a write that finishes after disposal does not throw', (

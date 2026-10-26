@@ -1,5 +1,6 @@
 import 'package:csv/csv.dart';
 
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_column.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_list_codec.dart';
@@ -82,7 +83,9 @@ class CsvSitesWriter {
         // Typical current has no backing column; the header position is kept
         // so existing consumers of this CSV keep their column offsets.
         '',
-        site.entryMethod?.displayName ?? '',
+        // A site may list several (#2054): one cell, the same '; ' list the
+        // site types and tags use.
+        sanitizeCsvField(_methodNames(site.entryMethods)),
         site.rating?.toStringAsFixed(1) ?? '',
         sanitizeCsvField(site.description.replaceAll('\n', ' ')),
         sanitizeCsvField(site.notes.replaceAll('\n', ' ')),
@@ -96,7 +99,7 @@ class CsvSitesWriter {
         sanitizeCsvField(site.accessNotes?.replaceAll('\n', ' ')),
         sanitizeCsvField(site.mooringNumber),
         sanitizeCsvField(site.parkingInfo?.replaceAll('\n', ' ')),
-        site.exitMethod?.displayName ?? '',
+        sanitizeCsvField(_methodNames(site.exitMethods)),
         sanitizeCsvField(joinCsvList(typeNamesBySite[site.id] ?? const [])),
         sanitizeCsvField(joinCsvList(tagNamesBySite[site.id] ?? const [])),
         sanitizeCsvField(
@@ -108,3 +111,6 @@ class CsvSitesWriter {
     return const ListToCsvConverter().convert(rows);
   }
 }
+
+String _methodNames(List<EntryMethod> methods) =>
+    joinCsvList(methods.map((m) => m.displayName));

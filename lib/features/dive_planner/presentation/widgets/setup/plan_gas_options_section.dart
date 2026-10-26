@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
+import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_choice_wrap.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_number_field.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -26,6 +27,9 @@ class PlanGasOptionsSection extends ConsumerWidget {
     final units = UnitFormatter(settings);
     final globalPpO2Working = ref.watch(ppO2MaxWorkingProvider);
     final globalPpO2Deco = ref.watch(ppO2MaxDecoProvider);
+    // Typed so `??` does not infer the watch as nullable.
+    final double bottomRmv =
+        state.sacRate ?? ref.watch(plannerSacBottomProvider);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -41,7 +45,7 @@ class PlanGasOptionsSection extends ConsumerWidget {
           value: state.sacDeco != null
               ? units.convertRmv(state.sacDeco!)
               : null,
-          hintValue: units.convertRmv(15),
+          hintValue: units.convertRmv(ref.watch(plannerSacDecoProvider)),
           suffixText: units.rmvSymbol,
           // Same precision as Bottom RMV: 2 decimals for cuft/min (#1823).
           decimals: units.rmvDecimals,
@@ -51,32 +55,59 @@ class PlanGasOptionsSection extends ConsumerWidget {
           ),
         ),
         PlanNumberField(
+          // An absolute rate, matching what the plan stores (sacStressed):
+          // a typed factor stored as an absolute value would drift from
+          // what the diver typed as soon as bottom RMV changed. Unset, it
+          // follows bottom RMV times the diver's Settings stressed factor,
+          // which the hint shows resolved (issue #3552).
+          label: context.l10n.divePlanner_gasOptions_sacStressed,
+          value: state.sacStressed != null
+              ? units.convertRmv(state.sacStressed!)
+              : null,
+          hintValue: units.convertRmv(
+            bottomRmv * ref.watch(plannerSacStressedFactorProvider),
+          ),
+          suffixText: units.rmvSymbol,
+          decimals: units.rmvDecimals,
+          onChanged: (value) => notifier.updateGasOptions(
+            sacStressed: value != null ? units.volumeToLiters(value) : null,
+            clearSacStressed: value == null,
+          ),
+        ),
+        PlanNumberField(
           label: context.l10n.divePlanner_gasOptions_sacFactor,
           value: state.sacFactor,
-          hintValue: 2.0,
+          hintValue: ref.watch(plannerBuddyFactorProvider),
           suffixText: '×',
           decimals: 1,
-          onChanged: (value) =>
-              notifier.updateGasOptions(sacFactor: value ?? 2.0),
+          onChanged: (value) => notifier.updateGasOptions(
+            sacFactor: value,
+            clearSacFactor: value == null,
+          ),
         ),
         PlanNumberField(
           label: context.l10n.divePlanner_gasOptions_problemSolvingMinutes,
-          value: state.problemSolvingMinutes.toDouble(),
-          hintValue: 2,
+          value: state.problemSolvingMinutes?.toDouble(),
+          hintValue: ref.watch(plannerProblemSolvingMinutesProvider).toDouble(),
           suffixText: context.l10n.divePlanner_label_minutesUnit,
           isInteger: true,
           onChanged: (value) => notifier.updateGasOptions(
-            problemSolvingMinutes: (value ?? 2).round(),
+            problemSolvingMinutes: value?.round(),
+            clearProblemSolvingMinutes: value == null,
           ),
         ),
         PlanNumberField(
           label: context.l10n.divePlanner_gasOptions_gasSwitchStopSeconds,
-          value: (state.gasSwitchStopSeconds / 60).roundToDouble(),
-          hintValue: 0,
+          value: state.gasSwitchStopSeconds != null
+              ? (state.gasSwitchStopSeconds! / 60).roundToDouble()
+              : null,
+          hintValue: (ref.watch(plannerGasSwitchStopSecondsProvider) / 60)
+              .roundToDouble(),
           suffixText: context.l10n.divePlanner_label_minutesUnit,
           isInteger: true,
           onChanged: (value) => notifier.updateGasOptions(
-            gasSwitchStopSeconds: ((value ?? 0) * 60).round(),
+            gasSwitchStopSeconds: value != null ? (value * 60).round() : null,
+            clearGasSwitchStopSeconds: value == null,
           ),
         ),
         PlanNumberField(
@@ -103,21 +134,53 @@ class PlanGasOptionsSection extends ConsumerWidget {
         ),
         PlanNumberField(
           label: context.l10n.divePlanner_gasOptions_bestMixEnd,
-          value: units.convertDepth(state.bestMixEndMeters),
-          hintValue: units.convertDepth(30.0),
+          value: state.bestMixEndMeters != null
+              ? units.convertDepth(state.bestMixEndMeters!)
+              : null,
+          hintValue: units.convertDepth(
+            ref.watch(plannerBestMixEndMetersProvider),
+          ),
           suffixText: units.depthSymbol,
           decimals: 0,
           onChanged: (value) => notifier.updateGasOptions(
-            bestMixEndMeters: units.depthToMeters(
-              value ?? units.convertDepth(30.0),
-            ),
+            bestMixEndMeters: value != null ? units.depthToMeters(value) : null,
+            clearBestMixEndMeters: value == null,
           ),
         ),
-        SwitchListTile(
-          contentPadding: EdgeInsets.zero,
-          title: Text(context.l10n.divePlanner_gasOptions_o2Narcotic),
-          value: state.o2Narcotic ?? settings.o2Narcotic,
-          onChanged: (value) => notifier.updateGasOptions(o2Narcotic: value),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(context.l10n.divePlanner_gasOptions_o2Narcotic),
+              const SizedBox(height: 6),
+              // A Wrap of chips, not a SegmentedButton: see
+              // PlanLastStopSelector's matching fix for the full reasoning.
+              // Unlike a SegmentedButton, a Wrap can show the Default chip's
+              // resolved value without risking it pushing another chip out
+              // of view - a chip that does not fit just starts the next
+              // line.
+              PlanChoiceWrap<bool?>(
+                options: [
+                  (
+                    null,
+                    context.l10n.divePlanner_label_defaultWithValue(
+                      settings.o2Narcotic
+                          ? context.l10n.divePlanner_label_on
+                          : context.l10n.divePlanner_label_off,
+                    ),
+                  ),
+                  (true, context.l10n.divePlanner_label_on),
+                  (false, context.l10n.divePlanner_label_off),
+                ],
+                selected: state.o2Narcotic,
+                onChanged: (value) => notifier.updateGasOptions(
+                  o2Narcotic: value,
+                  clearO2Narcotic: value == null,
+                ),
+              ),
+            ],
+          ),
         ),
       ],
     );

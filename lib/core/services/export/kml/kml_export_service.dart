@@ -11,6 +11,7 @@ import 'package:submersion/core/services/export/shared/file_export_utils.dart';
 import 'package:submersion/core/services/export/shared/unit_converters.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/domain/entry_method_list.dart';
 import 'package:submersion/features/gps_log/domain/entities/gps_track.dart';
 
 /// Handles KML export for Google Earth visualization.
@@ -229,15 +230,21 @@ class KmlExportService {
         '<p><b>Water Type:</b> ${_escapeHtml(site.waterType!.displayName)}</p>',
       );
     }
-    if (site.entryMethod != null) {
-      buffer.writeln(
-        '<p><b>Entry:</b> ${_escapeHtml(site.entryMethod!.displayName)}</p>',
+    // A site may list several ways in and out (#2054). Exit is written only
+    // when it is a different set from entry.
+    if (site.entryMethods.isNotEmpty) {
+      final names = joinEntryMethodNames(
+        site.entryMethods,
+        (m) => m.displayName,
       );
+      buffer.writeln('<p><b>Entry:</b> ${_escapeHtml(names)}</p>');
     }
-    if (site.exitMethod != null && site.exitMethod != site.entryMethod) {
-      buffer.writeln(
-        '<p><b>Exit:</b> ${_escapeHtml(site.exitMethod!.displayName)}</p>',
+    if (exitDiffersFromEntry(site.entryMethods, site.exitMethods)) {
+      final names = joinEntryMethodNames(
+        site.exitMethods,
+        (m) => m.displayName,
       );
+      buffer.writeln('<p><b>Exit:</b> ${_escapeHtml(names)}</p>');
     }
 
     if (site.hazards != null && site.hazards!.isNotEmpty) {

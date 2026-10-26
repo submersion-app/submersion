@@ -7,7 +7,6 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqlite3/sqlite3.dart' as sqlite3;
 import 'package:url_launcher/url_launcher.dart';
@@ -15,8 +14,6 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:submersion/app.dart' show resolveAppLocale;
 import 'package:submersion/app.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
-import 'package:submersion/core/services/storage/local_cache_sweep.dart';
-import 'package:submersion/core/services/storage/scratch_sweep.dart';
 import 'package:submersion/core/services/sync/changeset_log/local_only_tombstone_gc.dart';
 import 'package:submersion/core/services/sync/changeset_log/peer_cursor_store.dart';
 import 'package:submersion/core/services/sync/changeset_log/publish_state_store.dart';
@@ -47,6 +44,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/dive_log_availability.dart';
 import 'package:submersion/core/services/startup_recovery_service.dart';
 import 'package:submersion/core/services/local_cache_database_service.dart';
+import 'package:submersion/core/services/storage/gc/storage_gc_store.dart';
 import 'package:submersion/core/services/security/biometric_service.dart';
 import 'package:submersion/core/services/security/database_locked_exception.dart';
 import 'package:submersion/core/services/security/database_security_service.dart';
@@ -76,6 +74,7 @@ import 'package:submersion/features/media/data/services/scanned_logs_migration.d
 import 'package:submersion/features/media_store/data/media_deletion_coordinator.dart';
 import 'package:submersion/features/media_store/data/media_orphan_backlog_sweep.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
+import 'package:submersion/features/settings/data/set_up_card_prefs.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/main.dart' show SubmersionRestart;
@@ -996,6 +995,7 @@ class _StartupWrapperState extends State<StartupWrapper>
       // deterministic ids and the pass finds nothing to do on a fresh
       // install. Both swallow their own errors: neither can block startup.
       await AccountDeduplicator(prefs: prefs).run();
+      await runSetUpCardSeed(prefs);
     });
     await timeStartupStep(
       'notifications',
@@ -1096,65 +1096,11 @@ class _StartupWrapperState extends State<StartupWrapper>
       }
     }());
 
-    // Scratch-file sweep, at most once a day. Unlike the media sweep above,
-    // whose probe is one indexed SELECT, this walks the filesystem, so it
-    // carries a stamp rather than running unguarded on every launch. Same
-    // fire-and-forget shape: housekeeping must never delay first frame, and
-    // a failure is a whole launch away from its retry.
-    unawaited(() async {
-      try {
-        final prefs = await SharedPreferences.getInstance();
-        final stampMs = prefs.getInt(kScratchSweepStampKey);
-        final lastSweptAt = stampMs == null
-            ? null
-            : DateTime.fromMillisecondsSinceEpoch(stampMs);
-        final now = DateTime.now();
-        if (!shouldSweepScratch(lastSweptAt: lastSweptAt, now: now)) return;
-
-        await StorageScratchSweep(
-          temporaryDirectory: getTemporaryDirectory,
-          supportDirectory: getApplicationSupportDirectory,
-        ).run(now: now);
-
-        // Stamped after the pass, so a sweep that throws part way retries
-        // tomorrow rather than being recorded as done.
-        await prefs.setInt(kScratchSweepStampKey, now.millisecondsSinceEpoch);
-      } catch (e, stackTrace) {
-        debugPrint('Scratch sweep failed (will retry): $e\n$stackTrace');
-      }
-    }());
-
-    // Local cache database sweep (issue #1929), at most once a week. Deletes
-    // superseded bathymetry grids and cache rows whose dive, media item or
-    // track is gone, then VACUUMs when that freed enough to matter. Same
-    // stamp-and-swallow shape as the scratch sweep above.
-    unawaited(() async {
-      try {
-        final prefs = await SharedPreferences.getInstance();
-        final stampMs = prefs.getInt(kLocalCacheSweepStampKey);
-        final lastSweptAt = stampMs == null
-            ? null
-            : DateTime.fromMillisecondsSinceEpoch(stampMs);
-        final now = DateTime.now();
-        if (!shouldSweepLocalCache(lastSweptAt: lastSweptAt, now: now)) {
-          return;
-        }
-
-        await LocalCacheSweep(
-          localCache: LocalCacheDatabaseService.instance.database,
-          library: DatabaseService.instance.database,
-        ).run(now: now);
-
-        // Stamped after the pass, so a sweep that throws part way retries
-        // on the next launch rather than being recorded as done.
-        await prefs.setInt(
-          kLocalCacheSweepStampKey,
-          now.millisecondsSinceEpoch,
-        );
-      } catch (e, stackTrace) {
-        debugPrint('Local cache sweep failed (will retry): $e\n$stackTrace');
-      }
-    }());
+    // The scratch-file and local cache sweeps run from the storage cleanup
+    // coordinator (storageGcCoordinatorProvider, issue #3396), which the app
+    // kicks once the first frame is up. The two jobs above stay here: the sync
+    // temp sweep must run before the database opens, and the unlinked-media
+    // sweep deletes rows, not files.
     // coverage:ignore-end
   }
 
@@ -1515,6 +1461,11 @@ class _StartupWrapperState extends State<StartupWrapper>
 
     try {
       await before?.call();
+      // Recorded before the swap, as BackupService does: the marker holds the
+      // storage cleanup's cloud deletes back until a sync after the restore,
+      // and the restored database must not judge what in the media store is
+      // orphaned before then. A marker that cannot be recorded stops here.
+      await StorageGcStore.markRestored(widget.prefs, DateTime.now());
       if (widget.restoreOverride != null) {
         await widget.restoreOverride!(path, onProgress);
       } else {
@@ -1948,17 +1899,13 @@ class _StartupWrapperState extends State<StartupWrapper>
       MediaQuery.platformBrightnessOf(context),
     );
     final isDark = brightness == Brightness.dark;
-    final backgroundColor = isDark ? const Color(0xFF121212) : Colors.white;
-    final textColor = isDark ? Colors.white : Colors.black87;
-    final subtitleColor = isDark ? Colors.white70 : Colors.black54;
 
-    // The splash paints its plain text from the palette above, but every
-    // themed descendant (the restore Card, the buttons, the progress
-    // indicators, the escape-hatch dialogs) reads Theme.of instead. A
-    // MaterialApp with no theme gets Flutter's default, which is always
-    // LIGHT: in dark mode that put a near-white card surface under white
-    // text and made the restore offer unreadable. The theme therefore has to
-    // follow the same brightness the palette does.
+    // Every themed descendant (the restore Card, the buttons, the progress
+    // indicators, the escape-hatch dialogs) reads Theme.of. A MaterialApp
+    // with no theme gets Flutter's default, which is always LIGHT: in dark
+    // mode that put a near-white card surface under white text and made the
+    // restore offer unreadable. The theme therefore has to follow the
+    // diver's brightness.
     //
     // The preset comes from the same pre-database mirror the brightness does,
     // so a diver on Console or Deep is not handed an ocean-blue error screen.
@@ -1966,6 +1913,12 @@ class _StartupWrapperState extends State<StartupWrapper>
       resolveStartupThemePreset(widget.prefs),
       brightness,
     );
+
+    // The error and recovery screens paint their plain text from the same
+    // theme, so it agrees with the restore card beneath it on every preset.
+    final backgroundColor = splashTheme.colorScheme.surface;
+    final textColor = splashTheme.colorScheme.onSurface;
+    final subtitleColor = splashTheme.colorScheme.onSurfaceVariant;
 
     final isReady = _state == _StartupState.ready;
 

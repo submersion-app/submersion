@@ -25,6 +25,8 @@ Set<domain.TagScope> tagScopesOf(Tag row) => {
       domain.TagScope.dives => row.appliesToDives,
       domain.TagScope.sites => row.appliesToSites,
       domain.TagScope.equipment => row.appliesToEquipment,
+      domain.TagScope.media => row.appliesToMedia,
+      domain.TagScope.documents => row.appliesToDocuments,
     })
       scope,
 };

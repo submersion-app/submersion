@@ -4,6 +4,7 @@ import 'package:submersion/features/buddies/domain/entities/buddy_with_dive_coun
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/buddies/query/buddy_query_entity.dart';
 import 'package:submersion/features/query/presentation/providers/narrow_by_ids.dart';
+import 'package:submersion/shared/widgets/master_detail/remembered_selection.dart';
 
 /// The buddy list's query (#2365): typed, built or applied from a saved
 /// query in the filter sheet; null lists every buddy.
@@ -21,3 +22,13 @@ final filteredBuddiesWithDiveCountProvider =
         (b) => b.buddy.id,
       ),
     );
+
+/// The buddy a list returned to reopens and scrolls back to: the one last
+/// opened, while the list as filtered still shows it (#3301).
+final rememberedBuddyIdProvider = Provider<AsyncValue<String?>>(
+  (ref) => rememberedListedId(
+    items: ref.watch(filteredBuddiesWithDiveCountProvider),
+    rememberedId: ref.watch(highlightedBuddyIdProvider),
+    idOf: (entry) => entry.buddy.id,
+  ),
+);

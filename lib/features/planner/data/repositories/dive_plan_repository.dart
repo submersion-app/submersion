@@ -660,6 +660,7 @@ class DivePlanRepository {
       gasSwitchStopSeconds: Value(plan.gasSwitchStopSeconds),
       airBreakO2Seconds: Value(plan.airBreaks?.o2Seconds),
       airBreakBreakSeconds: Value(plan.airBreaks?.breakSeconds),
+      airBreaksExplicitlyOff: Value(plan.airBreaksExplicitlyOff),
       sacBottom: Value(plan.sacBottom),
       sacDeco: Value(plan.sacDeco),
       sacStressed: Value(plan.sacStressed),
@@ -822,6 +823,7 @@ class DivePlanRepository {
               breakSeconds: row.airBreakBreakSeconds!,
             )
           : null,
+      airBreaksExplicitlyOff: row.airBreaksExplicitlyOff,
       sacBottom: row.sacBottom,
       sacDeco: row.sacDeco,
       sacStressed: row.sacStressed,

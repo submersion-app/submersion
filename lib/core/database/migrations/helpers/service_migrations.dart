@@ -192,6 +192,73 @@ extension ServiceMigrations on AppDatabase {
   Future<void> reconcileLegacyServiceSchedulesForTest() =>
       _reconcileLegacyServiceSchedules();
 
+  /// v317 (issue #3662): a tank's last visual inspection and last hydro
+  /// dates, saved before the edit form wrote them onto the clocks, become
+  /// the VIP and hydro clocks' baselines. Only a clock with no baseline and
+  /// no service of its kind logged takes one, so no baseline or service
+  /// moves; a baseline cleared from the clock's dialog while the date stays
+  /// on the form comes back from it. Mirrors `kAttributeServiceKinds`.
+  ///
+  /// Not stamped for sync: the result follows from synced rows alone, and
+  /// stamping the set time with when the date was saved (rather than now)
+  /// makes every device that runs it write the same values. Sync runs it
+  /// again after every batch apply, so a tank received from a peer below
+  /// v317 converges too. Returns how many clocks it anchored. Self-guards
+  /// on the tables existing, for partial fixture databases.
+  Future<int> backfillTankInspectionBaselines() async {
+    final tables = await customSelect(
+      "SELECT name FROM sqlite_master WHERE type='table'",
+    ).get();
+    final tableNames = tables.map((t) => t.read<String>('name')).toSet();
+    if (!tableNames.containsAll({
+      'equipment',
+      'equipment_attributes',
+      'service_schedules',
+      'service_records',
+    })) {
+      return 0;
+    }
+    var anchored = 0;
+    const attributeKinds = {
+      'last_visual_inspection': 'vip',
+      'last_hydro_test': 'hydro',
+    };
+    for (final MapEntry(key: attrKey, value: kindId)
+        in attributeKinds.entries) {
+      anchored += await customUpdate(
+        '''
+        UPDATE service_schedules
+        SET (anchor_date, anchor_set_at) = (
+          SELECT CAST(a.value_num AS INTEGER), a.updated_at
+          FROM equipment_attributes a
+          WHERE a.equipment_id = service_schedules.equipment_id
+            AND a.attr_key = ?1 AND a.is_custom = 0
+            AND a.value_num IS NOT NULL
+        )
+        WHERE service_kind_id = ?2
+          AND anchor_date IS NULL
+          AND EXISTS (
+            SELECT 1 FROM equipment e
+            WHERE e.id = service_schedules.equipment_id AND e.type = 'tank'
+          )
+          AND EXISTS (
+            SELECT 1 FROM equipment_attributes a
+            WHERE a.equipment_id = service_schedules.equipment_id
+              AND a.attr_key = ?1 AND a.is_custom = 0
+              AND a.value_num IS NOT NULL
+          )
+          AND NOT EXISTS (
+            SELECT 1 FROM service_records r
+            WHERE r.equipment_id = service_schedules.equipment_id
+              AND r.service_kind_id = ?2
+          )
+        ''',
+        variables: [Variable<String>(attrKey), Variable<String>(kindId)],
+      );
+    }
+    return anchored;
+  }
+
   /// Idempotent DDL for v213's `service_schedules.anchor_set_at`: when the
   /// diver set the clock's baseline date. Null (every existing row) keeps
   /// the pre-v213 rule, under which any record of the kind outranks the

@@ -132,7 +132,7 @@ void main() {
       await tester.pumpWidget(host());
       await tester.pumpAndSettle();
 
-      await tester.enterText(find.byType(TextFormField).at(0), '1,2');
+      await tester.enterText(find.byType(TextField).at(0), '1,2');
       await tester.pumpAndSettle();
 
       final container = ProviderScope.containerOf(
@@ -141,7 +141,7 @@ void main() {
       expect(container.read(divePlanNotifierProvider).setpointLow, 1.2);
     });
 
-    testWidgets('seeds the setpoints with the locale separator', (
+    testWidgets('shows the unset setpoints\' hint with the locale separator', (
       tester,
     ) async {
       Intl.defaultLocale = 'de';
@@ -150,16 +150,16 @@ void main() {
 
       expect(
         tester
-            .widget<TextFormField>(find.byType(TextFormField).at(0))
-            .controller!
-            .text,
+            .widget<TextField>(find.byType(TextField).at(0))
+            .decoration
+            ?.hintText,
         '0,7',
       );
       expect(
         tester
-            .widget<TextFormField>(find.byType(TextFormField).at(1))
-            .controller!
-            .text,
+            .widget<TextField>(find.byType(TextField).at(1))
+            .decoration
+            ?.hintText,
         '1,3',
       );
     });
@@ -220,12 +220,15 @@ void main() {
         overrides: [
           tankPresetsProvider.overrideWith((ref) async => <TankPresetEntity>[]),
         ],
-        child: StatefulBuilder(
-          builder: (context, setState) => CylinderConfigItemEditor(
-            item: current,
-            units: const UnitFormatter(AppSettings()),
-            onChanged: (updated) => setState(() => current = updated),
-            onRemove: () {},
+        child: SingleChildScrollView(
+          child: StatefulBuilder(
+            builder: (context, setState) => CylinderConfigItemEditor(
+              item: current,
+              number: 1,
+              units: const UnitFormatter(AppSettings()),
+              onChanged: (updated) => setState(() => current = updated),
+              onRemove: () {},
+            ),
           ),
         ),
       );
@@ -246,7 +249,7 @@ void main() {
       await tester.pumpWidget(host(seed()));
       await tester.pumpAndSettle();
 
-      await tester.enterText(find.widgetWithText(TextField, 'O2 %'), '32,5');
+      await tester.enterText(find.widgetWithText(TextField, 'O2'), '32,5');
       await tester.pumpAndSettle();
 
       expect(current.o2Percent, 32.5);

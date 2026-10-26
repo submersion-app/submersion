@@ -14,9 +14,13 @@ import 'package:submersion/shared/widgets/label_with_control.dart';
 /// (used wherever dives are matched to sites: after an import, from the GPS
 /// logger, from a photo import and from a dive's suggestion card), whether
 /// cylinder end pressure is read at the moment of surfacing (applied on dive
-/// computer downloads, file imports and reparses), and whether every new
+/// computer downloads, file imports and reparses), whether a rebreather
+/// download or re-parse leaves out the open-circuit gases no transmitter read
+/// and the diver never breathed (issue #3668), and whether every new
 /// import session starts with a tag naming its source and date (issue #998;
-/// moved here from Settings > Manage > Tags in issue #3193).
+/// moved here from Settings > Manage > Tags in issue #3193), and whether a
+/// dive computer download defaults to the profile that owns the computer
+/// (issue #2050).
 ///
 /// The auto-tag switch is only the starting point for a new session: the
 /// import wizard's Import Options sheet overrides it for a single import
@@ -32,8 +36,14 @@ class ImportPreferencesGroup extends ConsumerWidget {
     final trimAtSurfacing = ref.watch(
       settingsProvider.select((s) => s.trimTankPressureAtSurfacing),
     );
+    final omitUnusedOcGases = ref.watch(
+      settingsProvider.select((s) => s.omitUnusedOcGases),
+    );
     final autoTagImports = ref.watch(
       settingsProvider.select((s) => s.autoTagImports),
+    );
+    final followComputerOwner = ref.watch(
+      settingsProvider.select((s) => s.downloadsFollowComputerOwner),
     );
 
     // Flush with the page's other rows, which drop the default inset.
@@ -85,12 +95,29 @@ class ImportPreferencesGroup extends ConsumerWidget {
                 .setTrimTankPressureAtSurfacing(value),
           ),
           SwitchListTile(
+            secondary: const Icon(Icons.filter_alt_off_outlined),
+            title: Text(context.l10n.settings_omitUnusedOcGases_title),
+            subtitle: Text(context.l10n.settings_omitUnusedOcGases_subtitle),
+            value: omitUnusedOcGases,
+            onChanged: (value) =>
+                ref.read(settingsProvider.notifier).setOmitUnusedOcGases(value),
+          ),
+          SwitchListTile(
             secondary: const Icon(Icons.label_outline),
             title: Text(context.l10n.settings_autoTagImports_title),
             subtitle: Text(context.l10n.settings_autoTagImports_subtitle),
             value: autoTagImports,
             onChanged: (value) =>
                 ref.read(settingsProvider.notifier).setAutoTagImports(value),
+          ),
+          SwitchListTile(
+            secondary: const Icon(Icons.person_pin_outlined),
+            title: Text(context.l10n.settings_downloadsFollowOwner_title),
+            subtitle: Text(context.l10n.settings_downloadsFollowOwner_subtitle),
+            value: followComputerOwner,
+            onChanged: (value) => ref
+                .read(settingsProvider.notifier)
+                .setDownloadsFollowComputerOwner(value),
           ),
         ],
       ),

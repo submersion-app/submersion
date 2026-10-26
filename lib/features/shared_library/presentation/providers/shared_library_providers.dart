@@ -1,15 +1,16 @@
 import 'package:submersion/core/providers/provider.dart';
 
-import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart';
 import 'package:submersion/core/providers/account_providers.dart';
+import 'package:submersion/core/services/shared_library/member_removal.dart';
 import 'package:submersion/core/services/shared_library/backup/library_backup_record.dart';
 import 'package:submersion/core/services/shared_library/backup/library_backup_service.dart';
 import 'package:submersion/core/services/shared_library/backup/library_restore_service.dart';
 import 'package:submersion/core/services/shared_library/library_account_setup.dart';
 import 'package:submersion/core/services/shared_library/library_edit_stamper.dart';
 import 'package:submersion/core/services/shared_library/library_encryption_service.dart';
+import 'package:submersion/core/services/shared_library/library_sync_error.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/shared_library_membership_service.dart';
 import 'package:submersion/core/services/shared_library/shared_library_service.dart';
@@ -126,6 +127,14 @@ final libraryMembersProvider =
       return ref.watch(sharedLibraryStoreProvider).getMembers(libraryId);
     });
 
+/// The owner-signed removals of [libraryId] as the last sync verified them
+/// (issue #3481).
+final libraryRemovalsProvider =
+    FutureProvider.family<List<MemberRemoval>, String>((ref, libraryId) async {
+      ref.watch(sharedLibrariesProvider);
+      return ref.watch(sharedLibraryStoreProvider).removals(libraryId);
+    });
+
 /// The per-site library state (clocks, last editor) of [siteId].
 final siteLibraryStateProvider =
     FutureProvider.family<SharedSiteState?, String>((ref, siteId) async {
@@ -139,19 +148,6 @@ final _siteStateTickProvider = StreamProvider<void>((ref) async* {
   yield* ref.watch(sharedLibraryStoreProvider).watchSiteStates();
 });
 
-/// Connected accounts that can back a shared site library.
-final eligibleLibraryAccountsProvider = FutureProvider<List<ConnectedAccount>>((
-  ref,
-) async {
-  final accounts = ref.watch(connectedAccountsRepositoryProvider);
-  ref.invalidateSelfWhen(accounts.watchAccountsChanges());
-  final all = await accounts.getAll();
-  return [
-    for (final a in all)
-      if (a.kind == AccountKind.s3 || a.kind == AccountKind.webdav) a,
-  ];
-});
-
 /// Builds the folder transport for a connected account and prefix from
 /// the account registry (S3 and WebDAV adapters build a provider per
 /// account, so two libraries on one device keep separate credentials).
@@ -161,7 +157,15 @@ final sharedLibraryAccountTransportProvider = Provider<LibraryTransportFactory>(
     return ({required account, required prefix}) async {
       final capable = registry.capabilityFor<SyncCapable>(account.kind);
       if (capable == null) {
-        throw StateError('${account.kind.name} accounts cannot back a library');
+        throw LibraryAccountUnsupportedError(account.kind.name);
+      }
+      // Signed out here, the row stays but its keys are gone: say so rather
+      // than failing in storage as "not configured" (issue #3563).
+      final adapter = registry.capabilityFor<AccountProviderAdapter>(
+        account.kind,
+      );
+      if (await adapter?.status(account) == AccountStatus.needsSignIn) {
+        throw LibraryAccountSignedOutError(account.id);
       }
       return SharedLibraryTransport(
         capable.syncProvider(account),
@@ -171,19 +175,26 @@ final sharedLibraryAccountTransportProvider = Provider<LibraryTransportFactory>(
   },
 );
 
+/// The account a library connects through, by its stored id. A row the
+/// roster lost (an older build's start-up deduplicator removed every row
+/// it did not anchor, and a device still on it syncs the removal) is put
+/// back from the keys this device holds (issue #3563). Null when it holds
+/// none.
+// no-tick: a lookup function, not data; it reads the roster at call time.
+final libraryAccountLookupProvider =
+    Provider<Future<ConnectedAccount?> Function(String accountId)>(
+      (ref) => ref.watch(accountGroupServiceProvider).restoreRow,
+    );
+
 /// The transport for a connected library, by its stored account id.
 // no-tick: a factory function, not data; it reads the account at call time.
 final sharedLibraryTransportFactoryProvider =
     Provider<Future<SharedLibraryTransport> Function(SharedLibrary)>((ref) {
-      final accounts = ref.watch(connectedAccountsRepositoryProvider);
+      final accountById = ref.watch(libraryAccountLookupProvider);
       final byAccount = ref.watch(sharedLibraryAccountTransportProvider);
       return (library) async {
-        final account = await accounts.getById(library.connectedAccountId);
-        if (account == null) {
-          throw StateError(
-            'The account for ${library.name} is no longer on this device',
-          );
-        }
+        final account = await accountById(library.connectedAccountId);
+        if (account == null) throw LibraryAccountMissingError(library.name);
         final t = await byAccount(account: account, prefix: library.prefix);
         return t
           ..cipher = await ref
@@ -211,8 +222,7 @@ final sharedLibraryMembershipServiceProvider =
       (ref) => SharedLibraryMembershipService(
         store: ref.watch(sharedLibraryStoreProvider),
         transportFor: ref.watch(sharedLibraryAccountTransportProvider),
-        accountById: (id) =>
-            ref.read(connectedAccountsRepositoryProvider).getById(id),
+        accountById: (id) => ref.read(libraryAccountLookupProvider)(id),
       ),
     );
 
@@ -223,10 +233,9 @@ final suggestionServiceProvider = Provider<SuggestionService>(
   ),
 );
 
-// no-tick: a service object; it writes accounts at action time.
+// no-tick: a service object; it reads stored accounts at action time.
 final libraryAccountSetupProvider = Provider<LibraryAccountSetup>(
   (ref) => LibraryAccountSetup(
-    accounts: ref.watch(connectedAccountsRepositoryProvider),
     credentials: ref.watch(accountCredentialsStoreProvider),
   ),
 );

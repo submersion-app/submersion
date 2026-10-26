@@ -328,7 +328,7 @@ class _DiveCenterMapPageState extends ConsumerState<DiveCenterMapPage>
         child: Icon(
           Icons.store,
           size: isSelected ? 24 : 20,
-          color: Colors.white,
+          color: isSelected ? colorScheme.onPrimary : Colors.white,
         ),
       ),
     );

@@ -184,7 +184,6 @@ class ContingencyPreviewChip extends ConsumerWidget {
     final preview = ref.watch(selectedContingencyProvider);
     if (preview == null) return const SizedBox.shrink();
 
-    final state = ref.watch(divePlanNotifierProvider);
     final units = UnitFormatter(ref.watch(settingsProvider));
 
     final lostTank = preview.lostTank;
@@ -194,9 +193,11 @@ class ContingencyPreviewChip extends ConsumerWidget {
         lostTank.gasMix.name,
       );
     } else {
+      // The plan's own deviation, else the diver's Settings default (#3552).
+      final resolved = ref.watch(resolvedPlanEngineConfigProvider);
       final depth =
-          '+${units.formatDepth(state.deviationDepthDelta, decimals: 0)}';
-      final time = '+${state.deviationTimeMinutes}′';
+          '+${units.formatDepth(resolved.deviationDepthDelta, decimals: 0)}';
+      final time = '+${resolved.deviationTimeMinutes}′';
       label = switch (ref.watch(selectedDeviationProvider)) {
         'deeper' => depth,
         'longer' => time,

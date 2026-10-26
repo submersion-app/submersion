@@ -20,6 +20,7 @@ void main() {
               siteId: 'site-1',
               pathId: 'd1',
               source: PathOverlaySource.dive,
+              isolatePaths: true,
             )).overrideWith(
               (ref) async => (
                 overlay: testActivePathOverlay(sourceLabel: 'Seacraft ENC'),
@@ -56,6 +57,7 @@ void main() {
             siteId: 'site-1',
             pathId: 'd1',
             source: PathOverlaySource.dive,
+            isolatePaths: true,
           )).overrideWith(
             (ref) async => (
               overlay: testActivePathOverlay(
@@ -92,6 +94,7 @@ void main() {
               siteId: 'site-1',
               pathId: 't1',
               source: PathOverlaySource.navTrack,
+              isolatePaths: true,
             )).overrideWith(
               (ref) async =>
                   (overlay: testActivePathOverlay(), hasLinkedRoute: false),
@@ -126,6 +129,7 @@ void main() {
             siteId: 'site-1',
             pathId: 'd1',
             source: PathOverlaySource.dive,
+            isolatePaths: true,
           )).overrideWith((ref) async => null),
         ],
       ),
@@ -157,6 +161,7 @@ void main() {
             siteId: 'site-1',
             pathId: 'd1',
             source: PathOverlaySource.dive,
+            isolatePaths: true,
           )).overrideWith(
             (ref) async =>
                 (overlay: testActivePathOverlay(), hasLinkedRoute: false),
@@ -196,6 +201,7 @@ void main() {
               siteId: 'site-1',
               pathId: 'd1',
               source: PathOverlaySource.dive,
+              isolatePaths: true,
             )).overrideWith(
               (ref) async =>
                   (overlay: testActivePathOverlay(), hasLinkedRoute: false),

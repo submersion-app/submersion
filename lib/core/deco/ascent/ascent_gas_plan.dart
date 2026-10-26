@@ -61,8 +61,10 @@ class FixedAscentGas extends AscentGasPlan {
       const [];
 }
 
-/// A cylinder available on the dive, with its precomputed MOD for the diver's
-/// ppO2 ceiling. [maxPpO2Mod] is the deepest depth (m) where ppO2 <= ceiling.
+/// A cylinder available on the dive, with its precomputed switch depth for
+/// the diver's ppO2 ceiling. [maxPpO2Mod] is the deepest depth (m) the gas
+/// may be breathed from; the planner derives it with `gasSwitchDepthMeters`,
+/// which allows a ppO2 that still reads as the ceiling.
 class AvailableGas {
   const AvailableGas({
     required this.fN2,
@@ -77,9 +79,10 @@ class AvailableGas {
 }
 
 /// Open-circuit optimal ascent: at each depth picks the eligible gas with the
-/// highest O2 (ppO2 at depth <= [maxPpO2]). Eligibility is expressed as MOD on
-/// [AvailableGas.maxPpO2Mod], derived once via O2ToxicityCalculator.calculateMod
-/// so ppO2 is never re-derived here.
+/// highest O2 within [maxPpO2]. Eligibility is expressed as a depth on
+/// [AvailableGas.maxPpO2Mod], derived once by the caller (the planner uses
+/// `gasSwitchDepthMeters` in the plan's water) so ppO2 is never re-derived
+/// here.
 class OptimalOcAscentGas extends AscentGasPlan {
   OptimalOcAscentGas({required List<AvailableGas> gases, required this.maxPpO2})
     : assert(gases.isNotEmpty, 'OptimalOcAscentGas requires at least one gas'),

@@ -75,9 +75,11 @@ class MissionTeamSection extends ConsumerWidget {
                     l10n.plannerMission_team_defaultName,
                   ),
                   // A new diver starts on the first diver's SAC; the plan's
-                  // own SAC seeded that one.
+                  // own SAC (or, unset, the diver's Settings default, issue
+                  // #3552) seeded that one.
                   sacBottom: m.team.isEmpty
-                      ? ref.read(divePlanNotifierProvider).sacRate
+                      ? ref.read(divePlanNotifierProvider).sacRate ??
+                            ref.read(plannerSacBottomProvider)
                       : m.team.first.sacBottom,
                 ),
               ),
@@ -103,19 +105,20 @@ class MissionTeamSection extends ConsumerWidget {
         ),
         PlanNumberField(
           label: l10n.plannerMission_settings_batteryReserve,
-          value: mission.batteryReserveFraction * 100,
-          hintValue: kDefaultBatteryReserveFraction * 100,
+          value: mission.batteryReserveFraction != null
+              ? mission.batteryReserveFraction! * 100
+              : null,
+          hintValue: ref.watch(plannerBatteryReserveFractionProvider) * 100,
           suffixText: '%',
           decimals: 0,
           min: 0,
           max: 100,
-          allowEmpty: false,
-          onChanged: (v) {
-            if (v == null) return;
-            notifier.editMission(
-              (m) => m.copyWith(batteryReserveFraction: v / 100),
-            );
-          },
+          onChanged: (v) => notifier.editMission(
+            (m) => m.copyWith(
+              batteryReserveFraction: v != null ? v / 100 : null,
+              clearBatteryReserveFraction: v == null,
+            ),
+          ),
         ),
         PlanNumberField(
           label: l10n.plannerMission_settings_defaultCurrent,
@@ -168,18 +171,21 @@ class MissionTeamSection extends ConsumerWidget {
         if (openWater) ...[
           PlanNumberField(
             label: l10n.plannerMission_settings_walkSpeed,
-            value: units.speedDisplay(mission.walkSpeedMps),
-            hintValue: units.speedDisplay(kDefaultWalkSpeedMps),
+            value: mission.walkSpeedMps != null
+                ? units.speedDisplay(mission.walkSpeedMps!)
+                : null,
+            hintValue: units.speedDisplay(
+              ref.watch(plannerWalkSpeedMpsProvider),
+            ),
             suffixText: units.speedSymbol,
             decimals: 0,
             min: 0,
-            allowEmpty: false,
-            onChanged: (v) {
-              if (v == null) return;
-              notifier.editMission(
-                (m) => m.copyWith(walkSpeedMps: units.speedMps(v)),
-              );
-            },
+            onChanged: (v) => notifier.editMission(
+              (m) => m.copyWith(
+                walkSpeedMps: v != null ? units.speedMps(v) : null,
+                clearWalkSpeedMps: v == null,
+              ),
+            ),
           ),
           PlanNumberField(
             label: l10n.plannerMission_settings_surfaceSwimLimit,

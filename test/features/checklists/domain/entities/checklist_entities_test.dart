@@ -1,6 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/checklists/domain/entities/checklist_template.dart';
 import 'package:submersion/features/checklists/domain/entities/trip_checklist_item.dart';
+import 'package:submersion/features/checklists/domain/entities/checklist_template_section.dart';
+import 'package:submersion/features/checklists/domain/entities/trip_checklist_section.dart';
 
 void main() {
   final created = DateTime(2026, 1, 1);
@@ -41,11 +43,11 @@ void main() {
     test('copyWith can clear nullable fields via sentinel', () {
       final it = item(
         dueDate: DateTime(2026, 6, 1),
-      ).copyWith(category: 'Gear', notes: 'annual');
-      expect(it.category, 'Gear');
-      final cleared = it.copyWith(dueDate: null, category: null);
+      ).copyWith(sectionId: 'sec1', notes: 'annual');
+      expect(it.sectionId, 'sec1');
+      final cleared = it.copyWith(dueDate: null, sectionId: null);
       expect(cleared.dueDate, isNull);
-      expect(cleared.category, isNull);
+      expect(cleared.sectionId, isNull);
       expect(cleared.title, 'Service regulator');
     });
 
@@ -73,7 +75,7 @@ void main() {
         id: 'x1',
         templateId: 'tpl1',
         title: 'Book flights',
-        category: 'Bookings',
+        sectionId: 'sec1',
         notes: 'window seat',
         dueOffsetDays: 60,
         sortOrder: 2,
@@ -82,7 +84,7 @@ void main() {
       );
       expect(base(), equals(base()));
       expect(base(), isNot(equals(base().copyWith(title: 'Book hotel'))));
-      expect(base(), isNot(equals(base().copyWith(category: null))));
+      expect(base(), isNot(equals(base().copyWith(sectionId: null))));
       expect(base(), isNot(equals(base().copyWith(notes: 'aisle seat'))));
       expect(base(), isNot(equals(base().copyWith(sortOrder: 3))));
     });
@@ -98,6 +100,55 @@ void main() {
       );
       expect(a.copyWith(name: 'Resort packing'), isNot(equals(a)));
       expect(a.copyWith(description: 'd').id, 'tpl1');
+    });
+  });
+
+  group('ChecklistTemplateSection', () {
+    ChecklistTemplateSection section({int sortOrder = 0}) =>
+        ChecklistTemplateSection(
+          id: 's1',
+          templateId: 'tpl1',
+          title: 'Cells',
+          sortOrder: sortOrder,
+          createdAt: created,
+          updatedAt: created,
+        );
+
+    test('equatable compares every field', () {
+      expect(section(), equals(section()));
+      expect(section(), isNot(equals(section().copyWith(title: 'Gas'))));
+      expect(section(), isNot(equals(section(sortOrder: 1))));
+    });
+
+    test('copyWith keeps unspecified fields', () {
+      final renamed = section().copyWith(title: 'O2 Cells');
+      expect(renamed.title, 'O2 Cells');
+      expect(renamed.id, 's1');
+      expect(renamed.sortOrder, 0);
+    });
+  });
+
+  group('TripChecklistSection', () {
+    TripChecklistSection section({int sortOrder = 0}) => TripChecklistSection(
+      id: 's1',
+      tripId: 't1',
+      title: 'Cells',
+      sortOrder: sortOrder,
+      createdAt: created,
+      updatedAt: created,
+    );
+
+    test('equatable compares every field', () {
+      expect(section(), equals(section()));
+      expect(section(), isNot(equals(section().copyWith(title: 'Gas'))));
+      expect(section(), isNot(equals(section(sortOrder: 1))));
+    });
+
+    test('copyWith keeps unspecified fields', () {
+      final renamed = section().copyWith(title: 'O2 Cells');
+      expect(renamed.title, 'O2 Cells');
+      expect(renamed.id, 's1');
+      expect(renamed.sortOrder, 0);
     });
   });
 }

@@ -7,9 +7,11 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_computer/data/repositories/dive_computer_connection_repository.dart';
 import 'package:submersion/features/dive_computer/domain/services/dive_computer_merge_rules.dart';
+import 'package:submersion/features/equipment/data/services/equipment_item_fold.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
+import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart'
     as domain;
 
@@ -49,15 +51,18 @@ class DiveComputerMergeRepository {
     ProfileSeriesRepository? profileSeries,
     TankPressureSeriesRepository? tankSeries,
     DiveComputerConnectionRepository? connections,
+    EquipmentItemFold? itemFold,
   }) : _syncRepository = syncRepository ?? SyncRepository(),
        _profileSeries = profileSeries ?? ProfileSeriesRepository(),
        _tankSeries = tankSeries ?? TankPressureSeriesRepository(),
-       _connections = connections ?? DiveComputerConnectionRepository();
+       _connections = connections ?? DiveComputerConnectionRepository(),
+       _itemFold = itemFold;
 
   final SyncRepository _syncRepository;
   final ProfileSeriesRepository _profileSeries;
   final TankPressureSeriesRepository _tankSeries;
   final DiveComputerConnectionRepository _connections;
+  final EquipmentItemFold? _itemFold;
   final _log = LoggerService.forClass(DiveComputerMergeRepository);
 
   db.AppDatabase get _db => DatabaseService.instance.database;
@@ -208,6 +213,7 @@ class DiveComputerMergeRepository {
 
         await _bumpDives(affectedDives.toList(growable: false), now);
         await _writeSurvivor(merged, now);
+        await _repointTransmitterChannels(duplicates, survivorId, now);
         // Before the duplicates go: their connections would cascade away
         // with no tombstone. Folded onto the survivor instead (#3106).
         await _connections.foldInto(
@@ -226,6 +232,8 @@ class DiveComputerMergeRepository {
           );
         }
       });
+
+      await _foldDuplicateItems(merged.equipmentId, duplicateTwinIds);
 
       SyncEventBus.notifyLocalChange();
       _log.info(
@@ -411,6 +419,87 @@ class DiveComputerMergeRepository {
       'WHERE computer_id IN ($placeholders)',
       [toId, ...fromIds],
     );
+  }
+
+  /// Folds each duplicate's Equipment item into the survivor's (issue
+  /// #3676): with its computer gone it is no device's entry, and the Dive
+  /// Computers list would show the merged computer twice. After the merge's
+  /// own transaction, and best-effort: the computers are merged either way,
+  /// and an item the fold refuses (another computer still stands for it, or
+  /// another diver owns it) stays as gear.
+  Future<void> _foldDuplicateItems(
+    String? survivorItemId,
+    Set<String> duplicateItemIds,
+  ) async {
+    if (survivorItemId == null) return;
+    for (final itemId in duplicateItemIds) {
+      if (itemId == survivorItemId) continue;
+      try {
+        await (_itemFold ?? EquipmentItemFold()).fold(
+          fromId: itemId,
+          intoId: survivorItemId,
+        );
+      } catch (e, stackTrace) {
+        _log.warning(
+          'Could not fold equipment $itemId into $survivorItemId',
+          error: e,
+          stackTrace: stackTrace,
+        );
+      }
+    }
+  }
+
+  /// Moves the duplicates' transmitter keys onto the survivor (issue
+  /// #3676): the FK would null them, and a channel key without its computer
+  /// never matches again. A channel the survivor already has a key for is
+  /// the same transmitter twice, so the duplicate's channel-only row is
+  /// deleted, and a serial row just drops the clashing channel.
+  Future<void> _repointTransmitterChannels(
+    List<String> fromIds,
+    String toId,
+    int now,
+  ) async {
+    final rows = await (_db.select(
+      _db.transmitters,
+    )..where((t) => t.diveComputerId.isIn(fromIds))).get();
+    if (rows.isEmpty) return;
+    final taken = {
+      for (final r in await (_db.select(
+        _db.transmitters,
+      )..where((t) => t.diveComputerId.equals(toId))).get())
+        ?r.channelIndex,
+    };
+    for (final row in rows) {
+      final clash =
+          row.channelIndex != null && taken.contains(row.channelIndex);
+      final hasSerial =
+          normalizeTransmitterSerial(row.transmitterSerial) != null;
+      if (clash && !hasSerial) {
+        await (_db.delete(
+          _db.transmitters,
+        )..where((t) => t.id.equals(row.id))).go();
+        await _syncRepository.logDeletion(
+          entityType: 'transmitters',
+          recordId: row.id,
+        );
+        continue;
+      }
+      await (_db.update(
+        _db.transmitters,
+      )..where((t) => t.id.equals(row.id))).write(
+        db.TransmittersCompanion(
+          diveComputerId: Value(clash ? null : toId),
+          channelIndex: clash ? const Value(null) : const Value.absent(),
+          updatedAt: Value(now),
+        ),
+      );
+      if (row.channelIndex != null && !clash) taken.add(row.channelIndex!);
+      await _syncRepository.markRecordPending(
+        entityType: 'transmitters',
+        recordId: row.id,
+        localUpdatedAt: now,
+      );
+    }
   }
 
   /// Moves `dive_equipment` links from each duplicate's gear twin onto the

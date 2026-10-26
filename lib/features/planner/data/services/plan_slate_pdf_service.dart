@@ -28,6 +28,17 @@ class PlanSlateLabels {
   final String gas;
   final String turnAt;
   final String minGas;
+
+  /// What a back gas's Turn cell says when no turn rule applies (#3603).
+  final String noTurnRule;
+
+  /// What a back gas's Turn or Min gas cell says when the cylinder has no
+  /// start pressure to work from (#3603).
+  final String noStartPressure;
+
+  /// What a back gas's Min gas cell says when the cylinder has no size
+  /// (#3603).
+  final String noVolume;
   final String base;
 
   /// A duration in whole minutes, such as "12 min" (#2252).
@@ -49,10 +60,31 @@ class PlanSlateLabels {
     required this.gas,
     required this.turnAt,
     required this.minGas,
+    required this.noTurnRule,
+    required this.noStartPressure,
+    required this.noVolume,
     required this.base,
     required this.minutes,
     required this.maxPrefix,
   });
+}
+
+/// One Turn or Min gas cell of the slate's gas table: the figure where the
+/// engine computed it, the missing input on a back gas it could not compute
+/// for (#3603), and a dash on a cylinder the figure does not apply to.
+String planSlateGasLimitCell(
+  double? bar,
+  PlanGasLimitGap? gap,
+  UnitFormatter units,
+  PlanSlateLabels labels,
+) {
+  if (bar != null) return units.formatPressure(bar, decimals: 0);
+  return switch (gap) {
+    PlanGasLimitGap.noTurnRule => labels.noTurnRule,
+    PlanGasLimitGap.noStartPressure => labels.noStartPressure,
+    PlanGasLimitGap.noVolume => labels.noVolume,
+    null => '--',
+  };
 }
 
 /// The slate's header line: plan date, mode, gradient factors, and the
@@ -68,12 +100,14 @@ String planSlateHeaderLine(
   domain.DivePlan plan,
   PlanOutcome outcome,
   UnitFormatter units,
-  PlanSlateLabels labels,
-) =>
+  PlanSlateLabels labels, {
+  required int gfLow,
+  required int gfHigh,
+}) =>
     // The date follows the diver's DateFormatPreference: a slate is printed
     // and read at the dive site, not parsed by another program (#964).
     '${units.formatDate(plan.updatedAt)}   ${plan.mode.name.toUpperCase()}   '
-    'GF ${plan.gfLow}/${plan.gfHigh}   '
+    'GF $gfLow/$gfHigh   '
     '${labels.maxPrefix} ${units.formatDepth(outcome.maxDepth)}   '
     'RT ${planSlateMinutes(outcome.runtimeSeconds, labels)}   '
     'CNS ${outcome.cnsEnd.toStringAsFixed(0)}%';
@@ -97,6 +131,10 @@ class PlanSlatePdfService {
     required BailoutOutcome? bailout,
     required UnitFormatter units,
     required PlanSlateLabels labels,
+    required double deviationDepthDelta,
+    required int deviationTimeMinutes,
+    required int gfLow,
+    required int gfHigh,
     PdfLocalization? localization,
   }) async {
     // [labels] arrive localized; [localization] picks the fonts and text
@@ -111,7 +149,7 @@ class PlanSlatePdfService {
         margin: const pw.EdgeInsets.all(28),
         textDirection: loc.textDirection,
         build: (context) => [
-          _header(plan, outcome, units, labels),
+          _header(plan, outcome, units, labels, gfLow: gfLow, gfHigh: gfHigh),
           pw.SizedBox(height: 10),
           _sectionTitle(labels.runtimeTable),
           _runtimeTable(outcome, units, labels),
@@ -127,7 +165,15 @@ class PlanSlatePdfService {
             pw.SizedBox(height: 10),
             _sectionTitle(labels.contingencies),
             for (final deviation in deviations) ...[
-              _subTitle(_deviationLabel(deviation, plan, units, labels)),
+              _subTitle(
+                _deviationLabel(
+                  deviation,
+                  deviationDepthDelta,
+                  deviationTimeMinutes,
+                  units,
+                  labels,
+                ),
+              ),
               _runtimeTable(deviation.outcome, units, labels),
               pw.SizedBox(height: 6),
             ],
@@ -151,13 +197,13 @@ class PlanSlatePdfService {
 
   String _deviationLabel(
     DeviationOutcome deviation,
-    domain.DivePlan plan,
+    double deviationDepthDelta,
+    int deviationTimeMinutes,
     UnitFormatter units,
     PlanSlateLabels labels,
   ) {
-    final depth =
-        '+${units.formatDepth(plan.deviationDepthDelta, decimals: 0)}';
-    final time = '+${labels.minutes('${plan.deviationTimeMinutes}')}';
+    final depth = '+${units.formatDepth(deviationDepthDelta, decimals: 0)}';
+    final time = '+${labels.minutes('$deviationTimeMinutes')}';
     return switch (deviation.key) {
       'deeper' => depth,
       'longer' => time,
@@ -169,8 +215,10 @@ class PlanSlatePdfService {
     domain.DivePlan plan,
     PlanOutcome outcome,
     UnitFormatter units,
-    PlanSlateLabels labels,
-  ) {
+    PlanSlateLabels labels, {
+    required int gfLow,
+    required int gfHigh,
+  }) {
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
@@ -183,7 +231,14 @@ class PlanSlatePdfService {
         ),
         pw.SizedBox(height: 2),
         pw.Text(
-          planSlateHeaderLine(plan, outcome, units, labels),
+          planSlateHeaderLine(
+            plan,
+            outcome,
+            units,
+            labels,
+            gfLow: gfLow,
+            gfHigh: gfHigh,
+          ),
           style: const pw.TextStyle(fontSize: 10),
         ),
         pw.Divider(thickness: 1.2),
@@ -312,14 +367,20 @@ class PlanSlatePdfService {
               cell(units.convertVolume(usage.litersUsed).toStringAsFixed(0)),
               cell('${usage.percentUsed.toStringAsFixed(0)}%'),
               cell(
-                usage.turnPressureBar != null
-                    ? units.formatPressure(usage.turnPressureBar!, decimals: 0)
-                    : '--',
+                planSlateGasLimitCell(
+                  usage.turnPressureBar,
+                  usage.turnPressureGap,
+                  units,
+                  labels,
+                ),
               ),
               cell(
-                usage.minGasBar != null
-                    ? units.formatPressure(usage.minGasBar!, decimals: 0)
-                    : '--',
+                planSlateGasLimitCell(
+                  usage.minGasBar,
+                  usage.minGasGap,
+                  units,
+                  labels,
+                ),
               ),
             ],
           ),

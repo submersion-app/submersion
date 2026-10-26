@@ -31,10 +31,16 @@ class BackupWriteResult {
 abstract class BackupTarget {
   /// Writes a backup named [fileName] using [adapter] to produce the bytes,
   /// with [note] stamped into the copy.
+  ///
+  /// Once the backup is stored, [whileWritten] gets a filesystem path holding
+  /// the same bytes, for the cloud copy to upload: the stored file itself, or
+  /// for SAF the staged export, which is still deleted afterwards (also when
+  /// [whileWritten] throws). A `content://` ref is never handed over.
   Future<BackupWriteResult> write(
     BackupDatabaseAdapter adapter,
     String fileName, {
     String? note,
+    Future<void> Function(String path)? whileWritten,
   });
 
   /// Writes an already-materialized file at [sourcePath] into the target as
@@ -55,10 +61,13 @@ class FilesystemBackupTarget implements BackupTarget {
     BackupDatabaseAdapter adapter,
     String fileName, {
     String? note,
+    Future<void> Function(String path)? whileWritten,
   }) async {
     final dest = p.join(dir, fileName);
     await adapter.backup(dest, note: note);
-    return BackupWriteResult(dest, await File(dest).length());
+    final result = BackupWriteResult(dest, await File(dest).length());
+    await whileWritten?.call(dest);
+    return result;
   }
 
   @override
@@ -94,6 +103,7 @@ class SafBackupTarget implements BackupTarget {
     BackupDatabaseAdapter adapter,
     String fileName, {
     String? note,
+    Future<void> Function(String path)? whileWritten,
   }) async {
     final dir = await (tempDir?.call() ?? resolveSyncTempDir());
     // Per-invocation prefix so a foreground backup and the scheduled
@@ -107,6 +117,7 @@ class SafBackupTarget implements BackupTarget {
         fileName: fileName,
         sourcePath: staged,
       );
+      await whileWritten?.call(staged);
       return BackupWriteResult(ref, sizeBytes);
     } finally {
       // Never leave a plaintext copy of the whole library in the temp dir,

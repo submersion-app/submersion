@@ -15,6 +15,7 @@ import 'package:submersion/features/planner/presentation/chart/plan_chart_edit_c
 import 'package:submersion/features/planner/presentation/chart/plan_chart_geometry.dart';
 import 'package:submersion/features/planner/presentation/chart/plan_chart_series_painter.dart';
 import 'package:submersion/features/planner/presentation/chart/plan_profile_chart.dart';
+import 'package:submersion/features/planner/presentation/chart/plan_waypoint_menu.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -321,7 +322,7 @@ void main() {
     await gesture.up();
     await tester.pumpAndSettle();
 
-    expect(find.byType(PopupMenuItem<DiveTank>), findsWidgets);
+    expect(find.byType(PopupMenuItem<WaypointMenuAction>), findsWidgets);
   });
 
   testWidgets('a DPV mission profile is read-only on the chart', (

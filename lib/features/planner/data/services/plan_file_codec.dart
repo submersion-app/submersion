@@ -65,6 +65,7 @@ String planToSubplanJson(domain.DivePlan plan) {
               'o2Seconds': plan.airBreaks!.o2Seconds,
               'breakSeconds': plan.airBreaks!.breakSeconds,
             },
+      'airBreaksExplicitlyOff': plan.airBreaksExplicitlyOff,
       'sacBottom': plan.sacBottom,
       'sacDeco': plan.sacDeco,
       'sacStressed': plan.sacStressed,
@@ -229,32 +230,35 @@ domain.DivePlan _planFromMap(Map<String, dynamic> plan, DateTime timestamp) {
     altitude: (plan['altitude'] as num?)?.toDouble(),
     waterType: WaterType.values.asNameMap()[plan['waterType']],
     salinityPpt: (plan['salinityPpt'] as num?)?.toDouble(),
-    gfLow: (plan['gfLow'] as num).toInt(),
-    gfHigh: (plan['gfHigh'] as num).toInt(),
-    descentRate: (plan['descentRate'] as num?)?.toDouble() ?? 18.0,
-    ascentRate: (plan['ascentRate'] as num?)?.toDouble() ?? 9.0,
-    intermediateAscentRate:
-        (plan['intermediateAscentRate'] as num?)?.toDouble() ?? 6.0,
-    shallowAscentRate: (plan['shallowAscentRate'] as num?)?.toDouble() ?? 3.0,
-    finalAscentRate: (plan['finalAscentRate'] as num?)?.toDouble() ?? 1.0,
-    lastStopDepth: (plan['lastStopDepth'] as num?)?.toDouble() ?? 3.0,
-    gasSwitchStopSeconds: (plan['gasSwitchStopSeconds'] as num?)?.toInt() ?? 0,
+    gfLow: (plan['gfLow'] as num?)?.toInt(),
+    gfHigh: (plan['gfHigh'] as num?)?.toInt(),
+    // Unset here means "follow Settings" (issue #3552); coercing an absent
+    // field to a hardcoded constant would create a per-plan override on
+    // import instead of letting it resolve through PlanEngineConfig.
+    descentRate: (plan['descentRate'] as num?)?.toDouble(),
+    ascentRate: (plan['ascentRate'] as num?)?.toDouble(),
+    intermediateAscentRate: (plan['intermediateAscentRate'] as num?)
+        ?.toDouble(),
+    shallowAscentRate: (plan['shallowAscentRate'] as num?)?.toDouble(),
+    finalAscentRate: (plan['finalAscentRate'] as num?)?.toDouble(),
+    lastStopDepth: (plan['lastStopDepth'] as num?)?.toDouble(),
+    gasSwitchStopSeconds: (plan['gasSwitchStopSeconds'] as num?)?.toInt(),
     airBreaks: airBreaks is Map<String, dynamic>
         ? AirBreakPolicy(
             o2Seconds: (airBreaks['o2Seconds'] as num).toInt(),
             breakSeconds: (airBreaks['breakSeconds'] as num).toInt(),
           )
         : null,
-    sacBottom: (plan['sacBottom'] as num?)?.toDouble() ?? 15.0,
+    airBreaksExplicitlyOff: plan['airBreaksExplicitlyOff'] as bool? ?? false,
+    sacBottom: (plan['sacBottom'] as num?)?.toDouble(),
     sacDeco: (plan['sacDeco'] as num?)?.toDouble(),
     sacStressed: (plan['sacStressed'] as num?)?.toDouble(),
-    reservePressure: (plan['reservePressure'] as num?)?.toDouble() ?? 50.0,
+    reservePressure: (plan['reservePressure'] as num?)?.toDouble(),
     setpointLow: (plan['setpointLow'] as num?)?.toDouble(),
     setpointHigh: (plan['setpointHigh'] as num?)?.toDouble(),
     setpointSwitchDepth: (plan['setpointSwitchDepth'] as num?)?.toDouble(),
-    deviationDepthDelta:
-        (plan['deviationDepthDelta'] as num?)?.toDouble() ?? 5.0,
-    deviationTimeMinutes: (plan['deviationTimeMinutes'] as num?)?.toInt() ?? 5,
+    deviationDepthDelta: (plan['deviationDepthDelta'] as num?)?.toDouble(),
+    deviationTimeMinutes: (plan['deviationTimeMinutes'] as num?)?.toInt(),
     turnPressureRule: domain.TurnPressureRule.values
         .asNameMap()[plan['turnPressureRule']],
     turnPressureFraction: (plan['turnPressureFraction'] as num?)?.toDouble(),

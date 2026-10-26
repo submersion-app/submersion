@@ -29,6 +29,8 @@ String queryLabelForKey(AppLocalizations l10n, String key) {
       return l10n.query_centers_affiliations;
     case 'query_centers_city':
       return l10n.query_centers_city;
+    case 'query_centers_closed':
+      return l10n.query_centers_closed;
     case 'query_centers_coordinates':
       return l10n.query_centers_coordinates;
     case 'query_centers_country':

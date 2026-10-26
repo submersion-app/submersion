@@ -52,7 +52,8 @@ void main() {
     expect(names, containsAll(_columns.keys));
   });
 
-  test('the columns are not null and carry the standard rates', () async {
+  test('the columns are nullable since v305 (issue #3552), unset on a fresh '
+      'database', () async {
     final db = AppDatabase(
       NativeDatabase.memory(setup: registerAppSqlFunctions),
     );
@@ -63,13 +64,17 @@ void main() {
       final column = cols.firstWhere(
         (c) => c.read<String>('name') == entry.key,
       );
-      expect(column.read<int>('notnull'), 1, reason: entry.key);
-      // A NOT NULL column with no default would break inserts from an older
-      // writer, and the wrong default would silently change every existing
-      // plan's schedule, so pin the value rather than just its presence.
+      // Made nullable in v305, so a plan can store "unset, follow the
+      // diver's Settings default" instead of always carrying a concrete
+      // value. A fresh database's own CREATE TABLE (dive_plan_tables.dart)
+      // declares no SQL-level default any more - "the standard rate" is
+      // now purely a Settings-resolved value, not a DB default; only the
+      // legacy ALTER-TABLE backstop below still writes one, for an old
+      // database upgrading through the ladder.
+      expect(column.read<int>('notnull'), 0, reason: entry.key);
       expect(
         await _defaultAsDouble(db, 'dive_plans', entry.key),
-        entry.value,
+        isNull,
         reason: entry.key,
       );
     }

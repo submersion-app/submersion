@@ -10,6 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/app_directories.dart';
 import 'package:submersion/core/domain/entities/storage_config.dart';
 import 'package:submersion/core/services/security_scoped_bookmark_service.dart';
+import 'package:submersion/core/services/storage/gc/storage_gc_store.dart';
 
 /// Service for managing database file location
 ///
@@ -488,6 +489,15 @@ class DatabaseLocationService {
 
   /// Clears the storage configuration, so the app goes back to its default
   /// location. Nothing at the custom location is moved or deleted.
+  /// Records that another dive log file is about to replace the open one
+  /// (adopting a folder, switching to an existing database, going back to
+  /// the default location). The storage cleanup treats it as a restore:
+  /// what the last sync told it described the previous file, so no cloud
+  /// media is deleted until a sync after the switch. Throws when the mark
+  /// cannot be saved, so the switch does not go ahead without it.
+  Future<void> markDatabaseSwitched() =>
+      StorageGcStore.markRestored(_prefs, DateTime.now());
+
   Future<void> resetToDefault() async {
     // Stop accessing any security-scoped resource first
     await SecurityScopedBookmarkService.stopAccessingSecurityScopedResource();

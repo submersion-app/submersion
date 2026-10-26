@@ -1416,13 +1416,16 @@ void main() {
 
       final snapshot = result.computerTissue;
       expect(snapshot, isNotNull);
-      expect(snapshot!.algorithm, 'Suunto Fused2 RGBM');
-      expect(snapshot.start!.n2Bar, hasLength(15));
+      expect(snapshot!.start!.n2Bar, hasLength(15));
       expect(snapshot.start!.n2Bar!.first, 0.79);
       expect(snapshot.end!.n2Bar![4], 1.42849);
-      expect(snapshot.end!.cnsPercent, closeTo(13.2, 1e-9));
-      expect(snapshot.end!.otu, 35.57);
       expect(snapshot.end!.rgbmNitrogen, 0.98);
+      // CNS and OTU are the dive's own columns, not the snapshot's (issue
+      // #2555): Suunto reported them only through the tissue entries, so
+      // they reached no column before.
+      expect(result.dive.cnsStart, isNull);
+      expect(result.dive.cnsEnd, closeTo(13.2, 1e-9));
+      expect(result.dive.otu, 35.57);
       // The import pipeline only ever sees the DownloadedDive, so the
       // snapshot has to ride on it too.
       expect(result.dive.computerTissue, snapshot);
@@ -1441,7 +1444,23 @@ void main() {
       );
 
       expect(result.computerTissue!.start!.n2Bar, hasLength(9));
-      expect(result.computerTissue!.end!.cnsPercent, closeTo(4.0, 1e-9));
+      expect(result.computerTissue!.end, isNull);
+      expect(result.dive.cnsEnd, closeTo(4.0, 1e-9));
+      expect(result.dive.otu, 12.0);
+    });
+
+    test('keeps the start CNS on the dive', () {
+      final result = SuuntoDiveParser.parse(
+        header: headerWithDiving({
+          'StartTissue': {'CNS': 0.05},
+          'EndTissue': {'CNS': 0.18},
+        }),
+        samples: const [],
+      );
+
+      expect(result.dive.cnsStart, closeTo(5.0, 1e-9));
+      expect(result.dive.cnsEnd, closeTo(18.0, 1e-9));
+      expect(result.computerTissue, isNull);
     });
 
     group('decoAlgorithm follows the header Algorithm', () {
@@ -1470,18 +1489,6 @@ void main() {
           samples: const [],
         );
         expect(result.dive.decoAlgorithm, 'buhlmann');
-      });
-
-      test('the dive and its snapshot agree on the model', () {
-        final result = SuuntoDiveParser.parse(
-          header: headerWithDiving({
-            'Algorithm': 'Suunto Fused2 RGBM',
-            'EndTissue': {'CNS': 0.04},
-          }),
-          samples: const [],
-        );
-        expect(result.dive.decoAlgorithm, 'rgbm');
-        expect(result.computerTissue!.algorithm, 'Suunto Fused2 RGBM');
       });
     });
 

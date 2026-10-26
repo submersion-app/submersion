@@ -5,6 +5,9 @@ import 'package:submersion/features/dive_log/presentation/profile_colors/profile
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/insights/domain/trend_gap_threshold.dart';
+import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
+    as domain
+    show TurnPressureRule;
 import 'package:submersion/core/built_ins/built_in_catalog.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_share_repository.dart';
@@ -53,6 +56,10 @@ import 'package:submersion/features/trips/presentation/providers/trip_providers.
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/features/gas_calculators/domain/blending/blender_preferences.dart';
 import 'package:submersion/core/constants/o2_cell_unit.dart';
+import 'package:submersion/core/data/visibility/item_sharing.dart';
+import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
+
+import '../../../../helpers/shared_items_fixture.dart';
 
 /// Records a Share all my equipment call (issue #2046).
 class _FakeShareRepository extends EquipmentShareRepository {
@@ -71,22 +78,10 @@ class _FakeShareRepository extends EquipmentShareRepository {
 /// Minimal fake SiteRepository for bulk-share smoke tests.
 class _FakeSiteRepository implements SiteRepository {
   final List<domain.DiveSite> _sites;
-  String? shareAllForDiverCalledFor;
-  int shareAllForDiverResult;
-
-  _FakeSiteRepository({
-    required List<domain.DiveSite> sites,
-    this.shareAllForDiverResult = 0,
-  }) : _sites = sites;
+  _FakeSiteRepository({required List<domain.DiveSite> sites}) : _sites = sites;
 
   @override
   Future<List<domain.DiveSite>> getAllSites({String? diverId}) async => _sites;
-
-  @override
-  Future<int> shareAllForDiver(String diverId) async {
-    shareAllForDiverCalledFor = diverId;
-    return shareAllForDiverResult;
-  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => throw UnimplementedError(
@@ -97,22 +92,10 @@ class _FakeSiteRepository implements SiteRepository {
 /// Minimal fake TripRepository for bulk-share smoke tests.
 class _FakeTripRepository implements TripRepository {
   final List<trips.Trip> _trips;
-  String? shareAllForDiverCalledFor;
-  int shareAllForDiverResult;
-
-  _FakeTripRepository({
-    required List<trips.Trip> tripList,
-    this.shareAllForDiverResult = 0,
-  }) : _trips = tripList;
+  _FakeTripRepository({required List<trips.Trip> tripList}) : _trips = tripList;
 
   @override
   Future<List<trips.Trip>> getAllTrips({String? diverId}) async => _trips;
-
-  @override
-  Future<int> shareAllForDiver(String diverId) async {
-    shareAllForDiverCalledFor = diverId;
-    return shareAllForDiverResult;
-  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => throw UnimplementedError(
@@ -173,9 +156,14 @@ class _FakeAppSettingsRepository implements AppSettingsRepository {
   Future<void> setBlenderPreferences(BlenderPreferences prefs) async {}
 
   @override
-  Future<bool> getNavAlwaysHideLabels() async => false;
+  Future<bool> getNavAlwaysHideLabelsPhone() async => false;
   @override
-  Future<void> setNavAlwaysHideLabels(bool value) async {}
+  Future<void> setNavAlwaysHideLabelsPhone(bool value) async {}
+
+  @override
+  Future<bool> getNavAlwaysHideLabelsDesktop() async => false;
+  @override
+  Future<void> setNavAlwaysHideLabelsDesktop(bool value) async {}
 
   @override
   Future<bool> getEquipmentGroupByLocation() async => false;
@@ -514,6 +502,92 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   Future<void> setDecoStopIncrement(double value) async =>
       state = state.copyWith(decoStopIncrement: value);
   @override
+  Future<void> setPlannerDescentRate(double value) async =>
+      state = state.copyWith(plannerDescentRate: value);
+  @override
+  Future<void> setPlannerAscentRate(double value) async =>
+      state = state.copyWith(plannerAscentRate: value);
+  @override
+  Future<void> setPlannerIntermediateAscentRate(double value) async =>
+      state = state.copyWith(plannerIntermediateAscentRate: value);
+  @override
+  Future<void> setPlannerShallowAscentRate(double value) async =>
+      state = state.copyWith(plannerShallowAscentRate: value);
+  @override
+  Future<void> setPlannerFinalAscentRate(double value) async =>
+      state = state.copyWith(plannerFinalAscentRate: value);
+  @override
+  Future<void> setPlannerGasSwitchStopSeconds(int value) async =>
+      state = state.copyWith(plannerGasSwitchStopSeconds: value);
+  @override
+  Future<void> setPlannerSacBottom(double value) async =>
+      state = state.copyWith(plannerSacBottom: value);
+  @override
+  Future<void> setPlannerSacDeco(double value) async =>
+      state = state.copyWith(plannerSacDeco: value);
+  @override
+  Future<void> setPlannerSacStressedFactor(double value) async =>
+      state = state.copyWith(plannerSacStressedFactor: value);
+  @override
+  Future<void> setPlannerBuddyFactor(double value) async =>
+      state = state.copyWith(plannerBuddyFactor: value);
+  @override
+  Future<void> setPlannerProblemSolvingMinutes(int value) async =>
+      state = state.copyWith(plannerProblemSolvingMinutes: value);
+  @override
+  Future<void> setPlannerBestMixEndMeters(double value) async =>
+      state = state.copyWith(plannerBestMixEndMeters: value);
+  @override
+  Future<void> setPlannerDeviationDepthDelta(double value) async =>
+      state = state.copyWith(plannerDeviationDepthDelta: value);
+  @override
+  Future<void> setPlannerDeviationTimeMinutes(int value) async =>
+      state = state.copyWith(plannerDeviationTimeMinutes: value);
+  @override
+  Future<void> setPlannerBatteryReserveFraction(double value) async =>
+      state = state.copyWith(plannerBatteryReserveFraction: value);
+  @override
+  Future<void> setPlannerWalkSpeedMps(double value) async =>
+      state = state.copyWith(plannerWalkSpeedMps: value);
+  @override
+  Future<void> setPlannerTurnPressureRule(
+    domain.TurnPressureRule? value,
+  ) async => state = state.copyWith(
+    plannerTurnPressureRule: value,
+    clearPlannerTurnPressureRule: value == null,
+  );
+  @override
+  Future<void> setPlannerTurnPressureFraction(double? value) async =>
+      state = state.copyWith(
+        plannerTurnPressureFraction: value,
+        clearPlannerTurnPressureFraction: value == null,
+      );
+  @override
+  Future<void> setPlannerAirBreakO2Seconds(int? value) async =>
+      state = state.copyWith(
+        plannerAirBreakO2Seconds: value,
+        clearPlannerAirBreakO2Seconds: value == null,
+      );
+  @override
+  Future<void> setPlannerAirBreakBreakSeconds(int? value) async =>
+      state = state.copyWith(
+        plannerAirBreakBreakSeconds: value,
+        clearPlannerAirBreakBreakSeconds: value == null,
+      );
+  @override
+  Future<void> setPlannerAirBreakPolicy({
+    int? o2Seconds,
+    int? breakSeconds,
+  }) async => state = state.copyWith(
+    plannerAirBreakO2Seconds: o2Seconds,
+    clearPlannerAirBreakO2Seconds: o2Seconds == null,
+    plannerAirBreakBreakSeconds: breakSeconds,
+    clearPlannerAirBreakBreakSeconds: breakSeconds == null,
+  );
+  @override
+  Future<void> setPlannerReservePressure(double value) async =>
+      state = state.copyWith(plannerReservePressure: value);
+  @override
   Future<void> setPscrRatio(double value) async =>
       state = state.copyWith(pscrRatio: value);
   @override
@@ -611,6 +685,12 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setTrimTankPressureAtSurfacing(bool value) async =>
       state = state.copyWith(trimTankPressureAtSurfacing: value);
+  @override
+  Future<void> setDownloadsFollowComputerOwner(bool value) async =>
+      state = state.copyWith(downloadsFollowComputerOwner: value);
+  @override
+  Future<void> setOmitUnusedOcGases(bool value) async =>
+      state = state.copyWith(omitUnusedOcGases: value);
   @override
   Future<void> setCardColorGradientPreset(String preset) async =>
       state = state.copyWith(cardColorGradientPreset: preset);
@@ -773,6 +853,9 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setShowDiveFigure(bool value) async =>
       state = state.copyWith(showDiveFigure: value);
+  @override
+  Future<void> setAutoColorCorrection(bool value) async =>
+      state = state.copyWith(autoColorCorrection: value);
   @override
   Future<void> acceptPlanningDisclaimer() async =>
       state = state.copyWith(hasAcceptedPlanningDisclaimer: true);
@@ -1139,12 +1222,12 @@ void main() {
       // Three private sites owned by diver-1.
       final fakeSiteRepo = _FakeSiteRepository(
         sites: [
-          const domain.DiveSite(id: 's1', name: 'Site 1', isShared: false),
-          const domain.DiveSite(id: 's2', name: 'Site 2', isShared: false),
-          const domain.DiveSite(id: 's3', name: 'Site 3', isShared: false),
+          const domain.DiveSite(id: 's1', name: 'Site 1', diverId: 'diver-1'),
+          const domain.DiveSite(id: 's2', name: 'Site 2', diverId: 'diver-1'),
+          const domain.DiveSite(id: 's3', name: 'Site 3', diverId: 'diver-1'),
         ],
-        shareAllForDiverResult: 3,
       );
+      final itemShares = FakeItemShares();
 
       Widget buildWithBulkShare(Widget child) {
         fakeAppSettings = _FakeAppSettingsRepository();
@@ -1172,6 +1255,7 @@ void main() {
                 (ref) async => fakeAppSettings.getShareByDefault(),
               ),
               siteRepositoryProvider.overrideWithValue(fakeSiteRepo),
+              itemSharesRepositoryProvider.overrideWithValue(itemShares),
             ],
             child: MaterialApp(
               localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -1187,28 +1271,34 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Tap "Share all my sites".
-      final siteTile = find.text('Share all my sites');
+      // Tap "Share all my sites...".
+      final siteTile = find.text('Share all my sites...');
       expect(siteTile, findsOneWidget);
       await tester.tap(siteTile);
       await tester.pumpAndSettle();
 
-      // Confirmation dialog should appear with the private count (3).
+      // The picker says how many sites and how to change one later.
       expect(find.byType(AlertDialog), findsOneWidget);
-      expect(find.textContaining('3'), findsWidgets);
+      expect(
+        find.text(
+          'Choose who sees all 3 of your sites. To change one site later, '
+          'open it and tap Shared with.',
+        ),
+        findsOneWidget,
+      );
 
-      // Tap the Share button.
-      final shareButton = find.text('Share');
-      expect(shareButton, findsOneWidget);
-      await tester.tap(shareButton);
+      // Choose the other profile, then Share.
+      await tester.tap(find.text('Diver diver-2'));
+      await tester.pump();
+      await tester.tap(find.text('Share'));
       await tester.pumpAndSettle();
+      await tester.pump();
 
-      // Success snackbar should appear.
-      expect(find.byType(SnackBar), findsOneWidget);
-      expect(find.textContaining('3'), findsWidgets);
-
-      // Repository action was called for diver-1.
-      expect(fakeSiteRepo.shareAllForDiverCalledFor, equals('diver-1'));
+      // Every owned site gains the profile; nothing is taken away.
+      final (ids, added) = itemShares.addCalls.single;
+      expect(ids, ['s1', 's2', 's3']);
+      expect(added, const ItemSharing(profileIds: {'diver-2'}));
+      expect(find.text('Shared 3 items'), findsOneWidget);
     });
 
     testWidgets('bulk-share trips: tap, confirm, see snackbar with count', (
@@ -1227,7 +1317,7 @@ void main() {
             endDate: now,
             createdAt: now,
             updatedAt: now,
-            isShared: false,
+            diverId: 'diver-1',
           ),
           trips.Trip(
             id: 't2',
@@ -1236,11 +1326,11 @@ void main() {
             endDate: now,
             createdAt: now,
             updatedAt: now,
-            isShared: false,
+            diverId: 'diver-1',
           ),
         ],
-        shareAllForDiverResult: 2,
       );
+      final itemShares = FakeItemShares();
 
       Widget buildWithBulkShare(Widget child) {
         fakeAppSettings = _FakeAppSettingsRepository();
@@ -1268,6 +1358,7 @@ void main() {
                 (ref) async => fakeAppSettings.getShareByDefault(),
               ),
               tripRepositoryProvider.overrideWithValue(fakeTripRepo),
+              itemSharesRepositoryProvider.overrideWithValue(itemShares),
             ],
             child: MaterialApp(
               localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -1283,28 +1374,33 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Tap "Share all my trips".
-      final tripTile = find.text('Share all my trips');
+      // Tap "Share all my trips...".
+      final tripTile = find.text('Share all my trips...');
       expect(tripTile, findsOneWidget);
       await tester.tap(tripTile);
       await tester.pumpAndSettle();
 
-      // Confirmation dialog should appear with the private count (2).
+      // The picker says how many trips and how to change one later.
       expect(find.byType(AlertDialog), findsOneWidget);
-      expect(find.textContaining('2'), findsWidgets);
+      expect(
+        find.text(
+          'Choose who sees all 2 of your trips. To change one trip later, '
+          'open it and tap Shared with.',
+        ),
+        findsOneWidget,
+      );
 
-      // Tap the Share button.
-      final shareButton = find.text('Share');
-      expect(shareButton, findsOneWidget);
-      await tester.tap(shareButton);
+      // Choose Everyone, then Share.
+      await tester.tap(find.text('Everyone'));
+      await tester.pump();
+      await tester.tap(find.text('Share'));
       await tester.pumpAndSettle();
+      await tester.pump();
 
-      // Success snackbar should appear.
-      expect(find.byType(SnackBar), findsOneWidget);
-      expect(find.textContaining('2'), findsWidgets);
-
-      // Repository action was called for diver-1.
-      expect(fakeTripRepo.shareAllForDiverCalledFor, equals('diver-1'));
+      final (ids, added) = itemShares.addCalls.single;
+      expect(ids, ['t1', 't2']);
+      expect(added, ItemSharing.all);
+      expect(find.text('Shared 2 items'), findsOneWidget);
     });
   });
 }

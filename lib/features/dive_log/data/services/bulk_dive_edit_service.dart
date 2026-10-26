@@ -11,6 +11,7 @@ import 'package:submersion/features/dive_roles/data/repositories/dive_role_link_
 import 'package:submersion/features/dive_log/domain/entities/bulk_edit_request.dart';
 import 'package:submersion/features/dive_log/domain/entities/bulk_edit_snapshot.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart' as de;
+import 'package:submersion/features/dive_log/domain/entities/tank_extra_regulators.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart'
     as dw;
 import 'package:submersion/features/equipment/domain/entities/gear_provenance.dart';
@@ -419,6 +420,7 @@ class BulkDiveEditService {
         transmitterSerial: r.transmitterSerial,
         sourceId: r.sourceId,
         regulatorEquipmentId: r.regulatorEquipmentId,
+        extraRegulatorIds: decodeExtraRegulatorIds(r.extraRegulatorIds),
         tripCylinderId: r.tripCylinderId,
         // The tagged cylinder (#2650), restore-only like the slot.
         passportId: r.passportId,

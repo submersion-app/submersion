@@ -49,12 +49,8 @@ class GasColors {
   }
 
   /// Get color for O2 and He percentages (0-100 scale)
-  static Color forMixPercent(double o2Percent, double hePercent) {
-    if (hePercent > 0) return trimix;
-    if (o2Percent >= 99) return oxygen;
-    if (o2Percent > 22) return nitrox;
-    return air;
-  }
+  static Color forMixPercent(double o2Percent, double hePercent) =>
+      forGasMix(GasMix(o2: o2Percent, he: hePercent));
 
   /// Get color for O2 and He fractions (0-1 scale)
   static Color forMixFraction(double o2Fraction, double heFraction) {

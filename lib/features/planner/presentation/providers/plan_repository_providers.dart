@@ -1,3 +1,5 @@
+import 'package:submersion/core/constants/sort_options.dart';
+import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/planner/data/repositories/dive_plan_repository.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
@@ -16,3 +18,12 @@ final divePlanSummariesProvider = FutureProvider<List<domain.DivePlanSummary>>((
   ref.invalidateSelfWhen(repository.watchPlanChanges());
   return repository.getAllPlanSummaries();
 });
+
+/// Sort state for the full planned-dives list. Session-only, like the sort
+/// and grouping on the Dive Sites list.
+final divePlanSortProvider = StateProvider<SortState<DivePlanSortField>>(
+  (ref) => const SortState(
+    field: DivePlanSortField.date,
+    direction: SortDirection.descending,
+  ),
+);

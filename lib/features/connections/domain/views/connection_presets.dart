@@ -4,13 +4,22 @@ import 'package:submersion/features/connections/domain/views/kind_link.dart';
 import 'package:submersion/features/connections/domain/views/map_spec.dart';
 
 class ConnectionPreset extends Equatable {
-  const ConnectionPreset({required this.id, required this.spec});
+  const ConnectionPreset({
+    required this.id,
+    required this.spec,
+    this.sharedWith = const {},
+  });
 
   final String id;
   final MapSpec spec;
 
+  /// Kinds this preset shows only where they share a dive with another
+  /// kind: `{site: buddy}` keeps the sites dived with a buddy. Applies to
+  /// the preset as applied, never to a map saved or edited from it.
+  final Map<ConnectionKind, ConnectionKind> sharedWith;
+
   @override
-  List<Object?> get props => [id, spec];
+  List<Object?> get props => [id, spec, sharedWith];
 }
 
 /// The nine built-in maps, in display order (spec Revision 2, Presets).
@@ -28,12 +37,20 @@ class ConnectionPresets {
   static ConnectionPreset _p(
     String id,
     Set<ConnectionKind> kinds,
-    List<KindLink> links,
-  ) => ConnectionPreset(id: id, spec: MapSpec.of(kinds, links.toSet()));
+    List<KindLink> links, {
+    Map<ConnectionKind, ConnectionKind> sharedWith = const {},
+  }) => ConnectionPreset(
+    id: id,
+    spec: MapSpec.of(kinds, links.toSet()),
+    sharedWith: sharedWith,
+  );
+
+  /// The preset the page opens on: buddies and the places dived together.
+  static const String startId = 'where';
 
   static final List<ConnectionPreset> all = List.unmodifiable([
     _p('circle', {_b}, [KindLink(_b, _b)]),
-    _p('where', {_b, _s}, [KindLink(_b, _s)]),
+    _p('where', {_b, _s}, [KindLink(_b, _s)], sharedWith: {_s: _b}),
     _p('trips', {_b, _t}, [KindLink(_b, _t)]),
     _p('life', {_s, _sp}, [KindLink(_s, _sp)]),
     _p('gear', {_e}, [KindLink(_e, _e)]),

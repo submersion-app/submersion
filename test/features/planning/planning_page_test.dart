@@ -100,6 +100,9 @@ void main() {
 
     expect(find.text('Dive Planner'), findsOneWidget);
     expect(find.text('Create multi-level dive plans'), findsOneWidget);
+    // The narrow window has no detail pane for the full saved-plans list, so
+    // its own row (with the same 3-plan preview) is the entry point to it.
+    expect(find.text('Saved plans'), findsOneWidget);
     expect(find.text('Reef 30m'), findsOneWidget);
     expect(find.text('Wreck 50m'), findsOneWidget);
     expect(find.text('TOOLS'), findsOneWidget);
@@ -239,6 +242,9 @@ void main() {
       expect(find.text('SAVED PLANS'), findsOneWidget);
       // Genuinely no plans in this fixture, so the empty state is accurate.
       expect(find.text('No saved plans yet'), findsOneWidget);
+      // The detail pane already covers this, so the hub's own row for it
+      // would only duplicate that content in split view.
+      expect(find.text('Saved plans'), findsNothing);
     });
 
     // "No saved plans yet" is a claim about the data. Asserting it before the

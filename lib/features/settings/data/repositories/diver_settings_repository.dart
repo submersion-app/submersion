@@ -2,6 +2,9 @@ import 'dart:convert';
 
 import 'package:drift/drift.dart';
 import 'package:submersion/features/insights/domain/trend_gap_threshold.dart';
+import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
+    as domain
+    show TurnPressureRule;
 import 'package:submersion/features/equipment/domain/models/equipment_default_view.dart';
 import 'package:submersion/features/settings/data/repositories/profile_metric_color_columns.dart';
 import 'package:submersion/core/built_ins/hidden_built_ins_codec.dart';
@@ -328,6 +331,10 @@ class DiverSettingsRepository {
                 diveListViewMode: Value(s.diveListViewMode.name),
                 groupTripsInDiveList: Value(s.groupTripsInDiveList),
                 autoTagImports: Value(s.autoTagImports),
+                downloadsFollowComputerOwner: Value(
+                  s.downloadsFollowComputerOwner,
+                ),
+                omitUnusedOcGases: Value(s.omitUnusedOcGases),
                 siteListViewMode: Value(s.siteListViewMode.name),
                 tripListViewMode: Value(s.tripListViewMode.name),
                 equipmentListViewMode: Value(s.equipmentListViewMode.name),
@@ -394,6 +401,42 @@ class DiverSettingsRepository {
                 reminderTime: Value(_formatReminderTime(s.reminderTime)),
                 showDataSourceBadges: Value(s.showDataSourceBadges),
                 showDiveFigure: Value(s.showDiveFigure),
+                autoColorCorrection: Value(s.autoColorCorrection),
+                plannerDescentRate: Value(s.plannerDescentRate),
+                plannerAscentRate: Value(s.plannerAscentRate),
+                plannerIntermediateAscentRate: Value(
+                  s.plannerIntermediateAscentRate,
+                ),
+                plannerShallowAscentRate: Value(s.plannerShallowAscentRate),
+                plannerFinalAscentRate: Value(s.plannerFinalAscentRate),
+                plannerGasSwitchStopSeconds: Value(
+                  s.plannerGasSwitchStopSeconds,
+                ),
+                plannerSacBottom: Value(s.plannerSacBottom),
+                plannerSacDeco: Value(s.plannerSacDeco),
+                plannerSacStressedFactor: Value(s.plannerSacStressedFactor),
+                plannerBuddyFactor: Value(s.plannerBuddyFactor),
+                plannerProblemSolvingMinutes: Value(
+                  s.plannerProblemSolvingMinutes,
+                ),
+                plannerBestMixEndMeters: Value(s.plannerBestMixEndMeters),
+                plannerDeviationDepthDelta: Value(s.plannerDeviationDepthDelta),
+                plannerDeviationTimeMinutes: Value(
+                  s.plannerDeviationTimeMinutes,
+                ),
+                plannerBatteryReserveFraction: Value(
+                  s.plannerBatteryReserveFraction,
+                ),
+                plannerWalkSpeedMps: Value(s.plannerWalkSpeedMps),
+                plannerTurnPressureRule: Value(s.plannerTurnPressureRule?.name),
+                plannerTurnPressureFraction: Value(
+                  s.plannerTurnPressureFraction,
+                ),
+                plannerAirBreakO2Seconds: Value(s.plannerAirBreakO2Seconds),
+                plannerAirBreakBreakSeconds: Value(
+                  s.plannerAirBreakBreakSeconds,
+                ),
+                plannerReservePressure: Value(s.plannerReservePressure),
                 showProfilePanelInTableView: Value(
                   s.showProfilePanelInTableView,
                 ),
@@ -637,6 +680,10 @@ class DiverSettingsRepository {
       diveListViewMode: Value(settings.diveListViewMode.name),
       groupTripsInDiveList: Value(settings.groupTripsInDiveList),
       autoTagImports: Value(settings.autoTagImports),
+      downloadsFollowComputerOwner: Value(
+        settings.downloadsFollowComputerOwner,
+      ),
+      omitUnusedOcGases: Value(settings.omitUnusedOcGases),
       siteListViewMode: Value(settings.siteListViewMode.name),
       tripListViewMode: Value(settings.tripListViewMode.name),
       equipmentListViewMode: Value(settings.equipmentListViewMode.name),
@@ -701,6 +748,34 @@ class DiverSettingsRepository {
       reminderTime: Value(_formatReminderTime(settings.reminderTime)),
       showDataSourceBadges: Value(settings.showDataSourceBadges),
       showDiveFigure: Value(settings.showDiveFigure),
+      autoColorCorrection: Value(settings.autoColorCorrection),
+      plannerDescentRate: Value(settings.plannerDescentRate),
+      plannerAscentRate: Value(settings.plannerAscentRate),
+      plannerIntermediateAscentRate: Value(
+        settings.plannerIntermediateAscentRate,
+      ),
+      plannerShallowAscentRate: Value(settings.plannerShallowAscentRate),
+      plannerFinalAscentRate: Value(settings.plannerFinalAscentRate),
+      plannerGasSwitchStopSeconds: Value(settings.plannerGasSwitchStopSeconds),
+      plannerSacBottom: Value(settings.plannerSacBottom),
+      plannerSacDeco: Value(settings.plannerSacDeco),
+      plannerSacStressedFactor: Value(settings.plannerSacStressedFactor),
+      plannerBuddyFactor: Value(settings.plannerBuddyFactor),
+      plannerProblemSolvingMinutes: Value(
+        settings.plannerProblemSolvingMinutes,
+      ),
+      plannerBestMixEndMeters: Value(settings.plannerBestMixEndMeters),
+      plannerDeviationDepthDelta: Value(settings.plannerDeviationDepthDelta),
+      plannerDeviationTimeMinutes: Value(settings.plannerDeviationTimeMinutes),
+      plannerBatteryReserveFraction: Value(
+        settings.plannerBatteryReserveFraction,
+      ),
+      plannerWalkSpeedMps: Value(settings.plannerWalkSpeedMps),
+      plannerTurnPressureRule: Value(settings.plannerTurnPressureRule?.name),
+      plannerTurnPressureFraction: Value(settings.plannerTurnPressureFraction),
+      plannerAirBreakO2Seconds: Value(settings.plannerAirBreakO2Seconds),
+      plannerAirBreakBreakSeconds: Value(settings.plannerAirBreakBreakSeconds),
+      plannerReservePressure: Value(settings.plannerReservePressure),
       showProfilePanelInTableView: Value(settings.showProfilePanelInTableView),
       showDetailsPaneDives: Value(settings.showDetailsPaneDives),
       showDetailsPaneSites: Value(settings.showDetailsPaneSites),
@@ -873,6 +948,8 @@ class DiverSettingsRepository {
       diveListViewMode: ListViewMode.fromName(row.diveListViewMode),
       groupTripsInDiveList: row.groupTripsInDiveList,
       autoTagImports: row.autoTagImports,
+      downloadsFollowComputerOwner: row.downloadsFollowComputerOwner,
+      omitUnusedOcGases: row.omitUnusedOcGases,
       siteListViewMode: ListViewMode.fromName(row.siteListViewMode),
       tripListViewMode: ListViewMode.fromName(row.tripListViewMode),
       equipmentListViewMode: ListViewMode.fromName(row.equipmentListViewMode),
@@ -935,6 +1012,29 @@ class DiverSettingsRepository {
       reminderTime: _parseReminderTime(row.reminderTime),
       showDataSourceBadges: row.showDataSourceBadges,
       showDiveFigure: row.showDiveFigure,
+      autoColorCorrection: row.autoColorCorrection,
+      plannerDescentRate: row.plannerDescentRate,
+      plannerAscentRate: row.plannerAscentRate,
+      plannerIntermediateAscentRate: row.plannerIntermediateAscentRate,
+      plannerShallowAscentRate: row.plannerShallowAscentRate,
+      plannerFinalAscentRate: row.plannerFinalAscentRate,
+      plannerGasSwitchStopSeconds: row.plannerGasSwitchStopSeconds,
+      plannerSacBottom: row.plannerSacBottom,
+      plannerSacDeco: row.plannerSacDeco,
+      plannerSacStressedFactor: row.plannerSacStressedFactor,
+      plannerBuddyFactor: row.plannerBuddyFactor,
+      plannerProblemSolvingMinutes: row.plannerProblemSolvingMinutes,
+      plannerBestMixEndMeters: row.plannerBestMixEndMeters,
+      plannerDeviationDepthDelta: row.plannerDeviationDepthDelta,
+      plannerDeviationTimeMinutes: row.plannerDeviationTimeMinutes,
+      plannerBatteryReserveFraction: row.plannerBatteryReserveFraction,
+      plannerWalkSpeedMps: row.plannerWalkSpeedMps,
+      plannerTurnPressureRule: domain.TurnPressureRule.values
+          .asNameMap()[row.plannerTurnPressureRule],
+      plannerTurnPressureFraction: row.plannerTurnPressureFraction,
+      plannerAirBreakO2Seconds: row.plannerAirBreakO2Seconds,
+      plannerAirBreakBreakSeconds: row.plannerAirBreakBreakSeconds,
+      plannerReservePressure: row.plannerReservePressure,
       showProfilePanelInTableView: row.showProfilePanelInTableView,
       showDetailsPaneDives: row.showDetailsPaneDives,
       showDetailsPaneSites: row.showDetailsPaneSites,

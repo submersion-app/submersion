@@ -20,6 +20,10 @@ class RecordingTcpServer {
     );
     server._server.listen((socket) {
       server._clients.add(socket);
+      // A client that hangs up while an answer is in flight makes that write
+      // fail on done (a broken pipe on Linux, a reset on macOS). Left
+      // unheard, the error fails whichever test is running when it lands.
+      unawaited(socket.done.catchError((Object _) {}));
       socket.listen(
         (data) {
           if (!server._first.isCompleted) server._first.complete(data);

@@ -33,6 +33,12 @@ class TableModeLayout extends ConsumerWidget {
   /// Section identifier used for provider keys and URL state (e.g., 'dives').
   final String sectionKey;
 
+  /// The detail pane's [MasterDetailScaffold.sectionId], when the section's
+  /// list view uses a different one from [sectionKey]. The pane's memory
+  /// (see `closedPaneRecordProvider`) is keyed by it, and the table and the
+  /// list must share that memory (#3301).
+  final String? paneSectionId;
+
   /// Title shown in the app bar.
   final String appBarTitle;
 
@@ -47,6 +53,11 @@ class TableModeLayout extends ConsumerWidget {
   /// The header's toolbar height, for an [appBarTitleWidget] taller than a
   /// standard toolbar at large text; the standard height when null.
   final double? appBarToolbarHeight;
+
+  /// Wraps the phone layout's app bar, selection bar included, so a host
+  /// that slides the page sideways can hold the bar still (#3465). Not used
+  /// on desktop, where nothing slides.
+  final PreferredSizeWidget Function(PreferredSizeWidget bar)? phoneAppBarPin;
 
   /// The table content widget (EntityTableView or similar).
   final Widget tableContent;
@@ -85,6 +96,10 @@ class TableModeLayout extends ConsumerWidget {
 
   /// Currently selected entity ID for the detail pane.
   final String? selectedId;
+
+  /// The record the detail pane reopens when the table is returned to; see
+  /// [MasterDetailScaffold.rememberedSelectedId].
+  final AsyncValue<String?>? rememberedSelectedId;
 
   /// Callback when an entity row is tapped.
   final void Function(String) onEntitySelected;
@@ -130,10 +145,12 @@ class TableModeLayout extends ConsumerWidget {
   const TableModeLayout({
     super.key,
     required this.sectionKey,
+    this.paneSectionId,
     required this.appBarTitle,
     this.appBarSubtitle,
     this.appBarTitleWidget,
     this.appBarToolbarHeight,
+    this.phoneAppBarPin,
     required this.tableContent,
     required this.detailBuilder,
     required this.summaryBuilder,
@@ -145,6 +162,7 @@ class TableModeLayout extends ConsumerWidget {
     this.columnSettingsAction,
     this.appBarActions,
     this.selectedId,
+    this.rememberedSelectedId,
     this.onEntityDoubleTap,
     this.isSelectionMode = false,
     this.selectedIds = const {},
@@ -198,7 +216,8 @@ class TableModeLayout extends ConsumerWidget {
     required List<Widget> toggleActions,
   }) {
     return MasterDetailScaffold(
-      sectionId: sectionKey,
+      sectionId: paneSectionId ?? sectionKey,
+      rememberedSelectedId: rememberedSelectedId,
       masterBuilder: (context, onItemSelected, mdsSelectedId) {
         return _TableModeMaster(
           appBarTitle: appBarTitle,
@@ -232,20 +251,24 @@ class TableModeLayout extends ConsumerWidget {
     bool showProfile,
   ) {
     final body = _buildBody(context, showMap, showProfile);
+    final pin = ResponsiveBreakpoints.isMasterDetail(context)
+        ? null
+        : phoneAppBarPin;
+    final PreferredSizeWidget bar = isSelectionMode && selectionAppBar != null
+        ? selectionAppBar!
+        : AppBar(
+            toolbarHeight: appBarToolbarHeight,
+            title:
+                appBarTitleWidget ??
+                TitleWithSubtitle(
+                  title: Text(appBarTitle),
+                  subtitle: appBarSubtitle,
+                ),
+            actions: toggleActions,
+          );
 
     return Scaffold(
-      appBar: isSelectionMode && selectionAppBar != null
-          ? selectionAppBar
-          : AppBar(
-              toolbarHeight: appBarToolbarHeight,
-              title:
-                  appBarTitleWidget ??
-                  TitleWithSubtitle(
-                    title: Text(appBarTitle),
-                    subtitle: appBarSubtitle,
-                  ),
-              actions: toggleActions,
-            ),
+      appBar: pin?.call(bar) ?? bar,
       body: body,
       floatingActionButton: floatingActionButton,
     );

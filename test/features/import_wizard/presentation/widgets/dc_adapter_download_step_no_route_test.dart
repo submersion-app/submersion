@@ -145,7 +145,7 @@ class _Harness {
         ),
         diveComputerRepositoryProvider.overrideWithValue(deps.computerRepo),
         deviceDescriptorsProvider.overrideWith((ref) async => []),
-        firstSyncCutoffDefaultProvider.overrideWith((ref) async => null),
+        firstSyncCutoffDefaultProvider.overrideWith((ref, _) async => null),
       ],
       child: MaterialApp.router(
         locale: const Locale('en'),

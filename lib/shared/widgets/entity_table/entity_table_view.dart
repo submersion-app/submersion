@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:linked_scroll_controller/linked_scroll_controller.dart';
@@ -17,6 +19,9 @@ const double _kCheckboxWidth = 48.0;
 
 /// Width reserved for [EntityTableView.leadingBuilder], when one is given.
 const double _kLeadingWidth = 40.0;
+
+/// Opacity of a row [EntityTableView.isEntityMuted] answers true for.
+const double kEntityTableMutedOpacity = 0.6;
 
 /// Generic full-width data table for displaying entity lists with pinned
 /// columns and synchronized horizontal scrolling.
@@ -93,6 +98,15 @@ class EntityTableView<T, F extends EntityField> extends StatefulWidget {
   /// Every cell has one when null.
   final bool Function(T entity, F field)? hasCellMenu;
 
+  /// Whether [entity]'s row is greyed out, such as a permanently closed dive
+  /// center (#3379). No row is when null.
+  final bool Function(T entity)? isEntityMuted;
+
+  /// A widget shown after the text in [entity]'s cell in [field]'s column,
+  /// such as a status tag beside a name, or null for none. Cells hold only
+  /// their text when this is null.
+  final Widget? Function(T entity, F field)? cellTrailingBuilder;
+
   const EntityTableView({
     super.key,
     required this.entities,
@@ -114,6 +128,8 @@ class EntityTableView<T, F extends EntityField> extends StatefulWidget {
     this.cellMenuBuilder,
     this.isColumnFiltered,
     this.hasCellMenu,
+    this.isEntityMuted,
+    this.cellTrailingBuilder,
   });
 
   @override
@@ -156,7 +172,21 @@ class _EntityTableViewState<T, F extends EntityField>
     _verticalGroup = LinkedScrollControllerGroup();
     _pinnedVerticalController = _verticalGroup.addAndGet();
     _scrollableVerticalController = _verticalGroup.addAndGet();
+    // A table built with a highlighted row (the list was returned to, #3301)
+    // shows that row rather than the top of the table.
+    if (widget.highlightedId != null) {
+      // Built with rows, the reveal is decided now, found or not: a row a
+      // later filter brings into view is not jumped to.
+      _revealedOnBuild = widget.entities.isNotEmpty;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _scrollToHighlightedRow(jump: true);
+      });
+    }
   }
+
+  /// Whether the highlighted row has been brought into view since this
+  /// table was built, so rows arriving after that do not move it again.
+  bool _revealedOnBuild = false;
 
   @override
   void didUpdateWidget(EntityTableView<T, F> oldWidget) {
@@ -164,10 +194,20 @@ class _EntityTableViewState<T, F extends EntityField>
     if (widget.highlightedId != null &&
         widget.highlightedId != oldWidget.highlightedId) {
       _scrollToHighlightedRow();
+    } else if (!_revealedOnBuild &&
+        widget.highlightedId != null &&
+        oldWidget.entities.isEmpty &&
+        widget.entities.isNotEmpty) {
+      // Built before its rows arrived: reveal the row once they do.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _scrollToHighlightedRow(jump: true);
+      });
     }
   }
 
-  void _scrollToHighlightedRow() {
+  /// Scrolls the highlighted row into view, by [jump] when the table is
+  /// being restored so it does not visibly travel from the top.
+  void _scrollToHighlightedRow({bool jump = false}) {
     if (widget.highlightedId == null) return;
 
     final sorted = _sortedEntities();
@@ -175,6 +215,7 @@ class _EntityTableViewState<T, F extends EntityField>
       (e) => widget.idExtractor(e) == widget.highlightedId,
     );
     if (index < 0) return;
+    if (jump) _revealedOnBuild = true;
 
     if (!_pinnedVerticalController.hasClients) return;
     final viewportHeight = _pinnedVerticalController.position.viewportDimension;
@@ -193,6 +234,10 @@ class _EntityTableViewState<T, F extends EntityField>
           _pinnedVerticalController.position.maxScrollExtent,
         );
 
+    if (jump) {
+      _pinnedVerticalController.jumpTo(targetOffset);
+      return;
+    }
     _pinnedVerticalController.animateTo(
       targetOffset,
       duration: const Duration(milliseconds: 300),
@@ -337,8 +382,17 @@ class _EntityTableViewState<T, F extends EntityField>
   }) {
     final value = widget.adapter.extractValue(column.field, entity);
     final text = widget.adapter.formatValue(column.field, value, widget.units);
+    final label = Text(
+      text,
+      overflow: TextOverflow.ellipsis,
+      maxLines: 1,
+      style: theme.textTheme.bodySmall?.copyWith(
+        color: isSelected ? theme.colorScheme.onPrimaryContainer : null,
+      ),
+    );
+    final trailing = widget.cellTrailingBuilder?.call(entity, column.field);
 
-    final cell = Container(
+    final box = Container(
       width: _widthOf(column),
       height: kEntityTableRowHeight,
       padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -356,15 +410,28 @@ class _EntityTableViewState<T, F extends EntityField>
               : BorderSide.none,
         ),
       ),
-      child: Text(
-        text,
-        overflow: TextOverflow.ellipsis,
-        maxLines: 1,
-        style: theme.textTheme.bodySmall?.copyWith(
-          color: isSelected ? theme.colorScheme.onPrimaryContainer : null,
-        ),
-      ),
+      // The trailing widget keeps its natural width up to half the cell, so
+      // a long tag ellipsizes rather than overflowing a narrow column, and a
+      // right-aligned column stays right-aligned.
+      child: trailing == null
+          ? label
+          : Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Flexible(child: label),
+                const SizedBox(width: 6),
+                ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxWidth: math.max(0, (_widthOf(column) - 16 - 6) / 2),
+                  ),
+                  child: trailing,
+                ),
+              ],
+            ),
     );
+    final cell = (widget.isEntityMuted?.call(entity) ?? false)
+        ? Opacity(opacity: kEntityTableMutedOpacity, child: box)
+        : box;
     final menu = widget.cellMenuBuilder;
     if (menu == null ||
         !(widget.hasCellMenu?.call(entity, column.field) ?? true)) {
@@ -527,7 +594,19 @@ class _EntityTableViewState<T, F extends EntityField>
                                       width: _kLeadingWidth,
                                       height: kEntityTableRowHeight,
                                       child: Center(
-                                        child: widget.leadingBuilder!(entity),
+                                        child:
+                                            (widget.isEntityMuted?.call(
+                                                  entity,
+                                                ) ??
+                                                false)
+                                            ? Opacity(
+                                                opacity:
+                                                    kEntityTableMutedOpacity,
+                                                child: widget.leadingBuilder!(
+                                                  entity,
+                                                ),
+                                              )
+                                            : widget.leadingBuilder!(entity),
                                       ),
                                     ),
                                   ...pinned.asMap().entries.map((entry) {

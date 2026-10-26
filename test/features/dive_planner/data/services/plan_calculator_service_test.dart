@@ -196,6 +196,61 @@ void main() {
       expect(idealTotal, lessThanOrEqualTo(fixedTotal));
     });
 
+    test('a diluent ascent gas follows its own CCR Dil MOD limit', () {
+      const dil = DiveTank(
+        id: 'dil',
+        name: 'EAN40 dil',
+        volume: 11.1,
+        startPressure: 200,
+        gasMix: GasMix(o2: 40),
+        role: TankRole.diluent,
+      );
+      // Deep enough that the deco schedule carries a stop at 30 m and 27 m:
+      // within EAN40's 30 m Dil MOD (ppO2 1.6) but above its 25 m bottom
+      // limit MOD (ppO2 1.4), so only the fix reaches the diluent there.
+      final segments = [
+        PlanSegment.travel(
+          id: 'descent',
+          fromDepth: 0,
+          targetDepth: 60,
+          tankId: air.id,
+          gasMix: air.gasMix,
+          order: 0,
+          ratePerMinute: 18.0,
+        ),
+        PlanSegment.hold(
+          id: 'bottom',
+          depth: 60,
+          durationMinutes: 35,
+          tankId: air.id,
+          gasMix: air.gasMix,
+          order: 1,
+        ),
+      ];
+
+      final withDilMod = PlanCalculatorService(ccrDiluentModPpO2: 1.6);
+      final result = withDilMod.calculatePlan(
+        segments: segments,
+        tanks: [air, dil],
+        sacRate: 15,
+      );
+      final stop30 = result.decoSchedule.firstWhere((s) => s.depth == 30);
+      final stop27 = result.decoSchedule.firstWhere((s) => s.depth == 27);
+      expect(stop30.gasMix.o2, closeTo(40, 1e-6));
+      expect(stop27.gasMix.o2, closeTo(40, 1e-6));
+
+      // At the bottom ppO2 limit instead, those same stops fall back to
+      // back gas: the bug this guards against.
+      final withoutDilMod = PlanCalculatorService(ccrDiluentModPpO2: 1.4);
+      final buggy = withoutDilMod.calculatePlan(
+        segments: segments,
+        tanks: [air, dil],
+        sacRate: 15,
+      );
+      final buggyStop30 = buggy.decoSchedule.firstWhere((s) => s.depth == 30);
+      expect(buggyStop30.gasMix.o2, closeTo(21, 1e-6));
+    });
+
     test('deco stops report the gas actually breathed at each stop', () {
       final result = calculator.calculatePlan(
         segments: decoSegments(),

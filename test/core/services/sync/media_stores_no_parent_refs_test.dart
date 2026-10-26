@@ -1,11 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:submersion/core/data/repositories/connected_accounts_repository.dart';
-import 'package:submersion/core/services/accounts/account_credentials_store.dart';
 import 'package:submersion/core/services/media_store/media_store_attach_state.dart';
 import 'package:submersion/core/services/media_store/media_store_credentials_store.dart';
 import 'package:submersion/core/services/sync/sync_service.dart';
+import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media_store/data/media_store_service.dart';
 import 'package:submersion/features/media_store/data/media_stores_repository.dart';
 
@@ -58,8 +57,7 @@ void main() {
       credentials: MediaStoreCredentialsStore(storage: InMemoryKeychain()),
       attachState: MediaStoreAttachState(),
       storesRepository: stores,
-      accountsRepository: ConnectedAccountsRepository(),
-      accountCredentials: AccountCredentialsStore(storage: InMemoryKeychain()),
+      mediaRepository: MediaRepository(),
     );
 
     await service.disconnect();

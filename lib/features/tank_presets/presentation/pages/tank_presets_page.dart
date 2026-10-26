@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/icons/mdi_icons.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/constants/tank_preset_display.dart';
+import 'package:submersion/core/constants/tank_presets.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -45,6 +46,23 @@ class TankPresetsPage extends ConsumerWidget {
         data: (presets) {
           final builtInPresets = presets.where((p) => p.isBuiltIn).toList();
           final customPresets = presets.where((p) => !p.isBuiltIn).toList();
+          final customNames = {for (final p in customPresets) p.name};
+          // Custom presets can share a name; the default's name resolves to
+          // the lowest id among them, as in getPresetByName.
+          final defaultCustomIds =
+              customPresets
+                  .where((p) => p.name == settings.defaultTankPreset)
+                  .map((p) => p.id)
+                  .toList()
+                ..sort();
+          final defaultCustomId = defaultCustomIds.firstOrNull;
+          // Deleting it clears the default only when the name would then
+          // resolve to nothing: no other custom preset or built-in of it.
+          final defaultName = settings.defaultTankPreset;
+          final deletingDefaultClearsIt =
+              defaultName != null &&
+              defaultCustomIds.length == 1 &&
+              TankPresets.byName(defaultName) == null;
 
           if (presets.isEmpty) {
             return Center(child: Text(context.l10n.tankPresets_noPresets));
@@ -92,7 +110,10 @@ class TankPresetsPage extends ConsumerWidget {
                     preset,
                     units,
                     canEdit: true,
-                    isDefault: settings.defaultTankPreset == preset.name,
+                    isDefault: preset.id == defaultCustomId,
+                    deletesDefault:
+                        preset.name == settings.defaultTankPreset &&
+                        deletingDefaultClearsIt,
                   ),
                 ),
                 const Divider(),
@@ -112,19 +133,26 @@ class TankPresetsPage extends ConsumerWidget {
                   ),
                 ),
               ),
-              ...builtInPresets.map(
-                (preset) => _buildPresetTile(
+              ...builtInPresets.map((preset) {
+                final hasDefaultName =
+                    settings.defaultTankPreset == preset.name;
+                // The diver's own preset of the same name is what that name
+                // resolves to (issue #3343), so it alone is the default.
+                final shadowed = customNames.contains(preset.name);
+                return _buildPresetTile(
                   context,
                   ref,
                   preset,
                   units,
                   canEdit: false,
-                  isDefault: settings.defaultTankPreset == preset.name,
+                  isDefault: hasDefaultName && !shadowed,
+                  shadowed: shadowed,
+                  canHide: !hasDefaultName,
                   isHidden:
-                      settings.defaultTankPreset != preset.name &&
+                      !hasDefaultName &&
                       settings.hiddenTankPresetIds.contains(preset.name),
-                ),
-              ),
+                );
+              }),
             ],
           );
         },
@@ -152,6 +180,9 @@ class TankPresetsPage extends ConsumerWidget {
     required bool canEdit,
     required bool isDefault,
     bool isHidden = false,
+    bool shadowed = false,
+    bool canHide = true,
+    bool deletesDefault = false,
   }) {
     final volumeStr = units.formatTankVolume(
       preset.volumeLiters,
@@ -192,26 +223,37 @@ class TankPresetsPage extends ConsumerWidget {
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          IconButton(
-            icon: Icon(
-              isDefault ? Icons.star : Icons.star_outline,
-              color: isDefault ? Theme.of(context).colorScheme.primary : null,
+          // A built-in [shadowed] by the diver's own preset of the same name
+          // cannot become the default, as the name would resolve to the
+          // diver's own, so it has no star. Its space is kept so the stars
+          // stay aligned.
+          Visibility(
+            visible: !shadowed,
+            maintainSize: true,
+            maintainAnimation: true,
+            maintainState: true,
+            child: IconButton(
+              icon: Icon(
+                isDefault ? Icons.star : Icons.star_outline,
+                color: isDefault ? Theme.of(context).colorScheme.primary : null,
+              ),
+              onPressed: isDefault
+                  ? null
+                  : () => ref
+                        .read(settingsProvider.notifier)
+                        .setDefaultTankPreset(preset.name),
+              tooltip: isDefault
+                  ? context.l10n.tankPresets_currentDefault
+                  : context.l10n.tankPresets_setAsDefault,
             ),
-            onPressed: isDefault
-                ? null
-                : () => ref
-                      .read(settingsProvider.notifier)
-                      .setDefaultTankPreset(preset.name),
-            tooltip: isDefault
-                ? context.l10n.tankPresets_currentDefault
-                : context.l10n.tankPresets_setAsDefault,
           ),
           // Built-in presets can be hidden from the pickers (issue #2305),
-          // except the default one. Its switch keeps its space so the stars
-          // stay aligned down the list.
+          // except one named as the default, which the pickers always offer.
+          // Its switch keeps its space so the stars stay aligned down the
+          // list.
           if (!canEdit)
             Visibility(
-              visible: !isDefault,
+              visible: canHide,
               maintainSize: true,
               maintainAnimation: true,
               maintainState: true,
@@ -232,7 +274,12 @@ class TankPresetsPage extends ConsumerWidget {
             ),
             IconButton(
               icon: const Icon(Icons.delete_outline),
-              onPressed: () => _confirmDelete(context, ref, preset),
+              onPressed: () => _confirmDelete(
+                context,
+                ref,
+                preset,
+                deletesDefault: deletesDefault,
+              ),
               tooltip: context.l10n.tankPresets_deletePreset,
             ),
           ],
@@ -244,17 +291,15 @@ class TankPresetsPage extends ConsumerWidget {
   Future<void> _confirmDelete(
     BuildContext context,
     WidgetRef ref,
-    TankPresetEntity preset,
-  ) async {
-    final settings = ref.read(settingsProvider);
-    final isDefault = settings.defaultTankPreset == preset.name;
-
+    TankPresetEntity preset, {
+    required bool deletesDefault,
+  }) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: Text(context.l10n.tankPresets_deleteTitle),
         content: Text(
-          isDefault
+          deletesDefault
               ? context.l10n.tankPresets_deleteDefaultMessage(
                   preset.displayName,
                 )
@@ -279,11 +324,14 @@ class TankPresetsPage extends ConsumerWidget {
     if (confirmed == true) {
       try {
         final notifier = ref.read(tankPresetListNotifierProvider.notifier);
+        // Read before the delete: the page may close while it runs, and the
+        // default must not be left naming a preset that is gone.
+        final settingsNotifier = ref.read(settingsProvider.notifier);
         await notifier.deletePreset(preset.id);
+        if (deletesDefault) {
+          await settingsNotifier.setDefaultTankPreset('al80');
+        }
         if (context.mounted) {
-          if (isDefault) {
-            ref.read(settingsProvider.notifier).setDefaultTankPreset('al80');
-          }
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(

@@ -21,6 +21,8 @@ import 'package:submersion/features/query/presentation/providers/query_id_set_pr
 import 'package:submersion/features/query/presentation/widgets/query_chips_frame.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_form_scope.dart';
+import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_closed_tag.dart';
+import 'package:submersion/shared/widgets/entity_table/entity_table_view.dart';
 
 import '../../../../helpers/list_create_router.dart';
 import '../../../../helpers/mock_providers.dart';
@@ -145,6 +147,66 @@ Future<List<Override>> _buildPhoneOverrides({
 }
 
 void main() {
+  // A selection made outside the list (the map, a deep link, the detail
+  // pane's previous and next) brings its row into view (#3301).
+  testWidgets('scrolls to a dive center selected from outside the list', (
+    tester,
+  ) async {
+    final overrides = await _buildPhoneOverrides(
+      centers: [
+        for (var i = 0; i < 60; i++)
+          _makeCenter(
+            id: 'r$i',
+            name: 'Center ${i.toString().padLeft(2, '0')}',
+          ),
+      ],
+    );
+    final selected = ValueNotifier<String?>(null);
+    addTearDown(selected.dispose);
+    await tester.pumpWidget(
+      testApp(
+        overrides: overrides,
+        child: ValueListenableBuilder<String?>(
+          valueListenable: selected,
+          builder: (_, id, _) =>
+              DiveCenterListContent(showAppBar: true, selectedId: id),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    selected.value = 'r50';
+    await tester.pumpAndSettle();
+
+    expect(find.text('Center 50'), findsOneWidget);
+  });
+
+  // A list built again after the diver left it comes back to the record they
+  // last opened (#3301).
+  testWidgets('scrolls to the highlighted dive center when built', (
+    tester,
+  ) async {
+    final overrides = await _buildPhoneOverrides(
+      centers: [
+        for (var i = 0; i < 60; i++)
+          _makeCenter(
+            id: 'r$i',
+            name: 'Center ${i.toString().padLeft(2, '0')}',
+          ),
+      ],
+      highlightedDiveCenterId: 'r50',
+    );
+    await tester.pumpWidget(
+      testApp(
+        overrides: overrides,
+        child: const DiveCenterListContent(showAppBar: true),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Center 50'), findsOneWidget);
+  });
+
   // The title's subtitle counts the list (#2669), in both the phone app bar
   // and the desktop pane header.
   group('entry count subtitle', () {
@@ -435,6 +497,42 @@ void main() {
       expect(find.text('Blue Water Dive'), findsOneWidget);
       expect(find.text('Red Sea Divers'), findsOneWidget);
       expect(find.text('Pacific Reef Dive'), findsOneWidget);
+    });
+
+    testWidgets('greys and tags a permanently closed center (#3379)', (
+      tester,
+    ) async {
+      final centers = [
+        _makeCenter(id: 'dc1', name: 'Blue Water Dive'),
+        _makeCenter(
+          id: 'dc2',
+          name: 'Toucan Diving',
+        ).copyWith(isPermanentlyClosed: true),
+      ];
+
+      final overrides = await _buildOverrides(centers: centers);
+
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const DiveCenterListContent(showAppBar: true),
+        ),
+      );
+      await tester.pump();
+
+      Finder muted(String text) => find.ancestor(
+        of: find.text(text),
+        matching: find.byWidgetPredicate(
+          (w) => w is Opacity && w.opacity == kEntityTableMutedOpacity,
+        ),
+      );
+      expect(find.byType(DiveCenterClosedTag), findsOneWidget);
+      expect(muted('Toucan Diving'), findsOneWidget);
+      expect(muted('Blue Water Dive'), findsNothing);
+      expect(
+        tester.getCenter(find.byType(DiveCenterClosedTag)).dy,
+        tester.getCenter(find.text('Toucan Diving')).dy,
+      );
     });
 
     testWidgets('shows empty state when no centers', (tester) async {

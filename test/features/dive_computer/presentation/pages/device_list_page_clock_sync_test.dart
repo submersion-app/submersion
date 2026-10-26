@@ -6,6 +6,7 @@ import 'package:submersion/features/dive_computer/presentation/providers/clock_s
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 
+import '../../../../helpers/computer_items_override.dart';
 import '../../../../helpers/test_app.dart';
 
 const _switchKey = ValueKey('clock_sync_global_switch');
@@ -14,6 +15,7 @@ Widget _build({List<DiveComputer> computers = const []}) {
   return testApp(
     locale: const Locale('en'),
     overrides: [
+      computerItemsFromComputers,
       allDiveComputersProvider.overrideWith((ref) async => computers),
     ],
     child: const DeviceListPage(),

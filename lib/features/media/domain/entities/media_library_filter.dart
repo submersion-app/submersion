@@ -1,3 +1,5 @@
+import 'package:collection/collection.dart';
+
 import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
@@ -26,6 +28,7 @@ class MediaLibraryFilter {
     this.toDate,
     this.sourceType,
     this.health,
+    this.tagIds = const {},
   });
 
   final MediaType? mediaType;
@@ -44,6 +47,10 @@ class MediaLibraryFilter {
   final MediaSourceType? sourceType;
   final MediaHealthFilter? health;
 
+  /// Rows carrying any of these tags (issue #1970). Empty means no tag
+  /// constraint.
+  final Set<String> tagIds;
+
   static const MediaLibraryFilter none = MediaLibraryFilter();
 
   bool get isEmpty =>
@@ -55,7 +62,8 @@ class MediaLibraryFilter {
       fromDate == null &&
       toDate == null &&
       sourceType == null &&
-      health == null;
+      health == null &&
+      tagIds.isEmpty;
 
   /// Sentinel-based copyWith so callers can explicitly clear a field back to
   /// null (the plain `??` idiom cannot).
@@ -69,6 +77,7 @@ class MediaLibraryFilter {
     Object? toDate = _undefined,
     Object? sourceType = _undefined,
     Object? health = _undefined,
+    Set<String>? tagIds,
   }) {
     return MediaLibraryFilter(
       mediaType: mediaType == _undefined
@@ -86,6 +95,7 @@ class MediaLibraryFilter {
           ? this.sourceType
           : sourceType as MediaSourceType?,
       health: health == _undefined ? this.health : health as MediaHealthFilter?,
+      tagIds: tagIds ?? this.tagIds,
     );
   }
 
@@ -111,6 +121,9 @@ class MediaLibraryFilter {
     'toDate': _dateToMillis(toDate),
     'sourceType': sourceType?.name,
     'health': health?.name,
+    // Left out when empty, so an album saved before tags keeps the JSON it
+    // always had. Sorted, so the same selection always encodes the same.
+    if (tagIds.isNotEmpty) 'tagIds': tagIds.sorted(),
   };
 
   /// Decodes leniently: an album written by a newer version (or a value
@@ -127,6 +140,10 @@ class MediaLibraryFilter {
       toDate: _dateFromMillis(json['toDate']),
       sourceType: _enumByName(MediaSourceType.values, json['sourceType']),
       health: _enumByName(MediaHealthFilter.values, json['health']),
+      tagIds: switch (json['tagIds']) {
+        final List<dynamic> ids => {...ids.whereType<String>()},
+        _ => const {},
+      },
     );
   }
 
@@ -156,7 +173,8 @@ class MediaLibraryFilter {
         other.fromDate == fromDate &&
         other.toDate == toDate &&
         other.sourceType == sourceType &&
-        other.health == health;
+        other.health == health &&
+        const SetEquality<String>().equals(other.tagIds, tagIds);
   }
 
   @override
@@ -170,6 +188,7 @@ class MediaLibraryFilter {
     toDate,
     sourceType,
     health,
+    const SetEquality<String>().hash(tagIds),
   );
 }
 

@@ -191,4 +191,148 @@ void main() {
       expect(bySite[id]!.single.typeName, 'mooring');
     }
   });
+
+  group('copyFeatures (issue #3575)', () {
+    setUp(() async {
+      await db
+          .into(db.diveSites)
+          .insert(
+            DiveSitesCompanion.insert(
+              id: 'site-2',
+              name: 'Salt Pier (copy)',
+              createdAt: 1,
+              updatedAt: 1,
+            ),
+          );
+    });
+
+    test('copies every feature as a new row on the target site', () async {
+      final mooring = await repo.addFeature(
+        siteId: 'site-1',
+        typeName: 'mooring',
+        name: 'North ball',
+        latitude: 12.151,
+        longitude: -68.299,
+        bearingDeg: 45,
+        depthMeters: 6,
+        notes: 'Blue buoy',
+      );
+      final wreck = await repo.addFeature(
+        siteId: 'site-1',
+        typeName: 'wreck',
+        latitude: 12.152,
+        longitude: -68.298,
+      );
+
+      await repo.copyFeatures(fromSiteId: 'site-1', toSiteId: 'site-2');
+
+      final copies = await repo.getFeaturesForSite('site-2');
+      expect(copies.map((f) => f.typeName), ['mooring', 'wreck']);
+      expect(
+        copies.map((f) => f.id),
+        everyElement(isNot(anyOf(mooring.id, wreck.id))),
+      );
+      final copy = copies.first;
+      expect(copy.siteId, 'site-2');
+      expect(copy.name, 'North ball');
+      expect(copy.latitude, 12.151);
+      expect(copy.longitude, -68.299);
+      expect(copy.bearingDeg, 45);
+      expect(copy.depthMeters, 6);
+      expect(copy.notes, 'Blue buoy');
+      // The source keeps its own features untouched.
+      expect((await repo.getFeaturesForSite('site-1')).map((f) => f.id), [
+        mooring.id,
+        wreck.id,
+      ]);
+    });
+
+    test('each copy is pending for sync', () async {
+      await repo.addFeature(
+        siteId: 'site-1',
+        typeName: 'mooring',
+        latitude: 12.151,
+        longitude: -68.299,
+      );
+
+      await repo.copyFeatures(fromSiteId: 'site-1', toSiteId: 'site-2');
+
+      final copy = (await repo.getFeaturesForSite('site-2')).single;
+      final pending = await db.select(db.syncRecords).get();
+      expect(
+        pending.where(
+          (p) => p.entityType == 'siteFeatures' && p.recordId == copy.id,
+        ),
+        isNotEmpty,
+      );
+    });
+
+    test('many copies keep their order and bump the parent once', () async {
+      const types = ['entry', 'exit', 'mooring', 'wreck', 'hazard', 'current'];
+      for (final type in types) {
+        await repo.addFeature(
+          siteId: 'site-1',
+          typeName: type,
+          latitude: 12.1,
+          longitude: -68.3,
+        );
+      }
+      final before = await (db.select(
+        db.diveSites,
+      )..where((t) => t.id.equals('site-2'))).getSingle();
+
+      await repo.copyFeatures(fromSiteId: 'site-1', toSiteId: 'site-2');
+
+      // Six quick writes can share a millisecond, so the original's order
+      // is whatever the listing defines; the copies must match it.
+      final original = await repo.getFeaturesForSite('site-1');
+      final copies = await repo.getFeaturesForSite('site-2');
+      expect(copies.map((f) => f.typeName), original.map((f) => f.typeName));
+      final after = await (db.select(
+        db.diveSites,
+      )..where((t) => t.id.equals('site-2'))).getSingle();
+      expect(after.updatedAt, greaterThan(before.updatedAt));
+    });
+
+    test('features stamped in the same millisecond keep one order, and '
+        'their copies follow it', () async {
+      // Inserted out of id order with one shared stamp: only a tie-breaker
+      // makes the order defined.
+      for (final (id, type) in [('b', 'wreck'), ('a', 'mooring')]) {
+        await db
+            .into(db.siteFeatures)
+            .insert(
+              SiteFeaturesCompanion.insert(
+                id: id,
+                siteId: 'site-1',
+                type: type,
+                latitude: 12.1,
+                longitude: -68.3,
+                createdAt: 5,
+                updatedAt: 5,
+              ),
+            );
+      }
+
+      final original = await repo.getFeaturesForSite('site-1');
+      expect(original.map((f) => f.id), ['a', 'b']);
+      expect(
+        (await repo.getFeaturesForSites([
+          'site-1',
+        ]))['site-1']!.map((f) => f.id),
+        ['a', 'b'],
+      );
+
+      await repo.copyFeatures(fromSiteId: 'site-1', toSiteId: 'site-2');
+
+      final copies = await repo.getFeaturesForSite('site-2');
+      expect(copies.map((f) => f.typeName), ['mooring', 'wreck']);
+    });
+
+    test('a site with no features copies nothing', () async {
+      await repo.copyFeatures(fromSiteId: 'site-1', toSiteId: 'site-2');
+
+      expect(await repo.getFeaturesForSite('site-2'), isEmpty);
+    });
+  });
 }

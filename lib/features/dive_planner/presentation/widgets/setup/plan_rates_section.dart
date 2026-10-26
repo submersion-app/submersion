@@ -24,72 +24,94 @@ class PlanRatesSection extends ConsumerWidget {
     final state = ref.watch(divePlanNotifierProvider);
     final notifier = ref.read(divePlanNotifierProvider.notifier);
     final units = UnitFormatter(ref.watch(settingsProvider));
+    final lastStopDepth =
+        state.lastStopDepth ?? ref.watch(lastStopDepthProvider);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _RateField(
           label: context.l10n.plannerCanvas_rates_ascent,
           value: state.ascentRate,
+          hintValue: ref.watch(plannerAscentRateProvider),
           units: units,
-          onChanged: (v) => notifier.updateRates(ascent: v),
+          onChanged: (v) =>
+              notifier.updateRates(ascent: v, clearAscent: v == null),
         ),
         _RateField(
           label: context.l10n.plannerCanvas_rates_intermediateAscent,
           value: state.intermediateAscentRate,
+          hintValue: ref.watch(plannerIntermediateAscentRateProvider),
           units: units,
-          onChanged: (v) => notifier.updateRates(intermediate: v),
+          onChanged: (v) => notifier.updateRates(
+            intermediate: v,
+            clearIntermediate: v == null,
+          ),
         ),
         _RateField(
           label: context.l10n.plannerCanvas_rates_shallowAscent,
           value: state.shallowAscentRate,
+          hintValue: ref.watch(plannerShallowAscentRateProvider),
           units: units,
-          onChanged: (v) => notifier.updateRates(shallow: v),
+          onChanged: (v) =>
+              notifier.updateRates(shallow: v, clearShallow: v == null),
         ),
         _RateField(
           label: context.l10n.plannerCanvas_rates_finalAscent(
-            units.formatDepth(state.lastStopDepth, decimals: 0),
+            units.formatDepth(lastStopDepth, decimals: 0),
           ),
           value: state.finalAscentRate,
+          hintValue: ref.watch(plannerFinalAscentRateProvider),
           units: units,
-          onChanged: (v) => notifier.updateRates(finalStretch: v),
+          onChanged: (v) => notifier.updateRates(
+            finalStretch: v,
+            clearFinalStretch: v == null,
+          ),
         ),
         _RateField(
           label: context.l10n.plannerCanvas_rates_descent,
           value: state.descentRate,
+          hintValue: ref.watch(plannerDescentRateProvider),
           units: units,
-          onChanged: (v) => notifier.updateRates(descent: v),
+          onChanged: (v) =>
+              notifier.updateRates(descent: v, clearDescent: v == null),
         ),
       ],
     );
   }
 }
 
-/// One rate as a whole number in the diver's depth unit per minute.
+/// One rate as a whole number in the diver's depth unit per minute. An empty
+/// box follows the diver's Settings default ([hintValue], shown greyed);
+/// typing a value overrides it for this plan only (issue #3552) - the same
+/// pattern Gas options already uses for ppO2/SAC overrides.
 class _RateField extends StatelessWidget {
   const _RateField({
     required this.label,
     required this.value,
+    required this.hintValue,
     required this.units,
     required this.onChanged,
   });
 
-  /// Stored rate in m/min.
-  final double value;
+  /// Stored rate in m/min; null = follow the diver's Settings default.
+  final double? value;
+
+  /// The diver's Settings default, in m/min.
+  final double hintValue;
 
   final String label;
   final UnitFormatter units;
 
-  /// Receives the new rate in m/min (converted back from the display unit).
-  final ValueChanged<double> onChanged;
+  /// Receives the new rate in m/min (converted back from the display unit),
+  /// or null when the plan's override is cleared.
+  final ValueChanged<double?> onChanged;
 
   // Rate band, in m/min, kept canonical so the accepted range matches across
-  // unit systems. The box bounds narrow inward (ceil the minimum, floor the
-  // maximum) so every whole number it accepts maps back inside the band:
-  // 1-30 m/min, 3-98 ft/min. The floor sits at 0.9 rather than 1 so that
-  // 3 ft/min (0.91 m/min), the imperial face of the 1 m/min final-ascent
-  // default, stays a legal entry instead of clamping up to 4.
-  static const _minMetric = 0.9;
-  static const _maxMetric = 30.0;
+  // unit systems, and shared with the Settings defaults. The box bounds
+  // narrow inward (ceil the minimum, floor the maximum) so every whole
+  // number it accepts maps back inside the band: 1-30 m/min, 3-98 ft/min.
+  static const _minMetric = kPlannerRateMinMetersPerMinute;
+  static const _maxMetric = kPlannerRateMaxMetersPerMinute;
 
   @override
   Widget build(BuildContext context) {
@@ -98,19 +120,14 @@ class _RateField extends StatelessWidget {
     final suffix = units.depthRateSymbol;
     return PlanNumberField(
       label: label,
-      value: units.convertDepth(value),
-      // An emptied box still shows the rate the plan is holding.
-      hintValue: units.convertDepth(value),
+      value: value != null ? units.convertDepth(value!) : null,
+      hintValue: units.convertDepth(hintValue),
       suffixText: suffix,
       isInteger: true,
-      allowEmpty: false,
       min: units.convertDepth(_minMetric).ceilToDouble(),
       max: units.convertDepth(_maxMetric).floorToDouble(),
       semanticsLabel: '$label ($suffix)',
-      onChanged: (v) {
-        if (v == null) return;
-        onChanged(units.depthToMeters(v));
-      },
+      onChanged: (v) => onChanged(v != null ? units.depthToMeters(v) : null),
     );
   }
 }

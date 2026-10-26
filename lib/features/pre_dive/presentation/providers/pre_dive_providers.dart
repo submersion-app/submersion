@@ -133,6 +133,16 @@ final preDiveSessionItemsProvider =
       return repository.getItemsForSession(sessionId);
     });
 
+final preDiveSessionSectionsProvider =
+    FutureProvider.family<List<domain.PreDiveSessionSection>, String>((
+      ref,
+      sessionId,
+    ) async {
+      final repository = ref.watch(preDiveSessionRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchSessionsChanges());
+      return repository.getSectionsForSession(sessionId);
+    });
+
 /// Every live service clock on the gear a session's rows link, keyed by
 /// equipment id: one batched evaluation that every row of the runner reads,
 /// where one provider per row cost ~14.6 statements a row. Retired and

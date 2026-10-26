@@ -67,6 +67,8 @@ String detectorTitle(AppLocalizations l10n, String detectorId) =>
       'tank_assignment' => l10n.dataQuality_detector_tank_assignment,
       'transmitter_role' => l10n.dataQuality_detector_transmitter_role,
       'unknown_transmitter' => l10n.dataQuality_detector_unknown_transmitter,
+      'transmitter_gear_serial_mismatch' =>
+        l10n.dataQuality_detector_transmitter_gear_serial_mismatch,
       'source_conflict' => l10n.dataQuality_detector_source_conflict,
       'shared_gear_overlap' => l10n.dataQuality_detector_shared_gear_overlap,
       _ => detectorId,
@@ -194,6 +196,10 @@ QualityFindingMessage buildFindingMessage(
       }
     case 'unknown_transmitter':
       detail = l10n.dataQuality_msg_unknownTransmitter(
+        (p['serial'] as String?) ?? '',
+      );
+    case 'transmitter_gear_serial_mismatch':
+      detail = l10n.dataQuality_msg_transmitterGearSerialMismatch(
         (p['serial'] as String?) ?? '',
       );
     case 'tank_assignment':

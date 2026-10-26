@@ -28,15 +28,14 @@ import 'package:submersion/features/dive_log/domain/services/computer_recorded_t
 import 'package:submersion/features/dive_log/presentation/widgets/computer_mix_note.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/own_cylinder_picker_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/tank_mnd_field.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_preset_dropdown.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/tank_regulator_pickers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_role_option.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/cylinder_passports/presentation/utils/import_tag_fill.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
-import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
-import 'package:submersion/features/equipment/presentation/utils/equipment_row_labels_of.dart';
-import 'package:submersion/features/equipment/presentation/widgets/equipment_dropdown_label.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_state.dart';
 import 'package:submersion/features/trips/domain/services/trip_cylinder_tank_link.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_cylinder_display.dart';
@@ -120,9 +119,6 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   late TextEditingController _endPressureController;
   late TextEditingController _o2Controller;
   late TextEditingController _heController;
-  late TextEditingController _mndController;
-  late FocusNode _mndFocusNode;
-  bool _mndDriven = false;
   late TankRole _role;
   late TankMaterial? _material;
   TankPresetEntity? _selectedPreset;
@@ -133,22 +129,15 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   /// which it would otherwise overwrite.
   int _specChoice = 0;
 
-  /// The regulator breathed from this cylinder (v202). Null until the diver
-  /// picks one or a preset prefills it from the last pairing.
-  String? _regulatorEquipmentId;
+  /// The regulators breathed from this cylinder (v202; more than one from
+  /// v312, issue #3375): the first, then the extras. Empty until the diver
+  /// picks one or a preset prefills them from the last pairing.
+  List<String> _regulatorIds = const [];
 
   /// The tagged cylinder this tank came from (issue #2650). Set by a scan
   /// or a cylinder pick, cleared by a preset or a trip slot, kept by hand
   /// edits.
   String? _passportId;
-
-  /// Whether the regulator dropdown also lists retired and sold regulators,
-  /// which the diver asks for with its last item (#3210).
-  bool _showLeftKitRegulators = false;
-
-  /// The value of that last item. Not a regulator: choosing it changes the
-  /// list, not the tank.
-  static const _showLeftKitValue = '__show-left-kit-regulators__';
 
   /// The last O2/He value each field actually parsed to, tracked separately
   /// from [widget.tank]: `_notifyChange` fires on every keystroke, so a
@@ -172,14 +161,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   @override
   void initState() {
     super.initState();
-    _mndFocusNode = FocusNode()..addListener(_onMndFocusChanged);
     _initializeControllers();
-  }
-
-  void _onMndFocusChanged() {
-    // Leaving the box always rebuilds, so it syncs back to the mix's MND,
-    // including after an unreadable entry that left _mndDriven false.
-    if (!_mndFocusNode.hasFocus) setState(() => _mndDriven = false);
   }
 
   void _initializeControllers() {
@@ -246,10 +228,9 @@ class _TankEditorState extends ConsumerState<TankEditor> {
       ..resolve(_workingPressureController.text);
     _startPressure = LiveNumber(null)..resolve(_startPressureController.text);
     _endPressure = LiveNumber(null)..resolve(_endPressureController.text);
-    _mndController = TextEditingController();
     _role = widget.tank.role;
     _material = widget.tank.material;
-    _regulatorEquipmentId = widget.tank.regulatorEquipmentId;
+    _regulatorIds = widget.tank.regulatorIds;
     _passportId = widget.tank.passportId;
     // Initialize selected preset from tank's presetName
     // Check built-in presets first, async lookup for custom presets happens in build
@@ -272,7 +253,6 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     // or the next keystroke would write the old text back over the fill.
     if (oldWidget.tank.id != widget.tank.id ||
         oldWidget.tank.tripCylinderId != widget.tank.tripCylinderId) {
-      _mndDriven = false;
       _disposeControllers();
       _initializeControllers();
     }
@@ -285,14 +265,11 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     _endPressureController.dispose();
     _o2Controller.dispose();
     _heController.dispose();
-    _mndController.dispose();
   }
 
   @override
   void dispose() {
     _disposeControllers();
-    _mndFocusNode.removeListener(_onMndFocusChanged);
-    _mndFocusNode.dispose();
     super.dispose();
   }
 
@@ -477,7 +454,6 @@ class _TankEditorState extends ConsumerState<TankEditor> {
       sourceId: widget.tank.sourceId,
       sourceTankIndex: widget.tank.sourceTankIndex,
       sharedComputerIds: widget.tank.sharedComputerIds,
-      regulatorEquipmentId: _regulatorEquipmentId,
       // Only the trip cylinder picker changes the link; every other edit
       // carries it, or updateDive would wipe it on the next save.
       tripCylinderId: widget.tank.tripCylinderId,
@@ -486,7 +462,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
       // Import-owned (issue #1496): carried so the edited tank still
       // reports what the source log recorded.
       usageDuration: widget.tank.usageDuration,
-    );
+    ).withRegulators(_regulatorIds);
   }
 
   void _notifyChange() => widget.onChanged(_currentTank());
@@ -531,7 +507,13 @@ class _TankEditorState extends ConsumerState<TankEditor> {
             // contact reaches the regulator's service clocks.
             if (widget.tripCylinderStates case final states?)
               _buildTripCylinderPicker(states),
-            _buildRegulatorPicker(),
+            TankRegulatorPickers(
+              regulatorIds: _regulatorIds,
+              onChanged: (ids) {
+                setState(() => _regulatorIds = ids);
+                _notifyChange();
+              },
+            ),
             const SizedBox(height: 12),
 
             // Gas mix with templates
@@ -540,7 +522,18 @@ class _TankEditorState extends ConsumerState<TankEditor> {
             // MND input for trimix planning
             if (gasMix.he > 0) ...[
               const SizedBox(height: 8),
-              _buildMndInput(gasMix, units, settings),
+              Row(
+                children: [
+                  Expanded(
+                    child: TankMndField(
+                      gas: gasMix,
+                      units: units,
+                      onHeChanged: _setHeFromMnd,
+                    ),
+                  ),
+                  const Spacer(flex: 2),
+                ],
+              ),
             ],
 
             if (widget.showPressures) ...[
@@ -763,87 +756,6 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     );
   }
 
-  Widget _buildRegulatorPicker() {
-    final regs =
-        // `value`, not `valueOrNull`: it keeps the previous list while the
-        // provider reloads, so the tank's regulator does not flicker to None.
-        (ref.watch(activeEquipmentProvider).value ?? const <EquipmentItem>[])
-            .where((e) => e.type == EquipmentType.regulator)
-            // Spare regulators are not offered (#1803), except the one this
-            // tank already uses, so an existing dive never reads "None".
-            .where(
-              (e) =>
-                  e.status != EquipmentStatus.spare ||
-                  e.id == _regulatorEquipmentId,
-            )
-            .toList();
-    final leftKit =
-        (ref.watch(leftKitEquipmentProvider).value ?? const <EquipmentItem>[])
-            .where((e) => e.type == EquipmentType.regulator)
-            .toList();
-    // Retired and sold regulators only on request (#3210), except the one
-    // this tank already uses, so a dive breathing from a regulator since
-    // retired never reads "None".
-    final options = [
-      ...regs,
-      for (final r in leftKit)
-        if (_showLeftKitRegulators || r.id == _regulatorEquipmentId) r,
-    ];
-    final offerShowLeftKit = options.length < regs.length + leftKit.length;
-    final known = options.any((r) => r.id == _regulatorEquipmentId);
-    // Labelled as one list, so regulators sharing a name show their ID and,
-    // if that is not enough, the next detail that differs (#1549, #3191).
-    final labels = equipmentRowLabelsOf(context, ref, options);
-    // Keyed on the show choice: the field holds its value internally, and
-    // choosing the show item would otherwise leave it on that item's value.
-    // A fresh field starts again from the tank's regulator.
-    return KeyedSubtree(
-      key: ValueKey(_showLeftKitRegulators),
-      child: DropdownButtonFormField<String?>(
-        key: const Key('tank-regulator-picker'),
-        initialValue: known ? _regulatorEquipmentId : null,
-        isExpanded: true,
-        decoration: InputDecoration(
-          labelText: context.l10n.diveLog_tank_regulatorLabel,
-          isDense: true,
-        ),
-        items: [
-          DropdownMenuItem<String?>(
-            value: null,
-            child: Text(context.l10n.diveLog_tank_regulatorNone),
-          ),
-          for (final r in options)
-            DropdownMenuItem<String?>(
-              value: r.id,
-              child: EquipmentDropdownLabel(
-                item: r,
-                label: labels[r.id],
-                note: r.hasLeftKit
-                    ? r.effectiveStatus.localizedName(context.l10n)
-                    : null,
-              ),
-            ),
-          if (offerShowLeftKit)
-            DropdownMenuItem<String?>(
-              value: _showLeftKitValue,
-              child: Text(
-                context.l10n.diveLog_tank_regulatorShowLeftKit,
-                style: TextStyle(color: Theme.of(context).colorScheme.primary),
-              ),
-            ),
-        ],
-        onChanged: (value) {
-          if (value == _showLeftKitValue) {
-            setState(() => _showLeftKitRegulators = true);
-            return;
-          }
-          setState(() => _regulatorEquipmentId = value);
-          _notifyChange();
-        },
-      ),
-    );
-  }
-
   Widget _buildTankSpecsRow(UnitFormatter units) {
     return Row(
       children: [
@@ -949,7 +861,6 @@ class _TankEditorState extends ConsumerState<TankEditor> {
                 autovalidateMode: AutovalidateMode.onUserInteraction,
                 validator: _validateGasPercent,
                 onChanged: (value) {
-                  _mndDriven = false;
                   if (readNumber(value) case NumberValue(:final value)) {
                     _lastValidO2 = value;
                   }
@@ -973,7 +884,6 @@ class _TankEditorState extends ConsumerState<TankEditor> {
                 autovalidateMode: AutovalidateMode.onUserInteraction,
                 validator: _validateGasPercent,
                 onChanged: (value) {
-                  _mndDriven = false;
                   if (readNumber(value) case NumberValue(:final value)) {
                     _lastValidHe = value;
                   }
@@ -1053,81 +963,13 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     );
   }
 
-  Widget _buildMndInput(
-    GasMix gasMix,
-    UnitFormatter units,
-    AppSettings settings,
-  ) {
-    final currentMnd = gasMix.mnd(
-      endLimit: settings.endLimit,
-      o2Narcotic: settings.o2Narcotic,
-    );
-
-    // Sync controller if not actively editing MND. While the box has focus
-    // it keeps what the diver typed, so an unreadable entry can say why
-    // rather than be overwritten; leaving the box syncs it again.
-    if (!_mndDriven && !_mndFocusNode.hasFocus) {
-      final displayValue = currentMnd.isFinite
-          ? formatDecimalForInput(
-              units.convertDepth(currentMnd).roundToDouble(),
-            )
-          : '';
-      if (_mndController.text != displayValue) {
-        _mndController.text = displayValue;
-      }
-    }
-
-    return Row(
-      children: [
-        Expanded(
-          child: TextFormField(
-            controller: _mndController,
-            focusNode: _mndFocusNode,
-            decoration: InputDecoration(
-              labelText: 'MND',
-              suffixText: units.depthSymbol,
-              isDense: true,
-              helperText: context.l10n.diveLog_tank_mndHelper,
-              // A helper that is not saved, so it says why without blocking
-              // the dive's save (#1900 review).
-              errorText: invalidNumberText(
-                context,
-                _mndController.text,
-                allowNegative: false,
-              ),
-              errorMaxLines: 3,
-            ),
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            inputFormatters: numberInputFormatters(),
-            onChanged: (value) {
-              final parsed = switch (readNumber(value, allowNegative: false)) {
-                NumberValue(:final value) => value,
-                // No MND to drive He from; the field says why.
-                NumberBlank() || NumberInvalid() => null,
-              };
-              if (parsed != null && parsed > 0) {
-                _mndDriven = true;
-                final mndMeters = units.depthToMeters(parsed);
-                final newHe = GasMix.heForMnd(
-                  mndMeters,
-                  gasMix.o2,
-                  endLimit: settings.endLimit,
-                  o2Narcotic: settings.o2Narcotic,
-                );
-                _lastValidHe = newHe.roundToDouble();
-                _heController.text = formatDecimalForInput(_lastValidHe);
-                setState(() {});
-                _notifyChange();
-              } else {
-                // Rebuild for the error line; nothing else changed.
-                setState(() => _mndDriven = false);
-              }
-            },
-          ),
-        ),
-        const Spacer(flex: 2),
-      ],
-    );
+  /// Puts the He an MND worked out in the He field and reports the tank.
+  void _setHeFromMnd(double he) {
+    setState(() {
+      _lastValidHe = he;
+      _heController.text = formatDecimalForInput(he);
+    });
+    _notifyChange();
   }
 
   Widget _buildModInfo(
@@ -1182,26 +1024,24 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     );
   }
 
-  /// Prefill the regulator from the last dive that paired one with this
+  /// Prefill the regulators from the last dive that paired any with this
   /// preset, but never overwrite a choice already made on this tank.
   void _prefillRegulatorFor(String presetName) {
-    if (_regulatorEquipmentId != null) return;
+    if (_regulatorIds.isNotEmpty) return;
     // A convenience, not a requirement: a host without a database (widget
     // tests, previews) must not break preset selection.
-    Future<String?> lookup;
+    Future<List<String>> lookup;
     try {
       lookup = ref
           .read(equipmentRepositoryProvider)
-          .getLastRegulatorForPreset(presetName);
+          .getLastRegulatorsForPreset(presetName);
     } catch (_) {
       return;
     }
     lookup
-        .then((reg) {
-          if (!mounted || reg == null || _regulatorEquipmentId != null) {
-            return;
-          }
-          setState(() => _regulatorEquipmentId = reg);
+        .then((regs) {
+          if (!mounted || regs.isEmpty || _regulatorIds.isNotEmpty) return;
+          setState(() => _regulatorIds = regs);
           _notifyChange();
         })
         .catchError((Object _) {});
@@ -1473,7 +1313,6 @@ class _TankEditorState extends ConsumerState<TankEditor> {
       }
       if (material != null) _material = material;
       if (fillMix != null) {
-        _mndDriven = false;
         _o2Controller.text = formatDecimalForInput(fillMix.o2);
         _heController.text = formatDecimalForInput(fillMix.he);
         _lastValidO2 = fillMix.o2;
@@ -1526,7 +1365,6 @@ class _TankEditorState extends ConsumerState<TankEditor> {
 
   /// Puts [mix] in the O2/He fields and reports the tank.
   void _setGasMix(GasMix mix) {
-    _mndDriven = false;
     setState(() {
       _o2Controller.text = formatDecimalForInput(mix.o2);
       _heController.text = formatDecimalForInput(mix.he);

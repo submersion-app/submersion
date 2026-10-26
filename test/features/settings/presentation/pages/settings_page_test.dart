@@ -5,6 +5,9 @@ import 'package:submersion/features/dive_log/presentation/profile_colors/profile
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/insights/domain/trend_gap_threshold.dart';
+import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
+    as domain
+    show TurnPressureRule;
 import 'package:submersion/core/built_ins/built_in_catalog.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/gas_consumption_display.dart';
@@ -34,6 +37,7 @@ import 'package:submersion/features/settings/presentation/pages/appearance_page.
 import 'package:submersion/features/settings/presentation/pages/home_appearance_page.dart';
 import 'package:submersion/features/settings/presentation/pages/language_settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/section_appearance_page.dart';
+import 'package:submersion/features/settings/presentation/pages/data_tools_page.dart';
 import 'package:submersion/features/settings/presentation/pages/settings_page.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_list_content.dart';
 import 'package:submersion/features/settings/presentation/pages/decompression_settings_page.dart';
@@ -438,6 +442,92 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   Future<void> setDecoStopIncrement(double value) async =>
       state = state.copyWith(decoStopIncrement: value);
   @override
+  Future<void> setPlannerDescentRate(double value) async =>
+      state = state.copyWith(plannerDescentRate: value);
+  @override
+  Future<void> setPlannerAscentRate(double value) async =>
+      state = state.copyWith(plannerAscentRate: value);
+  @override
+  Future<void> setPlannerIntermediateAscentRate(double value) async =>
+      state = state.copyWith(plannerIntermediateAscentRate: value);
+  @override
+  Future<void> setPlannerShallowAscentRate(double value) async =>
+      state = state.copyWith(plannerShallowAscentRate: value);
+  @override
+  Future<void> setPlannerFinalAscentRate(double value) async =>
+      state = state.copyWith(plannerFinalAscentRate: value);
+  @override
+  Future<void> setPlannerGasSwitchStopSeconds(int value) async =>
+      state = state.copyWith(plannerGasSwitchStopSeconds: value);
+  @override
+  Future<void> setPlannerSacBottom(double value) async =>
+      state = state.copyWith(plannerSacBottom: value);
+  @override
+  Future<void> setPlannerSacDeco(double value) async =>
+      state = state.copyWith(plannerSacDeco: value);
+  @override
+  Future<void> setPlannerSacStressedFactor(double value) async =>
+      state = state.copyWith(plannerSacStressedFactor: value);
+  @override
+  Future<void> setPlannerBuddyFactor(double value) async =>
+      state = state.copyWith(plannerBuddyFactor: value);
+  @override
+  Future<void> setPlannerProblemSolvingMinutes(int value) async =>
+      state = state.copyWith(plannerProblemSolvingMinutes: value);
+  @override
+  Future<void> setPlannerBestMixEndMeters(double value) async =>
+      state = state.copyWith(plannerBestMixEndMeters: value);
+  @override
+  Future<void> setPlannerDeviationDepthDelta(double value) async =>
+      state = state.copyWith(plannerDeviationDepthDelta: value);
+  @override
+  Future<void> setPlannerDeviationTimeMinutes(int value) async =>
+      state = state.copyWith(plannerDeviationTimeMinutes: value);
+  @override
+  Future<void> setPlannerBatteryReserveFraction(double value) async =>
+      state = state.copyWith(plannerBatteryReserveFraction: value);
+  @override
+  Future<void> setPlannerWalkSpeedMps(double value) async =>
+      state = state.copyWith(plannerWalkSpeedMps: value);
+  @override
+  Future<void> setPlannerTurnPressureRule(
+    domain.TurnPressureRule? value,
+  ) async => state = state.copyWith(
+    plannerTurnPressureRule: value,
+    clearPlannerTurnPressureRule: value == null,
+  );
+  @override
+  Future<void> setPlannerTurnPressureFraction(double? value) async =>
+      state = state.copyWith(
+        plannerTurnPressureFraction: value,
+        clearPlannerTurnPressureFraction: value == null,
+      );
+  @override
+  Future<void> setPlannerAirBreakO2Seconds(int? value) async =>
+      state = state.copyWith(
+        plannerAirBreakO2Seconds: value,
+        clearPlannerAirBreakO2Seconds: value == null,
+      );
+  @override
+  Future<void> setPlannerAirBreakBreakSeconds(int? value) async =>
+      state = state.copyWith(
+        plannerAirBreakBreakSeconds: value,
+        clearPlannerAirBreakBreakSeconds: value == null,
+      );
+  @override
+  Future<void> setPlannerAirBreakPolicy({
+    int? o2Seconds,
+    int? breakSeconds,
+  }) async => state = state.copyWith(
+    plannerAirBreakO2Seconds: o2Seconds,
+    clearPlannerAirBreakO2Seconds: o2Seconds == null,
+    plannerAirBreakBreakSeconds: breakSeconds,
+    clearPlannerAirBreakBreakSeconds: breakSeconds == null,
+  );
+  @override
+  Future<void> setPlannerReservePressure(double value) async =>
+      state = state.copyWith(plannerReservePressure: value);
+  @override
   Future<void> setPscrRatio(double value) async =>
       state = state.copyWith(pscrRatio: value);
   @override
@@ -535,6 +625,12 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setTrimTankPressureAtSurfacing(bool value) async =>
       state = state.copyWith(trimTankPressureAtSurfacing: value);
+  @override
+  Future<void> setDownloadsFollowComputerOwner(bool value) async =>
+      state = state.copyWith(downloadsFollowComputerOwner: value);
+  @override
+  Future<void> setOmitUnusedOcGases(bool value) async =>
+      state = state.copyWith(omitUnusedOcGases: value);
   @override
   Future<void> setCardColorGradientPreset(String preset) async =>
       state = state.copyWith(cardColorGradientPreset: preset);
@@ -676,6 +772,9 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setShowDiveFigure(bool value) async =>
       state = state.copyWith(showDiveFigure: value);
+  @override
+  Future<void> setAutoColorCorrection(bool value) async =>
+      state = state.copyWith(autoColorCorrection: value);
   @override
   Future<void> acceptPlanningDisclaimer() async =>
       state = state.copyWith(hasAcceptedPlanningDisclaimer: true);
@@ -946,29 +1045,24 @@ void main() {
         scrollable: find.byType(Scrollable).first,
       );
       expect(find.text('Data'), findsOneWidget);
-      expect(find.text('Backup, restore & storage'), findsOneWidget);
+      expect(find.text('Backups, sync and photos'), findsOneWidget);
     });
 
-    testWidgets('Data Tools offers Retype gear marked Other (#1886)', (
+    testWidgets('Data tools offers Retype gear marked Other (#1886)', (
       tester,
     ) async {
-      await tester.pumpWidget(
-        buildTestWidget(const SettingsSectionDetailPage(sectionId: 'data')),
-      );
+      // The tools moved from the Data page to Advanced > Data tools (#3482).
+      await tester.pumpWidget(buildTestWidget(const DataToolsPage()));
       await tester.pumpAndSettle();
 
-      await tester.scrollUntilVisible(
-        find.text('Retype gear marked Other'),
-        100,
-        scrollable: find.byType(Scrollable).first,
-      );
+      expect(find.text('Retype gear marked Other'), findsOneWidget);
       expect(
         find.text('Give imported gear the type its name states'),
         findsOneWidget,
       );
     });
 
-    testWidgets('Storage offers one Offline Maps row covering tiles and 3D '
+    testWidgets('Advanced offers one Offline maps row covering tiles and 3D '
         'terrain', (tester) async {
       // Map tiles and 3D terrain data used to be two rows with two pages.
       await tester.pumpWidget(
@@ -976,7 +1070,12 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Offline Maps'), findsOneWidget);
+      await tester.scrollUntilVisible(
+        find.text('Offline maps'),
+        100,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(find.text('Offline maps'), findsOneWidget);
       expect(find.text('Map tiles and 3D terrain data'), findsOneWidget);
       expect(find.text('3D Maps'), findsNothing);
     });
@@ -2054,8 +2153,8 @@ void main() {
     });
 
     // Issue #1335 follow-up: the mixer's own settings gear moved off the
-    // top-level settings list and in here, next to Tank Presets -- the
-    // global preset list its cylinder dropdown now reads.
+    // top-level settings list and in here, under its own Planning section,
+    // beside the global preset list its cylinder dropdown now reads.
     testWidgets('renders the trimix mixer tile and navigates on tap', (
       tester,
     ) async {
@@ -2064,7 +2163,6 @@ void main() {
 
       expect(find.text('Trimix Mixer'), findsOneWidget);
 
-      // The Certification Agencies tile (issue #690) pushed this one down.
       await tester.ensureVisible(find.text('Trimix Mixer'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Trimix Mixer'));
@@ -2072,6 +2170,60 @@ void main() {
 
       expect(find.text('Trimix Mixer Stub'), findsOneWidget);
       expect(tester.takeException(), isNull);
+    });
+
+    // Issue #3505: the flat 18-tile list is grouped into sections by where
+    // each setting is actually used, so a reader can scan by area instead
+    // of the whole list.
+    testWidgets('groups the manage tiles under section headers', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildManageWidget(getOverrides()));
+      await tester.pumpAndSettle();
+
+      // Each header, in display order, with the tiles that belong under it.
+      const sections = <(String, List<String>)>[
+        (
+          'Equipment',
+          [
+            'Tank Presets',
+            'Transmitters',
+            'Weight Presets',
+            'Service types',
+            'Locations',
+            'Default equipment view',
+          ],
+        ),
+        ('Dives', ['Dive Types', 'Site Types', 'Dive Roles', 'Species']),
+        ('Planning', ['Trimix Mixer']),
+        ('Training', ['Certification Agencies', 'Certification currency']),
+        ('Checklists', ['Trip Checklist Templates', 'Pre-Dive Checklists']),
+        ('Organization', ['Saved Queries', 'Tags']),
+        ('Setup', ['Setup assistant']),
+      ];
+
+      double topOf(String text) {
+        expect(find.text(text), findsOneWidget, reason: text);
+        return tester.getTopLeft(find.text(text)).dy;
+      }
+
+      // The old single "Manage Data" umbrella header is gone.
+      expect(find.text('Manage Data'), findsNothing);
+
+      // Every tile sits below its own header and above the next one, so a
+      // tile moved into the wrong group fails here.
+      for (var i = 0; i < sections.length; i++) {
+        final (header, tiles) = sections[i];
+        final headerY = topOf(header);
+        final nextHeaderY = i + 1 < sections.length
+            ? topOf(sections[i + 1].$1)
+            : double.infinity;
+        for (final tile in tiles) {
+          final tileY = topOf(tile);
+          expect(tileY, greaterThan(headerY), reason: '$tile under $header');
+          expect(tileY, lessThan(nextHeaderY), reason: '$tile in $header');
+        }
+      }
     });
   });
 

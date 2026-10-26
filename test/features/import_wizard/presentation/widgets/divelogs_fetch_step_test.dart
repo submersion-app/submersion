@@ -24,13 +24,19 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
 
-Map<String, dynamic> _dive(int id, {String time = '14:42:00'}) => {
+Map<String, dynamic> _dive(
+  int id, {
+  String time = '14:42:00',
+  List<Object>? pictures,
+}) => {
   'id': id,
   'date': '2022-09-03',
   'time': time,
   'duration': 2808,
   'maxdepth': 12,
   'divesite': 'Reef',
+  // divelogs.de always sends the key, as null for a dive without pictures.
+  'pictures': pictures,
 };
 
 void main() {
@@ -43,7 +49,6 @@ void main() {
   late Object dives;
   late int divesStatus;
   late int gearStatus;
-  late Map<String, Object> pictures;
 
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
@@ -59,14 +64,17 @@ void main() {
     listed = [];
     requested = [];
     expiredCalls = 0;
-    dives = [_dive(1), _dive(2, time: '16:00:00')];
+    dives = [
+      _dive(
+        1,
+        pictures: [
+          {'id': 10, 'path': 'https://divelogs.de/pictures/u/1-1.jpg'},
+        ],
+      ),
+      _dive(2, time: '16:00:00'),
+    ];
     divesStatus = 200;
     gearStatus = 200;
-    pictures = {
-      '1': [
-        {'id': 10, 'url': 'https://divelogs.de/pics/reef.jpg'},
-      ],
-    };
   });
 
   tearDown(() => container.dispose());
@@ -78,12 +86,6 @@ void main() {
         httpClient: MockClient((req) async {
           final path = req.url.path;
           requested.add(path);
-          if (path.startsWith('/api/pictures/')) {
-            return http.Response(
-              jsonEncode(pictures[path.split('/').last] ?? []),
-              200,
-            );
-          }
           return switch (path) {
             '/api/dives' => http.Response(jsonEncode(dives), divesStatus),
             '/api/gear' => http.Response('[]', gearStatus),
@@ -153,6 +155,32 @@ void main() {
       expect(state.payload!.entitiesOf(ImportEntityType.dives), hasLength(2));
       expect(state.remotePhotoCount, 1);
       expect(listed.single.keys, ['divelogs-1']);
+      // Pictures come inline with /dives: no request per dive.
+      expect(requested.where((p) => p.startsWith('/api/pictures/')), isEmpty);
+    });
+  });
+
+  testWidgets('reports photos without a download link', (tester) async {
+    await withPlatform(TargetPlatform.macOS, () async {
+      dives = [
+        _dive(
+          1,
+          pictures: [
+            {'id': 10, 'path': 'https://divelogs.de/pictures/u/1-1.jpg'},
+            {'id': 11, 'path': 'reef.jpg'},
+          ],
+        ),
+      ];
+      await pumpStep(tester, client());
+
+      await fetch(tester);
+
+      expect(find.text('1 photo to import'), findsOneWidget);
+      expect(
+        find.text('1 photo has no download link and will not be imported.'),
+        findsOneWidget,
+      );
+      expect(find.textContaining('could not be listed'), findsNothing);
     });
   });
 
@@ -164,7 +192,6 @@ void main() {
 
       await fetch(tester);
 
-      expect(requested.where((p) => p.startsWith('/api/pictures/')), isEmpty);
       expect(
         container.read(universalImportNotifierProvider).remotePhotoCount,
         0,
@@ -179,7 +206,10 @@ void main() {
 
       await fetch(tester);
 
-      expect(requested.where((p) => p.startsWith('/api/pictures/')), isEmpty);
+      expect(
+        container.read(universalImportNotifierProvider).remotePhotoCount,
+        0,
+      );
       expect(container.read(divelogsFetchedProvider), isTrue);
     });
   });

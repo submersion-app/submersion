@@ -26,6 +26,10 @@ class AppColors {
   static const Color trimix = Color(0xFFA855F7);
   static const Color air = Color(0xFF6B7280);
 
+  /// The favourite heart on dive cards and the scrubber's favourite ticks
+  /// (Colors.red.shade400).
+  static const Color favorite = Color(0xFFEF5350);
+
   // Chart colors
   static const Color chartDepth = Color(0xFF0077B6);
   static const Color chartTemperature = Color(0xFFF59E0B);

@@ -36,6 +36,8 @@ import 'package:submersion/features/planner/presentation/widgets/saved_plans_she
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/utils/log_failure.dart';
+import 'package:submersion/core/data/visibility/shared_item_policy.dart';
+import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
 
 /// Whether [id] refers to a plan that already exists in the store. Drives the
 /// visibility of the destructive "Delete plan" action: a brand-new, never-saved
@@ -171,7 +173,11 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
               const SizedBox(width: 6),
               PlanChip(
                 label: 'GF',
-                value: '${planState.gfLow}/${planState.gfHigh}',
+                // The plan's own factors, else the diver's Settings (#3552).
+                value: () {
+                  final resolved = ref.watch(resolvedPlanEngineConfigProvider);
+                  return '${resolved.gfLow}/${resolved.gfHigh}';
+                }(),
                 onTap: () => _focusSetup('deco'),
               ),
               const SizedBox(width: 6),
@@ -700,6 +706,20 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
     final site = siteId == null
         ? null
         : await ref.read(siteProvider(siteId).future);
+    // Whether the current diver may see the site, by the site list's rule
+    // (issue #2151: a site shared with this diver by name, or in a shared
+    // site library it belongs to, counts too). Read here, before the
+    // no-await stretch below, for the diver current now.
+    final checkedFor = ref.read(currentDiverIdProvider);
+    final siteVisible = site == null
+        ? false
+        : checkedFor == null
+        ? site.isShared || site.diverId == null
+        : site.diverId == checkedFor ||
+              site.isShared ||
+              await ref
+                  .read(itemSharesRepositoryProvider)
+                  .isVisibleTo(SharedItemKind.site, site.id, checkedFor);
     if (!mounted) return;
 
     // Checked after the lookup, with the rest of the plan below: the diver
@@ -722,11 +742,10 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
     // all-divers read would show the site, so only an unowned site qualifies.
     // From here to addDive nothing awaits, and addDive reads the diver once on
     // entry, so the dive goes to the diver this check was made for.
+    // A diver switched during the read above drops the site rather than
+    // attach one checked for another diver.
     final diverId = ref.read(currentDiverIdProvider);
-    final visibleSite =
-        site != null && (site.isShared || site.diverId == diverId)
-        ? site
-        : null;
+    final visibleSite = siteVisible && diverId == checkedFor ? site : null;
 
     // Read the plan after the site lookup so the dive describes the plan as
     // it is now. If the diver switched sites meanwhile, the fetched site is

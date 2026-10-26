@@ -54,7 +54,13 @@ class NavTrackSeascapePage extends ConsumerWidget {
     // no path or timeline at all; the standalone view still shows the
     // route's path there, over terrain centered on its own fix or a
     // synthesized seafloor.
-    final siteSceneAsync = ref.watch(siteSeascapeProvider(siteId));
+    // isolatePaths matches the key SiteTerrainPane itself uses below for
+    // this NavTrackPlaybackContext, so this pre-check and the pane's own
+    // watch share one cache entry instead of the pre-check forcing a
+    // second, full-site reconstruction (issue #3571).
+    final siteSceneAsync = ref.watch(
+      siteSeascapeProvider((siteId: siteId, isolatePaths: true)),
+    );
     if (!siteSceneAsync.hasSettled) {
       return Scaffold(
         appBar: AppBar(title: Text(context.l10n.navTrack_seascape_trackTitle)),

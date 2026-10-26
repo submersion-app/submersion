@@ -4,11 +4,14 @@ import 'package:uuid/uuid.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/features/checklists/domain/entities/checklist_template.dart';
+import 'package:submersion/features/checklists/domain/entities/checklist_template_section.dart'
+    as domain;
 import 'package:submersion/features/checklists/presentation/providers/checklist_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
+import 'package:submersion/shared/widgets/section_list_editor.dart';
 
 /// Create/edit page for a checklist template and its items.
 class ChecklistTemplateEditPage extends ConsumerStatefulWidget {
@@ -23,12 +26,71 @@ class ChecklistTemplateEditPage extends ConsumerStatefulWidget {
       _ChecklistTemplateEditPageState();
 }
 
+/// An item mid-edit on this page. The page holds a list of these instead of
+/// [ChecklistTemplateItem] directly, since items here are edited in memory
+/// and only persisted as a whole on [_ChecklistTemplateEditPageState._save]
+/// -- creating or renaming a section one at a time as a dialog closes would
+/// touch the database for a section the diver then discards by not saving
+/// the page.
+class _EditableTemplateItem {
+  final String id;
+  final String title;
+  final String? sectionId;
+  final String notes;
+  final int? dueOffsetDays;
+  final int sortOrder;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+
+  const _EditableTemplateItem({
+    required this.id,
+    required this.title,
+    this.sectionId,
+    this.notes = '',
+    this.dueOffsetDays,
+    required this.sortOrder,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+
+  _EditableTemplateItem copyWith({Object? sectionId = _undefined}) =>
+      _EditableTemplateItem(
+        id: id,
+        title: title,
+        sectionId: sectionId == _undefined
+            ? this.sectionId
+            : sectionId as String?,
+        notes: notes,
+        dueOffsetDays: dueOffsetDays,
+        sortOrder: sortOrder,
+        createdAt: createdAt,
+        updatedAt: updatedAt,
+      );
+}
+
+const _undefined = Object();
+
+/// A section mid-edit on this page -- see [_EditableTemplateItem] for why
+/// sections are held in memory here instead of going through
+/// [ChecklistTemplateRepository]'s createSection/renameSection/deleteSection
+/// directly.
+class _EditableTemplateSection {
+  final String id;
+  final String title;
+
+  const _EditableTemplateSection({required this.id, required this.title});
+
+  _EditableTemplateSection copyWith({String? title}) =>
+      _EditableTemplateSection(id: id, title: title ?? this.title);
+}
+
 class _ChecklistTemplateEditPageState
     extends ConsumerState<ChecklistTemplateEditPage> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
-  List<ChecklistTemplateItem> _items = [];
+  List<_EditableTemplateItem> _items = [];
+  List<_EditableTemplateSection> _sections = [];
   ChecklistTemplate? _existing;
   bool _loading = false;
 
@@ -43,12 +105,31 @@ class _ChecklistTemplateEditPageState
     final repository = ref.read(checklistTemplateRepositoryProvider);
     final template = await repository.getTemplateById(widget.templateId!);
     final items = await repository.getItemsForTemplate(widget.templateId!);
+    final sections = await repository.getSectionsForTemplate(
+      widget.templateId!,
+    );
     if (!mounted) return;
     setState(() {
       _existing = template;
       _nameController.text = template?.name ?? '';
       _descriptionController.text = template?.description ?? '';
-      _items = items;
+      _sections = [
+        for (final section in sections)
+          _EditableTemplateSection(id: section.id, title: section.title),
+      ];
+      _items = [
+        for (final item in items)
+          _EditableTemplateItem(
+            id: item.id,
+            title: item.title,
+            sectionId: item.sectionId,
+            notes: item.notes,
+            dueOffsetDays: item.dueOffsetDays,
+            sortOrder: item.sortOrder,
+            createdAt: item.createdAt,
+            updatedAt: item.updatedAt,
+          ),
+      ];
       _loading = false;
     });
   }
@@ -60,7 +141,7 @@ class _ChecklistTemplateEditPageState
     super.dispose();
   }
 
-  Future<void> _addOrEditItem({ChecklistTemplateItem? item}) async {
+  Future<void> _addOrEditItem({_EditableTemplateItem? item}) async {
     final result = await _showItemDialog(item: item);
     if (result == null) return;
     setState(() {
@@ -75,15 +156,15 @@ class _ChecklistTemplateEditPageState
     });
   }
 
-  Future<ChecklistTemplateItem?> _showItemDialog({
-    ChecklistTemplateItem? item,
+  Future<_EditableTemplateItem?> _showItemDialog({
+    _EditableTemplateItem? item,
   }) {
-    return showDialog<ChecklistTemplateItem>(
+    return showDialog<_EditableTemplateItem>(
       context: context,
       builder: (context) => _ChecklistItemDialog(
         item: item,
-        templateId: widget.templateId ?? '',
         defaultSortOrder: _items.length,
+        sections: _sections,
       ),
     );
   }
@@ -115,8 +196,37 @@ class _ChecklistTemplateEditPageState
       );
       templateId = _existing!.id;
     }
+
+    // Sections must exist before the items referencing them are (re)inserted
+    // -- saveItems satisfies a foreign key, not a dangling draft id.
+    await repository.saveSections(templateId, [
+      for (final section in _sections)
+        domain.ChecklistTemplateSection(
+          id: section.id,
+          templateId: templateId,
+          title: section.title,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+    ]);
+
+    // sortOrder reassigned at save time from the order the editor shows
+    // (section by section), not from the order items were added in, so a
+    // trip the template is applied to lists them the same way.
+    final ordered = _itemsInDisplayOrder();
     await repository.saveItems(templateId, [
-      for (final item in _items) item.copyWith(templateId: templateId),
+      for (var i = 0; i < ordered.length; i++)
+        ChecklistTemplateItem(
+          id: ordered[i].id,
+          templateId: templateId,
+          title: ordered[i].title,
+          sectionId: ordered[i].sectionId,
+          notes: ordered[i].notes,
+          dueOffsetDays: ordered[i].dueOffsetDays,
+          sortOrder: i,
+          createdAt: ordered[i].createdAt,
+          updatedAt: ordered[i].updatedAt,
+        ),
     ]);
     if (mounted) navigator.pop();
   }
@@ -167,36 +277,7 @@ class _ChecklistTemplateEditPageState
                     context.l10n.checklists_template_itemsHeader,
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
-                  ReorderableListView(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    buildDefaultDragHandles: true,
-                    onReorderItem: (oldIndex, newIndex) {
-                      setState(() {
-                        final items = [..._items];
-                        final item = items.removeAt(oldIndex);
-                        items.insert(newIndex, item);
-                        _items = items;
-                      });
-                    },
-                    children: [
-                      for (var i = 0; i < _items.length; i++)
-                        ListTile(
-                          key: ValueKey(_items[i].id),
-                          title: Text(_items[i].title),
-                          subtitle: _items[i].category == null
-                              ? null
-                              : Text(_items[i].category!),
-                          leading: IconButton(
-                            icon: const Icon(Icons.delete_outline),
-                            onPressed: () => setState(
-                              () => _items = [..._items]..removeAt(i),
-                            ),
-                          ),
-                          onTap: () => _addOrEditItem(item: _items[i]),
-                        ),
-                    ],
-                  ),
+                  _buildSectionEditor(context),
                   TextButton.icon(
                     icon: const Icon(Icons.add),
                     label: Text(context.l10n.checklists_template_addItem),
@@ -205,6 +286,108 @@ class _ChecklistTemplateEditPageState
                 ],
               ),
             ),
+    );
+  }
+
+  /// [_items] in the order the editor shows them: each section's items in
+  /// section order, then the unsectioned ones (a dangling sectionId counts
+  /// as unsectioned, as it does on screen).
+  List<_EditableTemplateItem> _itemsInDisplayOrder() {
+    final sectionIds = {for (final s in _sections) s.id};
+    return [
+      for (final s in _sections) ..._items.where((i) => i.sectionId == s.id),
+      ..._items.where(
+        (i) => i.sectionId == null || !sectionIds.contains(i.sectionId),
+      ),
+    ];
+  }
+
+  void _removeItem(_EditableTemplateItem item) {
+    setState(() => _items = _items.where((i) => i.id != item.id).toList());
+  }
+
+  Widget _buildSectionEditor(BuildContext context) {
+    Widget buildItem(BuildContext context, _EditableTemplateItem item) =>
+        ListTile(
+          title: Text(item.title),
+          onTap: () => _addOrEditItem(item: item),
+        );
+
+    // An item whose sectionId matches no section in the current draft (a
+    // dangling id, e.g. from sync or a since-deleted section) degrades to
+    // unsectioned rather than silently vanishing from the list.
+    final validSectionIds = {for (final s in _sections) s.id};
+    final unsectioned = _items
+        .where(
+          (i) => i.sectionId == null || !validSectionIds.contains(i.sectionId),
+        )
+        .toList();
+
+    return SectionListEditor<_EditableTemplateItem>(
+      sections: [
+        for (final section in _sections)
+          SectionGroup(
+            id: section.id,
+            title: section.title,
+            items: _items.where((i) => i.sectionId == section.id).toList(),
+          ),
+      ],
+      unsectionedItems: unsectioned,
+      itemId: (item) => item.id,
+      itemBuilder: buildItem,
+      addSectionLabel: context.l10n.sectionEditor_addSection,
+      newSectionTitle: context.l10n.sectionEditor_newSectionTitle,
+      noSectionLabel: context.l10n.sectionEditor_noSection,
+      onAddSection: (title) async {
+        setState(() {
+          _sections = [
+            ..._sections,
+            _EditableTemplateSection(id: const Uuid().v4(), title: title),
+          ];
+        });
+      },
+      onRenameSection: (id, title) async {
+        setState(() {
+          _sections = [
+            for (final s in _sections)
+              if (s.id == id) s.copyWith(title: title) else s,
+          ];
+        });
+      },
+      onReorderSections: (orderedIds) async {
+        setState(() {
+          final byId = {for (final s in _sections) s.id: s};
+          _sections = [for (final id in orderedIds) byId[id]!];
+        });
+      },
+      onDeleteSection: (id, {moveItemsToSectionId}) async {
+        setState(() {
+          if (moveItemsToSectionId != null) {
+            _items = [
+              for (final i in _items)
+                if (i.sectionId == id)
+                  i.copyWith(sectionId: moveItemsToSectionId)
+                else
+                  i,
+            ];
+          } else {
+            _items = _items.where((i) => i.sectionId != id).toList();
+          }
+          _sections = _sections.where((s) => s.id != id).toList();
+        });
+      },
+      onMoveItem: (itemId, targetSectionId, orderedIds) async {
+        setState(() {
+          final byId = {for (final i in _items) i.id: i};
+          _items = [
+            for (final id in orderedIds)
+              id == itemId
+                  ? byId[id]!.copyWith(sectionId: targetSectionId)
+                  : byId[id]!,
+          ];
+        });
+      },
+      onDeleteItem: (item) async => _removeItem(item),
     );
   }
 }
@@ -218,14 +401,14 @@ class _ChecklistTemplateEditPageState
 /// "TextEditingController used after being disposed" (and, on release builds,
 /// trips the InheritedElement `_dependents` assertion) mid-animation.
 class _ChecklistItemDialog extends StatefulWidget {
-  final ChecklistTemplateItem? item;
-  final String templateId;
+  final _EditableTemplateItem? item;
   final int defaultSortOrder;
+  final List<_EditableTemplateSection> sections;
 
   const _ChecklistItemDialog({
     required this.item,
-    required this.templateId,
     required this.defaultSortOrder,
+    this.sections = const [],
   });
 
   @override
@@ -235,17 +418,23 @@ class _ChecklistItemDialog extends StatefulWidget {
 class _ChecklistItemDialogState extends State<_ChecklistItemDialog> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _titleController;
-  late final TextEditingController _categoryController;
   late final TextEditingController _notesController;
   late final TextEditingController _offsetController;
+  String? _sectionId;
+
+  /// The selection the dropdown may show: [_sectionId] only when it still
+  /// names a section in the current draft. A dangling id (the section was
+  /// deleted from the list while this dialog's value carried over from a
+  /// stale item) would otherwise make DropdownButtonFormField assert, the
+  /// same hazard _PreDiveItemDialog's _selectedSourceId guards against.
+  String? get _selectedSectionId =>
+      widget.sections.any((s) => s.id == _sectionId) ? _sectionId : null;
 
   @override
   void initState() {
     super.initState();
     _titleController = TextEditingController(text: widget.item?.title ?? '');
-    _categoryController = TextEditingController(
-      text: widget.item?.category ?? '',
-    );
+    _sectionId = widget.item?.sectionId;
     _notesController = TextEditingController(text: widget.item?.notes ?? '');
     final offsetDays = widget.item?.dueOffsetDays;
     _offsetController = TextEditingController(
@@ -258,7 +447,6 @@ class _ChecklistItemDialogState extends State<_ChecklistItemDialog> {
   @override
   void dispose() {
     _titleController.dispose();
-    _categoryController.dispose();
     _notesController.dispose();
     _offsetController.dispose();
     super.dispose();
@@ -266,13 +454,11 @@ class _ChecklistItemDialogState extends State<_ChecklistItemDialog> {
 
   void _submit() {
     if (!_formKey.currentState!.validate()) return;
-    final category = _categoryController.text.trim();
     Navigator.of(context).pop(
-      ChecklistTemplateItem(
+      _EditableTemplateItem(
         id: widget.item?.id ?? const Uuid().v4(),
-        templateId: widget.templateId,
         title: _titleController.text.trim(),
-        category: category.isEmpty ? null : category,
+        sectionId: _selectedSectionId,
         notes: _notesController.text.trim(),
         // Blank is "no due date"; validate() stopped unreadable text.
         dueOffsetDays: switch (readNumber(
@@ -314,11 +500,23 @@ class _ChecklistItemDialogState extends State<_ChecklistItemDialog> {
                     : null,
               ),
               const SizedBox(height: 16),
-              TextFormField(
-                controller: _categoryController,
+              DropdownButtonFormField<String?>(
+                initialValue: _selectedSectionId,
                 decoration: InputDecoration(
                   labelText: context.l10n.checklists_item_categoryLabel,
                 ),
+                items: [
+                  DropdownMenuItem(
+                    value: null,
+                    child: Text(context.l10n.sectionEditor_noSection),
+                  ),
+                  for (final section in widget.sections)
+                    DropdownMenuItem(
+                      value: section.id,
+                      child: Text(section.title),
+                    ),
+                ],
+                onChanged: (value) => setState(() => _sectionId = value),
               ),
               const SizedBox(height: 16),
               TextFormField(

@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/features/backup/data/services/backup_attribution.dart';
+import 'package:submersion/features/backup/data/services/backup_pin_markers.dart';
 import 'package:submersion/features/backup/data/services/cloud_backup_history.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 
@@ -162,6 +163,98 @@ void main() {
         _file('submersion_backup_2026-03-01_120000.db', id: 'new'),
       ]);
       expect(merged.map((r) => r.id), ['cloud:new', 'mid', 'cloud:old']);
+    });
+  });
+
+  // Review of #3541: a same-named backup in another account does not hide
+  // this account's file.
+  test('a name match only counts within the listed account', () {
+    final elsewhere = BackupRecord(
+      id: 'r1',
+      filename: 'submersion_backup_2026-10-19_101500.db',
+      timestamp: DateTime(2026, 10, 19),
+      sizeBytes: 1,
+      location: BackupLocation.cloud,
+      cloudFileId: 'other-id',
+      cloudAccountId: 'acct-a',
+    );
+    final merged = mergeCloudBackups(
+      [elsewhere],
+      [
+        CloudFileInfo(
+          id: 'f1',
+          name: 'submersion_backup_2026-10-19_101500.sbe',
+          modifiedTime: DateTime(2026, 10, 19),
+        ),
+      ],
+      accountId: 'acct-b',
+    );
+    expect(merged.map((r) => r.cloudFileId), containsAll(['other-id', 'f1']));
+  });
+
+  test('rows from a listing note the account they were listed from', () {
+    final merged = mergeCloudBackups(const [], [
+      CloudFileInfo(
+        id: 'f1',
+        name: 'submersion_backup_2026-10-19_101500.db',
+        modifiedTime: DateTime(2026, 10, 19),
+      ),
+    ], accountId: 'acct-b');
+    expect(merged.single.cloudAccountId, 'acct-b');
+  });
+
+  group('markPinnedOnAnotherDevice (#3503)', () {
+    const name = 'submersion_backup_2026-10-01_090000.db';
+    final row = backupRecordFromCloudFile(_file(name))!;
+    CloudFileInfo marker(String device) =>
+        _file(pinMarkerName(backupFilename: name, pinningDeviceId: device));
+
+    test('marks a row another device has pinned', () {
+      final rows = markPinnedOnAnotherDevice(
+        [row],
+        [_file(name), marker('dev-B')],
+        thisDeviceId: 'dev-A',
+      );
+      expect(rows.single.pinnedOnAnotherDevice, isTrue);
+    });
+
+    test('ignores this device\'s own marker', () {
+      final rows = markPinnedOnAnotherDevice(
+        [row],
+        [_file(name), marker('dev-A')],
+        thisDeviceId: 'dev-A',
+      );
+      expect(rows.single.pinnedOnAnotherDevice, isFalse);
+    });
+
+    test('leaves this device\'s own history rows pinnable', () {
+      final own = _tracked(
+        id: 'own',
+        filename: name,
+        timestamp: DateTime(2026, 10, 1, 9),
+        cloudFileId: 'id-$name',
+      );
+      final rows = markPinnedOnAnotherDevice(
+        [own],
+        [_file(name), marker('dev-B')],
+        thisDeviceId: 'dev-A',
+      );
+      expect(rows.single.pinnedOnAnotherDevice, isFalse);
+    });
+
+    test('leaves a row pinned here alone', () {
+      final pinned = row.copyWith(pinned: true);
+      final rows = markPinnedOnAnotherDevice(
+        [pinned],
+        [_file(name), marker('dev-B')],
+        thisDeviceId: 'dev-A',
+      );
+      expect(rows.single, pinned);
+    });
+
+    test('is never written to the stored record', () {
+      final marked = row.copyWith(pinnedOnAnotherDevice: true);
+      expect(marked.toJson().containsKey('pinnedOnAnotherDevice'), isFalse);
     });
   });
 }

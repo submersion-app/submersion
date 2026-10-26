@@ -54,6 +54,10 @@ extension AppDatabaseMigrationStrategy on AppDatabase {
     // same reason: createAll() never builds raw-SQL indexes.
     await assertEquipmentTagUniqueness(this);
 
+    // Media and document tag junction unique indexes (v309, issue #1970),
+    // for the same reason.
+    await assertMediaAndDocumentTagUniqueness(this);
+
     // Equipment share pair unique index (v234, issue #2046), for the
     // same reason.
     await assertEquipmentShareUniqueness(this);

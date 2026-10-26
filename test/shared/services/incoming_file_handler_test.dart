@@ -84,6 +84,21 @@ void main() {
       expect(result, IncomingFileOutcome.none);
     });
 
+    test('turns a file away while an import runs on alone (#3554)', () async {
+      final result = await handleIncomingFile(
+        bytes: _uddfBytes,
+        fileName: 'dive.uddf',
+        currentPath: '/dives',
+        notifier: notifier,
+        messenger: null,
+        isImportRunning: () => true,
+      );
+
+      expect(result, IncomingFileOutcome.none);
+      // The running import still reads this state; nothing was loaded over it.
+      expect(notifier.state.fileBytes, isNull);
+    });
+
     test(
       'treats the Suunto file wizard as a busy import too (#1445)',
       () async {
@@ -269,6 +284,19 @@ void main() {
   // Plain tests, not testWidgets: loading reads the files through dart:io,
   // whose futures never complete under testWidgets' fake async zone.
   group('handleIncomingFiles', () {
+    test('turns files away while an import runs on alone (#3554)', () async {
+      final result = await handleIncomingFiles(
+        paths: [p.join(Directory.systemTemp.path, 'a.uddf')],
+        currentPath: '/dives',
+        notifier: notifier,
+        messenger: null,
+        isImportRunning: () => true,
+      );
+
+      expect(result, isFalse);
+      expect(notifier.state.files, isEmpty);
+    });
+
     late Directory tempDir;
 
     setUp(() async {

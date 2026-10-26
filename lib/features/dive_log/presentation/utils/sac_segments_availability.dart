@@ -15,7 +15,8 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 /// series reached it, while a cylinder holds a start pressure above its end
 /// pressure. False while loading, when there are segments to show, and when a
 /// pressure series was recorded but produced no segment, since "only start and
-/// end pressures" would then be untrue.
+/// end pressures" would then be untrue. False on a rebreather dive, which has
+/// no SAC at all (issue #3673), so there is nothing missing to explain.
 ///
 /// [computerId] is the computer the analysis was scoped to on a multi-source
 /// dive (null for a single source). Only that computer's cylinders and the
@@ -27,7 +28,7 @@ bool sacSegmentsLackRecordedPressure(
   Dive dive, {
   String? computerId,
 }) {
-  if (analysis == null) return false;
+  if (analysis == null || dive.isRebreather) return false;
   if (analysis.sacSegments?.isNotEmpty ?? false) return false;
   if (analysis.sacCurve != null) return false;
   return dive.tanks.any((tank) {

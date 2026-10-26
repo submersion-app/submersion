@@ -90,9 +90,9 @@ void main() {
     expect(merged.turnPressureRule, isNull);
     expect(merged.sourceDiveId, isNull);
     // descentRate and airBreaks are now STATE-owned (Phase 4 / Phase 7), so
-    // the state's default (18.0 / no breaks) wins over the existing plan's
-    // value.
-    expect(merged.descentRate, 18.0);
+    // the state's default (unset, follows the diver's Settings - issue
+    // #3552 / no breaks) wins over the existing plan's value.
+    expect(merged.descentRate, isNull);
     expect(merged.airBreaks, isNull);
   });
 

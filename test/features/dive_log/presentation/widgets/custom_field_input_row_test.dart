@@ -6,6 +6,8 @@ import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.d
 import 'package:submersion/features/dive_log/presentation/widgets/custom_field_input_row.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
+import '../../../../helpers/contrast_ratio.dart';
+
 Widget _host({
   required DiveCustomField field,
   required List<String> keySuggestions,
@@ -69,5 +71,21 @@ void main() {
 
     expect(changed, isNotNull);
     expect(changed!.key, 'Vis notes');
+  });
+
+  // The drag handle was fixed Colors.grey, about 2.5:1 on a light surface.
+  testWidgets('the drag handle reads on the surface', (tester) async {
+    await tester.pumpWidget(
+      _host(
+        field: const DiveCustomField(id: 'f1', key: '', value: ''),
+        keySuggestions: const [],
+        onChanged: (_) {},
+      ),
+    );
+
+    final handle = find.byIcon(Icons.drag_handle);
+    final color = tester.widget<Icon>(handle).color!;
+    final surface = Theme.of(tester.element(handle)).colorScheme.surface;
+    expect(contrastRatio(color, surface), greaterThanOrEqualTo(3.0));
   });
 }

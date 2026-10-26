@@ -172,6 +172,7 @@ void main() {
           ImportNoticeKind.certificationsUnavailable,
       ImportWarningCode.photoListingsUnavailable:
           ImportNoticeKind.photoListingsUnavailable,
+      ImportWarningCode.photosWithoutLink: ImportNoticeKind.photosWithoutLink,
     };
     // Every code but diagnostic must be listed, so a new code cannot be added
     // without deciding which notice it becomes.

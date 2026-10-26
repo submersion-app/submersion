@@ -104,6 +104,16 @@ class DivelogsDive {
   final int? surfaceIntervalSeconds;
   final List<String> gearItemIds;
 
+  /// The dive's pictures as `/dives` lists them inline, so they need no
+  /// request per dive.
+  final List<DivelogsPicture> pictures;
+
+  /// Whether `/dives` said which pictures the dive has. divelogs.de always
+  /// sends the `pictures` key, as `null` for a dive without any; a row
+  /// without the key, or with a value of no known shape, leaves the dive's
+  /// pictures unknown, and the import reports that instead of assuming none.
+  final bool picturesListed;
+
   const DivelogsDive({
     this.id,
     required this.dateTime,
@@ -129,9 +139,13 @@ class DivelogsDive {
     this.weightsKg,
     this.surfaceIntervalSeconds,
     this.gearItemIds = const [],
+    this.pictures = const [],
+    this.picturesListed = true,
   });
 
-  factory DivelogsDive.fromJson(Map<String, dynamic> json) {
+  /// [pictureBase] resolves a relative picture path (see
+  /// [DivelogsPicture.fromJson]).
+  factory DivelogsDive.fromJson(Map<String, dynamic> json, {Uri? pictureBase}) {
     final date = _asNonEmptyString(json['date']);
     final time = _asNonEmptyString(json['time']);
     final duration = _asInt(json['duration']);
@@ -167,6 +181,10 @@ class DivelogsDive {
         }
       }
     }
+
+    final pictures = json.containsKey('pictures')
+        ? DivelogsPicture.listFromJson(json['pictures'], base: pictureBase)
+        : null;
 
     final tanks = <DivelogsTank>[];
     final tanksJson = json['tanks'];
@@ -205,6 +223,8 @@ class DivelogsDive {
       gearItemIds: json['gearitems'] is List
           ? [for (final g in json['gearitems'] as List) '$g']
           : const [],
+      pictures: pictures ?? const [],
+      picturesListed: pictures != null,
     );
   }
 }
@@ -276,32 +296,75 @@ class DivelogsCertification {
   }
 }
 
-/// One row of GET /pictures/{dive_id}. The response shape is undocumented,
-/// so parsing is tolerant: [url] is the first key that resolves to an
-/// absolute http(s) URI, and rows with only a bare filename keep their id
-/// with a null url (the caller counts those as un-downloadable).
+/// One picture of a dive: `{"id": ..., "path": ...}`, as `/dives` lists
+/// them inline with an absolute `path`. A site-relative path
+/// (`/pictures/{user}/{file}`) is resolved against [fromJson]'s `base`.
+/// Parsing stays tolerant: [url] is the first key that resolves to an
+/// absolute http(s) URI with a host, and rows with only a bare filename keep
+/// their id with a null url (the caller counts those as un-downloadable).
 class DivelogsPicture {
   final String? id;
   final Uri? url;
 
   const DivelogsPicture({this.id, this.url});
 
-  static const _urlKeys = ['url', 'link', 'href', 'imageurl'];
+  static const _urlKeys = ['path', 'url', 'link', 'href', 'imageurl'];
 
-  static DivelogsPicture? fromJson(Map<String, dynamic> json) {
+  /// The pictures a `pictures` value lists, or null when it has no shape
+  /// this can read. `null` lists none. Besides a JSON array this takes a
+  /// `{"pictures": [...]}` wrapper, and the object PHP's `json_encode` emits
+  /// for an array whose keys are not sequential. A row that is not an
+  /// object is kept as a picture without a link, so it is counted rather
+  /// than dropped.
+  static List<DivelogsPicture>? listFromJson(Object? raw, {Uri? base}) {
+    final Iterable<Object?> rows;
+    if (raw == null) {
+      rows = const [];
+    } else if (raw is List) {
+      rows = raw;
+    } else if (raw is Map && raw['pictures'] is List) {
+      rows = raw['pictures'] as List;
+    } else if (raw is Map) {
+      rows = raw.values;
+    } else {
+      return null;
+    }
+    return [
+      for (final row in rows)
+        if (row is Map)
+          ?fromJson(Map<String, dynamic>.from(row), base: base)
+        else if (row != null)
+          const DivelogsPicture(),
+    ];
+  }
+
+  static DivelogsPicture? fromJson(Map<String, dynamic> json, {Uri? base}) {
     final rawId = _asId(json['id'] ?? json['picture_id']);
     Uri? url;
     for (final key in _urlKeys) {
       final candidate = _asNonEmptyString(json[key]);
       if (candidate == null) continue;
-      final parsed = Uri.tryParse(candidate);
+      var parsed = Uri.tryParse(candidate);
+      // Only a site-relative path is resolved: a bare filename names no
+      // folder, so guessing one would download the wrong file.
       if (parsed != null &&
-          (parsed.isScheme('http') || parsed.isScheme('https'))) {
+          base != null &&
+          !parsed.hasScheme &&
+          !parsed.hasAuthority &&
+          parsed.path.startsWith('/')) {
+        parsed = base.resolveUri(parsed);
+      }
+      // `https:/pictures/1.jpg` parses with a scheme but no host, and no
+      // download could reach it.
+      if (parsed != null &&
+          (parsed.isScheme('http') || parsed.isScheme('https')) &&
+          parsed.host.isNotEmpty) {
         url = parsed;
         break;
       }
     }
-    final hasUrlKey = _urlKeys.any((k) => json[k] != null);
+    // Blank like `_asId` treats a blank id: absent, not a picture.
+    final hasUrlKey = _urlKeys.any((k) => _asNonEmptyString(json[k]) != null);
     if (rawId == null && !hasUrlKey) return null;
     return DivelogsPicture(id: rawId, url: url);
   }

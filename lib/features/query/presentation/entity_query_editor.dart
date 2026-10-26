@@ -64,6 +64,7 @@ class EntityQueryEditor extends ConsumerWidget {
     this.onSave,
     this.canSave,
     this.initialTab = 0,
+    this.onValidityChanged,
   });
 
   final QueryEntity root;
@@ -74,6 +75,9 @@ class EntityQueryEditor extends ConsumerWidget {
 
   /// See [QueryEditor.initialTab].
   final int initialTab;
+
+  /// See [QueryEditor.onValidityChanged].
+  final ValueChanged<bool>? onValidityChanged;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -96,6 +100,7 @@ class EntityQueryEditor extends ConsumerWidget {
       canSave: canSave,
       describeError: (e) => describeQueryError(context.l10n, e),
       initialTab: initialTab,
+      onValidityChanged: onValidityChanged,
     );
   }
 }

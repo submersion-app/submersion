@@ -44,6 +44,7 @@ DiveQualityContext makeContext({
   double ppO2MaxBar = 1.6,
   int? primarySampleCount,
   Set<String> knownTransmitterSerials = const {},
+  Set<String> mismatchedTransmitterSerials = const {},
   // Fixtures describe a pristine download unless they say otherwise. Pass
   // null to model "nobody checked", which the delete-duplicate verdict treats
   // as a reason to withhold itself (#1720).
@@ -63,6 +64,7 @@ DiveQualityContext makeContext({
   neighbors: neighbors,
   ppO2MaxBar: ppO2MaxBar,
   knownTransmitterSerials: knownTransmitterSerials,
+  mismatchedTransmitterSerials: mismatchedTransmitterSerials,
   sharedGearOverlaps: sharedGearOverlaps,
 );
 

@@ -91,10 +91,14 @@ class ApplyResult {
   final int divesLinked;
   final int sitesCreated;
   final int sitesLocated;
+
+  /// The sites this apply created, for the logbook rules (#3513).
+  final List<String> createdSiteIds;
   const ApplyResult({
     required this.divesLinked,
     required this.sitesCreated,
     this.sitesLocated = 0,
+    this.createdSiteIds = const [],
   });
 }
 
@@ -372,6 +376,7 @@ class SiteMatchingService {
       divesLinked: linked,
       sitesCreated: created,
       sitesLocated: located,
+      createdSiteIds: _createdByExternalId.values.toList(),
     );
   }
 

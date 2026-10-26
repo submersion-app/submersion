@@ -140,8 +140,8 @@ class CompactSiteListTile extends ConsumerWidget {
                           if (showSharedBadge) ...[
                             const SizedBox(width: 6),
                             Tooltip(
-                              message: l10n
-                                  .accessibility_label_sharedWithAllProfiles,
+                              message:
+                                  l10n.accessibility_label_sharedWithProfiles,
                               child: Icon(
                                 Icons.people_outline,
                                 size: 16,

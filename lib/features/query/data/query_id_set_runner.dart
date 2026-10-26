@@ -42,6 +42,29 @@ class QueryIdSetRunner {
     return {for (final r in rows) r.read<String>('id')};
   }
 
+  /// How many rows [ids] would return, without fetching them (a live
+  /// match count).
+  Future<int> count(CompiledQuery compiled, {QueryScope? scope}) async {
+    final a = compiled.rootAlias;
+    final clauses = [
+      if (!compiled.isEmpty) compiled.where,
+      if (scope != null) scope.sql,
+    ];
+    final where = clauses.isEmpty ? '' : ' WHERE ${clauses.join(' AND ')}';
+    final row = await _db
+        .customSelect(
+          'SELECT COUNT(*) AS n FROM ${compiled.table} $a$where',
+          variables: [
+            for (final p in compiled.params) Variable<Object>(p as Object),
+            if (scope != null)
+              for (final p in scope.params) Variable<Object>(p),
+          ],
+          readsFrom: tablesNamed(compiled.tablesTouched),
+        )
+        .getSingle();
+    return row.read<int>('n');
+  }
+
   /// Drift tables by their SQL names, for `readsFrom` and [watchTables].
   Set<TableInfo> tablesNamed(Set<String> names) => {
     for (final n in names)

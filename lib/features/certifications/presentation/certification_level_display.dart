@@ -200,7 +200,35 @@ extension CertificationLevelDisplay on CertificationLevel {
     CertificationLevel.tdiTechnicalDivemaster ||
     CertificationLevel.tdiNonDivingSpecialtyInstructor ||
     CertificationLevel.tdiInstructor ||
-    CertificationLevel.tdiInstructorTrainer => displayName,
+    CertificationLevel.tdiInstructorTrainer ||
+    // IART's own course names (issue #3357) are the agency's proper nouns,
+    // kept in English like the TDI/BSAC/GUE/ACUC/DAN names above.
+    CertificationLevel.iartOpenWaterNitroxDiver ||
+    CertificationLevel.iartAdvancedNitroxDiver ||
+    CertificationLevel.iartRecreationalTrimix ||
+    CertificationLevel.iartExtendedRangeNormoxicTrimix ||
+    CertificationLevel.iartSidemount ||
+    CertificationLevel.iartDecompression ||
+    CertificationLevel.iartDriftDiving ||
+    CertificationLevel.iartNightDiving ||
+    CertificationLevel.iartDrysuitDiving ||
+    CertificationLevel.iartRebreatherLevel1 ||
+    CertificationLevel.iartRebreatherLevel2 ||
+    CertificationLevel.iartRebreatherLevel3 ||
+    CertificationLevel.iartRebreatherRescue ||
+    CertificationLevel.iartCavern ||
+    CertificationLevel.iartCaveIntroduce ||
+    CertificationLevel.iartFullCave ||
+    CertificationLevel.iartTechCave ||
+    CertificationLevel.iartCaveDpv ||
+    CertificationLevel.iartWreck ||
+    CertificationLevel.iartDpvScooter ||
+    CertificationLevel.iartGasBlender ||
+    CertificationLevel.iartIoc ||
+    CertificationLevel.iartItp ||
+    CertificationLevel.iartIe ||
+    CertificationLevel.iartIdc ||
+    CertificationLevel.iartDiveGuide => displayName,
     CertificationLevel.other => l10n.enum_certificationLevel_other,
   };
 }

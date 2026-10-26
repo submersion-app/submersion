@@ -80,6 +80,14 @@ final diveCenterQueryEntity = QueryEntity(
       emptySql: '({r}.latitude IS NULL OR {r}.longitude IS NULL)',
       labelKey: 'query_centers_coordinates',
     ),
+    // A center marked out of business (#3379): `closed = false` hides them.
+    const QueryField(
+      key: 'closed',
+      type: FieldType.bool,
+      sql: '{r}.is_permanently_closed',
+      emptySql: '0',
+      labelKey: 'query_centers_closed',
+    ),
     diveCountField('centers', 'ad.dive_center_id = {r}.id'),
     diveDateField('centers', 'lastDived', 'ad.dive_center_id = {r}.id'),
   ],

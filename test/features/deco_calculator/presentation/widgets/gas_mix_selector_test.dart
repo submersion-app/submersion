@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/deco_calculator/presentation/widgets/gas_mix_selector.dart';
 
+import '../../../../helpers/glyph_contrast.dart';
 import '../../../../helpers/test_app.dart';
 
 void main() {
@@ -31,5 +32,24 @@ void main() {
     expect(find.byIcon(Icons.expand_more), findsOneWidget);
     expect(find.byIcon(Icons.chevron_right), findsNothing);
     expect(find.byIcon(Icons.expand_less), findsNothing);
+  });
+
+  // The nitrogen share was fixed grey, about 2:1 on the summary's
+  // surfaceContainerHighest fill in light themes.
+  testWidgets('the nitrogen share reads on the mix summary', (tester) async {
+    await tester.pumpWidget(
+      testApp(
+        locale: const Locale('en'),
+        child: const SingleChildScrollView(child: GasMixSelector()),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Custom Mix (Trimix)'));
+    await tester.pumpAndSettle();
+
+    expect(
+      glyphOnFillContrast(tester, find.text('N₂')),
+      greaterThanOrEqualTo(4.5),
+    );
   });
 }

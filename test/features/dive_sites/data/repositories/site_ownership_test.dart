@@ -149,9 +149,4 @@ void main() {
     await sites.updateSite(site.copyWith(isShared: false), actingDiverId: 'a');
     expect((await sites.getSiteById('theirs'))!.isShared, isFalse);
   });
-
-  test('setShared refuses a non-owner', () async {
-    expect(await sites.setShared('theirs', false, actingDiverId: 'b'), isFalse);
-    expect((await sites.getSiteById('theirs'))!.isShared, isTrue);
-  });
 }

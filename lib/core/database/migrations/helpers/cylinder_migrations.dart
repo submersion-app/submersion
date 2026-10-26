@@ -79,6 +79,40 @@ extension CylinderMigrations on AppDatabase {
     );
   }
 
+  /// Idempotent DDL for the v314 cylinder_config_items.deco_switch_depth
+  /// column (issue #3567): the MOD a diver set on a saved cylinder. Called
+  /// from the v314 onUpgrade step and the beforeOpen backstop, self-guarding
+  /// when the table is absent.
+  Future<void> _assertCylinderConfigItemModColumn() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('cylinder_config_items')",
+    ).get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('deco_switch_depth')) {
+      await customStatement(
+        'ALTER TABLE cylinder_config_items ADD COLUMN deco_switch_depth REAL',
+      );
+    }
+  }
+
+  /// Idempotent DDL for the v316 transmitters.is_configured column (issue
+  /// #3676). Every existing entry was made by hand, so the default marks it
+  /// configured; only entries the app creates from a download start at 0.
+  /// Called from the v316 rung and the beforeOpen backstop, self-guarding
+  /// when the table is absent.
+  Future<void> _assertTransmitterConfiguredColumn() async {
+    final cols = await customSelect("PRAGMA table_info('transmitters')").get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('is_configured')) {
+      await customStatement(
+        'ALTER TABLE transmitters ADD COLUMN is_configured INTEGER NOT NULL '
+        'DEFAULT 1 CHECK (is_configured IN (0, 1))',
+      );
+    }
+  }
+
   /// Test hook: re-assert the v139 tables on demand so tests can prove the
   /// stranded-database self-heal path is idempotent.
   Future<void> assertCylinderConfigSchemaForTest() =>

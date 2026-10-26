@@ -337,6 +337,49 @@ class SiteClassificationRepository {
     }
   }
 
+  /// Removes [tagIds] from [siteId]'s tags; never adds one. [replaceTags]
+  /// with the rest, so the library rule, the tombstones and the stamp are
+  /// that one write's. A tag the site does not carry is ignored.
+  Future<void> removeTags(
+    String siteId,
+    List<String> tagIds, {
+    bool notify = true,
+    String? actingDiverId,
+  }) async {
+    if (tagIds.isEmpty) return;
+    final unwanted = tagIds.toSet();
+    await replaceTags(
+      siteId,
+      [
+        for (final id in (await getTagIdsBySite([siteId]))[siteId] ?? const [])
+          if (!unwanted.contains(id)) id,
+      ],
+      notify: notify,
+      actingDiverId: actingDiverId,
+    );
+  }
+
+  /// Removes [typeIds] from [siteId]'s types; never adds one. [replaceTypes]
+  /// with the rest, as [removeTags] does.
+  Future<void> removeTypes(
+    String siteId,
+    List<String> typeIds, {
+    bool notify = true,
+    String? actingDiverId,
+  }) async {
+    if (typeIds.isEmpty) return;
+    final unwanted = typeIds.toSet();
+    await replaceTypes(
+      siteId,
+      [
+        for (final id in (await getTypeIdsBySite([siteId]))[siteId] ?? const [])
+          if (!unwanted.contains(id)) id,
+      ],
+      notify: notify,
+      actingDiverId: actingDiverId,
+    );
+  }
+
   /// Moves the duplicates' links onto [survivorId] during a site merge.
   /// Runs inside the merge transaction, so it does not notify. A pair the
   /// survivor already holds is deleted and tombstoned instead of moved.

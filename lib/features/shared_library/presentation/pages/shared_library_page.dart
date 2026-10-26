@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/shared_library/crypto/library_signer.dart';
+import 'package:submersion/core/services/shared_library/library_sync_error.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/settings/presentation/widgets/settings_pane_navigator.dart';
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_providers.dart';
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_sync_notifier.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/add_to_library_confirmation.dart';
@@ -51,6 +52,11 @@ class SharedLibraryPage extends ConsumerWidget {
         ref.watch(libraryRoleProvider(libraryId)).value ??
         SharedLibraryRole.reader;
     final membership = ref.watch(currentMembershipProvider(libraryId)).value;
+    final removedHere =
+        membership != null &&
+        (ref.watch(libraryRemovalsProvider(libraryId)).value ?? const []).any(
+          (r) => r.memberId == membership.memberId,
+        );
     final names = ref.watch(libraryMemberNamesProvider(libraryId)).valueOrNull;
     final pending =
         ref.watch(pendingIncomingSuggestionCountProvider(libraryId)).value ?? 0;
@@ -66,6 +72,11 @@ class SharedLibraryPage extends ConsumerWidget {
         children: [
           PendingResetBanner(library: library, names: names ?? const {}),
           LockedLibraryBanner(library: library, membership: membership),
+          if (removedHere)
+            _Banner(
+              icon: Icons.person_remove_outlined,
+              text: l10n.sharedLibrary_library_removedBanner,
+            ),
           if (library.readOnlyDetected)
             _Banner(
               icon: Icons.lock_outline,
@@ -80,7 +91,13 @@ class SharedLibraryPage extends ConsumerWidget {
           if (library.lastError != null)
             _Banner(
               icon: Icons.error_outline,
-              text: l10n.sharedLibrary_library_errorBanner(library.lastError!),
+              text: l10n.sharedLibrary_library_errorBanner(
+                librarySyncErrorText(
+                  l10n,
+                  LibrarySyncError.decode(library.lastError!),
+                  libraryName: library.name,
+                ),
+              ),
               isError: true,
             ),
           ListTile(
@@ -147,8 +164,9 @@ class SharedLibraryPage extends ConsumerWidget {
                 ? null
                 : Text(l10n.sharedLibrary_library_memberCount(names.length)),
             trailing: const Icon(Icons.chevron_right),
-            onTap: () =>
-                context.push('/settings/shared-libraries/$libraryId/members'),
+            onTap: () => context.pushSettingsPage(
+              '/settings/shared-libraries/$libraryId/members',
+            ),
           ),
           if (canManageLibrary(role))
             ListTile(
@@ -160,7 +178,7 @@ class SharedLibraryPage extends ConsumerWidget {
               trailing: pending > 0
                   ? Badge.count(count: pending)
                   : const Icon(Icons.chevron_right),
-              onTap: () => context.push(
+              onTap: () => context.pushSettingsPage(
                 '/settings/shared-libraries/$libraryId/suggestions',
               ),
             ),
@@ -177,8 +195,9 @@ class SharedLibraryPage extends ConsumerWidget {
               title: Text(l10n.sharedLibrary_backups_title),
               subtitle: Text(l10n.sharedLibrary_backups_subtitle),
               trailing: const Icon(Icons.chevron_right),
-              onTap: () =>
-                  context.push('/settings/shared-libraries/$libraryId/backups'),
+              onTap: () => context.pushSettingsPage(
+                '/settings/shared-libraries/$libraryId/backups',
+              ),
             ),
           const Divider(height: 1),
           LibraryConnectionSection(
@@ -392,7 +411,7 @@ class SharedLibraryPage extends ConsumerWidget {
     }
     ref.invalidate(currentMembershipsProvider);
     ref.invalidate(sitesProvider);
-    if (context.mounted) context.pop();
+    if (context.mounted) Navigator.of(context).pop();
   }
 }
 

@@ -69,11 +69,24 @@ domain.DivePlan _plan({
   updatedAt: DateTime(2026, 10, 11),
 );
 
+/// [withDiluentSwitchTime] now takes its resolved gas-switch-stop time as an
+/// explicit parameter (issue #3552) rather than reading it off [plan]
+/// itself; every fixture plan below sets a concrete value, so this just
+/// forwards it unresolved.
+List<PlanSegment> _withSwitchTime(
+  List<PlanSegment> segments,
+  domain.DivePlan plan,
+) => withDiluentSwitchTime(
+  segments,
+  plan,
+  gasSwitchStopSeconds: plan.gasSwitchStopSeconds!,
+);
+
 void main() {
   test('nothing is added before the first segment -- no predecessor to '
       'switch from', () {
     final segments = [_seg('s1', 'dilA', _dilA)];
-    final result = withDiluentSwitchTime(segments, _plan(segments: segments));
+    final result = _withSwitchTime(segments, _plan(segments: segments));
     expect(result, segments);
   });
 
@@ -84,7 +97,7 @@ void main() {
       _seg('s1', 'dilA', _dilA, order: 0, targetDepth: 60),
       _seg('s2', 'dilB', _dilB, order: 1, targetDepth: 100),
     ];
-    final result = withDiluentSwitchTime(segments, _plan(segments: segments));
+    final result = _withSwitchTime(segments, _plan(segments: segments));
     expect(result, hasLength(3));
     expect(result[0], segments[0], reason: 'first segment untouched');
 
@@ -112,7 +125,7 @@ void main() {
       _seg('s1', 'dilB', _dilB, order: 0), // more inert gas (O2 10%)
       _seg('s2', 'dilA', _dilA, order: 1), // less inert gas (O2 18%)
     ];
-    final result = withDiluentSwitchTime(segments, _plan(segments: segments));
+    final result = _withSwitchTime(segments, _plan(segments: segments));
     expect(result[1].tankId, 'dilB');
     expect(result[1].gasMix, _dilB);
   });
@@ -122,7 +135,7 @@ void main() {
       _seg('s1', 'dilA', _dilA, order: 0),
       _seg('s2', 'dilA', _dilA, order: 1),
     ];
-    final result = withDiluentSwitchTime(segments, _plan(segments: segments));
+    final result = _withSwitchTime(segments, _plan(segments: segments));
     expect(result, segments);
   });
 
@@ -131,7 +144,7 @@ void main() {
       _seg('s1', 'dilA', _dilA, order: 0),
       _seg('s2', 'dilB', _dilB, order: 1),
     ];
-    final result = withDiluentSwitchTime(
+    final result = _withSwitchTime(
       segments,
       _plan(segments: segments, gasSwitchStopSeconds: 0),
     );
@@ -145,7 +158,7 @@ void main() {
       _seg('s2', 'bo', const GasMix(o2: 50), order: 1), // bailout, not dilA/B
       _seg('s3', 'dilB', _dilB, order: 2), // switches away from dilA
     ];
-    final result = withDiluentSwitchTime(segments, _plan(segments: segments));
+    final result = _withSwitchTime(segments, _plan(segments: segments));
     expect(result, hasLength(4));
     expect(result[1], segments[1], reason: 'not a diluent segment');
     expect(
@@ -161,7 +174,7 @@ void main() {
       _seg('s1', 'dilA', _dilA, order: 0),
       _seg('s2', 'dilB', _dilB, order: 1),
     ];
-    final result = withDiluentSwitchTime(
+    final result = _withSwitchTime(
       segments,
       _plan(segments: segments, mode: domain.PlanMode.scr),
     );
@@ -185,7 +198,7 @@ void main() {
         diveModeOverride: domain.PlanMode.ccr,
       ),
     ];
-    final result = withDiluentSwitchTime(
+    final result = _withSwitchTime(
       segments,
       _plan(segments: segments, mode: domain.PlanMode.oc),
     );

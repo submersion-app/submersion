@@ -8,6 +8,8 @@ import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
+import '../../../../helpers/theme_sentinels.dart';
+
 PhotoChartMarker _marker({
   String id = 'm1',
   int seconds = 500,
@@ -36,6 +38,7 @@ Widget _overlay({
   void Function(MediaItem item)? onOpenPhoto,
   VoidCallback? onAncestorDoubleTap,
   VoidCallback? onTapBelow,
+  ThemeData? theme,
 }) {
   final overlay = PhotoMarkerOverlay(
     markers: markers,
@@ -64,6 +67,7 @@ Widget _overlay({
         );
   return ProviderScope(
     child: MaterialApp(
+      theme: theme,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: Scaffold(
@@ -373,5 +377,19 @@ void main() {
       ),
     );
     expect(find.byIcon(Icons.camera_alt), findsNothing);
+  });
+
+  testWidgets('the photo chip shadow follows the theme', (tester) async {
+    await tester.pumpWidget(
+      _overlay(markers: [_marker()], theme: sentinelTheme()),
+    );
+
+    final shadows = boxShadowsUnder(tester, find.byType(PhotoMarkerOverlay));
+    expect(shadows, isNotEmpty);
+    expect(
+      shadows.every((s) => sameHue(s.color, sentinelShadow)),
+      isTrue,
+      reason: 'a shadow is fixed black instead of the theme shadow',
+    );
   });
 }

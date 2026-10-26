@@ -67,7 +67,7 @@ Record the site's altitude above sea level in metres (or feet if you use imperia
 
 - **Expected Species**: link species you expect to encounter at this site. These appear on the site detail and feed into marine life tracking. (See [Marine Life and Photos](marine-life-and-photos.md).)
 - **Notes**: any other free-text information.
-- **Share with all dive profiles**: visible only when two or more diver profiles exist. Turn it on to make the site visible to every profile. **Settings > Shared data** has **Share all my sites** to share every site at once, and **Share new sites and trips by default**.
+- **Shared with**: visible only when two or more diver profiles exist. Choose **Everyone**, or tick only the profiles that should see the site. See [Sharing a site with other profiles](#sharing-a-site-with-other-profiles).
 
 <!-- screenshot: images/dive-sites/site-detail.png: site detail page showing all fields -->
 
@@ -181,7 +181,7 @@ Three presets control the inner radius, outer radius, and separation margin:
 | **Balanced** (default) | 150 m (490 ft) | 1000 m (3280 ft) | 75 m (245 ft) |
 | **Relaxed** | 300 m (985 ft) | 2000 m (6560 ft) | 50 m (165 ft) |
 
-Change the preset with **Auto site matching** in **Settings > Data**.
+Change the preset with **Auto site matching** in **Settings > Data > Advanced > Import options**.
 
 > [!TIP]
 > **Strict** works well when your sites have precise GPS marks and your dive computer records accurate surface positions. **Relaxed** is better when you surface well away from the entry point, or when GPS accuracy on your computer is limited.
@@ -197,6 +197,15 @@ After an import, the summary offers **Match N dives to sites**, which opens the 
 A dive with no candidate within range shows **No nearby site**, with **Create site here** to make a new site at its GPS position.
 
 Nothing is linked until you tap **Confirm N matches**, which writes every selected match at once, auto-matches included. Deselect any you disagree with first.
+
+## Sharing a site with other profiles
+
+Sites are shared the way trips are (see [Sharing a trip with other profiles](trips.md#sharing-a-trip-with-other-profiles)):
+
+- Open the site and tap **Shared with** to choose **Everyone** or only the profiles you tick. To share several sites, select them in the list and choose **Share with...**; **Settings > Shared data > Share all my sites...** shares every site you own. Bulk sharing only ever adds profiles.
+- Only the profile that created the site can delete it, merge it away or change who it is shared with. Any other profile that sees it can edit its details, log its own dives there, or choose **Remove from my profile** to hide it for itself only.
+- When the owner unticks a profile, that profile's dives keep their site; the site just leaves its site list.
+- Merging sites keeps the profiles each site was shared with: the site that is kept is shared with all of them.
 
 ## See also
 

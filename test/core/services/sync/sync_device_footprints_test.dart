@@ -1,3 +1,4 @@
+import 'package:submersion/core/services/cloud_storage/deferred_write_provider.dart';
 import 'dart:async';
 import 'dart:typed_data';
 
@@ -14,6 +15,19 @@ import '../../../helpers/fake_cloud_storage_provider.dart';
 /// single syncing device, with nothing in the app able to account for them.
 /// These tests pin the survey that explains the folder and the safe removal of
 /// one device's share of it.
+/// Batches deletes until flushed, as the Git backend does.
+class _DeferringCloud extends FakeCloudStorageProvider
+    implements DeferredWriteProvider {
+  int flushes = 0;
+  bool failFlush = false;
+
+  @override
+  Future<void> flush({Duration? timeout}) async {
+    flushes++;
+    if (failFlush) throw StateError('push failed');
+  }
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -380,4 +394,47 @@ void main() {
       expect(seen.last, (done: 4, total: 4));
     });
   });
+
+  test('retirePeer pushes its deletes before reporting them', () async {
+    final deferring = _DeferringCloud();
+    deferring.seedFile(
+      ChangesetLogLayout.manifestName('peer'),
+      const SyncManifest(
+        deviceId: 'peer',
+        provider: 'fake',
+        headSeq: 1,
+        updatedAt: 1000,
+      ).toBytes(),
+    );
+    final outcome = await footprints.retirePeer(
+      provider: deferring,
+      deviceId: 'peer',
+      selfDeviceId: 'me',
+    );
+    expect(outcome.deleted, 1);
+    expect(deferring.flushes, 1);
+  });
+
+  test(
+    'retirePeer reports deletes as failed when they cannot be pushed',
+    () async {
+      final deferring = _DeferringCloud()..failFlush = true;
+      deferring.seedFile(
+        ChangesetLogLayout.manifestName('peer'),
+        const SyncManifest(
+          deviceId: 'peer',
+          provider: 'fake',
+          headSeq: 1,
+          updatedAt: 1000,
+        ).toBytes(),
+      );
+      final outcome = await footprints.retirePeer(
+        provider: deferring,
+        deviceId: 'peer',
+        selfDeviceId: 'me',
+      );
+      expect(outcome.isComplete, isFalse);
+      expect(outcome.deleted, 0);
+    },
+  );
 }

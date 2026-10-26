@@ -696,9 +696,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // The widget should have attempted to scroll to the highlighted row.
-      // We verify the table rendered without errors.
-      expect(find.text('Entity 0'), findsWidgets);
+      expect(find.text('Entity 40'), findsOneWidget);
     });
 
     testWidgets('tapping scrollable column header fires onSortFieldChanged', (
@@ -876,6 +874,63 @@ void main() {
         find.byType(EntityTableView<_TestEntity, _TestField>),
         findsOneWidget,
       );
+    });
+
+    testWidgets('a table built with a highlighted row brings it into view, '
+        'as returning to a list does (#3301)', (tester) async {
+      final entities = List.generate(
+        200,
+        (i) => _TestEntity('mount-$i', 'Mounted $i', i),
+      );
+
+      await tester.pumpWidget(
+        _buildTable(entities: entities, highlightedId: 'mount-150'),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Mounted 150'), findsOneWidget);
+      expect(find.text('Mounted 0'), findsNothing);
+    });
+
+    testWidgets('a highlighted row whose rows arrive after the table is '
+        'built is still brought into view (#3301)', (tester) async {
+      await tester.pumpWidget(
+        _buildTable(entities: const [], highlightedId: 'late-150'),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.pumpWidget(
+        _buildTable(
+          entities: List.generate(
+            200,
+            (i) => _TestEntity('late-$i', 'Late $i', i),
+          ),
+          highlightedId: 'late-150',
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Late 150'), findsOneWidget);
+    });
+
+    testWidgets('a table built with its highlighted row filtered out does not '
+        'jump to it when a later filter shows it (#3301)', (tester) async {
+      final rows = List.generate(200, (i) => _TestEntity('f-$i', 'Row $i', i));
+      await tester.pumpWidget(
+        _buildTable(entities: rows.take(100).toList(), highlightedId: 'f-150'),
+      );
+      await tester.pumpAndSettle();
+      await tester.pumpWidget(
+        _buildTable(entities: const [], highlightedId: 'f-150'),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.pumpWidget(
+        _buildTable(entities: rows, highlightedId: 'f-150'),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Row 0'), findsOneWidget);
     });
 
     // -----------------------------------------------------------------------

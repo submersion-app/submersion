@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/encrypting_cloud_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/headless_cloud_provider.dart';
@@ -129,6 +130,91 @@ void main() {
     );
 
     expect(provider, isNull);
+  });
+  group('the backup copy', () {
+    final pinned = <(AccountKind, String)>[];
+
+    CloudStorageProvider forAccount(AccountKind kind, String id) {
+      pinned.add((kind, id));
+      return FakeCloudStorageProvider(providerId: 'copy:$id');
+    }
+
+    setUp(pinned.clear);
+
+    Future<CloudStorageProvider?> resolveCopy(
+      SharedPreferences prefs, {
+      bool onRoster = true,
+    }) => resolveHeadlessBackupCopyProvider(
+      prefs: prefs,
+      encryptionKeyStore: keyStore,
+      instanceFor: instanceFor,
+      forAccount: forAccount,
+      accountOnRoster: (_) async => onRoster,
+    );
+
+    test(
+      'a chosen account resolves to it, not to the sync selection',
+      () async {
+        final prefs = await prefsWith({
+          'sync_last_provider': 's3',
+          'backup_cloud_enabled': true,
+          'backup_copy_account_id': 'acct-b',
+          'backup_copy_account_kind': 's3',
+        });
+
+        final provider = await resolveCopy(prefs);
+
+        expect(provider!.providerId, 'copy:acct-b');
+        expect(pinned, [(AccountKind.s3, 'acct-b')]);
+        expect(built, isEmpty);
+      },
+    );
+
+    test('with no account chosen it resolves exactly as sync does', () async {
+      final prefs = await prefsWith({
+        'sync_last_provider': 'dropbox',
+        'backup_cloud_enabled': true,
+      });
+
+      expect((await resolveCopy(prefs))!.providerId, 'dropbox');
+      expect(pinned, isEmpty);
+    });
+
+    test('a chosen account resolves even with sync off', () async {
+      final prefs = await prefsWith({
+        'backup_cloud_enabled': true,
+        'backup_copy_account_id': 'acct-d',
+        'backup_copy_account_kind': 'dropbox',
+      });
+
+      expect((await resolveCopy(prefs))!.providerId, 'copy:acct-d');
+    });
+
+    // As in the foreground: the copy's account has nothing to do with
+    // where the database lives.
+    test('a chosen account copies in custom-folder storage mode too', () async {
+      final prefs = await prefsWith({
+        'db_storage_mode': 'customFolder',
+        'backup_cloud_enabled': true,
+        'backup_copy_account_id': 'acct-b',
+        'backup_copy_account_kind': 's3',
+      });
+
+      expect((await resolveCopy(prefs))!.providerId, 'copy:acct-b');
+    });
+
+    test('a chosen account removed from the roster copies nowhere', () async {
+      final prefs = await prefsWith({
+        'sync_last_provider': 's3',
+        'backup_cloud_enabled': true,
+        'backup_copy_account_id': 'acct-b',
+        'backup_copy_account_kind': 's3',
+      });
+
+      expect(await resolveCopy(prefs, onRoster: false), isNull);
+      expect(pinned, isEmpty);
+      expect(built, isEmpty);
+    });
   });
 }
 

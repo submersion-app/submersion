@@ -185,6 +185,15 @@ abstract class CloudStorageProvider {
   Future<String> getOrCreateSyncFolder();
 }
 
+/// A provider whose [CloudStorageProvider.createFolder] writes (WebDAV's
+/// MKCOL) and that can look a folder up without creating it. Read-only
+/// paths, such as measuring a shared library, ask this instead.
+abstract interface class FolderLookup {
+  /// The id [CloudStorageProvider.createFolder] would return for
+  /// [folderName], or null when that folder does not exist. Creates nothing.
+  Future<String?> findFolder(String folderName, {String? parentFolderId});
+}
+
 /// Mixin providing common functionality for cloud storage providers
 mixin CloudStorageProviderMixin implements CloudStorageProvider {
   static const String syncFolderName = 'Submersion Sync';

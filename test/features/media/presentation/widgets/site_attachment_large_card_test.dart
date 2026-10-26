@@ -7,6 +7,7 @@ import 'package:submersion/features/media/presentation/providers/pdf_preview_pro
 import 'package:submersion/features/media/presentation/widgets/media_item_view.dart';
 import 'package:submersion/features/media/presentation/widgets/site_attachment_large_card.dart';
 
+import '../../../../helpers/contrast_ratio.dart';
 import '../support/media_widget_harness.dart';
 
 /// Issue #1039: a site attachment shown at full card width.
@@ -40,6 +41,30 @@ void main() {
     );
     await tester.pumpAndSettle();
   }
+
+  // The play icon was a bare white glyph. A video with no poster frame
+  // shows the light surfaceContainerHighest placeholder, where it vanished.
+  testWidgets('the video play icon carries its own dark backing', (
+    tester,
+  ) async {
+    await pump(tester, testMediaItem(mediaType: MediaType.video));
+
+    final play = find.byIcon(Icons.play_arrow);
+    final color = tester.widget<Icon>(play).color!;
+    final backing = find.descendant(
+      of: find.ancestor(of: play, matching: find.byType(Center)).first,
+      matching: find.ancestor(of: play, matching: find.byType(DecoratedBox)),
+    );
+    expect(backing, findsOneWidget);
+    final scrim =
+        (tester.widget<DecoratedBox>(backing).decoration as BoxDecoration)
+            .color!;
+    // Held on the worst case: a white poster or placeholder under the scrim.
+    expect(
+      contrastRatio(color, Color.alphaBlend(scrim, Colors.white)),
+      greaterThanOrEqualTo(3.0),
+    );
+  });
 
   group('largeCardAspectRatio', () {
     test('uses the stored dimensions', () {

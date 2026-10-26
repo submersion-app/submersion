@@ -280,6 +280,10 @@ bool _spansOverlap((int, int) a, (int, int) b) {
 /// the restored original from rendering beside an inactive child edit.
 /// Nothing is dropped unless the family holds both a primary and a demoted
 /// member.
+///
+/// `profileSpanSecondsSql` restates this rule in SQL so Insights measures a
+/// dive over the same series (issue #3537); change both together, and
+/// profile_span_sql_parity_test.dart checks that they agree.
 List<ProfileSeries> dropSupersededSeries(
   List<ProfileSeries> series, {
   required bool hasSources,

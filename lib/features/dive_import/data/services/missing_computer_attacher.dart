@@ -243,40 +243,38 @@ class MissingComputerAttacher {
   /// carried over share a strand and read as one source, so counting each
   /// would claim an incoming computer the dive does not hold. Strands follow
   /// the rule the repository's own reads use.
-  static List<String?> _identitiesOf(List<DiveDataSourcesData> sources) {
-    final seenStrands = <String>{};
-    return [
-      for (final s in sources)
-        if (seenStrands.add(
-          dataSourceStrandKey(
-            rowId: s.id,
-            computerId: s.computerId,
-            mergeSourceSlot: s.mergeSourceSlot,
-          ),
-        ))
-          UddfEntityImporter.computerKeyFor(s.computerModel, s.computerSerial),
-    ];
+  ///
+  /// Each identity is every key its strand's rows carry. Two imports of one
+  /// recording can spell the computer differently ('Shearwater Perdix 2'
+  /// with no serial, 'Perdix 2' with one) and read as one source (issue
+  /// #3654); a parse using either spelling finds that source present.
+  static List<Set<String?>> _identitiesOf(List<DiveDataSourcesData> sources) {
+    final strandOf = dataSourceStrandKeysById(sources);
+    final keysByStrand = <String, Set<String?>>{};
+    for (final s in sources) {
+      (keysByStrand[strandOf[s.id]!] ??= {}).add(
+        UddfEntityImporter.computerKeyFor(s.computerModel, s.computerSerial),
+      );
+    }
+    return keysByStrand.values.toList();
   }
 
-  /// The further computers of [diveData] that [presentKeys] (the identity of
-  /// each of the stored dive's sources) do not account for.
+  /// The further computers of [diveData] that [presentSources] (the keys
+  /// each of the stored dive's sources is known by) do not account for.
   ///
-  /// Identities are counted, not merely compared: two computers of one model
-  /// with no serial share one, and a dive holding one of them still lacks
-  /// the other. The parse's first computer is the one the dive's primary
-  /// source records, so it claims its identity before the others.
+  /// Sources are claimed, not merely compared: two computers of one model
+  /// with no serial share one key, and a dive holding one of them still
+  /// lacks the other. The parse's first computer is the one the dive's
+  /// primary source records, so it claims its source before the others.
   static List<Map<String, dynamic>> missingComputers(
     Map<String, dynamic> diveData,
-    Iterable<String?> presentKeys,
+    Iterable<Set<String?>> presentSources,
   ) {
-    final unclaimed = <String?, int>{};
-    for (final key in presentKeys) {
-      unclaimed[key] = (unclaimed[key] ?? 0) + 1;
-    }
+    final unclaimed = presentSources.toList();
     bool claim(String? key) {
-      final count = unclaimed[key] ?? 0;
-      if (count == 0) return false;
-      unclaimed[key] = count - 1;
+      final index = unclaimed.indexWhere((keys) => keys.contains(key));
+      if (index < 0) return false;
+      unclaimed.removeAt(index);
       return true;
     }
 

@@ -42,34 +42,57 @@ class DivePlans extends Table {
 
   /// Custom salinity in ppt. When set, deco uses this instead of [waterType].
   RealColumn get salinityPpt => real().nullable()();
-  IntColumn get gfLow => integer()();
-  IntColumn get gfHigh => integer()();
-  RealColumn get descentRate => real().withDefault(const Constant(18.0))();
-  RealColumn get ascentRate => real().withDefault(const Constant(9.0))();
 
-  /// Ascent rate between intermediate (deeper than 9 m) stops, m/min.
-  RealColumn get intermediateAscentRate =>
-      real().withDefault(const Constant(6.0))();
+  /// Null = use the diver's Settings default (issue #3552).
+  IntColumn get gfLow => integer().nullable()();
+  IntColumn get gfHigh => integer().nullable()();
 
-  /// Ascent rate between shallow (9 m and above) stops, m/min.
-  RealColumn get shallowAscentRate => real().withDefault(const Constant(3.0))();
+  /// Null = use the diver's Settings default (issue #3552).
+  RealColumn get descentRate => real().nullable()();
 
-  /// Ascent rate from the last stop to the surface, m/min.
-  RealColumn get finalAscentRate => real().withDefault(const Constant(1.0))();
+  /// Null = use the diver's Settings default (issue #3552).
+  RealColumn get ascentRate => real().nullable()();
 
-  RealColumn get lastStopDepth => real().withDefault(const Constant(3.0))();
-  IntColumn get gasSwitchStopSeconds =>
-      integer().withDefault(const Constant(0))();
+  /// Ascent rate between intermediate (deeper than 9 m) stops, m/min. Null =
+  /// use the diver's Settings default (issue #3552).
+  RealColumn get intermediateAscentRate => real().nullable()();
 
-  /// Air-break policy; both null = no air breaks.
+  /// Ascent rate between shallow (9 m and above) stops, m/min. Null = use
+  /// the diver's Settings default (issue #3552).
+  RealColumn get shallowAscentRate => real().nullable()();
+
+  /// Ascent rate from the last stop to the surface, m/min. Null = use the
+  /// diver's Settings default (issue #3552).
+  RealColumn get finalAscentRate => real().nullable()();
+
+  /// Null = use the diver's Settings default (issue #3552).
+  RealColumn get lastStopDepth => real().nullable()();
+
+  /// Null = use the diver's Settings default (issue #3552).
+  IntColumn get gasSwitchStopSeconds => integer().nullable()();
+
+  /// Air-break policy; both null and [airBreaksExplicitlyOff] false = use
+  /// the diver's Settings default (issue #3552).
   IntColumn get airBreakO2Seconds => integer().nullable()();
   IntColumn get airBreakBreakSeconds => integer().nullable()();
-  RealColumn get sacBottom => real().withDefault(const Constant(15.0))();
 
-  /// Null = derive 0.8x / 2.5x of sacBottom.
+  /// True = no air breaks for this plan regardless of the diver's Settings
+  /// default (issue #3552).
+  BoolColumn get airBreaksExplicitlyOff =>
+      boolean().withDefault(const Constant(false))();
+
+  /// Null = use the diver's Settings default (issue #3552).
+  RealColumn get sacBottom => real().nullable()();
+
+  /// Null = use the diver's Settings default (issue #3552).
   RealColumn get sacDeco => real().nullable()();
+
+  /// Null = derive from sacBottom and the diver's Settings stressed-SAC
+  /// factor (issue #3552).
   RealColumn get sacStressed => real().nullable()();
-  RealColumn get reservePressure => real().withDefault(const Constant(50.0))();
+
+  /// Null = use the diver's Settings default (issue #3552).
+  RealColumn get reservePressure => real().nullable()();
   IntColumn get surfaceIntervalSeconds => integer().nullable()();
 
   /// CCR setpoints (Phase 4 UI; persisted now to avoid a later migration).
@@ -77,13 +100,13 @@ class DivePlans extends Table {
   RealColumn get setpointHigh => real().nullable()();
   RealColumn get setpointSwitchDepth => real().nullable()();
 
-  /// Contingency config (Phase 5 UI).
-  RealColumn get deviationDepthDelta =>
-      real().withDefault(const Constant(5.0))();
-  IntColumn get deviationTimeMinutes =>
-      integer().withDefault(const Constant(5))();
+  /// Contingency config (Phase 5 UI). Null = use the diver's Settings
+  /// default (issue #3552).
+  RealColumn get deviationDepthDelta => real().nullable()();
+  IntColumn get deviationTimeMinutes => integer().nullable()();
 
-  /// TurnPressureRule enum name; null = none.
+  /// TurnPressureRule enum name; null = use the diver's Settings default
+  /// (issue #3552). `"off"` is the explicit "no tracking" choice.
   TextColumn get turnPressureRule => text().nullable()();
   RealColumn get turnPressureFraction => real().nullable()();
 
@@ -98,13 +121,13 @@ class DivePlans extends Table {
   TextColumn get stopMinimumsJson => text().nullable()();
 
   /// Gas options (Subsurface parity). See [DivePlan.sacFactor] and siblings
-  /// for the semantics of each field.
-  RealColumn get sacFactor => real().withDefault(const Constant(2.0))();
-  IntColumn get problemSolvingMinutes =>
-      integer().withDefault(const Constant(2))();
+  /// for the semantics of each field. Null = use the diver's Settings
+  /// default (issue #3552).
+  RealColumn get sacFactor => real().nullable()();
+  IntColumn get problemSolvingMinutes => integer().nullable()();
   RealColumn get ppO2Bottom => real().nullable()();
   RealColumn get ppO2Deco => real().nullable()();
-  RealColumn get bestMixEndMeters => real().withDefault(const Constant(30.0))();
+  RealColumn get bestMixEndMeters => real().nullable()();
   BoolColumn get o2Narcotic => boolean().nullable()();
 
   /// Denormalized list-display summary (no engine run per list row).
@@ -142,8 +165,9 @@ class DivePlanTanks extends Table {
   TextColumn get material => text().nullable()();
   TextColumn get presetName => text().nullable()();
 
-  /// Deco gas-switch depth override in meters; null = auto (MOD at deco pO2).
-  /// Subsurface per-cylinder "Deco switch at" (v120).
+  /// MOD set by hand in meters, for any role (issue #3567); null means the
+  /// default for the cylinder's role and mix. The planner switches to the
+  /// gas at its MOD. Subsurface per-cylinder "Deco switch at" (v120).
   RealColumn get decoSwitchDepth => real().nullable()();
 
   /// Whether this cylinder also doubles as travel gas, breathed on the

@@ -850,7 +850,7 @@ void main() {
     ) async {
       await pump(tester, _item(remoteUploadedAt: DateTime(2026, 7)));
 
-      expect(find.text('Back up now'), findsNothing);
+      expect(find.text('Copy now'), findsNothing);
     });
 
     testWidgets('Back up now is hidden when no store is attached', (
@@ -858,7 +858,7 @@ void main() {
     ) async {
       await pump(tester, _item(), attached: false);
 
-      expect(find.text('Back up now'), findsNothing);
+      expect(find.text('Copy now'), findsNothing);
     });
 
     testWidgets('Back up now is hidden for an ineligible source', (
@@ -869,10 +869,10 @@ void main() {
         _item(sourceType: MediaSourceType.networkUrl, platformAssetId: null),
       );
 
-      expect(find.text('Back up now'), findsNothing);
+      expect(find.text('Copy now'), findsNothing);
     });
 
-    testWidgets('Back up now enqueues a repair upload', (tester) async {
+    testWidgets('Copy now enqueues a repair upload', (tester) async {
       final queue = _CapturingQueue();
       await pump(
         tester,
@@ -883,7 +883,9 @@ void main() {
         ],
       );
 
-      await tester.tap(find.text('Back up now'));
+      // The section's name follows the Photos page (issue #3482).
+      expect(find.text('Copies in the cloud'), findsOneWidget);
+      await tester.tap(find.text('Copy now'));
       await tester.pumpAndSettle();
 
       expect(queue.repairEnqueued, ['m1']);
@@ -902,7 +904,7 @@ void main() {
       );
 
       expect(find.text('Retry upload'), findsOneWidget);
-      expect(find.text('Back up now'), findsNothing);
+      expect(find.text('Copy now'), findsNothing);
     });
 
     // The answer to "is it uploading" is already on screen, and a second
@@ -916,7 +918,7 @@ void main() {
         queue: const QueueFacts(state: 'transferring'),
       );
 
-      expect(find.text('Back up now'), findsNothing);
+      expect(find.text('Copy now'), findsNothing);
       expect(find.text('Retry upload'), findsNothing);
     });
   });

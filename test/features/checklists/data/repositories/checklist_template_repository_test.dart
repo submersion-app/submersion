@@ -50,20 +50,34 @@ void main() {
     updatedAt: DateTime.now(),
   );
 
-  ChecklistTemplateItem item(
+  /// Builds an item, resolving [category] to a section through the
+  /// repository exactly as the item editor's picker will (issue #3360).
+  /// Kept named `category` so the tests below read the same way as before
+  /// the migration; only the resolution step changed.
+  Future<ChecklistTemplateItem> item(
     String templateId, {
     String title = 'Wetsuit',
     int? dueOffsetDays,
     String? category,
-  }) => ChecklistTemplateItem(
+  }) async => ChecklistTemplateItem(
     id: '',
     templateId: templateId,
     title: title,
-    category: category,
+    sectionId: await repository.findOrCreateSectionId(templateId, category),
     dueOffsetDays: dueOffsetDays,
     createdAt: DateTime.now(),
     updatedAt: DateTime.now(),
   );
+
+  /// The title of the section [item] is grouped under, or null.
+  Future<String?> sectionTitleOf(
+    String templateId,
+    ChecklistTemplateItem item,
+  ) async {
+    if (item.sectionId == null) return null;
+    final sections = await repository.getSectionsForTemplate(templateId);
+    return sections.firstWhere((s) => s.id == item.sectionId).title;
+  }
 
   setUp(() async {
     await setUpTestDatabase();
@@ -132,16 +146,16 @@ void main() {
     test('replace-all save assigns sortOrder from list position', () async {
       final tpl = await repository.createTemplate(template());
       await repository.saveItems(tpl.id, [
-        item(tpl.id, title: 'B'),
-        item(tpl.id, title: 'A', dueOffsetDays: 14, category: 'Gear'),
+        await item(tpl.id, title: 'B'),
+        await item(tpl.id, title: 'A', dueOffsetDays: 14, category: 'Gear'),
       ]);
       final items = await repository.getItemsForTemplate(tpl.id);
       expect(items.map((i) => i.title).toList(), ['B', 'A']);
       expect(items[1].dueOffsetDays, 14);
-      expect(items[1].category, 'Gear');
+      expect(await sectionTitleOf(tpl.id, items[1]), 'Gear');
 
       // Re-save with one item: the other is removed.
-      await repository.saveItems(tpl.id, [item(tpl.id, title: 'A only')]);
+      await repository.saveItems(tpl.id, [await item(tpl.id, title: 'A only')]);
       final after = await repository.getItemsForTemplate(tpl.id);
       expect(after, hasLength(1));
       expect(after.single.title, 'A only');
@@ -154,7 +168,7 @@ void main() {
       await repository.updateTemplate(tpl.copyWith(name: 'Renamed'));
       expect((await repository.getTemplateById(tpl.id))!.name, 'Renamed');
 
-      await repository.saveItems(tpl.id, [item(tpl.id)]);
+      await repository.saveItems(tpl.id, [await item(tpl.id)]);
       await repository.deleteTemplate(tpl.id);
       expect(await repository.getTemplateById(tpl.id), isNull);
       expect(await repository.getItemsForTemplate(tpl.id), isEmpty);
@@ -165,8 +179,8 @@ void main() {
     test('saveItems tombstones items removed by a re-save', () async {
       final tpl = await repository.createTemplate(template());
       await repository.saveItems(tpl.id, [
-        item(tpl.id, title: 'Keep'),
-        item(tpl.id, title: 'Drop'),
+        await item(tpl.id, title: 'Keep'),
+        await item(tpl.id, title: 'Drop'),
       ]);
       final items = await repository.getItemsForTemplate(tpl.id);
       final kept = items.singleWhere((i) => i.title == 'Keep');
@@ -189,8 +203,8 @@ void main() {
     test('deleteTemplate tombstones the template and each item', () async {
       final tpl = await repository.createTemplate(template());
       await repository.saveItems(tpl.id, [
-        item(tpl.id, title: 'One'),
-        item(tpl.id, title: 'Two'),
+        await item(tpl.id, title: 'One'),
+        await item(tpl.id, title: 'Two'),
       ]);
       final items = await repository.getItemsForTemplate(tpl.id);
 
@@ -209,7 +223,7 @@ void main() {
     test('re-save preserves created_at for kept items and advances '
         'updated_at', () async {
       final tpl = await repository.createTemplate(template());
-      await repository.saveItems(tpl.id, [item(tpl.id, title: 'Keep')]);
+      await repository.saveItems(tpl.id, [await item(tpl.id, title: 'Keep')]);
       final kept = (await repository.getItemsForTemplate(tpl.id)).single;
       final before = await itemTimestamps(kept.id);
 
@@ -228,6 +242,184 @@ void main() {
         greaterThan(before.updatedAt),
         reason: 'updated_at must advance on re-save',
       );
+    });
+  });
+
+  group('sections', () {
+    test('createSection appends at the end of the template order', () async {
+      final tpl = await repository.createTemplate(template());
+      final a = await repository.createSection(
+        templateId: tpl.id,
+        title: 'Assembly',
+      );
+      final b = await repository.createSection(
+        templateId: tpl.id,
+        title: 'Cells',
+      );
+      expect(a.sortOrder, 0);
+      expect(b.sortOrder, 1);
+      final sections = await repository.getSectionsForTemplate(tpl.id);
+      expect(sections.map((s) => s.title).toList(), ['Assembly', 'Cells']);
+    });
+
+    test('renameSection updates the title only', () async {
+      final tpl = await repository.createTemplate(template());
+      final section = await repository.createSection(
+        templateId: tpl.id,
+        title: 'Assembly',
+      );
+      await repository.renameSection(section.id, 'Assembly checks');
+      final sections = await repository.getSectionsForTemplate(tpl.id);
+      expect(sections.single.title, 'Assembly checks');
+      expect(sections.single.id, section.id);
+    });
+
+    test('reorderSections persists the new order', () async {
+      final tpl = await repository.createTemplate(template());
+      final a = await repository.createSection(templateId: tpl.id, title: 'A');
+      final b = await repository.createSection(templateId: tpl.id, title: 'B');
+      await repository.reorderSections(tpl.id, [b.id, a.id]);
+      final sections = await repository.getSectionsForTemplate(tpl.id);
+      expect(sections.map((s) => s.title).toList(), ['B', 'A']);
+    });
+
+    test('saveSections inserts new, renames kept, and tombstones removed '
+        'sections', () async {
+      final tpl = await repository.createTemplate(template());
+      final existing = await repository.createSection(
+        templateId: tpl.id,
+        title: 'Assembly',
+      );
+      final toRemove = await repository.createSection(
+        templateId: tpl.id,
+        title: 'Obsolete',
+      );
+
+      await repository.saveSections(tpl.id, [
+        existing.copyWith(title: 'Assembly checks'),
+        existing.copyWith(
+          id: '',
+          title: 'Cells',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+      ]);
+
+      final sections = await repository.getSectionsForTemplate(tpl.id);
+      expect(sections.map((s) => s.title).toList(), [
+        'Assembly checks',
+        'Cells',
+      ]);
+      expect(sections.first.id, existing.id);
+      expect(await tombstoneCount('checklistTemplateSections', toRemove.id), 1);
+    });
+
+    test(
+      'saveSections keeps a retained section\'s original createdAt',
+      () async {
+        final tpl = await repository.createTemplate(template());
+        final section = await repository.createSection(
+          templateId: tpl.id,
+          title: 'Assembly',
+        );
+
+        await repository.saveSections(tpl.id, [
+          section.copyWith(title: 'Assembly checks'),
+        ]);
+
+        final sections = await repository.getSectionsForTemplate(tpl.id);
+        expect(sections.single.createdAt, section.createdAt);
+      },
+    );
+
+    test('saveSections leaves the items of a kept section pointing at it, '
+        'without needing a following saveItems', () async {
+      final tpl = await repository.createTemplate(template());
+      final section = await repository.createSection(
+        templateId: tpl.id,
+        title: 'Assembly',
+      );
+      await repository.saveItems(tpl.id, [
+        ChecklistTemplateItem(
+          id: '',
+          templateId: tpl.id,
+          title: 'Check O-rings',
+          sectionId: section.id,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+      ]);
+
+      await repository.saveSections(tpl.id, [
+        section.copyWith(title: 'Assembly checks'),
+      ]);
+
+      final items = await repository.getItemsForTemplate(tpl.id);
+      expect(items.single.sectionId, section.id);
+    });
+
+    test('deleteSection sets item.sectionId to null, not delete', () async {
+      final tpl = await repository.createTemplate(template());
+      final section = await repository.createSection(
+        templateId: tpl.id,
+        title: 'Assembly',
+      );
+      await repository.saveItems(tpl.id, [
+        ChecklistTemplateItem(
+          id: '',
+          templateId: tpl.id,
+          title: 'Check O-rings',
+          sectionId: section.id,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+      ]);
+
+      await repository.deleteSection(section.id);
+
+      expect(await repository.getSectionsForTemplate(tpl.id), isEmpty);
+      final survivors = await repository.getItemsForTemplate(tpl.id);
+      expect(survivors, hasLength(1));
+      expect(survivors.single.sectionId, isNull);
+    });
+
+    test('deleteTemplate also removes and tombstones its sections, even with '
+        'no items (FK: checklist_template_sections.template_id has no SQL '
+        'cascade)', () async {
+      final tpl = await repository.createTemplate(template());
+      final section = await repository.createSection(
+        templateId: tpl.id,
+        title: 'Empty',
+      );
+
+      await repository.deleteTemplate(tpl.id);
+
+      expect(await repository.getSectionsForTemplate(tpl.id), isEmpty);
+      expect(await tombstoneCount('checklistTemplateSections', section.id), 1);
+    });
+
+    test(
+      'findOrCreateSectionId matches an existing title case-insensitively',
+      () async {
+        final tpl = await repository.createTemplate(template());
+        final created = await repository.createSection(
+          templateId: tpl.id,
+          title: 'Cells',
+        );
+        final resolved = await repository.findOrCreateSectionId(
+          tpl.id,
+          'cells',
+        );
+        expect(resolved, created.id);
+        expect(await repository.getSectionsForTemplate(tpl.id), hasLength(1));
+      },
+    );
+
+    test('findOrCreateSectionId returns null for blank input', () async {
+      final tpl = await repository.createTemplate(template());
+      expect(await repository.findOrCreateSectionId(tpl.id, null), isNull);
+      expect(await repository.findOrCreateSectionId(tpl.id, '  '), isNull);
+      expect(await repository.getSectionsForTemplate(tpl.id), isEmpty);
     });
   });
 }

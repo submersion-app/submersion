@@ -5,6 +5,8 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/constants/enums.dart';
 // The dependency-only module, not dive_providers.dart: that file imports
 // trip_providers.dart, which imports this feature's repository impl.
+import 'package:submersion/features/dive_computer/presentation/providers/clock_sync_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -313,6 +315,17 @@ Comparator<EquipmentItem> equipmentSortComparator(
   };
 }
 
+/// Whether the item is a dive computer's or transmitter's one entry (issue
+/// #3676), so its type is fixed.
+final equipmentHasDeviceProvider = FutureProvider.family<bool, String>((
+  ref,
+  id,
+) async {
+  final repository = ref.watch(equipmentRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchDeviceRecordChanges());
+  return repository.hasDeviceRecord(id);
+});
+
 /// Single equipment item provider
 final equipmentItemProvider = FutureProvider.family<EquipmentItem?, String>((
   ref,
@@ -573,10 +586,25 @@ class EquipmentListNotifier
     final diverId =
         _validatedDiverId ??
         await _ref.read(validatedCurrentDiverIdProvider.future);
+    // A computer's item takes the computer with it (issue #3676); read which
+    // first, so its installation-local clock sync choice (#1216) and the
+    // computer providers go too, as a computer delete does.
+    final computers = await _ref
+        .read(diveComputerRepositoryProvider)
+        .getComputersForEquipment(id);
     final deleted = await _repository.deleteOwnedEquipment(
       id,
       actingDiverId: diverId,
     );
+    if (deleted && computers.isNotEmpty) {
+      final clockSync = _ref.read(clockSyncSettingsNotifierProvider.notifier);
+      for (final c in computers) {
+        await clockSync.forget(c.id);
+        _ref.invalidate(diveComputerByIdProvider(c.id));
+      }
+      _ref.invalidate(allDiveComputersProvider);
+      _ref.invalidate(favoriteDiveComputerProvider);
+    }
     await refresh();
     return deleted;
   }

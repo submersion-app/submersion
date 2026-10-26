@@ -280,6 +280,50 @@ void main() {
     },
   );
 
+  test(
+    'undoing a tank replace keeps each tank\'s extra regulators (#3375)',
+    () async {
+      await seed('d1');
+      await diveRepo.bulkAddTank(['d1'], tank('OrigTank'));
+      for (final id in ['reg1', 'reg2']) {
+        await db
+            .into(db.equipment)
+            .insert(
+              EquipmentCompanion.insert(
+                id: id,
+                name: id,
+                type: 'regulator',
+                createdAt: 1,
+                updatedAt: 1,
+              ),
+            );
+      }
+      await (db.update(
+        db.diveTanks,
+      )..where((t) => t.diveId.equals('d1'))).write(
+        const DiveTanksCompanion(
+          regulatorEquipmentId: Value('reg1'),
+          extraRegulatorIds: Value('["reg2"]'),
+        ),
+      );
+      final snap = await service.apply(
+        BulkEditRequest(
+          diveIds: const ['d1'],
+          ops: [
+            TanksOp(mode: BulkCollectionMode.replace, tanks: [tank('NewTank')]),
+          ],
+        ),
+      );
+      await service.undo(snap);
+      final rows = await (db.select(
+        db.diveTanks,
+      )..where((t) => t.diveId.equals('d1'))).get();
+      expect(rows.single.tankName, 'OrigTank');
+      expect(rows.single.regulatorEquipmentId, 'reg1');
+      expect(rows.single.extraRegulatorIds, '["reg2"]');
+    },
+  );
+
   group('undoing a tank replace keeps each tank\'s source (#2716)', () {
     Future<BulkEditSnapshot> replaceAttributedTank() async {
       await seed('d1');

@@ -203,10 +203,14 @@ class ExitPathEvaluator {
   /// proportion. Never below their own SAC; a plan with no bottom SAC gives
   /// no ratio, so the diver keeps their own.
   static double stressedSacFor(domain.DivePlan plan, double sacBottom) {
-    if (plan.sacBottom <= 0) {
+    // MissionEngine.compute resolves the plan's bottom/stressed SAC against
+    // the diver's Settings before this runs (issue #3552); the *Effective
+    // getters' spec constants only cover a direct caller that skipped it.
+    final planSacBottom = plan.sacBottomEffective;
+    if (planSacBottom <= 0) {
       return math.max(plan.sacStressedEffective, sacBottom);
     }
-    final factor = plan.sacStressedEffective / plan.sacBottom;
+    final factor = plan.sacStressedEffective / planSacBottom;
     return sacBottom * math.max(1.0, factor);
   }
 
@@ -229,7 +233,9 @@ class ExitPathEvaluator {
         model: engine.config.gasModel,
       );
       if (remaining == null) continue;
-      if (remaining < plan.reservePressure) return true;
+      if (remaining < (plan.reservePressure ?? engine.config.reservePressure)) {
+        return true;
+      }
     }
     return false;
   }

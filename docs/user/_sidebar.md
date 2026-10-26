@@ -35,12 +35,13 @@
 
 **Setup & Data**
 - [Settings](settings.md)
+- [Set Up This Device](set-up-this-device.md)
 - [Update Channels](update-channels.md)
-- [Backup & Restore](backup-and-restore.md)
+- [Backups](backup-and-restore.md)
 - [Multi-Device Sync](multi-device-sync.md)
 - [Media Sync](media-sync.md)
 - [Encrypted Sync](encrypted-sync.md)
-- [Shared Site Libraries](shared-site-libraries.md)
+- [Shared site libraries](shared-site-libraries.md)
 - [Debug Mode](debug-mode.md)
 
 **Reference**

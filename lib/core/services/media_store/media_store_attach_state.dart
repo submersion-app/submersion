@@ -4,6 +4,16 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 
+/// What [MediaStoreAttachState.snapshot] read: the attachment as it stood,
+/// so an operation that detaches can put it back if it fails (issue #3482).
+/// A null [storeId] is a detached device.
+typedef MediaStoreAttachSnapshot = ({
+  String? storeId,
+  CloudProviderType? providerType,
+  String? accountId,
+  bool markerMismatch,
+});
+
 /// Which media store this device is attached to, and through which
 /// provider. Secret-free; credentials live in the keychain
 /// (MediaStoreCredentialsStore) or the providers' own auth stores.
@@ -111,6 +121,32 @@ class MediaStoreAttachState {
       await prefs.remove(markerMismatchKey);
     }
     _markerMismatchChanges.add(null);
+  }
+
+  /// The attachment as it stands, for [restore].
+  Future<MediaStoreAttachSnapshot> snapshot() async => (
+    storeId: await attachedStoreId(),
+    providerType: await attachedProviderType(),
+    accountId: await attachedAccountId(),
+    markerMismatch: await hasMarkerMismatch(),
+  );
+
+  /// Puts back what [snapshot] read, through the same writes an attach
+  /// change makes, so the generation moves on and a runtime built in
+  /// between is superseded.
+  Future<void> restore(MediaStoreAttachSnapshot snapshot) async {
+    final storeId = snapshot.storeId;
+    final providerType = snapshot.providerType;
+    if (storeId == null || providerType == null) {
+      await clear();
+      return;
+    }
+    await setAttached(
+      storeId,
+      providerType: providerType,
+      accountId: snapshot.accountId,
+    );
+    if (snapshot.markerMismatch) await setMarkerMismatch(true);
   }
 
   Future<bool> hasMarkerMismatch() async =>

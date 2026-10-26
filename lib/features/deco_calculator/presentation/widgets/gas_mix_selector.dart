@@ -167,7 +167,12 @@ class _GasMixSelectorState extends ConsumerState<GasMixSelector> {
               children: [
                 _buildGasPercent(context, 'O₂', o2, Colors.blue),
                 _buildGasPercent(context, 'He', he, Colors.purple),
-                _buildGasPercent(context, 'N₂', 100 - o2 - he, Colors.grey),
+                _buildGasPercent(
+                  context,
+                  'N₂',
+                  100 - o2 - he,
+                  colorScheme.onSurfaceVariant,
+                ),
               ],
             ),
           ),

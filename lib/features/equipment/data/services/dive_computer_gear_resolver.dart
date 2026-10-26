@@ -3,6 +3,7 @@ import 'package:drift/drift.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/database/device_gear_heal.dart';
 import 'package:submersion/core/database/dive_computer_gear_identity.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -12,9 +13,10 @@ import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart'
 /// Resolves the equipment row that represents a registered dive computer as
 /// gear, creating one if the diver does not already have a suitable item.
 ///
-/// Called only where a `dive_computers` row is genuinely created. That single
-/// rule is what makes deleting a gear twin permanent: nothing else mints, so a
-/// cleared `dive_computers.equipment_id` stays cleared.
+/// Called where a `dive_computers` row is genuinely created. Since #3676 a
+/// computer always has its item, so `ensureDeviceGearLinks` also mints one
+/// for a computer left without; both share [matchComputerItem] and the
+/// re-mint chain, so they never disagree.
 class DiveComputerGearResolver {
   DiveComputerGearResolver({SyncRepository? syncRepository})
     : _syncRepository = syncRepository ?? SyncRepository();
@@ -28,9 +30,12 @@ class DiveComputerGearResolver {
   ///
   /// Resolution order, which is the design:
   ///   1. the stored link, when its equipment row still exists
-  ///   2. the row already holding the derived id, which survives a rename
-  ///   3. exactly one unambiguous identity match among active computer gear
-  ///   4. mint at the derived id
+  ///   2. the row already holding the derived id (or the next id in its
+  ///      re-mint chain when the derived one was deleted, #3676), which
+  ///      survives a rename
+  ///   3. exactly one unambiguous identity match ([matchComputerItem]): any
+  ///      status except wanted, not owned by another computer
+  ///   4. mint at that id
   ///
   /// Returns null and logs on failure. A computer that fails to get a twin is
   /// still a correctly registered computer, so registration must not fail
@@ -42,10 +47,22 @@ class DiveComputerGearResolver {
         final existing = await (_db.select(
           _db.equipment,
         )..where((t) => t.id.equals(stored))).getSingleOrNull();
-        if (existing != null) return stored;
+        // Only a computer item is the computer's entry: a link to a mask
+        // (an item retyped before #3676 locked the type) goes on to the
+        // chain and the matching below, as the device gear heal repairs it.
+        if (existing != null && existing.type == EquipmentType.computer.name) {
+          return stored;
+        }
       }
 
-      final derivedId = diveComputerGearId(computer.id);
+      // The derived id, or the next id in its chain when a peer deleted it
+      // (#3676): a row minted at a tombstoned id would be deleted again.
+      final derivedId = await liveGearId(
+        _db,
+        diveComputerGearId(computer.id),
+        computer.id,
+        type: EquipmentType.computer.name,
+      );
 
       // The identity match below reads each row's CURRENT text while the id
       // derives from the computer id, so a renamed gear item makes the match
@@ -56,27 +73,25 @@ class DiveComputerGearResolver {
       )..where((t) => t.id.equals(derivedId))).getSingleOrNull();
       if (byDerivedId != null) return derivedId;
 
-      final rows =
-          await (_db.select(_db.equipment)
-                ..where((t) => t.type.equals(EquipmentType.computer.name))
-                ..where((t) => t.isActive.equals(true)))
-              .get();
-      final match = matchGearTwin(
+      final match = await matchComputerItem(
+        _db,
         manufacturer: computer.manufacturer,
         model: computer.model,
-        serialNumber: computer.serialNumber,
+        serial: computer.serialNumber,
         diverId: computer.diverId,
-        candidates: rows.map(
-          (r) => GearTwinCandidate(
-            id: r.id,
-            diverId: r.diverId,
-            brand: r.brand,
-            model: r.model,
-            serialNumber: r.serialNumber,
-          ),
-        ),
       );
-      if (match != null) return match.id;
+      if (match != null) {
+        // Adopted through the blank-serial fallback: the item gains the
+        // computer's serial, an edit of the diver's row, so it is staged.
+        if (await fillBlankItemSerial(_db, match, computer.serialNumber)) {
+          await _syncRepository.markRecordPending(
+            entityType: 'equipment',
+            recordId: match,
+            localUpdatedAt: DateTime.now().millisecondsSinceEpoch,
+          );
+        }
+        return match;
+      }
 
       final now = DateTime.now().millisecondsSinceEpoch;
       // insertOrIgnore, never upsert. This is a seed: if a row already holds

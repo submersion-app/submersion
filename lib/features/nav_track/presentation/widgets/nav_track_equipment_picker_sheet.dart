@@ -18,6 +18,65 @@ const List<EquipmentType> navTrackEquipmentPickerTypes = [
   EquipmentType.computer,
 ];
 
+/// A [pickNavTrackEquipment] outcome: a chosen [EquipmentItem], an explicit
+/// "no equipment" ([NavTrackEquipmentCleared]), or the sheet dismissed
+/// without any choice ([NavTrackEquipmentPickCancelled]) -- three states a
+/// bare nullable return cannot tell apart from each other.
+sealed class NavTrackEquipmentChoice {
+  const NavTrackEquipmentChoice();
+}
+
+class NavTrackEquipmentChosen extends NavTrackEquipmentChoice {
+  const NavTrackEquipmentChosen(this.item);
+  final EquipmentItem item;
+}
+
+class NavTrackEquipmentCleared extends NavTrackEquipmentChoice {
+  const NavTrackEquipmentCleared();
+}
+
+class NavTrackEquipmentPickCancelled extends NavTrackEquipmentChoice {
+  const NavTrackEquipmentPickCancelled();
+}
+
+/// Opens [NavTrackEquipmentPickerSheet] in its standard draggable sheet and
+/// resolves to what the diver did.
+///
+/// Shared by the import review screen (where a route is first saved) and
+/// the track detail page's "Change device" row (for changing it
+/// afterward) -- both open the exact same picker the exact same way, so
+/// this keeps them from drifting apart if that contract ever changes.
+Future<NavTrackEquipmentChoice> pickNavTrackEquipment(
+  BuildContext context, {
+  required String? selectedEquipmentId,
+}) async {
+  // showModalBottomSheet resolves to null both when the sheet is dismissed
+  // (backdrop tap, close button) and when the sheet pops a bare null for
+  // "no equipment chosen" -- the sentinel keeps those apart.
+  const noEquipmentChosen = Object();
+  final result = await showModalBottomSheet<Object?>(
+    context: context,
+    isScrollControlled: true,
+    builder: (sheetContext) => DraggableScrollableSheet(
+      initialChildSize: 0.7,
+      minChildSize: 0.5,
+      maxChildSize: 0.95,
+      expand: false,
+      builder: (sheetContext, scrollController) => NavTrackEquipmentPickerSheet(
+        scrollController: scrollController,
+        selectedEquipmentId: selectedEquipmentId,
+        onEquipmentSelected: (item) =>
+            Navigator.of(sheetContext).pop(item ?? noEquipmentChosen),
+      ),
+    ),
+  );
+  return switch (result) {
+    null => const NavTrackEquipmentPickCancelled(),
+    EquipmentItem() => NavTrackEquipmentChosen(result),
+    _ => const NavTrackEquipmentCleared(),
+  };
+}
+
 /// Single-select equipment picker for a route's `equipmentId`, restricted to
 /// [navTrackEquipmentPickerTypes] and always offering an explicit "no
 /// equipment" (null) row first.

@@ -165,35 +165,29 @@ void main() {
     expect(certs.single.org, 'PADI');
   });
 
-  test('getPictures parses an array body', () async {
-    final api = client((req) async {
-      expect(req.url.path, '/api/pictures/4711');
-      return http.Response(
-        jsonEncode([
-          {'id': 1, 'url': 'https://divelogs.de/p/1.jpg'},
-          {'id': 2, 'url': '2.jpg'},
-        ]),
-        200,
-      );
-    });
-    final pics = await api.getPictures('4711');
-    expect(pics, hasLength(2));
-    expect(pics[0].url, Uri.parse('https://divelogs.de/p/1.jpg'));
-    expect(pics[1].url, isNull);
-  });
-
-  test('getPictures tolerates a {pictures: [...]} wrapper', () async {
+  test('getAllDives keeps the pictures each dive lists', () async {
     final api = client(
       (req) async => http.Response(
-        jsonEncode({
-          'pictures': [
-            {'id': 1, 'url': 'https://divelogs.de/p/1.jpg'},
-          ],
-        }),
+        jsonEncode([
+          {
+            'id': 4711,
+            'date': '2022-09-03',
+            'time': '14:42:00',
+            'duration': 2808,
+            'maxdepth': 12,
+            'pictures': [
+              {'id': '1', 'path': 'https://divelogs.de/pictures/u/4711-1.jpg'},
+            ],
+          },
+        ]),
         200,
       ),
     );
-    expect((await api.getPictures('9')).single.id, '1');
+    final dive = (await api.getAllDives()).dives.single;
+    expect(
+      dive.pictures.single.url,
+      Uri.parse('https://divelogs.de/pictures/u/4711-1.jpg'),
+    );
   });
 
   test(
@@ -305,16 +299,5 @@ void main() {
         throwsA(isA<DivelogsApiException>()),
       );
     });
-  });
-
-  test('getPictures keeps a dive id as a single path segment', () async {
-    Uri? seen;
-    final api = client((req) async {
-      seen = req.url;
-      return http.Response('[]', 200);
-    });
-    await api.getPictures('a/b?c#d');
-    expect(seen!.pathSegments, ['api', 'pictures', 'a/b?c#d']);
-    expect(seen!.query, isEmpty);
   });
 }

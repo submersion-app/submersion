@@ -7,6 +7,7 @@ import 'dart:ui' show Size;
 
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
@@ -130,6 +131,7 @@ void main() {
   late MediaTransferQueueRepository queue;
   late _FakeLocalFileResolver resolver;
   late MediaUploadPipeline pipeline;
+  late MediaSourceResolverRegistry registry;
 
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
@@ -145,7 +147,7 @@ void main() {
     resolver = _FakeLocalFileResolver(
       const UnavailableData(kind: UnavailableKind.notFound),
     );
-    final registry = MediaSourceResolverRegistry({
+    registry = MediaSourceResolverRegistry({
       MediaSourceType.localFile: resolver,
     });
     pipeline = MediaUploadPipeline(
@@ -171,7 +173,7 @@ void main() {
   );
 
   Future<File> fixture(List<int> bytes, String name) async {
-    final f = File('${root.path}/$name');
+    final f = File(p.join(root.path, name));
     await f.writeAsBytes(bytes, flush: true);
     return f;
   }
@@ -286,6 +288,55 @@ void main() {
     expect(entry.id, again);
     expect(await pipeline.process(entry), UploadOutcome.deduplicated);
     expect(fakeStore.objects, hasLength(1));
+  });
+
+  // Issue #3482: after a switch the new store holds nothing, so a row
+  // stamped in the old store uploads again instead of being skipped.
+  group('stamps per store', () {
+    MediaUploadPipeline pipelineFor(String storeId, MediaObjectStore store) =>
+        MediaUploadPipeline(
+          mediaRepository: mediaRepository,
+          queue: queue,
+          store: store,
+          registry: registry,
+          cache: cache,
+          thumbnails: ThumbnailGenerator(registry: registry, cache: cache),
+          storeId: storeId,
+          now: () => DateTime(2026, 7, 10, 12),
+        );
+
+    test('records the store it uploaded to', () async {
+      final id = await enqueueLocalFileItem(bytes: [3, 1, 4], name: 'e.jpg');
+      final entry = (await queue.nextPending(DateTime.now()))!;
+      await pipelineFor('store-a', fakeStore).process(entry);
+
+      expect(
+        (await mediaRepository.getMediaById(id))!.remoteStoreId,
+        'store-a',
+      );
+    });
+
+    test('a row stamped in another store uploads again', () async {
+      final id = await enqueueLocalFileItem(bytes: [2, 7, 1], name: 'f.jpg');
+      await pipelineFor(
+        'store-a',
+        fakeStore,
+      ).process((await queue.nextPending(DateTime.now()))!);
+
+      final next = InMemoryMediaObjectStore();
+      await queue.enqueueUpload(mediaId: id);
+      final outcome = await pipelineFor(
+        'store-b',
+        next,
+      ).process((await queue.nextPending(DateTime.now()))!);
+
+      expect(outcome, UploadOutcome.uploaded);
+      expect(next.objects, isNotEmpty);
+      expect(
+        (await mediaRepository.getMediaById(id))!.remoteStoreId,
+        'store-b',
+      );
+    });
   });
 
   test('unavailable source marks failed with retry scheduling', () async {

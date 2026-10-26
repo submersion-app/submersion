@@ -1,7 +1,7 @@
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/constants/enums.dart';
-import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/constants/tank_presets.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 import 'package:submersion/core/deco/schedule_policy.dart' show AirBreakPolicy;
@@ -13,6 +13,10 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_p
 import 'package:submersion/features/planner/domain/entities/mission/dpv_mission.dart';
 import 'package:submersion/features/planner/domain/services/mission/mission_edits.dart';
 import 'package:submersion/features/planner/domain/services/mission/mission_engine.dart';
+import 'package:submersion/features/planner/domain/services/mission/mission_scenario_service.dart';
+import 'package:submersion/features/planner/domain/services/plan_engine.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart'
+    show planEngineConfigProvider, resolvedPlanEngineConfigProvider;
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_planner/data/services/plan_calculator_service.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
@@ -24,13 +28,10 @@ import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
 import 'package:submersion/features/planner/domain/services/ccr_loop_slots.dart';
 import 'package:submersion/features/planner/domain/services/dive_plan_state_mapper.dart';
 import 'package:submersion/features/planner/domain/services/segment_chain.dart';
+import 'package:submersion/features/planner/domain/services/tank_role_resolver.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_repository_providers.dart';
 
 const _uuid = Uuid();
-
-/// A gradient factor pair as a percentage (0-100). The two halves are only
-/// meaningful together, so they travel as one value.
-typedef PlanGradientFactors = ({int low, int high});
 
 /// A CCR setpoint pair in bar. The two halves are only meaningful together,
 /// so they travel as one value.
@@ -46,6 +47,7 @@ final planCalculatorServiceProvider = Provider<PlanCalculatorService>((ref) {
   final gfHigh = ref.watch(gfHighProvider);
   final ppO2MaxWorking = ref.watch(ppO2MaxWorkingProvider);
   final ppO2MaxDeco = ref.watch(ppO2MaxDecoProvider);
+  final ccrDiluentModPpO2 = ref.watch(ccrDiluentModPpO2Provider);
   final cnsWarningThreshold = ref.watch(cnsWarningThresholdProvider);
 
   return PlanCalculatorService(
@@ -53,16 +55,11 @@ final planCalculatorServiceProvider = Provider<PlanCalculatorService>((ref) {
     gfHigh: gfHigh,
     ppO2Warning: ppO2MaxWorking,
     ppO2Critical: ppO2MaxDeco,
+    ccrDiluentModPpO2: ccrDiluentModPpO2,
     cnsWarningThreshold: cnsWarningThreshold,
     cnsMethod: ref.watch(cnsCalculationMethodProvider),
     gasModel: ref.watch(gasModelProvider),
   );
-});
-
-/// The diver's configured gradient factors as one value, so a listener fires
-/// once when either half changes and not at all for unrelated settings.
-final planGradientFactorSettingsProvider = Provider<PlanGradientFactors>((ref) {
-  return (low: ref.watch(gfLowProvider), high: ref.watch(gfHighProvider));
 });
 
 // ============================================================================
@@ -78,8 +75,12 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
   /// Deco math belongs in [planOutcomeProvider], which recomputes on every
   /// settings change.
   final PlanCalculatorService _calculator;
-  final double Function() _getDefaultReservePressure;
-  final PlanGradientFactors Function() _getDefaultGradientFactors;
+
+  /// The diver's current planner config, for the few edits that author
+  /// segments themselves (the quick plan's descent, a mission's round
+  /// trip) and so need an unset rate resolved against Settings now rather
+  /// than at engine time (issue #3552). Read on each call, never cached.
+  final PlanEngineConfig Function() _getEngineConfig;
   final PlannerWaterType Function() _getDefaultPlannerWaterType;
   final CcrSetpoints Function() _getDefaultCcrSetpoints;
   final DivePlanRepository? _repository;
@@ -111,9 +112,7 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
   /// would have to repeat each `??` in its `super` call.
   factory DivePlanNotifier(
     PlanCalculatorService calculator, {
-    double reservePressure = DivePlanState.kDefaultReservePressureBar,
-    double Function()? getDefaultReservePressure,
-    PlanGradientFactors Function()? getDefaultGradientFactors,
+    PlanEngineConfig Function()? getEngineConfig,
     PlannerWaterType Function()? getDefaultPlannerWaterType,
     CcrSetpoints Function()? getDefaultCcrSetpoints,
     DivePlanRepository? repository,
@@ -121,10 +120,7 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
   }) {
     return DivePlanNotifier._(
       calculator,
-      getDefaultReservePressure:
-          getDefaultReservePressure ?? (() => reservePressure),
-      getDefaultGradientFactors:
-          getDefaultGradientFactors ?? _fallbackGradientFactors,
+      getEngineConfig: getEngineConfig ?? (() => const PlanEngineConfig()),
       getDefaultPlannerWaterType:
           getDefaultPlannerWaterType ?? (() => PlannerWaterType.salt),
       getDefaultCcrSetpoints: getDefaultCcrSetpoints ?? _fallbackCcrSetpoints,
@@ -135,28 +131,19 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
 
   DivePlanNotifier._(
     this._calculator, {
-    required double Function() getDefaultReservePressure,
-    required PlanGradientFactors Function() getDefaultGradientFactors,
+    required PlanEngineConfig Function() getEngineConfig,
     required PlannerWaterType Function() getDefaultPlannerWaterType,
     required CcrSetpoints Function() getDefaultCcrSetpoints,
     DivePlanRepository? repository,
     required Future<List<EquipmentItem>> Function() loadEquipment,
-  }) : _getDefaultReservePressure = getDefaultReservePressure,
-       _getDefaultGradientFactors = getDefaultGradientFactors,
+  }) : _getEngineConfig = getEngineConfig,
        _getDefaultPlannerWaterType = getDefaultPlannerWaterType,
        _getDefaultCcrSetpoints = getDefaultCcrSetpoints,
        _repository = repository,
        _loadEquipment = loadEquipment,
        super(
-         _createInitialState(
-           reservePressure: getDefaultReservePressure(),
-           getGradientFactors: getDefaultGradientFactors,
-           plannerWaterType: getDefaultPlannerWaterType(),
-         ),
+         _createInitialState(plannerWaterType: getDefaultPlannerWaterType()),
        );
-
-  static PlanGradientFactors _fallbackGradientFactors() =>
-      (low: DivePlanState.kFallbackGfLow, high: DivePlanState.kFallbackGfHigh);
 
   static CcrSetpoints _fallbackCcrSetpoints() => (
     low: domain.DivePlan.specSetpointLow,
@@ -174,22 +161,19 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
     ),
   };
 
+  /// A new plan leaves every Setup field unset, gradient factors and
+  /// reserve pressure included, so each live-resolves against the diver's
+  /// Settings (issue #3552) instead of being snapshotted at creation.
   static DivePlanState _createInitialState({
-    required double reservePressure,
-    required PlanGradientFactors Function() getGradientFactors,
     required PlannerWaterType plannerWaterType,
   }) {
     final now = DateTime.now();
-    final gradientFactors = getGradientFactors();
     final water = _waterFieldsFor(plannerWaterType);
     return DivePlanState(
       id: _uuid.v4(),
       name: 'New Dive Plan',
       segments: [],
       tanks: [_createDefaultTank()],
-      gfLow: gradientFactors.low,
-      gfHigh: gradientFactors.high,
-      reservePressure: reservePressure,
       waterType: water.waterType,
       salinityPpt: water.salinityPpt,
       createdAt: now,
@@ -203,7 +187,7 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
       name: 'Primary',
       volume: 11.1, // AL80
       workingPressure: 207.0,
-      startPressure: 200.0,
+      startPressure: TankPresets.planFillPressureBar,
       gasMix: const GasMix(o2: 21, he: 0),
       role: TankRole.backGas,
       order: 0,
@@ -218,30 +202,7 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
   void newPlan() {
     _loaded = null;
     state = _createInitialState(
-      reservePressure: _getDefaultReservePressure(),
-      getGradientFactors: _getDefaultGradientFactors,
       plannerWaterType: _getDefaultPlannerWaterType(),
-    );
-  }
-
-  /// Move an untouched plan onto the diver's current gradient factors.
-  ///
-  /// Settings hydrate from the database after this notifier is built, and the
-  /// diver may change them with the planner open; either way a plan they have
-  /// not started yet should show the factors they actually dive. A plan with
-  /// segments, unsaved edits, or a persisted record is their work and is left
-  /// alone -- including a hand-tuned GF, which marks the plan dirty.
-  ///
-  /// Adopting a setting is not a diver edit, so this does not set `isDirty`.
-  void adoptGradientFactorsIfPristine(PlanGradientFactors gradientFactors) {
-    if (isPersisted || state.isDirty || state.segments.isNotEmpty) return;
-    if (state.gfLow == gradientFactors.low &&
-        state.gfHigh == gradientFactors.high) {
-      return;
-    }
-    state = state.copyWith(
-      gfLow: gradientFactors.low,
-      gfHigh: gradientFactors.high,
     );
   }
 
@@ -477,12 +438,13 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
     final segments = <PlanSegment>[
       // Descends at the plan's own rate. The old call used PlanSegment
       // .descent without passing one, so the quick plan always dropped at
-      // the factory's hardcoded 18 m/min and ignored the rate field.
+      // the factory's hardcoded 18 m/min and ignored the rate field. An
+      // unset rate follows the diver's Settings (issue #3552).
       PlanSegment.travel(
         id: _uuid.v4(),
         fromDepth: 0,
         targetDepth: maxDepth,
-        ratePerMinute: state.descentRate,
+        ratePerMinute: state.descentRate ?? _getEngineConfig().descentRate,
         tankId: tank.id,
         gasMix: tank.gasMix,
         order: 0,
@@ -660,11 +622,14 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
   // Settings
   // --------------------------------------------------------------------------
 
-  /// Update gradient factors.
-  void updateGradientFactors(int gfLow, int gfHigh) {
+  /// Update gradient factors. Null clears back to the diver's Settings
+  /// default (issue #3552, follow-up to v304-307).
+  void updateGradientFactors(int? gfLow, int? gfHigh) {
     state = state.copyWith(
       gfLow: gfLow,
+      clearGfLow: gfLow == null,
       gfHigh: gfHigh,
+      clearGfHigh: gfHigh == null,
       isDirty: true,
       updatedAt: DateTime.now(),
     );
@@ -679,24 +644,51 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
     );
   }
 
+  /// Clear the SAC rate override, falling back to the diver's Settings
+  /// default (issue #3552).
+  void clearSacRate() {
+    state = state.copyWith(
+      clearSacRate: true,
+      isDirty: true,
+      updatedAt: DateTime.now(),
+    );
+  }
+
   /// Update any of the four ascent rates, or the descent rate, in meters per
   /// minute. [intermediate] applies between stops deeper than 9 m, [shallow]
   /// between the 9 m and shallower stops, and [finalStretch] from the last
   /// stop to the surface.
+  ///
+  /// Each is a plan-level override of the diver's Settings default (issue
+  /// #3552): a caller passes its concrete value to set one, or omits it (the
+  /// default `null`) to leave it as-is - never to clear it, since
+  /// [DivePlanState.copyWith]'s own `??` fallback cannot otherwise tell "not
+  /// touched" apart from "cleared". Clearing one back to "follow Settings"
+  /// goes through the matching `clearX` flag instead.
   void updateRates({
     double? ascent,
+    bool clearAscent = false,
     double? intermediate,
+    bool clearIntermediate = false,
     double? shallow,
+    bool clearShallow = false,
     double? finalStretch,
+    bool clearFinalStretch = false,
     double? descent,
+    bool clearDescent = false,
   }) {
     state = _withMissionSegments(
       state.copyWith(
         ascentRate: ascent,
+        clearAscentRate: clearAscent,
         intermediateAscentRate: intermediate,
+        clearIntermediateAscentRate: clearIntermediate,
         shallowAscentRate: shallow,
+        clearShallowAscentRate: clearShallow,
         finalAscentRate: finalStretch,
+        clearFinalAscentRate: clearFinalStretch,
         descentRate: descent,
+        clearDescentRate: clearDescent,
         isDirty: true,
         updatedAt: DateTime.now(),
       ),
@@ -711,12 +703,14 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
 
   /// Set where the final decompression stop is held, 3 to 6 m. It need not
   /// sit on the 3 m grid: the schedule follows the grid down to 6 m and then
-  /// holds this depth.
-  void updateLastStopDepth(double meters) {
-    final clamped = meters.clamp(minLastStopDepth, maxLastStopDepth);
+  /// holds this depth. Null clears the override back to the diver's
+  /// Settings default (issue #3552).
+  void updateLastStopDepth(double? meters) {
+    final clamped = meters?.clamp(minLastStopDepth, maxLastStopDepth);
     if (clamped == state.lastStopDepth) return;
     state = state.copyWith(
       lastStopDepth: clamped,
+      clearLastStopDepth: clamped == null,
       isDirty: true,
       updatedAt: DateTime.now(),
     );
@@ -784,56 +778,75 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
 
   /// Set the air-break (back-gas break) policy for long O2 deco stops; null
   /// disables air breaks.
-  void setAirBreaks(AirBreakPolicy? policy) {
+  /// [explicitlyOff] true forces no air breaks regardless of the diver's
+  /// Settings default; false with a null [policy] follows that default
+  /// instead (issue #3552).
+  void setAirBreaks(AirBreakPolicy? policy, {bool explicitlyOff = false}) {
     state = state.copyWith(
       airBreaks: policy,
       clearAirBreaks: policy == null,
+      airBreaksExplicitlyOff: explicitlyOff,
       isDirty: true,
       updatedAt: DateTime.now(),
     );
   }
 
   /// Update reserve pressure in bar.
-  void updateReservePressure(double reservePressure) {
+  /// Null clears back to the diver's Settings default (issue #3552,
+  /// follow-up to v304-307).
+  void updateReservePressure(double? reservePressure) {
     state = state.copyWith(
       reservePressure: reservePressure,
+      clearReservePressure: reservePressure == null,
       isDirty: true,
       updatedAt: DateTime.now(),
     );
   }
 
   /// Update the Subsurface-style Gas options; only supplied values change.
-  /// [sacDeco], [ppO2Bottom], [ppO2Deco], and [o2Narcotic] are nullable
-  /// overrides of the app-wide settings (or, for [sacDeco], of the 0.8x-of-
-  /// bottom fallback) - pass the matching `clear*` flag to fall back again.
-  /// [gasSwitchStopSeconds] has no app-wide default to fall back to (#3225):
-  /// it is plan-only, same as every other field [DivePlan] keeps with no
-  /// matching Settings entry, so there is no `clear*` for it either.
+  /// [sacDeco], [sacStressed], [sacFactor], [problemSolvingMinutes],
+  /// [gasSwitchStopSeconds], [ppO2Bottom], [ppO2Deco], [bestMixEndMeters]
+  /// and [o2Narcotic] are nullable overrides of the diver's Settings - pass
+  /// the matching `clear*` flag to fall back again. [sacStressed] falls
+  /// back to [sacDeco]'s sibling bottom-SAC-times-factor default rather
+  /// than a plain Settings value (issue #3552).
   void updateGasOptions({
     double? sacDeco,
     bool clearSacDeco = false,
+    double? sacStressed,
+    bool clearSacStressed = false,
     double? sacFactor,
+    bool clearSacFactor = false,
     int? problemSolvingMinutes,
+    bool clearProblemSolvingMinutes = false,
     int? gasSwitchStopSeconds,
+    bool clearGasSwitchStopSeconds = false,
     double? ppO2Bottom,
     bool clearPpO2Bottom = false,
     double? ppO2Deco,
     bool clearPpO2Deco = false,
     double? bestMixEndMeters,
+    bool clearBestMixEndMeters = false,
     bool? o2Narcotic,
     bool clearO2Narcotic = false,
   }) {
     state = state.copyWith(
       sacDeco: sacDeco,
       clearSacDeco: clearSacDeco,
+      sacStressed: sacStressed,
+      clearSacStressed: clearSacStressed,
       sacFactor: sacFactor,
+      clearSacFactor: clearSacFactor,
       problemSolvingMinutes: problemSolvingMinutes,
+      clearProblemSolvingMinutes: clearProblemSolvingMinutes,
       gasSwitchStopSeconds: gasSwitchStopSeconds,
+      clearGasSwitchStopSeconds: clearGasSwitchStopSeconds,
       ppO2Bottom: ppO2Bottom,
       clearPpO2Bottom: clearPpO2Bottom,
       ppO2Deco: ppO2Deco,
       clearPpO2Deco: clearPpO2Deco,
       bestMixEndMeters: bestMixEndMeters,
+      clearBestMixEndMeters: clearBestMixEndMeters,
       o2Narcotic: o2Narcotic,
       clearO2Narcotic: clearO2Narcotic,
       isDirty: true,
@@ -852,7 +865,7 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
   /// was built with, so a later Settings change does not move a plan the
   /// diver has already started editing in CCR.
   ///
-  /// Unlike [adoptGradientFactorsIfPristine], there is no later "adopt if
+  /// Unlike [adoptPlannerWaterIfPristine], there is no later "adopt if
   /// pristine" for these settings: switching mode is itself a diver edit and
   /// already sets `isDirty`, so a plan can never be both in CCR mode and
   /// pristine, and there is nothing left for a later settings change to
@@ -912,11 +925,21 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
   }
 
   /// Update CCR setpoints; only supplied values change.
-  void updateSetpoints({double? low, double? high, double? switchDepth}) {
+  void updateSetpoints({
+    double? low,
+    bool clearLow = false,
+    double? high,
+    bool clearHigh = false,
+    double? switchDepth,
+    bool clearSwitchDepth = false,
+  }) {
     state = state.copyWith(
       setpointLow: low,
+      clearSetpointLow: clearLow,
       setpointHigh: high,
+      clearSetpointHigh: clearHigh,
       setpointSwitchDepth: switchDepth,
+      clearSetpointSwitchDepth: clearSwitchDepth,
       isDirty: true,
       updatedAt: DateTime.now(),
     );
@@ -925,14 +948,18 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
   /// Update contingency configuration; only supplied values change.
   void updateContingencies({
     double? depthDelta,
+    bool clearDepthDelta = false,
     int? timeMinutes,
+    bool clearTimeMinutes = false,
     domain.TurnPressureRule? turnRule,
     double? turnFraction,
     bool clearTurnRule = false,
   }) {
     state = state.copyWith(
       deviationDepthDelta: depthDelta,
+      clearDeviationDepthDelta: clearDepthDelta,
       deviationTimeMinutes: timeMinutes,
+      clearDeviationTimeMinutes: clearTimeMinutes,
       turnPressureRule: turnRule,
       turnPressureFraction: turnFraction,
       clearTurnPressureRule: clearTurnRule,
@@ -986,15 +1013,17 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
 
   /// [s] with its segments regenerated from its mission, when it has one.
   /// The generated profile also reads the plan's tanks and rates, so every
-  /// edit to those passes through here too.
-  static DivePlanState _withMissionSegments(DivePlanState s) {
+  /// edit to those passes through here too. An unset rate resolves against
+  /// the diver's current Settings (issue #3552).
+  DivePlanState _withMissionSegments(DivePlanState s) {
     final mission = s.mission;
     if (mission == null) return s;
     return s.copyWith(
-      segments: const MissionEngine().roundTripSegments(
-        plan: divePlanFromState(s),
-        mission: mission,
-      ),
+      segments: MissionEngine(
+        scenarios: MissionScenarioService(
+          engine: PlanEngine(config: _getEngineConfig()),
+        ),
+      ).roundTripSegments(plan: divePlanFromState(s), mission: mission),
     );
   }
 
@@ -1190,19 +1219,6 @@ final divePlanNotifierProvider =
     StateNotifierProvider<DivePlanNotifier, DivePlanState>((ref) {
       final read = ref.read;
       final calculator = read(planCalculatorServiceProvider);
-      // Default reserve: 50 bar for metric, 500 psi (~34.47 bar) for imperial
-      double defaultReserve() {
-        final unit = read(pressureUnitProvider);
-        return unit == PressureUnit.psi
-            ? PressureUnit.psi.convert(500, PressureUnit.bar)
-            : DivePlanState.kDefaultReservePressureBar;
-      }
-
-      // A new plan starts on the diver's own deco settings. Once they have
-      // touched or saved it, it is theirs: see adoptGradientFactorsIfPristine.
-      PlanGradientFactors defaultGradientFactors() =>
-          read(planGradientFactorSettingsProvider);
-
       // A plan entering CCR mode starts on the diver's own CCR ppO2 limits.
       CcrSetpoints defaultCcrSetpoints() => (
         low: read(ccrSetpointLowProvider),
@@ -1211,9 +1227,7 @@ final divePlanNotifierProvider =
 
       final notifier = DivePlanNotifier(
         calculator,
-        reservePressure: defaultReserve(),
-        getDefaultReservePressure: defaultReserve,
-        getDefaultGradientFactors: defaultGradientFactors,
+        getEngineConfig: () => read(planEngineConfigProvider),
         getDefaultPlannerWaterType: () =>
             read(settingsProvider).defaultPlannerWaterType,
         getDefaultCcrSetpoints: defaultCcrSetpoints,
@@ -1221,13 +1235,9 @@ final divePlanNotifierProvider =
         loadEquipment: () => read(allEquipmentProvider.future),
       );
 
-      // `listen`, never `watch`: this reacts to settings without rebuilding,
-      // which is what lets an untouched plan track the diver's gradient
-      // factors while an in-progress one survives the same change.
-      ref.listen<PlanGradientFactors>(
-        planGradientFactorSettingsProvider,
-        (_, next) => notifier.adoptGradientFactorsIfPristine(next),
-      );
+      // `listen`, never `watch`: this reacts to settings without rebuilding.
+      // No GF listener here any more - gfLow/gfHigh live-resolve on every
+      // computation (issue #3552), so there is nothing to push into state.
       ref.listen<PlannerWaterType>(
         settingsProvider.select((s) => s.defaultPlannerWaterType),
         (_, next) => notifier.adoptPlannerWaterIfPristine(next),
@@ -1250,9 +1260,11 @@ final divePlanNotifierProvider =
 /// diverge from the plan outcome the canvas displays.
 final planResultsProvider = Provider<PlanResult>((ref) {
   final state = ref.watch(divePlanNotifierProvider);
+  // The plan's own values, else the diver's Settings defaults (#3552).
+  final resolved = ref.watch(resolvedPlanEngineConfigProvider);
   final calculator = ref
       .watch(planCalculatorServiceProvider)
-      .withGradientFactors(state.gfLow, state.gfHigh);
+      .withGradientFactors(resolved.gfLow, resolved.gfHigh);
 
   if (state.segments.isEmpty) {
     return PlanResult.empty();
@@ -1261,8 +1273,13 @@ final planResultsProvider = Provider<PlanResult>((ref) {
   return calculator.calculatePlan(
     segments: state.segments,
     tanks: state.tanks,
-    sacRate: state.sacRate,
-    reservePressure: state.reservePressure,
+    // Each tank's default MOD depends on its derived role and the plan's own
+    // ppO2 limits, as on the plan canvas (issue #3567).
+    tankRoles: const TankRoleResolver().rolesFor(divePlanFromState(state)),
+    bottomPpO2: state.ppO2Bottom,
+    decoPpO2: state.ppO2Deco,
+    sacRate: resolved.sacBottom,
+    reservePressure: resolved.reservePressure,
     initialTissueState: state.initialTissueState,
     // Altitude 0 keeps the legacy sea-level surface pressure. Null water
     // type is salt, matching the planner default - though a custom salinity,

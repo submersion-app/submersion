@@ -22,7 +22,7 @@ const Duration kLocalCacheSweepInterval = Duration(days: 7);
 ///
 /// A stamp more than a day in the future can only come from a broken clock,
 /// and must not suppress sweeping until real time catches up: the same
-/// defence as `shouldSweepScratch`. Less than that is ordinary skew.
+/// defence as `isCadenceDue`. Less than that is ordinary skew.
 bool shouldSweepLocalCache({
   required DateTime? lastSweptAt,
   required DateTime now,

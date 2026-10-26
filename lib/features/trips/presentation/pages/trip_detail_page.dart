@@ -22,6 +22,7 @@ import 'package:submersion/features/trips/presentation/widgets/trip_detail_tabs.
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/shared_items/shared_by_banner.dart';
 import 'package:submersion/shared/widgets/shared_items/shared_item_dialogs.dart';
+import 'package:submersion/shared/widgets/shared_items/item_sharing_row.dart';
 
 class TripDetailPage extends ConsumerStatefulWidget {
   final String tripId;
@@ -115,7 +116,12 @@ class _TripDetailContent extends ConsumerWidget {
           kind: SharedItemKind.trip,
           itemId: trip.id,
           ownerId: trip.diverId,
-          isShared: trip.isShared,
+        ),
+        ItemSharingRow(
+          kind: SharedItemKind.trip,
+          itemId: trip.id,
+          ownerId: trip.diverId,
+          itemName: trip.name,
         ),
         Expanded(
           child: TripDetailTabs(
@@ -266,6 +272,8 @@ class _TripDetailContent extends ConsumerWidget {
       trip.id,
       canDestroy: canDestroy != false,
     );
+    // Remove only while the trip reaches this profile (issue #2151).
+    final reachesHere = watchReachesHere(ref, SharedItemKind.trip, trip.id);
     return PopupMenuButton<String>(
       tooltip: context.l10n.trips_detail_tooltip_moreOptions,
       onSelected: (value) async {
@@ -391,7 +399,7 @@ class _TripDetailContent extends ConsumerWidget {
               ],
             ),
           )
-        else if (canDestroy == false)
+        else if (canDestroy == false && reachesHere)
           PopupMenuItem(
             value: 'remove',
             child: Row(
@@ -413,7 +421,18 @@ class _TripDetailContent extends ConsumerWidget {
   ) async {
     final divers = await ref.read(allDiversProvider.future);
     final diverCount = divers.length;
-    final isSharedDelete = trip.isShared && diverCount >= 2;
+    if (!context.mounted) return false;
+    // Shared with everyone or with chosen profiles (issue #2151).
+    final shared = diverCount < 2
+        ? false
+        : await readSharedWithAnyone(
+            ref,
+            context,
+            SharedItemKind.trip,
+            trip.id,
+          );
+    if (shared == null) return false;
+    final isSharedDelete = shared;
     // The other profiles' dives that lose the trip (issue #2594).
     final others = isSharedDelete
         ? (await readDiveLinkCounts(ref, SharedItemKind.trip, trip.id)).others

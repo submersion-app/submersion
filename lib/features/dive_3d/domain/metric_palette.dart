@@ -52,6 +52,14 @@ class MetricPalette {
     return out;
   }
 
+  /// [colorsFor]'s continuous ramp on its own, for a scene whose metrics are
+  /// not [SceneMetric]s (an underwater track's depth, temperature, speed or
+  /// battery voltage): each value placed between its series' own min and
+  /// max on the same cool-to-warm ramp, so the dive and track scenes share
+  /// one palette. Depth takes exactly that branch of [colorsFor].
+  static Float32List rampColorsFor(List<double?> values) =>
+      colorsFor(SceneMetric.depth, values);
+
   static Color _ascentBand(double metersPerMinute) {
     final rate = metersPerMinute.abs();
     if (rate <= 9) return const Color(0xFF4CAF50);

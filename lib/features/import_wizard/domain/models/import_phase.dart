@@ -15,6 +15,14 @@ enum ImportPhase {
   diveTypes,
   courses,
   applyingTags,
+
+  /// Photos linked or downloaded after the dives are saved: ZIP-bundled,
+  /// resolved from a folder, or listed by a remote source.
+  photos,
+
+  /// Work after the import has written everything, such as logbook rules.
+  /// Reported without a count, as it has none to show.
+  finishing,
 }
 
 /// Callback for reporting import progress.

@@ -66,4 +66,19 @@ void main() {
       'Diver deleted',
     );
   });
+
+  test('items shared with chosen profiles went to them (issue #2151)', () {
+    expect(
+      deleteDiverSnackbarText(
+        l10n,
+        const DeleteDiverResult(
+          reassignedTripsCount: 0,
+          reassignedSitesCount: 0,
+          handedOverCount: 2,
+        ),
+      ),
+      'Diver deleted. 2 shared trips and sites went to the profiles they '
+      'were shared with.',
+    );
+  });
 }

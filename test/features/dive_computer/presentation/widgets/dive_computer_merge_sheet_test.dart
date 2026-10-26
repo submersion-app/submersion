@@ -166,6 +166,19 @@ void main() {
       );
     });
 
+    testWidgets("says the other records' Equipment items are folded into "
+        'this one (#3676)', (tester) async {
+      await pumpSheet(tester, [
+        _computer(id: 'a', name: 'Petrel 3'),
+        _computer(id: 'b', name: 'ssss'),
+      ]);
+
+      expect(
+        find.textContaining('Equipment item is folded into this one'),
+        findsOneWidget,
+      );
+    });
+
     testWidgets('hides the serial warning when every serial agrees', (
       tester,
     ) async {

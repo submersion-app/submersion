@@ -7,6 +7,7 @@ import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/performance/perf_timer.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/text/text_sort.dart';
@@ -17,6 +18,7 @@ import 'package:submersion/features/dive_log/data/services/dive_consolidation_se
 import 'package:submersion/features/dive_log/data/services/dive_merge_service.dart';
 import 'package:submersion/features/dive_log/data/services/dive_split_service.dart';
 import 'package:submersion/features/dive_log/data/services/dive_uncombine_service.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_profile_batcher.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
@@ -335,6 +337,22 @@ final profileSeriesHistoryProvider =
 final batchProfileCacheProvider =
     StateProvider<Map<String, List<domain.DiveProfilePoint>>>((ref) => {});
 
+/// Adds [profiles] to the batch profile cache behind [cache].
+///
+/// Merges into the cache as it is when the batch lands, never into a copy
+/// read before the fetch was awaited. Batches overlap: a list page's profiles
+/// can still be summarising when the next page's land, and writing the older
+/// snapshot back would drop the newer page's entries and blank those cards'
+/// mini charts (#3506). Existing entries keep their list instances, which is
+/// what lets a card watching only its own entry skip the rebuild.
+void mergeIntoBatchProfileCache(
+  StateController<Map<String, List<domain.DiveProfilePoint>>> cache,
+  Map<String, List<domain.DiveProfilePoint>> profiles,
+) {
+  if (profiles.isEmpty) return;
+  cache.state = {...cache.state, ...profiles};
+}
+
 /// Statistics provider (filtered by current diver).
 ///
 /// Feeds the dashboard HeroHeader headline totals (total dives, etc.).
@@ -435,10 +453,19 @@ final diveRecordsProvider = FutureProvider<DiveRecords>((ref) async {
 /// the tick a stale number rendered for the rest of the app's life -- long
 /// enough to number two dives the same after an import or sync added dives.
 final nextDiveNumberProvider = FutureProvider<int>((ref) async {
-  final repository = ref.watch(diveRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
+  return ref.watch(nextDiveNumberForDiverProvider(currentDiverId).future);
+});
+
+/// The next dive number in [diverId]'s log, for a download sent to a profile
+/// other than the active one (issue #2050).
+final nextDiveNumberForDiverProvider = FutureProvider.family<int, String?>((
+  ref,
+  diverId,
+) async {
+  final repository = ref.watch(diveRepositoryProvider);
   ref.invalidateSelfWhen(repository.watchDivesChanges());
-  return repository.getNextDiveNumber(diverId: currentDiverId);
+  return repository.getNextDiveNumber(diverId: diverId);
 });
 
 /// Search results provider.
@@ -735,6 +762,8 @@ final diveListNotifierProvider =
 ///
 /// Loads [DiveSummary] objects in pages of 50, with SQL-level filtering.
 /// Automatically reloads when the current diver or filter state changes.
+final _log = LoggerService.forClass(PaginatedDiveListNotifier);
+
 class PaginatedDiveListNotifier
     extends StateNotifier<AsyncValue<PaginatedDiveListState>> {
   final DiveRepository _repository;
@@ -749,7 +778,14 @@ class PaginatedDiveListNotifier
   /// the loaded rows changed owner under it, even across a switch back.
   int _diverSwitches = 0;
   int _currentOffset = 0;
+  int _revision = 0;
   static const _pageSize = 50;
+
+  /// Rows a [loadThrough] jumped over without preloading their profiles. A
+  /// silent reload leaves them out too, so the next table tick does not
+  /// fetch what the jump deliberately skipped; their cards fetch their own.
+  /// Cleared when the rows reload from the top.
+  Set<String> _jumpedOverIds = const {};
 
   /// Serializes every operation that rewrites the loaded rows.
   ///
@@ -917,6 +953,7 @@ class PaginatedDiveListNotifier
       _currentOffset = dives.length;
 
       if (!mounted) return;
+      _jumpedOverIds = const {};
       state = AsyncValue.data(
         PaginatedDiveListState(
           dives: dives,
@@ -924,6 +961,7 @@ class PaginatedDiveListNotifier
           nextCursor: _isDateSort ? _cursorFromLastDive(dives) : null,
           totalCount: totalCount,
           unfilteredTotalCount: unfilteredTotalCount,
+          revision: ++_revision,
         ),
       );
       // Pre-load downsampled profiles for mini charts (fire and forget)
@@ -960,6 +998,52 @@ class PaginatedDiveListNotifier
       }
       return;
     }
+    await _appendRows(current, limit: _pageSize);
+  }
+
+  /// Loads every row from the end of the list through the dive at
+  /// [targetIndex] of the list order in one query, and reports whether
+  /// [diveId] is loaded afterwards.
+  Future<bool> loadThrough(String diveId, {required int targetIndex}) async {
+    await _enqueuePaging(() async {
+      if (!mounted) return;
+      final current = state.valueOrNull;
+      if (current == null || !current.hasMore) return;
+      if (current.dives.any((d) => d.id == diveId)) return;
+      final missing = targetIndex + 1 - current.dives.length;
+      if (missing <= 0) return;
+      await _appendRows(current, limit: missing + _pageSize, jump: true);
+    });
+    return state.valueOrNull?.dives.any((d) => d.id == diveId) ?? false;
+  }
+
+  /// Loads every row past the end of the list in one query, so End in the
+  /// list reaches the last dive rather than the last loaded one (#3302).
+  /// Asks for a page more than the count left; a count lagging rows written
+  /// since leaves that read full, and the next one picks up the rest.
+  Future<void> loadRest() => _enqueuePaging(() async {
+    while (mounted) {
+      final current = state.valueOrNull;
+      if (current == null || !current.hasMore) return;
+      final missing = current.totalCount - current.dives.length;
+      await _appendRows(
+        current,
+        limit: (missing > 0 ? missing : 0) + _pageSize,
+        jump: true,
+      );
+      // A failed read raises the flag; the Retry row takes it from there.
+      if (state.valueOrNull?.loadMoreFailed ?? true) return;
+    }
+  });
+
+  /// A [jump] comes from [loadThrough] or [loadRest]: it keeps the spinner
+  /// flag of a page load queued behind it, and preloads profiles around its
+  /// target only.
+  Future<void> _appendRows(
+    PaginatedDiveListState current, {
+    required int limit,
+    bool jump = false,
+  }) async {
     try {
       final filter = _ref.read(diveFilterProvider);
       final sort = _ref.read(diveSortProvider);
@@ -969,7 +1053,7 @@ class PaginatedDiveListNotifier
         sort: sort,
         cursor: _isDateSort ? current.nextCursor : null,
         offset: _isDateSort ? null : _currentOffset,
-        limit: _pageSize,
+        limit: limit,
         disabledSafetyRules: _ref.read(safetyReviewDisabledRulesProvider),
       );
       _currentOffset += newDives.length;
@@ -982,54 +1066,54 @@ class PaginatedDiveListNotifier
           .toList(growable: false);
 
       if (!mounted) return;
+      final loadingMore = jump && (state.valueOrNull?.isLoadingMore ?? false);
       state = AsyncValue.data(
         current.copyWith(
           dives: [...current.dives, ...added],
-          isLoadingMore: false,
-          hasMore: newDives.length >= _pageSize,
+          isLoadingMore: loadingMore,
+          hasMore: newDives.length >= limit,
           nextCursor: _isDateSort ? _cursorFromLastDive(newDives) : null,
           loadMoreFailed: false,
         ),
       );
-      // Pre-load downsampled profiles for the new page
-      _loadBatchProfiles(added.map((d) => d.id).toList());
-    } catch (_) {
+      final ids = added.map((d) => d.id).toList();
+      if (jump && ids.length > _jumpProfileWindow) {
+        final cut = ids.length - _jumpProfileWindow;
+        _jumpedOverIds = {..._jumpedOverIds, ...ids.take(cut)};
+        _loadBatchProfiles(ids.sublist(cut));
+      } else {
+        _loadBatchProfiles(ids);
+      }
+    } catch (e, stackTrace) {
+      _log.error(
+        jump ? 'Failed to load dives for a jump' : 'Failed to load a page',
+        error: e,
+        stackTrace: stackTrace,
+      );
       // Record the failure rather than silently going idle: the trailing row
       // must be able to offer a retry instead of spinning on nothing (#1610).
       if (mounted) {
+        final loadingMore = jump && (state.valueOrNull?.isLoadingMore ?? false);
         state = AsyncValue.data(
-          current.copyWith(isLoadingMore: false, loadMoreFailed: true),
+          current.copyWith(isLoadingMore: loadingMore, loadMoreFailed: true),
         );
       }
     }
   }
 
-  /// Load downsampled profiles for a batch of dive IDs and merge into cache.
+  /// A jump preloads profiles for its last rows only, where its target sits;
+  /// the cards jumped over fetch their own when they are built.
+  static const _jumpProfileWindow = 100;
+
+  /// Loads downsampled profiles for a batch of dive IDs into the cache,
+  /// through the batcher the cards share.
   ///
-  /// Every caller starts this and walks away, so a throw here lands in the
-  /// zone with nobody to catch it. It holds its own [mounted] checks rather
-  /// than trusting the caller's, because the await is inside this method: the
-  /// notifier can go away after a caller has already checked.
-  ///
-  /// Measured, rather than assumed: what throws is the container going away
-  /// ("Cannot use the Ref of StateNotifierProvider<PaginatedDiveListNotifier,
-  /// ...> after it has been disposed"), which is app teardown. Invalidating
-  /// this provider on its own unmounts the notifier but leaves its Ref usable,
-  /// so that case is only wasted work. [mounted] is false in both.
+  /// Every caller starts this and walks away. [mounted] is checked first
+  /// because reading through the Ref of a disposed container throws (app
+  /// teardown); the batcher guards its own await.
   Future<void> _loadBatchProfiles(List<String> diveIds) async {
     if (diveIds.isEmpty || !mounted) return;
-    // Skip IDs already in cache
-    final cache = _ref.read(batchProfileCacheProvider);
-    final uncached = diveIds.where((id) => !cache.containsKey(id)).toList();
-    if (uncached.isEmpty) return;
-
-    final profiles = await _repository.getBatchProfileSummaries(uncached);
-    if (!mounted) return;
-    // Merge into cache (immutable update)
-    _ref.read(batchProfileCacheProvider.notifier).state = {
-      ...cache,
-      ...profiles,
-    };
+    await _ref.read(diveProfileBatcherProvider).load(diveIds);
   }
 
   Future<void> refresh() async {
@@ -1117,10 +1201,15 @@ class PaginatedDiveListNotifier
           unfilteredTotalCount: unfilteredTotalCount,
           isLoadingMore: flags?.isLoadingMore ?? false,
           loadMoreFailed: flags?.loadMoreFailed ?? false,
+          revision: ++_revision,
         ),
       );
-      // Pre-load downsampled profiles for mini charts (fire and forget)
-      _loadBatchProfiles(dives.map((d) => d.id).toList());
+      // Pre-load downsampled profiles for mini charts (fire and forget),
+      // except the rows a jump skipped.
+      _loadBatchProfiles([
+        for (final d in dives)
+          if (!_jumpedOverIds.contains(d.id)) d.id,
+      ]);
     } catch (e, st) {
       if (mounted) state = AsyncValue.error(e, st);
     }

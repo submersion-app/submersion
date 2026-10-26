@@ -32,6 +32,12 @@ final Map<String, ConflictField> peoplePlanningFields = {
     (l) => l.settings_conflict_field_airBreakO2Seconds,
     FieldKind.durationSeconds,
   ),
+  // True = no air breaks for this plan regardless of the diver's Settings
+  // default (issue #3552); the per-plan counterpart of airBreaks itself.
+  'airBreaksExplicitlyOff': ConflictField(
+    (l) => l.divePlanner_label_airBreaks,
+    FieldKind.boolean,
+  ),
   'allergies': ConflictField(
     (l) => l.settings_conflict_field_allergies,
     FieldKind.longText,
@@ -78,10 +84,9 @@ final Map<String, ConflictField> peoplePlanningFields = {
     (l) => l.settings_conflict_field_currentSpeedMps,
     FieldKind.speed,
   ),
-  'decoSwitchDepth': ConflictField(
-    (l) => l.settings_conflict_field_decoSwitchDepth,
-    FieldKind.depth,
-  ),
+  // The MOD set by hand on a plan tank or a saved cylinder, for any role
+  // (issue #3567), labelled as its field is.
+  'decoSwitchDepth': ConflictField((l) => l.tankMod_label, FieldKind.depth),
   'defaultCurrentSetsTowardDeg': ConflictField(
     (l) => l.settings_conflict_field_defaultCurrentSetsTowardDeg,
     FieldKind.number,

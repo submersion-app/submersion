@@ -15,6 +15,7 @@ import 'package:submersion/features/import_wizard/data/adapters/divelogs_import_
 import 'package:submersion/features/import_wizard/data/adapters/remote_photo_attacher.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart'
     show ImportSourceType;
+import 'package:submersion/features/import_wizard/domain/models/import_phase.dart';
 import 'package:submersion/features/media/data/services/local_file_link_service.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
@@ -97,6 +98,14 @@ void main() {
     return adapter;
   }
 
+  /// The diver leaves: the widget whose ref built the adapter is gone.
+  Future<void> leaveWizard(WidgetTester tester) => tester.pumpWidget(
+    UncontrolledProviderScope(
+      container: container,
+      child: const MaterialApp(home: SizedBox.shrink()),
+    ),
+  );
+
   testWidgets('sign in and fetch replace the file steps', (tester) async {
     final adapter = await pumpAdapter(tester);
     expect(adapter.acquisitionSteps.map((s) => s.label).toList(), [
@@ -166,6 +175,47 @@ void main() {
       ],
     });
 
+    final progress = <(ImportPhase, int, int)>[];
+    final outcome = await tester.runAsync(
+      () => adapter.debugAttachAdditionalPhotosFor(
+        photoDiveIds: const {0: 'dive-1'},
+        dives: const [
+          {'sourceUuid': 'divelogs-1'},
+        ],
+        destinationDir: dest.path,
+        onProgress: (phase, current, total) =>
+            progress.add((phase, current, total)),
+      ),
+    );
+
+    expect(outcome, (attached: 1, failed: 1));
+    expect(progress, [
+      (ImportPhase.photos, 0, 2),
+      (ImportPhase.photos, 1, 2),
+      (ImportPhase.photos, 2, 2),
+    ]);
+    final saved = File(p.join(dest.path, 'reef.jpg'));
+    expect(saved.readAsBytesSync(), [7, 7, 7]);
+    expect(linkService.linked.single, (saved.path, 'dive-1'));
+  });
+
+  testWidgets('photos still download after the wizard is gone', (tester) async {
+    final adapter = await pumpAdapter(tester);
+    adapter.setClient(_client((_) async => http.Response.bytes([7], 200)));
+    adapter.setRemotePhotos({
+      'divelogs-1': [
+        RemotePhoto(
+          url: Uri.parse('https://divelogs.de/p/reef.jpg'),
+          fileName: 'reef.jpg',
+        ),
+      ],
+    });
+    await leaveWizard(tester);
+    final dest = (await tester.runAsync(
+      () => Directory.systemTemp.createTemp('divelogs_dest_'),
+    ))!;
+    addTearDown(() => dest.deleteSync(recursive: true));
+
     final outcome = await tester.runAsync(
       () => adapter.debugAttachAdditionalPhotosFor(
         photoDiveIds: const {0: 'dive-1'},
@@ -176,10 +226,8 @@ void main() {
       ),
     );
 
-    expect(outcome, (attached: 1, failed: 1));
-    final saved = File(p.join(dest.path, 'reef.jpg'));
-    expect(saved.readAsBytesSync(), [7, 7, 7]);
-    expect(linkService.linked.single, (saved.path, 'dive-1'));
+    expect(outcome, (attached: 1, failed: 0));
+    expect(linkService.linked.single.$2, 'dive-1');
   });
 
   testWidgets('a lost session stops the downloads instead of retrying each', (

@@ -8,6 +8,7 @@ import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/cloud_storage/deferred_write_provider.dart';
 import 'package:submersion/core/services/sync/crypto/encryption_key_store.dart';
 import 'package:submersion/core/services/sync/crypto/keyslots.dart';
 import 'package:submersion/core/services/sync/crypto/sync_envelope.dart';
@@ -22,6 +23,19 @@ import '../../../../support/fake_cloud_storage_provider.dart';
 import '../../../../support/fake_keychain_storage.dart';
 
 const _fastKdf = KdfParams(m: 1024, t: 3, p: 1);
+
+/// Records flush and history-reset calls, as a Git backend would receive.
+class _HistoryKeepingCloud extends FakeCloudStorageProvider
+    implements DeferredWriteProvider, HistoryResettable {
+  final calls = <String>[];
+
+  @override
+  Future<void> flush({Duration? timeout}) async => calls.add('flush');
+
+  @override
+  Future<void> resetHistoryNow() async => calls.add('reset');
+}
+
 const _passphrase = 'correct horse battery staple';
 
 class _FakeBackupDatabaseAdapter implements BackupDatabaseAdapter {
@@ -260,6 +274,36 @@ void main() {
     );
     expect(remaining, hasLength(1));
     expect(remaining.single.name, endsWith('.sbe'));
+  });
+
+  group('a backend that keeps deleted data in history (Git)', () {
+    late _HistoryKeepingCloud keeping;
+
+    setUp(() {
+      keeping = _HistoryKeepingCloud();
+      cloud = keeping;
+    });
+
+    test('removing plaintext cloud backups resets its history', () async {
+      await preferences.setCloudBackupEnabled(true);
+      final service = buildService();
+      await service.performBackup();
+      await seedEncryption();
+      expect(await service.deletePlaintextCloudBackups(), 1);
+      expect(keeping.calls, contains('reset'));
+    });
+
+    test(
+      'deleting a backup pushes the cloud delete before returning',
+      () async {
+        await preferences.setCloudBackupEnabled(true);
+        final service = buildService();
+        final record = await service.performBackup();
+        expect(record.cloudFileId, isNotNull);
+        await service.deleteBackup(record);
+        expect(keeping.calls, contains('flush'));
+      },
+    );
   });
 
   group('encryption on but this device is not unlocked (issue #3089)', () {

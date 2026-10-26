@@ -282,7 +282,7 @@ void main() {
           BestMixInputs(
             depthMeters: 60.0,
             ppO2Limit: 1.6,
-            endLimitMeters: plan.bestMixEndMeters,
+            endLimitMeters: diluentConfig.resolvedFor(plan).bestMixEndMeters,
             o2Narcotic: diluentConfig.resolvedFor(plan).o2Narcotic,
           ),
         ).recommended.mix,

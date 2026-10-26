@@ -225,6 +225,58 @@ void main() {
           );
       return [('saved_queries', 'savedQueries', 'sq-a')];
     },
+    'a rule': () async {
+      await db
+          .into(db.rules)
+          .insert(
+            RulesCompanion.insert(
+              id: 'rule-a',
+              subject: 'dives',
+              name: 'Deep',
+              conditionJson: '',
+              actionsJson: '{"version":1,"actions":[]}',
+              diverId: const Value('diver-a'),
+              createdAt: stale,
+              updatedAt: stale,
+            ),
+          );
+      return [('rules', 'rules', 'rule-a')];
+    },
+    'a rule run and its change': () async {
+      await db
+          .into(db.ruleRuns)
+          .insert(
+            RuleRunsCompanion.insert(
+              id: 'run-a',
+              trigger: 'imported',
+              ranAt: stale,
+              changedCount: 1,
+              diverId: const Value('diver-a'),
+              createdAt: stale,
+              updatedAt: stale,
+            ),
+          );
+      await db
+          .into(db.ruleRunChanges)
+          .insert(
+            RuleRunChangesCompanion.insert(
+              id: 'change-a',
+              runId: 'run-a',
+              subject: 'dives',
+              targetId: 'd',
+              ruleName: 'Deep',
+              field: 'diveTypes',
+              beforeJson: '[]',
+              afterJson: '["deep"]',
+              createdAt: stale,
+              updatedAt: stale,
+            ),
+          );
+      return [
+        ('rule_runs', 'ruleRuns', 'run-a'),
+        ('rule_run_changes', 'ruleRunChanges', 'change-a'),
+      ];
+    },
     'an underwater route': () async {
       await db
           .into(db.navTracks)
@@ -315,8 +367,8 @@ void main() {
             DivePlansCompanion.insert(
               id: 'plan-a',
               name: 'Wreck',
-              gfLow: 30,
-              gfHigh: 70,
+              gfLow: const Value(30),
+              gfHigh: const Value(70),
               diverId: const Value('diver-a'),
               createdAt: stale,
               updatedAt: stale,
@@ -355,7 +407,7 @@ void main() {
             DivePlanMissionsCompanion.insert(
               id: 'plan-a',
               planId: 'plan-a',
-              batteryReserveFraction: 1 / 3,
+              batteryReserveFraction: const Value(1 / 3),
               createdAt: stale,
               updatedAt: stale,
             ),
@@ -414,6 +466,17 @@ void main() {
             ),
           );
       await db
+          .into(db.checklistTemplateSections)
+          .insert(
+            ChecklistTemplateSectionsCompanion.insert(
+              id: 'cts-a',
+              templateId: 'ct-a',
+              title: 'Documents',
+              createdAt: stale,
+              updatedAt: stale,
+            ),
+          );
+      await db
           .into(db.checklistTemplateItems)
           .insert(
             ChecklistTemplateItemsCompanion.insert(
@@ -426,6 +489,7 @@ void main() {
           );
       return [
         ('checklist_templates', 'checklistTemplates', 'ct-a'),
+        ('checklist_template_sections', 'checklistTemplateSections', 'cts-a'),
         ('checklist_template_items', 'checklistTemplateItems', 'cti-a'),
       ];
     },
@@ -437,6 +501,17 @@ void main() {
               id: 'pdt-a',
               name: 'CCR build',
               diverId: const Value('diver-a'),
+              createdAt: stale,
+              updatedAt: stale,
+            ),
+          );
+      await db
+          .into(db.preDiveChecklistTemplateSections)
+          .insert(
+            PreDiveChecklistTemplateSectionsCompanion.insert(
+              id: 'pdts-a',
+              templateId: 'pdt-a',
+              title: 'Cells',
               createdAt: stale,
               updatedAt: stale,
             ),
@@ -454,6 +529,11 @@ void main() {
           );
       return [
         ('pre_dive_checklist_templates', 'preDiveChecklistTemplates', 'pdt-a'),
+        (
+          'pre_dive_checklist_template_sections',
+          'preDiveChecklistTemplateSections',
+          'pdts-a',
+        ),
         (
           'pre_dive_checklist_template_items',
           'preDiveChecklistTemplateItems',
@@ -475,6 +555,17 @@ void main() {
             ),
           );
       await db
+          .into(db.preDiveSessionSections)
+          .insert(
+            PreDiveSessionSectionsCompanion.insert(
+              id: 'pdss-a',
+              sessionId: 'pds-a',
+              title: 'Cells',
+              createdAt: stale,
+              updatedAt: stale,
+            ),
+          );
+      await db
           .into(db.preDiveSessionItems)
           .insert(
             PreDiveSessionItemsCompanion.insert(
@@ -487,6 +578,7 @@ void main() {
           );
       return [
         ('pre_dive_sessions', 'preDiveSessions', 'pds-a'),
+        ('pre_dive_session_sections', 'preDiveSessionSections', 'pdss-a'),
         ('pre_dive_session_items', 'preDiveSessionItems', 'pdsi-a'),
       ];
     },
@@ -503,6 +595,17 @@ void main() {
               startDate: stale,
               endDate: stale,
               diverId: const Value('diver-a'),
+              createdAt: stale,
+              updatedAt: stale,
+            ),
+          );
+      await db
+          .into(db.tripChecklistSections)
+          .insert(
+            TripChecklistSectionsCompanion.insert(
+              id: 'tcs-a',
+              tripId: 'trip-a',
+              title: 'Documents',
               createdAt: stale,
               updatedAt: stale,
             ),
@@ -533,6 +636,7 @@ void main() {
             ),
           );
       return [
+        ('trip_checklist_sections', 'tripChecklistSections', 'tcs-a'),
         ('trip_checklist_items', 'tripChecklistItems', 'tci-a'),
         ('trip_day_weather', 'tripDayWeather', 'tdw-a'),
       ];
@@ -729,8 +833,8 @@ void main() {
           DivePlansCompanion.insert(
             id: 'plan-x',
             name: 'Repeat',
-            gfLow: 30,
-            gfHigh: 70,
+            gfLow: const Value(30),
+            gfHigh: const Value(70),
             sourceDiveId: const Value('dive-a'),
             linkedDiveId: const Value('dive-a'),
             siteId: const Value('site-a'),
@@ -855,6 +959,7 @@ void main() {
     // here.
     const clearedReferences = {
       'checklist_template_items.template_id',
+      'checklist_template_sections.template_id',
       'dive_plan_mission_legs.plan_id',
       'dive_plan_mission_members.plan_id',
       'dive_plan_missions.plan_id',
@@ -869,7 +974,9 @@ void main() {
       'dives.trip_id',
       'liveaboard_detail_records.trip_id',
       'pre_dive_checklist_template_items.template_id',
+      'pre_dive_checklist_template_sections.template_id',
       'trip_checklist_items.trip_id',
+      'trip_checklist_sections.trip_id',
       'trip_day_weather.trip_id',
       'trip_cylinders.trip_id',
       'trip_itinerary_days.trip_id',
@@ -918,6 +1025,8 @@ const _clearedByDelete = {
   'transmitters',
   'cylinder_fills',
   'saved_queries',
+  'rules',
+  'rule_runs',
   'nav_tracks',
   'trips',
   'weight_presets',

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/settings/domain/data_health/feature_health.dart';
 import 'package:submersion/features/settings/presentation/providers/data_health_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/data_health/health_symbol.dart';
 import 'package:submersion/features/settings/presentation/widgets/data_health/health_text.dart';
+import 'package:submersion/features/settings/presentation/widgets/settings_pane_navigator.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The top of Settings > Data (#3390): four status symbols in one row, then
@@ -57,7 +57,7 @@ class _Item extends StatelessWidget {
       label: healthSemanticsLabel(l10n, health),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
-        onTap: () => context.push(dataFeatureRoute(health.feature)),
+        onTap: () => context.pushSettingsPage(dataFeatureRoute(health.feature)),
         child: ExcludeSemantics(
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
@@ -92,7 +92,7 @@ class _AttentionLine extends StatelessWidget {
     return InkWell(
       key: const Key('dataHealth_attentionLine'),
       borderRadius: BorderRadius.circular(8),
-      onTap: () => context.push(dataFeatureRoute(health.feature)),
+      onTap: () => context.pushSettingsPage(dataFeatureRoute(health.feature)),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
         child: Row(

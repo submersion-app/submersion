@@ -158,6 +158,7 @@ class DiveCenterRepository {
               notes: Value(center.notes),
               fillOpensAt: Value(center.fillOpensAt),
               fillClosesAt: Value(center.fillClosesAt),
+              isPermanentlyClosed: Value(center.isPermanentlyClosed),
               createdAt: Value(now),
               updatedAt: Value(now),
             ),
@@ -180,6 +181,78 @@ class DiveCenterRepository {
       );
       rethrow;
     }
+  }
+
+  /// The diver's dive center called [name] (ignoring case), else an unowned
+  /// one of that name claimed for the diver, else a new one for the diver.
+  /// For an import that knows a center only by name (issue #3491). Centers
+  /// are diver-scoped, so another diver's namesake is never linked.
+  Future<domain.DiveCenter> findOrCreateByName(
+    String name, {
+    required String diverId,
+  }) async {
+    final trimmed = name.trim();
+    if (trimmed.isEmpty) {
+      throw ArgumentError('Dive center name cannot be empty');
+    }
+    final rows = await _db
+        .customSelect(
+          'SELECT id FROM dive_centers '
+          'WHERE unicode_lower(TRIM(name)) = unicode_lower(?) '
+          'AND (diver_id = ? OR diver_id IS NULL) '
+          'ORDER BY diver_id IS NULL, rowid LIMIT 1',
+          variables: [
+            Variable.withString(trimmed),
+            Variable.withString(diverId),
+          ],
+        )
+        .get();
+    if (rows.isNotEmpty) {
+      final found = await getDiveCenterById(rows.first.read<String>('id'));
+      // The row is re-checked here: another import may have claimed it
+      // since the lookup, and then it is no longer this diver's to link.
+      if (found != null) {
+        if (found.diverId == diverId) return found;
+        if (found.diverId == null && await _claimForDiver(found.id, diverId)) {
+          return found.copyWith(diverId: diverId);
+        }
+      }
+    }
+    final now = DateTime.now();
+    return createDiveCenter(
+      domain.DiveCenter(
+        id: '',
+        diverId: diverId,
+        name: trimmed,
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
+  }
+
+  /// Gives an unowned center to [diverId], returning false when it was
+  /// claimed by someone else first. [updateDiveCenter] leaves the owner
+  /// alone, so the claim is its own guarded write.
+  Future<bool> _claimForDiver(String centerId, String diverId) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final changed = await _db.customUpdate(
+      'UPDATE dive_centers SET diver_id = ?, updated_at = ? '
+      'WHERE id = ? AND diver_id IS NULL',
+      variables: [
+        Variable.withString(diverId),
+        Variable.withInt(now),
+        Variable.withString(centerId),
+      ],
+      updates: {_db.diveCenters},
+    );
+    if (changed == 0) return false;
+    await _syncRepository.markRecordPending(
+      entityType: 'diveCenters',
+      recordId: centerId,
+      localUpdatedAt: now,
+    );
+    SyncEventBus.notifyLocalChange();
+    return true;
   }
 
   /// Update an existing dive center
@@ -208,6 +281,7 @@ class DiveCenterRepository {
           notes: Value(center.notes),
           fillOpensAt: Value(center.fillOpensAt),
           fillClosesAt: Value(center.fillClosesAt),
+          isPermanentlyClosed: Value(center.isPermanentlyClosed),
           updatedAt: Value(now),
         ),
       );
@@ -368,6 +442,7 @@ class DiveCenterRepository {
       notes: row.notes,
       fillOpensAt: row.fillOpensAt,
       fillClosesAt: row.fillClosesAt,
+      isPermanentlyClosed: row.isPermanentlyClosed,
       createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt),
     );
@@ -392,6 +467,8 @@ class DiveCenterRepository {
       notes: (row.data['notes'] as String?) ?? '',
       fillOpensAt: row.data['fill_opens_at'] as int?,
       fillClosesAt: row.data['fill_closes_at'] as int?,
+      isPermanentlyClosed:
+          (row.data['is_permanently_closed'] as int? ?? 0) == 1,
       createdAt: DateTime.fromMillisecondsSinceEpoch(
         row.data['created_at'] as int,
       ),

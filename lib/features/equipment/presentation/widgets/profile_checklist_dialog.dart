@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
-import 'package:submersion/shared/widgets/profile_photo/profile_avatar.dart';
+import 'package:submersion/shared/widgets/shared_items/profile_checkbox_tile.dart';
 
 /// Asks which of [profiles] to pick (issue #2046). Returns the checked ids,
 /// or null when cancelled. With [allowEmpty] false the confirm button stays
@@ -54,7 +54,6 @@ class _ProfileChecklistDialogState extends State<_ProfileChecklistDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
     final canConfirm = widget.allowEmpty || _selected.isNotEmpty;
     return AlertDialog(
       title: Text(widget.title),
@@ -66,18 +65,11 @@ class _ProfileChecklistDialogState extends State<_ProfileChecklistDialog> {
             Text(widget.body),
             const SizedBox(height: 12),
             for (final diver in widget.profiles)
-              CheckboxListTile(
-                contentPadding: EdgeInsets.zero,
+              ProfileCheckboxTile(
+                diver: diver,
                 value: _selected.contains(diver.id),
-                secondary: ProfileAvatar(
-                  photo: diver.photo,
-                  initials: diver.initials,
-                  backgroundColor: scheme.primaryContainer,
-                  foregroundColor: scheme.onPrimaryContainer,
-                ),
-                title: Text(diver.name),
                 onChanged: (checked) => setState(() {
-                  _selected = checked == true
+                  _selected = checked
                       ? {..._selected, diver.id}
                       : _selected.difference({diver.id});
                 }),

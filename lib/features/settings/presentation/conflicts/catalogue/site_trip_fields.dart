@@ -36,8 +36,16 @@ final Map<String, ConflictField> siteTripFields = {
     (l) => l.settings_conflict_field_appliesToDives,
     FieldKind.boolean,
   ),
+  'appliesToDocuments': ConflictField(
+    (l) => l.settings_conflict_field_appliesToDocuments,
+    FieldKind.boolean,
+  ),
   'appliesToEquipment': ConflictField(
     (l) => l.settings_conflict_field_appliesToEquipment,
+    FieldKind.boolean,
+  ),
+  'appliesToMedia': ConflictField(
+    (l) => l.settings_conflict_field_appliesToMedia,
     FieldKind.boolean,
   ),
   'appliesToSites': ConflictField(
@@ -230,6 +238,10 @@ final Map<String, ConflictField> siteTripFields = {
   ),
   'isPackage': ConflictField(
     (l) => l.settings_conflict_field_isPackage,
+    FieldKind.boolean,
+  ),
+  'isPermanentlyClosed': ConflictField(
+    (l) => l.diveCenters_label_permanentlyClosed,
     FieldKind.boolean,
   ),
   'isShared': ConflictField(

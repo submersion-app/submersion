@@ -34,7 +34,40 @@ final planEngineConfigProvider = Provider<PlanEngineConfig>((ref) {
     pscrRatio: ref.watch(pscrRatioProvider),
     cnsMethod: ref.watch(cnsCalculationMethodProvider),
     gasModel: ref.watch(gasModelProvider),
+    descentRate: ref.watch(plannerDescentRateProvider),
+    ascentRate: ref.watch(plannerAscentRateProvider),
+    intermediateAscentRate: ref.watch(plannerIntermediateAscentRateProvider),
+    shallowAscentRate: ref.watch(plannerShallowAscentRateProvider),
+    finalAscentRate: ref.watch(plannerFinalAscentRateProvider),
+    lastStopDepth: ref.watch(lastStopDepthProvider),
+    gasSwitchStopSeconds: ref.watch(plannerGasSwitchStopSecondsProvider),
+    sacBottom: ref.watch(plannerSacBottomProvider),
+    sacDeco: ref.watch(plannerSacDecoProvider),
+    sacStressedFactor: ref.watch(plannerSacStressedFactorProvider),
+    problemSolvingMinutes: ref.watch(plannerProblemSolvingMinutesProvider),
+    buddyFactor: ref.watch(plannerBuddyFactorProvider),
+    bestMixEndMeters: ref.watch(plannerBestMixEndMetersProvider),
+    deviationDepthDelta: ref.watch(plannerDeviationDepthDeltaProvider),
+    deviationTimeMinutes: ref.watch(plannerDeviationTimeMinutesProvider),
+    turnPressureRule: ref.watch(plannerTurnPressureRuleProvider),
+    turnPressureFraction: ref.watch(plannerTurnPressureFractionProvider),
+    airBreakPolicy: ref.watch(plannerAirBreakPolicyProvider),
+    gfLow: ref.watch(gfLowProvider),
+    gfHigh: ref.watch(gfHighProvider),
+    reservePressure: ref.watch(plannerReservePressureProvider),
+    batteryReserveFraction: ref.watch(plannerBatteryReserveFractionProvider),
+    walkSpeedMps: ref.watch(plannerWalkSpeedMpsProvider),
   );
+});
+
+/// [planEngineConfigProvider] resolved against the plan being edited: each
+/// Setup field's own value where the plan sets one, else the diver's
+/// Settings default (issue #3552). The one place a widget reads a resolved
+/// Setup value for display, so a label always shows what the engine used.
+final resolvedPlanEngineConfigProvider = Provider<PlanEngineConfig>((ref) {
+  return ref
+      .watch(planEngineConfigProvider)
+      .resolvedFor(divePlanFromState(ref.watch(divePlanNotifierProvider)));
 });
 
 /// The best bottom mix for the plan's deepest point, judged against the
@@ -200,7 +233,11 @@ final planCanvasSeriesProvider = Provider<PlanCanvasSeries>((ref) {
     final bailout = ref.watch(planBailoutProvider);
     if (bailout != null) return buildBailoutCanvasSeries(bailout);
   }
-  return buildCanvasSeries(plan: divePlanFromState(state), outcome: outcome);
+  return buildCanvasSeries(
+    plan: divePlanFromState(state),
+    outcome: outcome,
+    config: ref.watch(planEngineConfigProvider),
+  );
 });
 
 /// The worst-case bailout picture as chart series: CCR up to the worst-case
@@ -316,6 +353,7 @@ PlanCanvasSeries buildBailoutCanvasSeries(BailoutOutcome bailout) {
 PlanCanvasSeries buildCanvasSeries({
   required domain.DivePlan plan,
   required PlanOutcome outcome,
+  required PlanEngineConfig config,
 }) {
   final isCcr = plan.mode == domain.PlanMode.ccr;
   // Cylinder roles feed [withDiluentSwitchTime]'s diluent-switch detection,
@@ -323,13 +361,20 @@ PlanCanvasSeries buildCanvasSeries({
   // plan with raw, unresolved roles must not read a different authored
   // profile here than the engine computed [outcome] from.
   final resolvedPlan = const TankRoleResolver().apply(plan);
+  // Resolved against this plan (issue #3552), the same as PlanEngine.compute
+  // and BailoutSolver.solve, so an unset Deco/Rates field expands the same
+  // segments here as it did for [outcome].
+  final resolvedConfig = config.resolvedFor(resolvedPlan);
   final sorted = withDiluentSwitchTime(
     expandRateSplitSegments(
       List<PlanSegment>.from(resolvedPlan.segments)
         ..sort((a, b) => a.order.compareTo(b.order)),
       resolvedPlan,
+      descentRate: resolvedConfig.descentRate,
+      ascentRate: resolvedConfig.ascentRate,
     ),
     resolvedPlan,
+    gasSwitchStopSeconds: resolvedConfig.gasSwitchStopSeconds,
   );
 
   final profile = <CanvasPoint>[];
@@ -420,10 +465,11 @@ PlanCanvasSeries buildCanvasSeries({
 /// no bailout-role tank is carried. Recomputed live with the plan.
 final planBailoutProvider = Provider<BailoutOutcome?>((ref) {
   final state = ref.watch(divePlanNotifierProvider);
-  final solver = BailoutSolver(config: ref.watch(planEngineConfigProvider));
+  final config = ref.watch(planEngineConfigProvider);
+  final solver = BailoutSolver(config: config);
   return solver.solve(
     divePlanFromState(state),
-    startState: startStateForPlan(state),
+    startState: startStateForPlan(state, config: config),
   );
 });
 
@@ -436,12 +482,11 @@ final contingenciesExpandedProvider = StateProvider<bool>((_) => false);
 final planDeviationsProvider = Provider<List<DeviationOutcome>>((ref) {
   if (!ref.watch(contingenciesExpandedProvider)) return const [];
   final state = ref.watch(divePlanNotifierProvider);
-  final service = ContingencyService(
-    config: ref.watch(planEngineConfigProvider),
-  );
+  final config = ref.watch(planEngineConfigProvider);
+  final service = ContingencyService(config: config);
   return service.deviations(
     divePlanFromState(state),
-    startState: startStateForPlan(state),
+    startState: startStateForPlan(state, config: config),
   );
 });
 
@@ -449,12 +494,11 @@ final planDeviationsProvider = Provider<List<DeviationOutcome>>((ref) {
 final planLostGasProvider = Provider<List<LostGasOutcome>>((ref) {
   if (!ref.watch(contingenciesExpandedProvider)) return const [];
   final state = ref.watch(divePlanNotifierProvider);
-  final service = ContingencyService(
-    config: ref.watch(planEngineConfigProvider),
-  );
+  final config = ref.watch(planEngineConfigProvider);
+  final service = ContingencyService(config: config);
   return service.lostGas(
     divePlanFromState(state),
-    startState: startStateForPlan(state),
+    startState: startStateForPlan(state, config: config),
   );
 });
 
@@ -469,12 +513,11 @@ final collapsedContingencyKeysProvider = StateProvider<Set<String>>(
 final planRangeTableProvider = Provider<RangeTable?>((ref) {
   final state = ref.watch(divePlanNotifierProvider);
   if (state.segments.isEmpty) return null;
-  final service = RangeTableService(
-    config: ref.watch(planEngineConfigProvider),
-  );
+  final config = ref.watch(planEngineConfigProvider);
+  final service = RangeTableService(config: config);
   final table = service.compute(
     divePlanFromState(state),
-    startState: startStateForPlan(state),
+    startState: startStateForPlan(state, config: config),
   );
   return table.isEmpty ? null : table;
 });
@@ -512,11 +555,10 @@ final selectedContingencyProvider =
       if (deviationKey == null && lostGasTankId == null) return null;
 
       final state = ref.watch(divePlanNotifierProvider);
-      final service = ContingencyService(
-        config: ref.watch(planEngineConfigProvider),
-      );
+      final config = ref.watch(planEngineConfigProvider);
+      final service = ContingencyService(config: config);
       final plan = divePlanFromState(state);
-      final startState = startStateForPlan(state);
+      final startState = startStateForPlan(state, config: config);
 
       if (deviationKey != null) {
         final deviation = service.deviationFor(
@@ -544,7 +586,11 @@ final selectedContingencyProvider =
 final contingencyGhostSeriesProvider = Provider<PlanCanvasSeries?>((ref) {
   final preview = ref.watch(selectedContingencyProvider);
   if (preview == null) return null;
-  return buildCanvasSeries(plan: preview.plan, outcome: preview.outcome);
+  return buildCanvasSeries(
+    plan: preview.plan,
+    outcome: preview.outcome,
+    config: ref.watch(planEngineConfigProvider),
+  );
 });
 
 /// The outcome to display everywhere the headline stats (runtime, TTS/NDL,

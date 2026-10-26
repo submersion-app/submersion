@@ -13,6 +13,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_attribut
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
+import 'package:submersion/features/insights/domain/time_of_day_bucket.dart';
 
 import '../../../../helpers/test_database.dart';
 
@@ -324,4 +325,89 @@ void main() {
     expect(byId['multi']!.diveTypes, unorderedEquals(['reef', 'night']));
     expect(byId['none']!.diveTypes, isEmpty);
   });
+
+  test('time of day is bucketed by the sun at the site (#3340)', () async {
+    // Bonaire: sunrise near 06:49 and sunset near 18:42 on 1 March 2025.
+    await db
+        .into(db.diveSites)
+        .insert(
+          const DiveSitesCompanion(
+            id: Value('bonaire'),
+            name: Value('Bonaire'),
+            latitude: Value(12.15),
+            longitude: Value(-68.27),
+            createdAt: Value(0),
+            updatedAt: Value(0),
+          ),
+        );
+    Future<void> timed(
+      String id,
+      int hour,
+      int minute, {
+      int? runtime,
+      String? siteId,
+    }) => db
+        .into(db.dives)
+        .insert(
+          DivesCompanion(
+            id: Value(id),
+            diveDateTime: Value(
+              DateTime.utc(2025, 3, 1, hour, minute).millisecondsSinceEpoch,
+            ),
+            entryTime: Value(
+              DateTime.utc(2025, 3, 1, hour, minute).millisecondsSinceEpoch,
+            ),
+            runtime: Value(runtime),
+            siteId: Value(siteId),
+            createdAt: const Value(0),
+            updatedAt: const Value(0),
+          ),
+        );
+    // 18:10 plus 50 minutes crosses the site's sunset, and is past 18:00.
+    await timed('dusk', 18, 10, runtime: 3000, siteId: 'bonaire');
+    await timed('afternoon', 18, 5, runtime: 1200, siteId: 'bonaire');
+    await timed('no-site', 18, 10, runtime: 3000);
+
+    final byId = {
+      for (final r in await repository.getFocusFactorRows(
+        visibilityScale: scale,
+      ))
+        r.diveId: r,
+    };
+    expect(byId['dusk']!.timeOfDay, TimeOfDayBucket.dusk);
+    expect(byId['afternoon']!.timeOfDay, TimeOfDayBucket.afternoon);
+    expect(byId['no-site']!.timeOfDay, TimeOfDayBucket.night);
+  });
+
+  test(
+    'entry method falls back only to a single-method site (#2054)',
+    () async {
+      for (final (id, stored) in [('both', 'shore,boat'), ('beach', 'shore')]) {
+        await db
+            .into(db.diveSites)
+            .insert(
+              DiveSitesCompanion(
+                id: Value(id),
+                name: Value(id),
+                entryMethod: Value(stored),
+                createdAt: const Value(0),
+                updatedAt: const Value(0),
+              ),
+            );
+      }
+      await dive('at-both');
+      await dive('at-beach', day: 2);
+      await (db.update(db.dives)..where((t) => t.id.equals('at-both'))).write(
+        const DivesCompanion(siteId: Value('both')),
+      );
+      await (db.update(db.dives)..where((t) => t.id.equals('at-beach'))).write(
+        const DivesCompanion(siteId: Value('beach')),
+      );
+
+      final rows = await repository.getFocusFactorRows(visibilityScale: scale);
+      final byId = {for (final r in rows) r.diveId: r};
+      expect(byId['at-both']!.entryMethod, isNull);
+      expect(byId['at-beach']!.entryMethod, 'shore');
+    },
+  );
 }

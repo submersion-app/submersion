@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
 import 'package:submersion/core/services/export/csv/csv_sites_writer.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
@@ -73,5 +74,35 @@ void main() {
     );
     expect(payload.entitiesOf(ImportEntityType.sites), isEmpty);
     expect(payload.warnings.single.severity, ImportWarningSeverity.error);
+  });
+
+  test(
+    'a list of entry and exit types imports as joined names (#2054)',
+    () async {
+      final payload = await const SubmersionSitesCsvParser().parse(
+        _bytes(
+          'Name,Entry Type,Exit Type\n'
+          'Wall,Giant Stride; Back Roll; Jetpack,Ladder\n',
+        ),
+      );
+      final site = payload.entitiesOf(ImportEntityType.sites).single;
+      // Enum order, and an item this build does not know is dropped.
+      expect(site['entryMethod'], 'backRoll,giantStride');
+      expect(site['exitMethod'], 'ladder');
+    },
+  );
+
+  test('a written list of methods reads back unchanged', () async {
+    final site = goldenSites().first.copyWith(
+      entryMethods: const [EntryMethod.backRoll, EntryMethod.giantStride],
+      exitMethods: const [EntryMethod.ladder, EntryMethod.platform],
+    );
+    final csv = CsvSitesWriter(
+      CsvExportUnits.fromSettings(imperial),
+    ).write([site]);
+    final payload = await const SubmersionSitesCsvParser().parse(_bytes(csv));
+    final read = payload.entitiesOf(ImportEntityType.sites).single;
+    expect(read['entryMethod'], 'backRoll,giantStride');
+    expect(read['exitMethod'], 'ladder,platform');
   });
 }

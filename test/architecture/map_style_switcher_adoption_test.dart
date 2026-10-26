@@ -2,23 +2,29 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 
-/// Every `FlutterMap` must carry the map style switcher (`MapCornerControls`),
-/// unless its file is listed below with the reason it skips the control.
+/// Every `FlutterMap` that a diver can pan or zoom must carry the map style
+/// switcher (`MapCornerControls`), and every map that is always locked must
+/// not, unless its file is listed below with the reason it is an exception.
 ///
 /// The switcher was added to every full map at once (issue #3386). Without a
 /// ratchet the next new map, or a refactor of an existing one, can ship
-/// without it and the "every map" promise quietly stops being true. Each file
-/// must hold at least as many controls as maps, so a file with two maps (a
-/// mini preview and its fullscreen view) fails when either one loses its
-/// control. Comments are ignored, so naming a widget in prose counts for
-/// nothing.
+/// without it and the "every map" promise quietly stops being true.
+///
+/// Small previews that take no gestures at all (a dashboard card, a detail
+/// page strip, a story card) skip it (issue #3473): they open a fullscreen
+/// map that has one, and on a strip that size the button only crowds it. A
+/// map is always locked when it is built with
+/// `interactionOptions: const InteractionOptions(flags: InteractiveFlag.none)`.
+/// A map that is locked only sometimes (its flags chosen by a condition)
+/// still needs a control, gated on the same condition.
+///
+/// Each file must hold exactly as many controls as maps that are not always
+/// locked, so a file with two maps (a locked preview and its fullscreen view)
+/// fails when the fullscreen one loses its control or the preview gains one.
+/// Comments are ignored, so naming a widget in prose counts for nothing.
 void main() {
   /// Maps that deliberately skip the switcher, each with the reason.
   const allowed = <String, String>{
-    'lib/features/dive_sites/presentation/widgets/site_list_tile.dart':
-        'list row thumbnail',
-    'lib/features/gps_log/presentation/widgets/gps_track_thumbnail.dart':
-        'list row thumbnail',
     'lib/features/gps_log/presentation/widgets/gps_track_empty_map.dart':
         'empty-state backdrop with nothing to look at',
   };
@@ -28,6 +34,16 @@ void main() {
       source.split('\n').map((line) => line.split('//').first).join('\n');
 
   int count(String code, String call) => call.allMatches(code).length;
+
+  /// A map whose interaction options turn every gesture off unconditionally:
+  /// `InteractionOptions(...)` (const or not, other arguments allowed) with
+  /// `flags: InteractiveFlag.none`. A condition before `InteractionOptions`
+  /// or inside `flags:` does not match, so a sometimes-locked map still
+  /// counts as interactive. `[^()]` keeps the match inside one argument list.
+  final alwaysLocked = RegExp(
+    r'interactionOptions:\s*(?:const\s+)?InteractionOptions\([^()]*?'
+    r'\bflags:\s*InteractiveFlag\.none\s*[,)]',
+  );
 
   bool buildsMap(String source) => count(codeOf(source), 'FlutterMap(') > 0;
 
@@ -39,18 +55,26 @@ void main() {
       if (allowed.containsKey(path)) continue;
       final code = codeOf(entity.readAsStringSync());
       final maps = count(code, 'FlutterMap(');
+      // A file without a map (the control's own definition among them) has
+      // nothing to check.
+      if (maps == 0) continue;
+      final locked = alwaysLocked.allMatches(code).length;
       final controls = count(code, 'MapCornerControls(');
-      if (controls < maps) {
-        offenders.add('$path: $maps map(s), $controls MapCornerControls');
+      if (controls != maps - locked) {
+        offenders.add(
+          '$path: $maps map(s), $locked always locked, '
+          '$controls MapCornerControls',
+        );
       }
     }
     expect(
       offenders,
       isEmpty,
       reason:
-          'Place MapCornerControls on these maps (with the map controller '
-          'when the map rotates), or add them to the allowlist with the '
-          'reason they skip it:\n${offenders.join('\n')}',
+          'Place MapCornerControls on each map a diver can pan or zoom (with '
+          'the map controller when the map rotates) and on no map that is '
+          'always locked, or add the file to the allowlist with the reason it '
+          'is an exception:\n${offenders.join('\n')}',
     );
   });
 

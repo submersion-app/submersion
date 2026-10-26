@@ -100,6 +100,9 @@ class BleIoStream(
     private val readCharacteristicSemaphore = Semaphore(0)
     @Volatile private var pendingReadUuid: UUID? = null
     @Volatile private var pendingReadValue: ByteArray? = null
+    // Why the read in flight ended without a value, set before its waiter is
+    // woken so readCharacteristic() can name the cause in a warning.
+    @Volatile private var pendingReadFailure: String? = null
     private val readQuarantine = CharacteristicReadQuarantine()
     // One permit, held from the moment a GATT write is issued until its
     // completion callback arrives. Android's BluetoothGatt carries a single
@@ -207,8 +210,17 @@ class BleIoStream(
                 // drains the semaphore before issuing.
                 lastWriteStatus = BluetoothGatt.GATT_FAILURE
                 writeSemaphore.release()
-                // A characteristic read in flight is woken the same way.
-                pendingReadValue = null
+                // A characteristic read in flight is woken the same way. A
+                // reply that already landed is kept: onReadComplete clears
+                // pendingReadUuid, and both callbacks run on this thread.
+                // Clearing it here too means a reply queued behind this
+                // disconnect cannot complete the read it has already failed.
+                pendingReadUuid?.let {
+                    pendingReadFailure = BleCharacteristicRead
+                        .describeDisconnectedRead(it.toString(), status)
+                    pendingReadValue = null
+                    pendingReadUuid = null
+                }
                 readCharacteristicSemaphore.release()
                 NativeLogger.d(TAG, "BLE",
                     "onConnectionStateChange: disconnected status=$status " +
@@ -530,6 +542,15 @@ class BleIoStream(
         if (characteristic.uuid != pendingReadUuid) return false
         pendingReadValue =
             if (status == BluetoothGatt.GATT_SUCCESS) value?.copyOf() else null
+        if (status != BluetoothGatt.GATT_SUCCESS) {
+            pendingReadFailure = BleCharacteristicRead
+                .describeFailedRead(characteristic.uuid.toString(), status)
+        } else if (value == null) {
+            pendingReadFailure = BleCharacteristicRead
+                .describeEmptyRead(characteristic.uuid.toString())
+        }
+        // Answered: a disconnect from here on must not discard this reply.
+        pendingReadUuid = null
         NativeLogger.d(TAG, "BLE",
             "onCharacteristicRead ${characteristic.uuid} status=$status " +
                 "bytes=${value?.size ?: 0}")
@@ -1075,7 +1096,11 @@ class BleIoStream(
                 "readCharacteristic: $uuid refused, an earlier read of it timed out")
             return null
         }
-        val g = gatt ?: return null
+        val g = gatt ?: run {
+            NativeLogger.w(TAG, "BLE",
+                "readCharacteristic: $uuid refused, no GATT connection")
+            return null
+        }
         // libdivecomputer names only the characteristic, so search every
         // discovered service.
         val char = g.services
@@ -1095,6 +1120,7 @@ class BleIoStream(
         try {
             readCharacteristicSemaphore.drainPermits()
             pendingReadValue = null
+            pendingReadFailure = null
             pendingReadUuid = target
             if (!g.readCharacteristic(char)) {
                 NativeLogger.e(TAG, "BLE",
@@ -1107,7 +1133,12 @@ class BleIoStream(
                 readQuarantine.timedOut(target)
                 return null
             }
-            return pendingReadValue
+            val value = pendingReadValue
+            if (value == null) {
+                NativeLogger.w(TAG, "BLE",
+                    pendingReadFailure ?: "readCharacteristic: $uuid failed")
+            }
+            return value
         } finally {
             pendingReadUuid = null
             gattOperation.release()

@@ -7,6 +7,7 @@ import 'package:submersion/core/services/accounts/account_usage_service.dart';
 import 'package:submersion/core/services/media_store/media_store_attach_state.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
+import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 
 import '../../../helpers/test_database.dart';
 
@@ -46,6 +47,52 @@ void main() {
           prefix: '',
         ),
       );
+
+  group('backup copies', () {
+    Future<AccountUsageService> withBackupPrefs(Map<String, Object> v) async {
+      SharedPreferences.setMockInitialValues(v);
+      return AccountUsageService(
+        syncRepository: sync,
+        attachState: attach,
+        libraries: libraries,
+        backupPreferences: BackupPreferences(
+          await SharedPreferences.getInstance(),
+        ),
+      );
+    }
+
+    test(
+      'the account the copy is pinned to is used for backup copies',
+      () async {
+        final account = await accounts.create(
+          kind: AccountKind.dropbox,
+          label: 'Dropbox',
+        );
+        final usage = await withBackupPrefs({
+          'backup_cloud_enabled': true,
+          'backup_copy_account_id': account.id,
+          'backup_copy_account_kind': 'dropbox',
+        });
+
+        expect((await usage.load()).usagesOf(account), const [
+          AccountUsage(AccountUsageKind.backupCopy),
+        ]);
+      },
+    );
+
+    test('a pinned copy that is off uses nothing', () async {
+      final account = await accounts.create(
+        kind: AccountKind.dropbox,
+        label: 'Dropbox',
+      );
+      final usage = await withBackupPrefs({
+        'backup_copy_account_id': account.id,
+        'backup_copy_account_kind': 'dropbox',
+      });
+
+      expect((await usage.load()).usagesOf(account), isEmpty);
+    });
+  });
 
   test('an account nothing on this device uses has no usages', () async {
     final account = await accounts.create(

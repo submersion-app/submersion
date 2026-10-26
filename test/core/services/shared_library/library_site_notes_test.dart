@@ -19,6 +19,7 @@ import 'package:submersion/features/divers/domain/entities/diver.dart';
 
 import '../../../helpers/fake_cloud_storage_provider.dart';
 import '../../../helpers/test_database.dart';
+import '../../../helpers/shared_library_test_account.dart';
 
 /// A profile's private notes and rating on library sites reach its other
 /// devices through personal sync (issue #2567).
@@ -230,6 +231,7 @@ void main() {
       );
       SharedLibraryMembershipService memberships() =>
           SharedLibraryMembershipService(
+            accountById: anyTestAccount,
             store: SharedLibraryStore(),
             transportFor: ({required account, required prefix}) async =>
                 SharedLibraryTransport(cloud, prefix: prefix),
@@ -287,6 +289,7 @@ void main() {
   test('notes written before they were kept apart are taken up', () async {
     final cloud = FakeCloudStorageProvider();
     final memberships = SharedLibraryMembershipService(
+      accountById: anyTestAccount,
       store: SharedLibraryStore(),
       transportFor: ({required account, required prefix}) async =>
           SharedLibraryTransport(cloud, prefix: prefix),

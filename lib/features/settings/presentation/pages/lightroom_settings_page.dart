@@ -383,7 +383,7 @@ class _LightroomSettingsPageState extends ConsumerState<LightroomSettingsPage> {
       children: [
         ListTile(
           leading: const Icon(Icons.account_circle_outlined),
-          title: Text(l10n.settings_lightroom_connected(account.label)),
+          title: Text(l10n.settings_lightroom_connected(account.displayName)),
           subtitle: FutureBuilder<DateTime?>(
             future: state.lastPollAt(),
             builder: (_, snapshot) {

@@ -9,6 +9,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/pre_dive/data/repositories/pre_dive_template_repository.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_template.dart';
+import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_template_section.dart';
 import 'package:submersion/features/pre_dive/presentation/pages/pre_dive_template_edit_page.dart';
 import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_providers.dart';
 
@@ -17,10 +18,16 @@ import '../../../../helpers/test_app.dart';
 /// Fake repository that stubs the reads the page performs and captures the
 /// writes so save/create/update/saveItems can be asserted without a database.
 class _FakeTemplateRepo implements PreDiveTemplateRepository {
-  _FakeTemplateRepo({this.template, this.items = const [], this.gate});
+  _FakeTemplateRepo({
+    this.template,
+    this.items = const [],
+    this.sections = const [],
+    this.gate,
+  });
 
   final PreDiveChecklistTemplate? template;
   final List<PreDiveChecklistTemplateItem> items;
+  final List<PreDiveChecklistTemplateSection> sections;
 
   /// When set, the reads block until it completes, so a test can inspect the
   /// frame the page renders while the template is still in flight.
@@ -30,6 +37,25 @@ class _FakeTemplateRepo implements PreDiveTemplateRepository {
   PreDiveChecklistTemplate? updatedTemplate;
   String? savedTemplateId;
   List<PreDiveChecklistTemplateItem>? savedItems;
+  List<PreDiveChecklistTemplateSection>? savedSections;
+
+  @override
+  Future<List<PreDiveChecklistTemplateSection>> getSectionsForTemplate(
+    String templateId,
+  ) async => sections;
+
+  /// Fake find-or-create: deterministic by title, no real persistence.
+  /// None of this file's save-path tests type a section title, so this is
+  /// never exercised for its return value, only kept so _save does not hit
+  /// noSuchMethod for a method it genuinely calls.
+  @override
+  Future<String?> findOrCreateSectionId(
+    String templateId,
+    String? title,
+  ) async {
+    final trimmed = title?.trim();
+    return trimmed == null || trimmed.isEmpty ? null : 'sec-$trimmed';
+  }
 
   @override
   Future<PreDiveChecklistTemplate?> getTemplateById(String id) async {
@@ -68,6 +94,14 @@ class _FakeTemplateRepo implements PreDiveTemplateRepository {
   }
 
   @override
+  Future<void> saveSections(
+    String templateId,
+    List<PreDiveChecklistTemplateSection> sections,
+  ) async {
+    savedSections = sections;
+  }
+
+  @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
@@ -84,7 +118,10 @@ void main() {
   }) => PreDiveChecklistTemplateItem(
     id: id.isEmpty ? title : id,
     templateId: 'tpl-1',
-    section: section,
+    // Not resolved to a real section title in these fixtures (the fake
+    // repository's getSectionsForTemplate returns none); no test here
+    // asserts the rendered section subtitle for a pre-loaded item.
+    sectionId: section,
     title: title,
     sortOrder: sortOrder,
     itemType: type,
@@ -241,23 +278,35 @@ void main() {
 
   testWidgets('adding an item appends it to the list', (tester) async {
     await pumpPage(tester);
-    await openAddItemDialog(tester);
 
+    // A section must exist before it can be picked in the item dialog --
+    // sections are managed via the editor's own "Add section", not typed
+    // free text in the item dialog.
+    await tester.tap(find.text('Add section'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.widgetWithText(TextField, 'New section'),
+      'Gas',
+    );
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+
+    await openAddItemDialog(tester);
     await tester.enterText(
       find.widgetWithText(TextFormField, 'Title'),
       'Check pressure',
     );
-    await tester.enterText(
-      find.widgetWithText(TextFormField, 'Section'),
-      'Gas',
-    );
+    await tester.tap(find.text('No section'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Gas').last);
+    await tester.pumpAndSettle();
     await tester.tap(find.text('OK'));
     await tester.pumpAndSettle();
 
     expect(find.byType(AlertDialog), findsNothing);
     expect(find.text('Check pressure'), findsOneWidget);
-    // Subtitle joins section and type label.
-    expect(find.textContaining('Gas'), findsOneWidget);
+    // The item renders grouped under its section's header.
+    expect(find.text('Gas'), findsOneWidget);
   });
 
   testWidgets('toggling Required in the dialog marks the item required', (
@@ -821,6 +870,11 @@ void main() {
       );
       await pumpPage(tester, templateId: 'tpl-1', repo: repo);
 
+      // The section editor's drag handle and arrows make each row taller
+      // than the old flat list, so the third item can start below the
+      // test viewport's fold.
+      await tester.drag(find.byType(ListView).first, const Offset(0, -300));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Cell 1 mV in O2'));
       await tester.pumpAndSettle();
 
@@ -938,4 +992,121 @@ void main() {
       );
     },
   );
+
+  group('sections', () {
+    PreDiveChecklistTemplateSection sectionFixture(
+      String id,
+      String title,
+      int order,
+    ) => PreDiveChecklistTemplateSection(
+      id: id,
+      templateId: 'tpl-1',
+      title: title,
+      sortOrder: order,
+      createdAt: now,
+      updatedAt: now,
+    );
+
+    PreDiveChecklistTemplateItem sectioned(
+      String id,
+      String sectionId,
+      int order, {
+      PreDiveItemType type = PreDiveItemType.check,
+      String? sourceItemId,
+    }) => PreDiveChecklistTemplateItem(
+      id: id,
+      templateId: 'tpl-1',
+      sectionId: sectionId,
+      title: id,
+      sortOrder: order,
+      itemType: type,
+      sourceItemId: sourceItemId,
+      createdAt: now,
+      updatedAt: now,
+    );
+
+    testWidgets('editing an equipment item keeps its remembered device', (
+      tester,
+    ) async {
+      final repo = _FakeTemplateRepo(
+        template: templateFixture(),
+        items: [
+          PreDiveChecklistTemplateItem(
+            id: 'reg',
+            templateId: 'tpl-1',
+            title: 'Regulator',
+            itemType: PreDiveItemType.equipment,
+            equipmentId: 'eq-1',
+            createdAt: now,
+            updatedAt: now,
+          ),
+        ],
+      );
+      await pumpPage(tester, templateId: 'tpl-1', repo: repo);
+
+      await tester.tap(find.text('Regulator'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'OK'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(repo.savedItems!.single.equipmentId, 'eq-1');
+    });
+
+    testWidgets('save orders items section by section, as they are shown, '
+        'so strict order matches the screen', (tester) async {
+      final repo = _FakeTemplateRepo(
+        template: templateFixture(),
+        sections: [sectionFixture('a', 'A', 0), sectionFixture('b', 'B', 1)],
+        // Stored order puts the B item first; on screen A comes first.
+        items: [sectioned('b-item', 'b', 0), sectioned('a-item', 'a', 1)],
+      );
+      await pumpPage(tester, templateId: 'tpl-1', repo: repo);
+
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(repo.savedItems!.map((i) => i.title), ['a-item', 'b-item']);
+      expect(repo.savedItems!.map((i) => i.sortOrder), [0, 1]);
+    });
+
+    testWidgets('deleting a section with its items clears a kept linearity '
+        'item\'s link to a deleted source', (tester) async {
+      final repo = _FakeTemplateRepo(
+        template: templateFixture(),
+        sections: [
+          sectionFixture('air', 'Air', 0),
+          sectionFixture('o2', 'O2', 1),
+        ],
+        items: [
+          sectioned('air1', 'air', 0, type: PreDiveItemType.value),
+          sectioned(
+            'o2-1',
+            'o2',
+            1,
+            type: PreDiveItemType.cellLinearity,
+            sourceItemId: 'air1',
+          ),
+        ],
+      );
+      await pumpPage(tester, templateId: 'tpl-1', repo: repo);
+
+      // The first delete icon is the Air section header's.
+      await tester.tap(find.byIcon(Icons.delete_outline).first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Delete items too'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.textContaining('no longer has an air reading'),
+        findsOneWidget,
+      );
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(repo.savedItems!.single.id, 'o2-1');
+      expect(repo.savedItems!.single.sourceItemId, isNull);
+    });
+  });
 }

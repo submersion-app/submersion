@@ -13,6 +13,7 @@ Widget _buildScaffold({
   required String initialLocation,
   bool provideCreateBuilder = true,
   double width = 1200,
+  Widget? fab,
 }) {
   final router = GoRouter(
     initialLocation: initialLocation,
@@ -30,11 +31,13 @@ Widget _buildScaffold({
             createBuilder: provideCreateBuilder
                 ? (_, _, _) => const Text('Create form')
                 : null,
-            floatingActionButton: FloatingActionButton.extended(
-              onPressed: () {},
-              icon: const Icon(Icons.add),
-              label: const Text('Add Item'),
-            ),
+            floatingActionButton:
+                fab ??
+                FloatingActionButton.extended(
+                  onPressed: () {},
+                  icon: const Icon(Icons.add),
+                  label: const Text('Add Item'),
+                ),
           ),
         ),
       ),
@@ -53,6 +56,19 @@ Widget _buildScaffold({
       routerConfig: router,
     ),
   );
+}
+
+class _OwnFab extends StatelessWidget implements MasterDetailCreateFab {
+  const _OwnFab({this.onPressed});
+
+  final VoidCallback? onPressed;
+
+  @override
+  Widget withOnPressed(VoidCallback onPressed) => _OwnFab(onPressed: onPressed);
+
+  @override
+  Widget build(BuildContext context) =>
+      TextButton(onPressed: onPressed, child: const Text('Own button'));
 }
 
 void main() {
@@ -136,6 +152,50 @@ void main() {
 
       expect(find.text('Master'), findsOneWidget);
       expect(find.text('Add Item'), findsOneWidget);
+    });
+  });
+
+  group('MasterDetailScaffold with a MasterDetailCreateFab', () {
+    for (final width in <double>[1200, 400]) {
+      testWidgets('takes the create handler unwrapped at $width px', (
+        tester,
+      ) async {
+        final semantics = tester.ensureSemantics();
+        await tester.pumpWidget(
+          _buildScaffold(
+            initialLocation: '/test',
+            width: width,
+            fab: const _OwnFab(),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.bySemanticsLabel('Create new item'), findsNothing);
+        expect(
+          find.ancestor(
+            of: find.text('Own button'),
+            matching: find.byWidgetPredicate(
+              (w) => w is AbsorbPointer && w.absorbing,
+            ),
+          ),
+          findsNothing,
+        );
+        final button = tester.widget<TextButton>(find.byType(TextButton));
+        expect(button.onPressed, isNotNull);
+        semantics.dispose();
+      });
+    }
+
+    testWidgets('opens the create pane when pressed', (tester) async {
+      await tester.pumpWidget(
+        _buildScaffold(initialLocation: '/test', fab: const _OwnFab()),
+      );
+      await tester.pumpAndSettle();
+
+      tester.widget<TextButton>(find.byType(TextButton)).onPressed!();
+      await tester.pumpAndSettle();
+
+      expect(find.text('Create form'), findsOneWidget);
     });
   });
 }

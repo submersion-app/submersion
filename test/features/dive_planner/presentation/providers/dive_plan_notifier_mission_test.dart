@@ -131,10 +131,10 @@ void main() {
     );
     final before = notifier.state.segments;
     expect(before, isNotEmpty);
-    notifier.updateRates(descent: notifier.state.descentRate / 2);
+    notifier.updateRates(descent: (notifier.state.descentRate ?? 18.0) / 2);
     expect(notifier.state.segments, isNot(equals(before)));
     // Regenerating is idempotent: the same inputs give the same segments.
-    notifier.updateRates(descent: notifier.state.descentRate * 2);
+    notifier.updateRates(descent: notifier.state.descentRate! * 2);
     expect(notifier.state.segments, before);
   });
 

@@ -376,4 +376,81 @@ void main() {
     expect(find.text('Club Technical Diver').last, findsOneWidget);
     expect(find.text('Specialties'), findsOneWidget);
   });
+
+  testWidgets(
+    'IART shows its own five course categories, not Progression/Specialties '
+    '(issue #3357)',
+    (tester) async {
+      await tester.pumpWidget(await buildHarness(tester));
+      await tester.pumpAndSettle();
+
+      await selectFromDropdown(tester, agencyDropdown(), 'IART');
+
+      await tester.ensureVisible(levelDropdown());
+      await tester.pumpAndSettle();
+      await tester.tap(levelDropdown());
+      await tester.pumpAndSettle();
+
+      expect(find.text('Open Circuit'), findsOneWidget);
+      expect(find.text('Progression'), findsNothing);
+      expect(find.text('Specialties'), findsNothing);
+
+      final menuScrollable = find.byType(Scrollable).last;
+      for (final label in const [
+        'Rebreather',
+        'Overhead',
+        'Service',
+        'Professional',
+      ]) {
+        await tester.scrollUntilVisible(
+          find.text(label),
+          100.0,
+          scrollable: menuScrollable,
+        );
+        expect(find.text(label), findsOneWidget);
+      }
+    },
+  );
+
+  testWidgets("a diver's own custom level under IART still renders, under a "
+      'catch-all Specialties group (issue #3357)', (tester) async {
+    final custom = await customRepository.createLevel(
+      diverId: 'owner-1',
+      agencyId: CertificationAgency.iart.name,
+      name: 'Club Rebreather Diver',
+      isProgression: false,
+      isShared: true,
+    );
+    final cert = await repository.createCertification(
+      Certification(
+        id: '',
+        name: 'Club Rebreather Diver',
+        agency: CertificationAgency.iart.name,
+        level: custom.id,
+        createdAt: DateTime(2024),
+        updatedAt: DateTime(2024),
+      ),
+    );
+
+    await tester.pumpWidget(
+      await buildHarness(tester, certificationId: cert.id),
+    );
+    await tester.pumpAndSettle();
+
+    expect(selectedCertification('Club Rebreather Diver'), findsOneWidget);
+
+    await tester.ensureVisible(levelDropdown());
+    await tester.pumpAndSettle();
+    await tester.tap(levelDropdown());
+    await tester.pumpAndSettle();
+
+    final menuScrollable = find.byType(Scrollable).last;
+    await tester.scrollUntilVisible(
+      find.text('Club Rebreather Diver').last,
+      100.0,
+      scrollable: menuScrollable,
+    );
+    expect(find.text('Club Rebreather Diver').last, findsOneWidget);
+    expect(find.text('Specialties'), findsOneWidget);
+  });
 }

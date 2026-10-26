@@ -9,11 +9,14 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/shared_library/crypto/library_cipher.dart';
 import 'package:submersion/core/services/shared_library/crypto/library_signer.dart';
+import 'package:submersion/core/services/shared_library/member_removal.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/shared_site_models.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 
 export 'package:submersion/core/services/shared_library/shared_site_models.dart';
+
+part 'shared_library_store_removals.dart';
 
 /// Device-local storage for shared site libraries, their member and role caches,
 /// per-site clocks and suggestions, plus the synced membership rows

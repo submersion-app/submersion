@@ -94,7 +94,10 @@ class PreDiveChecklistTemplate extends Equatable {
 class PreDiveChecklistTemplateItem extends Equatable {
   final String id;
   final String templateId;
-  final String? section;
+
+  /// The section this item is grouped under, if any (issue #3360). Replaces
+  /// the free-text `section` field.
+  final String? sectionId;
   final String title;
   final String notes;
   final int sortOrder;
@@ -119,7 +122,7 @@ class PreDiveChecklistTemplateItem extends Equatable {
   const PreDiveChecklistTemplateItem({
     required this.id,
     required this.templateId,
-    this.section,
+    this.sectionId,
     required this.title,
     this.notes = '',
     this.sortOrder = 0,
@@ -138,7 +141,7 @@ class PreDiveChecklistTemplateItem extends Equatable {
   PreDiveChecklistTemplateItem copyWith({
     String? id,
     String? templateId,
-    Object? section = _undefined,
+    Object? sectionId = _undefined,
     String? title,
     String? notes,
     int? sortOrder,
@@ -156,7 +159,9 @@ class PreDiveChecklistTemplateItem extends Equatable {
     return PreDiveChecklistTemplateItem(
       id: id ?? this.id,
       templateId: templateId ?? this.templateId,
-      section: section == _undefined ? this.section : section as String?,
+      sectionId: sectionId == _undefined
+          ? this.sectionId
+          : sectionId as String?,
       title: title ?? this.title,
       notes: notes ?? this.notes,
       sortOrder: sortOrder ?? this.sortOrder,
@@ -185,7 +190,7 @@ class PreDiveChecklistTemplateItem extends Equatable {
   List<Object?> get props => [
     id,
     templateId,
-    section,
+    sectionId,
     title,
     notes,
     sortOrder,

@@ -67,6 +67,17 @@ class NavTrackPoint extends Equatable {
 
   /// A copy with the given fields replaced. Like the other entities'
   /// `copyWith`, a null argument keeps the current value.
+  /// [batteryVolts], with an exact 0.00V reading treated as no reading.
+  ///
+  /// A recording's first sample can read 0V before the battery sensor has
+  /// settled (a real Seacraft ENC log reads `BattV=0` on row 1 and the
+  /// pack's real 3.9V a second later), and a pack still logging is never
+  /// actually at 0V. The parser stores the file's 0 faithfully, so this is
+  /// the one place that judges it: every display of a battery reading (the
+  /// detail page's summary, the 3D scene) goes through this rather than
+  /// [batteryVolts].
+  double? get plausibleBatteryVolts => batteryVolts == 0 ? null : batteryVolts;
+
   NavTrackPoint copyWith({
     int? timestamp,
     double? north,

@@ -1,7 +1,7 @@
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 
-/// The kinds of endpoints a ConnectedAccount can represent. The first five
-/// mirror [CloudProviderType]; connector kinds (Lightroom now, Immich/SMB
+/// The kinds of endpoints a ConnectedAccount can represent. All but
+/// [adobeLightroom] mirror [CloudProviderType]; connector kinds (Lightroom now, Immich/SMB
 /// later per the program spec) have no cloud provider equivalent.
 enum AccountKind {
   dropbox,
@@ -9,6 +9,7 @@ enum AccountKind {
   icloud,
   s3,
   webdav,
+  git,
   adobeLightroom;
 
   /// The sync/media-store provider this kind corresponds to, or null for
@@ -19,6 +20,7 @@ enum AccountKind {
     AccountKind.icloud => CloudProviderType.icloud,
     AccountKind.s3 => CloudProviderType.s3,
     AccountKind.webdav => CloudProviderType.webdav,
+    AccountKind.git => CloudProviderType.git,
     AccountKind.adobeLightroom => null,
   };
 
@@ -29,5 +31,6 @@ enum AccountKind {
         CloudProviderType.icloud => AccountKind.icloud,
         CloudProviderType.s3 => AccountKind.s3,
         CloudProviderType.webdav => AccountKind.webdav,
+        CloudProviderType.git => AccountKind.git,
       };
 }

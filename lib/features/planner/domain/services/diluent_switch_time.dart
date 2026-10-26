@@ -47,11 +47,16 @@ const diluentSwitchStopIdSuffix = '__gasSwitchStop';
 /// before calling here, so the authored phase and the bailout tissue
 /// simulation it shares never disagree about how long a diluent switch
 /// actually took.
+///
+/// [gasSwitchStopSeconds] is the caller's already-resolved value (issue
+/// #3552): [plan]'s own value when set, else the diver's Settings default -
+/// this function has no [PlanEngineConfig] to resolve it against itself.
 List<PlanSegment> withDiluentSwitchTime(
   List<PlanSegment> segments,
-  domain.DivePlan plan,
-) {
-  if (plan.gasSwitchStopSeconds <= 0) return segments;
+  domain.DivePlan plan, {
+  required int gasSwitchStopSeconds,
+}) {
+  if (gasSwitchStopSeconds <= 0) return segments;
 
   DiveTank? diluentTankFor(PlanSegment segment) {
     if (modeFor(plan, segment) != domain.PlanMode.ccr) return null;
@@ -78,7 +83,7 @@ List<PlanSegment> withDiluentSwitchTime(
         PlanSegment(
           id: '${segment.id}$diluentSwitchStopIdSuffix',
           targetDepth: depth,
-          durationSeconds: plan.gasSwitchStopSeconds,
+          durationSeconds: gasSwitchStopSeconds,
           tankId: conservative.id,
           gasMix: conservative.gasMix,
           diveModeOverride: segment.diveModeOverride,

@@ -245,7 +245,7 @@ void main() {
     expect(r, isEmpty);
   });
 
-  test('old columns are left untouched', () async {
+  test('old diver columns are left untouched', () async {
     final db = AppDatabase(seeded());
     addTearDown(db.close);
     final d = await rows(
@@ -253,11 +253,21 @@ void main() {
       "SELECT insurance_provider FROM divers WHERE id = 'd1'",
     );
     expect(d.single['insurance_provider'], 'DAN Europe');
+  });
+
+  test('the copied card photos leave the old columns by v294', () async {
+    final db = AppDatabase(seeded());
+    addTearDown(db.close);
     final c = await rows(
       db,
-      "SELECT photo_front FROM certifications WHERE id = 'c1'",
+      'SELECT photo_front, photo_back FROM certifications '
+      "WHERE id IN ('c1', 'c2', 'c3')",
     );
-    expect(c.single['photo_front'], isNotNull);
+    expect(c, hasLength(3));
+    for (final row in c) {
+      expect(row['photo_front'], isNull);
+      expect(row['photo_back'], isNull);
+    }
   });
 
   test('two independent upgrades produce identical ids', () async {

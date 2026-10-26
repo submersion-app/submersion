@@ -289,6 +289,9 @@ class PaginatedDiveListState extends Equatable {
   /// retry instead of a spinner that will never resolve on its own (#1610).
   final bool loadMoreFailed;
 
+  /// Bumped each time the rows are reloaded from the top, not when a page is appended.
+  final int revision;
+
   const PaginatedDiveListState({
     this.dives = const [],
     this.isLoadingMore = false,
@@ -297,6 +300,7 @@ class PaginatedDiveListState extends Equatable {
     this.totalCount = 0,
     this.unfilteredTotalCount,
     this.loadMoreFailed = false,
+    this.revision = 0,
   });
 
   PaginatedDiveListState copyWith({
@@ -308,6 +312,7 @@ class PaginatedDiveListState extends Equatable {
     int? unfilteredTotalCount,
     bool clearNextCursor = false,
     bool? loadMoreFailed,
+    int? revision,
   }) {
     return PaginatedDiveListState(
       dives: dives ?? this.dives,
@@ -317,6 +322,7 @@ class PaginatedDiveListState extends Equatable {
       totalCount: totalCount ?? this.totalCount,
       unfilteredTotalCount: unfilteredTotalCount ?? this.unfilteredTotalCount,
       loadMoreFailed: loadMoreFailed ?? this.loadMoreFailed,
+      revision: revision ?? this.revision,
     );
   }
 
@@ -329,5 +335,6 @@ class PaginatedDiveListState extends Equatable {
     totalCount,
     unfilteredTotalCount,
     loadMoreFailed,
+    revision,
   ];
 }

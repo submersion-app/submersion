@@ -25,6 +25,13 @@ void main() {
     );
   });
 
+  test('renditionExtension is mp4 for video and jpg otherwise', () {
+    // One rule for every writer and reader of rendition keys: a sweep that
+    // recomputed it differently would delete live renditions as siblings.
+    expect(StoreKeys.renditionExtension(isVideo: true), 'mp4');
+    expect(StoreKeys.renditionExtension(isVideo: false), 'jpg');
+  });
+
   test('extensionFor sanitizes and falls back to bin', () {
     expect(StoreKeys.extensionFor('IMG_1234.JPG'), 'jpg');
     expect(StoreKeys.extensionFor('clip.MOV'), 'mov');

@@ -761,8 +761,8 @@ void main() {
           DivePlansCompanion.insert(
             id: 'plan-b',
             name: 'Reef',
-            gfLow: 30,
-            gfHigh: 70,
+            gfLow: const Value(30),
+            gfHigh: const Value(70),
             diverId: const Value('diver-b'),
             siteId: const Value('site-a'),
             createdAt: stale,

@@ -120,4 +120,14 @@ void main() {
       expect(attributesOf(battery([colour, own])), 'custom:color=Red');
     });
   });
+
+  test('sites: several entry and exit methods share one cell (#2054)', () {
+    final site = goldenSite.copyWith(
+      entryMethods: const [EntryMethod.backRoll, EntryMethod.giantStride],
+      exitMethods: const [EntryMethod.ladder, EntryMethod.platform],
+    );
+    final r = rowOf(CsvSitesWriter(units).write([site]), 1);
+    expect(r['Entry Type'], 'Back Roll; Giant Stride');
+    expect(r['Exit Type'], 'Ladder; Platform');
+  });
 }

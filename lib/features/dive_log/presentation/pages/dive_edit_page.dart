@@ -66,10 +66,12 @@ import 'package:submersion/features/dive_centers/domain/services/rental_memory_r
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_picker.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/rental_memory_card.dart';
+import 'package:submersion/features/dive_centers/domain/services/dive_center_picker_ranking.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/features/dive_types/presentation/dive_type_display.dart';
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
+import 'package:submersion/features/tags/presentation/widgets/tag_form_block.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_input_widget.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_picker_sheet.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
@@ -151,7 +153,7 @@ import 'package:submersion/shared/widgets/forms/form_row.dart';
 import 'package:submersion/shared/widgets/forms/form_section.dart';
 import 'package:submersion/shared/widgets/forms/responsive_form_columns.dart';
 import 'package:submersion/features/dive_log/domain/entities/bulk_edit_request.dart';
-import 'package:submersion/features/dive_log/presentation/pages/bulk_edit_field_set.dart';
+import 'package:submersion/features/dive_log/domain/bulk_edit/bulk_edit_field_set.dart';
 import 'package:submersion/features/dive_log/presentation/providers/bulk_dive_edit_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/bulk_collection_mode_selector.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/bulk_tank_specs_editor.dart';
@@ -166,6 +168,8 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_weight_en
 import 'package:submersion/features/dive_log/presentation/formatters/altitude_group_label.dart';
 import 'package:submersion/features/tides/data/services/dive_tide_recorder.dart';
 import 'package:submersion/features/dive_log/presentation/providers/shared_gear_overlap_providers.dart';
+import 'package:submersion/features/rules/presentation/run_rules_flow.dart';
+import 'package:submersion/features/rules/domain/rule_subject.dart';
 
 const _createNewDiveCenterSentinel = '__create_new_dive_center__';
 const _createNewTripSentinel = '__create_new_trip__';
@@ -728,18 +732,24 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     final settings = ref.read(settingsProvider);
     final presetName = settings.defaultTankPreset;
 
-    // Try synchronous built-in resolution first
+    // Built-in presets resolve synchronously so the first tank starts with
+    // them; the lookup below still runs, as the diver's own preset of the
+    // same name shadows the built-in, the way imports resolve it.
     final builtIn = presetName != null ? TankPresets.byName(presetName) : null;
     if (builtIn != null) {
       _defaultPreset = TankPresetEntity.fromBuiltIn(builtIn);
-      return;
     }
 
-    // Async fallback for custom presets
+    // Async lookup for custom presets
     if (presetName != null) {
       final repository = ref.read(tankPresetRepositoryProvider);
       final resolver = DefaultTankPresetResolver(repository: repository);
-      final preset = await resolver.resolve(presetName);
+      final preset = await resolver.resolve(
+        presetName,
+        diverId: await ref.read(validatedCurrentDiverIdProvider.future),
+      );
+      // Nothing shadows the built-in already applied.
+      if (builtIn != null && (preset == null || preset.isBuiltIn)) return;
       if (mounted) {
         setState(() {
           _defaultPreset = preset;
@@ -3258,6 +3268,19 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         builder: (_, scrollController) => DiveCenterPickerSheet(
           scrollController: scrollController,
           selectedCenter: _selectedDiveCenter,
+          // Centers near the dive first (#3379): the site, else the dive's
+          // GPS, else where a new dive was logged from.
+          reference: resolveDiveCenterPickerReference(
+            site: _selectedSite,
+            entryLocation: _existingDive?.entryLocation,
+            exitLocation: _existingDive?.exitLocation,
+            deviceLocation: _currentLocation == null
+                ? null
+                : GeoPoint(
+                    _currentLocation!.latitude,
+                    _currentLocation!.longitude,
+                  ),
+          ),
           onCenterSelected: (center) {
             Navigator.of(sheetContext).pop();
             _markDirty();
@@ -3421,30 +3444,14 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   }
 
   Widget _tagsChild() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        FormOverline(
-          label: context.l10n.diveLog_edit_section_tags,
-          actions: [
-            FormOverlineAction(
-              label: context.l10n.tags_action_browse,
-              icon: Icons.label_outline,
-              onPressed: _showTagPicker,
-            ),
-          ],
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(14, 8, 14, 12),
-          child: TagInputWidget(
-            selectedTags: _selectedTags,
-            onTagsChanged: (tags) {
-              _markDirty();
-              setState(() => _selectedTags = tags);
-            },
-          ),
-        ),
-      ],
+    return TagFormBlock(
+      label: context.l10n.diveLog_edit_section_tags,
+      selectedTags: _selectedTags,
+      onTagsChanged: (tags) {
+        _markDirty();
+        setState(() => _selectedTags = tags);
+      },
+      scope: TagScope.dives,
     );
   }
 
@@ -3460,14 +3467,6 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     selected: selected,
     onPicked: onPicked,
     host: host,
-  );
-
-  void _showTagPicker() => _showTagPickerFor(
-    selected: _selectedTags,
-    onPicked: (tags) {
-      _markDirty();
-      setState(() => _selectedTags = tags);
-    },
   );
 
   /// Opens the profile editor, first asking which source's profile to start
@@ -6139,6 +6138,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isSaving = true);
+    // Read now: the diver can leave while the save runs, and a dive logged
+    // by hand gets its rules either way (#3513).
+    final rulesAfterCreate = captureRulesAfterCreate(context, ref);
 
     try {
       // Build entry DateTime from date and time
@@ -6348,6 +6350,12 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       // Save using the notifier
       final notifier = ref.read(paginatedDiveListProvider.notifier);
       String? savedDiveId;
+      // A plan the diver just turned into a dive counts as logged by hand
+      // for the logbook rules (#3513).
+      final promotedPlan =
+          widget.isEditing &&
+          (_existingDive?.isPlanned ?? false) &&
+          !_isPlanned;
       if (widget.isEditing) {
         await notifier.updateDive(dive);
         savedDiveId = widget.diveId;
@@ -6543,6 +6551,16 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         scheduleQualityScan([savedDiveId]);
         scheduleSensorSummaryRefresh([savedDiveId]);
         scheduleDerivedMetricsRefresh([savedDiveId]);
+      }
+
+      // Logbook rules for a dive logged by hand (#3513): its first save, or
+      // a plan just turned into a dive, once its children are saved so the
+      // rules see the whole dive. Later edits never run them.
+      if (savedDiveId != null &&
+          !_isPlanned &&
+          !widget.isBulk &&
+          (!widget.isEditing || promotedPlan)) {
+        await rulesAfterCreate(subject: RuleSubject.dives, ids: [savedDiveId]);
       }
 
       // Offer to log the dive for linked buddies (issue #2002). Runs before

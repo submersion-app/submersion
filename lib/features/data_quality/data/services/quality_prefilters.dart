@@ -133,6 +133,7 @@ class QualityPrefilters {
       'source_conflict': multiSource,
       'shared_gear_overlap': sharedGear,
       'transmitter_role': withPressures,
+      'transmitter_gear_serial_mismatch': withTransmitterSerials,
     };
   }
 }

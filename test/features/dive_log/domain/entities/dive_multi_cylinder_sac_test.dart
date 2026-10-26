@@ -139,13 +139,18 @@ void main() {
       expect(dive.sac, closeTo(2.0, 1e-9));
     });
 
-    test('a rebreather dive keeps the single reference cylinder', () {
-      final dive = _dive([
-        _tank('dil', TankRole.diluent, volume: 3),
-        _tank('o2', TankRole.oxygenSupply, volume: 3, end: 140),
-      ], diveMode: DiveMode.ccr);
-      expect(dive.sac, closeTo(1.0, 1e-9));
-    });
+    // Issue #3673: a rebreather's bottles do not drain with the diver's
+    // breathing, so neither lane has a figure, as DerivedMetricsService.
+    for (final mode in [DiveMode.ccr, DiveMode.scr]) {
+      test('a ${mode.name} dive has no SAC and no RMV', () {
+        final dive = _dive([
+          _tank('dil', TankRole.diluent, volume: 3),
+          _tank('o2', TankRole.oxygenSupply, volume: 3, end: 140),
+        ], diveMode: mode);
+        expect(dive.sac, isNull);
+        expect(dive.rmvFor(GasModel.ideal), isNull);
+      });
+    }
 
     test('stays null when the reference cylinder has no drop', () {
       final dive = _dive([

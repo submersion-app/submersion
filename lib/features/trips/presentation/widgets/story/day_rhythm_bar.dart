@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -6,15 +7,32 @@ import 'package:submersion/l10n/l10n_extension.dart';
 
 /// One day's dives plotted as blocks on a 24h axis. Night dives are tinted
 /// with the tertiary color; surface intervals appear as gaps.
-class DayRhythmBar extends StatelessWidget {
+class DayRhythmBar extends StatefulWidget {
   final List<Dive> dives;
   final double height;
 
   const DayRhythmBar({super.key, required this.dives, this.height = 28});
 
   @override
+  State<DayRhythmBar> createState() => _DayRhythmBarState();
+}
+
+class _DayRhythmBarState extends State<DayRhythmBar> {
+  // Laying out the blocks resolves each site's time zone, so it runs when
+  // the dives change rather than on every rebuild.
+  late List<RhythmBlock> _blocks = computeRhythmBlocks(widget.dives);
+
+  @override
+  void didUpdateWidget(DayRhythmBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!listEquals(oldWidget.dives, widget.dives)) {
+      _blocks = computeRhythmBlocks(widget.dives);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final blocks = computeRhythmBlocks(dives);
+    final blocks = _blocks;
     if (blocks.isEmpty) return const SizedBox.shrink();
     final colorScheme = Theme.of(context).colorScheme;
     final labelStyle = Theme.of(
@@ -24,7 +42,7 @@ class DayRhythmBar extends StatelessWidget {
     return Semantics(
       label: context.l10n.trips_story_rhythm_semantics,
       child: SizedBox(
-        height: height,
+        height: widget.height,
         child: CustomPaint(
           size: Size.infinite,
           painter: _RhythmPainter(

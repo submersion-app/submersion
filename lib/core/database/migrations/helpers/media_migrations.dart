@@ -39,8 +39,16 @@ extension MediaMigrations on AppDatabase {
       'account_identifier TEXT, '
       'created_at INTEGER NOT NULL, '
       'updated_at INTEGER NOT NULL, '
-      'hlc TEXT)',
+      'hlc TEXT, '
+      'location TEXT, '
+      'nickname TEXT)',
     );
+    // v293: connected_accounts.location (issue #3482); a table created
+    // before v293 gains it here.
+    await _addColumnIfMissing('connected_accounts', 'location', 'TEXT');
+    // v295: connected_accounts.nickname (issue #3522); a table created
+    // before v295 gains it here.
+    await _addColumnIfMissing('connected_accounts', 'nickname', 'TEXT');
     final metaCols = await customSelect(
       "PRAGMA table_info('sync_metadata')",
     ).get();
@@ -130,6 +138,21 @@ extension MediaMigrations on AppDatabase {
     }
   }
 
+  /// v296: media.color_adjustment and diver_settings.auto_color_correction
+  /// (issue #3520). Both live here, beside the media columns, because
+  /// diver_migrations.dart is at its size cap. Idempotent; called from the
+  /// rung and the beforeOpen backstop. The adjustment is nullable (no
+  /// adjustment) and the switch defaults off, so nothing looks different
+  /// after upgrading.
+  Future<void> _assertColorCorrectionColumns() async {
+    await _addColumnIfMissing('media', 'color_adjustment', 'TEXT');
+    await _addColumnIfMissing(
+      'diver_settings',
+      'auto_color_correction',
+      'INTEGER NOT NULL DEFAULT 0 CHECK (auto_color_correction IN (0, 1))',
+    );
+  }
+
   /// v130: media_enrichment.hlc column. Self-guarding when the table is absent
   /// (partial-schema migration fixtures) and PRAGMA-guarded so it is safe to
   /// call from both onUpgrade and the beforeOpen backstop (parallel-branch
@@ -189,6 +212,36 @@ extension MediaMigrations on AppDatabase {
     if (!names.contains('last_sweep_at')) {
       await customStatement(
         'ALTER TABLE media_stores ADD COLUMN last_sweep_at INTEGER',
+      );
+    }
+  }
+
+  /// Idempotent DDL for the v303 media.remote_store_id column (issue
+  /// #3482): the store a row's upload stamps refer to. Called from the v303
+  /// onUpgrade step and the beforeOpen backstop, self-guarding when the
+  /// table is absent, like [_assertMediaStoresAccountColumn].
+  Future<void> _assertMediaRemoteStoreColumn() async {
+    final cols = await customSelect("PRAGMA table_info('media')").get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('remote_store_id')) {
+      await customStatement(
+        'ALTER TABLE media ADD COLUMN remote_store_id TEXT',
+      );
+    }
+  }
+
+  /// Idempotent DDL for the v302 media_stores.account_id column (issue
+  /// #3482): the roster row the attached store lives on. Called from the
+  /// v302 onUpgrade step and the beforeOpen backstop, self-guarding when the
+  /// table is absent, like [_assertMediaStoresLastSweepColumn].
+  Future<void> _assertMediaStoresAccountColumn() async {
+    final cols = await customSelect("PRAGMA table_info('media_stores')").get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('account_id')) {
+      await customStatement(
+        'ALTER TABLE media_stores ADD COLUMN account_id TEXT',
       );
     }
   }

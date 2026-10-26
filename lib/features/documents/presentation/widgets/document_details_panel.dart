@@ -10,6 +10,9 @@ import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/presentation/document_l10n.dart';
 import 'package:submersion/features/documents/presentation/widgets/document_expiry_badge.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart';
+import 'package:submersion/features/tags/presentation/providers/tag_link_providers.dart';
+import 'package:submersion/features/tags/presentation/widgets/tag_chip.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The details under a document's pages on a narrow screen. Collapsed it
@@ -116,6 +119,13 @@ class DocumentDetailsCard extends ConsumerWidget {
     final insurance = doc.type == DocumentType.insurance;
     final ownerRoute = documentOwnerRoute(doc.owner);
     final status = documentExpiryStatus(doc, DateTime.now());
+    final tags =
+        ref
+            .watch(
+              tagsForItemProvider((scope: TagScope.documents, itemId: doc.id)),
+            )
+            .value ??
+        const <Tag>[];
     String? text(String? v) => (v == null || v.trim().isEmpty) ? null : v;
     final rows = Column(
       children: [
@@ -179,6 +189,7 @@ class DocumentDetailsCard extends ConsumerWidget {
           value: ownerLabel ?? documentOwnerKindLabel(l10n, doc.owner.kind),
           onTap: ownerRoute == null ? null : () => context.push(ownerRoute),
         ),
+        if (tags.isNotEmpty) _TagsRow(tags: tags),
         if (text(doc.notes) case final notes?)
           _DetailRow(
             icon: Icons.notes_outlined,
@@ -193,6 +204,50 @@ class DocumentDetailsCard extends ConsumerWidget {
   Future<void> _call(String number) async {
     final uri = Uri(scheme: 'tel', path: number.replaceAll(' ', ''));
     if (await canLaunchUrl(uri)) await launchUrl(uri);
+  }
+}
+
+/// A document's tags as colored chips (issue #1970). Tapping one opens the
+/// documents list filtered to that tag, as a dive's tag chip opens the dive
+/// list.
+class _TagsRow extends StatelessWidget {
+  final List<Tag> tags;
+
+  const _TagsRow({required this.tags});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    return ListTile(
+      leading: const Icon(Icons.sell_outlined),
+      title: Text(
+        l10n.documents_field_tags,
+        style: theme.textTheme.labelMedium?.copyWith(
+          color: theme.colorScheme.onSurfaceVariant,
+        ),
+      ),
+      subtitle: Padding(
+        padding: const EdgeInsets.only(top: 4),
+        child: Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final tag in tags)
+              TagChip(
+                tag: tag,
+                tooltip: l10n.documents_detail_showWithTag(tag.name),
+                onTap: () => context.go(
+                  Uri(
+                    path: '/documents',
+                    queryParameters: {'tag': tag.id},
+                  ).toString(),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
   }
 }
 

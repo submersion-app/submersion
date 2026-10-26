@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/suunto_cloud/suunto_cloud_event_map.dart';
 import 'package:submersion/core/services/suunto_cloud/suunto_dive_route.dart';
+import 'package:submersion/core/services/suunto_cloud/suunto_journal.dart';
 import 'package:submersion/core/services/suunto_cloud/suunto_tissue_parser.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/computer_tissue_snapshot.dart';
@@ -17,6 +18,7 @@ class SuuntoParsedDive {
     this.serialNumber,
     this.firmwareVersion,
     this.notes,
+    this.journal = SuuntoJournal.empty,
     this.route,
   });
 
@@ -37,6 +39,10 @@ class SuuntoParsedDive {
   /// rather than the dive export (issue #2410).
   final String? notes;
 
+  /// The dive details the diver logged in the Suunto app, from the workout
+  /// listing's journal rather than the dive export (issues #3266, #3491).
+  final SuuntoJournal journal;
+
   /// The recorded underwater route (`DiveRoute`), when the export carries
   /// one (issue #1445). Linked to the dive as a nav track at import.
   final SuuntoDiveRoute? route;
@@ -47,6 +53,7 @@ class SuuntoParsedDive {
     String? serialNumber,
     String? firmwareVersion,
     String? notes,
+    SuuntoJournal? journal,
     SuuntoDiveRoute? route,
   }) => SuuntoParsedDive(
     dive: dive ?? this.dive,
@@ -54,6 +61,7 @@ class SuuntoParsedDive {
     serialNumber: serialNumber ?? this.serialNumber,
     firmwareVersion: firmwareVersion ?? this.firmwareVersion,
     notes: notes ?? this.notes,
+    journal: journal ?? this.journal,
     route: route ?? this.route,
   );
 }
@@ -151,6 +159,7 @@ class SuuntoDiveParser {
     final gfLow = (diving?['GfLow'] as num?)?.round();
     final gfHigh = (diving?['GfHigh'] as num?)?.round();
     final computerTissue = diving == null ? null : parseSuuntoTissue(diving);
+    final exposure = diving == null ? null : parseSuuntoExposure(diving);
 
     final tanks = _withSidemountPartners(
       _buildTanks(diving, {
@@ -190,6 +199,9 @@ class SuuntoDiveParser {
         hasGradientFactors: gfLow != null && gfHigh != null,
       ),
       computerTissue: computerTissue,
+      cnsStart: exposure?.cnsStart,
+      cnsEnd: exposure?.cnsEnd,
+      otu: exposure?.otu,
       events: profileResult.events,
     );
 
@@ -674,8 +686,7 @@ class SuuntoDiveParser {
   }
 
   /// The dive's deco model id from the header's `Algorithm` ("Suunto
-  /// Fused2 RGBM", "Bühlmann 16 GF"), so the dive agrees with its tissue
-  /// snapshot. RGBM and Bühlmann map to the app's ids; any other name is kept
+  /// Fused2 RGBM", "Bühlmann 16 GF"). RGBM and Bühlmann map to the app's ids; any other name is kept
   /// lowercased, as other importers do. Only a header without one falls back
   /// to the GF pair, which a Suunto writes whatever model it runs.
   static String? _decoAlgorithm(

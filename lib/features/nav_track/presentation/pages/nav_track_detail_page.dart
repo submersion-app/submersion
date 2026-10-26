@@ -5,23 +5,29 @@ import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 
 import 'package:submersion/core/router/track_locations.dart';
+import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_picker/site_picker_sheet.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/gps_log/presentation/widgets/track_camera.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_corner_controls.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_interaction_options.dart';
 import 'package:submersion/features/maps/presentation/widgets/submersion_tile_layer.dart';
+import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
+import 'package:submersion/features/maps/presentation/widgets/world_copies.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_corrector.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_matcher.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_stats.dart';
 import 'package:submersion/features/nav_track/presentation/nav_track_dive_label.dart';
+import 'package:submersion/features/nav_track/presentation/pages/nav_track_3d_page.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_dive_choice_sheet.dart';
+import 'package:submersion/features/nav_track/presentation/widgets/nav_track_equipment_picker_sheet.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_polyline_layer.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -100,6 +106,31 @@ class NavTrackDetailPage extends ConsumerWidget {
 
   Future<void> _unlink(WidgetRef ref, NavTrack route) async {
     await ref.read(navTrackRepositoryProvider).unlink(route.id);
+  }
+
+  Future<void> _changeDevice(
+    BuildContext context,
+    WidgetRef ref,
+    NavTrack route,
+  ) async {
+    final choice = await pickNavTrackEquipment(
+      context,
+      selectedEquipmentId: route.equipmentId,
+    );
+    if (!context.mounted) return;
+    final repository = ref.read(navTrackRepositoryProvider);
+    switch (choice) {
+      case NavTrackEquipmentChosen(:final item):
+        await repository.setEquipment(
+          route.id,
+          equipmentId: item.id,
+          deviceName: item.name,
+        );
+      case NavTrackEquipmentCleared():
+        await repository.setEquipment(route.id);
+      case NavTrackEquipmentPickCancelled():
+        break;
+    }
   }
 
   Future<void> _delete(
@@ -251,8 +282,18 @@ class NavTrackDetailPage extends ConsumerWidget {
                     context.push(underwaterTrackAlignLocation(route.id)),
               ),
               IconButton(
-                key: const ValueKey('nav-track-open-3d'),
+                key: const ValueKey('nav-track-open-3d-preview'),
                 icon: const Icon(Icons.view_in_ar),
+                tooltip: l10n.navTrack3d_previewTitle,
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => NavTrack3dPage(trackId: route.id),
+                  ),
+                ),
+              ),
+              IconButton(
+                key: const ValueKey('nav-track-open-3d'),
+                icon: const Icon(Icons.terrain),
                 tooltip: l10n.navTrack_common_open3dTooltip,
                 onPressed: () =>
                     context.push(underwaterTrackSeascapeLocation(route.id)),
@@ -299,6 +340,11 @@ class NavTrackDetailPage extends ConsumerWidget {
               _SiteCard(
                 route: route,
                 onChangeSite: () => _changeSite(context, ref, route),
+              ),
+              const SizedBox(height: 16),
+              _EquipmentCard(
+                route: route,
+                onChangeDevice: () => _changeDevice(context, ref, route),
               ),
               const SizedBox(height: 16),
               Card(
@@ -349,6 +395,55 @@ class _RouteMap extends ConsumerStatefulWidget {
 
 class _RouteMapState extends ConsumerState<_RouteMap> {
   final _controller = MapController();
+  late TrackCamera _camera = _cameraFor(widget.route);
+
+  /// Fits the whole drawn route rather than a fixed zoom on the anchor
+  /// alone: centering on only the start point left most of a long route
+  /// off-screen. TrackCamera (shared with the Tracks overview map) falls
+  /// back to a centre and zoom for a route crossing the antimeridian, which
+  /// a raw LatLngBounds.fromPoints cannot express at all (flutter_map
+  /// asserts east <= 180). The anchor at a fixed zoom covers the rare route
+  /// with fewer than two drawable points.
+  static TrackCamera _cameraFor(NavTrack route) {
+    final drawn = navTrackDrawnPoints(route);
+    final fitted = drawn.length >= 2
+        ? TrackCamera.forLatLngs(
+            drawn,
+            padding: const EdgeInsets.all(32),
+            maxZoom: 17,
+          )
+        : null;
+    final anchor = route.anchor!;
+    return fitted ??
+        TrackCamera(
+          center: LatLng(anchor.latitude, anchor.longitude),
+          zoom: 15,
+        );
+  }
+
+  /// What the drawn route's extent depends on. Everything else (a rename,
+  /// a dive link) leaves the diver's own pan and zoom alone.
+  static Object _framingOf(NavTrack route) => (
+    route.anchor,
+    route.endMode,
+    route.endPoint,
+    route.trustFraction,
+    route.headingOffsetDeg,
+    route.points.length,
+  );
+
+  @override
+  void didUpdateWidget(covariant _RouteMap oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (_framingOf(oldWidget.route) == _framingOf(widget.route)) return;
+    // initialCameraFit is applied once and never again (see
+    // TrackCamera.applyTo), so a moved anchor or a new correction has to
+    // drive the camera itself, or the redrawn route lands off-screen.
+    final camera = _camera = _cameraFor(widget.route);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) camera.applyTo(_controller);
+    });
+  }
 
   @override
   void dispose() {
@@ -358,24 +453,35 @@ class _RouteMapState extends ConsumerState<_RouteMap> {
 
   @override
   Widget build(BuildContext context) {
+    final camera = _camera;
     final anchor = widget.route.anchor!;
-    return FlutterMap(
-      mapController: _controller,
-      options: MapOptions(
-        initialCenter: LatLng(anchor.latitude, anchor.longitude),
-        initialZoom: 15,
-        interactionOptions: rotatableMapInteraction,
-      ),
-      children: [
-        submersionTileLayer(ref),
-        NavTrackPolylineLayer(route: widget.route),
-        const MapAttribution(),
-        Positioned(
-          top: 8,
-          right: 8,
-          child: MapCornerControls(controller: _controller),
+    // Wrapped so a two-finger trackpad gesture zooms it, and given the zoom
+    // range and pole stop every other map has (#3664).
+    return TrackpadZoomMap(
+      controller: _controller,
+      child: FlutterMap(
+        mapController: _controller,
+        options: MapOptions(
+          initialCenter:
+              camera.center ?? LatLng(anchor.latitude, anchor.longitude),
+          initialZoom: camera.zoom ?? 15,
+          initialCameraFit: camera.fit,
+          minZoom: 2.0,
+          maxZoom: 18.0,
+          interactionOptions: rotatableMapInteraction,
+          cameraConstraint: worldMapCameraConstraint,
         ),
-      ],
+        children: [
+          submersionTileLayer(ref),
+          NavTrackPolylineLayer(route: widget.route),
+          const MapAttribution(),
+          Positioned(
+            top: 8,
+            right: 8,
+            child: MapCornerControls(controller: _controller),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -395,20 +501,14 @@ class _StatsCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final duration = Duration(seconds: stats.durationSeconds);
     final l10n = context.l10n;
-    final equipmentId = route.equipmentId;
-    final equipmentName = equipmentId == null
-        ? null
-        : ref.watch(equipmentItemProvider(equipmentId)).value?.name;
+    final firstBattery = _firstBattery(route);
+    final lastBattery = firstBattery == null ? null : _lastBattery(route);
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (equipmentName != null)
-              Text(l10n.navTrack_detail_equipment(equipmentName))
-            else if (route.deviceName != null)
-              Text(l10n.navTrack_detail_device(route.deviceName!)),
             Text(
               l10n.navTrack_detail_distance(
                 units.formatDistance(stats.totalDistance),
@@ -420,13 +520,13 @@ class _StatsCard extends ConsumerWidget {
             if (stats.maxSpeed != null)
               Text(
                 l10n.navTrack_detail_maxSpeed(
-                  units.formatSpeed(stats.maxSpeed!),
+                  units.formatTrackSpeed(stats.maxSpeed!),
                 ),
               ),
             if (stats.avgSpeed != null)
               Text(
                 l10n.navTrack_detail_avgSpeed(
-                  units.formatSpeed(stats.avgSpeed!),
+                  units.formatTrackSpeed(stats.avgSpeed!),
                 ),
               ),
             Text(
@@ -435,12 +535,13 @@ class _StatsCard extends ConsumerWidget {
                 duration.inMinutes.remainder(60),
               ),
             ),
-            if (route.points.isNotEmpty &&
-                route.points.first.batteryVolts != null)
+            if (firstBattery != null)
               Text(
                 l10n.navTrack_detail_battery(
-                  route.points.first.batteryVolts!.toStringAsFixed(2),
-                  _lastBattery(route)?.toStringAsFixed(2) ?? '?',
+                  formatFixedForDisplay(firstBattery, 2),
+                  lastBattery == null
+                      ? '?'
+                      : formatFixedForDisplay(lastBattery, 2),
                 ),
               ),
           ],
@@ -449,9 +550,22 @@ class _StatsCard extends ConsumerWidget {
     );
   }
 
-  double? _lastBattery(NavTrack route) {
+  /// The first plausible battery reading. Plausible, not literal: the
+  /// first sample can read 0V before the sensor settles, which once showed
+  /// "0.00 V -> 3.78 V" for a pack never near empty (see
+  /// [NavTrackPoint.plausibleBatteryVolts]).
+  static double? _firstBattery(NavTrack route) {
+    for (final p in route.points) {
+      final volts = p.plausibleBatteryVolts;
+      if (volts != null) return volts;
+    }
+    return null;
+  }
+
+  static double? _lastBattery(NavTrack route) {
     for (final p in route.points.reversed) {
-      if (p.batteryVolts != null) return p.batteryVolts;
+      final volts = p.plausibleBatteryVolts;
+      if (volts != null) return volts;
     }
     return null;
   }
@@ -516,6 +630,46 @@ class _SiteCard extends ConsumerWidget {
           ? l10n.navTrack_detail_chooseSite
           : l10n.navTrack_detail_menuChangeSite,
       onAction: onChangeSite,
+    );
+  }
+}
+
+/// The route's device/equipment row, built from the same [_ActionCard] as
+/// [_SiteCard]: an equipment or device name, or a "no device" placeholder,
+/// with "Change device" / "Choose device" below it. Mirrors the site row
+/// so the two "set this once at import, change it any time afterward"
+/// fields read the same way.
+class _EquipmentCard extends ConsumerWidget {
+  const _EquipmentCard({required this.route, required this.onChangeDevice});
+
+  final NavTrack route;
+  final VoidCallback onChangeDevice;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final equipmentId = route.equipmentId;
+    // A picked equipment item's own name wins over the stored deviceName
+    // (set once at import, possibly stale) once equipment has resolved;
+    // deviceName alone covers an import that named a device without
+    // picking a catalog equipment item.
+    final equipmentName = equipmentId == null
+        ? null
+        : ref.watch(equipmentItemProvider(equipmentId)).value?.name;
+    final label = equipmentName ?? route.deviceName;
+    // Choose vs Change follows what is stored, as _SiteCard's does, not the
+    // resolved name: a route whose equipment is set but has not resolved
+    // yet (or carries no deviceName) still has a device to change.
+    final hasDevice = equipmentId != null || route.deviceName != null;
+    return _ActionCard(
+      key: const ValueKey('nav-track-equipment-row'),
+      icon: Icons.directions_boat_filled_outlined,
+      label: label ?? l10n.navTrack_detail_noEquipment,
+      actionKey: const ValueKey('nav-track-change-device'),
+      actionLabel: hasDevice
+          ? l10n.navTrack_detail_menuChangeDevice
+          : l10n.navTrack_detail_chooseDevice,
+      onAction: onChangeDevice,
     );
   }
 }

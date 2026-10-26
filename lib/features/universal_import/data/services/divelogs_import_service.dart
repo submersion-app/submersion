@@ -21,6 +21,7 @@ class DivelogsFetchResult {
     required this.gearUnavailable,
     required this.certificationsUnavailable,
     required this.photoListingFailures,
+    required this.photosWithoutLink,
   });
 
   final ImportPayload payload;
@@ -31,7 +32,14 @@ class DivelogsFetchResult {
   final int skippedDives;
   final bool gearUnavailable;
   final bool certificationsUnavailable;
+
+  /// Dives whose pictures `/dives` did not list in a readable form, so
+  /// whether they have any is unknown.
   final int photoListingFailures;
+
+  /// Pictures `/dives` listed that cannot be downloaded: no usable link, or
+  /// a dive without an id to attach them to.
+  final int photosWithoutLink;
 
   int get photoCount =>
       photosBySourceUuid.values.fold(0, (sum, list) => sum + list.length);
@@ -86,9 +94,12 @@ String remotePhotoFileName(
 /// Fetches a full divelogs.de logbook and assembles an [ImportPayload] for
 /// the universal import pipeline.
 ///
-/// `/dives` failing is fatal. Gear, gear types, certifications and each
-/// dive's picture listing degrade independently to coded warnings, so a
-/// problem with any of them never costs the dives.
+/// `/dives` failing is fatal. Gear, gear types and certifications degrade
+/// independently to coded warnings, so a problem with any of them never
+/// costs the dives. Pictures come inline with `/dives`, so listing them
+/// costs no request per dive. A dive whose pictures are not listed, and a
+/// picture that cannot be downloaded, each go into their own coded warning
+/// rather than vanishing.
 class DivelogsImportService {
   DivelogsImportService({
     required DivelogsApiClient api,
@@ -101,7 +112,6 @@ class DivelogsImportService {
 
   Future<DivelogsFetchResult> fetchLogbook({
     required bool includePhotos,
-    void Function(int current, int total)? onPhotoListingProgress,
   }) async {
     final result = await _api.getAllDives();
 
@@ -153,40 +163,40 @@ class DivelogsImportService {
 
     final photosBySourceUuid = <String, List<RemotePhoto>>{};
     var photoListingFailures = 0;
+    var photosWithoutLink = 0;
     if (includePhotos) {
-      final remoteIds = [
-        for (final dive in result.dives)
-          if (dive.id != null) dive.id!,
-      ];
-      for (var i = 0; i < remoteIds.length; i++) {
-        final remoteId = remoteIds[i];
-        try {
-          final pictures = await _api.getPictures(remoteId);
-          final photos = <RemotePhoto>[
-            for (final (n, picture) in pictures.indexed)
-              if (picture.url != null)
-                RemotePhoto(
-                  url: picture.url!,
-                  fileName: remotePhotoFileName(
-                    picture,
-                    remoteDiveId: remoteId,
-                    index: n,
-                  ),
-                ),
-          ];
-          if (photos.isNotEmpty) {
-            photosBySourceUuid[DivelogsDiveMapper.sourceUuidFor(remoteId)] =
-                photos;
-          }
-          // A row with no downloadable link is a photo the import cannot
-          // bring over; count the dive rather than drop it without a word.
-          if (photos.length < pictures.length) photoListingFailures++;
-        } on DivelogsUnauthorizedException {
-          rethrow;
-        } on DivelogsApiException {
+      for (final dive in result.dives) {
+        if (!dive.picturesListed) {
           photoListingFailures++;
+          continue;
         }
-        onPhotoListingProgress?.call(i + 1, remoteIds.length);
+        if (dive.pictures.isEmpty) continue;
+        final remoteId = dive.id;
+        // Photos are keyed by the dive's id; without one they have no dive
+        // to land on.
+        if (remoteId == null) {
+          photosWithoutLink += dive.pictures.length;
+          continue;
+        }
+        final photos = <RemotePhoto>[
+          for (final (n, picture) in dive.pictures.indexed)
+            if (picture.url != null)
+              RemotePhoto(
+                url: picture.url!,
+                fileName: remotePhotoFileName(
+                  picture,
+                  remoteDiveId: remoteId,
+                  index: n,
+                ),
+              ),
+        ];
+        if (photos.isNotEmpty) {
+          photosBySourceUuid[DivelogsDiveMapper.sourceUuidFor(remoteId)] =
+              photos;
+        }
+        // A row with no downloadable link is a photo the import cannot
+        // bring over; count it rather than drop it without a word.
+        photosWithoutLink += dive.pictures.length - photos.length;
       }
     }
 
@@ -254,8 +264,17 @@ class DivelogsImportService {
         ImportWarning(
           severity: ImportWarningSeverity.warning,
           code: ImportWarningCode.photoListingsUnavailable,
-          message: '$photoListingFailures divelogs.de photo listings failed',
+          message:
+              '$photoListingFailures divelogs.de dives did not list their photos',
           count: photoListingFailures,
+        ),
+      if (photosWithoutLink > 0)
+        ImportWarning(
+          severity: ImportWarningSeverity.warning,
+          code: ImportWarningCode.photosWithoutLink,
+          message:
+              '$photosWithoutLink divelogs.de photos have no download link',
+          count: photosWithoutLink,
         ),
     ];
 
@@ -271,6 +290,7 @@ class DivelogsImportService {
       gearUnavailable: gearUnavailable,
       certificationsUnavailable: certificationsUnavailable,
       photoListingFailures: photoListingFailures,
+      photosWithoutLink: photosWithoutLink,
     );
   }
 }

@@ -13,6 +13,7 @@ import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/pre_dive/data/repositories/pre_dive_template_repository.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_template.dart';
+import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_template_section.dart';
 import 'package:submersion/features/pre_dive/presentation/pages/pre_dive_template_edit_page.dart';
 import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_providers.dart';
 import 'package:submersion/features/settings/presentation/pages/body_weight_edit_page.dart';
@@ -372,6 +373,11 @@ class _FakeTemplateRepo implements PreDiveTemplateRepository {
   ) async => items;
 
   @override
+  Future<List<PreDiveChecklistTemplateSection>> getSectionsForTemplate(
+    String templateId,
+  ) async => const [];
+
+  @override
   Future<void> updateTemplate(PreDiveChecklistTemplate template) async {}
 
   @override
@@ -381,6 +387,12 @@ class _FakeTemplateRepo implements PreDiveTemplateRepository {
   ) async {
     savedItems = items;
   }
+
+  @override
+  Future<void> saveSections(
+    String templateId,
+    List<PreDiveChecklistTemplateSection> sections,
+  ) async {}
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

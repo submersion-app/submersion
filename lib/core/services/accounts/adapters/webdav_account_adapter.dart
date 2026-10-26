@@ -4,6 +4,7 @@ import 'package:submersion/core/services/accounts/account_credentials_store.dart
 import 'package:submersion/core/services/accounts/account_identity.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
+import 'package:submersion/core/services/accounts/account_sync_providers.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart'
     as domain;
 import 'package:submersion/core/services/cloud_storage/cloud_provider_instances.dart';
@@ -75,11 +76,7 @@ class WebDavAccountAdapter extends AccountProviderAdapter
 
   @override
   CloudStorageProvider syncProvider(domain.ConnectedAccount account) =>
-      WebDavStorageProvider(
-        store: WebDavCredentialsStore(
-          storageKey: AccountCredentialsStore.keyFor(account.id),
-        ),
-      );
+      webdavSyncProviderFor(account.id);
 
   @override
   Future<MediaObjectStore?> mediaObjectStore(

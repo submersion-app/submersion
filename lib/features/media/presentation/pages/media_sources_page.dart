@@ -2,11 +2,11 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
+import 'package:submersion/features/settings/presentation/widgets/settings_pane_navigator.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Settings page listing all media sources: the platform photo library,
@@ -204,8 +204,9 @@ class MediaSourcesPage extends ConsumerWidget {
                 context.l10n.settings_photosMedia_networkSources_subtitle,
               ),
               trailing: const Icon(Icons.chevron_right),
-              onTap: () =>
-                  context.push('/settings/media-sources/network-sources'),
+              onTap: () => context.pushSettingsPage(
+                '/settings/media-sources/network-sources',
+              ),
             ),
           ),
           // Lightroom entry point hidden pending Adobe review
@@ -219,7 +220,7 @@ class MediaSourcesPage extends ConsumerWidget {
                 title: Text(context.l10n.settings_lightroom_title),
                 subtitle: Text(context.l10n.settings_lightroom_subtitle),
                 trailing: const Icon(Icons.chevron_right),
-                onTap: () => context.push('/settings/lightroom'),
+                onTap: () => context.pushSettingsPage('/settings/lightroom'),
               ),
             ),
           ],

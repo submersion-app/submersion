@@ -27,17 +27,23 @@ void main() {
     fakeAsync((async) {
       final c = container();
       addTearDown(c.dispose);
-      final sub = c.listen(siteSeascapeProvider(site.id), (_, _) {});
+      final sub = c.listen(
+        siteSeascapeProvider(siteSeascapeRequest(site.id)),
+        (_, _) {},
+      );
       settle(async, Duration.zero);
       expect(
-        c.read(siteSeascapeProvider(site.id)).value,
+        c.read(siteSeascapeProvider(siteSeascapeRequest(site.id))).value,
         isA<SiteSeascapeNoCoordinates>(),
       );
 
       sub.close();
       settle(async, siteSeascapeRetention ~/ 2);
 
-      expect(c.exists(siteSeascapeProvider(site.id)), isTrue);
+      expect(
+        c.exists(siteSeascapeProvider(siteSeascapeRequest(site.id))),
+        isTrue,
+      );
     });
   });
 
@@ -45,13 +51,19 @@ void main() {
     fakeAsync((async) {
       final c = container();
       addTearDown(c.dispose);
-      final sub = c.listen(siteSeascapeProvider(site.id), (_, _) {});
+      final sub = c.listen(
+        siteSeascapeProvider(siteSeascapeRequest(site.id)),
+        (_, _) {},
+      );
       settle(async, Duration.zero);
 
       sub.close();
       settle(async, siteSeascapeRetention + const Duration(seconds: 1));
 
-      expect(c.exists(siteSeascapeProvider(site.id)), isFalse);
+      expect(
+        c.exists(siteSeascapeProvider(siteSeascapeRequest(site.id))),
+        isFalse,
+      );
     });
   });
 
@@ -59,11 +71,17 @@ void main() {
     fakeAsync((async) {
       final c = container();
       addTearDown(c.dispose);
-      final sub = c.listen(siteSeascapeProvider(site.id), (_, _) {});
+      final sub = c.listen(
+        siteSeascapeProvider(siteSeascapeRequest(site.id)),
+        (_, _) {},
+      );
       addTearDown(sub.close);
       settle(async, siteSeascapeRetention * 2);
 
-      expect(c.exists(siteSeascapeProvider(site.id)), isTrue);
+      expect(
+        c.exists(siteSeascapeProvider(siteSeascapeRequest(site.id))),
+        isTrue,
+      );
     });
   });
 }

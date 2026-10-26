@@ -16,10 +16,12 @@ import 'package:submersion/shared/selection/table_selection_owner.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_column_picker.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
+import 'package:submersion/shared/widgets/master_detail/remembered_selection.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/table_mode_layout/table_mode_layout.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_field.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_query_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_filter_sheet.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_list_content.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_list_sort_sheet.dart';
@@ -54,6 +56,7 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _shownTabIndex = _tabController.index;
     _tabController.addListener(_onTabChanged);
   }
 
@@ -65,8 +68,15 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
     super.dispose();
   }
 
+  /// The section the page last built for; see [_onTabChanged].
+  late int _shownTabIndex;
+
   void _onTabChanged() {
-    if (_tabController.indexIsChanging) return;
+    // A tapped name notifies twice: as the index changes, with the underline
+    // about to slide, and again when it lands. Act on the first, so the section
+    // shows at once rather than after the slide (issue #3461).
+    if (_tabController.index == _shownTabIndex) return;
+    _shownTabIndex = _tabController.index;
     setState(() {});
     // Skip URL clearing for programmatic tab switches (e.g., auto-switching
     // to Equipment tab when EquipmentDetailPage's desktop redirect fires)
@@ -105,6 +115,7 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
       return FocusTraversalGroup(
         child: TableModeLayout(
           sectionKey: 'equipment',
+          rememberedSelectedId: ref.watch(rememberedEquipmentIdProvider),
           appBarTitle: context.l10n.nav_equipment,
           appBarSubtitle: equipmentListCountLabel(context, ref),
           tableContent: EquipmentListContent(
@@ -200,7 +211,7 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
         return Scaffold(
           appBar: AppBar(
             // The title is the section switcher: "Equipment" and "Sets" sit
-            // where the title would, the one showing in a pill. 8 here plus
+            // where the title would, the one showing underlined. 8 here plus
             // the switcher's own 8px label padding puts the text at the 16px
             // every other app bar title sits at.
             titleSpacing: _phoneTitleSpacing,
@@ -211,11 +222,13 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
                 child: EquipmentSectionToggle(
                   controller: _tabController,
                   tabHeight: EquipmentSectionToggle.compactTabHeight,
+                  onAppBar: true,
                 ),
               ),
               subtitle: _isEquipmentTab && !selection.isActive
                   ? equipmentListCountLabel(context, ref)
                   : null,
+              subtitleGap: EquipmentSectionToggle.subtitleGap,
               subtitleIndent: EquipmentSectionToggle.textInset(
                 withAccentIcon: EquipmentSectionToggle.showsAccentIcon(
                   context,
@@ -281,6 +294,7 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
     return math.max(
       kToolbarHeight,
       switcher +
+          EquipmentSectionToggle.subtitleGap +
           TitleWithSubtitle.subtitleLineHeight(
             context,
             text:
@@ -408,7 +422,8 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
   Widget _buildEquipmentMasterDetail() {
     return MasterDetailScaffold(
       key: const ValueKey('equipment-master-detail'),
-      sectionId: 'equipment',
+      sectionId: RecordListSection.equipment,
+      rememberedSelectedId: ref.watch(rememberedEquipmentIdProvider),
       masterBuilder: (context, onItemSelected, selectedId) =>
           EquipmentListContent(
             onItemSelected: onItemSelected,

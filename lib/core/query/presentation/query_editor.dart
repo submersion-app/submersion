@@ -38,6 +38,7 @@ class QueryEditor extends StatefulWidget {
     this.canSave,
     this.describeError,
     this.initialTab = 0,
+    this.onValidityChanged,
   });
 
   final QueryEditorContext context;
@@ -61,6 +62,13 @@ class QueryEditor extends StatefulWidget {
   /// table's Add filter opens on the rule it just added).
   final int initialTab;
 
+  /// False while the text tab's text does not parse (its last valid tree
+  /// stays committed as [value], so the screen and [value] disagree), true
+  /// again once it parses, empties, or the tab changes: the builder and a
+  /// fresh text tab both show [value] itself. For a host whose Save stores
+  /// [value] (#3513).
+  final ValueChanged<bool>? onValidityChanged;
+
   @override
   State<QueryEditor> createState() => _QueryEditorState();
 }
@@ -71,7 +79,11 @@ class _QueryEditorState extends State<QueryEditor>
     length: 2,
     vsync: this,
     initialIndex: widget.initialTab,
-  );
+  )..addListener(_tabChanged);
+
+  void _tabChanged() {
+    if (!_tabs.indexIsChanging) widget.onValidityChanged?.call(true);
+  }
 
   @override
   void dispose() {
@@ -124,6 +136,7 @@ class _QueryEditorState extends State<QueryEditor>
                   onChanged: widget.onChanged,
                   hintText: strings.hint,
                   describeError: widget.describeError,
+                  onValidityChanged: widget.onValidityChanged,
                 )
               : QueryBuilderGroup(
                   context: widget.context,

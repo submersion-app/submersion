@@ -48,6 +48,7 @@ Widget _buildWidget({
   required DiveComputerService mockService,
   required DiveComputer knownComputer,
   required Completer<DateTime?> cutoffCompleter,
+  List<String?>? cutoffDivers,
 }) {
   return ProviderScope(
     overrides: [
@@ -59,9 +60,10 @@ Widget _buildWidget({
       // Controlled resolution: lets the test hold the cutoff default in
       // AsyncLoading and then resolve it on demand, simulating the query
       // completing after the widget has already mounted.
-      firstSyncCutoffDefaultProvider.overrideWith(
-        (ref) => cutoffCompleter.future,
-      ),
+      firstSyncCutoffDefaultProvider.overrideWith((ref, diverId) {
+        cutoffDivers?.add(diverId);
+        return cutoffCompleter.future;
+      }),
     ],
     child: MaterialApp(
       locale: const Locale('en'),
@@ -189,5 +191,40 @@ void main() {
     verify(
       mockService.startDownload(any, fingerprint: anyNamed('fingerprint')),
     ).called(1);
+  });
+  testWidgets("the default comes from the computer owner's log (issue #2050)", (
+    tester,
+  ) async {
+    final deps = FakeImportAdapterDeps();
+    final computer = _computerWithAddress().copyWith(diverId: 'mitchell');
+    final cutoffDivers = <String?>[];
+    final adapter = DiveComputerAdapter(
+      importService: deps.importService,
+      computerRepository: deps.computerRepo,
+      diveRepository: deps.diveRepo,
+      consolidationService: deps.consolidationService,
+      diverId: 'diver-1',
+      knownComputer: computer,
+      followComputerOwner: () async => true,
+      diverName: (id) async => id == 'mitchell' ? 'Mitchell' : 'Me',
+    );
+
+    await tester.pumpWidget(
+      _buildWidget(
+        adapter: adapter,
+        deps: deps,
+        mockService: mockService,
+        knownComputer: computer,
+        cutoffCompleter: Completer<DateTime?>(),
+        cutoffDivers: cutoffDivers,
+      ),
+    );
+    await tester.pump();
+    await tester.pump(pastScanTimeout);
+    await tester.pump();
+    await tester.pump();
+
+    expect(cutoffDivers, isNotEmpty);
+    expect(cutoffDivers.toSet(), {'mitchell'});
   });
 }

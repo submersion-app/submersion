@@ -2,8 +2,10 @@ import 'dart:async';
 
 import 'package:drift/drift.dart';
 
+import 'package:submersion/core/data/visibility/item_sharing.dart';
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/features/divers/data/repositories/item_shares_repository.dart';
 import 'package:submersion/features/divers/data/repositories/profile_hides_repository.dart';
 
 /// Rows for the shared trip and site tests (issue #2594): profiles, trips
@@ -175,4 +177,68 @@ class GatedActiveProfile {
 
   /// Completes the latest read with [diverId].
   void settle(String? diverId) => reads.last.complete(diverId);
+}
+
+/// Who items are shared with, without a database (issue #2151): [sharing]
+/// by item id, everything else not shared. Records [setSharing] and
+/// [addSharing] calls.
+class FakeItemShares extends ItemSharesRepository {
+  FakeItemShares([Map<String, ItemSharing>? sharing]) : sharing = {...?sharing};
+
+  /// Every item in [ids] shared with everyone.
+  FakeItemShares.everyone(Iterable<String> ids)
+    : sharing = {for (final id in ids) id: ItemSharing.all};
+
+  final Map<String, ItemSharing> sharing;
+  final setCalls = <(String, ItemSharing)>[];
+  final addCalls = <(List<String>, ItemSharing)>[];
+
+  @override
+  Stream<void> watchChanges() => const Stream.empty();
+
+  @override
+  Future<ItemSharing> sharingOf(SharedItemKind kind, String id) async =>
+      sharing[id] ?? ItemSharing.none;
+
+  @override
+  Future<Map<String, ItemSharing>> sharingOfAll(
+    SharedItemKind kind,
+    List<String> ids,
+  ) async => {for (final id in ids) id: sharing[id] ?? ItemSharing.none};
+
+  /// Share rows left beside the everyone flag by a sync race, by item id.
+  final staleRows = <String, Set<String>>{};
+
+  @override
+  Future<Set<String>> storedProfileIds(SharedItemKind kind, String id) async =>
+      staleRows[id] ?? sharing[id]?.profileIds ?? const {};
+
+  @override
+  Future<Set<String>> itemIdsWithShares(SharedItemKind kind) async => {
+    for (final e in sharing.entries)
+      if (e.value.profileIds.isNotEmpty) e.key,
+  };
+
+  @override
+  Future<bool> setSharing(
+    SharedItemKind kind,
+    String id,
+    ItemSharing sharing, {
+    required String? actingDiverId,
+  }) async {
+    setCalls.add((id, sharing));
+    this.sharing[id] = sharing;
+    return true;
+  }
+
+  @override
+  Future<ItemShareResult> addSharing(
+    SharedItemKind kind,
+    List<String> ids,
+    ItemSharing add, {
+    required String actingDiverId,
+  }) async {
+    addCalls.add((ids, add));
+    return ItemShareResult(itemsShared: ids.length);
+  }
 }

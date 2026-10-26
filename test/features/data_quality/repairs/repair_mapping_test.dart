@@ -22,13 +22,39 @@ QualityFinding f({
 );
 
 void main() {
-  test('clock offset maps to a pre-filled inverse time shift', () {
-    final actions = repairOptionsFor(
-      f(detectorId: 'clock_offset', params: {'offsetHours': 3}),
+  group('source clock offset (#3655)', () {
+    // The secondary reads 3 h later than the primary.
+    final finding = f(
+      detectorId: 'clock_offset',
+      params: {'offsetHours': 3, 'sourceId': 's2'},
     );
-    final shift = actions.whereType<TimeShiftRepair>().single;
-    expect(shift.suggestedOffset, const Duration(hours: -3));
-    expect(shift.offerImportWide, isTrue);
+
+    test('first offers to fix the secondary source, pulled back', () {
+      final actions = repairOptionsFor(finding);
+      final fix = actions.first as SourceClockShiftRepair;
+      expect(fix.diveId, 'd1');
+      expect(fix.sourceId, 's2');
+      expect(fix.suggestedOffset, const Duration(hours: -3));
+    });
+
+    test('then offers to move the logbook forward to the secondary', () {
+      final actions = repairOptionsFor(finding);
+      final shift = actions.whereType<TimeShiftRepair>().single;
+      expect(actions.indexOf(shift), 1);
+      expect(shift.suggestedOffset, const Duration(hours: 3));
+      expect(shift.offerImportWide, isTrue);
+    });
+
+    test('a finding without its source id offers the logbook only', () {
+      final actions = repairOptionsFor(
+        f(detectorId: 'clock_offset', params: {'offsetHours': -2}),
+      );
+      expect(actions.whereType<SourceClockShiftRepair>(), isEmpty);
+      expect(
+        actions.whereType<TimeShiftRepair>().single.suggestedOffset,
+        const Duration(hours: -2),
+      );
+    });
   });
 
   test('duplicate maps to consolidate with the pair', () {

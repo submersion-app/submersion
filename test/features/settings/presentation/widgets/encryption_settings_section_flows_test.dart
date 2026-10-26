@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:cryptography/cryptography.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -8,6 +9,8 @@ import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/providers/provider.dart' show StateNotifier;
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
+import 'package:submersion/core/services/cloud_storage/git/git_credentials_store.dart';
+import 'package:submersion/core/services/cloud_storage/git_storage_provider.dart';
 import 'package:submersion/core/services/sync/crypto/encryption_key_store.dart';
 import 'package:submersion/core/services/sync/crypto/keyslots.dart';
 import 'package:submersion/core/services/sync/crypto/sync_encryption_service.dart';
@@ -16,6 +19,7 @@ import 'package:submersion/core/services/sync/sync_preferences.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 import 'package:submersion/features/backup/data/services/backup_service.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/git_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/encryption_settings_section.dart';
@@ -169,6 +173,22 @@ class _RecordingBackupService extends BackupService {
   }
 }
 
+/// A Git provider whose saved repository reads as public.
+class _PublicGit extends GitStorageProvider {
+  _PublicGit() : super(store: GitCredentialsStore(storage: InMemoryKeychain()));
+
+  @override
+  Future<bool?> isPubliclyReadable() async => true;
+}
+
+/// A Git provider whose host never answers the public-repository check.
+class _SilentGit extends GitStorageProvider {
+  _SilentGit() : super(store: GitCredentialsStore(storage: InMemoryKeychain()));
+
+  @override
+  Future<bool?> isPubliclyReadable() => Completer<bool?>().future;
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -212,20 +232,22 @@ void main() {
     service = _FakeEncryptionService(keyStore, SyncPreferences(prefs));
   }
 
-  Widget wrap({bool nullProvider = false}) => testApp(
-    child: const SingleChildScrollView(child: EncryptionSettingsSection()),
-    overrides: [
-      sharedPreferencesProvider.overrideWithValue(prefs),
-      encryptionKeyStoreProvider.overrideWithValue(keyStore),
-      syncEncryptionServiceProvider.overrideWithValue(service),
-      cloudStorageProviderProvider.overrideWithValue(
-        nullProvider ? null : cloud,
-      ),
-      syncStateProvider.overrideWith((ref) => syncNotifier),
-      syncRepositoryProvider.overrideWithValue(_FakeSyncRepository()),
-      backupServiceProvider.overrideWithValue(backupService),
-    ],
-  );
+  Widget wrap({bool nullProvider = false, List<dynamic> extra = const []}) =>
+      testApp(
+        child: const SingleChildScrollView(child: EncryptionSettingsSection()),
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          encryptionKeyStoreProvider.overrideWithValue(keyStore),
+          syncEncryptionServiceProvider.overrideWithValue(service),
+          cloudStorageProviderProvider.overrideWithValue(
+            nullProvider ? null : cloud,
+          ),
+          syncStateProvider.overrideWith((ref) => syncNotifier),
+          syncRepositoryProvider.overrideWithValue(_FakeSyncRepository()),
+          backupServiceProvider.overrideWithValue(backupService),
+          ...extra,
+        ],
+      );
 
   testWidgets('enable flow: fills passphrase, saves recovery, deletes '
       'plaintext backups, and syncs', (tester) async {
@@ -360,6 +382,62 @@ void main() {
     expect(syncNotifier.performSyncCalls, 1);
     expect(prefs.getBool('sync_encryption_enabled'), isFalse);
   });
+
+  testWidgets(
+    'turning encryption off is refused over a public Git repository',
+    (tester) async {
+      await setUpProviders(encryptionEnabled: true, withStoredKey: true);
+      await tester.pumpWidget(
+        wrap(
+          extra: [
+            selectedCloudProviderTypeProvider.overrideWith(
+              (ref) => CloudProviderType.git,
+            ),
+            gitStorageProviderInstanceProvider.overrideWithValue(_PublicGit()),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Turn off encryption'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Encryption must stay on'), findsOneWidget);
+      expect(
+        find.widgetWithText(FilledButton, 'Turn off encryption'),
+        findsNothing,
+      );
+      expect(service.disableCalls, 0);
+    },
+  );
+
+  testWidgets(
+    'a Git host that does not answer delays turning encryption off only '
+    'briefly',
+    (tester) async {
+      await setUpProviders(encryptionEnabled: true, withStoredKey: true);
+      await tester.pumpWidget(
+        wrap(
+          extra: [
+            selectedCloudProviderTypeProvider.overrideWith(
+              (ref) => CloudProviderType.git,
+            ),
+            gitStorageProviderInstanceProvider.overrideWithValue(_SilentGit()),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Turn off encryption'));
+      await tester.pump(const Duration(seconds: 6));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.widgetWithText(FilledButton, 'Turn off encryption'),
+        findsOneWidget,
+      );
+    },
+  );
 
   testWidgets('disable can be cancelled', (tester) async {
     await setUpProviders(encryptionEnabled: true, withStoredKey: true);

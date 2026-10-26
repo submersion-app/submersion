@@ -104,7 +104,26 @@ GeoPoint? _divePathAnchor(
 /// still watches it. See [siteSeascapeProvider].
 const Duration siteSeascapeRetention = Duration(minutes: 2);
 
-/// A site's 3D scene: terrain, strata, contours and its recent dive paths.
+/// [siteSeascapeProvider]'s family key. [isolatePaths] is false for the
+/// plain site view (every dive/route at the site drawn as a static line,
+/// the Site Details card and the sites map's 3D mode) and true when the
+/// scene is only ever shown with one dive's or route's own path layered on
+/// top via `SiteActivePathOverlay` (`SiteTerrainPane.playbackContext` set):
+/// every other dive's path would otherwise still be reconstructed and drawn
+/// only to sit unexplained behind the one the diver actually opened (issue
+/// #3571). A record, not a bare [String], specifically so this distinction
+/// is part of the cache key: the two variants of one site's scene must
+/// never collide in the provider's cache or overwrite one another.
+typedef SiteSeascapeRequest = ({String siteId, bool isolatePaths});
+
+/// A [SiteSeascapeRequest] for the plain, every-path site view -- the
+/// shorthand every caller used before [isolatePaths] existed.
+SiteSeascapeRequest siteSeascapeRequest(String siteId) =>
+    (siteId: siteId, isolatePaths: false);
+
+/// A site's 3D scene: terrain, strata, contours and its recent dive paths
+/// (or, when [SiteSeascapeRequest.isolatePaths] is set, no dive paths at
+/// all -- see [SiteSeascapeRequest]).
 ///
 /// Auto-disposed, but kept for [siteSeascapeRetention] after it builds. The
 /// Site Details card builds the scene of every site a diver views, so a
@@ -112,7 +131,8 @@ const Duration siteSeascapeRetention = Duration(minutes: 2);
 /// the session; the window still makes flipping the sites map back to 3D,
 /// or reopening fullscreen, instant shortly after a site is opened.
 final siteSeascapeProvider = FutureProvider.autoDispose
-    .family<SiteSeascapeState, String>((ref, siteId) async {
+    .family<SiteSeascapeState, SiteSeascapeRequest>((ref, request) async {
+      final siteId = request.siteId;
       retainFor(ref, siteSeascapeRetention);
       final site = await ref.watch(siteProvider(siteId).future);
       final center = site?.location;
@@ -125,40 +145,51 @@ final siteSeascapeProvider = FutureProvider.autoDispose
       );
       if (grid == null) return const SiteSeascapeNoData();
 
-      final allDives = await ref.watch(divesProvider.future);
-      final atSite = allDives.where((d) => d.site?.id == siteId).toList()
-        ..sort(
-          (a, b) =>
-              (b.entryTime ?? b.dateTime).compareTo(a.entryTime ?? a.dateTime),
-        );
-      // Reconstruct all paths concurrently: each resolution touches the DB and
-      // does dead-reckoning work, so N sequential awaits would stack latency.
-      final kept = atSite.take(_maxDivePaths).toList();
-      final paths = await Future.wait(
-        kept.map((d) => ref.watch(spatialReckonedPathProvider(d.id).future)),
-      );
-      // Each dive's linked primary route, for its anchor (see _divePathAnchor).
-      final routes = await Future.wait(
-        kept.map((d) => ref.watch(primaryNavTrackForDiveProvider(d.id).future)),
-      );
+      // Isolated to one dive's/route's own path (drawn separately, on top,
+      // via SiteActivePathOverlay): every other dive at the site would
+      // otherwise be reconstructed here only to be hidden again, the exact
+      // wasted work issue #3571 is about.
       final divePaths = <SiteDivePathInput>[];
-      for (var i = 0; i < kept.length; i++) {
-        final path = paths[i];
-        if (path == null || path.points.length < 2) continue;
-        final anchorPoint = _divePathAnchor(
-          path,
-          routeAnchor: routes[i]?.anchor,
-          entry: kept[i].entryLocation,
+      if (!request.isolatePaths) {
+        final allDives = await ref.watch(divesProvider.future);
+        final atSite = allDives.where((d) => d.site?.id == siteId).toList()
+          ..sort(
+            (a, b) => (b.entryTime ?? b.dateTime).compareTo(
+              a.entryTime ?? a.dateTime,
+            ),
+          );
+        // Reconstruct all paths concurrently: each resolution touches the DB
+        // and does dead-reckoning work, so N sequential awaits would stack
+        // latency.
+        final kept = atSite.take(_maxDivePaths).toList();
+        final paths = await Future.wait(
+          kept.map((d) => ref.watch(spatialReckonedPathProvider(d.id).future)),
         );
-        divePaths.add(
-          SiteDivePathInput(
-            diveId: kept[i].id,
-            path: path,
-            anchor: anchorPoint == null
-                ? (east: 0.0, north: 0.0)
-                : enuOffsetMeters(center, anchorPoint),
+        // Each dive's linked primary route, for its anchor (see
+        // _divePathAnchor).
+        final routes = await Future.wait(
+          kept.map(
+            (d) => ref.watch(primaryNavTrackForDiveProvider(d.id).future),
           ),
         );
+        for (var i = 0; i < kept.length; i++) {
+          final path = paths[i];
+          if (path == null || path.points.length < 2) continue;
+          final anchorPoint = _divePathAnchor(
+            path,
+            routeAnchor: routes[i]?.anchor,
+            entry: kept[i].entryLocation,
+          );
+          divePaths.add(
+            SiteDivePathInput(
+              diveId: kept[i].id,
+              path: path,
+              anchor: anchorPoint == null
+                  ? (east: 0.0, north: 0.0)
+                  : enuOffsetMeters(center, anchorPoint),
+            ),
+          );
+        }
       }
 
       final box = BathymetryTerrainBuilder.enuBounds(grid, center);
@@ -426,11 +457,19 @@ List<SceneLayer> _buildPatchLayers(_PatchSceneInput input) {
 final siteSeascapePatchLayerProvider = FutureProvider.autoDispose
     .family<
       SiteSeascapePatchLayer?,
-      ({String siteId, BathymetryLodStage stage})
+      ({String siteId, BathymetryLodStage stage, bool isolatePaths})
     >((ref, request) async {
       if (request.stage == BathymetryLodStage.overview) return null;
 
-      final base = await ref.watch(siteSeascapeProvider(request.siteId).future);
+      // Matches whichever SiteSeascapeRequest.isolatePaths SiteTerrainPane's
+      // own base-scene watch is using, so an isolated (one-path) view never
+      // forces a second, full-site reconstruction just for this patch.
+      final base = await ref.watch(
+        siteSeascapeProvider((
+          siteId: request.siteId,
+          isolatePaths: request.isolatePaths,
+        )).future,
+      );
       if (base is! SiteSeascapeReady) return null;
 
       final site = await ref.watch(siteProvider(request.siteId).future);
@@ -505,6 +544,7 @@ typedef SiteActivePathOverlayRequest = ({
   String siteId,
   String pathId,
   PathOverlaySource source,
+  bool isolatePaths,
 });
 
 /// The one dive's or route's path that `SiteTerrainPane` is playing back on
@@ -523,7 +563,15 @@ final siteActivePathOverlayProvider = FutureProvider.autoDispose
       ({SiteActivePathOverlay overlay, bool hasLinkedRoute})?,
       SiteActivePathOverlayRequest
     >((ref, request) async {
-      final base = await ref.watch(siteSeascapeProvider(request.siteId).future);
+      // Matches whichever SiteSeascapeRequest.isolatePaths SiteTerrainPane's
+      // own base-scene watch is using -- see siteSeascapePatchLayerProvider
+      // above for why.
+      final base = await ref.watch(
+        siteSeascapeProvider((
+          siteId: request.siteId,
+          isolatePaths: request.isolatePaths,
+        )).future,
+      );
       if (base is! SiteSeascapeReady) return null;
 
       final site = await ref.watch(siteProvider(request.siteId).future);

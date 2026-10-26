@@ -25,15 +25,18 @@ class DpvMission extends Equatable {
 
   /// Ordered team; a valid mission has at least one member.
   final List<MissionMember> team;
-  final double batteryReserveFraction;
+
+  /// Null = use the diver's Settings default (issue #3552).
+  final double? batteryReserveFraction;
 
   /// Current inherited by legs whose own current is null.
   final CurrentVector? defaultCurrent;
 
   final MissionEnvironment environment;
 
-  /// Walking speed for a shore exit, in m/s. Open water only.
-  final double walkSpeedMps;
+  /// Walking speed for a shore exit, in m/s. Open water only. Null = use
+  /// the diver's Settings default (issue #3552).
+  final double? walkSpeedMps;
 
   /// Longest acceptable surface swim, in metres; null means a surface exit
   /// is reported but never blocks. Open water only.
@@ -42,10 +45,10 @@ class DpvMission extends Equatable {
   const DpvMission({
     this.legs = const [],
     this.team = const [],
-    this.batteryReserveFraction = kDefaultBatteryReserveFraction,
+    this.batteryReserveFraction,
     this.defaultCurrent,
     this.environment = MissionEnvironment.overhead,
-    this.walkSpeedMps = kDefaultWalkSpeedMps,
+    this.walkSpeedMps,
     this.surfaceSwimLimitM,
   });
 
@@ -56,23 +59,28 @@ class DpvMission extends Equatable {
     List<MissionLeg>? legs,
     List<MissionMember>? team,
     double? batteryReserveFraction,
+    bool clearBatteryReserveFraction = false,
     CurrentVector? defaultCurrent,
     bool clearDefaultCurrent = false,
     MissionEnvironment? environment,
     double? walkSpeedMps,
+    bool clearWalkSpeedMps = false,
     double? surfaceSwimLimitM,
     bool clearSurfaceSwimLimit = false,
   }) {
     return DpvMission(
       legs: legs ?? this.legs,
       team: team ?? this.team,
-      batteryReserveFraction:
-          batteryReserveFraction ?? this.batteryReserveFraction,
+      batteryReserveFraction: clearBatteryReserveFraction
+          ? null
+          : (batteryReserveFraction ?? this.batteryReserveFraction),
       defaultCurrent: clearDefaultCurrent
           ? null
           : (defaultCurrent ?? this.defaultCurrent),
       environment: environment ?? this.environment,
-      walkSpeedMps: walkSpeedMps ?? this.walkSpeedMps,
+      walkSpeedMps: clearWalkSpeedMps
+          ? null
+          : (walkSpeedMps ?? this.walkSpeedMps),
       surfaceSwimLimitM: clearSurfaceSwimLimit
           ? null
           : (surfaceSwimLimitM ?? this.surfaceSwimLimitM),

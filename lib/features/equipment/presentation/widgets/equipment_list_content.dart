@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/features/cylinder_passports/presentation/utils/scan_cylinder_tag.dart';
 import 'package:submersion/features/cylinder_passports/presentation/widgets/scan_tag_menu_entries.dart';
 import 'package:submersion/features/equipment/domain/services/equipment_ownership.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_delete_dialog.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_default_view_empty_state.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_bulk_share.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_bulk_transfer.dart';
@@ -25,6 +26,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_status_indicator.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/core/router/pushed_route.dart';
 import 'package:submersion/shared/widgets/master_detail/keyboard_list_navigator.dart';
 import 'package:submersion/shared/selection/bulk_action.dart';
 import 'package:submersion/shared/selection/select_items_menu_entries.dart';
@@ -35,7 +37,9 @@ import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/selection/selection_state.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_view.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
+import 'package:submersion/shared/widgets/master_detail/list_position_restorer.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_form_scope.dart';
+import 'package:submersion/shared/widgets/master_detail/remembered_selection.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/debounced_search_results.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_field.dart';
@@ -165,8 +169,35 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
   Object? _currentTypeAxis;
   bool _selectionFromList = false;
 
+  /// The item last opened, which a list built again after the diver left it
+  /// scrolls back to when its address names no item (#3301). Read once, on
+  /// the first build. It is kept while the stored arrangement lands, which
+  /// can move its row, and dropped once the diver scrolls, or when the list
+  /// first shows rows without it, so a later filter that brings it into view
+  /// does not jump the list to it.
+  String? _restoreTargetId;
+  bool _restoreTargetRead = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_restoreTargetRead) return;
+    _restoreTargetRead = true;
+    if (isImperativelyPushed(context)) return;
+    _restoreTargetId = ref.read(highlightedEquipmentIdProvider);
+    if (_restoreTargetId != null) _scrollController.addListener(_onUserScroll);
+  }
+
+  void _onUserScroll() {
+    if (_scrollController.positions.any(isScrolledByDiver)) {
+      _restoreTargetId = null;
+      _scrollController.removeListener(_onUserScroll);
+    }
+  }
+
   @override
   void dispose() {
+    _scrollController.removeListener(_onUserScroll);
     _scrollController.dispose();
     if (_ownsSelection) _selection.dispose();
     super.dispose();
@@ -229,12 +260,16 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
   /// Headings are sized separately because sizing them like items overshoots
   /// by the difference for every heading above the target, which in a
   /// grouped list is nearly one per item.
+  ///
+  /// [jump] moves straight there, for a list being restored, which should not
+  /// visibly travel from the top.
   void _scrollToIndex(
     List<_EquipmentListRow> rows,
     int index,
     String targetId,
-    Object typeAxis,
-  ) {
+    Object typeAxis, {
+    bool jump = false,
+  }) {
     if (!mounted || !_scrollController.hasClients) return;
 
     const estimatedItemHeight = 80.0;
@@ -251,17 +286,22 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     final targetOffset = rowTop - (viewportHeight / 3);
     final clampedOffset = targetOffset.clamp(0.0, maxScroll);
 
-    _scrollController.animateTo(
-      clampedOffset,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-    );
+    if (jump) {
+      _scrollController.jumpTo(clampedOffset);
+    } else {
+      _scrollController.animateTo(
+        clampedOffset,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    }
     _lastScrolledToId = targetId;
     _scrolledTypeAxis = typeAxis;
   }
 
   void _handleItemTap(EquipmentItem equipment) {
     ref.read(highlightedEquipmentIdProvider.notifier).state = equipment.id;
+    forgetClosedPane(ref, RecordListSection.equipment);
     if (widget.onItemSelected != null) {
       _selectionFromList = true;
       widget.onItemSelected!(equipment.id);
@@ -668,7 +708,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
       actions: _bulkActions(equipment),
       shell: shell,
       maxInlineActions: shell == SelectionBarShell.pane ? 1 : 3,
-      onDelete: _confirmAndDelete,
+      onDelete: () => _confirmAndDelete(equipment),
     );
   }
 
@@ -703,15 +743,21 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     return BulkActionOutcome.completed;
   }
 
-  Future<BulkActionOutcome> _confirmAndDelete() async {
+  Future<BulkActionOutcome> _confirmAndDelete(
+    List<EquipmentItem> equipment,
+  ) async {
     final ids = _selectedIds.toList();
     if (ids.isEmpty) return BulkActionOutcome.cancelled;
+    final types = [
+      for (final e in equipment)
+        if (ids.contains(e.id)) e.type,
+    ];
 
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(ctx.l10n.common_bulkDelete_title(ids.length)),
-        content: Text(ctx.l10n.common_bulkDelete_body),
+        content: Text(bulkDeleteBody(ctx.l10n, types)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
@@ -879,6 +925,9 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
           onHideColumn: notifier.hideColumn,
           onEntityTapDown: (id) {
             ref.read(highlightedEquipmentIdProvider.notifier).state = id;
+            // The same row again sets no new highlight; the pane is reopened all
+            // the same, so it is no longer one the diver emptied (#3301).
+            forgetClosedPane(ref, RecordListSection.equipment);
           },
           onEntityTap: (id) {
             if (_isSelectionMode) _selection.toggle(id);
@@ -1161,7 +1210,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     // the arrangement has moved it since (the stored arrangement landing
     // after the first frame, or the diver regrouping). The index counts
     // heading rows too, since they take space above the item.
-    final selectedId = widget.selectedId;
+    final selectedId = widget.selectedId ?? _restoreTargetId;
     // Regrouping by location moves rows as much as regrouping by type, so
     // it re-scrolls to the selected item the same way.
     final typeAxis = (
@@ -1175,13 +1224,21 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
       final selectedIndex = rows.indexWhere(
         (row) => row is _EquipmentItemRow && row.item.id == selectedId,
       );
-      if (selectedIndex >= 0) {
+      if (selectedIndex < 0 && widget.selectedId == null) {
+        _restoreTargetId = null;
+      } else if (selectedIndex >= 0) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           // These rows were laid out for this selection. If it changed before
           // the callback ran, scrolling now would move to the old row and
           // mark the new one as done; the newer build schedules its own.
-          if (widget.selectedId != selectedId) return;
-          _scrollToIndex(rows, selectedIndex, selectedId, typeAxis);
+          if ((widget.selectedId ?? _restoreTargetId) != selectedId) return;
+          _scrollToIndex(
+            rows,
+            selectedIndex,
+            selectedId,
+            typeAxis,
+            jump: widget.selectedId == null,
+          );
         });
       }
     }

@@ -41,6 +41,9 @@ PlanSlateLabels planSlateLabels(AppLocalizations l10n) => PlanSlateLabels(
   gas: l10n.plannerCanvas_table_gas,
   turnAt: l10n.plannerCanvas_slate_turn,
   minGas: l10n.plannerCanvas_slate_minGas,
+  noTurnRule: l10n.plannerCanvas_slate_noTurnRule,
+  noStartPressure: l10n.plannerCanvas_slate_noStartPressure,
+  noVolume: l10n.plannerCanvas_slate_noVolume,
   base: l10n.plannerCanvas_range_base,
   minutes: l10n.pdf_minutes,
   maxPrefix: l10n.pdf_slateMax,
@@ -53,6 +56,8 @@ Future<PlanExportFile> planSlateExport(
   required PdfLocalization localization,
 }) async {
   final state = ref.read(divePlanNotifierProvider);
+  // The plan's own values, else the diver's Settings defaults (#3552).
+  final resolved = ref.read(resolvedPlanEngineConfigProvider);
   final bytes = await const PlanSlatePdfService().buildSlate(
     plan: divePlanFromState(state),
     outcome: ref.read(planOutcomeProvider),
@@ -63,6 +68,10 @@ Future<PlanExportFile> planSlateExport(
     bailout: ref.read(planBailoutProvider),
     units: UnitFormatter(ref.read(settingsProvider)),
     labels: labels,
+    deviationDepthDelta: resolved.deviationDepthDelta,
+    deviationTimeMinutes: resolved.deviationTimeMinutes,
+    gfLow: resolved.gfLow,
+    gfHigh: resolved.gfHigh,
   );
   return (
     bytes: bytes,

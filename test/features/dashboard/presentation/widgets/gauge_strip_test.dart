@@ -155,8 +155,8 @@ Future<NavSpy> pumpStrip(
         builder: (_, _) => stub('/settings/cloud-sync'),
       ),
       GoRoute(
-        path: '/settings/media-storage/transfers',
-        builder: (_, _) => stub('/settings/media-storage/transfers'),
+        path: '/settings/photos-media/uploads',
+        builder: (_, _) => stub('/settings/photos-media/uploads'),
       ),
       GoRoute(
         path: '/dives/quality',
@@ -1084,7 +1084,7 @@ void main() {
         ),
       );
       await tapChip(tester, '3 uploads pending');
-      expect(spy.location, '/settings/media-storage/transfers');
+      expect(spy.location, '/settings/photos-media/uploads');
     });
 
     testWidgets('data quality chip navigates', (tester) async {

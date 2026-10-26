@@ -12,22 +12,26 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/text/text_sort.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_location_move_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_share_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_tag_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_visibility_queries.dart';
 import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
+import 'package:submersion/features/equipment/data/repositories/tank_regulator_sql.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media_store/data/media_deletion_coordinator.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/services/attribute_service_baselines.dart';
 import 'package:submersion/features/equipment/domain/services/dive_sensor_summary_service.dart';
 import 'package:submersion/features/equipment/domain/services/equipment_ownership.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
+import 'package:submersion/features/dive_log/domain/entities/tank_extra_regulators.dart';
 import 'package:submersion/features/equipment/data/repositories/cylinder_gear_links.dart';
 import 'package:submersion/features/safety/data/repositories/incident_repository.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart';
@@ -155,6 +159,12 @@ class EquipmentRepository {
   /// EquipmentComponentRepository.watchComponentEdgeChanges instead.
   Stream<void> watchEquipmentChanges() =>
       _db.tableUpdates(TableUpdateQuery.onTable(_db.equipment));
+
+  /// Ticks when a dive computer or transmitter record changes, which can
+  /// make an item a device's entry or stop it being one (issue #3676).
+  Stream<void> watchDeviceRecordChanges() => _db.tableUpdates(
+    TableUpdateQuery.onAllTables([_db.diveComputers, _db.transmitters]),
+  );
 
   /// Ticks when any item's attributes change (a cell slot, an install
   /// date). `saveAttributes` and a sync pull write only
@@ -383,6 +393,20 @@ class EquipmentRepository {
         );
       }
       try {
+        await ServiceScheduleRepository().applyBaselines(
+          id,
+          attributeServiceBaselines(current: equipment.attributes),
+          notify: notify,
+        );
+      } catch (e, stackTrace) {
+        _log.error(
+          'Setting service clock baselines from the inspection dates failed '
+          'for equipment $id; the equipment was still created',
+          error: e,
+          stackTrace: stackTrace,
+        );
+      }
+      try {
         await _attachLegacyIntervalClock(id, equipment, notify: notify);
       } catch (e, stackTrace) {
         _log.error(
@@ -445,8 +469,8 @@ class EquipmentRepository {
   }
 
   /// Runs [action] in one database transaction, so an edit built from
-  /// several calls here commits all or nothing. [updateEquipment] writes the
-  /// row, its attributes and the pending mark in separate steps.
+  /// several calls here commits all or nothing. [updateEquipment] is atomic
+  /// on its own; [createEquipment] seeds its clocks outside its writes.
   Future<T> transaction<T>(Future<T> Function() action) =>
       _db.transaction(action);
 
@@ -459,41 +483,66 @@ class EquipmentRepository {
       _log.info('Updating equipment: ${equipment.id}');
       final now = DateTime.now().millisecondsSinceEpoch;
 
-      await (_db.update(
-        _db.equipment,
-      )..where((t) => t.id.equals(equipment.id))).write(
-        EquipmentCompanion(
-          name: Value(equipment.name),
-          type: Value(equipment.type.name),
-          brand: Value(equipment.brand),
-          model: Value(equipment.model),
-          serialNumber: Value(equipment.serialNumber),
-          status: Value(equipment.status.name),
-          purchaseDate: Value(equipment.purchaseDate?.millisecondsSinceEpoch),
-          purchasePrice: Value(equipment.purchasePrice),
-          purchaseCurrency: Value(equipment.purchaseCurrency),
-          lastServiceDate: Value(
-            equipment.lastServiceDate?.millisecondsSinceEpoch,
+      // One transaction: a clock baseline that fails to save must not leave
+      // its date stored, or a retry would see the date as unchanged and
+      // never anchor the clock (issue #3662).
+      await _db.transaction(() async {
+        await (_db.update(
+          _db.equipment,
+        )..where((t) => t.id.equals(equipment.id))).write(
+          EquipmentCompanion(
+            name: Value(equipment.name),
+            type: Value(equipment.type.name),
+            brand: Value(equipment.brand),
+            model: Value(equipment.model),
+            serialNumber: Value(equipment.serialNumber),
+            status: Value(equipment.status.name),
+            purchaseDate: Value(equipment.purchaseDate?.millisecondsSinceEpoch),
+            purchasePrice: Value(equipment.purchasePrice),
+            purchaseCurrency: Value(equipment.purchaseCurrency),
+            lastServiceDate: Value(
+              equipment.lastServiceDate?.millisecondsSinceEpoch,
+            ),
+            serviceIntervalDays: Value(equipment.serviceIntervalDays),
+            notes: Value(equipment.notes),
+            isActive: Value(equipment.isActive),
+            customReminderEnabled: Value(equipment.customReminderEnabled),
+            customReminderDays: Value(
+              equipment.customReminderDays != null
+                  ? jsonEncode(equipment.customReminderDays)
+                  : null,
+            ),
+            parentEquipmentId: Value(equipment.parentEquipmentId),
+            updatedAt: Value(now),
           ),
-          serviceIntervalDays: Value(equipment.serviceIntervalDays),
-          notes: Value(equipment.notes),
-          isActive: Value(equipment.isActive),
-          customReminderEnabled: Value(equipment.customReminderEnabled),
-          customReminderDays: Value(
-            equipment.customReminderDays != null
-                ? jsonEncode(equipment.customReminderDays)
-                : null,
+        );
+        final previous = await saveAttributes(
+          equipment.id,
+          equipment.attributes,
+        );
+        await _syncRepository.markRecordPending(
+          entityType: 'equipment',
+          recordId: equipment.id,
+          localUpdatedAt: now,
+        );
+        // Only a date entered, changed or cleared here moves a clock
+        // (issue #3662).
+        await ServiceScheduleRepository().applyBaselines(
+          equipment.id,
+          attributeServiceBaselines(
+            current: equipment.attributes,
+            previous: previous,
           ),
-          parentEquipmentId: Value(equipment.parentEquipmentId),
-          updatedAt: Value(now),
-        ),
-      );
-      await saveAttributes(equipment.id, equipment.attributes);
-      await _syncRepository.markRecordPending(
-        entityType: 'equipment',
-        recordId: equipment.id,
-        localUpdatedAt: now,
-      );
+          cleared: clearedServiceBaselines(
+            current: equipment.attributes,
+            previous: previous,
+          ),
+          notify: false,
+        );
+        // Inside the save: the device's name and notes move with the item's
+        // (issue #3676).
+        await _mirrorNameToDevices(equipment, now);
+      });
       if (notify) SyncEventBus.notifyLocalChange();
       _log.info('Updated equipment: ${equipment.id}');
     } catch (e, stackTrace) {
@@ -503,6 +552,74 @@ class EquipmentRepository {
         stackTrace: stackTrace,
       );
       rethrow;
+    }
+  }
+
+  /// Whether item [id] is a dive computer's or a transmitter's one entry
+  /// (issue #3676): a device record names it.
+  Future<bool> hasDeviceRecord(String id) async {
+    final computer =
+        await (_db.select(_db.diveComputers)
+              ..where((t) => t.equipmentId.equals(id))
+              ..limit(1))
+            .getSingleOrNull();
+    if (computer != null) return true;
+    final key =
+        await (_db.select(_db.transmitters)
+              ..where((t) => t.transmitterEquipmentId.equals(id))
+              ..limit(1))
+            .getSingleOrNull();
+    return key != null;
+  }
+
+  /// A device's item is its one entry (issue #3676): its name and notes are
+  /// the dive computer's, and its name is the transmitter rows' label, so
+  /// anything that still reads those columns (a data-source label, a tank
+  /// name the registry stamps) shows the same text. Only rows that differ
+  /// are written, and each is staged.
+  Future<void> _mirrorNameToDevices(EquipmentItem item, int now) async {
+    final computers =
+        await (_db.select(_db.diveComputers)..where(
+              (t) =>
+                  t.equipmentId.equals(item.id) &
+                  (t.name.equals(item.name).not() |
+                      t.notes.equals(item.notes).not()),
+            ))
+            .get();
+    for (final c in computers) {
+      await (_db.update(
+        _db.diveComputers,
+      )..where((t) => t.id.equals(c.id))).write(
+        DiveComputersCompanion(
+          name: Value(item.name),
+          notes: Value(item.notes),
+          updatedAt: Value(now),
+        ),
+      );
+      await _syncRepository.markRecordPending(
+        entityType: 'diveComputers',
+        recordId: c.id,
+        localUpdatedAt: now,
+      );
+    }
+    final keys =
+        await (_db.select(_db.transmitters)..where(
+              (t) =>
+                  t.transmitterEquipmentId.equals(item.id) &
+                  t.label.equals(item.name).not(),
+            ))
+            .get();
+    for (final k in keys) {
+      await (_db.update(
+        _db.transmitters,
+      )..where((t) => t.id.equals(k.id))).write(
+        TransmittersCompanion(label: Value(item.name), updatedAt: Value(now)),
+      );
+      await _syncRepository.markRecordPending(
+        entityType: 'transmitters',
+        recordId: k.id,
+        localUpdatedAt: now,
+      );
     }
   }
 
@@ -566,6 +683,23 @@ class EquipmentRepository {
     }
   }
 
+  /// The dive computer and transmitter records an item is the one entry
+  /// for (issue #3676), deleted with it through their own repositories.
+  Future<void> _deleteDevicesOf(String itemId) async {
+    final computers = await (_db.select(
+      _db.diveComputers,
+    )..where((t) => t.equipmentId.equals(itemId))).get();
+    for (final c in computers) {
+      await DiveComputerRepository().deleteComputer(c.id);
+    }
+    final keys = await (_db.select(
+      _db.transmitters,
+    )..where((t) => t.transmitterEquipmentId.equals(itemId))).get();
+    for (final k in keys) {
+      await TransmitterRepository().delete(k.id);
+    }
+  }
+
   /// Delete equipment. Service schedules, service records, assembly
   /// component rows, tag links, shares and share events are first-class
   /// synced children
@@ -580,6 +714,10 @@ class EquipmentRepository {
       // and every step is individually idempotent/tombstoned. Same shape and
       // same reasoning as SiteRepository's media cascade.
       await _cascadeMediaForEquipmentDeletion([id]);
+      // One delete for a device and its item (issue #3676): the dive
+      // computer or transmitter rows behind it go first, each through its
+      // own repository so it is tombstoned and its dives are kept.
+      await _deleteDevicesOf(id);
       await _db.transaction(() async {
         // Its documents go with it, tombstoned (issue #2613).
         await DocumentRepository().deleteForOwner(
@@ -1107,7 +1245,9 @@ class EquipmentRepository {
         WHERE (EXISTS (SELECT 1 FROM dive_equipment de
                        WHERE de.dive_id = d.id AND de.equipment_id = ?1)
             OR EXISTS (SELECT 1 FROM dive_tanks dt
-                       WHERE dt.dive_id = d.id AND dt.equipment_id = ?1))
+                       WHERE dt.dive_id = d.id AND dt.equipment_id = ?1)
+            -- A regulator on a tank, first or extra (#3375).
+            OR d.id IN (${tankRegulatorDiveIdsSql('?1')}))
           AND (?2 IS NULL OR d.diver_id = ?2)
       ''',
             variables: [
@@ -1182,6 +1322,9 @@ class EquipmentRepository {
           SELECT dive_id, o2_percent, 0 FROM dive_tanks
             WHERE equipment_id = ?1 OR regulator_equipment_id = ?1
           UNION ALL
+          SELECT dive_id, o2_percent, 0
+            FROM ($tankExtraRegulatorRowsSql) WHERE regulator_id = ?1
+          UNION ALL
           SELECT de.dive_id, t.o2_percent, 0
             FROM dive_equipment de
             JOIN dive_tanks t ON t.dive_id = de.dive_id
@@ -1206,6 +1349,9 @@ class EquipmentRepository {
           UNION ALL
           SELECT dive_id, o2_percent, 1 FROM dive_tanks
             WHERE equipment_id = ?2 OR regulator_equipment_id = ?2
+          UNION ALL
+          SELECT dive_id, o2_percent, 1
+            FROM ($tankExtraRegulatorRowsSql) WHERE regulator_id = ?2
           UNION ALL
           SELECT de.dive_id, t.o2_percent, 1
             FROM dive_equipment de
@@ -1535,7 +1681,9 @@ class EquipmentRepository {
               '''
         WITH owners(owner_id, parent_id, installed_since, rebreather) AS (
           VALUES $values
-        )
+        ),
+        -- Extra tank regulators (#3375), parsed once for every owner.
+        extra_regs AS ($tankExtraRegulatorRowsSql)
         SELECT je.owner_id AS owner_id,
                d.id AS dive_id,
                -- The dive and its synced series (#1769): the stamp a
@@ -1561,6 +1709,10 @@ class EquipmentRepository {
             FROM owners o
             JOIN dive_tanks t ON t.equipment_id = o.owner_id
               OR t.regulator_equipment_id = o.owner_id
+          UNION ALL
+          SELECT o.owner_id, x.dive_id, x.o2_percent, 0
+            FROM owners o
+            JOIN extra_regs x ON x.regulator_id = o.owner_id
           UNION ALL
           SELECT o.owner_id, de.dive_id, t.o2_percent, 0
             FROM owners o
@@ -1588,6 +1740,10 @@ class EquipmentRepository {
             FROM owners o
             JOIN dive_tanks t ON t.equipment_id = o.parent_id
               OR t.regulator_equipment_id = o.parent_id
+          UNION ALL
+          SELECT o.owner_id, x.dive_id, x.o2_percent, 1
+            FROM owners o
+            JOIN extra_regs x ON x.regulator_id = o.parent_id
           UNION ALL
           SELECT o.owner_id, de.dive_id, t.o2_percent, 1
             FROM owners o
@@ -1664,36 +1820,67 @@ class EquipmentRepository {
     return earliest;
   }
 
-  /// The regulator last paired with a cylinder preset, for prefilling the
-  /// tank editor: the newest dive whose tank of that preset names one.
-  /// Operational, not descriptive: an excluded dive still tells us which
-  /// regulator the diver hangs on that cylinder. Only a regulator still in
-  /// the kit, by the same test as [getActiveEquipment]: prefilling a new
-  /// tank with one since retired or sold would put it back in use (#3210).
+  /// The regulators last paired with a cylinder preset, for prefilling the
+  /// tank editor: the first and the extras (issue #3375) of the newest tank
+  /// of that preset that names one still in the kit, in order. Operational,
+  /// not descriptive: an excluded dive still tells us which regulators the
+  /// diver hangs on that cylinder. Only regulators still in the kit, by the
+  /// same test as [getActiveEquipment]: prefilling a new tank with one since
+  /// retired or sold would put it back in use (#3210).
   // stats-scope-exempt: editor prefill, not a statistic
-  Future<String?> getLastRegulatorForPreset(String presetName) async {
-    final rows = await _db
+  Future<List<String>> getLastRegulatorsForPreset(String presetName) async {
+    const inKit = '''
+      e.is_active = 1 AND e.status NOT IN (?2, ?3, ?4)
+    ''';
+    final kitVars = [
+      Variable.withString(EquipmentStatus.retired.name),
+      Variable.withString(EquipmentStatus.sold.name),
+      Variable.withString(EquipmentStatus.wanted.name),
+    ];
+    final tank = await _db
         .customSelect(
           '''
-      SELECT t.regulator_equipment_id AS reg
+      SELECT t.regulator_equipment_id AS reg, t.extra_regulator_ids AS extras
       FROM dive_tanks t
       JOIN dives d ON d.id = t.dive_id
-      JOIN equipment e ON e.id = t.regulator_equipment_id
       WHERE t.preset_name = ?1
-        AND e.is_active = 1
-        AND e.status NOT IN (?2, ?3, ?4)
+        AND (EXISTS (SELECT 1 FROM equipment e
+                     WHERE e.id = t.regulator_equipment_id AND $inKit)
+          OR EXISTS (SELECT 1 FROM json_each(${tankExtraRegulatorsJson('t')}) j
+                     JOIN equipment e ON e.id = j.value WHERE $inKit))
       ORDER BY d.dive_date_time DESC
       LIMIT 1
     ''',
-          variables: [
-            Variable.withString(presetName),
-            Variable.withString(EquipmentStatus.retired.name),
-            Variable.withString(EquipmentStatus.sold.name),
-            Variable.withString(EquipmentStatus.wanted.name),
-          ],
+          variables: [Variable.withString(presetName), ...kitVars],
         )
-        .get();
-    return rows.isEmpty ? null : rows.first.data['reg'] as String?;
+        .getSingleOrNull();
+    if (tank == null) return const [];
+    final named = normalizeTankRegulators(
+      tank.readNullable<String>('reg'),
+      decodeExtraRegulatorIds(tank.readNullable<String>('extras')),
+    );
+    final ids = [?named.first, ...named.extras];
+    // The same variables as the tank pick, so the same in-kit test reads
+    // ?2-?4; the ids follow from ?5.
+    final marks = [for (var i = 0; i < ids.length; i++) '?${i + 5}'].join(', ');
+    final kept = {
+      for (final r
+          in await _db
+              .customSelect(
+                'SELECT e.id FROM equipment e WHERE e.id IN ($marks) AND $inKit',
+                variables: [
+                  Variable.withString(presetName),
+                  ...kitVars,
+                  for (final id in ids) Variable.withString(id),
+                ],
+              )
+              .get())
+        r.read<String>('id'),
+    };
+    return [
+      for (final id in ids)
+        if (kept.contains(id)) id,
+    ];
   }
 
   /// Get trip count for equipment item (unique trips from dives using this equipment)
@@ -1865,7 +2052,9 @@ class EquipmentRepository {
   /// edit form shows only its type's fields and may have been opened before
   /// a synced id arrived, and neither is a reason to drop the tag's
   /// identity. The passport repository passes false to release a tag.
-  Future<void> saveAttributes(
+  ///
+  /// Returns the attributes as they were before the write.
+  Future<List<EquipmentAttribute>> saveAttributes(
     String equipmentId,
     List<EquipmentAttribute> desired, {
     bool preserveSystem = true,
@@ -1945,5 +2134,6 @@ class EquipmentRepository {
         localUpdatedAt: now,
       );
     }
+    return existingRows.map(_mapAttributeRow).toList();
   }
 }

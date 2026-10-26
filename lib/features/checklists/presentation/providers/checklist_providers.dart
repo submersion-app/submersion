@@ -3,7 +3,11 @@ import 'package:submersion/features/checklists/data/repositories/checklist_templ
 import 'package:submersion/features/checklists/data/repositories/trip_checklist_repository.dart';
 import 'package:submersion/features/checklists/domain/entities/checklist_template.dart'
     as domain;
+import 'package:submersion/features/checklists/domain/entities/checklist_template_section.dart'
+    as domain;
 import 'package:submersion/features/checklists/domain/entities/trip_checklist_item.dart'
+    as domain;
+import 'package:submersion/features/checklists/domain/entities/trip_checklist_section.dart'
     as domain;
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
@@ -47,6 +51,17 @@ final checklistTemplateItemsProvider =
       return repository.getItemsForTemplate(templateId);
     });
 
+/// Sections of a template, ordered by sortOrder.
+final checklistTemplateSectionsProvider =
+    FutureProvider.family<List<domain.ChecklistTemplateSection>, String>((
+      ref,
+      templateId,
+    ) async {
+      final repository = ref.watch(checklistTemplateRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchTemplatesChanges());
+      return repository.getSectionsForTemplate(templateId);
+    });
+
 /// A trip's checklist items, ordered by sortOrder. Self-invalidates on
 /// table changes so sync-applied edits render live.
 final tripChecklistProvider =
@@ -57,6 +72,18 @@ final tripChecklistProvider =
       final repository = ref.watch(tripChecklistRepositoryProvider);
       ref.invalidateSelfWhen(repository.watchTripChecklistChanges());
       return repository.getByTripId(tripId);
+    });
+
+/// A trip's checklist sections, ordered by sortOrder. Self-invalidates on
+/// table changes so sync-applied edits render live.
+final tripChecklistSectionsProvider =
+    FutureProvider.family<List<domain.TripChecklistSection>, String>((
+      ref,
+      tripId,
+    ) async {
+      final repository = ref.watch(tripChecklistRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchTripChecklistSectionChanges());
+      return repository.getSectionsForTrip(tripId);
     });
 
 /// Done/total progress for a trip's checklist.

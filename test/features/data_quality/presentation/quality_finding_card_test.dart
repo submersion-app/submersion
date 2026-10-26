@@ -215,6 +215,37 @@ void main() {
     });
   });
 
+  group('source clock offset (#3655)', () {
+    final finding = _finding(
+      detectorId: 'clock_offset',
+      params: const {'offsetHours': 1, 'sourceId': 's2'},
+    );
+
+    testWidgets('leads with fixing the computer, logbook shift second', (
+      tester,
+    ) async {
+      final repaired = <QualityRepairAction>[];
+      await pumpCard(tester, finding: finding, onRepair: repaired.add);
+
+      final primary = find.byType(FilledButton);
+      expect(
+        find.descendant(
+          of: primary,
+          matching: find.text("Fix this computer's clock by -1 h"),
+        ),
+        findsOneWidget,
+      );
+      await tester.tap(primary);
+      await tester.pumpAndSettle();
+      expect(repaired.single, isA<SourceClockShiftRepair>());
+
+      await toggleExpand(tester);
+      await tester.tap(find.text('Shift logbook time by +1 h'));
+      await tester.pumpAndSettle();
+      expect(repaired.last, isA<TimeShiftRepair>());
+    });
+  });
+
   group('no-automatic-fix note', () {
     // A card with no repair button used to render as a bare row, which reads
     // as a broken button rather than a deliberate judgment call (issue #1035).

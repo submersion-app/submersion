@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/accounts/account_kind.dart';
+import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 import 'package:submersion/features/backup/domain/entities/backup_settings.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
@@ -47,12 +49,10 @@ void main() {
         mode: SetupWizardMode.firstRun,
         path: SetupPath.fresh,
         name: 'Eric',
-        backupEnabled: true,
-        backupFrequency: BackupFrequency.daily,
       );
       final imperialDraft = draft.applyingUnitPreset(UnitPreset.imperial);
 
-      await service.applyFirstRun(imperialDraft);
+      expect(await service.applyFirstRun(imperialDraft), FirstRunApply.created);
 
       final divers = await DiverRepository().getAllDivers();
       expect(divers, hasLength(1));
@@ -71,13 +71,84 @@ void main() {
 
       // Current diver persisted to prefs.
       expect(prefs.getString(currentDiverIdKey), divers.single.id);
-
-      // Backup schedule applied.
-      final backup = container.read(backupSettingsProvider);
-      expect(backup.enabled, isTrue);
-      expect(backup.frequency, BackupFrequency.daily);
     },
   );
+
+  // Issue #3482 phase 7 (spec 6.6): Finish creates the diver only when the
+  // device has none once the steps are done, and the steps own backups.
+  group('Finish after the set up steps', () {
+    const base = SetupWizardDraft(
+      mode: SetupWizardMode.firstRun,
+      path: SetupPath.fresh,
+      name: 'Eric',
+    );
+
+    Future<void> pinCopyTo(String id) async {
+      final backup = BackupPreferences(prefs);
+      await backup.setEnabled(true);
+      await backup.setCloudBackupEnabled(true);
+      await backup.setCopyDestination(accountId: id, kind: AccountKind.dropbox);
+    }
+
+    test(
+      'creates the diver when the device has none after a download',
+      () async {
+        final container = makeContainer();
+
+        final result = await container
+            .read(setupApplyServiceProvider)
+            .applyFirstRun(base);
+
+        expect(result, FirstRunApply.created);
+        expect(await DiverRepository().getAllDivers(), hasLength(1));
+      },
+    );
+
+    test("keeps the library's divers", () async {
+      final now = DateTime(2026, 10, 25);
+      await DiverRepository().createDiver(
+        Diver(
+          id: '',
+          name: 'Library diver',
+          isDefault: true,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+      final container = makeContainer();
+
+      final result = await container
+          .read(setupApplyServiceProvider)
+          .applyFirstRun(base);
+
+      expect(result, FirstRunApply.keptExisting);
+      final divers = await DiverRepository().getAllDivers();
+      expect(divers.map((d) => d.name), ['Library diver']);
+    });
+
+    test('asks for a name when there is no diver and no name', () async {
+      final container = makeContainer();
+
+      final result = await container
+          .read(setupApplyServiceProvider)
+          .applyFirstRun(base.copyWith(name: ''));
+
+      expect(result, FirstRunApply.needsName);
+      expect(await DiverRepository().getAllDivers(), isEmpty);
+    });
+
+    test('leaves the backups the steps chose as they are', () async {
+      await pinCopyTo('acct-b');
+      final container = makeContainer();
+
+      await container.read(setupApplyServiceProvider).applyFirstRun(base);
+
+      final s = BackupPreferences(prefs).getSettings();
+      expect(s.enabled, isTrue);
+      expect(s.cloudBackupEnabled, isTrue);
+      expect(s.copyAccountId, 'acct-b');
+    });
+  });
 
   // Issue #3111. The app language defaults to the device's, but place names
   // defaulted to English, so a German install stored "Germany" and "Spain".
@@ -152,18 +223,6 @@ void main() {
   });
 
   test(
-    'applyFirstRun with empty name throws ArgumentError and writes nothing',
-    () async {
-      final container = makeContainer();
-      final service = container.read(setupApplyServiceProvider);
-      const draft = SetupWizardDraft(mode: SetupWizardMode.firstRun);
-
-      await expectLater(service.applyFirstRun(draft), throwsArgumentError);
-      expect(await DiverRepository().getAllDivers(), isEmpty);
-    },
-  );
-
-  test(
     'applySettingsMode updates the current diver via existing setters',
     () async {
       final container = makeContainer();
@@ -212,37 +271,28 @@ void main() {
     },
   );
 
-  test(
-    'settings-mode draft seeds live backup state; Finish preserves it',
-    () async {
-      // A backup schedule is already enabled before the wizard opens.
-      SharedPreferences.setMockInitialValues({
-        'backup_enabled': true,
-        'backup_frequency': 'daily',
-      });
-      final seededPrefs = await SharedPreferences.getInstance();
-      final container = ProviderContainer(
-        overrides: [sharedPreferencesProvider.overrideWithValue(seededPrefs)],
-      );
-      addTearDown(container.dispose);
+  test('settings-mode Finish leaves backups as they are', () async {
+    SharedPreferences.setMockInitialValues({
+      'backup_enabled': true,
+      'backup_frequency': 'daily',
+      'backup_cloud_enabled': true,
+      'backup_copy_account_id': 'acct-b',
+      'backup_copy_account_kind': AccountKind.dropbox.name,
+    });
+    final seededPrefs = await SharedPreferences.getInstance();
+    final container = ProviderContainer(
+      overrides: [sharedPreferencesProvider.overrideWithValue(seededPrefs)],
+    );
+    addTearDown(container.dispose);
+    await container.read(settingsProvider.notifier).initialLoad;
 
-      await container.read(settingsProvider.notifier).initialLoad;
+    final draft = container.read(setupWizardProvider(SetupWizardMode.settings));
+    await container.read(setupApplyServiceProvider).applySettingsMode(draft);
 
-      // The re-entry draft must mirror the live schedule, not defaults.
-      final draft = container.read(
-        setupWizardProvider(SetupWizardMode.settings),
-      );
-      expect(draft.backupEnabled, isTrue);
-      expect(draft.backupFrequency, BackupFrequency.daily);
-
-      // Applying an untouched settings-mode draft must not disable backups
-      // (regression: seeding defaults here silently turned them off).
-      await container.read(setupApplyServiceProvider).applySettingsMode(draft);
-      expect(container.read(backupSettingsProvider).enabled, isTrue);
-      expect(
-        container.read(backupSettingsProvider).frequency,
-        BackupFrequency.daily,
-      );
-    },
-  );
+    final backup = container.read(backupSettingsProvider);
+    expect(backup.enabled, isTrue);
+    expect(backup.frequency, BackupFrequency.daily);
+    expect(backup.cloudBackupEnabled, isTrue);
+    expect(backup.copyAccountId, 'acct-b');
+  });
 }

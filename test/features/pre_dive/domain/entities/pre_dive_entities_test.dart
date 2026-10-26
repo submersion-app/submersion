@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_template.dart';
+import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_template_section.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_session.dart';
 
 void main() {
@@ -83,7 +84,7 @@ void main() {
       final full = PreDiveSessionItem(
         id: 'i1',
         sessionId: 's1',
-        section: 'Gear',
+        sectionId: 'sec1',
         title: 'Old Reg',
         itemType: PreDiveItemType.value,
         valueLabel: 'mV',
@@ -98,7 +99,7 @@ void main() {
         updatedAt: now,
       );
       final cleared = full.copyWith(
-        section: null,
+        sectionId: null,
         valueLabel: null,
         valueUnit: null,
         valueMin: null,
@@ -108,7 +109,7 @@ void main() {
         completedAt: null,
         equipmentId: null,
       );
-      expect(cleared.section, isNull);
+      expect(cleared.sectionId, isNull);
       expect(cleared.valueLabel, isNull);
       expect(cleared.valueUnit, isNull);
       expect(cleared.valueMin, isNull);
@@ -125,6 +126,22 @@ void main() {
       expect(item(v: 9.0), item(v: 9.0));
       expect(item(v: 9.0).hashCode, item(v: 9.0).hashCode);
       expect(item(v: 9.0) == item(v: 10.0), isFalse);
+    });
+  });
+
+  group('PreDiveSessionSection', () {
+    PreDiveSessionSection section({int sortOrder = 0}) => PreDiveSessionSection(
+      id: 'sec1',
+      sessionId: 's1',
+      title: 'Cells',
+      sortOrder: sortOrder,
+      createdAt: now,
+      updatedAt: now,
+    );
+
+    test('equatable compares every field', () {
+      expect(section(), equals(section()));
+      expect(section(), isNot(equals(section(sortOrder: 1))));
     });
   });
 
@@ -170,7 +187,7 @@ void main() {
     PreDiveChecklistTemplateItem tItem() => PreDiveChecklistTemplateItem(
       id: 'ti1',
       templateId: 't1',
-      section: 'Gear',
+      sectionId: 'sec1',
       title: 'Cell mV',
       notes: 'check both cells',
       sortOrder: 2,
@@ -192,14 +209,14 @@ void main() {
       expect(moved.templateId, 't1');
 
       final cleared = tItem().copyWith(
-        section: null,
+        sectionId: null,
         valueLabel: null,
         valueUnit: null,
         valueMin: null,
         valueMax: null,
         equipmentId: null,
       );
-      expect(cleared.section, isNull);
+      expect(cleared.sectionId, isNull);
       expect(cleared.valueLabel, isNull);
       expect(cleared.valueUnit, isNull);
       expect(cleared.valueMin, isNull);
@@ -212,6 +229,31 @@ void main() {
       expect(tItem(), tItem());
       expect(tItem().hashCode, tItem().hashCode);
       expect(tItem() == tItem().copyWith(sortOrder: 9), isFalse);
+    });
+  });
+
+  group('PreDiveChecklistTemplateSection', () {
+    PreDiveChecklistTemplateSection section({int sortOrder = 0}) =>
+        PreDiveChecklistTemplateSection(
+          id: 's1',
+          templateId: 't1',
+          title: 'Cells',
+          sortOrder: sortOrder,
+          createdAt: now,
+          updatedAt: now,
+        );
+
+    test('equatable compares every field', () {
+      expect(section(), equals(section()));
+      expect(section(), isNot(equals(section().copyWith(title: 'Gas'))));
+      expect(section(), isNot(equals(section(sortOrder: 1))));
+    });
+
+    test('copyWith keeps unspecified fields', () {
+      final renamed = section().copyWith(title: 'O2 Cells');
+      expect(renamed.title, 'O2 Cells');
+      expect(renamed.id, 's1');
+      expect(renamed.sortOrder, 0);
     });
   });
 

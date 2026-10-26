@@ -1,11 +1,17 @@
 #include "submersion_transcoder_plugin.h"
 
+#include "color_encoder.h"
+
 #include <winrt/Windows.Foundation.h>
+#include <winrt/Windows.Foundation.Collections.h>
+#include <winrt/Windows.Graphics.Imaging.h>
+#include <winrt/Windows.Media.Editing.h>
 #include <winrt/Windows.Media.MediaProperties.h>
 #include <winrt/Windows.Media.Transcoding.h>
 #include <winrt/Windows.Storage.h>
 #include <winrt/Windows.Storage.FileProperties.h>
 #include <winrt/Windows.Storage.Search.h>
+#include <winrt/Windows.Storage.Streams.h>
 
 #include <flutter/event_stream_handler_functions.h>
 #include <flutter/method_channel.h>
@@ -19,6 +25,7 @@
 #include <string>
 #include <thread>
 #include <utility>
+#include <vector>
 
 namespace submersion_transcoder {
 
@@ -88,6 +95,66 @@ void ProbeOnWorker(
   } catch (...) {
     result->Success(EncodableValue());
   }
+}
+
+// Reads JPEG frames at each time in `times_ms` on a worker thread, for the
+// app's per-moment colour correction (issue #3520). Read-only. Responds with
+// one entry per time: the JPEG bytes, or null for a time that failed (or for
+// every time when the file cannot be opened as a video).
+void ExtractFramesOnWorker(
+    std::string path, std::vector<int32_t> times_ms, int32_t max_dimension,
+    bool exact,
+    std::shared_ptr<flutter::MethodResult<EncodableValue>> result) {
+  namespace WME = winrt::Windows::Media::Editing;
+  namespace WSS = winrt::Windows::Storage::Streams;
+  flutter::EncodableList frames(times_ms.size(), EncodableValue());
+  try {
+    winrt::init_apartment(winrt::apartment_type::multi_threaded);
+    auto file = winrt::Windows::Storage::StorageFile::GetFileFromPathAsync(
+                    winrt::hstring(Wide(path)))
+                    .get();
+    auto clip = WME::MediaClip::CreateFromFileAsync(file).get();
+    WME::MediaComposition composition;
+    composition.Clips().Append(clip);
+    // Only the width is asked for: with one dimension GetThumbnailAsync
+    // keeps the composition's own aspect ratio. The encoding properties are
+    // the stored (unrotated) size, so asking for both would squash a
+    // portrait phone clip stored landscape with a rotation tag. The width
+    // that fits the stored size inside max_dimension square; a frame that
+    // comes back portrait is taller than that, never distorted.
+    auto props = clip.GetVideoEncodingProperties();
+    const double w = props.Width() > 0 ? props.Width() : 16.0;
+    const double h = props.Height() > 0 ? props.Height() : 9.0;
+    const double scale = static_cast<double>(max_dimension) / (w > h ? w : h);
+    const int32_t out_w = static_cast<int32_t>(w * scale) > 0
+                              ? static_cast<int32_t>(w * scale)
+                              : 1;
+    for (size_t i = 0; i < times_ms.size(); ++i) {
+      try {
+        const winrt::Windows::Foundation::TimeSpan at{
+            std::chrono::milliseconds(times_ms[i])};
+        // A nearby keyframe is close enough for colour statistics, and far
+        // faster; a white-point pick needs the paused frame itself.
+        auto stream = composition
+                          .GetThumbnailAsync(
+                              at, out_w, 0,
+                              exact ? WME::VideoFramePrecision::NearestFrame
+                                    : WME::VideoFramePrecision::NearestKeyFrame)
+                          .get();
+        const auto size = static_cast<uint32_t>(stream.Size());
+        WSS::DataReader reader(stream);
+        reader.LoadAsync(size).get();
+        std::vector<uint8_t> bytes(size);
+        reader.ReadBytes(bytes);
+        frames[i] = EncodableValue(bytes);
+      } catch (...) {
+        frames[i] = EncodableValue();
+      }
+    }
+  } catch (...) {
+    // Not a readable video here: every frame stays null.
+  }
+  result->Success(EncodableValue(frames));
 }
 
 // Transcodes on a worker thread. Progress is routed through `dispatcher`, which
@@ -243,9 +310,11 @@ SubmersionTranscoderPlugin::SubmersionTranscoderPlugin(
     flutter::PluginRegistrarWindows* registrar)
     : registrar_(registrar) {
   // The transcode worker signals progress with PostMessage to the platform
-  // window; capture its HWND so ProgressDispatcher::Emit can reach it.
+  // window; capture its HWND so ProgressDispatcher::Emit can reach it. The
+  // view's own HWND is a child window, and the delegate below only sees
+  // messages sent to the top-level one, so post to the root window.
   if (auto* view = registrar_->GetView()) {
-    dispatcher_->SetWindow(view->GetNativeWindow());
+    dispatcher_->SetWindow(GetAncestor(view->GetNativeWindow(), GA_ROOT));
   }
   // Drain queued progress on the platform thread whenever the worker signals.
   window_proc_delegate_id_ = registrar_->RegisterTopLevelWindowProcDelegate(
@@ -289,6 +358,172 @@ void SubmersionTranscoderPlugin::HandleMethodCall(
     std::shared_ptr<flutter::MethodResult<EncodableValue>> shared(
         std::move(result));
     std::thread(ProbeOnWorker, *path, shared).detach();
+    return;
+  }
+  if (method == "extractFrames") {
+    const auto* args = std::get_if<EncodableMap>(method_call.arguments());
+    const std::string* path = nullptr;
+    const flutter::EncodableList* times = nullptr;
+    int32_t max_dimension = 160;
+    bool exact = false;
+    if (args) {
+      auto e = args->find(EncodableValue("exact"));
+      if (e != args->end()) {
+        if (const auto* v = std::get_if<bool>(&e->second)) exact = *v;
+      }
+      auto p = args->find(EncodableValue("path"));
+      if (p != args->end()) path = std::get_if<std::string>(&p->second);
+      auto t = args->find(EncodableValue("timesMs"));
+      if (t != args->end()) {
+        times = std::get_if<flutter::EncodableList>(&t->second);
+      }
+      auto m = args->find(EncodableValue("maxDimension"));
+      if (m != args->end()) {
+        if (const auto* v = std::get_if<int32_t>(&m->second)) {
+          max_dimension = *v < 16 ? 16 : (*v > 2048 ? 2048 : *v);
+        }
+      }
+    }
+    if (!path || !times) {
+      result->Success(EncodableValue());
+      return;
+    }
+    std::vector<int32_t> times_ms;
+    for (const auto& value : *times) {
+      if (const auto* ms = std::get_if<int32_t>(&value)) {
+        times_ms.push_back(*ms);
+      } else if (const auto* ms64 = std::get_if<int64_t>(&value)) {
+        times_ms.push_back(static_cast<int32_t>(*ms64));
+      } else {
+        times_ms.push_back(0);
+      }
+    }
+    std::shared_ptr<flutter::MethodResult<EncodableValue>> shared(
+        std::move(result));
+    std::thread(ExtractFramesOnWorker, *path, times_ms, max_dimension, exact,
+                shared)
+        .detach();
+    return;
+  }
+  if (method == "encodeWithColor") {
+    const auto* args = std::get_if<EncodableMap>(method_call.arguments());
+    auto get = [&](const char* k) -> const EncodableValue* {
+      if (!args) return nullptr;
+      auto it = args->find(EncodableValue(k));
+      return it == args->end() ? nullptr : &it->second;
+    };
+    const auto* source = get("source") ? std::get_if<std::string>(get("source"))
+                                       : nullptr;
+    const auto* output = get("output") ? std::get_if<std::string>(get("output"))
+                                       : nullptr;
+    const auto* progress_id =
+        get("progressId") ? std::get_if<std::string>(get("progressId"))
+                          : nullptr;
+    const auto* timeline =
+        get("timeline") ? std::get_if<flutter::EncodableList>(get("timeline"))
+                        : nullptr;
+    if (!source || !output || !progress_id || !timeline) {
+      result->Error("bad_args",
+                    "encodeWithColor requires: source, output, timeline, "
+                    "progressId");
+      return;
+    }
+    auto number = [](const EncodableValue& v) -> double {
+      if (const auto* d = std::get_if<double>(&v)) return *d;
+      if (const auto* i = std::get_if<int32_t>(&v)) return *i;
+      if (const auto* l = std::get_if<int64_t>(&v)) return static_cast<double>(*l);
+      return 0;
+    };
+    std::vector<TimelineKey> keys;
+    for (const auto& entry : *timeline) {
+      const auto* map = std::get_if<EncodableMap>(&entry);
+      if (!map) continue;
+      auto t = map->find(EncodableValue("t"));
+      auto m = map->find(EncodableValue("m"));
+      if (t == map->end() || m == map->end()) continue;
+      const auto* values = std::get_if<flutter::EncodableList>(&m->second);
+      if (!values || values->size() != 20) continue;
+      TimelineKey key;
+      key.time_ms = number(t->second);
+      for (size_t i = 0; i < 20; ++i) {
+        key.matrix[i] = static_cast<float>(number((*values)[i]));
+      }
+      keys.push_back(key);
+    }
+    auto flag = std::make_shared<EncodeState>();
+    {
+      std::lock_guard<std::mutex> lock(cancel_flags_->mutex);
+      cancel_flags_->flags[*progress_id] = flag;
+    }
+    std::shared_ptr<flutter::MethodResult<EncodableValue>> shared(
+        std::move(result));
+    std::thread([source = *source, output = *output, id = *progress_id, keys,
+                 flag, flags = cancel_flags_, dispatcher = dispatcher_,
+                 shared] {
+      const ColorEncodeResult outcome = EncodeWithColor(
+          Wide(source), Wide(output), keys,
+          [&](double fraction) {
+            flag->fraction.store(fraction);
+            dispatcher->Emit(EncodableValue(EncodableMap{
+                {EncodableValue("progressId"), EncodableValue(id)},
+                {EncodableValue("fraction"), EncodableValue(fraction)},
+            }));
+          },
+          flag->cancelled);
+      {
+        std::lock_guard<std::mutex> lock(flags->mutex);
+        flags->flags.erase(id);
+      }
+      switch (outcome.outcome) {
+        case ColorEncodeOutcome::kOk:
+          shared->Success(EncodableValue());
+          break;
+        case ColorEncodeOutcome::kCancelled:
+          shared->Error("cancelled", outcome.message);
+          break;
+        case ColorEncodeOutcome::kUnsupported:
+          shared->Error("unsupported", outcome.message);
+          break;
+        case ColorEncodeOutcome::kFailed:
+          shared->Error("transcode_failed", outcome.message);
+          break;
+      }
+    }).detach();
+    return;
+  }
+  if (method == "colorEncodeProgress") {
+    const auto* args = std::get_if<EncodableMap>(method_call.arguments());
+    if (args) {
+      auto it = args->find(EncodableValue("progressId"));
+      if (it != args->end()) {
+        if (const auto* id = std::get_if<std::string>(&it->second)) {
+          std::lock_guard<std::mutex> lock(cancel_flags_->mutex);
+          auto found = cancel_flags_->flags.find(*id);
+          if (found != cancel_flags_->flags.end()) {
+            result->Success(EncodableValue(found->second->fraction.load()));
+            return;
+          }
+        }
+      }
+    }
+    result->Success(EncodableValue());
+    return;
+  }
+  if (method == "cancelEncode") {
+    const auto* args = std::get_if<EncodableMap>(method_call.arguments());
+    if (args) {
+      auto it = args->find(EncodableValue("progressId"));
+      if (it != args->end()) {
+        if (const auto* id = std::get_if<std::string>(&it->second)) {
+          std::lock_guard<std::mutex> lock(cancel_flags_->mutex);
+          auto found = cancel_flags_->flags.find(*id);
+          if (found != cancel_flags_->flags.end()) {
+            found->second->cancelled.store(true);
+          }
+        }
+      }
+    }
+    result->Success(EncodableValue());
     return;
   }
   if (method == "transcode") {

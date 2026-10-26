@@ -4,6 +4,7 @@ import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/constants/tank_presets.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/export/csv/codec/tank_capacity.dart';
 import 'package:submersion/core/utils/number_input.dart';
@@ -14,10 +15,13 @@ import 'package:submersion/features/dive_planner/domain/entities/plan_result.dar
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/plan_saved_tanks_bar.dart';
+import 'package:submersion/features/dive_planner/presentation/widgets/plan_tank_chip.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     show PlanMode;
 import 'package:submersion/features/planner/domain/services/dive_plan_state_mapper.dart';
+import 'package:submersion/features/planner/domain/services/tank_mod.dart';
 import 'package:submersion/features/planner/domain/services/tank_role_resolver.dart';
+import 'package:submersion/features/planner/presentation/widgets/tank_mod_field.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/number_field.dart';
@@ -164,6 +168,7 @@ class PlanTankList extends ConsumerWidget {
     List<DiveTank> tanks,
   ) {
     final isCcr = planState.mode == PlanMode.ccr;
+    final limits = _modLimits(planState, units);
     return Wrap(
       spacing: 8,
       runSpacing: 8,
@@ -172,10 +177,24 @@ class PlanTankList extends ConsumerWidget {
             isCcr &&
             (tank.role == TankRole.diluent ||
                 tank.role == TankRole.oxygenSupply);
-        return _TankChip(
+        final role = roles[tank.id] ?? tank.role;
+        final modCheck = modOverrideCheck(
+          tank.copyWith(role: role),
+          bottomPpO2: limits.bottom,
+          decoPpO2: limits.deco,
+          diluentPpO2: limits.diluent,
+        );
+        return PlanTankChip(
           tank: tank,
-          role: roles[tank.id] ?? tank.role,
+          role: role,
           units: units,
+          modLabel: switch (tank.decoSwitchDepth) {
+            final depth? => context.l10n.tankMod_chip(
+              units.formatDepth(depth, decimals: 0),
+            ),
+            null => null,
+          },
+          modExceedsLimit: modCheck?.exceedsLimit ?? false,
           roleBadge: isLoopSlot ? tank.role.localizedName(context.l10n) : null,
           onEdit: () => _showEditTankDialog(context, ref, tank, units),
           onDelete: _canDelete(planState, tank)
@@ -197,6 +216,7 @@ class PlanTankList extends ConsumerWidget {
       context: context,
       builder: (context) => _TankEditDialog(
         units: units,
+        modLimits: _modLimits(ref.read(divePlanNotifierProvider), units),
         mode: ref.read(divePlanNotifierProvider).mode,
         bestMix: ref.read(planBestMixProvider),
         resolveRole: _roleResolverFor(ref),
@@ -220,6 +240,7 @@ class PlanTankList extends ConsumerWidget {
       builder: (context) => _TankEditDialog(
         tank: tank,
         units: units,
+        modLimits: _modLimits(planState, units),
         mode: planState.mode,
         lockedOxygenSlot: isCcr && tank.role == TankRole.oxygenSupply,
         isOnlyDiluent:
@@ -239,6 +260,18 @@ class PlanTankList extends ConsumerWidget {
   }
 }
 
+/// The ppO2 limits each tank's default MOD is worked out at (issue #3567):
+/// the plan's own, falling back to the diver's settings, as the plan engine
+/// resolves them.
+({double bottom, double deco, double diluent}) _modLimits(
+  DivePlanState state,
+  UnitFormatter units,
+) => (
+  bottom: state.ppO2Bottom ?? units.settings.ppO2MaxWorking,
+  deco: state.ppO2Deco ?? units.settings.ppO2MaxDeco,
+  diluent: units.settings.ccrDiluentModPpO2,
+);
+
 /// The role [TankRoleResolver] would give a cylinder, as the dialog has it
 /// so far, once saved into the current plan: in place of the tank with its
 /// id, or added to the end when it is new.
@@ -256,83 +289,12 @@ TankRole Function(DiveTank provisional) _roleResolverFor(WidgetRef ref) {
   };
 }
 
-class _TankChip extends StatelessWidget {
-  final DiveTank tank;
-
-  /// The role the plan derives for [tank], shown as the avatar glyph.
-  final TankRole role;
-  final UnitFormatter units;
-  final VoidCallback onEdit;
-  final VoidCallback? onDelete;
-
-  /// The loop role printed ahead of the pressure line on a CCR plan's
-  /// diluent and oxygen chips, so a named cylinder still says which slot it
-  /// fills (#3220). Null on every other chip.
-  final String? roleBadge;
-
-  const _TankChip({
-    required this.tank,
-    required this.role,
-    required this.units,
-    required this.onEdit,
-    this.onDelete,
-    this.roleBadge,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    final tankSize = units.formatTankVolume(tank.volume, tank.workingPressure);
-    final roleName = role.localizedName(context.l10n);
-    // The avatar shows the role, not the gas initial it used to, so a named
-    // cylinder carries its gas on the second line; an unnamed one is already
-    // titled by its gas.
-    final gas = tank.name == null ? null : tank.gasMix.name;
-    final details = [?gas, units.formatPressure(tank.startPressure), tankSize];
-    // The screen-reader label already names the role, so the loop-slot badge
-    // is added to the visible line only.
-    final tankLabel = [
-      tank.name ?? tank.gasMix.name,
-      roleName,
-      ...details,
-    ].join(', ');
-
-    return Semantics(
-      label: tankLabel,
-      child: InputChip(
-        avatar: CircleAvatar(
-          backgroundColor: theme.colorScheme.primaryContainer,
-          child: ExcludeSemantics(
-            child: Icon(
-              role.icon,
-              size: 16,
-              color: theme.colorScheme.onPrimaryContainer,
-            ),
-          ),
-        ),
-        label: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(tank.name ?? tank.gasMix.name),
-            Text(
-              [?roleBadge, ...details].join(' • '),
-              style: theme.textTheme.bodySmall,
-            ),
-          ],
-        ),
-        onPressed: onEdit,
-        deleteIcon: onDelete != null ? const Icon(Icons.close, size: 18) : null,
-        onDeleted: onDelete,
-      ),
-    );
-  }
-}
-
 class _TankEditDialog extends StatefulWidget {
   final DiveTank? tank;
   final UnitFormatter units;
+
+  /// The ppO2 limits the tank's default MOD is worked out at (#3567).
+  final ({double bottom, double deco, double diluent}) modLimits;
 
   /// The plan's breathing mode. Only a loop plan can carry bailout gas, so
   /// the diluent flag is offered there and nowhere else.
@@ -363,6 +325,7 @@ class _TankEditDialog extends StatefulWidget {
   const _TankEditDialog({
     this.tank,
     required this.units,
+    required this.modLimits,
     required this.mode,
     this.lockedOxygenSlot = false,
     this.isOnlyDiluent = false,
@@ -388,6 +351,9 @@ class _TankEditDialogState extends State<_TankEditDialog> {
   late final String _tankId = widget.tank?.id ?? _uuid.v4();
   bool _isTravelGas = false;
   bool _isDiluent = false;
+
+  /// The MOD set by hand in metres, or null for the default (#3567).
+  late double? _modOverride = widget.tank?.decoSwitchDepth;
 
   /// The volume field's seeded text, so [_save] can tell an untouched field
   /// from an edited one and keep the stored litres exactly (issue #2027).
@@ -416,7 +382,9 @@ class _TankEditDialogState extends State<_TankEditDialog> {
     _volumeController = TextEditingController(text: _initialVolumeText);
     _pressureController = TextEditingController(
       text: formatRoundedForInput(
-        widget.units.convertPressure(widget.tank?.startPressure ?? 200),
+        widget.units.convertPressure(
+          widget.tank?.startPressure ?? TankPresets.planFillPressureBar,
+        ),
         0,
       ),
     );
@@ -532,6 +500,17 @@ class _TankEditDialogState extends State<_TankEditDialog> {
                     ),
                   ],
                 ),
+                const SizedBox(height: 16),
+                TankModField(
+                  gas: _provisionalGas,
+                  role: widget.resolveRole(_provisionalTank),
+                  overrideMeters: _modOverride,
+                  bottomPpO2: widget.modLimits.bottom,
+                  decoPpO2: widget.modLimits.deco,
+                  diluentPpO2: widget.modLimits.diluent,
+                  units: widget.units,
+                  onChanged: (meters) => setState(() => _modOverride = meters),
+                ),
                 if ((widget.bestMix, _offeredMix) case (
                   final bestMix?,
                   final mix?,
@@ -600,6 +579,27 @@ class _TankEditDialogState extends State<_TankEditDialog> {
     );
   }
 
+  /// The mix as the O2/He fields hold it so far.
+  GasMix get _provisionalGas => GasMix(
+    o2: _otherPercent(_o2Controller) ?? 21,
+    he: _otherPercent(_heController) ?? 0,
+  );
+
+  /// The tank as the dialog has it so far, for the role the plan would give
+  /// it: the best-mix offer and the default MOD both follow that role.
+  DiveTank get _provisionalTank => DiveTank(
+    id: _tankId,
+    gasMix: _provisionalGas,
+    // Mirrors _save()'s own role construction exactly, so both are worked
+    // out against the same provisional role the save would actually produce.
+    role: widget.lockedOxygenSlot
+        ? TankRole.oxygenSupply
+        : _isDiluent
+        ? TankRole.diluent
+        : TankRole.backGas,
+    isTravelGas: _isTravelGas,
+  );
+
   /// The best mix offered for this cylinder, by the role the plan would give
   /// it as currently filled in. The explicit diluent tile (#3220) gets the
   /// diluent mix; the locked oxygen slot never reaches here, since its
@@ -609,23 +609,7 @@ class _TankEditDialogState extends State<_TankEditDialog> {
   GasMix? get _offeredMix {
     final bestMix = widget.bestMix;
     if (bestMix == null) return null;
-    final provisional = DiveTank(
-      id: _tankId,
-      gasMix: GasMix(
-        o2: _otherPercent(_o2Controller) ?? 21,
-        he: _otherPercent(_heController) ?? 0,
-      ),
-      // Mirrors _save()'s own role construction exactly, so the offer is
-      // computed against the same provisional role the save would actually
-      // produce.
-      role: widget.lockedOxygenSlot
-          ? TankRole.oxygenSupply
-          : _isDiluent
-          ? TankRole.diluent
-          : TankRole.backGas,
-      isTravelGas: _isTravelGas,
-    );
-    return switch (widget.resolveRole(provisional)) {
+    return switch (widget.resolveRole(_provisionalTank)) {
       TankRole.oxygenSupply => null,
       TankRole.diluent => bestMix.diluent ?? bestMix.bottom,
       _ => bestMix.bottom,
@@ -709,8 +693,9 @@ class _TankEditDialogState extends State<_TankEditDialog> {
       transmitterSerial: original?.transmitterSerial,
       sourceTankIndex: original?.sourceTankIndex,
       regulatorEquipmentId: original?.regulatorEquipmentId,
+      extraRegulatorIds: original?.extraRegulatorIds ?? const [],
       equipmentId: original?.equipmentId,
-      decoSwitchDepth: original?.decoSwitchDepth,
+      decoSwitchDepth: _modOverride,
       gasMix: widget.lockedOxygenSlot
           ? const GasMix(o2: 100)
           : GasMix(

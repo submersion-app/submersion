@@ -40,6 +40,16 @@ void main() {
     );
   });
 
+  test('a cylinder\'s MOD set by hand is labelled MOD on every role', () {
+    // decoSwitchDepth was once only a deco gas's switch depth; it now holds
+    // the MOD set by hand for any role (issue #3567).
+    for (final entity in ['divePlanTanks', 'cylinderConfigItems']) {
+      final field = conflictFieldFor(entity, 'decoSwitchDepth');
+      expect(field.label(l10n), 'MOD', reason: entity);
+      expect(field.kind, FieldKind.depth, reason: entity);
+    }
+  });
+
   test('bookkeeping and foreign keys are covered without an entry', () {
     expect(isConflictFieldCovered('dives', 'hlc'), isTrue);
     expect(isConflictFieldCovered('dives', 'siteId'), isTrue);
@@ -148,6 +158,9 @@ void main() {
       conflictFieldFor('diveCenters', 'fillOpensAt').kind,
       FieldKind.timeOfDay,
     );
+    final closed = conflictFieldFor('diveCenters', 'isPermanentlyClosed');
+    expect(closed.kind, FieldKind.boolean);
+    expect(closed.label(l10n), 'Permanently closed');
     // A species category and a checklist category are different things.
     expect(conflictFieldFor('species', 'category').kind, FieldKind.enumValue);
     expect(

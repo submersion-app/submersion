@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/data_quality/data/services/diver_data_query.dart';
 import 'package:submersion/features/data_quality/data/services/quality_repair_executor.dart';
@@ -22,6 +21,7 @@ import 'package:submersion/features/data_quality/presentation/widgets/dive_ident
 import 'package:submersion/features/data_quality/presentation/widgets/quality_finding_card.dart';
 import 'package:submersion/features/data_quality/presentation/widgets/quality_finding_message.dart';
 import 'package:submersion/features/data_quality/presentation/widgets/quality_unit_formatters.dart';
+import 'package:submersion/features/data_quality/presentation/widgets/time_shift_sheet.dart';
 import 'package:submersion/features/data_quality/presentation/widgets/use_as_bailout_flow.dart';
 import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
@@ -31,7 +31,6 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
-import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 import 'package:submersion/features/documents/presentation/providers/document_providers.dart';
 
 QualityUnitFormatters buildQualityUnitFormatters(WidgetRef ref) =>
@@ -178,15 +177,54 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
         final choice = await showTimeShiftSheet(
           context,
           suggestedOffset: suggestedOffset,
-          offerImportWide: offerImportWide,
+          widenLabel: offerImportWide
+              ? l10n.dataQuality_repairLabel_shiftImport
+              : null,
         );
         if (choice == null) return;
-        final ids = choice.importWide
-            ? await executor.divesInSameImport(f.diveId)
-            : [f.diveId];
+        // The widening lookup runs inside withUndo so a failed read is
+        // reported like any failed repair: the card drops this Future, so
+        // an escaped error would make the tap do nothing at all.
         await withUndo(
-          () => executor.shiftTimes(
-            diveIds: ids,
+          () async => executor.shiftTimes(
+            diveIds: choice.widen
+                ? await executor.divesInSameImport(f.diveId)
+                : [f.diveId],
+            offset: choice.offset,
+            findingId: f.id,
+          ),
+        );
+      case SourceClockShiftRepair(:final sourceId, :final suggestedOffset):
+        // Read the source as it is now: the finding's computerId is as of
+        // its last scan, and only a source naming a registered computer
+        // says which other dives share its clock. A failed read is reported
+        // like any failed repair rather than dropped with this Future.
+        final bool offerComputerWide;
+        try {
+          offerComputerWide = await executor.sourceNamesComputer(sourceId);
+        } catch (e) {
+          messenger.showSnackBar(
+            SnackBar(content: Text('${l10n.dataQuality_repair_failed}: $e')),
+          );
+          return;
+        }
+        if (!mounted) return;
+        final choice = await showTimeShiftSheet(
+          context,
+          suggestedOffset: suggestedOffset,
+          widenLabel: offerComputerWide
+              ? l10n.dataQuality_repairLabel_fixSourceClockAll
+              : null,
+        );
+        if (choice == null) return;
+        await withUndo(
+          () async => executor.shiftSourceTimes(
+            sourceIds: choice.widen
+                ? await executor.sourcesWithSameClockOffset(
+                    sourceId: sourceId,
+                    offset: choice.offset,
+                  )
+                : [sourceId],
             offset: choice.offset,
             findingId: f.id,
           ),
@@ -410,12 +448,14 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
           executor: executor,
           withUndo: withUndo,
         );
-      case AssignTransmitterRepair(:final serial):
+      case SetUpTransmitterRepair(:final serial):
+        // The same route the cylinders card's Assign chip opens: it finds or
+        // registers the transmitter's item, else starts one (issue #3676).
         if (context.mounted) {
           context.push(
             Uri(
               path: '/transmitters/new',
-              queryParameters: {'serial': serial},
+              queryParameters: {'serial': serial, 'dive': f.diveId},
             ).toString(),
           );
         }
@@ -825,84 +865,4 @@ class _DiveGroupHeader extends StatelessWidget {
       ),
     );
   }
-}
-
-/// Modal sheet for entering a time-shift offset (pre-filled with the detected
-/// value) plus an optional "apply to the whole import" toggle.
-Future<({Duration offset, bool importWide})?> showTimeShiftSheet(
-  BuildContext context, {
-  required Duration suggestedOffset,
-  required bool offerImportWide,
-}) {
-  final controller = TextEditingController(
-    text: suggestedOffset == Duration.zero
-        ? ''
-        : formatDecimalForInput(suggestedOffset.inHours.toDouble()),
-  );
-  var importWide = false;
-  final formKey = GlobalKey<FormState>();
-  return showModalBottomSheet<({Duration offset, bool importWide})>(
-    context: context,
-    isScrollControlled: true,
-    builder: (context) {
-      final l10n = context.l10n;
-      return StatefulBuilder(
-        builder: (context, setSheetState) => Padding(
-          padding: EdgeInsets.only(
-            left: 16,
-            right: 16,
-            top: 16,
-            bottom: MediaQuery.of(context).viewInsets.bottom + 16,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Form(
-                key: formKey,
-                child: TextFormField(
-                  controller: controller,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    signed: true,
-                  ),
-                  validator: numberValidator(context, integer: true),
-                  decoration: InputDecoration(
-                    labelText: l10n.dataQuality_repairLabel_shiftTime('h'),
-                  ),
-                ),
-              ),
-              if (offerImportWide)
-                CheckboxListTile(
-                  value: importWide,
-                  onChanged: (v) =>
-                      setSheetState(() => importWide = v ?? false),
-                  title: Text(l10n.dataQuality_repairLabel_shiftImport),
-                ),
-              const SizedBox(height: 12),
-              FilledButton(
-                onPressed: () {
-                  // Unreadable hours used to apply no shift and report
-                  // success (#1900).
-                  if (!formKey.currentState!.validate()) return;
-                  final hours = switch (readNumber(
-                    controller.text,
-                    integer: true,
-                  )) {
-                    NumberValue(:final value) => value.toInt(),
-                    NumberBlank() => 0, // no shift, as before
-                    NumberInvalid() => 0, // unreachable: validated above
-                  };
-                  Navigator.of(context).pop((
-                    offset: Duration(hours: hours),
-                    importWide: importWide,
-                  ));
-                },
-                child: Text(MaterialLocalizations.of(context).okButtonLabel),
-              ),
-            ],
-          ),
-        ),
-      );
-    },
-  );
 }

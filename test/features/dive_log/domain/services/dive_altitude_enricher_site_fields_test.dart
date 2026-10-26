@@ -67,8 +67,8 @@ void main() {
       accessNotes: 'Steps down from the road',
       mooringNumber: 'M7',
       parkingInfo: 'Lay-by 100 m north',
-      entryMethod: EntryMethod.shore,
-      exitMethod: EntryMethod.ladder,
+      entryMethods: [EntryMethod.shore],
+      exitMethods: [EntryMethod.ladder],
       isShared: true,
     ),
   );
@@ -126,8 +126,8 @@ void main() {
     expect(stored.accessNotes, 'Steps down from the road');
     expect(stored.mooringNumber, 'M7');
     expect(stored.parkingInfo, 'Lay-by 100 m north');
-    expect(stored.entryMethod, EntryMethod.shore);
-    expect(stored.exitMethod, EntryMethod.ladder);
+    expect(stored.entryMethods, [EntryMethod.shore]);
+    expect(stored.exitMethods, [EntryMethod.ladder]);
     expect(stored.isShared, isTrue);
     expect(stored.description, 'Steep wall off the peninsula');
   });

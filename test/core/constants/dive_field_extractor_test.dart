@@ -238,7 +238,7 @@ void main() {
         final dive = Dive(
           id: 'dive-fallback-entry',
           dateTime: now,
-          site: testSite.copyWith(entryMethod: EntryMethod.shore),
+          site: testSite.copyWith(entryMethods: [EntryMethod.shore]),
         );
         expect(DiveField.entryMethod.extractFromDive(dive), 'Shore Entry');
       },

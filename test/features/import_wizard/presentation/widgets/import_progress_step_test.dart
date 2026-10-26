@@ -119,6 +119,42 @@ void main() {
       expect(find.text('Importing dives...'), findsOneWidget);
     });
 
+    testWidgets('names the finishing phase, without a count', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(800, 600));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final notifier = _makeNotifier();
+      notifier.state = notifier.state.copyWith(
+        importPhase: ImportPhase.finishing,
+        importCurrent: 0,
+        importTotal: 0,
+      );
+
+      await tester.pumpWidget(_buildWidget(notifier));
+      await tester.pump();
+
+      expect(find.text('Finishing import...'), findsOneWidget);
+      expect(find.byKey(const Key('import_progress_count_text')), findsNothing);
+    });
+
+    testWidgets('names the photo download phase', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(800, 600));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final notifier = _makeNotifier();
+      notifier.state = notifier.state.copyWith(
+        importPhase: ImportPhase.photos,
+        importCurrent: 1200,
+        importTotal: 4000,
+      );
+
+      await tester.pumpWidget(_buildWidget(notifier));
+      await tester.pump();
+
+      expect(find.text('Downloading photos...'), findsOneWidget);
+      expect(find.text('30%'), findsOneWidget);
+    });
+
     testWidgets('renders circular progress indicator', (tester) async {
       await tester.binding.setSurfaceSize(const Size(800, 600));
       addTearDown(() => tester.binding.setSurfaceSize(null));

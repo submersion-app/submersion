@@ -5,6 +5,8 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/presentation/providers/document_providers.dart';
 import 'package:submersion/features/documents/presentation/widgets/document_tile.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart';
+import 'package:submersion/features/tags/presentation/providers/tag_link_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The Documents card on an owner's detail page (dive, site, trip, gear,
@@ -27,6 +29,9 @@ class DocumentsSection extends ConsumerWidget {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final docs = ref.watch(documentsForOwnerProvider(owner));
+    final tagsByDocument =
+        ref.watch(tagsByItemProvider(TagScope.documents)).value ??
+        const <String, List<Tag>>{};
     return Card(
       key: ValueKey('documents-section-${owner.kind.name}'),
       child: Padding(
@@ -86,6 +91,7 @@ class DocumentsSection extends ConsumerWidget {
                       DocumentTile(
                         key: ValueKey('document-${d.id}'),
                         document: d,
+                        tags: tagsByDocument[d.id] ?? const [],
                         onTap: () => context.push('/documents/${d.id}'),
                       ),
                   ],

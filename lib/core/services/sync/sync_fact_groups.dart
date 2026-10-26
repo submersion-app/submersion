@@ -37,6 +37,7 @@ abstract final class SyncFactGroups {
       'remoteUploadedAt': 'remote_uploaded_at',
       'remoteThumbUploadedAt': 'remote_thumb_uploaded_at',
       'remoteCompressedUploadedAt': 'remote_compressed_uploaded_at',
+      'remoteStoreId': 'remote_store_id',
       'compressedLevel': 'compressed_level',
       'compressedSizeBytes': 'compressed_size_bytes',
     },

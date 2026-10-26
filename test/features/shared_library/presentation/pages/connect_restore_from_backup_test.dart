@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
+import 'package:submersion/features/settings/presentation/providers/account_group_providers.dart';
+import 'package:submersion/features/shared_library/presentation/widgets/library_location_fields.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart';
 import 'package:submersion/core/services/shared_library/backup/library_backup_archive.dart';
@@ -20,11 +22,14 @@ import 'package:submersion/features/shared_library/presentation/providers/shared
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_sync_notifier.dart';
 
 import '../../../../helpers/fake_cloud_storage_provider.dart';
+import '../../../../helpers/account_groups_fixture.dart';
 import '../../../../helpers/mock_file_picker_platform.dart';
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
+import '../../../../helpers/shared_library_test_account.dart';
 
 SharedLibraryMembershipService _memberships() => SharedLibraryMembershipService(
+  accountById: anyTestAccount,
   store: SharedLibraryStore(),
   transportFor: ({required account, required prefix}) async =>
       SharedLibraryTransport(FakeCloudStorageProvider(), prefix: prefix),
@@ -140,9 +145,12 @@ void main() {
       testApp(
         overrides: [
           ...await getBaseOverrides(),
-          eligibleLibraryAccountsProvider.overrideWith(
-            (ref) async => [_bucket()],
+          accountGroupsProvider.overrideWith(
+            (ref) async => signedInGroupsOf([_bucket()]),
           ),
+          accountGroupsOfKindsProvider(
+            libraryKindsKey,
+          ).overrideWith((ref) async => signedInGroupsOf([_bucket()])),
           sharedLibraryMembershipServiceProvider.overrideWithValue(
             _EmptyFolders(),
           ),
@@ -164,7 +172,7 @@ void main() {
     );
     await tester.pumpAndSettle();
     await tester.enterText(find.byKey(const Key('library-prefix')), 'moved');
-    await tester.tap(find.text('Check'));
+    await tester.tap(find.text('Check location'));
     await tester.pumpAndSettle();
   }
 

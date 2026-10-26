@@ -11,7 +11,7 @@ import 'package:submersion/core/constants/enums.dart';
 // names collide with the domain entities this test imports (DiveSite, Dive,
 // Buddy, Tag, Trip, ...).
 import 'package:submersion/core/database/database.dart'
-    show DiveDataSourcesCompanion, DiveSitesCompanion;
+    show DiveDataSourcesCompanion, DiveSitesCompanion, DivesCompanion;
 import 'package:submersion/core/services/export/export_service.dart'
     hide ServiceRecord;
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
@@ -1639,6 +1639,8 @@ void main() {
       region: 'South Sinai',
       isShared: true,
       rating: 3.0,
+      entryMethods: [EntryMethod.shore, EntryMethod.boat],
+      exitMethods: [EntryMethod.ladder],
     );
 
     setUp(() {
@@ -1711,6 +1713,85 @@ void main() {
               as DiveSite;
       expect(site.city, 'Victoria');
       expect(site.island, 'Comino');
+    });
+
+    test('keeps entry and exit methods the payload omits (#2054)', () async {
+      await importer.import(
+        data: const UddfImportResult(
+          sites: [
+            {'name': 'Blue Hole', 'uddfId': 'site-1'},
+          ],
+        ),
+        selections: const UddfImportSelections(
+          siteOverrides: {0: 'existing-site-1'},
+        ),
+        repositories: repos,
+        diverId: diverId,
+      );
+
+      final site =
+          verify(
+                mockSiteRepo.updateSiteWithImportedMetadata(captureAny, any),
+              ).captured.single
+              as DiveSite;
+      expect(site.entryMethods, [EntryMethod.shore, EntryMethod.boat]);
+      expect(site.exitMethods, [EntryMethod.ladder]);
+    });
+
+    test('keeps methods when the payload names only unknown ones', () async {
+      await importer.import(
+        data: const UddfImportResult(
+          sites: [
+            {
+              'name': 'Blue Hole',
+              'uddfId': 'site-1',
+              'entryMethod': 'jetpack',
+              'exitMethod': 'teleport',
+            },
+          ],
+        ),
+        selections: const UddfImportSelections(
+          siteOverrides: {0: 'existing-site-1'},
+        ),
+        repositories: repos,
+        diverId: diverId,
+      );
+
+      final site =
+          verify(
+                mockSiteRepo.updateSiteWithImportedMetadata(captureAny, any),
+              ).captured.single
+              as DiveSite;
+      expect(site.entryMethods, [EntryMethod.shore, EntryMethod.boat]);
+      expect(site.exitMethods, [EntryMethod.ladder]);
+    });
+
+    test('replaces entry and exit methods the payload supplies', () async {
+      await importer.import(
+        data: const UddfImportResult(
+          sites: [
+            {
+              'name': 'Blue Hole',
+              'uddfId': 'site-1',
+              'entryMethod': 'giantStride',
+              'exitMethod': 'platform',
+            },
+          ],
+        ),
+        selections: const UddfImportSelections(
+          siteOverrides: {0: 'existing-site-1'},
+        ),
+        repositories: repos,
+        diverId: diverId,
+      );
+
+      final site =
+          verify(
+                mockSiteRepo.updateSiteWithImportedMetadata(captureAny, any),
+              ).captured.single
+              as DiveSite;
+      expect(site.entryMethods, [EntryMethod.giantStride]);
+      expect(site.exitMethods, [EntryMethod.platform]);
     });
 
     test('preserves existing fields the import payload omits', () async {
@@ -2748,6 +2829,51 @@ void main() {
         final reading = capturedReadings.single;
         expect(reading.cns.value, 18.5);
         expect(reading.otu.value, 7.0);
+      },
+    );
+
+    test(
+      'writes the dive-level CNS and OTU to the dive row too (#2555)',
+      () async {
+        when(mockDiveRepo.createDive(any)).thenAnswer(
+          (invocation) async => invocation.positionalArguments[0] as Dive,
+        );
+        when(mockDiveRepo.saveComputerReading(any)).thenAnswer((_) async {});
+        when(
+          mockDiveRepo.applyImportedMetadata(any, any),
+        ).thenAnswer((_) async {});
+
+        final data = UddfImportResult(
+          dives: [
+            {
+              'dateTime': now,
+              'maxDepth': 25.0,
+              'cnsStart': 4.0,
+              'cnsEnd': 18.5,
+              'otu': 7.0,
+            },
+            {'dateTime': now.add(const Duration(days: 1)), 'maxDepth': 20.0},
+          ],
+        );
+
+        await importer.import(
+          data: data,
+          selections: const UddfImportSelections(dives: {0, 1}),
+          repositories: repos,
+          diverId: diverId,
+        );
+
+        final patches = verify(
+          mockDiveRepo.applyImportedMetadata(any, captureAny),
+        ).captured.cast<DivesCompanion>();
+        // Only the dive that reported a value is written; the other keeps the
+        // column defaults.
+        expect(patches, hasLength(1));
+        final patch = patches.single;
+        expect(patch.cnsStart.value, 4.0);
+        expect(patch.cnsEnd.value, 18.5);
+        expect(patch.otu.value, 7.0);
+        expect(patch.boatName.present, isFalse);
       },
     );
 

@@ -35,7 +35,9 @@ typedef RemotePhotoOutcome = ({int attached, int failed});
 /// photo: it is counted and the loop moves on, so photos can never fail an
 /// import. An error [stopOn] accepts (a session that can no longer be
 /// renewed) ends the run instead, counting every photo left as failed, so a
-/// dead session is not retried once per photo.
+/// dead session is not retried once per photo. [onProgress] hears how many
+/// photos are done out of how many, once before the first download and
+/// after each photo, so a long run of downloads shows it is moving.
 Future<RemotePhotoOutcome> attachRemotePhotos({
   required Map<String, List<RemotePhoto>> photosBySourceUuid,
   required Map<int, String> diveIdByIndex,
@@ -47,6 +49,9 @@ Future<RemotePhotoOutcome> attachRemotePhotos({
   attach,
   ImportCancellationToken? cancelToken,
   bool Function(Object error)? stopOn,
+  void Function(int current, int total)? onProgress,
+  // A seam for tests: where the downloads are staged.
+  Future<Directory> Function() createTempRoot = _createTempRoot,
 }) async {
   if (photosBySourceUuid.isEmpty || diveIdByIndex.isEmpty) {
     return (attached: 0, failed: 0);
@@ -68,8 +73,18 @@ Future<RemotePhotoOutcome> attachRemotePhotos({
           ),
   ];
   if (jobs.isEmpty) return (attached: 0, failed: 0);
+  onProgress?.call(0, jobs.length);
 
-  final tempRoot = await Directory.systemTemp.createTemp('remote_photos_');
+  final Directory tempRoot;
+  try {
+    tempRoot = await createTempRoot();
+  } catch (e) {
+    // A full or unwritable temp volume costs the photos, never the dives
+    // the import already saved.
+    _log.warning('Could not create a temp folder for remote photos: $e');
+    onProgress?.call(jobs.length, jobs.length);
+    return (attached: 0, failed: jobs.length);
+  }
   var attached = 0;
   var failed = 0;
   try {
@@ -87,10 +102,13 @@ Future<RemotePhotoOutcome> attachRemotePhotos({
         _log.warning('Could not attach remote photo ${job.photo.fileName}: $e');
         if (stopOn?.call(e) ?? false) {
           failed += jobs.length - slot;
+          // Every photo left is now accounted for, so the count ends full.
+          onProgress?.call(jobs.length, jobs.length);
           break;
         }
         failed++;
       }
+      onProgress?.call(slot + 1, jobs.length);
     }
     return (attached: attached, failed: failed);
   } finally {
@@ -101,3 +119,6 @@ Future<RemotePhotoOutcome> attachRemotePhotos({
     }
   }
 }
+
+Future<Directory> _createTempRoot() =>
+    Directory.systemTemp.createTemp('remote_photos_');

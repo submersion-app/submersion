@@ -2,6 +2,7 @@ import 'dart:ui' show Size;
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
+import 'package:submersion/features/media/data/resolvers/media_store_source_resolver.dart';
 import 'package:submersion/features/media/data/services/media_item_verifier.dart';
 import 'package:submersion/features/media/data/services/media_source_resolver_registry.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
@@ -233,6 +234,41 @@ void main() {
 
       expect(result, VerifyResult.transientError);
       expect(repository.written, isEmpty);
+    },
+  );
+
+  // Issue #3569: a device still on the old store must not mark the photos
+  // another device moved to a new store as missing on every device.
+  test(
+    'a cloud-backed row stamped in another store is never orphaned',
+    () async {
+      final verifier = MediaItemVerifier(
+        registry: MediaSourceResolverRegistry({
+          MediaSourceType.mediaStore: MediaStoreSourceResolver(
+            remote: () =>
+                (mediaItem, {required bool thumbnail}) async => null,
+            storeId: () => 'store-a',
+          ),
+        }),
+        repository: repository,
+        now: () => stamp,
+      );
+      final elsewhere = MediaItem(
+        id: 'm2',
+        mediaType: MediaType.photo,
+        sourceType: MediaSourceType.mediaStore,
+        contentHash: 'h1',
+        remoteUploadedAt: DateTime.utc(2026),
+        remoteStoreId: 'store-b',
+        takenAt: DateTime.utc(2026),
+        createdAt: DateTime.utc(2026),
+        updatedAt: DateTime.utc(2026),
+      );
+
+      final result = await verifier.verify(elsewhere);
+
+      expect(result, VerifyResult.fromOtherDevice);
+      expect(repository.written, isEmpty, reason: 'no missing flag, no date');
     },
   );
 }

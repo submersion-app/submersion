@@ -67,6 +67,25 @@ void main() {
     });
   });
 
+  group('formatTrackSpeed', () {
+    test('turns m/s into the per-minute depth unit, with a space', () {
+      // 0.9 m/s is 54 m/min.
+      expect(metric.formatTrackSpeed(0.9), '54.0 m/min');
+      expect(metric.trackSpeedSymbol, metric.depthRateSymbol);
+    });
+
+    test('converts to ft/min for an imperial diver', () {
+      // 1 m/s is 60 m/min, which is 196.85 ft/min.
+      expect(imperial.convertTrackSpeed(1), closeTo(196.85, 0.01));
+      expect(imperial.formatTrackSpeed(1), '196.9 ft/min');
+    });
+
+    test('localises the digits but never the minute symbol', () {
+      Intl.defaultLocale = 'de';
+      expect(metric.formatTrackSpeed(0.9), '54,0 m/min');
+    });
+  });
+
   group('formatTideRate', () {
     test('signs the rate and keeps two decimals, per hour', () {
       expect(metric.formatTideRate(0.3), '+0.30m/hr');

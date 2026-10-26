@@ -3,6 +3,7 @@ import 'package:drift/drift.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_children.dart';
+import 'package:submersion/features/divers/data/repositories/item_shares_repository.dart';
 import 'package:submersion/features/divers/data/repositories/profile_hides_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_row_restore.dart';
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
@@ -34,6 +35,10 @@ class SiteLinks {
   /// removes them, so its undo puts them back.
   final List<ProfileHide> hides;
 
+  /// The profiles the sites were shared with one by one (issue #2151): the
+  /// delete removes the share rows, so its undo puts them back.
+  final List<ItemShare> shares;
+
   /// The sites' species, features, types and tags (issue #2718).
   final SiteChildren children;
 
@@ -54,6 +59,7 @@ class SiteLinks {
     this.planSiteIds = const {},
     this.clearedAt = 0,
     this.hides = const [],
+    this.shares = const [],
     this.children = const SiteChildren(),
     this.media = const MediaRowsSnapshot(),
     this.mediaSiteIds = const {},
@@ -65,6 +71,7 @@ class SiteLinks {
     Map<String, String>? planSiteIds,
     int? clearedAt,
     List<ProfileHide>? hides,
+    List<ItemShare>? shares,
     SiteChildren? children,
     MediaRowsSnapshot? media,
     Map<String, String>? mediaSiteIds,
@@ -74,6 +81,7 @@ class SiteLinks {
     planSiteIds: planSiteIds ?? this.planSiteIds,
     clearedAt: clearedAt ?? this.clearedAt,
     hides: hides ?? this.hides,
+    shares: shares ?? this.shares,
     children: children ?? this.children,
     media: media ?? this.media,
     mediaSiteIds: mediaSiteIds ?? this.mediaSiteIds,

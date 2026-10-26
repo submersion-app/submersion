@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/theme/feature_accent_colors.dart';
 import 'package:submersion/core/theme/status_colors.dart';
+import 'package:submersion/core/theme/derived_neutrals.dart';
 import 'package:submersion/core/theme/tinted_containers.dart';
 
 // ---------------------------------------------------------------------------
@@ -75,18 +76,20 @@ final ThemeData deepLight = ThemeData(
     FeatureAccentColors.light,
     StatusColors.light,
   ],
-  colorScheme: withTintedContainers(
-    const ColorScheme(
-      brightness: Brightness.light,
-      primary: _primaryLight,
-      onPrimary: Color(0xFFFFFFFF),
-      secondary: Color(0xFF1858A0),
-      onSecondary: Color(0xFFFFFFFF),
-      error: _errorColor,
-      onError: _onErrorColor,
-      surface: _surfaceLight,
-      onSurface: Color(0xFF0A1628),
-      surfaceContainerLow: _cardLight,
+  colorScheme: withDerivedNeutrals(
+    withTintedContainers(
+      const ColorScheme(
+        brightness: Brightness.light,
+        primary: _primaryLight,
+        onPrimary: Color(0xFFFFFFFF),
+        secondary: Color(0xFF1858A0),
+        onSecondary: Color(0xFFFFFFFF),
+        error: _errorColor,
+        onError: _onErrorColor,
+        surface: _surfaceLight,
+        onSurface: Color(0xFF0A1628),
+        surfaceContainerLow: _cardLight,
+      ),
     ),
   ),
   textTheme: _buildTextTheme(Brightness.light),
@@ -130,18 +133,20 @@ final ThemeData deepDark = ThemeData(
     FeatureAccentColors.dark,
     StatusColors.dark,
   ],
-  colorScheme: withTintedContainers(
-    const ColorScheme(
-      brightness: Brightness.dark,
-      primary: _primaryDark,
-      onPrimary: Color(0xFF0A1428),
-      secondary: _secondaryDark,
-      onSecondary: Color(0xFF0A1428),
-      error: _errorDark,
-      onError: _onErrorDark,
-      surface: _surfaceDark,
-      onSurface: Color(0xFFD0E0F0),
-      surfaceContainerLow: Color(0xFF0F1E37),
+  colorScheme: withDerivedNeutrals(
+    withTintedContainers(
+      const ColorScheme(
+        brightness: Brightness.dark,
+        primary: _primaryDark,
+        onPrimary: Color(0xFF0A1428),
+        secondary: _secondaryDark,
+        onSecondary: Color(0xFF0A1428),
+        error: _errorDark,
+        onError: _onErrorDark,
+        surface: _surfaceDark,
+        onSurface: Color(0xFFD0E0F0),
+        surfaceContainerLow: Color(0xFF0F1E37),
+      ),
     ),
   ),
   textTheme: _buildTextTheme(Brightness.dark),

@@ -45,16 +45,23 @@ bool isImportWizardRoute(String path) =>
 /// Shared logic for handling an incoming file from drag-and-drop or
 /// share-sheet intents. Both [GlobalDropTarget] and [SubmersionApp]
 /// delegate to this function.
+///
+/// [isImportRunning] turns the file away too: an import that runs on after
+/// its wizard closed still reads the shared import state, which loading
+/// another file would replace (#3554). It is asked right before that state
+/// is written, not when the file arrived, so an import started meanwhile
+/// is seen.
 Future<IncomingFileOutcome> handleIncomingFile({
   required Uint8List bytes,
   required String fileName,
   required String currentPath,
   required UniversalImportNotifier notifier,
   required ScaffoldMessengerState? messenger,
+  bool Function() isImportRunning = _noImportRunning,
   String? wizardActiveMessage,
   String? unsupportedFileMessage,
 }) async {
-  if (isImportWizardRoute(currentPath)) {
+  if (isImportRunning() || isImportWizardRoute(currentPath)) {
     messenger?.showSnackBar(
       SnackBar(
         content: Text(wizardActiveMessage ?? 'Finish current import first'),
@@ -98,14 +105,16 @@ Future<IncomingFileOutcome> handleIncomingFile({
 /// batch, the way several dropped files do in [GlobalDropTarget].
 ///
 /// Returns `true` when the caller should navigate to the import wizard.
+/// [isImportRunning] turns the files away, as for [handleIncomingFile].
 Future<bool> handleIncomingFiles({
   required List<String> paths,
   required String currentPath,
   required UniversalImportNotifier notifier,
   required ScaffoldMessengerState? messenger,
+  bool Function() isImportRunning = _noImportRunning,
   String? wizardActiveMessage,
 }) async {
-  if (isImportWizardRoute(currentPath)) {
+  if (isImportRunning() || isImportWizardRoute(currentPath)) {
     messenger?.showSnackBar(
       SnackBar(
         content: Text(wizardActiveMessage ?? 'Finish current import first'),
@@ -145,3 +154,5 @@ void reportIncomingFileError(
   }
   messenger?.showSnackBar(SnackBar(content: Text(message)));
 }
+
+bool _noImportRunning() => false;

@@ -128,6 +128,35 @@ void main() {
     expect(scooter.name, 'Blacktip');
   });
 
+  test('names each extra tank regulator (#3375)', () async {
+    for (final (id, name) in [('reg-1', 'Apeks'), ('reg-2', 'MK25')]) {
+      await serializer.upsertRecord('equipment', {
+        'id': id,
+        'name': name,
+        'type': 'regulator',
+        'createdAt': 1000,
+        'updatedAt': 1000,
+      });
+    }
+
+    final refs = await resolver.resolve('diveTanks', {
+      'id': 'tank-1',
+      'extraRegulatorIds': '["reg-1","reg-2"]',
+    });
+
+    final extras = refs.where((r) => r.field == 'extraRegulatorIds').toList();
+    expect([for (final r in extras) r.targetType], ['equipment', 'equipment']);
+    expect([for (final r in extras) r.name], ['Apeks', 'MK25']);
+  });
+
+  test('an unreadable extra regulator list names nothing (#3375)', () async {
+    final refs = await resolver.resolve('diveTanks', {
+      'id': 'tank-1',
+      'extraRegulatorIds': 'not json',
+    });
+    expect(refs, isEmpty);
+  });
+
   test('maps the soft links that hold another row id (#694)', () {
     // None of these has a Drift constraint, so each is mapped by name; the
     // conflict dialog otherwise compares and prints raw ids for them.

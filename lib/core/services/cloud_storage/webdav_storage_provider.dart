@@ -21,7 +21,7 @@ typedef WebDavClientFactory = WebDavClient Function(WebDavConfig config);
 /// - getUserEmail() returns the account label `<user> @ <host>`.
 class WebDavStorageProvider
     with CloudStorageProviderMixin
-    implements CloudStorageProvider {
+    implements CloudStorageProvider, FolderLookup {
   static final _log = LoggerService.forClass(WebDavStorageProvider);
 
   static const String probeObjectName = '.submersion-probe';
@@ -241,6 +241,17 @@ class WebDavStorageProvider
     final path = '${parentFolderId ?? session.config.folder}/$folderName';
     await session.client.ensureCollection(path);
     return path;
+  }
+
+  @override
+  Future<String?> findFolder(
+    String folderName, {
+    String? parentFolderId,
+  }) async {
+    final session = await _requireSession();
+    final path = '${parentFolderId ?? session.config.folder}/$folderName';
+    final entry = await session.client.stat(path);
+    return entry != null && entry.isCollection ? path : null;
   }
 
   @override

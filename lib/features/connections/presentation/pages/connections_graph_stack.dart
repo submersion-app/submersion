@@ -9,12 +9,14 @@ import 'package:submersion/features/connections/domain/views/highlight_mode.dart
 import 'package:submersion/features/connections/presentation/canvas/connection_kind_colors.dart';
 import 'package:submersion/features/connections/presentation/canvas/connections_canvas.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_layout_controller.dart';
+import 'package:submersion/features/connections/presentation/widgets/connections_caption.dart';
+import 'package:submersion/features/connections/presentation/widgets/connections_caption_text.dart';
 import 'package:submersion/features/connections/presentation/widgets/connections_legend.dart';
 import 'package:submersion/features/connections/presentation/widgets/hidden_nodes_chip.dart';
 import 'package:submersion/features/connections/presentation/widgets/insight_strip.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// The graph view: the canvas with its overlays (insight strip, legend,
+/// The graph view: the canvas with its overlays (caption, insight strip, legend,
 /// hidden-node chip, reload error, timeline bar, loading bar).
 class ConnectionsGraphStack extends StatelessWidget {
   const ConnectionsGraphStack({
@@ -28,6 +30,9 @@ class ConnectionsGraphStack extends StatelessWidget {
     required this.bottomInset,
     required this.stripHeight,
     required this.belowStrip,
+    required this.caption,
+    required this.captionInset,
+    required this.onCaptionHeight,
     required this.highlight,
     required this.groups,
     required this.insights,
@@ -55,6 +60,13 @@ class ConnectionsGraphStack extends StatelessWidget {
   final double bottomInset;
   final double stripHeight;
   final double belowStrip;
+
+  /// What the map is and how to read it, at the top of the canvas.
+  final ConnectionsCaptionText caption;
+
+  /// The caption's height plus its gap; the strip starts this far lower.
+  final double captionInset;
+  final ValueChanged<double> onCaptionHeight;
   final HighlightMode highlight;
   final GraphGroups groups;
   final List<InsightTile> insights;
@@ -89,8 +101,9 @@ class ConnectionsGraphStack extends StatelessWidget {
       EdgeSelection(:final a, :final b) =>
         '${graph.nodeFor(a)?.label ?? a.id}, ${graph.nodeFor(b)?.label ?? b.id}',
     };
-    if (selected == null) return summary;
-    return '$summary. ${l10n.connections_semantics_selected(selected)}';
+    final described = '${caption.title}. $summary';
+    if (selected == null) return described;
+    return '$described. ${l10n.connections_semantics_selected(selected)}';
   }
 
   @override
@@ -121,10 +134,16 @@ class ConnectionsGraphStack extends StatelessWidget {
           ),
         ),
         Positioned(
+          left: 12,
+          right: 12,
+          top: 8,
+          child: ConnectionsCaption(text: caption, onHeight: onCaptionHeight),
+        ),
+        Positioned(
           key: const ValueKey('connections-insights'),
           left: 0,
           right: 0,
-          top: 8,
+          top: 8 + captionInset,
           child: InsightStrip(
             graph: graph,
             tiles: insights,

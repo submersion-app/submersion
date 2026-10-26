@@ -1,6 +1,7 @@
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/services/accounts/account_kind.dart';
+import 'package:submersion/core/services/cloud_storage/git/git_config.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_config.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_config.dart';
 
@@ -28,17 +29,26 @@ String s3NaturalKey(S3Config config) =>
 String webdavNaturalKey(WebDavConfig config) =>
     '${config.davRoot}|${config.folder}';
 
+/// Endpoint identity for a Git account: the normalized clone address plus the
+/// branch, so two branches of one repository stay separate accounts. The
+/// token is excluded, so a new token does not mint a new account.
+String gitNaturalKey(GitConfig config) => '${config.repoUrl}|${config.branch}';
+
 /// Natural key for a kind that can only have one instance per library.
 ///
-/// Null for [AccountKind.s3] and [AccountKind.webdav] (instance kinds: use
-/// [s3NaturalKey] and [webdavNaturalKey]) and for
+/// Null for [AccountKind.s3], [AccountKind.webdav] and [AccountKind.git]
+/// (instance kinds: use [s3NaturalKey], [webdavNaturalKey] and
+/// [gitNaturalKey]) and for
 /// [AccountKind.adobeLightroom], whose ids are preserved from the v107
 /// migration because Lightroom scan state and suggestion rows key on them.
 String? naturalKeyForKind(AccountKind kind) => switch (kind) {
   AccountKind.icloud ||
   AccountKind.dropbox ||
   AccountKind.googledrive => kind.name,
-  AccountKind.s3 || AccountKind.webdav || AccountKind.adobeLightroom => null,
+  AccountKind.s3 ||
+  AccountKind.webdav ||
+  AccountKind.git ||
+  AccountKind.adobeLightroom => null,
 };
 
 /// The deterministic id for an endpoint.
@@ -50,3 +60,7 @@ String? naturalKeyForKind(AccountKind kind) => switch (kind) {
 /// merge.
 String accountIdFor({required AccountKind kind, required String naturalKey}) =>
     const Uuid().v5(kConnectedAccountNamespace, '${kind.name}:$naturalKey');
+
+/// Whether [id] was made by [accountIdFor] (a name-based UUIDv5) rather than
+/// at random (the UUIDv4 rows from before deterministic ids).
+bool isDeterministicAccountId(String id) => id.length == 36 && id[14] == '5';

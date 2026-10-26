@@ -78,7 +78,12 @@ class DivelogsApiClient {
         continue;
       }
       try {
-        dives.add(DivelogsDive.fromJson(Map<String, dynamic>.from(raw)));
+        dives.add(
+          DivelogsDive.fromJson(
+            Map<String, dynamic>.from(raw),
+            pictureBase: _baseUri,
+          ),
+        );
       } on FormatException {
         skipped++;
       }
@@ -137,20 +142,6 @@ class DivelogsApiClient {
       }
     }
     return result;
-  }
-
-  Future<List<DivelogsPicture>> getPictures(String diveId) async {
-    // One path segment whatever the id holds: a `/`, `?` or `#` in it must
-    // not address another route.
-    final response = await _get('/pictures/${Uri.encodeComponent(diveId)}');
-    final rows = _rows(_decode(response.body, '/pictures'), '/pictures', const [
-      'pictures',
-    ]);
-    return [
-      for (final row in rows)
-        if (row is Map)
-          ...?_maybe(DivelogsPicture.fromJson(Map<String, dynamic>.from(row))),
-    ];
   }
 
   /// Fetches picture bytes from an absolute URL (NOT a /api path).

@@ -138,6 +138,7 @@ class EquipmentHeaderBar extends ConsumerWidget {
         child: Builder(builder: toggle),
       ),
       subtitle: subtitle,
+      subtitleGap: EquipmentSectionToggle.subtitleGap,
       subtitleIndent: subtitleIndent,
     );
   }

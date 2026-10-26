@@ -29,8 +29,8 @@ void main() {
     notes: 'Great site',
     hazards: 'Strong current',
     mooringNumber: '7',
-    entryMethod: EntryMethod.shore,
-    exitMethod: EntryMethod.ladder,
+    entryMethods: [EntryMethod.shore],
+    exitMethods: [EntryMethod.ladder],
   );
 
   const testEntity = SiteWithDiveCount(site: testSite, diveCount: 12);

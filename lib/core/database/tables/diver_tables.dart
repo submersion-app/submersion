@@ -318,6 +318,18 @@ class DiverSettings extends Table {
   /// diver override it for that one import without touching this default.
   BoolColumn get autoTagImports =>
       boolean().withDefault(const Constant(true))();
+
+  /// Whether a dive computer download defaults to the computer's owner when
+  /// that is another profile (v310, issue #2050). Only the review step's
+  /// starting choice: the computer is recognised either way.
+  BoolColumn get downloadsFollowComputerOwner =>
+      boolean().withDefault(const Constant(true))();
+
+  /// Whether a rebreather download leaves out an open-circuit gas that no
+  /// transmitter read and the diver never breathed (v315, issue #3668). Off
+  /// keeps every gas the computer reports.
+  BoolColumn get omitUnusedOcGases =>
+      boolean().withDefault(const Constant(false))();
   // List view modes for other features (v52)
   TextColumn get siteListViewMode =>
       text().withDefault(const Constant('detailed'))();
@@ -507,6 +519,63 @@ class DiverSettings extends Table {
   // #2628), a JSON array of EquipmentStatus names. Null reads as the factory
   // default, everything but retired, sold and wanted gear.
   TextColumn get equipmentDefaultStatuses => text().nullable()();
+  // v296: the automatic underwater colour correction (issue #3520). Off by
+  // default, so existing divers' photos look the same after upgrading.
+  // Codegen input, never executed.
+  // coverage:ignore-start
+  BoolColumn get autoColorCorrection =>
+      boolean().withDefault(const Constant(false))();
+  // coverage:ignore-end
+  // v304: planner Setup-accordion global defaults (issue #3552). A new plan
+  // resolves each of these when its own field is unset; existing fields
+  // (gfLow/gfHigh, ccrSetpointLow/High, ppO2MaxWorking/Deco, o2Narcotic,
+  // lastStopDepth) already cover part of the Setup accordion and are reused
+  // as-is.
+  RealColumn get plannerDescentRate =>
+      real().withDefault(const Constant(18.0))();
+  RealColumn get plannerAscentRate => real().withDefault(const Constant(9.0))();
+  RealColumn get plannerIntermediateAscentRate =>
+      real().withDefault(const Constant(6.0))();
+  RealColumn get plannerShallowAscentRate =>
+      real().withDefault(const Constant(3.0))();
+  RealColumn get plannerFinalAscentRate =>
+      real().withDefault(const Constant(1.0))();
+  IntColumn get plannerGasSwitchStopSeconds =>
+      integer().withDefault(const Constant(0))();
+  RealColumn get plannerSacBottom => real().withDefault(const Constant(15.0))();
+  RealColumn get plannerSacDeco => real().withDefault(const Constant(15.0))();
+  // The multiplier on bottom SAC for the stressed/bailout rate
+  // (sacStressedEffective), not an absolute rate - keeps "stressed is a
+  // multiple of bottom" instead of two globals that can silently diverge.
+  RealColumn get plannerSacStressedFactor =>
+      real().withDefault(const Constant(2.5))();
+  RealColumn get plannerBuddyFactor =>
+      real().withDefault(const Constant(2.0))();
+  IntColumn get plannerProblemSolvingMinutes =>
+      integer().withDefault(const Constant(2))();
+  RealColumn get plannerBestMixEndMeters =>
+      real().withDefault(const Constant(30.0))();
+  RealColumn get plannerDeviationDepthDelta =>
+      real().withDefault(const Constant(5.0))();
+  IntColumn get plannerDeviationTimeMinutes =>
+      integer().withDefault(const Constant(5))();
+  RealColumn get plannerBatteryReserveFraction =>
+      real().withDefault(const Constant(1.0 / 3.0))();
+  RealColumn get plannerWalkSpeedMps =>
+      real().withDefault(const Constant(0.8))();
+  // v307: planner air-break and turn-pressure global defaults (issue
+  // #3552). Nullable, unlike the v304 columns above: null means "no
+  // policy"/"no rule", matching today's behaviour for every diver who has
+  // not opted in to a default.
+  TextColumn get plannerTurnPressureRule => text().nullable()();
+  RealColumn get plannerTurnPressureFraction => real().nullable()();
+  IntColumn get plannerAirBreakO2Seconds => integer().nullable()();
+  IntColumn get plannerAirBreakBreakSeconds => integer().nullable()();
+  // v308: planner reserve-pressure default (issue #3552, follow-up to
+  // v304-307). Backfilled in the migration from the diver's pressure unit
+  // (50 bar / 500 psi), matching addSimplePlan's pre-existing convention.
+  RealColumn get plannerReservePressure =>
+      real().withDefault(const Constant(50.0))();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 

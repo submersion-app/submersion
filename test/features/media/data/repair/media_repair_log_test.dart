@@ -37,6 +37,7 @@ void main() {
       createBookmark: null,
       writeBookmark: null,
       log: logRepo,
+      attachedStoreId: () async => 'store-b',
     );
     root = await Directory.systemTemp.createTemp('repair-log-test');
   });
@@ -146,6 +147,26 @@ void main() {
     final entry = (await logRepo.recent()).single;
     expect(entry.action, RepairLogAction.cloudBacked);
     expect(entry.source, RepairLogSource.store);
+  });
+
+  test('a conversion the repository refuses logs nothing', () async {
+    // Stamped only for another store (issue #3482): nothing was converted,
+    // so history must not claim it was.
+    await seed('a', contentHash: 'H1', stampRemote: true);
+    await db.customStatement(
+      "UPDATE media SET remote_store_id = 'store-a' WHERE id = 'a'",
+    );
+    final item = (await repo.getMediaById('a'))!;
+
+    await service.apply([
+      RepairProposal(
+        item: item,
+        confidence: RepairConfidence.exact,
+        candidate: const RepairCandidate.store(verified: true),
+      ),
+    ], source: RepairLogSource.store);
+
+    expect(await logRepo.recent(), isEmpty);
   });
 
   test('every row from one apply shares a batch id', () async {

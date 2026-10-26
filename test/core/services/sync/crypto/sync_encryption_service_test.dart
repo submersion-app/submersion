@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:submersion/core/services/cloud_storage/deferred_write_provider.dart';
 import 'package:submersion/core/services/sync/crypto/crypto_errors.dart';
 import 'package:submersion/core/services/sync/crypto/encryption_key_store.dart';
 import 'package:submersion/core/services/sync/crypto/keyslots.dart';
@@ -12,6 +13,15 @@ import '../../../../support/fake_cloud_storage_provider.dart';
 import '../../../../support/fake_keychain_storage.dart';
 
 const _fastKdf = KdfParams(m: 1024, t: 3, p: 1);
+
+/// A backend that batches deletes until flushed, as Git does.
+class _DeferringCloud extends FakeCloudStorageProvider
+    implements DeferredWriteProvider {
+  int flushes = 0;
+
+  @override
+  Future<void> flush({Duration? timeout}) async => flushes++;
+}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -243,4 +253,15 @@ void main() {
       'WrongPassphraseException',
     );
   });
+
+  test(
+    'removing the keyslot file pushes the delete on a batching backend',
+    () async {
+      final deferring = _DeferringCloud();
+      cloud = deferring;
+      await enable();
+      await service.deleteCloudKeyslots(deferring);
+      expect(deferring.flushes, 1);
+    },
+  );
 }

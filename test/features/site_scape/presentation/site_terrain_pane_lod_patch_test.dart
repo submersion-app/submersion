@@ -239,7 +239,8 @@ void main() {
                 (ref) => TestSettingsNotifier(const AppSettings()),
               ),
               siteSeascapeProvider.overrideWith(
-                (ref, id) async => id == 'site-a' ? stateA : stateB,
+                (ref, request) async =>
+                    request.siteId == 'site-a' ? stateA : stateB,
               ),
               siteFeaturesProvider(
                 'site-a',

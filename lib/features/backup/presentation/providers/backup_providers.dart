@@ -1,5 +1,9 @@
+export 'package:submersion/features/backup/presentation/providers/backup_settings_notifier.dart';
+
 import 'dart:async';
 import 'dart:io';
+
+import 'package:submersion/core/services/storage/gc/storage_gc_store.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
@@ -9,10 +13,13 @@ import 'package:submersion/core/services/sync/library_epoch_store.dart';
 import 'package:submersion/core/services/sync/post_restore_sync_store.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 import 'package:submersion/features/backup/data/services/backup_encryption_key_store.dart';
+import 'package:submersion/features/backup/data/services/backup_copy_guard.dart';
 import 'package:submersion/features/backup/data/services/backup_encryption_service.dart';
 import 'package:submersion/features/backup/data/services/backup_service.dart';
 import 'package:submersion/features/backup/data/services/cloud_backup_history.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
+import 'package:submersion/features/backup/presentation/providers/backup_copy_providers.dart';
+import 'package:submersion/features/backup/presentation/providers/backup_settings_notifier.dart';
 import 'package:submersion/core/services/sync/crypto/sync_encryption_service.dart'
     show WrongPassphraseException;
 import 'package:submersion/features/backup/domain/exceptions/backup_encrypted_exception.dart';
@@ -40,14 +47,21 @@ final backupPreferencesProvider = Provider<BackupPreferences>((ref) {
 
 /// Backup service with all dependencies injected
 final backupServiceProvider = Provider<BackupService>((ref) {
+  // Captured now, not read through ref inside the hook: a restore can run
+  // for minutes, and a rebuild of this provider meanwhile would leave the
+  // hook holding an unmounted Ref that throws, failing the restore.
+  final prefs = ref.watch(sharedPreferencesProvider);
   return BackupService(
     dbAdapter: DefaultBackupDatabaseAdapter(DatabaseService.instance),
     preferences: ref.watch(backupPreferencesProvider),
-    cloudProvider: ref.watch(cloudStorageProviderProvider),
+    cloudProvider: ref.watch(backupCopyProviderProvider),
+    copyAccountId: ref.watch(pinnedCopyAccountIdProvider),
+    syncRepository: ref.watch(syncRepositoryProvider),
     epochStore: LibraryEpochStore(ref.watch(sharedPreferencesProvider)),
     postRestoreSyncStore: PostRestoreSyncStore(
       ref.watch(sharedPreferencesProvider),
     ),
+    onRestoring: (at) => StorageGcStore.markRestored(prefs, at),
     encryptionKeyStore: ref.watch(encryptionKeyStoreProvider),
     syncPreferences: ref.watch(syncPreferencesProvider),
     backupEncryptionKeyStore: ref.watch(backupEncryptionKeyStoreProvider),
@@ -76,115 +90,6 @@ final backupEncryptionServiceProvider = Provider<BackupEncryptionService>((
 // =============================================================================
 // Settings
 // =============================================================================
-
-/// Notifier for backup settings (enabled, frequency, retention, cloud)
-class BackupSettingsNotifier extends StateNotifier<BackupSettings> {
-  final BackupPreferences _prefs;
-
-  BackupSettingsNotifier(this._prefs) : super(_prefs.getSettings());
-
-  Future<void> setEnabled(bool value) async {
-    await _prefs.setEnabled(value);
-    state = state.copyWith(enabled: value);
-  }
-
-  Future<void> setBackupEncryptionEnabled(bool value) async {
-    await _prefs.setBackupEncryptionEnabled(value);
-    state = state.copyWith(backupEncryptionEnabled: value);
-  }
-
-  Future<void> setFrequency(BackupFrequency frequency) async {
-    await _prefs.setFrequency(frequency);
-    state = state.copyWith(frequency: frequency);
-  }
-
-  Future<void> setRetentionCount(int count) async {
-    await _prefs.setRetentionCount(count);
-    state = state.copyWith(retentionCount: count);
-  }
-
-  /// Cloud backup and a custom backup location are mutually exclusive
-  /// destinations: enabling cloud backup reverts the location to the
-  /// default, and choosing a custom location turns cloud backup off.
-  ///
-  /// The two keys are persisted in separate awaited steps, so the conflicting
-  /// key is always cleared BEFORE the new one is set. That way a crash between
-  /// the writes can only leave a "both off" state, never the invalid "cloud
-  /// backup on + custom location set" combination.
-  Future<void> setCloudBackupEnabled(bool value) async {
-    if (value) await _prefs.setBackupLocation(null);
-    await _prefs.setCloudBackupEnabled(value);
-    state = _prefs.getSettings();
-  }
-
-  Future<void> setBackupLocation(String? path) async {
-    if (path != null) await _prefs.setCloudBackupEnabled(false);
-    await _prefs.setBackupLocation(path);
-    state = _prefs.getSettings();
-  }
-
-  /// Sets a custom backup location together with its security-scoped bookmark
-  /// (Apple platforms). The bookmark is what lets the location survive an app
-  /// restart; a null bookmark is fine on desktop, where bare paths persist.
-  ///
-  /// Like [setBackupLocation], choosing a custom location turns cloud backup
-  /// off -- the conflicting cloud key is cleared before the location is set.
-  Future<void> setBackupLocationWithBookmark(
-    String path,
-    List<int>? bookmark,
-  ) async {
-    await _prefs.setCloudBackupEnabled(false);
-    await _prefs.setBackupLocation(path);
-    await _prefs.setBackupLocationBookmark(bookmark);
-    state = _prefs.getSettings();
-  }
-
-  /// Android SAF: persist a `content://` tree URI as the location plus its human
-  /// label for display. Turns cloud backup off, like any custom location.
-  Future<void> setSafBackupLocation(String uri, String label) async {
-    await _prefs.setCloudBackupEnabled(false);
-    await _prefs.setBackupLocation(uri);
-    await _prefs.setBackupLocationLabel(label);
-    state = _prefs.getSettings();
-  }
-
-  /// Display label for a custom location (e.g. the SAF folder name), or null.
-  String? get locationLabel => _prefs.backupLocationLabel;
-
-  /// Sign-out hook: cloud sync is being disabled, so cloud backup loses its
-  /// destination. Resets the location to default only when cloud backup was
-  /// actually on -- an unrelated custom location is none of sync's business.
-  Future<void> disableCloudBackup() async {
-    if (!state.cloudBackupEnabled) return;
-    await _prefs.setCloudBackupEnabled(false);
-    await _prefs.setBackupLocation(null);
-    state = _prefs.getSettings();
-  }
-
-  /// Refresh state from SharedPreferences (e.g. after a backup updates lastBackupTime)
-  void refresh() {
-    state = _prefs.getSettings();
-  }
-
-  /// Like [refresh], but first re-reads what the WorkManager isolate may
-  /// have written since this isolate cached its preferences.
-  Future<void> reloadFromDisk() async {
-    await _prefs.reload();
-    if (!mounted) return;
-    refresh();
-  }
-
-  /// Records a failed scheduled backup for Settings > Data health.
-  Future<void> recordScheduledFailure(String message) async {
-    final at = DateTime.now();
-    await _prefs.setLastScheduledFailure(at, message);
-    if (!mounted) return;
-    state = state.copyWith(
-      lastScheduledFailureAt: at,
-      lastScheduledFailureMessage: message,
-    );
-  }
-}
 
 final backupSettingsProvider =
     StateNotifierProvider<BackupSettingsNotifier, BackupSettings>((ref) {
@@ -429,6 +334,11 @@ class BackupOperationNotifier extends StateNotifier<BackupOperationState> {
       state = BackupOperationState(
         status: BackupOperationStatus.error,
         message: _l10n.backup_operation_restoreSourceMissing,
+      );
+    } on BackupCopyInOtherAccountException {
+      state = BackupOperationState(
+        status: BackupOperationStatus.error,
+        message: _l10n.backup_restore_copyInOtherAccount,
       );
     } catch (e) {
       state = BackupOperationState(
@@ -766,7 +676,20 @@ final backupHistoryProvider = FutureProvider.autoDispose<List<BackupRecord>>((
   // unawaited on that path cannot surface an unhandled error.
   final cloudFiles = service.getCloudBackups();
   final history = await service.getValidatedBackupHistory();
-  return mergeCloudBackups(history, await cloudFiles);
+  final listing = await cloudFiles;
+  final listedIds = {for (final f in listing) f.id};
+  return [
+    for (final r in markPinnedOnAnotherDevice(
+      mergeCloudBackups(
+        history,
+        listing,
+        accountId: await service.cloudCopyAccountId(),
+      ),
+      listing,
+      thisDeviceId: await service.thisDeviceIdOrNull(),
+    ))
+      listedIds.contains(r.cloudFileId) ? r.copyWith(cloudCopyListed: true) : r,
+  ];
 });
 
 // =============================================================================

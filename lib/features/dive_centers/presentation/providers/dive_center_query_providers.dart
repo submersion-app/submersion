@@ -4,6 +4,7 @@ import 'package:submersion/features/dive_centers/domain/entities/dive_center.dar
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/dive_centers/query/dive_center_query_entity.dart';
 import 'package:submersion/features/query/presentation/providers/narrow_by_ids.dart';
+import 'package:submersion/shared/widgets/master_detail/remembered_selection.dart';
 
 /// The dive center list's query (#2365); null lists every center. The map
 /// stays unfiltered, like the site map.
@@ -18,5 +19,15 @@ final filteredDiveCentersProvider = Provider<AsyncValue<List<DiveCenter>>>(
     diveCenterQueryEntity,
     ref.watch(diveCenterQueryProvider),
     (c) => c.id,
+  ),
+);
+
+/// The dive center a list returned to reopens and scrolls back to: the one last
+/// opened, while the list as filtered still shows it (#3301).
+final rememberedDiveCenterIdProvider = Provider<AsyncValue<String?>>(
+  (ref) => rememberedListedId(
+    items: ref.watch(filteredDiveCentersProvider),
+    rememberedId: ref.watch(highlightedDiveCenterIdProvider),
+    idOf: (center) => center.id,
   ),
 );

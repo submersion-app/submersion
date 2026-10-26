@@ -1,4 +1,4 @@
-# Shared Site Libraries
+# Shared site libraries
 
 A **shared site library** is a set of dive sites kept together by a group of
 divers: a dive shop's house reefs, a survey team's transects, or the sites a
@@ -11,7 +11,7 @@ S3-compatible bucket or a WebDAV server. There is no Submersion server and no
 Submersion account. You can belong to more than one library, each in its own
 folder.
 
-Open **Settings > Data > Shared Site Libraries** to see your libraries and
+Open **Settings > Data > Shared site libraries** to see your libraries and
 connect new ones.
 
 ## Roles
@@ -52,9 +52,10 @@ and photos never leave your personal logbook.
    `submersion-sites` at the top of your bucket or server, beside the
    `submersion-sync` and `submersion-media` folders. A folder name cannot start
    with `sites`, `members`, `suggestions` or `backups`.
-3. Choose the storage account, or **Add storage account** with the bucket or
+3. Choose the server the library lives on with **Change** (S3-compatible or
+   WebDAV accounts only), or add one with **My own server** and the bucket or
    server details and the key you were given.
-4. Tap **Check**. Submersion looks in the folder and offers to **Join** the
+4. Tap **Check location**. Submersion looks in the folder and offers to **Join** the
    library that is there. If the folder is empty, it offers to
    **Create library**, or to **Restore from a backup file** (see
    [Backups](#backups)).
@@ -98,6 +99,27 @@ taps **Remove role**. When an editor or owner leaves, is made a reader, or has
 their role removed, the edits they made until then keep counting for every
 member, including members who join later; anything they write afterwards does
 not.
+
+### Removing someone
+
+To remove an approved member, for example someone who has left your group, an
+owner opens the role menu beside them on the **Members** page and taps
+**Remove from library**. Everything they contributed stays in the library: the
+sites and edits they made before the removal keep counting, and suggestions
+they made before it stay in the Suggestions page for an owner to decide. From
+then on they can no longer edit sites or suggest changes, and their own app
+shows that an owner removed them. Their app keeps the library's sites but stops
+changing them; leaving the library there keeps personal copies of the sites
+they dived.
+
+Removing someone does not stop them reading the library: anyone who holds the
+storage keys can read its files. To cut off reading too, change the storage
+keys, and the passphrase if the library is encrypted.
+
+Removed people are listed under **Removed** on the **Members** page. **Allow
+back** lets them return: their app lists them again at its next sync, and they
+wait under **Waiting for approval** like anyone new. A removal outlives a
+restore from a backup taken before it.
 
 If a device finds the library's roles changed by someone it does not know as an
 owner, the library page warns, and the device only reads the library until the
@@ -280,4 +302,4 @@ access to the whole folder.
 - [Dive Sites](dive-sites.md)
 - [Multi-Device Sync](multi-device-sync.md)
 - [Encrypted Sync](encrypted-sync.md)
-- [Backup & Restore](backup-and-restore.md)
+- [Backups](backup-and-restore.md)

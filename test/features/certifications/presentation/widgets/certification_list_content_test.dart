@@ -8,7 +8,9 @@ import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/certifications/domain/constants/certification_field.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
+import 'package:submersion/features/certifications/presentation/providers/certification_grouping_providers.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
+import 'package:submersion/features/certifications/presentation/utils/certification_grouping.dart';
 import 'package:submersion/features/certifications/presentation/widgets/certification_list_content.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -146,6 +148,60 @@ Future<List<Override>> _buildPhoneOverrides({
 }
 
 void main() {
+  // A selection made outside the list (the map, a deep link, the detail
+  // pane's previous and next) brings its row into view (#3301).
+  testWidgets('scrolls to a certification selected from outside the list', (
+    tester,
+  ) async {
+    final overrides = await _buildPhoneOverrides(
+      certs: [
+        for (var i = 0; i < 60; i++)
+          _makeCert(id: 'r$i', name: 'Cert ${i.toString().padLeft(2, '0')}'),
+      ],
+    );
+    final selected = ValueNotifier<String?>(null);
+    addTearDown(selected.dispose);
+    await tester.pumpWidget(
+      testApp(
+        overrides: overrides,
+        child: ValueListenableBuilder<String?>(
+          valueListenable: selected,
+          builder: (_, id, _) =>
+              CertificationListContent(showAppBar: true, selectedId: id),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    selected.value = 'r50';
+    await tester.pumpAndSettle();
+
+    expect(find.text('Cert 50'), findsOneWidget);
+  });
+
+  // A list built again after the diver left it comes back to the record they
+  // last opened (#3301).
+  testWidgets('scrolls to the highlighted certification when built', (
+    tester,
+  ) async {
+    final overrides = await _buildPhoneOverrides(
+      certs: [
+        for (var i = 0; i < 60; i++)
+          _makeCert(id: 'r$i', name: 'Cert ${i.toString().padLeft(2, '0')}'),
+      ],
+      highlightedCertificationId: 'r50',
+    );
+    await tester.pumpWidget(
+      testApp(
+        overrides: overrides,
+        child: const CertificationListContent(showAppBar: true),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Cert 50'), findsOneWidget);
+  });
+
   // The title's subtitle counts the list (#2669), in both the phone app bar
   // and the desktop pane header.
   group('entry count subtitle', () {
@@ -1126,6 +1182,101 @@ void main() {
       // Beside an open form it reads as the form's submit button, but it only
       // reopens the create form, so nothing gets saved (issue #3192).
       expect(find.text('Add Your First Certification'), findsNothing);
+    });
+  });
+
+  // #3359: grouping is now a choice (Status / Agency / None), not fixed.
+  group('grouping (#3359)', () {
+    testWidgets('groups by status (the default) using the historical '
+        'section headers', (tester) async {
+      final overrides = await _buildPhoneOverrides(
+        certs: [
+          _makeCert(
+            id: 'exp',
+            name: 'Expired Cert',
+            expiryDate: DateTime(2020, 1, 1),
+          ),
+          _makeCert(id: 'valid', name: 'Valid Cert'),
+        ],
+      );
+
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const CertificationListContent(showAppBar: true),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // "Expired" appears twice: the section header and the expired tile's
+      // own trailing badge, which uses the same English string.
+      expect(find.text('Expired'), findsNWidgets(2));
+      expect(find.text('Valid'), findsOneWidget);
+    });
+
+    testWidgets('groups by agency, headed by the localized agency name', (
+      tester,
+    ) async {
+      final overrides = await _buildPhoneOverrides(
+        certs: [
+          _makeCert(id: 'p', name: 'PADI Cert', agency: 'padi'),
+          _makeCert(id: 's', name: 'SSI Cert', agency: 'ssi'),
+        ],
+      );
+
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            ...overrides,
+            certificationGroupByProvider.overrideWith(
+              (ref) => CertificationGroupBy.agency,
+            ),
+          ],
+          child: const CertificationListContent(showAppBar: true),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Each agency name appears three times: its tile's leading badge and
+      // credentials subtitle (pre-existing), plus the new group header.
+      expect(find.text('PADI'), findsNWidgets(3));
+      expect(find.text('SSI'), findsNWidgets(3));
+      expect(find.text('Expired'), findsNothing);
+    });
+
+    testWidgets('shows no section headers at all when grouping is none', (
+      tester,
+    ) async {
+      final overrides = await _buildPhoneOverrides(
+        certs: [
+          _makeCert(
+            id: 'exp',
+            name: 'Expired Cert',
+            expiryDate: DateTime(2020, 1, 1),
+          ),
+          _makeCert(id: 'valid', name: 'Valid Cert'),
+        ],
+      );
+
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            ...overrides,
+            certificationGroupByProvider.overrideWith(
+              (ref) => CertificationGroupBy.none,
+            ),
+          ],
+          child: const CertificationListContent(showAppBar: true),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Expired Cert'), findsOneWidget);
+      expect(find.text('Valid Cert'), findsOneWidget);
+      // Only the expired tile's own trailing badge remains -- no section
+      // header, which would make this a second "Expired".
+      expect(find.text('Expired'), findsOneWidget);
+      expect(find.text('Valid'), findsNothing);
     });
   });
 }

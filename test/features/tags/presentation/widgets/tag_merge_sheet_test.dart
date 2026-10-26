@@ -210,7 +210,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(
-        find.text('This will affect 3 dives and 2 sites total.'),
+        find.text('This will affect:\n• 3 dives\n• 2 sites'),
         findsOneWidget,
       );
     });
@@ -262,7 +262,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(
-        find.text('This will affect 3 dives and 2 equipment items total.'),
+        find.text('This will affect:\n• 3 dives\n• 2 equipment items'),
         findsOneWidget,
       );
     });

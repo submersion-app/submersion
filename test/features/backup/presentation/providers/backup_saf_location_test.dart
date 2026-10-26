@@ -15,14 +15,14 @@ void main() {
   });
 
   test(
-    'setSafBackupLocation persists uri + label and disables cloud backup',
+    'setSafBackupLocation persists uri + label and keeps the cloud copy',
     () async {
       await notifier.setCloudBackupEnabled(true);
       await notifier.setSafBackupLocation('content://tree/1', 'Backups');
 
       expect(notifier.state.backupLocation, 'content://tree/1');
       expect(notifier.locationLabel, 'Backups');
-      expect(notifier.state.cloudBackupEnabled, isFalse);
+      expect(notifier.state.cloudBackupEnabled, isTrue);
       expect(prefs.backupLocationLabel, 'Backups');
     },
   );

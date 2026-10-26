@@ -17,7 +17,23 @@ import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 /// when given, shows the per-site vertical-exaggeration section (issue
 /// #2141 follow-up) -- omitted for views with no persistent site (e.g. the
 /// single-dive spatial page), where exaggeration does not apply.
-void showTerrainAppearanceSheet(BuildContext context, {String? siteId}) {
+///
+/// [isolatePaths] must match whatever `SiteTerrainPane.playbackContext`
+/// implies for the caller's own `siteSeascapeProvider` watch (issue #3571):
+/// a mismatch mints a second, separately-cached scene just for this sheet,
+/// repeating the every-other-dive reconstruction the caller's own isolated
+/// scene was built to skip, and reintroduces the vertical-exaggeration
+/// slider's startup flicker (see `_ExaggerationSection`'s own doc comment)
+/// since that second fetch starts out loading while the caller's is
+/// already ready. No default: a caller with no site of its own (so
+/// [siteId] is also omitted) can pass either value with no effect, but a
+/// caller that DOES have a site must consciously pick one instead of
+/// silently inheriting a default that happens to be wrong for it.
+void showTerrainAppearanceSheet(
+  BuildContext context, {
+  String? siteId,
+  required bool isolatePaths,
+}) {
   showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
@@ -57,7 +73,10 @@ void showTerrainAppearanceSheet(BuildContext context, {String? siteId}) {
             // pushing it (and the close action) off the screen.
             Flexible(
               child: SingleChildScrollView(
-                child: TerrainAppearanceSheet(siteId: siteId),
+                child: TerrainAppearanceSheet(
+                  siteId: siteId,
+                  isolatePaths: isolatePaths,
+                ),
               ),
             ),
           ],
@@ -110,7 +129,14 @@ class TerrainAppearanceSheet extends ConsumerWidget {
   /// for a persistent site, not the single-dive spatial page.
   final String? siteId;
 
-  const TerrainAppearanceSheet({super.key, this.siteId});
+  /// See [showTerrainAppearanceSheet]'s doc comment.
+  final bool isolatePaths;
+
+  const TerrainAppearanceSheet({
+    super.key,
+    this.siteId,
+    required this.isolatePaths,
+  });
 
   static const List<int?> _palette = [
     null, // default ink
@@ -282,7 +308,8 @@ class TerrainAppearanceSheet extends ConsumerWidget {
             l10n.dive3d_seascape_appearance_wallAngleNote,
             style: Theme.of(context).textTheme.bodySmall,
           ),
-          if (siteId != null) _ExaggerationSection(siteId: siteId!),
+          if (siteId != null)
+            _ExaggerationSection(siteId: siteId!, isolatePaths: isolatePaths),
         ],
       ),
     );
@@ -303,7 +330,16 @@ class TerrainAppearanceSheet extends ConsumerWidget {
 class _ExaggerationSection extends ConsumerStatefulWidget {
   final String siteId;
 
-  const _ExaggerationSection({required this.siteId});
+  /// Matches whichever SiteSeascapeRequest.isolatePaths the sheet's caller
+  /// is already using for its own base-scene watch (issue #3571), so this
+  /// section's siteSeascapeProvider read shares that one cache entry
+  /// instead of forcing a second, redundant site-wide reconstruction.
+  final bool isolatePaths;
+
+  const _ExaggerationSection({
+    required this.siteId,
+    required this.isolatePaths,
+  });
 
   @override
   ConsumerState<_ExaggerationSection> createState() =>
@@ -321,8 +357,19 @@ class _ExaggerationSectionState extends ConsumerState<_ExaggerationSection> {
         (s) => s.seascapeVerticalExaggerationOverrides[widget.siteId],
       ),
     );
+    // axisInputs.verticalExaggeration is identical whether the scene is
+    // isolated or not (issue #3571's isolatePaths only changes which dive
+    // paths get reconstructed, not terrain/appearance) -- matching
+    // widget.isolatePaths here is purely so this shares the SAME cache
+    // entry the sheet's opener is already using, instead of minting a
+    // second, separately-cached scene (see the class doc comment).
     final seascapeState = ref
-        .watch(siteSeascapeProvider(widget.siteId))
+        .watch(
+          siteSeascapeProvider((
+            siteId: widget.siteId,
+            isolatePaths: widget.isolatePaths,
+          )),
+        )
         .valueOrNull;
     if (seascapeState is SiteSeascapeReady) {
       _lastKnownAuto = seascapeState.axisInputs.verticalExaggeration;

@@ -84,7 +84,7 @@ void main() {
     PreDiveItemState state = PreDiveItemState.pending,
     bool required = true,
     PreDiveItemType itemType = PreDiveItemType.check,
-    String? section,
+    String? sectionId,
     String? valueLabel,
     String? valueUnit,
     double? valueMin,
@@ -99,7 +99,7 @@ void main() {
     id: 'i$order',
     sessionId: 's1',
     title: 'Item $order',
-    section: section,
+    sectionId: sectionId,
     sortOrder: order,
     state: state,
     isRequired: required,
@@ -123,6 +123,7 @@ void main() {
     WidgetTester tester, {
     required PreDiveSession s,
     required List<PreDiveSessionItem> items,
+    List<PreDiveSessionSection> sections = const [],
     List<dynamic> extraOverrides = const [],
     Locale locale = const Locale('en'),
   }) async {
@@ -134,6 +135,9 @@ void main() {
           preDiveSessionRepositoryProvider.overrideWithValue(repo),
           preDiveSessionProvider('s1').overrideWith((ref) async => s),
           preDiveSessionItemsProvider('s1').overrideWith((ref) async => items),
+          preDiveSessionSectionsProvider(
+            's1',
+          ).overrideWith((ref) async => sections),
           ...extraOverrides,
         ],
         child: const PreDiveSessionRunnerPage(sessionId: 's1'),
@@ -260,10 +264,48 @@ void main() {
     await pumpRunner(
       tester,
       s: session(),
-      items: [item(0, section: 'Pre-breathe')],
+      items: [item(0, sectionId: 'sec1')],
+      sections: [
+        PreDiveSessionSection(
+          id: 'sec1',
+          sessionId: 's1',
+          title: 'Pre-breathe',
+          createdAt: now,
+          updatedAt: now,
+        ),
+      ],
     );
     expect(find.text('Pre-breathe'), findsOneWidget);
     expect(find.text('Item 0'), findsOneWidget);
+  });
+
+  testWidgets('strict order follows the rows as drawn: an unsectioned item '
+      'drawn last is unlocked last, whatever its sortOrder', (tester) async {
+    await pumpRunner(
+      tester,
+      s: session(),
+      // Item 0 has no section, so it is drawn after the Cells group even
+      // though it sorts first.
+      items: [
+        item(0),
+        item(1, sectionId: 'cells'),
+      ],
+      sections: [
+        PreDiveSessionSection(
+          id: 'cells',
+          sessionId: 's1',
+          title: 'Cells',
+          createdAt: now,
+          updatedAt: now,
+        ),
+      ],
+    );
+
+    ListTile tileOf(String title) => tester.widget<ListTile>(
+      find.ancestor(of: find.text(title), matching: find.byType(ListTile)),
+    );
+    expect(tileOf('Item 1').enabled, isTrue);
+    expect(tileOf('Item 0').enabled, isFalse);
   });
 
   testWidgets('error from session provider surfaces error text', (

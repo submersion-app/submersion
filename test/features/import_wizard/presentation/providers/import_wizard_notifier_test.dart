@@ -12,6 +12,7 @@ import 'package:submersion/features/import_wizard/domain/models/import_cancellat
 import 'package:submersion/features/import_wizard/domain/models/import_phase.dart';
 import 'package:submersion/features/import_wizard/domain/models/tag_selection.dart';
 import 'package:submersion/features/import_wizard/domain/models/unified_import_result.dart';
+import 'package:submersion/features/import_wizard/presentation/providers/import_job_provider.dart';
 import 'package:submersion/features/import_wizard/presentation/providers/import_wizard_providers.dart';
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
@@ -1257,6 +1258,228 @@ void main() {
         expect(notifier.state.importResult, isNotNull);
       });
 
+      test('stops an import that cannot go on without the wizard', () async {
+        // Its own notifier: this one is disposed inside the test.
+        final leaving = ImportWizardNotifier(
+          mockAdapter,
+          tagRepository: mockTagRepo,
+          diverId: 'diver-1',
+        );
+        leaving.setBundle(buildBundle(diveItems: [makeItem('Dive 1')]));
+        ImportCancellationToken? seen;
+        when(
+          mockAdapter.performImport(
+            any,
+            any,
+            any,
+            retainSourceDiveNumbers: anyNamed('retainSourceDiveNumbers'),
+            onProgress: anyNamed('onProgress'),
+            cancelToken: anyNamed('cancelToken'),
+          ),
+        ).thenAnswer((invocation) async {
+          seen =
+              invocation.namedArguments[#cancelToken]
+                  as ImportCancellationToken?;
+          leaving.dispose();
+          return const UnifiedImportResult(
+            importedCounts: {ImportEntityType.dives: 1},
+            consolidatedCount: 0,
+            skippedCount: 0,
+          );
+        });
+
+        await leaving.performImport();
+
+        expect(seen!.isCancelled, isTrue);
+      });
+
+      test('keeps importing when the wizard goes away mid-import', () async {
+        // Its own notifier: this one is disposed inside the test.
+        final leaving = ImportWizardNotifier(
+          mockAdapter,
+          tagRepository: mockTagRepo,
+          diverId: 'diver-1',
+          continuesWithoutWizard: true,
+        );
+        leaving.setBundle(buildBundle(diveItems: [makeItem('Dive 1')]));
+        final reported = <int>[];
+
+        when(
+          mockAdapter.performImport(
+            any,
+            any,
+            any,
+            retainSourceDiveNumbers: anyNamed('retainSourceDiveNumbers'),
+            onProgress: anyNamed('onProgress'),
+            cancelToken: anyNamed('cancelToken'),
+          ),
+        ).thenAnswer((invocation) async {
+          final onProgress =
+              invocation.namedArguments[#onProgress]
+                  as void Function(ImportPhase, int, int)?;
+          onProgress?.call(ImportPhase.dives, 1, 3);
+          reported.add(1);
+          leaving.dispose();
+          // Progress after the wizard is gone must not throw, or the rest
+          // of the import would be abandoned.
+          onProgress?.call(ImportPhase.dives, 2, 3);
+          reported.add(2);
+          onProgress?.call(ImportPhase.dives, 3, 3);
+          reported.add(3);
+          return const UnifiedImportResult(
+            importedCounts: {ImportEntityType.dives: 1},
+            consolidatedCount: 0,
+            skippedCount: 0,
+          );
+        });
+
+        await leaving.performImport();
+
+        expect(reported, [1, 2, 3]);
+      });
+
+      group('with an import job', () {
+        late ProviderContainer jobs;
+        late ImportJobNotifier job;
+        const done = UnifiedImportResult(
+          importedCounts: {ImportEntityType.dives: 1},
+          consolidatedCount: 0,
+          skippedCount: 0,
+        );
+
+        setUp(() {
+          jobs = ProviderContainer();
+          job = jobs.read(importJobProvider.notifier);
+        });
+
+        tearDown(() => jobs.dispose());
+
+        ImportWizardNotifier withJob({bool continuesWithoutWizard = true}) =>
+            ImportWizardNotifier(
+              mockAdapter,
+              tagRepository: mockTagRepo,
+              diverId: 'diver-1',
+              job: job,
+              continuesWithoutWizard: continuesWithoutWizard,
+            )..setBundle(buildBundle(diveItems: [makeItem('Dive 1')]));
+
+        void stubImport(
+          Future<UnifiedImportResult> Function(ImportCancellationToken token)
+          body,
+        ) {
+          when(
+            mockAdapter.performImport(
+              any,
+              any,
+              any,
+              retainSourceDiveNumbers: anyNamed('retainSourceDiveNumbers'),
+              onProgress: anyNamed('onProgress'),
+              cancelToken: anyNamed('cancelToken'),
+            ),
+          ).thenAnswer(
+            (invocation) => body(
+              invocation.namedArguments[#cancelToken]
+                  as ImportCancellationToken,
+            ),
+          );
+        }
+
+        test(
+          'runs on the job, so either side cancels the same import',
+          () async {
+            final wizard = withJob();
+            addTearDown(wizard.dispose);
+            stubImport((token) async {
+              expect(jobs.read(importJobProvider).isRunning, isTrue);
+              wizard.cancelImport();
+              expect(token.isCancelled, isTrue);
+              expect(
+                jobs.read(importJobProvider).isCancellationRequested,
+                isTrue,
+              );
+              return done;
+            });
+
+            await wizard.performImport();
+
+            expect(jobs.read(importJobProvider).isRunning, isFalse);
+          },
+        );
+
+        test('closing the wizard detaches the import from it', () async {
+          final wizard = withJob();
+          stubImport((token) async {
+            wizard.dispose();
+            await Future<void>.delayed(Duration.zero);
+            expect(jobs.read(importJobProvider).isAttached, isFalse);
+            expect(token.isCancelled, isFalse);
+            return done;
+          });
+
+          await wizard.performImport();
+
+          expect(
+            jobs.read(importJobProvider).backgroundOutcome?.kind,
+            ImportJobOutcomeKind.finished,
+          );
+        });
+
+        test('refuses to start while another import runs', () async {
+          final other = job.start(continuesWithoutWizard: true)!;
+          final wizard = withJob();
+          addTearDown(wizard.dispose);
+
+          await wizard.performImport();
+
+          verifyNever(
+            mockAdapter.performImport(
+              any,
+              any,
+              any,
+              retainSourceDiveNumbers: anyNamed('retainSourceDiveNumbers'),
+              onProgress: anyNamed('onProgress'),
+              cancelToken: anyNamed('cancelToken'),
+            ),
+          );
+          expect(wizard.state.importResult?.errorMessage, isNotNull);
+          expect(wizard.state.importRefused, isTrue);
+          expect(other.isCancelled, isFalse);
+        });
+      });
+
+      test('ends on the finishing phase, not on the last photo', () async {
+        notifier.setBundle(buildBundle(diveItems: [makeItem('Dive 1')]));
+        when(
+          mockAdapter.performImport(
+            any,
+            any,
+            any,
+            retainSourceDiveNumbers: anyNamed('retainSourceDiveNumbers'),
+            onProgress: anyNamed('onProgress'),
+            cancelToken: anyNamed('cancelToken'),
+          ),
+        ).thenAnswer((invocation) async {
+          final onProgress =
+              invocation.namedArguments[#onProgress]
+                  as void Function(ImportPhase, int, int)?;
+          onProgress?.call(ImportPhase.photos, 4, 4);
+          return const UnifiedImportResult(
+            importedCounts: {ImportEntityType.dives: 1},
+            consolidatedCount: 0,
+            skippedCount: 0,
+          );
+        });
+        final phases = <(ImportPhase?, int)>[];
+        notifier.addListener(
+          (state) => phases.add((state.importPhase, state.importTotal)),
+        );
+
+        await notifier.performImport();
+
+        final afterPhotos = phases.skipWhile((p) => p.$1 != ImportPhase.photos);
+        expect(afterPhotos.skip(1).first, (ImportPhase.finishing, 0));
+      });
+
       test('does nothing when no bundle is set', () async {
         // No setBundle called
         await notifier.performImport();
@@ -1342,6 +1565,55 @@ void main() {
         expect(notifier.state.importResult!.errorMessage, isNotNull);
         expect(notifier.state.isImporting, isFalse);
       });
+
+      test(
+        'still tags the dives when the wizard goes away mid-import',
+        () async {
+          // Its own notifier: this one is disposed inside the test.
+          final leaving = ImportWizardNotifier(
+            mockAdapter,
+            tagRepository: mockTagRepo,
+            diverId: 'diver-1',
+            continuesWithoutWizard: true,
+          );
+          leaving.setBundle(buildBundle(diveItems: [makeItem('Dive 1')]));
+          leaving.addImportTag(const TagSelection(name: 'Vacation'));
+
+          when(
+            mockAdapter.performImport(
+              any,
+              any,
+              any,
+              retainSourceDiveNumbers: anyNamed('retainSourceDiveNumbers'),
+              onProgress: anyNamed('onProgress'),
+              cancelToken: anyNamed('cancelToken'),
+            ),
+          ).thenAnswer((_) async {
+            leaving.dispose();
+            return const UnifiedImportResult(
+              importedCounts: {ImportEntityType.dives: 1},
+              consolidatedCount: 0,
+              skippedCount: 0,
+              importedDiveIds: ['dive-1'],
+            );
+          });
+          when(
+            mockTagRepo.getOrCreateTag('Vacation', diverId: 'diver-1'),
+          ).thenAnswer(
+            (_) async => Tag(
+              id: 'tag-new',
+              name: 'Vacation',
+              createdAt: DateTime(2026),
+              updatedAt: DateTime(2026),
+            ),
+          );
+          when(mockTagRepo.addTagToDive(any, any)).thenAnswer((_) async {});
+
+          await leaving.performImport();
+
+          verify(mockTagRepo.addTagToDive('dive-1', 'tag-new')).called(1);
+        },
+      );
 
       test('applies import tags to all imported dives after import', () async {
         final bundle = buildBundle(diveItems: [makeItem('Dive 1')]);

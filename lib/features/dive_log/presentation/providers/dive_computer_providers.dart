@@ -75,6 +75,15 @@ final diveComputerByIdProvider = FutureProvider.family<DiveComputer?, String>((
   return repository.getComputerById(id);
 });
 
+/// The registrations behind an Equipment item, most recently downloaded
+/// first (issue #3676). Its Dive computer section acts on the first.
+final computersForEquipmentProvider =
+    FutureProvider.family<List<DiveComputer>, String>((ref, equipmentId) async {
+      final repository = ref.watch(diveComputerRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchComputersChanges());
+      return repository.getComputersForEquipment(equipmentId);
+    });
+
 /// Other saved computers that look like the same physical device as [id]:
 /// a shared serial number with a compatible manufacturer and model (#645).
 ///

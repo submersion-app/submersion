@@ -118,6 +118,24 @@ void main() {
     expect(await deletionCount(), 11);
   });
 
+  // Issue #3522: a name the diver gave the legacy row survives the collapse.
+  test('carries a nickname onto the canonical id', () async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    await syncS3.save(syncConfig);
+    final a = await accounts.create(kind: AccountKind.s3, label: 'x');
+    await accounts.setNickname(a.id, 'Dive sync');
+    await SyncRepository().setSyncAccount(
+      accountId: a.id,
+      providerType: CloudProviderType.s3,
+    );
+
+    await (await dedup(prefs)).run();
+
+    final canonical = await accounts.getById(syncCanonicalId());
+    expect(canonical!.nickname, 'Dive sync');
+  });
+
   test('is a no-op on a second run', () async {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
@@ -274,6 +292,65 @@ void main() {
 
     // Swallowed, not rethrown: startup must proceed.
     await expectLater(failing.run(), completes);
+  });
+
+  // Issue #3482: a library folder, a server added and not used yet, and a
+  // former sync account are rows at their deterministic ids that nothing on
+  // this device anchors. Only random-id legacy copies are duplicates.
+  test('keeps deterministic rows that nothing here anchors', () async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    final library = await accounts.ensure(
+      kind: AccountKind.s3,
+      naturalKey: s3NaturalKey(
+        syncConfig.copyWith(prefix: 'submersion-sites/reef/'),
+      ),
+      label: 'submersion-sync @ host (submersion-sites/reef)',
+    );
+    final drive = await accounts.ensure(
+      kind: AccountKind.googledrive,
+      naturalKey: naturalKeyForKind(AccountKind.googledrive)!,
+      label: 'Google Drive',
+    );
+    final legacy = await accounts.create(kind: AccountKind.s3, label: 'x');
+
+    await (await dedup(prefs)).run();
+
+    final ids = {for (final a in await accounts.getAll()) a.id};
+    expect(ids, {library.id, drive.id});
+    expect(ids, isNot(contains(legacy.id)));
+    expect(await deletionCount(), 1);
+  });
+
+  // Review of #3527: a switch cut short leaves the sync settings naming the
+  // new row while the sync account is still the old, deterministic row; the
+  // pass must not adopt the old row's keys onto the live new one.
+  test('a deterministic sync anchor is kept as it is', () async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    final other = syncConfig.copyWith(prefix: 'dives/');
+    final anchor = await accounts.ensure(
+      kind: AccountKind.s3,
+      naturalKey: s3NaturalKey(other),
+      label: 'x',
+    );
+    final live = await accounts.ensure(
+      kind: AccountKind.s3,
+      naturalKey: s3NaturalKey(syncConfig),
+      label: 'live',
+    );
+    await credentials.write(anchor.id, '{"blob":"old"}');
+    await credentials.write(live.id, '{"blob":"live"}');
+    await syncS3.save(syncConfig);
+    await SyncRepository().setSyncAccount(
+      accountId: anchor.id,
+      providerType: CloudProviderType.s3,
+    );
+
+    await (await dedup(prefs)).run();
+
+    expect(await SyncRepository().getSyncAccountId(), anchor.id);
+    expect(await credentials.read(live.id), '{"blob":"live"}');
   });
 
   test('does nothing when there is nothing to collapse', () async {

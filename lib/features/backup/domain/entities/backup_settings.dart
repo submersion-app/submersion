@@ -1,7 +1,25 @@
 import 'package:equatable/equatable.dart';
 
+import 'package:submersion/core/services/accounts/account_kind.dart';
+
 /// How often automatic backups should run
 enum BackupFrequency { daily, weekly, monthly }
+
+/// Where the most recent backup was written, so Settings > Data can say
+/// where the copy is without guessing from settings changed since.
+enum LastBackupDestination {
+  /// The app's own backups folder on this device.
+  device,
+
+  /// A backup folder the diver chose.
+  folder,
+
+  /// This device, plus a copy that reached the cloud.
+  cloud,
+
+  /// A file the diver saved somewhere with Save to file.
+  file,
+}
 
 /// User-configurable backup settings
 class BackupSettings extends Equatable {
@@ -21,6 +39,29 @@ class BackupSettings extends Equatable {
   /// Cloud backup is on but the most recent backup did not reach the cloud.
   final bool lastCloudCopyMissing;
 
+  /// Where the most recent backup went, or null before the first backup
+  /// made by a version that records it.
+  final LastBackupDestination? lastBackupDestination;
+
+  /// The connected account driving sync when the last backup reached the
+  /// cloud, so Settings > Data names the account the copy is in, not the
+  /// one that syncs today. Null for any other destination.
+  final String? lastBackupCloudAccountId;
+
+  /// The roster row the cloud copy goes to, with its kind; both null means
+  /// the copy goes to the same account as sync (spec section 7.3). The kind
+  /// travels with the id so the scheduled backup, which has no database
+  /// registry, can still build the provider.
+  final String? copyAccountId;
+  final AccountKind? copyAccountKind;
+
+  /// The cloud folder the "count backups from all devices" switch was
+  /// confirmed for (issue #3503): its account id, or `provider:<id>` when the
+  /// account is unknown; null when the switch is off. Kept as the folder
+  /// rather than a flag so a different backup folder reads as off until the
+  /// diver confirms it too.
+  final String? crossDeviceRetentionAccount;
+
   const BackupSettings({
     this.enabled = false,
     this.frequency = BackupFrequency.weekly,
@@ -32,6 +73,11 @@ class BackupSettings extends Equatable {
     this.lastScheduledFailureAt,
     this.lastScheduledFailureMessage,
     this.lastCloudCopyMissing = false,
+    this.lastBackupDestination,
+    this.lastBackupCloudAccountId,
+    this.copyAccountId,
+    this.copyAccountKind,
+    this.crossDeviceRetentionAccount,
   });
 
   BackupSettings copyWith({
@@ -45,6 +91,11 @@ class BackupSettings extends Equatable {
     DateTime? lastScheduledFailureAt,
     String? lastScheduledFailureMessage,
     bool? lastCloudCopyMissing,
+    LastBackupDestination? lastBackupDestination,
+    String? lastBackupCloudAccountId,
+    String? copyAccountId,
+    AccountKind? copyAccountKind,
+    String? crossDeviceRetentionAccount,
   }) {
     return BackupSettings(
       enabled: enabled ?? this.enabled,
@@ -60,6 +111,14 @@ class BackupSettings extends Equatable {
       lastScheduledFailureMessage:
           lastScheduledFailureMessage ?? this.lastScheduledFailureMessage,
       lastCloudCopyMissing: lastCloudCopyMissing ?? this.lastCloudCopyMissing,
+      lastBackupDestination:
+          lastBackupDestination ?? this.lastBackupDestination,
+      lastBackupCloudAccountId:
+          lastBackupCloudAccountId ?? this.lastBackupCloudAccountId,
+      copyAccountId: copyAccountId ?? this.copyAccountId,
+      copyAccountKind: copyAccountKind ?? this.copyAccountKind,
+      crossDeviceRetentionAccount:
+          crossDeviceRetentionAccount ?? this.crossDeviceRetentionAccount,
     );
   }
 
@@ -82,6 +141,11 @@ class BackupSettings extends Equatable {
     return DateTime.now().difference(lastBackupTime!) >= frequencyDuration;
   }
 
+  /// Whether the cross-device rule applies to the cloud folder [folderKey]
+  /// names (`BackupServiceRetention.crossDeviceRetentionAccountKey`).
+  bool crossDeviceRetentionFor(String folderKey) =>
+      crossDeviceRetentionAccount == folderKey;
+
   @override
   List<Object?> get props => [
     enabled,
@@ -94,5 +158,10 @@ class BackupSettings extends Equatable {
     lastScheduledFailureAt,
     lastScheduledFailureMessage,
     lastCloudCopyMissing,
+    lastBackupDestination,
+    lastBackupCloudAccountId,
+    copyAccountId,
+    copyAccountKind,
+    crossDeviceRetentionAccount,
   ];
 }

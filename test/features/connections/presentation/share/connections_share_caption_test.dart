@@ -37,7 +37,7 @@ void main() {
 
   test('a preset map is named by its preset, over all dives', () {
     final c = caption(ConnectionsViewState.initial);
-    expect(c.title, 'Dive circle');
+    expect(c.title, 'Who dives where');
     expect(c.details, 'All dives, 2009 to 2026. 1 nodes and 0 connections');
   });
 

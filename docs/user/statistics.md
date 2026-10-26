@@ -107,6 +107,12 @@ rolling average and an overall trend line, and let you choose the range shown.
 > measure how fast you breathe, scaled to the surface so dives at different
 > depths compare. SAC is in pressure per minute, RMV in volume per minute. Lower
 > is more efficient. See the [Glossary](glossary.md).
+>
+> CCR and SCR dives are left out of the SAC and RMV averages, trends and records
+> automatically, as gauge dives are. On a rebreather the cylinders do not empty
+> as you breathe, so their pressure drop is not a breathing rate, and the dive
+> shows no SAC or RMV of its own. Rebreather dives still count toward gas
+> mixes, gas used and consumption by tank role.
 
 <!-- screenshot: images/statistics/gas-sac.png: air consumption dashboard -->
 

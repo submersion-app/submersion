@@ -18,8 +18,9 @@ extension TagMigrations on AppDatabase {
   }
 
   /// Idempotent DDL for the tag scope flags: dives and sites (v217, issue
-  /// #1765), equipment (v219, issue #1942). Existing tags are dive tags; none
-  /// applies to sites or equipment until the diver says so.
+  /// #1765), equipment (v219, issue #1942), media and documents (v309, issue
+  /// #1970). Existing tags are dive tags; none applies anywhere else until
+  /// the diver says so.
   Future<void> _assertTagScopeColumns() async {
     final cols = await customSelect("PRAGMA table_info('tags')").get();
     if (cols.isEmpty) return;
@@ -42,6 +43,38 @@ extension TagMigrations on AppDatabase {
         'INTEGER NOT NULL DEFAULT 0 CHECK (applies_to_equipment IN (0, 1))',
       );
     }
+    if (!names.contains('applies_to_media')) {
+      await customStatement(
+        'ALTER TABLE tags ADD COLUMN applies_to_media '
+        'INTEGER NOT NULL DEFAULT 0 CHECK (applies_to_media IN (0, 1))',
+      );
+    }
+    if (!names.contains('applies_to_documents')) {
+      await customStatement(
+        'ALTER TABLE tags ADD COLUMN applies_to_documents '
+        'INTEGER NOT NULL DEFAULT 0 CHECK (applies_to_documents IN (0, 1))',
+      );
+    }
+  }
+
+  /// Idempotent creation of the v309 media and document tag schema (issue
+  /// #1970): the `media_tags` and `document_tags` junctions and their unique
+  /// indexes. Called from the v309 rung and the beforeOpen backstop.
+  ///
+  /// Each junction is skipped on a partial migration-test fixture that lacks
+  /// its parent table or `tags`, so a fixture written for an older rung does
+  /// not gain a junction whose foreign keys point nowhere.
+  Future<void> _assertMediaAndDocumentTagSchema() async {
+    Future<bool> has(String table) async => (await customSelect(
+      "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?",
+      variables: [Variable<String>(table)],
+    ).get()).isNotEmpty;
+    if (!await has('tags')) return;
+    if (await has('media')) await Migrator(this).createTable(mediaTags);
+    if (await has('documents')) {
+      await Migrator(this).createTable(documentTags);
+    }
+    await assertMediaAndDocumentTagUniqueness(this);
   }
 
   /// Idempotent DDL for the v174 dive_types.show_in_detail_header and

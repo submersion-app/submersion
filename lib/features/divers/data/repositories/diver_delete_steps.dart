@@ -86,6 +86,11 @@ const List<DiverDeleteStep> diverDiveSteps = [
     entityType: 'documentPages',
     where: 'document_id IN (SELECT id FROM documents WHERE diver_id = ?1)',
   ),
+  (
+    table: 'document_tags',
+    entityType: 'documentTags',
+    where: 'document_id IN (SELECT id FROM documents WHERE diver_id = ?1)',
+  ),
   (table: 'documents', entityType: 'documents', where: 'diver_id = ?1'),
   (table: 'dives', entityType: 'dives', where: 'diver_id = ?1'),
 ];
@@ -116,6 +121,11 @@ const List<DiverDeleteStep> diverTripAndSiteSteps = [
     entityType: 'tripChecklistItems',
     where: _ofDiverTrips,
   ),
+  (
+    table: 'trip_checklist_sections',
+    entityType: 'tripChecklistSections',
+    where: _ofDiverTrips,
+  ),
   // The ledger first: it cascades from its slot, and a cascade logs nothing.
   (
     table: 'trip_cylinder_events',
@@ -140,6 +150,21 @@ const List<DiverDeleteStep> diverTripAndSiteSteps = [
   (
     table: 'site_hides',
     entityType: 'siteHides',
+    where:
+        'diver_id = ?1 OR '
+        'site_id IN (SELECT id FROM dive_sites WHERE diver_id = ?1)',
+  ),
+  // The shares naming the diver, and every share of the diver's trips and
+  // sites (issue #2151), tombstoned for the same reason. Those it shared
+  // with chosen profiles were handed over before these steps run.
+  (
+    table: 'trip_shares',
+    entityType: 'tripShares',
+    where: 'diver_id = ?1 OR $_ofDiverTrips',
+  ),
+  (
+    table: 'site_shares',
+    entityType: 'siteShares',
     where:
         'diver_id = ?1 OR '
         'site_id IN (SELECT id FROM dive_sites WHERE diver_id = ?1)',

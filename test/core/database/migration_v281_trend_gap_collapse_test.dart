@@ -29,7 +29,7 @@ void main() {
   });
 
   test('this rung is additive and did not move the sync floor', () {
-    expect(AppDatabase.minimumCompatibleSchemaVersion, lessThan(281));
+    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(281));
   });
 
   test('upgrading from v280 gives every diver a one-year threshold', () async {

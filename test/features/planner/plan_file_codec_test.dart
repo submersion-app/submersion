@@ -131,6 +131,40 @@ void main() {
     expect(b.stops.length, a.stops.length);
   });
 
+  // Issue #3552: an unset field means "follow Settings". Importing a file
+  // that never wrote a field (or wrote it as JSON null) must keep it unset
+  // rather than coerce it to the old hardcoded planner constants - that
+  // would silently create a per-plan override on import.
+  test('unset fields stay unset on round-trip instead of coercing to the '
+      'old hardcoded defaults', () {
+    final original = _plan().copyWith(
+      clearDescentRate: true,
+      clearAscentRate: true,
+      clearIntermediateAscentRate: true,
+      clearShallowAscentRate: true,
+      clearFinalAscentRate: true,
+      clearLastStopDepth: true,
+      clearGasSwitchStopSeconds: true,
+      clearSacBottom: true,
+      clearReservePressure: true,
+      clearDeviationDepthDelta: true,
+      clearDeviationTimeMinutes: true,
+    );
+    final restored = subplanFromJson(planToSubplanJson(original));
+
+    expect(restored.descentRate, isNull);
+    expect(restored.ascentRate, isNull);
+    expect(restored.intermediateAscentRate, isNull);
+    expect(restored.shallowAscentRate, isNull);
+    expect(restored.finalAscentRate, isNull);
+    expect(restored.lastStopDepth, isNull);
+    expect(restored.gasSwitchStopSeconds, isNull);
+    expect(restored.sacBottom, isNull);
+    expect(restored.reservePressure, isNull);
+    expect(restored.deviationDepthDelta, isNull);
+    expect(restored.deviationTimeMinutes, isNull);
+  });
+
   test('foreign or future files are rejected', () {
     expect(() => subplanFromJson('not json'), throwsFormatException);
     expect(

@@ -14,7 +14,13 @@ import 'package:submersion/features/planner/domain/entities/mission/dpv_mission.
 enum PlanMode { oc, ccr, scr, pscr }
 
 /// Gas turn-pressure rule for penetration planning (Phase 5).
-enum TurnPressureRule { allUsable, halves, thirds, custom }
+///
+/// [off] is an explicit "no turn-pressure tracking" choice, distinct from a
+/// plan's [DivePlan.turnPressureRule] being unset (which follows the diver's
+/// Settings default - issue #3552, where the default itself may resolve to
+/// no tracking). Without [off], a plan would have no way to turn tracking
+/// off for itself once the diver has set a non-null global default.
+enum TurnPressureRule { off, allUsable, halves, thirds, custom }
 
 /// The persisted dive plan aggregate (planner redesign Phase 2).
 ///
@@ -45,29 +51,52 @@ class DivePlan extends Equatable {
   final DateTime? startDateTime;
 
   // Deco settings
-  final int gfLow;
-  final int gfHigh;
-  final double descentRate;
+  /// Null = use the diver's Settings default (issue #3552). Was
+  /// snapshot-on-create until this follow-up reconsidered it: the diver's
+  /// Settings default already existed ([gfLowProvider]/[gfHighProvider]),
+  /// it just never reached a plan again once copied in at creation.
+  final int? gfLow;
+  final int? gfHigh;
+
+  /// Descent rate in m/min. Null = use the diver's Settings default
+  /// (issue #3552).
+  final double? descentRate;
 
   /// Working ascent rate in m/min: leaving the bottom for the first stop.
-  final double ascentRate;
+  /// Null = use the diver's Settings default (issue #3552).
+  final double? ascentRate;
 
   /// Ascent rate in m/min between intermediate (deeper than 9 m) stops -
   /// slower than [ascentRate], because a diver climbing the stop grid is not
-  /// leaving the bottom.
-  final double intermediateAscentRate;
+  /// leaving the bottom. Null = use the diver's Settings default
+  /// (issue #3552).
+  final double? intermediateAscentRate;
 
-  /// Ascent rate in m/min between shallow (9 m and above) stops.
-  final double shallowAscentRate;
+  /// Ascent rate in m/min between shallow (9 m and above) stops. Null = use
+  /// the diver's Settings default (issue #3552).
+  final double? shallowAscentRate;
 
   /// Ascent rate in m/min from the last stop to the surface. The shallowest
   /// part of the ascent is where a depth change costs the most pressure
-  /// change, so it is the slowest of the four.
-  final double finalAscentRate;
+  /// change, so it is the slowest of the four. Null = use the diver's
+  /// Settings default (issue #3552).
+  final double? finalAscentRate;
 
-  final double lastStopDepth;
-  final int gasSwitchStopSeconds;
+  /// Null = use the diver's Settings default (issue #3552).
+  final double? lastStopDepth;
+
+  /// Null = use the diver's Settings default (issue #3552).
+  final int? gasSwitchStopSeconds;
+
+  /// Null and [airBreaksExplicitlyOff] false = use the diver's Settings
+  /// default air-break policy (issue #3552; itself may be no policy). A
+  /// value here is always an explicit custom policy, never the default.
   final AirBreakPolicy? airBreaks;
+
+  /// True = no air breaks for this plan, regardless of the diver's Settings
+  /// default. Distinct from [airBreaks] being unset, which follows that
+  /// default instead of forcing it off (issue #3552).
+  final bool airBreaksExplicitlyOff;
 
   /// Diver-authored minimum hold time in seconds, keyed by whole-metre stop
   /// depth. Passed straight through to [SchedulePolicy.minStopSecondsByDepth]
@@ -76,20 +105,31 @@ class DivePlan extends Equatable {
   final Map<int, int> stopMinimums;
 
   // Gas planning
-  final double sacBottom;
+  /// Null = use the diver's Settings default (issue #3552).
+  final double? sacBottom;
+
+  /// Null = use the diver's Settings default (issue #3552; was "0.8x of
+  /// bottom" before it had one - see [sacDecoEffective]).
   final double? sacDeco;
+
+  /// Null = derive from [sacBottom] and the diver's Settings stressed-SAC
+  /// factor (issue #3552) - see [sacStressedEffective].
   final double? sacStressed;
-  final double reservePressure;
+
+  /// Null = use the diver's Settings default (issue #3552).
+  final double? reservePressure;
 
   // Gas options (Subsurface-style; issue-driven G-series follow-up).
   /// Multiplier on [sacStressedEffective]'s fallback for the minimum-gas /
   /// rock-bottom calculation, standing in for the app-wide
-  /// `PlanEngineConfig.buddyFactor` default (2.0) once a plan sets it.
-  final double sacFactor;
+  /// `PlanEngineConfig.buddyFactor` default (2.0) once a plan sets it. Null
+  /// = use the diver's Settings default (issue #3552).
+  final double? sacFactor;
 
   /// Minutes spent at max depth at the stressed SAC before the ascent
-  /// begins, in the minimum-gas calculation. Subsurface default: 2.
-  final int problemSolvingMinutes;
+  /// begins, in the minimum-gas calculation. Null = use the diver's
+  /// Settings default (issue #3552; Subsurface default: 2).
+  final int? problemSolvingMinutes;
 
   /// ppO2 ceiling for gas selection / MOD warnings during the working part
   /// of the dive. Null = use the app-wide setting.
@@ -100,8 +140,9 @@ class DivePlan extends Equatable {
   final double? ppO2Deco;
 
   /// Equivalent narcotic depth target used when suggesting a best mix for a
-  /// depth. Subsurface default: 30 m (its UI shows 28 m).
-  final double bestMixEndMeters;
+  /// depth. Null = use the diver's Settings default (issue #3552;
+  /// Subsurface default: 30 m, its UI shows 28 m).
+  final double? bestMixEndMeters;
 
   /// Whether O2 counts as narcotic in END for this plan. Null = use the
   /// app-wide setting.
@@ -118,8 +159,15 @@ class DivePlan extends Equatable {
   final double? setpointSwitchDepth;
 
   // Contingency config (Phase 5 UI; persisted now)
-  final double deviationDepthDelta;
-  final int deviationTimeMinutes;
+  /// Null = use the diver's Settings default (issue #3552).
+  final double? deviationDepthDelta;
+
+  /// Null = use the diver's Settings default (issue #3552).
+  final int? deviationTimeMinutes;
+
+  /// Null = use the diver's Settings default (issue #3552; itself may
+  /// resolve to no rule). [TurnPressureRule.off] is the explicit "no
+  /// tracking for this plan" choice, distinct from unset.
   final TurnPressureRule? turnPressureRule;
   final double? turnPressureFraction;
 
@@ -155,26 +203,27 @@ class DivePlan extends Equatable {
     this.waterType,
     this.salinityPpt,
     this.startDateTime,
-    required this.gfLow,
-    required this.gfHigh,
-    this.descentRate = 18.0,
-    this.ascentRate = 9.0,
-    this.intermediateAscentRate = 6.0,
-    this.shallowAscentRate = 3.0,
-    this.finalAscentRate = 1.0,
-    this.lastStopDepth = 3.0,
-    this.gasSwitchStopSeconds = 0,
+    this.gfLow,
+    this.gfHigh,
+    this.descentRate,
+    this.ascentRate,
+    this.intermediateAscentRate,
+    this.shallowAscentRate,
+    this.finalAscentRate,
+    this.lastStopDepth,
+    this.gasSwitchStopSeconds,
     this.airBreaks,
+    this.airBreaksExplicitlyOff = false,
     this.stopMinimums = const {},
-    this.sacBottom = 15.0,
+    this.sacBottom,
     this.sacDeco,
     this.sacStressed,
-    this.reservePressure = 50.0,
-    this.sacFactor = 2.0,
-    this.problemSolvingMinutes = 2,
+    this.reservePressure,
+    this.sacFactor,
+    this.problemSolvingMinutes,
     this.ppO2Bottom,
     this.ppO2Deco,
-    this.bestMixEndMeters = 30.0,
+    this.bestMixEndMeters,
     this.o2Narcotic,
     this.surfaceInterval,
     this.sourceDiveId,
@@ -182,8 +231,8 @@ class DivePlan extends Equatable {
     this.setpointLow,
     this.setpointHigh,
     this.setpointSwitchDepth,
-    this.deviationDepthDelta = 5.0,
-    this.deviationTimeMinutes = 5,
+    this.deviationDepthDelta,
+    this.deviationTimeMinutes,
     this.turnPressureRule,
     this.turnPressureFraction,
     this.segments = const [],
@@ -206,11 +255,24 @@ class DivePlan extends Equatable {
   static const double specSetpointHigh = 1.3;
   double get effectiveSetpointSwitchDepth => setpointSwitchDepth ?? 10.0;
 
-  /// Deco SAC: explicit value, otherwise 15 L/min (same default as bottom SAC).
+  /// Bottom SAC: explicit value, otherwise the 15 L/min spec default - the
+  /// last resort for a caller with no diver Settings to hand (same reason
+  /// as [specSetpointLow] above). A caller with a [PlanEngineConfig]
+  /// resolved for this plan reads `config.sacBottom` instead, which already
+  /// carries the diver's Settings default (issue #3552).
+  double get sacBottomEffective => sacBottom ?? 15.0;
+
+  /// Deco SAC: explicit value, otherwise the 15 L/min spec default - same
+  /// last-resort caveat as [sacBottomEffective]; a config-aware caller
+  /// reads `config.sacDeco` instead (issue #3552).
   double get sacDecoEffective => sacDeco ?? 15.0;
 
-  /// Stressed (bailout/rock-bottom) SAC: explicit or 2.5x bottom.
-  double get sacStressedEffective => sacStressed ?? sacBottom * 2.5;
+  /// Stressed (bailout/rock-bottom) SAC: explicit, otherwise 2.5x
+  /// [sacBottomEffective] - same last-resort caveat; a config-aware caller
+  /// reads `config.sacStressedFor(plan)` instead, which uses the diver's
+  /// Settings stressed-SAC factor rather than the hardcoded 2.5 (issue
+  /// #3552).
+  double get sacStressedEffective => sacStressed ?? sacBottomEffective * 2.5;
 
   /// Deepest point across the user-authored segments (0 if none).
   ///
@@ -242,30 +304,45 @@ class DivePlan extends Equatable {
     bool clearWaterType = false,
     bool clearSalinityPpt = false,
     int? gfLow,
+    bool clearGfLow = false,
     int? gfHigh,
+    bool clearGfHigh = false,
     double? descentRate,
+    bool clearDescentRate = false,
     double? ascentRate,
+    bool clearAscentRate = false,
     double? intermediateAscentRate,
+    bool clearIntermediateAscentRate = false,
     double? shallowAscentRate,
+    bool clearShallowAscentRate = false,
     double? finalAscentRate,
+    bool clearFinalAscentRate = false,
     double? lastStopDepth,
+    bool clearLastStopDepth = false,
     int? gasSwitchStopSeconds,
+    bool clearGasSwitchStopSeconds = false,
     AirBreakPolicy? airBreaks,
     bool clearAirBreaks = false,
+    bool? airBreaksExplicitlyOff,
     Map<int, int>? stopMinimums,
     double? sacBottom,
+    bool clearSacBottom = false,
     double? sacDeco,
     bool clearSacDeco = false,
     double? sacStressed,
     bool clearSacStressed = false,
     double? reservePressure,
+    bool clearReservePressure = false,
     double? sacFactor,
+    bool clearSacFactor = false,
     int? problemSolvingMinutes,
+    bool clearProblemSolvingMinutes = false,
     double? ppO2Bottom,
     bool clearPpO2Bottom = false,
     double? ppO2Deco,
     bool clearPpO2Deco = false,
     double? bestMixEndMeters,
+    bool clearBestMixEndMeters = false,
     bool? o2Narcotic,
     bool clearO2Narcotic = false,
     Duration? surfaceInterval,
@@ -281,7 +358,9 @@ class DivePlan extends Equatable {
     double? setpointSwitchDepth,
     bool clearSetpointSwitchDepth = false,
     double? deviationDepthDelta,
+    bool clearDeviationDepthDelta = false,
     int? deviationTimeMinutes,
+    bool clearDeviationTimeMinutes = false,
     TurnPressureRule? turnPressureRule,
     bool clearTurnPressureRule = false,
     double? turnPressureFraction,
@@ -310,28 +389,44 @@ class DivePlan extends Equatable {
           : (startDateTime ?? this.startDateTime),
       waterType: clearWaterType ? null : (waterType ?? this.waterType),
       salinityPpt: clearSalinityPpt ? null : (salinityPpt ?? this.salinityPpt),
-      gfLow: gfLow ?? this.gfLow,
-      gfHigh: gfHigh ?? this.gfHigh,
-      descentRate: descentRate ?? this.descentRate,
-      ascentRate: ascentRate ?? this.ascentRate,
-      intermediateAscentRate:
-          intermediateAscentRate ?? this.intermediateAscentRate,
-      shallowAscentRate: shallowAscentRate ?? this.shallowAscentRate,
-      finalAscentRate: finalAscentRate ?? this.finalAscentRate,
-      lastStopDepth: lastStopDepth ?? this.lastStopDepth,
-      gasSwitchStopSeconds: gasSwitchStopSeconds ?? this.gasSwitchStopSeconds,
+      gfLow: clearGfLow ? null : (gfLow ?? this.gfLow),
+      gfHigh: clearGfHigh ? null : (gfHigh ?? this.gfHigh),
+      descentRate: clearDescentRate ? null : (descentRate ?? this.descentRate),
+      ascentRate: clearAscentRate ? null : (ascentRate ?? this.ascentRate),
+      intermediateAscentRate: clearIntermediateAscentRate
+          ? null
+          : (intermediateAscentRate ?? this.intermediateAscentRate),
+      shallowAscentRate: clearShallowAscentRate
+          ? null
+          : (shallowAscentRate ?? this.shallowAscentRate),
+      finalAscentRate: clearFinalAscentRate
+          ? null
+          : (finalAscentRate ?? this.finalAscentRate),
+      lastStopDepth: clearLastStopDepth
+          ? null
+          : (lastStopDepth ?? this.lastStopDepth),
+      gasSwitchStopSeconds: clearGasSwitchStopSeconds
+          ? null
+          : (gasSwitchStopSeconds ?? this.gasSwitchStopSeconds),
       airBreaks: clearAirBreaks ? null : (airBreaks ?? this.airBreaks),
+      airBreaksExplicitlyOff:
+          airBreaksExplicitlyOff ?? this.airBreaksExplicitlyOff,
       stopMinimums: stopMinimums ?? this.stopMinimums,
-      sacBottom: sacBottom ?? this.sacBottom,
+      sacBottom: clearSacBottom ? null : (sacBottom ?? this.sacBottom),
       sacDeco: clearSacDeco ? null : (sacDeco ?? this.sacDeco),
       sacStressed: clearSacStressed ? null : (sacStressed ?? this.sacStressed),
-      reservePressure: reservePressure ?? this.reservePressure,
-      sacFactor: sacFactor ?? this.sacFactor,
-      problemSolvingMinutes:
-          problemSolvingMinutes ?? this.problemSolvingMinutes,
+      reservePressure: clearReservePressure
+          ? null
+          : (reservePressure ?? this.reservePressure),
+      sacFactor: clearSacFactor ? null : (sacFactor ?? this.sacFactor),
+      problemSolvingMinutes: clearProblemSolvingMinutes
+          ? null
+          : (problemSolvingMinutes ?? this.problemSolvingMinutes),
       ppO2Bottom: clearPpO2Bottom ? null : (ppO2Bottom ?? this.ppO2Bottom),
       ppO2Deco: clearPpO2Deco ? null : (ppO2Deco ?? this.ppO2Deco),
-      bestMixEndMeters: bestMixEndMeters ?? this.bestMixEndMeters,
+      bestMixEndMeters: clearBestMixEndMeters
+          ? null
+          : (bestMixEndMeters ?? this.bestMixEndMeters),
       o2Narcotic: clearO2Narcotic ? null : (o2Narcotic ?? this.o2Narcotic),
       surfaceInterval: clearSurfaceInterval
           ? null
@@ -349,8 +444,12 @@ class DivePlan extends Equatable {
       setpointSwitchDepth: clearSetpointSwitchDepth
           ? null
           : (setpointSwitchDepth ?? this.setpointSwitchDepth),
-      deviationDepthDelta: deviationDepthDelta ?? this.deviationDepthDelta,
-      deviationTimeMinutes: deviationTimeMinutes ?? this.deviationTimeMinutes,
+      deviationDepthDelta: clearDeviationDepthDelta
+          ? null
+          : (deviationDepthDelta ?? this.deviationDepthDelta),
+      deviationTimeMinutes: clearDeviationTimeMinutes
+          ? null
+          : (deviationTimeMinutes ?? this.deviationTimeMinutes),
       turnPressureRule: clearTurnPressureRule
           ? null
           : (turnPressureRule ?? this.turnPressureRule),
@@ -395,6 +494,7 @@ class DivePlan extends Equatable {
     gasSwitchStopSeconds,
     airBreaks?.o2Seconds,
     airBreaks?.breakSeconds,
+    airBreaksExplicitlyOff,
     stopMinimums,
     sacBottom,
     sacDeco,

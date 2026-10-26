@@ -415,7 +415,7 @@ class GaugeStrip extends ConsumerWidget {
           icon: Icons.cloud_upload_outlined,
           label: l10n.dashboard_gauges_uploadsPending(g.uploadsPending),
           tone: _Tone.warn,
-          onTap: () => context.push('/settings/media-storage/transfers'),
+          onTap: () => context.push('/settings/photos-media/uploads'),
         ),
       );
     }

@@ -4,6 +4,8 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/features/rules/presentation/run_rules_flow.dart';
+import 'package:submersion/features/rules/domain/rule_subject.dart';
 import 'package:submersion/core/router/section_navigation.dart';
 import 'package:submersion/core/router/pushed_route.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/search/dive_search_action.dart';
@@ -17,6 +19,7 @@ import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/constants/sort_options_display.dart';
 import 'package:submersion/core/models/sort_state.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/export/pdf/diver_photo_loader.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
@@ -25,6 +28,7 @@ import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/divers/presentation/widgets/misplaced_logbook_banner.dart';
 import 'package:submersion/core/constants/pdf_templates.dart';
 import 'package:submersion/features/transfer/presentation/widgets/pdf_export_dialog.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -34,12 +38,15 @@ import 'package:submersion/features/dive_log/presentation/helpers/dive_list_sect
 import 'package:submersion/features/dive_log/presentation/providers/trip_group_collapse_provider.dart';
 import 'package:submersion/features/dive_log/presentation/helpers/dive_list_nav_stops.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_list_item.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_list_scrubber.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/trip_group_header.dart';
 import 'package:submersion/shared/widgets/export_destination_sheet.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/keyboard_list_navigator.dart';
+import 'package:submersion/shared/widgets/master_detail/list_position_restorer.dart';
 import 'package:submersion/shared/widgets/master_detail/map_view_toggle_button.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_form_scope.dart';
+import 'package:submersion/shared/widgets/master_detail/remembered_selection.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/csv_unit_mode_provider.dart';
@@ -109,6 +116,15 @@ const double kGroupingPausedNoticeHeight = 56;
 /// Trailing spacer that keeps the last row clear of the FAB.
 const double _kListBottomSpacer = 80;
 
+/// How far ahead of the end of the loaded rows the next page is asked for,
+/// in viewport heights.
+///
+/// A fling crosses a viewport in a few frames. The old margin of 200 px, about
+/// one card, let a fast scroll reach the end of the loaded rows and stop dead
+/// while the page query ran (#3506). Three viewports give the query that long
+/// to land before the scroll gets there.
+const double _kPrefetchViewports = 3;
+
 /// Below this width, Sort folds into the overflow menu instead of sitting
 /// as its own app bar icon (#3076): four icons (map, search, sort, overflow)
 /// otherwise squeeze the title down to a few characters. Comfortably above
@@ -116,6 +132,8 @@ const double _kListBottomSpacer = 80;
 /// constant in MasterDetailScaffold) once its own padding is subtracted, so
 /// that pane always folds; narrow phones fold too, wide hosts do not.
 const double _kFoldSortWidth = 480;
+
+final _log = LoggerService.forClass(DiveListContent);
 
 class DiveListContent extends ConsumerStatefulWidget {
   /// Callback when an item is selected. Used in master-detail mode.
@@ -201,6 +219,13 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   final ScrollController _scrollController = ScrollController();
   String? _lastScrolledToId;
 
+  /// Brings the list back to the dive last opened when it is built again
+  /// after the diver left it (#3301).
+  late final ListPositionRestorer _positionRestorer = ListPositionRestorer(
+    controller: _scrollController,
+    attempt: _restoreRememberedDive,
+  );
+
   /// The sections the list rendered on its last build.
   ///
   /// Read only by [_scrollToSelectedItem], which has to know how much of the
@@ -222,6 +247,11 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   /// rebuilds the row each time it re-enters the viewport. One pending kick is
   /// enough.
   bool _autoLoadKickScheduled = false;
+
+  /// End's loads of the dives past the end of the list still running, which
+  /// the scrubber shows as it does its own loads (#3302). A count, so a
+  /// second End does not lose the panel when the first load lands.
+  int _restLoads = 0;
   bool _selectionFromList =
       false; // Track if selection originated from list tap
 
@@ -233,6 +263,13 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
+    // Each page that lands is a change, even while the dive is still being
+    // looked for, so the restorer keeps paging until it is found. The table
+    // shows every dive and scrolls to its own highlighted row, and does not
+    // use the paged list at all; a view-mode switch builds a new list.
+    if (ref.read(diveListViewModeProvider) != ListViewMode.table) {
+      _positionRestorer.start(ref, paginatedDiveListProvider);
+    }
     // If there's already a selected ID on init (e.g., from URL), scroll to it after build
     if (widget.selectedId != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -250,6 +287,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
 
   @override
   void dispose() {
+    _positionRestorer.dispose();
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     if (_ownsSelection) _selection.dispose();
@@ -265,23 +303,38 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     // thumb again and again, and put a failing query behind each one.
     final paginated = ref.read(paginatedDiveListProvider).value;
     if (paginated?.loadMoreFailed ?? false) return;
-    final maxScroll = _scrollController.position.maxScrollExtent;
-    final currentScroll = _scrollController.offset;
-    // Load next page when within 200px of bottom
-    if (maxScroll - currentScroll <= 200) {
+    if (_isNearLoadedEnd) {
       ref.read(paginatedDiveListProvider.notifier).loadNextPage();
     }
   }
 
+  /// Whether the end of the loaded rows is within [_kPrefetchViewports] of
+  /// the bottom of the viewport.
+  bool get _isNearLoadedEnd {
+    if (!_scrollController.hasClients) return false;
+    final position = _scrollController.position;
+    if (!position.hasContentDimensions || !position.hasViewportDimension) {
+      return false;
+    }
+    return position.maxScrollExtent - position.pixels <=
+        position.viewportDimension * _kPrefetchViewports;
+  }
+
   /// Load the next page when the trailing loader row is built with nothing in
-  /// flight to resolve it.
+  /// flight to resolve it and the end of the loaded rows is near.
   ///
   /// [_onScroll] only fires on scroll activity, and when the list shrinks under
   /// a position that is already at the bottom -- a reload, a bulk delete --
   /// Flutter clamps the offset during layout without notifying scroll
   /// listeners. The spinner then sits there until the diver scrolls by hand
-  /// (#1610). Building the row is itself the signal that it is on screen, so
-  /// that is where the load gets kicked.
+  /// (#1610). So every build of the row checks, once the frame is laid out,
+  /// whether the end is within reach.
+  ///
+  /// Building the row is not by itself a sign that it is on screen: it sits in
+  /// a [SliverToBoxAdapter], which builds its child however far below the
+  /// viewport it is. Kicking on the build alone made each appended page ask
+  /// for the next, so the whole log streamed in page after page from the
+  /// moment the list opened, every page a hitch under a fast scroll (#3506).
   ///
   /// A page load that failed is left alone: the row shows a retry affordance
   /// instead of a spinner, so there is nothing stranded to rescue. [_onScroll]
@@ -310,8 +363,20 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
       final latest = ref.read(paginatedDiveListProvider).value;
       if (latest == null || !latest.hasMore) return;
       if (latest.isLoadingMore || latest.loadMoreFailed) return;
+      if (!_isNearLoadedEnd) return;
       ref.read(paginatedDiveListProvider.notifier).loadNextPage();
     });
+  }
+
+  /// [state] with `isLoadingMore` cleared, so that flag alone never counts as
+  /// a change to the list body.
+  static AsyncValue<PaginatedDiveListState> _withoutLoadingFlag(
+    AsyncValue<PaginatedDiveListState> state,
+  ) {
+    if (state case AsyncData(:final value) when value.isLoadingMore) {
+      return AsyncData(value.copyWith(isLoadingMore: false));
+    }
+    return state;
   }
 
   @override
@@ -340,7 +405,11 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   /// Bounded to a single attempt per target: a dive that is still not visible
   /// after its trip is forced open is not going to become visible by trying
   /// again, and an unbounded retry would spin build-to-frame forever.
-  void _retryScrollOnceAfterExpand(String targetId, List<DiveSummary> dives) {
+  void _retryScrollOnceAfterExpand(
+    String targetId,
+    List<DiveSummary> dives, {
+    bool jump = false,
+  }) {
     if (!shouldRetryScrollAfterExpanding(
       targetId: targetId,
       loadedDives: dives,
@@ -361,7 +430,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      _scrollToSelectedItem(targetId);
+      _scrollToSelectedItem(targetId, jump);
       // That call measures inside a post-frame callback of its own, and a
       // callback only runs when some frame is scheduled. By here the tree has
       // settled and nothing else would schedule one, so the retry would sit
@@ -390,7 +459,74 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     return headers;
   }
 
-  void _scrollToSelectedItem([String? overrideId]) {
+  /// Loads every dive past the end of the list, so End lands on the last
+  /// dive rather than the last loaded one (#3302).
+  Future<void> _loadRestOfList() async {
+    final paginated = ref.read(paginatedDiveListProvider).value;
+    if (paginated == null || !paginated.hasMore) return;
+    setState(() => _restLoads++);
+    try {
+      // A failed read is logged and flagged for retry by the notifier; this
+      // catches anything else.
+      await ref.read(paginatedDiveListProvider.notifier).loadRest();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to load the rest of the dive list for End',
+        error: e,
+        stackTrace: stackTrace,
+      );
+    } finally {
+      if (mounted) setState(() => _restLoads--);
+    }
+  }
+
+  void _landOnDive(BuildContext context, String diveId, {required bool toTop}) {
+    for (final (index, section) in _lastSections.indexed) {
+      if (!section.entries.any((e) => e.dive.id == diveId)) continue;
+      final key = section is TripSection && section.collapsed
+          ? diveListTripHeaderKey(index, section.tripId)
+          : diveId;
+      if (toTop) {
+        KeyboardListNavigator.revealRow(context, key);
+      } else {
+        KeyboardListNavigator.keepRowVisible(context, key);
+      }
+      return;
+    }
+  }
+
+  /// One try at bringing the list back to [rememberedDiveIdProvider]'s dive,
+  /// for [_positionRestorer]: true once there is nothing left to wait for.
+  ///
+  /// A dive beyond the loaded rows pages the list forward; the restorer tries
+  /// again as each page lands. A selection already in the address (a deep
+  /// link) is scrolled to by [initState] instead, and a list pushed over
+  /// another page (a site's dives) starts at its top.
+  bool _restoreRememberedDive() {
+    if (!mounted) return true;
+    if (widget.selectedId != null || isImperativelyPushed(context)) return true;
+    final remembered = ref.read(rememberedDiveIdProvider);
+    if (remembered case AsyncData(:final value)) {
+      if (value != null) {
+        // Not laid out yet: try again once the list is on screen.
+        if (!_scrollController.hasClients) return false;
+        // Claimed now, so the selection the detail pane restores to the same
+        // dive does not animate the list a second time.
+        _lastScrolledToId = value;
+        _scrollToSelectedItem(value, true);
+      }
+      return true;
+    }
+    final paged = ref.read(paginatedDiveListProvider).value;
+    if (paged != null && !paged.isLoadingMore) {
+      ref.read(paginatedDiveListProvider.notifier).loadNextPage();
+    }
+    return false;
+  }
+
+  /// [jump] moves straight to the dive rather than animating there, for a
+  /// list being restored, which should not visibly travel from the top.
+  void _scrollToSelectedItem([String? overrideId, bool jump = false]) {
     final targetId = overrideId ?? widget.selectedId;
     if (targetId == null) return;
 
@@ -424,7 +560,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             // silently and the dive is left off screen, most visibly on the
             // merge path, whose target arrives as an override and so never
             // reaches widget.selectedId.
-            _retryScrollOnceAfterExpand(targetId, dives);
+            _retryScrollOnceAfterExpand(targetId, dives, jump: jump);
             return;
           }
 
@@ -452,13 +588,20 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
               (viewportHeight / 3);
           final clampedOffset = targetOffset.clamp(0.0, maxScroll);
 
-          _scrollController.animateTo(
-            clampedOffset,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeInOut,
-          );
+          if (jump) {
+            _scrollController.jumpTo(clampedOffset);
+          } else {
+            _scrollController.animateTo(
+              clampedOffset,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+            );
+          }
           _lastScrolledToId = targetId;
         });
+        // The measuring callback needs a frame to run in, which a settled
+        // list being restored would not otherwise schedule.
+        WidgetsBinding.instance.scheduleFrame();
       }
     });
   }
@@ -1103,6 +1246,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
 
     // Highlight the dive in all modes.
     ref.read(highlightedDiveIdProvider.notifier).state = dive.id;
+    forgetClosedPane(ref, RecordListSection.dives);
 
     // In card/list modes, also navigate (table mode uses double-tap instead).
     if (widget.onItemSelected != null) {
@@ -1148,7 +1292,12 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
       return _buildTableModeScaffold(context, filter);
     }
 
-    final paginatedAsync = ref.watch(paginatedDiveListProvider);
+    // isLoadingMore is left out: only the trailing loader row shows it, and
+    // that row watches the provider itself. Watching it here re-rendered every
+    // card on screen each time a page load started (#3506).
+    final paginatedAsync = ref.watch(
+      paginatedDiveListProvider.select(_withoutLoadingFlag),
+    );
 
     final loadedDives = paginatedAsync.value?.dives ?? [];
     final visibleIds = loadedDives.map((d) => d.id).toList();
@@ -1192,6 +1341,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                 onOpenDive: _openDive,
                 onEscape: selection.isActive ? _selection.exit : null,
               ),
+              const MisplacedLogbookBanner(),
               Expanded(child: content),
             ],
           );
@@ -1670,6 +1820,14 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
         alwaysEnabled: true,
         onInvoke: () => _selectByDateRange(dives),
       ),
+      // Logbook rules on the checked dives, previewed first (#3513). Last,
+      // so the existing inline actions keep their places.
+      rulesBulkAction(
+        context,
+        ref,
+        subject: RuleSubject.dives,
+        selected: () => _selectedIds.toSet(),
+      ),
     ];
   }
 
@@ -1748,6 +1906,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                 onOpenDive: _openDive,
                 onEscape: selection.isActive ? _selection.exit : null,
               ),
+              const MisplacedLogbookBanner(),
               Expanded(child: content),
             ],
           );
@@ -1788,6 +1947,9 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                     return;
                   }
                   ref.read(highlightedDiveIdProvider.notifier).state = id;
+                  // The same row again sets no new highlight; the pane is reopened all
+                  // the same, so it is no longer one the diver emptied (#3301).
+                  forgetClosedPane(ref, RecordListSection.dives);
                 },
                 onDiveTap: (id) {
                   // Table mode now honours modifier and shift clicks too, so
@@ -1825,9 +1987,21 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   ) {
     final dives = paginatedState.dives;
 
-    // Calculate value range for card coloring based on active attribute
-    final settings = ref.read(settingsProvider);
-    final colorAttribute = settings.cardColorAttribute;
+    // Calculate value range for card coloring based on active attribute.
+    // Watched rather than read: the list no longer rebuilds while a page
+    // loads (#3506), so a changed setting would otherwise wait for the next
+    // change to the dives themselves.
+    final (colorAttribute, gradientPreset, gradientStart, gradientEnd) = ref
+        .watch(
+          settingsProvider.select(
+            (s) => (
+              s.cardColorAttribute,
+              s.cardColorGradientPreset,
+              s.cardColorGradientStart,
+              s.cardColorGradientEnd,
+            ),
+          ),
+        );
     final colorValues = dives
         .map((d) => getCardColorValue(d, colorAttribute))
         .whereType<double>();
@@ -1838,9 +2012,9 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
         ? colorValues.reduce((a, b) => a > b ? a : b)
         : null;
     final gradientColors = resolveGradientColors(
-      presetName: settings.cardColorGradientPreset,
-      customStart: settings.cardColorGradientStart,
-      customEnd: settings.cardColorGradientEnd,
+      presetName: gradientPreset,
+      customStart: gradientStart,
+      customEnd: gradientEnd,
     );
 
     // Built once for the whole list, not per row: the lookup map is shared by
@@ -1943,9 +2117,6 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
       );
     }
 
-    final showTrailingRow =
-        paginatedState.hasMore || paginatedState.isLoadingMore;
-
     return RefreshIndicator(
       onRefresh: () => ref.read(paginatedDiveListProvider.notifier).refresh(),
       child: Column(
@@ -1955,6 +2126,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
               keys: navStops.keys,
               currentKey:
                   widget.selectedId ?? ref.watch(highlightedDiveIdProvider),
+              onLoadRest: _loadRestOfList,
               onMove: (key) {
                 if (navStops.groupOfHeader(key) != null) return;
                 moveListCursor(
@@ -1990,32 +2162,54 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                 }
                 return header;
               },
-              child: CustomScrollView(
+              child: DiveListScrubber(
                 controller: _scrollController,
-                slivers: [
-                  if (ref.watch(diveListGroupingPausedBySortProvider))
+                loadedDives: dives,
+                groupingEnabled: groupingEnabled,
+                collapsedTripIds: collapsedTripIds,
+                onLand: _landOnDive,
+                busy: _restLoads > 0,
+                selectedDiveId:
+                    widget.selectedId ?? ref.watch(highlightedDiveIdProvider),
+                child: CustomScrollView(
+                  controller: _scrollController,
+                  slivers: [
+                    if (ref.watch(diveListGroupingPausedBySortProvider))
+                      SliverToBoxAdapter(
+                        child: _buildGroupingPausedNotice(context),
+                      ),
+                    for (final (index, section) in sections.indexed)
+                      if (section is TripSection)
+                        _buildTripSectionSliver(
+                          context,
+                          section,
+                          sliverForEntries,
+                          diveListTripHeaderKey(index, section.tripId),
+                        )
+                      else
+                        sliverForEntries(section.entries),
+                    // Its own consumer, so a page load starting or finishing
+                    // rebuilds this row alone rather than every card (#3506).
                     SliverToBoxAdapter(
-                      child: _buildGroupingPausedNotice(context),
+                      child: Consumer(
+                        builder: (context, ref, _) {
+                          final latest = ref
+                              .watch(paginatedDiveListProvider)
+                              .value;
+                          if (latest == null ||
+                              !(latest.hasMore || latest.isLoadingMore)) {
+                            return const SizedBox.shrink();
+                          }
+                          return _buildTrailingRow(context, latest);
+                        },
+                      ),
                     ),
-                  for (final (index, section) in sections.indexed)
-                    if (section is TripSection)
-                      _buildTripSectionSliver(
-                        context,
-                        section,
-                        sliverForEntries,
-                        diveListTripHeaderKey(index, section.tripId),
-                      )
-                    else
-                      sliverForEntries(section.entries),
-                  if (showTrailingRow)
-                    SliverToBoxAdapter(
-                      child: _buildTrailingRow(context, paginatedState),
+                    // Clears the FAB, matching the old list's bottom padding.
+                    const SliverToBoxAdapter(
+                      child: SizedBox(height: _kListBottomSpacer),
                     ),
-                  // Clears the FAB, matching the old list's bottom padding.
-                  const SliverToBoxAdapter(
-                    child: SizedBox(height: _kListBottomSpacer),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -2116,11 +2310,12 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
 
   /// The trailing loader or retry row.
   ///
-  /// Deliberately a built widget rather than a scroll-offset check: when the
+  /// Deliberately a built widget rather than a scroll listener alone: when the
   /// list shrinks under a position already at the bottom, or when collapsed
   /// trips leave a freshly loaded page almost entirely invisible, Flutter
   /// clamps the offset during layout without notifying scroll listeners.
-  /// Building this row is the only signal that survives (#1610).
+  /// Building this row is the only signal that survives (#1610), and the kick
+  /// it schedules still checks the offset once layout is done (#3506).
   Widget _buildTrailingRow(
     BuildContext context,
     PaginatedDiveListState paginatedState,

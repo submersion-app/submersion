@@ -207,9 +207,17 @@ void main() {
 
   test('every table a fragment reads is declared, for the change ticks', () {
     final fromOrJoin = RegExp(r'\b(?:FROM|JOIN)\s+(\w+)');
+    // Tables with no Drift class, so no change tick of their own, mapped to
+    // the ticked table every write to them accompanies: a fragment reading
+    // one must declare the other.
+    const tickedThrough = {
+      'dive_profile_series_history': 'dive_profile_series',
+    };
     for (final e in appQueryRegistry.entities) {
-      Set<String> read(String sql) =>
-          fromOrJoin.allMatches(sql).map((m) => m[1]!).toSet();
+      Set<String> read(String sql) => {
+        for (final m in fromOrJoin.allMatches(sql))
+          tickedThrough[m[1]!] ?? m[1]!,
+      };
       for (final f in e.fields) {
         final declared = {e.table, ...f.tables};
         final used = {

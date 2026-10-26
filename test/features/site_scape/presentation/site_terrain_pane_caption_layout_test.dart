@@ -57,6 +57,7 @@ void main() {
                   siteId: 'site-1',
                   pathId: 'd1',
                   source: PathOverlaySource.dive,
+                  isolatePaths: true,
                 )).overrideWith(
                   (ref) async => (
                     overlay: testActivePathOverlay(sourceLabel: 'Seacraft ENC'),

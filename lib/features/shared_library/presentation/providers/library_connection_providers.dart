@@ -51,6 +51,7 @@ class LibraryConnectionDetails {
 final libraryConnectionDetailsProvider = FutureProvider.autoDispose
     .family<LibraryConnectionDetails?, String>((ref, libraryId) async {
       final accounts = ref.watch(connectedAccountsRepositoryProvider);
+      final accountById = ref.watch(libraryAccountLookupProvider);
       ref.invalidateSelfWhen(accounts.watchAccountsChanges());
       // Only the account and folder: a sync rewrites the row every run.
       final where = await ref.watch(
@@ -62,7 +63,8 @@ final libraryConnectionDetailsProvider = FutureProvider.autoDispose
         }),
       );
       if (where == null) return null;
-      final account = await accounts.getById(where.accountId);
+      // A row the roster lost is put back from the keys held here (#3563).
+      final account = await accountById(where.accountId);
       final setup = ref.watch(libraryAccountSetupProvider);
       return LibraryConnectionDetails(
         account: account,

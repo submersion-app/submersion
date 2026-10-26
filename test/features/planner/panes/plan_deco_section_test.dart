@@ -33,7 +33,8 @@ Finder _airBreakFields() => find.descendant(
 
 void main() {
   testWidgets(
-    'toggling the switch sets the 12/6 default, and editing the O2 field updates it',
+    'Default/Off/Custom choice sets the policy, and editing the O2 field '
+    'updates it (issue #3552)',
     (tester) async {
       await tester.pumpWidget(
         testApp(
@@ -49,17 +50,27 @@ void main() {
         tester.element(find.byType(PlanDecoSection)),
       );
 
+      // Unset by default (no Settings default policy seeded): follows
+      // Settings, which itself has no air-break policy.
       expect(container.read(divePlanNotifierProvider).airBreaks, isNull);
-      // The minute fields are not shown until air breaks are enabled.
+      expect(
+        container.read(divePlanNotifierProvider).airBreaksExplicitlyOff,
+        isFalse,
+      );
+      // The minute fields are not shown until Custom is chosen.
       expect(_airBreakFields(), findsNothing);
 
-      await tester.tap(find.byType(Switch));
+      await tester.tap(find.text('Custom'));
       await tester.pumpAndSettle();
 
       final enabled = container.read(divePlanNotifierProvider).airBreaks;
       expect(enabled, isNotNull);
       expect(enabled!.o2Seconds, 12 * 60);
       expect(enabled.breakSeconds, 6 * 60);
+      expect(
+        container.read(divePlanNotifierProvider).airBreaksExplicitlyOff,
+        isFalse,
+      );
 
       // Prefilled with the default 12 / 6 minutes.
       expect(find.text('12'), findsOneWidget);
@@ -73,10 +84,16 @@ void main() {
       // The break side is untouched by editing the O2 field.
       expect(updated.breakSeconds, 6 * 60);
 
-      await tester.tap(find.byType(Switch));
+      // Picking the explicit "Off" choice turns breaks off, distinct from
+      // just following an unset Settings default (issue #3552).
+      await tester.tap(find.text('Off'));
       await tester.pumpAndSettle();
 
       expect(container.read(divePlanNotifierProvider).airBreaks, isNull);
+      expect(
+        container.read(divePlanNotifierProvider).airBreaksExplicitlyOff,
+        isTrue,
+      );
       expect(_airBreakFields(), findsNothing);
     },
   );

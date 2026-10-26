@@ -39,6 +39,10 @@ final Map<String, ConflictField> diverSettingsFields = {
     (l) => l.settings_conflict_field_ascentRateWarning,
     FieldKind.ascentRate,
   ),
+  'autoColorCorrection': ConflictField(
+    (l) => l.settings_conflict_field_autoColorCorrection,
+    FieldKind.boolean,
+  ),
   'autoTagImports': ConflictField(
     (l) => l.settings_conflict_field_autoTagImports,
     FieldKind.boolean,
@@ -297,6 +301,10 @@ final Map<String, ConflictField> diverSettingsFields = {
     FieldKind.enumValue,
     enumLabel: listViewModeLabeler,
   ),
+  'downloadsFollowComputerOwner': ConflictField(
+    (l) => l.settings_conflict_field_downloadsFollowComputerOwner,
+    FieldKind.boolean,
+  ),
   'emergencyRegion': ConflictField(
     (l) => l.settings_conflict_field_emergencyRegion,
     FieldKind.shortText,
@@ -379,9 +387,100 @@ final Map<String, ConflictField> diverSettingsFields = {
     (l) => l.settings_conflict_field_notificationsEnabled,
     FieldKind.boolean,
   ),
+  'omitUnusedOcGases': ConflictField(
+    (l) => l.settings_conflict_field_omitUnusedOcGases,
+    FieldKind.boolean,
+  ),
   'placeNameLanguage': ConflictField(
     (l) => l.settings_conflict_field_placeNameLanguage,
     FieldKind.shortText,
+  ),
+  // The planner Setup-accordion global defaults (issue #3552): a new plan's
+  // fields resolve against these unless the plan overrides them itself.
+  'plannerAirBreakBreakSeconds': ConflictField(
+    (l) => l.divePlanner_label_airBreaksBreak,
+    FieldKind.durationSeconds,
+  ),
+  'plannerAirBreakO2Seconds': ConflictField(
+    (l) => l.divePlanner_label_airBreaksOnO2,
+    FieldKind.durationSeconds,
+  ),
+  'plannerAscentRate': ConflictField(
+    (l) => l.plannerCanvas_rates_ascent,
+    FieldKind.ascentRate,
+  ),
+  'plannerBatteryReserveFraction': ConflictField(
+    (l) => l.plannerMission_settings_batteryReserve,
+    FieldKind.fraction,
+  ),
+  'plannerBestMixEndMeters': ConflictField(
+    (l) => l.divePlanner_gasOptions_bestMixEnd,
+    FieldKind.depth,
+  ),
+  'plannerBuddyFactor': ConflictField(
+    (l) => l.divePlanner_gasOptions_sacFactor,
+    FieldKind.number,
+  ),
+  'plannerDescentRate': ConflictField(
+    (l) => l.plannerCanvas_rates_descent,
+    FieldKind.ascentRate,
+  ),
+  'plannerDeviationDepthDelta': ConflictField(
+    (l) => l.plannerCanvas_contingency_depthDelta,
+    FieldKind.depth,
+  ),
+  'plannerDeviationTimeMinutes': ConflictField(
+    (l) => l.plannerCanvas_contingency_timeDelta,
+    FieldKind.durationMinutes,
+  ),
+  'plannerFinalAscentRate': ConflictField(
+    (l) => l.settings_decompression_rates_finalAscent,
+    FieldKind.ascentRate,
+  ),
+  'plannerGasSwitchStopSeconds': ConflictField(
+    (l) => l.divePlanner_gasOptions_gasSwitchStopSeconds,
+    FieldKind.durationSeconds,
+  ),
+  'plannerIntermediateAscentRate': ConflictField(
+    (l) => l.plannerCanvas_rates_intermediateAscent,
+    FieldKind.ascentRate,
+  ),
+  'plannerProblemSolvingMinutes': ConflictField(
+    (l) => l.divePlanner_gasOptions_problemSolvingMinutes,
+    FieldKind.durationMinutes,
+  ),
+  'plannerReservePressure': ConflictField(
+    (l) => l.divePlanner_label_reserve,
+    FieldKind.pressure,
+  ),
+  'plannerSacBottom': ConflictField(
+    (l) => l.divePlanner_gasOptions_sacBottom,
+    FieldKind.rmv,
+  ),
+  'plannerSacDeco': ConflictField(
+    (l) => l.divePlanner_gasOptions_sacDeco,
+    FieldKind.rmv,
+  ),
+  'plannerSacStressedFactor': ConflictField(
+    (l) => l.divePlanner_gasOptions_sacStressedFactor,
+    FieldKind.number,
+  ),
+  'plannerShallowAscentRate': ConflictField(
+    (l) => l.plannerCanvas_rates_shallowAscent,
+    FieldKind.ascentRate,
+  ),
+  'plannerTurnPressureFraction': ConflictField(
+    (l) => l.plannerCanvas_contingency_turnFraction,
+    FieldKind.fraction,
+  ),
+  'plannerTurnPressureRule': ConflictField(
+    (l) => l.plannerCanvas_contingency_turnRule,
+    FieldKind.enumValue,
+    enumLabel: turnPressureRuleLabeler,
+  ),
+  'plannerWalkSpeedMps': ConflictField(
+    (l) => l.plannerMission_settings_walkSpeed,
+    FieldKind.speed,
   ),
   'ppO2MaxDeco': ConflictField(
     (l) => l.settings_conflict_field_ppO2MaxDeco,

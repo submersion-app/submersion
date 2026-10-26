@@ -22,6 +22,7 @@ import 'package:submersion/features/universal_import/data/services/batch_parse_s
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/services/incoming_file_handler.dart';
+import 'package:submersion/features/import_wizard/presentation/providers/import_job_provider.dart';
 
 /// Wraps content with a desktop drag-and-drop target that navigates to the
 /// import wizard when a supported file is dropped.
@@ -97,6 +98,7 @@ class _GlobalDropTargetState extends ConsumerState<GlobalDropTarget> {
     final routerState = GoRouterState.of(context);
     final currentPath = routerState.uri.path;
     if (isImportWizardRoute(currentPath) ||
+        ref.read(importJobProvider).isRunning ||
         ref.read(openPhotoPickerSessionsProvider).value > 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(context.l10n.dropTarget_error_wizardActive)),
@@ -149,11 +151,20 @@ class _GlobalDropTargetState extends ConsumerState<GlobalDropTarget> {
     // Re-read: a media import that ran first may have moved the user on.
     final currentPath = GoRouterState.of(context).uri.path;
 
+    // Asked again where the shared import state is written: the scan and
+    // media work above may have taken long enough for an import to start.
+    bool isImportRunning() => ref.read(importJobProvider).isRunning;
+
     if (paths.length > 1) {
-      await ref
-          .read(universalImportNotifierProvider.notifier)
-          .loadFilesFromPaths(paths);
-      if (!mounted) return;
+      final shouldNavigate = await handleIncomingFiles(
+        paths: paths,
+        currentPath: currentPath,
+        notifier: ref.read(universalImportNotifierProvider.notifier),
+        messenger: ScaffoldMessenger.of(context),
+        isImportRunning: isImportRunning,
+        wizardActiveMessage: context.l10n.dropTarget_error_wizardActive,
+      );
+      if (!mounted || !shouldNavigate) return;
       context.push('/transfer/import-wizard');
       return;
     }
@@ -183,6 +194,8 @@ class _GlobalDropTargetState extends ConsumerState<GlobalDropTarget> {
       currentPath: currentPath,
       notifier: ref.read(universalImportNotifierProvider.notifier),
       messenger: ScaffoldMessenger.of(context),
+      isImportRunning: isImportRunning,
+      wizardActiveMessage: context.l10n.dropTarget_error_wizardActive,
       unsupportedFileMessage: context.l10n.dropTarget_error_unsupportedFile,
     );
 
