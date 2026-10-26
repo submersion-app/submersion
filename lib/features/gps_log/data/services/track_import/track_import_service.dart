@@ -200,7 +200,6 @@ class TrackImportService {
     // for the duplicate check.
     validateFixCount(parsed.fixes.length);
 
-    final dives = await _diveRepository.getAllDives();
     // The device zone's offset when the track was recorded, not today's,
     // which is an hour out for half the year in a daylight saving zone. A
     // wall-clock track's components are a clock reading, not an instant, so
@@ -226,7 +225,7 @@ class TrackImportService {
         : resolveOffsetFromDives(
                 firstFixUtc: parsed.fixes.first.utc,
                 lastFixUtc: parsed.fixes.last.utc,
-                dives: dives,
+                dives: await _diveRepository.getAllDives(),
                 deviceOffsetMinutes: deviceOffset,
               ) ??
               deviceOffset;
