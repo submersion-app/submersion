@@ -109,6 +109,12 @@ void main() {
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(317));
     expect(AppDatabase.migrationVersions, contains(317));
     expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(317));
+    const versions = AppDatabase.migrationVersions;
+    final below = versions[versions.indexOf(317) - 1];
+    expect(
+      AppDatabase.migrationStepCount(below),
+      AppDatabase.migrationStepCount(317) + 1,
+    );
   });
 
   test(
