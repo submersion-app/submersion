@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
@@ -64,7 +65,7 @@ class ConnectionsViewNotifier extends StateNotifier<ConnectionsViewState> {
 final connectionsViewProvider =
     StateNotifierProvider<ConnectionsViewNotifier, ConnectionsViewState>((ref) {
       final prefs = ref.watch(sharedPreferencesProvider);
-      resetConnectionsStartOnce(prefs);
+      unawaited(resetConnectionsStartOnce(prefs));
       final notifier = ConnectionsViewNotifier(prefs);
       // The view is remembered per device, but a centre is one diver's
       // entity: another diver must not open Around on it.

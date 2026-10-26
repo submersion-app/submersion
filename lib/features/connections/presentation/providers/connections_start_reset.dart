@@ -17,36 +17,43 @@ const _log = LoggerService('ConnectionsStartReset');
 /// becomes Who dives where and the Map layout and view return to the web
 /// graph. Around mode's settings and the other display options are kept.
 ///
-/// Runs before the view and display are restored. The writes are not
-/// awaited: SharedPreferences updates its cache at once, so a restore
-/// right after reads the new values. A failed write is logged; the worst
-/// case is the move running again on the next launch.
-void resetConnectionsStartOnce(SharedPreferences prefs) {
+/// Runs before the view and display are restored, and need not be awaited:
+/// SharedPreferences updates its cache when a write is issued, which
+/// happens before this first suspends, so a restore right after reads the
+/// new values, and a later write from the page is issued (and lands) after
+/// these. The marker is set only once both writes succeed; a failed one is
+/// logged and the move runs again on the next launch.
+Future<void> resetConnectionsStartOnce(
+  SharedPreferences prefs, {
+  Future<bool> Function(String key, String value)? writeString,
+}) async {
   if (prefs.getBool(kConnectionsStartResetKey) == true) return;
+  final write = writeString ?? prefs.setString;
+  final writes = <Future<bool>>[];
   if (prefs.containsKey(kConnectionsViewKey) ||
       prefs.containsKey(kConnectionsLegacyLensKey)) {
     final view = ConnectionsViewNotifier.restore(prefs).toStart();
-    _write(prefs.setString(kConnectionsViewKey, jsonEncode(view.toJson())));
+    writes.add(write(kConnectionsViewKey, jsonEncode(view.toJson())));
   }
   if (prefs.containsKey(kConnectionsDisplayKey)) {
     final display = ConnectionsDisplayNotifier.restore(prefs).copyWith(
       view: ConnectionsViewKind.graph,
       mapLayout: ConnectionsLayout.web,
     );
-    _write(
-      prefs.setString(kConnectionsDisplayKey, jsonEncode(display.toJson())),
-    );
+    writes.add(write(kConnectionsDisplayKey, jsonEncode(display.toJson())));
   }
-  _write(prefs.setBool(kConnectionsStartResetKey, true));
-}
-
-void _write(Future<bool> write) {
-  write.catchError((Object e, StackTrace st) {
+  try {
+    final written = await Future.wait(writes);
+    if (written.every((ok) => ok)) {
+      await prefs.setBool(kConnectionsStartResetKey, true);
+    } else {
+      _log.warning('Could not move Connections to its starting view');
+    }
+  } catch (e, st) {
     _log.warning(
       'Could not move Connections to its starting view',
       error: e,
       stackTrace: st,
     );
-    return false;
-  });
+  }
 }

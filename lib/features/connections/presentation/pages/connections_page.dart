@@ -389,13 +389,15 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
     // Built-in species and dive types read in the diver's language.
     final graph = held == null ? ConnectionGraph.empty : _localize(held, l10n);
     // Who dives where loads only sites dived with a buddy, so with none of
-    // them it has nothing to say and shows the empty state. Sites without a
-    // line are there because the budget cut their buddies; they stay.
+    // them, shown or hidden by the budget, it has nothing to say and shows
+    // the empty state. Sites without a line are there because the budget
+    // cut their buddies; they stay.
     final shared = view.mapSharedWith.keys.toSet();
     final nothingShared =
         shared.isNotEmpty &&
         graph.edges.isEmpty &&
-        !graph.nodes.any((n) => shared.contains(n.ref.kind));
+        !graph.nodes.any((n) => shared.contains(n.ref.kind)) &&
+        !shared.any((k) => (graph.hiddenByKind[k] ?? 0) > 0);
     final showCanvas =
         held != null &&
         !view.isAroundWithoutFocus &&

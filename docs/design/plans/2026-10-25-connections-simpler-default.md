@@ -140,10 +140,11 @@ Run: `flutter test test/features/connections/domain`
 - Consumes: `ConnectionsViewState.mapSharedWith` (Task 1).
 - Produces: `buildNodeSql(..., ConnectionKind? sharedWith)` and
   `buildNodeCountSql(..., ConnectionKind? sharedWith)`: when set, adds
-  `EXISTS (SELECT 1 FROM (${membershipSql(sharedWith)}) sw WHERE sw.dive_id = d.id)`
-  to the inner WHERE, so the entity counts only in-scope dives that also have
-  a `sharedWith` entity. A site's dive count on this map is therefore its
-  dives with a buddy (decision: the map is "places we dived together").
+  `HAVING MAX(EXISTS (SELECT 1 FROM (${membershipSql(sharedWith)}) sw WHERE sw.dive_id = d.id)) = 1`
+  to the inner grouped query, so an entity is kept only if one of its
+  in-scope dives also has a `sharedWith` entity. Every one of its dives still
+  counts, so a site's dive count matches Show dives. (Revised after the branch
+  review; the first draft filtered in WHERE and counted only buddy dives.)
 - Produces: `ConnectionsReader.nodes(..., ConnectionKind? sharedWith)` and
   `nodeCount(..., ConnectionKind? sharedWith)`.
 - Produces: `MapLoader.load(spec, {..., Map<ConnectionKind, ConnectionKind> sharedWith = const {}})`,
@@ -268,12 +269,16 @@ ARB keys (en wording; translate the rest, keep each short):
 | `connections_caption_travel` | Buddies, trips and sites; a line means they share dives. |
 | `connections_caption_reef` | Sites, marine life and dive types; a line means they share dives. |
 | `connections_caption_gearRoad` | Gear, trips and centers; a line means they share dives. |
-| `connections_caption_custom` | A line joins two entries that share a dive. |
+| `connections_caption_custom` | {kinds}; a line means they share a dive. |
+| `connections_caption_kindSeparator` | `, ` (ar `، `, zh `、`) |
 | `connections_caption_around` | `{hops, plural, =1{Everything that shares a dive with this centre.} other{Everything within {hops} steps of this centre, linked by shared dives.}}` |
 | `connections_caption_thicker` | Thicker lines mean more dives. |
 
-The custom sentence does not list kinds: the legend names them (on the
-canvas on a phone, in the panel when wide). Decision recorded here.
+The custom sentence names the map's kinds, in kind order, joined by
+`connections_caption_kindSeparator` ("Buddies, Sites; a line means they
+share a dive."): on a wide screen the legend is in the panel, not on the
+canvas. (Revised after the branch review; the first draft used a fixed
+sentence.)
 
 - [ ] **Step 1: Write the failing tests** (`lookupAppLocalizations(const Locale('en'))`):
   - `initial` view, weighted: title `Who dives where`, sentence

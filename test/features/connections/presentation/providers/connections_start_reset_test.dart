@@ -43,6 +43,8 @@ void main() {
     expect(view.savedMapId, isNull);
     expect(view.focus, _jane);
     expect(view.hops, 2);
+    // The marker follows the writes it confirms.
+    await pumpEventQueue();
     expect(sp.getBool(kConnectionsStartResetKey), isTrue);
   });
 
@@ -74,6 +76,7 @@ void main() {
     final c = await _container(sp);
     expect(c.read(connectionsViewProvider), ConnectionsViewState.initial);
     expect(c.read(connectionsDisplayProvider), ConnectionsDisplay.initial);
+    await pumpEventQueue();
     expect(sp.getBool(kConnectionsStartResetKey), isTrue);
   });
 
@@ -117,5 +120,33 @@ void main() {
     final once = sp.getString(kConnectionsViewKey);
     resetConnectionsStartOnce(sp);
     expect(sp.getString(kConnectionsViewKey), once);
+  });
+
+  test(
+    'a failed write leaves the marker unset, so the move runs again',
+    () async {
+      final sp = await _prefs({kConnectionsLegacyLensKey: 'gear'});
+      await resetConnectionsStartOnce(sp, writeString: (_, _) async => false);
+      expect(sp.getBool(kConnectionsStartResetKey), isNull);
+      await resetConnectionsStartOnce(sp);
+      expect(sp.getBool(kConnectionsStartResetKey), isTrue);
+    },
+  );
+
+  test('the marker is written only after the view and display', () async {
+    final sp = await _prefs({
+      kConnectionsLegacyLensKey: 'gear',
+      kConnectionsDisplayKey: '{}',
+    });
+    final written = <String>[];
+    await resetConnectionsStartOnce(
+      sp,
+      writeString: (key, value) async {
+        written.add(key);
+        return sp.setString(key, value);
+      },
+    );
+    expect(written, {kConnectionsViewKey, kConnectionsDisplayKey});
+    expect(sp.getBool(kConnectionsStartResetKey), isTrue);
   });
 }

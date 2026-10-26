@@ -200,6 +200,21 @@ void main() {
       );
     });
 
+    testWidgets('sites the budget hid keep the map, not the empty state', (
+      tester,
+    ) async {
+      final sitesHidden = ConnectionGraph(
+        nodes: [ConnectionNode(ref: _b('jane'), label: 'Jane', diveCount: 3)],
+        edges: const [],
+        hiddenNodeCount: 4,
+        hiddenByKind: const {ConnectionKind.site: 4},
+      );
+      await _pump(tester, graph: (_, _) => sitesHidden);
+      await tester.pump(const Duration(milliseconds: 50));
+      expect(find.byType(ConnectionsEmptyState), findsNothing);
+      expect(find.byType(HiddenNodesChip), findsOneWidget);
+    });
+
     testWidgets('other maps keep their islands', (tester) async {
       final c = await _pump(tester, graph: (_, _) => islands);
       await c
