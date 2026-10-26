@@ -124,6 +124,18 @@ void main() {
         expect(filter.hasActiveFilters, isFalse);
       });
 
+      test('returns true when noRoleOnly is true', () {
+        const filter = DiveFilterState(noRoleOnly: true);
+
+        expect(filter.hasActiveFilters, isTrue);
+      });
+
+      test('returns false when noRoleOnly is false', () {
+        const filter = DiveFilterState(noRoleOnly: false);
+
+        expect(filter.hasActiveFilters, isFalse);
+      });
+
       test('returns true when diveIds is non-empty', () {
         const filter = DiveFilterState(diveIds: ['d1', 'd2']);
 
@@ -216,6 +228,28 @@ void main() {
         final updated = original.copyWith(clearNoBuddyOnly: true);
 
         expect(updated.noBuddyOnly, isNull);
+      });
+
+      test('sets noRoleOnly', () {
+        const original = DiveFilterState();
+
+        final updated = original.copyWith(noRoleOnly: true);
+
+        expect(updated.noRoleOnly, isTrue);
+      });
+
+      test('clears noRoleOnly with clearNoRoleOnly', () {
+        const original = DiveFilterState(noRoleOnly: true);
+
+        final updated = original.copyWith(clearNoRoleOnly: true);
+
+        expect(updated.noRoleOnly, isNull);
+      });
+
+      test('copyWith keeps noRoleOnly when another axis changes', () {
+        const original = DiveFilterState(noRoleOnly: true);
+
+        expect(original.copyWith(minDepth: 10).noRoleOnly, isTrue);
       });
 
       test('sets weekdays', () {
@@ -452,6 +486,7 @@ void main() {
         const DiveFilterState(excludedFromStatsOnly: true),
         const DiveFilterState(decoOnly: false),
         const DiveFilterState(noBuddyOnly: true),
+        const DiveFilterState(noRoleOnly: true),
         const DiveFilterState(tagIds: ['t']),
         const DiveFilterState(weekdays: [1]),
         const DiveFilterState(equipmentIds: ['e']),

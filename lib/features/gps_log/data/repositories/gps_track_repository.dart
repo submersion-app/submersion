@@ -383,15 +383,38 @@ class GpsTrackRepository {
     return recovered;
   }
 
+  /// Completed tracks, newest first. Without [includePoints] the points
+  /// blob is left out of the query, so listing every recording (the Tracks
+  /// list, the map, and the match sweep every import runs, issue #3704)
+  /// reads no blob from disk.
   Future<List<domain.GpsTrack>> getCompletedTracks({
     bool includePoints = false,
   }) async {
-    final rows =
-        await (_db.select(_db.gpsTracks)
-              ..where((t) => t.endTime.isNotNull())
-              ..orderBy([(t) => OrderingTerm.desc(t.startTime)]))
-            .get();
-    return [for (final r in rows) _toDomain(r, includePoints: includePoints)];
+    if (includePoints) {
+      final rows =
+          await (_db.select(_db.gpsTracks)
+                ..where((t) => t.endTime.isNotNull())
+                ..orderBy([(t) => OrderingTerm.desc(t.startTime)]))
+              .get();
+      return [for (final r in rows) _toDomain(r, includePoints: true)];
+    }
+    final table = _db.gpsTracks;
+    String quoted(GeneratedColumn<Object> c) => '"${c.name}"';
+    final columns = [
+      for (final c in table.$columns)
+        if (c != table.points) quoted(c),
+    ].join(', ');
+    final rows = await _db
+        .customSelect(
+          'SELECT $columns FROM ${table.actualTableName} '
+          'WHERE ${quoted(table.endTime)} IS NOT NULL '
+          'ORDER BY ${quoted(table.startTime)} DESC',
+          readsFrom: {table},
+        )
+        .get();
+    return [
+      for (final r in rows) _toDomain(table.map(r.data), includePoints: false),
+    ];
   }
 
   Future<domain.GpsTrack?> getTrack(

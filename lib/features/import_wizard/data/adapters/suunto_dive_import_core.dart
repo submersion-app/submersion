@@ -298,6 +298,8 @@ abstract class SuuntoDiveImportCore implements ImportSourceAdapter {
     var updated = 0;
     final importedCountByComputerId = <String, int>{};
     final importedDiveIds = <String>[];
+    // Dives already in the log that a download was merged into.
+    final updatedExistingDiveIds = <String>[];
 
     for (var i = 0; i < allIndices.length; i++) {
       if (cancelToken?.isCancelled ?? false) break;
@@ -323,6 +325,7 @@ abstract class SuuntoDiveImportCore implements ImportSourceAdapter {
           switch (result.outcome) {
             case _ConsolidateOutcome.consolidated:
               consolidated++;
+              updatedExistingDiveIds.add(matchResult.diveId);
               importedCountByComputerId[comp.id] =
                   (importedCountByComputerId[comp.id] ?? 0) + 1;
               // The fold keeps the target's own header, so the notes and
@@ -372,6 +375,7 @@ abstract class SuuntoDiveImportCore implements ImportSourceAdapter {
             descriptorProduct: parsed.deviceName,
           );
           updated++;
+          updatedExistingDiveIds.add(matchResult.diveId);
           await _fillFromWorkout(matchResult.diveId, parsed);
           await _routeWriter.attach(matchResult.diveId, parsed);
         }
@@ -440,6 +444,7 @@ abstract class SuuntoDiveImportCore implements ImportSourceAdapter {
       updatedCount: updated,
       skippedCount: skipped,
       importedDiveIds: importedDiveIds,
+      updatedExistingDiveIds: updatedExistingDiveIds,
       notices: [?numberConflict],
     );
   }

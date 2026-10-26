@@ -159,10 +159,22 @@ void main() {
       // Close the suggestions, which open over the switch.
       FocusManager.instance.primaryFocus?.unfocus();
       await tester.pumpAndSettle();
-      await tester.tap(find.byType(Switch));
+      await tester.tap(find.byKey(kRefineNoBuddySwitchKey));
       await tester.pump();
       expect(h.draft.noBuddyOnly, isTrue);
       expect(h.draft.buddyNameFilter, isNull);
+    });
+
+    testWidgets('the no-role switch turns the axis on and off', (tester) async {
+      final h = await pump(tester);
+      expect(find.text('No Role Assigned'), findsOneWidget);
+      await tester.tap(find.byKey(kRefineNoRoleSwitchKey));
+      await tester.pump();
+      expect(h.draft.noRoleOnly, isTrue);
+      expect(h.draft.noBuddyOnly, isNull, reason: 'the buddy axis is apart');
+      await tester.tap(find.byKey(kRefineNoRoleSwitchKey));
+      await tester.pump();
+      expect(h.draft.noRoleOnly, isNull);
     });
 
     testWidgets('a buddy suggestion completes the name', (tester) async {
@@ -351,6 +363,7 @@ void main() {
     expect(RefinePeopleGroup.fields, {
       'buddyNameFilter',
       'noBuddyOnly',
+      'noRoleOnly',
       'speciesIds',
     });
     expect(RefineOrganizationGroup.fields, {

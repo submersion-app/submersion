@@ -8298,6 +8298,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_filterChip_noBuddy => 'Sem Dupla';
 
   @override
+  String get diveLog_filterChip_noRole => 'Sem Função';
+
+  @override
   String diveLog_filterChip_until(Object date) {
     return 'Até $date';
   }
@@ -8361,6 +8364,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_filter_noBuddyOnly => 'Sem Dupla Atribuída';
 
   @override
+  String get diveLog_filter_noRoleOnly => 'Sem Função Atribuída';
+
+  @override
   String get diveLog_filter_noTagsYet => 'Nenhuma tag criada ainda';
 
   @override
@@ -8420,6 +8426,10 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get diveLog_filter_showOnlyNoBuddy =>
       'Mostrar apenas mergulhos sem dupla';
+
+  @override
+  String get diveLog_filter_showOnlyNoRole =>
+      'Mostrar apenas mergulhos sem a sua função';
 
   @override
   String get diveLog_filter_startDate => 'Data Inicial';
@@ -47395,16 +47405,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_filter_speciesSearchHint => 'Pesquisar espécies';
 
   @override
-  String get explore_chip_favorite => 'Favorito';
-
-  @override
   String get explore_chip_deco => 'Mergulho com descompressão';
 
   @override
   String get explore_chip_noDeco => 'Sem descompressão';
-
-  @override
-  String get explore_chip_noBuddy => 'Sem parceiro';
 
   @override
   String explore_chip_rating(String op, String value) {
@@ -47463,49 +47467,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'O modelo no dispositivo não compreende este idioma.';
 
   @override
-  String get explore_field_airTemp => 'Temperatura do ar';
-
-  @override
-  String get explore_field_avgDepth => 'Profundidade média';
-
-  @override
   String get explore_field_bottomTime => 'Tempo de fundo';
 
   @override
-  String get explore_field_currentStrength => 'Corrente';
-
-  @override
-  String get explore_field_depth => 'Profundidade';
-
-  @override
-  String get explore_field_diveMode => 'Modo de mergulho';
-
-  @override
-  String get explore_field_diveNumber => 'Número do mergulho';
-
-  @override
-  String get explore_field_diveType => 'Tipo de mergulho';
-
-  @override
-  String get explore_field_entryMethod => 'Entrada';
-
-  @override
   String get explore_field_o2 => 'Oxigénio';
-
-  @override
-  String get explore_field_rating => 'Avaliação';
-
-  @override
-  String get explore_field_visibility => 'Visibilidade';
-
-  @override
-  String get explore_field_waterTemp => 'Temperatura da água';
-
-  @override
-  String get explore_field_waterType => 'Tipo de água';
-
-  @override
-  String get explore_field_weekday => 'Dia da semana';
 
   @override
   String get explore_handoff_list => 'Abrir na lista';
@@ -49204,6 +49169,42 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get importWizard_dc_noDirectDownloadGarminBody =>
       'Os relógios Garmin armazenam os mergulhos como arquivos FIT em vez de oferecer um download direto. Conecte o relógio por USB, copie os arquivos da pasta GARMIN/Activity e depois importe-os.';
+
+  @override
+  String importWizard_dc_notFoundNearby(String name) {
+    return 'Não foi possível encontrar $name';
+  }
+
+  @override
+  String importWizard_dc_notFoundNearbyBody(String name) {
+    return 'O Submersion procurou por Bluetooth e não encontrou $name por perto, ou encontrou mais de um do mesmo modelo. Ative o Bluetooth do computador, aproxime-o deste dispositivo e tente novamente.';
+  }
+
+  @override
+  String get importWizard_dc_tryAgain => 'Tentar novamente';
+
+  @override
+  String get importWizard_dc_bluetoothOffBody =>
+      'O Bluetooth está desligado ou indisponível neste dispositivo. Ligue-o e toque em Tentar novamente.';
+
+  @override
+  String get importWizard_dc_couldNotScanBody =>
+      'O Submersion não conseguiu procurar por Bluetooth. Verifique se o Bluetooth está ligado e se o Submersion tem permissão para usá-lo, depois toque em Tentar novamente.';
+
+  @override
+  String importWizard_dc_anotherUnit(String name) {
+    return 'Não era $name';
+  }
+
+  @override
+  String importWizard_dc_anotherUnitBody(
+    String name,
+    String model,
+    String reported,
+    String stored,
+  ) {
+    return 'O $model que respondeu informou o número de série $reported, não $stored, então é outro computador e os mergulhos dele não foram importados. Desligue o Bluetooth desse computador, aproxime $name deste dispositivo e baixe novamente.';
+  }
 
   @override
   String get importWizard_dc_noNewDives => 'Nenhum mergulho novo para baixar';
@@ -53307,6 +53308,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get query_dives_legacyBuddy => 'Dupla (texto antigo)';
+
+  @override
+  String get query_dives_role => 'Minha função';
 
   @override
   String get query_dives_media => 'Mídia';

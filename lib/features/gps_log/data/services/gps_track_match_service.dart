@@ -1,5 +1,6 @@
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/gps_log/data/repositories/gps_track_repository.dart';
+import 'package:submersion/features/gps_log/domain/entities/gps_track.dart';
 import 'package:submersion/features/gps_log/domain/gps_track_matcher.dart';
 
 /// Sweeps GPS-less dives against recorded tracks and stamps entry/exit
@@ -29,25 +30,24 @@ class GpsTrackMatchService {
     );
     if (candidates.isEmpty) return [];
 
-    final tracks = await _trackRepository.getCompletedTracks(
-      includePoints: true,
-    );
+    // Windows first, points only for a track that covers a dive: every
+    // wizard import sweeps (issue #3704), and a log of historical dives
+    // would otherwise decode every recorded track to match none of them.
+    final tracks = await _trackRepository.getCompletedTracks();
     if (tracks.isEmpty) return [];
+    final pointsByTrack = <String, List<GpsTrackPoint>>{};
 
     final stamped = <String>[];
     for (final dive in candidates) {
-      final track = GpsTrackMatcher.trackCovering(tracks, dive.startMs);
-      if (track == null) continue;
-      final entry = GpsTrackMatcher.positionAt(
-        track.effectivePoints,
-        dive.startMs ~/ 1000,
+      final covering = GpsTrackMatcher.trackCovering(tracks, dive.startMs);
+      if (covering == null) continue;
+      final points = pointsByTrack[covering.id] ??= await _effectivePoints(
+        covering.id,
       );
+      final entry = GpsTrackMatcher.positionAt(points, dive.startMs ~/ 1000);
       if (entry == null) continue;
       final exit = dive.endMs != null
-          ? GpsTrackMatcher.positionAt(
-              track.effectivePoints,
-              dive.endMs! ~/ 1000,
-            )
+          ? GpsTrackMatcher.positionAt(points, dive.endMs! ~/ 1000)
           : null;
       await _diveRepository.setDiveGps(
         dive.id,
@@ -60,4 +60,8 @@ class GpsTrackMatchService {
     }
     return stamped;
   }
+
+  /// The track's trimmed points, or none if it was deleted mid-sweep.
+  Future<List<GpsTrackPoint>> _effectivePoints(String trackId) async =>
+      (await _trackRepository.getTrack(trackId))?.effectivePoints ?? const [];
 }

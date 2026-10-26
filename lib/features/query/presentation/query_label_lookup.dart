@@ -191,6 +191,8 @@ String queryLabelForKey(AppLocalizations l10n, String key) {
       return l10n.query_dives_planned;
     case 'query_dives_rating':
       return l10n.query_dives_rating;
+    case 'query_dives_role':
+      return l10n.query_dives_role;
     case 'query_dives_runtime':
       return l10n.query_dives_runtime;
     case 'query_dives_sac':
@@ -461,8 +463,6 @@ String queryLabelForKey(AppLocalizations l10n, String key) {
       return l10n.query_sites_city;
     case 'query_sites_coordinates':
       return l10n.query_sites_coordinates;
-    case 'query_sites_library':
-      return l10n.query_sites_library;
     case 'query_sites_country':
       return l10n.query_sites_country;
     case 'query_sites_difficulty':
@@ -475,6 +475,8 @@ String queryLabelForKey(AppLocalizations l10n, String key) {
       return l10n.query_sites_island;
     case 'query_sites_lastDived':
       return l10n.query_sites_lastDived;
+    case 'query_sites_library':
+      return l10n.query_sites_library;
     case 'query_sites_maxDepth':
       return l10n.query_sites_maxDepth;
     case 'query_sites_name':

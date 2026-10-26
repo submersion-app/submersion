@@ -7870,6 +7870,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_filterChip_noBuddy => '无潜伴';
 
   @override
+  String get diveLog_filterChip_noRole => '无角色';
+
+  @override
   String diveLog_filterChip_until(Object date) {
     return '至 $date';
   }
@@ -7932,6 +7935,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_filter_noBuddyOnly => '无潜伴';
 
   @override
+  String get diveLog_filter_noRoleOnly => '无角色';
+
+  @override
   String get diveLog_filter_noTagsYet => '尚未创建标签';
 
   @override
@@ -7987,6 +7993,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_filter_showOnlyNoBuddy => '仅显示无潜伴的潜水';
+
+  @override
+  String get diveLog_filter_showOnlyNoRole => '仅显示未设置我的角色的潜水';
 
   @override
   String get diveLog_filter_startDate => '开始日期';
@@ -44550,16 +44559,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_filter_speciesSearchHint => '搜索物种';
 
   @override
-  String get explore_chip_favorite => '收藏';
-
-  @override
   String get explore_chip_deco => '减压潜水';
 
   @override
   String get explore_chip_noDeco => '无减压';
-
-  @override
-  String get explore_chip_noBuddy => '无潜伴';
 
   @override
   String explore_chip_rating(String op, String value) {
@@ -44610,49 +44613,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get explore_error_unsupportedLocale => '设备端模型不理解这种语言。';
 
   @override
-  String get explore_field_airTemp => '气温';
-
-  @override
-  String get explore_field_avgDepth => '平均深度';
-
-  @override
   String get explore_field_bottomTime => '水底时间';
 
   @override
-  String get explore_field_currentStrength => '水流';
-
-  @override
-  String get explore_field_depth => '深度';
-
-  @override
-  String get explore_field_diveMode => '潜水模式';
-
-  @override
-  String get explore_field_diveNumber => '潜水编号';
-
-  @override
-  String get explore_field_diveType => '潜水类型';
-
-  @override
-  String get explore_field_entryMethod => '入水方式';
-
-  @override
   String get explore_field_o2 => '氧气';
-
-  @override
-  String get explore_field_rating => '评分';
-
-  @override
-  String get explore_field_visibility => '能见度';
-
-  @override
-  String get explore_field_waterTemp => '水温';
-
-  @override
-  String get explore_field_waterType => '水体类型';
-
-  @override
-  String get explore_field_weekday => '星期';
 
   @override
   String get explore_handoff_list => '在列表中打开';
@@ -46187,6 +46151,42 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get importWizard_dc_noDirectDownloadGarminBody =>
       'Garmin 手表将潜水记录存储为 FIT 文件，不提供直接下载。请通过 USB 连接手表，从其 GARMIN/Activity 文件夹复制文件，然后导入。';
+
+  @override
+  String importWizard_dc_notFoundNearby(String name) {
+    return '找不到 $name';
+  }
+
+  @override
+  String importWizard_dc_notFoundNearbyBody(String name) {
+    return 'Submersion 通过蓝牙搜索，未在附近找到 $name，或找到多台同型号的电脑。请打开电脑的蓝牙，将其靠近此设备后重试。';
+  }
+
+  @override
+  String get importWizard_dc_tryAgain => '重试';
+
+  @override
+  String get importWizard_dc_bluetoothOffBody =>
+      '此设备的蓝牙已关闭或不可用。请打开蓝牙，然后点按“重试”。';
+
+  @override
+  String get importWizard_dc_couldNotScanBody =>
+      'Submersion 无法通过蓝牙搜索。请确认蓝牙已打开，并且已允许 Submersion 使用蓝牙，然后点按“重试”。';
+
+  @override
+  String importWizard_dc_anotherUnit(String name) {
+    return '那不是 $name';
+  }
+
+  @override
+  String importWizard_dc_anotherUnitBody(
+    String name,
+    String model,
+    String reported,
+    String stored,
+  ) {
+    return '应答的 $model 报告的序列号为 $reported，而不是 $stored，因此这是另一台电脑，其潜水记录未导入。请关闭那台电脑的蓝牙，将 $name 靠近此设备，然后重新下载。';
+  }
 
   @override
   String get importWizard_dc_noNewDives => '没有可下载的新潜水记录';
@@ -50005,6 +50005,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get query_dives_legacyBuddy => '潜伴（旧文本）';
+
+  @override
+  String get query_dives_role => '我的角色';
 
   @override
   String get query_dives_media => '媒体';

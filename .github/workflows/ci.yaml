@@ -35,12 +35,17 @@ jobs:
   # macOS keychain path of the database key, or the macOS runner they are
   # tested in. It follows the same fail-safe rules: an unknown base or a
   # [full-ci] marker sets it too.
+  #
+  # A third, fastlane, gates the fastlane bundle install check (#3495): true
+  # when ios/, macos/ or android/ changes its Gemfile, Gemfile.lock or
+  # fastlane/ folder, with the same fail-safe rules.
   changes:
     name: Detect code changes
     runs-on: ubuntu-latest
     outputs:
       code: ${{ steps.detect.outputs.code }}
       macos_native: ${{ steps.detect.outputs.macos_native }}
+      fastlane: ${{ steps.detect.outputs.fastlane }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -66,8 +71,11 @@ jobs:
           # push, shallow clone), run the full pipeline rather than guess.
           if [ -z "$base" ] || ! git rev-parse --verify --quiet "${base}^{commit}" >/dev/null; then
             echo "Base commit unavailable ('$base'); running the full pipeline."
-            echo "code=true" >> "$GITHUB_OUTPUT"
-            echo "macos_native=true" >> "$GITHUB_OUTPUT"
+            {
+              echo "code=true"
+              echo "macos_native=true"
+              echo "fastlane=true"
+            } >> "$GITHUB_OUTPUT"
             exit 0
           fi
           # Two ranges with different semantics:
@@ -92,8 +100,11 @@ jobs:
           if printf '%s\n%s' "$PR_TITLE" "$(git log --format=%B "$log_range")" \
                | grep -qiF '[full-ci]'; then
             echo "[full-ci] override found; running the full pipeline."
-            echo "code=true" >> "$GITHUB_OUTPUT"
-            echo "macos_native=true" >> "$GITHUB_OUTPUT"
+            {
+              echo "code=true"
+              echo "macos_native=true"
+              echo "fastlane=true"
+            } >> "$GITHUB_OUTPUT"
             exit 0
           fi
           # --no-renames: rename detection lists only a moved file's new path,
@@ -108,6 +119,7 @@ jobs:
           # (docs/img/x.png, .github/workflows/ci.yaml). No globstar/`**` needed.
           code=false
           macos_native=false
+          fastlane=false
           while IFS= read -r f; do
             [ -n "$f" ] || continue
             case "$f" in
@@ -130,6 +142,13 @@ jobs:
               macos/*|packages/submersion_transcoder/*) macos_native=true ;;
               lib/core/services/secure_storage/*|lib/core/services/security/*) macos_native=true ;;
               integration_test/darwin_transcode_test.dart|integration_test/db_security_test.dart) macos_native=true ;;
+            esac
+            # What the fastlane bundle install check can see change: each
+            # platform's bundle and the lanes it loads.
+            case "$f" in
+              ios/Gemfile|ios/Gemfile.lock|ios/fastlane/*) fastlane=true ;;
+              macos/Gemfile|macos/Gemfile.lock|macos/fastlane/*) fastlane=true ;;
+              android/Gemfile|android/Gemfile.lock|android/fastlane/*) fastlane=true ;;
             esac
           done <<< "$files"
           # A version change of a native package that db_security_test runs on
@@ -160,9 +179,12 @@ jobs:
               macos_native=true
             fi
           fi
-          echo "Result: code=$code macos_native=$macos_native"
-          echo "code=$code" >> "$GITHUB_OUTPUT"
-          echo "macos_native=$macos_native" >> "$GITHUB_OUTPUT"
+          echo "Result: code=$code macos_native=$macos_native fastlane=$fastlane"
+          {
+            echo "code=$code"
+            echo "macos_native=$macos_native"
+            echo "fastlane=$fastlane"
+          } >> "$GITHUB_OUTPUT"
 
   # Producer job: runs build_runner ONCE and publishes the generated sources as
   # an artifact. Everything else (analyze, test, builds) gates on this ~3 min
@@ -629,16 +651,23 @@ jobs:
         # docs-only pull requests too.
         run: python3 scripts/check_docs_links.py
 
-      - name: Check Gemfiles are parseable by Dependabot
+      - name: Check Gemfiles are parseable and covered by Dependabot
         # Fails on an eval_gemfile call Dependabot cannot parse (a variable
         # path, as `fastlane add_plugin` writes). That made every bundler
         # version and security update fail, monthly and silently (#2766).
+        # Also fails on a Gemfile whose directory no bundler entry in
+        # .github/dependabot.yml lists, as android/ was (#3495).
         run: python3 scripts/check_dependabot_gemfiles.py
+
+      - name: Check every workflow sets up one Ruby
+        # The fastlane bundle check below proves nothing if it installs on a
+        # different Ruby from the lanes it guards (#3495).
+        run: python3 scripts/check_ruby_versions.py
 
       - name: Run Python guard tests with coverage
         run: |
           mkdir -p coverage
-          guards='scripts/check_proguard_serial_keep.py,scripts/check_apk_signing_cert.py,scripts/check_native_libs_present.py,scripts/check_bundled_native_assets.py,scripts/check_glibc_floor.py,scripts/check_jni_local_refs.py,scripts/check_dc_process_isolation.py,scripts/check_ci_success_gate.py,scripts/check_flutter_setup_retried.py,scripts/check_pr_issue_link.py,scripts/fix_macho_symbol_order.py,scripts/release/sanitize_apple_store_notes.py,scripts/bundle_tests.py,scripts/filter_trivial_coverage.py,scripts/beta_failure_alert.py,scripts/release/play_beta_cooldown.py,scripts/report_inherited_failures.py,scripts/export_support_matrix_catalog.py,scripts/check_no_skipped_tests.py,scripts/check_docs_links.py,scripts/check_dependabot_gemfiles.py,scripts/dependabot_failure_alert.py'
+          guards='scripts/check_proguard_serial_keep.py,scripts/check_apk_signing_cert.py,scripts/check_native_libs_present.py,scripts/check_bundled_native_assets.py,scripts/check_glibc_floor.py,scripts/check_jni_local_refs.py,scripts/check_dc_process_isolation.py,scripts/check_ci_success_gate.py,scripts/check_flutter_setup_retried.py,scripts/check_pr_issue_link.py,scripts/fix_macho_symbol_order.py,scripts/release/sanitize_apple_store_notes.py,scripts/bundle_tests.py,scripts/filter_trivial_coverage.py,scripts/beta_failure_alert.py,scripts/release/play_beta_cooldown.py,scripts/report_inherited_failures.py,scripts/export_support_matrix_catalog.py,scripts/check_no_skipped_tests.py,scripts/check_docs_links.py,scripts/check_dependabot_gemfiles.py,scripts/dependabot_failure_alert.py,scripts/check_ruby_versions.py'
           python3 -m coverage run --include="$guards" \
             scripts/check_proguard_serial_keep_test.py
           python3 -m coverage run --append --include="$guards" \
@@ -681,6 +710,8 @@ jobs:
             scripts/check_docs_links_test.py
           python3 -m coverage run --append --include="$guards" \
             scripts/check_dependabot_gemfiles_test.py
+          python3 -m coverage run --append --include="$guards" \
+            scripts/check_ruby_versions_test.py
           python3 -m coverage run --append --include="$guards" \
             scripts/dependabot_failure_alert_test.py
           python3 -m coverage report -m --include="$guards"
@@ -963,6 +994,54 @@ jobs:
   # Gated on changes.macos_native so a PR that cannot affect them does not
   # take a macOS runner; Build iOS and Build macOS already use two of the
   # organization's 5 per PR.
+  # The fastlane lanes run only after merge (beta, promote, release), so a
+  # bundle that will not install on CI's Ruby, or a Fastfile the locked
+  # fastlane cannot load, used to surface as a failed upload (#3495). This
+  # installs each platform's bundle frozen and loads its Fastfile, on the
+  # runner the upload lanes use (macos-15 in beta, release and promote; the
+  # macos-26 build-all and screenshots jobs are not covered). Gated on the `fastlane` output: Gemfile, Gemfile.lock
+  # and fastlane/ changes only, on pull requests only (the merged commit was
+  # checked on its PR, and two legs take macOS runners). The Ruby must match
+  # the lanes'; the check_ruby_versions.py step in script-tests enforces that.
+  fastlane-bundles:
+    name: Fastlane bundle (${{ matrix.platform }})
+    needs: changes
+    if: >
+      github.event_name == 'pull_request' &&
+      needs.changes.outputs.fastlane == 'true'
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: ios
+            runner: macos-15
+          - platform: macos
+            runner: macos-15
+          - platform: android
+            runner: ubuntu-latest
+    env:
+      LANG: en_US.UTF-8
+      FASTLANE_SKIP_UPDATE_CHECK: '1'
+      FASTLANE_HIDE_CHANGELOG: '1'
+      FASTLANE_OPT_OUT_USAGE: '1'
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup Ruby and install the bundle
+        # bundler-cache runs a frozen `bundle install` from Gemfile.lock, so a
+        # lockfile that does not install on this Ruby fails here.
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.4'
+          bundler-cache: true
+          working-directory: ${{ matrix.platform }}
+
+      - name: Load the Fastfile
+        working-directory: ${{ matrix.platform }}
+        run: bundle exec fastlane lanes
+
   integration-test-macos:
     name: Integration Test (macOS)
     needs: [changes, codegen]
@@ -1762,6 +1841,7 @@ jobs:
       - script-tests
       - integration-test
       - integration-test-macos
+      - fastlane-bundles
       - build-ios
       - build-macos
       - build-android

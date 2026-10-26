@@ -8250,6 +8250,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_filterChip_noBuddy => 'Geen buddy';
 
   @override
+  String get diveLog_filterChip_noRole => 'Geen rol';
+
+  @override
   String diveLog_filterChip_until(Object date) {
     return 'Tot $date';
   }
@@ -8312,6 +8315,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_filter_noBuddyOnly => 'Geen buddy toegewezen';
 
   @override
+  String get diveLog_filter_noRoleOnly => 'Geen rol toegewezen';
+
+  @override
   String get diveLog_filter_noTagsYet => 'Nog geen tags aangemaakt';
 
   @override
@@ -8368,6 +8374,10 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get diveLog_filter_showOnlyNoBuddy =>
       'Toon alleen duiken zonder buddy';
+
+  @override
+  String get diveLog_filter_showOnlyNoRole =>
+      'Toon alleen duiken zonder je eigen rol';
 
   @override
   String get diveLog_filter_startDate => 'Startdatum';
@@ -47098,16 +47108,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_filter_speciesSearchHint => 'Soorten zoeken';
 
   @override
-  String get explore_chip_favorite => 'Favoriet';
-
-  @override
   String get explore_chip_deco => 'Decompressieduik';
 
   @override
   String get explore_chip_noDeco => 'Zonder decompressie';
-
-  @override
-  String get explore_chip_noBuddy => 'Zonder buddy';
 
   @override
   String explore_chip_rating(String op, String value) {
@@ -47165,49 +47169,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Het model op het apparaat begrijpt deze taal niet.';
 
   @override
-  String get explore_field_airTemp => 'Luchttemperatuur';
-
-  @override
-  String get explore_field_avgDepth => 'Gemiddelde diepte';
-
-  @override
   String get explore_field_bottomTime => 'Bodemtijd';
 
   @override
-  String get explore_field_currentStrength => 'Stroming';
-
-  @override
-  String get explore_field_depth => 'Diepte';
-
-  @override
-  String get explore_field_diveMode => 'Duikmodus';
-
-  @override
-  String get explore_field_diveNumber => 'Duiknummer';
-
-  @override
-  String get explore_field_diveType => 'Duiktype';
-
-  @override
-  String get explore_field_entryMethod => 'Instap';
-
-  @override
   String get explore_field_o2 => 'Zuurstof';
-
-  @override
-  String get explore_field_rating => 'Beoordeling';
-
-  @override
-  String get explore_field_visibility => 'Zicht';
-
-  @override
-  String get explore_field_waterTemp => 'Watertemperatuur';
-
-  @override
-  String get explore_field_waterType => 'Watertype';
-
-  @override
-  String get explore_field_weekday => 'Weekdag';
 
   @override
   String get explore_handoff_list => 'Openen in lijst';
@@ -48893,6 +48858,42 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get importWizard_dc_noDirectDownloadGarminBody =>
       'Garmin-horloges slaan duiken op als FIT-bestanden in plaats van een directe download te bieden. Sluit het horloge via USB aan, kopieer de bestanden uit de map GARMIN/Activity en importeer ze daarna.';
+
+  @override
+  String importWizard_dc_notFoundNearby(String name) {
+    return '$name niet gevonden';
+  }
+
+  @override
+  String importWizard_dc_notFoundNearbyBody(String name) {
+    return 'Submersion heeft via Bluetooth gezocht en $name niet in de buurt gevonden, of meer dan één van hetzelfde model. Zet Bluetooth op de computer aan, houd hem dicht bij dit apparaat en probeer het opnieuw.';
+  }
+
+  @override
+  String get importWizard_dc_tryAgain => 'Opnieuw proberen';
+
+  @override
+  String get importWizard_dc_bluetoothOffBody =>
+      'Bluetooth staat uit of is niet beschikbaar op dit apparaat. Zet het aan en tik daarna op Opnieuw proberen.';
+
+  @override
+  String get importWizard_dc_couldNotScanBody =>
+      'Submersion kon niet via Bluetooth zoeken. Controleer of Bluetooth aan staat en Submersion het mag gebruiken, en tik daarna op Opnieuw proberen.';
+
+  @override
+  String importWizard_dc_anotherUnit(String name) {
+    return 'Dat was niet $name';
+  }
+
+  @override
+  String importWizard_dc_anotherUnitBody(
+    String name,
+    String model,
+    String reported,
+    String stored,
+  ) {
+    return 'De $model die antwoordde meldde serienummer $reported, niet $stored. Het is dus een andere computer en de duiken zijn niet geïmporteerd. Zet Bluetooth op die computer uit, houd $name dicht bij dit apparaat en download opnieuw.';
+  }
 
   @override
   String get importWizard_dc_noNewDives =>
@@ -52969,6 +52970,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get query_dives_legacyBuddy => 'Buddy (oude tekst)';
+
+  @override
+  String get query_dives_role => 'Mijn rol';
 
   @override
   String get query_dives_media => 'Media';

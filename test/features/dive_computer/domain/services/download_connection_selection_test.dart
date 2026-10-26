@@ -112,12 +112,75 @@ void main() {
       expect(view.bluetoothAddress, 'CL');
     });
 
-    test('rows but none reachable here clears both, so the wizard does not '
-        'dial a stale address', () {
-      final view = computerForDownload(_computer(), [fit, elsewhere]);
+    test('only file rows clears both, so the wizard does not dial a stale '
+        'address', () {
+      final view = computerForDownload(_computer(), [fit]);
       expect(view.connectionType, isNull);
       expect(view.bluetoothAddress, isNull);
       expect(view.id, 'dc');
+    });
+
+    // Issue #3710: a Bluetooth computer saved on a Mac synced to a phone
+    // with its connection but no address, because the address is per
+    // device. Clearing the transport too told the phone there was no
+    // connection at all, so it never looked for the computer.
+    test('a direct connection with no address here keeps its transport and '
+        'drops the stale address, so the step can look for the computer', () {
+      final view = computerForDownload(_computer(), [fit, elsewhere]);
+      expect(view.connectionType, 'bluetooth');
+      expect(view.bluetoothAddress, isNull);
+      expect(view.lastDiveFingerprint, 'fp');
+    });
+
+    test('a USB connection with no port here keeps its transport, so iOS '
+        'can explain that USB needs a desktop (issue #2837)', () {
+      final usbFar = _connection('usb-far', DiveComputerConnectionKind.usb);
+      final view = computerForDownload(_computer(), [usbFar]);
+      expect(view.connectionType, 'usb');
+      expect(view.bluetoothAddress, isNull);
+    });
+
+    test('with no address here, BLE wins over a newer connection of '
+        'another transport, since only BLE can be found by a scan', () {
+      DiveComputerConnection far(String id, DiveComputerConnectionKind kind) =>
+          DiveComputerConnection(
+            id: id,
+            computerId: 'dc',
+            kind: kind,
+            firstUsedAt: DateTime(2026),
+            lastUsedAt: DateTime(2026, 3),
+          );
+      final usbFar = far('usb-far', DiveComputerConnectionKind.usb);
+      final classicFar = far(
+        'classic-far',
+        DiveComputerConnectionKind.bluetoothClassic,
+      );
+      for (final rows in [
+        [elsewhere, usbFar],
+        [usbFar, elsewhere],
+        [classicFar, elsewhere],
+      ]) {
+        expect(
+          computerForDownload(_computer(), rows).connectionType,
+          'bluetooth',
+        );
+      }
+    });
+
+    test('without BLE, the connection another device used last names the '
+        'transport', () {
+      final usbOld = _connection('usb-old', DiveComputerConnectionKind.usb);
+      final classicNew = DiveComputerConnection(
+        id: 'classic-new',
+        computerId: 'dc',
+        kind: DiveComputerConnectionKind.bluetoothClassic,
+        firstUsedAt: DateTime(2026),
+        lastUsedAt: DateTime(2026, 3),
+      );
+      expect(
+        computerForDownload(_computer(), [usbOld, classicNew]).connectionType,
+        'bluetoothClassic',
+      );
     });
   });
 }

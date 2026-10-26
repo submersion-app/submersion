@@ -894,6 +894,8 @@ class DiveComputerAdapter
     // source-replaced); skipped duplicates never count toward a notice.
     final writtenDives = <DownloadedDive>[];
     final importedDiveIds = <String>[];
+    // Dives already in the log that a download was merged into.
+    final updatedExistingDiveIds = <String>[];
 
     for (var i = 0; i < allIndices.length; i++) {
       if (cancelToken?.isCancelled ?? false) break;
@@ -959,6 +961,7 @@ class DiveComputerAdapter
             case _ConsolidateOutcome.consolidated:
               consolidated++;
               writtenDives.add(dive);
+              updatedExistingDiveIds.add(matchResult.diveId);
             case _ConsolidateOutcome.keptStandalone:
               // The fold refused, but the download survived as its own dive,
               // so it counts as imported. Reporting it as skipped would hide
@@ -999,6 +1002,7 @@ class DiveComputerAdapter
           );
           updated++;
           writtenDives.add(dive);
+          updatedExistingDiveIds.add(matchResult.diveId);
         }
       } else {
         // Import as new dive. Use importSingleDiveAsNew to bypass the
@@ -1069,6 +1073,7 @@ class DiveComputerAdapter
       // download sent to another profile reports its dives only through
       // diverOutcomes, as a multi-profile file import does (issue #2050).
       importedDiveIds: diverOutcomes.isEmpty ? importedDiveIds : const [],
+      updatedExistingDiveIds: updatedExistingDiveIds,
       diverOutcomes: diverOutcomes,
       notices: [
         // Counted over this download's dives: a transmitter not set up that

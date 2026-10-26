@@ -7,6 +7,8 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/equipment/data/services/dive_equipment_defaulter.dart';
+import 'package:submersion/features/gps_log/presentation/providers/gps_log_providers.dart';
 import 'package:submersion/features/import_wizard/data/adapters/dive_computer_adapter.dart';
 import 'package:submersion/features/import_wizard/data/adapters/divelogs_import_adapter.dart';
 import 'package:submersion/features/import_wizard/data/adapters/universal_adapter.dart';
@@ -89,6 +91,8 @@ class _UnifiedImportWizardState extends State<UnifiedImportWizard> {
                   _adapter,
                   tagRepository: ref.read(tagRepositoryProvider),
                   ruleEngine: ref.read(ruleEngineProvider),
+                  gpsTrackMatchService: ref.read(gpsTrackMatchServiceProvider),
+                  equipmentDefaulter: DiveEquipmentDefaulter(),
                   job: ref.read(importJobProvider.notifier),
                   // Only the universal adapters read through a container
                   // that outlives the wizard (#3554); every other source

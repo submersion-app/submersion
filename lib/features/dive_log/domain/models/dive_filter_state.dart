@@ -57,6 +57,10 @@ class DiveFilterState {
   /// True to restrict the list to dives with no buddy assigned: neither the
   /// legacy free-text `buddy` field nor a linked buddy is set.
   final bool? noBuddyOnly;
+
+  /// True to restrict the list to dives where the diver's own role is not
+  /// set (#3622). Lowered to the registry's `role` field, empty.
+  final bool? noRoleOnly;
   final List<String> tagIds;
 
   /// Restricts results to dives whose [Dive.dateTime] falls on one of these
@@ -143,6 +147,7 @@ class DiveFilterState {
     this.excludedFromStatsOnly,
     this.decoOnly,
     this.noBuddyOnly,
+    this.noRoleOnly,
     this.tagIds = const [],
     this.weekdays = const [],
     this.equipmentIds = const [],
@@ -209,6 +214,7 @@ class DiveFilterState {
     excludedFromStatsOnly == true,
     decoOnly != null,
     noBuddyOnly == true,
+    noRoleOnly == true,
     tagIds.isNotEmpty,
     weekdays.isNotEmpty,
     equipmentIds.isNotEmpty,
@@ -256,6 +262,7 @@ class DiveFilterState {
           other.excludedFromStatsOnly == excludedFromStatsOnly &&
           other.decoOnly == decoOnly &&
           other.noBuddyOnly == noBuddyOnly &&
+          other.noRoleOnly == noRoleOnly &&
           listEquals(other.tagIds, tagIds) &&
           listEquals(other.weekdays, weekdays) &&
           listEquals(other.equipmentIds, equipmentIds) &&
@@ -295,6 +302,7 @@ class DiveFilterState {
     excludedFromStatsOnly,
     decoOnly,
     noBuddyOnly,
+    noRoleOnly,
     Object.hashAll(tagIds),
     Object.hashAll(weekdays),
     Object.hashAll(equipmentIds),
@@ -334,6 +342,7 @@ class DiveFilterState {
     bool? excludedFromStatsOnly,
     bool? decoOnly,
     bool? noBuddyOnly,
+    bool? noRoleOnly,
     List<String>? tagIds,
     List<int>? weekdays,
     List<String>? equipmentIds,
@@ -370,6 +379,7 @@ class DiveFilterState {
     bool clearExcludedFromStatsOnly = false,
     bool clearDecoOnly = false,
     bool clearNoBuddyOnly = false,
+    bool clearNoRoleOnly = false,
     bool clearTagIds = false,
     bool clearWeekdays = false,
     bool clearEquipmentIds = false,
@@ -428,6 +438,7 @@ class DiveFilterState {
           : (excludedFromStatsOnly ?? this.excludedFromStatsOnly),
       decoOnly: clearDecoOnly ? null : (decoOnly ?? this.decoOnly),
       noBuddyOnly: clearNoBuddyOnly ? null : (noBuddyOnly ?? this.noBuddyOnly),
+      noRoleOnly: clearNoRoleOnly ? null : (noRoleOnly ?? this.noRoleOnly),
       tagIds: clearTagIds ? const [] : (tagIds ?? this.tagIds),
       weekdays: clearWeekdays ? const [] : (weekdays ?? this.weekdays),
       equipmentIds: clearEquipmentIds
