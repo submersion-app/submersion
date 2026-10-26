@@ -49212,6 +49212,42 @@ class AppLocalizationsIt extends AppLocalizations {
       'Gli orologi Garmin salvano le immersioni come file FIT invece di offrire un download diretto. Collega l\'orologio via USB, copia i file dalla sua cartella GARMIN/Activity, quindi importali.';
 
   @override
+  String importWizard_dc_notFoundNearby(String name) {
+    return 'Impossibile trovare $name';
+  }
+
+  @override
+  String importWizard_dc_notFoundNearbyBody(String name) {
+    return 'Submersion ha cercato tramite Bluetooth e non ha trovato $name nelle vicinanze, oppure ne ha trovati più di uno dello stesso modello. Attiva il Bluetooth del computer, tienilo vicino a questo dispositivo e riprova.';
+  }
+
+  @override
+  String get importWizard_dc_tryAgain => 'Riprova';
+
+  @override
+  String get importWizard_dc_bluetoothOffBody =>
+      'Il Bluetooth è disattivato o non disponibile su questo dispositivo. Attivalo, poi tocca Riprova.';
+
+  @override
+  String get importWizard_dc_couldNotScanBody =>
+      'Submersion non è riuscito a cercare tramite Bluetooth. Verifica che il Bluetooth sia attivo e che Submersion abbia il permesso di usarlo, poi tocca Riprova.';
+
+  @override
+  String importWizard_dc_anotherUnit(String name) {
+    return 'Non era $name';
+  }
+
+  @override
+  String importWizard_dc_anotherUnitBody(
+    String name,
+    String model,
+    String reported,
+    String stored,
+  ) {
+    return 'Il $model che ha risposto ha indicato il numero di serie $reported, non $stored: è quindi un altro computer e le sue immersioni non sono state importate. Disattiva il Bluetooth di quel computer, tieni $name vicino a questo dispositivo e scarica di nuovo.';
+  }
+
+  @override
   String get importWizard_dc_noNewDives =>
       'Nessuna nuova immersione da scaricare';
 

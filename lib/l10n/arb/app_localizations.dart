@@ -78061,6 +78061,53 @@ abstract class AppLocalizations {
   /// **'Garmin watches store dives as FIT files instead of offering a direct download. Connect the watch by USB, copy the files from its GARMIN/Activity folder, then import them.'**
   String get importWizard_dc_noDirectDownloadGarminBody;
 
+  /// Download step title when a saved Bluetooth computer with no address on this device was not found by a scan for its make and model.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t find {name}'**
+  String importWizard_dc_notFoundNearby(String name);
+
+  /// Download step body when a scan found no device, or several, of a saved Bluetooth computer's make and model.
+  ///
+  /// In en, this message translates to:
+  /// **'Submersion searched over Bluetooth and found no {name} nearby, or found more than one of the same model. Turn on the computer\'s Bluetooth, hold it close to this device and try again.'**
+  String importWizard_dc_notFoundNearbyBody(String name);
+
+  /// Button that searches again for a saved Bluetooth computer that was not found.
+  ///
+  /// In en, this message translates to:
+  /// **'Try Again'**
+  String get importWizard_dc_tryAgain;
+
+  /// Download step body when the search for a saved Bluetooth computer could not run because Bluetooth is off or missing. Names the Try Again button on the same screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Bluetooth is off or unavailable on this device. Turn it on, then tap Try Again.'**
+  String get importWizard_dc_bluetoothOffBody;
+
+  /// Download step body when the search for a saved Bluetooth computer could not start for another reason, such as a denied permission. Names the Try Again button on the same screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Submersion could not search over Bluetooth. Check that Bluetooth is on and that Submersion is allowed to use it, then tap Try Again.'**
+  String get importWizard_dc_couldNotScanBody;
+
+  /// Download step title when the one nearby device of a saved computer's make and model turned out to be another unit, such as a buddy's.
+  ///
+  /// In en, this message translates to:
+  /// **'That was not {name}'**
+  String importWizard_dc_anotherUnit(String name);
+
+  /// Download step body when a same-model device reported another serial number than the saved computer, so its dives were not imported.
+  ///
+  /// In en, this message translates to:
+  /// **'The {model} that answered reported serial number {reported}, not {stored}, so it is another computer and its dives were not imported. Turn off that computer\'s Bluetooth, keep {name} close to this device and download again.'**
+  String importWizard_dc_anotherUnitBody(
+    String name,
+    String model,
+    String reported,
+    String stored,
+  );
+
   /// No description provided for @importWizard_dc_noNewDives.
   ///
   /// In en, this message translates to:

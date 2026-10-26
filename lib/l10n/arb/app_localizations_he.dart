@@ -48183,6 +48183,42 @@ class AppLocalizationsHe extends AppLocalizations {
       'שעוני Garmin שומרים צלילות כקובצי FIT במקום לאפשר הורדה ישירה. חבר את השעון ב-USB, העתק את הקבצים מהתיקייה GARMIN/Activity שלו, ולאחר מכן ייבא אותם.';
 
   @override
+  String importWizard_dc_notFoundNearby(String name) {
+    return 'לא נמצא $name';
+  }
+
+  @override
+  String importWizard_dc_notFoundNearbyBody(String name) {
+    return 'Submersion חיפש דרך Bluetooth ולא מצא את $name בקרבת מקום, או שמצא יותר ממחשב אחד מאותו דגם. הפעל את ה-Bluetooth במחשב, קרב אותו למכשיר הזה ונסה שוב.';
+  }
+
+  @override
+  String get importWizard_dc_tryAgain => 'נסה שוב';
+
+  @override
+  String get importWizard_dc_bluetoothOffBody =>
+      'ה-Bluetooth כבוי או לא זמין במכשיר הזה. הפעל אותו ואז הקש על נסה שוב.';
+
+  @override
+  String get importWizard_dc_couldNotScanBody =>
+      'Submersion לא הצליח לחפש דרך Bluetooth. ודא שה-Bluetooth פועל ושל-Submersion יש הרשאה להשתמש בו, ואז הקש על נסה שוב.';
+
+  @override
+  String importWizard_dc_anotherUnit(String name) {
+    return 'זה לא היה $name';
+  }
+
+  @override
+  String importWizard_dc_anotherUnitBody(
+    String name,
+    String model,
+    String reported,
+    String stored,
+  ) {
+    return 'ה-$model שענה דיווח על מספר סידורי $reported, לא $stored, כך שזה מחשב אחר והצלילות שלו לא יובאו. כבה את ה-Bluetooth במחשב ההוא, קרב את $name למכשיר הזה והורד שוב.';
+  }
+
+  @override
   String get importWizard_dc_noNewDives => 'אין צלילות חדשות להורדה';
 
   @override

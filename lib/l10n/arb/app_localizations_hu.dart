@@ -48928,6 +48928,42 @@ class AppLocalizationsHu extends AppLocalizations {
       'A Garmin órák FIT-fájlokként tárolják a merüléseket, és nem kínálnak közvetlen letöltést. Csatlakoztassa az órát USB-n, másolja ki a fájlokat a GARMIN/Activity mappájából, majd importálja őket.';
 
   @override
+  String importWizard_dc_notFoundNearby(String name) {
+    return 'Nem található: $name';
+  }
+
+  @override
+  String importWizard_dc_notFoundNearbyBody(String name) {
+    return 'A Submersion Bluetooth-on keresett, de nem talált a közelben ilyet: $name, vagy több azonos modellt is talált. Kapcsolja be a számítógép Bluetooth-át, tartsa közel ehhez az eszközhöz, és próbálja újra.';
+  }
+
+  @override
+  String get importWizard_dc_tryAgain => 'Újra';
+
+  @override
+  String get importWizard_dc_bluetoothOffBody =>
+      'A Bluetooth ki van kapcsolva, vagy nem érhető el ezen az eszközön. Kapcsolja be, majd koppintson az Újra gombra.';
+
+  @override
+  String get importWizard_dc_couldNotScanBody =>
+      'A Submersion nem tudott Bluetooth-on keresni. Ellenőrizze, hogy a Bluetooth be van-e kapcsolva, és hogy a Submersion használhatja-e, majd koppintson az Újra gombra.';
+
+  @override
+  String importWizard_dc_anotherUnit(String name) {
+    return 'Nem ez volt: $name';
+  }
+
+  @override
+  String importWizard_dc_anotherUnitBody(
+    String name,
+    String model,
+    String reported,
+    String stored,
+  ) {
+    return 'A válaszoló $model a(z) $reported sorozatszámot jelentette, nem a(z) $stored számot, tehát egy másik számítógép, és a merülései nem lettek importálva. Kapcsolja ki annak a számítógépnek a Bluetooth-át, tartsa közel ezt: $name ehhez az eszközhöz, és töltse le újra.';
+  }
+
+  @override
   String get importWizard_dc_noNewDives => 'Nincs letöltendő új merülés';
 
   @override

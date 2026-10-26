@@ -212,4 +212,24 @@ void main() {
       expect(interchangeableBleModels['cressi'], rows);
     });
   });
+
+  // Issue #3710: a Bluetooth computer saved on another device has no address
+  // here, so the download step looks for it by make and model alone.
+  group('canFindByModel', () {
+    test('a computer naming its make and model can be looked for', () {
+      expect(canFindByModel(_computer()), isTrue);
+    });
+
+    test('a missing or blank make or model cannot be matched', () {
+      expect(canFindByModel(_computer(manufacturer: null)), isFalse);
+      expect(canFindByModel(_computer(model: '  ')), isFalse);
+    });
+
+    test('a Garmin is never looked for, whatever its case', () {
+      expect(
+        canFindByModel(_computer(manufacturer: ' GARMIN ', model: 'Descent')),
+        isFalse,
+      );
+    });
+  });
 }

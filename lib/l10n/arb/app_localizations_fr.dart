@@ -49313,6 +49313,42 @@ class AppLocalizationsFr extends AppLocalizations {
       'Les montres Garmin enregistrent les plongées sous forme de fichiers FIT au lieu de proposer un téléchargement direct. Connectez la montre en USB, copiez les fichiers de son dossier GARMIN/Activity, puis importez-les.';
 
   @override
+  String importWizard_dc_notFoundNearby(String name) {
+    return '$name introuvable';
+  }
+
+  @override
+  String importWizard_dc_notFoundNearbyBody(String name) {
+    return 'Submersion a cherché via Bluetooth sans trouver $name à proximité, ou en a trouvé plusieurs du même modèle. Activez le Bluetooth de l\'ordinateur, approchez-le de cet appareil et réessayez.';
+  }
+
+  @override
+  String get importWizard_dc_tryAgain => 'Réessayer';
+
+  @override
+  String get importWizard_dc_bluetoothOffBody =>
+      'Le Bluetooth est désactivé ou indisponible sur cet appareil. Activez-le, puis touchez Réessayer.';
+
+  @override
+  String get importWizard_dc_couldNotScanBody =>
+      'Submersion n\'a pas pu effectuer de recherche via Bluetooth. Vérifiez que le Bluetooth est activé et que Submersion est autorisé à l\'utiliser, puis touchez Réessayer.';
+
+  @override
+  String importWizard_dc_anotherUnit(String name) {
+    return 'Ce n\'était pas $name';
+  }
+
+  @override
+  String importWizard_dc_anotherUnitBody(
+    String name,
+    String model,
+    String reported,
+    String stored,
+  ) {
+    return 'Le $model qui a répondu a indiqué le numéro de série $reported, et non $stored : c\'est donc un autre ordinateur, et ses plongées n\'ont pas été importées. Désactivez le Bluetooth de cet ordinateur, approchez $name de cet appareil et relancez le téléchargement.';
+  }
+
+  @override
   String get importWizard_dc_noNewDives =>
       'Aucune nouvelle plongée à télécharger';
 

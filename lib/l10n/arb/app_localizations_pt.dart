@@ -49206,6 +49206,42 @@ class AppLocalizationsPt extends AppLocalizations {
       'Os relógios Garmin armazenam os mergulhos como arquivos FIT em vez de oferecer um download direto. Conecte o relógio por USB, copie os arquivos da pasta GARMIN/Activity e depois importe-os.';
 
   @override
+  String importWizard_dc_notFoundNearby(String name) {
+    return 'Não foi possível encontrar $name';
+  }
+
+  @override
+  String importWizard_dc_notFoundNearbyBody(String name) {
+    return 'O Submersion procurou por Bluetooth e não encontrou $name por perto, ou encontrou mais de um do mesmo modelo. Ative o Bluetooth do computador, aproxime-o deste dispositivo e tente novamente.';
+  }
+
+  @override
+  String get importWizard_dc_tryAgain => 'Tentar novamente';
+
+  @override
+  String get importWizard_dc_bluetoothOffBody =>
+      'O Bluetooth está desligado ou indisponível neste dispositivo. Ligue-o e toque em Tentar novamente.';
+
+  @override
+  String get importWizard_dc_couldNotScanBody =>
+      'O Submersion não conseguiu procurar por Bluetooth. Verifique se o Bluetooth está ligado e se o Submersion tem permissão para usá-lo, depois toque em Tentar novamente.';
+
+  @override
+  String importWizard_dc_anotherUnit(String name) {
+    return 'Não era $name';
+  }
+
+  @override
+  String importWizard_dc_anotherUnitBody(
+    String name,
+    String model,
+    String reported,
+    String stored,
+  ) {
+    return 'O $model que respondeu informou o número de série $reported, não $stored, então é outro computador e os mergulhos dele não foram importados. Desligue o Bluetooth desse computador, aproxime $name deste dispositivo e baixe novamente.';
+  }
+
+  @override
   String get importWizard_dc_noNewDives => 'Nenhum mergulho novo para baixar';
 
   @override

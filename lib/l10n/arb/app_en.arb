@@ -28288,6 +28288,13 @@
   "importWizard_dc_noDirectDownload": "Can't download this computer directly",
   "importWizard_dc_noDirectDownloadBody": "Submersion has no saved connection for {name}. Import its dives from a file, or add it again from Dive Computers to download over Bluetooth or USB.",
   "importWizard_dc_noDirectDownloadGarminBody": "Garmin watches store dives as FIT files instead of offering a direct download. Connect the watch by USB, copy the files from its GARMIN/Activity folder, then import them.",
+  "importWizard_dc_notFoundNearby": "Couldn't find {name}",
+  "importWizard_dc_notFoundNearbyBody": "Submersion searched over Bluetooth and found no {name} nearby, or found more than one of the same model. Turn on the computer's Bluetooth, hold it close to this device and try again.",
+  "importWizard_dc_tryAgain": "Try Again",
+  "importWizard_dc_bluetoothOffBody": "Bluetooth is off or unavailable on this device. Turn it on, then tap Try Again.",
+  "importWizard_dc_couldNotScanBody": "Submersion could not search over Bluetooth. Check that Bluetooth is on and that Submersion is allowed to use it, then tap Try Again.",
+  "importWizard_dc_anotherUnit": "That was not {name}",
+  "importWizard_dc_anotherUnitBody": "The {model} that answered reported serial number {reported}, not {stored}, so it is another computer and its dives were not imported. Turn off that computer's Bluetooth, keep {name} close to this device and download again.",
   "importWizard_dc_noNewDives": "No new dives to download",
   "importWizard_dc_noNewDivesBody": "All dives from this computer have already been imported.",
   "importWizard_dc_noUsbOnThisPlatformBody": "{name} connects with a USB cable, which Submersion cannot use on iPhone or iPad. Download its dives with Submersion on a Mac, Windows or Linux computer, or import them from a file.",
@@ -28757,6 +28764,56 @@
         "type": "String"
       }
     }
+  },
+  "@importWizard_dc_notFoundNearby": {
+    "description": "Download step title when a saved Bluetooth computer with no address on this device was not found by a scan for its make and model.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@importWizard_dc_notFoundNearbyBody": {
+    "description": "Download step body when a scan found no device, or several, of a saved Bluetooth computer's make and model.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@importWizard_dc_anotherUnit": {
+    "description": "Download step title when the one nearby device of a saved computer's make and model turned out to be another unit, such as a buddy's.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@importWizard_dc_anotherUnitBody": {
+    "description": "Download step body when a same-model device reported another serial number than the saved computer, so its dives were not imported.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "model": {
+        "type": "String"
+      },
+      "reported": {
+        "type": "String"
+      },
+      "stored": {
+        "type": "String"
+      }
+    }
+  },
+  "@importWizard_dc_bluetoothOffBody": {
+    "description": "Download step body when the search for a saved Bluetooth computer could not run because Bluetooth is off or missing. Names the Try Again button on the same screen."
+  },
+  "@importWizard_dc_couldNotScanBody": {
+    "description": "Download step body when the search for a saved Bluetooth computer could not start for another reason, such as a denied permission. Names the Try Again button on the same screen."
+  },
+  "@importWizard_dc_tryAgain": {
+    "description": "Button that searches again for a saved Bluetooth computer that was not found."
   },
   "@importWizard_dc_noDirectDownloadBody": {
     "description": "Download step body when a saved dive computer has no stored connection to download from.",

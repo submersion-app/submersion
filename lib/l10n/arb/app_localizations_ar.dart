@@ -49857,6 +49857,42 @@ class AppLocalizationsAr extends AppLocalizations {
       'تخزّن ساعات Garmin الغوصات كملفات FIT بدلاً من توفير تنزيل مباشر. وصّل الساعة عبر USB، وانسخ الملفات من مجلد GARMIN/Activity فيها، ثم استوردها.';
 
   @override
+  String importWizard_dc_notFoundNearby(String name) {
+    return 'تعذّر العثور على $name';
+  }
+
+  @override
+  String importWizard_dc_notFoundNearbyBody(String name) {
+    return 'بحث Submersion عبر Bluetooth ولم يعثر على $name في الجوار، أو عثر على أكثر من جهاز من الطراز نفسه. شغّل Bluetooth في الكمبيوتر، وقرّبه من هذا الجهاز، ثم أعد المحاولة.';
+  }
+
+  @override
+  String get importWizard_dc_tryAgain => 'إعادة المحاولة';
+
+  @override
+  String get importWizard_dc_bluetoothOffBody =>
+      'البلوتوث متوقف أو غير متاح على هذا الجهاز. شغّله، ثم اضغط على إعادة المحاولة.';
+
+  @override
+  String get importWizard_dc_couldNotScanBody =>
+      'تعذّر على Submersion البحث عبر Bluetooth. تأكد من تشغيل Bluetooth ومن السماح لـ Submersion باستخدامه، ثم اضغط على إعادة المحاولة.';
+
+  @override
+  String importWizard_dc_anotherUnit(String name) {
+    return 'لم يكن هذا $name';
+  }
+
+  @override
+  String importWizard_dc_anotherUnitBody(
+    String name,
+    String model,
+    String reported,
+    String stored,
+  ) {
+    return 'أبلغ جهاز $model الذي استجاب عن الرقم التسلسلي $reported، وليس $stored، لذا فهو كمبيوتر آخر ولم يتم استيراد غوصاته. أوقف Bluetooth في ذلك الكمبيوتر، وقرّب $name من هذا الجهاز، ثم نزّل مجدداً.';
+  }
+
+  @override
   String get importWizard_dc_noNewDives => 'لا توجد غوصات جديدة للتنزيل';
 
   @override

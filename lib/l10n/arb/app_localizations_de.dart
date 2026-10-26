@@ -49089,6 +49089,42 @@ class AppLocalizationsDe extends AppLocalizations {
       'Garmin-Uhren speichern Tauchgänge als FIT-Dateien und bieten keinen direkten Download. Verbinden Sie die Uhr per USB, kopieren Sie die Dateien aus ihrem Ordner GARMIN/Activity und importieren Sie sie anschließend.';
 
   @override
+  String importWizard_dc_notFoundNearby(String name) {
+    return '$name nicht gefunden';
+  }
+
+  @override
+  String importWizard_dc_notFoundNearbyBody(String name) {
+    return 'Submersion hat per Bluetooth gesucht und $name nicht in der Nähe gefunden oder mehr als ein Gerät desselben Modells. Schalten Sie Bluetooth am Computer ein, halten Sie ihn nah an dieses Gerät und versuchen Sie es erneut.';
+  }
+
+  @override
+  String get importWizard_dc_tryAgain => 'Erneut versuchen';
+
+  @override
+  String get importWizard_dc_bluetoothOffBody =>
+      'Bluetooth ist auf diesem Gerät ausgeschaltet oder nicht verfügbar. Schalten Sie es ein und tippen Sie dann auf „Erneut versuchen“.';
+
+  @override
+  String get importWizard_dc_couldNotScanBody =>
+      'Submersion konnte nicht per Bluetooth suchen. Prüfen Sie, ob Bluetooth eingeschaltet ist und Submersion es verwenden darf, und tippen Sie dann auf „Erneut versuchen“.';
+
+  @override
+  String importWizard_dc_anotherUnit(String name) {
+    return 'Das war nicht $name';
+  }
+
+  @override
+  String importWizard_dc_anotherUnitBody(
+    String name,
+    String model,
+    String reported,
+    String stored,
+  ) {
+    return 'Der antwortende $model meldete die Seriennummer $reported, nicht $stored. Es ist also ein anderer Computer, und seine Tauchgänge wurden nicht importiert. Schalten Sie Bluetooth an diesem Computer aus, halten Sie $name nah an dieses Gerät und laden Sie erneut herunter.';
+  }
+
+  @override
   String get importWizard_dc_noNewDives =>
       'Keine neuen Tauchgänge zum Herunterladen';
 
