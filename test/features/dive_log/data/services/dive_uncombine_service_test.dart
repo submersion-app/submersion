@@ -566,6 +566,51 @@ void main() {
       );
     });
 
+    // Issue #3654: two computer-less imports of one recording read as one
+    // source. Combine gives them one slot; separating must not split them
+    // back into two chips.
+    test('keeps two rows of one recording as one source on the restored '
+        'dive', () async {
+      await seedDive('a', entry: DateTime.utc(2026, 7, 1, 9));
+      await seedDive(
+        'b',
+        entry: DateTime.utc(2026, 7, 1, 10),
+        depth: 20,
+        runtimeMin: 20,
+      );
+      final start = DateTime.utc(2026, 7, 1, 10);
+      final end = start.add(const Duration(minutes: 20));
+      DiveDataSourcesCompanion recording(String model, String? serial) =>
+          DiveDataSourcesCompanion(
+            computerModel: Value(model),
+            computerSerial: Value(serial),
+            entryTime: Value(start),
+            exitTime: Value(end),
+            duration: const Value(1200),
+            maxDepth: const Value(20),
+          );
+      await (db.update(db.diveDataSources)..where((t) => t.id.equals('src-b')))
+          .write(recording('Shearwater Perdix 2', null));
+      await db
+          .into(db.diveDataSources)
+          .insert(
+            recording('Perdix 2', 'A5433DEA').copyWith(
+              id: const Value('src-b-twin'),
+              diveId: const Value('b'),
+              isPrimary: const Value(false),
+              importedAt: Value(DateTime.utc(2026, 7, 2)),
+              createdAt: Value(DateTime.utc(2026, 7, 2)),
+            ),
+          );
+      expect(await diveRepo.getDataSources('b'), hasLength(1));
+      final mergedId = (await merge.apply(['a', 'b'])).mergedDive.id;
+
+      final restoredId = (await service.separate(diveId: mergedId)).single;
+
+      expect(await diveRepo.getDataSources(restoredId), hasLength(1));
+      expect(await diveRepo.hasMultipleDataSources(restoredId), isFalse);
+    });
+
     test('drops the surface markers the merge wrote at the gap', () async {
       final mergedId = await mergeTwoImports();
 
