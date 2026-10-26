@@ -1416,7 +1416,8 @@ class AppDatabase extends _$AppDatabase {
     // of 1, and an older peer omits it, so the floor stays. The known cost: a
     // peer still on v314 ignores the column, so it treats an entry this
     // build created from a download as the diver's own configuration and
-    // names its tanks after it until it updates.
+    // names its tanks after it until it updates; and an edit it publishes on
+    // such an entry drops the column, which then arrives here as configured.
     315,
   ];
 

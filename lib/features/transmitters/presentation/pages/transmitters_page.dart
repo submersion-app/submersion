@@ -6,6 +6,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/icons/mdi_icons.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/presentation/providers/device_item_providers.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/transmitters/presentation/widgets/transmitter_key_widgets.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -86,6 +87,13 @@ class _ItemTile extends StatelessWidget {
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (row.item.status != EquipmentStatus.active)
+            Text(
+              row.item.status.localizedName(l10n),
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: theme.colorScheme.tertiary,
+              ),
+            ),
           for (final key in row.keys) TransmitterKeyLabel(entry: key),
           if (setup == null || !setup.isSetUp)
             Text(

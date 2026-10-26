@@ -1094,13 +1094,6 @@ class DiveComputerAdapter
     );
   }
 
-  /// How many of the dives this run wrote carry an unmatched serial. Skipped
-  /// duplicates are not in [written], so they cannot inflate the count.
-  ///
-  /// With [nameDerivedRolesOnly], only a tank whose role the computer read
-  /// off the transmitter's name counts (issue #2595). A matched serial's
-  /// registry entry replaced that role on import, so the unmatched serials
-  /// are exactly the ones still carrying it.
   /// Registers each serial no registry row knows, puts every transmitter in
   /// this download on its dives, and returns the serials the notice asks
   /// about: new ones and any not set up (issue #3676). Best-effort: a failure
@@ -1111,16 +1104,16 @@ class DiveComputerAdapter
   ) async {
     final diverId = targetDiverId.isEmpty ? null : targetDiverId;
     try {
-      final registrar = _registrar;
-      if (registrar != null && unmatched.isNotEmpty) {
-        await registrar.registerNewSerials(unmatched, diverId: diverId);
-      }
+      // Every serial this download wrote, not just the import service's
+      // unmatched ones: a planned-dive fill skips that service. The
+      // registrar skips serials it already knows.
       final seen = {
         for (final dive in written)
           for (final tank in dive.tanks)
             ?normalizeTransmitterSerial(tank.transmitterSerial),
       };
       if (seen.isNotEmpty) {
+        await _registrar?.registerNewSerials(seen, diverId: diverId);
         await _gearLinker?.linkSerials(seen, diverId: diverId);
       }
       final notSetUp =
@@ -1132,6 +1125,13 @@ class DiveComputerAdapter
     }
   }
 
+  /// How many of the dives this run wrote carry an unmatched serial. Skipped
+  /// duplicates are not in [written], so they cannot inflate the count.
+  ///
+  /// With [nameDerivedRolesOnly], only a tank whose role the computer read
+  /// off the transmitter's name counts (issue #2595). A matched serial's
+  /// registry entry replaced that role on import, so the unmatched serials
+  /// are exactly the ones still carrying it.
   int _divesCarrying(
     List<String> unmatched,
     List<DownloadedDive> written, {

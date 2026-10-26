@@ -644,12 +644,8 @@ class EquipmentRepository {
     }
   }
 
-  /// Delete equipment. Service schedules, service records, assembly
-  /// component rows, tag links, shares and share events are first-class
-  /// synced children
-  /// cascade-deleted by SQLite, but cascades emit no deletion-log entries, so
-  /// each is tombstoned explicitly (mirrors EquipmentSetRepository.deleteSet).
-  /// Cylinders linked to the item are cleared and staged for sync.
+  /// The dive computer and transmitter records an item is the one entry
+  /// for (issue #3676), deleted with it through their own repositories.
   Future<void> _deleteDevicesOf(String itemId) async {
     final computers = await (_db.select(
       _db.diveComputers,
@@ -665,6 +661,12 @@ class EquipmentRepository {
     }
   }
 
+  /// Delete equipment. Service schedules, service records, assembly
+  /// component rows, tag links, shares and share events are first-class
+  /// synced children
+  /// cascade-deleted by SQLite, but cascades emit no deletion-log entries, so
+  /// each is tombstoned explicitly (mirrors EquipmentSetRepository.deleteSet).
+  /// Cylinders linked to the item are cleared and staged for sync.
   Future<void> deleteEquipment(String id) async {
     try {
       _log.info('Deleting equipment: $id');

@@ -113,7 +113,6 @@ class DiveComputerRepository {
   // CRUD Operations for Dive Computers
   // ============================================================================
 
-  /// Get all dive computers
   /// The registrations behind Equipment item [equipmentId] (issue #3676),
   /// the most recently downloaded first. Usually one; a device registered
   /// twice shows as one item until it is merged.
@@ -135,6 +134,7 @@ class DiveComputerRepository {
     return rows.map(_mapRowToComputer).toList();
   }
 
+  /// Get all dive computers
   Future<List<domain.DiveComputer>> getAllComputers({String? diverId}) async {
     try {
       final query = _db.select(_db.diveComputers)
@@ -306,6 +306,44 @@ class DiveComputerRepository {
     }
   }
 
+  Future<void> _adoptBoundItem(
+    String computerId,
+    String itemId,
+    domain.DiveComputer computer,
+    int now,
+  ) async {
+    final item = await (_db.select(
+      _db.equipment,
+    )..where((t) => t.id.equals(itemId))).getSingleOrNull();
+    if (item == null) return;
+    bool blank(String? v) => v == null || v.trim().isEmpty;
+    final fill = db.EquipmentCompanion(
+      serialNumber: blank(item.serialNumber) && !blank(computer.serialNumber)
+          ? Value(computer.serialNumber)
+          : const Value.absent(),
+      brand: blank(item.brand) && !blank(computer.manufacturer)
+          ? Value(computer.manufacturer)
+          : const Value.absent(),
+      model: blank(item.model) && !blank(computer.model)
+          ? Value(computer.model)
+          : const Value.absent(),
+    );
+    if (fill != const db.EquipmentCompanion()) {
+      await (_db.update(_db.equipment)..where((t) => t.id.equals(itemId)))
+          .write(fill.copyWith(updatedAt: Value(now)));
+      await _syncRepository.markRecordPending(
+        entityType: 'equipment',
+        recordId: itemId,
+        localUpdatedAt: now,
+      );
+    }
+    if (item.name != computer.name) {
+      await (_db.update(_db.diveComputers)
+            ..where((t) => t.id.equals(computerId)))
+          .write(DiveComputersCompanion(name: Value(item.name)));
+    }
+  }
+
   /// Create a new dive computer
   Future<domain.DiveComputer> createComputer(
     domain.DiveComputer computer,
@@ -344,10 +382,11 @@ class DiveComputerRepository {
               ),
             );
 
-        // Seed the gear twin once, here, because this is the only repository
-        // path that genuinely inserts a registry row (v175). Minting nowhere
-        // else is what makes a user-deleted twin permanent. Pass the resolved
-        // id: the caller's may have been empty and minted just above.
+        // Resolve the gear twin here, where a registry row is genuinely
+        // inserted (v175). Since #3676 a computer always has its item: the
+        // device gear heal also mints one for a computer left without, on
+        // the same id chain. Pass the resolved id: the caller's may have
+        // been empty and minted just above.
         final twinId = await DiveComputerGearResolver().resolveGearTwin(
           computer.copyWith(id: id),
         );
@@ -356,6 +395,12 @@ class DiveComputerRepository {
             'UPDATE dive_computers SET equipment_id = ? WHERE id = ?',
             [twinId, id],
           );
+        }
+        // Bound to an item the diver added by hand ("Connect and download",
+        // issue #3676): the item is the one entry, so the computer takes its
+        // name, and the item gains what it lacked of the device's identity.
+        if (twinId != null && twinId == computer.equipmentId) {
+          await _adoptBoundItem(id, twinId, computer, now);
         }
 
         // Marked pending ONCE, after the optional equipment_id write, so the

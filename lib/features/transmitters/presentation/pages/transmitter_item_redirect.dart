@@ -8,18 +8,29 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// `/transmitters/:transmitterId/edit`, kept for deep links and old back
 /// stacks: a transmitter's page is its Equipment item's (issue #3676), so
 /// this replaces itself with that page.
-class TransmitterItemRedirect extends ConsumerWidget {
+class TransmitterItemRedirect extends ConsumerStatefulWidget {
   const TransmitterItemRedirect({super.key, required this.transmitterId});
 
   final String transmitterId;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final key = ref.watch(transmitterProvider(transmitterId));
+  ConsumerState<TransmitterItemRedirect> createState() =>
+      _TransmitterItemRedirectState();
+}
+
+class _TransmitterItemRedirectState
+    extends ConsumerState<TransmitterItemRedirect> {
+  /// Set once the forward is scheduled, so a rebuild never queues another.
+  bool _forwarding = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final key = ref.watch(transmitterProvider(widget.transmitterId));
     final itemId = key.valueOrNull?.transmitterEquipmentId;
-    if (itemId != null) {
+    if (itemId != null && !_forwarding) {
+      _forwarding = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (context.mounted) context.replace('/equipment/$itemId');
+        if (mounted) context.replace('/equipment/$itemId');
       });
     }
     final gone = key.hasValue && itemId == null;

@@ -11,6 +11,7 @@ import 'package:submersion/features/dive_computer/presentation/utils/last_downlo
 import 'package:submersion/features/dive_computer/presentation/widgets/clock_sync_global_switch.dart';
 import 'package:submersion/features/dive_computer/presentation/widgets/raw_dive_data_discard.dart';
 import 'package:submersion/features/dive_computer/presentation/widgets/dive_computer_merge_sheet.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_delete_dialog.dart';
 import 'package:submersion/features/equipment/presentation/providers/device_item_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -265,13 +266,21 @@ class _DeviceListPageState extends ConsumerState<DeviceListPage> {
     // Deleting the item deletes the computer behind it (issue #3676).
     final deleteItem = ref.read(deviceItemDeleterProvider);
     _selection.exit();
+    // Delete is owner-only (issue #2046): a shared item is kept, and the
+    // snackbar says how many.
+    var deleted = 0;
     for (final id in ids) {
-      await deleteItem(id);
+      if (await deleteItem(id)) deleted++;
     }
+    final skipped = ids.length - deleted;
     if (!mounted) return BulkActionOutcome.completed;
     messenger.showSnackBar(
       SnackBar(
-        content: Text(context.l10n.common_bulkDelete_snackbar(ids.length)),
+        content: Text(
+          skipped == 0
+              ? context.l10n.common_bulkDelete_snackbar(deleted)
+              : context.l10n.equipment_bulkDelete_partial(deleted, skipped),
+        ),
       ),
     );
     return BulkActionOutcome.completed;
@@ -510,6 +519,15 @@ class _ComputerCard extends ConsumerWidget {
                             ),
                         ],
                       ),
+                      // Retired, loaned or spare reads differently from the
+                      // computer in use.
+                      if (row.item.status != EquipmentStatus.active)
+                        Text(
+                          row.item.status.localizedName(context.l10n),
+                          style: theme.textTheme.labelMedium?.copyWith(
+                            color: colorScheme.tertiary,
+                          ),
+                        ),
                       if (subtitle.isNotEmpty) ...[
                         const SizedBox(height: 4),
                         Text(

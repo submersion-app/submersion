@@ -194,6 +194,36 @@ void main() {
       expect(p.computerNotes, p.itemNotes);
     });
 
+    test('two registrations sharing one item both keep their notes '
+        '(review)', () async {
+      await linkedPair(
+        computerName: 'Teric',
+        computerUpdated: 10,
+        computerNotes: 'Left wrist.',
+        itemName: 'Teric',
+        itemUpdated: 10,
+        itemNotes: '',
+      );
+      await db
+          .into(db.diveComputers)
+          .insert(
+            DiveComputersCompanion.insert(
+              id: 'c2',
+              name: 'Teric',
+              notes: const Value('Strap replaced.'),
+              equipmentId: const Value('gear'),
+              createdAt: 0,
+              updatedAt: 10,
+            ),
+          );
+
+      await alignComputerNamesAndNotes(db);
+
+      final notes = (await pair()).itemNotes;
+      expect(notes, contains('Left wrist.'));
+      expect(notes, contains('Strap replaced.'));
+    });
+
     test('equal notes are kept once', () async {
       await linkedPair(
         computerName: 'Teric',

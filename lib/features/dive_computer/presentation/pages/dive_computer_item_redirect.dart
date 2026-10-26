@@ -10,21 +10,34 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// replaces itself with that page. A builder rather than a route redirect,
 /// because the lookup is async and the `download` child route under it must
 /// still open the wizard.
-class DiveComputerItemRedirect extends ConsumerWidget {
+class DiveComputerItemRedirect extends ConsumerStatefulWidget {
   const DiveComputerItemRedirect({super.key, required this.computerId});
 
   final String computerId;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final computer = ref.watch(diveComputerByIdProvider(computerId));
+  ConsumerState<DiveComputerItemRedirect> createState() =>
+      _DiveComputerItemRedirectState();
+}
+
+class _DiveComputerItemRedirectState
+    extends ConsumerState<DiveComputerItemRedirect> {
+  /// Set once the forward is scheduled, so a rebuild never queues another.
+  bool _forwarding = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final computer = ref.watch(diveComputerByIdProvider(widget.computerId));
     final itemId = computer.valueOrNull?.equipmentId;
-    if (itemId != null) {
+    if (itemId != null && !_forwarding) {
+      _forwarding = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (context.mounted) context.replace('/equipment/$itemId');
+        if (mounted) context.replace('/equipment/$itemId');
       });
     }
-    final notFound = computer.hasValue && computer.value == null;
+    // A computer with no item yet (the heal gives it one on the next open)
+    // is as unreachable as a missing one: say so rather than spin.
+    final notFound = computer.hasValue && itemId == null;
     return Scaffold(
       appBar: AppBar(title: Text(context.l10n.diveComputer_title)),
       body: Center(

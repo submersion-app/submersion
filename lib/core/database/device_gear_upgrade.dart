@@ -40,14 +40,23 @@ Future<void> alignComputerNamesAndNotes(DatabaseConnectionUser db) async {
       .customSelect(
         'SELECT c.id AS cid, c.name AS cname, c.notes AS cnotes, '
         'c.manufacturer AS cmaker, c.model AS cmodel, e.id AS eid, '
-        'e.name AS ename, e.notes AS enotes, e.brand AS ebrand, '
+        'e.brand AS ebrand, '
         'e.model AS emodel '
         'FROM dive_computers c JOIN equipment e ON e.id = c.equipment_id',
       )
       .get();
   for (final p in pairs) {
     final computerName = p.read<String>('cname');
-    final itemName = p.read<String>('ename');
+    // Read the item afresh: two registrations can share one item, and the
+    // first pair's write must not be overwritten from a stale copy.
+    final current = await db
+        .customSelect(
+          'SELECT name, notes FROM equipment WHERE id = ?',
+          variables: [Variable<String>(p.read<String>('eid'))],
+        )
+        .getSingle();
+    final itemName = current.read<String>('name');
+    final itemNotes = current.read<String>('notes');
     final itemIsDefault = _isDeviceName(
       itemName,
       brands: [p.read<String?>('ebrand'), p.read<String?>('cmaker')],
@@ -60,12 +69,12 @@ Future<void> alignComputerNamesAndNotes(DatabaseConnectionUser db) async {
     );
     final name = itemIsDefault && !computerIsDefault ? computerName : itemName;
     final notes = _mergedNotes(
-      itemNotes: p.read<String>('enotes'),
+      itemNotes: itemNotes,
       computerNotes: p.read<String>('cnotes'),
     );
     // Only rows that change are written, each with a NULL hlc so the next
     // sync publishes it (see ensureDeviceGearLinks).
-    if (name != itemName || notes != p.read<String>('enotes')) {
+    if (name != itemName || notes != itemNotes) {
       await db.customStatement(
         'UPDATE equipment SET name = ?, notes = ?'
         '${await clearHlcSql(db, 'equipment')} WHERE id = ?',

@@ -301,4 +301,31 @@ void main() {
     )..where((t) => t.id.equals(created.id))).getSingle();
     expect(row.equipmentId, 'hand-made');
   });
+
+  test('a device bound to a hand-added item fills its blank serial, brand and '
+      'model and takes its name (review)', () async {
+    await insertGear('Backup gauge');
+
+    final created = await DiveComputerRepository().createComputer(
+      computer(
+        id: '',
+        name: 'Suunto EON Core',
+        manufacturer: 'Suunto',
+        model: 'EON Core',
+        serialNumber: 'S9',
+        equipmentId: 'Backup gauge',
+      ),
+    );
+
+    final item = await (db.select(
+      db.equipment,
+    )..where((t) => t.id.equals('Backup gauge'))).getSingle();
+    expect(item.serialNumber, 'S9');
+    expect(item.brand, 'Suunto');
+    expect(item.model, 'EON Core');
+    final row = await (db.select(
+      db.diveComputers,
+    )..where((t) => t.id.equals(created.id))).getSingle();
+    expect(row.name, 'Backup gauge');
+  });
 }

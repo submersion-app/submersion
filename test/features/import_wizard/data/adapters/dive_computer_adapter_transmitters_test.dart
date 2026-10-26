@@ -120,7 +120,9 @@ void main() {
       ImportEntityType.dives: {0, 1, 2},
     }, const {});
 
-    expect(registrar.calls.single.$1, ['999']);
+    // Every serial the download wrote, planned-dive fills included; the
+    // registrar skips the ones it already knows (review).
+    expect(registrar.calls.single.$1.toSet(), {'999', '777', '555'});
     expect(registrar.calls.single.$2, diverId);
     expect(linker.calls.single.$1, {'999', '777', '555'});
     expect(linker.calls.single.$2, diverId);
@@ -152,6 +154,6 @@ void main() {
       ),
       isEmpty,
     );
-    expect(registrar.calls, isEmpty);
+    expect(registrar.calls.single.$1, ['555']);
   });
 }

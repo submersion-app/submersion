@@ -49,6 +49,14 @@ void main() {
             'comp-1',
           ).overrideWith((ref) async => computer),
           diveComputerByIdProvider('gone').overrideWith((ref) async => null),
+          diveComputerByIdProvider('bare').overrideWith(
+            (ref) async => DiveComputer(
+              id: 'bare',
+              name: 'Teric',
+              createdAt: DateTime(2026),
+              updatedAt: DateTime(2026),
+            ),
+          ),
         ],
         child: MaterialApp.router(
           routerConfig: router,
@@ -75,6 +83,13 @@ void main() {
   testWidgets('an unknown computer says so', (tester) async {
     await pumpAt(tester, '/dive-computers/gone');
     expect(find.textContaining('not found'), findsOneWidget);
+  });
+
+  testWidgets('a computer with no item says so instead of spinning '
+      '(review)', (tester) async {
+    await pumpAt(tester, '/dive-computers/bare');
+    expect(find.textContaining('not found'), findsOneWidget);
+    expect(find.byType(CircularProgressIndicator), findsNothing);
   });
 
   test('diveComputerLocation prefers the item', () {

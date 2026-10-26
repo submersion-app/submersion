@@ -130,6 +130,17 @@ void main() {
     expect(find.text('Seen in downloads, not assigned'), findsNothing);
   });
 
+  testWidgets('a retired transmitter item says so (review)', (tester) async {
+    await DatabaseService.instance.database.customStatement(
+      "UPDATE equipment SET status = 'retired', is_active = 0 "
+      "WHERE id = 'o2-gear'",
+    );
+    await tester.pumpWidget(_buildPage(diverIdNotifier, prefs));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Retired'), findsOneWidget);
+  });
+
   testWidgets('the FAB adds a Transmitter item', (tester) async {
     await tester.pumpWidget(_buildPage(diverIdNotifier, prefs));
     await tester.pumpAndSettle();

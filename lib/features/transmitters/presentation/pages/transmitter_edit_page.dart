@@ -378,15 +378,20 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
             : SnackBarAction(
                 label: l10n.transmitters_action_apply,
                 onPressed: () async {
-                  final result = await repo.applyToExistingDives(entry);
+                  // The setup went onto every key of the item, so every
+                  // key's dives are filled, not just this one's.
+                  var tanks = 0;
+                  var dives = 0;
+                  for (final key in await repo.getForEquipment(
+                    widget.equipmentId,
+                  )) {
+                    final result = await repo.applyToExistingDives(key);
+                    tanks += result.tanksUpdated;
+                    dives += result.divesUpdated;
+                  }
                   messenger.showSnackBar(
                     SnackBar(
-                      content: Text(
-                        l10n.transmitters_apply_done(
-                          result.tanksUpdated,
-                          result.divesUpdated,
-                        ),
-                      ),
+                      content: Text(l10n.transmitters_apply_done(tanks, dives)),
                     ),
                   );
                 },

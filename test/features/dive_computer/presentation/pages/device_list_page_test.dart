@@ -104,6 +104,37 @@ void main() {
       expect(find.text('2 deleted'), findsOneWidget);
     });
 
+    testWidgets('a refused delete is not counted as deleted (review)', (
+      tester,
+    ) async {
+      final widget = testApp(
+        locale: const Locale('en'),
+        overrides: [
+          computerItemsFromComputers,
+          allDiveComputersProvider.overrideWith(
+            (ref) async => [
+              _makeComputer(id: 'c1', name: 'Aaa Perdix'),
+              _makeComputer(id: 'c2', name: 'Bbb Teric'),
+            ],
+          ),
+          // c2's item is shared from another profile: the owner check keeps it.
+          deviceItemDeleterProvider.overrideWithValue(
+            (id) async => id == 'gear-c1',
+          ),
+        ],
+        child: const DeviceListPage(),
+      );
+
+      await verifyBulkDelete(
+        tester,
+        build: () => widget,
+        selectButton: find.byKey(const ValueKey('enter_selection')),
+        expectedDeletedCount: 2,
+      );
+
+      expect(find.text('2 deleted'), findsNothing);
+    });
+
     testWidgets('the Select button is visible without any hidden gesture', (
       tester,
     ) async {
@@ -211,6 +242,25 @@ void main() {
       expect(find.text('Backup gauge'), findsOneWidget);
       expect(find.text('Not connected yet'), findsOneWidget);
       expect(find.byIcon(Icons.download), findsNothing);
+    });
+
+    testWidgets('a retired computer item says so (review)', (tester) async {
+      await tester.pumpWidget(
+        listWith(const [
+          (
+            item: EquipmentItem(
+              id: 'old',
+              name: 'Old Teric',
+              type: EquipmentType.computer,
+              status: EquipmentStatus.retired,
+            ),
+            computers: <DiveComputer>[],
+          ),
+        ]),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Retired'), findsOneWidget);
     });
 
     testWidgets('tapping a computer opens its Equipment page', (tester) async {

@@ -422,4 +422,47 @@ void main() {
 
     expect(find.widgetWithText(TextFormField, '9D0001'), findsOneWidget);
   });
+
+  testWidgets('the post-save apply fills the dives of every key of the item '
+      '(review)', (tester) async {
+    final db = DatabaseService.instance.database;
+    await db.customStatement(
+      "INSERT INTO dives (id, diver_id, dive_date_time, created_at, "
+      "updated_at) VALUES ('d1', 'diver-1', 1, 1, 1)",
+    );
+    await db
+        .into(db.diveTanks)
+        .insert(
+          DiveTanksCompanion.insert(
+            id: 'k777',
+            diveId: 'd1',
+            transmitterSerial: const Value('777'),
+          ),
+        );
+    await TransmitterRepository().create(
+      Transmitter(
+        id: 'e2',
+        diverId: 'diver-1',
+        transmitterSerial: '777',
+        label: 'Back gas tx',
+        transmitterEquipmentId: 'tx-gear',
+        isConfigured: false,
+        createdAt: DateTime.utc(2026, 9, 1),
+        updatedAt: DateTime.utc(2026, 9, 1),
+      ),
+    );
+    await _pumpPage(tester, _buildPage(diverIdNotifier, prefs));
+
+    await tester.enterText(find.byKey(const Key('transmitter_serial')), '555');
+    await tester.enterText(find.byKey(const Key('transmitter_volume')), '11.1');
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Apply to existing dives'));
+    await tester.pumpAndSettle();
+
+    final tank = await (db.select(
+      db.diveTanks,
+    )..where((t) => t.id.equals('k777'))).getSingle();
+    expect(tank.volume, closeTo(11.1, 0.01));
+  });
 }

@@ -160,39 +160,18 @@ Future<({int linked, int minted})> _healComputers(
     // heal runs inside the v315 migration and beforeOpen, and must never
     // stop the library opening.
     try {
-      final healed = await _healTransmitter(db, row);
+      // One transaction per row: a failure part way leaves no item minted
+      // without its device linked to it.
+      final healed = await db.transaction(() => _healComputer(db, row));
       linked += healed.linked;
       minted += healed.minted;
     } catch (e, st) {
       developer.log(
-        'Device gear heal skipped transmitter row ${row.read<String>('id')}',
+        'Device gear heal skipped computer ${row.read<String>('id')}',
         error: e,
         stackTrace: st,
       );
     }
-  }
-  return (linked: linked, minted: minted);
-}
-
-Future<({int linked, int minted})> _healTransmitter(
-  DatabaseConnectionUser db,
-  QueryRow row,
-) async {
-  var linked = 0;
-  var minted = 0;
-  // One row's failure (a dangling diver, say) skips that row only: the
-  // heal runs inside the v315 migration and beforeOpen, and must never
-  // stop the library opening.
-  try {
-    final healed = await _healComputer(db, row);
-    linked += healed.linked;
-    minted += healed.minted;
-  } catch (e, st) {
-    developer.log(
-      'Device gear heal skipped computer ${row.read<String>('id')}',
-      error: e,
-      stackTrace: st,
-    );
   }
   return (linked: linked, minted: minted);
 }
@@ -357,51 +336,72 @@ Future<({int linked, int minted})> _healTransmitters(
   var linked = 0;
   var minted = 0;
   for (final row in unlinked) {
-    final rowId = row.read<String>('id');
-    final diverId = row.read<String?>('diver_id');
-    final serial = normalizeTransmitterSerial(
-      row.read<String?>('transmitter_serial'),
-    );
-    final label = row.read<String>('label');
-
-    final chainId = serial == null
-        ? await liveGearId(
-            db,
-            nextGearRemintId('tx-row:$rowId', rowId),
-            'tx-row:$rowId',
-            type: 'transmitter',
-          )
-        : await liveGearId(
-            db,
-            transmitterGearSeedId(diverId, serial),
-            transmitterGearDeviceKey(diverId, serial),
-            type: 'transmitter',
-          );
-    String? itemId = await _existingId(db, chainId);
-    if (itemId == null && serial != null) {
-      itemId = await matchTransmitterItem(db, serial: serial, diverId: diverId);
-    }
-    if (itemId == null) {
-      itemId = chainId;
-      await _mint(
-        db,
-        id: itemId,
-        diverId: diverId,
-        name: label,
-        type: 'transmitter',
-        serial: serial,
+    // Per row, in its own transaction, as for computers.
+    try {
+      final healed = await db.transaction(() => _healTransmitter(db, row));
+      linked += healed.linked;
+      minted += healed.minted;
+    } catch (e, st) {
+      developer.log(
+        'Device gear heal skipped transmitter row ${row.read<String>('id')}',
+        error: e,
+        stackTrace: st,
       );
-      minted++;
-    } else {
-      await fillBlankItemSerial(db, itemId, serial);
     }
-    await db.customStatement(
-      'UPDATE transmitters SET transmitter_equipment_id = ?'
-      '${await clearHlcSql(db, 'transmitters')} WHERE id = ?',
-      [itemId, rowId],
-    );
-    linked++;
   }
+  return (linked: linked, minted: minted);
+}
+
+Future<({int linked, int minted})> _healTransmitter(
+  DatabaseConnectionUser db,
+  QueryRow row,
+) async {
+  var linked = 0;
+  var minted = 0;
+  final rowId = row.read<String>('id');
+  final diverId = row.read<String?>('diver_id');
+  final serial = normalizeTransmitterSerial(
+    row.read<String?>('transmitter_serial'),
+  );
+  final label = row.read<String>('label');
+
+  final chainId = serial == null
+      ? await liveGearId(
+          db,
+          nextGearRemintId('tx-row:$rowId', rowId),
+          'tx-row:$rowId',
+          type: 'transmitter',
+        )
+      : await liveGearId(
+          db,
+          transmitterGearSeedId(diverId, serial),
+          transmitterGearDeviceKey(diverId, serial),
+          type: 'transmitter',
+        );
+  String? itemId = await _existingId(db, chainId);
+  if (itemId == null && serial != null) {
+    itemId = await matchTransmitterItem(db, serial: serial, diverId: diverId);
+  }
+  if (itemId == null) {
+    itemId = chainId;
+    await _mint(
+      db,
+      id: itemId,
+      diverId: diverId,
+      name: label,
+      type: 'transmitter',
+      serial: serial,
+    );
+    minted++;
+  } else {
+    await fillBlankItemSerial(db, itemId, serial);
+  }
+  await db.customStatement(
+    'UPDATE transmitters SET transmitter_equipment_id = ?'
+    '${await clearHlcSql(db, 'transmitters')} WHERE id = ?',
+    [itemId, rowId],
+  );
+  linked++;
   return (linked: linked, minted: minted);
 }
 
