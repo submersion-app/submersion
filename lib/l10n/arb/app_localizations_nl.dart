@@ -51507,6 +51507,16 @@ class AppLocalizationsNl extends AppLocalizations {
       'Nog geen serienummer of kanaal. Voeg toe wat je duikcomputer voor deze zender meldt.';
 
   @override
+  String get transmitters_key_remove => 'Deze sleutel verwijderen';
+
+  @override
+  String get transmitters_key_removeTitle => 'Deze sleutel verwijderen?';
+
+  @override
+  String get transmitters_key_removeBody =>
+      'Downloads koppelen dit serienummer of dit kanaal niet meer aan de zender. Het zenderitem en zijn andere sleutels blijven bestaan.';
+
+  @override
   String get transmitters_section_addKey => 'Serienummer of kanaal toevoegen';
 
   @override

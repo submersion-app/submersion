@@ -51836,6 +51836,16 @@ class AppLocalizationsIt extends AppLocalizations {
       'Nessun numero di serie o canale per ora. Aggiungi quello che il tuo computer subacqueo indica per questo trasmettitore.';
 
   @override
+  String get transmitters_key_remove => 'Rimuovi questa chiave';
+
+  @override
+  String get transmitters_key_removeTitle => 'Rimuovere questa chiave?';
+
+  @override
+  String get transmitters_key_removeBody =>
+      'I download non associano più questo numero di serie o canale al trasmettitore. L\'articolo del trasmettitore e le sue altre chiavi restano.';
+
+  @override
   String get transmitters_section_addKey => 'Aggiungi numero di serie o canale';
 
   @override

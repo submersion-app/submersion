@@ -33,8 +33,10 @@ Future<bool> isEquipmentTombstoned(DatabaseConnectionUser db, String id) async {
 
 /// [firstId], or the first id after it in the [nextGearRemintId] chain that
 /// no tombstone names and no item of another type holds (a twin the diver
-/// retyped before v316 locked the type, issue #3676). The async form of
-/// [gearIdAvoiding]; [type] is the `equipment.type` the device's item needs.
+/// retyped before v316 locked the type, issue #3676); [type] is the
+/// `equipment.type` the device's item needs. Bounded at 64 steps, far past
+/// any real number of deletions of one device's item; the last id walked is
+/// returned then.
 Future<String> liveGearId(
   DatabaseConnectionUser db,
   String firstId,

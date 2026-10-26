@@ -26,8 +26,9 @@ final deviceItemDeleterProvider = Provider<Future<bool> Function(String)>(
 
 /// The Dive Computers list (issue #3676): every Dive Computer item the
 /// active diver has, whether discovered, imported or added by hand, except
-/// gear only wanted. Derived from the equipment and computer lists, so it
-/// refreshes when either does.
+/// gear only wanted. A Wanted item a computer stands for is still listed:
+/// the device downloads whatever the item's status says. Derived from the
+/// equipment and computer lists, so it refreshes when either does.
 final computerItemsProvider = FutureProvider<List<ComputerItem>>((ref) async {
   final items = await ref.watch(allEquipmentProvider.future);
   final computers = await ref.watch(allDiveComputersProvider.future);
@@ -45,13 +46,15 @@ final computerItemsProvider = FutureProvider<List<ComputerItem>>((ref) async {
   return [
     for (final item in items)
       if (item.type == EquipmentType.computer &&
-          item.status != EquipmentStatus.wanted)
+          (item.status != EquipmentStatus.wanted ||
+              byItem.containsKey(item.id)))
         (item: item, computers: [...?byItem[item.id]]..sort(newestFirst)),
   ];
 });
 
 /// The Transmitters list (issue #3676): every Transmitter item the active
-/// diver has, with its registry keys.
+/// diver has, with its registry keys, except gear only wanted (a Wanted
+/// item with keys is still a transmitter the downloads see).
 final transmitterItemsProvider = FutureProvider<List<TransmitterItem>>((
   ref,
 ) async {
@@ -65,7 +68,8 @@ final transmitterItemsProvider = FutureProvider<List<TransmitterItem>>((
   return [
     for (final item in items)
       if (item.type == EquipmentType.transmitter &&
-          item.status != EquipmentStatus.wanted)
+          (item.status != EquipmentStatus.wanted ||
+              byItem.containsKey(item.id)))
         (item: item, keys: byItem[item.id] ?? const []),
   ];
 });

@@ -51019,6 +51019,16 @@ class AppLocalizationsEn extends AppLocalizations {
       'No serial or channel yet. Add the one your dive computer reports for this transmitter.';
 
   @override
+  String get transmitters_key_remove => 'Remove this key';
+
+  @override
+  String get transmitters_key_removeTitle => 'Remove this key?';
+
+  @override
+  String get transmitters_key_removeBody =>
+      'Downloads stop matching this serial or channel to the transmitter. The transmitter item and its other keys stay.';
+
+  @override
   String get transmitters_section_addKey => 'Add serial or channel';
 
   @override

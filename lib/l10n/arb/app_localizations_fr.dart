@@ -51950,6 +51950,16 @@ class AppLocalizationsFr extends AppLocalizations {
       'Pas encore de numéro de série ni de canal. Ajoute celui que ton ordinateur de plongée indique pour cet émetteur.';
 
   @override
+  String get transmitters_key_remove => 'Retirer cette clé';
+
+  @override
+  String get transmitters_key_removeTitle => 'Retirer cette clé ?';
+
+  @override
+  String get transmitters_key_removeBody =>
+      'Les téléchargements n\'associent plus ce numéro de série ou ce canal au transmetteur. L\'article du transmetteur et ses autres clés sont conservés.';
+
+  @override
   String get transmitters_section_addKey =>
       'Ajouter un numéro de série ou un canal';
 

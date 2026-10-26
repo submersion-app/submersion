@@ -50,23 +50,6 @@ String nextGearRemintId(String deviceKey, String replacedItemId) =>
       'submersion:device-gear-remint:$deviceKey:$replacedItemId',
     );
 
-/// [firstId], or the first id after it in the [nextGearRemintId] chain that
-/// [isTombstoned] does not report as deleted.
-///
-/// Bounded at 64 steps, far past any real number of deletions of one device's
-/// item; the last id walked is returned then.
-String gearIdAvoiding(
-  String firstId,
-  String deviceKey,
-  bool Function(String id) isTombstoned,
-) {
-  var id = firstId;
-  for (var step = 0; step < 64 && isTombstoned(id); step++) {
-    id = nextGearRemintId(deviceKey, id);
-  }
-  return id;
-}
-
 /// The first id of the gear item for the transmitter [normalizedSerial] of
 /// [diverId], before any deletion moves it along the [nextGearRemintId] chain.
 String transmitterGearSeedId(String? diverId, String normalizedSerial) =>

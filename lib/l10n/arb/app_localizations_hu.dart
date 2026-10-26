@@ -51553,6 +51553,16 @@ class AppLocalizationsHu extends AppLocalizations {
       'Még nincs sorozatszám vagy csatorna. Adja meg azt, amelyet a búvárcomputere ehhez a jeladóhoz jelez.';
 
   @override
+  String get transmitters_key_remove => 'Kulcs eltávolítása';
+
+  @override
+  String get transmitters_key_removeTitle => 'Eltávolítod ezt a kulcsot?';
+
+  @override
+  String get transmitters_key_removeBody =>
+      'A letöltések többé nem rendelik ezt a sorozatszámot vagy csatornát a jeladóhoz. A jeladó eleme és többi kulcsa megmarad.';
+
+  @override
   String get transmitters_section_addKey =>
       'Sorozatszám vagy csatorna hozzáadása';
 

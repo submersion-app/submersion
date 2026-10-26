@@ -48614,6 +48614,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get transmitters_section_noKey => '还没有序列号或通道。请添加你的潜水电脑为此发射器报告的值。';
 
   @override
+  String get transmitters_key_remove => '移除此标识';
+
+  @override
+  String get transmitters_key_removeTitle => '移除此标识？';
+
+  @override
+  String get transmitters_key_removeBody =>
+      '下载将不再把此序列号或通道匹配到该发射器。发射器条目及其其他标识会保留。';
+
+  @override
   String get transmitters_section_addKey => '添加序列号或通道';
 
   @override

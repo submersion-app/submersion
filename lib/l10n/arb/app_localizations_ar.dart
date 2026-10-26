@@ -52471,6 +52471,16 @@ class AppLocalizationsAr extends AppLocalizations {
       'لا يوجد رقم تسلسلي أو قناة بعد. أضف ما يعرضه حاسوب الغوص لجهاز الإرسال هذا.';
 
   @override
+  String get transmitters_key_remove => 'إزالة هذا المفتاح';
+
+  @override
+  String get transmitters_key_removeTitle => 'هل تريد إزالة هذا المفتاح؟';
+
+  @override
+  String get transmitters_key_removeBody =>
+      'لن تربط التنزيلات هذا الرقم التسلسلي أو القناة بجهاز الإرسال بعد الآن. يبقى عنصر جهاز الإرسال ومفاتيحه الأخرى.';
+
+  @override
   String get transmitters_section_addKey => 'إضافة رقم تسلسلي أو قناة';
 
   @override

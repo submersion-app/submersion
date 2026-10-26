@@ -249,6 +249,18 @@ void main() {
     });
   });
 
+  test('liveGearId follows the chain past two deletions', () async {
+    final first = diveComputerGearId('c1');
+    final second = nextGearRemintId('c1', first);
+    await tombstone(first);
+    await tombstone(second);
+
+    expect(
+      await liveGearId(db, first, 'c1', type: 'computer'),
+      nextGearRemintId('c1', second),
+    );
+  });
+
   group('wrong-type links (review)', () {
     test(
       'a computer whose twin was retyped gets a computer item again',

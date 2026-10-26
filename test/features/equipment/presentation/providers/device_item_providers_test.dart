@@ -50,6 +50,16 @@ void main() {
               status: EquipmentStatus.wanted,
             ),
             item('tx', EquipmentType.transmitter),
+            item(
+              'parked',
+              EquipmentType.computer,
+              status: EquipmentStatus.wanted,
+            ),
+            item(
+              'parked-tx',
+              EquipmentType.transmitter,
+              status: EquipmentStatus.wanted,
+            ),
             item('mask', EquipmentType.mask),
           ],
         ),
@@ -58,10 +68,16 @@ void main() {
             computer('old', 'teric', last: DateTime(2025)),
             computer('new', 'teric', last: DateTime(2026, 5)),
             computer('stray', null),
+            // A device whose item the diver set to Wanted is still a device.
+            computer('kept', 'parked'),
           ],
         ),
         transmittersProvider.overrideWith(
-          (ref) async => [key('4A21F', 'tx'), key('7C0B19', 'tx')],
+          (ref) async => [
+            key('4A21F', 'tx'),
+            key('7C0B19', 'tx'),
+            key('9Z9', 'parked-tx'),
+          ],
         ),
       ],
     );
@@ -70,12 +86,12 @@ void main() {
   }
 
   test('the Dive Computers list shows every computer item, hand-added ones '
-      'too, and no wanted ones', () async {
+      'too, and no wanted one without a device (review)', () async {
     final rows = await container().read(computerItemsProvider.future);
 
-    expect(rows.map((r) => r.item.id), ['teric', 'backup']);
+    expect(rows.map((r) => r.item.id), ['teric', 'backup', 'parked']);
     expect(rows.first.computers.map((c) => c.id), ['new', 'old']);
-    expect(rows.last.computers, isEmpty);
+    expect(rows[1].computers, isEmpty);
   });
 
   test(
@@ -83,8 +99,8 @@ void main() {
     () async {
       final rows = await container().read(transmitterItemsProvider.future);
 
-      expect(rows.map((r) => r.item.id), ['tx']);
-      expect(rows.single.keys.map((k) => k.id), ['4A21F', '7C0B19']);
+      expect(rows.map((r) => r.item.id), ['tx', 'parked-tx']);
+      expect(rows.first.keys.map((k) => k.id), ['4A21F', '7C0B19']);
     },
   );
 }

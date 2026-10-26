@@ -211,7 +211,9 @@ class _DeviceListPageState extends ConsumerState<DeviceListPage> {
     final computers = [
       for (final row
           in ref.read(computerItemsProvider).value ?? const <ComputerItem>[])
-        if (ids.contains(row.item.id)) ...row.computers.take(1),
+        // Every registration behind a checked item: one left out would keep
+        // its item linked, and the item would not be folded in.
+        if (ids.contains(row.item.id)) ...row.computers,
     ];
     if (computers.length < 2) return BulkActionOutcome.cancelled;
 

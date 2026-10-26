@@ -283,22 +283,12 @@ void main() {
     expect(twin?.id, 'g1');
   });
 
-  group('gearIdAvoiding (#3676)', () {
-    test('returns the first id when it was never deleted', () {
-      expect(gearIdAvoiding('a', 'c1', (_) => false), 'a');
-    });
-
-    test('skips a tombstoned id deterministically', () {
+  group('nextGearRemintId (#3676)', () {
+    test('is deterministic and never the id it replaces', () {
       final second = nextGearRemintId('c1', 'a');
       expect(second, isNot('a'));
-      expect(gearIdAvoiding('a', 'c1', (id) => id == 'a'), second);
-      expect(gearIdAvoiding('a', 'c1', (id) => id == 'a'), second);
-    });
-
-    test('follows the chain past two deletions', () {
-      final second = nextGearRemintId('c1', 'a');
-      final third = nextGearRemintId('c1', second);
-      expect(gearIdAvoiding('a', 'c1', {'a', second}.contains), third);
+      expect(nextGearRemintId('c1', 'a'), second);
+      expect(nextGearRemintId('c1', second), isNot(second));
     });
 
     test('the chain is per device', () {

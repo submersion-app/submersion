@@ -51884,6 +51884,16 @@ class AppLocalizationsEs extends AppLocalizations {
       'Aún no hay número de serie ni canal. Añade el que tu ordenador de buceo indica para este transmisor.';
 
   @override
+  String get transmitters_key_remove => 'Quitar esta clave';
+
+  @override
+  String get transmitters_key_removeTitle => '¿Quitar esta clave?';
+
+  @override
+  String get transmitters_key_removeBody =>
+      'Las descargas dejan de asociar este número de serie o canal con el transmisor. El artículo del transmisor y sus otras claves se conservan.';
+
+  @override
   String get transmitters_section_addKey => 'Añadir número de serie o canal';
 
   @override

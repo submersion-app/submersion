@@ -50734,6 +50734,16 @@ class AppLocalizationsHe extends AppLocalizations {
       'עדיין אין מספר סידורי או ערוץ. הוסף את מה שמחשב הצלילה שלך מדווח עבור משדר זה.';
 
   @override
+  String get transmitters_key_remove => 'הסרת מפתח זה';
+
+  @override
+  String get transmitters_key_removeTitle => 'להסיר מפתח זה?';
+
+  @override
+  String get transmitters_key_removeBody =>
+      'ההורדות יפסיקו לשייך מספר סידורי או ערוץ זה למשדר. פריט המשדר ושאר המפתחות שלו יישארו.';
+
+  @override
   String get transmitters_section_addKey => 'הוסף מספר סידורי או ערוץ';
 
   @override

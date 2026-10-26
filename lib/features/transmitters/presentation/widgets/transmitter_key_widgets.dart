@@ -30,9 +30,9 @@ class TransmitterKeyLabel extends ConsumerWidget {
     final computerId = entry.diveComputerId;
     final channel = entry.channelIndex;
     if (computerId == null || channel == null) return const SizedBox.shrink();
-    final computer = ref
-        .watch(diveComputerByIdProvider(computerId))
-        .valueOrNull;
+    // `.value` keeps the computer through a reload, so the label never drops
+    // to the raw id while a rename syncs.
+    final computer = ref.watch(diveComputerByIdProvider(computerId)).value;
     return Text(
       l10n.transmitters_channel(computer?.name ?? computerId, channel + 1),
       style: style,

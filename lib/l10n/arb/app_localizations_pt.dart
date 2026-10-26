@@ -51831,6 +51831,16 @@ class AppLocalizationsPt extends AppLocalizations {
       'Ainda não há número de série nem canal. Adicione o que seu computador de mergulho informa para este transmissor.';
 
   @override
+  String get transmitters_key_remove => 'Remover esta chave';
+
+  @override
+  String get transmitters_key_removeTitle => 'Remover esta chave?';
+
+  @override
+  String get transmitters_key_removeBody =>
+      'Os downloads deixam de associar este número de série ou canal ao transmissor. O item do transmissor e as suas outras chaves continuam.';
+
+  @override
   String get transmitters_section_addKey =>
       'Adicionar número de série ou canal';
 

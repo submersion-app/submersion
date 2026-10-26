@@ -492,4 +492,44 @@ void main() {
 
     expect(find.textContaining('database closed'), findsOneWidget);
   });
+
+  testWidgets('a key can be removed on its own; the item and its other keys '
+      'stay (review)', (tester) async {
+    late final TransmitterRepository repo;
+    await tester.runAsync(() async {
+      repo = TransmitterRepository();
+      for (final (id, serial) in [('k1', '111'), ('k2', '222')]) {
+        await repo.create(
+          Transmitter(
+            id: id,
+            diverId: 'diver-1',
+            transmitterSerial: serial,
+            label: 'Back gas tx',
+            transmitterEquipmentId: 'tx-gear',
+            createdAt: DateTime.utc(2026, 9, 1),
+            updatedAt: DateTime.utc(2026, 9, 1),
+          ),
+        );
+      }
+    });
+    await _pumpPage(
+      tester,
+      _buildPage(diverIdNotifier, prefs, transmitterId: 'k2'),
+    );
+
+    await tester.tap(find.byKey(const Key('transmitter_remove_key')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'Remove'));
+    await tester.pumpAndSettle();
+
+    final keys = await tester.runAsync(() => repo.getForEquipment('tx-gear'));
+    expect(keys!.map((k) => k.id), ['k1']);
+    expect(find.text('LIST'), findsOneWidget);
+  });
+
+  testWidgets('a new key offers no remove', (tester) async {
+    await _pumpPage(tester, _buildPage(diverIdNotifier, prefs));
+
+    expect(find.byKey(const Key('transmitter_remove_key')), findsNothing);
+  });
 }

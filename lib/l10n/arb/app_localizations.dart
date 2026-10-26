@@ -82113,6 +82113,24 @@ abstract class AppLocalizations {
   /// **'No serial or channel yet. Add the one your dive computer reports for this transmitter.'**
   String get transmitters_section_noKey;
 
+  /// No description provided for @transmitters_key_remove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove this key'**
+  String get transmitters_key_remove;
+
+  /// No description provided for @transmitters_key_removeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove this key?'**
+  String get transmitters_key_removeTitle;
+
+  /// No description provided for @transmitters_key_removeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloads stop matching this serial or channel to the transmitter. The transmitter item and its other keys stay.'**
+  String get transmitters_key_removeBody;
+
   /// No description provided for @transmitters_section_addKey.
   ///
   /// In en, this message translates to:

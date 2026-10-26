@@ -51723,6 +51723,16 @@ class AppLocalizationsDe extends AppLocalizations {
       'Noch keine Seriennummer und kein Kanal. Fügen Sie den Wert hinzu, den Ihr Tauchcomputer für diesen Sender meldet.';
 
   @override
+  String get transmitters_key_remove => 'Diesen Schlüssel entfernen';
+
+  @override
+  String get transmitters_key_removeTitle => 'Diesen Schlüssel entfernen?';
+
+  @override
+  String get transmitters_key_removeBody =>
+      'Downloads ordnen diese Seriennummer oder diesen Kanal nicht mehr dem Sender zu. Der Sendereintrag und seine anderen Schlüssel bleiben erhalten.';
+
+  @override
   String get transmitters_section_addKey =>
       'Seriennummer oder Kanal hinzufügen';
 

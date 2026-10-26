@@ -25,6 +25,7 @@ import 'package:submersion/features/tank_presets/presentation/providers/tank_pre
 import 'package:submersion/features/transmitters/data/repositories/transmitter_repository.dart';
 import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
 import 'package:submersion/features/transmitters/presentation/providers/transmitter_providers.dart';
+import 'package:submersion/features/transmitters/presentation/widgets/transmitter_key_remove_dialog.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
@@ -704,10 +705,52 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
                     ],
                     onChanged: (m) => setState(() => _material = m),
                   ),
+                  if (_existing != null) ...[
+                    const SizedBox(height: 24),
+                    Align(
+                      alignment: AlignmentDirectional.centerStart,
+                      child: TextButton.icon(
+                        key: const Key('transmitter_remove_key'),
+                        style: TextButton.styleFrom(
+                          foregroundColor: Theme.of(context).colorScheme.error,
+                        ),
+                        onPressed: _confirmRemoveKey,
+                        icon: const Icon(Icons.delete_outline),
+                        label: Text(l10n.transmitters_key_remove),
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
     );
+  }
+
+  /// Removes the key being edited, alone (issue #3676): a wrong channel or
+  /// a mistyped serial goes without the item, its other keys or its gear
+  /// history. Deleting the whole transmitter is the item's delete.
+  Future<void> _confirmRemoveKey() async {
+    final existing = _existing;
+    if (existing == null) return;
+    final confirmed = await confirmRemoveTransmitterKey(context);
+    if (!confirmed || !mounted) return;
+    try {
+      await ref.read(transmitterRepositoryProvider).delete(existing.id);
+      // The dropout findings read the item's serials through its keys.
+      scheduleConditionFindingsRefresh({widget.equipmentId});
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('${context.l10n.common_label_error}: $e')),
+      );
+      return;
+    }
+    if (!mounted) return;
+    if (context.canPop()) {
+      context.pop();
+    } else {
+      context.go('/');
+    }
   }
 }
 
