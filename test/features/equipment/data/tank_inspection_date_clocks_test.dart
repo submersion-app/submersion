@@ -129,4 +129,36 @@ void main() {
       expect((await clock(created.id, 'hydro')).anchorDate, fromDialog);
     },
   );
+
+  test('clearing a date undoes the baseline it set', () async {
+    final created = await equipment.createEquipment(
+      tank(attributes: [dateAttr(EquipmentAttrKeys.lastHydroTest, hydroDate)]),
+    );
+
+    await equipment.updateEquipment(created.copyWith(attributes: const []));
+
+    final hydro = await clock(created.id, 'hydro');
+    expect(hydro.anchorDate, isNull);
+    expect(hydro.anchorSetAt, isNull);
+  });
+
+  test(
+    'clearing a date leaves a baseline moved since from the clock dialog',
+    () async {
+      final created = await equipment.createEquipment(
+        tank(
+          attributes: [dateAttr(EquipmentAttrKeys.lastHydroTest, hydroDate)],
+        ),
+      );
+      final fromDialog = DateTime(2026, 10, 22);
+      final hydro = await clock(created.id, 'hydro');
+      await schedules.updateSchedule(
+        hydro.withBaseline(fromDialog, now: DateTime.now(), picked: true),
+      );
+
+      await equipment.updateEquipment(created.copyWith(attributes: const []));
+
+      expect((await clock(created.id, 'hydro')).anchorDate, fromDialog);
+    },
+  );
 }

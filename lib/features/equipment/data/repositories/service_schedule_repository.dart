@@ -194,22 +194,31 @@ class ServiceScheduleRepository {
 
   /// Sets each of [equipmentId]'s clocks named in [baselines] (service kind
   /// id to date) to count from that date, as the clock's own dialog does
-  /// when the diver picks one (issue #3662). A kind the item has no clock
-  /// for is skipped. [notify] as for [createSchedule].
+  /// when the diver picks one (issue #3662), and clears the baseline of each
+  /// clock named in [cleared] that still holds the date given there. A kind
+  /// the item has no clock for is skipped. [notify] as for [createSchedule].
   Future<void> applyBaselines(
     String equipmentId,
     Map<String, DateTime> baselines, {
+    Map<String, DateTime> cleared = const {},
     bool notify = true,
   }) async {
-    if (baselines.isEmpty) return;
+    if (baselines.isEmpty && cleared.isEmpty) return;
     final now = DateTime.now();
     for (final schedule in await getSchedulesForEquipment(equipmentId)) {
-      final date = baselines[schedule.serviceKindId];
-      if (date == null) continue;
-      await updateSchedule(
-        schedule.withBaseline(date, now: now, picked: true),
-        notify: notify,
-      );
+      final kindId = schedule.serviceKindId;
+      final updated = switch ((baselines[kindId], cleared[kindId])) {
+        (final DateTime date, _) => schedule.withBaseline(
+          date,
+          now: now,
+          picked: true,
+        ),
+        (null, final DateTime date) when schedule.anchorDate == date =>
+          schedule.withBaseline(null, now: now),
+        _ => null,
+      };
+      if (updated == null) continue;
+      await updateSchedule(updated, notify: notify);
     }
   }
 

@@ -91,4 +91,42 @@ void main() {
       isEmpty,
     );
   });
+
+  group('clearedServiceBaselines', () {
+    test('names each cleared date with the date it held', () {
+      expect(
+        clearedServiceBaselines(
+          current: const [],
+          previous: [
+            dateAttr(EquipmentAttrKeys.lastHydroTest, hydroDate),
+            dateAttr(EquipmentAttrKeys.lastVisualInspection, vipDate),
+          ],
+        ),
+        {'hydro': hydroDate, 'vip': vipDate},
+      );
+    });
+
+    test('a date kept or changed is not cleared', () {
+      expect(
+        clearedServiceBaselines(
+          current: [
+            dateAttr(EquipmentAttrKeys.lastHydroTest, hydroDate),
+            dateAttr(EquipmentAttrKeys.lastVisualInspection, DateTime(2026)),
+          ],
+          previous: [
+            dateAttr(EquipmentAttrKeys.lastHydroTest, hydroDate),
+            dateAttr(EquipmentAttrKeys.lastVisualInspection, vipDate),
+          ],
+        ),
+        isEmpty,
+      );
+    });
+
+    test('a date that was never there is not cleared', () {
+      expect(
+        clearedServiceBaselines(current: const [], previous: const []),
+        isEmpty,
+      );
+    });
+  });
 }

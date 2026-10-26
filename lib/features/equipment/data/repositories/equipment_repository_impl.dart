@@ -518,10 +518,15 @@ class EquipmentRepository {
           recordId: equipment.id,
           localUpdatedAt: now,
         );
-        // Only a date entered or changed here moves a clock (issue #3662).
+        // Only a date entered, changed or cleared here moves a clock
+        // (issue #3662).
         await ServiceScheduleRepository().applyBaselines(
           equipment.id,
           attributeServiceBaselines(
+            current: equipment.attributes,
+            previous: previous,
+          ),
+          cleared: clearedServiceBaselines(
             current: equipment.attributes,
             previous: previous,
           ),
