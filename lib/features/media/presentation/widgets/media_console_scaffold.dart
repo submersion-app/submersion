@@ -1,11 +1,15 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_bar_tab_metrics.dart';
 import 'package:submersion/shared/widgets/master_detail/pane_header_bar.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/section_header_title.dart';
+import 'package:submersion/shared/widgets/section_title_toggle.dart';
 
 /// The Media section's internal destinations, in the order they are shown.
 /// Both layouts render whatever the enum contains, so growth is
@@ -26,9 +30,11 @@ enum MediaConsoleSection { library, sources, transfers, importMedia }
 /// (#3631). Below the master-detail breakpoint that row is the app bar's
 /// bottom. At master-detail widths the title and tabs sit in a
 /// [PaneHeaderBar], the bar Documents' list pane shows, so the switch stays
-/// at the same place and size across a switch between the two tabs. There is no sidebar at any width, so the library grid and the other
-/// views always get the whole page.
-class MediaConsoleScaffold extends StatefulWidget {
+/// at the same place and size across a switch between the two tabs. Either
+/// way the first tab starts under the switch's first name. There is no
+/// sidebar at any width, so the library grid and the other views always get
+/// the whole page.
+class MediaConsoleScaffold extends ConsumerStatefulWidget {
   const MediaConsoleScaffold({
     super.key,
     required this.headerTitle,
@@ -47,10 +53,11 @@ class MediaConsoleScaffold extends StatefulWidget {
   final Map<MediaConsoleSection, int> badgeCounts;
 
   @override
-  State<MediaConsoleScaffold> createState() => _MediaConsoleScaffoldState();
+  ConsumerState<MediaConsoleScaffold> createState() =>
+      _MediaConsoleScaffoldState();
 }
 
-class _MediaConsoleScaffoldState extends State<MediaConsoleScaffold>
+class _MediaConsoleScaffoldState extends ConsumerState<MediaConsoleScaffold>
     with SingleTickerProviderStateMixin {
   // Owned, not a DefaultTabController: that reads its initial index once, so
   // a section change made outside the strip (Sources' "Browse source" jumps
@@ -92,22 +99,27 @@ class _MediaConsoleScaffoldState extends State<MediaConsoleScaffold>
     return Badge.count(count: count, child: inner);
   }
 
-  /// The section tabs, in [colors]. [divider] rules them off from the page
-  /// below. [padding] lines the first label up with the switch's first name
-  /// above it.
+  /// The section tabs, in [colors], their first label starting under the
+  /// title's first word, which starts [titleStart] in from the bar's edge.
+  /// [divider] rules them off from the page below.
   TabBar _tabBar(
     BuildContext context, {
     required AppBarTabColors colors,
     required bool divider,
-    EdgeInsetsGeometry? padding,
+    required double titleStart,
   }) {
+    final textStart =
+        titleStart +
+        (widget.headerTitle.titleTextInset?.call(context, ref) ?? 0);
     final labelStyle =
         Theme.of(context).textTheme.titleSmall ?? const TextStyle();
     return TabBar(
       controller: _controller,
       isScrollable: true,
       tabAlignment: TabAlignment.start,
-      padding: padding,
+      padding: EdgeInsetsDirectional.only(
+        start: math.max(0, textStart - kTabLabelPadding.left),
+      ),
       labelStyle: labelStyle,
       unselectedLabelStyle: labelStyle,
       labelColor: colors.selected,
@@ -140,15 +152,12 @@ class _MediaConsoleScaffoldState extends State<MediaConsoleScaffold>
             PaneHeaderBar(
               title: headerTitle.build(context, SectionHeaderSlot.pane, null),
               titleWidth: headerTitle.paneTitleWidth?.call(context),
-              // The pane bar draws its own rule under the tabs. The switch's
-              // first name sits 8px further in than a tab label does (the
-              // bar's 16px inset plus the switch's 8px label padding, against
-              // a tab's 16px), so the strip starts 8px in to line up.
+              // The pane bar draws its own rule under the tabs.
               bottom: _tabBar(
                 context,
                 colors: colors,
                 divider: false,
-                padding: const EdgeInsetsDirectional.only(start: 8),
+                titleStart: PaneHeaderBar.titleStart,
               ),
             ),
             Expanded(child: widget.child),
@@ -160,9 +169,7 @@ class _MediaConsoleScaffoldState extends State<MediaConsoleScaffold>
     return Scaffold(
       appBar: headerTitle.pinAppBar(
         AppBar(
-          // 8 here plus the switch's own 8px label padding puts the first
-          // name at 16px, the line the section tabs under it start on.
-          titleSpacing: 8,
+          titleSpacing: SectionTitleToggle.appBarTitleSpacing,
           title: headerTitle.build(context, SectionHeaderSlot.appBar, null),
           toolbarHeight: headerTitle.appBarHeight(context, null),
           // A divider is only needed where the bar is the page's colour; on
@@ -171,6 +178,7 @@ class _MediaConsoleScaffoldState extends State<MediaConsoleScaffold>
             context,
             colors: colors,
             divider: colors.barMatchesPage,
+            titleStart: SectionTitleToggle.appBarTitleSpacing,
           ),
         ),
       ),

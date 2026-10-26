@@ -24,6 +24,7 @@ import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.d
 import 'package:submersion/shared/widgets/master_detail/pane_header_bar.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/section_header_title.dart';
+import 'package:submersion/shared/widgets/section_title_toggle.dart';
 
 /// Every document of the active diver (issue #2613): what needs attention
 /// first, then grouped by what each is filed under.
@@ -389,9 +390,7 @@ class _DocumentsListContentState extends ConsumerState<DocumentsListContent> {
     return Scaffold(
       appBar: headerTitle.pinAppBar(
         AppBar(
-          // 8 here plus the switch's own 8px label padding puts the first
-          // name at the 16px every other app bar title sits at.
-          titleSpacing: 8,
+          titleSpacing: SectionTitleToggle.appBarTitleSpacing,
           title: headerTitle.build(context, SectionHeaderSlot.appBar, null),
           toolbarHeight: headerTitle.appBarHeight(context, null),
           // The switch takes the whole title row, so the menu sits on a row

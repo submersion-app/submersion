@@ -454,27 +454,34 @@ void main() {
       );
     });
 
-    testWidgets('desktop: the switch keeps its place and size across a '
-        'switch', (tester) async {
-      // Documents shows the switch in its list pane's bar, so Photos/Videos
-      // has to show it in the same bar, not in a full-width app bar.
-      // Smaller text, so the 440px list pane fits both names in the test
-      // font, which draws every glyph a full em wide; where they do not fit,
-      // the switch scrolls to keep the selected name in view.
-      await pumpReal(tester, initialLocation: '/documents', textScale: 0.75);
-      // The switch's row stretches to its bar, which is the list pane on
-      // Documents and the whole page on Photos/Videos, so compare where its
-      // names are drawn.
-      Rect label(String text) => tester.getRect(find.text(text).first);
-      final photosOnDocuments = label('Photos/Videos');
-      final documentsOnDocuments = label('Documents');
+    // At 0.75 the test font, which draws every glyph a full em wide, fits
+    // the switch and Documents' menu on one row of the 440px list pane; at
+    // full size the menu drops to a row under the switch.
+    for (final textScale in [0.75, 1.0]) {
+      testWidgets('desktop at text scale $textScale: the switch keeps its '
+          'place and size across a switch', (tester) async {
+        // Documents shows the switch in its list pane's bar, so
+        // Photos/Videos has to show it in the same bar, not in a full-width
+        // app bar.
+        await pumpReal(
+          tester,
+          initialLocation: '/documents',
+          textScale: textScale,
+        );
+        // The switch's row stretches to its bar, which is the list pane on
+        // Documents and the whole page on Photos/Videos, so compare where its
+        // names are drawn.
+        Rect label(String text) => tester.getRect(find.text(text).first);
+        final photosOnDocuments = label('Photos/Videos');
+        final documentsOnDocuments = label('Documents');
 
-      await tester.tap(find.text('Photos/Videos').first);
-      await tester.pumpAndSettle();
+        await tester.tap(find.text('Photos/Videos').first);
+        await tester.pumpAndSettle();
 
-      expect(label('Photos/Videos'), photosOnDocuments);
-      expect(label('Documents'), documentsOnDocuments);
-    });
+        expect(label('Photos/Videos'), photosOnDocuments);
+        expect(label('Documents'), documentsOnDocuments);
+      });
+    }
 
     testWidgets('phone: the Documents menu sits on a row under the switch', (
       tester,

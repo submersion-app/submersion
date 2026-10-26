@@ -23,6 +23,7 @@ import 'package:submersion/shared/widgets/master_detail/list_position_restorer.d
 import 'package:submersion/shared/widgets/master_detail/master_detail_form_scope.dart';
 import 'package:submersion/shared/widgets/master_detail/remembered_selection.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
+import 'package:submersion/shared/widgets/section_title_toggle.dart';
 import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
 import 'package:submersion/features/courses/domain/constants/course_field.dart';
 import 'package:submersion/features/courses/domain/entities/course.dart';
@@ -554,9 +555,7 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
       );
     }
     return AppBar(
-      // 8 here plus the switch's own 8px label padding puts the first name
-      // at the 16px every other app bar title sits at, as Equipment's does.
-      titleSpacing: 8,
+      titleSpacing: SectionTitleToggle.appBarTitleSpacing,
       toolbarHeight: header.appBarHeight(context, subtitle),
       title: header.build(context, SectionHeaderSlot.appBar, subtitle),
       bottom: sectionHeaderActionsRow(actions),

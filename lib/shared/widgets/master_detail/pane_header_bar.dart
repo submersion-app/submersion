@@ -20,6 +20,10 @@ class PaneHeaderBar extends StatelessWidget {
     this.bottom,
   });
 
+  /// How far in from the bar's leading edge [title] starts: the bar's own
+  /// padding plus [SectionHeaderRows]' gap before the title.
+  static const double titleStart = 16;
+
   final Widget title;
   final List<Widget> actions;
 

@@ -69,6 +69,13 @@ SectionHeaderTitle sectionTabsHeaderTitle({
     labels: labels(context),
     withAccentIcon: true,
   ),
+  titleTextInset: (context, ref) => SectionTitleToggle.textInset(
+    withAccentIcon: SectionTitleToggle.showsAccentIcon(
+      context,
+      ref,
+      featureId: tab.featureId,
+    ),
+  ),
   appBarPin: (bar) => TabPinnedAppBar(
     animation: controller.animation!,
     index: tab.index,

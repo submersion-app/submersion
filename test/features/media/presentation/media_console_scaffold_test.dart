@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/theme/app_theme_registry.dart';
 import 'package:submersion/features/media/presentation/widgets/media_console_scaffold.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -23,21 +24,26 @@ void main() {
     double appBarHeight = kToolbarHeight,
     PreferredSizeWidget Function(PreferredSizeWidget bar)? appBarPin,
   }) {
-    return MaterialApp(
-      locale: const Locale('en'),
-      theme: theme,
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      home: MediaConsoleScaffold(
-        headerTitle: plainHeaderTitle(
-          'Media',
-          appBarHeight: appBarHeight,
-          appBarPin: appBarPin,
+    // The scaffold reads the header title's inset through a provider ref.
+    return ProviderScope(
+      child: MaterialApp(
+        locale: const Locale('en'),
+        theme: theme,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: MediaConsoleScaffold(
+          headerTitle: plainHeaderTitle(
+            'Media',
+            appBarHeight: appBarHeight,
+            // A switch's own label padding.
+            titleTextInset: 8,
+            appBarPin: appBarPin,
+          ),
+          selected: selected,
+          onSelect: onSelect,
+          badgeCounts: badgeCounts,
+          child: const SizedBox.expand(key: _contentKey),
         ),
-        selected: selected,
-        onSelect: onSelect,
-        badgeCounts: badgeCounts,
-        child: const SizedBox.expand(key: _contentKey),
       ),
     );
   }
@@ -78,8 +84,12 @@ void main() {
         expect(appBar(tester).bottom, isA<TabBar>());
         expect(find.byType(PaneHeaderBar), findsNothing);
         // With the switch's own 8px label padding, the switch's first name
-        // lands on the 16px line the tabs start on.
+        // lands on the 16px line a tab label starts on unpadded.
         expect(appBar(tester).titleSpacing, 8);
+        expect(
+          tester.widget<TabBar>(find.byType(TabBar)).padding,
+          const EdgeInsetsDirectional.only(start: 0),
+        );
         expect(
           tester.getTopLeft(find.text('Library')).dy,
           greaterThan(tester.getBottomLeft(find.text('Media')).dy),
