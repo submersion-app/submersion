@@ -175,6 +175,64 @@ class CoverageTest(unittest.TestCase):
         _write(self.root, "android/Gemfile", 'gem "fastlane"\n')
         self.assertEqual(guard.uncovered(self.root), [])
 
+    def test_a_single_star_stays_within_one_segment(self):
+        _write(
+            self.root,
+            ".github/dependabot.yml",
+            'updates:\n  - package-ecosystem: "bundler"\n    directories:\n      - "/*"\n',
+        )
+        _write(self.root, "tools/ci/Gemfile", 'gem "rake"\n')
+        self.assertEqual(guard.uncovered(self.root), [os.path.join("tools", "ci", "Gemfile")])
+
+    def test_a_double_star_spans_segments_and_the_root(self):
+        _write(
+            self.root,
+            ".github/dependabot.yml",
+            'updates:\n  - package-ecosystem: "bundler"\n    directories:\n      - "/**"\n',
+        )
+        _write(self.root, "Gemfile", 'gem "rake"\n')
+        _write(self.root, "tools/ci/Gemfile", 'gem "rake"\n')
+        self.assertEqual(guard.uncovered(self.root), [])
+
+    def test_another_ecosystems_directories_list_does_not_count(self):
+        _write(
+            self.root,
+            ".github/dependabot.yml",
+            "updates:\n"
+            '  - package-ecosystem: "bundler"\n'
+            "    directories:\n"
+            '      - "/ios"\n'
+            '  - package-ecosystem: "npm"\n'
+            "    directories:\n"
+            '      - "/android"\n',
+        )
+        self.assertEqual(guard.bundler_directories(self.root), ["ios"])
+
+    def test_the_ecosystem_key_need_not_come_first(self):
+        _write(
+            self.root,
+            ".github/dependabot.yml",
+            "updates:\n"
+            '  - directory: "/ios"\n'
+            '    package-ecosystem: "bundler"\n'
+            '  - directory: "/android"\n'
+            '    package-ecosystem: "pub"\n',
+        )
+        self.assertEqual(guard.bundler_directories(self.root), ["ios"])
+
+    def test_an_ignore_list_does_not_end_the_entry(self):
+        _write(
+            self.root,
+            ".github/dependabot.yml",
+            "updates:\n"
+            '  - package-ecosystem: "bundler"\n'
+            "    ignore:\n"
+            '      - dependency-name: "rake"\n'
+            "    directories:\n"
+            '      - "/ios"\n',
+        )
+        self.assertEqual(guard.bundler_directories(self.root), ["ios"])
+
     def test_an_uncovered_gemfile_fails_main(self):
         _write(self.root, ".github/dependabot.yml", DEPENDABOT_YML)
         _write(self.root, "android/Gemfile", 'gem "fastlane"\n')

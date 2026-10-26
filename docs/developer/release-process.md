@@ -219,7 +219,15 @@ re-entrant.
 ## Fastlane toolchain
 
 Each platform pins fastlane in a committed `Gemfile.lock` (`ios/`, `macos/`,
-`android/`), and the workflows install exactly that, on Ruby 3.2.
+`android/`), and the workflows install exactly that, on Ruby 3.4. Dependabot's
+monthly bundler update covers all three directories, and
+`scripts/check_dependabot_gemfiles.py` fails CI if a Gemfile it cannot parse
+or one outside those directories appears.
+
+`ios/Gemfile` and `macos/Gemfile` also set a floor of activesupport 7.2.3.1,
+a security fix. cocoapods-core pulls activesupport in, and without the floor
+the resolver prefers minitest 6 and connection_pool 3, which hold activesupport
+on the vulnerable 7.2.3 (#3495).
 
 No PR-time job installs these bundles. The lanes run only in `beta.yml`,
 `promote.yml` and `release.yml`, after merge, so a lockfile that will not
@@ -233,7 +241,7 @@ To move Android to a newer fastlane:
 cd android && bundle lock --update fastlane
 ```
 
-Resolve on Ruby 3.2 where you can. A newer Ruby can pick a dependency that
+Resolve on Ruby 3.4 where you can. A newer Ruby can pick a dependency that
 needs it, and the Linux runners will then fail to install the bundle. Keep
 `PLATFORMS` at `arm64-darwin`, `ruby` and `x86_64-linux`.
 

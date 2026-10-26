@@ -22,12 +22,12 @@ Every tracked Gemfile must also sit in a directory a `bundler` entry of
 so its fastlane never got a version update (#3495). The config is read with a
 line scanner rather than a YAML library, which CI's python3 may not have; it
 understands the `directory:` scalar and the `directories:` list, globs
-included, which is all that file uses.
+included, which is all that file uses. As in Dependabot, `*` in a directory
+matches within one path segment and `**` across any number of them.
 
 Usage: check_dependabot_gemfiles.py [repo root]   (default: this checkout)
 """
 
-import fnmatch
 import os
 import re
 import subprocess
@@ -38,9 +38,14 @@ _LITERAL_RE = re.compile(
     r"""^\s*\(?\s*(?P<q>['"])(?P<path>[^'"]*)(?P=q)\s*\)?\s*$"""
 )
 
-_ECOSYSTEM_RE = re.compile(r"""^\s*-\s*package-ecosystem:\s*['"]?(?P<eco>[\w-]+)""")
-_DIRECTORY_RE = re.compile(r"""^\s*directory:\s*['"]?(?P<dir>[^'"\s#]+)""")
-_DIRECTORIES_RE = re.compile(r"^\s*directories:\s*(#.*)?$")
+# An update entry starts at a list item whose first token is a key, at the
+# indentation of the first such item; the ecosystem key may come anywhere in it.
+_ENTRY_RE = re.compile(r"^(?P<indent>\s*)-\s+[\w-]+:")
+_ECOSYSTEM_RE = re.compile(
+    r"""^\s*(-\s+)?package-ecosystem:\s*['"]?(?P<eco>[\w-]+)"""
+)
+_DIRECTORY_RE = re.compile(r"""^\s*(-\s+)?directory:\s*['"]?(?P<dir>[^'"\s#]+)""")
+_DIRECTORIES_RE = re.compile(r"^\s*(-\s+)?directories:\s*(#.*)?$")
 _LIST_ITEM_RE = re.compile(r"""^\s*-\s*['"]?(?P<dir>[^'"\s#]+)""")
 _DEPENDABOT_YML = os.path.join(".github", "dependabot.yml")
 
@@ -128,6 +133,30 @@ def gemfiles(root):
     return sorted(found)
 
 
+def _entries(lines):
+    """Split dependabot.yml lines into one list of lines per update entry."""
+    entries = []
+    indent = None
+    in_updates = False
+    for line in lines:
+        if not line.strip() or line.lstrip().startswith("#"):
+            continue
+        if not line[0].isspace():
+            # A top-level key: only the items under `updates:` are entries.
+            in_updates = line.startswith("updates:")
+            indent = None
+            continue
+        if not in_updates:
+            continue
+        entry = _ENTRY_RE.match(line)
+        if entry and (indent is None or len(entry.group("indent")) == indent):
+            indent = len(entry.group("indent"))
+            entries.append([])
+        if entries and indent is not None:
+            entries[-1].append(line)
+    return entries
+
+
 def bundler_directories(root):
     """Return the directories dependabot.yml's bundler entries list.
 
@@ -140,45 +169,66 @@ def bundler_directories(root):
     except FileNotFoundError:
         return []
     found = []
-    bundler = False
-    in_list = False
-    for line in lines:
-        if not line.strip() or line.lstrip().startswith("#"):
+    for entry in _entries(lines):
+        ecosystems = [m.group("eco") for m in map(_ECOSYSTEM_RE.match, entry) if m]
+        if ecosystems != ["bundler"]:
             continue
-        ecosystem = _ECOSYSTEM_RE.match(line)
-        if ecosystem:
-            bundler = ecosystem.group("eco") == "bundler"
-            in_list = False
-            continue
-        if not bundler:
-            continue
-        item = _LIST_ITEM_RE.match(line) if in_list else None
-        if item:
-            found.append(item.group("dir").strip("/"))
-            continue
-        in_list = bool(_DIRECTORIES_RE.match(line))
-        directory = _DIRECTORY_RE.match(line)
-        if directory:
-            found.append(directory.group("dir").strip("/"))
+        in_list = False
+        for line in entry:
+            item = _LIST_ITEM_RE.match(line) if in_list else None
+            if item:
+                found.append(item.group("dir").strip("/"))
+                continue
+            in_list = bool(_DIRECTORIES_RE.match(line))
+            directory = _DIRECTORY_RE.match(line)
+            if directory:
+                found.append(directory.group("dir").strip("/"))
     return found
 
 
-def uncovered(root):
-    """Return the repo-relative Gemfiles no bundler entry's directory covers."""
-    patterns = bundler_directories(root)
+def _glob_re(pattern):
+    """Compile a Dependabot directory glob: `*` stays in a segment, `**` spans."""
+    out = []
+    i = 0
+    while i < len(pattern):
+        if pattern.startswith("**/", i):
+            out.append("(?:.*/)?")
+            i += 3
+        elif pattern.startswith("**", i):
+            out.append(".*")
+            i += 2
+        elif pattern[i] == "*":
+            out.append("[^/]*")
+            i += 1
+        elif pattern[i] == "?":
+            out.append("[^/]")
+            i += 1
+        else:
+            out.append(re.escape(pattern[i]))
+            i += 1
+    return re.compile("".join(out) + r"\Z")
+
+
+def uncovered(root, paths=None):
+    """Return the repo-relative Gemfiles no bundler entry's directory covers.
+
+    paths is the Gemfile listing to check, gemfiles(root) when omitted.
+    """
+    patterns = [_glob_re(p) for p in bundler_directories(root)]
     missing = []
-    for path in gemfiles(root):
+    for path in gemfiles(root) if paths is None else paths:
         rel = os.path.relpath(path, root)
         directory = os.path.dirname(rel).replace(os.sep, "/")
-        if not any(fnmatch.fnmatchcase(directory, p) for p in patterns):
+        if not any(p.match(directory) for p in patterns):
             missing.append(rel)
     return missing
 
 
 def main(root):
+    paths = gemfiles(root)
     failures = [
         (os.path.relpath(path, root), number, message)
-        for path in gemfiles(root)
+        for path in paths
         for number, message in problems(path)
     ]
     for path, number, message in failures:
@@ -189,7 +239,7 @@ def main(root):
             "Delete the eval_gemfile line, or point it at the file with a literal "
             'path, e.g. eval_gemfile "fastlane/Pluginfile".'
         )
-    missing = uncovered(root)
+    missing = uncovered(root, paths)
     for path in missing:
         print(f"{path}: no bundler entry in {_DEPENDABOT_YML} lists its directory")
     if missing:
