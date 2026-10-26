@@ -629,10 +629,12 @@ jobs:
         # docs-only pull requests too.
         run: python3 scripts/check_docs_links.py
 
-      - name: Check Gemfiles are parseable by Dependabot
+      - name: Check Gemfiles are parseable and covered by Dependabot
         # Fails on an eval_gemfile call Dependabot cannot parse (a variable
         # path, as `fastlane add_plugin` writes). That made every bundler
         # version and security update fail, monthly and silently (#2766).
+        # Also fails on a Gemfile whose directory no bundler entry in
+        # .github/dependabot.yml lists, as android/ was (#3495).
         run: python3 scripts/check_dependabot_gemfiles.py
 
       - name: Run Python guard tests with coverage

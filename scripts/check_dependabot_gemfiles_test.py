@@ -111,6 +111,80 @@ class ProblemsTest(unittest.TestCase):
         )
 
 
+def _write(root, relpath, text):
+    path = os.path.join(root, *relpath.split("/"))
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w", encoding="utf-8") as fh:
+        fh.write(text)
+
+
+# The shape of .github/dependabot.yml: a directories list for bundler, a scalar
+# directory for the other ecosystems.
+DEPENDABOT_YML = """version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+
+  # Ruby/Bundler (Fastlane)
+  - package-ecosystem: "bundler"
+    directories:
+      - "/ios"
+      - '/macos'  # quoted either way
+    schedule:
+      interval: "monthly"
+
+  - package-ecosystem: "pub"
+    directory: "/"
+"""
+
+
+class CoverageTest(unittest.TestCase):
+    def setUp(self):
+        self.root = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, self.root)
+
+    def test_bundler_directories_reads_the_directories_list(self):
+        _write(self.root, ".github/dependabot.yml", DEPENDABOT_YML)
+        self.assertEqual(guard.bundler_directories(self.root), ["ios", "macos"])
+
+    def test_bundler_directories_reads_a_scalar_directory(self):
+        _write(
+            self.root,
+            ".github/dependabot.yml",
+            'updates:\n  - package-ecosystem: bundler\n    directory: "/"\n',
+        )
+        self.assertEqual(guard.bundler_directories(self.root), [""])
+
+    def test_bundler_directories_without_a_config_is_empty(self):
+        self.assertEqual(guard.bundler_directories(self.root), [])
+
+    def test_a_gemfile_outside_every_bundler_directory_is_uncovered(self):
+        # android/ was left out when its Gemfile arrived (#2292), so Dependabot
+        # never proposed an update for the Play lanes' fastlane (#3495).
+        _write(self.root, ".github/dependabot.yml", DEPENDABOT_YML)
+        for d in ("ios", "macos", "android"):
+            _write(self.root, f"{d}/Gemfile", 'gem "fastlane"\n')
+        self.assertEqual(guard.uncovered(self.root), [os.path.join("android", "Gemfile")])
+
+    def test_a_glob_directory_covers_the_gemfiles_it_matches(self):
+        _write(
+            self.root,
+            ".github/dependabot.yml",
+            'updates:\n  - package-ecosystem: "bundler"\n    directories:\n      - "/*"\n',
+        )
+        _write(self.root, "android/Gemfile", 'gem "fastlane"\n')
+        self.assertEqual(guard.uncovered(self.root), [])
+
+    def test_an_uncovered_gemfile_fails_main(self):
+        _write(self.root, ".github/dependabot.yml", DEPENDABOT_YML)
+        _write(self.root, "android/Gemfile", 'gem "fastlane"\n')
+        with contextlib.redirect_stdout(io.StringIO()) as out:
+            code = guard.main(self.root)
+        self.assertEqual(code, 1)
+        self.assertIn(os.path.join("android", "Gemfile") + ":", out.getvalue())
+        self.assertIn("dependabot.yml", out.getvalue())
+
+
 class MainTest(unittest.TestCase):
     def test_the_repo_gemfiles_are_parseable_by_dependabot(self):
         with contextlib.redirect_stdout(io.StringIO()) as out:
@@ -120,16 +194,20 @@ class MainTest(unittest.TestCase):
     def test_the_repo_has_the_gemfiles_dependabot_updates(self):
         found = {os.path.relpath(p, _REPO) for p in guard.gemfiles(_REPO)}
         self.assertTrue(
-            {os.path.join("ios", "Gemfile"), os.path.join("macos", "Gemfile")} <= found,
+            {
+                os.path.join("ios", "Gemfile"),
+                os.path.join("macos", "Gemfile"),
+                os.path.join("android", "Gemfile"),
+            }
+            <= found,
             found,
         )
 
     def test_a_bad_gemfile_fails_main(self):
         root = tempfile.mkdtemp()
         self.addCleanup(shutil.rmtree, root)
-        os.makedirs(os.path.join(root, "ios"))
-        with open(os.path.join(root, "ios", "Gemfile"), "w", encoding="utf-8") as fh:
-            fh.write(FASTLANE_TEMPLATE)
+        _write(root, ".github/dependabot.yml", DEPENDABOT_YML)
+        _write(root, "ios/Gemfile", FASTLANE_TEMPLATE)
         with contextlib.redirect_stdout(io.StringIO()) as out:
             code = guard.main(root)
         self.assertEqual(code, 1)

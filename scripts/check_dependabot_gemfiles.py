@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fail if a Gemfile uses an eval_gemfile call Dependabot cannot parse.
+"""Fail if Dependabot cannot parse a Gemfile, or no update entry covers it.
 
 Dependabot reads a Gemfile as a Ruby AST rather than running it, so it only
 follows `eval_gemfile` when the argument is a plain, uninterpolated string
@@ -17,9 +17,17 @@ An accepted call names a literal path, relative to the Gemfile, that exists,
 and has no trailing condition: a guarded call makes the file optional, and an
 optional file is how the template hid that no Pluginfile was ever present.
 
+Every tracked Gemfile must also sit in a directory a `bundler` entry of
+.github/dependabot.yml lists. android/ gained a Gemfile in #2292 without one,
+so its fastlane never got a version update (#3495). The config is read with a
+line scanner rather than a YAML library, which CI's python3 may not have; it
+understands the `directory:` scalar and the `directories:` list, globs
+included, which is all that file uses.
+
 Usage: check_dependabot_gemfiles.py [repo root]   (default: this checkout)
 """
 
+import fnmatch
 import os
 import re
 import subprocess
@@ -29,6 +37,12 @@ _CALL_RE = re.compile(r"(?<![\w.])eval_gemfile\b(?P<rest>.*)$")
 _LITERAL_RE = re.compile(
     r"""^\s*\(?\s*(?P<q>['"])(?P<path>[^'"]*)(?P=q)\s*\)?\s*$"""
 )
+
+_ECOSYSTEM_RE = re.compile(r"""^\s*-\s*package-ecosystem:\s*['"]?(?P<eco>[\w-]+)""")
+_DIRECTORY_RE = re.compile(r"""^\s*directory:\s*['"]?(?P<dir>[^'"\s#]+)""")
+_DIRECTORIES_RE = re.compile(r"^\s*directories:\s*(#.*)?$")
+_LIST_ITEM_RE = re.compile(r"""^\s*-\s*['"]?(?P<dir>[^'"\s#]+)""")
+_DEPENDABOT_YML = os.path.join(".github", "dependabot.yml")
 
 # Directories never holding a Gemfile Dependabot updates. Only consulted when
 # the root is not a git checkout (the unit tests' temporary trees).
@@ -114,6 +128,53 @@ def gemfiles(root):
     return sorted(found)
 
 
+def bundler_directories(root):
+    """Return the directories dependabot.yml's bundler entries list.
+
+    Each is relative to root without its leading slash, so "/" is "" and
+    "/ios" is "ios". A missing config lists none.
+    """
+    try:
+        with open(os.path.join(root, _DEPENDABOT_YML), encoding="utf-8") as fh:
+            lines = fh.read().splitlines()
+    except FileNotFoundError:
+        return []
+    found = []
+    bundler = False
+    in_list = False
+    for line in lines:
+        if not line.strip() or line.lstrip().startswith("#"):
+            continue
+        ecosystem = _ECOSYSTEM_RE.match(line)
+        if ecosystem:
+            bundler = ecosystem.group("eco") == "bundler"
+            in_list = False
+            continue
+        if not bundler:
+            continue
+        item = _LIST_ITEM_RE.match(line) if in_list else None
+        if item:
+            found.append(item.group("dir").strip("/"))
+            continue
+        in_list = bool(_DIRECTORIES_RE.match(line))
+        directory = _DIRECTORY_RE.match(line)
+        if directory:
+            found.append(directory.group("dir").strip("/"))
+    return found
+
+
+def uncovered(root):
+    """Return the repo-relative Gemfiles no bundler entry's directory covers."""
+    patterns = bundler_directories(root)
+    missing = []
+    for path in gemfiles(root):
+        rel = os.path.relpath(path, root)
+        directory = os.path.dirname(rel).replace(os.sep, "/")
+        if not any(fnmatch.fnmatchcase(directory, p) for p in patterns):
+            missing.append(rel)
+    return missing
+
+
 def main(root):
     failures = [
         (os.path.relpath(path, root), number, message)
@@ -128,8 +189,17 @@ def main(root):
             "Delete the eval_gemfile line, or point it at the file with a literal "
             'path, e.g. eval_gemfile "fastlane/Pluginfile".'
         )
+    missing = uncovered(root)
+    for path in missing:
+        print(f"{path}: no bundler entry in {_DEPENDABOT_YML} lists its directory")
+    if missing:
+        print(
+            "Dependabot never updates a Gemfile outside its configured directories "
+            "(#3495). Add the directory to the bundler entry's directories list."
+        )
+    if failures or missing:
         return 1
-    print("Every Gemfile is parseable by Dependabot.")
+    print("Every Gemfile is parseable by Dependabot and covered by its config.")
     return 0
 
 
