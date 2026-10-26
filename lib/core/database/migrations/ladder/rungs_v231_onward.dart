@@ -603,8 +603,9 @@ extension RungsFromV231 on AppDatabase {
     // v317: a tank's last visual inspection and last hydro dates become its
     // VIP and hydro clocks' baselines (issue #3662), where the clock has no
     // baseline and no service of its kind. Data only, one time: from here
-    // on the equipment save writes them. 316 is held by PR #3685.
-    if (from < 317) await _backfillTankInspectionBaselines();
+    // on the equipment save writes them, and sync repeats it for tanks from
+    // peers below v317. 316 is held by PR #3685.
+    if (from < 317) await backfillTankInspectionBaselines();
     if (from < 317) await reportProgress();
   }
 }

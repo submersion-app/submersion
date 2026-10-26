@@ -126,7 +126,7 @@ void main() {
       await insertClock('t1', 'vip');
       await insertClock('t1', 'hydro');
 
-      await db.backfillTankInspectionBaselinesForTest();
+      await db.backfillTankInspectionBaselines();
 
       // Stamped with when the date was saved, so every device that runs the
       // rung on the same synced rows writes the same values.
@@ -146,7 +146,7 @@ void main() {
     await insertDate('t2', 'last_hydro_test', hydroMs);
     await insertClock('t2', 'hydro', anchorDate: 1600000000000);
 
-    await db.backfillTankInspectionBaselinesForTest();
+    await db.backfillTankInspectionBaselines();
 
     expect((await anchorOf('t2', 'hydro')).anchorDate, 1600000000000);
   });
@@ -159,7 +159,7 @@ void main() {
     await insertClock('t3', 'vip');
     await insertRecord('t3', 'hydro');
 
-    await db.backfillTankInspectionBaselinesForTest();
+    await db.backfillTankInspectionBaselines();
 
     expect((await anchorOf('t3', 'hydro')).anchorDate, isNull);
     // The VIP clock has no VIP record, so it still takes its date.
@@ -171,7 +171,7 @@ void main() {
     await insertDate('t4', 'last_hydro_test', hydroMs, isCustom: true);
     await insertClock('t4', 'hydro');
 
-    await db.backfillTankInspectionBaselinesForTest();
+    await db.backfillTankInspectionBaselines();
 
     expect((await anchorOf('t4', 'hydro')).anchorDate, isNull);
   });
@@ -181,7 +181,7 @@ void main() {
     await insertDate('r1', 'last_hydro_test', hydroMs);
     await insertClock('r1', 'hydro');
 
-    await db.backfillTankInspectionBaselinesForTest();
+    await db.backfillTankInspectionBaselines();
 
     expect((await anchorOf('r1', 'hydro')).anchorDate, isNull);
   });
