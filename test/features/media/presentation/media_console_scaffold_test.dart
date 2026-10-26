@@ -77,6 +77,9 @@ void main() {
         expect(find.byType(TabBar), findsOneWidget);
         expect(appBar(tester).bottom, isA<TabBar>());
         expect(find.byType(PaneHeaderBar), findsNothing);
+        // With the switch's own 8px label padding, the switch's first name
+        // lands on the 16px line the tabs start on.
+        expect(appBar(tester).titleSpacing, 8);
         expect(
           tester.getTopLeft(find.text('Library')).dy,
           greaterThan(tester.getBottomLeft(find.text('Media')).dy),
@@ -105,12 +108,13 @@ void main() {
           tester.getTopLeft(find.text('Library')).dy,
           greaterThan(tester.getBottomLeft(find.text('Media')).dy),
         );
+        final tabBar = tester.widget<TabBar>(find.byType(TabBar));
         // The pane bar draws the rule under the tabs; a second one from the
         // tab bar would double it.
-        expect(
-          tester.widget<TabBar>(find.byType(TabBar)).dividerColor,
-          Colors.transparent,
-        );
+        expect(tabBar.dividerColor, Colors.transparent);
+        // In line with the switch's first name, 8px further in than a tab
+        // label's own padding puts it.
+        expect(tabBar.padding, const EdgeInsetsDirectional.only(start: 8));
       });
     }
 

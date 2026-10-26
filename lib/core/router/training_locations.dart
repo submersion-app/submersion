@@ -20,11 +20,6 @@ enum TrainingTab implements SectionTab {
   final String featureId;
 }
 
-/// The tab whose list address is exactly [path], or null for any other
-/// location, including the detail pages under a tab.
-TrainingTab? trainingTabForPath(String path) =>
-    sectionTabForPath(TrainingTab.values, path);
-
 /// The page key both tab addresses build the Training host under, so moving
 /// between `/certifications` and `/courses` keeps the host (see
 /// [sectionTabsHostPage]).

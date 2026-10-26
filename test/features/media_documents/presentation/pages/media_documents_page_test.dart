@@ -476,6 +476,39 @@ void main() {
       expect(label('Documents'), documentsOnDocuments);
     });
 
+    testWidgets('phone: the Documents menu sits on a row under the switch', (
+      tester,
+    ) async {
+      await pumpReal(
+        tester,
+        initialLocation: '/documents',
+        size: const Size(400, 800),
+      );
+      final toggle = find.byKey(
+        const ValueKey('media_documents_section_toggle'),
+      );
+
+      expect(
+        tester.getTopLeft(find.byIcon(Icons.more_vert)).dy,
+        greaterThanOrEqualTo(tester.getBottomLeft(toggle.first).dy),
+      );
+    });
+
+    testWidgets('desktop: the Documents menu drops under a switch too wide '
+        'to share its row', (tester) async {
+      // The test font draws every glyph a full em wide, so at full size the
+      // switch's names and the menu do not fit the 440px pane together.
+      await pumpReal(tester, initialLocation: '/documents');
+      final toggle = find.byKey(
+        const ValueKey('media_documents_section_toggle'),
+      );
+
+      expect(
+        tester.getTopLeft(find.byIcon(Icons.more_vert)).dy,
+        greaterThanOrEqualTo(tester.getBottomLeft(toggle.first).dy),
+      );
+    });
+
     for (final size in [const Size(400, 800), const Size(1200, 800)]) {
       testWidgets('at ${size.width.toInt()}px the section tabs sit under '
           'the switch', (tester) async {

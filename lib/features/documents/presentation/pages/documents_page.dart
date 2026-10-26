@@ -389,9 +389,14 @@ class _DocumentsListContentState extends ConsumerState<DocumentsListContent> {
     return Scaffold(
       appBar: headerTitle.pinAppBar(
         AppBar(
+          // 8 here plus the switch's own 8px label padding puts the first
+          // name at the 16px every other app bar title sits at.
+          titleSpacing: 8,
           title: headerTitle.build(context, SectionHeaderSlot.appBar, null),
           toolbarHeight: headerTitle.appBarHeight(context, null),
-          actions: [_menu(context)],
+          // The switch takes the whole title row, so the menu sits on a row
+          // under it, as Training's lists' icons do.
+          bottom: sectionHeaderActionsRow([_menu(context)]),
         ),
       ),
       floatingActionButton: widget.floatingActionButton,
@@ -419,6 +424,7 @@ class _DocumentsListContentState extends ConsumerState<DocumentsListContent> {
   /// bar of its own.
   Widget _compactHeader(BuildContext context) => PaneHeaderBar(
     title: widget.headerTitle.build(context, SectionHeaderSlot.pane, null),
+    titleWidth: widget.headerTitle.paneTitleWidth?.call(context),
     actions: [_menu(context, iconSize: 20)],
   );
 

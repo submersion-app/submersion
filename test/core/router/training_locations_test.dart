@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:path/path.dart' as p;
 import 'package:submersion/core/router/training_locations.dart';
+import 'package:submersion/shared/widgets/section_tabs/section_tab.dart';
 
 /// Records each State it creates, so a test can tell an in-place update of
 /// the host page from a rebuild that would lose the tabs' state.
@@ -138,11 +139,13 @@ void main() {
     expect(created, [TrainingTab.courses]);
   });
 
-  test('trainingTabForPath matches list roots only', () {
-    expect(trainingTabForPath('/certifications'), TrainingTab.certifications);
-    expect(trainingTabForPath('/courses'), TrainingTab.courses);
-    expect(trainingTabForPath('/certifications/abc'), isNull);
-    expect(trainingTabForPath('/training'), isNull);
+  test('sectionTabForPath matches list roots only', () {
+    TrainingTab? tabFor(String path) =>
+        sectionTabForPath(TrainingTab.values, path);
+    expect(tabFor('/certifications'), TrainingTab.certifications);
+    expect(tabFor('/courses'), TrainingTab.courses);
+    expect(tabFor('/certifications/abc'), isNull);
+    expect(tabFor('/training'), isNull);
   });
 
   test('no code pushes a Training list root except the Home attention chip', () {

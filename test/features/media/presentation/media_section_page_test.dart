@@ -142,6 +142,24 @@ void main() {
     expect(controller().index, MediaConsoleSection.library.index);
   });
 
+  for (final size in [const Size(400, 800), const Size(1400, 900)]) {
+    testWidgets('at ${size.width.toInt()}px the first section tab lines up '
+        "with the switch's first name", (tester) async {
+      tester.view.physicalSize = size;
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(host());
+      await tester.pumpAndSettle();
+
+      expect(
+        tester.getTopLeft(find.text('Library')).dx,
+        tester.getTopLeft(find.text('Photos/Videos')).dx,
+      );
+    });
+  }
+
   group('with the accented switch as the title', () {
     // The section tabs sit under the Photos/Videos and Documents switch at
     // every width, never beside it (#3631).

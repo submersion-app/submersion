@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/shared/widgets/section_header_title.dart';
+
 /// The title bar over a desktop list pane, where the list has no app bar of
-/// its own: [title] with [actions] at the trailing edge, and an optional
-/// [bottom] row under them, on the scheme's surface with a rule below.
+/// its own: [title] with [actions] beside it when [titleWidth] and the
+/// actions fit, or on a row under it (see [SectionHeaderRows]), and an
+/// optional [bottom] row under them, on the scheme's surface with a rule
+/// below.
 ///
 /// Two tabs of one host that both show their switch in a [PaneHeaderBar]
 /// (Media's Photos/Videos and Documents, #3631) keep the switch at the same
@@ -12,11 +16,15 @@ class PaneHeaderBar extends StatelessWidget {
     super.key,
     required this.title,
     this.actions = const [],
+    this.titleWidth,
     this.bottom,
   });
 
   final Widget title;
   final List<Widget> actions;
+
+  /// The width [title] needs; null always puts [actions] on their own row.
+  final double? titleWidth;
 
   /// A row under the title row at the bar's full width, such as a tab strip.
   final Widget? bottom;
@@ -38,12 +46,10 @@ class PaneHeaderBar extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            child: Row(
-              children: [
-                const SizedBox(width: 8),
-                Expanded(child: title),
-                ...actions,
-              ],
+            child: SectionHeaderRows(
+              title: title,
+              titleWidth: titleWidth,
+              actions: actions,
             ),
           ),
           ?bottom,
