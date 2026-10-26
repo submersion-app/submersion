@@ -12,6 +12,7 @@
 - Moving from another app
   - [Subsurface](how-to-move-from-subsurface.md)
   - [Garmin Connect](how-to-move-from-garmin-connect.md)
+  - [Suunto](how-to-move-from-suunto.md)
 
 **Logging Your Dives**
 - [The Dashboard](dashboard.md)
