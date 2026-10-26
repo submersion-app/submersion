@@ -61,6 +61,7 @@ Future<ProviderContainer> _pump(
   FutureOr<ConnectionGraph> Function(Ref ref, int budget)? graph,
   List<Override> extra = const [],
   List<SavedConnectionMap> savedMaps = const [],
+  Locale? locale,
 }) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
@@ -96,6 +97,7 @@ Future<ProviderContainer> _pump(
       ],
       child: MaterialApp.router(
         routerConfig: router,
+        locale: locale,
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
       ),
@@ -502,16 +504,20 @@ void main() {
     }
   });
 
-  testWidgets('a built-in species shows its translated name', (tester) async {
-    const shark = NodeRef(ConnectionKind.species, 'sp_whale_shark');
+  const shark = NodeRef(ConnectionKind.species, 'sp_whale_shark');
+
+  Future<void> pumpSharkSelected(
+    WidgetTester tester, {
+    required String stored,
+    Locale? locale,
+  }) async {
     final c = await _pump(
       tester,
+      locale: locale,
       graph: (ref, budget) => ConnectionGraph(
         nodes: [
           ConnectionNode(ref: _b('jane'), label: 'Jane', diveCount: 3),
-          // A stored name unlike the English translation proves the label
-          // comes from the catalog, not the row.
-          const ConnectionNode(ref: shark, label: 'WS', diveCount: 2),
+          ConnectionNode(ref: shark, label: stored, diveCount: 2),
         ],
         edges: [
           ConnectionEdge(
@@ -528,8 +534,26 @@ void main() {
       shark,
     );
     await tester.pumpAndSettle();
-    expect(find.text('Whale Shark'), findsWidgets);
-    expect(find.text('WS'), findsNothing);
+  }
+
+  testWidgets('a built-in species shows its translated name', (tester) async {
+    await pumpSharkSelected(
+      tester,
+      stored: 'Whale Shark',
+      locale: const Locale('de'),
+    );
+    expect(find.text('Walhai'), findsWidgets);
+    expect(find.text('Whale Shark'), findsNothing);
+  });
+
+  // Issue #3669: a stored name unlike the catalog's English text is the
+  // diver's own rename, and must win over the catalog name.
+  testWidgets('a renamed built-in species shows the diver name', (
+    tester,
+  ) async {
+    await pumpSharkSelected(tester, stored: 'WS');
+    expect(find.text('WS'), findsWidgets);
+    expect(find.text('Whale Shark'), findsNothing);
   });
 
   testWidgets('Retry after a failed first load asks again', (tester) async {

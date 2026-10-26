@@ -535,38 +535,54 @@ class SpeciesRepository {
 
   /// Reset built-in species to their default values.
   ///
-  /// Deletes all built-in species that are not referenced by sightings,
-  /// then re-seeds from the JSON asset. Species with existing sightings
-  /// are preserved but updated to match the latest bundled data.
+  /// Deletes all built-in species that nothing references, then re-seeds
+  /// from the JSON asset. A species with a sighting, a photo tag or an
+  /// expected-species entry is preserved but updated to match the latest
+  /// bundled data: deleting it would cascade those rows away.
+  ///
+  /// An edited built-in row exports (issue #3669), so every row the diver
+  /// had edited is marked pending once restored: the bundled text then
+  /// replaces the edit on the diver's other devices too. That stamps an hlc,
+  /// so later catalog versions leave those rows alone until the next reset.
   Future<void> resetBuiltInSpecies() async {
     final builtInSpecies = await SpeciesSeedService.loadBundledSpecies();
 
-    // Update existing built-in species that have sightings
-    final inUseResults = await _db.customSelect('''
-      SELECT DISTINCT species_id FROM sightings
-      WHERE species_id IN (
-        SELECT id FROM species WHERE is_built_in = 1
-      )
+    // Every edit path stamps an hlc and the seed never does.
+    final editedResults = await _db.customSelect('''
+      SELECT id FROM species WHERE is_built_in = 1 AND hlc IS NOT NULL
     ''').get();
-    final inUseIds = inUseResults
-        .map((r) => r.data['species_id'] as String)
-        .toSet();
+    final editedIds = editedResults.map((r) => r.data['id'] as String).toSet();
 
-    // Built-in rows never export (the serializer filters them out), so any
-    // pending record a past edit left is a permanent no-op; drop them all
-    // in one go, for the rows about to be deleted as well as the restored
-    // ones.
+    // Species ids that diver data points at. media_species and site_species
+    // both reference species ON DELETE CASCADE, so a reset that deleted a
+    // row they name would silently drop photo tags and expected species.
+    const referencedIds = '''
+      SELECT species_id FROM sightings
+      UNION SELECT species_id FROM media_species
+      UNION SELECT species_id FROM site_species
+    ''';
+
+    // Update existing built-in species that are in use
+    final inUseResults = await _db.customSelect('''
+      SELECT id FROM species
+      WHERE is_built_in = 1 AND id IN ($referencedIds)
+    ''').get();
+    final inUseIds = inUseResults.map((r) => r.data['id'] as String).toSet();
+
+    // Drop every pending record a past edit left, for the rows about to be
+    // deleted as well as the restored ones; the edited rows are marked
+    // pending afresh below, carrying the restored text.
     await _db.customStatement('''
       DELETE FROM sync_records
       WHERE entity_type = 'species'
       AND record_id IN (SELECT id FROM species WHERE is_built_in = 1)
     ''');
 
-    // Delete built-in species not referenced by sightings
+    // Delete built-in species nothing references
     await _db.customStatement('''
       DELETE FROM species
       WHERE is_built_in = 1
-      AND id NOT IN (SELECT DISTINCT species_id FROM sightings)
+      AND id NOT IN ($referencedIds)
     ''');
 
     // Update in-use built-in species to match bundled data
@@ -583,7 +599,8 @@ class SpeciesRepository {
             description: Value(species.description),
             isBuiltIn: const Value(true),
             // Restored to the bundle means untouched again, so the next
-            // catalog version may update it.
+            // catalog version may update it. A row the diver had edited is
+            // re-stamped below so the restore reaches other devices.
             hlc: const Value(null),
           ),
         );
@@ -592,6 +609,18 @@ class SpeciesRepository {
 
     // Re-seed (INSERT OR IGNORE handles species that still exist)
     await seedBuiltInSpecies();
+
+    // Publish the restored text of every edited row still in the catalog.
+    final now = DateTime.now().millisecondsSinceEpoch;
+    for (final species in builtInSpecies) {
+      if (editedIds.contains(species.id)) {
+        await _syncRepository.markRecordPending(
+          entityType: 'species',
+          recordId: species.id,
+          localUpdatedAt: now,
+        );
+      }
+    }
 
     SyncEventBus.notifyLocalChange();
   }
