@@ -33036,6 +33036,12 @@ abstract class AppLocalizations {
   /// **'No lead recorded: add weights to this dive, or a dry weight to your weights gear'**
   String get buoyancy_noLeadHint;
 
+  /// No description provided for @buoyancy_tankMaterialHint.
+  ///
+  /// In en, this message translates to:
+  /// **'No tank material set: tank buoyancy is estimated. Set each tank\'s material or pick a tank preset'**
+  String get buoyancy_tankMaterialHint;
+
   /// No description provided for @buoyancy_chartNet.
   ///
   /// In en, this message translates to:

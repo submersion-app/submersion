@@ -126,6 +126,26 @@ void main() {
       );
     });
 
+    test('catalog hit via spec match for a metric preset (12 L @ 200 bar)', () {
+      // An imported cylinder with specs but no preset or material used to
+      // fall through to the aluminium per-liter estimate (+1.065 kg).
+      expect(
+        BuoyancyPhysics.tankTermKg(volumeL: 12.0, workingPressureBar: 200),
+        closeTo(-2.135, 0.001),
+      );
+    });
+
+    test('spec match never overrides an explicit material', () {
+      expect(
+        BuoyancyPhysics.tankTermKg(
+          volumeL: 12.0,
+          workingPressureBar: 200,
+          material: TankMaterial.aluminum,
+        ),
+        closeTo(1.065, 0.001),
+      );
+    });
+
     test('material fallback when nothing matches', () {
       expect(
         BuoyancyPhysics.tankTermKg(
@@ -156,6 +176,27 @@ void main() {
     test('null volume uses the 11 L default without throwing', () {
       final term = BuoyancyPhysics.tankTermKg(material: TankMaterial.aluminum);
       expect(term.isFinite, isTrue);
+    });
+  });
+
+  group('tankMaterialAssumed', () {
+    test('true when neither a material nor a catalog preset is known', () {
+      expect(BuoyancyPhysics.tankMaterialAssumed(), isTrue);
+      expect(BuoyancyPhysics.tankMaterialAssumed(presetName: 'My D12'), isTrue);
+    });
+
+    test('false when the material is set', () {
+      expect(
+        BuoyancyPhysics.tankMaterialAssumed(material: TankMaterial.steel),
+        isFalse,
+      );
+    });
+
+    test('false when the preset is in the catalog', () {
+      expect(
+        BuoyancyPhysics.tankMaterialAssumed(presetName: 'steel12'),
+        isFalse,
+      );
     });
   });
 

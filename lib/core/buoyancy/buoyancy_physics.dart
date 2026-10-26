@@ -77,7 +77,7 @@ class BuoyancyPhysics {
   /// fallback) empty value minus the mass of the reserve gas.
   ///
   /// Resolution order: explicit [presetName] in the catalog, then
-  /// TankPresets.matchBySpecs(volume, working pressure), then a
+  /// TankPresets.matchAnyBySpecs(volume, working pressure, material), then a
   /// per-material per-liter estimate.
   static double tankTermKg({
     String? presetName,
@@ -86,7 +86,12 @@ class BuoyancyPhysics {
     TankMaterial? material,
     double reserveBar = defaultReserveBar,
   }) {
-    final entry = _catalogEntry(presetName, volumeL, workingPressureBar);
+    final entry = _catalogEntry(
+      presetName,
+      volumeL,
+      workingPressureBar,
+      material,
+    );
     final volume = volumeL ?? _presetVolume(presetName) ?? _defaultVolumeL;
     final emptyBuoyancy =
         entry?.emptyBuoyancyKg ?? volume * _materialPerLiter(material);
@@ -100,21 +105,36 @@ class BuoyancyPhysics {
     double? volumeL,
     TankMaterial? material,
   }) {
-    final entry = _catalogEntry(presetName, volumeL, null);
+    final entry = _catalogEntry(presetName, volumeL, null, material);
     if (entry != null) return entry.dryMassKg;
     return (volumeL ?? _defaultVolumeL) * 1.3;
   }
+
+  /// Whether [tankTermKg] has to assume the tank's material: none is set and
+  /// [presetName] is not a catalog preset. A spec match still counts as an
+  /// assumption, since it guesses the material from the size. Imported
+  /// cylinders often carry only volume and pressures, and the guess can be
+  /// kilograms out (an aluminium-guessed D12 reads about 6.5 kg too buoyant).
+  static bool tankMaterialAssumed({
+    String? presetName,
+    TankMaterial? material,
+  }) => material == null && !kTankCatalog.containsKey(presetName);
 
   static ({double emptyBuoyancyKg, double dryMassKg})? _catalogEntry(
     String? presetName,
     double? volumeL,
     double? workingPressureBar,
+    TankMaterial? material,
   ) {
     if (presetName != null && kTankCatalog.containsKey(presetName)) {
       return kTankCatalog[presetName];
     }
     if (volumeL != null && workingPressureBar != null) {
-      final match = TankPresets.matchBySpecs(volumeL, workingPressureBar);
+      final match = TankPresets.matchAnyBySpecs(
+        volumeL,
+        workingPressureBar,
+        material: material,
+      );
       if (match != null) return kTankCatalog[match.name];
     }
     return null;

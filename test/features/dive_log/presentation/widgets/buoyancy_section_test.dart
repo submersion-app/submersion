@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/buoyancy/buoyancy_twin.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/data/services/buoyancy_twin_assembler.dart';
@@ -76,6 +78,39 @@ void main() {
   testWidgets('no lead hint is absent once lead is known', (tester) async {
     await _pump(tester, buoyancyOutcome());
     expect(find.textContaining('No lead recorded'), findsNothing);
+  });
+
+  testWidgets('hints that a tank material was assumed', (tester) async {
+    // An imported cylinder often carries only its volume and pressures. With
+    // no material the model guesses, and a guessed aluminium D12 reads about
+    // 6.5 kg too buoyant, so the card says the number rests on a guess.
+    await _pump(
+      tester,
+      buoyancyOutcome(
+        tanks: const [TwinTankInput(id: 't1', label: 'tank', volumeL: 24)],
+      ),
+    );
+    expect(find.textContaining('No tank material set'), findsOneWidget);
+  });
+
+  testWidgets('no tank material hint once material or preset is known', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      buoyancyOutcome(
+        tanks: const [
+          TwinTankInput(
+            id: 't1',
+            label: 'tank',
+            volumeL: 24,
+            material: TankMaterial.steel,
+          ),
+          TwinTankInput(id: 't2', label: 'Steel 12L', presetName: 'steel12'),
+        ],
+      ),
+    );
+    expect(find.textContaining('No tank material set'), findsNothing);
   });
 
   testWidgets('a narrow card fits its header row', (tester) async {

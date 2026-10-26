@@ -2174,6 +2174,7 @@
   "buoyancy_estimatedPressures": "气瓶压力为估算值",
   "buoyancy_linkSuitHint": "为本次潜水关联一件暴露服以获得更完整的分析",
   "buoyancy_noLeadHint": "未记录配重：请为本次潜水添加配重，或为配重装备填写干重",
+  "buoyancy_tankMaterialHint": "未设置气瓶材质：气瓶浮力为估算值。请为每个气瓶设置材质，或选择气瓶预设",
   "buoyancy_chartNet": "净值",
   "buoyancy_chartRig": "装备 + 配重",
   "buoyancy_chartMinutes": "时间（分钟）",

@@ -20624,6 +20624,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Geen lood vastgelegd: voeg lood toe aan deze duik of een drooggewicht aan je loodmateriaal';
 
   @override
+  String get buoyancy_tankMaterialHint =>
+      'Geen flesmateriaal ingesteld: het drijfvermogen van de flessen is geschat. Stel per fles het materiaal in of kies een flesvoorinstelling';
+
+  @override
   String get buoyancy_chartNet => 'Netto';
 
   @override

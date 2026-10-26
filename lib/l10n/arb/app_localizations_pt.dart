@@ -20756,6 +20756,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Nenhum lastro registado: adicione lastro a este mergulho ou um peso seco ao seu equipamento de lastro';
 
   @override
+  String get buoyancy_tankMaterialHint =>
+      'Nenhum material de cilindro definido: a flutuabilidade dos cilindros é estimada. Defina o material de cada cilindro ou escolha um preset do cilindro';
+
+  @override
   String get buoyancy_chartNet => 'Líquido';
 
   @override

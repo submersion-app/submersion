@@ -191,4 +191,48 @@ void main() {
       expect(TankPresets.matchBySpecs(12.0, 200.0), isNull);
     });
   });
+
+  group('matchAnyBySpecs', () {
+    test('matches the metric steel presets that matchBySpecs skips', () {
+      // An imported 12 L / 200 bar cylinder with no preset or material: the
+      // usual European single, and half of a D12 twin.
+      expect(TankPresets.matchAnyBySpecs(10.0, 200.0)!.name, 'steel10');
+      expect(TankPresets.matchAnyBySpecs(12.0, 200.0)!.name, 'steel12');
+      expect(TankPresets.matchAnyBySpecs(15.0, 200.0)!.name, 'steel15');
+    });
+
+    test('resolves rated presets exactly as matchBySpecs does', () {
+      expect(TankPresets.matchAnyBySpecs(11.1, 207.0)!.name, 'al80');
+      expect(TankPresets.matchAnyBySpecs(12.9, 237.0)!.name, 'hp100');
+      expect(TankPresets.matchAnyBySpecs(5.7, 206.843)!.name, 'al40');
+    });
+
+    test('never matches across an explicit material', () {
+      // A 12 L aluminium cylinder must not borrow Steel 12L's numbers.
+      expect(
+        TankPresets.matchAnyBySpecs(
+          12.0,
+          200.0,
+          material: TankMaterial.aluminum,
+        ),
+        isNull,
+      );
+      expect(
+        TankPresets.matchAnyBySpecs(
+          12.0,
+          200.0,
+          material: TankMaterial.steel,
+        )!.name,
+        'steel12',
+      );
+      expect(
+        TankPresets.matchAnyBySpecs(11.1, 207.0, material: TankMaterial.steel),
+        isNull,
+      );
+    });
+
+    test('returns null for non-matching specs', () {
+      expect(TankPresets.matchAnyBySpecs(24.0, 200.0), isNull);
+    });
+  });
 }

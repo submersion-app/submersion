@@ -2118,6 +2118,7 @@
   "buoyancy_estimatedPressures": "Flaschendrücke sind geschätzt",
   "buoyancy_linkSuitHint": "Verknüpfe einen Tauchanzug mit diesem Tauchgang für ein vollständigeres Bild",
   "buoyancy_noLeadHint": "Kein Blei erfasst: Füge diesem Tauchgang Blei hinzu oder trage bei deiner Bleiausrüstung ein Trockengewicht ein",
+  "buoyancy_tankMaterialHint": "Kein Flaschenmaterial angegeben: Der Flaschenauftrieb ist geschätzt. Lege für jede Flasche das Material fest oder wähle eine Flaschenvorlage",
   "buoyancy_chartNet": "Netto",
   "buoyancy_chartRig": "Rig + Blei",
   "buoyancy_chartMinutes": "Zeit (min)",

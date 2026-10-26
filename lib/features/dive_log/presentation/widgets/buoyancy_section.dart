@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/buoyancy/body_composition.dart';
+import 'package:submersion/core/buoyancy/buoyancy_physics.dart';
 import 'package:submersion/core/buoyancy/buoyancy_twin.dart';
 import 'package:submersion/core/buoyancy/twin_analyzer.dart';
 import 'package:submersion/core/buoyancy/weight_prediction_engine.dart';
@@ -172,6 +173,18 @@ class BuoyancySection extends ConsumerWidget {
     }
     if (outcome.result.input.suit.kind == TwinSuitKind.none) {
       hints.add(context.l10n.buoyancy_linkSuitHint);
+    }
+    // Imported cylinders often carry only volume and pressures. Without a
+    // material the tank term is a guess, kilograms out for a steel twin read
+    // as aluminium, and the breakdown would still label it "physics".
+    final tanks = outcome.result.input.tanks;
+    if (tanks.any(
+      (t) => BuoyancyPhysics.tankMaterialAssumed(
+        presetName: t.presetName,
+        material: t.material,
+      ),
+    )) {
+      hints.add(context.l10n.buoyancy_tankMaterialHint);
     }
     // Lead can be recorded in two places: the dive's Weights section, or a
     // dry weight on weights-type gear. Zero here means neither was filled in,

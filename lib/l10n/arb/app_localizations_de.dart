@@ -20730,6 +20730,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Kein Blei erfasst: Füge diesem Tauchgang Blei hinzu oder trage bei deiner Bleiausrüstung ein Trockengewicht ein';
 
   @override
+  String get buoyancy_tankMaterialHint =>
+      'Kein Flaschenmaterial angegeben: Der Flaschenauftrieb ist geschätzt. Lege für jede Flasche das Material fest oder wähle eine Flaschenvorlage';
+
+  @override
   String get buoyancy_chartNet => 'Netto';
 
   @override

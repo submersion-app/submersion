@@ -9699,6 +9699,7 @@
   "buoyancy_estimatedPressures": "Le pressioni delle bombole sono stimate",
   "buoyancy_linkSuitHint": "Associa una muta a questa immersione per un quadro più completo",
   "buoyancy_noLeadHint": "Nessuna zavorra registrata: aggiungi zavorra a questa immersione o un peso a secco alla tua attrezzatura di zavorra",
+  "buoyancy_tankMaterialHint": "Nessun materiale della bombola indicato: la galleggiabilità delle bombole è stimata. Imposta il materiale di ogni bombola o scegli un preset bombola",
   "buoyancy_chartNet": "Netto",
   "buoyancy_chartRig": "Attrezzatura + zavorra",
   "buoyancy_chartMinutes": "Tempo (min)",

@@ -233,6 +233,30 @@ class TankPresets {
     return null;
   }
 
+  /// Like [matchBySpecs], but over every preset, the metric ones without a
+  /// cuft rating included, and never across materials: when [material] is
+  /// set, only a preset of that material matches.
+  ///
+  /// For callers that read the preset's physical identity (buoyancy reads its
+  /// `kTankCatalog` row) rather than its rated capacity. An imported
+  /// 12 L / 200 bar cylinder resolves to Steel 12L here, while [matchBySpecs]
+  /// leaves it unmatched. Rated presets come first in [all], so for them the
+  /// result and the AL40 tie-break agree with [matchBySpecs].
+  static TankPreset? matchAnyBySpecs(
+    double volumeLiters,
+    double workingPressureBar, {
+    TankMaterial? material,
+  }) {
+    for (final preset in all) {
+      if ((material == null || preset.material == material) &&
+          (preset.volumeLiters - volumeLiters).abs() < 0.2 &&
+          (preset.workingPressureBar - workingPressureBar).abs() < 2.0) {
+        return preset;
+      }
+    }
+    return null;
+  }
+
   /// The inverse of reading [TankPreset.ratedCapacityCuft] off
   /// [matchBySpecs]: the first preset rated at [ratedCuft] (within 0.05, the
   /// rounding of a one-decimal CSV value) whose working pressure is within

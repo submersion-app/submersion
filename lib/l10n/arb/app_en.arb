@@ -13003,6 +13003,7 @@
   "buoyancy_estimatedPressures": "Tank pressures are estimated",
   "buoyancy_linkSuitHint": "Link an exposure suit to this dive for a fuller picture",
   "buoyancy_noLeadHint": "No lead recorded: add weights to this dive, or a dry weight to your weights gear",
+  "buoyancy_tankMaterialHint": "No tank material set: tank buoyancy is estimated. Set each tank's material or pick a tank preset",
   "buoyancy_chartNet": "Net",
   "buoyancy_chartRig": "Rig + lead",
   "buoyancy_chartMinutes": "Time (min)",

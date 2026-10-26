@@ -20452,6 +20452,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'No lead recorded: add weights to this dive, or a dry weight to your weights gear';
 
   @override
+  String get buoyancy_tankMaterialHint =>
+      'No tank material set: tank buoyancy is estimated. Set each tank\'s material or pick a tank preset';
+
+  @override
   String get buoyancy_chartNet => 'Net';
 
   @override

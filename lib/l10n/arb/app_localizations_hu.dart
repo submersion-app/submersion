@@ -20688,6 +20688,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Nincs rögzített ólom: adj ólmot ehhez a merüléshez, vagy száraz tömeget az ólomfelszerelésedhez';
 
   @override
+  String get buoyancy_tankMaterialHint =>
+      'Nincs megadva palackanyag: a palackok felhajtóereje becsült. Add meg minden palack anyagát, vagy válassz palack előre beállítást';
+
+  @override
   String get buoyancy_chartNet => 'Nettó';
 
   @override

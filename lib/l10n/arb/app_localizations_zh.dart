@@ -19742,6 +19742,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get buoyancy_noLeadHint => '未记录配重：请为本次潜水添加配重，或为配重装备填写干重';
 
   @override
+  String get buoyancy_tankMaterialHint => '未设置气瓶材质：气瓶浮力为估算值。请为每个气瓶设置材质，或选择气瓶预设';
+
+  @override
   String get buoyancy_chartNet => '净值';
 
   @override

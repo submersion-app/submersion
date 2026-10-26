@@ -9665,6 +9665,7 @@
   "buoyancy_estimatedPressures": "Les pressions des blocs sont estimées",
   "buoyancy_linkSuitHint": "Associez une combinaison à cette plongée pour un tableau plus complet",
   "buoyancy_noLeadHint": "Aucun lest enregistré : ajoutez du lest à cette plongée ou un poids à sec à votre équipement de lestage",
+  "buoyancy_tankMaterialHint": "Aucun matériau de bloc indiqué : la flottabilité des blocs est estimée. Indiquez le matériau de chaque bloc ou choisissez un preset de bloc",
   "buoyancy_chartNet": "Net",
   "buoyancy_chartRig": "Équipement + lest",
   "buoyancy_chartMinutes": "Temps (min)",

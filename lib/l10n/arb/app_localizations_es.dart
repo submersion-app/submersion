@@ -20749,6 +20749,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'No se registró lastre: añade lastre a esta inmersión o un peso en seco a tu equipo de lastre';
 
   @override
+  String get buoyancy_tankMaterialHint =>
+      'No se indicó el material de la botella: la flotabilidad de las botellas es estimada. Indica el material de cada botella o elige un preajuste de tanque';
+
+  @override
   String get buoyancy_chartNet => 'Neto';
 
   @override
