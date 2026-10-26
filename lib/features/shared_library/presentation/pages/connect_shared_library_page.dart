@@ -20,6 +20,7 @@ import 'package:submersion/features/settings/presentation/providers/account_grou
 import 'package:submersion/features/shared_library/presentation/widgets/picked_file_path.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/recovery_code_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_view.dart';
 
 /// Connect a shared site library (issue #2567): pick an S3 or WebDAV account,
 /// name the prefix, then join what is there or create a new library.
@@ -206,10 +207,7 @@ class _ConnectSharedLibraryPageState
         // What the owners say the library is for (issue #3389), so the
         // diver can tell they found the right one before joining.
         if (probe.exists && probe.description != null) ...[
-          Text(
-            probe.description!,
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
+          MarkdownNotesView(probe.description!),
           const SizedBox(height: 8),
         ],
         if (!probe.exists) ...[

@@ -119,7 +119,9 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    final text = tester.widget<Text>(find.text(long));
+    // The subtitle shows the description as plain words (#3683), which
+    // trims the trailing space.
+    final text = tester.widget<Text>(find.text(long.trim()));
     expect(text.maxLines, LibraryAboutSection.descriptionLines);
     expect(text.overflow, TextOverflow.ellipsis);
   });

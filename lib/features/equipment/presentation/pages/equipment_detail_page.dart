@@ -69,6 +69,7 @@ import 'package:submersion/features/documents/presentation/widgets/documents_sec
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/shared/widgets/detail_row/detail_row.dart';
 import 'package:submersion/shared/widgets/detail_row/detail_row_group.dart';
+import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_view.dart';
 
 class EquipmentDetailPage extends ConsumerStatefulWidget {
   final String equipmentId;
@@ -812,10 +813,7 @@ class _EquipmentDetailContent extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: 8),
-            Text(
-              equipment.notes,
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
+            MarkdownNotesView(equipment.notes),
           ],
         ),
       ),

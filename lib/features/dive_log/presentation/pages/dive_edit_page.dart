@@ -4952,7 +4952,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
               textCapitalization: TextCapitalization.words,
             ),
             const SizedBox(height: 12),
-            TextField(
+            MarkdownNotesField(
               controller: descriptionController,
               decoration: InputDecoration(
                 labelText:
