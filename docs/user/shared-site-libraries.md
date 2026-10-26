@@ -286,9 +286,13 @@ key could therefore delete another member's card or suggestion. It cannot
 change one unnoticed: every card and suggestion is signed, and an altered one
 counts for nothing.
 
-Replace `BUCKET` with your bucket and `FOLDER` with the library folder. Other
-S3-compatible services (Backblaze B2, Wasabi, MinIO, Cloudflare R2) accept the
-same policy or have an equivalent per-key prefix setting.
+Replace `BUCKET` with your bucket and `FOLDER` with the library folder. Amazon
+S3, Wasabi and MinIO accept these policies. Cloudflare R2 does not: an R2 key can
+be limited to a bucket, but not to folders inside it. On R2, give the library a
+bucket of its own and each member their own key, as
+[Set Up a Shared Site Library](how-to-shared-site-library.md) shows. Backblaze
+B2 keys can be limited to one folder each, which suits owners and editors but
+not the reader policy above.
 
 ### WebDAV
 
