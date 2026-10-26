@@ -1415,12 +1415,16 @@ class AppDatabase extends _$AppDatabase {
     // v315: diver_settings.omit_unused_oc_gases (issue #3668). Additive, off
     // by default; the floor does not move.
     315,
+    // v317: the tank inspection dates become VIP and hydro clock baselines
+    // (issue #3662). Data only and unsynced, so the floor does not move. 316
+    // is held by PR #3685.
+    317,
     // v318: moves the CNS, OTU and deco model stored computer tissue
     // snapshots held into their own dive and source columns (issue #2555).
     // Data only, so the floor does not move: an older peer reads the slimmer
     // snapshot as one that reported less, and a dive it still sends in the
-    // old shape gets the same move once applied here (SyncService). 316 and 317 are held by
-    // open branches (#3685, #3697).
+    // old shape gets the same move once applied here (SyncService). 317 is
+    // #3662 (tank inspection baselines); 316 is held by PR #3685.
     318,
   ];
 

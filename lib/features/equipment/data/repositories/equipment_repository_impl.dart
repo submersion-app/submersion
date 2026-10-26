@@ -24,6 +24,7 @@ import 'package:submersion/features/media_store/data/media_transfer_queue_reposi
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/services/attribute_service_baselines.dart';
 import 'package:submersion/features/equipment/domain/services/dive_sensor_summary_service.dart';
 import 'package:submersion/features/equipment/domain/services/equipment_ownership.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
@@ -385,6 +386,20 @@ class EquipmentRepository {
         );
       }
       try {
+        await ServiceScheduleRepository().applyBaselines(
+          id,
+          attributeServiceBaselines(current: equipment.attributes),
+          notify: notify,
+        );
+      } catch (e, stackTrace) {
+        _log.error(
+          'Setting service clock baselines from the inspection dates failed '
+          'for equipment $id; the equipment was still created',
+          error: e,
+          stackTrace: stackTrace,
+        );
+      }
+      try {
         await _attachLegacyIntervalClock(id, equipment, notify: notify);
       } catch (e, stackTrace) {
         _log.error(
@@ -447,8 +462,8 @@ class EquipmentRepository {
   }
 
   /// Runs [action] in one database transaction, so an edit built from
-  /// several calls here commits all or nothing. [updateEquipment] writes the
-  /// row, its attributes and the pending mark in separate steps.
+  /// several calls here commits all or nothing. [updateEquipment] is atomic
+  /// on its own; [createEquipment] seeds its clocks outside its writes.
   Future<T> transaction<T>(Future<T> Function() action) =>
       _db.transaction(action);
 
@@ -461,41 +476,63 @@ class EquipmentRepository {
       _log.info('Updating equipment: ${equipment.id}');
       final now = DateTime.now().millisecondsSinceEpoch;
 
-      await (_db.update(
-        _db.equipment,
-      )..where((t) => t.id.equals(equipment.id))).write(
-        EquipmentCompanion(
-          name: Value(equipment.name),
-          type: Value(equipment.type.name),
-          brand: Value(equipment.brand),
-          model: Value(equipment.model),
-          serialNumber: Value(equipment.serialNumber),
-          status: Value(equipment.status.name),
-          purchaseDate: Value(equipment.purchaseDate?.millisecondsSinceEpoch),
-          purchasePrice: Value(equipment.purchasePrice),
-          purchaseCurrency: Value(equipment.purchaseCurrency),
-          lastServiceDate: Value(
-            equipment.lastServiceDate?.millisecondsSinceEpoch,
+      // One transaction: a clock baseline that fails to save must not leave
+      // its date stored, or a retry would see the date as unchanged and
+      // never anchor the clock (issue #3662).
+      await _db.transaction(() async {
+        await (_db.update(
+          _db.equipment,
+        )..where((t) => t.id.equals(equipment.id))).write(
+          EquipmentCompanion(
+            name: Value(equipment.name),
+            type: Value(equipment.type.name),
+            brand: Value(equipment.brand),
+            model: Value(equipment.model),
+            serialNumber: Value(equipment.serialNumber),
+            status: Value(equipment.status.name),
+            purchaseDate: Value(equipment.purchaseDate?.millisecondsSinceEpoch),
+            purchasePrice: Value(equipment.purchasePrice),
+            purchaseCurrency: Value(equipment.purchaseCurrency),
+            lastServiceDate: Value(
+              equipment.lastServiceDate?.millisecondsSinceEpoch,
+            ),
+            serviceIntervalDays: Value(equipment.serviceIntervalDays),
+            notes: Value(equipment.notes),
+            isActive: Value(equipment.isActive),
+            customReminderEnabled: Value(equipment.customReminderEnabled),
+            customReminderDays: Value(
+              equipment.customReminderDays != null
+                  ? jsonEncode(equipment.customReminderDays)
+                  : null,
+            ),
+            parentEquipmentId: Value(equipment.parentEquipmentId),
+            updatedAt: Value(now),
           ),
-          serviceIntervalDays: Value(equipment.serviceIntervalDays),
-          notes: Value(equipment.notes),
-          isActive: Value(equipment.isActive),
-          customReminderEnabled: Value(equipment.customReminderEnabled),
-          customReminderDays: Value(
-            equipment.customReminderDays != null
-                ? jsonEncode(equipment.customReminderDays)
-                : null,
+        );
+        final previous = await saveAttributes(
+          equipment.id,
+          equipment.attributes,
+        );
+        await _syncRepository.markRecordPending(
+          entityType: 'equipment',
+          recordId: equipment.id,
+          localUpdatedAt: now,
+        );
+        // Only a date entered, changed or cleared here moves a clock
+        // (issue #3662).
+        await ServiceScheduleRepository().applyBaselines(
+          equipment.id,
+          attributeServiceBaselines(
+            current: equipment.attributes,
+            previous: previous,
           ),
-          parentEquipmentId: Value(equipment.parentEquipmentId),
-          updatedAt: Value(now),
-        ),
-      );
-      await saveAttributes(equipment.id, equipment.attributes);
-      await _syncRepository.markRecordPending(
-        entityType: 'equipment',
-        recordId: equipment.id,
-        localUpdatedAt: now,
-      );
+          cleared: clearedServiceBaselines(
+            current: equipment.attributes,
+            previous: previous,
+          ),
+          notify: false,
+        );
+      });
       if (notify) SyncEventBus.notifyLocalChange();
       _log.info('Updated equipment: ${equipment.id}');
     } catch (e, stackTrace) {
@@ -1916,7 +1953,9 @@ class EquipmentRepository {
   /// edit form shows only its type's fields and may have been opened before
   /// a synced id arrived, and neither is a reason to drop the tag's
   /// identity. The passport repository passes false to release a tag.
-  Future<void> saveAttributes(
+  ///
+  /// Returns the attributes as they were before the write.
+  Future<List<EquipmentAttribute>> saveAttributes(
     String equipmentId,
     List<EquipmentAttribute> desired, {
     bool preserveSystem = true,
@@ -1996,5 +2035,6 @@ class EquipmentRepository {
         localUpdatedAt: now,
       );
     }
+    return existingRows.map(_mapAttributeRow).toList();
   }
 }

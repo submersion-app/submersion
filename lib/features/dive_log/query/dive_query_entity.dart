@@ -166,7 +166,8 @@ String _derived(String column) =>
 /// chart plots (`InsightsRepository.getSacPressurePerDive`): every breathed
 /// cylinder's drop in bar of the back gas (issue #3109) over the runtime,
 /// normalised by the average depth, so a search and the chart agree. Empty
-/// with no back-gas drop, no runtime or no average depth.
+/// with no back-gas drop, no runtime or no average depth, and on a CCR or
+/// SCR dive (issue #3673).
 final String kDiveSacSql =
     '(CASE WHEN COALESCE({r}.runtime, {r}.bottom_time) > 0 '
     'AND {r}.avg_depth > 0 THEN ${diveSacPressureSql('{r}')} END)';

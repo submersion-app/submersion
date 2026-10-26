@@ -2946,6 +2946,21 @@ class SyncDataSerializer {
     await _repairDanglingReferences();
     await alignLinkedRouteOwners();
     await seedRepresentativeCourseLinks();
+    await anchorTankInspectionClocks();
+  }
+
+  /// A peer below v317 saves a tank's last visual inspection and last hydro
+  /// dates without anchoring its VIP and hydro clocks on them (#3662), and
+  /// this device ran its v317 backfill before those rows arrived. Runs the
+  /// same backfill again, so the received tank counts from its dates. Marks
+  /// nothing pending: every device derives the same values from the same
+  /// synced rows.
+  Future<void> anchorTankInspectionClocks() async {
+    if (await _db.backfillTankInspectionBaselines() > 0) {
+      _db.notifyUpdates({
+        TableUpdate.onTable(_db.serviceSchedules, kind: UpdateKind.update),
+      });
+    }
   }
 
   /// An older app version writes only the representative `dives.course_id`

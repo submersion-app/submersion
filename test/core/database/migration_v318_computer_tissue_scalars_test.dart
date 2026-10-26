@@ -151,8 +151,11 @@ void main() {
   test('v318 is the current schema version and in the ladder', () {
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(318));
     expect(AppDatabase.migrationVersions, contains(318));
+    // Measured from the rung below, which a later merge may renumber.
+    const versions = AppDatabase.migrationVersions;
+    final below = versions[versions.indexOf(318) - 1];
     expect(
-      AppDatabase.migrationStepCount(315),
+      AppDatabase.migrationStepCount(below),
       AppDatabase.migrationStepCount(318) + 1,
     );
   });
