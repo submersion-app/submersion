@@ -98,4 +98,38 @@ void main() {
     );
     expect((widget as pw.RichText).text.toPlainText(), 'a | b\n1 | 2');
   });
+
+  test('inline output flattens lists, code and quotes to lines', () {
+    final widget = notesMarkdownPdfInline(
+      '- a\n- [x] b\n  - nested\n\n3. c\n\n```\ncode\n```\n\n> q ~~s~~\n\n---',
+      style: style,
+      maxLines: 9,
+    );
+    expect(
+      (widget as pw.RichText).text.toPlainText(),
+      '- a\n[x] b\n3. c\ncode\nq s',
+    );
+  });
+
+  test('inline output keeps a loose list item and a hard break', () {
+    final widget = notesMarkdownPdfInline(
+      '- a\n\n- b\n\nline  \nbreak',
+      style: style,
+      maxLines: 9,
+    );
+    expect((widget as pw.RichText).text.toPlainText(), '- a\n- b\nline\nbreak');
+  });
+
+  test('nested, loose and task lists render in the block output', () async {
+    final bytes = await render(
+      notesMarkdownPdfBlocks(
+        '- outer\n  - inner\n\n- loose\n\n- [ ] task\n\nline  \nbreak ~~old~~',
+        style: style,
+      ),
+    );
+    final text = pdfVisibleText(bytes);
+    for (final word in ['outer', 'inner', 'loose', '[ ]', 'task', 'old']) {
+      expect(text, contains(word), reason: word);
+    }
+  });
 }

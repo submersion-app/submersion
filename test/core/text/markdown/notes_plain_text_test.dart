@@ -35,6 +35,10 @@ void main() {
       );
     });
 
+    test('a task in a loose list keeps its box', () {
+      expect(markdownToPlainText('- loose\n\n- [x] done'), '- loose\n[x] done');
+    });
+
     test('a link shows its text and address', () {
       expect(
         markdownToPlainText('[shop](https://s.test)'),

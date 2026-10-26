@@ -195,15 +195,10 @@ class _NotesBuilder {
     for (final item in list.children ?? const <md.Node>[]) {
       if (item is! md.Element) continue;
       final children = item.children ?? const <md.Node>[];
-      final box = children
-          .whereType<md.Element>()
-          .where((e) => e.tag == 'input')
-          .firstOrNull;
-      final Widget marker = box != null
+      final task = notesTaskState(item);
+      final Widget marker = task != null
           ? Icon(
-              box.attributes['checked'] == 'true'
-                  ? Icons.check_box_outlined
-                  : Icons.check_box_outline_blank,
+              task ? Icons.check_box_outlined : Icons.check_box_outline_blank,
               size: (style.fontSize ?? 14) + 2,
               color: _colors.onSurfaceVariant,
             )

@@ -129,6 +129,20 @@ void main() {
     expect(notesListStart(list('- a')), 1);
   });
 
+  test('notesTaskState finds the box in tight and loose lists', () {
+    List<md.Element> items(String source) => [
+      for (final n
+          in (parseNotesMarkdown(source).single as md.Element).children!)
+        n as md.Element,
+    ];
+    expect(items('- [ ] a\n- [x] b\n- c').map(notesTaskState), [
+      false,
+      true,
+      null,
+    ]);
+    expect(items('- a\n\n- [x] b').map(notesTaskState), [null, true]);
+  });
+
   test('appendMarkdownParagraph starts a new paragraph', () {
     expect(appendMarkdownParagraph('', 'x'), 'x');
     expect(appendMarkdownParagraph('- a', 'x'), '- a\n\nx');

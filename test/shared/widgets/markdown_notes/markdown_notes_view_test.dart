@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_view.dart';
@@ -152,5 +153,63 @@ void main() {
   testWidgets('HTML shows as typed', (tester) async {
     await pump(tester, '<u>x</u>');
     expect(_allText(tester), contains('<u>x</u>'));
+  });
+
+  testWidgets('the could-not-open snackbar copies the link', (tester) async {
+    String? copied;
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      SystemChannels.platform,
+      (call) async {
+        if (call.method == 'Clipboard.setData') {
+          copied = (call.arguments as Map)['text'] as String?;
+        }
+        return null;
+      },
+    );
+    addTearDown(
+      () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        null,
+      ),
+    );
+    await pump(tester, '[shop](https://s.test)', launchResult: false);
+    await tester.tapOnText(find.textRange.ofSubstring('shop'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Copy link'));
+    await tester.pumpAndSettle();
+    expect(copied, 'https://s.test');
+  });
+
+  testWidgets('a launch that throws counts as a failed open', (tester) async {
+    final view = MarkdownNotesView(
+      '[shop](https://s.test)',
+      launch: (_) async => throw Exception('no handler'),
+    );
+    await tester.pumpWidget(testApp(child: view));
+    await tester.tapOnText(find.textRange.ofSubstring('shop'));
+    await tester.pumpAndSettle();
+    expect(find.text('Could not open the link'), findsOneWidget);
+  });
+
+  testWidgets('draws every heading level, strikethrough and hard breaks', (
+    tester,
+  ) async {
+    await pump(tester, '## Two\n\n#### Four\n\n~~old~~ line  \nbreak');
+    expect(_span(tester, 'Two').style?.fontWeight, FontWeight.w600);
+    expect(_span(tester, 'Four').style?.fontWeight, FontWeight.w600);
+    expect(_span(tester, 'old').style?.decoration, TextDecoration.lineThrough);
+    expect(_allText(tester), contains('line\nbreak'));
+  });
+
+  testWidgets('draws nested and loose list items', (tester) async {
+    await pump(tester, '- outer\n  - inner\n\n- loose');
+    expect(find.text('•'), findsNWidgets(3));
+    expect(_allText(tester), contains('inner'));
+    expect(_allText(tester), contains('loose'));
+  });
+
+  testWidgets('a task in a loose list keeps its box', (tester) async {
+    await pump(tester, '- loose\n\n- [x] done');
+    expect(find.byIcon(Icons.check_box_outlined), findsOneWidget);
   });
 }

@@ -61,8 +61,11 @@ List<String> _list(md.Element list, {required String indent}) {
   for (final item in list.children ?? const <md.Node>[]) {
     if (item is! md.Element) continue;
     final children = item.children ?? const <md.Node>[];
-    final box = _checkbox(children);
-    final marker = box ?? (ordered ? '$number.' : '-');
+    final marker = switch (notesTaskState(item)) {
+      true => '[x]',
+      false => '[ ]',
+      null => ordered ? '$number.' : '-',
+    };
     number++;
 
     final own = <md.Node>[];
@@ -81,16 +84,6 @@ List<String> _list(md.Element list, {required String indent}) {
     }
   }
   return lines;
-}
-
-/// `[ ]` or `[x]` for a task item, null for an ordinary one.
-String? _checkbox(List<md.Node> children) {
-  for (final child in children) {
-    if (child is md.Element && child.tag == 'input') {
-      return child.attributes['checked'] == 'true' ? '[x]' : '[ ]';
-    }
-  }
-  return null;
 }
 
 List<String> _table(md.Element table) {

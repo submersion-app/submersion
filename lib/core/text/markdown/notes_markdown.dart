@@ -57,6 +57,24 @@ md.Document _document() => md.Document(
 int notesListStart(md.Element list) =>
     int.tryParse(list.attributes['start'] ?? '') ?? 1;
 
+/// A list item's task box: true when ticked, false when empty, null for an
+/// ordinary item. In a tight list the box is the item's first child; in a
+/// loose list (items apart by blank lines) the parser puts it inside the
+/// item's paragraph.
+bool? notesTaskState(md.Element item) {
+  for (final child in item.children ?? const <md.Node>[]) {
+    if (child is! md.Element) continue;
+    if (child.tag == 'input') return child.attributes['checked'] == 'true';
+    if (child.tag == 'p') {
+      final first = child.children?.firstOrNull;
+      if (first is md.Element && first.tag == 'input') {
+        return first.attributes['checked'] == 'true';
+      }
+    }
+  }
+  return null;
+}
+
 const _tappableSchemes = {'http', 'https', 'mailto'};
 
 /// Whether a link in a note may be opened: web and mail addresses only, so

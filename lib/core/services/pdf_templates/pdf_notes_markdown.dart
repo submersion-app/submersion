@@ -123,13 +123,17 @@ class _PdfNotesBuilder {
     for (final item in list.children ?? const <md.Node>[]) {
       if (item is! md.Element) continue;
       final children = item.children ?? const <md.Node>[];
-      String marker = ordered ? '$number.' : '-';
+      final marker = switch (notesTaskState(item)) {
+        true => '[x]',
+        false => '[ ]',
+        null => ordered ? '$number.' : '-',
+      };
       number++;
       final own = <md.Node>[];
       final nested = <pw.Widget>[];
       for (final child in children) {
         if (child is md.Element && child.tag == 'input') {
-          marker = child.attributes['checked'] == 'true' ? '[x]' : '[ ]';
+          continue;
         } else if (child is md.Element &&
             (child.tag == 'ul' || child.tag == 'ol' || child.tag == 'p')) {
           if (child.tag == 'p') {
@@ -226,9 +230,13 @@ class _PdfNotesBuilder {
           if (spans.isNotEmpty) {
             spans.add(pw.TextSpan(text: '\n', style: style));
           }
-          spans.add(
-            pw.TextSpan(text: ordered ? '${number++}. ' : '- ', style: style),
-          );
+          final marker = switch (notesTaskState(item)) {
+            true => '[x]',
+            false => '[ ]',
+            null => ordered ? '$number.' : '-',
+          };
+          number++;
+          spans.add(pw.TextSpan(text: '$marker ', style: style));
           for (final child in item.children ?? const <md.Node>[]) {
             if (child is md.Element && child.tag == 'p') {
               spans.addAll(inline(child.children ?? const [], style));
