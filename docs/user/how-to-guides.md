@@ -21,3 +21,4 @@ Each of these guides shows what comes across from your old app and what does not
 - [Moving from Subsurface to Submersion](how-to-move-from-subsurface.md): dives, trips, sites and photos from your Subsurface log.
 - [Moving from Garmin Connect to Submersion](how-to-move-from-garmin-connect.md): dives from your Garmin watch, straight from your account.
 - [Moving from Suunto to Submersion](how-to-move-from-suunto.md): dives and your journal from the Suunto app.
+- [Moving from divelogs.de to Submersion](how-to-move-from-divelogs-de.md): your logbook, sites, gear and photos from divelogs.de.
