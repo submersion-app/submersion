@@ -244,74 +244,81 @@ void main() {
     });
   }
 
-  test('a downloaded dive positioned inside a geofence trades the default '
-      'set it was written with for the geofenced one', () async {
-    final now = DateTime.now();
-    for (final id in ['warm-suit', 'drysuit']) {
-      await db
-          .into(db.equipment)
-          .insert(
-            EquipmentCompanion.insert(
-              id: id,
-              name: id,
-              type: 'wetsuit',
-              createdAt: now.millisecondsSinceEpoch,
-              updatedAt: now.millisecondsSinceEpoch,
+  for (final hasDefault in [true, false]) {
+    test(
+      'a downloaded dive positioned inside a geofence ends up with the '
+      'geofenced set (${hasDefault ? 'replacing the default' : 'no default set'})',
+      () async {
+        final now = DateTime.now();
+        for (final id in ['warm-suit', 'drysuit']) {
+          await db
+              .into(db.equipment)
+              .insert(
+                EquipmentCompanion.insert(
+                  id: id,
+                  name: id,
+                  type: 'wetsuit',
+                  createdAt: now.millisecondsSinceEpoch,
+                  updatedAt: now.millisecondsSinceEpoch,
+                ),
+              );
+        }
+        final sets = EquipmentSetRepository();
+        if (hasDefault) {
+          await sets.createSet(
+            EquipmentSet(
+              id: 'warm',
+              diverId: diverId,
+              name: 'Warm',
+              equipmentIds: const ['warm-suit'],
+              isDefault: true,
+              createdAt: now,
+              updatedAt: now,
             ),
           );
-    }
-    final sets = EquipmentSetRepository();
-    await sets.createSet(
-      EquipmentSet(
-        id: 'warm',
-        diverId: diverId,
-        name: 'Warm',
-        equipmentIds: const ['warm-suit'],
-        isDefault: true,
-        createdAt: now,
-        updatedAt: now,
-      ),
-    );
-    await sets.setAsDefault('warm', diverId: diverId);
-    await sets.createSet(
-      EquipmentSet(
-        id: 'cold',
-        diverId: diverId,
-        name: 'Cold',
-        equipmentIds: const ['drysuit'],
-        createdAt: now,
-        updatedAt: now,
-      ),
-    );
-    // Around the dive's entry, a third of the way along the track.
-    await sets.addGeofence(
-      EquipmentSetGeofence(
-        id: 'fence',
-        setId: 'cold',
-        latitude: 10 + 1 / 3,
-        longitude: 20 + 1 / 3,
-        radiusMeters: 5000,
-        createdAt: now,
-        updatedAt: now,
-      ),
-    );
-    await seedTrack();
-    final wizard = await wizardWith(
-      realSweep(),
-      equipmentDefaulter: DiveEquipmentDefaulter(),
-    );
+          await sets.setAsDefault('warm', diverId: diverId);
+        }
+        await sets.createSet(
+          EquipmentSet(
+            id: 'cold',
+            diverId: diverId,
+            name: 'Cold',
+            equipmentIds: const ['drysuit'],
+            createdAt: now,
+            updatedAt: now,
+          ),
+        );
+        // Around the dive's entry, a third of the way along the track.
+        await sets.addGeofence(
+          EquipmentSetGeofence(
+            id: 'fence',
+            setId: 'cold',
+            latitude: 10 + 1 / 3,
+            longitude: 20 + 1 / 3,
+            radiusMeters: 5000,
+            createdAt: now,
+            updatedAt: now,
+          ),
+        );
+        await seedTrack();
+        final wizard = await wizardWith(
+          realSweep(),
+          equipmentDefaulter: DiveEquipmentDefaulter(),
+        );
 
-    await wizard.performImport();
+        await wizard.performImport();
 
-    final dive = await onlyDive();
-    expect(dive.entryLatitude, isNotNull);
-    final gear = await (db.select(
-      db.diveEquipment,
-    )..where((t) => t.diveId.equals(dive.id))).get();
-    final bySet = {for (final r in gear) r.equipmentId: r.viaSetId};
-    expect(bySet['drysuit'], 'cold');
-    expect(bySet, isNot(contains('warm-suit')));
-    // The computer's own equipment entry came with the download, not a set.
-    expect(bySet.values.where((v) => v != null), ['cold']);
-  });
+        final dive = await onlyDive();
+        expect(dive.entryLatitude, isNotNull);
+        final gear = await (db.select(
+          db.diveEquipment,
+        )..where((t) => t.diveId.equals(dive.id))).get();
+        final bySet = {for (final r in gear) r.equipmentId: r.viaSetId};
+        expect(bySet['drysuit'], 'cold');
+        expect(bySet, isNot(contains('warm-suit')));
+        // The computer's own equipment entry came with the download, not a set.
+        expect(bySet.values.where((v) => v != null), ['cold']);
+      },
+    );
+  }
 }

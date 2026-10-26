@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart'
     hide EquipmentSet, EquipmentSetGeofence;
@@ -160,20 +161,57 @@ void main() {
     expect(await gearOn('dive'), {'warm': 'def', 'computer': 'def'});
   });
 
-  test(
-    'gear that did not come from the default set is never touched',
-    () async {
-      await db
-          .into(db.diveEquipment)
-          .insert(
-            DiveEquipmentCompanion.insert(diveId: 'dive', equipmentId: 'warm'),
-          );
+  test('gear from a set other than the default is never touched', () async {
+    await db
+        .into(db.diveEquipment)
+        .insert(
+          DiveEquipmentCompanion.insert(
+            diveId: 'dive',
+            equipmentId: 'warm',
+            viaSetId: const Value('other'),
+          ),
+        );
 
-      expect(await positioned('dive', inFence), isFalse);
+    expect(await positioned('dive', inFence), isFalse);
 
-      expect(await gearOn('dive'), {'warm': null});
-    },
-  );
+    expect(await gearOn('dive'), {'warm': 'other'});
+  });
+
+  test('a download no set reached gets the set its position calls for '
+      'beside the gear it brought', () async {
+    // The computer's own equipment entry, added after the defaulter ran.
+    await db
+        .into(db.diveEquipment)
+        .insert(
+          DiveEquipmentCompanion.insert(
+            diveId: 'dive',
+            equipmentId: 'transmitter',
+          ),
+        );
+
+    expect(await positioned('dive', inFence), isTrue);
+
+    expect(await gearOn('dive'), {
+      'transmitter': null,
+      'drysuit': 'cold',
+      'computer': 'cold',
+    });
+  });
+
+  test('a file import\'s own gear with no set on it is left alone', () async {
+    await db
+        .into(db.diveEquipment)
+        .insert(
+          DiveEquipmentCompanion.insert(
+            diveId: 'dive',
+            equipmentId: 'transmitter',
+          ),
+        );
+
+    expect(await positioned('dive', inFence, replaceDefault: false), isFalse);
+
+    expect(await gearOn('dive'), {'transmitter': null});
+  });
 
   test('an owner-less dive is skipped', () async {
     expect(

@@ -1,3 +1,5 @@
+import 'package:drift/drift.dart';
+
 import 'package:submersion/core/database/database.dart' hide Dive, DiveSite;
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
@@ -45,34 +47,43 @@ class DiveEquipmentDefaulter {
         _db.diveEquipment,
       )..where((t) => t.diveId.equals(diveId))).get();
       if (existing.isNotEmpty) return false;
-
-      final candidateSets = await _sets.getAllSets(diverId: diverId);
-      if (candidateSets.isEmpty) return false;
-      final geofences = await _sets.getAllGeofences(diverId: diverId);
-
-      final best = EquipmentSetSelector.bestSetFor(
-        divePoints: divePoints,
-        sets: candidateSets,
-        geofences: geofences,
-      );
-      if (best == null || best.equipmentIds.isEmpty) return false;
-      // A member no longer shared with this diver stays in the set but is
-      // not applied (issue #2046).
-      final memberIds = await _equipment.usableSetMemberIds(
-        best.equipmentIds,
-        diverId,
-      );
-      if (memberIds.isEmpty) return false;
-
-      // Tag every row with the set that won so the dive remembers it and
-      // the pages can group by it (issue #1487).
-      await _dives.bulkAddEquipment([diveId], memberIds, viaSetId: best.id);
-      SyncEventBus.notifyLocalChange();
-      return true;
+      return await _applyBestSet(diveId, diverId, divePoints);
     } catch (_) {
       // Best-effort: never let equipment defaulting fail the dive operation.
       return false;
     }
+  }
+
+  /// Adds the best set for [divePoints] beside whatever gear the dive has.
+  /// Throws; callers catch.
+  Future<bool> _applyBestSet(
+    String diveId,
+    String diverId,
+    List<GeoPoint> divePoints,
+  ) async {
+    final candidateSets = await _sets.getAllSets(diverId: diverId);
+    if (candidateSets.isEmpty) return false;
+    final geofences = await _sets.getAllGeofences(diverId: diverId);
+
+    final best = EquipmentSetSelector.bestSetFor(
+      divePoints: divePoints,
+      sets: candidateSets,
+      geofences: geofences,
+    );
+    if (best == null || best.equipmentIds.isEmpty) return false;
+    // A member no longer shared with this diver stays in the set but is
+    // not applied (issue #2046).
+    final memberIds = await _equipment.usableSetMemberIds(
+      best.equipmentIds,
+      diverId,
+    );
+    if (memberIds.isEmpty) return false;
+
+    // Tag every row with the set that won so the dive remembers it and
+    // the pages can group by it (issue #1487).
+    await _dives.bulkAddEquipment([diveId], memberIds, viaSetId: best.id);
+    SyncEventBus.notifyLocalChange();
+    return true;
   }
 
   /// Convenience for imported domain dives: assembles the dive's known points
@@ -106,12 +117,12 @@ class DiveEquipmentDefaulter {
       final existing = await (_db.select(
         _db.diveEquipment,
       )..where((t) => t.diveId.equals(diveId))).get();
-      if (existing.isEmpty) {
-        return await applyDefaultEquipmentIfEmpty(
-          diveId: diveId,
-          diverId: diverId,
-          divePoints: divePoints,
-        );
+      // A download's own gear (its computer's entry, a transmitter) carries
+      // no set, so a download no set reached is as good as empty: the set
+      // goes on beside that gear.
+      final setApplied = existing.any((r) => r.viaSetId != null);
+      if (existing.isEmpty || (replaceDefault && !setApplied)) {
+        return await _applyBestSet(diveId, diverId, divePoints);
       }
       if (!replaceDefault) return false;
 
@@ -156,17 +167,58 @@ class DiveEquipmentDefaulter {
     if (diveIds.isEmpty) return;
     if (DatabaseService.instance.databaseOrNull == null) return;
     try {
-      for (final dive in await _dives.getDivesByIds(diveIds)) {
+      for (final dive in await _positionsOf(diveIds)) {
         await applyForNewPosition(
           diveId: dive.id,
           diverId: dive.diverId,
-          divePoints: _pointsOf(dive),
+          divePoints: dive.points,
           replaceDefault: replaceDefault,
         );
       }
     } catch (_) {
       // Best-effort: the dives are imported and positioned either way.
     }
+  }
+
+  /// Ids bound per [_positionsOf] query, well under SQLite's limit.
+  static const _positionIdChunk = 900;
+
+  /// Each dive's owner and known points, read straight from the dive and
+  /// its site rather than through a full dive load, which would hydrate
+  /// every profile and tank series to read three coordinates.
+  Future<List<({String id, String? diverId, List<GeoPoint> points})>>
+  _positionsOf(List<String> diveIds) async {
+    final dives = _db.dives;
+    final sites = _db.diveSites;
+    final out = <({String id, String? diverId, List<GeoPoint> points})>[];
+    for (var i = 0; i < diveIds.length; i += _positionIdChunk) {
+      final chunk = diveIds.sublist(
+        i,
+        i + _positionIdChunk < diveIds.length
+            ? i + _positionIdChunk
+            : diveIds.length,
+      );
+      final rows = await (_db.select(dives).join([
+        leftOuterJoin(sites, sites.id.equalsExp(dives.siteId)),
+      ])..where(dives.id.isIn(chunk))).get();
+      for (final row in rows) {
+        final dive = row.readTable(dives);
+        final site = row.readTableOrNull(sites);
+        out.add((
+          id: dive.id,
+          diverId: dive.diverId,
+          points: [
+            if (site?.latitude != null && site?.longitude != null)
+              GeoPoint(site!.latitude!, site.longitude!),
+            if (dive.entryLatitude != null && dive.entryLongitude != null)
+              GeoPoint(dive.entryLatitude!, dive.entryLongitude!),
+            if (dive.exitLatitude != null && dive.exitLongitude != null)
+              GeoPoint(dive.exitLatitude!, dive.exitLongitude!),
+          ],
+        ));
+      }
+    }
+    return out;
   }
 
   /// The dive's known points: linked site, then entry and exit fixes.
