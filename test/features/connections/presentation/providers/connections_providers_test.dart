@@ -4,11 +4,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/database/database.dart' as db;
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/connections/data/repositories/connections_repository.dart';
+import 'package:submersion/features/connections/domain/entities/connection_graph.dart';
 import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
 import 'package:submersion/features/connections/domain/entities/graph_selection.dart';
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_filter_provider.dart';
 import 'package:submersion/features/connections/domain/views/connection_presets.dart';
+import 'package:submersion/features/connections/domain/views/map_spec.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_view_provider.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_providers.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_selection_provider.dart';
@@ -80,6 +83,26 @@ Future<void> _link(db.AppDatabase d, String diveId, String buddyId) async {
       );
 }
 
+/// Records the sharedWith rule each map load receives.
+class _RecordingRepository extends ConnectionsRepository {
+  final List<Map<ConnectionKind, ConnectionKind>> sharedWith = [];
+
+  @override
+  Stream<void> watchConnectionsChanges() => const Stream.empty();
+
+  @override
+  Future<ConnectionGraph> loadMap(
+    MapSpec spec, {
+    required String? diverId,
+    DiveFilterState filter = const DiveFilterState(),
+    int nodeBudget = 80,
+    Map<ConnectionKind, ConnectionKind> sharedWith = const {},
+  }) async {
+    this.sharedWith.add(sharedWith);
+    return ConnectionGraph.empty;
+  }
+}
+
 void main() {
   late db.AppDatabase d;
   late ProviderContainer c;
@@ -104,6 +127,10 @@ void main() {
       ],
     );
     addTearDown(c.dispose);
+    // The fixture dives have no site, so these tests read Dive circle.
+    await c
+        .read(connectionsViewProvider.notifier)
+        .update((s) => s.applyPreset(ConnectionPresets.byId('circle')!));
   });
 
   tearDown(() async => tearDownTestDatabase());
@@ -165,6 +192,34 @@ void main() {
     await Future<void>.delayed(const Duration(milliseconds: 700));
     final after = await c.read(connectionGraphProvider(80).future);
     expect(after.edges.single.weight, 2);
+  });
+
+  test('the applied preset passes its sharedWith rule to the load', () async {
+    final repo = _RecordingRepository();
+    final rc = ProviderContainer(
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(
+          await SharedPreferences.getInstance(),
+        ),
+        currentDiverIdProvider.overrideWith(
+          (ref) => MockCurrentDiverIdNotifier()..setCurrentDiver('me').ignore(),
+        ),
+        connectionsRepositoryProvider.overrideWithValue(repo),
+      ],
+    );
+    addTearDown(rc.dispose);
+    await rc
+        .read(connectionsViewProvider.notifier)
+        .update((s) => s.applyPreset(ConnectionPresets.byId('where')!));
+    final sub = rc.listen(connectionGraphProvider(80), (_, _) {});
+    addTearDown(sub.close);
+    await rc.read(connectionGraphProvider(80).future);
+    expect(repo.sharedWith.last, {ConnectionKind.site: ConnectionKind.buddy});
+    await rc
+        .read(connectionsViewProvider.notifier)
+        .update((s) => s.editMap(s.mapSpec));
+    await rc.read(connectionGraphProvider(80).future);
+    expect(repo.sharedWith.last, isEmpty);
   });
 
   test('date span and selection dive ids', () async {

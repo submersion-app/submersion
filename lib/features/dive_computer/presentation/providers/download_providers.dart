@@ -47,6 +47,8 @@ final diveImportServiceProvider = Provider<DiveImportService>((ref) {
         loadDefaultTankPresetForDownloads(ref, diverId: diverId),
     transmitterMatcherForImports: (diverId) =>
         loadTransmitterMatcher(ref, diverId: diverId),
+    omitUnusedOcGasesForImports: (diverId) =>
+        loadOmitUnusedOcGasesForDownloads(ref, diverId: diverId),
   );
 });
 
@@ -60,36 +62,24 @@ const _loaderLog = LoggerService('DefaultTankPresetForDownloads');
 /// empty or the active diver reads the live settings, and another diver reads
 /// their saved settings (the defaults when they have none, and no preset when
 /// they cannot be read: a download must not fail over a cylinder default).
+///
+/// [ignoreImportOptIn] resolves the preset whatever the opt-in says: a
+/// re-parse uses it to recognise a cylinder an earlier download filled from
+/// the preset (issue #3668).
 @visibleForTesting
 Future<TankPresetEntity?> loadDefaultTankPresetForDownloads(
   Ref ref, {
   String? diverId,
+  bool ignoreImportOptIn = false,
 }) async {
-  final otherDiver =
-      diverId != null &&
-      diverId.isNotEmpty &&
-      diverId != ref.read(currentDiverIdProvider);
-  final AppSettings settings;
-  if (otherDiver) {
-    try {
-      settings =
-          await ref
-              .read(diverSettingsRepositoryProvider)
-              .getSettingsForDiver(diverId) ??
-          const AppSettings();
-    } catch (e, stackTrace) {
-      _loaderLog.error(
-        'Could not read the settings of $diverId; importing without a '
-        'default tank',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      return null;
-    }
-  } else {
-    settings = ref.read(settingsProvider);
-  }
-  if (!settings.applyDefaultTankToImports) return null;
+  final otherDiver = _isOtherDiver(ref, diverId);
+  final settings = await _importSettingsFor(
+    ref,
+    diverId,
+    fallbackNote: 'importing without a default tank',
+  );
+  if (settings == null) return null;
+  if (!ignoreImportOptIn && !settings.applyDefaultTankToImports) return null;
   final resolver = DefaultTankPresetResolver(
     repository: ref.read(tankPresetRepositoryProvider),
   );
@@ -102,6 +92,59 @@ Future<TankPresetEntity?> loadDefaultTankPresetForDownloads(
         ? diverId
         : await ref.read(validatedCurrentDiverIdProvider.future),
   );
+}
+
+/// The active diver's default tank preset whatever the import opt-in says, for
+/// a re-parse to recognise a cylinder an earlier download filled from it
+/// (issue #3668).
+Future<TankPresetEntity?> loadDefaultTankPresetForCleanup(Ref ref) =>
+    loadDefaultTankPresetForDownloads(ref, ignoreImportOptIn: true);
+
+/// Whether a rebreather download leaves out unused open-circuit gases (issue
+/// #3668), from the settings of the diver the dives are imported for, read the
+/// same way as [loadDefaultTankPresetForDownloads]. Off when another diver's
+/// settings cannot be read: a download must not drop a cylinder on a guess.
+@visibleForTesting
+Future<bool> loadOmitUnusedOcGasesForDownloads(
+  Ref ref, {
+  String? diverId,
+}) async {
+  final settings = await _importSettingsFor(
+    ref,
+    diverId,
+    fallbackNote: 'importing every gas',
+  );
+  return settings?.omitUnusedOcGases ?? false;
+}
+
+/// Whether [diverId] names a diver other than the active one (issue #2050).
+bool _isOtherDiver(Ref ref, String? diverId) =>
+    diverId != null &&
+    diverId.isNotEmpty &&
+    diverId != ref.read(currentDiverIdProvider);
+
+/// The settings of the diver dives are imported for: the live settings for
+/// null, empty or the active diver, another diver's saved settings (the
+/// defaults when they have none), or null when those cannot be read.
+Future<AppSettings?> _importSettingsFor(
+  Ref ref,
+  String? diverId, {
+  required String fallbackNote,
+}) async {
+  if (!_isOtherDiver(ref, diverId)) return ref.read(settingsProvider);
+  try {
+    return await ref
+            .read(diverSettingsRepositoryProvider)
+            .getSettingsForDiver(diverId!) ??
+        const AppSettings();
+  } catch (e, stackTrace) {
+    _loaderLog.error(
+      'Could not read the settings of $diverId; $fallbackNote',
+      error: e,
+      stackTrace: stackTrace,
+    );
+    return null;
+  }
 }
 
 /// Stream provider for download events from the service.

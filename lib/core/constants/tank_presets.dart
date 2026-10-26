@@ -215,35 +215,31 @@ class TankPresets {
   /// they hold should pass the slug instead of relying on this.
   ///
   /// That tie-break is only safe while indistinguishable presets agree on
-  /// everything a caller reads from the result. `tank_presets_test.dart` pins
-  /// the AL40 tie. Buoyancy resolves through [matchAnyBySpecs] instead, whose
-  /// list-order invariant `tank_catalog_test.dart` holds.
+  /// everything a caller reads from the result. Two invariants hold it:
+  /// `tank_presets_test.dart` pins the AL40 tie, and `tank_catalog_test.dart`
+  /// asserts that any two presets [matchAnyBySpecs] cannot tell apart share
+  /// the same `kTankCatalog` row, so buoyancy never depends on list order.
   static TankPreset? matchBySpecs(
     double volumeLiters,
     double workingPressureBar,
   ) {
     for (final preset in all) {
       if (preset.ratedCapacityCuft != null &&
-          _specsMatch(preset, volumeLiters, workingPressureBar)) {
+          _matchesSpecs(preset, volumeLiters, workingPressureBar)) {
         return preset;
       }
     }
     return null;
   }
 
-  /// Like [matchBySpecs], but over every preset, the metric ones without a
-  /// cuft rating included, and never across materials: when [material] is
-  /// set, only a preset of that material matches.
+  /// [matchBySpecs] over every preset, rated or not, so the metric steel
+  /// cylinders (10, 12 and 15 L at 200 bar) resolve too. Buoyancy uses this
+  /// to find a tank's catalog row (#3686); [matchBySpecs] stays rated-only
+  /// because its callers read the cuft rating off the result.
   ///
-  /// For callers that read the preset's physical identity (buoyancy reads its
-  /// `kTankCatalog` row) rather than its rated capacity. An imported
-  /// 12 L / 200 bar cylinder resolves to Steel 12L here, while [matchBySpecs]
-  /// leaves it unmatched. Rated presets come first in [all], so for them the
-  /// result and the AL40 tie-break agree with [matchBySpecs].
-  ///
-  /// `tank_catalog_test.dart` asserts that any two presets this method cannot
-  /// tell apart share the same `kTankCatalog` row, so buoyancy never depends
-  /// on the order of [all].
+  /// A known [material] must agree with the preset: a size match fills in a
+  /// missing material but never overrides one the diver set. Ties resolve to
+  /// the first entry in [all], as in [matchBySpecs].
   static TankPreset? matchAnyBySpecs(
     double volumeLiters,
     double workingPressureBar, {
@@ -251,16 +247,14 @@ class TankPresets {
   }) {
     for (final preset in all) {
       if ((material == null || preset.material == material) &&
-          _specsMatch(preset, volumeLiters, workingPressureBar)) {
+          _matchesSpecs(preset, volumeLiters, workingPressureBar)) {
         return preset;
       }
     }
     return null;
   }
 
-  /// The size tolerance both spec matchers share: within 0.2 L of volume and
-  /// 2 bar of working pressure, which absorbs rounded imported values.
-  static bool _specsMatch(
+  static bool _matchesSpecs(
     TankPreset preset,
     double volumeLiters,
     double workingPressureBar,

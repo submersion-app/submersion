@@ -37,6 +37,66 @@ class AppLocalizationsDe extends AppLocalizations {
   String get connections_around_show => 'Anzeigen';
 
   @override
+  String get connections_caption_circle =>
+      'Eine Linie verbindet zwei Buddys, die zusammen getaucht sind.';
+
+  @override
+  String get connections_caption_where =>
+      'Eine Linie heißt: Du warst mit diesem Buddy an diesem Tauchplatz.';
+
+  @override
+  String get connections_caption_trips =>
+      'Eine Linie heißt: Dieser Buddy war auf dieser Reise dabei.';
+
+  @override
+  String get connections_caption_life =>
+      'Eine Linie heißt: Du hast diese Art an diesem Tauchplatz gesehen.';
+
+  @override
+  String get connections_caption_gear =>
+      'Eine Linie verbindet Ausrüstung, die beim selben Tauchgang benutzt wurde.';
+
+  @override
+  String get connections_caption_centers =>
+      'Eine Linie heißt: Du warst mit diesem Buddy über diese Tauchbasis tauchen.';
+
+  @override
+  String get connections_caption_travel =>
+      'Buddys, Reisen und Tauchplätze; eine Linie heißt, sie teilen Tauchgänge.';
+
+  @override
+  String get connections_caption_reef =>
+      'Tauchplätze, Meeresleben und Tauchgangsarten; eine Linie heißt, sie teilen Tauchgänge.';
+
+  @override
+  String get connections_caption_gearRoad =>
+      'Ausrüstung, Reisen und Tauchbasen; eine Linie heißt, sie teilen Tauchgänge.';
+
+  @override
+  String connections_caption_custom(String kinds) {
+    return '$kinds; eine Linie heißt, sie teilen einen Tauchgang.';
+  }
+
+  @override
+  String get connections_caption_kindSeparator => ', ';
+
+  @override
+  String connections_caption_around(int hops) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hops,
+      locale: localeName,
+      other:
+          'Alles im Umkreis von $hops Schritten um dieses Zentrum, verbunden durch gemeinsame Tauchgänge.',
+      one: 'Alles, was einen Tauchgang mit diesem Zentrum teilt.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_caption_thicker =>
+      'Dickere Linien bedeuten mehr Tauchgänge.';
+
+  @override
   String get connections_editor_kinds => 'Arten';
 
   @override
@@ -5194,6 +5254,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Noch kein Tauchgang hat einen Tauchplatz.';
 
   @override
+  String get connections_empty_whereNoSites =>
+      'Noch keiner deiner Tauchgänge mit Buddy hat einen Tauchplatz. Füge diesen Tauchgängen Tauchplätze hinzu, um zu sehen, wo ihr zusammen taucht.';
+
+  @override
   String get connections_empty_filtered =>
       'Nichts entspricht dem aktuellen Filter.';
 
@@ -10021,6 +10085,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_tank_label_material => 'Material';
 
   @override
+  String get diveLog_tank_label_mnd => 'MND';
+
+  @override
   String get diveLog_tank_label_n2 => 'N2';
 
   @override
@@ -10045,13 +10112,43 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_tank_mndHelper => 'Auf automatische He%-Berechnung setzen';
 
   @override
-  String diveLog_tank_gasUsed(String amount) {
-    return '($amount verbraucht)';
+  String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd) {
+    return 'MOD: $mod (ppO₂ $ppO2) | MND: $mnd';
   }
 
   @override
-  String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd) {
-    return 'MOD: $mod (ppO₂ $ppO2) | MND: $mnd';
+  String get diveLog_cylinders_columnTank => 'Flasche';
+
+  @override
+  String get diveLog_cylinders_columnGas => 'Gas';
+
+  @override
+  String get diveLog_cylinders_columnStart => 'Beginn';
+
+  @override
+  String get diveLog_cylinders_columnEnd => 'Ende';
+
+  @override
+  String get diveLog_cylinders_columnUsed => 'Verbraucht';
+
+  @override
+  String diveLog_cylinders_gasUsed(String amount) {
+    return 'Gasverbrauch $amount';
+  }
+
+  @override
+  String diveLog_cylinders_mod(String depth) {
+    return 'MOD $depth';
+  }
+
+  @override
+  String diveLog_cylinders_mnd(String depth) {
+    return 'MND $depth';
+  }
+
+  @override
+  String diveLog_cylinders_modNote(String ppO2) {
+    return 'MOD bei ppO₂ $ppO2';
   }
 
   @override
@@ -19669,6 +19766,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get nav_media => 'Medien';
 
   @override
+  String get nav_mediaDocumentsSubtitle => 'Fotos, Videos und Dokumente';
+
+  @override
+  String get nav_photosVideos => 'Fotos/Videos';
+
+  @override
   String get nav_more => 'Mehr';
 
   @override
@@ -20730,8 +20833,8 @@ class AppLocalizationsDe extends AppLocalizations {
       'Kein Blei erfasst: Füge diesem Tauchgang Blei hinzu oder trage bei deiner Bleiausrüstung ein Trockengewicht ein';
 
   @override
-  String get buoyancy_tankMaterialHint =>
-      'Kein Flaschenmaterial angegeben: Der Flaschenauftrieb ist geschätzt. Lege für jede Flasche das Material fest oder wähle eine Flaschenvorlage';
+  String get buoyancy_tankMaterialAssumedHint =>
+      'Flaschenmaterial nicht festgelegt, daher wurde Aluminium angenommen: Lege das Material fest oder wähle eine Flaschenvorlage';
 
   @override
   String get buoyancy_chartNet => 'Netto';
@@ -22714,6 +22817,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_conflict_field_downloadsFollowComputerOwner =>
       'Downloads dem Besitzer des Computers zuordnen';
+
+  @override
+  String get settings_conflict_field_omitUnusedOcGases =>
+      'Ungenutzte Bailout-Gase auslassen';
 
   @override
   String get settings_conflict_field_avgSpeed => 'Durchschnittsgeschwindigkeit';
@@ -24763,9 +24870,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get nav_documents => 'Dokumente';
-
-  @override
-  String get documents_title => 'Dokumente';
 
   @override
   String get documents_type_insurance => 'Versicherung';
@@ -30267,6 +30371,14 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_downloadsFollowOwner_subtitle =>
       'Gehört ein Tauchcomputer zu einem anderen Profil, landen seine Tauchgänge im Logbuch dieses Profils. Auf dem Prüfbildschirm lässt sich das ändern.';
+
+  @override
+  String get settings_omitUnusedOcGases_title =>
+      'Ungenutzte Bailout-Gase auslassen';
+
+  @override
+  String get settings_omitUnusedOcGases_subtitle =>
+      'Bei Rebreather-Downloads und erneutem Einlesen ein Gas ohne Transmitter weglassen, das nie geatmet wurde';
 
   @override
   String get tags_manage_searchHint => 'Tags suchen...';

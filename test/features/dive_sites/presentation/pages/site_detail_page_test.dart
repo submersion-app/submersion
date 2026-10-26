@@ -35,6 +35,7 @@ import 'package:submersion/features/divers/presentation/providers/item_shares_pr
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
 import '../../../../helpers/shared_items_fixture.dart';
+import '../../../../helpers/detail_row_finders.dart';
 
 void _setMobileTestSurfaceSize(WidgetTester tester) {
   tester.view.devicePixelRatio = 1.0;
@@ -766,6 +767,37 @@ void main() {
       mooringNumber: 'M-12',
       parkingInfo: 'Free parking',
     );
+
+    testWidgets('Location values share one column beside the labels (#3678)', (
+      tester,
+    ) async {
+      _setMobileTestSurfaceSize(tester);
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            siteProvider(basicSite.id).overrideWith((_) async => basicSite),
+            siteDiveCountProvider(basicSite.id).overrideWith((_) async => 0),
+          ],
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: SiteDetailPage(siteId: basicSite.id),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final column = detailValueLeft(tester, 'Country');
+      expect(detailValueLeft(tester, 'Region'), column);
+      // An empty field's "Not set" sits in the same column.
+      expect(detailValueLeft(tester, 'City'), column);
+      expect(
+        tester.getTopLeft(find.text('USA')).dx,
+        lessThan(tester.getTopRight(detailRowFor('Country')).dx / 2),
+      );
+    });
 
     testWidgets('displays basic info, description and notes', (tester) async {
       _setMobileTestSurfaceSize(tester);

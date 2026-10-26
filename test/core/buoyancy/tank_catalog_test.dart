@@ -76,7 +76,7 @@ void main() {
 
   // A caller that has only volume and working pressure resolves through
   // TankPresets.matchAnyBySpecs, which returns the FIRST preset within
-  // tolerance, metric presets included.
+  // tolerance.
   // Some presets are genuinely indistinguishable that way (an AL40 and an AL40
   // Stage are both 5.7 L @ 206.843 bar), so the tie-break falls out of the
   // order of TankPresets.all. That is only safe while the tied presets share a
@@ -84,15 +84,15 @@ void main() {
   // buoyancy prediction.
   group('spec-ambiguous presets cannot change a buoyancy result', () {
     // matchAnyBySpecs accepts a preset when |dVolume| < 0.2 and
-    // |dPressure| < 2.0, so a single (volume, pressure) pair can match two
-    // presets exactly when they lie within the sum of those tolerances of each
-    // other.
+    // |dPressure| < 2.0,
+    // so a single (volume, pressure) pair can match two presets exactly when
+    // they lie within the sum of those tolerances of each other.
     bool indistinguishable(TankPreset a, TankPreset b) =>
         (a.volumeLiters - b.volumeLiters).abs() < 0.4 &&
         (a.workingPressureBar - b.workingPressureBar).abs() < 4.0;
 
     test('agree on their catalog entries', () {
-      // Buoyancy matches every preset by specs, metric ones included.
+      // Buoyancy matches every preset, rated or metric (#3686).
       const matchable = TankPresets.all;
 
       for (var i = 0; i < matchable.length; i++) {
@@ -128,6 +128,21 @@ void main() {
       // Not a correctness requirement, but a new collision is worth a look:
       // it means two presets became mutually unreachable by specs.
       expect(pairs, ['al40/al40stage']);
+    });
+  });
+
+  group('metric steel presets resolve by specs', () {
+    test('every metric preset matches itself by volume and pressure', () {
+      for (final preset in TankPresets.metric) {
+        expect(
+          BuoyancyPhysics.tankTermKg(
+            volumeL: preset.volumeLiters,
+            workingPressureBar: preset.workingPressureBar,
+          ),
+          closeTo(BuoyancyPhysics.tankTermKg(presetName: preset.name), 1e-9),
+          reason: preset.name,
+        );
+      }
     });
   });
 }

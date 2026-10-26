@@ -15,6 +15,8 @@ import 'package:submersion/features/equipment/presentation/widgets/service_recor
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/export_destination_sheet.dart';
+import 'package:submersion/shared/widgets/detail_row/detail_row.dart';
+import 'package:submersion/shared/widgets/detail_row/detail_row_group.dart';
 
 /// Service History Section Widget
 class ServiceHistorySection extends ConsumerStatefulWidget {
@@ -171,36 +173,31 @@ class _ServiceHistorySectionState extends ConsumerState<ServiceHistorySection> {
                           ).colorScheme.surfaceContainerHighest,
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: Column(
-                          children: [
-                            for (final entry in totals)
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      context.l10n
-                                          .equipment_service_totalCostLabel(
-                                            entry.key,
-                                          ),
-                                      overflow: TextOverflow.ellipsis,
-                                      style: Theme.of(
-                                        context,
-                                      ).textTheme.bodyMedium,
-                                    ),
+                        // One label column for every currency's total.
+                        child: DetailRowGroup(
+                          child: Column(
+                            children: [
+                              for (final entry in totals)
+                                DetailRow.text(
+                                  label: context.l10n
+                                      .equipment_service_totalCostLabel(
+                                        entry.key,
+                                      ),
+                                  labelStyle: Theme.of(
+                                    context,
+                                  ).textTheme.bodyMedium,
+                                  value: formatAmountOnly(
+                                    entry.value,
+                                    entry.key,
                                   ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    formatAmountOnly(entry.value, entry.key),
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .titleMedium
-                                        ?.copyWith(fontWeight: FontWeight.bold),
-                                  ),
-                                ],
-                              ),
-                          ],
+                                  valueStyle: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium
+                                      ?.copyWith(fontWeight: FontWeight.bold),
+                                  padding: EdgeInsets.zero,
+                                ),
+                            ],
+                          ),
                         ),
                       ),
                     // Service records list. "Nothing logged yet" and "your

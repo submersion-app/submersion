@@ -8,7 +8,8 @@ import 'package:flutter/widgets.dart';
 /// Built for the terrain pane: its docked control card sits in the pane's
 /// outer Stack while the source caption sits in the scene's inner Stack, and
 /// the caption has to stop short of a card whose width depends on how many
-/// actions the host seats in it.
+/// actions the host seats in it. The Connections canvas caption uses it the
+/// same way, so the overlays below it start where it ends.
 class SizeReporter extends SingleChildRenderObjectWidget {
   const SizeReporter({super.key, required this.onChange, super.child});
 

@@ -91,6 +91,22 @@ void main() {
     expect(find.byIcon(Icons.chevron_right), findsOneWidget);
   });
 
+  testWidgets('the summary and chevron sit beside the label (issue #3678)', (
+    tester,
+  ) async {
+    await pump(tester, active: 'me');
+
+    final labelRight = tester.getTopRight(find.text('Shared with')).dx;
+    final summary = find.text('Not shared');
+    expect(tester.getTopLeft(summary).dx, labelRight + 16);
+    expect(
+      tester.getTopLeft(find.byIcon(Icons.chevron_right)).dx,
+      tester.getTopRight(summary).dx + 4,
+    );
+    // The summary's box hugs its text rather than spanning to the far edge.
+    expect(tester.widget<Text>(summary).textAlign, isNot(TextAlign.end));
+  });
+
   testWidgets('the owner sees who it is shared with', (tester) async {
     await pump(
       tester,

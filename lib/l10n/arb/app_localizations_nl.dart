@@ -37,6 +37,66 @@ class AppLocalizationsNl extends AppLocalizations {
   String get connections_around_show => 'Tonen';
 
   @override
+  String get connections_caption_circle =>
+      'Een lijn verbindt twee buddy\'s die samen hebben gedoken.';
+
+  @override
+  String get connections_caption_where =>
+      'Een lijn betekent dat je met die buddy op die duikplek hebt gedoken.';
+
+  @override
+  String get connections_caption_trips =>
+      'Een lijn betekent dat die buddy mee was op die reis.';
+
+  @override
+  String get connections_caption_life =>
+      'Een lijn betekent dat je die soort op die duikplek hebt gezien.';
+
+  @override
+  String get connections_caption_gear =>
+      'Een lijn verbindt uitrusting die bij dezelfde duik is gebruikt.';
+
+  @override
+  String get connections_caption_centers =>
+      'Een lijn betekent dat je via dat duikcentrum met die buddy hebt gedoken.';
+
+  @override
+  String get connections_caption_travel =>
+      'Buddy\'s, reizen en duikplekken; een lijn betekent gedeelde duiken.';
+
+  @override
+  String get connections_caption_reef =>
+      'Duikplekken, zeeleven en duiktypen; een lijn betekent gedeelde duiken.';
+
+  @override
+  String get connections_caption_gearRoad =>
+      'Uitrusting, reizen en duikcentra; een lijn betekent gedeelde duiken.';
+
+  @override
+  String connections_caption_custom(String kinds) {
+    return '$kinds; een lijn betekent dat ze een duik delen.';
+  }
+
+  @override
+  String get connections_caption_kindSeparator => ', ';
+
+  @override
+  String connections_caption_around(int hops) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hops,
+      locale: localeName,
+      other:
+          'Alles binnen $hops stappen van dit middelpunt, verbonden door gedeelde duiken.',
+      one: 'Alles wat een duik deelt met dit middelpunt.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_caption_thicker =>
+      'Dikkere lijnen betekenen meer duiken.';
+
+  @override
   String get connections_editor_kinds => 'Soorten';
 
   @override
@@ -5162,6 +5222,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get connections_empty_sites => 'Nog geen duik heeft een duikplek.';
 
   @override
+  String get connections_empty_whereNoSites =>
+      'Nog geen van je duiken met een buddy heeft een duikplek. Voeg duikplekken toe aan die duiken om te zien waar jullie samen duiken.';
+
+  @override
   String get connections_empty_filtered =>
       'Niets komt overeen met het huidige filter.';
 
@@ -9960,6 +10024,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_tank_label_material => 'Materiaal';
 
   @override
+  String get diveLog_tank_label_mnd => 'MND';
+
+  @override
   String get diveLog_tank_label_n2 => 'N2';
 
   @override
@@ -9985,13 +10052,43 @@ class AppLocalizationsNl extends AppLocalizations {
       'Instellen op automatische He%-berekening';
 
   @override
-  String diveLog_tank_gasUsed(String amount) {
-    return '($amount gebruikt)';
+  String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd) {
+    return 'MOD: $mod (ppO₂ $ppO2) | MND: $mnd';
   }
 
   @override
-  String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd) {
-    return 'MOD: $mod (ppO₂ $ppO2) | MND: $mnd';
+  String get diveLog_cylinders_columnTank => 'Fles';
+
+  @override
+  String get diveLog_cylinders_columnGas => 'Gas';
+
+  @override
+  String get diveLog_cylinders_columnStart => 'Begin';
+
+  @override
+  String get diveLog_cylinders_columnEnd => 'Eind';
+
+  @override
+  String get diveLog_cylinders_columnUsed => 'Gebruikt';
+
+  @override
+  String diveLog_cylinders_gasUsed(String amount) {
+    return 'Gas gebruikt $amount';
+  }
+
+  @override
+  String diveLog_cylinders_mod(String depth) {
+    return 'MOD $depth';
+  }
+
+  @override
+  String diveLog_cylinders_mnd(String depth) {
+    return 'MND $depth';
+  }
+
+  @override
+  String diveLog_cylinders_modNote(String ppO2) {
+    return 'MOD bij ppO₂ $ppO2';
   }
 
   @override
@@ -19565,6 +19662,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get nav_media => 'Media';
 
   @override
+  String get nav_mediaDocumentsSubtitle => 'Foto\'s, video\'s en documenten';
+
+  @override
+  String get nav_photosVideos => 'Foto\'s/Video\'s';
+
+  @override
   String get nav_more => 'Meer';
 
   @override
@@ -20624,8 +20727,8 @@ class AppLocalizationsNl extends AppLocalizations {
       'Geen lood vastgelegd: voeg lood toe aan deze duik of een drooggewicht aan je loodmateriaal';
 
   @override
-  String get buoyancy_tankMaterialHint =>
-      'Geen flesmateriaal ingesteld: het drijfvermogen van de flessen is geschat. Stel per fles het materiaal in of kies een flesvoorinstelling';
+  String get buoyancy_tankMaterialAssumedHint =>
+      'Flesmateriaal niet ingesteld, dus is aluminium aangenomen: stel het materiaal in of kies een flessjabloon';
 
   @override
   String get buoyancy_chartNet => 'Netto';
@@ -22603,6 +22706,10 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_conflict_field_downloadsFollowComputerOwner =>
       'Downloads toevoegen aan de eigenaar van de computer';
+
+  @override
+  String get settings_conflict_field_omitUnusedOcGases =>
+      'Ongebruikte bailoutgassen overslaan';
 
   @override
   String get settings_conflict_field_avgSpeed => 'Gemiddelde snelheid';
@@ -24653,9 +24760,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get nav_documents => 'Documenten';
-
-  @override
-  String get documents_title => 'Documenten';
 
   @override
   String get documents_type_insurance => 'Verzekering';
@@ -30127,6 +30231,14 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_downloadsFollowOwner_subtitle =>
       'Hoort een duikcomputer bij een ander profiel, dan gaan de duiken naar het logboek van dat profiel. Je kunt dit wijzigen op het controlescherm.';
+
+  @override
+  String get settings_omitUnusedOcGases_title =>
+      'Ongebruikte bailoutgassen overslaan';
+
+  @override
+  String get settings_omitUnusedOcGases_subtitle =>
+      'Laat bij rebreatherdownloads en opnieuw inlezen een gas zonder zender weg dat nooit is geademd';
 
   @override
   String get tags_manage_searchHint => 'Tags zoeken...';

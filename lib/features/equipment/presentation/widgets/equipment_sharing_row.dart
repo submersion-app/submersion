@@ -7,6 +7,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 import 'package:submersion/features/equipment/presentation/providers/equipment_share_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/profile_checklist_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/detail_row/detail_row.dart';
 
 /// The item page's sharing rows (issue #2046), shown only when two or more
 /// profiles exist. The owner sees "Shared with" and taps it to change the
@@ -44,7 +45,7 @@ class EquipmentSharingRow extends ConsumerWidget {
         : Wrap(
             spacing: 4,
             runSpacing: 4,
-            alignment: WrapAlignment.end,
+            alignment: WrapAlignment.start,
             children: [
               for (final s in shares)
                 Chip(
@@ -91,20 +92,12 @@ class EquipmentSharingRow extends ConsumerWidget {
     bool chevron = false,
   }) {
     final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
+    return DetailRow(
+      label: label,
+      value: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            label,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Align(alignment: Alignment.centerRight, child: value),
-          ),
+          Flexible(child: value),
           if (chevron) ...[
             const SizedBox(width: 4),
             Icon(

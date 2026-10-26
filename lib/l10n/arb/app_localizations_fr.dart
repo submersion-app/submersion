@@ -37,6 +37,66 @@ class AppLocalizationsFr extends AppLocalizations {
   String get connections_around_show => 'Afficher';
 
   @override
+  String get connections_caption_circle =>
+      'Une ligne relie deux binômes qui ont plongé ensemble.';
+
+  @override
+  String get connections_caption_where =>
+      'Une ligne signifie que vous avez plongé sur ce site avec ce binôme.';
+
+  @override
+  String get connections_caption_trips =>
+      'Une ligne signifie que ce binôme était de ce voyage.';
+
+  @override
+  String get connections_caption_life =>
+      'Une ligne signifie que vous avez vu cette espèce sur ce site.';
+
+  @override
+  String get connections_caption_gear =>
+      'Une ligne relie l\'équipement utilisé lors d\'une même plongée.';
+
+  @override
+  String get connections_caption_centers =>
+      'Une ligne signifie que vous avez plongé avec ce binôme via ce centre.';
+
+  @override
+  String get connections_caption_travel =>
+      'Binômes, voyages et sites ; une ligne signifie des plongées en commun.';
+
+  @override
+  String get connections_caption_reef =>
+      'Sites, vie marine et types de plongée ; une ligne signifie des plongées en commun.';
+
+  @override
+  String get connections_caption_gearRoad =>
+      'Équipement, voyages et centres ; une ligne signifie des plongées en commun.';
+
+  @override
+  String connections_caption_custom(String kinds) {
+    return '$kinds ; une ligne signifie qu\'ils partagent une plongée.';
+  }
+
+  @override
+  String get connections_caption_kindSeparator => ', ';
+
+  @override
+  String connections_caption_around(int hops) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hops,
+      locale: localeName,
+      other:
+          'Tout ce qui se trouve à $hops pas au plus de l\'élément central, relié par des plongées en commun.',
+      one: 'Tout ce qui partage une plongée avec l\'élément central.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_caption_thicker =>
+      'Plus la ligne est épaisse, plus il y a de plongées.';
+
+  @override
   String get connections_editor_kinds => 'Types';
 
   @override
@@ -5201,6 +5261,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get connections_empty_sites => 'Aucune plongée n\'a encore de site.';
 
   @override
+  String get connections_empty_whereNoSites =>
+      'Aucune de vos plongées avec un binôme n\'a encore de site. Ajoutez des sites à ces plongées pour voir où vous plongez ensemble.';
+
+  @override
   String get connections_empty_filtered =>
       'Rien ne correspond au filtre actuel.';
 
@@ -10058,6 +10122,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_tank_label_material => 'Matériau';
 
   @override
+  String get diveLog_tank_label_mnd => 'MND';
+
+  @override
   String get diveLog_tank_label_n2 => 'N2';
 
   @override
@@ -10083,13 +10150,43 @@ class AppLocalizationsFr extends AppLocalizations {
       'Régler pour calculer automatiquement He%';
 
   @override
-  String diveLog_tank_gasUsed(String amount) {
-    return '($amount utilisés)';
+  String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd) {
+    return 'PMU : $mod (ppO₂ $ppO2) | PNM : $mnd';
   }
 
   @override
-  String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd) {
-    return 'PMU : $mod (ppO₂ $ppO2) | PNM : $mnd';
+  String get diveLog_cylinders_columnTank => 'Bloc';
+
+  @override
+  String get diveLog_cylinders_columnGas => 'Gaz';
+
+  @override
+  String get diveLog_cylinders_columnStart => 'Début';
+
+  @override
+  String get diveLog_cylinders_columnEnd => 'Fin';
+
+  @override
+  String get diveLog_cylinders_columnUsed => 'Utilisé';
+
+  @override
+  String diveLog_cylinders_gasUsed(String amount) {
+    return 'Gaz utilisé $amount';
+  }
+
+  @override
+  String diveLog_cylinders_mod(String depth) {
+    return 'PMU $depth';
+  }
+
+  @override
+  String diveLog_cylinders_mnd(String depth) {
+    return 'PNM $depth';
+  }
+
+  @override
+  String diveLog_cylinders_modNote(String ppO2) {
+    return 'PMU à ppO₂ $ppO2';
   }
 
   @override
@@ -19742,6 +19839,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get nav_media => 'Médias';
 
   @override
+  String get nav_mediaDocumentsSubtitle => 'Photos, vidéos et documents';
+
+  @override
+  String get nav_photosVideos => 'Photos/Vidéos';
+
+  @override
   String get nav_more => 'Plus';
 
   @override
@@ -20814,8 +20917,8 @@ class AppLocalizationsFr extends AppLocalizations {
       'Aucun lest enregistré : ajoutez du lest à cette plongée ou un poids à sec à votre équipement de lestage';
 
   @override
-  String get buoyancy_tankMaterialHint =>
-      'Aucun matériau de bloc indiqué : la flottabilité des blocs est estimée. Indiquez le matériau de chaque bloc ou choisissez un preset de bloc';
+  String get buoyancy_tankMaterialAssumedHint =>
+      'Matériau du bloc non défini, aluminium supposé : définissez le matériau ou choisissez un modèle de bloc';
 
   @override
   String get buoyancy_chartNet => 'Net';
@@ -22803,6 +22906,10 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settings_conflict_field_downloadsFollowComputerOwner =>
       'Ajouter les téléchargements au propriétaire de l\'ordinateur';
+
+  @override
+  String get settings_conflict_field_omitUnusedOcGases =>
+      'Ignorer les gaz de secours inutilisés';
 
   @override
   String get settings_conflict_field_avgSpeed => 'Vitesse moyenne';
@@ -24881,9 +24988,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get nav_documents => 'Documents';
-
-  @override
-  String get documents_title => 'Documents';
 
   @override
   String get documents_type_insurance => 'Assurance';
@@ -30429,6 +30533,14 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settings_downloadsFollowOwner_subtitle =>
       'Si un ordinateur de plongée appartient à un autre profil, ses plongées vont dans le carnet de ce profil. Vous pouvez le modifier sur l\'écran de vérification.';
+
+  @override
+  String get settings_omitUnusedOcGases_title =>
+      'Ignorer les gaz de secours inutilisés';
+
+  @override
+  String get settings_omitUnusedOcGases_subtitle =>
+      'Lors des téléchargements et réanalyses de recycleur, omet un gaz sans transmetteur qui n\'a jamais été respiré';
 
   @override
   String get tags_manage_searchHint => 'Rechercher des étiquettes...';

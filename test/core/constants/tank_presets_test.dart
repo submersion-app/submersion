@@ -169,10 +169,9 @@ void main() {
     test('resolves the AL40 tie to the plain cylinder, not the stage', () {
       // An AL40 and an AL40 Stage share volume, working pressure and cuft
       // rating, so specs alone cannot separate them. The documented tie-break
-      // is the order of TankPresets.all. Pinned here because a caller that
-      // reads the preset's identity rather than its cuft rating would
-      // otherwise change behaviour if the list were reordered. (Buoyancy
-      // resolves through matchAnyBySpecs, guarded in tank_catalog_test.)
+      // is the order of TankPresets.all. Pinned here because callers that use
+      // the result for anything beyond the cuft rating (buoyancy, notably)
+      // would otherwise change behaviour if the list were reordered.
       final match = TankPresets.matchBySpecs(5.7, 206.843);
       expect(match, isNotNull);
       expect(match!.name, 'al40');
@@ -195,21 +194,26 @@ void main() {
 
   group('matchAnyBySpecs', () {
     test('matches the metric steel presets that matchBySpecs skips', () {
-      // An imported 12 L / 200 bar cylinder with no preset or material: the
-      // usual European single, and half of a D12 twin.
-      expect(TankPresets.matchAnyBySpecs(10.0, 200.0)!.name, 'steel10');
-      expect(TankPresets.matchAnyBySpecs(12.0, 200.0)!.name, 'steel12');
-      expect(TankPresets.matchAnyBySpecs(15.0, 200.0)!.name, 'steel15');
+      // A 12 L / 200 bar cylinder imported without a material (#3686).
+      expect(TankPresets.matchAnyBySpecs(12.0, 200.0)?.name, 'steel12');
+      expect(TankPresets.matchAnyBySpecs(10.0, 200.0)?.name, 'steel10');
+      expect(TankPresets.matchAnyBySpecs(15.0, 200.0)?.name, 'steel15');
     });
 
-    test('resolves rated presets exactly as matchBySpecs does', () {
-      expect(TankPresets.matchAnyBySpecs(11.1, 207.0)!.name, 'al80');
-      expect(TankPresets.matchAnyBySpecs(12.9, 237.0)!.name, 'hp100');
-      expect(TankPresets.matchAnyBySpecs(5.7, 206.843)!.name, 'al40');
+    test('still matches rated presets, with the same tie-break', () {
+      expect(TankPresets.matchAnyBySpecs(11.1, 207.0)?.name, 'al80');
+      expect(TankPresets.matchAnyBySpecs(5.7, 206.843)?.name, 'al40');
     });
 
-    test('never matches across an explicit material', () {
-      // A 12 L aluminium cylinder must not borrow Steel 12L's numbers.
+    test('a known material must agree with the preset', () {
+      expect(
+        TankPresets.matchAnyBySpecs(
+          12.0,
+          200.0,
+          material: TankMaterial.steel,
+        )?.name,
+        'steel12',
+      );
       expect(
         TankPresets.matchAnyBySpecs(
           12.0,
@@ -219,21 +223,13 @@ void main() {
         isNull,
       );
       expect(
-        TankPresets.matchAnyBySpecs(
-          12.0,
-          200.0,
-          material: TankMaterial.steel,
-        )!.name,
-        'steel12',
-      );
-      expect(
         TankPresets.matchAnyBySpecs(11.1, 207.0, material: TankMaterial.steel),
         isNull,
       );
     });
 
     test('returns null for non-matching specs', () {
-      expect(TankPresets.matchAnyBySpecs(24.0, 200.0), isNull);
+      expect(TankPresets.matchAnyBySpecs(12.0, 232.0), isNull);
     });
   });
 }

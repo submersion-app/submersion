@@ -23,6 +23,15 @@ class TankSpec extends Equatable {
     this.material,
   });
 
+  /// Whether the model had to guess this tank's material (see
+  /// [BuoyancyPhysics.tankMaterialAssumed]).
+  bool get materialAssumed => BuoyancyPhysics.tankMaterialAssumed(
+    presetName: presetName,
+    volumeL: volumeL,
+    workingPressureBar: workingPressureBar,
+    material: material,
+  );
+
   @override
   List<Object?> get props => [
     presetName,
@@ -71,17 +80,6 @@ class RigSpec extends Equatable {
 
 /// Where a breakdown term's value came from.
 enum TermSource { measured, userSpec, typeDefault, physics, bodyComposition }
-
-/// The breakdown source for a tank term: physics when the tank's material is
-/// known, a default estimate when [BuoyancyPhysics.tankMaterialAssumed] had to
-/// guess it.
-TermSource tankTermSource({String? presetName, TankMaterial? material}) =>
-    BuoyancyPhysics.tankMaterialAssumed(
-      presetName: presetName,
-      material: material,
-    )
-    ? TermSource.typeDefault
-    : TermSource.physics;
 
 class PredictionTerm extends Equatable {
   final String label;
@@ -447,10 +445,10 @@ class FittedWeightModel {
             workingPressureBar: tank.workingPressureBar,
             material: tank.material,
           ),
-          source: tankTermSource(
-            presetName: tank.presetName,
-            material: tank.material,
-          ),
+          // A guessed material is an estimate, not physics (#3686).
+          source: tank.materialAssumed
+              ? TermSource.typeDefault
+              : TermSource.physics,
         ),
       );
     }

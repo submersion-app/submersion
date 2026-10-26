@@ -153,21 +153,23 @@ final List<NavDestination> kNavDestinations = List.unmodifiable([
     subtitle: (l10n) => l10n.nav_trainingSubtitle,
     accent: 'certifications',
   ),
-  // Media sits with Documents: both are reference collections a diver
-  // browses, rather than the logging sections at the top of the list.
+  // Media holds Photos/Videos and Documents as two tabs (#3631), the same
+  // way Training holds Certifications and Courses (#3437): both are
+  // reference collections a diver browses, rather than the logging sections
+  // at the top of the list, so they share one nav slot. The entry's own
+  // route is the Photos/Videos tab's address, not a new redirecting stub:
+  // nav selection scores `route` and `extraMatchPaths` as independent
+  // prefixes (see nav_selection.dart), so no stub is needed to highlight
+  // this entry from either tab's address.
   NavDestination(
-    id: 'media',
+    id: 'media-documents',
     route: '/media',
+    extraMatchPaths: ['/documents'],
     icon: Icons.photo_library_outlined,
     selectedIcon: Icons.photo_library,
     label: (l10n) => l10n.nav_media,
-  ),
-  NavDestination(
-    id: 'documents',
-    route: '/documents',
-    icon: Icons.folder_copy_outlined,
-    selectedIcon: Icons.folder_copy,
-    label: (l10n) => l10n.nav_documents,
+    subtitle: (l10n) => l10n.nav_mediaDocumentsSubtitle,
+    accent: 'media',
   ),
   // Species closes the logging-and-training run that precedes the analysis
   // surfaces: it is a record of what dives turned up, so it reads last before

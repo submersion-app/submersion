@@ -105,36 +105,34 @@ void main() {
       expect(lead.kg, closeTo(-6.0, 1e-9));
     });
 
-    test('a tank of known material is tagged physics', () {
+    test('a tank whose material is resolved is a physics term', () {
       final outputs = TwinAnalyzer.analyze(
         runBuoyancyTwin(input(profile: profileWithStop())),
       );
-      final term = outputs.verdict.terms.firstWhere((t) => t.label == 'AL80');
-      expect(term.source, TermSource.physics);
+      final tankTerm = outputs.verdict.terms.firstWhere(
+        (t) => t.label == 'AL80',
+      );
+      expect(tankTerm.source, TermSource.physics);
     });
 
-    test('a tank whose material is assumed is tagged a default estimate', () {
-      // No material and no catalog preset: the term rests on a guessed
-      // material, so the breakdown must not present it as physics.
-      final outputs = TwinAnalyzer.analyze(
-        runBuoyancyTwin(
-          input(
-            profile: profileWithStop(),
-            tanks: const [
-              TwinTankInput(
-                id: 't1',
-                label: 'tank',
-                volumeL: 24,
-                workingPressureBar: 200,
-                startPressureBar: 200,
-                endPressureBar: 50,
-              ),
-            ],
-          ),
-        ),
+    test('a tank whose material is assumed is a default estimate', () {
+      // #3686: no material, and specs that match no preset, so the model
+      // guesses. The breakdown must not present that guess as physics.
+      const unknown = TwinTankInput(
+        id: 't1',
+        label: 'Imported',
+        volumeL: 12.0,
+        workingPressureBar: 232.0,
+        startPressureBar: 200,
+        endPressureBar: 50,
       );
-      final term = outputs.verdict.terms.firstWhere((t) => t.label == 'tank');
-      expect(term.source, TermSource.typeDefault);
+      final outputs = TwinAnalyzer.analyze(
+        runBuoyancyTwin(input(profile: profileWithStop(), tanks: [unknown])),
+      );
+      final tankTerm = outputs.verdict.terms.firstWhere(
+        (t) => t.label == 'Imported',
+      );
+      expect(tankTerm.source, TermSource.typeDefault);
     });
   });
 

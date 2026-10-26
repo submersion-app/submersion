@@ -94,6 +94,25 @@ void main() {
     expect(prediction.totalKg, closeTo(8.52, 0.1));
   });
 
+  test('a tank term is physics only when its material is resolved', () {
+    // #3686: a tank with no material whose specs match no preset is
+    // guessed, so its term must not claim physics.
+    final model = fit(const []);
+    final prediction = model.predict(
+      const RigSpec(
+        gear: [suit, bcd],
+        tanks: [al80Spec, TankSpec(volumeL: 12.0, workingPressureBar: 232.0)],
+        waterType: WaterType.salt,
+        bodyWeightKg: 80,
+      ),
+    );
+    final tankSources = [
+      for (final t in prediction.terms)
+        if (t.label == 'al80' || t.label == 'tank') t.source,
+    ];
+    expect(tankSources, [TermSource.physics, TermSource.typeDefault]);
+  });
+
   test('20 consistent salt dives predict the carried weight, high '
       'confidence', () {
     final model = fit([for (var i = 0; i < 20; i++) obs(index: i)]);
@@ -235,19 +254,6 @@ void main() {
       prediction.terms.where((t) => t.source == TermSource.physics).length,
       2, // tank + water
     );
-  });
-
-  test('a rig tank whose material is assumed is a default estimate', () {
-    final prediction = fit(const []).predict(
-      const RigSpec(
-        gear: [suit],
-        tanks: [TankSpec(volumeL: 24, workingPressureBar: 200)],
-        waterType: WaterType.salt,
-        bodyWeightKg: 80,
-      ),
-    );
-    final tank = prediction.terms.firstWhere((t) => t.label == 'tank');
-    expect(tank.source, TermSource.typeDefault);
   });
 
   group('attribute-informed priors at the engine level', () {

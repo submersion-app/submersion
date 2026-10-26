@@ -67,10 +67,15 @@ class SectionTitleToggle extends StatelessWidget {
   static const double defaultTabHeight = 46;
 
   /// The tab height that leaves a subtitle line room in a standard 56px
-  /// toolbar: [heightFor] gives 40, and the entry count under it takes 16.
-  /// The phone app bar uses it, where the toolbar clips rather than grows
-  /// (issue #2776).
-  static const double compactTabHeight = 38;
+  /// toolbar: [heightFor] gives 36, [subtitleGap] takes 4 and the entry
+  /// count under it 16. The phone app bar uses it, where the toolbar clips
+  /// rather than grows (issue #2776).
+  static const double compactTabHeight = 34;
+
+  /// Space between the underline and a line under the switcher, such as the
+  /// entry count, which otherwise sits flush against the underline
+  /// (issue #3663).
+  static const double subtitleGap = 4;
 
   /// [TabBar]'s default, set here because it pads the bottom of every tab,
   /// so it counts toward the height.
@@ -93,6 +98,11 @@ class SectionTitleToggle extends StatelessWidget {
 
   /// Horizontal padding either side of each name, inside its tab.
   static const double labelPadding = 8;
+
+  /// An app bar's `titleSpacing` for a switcher title: with [labelPadding]
+  /// it puts the first name at the 16px every other app bar title sits at.
+  static const double appBarTitleSpacing =
+      NavigationToolbar.kMiddleSpacing - labelPadding;
 
   /// The icon and gap [FeatureAppBarTitle] puts in front of a title when the
   /// section-headers accent is on.

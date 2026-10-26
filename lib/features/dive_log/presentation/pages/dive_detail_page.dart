@@ -169,6 +169,8 @@ import 'package:submersion/features/documents/presentation/widgets/documents_sec
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/rules/presentation/run_rules_flow.dart';
 import 'package:submersion/features/rules/domain/rule_subject.dart';
+import 'package:submersion/shared/widgets/detail_row/detail_row_group.dart';
+import 'package:submersion/shared/widgets/detail_row/detail_row.dart';
 
 class DiveDetailPage extends ConsumerStatefulWidget {
   final String diveId;
@@ -3255,137 +3257,142 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              context.l10n.diveLog_detail_section_details,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const Divider(),
-            _buildDetailRow(
-              context,
-              context.l10n.diveLog_detail_label_diveType,
-              diveTypeLabels(
-                context.l10n,
-                dive.diveTypeIds,
-                typesById: {
-                  for (final t
-                      in ref.watch(diveTypesProvider).value ??
-                          const <DiveTypeEntity>[])
-                    t.id: t,
-                },
+        child: DetailRowGroup(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                context.l10n.diveLog_detail_section_details,
+                style: Theme.of(context).textTheme.titleMedium,
               ),
-            ),
-            _buildDetailRow(
-              context,
-              context.l10n.diveLog_diveMode_title,
-              diveModeLabel(context.l10n, dive.diveMode),
-            ),
-            if (dive.trip != null) _buildTripRow(context, dive),
-            if (dive.diveCenter != null) _buildDiveCenterRow(context, dive),
-            // Free text from the editor or a MacDive/UDDF import (#3229).
-            for (final (label, value) in [
-              (
-                context.l10n.diveLog_detail_label_diveOperator,
-                dive.diveOperator,
+              const Divider(),
+              _buildDetailRow(
+                context,
+                context.l10n.diveLog_detail_label_diveType,
+                diveTypeLabels(
+                  context.l10n,
+                  dive.diveTypeIds,
+                  typesById: {
+                    for (final t
+                        in ref.watch(diveTypesProvider).value ??
+                            const <DiveTypeEntity>[])
+                      t.id: t,
+                  },
+                ),
               ),
-              (context.l10n.diveLog_detail_label_boatName, dive.boatName),
-              (context.l10n.diveLog_detail_label_boatCaptain, dive.boatCaptain),
-            ])
-              if (trimmedOrNull(value) case final text?)
-                _buildDetailRow(context, label, text),
-            if (dive.courseIds.isNotEmpty) DiveCourseRows(diveId: dive.id),
-            if (formatDiveVisibility(
-                  meters: dive.visibilityMeters,
-                  range: dive.visibilityRange,
-                  legacy: dive.visibility,
-                  scale: ref.watch(settingsProvider).visibilityScale,
-                  l10n: context.l10n,
-                  units: units,
+              _buildDetailRow(
+                context,
+                context.l10n.diveLog_diveMode_title,
+                diveModeLabel(context.l10n, dive.diveMode),
+              ),
+              if (dive.trip != null) _buildTripRow(context, dive),
+              if (dive.diveCenter != null) _buildDiveCenterRow(context, dive),
+              // Free text from the editor or a MacDive/UDDF import (#3229).
+              for (final (label, value) in [
+                (
+                  context.l10n.diveLog_detail_label_diveOperator,
+                  dive.diveOperator,
+                ),
+                (context.l10n.diveLog_detail_label_boatName, dive.boatName),
+                (
+                  context.l10n.diveLog_detail_label_boatCaptain,
+                  dive.boatCaptain,
+                ),
+              ])
+                if (trimmedOrNull(value) case final text?)
+                  _buildDetailRow(context, label, text),
+              if (dive.courseIds.isNotEmpty) DiveCourseRows(diveId: dive.id),
+              if (formatDiveVisibility(
+                    meters: dive.visibilityMeters,
+                    range: dive.visibilityRange,
+                    legacy: dive.visibility,
+                    scale: ref.watch(settingsProvider).visibilityScale,
+                    l10n: context.l10n,
+                    units: units,
+                  )
+                  case final visibility?)
+                _buildDetailRow(
+                  context,
+                  context.l10n.diveLog_detail_label_visibility,
+                  visibility,
+                ),
+              if (dive.avgDepth != null)
+                _buildDetailRow(
+                  context,
+                  context.l10n.diveLog_detail_label_avgDepth,
+                  units.formatDepth(dive.avgDepth),
+                ),
+              // Effective, so a dive that never had a water type of its own
+              // still shows the one its site carries (issue #1427).
+              if (dive.effectiveWaterType != null)
+                _buildDetailRow(
+                  context,
+                  context.l10n.diveLog_detail_label_waterType,
+                  dive.effectiveWaterType!.localizedName(context.l10n),
+                ),
+              // A placeholder such as "None" is no one, as on the Buddies card.
+              if (showLegacyText && LegacyBuddyTextSection.hasBuddyText(dive))
+                _buildDetailRow(
+                  context,
+                  context.l10n.diveLog_detail_label_buddy,
+                  dive.buddy!.trim(),
+                ),
+              if (showLegacyText &&
+                  LegacyBuddyTextSection.hasDiveMasterText(dive))
+                _buildDetailRow(
+                  context,
+                  context.l10n.diveLog_detail_label_diveMaster,
+                  dive.diveMaster!.trim(),
+                ),
+              _buildGasConsumptionRows(context, ref, dive, units),
+              // Gradient factors (from dive computer)
+              if (dive.gradientFactorLow != null &&
+                  dive.gradientFactorHigh != null)
+                _buildDetailRow(
+                  context,
+                  context.l10n.diveLog_detail_label_gradientFactors,
+                  'GF ${dive.gradientFactorLow}/${dive.gradientFactorHigh}',
+                ),
+              // Dive computer info (from profile link or string fields)
+              ..._buildDiveComputerRows(
+                context,
+                ref,
+                dive,
+                activeComputerId: activeComputerId,
+              ),
+              // Surface interval - prefer imported value, fall back to calculated
+              if (dive.surfaceInterval != null)
+                Builder(
+                  builder: (context) {
+                    final intervalText = formatElapsed(
+                      context.l10n,
+                      dive.surfaceInterval!,
+                    );
+                    return _buildDetailRow(
+                      context,
+                      context.l10n.diveLog_detail_label_surfaceInterval,
+                      intervalText,
+                      sourceName: attribution?['surfaceInterval'],
+                    );
+                  },
                 )
-                case final visibility?)
-              _buildDetailRow(
-                context,
-                context.l10n.diveLog_detail_label_visibility,
-                visibility,
-              ),
-            if (dive.avgDepth != null)
-              _buildDetailRow(
-                context,
-                context.l10n.diveLog_detail_label_avgDepth,
-                units.formatDepth(dive.avgDepth),
-              ),
-            // Effective, so a dive that never had a water type of its own
-            // still shows the one its site carries (issue #1427).
-            if (dive.effectiveWaterType != null)
-              _buildDetailRow(
-                context,
-                context.l10n.diveLog_detail_label_waterType,
-                dive.effectiveWaterType!.localizedName(context.l10n),
-              ),
-            // A placeholder such as "None" is no one, as on the Buddies card.
-            if (showLegacyText && LegacyBuddyTextSection.hasBuddyText(dive))
-              _buildDetailRow(
-                context,
-                context.l10n.diveLog_detail_label_buddy,
-                dive.buddy!.trim(),
-              ),
-            if (showLegacyText &&
-                LegacyBuddyTextSection.hasDiveMasterText(dive))
-              _buildDetailRow(
-                context,
-                context.l10n.diveLog_detail_label_diveMaster,
-                dive.diveMaster!.trim(),
-              ),
-            _buildGasConsumptionRows(context, ref, dive, units),
-            // Gradient factors (from dive computer)
-            if (dive.gradientFactorLow != null &&
-                dive.gradientFactorHigh != null)
-              _buildDetailRow(
-                context,
-                context.l10n.diveLog_detail_label_gradientFactors,
-                'GF ${dive.gradientFactorLow}/${dive.gradientFactorHigh}',
-              ),
-            // Dive computer info (from profile link or string fields)
-            ..._buildDiveComputerRows(
-              context,
-              ref,
-              dive,
-              activeComputerId: activeComputerId,
-            ),
-            // Surface interval - prefer imported value, fall back to calculated
-            if (dive.surfaceInterval != null)
-              Builder(
-                builder: (context) {
-                  final intervalText = formatElapsed(
-                    context.l10n,
-                    dive.surfaceInterval!,
-                  );
-                  return _buildDetailRow(
-                    context,
-                    context.l10n.diveLog_detail_label_surfaceInterval,
-                    intervalText,
-                    sourceName: attribution?['surfaceInterval'],
-                  );
-                },
-              )
-            else
-              surfaceIntervalAsync.when(
-                data: (interval) {
-                  if (interval == null) return const SizedBox.shrink();
-                  final intervalText = formatElapsed(context.l10n, interval);
-                  return _buildDetailRow(
-                    context,
-                    context.l10n.diveLog_detail_label_surfaceInterval,
-                    intervalText,
-                    sourceName: attribution?['surfaceInterval'],
-                  );
-                },
-                loading: () => const SizedBox.shrink(),
-                error: (_, _) => const SizedBox.shrink(),
-              ),
-          ],
+              else
+                surfaceIntervalAsync.when(
+                  data: (interval) {
+                    if (interval == null) return const SizedBox.shrink();
+                    final intervalText = formatElapsed(context.l10n, interval);
+                    return _buildDetailRow(
+                      context,
+                      context.l10n.diveLog_detail_label_surfaceInterval,
+                      intervalText,
+                      sourceName: attribution?['surfaceInterval'],
+                    );
+                  },
+                  loading: () => const SizedBox.shrink(),
+                  error: (_, _) => const SizedBox.shrink(),
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -3500,171 +3507,173 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              context.l10n.diveLog_detail_section_environment,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const Divider(),
-            if (hasWeather) ...[
+        child: DetailRowGroup(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
               Text(
-                context.l10n.diveLog_detail_subsection_weather,
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: Theme.of(context).colorScheme.primary,
-                ),
+                context.l10n.diveLog_detail_section_environment,
+                style: Theme.of(context).textTheme.titleMedium,
               ),
-              const SizedBox(height: 8),
-              if (dive.airTemp != null)
-                _buildDetailRow(
-                  context,
-                  context.l10n.diveLog_detail_label_airTemp,
-                  units.formatTemperature(dive.airTemp),
+              const Divider(),
+              if (hasWeather) ...[
+                Text(
+                  context.l10n.diveLog_detail_subsection_weather,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
                 ),
-              if (dive.surfacePressure != null)
-                _buildDetailRow(
-                  context,
-                  context.l10n.diveLog_detail_label_surfacePressure,
-                  units.formatSurfacePressure(dive.surfacePressure),
+                const SizedBox(height: 8),
+                if (dive.airTemp != null)
+                  _buildDetailRow(
+                    context,
+                    context.l10n.diveLog_detail_label_airTemp,
+                    units.formatTemperature(dive.airTemp),
+                  ),
+                if (dive.surfacePressure != null)
+                  _buildDetailRow(
+                    context,
+                    context.l10n.diveLog_detail_label_surfacePressure,
+                    units.formatSurfacePressure(dive.surfacePressure),
+                  ),
+                if (dive.windSpeed != null)
+                  _buildDetailRow(
+                    context,
+                    context.l10n.diveLog_detail_label_windSpeed,
+                    units.formatWindSpeed(dive.windSpeed),
+                  ),
+                if (dive.windDirection != null)
+                  _buildDetailRow(
+                    context,
+                    context.l10n.diveLog_detail_label_windDirection,
+                    dive.windDirection!.localizedName(context.l10n),
+                  ),
+                if (dive.cloudCover != null)
+                  _buildDetailRow(
+                    context,
+                    context.l10n.diveLog_detail_label_cloudCover,
+                    dive.cloudCover!.localizedName(context.l10n),
+                  ),
+                if (dive.precipitation != null)
+                  _buildDetailRow(
+                    context,
+                    context.l10n.diveLog_detail_label_precipitation,
+                    dive.precipitation!.localizedName(context.l10n),
+                  ),
+                if (dive.humidity != null)
+                  _buildDetailRow(
+                    context,
+                    context.l10n.diveLog_detail_label_humidity,
+                    '${dive.humidity!.toStringAsFixed(0)}%',
+                  ),
+                // Rendered at display time so it follows the diver's locale and
+                // units. Text the diver typed or that arrived with an import is
+                // user data and is shown verbatim; the prose we used to generate
+                // for fetched weather is rebuilt from the structured fields.
+                Builder(
+                  builder: (context) {
+                    final description = buildLocalizedWeatherDescription(
+                      l10n: context.l10n,
+                      units: units,
+                      weatherCode: dive.weatherCode,
+                      cloudCover: dive.cloudCover,
+                      airTempCelsius: dive.airTemp,
+                      windSpeedMs: dive.windSpeed,
+                      windDirection: dive.windDirection,
+                      precipitation: dive.precipitation,
+                      storedDescription:
+                          dive.weatherSource == WeatherSource.openMeteo
+                          ? null
+                          : dive.weatherDescription,
+                    );
+                    if (description == null) return const SizedBox.shrink();
+                    return _buildDetailRow(
+                      context,
+                      context.l10n.diveLog_detail_label_weatherDescription,
+                      description,
+                    );
+                  },
                 ),
-              if (dive.windSpeed != null)
-                _buildDetailRow(
-                  context,
-                  context.l10n.diveLog_detail_label_windSpeed,
-                  units.formatWindSpeed(dive.windSpeed),
+                if (dive.weatherSource == WeatherSource.openMeteo)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(
+                      context.l10n.diveLog_detail_weatherSourceOpenMeteo,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ),
+              ],
+              if (hasWeather && hasDiveConditions) ...[
+                const SizedBox(height: 16),
+                const Divider(),
+              ],
+              if (hasDiveConditions) ...[
+                Text(
+                  context.l10n.diveLog_detail_subsection_diveConditions,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
                 ),
-              if (dive.windDirection != null)
-                _buildDetailRow(
-                  context,
-                  context.l10n.diveLog_detail_label_windDirection,
-                  dive.windDirection!.localizedName(context.l10n),
-                ),
-              if (dive.cloudCover != null)
-                _buildDetailRow(
-                  context,
-                  context.l10n.diveLog_detail_label_cloudCover,
-                  dive.cloudCover!.localizedName(context.l10n),
-                ),
-              if (dive.precipitation != null)
-                _buildDetailRow(
-                  context,
-                  context.l10n.diveLog_detail_label_precipitation,
-                  dive.precipitation!.localizedName(context.l10n),
-                ),
-              if (dive.humidity != null)
-                _buildDetailRow(
-                  context,
-                  context.l10n.diveLog_detail_label_humidity,
-                  '${dive.humidity!.toStringAsFixed(0)}%',
-                ),
-              // Rendered at display time so it follows the diver's locale and
-              // units. Text the diver typed or that arrived with an import is
-              // user data and is shown verbatim; the prose we used to generate
-              // for fetched weather is rebuilt from the structured fields.
-              Builder(
-                builder: (context) {
-                  final description = buildLocalizedWeatherDescription(
+                const SizedBox(height: 8),
+                if (dive.currentDirection != null)
+                  _buildDetailRow(
+                    context,
+                    context.l10n.diveLog_detail_label_currentDirection,
+                    dive.currentDirection!.localizedName(context.l10n),
+                  ),
+                if (dive.currentStrength != null)
+                  _buildDetailRow(
+                    context,
+                    context.l10n.diveLog_detail_label_currentStrength,
+                    dive.currentStrength!.localizedName(context.l10n),
+                  ),
+                if (dive.swellHeight != null)
+                  _buildDetailRow(
+                    context,
+                    context.l10n.diveLog_detail_label_swellHeight,
+                    units.formatDepth(dive.swellHeight, decimals: 1),
+                  ),
+                if (trimmedOrNull(dive.surfaceConditions) case final surface?)
+                  _buildDetailRow(
+                    context,
+                    context.l10n.diveLog_detail_label_surfaceConditions,
+                    surface,
+                  ),
+                // Effective, so a dive that never had an entry method of its
+                // own still shows the one its site carries (issue #1427).
+                if (dive.effectiveEntryMethod != null)
+                  _buildDetailRow(
+                    context,
+                    context.l10n.diveLog_detail_label_entryMethod,
+                    dive.effectiveEntryMethod!.localizedName(context.l10n),
+                  ),
+                if (dive.exitMethod != null)
+                  _buildDetailRow(
+                    context,
+                    context.l10n.diveLog_detail_label_exitMethod,
+                    dive.exitMethod!.localizedName(context.l10n),
+                  ),
+              ],
+              if ((hasWeather || hasDiveConditions) && satellite != null) ...[
+                const SizedBox(height: 16),
+                const Divider(),
+              ],
+              if (satellite != null)
+                EnvironmentWaterConditions(
+                  lines: buildWaterConditionsLines(
                     l10n: context.l10n,
                     units: units,
-                    weatherCode: dive.weatherCode,
-                    cloudCover: dive.cloudCover,
-                    airTempCelsius: dive.airTemp,
-                    windSpeedMs: dive.windSpeed,
-                    windDirection: dive.windDirection,
-                    precipitation: dive.precipitation,
-                    storedDescription:
-                        dive.weatherSource == WeatherSource.openMeteo
-                        ? null
-                        : dive.weatherDescription,
-                  );
-                  if (description == null) return const SizedBox.shrink();
-                  return _buildDetailRow(
-                    context,
-                    context.l10n.diveLog_detail_label_weatherDescription,
-                    description,
-                  );
-                },
-              ),
-              if (dive.weatherSource == WeatherSource.openMeteo)
-                Padding(
-                  padding: const EdgeInsets.only(top: 4),
-                  child: Text(
-                    context.l10n.diveLog_detail_weatherSourceOpenMeteo,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
-                      fontStyle: FontStyle.italic,
-                    ),
+                    health: satellite.health,
+                    reefPossible: satellite.reefPossible,
                   ),
                 ),
             ],
-            if (hasWeather && hasDiveConditions) ...[
-              const SizedBox(height: 16),
-              const Divider(),
-            ],
-            if (hasDiveConditions) ...[
-              Text(
-                context.l10n.diveLog_detail_subsection_diveConditions,
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-              ),
-              const SizedBox(height: 8),
-              if (dive.currentDirection != null)
-                _buildDetailRow(
-                  context,
-                  context.l10n.diveLog_detail_label_currentDirection,
-                  dive.currentDirection!.localizedName(context.l10n),
-                ),
-              if (dive.currentStrength != null)
-                _buildDetailRow(
-                  context,
-                  context.l10n.diveLog_detail_label_currentStrength,
-                  dive.currentStrength!.localizedName(context.l10n),
-                ),
-              if (dive.swellHeight != null)
-                _buildDetailRow(
-                  context,
-                  context.l10n.diveLog_detail_label_swellHeight,
-                  units.formatDepth(dive.swellHeight, decimals: 1),
-                ),
-              if (trimmedOrNull(dive.surfaceConditions) case final surface?)
-                _buildDetailRow(
-                  context,
-                  context.l10n.diveLog_detail_label_surfaceConditions,
-                  surface,
-                ),
-              // Effective, so a dive that never had an entry method of its
-              // own still shows the one its site carries (issue #1427).
-              if (dive.effectiveEntryMethod != null)
-                _buildDetailRow(
-                  context,
-                  context.l10n.diveLog_detail_label_entryMethod,
-                  dive.effectiveEntryMethod!.localizedName(context.l10n),
-                ),
-              if (dive.exitMethod != null)
-                _buildDetailRow(
-                  context,
-                  context.l10n.diveLog_detail_label_exitMethod,
-                  dive.exitMethod!.localizedName(context.l10n),
-                ),
-            ],
-            if ((hasWeather || hasDiveConditions) && satellite != null) ...[
-              const SizedBox(height: 16),
-              const Divider(),
-            ],
-            if (satellite != null)
-              EnvironmentWaterConditions(
-                lines: buildWaterConditionsLines(
-                  l10n: context.l10n,
-                  units: units,
-                  health: satellite.health,
-                  reefPossible: satellite.reefPossible,
-                ),
-              ),
-          ],
+          ),
         ),
       ),
     );
@@ -4061,59 +4070,57 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       },
       contentBuilder: (context) => Padding(
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Divider(),
-            // Tide cycle visualization
-            Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: TideCycleGraph(
-                record: record,
-                referenceTime: entryTime,
-                timeFormat: settings.timeFormat,
-                depthUnit: settings.depthUnit,
-                height: 80,
-              ),
-            ),
-            // Current state with icon
-            Row(
-              children: [
-                Icon(stateIcon, color: stateColor, size: 20),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: _buildDetailRow(
-                    context,
-                    context.l10n.diveLog_detail_label_state,
-                    record.tideState.localizedName(context.l10n),
-                  ),
+        child: DetailRowGroup(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Divider(),
+              // Tide cycle visualization
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: TideCycleGraph(
+                  record: record,
+                  referenceTime: entryTime,
+                  timeFormat: settings.timeFormat,
+                  depthUnit: settings.depthUnit,
+                  height: 80,
                 ),
-              ],
-            ),
-            _buildDetailRow(
-              context,
-              context.l10n.diveLog_detail_label_height,
-              '${DepthUnit.meters.convert(record.heightMeters, settings.depthUnit).toStringAsFixed(2)}${settings.depthUnit.symbol}',
-            ),
-            if (record.rateOfChange != null)
+              ),
+              // Current state, its icon in the label column so the value
+              // lines up with the rows below.
+              DetailRow.text(
+                icon: stateIcon,
+                iconColor: stateColor,
+                iconGap: 8,
+                label: context.l10n.diveLog_detail_label_state,
+                value: record.tideState.localizedName(context.l10n),
+                valueStyle: theme.textTheme.bodyMedium,
+              ),
               _buildDetailRow(
                 context,
-                context.l10n.diveLog_detail_label_rateOfChange,
-                UnitFormatter(settings).formatTideRate(record.rateOfChange),
+                context.l10n.diveLog_detail_label_height,
+                '${DepthUnit.meters.convert(record.heightMeters, settings.depthUnit).toStringAsFixed(2)}${settings.depthUnit.symbol}',
               ),
-            if (record.highTideTime != null && record.highTideHeight != null)
-              _buildDetailRow(
-                context,
-                context.l10n.diveLog_detail_label_highTide,
-                '${DepthUnit.meters.convert(record.highTideHeight!, settings.depthUnit).toStringAsFixed(2)}${settings.depthUnit.symbol} at ${_formatTime(record.highTideTime!, settings.timeFormat)}',
-              ),
-            if (record.lowTideTime != null && record.lowTideHeight != null)
-              _buildDetailRow(
-                context,
-                context.l10n.diveLog_detail_label_lowTide,
-                '${DepthUnit.meters.convert(record.lowTideHeight!, settings.depthUnit).toStringAsFixed(2)}${settings.depthUnit.symbol} at ${_formatTime(record.lowTideTime!, settings.timeFormat)}',
-              ),
-          ],
+              if (record.rateOfChange != null)
+                _buildDetailRow(
+                  context,
+                  context.l10n.diveLog_detail_label_rateOfChange,
+                  UnitFormatter(settings).formatTideRate(record.rateOfChange),
+                ),
+              if (record.highTideTime != null && record.highTideHeight != null)
+                _buildDetailRow(
+                  context,
+                  context.l10n.diveLog_detail_label_highTide,
+                  '${DepthUnit.meters.convert(record.highTideHeight!, settings.depthUnit).toStringAsFixed(2)}${settings.depthUnit.symbol} at ${_formatTime(record.highTideTime!, settings.timeFormat)}',
+                ),
+              if (record.lowTideTime != null && record.lowTideHeight != null)
+                _buildDetailRow(
+                  context,
+                  context.l10n.diveLog_detail_label_lowTide,
+                  '${DepthUnit.meters.convert(record.lowTideHeight!, settings.depthUnit).toStringAsFixed(2)}${settings.depthUnit.symbol} at ${_formatTime(record.lowTideTime!, settings.timeFormat)}',
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -4382,61 +4389,64 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       ),
       child: InkWell(
         onTap: () => context.push('/dive-computers/${computer.id}'),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                context.l10n.diveLog_detail_label_diveComputer,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-              ),
-              Flexible(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Flexible(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text(
-                            computer.displayName,
-                            style: Theme.of(context).textTheme.bodyMedium,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          if (computer.serialNumber != null &&
-                              computer.serialNumber!.isNotEmpty)
-                            Text(
-                              context.l10n.diveLog_detail_serialNumber(
-                                computer.serialNumber!,
-                              ),
-                              style: Theme.of(context).textTheme.bodySmall
-                                  ?.copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onSurfaceVariant,
-                                  ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    ExcludeSemantics(
-                      child: Icon(
-                        Icons.chevron_right,
-                        size: 16,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
+        child: _linkRowContent(
+          context,
+          label: context.l10n.diveLog_detail_label_diveComputer,
+          title: computer.displayName,
+          subtitle:
+              computer.serialNumber != null && computer.serialNumber!.isNotEmpty
+              ? context.l10n.diveLog_detail_serialNumber(computer.serialNumber!)
+              : null,
         ),
+      ),
+    );
+  }
+
+  /// A tappable Details row: the label, then the linked item's name (and an
+  /// optional second line) with a chevron right beside it.
+  Widget _linkRowContent(
+    BuildContext context, {
+    required String label,
+    required String title,
+    String? subtitle,
+  }) {
+    final theme = Theme.of(context);
+    return DetailRow(
+      label: label,
+      value: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Flexible(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: theme.textTheme.bodyMedium,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                if (subtitle != null)
+                  Text(
+                    subtitle,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 4),
+          ExcludeSemantics(
+            child: Icon(
+              Icons.chevron_right,
+              size: 16,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -4448,57 +4458,11 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       label: context.l10n.diveLog_detail_semantics_viewTrip(trip.name),
       child: InkWell(
         onTap: () => context.push('/trips/${trip.id}'),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                context.l10n.diveLog_edit_section_trip,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-              ),
-              Flexible(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Flexible(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text(
-                            trip.name,
-                            style: Theme.of(context).textTheme.bodyMedium,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          if (trip.subtitle != null)
-                            Text(
-                              trip.subtitle!,
-                              style: Theme.of(context).textTheme.bodySmall
-                                  ?.copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onSurfaceVariant,
-                                  ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    ExcludeSemantics(
-                      child: Icon(
-                        Icons.chevron_right,
-                        size: 16,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
+        child: _linkRowContent(
+          context,
+          label: context.l10n.diveLog_edit_section_trip,
+          title: trip.name,
+          subtitle: trip.subtitle,
         ),
       ),
     );
@@ -4512,35 +4476,10 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       ),
       child: InkWell(
         onTap: () => context.push('/dive-centers/${dive.diveCenter!.id}'),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                context.l10n.diveLog_edit_section_diveCenter,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-              ),
-              Row(
-                children: [
-                  Text(
-                    dive.diveCenter!.name,
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                  const SizedBox(width: 4),
-                  ExcludeSemantics(
-                    child: Icon(
-                      Icons.chevron_right,
-                      size: 16,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
+        child: _linkRowContent(
+          context,
+          label: context.l10n.diveLog_edit_section_diveCenter,
+          title: dive.diveCenter!.name,
         ),
       ),
     );

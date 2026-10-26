@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/shared/models/subtitle_text.dart';
 
 /// Where a list's header title is being shown.
@@ -27,6 +28,7 @@ class SectionHeaderTitle {
     required this.build,
     required this.appBarHeight,
     this.paneTitleWidth,
+    this.titleTextInset,
     this.appBarPin,
   });
 
@@ -47,6 +49,11 @@ class SectionHeaderTitle {
   /// icons on one row when both fit. Null always gives the icons a row of
   /// their own.
   final double Function(BuildContext context)? paneTitleWidth;
+
+  /// How far in from the title's leading edge its first word's text starts,
+  /// for a row under the title that lines up with it (Media's section tabs,
+  /// #3631). Null when the text starts at the edge.
+  final double Function(BuildContext context, WidgetRef ref)? titleTextInset;
 
   /// Wraps the phone app bar so a host that slides the list sideways can
   /// hold the bar still, as Training's tabs do. Null leaves it as it is.

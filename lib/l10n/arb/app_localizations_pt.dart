@@ -37,6 +37,66 @@ class AppLocalizationsPt extends AppLocalizations {
   String get connections_around_show => 'Mostrar';
 
   @override
+  String get connections_caption_circle =>
+      'Uma linha liga dois parceiros que mergulharam juntos.';
+
+  @override
+  String get connections_caption_where =>
+      'Uma linha indica que você mergulhou nesse local com esse parceiro.';
+
+  @override
+  String get connections_caption_trips =>
+      'Uma linha indica que esse parceiro estava nessa viagem.';
+
+  @override
+  String get connections_caption_life =>
+      'Uma linha indica que você viu essa espécie nesse local.';
+
+  @override
+  String get connections_caption_gear =>
+      'Uma linha liga equipamentos usados no mesmo mergulho.';
+
+  @override
+  String get connections_caption_centers =>
+      'Uma linha indica que você mergulhou com esse parceiro por esse centro.';
+
+  @override
+  String get connections_caption_travel =>
+      'Parceiros, viagens e locais; uma linha indica mergulhos em comum.';
+
+  @override
+  String get connections_caption_reef =>
+      'Locais, vida marinha e tipos de mergulho; uma linha indica mergulhos em comum.';
+
+  @override
+  String get connections_caption_gearRoad =>
+      'Equipamento, viagens e centros; uma linha indica mergulhos em comum.';
+
+  @override
+  String connections_caption_custom(String kinds) {
+    return '$kinds; uma linha indica que compartilham um mergulho.';
+  }
+
+  @override
+  String get connections_caption_kindSeparator => ', ';
+
+  @override
+  String connections_caption_around(int hops) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hops,
+      locale: localeName,
+      other:
+          'Tudo a até $hops passos do elemento central, ligado por mergulhos em comum.',
+      one: 'Tudo o que compartilha um mergulho com o elemento central.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_caption_thicker =>
+      'Linhas mais grossas indicam mais mergulhos.';
+
+  @override
   String get connections_editor_kinds => 'Tipos';
 
   @override
@@ -5190,6 +5250,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get connections_empty_sites => 'Nenhum mergulho tem ainda um local.';
 
   @override
+  String get connections_empty_whereNoSites =>
+      'Nenhum dos seus mergulhos com um parceiro tem local ainda. Adicione locais a esses mergulhos para ver onde vocês mergulham juntos.';
+
+  @override
   String get connections_empty_filtered => 'Nada corresponde ao filtro atual.';
 
   @override
@@ -10021,6 +10085,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_tank_label_material => 'Material';
 
   @override
+  String get diveLog_tank_label_mnd => 'MND';
+
+  @override
   String get diveLog_tank_label_n2 => 'N2';
 
   @override
@@ -10046,13 +10113,43 @@ class AppLocalizationsPt extends AppLocalizations {
       'Configurar para calcular He% automaticamente';
 
   @override
-  String diveLog_tank_gasUsed(String amount) {
-    return '($amount usados)';
+  String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd) {
+    return 'MOD: $mod (ppO₂ $ppO2) | MND: $mnd';
   }
 
   @override
-  String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd) {
-    return 'MOD: $mod (ppO₂ $ppO2) | MND: $mnd';
+  String get diveLog_cylinders_columnTank => 'Cilindro';
+
+  @override
+  String get diveLog_cylinders_columnGas => 'Gás';
+
+  @override
+  String get diveLog_cylinders_columnStart => 'Início';
+
+  @override
+  String get diveLog_cylinders_columnEnd => 'Fim';
+
+  @override
+  String get diveLog_cylinders_columnUsed => 'Usado';
+
+  @override
+  String diveLog_cylinders_gasUsed(String amount) {
+    return 'Gás usado $amount';
+  }
+
+  @override
+  String diveLog_cylinders_mod(String depth) {
+    return 'MOD $depth';
+  }
+
+  @override
+  String diveLog_cylinders_mnd(String depth) {
+    return 'MND $depth';
+  }
+
+  @override
+  String diveLog_cylinders_modNote(String ppO2) {
+    return 'MOD a ppO₂ $ppO2';
   }
 
   @override
@@ -19689,6 +19786,12 @@ class AppLocalizationsPt extends AppLocalizations {
   String get nav_media => 'Mídia';
 
   @override
+  String get nav_mediaDocumentsSubtitle => 'Fotos, vídeos e documentos';
+
+  @override
+  String get nav_photosVideos => 'Fotos/Vídeos';
+
+  @override
   String get nav_more => 'Mais';
 
   @override
@@ -20756,8 +20859,8 @@ class AppLocalizationsPt extends AppLocalizations {
       'Nenhum lastro registado: adicione lastro a este mergulho ou um peso seco ao seu equipamento de lastro';
 
   @override
-  String get buoyancy_tankMaterialHint =>
-      'Nenhum material de cilindro definido: a flutuabilidade dos cilindros é estimada. Defina o material de cada cilindro ou escolha um preset do cilindro';
+  String get buoyancy_tankMaterialAssumedHint =>
+      'Material do cilindro não definido, por isso assumiu-se alumínio: defina o material ou escolha um modelo de cilindro';
 
   @override
   String get buoyancy_chartNet => 'Líquido';
@@ -22741,6 +22844,10 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_conflict_field_downloadsFollowComputerOwner =>
       'Adicionar downloads ao dono do computador';
+
+  @override
+  String get settings_conflict_field_omitUnusedOcGases =>
+      'Ignorar gases de bailout não usados';
 
   @override
   String get settings_conflict_field_avgSpeed => 'Velocidade média';
@@ -24806,9 +24913,6 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get nav_documents => 'Documentos';
-
-  @override
-  String get documents_title => 'Documentos';
 
   @override
   String get documents_type_insurance => 'Seguro';
@@ -30325,6 +30429,14 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_downloadsFollowOwner_subtitle =>
       'Quando um computador de mergulho pertence a outro perfil, os mergulhos dele vão para o registro desse perfil. Você pode mudar isso na tela de revisão.';
+
+  @override
+  String get settings_omitUnusedOcGases_title =>
+      'Ignorar gases de bailout não usados';
+
+  @override
+  String get settings_omitUnusedOcGases_subtitle =>
+      'Nos downloads e reprocessamentos de rebreather, omite um gás sem transmissor que nunca foi respirado';
 
   @override
   String get tags_manage_searchHint => 'Buscar etiquetas...';

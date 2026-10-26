@@ -70,6 +70,8 @@ import 'package:submersion/features/shared_library/presentation/providers/shared
 import 'package:submersion/features/shared_library/presentation/widgets/library_picker_dialog.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/site_edit_history_sheet.dart';
 import 'package:submersion/shared/widgets/shared_items/item_sharing_row.dart';
+import 'package:submersion/shared/widgets/detail_row/detail_row_group.dart';
+import 'package:submersion/shared/widgets/detail_row/detail_row.dart';
 
 class SiteDetailPage extends ConsumerStatefulWidget {
   final String siteId;
@@ -1172,91 +1174,93 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
     return Card(
       child: Padding(
         padding: _cardPadding,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.map, size: 20, color: colorScheme.primary),
-                const SizedBox(width: 8),
-                Text(
-                  context.l10n.diveSites_detail_section_location,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            _buildDetailRow(
-              context,
-              Icons.flag,
-              context.l10n.diveSites_detail_location_country,
-              site.country?.isNotEmpty == true
-                  ? site.country!
-                  : context.l10n.diveSites_detail_location_notSet,
-              isEmpty: site.country?.isNotEmpty != true,
-            ),
-            _buildDetailRow(
-              context,
-              Icons.place,
-              context.l10n.diveSites_detail_location_region,
-              site.region?.isNotEmpty == true
-                  ? site.region!
-                  : context.l10n.diveSites_detail_location_notSet,
-              isEmpty: site.region?.isNotEmpty != true,
-            ),
-            _buildDetailRow(
-              context,
-              Icons.location_city,
-              context.l10n.diveSites_detail_location_city,
-              site.city?.isNotEmpty == true
-                  ? site.city!
-                  : context.l10n.diveSites_detail_location_notSet,
-              isEmpty: site.city?.isNotEmpty != true,
-            ),
-            _buildDetailRow(
-              context,
-              Icons.landscape,
-              context.l10n.diveSites_detail_location_island,
-              site.island?.isNotEmpty == true
-                  ? site.island!
-                  : context.l10n.diveSites_detail_location_notSet,
-              isEmpty: site.island?.isNotEmpty != true,
-            ),
-            _buildDetailRow(
-              context,
-              Icons.waves,
-              context.l10n.diveSites_detail_location_bodyOfWater,
-              site.bodyOfWater?.isNotEmpty == true
-                  ? site.bodyOfWater!
-                  : context.l10n.diveSites_detail_location_notSet,
-              isEmpty: site.bodyOfWater?.isNotEmpty != true,
-            ),
-            // What kind of place this is (issue #1765), beside the body of
-            // water it overlaps with: "Lake, Wreck".
-            _buildSiteTypesRow(context, ref, site),
-            _buildDetailRow(
-              context,
-              Icons.gps_fixed,
-              context.l10n.diveSites_detail_location_gpsCoordinates,
-              site.hasCoordinates
-                  ? coordinates
-                  : context.l10n.diveSites_detail_location_notSet,
-              isEmpty: !site.hasCoordinates,
-              onTap: site.hasCoordinates
-                  ? () {
-                      Clipboard.setData(ClipboardData(text: coordinates));
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            context.l10n.diveSites_detail_coordinatesCopied,
+        child: DetailRowGroup(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.map, size: 20, color: colorScheme.primary),
+                  const SizedBox(width: 8),
+                  Text(
+                    context.l10n.diveSites_detail_section_location,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              _buildDetailRow(
+                context,
+                Icons.flag,
+                context.l10n.diveSites_detail_location_country,
+                site.country?.isNotEmpty == true
+                    ? site.country!
+                    : context.l10n.diveSites_detail_location_notSet,
+                isEmpty: site.country?.isNotEmpty != true,
+              ),
+              _buildDetailRow(
+                context,
+                Icons.place,
+                context.l10n.diveSites_detail_location_region,
+                site.region?.isNotEmpty == true
+                    ? site.region!
+                    : context.l10n.diveSites_detail_location_notSet,
+                isEmpty: site.region?.isNotEmpty != true,
+              ),
+              _buildDetailRow(
+                context,
+                Icons.location_city,
+                context.l10n.diveSites_detail_location_city,
+                site.city?.isNotEmpty == true
+                    ? site.city!
+                    : context.l10n.diveSites_detail_location_notSet,
+                isEmpty: site.city?.isNotEmpty != true,
+              ),
+              _buildDetailRow(
+                context,
+                Icons.landscape,
+                context.l10n.diveSites_detail_location_island,
+                site.island?.isNotEmpty == true
+                    ? site.island!
+                    : context.l10n.diveSites_detail_location_notSet,
+                isEmpty: site.island?.isNotEmpty != true,
+              ),
+              _buildDetailRow(
+                context,
+                Icons.waves,
+                context.l10n.diveSites_detail_location_bodyOfWater,
+                site.bodyOfWater?.isNotEmpty == true
+                    ? site.bodyOfWater!
+                    : context.l10n.diveSites_detail_location_notSet,
+                isEmpty: site.bodyOfWater?.isNotEmpty != true,
+              ),
+              // What kind of place this is (issue #1765), beside the body of
+              // water it overlaps with: "Lake, Wreck".
+              _buildSiteTypesRow(context, ref, site),
+              _buildDetailRow(
+                context,
+                Icons.gps_fixed,
+                context.l10n.diveSites_detail_location_gpsCoordinates,
+                site.hasCoordinates
+                    ? coordinates
+                    : context.l10n.diveSites_detail_location_notSet,
+                isEmpty: !site.hasCoordinates,
+                onTap: site.hasCoordinates
+                    ? () {
+                        Clipboard.setData(ClipboardData(text: coordinates));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              context.l10n.diveSites_detail_coordinatesCopied,
+                            ),
+                            duration: const Duration(seconds: 2),
                           ),
-                          duration: const Duration(seconds: 2),
-                        ),
-                      );
-                    }
-                  : null,
-            ),
-          ],
+                        );
+                      }
+                    : null,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -1301,33 +1305,25 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
   }) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    // Label and value share one line rather than stacking. Both halves are
-    // flexible and the value may run to a second line before it ellipsizes,
-    // so a long value (a coordinate pair, a wrapped place name) degrades
-    // instead of overflowing.
-    final content = Padding(
+    // The value sits beside the label, on the card's label column (issue
+    // #3678), and may run to a second line before it ellipsizes, so a long
+    // value (a coordinate pair, a wrapped place name) degrades instead of
+    // overflowing.
+    final content = DetailRow(
+      icon: icon,
+      iconSize: 18,
+      iconColor: colorScheme.onSurfaceVariant,
+      label: label,
+      labelStyle: Theme.of(
+        context,
+      ).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
       padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      value: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Padding(
-            padding: const EdgeInsets.only(top: 2),
-            child: Icon(icon, size: 18, color: colorScheme.onSurfaceVariant),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              label,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
           Flexible(
             child: Text(
               value,
-              textAlign: TextAlign.end,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -1423,127 +1419,137 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
     return Card(
       child: Padding(
         padding: _cardPadding,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(
-                  Icons.arrow_downward,
-                  size: 20,
-                  color: colorScheme.primary,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  context.l10n.diveSites_detail_section_depthRange,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            if (!hasDepthInfo)
-              Center(
-                child: Text(
-                  context.l10n.diveSites_detail_noDepthInfo,
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
-              )
-            else
+        child: DetailRowGroup(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
               Row(
                 children: [
-                  if (hasMinDepth)
-                    Expanded(
-                      child: Column(
-                        children: [
-                          Text(
-                            context.l10n.diveSites_detail_depth_minimum,
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(color: colorScheme.onSurfaceVariant),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            '${formatPrimary(site.minDepth!)} $primarySymbol',
-                            style: Theme.of(context).textTheme.headlineSmall
-                                ?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: colorScheme.secondary,
-                                ),
-                          ),
-                          Text(
-                            '${formatSecondary(site.minDepth!)} $secondarySymbol',
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(color: colorScheme.onSurfaceVariant),
-                          ),
-                        ],
-                      ),
-                    ),
-                  if (hasMinDepth && hasMaxDepth)
-                    Container(
-                      height: 60,
-                      width: 1,
-                      color: colorScheme.outlineVariant,
-                    ),
-                  if (hasMaxDepth)
-                    Expanded(
-                      child: Column(
-                        children: [
-                          Text(
-                            context.l10n.diveSites_detail_depth_maximum,
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(color: colorScheme.onSurfaceVariant),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            '${formatPrimary(site.maxDepth!)} $primarySymbol',
-                            style: Theme.of(context).textTheme.headlineSmall
-                                ?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: colorScheme.primary,
-                                ),
-                          ),
-                          Text(
-                            '${formatSecondary(site.maxDepth!)} $secondarySymbol',
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(color: colorScheme.onSurfaceVariant),
-                          ),
-                        ],
-                      ),
-                    ),
+                  Icon(
+                    Icons.arrow_downward,
+                    size: 20,
+                    color: colorScheme.primary,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    context.l10n.diveSites_detail_section_depthRange,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
                 ],
               ),
-            if (hasReachedDepths) ...[
-              const Divider(height: 24),
-              Text(
-                context.l10n.diveSites_detail_depth_reachedHeading,
-                style: Theme.of(
+              const SizedBox(height: 12),
+              if (!hasDepthInfo)
+                Center(
+                  child: Text(
+                    context.l10n.diveSites_detail_noDepthInfo,
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                )
+              else
+                Row(
+                  children: [
+                    if (hasMinDepth)
+                      Expanded(
+                        child: Column(
+                          children: [
+                            Text(
+                              context.l10n.diveSites_detail_depth_minimum,
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              '${formatPrimary(site.minDepth!)} $primarySymbol',
+                              style: Theme.of(context).textTheme.headlineSmall
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: colorScheme.secondary,
+                                  ),
+                            ),
+                            Text(
+                              '${formatSecondary(site.minDepth!)} $secondarySymbol',
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    if (hasMinDepth && hasMaxDepth)
+                      Container(
+                        height: 60,
+                        width: 1,
+                        color: colorScheme.outlineVariant,
+                      ),
+                    if (hasMaxDepth)
+                      Expanded(
+                        child: Column(
+                          children: [
+                            Text(
+                              context.l10n.diveSites_detail_depth_maximum,
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              '${formatPrimary(site.maxDepth!)} $primarySymbol',
+                              style: Theme.of(context).textTheme.headlineSmall
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: colorScheme.primary,
+                                  ),
+                            ),
+                            Text(
+                              '${formatSecondary(site.maxDepth!)} $secondarySymbol',
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+              if (hasReachedDepths) ...[
+                const Divider(height: 24),
+                Text(
+                  context.l10n.diveSites_detail_depth_reachedHeading,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.labelLarge?.copyWith(color: colorScheme.primary),
+                ),
+                _buildStatRow(
                   context,
-                ).textTheme.labelLarge?.copyWith(color: colorScheme.primary),
-              ),
-              _buildStatRow(
-                context,
-                Icons.arrow_downward,
-                context.l10n.diveSites_detail_stats_maxDepth,
-                stats.maxDepthReached == null
-                    ? context.l10n.diveSites_detail_stats_notAvailable
-                    : units.formatDepth(stats.maxDepthReached),
-                isEmpty: stats.maxDepthReached == null,
-                diveId: stats.deepestDiveId,
-              ),
-              _buildStatRow(
-                context,
-                Icons.arrow_upward,
-                context.l10n.diveSites_detail_stats_minDepth,
-                stats.minDepthReached == null
-                    ? context.l10n.diveSites_detail_stats_notAvailable
-                    : units.formatDepth(stats.minDepthReached),
-                isEmpty: stats.minDepthReached == null,
-                diveId: stats.shallowestDiveId,
-              ),
+                  Icons.arrow_downward,
+                  context.l10n.diveSites_detail_stats_maxDepth,
+                  stats.maxDepthReached == null
+                      ? context.l10n.diveSites_detail_stats_notAvailable
+                      : units.formatDepth(stats.maxDepthReached),
+                  isEmpty: stats.maxDepthReached == null,
+                  diveId: stats.deepestDiveId,
+                ),
+                _buildStatRow(
+                  context,
+                  Icons.arrow_upward,
+                  context.l10n.diveSites_detail_stats_minDepth,
+                  stats.minDepthReached == null
+                      ? context.l10n.diveSites_detail_stats_notAvailable
+                      : units.formatDepth(stats.minDepthReached),
+                  isEmpty: stats.minDepthReached == null,
+                  diveId: stats.shallowestDiveId,
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );
@@ -1629,47 +1635,53 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
     Widget shell(List<Widget> statisticsRows) => Card(
       child: Padding(
         padding: _cardPadding,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.scuba_diving, size: 20, color: colorScheme.primary),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    context.l10n.diveSites_detail_section_divesAtSite,
-                    style: Theme.of(context).textTheme.titleMedium,
+        child: DetailRowGroup(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.scuba_diving,
+                    size: 20,
+                    color: colorScheme.primary,
                   ),
-                ),
-                // Career terrain is built from the dives at this site, so it
-                // belongs to this card rather than the page chrome.
-                // Unconditional, as it was in the app bar: it draws from dive
-                // profiles, not site coordinates.
-                IconButton(
-                  key: const ValueKey('siteCareerTerrainButton'),
-                  icon: const Icon(Icons.view_in_ar),
-                  tooltip: context.l10n.dive3d_career_title,
-                  visualDensity: VisualDensity.compact,
-                  onPressed: () => Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => CareerTerrainPage(
-                        query: careerSiteQuery(site.id),
-                        title: site.name,
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      context.l10n.diveSites_detail_section_divesAtSite,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                  ),
+                  // Career terrain is built from the dives at this site, so it
+                  // belongs to this card rather than the page chrome.
+                  // Unconditional, as it was in the app bar: it draws from dive
+                  // profiles, not site coordinates.
+                  IconButton(
+                    key: const ValueKey('siteCareerTerrainButton'),
+                    icon: const Icon(Icons.view_in_ar),
+                    tooltip: context.l10n.dive3d_career_title,
+                    visualDensity: VisualDensity.compact,
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => CareerTerrainPage(
+                          query: careerSiteQuery(site.id),
+                          title: site.name,
+                        ),
                       ),
                     ),
                   ),
-                ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              countLine(),
+              ...statisticsRows,
+              if ((totalDiveCount ?? 0) > 0) ...[
+                const Divider(height: 16),
+                footer(),
               ],
-            ),
-            const SizedBox(height: 8),
-            countLine(),
-            ...statisticsRows,
-            if ((totalDiveCount ?? 0) > 0) ...[
-              const Divider(height: 16),
-              footer(),
             ],
-          ],
+          ),
         ),
       ),
     );

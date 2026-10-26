@@ -23,6 +23,7 @@ import 'package:submersion/features/certification_agencies/presentation/provider
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 import 'package:submersion/features/documents/presentation/widgets/documents_section.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
+import 'package:submersion/shared/widgets/detail_row/detail_row_group.dart';
 
 class CertificationDetailPage extends ConsumerStatefulWidget {
   final String certificationId;
@@ -518,72 +519,75 @@ class _CertificationDetailContent extends ConsumerWidget {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              context.l10n.certifications_detail_sectionTitle_details,
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            // Only shown when the stored name says something the agency and
-            // certification rows do not already say.
-            if (customNameOrNull(
-                  certification,
-                  catalog: context.certificationCatalog,
-                ) !=
-                null)
-              IconDetailRow(
-                icon: Icons.card_membership,
-                label: context.l10n.certifications_detail_label_title,
-                value: customNameOrNull(
-                  certification,
-                  catalog: context.certificationCatalog,
-                )!,
+        child: DetailRowGroup(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                context.l10n.certifications_detail_sectionTitle_details,
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
               ),
-            IconDetailRow(
-              icon: Icons.business,
-              label: context.l10n.certifications_detail_label_agency,
-              value: context.certificationCatalog
-                  .agency(certification.agency)
-                  .localizedName(context.l10n),
-            ),
-            if (certification.level != null)
+              const SizedBox(height: 12),
+              // Only shown when the stored name says something the agency and
+              // certification rows do not already say.
+              if (customNameOrNull(
+                    certification,
+                    catalog: context.certificationCatalog,
+                  ) !=
+                  null)
+                IconDetailRow(
+                  icon: Icons.card_membership,
+                  label: context.l10n.certifications_detail_label_title,
+                  value: customNameOrNull(
+                    certification,
+                    catalog: context.certificationCatalog,
+                  )!,
+                ),
               IconDetailRow(
-                icon: Icons.workspace_premium,
-                label: context.l10n.certifications_detail_label_certification,
+                icon: Icons.business,
+                label: context.l10n.certifications_detail_label_agency,
                 value: context.certificationCatalog
-                    .level(certification.level!)
+                    .agency(certification.agency)
                     .localizedName(context.l10n),
               ),
-            if (certification.hasMultipleCredentials)
-              IconDetailRow(
-                icon: Icons.workspace_premium_outlined,
-                label: context.l10n.certifications_detail_label_alsoRecognized,
-                value: certification.additionalCredentials
-                    .map((c) {
-                      final a = context.certificationCatalog
-                          .agency(c.agency)
-                          .localizedName(context.l10n);
-                      final level = c.level;
-                      final l = level == null
-                          ? null
-                          : context.certificationCatalog
-                                .level(level)
-                                .localizedName(context.l10n);
-                      return l == null ? a : '$a $l';
-                    })
-                    .join(' · '),
-              ),
-            if (certification.cardNumber != null)
-              IconDetailRow(
-                icon: Icons.numbers,
-                label: context.l10n.certifications_detail_label_cardNumber,
-                value: certification.cardNumber!,
-              ),
-          ],
+              if (certification.level != null)
+                IconDetailRow(
+                  icon: Icons.workspace_premium,
+                  label: context.l10n.certifications_detail_label_certification,
+                  value: context.certificationCatalog
+                      .level(certification.level!)
+                      .localizedName(context.l10n),
+                ),
+              if (certification.hasMultipleCredentials)
+                IconDetailRow(
+                  icon: Icons.workspace_premium_outlined,
+                  label:
+                      context.l10n.certifications_detail_label_alsoRecognized,
+                  value: certification.additionalCredentials
+                      .map((c) {
+                        final a = context.certificationCatalog
+                            .agency(c.agency)
+                            .localizedName(context.l10n);
+                        final level = c.level;
+                        final l = level == null
+                            ? null
+                            : context.certificationCatalog
+                                  .level(level)
+                                  .localizedName(context.l10n);
+                        return l == null ? a : '$a $l';
+                      })
+                      .join(' · '),
+                ),
+              if (certification.cardNumber != null)
+                IconDetailRow(
+                  icon: Icons.numbers,
+                  label: context.l10n.certifications_detail_label_cardNumber,
+                  value: certification.cardNumber!,
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -593,40 +597,42 @@ class _CertificationDetailContent extends ConsumerWidget {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              context.l10n.certifications_detail_sectionTitle_dates,
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            if (certification.issueDate != null)
-              IconDetailRow(
-                icon: Icons.event_available,
-                label: context.l10n.certifications_detail_label_issueDate,
-                value: units.formatDate(certification.issueDate),
+        child: DetailRowGroup(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                context.l10n.certifications_detail_sectionTitle_dates,
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
               ),
-            if (certification.expiryDate != null)
-              IconDetailRow(
-                icon: Icons.event_busy,
-                label: context.l10n.certifications_detail_label_expiryDate,
-                value: units.formatDate(certification.expiryDate),
-                valueColor: certification.isExpired
-                    ? Colors.red
-                    : certification.expiresWithin(90)
-                    ? Colors.orange
-                    : null,
-              ),
-            if (certification.expiryDate == null)
-              IconDetailRow(
-                icon: Icons.all_inclusive,
-                label: context.l10n.certifications_detail_label_validity,
-                value: context.l10n.certifications_detail_noExpiration,
-              ),
-          ],
+              const SizedBox(height: 12),
+              if (certification.issueDate != null)
+                IconDetailRow(
+                  icon: Icons.event_available,
+                  label: context.l10n.certifications_detail_label_issueDate,
+                  value: units.formatDate(certification.issueDate),
+                ),
+              if (certification.expiryDate != null)
+                IconDetailRow(
+                  icon: Icons.event_busy,
+                  label: context.l10n.certifications_detail_label_expiryDate,
+                  value: units.formatDate(certification.expiryDate),
+                  valueColor: certification.isExpired
+                      ? Colors.red
+                      : certification.expiresWithin(90)
+                      ? Colors.orange
+                      : null,
+                ),
+              if (certification.expiryDate == null)
+                IconDetailRow(
+                  icon: Icons.all_inclusive,
+                  label: context.l10n.certifications_detail_label_validity,
+                  value: context.l10n.certifications_detail_noExpiration,
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -649,52 +655,56 @@ class _CertificationDetailContent extends ConsumerWidget {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              context.l10n.certifications_detail_sectionTitle_instructor,
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            if (displayName != null)
-              linkedBuddy != null
-                  ? ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      leading: Icon(
-                        Icons.person,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                      title: Text(
-                        context.l10n.certifications_detail_label_instructorName,
-                      ),
-                      subtitle: Text(displayName),
-                      trailing: const Icon(Icons.chevron_right),
-                      onTap: () {
-                        if (embedded) {
-                          context.go('/buddies?selected=$instructorId');
-                        } else {
-                          context.push('/buddies/$instructorId');
-                        }
-                      },
-                    )
-                  : IconDetailRow(
-                      icon: Icons.person,
-                      label: context
-                          .l10n
-                          .certifications_detail_label_instructorName,
-                      value: displayName,
-                    ),
-            if (certification.instructorNumber != null)
-              IconDetailRow(
-                icon: Icons.badge,
-                label:
-                    context.l10n.certifications_detail_label_instructorNumber,
-                value: certification.instructorNumber!,
+        child: DetailRowGroup(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                context.l10n.certifications_detail_sectionTitle_instructor,
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
               ),
-          ],
+              const SizedBox(height: 12),
+              if (displayName != null)
+                linkedBuddy != null
+                    ? ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: Icon(
+                          Icons.person,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                        title: Text(
+                          context
+                              .l10n
+                              .certifications_detail_label_instructorName,
+                        ),
+                        subtitle: Text(displayName),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () {
+                          if (embedded) {
+                            context.go('/buddies?selected=$instructorId');
+                          } else {
+                            context.push('/buddies/$instructorId');
+                          }
+                        },
+                      )
+                    : IconDetailRow(
+                        icon: Icons.person,
+                        label: context
+                            .l10n
+                            .certifications_detail_label_instructorName,
+                        value: displayName,
+                      ),
+              if (certification.instructorNumber != null)
+                IconDetailRow(
+                  icon: Icons.badge,
+                  label:
+                      context.l10n.certifications_detail_label_instructorNumber,
+                  value: certification.instructorNumber!,
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -718,67 +728,67 @@ class _CertificationDetailContent extends ConsumerWidget {
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      context
-                          .l10n
-                          .certifications_detail_sectionTitle_trainingCourse,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
+                child: DetailRowGroup(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        context
+                            .l10n
+                            .certifications_detail_sectionTitle_trainingCourse,
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.bold),
                       ),
-                    ),
-                    const SizedBox(height: 12),
-                    ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      leading: Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: course.isCompleted
-                              ? Colors.green.withValues(alpha: 0.15)
-                              : colorScheme.primaryContainer,
-                          borderRadius: BorderRadius.circular(8),
+                      const SizedBox(height: 12),
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: course.isCompleted
+                                ? Colors.green.withValues(alpha: 0.15)
+                                : colorScheme.primaryContainer,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Icon(
+                            course.isCompleted
+                                ? Icons.check_circle_outline
+                                : Icons.school_outlined,
+                            color: course.isCompleted
+                                ? Colors.green
+                                : colorScheme.onPrimaryContainer,
+                            size: 20,
+                          ),
                         ),
-                        child: Icon(
-                          course.isCompleted
-                              ? Icons.check_circle_outline
-                              : Icons.school_outlined,
-                          color: course.isCompleted
-                              ? Colors.green
-                              : colorScheme.onPrimaryContainer,
-                          size: 20,
+                        title: Text(
+                          course.name,
+                          style: Theme.of(context).textTheme.bodyLarge,
                         ),
-                      ),
-                      title: Text(
-                        course.name,
-                        style: Theme.of(context).textTheme.bodyLarge,
-                      ),
-                      subtitle: Text(
-                        '${context.certificationCatalog.agency(course.agency).localizedName(context.l10n)} - ${course.isCompleted ? context.l10n.certifications_detail_courseCompleted : context.l10n.certifications_detail_courseInProgress}',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
+                        subtitle: Text(
+                          '${context.certificationCatalog.agency(course.agency).localizedName(context.l10n)} - ${course.isCompleted ? context.l10n.certifications_detail_courseCompleted : context.l10n.certifications_detail_courseInProgress}',
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: colorScheme.onSurfaceVariant),
                         ),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () {
+                          if (embedded) {
+                            context.go('/courses?selected=${course.id}');
+                          } else {
+                            context.push('/courses/${course.id}');
+                          }
+                        },
                       ),
-                      trailing: const Icon(Icons.chevron_right),
-                      onTap: () {
-                        if (embedded) {
-                          context.go('/courses?selected=${course.id}');
-                        } else {
-                          context.push('/courses/${course.id}');
-                        }
-                      },
-                    ),
-                    if (course.instructorDisplay.isNotEmpty) ...[
-                      const Divider(),
-                      IconDetailRow(
-                        icon: Icons.person,
-                        label: 'Instructor',
-                        value: course.instructorDisplay,
-                      ),
+                      if (course.instructorDisplay.isNotEmpty) ...[
+                        const Divider(),
+                        IconDetailRow(
+                          icon: Icons.person,
+                          label: 'Instructor',
+                          value: course.instructorDisplay,
+                        ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
               ),
             ),

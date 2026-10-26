@@ -76,9 +76,12 @@ class BuoyancyPhysics {
   /// Near-empty buoyancy of one tank: the catalog (or per-material
   /// fallback) empty value minus the mass of the reserve gas.
   ///
-  /// Resolution order: explicit [presetName] in the catalog, then
+  /// Resolution order: explicit [presetName] in the catalog (unless its
+  /// material contradicts [material]), then
   /// TankPresets.matchAnyBySpecs(volume, working pressure, material), then a
-  /// per-material per-liter estimate.
+  /// per-material per-liter estimate. A null [material] that nothing
+  /// resolves is estimated as aluminum; [tankMaterialAssumed] reports when
+  /// that guess was made.
   static double tankTermKg({
     String? presetName,
     double? volumeL,
@@ -99,8 +102,7 @@ class BuoyancyPhysics {
   }
 
   /// Approximate tank dry mass (for displacement scaling of the water
-  /// term). Resolves the catalog row the same way as [tankTermKg], so a
-  /// tank matched by size takes that preset's mass as well as its buoyancy.
+  /// term).
   static double tankDryMassKg({
     String? presetName,
     double? volumeL,
@@ -117,15 +119,18 @@ class BuoyancyPhysics {
     return (volumeL ?? _defaultVolumeL) * 1.3;
   }
 
-  /// Whether [tankTermKg] has to assume the tank's material: none is set and
-  /// [presetName] is not a catalog preset. A spec match still counts as an
-  /// assumption, since it guesses the material from the size. Imported
-  /// cylinders often carry only volume and pressures, and the guess can be
-  /// kilograms out (an aluminium-guessed D12 reads about 6.5 kg too buoyant).
+  /// Whether [tankTermKg] has to guess this tank's material: none is set, and
+  /// neither a catalogued [presetName] nor a size match supplies one. The
+  /// Buoyancy card shows such a term as a default estimate and asks the diver
+  /// to set the material (#3686).
   static bool tankMaterialAssumed({
     String? presetName,
+    double? volumeL,
+    double? workingPressureBar,
     TankMaterial? material,
-  }) => material == null && !kTankCatalog.containsKey(presetName);
+  }) =>
+      material == null &&
+      _catalogEntry(presetName, volumeL, workingPressureBar, null) == null;
 
   static ({double emptyBuoyancyKg, double dryMassKg})? _catalogEntry(
     String? presetName,
@@ -133,8 +138,16 @@ class BuoyancyPhysics {
     double? workingPressureBar,
     TankMaterial? material,
   ) {
+    // A stored preset name can come from a size match that ignored the
+    // material (cylinder passports, the tank editor), so it never overrides
+    // a material the tank states.
     if (presetName != null && kTankCatalog.containsKey(presetName)) {
-      return kTankCatalog[presetName];
+      // Catalog keys are built-in slugs, so byName finds one without
+      // throwing; this runs per profile sample.
+      final presetMaterial = TankPresets.byName(presetName)?.material;
+      if (material == null || presetMaterial == material) {
+        return kTankCatalog[presetName];
+      }
     }
     if (volumeL != null && workingPressureBar != null) {
       final match = TankPresets.matchAnyBySpecs(

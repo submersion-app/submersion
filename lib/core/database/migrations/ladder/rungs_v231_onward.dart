@@ -594,5 +594,10 @@ extension RungsFromV231 on AppDatabase {
     // re-asserted in beforeOpen. Renumbered from 304, which #3552 took.
     if (from < 314) await _assertCylinderConfigItemModColumn();
     if (from < 314) await reportProgress();
+
+    // v315: diver_settings.omit_unused_oc_gases (issue #3668). Column only,
+    // off by default; re-asserted in beforeOpen.
+    if (from < 315) await _assertOmitUnusedOcGasesColumn();
+    if (from < 315) await reportProgress();
   }
 }

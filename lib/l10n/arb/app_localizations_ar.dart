@@ -37,6 +37,69 @@ class AppLocalizationsAr extends AppLocalizations {
   String get connections_around_show => 'إظهار';
 
   @override
+  String get connections_caption_circle => 'يربط الخط بين رفيقين غاصا معًا.';
+
+  @override
+  String get connections_caption_where =>
+      'يعني الخط أنك غصت في ذلك الموقع مع ذلك الرفيق.';
+
+  @override
+  String get connections_caption_trips =>
+      'يعني الخط أن ذلك الرفيق كان في تلك الرحلة.';
+
+  @override
+  String get connections_caption_life =>
+      'يعني الخط أنك رأيت ذلك النوع في ذلك الموقع.';
+
+  @override
+  String get connections_caption_gear =>
+      'يربط الخط بين معدات استُخدمت في الغوصة نفسها.';
+
+  @override
+  String get connections_caption_centers =>
+      'يعني الخط أنك غصت مع ذلك الرفيق عبر ذلك المركز.';
+
+  @override
+  String get connections_caption_travel =>
+      'الرفقاء والرحلات والمواقع؛ يعني الخط أن بينها غوصات مشتركة.';
+
+  @override
+  String get connections_caption_reef =>
+      'المواقع والحياة البحرية وأنواع الغوص؛ يعني الخط أن بينها غوصات مشتركة.';
+
+  @override
+  String get connections_caption_gearRoad =>
+      'المعدات والرحلات والمراكز؛ يعني الخط أن بينها غوصات مشتركة.';
+
+  @override
+  String connections_caption_custom(String kinds) {
+    return '$kinds؛ يعني الخط أنها تشترك في غوصة.';
+  }
+
+  @override
+  String get connections_caption_kindSeparator => '، ';
+
+  @override
+  String connections_caption_around(int hops) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hops,
+      locale: localeName,
+      other:
+          'كل ما يقع ضمن $hops خطوة من العنصر المركزي، مرتبطًا بغوصات مشتركة.',
+      many:
+          'كل ما يقع ضمن $hops خطوة من العنصر المركزي، مرتبطًا بغوصات مشتركة.',
+      few:
+          'كل ما يقع ضمن $hops خطوات من العنصر المركزي، مرتبطًا بغوصات مشتركة.',
+      two: 'كل ما يقع ضمن خطوتين من العنصر المركزي، مرتبطًا بغوصات مشتركة.',
+      one: 'كل ما يشترك في غوصة مع العنصر المركزي.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_caption_thicker => 'الخطوط الأسمك تعني غوصات أكثر.';
+
+  @override
   String get connections_editor_kinds => 'الأنواع';
 
   @override
@@ -5298,6 +5361,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get connections_empty_sites => 'لا توجد غوصة لها موقع بعد.';
 
   @override
+  String get connections_empty_whereNoSites =>
+      'لا تحتوي أي من غوصاتك مع رفيق على موقع بعد. أضف مواقع إلى تلك الغوصات لترى أين تغوصون معًا.';
+
+  @override
   String get connections_empty_filtered => 'لا شيء يطابق التصفية الحالية.';
 
   @override
@@ -10173,6 +10240,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_tank_label_material => 'المادة';
 
   @override
+  String get diveLog_tank_label_mnd => 'MND';
+
+  @override
   String get diveLog_tank_label_n2 => 'N2';
 
   @override
@@ -10197,13 +10267,43 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_tank_mndHelper => 'تعيين لحساب He% تلقائياً';
 
   @override
-  String diveLog_tank_gasUsed(String amount) {
-    return '(تم استخدام $amount)';
+  String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd) {
+    return 'MOD: $mod (ppO₂ $ppO2) | MND: $mnd';
   }
 
   @override
-  String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd) {
-    return 'MOD: $mod (ppO₂ $ppO2) | MND: $mnd';
+  String get diveLog_cylinders_columnTank => 'أسطوانة';
+
+  @override
+  String get diveLog_cylinders_columnGas => 'غاز';
+
+  @override
+  String get diveLog_cylinders_columnStart => 'البداية';
+
+  @override
+  String get diveLog_cylinders_columnEnd => 'النهاية';
+
+  @override
+  String get diveLog_cylinders_columnUsed => 'المستخدم';
+
+  @override
+  String diveLog_cylinders_gasUsed(String amount) {
+    return 'الغاز المستخدم $amount';
+  }
+
+  @override
+  String diveLog_cylinders_mod(String depth) {
+    return 'MOD $depth';
+  }
+
+  @override
+  String diveLog_cylinders_mnd(String depth) {
+    return 'MND $depth';
+  }
+
+  @override
+  String diveLog_cylinders_modNote(String ppO2) {
+    return 'MOD عند ppO₂ $ppO2';
   }
 
   @override
@@ -19980,6 +20080,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get nav_media => 'الوسائط';
 
   @override
+  String get nav_mediaDocumentsSubtitle => 'الصور ومقاطع الفيديو والمستندات';
+
+  @override
+  String get nav_photosVideos => 'صور/فيديو';
+
+  @override
   String get nav_more => 'المزيد';
 
   @override
@@ -21057,8 +21163,8 @@ class AppLocalizationsAr extends AppLocalizations {
       'لم يتم تسجيل أي أثقال: أضف أثقالًا إلى هذه الغطسة أو وزنًا جافًا إلى معدات الأثقال';
 
   @override
-  String get buoyancy_tankMaterialHint =>
-      'لم تُحدَّد مادة الأسطوانة: طفوية الأسطوانات تقديرية. حدّد مادة كل أسطوانة أو اختر إعدادًا مسبقًا للأسطوانة';
+  String get buoyancy_tankMaterialAssumedHint =>
+      'لم يتم تحديد مادة الأسطوانة، لذا افتُرض أنها ألومنيوم: حدد المادة أو اختر قالب أسطوانة';
 
   @override
   String get buoyancy_chartNet => 'الصافي';
@@ -23049,6 +23155,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'إضافة التنزيلات إلى مالك الكمبيوتر';
 
   @override
+  String get settings_conflict_field_omitUnusedOcGases =>
+      'تخطي غازات الطوارئ غير المستخدمة';
+
+  @override
   String get settings_conflict_field_avgSpeed => 'متوسط السرعة';
 
   @override
@@ -25031,9 +25141,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get nav_documents => 'المستندات';
-
-  @override
-  String get documents_title => 'المستندات';
 
   @override
   String get documents_type_insurance => 'التأمين';
@@ -30571,6 +30678,14 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_downloadsFollowOwner_subtitle =>
       'عندما يخص كمبيوتر الغوص ملف غواص آخر، تذهب غطساته إلى سجل ذلك الملف. يمكنك تغيير ذلك في شاشة المراجعة.';
+
+  @override
+  String get settings_omitUnusedOcGases_title =>
+      'تخطي غازات الطوارئ غير المستخدمة';
+
+  @override
+  String get settings_omitUnusedOcGases_subtitle =>
+      'في تنزيلات أجهزة إعادة التنفس وإعادة تحليلها، يستبعد غازًا بلا جهاز إرسال لم يُتنفَّس منه قط';
 
   @override
   String get tags_manage_searchHint => 'البحث في الوسوم...';

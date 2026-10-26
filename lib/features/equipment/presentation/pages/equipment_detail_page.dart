@@ -64,6 +64,8 @@ import 'package:submersion/features/equipment/presentation/widgets/service_histo
 import 'package:submersion/features/equipment/presentation/widgets/service_record_dialog.dart';
 import 'package:submersion/features/documents/presentation/widgets/documents_section.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
+import 'package:submersion/shared/widgets/detail_row/detail_row.dart';
+import 'package:submersion/shared/widgets/detail_row/detail_row_group.dart';
 
 class EquipmentDetailPage extends ConsumerStatefulWidget {
   final String equipmentId;
@@ -557,254 +559,206 @@ class _EquipmentDetailContent extends ConsumerWidget {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              context.l10n.equipment_detail_detailsTitle,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const Divider(),
-            _buildDetailRow(
-              context,
-              context.l10n.equipment_detail_statusLabel,
-              equipment.status.localizedName(context.l10n),
-            ),
-            if (host != null)
-              InstalledInRow(part: equipment, host: host, units: units),
-            diveCountAsync.when(
-              data: (count) => Semantics(
-                button: count > 0,
-                label: context.l10n.equipment_detail_divesSemanticLabel,
-                child: InkWell(
-                  onTap: count > 0
-                      ? () {
-                          openDiveList(
-                            context,
-                            ref,
-                            DiveFilterState(equipmentIds: [equipmentId]),
-                          );
-                        }
-                      : null,
-                  borderRadius: BorderRadius.circular(8),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          context.l10n.equipment_detail_divesLabel,
-                          style: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurfaceVariant,
-                              ),
-                        ),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              count == 1
-                                  ? context.l10n
-                                        .equipment_detail_divesCountSingular(
-                                          count,
-                                        )
-                                  : context.l10n
-                                        .equipment_detail_divesCountPlural(
-                                          count,
-                                        ),
-                              style: Theme.of(context).textTheme.bodyMedium
-                                  ?.copyWith(
-                                    color: count > 0
-                                        ? Theme.of(context).colorScheme.primary
-                                        : null,
-                                  ),
-                            ),
-                            if (count > 0) ...[
-                              const SizedBox(width: 4),
-                              Icon(
-                                Icons.chevron_right,
-                                size: 18,
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
-                            ],
-                          ],
-                        ),
-                      ],
-                    ),
+        // One label column for every row of the card (issue #3678).
+        child: DetailRowGroup(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                context.l10n.equipment_detail_detailsTitle,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const Divider(),
+              _buildDetailRow(
+                context,
+                context.l10n.equipment_detail_statusLabel,
+                equipment.status.localizedName(context.l10n),
+              ),
+              if (host != null)
+                InstalledInRow(part: equipment, host: host, units: units),
+              diveCountAsync.when(
+                data: (count) => _buildCountLinkRow(
+                  context,
+                  label: context.l10n.equipment_detail_divesLabel,
+                  semanticsLabel:
+                      context.l10n.equipment_detail_divesSemanticLabel,
+                  countText: count == 1
+                      ? context.l10n.equipment_detail_divesCountSingular(count)
+                      : context.l10n.equipment_detail_divesCountPlural(count),
+                  count: count,
+                  onTap: () => openDiveList(
+                    context,
+                    ref,
+                    DiveFilterState(equipmentIds: [equipmentId]),
                   ),
                 ),
+                loading: () => _buildDetailRow(
+                  context,
+                  context.l10n.equipment_detail_divesLabel,
+                  '...',
+                ),
+                error: (e, s) => const SizedBox.shrink(),
               ),
-              loading: () => _buildDetailRow(
-                context,
-                context.l10n.equipment_detail_divesLabel,
-                '...',
-              ),
-              error: (e, s) => const SizedBox.shrink(),
-            ),
-            tripCountAsync.when(
-              data: (count) => Semantics(
-                button: count > 0,
-                label: context.l10n.equipment_detail_tripsSemanticLabel,
-                child: InkWell(
-                  onTap: count > 0
-                      ? () {
-                          openTripList(
-                            context,
-                            ref,
-                            TripFilterState(equipmentId: equipmentId),
-                          );
-                        }
-                      : null,
-                  borderRadius: BorderRadius.circular(8),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          context.l10n.equipment_detail_tripsLabel,
-                          style: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurfaceVariant,
-                              ),
-                        ),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              count == 1
-                                  ? context.l10n
-                                        .equipment_detail_tripsCountSingular(
-                                          count,
-                                        )
-                                  : context.l10n
-                                        .equipment_detail_tripsCountPlural(
-                                          count,
-                                        ),
-                              style: Theme.of(context).textTheme.bodyMedium
-                                  ?.copyWith(
-                                    color: count > 0
-                                        ? Theme.of(context).colorScheme.primary
-                                        : null,
-                                  ),
-                            ),
-                            if (count > 0) ...[
-                              const SizedBox(width: 4),
-                              Icon(
-                                Icons.chevron_right,
-                                size: 18,
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
-                            ],
-                          ],
-                        ),
-                      ],
-                    ),
+              tripCountAsync.when(
+                data: (count) => _buildCountLinkRow(
+                  context,
+                  label: context.l10n.equipment_detail_tripsLabel,
+                  semanticsLabel:
+                      context.l10n.equipment_detail_tripsSemanticLabel,
+                  countText: count == 1
+                      ? context.l10n.equipment_detail_tripsCountSingular(count)
+                      : context.l10n.equipment_detail_tripsCountPlural(count),
+                  count: count,
+                  onTap: () => openTripList(
+                    context,
+                    ref,
+                    TripFilterState(equipmentId: equipmentId),
                   ),
                 ),
+                loading: () => _buildDetailRow(
+                  context,
+                  context.l10n.equipment_detail_tripsLabel,
+                  '...',
+                ),
+                error: (e, s) => const SizedBox.shrink(),
               ),
-              loading: () => _buildDetailRow(
-                context,
-                context.l10n.equipment_detail_tripsLabel,
-                '...',
-              ),
-              error: (e, s) => const SizedBox.shrink(),
-            ),
-            EquipmentSharingRow(equipment: equipment),
-            if (equipment.brand != null)
-              _buildDetailRow(
-                context,
-                context.l10n.equipment_detail_brandLabel,
-                equipment.brand!,
-              ),
-            if (equipment.model != null)
-              _buildDetailRow(
-                context,
-                context.l10n.equipment_detail_modelLabel,
-                equipment.model!,
-              ),
-            if (equipment.serialNumber != null)
-              _buildDetailRow(
-                context,
-                context.l10n.equipment_detail_serialNumberLabel,
-                equipment.serialNumber!,
-              ),
-            // Curated specs in catalog order, then custom fields. The
-            // purchase group is held back to the purchase block below, and
-            // the install date to the installed-in row while it shows one.
-            for (final def
-                in EquipmentAttributeCatalog.attributesFor(
-                  equipment.type,
-                ).where(
-                  (d) =>
-                      d.group == AttributeGroup.spec &&
-                      !(showsInstallAge &&
-                          d.key == EquipmentAttrKeys.installedDate),
-                ))
-              if (equipment.attributes.firstWhereOrNull(
-                    (a) => !a.isCustom && a.key == def.key,
-                  )
-                  case final attr? when attr.hasValue)
+              EquipmentSharingRow(equipment: equipment),
+              if (equipment.brand != null)
                 _buildDetailRow(
                   context,
-                  attributeLabel(context.l10n, def.key),
-                  formatAttributeValue(attr, def, units, context.l10n),
+                  context.l10n.equipment_detail_brandLabel,
+                  equipment.brand!,
                 ),
-            // The item's colour (issue #2326): its own row with a swatch,
-            // only when the stored value is a colour code and the type has
-            // a colour. On a type without one it shows as a custom field
-            // (issue #2520), the way the edit form keeps it.
-            if (EquipmentAttributeCatalog.hasColor(equipment.type))
-              if (normalizeEquipmentColor(
-                    equipment.attrText(EquipmentAttrKeys.color),
-                  )
-                  case final code?)
-                _buildColorRow(context, code),
-            for (final attr
-                in keepStrayColorAsCustom(
+              if (equipment.model != null)
+                _buildDetailRow(
+                  context,
+                  context.l10n.equipment_detail_modelLabel,
+                  equipment.model!,
+                ),
+              if (equipment.serialNumber != null)
+                _buildDetailRow(
+                  context,
+                  context.l10n.equipment_detail_serialNumberLabel,
+                  equipment.serialNumber!,
+                ),
+              // Curated specs in catalog order, then custom fields. The
+              // purchase group is held back to the purchase block below, and
+              // the install date to the installed-in row while it shows one.
+              for (final def
+                  in EquipmentAttributeCatalog.attributesFor(
                     equipment.type,
-                    equipment.attributes,
-                  ).where((a) => a.isCustom).toList()
-                  ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder)))
-              if (attr.hasValue)
-                _buildDetailRow(context, attr.key, attr.valueText ?? ''),
-            if (equipment.purchaseDate != null)
-              _buildDetailRow(
-                context,
-                context.l10n.equipment_detail_purchaseDateLabel,
-                units.formatDate(equipment.purchaseDate),
-              ),
-            if (equipment.purchasePrice != null)
-              _buildDetailRow(
-                context,
-                // Wishlist gear (#2025) has a price to pay, not one paid.
-                equipment.isWanted
-                    ? context.l10n.equipment_edit_expectedPriceLabel
-                    : context.l10n.equipment_detail_purchasePriceLabel,
-                formatMoney(
-                  equipment.purchasePrice!,
-                  equipment.purchaseCurrency,
+                  ).where(
+                    (d) =>
+                        d.group == AttributeGroup.spec &&
+                        !(showsInstallAge &&
+                            d.key == EquipmentAttrKeys.installedDate),
+                  ))
+                if (equipment.attributes.firstWhereOrNull(
+                      (a) => !a.isCustom && a.key == def.key,
+                    )
+                    case final attr? when attr.hasValue)
+                  _buildDetailRow(
+                    context,
+                    attributeLabel(context.l10n, def.key),
+                    formatAttributeValue(attr, def, units, context.l10n),
+                  ),
+              // The item's colour (issue #2326): its own row with a swatch,
+              // only when the stored value is a colour code and the type has
+              // a colour. On a type without one it shows as a custom field
+              // (issue #2520), the way the edit form keeps it.
+              if (EquipmentAttributeCatalog.hasColor(equipment.type))
+                if (normalizeEquipmentColor(
+                      equipment.attrText(EquipmentAttrKeys.color),
+                    )
+                    case final code?)
+                  _buildColorRow(context, code),
+              for (final attr
+                  in keepStrayColorAsCustom(
+                      equipment.type,
+                      equipment.attributes,
+                    ).where((a) => a.isCustom).toList()
+                    ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder)))
+                if (attr.hasValue)
+                  _buildDetailRow(context, attr.key, attr.valueText ?? ''),
+              if (equipment.purchaseDate != null)
+                _buildDetailRow(
+                  context,
+                  context.l10n.equipment_detail_purchaseDateLabel,
+                  units.formatDate(equipment.purchaseDate),
+                ),
+              if (equipment.purchasePrice != null)
+                _buildDetailRow(
+                  context,
+                  // Wishlist gear (#2025) has a price to pay, not one paid.
+                  equipment.isWanted
+                      ? context.l10n.equipment_edit_expectedPriceLabel
+                      : context.l10n.equipment_detail_purchasePriceLabel,
+                  formatMoney(
+                    equipment.purchasePrice!,
+                    equipment.purchaseCurrency,
+                  ),
+                ),
+              // Purchase record (issue #1517): the receipt trail, shown with
+              // the date and price rather than among the physical specs.
+              for (final def in EquipmentAttributeCatalog.purchase)
+                if (equipment.attributes.firstWhereOrNull(
+                      (a) => !a.isCustom && a.key == def.key,
+                    )
+                    case final attr? when attr.hasValue)
+                  _buildPurchaseAttributeRow(context, ref, def, attr, units),
+              if (equipment.ownershipDuration != null)
+                _buildDetailRow(
+                  context,
+                  context.l10n.equipment_detail_ownedForLabel,
+                  _formatDuration(context, equipment.ownershipDuration!),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// A count that opens the matching list when it is above zero: the Dives
+  /// and Trips rows.
+  Widget _buildCountLinkRow(
+    BuildContext context, {
+    required String label,
+    required String semanticsLabel,
+    required String countText,
+    required int count,
+    required VoidCallback onTap,
+  }) {
+    final theme = Theme.of(context);
+    return Semantics(
+      button: count > 0,
+      label: semanticsLabel,
+      child: InkWell(
+        onTap: count > 0 ? onTap : null,
+        borderRadius: BorderRadius.circular(8),
+        child: DetailRow(
+          label: label,
+          value: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Flexible(
+                child: Text(
+                  countText,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: count > 0 ? theme.colorScheme.primary : null,
+                  ),
                 ),
               ),
-            // Purchase record (issue #1517): the receipt trail, shown with
-            // the date and price rather than among the physical specs.
-            for (final def in EquipmentAttributeCatalog.purchase)
-              if (equipment.attributes.firstWhereOrNull(
-                    (a) => !a.isCustom && a.key == def.key,
-                  )
-                  case final attr? when attr.hasValue)
-                _buildPurchaseAttributeRow(context, ref, def, attr, units),
-            if (equipment.ownershipDuration != null)
-              _buildDetailRow(
-                context,
-                context.l10n.equipment_detail_ownedForLabel,
-                _formatDuration(context, equipment.ownershipDuration!),
-              ),
-          ],
+              if (count > 0) ...[
+                const SizedBox(width: 4),
+                Icon(
+                  Icons.chevron_right,
+                  size: 18,
+                  color: theme.colorScheme.primary,
+                ),
+              ],
+            ],
+          ),
         ),
       ),
     );
@@ -891,38 +845,23 @@ class _EquipmentDetailContent extends ConsumerWidget {
     Uri link,
   ) {
     final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
+    return DetailRow(
+      label: label,
+      value: InkWell(
+        key: const ValueKey('equipment-detail-web-link'),
+        onTap: () => launchEquipmentWebLink(
+          context,
+          link,
+          launch: ref.read(equipmentWebLinkLaunchProvider),
+        ),
+        child: Text(
+          value,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: theme.colorScheme.primary,
+            decoration: TextDecoration.underline,
+            decorationColor: theme.colorScheme.primary,
           ),
-          const SizedBox(width: 16),
-          Flexible(
-            child: InkWell(
-              key: const ValueKey('equipment-detail-web-link'),
-              onTap: () => launchEquipmentWebLink(
-                context,
-                link,
-                launch: ref.read(equipmentWebLinkLaunchProvider),
-              ),
-              child: Text(
-                value,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.primary,
-                  decoration: TextDecoration.underline,
-                  decorationColor: theme.colorScheme.primary,
-                ),
-                textAlign: TextAlign.end,
-              ),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -930,67 +869,40 @@ class _EquipmentDetailContent extends ConsumerWidget {
   /// The item's colour: its label, then a swatch and the colour's name.
   Widget _buildColorRow(BuildContext context, String code) {
     final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return DetailRow(
+      label: attributeLabel(context.l10n, EquipmentAttrKeys.color),
+      value: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            attributeLabel(context.l10n, EquipmentAttrKeys.color),
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
+          Container(
+            key: const ValueKey('detail-color-swatch'),
+            width: 16,
+            height: 16,
+            decoration: BoxDecoration(
+              color: TagColors.fromHex(code),
+              shape: BoxShape.circle,
+              border: Border.all(color: theme.colorScheme.outlineVariant),
             ),
           ),
-          const SizedBox(width: 16),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                key: const ValueKey('detail-color-swatch'),
-                width: 16,
-                height: 16,
-                decoration: BoxDecoration(
-                  color: TagColors.fromHex(code),
-                  shape: BoxShape.circle,
-                  border: Border.all(color: theme.colorScheme.outlineVariant),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                equipmentColorName(context.l10n, code),
-                style: theme.textTheme.bodyMedium,
-              ),
-            ],
+          const SizedBox(width: 8),
+          Flexible(
+            child: Text(
+              equipmentColorName(context.l10n, code),
+              style: theme.textTheme.bodyMedium,
+            ),
           ),
         ],
       ),
     );
   }
 
+  /// Long values (e.g. free-text custom fields) wrap within the value
+  /// column instead of overflowing the row.
   Widget _buildDetailRow(BuildContext context, String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(width: 16),
-          // Flexible so long values (e.g. free-text custom fields) wrap
-          // instead of overflowing the row.
-          Flexible(
-            child: Text(
-              value,
-              style: Theme.of(context).textTheme.bodyMedium,
-              textAlign: TextAlign.end,
-            ),
-          ),
-        ],
-      ),
+    return DetailRow.text(
+      label: label,
+      value: value,
+      valueStyle: Theme.of(context).textTheme.bodyMedium,
     );
   }
 

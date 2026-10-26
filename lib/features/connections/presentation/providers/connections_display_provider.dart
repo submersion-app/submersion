@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/connections/domain/views/connections_display.dart';
+import 'package:submersion/features/connections/presentation/providers/connections_start_reset.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 const kConnectionsDisplayKey = 'connections_display';
@@ -16,11 +18,12 @@ class ConnectionsDisplayNotifier extends StateNotifier<ConnectionsDisplay> {
     SharedPreferences prefs, {
     Future<bool> Function(String key, String value)? write,
   }) : _write = write ?? prefs.setString,
-       super(_restore(prefs));
+       super(restore(prefs));
 
   final Future<bool> Function(String key, String value) _write;
 
-  static ConnectionsDisplay _restore(SharedPreferences prefs) {
+  /// The display stored on this device, or the default.
+  static ConnectionsDisplay restore(SharedPreferences prefs) {
     final raw = prefs.getString(kConnectionsDisplayKey);
     if (raw == null) return ConnectionsDisplay.initial;
     try {
@@ -57,6 +60,10 @@ class ConnectionsDisplayNotifier extends StateNotifier<ConnectionsDisplay> {
 }
 
 final connectionsDisplayProvider =
-    StateNotifierProvider<ConnectionsDisplayNotifier, ConnectionsDisplay>(
-      (ref) => ConnectionsDisplayNotifier(ref.watch(sharedPreferencesProvider)),
-    );
+    StateNotifierProvider<ConnectionsDisplayNotifier, ConnectionsDisplay>((
+      ref,
+    ) {
+      final prefs = ref.watch(sharedPreferencesProvider);
+      unawaited(resetConnectionsStartOnce(prefs));
+      return ConnectionsDisplayNotifier(prefs);
+    });

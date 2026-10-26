@@ -163,6 +163,37 @@ void main() {
       expect(r.params, ['me']);
     });
 
+    test('sharedWith keeps dives that also have the other kind', () {
+      final r = buildNodeSql(
+        kind: ConnectionKind.site,
+        diverId: 'me',
+        filter: const DiveFilterState(),
+        sharedWith: ConnectionKind.buddy,
+      );
+      // A having clause: it picks the sites, every dive still counts.
+      expect(
+        r.sql,
+        contains(
+          'HAVING MAX(EXISTS (SELECT 1 FROM (SELECT dive_id, buddy_id AS '
+          'entity_id FROM dive_buddies) sw WHERE sw.dive_id = d.id)) = 1',
+        ),
+      );
+      expect(r.params, ['me']);
+      final count = buildNodeCountSql(
+        kind: ConnectionKind.site,
+        diverId: 'me',
+        filter: const DiveFilterState(),
+        sharedWith: ConnectionKind.buddy,
+      );
+      expect(count.sql, contains('HAVING MAX(EXISTS (SELECT 1 FROM'));
+      final plain = buildNodeSql(
+        kind: ConnectionKind.site,
+        diverId: 'me',
+        filter: const DiveFilterState(),
+      );
+      expect(plain.sql, isNot(contains('EXISTS')));
+    });
+
     test('onlyIds narrows the entity set', () {
       final r = buildNodeSql(
         kind: ConnectionKind.buddy,

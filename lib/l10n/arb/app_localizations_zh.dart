@@ -35,6 +35,55 @@ class AppLocalizationsZh extends AppLocalizations {
   String get connections_around_show => '显示';
 
   @override
+  String get connections_caption_circle => '连线表示两位潜伴一起潜过水。';
+
+  @override
+  String get connections_caption_where => '连线表示你和该潜伴在该潜点潜过水。';
+
+  @override
+  String get connections_caption_trips => '连线表示该潜伴参加了该行程。';
+
+  @override
+  String get connections_caption_life => '连线表示你在该潜点见过该物种。';
+
+  @override
+  String get connections_caption_gear => '连线连接同一次潜水中使用的装备。';
+
+  @override
+  String get connections_caption_centers => '连线表示你通过该潜店和该潜伴一起潜过水。';
+
+  @override
+  String get connections_caption_travel => '潜伴、行程和潜点；连线表示它们有共同的潜水。';
+
+  @override
+  String get connections_caption_reef => '潜点、海洋生物和潜水类型；连线表示它们有共同的潜水。';
+
+  @override
+  String get connections_caption_gearRoad => '装备、行程和潜店；连线表示它们有共同的潜水。';
+
+  @override
+  String connections_caption_custom(String kinds) {
+    return '$kinds；连线表示它们有共同的潜水。';
+  }
+
+  @override
+  String get connections_caption_kindSeparator => '、';
+
+  @override
+  String connections_caption_around(int hops) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hops,
+      locale: localeName,
+      other: '距此中心 $hops 步以内、由共同潜水相连的一切。',
+      one: '与此中心有共同潜水的一切。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_caption_thicker => '线越粗表示潜水越多。';
+
+  @override
   String get connections_editor_kinds => '类型';
 
   @override
@@ -4923,6 +4972,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get connections_empty_sites => '还没有潜水记录了潜点。';
 
   @override
+  String get connections_empty_whereNoSites =>
+      '你与潜伴的潜水都还没有潜点。为这些潜水添加潜点，即可看到你们在哪里一起潜水。';
+
+  @override
   String get connections_empty_filtered => '没有符合当前筛选的内容。';
 
   @override
@@ -9534,6 +9587,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_tank_label_material => '材质';
 
   @override
+  String get diveLog_tank_label_mnd => 'MND';
+
+  @override
   String get diveLog_tank_label_n2 => 'N2';
 
   @override
@@ -9558,13 +9614,43 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_tank_mndHelper => '设置自动计算 He%';
 
   @override
-  String diveLog_tank_gasUsed(String amount) {
-    return '（已用 $amount）';
+  String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd) {
+    return '最大作业深度：$mod（氧分压 $ppO2）| 最大等效氮深：$mnd';
   }
 
   @override
-  String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd) {
-    return '最大作业深度：$mod（氧分压 $ppO2）| 最大等效氮深：$mnd';
+  String get diveLog_cylinders_columnTank => '气瓶';
+
+  @override
+  String get diveLog_cylinders_columnGas => '气体';
+
+  @override
+  String get diveLog_cylinders_columnStart => '起始';
+
+  @override
+  String get diveLog_cylinders_columnEnd => '结束';
+
+  @override
+  String get diveLog_cylinders_columnUsed => '已用';
+
+  @override
+  String diveLog_cylinders_gasUsed(String amount) {
+    return '已用气体 $amount';
+  }
+
+  @override
+  String diveLog_cylinders_mod(String depth) {
+    return '最大作业深度 $depth';
+  }
+
+  @override
+  String diveLog_cylinders_mnd(String depth) {
+    return '最大等效氮深 $depth';
+  }
+
+  @override
+  String diveLog_cylinders_modNote(String ppO2) {
+    return '氧分压 $ppO2 时的最大作业深度';
   }
 
   @override
@@ -18741,6 +18827,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get nav_media => '媒体';
 
   @override
+  String get nav_mediaDocumentsSubtitle => '照片、视频和文档';
+
+  @override
+  String get nav_photosVideos => '照片/视频';
+
+  @override
   String get nav_more => '更多';
 
   @override
@@ -19742,7 +19834,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get buoyancy_noLeadHint => '未记录配重：请为本次潜水添加配重，或为配重装备填写干重';
 
   @override
-  String get buoyancy_tankMaterialHint => '未设置气瓶材质：气瓶浮力为估算值。请为每个气瓶设置材质，或选择气瓶预设';
+  String get buoyancy_tankMaterialAssumedHint =>
+      '未设置气瓶材质，因此按铝合金估算：请设置材质或选择气瓶预设';
 
   @override
   String get buoyancy_chartNet => '净值';
@@ -21580,6 +21673,9 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get settings_conflict_field_downloadsFollowComputerOwner =>
       '将下载的记录添加到电脑所属的潜水员';
+
+  @override
+  String get settings_conflict_field_omitUnusedOcGases => '跳过未使用的应急气体';
 
   @override
   String get settings_conflict_field_avgSpeed => '平均速度';
@@ -23424,9 +23520,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get nav_documents => '文档';
-
-  @override
-  String get documents_title => '文档';
 
   @override
   String get documents_type_insurance => '保险';
@@ -28596,6 +28689,13 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get settings_downloadsFollowOwner_subtitle =>
       '当潜水电脑属于另一个潜水员档案时，它的潜水记录会添加到该档案的日志中。你可以在核对页面中更改。';
+
+  @override
+  String get settings_omitUnusedOcGases_title => '跳过未使用的应急气体';
+
+  @override
+  String get settings_omitUnusedOcGases_subtitle =>
+      '下载或重新解析循环呼吸器潜水时，略过没有发射器且从未呼吸过的气体';
 
   @override
   String get tags_manage_searchHint => '搜索标签...';

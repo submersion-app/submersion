@@ -37,6 +37,65 @@ class AppLocalizationsEn extends AppLocalizations {
   String get connections_around_show => 'Show';
 
   @override
+  String get connections_caption_circle =>
+      'A line joins two buddies who dived together.';
+
+  @override
+  String get connections_caption_where =>
+      'A line means you dived at that site with that buddy.';
+
+  @override
+  String get connections_caption_trips =>
+      'A line means that buddy was on that trip.';
+
+  @override
+  String get connections_caption_life =>
+      'A line means you saw that species at that site.';
+
+  @override
+  String get connections_caption_gear =>
+      'A line joins gear used on the same dive.';
+
+  @override
+  String get connections_caption_centers =>
+      'A line means you dived with that buddy through that center.';
+
+  @override
+  String get connections_caption_travel =>
+      'Buddies, trips and sites; a line means they share dives.';
+
+  @override
+  String get connections_caption_reef =>
+      'Sites, marine life and dive types; a line means they share dives.';
+
+  @override
+  String get connections_caption_gearRoad =>
+      'Gear, trips and centers; a line means they share dives.';
+
+  @override
+  String connections_caption_custom(String kinds) {
+    return '$kinds; a line means they share a dive.';
+  }
+
+  @override
+  String get connections_caption_kindSeparator => ', ';
+
+  @override
+  String connections_caption_around(int hops) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hops,
+      locale: localeName,
+      other:
+          'Everything within $hops steps of this centre, linked by shared dives.',
+      one: 'Everything that shares a dive with this centre.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_caption_thicker => 'Thicker lines mean more dives.';
+
+  @override
   String get connections_editor_kinds => 'Kinds';
 
   @override
@@ -5116,6 +5175,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get connections_empty_sites => 'No dives have a site yet.';
 
   @override
+  String get connections_empty_whereNoSites =>
+      'None of your dives with a buddy has a site yet. Add sites to those dives to see where you dive together.';
+
+  @override
   String get connections_empty_filtered =>
       'Nothing matches the current filter.';
 
@@ -9868,6 +9931,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_tank_label_material => 'Material';
 
   @override
+  String get diveLog_tank_label_mnd => 'MND';
+
+  @override
   String get diveLog_tank_label_n2 => 'N2';
 
   @override
@@ -9892,13 +9958,43 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_tank_mndHelper => 'Set to auto-calculate He%';
 
   @override
-  String diveLog_tank_gasUsed(String amount) {
-    return '($amount used)';
+  String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd) {
+    return 'MOD: $mod (ppO₂ $ppO2) | MND: $mnd';
   }
 
   @override
-  String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd) {
-    return 'MOD: $mod (ppO₂ $ppO2) | MND: $mnd';
+  String get diveLog_cylinders_columnTank => 'Tank';
+
+  @override
+  String get diveLog_cylinders_columnGas => 'Gas';
+
+  @override
+  String get diveLog_cylinders_columnStart => 'Start';
+
+  @override
+  String get diveLog_cylinders_columnEnd => 'End';
+
+  @override
+  String get diveLog_cylinders_columnUsed => 'Used';
+
+  @override
+  String diveLog_cylinders_gasUsed(String amount) {
+    return 'Gas used $amount';
+  }
+
+  @override
+  String diveLog_cylinders_mod(String depth) {
+    return 'MOD $depth';
+  }
+
+  @override
+  String diveLog_cylinders_mnd(String depth) {
+    return 'MND $depth';
+  }
+
+  @override
+  String diveLog_cylinders_modNote(String ppO2) {
+    return 'MOD at ppO₂ $ppO2';
   }
 
   @override
@@ -19398,6 +19494,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nav_media => 'Media';
 
   @override
+  String get nav_mediaDocumentsSubtitle => 'Photos, videos and documents';
+
+  @override
+  String get nav_photosVideos => 'Photos/Videos';
+
+  @override
   String get nav_more => 'More';
 
   @override
@@ -20452,8 +20554,8 @@ class AppLocalizationsEn extends AppLocalizations {
       'No lead recorded: add weights to this dive, or a dry weight to your weights gear';
 
   @override
-  String get buoyancy_tankMaterialHint =>
-      'No tank material set: tank buoyancy is estimated. Set each tank\'s material or pick a tank preset';
+  String get buoyancy_tankMaterialAssumedHint =>
+      'Tank material not set, so aluminum was assumed: set the material or pick a tank preset';
 
   @override
   String get buoyancy_chartNet => 'Net';
@@ -22401,6 +22503,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_conflict_field_downloadsFollowComputerOwner =>
       'Add downloads to the computer\'s owner';
+
+  @override
+  String get settings_conflict_field_omitUnusedOcGases =>
+      'Skip unused bailout gases';
 
   @override
   String get settings_conflict_field_avgSpeed => 'Average speed';
@@ -24393,9 +24499,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get nav_documents => 'Documents';
-
-  @override
-  String get documents_title => 'Documents';
 
   @override
   String get documents_type_insurance => 'Insurance';
@@ -29819,6 +29922,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_downloadsFollowOwner_subtitle =>
       'When a dive computer belongs to another profile, its dives go to that profile\'s log. You can change it on the review screen.';
+
+  @override
+  String get settings_omitUnusedOcGases_title => 'Skip unused bailout gases';
+
+  @override
+  String get settings_omitUnusedOcGases_subtitle =>
+      'On rebreather downloads and re-parses, leave out a gas with no transmitter that was never breathed';
 
   @override
   String get tags_manage_searchHint => 'Search tags...';

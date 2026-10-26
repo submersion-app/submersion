@@ -32,6 +32,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/utils/byte_format.dart';
 import 'package:submersion/shared/utils/file_reveal.dart';
+import 'package:submersion/shared/widgets/detail_row/detail_row_group.dart';
 
 /// Everything the app knows about where one media item came from, whether it
 /// is backed up, and where its bytes are being served from right now.
@@ -104,20 +105,23 @@ class _Section extends StatelessWidget {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(title, style: Theme.of(context).textTheme.titleMedium),
-            const Divider(),
-            ...children,
-            if (actions.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Align(
-                alignment: Alignment.centerRight,
-                child: Wrap(spacing: 8, children: actions),
-              ),
+        // One label column per section (issue #3678).
+        child: DetailRowGroup(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: Theme.of(context).textTheme.titleMedium),
+              const Divider(),
+              ...children,
+              if (actions.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: Wrap(spacing: 8, children: actions),
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );

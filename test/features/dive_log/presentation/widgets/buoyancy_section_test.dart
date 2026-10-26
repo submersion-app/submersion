@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/buoyancy/buoyancy_twin.dart';
-import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/data/services/buoyancy_twin_assembler.dart';
@@ -80,22 +79,9 @@ void main() {
     expect(find.textContaining('No lead recorded'), findsNothing);
   });
 
-  testWidgets('hints that a tank material was assumed', (tester) async {
-    // An imported cylinder often carries only its volume and pressures. With
-    // no material the model guesses, and a guessed aluminium D12 reads about
-    // 6.5 kg too buoyant, so the card says the number rests on a guess.
-    await _pump(
-      tester,
-      buoyancyOutcome(
-        tanks: const [TwinTankInput(id: 't1', label: 'tank', volumeL: 24)],
-      ),
-    );
-    expect(find.textContaining('No tank material set'), findsOneWidget);
-  });
-
-  testWidgets('a tank resolved only by its size still hints', (tester) async {
-    // 12 L @ 200 bar now takes Steel 12L's figures, but steel is still a
-    // guess from the size, so the hint stays.
+  testWidgets('hints when a tank material had to be assumed', (tester) async {
+    // #3686: an imported tank with no material and specs that match no
+    // preset is modelled as aluminium; the card must say so.
     await _pump(
       tester,
       buoyancyOutcome(
@@ -103,18 +89,19 @@ void main() {
           TwinTankInput(
             id: 't1',
             label: 'tank',
-            volumeL: 12,
-            workingPressureBar: 200,
+            volumeL: 12.0,
+            workingPressureBar: 232.0,
           ),
         ],
       ),
     );
-    expect(find.textContaining('No tank material set'), findsOneWidget);
+    expect(find.textContaining('Tank material not set'), findsOneWidget);
   });
 
-  testWidgets('no tank material hint once material or preset is known', (
+  testWidgets('no tank material hint once every material is resolved', (
     tester,
   ) async {
+    // 12 L / 200 bar resolves to Steel 12L even without a material.
     await _pump(
       tester,
       buoyancyOutcome(
@@ -122,14 +109,13 @@ void main() {
           TwinTankInput(
             id: 't1',
             label: 'tank',
-            volumeL: 24,
-            material: TankMaterial.steel,
+            volumeL: 12.0,
+            workingPressureBar: 200.0,
           ),
-          TwinTankInput(id: 't2', label: 'Steel 12L', presetName: 'steel12'),
         ],
       ),
     );
-    expect(find.textContaining('No tank material set'), findsNothing);
+    expect(find.textContaining('Tank material not set'), findsNothing);
   });
 
   testWidgets('a narrow card fits its header row', (tester) async {

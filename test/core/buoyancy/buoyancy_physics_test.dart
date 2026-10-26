@@ -126,26 +126,6 @@ void main() {
       );
     });
 
-    test('catalog hit via spec match for a metric preset (12 L @ 200 bar)', () {
-      // An imported cylinder with specs but no preset or material used to
-      // fall through to the aluminium per-liter estimate (+1.065 kg).
-      expect(
-        BuoyancyPhysics.tankTermKg(volumeL: 12.0, workingPressureBar: 200),
-        closeTo(-2.135, 0.001),
-      );
-    });
-
-    test('spec match never overrides an explicit material', () {
-      expect(
-        BuoyancyPhysics.tankTermKg(
-          volumeL: 12.0,
-          workingPressureBar: 200,
-          material: TankMaterial.aluminum,
-        ),
-        closeTo(1.065, 0.001),
-      );
-    });
-
     test('material fallback when nothing matches', () {
       expect(
         BuoyancyPhysics.tankTermKg(
@@ -177,24 +157,103 @@ void main() {
       final term = BuoyancyPhysics.tankTermKg(material: TankMaterial.aluminum);
       expect(term.isFinite, isTrue);
     });
+
+    // #3686: a UDDF import carried a D12's volume and working pressure but
+    // no material, and the tank read as aluminium (+1.065 kg each instead of
+    // -2.135 kg). Expected values computed with python3:
+    //   steel12 near-empty = -1.4 - 12*50*0.001225 = -2.135
+    //   aluminium per-liter 12 L = 12*0.15 - 12*50*0.001225 = 1.065
+    test('a 12 L / 200 bar tank with no material resolves to steel12', () {
+      expect(
+        BuoyancyPhysics.tankTermKg(volumeL: 12.0, workingPressureBar: 200.0),
+        closeTo(-2.135, 1e-9),
+      );
+    });
+
+    test('an explicit material is never overridden by a size match', () {
+      expect(
+        BuoyancyPhysics.tankTermKg(
+          volumeL: 12.0,
+          workingPressureBar: 200.0,
+          material: TankMaterial.aluminum,
+        ),
+        closeTo(1.065, 1e-9),
+      );
+    });
+  });
+
+  group('a preset name that contradicts the material', () {
+    // The passport and the tank editor store a preset found by size alone,
+    // so an aluminum cylinder the size of an HP80 can carry presetName
+    // 'hp80'. Expected values computed with python3:
+    //   aluminum per-liter 10.2 L = 10.2*0.15 - 10.2*50*0.001225 = 0.90525
+    test('yields to the explicit material', () {
+      expect(
+        BuoyancyPhysics.tankTermKg(
+          presetName: 'hp80',
+          volumeL: 10.2,
+          workingPressureBar: 237.317,
+          material: TankMaterial.aluminum,
+        ),
+        closeTo(0.90525, 1e-9),
+      );
+    });
+
+    test('still applies when the material agrees or is unset', () {
+      final hp80 = BuoyancyPhysics.tankTermKg(presetName: 'hp80');
+      expect(
+        BuoyancyPhysics.tankTermKg(
+          presetName: 'hp80',
+          material: TankMaterial.steel,
+        ),
+        hp80,
+      );
+      expect(hp80, closeTo(-1.3 - 10.2 * 50 * 0.001225, 1e-9));
+    });
   });
 
   group('tankMaterialAssumed', () {
-    test('true when neither a material nor a catalog preset is known', () {
-      expect(BuoyancyPhysics.tankMaterialAssumed(), isTrue);
-      expect(BuoyancyPhysics.tankMaterialAssumed(presetName: 'My D12'), isTrue);
+    test('an assumed material is estimated as aluminum', () {
+      expect(
+        BuoyancyPhysics.tankTermKg(volumeL: 12.0, workingPressureBar: 232.0),
+        BuoyancyPhysics.tankTermKg(
+          volumeL: 12.0,
+          material: TankMaterial.aluminum,
+        ),
+        reason:
+            'buoyancy_tankMaterialAssumedHint tells the diver aluminum was '
+            'assumed; change that string if this fallback changes.',
+      );
     });
 
-    test('false when the material is set', () {
+    test('true when no preset, size match or material names it', () {
       expect(
-        BuoyancyPhysics.tankMaterialAssumed(material: TankMaterial.steel),
+        BuoyancyPhysics.tankMaterialAssumed(
+          volumeL: 12.0,
+          workingPressureBar: 232.0,
+        ),
+        isTrue,
+      );
+      expect(BuoyancyPhysics.tankMaterialAssumed(volumeL: 12.0), isTrue);
+    });
+
+    test('false when the specs match a preset', () {
+      expect(
+        BuoyancyPhysics.tankMaterialAssumed(
+          volumeL: 12.0,
+          workingPressureBar: 200.0,
+        ),
         isFalse,
       );
     });
 
-    test('false when the preset is in the catalog', () {
+    test('false for a catalogued preset name or an explicit material', () {
+      expect(BuoyancyPhysics.tankMaterialAssumed(presetName: 'al80'), isFalse);
       expect(
-        BuoyancyPhysics.tankMaterialAssumed(presetName: 'steel12'),
+        BuoyancyPhysics.tankMaterialAssumed(
+          volumeL: 12.0,
+          material: TankMaterial.steel,
+        ),
         isFalse,
       );
     });
@@ -205,20 +264,12 @@ void main() {
       expect(BuoyancyPhysics.tankDryMassKg(presetName: 'al80'), 14.2);
     });
 
-    test('catalog dry mass via spec match agrees with the buoyancy term', () {
-      // tankTermKg resolves 12 L @ 200 bar to steel12; the dry mass that
-      // scales the water term must come from the same catalog row.
+    test('a tank resolved by specs takes its catalogued dry mass', () {
+      // 12 L / 200 bar with no material is steel12 for buoyancy, so its
+      // displaced mass must come from the same row (#3686).
       expect(
-        BuoyancyPhysics.tankDryMassKg(volumeL: 12.0, workingPressureBar: 200),
+        BuoyancyPhysics.tankDryMassKg(volumeL: 12.0, workingPressureBar: 200.0),
         14.5,
-      );
-      expect(
-        BuoyancyPhysics.tankDryMassKg(
-          volumeL: 12.0,
-          workingPressureBar: 200,
-          material: TankMaterial.aluminum,
-        ),
-        closeTo(15.6, 1e-9),
       );
     });
 

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/features/site_scape/presentation/size_reporter.dart';
+import 'package:submersion/shared/widgets/size_reporter.dart';
 
 void main() {
   /// Ends a frame. A post-frame callback does not schedule one itself, and

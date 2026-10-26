@@ -164,6 +164,84 @@ abstract class AppLocalizations {
   /// **'Show'**
   String get connections_around_show;
 
+  /// No description provided for @connections_caption_circle.
+  ///
+  /// In en, this message translates to:
+  /// **'A line joins two buddies who dived together.'**
+  String get connections_caption_circle;
+
+  /// No description provided for @connections_caption_where.
+  ///
+  /// In en, this message translates to:
+  /// **'A line means you dived at that site with that buddy.'**
+  String get connections_caption_where;
+
+  /// No description provided for @connections_caption_trips.
+  ///
+  /// In en, this message translates to:
+  /// **'A line means that buddy was on that trip.'**
+  String get connections_caption_trips;
+
+  /// No description provided for @connections_caption_life.
+  ///
+  /// In en, this message translates to:
+  /// **'A line means you saw that species at that site.'**
+  String get connections_caption_life;
+
+  /// No description provided for @connections_caption_gear.
+  ///
+  /// In en, this message translates to:
+  /// **'A line joins gear used on the same dive.'**
+  String get connections_caption_gear;
+
+  /// No description provided for @connections_caption_centers.
+  ///
+  /// In en, this message translates to:
+  /// **'A line means you dived with that buddy through that center.'**
+  String get connections_caption_centers;
+
+  /// No description provided for @connections_caption_travel.
+  ///
+  /// In en, this message translates to:
+  /// **'Buddies, trips and sites; a line means they share dives.'**
+  String get connections_caption_travel;
+
+  /// No description provided for @connections_caption_reef.
+  ///
+  /// In en, this message translates to:
+  /// **'Sites, marine life and dive types; a line means they share dives.'**
+  String get connections_caption_reef;
+
+  /// No description provided for @connections_caption_gearRoad.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear, trips and centers; a line means they share dives.'**
+  String get connections_caption_gearRoad;
+
+  /// No description provided for @connections_caption_custom.
+  ///
+  /// In en, this message translates to:
+  /// **'{kinds}; a line means they share a dive.'**
+  String connections_caption_custom(String kinds);
+
+  /// No description provided for @connections_caption_kindSeparator.
+  ///
+  /// In en, this message translates to:
+  /// **', '**
+  String get connections_caption_kindSeparator;
+
+  /// No description provided for @connections_caption_around.
+  ///
+  /// In en, this message translates to:
+  /// **'{hops, plural, =1{Everything that shares a dive with this centre.} other{Everything within {hops} steps of this centre, linked by shared dives.}}'**
+  String connections_caption_around(int hops);
+
+  /// No description provided for @connections_caption_thicker.
+  ///
+  /// In en, this message translates to:
+  /// **'Thicker lines mean more dives.'**
+  String get connections_caption_thicker;
+
   /// No description provided for @connections_editor_kinds.
   ///
   /// In en, this message translates to:
@@ -8094,6 +8172,12 @@ abstract class AppLocalizations {
   /// **'No dives have a site yet.'**
   String get connections_empty_sites;
 
+  /// No description provided for @connections_empty_whereNoSites.
+  ///
+  /// In en, this message translates to:
+  /// **'None of your dives with a buddy has a site yet. Add sites to those dives to see where you dive together.'**
+  String get connections_empty_whereNoSites;
+
   /// No description provided for @connections_empty_filtered.
   ///
   /// In en, this message translates to:
@@ -15943,6 +16027,12 @@ abstract class AppLocalizations {
   /// **'Material'**
   String get diveLog_tank_label_material;
 
+  /// No description provided for @diveLog_tank_label_mnd.
+  ///
+  /// In en, this message translates to:
+  /// **'MND'**
+  String get diveLog_tank_label_mnd;
+
   /// No description provided for @diveLog_tank_label_n2.
   ///
   /// In en, this message translates to:
@@ -15991,17 +16081,65 @@ abstract class AppLocalizations {
   /// **'Set to auto-calculate He%'**
   String get diveLog_tank_mndHelper;
 
-  /// Trailing note on the tank pressure line: how much gas the dive consumed, e.g. "(160 bar / 1920 L used)"
-  ///
-  /// In en, this message translates to:
-  /// **'({amount} used)'**
-  String diveLog_tank_gasUsed(String amount);
-
   /// No description provided for @diveLog_tank_modMndInfo.
   ///
   /// In en, this message translates to:
   /// **'MOD: {mod} (ppO₂ {ppO2}) | MND: {mnd}'**
   String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd);
+
+  /// Cylinders card table header over the tank size, name and role
+  ///
+  /// In en, this message translates to:
+  /// **'Tank'**
+  String get diveLog_cylinders_columnTank;
+
+  /// Cylinders card table header over the gas mix
+  ///
+  /// In en, this message translates to:
+  /// **'Gas'**
+  String get diveLog_cylinders_columnGas;
+
+  /// Cylinders card table header over the start pressure; the pressure unit is shown under it
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get diveLog_cylinders_columnStart;
+
+  /// Cylinders card table header over the end pressure; the pressure unit is shown under it
+  ///
+  /// In en, this message translates to:
+  /// **'End'**
+  String get diveLog_cylinders_columnEnd;
+
+  /// Cylinders card table header over the pressure used; the pressure unit is shown under it
+  ///
+  /// In en, this message translates to:
+  /// **'Used'**
+  String get diveLog_cylinders_columnUsed;
+
+  /// Cylinders card detail item: the volume of gas the dive consumed from this cylinder, e.g. "Gas used 1665 L"
+  ///
+  /// In en, this message translates to:
+  /// **'Gas used {amount}'**
+  String diveLog_cylinders_gasUsed(String amount);
+
+  /// Cylinders card detail item: maximum operating depth, e.g. "MOD 33m"
+  ///
+  /// In en, this message translates to:
+  /// **'MOD {depth}'**
+  String diveLog_cylinders_mod(String depth);
+
+  /// Cylinders card detail item: maximum narcotic depth, e.g. "MND 30m"
+  ///
+  /// In en, this message translates to:
+  /// **'MND {depth}'**
+  String diveLog_cylinders_mnd(String depth);
+
+  /// Note under the Cylinders card table: the working ppO2 every MOD on the card was computed at, e.g. "MOD at ppO₂ 1.4"
+  ///
+  /// In en, this message translates to:
+  /// **'MOD at ppO₂ {ppO2}'**
+  String diveLog_cylinders_modNote(String ppO2);
 
   /// No description provided for @diveLog_tank_section_gasMix.
   ///
@@ -31350,6 +31488,18 @@ abstract class AppLocalizations {
   /// **'Media'**
   String get nav_media;
 
+  /// Subtitle for the Media menu item in the More sheet, naming its two tabs
+  ///
+  /// In en, this message translates to:
+  /// **'Photos, videos and documents'**
+  String get nav_mediaDocumentsSubtitle;
+
+  /// Label of the Media section's tab for photos and videos, beside its Documents tab
+  ///
+  /// In en, this message translates to:
+  /// **'Photos/Videos'**
+  String get nav_photosVideos;
+
   /// Navigation label for the 'more' menu on mobile
   ///
   /// In en, this message translates to:
@@ -33036,11 +33186,11 @@ abstract class AppLocalizations {
   /// **'No lead recorded: add weights to this dive, or a dry weight to your weights gear'**
   String get buoyancy_noLeadHint;
 
-  /// No description provided for @buoyancy_tankMaterialHint.
+  /// No description provided for @buoyancy_tankMaterialAssumedHint.
   ///
   /// In en, this message translates to:
-  /// **'No tank material set: tank buoyancy is estimated. Set each tank\'s material or pick a tank preset'**
-  String get buoyancy_tankMaterialHint;
+  /// **'Tank material not set, so aluminum was assumed: set the material or pick a tank preset'**
+  String get buoyancy_tankMaterialAssumedHint;
 
   /// No description provided for @buoyancy_chartNet.
   ///
@@ -36074,6 +36224,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add downloads to the computer\'s owner'**
   String get settings_conflict_field_downloadsFollowComputerOwner;
+
+  /// Label for the skip-unused-bailout-gases setting in a sync conflict
+  ///
+  /// In en, this message translates to:
+  /// **'Skip unused bailout gases'**
+  String get settings_conflict_field_omitUnusedOcGases;
 
   /// No description provided for @settings_conflict_field_avgSpeed.
   ///
@@ -39710,12 +39866,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Documents'**
   String get nav_documents;
-
-  /// No description provided for @documents_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Documents'**
-  String get documents_title;
 
   /// No description provided for @documents_type_insurance.
   ///
@@ -48513,6 +48663,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'When a dive computer belongs to another profile, its dives go to that profile\'s log. You can change it on the review screen.'**
   String get settings_downloadsFollowOwner_subtitle;
+
+  /// Switch title, in Import options on Settings > Data, for leaving out open-circuit gases a rebreather dive computer reports but the diver never carried or breathed
+  ///
+  /// In en, this message translates to:
+  /// **'Skip unused bailout gases'**
+  String get settings_omitUnusedOcGases_title;
+
+  /// Switch subtitle, in Import options on Settings > Data, explaining which gases a rebreather download leaves out
+  ///
+  /// In en, this message translates to:
+  /// **'On rebreather downloads and re-parses, leave out a gas with no transmitter that was never breathed'**
+  String get settings_omitUnusedOcGases_subtitle;
 
   /// No description provided for @tags_manage_searchHint.
   ///

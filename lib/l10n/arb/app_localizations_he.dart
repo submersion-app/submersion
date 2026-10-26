@@ -37,6 +37,62 @@ class AppLocalizationsHe extends AppLocalizations {
   String get connections_around_show => 'הצגה';
 
   @override
+  String get connections_caption_circle => 'קו מחבר בין שני שותפים שצללו יחד.';
+
+  @override
+  String get connections_caption_where =>
+      'קו פירושו שצללת באתר הזה עם השותף הזה.';
+
+  @override
+  String get connections_caption_trips => 'קו פירושו שהשותף הזה היה בטיול הזה.';
+
+  @override
+  String get connections_caption_life =>
+      'קו פירושו שראית את המין הזה באתר הזה.';
+
+  @override
+  String get connections_caption_gear => 'קו מחבר בין ציוד ששימש באותה צלילה.';
+
+  @override
+  String get connections_caption_centers =>
+      'קו פירושו שצללת עם השותף הזה דרך מרכז הצלילה הזה.';
+
+  @override
+  String get connections_caption_travel =>
+      'שותפים, טיולים ואתרים; קו פירושו צלילות משותפות.';
+
+  @override
+  String get connections_caption_reef =>
+      'אתרים, חיים ימיים וסוגי צלילה; קו פירושו צלילות משותפות.';
+
+  @override
+  String get connections_caption_gearRoad =>
+      'ציוד, טיולים ומרכזי צלילה; קו פירושו צלילות משותפות.';
+
+  @override
+  String connections_caption_custom(String kinds) {
+    return '$kinds; קו פירושו שהם חולקים צלילה.';
+  }
+
+  @override
+  String get connections_caption_kindSeparator => ', ';
+
+  @override
+  String connections_caption_around(int hops) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hops,
+      locale: localeName,
+      other: 'כל מה שנמצא עד $hops צעדים מהפריט שבמרכז, מחובר בצלילות משותפות.',
+      one: 'כל מה שחולק צלילה עם הפריט שבמרכז.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_caption_thicker =>
+      'קווים עבים יותר פירושם יותר צלילות.';
+
+  @override
   String get connections_editor_kinds => 'סוגים';
 
   @override
@@ -5087,6 +5143,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get connections_empty_sites => 'לאף צלילה אין עדיין אתר.';
 
   @override
+  String get connections_empty_whereNoSites =>
+      'לאף אחת מהצלילות שלך עם שותף עדיין אין אתר. הוסף אתרים לצלילות האלה כדי לראות איפה אתם צוללים יחד.';
+
+  @override
   String get connections_empty_filtered => 'אין פריטים שמתאימים לסינון הנוכחי.';
 
   @override
@@ -9808,6 +9868,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_tank_label_material => 'חומר';
 
   @override
+  String get diveLog_tank_label_mnd => 'MND';
+
+  @override
   String get diveLog_tank_label_n2 => 'N2';
 
   @override
@@ -9832,13 +9895,43 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_tank_mndHelper => 'הגדר לחישוב אוטומטי של He%';
 
   @override
-  String diveLog_tank_gasUsed(String amount) {
-    return '($amount נוצלו)';
+  String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd) {
+    return 'MOD: $mod (ppO₂ $ppO2) | MND: $mnd';
   }
 
   @override
-  String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd) {
-    return 'MOD: $mod (ppO₂ $ppO2) | MND: $mnd';
+  String get diveLog_cylinders_columnTank => 'בלון';
+
+  @override
+  String get diveLog_cylinders_columnGas => 'גז';
+
+  @override
+  String get diveLog_cylinders_columnStart => 'התחלה';
+
+  @override
+  String get diveLog_cylinders_columnEnd => 'סיום';
+
+  @override
+  String get diveLog_cylinders_columnUsed => 'נוצל';
+
+  @override
+  String diveLog_cylinders_gasUsed(String amount) {
+    return 'גז שנוצל $amount';
+  }
+
+  @override
+  String diveLog_cylinders_mod(String depth) {
+    return 'MOD $depth';
+  }
+
+  @override
+  String diveLog_cylinders_mnd(String depth) {
+    return 'MND $depth';
+  }
+
+  @override
+  String diveLog_cylinders_modNote(String ppO2) {
+    return 'MOD ב-ppO₂ $ppO2';
   }
 
   @override
@@ -19257,6 +19350,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get nav_media => 'מדיה';
 
   @override
+  String get nav_mediaDocumentsSubtitle => 'תמונות, סרטונים ומסמכים';
+
+  @override
+  String get nav_photosVideos => 'תמונות/סרטונים';
+
+  @override
   String get nav_more => 'עוד';
 
   @override
@@ -20303,8 +20402,8 @@ class AppLocalizationsHe extends AppLocalizations {
       'לא נרשמו משקולות: הוסף משקולות לצלילה זו או משקל יבש לציוד המשקולות שלך';
 
   @override
-  String get buoyancy_tankMaterialHint =>
-      'לא הוגדר חומר בלון: הציפה של המכלים משוערת. הגדר חומר לכל בלון או בחר תבנית בלון';
+  String get buoyancy_tankMaterialAssumedHint =>
+      'חומר הבלון לא הוגדר, לכן הונח אלומיניום: הגדר את החומר או בחר תבנית בלון';
 
   @override
   String get buoyancy_chartNet => 'נטו';
@@ -22226,6 +22325,10 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_conflict_field_downloadsFollowComputerOwner =>
       'הוספת הורדות לבעלים של המחשב';
+
+  @override
+  String get settings_conflict_field_omitUnusedOcGases =>
+      'דילוג על גזי חילוץ שלא נוצלו';
 
   @override
   String get settings_conflict_field_avgSpeed => 'מהירות ממוצעת';
@@ -24185,9 +24288,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get nav_documents => 'מסמכים';
-
-  @override
-  String get documents_title => 'מסמכים';
 
   @override
   String get documents_type_insurance => 'ביטוח';
@@ -29570,6 +29670,13 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_downloadsFollowOwner_subtitle =>
       'כשמחשב צלילה שייך לפרופיל אחר, הצלילות שלו נכנסות ליומן של אותו פרופיל. אפשר לשנות זאת במסך הסקירה.';
+
+  @override
+  String get settings_omitUnusedOcGases_title => 'דילוג על גזי חילוץ שלא נוצלו';
+
+  @override
+  String get settings_omitUnusedOcGases_subtitle =>
+      'בהורדות ובעיבוד מחדש ממעגל סגור, משמיט גז ללא משדר שמעולם לא נשמו ממנו';
 
   @override
   String get tags_manage_searchHint => 'חיפוש תגיות...';

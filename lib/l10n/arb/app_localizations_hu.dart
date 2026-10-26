@@ -37,6 +37,66 @@ class AppLocalizationsHu extends AppLocalizations {
   String get connections_around_show => 'Megjelenítés';
 
   @override
+  String get connections_caption_circle =>
+      'Egy vonal két búvártársat köt össze, akik együtt merültek.';
+
+  @override
+  String get connections_caption_where =>
+      'Egy vonal azt jelenti, hogy azzal a társsal merültél azon a helyen.';
+
+  @override
+  String get connections_caption_trips =>
+      'Egy vonal azt jelenti, hogy az a társ ott volt azon az úton.';
+
+  @override
+  String get connections_caption_life =>
+      'Egy vonal azt jelenti, hogy azt a fajt láttad azon a helyen.';
+
+  @override
+  String get connections_caption_gear =>
+      'Egy vonal az ugyanazon merülésen használt felszerelést köti össze.';
+
+  @override
+  String get connections_caption_centers =>
+      'Egy vonal azt jelenti, hogy azzal a társsal azon a búvárközponton keresztül merültél.';
+
+  @override
+  String get connections_caption_travel =>
+      'Búvártársak, utak és merülőhelyek; egy vonal közös merüléseket jelent.';
+
+  @override
+  String get connections_caption_reef =>
+      'Merülőhelyek, tengeri élővilág és merüléstípusok; egy vonal közös merüléseket jelent.';
+
+  @override
+  String get connections_caption_gearRoad =>
+      'Felszerelés, utak és búvárközpontok; egy vonal közös merüléseket jelent.';
+
+  @override
+  String connections_caption_custom(String kinds) {
+    return '$kinds; egy vonal azt jelenti, hogy van közös merülésük.';
+  }
+
+  @override
+  String get connections_caption_kindSeparator => ', ';
+
+  @override
+  String connections_caption_around(int hops) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hops,
+      locale: localeName,
+      other:
+          'Minden $hops lépésen belül ettől a középponttól, közös merülésekkel összekötve.',
+      one: 'Minden, aminek van közös merülése ezzel a középponttal.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_caption_thicker =>
+      'A vastagabb vonal több merülést jelent.';
+
+  @override
   String get connections_editor_kinds => 'Típusok';
 
   @override
@@ -5180,6 +5240,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Még egyik merülésnek sincs merülőhelye.';
 
   @override
+  String get connections_empty_whereNoSites =>
+      'Egyik társas merülésednek sincs még merülőhelye. Adj merülőhelyet ezekhez a merülésekhez, hogy lásd, hol merültök együtt.';
+
+  @override
   String get connections_empty_filtered =>
       'Semmi nem felel meg a jelenlegi szűrőnek.';
 
@@ -10003,6 +10067,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_tank_label_material => 'Anyag';
 
   @override
+  String get diveLog_tank_label_mnd => 'MND';
+
+  @override
   String get diveLog_tank_label_n2 => 'N2';
 
   @override
@@ -10028,13 +10095,43 @@ class AppLocalizationsHu extends AppLocalizations {
       'Állítsa automatikusra a He% kiszámításához';
 
   @override
-  String diveLog_tank_gasUsed(String amount) {
-    return '($amount felhasználva)';
+  String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd) {
+    return 'MOD: $mod (ppO₂ $ppO2) | MND: $mnd';
   }
 
   @override
-  String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd) {
-    return 'MOD: $mod (ppO₂ $ppO2) | MND: $mnd';
+  String get diveLog_cylinders_columnTank => 'Palack';
+
+  @override
+  String get diveLog_cylinders_columnGas => 'Gáz';
+
+  @override
+  String get diveLog_cylinders_columnStart => 'Kezdő';
+
+  @override
+  String get diveLog_cylinders_columnEnd => 'Záró';
+
+  @override
+  String get diveLog_cylinders_columnUsed => 'Felhasznált';
+
+  @override
+  String diveLog_cylinders_gasUsed(String amount) {
+    return 'Felhasznált gáz $amount';
+  }
+
+  @override
+  String diveLog_cylinders_mod(String depth) {
+    return 'MOD $depth';
+  }
+
+  @override
+  String diveLog_cylinders_mnd(String depth) {
+    return 'MND $depth';
+  }
+
+  @override
+  String diveLog_cylinders_modNote(String ppO2) {
+    return 'MOD $ppO2 ppO₂-nél';
   }
 
   @override
@@ -19623,6 +19720,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get nav_media => 'Média';
 
   @override
+  String get nav_mediaDocumentsSubtitle => 'Fotók, videók és dokumentumok';
+
+  @override
+  String get nav_photosVideos => 'Fotók/Videók';
+
+  @override
   String get nav_more => 'Tovább';
 
   @override
@@ -20688,8 +20791,8 @@ class AppLocalizationsHu extends AppLocalizations {
       'Nincs rögzített ólom: adj ólmot ehhez a merüléshez, vagy száraz tömeget az ólomfelszerelésedhez';
 
   @override
-  String get buoyancy_tankMaterialHint =>
-      'Nincs megadva palackanyag: a palackok felhajtóereje becsült. Add meg minden palack anyagát, vagy válassz palack előre beállítást';
+  String get buoyancy_tankMaterialAssumedHint =>
+      'A palack anyaga nincs megadva, ezért alumíniumot feltételeztünk: add meg az anyagot, vagy válassz palacksablont';
 
   @override
   String get buoyancy_chartNet => 'Nettó';
@@ -22668,6 +22771,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_conflict_field_downloadsFollowComputerOwner =>
       'Letöltések hozzáadása a komputer tulajdonosához';
+
+  @override
+  String get settings_conflict_field_omitUnusedOcGases =>
+      'Nem használt bailout gázok kihagyása';
 
   @override
   String get settings_conflict_field_avgSpeed => 'Átlagsebesség';
@@ -24695,9 +24802,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get nav_documents => 'Dokumentumok';
-
-  @override
-  String get documents_title => 'Dokumentumok';
 
   @override
   String get documents_type_insurance => 'Biztosítás';
@@ -30172,6 +30276,14 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_downloadsFollowOwner_subtitle =>
       'Ha egy búvárkomputer egy másik profilhoz tartozik, a merülései annak a profilnak a naplójába kerülnek. Ezt az ellenőrző képernyőn módosíthatod.';
+
+  @override
+  String get settings_omitUnusedOcGases_title =>
+      'Nem használt bailout gázok kihagyása';
+
+  @override
+  String get settings_omitUnusedOcGases_subtitle =>
+      'Rebreather-letöltéseknél és újraolvasáskor kihagyja a jeladó nélküli gázt, amelyből soha nem lélegzett';
 
   @override
   String get tags_manage_searchHint => 'Címkék keresése...';

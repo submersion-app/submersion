@@ -17,7 +17,7 @@ import 'package:submersion/features/dive_sites/presentation/providers/site_featu
 import 'package:submersion/features/site_scape/presentation/patch_aware_hover_picker.dart';
 import 'package:submersion/features/site_scape/presentation/seascape_source_chip.dart';
 import 'package:submersion/features/site_scape/presentation/path_provenance_chip.dart';
-import 'package:submersion/features/site_scape/presentation/size_reporter.dart';
+import 'package:submersion/shared/widgets/size_reporter.dart';
 import 'package:submersion/features/site_scape/presentation/site_feature_info_sheet.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_axes.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_surface.dart';

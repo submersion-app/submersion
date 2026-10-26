@@ -8,6 +8,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/profile/tank_pressure_glitches.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/event_scope_tombstone.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_computer/data/services/bailout_gas_claim.dart';
@@ -31,9 +32,11 @@ import 'package:submersion/features/dive_computer/data/services/parsed_tank_reso
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 import 'package:submersion/features/dive_computer/data/services/dive_parser.dart';
 import 'package:submersion/features/dive_computer/data/services/transmitter_registry_matcher.dart';
+import 'package:submersion/features/dive_computer/data/services/unused_oc_gas_cleanup.dart';
 import 'package:submersion/features/dive_log/domain/services/tank_pressure_series.dart';
 import 'package:submersion/features/dive_computer/data/services/libdc_sample_units.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
+import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
 
 /// Service responsible for applying re-parsed dive computer data back to the
 /// database while respecting the computer-authored vs user-authored field
@@ -42,6 +45,7 @@ import 'package:submersion/features/equipment/data/services/sensor_summary_sched
 /// This is the single point where the allowlist is enforced. Both the
 /// `replaceSource` path and the manual re-parse path call through here.
 class ReparseService {
+  static final _log = LoggerService.forClass(ReparseService);
   final AppDatabase db;
   final _uuid = const Uuid();
 
@@ -55,13 +59,27 @@ class ReparseService {
   /// saved a moment ago applies. Null (or a failing load) means no mapping.
   final TransmitterMatcherLoader? _transmitterMatcherLoader;
 
+  /// The diver's switch for leaving out open-circuit gases no transmitter
+  /// read and the diver never breathed (issue #3668). Re-parse is how an
+  /// already-imported dive sheds them, so it agrees with the download path.
+  final bool omitUnusedOcGases;
+
+  /// The diver's default tank preset, whatever the import opt-in says, so a
+  /// cylinder the pre-v1.8.1 importer filled from it is recognised as the
+  /// importer's and not the diver's (issue #3668). Null, or a failing load,
+  /// means no preset: such a cylinder then counts as edited and is kept.
+  final Future<TankPresetEntity?> Function()? _cleanupTankPresetLoader;
+
   ReparseService({
     required this.db,
     this.trimTankPressureAtSurfacing = true,
+    this.omitUnusedOcGases = false,
+    Future<TankPresetEntity?> Function()? cleanupTankPresetLoader,
     TransmitterMatcherLoader? transmitterMatcherLoader,
     ProfileSeriesRepository? profileSeries,
     TankPressureSeriesRepository? tankSeries,
   }) : _transmitterMatcherLoader = transmitterMatcherLoader,
+       _cleanupTankPresetLoader = cleanupTankPresetLoader,
        _sync = SyncRepository(database: db),
        _profileSeries =
            profileSeries ??
@@ -87,6 +105,24 @@ class ReparseService {
       return await loader();
     } catch (_) {
       return const TransmitterMatcher.empty();
+    }
+  }
+
+  /// Logged rather than silent: without the preset, every cylinder an earlier
+  /// download filled from it is kept, and the diver would see the switch
+  /// apparently do nothing.
+  Future<TankPresetEntity?> _loadCleanupTankPreset() async {
+    final loader = _cleanupTankPresetLoader;
+    if (loader == null) return null;
+    try {
+      return await loader();
+    } catch (e, st) {
+      _log.warning(
+        'Default tank preset unavailable; keeping preset-filled cylinders',
+        error: e,
+        stackTrace: st,
+      );
+      return null;
     }
   }
 
@@ -931,6 +967,22 @@ class ReparseService {
         (existing.roleSource == null &&
             existing.tankRole == nameDerivedRoles[index]);
 
+    // With the diver's switch on, sort the stored rows of unused open-circuit
+    // gases before the claim (issue #3668), judged against this parse rather
+    // than the role overlay below, which would hide a role the diver changed.
+    // A row the importer wrote, including an older importer's back-gas guess
+    // or preset fill, is the computer's own cylinder again: it takes this
+    // parse's role and can be claimed, so a bailout transmitter still gets
+    // its gas before the row goes.
+    final unusedRows =
+        omitUnusedOcGases && parsedTanks.any((t) => t.unusedOcGas)
+        ? sortUnusedOcGasRows(
+            parsedTanks,
+            matches,
+            defaultPreset: await _loadCleanupTankPreset(),
+          )
+        : (edited: const <int>{}, importers: const <int>{});
+
     // A bailout transmitter claims the computer's pressureless cylinder for
     // its gas (#3307). Stored roles the diver set count, so a transmitter the
     // diver made the bailout keeps the cylinder merged; a stored cylinder the
@@ -939,7 +991,9 @@ class ReparseService {
       tanks: [
         for (final tank in parsedTanks)
           switch (matches[tank.index]) {
-            final existing? when !roleIsComputers(existing, tank.index) =>
+            final existing?
+                when !roleIsComputers(existing, tank.index) &&
+                    !unusedRows.importers.contains(tank.index) =>
               tank.copyWith(role: existing.tankRole, clearRoleSource: true),
             _ => tank,
           },
@@ -962,14 +1016,27 @@ class ReparseService {
       keep: {
         for (final tank in parsedTanks)
           if (matches[tank.index] case final row?)
-            if (_isDiverEdited(row, tank)) tank.index,
+            if (_isDiverEdited(row, tank) &&
+                !unusedRows.importers.contains(tank.index))
+              tank.index,
+        // The wider unused-gas test: a hand-entered pressure, regulator, trip
+        // cylinder or passport on such a row would go with a claim.
+        ...unusedRows.edited,
       },
     );
+
+    // Then the cylinders of unused open-circuit gases go, after the claim has
+    // seen them, except one whose own row the diver edited. A row the diver
+    // added in the editor reaches a dropped index only through the order
+    // fallback and is left alone below.
+    final unused = omitUnusedOcGases
+        ? dropUnusedOcGases(claim.tanks, keep: unusedRows.edited)
+        : (tanks: claim.tanks, dropped: const <int>{});
 
     // Claimed cylinders are gone from [claim.tanks]; a role overlaid above
     // is only on rows whose role this loop leaves alone.
     final newTankOrders = <int>{};
-    for (final tank in claim.tanks) {
+    for (final tank in unused.tanks) {
       newTankOrders.add(tank.index);
       final existing = matches[tank.index];
       if (existing != null) {
@@ -1064,6 +1131,16 @@ class ReparseService {
     // even though this parse matched it. A row the parse did not match keeps
     // the pre-v200 rule: its order still counts as taken.
     newTankOrders.addAll(claim.remappedIndices.keys);
+    // A row sitting at a dropped gas's order is never caught by the pre-v200
+    // rule below; the gas's own rows are deleted here instead, since they
+    // were matched and the loop below skips matched rows.
+    newTankOrders.addAll(unused.dropped);
+    for (final index in unused.dropped) {
+      final row = matches[index];
+      if (row == null || row.sourceTankIndex != index) continue;
+      await (db.delete(db.diveTanks)..where((t) => t.id.equals(row.id))).go();
+      await _sync.logDeletion(entityType: 'diveTanks', recordId: row.id);
+    }
     final claimedIds = {
       for (final index in claim.remappedIndices.keys)
         if (matches[index] != null) matches[index]!.id,

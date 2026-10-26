@@ -74,6 +74,30 @@ void main() {
     },
   );
 
+  test('ignoreImportOptIn resolves the preset while the toggle is off '
+      '(issue #3668)', () async {
+    final container = ProviderContainer(
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(prefs),
+        settingsProvider.overrideWith(
+          (ref) => MockSettingsNotifier(
+            const AppSettings(
+              applyDefaultTankToImports: false,
+              defaultTankPreset: 'al80',
+            ),
+          ),
+        ),
+        validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+      ],
+    );
+    addTearDown(container.dispose);
+    final probe = FutureProvider<TankPresetEntity?>(
+      (ref) => loadDefaultTankPresetForDownloads(ref, ignoreImportOptIn: true),
+    );
+
+    expect((await container.read(probe.future))?.name, 'al80');
+  });
+
   test('yields nothing for a preset that no longer exists', () async {
     final preset = await load(
       const AppSettings(

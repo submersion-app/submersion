@@ -34,7 +34,6 @@ import 'package:submersion/features/marine_life/presentation/providers/species_p
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/presentation/pages/document_detail_page.dart';
 import 'package:submersion/features/documents/presentation/pages/document_edit_page.dart';
-import 'package:submersion/features/documents/presentation/pages/documents_page.dart';
 import 'package:submersion/features/certifications/presentation/pages/certification_detail_page.dart';
 import 'package:submersion/features/certifications/presentation/pages/certification_edit_page.dart';
 import 'package:submersion/features/certifications/presentation/pages/certification_wallet_page.dart';
@@ -85,7 +84,6 @@ import 'package:submersion/features/equipment/presentation/pages/equipment_locat
 import 'package:submersion/features/equipment/presentation/pages/service_kind_list_page.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_set_detail_page.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_set_edit_page.dart';
-import 'package:submersion/features/media/presentation/pages/media_section_page.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_edit_navigation.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_list_page.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_detail_page.dart';
@@ -198,7 +196,9 @@ import 'package:submersion/features/nav_track/presentation/pages/nav_track_detai
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_seascape_page.dart';
 import 'package:submersion/features/gps_log/presentation/pages/gps_track_detail_page.dart';
 import 'package:submersion/core/router/track_locations.dart';
+import 'package:submersion/core/router/media_documents_locations.dart';
 import 'package:submersion/core/router/training_locations.dart';
+import 'package:submersion/features/media_documents/presentation/pages/media_documents_page.dart';
 import 'package:submersion/features/training/presentation/pages/training_page.dart';
 import 'package:submersion/features/tracks/domain/track_kind.dart';
 import 'package:submersion/features/tracks/presentation/pages/tracks_map_page.dart';
@@ -895,22 +895,19 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             ],
           ),
 
-          // Documents (issue #2613)
+          // Documents (issue #2613), merged with Media into two tabs of one
+          // host (#3631), the way Training merged Certifications and
+          // Courses (#3437).
           GoRoute(
             path: '/documents',
             name: 'documents',
-            pageBuilder: (context, state) {
-              final q = state.uri.queryParameters;
-              return NoTransitionPage(
-                key: state.pageKey,
-                child: DocumentsPage(
-                  initialType: DocumentType.values.asNameMap()[q['type']],
-                  initialExpiringOnly: q['filter'] == 'expiring',
-                  initialPersonalOnly: q['owner'] == 'personal',
-                  initialTagId: q['tag'],
-                ),
-              );
-            },
+            // Documents' filters (type/filter/owner/tag) are not read from
+            // this route's state: the shared host also rebuilds for /media,
+            // which carries none of them. The host hands each tab its own
+            // cached query instead.
+            pageBuilder: (context, state) => mediaDocumentsHostPage(
+              const MediaDocumentsPage(tab: MediaDocumentsTab.documents),
+            ),
             routes: [
               GoRoute(
                 path: 'new',
@@ -1077,13 +1074,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             ],
           ),
 
-          // Media section (DAM console)
+          // Media section (DAM console), merged with Documents into two
+          // tabs of one host (#3631).
           GoRoute(
             path: '/media',
             name: 'media',
-            pageBuilder: (context, state) => NoTransitionPage(
-              key: state.pageKey,
-              child: const MediaSectionPage(),
+            pageBuilder: (context, state) => mediaDocumentsHostPage(
+              const MediaDocumentsPage(tab: MediaDocumentsTab.media),
             ),
           ),
 

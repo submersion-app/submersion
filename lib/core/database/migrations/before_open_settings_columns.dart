@@ -14,5 +14,7 @@ extension BeforeOpenSettingsColumns on AppDatabase {
     await _assertDivePlanReserveAndGfNullable();
     // v310 backstop: diver_settings.downloads_follow_computer_owner.
     await _assertDownloadOwnerColumn();
+    // v315 backstop: diver_settings.omit_unused_oc_gases.
+    await _assertOmitUnusedOcGasesColumn();
   }
 }
