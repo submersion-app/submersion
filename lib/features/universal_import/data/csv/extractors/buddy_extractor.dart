@@ -4,8 +4,9 @@ import 'package:submersion/features/universal_import/data/csv/extractors/entity_
 
 /// Extracts buddy records from transformed CSV rows.
 ///
-/// The 'buddy' field may contain multiple names separated by commas.
-/// Buddies are deduplicated by name across all rows.
+/// The 'buddy' and 'instructor' fields may each contain multiple names
+/// separated by commas. Buddies are deduplicated by name across all rows,
+/// whichever field names them.
 ///
 /// Handles the Subsurface leading-comma format where the field value starts
 /// with ", " (e.g., ", Kiyan Griffin").
@@ -23,15 +24,15 @@ class BuddyExtractor implements EntityExtractor<Map<String, dynamic>> {
     final nameToId = <String, String>{};
 
     for (final row in rows) {
-      final raw = row['buddy'];
-      if (raw == null) continue;
-      final names = _splitNames(raw.toString());
-
-      for (final name in names) {
-        if (nameToId.containsKey(name)) continue;
-        final id = _uuid.v4();
-        nameToId[name] = id;
-        buddies.add({'id': id, 'uddfId': id, 'name': name});
+      for (final field in const ['buddy', 'instructor']) {
+        final raw = row[field];
+        if (raw == null) continue;
+        for (final name in _splitNames(raw.toString())) {
+          if (nameToId.containsKey(name)) continue;
+          final id = _uuid.v4();
+          nameToId[name] = id;
+          buddies.add({'id': id, 'uddfId': id, 'name': name});
+        }
       }
     }
 

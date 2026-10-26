@@ -453,8 +453,19 @@ class CsvTransformer {
 
     // Numeric (double) fields that may need unit conversion.
     if (_isDoubleField(lower)) {
-      final parsed = _valueConverter.parseDouble(rawValue);
-      if (parsed == null) return null;
+      final measured = _valueConverter.parseMeasurement(
+        rawValue,
+        UnitDetector.unitTypeForField(lower),
+      );
+      if (measured == null) return null;
+      final parsed = measured.value;
+
+      // A unit written in the value itself ("35 ft") says more than the
+      // header does, so it wins.
+      final inlineUnit = measured.unit;
+      if (inlineUnit != null) {
+        return _valueConverter.convertUnit(parsed, inlineUnit);
+      }
 
       // Check if the source header has an imperial unit that needs conversion.
       final unitInfo = headerUnits[sourceColumnLower];
