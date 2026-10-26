@@ -76,7 +76,8 @@ class BuoyancyPhysics {
   /// Near-empty buoyancy of one tank: the catalog (or per-material
   /// fallback) empty value minus the mass of the reserve gas.
   ///
-  /// Resolution order: explicit [presetName] in the catalog, then
+  /// Resolution order: explicit [presetName] in the catalog (unless its
+  /// material contradicts [material]), then
   /// TankPresets.matchAnyBySpecs(volume, working pressure, material), then a
   /// per-material per-liter estimate. A null [material] that nothing
   /// resolves is estimated as aluminum; [tankMaterialAssumed] reports when
@@ -137,7 +138,13 @@ class BuoyancyPhysics {
     double? workingPressureBar,
     TankMaterial? material,
   ) {
-    if (presetName != null && kTankCatalog.containsKey(presetName)) {
+    // A stored preset name can come from a size match that ignored the
+    // material (cylinder passports, the tank editor), so it never overrides
+    // a material the tank states.
+    final preset = presetName != null ? TankPresets.byName(presetName) : null;
+    if (presetName != null &&
+        kTankCatalog.containsKey(presetName) &&
+        (material == null || preset?.material == material)) {
       return kTankCatalog[presetName];
     }
     if (volumeL != null && workingPressureBar != null) {

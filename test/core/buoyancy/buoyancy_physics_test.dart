@@ -182,6 +182,36 @@ void main() {
     });
   });
 
+  group('a preset name that contradicts the material', () {
+    // The passport and the tank editor store a preset found by size alone,
+    // so an aluminum cylinder the size of an HP80 can carry presetName
+    // 'hp80'. Expected values computed with python3:
+    //   aluminum per-liter 10.2 L = 10.2*0.15 - 10.2*50*0.001225 = 0.90525
+    test('yields to the explicit material', () {
+      expect(
+        BuoyancyPhysics.tankTermKg(
+          presetName: 'hp80',
+          volumeL: 10.2,
+          workingPressureBar: 237.317,
+          material: TankMaterial.aluminum,
+        ),
+        closeTo(0.90525, 1e-9),
+      );
+    });
+
+    test('still applies when the material agrees or is unset', () {
+      final hp80 = BuoyancyPhysics.tankTermKg(presetName: 'hp80');
+      expect(
+        BuoyancyPhysics.tankTermKg(
+          presetName: 'hp80',
+          material: TankMaterial.steel,
+        ),
+        hp80,
+      );
+      expect(hp80, closeTo(-1.3 - 10.2 * 50 * 0.001225, 1e-9));
+    });
+  });
+
   group('tankMaterialAssumed', () {
     test('an assumed material is estimated as aluminum', () {
       expect(
