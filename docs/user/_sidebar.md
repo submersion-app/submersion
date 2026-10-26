@@ -14,6 +14,7 @@
   - [Garmin Connect](how-to-move-from-garmin-connect.md)
   - [Suunto](how-to-move-from-suunto.md)
   - [divelogs.de](how-to-move-from-divelogs-de.md)
+  - [DAN DiveCloud](how-to-move-from-dan-divecloud.md)
 
 **Logging Your Dives**
 - [The Dashboard](dashboard.md)
