@@ -243,6 +243,8 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/main_scaffold.dart';
 import 'package:submersion/features/certification_agencies/presentation/pages/certification_agencies_page.dart';
 import 'package:submersion/features/certification_agencies/presentation/pages/certification_agency_edit_page.dart';
+import 'package:submersion/features/demo_mode/presentation/demo_sealed_routes.dart';
+import 'package:submersion/features/demo_mode/presentation/pages/demo_unavailable_page.dart';
 
 /// Root navigator key, so app-wide modals (e.g. the replaced-library adopt
 /// dialog surfaced from the app root) can be shown above the shell.
@@ -257,6 +259,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       if (DatabaseService.instance.isMigrating) {
         return null;
       }
+
+      // Demo mode (issue #3708): a sealed screen explains itself instead.
+      final sealed = demoRedirect(state.uri.toString());
+      if (sealed != null) return sealed;
 
       final hasDivers = await ref.read(hasAnyDiversProvider.future);
       final isOnWelcome = state.matchedLocation == '/welcome';
@@ -295,6 +301,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           child: Focus(autofocus: true, child: MainScaffold(child: child)),
         ),
         routes: [
+          GoRoute(
+            path: demoUnavailableLocation,
+            name: 'demoUnavailable',
+            builder: (context, state) => DemoUnavailablePage(
+              feature: DemoUnavailablePage.featureFromQuery(
+                state.uri.queryParameters['feature'],
+              ),
+            ),
+          ),
           // Dashboard (Home)
           GoRoute(
             path: '/dashboard',
