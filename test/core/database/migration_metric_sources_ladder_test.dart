@@ -28,6 +28,12 @@ const _v177Sources = [
   'default_gtr_source',
 ];
 
+/// The five columns that still exist at the current version.
+final _survivingSources = [
+  for (final c in _v177Sources)
+    if (c != 'default_ceiling_source') c,
+];
+
 /// The earliest version the ladder climbs from with only diver_settings and
 /// the shared fixture tables. Below it, rungs alter trips, dives, dive
 /// computers, dive tanks and view configs, whose period shapes no fixture
@@ -37,15 +43,23 @@ const _earlyVersion = 65;
 /// The first version that carries all six source columns.
 const _allSourcesVersion = 177;
 
-/// An existing library at [version] whose diver_settings row holds [stored]
-/// in every one of [sources]. use_dive_computer_cns_data is on: v42 turned
-/// that toggle into default_cns_source = 0, so a rung that re-ran the
-/// conversion would move a diver who later chose Calculated back to computer.
-NativeDatabase _libraryAt(
-  int version, {
-  required List<String> sources,
-  required int stored,
-}) {
+/// [sources] mapped to values that alternate along the surviving columns,
+/// starting at [first]. Running both starts gives each column both values,
+/// and consecutive surviving columns always differ, so a rung that copied
+/// one source into the next would show. The retired ceiling column takes
+/// [first]; only its removal is checked.
+Map<String, int> _alternating(List<String> sources, {required int first}) => {
+  for (final c in sources)
+    c: _survivingSources.contains(c)
+        ? (first + _survivingSources.indexOf(c)) % 2
+        : first,
+};
+
+/// An existing library at [version] whose diver_settings row holds
+/// [stored]. use_dive_computer_cns_data is on: v42 turned that toggle into
+/// default_cns_source = 0, so a rung that re-ran the conversion would move
+/// a diver who later chose Calculated back to computer.
+NativeDatabase _libraryAt(int version, Map<String, int> stored) {
   return NativeDatabase.memory(
     setup: (rawDb) {
       registerAppSqlFunctions(rawDb);
@@ -58,13 +72,13 @@ NativeDatabase _libraryAt(
           id TEXT NOT NULL PRIMARY KEY,
           diver_id TEXT NOT NULL,
           use_dive_computer_cns_data INTEGER NOT NULL DEFAULT 0,
-          ${sources.map((c) => '$c INTEGER NOT NULL DEFAULT 1').join(',\n          ')}
+          ${stored.keys.map((c) => '$c INTEGER NOT NULL DEFAULT 1').join(',\n          ')}
         )
       ''');
       rawDb.execute(
         'INSERT INTO diver_settings '
-        '(id, diver_id, use_dive_computer_cns_data, ${sources.join(', ')}) '
-        "VALUES ('s1', 'd1', 1, ${List.filled(sources.length, stored).join(', ')})",
+        '(id, diver_id, use_dive_computer_cns_data, ${stored.keys.join(', ')}) '
+        "VALUES ('s1', 'd1', 1, ${stored.values.join(', ')})",
       );
     },
   );
@@ -89,37 +103,33 @@ void main() {
     expect(AppDatabase.migrationStepCount(_allSourcesVersion), greaterThan(1));
   });
 
-  for (final stored in [0, 1]) {
-    final label = stored == 0 ? 'computer (0)' : 'calculated (1)';
+  for (final first in [0, 1]) {
+    final label = 'alternating from ${first == 0 ? 'computer' : 'calculated'}';
 
-    test('NDL, TTS and CNS stored as $label at v$_earlyVersion survive the '
+    test('NDL, TTS and CNS stored $label at v$_earlyVersion survive the '
         'ladder', () async {
-      final db = AppDatabase(
-        _libraryAt(_earlyVersion, sources: _v42Sources, stored: stored),
-      );
+      final stored = _alternating(_v42Sources, first: first);
+      final db = AppDatabase(_libraryAt(_earlyVersion, stored));
       addTearDown(db.close);
 
       final row = await _settingsRow(db);
-      expect(row['default_ndl_source'], stored);
-      expect(row['default_tts_source'], stored);
-      expect(row['default_cns_source'], stored);
-      // Added later by their own rungs, so they take the column default.
-      expect(row['default_deco_stop_source'], 1);
-      expect(row['default_gtr_source'], 1);
+      for (final column in _survivingSources) {
+        // Deco stop and GTR arrive later by their own rungs, so they take
+        // the calculated column default.
+        expect(row[column], stored[column] ?? 1, reason: '$column changed');
+      }
       expect(row, isNot(contains('default_ceiling_source')));
     });
 
-    test('every source stored as $label at v$_allSourcesVersion survives the '
+    test('every source stored $label at v$_allSourcesVersion survives the '
         'ladder', () async {
-      final db = AppDatabase(
-        _libraryAt(_allSourcesVersion, sources: _v177Sources, stored: stored),
-      );
+      final stored = _alternating(_v177Sources, first: first);
+      final db = AppDatabase(_libraryAt(_allSourcesVersion, stored));
       addTearDown(db.close);
 
       final row = await _settingsRow(db);
-      for (final column in _v177Sources) {
-        if (column == 'default_ceiling_source') continue;
-        expect(row[column], stored, reason: '$column was rewritten');
+      for (final column in _survivingSources) {
+        expect(row[column], stored[column], reason: '$column was rewritten');
       }
       expect(row, isNot(contains('default_ceiling_source')));
     });
