@@ -1332,6 +1332,17 @@ class DiveRepository {
     return result;
   }
 
+  /// The id of the row each of [rows] (in shown order) shows as: the first
+  /// row of its strand, which is itself for a row that did not collapse.
+  static Map<String, String> _shownIdByRow(List<DiveDataSourcesData> rows) {
+    final strandOf = dataSourceStrandKeysById(rows);
+    final shownIdByStrand = <String, String>{};
+    return {
+      for (final row in rows)
+        row.id: shownIdByStrand.putIfAbsent(strandOf[row.id]!, () => row.id),
+    };
+  }
+
   /// Every source row of [diveId], primary first and then oldest: the order
   /// [_canonicalDataSourceRows] needs to keep the shown row of each strand.
   Future<List<DiveDataSourcesData>> _sourceRowsInShownOrder(String diveId) =>
@@ -1360,9 +1371,8 @@ class DiveRepository {
   ) async {
     try {
       final series = await _profileSeries.getSeriesForDive(diveId);
-      final sourceRows = _canonicalDataSourceRows(
-        await _sourceRowsInShownOrder(diveId),
-      );
+      final allRows = await _sourceRowsInShownOrder(diveId);
+      final sourceRows = _canonicalDataSourceRows(allRows);
       if (sourceRows.isEmpty) {
         // Dives with series but no dive_data_sources row (older imports
         // predate that table): synthesize the primary source.
@@ -1387,11 +1397,15 @@ class DiveRepository {
         for (final s in sourceRows)
           if (s.computerId != null) s.computerId!: s.id,
       };
-      final sourceIds = {for (final s in sourceRows) s.id};
+      // A series owned by a row that collapsed into another's chip belongs
+      // to the row that speaks for that strand (issue #3654), not to the
+      // primary, which may be a different computer.
+      final shownIdByRow = _shownIdByRow(allRows);
       // The FK is authoritative; a series without one follows the pre-v154
       // computer convention (issue #1149).
-      bool isPrimaryFamily(ProfileSeries s) => sourceIds.contains(s.sourceId)
-          ? s.sourceId == primary.id
+      bool isPrimaryFamily(ProfileSeries s) =>
+          shownIdByRow.containsKey(s.sourceId)
+          ? shownIdByRow[s.sourceId] == primary.id
           : s.computerId == null || s.computerId == primary.computerId;
       final family = series.where(isPrimaryFamily);
       final hasEditedProfile =
@@ -1402,8 +1416,8 @@ class DiveRepository {
       };
       var primaryIsEdited = false;
       for (final s in series) {
-        final owner = sourceIds.contains(s.sourceId)
-            ? s.sourceId!
+        final owner = shownIdByRow.containsKey(s.sourceId)
+            ? shownIdByRow[s.sourceId]!
             : s.computerId == null
             ? primary.id
             : (sourceIdByComputer[s.computerId!] ?? primary.id);
@@ -1537,13 +1551,7 @@ class DiveRepository {
   /// shown sources finds the right one (issue #3067).
   Future<List<ProfileSeriesRevision>> getProfileHistory(String diveId) async {
     final revisions = await _profileSeries.getRevisionsForDive(diveId);
-    final rows = await _sourceRowsInShownOrder(diveId);
-    final strandOf = dataSourceStrandKeysById(rows);
-    final shownIdByStrand = <String, String>{};
-    final shownIdByRow = <String, String>{
-      for (final row in rows)
-        row.id: shownIdByStrand.putIfAbsent(strandOf[row.id]!, () => row.id),
-    };
+    final shownIdByRow = _shownIdByRow(await _sourceRowsInShownOrder(diveId));
     return [
       for (final revision in revisions)
         switch (shownIdByRow[revision.sourceId]) {
@@ -8164,7 +8172,45 @@ class DiveRepository {
   /// included.
   Future<bool> hasMultipleDataSources(String diveId) async {
     try {
-      final rows = await _sourceRowsInShownOrder(diveId);
+      // Only the columns the strand rule reads, so the raw dive bytes each
+      // row carries are not loaded just to be counted.
+      final t = _db.diveDataSources;
+      final query = _db.selectOnly(t)
+        ..addColumns([
+          t.id,
+          t.isPrimary,
+          t.createdAt,
+          t.computerId,
+          t.mergeSourceSlot,
+          t.computerModel,
+          t.computerSerial,
+          t.entryTime,
+          t.duration,
+          t.maxDepth,
+        ])
+        ..where(t.diveId.equals(diveId))
+        ..orderBy([
+          OrderingTerm.desc(t.isPrimary),
+          OrderingTerm.asc(t.createdAt),
+        ]);
+      final rows = [
+        for (final r in await query.get())
+          DiveDataSourcesData(
+            id: r.read(t.id)!,
+            diveId: diveId,
+            isPrimary: r.read(t.isPrimary)!,
+            // Not selected and not read by the strand rule.
+            importedAt: r.read(t.createdAt)!,
+            createdAt: r.read(t.createdAt)!,
+            computerId: r.read(t.computerId),
+            mergeSourceSlot: r.read(t.mergeSourceSlot),
+            computerModel: r.read(t.computerModel),
+            computerSerial: r.read(t.computerSerial),
+            entryTime: r.read(t.entryTime),
+            duration: r.read(t.duration),
+            maxDepth: r.read(t.maxDepth),
+          ),
+      ];
       return dataSourceStrandKeysById(rows).values.toSet().length >= 2;
     } catch (e, stackTrace) {
       _log.error(

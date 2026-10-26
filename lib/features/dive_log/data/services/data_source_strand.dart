@@ -54,7 +54,9 @@ Map<String, String> dataSourceStrandKeysById(
   Iterable<DiveDataSourcesData> rows,
 ) {
   final keys = <String, String>{};
-  final loose = <DiveDataSourcesData>[];
+  // The rows with no computer and no slot, by strand, in the order each
+  // strand was first seen.
+  final looseByStrand = <String, List<DiveDataSourcesData>>{};
   for (final row in rows) {
     final own = dataSourceStrandKey(
       rowId: row.id,
@@ -68,16 +70,16 @@ Map<String, String> dataSourceStrandKeysById(
     // Every row already on the strand must agree, not just the first: a
     // serial-less row matches either of two serials that do not match each
     // other.
-    final strand = loose
-        .map((r) => keys[r.id]!)
-        .where(
-          (key) => loose
-              .where((r) => keys[r.id] == key)
-              .every((r) => sameRecordingWithoutComputer(r, row)),
-        )
-        .firstOrNull;
-    keys[row.id] = strand ?? own;
-    loose.add(row);
+    final strand =
+        looseByStrand.entries
+            .where(
+              (e) => e.value.every((r) => sameRecordingWithoutComputer(r, row)),
+            )
+            .firstOrNull
+            ?.key ??
+        own;
+    keys[row.id] = strand;
+    (looseByStrand[strand] ??= []).add(row);
   }
   return keys;
 }

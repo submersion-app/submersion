@@ -2,6 +2,8 @@ import 'package:drift/drift.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
+import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 
 import '../../../../helpers/test_database.dart';
 
@@ -302,6 +304,53 @@ void main() {
 
       expect(sources.map((s) => s.id).toList(), ['src-bare', 'src-petrel']);
       expect(await repository.hasMultipleDataSources('dive-1'), isTrue);
+    });
+
+    test('hand a collapsed row\'s samples to its own chip, not to the '
+        'primary computer', () async {
+      await insertSource(
+        'src-petrel',
+        isPrimary: true,
+        model: 'Petrel 3',
+        duration: 2481,
+        day: 1,
+      );
+      await insertSource(
+        'src-vendor',
+        isPrimary: false,
+        model: 'Shearwater Perdix 2',
+        duration: 440,
+        day: 2,
+      );
+      await insertSource(
+        'src-bare',
+        isPrimary: false,
+        model: 'Perdix 2',
+        serial: 'A5433DEA',
+        duration: 440,
+        day: 3,
+      );
+      final series = ProfileSeriesRepository();
+      for (final (sourceId, depth) in [
+        ('src-petrel', 30.0),
+        ('src-bare', 6.2),
+      ]) {
+        await series.insertSeries(
+          diveId: 'dive-1',
+          sourceId: sourceId,
+          isPrimary: sourceId == 'src-petrel',
+          samples: [
+            const ProfileSample(timestamp: 0, depth: 0),
+            ProfileSample(timestamp: 60, depth: depth),
+          ],
+        );
+      }
+
+      final profiles = await repository.getProfilesByDataSource('dive-1');
+
+      expect(profiles.keys.toList(), ['src-petrel', 'src-vendor']);
+      expect(profiles['src-petrel']!.points.map((p) => p.depth), [0, 30.0]);
+      expect(profiles['src-vendor']!.points.map((p) => p.depth), [0, 6.2]);
     });
   });
 }
