@@ -115,11 +115,11 @@ List<DiveShape> syntheticShapes() {
     endBar: 195,
   );
 
-  for (var i = 0; i < 12; i++) {
+  for (var i = 0; i < 90; i++) {
     shapes.add(
       make(
-        depth: 8.0 + i * 2.5,
-        minutes: 40 + i * 2,
+        depth: 8.0 + (i % 14) * 2.2,
+        minutes: 35 + (i % 20),
         kinds: {ShapeKind.recreational},
         tanks: [air],
         heartRate: i.isEven,
@@ -127,21 +127,21 @@ List<DiveShape> syntheticShapes() {
       ),
     );
   }
-  for (var i = 0; i < 6; i++) {
+  for (var i = 0; i < 45; i++) {
     shapes.add(
       make(
-        depth: 40.0 + i * 3,
-        minutes: 55 + i * 5,
+        depth: 40.0 + (i % 6) * 3,
+        minutes: 55 + (i % 9) * 4,
         kinds: {ShapeKind.deepOpenCircuit, ShapeKind.multiGasDeco},
         tanks: [air, ean50],
       ),
     );
   }
-  for (var i = 0; i < 4; i++) {
+  for (var i = 0; i < 25; i++) {
     shapes.add(
       make(
-        depth: 52.0 + i * 5,
-        minutes: 70 + i * 5,
+        depth: 50.0 + (i % 5) * 4,
+        minutes: 70 + (i % 6) * 5,
         kinds: {
           ShapeKind.trimix,
           ShapeKind.deepOpenCircuit,
@@ -151,10 +151,10 @@ List<DiveShape> syntheticShapes() {
       ),
     );
   }
-  for (var i = 0; i < 5; i++) {
+  for (var i = 0; i < 14; i++) {
     shapes.add(
       make(
-        depth: 12.0 + i * 10,
+        depth: 12.0 + (i % 5) * 10,
         minutes: 60 + i * 10,
         kinds: {ShapeKind.ccr},
         mode: 'ccr',

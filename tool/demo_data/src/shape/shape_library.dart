@@ -6,9 +6,9 @@ import 'dive_shape.dart';
 ///
 /// A shape fits a dive when it has every wanted kind, the same dive mode,
 /// and a maximum depth the reshaper can reach (within its 0.85 to 1.15
-/// depth scale). No shape is used more than [maxUses] times in the logbook
-/// or twice on one trip, so the demo never shows the same dive twice in a
-/// row.
+/// depth scale). No shape is used more than [maxUses] times in the logbook,
+/// and a trip repeats a shape only when its kind has run out of new ones
+/// (rebreather dives, for which real data is scarce).
 class ShapeLibrary {
   ShapeLibrary(List<DiveShape> shapes, this.random)
     : _shapes = [...shapes]..sort((a, b) => a.id.compareTo(b.id));
@@ -28,24 +28,30 @@ class ShapeLibrary {
   }) {
     final usedOnTrip = tripId == null
         ? const <String>{}
-        : _byTrip[tripId] ?? {};
-    bool free(DiveShape s) =>
-        (_uses[s.id] ?? 0) < maxUses && !usedOnTrip.contains(s.id);
-    final ofMode = _shapes.where((s) => s.diveMode == diveMode && free(s));
-    final ofKind = ofMode.where((s) => s.kinds.containsAll(kinds)).toList();
-    final fitting = ofKind
-        .where(
-          (s) =>
-              s.maxDepth >= targetMaxDepth / 1.15 &&
-              s.maxDepth <= targetMaxDepth / 0.85,
-        )
+        : _byTrip[tripId] ?? const <String>{};
+    bool underCap(DiveShape s) => (_uses[s.id] ?? 0) < maxUses;
+    bool fits(DiveShape s) =>
+        s.maxDepth >= targetMaxDepth / 1.15 &&
+        s.maxDepth <= targetMaxDepth / 0.85;
+    final ofMode = _shapes
+        .where((s) => s.diveMode == diveMode && underCap(s))
         .toList();
+    final ofKind = ofMode.where((s) => s.kinds.containsAll(kinds)).toList();
+    final newOnTrip = ofKind.where((s) => !usedOnTrip.contains(s.id)).toList();
 
+    // Preferred to least preferred: fits the depth and is new on this trip;
+    // new on this trip; any of the kind (a scarce kind may repeat on a
+    // trip); any of the dive mode.
+    final fitting = newOnTrip.where(fits).toList();
     final DiveShape chosen;
     if (fitting.isNotEmpty) {
       chosen = fitting[random.nextInt(fitting.length)];
     } else {
-      final pool = ofKind.isNotEmpty ? ofKind : ofMode.toList();
+      final pool = newOnTrip.isNotEmpty
+          ? newOnTrip
+          : ofKind.isNotEmpty
+          ? ofKind
+          : ofMode;
       if (pool.isEmpty) {
         throw StateError('no $diveMode shape left for $kinds');
       }
