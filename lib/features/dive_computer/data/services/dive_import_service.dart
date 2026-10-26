@@ -13,7 +13,6 @@ import 'package:submersion/features/dive_computer/data/services/transmitter_regi
 import 'package:submersion/features/dive_computer/data/services/unused_oc_gas_cleanup.dart';
 import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
 import 'package:submersion/core/services/logger_service.dart';
-import 'package:submersion/features/gps_log/data/services/gps_track_match_service.dart';
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
 
 /// Mode for importing dives.
@@ -274,7 +273,6 @@ class DiveImportService {
   final DiveComputerRepository _repository;
   final DiveRepository? _diveRepository;
   final DiveParser _parser;
-  final GpsTrackMatchService? _gpsTrackMatchService;
   final DefaultTankPresetLoader? _defaultTankPresetForImports;
   final ImportTransmitterMatcherLoader? _transmitterMatcherForImports;
   final OmitUnusedOcGasesLoader? _omitUnusedOcGasesForImports;
@@ -285,14 +283,12 @@ class DiveImportService {
     required DiveComputerRepository repository,
     DiveRepository? diveRepository,
     DiveParser? parser,
-    GpsTrackMatchService? gpsTrackMatchService,
     DefaultTankPresetLoader? defaultTankPresetForImports,
     ImportTransmitterMatcherLoader? transmitterMatcherForImports,
     OmitUnusedOcGasesLoader? omitUnusedOcGasesForImports,
   }) : _repository = repository,
        _diveRepository = diveRepository,
        _parser = parser ?? const DiveParser(),
-       _gpsTrackMatchService = gpsTrackMatchService,
        _defaultTankPresetForImports = defaultTankPresetForImports,
        _transmitterMatcherForImports = transmitterMatcherForImports,
        _omitUnusedOcGasesForImports = omitUnusedOcGasesForImports;
@@ -530,17 +526,6 @@ class DiveImportService {
       } catch (e) {
         // Log error but continue with other dives
         skipped++;
-      }
-    }
-
-    // Stamp GPS from recorded surface tracks before the summary step, so
-    // the existing "Match sites" flow sees these dives as site-matchable.
-    // Best-effort: a matching failure must never fail the import itself.
-    if (_gpsTrackMatchService != null && importedDiveIds.isNotEmpty) {
-      try {
-        await _gpsTrackMatchService.sweep(limitToIds: importedDiveIds);
-      } catch (_) {
-        // GPS stamping is an enhancement; the dives imported fine.
       }
     }
 
