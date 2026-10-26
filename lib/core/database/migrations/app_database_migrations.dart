@@ -17,6 +17,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/dive_computer_connection_seed.dart';
 import 'package:submersion/core/database/dive_computer_gear_backfill.dart';
 import 'package:submersion/core/database/dive_course_links_schema.dart';
+import 'package:submersion/core/database/dive_time_wall_clock_shift.dart';
 import 'package:submersion/core/database/dive_role_link_uniqueness.dart';
 import 'package:submersion/core/database/dive_type_uniqueness.dart';
 import 'package:submersion/core/database/imported_computer_backfill.dart';
