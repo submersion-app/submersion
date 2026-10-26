@@ -304,25 +304,26 @@ class DiscoveryNotifier extends StateNotifier<DiscoveryState> {
     stopScanWhenDone: stopScanWhenDone,
   );
 
-  /// Scans for the whole of [timeout], or until native discovery ends, and
-  /// resolves with every device seen. [stopScanWhenDone] is as for
-  /// [scanForAddress].
+  /// Scans for the whole of [timeout], or until native discovery ends,
+  /// leaving every device seen in [DiscoveryState.discoveredDevices].
+  /// [stopScanWhenDone] is as for [scanForAddress].
+  ///
+  /// It resolves with nothing: the caller reads the devices from the
+  /// provider, which may by then hold a new notifier, since this one can be
+  /// disposed while the window runs (issue #3369).
   ///
   /// A saved Bluetooth computer with no address on this device (it was
   /// saved on another one, issue #3710) is looked for by make and model,
   /// and only a scan that ran its full length can say whether exactly one
   /// device of that model is nearby.
-  Future<List<DiscoveredDevice>> scanForWindow({
+  Future<void> scanForWindow({
     required Duration timeout,
     bool stopScanWhenDone = true,
-  }) async {
-    await _scanUntil(
-      (_) => null,
-      timeout: timeout,
-      stopScanWhenDone: stopScanWhenDone,
-    );
-    return state.discoveredDevices;
-  }
+  }) => _scanUntil(
+    (_) => null,
+    timeout: timeout,
+    stopScanWhenDone: stopScanWhenDone,
+  );
 
   /// Scans until [found] names a device, native discovery ends, or
   /// [timeout] elapses, and resolves with that device or null.

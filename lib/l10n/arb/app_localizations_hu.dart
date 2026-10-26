@@ -48941,6 +48941,14 @@ class AppLocalizationsHu extends AppLocalizations {
   String get importWizard_dc_tryAgain => 'Újra';
 
   @override
+  String get importWizard_dc_bluetoothOffBody =>
+      'A Bluetooth ki van kapcsolva, vagy nem érhető el ezen az eszközön. Kapcsolja be, majd koppintson az Újra gombra.';
+
+  @override
+  String get importWizard_dc_couldNotScanBody =>
+      'A Submersion nem tudott Bluetooth-on keresni. Ellenőrizze, hogy a Bluetooth be van-e kapcsolva, és hogy a Submersion használhatja-e, majd koppintson az Újra gombra.';
+
+  @override
   String get importWizard_dc_noNewDives => 'Nincs letöltendő új merülés';
 
   @override

@@ -14495,6 +14495,8 @@
   "importWizard_dc_notFoundNearby": "تعذّر العثور على {name}",
   "importWizard_dc_notFoundNearbyBody": "بحث Submersion عبر Bluetooth ولم يعثر على {name} في الجوار، أو عثر على أكثر من جهاز من الطراز نفسه. شغّل Bluetooth في الكمبيوتر، وقرّبه من هذا الجهاز، ثم أعد المحاولة.",
   "importWizard_dc_tryAgain": "إعادة المحاولة",
+  "importWizard_dc_bluetoothOffBody": "البلوتوث متوقف أو غير متاح على هذا الجهاز. شغّله، ثم اضغط على إعادة المحاولة.",
+  "importWizard_dc_couldNotScanBody": "تعذّر على Submersion البحث عبر Bluetooth. تأكد من تشغيل Bluetooth ومن السماح لـ Submersion باستخدامه، ثم اضغط على إعادة المحاولة.",
   "importWizard_dc_noUsbOnThisPlatformBody": "يتصل {name} بكابل USB، ولا يمكن لـ Submersion استخدامه على iPhone أو iPad. نزّل غوصاته باستخدام Submersion على كمبيوتر Mac أو Windows أو Linux، أو استوردها من ملف.",
   "importWizard_dc_noNewDives": "لا توجد غوصات جديدة للتنزيل",
   "importWizard_dc_noNewDivesBody": "تم استيراد جميع الغوصات من هذا الكمبيوتر بالفعل.",

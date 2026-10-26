@@ -78079,6 +78079,18 @@ abstract class AppLocalizations {
   /// **'Try Again'**
   String get importWizard_dc_tryAgain;
 
+  /// Download step body when the search for a saved Bluetooth computer could not run because Bluetooth is off or missing. Names the Try Again button on the same screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Bluetooth is off or unavailable on this device. Turn it on, then tap Try Again.'**
+  String get importWizard_dc_bluetoothOffBody;
+
+  /// Download step body when the search for a saved Bluetooth computer could not start for another reason, such as a denied permission. Names the Try Again button on the same screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Submersion could not search over Bluetooth. Check that Bluetooth is on and that Submersion is allowed to use it, then tap Try Again.'**
+  String get importWizard_dc_couldNotScanBody;
+
   /// No description provided for @importWizard_dc_noNewDives.
   ///
   /// In en, this message translates to:

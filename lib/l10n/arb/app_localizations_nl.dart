@@ -48908,6 +48908,14 @@ class AppLocalizationsNl extends AppLocalizations {
   String get importWizard_dc_tryAgain => 'Opnieuw proberen';
 
   @override
+  String get importWizard_dc_bluetoothOffBody =>
+      'Bluetooth staat uit of is niet beschikbaar op dit apparaat. Zet het aan en tik daarna op Opnieuw proberen.';
+
+  @override
+  String get importWizard_dc_couldNotScanBody =>
+      'Submersion kon niet via Bluetooth zoeken. Controleer of Bluetooth aan staat en Submersion het mag gebruiken, en tik daarna op Opnieuw proberen.';
+
+  @override
   String get importWizard_dc_noNewDives =>
       'Geen nieuwe duiken om te downloaden';
 

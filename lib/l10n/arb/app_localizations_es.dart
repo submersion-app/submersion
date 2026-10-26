@@ -49260,6 +49260,14 @@ class AppLocalizationsEs extends AppLocalizations {
   String get importWizard_dc_tryAgain => 'Reintentar';
 
   @override
+  String get importWizard_dc_bluetoothOffBody =>
+      'Bluetooth está desactivado o no disponible en este dispositivo. Actívelo y toque Reintentar.';
+
+  @override
+  String get importWizard_dc_couldNotScanBody =>
+      'Submersion no pudo buscar por Bluetooth. Compruebe que Bluetooth está activado y que Submersion tiene permiso para usarlo, y toque Reintentar.';
+
+  @override
   String get importWizard_dc_noNewDives =>
       'No hay inmersiones nuevas para descargar';
 

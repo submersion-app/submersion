@@ -14495,6 +14495,8 @@
   "importWizard_dc_notFoundNearby": "לא נמצא {name}",
   "importWizard_dc_notFoundNearbyBody": "Submersion חיפש דרך Bluetooth ולא מצא את {name} בקרבת מקום, או שמצא יותר ממחשב אחד מאותו דגם. הפעל את ה-Bluetooth במחשב, קרב אותו למכשיר הזה ונסה שוב.",
   "importWizard_dc_tryAgain": "נסה שוב",
+  "importWizard_dc_bluetoothOffBody": "ה-Bluetooth כבוי או לא זמין במכשיר הזה. הפעל אותו ואז הקש על נסה שוב.",
+  "importWizard_dc_couldNotScanBody": "Submersion לא הצליח לחפש דרך Bluetooth. ודא שה-Bluetooth פועל ושל-Submersion יש הרשאה להשתמש בו, ואז הקש על נסה שוב.",
   "importWizard_dc_noUsbOnThisPlatformBody": "{name} מתחבר בכבל USB, ש-Submersion לא יכול להשתמש בו ב-iPhone או ב-iPad. הורד את הצלילות שלו עם Submersion במחשב Mac, Windows או Linux, או ייבא אותן מקובץ.",
   "importWizard_dc_noNewDives": "אין צלילות חדשות להורדה",
   "importWizard_dc_noNewDivesBody": "כל הצלילות ממחשב הצלילה הזה כבר יובאו.",

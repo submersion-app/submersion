@@ -48196,6 +48196,14 @@ class AppLocalizationsHe extends AppLocalizations {
   String get importWizard_dc_tryAgain => 'נסה שוב';
 
   @override
+  String get importWizard_dc_bluetoothOffBody =>
+      'ה-Bluetooth כבוי או לא זמין במכשיר הזה. הפעל אותו ואז הקש על נסה שוב.';
+
+  @override
+  String get importWizard_dc_couldNotScanBody =>
+      'Submersion לא הצליח לחפש דרך Bluetooth. ודא שה-Bluetooth פועל ושל-Submersion יש הרשאה להשתמש בו, ואז הקש על נסה שוב.';
+
+  @override
   String get importWizard_dc_noNewDives => 'אין צלילות חדשות להורדה';
 
   @override

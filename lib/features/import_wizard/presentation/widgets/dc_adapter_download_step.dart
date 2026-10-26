@@ -33,8 +33,10 @@ class DcAdapterDownloadStep extends ConsumerStatefulWidget {
 
   /// How long a saved-computer download scans for the computer's stored
   /// address before settling for the only device of the same model, or
-  /// failing that, a direct connect with the stored address.
-  /// Matches the first resolve attempt of the macOS/iOS native resolver.
+  /// failing that, a direct connect with the stored address. With no address
+  /// on this device it is the whole search for that one device (issue
+  /// #3710). Matches the first resolve attempt of the macOS/iOS native
+  /// resolver.
   static const knownDeviceScanTimeout = Duration(seconds: 15);
 
   @override
@@ -66,10 +68,6 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
   /// Whether a search by make and model for a saved Bluetooth computer with
   /// no address on this device found no device, or several (issue #3710).
   bool _notFoundNearby = false;
-
-  /// Why that search could not run (Bluetooth off, permission denied), shown
-  /// instead of "not found nearby"; null when it ran.
-  String? _scanProblem;
 
   /// The discovery notifier whose scan this step started to re-acquire a
   /// saved computer and still owes a stop: the scan runs on through the
@@ -235,12 +233,6 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
       return;
     }
     final device = _sameModelFallback(computer, null);
-    final discovery = ref.read(discoveryNotifierProvider);
-    final scanProblem = discovery.errorMessage == null
-        ? null
-        : discovery.bluetoothUnavailable
-        ? context.l10n.diveComputer_scan_bluetoothUnavailable
-        : discovery.errorMessage;
     if (device != null) {
       notifier.selectDevice(device);
     } else {
@@ -262,13 +254,14 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
     setState(() {
       _searchingForKnownDevice = false;
       _notFoundNearby = device == null;
-      _scanProblem = scanProblem;
       _computerResolved = true;
     });
   }
 
-  /// Starts the search by make and model over after it found nothing.
+  /// Starts the search by make and model over after it found nothing. A
+  /// second tap before the view rebuilds finds the search already running.
   void _retryFindByModel(DiveComputer computer) {
+    if (_searchingForKnownDevice) return;
     setState(() => _computerResolved = false);
     unawaited(_findByModel(computer));
   }
@@ -363,7 +356,13 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
     if (_notFoundNearby && knownComputer != null) {
       return DcKnownComputerNotFoundView(
         computer: knownComputer,
-        problem: _scanProblem,
+        // The scan's error stays on the discovery state once it stops; a
+        // scan that starts clears it.
+        problem: discoveryState.errorMessage == null
+            ? null
+            : discoveryState.bluetoothUnavailable
+            ? DcSearchProblem.bluetoothOff
+            : DcSearchProblem.couldNotScan,
         onRetry: () => _retryFindByModel(knownComputer),
         onDone: () => context.pop(),
       );

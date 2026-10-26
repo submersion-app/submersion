@@ -49870,6 +49870,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get importWizard_dc_tryAgain => 'إعادة المحاولة';
 
   @override
+  String get importWizard_dc_bluetoothOffBody =>
+      'البلوتوث متوقف أو غير متاح على هذا الجهاز. شغّله، ثم اضغط على إعادة المحاولة.';
+
+  @override
+  String get importWizard_dc_couldNotScanBody =>
+      'تعذّر على Submersion البحث عبر Bluetooth. تأكد من تشغيل Bluetooth ومن السماح لـ Submersion باستخدامه، ثم اضغط على إعادة المحاولة.';
+
+  @override
   String get importWizard_dc_noNewDives => 'لا توجد غوصات جديدة للتنزيل';
 
   @override

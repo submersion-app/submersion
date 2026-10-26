@@ -28291,6 +28291,8 @@
   "importWizard_dc_notFoundNearby": "Couldn't find {name}",
   "importWizard_dc_notFoundNearbyBody": "Submersion searched over Bluetooth and found no {name} nearby, or found more than one of the same model. Turn on the computer's Bluetooth, hold it close to this device and try again.",
   "importWizard_dc_tryAgain": "Try Again",
+  "importWizard_dc_bluetoothOffBody": "Bluetooth is off or unavailable on this device. Turn it on, then tap Try Again.",
+  "importWizard_dc_couldNotScanBody": "Submersion could not search over Bluetooth. Check that Bluetooth is on and that Submersion is allowed to use it, then tap Try Again.",
   "importWizard_dc_noNewDives": "No new dives to download",
   "importWizard_dc_noNewDivesBody": "All dives from this computer have already been imported.",
   "importWizard_dc_noUsbOnThisPlatformBody": "{name} connects with a USB cable, which Submersion cannot use on iPhone or iPad. Download its dives with Submersion on a Mac, Windows or Linux computer, or import them from a file.",
@@ -28776,6 +28778,12 @@
         "type": "String"
       }
     }
+  },
+  "@importWizard_dc_bluetoothOffBody": {
+    "description": "Download step body when the search for a saved Bluetooth computer could not run because Bluetooth is off or missing. Names the Try Again button on the same screen."
+  },
+  "@importWizard_dc_couldNotScanBody": {
+    "description": "Download step body when the search for a saved Bluetooth computer could not start for another reason, such as a denied permission. Names the Try Again button on the same screen."
   },
   "@importWizard_dc_tryAgain": {
     "description": "Button that searches again for a saved Bluetooth computer that was not found."

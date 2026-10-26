@@ -49102,6 +49102,14 @@ class AppLocalizationsDe extends AppLocalizations {
   String get importWizard_dc_tryAgain => 'Erneut versuchen';
 
   @override
+  String get importWizard_dc_bluetoothOffBody =>
+      'Bluetooth ist auf diesem Gerät ausgeschaltet oder nicht verfügbar. Schalten Sie es ein und tippen Sie dann auf „Erneut versuchen“.';
+
+  @override
+  String get importWizard_dc_couldNotScanBody =>
+      'Submersion konnte nicht per Bluetooth suchen. Prüfen Sie, ob Bluetooth eingeschaltet ist und Submersion es verwenden darf, und tippen Sie dann auf „Erneut versuchen“.';
+
+  @override
   String get importWizard_dc_noNewDives =>
       'Keine neuen Tauchgänge zum Herunterladen';
 

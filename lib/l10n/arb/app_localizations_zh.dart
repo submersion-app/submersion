@@ -46202,6 +46202,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get importWizard_dc_tryAgain => '重试';
 
   @override
+  String get importWizard_dc_bluetoothOffBody =>
+      '此设备的蓝牙已关闭或不可用。请打开蓝牙，然后点按“重试”。';
+
+  @override
+  String get importWizard_dc_couldNotScanBody =>
+      'Submersion 无法通过蓝牙搜索。请确认蓝牙已打开，并且已允许 Submersion 使用蓝牙，然后点按“重试”。';
+
+  @override
   String get importWizard_dc_noNewDives => '没有可下载的新潜水记录';
 
   @override

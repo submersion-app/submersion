@@ -14495,6 +14495,8 @@
   "importWizard_dc_notFoundNearby": "Impossibile trovare {name}",
   "importWizard_dc_notFoundNearbyBody": "Submersion ha cercato tramite Bluetooth e non ha trovato {name} nelle vicinanze, oppure ne ha trovati più di uno dello stesso modello. Attiva il Bluetooth del computer, tienilo vicino a questo dispositivo e riprova.",
   "importWizard_dc_tryAgain": "Riprova",
+  "importWizard_dc_bluetoothOffBody": "Il Bluetooth è disattivato o non disponibile su questo dispositivo. Attivalo, poi tocca Riprova.",
+  "importWizard_dc_couldNotScanBody": "Submersion non è riuscito a cercare tramite Bluetooth. Verifica che il Bluetooth sia attivo e che Submersion abbia il permesso di usarlo, poi tocca Riprova.",
   "importWizard_dc_noUsbOnThisPlatformBody": "{name} si collega con un cavo USB, che Submersion non può usare su iPhone o iPad. Scarica le sue immersioni con Submersion su un computer Mac, Windows o Linux, oppure importale da un file.",
   "importWizard_dc_noNewDives": "Nessuna nuova immersione da scaricare",
   "importWizard_dc_noNewDivesBody": "Tutte le immersioni di questo computer sono già state importate.",

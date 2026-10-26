@@ -70,10 +70,11 @@ bool _preferredElsewhere(DiveComputerConnection a, DiveComputerConnection b) {
 /// no build with connections has touched yet still downloads over its
 /// legacy columns. With rows but nothing reachable here, the address is
 /// always cleared, so the wizard never dials one another device wrote into
-/// the legacy column. The transport of the newest direct connection stays:
-/// a Bluetooth computer saved on another device syncs here with no address,
-/// because the address is per device, and the wizard finds it by scanning
-/// for its make and model (issue #3710). With no direct connection at all
+/// the legacy column. A direct connection's transport stays, BLE first (see
+/// [_directConnectionElsewhere]): a Bluetooth computer saved on another
+/// device syncs here with no address, because the address is per device,
+/// and the wizard finds it by scanning for its make and model (issue
+/// #3710). With no direct connection at all
 /// the transport is cleared too, so the wizard explains there is no direct
 /// download.
 DiveComputer computerForDownload(

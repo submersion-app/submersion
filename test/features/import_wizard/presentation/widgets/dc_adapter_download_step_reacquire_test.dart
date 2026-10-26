@@ -567,11 +567,57 @@ void main() {
       expect(find.byType(DcKnownComputerNotFoundView), findsOneWidget);
       expect(h.hostApi.downloads, isEmpty);
       expect(_selectedDevice(tester), isNull);
-      // Says why the search could not run, not that nothing was nearby.
+      // Says why the search could not run, not that nothing was nearby,
+      // and in the diver's language rather than the scanner's raw error.
       expect(
-        find.textContaining('Bluetooth permissions are required'),
+        find.textContaining('could not search over Bluetooth'),
         findsOneWidget,
       );
+      expect(find.textContaining('Bluetooth permissions are'), findsNothing);
+    });
+
+    testWidgets('a double tap on Try Again starts one search', (tester) async {
+      final h = _Harness();
+      await tester.pumpWidget(h.build(_savedComputer(bluetoothAddress: null)));
+      await tester.pump();
+      await tester.pump(timeout);
+      await _settle(tester);
+      expect(h.hostApi.calls, ['startDiscovery', 'stopDiscovery']);
+
+      // Both taps land before the view rebuilds.
+      await tester.tap(find.text('Try Again'));
+      await tester.tap(find.text('Try Again'));
+      await tester.pump();
+
+      expect(h.hostApi.calls, [
+        'startDiscovery',
+        'stopDiscovery',
+        'startDiscovery',
+      ]);
+      // Let the one search run out, as the diver would wait.
+      await tester.pump(timeout);
+      await _settle(tester);
+      expect(h.hostApi.calls.where((c) => c == 'startDiscovery'), hasLength(2));
+    });
+
+    testWidgets('closing the step during the search stops the scan and '
+        'downloads nothing', (tester) async {
+      final h = _Harness();
+      await tester.pumpWidget(h.build(_savedComputer(bluetoothAddress: null)));
+      await tester.pump();
+      expect(h.hostApi.calls, ['startDiscovery']);
+      h.service.onDeviceDiscovered(_advert(phoneAddress));
+
+      await tester.pumpWidget(
+        h.build(_savedComputer(bluetoothAddress: null), stepClosed: true),
+      );
+      await tester.pump(timeout);
+      await _settle(tester);
+
+      expect(h.hostApi.calls.first, 'startDiscovery');
+      expect(h.hostApi.calls.skip(1), isNotEmpty);
+      expect(h.hostApi.calls.skip(1), everyElement('stopDiscovery'));
+      expect(h.hostApi.downloads, isEmpty);
     });
 
     testWidgets('does not scan for a Bluetooth Classic computer, which BLE '

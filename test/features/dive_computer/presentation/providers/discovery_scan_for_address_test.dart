@@ -193,8 +193,8 @@ void main() {
       notifier.dispose();
     });
 
-    test('keeps scanning for the whole timeout and resolves with every '
-        'device seen', () async {
+    test('keeps scanning for the whole timeout, leaving every device seen '
+        'in the state', () async {
       var done = false;
       final pending = notifier
           .scanForWindow(timeout: const Duration(milliseconds: 50))
@@ -207,8 +207,8 @@ void main() {
       expect(done, isFalse, reason: 'a device seen does not end the window');
       service.onDeviceDiscovered(_advert('11:22:33:44:55:66'));
 
-      final devices = await pending;
-      expect(devices.map((d) => d.address), [
+      await pending;
+      expect(notifier.state.discoveredDevices.map((d) => d.address), [
         _savedAddress,
         '11:22:33:44:55:66',
       ]);
@@ -217,11 +217,11 @@ void main() {
     });
 
     test('leaves the scan running when asked to', () async {
-      final devices = await notifier.scanForWindow(
+      await notifier.scanForWindow(
         timeout: const Duration(milliseconds: 20),
         stopScanWhenDone: false,
       );
-      expect(devices, isEmpty);
+      expect(notifier.state.discoveredDevices, isEmpty);
       expect(hostApi.stopDiscoveryCalls, 0);
       expect(notifier.state.isScanning, isTrue);
       await notifier.stopScan();
@@ -229,11 +229,29 @@ void main() {
 
     test('resolves without waiting when the scan cannot start', () async {
       hostApi.startDiscoveryError = StateError('adapter unavailable');
-      final devices = await notifier
+      await notifier
           .scanForWindow(timeout: const Duration(minutes: 5))
           .timeout(const Duration(seconds: 2));
-      expect(devices, isEmpty);
+      expect(notifier.state.discoveredDevices, isEmpty);
       expect(notifier.state.errorMessage, isNotNull);
+    });
+
+    test('a notifier disposed during the window finishes without '
+        'throwing', () async {
+      // The step that owns the scan can outlive the provider (issue #3369);
+      // the window must not read the disposed notifier's state.
+      final local = DiscoveryNotifier(
+        service: service,
+        requiresRuntimePermissions: false,
+      );
+      final pending = local.scanForWindow(
+        timeout: const Duration(milliseconds: 50),
+      );
+      await pumpEventQueue();
+      local.dispose();
+
+      await expectLater(pending, completes);
+      expect(hostApi.stopDiscoveryCalls, 1);
     });
   });
 }
