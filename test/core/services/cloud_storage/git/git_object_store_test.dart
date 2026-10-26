@@ -175,7 +175,7 @@ void main() {
         throw FileSystemException(
           'simulated race',
           source.path,
-          OSError('', 1),
+          const OSError('', 1),
         );
       });
 
@@ -203,7 +203,7 @@ void main() {
           throw FileSystemException(
             'simulated race',
             source.path,
-            OSError('', 1),
+            const OSError('', 1),
           );
         });
 
