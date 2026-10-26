@@ -24,9 +24,10 @@ guide, apart from an explicit "do this first" link.
 
 ## Goals
 
-- Fourteen guides, each one goal end to end:
-  - Database Sync Setup
-  - Media Sync Setup
+- Thirteen guides, each one goal end to end:
+  - Set Up Sync, Backups and Photos (replaces the Database Sync Setup and Media
+    Sync Setup guides first planned; see "Resumed after the Settings > Data
+    refactor")
   - Shared Site Library Setup
   - GPS Track Logging on Mobile
   - Walk-through Sample Dive Logging
@@ -39,16 +40,19 @@ guide, apart from an explicit "do this first" link.
 - A new "How-To Guides" section in the user guide's sidebar, so the guides go
   live on submersion.app/guide when the PR merges.
 
-- One correction to an existing reference page: `shared-site-libraries.md` says
-  Cloudflare R2 accepts the per-role key policy "or [has] an equivalent per-key
-  prefix setting". R2 keys can be limited to buckets, not to folders inside a
-  bucket (folder limits exist only for short-lived API credentials), so that
-  sentence is corrected.
+- Two corrections to existing reference pages:
+  - `shared-site-libraries.md` says Cloudflare R2 accepts the per-role key
+    policy "or [has] an equivalent per-key prefix setting". R2 keys can be
+    limited to buckets, not to folders inside a bucket (folder limits exist only
+    for short-lived API credentials), so that sentence is corrected.
+  - `set-up-this-device.md` lists step 1's accounts as iCloud, Google Drive,
+    Dropbox or your own server, but the app also offers a Git repository there
+    (for sync and backups). The step gains Git.
 
 ## Non-goals
 
 - Changing the existing reference pages, beyond a link from the guide's home page
-  to the new index and the R2 correction above. Their screenshot placeholders
+  to the new index and the two corrections above. Their screenshot placeholders
   stay as they are.
 - Featuring guides on the marketing homepage. That is a change in the
   `submersion-website` repo and a separate PR after this one.
@@ -92,8 +96,7 @@ guide, apart from an explicit "do this first" link.
   ```
   **How-To Guides**
   - [All How-To Guides](how-to-guides.md)
-  - [Set Up Database Sync](how-to-database-sync.md)
-  - [Set Up Media Sync](how-to-media-sync.md)
+  - [Set Up Sync, Backups and Photos](how-to-sync-backups-photos.md)
   - [Set Up a Shared Site Library](how-to-shared-site-library.md)
   - [Log GPS Tracks on Your Phone](how-to-gps-track-logging.md)
   - [Log a Dive from Your Computer](how-to-log-a-dive.md)
@@ -119,7 +122,7 @@ guide, apart from an explicit "do this first" link.
    computer, a second device) and roughly how long it takes.
 3. **Numbered steps.** One action per step, using the app's exact screen and
    button names in bold, and the path in the form already used across the guide
-   (**Settings > Data > Database Cloud Sync**). A screenshot after each step a
+   (**Settings > Data > Sync between devices**). A screenshot after each step a
    reader needs to see; not every step needs one.
 4. **Check it worked.** What the reader should see if everything went right.
 5. **If something goes wrong.** The two or three failures a new user actually
@@ -137,21 +140,44 @@ the step says both.
 
 ## The guides
 
-### Database Sync Setup (`how-to-database-sync.md`)
+### Set Up Sync, Backups and Photos (`how-to-sync-backups-photos.md`)
 
-Lead path: **Google Drive** (maintainer's choice), walked end to end on the
-first device and then on a second device, including the "Combine Libraries?"
-prompt a second device can show. A short closing section, "Using a different
-provider", covers iCloud, Dropbox and S3-compatible storage in a few lines each
-and links to the reference page's Cloudflare R2 walkthrough rather than
-repeating it.
+One guide for all three (maintainer's choice, 2026-10-26), because the app now
+sets them up in one four-step flow, **Set up this device**, which the first-run
+wizard also runs. Lead account: **Google Drive** (maintainer's choice, confirmed
+again after Git landed): one sign-in covers all four steps, while a Git
+repository can hold sync and backups but not photo copies.
 
-### Media Sync Setup (`how-to-media-sync.md`)
+Parts:
 
-Same lead path, Google Drive, through **Settings > Data > Photos & Media > Media
-Storage**. Covers connecting, what gets uploaded, upload quality, and seeing the
-photos on a second device. States that media storage is independent of database
-sync. Closes with the same "Using a different provider" pattern.
+1. **Your first device.** A brand-new diver meets the four steps in the
+   first-run wizard, right after **Profile** and **Units**, so the guide starts
+   there. A diver who tapped **Not now**, or whose device predates the flow,
+   starts from the **Set up this phone** card at the top of **Settings > Data**
+   with **Continue**. Both routes walk the same steps:
+   - Step 1: choose Google Drive and sign in.
+   - Step 2: **Turn on sync**, with **Keep devices in step automatically** on.
+   - Step 3: **Back up automatically** and **Also keep a copy in** Google Drive.
+   - Step 4: **Keep photo copies in** Google Drive, with **Upload new photos
+     automatically** and **Use cellular data**; or **Skip**.
+   - The done screen, and **Upload everything already attached** when it shows.
+2. **Your second device.** The same account in step 1. Step 2 finds the library:
+   **Download library** on a device with no dives; on a device that has dives,
+   **Combine them** (the default) or **Replace the dives here with the
+   library**, with what each costs (Combine shows a dive logged on both devices
+   twice; Replace saves a backup first and asks you to type a word). Step 4
+   offers **Use the photo copies in** Google Drive.
+3. **Check it worked:** the status lines on the **Your data** rows of both
+   devices.
+4. **Using a different account:** iCloud (Apple devices, App Store builds),
+   Dropbox, **My own server** (S3-compatible or WebDAV) and Git (sync and backups
+   only, so photos need a second account or **Skip**), a few lines each, linking
+   to `multi-device-sync.md` (its Git repositories section and Cloudflare R2
+   walkthrough) rather than repeating them.
+
+A one-line note links to `encrypted-sync.md` for encrypting the library. The
+labels above come from `set-up-this-device.md`; like every label, the builder
+confirms them in the code before writing.
 
 ### Shared Site Library Setup (`how-to-shared-site-library.md`)
 
@@ -177,10 +203,14 @@ Parts:
    recovery code, and send members what they need to join. There is no invite
    link in the app: a member needs the library folder name, the bucket or
    server details, and a key.
-2. **For members:** **Connect a library**, enter what the organizer sent,
-   **Check**, then **Join**.
+2. **For members:** **Connect a library**, enter the library folder, add the
+   server with **My own server** and the key they were sent, tap **Check
+   location**, then **Join**.
 3. **Back to the organizer:** approve the member.
 4. **Both:** see the shared sites, and what stays private.
+5. **When someone leaves:** **Remove from library** on the **Members** page stops
+   their edits and suggestions counting; deleting their R2 key stops them
+   reading. This is why each member gets their own key.
 
 ### GPS Track Logging on Mobile (`how-to-gps-track-logging.md`)
 
@@ -272,8 +302,8 @@ All screenshots are captured and inserted by the builder (maintainer's request).
   GPS guide (playing back a pre-recorded boat route as the simulated location)
   and for the member side of the shared-library guide.
 - **Sign-ins:** the builder never signs in to anyone's account. The maintainer
-  signs in to Google (Drive) at capture time for the two sync guides; a
-  throwaway account is fine. The cloud migration imports stop before sign-in.
+  signs in to Google (Drive) at capture time for the setup guide; a throwaway
+  account is fine. The cloud migration imports stop before sign-in.
 - **Dive computer:** the maintainer has a real computer on hand at capture time
   for the scan, pairing and download screens. Screens showing downloaded dives
   are not captured.
@@ -281,9 +311,13 @@ All screenshots are captured and inserted by the builder (maintainer's request).
   for R2, so "connected" and "approved" screens are real, with no real cloud
   credentials anywhere. The R2 dashboard steps are written only (another
   service's screens, like the migration exports).
+- **First run:** the setup guide's first-device part starts in the first-run
+  wizard, so it is captured from a fresh, empty data folder (never
+  `~/Documents/Submersion`). Its second-device part, where a device already has
+  dives, uses the demo logbook.
 - **Demo mode must allow it:** phase 2 assumes demo mode keeps its logbook apart
-  from `~/Documents/Submersion` while still allowing sync, media storage, a
-  shared library, file imports and a dive computer download to write into it.
+  from `~/Documents/Submersion` while still allowing sync, backups, photo copies,
+  a shared library, file imports and a dive computer download to write into it.
   This is confirmed with the maintainer before capture starts; if it does not
   hold, the capture plan is revisited with them.
 - **Migration imports:** Submersion's import wizard run on sample files for each
@@ -296,33 +330,36 @@ All screenshots are captured and inserted by the builder (maintainer's request).
 
 One PR, held open until the screenshots are in (maintainer's choice):
 
-1. Phase 1: the spec, plan, all fourteen guides with screenshot markers, the
+1. Phase 1: the spec, plan, all thirteen guides with screenshot markers, the
    index page and the sidebar section. The PR opens as a **draft**.
 2. Phase 2, once demo mode is merged (the maintainer says when): capture every
    marked shot, replace each marker with the image, re-check every label on
    screen, and mark the PR ready for review.
 
-## Paused until the app settles
+## Resumed after the Settings > Data refactor
 
-On 2026-10-18, after the index guard and the empty index page were committed,
-the maintainer paused all guide writing (all fourteen guides, not only the
-three that walk Settings > Data) until two pieces of work merge:
+On 2026-10-18 the maintainer paused all guide writing until the Settings > Data
+refactor (issue #3482) and Git as a storage backend merged. Both were merged by
+2026-10-25 (#3485, #3527, #3541, #3547, #3600, #3620 and #3643 for the
+refactor; #3515 for Git), and writing resumed on 2026-10-26. What changed for
+the guides:
 
-- **The Settings > Data refactor, issue #3482:** a re-runnable "Set up this
-  device" flow, connected accounts as the one place to sign in, new workflows
-  for sync and backup, a new first run, and new wording across the section.
-- **Git as a storage backend:** a new provider for sync storage (no issue
-  number yet).
+- Sync, backups and photo copies are set up in one four-step flow, **Set up
+  this device**, also run by the first-run wizard. The two sync guides become
+  one guide (maintainer's choice).
+- Accounts are chosen once, from one account chooser offering iCloud, Google
+  Drive, Dropbox, **My own server** (S3 or WebDAV) and Git. Google Drive stays
+  the lead account (maintainer's choice).
+- Git covers sync and backups only: not photo copies, and not shared libraries,
+  so Cloudflare R2 stays the shared-library storage.
+- The vocabulary changed across Settings > Data: **Sync between devices**,
+  **Backups**, **Photos & videos**, **Shared site libraries**, **Connected
+  accounts**, **Check location**.
+- Shared libraries gained **Remove from library**, which the library guide uses.
 
-On resuming, before writing anything:
-
-1. Re-read this spec against the merged app. If "Set up this device" exists, it
-   becomes the sync guides' lead path. Re-check the lead-path choices (Google
-   Drive for both sync guides, Cloudflare R2 for shared libraries) now that Git
-   is a provider, and bring any change to the maintainer before writing.
-2. Re-trace every guide's flow from the merged code; none of the earlier
-   tracing is reused.
-3. Then write phase 1 as planned. Phase 2 still waits for demo mode.
+Every guide's flow is traced from the merged code before it is written; none of
+the tracing started before the pause is reused. Phase 2 still waits for demo
+mode, which has not merged.
 
 ## Constraints
 
