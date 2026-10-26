@@ -3,12 +3,13 @@ import 'package:uuid/uuid.dart';
 import 'package:submersion/features/universal_import/data/csv/extractors/entity_extractor.dart';
 
 /// Extracts dive centre records from the 'diveCenter' field of transformed
-/// CSV rows, deduplicated by name across all rows (#3629).
+/// CSV rows, deduplicated by name across all rows (#3629). Names that differ
+/// only in case or spacing are one centre, named as first written.
 class DiveCenterExtractor implements EntityExtractor<Map<String, dynamic>> {
   final Uuid _uuid;
 
-  /// Map from dive centre name to generated UUID, populated during
-  /// extraction.
+  /// Map from dive centre name key ([_key]) to generated UUID, populated
+  /// during extraction.
   Map<String, String> _nameToId = const {};
 
   DiveCenterExtractor({Uuid uuid = const Uuid()}) : _uuid = uuid;
@@ -19,10 +20,11 @@ class DiveCenterExtractor implements EntityExtractor<Map<String, dynamic>> {
     final nameToId = <String, String>{};
 
     for (final row in rows) {
-      final name = row['diveCenter']?.toString().trim() ?? '';
-      if (name.isEmpty || nameToId.containsKey(name)) continue;
+      final name = _name(row);
+      final key = _key(name);
+      if (key.isEmpty || nameToId.containsKey(key)) continue;
       final id = _uuid.v4();
-      nameToId[name] = id;
+      nameToId[key] = id;
       centers.add({'id': id, 'uddfId': id, 'name': name});
     }
 
@@ -32,5 +34,12 @@ class DiveCenterExtractor implements EntityExtractor<Map<String, dynamic>> {
 
   /// The generated UUID of the dive centre on [row], or null if it has none.
   String? centerIdForRow(Map<String, dynamic> row) =>
-      _nameToId[row['diveCenter']?.toString().trim() ?? ''];
+      _nameToId[_key(_name(row))];
+
+  static String _name(Map<String, dynamic> row) =>
+      (row['diveCenter']?.toString() ?? '').trim().replaceAll(_spaces, ' ');
+
+  static String _key(String name) => name.toLowerCase();
+
+  static final _spaces = RegExp(r'\s+');
 }

@@ -302,11 +302,14 @@ class TimeResolver {
 
     // A month-name date and a time ("29. Sep 2024 10:11" from
     // my.divessi.com, #3629). The date has spaces of its own, so the split
-    // below would cut it in half.
+    // below would cut it in half. A date with no time is dated noon, as a
+    // date column without a time column is.
     final named = matchMonthNameDate(s);
     if (named != null) {
       final date = _validNamedDate(named);
-      final time = parseTime(named.rest);
+      final time = named.rest.isEmpty
+          ? const ResolvedTime(12, 0, 0)
+          : parseTime(named.rest);
       if (date == null || time == null) return null;
       return _applyInterpretation(
         date.year,

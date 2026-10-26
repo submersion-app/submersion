@@ -53,6 +53,14 @@ void main() {
       );
     });
 
+    test('a month-name date alone in a date-time column is dated noon, as '
+        'a date column with no time is', () {
+      expect(
+        resolver.combineDateTime(dateTimeStr: '29 Sep 2024'),
+        DateTime.utc(2024, 9, 29, 12),
+      );
+    });
+
     test('a month-name date with an unreadable time gives null', () {
       expect(
         resolver.combineDateTime(dateTimeStr: '29. Sep 2024 late'),
