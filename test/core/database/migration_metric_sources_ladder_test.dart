@@ -44,16 +44,19 @@ const _earlyVersion = 65;
 const _allSourcesVersion = 177;
 
 /// [sources] mapped to values that alternate along the surviving columns,
-/// starting at [first]. Running both starts gives each column both values,
-/// and consecutive surviving columns always differ, so a rung that copied
-/// one source into the next would show. The retired ceiling column takes
-/// [first]; only its removal is checked.
-Map<String, int> _alternating(List<String> sources, {required int first}) => {
-  for (final c in sources)
-    c: _survivingSources.contains(c)
-        ? (first + _survivingSources.indexOf(c)) % 2
-        : first,
-};
+/// starting at [first]. Running with [first] at 0 and at 1 gives each column
+/// both values, and consecutive surviving columns always differ, so a rung
+/// that copied one source into the next would show. The retired ceiling
+/// column takes [first]; only its removal is checked.
+Map<String, int> _alternating(List<String> sources, {required int first}) {
+  return {
+    for (final c in sources)
+      c: switch (_survivingSources.indexOf(c)) {
+        -1 => first,
+        final i => (first + i) % 2,
+      },
+  };
+}
 
 /// An existing library at [version] whose diver_settings row holds
 /// [stored]. use_dive_computer_cns_data is on: v42 turned that toggle into
