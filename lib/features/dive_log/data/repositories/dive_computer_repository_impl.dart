@@ -1787,8 +1787,8 @@ class DiveComputerRepository {
                   .write(
                     DiveDataSourcesCompanion(
                       isPrimary: const Value(false),
-                      // A fresh clock, so a peer's older copy cannot make it the
-                      // primary again (#2644).
+                      // A fresh clock, so a peer's older copy cannot make
+                      // it the primary again (#2644).
                       hlc: Value(await _syncRepository.issueRowClock()),
                     ),
                   );

@@ -163,6 +163,35 @@ void main() {
   });
 
   test(
+    'fill keeps the planned tissue state a computer does not report',
+    () async {
+      const tissue = ComputerTissueSnapshot(
+        algorithm: 'zhl_16c',
+        end: ComputerTissueState(gf99Percent: 55, surfaceGfPercent: 40),
+      );
+      final planned = await dives.createPlannedDive(
+        Dive(
+          id: '',
+          diverId: eric,
+          dateTime: DateTime(2026, 6, 1, 9),
+          maxDepth: 20,
+          computerTissue: tissue,
+          tanks: const [DiveTank(id: '', gasMix: GasMix(o2: 32), volume: 12)],
+        ),
+      );
+
+      await service.fill(
+        plannedDiveId: planned.id,
+        dive: download(),
+        computerId: computerId,
+      );
+
+      final filled = await dives.getDiveById(planned.id);
+      expect(filled?.computerTissue, tissue);
+    },
+  );
+
+  test(
     'fill keeps the planned deco settings a computer does not report',
     () async {
       final planned = await dives.createPlannedDive(
