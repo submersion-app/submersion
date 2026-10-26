@@ -88,6 +88,12 @@ class DiveStatsScope {
     String alias = 'd',
     bool gas = false,
     bool consumptionRate = false,
-  }) =>
-      ' AND ${predicate(alias: alias, gas: gas, consumptionRate: consumptionRate)}';
+  }) {
+    final scope = predicate(
+      alias: alias,
+      gas: gas,
+      consumptionRate: consumptionRate,
+    );
+    return ' AND $scope';
+  }
 }

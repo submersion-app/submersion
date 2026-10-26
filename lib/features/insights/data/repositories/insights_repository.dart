@@ -712,8 +712,10 @@ class InsightsRepository {
   /// Get volume-based average SAC by tank role (back gas, stage, deco, etc.)
   ///
   /// Returns a map of tank role to average SAC in L/min.
-  /// Requires tank volume data. Each cylinder stands for its own role, so rebreather dives
-  /// keep their diluent and oxygen rows here (issue #3673).
+  /// Requires tank volume data.
+  ///
+  /// Each cylinder stands for its own role, so rebreather dives keep their
+  /// diluent and oxygen rows here (issue #3673).
   Future<Map<String, double>> getSacVolumeByTankRole({
     String? diverId,
     DiveFilterState filter = const DiveFilterState(),
@@ -796,8 +798,10 @@ class InsightsRepository {
   /// Get pressure-based average SAC by tank role (back gas, stage, deco, etc.)
   ///
   /// Returns a map of tank role to average SAC in bar/min.
-  /// Does not require tank volume. Each cylinder stands for its own role, so rebreather dives
-  /// keep their diluent and oxygen rows here (issue #3673).
+  /// Does not require tank volume.
+  ///
+  /// Each cylinder stands for its own role, so rebreather dives keep their
+  /// diluent and oxygen rows here (issue #3673).
   Future<Map<String, double>> getSacPressureByTankRole({
     String? diverId,
     DiveFilterState filter = const DiveFilterState(),
