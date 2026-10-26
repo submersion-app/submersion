@@ -139,6 +139,42 @@ class DiveShape {
 
   int get durationSec => samples.isEmpty ? 0 : samples.last.t;
 
+  /// This dive without what the computer went on logging at the surface:
+  /// samples and tank pressures more than two minutes after the last sample
+  /// deeper than 1 m.
+  DiveShape withoutSurfaceTail() {
+    final deep = samples.where((s) => s.depth > 1);
+    if (deep.isEmpty) return this;
+    final end = deep.last.t + 120;
+    if (durationSec <= end) return this;
+    return DiveShape(
+      id: id,
+      kinds: kinds,
+      diveMode: diveMode,
+      sampleIntervalSec: sampleIntervalSec,
+      samples: [
+        for (final s in samples)
+          if (s.t <= end) s,
+      ],
+      tanks: [
+        for (final t in tanks)
+          ShapeTank(
+            o2: t.o2,
+            he: t.he,
+            role: t.role,
+            volumeL: t.volumeL,
+            startBar: t.startBar,
+            endBar: t.endBar,
+            pressures: [
+              for (final p in t.pressures)
+                if (p.$1 <= end) p,
+            ],
+          ),
+      ],
+      computerCount: computerCount,
+    );
+  }
+
   Map<String, Object?> toJson() => {
     'id': id,
     'k': [for (final k in kinds) k.name],

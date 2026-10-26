@@ -10,10 +10,20 @@ import 'dive_shape.dart';
 /// and a trip repeats a shape only when its kind has run out of new ones
 /// (rebreather dives, for which real data is scarce).
 class ShapeLibrary {
+  /// Shapes longer than [maxDurationSec] once their surface tail is cut off
+  /// come from a source with a broken time scale and are left out.
   ShapeLibrary(List<DiveShape> shapes, this.random)
-    : _shapes = [...shapes]..sort((a, b) => a.id.compareTo(b.id));
+    : _shapes = [
+        for (final s in shapes)
+          if (s.withoutSurfaceTail() case final t
+              when t.durationSec <= maxDurationSec)
+            t,
+      ]..sort((a, b) => a.id.compareTo(b.id));
 
   static const maxUses = 3;
+
+  /// Five hours: longer than any dive in the story.
+  static const maxDurationSec = 5 * 3600;
 
   final List<DiveShape> _shapes;
   final Random random;

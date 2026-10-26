@@ -71,4 +71,63 @@ void main() {
       expect(s.kinds, contains(ShapeKind.trimix));
     },
   );
+
+  DiveShape logged(String id, List<(int, double)> points) => DiveShape(
+    id: id,
+    kinds: const {ShapeKind.recreational},
+    diveMode: 'oc',
+    sampleIntervalSec: 60,
+    samples: [for (final (t, d) in points) ShapeSample(t: t, depth: d)],
+    tanks: const [
+      ShapeTank(
+        o2: 21,
+        he: 0,
+        role: 'backGas',
+        pressures: [(0, 200.0), (3000, 60.0), (40000, 59.0)],
+      ),
+    ],
+  );
+
+  test('a shape logged for hours on end is never picked', () {
+    // A source with a wrong time scale: 14 hours at depth.
+    final library = ShapeLibrary([
+      logged('endless', [(0, 0), (600, 20), (50000, 20), (50100, 0)]),
+      logged('normal', [(0, 0), (600, 20), (2400, 20), (2700, 0)]),
+    ], Random(1));
+
+    for (var i = 0; i < 3; i++) {
+      expect(
+        library
+            .pick(
+              kinds: const {ShapeKind.recreational},
+              diveMode: 'oc',
+              targetMaxDepth: 20,
+            )
+            .id,
+        'normal',
+      );
+    }
+  });
+
+  test('time logged at the surface after the dive is cut off', () {
+    final library = ShapeLibrary([
+      logged('tail', [
+        (0, 0),
+        (600, 20),
+        (2400, 20),
+        (3000, 0.5),
+        (40000, 0.3),
+      ]),
+    ], Random(1));
+
+    final shape = library.pick(
+      kinds: const {ShapeKind.recreational},
+      diveMode: 'oc',
+      targetMaxDepth: 20,
+    );
+
+    // Two minutes after the last sample deeper than 1 m.
+    expect(shape.durationSec, lessThanOrEqualTo(2400 + 120));
+    expect(shape.tanks.single.pressures.last.$1, lessThanOrEqualTo(2400 + 120));
+  });
 }
