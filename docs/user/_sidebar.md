@@ -10,6 +10,7 @@
 - [Log a Dive from Your Computer](how-to-log-a-dive.md)
 - [Customize the Display](how-to-customize-display.md)
 - Moving from another app
+  - [Subsurface](how-to-move-from-subsurface.md)
   - [Garmin Connect](how-to-move-from-garmin-connect.md)
 
 **Logging Your Dives**

@@ -18,4 +18,5 @@ The rest of this user guide is a reference that explains every option of each fe
 
 Each of these guides shows what comes across from your old app and what does not, before you start, so you know what to expect.
 
+- [Moving from Subsurface to Submersion](how-to-move-from-subsurface.md): dives, trips, sites and photos from your Subsurface log.
 - [Moving from Garmin Connect to Submersion](how-to-move-from-garmin-connect.md): dives from your Garmin watch, straight from your account.
