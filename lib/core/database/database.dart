@@ -1434,6 +1434,10 @@ class AppDatabase extends _$AppDatabase {
     // old shape gets the same move once applied here (SyncService). 317 is
     // #3662 (tank inspection baselines); 316 is held by PR #3685.
     318,
+    // v319: per-O2-band deco ppO2 limits and the explicit MOD for 100% O2
+    // (issue #3580). Column only, both off by default, so the floor does
+    // not move.
+    319,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading
