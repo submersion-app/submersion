@@ -6,6 +6,7 @@ import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/core/query/names/name_index.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_attribute_l10n.dart';
+import 'package:submersion/features/marine_life/presentation/species_display.dart';
 import 'package:submersion/features/marine_life/presentation/species_name_lookup.dart';
 import 'package:submersion/features/query/app_query_registry.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -289,7 +290,13 @@ class NameIndexLoader {
     final label = row.read<String?>('label') ?? '';
     final species = subject == QuerySubject.species;
     final builtIn = species && (row.read<int?>('is_built_in') ?? 0) == 1;
-    final localized = builtIn ? builtInSpeciesName(l10n, id) : null;
+    // A renamed built-in resolves to its own label (#3669), so the catalog
+    // name is not offered and the diver's name keeps rank 0.
+    final localized = !builtIn
+        ? null
+        : label.isEmpty
+        ? builtInSpeciesName(l10n, id)
+        : localizedSpeciesName(l10n, id, label);
     final distinctLocalized = localized != null && localized != label;
     if (label.isNotEmpty) {
       yield NameEntry(

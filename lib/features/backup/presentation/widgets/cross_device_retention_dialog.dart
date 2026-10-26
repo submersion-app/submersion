@@ -49,6 +49,14 @@ class _CrossDeviceRetentionDialog extends ConsumerWidget {
               const SizedBox(height: 8),
               Text(l10n.backup_retention_confirm_pinnedKept(plan.pinnedKept)),
             ],
+            if (plan.deviceNewestKept > 0) ...[
+              const SizedBox(height: 8),
+              Text(
+                l10n.backup_retention_confirm_deviceNewestKept(
+                  plan.deviceNewestKept,
+                ),
+              ),
+            ],
             const SizedBox(height: 12),
             Flexible(
               child: DecoratedBox(

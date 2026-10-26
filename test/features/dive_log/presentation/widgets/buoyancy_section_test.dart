@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/buoyancy/buoyancy_twin.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/data/services/buoyancy_twin_assembler.dart';
@@ -76,6 +77,45 @@ void main() {
   testWidgets('no lead hint is absent once lead is known', (tester) async {
     await _pump(tester, buoyancyOutcome());
     expect(find.textContaining('No lead recorded'), findsNothing);
+  });
+
+  testWidgets('hints when a tank material had to be assumed', (tester) async {
+    // #3686: an imported tank with no material and specs that match no
+    // preset is modelled as aluminium; the card must say so.
+    await _pump(
+      tester,
+      buoyancyOutcome(
+        tanks: const [
+          TwinTankInput(
+            id: 't1',
+            label: 'tank',
+            volumeL: 12.0,
+            workingPressureBar: 232.0,
+          ),
+        ],
+      ),
+    );
+    expect(find.textContaining('Tank material not set'), findsOneWidget);
+  });
+
+  testWidgets('no tank material hint once every material is resolved', (
+    tester,
+  ) async {
+    // 12 L / 200 bar resolves to Steel 12L even without a material.
+    await _pump(
+      tester,
+      buoyancyOutcome(
+        tanks: const [
+          TwinTankInput(
+            id: 't1',
+            label: 'tank',
+            volumeL: 12.0,
+            workingPressureBar: 200.0,
+          ),
+        ],
+      ),
+    );
+    expect(find.textContaining('Tank material not set'), findsNothing);
   });
 
   testWidgets('a narrow card fits its header row', (tester) async {

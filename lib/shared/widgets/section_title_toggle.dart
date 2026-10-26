@@ -99,6 +99,11 @@ class SectionTitleToggle extends StatelessWidget {
   /// Horizontal padding either side of each name, inside its tab.
   static const double labelPadding = 8;
 
+  /// An app bar's `titleSpacing` for a switcher title: with [labelPadding]
+  /// it puts the first name at the 16px every other app bar title sits at.
+  static const double appBarTitleSpacing =
+      NavigationToolbar.kMiddleSpacing - labelPadding;
+
   /// The icon and gap [FeatureAppBarTitle] puts in front of a title when the
   /// section-headers accent is on.
   static const double _accentLead = 24 + 8;

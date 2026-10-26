@@ -37,6 +37,65 @@ class AppLocalizationsEn extends AppLocalizations {
   String get connections_around_show => 'Show';
 
   @override
+  String get connections_caption_circle =>
+      'A line joins two buddies who dived together.';
+
+  @override
+  String get connections_caption_where =>
+      'A line means you dived at that site with that buddy.';
+
+  @override
+  String get connections_caption_trips =>
+      'A line means that buddy was on that trip.';
+
+  @override
+  String get connections_caption_life =>
+      'A line means you saw that species at that site.';
+
+  @override
+  String get connections_caption_gear =>
+      'A line joins gear used on the same dive.';
+
+  @override
+  String get connections_caption_centers =>
+      'A line means you dived with that buddy through that center.';
+
+  @override
+  String get connections_caption_travel =>
+      'Buddies, trips and sites; a line means they share dives.';
+
+  @override
+  String get connections_caption_reef =>
+      'Sites, marine life and dive types; a line means they share dives.';
+
+  @override
+  String get connections_caption_gearRoad =>
+      'Gear, trips and centers; a line means they share dives.';
+
+  @override
+  String connections_caption_custom(String kinds) {
+    return '$kinds; a line means they share a dive.';
+  }
+
+  @override
+  String get connections_caption_kindSeparator => ', ';
+
+  @override
+  String connections_caption_around(int hops) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hops,
+      locale: localeName,
+      other:
+          'Everything within $hops steps of this centre, linked by shared dives.',
+      one: 'Everything that shares a dive with this centre.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_caption_thicker => 'Thicker lines mean more dives.';
+
+  @override
   String get connections_editor_kinds => 'Kinds';
 
   @override
@@ -2603,7 +2662,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String backup_retention_allDevices_on(int count) {
-    return 'The cloud folder keeps the last $count backups from every device. Pinned backups are kept. If other devices use this too, the smallest number wins. Update the app on every device first so their pins are seen.';
+    return 'The cloud folder keeps the last $count backups from every device. Pinned backups are kept. Each device\'s newest backup is kept too, unless it is more than 6 months old. If other devices use this too, the smallest number wins. Update the app on every device first so their pins are seen.';
   }
 
   @override
@@ -2640,6 +2699,17 @@ class AppLocalizationsEn extends AppLocalizations {
       locale: localeName,
       other: '$count pinned backups are kept.',
       one: '$count pinned backup is kept.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backup_retention_confirm_deviceNewestKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count backups are kept as their device\'s newest.',
+      one: '$count backup is kept as its device\'s newest.',
     );
     return '$_temp0';
   }
@@ -5114,6 +5184,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get connections_empty_sites => 'No dives have a site yet.';
+
+  @override
+  String get connections_empty_whereNoSites =>
+      'None of your dives with a buddy has a site yet. Add sites to those dives to see where you dive together.';
 
   @override
   String get connections_empty_filtered =>
@@ -19447,6 +19521,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nav_media => 'Media';
 
   @override
+  String get nav_mediaDocumentsSubtitle => 'Photos, videos and documents';
+
+  @override
+  String get nav_photosVideos => 'Photos/Videos';
+
+  @override
   String get nav_more => 'More';
 
   @override
@@ -20499,6 +20579,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get buoyancy_noLeadHint =>
       'No lead recorded: add weights to this dive, or a dry weight to your weights gear';
+
+  @override
+  String get buoyancy_tankMaterialAssumedHint =>
+      'Tank material not set, so aluminum was assumed: set the material or pick a tank preset';
 
   @override
   String get buoyancy_chartNet => 'Net';
@@ -24442,9 +24526,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get nav_documents => 'Documents';
-
-  @override
-  String get documents_title => 'Documents';
 
   @override
   String get documents_type_insurance => 'Insurance';
@@ -39356,6 +39437,20 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get dataQuality_repairLabel_shiftImport =>
       'Shift all dives from this import';
+
+  @override
+  String dataQuality_repairLabel_shiftLogbookTime(String offset) {
+    return 'Shift logbook time by $offset';
+  }
+
+  @override
+  String dataQuality_repairLabel_fixSourceClock(String offset) {
+    return 'Fix this computer\'s clock by $offset';
+  }
+
+  @override
+  String get dataQuality_repairLabel_fixSourceClockAll =>
+      'Also fix this computer on other dives with the same offset';
 
   @override
   String get dataQuality_repairLabel_consolidate => 'Consolidate';

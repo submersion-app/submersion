@@ -32,6 +32,7 @@ class SpyReader extends ConnectionsReader {
     String? labelLike,
     int? limit,
     bool byRank = false,
+    ConnectionKind? sharedWith,
   }) async {
     final rows = await super.nodes(
       kind,
@@ -41,6 +42,7 @@ class SpyReader extends ConnectionsReader {
       labelLike: labelLike,
       limit: limit,
       byRank: byRank,
+      sharedWith: sharedWith,
     );
     nodeRowCounts.add(rows.length);
     return rows;
@@ -181,4 +183,64 @@ Future<void> seedChain(db.AppDatabase d) async {
       ['c2', 'c3'],
     ],
   );
+}
+
+/// Buddy `b` dives at sites `s1` and `s2`, and `s1` once more alone; `s3`
+/// is dived only alone. With [withBuddy] false no dive has a buddy.
+Future<void> seedSites(db.AppDatabase d, {bool withBuddy = true}) async {
+  await _diver(d);
+  final dives = [
+    ('d0', 's1', withBuddy),
+    ('d1', 's2', withBuddy),
+    ('d2', 's3', false),
+    ('d3', 's1', false),
+  ];
+  await d.batch((b) {
+    for (final id in ['s1', 's2', 's3']) {
+      b.insert(
+        d.diveSites,
+        db.DiveSitesCompanion(
+          id: Value(id),
+          name: Value(id),
+          createdAt: const Value(_ms),
+          updatedAt: const Value(_ms),
+        ),
+      );
+    }
+    b.insert(
+      d.buddies,
+      const db.BuddiesCompanion(
+        id: Value('b'),
+        name: Value('b'),
+        createdAt: Value(_ms),
+        updatedAt: Value(_ms),
+      ),
+    );
+    for (var i = 0; i < dives.length; i++) {
+      final (diveId, site, buddy) = dives[i];
+      b.insert(
+        d.dives,
+        db.DivesCompanion(
+          id: Value(diveId),
+          diverId: const Value('me'),
+          siteId: Value(site),
+          diveDateTime: Value(_ms + i * 86400000),
+          createdAt: const Value(_ms),
+          updatedAt: const Value(_ms),
+        ),
+      );
+      if (buddy) {
+        b.insert(
+          d.diveBuddies,
+          db.DiveBuddiesCompanion(
+            id: Value('$diveId-b'),
+            diveId: Value(diveId),
+            buddyId: const Value('b'),
+            role: const Value('buddy'),
+            createdAt: const Value(_ms),
+          ),
+        );
+      }
+    }
+  });
 }

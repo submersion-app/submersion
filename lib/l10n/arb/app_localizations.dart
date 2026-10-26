@@ -164,6 +164,84 @@ abstract class AppLocalizations {
   /// **'Show'**
   String get connections_around_show;
 
+  /// No description provided for @connections_caption_circle.
+  ///
+  /// In en, this message translates to:
+  /// **'A line joins two buddies who dived together.'**
+  String get connections_caption_circle;
+
+  /// No description provided for @connections_caption_where.
+  ///
+  /// In en, this message translates to:
+  /// **'A line means you dived at that site with that buddy.'**
+  String get connections_caption_where;
+
+  /// No description provided for @connections_caption_trips.
+  ///
+  /// In en, this message translates to:
+  /// **'A line means that buddy was on that trip.'**
+  String get connections_caption_trips;
+
+  /// No description provided for @connections_caption_life.
+  ///
+  /// In en, this message translates to:
+  /// **'A line means you saw that species at that site.'**
+  String get connections_caption_life;
+
+  /// No description provided for @connections_caption_gear.
+  ///
+  /// In en, this message translates to:
+  /// **'A line joins gear used on the same dive.'**
+  String get connections_caption_gear;
+
+  /// No description provided for @connections_caption_centers.
+  ///
+  /// In en, this message translates to:
+  /// **'A line means you dived with that buddy through that center.'**
+  String get connections_caption_centers;
+
+  /// No description provided for @connections_caption_travel.
+  ///
+  /// In en, this message translates to:
+  /// **'Buddies, trips and sites; a line means they share dives.'**
+  String get connections_caption_travel;
+
+  /// No description provided for @connections_caption_reef.
+  ///
+  /// In en, this message translates to:
+  /// **'Sites, marine life and dive types; a line means they share dives.'**
+  String get connections_caption_reef;
+
+  /// No description provided for @connections_caption_gearRoad.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear, trips and centers; a line means they share dives.'**
+  String get connections_caption_gearRoad;
+
+  /// No description provided for @connections_caption_custom.
+  ///
+  /// In en, this message translates to:
+  /// **'{kinds}; a line means they share a dive.'**
+  String connections_caption_custom(String kinds);
+
+  /// No description provided for @connections_caption_kindSeparator.
+  ///
+  /// In en, this message translates to:
+  /// **', '**
+  String get connections_caption_kindSeparator;
+
+  /// No description provided for @connections_caption_around.
+  ///
+  /// In en, this message translates to:
+  /// **'{hops, plural, =1{Everything that shares a dive with this centre.} other{Everything within {hops} steps of this centre, linked by shared dives.}}'**
+  String connections_caption_around(int hops);
+
+  /// No description provided for @connections_caption_thicker.
+  ///
+  /// In en, this message translates to:
+  /// **'Thicker lines mean more dives.'**
+  String get connections_caption_thicker;
+
   /// No description provided for @connections_editor_kinds.
   ///
   /// In en, this message translates to:
@@ -4138,7 +4216,7 @@ abstract class AppLocalizations {
   /// No description provided for @backup_retention_allDevices_on.
   ///
   /// In en, this message translates to:
-  /// **'The cloud folder keeps the last {count} backups from every device. Pinned backups are kept. If other devices use this too, the smallest number wins. Update the app on every device first so their pins are seen.'**
+  /// **'The cloud folder keeps the last {count} backups from every device. Pinned backups are kept. Each device\'s newest backup is kept too, unless it is more than 6 months old. If other devices use this too, the smallest number wins. Update the app on every device first so their pins are seen.'**
   String backup_retention_allDevices_on(int count);
 
   /// No description provided for @backup_retention_cloudFootprint.
@@ -4164,6 +4242,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, one{{count} pinned backup is kept.} other{{count} pinned backups are kept.}}'**
   String backup_retention_confirm_pinnedKept(int count);
+
+  /// No description provided for @backup_retention_confirm_deviceNewestKept.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} backup is kept as its device\'s newest.} other{{count} backups are kept as their device\'s newest.}}'**
+  String backup_retention_confirm_deviceNewestKept(int count);
 
   /// No description provided for @backup_retention_confirm_action.
   ///
@@ -8093,6 +8177,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No dives have a site yet.'**
   String get connections_empty_sites;
+
+  /// No description provided for @connections_empty_whereNoSites.
+  ///
+  /// In en, this message translates to:
+  /// **'None of your dives with a buddy has a site yet. Add sites to those dives to see where you dive together.'**
+  String get connections_empty_whereNoSites;
 
   /// No description provided for @connections_empty_filtered.
   ///
@@ -31428,6 +31518,18 @@ abstract class AppLocalizations {
   /// **'Media'**
   String get nav_media;
 
+  /// Subtitle for the Media menu item in the More sheet, naming its two tabs
+  ///
+  /// In en, this message translates to:
+  /// **'Photos, videos and documents'**
+  String get nav_mediaDocumentsSubtitle;
+
+  /// Label of the Media section's tab for photos and videos, beside its Documents tab
+  ///
+  /// In en, this message translates to:
+  /// **'Photos/Videos'**
+  String get nav_photosVideos;
+
   /// Navigation label for the 'more' menu on mobile
   ///
   /// In en, this message translates to:
@@ -33113,6 +33215,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No lead recorded: add weights to this dive, or a dry weight to your weights gear'**
   String get buoyancy_noLeadHint;
+
+  /// No description provided for @buoyancy_tankMaterialAssumedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tank material not set, so aluminum was assumed: set the material or pick a tank preset'**
+  String get buoyancy_tankMaterialAssumedHint;
 
   /// No description provided for @buoyancy_chartNet.
   ///
@@ -39788,12 +39896,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Documents'**
   String get nav_documents;
-
-  /// No description provided for @documents_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Documents'**
-  String get documents_title;
 
   /// No description provided for @documents_type_insurance.
   ///
@@ -63238,6 +63340,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Shift all dives from this import'**
   String get dataQuality_repairLabel_shiftImport;
+
+  /// No description provided for @dataQuality_repairLabel_shiftLogbookTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift logbook time by {offset}'**
+  String dataQuality_repairLabel_shiftLogbookTime(String offset);
+
+  /// No description provided for @dataQuality_repairLabel_fixSourceClock.
+  ///
+  /// In en, this message translates to:
+  /// **'Fix this computer\'s clock by {offset}'**
+  String dataQuality_repairLabel_fixSourceClock(String offset);
+
+  /// No description provided for @dataQuality_repairLabel_fixSourceClockAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Also fix this computer on other dives with the same offset'**
+  String get dataQuality_repairLabel_fixSourceClockAll;
 
   /// No description provided for @dataQuality_repairLabel_consolidate.
   ///

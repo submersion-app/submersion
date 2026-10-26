@@ -137,6 +137,34 @@ void main() {
     );
   });
 
+  // Issue #3669: a renamed built-in species is the diver's own name, so it
+  // stays the rank-0 label and the catalog name is not offered at all.
+  test('a renamed built-in species ranks its stored name first', () async {
+    await db.customStatement(
+      "INSERT INTO species (id, common_name, category, is_built_in) "
+      "VALUES ('sp_cowfish', 'Honeycomb Cowfish', 'fish', 1)",
+    );
+    final de = l10nForLocaleTag('de');
+    final index = await NameIndexLoader(db).load(diverId: 'me', l10n: de);
+    final entries = index.forSubject(QuerySubject.species).toList();
+    expect(entries.map((e) => e.label), ['Honeycomb Cowfish']);
+    expect(entries.single.rank, 0);
+  });
+
+  test(
+    'a built-in species with no stored name is found by its translation',
+    () async {
+      await db.customStatement(
+        "INSERT INTO species (id, common_name, category, is_built_in) "
+        "VALUES ('sp_whale_shark', '', 'fish', 1)",
+      );
+      final de = l10nForLocaleTag('de');
+      final index = await NameIndexLoader(db).load(diverId: 'me', l10n: de);
+      final entries = index.forSubject(QuerySubject.species).toList();
+      expect(entries.map((e) => e.label), [de.species_whale_shark_name]);
+    },
+  );
+
   test('every curated choice attribute choice is a gear entry', () async {
     final index = await load();
     final choices = index

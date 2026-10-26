@@ -37,6 +37,66 @@ class AppLocalizationsNl extends AppLocalizations {
   String get connections_around_show => 'Tonen';
 
   @override
+  String get connections_caption_circle =>
+      'Een lijn verbindt twee buddy\'s die samen hebben gedoken.';
+
+  @override
+  String get connections_caption_where =>
+      'Een lijn betekent dat je met die buddy op die duikplek hebt gedoken.';
+
+  @override
+  String get connections_caption_trips =>
+      'Een lijn betekent dat die buddy mee was op die reis.';
+
+  @override
+  String get connections_caption_life =>
+      'Een lijn betekent dat je die soort op die duikplek hebt gezien.';
+
+  @override
+  String get connections_caption_gear =>
+      'Een lijn verbindt uitrusting die bij dezelfde duik is gebruikt.';
+
+  @override
+  String get connections_caption_centers =>
+      'Een lijn betekent dat je via dat duikcentrum met die buddy hebt gedoken.';
+
+  @override
+  String get connections_caption_travel =>
+      'Buddy\'s, reizen en duikplekken; een lijn betekent gedeelde duiken.';
+
+  @override
+  String get connections_caption_reef =>
+      'Duikplekken, zeeleven en duiktypen; een lijn betekent gedeelde duiken.';
+
+  @override
+  String get connections_caption_gearRoad =>
+      'Uitrusting, reizen en duikcentra; een lijn betekent gedeelde duiken.';
+
+  @override
+  String connections_caption_custom(String kinds) {
+    return '$kinds; een lijn betekent dat ze een duik delen.';
+  }
+
+  @override
+  String get connections_caption_kindSeparator => ', ';
+
+  @override
+  String connections_caption_around(int hops) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hops,
+      locale: localeName,
+      other:
+          'Alles binnen $hops stappen van dit middelpunt, verbonden door gedeelde duiken.',
+      one: 'Alles wat een duik deelt met dit middelpunt.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_caption_thicker =>
+      'Dikkere lijnen betekenen meer duiken.';
+
+  @override
   String get connections_editor_kinds => 'Soorten';
 
   @override
@@ -2620,7 +2680,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String backup_retention_allDevices_on(int count) {
-    return 'De cloudmap bewaart de laatste $count back-ups van alle apparaten. Vastgemaakte back-ups blijven bewaard. Gebruiken andere apparaten dit ook, dan geldt het kleinste aantal. Werk eerst de app op elk apparaat bij, zodat hun vastgemaakte back-ups zichtbaar zijn.';
+    return 'De cloudmap bewaart de laatste $count back-ups van alle apparaten. Vastgemaakte back-ups blijven bewaard. Ook de nieuwste back-up van elk apparaat blijft bewaard, tenzij die ouder is dan 6 maanden. Gebruiken andere apparaten dit ook, dan geldt het kleinste aantal. Werk eerst de app op elk apparaat bij, zodat hun vastgemaakte back-ups zichtbaar zijn.';
   }
 
   @override
@@ -2657,6 +2717,17 @@ class AppLocalizationsNl extends AppLocalizations {
       locale: localeName,
       other: '$count vastgemaakte back-ups blijven bewaard.',
       one: '$count vastgemaakte back-up blijft bewaard.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backup_retention_confirm_deviceNewestKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count back-ups blijven bewaard als nieuwste van hun apparaat.',
+      one: '$count back-up blijft bewaard als nieuwste van zijn apparaat.',
     );
     return '$_temp0';
   }
@@ -5160,6 +5231,10 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get connections_empty_sites => 'Nog geen duik heeft een duikplek.';
+
+  @override
+  String get connections_empty_whereNoSites =>
+      'Nog geen van je duiken met een buddy heeft een duikplek. Voeg duikplekken toe aan die duiken om te zien waar jullie samen duiken.';
 
   @override
   String get connections_empty_filtered =>
@@ -19614,6 +19689,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get nav_media => 'Media';
 
   @override
+  String get nav_mediaDocumentsSubtitle => 'Foto\'s, video\'s en documenten';
+
+  @override
+  String get nav_photosVideos => 'Foto\'s/Video\'s';
+
+  @override
   String get nav_more => 'Meer';
 
   @override
@@ -20671,6 +20752,10 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get buoyancy_noLeadHint =>
       'Geen lood vastgelegd: voeg lood toe aan deze duik of een drooggewicht aan je loodmateriaal';
+
+  @override
+  String get buoyancy_tankMaterialAssumedHint =>
+      'Flesmateriaal niet ingesteld, dus is aluminium aangenomen: stel het materiaal in of kies een flessjabloon';
 
   @override
   String get buoyancy_chartNet => 'Netto';
@@ -24702,9 +24787,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get nav_documents => 'Documenten';
-
-  @override
-  String get documents_title => 'Documenten';
 
   @override
   String get documents_type_insurance => 'Verzekering';
@@ -39750,6 +39832,20 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get dataQuality_repairLabel_shiftImport =>
       'Alle duiken uit deze import verschuiven';
+
+  @override
+  String dataQuality_repairLabel_shiftLogbookTime(String offset) {
+    return 'Logboektijd verschuiven met $offset';
+  }
+
+  @override
+  String dataQuality_repairLabel_fixSourceClock(String offset) {
+    return 'Klok van deze computer corrigeren met $offset';
+  }
+
+  @override
+  String get dataQuality_repairLabel_fixSourceClockAll =>
+      'Deze computer ook corrigeren bij andere duiken met dezelfde afwijking';
 
   @override
   String get dataQuality_repairLabel_consolidate => 'Consolideren';

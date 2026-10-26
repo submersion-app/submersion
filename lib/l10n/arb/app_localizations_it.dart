@@ -37,6 +37,66 @@ class AppLocalizationsIt extends AppLocalizations {
   String get connections_around_show => 'Mostra';
 
   @override
+  String get connections_caption_circle =>
+      'Una linea unisce due compagni che si sono immersi insieme.';
+
+  @override
+  String get connections_caption_where =>
+      'Una linea indica che ti sei immerso in quel sito con quel compagno.';
+
+  @override
+  String get connections_caption_trips =>
+      'Una linea indica che quel compagno era in quel viaggio.';
+
+  @override
+  String get connections_caption_life =>
+      'Una linea indica che hai visto quella specie in quel sito.';
+
+  @override
+  String get connections_caption_gear =>
+      'Una linea unisce l\'attrezzatura usata nella stessa immersione.';
+
+  @override
+  String get connections_caption_centers =>
+      'Una linea indica che ti sei immerso con quel compagno tramite quel diving center.';
+
+  @override
+  String get connections_caption_travel =>
+      'Compagni, viaggi e siti; una linea indica immersioni in comune.';
+
+  @override
+  String get connections_caption_reef =>
+      'Siti, vita marina e tipi di immersione; una linea indica immersioni in comune.';
+
+  @override
+  String get connections_caption_gearRoad =>
+      'Attrezzatura, viaggi e diving center; una linea indica immersioni in comune.';
+
+  @override
+  String connections_caption_custom(String kinds) {
+    return '$kinds; una linea indica che condividono un\'immersione.';
+  }
+
+  @override
+  String get connections_caption_kindSeparator => ', ';
+
+  @override
+  String connections_caption_around(int hops) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hops,
+      locale: localeName,
+      other:
+          'Tutto ciò che è entro $hops passi dall\'elemento centrale, unito da immersioni in comune.',
+      one: 'Tutto ciò che condivide un\'immersione con l\'elemento centrale.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_caption_thicker =>
+      'Le linee più spesse indicano più immersioni.';
+
+  @override
   String get connections_editor_kinds => 'Tipi';
 
   @override
@@ -2634,7 +2694,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String backup_retention_allDevices_on(int count) {
-    return 'La cartella cloud conserva gli ultimi $count backup di tutti i dispositivi. I backup fissati vengono conservati. Se anche altri dispositivi usano questa opzione, vale il numero più piccolo. Aggiorna prima l\'app su tutti i dispositivi, così i loro backup fissati vengono riconosciuti.';
+    return 'La cartella cloud conserva gli ultimi $count backup di tutti i dispositivi. I backup fissati vengono conservati. Anche il backup più recente di ogni dispositivo viene conservato, a meno che non abbia più di 6 mesi. Se anche altri dispositivi usano questa opzione, vale il numero più piccolo. Aggiorna prima l\'app su tutti i dispositivi, così i loro backup fissati vengono riconosciuti.';
   }
 
   @override
@@ -2671,6 +2731,19 @@ class AppLocalizationsIt extends AppLocalizations {
       locale: localeName,
       other: '$count backup fissati vengono conservati.',
       one: '$count backup fissato viene conservato.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backup_retention_confirm_deviceNewestKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count backup vengono conservati perché sono i più recenti del loro dispositivo.',
+      one:
+          '$count backup viene conservato perché è il più recente del suo dispositivo.',
     );
     return '$_temp0';
   }
@@ -5185,6 +5258,10 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get connections_empty_sites => 'Nessuna immersione ha ancora un sito.';
+
+  @override
+  String get connections_empty_whereNoSites =>
+      'Nessuna delle tue immersioni con un compagno ha ancora un sito. Aggiungi i siti a quelle immersioni per vedere dove vi immergete insieme.';
 
   @override
   String get connections_empty_filtered =>
@@ -19736,6 +19813,12 @@ class AppLocalizationsIt extends AppLocalizations {
   String get nav_media => 'Media';
 
   @override
+  String get nav_mediaDocumentsSubtitle => 'Foto, video e documenti';
+
+  @override
+  String get nav_photosVideos => 'Foto/Video';
+
+  @override
   String get nav_more => 'Altro';
 
   @override
@@ -20801,6 +20884,10 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get buoyancy_noLeadHint =>
       'Nessuna zavorra registrata: aggiungi zavorra a questa immersione o un peso a secco alla tua attrezzatura di zavorra';
+
+  @override
+  String get buoyancy_tankMaterialAssumedHint =>
+      'Materiale della bombola non impostato, quindi è stato ipotizzato alluminio: imposta il materiale o scegli un modello di bombola';
 
   @override
   String get buoyancy_chartNet => 'Netto';
@@ -24877,9 +24964,6 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get nav_documents => 'Documenti';
-
-  @override
-  String get documents_title => 'Documenti';
 
   @override
   String get documents_type_insurance => 'Assicurazione';
@@ -40022,6 +40106,20 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get dataQuality_repairLabel_shiftImport =>
       'Sposta tutte le immersioni di questa importazione';
+
+  @override
+  String dataQuality_repairLabel_shiftLogbookTime(String offset) {
+    return 'Sposta l\'orario del logbook di $offset';
+  }
+
+  @override
+  String dataQuality_repairLabel_fixSourceClock(String offset) {
+    return 'Correggi l\'orologio di questo computer di $offset';
+  }
+
+  @override
+  String get dataQuality_repairLabel_fixSourceClockAll =>
+      'Correggi questo computer anche nelle altre immersioni con lo stesso scarto';
 
   @override
   String get dataQuality_repairLabel_consolidate => 'Consolida';

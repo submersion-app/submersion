@@ -32,6 +32,7 @@ import 'package:submersion/features/dive_log/domain/codecs/profile_series_codec_
 import 'package:submersion/features/dive_log/domain/codecs/profile_series_summary.dart';
 import 'package:submersion/features/dive_log/domain/codecs/tank_pressure_series_codec.dart';
 import 'package:submersion/features/gps_log/data/repositories/track_geometry_cache_repository.dart';
+import 'package:submersion/features/marine_life/data/services/species_seed_service.dart';
 import 'package:submersion/features/tags/data/mappers/tag_row_mapper.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart'
     as tag_domain;
@@ -1263,7 +1264,8 @@ class SyncDataSerializer {
     (key: 'diveDiveTypes', table: _db.diveDiveTypes, blob: false, full: null),
     (key: 'diveCourses', table: _db.diveCourses, blob: false, full: null),
     // diveTypes/species/fieldPresets exclude built-in reference data
-    // (isBuiltIn=false), so reuse their exporters rather than paging all rows.
+    // (isBuiltIn=false; species keeps a built-in the diver edited), so reuse
+    // their exporters rather than paging all rows.
     (
       key: 'diveTypes',
       table: null,
@@ -7995,6 +7997,35 @@ class SyncDataSerializer {
     }
   }
 
+  /// Puts every built-in species the diver edited back to its catalog text,
+  /// untouched (no hlc), for [deleteAllRecords]. An edited built-in exports
+  /// (issue #3669), so the cloud base carries it whenever the cloud has the
+  /// edit, and the refill re-applies it; one the base lacks is a local edit
+  /// the replace must drop. Restored in place rather than deleted: sightings,
+  /// photo tags and expected species reference the row.
+  Future<void> _restoreEditedBuiltInSpecies() async {
+    final catalog = await SpeciesSeedService.loadBundledSpecies();
+    await _db.batch((batch) {
+      for (final species in catalog) {
+        batch.update(
+          _db.species,
+          SpeciesCompanion(
+            commonName: Value(species.commonName),
+            scientificName: Value(species.scientificName),
+            category: Value(species.category.name),
+            taxonomyClass: Value(species.taxonomyClass),
+            description: Value(species.description),
+            hlc: const Value(null),
+          ),
+          where: (t) =>
+              t.id.equals(species.id) &
+              t.isBuiltIn.equals(true) &
+              t.hlc.isNotNull(),
+        );
+      }
+    });
+  }
+
   /// Delete every row of the table backing [entityType]. Used by streaming
   /// Replace-adopt (#358): clearing each table then re-inserting the cloud
   /// union is equivalent to upsert-then-delete-not-in-cloud but needs no in-RAM
@@ -8007,8 +8038,9 @@ class SyncDataSerializer {
   ///
   /// Built-in reference rows are preserved for the same reason:
   /// [_exportDiveTypes], [_exportSpecies] and [_exportFieldPresets] all omit
-  /// `isBuiltIn` rows, so the refill that follows this clear cannot put them
-  /// back. Deleting them would leave the catalog permanently empty.
+  /// `isBuiltIn` rows (species omits only untouched ones), so the refill that
+  /// follows this clear cannot put them back. Deleting them would leave the
+  /// catalog permanently empty.
   ///
   /// Device-local columns ([deviceLocalSyncColumns]) of the cleared rows are
   /// remembered first, so the refill keeps this device's values.
@@ -8043,6 +8075,7 @@ class SyncDataSerializer {
         await (_db.delete(
           _db.species,
         )..where((t) => t.isBuiltIn.equals(false))).go();
+        await _restoreEditedBuiltInSpecies();
         return;
       case 'fieldPresets':
         await (_db.delete(
@@ -10521,11 +10554,14 @@ class SyncDataSerializer {
   }
 
   Future<List<Map<String, dynamic>>> _exportSpecies(String? hlcSince) async {
-    // Built-in species come from a bundled asset re-seeded on every device;
-    // only export user-created species. (Built-ins use stable bundled IDs so
-    // they would not collide, but there is no value in shipping them.)
+    // Built-in species come from a bundled asset re-seeded on every device,
+    // so an untouched one has no value in shipping. A diver can edit (or
+    // reset) a built-in, though, and every edit path stamps an hlc where the
+    // seed never does: those rows travel so the change reaches every device
+    // (issue #3669). Built-ins use stable bundled ids, so they land on the
+    // peer's own copy of the row.
     final query = _db.select(_db.species)
-      ..where((t) => t.isBuiltIn.equals(false));
+      ..where((t) => t.isBuiltIn.equals(false) | t.hlc.isNotNull());
     if (hlcSince != null) {
       query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
     }

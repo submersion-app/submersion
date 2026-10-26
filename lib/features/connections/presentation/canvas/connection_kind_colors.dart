@@ -5,7 +5,8 @@ import 'package:submersion/features/connections/domain/entities/connection_kind.
 
 /// One colour per kind, taken from the destination accents so every theme
 /// preset and both brightnesses are covered. Kind colour is data encoding,
-/// not chrome, so the diver's accent toggles do not apply here.
+/// not chrome, so the diver's accent toggles do not apply here. Buddies take
+/// the map's own `connections-buddy` accent, so they stand apart from sites.
 class ConnectionKindColors {
   const ConnectionKindColors(this._colors, this.fallback);
 
@@ -25,11 +26,17 @@ class ConnectionKindColors {
     FeatureAccentColors palette,
     Color fallback,
   ) => ConnectionKindColors({
-    for (final kind in ConnectionKind.values)
-      if (kind.accentFeatureId != null &&
-          palette.of(kind.accentFeatureId!) != null)
-        kind: palette.of(kind.accentFeatureId!)!,
+    for (final kind in ConnectionKind.values) kind: ?_accentOf(palette, kind),
   }, fallback);
+
+  static Color? _accentOf(FeatureAccentColors palette, ConnectionKind kind) {
+    final id = kind.accentFeatureId;
+    if (id == null) return null;
+    if (kind == ConnectionKind.buddy) {
+      return palette.of('connections-buddy') ?? palette.of(id);
+    }
+    return palette.of(id);
+  }
 
   Color colorFor(ConnectionKind kind) => _colors[kind] ?? fallback;
 

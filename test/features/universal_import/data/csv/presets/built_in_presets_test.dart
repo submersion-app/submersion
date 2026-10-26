@@ -131,12 +131,14 @@ void main() {
       }
     });
 
-    test('MySSI imports dives, sites and buddies (#1830)', () {
+    test('MySSI imports dives, sites, buddies (#1830) and dive centres '
+        '(#3629)', () {
       final myssi = builtInCsvPresets.firstWhere((p) => p.id == 'myssi');
       expect(myssi.supportedEntities, {
         ImportEntityType.dives,
         ImportEntityType.sites,
         ImportEntityType.buddies,
+        ImportEntityType.diveCenters,
       });
     });
 

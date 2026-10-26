@@ -37,6 +37,66 @@ class AppLocalizationsFr extends AppLocalizations {
   String get connections_around_show => 'Afficher';
 
   @override
+  String get connections_caption_circle =>
+      'Une ligne relie deux binômes qui ont plongé ensemble.';
+
+  @override
+  String get connections_caption_where =>
+      'Une ligne signifie que vous avez plongé sur ce site avec ce binôme.';
+
+  @override
+  String get connections_caption_trips =>
+      'Une ligne signifie que ce binôme était de ce voyage.';
+
+  @override
+  String get connections_caption_life =>
+      'Une ligne signifie que vous avez vu cette espèce sur ce site.';
+
+  @override
+  String get connections_caption_gear =>
+      'Une ligne relie l\'équipement utilisé lors d\'une même plongée.';
+
+  @override
+  String get connections_caption_centers =>
+      'Une ligne signifie que vous avez plongé avec ce binôme via ce centre.';
+
+  @override
+  String get connections_caption_travel =>
+      'Binômes, voyages et sites ; une ligne signifie des plongées en commun.';
+
+  @override
+  String get connections_caption_reef =>
+      'Sites, vie marine et types de plongée ; une ligne signifie des plongées en commun.';
+
+  @override
+  String get connections_caption_gearRoad =>
+      'Équipement, voyages et centres ; une ligne signifie des plongées en commun.';
+
+  @override
+  String connections_caption_custom(String kinds) {
+    return '$kinds ; une ligne signifie qu\'ils partagent une plongée.';
+  }
+
+  @override
+  String get connections_caption_kindSeparator => ', ';
+
+  @override
+  String connections_caption_around(int hops) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hops,
+      locale: localeName,
+      other:
+          'Tout ce qui se trouve à $hops pas au plus de l\'élément central, relié par des plongées en commun.',
+      one: 'Tout ce qui partage une plongée avec l\'élément central.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_caption_thicker =>
+      'Plus la ligne est épaisse, plus il y a de plongées.';
+
+  @override
   String get connections_editor_kinds => 'Types';
 
   @override
@@ -2641,7 +2701,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String backup_retention_allDevices_on(int count) {
-    return 'Le dossier cloud conserve les $count dernières sauvegardes de tous les appareils. Les sauvegardes épinglées sont conservées. Si d\'autres appareils utilisent aussi ce réglage, le plus petit nombre l\'emporte. Mettez d\'abord l\'app à jour sur tous les appareils pour que leurs épingles soient prises en compte.';
+    return 'Le dossier cloud conserve les $count dernières sauvegardes de tous les appareils. Les sauvegardes épinglées sont conservées. La sauvegarde la plus récente de chaque appareil est aussi conservée, sauf si elle a plus de 6 mois. Si d\'autres appareils utilisent aussi ce réglage, le plus petit nombre l\'emporte. Mettez d\'abord l\'app à jour sur tous les appareils pour que leurs épingles soient prises en compte.';
   }
 
   @override
@@ -2678,6 +2738,19 @@ class AppLocalizationsFr extends AppLocalizations {
       locale: localeName,
       other: '$count sauvegardes épinglées sont conservées.',
       one: '$count sauvegarde épinglée est conservée.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backup_retention_confirm_deviceNewestKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count sauvegardes sont conservées comme les plus récentes de leur appareil.',
+      one:
+          '$count sauvegarde est conservée comme la plus récente de son appareil.',
     );
     return '$_temp0';
   }
@@ -5199,6 +5272,10 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get connections_empty_sites => 'Aucune plongée n\'a encore de site.';
+
+  @override
+  String get connections_empty_whereNoSites =>
+      'Aucune de vos plongées avec un binôme n\'a encore de site. Ajoutez des sites à ces plongées pour voir où vous plongez ensemble.';
 
   @override
   String get connections_empty_filtered =>
@@ -19791,6 +19868,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get nav_media => 'Médias';
 
   @override
+  String get nav_mediaDocumentsSubtitle => 'Photos, vidéos et documents';
+
+  @override
+  String get nav_photosVideos => 'Photos/Vidéos';
+
+  @override
   String get nav_more => 'Plus';
 
   @override
@@ -20861,6 +20944,10 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get buoyancy_noLeadHint =>
       'Aucun lest enregistré : ajoutez du lest à cette plongée ou un poids à sec à votre équipement de lestage';
+
+  @override
+  String get buoyancy_tankMaterialAssumedHint =>
+      'Matériau du bloc non défini, aluminium supposé : définissez le matériau ou choisissez un modèle de bloc';
 
   @override
   String get buoyancy_chartNet => 'Net';
@@ -24930,9 +25017,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get nav_documents => 'Documents';
-
-  @override
-  String get documents_title => 'Documents';
 
   @override
   String get documents_type_insurance => 'Assurance';
@@ -40125,6 +40209,20 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get dataQuality_repairLabel_shiftImport =>
       'Décaler toutes les plongées de cet import';
+
+  @override
+  String dataQuality_repairLabel_shiftLogbookTime(String offset) {
+    return 'Décaler l\'heure du carnet de $offset';
+  }
+
+  @override
+  String dataQuality_repairLabel_fixSourceClock(String offset) {
+    return 'Corriger l\'horloge de cet ordinateur de $offset';
+  }
+
+  @override
+  String get dataQuality_repairLabel_fixSourceClockAll =>
+      'Corriger aussi cet ordinateur sur les autres plongées ayant le même décalage';
 
   @override
   String get dataQuality_repairLabel_consolidate => 'Consolider';
