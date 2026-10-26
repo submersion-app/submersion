@@ -44,7 +44,8 @@ Future<int> shiftLocalDiveTimesToWallClockUtc(
       'UPDATE dives SET dive_date_time = ?, entry_time = ?, exit_time = ?, '
       'import_version = 1 WHERE id = ?',
       [
-        shift(row.read<int>('dive_date_time')),
+        // Nullable like the others: a damaged row must not fail the upgrade.
+        shift(row.readNullable<int>('dive_date_time')),
         shift(row.readNullable<int>('entry_time')),
         shift(row.readNullable<int>('exit_time')),
         row.read<String>('id'),
