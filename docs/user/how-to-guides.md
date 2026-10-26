@@ -16,3 +16,5 @@ The rest of this user guide is a reference that explains every option of each fe
 ## Moving from another app
 
 Each of these guides shows what comes across from your old app and what does not, before you start, so you know what to expect.
+
+- [Moving from Garmin Connect to Submersion](how-to-move-from-garmin-connect.md): dives from your Garmin watch, straight from your account.

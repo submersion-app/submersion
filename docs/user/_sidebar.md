@@ -8,6 +8,8 @@
 - [Set Up Sync, Backups and Photos](how-to-sync-backups-photos.md)
 - [Set Up a Shared Site Library](how-to-shared-site-library.md)
 - [Customize the Display](how-to-customize-display.md)
+- Moving from another app
+  - [Garmin Connect](how-to-move-from-garmin-connect.md)
 
 **Logging Your Dives**
 - [The Dashboard](dashboard.md)
