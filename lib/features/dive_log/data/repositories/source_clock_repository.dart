@@ -20,9 +20,10 @@ typedef SourceTimesSnapshot = ({
 /// instead, so correcting a wrong clock moves only these two columns. The
 /// samples are already on the dive's timeline and stay where they are.
 ///
-/// Writes do not open a transaction or notify sync; the repair executor
-/// owns both. Only the source rows are marked pending: the parent dive did
-/// not change (#1769).
+/// Writes do not open a transaction or notify sync; the caller (the repair
+/// executor, or Settings > Fix dive times) owns both. Only the source rows
+/// are marked pending: a parent dive whose own row did not change is not
+/// re-stamped (#1769).
 class SourceClockRepository {
   SourceClockRepository({AppDatabase? database})
     : _database = database,
