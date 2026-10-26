@@ -107,6 +107,15 @@ typedef _JunctionChild = ({String table, String left, String entity});
 const List<_JunctionChild> _junctionChildren = [
   (table: 'equipment_set_items', left: 'set_id', entity: 'equipmentSetItems'),
   (table: 'dive_plan_equipment', left: 'plan_id', entity: 'divePlanEquipment'),
+  (table: 'dive_equipment', left: 'dive_id', entity: 'diveEquipment'),
+];
+
+/// Junctions whose `via_equipment_id` names the assembly a part came
+/// through. SET NULL on delete, so without the move a part would fall loose
+/// here while a peer kept pointing at the deleted item.
+const List<_JunctionChild> _viaChildren = [
+  (table: 'dive_plan_equipment', left: 'plan_id', entity: 'divePlanEquipment'),
+  (table: 'dive_equipment', left: 'dive_id', entity: 'diveEquipment'),
 ];
 
 /// Folds Equipment item `fromId` into `intoId` and deletes it (issue #3676):
@@ -157,10 +166,14 @@ class EquipmentItemFold {
       for (final child in _idChildren) {
         await _moveIdChild(child, fromId, intoId, now);
       }
-      await _moveVia(fromId, intoId, now);
-      for (final child in _junctionChildren) {
-        await _moveJunction(child, fromId, intoId, now);
+      final dives = <String>{};
+      for (final child in _viaChildren) {
+        await _moveVia(child, fromId, intoId, now, touched: dives);
       }
+      for (final child in _junctionChildren) {
+        await _moveJunction(child, fromId, intoId, now, touched: dives);
+      }
+      await _restampDives(dives, now);
       await DocumentRepository().reassignOwner(DocumentOwnerKind.equipment, [
         fromId,
       ], intoId);
@@ -273,6 +286,22 @@ class EquipmentItemFold {
     final stamp = cols.contains('updated_at') ? ', updated_at = ?' : '';
     for (final row in rows) {
       final id = row.read<String>('id');
+      // The survivor fitted inside the folded item cannot become its own
+      // part: it is freed, staged, rather than left to SET NULL, which no
+      // peer would hear of.
+      if (child.table == 'equipment' && id == intoId) {
+        await _db.customStatement(
+          'UPDATE equipment SET parent_equipment_id = NULL, updated_at = ? '
+          'WHERE id = ?',
+          [now, id],
+        );
+        await _syncRepository.markRecordPending(
+          entityType: 'equipment',
+          recordId: id,
+          localUpdatedAt: now,
+        );
+        continue;
+      }
       if (await _survivorHas(child, row, intoId)) {
         await _db.customStatement('DELETE FROM ${child.table} WHERE id = ?', [
           id,
@@ -328,31 +357,50 @@ class EquipmentItemFold {
     _ => const Variable(null),
   };
 
-  /// Dive plan parts attached through the item now hang off the survivor.
-  Future<void> _moveVia(String fromId, String intoId, int now) async {
-    if (!(await _columnsOf(
-      'dive_plan_equipment',
-    )).contains('via_equipment_id')) {
-      return;
-    }
+  /// Parts attached through the item now hang off the survivor.
+  Future<void> _moveVia(
+    _JunctionChild child,
+    String fromId,
+    String intoId,
+    int now, {
+    required Set<String> touched,
+  }) async {
+    if (!(await _columnsOf(child.table)).contains('via_equipment_id')) return;
     final rows = await _db
         .customSelect(
-          'SELECT plan_id, equipment_id FROM dive_plan_equipment '
+          'SELECT ${child.left} AS l, equipment_id FROM ${child.table} '
           'WHERE via_equipment_id = ?',
           variables: [Variable<String>(fromId)],
         )
         .get();
     for (final r in rows) {
-      final planId = r.read<String>('plan_id');
+      final left = r.read<String>('l');
       final equipmentId = r.read<String>('equipment_id');
       await _db.customStatement(
-        'UPDATE dive_plan_equipment SET via_equipment_id = ?, updated_at = ? '
-        'WHERE plan_id = ? AND equipment_id = ?',
-        [intoId, now, planId, equipmentId],
+        'UPDATE ${child.table} SET via_equipment_id = ?, updated_at = ? '
+        'WHERE ${child.left} = ? AND equipment_id = ?',
+        [intoId, now, left, equipmentId],
       );
       await _syncRepository.markRecordPending(
-        entityType: 'divePlanEquipment',
-        recordId: '$planId|$equipmentId',
+        entityType: child.entity,
+        recordId: '$left|$equipmentId',
+        localUpdatedAt: now,
+      );
+      if (child.table == 'dive_equipment') touched.add(left);
+    }
+  }
+
+  /// A dive's gear rides the dive (as the computer merge's own repoint
+  /// does), so each dive whose gear changed is staged too.
+  Future<void> _restampDives(Set<String> diveIds, int now) async {
+    for (final id in diveIds) {
+      await _db.customStatement(
+        'UPDATE dives SET updated_at = ? WHERE id = ?',
+        [now, id],
+      );
+      await _syncRepository.markRecordPending(
+        entityType: 'dives',
+        recordId: id,
         localUpdatedAt: now,
       );
     }
@@ -362,8 +410,9 @@ class EquipmentItemFold {
     _JunctionChild child,
     String fromId,
     String intoId,
-    int now,
-  ) async {
+    int now, {
+    required Set<String> touched,
+  }) async {
     final cols = (await _columnsOf(child.table)).toList();
     if (!cols.contains(child.left) || !cols.contains('equipment_id')) return;
     final rows = await _db
@@ -417,6 +466,7 @@ class EquipmentItemFold {
           localUpdatedAt: now,
         );
       }
+      if (child.table == 'dive_equipment') touched.add(left);
     }
   }
 

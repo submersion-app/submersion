@@ -363,6 +363,52 @@ void main() {
     expect(await pending('divePlanEquipment'), contains('plan1|into'));
   });
 
+  test('dive gear moves, parts attached through the item included, and '
+      'each dive is restamped', () async {
+    await db
+        .into(db.diveEquipment)
+        .insert(
+          DiveEquipmentCompanion.insert(diveId: 'dive1', equipmentId: 'from'),
+        );
+    await db
+        .into(db.diveEquipment)
+        .insert(
+          DiveEquipmentCompanion.insert(
+            diveId: 'dive1',
+            equipmentId: 'battery',
+            viaEquipmentId: const Value('from'),
+          ),
+        );
+
+    await fold();
+
+    final rows = await db.select(db.diveEquipment).get();
+    expect(
+      {for (final r in rows) (r.equipmentId, r.viaEquipmentId)},
+      {('into', null), ('battery', 'into')},
+    );
+    expect(await tombstones('diveEquipment'), contains('dive1|from'));
+    expect(
+      await pending('diveEquipment'),
+      containsAll(['dive1|into', 'dive1|battery']),
+    );
+    expect(await pending('dives'), contains('dive1'));
+  });
+
+  test('a surviving item fitted inside the folded one is not made its own '
+      'part', () async {
+    await (db.update(db.equipment)..where((t) => t.id.equals('into'))).write(
+      const EquipmentCompanion(parentEquipmentId: Value('from')),
+    );
+
+    await fold();
+
+    final into = await (db.select(
+      db.equipment,
+    )..where((t) => t.id.equals('into'))).getSingle();
+    expect(into.parentEquipmentId, isNull);
+  });
+
   test('documents and media move', () async {
     await db
         .into(db.documents)
