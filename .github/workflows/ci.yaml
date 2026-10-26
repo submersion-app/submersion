@@ -1000,12 +1000,15 @@ jobs:
   # installs each platform's bundle frozen and loads its Fastfile, on the
   # runner the upload lanes use (macos-15 in beta, release and promote; the
   # macos-26 build-all and screenshots jobs are not covered). Gated on the `fastlane` output: Gemfile, Gemfile.lock
-  # and fastlane/ changes only. The Ruby must match the lanes'; the
-  # check_ruby_versions.py step in script-tests enforces that.
+  # and fastlane/ changes only, on pull requests only (the merged commit was
+  # checked on its PR, and two legs take macOS runners). The Ruby must match
+  # the lanes'; the check_ruby_versions.py step in script-tests enforces that.
   fastlane-bundles:
     name: Fastlane bundle (${{ matrix.platform }})
     needs: changes
-    if: needs.changes.outputs.fastlane == 'true'
+    if: >
+      github.event_name == 'pull_request' &&
+      needs.changes.outputs.fastlane == 'true'
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 20
     strategy:
