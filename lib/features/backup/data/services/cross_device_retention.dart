@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:path/path.dart' as p;
 
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
@@ -25,6 +27,16 @@ import 'package:submersion/features/backup/data/services/cloud_backup_history.da
 /// wrong way round, keeping the older; the spec accepts that for a sort key
 /// every device agrees on.
 const Duration crossDeviceRetentionGrace = Duration(hours: 24);
+
+/// A device's newest backup keeps a slot among the newest N only while it is
+/// younger than this (issue #3632), going by its name like the ranking.
+///
+/// Every reinstall gets a new device tag and a retired device keeps its tag
+/// for good, so a reservation that never ran out would hold a slot forever
+/// for a device that is gone. Half a year covers a seasonal diver's laptop
+/// sitting out the off-season. Past it, the backup is not removed outright:
+/// it competes under the plain rule, so it stays until N newer ones exist.
+const Duration deviceNewestReservation = Duration(days: 180);
 
 /// One backup a plan removes.
 class RetentionCandidate {
@@ -56,11 +68,16 @@ class CrossDeviceRetentionPlan {
   /// Backups left alone because a device has them pinned.
   final int pinnedKept;
 
+  /// Backups kept as their device's newest that the plain newest N would
+  /// have removed.
+  final int deviceNewestKept;
+
   const CrossDeviceRetentionPlan({
     required this.keepCount,
     required this.toDelete,
     required this.orphanMarkers,
     required this.pinnedKept,
+    required this.deviceNewestKept,
   });
 
   int get totalBytes =>
@@ -73,6 +90,17 @@ class CrossDeviceRetentionPlan {
 /// backups. A backup is pinned when any device's marker names it, or when
 /// this device's history has it pinned ([locallyPinnedStems] by name,
 /// [locallyPinnedFileIds] by cloud id).
+///
+/// Each device's newest backup takes one of the [keepCount] slots first, so
+/// a device that backs up rarely is never left with none (issue #3632). A
+/// device is the tag in the name; unattributed backups reserve nothing, nor
+/// does a device whose newest is pinned (it is kept anyway) or older than
+/// [deviceNewestReservation]. When the reserved backups alone reach
+/// [keepCount], they are all kept and nothing else is.
+///
+/// Devices still agree without a lock: a listing missing a device's newer
+/// backup reserves an older one of that device instead, which only keeps
+/// more.
 CrossDeviceRetentionPlan planCrossDeviceRetention({
   required Iterable<CloudFileInfo> listing,
   required int keepCount,
@@ -100,18 +128,44 @@ CrossDeviceRetentionPlan planCrossDeviceRetention({
       pinnedStems.contains(backupStem(f.name)) ||
       locallyPinnedFileIds.contains(f.id);
 
+  DateTime timestampOf(CloudFileInfo f) =>
+      backupTimestampFromName(f.name) ?? f.modifiedTime;
+
   final unpinned = [
     for (final f in backups)
       if (!pinned(f))
         RetentionCandidate(
           file: f,
-          timestamp: backupTimestampFromName(f.name) ?? f.modifiedTime,
+          timestamp: timestampOf(f),
           ownership: classifyBackupFile(
             filename: f.name,
             thisDeviceId: thisDeviceId,
           ),
         ),
   ]..sort((a, b) => b.timestamp.compareTo(a.timestamp));
+
+  // Pinned backups count here: a device whose newest is pinned already has
+  // its recovery point, and reserves nothing more.
+  final newestByDevice = <String, CloudFileInfo>{};
+  for (final f in backups) {
+    final tag = backupDeviceTagFromFilename(f.name);
+    if (tag == null) continue;
+    final current = newestByDevice[tag];
+    if (current == null || _newer(f, current, timestampOf)) {
+      newestByDevice[tag] = f;
+    }
+  }
+  final reserved = {
+    for (final f in newestByDevice.values)
+      if (!pinned(f) &&
+          now.difference(timestampOf(f)) < deviceNewestReservation)
+        f.id,
+  };
+  final rest = [
+    for (final c in unpinned)
+      if (!reserved.contains(c.file.id)) c,
+  ];
+  final openSlots = max(0, keepCount - reserved.length);
 
   bool inGrace(RetentionCandidate c) =>
       now.difference(c.timestamp) < crossDeviceRetentionGrace ||
@@ -128,7 +182,7 @@ CrossDeviceRetentionPlan planCrossDeviceRetention({
   return CrossDeviceRetentionPlan(
     keepCount: keepCount,
     toDelete: [
-      for (final c in unpinned.skip(keepCount))
+      for (final c in rest.skip(openSlots))
         if (!inGrace(c)) c,
     ],
     // A young marker may have arrived before its backup (a sync-folder
@@ -140,7 +194,22 @@ CrossDeviceRetentionPlan planCrossDeviceRetention({
           file,
     ],
     pinnedKept: backups.length - unpinned.length,
+    deviceNewestKept: [
+      for (final c in unpinned.skip(keepCount))
+        if (reserved.contains(c.file.id) && !inGrace(c)) c,
+    ].length,
   );
+}
+
+/// Whether [a] is newer than [b], by [timestampOf] and then by name, so
+/// every device picks the same one of two backups stamped the same second.
+bool _newer(
+  CloudFileInfo a,
+  CloudFileInfo b,
+  DateTime Function(CloudFileInfo) timestampOf,
+) {
+  final byTime = timestampOf(a).compareTo(timestampOf(b));
+  return byTime != 0 ? byTime > 0 : a.name.compareTo(b.name) > 0;
 }
 
 /// Exactly the names this app writes: the timestamp, an optional device tag,

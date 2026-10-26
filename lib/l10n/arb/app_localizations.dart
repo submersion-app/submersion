@@ -4138,7 +4138,7 @@ abstract class AppLocalizations {
   /// No description provided for @backup_retention_allDevices_on.
   ///
   /// In en, this message translates to:
-  /// **'The cloud folder keeps the last {count} backups from every device. Pinned backups are kept. If other devices use this too, the smallest number wins. Update the app on every device first so their pins are seen.'**
+  /// **'The cloud folder keeps the last {count} backups from every device. Pinned backups are kept. Each device\'s newest backup is kept too, unless it is more than 6 months old. If other devices use this too, the smallest number wins. Update the app on every device first so their pins are seen.'**
   String backup_retention_allDevices_on(int count);
 
   /// No description provided for @backup_retention_cloudFootprint.
@@ -4164,6 +4164,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, one{{count} pinned backup is kept.} other{{count} pinned backups are kept.}}'**
   String backup_retention_confirm_pinnedKept(int count);
+
+  /// No description provided for @backup_retention_confirm_deviceNewestKept.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} backup is kept as its device\'s newest.} other{{count} backups are kept as their device\'s newest.}}'**
+  String backup_retention_confirm_deviceNewestKept(int count);
 
   /// No description provided for @backup_retention_confirm_action.
   ///

@@ -2631,7 +2631,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String backup_retention_allDevices_on(int count) {
-    return 'Der Cloud-Ordner behält die letzten $count Sicherungen aller Geräte. Angeheftete Sicherungen bleiben erhalten. Nutzen auch andere Geräte diese Einstellung, gilt die kleinste Zahl. Aktualisieren Sie zuerst die App auf allen Geräten, damit deren angeheftete Sicherungen erkannt werden.';
+    return 'Der Cloud-Ordner behält die letzten $count Sicherungen aller Geräte. Angeheftete Sicherungen bleiben erhalten. Die neueste Sicherung jedes Geräts bleibt ebenfalls erhalten, sofern sie nicht älter als 6 Monate ist. Nutzen auch andere Geräte diese Einstellung, gilt die kleinste Zahl. Aktualisieren Sie zuerst die App auf allen Geräten, damit deren angeheftete Sicherungen erkannt werden.';
   }
 
   @override
@@ -2668,6 +2668,17 @@ class AppLocalizationsDe extends AppLocalizations {
       locale: localeName,
       other: '$count angeheftete Sicherungen bleiben erhalten.',
       one: '$count angeheftete Sicherung bleibt erhalten.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backup_retention_confirm_deviceNewestKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Sicherungen bleiben als neueste ihres Geräts erhalten.',
+      one: '$count Sicherung bleibt als neueste ihres Geräts erhalten.',
     );
     return '$_temp0';
   }

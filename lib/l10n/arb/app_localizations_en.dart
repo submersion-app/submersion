@@ -2603,7 +2603,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String backup_retention_allDevices_on(int count) {
-    return 'The cloud folder keeps the last $count backups from every device. Pinned backups are kept. If other devices use this too, the smallest number wins. Update the app on every device first so their pins are seen.';
+    return 'The cloud folder keeps the last $count backups from every device. Pinned backups are kept. Each device\'s newest backup is kept too, unless it is more than 6 months old. If other devices use this too, the smallest number wins. Update the app on every device first so their pins are seen.';
   }
 
   @override
@@ -2640,6 +2640,17 @@ class AppLocalizationsEn extends AppLocalizations {
       locale: localeName,
       other: '$count pinned backups are kept.',
       one: '$count pinned backup is kept.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backup_retention_confirm_deviceNewestKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count backups are kept as their device\'s newest.',
+      one: '$count backup is kept as its device\'s newest.',
     );
     return '$_temp0';
   }

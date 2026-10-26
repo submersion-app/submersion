@@ -2641,7 +2641,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String backup_retention_allDevices_on(int count) {
-    return 'Le dossier cloud conserve les $count dernières sauvegardes de tous les appareils. Les sauvegardes épinglées sont conservées. Si d\'autres appareils utilisent aussi ce réglage, le plus petit nombre l\'emporte. Mettez d\'abord l\'app à jour sur tous les appareils pour que leurs épingles soient prises en compte.';
+    return 'Le dossier cloud conserve les $count dernières sauvegardes de tous les appareils. Les sauvegardes épinglées sont conservées. La sauvegarde la plus récente de chaque appareil est aussi conservée, sauf si elle a plus de 6 mois. Si d\'autres appareils utilisent aussi ce réglage, le plus petit nombre l\'emporte. Mettez d\'abord l\'app à jour sur tous les appareils pour que leurs épingles soient prises en compte.';
   }
 
   @override
@@ -2678,6 +2678,19 @@ class AppLocalizationsFr extends AppLocalizations {
       locale: localeName,
       other: '$count sauvegardes épinglées sont conservées.',
       one: '$count sauvegarde épinglée est conservée.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backup_retention_confirm_deviceNewestKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count sauvegardes sont conservées comme les plus récentes de leur appareil.',
+      one:
+          '$count sauvegarde est conservée comme la plus récente de son appareil.',
     );
     return '$_temp0';
   }

@@ -2635,7 +2635,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String backup_retention_allDevices_on(int count) {
-    return 'La carpeta en la nube conserva las últimas $count copias de seguridad de todos los dispositivos. Las copias ancladas se conservan. Si otros dispositivos también lo usan, gana el número más pequeño. Actualiza primero la app en todos los dispositivos para que se vean sus copias ancladas.';
+    return 'La carpeta en la nube conserva las últimas $count copias de seguridad de todos los dispositivos. Las copias ancladas se conservan. También se conserva la copia más reciente de cada dispositivo, salvo que tenga más de 6 meses. Si otros dispositivos también lo usan, gana el número más pequeño. Actualiza primero la app en todos los dispositivos para que se vean sus copias ancladas.';
   }
 
   @override
@@ -2672,6 +2672,19 @@ class AppLocalizationsEs extends AppLocalizations {
       locale: localeName,
       other: 'Se conservan $count copias ancladas.',
       one: 'Se conserva $count copia anclada.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backup_retention_confirm_deviceNewestKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Se conservan $count copias por ser las más recientes de su dispositivo.',
+      one:
+          'Se conserva $count copia por ser la más reciente de su dispositivo.',
     );
     return '$_temp0';
   }

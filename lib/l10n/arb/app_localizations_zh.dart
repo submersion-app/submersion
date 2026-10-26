@@ -2504,7 +2504,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String backup_retention_allDevices_on(int count) {
-    return '云文件夹保留所有设备最近的 $count 个备份。已置顶的备份会被保留。如果其他设备也开启此项，以最小的数字为准。请先在所有设备上更新应用，以便识别它们置顶的备份。';
+    return '云文件夹保留所有设备最近的 $count 个备份。已置顶的备份会被保留。 每台设备最新的备份也会保留，除非已超过 6 个月。如果其他设备也开启此项，以最小的数字为准。请先在所有设备上更新应用，以便识别它们置顶的备份。';
   }
 
   @override
@@ -2538,6 +2538,16 @@ class AppLocalizationsZh extends AppLocalizations {
       count,
       locale: localeName,
       other: '保留 $count 个已置顶的备份。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backup_retention_confirm_deviceNewestKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个备份因是其设备的最新备份而保留。',
     );
     return '$_temp0';
   }

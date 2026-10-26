@@ -2620,7 +2620,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String backup_retention_allDevices_on(int count) {
-    return 'De cloudmap bewaart de laatste $count back-ups van alle apparaten. Vastgemaakte back-ups blijven bewaard. Gebruiken andere apparaten dit ook, dan geldt het kleinste aantal. Werk eerst de app op elk apparaat bij, zodat hun vastgemaakte back-ups zichtbaar zijn.';
+    return 'De cloudmap bewaart de laatste $count back-ups van alle apparaten. Vastgemaakte back-ups blijven bewaard. Ook de nieuwste back-up van elk apparaat blijft bewaard, tenzij die ouder is dan 6 maanden. Gebruiken andere apparaten dit ook, dan geldt het kleinste aantal. Werk eerst de app op elk apparaat bij, zodat hun vastgemaakte back-ups zichtbaar zijn.';
   }
 
   @override
@@ -2657,6 +2657,17 @@ class AppLocalizationsNl extends AppLocalizations {
       locale: localeName,
       other: '$count vastgemaakte back-ups blijven bewaard.',
       one: '$count vastgemaakte back-up blijft bewaard.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backup_retention_confirm_deviceNewestKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count back-ups blijven bewaard als nieuwste van hun apparaat.',
+      one: '$count back-up blijft bewaard als nieuwste van zijn apparaat.',
     );
     return '$_temp0';
   }

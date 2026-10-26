@@ -2593,7 +2593,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String backup_retention_allDevices_on(int count) {
-    return 'תיקיית הענן שומרת את $count הגיבויים האחרונים מכל המכשירים. גיבויים מוצמדים נשמרים. אם גם מכשירים אחרים משתמשים בזה, המספר הקטן ביותר קובע. עדכנו קודם את האפליקציה בכל המכשירים כדי שההצמדות שלהם ייראו.';
+    return 'תיקיית הענן שומרת את $count הגיבויים האחרונים מכל המכשירים. גיבויים מוצמדים נשמרים. גם הגיבוי האחרון של כל מכשיר נשמר, אלא אם הוא בן יותר מ־6 חודשים. אם גם מכשירים אחרים משתמשים בזה, המספר הקטן ביותר קובע. עדכנו קודם את האפליקציה בכל המכשירים כדי שההצמדות שלהם ייראו.';
   }
 
   @override
@@ -2630,6 +2630,17 @@ class AppLocalizationsHe extends AppLocalizations {
       locale: localeName,
       other: '$count גיבויים מוצמדים נשמרים.',
       one: 'גיבוי מוצמד אחד נשמר.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backup_retention_confirm_deviceNewestKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count גיבויים נשמרים כגיבוי האחרון של המכשיר שלהם.',
+      one: 'גיבוי אחד נשמר כגיבוי האחרון של המכשיר שלו.',
     );
     return '$_temp0';
   }

@@ -2632,7 +2632,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String backup_retention_allDevices_on(int count) {
-    return 'A pasta na nuvem mantém os últimos $count backups de todos os dispositivos. Os backups fixados são mantidos. Se outros dispositivos também usarem isto, vale o número mais pequeno. Atualize primeiro a app em todos os dispositivos para que os backups fixados neles sejam vistos.';
+    return 'A pasta na nuvem mantém os últimos $count backups de todos os dispositivos. Os backups fixados são mantidos. O backup mais recente de cada dispositivo também é mantido, a menos que tenha mais de 6 meses. Se outros dispositivos também usarem isto, vale o número mais pequeno. Atualize primeiro a app em todos os dispositivos para que os backups fixados neles sejam vistos.';
   }
 
   @override
@@ -2669,6 +2669,18 @@ class AppLocalizationsPt extends AppLocalizations {
       locale: localeName,
       other: '$count backups fixados são mantidos.',
       one: '$count backup fixado é mantido.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backup_retention_confirm_deviceNewestKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count backups são mantidos por serem os mais recentes do seu dispositivo.',
+      one: '$count backup é mantido por ser o mais recente do seu dispositivo.',
     );
     return '$_temp0';
   }

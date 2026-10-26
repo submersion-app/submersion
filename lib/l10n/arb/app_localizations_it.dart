@@ -2634,7 +2634,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String backup_retention_allDevices_on(int count) {
-    return 'La cartella cloud conserva gli ultimi $count backup di tutti i dispositivi. I backup fissati vengono conservati. Se anche altri dispositivi usano questa opzione, vale il numero più piccolo. Aggiorna prima l\'app su tutti i dispositivi, così i loro backup fissati vengono riconosciuti.';
+    return 'La cartella cloud conserva gli ultimi $count backup di tutti i dispositivi. I backup fissati vengono conservati. Anche il backup più recente di ogni dispositivo viene conservato, a meno che non abbia più di 6 mesi. Se anche altri dispositivi usano questa opzione, vale il numero più piccolo. Aggiorna prima l\'app su tutti i dispositivi, così i loro backup fissati vengono riconosciuti.';
   }
 
   @override
@@ -2671,6 +2671,19 @@ class AppLocalizationsIt extends AppLocalizations {
       locale: localeName,
       other: '$count backup fissati vengono conservati.',
       one: '$count backup fissato viene conservato.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backup_retention_confirm_deviceNewestKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count backup vengono conservati perché sono i più recenti del loro dispositivo.',
+      one:
+          '$count backup viene conservato perché è il più recente del suo dispositivo.',
     );
     return '$_temp0';
   }

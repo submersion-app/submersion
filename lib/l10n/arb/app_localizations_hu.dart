@@ -2626,7 +2626,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String backup_retention_allDevices_on(int count) {
-    return 'A felhőmappa az összes eszközről az utolsó $count biztonsági mentést tartja meg. A rögzített mentések megmaradnak. Ha más eszközök is ezt használják, a legkisebb szám érvényes. Először minden eszközön frissíteni kell az alkalmazást, hogy a rögzítéseik láthatók legyenek.';
+    return 'A felhőmappa az összes eszközről az utolsó $count biztonsági mentést tartja meg. A rögzített mentések megmaradnak. Minden eszköz legutóbbi mentése is megmarad, hacsak nem régebbi 6 hónapnál. Ha más eszközök is ezt használják, a legkisebb szám érvényes. Először minden eszközön frissíteni kell az alkalmazást, hogy a rögzítéseik láthatók legyenek.';
   }
 
   @override
@@ -2663,6 +2663,17 @@ class AppLocalizationsHu extends AppLocalizations {
       locale: localeName,
       other: '$count rögzített mentés megmarad.',
       one: '$count rögzített mentés megmarad.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backup_retention_confirm_deviceNewestKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mentés megmarad, mert az eszközük legutóbbi mentése.',
+      one: '$count mentés megmarad, mert az eszköze legutóbbi mentése.',
     );
     return '$_temp0';
   }

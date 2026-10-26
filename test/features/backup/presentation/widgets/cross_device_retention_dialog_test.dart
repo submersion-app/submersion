@@ -30,17 +30,20 @@ RetentionCandidate _candidate(
   );
 }
 
-CrossDeviceRetentionPlan _plan({int pinnedKept = 4}) =>
-    CrossDeviceRetentionPlan(
-      keepCount: 10,
-      toDelete: [
-        _candidate(12, BackupOwnership.otherDevice),
-        _candidate(9, BackupOwnership.thisDevice),
-        _candidate(4, BackupOwnership.unattributed),
-      ],
-      orphanMarkers: const [],
-      pinnedKept: pinnedKept,
-    );
+CrossDeviceRetentionPlan _plan({
+  int pinnedKept = 4,
+  int deviceNewestKept = 0,
+}) => CrossDeviceRetentionPlan(
+  keepCount: 10,
+  toDelete: [
+    _candidate(12, BackupOwnership.otherDevice),
+    _candidate(9, BackupOwnership.thisDevice),
+    _candidate(4, BackupOwnership.unattributed),
+  ],
+  orphanMarkers: const [],
+  pinnedKept: pinnedKept,
+  deviceNewestKept: deviceNewestKept,
+);
 
 void main() {
   bool? result;
@@ -92,6 +95,33 @@ void main() {
     expect(find.textContaining('pinned'), findsNothing);
   });
 
+  testWidgets("says how many backups are kept as a device's newest", (
+    tester,
+  ) async {
+    await open(tester, _plan(deviceNewestKept: 2));
+    expect(
+      find.text("2 backups are kept as their device's newest."),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets("one backup kept as a device's newest reads in the singular", (
+    tester,
+  ) async {
+    await open(tester, _plan(deviceNewestKept: 1));
+    expect(
+      find.text("1 backup is kept as its device's newest."),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets("says nothing about a device's newest when none is kept", (
+    tester,
+  ) async {
+    await open(tester, _plan());
+    expect(find.textContaining("device's newest"), findsNothing);
+  });
+
   testWidgets('a backup whose size is unknown shows no size', (tester) async {
     await open(
       tester,
@@ -100,6 +130,7 @@ void main() {
         toDelete: [_candidate(12, BackupOwnership.otherDevice, size: null)],
         orphanMarkers: const [],
         pinnedKept: 0,
+        deviceNewestKept: 0,
       ),
     );
     expect(find.text('0 B'), findsNothing);
