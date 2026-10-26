@@ -55,6 +55,11 @@
 class DiveStatsScope {
   const DiveStatsScope._();
 
+  /// The rebreather dive modes as an SQL list, for `dive_mode IN ...`: the
+  /// one place the rule's modes are written, so the scope and the per-dive
+  /// SAC SQL (`diveSacPressureSql`) cannot drift apart.
+  static const String rebreatherModesSql = "('ccr', 'scr')";
+
   /// The bare predicate, with no leading conjunction. Use when the query has
   /// no WHERE clause yet: `WHERE ${DiveStatsScope.predicate()}`.
   ///
@@ -76,7 +81,7 @@ class DiveStatsScope {
       parts.add("$alias.dive_mode <> 'gauge'");
     }
     if (consumptionRate) {
-      parts.add("$alias.dive_mode NOT IN ('ccr', 'scr')");
+      parts.add('$alias.dive_mode NOT IN $rebreatherModesSql');
     }
     return parts.join(' AND ');
   }

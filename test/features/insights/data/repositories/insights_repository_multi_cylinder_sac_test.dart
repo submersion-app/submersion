@@ -143,12 +143,14 @@ void main() {
     });
 
     test('a rebreather dive has no SAC (#3673)', () async {
-      await insertDive('ccr', diveMode: 'ccr');
-      await insertTank('ccr', 0, 'diluent', volume: 3);
-      await insertTank('ccr', 1, 'oxygenSupply', volume: 3);
+      for (final mode in ['ccr', 'scr']) {
+        await insertDive(mode, diveMode: mode);
+        await insertTank(mode, 0, 'diluent', volume: 3);
+        await insertTank(mode, 1, 'oxygenSupply', volume: 3);
+        expect(await queryLanguageSac(mode), isNull, reason: mode);
+      }
 
       expect(await repository.getSacPressurePerDive(), isEmpty);
-      expect(await queryLanguageSac('ccr'), isNull);
     });
 
     test('a first cylinder with no drop gives no SAC, as Dive.sac', () async {

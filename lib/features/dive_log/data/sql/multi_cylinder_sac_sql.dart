@@ -3,6 +3,7 @@
 /// statistics, the query language and the dive overview agree on one dive.
 library;
 
+import 'package:submersion/core/database/dive_stats_scope.dart';
 import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
 
 const String _sidemountRolesSql = "('sidemountLeft', 'sidemountRight')";
@@ -49,7 +50,8 @@ String diveSacPressureSql(String dive) {
       'sac_t.o2_percent AS o2, sac_t.he_percent AS he '
       'FROM dive_tanks sac_t WHERE sac_t.dive_id = $dive.id '
       'AND sac_t.start_pressure > sac_t.end_pressure)';
-  return "(CASE WHEN COALESCE($dive.dive_mode, 'oc') IN ('ccr', 'scr') "
+  return "(CASE WHEN COALESCE($dive.dive_mode, 'oc') "
+      'IN ${DiveStatsScope.rebreatherModesSql} '
       'THEN NULL ELSE '
       '((SELECT SUM(sac_c.pressure_drop * CASE '
       'WHEN sac_c.id = sac_r.id THEN 1.0 '
