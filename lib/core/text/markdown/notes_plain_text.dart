@@ -9,8 +9,20 @@ import 'package:submersion/core/text/markdown/notes_markdown.dart';
 /// `[ ]` or `[x]`, links show `text (address)`.
 String markdownToPlainText(String source) {
   if (source.trim().isEmpty) return '';
-  return _blocks(parseNotesMarkdown(source), indent: '').join('\n').trim();
+  final cached = _cache.remove(source);
+  if (cached != null) return _cache[source] = cached;
+  final plain = _blocks(
+    parseNotesMarkdown(source),
+    indent: '',
+  ).join('\n').trim();
+  if (_cache.length >= _cacheSize) _cache.remove(_cache.keys.first);
+  return _cache[source] = plain;
 }
+
+/// Recent results, least recently used first: list rows and table cells ask
+/// for the same notes on every rebuild, and parsing is the costly part.
+final _cache = <String, String>{};
+const _cacheSize = 256;
 
 List<String> _blocks(List<md.Node> nodes, {required String indent}) {
   final lines = <String>[];

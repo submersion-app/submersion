@@ -158,9 +158,12 @@ class _MarkdownNotesFieldState extends State<MarkdownNotesField> {
             key: const ValueKey('markdownNotesPreview'),
             height: _previewHeight,
             child: SingleChildScrollView(
-              child: MarkdownNotesView(
-                widget.controller.text,
-                style: widget.style,
+              // Follows the notes, so a change made while previewing (a
+              // merge cycle) shows at once.
+              child: ValueListenableBuilder<TextEditingValue>(
+                valueListenable: widget.controller,
+                builder: (context, value, _) =>
+                    MarkdownNotesView(value.text, style: widget.style),
               ),
             ),
           ),

@@ -235,4 +235,13 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('3/10'), findsOneWidget);
   });
+
+  testWidgets('the preview follows the notes when they change', (tester) async {
+    await pump(tester, text: 'old notes');
+    await tester.tap(find.text('Preview'));
+    await tester.pumpAndSettle();
+    controller.text = 'new notes';
+    await tester.pump();
+    expect(find.text('new notes'), findsOneWidget);
+  });
 }

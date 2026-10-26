@@ -103,7 +103,13 @@ TextEditingValue toggleLinePrefix(
   final blockStart = sel.start == 0
       ? 0
       : text.lastIndexOf('\n', sel.start - 1) + 1;
-  final newline = text.indexOf('\n', sel.end);
+  // A selection ending just after a newline (a whole selected line) does
+  // not reach into the next line.
+  final end =
+      !sel.isCollapsed && sel.end > sel.start && text[sel.end - 1] == '\n'
+      ? sel.end - 1
+      : sel.end;
+  final newline = text.indexOf('\n', end);
   final blockEnd = newline < 0 ? text.length : newline;
   final lines = text.substring(blockStart, blockEnd).split('\n');
   final multi = lines.length > 1;

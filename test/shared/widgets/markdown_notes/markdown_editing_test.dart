@@ -161,4 +161,12 @@ void main() {
       expect(formatter.formatEditUpdate(old, pasted), pasted);
     });
   });
+
+  test('a selection ending at a line start leaves that line alone', () {
+    const value = TextEditingValue(
+      text: 'a\nb',
+      selection: TextSelection(baseOffset: 0, extentOffset: 2),
+    );
+    expect(toggleLinePrefix(value, NotesLinePrefix.bullet).text, '- a\nb');
+  });
 }

@@ -89,4 +89,13 @@ void main() {
     expect(text, contains('bring'));
     expect(text, isNot(contains('**')));
   });
+
+  test('inline output keeps table cells apart', () async {
+    final widget = notesMarkdownPdfInline(
+      '| a | b |\n|---|---|\n| 1 | 2 |',
+      style: style,
+      maxLines: 3,
+    );
+    expect((widget as pw.RichText).text.toPlainText(), 'a | b\n1 | 2');
+  });
 }

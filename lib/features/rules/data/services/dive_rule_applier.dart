@@ -363,10 +363,8 @@ class DiveRuleApplier {
       if (before[id] == null) continue;
       ((notes ?? '').isEmpty ? empty : filled).add(id);
     }
-    for (final chunk in ruleIdChunks(empty)) {
-      await _dives.bulkAppendNotes(chunk, text);
-    }
-    for (final chunk in ruleIdChunks(filled)) {
+    // bulkAppendNotes adds the paragraph break only where notes exist.
+    for (final chunk in ruleIdChunks([...empty, ...filled])) {
       await _dives.bulkAppendNotes(chunk, text);
     }
     return AppliedAction([

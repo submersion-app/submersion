@@ -192,9 +192,10 @@ class PdfExportService {
               pw.SizedBox(height: 10),
               pw.Text(l10n.pdf_notesLabel),
               // One widget per block, each able to break across sheets.
+              // 12 pt, the theme size the plain notes text used.
               ...notesMarkdownPdfBlocks(
                 dive.notes,
-                style: const pw.TextStyle(),
+                style: const pw.TextStyle(fontSize: 12),
               ),
             ],
           ],

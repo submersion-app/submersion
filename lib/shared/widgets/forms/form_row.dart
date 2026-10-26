@@ -384,12 +384,13 @@ class _FormRowState extends State<FormRow> {
   }
 
   /// The open Markdown row: label above, notes editor below (the formatting
-  /// bar needs the width). A tap outside the row rests it, which also ends a
-  /// preview, since a previewing row has no focused field to lose.
+  /// bar needs the width). While typing, the row rests when focus leaves, as
+  /// a plain row does; a previewing row has no focused field to lose, so a
+  /// tap outside it rests it instead.
   Widget _markdownEditor(BuildContext context) {
     return TapRegion(
       onTapOutside: (_) {
-        if (!_previewing && !_editing) return;
+        if (!_previewing) return;
         setState(() {
           _previewing = false;
           _editing = false;

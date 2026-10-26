@@ -93,4 +93,16 @@ void main() {
     expect(find.byType(TextFormField), findsOneWidget);
     expect(find.byType(MarkdownNotesField), findsNothing);
   });
+
+  testWidgets('a tap outside while typing leaves resting to focus', (
+    tester,
+  ) async {
+    await pump(tester, 'turtles');
+    await open(tester);
+    await tester.tap(find.text('elsewhere'));
+    await tester.pumpAndSettle();
+    // On a phone a tap outside does not take focus from the field, so the
+    // row stays open, as a plain row does; scrolling must not close it.
+    expect(find.byType(MarkdownNotesField), findsOneWidget);
+  });
 }

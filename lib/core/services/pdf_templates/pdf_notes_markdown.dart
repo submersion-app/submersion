@@ -247,6 +247,24 @@ class _PdfNotesBuilder {
         return [pw.TextSpan(text: node.textContent.trim(), style: style)];
       case 'hr':
         return const [];
+      case 'table':
+        final rows = <String>[];
+        void visit(md.Node node) {
+          if (node is! md.Element) return;
+          if (node.tag == 'tr') {
+            rows.add(
+              [
+                for (final cell in node.children ?? const <md.Node>[])
+                  cell.textContent.trim(),
+              ].join(' | '),
+            );
+            return;
+          }
+          (node.children ?? const <md.Node>[]).forEach(visit);
+        }
+
+        visit(node);
+        return [pw.TextSpan(text: rows.join('\n'), style: style)];
       case 'blockquote':
         final spans = <pw.InlineSpan>[];
         for (final child in children) {
