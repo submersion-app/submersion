@@ -218,15 +218,18 @@ class TrackImportService {
         : firstFix.toLocal();
     final deviceOffset = recordedAt.timeZoneOffset.inMinutes;
     // A dive can only CONSTRAIN the offset, never determine it, so the device
-    // zone stays the prior and the review step remains the real answer.
-    final tzOffsetMinutes =
-        resolveOffsetFromDives(
-          firstFixUtc: parsed.fixes.first.utc,
-          lastFixUtc: parsed.fixes.last.utc,
-          dives: dives,
-          deviceOffsetMinutes: deviceOffset,
-        ) ??
-        deviceOffset;
+    // zone stays the prior and the review step remains the real answer. A
+    // wall-clock track is already on the dives' clock, so they constrain
+    // nothing: the resolver reads its fixes as real UTC.
+    final tzOffsetMinutes = parsed.timesAreWallClock
+        ? deviceOffset
+        : resolveOffsetFromDives(
+                firstFixUtc: parsed.fixes.first.utc,
+                lastFixUtc: parsed.fixes.last.utc,
+                dives: dives,
+                deviceOffsetMinutes: deviceOffset,
+              ) ??
+              deviceOffset;
 
     // The same shift commit applies, so the span matches what it stores.
     final shift = parsed.timesAreWallClock ? 0 : tzOffsetMinutes;

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/gps_log/data/repositories/gps_track_repository.dart';
 import 'package:submersion/features/gps_log/data/services/track_import/parsed_track.dart';
 import 'package:submersion/features/gps_log/data/services/track_import/track_import_service.dart';
@@ -177,6 +178,27 @@ void main() {
       expect(
         candidate.tzOffsetMinutes,
         DateTime(2026, 11, 1, 2, 30).timeZoneOffset.inMinutes,
+      );
+    });
+
+    // A zone-less track is already on the dive's clock, so a dive inside it
+    // says nothing about the offset; reading the fixes as real UTC would pull
+    // the device offset toward zero.
+    test('a dive does not move a wall-clock track\'s offset', () async {
+      final entry = DateTime.utc(2026, 5, 22, 13, 1).millisecondsSinceEpoch;
+      await DatabaseService.instance.database.customStatement(
+        'INSERT INTO dives (id, dive_date_time, entry_time, created_at, '
+        'updated_at) VALUES (?, ?, ?, 0, 0)',
+        ['dive-1', entry, entry],
+      );
+
+      final candidate = await service.prepare(
+        fileName: 'naive.gpx',
+        bytes: _utf8Bytes(_naiveGpx('2026-05-22T13:00:00')),
+      );
+      expect(
+        candidate.tzOffsetMinutes,
+        DateTime(2026, 5, 22, 13).timeZoneOffset.inMinutes,
       );
     });
 
