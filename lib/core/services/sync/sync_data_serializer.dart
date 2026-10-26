@@ -32,6 +32,7 @@ import 'package:submersion/features/dive_log/domain/codecs/profile_series_codec_
 import 'package:submersion/features/dive_log/domain/codecs/profile_series_summary.dart';
 import 'package:submersion/features/dive_log/domain/codecs/tank_pressure_series_codec.dart';
 import 'package:submersion/features/gps_log/data/repositories/track_geometry_cache_repository.dart';
+import 'package:submersion/features/marine_life/data/services/species_seed_service.dart';
 import 'package:submersion/features/tags/data/mappers/tag_row_mapper.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart'
     as tag_domain;
@@ -7996,6 +7997,35 @@ class SyncDataSerializer {
     }
   }
 
+  /// Puts every built-in species the diver edited back to its catalog text,
+  /// untouched (no hlc), for [deleteAllRecords]. An edited built-in exports
+  /// (issue #3669), so the cloud base carries it whenever the cloud has the
+  /// edit, and the refill re-applies it; one the base lacks is a local edit
+  /// the replace must drop. Restored in place rather than deleted: sightings,
+  /// photo tags and expected species reference the row.
+  Future<void> _restoreEditedBuiltInSpecies() async {
+    final catalog = await SpeciesSeedService.loadBundledSpecies();
+    await _db.batch((batch) {
+      for (final species in catalog) {
+        batch.update(
+          _db.species,
+          SpeciesCompanion(
+            commonName: Value(species.commonName),
+            scientificName: Value(species.scientificName),
+            category: Value(species.category.name),
+            taxonomyClass: Value(species.taxonomyClass),
+            description: Value(species.description),
+            hlc: const Value(null),
+          ),
+          where: (t) =>
+              t.id.equals(species.id) &
+              t.isBuiltIn.equals(true) &
+              t.hlc.isNotNull(),
+        );
+      }
+    });
+  }
+
   /// Delete every row of the table backing [entityType]. Used by streaming
   /// Replace-adopt (#358): clearing each table then re-inserting the cloud
   /// union is equivalent to upsert-then-delete-not-in-cloud but needs no in-RAM
@@ -8045,6 +8075,7 @@ class SyncDataSerializer {
         await (_db.delete(
           _db.species,
         )..where((t) => t.isBuiltIn.equals(false))).go();
+        await _restoreEditedBuiltInSpecies();
         return;
       case 'fieldPresets':
         await (_db.delete(

@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/services/database_service.dart';
-import 'package:submersion/core/services/sync/sync_clock.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/core/services/sync/sync_service.dart';
 
@@ -72,7 +71,7 @@ void main() {
         'commonName': 'Honeycomb Cowfish',
         'category': 'fish',
         'isBuiltIn': true,
-        'hlc': SyncClock.instance.issue(),
+        'hlc': '001700000000000:000000:device-a',
       });
       await serializer.upsertRecord('species', {
         'id': 'sp_untouched_1',
