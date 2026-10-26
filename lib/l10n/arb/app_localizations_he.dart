@@ -10438,6 +10438,19 @@ class AppLocalizationsHe extends AppLocalizations {
   String get divePlanner_gasOptions_ppO2Deco => 'ppO₂ דקו';
 
   @override
+  String get divePlanner_gasOptions_ppO2DecoBand1 => 'ppO₂ דקו עד 28% חמצן';
+
+  @override
+  String get divePlanner_gasOptions_ppO2DecoBand2 => 'ppO₂ דקו 28-45% חמצן';
+
+  @override
+  String get divePlanner_gasOptions_ppO2DecoBand3 => 'ppO₂ דקו 45-99% חמצן';
+
+  @override
+  String get divePlanner_gasOptions_maxO2DepthMeters =>
+      'עומק מקס\' ל-100% חמצן';
+
+  @override
   String get divePlanner_gasOptions_bestMixEnd => 'END לתערובת מיטבית';
 
   @override
@@ -14705,6 +14718,11 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String tankMod_default(String ppO2, String limit) {
     return 'ברירת מחדל ב-ppO2 $ppO2 ($limit)';
+  }
+
+  @override
+  String tankMod_defaultDepth(String depth, String limit) {
+    return 'ברירת מחדל ב-$depth ($limit)';
   }
 
   @override
@@ -25572,6 +25590,39 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_decompression_ppO2Dialog_title => 'מגבלות ppO2 OC';
+
+  @override
+  String get settings_decompression_ppO2BandsTitle =>
+      'מגבלות דקו לפי טווח חמצן';
+
+  @override
+  String get settings_decompression_ppO2BandsSubtitle =>
+      'מגבלות ppO2 דקו אופציונליות ומדויקות יותר למתכנן הצלילה';
+
+  @override
+  String get settings_decompression_ppO2BandsDialog_title =>
+      'ppO2 דקו: לפי טווח חמצן';
+
+  @override
+  String get settings_decompression_ppO2BandsDialog_bandsToggle =>
+      'השתמש במגבלות דקו לפי טווח חמצן';
+
+  @override
+  String get settings_decompression_ppO2BandsDialog_band1 => 'עד 28% חמצן';
+
+  @override
+  String get settings_decompression_ppO2BandsDialog_band2 => '28–45% חמצן';
+
+  @override
+  String get settings_decompression_ppO2BandsDialog_band3 => '45–99% חמצן';
+
+  @override
+  String get settings_decompression_ppO2BandsDialog_maxO2DepthToggle =>
+      'השתמש בעומק מקסימלי מפורש ל-100% חמצן';
+
+  @override
+  String get settings_decompression_ppO2BandsDialog_maxO2DepthLabel =>
+      'עומק מקסימלי ל-100% חמצן';
 
   @override
   String get settings_decompression_ccrPpO2LimitsTitle => 'מגבלות ppO2 CCR';

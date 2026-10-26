@@ -10649,6 +10649,18 @@ class AppLocalizationsHu extends AppLocalizations {
   String get divePlanner_gasOptions_ppO2Deco => 'Dekó-ppO₂';
 
   @override
+  String get divePlanner_gasOptions_ppO2DecoBand1 => 'Dekó-ppO₂ 28% O2-ig';
+
+  @override
+  String get divePlanner_gasOptions_ppO2DecoBand2 => 'Dekó-ppO₂ 28-45% O2';
+
+  @override
+  String get divePlanner_gasOptions_ppO2DecoBand3 => 'Dekó-ppO₂ 45-99% O2';
+
+  @override
+  String get divePlanner_gasOptions_maxO2DepthMeters => 'Max. mélység 100% O2';
+
+  @override
   String get divePlanner_gasOptions_bestMixEnd => 'Legjobb keverék END';
 
   @override
@@ -14968,6 +14980,11 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String tankMod_default(String ppO2, String limit) {
     return 'Alapértelmezés ppO2 $ppO2 mellett ($limit)';
+  }
+
+  @override
+  String tankMod_defaultDepth(String depth, String limit) {
+    return 'Alapértelmezés $depth mellett ($limit)';
   }
 
   @override
@@ -26096,6 +26113,39 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_decompression_ppO2Dialog_title => 'ppO2-határok OC';
+
+  @override
+  String get settings_decompression_ppO2BandsTitle =>
+      'Dekó-határok O2-sáv szerint';
+
+  @override
+  String get settings_decompression_ppO2BandsSubtitle =>
+      'Opcionális, finomabb dekó ppO2-határok a merüléstervezőhöz';
+
+  @override
+  String get settings_decompression_ppO2BandsDialog_title =>
+      'Dekó ppO2: O2-sávok szerint';
+
+  @override
+  String get settings_decompression_ppO2BandsDialog_bandsToggle =>
+      'O2-sáv szerinti dekóhatárok használata';
+
+  @override
+  String get settings_decompression_ppO2BandsDialog_band1 => '28% O2-ig';
+
+  @override
+  String get settings_decompression_ppO2BandsDialog_band2 => '28–45% O2';
+
+  @override
+  String get settings_decompression_ppO2BandsDialog_band3 => '45–99% O2';
+
+  @override
+  String get settings_decompression_ppO2BandsDialog_maxO2DepthToggle =>
+      'Explicit maximális mélység használata 100% O2-hez';
+
+  @override
+  String get settings_decompression_ppO2BandsDialog_maxO2DepthLabel =>
+      'Maximális mélység 100% O2-hez';
 
   @override
   String get settings_decompression_ccrPpO2LimitsTitle => 'ppO2-határok CCR';

@@ -10149,6 +10149,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get divePlanner_gasOptions_ppO2Deco => '减压 ppO₂';
 
   @override
+  String get divePlanner_gasOptions_ppO2DecoBand1 => '减压 ppO₂ 不超过28% O2';
+
+  @override
+  String get divePlanner_gasOptions_ppO2DecoBand2 => '减压 ppO₂ 28-45% O2';
+
+  @override
+  String get divePlanner_gasOptions_ppO2DecoBand3 => '减压 ppO₂ 45-99% O2';
+
+  @override
+  String get divePlanner_gasOptions_maxO2DepthMeters => '100% O2 最大深度';
+
+  @override
   String get divePlanner_gasOptions_bestMixEnd => '最佳混合气 END';
 
   @override
@@ -14328,6 +14340,11 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String tankMod_default(String ppO2, String limit) {
     return '默认值，ppO2 $ppO2（$limit）';
+  }
+
+  @override
+  String tankMod_defaultDepth(String depth, String limit) {
+    return '默认值，$depth（$limit）';
   }
 
   @override
@@ -24771,6 +24788,37 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_decompression_ppO2Dialog_title => '氧分压上限 OC';
+
+  @override
+  String get settings_decompression_ppO2BandsTitle => '按氧气分段的减压限值';
+
+  @override
+  String get settings_decompression_ppO2BandsSubtitle =>
+      '为潜水计划器提供可选的、更精细的减压氧分压限值';
+
+  @override
+  String get settings_decompression_ppO2BandsDialog_title => '减压氧分压：按氧气分段';
+
+  @override
+  String get settings_decompression_ppO2BandsDialog_bandsToggle =>
+      '使用按氧气分段的减压限值';
+
+  @override
+  String get settings_decompression_ppO2BandsDialog_band1 => '氧气含量不超过28%';
+
+  @override
+  String get settings_decompression_ppO2BandsDialog_band2 => '氧气含量28-45%';
+
+  @override
+  String get settings_decompression_ppO2BandsDialog_band3 => '氧气含量45-99%';
+
+  @override
+  String get settings_decompression_ppO2BandsDialog_maxO2DepthToggle =>
+      '为100%氧气使用明确的最大深度';
+
+  @override
+  String get settings_decompression_ppO2BandsDialog_maxO2DepthLabel =>
+      '100%氧气的最大深度';
 
   @override
   String get settings_decompression_ccrPpO2LimitsTitle => '氧分压上限 CCR';

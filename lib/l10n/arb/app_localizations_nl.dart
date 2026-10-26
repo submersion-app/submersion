@@ -10602,6 +10602,18 @@ class AppLocalizationsNl extends AppLocalizations {
   String get divePlanner_gasOptions_ppO2Deco => 'Deco-ppO₂';
 
   @override
+  String get divePlanner_gasOptions_ppO2DecoBand1 => 'Deco-ppO₂ tot 28% O2';
+
+  @override
+  String get divePlanner_gasOptions_ppO2DecoBand2 => 'Deco-ppO₂ 28-45% O2';
+
+  @override
+  String get divePlanner_gasOptions_ppO2DecoBand3 => 'Deco-ppO₂ 45-99% O2';
+
+  @override
+  String get divePlanner_gasOptions_maxO2DepthMeters => 'Max. diepte 100% O2';
+
+  @override
   String get divePlanner_gasOptions_bestMixEnd => 'END voor beste mengsel';
 
   @override
@@ -14913,6 +14925,11 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String tankMod_default(String ppO2, String limit) {
     return 'Standaard bij ppO2 $ppO2 ($limit)';
+  }
+
+  @override
+  String tankMod_defaultDepth(String depth, String limit) {
+    return 'Standaard bij $depth ($limit)';
   }
 
   @override
@@ -26058,6 +26075,39 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_decompression_ppO2Dialog_title => 'ppO2-limieten OC';
+
+  @override
+  String get settings_decompression_ppO2BandsTitle =>
+      'Deco-limieten per O2-band';
+
+  @override
+  String get settings_decompression_ppO2BandsSubtitle =>
+      'Optionele, fijnere deco-ppO2-limieten voor de Dive Planner';
+
+  @override
+  String get settings_decompression_ppO2BandsDialog_title =>
+      'Deco-ppO2: per O2-band';
+
+  @override
+  String get settings_decompression_ppO2BandsDialog_bandsToggle =>
+      'Deco-limieten per O2-band gebruiken';
+
+  @override
+  String get settings_decompression_ppO2BandsDialog_band1 => 'Tot 28% O2';
+
+  @override
+  String get settings_decompression_ppO2BandsDialog_band2 => '28–45% O2';
+
+  @override
+  String get settings_decompression_ppO2BandsDialog_band3 => '45–99% O2';
+
+  @override
+  String get settings_decompression_ppO2BandsDialog_maxO2DepthToggle =>
+      'Expliciete maximale diepte voor 100% O2 gebruiken';
+
+  @override
+  String get settings_decompression_ppO2BandsDialog_maxO2DepthLabel =>
+      'Maximale diepte voor 100% O2';
 
   @override
   String get settings_decompression_ccrPpO2LimitsTitle => 'ppO2-limieten CCR';

@@ -4,6 +4,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/core/deco/ascent/ascent_gas_plan.dart';
 import 'package:submersion/core/deco/buhlmann_algorithm.dart';
+import 'package:submersion/core/deco/deco_ppo2_limits.dart';
 import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
 import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
@@ -44,6 +45,16 @@ class PlanCalculatorService {
   /// gas MOD follows this rather than [ppO2Warning].
   final double ccrDiluentModPpO2;
 
+  /// Per-O2-band deco ppO2 limits and the explicit MOD for 100% O2 (issue
+  /// #3580), the diver's Settings defaults. Off by default: [ppO2Critical]
+  /// alone keeps governing every deco gas until the diver turns one on.
+  final bool ppO2DecoBandsEnabled;
+  final double ppO2DecoBand1;
+  final double ppO2DecoBand2;
+  final double ppO2DecoBand3;
+  final bool maxO2DepthEnabled;
+  final double maxO2DepthMeters;
+
   /// CNS warning threshold percentage (typically 80).
   final int cnsWarningThreshold;
 
@@ -68,6 +79,12 @@ class PlanCalculatorService {
     this.ppO2Warning = 1.4,
     this.ppO2Critical = 1.6,
     this.ccrDiluentModPpO2 = 1.6,
+    this.ppO2DecoBandsEnabled = false,
+    this.ppO2DecoBand1 = 1.6,
+    this.ppO2DecoBand2 = 1.6,
+    this.ppO2DecoBand3 = 1.6,
+    this.maxO2DepthEnabled = false,
+    this.maxO2DepthMeters = 6.0,
     this.cnsWarningThreshold = 80,
     this.defaultAscentRate = 9.0,
     this.defaultDescentRate = 18.0,
@@ -88,6 +105,12 @@ class PlanCalculatorService {
       ppO2Warning: ppO2Warning,
       ppO2Critical: ppO2Critical,
       ccrDiluentModPpO2: ccrDiluentModPpO2,
+      ppO2DecoBandsEnabled: ppO2DecoBandsEnabled,
+      ppO2DecoBand1: ppO2DecoBand1,
+      ppO2DecoBand2: ppO2DecoBand2,
+      ppO2DecoBand3: ppO2DecoBand3,
+      maxO2DepthEnabled: maxO2DepthEnabled,
+      maxO2DepthMeters: maxO2DepthMeters,
       cnsWarningThreshold: cnsWarningThreshold,
       defaultAscentRate: defaultAscentRate,
       defaultDescentRate: defaultDescentRate,
@@ -113,6 +136,10 @@ class PlanCalculatorService {
     Map<String, TankRole>? tankRoles,
     double? bottomPpO2,
     double? decoPpO2,
+    double? decoPpO2Band1,
+    double? decoPpO2Band2,
+    double? decoPpO2Band3,
+    double? maxO2DepthMetersOverride,
   }) {
     if (segments.isEmpty) {
       return PlanResult.empty();
@@ -132,7 +159,14 @@ class PlanCalculatorService {
       algorithm.setCompartments(initialTissueState);
     }
 
-    // Initialize O2 toxicity calculator
+    // Initialize O2 toxicity calculator. Deliberately on the flat
+    // ppO2Critical/ppO2Warning, not the resolved per-gas band limit (issue
+    // #3580): O2ToxicityCalculator is a general-purpose, widely shared
+    // utility well outside the Dive Planner, so its ppO2 critical/warning
+    // check -- unlike PlanEngine's own, which IS band-aware -- is out of
+    // scope here. This service's live canvas preview can disagree with the
+    // final PlanEngine result on an edge case near a band boundary; the
+    // saved/computed plan is always the source of truth.
     final o2Calc = O2ToxicityCalculator(
       ppO2WarningThreshold: ppO2Warning,
       ppO2CriticalThreshold: ppO2Critical,
@@ -404,7 +438,15 @@ class PlanCalculatorService {
       ],
       runtime: runtime,
       bottomPpO2: bottomPpO2 ?? ppO2Warning,
-      decoPpO2: decoPpO2 ?? ppO2Critical,
+      decoPpO2: DecoPpO2Limits(
+        flat: decoPpO2 ?? ppO2Critical,
+        bandsEnabled: ppO2DecoBandsEnabled,
+        band1: decoPpO2Band1 ?? ppO2DecoBand1,
+        band2: decoPpO2Band2 ?? ppO2DecoBand2,
+        band3: decoPpO2Band3 ?? ppO2DecoBand3,
+        explicitO2DepthEnabled: maxO2DepthEnabled,
+        explicitO2DepthMeters: maxO2DepthMetersOverride ?? maxO2DepthMeters,
+      ),
       environment: environment,
     );
 
@@ -458,7 +500,7 @@ class PlanCalculatorService {
     required List<DiveTank> tanks,
     required int runtime,
     required double bottomPpO2,
-    required double decoPpO2,
+    required DecoPpO2Limits decoPpO2,
     required DiveEnvironment environment,
   }) {
     if (segments.isEmpty) return [];

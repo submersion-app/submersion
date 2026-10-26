@@ -11484,6 +11484,15 @@ class SyncDataSerializer {
       'gfHigh': 85,
       'ppO2MaxWorking': 1.4,
       'ppO2MaxDeco': 1.6,
+      // Per-O2-band deco ppO2 limits and the explicit MOD for 100% O2
+      // (v319, issue #3580): a payload from a pre-v319 peer omits these,
+      // so it hydrates to "off" rather than null.
+      'ppO2DecoBandsEnabled': false,
+      'ppO2DecoBand1': 1.6,
+      'ppO2DecoBand2': 1.6,
+      'ppO2DecoBand3': 1.6,
+      'maxO2DepthEnabled': false,
+      'maxO2DepthMeters': 6.0,
       'cnsWarningThreshold': 80,
       'ascentRateWarning': 9.0,
       'ascentRateCritical': 12.0,

@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/deco/deco_ppo2_limits.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/planner/presentation/widgets/tank_mod_field.dart';
@@ -49,7 +50,7 @@ void main() {
             role: role,
             overrideMeters: reported,
             bottomPpO2: 1.4,
-            decoPpO2: 1.6,
+            decoPpO2: const DecoPpO2Limits(flat: 1.6),
             diluentPpO2: diluentPpO2,
             units: units,
             onChanged: (value) => setState(() {
@@ -169,7 +170,7 @@ void main() {
             role: TankRole.deco,
             overrideMeters: 18,
             bottomPpO2: 1.4,
-            decoPpO2: 1.6,
+            decoPpO2: const DecoPpO2Limits(flat: 1.6),
             diluentPpO2: 1.6,
             units: metric,
             onChanged: (_) {},

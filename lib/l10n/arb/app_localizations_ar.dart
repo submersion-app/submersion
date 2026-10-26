@@ -10822,6 +10822,22 @@ class AppLocalizationsAr extends AppLocalizations {
   String get divePlanner_gasOptions_ppO2Deco => 'ppO₂ تخفيف الضغط';
 
   @override
+  String get divePlanner_gasOptions_ppO2DecoBand1 =>
+      'ppO₂ تخفيف الضغط حتى 28% أكسجين';
+
+  @override
+  String get divePlanner_gasOptions_ppO2DecoBand2 =>
+      'ppO₂ تخفيف الضغط 28-45% أكسجين';
+
+  @override
+  String get divePlanner_gasOptions_ppO2DecoBand3 =>
+      'ppO₂ تخفيف الضغط 45-99% أكسجين';
+
+  @override
+  String get divePlanner_gasOptions_maxO2DepthMeters =>
+      'أقصى عمق لـ 100% أكسجين';
+
+  @override
   String get divePlanner_gasOptions_bestMixEnd => 'END لأفضل خليط';
 
   @override
@@ -15222,6 +15238,11 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String tankMod_default(String ppO2, String limit) {
     return 'الافتراضي عند ppO2 $ppO2 ($limit)';
+  }
+
+  @override
+  String tankMod_defaultDepth(String depth, String limit) {
+    return 'الافتراضي عند $depth ($limit)';
   }
 
   @override
@@ -26486,6 +26507,39 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_decompression_ppO2Dialog_title =>
       'حدود الضغط الجزئي للأكسجين OC';
+
+  @override
+  String get settings_decompression_ppO2BandsTitle =>
+      'حدود الديكو حسب نطاق الأكسجين';
+
+  @override
+  String get settings_decompression_ppO2BandsSubtitle =>
+      'حدود ppO2 اختيارية وأدق لمخطط الغوص';
+
+  @override
+  String get settings_decompression_ppO2BandsDialog_title =>
+      'ppO2 للديكو: حسب نطاق الأكسجين';
+
+  @override
+  String get settings_decompression_ppO2BandsDialog_bandsToggle =>
+      'استخدام حدود الديكو حسب نطاق الأكسجين';
+
+  @override
+  String get settings_decompression_ppO2BandsDialog_band1 => 'حتى 28% أكسجين';
+
+  @override
+  String get settings_decompression_ppO2BandsDialog_band2 => '28–45% أكسجين';
+
+  @override
+  String get settings_decompression_ppO2BandsDialog_band3 => '45–99% أكسجين';
+
+  @override
+  String get settings_decompression_ppO2BandsDialog_maxO2DepthToggle =>
+      'استخدام عمق أقصى صريح لـ 100% أكسجين';
+
+  @override
+  String get settings_decompression_ppO2BandsDialog_maxO2DepthLabel =>
+      'العمق الأقصى لـ 100% أكسجين';
 
   @override
   String get settings_decompression_ccrPpO2LimitsTitle =>

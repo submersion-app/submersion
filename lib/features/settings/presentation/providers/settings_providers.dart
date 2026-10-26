@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:submersion/core/built_ins/built_in_catalog.dart';
+import 'package:submersion/core/deco/deco_ppo2_limits.dart';
 import 'package:submersion/core/deco/schedule_policy.dart' show AirBreakPolicy;
 import 'package:submersion/core/constants/card_color.dart';
 import 'package:submersion/core/constants/dive_detail_layout.dart';
@@ -98,6 +99,12 @@ class SettingsKeys {
   static const String gfHigh = 'gf_high';
   static const String ppO2MaxWorking = 'ppo2_max_working';
   static const String ppO2MaxDeco = 'ppo2_max_deco';
+  static const String ppO2DecoBandsEnabled = 'ppo2_deco_bands_enabled';
+  static const String ppO2DecoBand1 = 'ppo2_deco_band1';
+  static const String ppO2DecoBand2 = 'ppo2_deco_band2';
+  static const String ppO2DecoBand3 = 'ppo2_deco_band3';
+  static const String maxO2DepthEnabled = 'max_o2_depth_enabled';
+  static const String maxO2DepthMeters = 'max_o2_depth_meters';
   static const String cnsWarningThreshold = 'cns_warning_threshold';
   static const String ascentRateWarning = 'ascent_rate_warning';
   static const String ascentRateCritical = 'ascent_rate_critical';
@@ -252,6 +259,26 @@ class AppSettings {
 
   /// Maximum ppO2 for deco gas (typically 1.6 bar)
   final double ppO2MaxDeco;
+
+  /// Per-O2-band deco ppO2 limits (issue #3580), Dive Planner only: an
+  /// optional, finer-grained alternative to [ppO2MaxDeco]. Off by default.
+  final bool ppO2DecoBandsEnabled;
+
+  /// Deco ppO2 ceiling for a gas up to 28% O2.
+  final double ppO2DecoBand1;
+
+  /// Deco ppO2 ceiling for a gas from 28% up to 45% O2.
+  final double ppO2DecoBand2;
+
+  /// Deco ppO2 ceiling for a gas above 45% O2.
+  final double ppO2DecoBand3;
+
+  /// Explicit MOD for 100% O2 (issue #3580), Dive Planner only: bypasses
+  /// the ppO2 formula for a pure-O2 deco gas when on. Off by default.
+  final bool maxO2DepthEnabled;
+
+  /// MOD in meters for pure O2 when [maxO2DepthEnabled] is on.
+  final double maxO2DepthMeters;
 
   /// CCR default low setpoint in bar (issue #2342).
   final double ccrSetpointLow;
@@ -712,6 +739,12 @@ class AppSettings {
     this.gfHigh = 85,
     this.ppO2MaxWorking = 1.4,
     this.ppO2MaxDeco = 1.6,
+    this.ppO2DecoBandsEnabled = false,
+    this.ppO2DecoBand1 = 1.6,
+    this.ppO2DecoBand2 = 1.6,
+    this.ppO2DecoBand3 = 1.6,
+    this.maxO2DepthEnabled = false,
+    this.maxO2DepthMeters = 6.0,
     this.ccrSetpointLow = 0.7,
     this.ccrSetpointHigh = 1.3,
     this.ccrDiluentModPpO2 = 1.6,
@@ -931,6 +964,12 @@ class AppSettings {
     int? gfHigh,
     double? ppO2MaxWorking,
     double? ppO2MaxDeco,
+    bool? ppO2DecoBandsEnabled,
+    double? ppO2DecoBand1,
+    double? ppO2DecoBand2,
+    double? ppO2DecoBand3,
+    bool? maxO2DepthEnabled,
+    double? maxO2DepthMeters,
     double? ccrSetpointLow,
     double? ccrSetpointHigh,
     double? ccrDiluentModPpO2,
@@ -1125,6 +1164,12 @@ class AppSettings {
       gfHigh: gfHigh ?? this.gfHigh,
       ppO2MaxWorking: ppO2MaxWorking ?? this.ppO2MaxWorking,
       ppO2MaxDeco: ppO2MaxDeco ?? this.ppO2MaxDeco,
+      ppO2DecoBandsEnabled: ppO2DecoBandsEnabled ?? this.ppO2DecoBandsEnabled,
+      ppO2DecoBand1: ppO2DecoBand1 ?? this.ppO2DecoBand1,
+      ppO2DecoBand2: ppO2DecoBand2 ?? this.ppO2DecoBand2,
+      ppO2DecoBand3: ppO2DecoBand3 ?? this.ppO2DecoBand3,
+      maxO2DepthEnabled: maxO2DepthEnabled ?? this.maxO2DepthEnabled,
+      maxO2DepthMeters: maxO2DepthMeters ?? this.maxO2DepthMeters,
       ccrSetpointLow: ccrSetpointLow ?? this.ccrSetpointLow,
       ccrSetpointHigh: ccrSetpointHigh ?? this.ccrSetpointHigh,
       ccrDiluentModPpO2: ccrDiluentModPpO2 ?? this.ccrDiluentModPpO2,
@@ -2236,6 +2281,44 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       ppO2MaxWorking: clampedWorking,
       ppO2MaxDeco: clampedMax,
     );
+    await _saveSettings();
+  }
+
+  /// Per-O2-band deco ppO2 limits (issue #3580): same picker grid/range as
+  /// [ppO2MaxMin]/[ppO2Ceiling], but each band is independent -- unlike
+  /// [setPpO2Limits], there is no enforced ordering between them.
+  Future<void> setPpO2DecoBandsEnabled(bool value) async {
+    state = state.copyWith(ppO2DecoBandsEnabled: value);
+    await _saveSettings();
+  }
+
+  Future<void> setPpO2DecoBand1(double value) async {
+    state = state.copyWith(ppO2DecoBand1: value.clamp(ppO2MaxMin, ppO2Ceiling));
+    await _saveSettings();
+  }
+
+  Future<void> setPpO2DecoBand2(double value) async {
+    state = state.copyWith(ppO2DecoBand2: value.clamp(ppO2MaxMin, ppO2Ceiling));
+    await _saveSettings();
+  }
+
+  Future<void> setPpO2DecoBand3(double value) async {
+    state = state.copyWith(ppO2DecoBand3: value.clamp(ppO2MaxMin, ppO2Ceiling));
+    await _saveSettings();
+  }
+
+  /// Explicit MOD for 100% O2 (issue #3580): 3-9 m in 0.5 m steps.
+  static const double maxO2DepthMin = 3.0;
+  static const double maxO2DepthMax = 9.0;
+
+  Future<void> setMaxO2DepthEnabled(bool value) async {
+    state = state.copyWith(maxO2DepthEnabled: value);
+    await _saveSettings();
+  }
+
+  Future<void> setMaxO2DepthMeters(double value) async {
+    final clamped = (value.clamp(maxO2DepthMin, maxO2DepthMax) * 2).round() / 2;
+    state = state.copyWith(maxO2DepthMeters: clamped);
     await _saveSettings();
   }
 
@@ -3400,6 +3483,44 @@ final ppO2MaxWorkingProvider = Provider<double>((ref) {
 
 final ppO2MaxDecoProvider = Provider<double>((ref) {
   return ref.watch(settingsProvider.select((s) => s.ppO2MaxDeco));
+});
+
+final ppO2DecoBandsEnabledProvider = Provider<bool>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.ppO2DecoBandsEnabled));
+});
+
+final ppO2DecoBand1Provider = Provider<double>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.ppO2DecoBand1));
+});
+
+final ppO2DecoBand2Provider = Provider<double>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.ppO2DecoBand2));
+});
+
+final ppO2DecoBand3Provider = Provider<double>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.ppO2DecoBand3));
+});
+
+final maxO2DepthEnabledProvider = Provider<bool>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.maxO2DepthEnabled));
+});
+
+final maxO2DepthMetersProvider = Provider<double>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.maxO2DepthMeters));
+});
+
+/// This config's deco ppO2 limits as a [DecoPpO2Limits] (issue #3580),
+/// Dive Planner only.
+final decoPpO2LimitsProvider = Provider<DecoPpO2Limits>((ref) {
+  return DecoPpO2Limits(
+    flat: ref.watch(ppO2MaxDecoProvider),
+    bandsEnabled: ref.watch(ppO2DecoBandsEnabledProvider),
+    band1: ref.watch(ppO2DecoBand1Provider),
+    band2: ref.watch(ppO2DecoBand2Provider),
+    band3: ref.watch(ppO2DecoBand3Provider),
+    explicitO2DepthEnabled: ref.watch(maxO2DepthEnabledProvider),
+    explicitO2DepthMeters: ref.watch(maxO2DepthMetersProvider),
+  );
 });
 
 final ccrSetpointLowProvider = Provider<double>((ref) {

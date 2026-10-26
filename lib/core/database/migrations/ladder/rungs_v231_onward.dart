@@ -633,5 +633,13 @@ extension RungsFromV231 on AppDatabase {
     // PR #3685.
     if (from < 318) await _moveComputerTissueScalars();
     if (from < 318) await reportProgress();
+
+    // v319: per-O2-band deco ppO2 limits and the explicit MOD for 100% O2
+    // (issue #3580), Dive Planner only. diver_settings gains the toggles
+    // and band/depth values; dive_plans gains the matching per-plan
+    // overrides. Column only, both off by default; re-asserted in
+    // beforeOpen.
+    if (from < 319) await _assertPpO2DecoBandColumns();
+    if (from < 319) await reportProgress();
   }
 }

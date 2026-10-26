@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/deco/deco_ppo2_limits.dart';
 import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -43,7 +44,7 @@ class TankModField extends StatefulWidget {
   /// The MOD set by hand, in metres, or null for the default.
   final double? overrideMeters;
   final double bottomPpO2;
-  final double decoPpO2;
+  final DecoPpO2Limits decoPpO2;
 
   /// The CCR "Dil MOD" limit a diluent cylinder's default follows, from the
   /// diver's "ppO2 limits CCR" Settings. Unused for every other role.
@@ -232,7 +233,7 @@ class TankModDetails extends StatelessWidget {
   final TankRole role;
   final double? overrideMeters;
   final double bottomPpO2;
-  final double decoPpO2;
+  final DecoPpO2Limits decoPpO2;
 
   /// The CCR "Dil MOD" limit a diluent cylinder's default follows, from the
   /// diver's "ppO2 limits CCR" Settings. Unused for every other role.
@@ -258,6 +259,15 @@ class TankModDetails extends StatelessWidget {
     );
 
     if (override == null) {
+      if (usesDecoLimitByDepth(role, gas, decoPpO2)) {
+        return Text(
+          l10n.tankMod_defaultDepth(
+            units.formatDepthFloor(decoPpO2.explicitO2DepthMeters, decimals: 0),
+            limitName,
+          ),
+          style: small,
+        );
+      }
       final limit = modPpO2For(
         role,
         gas,
@@ -342,7 +352,7 @@ int shownDefaultMod(
   GasMix gas,
   TankRole role,
   double bottomPpO2,
-  double decoPpO2,
+  DecoPpO2Limits decoPpO2,
   double diluentPpO2,
   UnitFormatter units,
 ) {

@@ -17035,6 +17035,30 @@ abstract class AppLocalizations {
   /// **'Deco ppO₂'**
   String get divePlanner_gasOptions_ppO2Deco;
 
+  /// No description provided for @divePlanner_gasOptions_ppO2DecoBand1.
+  ///
+  /// In en, this message translates to:
+  /// **'Deco ppO₂ <=28% O2'**
+  String get divePlanner_gasOptions_ppO2DecoBand1;
+
+  /// No description provided for @divePlanner_gasOptions_ppO2DecoBand2.
+  ///
+  /// In en, this message translates to:
+  /// **'Deco ppO₂ 28-45% O2'**
+  String get divePlanner_gasOptions_ppO2DecoBand2;
+
+  /// No description provided for @divePlanner_gasOptions_ppO2DecoBand3.
+  ///
+  /// In en, this message translates to:
+  /// **'Deco ppO₂ 45-99% O2'**
+  String get divePlanner_gasOptions_ppO2DecoBand3;
+
+  /// No description provided for @divePlanner_gasOptions_maxO2DepthMeters.
+  ///
+  /// In en, this message translates to:
+  /// **'Max depth 100% O2'**
+  String get divePlanner_gasOptions_maxO2DepthMeters;
+
   /// No description provided for @divePlanner_gasOptions_bestMixEnd.
   ///
   /// In en, this message translates to:
@@ -24232,6 +24256,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Default at ppO2 {ppO2} ({limit})'**
   String tankMod_default(String ppO2, String limit);
+
+  /// Under the MOD field when the diver has not set one, for a gas under the explicit max-depth-for-100%-O2 setting (issue #3580): the depth the default comes from, instead of a ppO2 (tankMod_default). {limit} is tankMod_limitBottom or tankMod_limitDeco.
+  ///
+  /// In en, this message translates to:
+  /// **'Default at {depth} ({limit})'**
+  String tankMod_defaultDepth(String depth, String limit);
 
   /// Name of the bottom (working) ppO2 limit, used inside other MOD strings.
   ///
@@ -41936,6 +41966,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'ppO2 limits OC'**
   String get settings_decompression_ppO2Dialog_title;
+
+  /// No description provided for @settings_decompression_ppO2BandsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Per-O2-band deco limits'**
+  String get settings_decompression_ppO2BandsTitle;
+
+  /// No description provided for @settings_decompression_ppO2BandsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional, finer deco ppO2 limits for the Dive Planner'**
+  String get settings_decompression_ppO2BandsSubtitle;
+
+  /// No description provided for @settings_decompression_ppO2BandsDialog_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Deco ppO2: per O2 band'**
+  String get settings_decompression_ppO2BandsDialog_title;
+
+  /// No description provided for @settings_decompression_ppO2BandsDialog_bandsToggle.
+  ///
+  /// In en, this message translates to:
+  /// **'Use per-O2-band deco limits'**
+  String get settings_decompression_ppO2BandsDialog_bandsToggle;
+
+  /// No description provided for @settings_decompression_ppO2BandsDialog_band1.
+  ///
+  /// In en, this message translates to:
+  /// **'Up to 28% O2'**
+  String get settings_decompression_ppO2BandsDialog_band1;
+
+  /// No description provided for @settings_decompression_ppO2BandsDialog_band2.
+  ///
+  /// In en, this message translates to:
+  /// **'28-45% O2'**
+  String get settings_decompression_ppO2BandsDialog_band2;
+
+  /// No description provided for @settings_decompression_ppO2BandsDialog_band3.
+  ///
+  /// In en, this message translates to:
+  /// **'45-99% O2'**
+  String get settings_decompression_ppO2BandsDialog_band3;
+
+  /// No description provided for @settings_decompression_ppO2BandsDialog_maxO2DepthToggle.
+  ///
+  /// In en, this message translates to:
+  /// **'Use an explicit maximum depth for 100% O2'**
+  String get settings_decompression_ppO2BandsDialog_maxO2DepthToggle;
+
+  /// No description provided for @settings_decompression_ppO2BandsDialog_maxO2DepthLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Maximum depth for 100% O2'**
+  String get settings_decompression_ppO2BandsDialog_maxO2DepthLabel;
 
   /// No description provided for @settings_decompression_ccrPpO2LimitsTitle.
   ///

@@ -187,6 +187,24 @@ class DiverSettings extends Table {
   IntColumn get gfHigh => integer().withDefault(const Constant(85))();
   RealColumn get ppO2MaxWorking => real().withDefault(const Constant(1.4))();
   RealColumn get ppO2MaxDeco => real().withDefault(const Constant(1.6))();
+  // Per-O2-band deco ppO2 limits (v319, issue #3580): an optional,
+  // finer-grained alternative to the single ppO2MaxDeco above, scoped to
+  // the Dive Planner only. Off by default; ppO2MaxDeco keeps governing
+  // every deco gas until the diver turns this on. Defaults match
+  // ppO2MaxDeco so turning it on changes nothing until adjusted.
+  BoolColumn get ppO2DecoBandsEnabled =>
+      boolean().withDefault(const Constant(false))();
+  RealColumn get ppO2DecoBand1 => real().withDefault(const Constant(1.6))();
+  RealColumn get ppO2DecoBand2 => real().withDefault(const Constant(1.6))();
+  RealColumn get ppO2DecoBand3 => real().withDefault(const Constant(1.6))();
+  // Explicit MOD for 100% O2 (v319, issue #3580): bypasses the ppO2 formula
+  // (and any environment adjustment) for a pure-O2 deco gas when on. Off
+  // by default; a pure-O2 gas keeps following ppO2MaxDeco/the bands until
+  // the diver turns this on. 6.0 m matches ppO2MaxDeco's default (1.6) on
+  // the flat model, so turning it on changes nothing until adjusted.
+  BoolColumn get maxO2DepthEnabled =>
+      boolean().withDefault(const Constant(false))();
+  RealColumn get maxO2DepthMeters => real().withDefault(const Constant(6.0))();
   // CCR ppO2 limits (v231, issue #2342): the diver's default setpoints and
   // the ppO2 a diluent may reach on a flush, which sets its MOD.
   RealColumn get ccrSetpointLow => real().withDefault(const Constant(0.7))();

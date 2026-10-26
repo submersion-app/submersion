@@ -127,6 +127,17 @@ class DivePlans extends Table {
   IntColumn get problemSolvingMinutes => integer().nullable()();
   RealColumn get ppO2Bottom => real().nullable()();
   RealColumn get ppO2Deco => real().nullable()();
+
+  /// Per-O2-band deco ppO2 ceilings for this plan (issue #3580, v319). Null
+  /// = use the diver's Settings band. Meaningless unless the diver's
+  /// Settings have band mode on.
+  RealColumn get ppO2DecoBand1 => real().nullable()();
+  RealColumn get ppO2DecoBand2 => real().nullable()();
+  RealColumn get ppO2DecoBand3 => real().nullable()();
+
+  /// Explicit MOD for 100% O2 for this plan (issue #3580, v319). Null = use
+  /// the diver's Settings value.
+  RealColumn get maxO2DepthMeters => real().nullable()();
   RealColumn get bestMixEndMeters => real().nullable()();
   BoolColumn get o2Narcotic => boolean().nullable()();
 

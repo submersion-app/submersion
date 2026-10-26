@@ -224,7 +224,7 @@ class BailoutSolver {
       gases: ascentGasesFor(
         bailoutTanks,
         bottomPpO2: config.ppO2Working,
-        decoPpO2: config.ppO2Deco,
+        decoPpO2: config.decoLimits,
         environment: environment,
       ),
     );

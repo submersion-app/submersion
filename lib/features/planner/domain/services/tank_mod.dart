@@ -12,6 +12,7 @@ library;
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/deco/ascent/ascent_gas_plan.dart';
+import 'package:submersion/core/deco/deco_ppo2_limits.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/deco/max_operating_depth.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -42,15 +43,22 @@ ModLimitClass modLimitClassFor(TankRole role, GasMix gas) => switch (role) {
 /// CCR Dil MOD limit, [diluentPpO2], when the caller has one to hand; a
 /// caller where a diluent role is meaningless (bailout, the OC calculator)
 /// can leave it out and falls back to [bottomPpO2], as before.
+///
+/// Meaningless for a gas where [usesDecoLimitByDepth] is true (issue #3580):
+/// that gas's MOD is [DecoPpO2Limits.explicitO2DepthMeters] directly, not a
+/// ppO2 at all. Callers that resolve an actual MOD/switch depth check
+/// [usesDecoLimitByDepth] first; this function stays ppO2-only for the
+/// override-check display and the diluent/bottom paths, which never hit
+/// that case.
 double modPpO2For(
   TankRole role,
   GasMix gas, {
   required double bottomPpO2,
-  required double decoPpO2,
+  required DecoPpO2Limits decoPpO2,
   double? diluentPpO2,
 }) => switch (role) {
   TankRole.diluent => diluentPpO2 ?? bottomPpO2,
-  _ => usesDecoLimit(role, gas) ? decoPpO2 : bottomPpO2,
+  _ => usesDecoLimit(role, gas) ? decoPpO2.ppO2For(gas.o2) : bottomPpO2,
 };
 
 /// Whether [role] with [gas] is held to the deco limit rather than the
@@ -66,25 +74,41 @@ bool usesDecoLimit(TankRole role, GasMix gas) => switch (role) {
   TankRole.diluent => false,
 };
 
+/// Whether [role] with [gas]'s MOD is [decoPpO2]'s explicit O2 depth
+/// (issue #3580) rather than a ppO2 limit: it is held to the deco limit at
+/// all (a diluent never is, see [usesDecoLimit]), and [decoPpO2] has the
+/// explicit-depth setting on for this gas's O2 percentage.
+bool usesDecoLimitByDepth(TankRole role, GasMix gas, DecoPpO2Limits decoPpO2) =>
+    usesDecoLimit(role, gas) && decoPpO2.usesExplicitO2Depth(gas.o2);
+
 /// The MOD in metres [gas] has in a cylinder of [role], at the limit that
 /// role calls for. Unrounded: the planner switches on it, and a depth shown
 /// to the diver is rounded down at display time.
+///
+/// A gas under [DecoPpO2Limits.usesExplicitO2Depth] (issue #3580) gets that
+/// depth directly: never the ppO2 formula, so it reads back exactly as set
+/// regardless of water density or altitude.
 double defaultModMeters(
   TankRole role,
   GasMix gas, {
   required double bottomPpO2,
-  required double decoPpO2,
+  required DecoPpO2Limits decoPpO2,
   double? diluentPpO2,
-}) => maxOperatingDepthMeters(
-  gas.o2 / 100.0,
-  maxPpO2: modPpO2For(
-    role,
-    gas,
-    bottomPpO2: bottomPpO2,
-    decoPpO2: decoPpO2,
-    diluentPpO2: diluentPpO2,
-  ),
-);
+}) {
+  if (usesDecoLimitByDepth(role, gas, decoPpO2)) {
+    return decoPpO2.explicitO2DepthMeters;
+  }
+  return maxOperatingDepthMeters(
+    gas.o2 / 100.0,
+    maxPpO2: modPpO2For(
+      role,
+      gas,
+      bottomPpO2: bottomPpO2,
+      decoPpO2: decoPpO2,
+      diluentPpO2: diluentPpO2,
+    ),
+  );
+}
 
 /// [tank]'s MOD: the one set by hand when there is one, otherwise its
 /// default. [tank]'s role must already be resolved (TankRoleResolver), since
@@ -92,7 +116,7 @@ double defaultModMeters(
 double effectiveModMeters(
   DiveTank tank, {
   required double bottomPpO2,
-  required double decoPpO2,
+  required DecoPpO2Limits decoPpO2,
   double? diluentPpO2,
 }) =>
     tank.decoSwitchDepth ??
@@ -115,7 +139,7 @@ double ppO2AtDepth(GasMix gas, double depthMeters) =>
 ({double ppO2, double limitPpO2, bool exceedsLimit})? modOverrideCheck(
   DiveTank tank, {
   required double bottomPpO2,
-  required double decoPpO2,
+  required DecoPpO2Limits decoPpO2,
   double? diluentPpO2,
   DiveEnvironment? environment,
 }) => switch (tank.decoSwitchDepth) {
@@ -140,30 +164,45 @@ double ppO2AtDepth(GasMix gas, double depthMeters) =>
 /// ppO2 matches the table line and an override at the flat default (EAN40
 /// at 30 m in seawater, 1.61) is caught the way a default switch is (issue
 /// #3566, see [gasSwitchDepthMeters]).
+///
+/// A gas under [DecoPpO2Limits.usesExplicitO2Depth] (issue #3580) still
+/// reports a ppO2 pair for display consistency with every other MOD, but
+/// [limitPpO2] is the ppO2 the gas reaches at
+/// [DecoPpO2Limits.explicitO2DepthMeters] rather than at a ppO2-formula
+/// limit, computed through the same transform as [ppO2] so the comparison
+/// agrees with a direct depth comparison.
 ({double ppO2, double limitPpO2, bool exceedsLimit}) modOverrideCheckFor(
   TankRole role,
   GasMix gas,
   double overrideMeters, {
   required double bottomPpO2,
-  required double decoPpO2,
+  required DecoPpO2Limits decoPpO2,
   double? diluentPpO2,
   DiveEnvironment? environment,
 }) {
-  final ppO2 = environment == null
-      ? ppO2AtDepth(gas, overrideMeters)
-      : gas.o2 / 100.0 * environment.pressureAtDepth(overrideMeters);
-  final limit = modPpO2For(
-    role,
-    gas,
-    bottomPpO2: bottomPpO2,
-    decoPpO2: decoPpO2,
-    diluentPpO2: diluentPpO2,
-  );
+  double ppO2AtMeters(double meters) => environment == null
+      ? ppO2AtDepth(gas, meters)
+      : gas.o2 / 100.0 * environment.pressureAtDepth(meters);
+
+  final ppO2 = ppO2AtMeters(overrideMeters);
+  final limitPpO2 = usesDecoLimitByDepth(role, gas, decoPpO2)
+      ? ppO2AtMeters(decoPpO2.explicitO2DepthMeters)
+      : modPpO2For(
+          role,
+          gas,
+          bottomPpO2: bottomPpO2,
+          decoPpO2: decoPpO2,
+          diluentPpO2: diluentPpO2,
+        );
   // On the flat model, a hair of slack: an override typed at exactly the
   // default MOD lands on the limit, give or take float noise, and is not
   // "above" it. In the plan's water, the slack a default switch gets.
   final slack = environment == null ? 1e-9 : gasSwitchPpO2Tolerance;
-  return (ppO2: ppO2, limitPpO2: limit, exceedsLimit: ppO2 > limit + slack);
+  return (
+    ppO2: ppO2,
+    limitPpO2: limitPpO2,
+    exceedsLimit: ppO2 > limitPpO2 + slack,
+  );
 }
 
 /// The gases an open-circuit ascent can breathe, one per tank, each eligible
@@ -172,11 +211,13 @@ double ppO2AtDepth(GasMix gas, double depthMeters) =>
 /// A MOD set by hand is used as typed. A default one is the switch depth for
 /// the role's limit in [environment], the water the schedule's ppO2 is
 /// computed in (issue #3566, see [gasSwitchDepthMeters]), so no table line
-/// shows a gas above its limit.
+/// shows a gas above its limit. A gas under
+/// [DecoPpO2Limits.usesExplicitO2Depth] (issue #3580) gets that depth
+/// directly instead, bypassing [environment] entirely.
 List<AvailableGas> ascentGasesFor(
   Iterable<DiveTank> tanks, {
   required double bottomPpO2,
-  required double decoPpO2,
+  required DecoPpO2Limits decoPpO2,
   required DiveEnvironment environment,
   double? diluentPpO2,
 }) => [
@@ -186,16 +227,18 @@ List<AvailableGas> ascentGasesFor(
       fHe: tank.gasMix.he / 100.0,
       maxPpO2Mod:
           tank.decoSwitchDepth ??
-          gasSwitchDepthMeters(
-            tank.gasMix.o2 / 100.0,
-            maxPpO2: modPpO2For(
-              tank.role,
-              tank.gasMix,
-              bottomPpO2: bottomPpO2,
-              decoPpO2: decoPpO2,
-              diluentPpO2: diluentPpO2,
-            ),
-            environment: environment,
-          ),
+          (usesDecoLimitByDepth(tank.role, tank.gasMix, decoPpO2)
+              ? decoPpO2.explicitO2DepthMeters
+              : gasSwitchDepthMeters(
+                  tank.gasMix.o2 / 100.0,
+                  maxPpO2: modPpO2For(
+                    tank.role,
+                    tank.gasMix,
+                    bottomPpO2: bottomPpO2,
+                    decoPpO2: decoPpO2,
+                    diluentPpO2: diluentPpO2,
+                  ),
+                  environment: environment,
+                )),
     ),
 ];

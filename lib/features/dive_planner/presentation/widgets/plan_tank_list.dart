@@ -5,6 +5,7 @@ import 'package:uuid/uuid.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/constants/tank_presets.dart';
+import 'package:submersion/core/deco/deco_ppo2_limits.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/export/csv/codec/tank_capacity.dart';
 import 'package:submersion/core/utils/number_input.dart';
@@ -262,13 +263,24 @@ class PlanTankList extends ConsumerWidget {
 
 /// The ppO2 limits each tank's default MOD is worked out at (issue #3567):
 /// the plan's own, falling back to the diver's settings, as the plan engine
-/// resolves them.
-({double bottom, double deco, double diluent}) _modLimits(
+/// resolves them. [deco] carries the per-O2-band limits too (issue #3580);
+/// the band/explicit-depth toggles themselves are Settings-only, with no
+/// plan-level override.
+({double bottom, DecoPpO2Limits deco, double diluent}) _modLimits(
   DivePlanState state,
   UnitFormatter units,
 ) => (
   bottom: state.ppO2Bottom ?? units.settings.ppO2MaxWorking,
-  deco: state.ppO2Deco ?? units.settings.ppO2MaxDeco,
+  deco: DecoPpO2Limits(
+    flat: state.ppO2Deco ?? units.settings.ppO2MaxDeco,
+    bandsEnabled: units.settings.ppO2DecoBandsEnabled,
+    band1: state.ppO2DecoBand1 ?? units.settings.ppO2DecoBand1,
+    band2: state.ppO2DecoBand2 ?? units.settings.ppO2DecoBand2,
+    band3: state.ppO2DecoBand3 ?? units.settings.ppO2DecoBand3,
+    explicitO2DepthEnabled: units.settings.maxO2DepthEnabled,
+    explicitO2DepthMeters:
+        state.maxO2DepthMeters ?? units.settings.maxO2DepthMeters,
+  ),
   diluent: units.settings.ccrDiluentModPpO2,
 );
 
@@ -294,7 +306,7 @@ class _TankEditDialog extends StatefulWidget {
   final UnitFormatter units;
 
   /// The ppO2 limits the tank's default MOD is worked out at (#3567).
-  final ({double bottom, double deco, double diluent}) modLimits;
+  final ({double bottom, DecoPpO2Limits deco, double diluent}) modLimits;
 
   /// The plan's breathing mode. Only a loop plan can carry bailout gas, so
   /// the diluent flag is offered there and nowhere else.

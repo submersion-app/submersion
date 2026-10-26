@@ -242,6 +242,24 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
   Future<void> setPpO2Limits(double working, double max) async =>
       state = state.copyWith(ppO2MaxWorking: working, ppO2MaxDeco: max);
   @override
+  Future<void> setPpO2DecoBandsEnabled(bool value) async =>
+      state = state.copyWith(ppO2DecoBandsEnabled: value);
+  @override
+  Future<void> setPpO2DecoBand1(double value) async =>
+      state = state.copyWith(ppO2DecoBand1: value);
+  @override
+  Future<void> setPpO2DecoBand2(double value) async =>
+      state = state.copyWith(ppO2DecoBand2: value);
+  @override
+  Future<void> setPpO2DecoBand3(double value) async =>
+      state = state.copyWith(ppO2DecoBand3: value);
+  @override
+  Future<void> setMaxO2DepthEnabled(bool value) async =>
+      state = state.copyWith(maxO2DepthEnabled: value);
+  @override
+  Future<void> setMaxO2DepthMeters(double value) async =>
+      state = state.copyWith(maxO2DepthMeters: value);
+  @override
   Future<void> setCcrPpO2Limits({
     required double setpointLow,
     required double setpointHigh,
