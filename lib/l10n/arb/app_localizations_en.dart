@@ -9868,6 +9868,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_tank_label_material => 'Material';
 
   @override
+  String get diveLog_tank_label_mnd => 'MND';
+
+  @override
   String get diveLog_tank_label_n2 => 'N2';
 
   @override
@@ -9892,13 +9895,43 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_tank_mndHelper => 'Set to auto-calculate He%';
 
   @override
-  String diveLog_tank_gasUsed(String amount) {
-    return '($amount used)';
+  String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd) {
+    return 'MOD: $mod (ppO₂ $ppO2) | MND: $mnd';
   }
 
   @override
-  String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd) {
-    return 'MOD: $mod (ppO₂ $ppO2) | MND: $mnd';
+  String get diveLog_cylinders_columnTank => 'Tank';
+
+  @override
+  String get diveLog_cylinders_columnGas => 'Gas';
+
+  @override
+  String get diveLog_cylinders_columnStart => 'Start';
+
+  @override
+  String get diveLog_cylinders_columnEnd => 'End';
+
+  @override
+  String get diveLog_cylinders_columnUsed => 'Used';
+
+  @override
+  String diveLog_cylinders_gasUsed(String amount) {
+    return 'Gas used $amount';
+  }
+
+  @override
+  String diveLog_cylinders_mod(String depth) {
+    return 'MOD $depth';
+  }
+
+  @override
+  String diveLog_cylinders_mnd(String depth) {
+    return 'MND $depth';
+  }
+
+  @override
+  String diveLog_cylinders_modNote(String ppO2) {
+    return 'MOD at ppO₂ $ppO2';
   }
 
   @override
@@ -22415,6 +22448,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Add downloads to the computer\'s owner';
 
   @override
+  String get settings_conflict_field_omitUnusedOcGases =>
+      'Skip unused bailout gases';
+
+  @override
   String get settings_conflict_field_avgSpeed => 'Average speed';
 
   @override
@@ -29831,6 +29868,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_downloadsFollowOwner_subtitle =>
       'When a dive computer belongs to another profile, its dives go to that profile\'s log. You can change it on the review screen.';
+
+  @override
+  String get settings_omitUnusedOcGases_title => 'Skip unused bailout gases';
+
+  @override
+  String get settings_omitUnusedOcGases_subtitle =>
+      'On rebreather downloads and re-parses, leave out a gas with no transmitter that was never breathed';
 
   @override
   String get tags_manage_searchHint => 'Search tags...';

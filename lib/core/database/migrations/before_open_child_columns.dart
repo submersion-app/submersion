@@ -27,7 +27,7 @@ extension BeforeOpenChildColumns on AppDatabase {
     // read selects the whole row, for the same reason as the tank columns.
     await _assertDiveCenterClosedColumn();
 
-    // v315: transmitters.is_configured (issue #3676). Every registry read
+    // v316: transmitters.is_configured (issue #3676). Every registry read
     // selects the whole row, for the same reason as the tank columns.
     await _assertTransmitterConfiguredColumn();
   }

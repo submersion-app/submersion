@@ -413,7 +413,7 @@ void main() {
 
   double expectedThumbTop(WidgetTester tester) {
     final position = controller.position;
-    final slot = slotForScroll(
+    final slot = slotPositionForScroll(
       pixels: position.pixels,
       maxScrollExtent: position.maxScrollExtent,
       loadedSlotCount: 200,
@@ -436,7 +436,7 @@ void main() {
     expect(controller.offset, greaterThan(3000));
     expect(
       tester.getTopLeft(find.byKey(ListScrubber.thumbKey)).dy,
-      closeTo(expectedThumbTop(tester), 1),
+      closeTo(expectedThumbTop(tester), 0.01),
     );
     await tester.pump(ListScrubber.idleHide);
   });
@@ -452,14 +452,23 @@ void main() {
       tester.getCenter(find.byKey(ListScrubber.thumbKey)),
       kind: PointerDeviceKind.mouse,
     );
-    await gesture.moveBy(const Offset(0, 1));
+    // Past the mouse's drag slop, so the drag has started.
+    await gesture.moveBy(const Offset(0, 4));
     await tester.pump();
-    await gesture.moveBy(const Offset(0, 1));
-    await tester.pump();
-    // A jump snaps to a slot; one slot is 9400 / 199 px of scroll and 2 px
-    // of track is under two slots.
     expect(find.byKey(ListScrubber.currentValueKey), findsOneWidget);
-    expect(controller.offset, closeTo(before, 100));
+    // No snap to a slot on the grab: the list sits where the thumb is.
+    final thumb =
+        tester.getTopLeft(find.byKey(ListScrubber.thumbKey)).dy -
+        tester.getTopLeft(find.byType(ListScrubber)).dy;
+    expect(controller.offset, closeTo(thumb / 552 * 9400, 0.01));
+    expect(controller.offset, closeTo(before, 4 * 9400 / 552 + 0.01));
+
+    // The list follows the pointer by the pixel: 10 px of track is
+    // 10 * 9400 / 552 px of scroll.
+    final grabbed = controller.offset;
+    await gesture.moveBy(const Offset(0, 10));
+    await tester.pump();
+    expect(controller.offset, closeTo(grabbed + 10 * 9400 / 552, 0.01));
     await gesture.up();
     await tester.pump(ListScrubber.idleHide);
   });
@@ -625,7 +634,9 @@ void main() {
     final slim = tester.getRect(handle());
     final area = tester.getRect(find.byType(ListScrubber));
     expect(slim.width, 4);
-    expect(slim.height, 48);
+    // The handle is 48 px, but its top falls between whole pixels as the
+    // list scrolls, so the rect's bottom minus top is off in the last bit.
+    expect(slim.height, moreOrLessEquals(48));
     expect(slim.left, greaterThanOrEqualTo(area.right - 8));
     await tester.pump(ListScrubber.idleHide);
   });

@@ -105,7 +105,7 @@ void main() {
   });
 
   test(
-    'a transmitter from a pre-v315 peer arrives configured (#3676)',
+    'a transmitter from a pre-v316 peer arrives configured (#3676)',
     () async {
       final now = DateTime.now().millisecondsSinceEpoch;
       await db

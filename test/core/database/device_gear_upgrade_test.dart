@@ -8,7 +8,7 @@ import 'package:submersion/core/database/dive_computer_gear_identity.dart';
 
 import '../../helpers/test_database.dart';
 
-/// The ladder-only v315 steps (issue #3676).
+/// The ladder-only v316 steps (issue #3676).
 void main() {
   late AppDatabase db;
 

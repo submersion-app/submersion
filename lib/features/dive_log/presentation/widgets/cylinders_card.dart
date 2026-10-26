@@ -15,6 +15,7 @@ import 'package:submersion/features/dive_log/domain/services/source_name_resolve
 import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_analysis_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/cylinder_table.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/field_attribution_badge.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_series_reassign_sheet.dart';
@@ -29,13 +30,16 @@ import 'package:submersion/features/trips/presentation/providers/trip_cylinder_p
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// Unified card showing every cylinder on a dive: identity (name, gas mix,
-/// volume), start/end pressures, MOD/MND, and per-tank SAC and RMV.
+/// Unified card showing every cylinder on a dive as a table: one row per
+/// tank with what it is, its gas, and its start, end and used pressures, and
+/// under each row a quiet detail block (gas used, SAC and RMV, MOD/MND, trip
+/// cylinder, transmitter, check-in). Issue #3675 replaced a stack of lines
+/// that each had a style of their own.
 ///
 /// Replaces the former Tanks card and SAC by Cylinder block. Occupies the
 /// [DiveDetailSectionId.tanks] slot on the dive detail page. Per-tank SAC
-/// is shown whenever it is computable, regardless of tank count; the
-/// consumption row is omitted entirely when it is not.
+/// is shown whenever it is computable, regardless of tank count; it is
+/// omitted when it is not.
 class CylindersCard extends ConsumerWidget {
   const CylindersCard({
     super.key,
@@ -65,9 +69,9 @@ class CylindersCard extends ConsumerWidget {
     final showSourceBadges = dataSources.length >= 2;
     final computerNames = _computerDisplayNames(context, dataSources);
     // Serials with a registry entry get a plain caption; the rest get an
-    // Assign chip (issue #1365). Read through `.value`, which keeps the
+    // Assign button (issue #1365). Read through `.value`, which keeps the
     // previous list while a diver change reloads the provider; `valueOrNull`
-    // would drop to an empty registry and flash the chip for every tank.
+    // would drop to an empty registry and flash the button for every tank.
     final knownSerials = Transmitter.knownSerials(
       ref.watch(transmittersProvider).value ?? const <Transmitter>[],
     );
@@ -91,6 +95,33 @@ class CylindersCard extends ConsumerWidget {
     final showRoles =
         dive.tanks.length != 1 || dive.tanks.single.role != TankRole.backGas;
 
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final columns = (
+      tank: l10n.diveLog_cylinders_columnTank,
+      gas: l10n.diveLog_cylinders_columnGas,
+      start: l10n.diveLog_cylinders_columnStart,
+      end: l10n.diveLog_cylinders_columnEnd,
+      used: l10n.diveLog_cylinders_columnUsed,
+    );
+    final rows = [
+      for (final entry in dive.tanks.asMap().entries)
+        _tankRow(
+          context,
+          index: entry.key,
+          tank: entry.value,
+          cylinderSac: sacByTankId[entry.value.id],
+          tankPressures: tankPressures,
+          sourceName: showSourceBadges && entry.value.computerId != null
+              ? computerNames[entry.value.computerId]
+              : null,
+          knownSerials: knownSerials,
+          slotLabel: slotLabels[entry.value.tripCylinderId],
+          showRole: showRoles,
+          columns: columns,
+        ),
+    ];
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -98,31 +129,37 @@ class CylindersCard extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              context.l10n.diveLog_detail_section_cylinders,
-              style: Theme.of(context).textTheme.titleMedium,
+              l10n.diveLog_detail_section_cylinders,
+              style: theme.textTheme.titleMedium,
             ),
-            const Divider(),
-            ...dive.tanks.asMap().entries.map(
-              (entry) => _tankRow(
-                context,
-                index: entry.key,
-                tank: entry.value,
-                cylinderSac: sacByTankId[entry.value.id],
-                tankPressures: tankPressures,
-                sourceName: showSourceBadges && entry.value.computerId != null
-                    ? computerNames[entry.value.computerId]
-                    : null,
-                knownSerials: knownSerials,
-                slotLabel: slotLabels[entry.value.tripCylinderId],
-                showRole: showRoles,
+            const SizedBox(height: 12),
+            CylinderTableHeader(labels: columns, unit: units.pressureSymbol),
+            const Divider(height: 1),
+            for (var i = 0; i < rows.length; i++) ...[
+              if (i > 0)
+                Divider(height: 1, color: theme.colorScheme.outlineVariant),
+              rows[i],
+            ],
+            // Every MOD on the card is taken at the same working ppO2, so it
+            // is said once here rather than on each row.
+            if (rows.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Text(
+                  l10n.diveLog_cylinders_modNote(
+                    formatFixedForDisplay(settings.ppO2MaxWorking, 1),
+                  ),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
               ),
-            ),
             if (_canReassign(dive, tankPressures))
               Align(
                 alignment: AlignmentDirectional.centerEnd,
                 child: TextButton.icon(
                   icon: const Icon(Icons.swap_vert),
-                  label: Text(context.l10n.diveLog_tank_reassignSeries),
+                  label: Text(l10n.diveLog_tank_reassignSeries),
                   onPressed: () => showTankSeriesReassignSheet(
                     context,
                     ref,
@@ -162,7 +199,9 @@ class CylindersCard extends ConsumerWidget {
     required Set<String> knownSerials,
     required TripCylinderTankLabel? slotLabel,
     required bool showRole,
+    required CylinderColumnLabels columns,
   }) {
+    final l10n = context.l10n;
     final theme = Theme.of(context);
     final serial = normalizeTransmitterSerial(tank.transmitterSerial);
     final serialKnown = serial != null && knownSerials.contains(serial);
@@ -172,27 +211,21 @@ class CylindersCard extends ConsumerWidget {
       tank: tank,
       tankPressures: tankPressures,
     );
-    final startP = units.formatPressureValue(pressures.$1);
-    final endP = units.formatPressureValue(pressures.$2);
     final pressureUsed = pressures.$1 != null && pressures.$2 != null
         ? pressures.$1! - pressures.$2!
         : null;
-    // The pressure drop and the gas volume are one fact in two units, so
-    // they read together on one line.
-    final gasUsedLiters = cylinderSac?.gasUsedLiters;
-    final volumeUsed = gasUsedLiters != null
-        ? ' / ${units.convertVolume(gasUsedLiters).round()} '
-              '${units.volumeSymbol}'
-        : '';
-    final used = pressureUsed != null && pressureUsed > 0
-        ? ' ${context.l10n.diveLog_tank_gasUsed('${units.formatPressure(pressureUsed)}$volumeUsed')}'
-        : '';
+    // A tank carried but not breathed used 0, which is not missing data;
+    // only a rise (a sensor or entry error) has no meaningful figure.
+    final hasUsed = pressureUsed != null && pressureUsed > 0;
+    final usedText = pressureUsed != null && pressureUsed >= 0
+        ? units.formatPressureValue(pressureUsed)
+        : null;
 
     // Preset display name, falling back to formatted volume.
     final preset = tank.presetName != null
         ? TankPresets.byName(tank.presetName!)
         : null;
-    final tankLabel =
+    final sizeLabel =
         preset?.displayName ??
         (tank.volume != null
             ? units.formatTankVolume(
@@ -201,13 +234,15 @@ class CylindersCard extends ConsumerWidget {
                 cuftDecimals: 1,
               )
             : null);
-    final tankTitle = tank.name != null && tank.name!.isNotEmpty
+    final hasName = tank.name != null && tank.name!.isNotEmpty;
+    // A named tank keeps its size under the name; otherwise the size is
+    // what the diver knows the tank by.
+    final title = hasName
         ? tank.name!
-        : context.l10n.diveLog_tank_title(index + 1);
+        : sizeLabel ?? l10n.diveLog_tank_title(index + 1);
 
-    final workingPpO2 = settings.ppO2MaxWorking;
     final modDepth = units.formatDepthFloor(
-      tank.gasMix.mod(ppO2: workingPpO2),
+      tank.gasMix.mod(ppO2: settings.ppO2MaxWorking),
       decimals: 0,
     );
     final mndValue = tank.gasMix.mnd(
@@ -217,95 +252,79 @@ class CylindersCard extends ConsumerWidget {
     final mndDepth = mndValue.isFinite
         ? units.formatDepthFloor(mndValue, decimals: 0)
         : '--';
-    final modMndText = context.l10n.diveLog_tank_modMndInfo(
-      modDepth,
-      formatFixedForDisplay(workingPpO2, 1),
-      mndDepth,
-    );
-    final consumptionRow = _consumptionRow(
-      context.l10n,
-      theme,
-      cylinderSac,
-      sourceName,
-    );
+    // The pressure drop and the gas volume are one fact in two units; the
+    // volume opens the detail line (after the source badge, when shown).
+    final gasUsedLiters = cylinderSac?.gasUsedLiters;
 
-    return ListTile(
-      contentPadding: EdgeInsets.zero,
-      leading: Icon(tank.role.icon),
-      // The trailing rates take their width first, so on a narrow card
-      // (a phone, or half of a paired row) the chips drop under the name
-      // rather than overflowing beside it.
-      title: Wrap(
-        spacing: 6,
-        runSpacing: 2,
-        crossAxisAlignment: WrapCrossAlignment.center,
-        children: [
-          Text('$tankTitle (${tank.gasMix.name})'),
-          if (tankLabel != null) _outlinedChip(theme, tankLabel),
-          if (showRole)
-            _outlinedChip(
-              theme,
-              tank.role.localizedName(context.l10n),
-              key: Key('tank-role-${tank.id}'),
-            ),
-        ],
-      ),
-      subtitle: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            '$startP ${units.pressureSymbol} → '
-            '$endP ${units.pressureSymbol}$used',
+    return CylinderTableRow(
+      icon: tank.role.icon,
+      title: title,
+      subtitle: [
+        if (hasName && sizeLabel != null) Text(sizeLabel),
+        if (showRole)
+          KeyedSubtree(
+            key: Key('tank-role-${tank.id}'),
+            child: Text(tank.role.localizedName(l10n)),
           ),
-          ?consumptionRow,
-          Text(
-            modMndText,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.tertiary,
-            ),
-          ),
-          if (slotLabel != null)
-            Text(
-              tripCylinderTankLine(context.l10n, slotLabel),
-              key: Key('tank-trip-cylinder-${tank.id}'),
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-          if (nameDerivedRole) _roleFromTransmitterNameLine(context, tank),
-          if (serial != null)
-            Row(
-              children: [
-                Text(
-                  context.l10n.transmitters_serial(serial),
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
+      ],
+      gasMix: tank.gasMix,
+      start: pressures.$1 == null
+          ? null
+          : units.formatPressureValue(pressures.$1),
+      end: pressures.$2 == null
+          ? null
+          : units.formatPressureValue(pressures.$2),
+      used: usedText,
+      columnLabels: columns,
+      unit: units.pressureSymbol,
+      details: [
+        DotJoinedWrap(
+          children: [
+            if (sourceName != null)
+              FieldAttributionBadge(sourceName: sourceName),
+            if (hasUsed && gasUsedLiters != null)
+              Text(
+                l10n.diveLog_cylinders_gasUsed(
+                  '${units.convertVolume(gasUsedLiters).round()} '
+                  '${units.volumeSymbol}',
                 ),
-                if (!serialKnown) ...[
-                  const SizedBox(width: 8),
-                  ActionChip(
+              ),
+            if (cylinderSac != null && cylinderSac.hasValidSac)
+              for (final line in _consumptionLines(l10n, cylinderSac))
+                Text(line),
+            Text(l10n.diveLog_cylinders_mod(modDepth)),
+            Text(l10n.diveLog_cylinders_mnd(mndDepth)),
+          ],
+        ),
+        if (slotLabel != null)
+          Text(
+            tripCylinderTankLine(l10n, slotLabel),
+            key: Key('tank-trip-cylinder-${tank.id}'),
+          ),
+        if (nameDerivedRole) _roleFromTransmitterNameLine(context, tank),
+        if (serial != null)
+          Wrap(
+            spacing: 8,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              Text(l10n.transmitters_serial(serial)),
+              if (!serialKnown)
+                TextButton(
+                  style: TextButton.styleFrom(
                     visualDensity: VisualDensity.compact,
-                    label: Text(context.l10n.diveLog_tank_assignTransmitter),
-                    onPressed: () => context.push(
-                      Uri(
-                        path: '/transmitters/new',
-                        queryParameters: {'serial': serial},
-                      ).toString(),
-                    ),
+                    textStyle: theme.textTheme.labelMedium,
                   ),
-                ],
-              ],
-            ),
-        ],
-      ),
-      // Either extra subtitle row makes the tile tall, and M3 centres the
-      // leading icon on a tall two-line tile, away from the name.
-      isThreeLine:
-          serial != null ||
-          consumptionRow != null ||
-          slotLabel != null ||
-          nameDerivedRole,
+                  onPressed: () => context.push(
+                    Uri(
+                      path: '/transmitters/new',
+                      queryParameters: {'serial': serial},
+                    ).toString(),
+                  ),
+                  child: Text(l10n.diveLog_tank_assignTransmitter),
+                ),
+            ],
+          ),
+      ],
       trailing: _checkInButton(tank),
     );
   }
@@ -314,7 +333,8 @@ class CylindersCard extends ConsumerWidget {
   /// transmitter's name (issue #2595). On a rebreather a bailout named "OC"
   /// becomes the oxygen supply that way, and every ppO2 figure downstream
   /// follows the role, so the diver is shown it is unconfirmed. Assigning
-  /// the transmitter (the chip on the serial row) settles it.
+  /// the transmitter (the button on the serial line) settles it. It keeps
+  /// the error colour: it is a warning, not one of the quiet details.
   Widget _roleFromTransmitterNameLine(BuildContext context, DiveTank tank) {
     final theme = Theme.of(context);
     final color = theme.colorScheme.error;
@@ -336,11 +356,9 @@ class CylindersCard extends ConsumerWidget {
   }
 
   /// A cylinder that is a gear item (the registry wrote its equipment link)
-  /// gets the check-in button; any other cylinder has no trailing widget.
-  /// Trailing holds only this fixed-width icon button: ListTile lays trailing
-  /// out first and gives the title what is left, so anything carrying text
-  /// there starves the tank name on a narrow card (#935). The item loads
-  /// through its own provider so the row never blocks on it.
+  /// gets the check-in button at the end of its detail block; any other
+  /// cylinder has none. The item loads through its own provider so the row
+  /// never blocks on it.
   Widget? _checkInButton(DiveTank tank) {
     final equipmentId = tank.equipmentId;
     if (equipmentId == null) return null;
@@ -353,56 +371,8 @@ class CylindersCard extends ConsumerWidget {
     );
   }
 
-  /// Small outlined chip beside the tank name: the preset/volume label (e.g.
-  /// "AL80") or the tank's role.
-  Widget _outlinedChip(ThemeData theme, String label, {Key? key}) {
-    return Container(
-      key: key,
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-      decoration: BoxDecoration(
-        border: Border.all(color: theme.colorScheme.outlineVariant),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        label,
-        style: theme.textTheme.labelSmall?.copyWith(
-          color: theme.colorScheme.onSurfaceVariant,
-        ),
-      ),
-    );
-  }
-
-  /// Subtitle row under the pressure line: attribution badge and one
-  /// consumption item per visible lane, wrapping onto a second line when the
-  /// card is too narrow for them side by side. Returns null when there is
-  /// nothing to show.
-  Widget? _consumptionRow(
-    AppLocalizations l10n,
-    ThemeData theme,
-    CylinderSac? cylinderSac,
-    String? sourceName,
-  ) {
-    final style = theme.textTheme.bodyMedium?.copyWith(
-      fontWeight: FontWeight.bold,
-      color: theme.colorScheme.primary,
-    );
-    final children = [
-      if (sourceName != null) FieldAttributionBadge(sourceName: sourceName),
-      if (cylinderSac != null && cylinderSac.hasValidSac)
-        for (final line in _consumptionLines(l10n, cylinderSac))
-          Text(line, style: style),
-    ];
-    if (children.isEmpty) return null;
-    return Wrap(
-      spacing: 12,
-      runSpacing: 2,
-      crossAxisAlignment: WrapCrossAlignment.center,
-      children: children,
-    );
-  }
-
-  /// One labeled line per lane the diver displays. RMV needs this
-  /// cylinder's own volume; without one the RMV line is omitted here (the
+  /// One labeled item per lane the diver displays. RMV needs this
+  /// cylinder's own volume; without one the RMV item is omitted here (the
   /// summary row carries the volume hint, not every cylinder). Only called
   /// when [CylinderSac.hasValidSac] is true.
   List<String> _consumptionLines(AppLocalizations l10n, CylinderSac cylinder) {

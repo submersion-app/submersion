@@ -253,7 +253,7 @@ void main() {
     test(
       'a computer whose twin was retyped gets a computer item again',
       () async {
-        // A v175 twin at the derived id, retyped by the diver before v315
+        // A v175 twin at the derived id, retyped by the diver before v316
         // locked the type: the computer would drop out of every list.
         await item(
           diveComputerGearId('c1'),

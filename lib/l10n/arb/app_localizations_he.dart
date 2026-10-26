@@ -9808,6 +9808,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_tank_label_material => 'חומר';
 
   @override
+  String get diveLog_tank_label_mnd => 'MND';
+
+  @override
   String get diveLog_tank_label_n2 => 'N2';
 
   @override
@@ -9832,13 +9835,43 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_tank_mndHelper => 'הגדר לחישוב אוטומטי של He%';
 
   @override
-  String diveLog_tank_gasUsed(String amount) {
-    return '($amount נוצלו)';
+  String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd) {
+    return 'MOD: $mod (ppO₂ $ppO2) | MND: $mnd';
   }
 
   @override
-  String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd) {
-    return 'MOD: $mod (ppO₂ $ppO2) | MND: $mnd';
+  String get diveLog_cylinders_columnTank => 'בלון';
+
+  @override
+  String get diveLog_cylinders_columnGas => 'גז';
+
+  @override
+  String get diveLog_cylinders_columnStart => 'התחלה';
+
+  @override
+  String get diveLog_cylinders_columnEnd => 'סיום';
+
+  @override
+  String get diveLog_cylinders_columnUsed => 'נוצל';
+
+  @override
+  String diveLog_cylinders_gasUsed(String amount) {
+    return 'גז שנוצל $amount';
+  }
+
+  @override
+  String diveLog_cylinders_mod(String depth) {
+    return 'MOD $depth';
+  }
+
+  @override
+  String diveLog_cylinders_mnd(String depth) {
+    return 'MND $depth';
+  }
+
+  @override
+  String diveLog_cylinders_modNote(String ppO2) {
+    return 'MOD ב-ppO₂ $ppO2';
   }
 
   @override
@@ -22240,6 +22273,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'הוספת הורדות לבעלים של המחשב';
 
   @override
+  String get settings_conflict_field_omitUnusedOcGases =>
+      'דילוג על גזי חילוץ שלא נוצלו';
+
+  @override
   String get settings_conflict_field_avgSpeed => 'מהירות ממוצעת';
 
   @override
@@ -29582,6 +29619,13 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_downloadsFollowOwner_subtitle =>
       'כשמחשב צלילה שייך לפרופיל אחר, הצלילות שלו נכנסות ליומן של אותו פרופיל. אפשר לשנות זאת במסך הסקירה.';
+
+  @override
+  String get settings_omitUnusedOcGases_title => 'דילוג על גזי חילוץ שלא נוצלו';
+
+  @override
+  String get settings_omitUnusedOcGases_subtitle =>
+      'בהורדות ובעיבוד מחדש ממעגל סגור, משמיט גז ללא משדר שמעולם לא נשמו ממנו';
 
   @override
   String get tags_manage_searchHint => 'חיפוש תגיות...';

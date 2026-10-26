@@ -818,7 +818,7 @@ class SyncRepository {
     ({String entityType, String table, String timestamp, String? filter})
   >
   _hlcBackfillTargets = [
-    // The device gear heal and the v315 upgrade (issue #3676) write these
+    // The device gear heal and the v316 upgrade (issue #3676) write these
     // with a NULL hlc so the next sync publishes what they adopted, linked
     // or minted; the v175 and #1288 seeds left some unstamped too.
     (

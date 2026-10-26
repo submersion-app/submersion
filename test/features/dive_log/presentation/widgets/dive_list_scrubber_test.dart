@@ -223,7 +223,7 @@ void main() {
         )
         .position;
     final settled = trackForSlot(
-      slot: slotForScroll(
+      slot: slotPositionForScroll(
         pixels: position.pixels,
         maxScrollExtent: position.maxScrollExtent,
         loadedSlotCount: 201,
@@ -233,7 +233,7 @@ void main() {
     );
     expect(
       tester.getTopLeft(find.byKey(ListScrubber.thumbKey)).dy,
-      closeTo(list.top + settled, 1),
+      closeTo(list.top + settled, 0.01),
     );
   });
 

@@ -622,7 +622,7 @@ final Map<String, ConflictField> diveLogFields = {
     (l) => l.settings_conflict_field_timestamp,
     FieldKind.durationSeconds,
   ),
-  // transmitters.is_configured (v315, issue #3676): whether the diver set
+  // transmitters.is_configured (v316, issue #3676): whether the diver set
   // the transmitter up, or the app created it from a download.
   'isConfigured': ConflictField(
     (l) => l.transmitters_section_setUp,

@@ -12,6 +12,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/detail_row_finders.dart';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -215,6 +216,24 @@ void main() {
       expect(find.text('Serial Number'), findsOneWidget);
       // The single Connection row gave way to the Connections card (#3106).
       expect(find.text('Connection'), findsNothing);
+    });
+
+    testWidgets('info values share one column beside the labels (#3678)', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _buildTestWidget(computer: _makeComputer(serialNumber: 'SN-12345')),
+      );
+      await tester.pumpAndSettle();
+
+      // The name is the Equipment item's (#3676), so Manufacturer leads.
+      final column = detailValueLeft(tester, 'Manufacturer');
+      expect(detailValueLeft(tester, 'Model'), column);
+      expect(detailValueLeft(tester, 'Serial Number'), column);
+      expect(
+        tester.getTopLeft(find.text('SN-12345')).dx,
+        lessThan(tester.getTopRight(detailRowFor('Manufacturer')).dx / 2),
+      );
     });
 
     testWidgets('shows dive count in stats', (tester) async {

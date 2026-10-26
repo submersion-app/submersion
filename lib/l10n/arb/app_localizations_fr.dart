@@ -10058,6 +10058,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_tank_label_material => 'Matériau';
 
   @override
+  String get diveLog_tank_label_mnd => 'MND';
+
+  @override
   String get diveLog_tank_label_n2 => 'N2';
 
   @override
@@ -10083,13 +10086,43 @@ class AppLocalizationsFr extends AppLocalizations {
       'Régler pour calculer automatiquement He%';
 
   @override
-  String diveLog_tank_gasUsed(String amount) {
-    return '($amount utilisés)';
+  String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd) {
+    return 'PMU : $mod (ppO₂ $ppO2) | PNM : $mnd';
   }
 
   @override
-  String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd) {
-    return 'PMU : $mod (ppO₂ $ppO2) | PNM : $mnd';
+  String get diveLog_cylinders_columnTank => 'Bloc';
+
+  @override
+  String get diveLog_cylinders_columnGas => 'Gaz';
+
+  @override
+  String get diveLog_cylinders_columnStart => 'Début';
+
+  @override
+  String get diveLog_cylinders_columnEnd => 'Fin';
+
+  @override
+  String get diveLog_cylinders_columnUsed => 'Utilisé';
+
+  @override
+  String diveLog_cylinders_gasUsed(String amount) {
+    return 'Gaz utilisé $amount';
+  }
+
+  @override
+  String diveLog_cylinders_mod(String depth) {
+    return 'PMU $depth';
+  }
+
+  @override
+  String diveLog_cylinders_mnd(String depth) {
+    return 'PNM $depth';
+  }
+
+  @override
+  String diveLog_cylinders_modNote(String ppO2) {
+    return 'PMU à ppO₂ $ppO2';
   }
 
   @override
@@ -22817,6 +22850,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Ajouter les téléchargements au propriétaire de l\'ordinateur';
 
   @override
+  String get settings_conflict_field_omitUnusedOcGases =>
+      'Ignorer les gaz de secours inutilisés';
+
+  @override
   String get settings_conflict_field_avgSpeed => 'Vitesse moyenne';
 
   @override
@@ -30441,6 +30478,14 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settings_downloadsFollowOwner_subtitle =>
       'Si un ordinateur de plongée appartient à un autre profil, ses plongées vont dans le carnet de ce profil. Vous pouvez le modifier sur l\'écran de vérification.';
+
+  @override
+  String get settings_omitUnusedOcGases_title =>
+      'Ignorer les gaz de secours inutilisés';
+
+  @override
+  String get settings_omitUnusedOcGases_subtitle =>
+      'Lors des téléchargements et réanalyses de recycleur, omet un gaz sans transmetteur qui n\'a jamais été respiré';
 
   @override
   String get tags_manage_searchHint => 'Rechercher des étiquettes...';

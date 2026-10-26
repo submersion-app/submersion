@@ -5,7 +5,7 @@ import 'package:submersion/core/database/device_gear_heal.dart';
 import 'package:submersion/core/database/dive_computer_gear_identity.dart';
 import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
 
-/// The ladder-only steps of the v315 upgrade (issue #3676), beside
+/// The ladder-only steps of the v316 upgrade (issue #3676), beside
 /// [ensureDeviceGearLinks], which also runs on every open and after sync.
 ///
 /// Ladder-only because each acts on history once: rerunning the name and

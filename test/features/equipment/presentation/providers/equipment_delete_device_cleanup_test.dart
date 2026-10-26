@@ -22,7 +22,12 @@ void main() {
     await db
         .into(db.divers)
         .insert(
-          DiversCompanion.insert(id: 'd1', name: 'd1', createdAt: 0, updatedAt: 0),
+          DiversCompanion.insert(
+            id: 'd1',
+            name: 'd1',
+            createdAt: 0,
+            updatedAt: 0,
+          ),
         );
     await db
         .into(db.equipment)
@@ -51,27 +56,30 @@ void main() {
   });
   tearDown(tearDownTestDatabase);
 
-  test('deleting a computer item forgets its clock sync choice (review)', () async {
-    final prefs = await SharedPreferences.getInstance();
-    final container = ProviderContainer(
-      overrides: [
-        sharedPreferencesProvider.overrideWithValue(prefs),
-        validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd1'),
-      ],
-    );
-    addTearDown(container.dispose);
-    await container
-        .read(clockSyncSettingsNotifierProvider.notifier)
-        .setOverride('c1', ClockSyncOverride.always);
+  test(
+    'deleting a computer item forgets its clock sync choice (review)',
+    () async {
+      final prefs = await SharedPreferences.getInstance();
+      final container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd1'),
+        ],
+      );
+      addTearDown(container.dispose);
+      await container
+          .read(clockSyncSettingsNotifierProvider.notifier)
+          .setOverride('c1', ClockSyncOverride.always);
 
-    final deleted = await container
-        .read(equipmentListNotifierProvider.notifier)
-        .deleteEquipment('gear');
+      final deleted = await container
+          .read(equipmentListNotifierProvider.notifier)
+          .deleteEquipment('gear');
 
-    expect(deleted, isTrue);
-    expect(
-      container.read(clockSyncSettingsNotifierProvider).overrideFor('c1'),
-      ClockSyncOverride.inherit,
-    );
-  });
+      expect(deleted, isTrue);
+      expect(
+        container.read(clockSyncSettingsNotifierProvider).overrideFor('c1'),
+        ClockSyncOverride.inherit,
+      );
+    },
+  );
 }

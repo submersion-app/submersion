@@ -160,7 +160,7 @@ Widget _buildCard({
 
 void main() {
   group('CylindersCard', () {
-    testWidgets('renders title, tank identity, pressures, and MOD/MND', (
+    testWidgets('renders a table row: size, gas, pressures, then details', (
       tester,
     ) async {
       await tester.pumpWidget(
@@ -169,16 +169,39 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Cylinders'), findsOneWidget);
-      expect(find.textContaining('Tank 1 (EAN32)'), findsOneWidget);
-      expect(
-        find.textContaining('200 bar → 50 bar (150 bar / 1665 L used)'),
-        findsOneWidget,
-      );
-      expect(find.textContaining('MOD:'), findsOneWidget);
-      expect(find.textContaining('MND:'), findsOneWidget);
+      for (final header in ['Tank', 'Gas', 'Start', 'End', 'Used']) {
+        expect(find.text(header), findsOneWidget);
+      }
+      // The unit sits once under each pressure header; the cells are bare.
+      expect(find.text('bar'), findsNWidgets(3));
+      // An unnamed tank without a preset leads with its volume.
+      expect(find.text('11.1 L'), findsOneWidget);
+      expect(find.text('EAN32'), findsOneWidget);
+      expect(find.text('200'), findsOneWidget);
+      expect(find.text('50'), findsOneWidget);
+      expect(find.text('150'), findsOneWidget);
+      expect(find.text('MOD 33m'), findsOneWidget);
+      expect(find.textContaining('MND '), findsOneWidget);
     });
 
-    testWidgets('MOD and its label follow the working ppO2 setting', (
+    testWidgets('the working ppO2 behind MOD is said once, under the table', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _buildCard(
+          dive: _makeDive([
+            _makeTank(),
+            _makeTank(id: 'tank-2', gasMix: const GasMix(o2: 50)),
+          ]),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('MOD at ppO₂ 1.4'), findsOneWidget);
+      expect(find.textContaining('(ppO₂'), findsNothing);
+    });
+
+    testWidgets('MOD and its note follow the working ppO2 setting', (
       tester,
     ) async {
       // EAN32 at ppO2 1.4 is 33.75 m; at 1.6 it is 40 m. The label used to
@@ -194,8 +217,8 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.textContaining('MOD: 40m'), findsOneWidget);
-      expect(find.textContaining('ppO₂ 1.6'), findsOneWidget);
+      expect(find.text('MOD 40m'), findsOneWidget);
+      expect(find.text('MOD at ppO₂ 1.6'), findsOneWidget);
       expect(find.textContaining('ppO₂ 1.4'), findsNothing);
     });
 
@@ -207,8 +230,8 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.textContaining('MOD: 33m'), findsOneWidget);
-      expect(find.textContaining('MOD: 34m'), findsNothing);
+      expect(find.text('MOD 33m'), findsOneWidget);
+      expect(find.text('MOD 34m'), findsNothing);
     });
 
     testWidgets('shows the SAC rate and the gas used on a single-tank dive', (
@@ -221,9 +244,174 @@ void main() {
 
       // sacRate 2.0 bar/min, SAC lane, metric.
       expect(find.text('SAC 2.0 bar/min'), findsOneWidget);
-      // gasUsedLiters = (200 - 50) * 11.1 = 1665 L, shown in the subtitle
-      // beside the pressure drop it restates.
-      expect(find.textContaining('(150 bar / 1665 L used)'), findsOneWidget);
+      // gasUsedLiters = (200 - 50) * 11.1 = 1665 L, the volume behind the
+      // Used column's pressure drop.
+      expect(find.text('Gas used 1665 L'), findsOneWidget);
+    });
+
+    testWidgets('a named tank keeps its size and role under the name', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _buildCard(
+          dive: _makeDive([
+            _makeTank(),
+            const DiveTank(
+              id: 'tank-2',
+              name: 'Left stage',
+              presetName: 'al40',
+              volume: 5.7,
+              gasMix: GasMix(o2: 50),
+              role: TankRole.deco,
+            ),
+          ]),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Left stage'), findsOneWidget);
+      expect(find.text('AL40'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('tank-role-tank-2')),
+          matching: find.text('Deco'),
+        ),
+        findsOneWidget,
+      );
+      // Above the size and role, not beside them.
+      expect(
+        tester.getTopLeft(find.text('AL40')).dy,
+        greaterThan(tester.getBottomLeft(find.text('Left stage')).dy - 1),
+      );
+    });
+
+    testWidgets('a tank with neither a name nor a size is numbered', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _buildCard(dive: _makeDive([_makeTank(volume: null)])),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Tank 1'), findsOneWidget);
+    });
+
+    testWidgets('pressure columns line up from tank to tank', (tester) async {
+      await tester.pumpWidget(
+        _buildCard(
+          dive: _makeDive([
+            _makeTank(),
+            _makeTank(
+              id: 'tank-2',
+              name: 'A much longer stage bottle name',
+              startPressure: 210,
+              endPressure: 120,
+              gasMix: const GasMix(o2: 21, he: 35),
+            ),
+          ]),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final used1 = tester.getTopRight(find.text('150'));
+      final used2 = tester.getTopRight(find.text('90'));
+      expect(used1.dx, moreOrLessEquals(used2.dx, epsilon: 0.5));
+      final start1 = tester.getTopRight(find.text('200'));
+      final start2 = tester.getTopRight(find.text('210'));
+      expect(start1.dx, moreOrLessEquals(start2.dx, epsilon: 0.5));
+      final gas1 = tester.getTopLeft(find.text('EAN32'));
+      final gas2 = tester.getTopLeft(find.text('Tx 21/35'));
+      expect(gas1.dx, moreOrLessEquals(gas2.dx, epsilon: 0.5));
+    });
+
+    testWidgets('a missing pressure shows a placeholder in every column', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _buildCard(
+          dive: _makeDive([_makeTank(startPressure: null, endPressure: null)]),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('--'), findsNWidgets(3));
+    });
+
+    testWidgets('a tank carried but not breathed used 0, not unknown', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _buildCard(
+          dive: _makeDive([_makeTank(startPressure: 200, endPressure: 200)]),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('0'), findsOneWidget);
+      expect(find.text('--'), findsNothing);
+    });
+
+    testWidgets('each pressure cell reads out its column and unit', (
+      tester,
+    ) async {
+      final semantics = tester.ensureSemantics();
+      await tester.pumpWidget(_buildCard(dive: _makeDive([_makeTank()])));
+      await tester.pumpAndSettle();
+
+      expect(find.bySemanticsLabel('Start 200 bar'), findsOneWidget);
+      expect(find.bySemanticsLabel('End 50 bar'), findsOneWidget);
+      expect(find.bySemanticsLabel('Used 150 bar'), findsOneWidget);
+      semantics.dispose();
+    });
+
+    testWidgets('the tank and gas cells read out their column', (tester) async {
+      // The visual header is hidden from screen readers, so each cell must
+      // say which column it is in.
+      final semantics = tester.ensureSemantics();
+      await tester.pumpWidget(_buildCard(dive: _makeDive([_makeTank()])));
+      await tester.pumpAndSettle();
+
+      expect(find.bySemanticsLabel('Gas EAN32'), findsOneWidget);
+      expect(
+        find.bySemanticsLabel(RegExp(r'^Tank\s+11\.1 L$')),
+        findsOneWidget,
+      );
+      semantics.dispose();
+    });
+
+    testWidgets('the dots between detail items are not read out', (
+      tester,
+    ) async {
+      final semantics = tester.ensureSemantics();
+      await tester.pumpWidget(
+        _buildCard(dive: _makeDive([_makeTank()]), cylinderSacs: [_makeSac()]),
+      );
+      await tester.pumpAndSettle();
+
+      // The dots are drawn between the items...
+      expect(find.text(' · '), findsWidgets);
+      // ...but no semantics node carries one.
+      expect(find.bySemanticsLabel(RegExp('·')), findsNothing);
+      // The items themselves are still read.
+      expect(find.bySemanticsLabel(RegExp('Gas used 1665 L')), findsWidgets);
+      semantics.dispose();
+    });
+
+    testWidgets('a missing pressure is read out without a unit', (
+      tester,
+    ) async {
+      final semantics = tester.ensureSemantics();
+      await tester.pumpWidget(
+        _buildCard(
+          dive: _makeDive([_makeTank(startPressure: null, endPressure: null)]),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.bySemanticsLabel('Start --'), findsOneWidget);
+      expect(find.bySemanticsLabel('Used --'), findsOneWidget);
+      expect(find.bySemanticsLabel(RegExp(r'-- bar')), findsNothing);
+      semantics.dispose();
     });
 
     testWidgets('a linked cylinder whose item does not resolve keeps its SAC '
@@ -258,9 +446,9 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.textContaining('Tank 1'), findsOneWidget);
+      expect(find.text('11.1 L'), findsOneWidget);
       expect(find.textContaining('/min'), findsNothing);
-      expect(find.textContaining('used'), findsNothing);
+      expect(find.textContaining('Gas used'), findsNothing);
     });
 
     testWidgets('shows one row with distinct SAC per tank on multi-tank dive', (
@@ -331,9 +519,8 @@ void main() {
     testWidgets('the tank icon stays level with the name on a row with rates', (
       tester,
     ) async {
-      // The rates add a subtitle row, so the tile is tall. ListTile's M3
-      // alignment centres leading and trailing on the whole tile unless
-      // isThreeLine is set, which left the icon floating below the name.
+      // The rates add a detail line under the row, so the row is tall; the
+      // icon must stay beside the name rather than centre on the block.
       await tester.pumpWidget(
         _buildCard(
           dive: _makeDive([_makeTank()]),
@@ -346,17 +533,14 @@ void main() {
       final iconTop = tester.getTopLeft(
         find.byIcon(SubmersionIcons.tankBackGas),
       );
-      final nameTop = tester.getTopLeft(find.text('Tank 1 (EAN32)'));
+      final nameTop = tester.getTopLeft(find.text('11.1 L'));
       expect((iconTop.dy - nameTop.dy).abs(), lessThan(8));
     });
 
     testWidgets('both fits everything at desktop density', (tester) async {
-      // ListTile caps the trailing slot's height at 56px minus the density
-      // adjustment. Desktop defaults to compact, making that 48px, which the
-      // macOS screenshot run found too short for the lines trailing used to
-      // hold. Widget tests run at standard density, so the default harness
-      // never saw it. This row carries all of it at once (source badge, both
-      // lanes, gas used, check-in button); a vertical overflow anywhere
+      // Desktop defaults to compact density, which the default widget-test
+      // harness never sees. This row carries all of it at once (source
+      // badge, both lanes, gas used, check-in button); an overflow anywhere
       // would fail the test through FlutterError.
       final item = EquipmentItem(
         id: 'al80',
@@ -394,20 +578,19 @@ void main() {
       expect(find.text('Perdix 2'), findsOneWidget);
       expect(find.text('SAC 2.0 bar/min'), findsOneWidget);
       expect(find.text('RMV 22.2 L/min'), findsOneWidget);
-      expect(find.textContaining('(150 bar / 1665 L used)'), findsOneWidget);
+      expect(find.text('Gas used 1665 L'), findsOneWidget);
       expect(find.byType(ObservationStatusChip), findsOneWidget);
     });
 
     group('on a narrow card', () {
-      // ListTile lays trailing out against the full tile width and gives the
-      // title what is left (#935). With the rates in trailing, Both left the
-      // tank name about 20px of a 300px tile, on a phone or half of a paired
-      // row. The test font sets every glyph a full em wide, so 150px is a
-      // floor for "has room", not the width a real font needs.
+      // A phone, or half of a paired row on a wide pane. The test font sets
+      // every glyph a full em wide, so this width exaggerates the squeeze;
+      // an overflow anywhere fails the test through FlutterError.
       Future<void> pumpNarrow(
         WidgetTester tester, {
         DiveTank? tank,
         Locale? locale,
+        List<DiveDataSource> dataSources = const [],
         List<dynamic> extraOverrides = const [],
       }) async {
         await tester.binding.setSurfaceSize(const Size(340, 800));
@@ -416,6 +599,7 @@ void main() {
           _buildCard(
             dive: _makeDive([tank ?? _makeTank()]),
             cylinderSacs: [_makeSac()],
+            dataSources: dataSources,
             display: GasConsumptionDisplay.both,
             // Pinned, so the English finders do not depend on the host.
             locale: locale ?? const Locale('en'),
@@ -425,38 +609,32 @@ void main() {
         await tester.pumpAndSettle();
       }
 
-      testWidgets('the tank name keeps its width beside both rates', (
-        tester,
-      ) async {
+      testWidgets('every column and both rates fit', (tester) async {
         await pumpNarrow(tester);
 
-        expect(
-          tester.getSize(find.text('Tank 1 (EAN32)')).width,
-          greaterThan(150),
-        );
+        expect(tester.takeException(), isNull);
+        expect(find.text('11.1 L'), findsOneWidget);
+        expect(find.text('150'), findsOneWidget);
         expect(find.text('SAC 2.0 bar/min'), findsOneWidget);
         expect(find.text('RMV 22.2 L/min'), findsOneWidget);
       });
 
-      testWidgets('the tank name keeps its width in German', (tester) async {
+      testWidgets('the longer German labels fit', (tester) async {
         // "Druckverbrauch" is the #935 shape: a translated lane label far
         // wider than the English "SAC".
         await pumpNarrow(tester, locale: const Locale('de'));
 
-        expect(
-          tester.getSize(find.text('Flasche 1 (EAN32)')).width,
-          greaterThan(150),
-        );
+        expect(tester.takeException(), isNull);
+        expect(find.text('Verbraucht'), findsOneWidget);
         expect(find.textContaining('Druckverbrauch '), findsOneWidget);
         expect(find.textContaining('AMV '), findsOneWidget);
       });
 
-      testWidgets('a linked cylinder keeps its check-in button and the name '
-          'keeps its width', (tester) async {
-        // The check-in button is the one widget trailing still holds, so the
-        // tank has no volume and so no volume chip: the name has the title
-        // row to itself, and what is measured is only what trailing leaves.
-        // The rates still come from the SAC fixture's own cylinder volume.
+      testWidgets('a transmitter, source badge and check-in fit together', (
+        tester,
+      ) async {
+        // The old row overflowed by 20px here: the serial and its Assign
+        // chip sat in a Row beside the check-in button.
         final item = EquipmentItem(
           id: 'al80',
           name: 'AL80 #4',
@@ -465,7 +643,20 @@ void main() {
         );
         await pumpNarrow(
           tester,
-          tank: _makeTank(equipmentId: 'al80', volume: null),
+          tank: _makeTank(
+            equipmentId: 'al80',
+            transmitterSerial: '812345',
+            computerId: 'comp-1',
+          ),
+          dataSources: [
+            _makeSource(
+              id: 'src-1',
+              computerId: 'comp-1',
+              isPrimary: true,
+              computerModel: 'Perdix 2',
+            ),
+            _makeSource(id: 'src-2', computerId: 'comp-2'),
+          ],
           extraOverrides: [
             equipmentItemProvider('al80').overrideWith((ref) async => item),
             observationsForDiveProvider(
@@ -474,42 +665,13 @@ void main() {
           ],
         );
 
+        expect(tester.takeException(), isNull);
         expect(find.byType(ObservationStatusChip), findsOneWidget);
-        expect(
-          tester.getSize(find.text('Tank 1 (EAN32)')).width,
-          greaterThan(150),
-        );
-        expect(find.text('SAC 2.0 bar/min'), findsOneWidget);
-        expect(find.text('RMV 22.2 L/min'), findsOneWidget);
+        expect(find.text('Perdix 2'), findsOneWidget);
+        expect(find.text('Transmitter 812345'), findsOneWidget);
+        expect(find.text('Assign transmitter'), findsOneWidget);
       });
     });
-
-    testWidgets(
-      'a narrow card fits the title and volume chip beside the rates',
-      (tester) async {
-        // ListTile lays out the trailing rates first and gives the title what
-        // is left. On a phone, or half of a 700px pane, that can be too little
-        // for the tank name and the volume chip on one line, and the chip,
-        // which cannot shrink, overflowed the title row. The test font sets
-        // every glyph a full em wide, so this width exaggerates the squeeze;
-        // it is the overflow, not the title's width, that is asserted.
-        await tester.binding.setSurfaceSize(const Size(340, 800));
-        addTearDown(() => tester.binding.setSurfaceSize(null));
-
-        await tester.pumpWidget(
-          _buildCard(
-            dive: _makeDive([_makeTank()]),
-            cylinderSacs: [_makeSac()],
-            display: GasConsumptionDisplay.both,
-          ),
-        );
-        await tester.pumpAndSettle();
-
-        expect(tester.takeException(), isNull);
-        expect(find.text('Tank 1 (EAN32)'), findsOneWidget);
-        expect(find.text('11.1 L'), findsOneWidget);
-      },
-    );
 
     testWidgets('both omits the RMV line for a cylinder without a volume', (
       tester,
@@ -545,11 +707,12 @@ void main() {
 
       // 2.0 bar/min * 14.5038 = 29.0076 -> '29 psi/min' (no decimal for psi).
       expect(find.text('SAC 29 psi/min'), findsOneWidget);
-      // Pressure line rendered in psi.
-      expect(find.textContaining('psi →'), findsOneWidget);
+      // The unit under each pressure header follows the setting.
+      expect(find.text('psi'), findsNWidgets(3));
+      expect(find.text('bar'), findsNothing);
     });
 
-    testWidgets('shows preset display name as the volume chip', (tester) async {
+    testWidgets('an unnamed tank leads with its preset name', (tester) async {
       await tester.pumpWidget(
         _buildCard(
           dive: _makeDive([
@@ -588,10 +751,9 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(
-        find.textContaining('200 bar → 60 bar (140 bar used)'),
-        findsOneWidget,
-      );
+      expect(find.text('200'), findsOneWidget);
+      expect(find.text('60'), findsOneWidget);
+      expect(find.text('140'), findsOneWidget);
     });
 
     testWidgets('hides source badge with a single data source', (tester) async {

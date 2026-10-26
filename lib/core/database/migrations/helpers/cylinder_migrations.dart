@@ -96,10 +96,10 @@ extension CylinderMigrations on AppDatabase {
     }
   }
 
-  /// Idempotent DDL for the v315 transmitters.is_configured column (issue
+  /// Idempotent DDL for the v316 transmitters.is_configured column (issue
   /// #3676). Every existing entry was made by hand, so the default marks it
   /// configured; only entries the app creates from a download start at 0.
-  /// Called from the v315 rung and the beforeOpen backstop, self-guarding
+  /// Called from the v316 rung and the beforeOpen backstop, self-guarding
   /// when the table is absent.
   Future<void> _assertTransmitterConfiguredColumn() async {
     final cols = await customSelect("PRAGMA table_info('transmitters')").get();

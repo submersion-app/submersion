@@ -7,7 +7,7 @@ import 'package:path/path.dart' as p;
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/dive_computer_gear_identity.dart';
 
-/// Schema v315: one Equipment entry per dive computer and transmitter
+/// Schema v316: one Equipment entry per dive computer and transmitter
 /// (issue #3676).
 void main() {
   /// A v314 database holding one hand-made transmitter entry.
@@ -44,9 +44,9 @@ void main() {
     );
   }
 
-  test('v315 is the current schema version and in the ladder', () {
-    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(315));
-    expect(AppDatabase.migrationVersions, contains(315));
+  test('v316 is the current schema version and in the ladder', () {
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(316));
+    expect(AppDatabase.migrationVersions, contains(316));
   });
 
   test('the column is additive, so the sync floor does not move', () {
@@ -63,7 +63,7 @@ void main() {
     expect(row.read<int>('is_configured'), 1);
   });
 
-  /// A v314-shaped (or v315, for the open-time heal) database whose computer
+  /// A v314-shaped (or v316, for the open-time heal) database whose computer
   /// lost its gear twin, with a hand-added item to adopt and a dive carrying
   /// a transmitter serial nobody registered.
   NativeDatabase richDb({int userVersion = 314}) {
@@ -110,7 +110,7 @@ void main() {
             tank_role TEXT NOT NULL, volume_l REAL,
             working_pressure_bar REAL, tank_material TEXT, preset_name TEXT,
             equipment_id TEXT, transmitter_equipment_id TEXT,
-            ${userVersion >= 315 ? 'is_configured INTEGER NOT NULL DEFAULT 1,' : ''}
+            ${userVersion >= 316 ? 'is_configured INTEGER NOT NULL DEFAULT 1,' : ''}
             created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL, hlc TEXT
           )
         ''');
@@ -227,7 +227,7 @@ void main() {
   test(
     'opening a current database heals a computer that lost its item',
     () async {
-      final db = AppDatabase(richDb(userVersion: 315));
+      final db = AppDatabase(richDb(userVersion: 316));
       addTearDown(db.close);
 
       final c = await db

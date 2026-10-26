@@ -7,6 +7,7 @@ import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/detail_row/detail_row.dart';
 import 'package:submersion/shared/widgets/shared_items/share_target_dialog.dart';
 import 'package:submersion/shared/widgets/shared_items/shared_item_dialogs.dart';
 
@@ -265,38 +266,31 @@ class SharingTile extends StatelessWidget {
       borderRadius: BorderRadius.circular(8),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: Row(
-          children: [
-            Icon(
-              Icons.people_outline,
-              size: 20,
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-            const SizedBox(width: 12),
-            Text(
-              context.l10n.sharedItems_sharedWith_label,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
+        child: DetailRow(
+          icon: Icons.people_outline,
+          iconColor: theme.colorScheme.onSurfaceVariant,
+          label: context.l10n.sharedItems_sharedWith_label,
+          padding: EdgeInsets.zero,
+          value: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Flexible(
+                child: Text(
+                  summary,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 2,
+                ),
               ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Text(
-                summary,
-                textAlign: TextAlign.end,
-                overflow: TextOverflow.ellipsis,
-                maxLines: 2,
-              ),
-            ),
-            if (onTap != null) ...[
-              const SizedBox(width: 4),
-              Icon(
-                Icons.chevron_right,
-                size: 18,
-                color: theme.colorScheme.primary,
-              ),
+              if (onTap != null) ...[
+                const SizedBox(width: 4),
+                Icon(
+                  Icons.chevron_right,
+                  size: 18,
+                  color: theme.colorScheme.primary,
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );

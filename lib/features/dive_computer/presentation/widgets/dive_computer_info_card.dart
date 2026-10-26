@@ -5,6 +5,8 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/transmitters/presentation/providers/transmitter_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/detail_row/detail_row.dart';
+import 'package:submersion/shared/widgets/detail_row/detail_row_group.dart';
 
 /// What the device reports about itself: maker, model, serial and firmware,
 /// plus the transmitters seen on its dives. Its name and notes are the
@@ -28,56 +30,60 @@ class DiveComputerInfoCard extends StatelessWidget {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  width: 56,
-                  height: 56,
-                  decoration: BoxDecoration(
-                    color: colorScheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(12),
+        // Values sit beside their labels in one shared column (#3682).
+        child: DetailRowGroup(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      color: colorScheme.primaryContainer,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      icon,
+                      size: 32,
+                      color: colorScheme.onPrimaryContainer,
+                    ),
                   ),
-                  child: Icon(
-                    icon,
-                    size: 32,
-                    color: colorScheme.onPrimaryContainer,
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Text(
+                      computer.fullName,
+                      style: theme.textTheme.titleLarge,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Text(
-                    computer.fullName,
-                    style: theme.textTheme.titleLarge,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            const Divider(),
-            const SizedBox(height: 8),
-            _InfoRow(
-              label: l10n.diveComputer_detail_labelManufacturer,
-              value: computer.manufacturer ?? l10n.diveComputer_detail_unknown,
-            ),
-            _InfoRow(
-              label: l10n.diveComputer_detail_labelModel,
-              value: computer.model ?? l10n.diveComputer_detail_unknown,
-            ),
-            if (computer.serialNumber != null)
-              _InfoRow(
-                label: l10n.diveLog_detail_label_serialNumber,
-                value: computer.serialNumber!,
+                ],
               ),
-            if (computer.firmwareVersion != null)
+              const SizedBox(height: 16),
+              const Divider(),
+              const SizedBox(height: 8),
               _InfoRow(
-                label: l10n.diveLog_detail_label_firmwareVersion,
-                value: computer.firmwareVersion!,
+                label: l10n.diveComputer_detail_labelManufacturer,
+                value:
+                    computer.manufacturer ?? l10n.diveComputer_detail_unknown,
               ),
-            _TransmittersRow(computerId: computer.id),
-          ],
+              _InfoRow(
+                label: l10n.diveComputer_detail_labelModel,
+                value: computer.model ?? l10n.diveComputer_detail_unknown,
+              ),
+              if (computer.serialNumber != null)
+                _InfoRow(
+                  label: l10n.diveLog_detail_label_serialNumber,
+                  value: computer.serialNumber!,
+                ),
+              if (computer.firmwareVersion != null)
+                _InfoRow(
+                  label: l10n.diveLog_detail_label_firmwareVersion,
+                  value: computer.firmwareVersion!,
+                ),
+              _TransmittersRow(computerId: computer.id),
+            ],
+          ),
         ),
       ),
     );
@@ -92,21 +98,11 @@ class _InfoRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Padding(
+    return DetailRow.text(
+      label: label,
+      value: value,
+      valueStyle: Theme.of(context).textTheme.bodyMedium,
       padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-          Text(value, style: theme.textTheme.bodyMedium),
-        ],
-      ),
     );
   }
 }
@@ -133,34 +129,26 @@ class _TransmittersRow extends ConsumerWidget {
 
     return InkWell(
       onTap: () => context.push('/transmitters'),
-      child: Padding(
+      child: DetailRow(
+        label: context.l10n.diveComputer_detail_transmitters,
         padding: const EdgeInsets.symmetric(vertical: 4),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        value: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              context.l10n.diveComputer_detail_transmitters,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
+            Flexible(
+              child: Text(
+                context.l10n.diveComputer_detail_transmittersSummary(
+                  summary.known,
+                  summary.unassigned,
+                ),
+                style: theme.textTheme.bodyMedium,
               ),
             ),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  context.l10n.diveComputer_detail_transmittersSummary(
-                    summary.known,
-                    summary.unassigned,
-                  ),
-                  style: theme.textTheme.bodyMedium,
-                ),
-                const SizedBox(width: 4),
-                Icon(
-                  Icons.chevron_right,
-                  size: 18,
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ],
+            const SizedBox(width: 4),
+            Icon(
+              Icons.chevron_right,
+              size: 18,
+              color: theme.colorScheme.onSurfaceVariant,
             ),
           ],
         ),

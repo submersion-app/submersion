@@ -9,6 +9,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/models/subtitle_text.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/section_header_title.dart';
+import 'package:submersion/shared/widgets/section_title_toggle.dart';
 
 import '../../../../helpers/mock_providers.dart';
 
@@ -353,11 +354,53 @@ void main() {
     final count = tester.getRect(find.text('3 entries'));
     final bar = tester.getRect(find.byType(AppBar));
     expect(count.bottom, lessThanOrEqualTo(bar.bottom));
+    // Grown by exactly the switch, the gap and the count: no dead space
+    // under the count, and none of it cut off (#3663).
+    final toolbar = tester.getRect(
+      find.descendant(
+        of: find.byType(AppBar),
+        matching: find.byType(NavigationToolbar),
+      ),
+    );
+    expect(count.bottom, closeTo(toolbar.bottom, 0.5));
     // A name too long for the bar scrolls into reach rather than clipping.
     final tabBar = tester.widget<TabBar>(
       find.byKey(const ValueKey('training_section_toggle')),
     );
     expect(tabBar.isScrollable, isTrue);
+  });
+
+  // The count is its own line, not pressed against the selected name's
+  // underline (#3663).
+  for (final (label, size) in <(String, Size)>[
+    ('phone', const Size(400, 800)),
+    ('desktop', const Size(1400, 900)),
+  ]) {
+    testWidgets('$label: the count sits a gap under the underline', (
+      tester,
+    ) async {
+      await _pump(tester, size: size);
+
+      final underline = tester
+          .getRect(find.byKey(const ValueKey('training_section_toggle')).first)
+          .bottom;
+      final count = tester.getRect(find.text('3 entries').first).top;
+      expect(count - underline, closeTo(SectionTitleToggle.subtitleGap, 0.5));
+    });
+  }
+
+  testWidgets('phone: the switch, gap and count fill the standard bar', (
+    tester,
+  ) async {
+    await _pump(tester);
+
+    final toolbar = find.descendant(
+      of: find.byType(AppBar),
+      matching: find.byType(NavigationToolbar),
+    );
+    expect(tester.getSize(toolbar).height, kToolbarHeight);
+    final count = tester.getRect(find.text('3 entries'));
+    expect(count.bottom, lessThanOrEqualTo(tester.getRect(toolbar).bottom));
   });
 
   testWidgets('focus leaves a tab when it is hidden and comes back with it', (

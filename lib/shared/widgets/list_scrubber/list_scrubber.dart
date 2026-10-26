@@ -125,6 +125,14 @@ class _ListScrubberState extends State<ListScrubber> {
   TextScaler? _columnScaler;
   TextStyle? _columnStyle;
   double _column = ListScrubberPanel.width;
+  String? _bandValue;
+  String? _bandDetail;
+  double? _bandHost;
+  double? _bandPanel;
+  ThemeData? _bandTheme;
+  TextDirection? _bandDirection;
+  TextScaler? _bandScaler;
+  Size? _band;
   int? _dragSlot;
   int? _lastSlot;
 
@@ -219,6 +227,44 @@ class _ListScrubberState extends State<ListScrubber> {
     return _column;
   }
 
+  /// The current band for [value] and [detail], laid out again only when
+  /// they or what sizes them change, not on every pixel of a drag.
+  Size _bandFor(
+    BuildContext context, {
+    required String value,
+    required String? detail,
+    required double hostWidth,
+    required double panelWidth,
+  }) {
+    final theme = Theme.of(context);
+    final direction = Directionality.of(context);
+    final scaler = MediaQuery.textScalerOf(context);
+    if (_band == null ||
+        _bandValue != value ||
+        _bandDetail != detail ||
+        _bandHost != hostWidth ||
+        _bandPanel != panelWidth ||
+        !identical(_bandTheme, theme) ||
+        _bandDirection != direction ||
+        _bandScaler != scaler) {
+      _bandValue = value;
+      _bandDetail = detail;
+      _bandHost = hostWidth;
+      _bandPanel = panelWidth;
+      _bandTheme = theme;
+      _bandDirection = direction;
+      _bandScaler = scaler;
+      _band = ListScrubberPanel.bandSize(
+        context,
+        value: value,
+        detail: detail,
+        hostWidth: hostWidth,
+        panelWidth: panelWidth,
+      );
+    }
+    return _band!;
+  }
+
   /// Tracks a hover over the region: the end edge's column shows the thumb,
   /// and the drawn thumb itself (or the margin between it and the edge)
   /// opens the panel, which then stays open until the
@@ -293,19 +339,22 @@ class _ListScrubberState extends State<ListScrubber> {
         final dragSlot = _dragSlot == null
             ? null
             : math.min(_dragSlot!, _maxSlot);
-        final slot =
-            dragSlot ??
-            (widget.busyLabel != null ? _lastSlot : null) ??
-            slotForScroll(
-              pixels: position.pixels,
-              maxScrollExtent: position.maxScrollExtent,
-              loadedSlotCount: widget.loadedSlotCount,
-            );
-        final thumbTop = trackForSlot(
-          slot: math.min(slot, _maxSlot),
-          trackExtent: trackExtent,
-          slotCount: widget.slotCount,
+        final busySlot = widget.busyLabel != null ? _lastSlot : null;
+        // Between slots, so the thumb follows every pixel of scrolling.
+        final scrolled = slotPositionForScroll(
+          pixels: position.pixels,
+          maxScrollExtent: position.maxScrollExtent,
+          loadedSlotCount: widget.loadedSlotCount,
         );
+        final slot = dragSlot ?? busySlot ?? scrolled.round();
+        // A dragged thumb stays under the pointer.
+        final thumbTop = dragSlot != null
+            ? math.min(_dragTop, trackExtent)
+            : trackForSlot(
+                slot: math.min(busySlot ?? scrolled, _maxSlot),
+                trackExtent: trackExtent,
+                slotCount: widget.slotCount,
+              );
         _thumbTop = thumbTop;
         final active =
             _hovering || dragSlot != null || widget.busyLabel != null;
@@ -345,7 +394,7 @@ class _ListScrubberState extends State<ListScrubber> {
         // Laid out once here; the panel takes the height from it.
         final band = value == null
             ? null
-            : ListScrubberPanel.bandSize(
+            : _bandFor(
                 context,
                 value: value,
                 detail: detail,
@@ -523,31 +572,49 @@ class _ListScrubberState extends State<ListScrubber> {
   }
 
   void _dragTo(double dy, double trackExtent) {
-    _dragTop = (_dragTop + dy).clamp(0.0, trackExtent);
-    final slot = math.min(
-      slotForTrack(
-        dy: _dragTop,
-        trackExtent: trackExtent,
-        slotCount: widget.slotCount,
-      ),
-      _maxSlot,
+    final top = (_dragTop + dy).clamp(0.0, trackExtent);
+    final position = slotPositionForTrack(
+      dy: top,
+      trackExtent: trackExtent,
+      slotCount: widget.slotCount,
     );
-    if (slot != _dragSlot) setState(() => _dragSlot = slot);
-    _follow(slot);
+    final slot = math.min(position.round(), _maxSlot);
+    final target = _followTarget(position);
+    // An update that would move neither the thumb nor the list, like one
+    // past either end of the track, rebuilds nothing. Rows that loaded
+    // under a held thumb change the target, so they are still followed.
+    if (top == _dragTop &&
+        slot == _dragSlot &&
+        (target == null ||
+            (target == widget.controller.offset && slot == _followedSlot))) {
+      return;
+    }
+    _dragTop = top;
+    // The thumb moves with every update, even within one slot.
+    setState(() => _dragSlot = slot);
+    _follow(position);
   }
 
-  /// Scrolls the list to [slot] when it is a loaded row.
-  void _follow(int slot) {
+  /// The scroll offset showing [position], which may fall between two
+  /// slots, or null when it rounds past the loaded rows.
+  double? _followTarget(num position) {
     final controller = widget.controller;
-    if (slot >= widget.loadedSlotCount || !controller.hasClients) return;
-    _followedSlot = slot;
-    controller.jumpTo(
-      scrollForSlot(
-        slot: slot,
-        maxScrollExtent: controller.position.maxScrollExtent,
-        loadedSlotCount: widget.loadedSlotCount,
-      ),
+    if (position.round() >= widget.loadedSlotCount || !controller.hasClients) {
+      return null;
+    }
+    return scrollForSlot(
+      slot: position,
+      maxScrollExtent: controller.position.maxScrollExtent,
+      loadedSlotCount: widget.loadedSlotCount,
     );
+  }
+
+  /// Scrolls the list to [position] when it rounds to a loaded row.
+  void _follow(num position) {
+    final target = _followTarget(position);
+    if (target == null) return;
+    _followedSlot = position.round();
+    widget.controller.jumpTo(target);
   }
 
   void _endDrag() {

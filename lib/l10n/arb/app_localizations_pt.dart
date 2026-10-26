@@ -10021,6 +10021,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_tank_label_material => 'Material';
 
   @override
+  String get diveLog_tank_label_mnd => 'MND';
+
+  @override
   String get diveLog_tank_label_n2 => 'N2';
 
   @override
@@ -10046,13 +10049,43 @@ class AppLocalizationsPt extends AppLocalizations {
       'Configurar para calcular He% automaticamente';
 
   @override
-  String diveLog_tank_gasUsed(String amount) {
-    return '($amount usados)';
+  String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd) {
+    return 'MOD: $mod (ppO₂ $ppO2) | MND: $mnd';
   }
 
   @override
-  String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd) {
-    return 'MOD: $mod (ppO₂ $ppO2) | MND: $mnd';
+  String get diveLog_cylinders_columnTank => 'Cilindro';
+
+  @override
+  String get diveLog_cylinders_columnGas => 'Gás';
+
+  @override
+  String get diveLog_cylinders_columnStart => 'Início';
+
+  @override
+  String get diveLog_cylinders_columnEnd => 'Fim';
+
+  @override
+  String get diveLog_cylinders_columnUsed => 'Usado';
+
+  @override
+  String diveLog_cylinders_gasUsed(String amount) {
+    return 'Gás usado $amount';
+  }
+
+  @override
+  String diveLog_cylinders_mod(String depth) {
+    return 'MOD $depth';
+  }
+
+  @override
+  String diveLog_cylinders_mnd(String depth) {
+    return 'MND $depth';
+  }
+
+  @override
+  String diveLog_cylinders_modNote(String ppO2) {
+    return 'MOD a ppO₂ $ppO2';
   }
 
   @override
@@ -22755,6 +22788,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Adicionar downloads ao dono do computador';
 
   @override
+  String get settings_conflict_field_omitUnusedOcGases =>
+      'Ignorar gases de bailout não usados';
+
+  @override
   String get settings_conflict_field_avgSpeed => 'Velocidade média';
 
   @override
@@ -30337,6 +30374,14 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_downloadsFollowOwner_subtitle =>
       'Quando um computador de mergulho pertence a outro perfil, os mergulhos dele vão para o registro desse perfil. Você pode mudar isso na tela de revisão.';
+
+  @override
+  String get settings_omitUnusedOcGases_title =>
+      'Ignorar gases de bailout não usados';
+
+  @override
+  String get settings_omitUnusedOcGases_subtitle =>
+      'Nos downloads e reprocessamentos de rebreather, omite um gás sem transmissor que nunca foi respirado';
 
   @override
   String get tags_manage_searchHint => 'Buscar etiquetas...';

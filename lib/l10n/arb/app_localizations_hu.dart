@@ -10003,6 +10003,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_tank_label_material => 'Anyag';
 
   @override
+  String get diveLog_tank_label_mnd => 'MND';
+
+  @override
   String get diveLog_tank_label_n2 => 'N2';
 
   @override
@@ -10028,13 +10031,43 @@ class AppLocalizationsHu extends AppLocalizations {
       'Állítsa automatikusra a He% kiszámításához';
 
   @override
-  String diveLog_tank_gasUsed(String amount) {
-    return '($amount felhasználva)';
+  String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd) {
+    return 'MOD: $mod (ppO₂ $ppO2) | MND: $mnd';
   }
 
   @override
-  String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd) {
-    return 'MOD: $mod (ppO₂ $ppO2) | MND: $mnd';
+  String get diveLog_cylinders_columnTank => 'Palack';
+
+  @override
+  String get diveLog_cylinders_columnGas => 'Gáz';
+
+  @override
+  String get diveLog_cylinders_columnStart => 'Kezdő';
+
+  @override
+  String get diveLog_cylinders_columnEnd => 'Záró';
+
+  @override
+  String get diveLog_cylinders_columnUsed => 'Felhasznált';
+
+  @override
+  String diveLog_cylinders_gasUsed(String amount) {
+    return 'Felhasznált gáz $amount';
+  }
+
+  @override
+  String diveLog_cylinders_mod(String depth) {
+    return 'MOD $depth';
+  }
+
+  @override
+  String diveLog_cylinders_mnd(String depth) {
+    return 'MND $depth';
+  }
+
+  @override
+  String diveLog_cylinders_modNote(String ppO2) {
+    return 'MOD $ppO2 ppO₂-nél';
   }
 
   @override
@@ -22682,6 +22715,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Letöltések hozzáadása a komputer tulajdonosához';
 
   @override
+  String get settings_conflict_field_omitUnusedOcGases =>
+      'Nem használt bailout gázok kihagyása';
+
+  @override
   String get settings_conflict_field_avgSpeed => 'Átlagsebesség';
 
   @override
@@ -30184,6 +30221,14 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_downloadsFollowOwner_subtitle =>
       'Ha egy búvárkomputer egy másik profilhoz tartozik, a merülései annak a profilnak a naplójába kerülnek. Ezt az ellenőrző képernyőn módosíthatod.';
+
+  @override
+  String get settings_omitUnusedOcGases_title =>
+      'Nem használt bailout gázok kihagyása';
+
+  @override
+  String get settings_omitUnusedOcGases_subtitle =>
+      'Rebreather-letöltéseknél és újraolvasáskor kihagyja a jeladó nélküli gázt, amelyből soha nem lélegzett';
 
   @override
   String get tags_manage_searchHint => 'Címkék keresése...';

@@ -334,6 +334,7 @@ class DiverSettingsRepository {
                 downloadsFollowComputerOwner: Value(
                   s.downloadsFollowComputerOwner,
                 ),
+                omitUnusedOcGases: Value(s.omitUnusedOcGases),
                 siteListViewMode: Value(s.siteListViewMode.name),
                 tripListViewMode: Value(s.tripListViewMode.name),
                 equipmentListViewMode: Value(s.equipmentListViewMode.name),
@@ -682,6 +683,7 @@ class DiverSettingsRepository {
       downloadsFollowComputerOwner: Value(
         settings.downloadsFollowComputerOwner,
       ),
+      omitUnusedOcGases: Value(settings.omitUnusedOcGases),
       siteListViewMode: Value(settings.siteListViewMode.name),
       tripListViewMode: Value(settings.tripListViewMode.name),
       equipmentListViewMode: Value(settings.equipmentListViewMode.name),
@@ -947,6 +949,7 @@ class DiverSettingsRepository {
       groupTripsInDiveList: row.groupTripsInDiveList,
       autoTagImports: row.autoTagImports,
       downloadsFollowComputerOwner: row.downloadsFollowComputerOwner,
+      omitUnusedOcGases: row.omitUnusedOcGases,
       siteListViewMode: ListViewMode.fromName(row.siteListViewMode),
       tripListViewMode: ListViewMode.fromName(row.tripListViewMode),
       equipmentListViewMode: ListViewMode.fromName(row.equipmentListViewMode),

@@ -136,7 +136,7 @@ class Transmitters extends Table {
     onDelete: KeyAction.setNull,
   )();
 
-  /// Whether the diver configured this entry (v315, issue #3676). An entry
+  /// Whether the diver configured this entry (v316, issue #3676). An entry
   /// the app creates for a serial it saw in a download starts false, and the
   /// registry matcher ignores it until the diver saves it, so its placeholder
   /// name and guessed role never reach a tank.

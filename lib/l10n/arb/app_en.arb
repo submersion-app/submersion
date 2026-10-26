@@ -5636,6 +5636,7 @@
   "diveLog_tank_label_endPressure": "End Pressure",
   "diveLog_tank_label_he": "He",
   "diveLog_tank_label_material": "Material",
+  "diveLog_tank_label_mnd": "MND",
   "diveLog_tank_label_n2": "N2",
   "diveLog_tank_label_o2": "O2",
   "diveLog_tank_label_role": "Role",
@@ -5644,8 +5645,16 @@
   "diveLog_tank_label_volume": "Volume",
   "diveLog_tank_label_workingPressure": "Working P",
   "diveLog_tank_mndHelper": "Set to auto-calculate He%",
-  "diveLog_tank_gasUsed": "({amount} used)",
   "diveLog_tank_modMndInfo": "MOD: {mod} (ppO₂ {ppO2}) | MND: {mnd}",
+  "diveLog_cylinders_columnTank": "Tank",
+  "diveLog_cylinders_columnGas": "Gas",
+  "diveLog_cylinders_columnStart": "Start",
+  "diveLog_cylinders_columnEnd": "End",
+  "diveLog_cylinders_columnUsed": "Used",
+  "diveLog_cylinders_gasUsed": "Gas used {amount}",
+  "diveLog_cylinders_mod": "MOD {depth}",
+  "diveLog_cylinders_mnd": "MND {depth}",
+  "diveLog_cylinders_modNote": "MOD at ppO₂ {ppO2}",
   "diveLog_tank_section_gasMix": "Gas Mix",
   "diveLog_tank_computerMix_matches": "Recorded by your dive computer",
   "diveLog_tank_computerMix_differs": "Your dive computer recorded {mix}",
@@ -6281,10 +6290,49 @@
       }
     }
   },
-  "@diveLog_tank_gasUsed": {
-    "description": "Trailing note on the tank pressure line: how much gas the dive consumed, e.g. \"(160 bar / 1920 L used)\"",
+  "@diveLog_cylinders_columnTank": {
+    "description": "Cylinders card table header over the tank size, name and role"
+  },
+  "@diveLog_cylinders_columnGas": {
+    "description": "Cylinders card table header over the gas mix"
+  },
+  "@diveLog_cylinders_columnStart": {
+    "description": "Cylinders card table header over the start pressure; the pressure unit is shown under it"
+  },
+  "@diveLog_cylinders_columnEnd": {
+    "description": "Cylinders card table header over the end pressure; the pressure unit is shown under it"
+  },
+  "@diveLog_cylinders_columnUsed": {
+    "description": "Cylinders card table header over the pressure used; the pressure unit is shown under it"
+  },
+  "@diveLog_cylinders_gasUsed": {
+    "description": "Cylinders card detail item: the volume of gas the dive consumed from this cylinder, e.g. \"Gas used 1665 L\"",
     "placeholders": {
       "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "@diveLog_cylinders_mod": {
+    "description": "Cylinders card detail item: maximum operating depth, e.g. \"MOD 33m\"",
+    "placeholders": {
+      "depth": {
+        "type": "String"
+      }
+    }
+  },
+  "@diveLog_cylinders_mnd": {
+    "description": "Cylinders card detail item: maximum narcotic depth, e.g. \"MND 30m\"",
+    "placeholders": {
+      "depth": {
+        "type": "String"
+      }
+    }
+  },
+  "@diveLog_cylinders_modNote": {
+    "description": "Note under the Cylinders card table: the working ppO2 every MOD on the card was computed at, e.g. \"MOD at ppO₂ 1.4\"",
+    "placeholders": {
+      "ppO2": {
         "type": "String"
       }
     }
@@ -13827,6 +13875,10 @@
   "@settings_conflict_field_downloadsFollowComputerOwner": {
     "description": "Label for the downloads-follow-computer-owner setting in a sync conflict"
   },
+  "settings_conflict_field_omitUnusedOcGases": "Skip unused bailout gases",
+  "@settings_conflict_field_omitUnusedOcGases": {
+    "description": "Label for the skip-unused-bailout-gases setting in a sync conflict"
+  },
   "settings_conflict_field_avgSpeed": "Average speed",
   "settings_conflict_field_batteryReserveFraction": "Battery reserve",
   "settings_conflict_field_bboxHeight": "Box height",
@@ -17643,6 +17695,14 @@
   "settings_downloadsFollowOwner_subtitle": "When a dive computer belongs to another profile, its dives go to that profile's log. You can change it on the review screen.",
   "@settings_downloadsFollowOwner_subtitle": {
     "description": "Switch subtitle, in Import options on Settings > Data, explaining that a download from another profile's dive computer goes to that profile"
+  },
+  "settings_omitUnusedOcGases_title": "Skip unused bailout gases",
+  "@settings_omitUnusedOcGases_title": {
+    "description": "Switch title, in Import options on Settings > Data, for leaving out open-circuit gases a rebreather dive computer reports but the diver never carried or breathed"
+  },
+  "settings_omitUnusedOcGases_subtitle": "On rebreather downloads and re-parses, leave out a gas with no transmitter that was never breathed",
+  "@settings_omitUnusedOcGases_subtitle": {
+    "description": "Switch subtitle, in Import options on Settings > Data, explaining which gases a rebreather download leaves out"
   },
   "tags_manage_searchHint": "Search tags...",
   "tags_manage_diveCount": "{count, plural, =0{0 dives} =1{1 dive} other{{count} dives}}",

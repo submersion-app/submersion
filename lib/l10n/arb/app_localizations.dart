@@ -15943,6 +15943,12 @@ abstract class AppLocalizations {
   /// **'Material'**
   String get diveLog_tank_label_material;
 
+  /// No description provided for @diveLog_tank_label_mnd.
+  ///
+  /// In en, this message translates to:
+  /// **'MND'**
+  String get diveLog_tank_label_mnd;
+
   /// No description provided for @diveLog_tank_label_n2.
   ///
   /// In en, this message translates to:
@@ -15991,17 +15997,65 @@ abstract class AppLocalizations {
   /// **'Set to auto-calculate He%'**
   String get diveLog_tank_mndHelper;
 
-  /// Trailing note on the tank pressure line: how much gas the dive consumed, e.g. "(160 bar / 1920 L used)"
-  ///
-  /// In en, this message translates to:
-  /// **'({amount} used)'**
-  String diveLog_tank_gasUsed(String amount);
-
   /// No description provided for @diveLog_tank_modMndInfo.
   ///
   /// In en, this message translates to:
   /// **'MOD: {mod} (ppO₂ {ppO2}) | MND: {mnd}'**
   String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd);
+
+  /// Cylinders card table header over the tank size, name and role
+  ///
+  /// In en, this message translates to:
+  /// **'Tank'**
+  String get diveLog_cylinders_columnTank;
+
+  /// Cylinders card table header over the gas mix
+  ///
+  /// In en, this message translates to:
+  /// **'Gas'**
+  String get diveLog_cylinders_columnGas;
+
+  /// Cylinders card table header over the start pressure; the pressure unit is shown under it
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get diveLog_cylinders_columnStart;
+
+  /// Cylinders card table header over the end pressure; the pressure unit is shown under it
+  ///
+  /// In en, this message translates to:
+  /// **'End'**
+  String get diveLog_cylinders_columnEnd;
+
+  /// Cylinders card table header over the pressure used; the pressure unit is shown under it
+  ///
+  /// In en, this message translates to:
+  /// **'Used'**
+  String get diveLog_cylinders_columnUsed;
+
+  /// Cylinders card detail item: the volume of gas the dive consumed from this cylinder, e.g. "Gas used 1665 L"
+  ///
+  /// In en, this message translates to:
+  /// **'Gas used {amount}'**
+  String diveLog_cylinders_gasUsed(String amount);
+
+  /// Cylinders card detail item: maximum operating depth, e.g. "MOD 33m"
+  ///
+  /// In en, this message translates to:
+  /// **'MOD {depth}'**
+  String diveLog_cylinders_mod(String depth);
+
+  /// Cylinders card detail item: maximum narcotic depth, e.g. "MND 30m"
+  ///
+  /// In en, this message translates to:
+  /// **'MND {depth}'**
+  String diveLog_cylinders_mnd(String depth);
+
+  /// Note under the Cylinders card table: the working ppO2 every MOD on the card was computed at, e.g. "MOD at ppO₂ 1.4"
+  ///
+  /// In en, this message translates to:
+  /// **'MOD at ppO₂ {ppO2}'**
+  String diveLog_cylinders_modNote(String ppO2);
 
   /// No description provided for @diveLog_tank_section_gasMix.
   ///
@@ -36093,6 +36147,12 @@ abstract class AppLocalizations {
   /// **'Add downloads to the computer\'s owner'**
   String get settings_conflict_field_downloadsFollowComputerOwner;
 
+  /// Label for the skip-unused-bailout-gases setting in a sync conflict
+  ///
+  /// In en, this message translates to:
+  /// **'Skip unused bailout gases'**
+  String get settings_conflict_field_omitUnusedOcGases;
+
   /// No description provided for @settings_conflict_field_avgSpeed.
   ///
   /// In en, this message translates to:
@@ -48531,6 +48591,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'When a dive computer belongs to another profile, its dives go to that profile\'s log. You can change it on the review screen.'**
   String get settings_downloadsFollowOwner_subtitle;
+
+  /// Switch title, in Import options on Settings > Data, for leaving out open-circuit gases a rebreather dive computer reports but the diver never carried or breathed
+  ///
+  /// In en, this message translates to:
+  /// **'Skip unused bailout gases'**
+  String get settings_omitUnusedOcGases_title;
+
+  /// Switch subtitle, in Import options on Settings > Data, explaining which gases a rebreather download leaves out
+  ///
+  /// In en, this message translates to:
+  /// **'On rebreather downloads and re-parses, leave out a gas with no transmitter that was never breathed'**
+  String get settings_omitUnusedOcGases_subtitle;
 
   /// No description provided for @tags_manage_searchHint.
   ///

@@ -3038,6 +3038,10 @@ class TankData {
   /// than a mix the computer recorded (see `DownloadedTank.mixRecorded`).
   final bool mixRecorded;
 
+  /// An open-circuit gas no transmitter read and the diver never breathed
+  /// (see `DownloadedTank.unusedOcGas`, issue #3668).
+  final bool unusedOcGas;
+
   const TankData({
     required this.index,
     required this.o2Percent,
@@ -3054,6 +3058,7 @@ class TankData {
     this.equipmentId,
     this.tankName,
     this.mixRecorded = true,
+    this.unusedOcGas = false,
   });
 
   TankData copyWith({
@@ -3073,6 +3078,7 @@ class TankData {
     String? equipmentId,
     String? tankName,
     bool? mixRecorded,
+    bool? unusedOcGas,
   }) => TankData(
     index: index ?? this.index,
     o2Percent: o2Percent ?? this.o2Percent,
@@ -3089,6 +3095,7 @@ class TankData {
     equipmentId: equipmentId ?? this.equipmentId,
     tankName: tankName ?? this.tankName,
     mixRecorded: mixRecorded ?? this.mixRecorded,
+    unusedOcGas: unusedOcGas ?? this.unusedOcGas,
   );
 }
 

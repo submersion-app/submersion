@@ -9534,6 +9534,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_tank_label_material => '材质';
 
   @override
+  String get diveLog_tank_label_mnd => 'MND';
+
+  @override
   String get diveLog_tank_label_n2 => 'N2';
 
   @override
@@ -9558,13 +9561,43 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_tank_mndHelper => '设置自动计算 He%';
 
   @override
-  String diveLog_tank_gasUsed(String amount) {
-    return '（已用 $amount）';
+  String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd) {
+    return '最大作业深度：$mod（氧分压 $ppO2）| 最大等效氮深：$mnd';
   }
 
   @override
-  String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd) {
-    return '最大作业深度：$mod（氧分压 $ppO2）| 最大等效氮深：$mnd';
+  String get diveLog_cylinders_columnTank => '气瓶';
+
+  @override
+  String get diveLog_cylinders_columnGas => '气体';
+
+  @override
+  String get diveLog_cylinders_columnStart => '起始';
+
+  @override
+  String get diveLog_cylinders_columnEnd => '结束';
+
+  @override
+  String get diveLog_cylinders_columnUsed => '已用';
+
+  @override
+  String diveLog_cylinders_gasUsed(String amount) {
+    return '已用气体 $amount';
+  }
+
+  @override
+  String diveLog_cylinders_mod(String depth) {
+    return '最大作业深度 $depth';
+  }
+
+  @override
+  String diveLog_cylinders_mnd(String depth) {
+    return '最大等效氮深 $depth';
+  }
+
+  @override
+  String diveLog_cylinders_modNote(String ppO2) {
+    return '氧分压 $ppO2 时的最大作业深度';
   }
 
   @override
@@ -21594,6 +21627,9 @@ class AppLocalizationsZh extends AppLocalizations {
       '将下载的记录添加到电脑所属的潜水员';
 
   @override
+  String get settings_conflict_field_omitUnusedOcGases => '跳过未使用的应急气体';
+
+  @override
   String get settings_conflict_field_avgSpeed => '平均速度';
 
   @override
@@ -28608,6 +28644,13 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get settings_downloadsFollowOwner_subtitle =>
       '当潜水电脑属于另一个潜水员档案时，它的潜水记录会添加到该档案的日志中。你可以在核对页面中更改。';
+
+  @override
+  String get settings_omitUnusedOcGases_title => '跳过未使用的应急气体';
+
+  @override
+  String get settings_omitUnusedOcGases_subtitle =>
+      '下载或重新解析循环呼吸器潜水时，略过没有发射器且从未呼吸过的气体';
 
   @override
   String get tags_manage_searchHint => '搜索标签...';

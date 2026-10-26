@@ -10024,6 +10024,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_tank_label_material => 'Materiale';
 
   @override
+  String get diveLog_tank_label_mnd => 'MND';
+
+  @override
   String get diveLog_tank_label_n2 => 'N2';
 
   @override
@@ -10049,13 +10052,43 @@ class AppLocalizationsIt extends AppLocalizations {
       'Imposta per calcolare automaticamente He%';
 
   @override
-  String diveLog_tank_gasUsed(String amount) {
-    return '($amount usati)';
+  String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd) {
+    return 'MOD: $mod (ppO₂ $ppO2) | MND: $mnd';
   }
 
   @override
-  String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd) {
-    return 'MOD: $mod (ppO₂ $ppO2) | MND: $mnd';
+  String get diveLog_cylinders_columnTank => 'Bombola';
+
+  @override
+  String get diveLog_cylinders_columnGas => 'Gas';
+
+  @override
+  String get diveLog_cylinders_columnStart => 'Inizio';
+
+  @override
+  String get diveLog_cylinders_columnEnd => 'Fine';
+
+  @override
+  String get diveLog_cylinders_columnUsed => 'Usato';
+
+  @override
+  String diveLog_cylinders_gasUsed(String amount) {
+    return 'Gas usato $amount';
+  }
+
+  @override
+  String diveLog_cylinders_mod(String depth) {
+    return 'MOD $depth';
+  }
+
+  @override
+  String diveLog_cylinders_mnd(String depth) {
+    return 'MND $depth';
+  }
+
+  @override
+  String diveLog_cylinders_modNote(String ppO2) {
+    return 'MOD a ppO₂ $ppO2';
   }
 
   @override
@@ -22758,6 +22791,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Aggiungi i download al proprietario del computer';
 
   @override
+  String get settings_conflict_field_omitUnusedOcGases =>
+      'Salta i gas di bailout inutilizzati';
+
+  @override
   String get settings_conflict_field_avgSpeed => 'Velocità media';
 
   @override
@@ -30356,6 +30393,14 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get settings_downloadsFollowOwner_subtitle =>
       'Se un computer subacqueo appartiene a un altro profilo, le sue immersioni vanno nel registro di quel profilo. Puoi cambiarlo nella schermata di revisione.';
+
+  @override
+  String get settings_omitUnusedOcGases_title =>
+      'Salta i gas di bailout inutilizzati';
+
+  @override
+  String get settings_omitUnusedOcGases_subtitle =>
+      'Nei download e nelle rielaborazioni da rebreather, omette un gas senza trasmettitore che non è mai stato respirato';
 
   @override
   String get tags_manage_searchHint => 'Cerca tag...';

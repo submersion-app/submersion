@@ -33,7 +33,7 @@ Future<bool> isEquipmentTombstoned(DatabaseConnectionUser db, String id) async {
 
 /// [firstId], or the first id after it in the [nextGearRemintId] chain that
 /// no tombstone names and no item of another type holds (a twin the diver
-/// retyped before v315 locked the type, issue #3676). The async form of
+/// retyped before v316 locked the type, issue #3676). The async form of
 /// [gearIdAvoiding]; [type] is the `equipment.type` the device's item needs.
 Future<String> liveGearId(
   DatabaseConnectionUser db,
@@ -68,7 +68,7 @@ Future<bool> _heldByOtherType(
 /// Gives every registered dive computer and every transmitter registry row
 /// the Equipment item that is its one entry (issue #3676).
 ///
-/// A device can lose its item three ways: a twin deleted before v315 (the
+/// A device can lose its item three ways: a twin deleted before v316 (the
 /// FK nulled the link and nothing re-created it then), an older peer that
 /// still deletes twins as "unlink only", and a sync that applies a computer
 /// whose item this device never had. Each pass resolves, in order:
@@ -157,7 +157,7 @@ Future<({int linked, int minted})> _healComputers(
   var minted = 0;
   for (final row in unlinked) {
     // One row's failure (a dangling diver, say) skips that row only: the
-    // heal runs inside the v315 migration and beforeOpen, and must never
+    // heal runs inside the v316 migration and beforeOpen, and must never
     // stop the library opening.
     try {
       // One transaction per row: a failure part way leaves no item minted

@@ -9960,6 +9960,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_tank_label_material => 'Materiaal';
 
   @override
+  String get diveLog_tank_label_mnd => 'MND';
+
+  @override
   String get diveLog_tank_label_n2 => 'N2';
 
   @override
@@ -9985,13 +9988,43 @@ class AppLocalizationsNl extends AppLocalizations {
       'Instellen op automatische He%-berekening';
 
   @override
-  String diveLog_tank_gasUsed(String amount) {
-    return '($amount gebruikt)';
+  String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd) {
+    return 'MOD: $mod (ppO₂ $ppO2) | MND: $mnd';
   }
 
   @override
-  String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd) {
-    return 'MOD: $mod (ppO₂ $ppO2) | MND: $mnd';
+  String get diveLog_cylinders_columnTank => 'Fles';
+
+  @override
+  String get diveLog_cylinders_columnGas => 'Gas';
+
+  @override
+  String get diveLog_cylinders_columnStart => 'Begin';
+
+  @override
+  String get diveLog_cylinders_columnEnd => 'Eind';
+
+  @override
+  String get diveLog_cylinders_columnUsed => 'Gebruikt';
+
+  @override
+  String diveLog_cylinders_gasUsed(String amount) {
+    return 'Gas gebruikt $amount';
+  }
+
+  @override
+  String diveLog_cylinders_mod(String depth) {
+    return 'MOD $depth';
+  }
+
+  @override
+  String diveLog_cylinders_mnd(String depth) {
+    return 'MND $depth';
+  }
+
+  @override
+  String diveLog_cylinders_modNote(String ppO2) {
+    return 'MOD bij ppO₂ $ppO2';
   }
 
   @override
@@ -22617,6 +22650,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Downloads toevoegen aan de eigenaar van de computer';
 
   @override
+  String get settings_conflict_field_omitUnusedOcGases =>
+      'Ongebruikte bailoutgassen overslaan';
+
+  @override
   String get settings_conflict_field_avgSpeed => 'Gemiddelde snelheid';
 
   @override
@@ -30139,6 +30176,14 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_downloadsFollowOwner_subtitle =>
       'Hoort een duikcomputer bij een ander profiel, dan gaan de duiken naar het logboek van dat profiel. Je kunt dit wijzigen op het controlescherm.';
+
+  @override
+  String get settings_omitUnusedOcGases_title =>
+      'Ongebruikte bailoutgassen overslaan';
+
+  @override
+  String get settings_omitUnusedOcGases_subtitle =>
+      'Laat bij rebreatherdownloads en opnieuw inlezen een gas zonder zender weg dat nooit is geademd';
 
   @override
   String get tags_manage_searchHint => 'Tags zoeken...';
