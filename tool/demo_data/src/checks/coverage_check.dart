@@ -34,6 +34,12 @@ const demoCoverageExclusions = <String, String>{
   'media_repair_log': 'device repair history',
   'imported_files': 'import history; imports are sealed in demo mode',
   'csv_presets': 'import presets; imports are sealed in demo mode',
+  'pending_photo_suggestions':
+      'found by scanning this device\'s photo library; sealed in demo mode',
+  // Computed by the app as it runs.
+  'equipment_service_status': 'a local cache the app rebuilds from the gear',
+  'dive_safety_reviews': 'computed by the app when a dive is opened',
+  'dive_safety_findings': 'computed by the app when a dive is opened',
 };
 
 class CoverageCheck {
