@@ -55,6 +55,9 @@ class DemoSeedContext {
   /// Dive computers by key, filled by the gear seeder.
   final computers = <String, String>{};
 
+  /// Each course's dive requirement, filled by the training seeder.
+  final courseDiveRequirements = <String, String>{};
+
   /// Tag ids by name.
   final tags = <String, String>{};
 
