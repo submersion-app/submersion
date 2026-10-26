@@ -1,6 +1,5 @@
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
-import 'package:submersion/core/query/domain/query_value.dart';
 import 'package:submersion/features/connections/data/repositories/connection_map_repository.dart';
 import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
 import 'package:submersion/features/connections/domain/views/kind_link.dart';
@@ -64,10 +63,10 @@ class MiscSeeder implements DemoSeeder {
       triggers: const {RuleTrigger.afterImport, RuleTrigger.afterManualCreate},
       condition: deep,
       actions: [
-        DiveMembershipAction(
+        const DiveMembershipAction(
           DiveCollection.diveTypes,
           MembershipMode.add,
-          const ['deep'],
+          ['deep'],
         ),
       ],
     );

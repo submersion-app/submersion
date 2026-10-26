@@ -76,7 +76,9 @@ void main() {
 
   test('a binary file that is not a dive log is skipped cleanly', () async {
     final jpeg = p.join(dir.path, 'photo.jpg');
-    File(jpeg).writeAsBytesSync([0xFF, 0xD8, 0xFF, 0xE0, ...List.filled(64, 0)]);
+    File(
+      jpeg,
+    ).writeAsBytesSync([0xFF, 0xD8, 0xFF, 0xE0, ...List.filled(64, 0)]);
 
     final result = await harvester().harvest([jpeg]);
 

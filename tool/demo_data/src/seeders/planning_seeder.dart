@@ -165,7 +165,7 @@ class PlanningSeeder implements DemoSeeder {
               ),
           ],
           team: [
-            MissionMember(
+            const MissionMember(
               id: 'demo-member-1',
               order: 0,
               displayName: 'Alex Rivera',
@@ -230,7 +230,7 @@ class PlanningSeeder implements DemoSeeder {
     ]);
     final saved = (await templates.getTemplateById(template.id))!;
     final dive = ctx.plan.dives.lastWhere((d) => d.diveMode == 'ccr');
-    final sessionId = 'demo-predive-session';
+    const sessionId = 'demo-predive-session';
     await PreDiveSessionRepository().startSession(
       template: saved,
       items: [
@@ -342,7 +342,7 @@ class PlanningSeeder implements DemoSeeder {
       );
     }
 
-    final upcoming = DocumentOwner(
+    const upcoming = DocumentOwner(
       DocumentOwnerKind.trip,
       TripSeeder.upcomingTripId,
     );
