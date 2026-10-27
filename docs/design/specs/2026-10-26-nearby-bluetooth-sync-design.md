@@ -313,13 +313,14 @@ bookkeeping. (Decided by the maintainer.)
 **Tombstone garbage collection.** The deletion log is pruned today at an
 age floor plus the horizon of what every live cloud peer has applied.
 Nearby peers join that horizon: `clearAcknowledgedDeletions` also reads
-`peer_applied_hlc` from every paired-devices row seen within the cloud
-path's stale-peer window, so a deleted dive's tombstone stays until the
-laptop has it. A peer out of range longer than that window stops holding
-tombstones back; its next session is a full copy, and the per-peer
-`lastSync` guard above keeps a stale row of its own from reviving the
-deleted record on the newer device. Unpairing retires the peer from the
-horizon at once.
+`peer_applied_hlc` from every paired-devices row, so a deleted dive's
+tombstone stays until the laptop has it. The cloud path drops a peer from
+the horizon only by retirement after a year of silence
+(`SyncLiveness.retirementPeriodMillis`); nearby peers get the same rule,
+keyed on `last_seen_at`. A peer silent that long stops holding tombstones
+back; its next session is a full copy, and the per-peer `lastSync` guard
+above keeps a stale row of its own from reviving the deleted record on the
+newer device. Unpairing retires the peer from the horizon at once.
 
 **Automatic sync.** With "Sync nearby automatically" on (the default), the
 link scans and advertises whenever the app is in the foreground and the
@@ -442,8 +443,8 @@ design makes no such choice.
   mint one together; both populated means a merge, said on screen.
 - The first sync between populated devices that never shared a cloud is a
   full copy in each direction; deltas only once every writer is known.
-- Nearby peers hold tombstones back like cloud peers, within the same
-  stale-peer window; unpairing releases them.
+- Nearby peers hold tombstones back like cloud peers until unpaired or
+  silent for the cloud path's retirement period.
 - The merge's `lastSync` is the per-peer `last_synced_at`.
 
 ## Left to the builder
