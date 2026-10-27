@@ -24383,6 +24383,30 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_field_ppO2Deco => 'ppO2 لتخفيف الضغط';
 
   @override
+  String get settings_conflict_field_ppO2DecoBand1 =>
+      'ppO2 تخفيف الضغط حتى 28% أكسجين';
+
+  @override
+  String get settings_conflict_field_ppO2DecoBand2 =>
+      'ppO2 تخفيف الضغط 28-45% أكسجين';
+
+  @override
+  String get settings_conflict_field_ppO2DecoBand3 =>
+      'ppO2 تخفيف الضغط 45-99% أكسجين';
+
+  @override
+  String get settings_conflict_field_ppO2DecoBandsEnabled =>
+      'حدود ppO2 للديكو حسب نطاق الأكسجين';
+
+  @override
+  String get settings_conflict_field_maxO2DepthEnabled =>
+      'عمق أقصى صريح لـ 100% أكسجين';
+
+  @override
+  String get settings_conflict_field_maxO2DepthMeters =>
+      'العمق الأقصى لـ 100% أكسجين';
+
+  @override
   String get settings_conflict_field_ppO2MaxDeco => 'أقصى ppO2 لتخفيف الضغط';
 
   @override

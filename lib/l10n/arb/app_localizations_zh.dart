@@ -22809,6 +22809,24 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_ppO2Deco => '减压 ppO2';
 
   @override
+  String get settings_conflict_field_ppO2DecoBand1 => '减压 ppO2 不超过28% O2';
+
+  @override
+  String get settings_conflict_field_ppO2DecoBand2 => '减压 ppO2 28-45% O2';
+
+  @override
+  String get settings_conflict_field_ppO2DecoBand3 => '减压 ppO2 45-99% O2';
+
+  @override
+  String get settings_conflict_field_ppO2DecoBandsEnabled => '按氧气分段的减压 ppO2 限值';
+
+  @override
+  String get settings_conflict_field_maxO2DepthEnabled => '100% 氧气的明确最大深度';
+
+  @override
+  String get settings_conflict_field_maxO2DepthMeters => '100% 氧气的最大深度';
+
+  @override
   String get settings_conflict_field_ppO2MaxDeco => '最高减压 ppO2';
 
   @override

@@ -378,6 +378,14 @@ final Map<String, ConflictField> diverSettingsFields = {
     FieldKind.enumValue,
     enumLabel: mapStyleLabeler,
   ),
+  'maxO2DepthEnabled': ConflictField(
+    (l) => l.settings_conflict_field_maxO2DepthEnabled,
+    FieldKind.boolean,
+  ),
+  'maxO2DepthMeters': ConflictField(
+    (l) => l.settings_conflict_field_maxO2DepthMeters,
+    FieldKind.depth,
+  ),
   'noFlyPreset': ConflictField(
     (l) => l.settings_conflict_field_noFlyPreset,
     FieldKind.enumValue,
@@ -481,6 +489,22 @@ final Map<String, ConflictField> diverSettingsFields = {
   'plannerWalkSpeedMps': ConflictField(
     (l) => l.plannerMission_settings_walkSpeed,
     FieldKind.speed,
+  ),
+  'ppO2DecoBand1': ConflictField(
+    (l) => l.settings_conflict_field_ppO2DecoBand1,
+    FieldKind.partialPressure,
+  ),
+  'ppO2DecoBand2': ConflictField(
+    (l) => l.settings_conflict_field_ppO2DecoBand2,
+    FieldKind.partialPressure,
+  ),
+  'ppO2DecoBand3': ConflictField(
+    (l) => l.settings_conflict_field_ppO2DecoBand3,
+    FieldKind.partialPressure,
+  ),
+  'ppO2DecoBandsEnabled': ConflictField(
+    (l) => l.settings_conflict_field_ppO2DecoBandsEnabled,
+    FieldKind.boolean,
   ),
   'ppO2MaxDeco': ConflictField(
     (l) => l.settings_conflict_field_ppO2MaxDeco,

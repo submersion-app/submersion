@@ -2283,12 +2283,29 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     await _saveSettings();
   }
 
-  /// Per-O2-band deco ppO2 limits (issue #3580): same picker grid/range as
-  /// [ppO2MaxMin]/[ppO2Ceiling], but each band is independent -- unlike
-  /// [setPpO2Limits], there is no enforced ordering between them.
+  /// Per-O2-band deco ppO2 limits (issue #3580): a wider, finer range than
+  /// the single [ppO2MaxWorking]/[ppO2MaxDeco] ceiling pair -- 0.05 bar
+  /// steps down to [ppO2WorkingMin], not just [ppO2MaxMin] -- and each band
+  /// is independent: unlike [setPpO2Limits], there is no enforced ordering
+  /// between them.
+  static const double ppO2DecoBandStep = 0.05;
+
+  /// [value] clamped to [ppO2WorkingMin]..[ppO2Ceiling] and snapped to the
+  /// [ppO2DecoBandStep] grid.
+  static double ppO2DecoBandOnGrid(double value) =>
+      (value.clamp(ppO2WorkingMin, ppO2Ceiling) / ppO2DecoBandStep).round() *
+      ppO2DecoBandStep;
+
   /// Explicit MOD for 100% O2 (issue #3580): 3-9 m in 0.5 m steps.
   static const double maxO2DepthMin = 3.0;
   static const double maxO2DepthMax = 9.0;
+  static const double maxO2DepthStep = 0.5;
+
+  /// [value] clamped to [maxO2DepthMin]..[maxO2DepthMax] and snapped to the
+  /// [maxO2DepthStep] grid.
+  static double maxO2DepthOnGrid(double value) =>
+      (value.clamp(maxO2DepthMin, maxO2DepthMax) / maxO2DepthStep).round() *
+      maxO2DepthStep;
 
   /// Set both optional deco layers at once, in a single persisted write
   /// (issue #3580): the per-O2-band toggle/values and the explicit-100%-O2-
@@ -2304,13 +2321,11 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   }) async {
     state = state.copyWith(
       ppO2DecoBandsEnabled: bandsEnabled,
-      ppO2DecoBand1: band1.clamp(ppO2MaxMin, ppO2Ceiling),
-      ppO2DecoBand2: band2.clamp(ppO2MaxMin, ppO2Ceiling),
-      ppO2DecoBand3: band3.clamp(ppO2MaxMin, ppO2Ceiling),
+      ppO2DecoBand1: ppO2DecoBandOnGrid(band1),
+      ppO2DecoBand2: ppO2DecoBandOnGrid(band2),
+      ppO2DecoBand3: ppO2DecoBandOnGrid(band3),
       maxO2DepthEnabled: maxO2DepthEnabled,
-      maxO2DepthMeters:
-          (maxO2DepthMeters.clamp(maxO2DepthMin, maxO2DepthMax) * 2).round() /
-          2,
+      maxO2DepthMeters: maxO2DepthOnGrid(maxO2DepthMeters),
     );
     await _saveSettings();
   }

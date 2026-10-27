@@ -2739,10 +2739,10 @@ void main() {
       await tester.tap(find.text('ppO2 limits OC'));
       await tester.pumpAndSettle();
 
-      // The "Maximum ppO2" dropdown currently reads 1.6 bar (working is 1.4).
-      await tester.tap(find.text('1.6 bar'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('1.5 bar').last);
+      // Max currently reads 1.6 bar (working is 1.4); tap the midpoint of
+      // its slider's 1.4-1.6 range, which snaps to the 1.5 division.
+      final maxSlider = find.byType(Slider).at(1);
+      await tester.tapAt(tester.getRect(maxSlider).center);
       await tester.pumpAndSettle();
       await tester.tap(find.widgetWithText(FilledButton, 'Save'));
       await tester.pumpAndSettle();
@@ -2762,10 +2762,9 @@ void main() {
       await tester.tap(find.text('ppO2 limits OC'));
       await tester.pumpAndSettle();
 
-      // Working starts at 1.4; raise it to 1.6, above the 1.4/1.5/1.6 max.
-      await tester.tap(find.text('1.4 bar'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('1.6 bar').last);
+      // Working starts below its 1.6 ceiling; drag its slider all the way
+      // right, past the current max, which pulls max up to match.
+      await tester.drag(find.byType(Slider).first, const Offset(1000, 0));
       await tester.pumpAndSettle();
       await tester.tap(find.widgetWithText(FilledButton, 'Save'));
       await tester.pumpAndSettle();
@@ -2796,14 +2795,8 @@ void main() {
       await tester.pumpAndSettle();
 
       // Snapped to the grid: 1.4 working, 1.5 max.
-      expect(
-        find.widgetWithText(DropdownButton<double>, '1.4 bar'),
-        findsOneWidget,
-      );
-      expect(
-        find.widgetWithText(DropdownButton<double>, '1.5 bar'),
-        findsOneWidget,
-      );
+      expect(find.text('1.4 bar'), findsOneWidget);
+      expect(find.text('1.5 bar'), findsOneWidget);
     });
   });
 

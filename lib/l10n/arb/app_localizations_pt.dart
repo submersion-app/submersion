@@ -24117,6 +24117,27 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_conflict_field_ppO2Deco => 'ppO2 de descompressão';
 
   @override
+  String get settings_conflict_field_ppO2DecoBand1 => 'ppO2 deco até 28% O2';
+
+  @override
+  String get settings_conflict_field_ppO2DecoBand2 => 'ppO2 deco 28-45% O2';
+
+  @override
+  String get settings_conflict_field_ppO2DecoBand3 => 'ppO2 deco 45-99% O2';
+
+  @override
+  String get settings_conflict_field_ppO2DecoBandsEnabled =>
+      'Limites de ppO2 de deco por faixa de O2';
+
+  @override
+  String get settings_conflict_field_maxO2DepthEnabled =>
+      'Profundidade máxima explícita para 100% O2';
+
+  @override
+  String get settings_conflict_field_maxO2DepthMeters =>
+      'Profundidade máxima para 100% O2';
+
+  @override
   String get settings_conflict_field_ppO2MaxDeco =>
       'ppO2 máxima de descompressão';
 

@@ -40,26 +40,16 @@ class PpO2DecoBandsDialog extends StatefulWidget {
 }
 
 class _PpO2DecoBandsDialogState extends State<PpO2DecoBandsDialog> {
-  // Same 0.1 bar grid as PpO2LimitDialog's deco ceiling.
-  static final List<double> _ppO2Options = _steps(
-    SettingsNotifier.ppO2MaxMin,
-    SettingsNotifier.ppO2Ceiling,
-    0.1,
-  );
-  static final List<double> _depthOptions = _steps(
-    SettingsNotifier.maxO2DepthMin,
-    SettingsNotifier.maxO2DepthMax,
-    0.5,
-  );
+  static const double _ppO2Min = SettingsNotifier.ppO2WorkingMin;
+  static const double _ppO2Max = SettingsNotifier.ppO2Ceiling;
+  static const double _ppO2Step = SettingsNotifier.ppO2DecoBandStep;
+  static final int _ppO2Divisions = ((_ppO2Max - _ppO2Min) / _ppO2Step).round();
 
-  static List<double> _steps(double min, double max, double step) {
-    final lo = (min / step).round();
-    final hi = (max / step).round();
-    return [for (var i = lo; i <= hi; i++) i * step];
-  }
-
-  static double _snap(double value, List<double> options) =>
-      options.reduce((a, b) => (a - value).abs() <= (b - value).abs() ? a : b);
+  static const double _depthMin = SettingsNotifier.maxO2DepthMin;
+  static const double _depthMax = SettingsNotifier.maxO2DepthMax;
+  static const double _depthStep = SettingsNotifier.maxO2DepthStep;
+  static final int _depthDivisions = ((_depthMax - _depthMin) / _depthStep)
+      .round();
 
   late bool _bandsEnabled;
   late double _band1;
@@ -72,11 +62,13 @@ class _PpO2DecoBandsDialogState extends State<PpO2DecoBandsDialog> {
   void initState() {
     super.initState();
     _bandsEnabled = widget.initialBandsEnabled;
-    _band1 = _snap(widget.initialBand1, _ppO2Options);
-    _band2 = _snap(widget.initialBand2, _ppO2Options);
-    _band3 = _snap(widget.initialBand3, _ppO2Options);
+    _band1 = SettingsNotifier.ppO2DecoBandOnGrid(widget.initialBand1);
+    _band2 = SettingsNotifier.ppO2DecoBandOnGrid(widget.initialBand2);
+    _band3 = SettingsNotifier.ppO2DecoBandOnGrid(widget.initialBand3);
     _maxO2DepthEnabled = widget.initialMaxO2DepthEnabled;
-    _maxO2DepthMeters = _snap(widget.initialMaxO2DepthMeters, _depthOptions);
+    _maxO2DepthMeters = SettingsNotifier.maxO2DepthOnGrid(
+      widget.initialMaxO2DepthMeters,
+    );
   }
 
   @override
@@ -98,19 +90,19 @@ class _PpO2DecoBandsDialogState extends State<PpO2DecoBandsDialog> {
               value: _bandsEnabled,
               onChanged: (value) => setState(() => _bandsEnabled = value),
             ),
-            _ppO2Row(
+            _ppO2Slider(
               label: l10n.settings_decompression_ppO2BandsDialog_band1,
               value: _band1,
               enabled: _bandsEnabled,
               onChanged: (v) => setState(() => _band1 = v),
             ),
-            _ppO2Row(
+            _ppO2Slider(
               label: l10n.settings_decompression_ppO2BandsDialog_band2,
               value: _band2,
               enabled: _bandsEnabled,
               onChanged: (v) => setState(() => _band2 = v),
             ),
-            _ppO2Row(
+            _ppO2Slider(
               label: l10n.settings_decompression_ppO2BandsDialog_band3,
               value: _band3,
               enabled: _bandsEnabled,
@@ -125,7 +117,7 @@ class _PpO2DecoBandsDialogState extends State<PpO2DecoBandsDialog> {
               value: _maxO2DepthEnabled,
               onChanged: (value) => setState(() => _maxO2DepthEnabled = value),
             ),
-            _depthRow(
+            _depthSlider(
               label:
                   l10n.settings_decompression_ppO2BandsDialog_maxO2DepthLabel,
               value: _maxO2DepthMeters,
@@ -158,73 +150,72 @@ class _PpO2DecoBandsDialogState extends State<PpO2DecoBandsDialog> {
     );
   }
 
-  Widget _ppO2Row({
+  Widget _ppO2Slider({
     required String label,
     required double value,
     required bool enabled,
     required ValueChanged<double> onChanged,
-  }) => _row(
+  }) => _slider(
     label: label,
+    valueText: '${formatRoundedForInput(value, 2)} bar',
+    value: value,
+    min: _ppO2Min,
+    max: _ppO2Max,
+    divisions: _ppO2Divisions,
     enabled: enabled,
-    child: DropdownButton<double>(
-      value: value,
-      onChanged: enabled
-          ? (v) {
-              if (v != null) onChanged(v);
-            }
-          : null,
-      items: [
-        for (final o in _ppO2Options)
-          DropdownMenuItem(
-            value: o,
-            child: Text('${formatRoundedForInput(o, 1)} bar'),
-          ),
-      ],
-    ),
+    onChanged: onChanged,
   );
 
-  Widget _depthRow({
+  Widget _depthSlider({
     required String label,
     required double value,
     required bool enabled,
     required ValueChanged<double> onChanged,
-  }) => _row(
+  }) => _slider(
     label: label,
+    valueText: '${formatRoundedForInput(value, 1)} m',
+    value: value,
+    min: _depthMin,
+    max: _depthMax,
+    divisions: _depthDivisions,
     enabled: enabled,
-    child: DropdownButton<double>(
-      value: value,
-      onChanged: enabled
-          ? (v) {
-              if (v != null) onChanged(v);
-            }
-          : null,
-      items: [
-        for (final o in _depthOptions)
-          DropdownMenuItem(
-            value: o,
-            child: Text('${formatRoundedForInput(o, 1)} m'),
-          ),
-      ],
-    ),
+    onChanged: onChanged,
   );
 
-  Widget _row({
+  Widget _slider({
     required String label,
+    required String valueText,
+    required double value,
+    required double min,
+    required double max,
+    required int divisions,
     required bool enabled,
-    required Widget child,
+    required ValueChanged<double> onChanged,
   }) {
     final color = enabled
         ? null
         : Theme.of(context).colorScheme.onSurfaceVariant;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Text(label, style: TextStyle(color: color)),
+          Row(
+            children: [
+              Expanded(
+                child: Text(label, style: TextStyle(color: color)),
+              ),
+              Text(valueText, style: TextStyle(color: color)),
+            ],
           ),
-          const SizedBox(width: 12),
-          child,
+          Slider(
+            value: value,
+            min: min,
+            max: max,
+            divisions: divisions,
+            label: valueText,
+            onChanged: enabled ? onChanged : null,
+          ),
         ],
       ),
     );

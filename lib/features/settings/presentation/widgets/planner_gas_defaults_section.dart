@@ -4,12 +4,16 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/planner_default_number_dialog.dart';
+import 'package:submersion/features/settings/presentation/widgets/ppo2_deco_bands_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Global defaults for the planner Setup accordion's Gas options (issue
 /// #3552): SAC rates, the stressed-SAC and buddy factors, problem-solving
 /// time and the best-mix END target a new plan starts with, overridable per
-/// plan without changing this default.
+/// plan without changing this default. Also opens the per-O2-band deco
+/// ppO2 limits and explicit-100%-O2-depth dialog (issue #3580): a planner
+/// default, not a decompression algorithm setting, so it lives here rather
+/// than on the Decompression page.
 class PlannerGasDefaultsSection extends ConsumerWidget {
   const PlannerGasDefaultsSection({super.key});
 
@@ -127,6 +131,44 @@ class PlannerGasDefaultsSection extends ConsumerWidget {
             integer: true,
             onSaved: (entered) => notifier.setPlannerReservePressure(
               units.pressureToBar(entered),
+            ),
+          ),
+          const Divider(height: 1),
+          ListTile(
+            leading: const Icon(Icons.tune),
+            title: Text(context.l10n.settings_decompression_ppO2BandsTitle),
+            subtitle: Text(
+              context.l10n.settings_decompression_ppO2BandsSubtitle,
+            ),
+            trailing: const Icon(Icons.edit),
+            onTap: () => showDialog(
+              context: context,
+              builder: (dialogContext) => PpO2DecoBandsDialog(
+                initialBandsEnabled: settings.ppO2DecoBandsEnabled,
+                initialBand1: settings.ppO2DecoBand1,
+                initialBand2: settings.ppO2DecoBand2,
+                initialBand3: settings.ppO2DecoBand3,
+                initialMaxO2DepthEnabled: settings.maxO2DepthEnabled,
+                initialMaxO2DepthMeters: settings.maxO2DepthMeters,
+                onSave:
+                    (
+                      bandsEnabled,
+                      band1,
+                      band2,
+                      band3,
+                      maxO2DepthEnabled,
+                      maxO2DepthMeters,
+                    ) {
+                      notifier.setPpO2DecoBandsConfig(
+                        bandsEnabled: bandsEnabled,
+                        band1: band1,
+                        band2: band2,
+                        band3: band3,
+                        maxO2DepthEnabled: maxO2DepthEnabled,
+                        maxO2DepthMeters: maxO2DepthMeters,
+                      );
+                    },
+              ),
             ),
           ),
         ],

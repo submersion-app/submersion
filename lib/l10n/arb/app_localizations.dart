@@ -38463,6 +38463,42 @@ abstract class AppLocalizations {
   /// **'Deco ppO2'**
   String get settings_conflict_field_ppO2Deco;
 
+  /// No description provided for @settings_conflict_field_ppO2DecoBand1.
+  ///
+  /// In en, this message translates to:
+  /// **'Deco ppO2 up to 28% O2'**
+  String get settings_conflict_field_ppO2DecoBand1;
+
+  /// No description provided for @settings_conflict_field_ppO2DecoBand2.
+  ///
+  /// In en, this message translates to:
+  /// **'Deco ppO2 28-45% O2'**
+  String get settings_conflict_field_ppO2DecoBand2;
+
+  /// No description provided for @settings_conflict_field_ppO2DecoBand3.
+  ///
+  /// In en, this message translates to:
+  /// **'Deco ppO2 45-99% O2'**
+  String get settings_conflict_field_ppO2DecoBand3;
+
+  /// No description provided for @settings_conflict_field_ppO2DecoBandsEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Per-O2-band deco ppO2 limits'**
+  String get settings_conflict_field_ppO2DecoBandsEnabled;
+
+  /// No description provided for @settings_conflict_field_maxO2DepthEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Explicit maximum depth for 100% O2'**
+  String get settings_conflict_field_maxO2DepthEnabled;
+
+  /// No description provided for @settings_conflict_field_maxO2DepthMeters.
+  ///
+  /// In en, this message translates to:
+  /// **'Maximum depth for 100% O2'**
+  String get settings_conflict_field_maxO2DepthMeters;
+
   /// No description provided for @settings_conflict_field_ppO2MaxDeco.
   ///
   /// In en, this message translates to:

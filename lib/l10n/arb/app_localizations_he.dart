@@ -23538,6 +23538,27 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_field_ppO2Deco => 'ppO2 בדקו';
 
   @override
+  String get settings_conflict_field_ppO2DecoBand1 => 'ppO2 דקו עד 28% חמצן';
+
+  @override
+  String get settings_conflict_field_ppO2DecoBand2 => 'ppO2 דקו 28-45% חמצן';
+
+  @override
+  String get settings_conflict_field_ppO2DecoBand3 => 'ppO2 דקו 45-99% חמצן';
+
+  @override
+  String get settings_conflict_field_ppO2DecoBandsEnabled =>
+      'מגבלות ppO2 דקו לפי טווח חמצן';
+
+  @override
+  String get settings_conflict_field_maxO2DepthEnabled =>
+      'עומק מקסימלי מפורש ל-100% חמצן';
+
+  @override
+  String get settings_conflict_field_maxO2DepthMeters =>
+      'עומק מקסימלי ל-100% חמצן';
+
+  @override
   String get settings_conflict_field_ppO2MaxDeco => 'ppO2 מרבי בדקו';
 
   @override

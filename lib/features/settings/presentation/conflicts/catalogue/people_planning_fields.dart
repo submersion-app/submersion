@@ -261,6 +261,10 @@ final Map<String, ConflictField> peoplePlanningFields = {
     FieldKind.enumValue,
     enumLabel: certificationLevelLabeler,
   ),
+  'maxO2DepthMeters': ConflictField(
+    (l) => l.settings_conflict_field_maxO2DepthMeters,
+    FieldKind.depth,
+  ),
   'measuredAt': ConflictField(
     (l) => l.settings_conflict_field_measuredAt,
     FieldKind.dateTime,
@@ -324,6 +328,18 @@ final Map<String, ConflictField> peoplePlanningFields = {
   ),
   'ppO2Deco': ConflictField(
     (l) => l.settings_conflict_field_ppO2Deco,
+    FieldKind.partialPressure,
+  ),
+  'ppO2DecoBand1': ConflictField(
+    (l) => l.settings_conflict_field_ppO2DecoBand1,
+    FieldKind.partialPressure,
+  ),
+  'ppO2DecoBand2': ConflictField(
+    (l) => l.settings_conflict_field_ppO2DecoBand2,
+    FieldKind.partialPressure,
+  ),
+  'ppO2DecoBand3': ConflictField(
+    (l) => l.settings_conflict_field_ppO2DecoBand3,
     FieldKind.partialPressure,
   ),
   'priorDiveCount': ConflictField(

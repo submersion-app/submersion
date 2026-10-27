@@ -24022,6 +24022,27 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_field_ppO2Deco => 'Dekó ppO2';
 
   @override
+  String get settings_conflict_field_ppO2DecoBand1 => 'Dekó ppO2 28% O2-ig';
+
+  @override
+  String get settings_conflict_field_ppO2DecoBand2 => 'Dekó ppO2 28-45% O2';
+
+  @override
+  String get settings_conflict_field_ppO2DecoBand3 => 'Dekó ppO2 45-99% O2';
+
+  @override
+  String get settings_conflict_field_ppO2DecoBandsEnabled =>
+      'Dekó ppO2-határok O2-sáv szerint';
+
+  @override
+  String get settings_conflict_field_maxO2DepthEnabled =>
+      'Explicit maximális mélység 100% O2-hez';
+
+  @override
+  String get settings_conflict_field_maxO2DepthMeters =>
+      'Maximális mélység 100% O2-hez';
+
+  @override
   String get settings_conflict_field_ppO2MaxDeco => 'Legnagyobb dekó ppO2';
 
   @override

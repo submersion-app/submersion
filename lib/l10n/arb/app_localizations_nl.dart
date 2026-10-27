@@ -23976,6 +23976,27 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_conflict_field_ppO2Deco => 'ppO2 tijdens deco';
 
   @override
+  String get settings_conflict_field_ppO2DecoBand1 => 'Deco-ppO2 tot 28% O2';
+
+  @override
+  String get settings_conflict_field_ppO2DecoBand2 => 'Deco-ppO2 28-45% O2';
+
+  @override
+  String get settings_conflict_field_ppO2DecoBand3 => 'Deco-ppO2 45-99% O2';
+
+  @override
+  String get settings_conflict_field_ppO2DecoBandsEnabled =>
+      'Deco-ppO2-limieten per O2-band';
+
+  @override
+  String get settings_conflict_field_maxO2DepthEnabled =>
+      'Expliciete maximale diepte voor 100% O2';
+
+  @override
+  String get settings_conflict_field_maxO2DepthMeters =>
+      'Maximale diepte voor 100% O2';
+
+  @override
   String get settings_conflict_field_ppO2MaxDeco => 'Hoogste ppO2 tijdens deco';
 
   @override
