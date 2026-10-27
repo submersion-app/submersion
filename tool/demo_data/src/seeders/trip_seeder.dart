@@ -66,7 +66,9 @@ class TripSeeder implements DemoSeeder {
         ),
       );
       await itinerary.regenerateForTrip(t.id, t.start, t.end, tripType: type);
-      final site = sitesById[t.siteIds.first]!;
+      // The site of the trip's first dive: a picked site may go undived.
+      final site =
+          sitesById[ctx.plan.dives.firstWhere((d) => d.tripId == t.id).siteId]!;
       for (
         var day = t.start;
         !day.isAfter(t.end);

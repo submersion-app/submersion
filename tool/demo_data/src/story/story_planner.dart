@@ -2,6 +2,7 @@ import 'dart:math';
 
 import '../shape/dive_shape.dart';
 import 'catalog.dart';
+import 'destinations.dart';
 import 'story_plan.dart';
 
 /// Plans the demo diver's six years (issue #3708): a recreational start,
@@ -17,77 +18,23 @@ class StoryPlanner {
   final Random random;
   final Catalog catalog;
 
-  static const home = Destination(
-    key: 'home',
-    label: 'Lake diving',
-    country: 'Deutschland',
-    region: 'Bayern',
-    waterTempC: (5, 16),
-    freshwater: true,
-  );
+  static const home = homeDestination;
 
-  static const tropical = [
-    Destination(
-      key: 'red-sea',
-      label: 'Red Sea',
-      country: 'مصر',
-      region: 'البحر الأحمر',
-      waterTempC: (22, 28),
-      freshwater: false,
-      liveaboard: true,
-    ),
-    Destination(
-      key: 'bali',
-      label: 'Bali',
-      country: 'Indonesia',
-      region: 'Bali',
-      waterTempC: (26, 29),
-      freshwater: false,
-    ),
-    Destination(
-      key: 'cebu',
-      label: 'Cebu',
-      country: 'Philippines',
-      region: 'Cebu',
-      waterTempC: (26, 29),
-      freshwater: false,
-    ),
-    Destination(
-      key: 'similan',
-      label: 'Similan Islands',
-      country: 'ประเทศไทย',
-      region: 'จังหวัดพังงา',
-      waterTempC: (27, 29),
-      freshwater: false,
-      liveaboard: true,
-    ),
-    Destination(
-      key: 'maldives',
-      label: 'Maldives',
-      country: 'ދިވެހިރާއްޖެ',
-      region: 'މާލެ އަތޮޅު',
-      waterTempC: (27, 30),
-      freshwater: false,
-    ),
-    Destination(
-      key: 'raja-ampat',
-      label: 'Raja Ampat',
-      country: 'Indonesia',
-      region: 'Papua Barat Daya',
-      waterTempC: (27, 30),
-      freshwater: false,
-      liveaboard: true,
-    ),
+  static List<Destination> get tropical => [
+    for (final d in tripDestinations)
+      if (const {
+        'red-sea',
+        'bali',
+        'cebu',
+        'similan',
+        'maldives',
+        'raja-ampat',
+      }.contains(d.key))
+        d,
   ];
 
-  static const mediterranean = Destination(
-    key: 'med',
-    label: 'Mediterranean wrecks',
-    country: 'France',
-    region: 'Occitanie',
-    waterTempC: (14, 22),
-    freshwater: false,
-  );
+  static Destination get mediterranean =>
+      tripDestinations.firstWhere((d) => d.key == 'med');
 
   static const people = [
     FictionalPerson(
@@ -524,12 +471,7 @@ class StoryPlanner {
   }
 
   List<CatalogSite> _pickSites(Destination d, int count) {
-    final pool =
-        catalog.sites
-            .where((s) => s.country == d.country && s.region == d.region)
-            .toList()
-          ..sort((a, b) => a.id.compareTo(b.id))
-          ..shuffle(random);
+    final pool = catalogSitesFor(d, catalog)..shuffle(random);
     if (pool.isEmpty) throw StateError('no catalogue sites for ${d.label}');
     return pool.take(count).toList();
   }

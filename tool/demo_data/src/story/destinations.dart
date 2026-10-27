@@ -1,0 +1,419 @@
+import 'dart:math';
+
+import 'catalog.dart';
+import 'story_plan.dart';
+
+/// Where the demo diver lives: a lake region dived all year.
+const homeDestination = Destination(
+  key: 'home',
+  label: 'Lake diving',
+  country: 'Deutschland',
+  region: 'Bayern',
+  waterTempC: (5.0, 16.0),
+  freshwater: true,
+  nameRegion: 'de',
+);
+
+/// Every trip destination of the story, worldwide. Each one is a place in
+/// the app's public catalogue, chosen by country, region and, where those
+/// hold more than one place, a circle.
+const tripDestinations = <Destination>[
+  Destination(
+    key: 'austria-lakes',
+    label: 'Salzkammergut lakes',
+    country: 'Österreich',
+    region: 'Oberösterreich',
+    waterTempC: (4.0, 18.0),
+    freshwater: true,
+    nameRegion: 'de',
+    nearHome: true,
+    resortNames: ['Seehof am Ufer', 'Gasthof Seeblick'],
+  ),
+  Destination(
+    key: 'swiss-lakes',
+    label: 'Ticino lakes',
+    country: 'Schweiz/Suisse/Svizzera/Svizra',
+    region: 'Ticino',
+    waterTempC: (6.0, 19.0),
+    freshwater: true,
+    nameRegion: 'it',
+    nearHome: true,
+    resortNames: ['Albergo Riva Chiara', 'Casa Lucerna'],
+  ),
+  Destination(
+    key: 'florida-springs',
+    label: 'Florida springs',
+    country: 'United States',
+    region: 'Florida',
+    waterTempC: (21.0, 23.0),
+    freshwater: true,
+    nameRegion: 'en',
+    area: (lat: 29.6, lon: -82.5, km: 130.0),
+    scooterOk: false,
+    resortNames: ['Cypress Hollow Lodge', 'Spring Run Cabins'],
+  ),
+  Destination(
+    key: 'red-sea',
+    label: 'Red Sea',
+    country: 'مصر',
+    region: 'البحر الأحمر',
+    waterTempC: (22.0, 28.0),
+    freshwater: false,
+    nameRegion: 'ar',
+    liveaboard: true,
+    boatNames: ['MV Tarvenna', 'MV Seluna'],
+  ),
+  Destination(
+    key: 'sinai',
+    label: 'Sinai coast',
+    country: 'مصر',
+    region: 'جنوب سيناء',
+    waterTempC: (21.0, 27.0),
+    freshwater: false,
+    nameRegion: 'ar',
+    resortNames: ['Coral Moon Lodge', 'Wadi Breeze Camp'],
+  ),
+  Destination(
+    key: 'maldives',
+    label: 'Maldives',
+    country: 'ދިވެހިރާއްޖެ',
+    region: 'މާލެ އަތޮޅު',
+    waterTempC: (27.0, 30.0),
+    freshwater: false,
+    nameRegion: 'dv',
+    liveaboard: true,
+    boatNames: ['MV Ameeru Dhoni', 'MV Falhu Star'],
+  ),
+  Destination(
+    key: 'ari-atoll',
+    label: 'Ari Atoll',
+    country: 'ދިވެހިރާއްޖެ',
+    region: 'އަރިއަތޮޅު އުތުރުބުރި',
+    waterTempC: (27.0, 30.0),
+    freshwater: false,
+    nameRegion: 'dv',
+    resortNames: ['Kandu Reef Island', 'Thila Sands'],
+  ),
+  Destination(
+    key: 'bali',
+    label: 'Bali',
+    country: 'Indonesia',
+    region: 'Bali',
+    waterTempC: (26.0, 29.0),
+    freshwater: false,
+    nameRegion: 'id',
+    resortNames: ['Pondok Laut Biru', 'Rumah Karang'],
+  ),
+  Destination(
+    key: 'raja-ampat',
+    label: 'Raja Ampat',
+    country: 'Indonesia',
+    region: 'Papua Barat Daya',
+    waterTempC: (27.0, 30.0),
+    freshwater: false,
+    nameRegion: 'id',
+    liveaboard: true,
+    boatNames: ['KLM Bintang Senja', 'KLM Arus Biru'],
+  ),
+  Destination(
+    key: 'komodo',
+    label: 'Komodo',
+    country: 'Indonesia',
+    region: 'Nusa Tenggara Timur',
+    waterTempC: (24.0, 28.0),
+    freshwater: false,
+    nameRegion: 'id',
+    liveaboard: true,
+    boatNames: ['KLM Naga Laut', 'KLM Pelangi Timur'],
+  ),
+  Destination(
+    key: 'lembeh',
+    label: 'North Sulawesi',
+    country: 'Indonesia',
+    region: 'Sulawesi Utara',
+    waterTempC: (26.0, 29.0),
+    freshwater: false,
+    nameRegion: 'id',
+    resortNames: ['Selat Muck Lodge', 'Rumah Pasir Hitam'],
+  ),
+  Destination(
+    key: 'cebu',
+    label: 'Cebu',
+    country: 'Philippines',
+    region: 'Cebu',
+    waterTempC: (26.0, 29.0),
+    freshwater: false,
+    nameRegion: 'fil',
+    resortNames: ['Bahay Dagat Resort', 'Isla Banog Lodge'],
+  ),
+  Destination(
+    key: 'palawan',
+    label: 'Coron and Palawan',
+    country: 'Philippines',
+    region: 'Palawan',
+    waterTempC: (27.0, 30.0),
+    freshwater: false,
+    nameRegion: 'fil',
+    resortNames: ['Bangka Cove Lodge', 'Lagoon Hut Resort'],
+  ),
+  Destination(
+    key: 'similan',
+    label: 'Similan Islands',
+    country: 'ประเทศไทย',
+    region: 'จังหวัดพังงา',
+    waterTempC: (27.0, 29.0),
+    freshwater: false,
+    nameRegion: 'th',
+    liveaboard: true,
+    boatNames: ['MV Sai Nam', 'MV Talay Fah'],
+  ),
+  Destination(
+    key: 'koh-tao',
+    label: 'Koh Tao',
+    country: 'ประเทศไทย',
+    region: 'จังหวัดสุราษฎร์ธานี',
+    waterTempC: (28.0, 30.0),
+    freshwater: false,
+    nameRegion: 'th',
+    resortNames: ['Baan Hin Sai', 'Ao Leuk Cabanas'],
+  ),
+  Destination(
+    key: 'sabah',
+    label: 'Sabah',
+    country: 'Malaysia',
+    region: 'Sabah',
+    waterTempC: (27.0, 30.0),
+    freshwater: false,
+    nameRegion: 'ms',
+    resortNames: ['Pulau Teduh Lodge', 'Rumah Penyu'],
+  ),
+  Destination(
+    key: 'chuuk',
+    label: 'Chuuk Lagoon',
+    country: 'Micronesia',
+    region: 'Chuuk',
+    waterTempC: (28.0, 30.0),
+    freshwater: false,
+    nameRegion: 'pacific',
+    minPhase: StoryPhase.technicalOc,
+    resortNames: ['Lagoon Anchor Hotel', 'Weno Shore Lodge'],
+  ),
+  Destination(
+    key: 'palau',
+    label: 'Palau',
+    country: 'Belau',
+    region: 'Koror',
+    waterTempC: (27.0, 30.0),
+    freshwater: false,
+    nameRegion: 'pacific',
+    liveaboard: true,
+    boatNames: ['MV Rock Island Wren', 'MV Ngemelis Drift'],
+  ),
+  Destination(
+    key: 'bikini',
+    label: 'Marshall Islands wrecks',
+    country: 'Ṃajeḷ',
+    region: 'Rālik',
+    waterTempC: (27.0, 29.0),
+    freshwater: false,
+    nameRegion: 'pacific',
+    liveaboard: true,
+    minPhase: StoryPhase.technicalOc,
+    boatNames: ['MV Atoll Sentry', 'MV Lagoon Runner'],
+  ),
+  Destination(
+    key: 'okinawa',
+    label: 'Okinawa',
+    country: '日本',
+    region: '沖縄県',
+    waterTempC: (21.0, 28.0),
+    freshwater: false,
+    nameRegion: 'ja',
+    resortNames: ['Umikaze Guesthouse', 'Sango Minshuku'],
+  ),
+  Destination(
+    key: 'nsw',
+    label: 'New South Wales',
+    country: 'Australia',
+    region: 'New South Wales',
+    waterTempC: (17.0, 23.0),
+    freshwater: false,
+    nameRegion: 'en',
+    resortNames: ['Headland Dive Lodge', 'Bay Swell Cabins'],
+  ),
+  Destination(
+    key: 'curacao',
+    label: 'Curaçao',
+    country: 'Curaçao',
+    region: null,
+    waterTempC: (26.0, 28.0),
+    freshwater: false,
+    nameRegion: 'nl',
+    resortNames: ['Kas di Laman', 'Bon Bida Lodge'],
+  ),
+  Destination(
+    key: 'dominican',
+    label: 'Dominican Republic',
+    country: 'República Dominicana',
+    region: null,
+    waterTempC: (26.0, 28.0),
+    freshwater: false,
+    nameRegion: 'es',
+    resortNames: ['Casa Arrecife', 'Bahía Clara Lodge'],
+  ),
+  Destination(
+    key: 'san-andres',
+    label: 'San Andrés',
+    country: 'Colombia',
+    region: 'Archipiélago de San Andrés, Providencia y Santa Catalina',
+    waterTempC: (26.0, 29.0),
+    freshwater: false,
+    nameRegion: 'es',
+    resortNames: ['Posada Mar de Siete Colores', 'Cayo Brisa'],
+  ),
+  Destination(
+    key: 'galapagos',
+    label: 'Galápagos',
+    country: 'Ecuador',
+    region: 'Galápagos',
+    waterTempC: (18.0, 25.0),
+    freshwater: false,
+    nameRegion: 'es',
+    liveaboard: true,
+    boatNames: ['MV Garúa', 'MV Corriente Fría'],
+  ),
+  Destination(
+    key: 'polynesia',
+    label: 'French Polynesia',
+    country: 'France',
+    region: 'Polynésie Française',
+    waterTempC: (25.0, 28.0),
+    freshwater: false,
+    nameRegion: 'fr',
+    resortNames: ['Fare Lagon', 'Pension Hoa Nui'],
+  ),
+  Destination(
+    key: 'hawaii',
+    label: 'Hawaii',
+    country: 'United States',
+    region: 'Hawaii',
+    waterTempC: (24.0, 27.0),
+    freshwater: false,
+    nameRegion: 'en',
+    resortNames: ['Lava Point Inn', 'Makai Reef Cottages'],
+  ),
+  Destination(
+    key: 'cozumel',
+    label: 'Cozumel',
+    country: 'México',
+    region: null,
+    waterTempC: (26.0, 29.0),
+    freshwater: false,
+    nameRegion: 'es',
+    area: (lat: 20.4, lon: -86.95, km: 35.0),
+    resortNames: ['Posada Arrecife', 'Casa Corriente'],
+  ),
+  Destination(
+    key: 'med',
+    label: 'Mediterranean wrecks',
+    country: 'France',
+    region: 'Occitanie',
+    waterTempC: (14.0, 22.0),
+    freshwater: false,
+    nameRegion: 'fr',
+    minPhase: StoryPhase.technicalOc,
+    resortNames: ['Hôtel du Phare', 'Mas des Épaves'],
+  ),
+  Destination(
+    key: 'croatia',
+    label: 'Kvarner Gulf',
+    country: 'Hrvatska',
+    region: 'Primorsko-goranska županija',
+    waterTempC: (14.0, 23.0),
+    freshwater: false,
+    nameRegion: 'hr',
+    resortNames: ['Pansion Uvala', 'Kuća Kvarner'],
+  ),
+  Destination(
+    key: 'malta',
+    label: 'Malta and Gozo',
+    country: 'Malta',
+    region: null,
+    waterTempC: (15.0, 25.0),
+    freshwater: false,
+    nameRegion: 'mt',
+    resortNames: ['Dar il-Baħar', 'Kantuniera Guesthouse'],
+  ),
+  Destination(
+    key: 'cyprus',
+    label: 'Cyprus',
+    country: 'Κύπρος - Kıbrıs',
+    region: 'Κύπρος',
+    waterTempC: (17.0, 27.0),
+    freshwater: false,
+    nameRegion: 'el',
+    resortNames: ['Spiti Akti', 'Limani Rooms'],
+  ),
+  Destination(
+    key: 'norway',
+    label: 'Southern Norway',
+    country: 'Norge',
+    region: 'Agder',
+    waterTempC: (6.0, 13.0),
+    freshwater: false,
+    nameRegion: 'no',
+    resortNames: ['Fjordbu Rorbuer', 'Skjærgård Hytter'],
+  ),
+  Destination(
+    key: 'scotland',
+    label: 'Scapa Flow and Scotland',
+    country: 'United Kingdom',
+    region: 'Alba / Scotland',
+    waterTempC: (8.0, 12.0),
+    freshwater: false,
+    nameRegion: 'en',
+    minPhase: StoryPhase.technicalOc,
+    resortNames: ['Harbour Brae House', 'Stromness Quay Rooms'],
+  ),
+];
+
+final _notASite = RegExp(
+  r'\b(shop|shops|tours?|shuttle|scuba|diving|divers|dive cent(er|re)|dive club|school|hotel|resort|rental|marina)\b',
+  caseSensitive: false,
+);
+
+/// The catalogue's dive sites at [d], in id order so a seed picks the same
+/// ones. Shops, tour operators and anything sharing a dive centre's name are
+/// left out: the public catalogue tags some of them as dive sites.
+List<CatalogSite> catalogSitesFor(Destination d, Catalog catalog) {
+  final centreNames = {for (final c in catalog.centers) c.name};
+  bool inArea(CatalogSite s) {
+    final a = d.area;
+    if (a == null) return true;
+    return _km(a.lat, a.lon, s.latitude, s.longitude) <= a.km;
+  }
+
+  return catalog.sites
+      .where(
+        (s) =>
+            s.country == d.country &&
+            (d.region == null || s.region == d.region) &&
+            inArea(s) &&
+            !centreNames.contains(s.name) &&
+            !_notASite.hasMatch(s.name),
+      )
+      .toList()
+    ..sort((a, b) => a.id.compareTo(b.id));
+}
+
+/// Great-circle distance in kilometres.
+double _km(double lat1, double lon1, double lat2, double lon2) {
+  const r = 6371.0;
+  double rad(double deg) => deg * pi / 180;
+  final dLat = rad(lat2 - lat1);
+  final dLon = rad(lon2 - lon1);
+  final h =
+      pow(sin(dLat / 2), 2) +
+      cos(rad(lat1)) * cos(rad(lat2)) * pow(sin(dLon / 2), 2);
+  return 2 * r * asin(sqrt(h));
+}
