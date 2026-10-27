@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/deco/deco_ppo2_limits.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
@@ -157,11 +158,20 @@ class PlanGasOptionsSection extends ConsumerWidget {
         // deco gases (issue #3580 follow-up): the flat value below is then
         // replaced everywhere by the band it falls into, so showing it next
         // to the bands control reads as if it still mattered. Shown again
-        // once this plan's own choice is "Off" - or the diver's Settings
-        // never turned band mode on at all - and the flat value is back in
-        // charge.
-        if (!(ref.watch(ppO2DecoBandsEnabledProvider) &&
-            !state.ppO2DecoBandsExplicitlyOff))
+        // once this plan's own choice is "Off" - or neither the diver's
+        // Settings nor this plan's own Custom values turned band mode on -
+        // and the flat value is back in charge. Mirrors the same
+        // resolveDecoLayerEnabled formula PlanEngineConfig.resolvedFor
+        // actually computes band mode with, so this field hides exactly
+        // when it stops mattering, not just when the Settings toggle does.
+        if (!resolveDecoLayerEnabled(
+          settingsEnabled: ref.watch(ppO2DecoBandsEnabledProvider),
+          explicitlyOff: state.ppO2DecoBandsExplicitlyOff,
+          hasCustomValue:
+              state.ppO2DecoBand1 != null ||
+              state.ppO2DecoBand2 != null ||
+              state.ppO2DecoBand3 != null,
+        ))
           PlanNumberField(
             label: context.l10n.divePlanner_gasOptions_ppO2Deco,
             value: state.ppO2Deco,
@@ -201,6 +211,7 @@ class PlanGasOptionsSection extends ConsumerWidget {
           defaultAmv: bottomRmv * ref.watch(plannerHypercapniaFactorProvider),
           defaultMinutes: ref.watch(plannerHypercapniaMinutesProvider),
           enabledInSettings: ref.watch(plannerHypercapniaEnabledProvider),
+          units: units,
           onAmvChanged: (value) =>
               notifier.updateGasOptions(hypercapniaAmv: value),
           onMinutesChanged: (value) =>

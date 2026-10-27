@@ -419,22 +419,20 @@ class PlanEngineConfig extends Equatable {
       ppO2DecoBand1: plan.ppO2DecoBand1,
       ppO2DecoBand2: plan.ppO2DecoBand2,
       ppO2DecoBand3: plan.ppO2DecoBand3,
-      // A plan's own Custom band/depth values govern even when the
-      // diver's Settings toggle is off (issue #3580 follow-up, caught by
-      // a Copilot review): "Custom" is a per-plan opt-in, not something
-      // the global switch can silently veto. "Off"
-      // (ppO2DecoBandsExplicitlyOff/maxO2DepthExplicitlyOff) still always
-      // wins.
-      ppO2DecoBandsEnabled:
-          !plan.ppO2DecoBandsExplicitlyOff &&
-          (ppO2DecoBandsEnabled ||
-              plan.ppO2DecoBand1 != null ||
-              plan.ppO2DecoBand2 != null ||
-              plan.ppO2DecoBand3 != null),
+      ppO2DecoBandsEnabled: resolveDecoLayerEnabled(
+        settingsEnabled: ppO2DecoBandsEnabled,
+        explicitlyOff: plan.ppO2DecoBandsExplicitlyOff,
+        hasCustomValue:
+            plan.ppO2DecoBand1 != null ||
+            plan.ppO2DecoBand2 != null ||
+            plan.ppO2DecoBand3 != null,
+      ),
       maxO2DepthMeters: plan.maxO2DepthMeters,
-      maxO2DepthEnabled:
-          !plan.maxO2DepthExplicitlyOff &&
-          (maxO2DepthEnabled || plan.maxO2DepthMeters != null),
+      maxO2DepthEnabled: resolveDecoLayerEnabled(
+        settingsEnabled: maxO2DepthEnabled,
+        explicitlyOff: plan.maxO2DepthExplicitlyOff,
+        hasCustomValue: plan.maxO2DepthMeters != null,
+      ),
       o2Narcotic: plan.o2Narcotic,
       bestMixEndMeters: plan.bestMixEndMeters,
       buddyFactor: plan.sacFactor,

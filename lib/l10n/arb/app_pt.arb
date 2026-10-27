@@ -1453,7 +1453,13 @@
   "connections_tab_view": "Vista",
   "connections_tab_filter": "Filtro",
   "connections_tab_filterCount": "Filtro ({count})",
-  "@connections_tab_filterCount": {"placeholders": {"count": {"type": "int"}}},
+  "@connections_tab_filterCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "connections_tab_details": "Detalhes",
   "connections_presets_title": "Predefinições",
   "connections_preset_circle": "Círculo de mergulho",
@@ -1470,16 +1476,37 @@
   "connections_editor_kinds": "Tipos",
   "connections_editor_links": "Ligações",
   "connections_editor_link": "{a} com {b}",
-  "@connections_editor_link": {"placeholders": {"a": {"type": "String"}, "b": {"type": "String"}}},
+  "@connections_editor_link": {
+    "placeholders": {
+      "a": {
+        "type": "String"
+      },
+      "b": {
+        "type": "String"
+      }
+    }
+  },
   "connections_editor_minShared": "{count, plural, =1{Pelo menos {count} mergulho em comum} other{Pelo menos {count} mergulhos em comum}}",
-  "@connections_editor_minShared": {"placeholders": {"count": {"type": "int"}}},
+  "@connections_editor_minShared": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "connections_editor_saveAsMap": "Guardar como mapa",
   "connections_savedMap_saveTitle": "Guardar mapa",
   "connections_savedMap_nameLabel": "Nome",
   "connections_savedMap_rename": "Mudar o nome",
   "connections_savedMap_update": "Atualizar com a vista atual",
   "connections_savedMap_deleted": "\"{name}\" eliminado",
-  "@connections_savedMap_deleted": {"placeholders": {"name": {"type": "String"}}},
+  "@connections_savedMap_deleted": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "connections_savedMap_undo": "Anular",
   "connections_savedMap_badge": "Mapa guardado",
   "connections_around_searchHint": "Pesquisar parceiros, locais, viagens e outros",
@@ -1500,7 +1527,16 @@
   "connections_caption_around": "{hops, plural, =1{Tudo o que compartilha um mergulho com o elemento central.} other{Tudo a até {hops} passos do elemento central, ligado por mergulhos em comum.}}",
   "connections_caption_thicker": "Linhas mais grossas indicam mais mergulhos.",
   "connections_around_kindChip": "{kind} ({count})",
-  "@connections_around_kindChip": {"placeholders": {"kind": {"type": "String"}, "count": {"type": "int"}}},
+  "@connections_around_kindChip": {
+    "placeholders": {
+      "kind": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "connections_around_prompt": "Pesquise um parceiro, local, viagem ou outra coisa para centrar o mapa.",
   "connections_around_noResults": "Sem resultados",
   "connections_action_centreHere": "Centrar aqui",
@@ -1572,10 +1608,28 @@
   "connections_share_allDives": "Todos os mergulhos, {first} a {last}",
   "connections_share_details": "{range}. {counts}",
   "connections_summary_pairValue": "{count, plural, =1{{a} e {b}, {count} mergulho} other{{a} e {b}, {count} mergulhos}}",
-  "@connections_summary_pairValue": {"placeholders": {"count": {"type": "int"}, "a": {"type": "String"}, "b": {"type": "String"}}},
+  "@connections_summary_pairValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "a": {
+        "type": "String"
+      },
+      "b": {
+        "type": "String"
+      }
+    }
+  },
   "connections_summary_closest": "Mais próximo",
   "connections_summary_entitiesAround": "{count, plural, =1{{count} elemento} other{{count} elementos}}",
-  "@connections_summary_entitiesAround": {"placeholders": {"count": {"type": "int"}}},
+  "@connections_summary_entitiesAround": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "connections_filter_allFilters": "Todos os filtros",
   "connections_filter_clear": "Limpar",
   "connections_filter_none": "Nenhum filtro ativo.",
@@ -1583,20 +1637,50 @@
   "connections_tooltip_relayout": "Reorganizar",
   "connections_tooltip_showWholeWeb": "Voltar ao mapa completo",
   "connections_filterBar_edges": "{count, plural, =1{{count} ligação} other{{count} ligações}}",
-  "@connections_filterBar_edges": {"placeholders": {"count": {"type": "int"}}},
+  "@connections_filterBar_edges": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "connections_hiddenNodes": "{count, plural, =1{{count} mais não mostrado} other{{count} mais não mostrados}}",
-  "@connections_hiddenNodes": {"placeholders": {"count": {"type": "int"}}},
+  "@connections_hiddenNodes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "connections_showAll": "Mostrar tudo",
   "connections_showAll_confirmTitle": "Mostrar todos os elementos?",
   "connections_showAll_confirmBody": "{count} elementos podem demorar um momento a organizar neste dispositivo.",
-  "@connections_showAll_confirmBody": {"placeholders": {"count": {"type": "int"}}},
+  "@connections_showAll_confirmBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "connections_action_open": "Abrir",
   "connections_action_showDives": "Ver mergulhos",
   "connections_action_openInConnections": "Abrir em Ligações",
   "connections_selection_divesTogether": "{count, plural, =1{{count} mergulho juntos} other{{count} mergulhos juntos}}",
-  "@connections_selection_divesTogether": {"placeholders": {"count": {"type": "int"}}},
+  "@connections_selection_divesTogether": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "connections_selection_dives": "{count, plural, =1{{count} mergulho} other{{count} mergulhos}}",
-  "@connections_selection_dives": {"placeholders": {"count": {"type": "int"}}},
+  "@connections_selection_dives": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "connections_selection_topConnections": "Ligações principais",
   "connections_selection_hint": "Toque num elemento ou numa linha para ver os detalhes.",
   "connections_details_dives": "Mergulhos",
@@ -1622,11 +1706,35 @@
   "connections_error_load": "Não foi possível carregar as ligações.",
   "connections_legend_title": "Legenda",
   "connections_timeline_range": "{start} a {end}",
-  "@connections_timeline_range": {"placeholders": {"start": {"type": "String"}, "end": {"type": "String"}}},
+  "@connections_timeline_range": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
   "connections_semantics_summary": "{nodes} elementos e {edges} ligações",
-  "@connections_semantics_summary": {"placeholders": {"nodes": {"type": "int"}, "edges": {"type": "int"}}},
+  "@connections_semantics_summary": {
+    "placeholders": {
+      "nodes": {
+        "type": "int"
+      },
+      "edges": {
+        "type": "int"
+      }
+    }
+  },
   "connections_semantics_selected": "Selecionado: {label}",
-  "@connections_semantics_selected": {"placeholders": {"label": {"type": "String"}}},
+  "@connections_semantics_selected": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
   "connections_kind_buddy": "Parceiros",
   "connections_kind_site": "Locais",
   "connections_kind_trip": "Viagens",
@@ -3228,6 +3336,8 @@
   "divePlanner_gasOptions_ppO2DecoBand2": "ppO₂ deco 28-45% O2",
   "divePlanner_gasOptions_ppO2DecoBand3": "ppO₂ deco 45-99% O2",
   "divePlanner_gasOptions_maxO2DepthMeters": "Profundidade máx. 100% O2",
+  "divePlanner_gasOptions_hypercapniaAmv": "Hypercapnia RMV",
+  "divePlanner_gasOptions_hypercapniaMinutes": "Duration",
   "divePlanner_gasOptions_bestMixEnd": "END da melhor mistura",
   "divePlanner_gasOptions_o2Narcotic": "Considerar o O₂ narcótico neste plano",
   "divePlanner_label_on": "Ativado",
@@ -6003,7 +6113,13 @@
   "sharedLibrary_connect_folderChars": "Uma pasta de biblioteca não pode conter *, ? nem cifrões.",
   "sharedLibrary_setup_title": "Como configurar o armazenamento",
   "sharedLibrary_setup_where": "Esta biblioteca fica em {folder}, no topo do bucket ou do servidor, ao lado das pastas de sincronização e de multimédia.",
-  "@sharedLibrary_setup_where": {"placeholders": {"folder": {"type": "String"}}},
+  "@sharedLibrary_setup_where": {
+    "placeholders": {
+      "folder": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_setup_keys": "Dê aos proprietários e editores chaves que leiam e escrevam na pasta da biblioteca. Dê a todos os outros chaves que a leiam e só escrevam em members/ e suggestions/. É o armazenamento, e não a app, que impede uma chave de escrever.",
   "sharedLibrary_setup_s3Full": "Política S3 para proprietários e editores",
   "sharedLibrary_setup_s3Reader": "Política S3 para leitores",
@@ -6018,22 +6134,52 @@
   "sharedLibrary_members_approve": "Aprovar",
   "sharedLibrary_members_reject": "Rejeitar",
   "sharedLibrary_members_fingerprint": "Chave {fingerprint}",
-  "@sharedLibrary_members_fingerprint": {"placeholders": {"fingerprint": {"type": "String"}}},
+  "@sharedLibrary_members_fingerprint": {
+    "placeholders": {
+      "fingerprint": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_members_unsignedCard": "Cartão não assinado pelo membro",
   "sharedLibrary_members_rejectTitle": "Rejeitar {name}?",
-  "@sharedLibrary_members_rejectTitle": {"placeholders": {"name": {"type": "String"}}},
+  "@sharedLibrary_members_rejectTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_members_rejectBody": "O cartão é removido e nada do que escrever conta. Só novas chaves de armazenamento impedem que escreva ficheiros.",
   "sharedLibrary_members_left": "Saíram da biblioteca",
   "sharedLibrary_members_removeRole": "Remover função",
   "sharedLibrary_members_remove": "Remover da biblioteca",
   "sharedLibrary_members_removeTitle": "Remover {name}?",
-  "@sharedLibrary_members_removeTitle": {"placeholders": {"name": {"type": "String"}}},
+  "@sharedLibrary_members_removeTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_members_removeBody": "{name} deixa de poder editar locais ou sugerir alterações. Os locais e alterações que já contribuiu ficam na biblioteca.\n\nAinda poderá ler a biblioteca até mudar as chaves de armazenamento, e a frase-passe se estiver cifrada.",
-  "@sharedLibrary_members_removeBody": {"placeholders": {"name": {"type": "String"}}},
+  "@sharedLibrary_members_removeBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_members_removeConfirm": "Remover",
   "sharedLibrary_members_removedHeader": "Removidos",
   "sharedLibrary_members_removedOn": "Removido em {date}",
-  "@sharedLibrary_members_removedOn": {"placeholders": {"date": {"type": "String"}}},
+  "@sharedLibrary_members_removedOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_members_allowBack": "Readmitir",
   "sharedLibrary_owner_onlyOne": "Só há um proprietário. Se perder o acesso, só o código de recuperação o pode repor.",
   "sharedLibrary_owner_addOwner": "Escolher outro proprietário",
@@ -6048,7 +6194,19 @@
   "sharedLibrary_owner_resetHelp": "Só se não restar nenhum proprietário nem código de recuperação. Todos os membros têm de aceitar.",
   "sharedLibrary_owner_resetConfirm": "Tornar-se o único proprietário? O dispositivo de cada outro membro pedirá que o aceite e deixa de escrever na biblioteca até que o faça.",
   "sharedLibrary_owner_resetPrompt": "{name} repôs a propriedade de {library} (chave {fingerprint}). Até aceitar, este dispositivo só lê a biblioteca.",
-  "@sharedLibrary_owner_resetPrompt": {"placeholders": {"library": {"type": "String"}, "name": {"type": "String"}, "fingerprint": {"type": "String"}}},
+  "@sharedLibrary_owner_resetPrompt": {
+    "placeholders": {
+      "library": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      },
+      "fingerprint": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_owner_resetAccept": "Aceitar",
   "sharedLibrary_connect_untrusted": "As funções desta biblioteca não estão assinadas por um dos seus proprietários. Peça a um proprietário que verifique.",
   "sharedLibrary_retired": "Esta biblioteca foi criada por uma versão de teste do Submersion. Crie-a de novo.",
@@ -6067,7 +6225,16 @@
   "sharedLibrary_backups_inStorage": "No armazenamento",
   "sharedLibrary_backups_both": "Neste dispositivo e no armazenamento",
   "sharedLibrary_backups_summary": "Locais: {sites} · {size}",
-  "@sharedLibrary_backups_summary": {"placeholders": {"sites": {"type": "int"}, "size": {"type": "String"}}},
+  "@sharedLibrary_backups_summary": {
+    "placeholders": {
+      "sites": {
+        "type": "int"
+      },
+      "size": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_backups_pin": "Fixar",
   "sharedLibrary_backups_unpin": "Desafixar",
   "sharedLibrary_backups_delete": "Eliminar",
@@ -6076,7 +6243,13 @@
   "sharedLibrary_backups_export": "Exportar",
   "sharedLibrary_backups_restore": "Restaurar",
   "sharedLibrary_backups_restoreConfirm": "Restaurar a biblioteca ao estado de {date}? Cada membro recebe esta versão na próxima sincronização. Antes é feita uma cópia fixada da biblioteca tal como está agora.",
-  "@sharedLibrary_backups_restoreConfirm": {"placeholders": {"date": {"type": "String"}}},
+  "@sharedLibrary_backups_restoreConfirm": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_backups_restoreDone": "Biblioteca restaurada",
   "sharedLibrary_backups_oldKey": "Esta cópia foi selada com uma frase-passe anterior. Introduza essa frase-passe ou o código de recuperação dessa altura.",
   "sharedLibrary_backups_empty": "Ainda não há cópias. Os dispositivos dos proprietários fazem uma por dia, e Fazer cópia agora faz uma de imediato.",
@@ -6084,17 +6257,41 @@
   "sharedLibrary_backups_ownersOnly": "Só os proprietários gerem as cópias.",
   "sharedLibrary_backups_done": "Cópia feita",
   "sharedLibrary_library_myKey": "A sua chave {fingerprint}",
-  "@sharedLibrary_library_myKey": {"placeholders": {"fingerprint": {"type": "String"}}},
+  "@sharedLibrary_library_myKey": {
+    "placeholders": {
+      "fingerprint": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_suggest_held": "{count, plural, =1{{count} sugestão aguarda que aprove o seu autor} other{{count} sugestões aguardam que aprove os seus autores}}",
-  "@sharedLibrary_suggest_held": {"placeholders": {"count": {"type": "int"}}},
+  "@sharedLibrary_suggest_held": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "sharedLibrary_restoreInto_action": "Restaurar a partir de um ficheiro de cópia",
   "sharedLibrary_restoreInto_needsKey": "Esta cópia está encriptada. Introduza a frase-passe ou o código de recuperação.",
   "sharedLibrary_restoreInto_refused": "Esse ficheiro não é uma cópia de uma biblioteca feita por um proprietário.",
   "sharedLibrary_restoreInto_oldStillThere": "A biblioteca também ainda está na pasta antiga. Os membros que a usam lá mantêm essa cópia até se ligarem a esta pasta.",
   "sharedLibrary_encrypted_locked": "Introduza a frase-passe de {library}.",
-  "@sharedLibrary_encrypted_locked": {"placeholders": {"library": {"type": "String"}}},
+  "@sharedLibrary_encrypted_locked": {
+    "placeholders": {
+      "library": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_encrypted_changed": "A frase-passe de {library} mudou. Introduza a nova.",
-  "@sharedLibrary_encrypted_changed": {"placeholders": {"library": {"type": "String"}}},
+  "@sharedLibrary_encrypted_changed": {
+    "placeholders": {
+      "library": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_encryption_title": "Encriptação",
   "sharedLibrary_encryption_statusOn": "Encriptada com uma frase-passe",
   "sharedLibrary_encryption_statusOff": "Não encriptada: quem tiver acesso ao armazenamento pode lê-la",
@@ -6107,7 +6304,13 @@
   "sharedLibrary_encryption_passphrase": "Frase-passe",
   "sharedLibrary_encryption_confirm": "Repita a frase-passe",
   "sharedLibrary_connect_join_action": "Aderir a {name}",
-  "@sharedLibrary_connect_join_action": {"placeholders": {"name": {"type": "String"}}},
+  "@sharedLibrary_connect_join_action": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_connect_create_action": "Criar biblioteca",
   "sharedLibrary_connect_create_name_label": "Nome da biblioteca",
   "sharedLibrary_connect_displayName_label": "O seu nome nesta biblioteca",
@@ -6119,15 +6322,33 @@
   "sharedLibrary_role_owner": "Proprietário",
   "sharedLibrary_library_members": "Membros",
   "sharedLibrary_library_memberCount": "{count, plural, =1{{count} membro} other{{count} membros}}",
-  "@sharedLibrary_library_memberCount": {"placeholders": {"count": {"type": "int"}}},
+  "@sharedLibrary_library_memberCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "sharedLibrary_library_syncNow": "Sincronizar agora",
   "sharedLibrary_library_lastSync": "Última sincronização {when}",
-  "@sharedLibrary_library_lastSync": {"placeholders": {"when": {"type": "String"}}},
+  "@sharedLibrary_library_lastSync": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_library_neverSynced": "Ainda não sincronizada",
   "sharedLibrary_library_readOnlyBanner": "As suas credenciais permitem apenas leitura. Pode sugerir alterações; um responsável aplica-as.",
   "sharedLibrary_library_removedBanner": "Um responsável removeu-o desta biblioteca. Os locais ficam neste dispositivo, mas já não os pode alterar. Ao sair da biblioteca, fica com cópias pessoais dos locais onde mergulhou.",
   "sharedLibrary_library_errorBanner": "A última sincronização falhou: {error}",
-  "@sharedLibrary_library_errorBanner": {"placeholders": {"error": {"type": "String"}}},
+  "@sharedLibrary_library_errorBanner": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_syncError_accountMissing": "A conta desta biblioteca já não está neste dispositivo. Use Alterar ligação para a escolher novamente.",
   "sharedLibrary_syncError_accountSignedOut": "Este dispositivo terminou a sessão na conta desta biblioteca. Inicie sessão novamente em Contas conectadas ou use Alterar ligação.",
   "sharedLibrary_syncError_notALibrary": "Nenhuma biblioteca neste local.",
@@ -6136,7 +6357,13 @@
   "sharedLibrary_library_suggestions": "Sugestões",
   "sharedLibrary_library_leave": "Sair da biblioteca",
   "sharedLibrary_library_leaveConfirm_title": "Sair de {name}?",
-  "@sharedLibrary_library_leaveConfirm_title": {"placeholders": {"name": {"type": "String"}}},
+  "@sharedLibrary_library_leaveConfirm_title": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_library_leaveConfirm_body": "Os locais partilhados usados pelos seus mergulhos ficam como cópias pessoais. Os restantes locais partilhados são removidos deste dispositivo.",
   "sharedLibrary_library_rename_label": "Nome a apresentar",
   "sharedLibrary_members_setRole": "Alterar função",
@@ -6148,23 +6375,68 @@
   "sharedLibrary_connect_exists": "Alguém criou uma biblioteca aqui entretanto. Verifique novamente para aderir.",
   "sharedLibrary_library_lastOwnerLeave": "Torne outro membro proprietário antes de sair.",
   "sharedLibrary_site_badgeTooltip": "Em {name}",
-  "@sharedLibrary_site_badgeTooltip": {"placeholders": {"name": {"type": "String"}}},
+  "@sharedLibrary_site_badgeTooltip": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_site_lastEdited": "Última edição por {name}, {when}",
-  "@sharedLibrary_site_lastEdited": {"placeholders": {"name": {"type": "String"}, "when": {"type": "String"}}},
+  "@sharedLibrary_site_lastEdited": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_site_history": "Histórico de edições",
   "sharedLibrary_site_addToLibrary": "Adicionar à biblioteca de locais partilhada",
   "sharedLibrary_add_confirm_title": "Adicionar {name} a {library}?",
-  "@sharedLibrary_add_confirm_title": {"placeholders": {"name": {"type": "String"}, "library": {"type": "String"}}},
+  "@sharedLibrary_add_confirm_title": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "library": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_add_confirm_titleMany": "{count, plural, =1{Adicionar {count} local a {library}?} other{Adicionar {count} locais a {library}?}}",
-  "@sharedLibrary_add_confirm_titleMany": {"placeholders": {"count": {"type": "int"}, "library": {"type": "String"}}},
+  "@sharedLibrary_add_confirm_titleMany": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "library": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_add_confirm_shared": "Todos os membros verão: nome, localização, profundidades, descrição, perigos, acesso, entrada e saída, amarração, estacionamento, tipos de local, etiquetas, espécies e características.",
   "sharedLibrary_add_confirm_private": "Fica consigo: as suas notas e a sua classificação. Os mergulhos e as fotos nunca saem da sua biblioteca pessoal.",
   "sharedLibrary_add_confirm_action": "Adicionar",
   "sharedLibrary_site_chooseLibrary": "Escolha uma biblioteca",
   "sharedLibrary_site_added": "Adicionado a {name}",
-  "@sharedLibrary_site_added": {"placeholders": {"name": {"type": "String"}}},
+  "@sharedLibrary_site_added": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_site_notConnectedHere": "Este local está em {name}, que não está ligada neste dispositivo.",
-  "@sharedLibrary_site_notConnectedHere": {"placeholders": {"name": {"type": "String"}}},
+  "@sharedLibrary_site_notConnectedHere": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_site_connectHere": "Ligar neste dispositivo",
   "sharedLibrary_site_deleteFromLibrary_title": "Eliminar da biblioteca de locais partilhada?",
   "sharedLibrary_site_deleteFromLibrary_body": "Os membros cujos mergulhos usam este local mantêm uma cópia pessoal.",
@@ -6176,12 +6448,27 @@
   "sharedLibrary_suggest_nothingChanged": "Nada foi alterado.",
   "sharedLibrary_suggest_savedPrivate": "As suas notas e a sua classificação foram guardadas.",
   "sharedLibrary_suggest_pending": "{count, plural, =1{{count} sugestão pendente} other{{count} sugestões pendentes}}",
-  "@sharedLibrary_suggest_pending": {"placeholders": {"count": {"type": "int"}}},
+  "@sharedLibrary_suggest_pending": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "sharedLibrary_suggest_withdraw": "Retirar",
   "sharedLibrary_inbox_title": "Sugestões",
   "sharedLibrary_inbox_empty": "Não há sugestões pendentes.",
   "sharedLibrary_inbox_from": "De {name}, {when}",
-  "@sharedLibrary_inbox_from": {"placeholders": {"name": {"type": "String"}, "when": {"type": "String"}}},
+  "@sharedLibrary_inbox_from": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_inbox_accept": "Aceitar",
   "sharedLibrary_inbox_dismiss": "Ignorar",
   "sharedLibrary_inbox_siteDeleted": "Este local foi eliminado da biblioteca.",
@@ -7327,6 +7614,12 @@
   "settings_decompression_ppO2BandsDialog_band3": "45–99% O2",
   "settings_decompression_ppO2BandsDialog_maxO2DepthToggle": "Usar uma profundidade máxima explícita para 100% O2",
   "settings_decompression_ppO2BandsDialog_maxO2DepthLabel": "Profundidade máxima para 100% O2",
+  "settings_decompression_hypercapniaTitle": "Hypercapnia bailout phase",
+  "settings_decompression_hypercapniaSubtitle": "Optional elevated breathing rate at the start of a CCR/SCR OC bailout",
+  "settings_decompression_hypercapniaDialog_title": "Hypercapnia bailout phase",
+  "settings_decompression_hypercapniaDialog_enabledToggle": "Use a hypercapnia phase for OC bailout",
+  "settings_decompression_hypercapniaDialog_factorLabel": "RMV factor",
+  "settings_decompression_hypercapniaDialog_minutesLabel": "Duration",
   "settings_decompression_ccrPpO2LimitsTitle": "Limites de ppO2 CCR",
   "settings_decompression_ccrPpO2LimitsSubtitle": "Setpoint baixo {low} · alto {high} · MOD Dil {dil} bar",
   "settings_decompression_ccrDialog_info": "Valores predefinidos para mergulhos com rebreather. O modo CCR da calculadora de MOD parte destes valores.",
@@ -10627,7 +10920,6 @@
   "settings_connectedAccounts_status_signedIn": "Conectado",
   "settings_connectedAccounts_status_unavailable": "Indisponível neste dispositivo",
   "settings_connectedAccounts_disconnectDevice": "Sair neste dispositivo",
-
   "settings_connectedAccounts_rename": "Mudar o nome",
   "settings_connectedAccounts_renameTitle": "Mudar o nome da conta",
   "settings_connectedAccounts_renameField": "Nome",
@@ -15564,8 +15856,7 @@
   "diveDetailSection_navTrack_trackName": "Trilha subaquática",
   "diveDetailSection_navTrack_trackDescription": "Trilha subaquática medida a partir de um console de navegação",
   "navTrack_list_durationHours": "{hours}h {minutes}min",
-  "navTrack_list_durationMinutes": "{minutes}min"
-,
+  "navTrack_list_durationMinutes": "{minutes}min",
   "gasCalculators_mod_semanticsLabel": "Profundidade máxima operacional: {depth} {unit} a {ppo2} bar de ppO2 com {o2}% de oxigénio",
   "gasCalculators_blender_stepColumnAction": "Ação",
   "gasCalculators_blender_stepColumnAdded": "Adicionado",
@@ -16192,6 +16483,7 @@
   "plannerCanvas_bailout_schedule": "Plano a partir do pior caso",
   "plannerCanvas_chartMode_bailout": "Bailout",
   "plannerCanvas_chartMode_ccr": "CCR",
+  "plannerCanvas_chartMode_scr": "SCR",
   "plannerCanvas_scrub_tts": "TTS {minutes}′",
   "plannerCanvas_table_end": "END",
   "plannerCanvas_table_ppO2": "PO2",

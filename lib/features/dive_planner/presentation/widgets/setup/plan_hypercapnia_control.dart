@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:submersion/core/utils/number_input.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_choice_wrap.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_number_field.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -25,6 +25,7 @@ class PlanHypercapniaControl extends StatelessWidget {
     required this.defaultAmv,
     required this.defaultMinutes,
     required this.enabledInSettings,
+    required this.units,
     required this.onAmvChanged,
     required this.onMinutesChanged,
     required this.onOff,
@@ -46,6 +47,11 @@ class PlanHypercapniaControl extends StatelessWidget {
   /// Whether the diver's Settings have the hypercapnia phase on at all -
   /// decides what "Default" resolves to and displays.
   final bool enabledInSettings;
+
+  /// Formats the displayed AMV in the diver's unit settings; [amv],
+  /// [defaultAmv] and the values this control reports back are always
+  /// L/min.
+  final UnitFormatter units;
 
   final ValueChanged<double> onAmvChanged;
   final ValueChanged<int> onMinutesChanged;
@@ -109,7 +115,7 @@ class PlanHypercapniaControl extends StatelessWidget {
               children: [
                 Text(
                   '${l10n.divePlanner_gasOptions_hypercapniaAmv}: '
-                  '${formatRoundedForInput(defaultAmv, 1)} L/min',
+                  '${units.formatRmv(defaultAmv)}',
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.hintColor,
                   ),
@@ -135,12 +141,14 @@ class PlanHypercapniaControl extends StatelessWidget {
           const SizedBox(height: 8),
           PlanNumberField(
             label: l10n.divePlanner_gasOptions_hypercapniaAmv,
-            value: amv,
-            hintValue: defaultAmv,
-            suffixText: 'L/min',
-            decimals: 1,
+            value: amv != null ? units.convertRmv(amv!) : null,
+            hintValue: units.convertRmv(defaultAmv),
+            suffixText: units.rmvSymbol,
+            decimals: units.rmvDecimals,
             allowEmpty: false,
-            onChanged: (value) => onAmvChanged(value ?? defaultAmv),
+            onChanged: (value) => onAmvChanged(
+              value != null ? units.volumeToLiters(value) : defaultAmv,
+            ),
           ),
           PlanNumberField(
             label: l10n.divePlanner_gasOptions_hypercapniaMinutes,

@@ -14,6 +14,22 @@ import 'package:equatable/equatable.dart';
 /// on, while 99% itself stays in band 3.
 const double pureO2ThresholdPercent = 99.0;
 
+/// Whether an optional deco-ppO2 layer (per-O2-band limits, or the
+/// explicit MOD for 100% O2) is enabled for a specific plan (issue #3580
+/// follow-up, caught by a Copilot review): the diver's [settingsEnabled]
+/// toggle on its own, or this plan's own Custom override value set
+/// ([hasCustomValue]) - "Custom" is a per-plan opt-in, not something the
+/// global switch can silently veto. [explicitlyOff] (the plan's own "Off"
+/// choice) always wins regardless of either. Shared by
+/// `PlanEngineConfig.resolvedFor`, `PlanCalculatorService` and the Gas
+/// options UI so the three never disagree about when a plan's own Custom
+/// values actually take effect.
+bool resolveDecoLayerEnabled({
+  required bool settingsEnabled,
+  required bool explicitlyOff,
+  required bool hasCustomValue,
+}) => !explicitlyOff && (settingsEnabled || hasCustomValue);
+
 class DecoPpO2Limits extends Equatable {
   const DecoPpO2Limits({
     required this.flat,

@@ -1453,7 +1453,13 @@
   "connections_tab_view": "תצוגה",
   "connections_tab_filter": "סינון",
   "connections_tab_filterCount": "סינון ({count})",
-  "@connections_tab_filterCount": {"placeholders": {"count": {"type": "int"}}},
+  "@connections_tab_filterCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "connections_tab_details": "פרטים",
   "connections_presets_title": "הגדרות מוכנות",
   "connections_preset_circle": "מעגל הצלילה",
@@ -1470,16 +1476,37 @@
   "connections_editor_kinds": "סוגים",
   "connections_editor_links": "קישורים",
   "connections_editor_link": "{a} עם {b}",
-  "@connections_editor_link": {"placeholders": {"a": {"type": "String"}, "b": {"type": "String"}}},
+  "@connections_editor_link": {
+    "placeholders": {
+      "a": {
+        "type": "String"
+      },
+      "b": {
+        "type": "String"
+      }
+    }
+  },
   "connections_editor_minShared": "{count, plural, =1{לפחות צלילה משותפת אחת} other{לפחות {count} צלילות משותפות}}",
-  "@connections_editor_minShared": {"placeholders": {"count": {"type": "int"}}},
+  "@connections_editor_minShared": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "connections_editor_saveAsMap": "שמירה כמפה",
   "connections_savedMap_saveTitle": "שמירת מפה",
   "connections_savedMap_nameLabel": "שם",
   "connections_savedMap_rename": "שינוי שם",
   "connections_savedMap_update": "עדכון מהתצוגה הנוכחית",
   "connections_savedMap_deleted": "\"{name}\" נמחקה",
-  "@connections_savedMap_deleted": {"placeholders": {"name": {"type": "String"}}},
+  "@connections_savedMap_deleted": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "connections_savedMap_undo": "ביטול",
   "connections_savedMap_badge": "מפה שמורה",
   "connections_around_searchHint": "חיפוש שותפים, אתרים, טיולים ועוד",
@@ -1500,7 +1527,16 @@
   "connections_caption_around": "{hops, plural, =1{כל מה שחולק צלילה עם הפריט שבמרכז.} other{כל מה שנמצא עד {hops} צעדים מהפריט שבמרכז, מחובר בצלילות משותפות.}}",
   "connections_caption_thicker": "קווים עבים יותר פירושם יותר צלילות.",
   "connections_around_kindChip": "{kind} ({count})",
-  "@connections_around_kindChip": {"placeholders": {"kind": {"type": "String"}, "count": {"type": "int"}}},
+  "@connections_around_kindChip": {
+    "placeholders": {
+      "kind": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "connections_around_prompt": "חפשו שותף, אתר, טיול או כל דבר אחר כדי למרכז עליו את המפה.",
   "connections_around_noResults": "אין תוצאות",
   "connections_action_centreHere": "מרכוז כאן",
@@ -1572,10 +1608,28 @@
   "connections_share_allDives": "כל הצלילות, {first} עד {last}",
   "connections_share_details": "{range}. {counts}",
   "connections_summary_pairValue": "{count, plural, =1{{a} ו-{b}, צלילה אחת} other{{a} ו-{b}, {count} צלילות}}",
-  "@connections_summary_pairValue": {"placeholders": {"count": {"type": "int"}, "a": {"type": "String"}, "b": {"type": "String"}}},
+  "@connections_summary_pairValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "a": {
+        "type": "String"
+      },
+      "b": {
+        "type": "String"
+      }
+    }
+  },
   "connections_summary_closest": "הקרוב ביותר",
   "connections_summary_entitiesAround": "{count, plural, =1{פריט אחד} other{{count} פריטים}}",
-  "@connections_summary_entitiesAround": {"placeholders": {"count": {"type": "int"}}},
+  "@connections_summary_entitiesAround": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "connections_filter_allFilters": "כל המסננים",
   "connections_filter_clear": "ניקוי",
   "connections_filter_none": "אין מסננים פעילים.",
@@ -1583,20 +1637,50 @@
   "connections_tooltip_relayout": "סידור מחדש",
   "connections_tooltip_showWholeWeb": "חזרה למפה המלאה",
   "connections_filterBar_edges": "{count, plural, =1{קשר אחד} other{{count} קשרים}}",
-  "@connections_filterBar_edges": {"placeholders": {"count": {"type": "int"}}},
+  "@connections_filterBar_edges": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "connections_hiddenNodes": "{count, plural, =1{אחד נוסף לא מוצג} other{{count} נוספים לא מוצגים}}",
-  "@connections_hiddenNodes": {"placeholders": {"count": {"type": "int"}}},
+  "@connections_hiddenNodes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "connections_showAll": "הצגת הכול",
   "connections_showAll_confirmTitle": "להציג את כל הצמתים?",
   "connections_showAll_confirmBody": "סידור {count} צמתים עשוי להימשך רגע במכשיר זה.",
-  "@connections_showAll_confirmBody": {"placeholders": {"count": {"type": "int"}}},
+  "@connections_showAll_confirmBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "connections_action_open": "פתיחה",
   "connections_action_showDives": "הצגת צלילות",
   "connections_action_openInConnections": "פתיחה בקשרים",
   "connections_selection_divesTogether": "{count, plural, =1{צלילה אחת יחד} other{{count} צלילות יחד}}",
-  "@connections_selection_divesTogether": {"placeholders": {"count": {"type": "int"}}},
+  "@connections_selection_divesTogether": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "connections_selection_dives": "{count, plural, =1{צלילה אחת} other{{count} צלילות}}",
-  "@connections_selection_dives": {"placeholders": {"count": {"type": "int"}}},
+  "@connections_selection_dives": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "connections_selection_topConnections": "קשרים מובילים",
   "connections_selection_hint": "הקישו על צומת או על קו לפרטים.",
   "connections_details_dives": "צלילות",
@@ -1622,11 +1706,35 @@
   "connections_error_load": "לא ניתן לטעון את הקשרים.",
   "connections_legend_title": "מקרא",
   "connections_timeline_range": "{start} עד {end}",
-  "@connections_timeline_range": {"placeholders": {"start": {"type": "String"}, "end": {"type": "String"}}},
+  "@connections_timeline_range": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
   "connections_semantics_summary": "{nodes} צמתים ו-{edges} קשרים",
-  "@connections_semantics_summary": {"placeholders": {"nodes": {"type": "int"}, "edges": {"type": "int"}}},
+  "@connections_semantics_summary": {
+    "placeholders": {
+      "nodes": {
+        "type": "int"
+      },
+      "edges": {
+        "type": "int"
+      }
+    }
+  },
   "connections_semantics_selected": "נבחר: {label}",
-  "@connections_semantics_selected": {"placeholders": {"label": {"type": "String"}}},
+  "@connections_semantics_selected": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
   "connections_kind_buddy": "שותפים",
   "connections_kind_site": "אתרים",
   "connections_kind_trip": "טיולים",
@@ -3127,6 +3235,8 @@
   "divePlanner_gasOptions_ppO2DecoBand2": "ppO₂ דקו 28-45% חמצן",
   "divePlanner_gasOptions_ppO2DecoBand3": "ppO₂ דקו 45-99% חמצן",
   "divePlanner_gasOptions_maxO2DepthMeters": "עומק מקס' ל-100% חמצן",
+  "divePlanner_gasOptions_hypercapniaAmv": "Hypercapnia RMV",
+  "divePlanner_gasOptions_hypercapniaMinutes": "Duration",
   "divePlanner_gasOptions_bestMixEnd": "END לתערובת מיטבית",
   "divePlanner_gasOptions_o2Narcotic": "התייחס ל-O₂ כנרקוטי בתוכנית זו",
   "divePlanner_label_on": "פעיל",
@@ -6007,7 +6117,13 @@
   "sharedLibrary_connect_folderChars": "תיקיית ספרייה אינה יכולה להכיל *, ? או סימני דולר.",
   "sharedLibrary_setup_title": "איך להגדיר את האחסון",
   "sharedLibrary_setup_where": "הספרייה הזו נמצאת ב-{folder} בראש ה-bucket או השרת, לצד submersion-sync ו-submersion-media.",
-  "@sharedLibrary_setup_where": {"placeholders": {"folder": {"type": "String"}}},
+  "@sharedLibrary_setup_where": {
+    "placeholders": {
+      "folder": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_setup_keys": "תנו לבעלים ולעורכים מפתחות שקוראים וכותבים בתיקיית הספרייה. תנו לכל השאר מפתחות שקוראים אותה וכותבים רק ב-members/ וב-suggestions/. האחסון, ולא האפליקציה, הוא שמונע ממפתח לכתוב.",
   "sharedLibrary_setup_s3Full": "מדיניות S3 לבעלים ולעורכים",
   "sharedLibrary_setup_s3Reader": "מדיניות S3 לקוראים",
@@ -6022,22 +6138,52 @@
   "sharedLibrary_members_approve": "אישור",
   "sharedLibrary_members_reject": "דחייה",
   "sharedLibrary_members_fingerprint": "מפתח {fingerprint}",
-  "@sharedLibrary_members_fingerprint": {"placeholders": {"fingerprint": {"type": "String"}}},
+  "@sharedLibrary_members_fingerprint": {
+    "placeholders": {
+      "fingerprint": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_members_unsignedCard": "הכרטיס לא נחתם על ידי החבר",
   "sharedLibrary_members_rejectTitle": "לדחות את {name}?",
-  "@sharedLibrary_members_rejectTitle": {"placeholders": {"name": {"type": "String"}}},
+  "@sharedLibrary_members_rejectTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_members_rejectBody": "הכרטיס מוסר ושום דבר שייכתב לא ייחשב. רק מפתחות אחסון חדשים ימנעו כתיבת קבצים לגמרי.",
   "sharedLibrary_members_left": "עזבו את הספרייה",
   "sharedLibrary_members_removeRole": "הסרת תפקיד",
   "sharedLibrary_members_remove": "הסרה מהספרייה",
   "sharedLibrary_members_removeTitle": "להסיר את {name}?",
-  "@sharedLibrary_members_removeTitle": {"placeholders": {"name": {"type": "String"}}},
+  "@sharedLibrary_members_removeTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_members_removeBody": "{name} לא יוכל עוד לערוך אתרים או להציע שינויים. אתרים ועריכות שכבר תרם נשארים בספרייה.\n\nעדיין אפשר יהיה לקרוא את הספרייה עד שתחליף את מפתחות האחסון שלה, ואת משפט הסיסמה אם היא מוצפנת.",
-  "@sharedLibrary_members_removeBody": {"placeholders": {"name": {"type": "String"}}},
+  "@sharedLibrary_members_removeBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_members_removeConfirm": "הסרה",
   "sharedLibrary_members_removedHeader": "הוסרו",
   "sharedLibrary_members_removedOn": "הוסר ב-{date}",
-  "@sharedLibrary_members_removedOn": {"placeholders": {"date": {"type": "String"}}},
+  "@sharedLibrary_members_removedOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_members_allowBack": "החזרה",
   "sharedLibrary_owner_onlyOne": "יש רק בעלים אחד. אם הגישה תאבד, רק קוד השחזור יוכל להחזיר אותה.",
   "sharedLibrary_owner_addOwner": "בחירת בעלים נוסף",
@@ -6052,7 +6198,19 @@
   "sharedLibrary_owner_resetHelp": "רק אם לא נותרו בעלים וגם לא קוד שחזור. כל החברים חייבים לאשר זאת.",
   "sharedLibrary_owner_resetConfirm": "להפוך לבעלים היחידים? המכשיר של כל חבר אחר יבקש ממנו לאשר זאת, ויפסיק לכתוב לספרייה עד שיאשר.",
   "sharedLibrary_owner_resetPrompt": "הבעלות על {library} אופסה על ידי {name} (מפתח {fingerprint}). עד שתאשרו, המכשיר הזה רק קורא את הספרייה.",
-  "@sharedLibrary_owner_resetPrompt": {"placeholders": {"library": {"type": "String"}, "name": {"type": "String"}, "fingerprint": {"type": "String"}}},
+  "@sharedLibrary_owner_resetPrompt": {
+    "placeholders": {
+      "library": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      },
+      "fingerprint": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_owner_resetAccept": "אישור",
   "sharedLibrary_connect_untrusted": "התפקידים של הספרייה הזו אינם חתומים על ידי אחד מבעליה. בקשו מבעלים לבדוק זאת.",
   "sharedLibrary_retired": "הספרייה הזו נוצרה בגרסת ניסיון של Submersion. צרו אותה מחדש.",
@@ -6071,7 +6229,16 @@
   "sharedLibrary_backups_inStorage": "באחסון",
   "sharedLibrary_backups_both": "במכשיר הזה ובאחסון",
   "sharedLibrary_backups_summary": "אתרים: {sites} · {size}",
-  "@sharedLibrary_backups_summary": {"placeholders": {"sites": {"type": "int"}, "size": {"type": "String"}}},
+  "@sharedLibrary_backups_summary": {
+    "placeholders": {
+      "sites": {
+        "type": "int"
+      },
+      "size": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_backups_pin": "הצמדה",
   "sharedLibrary_backups_unpin": "ביטול הצמדה",
   "sharedLibrary_backups_delete": "מחיקה",
@@ -6080,7 +6247,13 @@
   "sharedLibrary_backups_export": "ייצוא",
   "sharedLibrary_backups_restore": "שחזור",
   "sharedLibrary_backups_restoreConfirm": "לשחזר את הספרייה למצבה ב-{date}? כל חבר יקבל גרסה זו בסנכרון הבא שלו. קודם נוצר גיבוי מוצמד של הספרייה במצבה הנוכחי.",
-  "@sharedLibrary_backups_restoreConfirm": {"placeholders": {"date": {"type": "String"}}},
+  "@sharedLibrary_backups_restoreConfirm": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_backups_restoreDone": "הספרייה שוחזרה",
   "sharedLibrary_backups_oldKey": "הגיבוי הזה נחתם במשפט סיסמה קודם. הזינו את משפט הסיסמה ההוא או את קוד השחזור מאותה עת.",
   "sharedLibrary_backups_empty": "אין עדיין גיבויים. מכשירי הבעלים יוצרים גיבוי בכל יום, ו״גיבוי עכשיו״ יוצר אחד מיד.",
@@ -6088,17 +6261,41 @@
   "sharedLibrary_backups_ownersOnly": "רק בעלים מנהלים גיבויים.",
   "sharedLibrary_backups_done": "הגיבוי נוצר",
   "sharedLibrary_library_myKey": "המפתח שלכם {fingerprint}",
-  "@sharedLibrary_library_myKey": {"placeholders": {"fingerprint": {"type": "String"}}},
+  "@sharedLibrary_library_myKey": {
+    "placeholders": {
+      "fingerprint": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_suggest_held": "{count, plural, =1{הצעה אחת ממתינה עד שתאשרו את הכותב שלה} other{{count} הצעות ממתינות עד שתאשרו את הכותבים שלהן}}",
-  "@sharedLibrary_suggest_held": {"placeholders": {"count": {"type": "int"}}},
+  "@sharedLibrary_suggest_held": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "sharedLibrary_restoreInto_action": "שחזור מקובץ גיבוי",
   "sharedLibrary_restoreInto_needsKey": "הגיבוי הזה מוצפן. הזינו את משפט הסיסמה או את קוד השחזור שלו.",
   "sharedLibrary_restoreInto_refused": "הקובץ הזה אינו גיבוי ספרייה שנוצר על ידי בעלים.",
   "sharedLibrary_restoreInto_oldStillThere": "הספרייה עדיין נמצאת גם בתיקייה הישנה. החברים שם ממשיכים להשתמש בעותק הזה עד שיתחברו לתיקייה הזו.",
   "sharedLibrary_encrypted_locked": "הזינו את משפט הסיסמה של {library}.",
-  "@sharedLibrary_encrypted_locked": {"placeholders": {"library": {"type": "String"}}},
+  "@sharedLibrary_encrypted_locked": {
+    "placeholders": {
+      "library": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_encrypted_changed": "משפט הסיסמה של {library} השתנה. הזינו את החדש.",
-  "@sharedLibrary_encrypted_changed": {"placeholders": {"library": {"type": "String"}}},
+  "@sharedLibrary_encrypted_changed": {
+    "placeholders": {
+      "library": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_encryption_title": "הצפנה",
   "sharedLibrary_encryption_statusOn": "מוצפנת במשפט סיסמה",
   "sharedLibrary_encryption_statusOff": "לא מוצפנת: כל מי שיש לו גישה לאחסון יכול לקרוא אותה",
@@ -6111,7 +6308,13 @@
   "sharedLibrary_encryption_passphrase": "משפט סיסמה",
   "sharedLibrary_encryption_confirm": "משפט הסיסמה שוב",
   "sharedLibrary_connect_join_action": "הצטרפות אל {name}",
-  "@sharedLibrary_connect_join_action": {"placeholders": {"name": {"type": "String"}}},
+  "@sharedLibrary_connect_join_action": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_connect_create_action": "יצירת ספרייה",
   "sharedLibrary_connect_create_name_label": "שם הספרייה",
   "sharedLibrary_connect_displayName_label": "השם שלך בספרייה זו",
@@ -6123,15 +6326,33 @@
   "sharedLibrary_role_owner": "בעלים",
   "sharedLibrary_library_members": "חברים",
   "sharedLibrary_library_memberCount": "{count, plural, =1{חבר אחד} other{{count} חברים}}",
-  "@sharedLibrary_library_memberCount": {"placeholders": {"count": {"type": "int"}}},
+  "@sharedLibrary_library_memberCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "sharedLibrary_library_syncNow": "סנכרון עכשיו",
   "sharedLibrary_library_lastSync": "סנכרון אחרון {when}",
-  "@sharedLibrary_library_lastSync": {"placeholders": {"when": {"type": "String"}}},
+  "@sharedLibrary_library_lastSync": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_library_neverSynced": "טרם סונכרן",
   "sharedLibrary_library_readOnlyBanner": "ההרשאות שלך מאפשרות קריאה בלבד. אפשר להציע שינויים ואחראי יחיל אותם.",
   "sharedLibrary_library_removedBanner": "אחראי הסיר אותך מהספרייה הזו. האתרים שלה נשארים במכשיר הזה, אבל אי אפשר עוד לשנות אותם. עזיבת הספרייה שומרת עותקים אישיים של האתרים שצללת בהם.",
   "sharedLibrary_library_errorBanner": "הסנכרון האחרון נכשל: {error}",
-  "@sharedLibrary_library_errorBanner": {"placeholders": {"error": {"type": "String"}}},
+  "@sharedLibrary_library_errorBanner": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_syncError_accountMissing": "החשבון של הספרייה הזו כבר לא נמצא במכשיר הזה. השתמשו בשינוי החיבור כדי לבחור אותו שוב.",
   "sharedLibrary_syncError_accountSignedOut": "המכשיר הזה מנותק מהחשבון של הספרייה. התחברו אליו שוב בחשבונות מחוברים, או השתמשו בשינוי החיבור.",
   "sharedLibrary_syncError_notALibrary": "אין ספרייה במיקום הזה.",
@@ -6140,7 +6361,13 @@
   "sharedLibrary_library_suggestions": "הצעות",
   "sharedLibrary_library_leave": "עזיבת הספרייה",
   "sharedLibrary_library_leaveConfirm_title": "לעזוב את {name}?",
-  "@sharedLibrary_library_leaveConfirm_title": {"placeholders": {"name": {"type": "String"}}},
+  "@sharedLibrary_library_leaveConfirm_title": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_library_leaveConfirm_body": "אתרים משותפים שהצלילות שלך משתמשות בהם נשארים כעותקים אישיים. אתרים משותפים אחרים יוסרו מהמכשיר הזה.",
   "sharedLibrary_library_rename_label": "שם תצוגה",
   "sharedLibrary_members_setRole": "שינוי תפקיד",
@@ -6152,23 +6379,68 @@
   "sharedLibrary_connect_exists": "מישהו יצר כאן ספרייה בינתיים. יש לבדוק שוב כדי להצטרף אליה.",
   "sharedLibrary_library_lastOwnerLeave": "יש להגדיר חבר אחר כבעלים לפני היציאה.",
   "sharedLibrary_site_badgeTooltip": "ב{name}",
-  "@sharedLibrary_site_badgeTooltip": {"placeholders": {"name": {"type": "String"}}},
+  "@sharedLibrary_site_badgeTooltip": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_site_lastEdited": "נערך לאחרונה על ידי {name}, {when}",
-  "@sharedLibrary_site_lastEdited": {"placeholders": {"name": {"type": "String"}, "when": {"type": "String"}}},
+  "@sharedLibrary_site_lastEdited": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_site_history": "היסטוריית עריכות",
   "sharedLibrary_site_addToLibrary": "הוספה לספריית האתרים המשותפת",
   "sharedLibrary_add_confirm_title": "להוסיף את {name} אל {library}?",
-  "@sharedLibrary_add_confirm_title": {"placeholders": {"name": {"type": "String"}, "library": {"type": "String"}}},
+  "@sharedLibrary_add_confirm_title": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "library": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_add_confirm_titleMany": "{count, plural, =1{להוסיף {count} אתר אל {library}?} other{להוסיף {count} אתרים אל {library}?}}",
-  "@sharedLibrary_add_confirm_titleMany": {"placeholders": {"count": {"type": "int"}, "library": {"type": "String"}}},
+  "@sharedLibrary_add_confirm_titleMany": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "library": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_add_confirm_shared": "כל החברים יראו: שם, מיקום, עומקים, תיאור, סכנות, גישה, כניסה ויציאה, עגינה, חניה, סוגי אתר, תגיות, מינים ומאפיינים.",
   "sharedLibrary_add_confirm_private": "נשאר שלך: ההערות והדירוג שלך. צלילות ותמונות אף פעם לא יוצאות מהספרייה האישית שלך.",
   "sharedLibrary_add_confirm_action": "הוספה",
   "sharedLibrary_site_chooseLibrary": "בחירת ספרייה",
   "sharedLibrary_site_added": "נוסף אל {name}",
-  "@sharedLibrary_site_added": {"placeholders": {"name": {"type": "String"}}},
+  "@sharedLibrary_site_added": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_site_notConnectedHere": "אתר זה נמצא ב{name}, שאינה מחוברת במכשיר הזה.",
-  "@sharedLibrary_site_notConnectedHere": {"placeholders": {"name": {"type": "String"}}},
+  "@sharedLibrary_site_notConnectedHere": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_site_connectHere": "חיבור במכשיר הזה",
   "sharedLibrary_site_deleteFromLibrary_title": "למחוק מספריית האתרים המשותפת?",
   "sharedLibrary_site_deleteFromLibrary_body": "חברים שהצלילות שלהם משתמשות באתר זה שומרים עותק אישי.",
@@ -6180,12 +6452,27 @@
   "sharedLibrary_suggest_nothingChanged": "שום דבר לא השתנה.",
   "sharedLibrary_suggest_savedPrivate": "ההערות והדירוג שלך נשמרו.",
   "sharedLibrary_suggest_pending": "{count, plural, =1{הצעה אחת ממתינה} other{{count} הצעות ממתינות}}",
-  "@sharedLibrary_suggest_pending": {"placeholders": {"count": {"type": "int"}}},
+  "@sharedLibrary_suggest_pending": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "sharedLibrary_suggest_withdraw": "משיכה",
   "sharedLibrary_inbox_title": "הצעות",
   "sharedLibrary_inbox_empty": "אין הצעות ממתינות.",
   "sharedLibrary_inbox_from": "מאת {name}, {when}",
-  "@sharedLibrary_inbox_from": {"placeholders": {"name": {"type": "String"}, "when": {"type": "String"}}},
+  "@sharedLibrary_inbox_from": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_inbox_accept": "אישור",
   "sharedLibrary_inbox_dismiss": "דחייה",
   "sharedLibrary_inbox_siteDeleted": "אתר זה נמחק מהספרייה.",
@@ -7331,6 +7618,12 @@
   "settings_decompression_ppO2BandsDialog_band3": "45–99% חמצן",
   "settings_decompression_ppO2BandsDialog_maxO2DepthToggle": "השתמש בעומק מקסימלי מפורש ל-100% חמצן",
   "settings_decompression_ppO2BandsDialog_maxO2DepthLabel": "עומק מקסימלי ל-100% חמצן",
+  "settings_decompression_hypercapniaTitle": "Hypercapnia bailout phase",
+  "settings_decompression_hypercapniaSubtitle": "Optional elevated breathing rate at the start of a CCR/SCR OC bailout",
+  "settings_decompression_hypercapniaDialog_title": "Hypercapnia bailout phase",
+  "settings_decompression_hypercapniaDialog_enabledToggle": "Use a hypercapnia phase for OC bailout",
+  "settings_decompression_hypercapniaDialog_factorLabel": "RMV factor",
+  "settings_decompression_hypercapniaDialog_minutesLabel": "Duration",
   "settings_decompression_ccrPpO2LimitsTitle": "מגבלות ppO2 CCR",
   "settings_decompression_ccrPpO2LimitsSubtitle": "Setpoint נמוך {low} · גבוה {high} · MOD מדלל {dil} בר",
   "settings_decompression_ccrDialog_info": "ערכי ברירת מחדל לצלילות במעגל סגור. מצב CCR במחשבון ה-MOD מתחיל מערכים אלה.",
@@ -10627,7 +10920,6 @@
   "settings_connectedAccounts_status_signedIn": "מחובר",
   "settings_connectedAccounts_status_unavailable": "לא זמין במכשיר זה",
   "settings_connectedAccounts_disconnectDevice": "התנתק במכשיר זה",
-
   "settings_connectedAccounts_rename": "שינוי שם",
   "settings_connectedAccounts_renameTitle": "שינוי שם החשבון",
   "settings_connectedAccounts_renameField": "שם",
@@ -15564,8 +15856,7 @@
   "diveDetailSection_navTrack_trackName": "מסלול תת-ימי",
   "diveDetailSection_navTrack_trackDescription": "מסלול תת-ימי שנמדד ממסוף ניווט",
   "navTrack_list_durationHours": "{hours} שע' {minutes} דק'",
-  "navTrack_list_durationMinutes": "{minutes}min"
-,
+  "navTrack_list_durationMinutes": "{minutes}min",
   "gasCalculators_mod_semanticsLabel": "עומק תפעול מרבי: {depth} {unit} ב-{ppo2} בר ppO2 עם {o2}% חמצן",
   "gasCalculators_blender_stepColumnAction": "פעולה",
   "gasCalculators_blender_stepColumnAdded": "נוסף",
@@ -16192,6 +16483,7 @@
   "plannerCanvas_bailout_schedule": "לוח זמנים מהמקרה הגרוע ביותר",
   "plannerCanvas_chartMode_bailout": "Bailout",
   "plannerCanvas_chartMode_ccr": "CCR",
+  "plannerCanvas_chartMode_scr": "SCR",
   "plannerCanvas_scrub_tts": "TTS {minutes}′",
   "plannerCanvas_table_end": "END",
   "plannerCanvas_table_ppO2": "PO2",
