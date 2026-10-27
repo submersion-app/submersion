@@ -22,6 +22,9 @@ class _MemorySecrets implements NearbyPairSecrets {
 
   @override
   Future<void> remove(String peerDeviceId) async => map.remove(peerDeviceId);
+
+  @override
+  Future<Map<String, Uint8List>> all() async => Map.of(map);
 }
 
 NearbyIdentity _identity(
@@ -51,6 +54,32 @@ Future<(NearbyEndpoint, NearbyEndpoint)> _link() async {
 }
 
 Uint8List _utf8(String s) => Uint8List.fromList(utf8.encode(s));
+
+/// Passes everything through and keeps a copy of what this side sent.
+class _Recording implements NearbyEndpoint {
+  _Recording(this._inner);
+
+  final NearbyEndpoint _inner;
+  final sent = <int>[];
+
+  @override
+  Stream<Uint8List> get inbound => _inner.inbound;
+
+  @override
+  Future<void> send(Uint8List bytes) {
+    sent.addAll(bytes);
+    return _inner.send(bytes);
+  }
+
+  @override
+  Future<void> close() => _inner.close();
+
+  @override
+  bool get isInitiator => _inner.isInitiator;
+
+  @override
+  String get transportId => _inner.transportId;
+}
 
 void main() {
   group('pairing', () {
@@ -325,13 +354,6 @@ void main() {
       ).accept(allowPairing: true);
       final hello = NearbyHello(
         protocolVersion: NearbyHello.currentProtocolVersion + 1,
-        deviceId: 'L',
-        deviceName: 'Future',
-        appVersion: '9.0.0',
-        schemaVersion: 999,
-        schemaFloor: 999,
-        epochId: null,
-        hasDives: false,
         intent: NearbyIntent.pair,
         commitment: Uint8List(32),
       );
@@ -368,13 +390,6 @@ void main() {
       // Commit to one key, then reveal another.
       final hello = NearbyHello(
         protocolVersion: NearbyHello.currentProtocolVersion,
-        deviceId: 'L',
-        deviceName: 'Mallory',
-        appVersion: '1.8.4',
-        schemaVersion: 319,
-        schemaFloor: 308,
-        epochId: null,
-        hasDives: false,
         intent: NearbyIntent.pair,
         commitment: Uint8List(32),
       );
@@ -397,6 +412,58 @@ void main() {
           ),
         ),
       );
+    });
+
+    test('a stranger learns nothing about the device it connects to', () async {
+      final (out, into) = await _link();
+      final phoneEnd = _Recording(into);
+      final stranger = NearbySession(
+        endpoint: out,
+        identity: _identity('stranger-device-0000'),
+        secrets: _MemorySecrets()..map['someone-else'] = Uint8List(32),
+      ).openSync();
+      final incoming = NearbySession(
+        endpoint: phoneEnd,
+        identity: _identity('phone-device-1234', epoch: 'library-epoch-5678'),
+        secrets: _MemorySecrets()..map['laptop-device-9999'] = Uint8List(32),
+      ).accept(allowPairing: false);
+      await Future.wait([
+        expectLater(stranger, throwsA(isA<NearbySessionRefused>())),
+        expectLater(incoming, throwsA(isA<NearbySessionRefused>())),
+      ]);
+      final text = latin1.decode(phoneEnd.sent);
+      expect(text, isNot(contains('phone-device-1234')));
+      expect(text, isNot(contains('Device phone')));
+      expect(text, isNot(contains('library-epoch-5678')));
+    });
+
+    test('the plaintext sync hello names neither device', () async {
+      final (l, p) = await paired();
+      final (out, into) = await _link();
+      final laptopEnd = _Recording(out);
+      final incoming = NearbySession(
+        endpoint: into,
+        identity: _identity('P'),
+        secrets: p,
+      ).accept(allowPairing: false);
+      final channel = await NearbySession(
+        endpoint: laptopEnd,
+        identity: _identity('L'),
+        secrets: l,
+      ).openSync();
+      expect(channel.peer.deviceId, 'P');
+      expect(
+        ((await incoming) as NearbyIncomingSync).channel.peer.deviceId,
+        'L',
+      );
+      // The first frame is the plaintext hello.
+      final helloLength = ByteData.sublistView(
+        Uint8List.fromList(laptopEnd.sent),
+      ).getUint32(0);
+      final hello = latin1.decode(laptopEnd.sent.sublist(5, 4 + helloLength));
+      expect(hello, contains('tags'));
+      expect(hello, isNot(contains('Device L')));
+      expect(hello, isNot(contains('epoch-1')));
     });
 
     test('no hello within helloTimeout throws NearbyHelloTimeout', () {

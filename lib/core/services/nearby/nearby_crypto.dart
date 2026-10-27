@@ -78,6 +78,20 @@ class NearbyHandshake {
     return diff == 0;
   }
 
+  /// An anonymous 8-byte proof of holding [secret], bound to [data] (this
+  /// session's commitment, and for the responder also its public key).
+  static Future<Uint8List> tag(
+    Uint8List secret,
+    String label,
+    List<int> data,
+  ) async {
+    final mac = await const DartHmac(_sha256).calculateMac([
+      ...utf8.encode('submersion-nearby-tag-$label-v1'),
+      ...data,
+    ], secretKey: SecretKeyData(secret));
+    return Uint8List.fromList(mac.bytes.sublist(0, 8));
+  }
+
   Future<NearbySharedSecret> complete(
     Uint8List peerPublicKey, {
     required bool isInitiator,

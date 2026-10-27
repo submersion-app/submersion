@@ -15,6 +15,9 @@ abstract class NearbyPairSecrets {
   Future<void> store(String peerDeviceId, Uint8List secret);
 
   Future<void> remove(String peerDeviceId);
+
+  /// Every stored secret by peer device id, for the anonymous tags.
+  Future<Map<String, Uint8List>> all();
 }
 
 /// A session ended before it started. [fromPeer] is true when the other
@@ -91,47 +94,99 @@ class NearbySession {
   final Duration confirmTimeout;
 
   Future<NearbyChannel> openSync() async {
-    final (peer, shared) = await _initiate(NearbyIntent.sync);
-    final secret = await _secrets.secretFor(peer.deviceId);
-    if (secret == null) await _refuse(NearbyErrorCode.notPaired);
-    final cipher = await shared.sessionCipher(pairSecret: secret);
+    final handshake = await NearbyHandshake.start();
+    final secrets = await _secrets.all();
+    await _sendHello(
+      NearbyHello(
+        protocolVersion: NearbyHello.currentProtocolVersion,
+        intent: NearbyIntent.sync,
+        commitment: handshake.commitment,
+        tags: [
+          for (final secret in secrets.values)
+            await NearbyHandshake.tag(secret, 'i', handshake.commitment),
+        ],
+      ),
+    );
+    final reply = await _readHello();
+    final peerKey = reply.publicKey;
+    final peerTag = reply.tag;
+    if (peerKey == null || peerTag == null) {
+      await _refuse(NearbyErrorCode.protocol);
+    }
+    String? peerId;
+    for (final entry in secrets.entries) {
+      final expected = await NearbyHandshake.tag(entry.value, 'r', [
+        ...handshake.commitment,
+        ...peerKey,
+      ]);
+      if (_same(expected, peerTag)) peerId = entry.key;
+    }
+    if (peerId == null) await _refuse(NearbyErrorCode.notPaired);
+    final shared = await _reveal(handshake, peerKey);
+    final cipher = await shared.sessionCipher(pairSecret: secrets[peerId]);
     await _keyCheck(cipher);
+    final peer = await _exchangeIdentity(cipher, expectedId: peerId);
     return _channel(peer, cipher);
   }
 
   Future<NearbyPairing> openPairing() async {
-    final (peer, shared) = await _initiate(NearbyIntent.pair);
+    final handshake = await NearbyHandshake.start();
+    await _sendHello(
+      NearbyHello(
+        protocolVersion: NearbyHello.currentProtocolVersion,
+        intent: NearbyIntent.pair,
+        commitment: handshake.commitment,
+      ),
+    );
+    final reply = await _readHello();
+    final peerKey = reply.publicKey;
+    if (peerKey == null) await _refuse(NearbyErrorCode.protocol);
+    final shared = await _reveal(handshake, peerKey);
     final cipher = await shared.sessionCipher();
     await _keyCheck(cipher);
+    final peer = await _exchangeIdentity(cipher);
     return NearbyPairing._(this, peer, shared, cipher);
   }
 
   Future<NearbyIncoming> accept({required bool allowPairing}) async {
-    final peer = await _readHello();
-    if (peer.commitment == null) await _refuse(NearbyErrorCode.protocol);
-    await _checkPeer(peer);
+    final hello = await _readHello();
+    final commitment = hello.commitment;
+    if (commitment == null) await _refuse(NearbyErrorCode.protocol);
+    String? peerId;
     Uint8List? secret;
-    if (peer.intent == NearbyIntent.sync) {
-      secret = await _secrets.secretFor(peer.deviceId);
-      if (secret == null) await _refuse(NearbyErrorCode.notPaired);
+    if (hello.intent == NearbyIntent.sync) {
+      for (final entry in (await _secrets.all()).entries) {
+        final expected = await NearbyHandshake.tag(
+          entry.value,
+          'i',
+          commitment,
+        );
+        if (hello.tags.any((t) => _same(t, expected))) {
+          peerId = entry.key;
+          secret = entry.value;
+        }
+      }
+      if (peerId == null) await _refuse(NearbyErrorCode.notPaired);
     } else if (!allowPairing) {
       await _refuse(NearbyErrorCode.notPaired);
     }
 
     final handshake = await NearbyHandshake.start();
-    await _sendFrame(
-      NearbyMessageType.hello,
-      NearbyHello.from(
-        _identity,
-        intent: peer.intent,
+    await _sendHello(
+      NearbyHello(
+        protocolVersion: NearbyHello.currentProtocolVersion,
+        intent: hello.intent,
         publicKey: handshake.publicKey,
-      ).toBytes(),
+        tag: secret == null
+            ? null
+            : await NearbyHandshake.tag(secret, 'r', [
+                ...commitment,
+                ...handshake.publicKey,
+              ]),
+      ),
     );
     final reveal = await _expect(NearbyMessageType.helloReveal, hello: true);
-    if (!await NearbyHandshake.verifyCommitment(
-      peer.commitment!,
-      reveal.body,
-    )) {
+    if (!await NearbyHandshake.verifyCommitment(commitment, reveal.body)) {
       await _refuse(NearbyErrorCode.protocol);
     }
     final NearbySharedSecret shared;
@@ -140,72 +195,83 @@ class NearbySession {
     } on NearbyAuthFailure {
       return _refuse(NearbyErrorCode.protocol);
     }
-    final revealed = NearbyHello(
-      protocolVersion: peer.protocolVersion,
-      deviceId: peer.deviceId,
-      deviceName: peer.deviceName,
-      appVersion: peer.appVersion,
-      schemaVersion: peer.schemaVersion,
-      schemaFloor: peer.schemaFloor,
-      epochId: peer.epochId,
-      hasDives: peer.hasDives,
-      intent: peer.intent,
-      publicKey: reveal.body,
-    );
-    if (peer.intent == NearbyIntent.sync) {
-      final cipher = await shared.sessionCipher(pairSecret: secret);
-      await _keyCheck(cipher);
-      return NearbyIncomingSync(_channel(revealed, cipher));
-    }
-    final cipher = await shared.sessionCipher();
+    final cipher = await shared.sessionCipher(pairSecret: secret);
     await _keyCheck(cipher);
-    return NearbyIncomingPairing(
-      NearbyPairing._(this, revealed, shared, cipher),
-    );
+    final peer = await _exchangeIdentity(cipher, expectedId: peerId);
+    if (hello.intent == NearbyIntent.sync) {
+      return NearbyIncomingSync(_channel(peer, cipher));
+    }
+    return NearbyIncomingPairing(NearbyPairing._(this, peer, shared, cipher));
   }
 
-  Future<(NearbyHello, NearbySharedSecret)> _initiate(
-    NearbyIntent intent,
+  static bool _same(Uint8List a, Uint8List b) {
+    if (a.length != b.length) return false;
+    var diff = 0;
+    for (var i = 0; i < a.length; i++) {
+      diff |= a[i] ^ b[i];
+    }
+    return diff == 0;
+  }
+
+  Future<void> _sendHello(NearbyHello hello) =>
+      _sendFrame(NearbyMessageType.hello, hello.toBytes());
+
+  /// The initiator's half after the responder's hello: reveal the key it
+  /// committed to and derive the shared secret.
+  Future<NearbySharedSecret> _reveal(
+    NearbyHandshake handshake,
+    Uint8List peerKey,
   ) async {
-    final handshake = await NearbyHandshake.start();
-    await _sendFrame(
-      NearbyMessageType.hello,
-      NearbyHello.from(
-        _identity,
-        intent: intent,
-        commitment: handshake.commitment,
-      ).toBytes(),
-    );
-    final peer = await _readHello();
-    await _checkPeer(peer);
-    final peerKey = peer.publicKey;
-    if (peerKey == null) await _refuse(NearbyErrorCode.protocol);
     await _sendFrame(NearbyMessageType.helloReveal, handshake.publicKey);
     try {
-      return (peer, await handshake.complete(peerKey, isInitiator: true));
+      return await handshake.complete(peerKey, isInitiator: true);
     } on NearbyAuthFailure {
       return _refuse(NearbyErrorCode.protocol);
     }
   }
 
-  Future<void> _checkPeer(NearbyHello peer) async {
-    if (peer.protocolVersion > NearbyHello.currentProtocolVersion) {
-      await _refuse(NearbyErrorCode.newerApp);
+  /// Both sides send who they are, sealed, and read the other's. A sync
+  /// peer must be the device its tag named; two libraries never meet.
+  Future<NearbyIdentity> _exchangeIdentity(
+    NearbySessionCipher cipher, {
+    String? expectedId,
+  }) async {
+    await _sendFrame(
+      NearbyMessageType.identity,
+      await cipher.seal(_identity.toBytes()),
+    );
+    final message = await _expect(NearbyMessageType.identity, hello: true);
+    final NearbyIdentity peer;
+    try {
+      peer = NearbyIdentity.fromBytes(await cipher.open(message.body));
+    } on NearbyAuthFailure {
+      return _refuse(NearbyErrorCode.protocol);
+    } on FormatException {
+      return _refuse(NearbyErrorCode.protocol);
+    }
+    if (expectedId != null && peer.deviceId != expectedId) {
+      await _refuse(NearbyErrorCode.protocol);
     }
     final mine = _identity.epochId;
     final theirs = peer.epochId;
     if (mine != null && theirs != null && mine != theirs) {
       await _refuse(NearbyErrorCode.differentLibrary);
     }
+    return peer;
   }
 
   Future<NearbyHello> _readHello() async {
     final message = await _expect(NearbyMessageType.hello, hello: true);
+    final NearbyHello hello;
     try {
-      return NearbyHello.fromBytes(message.body);
+      hello = NearbyHello.fromBytes(message.body);
     } on FormatException {
       return _refuse(NearbyErrorCode.protocol);
     }
+    if (hello.protocolVersion > NearbyHello.currentProtocolVersion) {
+      await _refuse(NearbyErrorCode.newerApp);
+    }
+    return hello;
   }
 
   /// Both sides send a sealed known text and open the other's. A failure
@@ -283,7 +349,7 @@ class NearbySession {
     throw NearbySessionRefused(code, fromPeer: false);
   }
 
-  NearbyChannel _channel(NearbyHello peer, NearbySessionCipher cipher) =>
+  NearbyChannel _channel(NearbyIdentity peer, NearbySessionCipher cipher) =>
       NearbyChannel._(
         peer: peer,
         isInitiator: _endpoint.isInitiator,
@@ -298,7 +364,7 @@ class NearbyPairing {
   NearbyPairing._(this._session, this.peer, this._shared, this._cipher);
 
   final NearbySession _session;
-  final NearbyHello peer;
+  final NearbyIdentity peer;
   final NearbySharedSecret _shared;
   final NearbySessionCipher _cipher;
 
@@ -385,7 +451,7 @@ class NearbyChannel {
              : NearbyMessage(m.type, await cipher.open(m.body)),
        );
 
-  final NearbyHello peer;
+  final NearbyIdentity peer;
   final bool isInitiator;
   final NearbyEndpoint _endpoint;
   final NearbySessionCipher _cipher;

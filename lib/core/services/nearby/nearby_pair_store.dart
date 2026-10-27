@@ -28,11 +28,37 @@ class SecureNearbyPairStore implements NearbyPairSecrets {
     }
   }
 
-  @override
-  Future<void> store(String peerDeviceId, Uint8List secret) =>
-      _storage.write(key: _key(peerDeviceId), value: base64Encode(secret));
+  /// The keychain cannot list keys portably, so the stored peer ids are
+  /// kept beside the secrets.
+  static const _indexKey = 'nearby_pair_index';
+
+  Future<List<String>> _index() async {
+    final raw = await _storage.read(key: _indexKey);
+    if (raw == null) return const [];
+    try {
+      return [for (final id in jsonDecode(raw) as List) id as String];
+    } on Object {
+      return const [];
+    }
+  }
+
+  Future<void> _writeIndex(Iterable<String> ids) =>
+      _storage.write(key: _indexKey, value: jsonEncode(ids.toList()));
 
   @override
-  Future<void> remove(String peerDeviceId) =>
-      _storage.delete(key: _key(peerDeviceId));
+  Future<void> store(String peerDeviceId, Uint8List secret) async {
+    await _storage.write(key: _key(peerDeviceId), value: base64Encode(secret));
+    await _writeIndex({...await _index(), peerDeviceId});
+  }
+
+  @override
+  Future<void> remove(String peerDeviceId) async {
+    await _storage.delete(key: _key(peerDeviceId));
+    await _writeIndex((await _index()).where((id) => id != peerDeviceId));
+  }
+
+  @override
+  Future<Map<String, Uint8List>> all() async => {
+    for (final id in await _index()) id: ?await secretFor(id),
+  };
 }

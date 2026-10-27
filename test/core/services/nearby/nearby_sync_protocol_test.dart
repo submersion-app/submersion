@@ -26,6 +26,9 @@ class _Secrets implements NearbyPairSecrets {
 
   @override
   Future<void> remove(String id) async => map.remove(id);
+
+  @override
+  Future<Map<String, Uint8List>> all() async => Map.of(map);
 }
 
 NearbyIdentity _id(

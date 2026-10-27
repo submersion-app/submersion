@@ -59,63 +59,8 @@ class NearbyIdentity {
     epochId: epochId ?? this.epochId,
     hasDives: hasDives,
   );
-}
-
-/// The first, plaintext message each way.
-///
-/// The initiator's hello carries a [commitment] (a hash of its public key)
-/// and no key; the responder's carries its [publicKey]. The initiator then
-/// reveals its key in a `helloReveal` frame.
-class NearbyHello {
-  const NearbyHello({
-    required this.protocolVersion,
-    required this.deviceId,
-    required this.deviceName,
-    required this.appVersion,
-    required this.schemaVersion,
-    required this.schemaFloor,
-    required this.epochId,
-    required this.hasDives,
-    required this.intent,
-    this.publicKey,
-    this.commitment,
-  });
-
-  factory NearbyHello.from(
-    NearbyIdentity identity, {
-    required NearbyIntent intent,
-    Uint8List? publicKey,
-    Uint8List? commitment,
-  }) => NearbyHello(
-    protocolVersion: currentProtocolVersion,
-    deviceId: identity.deviceId,
-    deviceName: identity.deviceName,
-    appVersion: identity.appVersion,
-    schemaVersion: identity.schemaVersion,
-    schemaFloor: identity.schemaFloor,
-    epochId: identity.epochId,
-    hasDives: identity.hasDives,
-    intent: intent,
-    publicKey: publicKey,
-    commitment: commitment,
-  );
-
-  static const currentProtocolVersion = 1;
-
-  final int protocolVersion;
-  final String deviceId;
-  final String deviceName;
-  final String appVersion;
-  final int schemaVersion;
-  final int schemaFloor;
-  final String? epochId;
-  final bool hasDives;
-  final NearbyIntent intent;
-  final Uint8List? publicKey;
-  final Uint8List? commitment;
 
   Map<String, Object?> toJson() => {
-    'v': protocolVersion,
     'id': deviceId,
     'name': deviceName,
     'app': appVersion,
@@ -123,51 +68,117 @@ class NearbyHello {
     'floor': schemaFloor,
     'epoch': epochId,
     'dives': hasDives,
-    'intent': intent.name,
-    if (publicKey != null) 'pub': base64Encode(publicKey!),
-    if (commitment != null) 'commit': base64Encode(commitment!),
   };
 
-  /// Throws [FormatException] on anything that is not a well-formed hello.
-  factory NearbyHello.fromJson(Map<String, Object?> json) {
+  /// Throws [FormatException] on anything that is not a well-formed
+  /// identity.
+  factory NearbyIdentity.fromJson(Map<String, Object?> json) {
     T field<T>(String key) {
       final value = json[key];
       if (value is T) return value;
-      throw FormatException('hello field $key is missing or malformed');
+      throw FormatException('identity field $key is missing or malformed');
     }
 
-    Uint8List? bytes(String key) {
-      final value = json[key];
-      if (value == null) return null;
-      if (value is! String) throw FormatException('hello field $key');
-      return base64Decode(value);
+    final epoch = json['epoch'];
+    if (epoch != null && epoch is! String) {
+      throw const FormatException('identity field epoch');
     }
-
-    final intentName = field<String>('intent');
-    final intent = NearbyIntent.values.where((i) => i.name == intentName);
-    if (intent.isEmpty) throw FormatException('unknown intent $intentName');
-    return NearbyHello(
-      protocolVersion: field<int>('v'),
+    return NearbyIdentity(
       deviceId: field<String>('id'),
       deviceName: field<String>('name'),
       appVersion: field<String>('app'),
       schemaVersion: field<int>('schema'),
       schemaFloor: field<int>('floor'),
-      epochId: json['epoch'] as String?,
+      epochId: epoch as String?,
       hasDives: field<bool>('dives'),
-      intent: intent.single,
-      publicKey: bytes('pub'),
-      commitment: bytes('commit'),
     );
   }
 
   Uint8List toBytes() => Uint8List.fromList(utf8.encode(jsonEncode(toJson())));
 
-  factory NearbyHello.fromBytes(Uint8List bytes) {
-    final decoded = jsonDecode(utf8.decode(bytes));
-    if (decoded is! Map<String, Object?>) {
-      throw const FormatException('hello is not an object');
-    }
-    return NearbyHello.fromJson(decoded);
+  factory NearbyIdentity.fromBytes(Uint8List bytes) =>
+      NearbyIdentity.fromJson(_object(bytes, 'identity'));
+}
+
+Map<String, Object?> _object(Uint8List bytes, String what) {
+  final decoded = jsonDecode(utf8.decode(bytes));
+  if (decoded is! Map<String, Object?>) {
+    throw FormatException('$what is not an object');
   }
+  return decoded;
+}
+
+/// The first, plaintext message each way. It names neither device: anyone
+/// in range can read it, so it carries only the protocol version, the
+/// intent and key material (the spec's anti-goal: a stranger learns at
+/// most that this is a Submersion device). Who each side is travels sealed
+/// after the key check, as a [NearbyIdentity].
+///
+/// The initiator commits to its key ([commitment]) and reveals it in a
+/// `helloReveal` frame after the responder's hello carries [publicKey].
+/// For a sync, the initiator sends one anonymous [tags] entry per device it
+/// is paired with, and the responder answers with the one [tag] for the
+/// pairing it recognised. Tags are keyed by the pair secret over this
+/// session's fresh commitment, so they say nothing to anyone without the
+/// secret and differ every session.
+class NearbyHello {
+  const NearbyHello({
+    required this.protocolVersion,
+    required this.intent,
+    this.publicKey,
+    this.commitment,
+    this.tags = const [],
+    this.tag,
+  });
+
+  static const currentProtocolVersion = 1;
+
+  final int protocolVersion;
+  final NearbyIntent intent;
+  final Uint8List? publicKey;
+  final Uint8List? commitment;
+  final List<Uint8List> tags;
+  final Uint8List? tag;
+
+  Map<String, Object?> toJson() => {
+    'v': protocolVersion,
+    'intent': intent.name,
+    if (publicKey != null) 'pub': base64Encode(publicKey!),
+    if (commitment != null) 'commit': base64Encode(commitment!),
+    if (tags.isNotEmpty) 'tags': [for (final t in tags) base64Encode(t)],
+    if (tag != null) 'tag': base64Encode(tag!),
+  };
+
+  /// Throws [FormatException] on anything that is not a well-formed hello.
+  factory NearbyHello.fromJson(Map<String, Object?> json) {
+    final v = json['v'];
+    if (v is! int) throw const FormatException('hello field v');
+    final intentName = json['intent'];
+    final intent = NearbyIntent.values.where((i) => i.name == intentName);
+    if (intent.isEmpty) throw FormatException('unknown intent $intentName');
+
+    Uint8List? bytes(Object? value) {
+      if (value == null) return null;
+      if (value is! String) throw const FormatException('hello bytes');
+      return base64Decode(value);
+    }
+
+    final rawTags = json['tags'];
+    if (rawTags != null && rawTags is! List) {
+      throw const FormatException('hello field tags');
+    }
+    return NearbyHello(
+      protocolVersion: v,
+      intent: intent.single,
+      publicKey: bytes(json['pub']),
+      commitment: bytes(json['commit']),
+      tags: [for (final t in (rawTags as List?) ?? const []) bytes(t)!],
+      tag: bytes(json['tag']),
+    );
+  }
+
+  Uint8List toBytes() => Uint8List.fromList(utf8.encode(jsonEncode(toJson())));
+
+  factory NearbyHello.fromBytes(Uint8List bytes) =>
+      NearbyHello.fromJson(_object(bytes, 'hello'));
 }

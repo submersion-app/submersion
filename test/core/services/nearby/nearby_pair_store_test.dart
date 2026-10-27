@@ -36,4 +36,16 @@ void main() {
     final store = SecureNearbyPairStore(storage: keychain);
     expect(await store.secretFor('peer-a'), isNull);
   });
+
+  test('all lists every stored secret and forgets removed ones', () async {
+    final store = SecureNearbyPairStore(storage: InMemoryKeychain());
+    final a = Uint8List.fromList([1]);
+    final b = Uint8List.fromList([2]);
+    await store.store('a', a);
+    await store.store('b', b);
+    await store.store('a', a);
+    expect(await store.all(), {'a': a, 'b': b});
+    await store.remove('a');
+    expect(await store.all(), {'b': b});
+  });
 }
