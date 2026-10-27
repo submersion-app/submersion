@@ -154,10 +154,16 @@ device that supports both. Linux implements scan only and reports
 `canAdvertise == false`.
 
 The GATT service has one fixed Submersion service UUID and two
-characteristics: **inbox** (the central writes to it, without response)
-and **outbox** (the central subscribes; the peripheral notifies). Each
-direction carries a byte stream framed by the link layer; the carrier
-splits it into chunks of the negotiated MTU minus 3 and reassembles them.
+characteristics: **inbox** (the central writes to it, with response) and
+**outbox** (the central reads it; the peripheral answers each read from a
+queue of what it has to send). A notification on the outbox is only a
+one-byte doorbell saying bytes are waiting, backed by a slow poll: a
+Flutter peripheral has no flow control over notifications (Apple rejects
+them once its queue is full, Android drops them), while reads and
+acknowledged writes pace themselves on every platform. Each direction
+carries a byte stream framed by the link layer; the carrier cuts it into
+chunks that fit the negotiated MTU, and a peripheral's send waits while
+64 KiB are queued.
 Both sides ask for the largest MTU the platform allows and the fastest
 connection priority Android offers. The advertisement carries the service
 UUID and nothing else: no name, no identity. Who the device is comes out
@@ -168,12 +174,17 @@ hooks to drop the link at a chosen byte for the resume tests.
 
 ### 3. Link: sessions, hello, pairing, encryption
 
-**Hello.** The first message each way is plaintext and carries: protocol
-version, device id, display name, app build, schema version, library epoch
-id, a 32-byte ephemeral X25519 public key, and the session's intent
-(`sync` or `pair`). Both sides compute the X25519 shared secret. A paired
-device also sends a tag proving it holds the pair secret (HMAC over both
-hellos); a device that cannot verify the tag treats the peer as unpaired.
+**Hello.** The first message each way is plaintext and names neither
+device: protocol version, intent (`sync` or `pair`), and key material. The
+initiator commits to its ephemeral X25519 key (a hash) and reveals it only
+after the responder's key arrives, so a device in the middle cannot search
+for keys that make the two codes match. For a sync, the initiator sends one
+anonymous tag per device it is paired with (an HMAC of that pair secret over
+this session's commitment) and the responder answers with one tag for the
+pairing it recognised; tags differ every session, so they say nothing to
+anyone without the secret. After the key check, each side sends its
+identity (device id, display name, app build, schema, floor, library epoch,
+whether it holds dives) sealed.
 
 **Pairing** (intent `pair`, started by the diver from Settings on either
 device while the other is also on the pairing screen). Both sides derive
@@ -182,10 +193,15 @@ a six-digit code from the shared secret and both hellos (HKDF, then mod
 different codes, matching codes confirm the two devices share a secret
 with each other and no one else. Each diver confirms "Same code" on their
 screen; the link waits for the other side's confirmation message, then
-both store a **pair secret** (HKDF of the shared secret with the pair
-label) under the peer's device id in secure storage, and a row in the
-paired-devices table. "Not mine" or a timeout (two minutes) ends the
-session with nothing stored.
+both re-key with a **pair secret** (HKDF of the shared secret with the pair
+label), exchange their full identities, and store the secret under the
+peer's device id in secure storage, and a row in the paired-devices table.
+Until both confirm, each side sees only a preview: the other's display
+name, whether it holds dives, a random per-pairing nonce, and an epoch tag
+(an HMAC of its library epoch) that matches the other's only on the same
+library, so two libraries are refused without either revealing its epoch.
+"Not mine" or a timeout (two minutes) ends the session with nothing
+stored.
 
 **Encryption.** After hello, every message is AES-256-GCM under a session
 key: for a paired peer, HKDF of the pair secret and both ephemeral public
@@ -195,7 +211,8 @@ way. The library's own encryption (SBE1 envelopes) is not involved:
 changesets travel as plaintext inside the encrypted link, and a device on
 an encrypted library applies them exactly as it applies decrypted cloud
 changesets. Nonces are a per-direction counter; a nonce reuse ends the
-session.
+session. Every frame after the handshake is sealed, `error` and `bye`
+included, so nobody in range can end a session with a forged refusal.
 
 **Messages.** A message is a 4-byte length, a 1-byte type, and the
 (encrypted) body. Types are a small enum: `hello`, `pairConfirm`,
@@ -334,7 +351,10 @@ and again after a local change (`SyncEventBus.notifyLocalChange`, with the
 same five-second debounce the cloud path uses) while the peer stays in
 range, and otherwise not more than once every ten minutes per peer. With
 the switch off, nothing scans or advertises; "Sync now" on a device's row
-runs one session. The switch is device-local, stored in `SyncPreferences`
+turns the radio on until that device is found (or 20 seconds pass) and
+runs one session. An address that turns out to belong to no paired device
+is left alone for a minute, doubling to half an hour, so a boat full of
+Submersion users does not keep connecting to each other. The switch is device-local, stored in `SyncPreferences`
 (`sync_nearby_auto`), never synced.
 
 **Errors.** Every session failure is recorded on the paired-devices row
@@ -349,8 +369,11 @@ transient one (`bluetoothOff`, `unreachable`) only shows on the row.
   `SyncPeerCursors`): `peer_device_id` (PK), `display_name`, `paired_at`,
   `last_synced_at`, `last_seen_at`, `peer_applied_hlc`, `last_error`,
   `resume_base_id`, `resume_part_index`.
-  One rung on the migration ladder creates it. Unpairing deletes the row,
-  the pair secret and this peer's `nearby` cursor.
+  One rung on the migration ladder creates it. Unpairing deletes the row
+  and this peer's `nearby` cursor, and keeps the pair secret aside as
+  revoked: when the old peer next connects, this device recognises its
+  tag, completes the key check and answers with a sealed "not paired", so
+  the old peer can show the error on the right row.
 - **Pair secrets** in secure storage under `nearby_pair_<peerDeviceId>`,
   beside the library key `EncryptionKeyStore` keeps. They never leave the
   device and are not in backups.
