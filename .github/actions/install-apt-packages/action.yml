@@ -1,0 +1,119 @@
+name: Install apt packages (bounded, cached)
+description: >
+  apt-get install with a time limit on the download, retried, and an optional
+  cache of the downloaded .deb files. A runner with a slow path to the Ubuntu
+  mirror fetched packages at about 50 KB/s and ran the Linux integration job
+  into its 25 minute limit twice on run 40535224550, while healthy runners
+  finished the same install in 30 seconds (issue #3751). Every workflow
+  installs apt packages through this action;
+  scripts/check_apt_installs_bounded.py enforces that, and that the bound
+  below stays in place.
+
+inputs:
+  packages:
+    description: The apt packages to install, separated by spaces or newlines
+    required: true
+  cache:
+    description: >
+      Whether to restore and save the downloaded .deb files. apt reuses a
+      .deb it finds in its archive directory after checking only its size, not
+      its hash, so a workflow that builds artifacts people download sets this
+      to false.
+    required: false
+    default: 'true'
+
+runs:
+  using: composite
+  steps:
+    # ImageOS and ImageVersion are set on hosted runners. The image version
+    # changes about weekly, so the cache is rewritten as Ubuntu publishes
+    # updates rather than serving a set that grows staler every day; the
+    # restore key below still finds last week's files, and only what changed
+    # is downloaded. The package list is part of the key, sorted, so two jobs
+    # share an entry exactly when they install the same packages.
+    - name: Compute the package cache key
+      id: key
+      if: inputs.cache == 'true'
+      shell: bash
+      env:
+        PACKAGES: ${{ inputs.packages }}
+      run: |
+        set -euo pipefail
+        set -f
+        # shellcheck disable=SC2086 # split the list into one name per line
+        list_hash=$(printf '%s\n' $PACKAGES | sort -u | sha256sum | cut -c1-16)
+        prefix="apt-${ImageOS:-unknown}-${list_hash}-"
+        echo "prefix=$prefix" >> "$GITHUB_OUTPUT"
+        echo "key=${prefix}${ImageVersion:-unknown}" >> "$GITHUB_OUTPUT"
+
+    - name: Restore downloaded packages
+      id: restore
+      if: inputs.cache == 'true'
+      uses: actions/cache/restore@v6
+      with:
+        path: ${{ runner.temp }}/apt-archives
+        key: ${{ steps.key.outputs.key }}
+        restore-keys: ${{ steps.key.outputs.prefix }}
+
+    # Only the download is bounded. A time limit around the whole install
+    # could kill dpkg half way through unpacking and leave the package
+    # database broken for the retry. apt keeps every finished .deb and resumes
+    # a partial one, so a killed attempt loses nothing it already fetched, and
+    # the retry opens a fresh connection to the mirror. A healthy runner needs
+    # about 3 seconds for the update and 10 for a cold download of the
+    # largest list here, so the limits leave ten times that.
+    - name: Download and install
+      shell: bash
+      env:
+        PACKAGES: ${{ inputs.packages }}
+        ARCHIVE_DIR: ${{ runner.temp }}/apt-archives
+      run: |
+        set -euo pipefail
+        set -f
+        # shellcheck disable=SC2206 # split the list on whitespace
+        packages=($PACKAGES)
+        set +f
+        if compgen -G "$ARCHIVE_DIR/*.deb" > /dev/null; then
+          sudo cp "$ARCHIVE_DIR"/*.deb /var/cache/apt/archives/
+        fi
+        attempts=3
+        update_seconds=60
+        download_seconds=120
+        for attempt in $(seq 1 "$attempts"); do
+          if sudo timeout --kill-after=10 "$update_seconds" apt-get update \
+            && sudo timeout --kill-after=10 "$download_seconds" \
+              apt-get install -y --download-only "${packages[@]}"; then
+            break
+          fi
+          if [ "$attempt" -eq "$attempts" ]; then
+            echo "::error::apt could not download the packages in $attempts attempts of ${download_seconds}s each"
+            exit 1
+          fi
+          echo "::warning::apt download attempt $attempt of $attempts failed or ran out of time; retrying"
+          sleep 10
+        done
+        sudo apt-get install -y --no-download "${packages[@]}"
+
+    # autoclean drops the .deb files the current package lists no longer
+    # offer, so a cache rewritten each week holds one version of each package
+    # instead of every version it has ever seen.
+    - name: Collect downloaded packages for the cache
+      if: inputs.cache == 'true' && steps.restore.outputs.cache-hit != 'true'
+      shell: bash
+      env:
+        ARCHIVE_DIR: ${{ runner.temp }}/apt-archives
+      run: |
+        set -euo pipefail
+        sudo apt-get autoclean
+        rm -rf "$ARCHIVE_DIR"
+        mkdir -p "$ARCHIVE_DIR"
+        if compgen -G "/var/cache/apt/archives/*.deb" > /dev/null; then
+          cp /var/cache/apt/archives/*.deb "$ARCHIVE_DIR"/
+        fi
+
+    - name: Save downloaded packages
+      if: inputs.cache == 'true' && steps.restore.outputs.cache-hit != 'true'
+      uses: actions/cache/save@v6
+      with:
+        path: ${{ runner.temp }}/apt-archives
+        key: ${{ steps.key.outputs.key }}

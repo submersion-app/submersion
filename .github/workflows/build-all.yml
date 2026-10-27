@@ -96,6 +96,14 @@ env:
 #      The build-all prefixes keep that set down to other build-all runs; do not
 #      let them converge with the plain pub-<os> keys ci.yaml uses.
 #
+# Apt packages are not cached here at all: every install-apt-packages step
+# passes `cache: false`. apt reuses a .deb it finds in its archive directory
+# after checking only the file's size against the package list (apt 2.7,
+# pkgAcqArchive::QueueNext), so unlike the pub cache a tampered entry would
+# not be caught. These steps keep the action's bounded, retried download
+# (issue #3751); scripts/check_apt_installs_bounded.py fails if one turns the
+# cache back on.
+#
 # Neither rule is carried over to ci.yaml, and that is deliberate. Nothing that
 # workflow produces is distributed, its .dart_tool cache is a real saving across
 # the analyze and test matrix, and narrowing it would buy nothing but slower
@@ -554,12 +562,13 @@ jobs:
       # scripts/check_glibc_floor.py; the hosted image already has it, and it
       # is named here so a future image change cannot remove it silently.
       - name: Install Linux dependencies
-        run: |
-          sudo apt-get update -y
-          sudo apt-get install -y \
-            clang cmake ninja-build pkg-config \
-            libgtk-3-dev liblzma-dev libstdc++-12-dev \
-            libsqlite3-dev libsecret-1-dev libwebkit2gtk-4.1-dev \
+        uses: ./.github/actions/install-apt-packages
+        with:
+          cache: false
+          packages: >-
+            clang cmake ninja-build pkg-config
+            libgtk-3-dev liblzma-dev libstdc++-12-dev
+            libsqlite3-dev libsecret-1-dev libwebkit2gtk-4.1-dev
             libssl-dev binutils
 
       - name: Setup Flutter
@@ -629,9 +638,13 @@ jobs:
         run: python3 scripts/check_glibc_floor.py build/linux/x64/release/bundle
 
       - name: Install packaging tools
-        run: |
-          sudo apt-get install -y ruby ruby-dev build-essential rpm python3-pil
-          sudo gem install --no-document fpm
+        uses: ./.github/actions/install-apt-packages
+        with:
+          cache: false
+          packages: ruby ruby-dev build-essential rpm python3-pil
+
+      - name: Install fpm
+        run: sudo gem install --no-document fpm
 
       # Staged before the tarball step, so the installer scripts the tarball
       # carries never leak into the package trees.

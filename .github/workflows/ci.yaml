@@ -18,6 +18,31 @@ env:
   # OSM tile server acknowledgment (proves we've read the usage policy)
   # See: https://operations.osmfoundation.org/policies/tiles/
   DART_DEFINES: '--dart-define=flutter.flutter_map.unblockOSM=Our tile servers are not.'
+  # The apt packages of both Linux jobs, build-linux and integration-test.
+  # They share one list so they share one entry in the package cache of
+  # ./.github/actions/install-apt-packages: integration-test runs only on pull
+  # requests, which can read the cache build-linux saves on main but never
+  # each other's, so a list of its own would download cold on every pull
+  # request (issue #3751). Each job installs a few packages only the other
+  # needs, which costs seconds from the cache.
+  #
+  # The first two lines build the app. libssl-dev is required by
+  # sqlcipher_flutter_libs: the Linux build compiles SQLCipher from source and
+  # links it against OpenSSL. The hosted runner image happens to ship the
+  # headers today, so declaring it keeps a future image change from silently
+  # breaking the build. binutils supplies readelf for the glibc floor check
+  # and for scripts/linux_package_deps.py in the packaging step, on the same
+  # reasoning.
+  #
+  # The last line is the runtime needs of a headless integration run: xvfb
+  # gives the app a display, and dbus-x11 plus gnome-keyring provide the
+  # Secret Service that flutter_secure_storage (libsecret) stores the database
+  # key in during db_security_test. libsecret-tools supplies secret-tool for
+  # the keyring check in integration-test.
+  LINUX_APT_PACKAGES: >-
+    clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev
+    libstdc++-12-dev libsecret-1-dev libwebkit2gtk-4.1-dev libssl-dev binutils
+    xvfb dbus-x11 gnome-keyring libsecret-tools
 
 jobs:
   # Cheap gate: does this push/PR touch anything that can change a Flutter
@@ -125,6 +150,7 @@ jobs:
             case "$f" in
               .github/flutter-version.txt) code=true ;;   # SDK bump affects all
               .github/actions/setup-flutter/*) code=true ;; # SDK setup for every job
+              .github/actions/install-apt-packages/*) code=true ;; # Linux job packages
               .github/*) ;;                                # other CI/meta: inert
               *.md|docs/*|LICENSE*|.gitignore|.gitattributes|.editorconfig|codecov.yml|hooks/*) ;;
               *.png|*.jpg|*.jpeg|*.gif|*.svg|*.webp|*.ico) ;;
@@ -631,6 +657,13 @@ jobs:
         # stalled SDK download turned main red in run 36852093336 (#2765).
         run: python3 scripts/check_flutter_setup_retried.py
 
+      - name: Check apt installs are bounded
+        # Fails if a workflow runs apt-get install directly instead of
+        # ./.github/actions/install-apt-packages, or if that action stops
+        # bounding and retrying its download. A slow mirror held the Linux
+        # integration job until its 25 minute limit on run 40535224550 (#3751).
+        run: python3 scripts/check_apt_installs_bounded.py
+
       - name: Check JNI local-reference hygiene (source)
         # Source-level guard: no build artifact needed (unlike the APK/mapping
         # guards), so it runs here. Fails if a libdivecomputer JNI callback
@@ -667,7 +700,7 @@ jobs:
       - name: Run Python guard tests with coverage
         run: |
           mkdir -p coverage
-          guards='scripts/check_proguard_serial_keep.py,scripts/check_apk_signing_cert.py,scripts/check_native_libs_present.py,scripts/check_bundled_native_assets.py,scripts/check_glibc_floor.py,scripts/check_jni_local_refs.py,scripts/check_dc_process_isolation.py,scripts/check_ci_success_gate.py,scripts/check_flutter_setup_retried.py,scripts/check_pr_issue_link.py,scripts/fix_macho_symbol_order.py,scripts/release/sanitize_apple_store_notes.py,scripts/bundle_tests.py,scripts/filter_trivial_coverage.py,scripts/beta_failure_alert.py,scripts/release/play_beta_cooldown.py,scripts/report_inherited_failures.py,scripts/export_support_matrix_catalog.py,scripts/check_no_skipped_tests.py,scripts/check_docs_links.py,scripts/check_dependabot_gemfiles.py,scripts/dependabot_failure_alert.py,scripts/check_ruby_versions.py,scripts/demo_data/fetch_demo_db.py'
+          guards='scripts/check_proguard_serial_keep.py,scripts/check_apk_signing_cert.py,scripts/check_native_libs_present.py,scripts/check_bundled_native_assets.py,scripts/check_glibc_floor.py,scripts/check_jni_local_refs.py,scripts/check_dc_process_isolation.py,scripts/check_ci_success_gate.py,scripts/check_flutter_setup_retried.py,scripts/check_apt_installs_bounded.py,scripts/check_pr_issue_link.py,scripts/fix_macho_symbol_order.py,scripts/release/sanitize_apple_store_notes.py,scripts/bundle_tests.py,scripts/filter_trivial_coverage.py,scripts/beta_failure_alert.py,scripts/release/play_beta_cooldown.py,scripts/report_inherited_failures.py,scripts/export_support_matrix_catalog.py,scripts/check_no_skipped_tests.py,scripts/check_docs_links.py,scripts/check_dependabot_gemfiles.py,scripts/dependabot_failure_alert.py,scripts/check_ruby_versions.py,scripts/demo_data/fetch_demo_db.py'
           python3 -m coverage run --include="$guards" \
             scripts/check_proguard_serial_keep_test.py
           python3 -m coverage run --append --include="$guards" \
@@ -686,6 +719,8 @@ jobs:
             scripts/check_ci_success_gate_test.py
           python3 -m coverage run --append --include="$guards" \
             scripts/check_flutter_setup_retried_test.py
+          python3 -m coverage run --append --include="$guards" \
+            scripts/check_apt_installs_bounded_test.py
           python3 -m coverage run --append --include="$guards" \
             scripts/check_pr_issue_link_test.py
           python3 -m coverage run --append --include="$guards" \
@@ -912,29 +947,11 @@ jobs:
           restore-keys: |
             pub-${{ runner.os }}-
 
-      # The build packages match build-linux. The rest are runtime needs of a
-      # headless runner: xvfb gives the app a display, and dbus-x11 plus
-      # gnome-keyring provide the Secret Service that flutter_secure_storage
-      # (libsecret) stores the database key in during db_security_test.
-      # libsecret-tools supplies secret-tool for the keyring check below.
+      # LINUX_APT_PACKAGES, at the top of this file, says what each is for.
       - name: Install Linux dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            clang \
-            cmake \
-            ninja-build \
-            pkg-config \
-            libgtk-3-dev \
-            liblzma-dev \
-            libstdc++-12-dev \
-            libsecret-1-dev \
-            libwebkit2gtk-4.1-dev \
-            libssl-dev \
-            xvfb \
-            dbus-x11 \
-            gnome-keyring \
-            libsecret-tools
+        uses: ./.github/actions/install-apt-packages
+        with:
+          packages: ${{ env.LINUX_APT_PACKAGES }}
 
       - name: Install dependencies
         run: flutter pub get
@@ -1497,28 +1514,11 @@ jobs:
           restore-keys: |
             pub-${{ runner.os }}-
 
-      # libssl-dev is required by sqlcipher_flutter_libs: the Linux build
-      # compiles SQLCipher from source and links it against OpenSSL. The
-      # hosted runner image happens to ship the headers today, so declaring
-      # it keeps a future image change from silently breaking the build.
-      # binutils supplies readelf for the glibc floor check and for
-      # scripts/linux_package_deps.py in the packaging step, on the same
-      # reasoning.
+      # LINUX_APT_PACKAGES, at the top of this file, says what each is for.
       - name: Install Linux dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            clang \
-            cmake \
-            ninja-build \
-            pkg-config \
-            libgtk-3-dev \
-            liblzma-dev \
-            libstdc++-12-dev \
-            libsecret-1-dev \
-            libwebkit2gtk-4.1-dev \
-            libssl-dev \
-            binutils
+        uses: ./.github/actions/install-apt-packages
+        with:
+          packages: ${{ env.LINUX_APT_PACKAGES }}
 
       - name: Disable Swift Package Manager (project uses CocoaPods)
         run: flutter config --no-enable-swift-package-manager
@@ -1556,9 +1556,12 @@ jobs:
       # merge, when a break already blocks the beta pipeline. Both workflows
       # call the same scripts, so they cannot drift.
       - name: Install packaging tools
-        run: |
-          sudo apt-get install -y ruby ruby-dev build-essential rpm python3-pil
-          sudo gem install --no-document fpm
+        uses: ./.github/actions/install-apt-packages
+        with:
+          packages: ruby ruby-dev build-essential rpm python3-pil
+
+      - name: Install fpm
+        run: sudo gem install --no-document fpm
 
       - name: Build .deb and .rpm
         run: |
