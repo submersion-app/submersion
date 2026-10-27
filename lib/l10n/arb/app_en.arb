@@ -22978,6 +22978,34 @@
       }
     }
   },
+  "nearbyPair_looking": "Looking for devices…",
+  "nearbyPair_hint": "Open Submersion on the other device and tap Pair a device there too.",
+  "nearbyPair_found": "Found {name}. Check that it shows this code, then confirm on both.",
+  "@nearbyPair_found": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "nearbyPair_sameCode": "Same code",
+  "nearbyPair_notMine": "Not mine",
+  "nearbyPair_waiting": "Waiting for the other device to confirm…",
+  "nearbyPair_bothPopulated": "Both devices have dives. Pairing merges them into one logbook.",
+  "nearbyPair_differentLibrary": "That device is on a different library, so it cannot pair with this one.",
+  "nearbyPair_permissionDenied": "Submersion needs Bluetooth permission to find nearby devices.",
+  "nearbyPair_bluetoothOff": "Turn on Bluetooth to find nearby devices.",
+  "nearbyPair_unsupported": "This device has no Bluetooth that Submersion can use.",
+  "nearbyPair_openSettings": "Open settings",
+  "nearbyPair_done": "Paired with {name}",
+  "@nearbyPair_done": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "nearbyPair_failed": "Pairing did not finish. Try again on both devices.",
   "settings_sync_alsoAtLaunch": "Also sync at launch",
   "settings_sync_alsoOnReturn": "Also sync when the app returns",
   "settings_sync_encryption": "Encryption",

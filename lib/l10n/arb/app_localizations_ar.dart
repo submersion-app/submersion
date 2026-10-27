@@ -38025,6 +38025,59 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get nearbyPair_looking => 'جارٍ البحث عن أجهزة…';
+
+  @override
+  String get nearbyPair_hint =>
+      'افتح Submersion على الجهاز الآخر واضغط على إقران جهاز هناك أيضًا.';
+
+  @override
+  String nearbyPair_found(String name) {
+    return 'تم العثور على $name. تحقّق من أنه يعرض هذا الرمز، ثم أكّد على الجهازين.';
+  }
+
+  @override
+  String get nearbyPair_sameCode => 'الرمز نفسه';
+
+  @override
+  String get nearbyPair_notMine => 'ليس جهازي';
+
+  @override
+  String get nearbyPair_waiting => 'في انتظار تأكيد الجهاز الآخر…';
+
+  @override
+  String get nearbyPair_bothPopulated =>
+      'يحتوي الجهازان على غطسات. يدمجها الإقران في سجل واحد.';
+
+  @override
+  String get nearbyPair_differentLibrary =>
+      'ذلك الجهاز على مكتبة مختلفة، لذا لا يمكن إقرانه بهذا الجهاز.';
+
+  @override
+  String get nearbyPair_permissionDenied =>
+      'يحتاج Submersion إلى إذن البلوتوث للعثور على الأجهزة القريبة.';
+
+  @override
+  String get nearbyPair_bluetoothOff =>
+      'شغّل البلوتوث للعثور على الأجهزة القريبة.';
+
+  @override
+  String get nearbyPair_unsupported =>
+      'لا يحتوي هذا الجهاز على بلوتوث يمكن لـ Submersion استخدامه.';
+
+  @override
+  String get nearbyPair_openSettings => 'فتح الإعدادات';
+
+  @override
+  String nearbyPair_done(String name) {
+    return 'تم الإقران مع $name';
+  }
+
+  @override
+  String get nearbyPair_failed =>
+      'لم يكتمل الإقران. حاول مرة أخرى على الجهازين.';
+
+  @override
   String get settings_sync_alsoAtLaunch => 'المزامنة أيضًا عند التشغيل';
 
   @override

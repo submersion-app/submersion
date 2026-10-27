@@ -12,6 +12,7 @@ import 'package:submersion/features/media_store/presentation/pages/transfers_pag
 import 'package:submersion/features/settings/presentation/pages/data_tools_page.dart';
 import 'package:submersion/features/settings/presentation/pages/import_options_page.dart';
 import 'package:submersion/features/settings/presentation/pages/cloud_sync_page.dart';
+import 'package:submersion/features/settings/presentation/pages/nearby_pair_page.dart';
 import 'package:submersion/features/settings/presentation/pages/connected_accounts_page.dart';
 import 'package:submersion/features/settings/presentation/pages/account_detail_page.dart';
 import 'package:submersion/features/settings/presentation/pages/data_section_content.dart';
@@ -62,6 +63,7 @@ Widget? dataPanePage(Uri location) {
   return switch (segments.sublist(1)) {
     ['backup'] => const BackupSettingsPage(),
     ['cloud-sync'] => const CloudSyncPage(),
+    ['cloud-sync', 'nearby-pair'] => const NearbyPairPage(),
     ['shared-libraries'] => const SharedLibrariesPage(),
     ['shared-libraries', 'connect'] => ConnectSharedLibraryPage(
       initialPrefix: location.queryParameters['prefix'],

@@ -371,4 +371,42 @@ void main() {
     expect(a.carrier.isScanning, isFalse);
     expect(a.carrier.isAdvertising, isFalse);
   });
+
+  test(
+    'pairing with a device on another library is reported, not offered',
+    () async {
+      final a = await device('A');
+      final b = await device('B');
+      b.engine.self = NearbyIdentity(
+        deviceId: 'B',
+        deviceName: 'Device B',
+        appVersion: '1.8.4',
+        schemaVersion: 320,
+        schemaFloor: 308,
+        epochId: 'epoch-2',
+        hasDives: true,
+      );
+      final refusals = <NearbyErrorCode>[];
+      a.manager.pairingRefusals.listen(refusals.add);
+      b.manager.pairingRefusals.listen(refusals.add);
+      await a.manager.setForeground(true);
+      await b.manager.setForeground(true);
+      await a.manager.enterPairingMode();
+      await b.manager.enterPairingMode();
+      await _settle();
+      expect(refusals, contains(NearbyErrorCode.differentLibrary));
+      expect(a.manager.currentPairings, isEmpty);
+      expect(b.manager.currentPairings, isEmpty);
+    },
+  );
+
+  test('checkAvailability reports the radio state', () async {
+    final a = await device('A');
+    expect(await a.manager.checkAvailability(), NearbyAvailability.ready);
+    hub.setAvailability('A', NearbyAvailability.unauthorized);
+    expect(
+      await a.manager.checkAvailability(),
+      NearbyAvailability.unauthorized,
+    );
+  });
 }

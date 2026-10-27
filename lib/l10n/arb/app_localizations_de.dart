@@ -37487,6 +37487,60 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get nearbyPair_looking => 'Suche nach Geräten…';
+
+  @override
+  String get nearbyPair_hint =>
+      'Öffne Submersion auf dem anderen Gerät und tippe auch dort auf Gerät koppeln.';
+
+  @override
+  String nearbyPair_found(String name) {
+    return '$name gefunden. Prüfe, ob dort dieser Code angezeigt wird, und bestätige dann auf beiden.';
+  }
+
+  @override
+  String get nearbyPair_sameCode => 'Gleicher Code';
+
+  @override
+  String get nearbyPair_notMine => 'Nicht meins';
+
+  @override
+  String get nearbyPair_waiting =>
+      'Warte auf die Bestätigung des anderen Geräts…';
+
+  @override
+  String get nearbyPair_bothPopulated =>
+      'Beide Geräte enthalten Tauchgänge. Das Koppeln führt sie zu einem Logbuch zusammen.';
+
+  @override
+  String get nearbyPair_differentLibrary =>
+      'Das Gerät nutzt eine andere Bibliothek und kann deshalb nicht mit diesem gekoppelt werden.';
+
+  @override
+  String get nearbyPair_permissionDenied =>
+      'Submersion braucht die Bluetooth-Berechtigung, um Geräte in der Nähe zu finden.';
+
+  @override
+  String get nearbyPair_bluetoothOff =>
+      'Schalte Bluetooth ein, um Geräte in der Nähe zu finden.';
+
+  @override
+  String get nearbyPair_unsupported =>
+      'Dieses Gerät hat kein Bluetooth, das Submersion nutzen kann.';
+
+  @override
+  String get nearbyPair_openSettings => 'Einstellungen öffnen';
+
+  @override
+  String nearbyPair_done(String name) {
+    return 'Mit $name gekoppelt';
+  }
+
+  @override
+  String get nearbyPair_failed =>
+      'Das Koppeln wurde nicht abgeschlossen. Versuche es auf beiden Geräten erneut.';
+
+  @override
   String get settings_sync_alsoAtLaunch => 'Auch beim Start synchronisieren';
 
   @override

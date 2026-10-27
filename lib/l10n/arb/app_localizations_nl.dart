@@ -37312,6 +37312,60 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get nearbyPair_looking => 'Apparaten zoeken…';
+
+  @override
+  String get nearbyPair_hint =>
+      'Open Submersion op het andere apparaat en tik daar ook op Apparaat koppelen.';
+
+  @override
+  String nearbyPair_found(String name) {
+    return '$name gevonden. Controleer of het deze code toont en bevestig daarna op beide.';
+  }
+
+  @override
+  String get nearbyPair_sameCode => 'Zelfde code';
+
+  @override
+  String get nearbyPair_notMine => 'Niet van mij';
+
+  @override
+  String get nearbyPair_waiting =>
+      'Wachten op bevestiging van het andere apparaat…';
+
+  @override
+  String get nearbyPair_bothPopulated =>
+      'Beide apparaten bevatten duiken. Koppelen voegt ze samen tot één logboek.';
+
+  @override
+  String get nearbyPair_differentLibrary =>
+      'Dat apparaat gebruikt een andere bibliotheek en kan daarom niet aan dit apparaat gekoppeld worden.';
+
+  @override
+  String get nearbyPair_permissionDenied =>
+      'Submersion heeft Bluetooth-toestemming nodig om apparaten in de buurt te vinden.';
+
+  @override
+  String get nearbyPair_bluetoothOff =>
+      'Zet Bluetooth aan om apparaten in de buurt te vinden.';
+
+  @override
+  String get nearbyPair_unsupported =>
+      'Dit apparaat heeft geen Bluetooth die Submersion kan gebruiken.';
+
+  @override
+  String get nearbyPair_openSettings => 'Instellingen openen';
+
+  @override
+  String nearbyPair_done(String name) {
+    return 'Gekoppeld met $name';
+  }
+
+  @override
+  String get nearbyPair_failed =>
+      'Het koppelen is niet voltooid. Probeer het opnieuw op beide apparaten.';
+
+  @override
   String get settings_sync_alsoAtLaunch => 'Ook synchroniseren bij het starten';
 
   @override

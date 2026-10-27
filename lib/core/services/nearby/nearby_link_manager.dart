@@ -29,7 +29,20 @@ class NearbySyncProgress {
 }
 
 /// A pairing waiting for the diver to compare the codes on both screens.
-class NearbyPairingHandle {
+abstract class NearbyPairingOffer {
+  NearbyIdentity get peer;
+  String get code;
+  bool get bothPopulated;
+
+  /// Completes once both divers confirmed: the devices are paired and the
+  /// first sync has started. Throws [NearbyPairingRejected] when the other
+  /// diver tapped "Not mine", or a timeout when they never answered.
+  Future<void> confirm();
+
+  Future<void> reject();
+}
+
+class NearbyPairingHandle implements NearbyPairingOffer {
   NearbyPairingHandle._(
     this._manager,
     this._pairing, {
@@ -43,14 +56,19 @@ class NearbyPairingHandle {
   /// of devices, the one started by the lower device id is kept.
   final String initiatorId;
 
+  @override
   NearbyIdentity get peer => _pairing.peer;
+
+  @override
   String get code => _pairing.code;
+
+  @override
   bool get bothPopulated => _pairing.bothPopulated;
 
-  /// Completes once both divers confirmed: the devices are paired and the
-  /// first sync has started.
+  @override
   Future<void> confirm() => _manager._confirm(this);
 
+  @override
   Future<void> reject() => _manager._reject(this);
 }
 
@@ -123,6 +141,7 @@ class NearbyLinkManager {
   final _appliedController = StreamController<void>.broadcast();
   final _pendingController =
       StreamController<List<NearbyPairingHandle>>.broadcast();
+  final _refusalController = StreamController<NearbyErrorCode>.broadcast();
 
   bool _foreground = false;
   bool _pairingMode = false;
@@ -159,6 +178,21 @@ class NearbyLinkManager {
       _pendingController.stream;
 
   List<NearbyPairingHandle> get currentPairings => List.unmodifiable(_pending);
+
+  /// Why a pairing in pairing mode could not open, for the pairing page:
+  /// today only a device on another library is worth telling the diver.
+  Stream<NearbyErrorCode> get pairingRefusals => _refusalController.stream;
+
+  void _reportPairingRefusal(Object error) {
+    if (error is NearbySessionRefused &&
+        error.code == NearbyErrorCode.differentLibrary &&
+        !_refusalController.isClosed) {
+      _refusalController.add(error.code);
+    }
+  }
+
+  Future<NearbyAvailability> checkAvailability() =>
+      _carrier.checkAvailability();
 
   bool get canAdvertise => _carrier.canAdvertise;
 
@@ -382,6 +416,7 @@ class NearbyLinkManager {
       ).accept(allowPairing: _pairingMode);
     } on Object catch (e) {
       _log.info('Nearby incoming from ${endpoint.transportId} refused: $e');
+      if (_pairingMode) _reportPairingRefusal(e);
       return;
     }
     switch (incoming) {
@@ -487,6 +522,7 @@ class NearbyLinkManager {
         );
       } on Object catch (e) {
         _log.info('Nearby pairing with $transportId did not open: $e');
+        _reportPairingRefusal(e);
         await endpoint.close();
       }
     } finally {
@@ -576,5 +612,6 @@ class NearbyLinkManager {
     await _progressController.close();
     await _appliedController.close();
     await _pendingController.close();
+    await _refusalController.close();
   }
 }

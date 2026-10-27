@@ -36627,6 +36627,58 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get nearbyPair_looking => 'מחפש מכשירים…';
+
+  @override
+  String get nearbyPair_hint =>
+      'פתחו את Submersion במכשיר השני והקישו גם שם על התאמת מכשיר.';
+
+  @override
+  String nearbyPair_found(String name) {
+    return 'נמצא $name. ודאו שמוצג בו הקוד הזה, ואז אשרו בשני המכשירים.';
+  }
+
+  @override
+  String get nearbyPair_sameCode => 'אותו קוד';
+
+  @override
+  String get nearbyPair_notMine => 'לא שלי';
+
+  @override
+  String get nearbyPair_waiting => 'ממתין לאישור מהמכשיר השני…';
+
+  @override
+  String get nearbyPair_bothPopulated =>
+      'בשני המכשירים יש צלילות. ההתאמה ממזגת אותן ליומן אחד.';
+
+  @override
+  String get nearbyPair_differentLibrary =>
+      'המכשיר הזה נמצא בספרייה אחרת, ולכן אי אפשר להתאים אותו למכשיר הזה.';
+
+  @override
+  String get nearbyPair_permissionDenied =>
+      'Submersion צריך הרשאת Bluetooth כדי למצוא מכשירים קרובים.';
+
+  @override
+  String get nearbyPair_bluetoothOff =>
+      'הפעילו Bluetooth כדי למצוא מכשירים קרובים.';
+
+  @override
+  String get nearbyPair_unsupported =>
+      'במכשיר הזה אין Bluetooth ש-Submersion יכול להשתמש בו.';
+
+  @override
+  String get nearbyPair_openSettings => 'פתיחת ההגדרות';
+
+  @override
+  String nearbyPair_done(String name) {
+    return 'הותאם עם $name';
+  }
+
+  @override
+  String get nearbyPair_failed => 'ההתאמה לא הושלמה. נסו שוב בשני המכשירים.';
+
+  @override
   String get settings_sync_alsoAtLaunch => 'סנכרון גם בהפעלה';
 
   @override

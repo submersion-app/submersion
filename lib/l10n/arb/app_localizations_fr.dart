@@ -37671,6 +37671,60 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get nearbyPair_looking => 'Recherche d\'appareils…';
+
+  @override
+  String get nearbyPair_hint =>
+      'Ouvrez Submersion sur l\'autre appareil et touchez aussi Associer un appareil.';
+
+  @override
+  String nearbyPair_found(String name) {
+    return '$name trouvé. Vérifiez qu\'il affiche ce code, puis confirmez sur les deux.';
+  }
+
+  @override
+  String get nearbyPair_sameCode => 'Même code';
+
+  @override
+  String get nearbyPair_notMine => 'Pas le mien';
+
+  @override
+  String get nearbyPair_waiting =>
+      'En attente de la confirmation de l\'autre appareil…';
+
+  @override
+  String get nearbyPair_bothPopulated =>
+      'Les deux appareils contiennent des plongées. L\'association les réunit dans un seul carnet.';
+
+  @override
+  String get nearbyPair_differentLibrary =>
+      'Cet appareil utilise une autre bibliothèque : il ne peut donc pas être associé à celui-ci.';
+
+  @override
+  String get nearbyPair_permissionDenied =>
+      'Submersion a besoin de l\'autorisation Bluetooth pour trouver les appareils à proximité.';
+
+  @override
+  String get nearbyPair_bluetoothOff =>
+      'Activez le Bluetooth pour trouver les appareils à proximité.';
+
+  @override
+  String get nearbyPair_unsupported =>
+      'Cet appareil n\'a pas de Bluetooth utilisable par Submersion.';
+
+  @override
+  String get nearbyPair_openSettings => 'Ouvrir les réglages';
+
+  @override
+  String nearbyPair_done(String name) {
+    return 'Associé à $name';
+  }
+
+  @override
+  String get nearbyPair_failed =>
+      'L\'association n\'a pas abouti. Réessayez sur les deux appareils.';
+
+  @override
   String get settings_sync_alsoAtLaunch => 'Synchroniser aussi au lancement';
 
   @override

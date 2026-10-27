@@ -37594,6 +37594,60 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get nearbyPair_looking => 'Buscando dispositivos…';
+
+  @override
+  String get nearbyPair_hint =>
+      'Abre Submersion en el otro dispositivo y toca también allí Vincular un dispositivo.';
+
+  @override
+  String nearbyPair_found(String name) {
+    return 'Se encontró $name. Comprueba que muestra este código y confirma en ambos.';
+  }
+
+  @override
+  String get nearbyPair_sameCode => 'Mismo código';
+
+  @override
+  String get nearbyPair_notMine => 'No es mío';
+
+  @override
+  String get nearbyPair_waiting =>
+      'Esperando la confirmación del otro dispositivo…';
+
+  @override
+  String get nearbyPair_bothPopulated =>
+      'Ambos dispositivos tienen inmersiones. Vincularlos las une en un solo diario.';
+
+  @override
+  String get nearbyPair_differentLibrary =>
+      'Ese dispositivo usa otra biblioteca, así que no se puede vincular con este.';
+
+  @override
+  String get nearbyPair_permissionDenied =>
+      'Submersion necesita permiso de Bluetooth para encontrar dispositivos cercanos.';
+
+  @override
+  String get nearbyPair_bluetoothOff =>
+      'Activa el Bluetooth para encontrar dispositivos cercanos.';
+
+  @override
+  String get nearbyPair_unsupported =>
+      'Este dispositivo no tiene un Bluetooth que Submersion pueda usar.';
+
+  @override
+  String get nearbyPair_openSettings => 'Abrir ajustes';
+
+  @override
+  String nearbyPair_done(String name) {
+    return 'Vinculado con $name';
+  }
+
+  @override
+  String get nearbyPair_failed =>
+      'La vinculación no terminó. Inténtalo de nuevo en ambos dispositivos.';
+
+  @override
   String get settings_sync_alsoAtLaunch => 'Sincronizar también al abrir';
 
   @override

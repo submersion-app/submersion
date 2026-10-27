@@ -100,10 +100,10 @@ final nearbyProgressProvider = StreamProvider<Map<String, NearbySyncProgress>>((
 });
 
 /// Pairings waiting for the diver while the pairing page is open.
-final nearbyPendingPairingsProvider = StreamProvider<List<NearbyPairingHandle>>(
-  (ref) async* {
-    final manager = ref.watch(nearbyLinkManagerProvider);
-    yield manager.currentPairings;
-    yield* manager.pendingPairings;
-  },
-);
+final nearbyPendingPairingsProvider = StreamProvider<List<NearbyPairingOffer>>((
+  ref,
+) async* {
+  final manager = ref.watch(nearbyLinkManagerProvider);
+  yield manager.currentPairings;
+  yield* manager.pendingPairings;
+});

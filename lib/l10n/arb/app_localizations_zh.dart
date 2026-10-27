@@ -35347,6 +35347,52 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get nearbyPair_looking => '正在查找设备…';
+
+  @override
+  String get nearbyPair_hint => '在另一台设备上打开 Submersion，并同样点按“配对设备”。';
+
+  @override
+  String nearbyPair_found(String name) {
+    return '已找到 $name。确认它显示的是这个代码，然后在两台设备上确认。';
+  }
+
+  @override
+  String get nearbyPair_sameCode => '代码相同';
+
+  @override
+  String get nearbyPair_notMine => '不是我的';
+
+  @override
+  String get nearbyPair_waiting => '正在等待另一台设备确认…';
+
+  @override
+  String get nearbyPair_bothPopulated => '两台设备上都有潜水记录。配对会将它们合并为一个日志。';
+
+  @override
+  String get nearbyPair_differentLibrary => '该设备使用的是另一个资料库，因此无法与此设备配对。';
+
+  @override
+  String get nearbyPair_permissionDenied => 'Submersion 需要蓝牙权限才能查找附近的设备。';
+
+  @override
+  String get nearbyPair_bluetoothOff => '打开蓝牙以查找附近的设备。';
+
+  @override
+  String get nearbyPair_unsupported => '此设备没有可供 Submersion 使用的蓝牙。';
+
+  @override
+  String get nearbyPair_openSettings => '打开设置';
+
+  @override
+  String nearbyPair_done(String name) {
+    return '已与 $name 配对';
+  }
+
+  @override
+  String get nearbyPair_failed => '配对未完成。请在两台设备上重试。';
+
+  @override
   String get settings_sync_alsoAtLaunch => '启动时也同步';
 
   @override

@@ -37343,6 +37343,59 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get nearbyPair_looking => 'Eszközök keresése…';
+
+  @override
+  String get nearbyPair_hint =>
+      'Nyisd meg a Submersiont a másik eszközön, és ott is koppints az Eszköz párosítása elemre.';
+
+  @override
+  String nearbyPair_found(String name) {
+    return 'Megtaláltuk: $name. Ellenőrizd, hogy ezt a kódot mutatja, majd erősítsd meg mindkettőn.';
+  }
+
+  @override
+  String get nearbyPair_sameCode => 'Ugyanaz a kód';
+
+  @override
+  String get nearbyPair_notMine => 'Nem az enyém';
+
+  @override
+  String get nearbyPair_waiting => 'Várakozás a másik eszköz megerősítésére…';
+
+  @override
+  String get nearbyPair_bothPopulated =>
+      'Mindkét eszközön vannak merülések. A párosítás egy naplóba egyesíti őket.';
+
+  @override
+  String get nearbyPair_differentLibrary =>
+      'Az az eszköz egy másik könyvtárat használ, ezért nem párosítható ezzel.';
+
+  @override
+  String get nearbyPair_permissionDenied =>
+      'A Submersionnek Bluetooth-engedély kell a közeli eszközök megtalálásához.';
+
+  @override
+  String get nearbyPair_bluetoothOff =>
+      'Kapcsold be a Bluetootht a közeli eszközök megtalálásához.';
+
+  @override
+  String get nearbyPair_unsupported =>
+      'Ezen az eszközön nincs olyan Bluetooth, amelyet a Submersion használni tud.';
+
+  @override
+  String get nearbyPair_openSettings => 'Beállítások megnyitása';
+
+  @override
+  String nearbyPair_done(String name) {
+    return 'Párosítva: $name';
+  }
+
+  @override
+  String get nearbyPair_failed =>
+      'A párosítás nem fejeződött be. Próbáld újra mindkét eszközön.';
+
+  @override
   String get settings_sync_alsoAtLaunch => 'Szinkronizálás indításkor is';
 
   @override

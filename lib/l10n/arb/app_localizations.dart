@@ -59247,6 +59247,90 @@ abstract class AppLocalizations {
   /// **'{name} is not nearby right now'**
   String settings_nearby_notInRange(String name);
 
+  /// No description provided for @nearbyPair_looking.
+  ///
+  /// In en, this message translates to:
+  /// **'Looking for devices…'**
+  String get nearbyPair_looking;
+
+  /// No description provided for @nearbyPair_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Submersion on the other device and tap Pair a device there too.'**
+  String get nearbyPair_hint;
+
+  /// No description provided for @nearbyPair_found.
+  ///
+  /// In en, this message translates to:
+  /// **'Found {name}. Check that it shows this code, then confirm on both.'**
+  String nearbyPair_found(String name);
+
+  /// No description provided for @nearbyPair_sameCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Same code'**
+  String get nearbyPair_sameCode;
+
+  /// No description provided for @nearbyPair_notMine.
+  ///
+  /// In en, this message translates to:
+  /// **'Not mine'**
+  String get nearbyPair_notMine;
+
+  /// No description provided for @nearbyPair_waiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for the other device to confirm…'**
+  String get nearbyPair_waiting;
+
+  /// No description provided for @nearbyPair_bothPopulated.
+  ///
+  /// In en, this message translates to:
+  /// **'Both devices have dives. Pairing merges them into one logbook.'**
+  String get nearbyPair_bothPopulated;
+
+  /// No description provided for @nearbyPair_differentLibrary.
+  ///
+  /// In en, this message translates to:
+  /// **'That device is on a different library, so it cannot pair with this one.'**
+  String get nearbyPair_differentLibrary;
+
+  /// No description provided for @nearbyPair_permissionDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Submersion needs Bluetooth permission to find nearby devices.'**
+  String get nearbyPair_permissionDenied;
+
+  /// No description provided for @nearbyPair_bluetoothOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on Bluetooth to find nearby devices.'**
+  String get nearbyPair_bluetoothOff;
+
+  /// No description provided for @nearbyPair_unsupported.
+  ///
+  /// In en, this message translates to:
+  /// **'This device has no Bluetooth that Submersion can use.'**
+  String get nearbyPair_unsupported;
+
+  /// No description provided for @nearbyPair_openSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open settings'**
+  String get nearbyPair_openSettings;
+
+  /// No description provided for @nearbyPair_done.
+  ///
+  /// In en, this message translates to:
+  /// **'Paired with {name}'**
+  String nearbyPair_done(String name);
+
+  /// No description provided for @nearbyPair_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Pairing did not finish. Try again on both devices.'**
+  String get nearbyPair_failed;
+
   /// No description provided for @settings_sync_alsoAtLaunch.
   ///
   /// In en, this message translates to:
