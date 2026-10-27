@@ -71,5 +71,10 @@ abstract class NearbyCarrier {
 
   Future<NearbyEndpoint> connect(String transportId);
 
+  /// Changes to [checkAvailability].
   Stream<NearbyAvailability> get availability;
+
+  /// The radio's state now, asking for Bluetooth permission first where the
+  /// platform needs it at runtime (Android 12+, Apple).
+  Future<NearbyAvailability> checkAvailability();
 }

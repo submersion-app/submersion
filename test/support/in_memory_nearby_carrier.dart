@@ -39,8 +39,12 @@ class InMemoryNearbyHub {
   /// Removes a cut set by [cutAfterBytes] for links opened from now on.
   void heal(String transportId) => _budgets.remove(transportId);
 
-  void setAvailability(String transportId, NearbyAvailability state) =>
-      _carriers[transportId]?._availability.add(state);
+  void setAvailability(String transportId, NearbyAvailability state) {
+    final carrier = _carriers[transportId];
+    if (carrier == null) return;
+    carrier._state = state;
+    carrier._availability.add(state);
+  }
 
   void _advertised(InMemoryNearbyCarrier advertiser) {
     for (final c in _carriers.values) {
@@ -59,6 +63,7 @@ class InMemoryNearbyCarrier implements NearbyCarrier {
   final bool canAdvertise;
 
   bool _advertising = false;
+  NearbyAvailability _state = NearbyAvailability.ready;
   bool _scanning = false;
   final _pipes = <_Pipe>[];
   final _sightings = StreamController<NearbyPeerSighting>.broadcast();
@@ -103,6 +108,9 @@ class InMemoryNearbyCarrier implements NearbyCarrier {
 
   @override
   Stream<NearbyAvailability> get availability => _availability.stream;
+
+  @override
+  Future<NearbyAvailability> checkAvailability() async => _state;
 
   @override
   Future<NearbyEndpoint> connect(String targetId) async {
