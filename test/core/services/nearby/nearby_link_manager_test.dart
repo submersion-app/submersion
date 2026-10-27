@@ -377,7 +377,7 @@ void main() {
     () async {
       final a = await device('A');
       final b = await device('B');
-      b.engine.self = NearbyIdentity(
+      b.engine.self = const NearbyIdentity(
         deviceId: 'B',
         deviceName: 'Device B',
         appVersion: '1.8.4',
