@@ -34,6 +34,7 @@ NearbyIdentity _identity(
   deviceName: 'Device $id',
   appVersion: '1.8.4',
   schemaVersion: schema,
+  schemaFloor: 308,
   epochId: epoch,
   hasDives: hasDives,
 );
@@ -328,6 +329,7 @@ void main() {
         deviceName: 'Future',
         appVersion: '9.0.0',
         schemaVersion: 999,
+        schemaFloor: 999,
         epochId: null,
         hasDives: false,
         intent: NearbyIntent.pair,
@@ -370,6 +372,7 @@ void main() {
         deviceName: 'Mallory',
         appVersion: '1.8.4',
         schemaVersion: 319,
+        schemaFloor: 308,
         epochId: null,
         hasDives: false,
         intent: NearbyIntent.pair,

@@ -1437,8 +1437,9 @@ class AppDatabase extends _$AppDatabase {
     // old shape gets the same move once applied here (SyncService). 317 is
     // #3662 (tank inspection baselines); 316 is held by PR #3685.
     318,
-    // v320: the device-local nearby_peers table for nearby Bluetooth sync
-    // (issue #3731). Never synced, so the floor does not move. 319 is held
+    // v320: the device-local nearby_peers table and the publish state's
+    // relay floor for nearby Bluetooth sync (issue #3731). Never synced, so
+    // the floor does not move. 319 is held
     // by PR #3726.
     320,
   ];

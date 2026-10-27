@@ -146,6 +146,7 @@ class NearbySession {
       deviceName: peer.deviceName,
       appVersion: peer.appVersion,
       schemaVersion: peer.schemaVersion,
+      schemaFloor: peer.schemaFloor,
       epochId: peer.epochId,
       hasDives: peer.hasDives,
       intent: peer.intent,

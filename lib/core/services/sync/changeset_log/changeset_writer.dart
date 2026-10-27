@@ -105,6 +105,16 @@ class ChangesetWriter {
     // recovers the seq counter (knownHeadSeq) so the new base never reuses a
     // number.
     final watermark = ownManifest?.publishedHlcHigh ?? state?.publishedHlcHigh;
+    // A relay floor below the watermark (nearby sync applied a peer's older
+    // rows, issue #3731) widens this one export; the published clock still
+    // never moves down.
+    final relayFloor = state?.relayFloorHlc;
+    final exportFrom =
+        relayFloor != null &&
+            watermark != null &&
+            relayFloor.compareTo(watermark) < 0
+        ? relayFloor
+        : watermark;
     final baseInCloud = ownManifest?.baseSeq != null;
     final adoptedMarker =
         state != null && state.baseSeq == null && watermark != null;
@@ -121,7 +131,7 @@ class ChangesetWriter {
     final oversizedDelta =
         !forceBase &&
         (baseInCloud || adoptedMarker) &&
-        await _serializer.pendingSeriesBlobBytes(watermark) >
+        await _serializer.pendingSeriesBlobBytes(exportFrom) >
             maxChangesetSeriesBlobBytes;
     // A migration that added rows with no clock asked for a fresh base, so
     // a device joining later adopts them (see rebase_request.dart).
@@ -255,6 +265,7 @@ class ChangesetWriter {
             headSeq: Value(seq),
             publishedHlcHigh: Value(publish.toHlc),
             changesetBytesSinceBase: const Value(0),
+            relayFloorHlc: const Value(null),
             updatedAt: Value(now),
           ),
         );
@@ -287,13 +298,14 @@ class ChangesetWriter {
     // the base path above is streamed (#358).
     final payload = await _serializer.exportChangeset(
       deviceId: deviceId,
-      hlcWatermark: watermark,
+      hlcWatermark: exportFrom,
       deletions: deletions,
       seq: newSeq,
       epochId: epochId,
       uploadNonce: uploadNonce,
     );
     if (_isEmpty(payload)) {
+      if (relayFloor != null) await _publishState.clearRelayFloor(providerId);
       // Nothing to publish -- but a manifest that goes stale reads as a dead
       // device to peers (retirement) and its acks stop advancing tombstone
       // GC. Rewrite it (contents unchanged, fresh updatedAt + acks) once it
@@ -337,7 +349,13 @@ class ChangesetWriter {
       ChangesetLogLayout.changesetName(deviceId, newSeq),
       folderId: folderId,
     );
-    final publishedHigh = payload.toHlc ?? watermark;
+    // The export started at the relay floor when one was set, so its toHlc
+    // can sit below what was already published.
+    final toHlc = payload.toHlc;
+    final publishedHigh =
+        toHlc != null && (watermark == null || toHlc.compareTo(watermark) > 0)
+        ? toHlc
+        : watermark;
     final manifest = SyncManifest(
       deviceId: deviceId,
       deviceName: deviceName,
@@ -368,6 +386,7 @@ class ChangesetWriter {
         changesetBytesSinceBase: Value(
           (state?.changesetBytesSinceBase ?? 0) + bytes.length,
         ),
+        relayFloorHlc: const Value(null),
         updatedAt: Value(now),
       ),
     );
@@ -525,6 +544,7 @@ class ChangesetWriter {
         headSeq: Value(compSeq),
         publishedHlcHigh: Value(base.toHlc),
         changesetBytesSinceBase: const Value(0),
+        relayFloorHlc: const Value(null),
         updatedAt: Value(now),
       ),
     );

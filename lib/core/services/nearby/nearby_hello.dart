@@ -28,6 +28,7 @@ class NearbyIdentity {
     required this.deviceName,
     required this.appVersion,
     required this.schemaVersion,
+    required this.schemaFloor,
     required this.epochId,
     required this.hasDives,
   });
@@ -35,7 +36,14 @@ class NearbyIdentity {
   final String deviceId;
   final String deviceName;
   final String appVersion;
+
+  /// The schema this build writes.
   final int schemaVersion;
+
+  /// The oldest schema that can read this build's rows (the sync
+  /// compatibility floor). A receiver whose [schemaVersion] is below the
+  /// sender's floor cannot apply what it would send.
+  final int schemaFloor;
 
   /// The library epoch this device has accepted, or null when it has never
   /// joined a library (no backend and never paired).
@@ -47,6 +55,7 @@ class NearbyIdentity {
     deviceName: deviceName,
     appVersion: appVersion,
     schemaVersion: schemaVersion,
+    schemaFloor: schemaFloor,
     epochId: epochId ?? this.epochId,
     hasDives: hasDives,
   );
@@ -64,6 +73,7 @@ class NearbyHello {
     required this.deviceName,
     required this.appVersion,
     required this.schemaVersion,
+    required this.schemaFloor,
     required this.epochId,
     required this.hasDives,
     required this.intent,
@@ -82,6 +92,7 @@ class NearbyHello {
     deviceName: identity.deviceName,
     appVersion: identity.appVersion,
     schemaVersion: identity.schemaVersion,
+    schemaFloor: identity.schemaFloor,
     epochId: identity.epochId,
     hasDives: identity.hasDives,
     intent: intent,
@@ -96,6 +107,7 @@ class NearbyHello {
   final String deviceName;
   final String appVersion;
   final int schemaVersion;
+  final int schemaFloor;
   final String? epochId;
   final bool hasDives;
   final NearbyIntent intent;
@@ -108,6 +120,7 @@ class NearbyHello {
     'name': deviceName,
     'app': appVersion,
     'schema': schemaVersion,
+    'floor': schemaFloor,
     'epoch': epochId,
     'dives': hasDives,
     'intent': intent.name,
@@ -139,6 +152,7 @@ class NearbyHello {
       deviceName: field<String>('name'),
       appVersion: field<String>('app'),
       schemaVersion: field<int>('schema'),
+      schemaFloor: field<int>('floor'),
       epochId: json['epoch'] as String?,
       hasDives: field<bool>('dives'),
       intent: intent.single,

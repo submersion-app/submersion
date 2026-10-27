@@ -52,10 +52,39 @@ class PublishStateStore {
             headSeq: const Value(0),
             publishedHlcHigh: Value(adoptedHlcHigh),
             changesetBytesSinceBase: const Value(0),
+            relayFloorHlc: const Value(null),
             updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
           ),
         );
   }
+
+  /// Nearby sync applied rows as old as [lowestAppliedHlc]. On every
+  /// backend whose published clock is newer, lower the relay floor to just
+  /// below it (the clock's time and counter with no writer, which sorts
+  /// before every clock of that instant), so the next publish carries them.
+  /// The published clock itself never moves down.
+  Future<void> pullBackRelayFloor(String lowestAppliedHlc) async {
+    if (lowestAppliedHlc.length < 23) return;
+    final floor = lowestAppliedHlc.substring(0, 23);
+    final rows = await _db.select(_db.localPublishStates).get();
+    for (final row in rows) {
+      final published = row.publishedHlcHigh;
+      if (published == null || lowestAppliedHlc.compareTo(published) >= 0) {
+        continue;
+      }
+      final current = row.relayFloorHlc;
+      if (current != null && current.compareTo(floor) <= 0) continue;
+      await (_db.update(_db.localPublishStates)
+            ..where((t) => t.provider.equals(row.provider)))
+          .write(LocalPublishStatesCompanion(relayFloorHlc: Value(floor)));
+    }
+  }
+
+  /// The relay floor served its one export with nothing to say.
+  Future<void> clearRelayFloor(String provider) =>
+      (_db.update(_db.localPublishStates)
+            ..where((t) => t.provider.equals(provider)))
+          .write(const LocalPublishStatesCompanion(relayFloorHlc: Value(null)));
 
   /// Whether a publish row exists for any provider. Written by the first
   /// base publish or adopt, so a true here is proof this device has synced

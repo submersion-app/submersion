@@ -119,7 +119,7 @@ extension TableBackstopsFromV217 on AppDatabase {
     // _beforeOpen asserts the scope columns earlier.
     await _assertMediaAndDocumentTagSchema();
 
-    // v320 backstop: nearby peers (local, idempotent).
-    await _assertNearbyPeersTable();
+    // v320 backstop: nearby peers and the relay floor (local, idempotent).
+    await _assertNearbySchema();
   }
 }
