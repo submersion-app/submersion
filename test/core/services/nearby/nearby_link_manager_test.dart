@@ -466,11 +466,13 @@ void main() {
       // B unpairs A while A is not around; A's manager never met B's radio.
       await b.secrets.revoke('A');
       await b.peers.remove('A');
+      // Another real pairing keeps B's radio on.
       await b.peers.upsertPaired(
         peerDeviceId: 'C',
         displayName: 'C',
         pairedAt: 1,
       );
+      await b.secrets.store('C', Uint8List(32));
       await foreground([a, b]);
       expect(
         a.peers.errorOf((await a.peers.get('B'))!),
@@ -562,6 +564,32 @@ void main() {
         expect(await a.secrets.secretFor('B'), isNotNull);
       },
     );
+
+    test('a paired row with no secret here (a restored or copied database) '
+        'is dropped with its cursor', () async {
+      final a = await device('A');
+      await a.peers.upsertPaired(
+        peerDeviceId: 'old-phone',
+        displayName: 'Old phone',
+        pairedAt: 1,
+      );
+      await a.cursors.upsert(
+        peerDeviceId: 'old-phone',
+        provider: 'nearby',
+        lastSeqApplied: 0,
+        appliedHlcHigh: fakeHlc(3, 'old-phone'),
+      );
+      await a.peers.upsertPaired(
+        peerDeviceId: 'B',
+        displayName: 'B',
+        pairedAt: 2,
+      );
+      await a.secrets.store('B', Uint8List(32));
+      await a.manager.setForeground(true);
+      expect(await a.peers.get('old-phone'), isNull);
+      expect(await a.peers.get('B'), isNotNull);
+      expect(await a.cursors.get('old-phone', 'nearby'), isNull);
+    });
 
     test(
       'while sealed (the sample logbook is open) the radio stays off and '

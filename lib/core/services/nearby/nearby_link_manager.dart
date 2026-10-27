@@ -307,7 +307,7 @@ class NearbyLinkManager {
     }
     if (!_prunedSecrets) {
       _prunedSecrets = true;
-      await _pruneOrphanSecrets();
+      await _pruneOrphans();
     }
     final wanted =
         _foreground &&
@@ -342,17 +342,27 @@ class NearbyLinkManager {
     _emitState();
   }
 
-  /// A pair secret whose paired-devices row is missing (the app stopped
-  /// between storing the secret and writing the row) cannot be seen or
-  /// unpaired from Settings, so it is dropped once per run.
-  Future<void> _pruneOrphanSecrets() async {
+  /// Once per run, drops each half of a pairing whose other half is gone.
+  ///
+  /// A secret with no paired-devices row (the app stopped between storing
+  /// the secret and writing the row) cannot be seen or unpaired from
+  /// Settings. A row with no secret here came in with the database (a
+  /// restored backup, or a copy from another device): it can never sync,
+  /// and until it ages out it would hold tombstone cleanup back.
+  Future<void> _pruneOrphans() async {
     try {
       final rows = {for (final p in await _peers.all()) p.peerDeviceId};
-      for (final id in (await _secrets.all()).keys) {
+      final secrets = await _secrets.all();
+      for (final id in secrets.keys) {
         if (!rows.contains(id)) await _secrets.remove(id);
       }
+      for (final id in rows) {
+        if (secrets.containsKey(id)) continue;
+        await _peers.remove(id);
+        await _cursors.remove(id, nearbyCursorProvider);
+      }
     } on Object catch (e) {
-      _log.warning('Nearby secret cleanup failed: $e');
+      _log.warning('Nearby pairing cleanup failed: $e');
     }
   }
 

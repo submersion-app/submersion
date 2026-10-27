@@ -155,7 +155,9 @@ class _OfferCardState extends State<_OfferCard> {
       messenger.showSnackBar(
         SnackBar(content: Text(l10n.nearbyPair_done(widget.offer.peerName))),
       );
-      navigator.pop();
+      // Only this page: if the diver already left it, the pop would close
+      // whatever they went back to.
+      if (mounted) navigator.pop();
     } on Object {
       messenger.showSnackBar(SnackBar(content: Text(l10n.nearbyPair_failed)));
       if (mounted) setState(() => _waiting = false);

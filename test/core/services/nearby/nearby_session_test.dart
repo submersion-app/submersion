@@ -612,4 +612,20 @@ void main() {
       });
     });
   });
+
+  test('the hello always carries as many tags, however many devices are '
+      'paired', () {
+    Uint8List t(int v) => Uint8List(8)..[0] = v;
+    final one = NearbySession.paddedTags([t(1)]);
+    final three = NearbySession.paddedTags([t(1), t(2), t(3)]);
+    expect(one, hasLength(NearbySession.minHelloTags));
+    expect(three, hasLength(NearbySession.minHelloTags));
+    expect(one.every((x) => x.length == 8), isTrue);
+    expect(
+      three.where((x) => x[0] == 2 && x.skip(1).every((b) => b == 0)),
+      hasLength(1),
+    );
+    final many = [for (var i = 0; i < 11; i++) t(i)];
+    expect(NearbySession.paddedTags(many), hasLength(11));
+  });
 }

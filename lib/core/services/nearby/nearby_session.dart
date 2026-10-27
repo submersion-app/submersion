@@ -165,6 +165,22 @@ class NearbySession {
   /// A fresh value for [pairingNonce], one per pairing mode.
   static String newPairingNonce() => _newNonce();
 
+  /// The fewest tags a sync hello carries. The hello is plaintext, so one
+  /// tag per pairing would tell anyone in range how many devices this one
+  /// is paired with; random tags pad it, and match no secret.
+  static const minHelloTags = 8;
+
+  /// [real] padded with random tags to [minHelloTags], in random order.
+  static List<Uint8List> paddedTags(List<Uint8List> real) {
+    final random = Random.secure();
+    final out = [
+      ...real,
+      for (var i = real.length; i < minHelloTags; i++)
+        Uint8List.fromList(List.generate(8, (_) => random.nextInt(256))),
+    ]..shuffle(random);
+    return out;
+  }
+
   final NearbyEndpoint _endpoint;
   final NearbyIdentity _identity;
   final NearbyPairSecrets _secrets;
@@ -180,10 +196,10 @@ class NearbySession {
         protocolVersion: NearbyHello.currentProtocolVersion,
         intent: NearbyIntent.sync,
         commitment: handshake.commitment,
-        tags: [
+        tags: paddedTags([
           for (final secret in secrets.values)
             await NearbyHandshake.tag(secret, 'i', handshake.commitment),
-        ],
+        ]),
       ),
     );
     final reply = await _readHello();
