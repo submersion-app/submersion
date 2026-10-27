@@ -15,12 +15,14 @@ inputs:
     required: true
   cache:
     description: >
-      Whether to restore and save the downloaded .deb files. apt reuses a
-      .deb it finds in its archive directory after checking only its size, not
-      its hash, so a workflow that builds artifacts people download sets this
-      to false.
+      Whether to restore and save the downloaded .deb files. Off unless a job
+      opts in: apt reuses a .deb it finds in its archive directory after
+      checking only its size, not its hash, so a workflow that builds
+      artifacts people download must never turn it on. A small package set
+      also gains nothing, since restoring and saving an entry takes longer
+      than downloading a few hundred kilobytes.
     required: false
-    default: 'true'
+    default: 'false'
 
 runs:
   using: composite
@@ -30,7 +32,8 @@ runs:
     # updates rather than serving a set that grows staler every day; the
     # restore key below still finds last week's files, and only what changed
     # is downloaded. The package list is part of the key, sorted, so two jobs
-    # share an entry exactly when they install the same packages.
+    # share an entry exactly when they install the same packages. It also
+    # names the directory, so two calls in one job never share one.
     - name: Compute the package cache key
       id: key
       if: inputs.cache == 'true'
@@ -43,15 +46,18 @@ runs:
         # shellcheck disable=SC2086 # split the list into one name per line
         list_hash=$(printf '%s\n' $PACKAGES | sort -u | sha256sum | cut -c1-16)
         prefix="apt-${ImageOS:-unknown}-${list_hash}-"
-        echo "prefix=$prefix" >> "$GITHUB_OUTPUT"
-        echo "key=${prefix}${ImageVersion:-unknown}" >> "$GITHUB_OUTPUT"
+        {
+          echo "prefix=$prefix"
+          echo "key=${prefix}${ImageVersion:-unknown}"
+          echo "dir=$RUNNER_TEMP/apt-archives-$list_hash"
+        } >> "$GITHUB_OUTPUT"
 
     - name: Restore downloaded packages
       id: restore
       if: inputs.cache == 'true'
       uses: actions/cache/restore@v6
       with:
-        path: ${{ runner.temp }}/apt-archives
+        path: ${{ steps.key.outputs.dir }}
         key: ${{ steps.key.outputs.key }}
         restore-keys: ${{ steps.key.outputs.prefix }}
 
@@ -62,34 +68,47 @@ runs:
     # the retry opens a fresh connection to the mirror. A healthy runner needs
     # about 3 seconds for the update and 10 for a cold download of the
     # largest list here, so the limits leave ten times that.
+    #
+    # When caching, apt's archive directory is emptied first, so it ends up
+    # holding only this call's packages and the cache saved below cannot pick
+    # up an earlier call's. A later call in the same job skips its first
+    # update, since the lists were fetched minutes ago; a retry always
+    # updates.
     - name: Download and install
       shell: bash
       env:
         PACKAGES: ${{ inputs.packages }}
-        ARCHIVE_DIR: ${{ runner.temp }}/apt-archives
+        ARCHIVE_DIR: ${{ steps.key.outputs.dir }}
       run: |
         set -euo pipefail
         set -f
         # shellcheck disable=SC2206 # split the list on whitespace
         packages=($PACKAGES)
         set +f
-        if compgen -G "$ARCHIVE_DIR/*.deb" > /dev/null; then
-          sudo cp "$ARCHIVE_DIR"/*.deb /var/cache/apt/archives/
+        if [ -n "$ARCHIVE_DIR" ]; then
+          sudo apt-get clean
+          if compgen -G "$ARCHIVE_DIR/*.deb" > /dev/null; then
+            sudo cp "$ARCHIVE_DIR"/*.deb /var/cache/apt/archives/
+          fi
         fi
+        lists_fetched="$RUNNER_TEMP/apt-lists-fetched"
         attempts=3
         update_seconds=60
         download_seconds=120
         for attempt in $(seq 1 "$attempts"); do
-          if sudo timeout --kill-after=10 "$update_seconds" apt-get update \
-            && sudo timeout --kill-after=10 "$download_seconds" \
+          if { [ "$attempt" -eq 1 ] && [ -e "$lists_fetched" ]; } \
+            || sudo timeout --kill-after=10 "$update_seconds" apt-get update; then
+            touch "$lists_fetched"
+            if sudo timeout --kill-after=10 "$download_seconds" \
               apt-get install -y --download-only "${packages[@]}"; then
-            break
+              break
+            fi
           fi
           if [ "$attempt" -eq "$attempts" ]; then
-            echo "::error::apt could not download the packages in $attempts attempts of ${download_seconds}s each"
+            echo "::error::apt-get update or the package download failed, or ran past its ${update_seconds}s or ${download_seconds}s limit, on all $attempts attempts; apt's own messages above say which"
             exit 1
           fi
-          echo "::warning::apt download attempt $attempt of $attempts failed or ran out of time; retrying"
+          echo "::warning::apt attempt $attempt of $attempts failed or ran out of time; retrying"
           sleep 10
         done
         sudo apt-get install -y --no-download "${packages[@]}"
@@ -101,7 +120,7 @@ runs:
       if: inputs.cache == 'true' && steps.restore.outputs.cache-hit != 'true'
       shell: bash
       env:
-        ARCHIVE_DIR: ${{ runner.temp }}/apt-archives
+        ARCHIVE_DIR: ${{ steps.key.outputs.dir }}
       run: |
         set -euo pipefail
         sudo apt-get autoclean
@@ -115,5 +134,5 @@ runs:
       if: inputs.cache == 'true' && steps.restore.outputs.cache-hit != 'true'
       uses: actions/cache/save@v6
       with:
-        path: ${{ runner.temp }}/apt-archives
+        path: ${{ steps.key.outputs.dir }}
         key: ${{ steps.key.outputs.key }}

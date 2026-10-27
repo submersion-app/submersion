@@ -11,16 +11,19 @@ still downloading; healthy runners finish the same step in 30 seconds
 on a fresh connection, and caches the .deb files. This guard keeps it that
 way, in three parts:
 
-* No workflow, and no other local action, runs `apt-get install` directly. A
-  new job copied from an old example would otherwise bring back the unbounded
-  download. ALLOWED_DIRECT names the exceptions and why.
+* No workflow, and no other local action, runs an apt or apt-get command
+  that can reach the mirror (install, update, upgrade and the rest) directly.
+  A new job copied from an old example would otherwise bring back the
+  unbounded download.
 * The local action really bounds the network: every apt-get call that can
   reach the mirror runs under `timeout`, the bounded install is
   `--download-only` (a limit that fires while dpkg unpacks would leave a
   broken package database behind), the install after it is `--no-download`,
-  and the download is retried at least once.
-* The workflows in UNCACHED_WORKFLOWS pass `cache: false`, because apt reuses
-  a cached .deb after checking only its size.
+  and the download runs inside a loop of at least two attempts.
+* The workflows in UNCACHED_WORKFLOWS pass `cache: false` explicitly, because
+  apt reuses a cached .deb after checking only its size. The action's cache
+  is off by default; the explicit value keeps these workflows safe even if
+  that default changes.
 
 Pure stdlib, like the other guards: the job that runs it installs no YAML
 parser, and the few things checked here are matched line by line.
@@ -39,15 +42,6 @@ WORKFLOW_DIR = os.path.join(".github", "workflows")
 # What a workflow step names in `uses:` to get the bounded action.
 LOCAL_REF = "./.github/actions/install-apt-packages"
 
-# Packages a workflow may still install directly, each with the reason.
-ALLOWED_DIRECT = {
-    "libfribidi0": (
-        "the scripts job installs it only when the runner's Pillow lacks raqm, "
-        "a decision its script makes at run time where no separate step can "
-        "sit; one small package"
-    ),
-}
-
 # Workflows that must not cache apt packages, each with the reason.
 UNCACHED_WORKFLOWS = {
     "build-all.yml": (
@@ -56,10 +50,28 @@ UNCACHED_WORKFLOWS = {
     ),
 }
 
-# apt-get subcommands that never reach the network.
-LOCAL_SUBCOMMANDS = {"autoclean", "clean"}
+# apt and apt-get subcommands that never reach the network.
+LOCAL_SUBCOMMANDS = {
+    "autoclean",
+    "autoremove",
+    "clean",
+    "list",
+    "policy",
+    "search",
+    "show",
+}
 # apt-get options that take the next token as their argument.
-_OPTIONS_WITH_ARGUMENT = {"-o", "-c", "-t", "--option", "--config-file"}
+_OPTIONS_WITH_ARGUMENT = {
+    "-a",
+    "-c",
+    "-o",
+    "-t",
+    "--config-file",
+    "--default-release",
+    "--host-architecture",
+    "--option",
+    "--target-release",
+}
 
 _COMMENT = r"\s*(?:#.*)?$"
 _RUN_KEY = re.compile(r"^\s*(?:-\s+)?run:(.*)$")
@@ -68,7 +80,10 @@ _USES_LOCAL = re.compile(
     r"^\s*(?:-\s+)?uses:\s*['\"]?" + re.escape(LOCAL_REF) + r"['\"]?" + _COMMENT
 )
 _CACHE_OFF = re.compile(r"^\s*cache:\s*(['\"]?)false\1" + _COMMENT)
-_ATTEMPTS = re.compile(r"^\s*attempts=(\d+)\s*$", re.MULTILINE)
+_ATTEMPTS = re.compile(r"^\s*attempts=(\d+)\s*$")
+_RETRY_LOOP = re.compile(
+    r'^(\s*)for\s+\w+\s+in\s+\$\(seq\s+1\s+"?\$\{?attempts\}?"?\)\s*;\s*do\s*$'
+)
 _SHELL_OPERATOR = re.compile(r"&&|\|\||;|\|")
 
 Call = collections.namedtuple(
@@ -165,10 +180,34 @@ def apt_calls(text):
     return calls
 
 
+def _retry_loops(text):
+    """Return (first, last) line numbers of each `for ... in $(seq 1 "$attempts")`."""
+    loops, open_loops = [], []
+    for number, line in _run_lines(text):
+        match = _RETRY_LOOP.match(line)
+        if match:
+            open_loops.append((len(match.group(1)), number))
+        elif open_loops and line.strip() == "done":
+            indent, first = open_loops[-1]
+            if _indent(line) == indent:
+                open_loops.pop()
+                loops.append((first, number))
+    return loops
+
+
+def _attempt_count(text):
+    """Return N from the action's `attempts=N`, or None if it sets none."""
+    for _, line in _run_lines(text):
+        match = _ATTEMPTS.match(line)
+        if match:
+            return int(match.group(1))
+    return None
+
+
 def action_violations(text):
     """Return what keeps the local action from bounding apt; empty == bounded."""
     violations = []
-    bounded_download = False
+    bounded_downloads = []
     for call in apt_calls(text):
         name = f"{call.command} {call.subcommand}"
         if call.subcommand in LOCAL_SUBCOMMANDS:
@@ -177,7 +216,7 @@ def action_violations(text):
             if "--no-download" in call.options:
                 continue
             if call.bounded and "--download-only" in call.options:
-                bounded_download = True
+                bounded_downloads.append(call.line)
                 continue
             if call.bounded:
                 violations.append(
@@ -191,34 +230,40 @@ def action_violations(text):
                 f"line {call.line}: {name} can reach the mirror without a time "
                 "limit, so a slow mirror holds the job until its own timeout"
             )
-    if not bounded_download:
+    if not bounded_downloads:
         violations.append(
             "never downloads under a time limit (apt-get install "
             "--download-only run by timeout), so nothing bounds the download"
         )
-    match = _ATTEMPTS.search(text)
-    if match is None:
+    count = _attempt_count(text)
+    if count is None:
         violations.append(
             "has no retry loop (attempts=N), so one slow connection fails the "
             "job instead of retrying on a fresh one"
         )
-    elif int(match.group(1)) < 2:
-        count = int(match.group(1))
+    elif count < 2:
         noun = "attempt" if count == 1 else "attempts"
         violations.append(
             f"makes {count} {noun} at the download; it needs at least 2, so "
             "one slow connection cannot fail the job"
         )
+    loops = _retry_loops(text)
+    for line in bounded_downloads:
+        if not any(first < line < last for first, last in loops):
+            violations.append(
+                f"line {line}: the bounded download is not inside a "
+                '`for attempt in $(seq 1 "$attempts")` loop, so it runs once '
+                "however many attempts are set"
+            )
     return violations
 
 
-def direct_installs(text):
-    """Return the line numbers of installs that bypass the local action."""
+def direct_calls(text):
+    """Return the line numbers of apt calls that reach the mirror unbounded."""
     return [
         call.line
         for call in apt_calls(text)
-        if call.subcommand == "install"
-        and not (call.packages and set(call.packages) <= set(ALLOWED_DIRECT))
+        if call.subcommand not in LOCAL_SUBCOMMANDS
     ]
 
 
@@ -241,7 +286,7 @@ def cached_uses(text):
     for index, line in enumerate(lines):
         if not _USES_LOCAL.match(line):
             continue
-        start = index
+        start, match = index, None
         while start >= 0:
             match = _STEP_START.match(lines[start])
             if match and len(match.group(1)) < lines[index].index("uses:"):
@@ -249,7 +294,7 @@ def cached_uses(text):
             start -= 1
         if start < 0:
             continue
-        dash_indent = len(_STEP_START.match(lines[start]).group(1))
+        dash_indent = len(match.group(1))
         step = lines[start : _step_end(lines, start, dash_indent)]
         if not any(_CACHE_OFF.match(ln) for ln in step):
             found.append(index + 1)
@@ -300,10 +345,10 @@ def find_violations(root):
         return violations + [f"cannot list {WORKFLOW_DIR}: {exc}"]
     for rel in callers:
         text = _read(os.path.join(root, rel))
-        for number in direct_installs(text):
+        for number in direct_calls(text):
             violations.append(
-                f"{rel}:{number} runs apt-get install directly; use {LOCAL_REF}, "
-                "which bounds the download and retries it"
+                f"{rel}:{number} runs apt directly with no time limit; use "
+                f"{LOCAL_REF}, which bounds the download and retries it"
             )
         reason = UNCACHED_WORKFLOWS.get(os.path.basename(rel))
         if reason and rel.startswith(WORKFLOW_DIR):

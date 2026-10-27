@@ -28,12 +28,15 @@ runs:
       shell: bash
       run: |
         packages=($PACKAGES)
+        sudo apt-get clean
         attempts=3
         for attempt in $(seq 1 "$attempts"); do
-          if sudo timeout --kill-after=10 60 apt-get update \\
-            && sudo timeout --kill-after=10 120 \\
+          if { [ "$attempt" -eq 1 ] && [ -e "$lists_fetched" ]; } \\
+            || sudo timeout --kill-after=10 60 apt-get update; then
+            if sudo timeout --kill-after=10 120 \\
               apt-get install -y --download-only "${packages[@]}"; then
-            break
+              break
+            fi
           fi
           sleep 10
         done
@@ -105,7 +108,7 @@ class ActionTests(unittest.TestCase):
 
     def test_unbounded_download_is_flagged(self):
         text = GREEN_ACTION.replace(
-            "&& sudo timeout --kill-after=10 120 \\\n", "&& sudo \\\n"
+            "if sudo timeout --kill-after=10 120 \\\n", "if sudo \\\n"
         )
         violations = guard.action_violations(text)
         self.assertIn("apt-get install", violations[0])
@@ -140,6 +143,23 @@ class ActionTests(unittest.TestCase):
         violations = guard.action_violations(text)
         self.assertEqual(len(violations), 1)
         self.assertIn("retry", violations[0])
+
+    def test_download_outside_the_retry_loop_is_flagged(self):
+        # attempts=3 alone retries nothing: the download has to sit in the loop.
+        text = GREEN_ACTION.replace(
+            '        for attempt in $(seq 1 "$attempts"); do\n', "        if true; then\n"
+        ).replace("        done\n", "        fi\n")
+        violations = guard.action_violations(text)
+        self.assertEqual(len(violations), 1)
+        self.assertIn("not inside", violations[0])
+
+    def test_inner_loop_does_not_close_the_retry_loop(self):
+        text = GREEN_ACTION.replace(
+            "          sleep 10\n",
+            "          for p in a b; do\n            echo $p\n          done\n"
+            "          sleep 10\n",
+        )
+        self.assertEqual(guard.action_violations(text), [])
 
     def test_other_network_subcommand_needs_a_limit(self):
         text = GREEN_ACTION + "        sudo apt-get dist-upgrade -y\n"
@@ -176,6 +196,13 @@ class CallTests(unittest.TestCase):
         )
         self.assertEqual([c.subcommand for c in calls], ["update", "install"])
         self.assertEqual(calls[1].packages, ["xvfb"])
+
+    def test_long_options_with_an_argument_are_skipped(self):
+        calls = guard.apt_calls(
+            "run: sudo apt-get --target-release noble-backports install -y jq\n"
+        )
+        self.assertEqual(calls[0].subcommand, "install")
+        self.assertEqual(calls[0].packages, ["jq"])
 
     def test_options_before_the_subcommand_are_skipped(self):
         calls = guard.apt_calls(
@@ -214,24 +241,24 @@ class CallTests(unittest.TestCase):
 
 
 class WorkflowTests(unittest.TestCase):
-    def test_wrapped_workflow_has_no_direct_installs(self):
-        self.assertEqual(guard.direct_installs(GREEN_WORKFLOW), [])
+    def test_wrapped_workflow_has_no_direct_calls(self):
+        self.assertEqual(guard.direct_calls(GREEN_WORKFLOW), [])
 
-    def test_direct_install_is_reported_with_its_line(self):
-        self.assertEqual(guard.direct_installs(RED_WORKFLOW), [9])
+    def test_direct_calls_are_reported_with_their_lines(self):
+        # The update reaches the mirror as well as the install.
+        self.assertEqual(guard.direct_calls(RED_WORKFLOW), [8, 9])
 
-    def test_allowed_package_alone_is_not_reported(self):
-        text = "        run: sudo apt-get install -y libfribidi0\n"
-        self.assertEqual(guard.direct_installs(text), [])
+    def test_upgrade_is_reported(self):
+        text = "        run: sudo apt-get dist-upgrade -y\n"
+        self.assertEqual(guard.direct_calls(text), [1])
 
-    def test_allowed_package_beside_another_is_reported(self):
-        text = "        run: sudo apt-get install -y libfribidi0 clang\n"
-        self.assertEqual(guard.direct_installs(text), [1])
-
-    def test_install_with_no_named_package_is_reported(self):
-        # An install of a variable's packages could be anything.
+    def test_install_of_a_variable_is_reported(self):
         text = '        run: sudo apt-get install -y "${packages[@]}"\n'
-        self.assertEqual(guard.direct_installs(text), [1])
+        self.assertEqual(guard.direct_calls(text), [1])
+
+    def test_local_subcommands_are_not_reported(self):
+        text = "        run: |\n          sudo apt-get clean\n          apt list --installed\n"
+        self.assertEqual(guard.direct_calls(text), [])
 
     def test_cached_step_in_an_uncached_workflow_is_reported(self):
         text = UNCACHED_STEP.replace("          cache: false\n", "")
@@ -290,8 +317,9 @@ class RepositoryTests(unittest.TestCase):
             GREEN_ACTION, {"ci.yaml": GREEN_WORKFLOW, "native.yml": RED_WORKFLOW}
         )
         violations = guard.find_violations(root)
-        self.assertEqual(len(violations), 1)
-        self.assertIn(os.path.join(guard.WORKFLOW_DIR, "native.yml") + ":9", violations[0])
+        self.assertEqual(len(violations), 2)
+        self.assertIn(os.path.join(guard.WORKFLOW_DIR, "native.yml") + ":8", violations[0])
+        self.assertIn(os.path.join(guard.WORKFLOW_DIR, "native.yml") + ":9", violations[1])
 
     def test_direct_install_in_another_local_action_is_flagged(self):
         root = self._repo(GREEN_ACTION, {"ci.yaml": GREEN_WORKFLOW})
@@ -300,10 +328,10 @@ class RepositoryTests(unittest.TestCase):
         with open(os.path.join(other, "action.yaml"), "w") as fh:
             fh.write(RED_WORKFLOW)
         violations = guard.find_violations(root)
-        self.assertEqual(len(violations), 1)
+        self.assertEqual(len(violations), 2)
         self.assertIn(
             os.path.join(guard.ACTIONS_DIR, "setup-linux", "action.yaml") + ":9",
-            violations[0],
+            violations[1],
         )
 
     def test_cache_in_an_uncached_workflow_is_flagged(self):

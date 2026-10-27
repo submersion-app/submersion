@@ -24,7 +24,11 @@ env:
   # requests, which can read the cache build-linux saves on main but never
   # each other's, so a list of its own would download cold on every pull
   # request (issue #3751). Each job installs a few packages only the other
-  # needs, which costs seconds from the cache.
+  # needs, which costs seconds from the cache. The cache key also names the
+  # runner image, so the sharing holds only while both jobs run the same
+  # one: build-linux is pinned to ubuntu-24.04 and integration-test follows
+  # ubuntu-latest, so when ubuntu-latest moves on, pin integration-test too
+  # or it downloads cold again.
   #
   # The first two lines build the app. libssl-dev is required by
   # sqlcipher_flutter_libs: the Linux build compiles SQLCipher from source and
@@ -790,15 +794,16 @@ jobs:
           python3 -m pip install shapely
           python3 scripts/sea_area_harvester_test.py
 
-      - name: Run brand asset generator tests
+      - name: Install Pillow for the brand asset generator tests
+        id: pillow
         # The generator draws the social card, banners, lockups and logo mark
         # from code. Pillow is installed with the same retry as coverage.py;
-        # the tests fail rather than skip without it, so this step cannot go
-        # green having tested nothing. It runs before the dive site step,
+        # the tests fail rather than skip without it, so the test step cannot
+        # go green having tested nothing. This runs before the dive site step,
         # whose unretried `pip install -r scripts/requirements.txt` would
         # otherwise be the one downloading Pillow (it is listed there too). Text needs Pillow's RAQM layout, which
-        # loads the system libfribidi; install it if the runner lacks it.
-        # layout_test.py needs no Pillow.
+        # loads the system libfribidi; the next step installs it if the runner
+        # lacks it.
         run: |
           for attempt in 1 2 3; do
             if python3 -m pip install 'Pillow>=10.1'; then
@@ -812,10 +817,21 @@ jobs:
               exit 1
             fi
           done
-          if ! python3 -c "from PIL import features; raise SystemExit(not features.check('raqm'))"; then
-            sudo apt-get update
-            sudo apt-get install -y libfribidi0
+          if python3 -c "from PIL import features; raise SystemExit(not features.check('raqm'))"; then
+            echo "needs-fribidi=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "needs-fribidi=true" >> "$GITHUB_OUTPUT"
           fi
+
+      - name: Install libfribidi for Pillow's text layout
+        if: steps.pillow.outputs.needs-fribidi == 'true'
+        uses: ./.github/actions/install-apt-packages
+        with:
+          packages: libfribidi0
+
+      - name: Run brand asset generator tests
+        # layout_test.py needs no Pillow.
+        run: |
           python3 scripts/brand/layout_test.py
           python3 scripts/brand/generate_brand_assets_test.py
 
@@ -951,6 +967,7 @@ jobs:
       - name: Install Linux dependencies
         uses: ./.github/actions/install-apt-packages
         with:
+          cache: true
           packages: ${{ env.LINUX_APT_PACKAGES }}
 
       - name: Install dependencies
@@ -1518,6 +1535,7 @@ jobs:
       - name: Install Linux dependencies
         uses: ./.github/actions/install-apt-packages
         with:
+          cache: true
           packages: ${{ env.LINUX_APT_PACKAGES }}
 
       - name: Disable Swift Package Manager (project uses CocoaPods)

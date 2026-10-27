@@ -180,7 +180,10 @@ jobs:
         # libwebkit2gtk-4.1-dev: required since flutter_web_auth_2 pulled in
         # desktop_webview_window, whose Linux plugin links webkit2gtk (4.1 on
         # Ubuntu 24.04; its CMake falls back to the 4.0 name only on older
-        # distros). Matches the ci.yaml build-linux dependency list.
+        # distros). Close to ci.yaml's LINUX_APT_PACKAGES, but not the same
+        # list: it builds only the plugin. No package cache: this workflow runs
+        # only when the plugin changes, so an entry would rarely be reused
+        # before the full Actions cache evicts it.
         uses: ./.github/actions/install-apt-packages
         with:
           packages: >-
