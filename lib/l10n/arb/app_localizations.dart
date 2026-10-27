@@ -9318,6 +9318,12 @@ abstract class AppLocalizations {
   /// **'Sync status'**
   String get settings_homeChips_sync;
 
+  /// No description provided for @settings_homeChips_nearby.
+  ///
+  /// In en, this message translates to:
+  /// **'Nearby devices'**
+  String get settings_homeChips_nearby;
+
   /// No description provided for @settings_homeChips_dataQuality.
   ///
   /// In en, this message translates to:
@@ -9383,6 +9389,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Synced'**
   String get dashboard_gauges_synced;
+
+  /// No description provided for @dashboard_gauges_nearby.
+  ///
+  /// In en, this message translates to:
+  /// **'Nearby: {name} needs attention'**
+  String dashboard_gauges_nearby(String name);
+
+  /// No description provided for @dashboard_gauges_nearbyMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Nearby: {name} and others need attention'**
+  String dashboard_gauges_nearbyMore(String name);
 
   /// No description provided for @dashboard_gauges_dataIssues.
   ///

@@ -5932,6 +5932,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_homeChips_sync => 'Szinkronizálási állapot';
 
   @override
+  String get settings_homeChips_nearby => 'Közeli eszközök';
+
+  @override
   String get settings_homeChips_dataQuality => 'Adatminőség';
 
   @override
@@ -5981,6 +5984,16 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get dashboard_gauges_synced => 'Szinkronizálva';
+
+  @override
+  String dashboard_gauges_nearby(String name) {
+    return 'Közeli: $name figyelmet igényel';
+  }
+
+  @override
+  String dashboard_gauges_nearbyMore(String name) {
+    return 'Közeli: $name és mások figyelmet igényelnek';
+  }
 
   @override
   String dashboard_gauges_dataIssues(int count) {

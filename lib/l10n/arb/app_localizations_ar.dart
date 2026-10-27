@@ -6060,6 +6060,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_homeChips_sync => 'حالة المزامنة';
 
   @override
+  String get settings_homeChips_nearby => 'الأجهزة القريبة';
+
+  @override
   String get settings_homeChips_dataQuality => 'جودة البيانات';
 
   @override
@@ -6112,6 +6115,16 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get dashboard_gauges_synced => 'متزامن';
+
+  @override
+  String dashboard_gauges_nearby(String name) {
+    return 'قريب: $name يحتاج إلى انتباه';
+  }
+
+  @override
+  String dashboard_gauges_nearbyMore(String name) {
+    return 'قريب: $name وأجهزة أخرى تحتاج إلى انتباه';
+  }
 
   @override
   String dashboard_gauges_dataIssues(int count) {

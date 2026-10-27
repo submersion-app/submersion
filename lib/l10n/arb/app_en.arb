@@ -3715,6 +3715,7 @@
   "settings_homeChips_uploads": "Media uploads",
   "settings_homeChips_backup": "Backup age",
   "settings_homeChips_sync": "Sync status",
+  "settings_homeChips_nearby": "Nearby devices",
   "settings_homeChips_dataQuality": "Data quality",
   "dashboard_gauges_certsNeedAttention": "{count, plural, =1{{count} certification needs attention} other{{count} certifications need attention}}",
   "@dashboard_gauges_certsNeedAttention": {
@@ -3778,6 +3779,22 @@
     }
   },
   "dashboard_gauges_synced": "Synced",
+  "dashboard_gauges_nearby": "Nearby: {name} needs attention",
+  "@dashboard_gauges_nearby": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "dashboard_gauges_nearbyMore": "Nearby: {name} and others need attention",
+  "@dashboard_gauges_nearbyMore": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "dashboard_gauges_dataIssues": "{count, plural, =1{1 data issue} other{{count} data issues}}",
   "@dashboard_gauges_dataIssues": {
     "placeholders": {

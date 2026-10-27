@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/database.dart' show NearbyPeer;
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dashboard/presentation/providers/gauge_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -42,6 +43,43 @@ EquipmentClocks _clocks(
 ) => (item: item, statuses: statuses);
 
 void main() {
+  group('nearbyAttentionOf (issue #3731)', () {
+    NearbyPeer peer(String name, {String? error, int pairedAt = 0}) =>
+        NearbyPeer(
+          peerDeviceId: name,
+          displayName: name,
+          pairedAt: pairedAt,
+          lastError: error,
+        );
+
+    test('names the first lasting error and counts the rest', () {
+      expect(
+        nearbyAttentionOf([
+          peer('Mac'),
+          peer('Old iPad', error: 'newerApp'),
+          peer('Phone', error: 'differentLibrary'),
+          peer('Tablet', error: 'notPaired'),
+        ]),
+        (name: 'Old iPad', more: 2),
+      );
+    });
+
+    test('is null when every error is transient', () {
+      expect(
+        nearbyAttentionOf([
+          peer('Mac', error: 'bluetoothOff'),
+          peer('Phone', error: 'unreachable'),
+          peer('Tablet'),
+        ]),
+        isNull,
+      );
+    });
+
+    test('is null with no paired devices', () {
+      expect(nearbyAttentionOf(const []), isNull);
+    });
+  });
+
   group('gearSeverityGroups', () {
     test('empty input yields no groups', () {
       final result = gearSeverityGroups([]);

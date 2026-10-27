@@ -21,6 +21,9 @@ import 'package:submersion/features/trips/presentation/providers/trip_providers.
 import 'package:submersion/features/documents/domain/document_expiry.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/presentation/providers/document_providers.dart';
+import 'package:submersion/core/database/database.dart' show NearbyPeer;
+import 'package:submersion/core/services/nearby/nearby_peer_store.dart';
+import 'package:submersion/features/settings/presentation/providers/nearby_providers.dart';
 
 /// Every chip type the gauge strip can show. [name] is the stable id
 /// stored in AppSettings.hiddenHomeChips; all types are visible by
@@ -43,6 +46,23 @@ enum HomeChipType {
   /// Expiring and expired documents other than insurance (issue #2613).
   /// Appended so stored hide keys never shift.
   documents,
+
+  /// A paired nearby device that cannot sync (issue #3731).
+  nearby,
+}
+
+/// The paired nearby device the home strip names, and how many others also
+/// need the diver.
+typedef NearbyAttention = ({String name, int more});
+
+/// The first paired device with an error the diver has to act on, or null.
+NearbyAttention? nearbyAttentionOf(List<NearbyPeer> peers) {
+  final needing = [
+    for (final peer in peers)
+      if (nearbyPeerErrorOf(peer)?.isLasting ?? false) peer,
+  ];
+  if (needing.isEmpty) return null;
+  return (name: needing.first.displayName, more: needing.length - 1);
 }
 
 /// The worst service clock for one equipment type, shown as one chip.
@@ -127,6 +147,9 @@ class DashboardGauges {
   /// Non-insurance documents that are expired or due, expired first.
   final List<(Document, DocumentExpiryStatus)> attentionDocuments;
 
+  /// A paired nearby device that needs the diver, or null.
+  final NearbyAttention? nearbyAttention;
+
   const DashboardGauges({
     this.gearOverdue,
     this.gearDueSoon,
@@ -145,6 +168,7 @@ class DashboardGauges {
     this.dataQualityFindings = 0,
     this.flightWindow,
     this.attentionDocuments = const [],
+    this.nearbyAttention,
   });
 }
 
@@ -293,5 +317,8 @@ final dashboardGaugesProvider = FutureProvider<DashboardGauges>((ref) async {
     dataQualityFindings: findings,
     flightWindow: flightWindow,
     attentionDocuments: documents,
+    nearbyAttention: nearbyAttentionOf(
+      ref.watch(nearbyPeersProvider).valueOrNull ?? const [],
+    ),
   );
 });

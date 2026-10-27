@@ -5915,6 +5915,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_homeChips_sync => 'Synchronisatiestatus';
 
   @override
+  String get settings_homeChips_nearby => 'Apparaten in de buurt';
+
+  @override
   String get settings_homeChips_dataQuality => 'Datakwaliteit';
 
   @override
@@ -5964,6 +5967,16 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get dashboard_gauges_synced => 'Gesynchroniseerd';
+
+  @override
+  String dashboard_gauges_nearby(String name) {
+    return 'In de buurt: $name vraagt aandacht';
+  }
+
+  @override
+  String dashboard_gauges_nearbyMore(String name) {
+    return 'In de buurt: $name en andere vragen aandacht';
+  }
 
   @override
   String dashboard_gauges_dataIssues(int count) {

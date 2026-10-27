@@ -5643,6 +5643,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_homeChips_sync => '同步状态';
 
   @override
+  String get settings_homeChips_nearby => '附近的设备';
+
+  @override
   String get settings_homeChips_dataQuality => '数据质量';
 
   @override
@@ -5692,6 +5695,16 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get dashboard_gauges_synced => '已同步';
+
+  @override
+  String dashboard_gauges_nearby(String name) {
+    return '附近：$name 需要处理';
+  }
+
+  @override
+  String dashboard_gauges_nearbyMore(String name) {
+    return '附近：$name 等设备需要处理';
+  }
 
   @override
   String dashboard_gauges_dataIssues(int count) {
