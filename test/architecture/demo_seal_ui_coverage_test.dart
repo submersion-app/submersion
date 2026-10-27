@@ -19,10 +19,10 @@ const _exemptions = <String, String>{
       'startup recovery for the user\'s own database, before demo mode opens',
   'lib/core/services/database_location_service.dart':
       'pickCustomFolder serves only the sealed /settings/storage page and '
-          'the gated migrate/switch methods',
+      'the gated migrate/switch methods',
   'lib/features/backup/presentation/widgets/backup_actions.dart':
       'behind the sealed /settings/backup route; backup and restore are '
-          'gated in the engine',
+      'gated in the engine',
   'lib/features/import_wizard/presentation/widgets/photo_folder_step.dart':
       'a step of the sealed /transfer import wizard',
   'lib/features/import_wizard/presentation/widgets/suunto_file_step.dart':
@@ -33,7 +33,7 @@ const _exemptions = <String, String>{
       'the sealed /dives/scan page',
   'lib/features/setup_wizard/presentation/widgets/steps/restore_step.dart':
       'first run and the sealed setup assistant only; restore is gated in '
-          'the engine',
+      'the engine',
   'lib/features/shared_library/presentation/pages/connect_shared_library_page.dart':
       'behind the sealed /settings/shared-libraries route',
   'lib/features/shared_library/presentation/pages/library_backups_page.dart':
