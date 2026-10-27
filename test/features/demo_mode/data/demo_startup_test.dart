@@ -116,6 +116,29 @@ void main() {
     expect(Directory(paths.root).existsSync(), isFalse);
   });
 
+  test('a demo directory with unreadable state is cleared', () async {
+    Directory(paths.root).createSync(recursive: true);
+    File(paths.stateFile).writeAsStringSync('{not json');
+
+    final decision = await resolve();
+
+    expect(decision.demoDatabasePath, isNull);
+    expect(Directory(paths.root).existsSync(), isFalse);
+    expect(DemoModeGate.instance.isActive, isFalse);
+  });
+
+  test('an exit with an unreadable snapshot still finishes', () async {
+    await writeState(DemoPhase.exiting);
+    File(paths.prefsSnapshotFile).writeAsStringSync('not a snapshot');
+
+    final decision = await resolve();
+
+    expect(decision.demoDatabasePath, isNull);
+    // Left as it was rather than wiped by a snapshot that cannot be read.
+    expect(prefs.getString('current_diver_id'), 'real');
+    expect(Directory(paths.root).existsSync(), isFalse);
+  });
+
   test('the demo directory sits under the support directory', () {
     expect(p.isWithin(root.path, paths.databaseFile), isTrue);
   });

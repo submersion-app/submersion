@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
@@ -14,9 +15,12 @@ import 'package:submersion/features/demo_mode/data/demo_paths.dart';
 import 'package:submersion/features/demo_mode/data/demo_state_store.dart';
 import 'package:submersion/features/demo_mode/domain/demo_manifest.dart';
 import 'package:submersion/features/demo_mode/presentation/providers/demo_mode_providers.dart';
+import 'package:submersion/features/media/data/services/local_thumbnail_cache.dart';
+import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../../helpers/global_test_defaults.dart';
+import '../../../helpers/mock_channels.dart';
 import '../data/demo_mode_test_support.dart';
 
 class _CountingClient extends FakeManifestClient {
@@ -32,6 +36,8 @@ class _CountingClient extends FakeManifestClient {
 }
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   tearDown(applyGlobalTestDefaults);
 
   group('availability', () {
@@ -221,6 +227,79 @@ void main() {
       );
     });
   });
+
+  group('production wiring', () {
+    late Directory support;
+
+    setUp(() {
+      support = Directory.systemTemp.createTempSync('demo_support');
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+            const MethodChannel('plugins.flutter.io/path_provider'),
+            (call) async => support.path,
+          );
+    });
+    tearDown(() => support.deleteSync(recursive: true));
+    tearDownAll(clearPathAndShareChannelMocks);
+
+    test('the service keeps its files under app support and forgets photo '
+        'thumbnails through the cache', () async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final removed = <String>[];
+      final container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          localThumbnailCacheProvider.overrideWithValue(
+            _RecordingThumbnails(removed),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final service = await container.read(demoModeServiceProvider.future);
+      final photo = p.join(service.paths.photosDir, 'reef.jpg');
+      await service.forgetPhotos!([photo]);
+
+      expect(service.paths.root, p.join(support.path, 'demo_mode'));
+      expect(removed, [photo]);
+    });
+
+    test('the exit action leaves demo mode through the service', () async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final realPath = p.join(support.path, 'submersion.db');
+      await writeDatabaseWithDiver(realPath, 'real');
+      final switcher = FakeSwitcher();
+      addTearDown(switcher.close);
+      var restarts = 0;
+      final paths = DemoPaths(support.path);
+      final service = DemoModeService(
+        paths: paths,
+        prefs: prefs,
+        store: DemoStateStore(paths),
+        manifest: FakeManifestClient(testPackage),
+        downloader: FakeDownloader(),
+        extractor: FakeExtractor(),
+        preparer: DemoDatabasePreparer(),
+        switcher: switcher,
+        realDatabasePath: () async => realPath,
+        realKeyHex: () => null,
+        deviceId: () => null,
+        cancelDeviceNotifications: () async {},
+        restart: () => restarts++,
+      );
+      final container = ProviderContainer(
+        overrides: [demoModeServiceProvider.overrideWith((ref) => service)],
+      );
+      addTearDown(container.dispose);
+
+      await container.read(demoExitActionProvider)();
+
+      expect(switcher.openPath, realPath);
+      expect(restarts, 1);
+    });
+  });
 }
 
 /// Holds every download until [release] completes, then honours a
@@ -245,4 +324,15 @@ class _HeldDownloader extends FakeDownloader {
     completed++;
     return super.download(pkg, dest, onProgress: onProgress);
   }
+}
+
+/// Records the photo paths whose thumbnails are dropped.
+class _RecordingThumbnails extends LocalThumbnailCache {
+  _RecordingThumbnails(this.removed)
+    : super(store: () => throw UnimplementedError('not used'));
+
+  final List<String> removed;
+
+  @override
+  Future<void> removePath(String path) async => removed.add(path);
 }

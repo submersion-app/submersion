@@ -9,10 +9,13 @@ built for a newer schema), refuse a download whose checksum does not match
 the manifest, and never write outside the directory it was given.
 """
 
+import contextlib
 import hashlib
 import importlib.util
 import io
+import json
 import os
+import pathlib
 import tempfile
 import unittest
 import zipfile
@@ -98,6 +101,57 @@ class ExtractTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as out:
             with self.assertRaises(ValueError):
                 fetch.extract(data, out)
+
+
+class MainTest(unittest.TestCase):
+    """The command as the screenshot jobs run it, against local files."""
+
+    def _publish(self, tmp, sha=None):
+        data = _zip({fetch.DATABASE_NAME: b"db", "photos/reef.jpg": b"jpg"})
+        zip_path = os.path.join(tmp, "submersion-demo-s318.zip")
+        with open(zip_path, "wb") as f:
+            f.write(data)
+        manifest = {
+            "formatVersion": 1,
+            "packages": [
+                {
+                    **_package(318, sha or hashlib.sha256(data).hexdigest()),
+                    "url": pathlib.Path(zip_path).as_uri(),
+                }
+            ],
+        }
+        manifest_path = os.path.join(tmp, "demo-manifest.json")
+        with open(manifest_path, "w", encoding="utf-8") as f:
+            json.dump(manifest, f)
+        dart = os.path.join(tmp, "database.dart")
+        with open(dart, "w", encoding="utf-8") as f:
+            f.write("static const int currentSchemaVersion = 318;")
+        return pathlib.Path(manifest_path).as_uri(), dart
+
+    def _run(self, out, manifest_url, dart):
+        quiet = io.StringIO()
+        with contextlib.redirect_stdout(quiet), contextlib.redirect_stderr(quiet):
+            return fetch.main(
+                [out, "--manifest-url", manifest_url, "--database-dart", dart]
+            )
+
+    def test_fetches_verifies_and_extracts_the_package(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            manifest_url, dart = self._publish(tmp)
+            out = os.path.join(tmp, "out")
+
+            self.assertEqual(self._run(out, manifest_url, dart), 0)
+            with open(os.path.join(out, fetch.DATABASE_NAME), "rb") as f:
+                self.assertEqual(f.read(), b"db")
+            self.assertTrue(os.path.exists(os.path.join(out, "photos", "reef.jpg")))
+
+    def test_a_checksum_mismatch_fails_and_extracts_nothing(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            manifest_url, dart = self._publish(tmp, sha="f" * 64)
+            out = os.path.join(tmp, "out")
+
+            self.assertEqual(self._run(out, manifest_url, dart), 1)
+            self.assertFalse(os.path.exists(out))
 
 
 if __name__ == "__main__":
