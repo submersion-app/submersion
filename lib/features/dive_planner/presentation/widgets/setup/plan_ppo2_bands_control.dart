@@ -109,17 +109,40 @@ class PlanPpO2BandsControl extends StatelessWidget {
         ),
         if (_choice == _PpO2BandsChoice.default_) ...[
           const SizedBox(height: 8),
-          Text(
-            bandsEnabledInSettings
-                ? '${l10n.divePlanner_gasOptions_ppO2DecoBand1}: '
-                      '${formatRoundedForInput(defaultBand1, 2)} bar · '
-                      '${l10n.divePlanner_gasOptions_ppO2DecoBand2}: '
-                      '${formatRoundedForInput(defaultBand2, 2)} bar · '
-                      '${l10n.divePlanner_gasOptions_ppO2DecoBand3}: '
-                      '${formatRoundedForInput(defaultBand3, 2)} bar'
-                : l10n.divePlanner_label_off,
-            style: theme.textTheme.bodySmall?.copyWith(color: theme.hintColor),
-          ),
+          if (bandsEnabledInSettings)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${l10n.divePlanner_gasOptions_ppO2DecoBand1}: '
+                  '${formatRoundedForInput(defaultBand1, 2)} bar',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.hintColor,
+                  ),
+                ),
+                Text(
+                  '${l10n.divePlanner_gasOptions_ppO2DecoBand2}: '
+                  '${formatRoundedForInput(defaultBand2, 2)} bar',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.hintColor,
+                  ),
+                ),
+                Text(
+                  '${l10n.divePlanner_gasOptions_ppO2DecoBand3}: '
+                  '${formatRoundedForInput(defaultBand3, 2)} bar',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.hintColor,
+                  ),
+                ),
+              ],
+            )
+          else
+            Text(
+              l10n.divePlanner_label_off,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.hintColor,
+              ),
+            ),
         ],
         if (_choice == _PpO2BandsChoice.custom) ...[
           const SizedBox(height: 12),
