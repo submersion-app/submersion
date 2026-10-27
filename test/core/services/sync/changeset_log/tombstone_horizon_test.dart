@@ -104,4 +104,66 @@ void main() {
     expect(d.allowed, isTrue);
     expect(d.upToHlc, isNull);
   });
+
+  group('nearby peers (issue #3731)', () {
+    const year = 365 * 24 * 60 * 60 * 1000;
+
+    NearbyTombstoneAck ack(String id, String? hlc, {int ageMillis = 0}) =>
+        NearbyTombstoneAck(
+          deviceId: id,
+          ackedHlc: hlc,
+          lastSeenAt: now - ageMillis,
+        );
+
+    test('a nearby peer with an older ack lowers the horizon', () {
+      final d = TombstoneHorizon.compute(
+        selfDeviceId: 'self',
+        peerManifests: [
+          peer('p1', applied: const {'self': '000000000000500:000000:self'}),
+        ],
+        retiredPeerIds: const {},
+        nearbyPeers: [ack('n1', '000000000000300:000000:self')],
+        nowMillis: now,
+      );
+      expect(d.allowed, isTrue);
+      expect(d.upToHlc, '000000000000300:000000:self');
+    });
+
+    test('a nearby peer alone bounds the horizon', () {
+      final d = TombstoneHorizon.compute(
+        selfDeviceId: 'self',
+        peerManifests: const [],
+        retiredPeerIds: const {},
+        nearbyPeers: [ack('n1', '000000000000300:000000:self')],
+        nowMillis: now,
+      );
+      expect(d.upToHlc, '000000000000300:000000:self');
+    });
+
+    test('a nearby peer that never acked blocks GC', () {
+      final d = TombstoneHorizon.compute(
+        selfDeviceId: 'self',
+        peerManifests: const [],
+        retiredPeerIds: const {},
+        nearbyPeers: [ack('n1', null)],
+        nowMillis: now,
+      );
+      expect(d.allowed, isFalse);
+    });
+
+    test('a nearby peer silent past the retirement period is ignored', () {
+      final d = TombstoneHorizon.compute(
+        selfDeviceId: 'self',
+        peerManifests: const [],
+        retiredPeerIds: const {},
+        nearbyPeers: [
+          ack('n1', null, ageMillis: year + month),
+          ack('n2', '000000000000700:000000:self'),
+        ],
+        nowMillis: now,
+      );
+      expect(d.allowed, isTrue);
+      expect(d.upToHlc, '000000000000700:000000:self');
+    });
+  });
 }

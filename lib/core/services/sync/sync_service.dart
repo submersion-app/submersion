@@ -54,6 +54,7 @@ import 'package:submersion/core/services/sync/crypto/sync_envelope.dart';
 import 'package:submersion/core/services/sync/library_moved.dart';
 import 'package:submersion/core/services/sync/sync_clock.dart';
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
+import 'package:submersion/core/services/nearby/nearby_peer_store.dart';
 import 'package:submersion/core/services/shared_library/library_site_notes.dart';
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
@@ -970,6 +971,18 @@ class SyncService {
         selfDeviceId: deviceId,
         peerManifests: pullResult.peerManifests,
         retiredPeerIds: fencedPeerIds,
+        // Paired nearby devices hold tombstones back too (issue #3731).
+        nearbyPeers: [
+          for (final peer in await NearbyPeerStore(
+            DatabaseService.instance.database,
+          ).all())
+            NearbyTombstoneAck(
+              deviceId: peer.peerDeviceId,
+              ackedHlc: peer.peerAppliedHlcHigh,
+              lastSeenAt: peer.lastSeenAt ?? peer.pairedAt,
+            ),
+        ],
+        nowMillis: now.millisecondsSinceEpoch,
       );
       if (gc.allowed) {
         await _syncRepository.clearAcknowledgedDeletions(
