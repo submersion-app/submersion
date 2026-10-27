@@ -39,6 +39,7 @@ import 'package:submersion/core/services/suunto_cloud/suunto_json_file_reader.da
 import 'package:submersion/features/import_wizard/presentation/suunto_file_import_navigation.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/nearby_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/adopt_replaced_library_dialog.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
@@ -157,8 +158,15 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
     // gear.serviceDue). The keeper runs the cache writer while a filter
     // names it, and leaves the clocks idle otherwise (#2365).
     ref.listenManual(serviceStatusKeeperProvider, (_, _) {});
+    // Nearby Bluetooth sync (issue #3731): the switch re-decides whether the
+    // radio is on.
+    ref.listenManual<bool>(
+      syncBehaviorProvider.select((s) => s.nearbyAutoEnabled),
+      (_, _) => unawaited(ref.read(nearbyLinkManagerProvider).refresh()),
+    );
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _runStorageCleanupAfter(_maybeSyncOnLaunch(), StorageGcTrigger.launch);
+      _setNearbyForeground(true);
       _resumeMediaTransfers();
       _republishOwnedMedia();
       _convertGearFiles();
@@ -213,9 +221,11 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
     switch (meaning) {
       case LifecycleMeaning.backgrounded:
         ref.read(appLockNotifierProvider.notifier).noteBackgrounded();
+        _setNearbyForeground(false);
       case LifecycleMeaning.resumed:
         ref.read(appLockNotifierProvider.notifier).noteResumed();
         _runStorageCleanupAfter(_maybeSyncOnResume(), StorageGcTrigger.resume);
+        _setNearbyForeground(true);
         _resumeMediaTransfers();
         // NFC may have been turned on in the system settings meanwhile, as
         // the passport screens tell the diver to do.
@@ -277,6 +287,21 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
   void _convertGearFiles() {
     // The provider then checks whether a compaction is worth scheduling.
     unawaited(ref.read(equipmentFileConversionProvider)());
+  }
+
+  /// The nearby link scans and advertises only while the app is in front
+  /// (issue #3731); a failure there never reaches the app.
+  void _setNearbyForeground(bool inForeground) {
+    unawaited(
+      ref
+          .read(nearbyLinkManagerProvider)
+          .setForeground(inForeground)
+          .catchError((Object e) {
+            LoggerService.forClass(
+              SubmersionApp,
+            ).warning('Nearby link did not follow the app: $e');
+          }),
+    );
   }
 
   Future<void> _maybeSyncOnLaunch() async {

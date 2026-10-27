@@ -138,13 +138,12 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          ...await getBaseOverrides(),
+          ...await getBaseOverrides(nearbyLinkManager: manager),
           syncBehaviorProvider.overrideWith((ref) => behavior),
           nearbyPeerStoreProvider.overrideWithValue(store),
           nearbyPeersProvider.overrideWith((ref) => store.watchAll()),
           nearbyProgressProvider.overrideWith((ref) => Stream.value(progress)),
           nearbyCanAdvertiseProvider.overrideWithValue(canAdvertise),
-          nearbyLinkManagerProvider.overrideWithValue(manager),
         ],
         child: MaterialApp.router(
           locale: const Locale('en'),
