@@ -129,8 +129,11 @@ class DivePlans extends Table {
   RealColumn get ppO2Deco => real().nullable()();
 
   /// Per-O2-band deco ppO2 ceilings for this plan (issue #3580, v319). Null
-  /// = use the diver's Settings band. Meaningless unless the diver's
-  /// Settings have band mode on.
+  /// = use the diver's Settings band. A non-null value is itself a Custom
+  /// opt-in for this plan and takes effect even when the diver's Settings
+  /// band toggle is off (issue #3580 follow-up, see
+  /// `resolveDecoLayerEnabled`), unless [ppO2DecoBandsExplicitlyOff] forces
+  /// band mode off for this plan regardless.
   RealColumn get ppO2DecoBand1 => real().nullable()();
   RealColumn get ppO2DecoBand2 => real().nullable()();
   RealColumn get ppO2DecoBand3 => real().nullable()();

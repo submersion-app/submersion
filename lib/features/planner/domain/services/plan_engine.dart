@@ -1585,13 +1585,24 @@ class PlanEngine {
       // The deco ceiling for THIS segment's own gas (issue #3580): its
       // band when bands are on, the ppO2 at the explicit depth for a gas
       // under that setting, otherwise the flat ppO2Deco, same as before.
+      // Only used for display here - the breach check itself goes through
+      // decoCeilingBreachedFor, which compares depth directly for an
+      // explicit-depth gas instead of this (environment-aware) ppO2 against
+      // outcome.maxPpO2 (the flat-model one), a mismatch a Copilot review
+      // caught disagreeing in salt water/at altitude.
       final segmentDecoPpO2 = decoCeilingPpO2For(
         segment.gasMix,
         config.decoLimits,
         environment: environment,
       );
 
-      if (outcome.maxPpO2 > segmentDecoPpO2) {
+      if (decoCeilingBreachedFor(
+        segment.gasMix,
+        config.decoLimits,
+        depthMeters: deeperEnd,
+        actualPpO2: outcome.maxPpO2,
+        environment: environment,
+      )) {
         issues.add(
           PlanIssue(
             type: PlanIssueType.ppO2Critical,
