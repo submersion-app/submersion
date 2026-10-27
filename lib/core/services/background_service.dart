@@ -142,7 +142,7 @@ Future<bool> openHeadlessDatabase({LoggerService? log}) async {
 /// phase: entering, exploring the sample logbook, or leaving it. A
 /// synchronous stat of the demo directory, so it costs nothing when demo
 /// mode has never been used.
-Future<bool> backgroundWorkBlockedByDemoMode(DemoPaths paths) async =>
+bool backgroundWorkBlockedByDemoMode(DemoPaths paths) =>
     Directory(paths.root).existsSync();
 
 /// Callback for Workmanager background tasks
@@ -158,7 +158,7 @@ void callbackDispatcher() {
       // Demo mode (issue #3708): the open database may be the sample logbook,
       // and nothing in it may be backed up or raise a reminder. Checked before
       // any database is located or opened.
-      if (await backgroundWorkBlockedByDemoMode(await DemoPaths.resolve())) {
+      if (backgroundWorkBlockedByDemoMode(await DemoPaths.resolve())) {
         log.info('Background task skipped: demo mode is on.');
         return true;
       }

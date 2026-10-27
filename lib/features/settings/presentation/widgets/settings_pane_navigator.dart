@@ -72,15 +72,14 @@ class SettingsPaneNavigator extends StatefulWidget {
     if (!location.startsWith(_root)) return null;
     final uri = Uri.tryParse(location);
     if (uri == null) return null;
+    final page = pageFor(uri);
     // Demo mode (issue #3708): pane pages skip the router's redirect, so a
     // sealed page is swapped for its explanation here.
-    if (DemoModeGate.instance.isActive) {
+    if (page != null && DemoModeGate.instance.isActive) {
       final sealed = demoSealedFeatureFor(location);
-      if (sealed != null && pageFor(uri) != null) {
-        return DemoUnavailablePage(feature: sealed);
-      }
+      if (sealed != null) return DemoUnavailablePage(feature: sealed);
     }
-    return pageFor(uri);
+    return page;
   }
 
   /// The pages [uri] opens in a pane reading [queryParam], outermost first,

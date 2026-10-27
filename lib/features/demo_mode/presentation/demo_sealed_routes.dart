@@ -25,6 +25,7 @@ const demoSealedRoutePrefixes = <String, DemoSealedFeature>{
   '/settings/setup-assistant': DemoSealedFeature.databaseFile,
   '/settings/setup': DemoSealedFeature.databaseFile,
   '/settings/wearable-import': DemoSealedFeature.cloudImport,
+  '/settings/photos-media': DemoSealedFeature.mediaImport,
   '/settings/media-storage': DemoSealedFeature.mediaImport,
   '/settings/lightroom': DemoSealedFeature.mediaImport,
 };

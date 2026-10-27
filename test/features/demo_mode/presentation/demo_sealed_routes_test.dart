@@ -54,6 +54,12 @@ void main() {
       DemoSealedFeature.fileImport,
     );
     expect(demoSealedFeatureFor('/settings/backup'), DemoSealedFeature.backup);
+    // The page the Photos & videos row opens, which the old
+    // /settings/media-storage route now redirects to.
+    expect(
+      demoSealedFeatureFor('/settings/photos-media/uploads'),
+      DemoSealedFeature.mediaImport,
+    );
     expect(
       demoSealedFeatureFor('/dive-computers/abc/download'),
       DemoSealedFeature.diveComputerDownload,

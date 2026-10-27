@@ -118,33 +118,51 @@ class DemoEnterFailed extends DemoEnterUiState {
 
 /// Drives the "entering demo mode" dialog: progress, failure and retry.
 class DemoEnterController extends Notifier<DemoEnterUiState> {
-  bool _cancelled = false;
+  /// Which entry is current. [cancel] and every [start] move it on, so a run
+  /// that has been cancelled or superseded stops at its next chunk and no
+  /// longer touches [state].
+  int _run = 0;
+
+  /// The entry in flight. A new one waits for it, since a cancelled run
+  /// clears the demo directory on its way out.
+  Future<void>? _inFlight;
 
   @override
   DemoEnterUiState build() => const DemoEnterIdle();
 
   /// Enters demo mode. On success the app restarts into the sample logbook,
   /// so the last state seen here is [DemoEnterRunning].
-  Future<void> start({
-    required bool fromFirstRun,
-    DemoUnitSettings? units,
-  }) async {
-    _cancelled = false;
+  Future<void> start({required bool fromFirstRun, DemoUnitSettings? units}) {
+    final run = ++_run;
     state = const DemoEnterRunning(
       DemoEnterProgress(DemoEnterStage.downloading),
     );
+    final entry = (_inFlight ?? Future<void>.value()).then(
+      (_) => _enter(run, fromFirstRun: fromFirstRun, units: units),
+    );
+    _inFlight = entry;
+    return entry;
+  }
+
+  Future<void> _enter(
+    int run, {
+    required bool fromFirstRun,
+    DemoUnitSettings? units,
+  }) async {
+    bool current() => run == _run && ref.mounted;
+    if (!current()) return;
     try {
       final service = await ref.read(demoModeServiceProvider.future);
       await service.enter(
         fromFirstRun: fromFirstRun,
         units: units,
-        isCancelled: () => _cancelled,
+        isCancelled: () => run != _run,
         onProgress: (p) {
-          if (ref.mounted) state = DemoEnterRunning(p);
+          if (current()) state = DemoEnterRunning(p);
         },
       );
     } on DemoDownloadException catch (e) {
-      if (ref.mounted) {
+      if (current()) {
         state = e.reason == DemoDownloadFailure.cancelled
             ? const DemoEnterIdle()
             : DemoEnterFailed(e.reason);
@@ -153,13 +171,13 @@ class DemoEnterController extends Notifier<DemoEnterUiState> {
       // Anything else, an Error included, still ends the dialog's spinner:
       // the opening stage has no button of its own.
       _log.error('Entering demo mode failed', error: e, stackTrace: st);
-      if (ref.mounted) {
+      if (current()) {
         state = const DemoEnterFailed(DemoDownloadFailure.network);
       }
     }
   }
 
-  void cancel() => _cancelled = true;
+  void cancel() => _run++;
 
   void reset() => state = const DemoEnterIdle();
 }

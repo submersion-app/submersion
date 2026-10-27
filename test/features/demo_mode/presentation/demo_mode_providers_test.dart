@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -97,7 +98,7 @@ void main() {
     tearDown(() => root.deleteSync(recursive: true));
 
     Future<ProviderContainer> containerWith(
-      FakeDownloader downloader, {
+      DemoDownloader downloader, {
       String? failOpenOf,
     }) async {
       SharedPreferences.setMockInitialValues({});
@@ -183,6 +184,30 @@ void main() {
       },
     );
 
+    test('a cancelled entry stays cancelled when entry starts again', () async {
+      final downloader = _HeldDownloader();
+      final container = await containerWith(downloader);
+      final controller = container.read(demoEnterControllerProvider.notifier);
+
+      // Cancel while the first download waits for its next chunk, then start
+      // again at once, as a quick second tap on the entry would.
+      final first = controller.start(fromFirstRun: false);
+      await pumpEventQueue();
+      controller
+        ..cancel()
+        ..reset();
+      final second = controller.start(fromFirstRun: false);
+      downloader.release.complete();
+      await Future.wait([first, second]);
+
+      expect(downloader.cancelled, 1);
+      expect(downloader.completed, 1);
+      expect(
+        container.read(demoEnterControllerProvider),
+        isA<DemoEnterRunning>(),
+      );
+    });
+
     test('a successful entry ends running, not failed', () async {
       final container = await containerWith(FakeDownloader());
 
@@ -196,4 +221,28 @@ void main() {
       );
     });
   });
+}
+
+/// Holds every download until [release] completes, then honours a
+/// cancellation the way the real downloader does at its next chunk.
+class _HeldDownloader extends FakeDownloader {
+  final release = Completer<void>();
+  int cancelled = 0;
+  int completed = 0;
+
+  @override
+  Future<File> download(
+    DemoPackage pkg,
+    File dest, {
+    void Function(int received, int total)? onProgress,
+    bool Function()? isCancelled,
+  }) async {
+    await release.future;
+    if (isCancelled?.call() ?? false) {
+      cancelled++;
+      throw const DemoDownloadException(DemoDownloadFailure.cancelled);
+    }
+    completed++;
+    return super.download(pkg, dest, onProgress: onProgress);
+  }
 }

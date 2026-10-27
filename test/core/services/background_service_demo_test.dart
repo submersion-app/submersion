@@ -16,7 +16,7 @@ void main() {
   tearDown(() => support.deleteSync(recursive: true));
 
   test('background work runs when demo mode has never been used', () async {
-    expect(await backgroundWorkBlockedByDemoMode(paths), isFalse);
+    expect(backgroundWorkBlockedByDemoMode(paths), isFalse);
   });
 
   test(
@@ -24,7 +24,7 @@ void main() {
     () async {
       Directory(paths.root).createSync(recursive: true);
 
-      expect(await backgroundWorkBlockedByDemoMode(paths), isTrue);
+      expect(backgroundWorkBlockedByDemoMode(paths), isTrue);
     },
   );
 
