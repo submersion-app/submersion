@@ -103,47 +103,73 @@ class FrameDecoder {
   final int maxFrameBytes;
 
   final _controller = StreamController<NearbyMessage>();
-  final _buffer = BytesBuilder(copy: false);
+
+  /// Bytes received and not yet decoded live in [_buffer] from [_start] to
+  /// [_end]. The buffer grows by doubling and is compacted only when the
+  /// unread part is less than half of it, so a frame arriving in many small
+  /// chunks costs time linear in its size.
+  Uint8List _buffer = Uint8List(1024);
+  int _start = 0;
+  int _end = 0;
 
   Stream<NearbyMessage> get messages => _controller.stream;
 
   void add(Uint8List chunk) {
     if (_controller.isClosed) return;
-    _buffer.add(chunk);
+    _append(chunk);
     _drain();
   }
 
   Future<void> close() => _controller.close();
 
+  void _append(Uint8List chunk) {
+    final unread = _end - _start;
+    if (_end + chunk.length > _buffer.length) {
+      var capacity = _buffer.length;
+      while (capacity < unread + chunk.length) {
+        capacity *= 2;
+      }
+      final next = capacity == _buffer.length ? _buffer : Uint8List(capacity);
+      next.setRange(0, unread, _buffer, _start);
+      _buffer = next;
+      _start = 0;
+      _end = unread;
+    }
+    _buffer.setRange(_end, _end + chunk.length, chunk);
+    _end += chunk.length;
+  }
+
+  void _reset() {
+    _start = 0;
+    _end = 0;
+  }
+
   void _drain() {
-    var pending = _buffer.takeBytes();
-    var offset = 0;
-    while (pending.length - offset >= 4) {
-      final declared = ByteData.sublistView(pending, offset).getUint32(0);
+    while (_end - _start >= 4) {
+      final declared = ByteData.sublistView(_buffer, _start).getUint32(0);
       if (declared == 0) {
+        _reset();
         _controller.addError(const FrameMalformed());
         return;
       }
       if (declared > maxFrameBytes) {
+        _reset();
         _controller.addError(FrameTooLarge(declared));
         return;
       }
-      if (pending.length - offset - 4 < declared) break;
-      final code = pending[offset + 4];
+      if (_end - _start - 4 < declared) return;
+      final code = _buffer[_start + 4];
       final body = Uint8List.fromList(
-        Uint8List.sublistView(pending, offset + 5, offset + 4 + declared),
+        Uint8List.sublistView(_buffer, _start + 5, _start + 4 + declared),
       );
-      offset += 4 + declared;
+      _start += 4 + declared;
+      if (_start == _end) _reset();
       final type = NearbyMessageType.fromCode(code);
       if (type == null) {
         _controller.addError(UnknownMessageType(code));
       } else {
         _controller.add(NearbyMessage(type, body));
       }
-    }
-    if (offset < pending.length) {
-      pending = Uint8List.sublistView(pending, offset);
-      _buffer.add(pending);
     }
   }
 }

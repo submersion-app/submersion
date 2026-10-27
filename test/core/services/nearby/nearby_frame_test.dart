@@ -139,4 +139,24 @@ void main() {
       expect(NearbyMessageType.fromCode(255), isNull);
     });
   });
+
+  test('a large frame fed in tiny chunks decodes in linear time', () async {
+    // A 20-byte MTU before the exchange: 1 MiB arrives as 52 429 chunks.
+    // Copying the whole partial frame on every chunk is tens of GB.
+    final body = Uint8List((1 << 20) - 5);
+    final frame = FrameEncoder.encode(NearbyMessageType.basePart, body);
+    final chunks = [
+      for (var i = 0; i < frame.length; i += 20)
+        Uint8List.sublistView(
+          frame,
+          i,
+          i + 20 > frame.length ? frame.length : i + 20,
+        ),
+    ];
+    final watch = Stopwatch()..start();
+    final seen = await _decode(chunks, maxFrameBytes: 1 << 20);
+    watch.stop();
+    expect((seen.single as NearbyMessage).body.length, body.length);
+    expect(watch.elapsed, lessThan(const Duration(seconds: 3)));
+  });
 }
