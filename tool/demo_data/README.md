@@ -55,7 +55,9 @@ scripts/demo_data/pack.sh <harvest_dir> <photos_dir> <out_dir> [seed]
 ```
 
 Only openly licensed photos (CC0 or public domain) go in, never a photo from a
-donated logbook. `subject` is a species name from `assets/data/species.json`
+donated logbook. `tool/demo_data/photos/credits.json` records the photos in
+the published package; fetch each from its `sourceUrl` to rebuild it. The
+photos themselves are not kept in the repository. `subject` is a species name from `assets/data/species.json`
 or a word like `reef` or `wreck`; it decides which dive the photo goes on.
 
 The build plans a six-year story for a fictional diver (recreational, then
