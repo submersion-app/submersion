@@ -303,4 +303,21 @@ void main() {
     await tester.pump();
     expect(controller.text, '123456789');
   });
+
+  testWidgets('over maxLength, a toolbar edit that shortens still applies', (
+    tester,
+  ) async {
+    controller.text = '**ab**cdefghijk';
+    await tester.pumpWidget(
+      testApp(
+        locale: const Locale('en'),
+        child: MarkdownNotesField(controller: controller, maxLength: 10),
+      ),
+    );
+    await tester.pumpAndSettle();
+    controller.selection = const TextSelection(baseOffset: 2, extentOffset: 4);
+    await tester.tap(find.byTooltip('Bold'));
+    await tester.pump();
+    expect(controller.text, 'abcdefghijk');
+  });
 }

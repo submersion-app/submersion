@@ -89,7 +89,8 @@ class _MarkdownNotesViewState extends State<MarkdownNotesView> {
 }
 
 const _blockGap = 6.0;
-const _markerWidth = 24.0;
+const _markerWidth = 18.0;
+const _markerGap = 6.0;
 const _monospace = 'monospace';
 
 /// Turns the parsed note into widgets. Rebuilt on every build, so the
@@ -200,14 +201,22 @@ class _NotesBuilder {
               size: (style.fontSize ?? 14) + 2,
               color: _colors.onSurfaceVariant,
             )
-          : Text(ordered ? '$number.' : '•', style: style);
+          : Text(ordered ? '$number.' : '•', style: style, softWrap: false);
       number++;
       if (rows.isNotEmpty) rows.add(const SizedBox(height: 2));
       rows.add(
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(width: _markerWidth, child: marker),
+            // At least the marker column's width, wider for a long number
+            // ('100.') or large text, and never wrapped.
+            Padding(
+              padding: const EdgeInsets.only(right: _markerGap),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(minWidth: _markerWidth),
+                child: marker,
+              ),
+            ),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,

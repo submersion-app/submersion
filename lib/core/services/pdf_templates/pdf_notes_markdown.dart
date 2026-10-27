@@ -53,6 +53,15 @@ pw.Widget notesMarkdownPdfInline(
   );
 }
 
+/// Monospace for code, when the built-in Courier can draw it: Courier only
+/// knows Latin-1, and a Latin-language PDF theme has no fallback font, so
+/// code holding any other character (a Hungarian ő, Chinese, Arabic) keeps the
+/// theme font rather than printing as boxes.
+pw.TextStyle _codeStyle(String text, pw.TextStyle style) =>
+    text.runes.every((rune) => rune < 0x100)
+    ? style.copyWith(font: pw.Font.courier())
+    : style;
+
 class _PdfNotesBuilder {
   _PdfNotesBuilder(this.base);
 
@@ -98,7 +107,7 @@ class _PdfNotesBuilder {
           // instead of failing the export (#2056).
           child: pw.Text(
             node.textContent.replaceFirst(RegExp(r'\n$'), ''),
-            style: style.copyWith(font: pw.Font.courier()),
+            style: _codeStyle(node.textContent, style),
             overflow: pw.TextOverflow.span,
           ),
         );
@@ -295,7 +304,7 @@ class _PdfNotesBuilder {
           spans.add(
             pw.TextSpan(
               text: node.textContent,
-              style: style.copyWith(font: pw.Font.courier()),
+              style: _codeStyle(node.textContent, style),
             ),
           );
         case 'br':

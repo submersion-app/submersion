@@ -154,4 +154,33 @@ void main() {
     expect(blockText, isNot(contains('o-ringReplace')));
     expect(blockText, contains('Replace'));
   });
+
+  test('code outside Latin-1 keeps the theme font', () {
+    pw.TextStyle? codeStyle(String source, String text) {
+      final spans = <pw.InlineSpan>[];
+      void walk(pw.InlineSpan span) {
+        spans.add(span);
+        if (span is pw.TextSpan) span.children?.forEach(walk);
+      }
+
+      walk(
+        (notesMarkdownPdfInline(source, style: style, maxLines: 3)
+                as pw.RichText)
+            .text,
+      );
+      return spans
+          .whereType<pw.TextSpan>()
+          .firstWhere((s) => s.text == text)
+          .style;
+    }
+
+    expect(codeStyle('`abc`', 'abc')?.font, isNotNull);
+    expect(codeStyle('`ellenőrző`', 'ellenőrző')?.font, isNull);
+
+    final block =
+        notesMarkdownPdfBlocks('```\n日志\n```', style: style).single
+            as pw.Padding;
+    final text = (block.child! as pw.Container).child! as pw.Text;
+    expect((text.text as pw.TextSpan).style?.font, isNull);
+  });
 }

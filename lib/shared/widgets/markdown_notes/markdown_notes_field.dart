@@ -70,10 +70,16 @@ class _MarkdownNotesFieldState extends State<MarkdownNotesField> {
     if (_previewing) return;
     final next = edit(widget.controller.value);
     if (next == widget.controller.value) return;
-    // The length limiter only sees typing; a toolbar edit that would pass
-    // the limit is refused rather than saved over it.
+    // The length limiter only sees typing; a toolbar edit that would grow
+    // the notes past the limit is refused rather than saved over it. One
+    // that shortens notes already over it (removing marks) still applies.
     final limit = widget.maxLength;
-    if (limit != null && next.text.characters.length > limit) return;
+    final length = next.text.characters.length;
+    if (limit != null &&
+        length > limit &&
+        length > widget.controller.text.characters.length) {
+      return;
+    }
     widget.controller.value = next;
     widget.onChanged?.call(next.text);
   }

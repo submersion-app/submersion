@@ -236,4 +236,12 @@ void main() {
     await tester.pump();
     expect(_span(tester, 'shop').recognizer, same(before));
   });
+
+  testWidgets('a three-digit list number stays on one line', (tester) async {
+    await pump(tester, '100. c');
+    expect(
+      tester.getSize(find.text('100.')).height,
+      tester.getSize(find.text('c')).height,
+    );
+  });
 }

@@ -59,7 +59,11 @@ class IdentitySection extends StatelessWidget {
       controller: controller,
       suggestions: suggestions,
       enableFuzzy: enableFuzzy,
-      textCapitalization: TextCapitalization.words,
+      // Names and places take a capital per word; the Markdown description
+      // is prose and takes one per sentence.
+      textCapitalization: markdown
+          ? TextCapitalization.sentences
+          : TextCapitalization.words,
       placeholder: placeholder,
       validator: validator,
       maxLines: maxLines,
