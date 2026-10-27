@@ -1168,6 +1168,45 @@ class SyncRepository {
   /// tables.
   Future<String?> maxRowHlc() => _maxRowHlc();
 
+  /// For every device whose clock appears in this library, the highest clock
+  /// held from it: row clocks, fact clocks, and tombstones under the device
+  /// that deleted the row (origin clock, else the local one). Nearby sync
+  /// exchanges this to send each peer only what it lacks (issue #3731).
+  ///
+  /// The writer is the node id after the packed clock's two fixed-width
+  /// fields (15 + 1 + 6 + 1 characters).
+  Future<Map<String, String>> maxRowHlcByWriter() async {
+    final present = {
+      for (final r
+          in await _db
+              .customSelect(
+                "SELECT name FROM sqlite_master WHERE type = 'table'",
+              )
+              .get())
+        r.read<String>('name'),
+    };
+    final clocks = [
+      for (final t in hlcTargets.values)
+        if (present.contains(t.table)) 'SELECT hlc AS c FROM "${t.table}"',
+      for (final e in SyncFactGroups.byEntity.entries)
+        if (present.contains(hlcTargets[e.key]?.table))
+          for (final g in e.value)
+            'SELECT "${g.clockColumn}" AS c '
+                'FROM "${hlcTargets[e.key]!.table}"',
+      if (present.contains('deletion_log'))
+        'SELECT COALESCE(origin_hlc, hlc) AS c FROM deletion_log',
+    ];
+    if (clocks.isEmpty) return const {};
+    final rows = await _db
+        .customSelect(
+          'SELECT substr(c, 24) AS w, MAX(c) AS h '
+          'FROM (${clocks.join(' UNION ALL ')}) '
+          'WHERE c IS NOT NULL AND length(c) > 23 GROUP BY w',
+        )
+        .get();
+    return {for (final r in rows) r.read<String>('w'): r.read<String>('h')};
+  }
+
   /// The highest hlc this device still ACCOUNTS FOR: live rows or tombstones.
   ///
   /// [maxRowHlc] alone answers "what do I still have", which is the wrong

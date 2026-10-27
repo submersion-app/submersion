@@ -255,12 +255,17 @@ direction. The initiator (the connecting device) sends first.
 2. **Delta or full copy.** The sender compares the receiver's map with the
    set of writers it holds (the same query, run on its own rows). A
    **delta** is possible only when the receiver knows every writer the
-   sender holds and the sender has no rows without an `hlc` (pre-HLC rows
-   never export incrementally). Then it runs `exportChangeset(hlcWatermark:
-   min of the received watermarks)`, which already yields every synced row
-   and tombstone newer than that, independent of any provider, and drops
-   each row whose own writer's watermark on the receiver already covers it.
-   Otherwise it sends a **full copy**. So the first sync between two
+   sender holds. Then it runs `exportChangeset` from the lowest receiver
+   watermark among the writers the sender is ahead on (so an old writer with
+   nothing new does not widen the window), with `childrenByOwnClock` so a
+   child edit whose pending mark a cloud publish already cleared still
+   travels, and drops each row and tombstone whose every clock (row clock
+   and media fact clocks) is covered by the receiver's watermark for that
+   clock's writer. Otherwise it sends a **full copy**. Rows with no clock
+   (built-in reference rows, some older children) never travel in a delta,
+   exactly as in cloud changesets; they cross in the first full copy and
+   with their parents. A real library holds hundreds of them, so treating
+   them as a reason for a full copy would make every sync a full copy. So the first sync between two
    populated devices that never shared a cloud is always a full copy, in
    both directions, and every later one is a delta. A full copy is applied
    with the merge rules like any payload; it never wipes the receiver.
