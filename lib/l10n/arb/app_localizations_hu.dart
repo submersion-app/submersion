@@ -55695,4 +55695,22 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get demo_enter_confirm_action => 'Letöltés';
+
+  @override
+  String demo_enter_confirm_body_firstRun(String size) {
+    return 'Ez letölt egy mintanaplót ($size), amellyel körülnézhetsz az alkalmazásban. Lépj ki a demó módból, amikor a sajátodat szeretnéd elkezdeni.';
+  }
+
+  @override
+  String common_byteSize(String value, String unit) {
+    String _temp0 = intl.Intl.selectLogic(unit, {
+      'B': 'B',
+      'KB': 'KB',
+      'MB': 'MB',
+      'GB': 'GB',
+      'TB': 'TB',
+      'other': '$unit',
+    });
+    return '$value $_temp0';
+  }
 }

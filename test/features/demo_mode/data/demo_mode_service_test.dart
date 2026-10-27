@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:drift/drift.dart' show GeneratedDatabase;
 import 'package:submersion/features/demo_mode/data/demo_database_preparer.dart';
 import 'package:submersion/features/demo_mode/data/demo_downloader.dart';
+import 'package:submersion/features/demo_mode/data/demo_manifest_client.dart';
 import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 import 'package:submersion/features/demo_mode/data/demo_mode_service.dart';
 import 'package:submersion/features/demo_mode/data/demo_paths.dart';
@@ -56,11 +57,12 @@ void main() {
     FakeDownloader? downloader,
     FakeSwitcher? sw,
     bool hasPackage = true,
+    DemoManifestClient? manifest,
   }) => DemoModeService(
     paths: paths,
     prefs: prefs,
     store: store,
-    manifest: FakeManifestClient(hasPackage ? testPackage : null),
+    manifest: manifest ?? FakeManifestClient(hasPackage ? testPackage : null),
     downloader: downloader ?? FakeDownloader(),
     extractor: FakeExtractor(),
     preparer: DemoDatabasePreparer(),
@@ -87,6 +89,43 @@ void main() {
       expect(notificationCancels, 1);
     },
   );
+
+  test('enter downloads the package the user agreed to, without asking the '
+      'manifest again', () async {
+    // The manifest now offers a bigger package than the one the question
+    // named; the agreed one is still what is fetched.
+    final agreed = DemoPackage(
+      schemaVersion: testPackage.schemaVersion,
+      url: Uri.parse('https://example.com/agreed.zip'),
+      sha256: 'b' * 64,
+      size: 12,
+      generatedAt: DateTime.utc(2026, 10, 21),
+    );
+    final manifest = _CountingManifest(testPackage);
+    final downloader = _RecordingDownloader();
+
+    await service(
+      manifest: manifest,
+      downloader: downloader,
+    ).enter(fromFirstRun: false, package: agreed);
+
+    expect(downloader.downloaded, [agreed]);
+    expect(manifest.calls, 0);
+  });
+
+  test('enter without a package downloads the best one the manifest '
+      'offers', () async {
+    final manifest = _CountingManifest(testPackage);
+    final downloader = _RecordingDownloader();
+
+    await service(
+      manifest: manifest,
+      downloader: downloader,
+    ).enter(fromFirstRun: false);
+
+    expect(downloader.downloaded, [testPackage]);
+    expect(manifest.calls, 1);
+  });
 
   test('enter reports downloading, preparing and opening in order', () async {
     final stages = <DemoEnterStage>[];
@@ -395,5 +434,33 @@ class _CancelOnLastChunk extends FakeDownloader {
     final file = await super.download(pkg, dest, onProgress: onProgress);
     cancel();
     return file;
+  }
+}
+
+class _CountingManifest extends FakeManifestClient {
+  _CountingManifest(super.package);
+
+  int calls = 0;
+
+  @override
+  Future<DemoPackage?> fetchBest(int appSchemaVersion) {
+    calls++;
+    return super.fetchBest(appSchemaVersion);
+  }
+}
+
+/// Records which package each download was asked for.
+class _RecordingDownloader extends FakeDownloader {
+  final downloaded = <DemoPackage>[];
+
+  @override
+  Future<File> download(
+    DemoPackage pkg,
+    File dest, {
+    void Function(int received, int total)? onProgress,
+    bool Function()? isCancelled,
+  }) {
+    downloaded.add(pkg);
+    return super.download(pkg, dest, onProgress: onProgress);
   }
 }

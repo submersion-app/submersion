@@ -56772,4 +56772,22 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get demo_enter_confirm_action => 'تنزيل';
+
+  @override
+  String demo_enter_confirm_body_firstRun(String size) {
+    return 'سيتم تنزيل سجل تجريبي ($size) لاستكشاف التطبيق. اخرج من الوضع التجريبي متى كنت مستعدًا لبدء سجلك الخاص.';
+  }
+
+  @override
+  String common_byteSize(String value, String unit) {
+    String _temp0 = intl.Intl.selectLogic(unit, {
+      'B': 'B',
+      'KB': 'KB',
+      'MB': 'MB',
+      'GB': 'GB',
+      'TB': 'TB',
+      'other': '$unit',
+    });
+    return '$value $_temp0';
+  }
 }

@@ -16398,5 +16398,7 @@
   "demo_row_unavailable": "Indisponible en mode démo",
   "demo_enter_confirm_title": "Explorer avec des données d'exemple ?",
   "demo_enter_confirm_body": "Un carnet d'exemple ({size}) sera téléchargé et ouvert à la place du vôtre. Votre carnet est mis de côté, intact, jusqu'à ce que vous quittiez le mode démo.",
-  "demo_enter_confirm_action": "Télécharger"
+  "demo_enter_confirm_action": "Télécharger",
+  "demo_enter_confirm_body_firstRun": "Un carnet d'exemple ({size}) sera téléchargé pour découvrir l'application. Quittez le mode démo dès que vous voulez commencer le vôtre.",
+  "common_byteSize": "{value} {unit, select, B{o} KB{Ko} MB{Mo} GB{Go} TB{To} other{{unit}}}"
 }

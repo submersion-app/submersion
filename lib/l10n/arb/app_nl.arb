@@ -16398,5 +16398,7 @@
   "demo_row_unavailable": "Niet beschikbaar in demomodus",
   "demo_enter_confirm_title": "Verkennen met voorbeeldgegevens?",
   "demo_enter_confirm_body": "Er wordt een voorbeeldlogboek ({size}) gedownload en geopend in plaats van het jouwe. Je logboek wordt onaangeroerd apart gezet tot je de demomodus afsluit.",
-  "demo_enter_confirm_action": "Downloaden"
+  "demo_enter_confirm_action": "Downloaden",
+  "demo_enter_confirm_body_firstRun": "Er wordt een voorbeeldlogboek ({size}) gedownload om de app mee te verkennen. Verlaat de demomodus zodra je met je eigen logboek wilt beginnen.",
+  "common_byteSize": "{value} {unit, select, B{B} KB{KB} MB{MB} GB{GB} TB{TB} other{{unit}}}"
 }

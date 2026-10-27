@@ -16398,5 +16398,7 @@
   "demo_row_unavailable": "غير متاح في الوضع التجريبي",
   "demo_enter_confirm_title": "الاستكشاف باستخدام بيانات تجريبية؟",
   "demo_enter_confirm_body": "سيتم تنزيل سجل تجريبي ({size}) وفتحه بدلًا من سجلك. يُحفظ سجلك جانبًا دون أي تغيير حتى تخرج من الوضع التجريبي.",
-  "demo_enter_confirm_action": "تنزيل"
+  "demo_enter_confirm_action": "تنزيل",
+  "demo_enter_confirm_body_firstRun": "سيتم تنزيل سجل تجريبي ({size}) لاستكشاف التطبيق. اخرج من الوضع التجريبي متى كنت مستعدًا لبدء سجلك الخاص.",
+  "common_byteSize": "{value} {unit, select, B{B} KB{KB} MB{MB} GB{GB} TB{TB} other{{unit}}}"
 }

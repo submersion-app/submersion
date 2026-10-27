@@ -55661,4 +55661,22 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get demo_enter_confirm_action => 'Downloaden';
+
+  @override
+  String demo_enter_confirm_body_firstRun(String size) {
+    return 'Er wordt een voorbeeldlogboek ($size) gedownload om de app mee te verkennen. Verlaat de demomodus zodra je met je eigen logboek wilt beginnen.';
+  }
+
+  @override
+  String common_byteSize(String value, String unit) {
+    String _temp0 = intl.Intl.selectLogic(unit, {
+      'B': 'B',
+      'KB': 'KB',
+      'MB': 'MB',
+      'GB': 'GB',
+      'TB': 'TB',
+      'other': '$unit',
+    });
+    return '$value $_temp0';
+  }
 }

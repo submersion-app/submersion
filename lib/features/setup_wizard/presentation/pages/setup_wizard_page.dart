@@ -173,10 +173,10 @@ class _SetupWizardPageState extends ConsumerState<SetupWizardPage> {
   /// wizard rather than adding a step: entering restarts the app.
   VoidCallback? _tryDemo(SetupWizardMode mode, DemoPackage? package) {
     if (mode != SetupWizardMode.firstRun || package == null) return null;
-    return () => showDemoEnterDialog(
+    return () => askAndEnterDemo(
       context,
       fromFirstRun: true,
-      downloadBytes: package.size,
+      package: package,
       units: demoUnitsForPreset(
         presetForLocale(WidgetsBinding.instance.platformDispatcher.locale),
       ),

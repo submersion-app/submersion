@@ -3,50 +3,60 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:submersion/core/utils/byte_format.dart';
 import 'package:submersion/features/demo_mode/data/demo_database_preparer.dart';
 import 'package:submersion/features/demo_mode/data/demo_mode_service.dart';
+import 'package:submersion/features/demo_mode/domain/demo_manifest.dart';
 import 'package:submersion/features/demo_mode/presentation/providers/demo_mode_providers.dart';
+import 'package:submersion/features/demo_mode/presentation/widgets/demo_question_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// Asks first, naming the [downloadBytes] the sample logbook costs (#3736),
-/// then downloads and opens it, showing progress. On success the app
-/// restarts into demo mode and this dialog goes with the old screen; on
-/// failure it explains and offers Retry; Cancel stops the download and leaves
-/// everything as it was.
-Future<void> showDemoEnterDialog(
+/// Enters demo mode in two steps. First a question names the size of
+/// [package] (#3736); its Cancel downloads nothing. On Download, the progress
+/// dialog fetches exactly that package and opens it. On success the app
+/// restarts into demo mode and the dialog goes with the old screen; on
+/// failure it explains and offers Retry; its Cancel stops the download in
+/// progress and leaves everything as it was.
+///
+/// On the first-run welcome screen ([fromFirstRun]) there is no logbook of
+/// the user's own yet, so the question does not mention setting one aside.
+Future<void> askAndEnterDemo(
   BuildContext context, {
   required bool fromFirstRun,
-  required int downloadBytes,
+  required DemoPackage package,
   DemoUnitSettings? units,
 }) async {
   final l10n = context.l10n;
-  final confirmed = await showDialog<bool>(
-    context: context,
-    builder: (dialogContext) => AlertDialog(
-      title: Text(l10n.demo_enter_confirm_title),
-      content: Text(l10n.demo_enter_confirm_body(formatBytes(downloadBytes))),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(dialogContext).pop(false),
-          child: Text(l10n.common_action_cancel),
-        ),
-        FilledButton(
-          onPressed: () => Navigator.of(dialogContext).pop(true),
-          child: Text(l10n.demo_enter_confirm_action),
-        ),
-      ],
-    ),
+  final size = formatBytesLocalized(package.size, l10n.common_byteSize);
+  final confirmed = await askDemoQuestion(
+    context,
+    title: l10n.demo_enter_confirm_title,
+    body: fromFirstRun
+        ? l10n.demo_enter_confirm_body_firstRun(size)
+        : l10n.demo_enter_confirm_body(size),
+    action: l10n.demo_enter_confirm_action,
   );
-  if (confirmed != true || !context.mounted) return;
+  if (!confirmed || !context.mounted) return;
   await showDialog<void>(
     context: context,
     barrierDismissible: false,
-    builder: (_) => DemoEnterDialog(fromFirstRun: fromFirstRun, units: units),
+    builder: (_) => DemoEnterDialog(
+      fromFirstRun: fromFirstRun,
+      package: package,
+      units: units,
+    ),
   );
 }
 
 class DemoEnterDialog extends ConsumerStatefulWidget {
-  const DemoEnterDialog({super.key, required this.fromFirstRun, this.units});
+  const DemoEnterDialog({
+    super.key,
+    required this.fromFirstRun,
+    required this.package,
+    this.units,
+  });
 
   final bool fromFirstRun;
+
+  /// The package the user agreed to download.
+  final DemoPackage package;
   final DemoUnitSettings? units;
 
   @override
@@ -62,7 +72,11 @@ class _DemoEnterDialogState extends ConsumerState<DemoEnterDialog> {
 
   void _start() => ref
       .read(demoEnterControllerProvider.notifier)
-      .start(fromFirstRun: widget.fromFirstRun, units: widget.units);
+      .start(
+        fromFirstRun: widget.fromFirstRun,
+        package: widget.package,
+        units: widget.units,
+      );
 
   @override
   Widget build(BuildContext context) {

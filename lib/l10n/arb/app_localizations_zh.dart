@@ -52571,4 +52571,22 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get demo_enter_confirm_action => '下载';
+
+  @override
+  String demo_enter_confirm_body_firstRun(String size) {
+    return '这将下载一个示例日志（$size），供你浏览应用。准备好开始自己的日志时，随时退出演示模式。';
+  }
+
+  @override
+  String common_byteSize(String value, String unit) {
+    String _temp0 = intl.Intl.selectLogic(unit, {
+      'B': 'B',
+      'KB': 'KB',
+      'MB': 'MB',
+      'GB': 'GB',
+      'TB': 'TB',
+      'other': '$unit',
+    });
+    return '$value $_temp0';
+  }
 }

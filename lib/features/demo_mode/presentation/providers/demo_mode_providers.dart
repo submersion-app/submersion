@@ -138,15 +138,25 @@ class DemoEnterController extends Notifier<DemoEnterUiState> {
   @override
   DemoEnterUiState build() => const DemoEnterIdle();
 
-  /// Enters demo mode. On success the app restarts into the sample logbook,
-  /// so the last state seen here is [DemoEnterRunning].
-  Future<void> start({required bool fromFirstRun, DemoUnitSettings? units}) {
+  /// Enters demo mode with [package], the one the user agreed to download.
+  /// On success the app restarts into the sample logbook, so the last state
+  /// seen here is [DemoEnterRunning].
+  Future<void> start({
+    required bool fromFirstRun,
+    DemoPackage? package,
+    DemoUnitSettings? units,
+  }) {
     final run = ++_run;
     state = const DemoEnterRunning(
       DemoEnterProgress(DemoEnterStage.downloading),
     );
     final entry = (_inFlight ?? Future<void>.value()).then(
-      (_) => _enter(run, fromFirstRun: fromFirstRun, units: units),
+      (_) => _enter(
+        run,
+        fromFirstRun: fromFirstRun,
+        package: package,
+        units: units,
+      ),
     );
     _inFlight = entry;
     return entry;
@@ -155,6 +165,7 @@ class DemoEnterController extends Notifier<DemoEnterUiState> {
   Future<void> _enter(
     int run, {
     required bool fromFirstRun,
+    DemoPackage? package,
     DemoUnitSettings? units,
   }) async {
     bool current() => run == _run && ref.mounted;
@@ -163,6 +174,7 @@ class DemoEnterController extends Notifier<DemoEnterUiState> {
       final service = await ref.read(demoModeServiceProvider.future);
       await service.enter(
         fromFirstRun: fromFirstRun,
+        package: package,
         units: units,
         isCancelled: () => run != _run,
         onProgress: (p) {

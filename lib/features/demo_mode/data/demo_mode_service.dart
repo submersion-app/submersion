@@ -13,6 +13,7 @@ import 'package:submersion/features/demo_mode/data/demo_package_extractor.dart';
 import 'package:submersion/features/demo_mode/data/demo_paths.dart';
 import 'package:submersion/features/demo_mode/data/demo_state_store.dart';
 import 'package:submersion/features/demo_mode/data/prefs_snapshot.dart';
+import 'package:submersion/features/demo_mode/domain/demo_manifest.dart';
 import 'package:submersion/features/demo_mode/domain/demo_state.dart';
 
 /// The pref key the selected diver lives under (`diver_providers.dart`).
@@ -74,8 +75,12 @@ class DemoModeService {
   final Future<void> Function(List<String> photoPaths)? forgetPhotos;
   final DateTime Function() clock;
 
+  /// Downloads and opens [package], the one the user agreed to download, so
+  /// what is fetched is what was asked about. Without one, the best package
+  /// for this app is looked up first.
   Future<void> enter({
     required bool fromFirstRun,
+    DemoPackage? package,
     DemoUnitSettings? units,
     void Function(DemoEnterProgress)? onProgress,
     bool Function()? isCancelled,
@@ -88,7 +93,8 @@ class DemoModeService {
     try {
       await store.write(state);
       onProgress?.call(const DemoEnterProgress(DemoEnterStage.downloading));
-      final pkg = await manifest.fetchBest(AppDatabase.currentSchemaVersion);
+      final pkg =
+          package ?? await manifest.fetchBest(AppDatabase.currentSchemaVersion);
       if (pkg == null) {
         throw const DemoDownloadException(
           DemoDownloadFailure.network,

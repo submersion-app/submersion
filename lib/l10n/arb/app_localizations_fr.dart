@@ -56133,4 +56133,22 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get demo_enter_confirm_action => 'Télécharger';
+
+  @override
+  String demo_enter_confirm_body_firstRun(String size) {
+    return 'Un carnet d\'exemple ($size) sera téléchargé pour découvrir l\'application. Quittez le mode démo dès que vous voulez commencer le vôtre.';
+  }
+
+  @override
+  String common_byteSize(String value, String unit) {
+    String _temp0 = intl.Intl.selectLogic(unit, {
+      'B': 'o',
+      'KB': 'Ko',
+      'MB': 'Mo',
+      'GB': 'Go',
+      'TB': 'To',
+      'other': '$unit',
+    });
+    return '$value $_temp0';
+  }
 }

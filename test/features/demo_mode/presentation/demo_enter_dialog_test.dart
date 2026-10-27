@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/demo_mode/data/demo_downloader.dart';
 import 'package:submersion/features/demo_mode/data/demo_mode_service.dart';
+import 'package:submersion/features/demo_mode/domain/demo_manifest.dart';
 import 'package:submersion/features/demo_mode/presentation/providers/demo_mode_providers.dart';
 import 'package:submersion/features/demo_mode/presentation/widgets/demo_enter_dialog.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -11,13 +12,15 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 class _ScriptedController extends DemoEnterController {
   int starts = 0;
   int cancels = 0;
+  DemoPackage? lastPackage;
 
   @override
   DemoEnterUiState build() => const DemoEnterIdle();
 
   @override
-  Future<void> start({required bool fromFirstRun, units}) async {
+  Future<void> start({required bool fromFirstRun, package, units}) async {
     starts++;
+    lastPackage = package;
     state = const DemoEnterRunning(
       DemoEnterProgress(DemoEnterStage.downloading, received: 50, total: 100),
     );
@@ -29,11 +32,23 @@ class _ScriptedController extends DemoEnterController {
   void fail() => state = const DemoEnterFailed(DemoDownloadFailure.network);
 }
 
+final _package = DemoPackage(
+  schemaVersion: 1,
+  url: Uri.parse('https://example.com/demo.zip'),
+  sha256: 'a' * 64,
+  size: 12 * 1024 * 1024,
+  generatedAt: DateTime.utc(2026, 10, 20),
+);
+
 void main() {
   late _ScriptedController controller;
 
   /// Opens the flow, which first asks; [confirm] answers Download.
-  Future<void> open(WidgetTester tester, {bool confirm = true}) async {
+  Future<void> open(
+    WidgetTester tester, {
+    bool confirm = true,
+    bool fromFirstRun = false,
+  }) async {
     controller = _ScriptedController();
     await tester.pumpWidget(
       ProviderScope(
@@ -43,10 +58,10 @@ void main() {
           supportedLocales: AppLocalizations.supportedLocales,
           home: Builder(
             builder: (context) => TextButton(
-              onPressed: () => showDemoEnterDialog(
+              onPressed: () => askAndEnterDemo(
                 context,
-                fromFirstRun: false,
-                downloadBytes: 12 * 1024 * 1024,
+                fromFirstRun: fromFirstRun,
+                package: _package,
               ),
               child: const Text('Go'),
             ),
@@ -71,8 +86,23 @@ void main() {
 
     expect(find.text('Explore with sample data?'), findsOneWidget);
     expect(find.textContaining('12 MB'), findsOneWidget);
+    expect(find.textContaining('set aside'), findsOneWidget);
     expect(controller.starts, 0);
     expect(find.byType(DemoEnterDialog), findsNothing);
+  });
+
+  testWidgets('on first run the question does not mention a logbook of '
+      'their own being set aside', (tester) async {
+    await open(tester, confirm: false, fromFirstRun: true);
+
+    expect(find.textContaining('12 MB'), findsOneWidget);
+    expect(find.textContaining('set aside'), findsNothing);
+  });
+
+  testWidgets('Download starts the package the question named', (tester) async {
+    await open(tester);
+
+    expect(controller.lastPackage, _package);
   });
 
   testWidgets('Cancel on the question downloads nothing', (tester) async {

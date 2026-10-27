@@ -56002,4 +56002,22 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get demo_enter_confirm_action => 'Transferir';
+
+  @override
+  String demo_enter_confirm_body_firstRun(String size) {
+    return 'Será transferido um diário de exemplo ($size) para explorar a aplicação. Saia do modo de demonstração quando quiser começar o seu.';
+  }
+
+  @override
+  String common_byteSize(String value, String unit) {
+    String _temp0 = intl.Intl.selectLogic(unit, {
+      'B': 'B',
+      'KB': 'KB',
+      'MB': 'MB',
+      'GB': 'GB',
+      'TB': 'TB',
+      'other': '$unit',
+    });
+    return '$value $_temp0';
+  }
 }

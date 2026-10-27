@@ -88441,6 +88441,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Download'**
   String get demo_enter_confirm_action;
+
+  /// Demo mode: asks before downloading the sample logbook on the first-run welcome screen, where the user has no logbook yet (issue #3736)
+  ///
+  /// In en, this message translates to:
+  /// **'This downloads a sample logbook ({size}) to look around the app with. Exit demo mode whenever you are ready to start your own.'**
+  String demo_enter_confirm_body_firstRun(String size);
+
+  /// A file size: value is the number, already in the locale's decimal format, and unit is one of B, KB, MB, GB, TB. Translate the unit symbols where the language uses its own (French: o, Ko, Mo, Go, To).
+  ///
+  /// In en, this message translates to:
+  /// **'{value} {unit, select, B{B} KB{KB} MB{MB} GB{GB} TB{TB} other{{unit}}}'**
+  String common_byteSize(String value, String unit);
 }
 
 class _AppLocalizationsDelegate

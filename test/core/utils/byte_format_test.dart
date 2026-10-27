@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 import 'package:submersion/core/utils/byte_format.dart';
 
 void main() {
@@ -25,6 +26,31 @@ void main() {
 
     test('a negative count is clamped to zero rather than formatted', () {
       expect(formatBytes(-1), '0 B');
+    });
+  });
+
+  group('formatBytesLocalized', () {
+    String label(String number, String unit) => '$number|$unit';
+
+    test('passes the number and unit key to the label', () {
+      expect(formatBytesLocalized(12 * 1024 * 1024, label), '12|MB');
+      expect(formatBytesLocalized(512, label), '512|B');
+      expect(formatBytesLocalized(0, label), '0|B');
+    });
+
+    test('uses the active locale\'s decimal mark', () {
+      final previous = Intl.defaultLocale;
+      addTearDown(() => Intl.defaultLocale = previous);
+
+      Intl.defaultLocale = 'fr';
+      expect(
+        formatBytesLocalized((2.5 * 1024 * 1024).round(), label),
+        '2,5|MB',
+      );
+      expect(formatBytesLocalized(1536, label), '1,5|KB');
+
+      Intl.defaultLocale = 'en';
+      expect(formatBytesLocalized(1536, label), '1.5|KB');
     });
   });
 }

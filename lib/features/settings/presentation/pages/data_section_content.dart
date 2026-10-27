@@ -236,10 +236,10 @@ class _DataSectionContentState extends ConsumerState<DataSectionContent> {
               icon: Icons.explore_outlined,
               title: l10n.demo_settings_enter_title,
               subtitle: l10n.demo_settings_enter_subtitle,
-              onTap: () => showDemoEnterDialog(
+              onTap: () => askAndEnterDemo(
                 context,
                 fromFirstRun: false,
-                downloadBytes: demoPackage.size,
+                package: demoPackage,
                 units: demoUnitsFromSettings(ref.read(settingsProvider)),
               ),
             ),

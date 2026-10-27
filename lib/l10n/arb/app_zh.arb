@@ -16398,5 +16398,7 @@
   "demo_row_unavailable": "演示模式下不可用",
   "demo_enter_confirm_title": "使用示例数据体验？",
   "demo_enter_confirm_body": "这将下载一个示例日志（{size}）并用它代替你的日志打开。你的日志会被原封不动地保留，直到你退出演示模式。",
-  "demo_enter_confirm_action": "下载"
+  "demo_enter_confirm_action": "下载",
+  "demo_enter_confirm_body_firstRun": "这将下载一个示例日志（{size}），供你浏览应用。准备好开始自己的日志时，随时退出演示模式。",
+  "common_byteSize": "{value} {unit, select, B{B} KB{KB} MB{MB} GB{GB} TB{TB} other{{unit}}}"
 }

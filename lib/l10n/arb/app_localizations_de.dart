@@ -55887,4 +55887,22 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get demo_enter_confirm_action => 'Herunterladen';
+
+  @override
+  String demo_enter_confirm_body_firstRun(String size) {
+    return 'Dabei wird ein Beispiel-Logbuch ($size) heruntergeladen, mit dem du die App erkunden kannst. Beende den Demomodus, sobald du dein eigenes beginnen möchtest.';
+  }
+
+  @override
+  String common_byteSize(String value, String unit) {
+    String _temp0 = intl.Intl.selectLogic(unit, {
+      'B': 'B',
+      'KB': 'KB',
+      'MB': 'MB',
+      'GB': 'GB',
+      'TB': 'TB',
+      'other': '$unit',
+    });
+    return '$value $_temp0';
+  }
 }

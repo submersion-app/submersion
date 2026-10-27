@@ -54839,4 +54839,22 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get demo_enter_confirm_action => 'הורדה';
+
+  @override
+  String demo_enter_confirm_body_firstRun(String size) {
+    return 'פעולה זו תוריד יומן דוגמה ($size) כדי להכיר את האפליקציה. צאו ממצב ההדגמה כשתהיו מוכנים להתחיל יומן משלכם.';
+  }
+
+  @override
+  String common_byteSize(String value, String unit) {
+    String _temp0 = intl.Intl.selectLogic(unit, {
+      'B': 'B',
+      'KB': 'KB',
+      'MB': 'MB',
+      'GB': 'GB',
+      'TB': 'TB',
+      'other': '$unit',
+    });
+    return '$value $_temp0';
+  }
 }
