@@ -37945,6 +37945,86 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_sync_keepInStep => 'إبقاء الأجهزة متزامنة تلقائيًا';
 
   @override
+  String get settings_nearby_title => 'الأجهزة القريبة';
+
+  @override
+  String get settings_nearby_auto_title =>
+      'المزامنة مع الأجهزة القريبة تلقائيًا';
+
+  @override
+  String get settings_nearby_auto_subtitle =>
+      'عندما يكون جهاز مقترن مفتوحًا بالقرب، عبر البلوتوث';
+
+  @override
+  String get settings_nearby_linuxNote =>
+      'لا يمكن للأجهزة الأخرى العثور على هذا الكمبيوتر، لذا يتزامن مع أي جهاز قريب باستثناء كمبيوتر لينكس آخر';
+
+  @override
+  String get settings_nearby_pair => 'إقران جهاز';
+
+  @override
+  String settings_nearby_status_synced(String when) {
+    return 'تمت المزامنة $when';
+  }
+
+  @override
+  String settings_nearby_status_syncing(String done, String total) {
+    return 'جارٍ المزامنة: $done من $total';
+  }
+
+  @override
+  String get settings_nearby_status_never => 'لم تتم المزامنة بعد';
+
+  @override
+  String settings_nearby_status_notSeen(String date) {
+    return 'لم يُشاهَد منذ $date';
+  }
+
+  @override
+  String get settings_nearby_error_newerApp =>
+      'يحتاج هذا الجهاز إلى إصدار أحدث من التطبيق';
+
+  @override
+  String get settings_nearby_error_peerOlderApp =>
+      'يحتاج ذلك الجهاز إلى إصدار أحدث من التطبيق';
+
+  @override
+  String get settings_nearby_error_differentLibrary => 'ليست المكتبة نفسها';
+
+  @override
+  String get settings_nearby_error_notPaired =>
+      'أُلغي الإقران على الجهاز الآخر';
+
+  @override
+  String get settings_nearby_error_applyFailed => 'تعذّر تطبيق تغييراته';
+
+  @override
+  String get settings_nearby_error_bluetoothOff =>
+      'البلوتوث متوقف أو غير مسموح به';
+
+  @override
+  String get settings_nearby_error_unreachable => 'تعذّر الاتصال';
+
+  @override
+  String get settings_nearby_sheet_rename => 'إعادة تسمية';
+
+  @override
+  String get settings_nearby_sheet_unpair => 'إلغاء الإقران';
+
+  @override
+  String settings_nearby_unpair_confirm(String name) {
+    return 'إلغاء إقران $name؟ سيحتاج إلى إقران جديد للمزامنة القريبة.';
+  }
+
+  @override
+  String get settings_nearby_rename_title => 'إعادة تسمية الجهاز';
+
+  @override
+  String settings_nearby_notInRange(String name) {
+    return '$name ليس قريبًا الآن';
+  }
+
+  @override
   String get settings_sync_alsoAtLaunch => 'المزامنة أيضًا عند التشغيل';
 
   @override

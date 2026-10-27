@@ -37489,6 +37489,88 @@ class AppLocalizationsIt extends AppLocalizations {
       'Mantieni i dispositivi allineati automaticamente';
 
   @override
+  String get settings_nearby_title => 'Dispositivi vicini';
+
+  @override
+  String get settings_nearby_auto_title =>
+      'Sincronizza automaticamente con i dispositivi vicini';
+
+  @override
+  String get settings_nearby_auto_subtitle =>
+      'Quando un dispositivo associato è aperto nelle vicinanze, tramite Bluetooth';
+
+  @override
+  String get settings_nearby_linuxNote =>
+      'Gli altri dispositivi non possono trovare questo computer, quindi si sincronizza con qualsiasi dispositivo vicino tranne un altro computer Linux';
+
+  @override
+  String get settings_nearby_pair => 'Associa un dispositivo';
+
+  @override
+  String settings_nearby_status_synced(String when) {
+    return 'Sincronizzato $when';
+  }
+
+  @override
+  String settings_nearby_status_syncing(String done, String total) {
+    return 'Sincronizzazione: $done di $total';
+  }
+
+  @override
+  String get settings_nearby_status_never => 'Non ancora sincronizzato';
+
+  @override
+  String settings_nearby_status_notSeen(String date) {
+    return 'Non visto dal $date';
+  }
+
+  @override
+  String get settings_nearby_error_newerApp =>
+      'Questo dispositivo ha bisogno di una versione più recente dell\'app';
+
+  @override
+  String get settings_nearby_error_peerOlderApp =>
+      'L\'altro dispositivo ha bisogno di una versione più recente dell\'app';
+
+  @override
+  String get settings_nearby_error_differentLibrary =>
+      'Non è la stessa libreria';
+
+  @override
+  String get settings_nearby_error_notPaired =>
+      'Associazione rimossa sull\'altro dispositivo';
+
+  @override
+  String get settings_nearby_error_applyFailed =>
+      'Impossibile applicare le sue modifiche';
+
+  @override
+  String get settings_nearby_error_bluetoothOff =>
+      'Il Bluetooth è spento o non consentito';
+
+  @override
+  String get settings_nearby_error_unreachable => 'Impossibile connettersi';
+
+  @override
+  String get settings_nearby_sheet_rename => 'Rinomina';
+
+  @override
+  String get settings_nearby_sheet_unpair => 'Rimuovi associazione';
+
+  @override
+  String settings_nearby_unpair_confirm(String name) {
+    return 'Rimuovere l\'associazione di $name? Servirà associarlo di nuovo per sincronizzare da vicino.';
+  }
+
+  @override
+  String get settings_nearby_rename_title => 'Rinomina dispositivo';
+
+  @override
+  String settings_nearby_notInRange(String name) {
+    return '$name non è nelle vicinanze ora';
+  }
+
+  @override
   String get settings_sync_alsoAtLaunch => 'Sincronizza anche all\'avvio';
 
   @override

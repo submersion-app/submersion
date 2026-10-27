@@ -26,6 +26,17 @@ enum NearbyPeerError {
   };
 }
 
+/// The error stored on [peer]'s row; a name this build does not know reads
+/// as none.
+NearbyPeerError? nearbyPeerErrorOf(NearbyPeer peer) {
+  final name = peer.lastError;
+  if (name == null) return null;
+  for (final e in NearbyPeerError.values) {
+    if (e.name == name) return e;
+  }
+  return null;
+}
+
 /// The paired-devices table.
 class NearbyPeerStore {
   NearbyPeerStore(this._db);
@@ -44,14 +55,7 @@ class NearbyPeerStore {
     _db.nearbyPeers,
   )..where((t) => t.peerDeviceId.equals(peerDeviceId))).getSingleOrNull();
 
-  NearbyPeerError? errorOf(NearbyPeer peer) {
-    final name = peer.lastError;
-    if (name == null) return null;
-    for (final e in NearbyPeerError.values) {
-      if (e.name == name) return e;
-    }
-    return null;
-  }
+  NearbyPeerError? errorOf(NearbyPeer peer) => nearbyPeerErrorOf(peer);
 
   /// A new pairing, or a re-pairing that starts this peer's progress over.
   Future<void> upsertPaired({

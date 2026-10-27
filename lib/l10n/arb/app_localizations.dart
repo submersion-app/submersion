@@ -59121,6 +59121,132 @@ abstract class AppLocalizations {
   /// **'Keep devices in step automatically'**
   String get settings_sync_keepInStep;
 
+  /// No description provided for @settings_nearby_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Nearby devices'**
+  String get settings_nearby_title;
+
+  /// No description provided for @settings_nearby_auto_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync nearby automatically'**
+  String get settings_nearby_auto_title;
+
+  /// No description provided for @settings_nearby_auto_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'When a paired device is open nearby, over Bluetooth'**
+  String get settings_nearby_auto_subtitle;
+
+  /// No description provided for @settings_nearby_linuxNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Other devices cannot find this computer, so it syncs with any nearby device except another Linux computer'**
+  String get settings_nearby_linuxNote;
+
+  /// No description provided for @settings_nearby_pair.
+  ///
+  /// In en, this message translates to:
+  /// **'Pair a device'**
+  String get settings_nearby_pair;
+
+  /// No description provided for @settings_nearby_status_synced.
+  ///
+  /// In en, this message translates to:
+  /// **'Synced {when}'**
+  String settings_nearby_status_synced(String when);
+
+  /// No description provided for @settings_nearby_status_syncing.
+  ///
+  /// In en, this message translates to:
+  /// **'Syncing: {done} of {total}'**
+  String settings_nearby_status_syncing(String done, String total);
+
+  /// No description provided for @settings_nearby_status_never.
+  ///
+  /// In en, this message translates to:
+  /// **'Not synced yet'**
+  String get settings_nearby_status_never;
+
+  /// No description provided for @settings_nearby_status_notSeen.
+  ///
+  /// In en, this message translates to:
+  /// **'Not seen since {date}'**
+  String settings_nearby_status_notSeen(String date);
+
+  /// No description provided for @settings_nearby_error_newerApp.
+  ///
+  /// In en, this message translates to:
+  /// **'This device needs a newer app version'**
+  String get settings_nearby_error_newerApp;
+
+  /// No description provided for @settings_nearby_error_peerOlderApp.
+  ///
+  /// In en, this message translates to:
+  /// **'That device needs a newer app version'**
+  String get settings_nearby_error_peerOlderApp;
+
+  /// No description provided for @settings_nearby_error_differentLibrary.
+  ///
+  /// In en, this message translates to:
+  /// **'Not the same library'**
+  String get settings_nearby_error_differentLibrary;
+
+  /// No description provided for @settings_nearby_error_notPaired.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpaired on the other device'**
+  String get settings_nearby_error_notPaired;
+
+  /// No description provided for @settings_nearby_error_applyFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not apply its changes'**
+  String get settings_nearby_error_applyFailed;
+
+  /// No description provided for @settings_nearby_error_bluetoothOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Bluetooth is off or not allowed'**
+  String get settings_nearby_error_bluetoothOff;
+
+  /// No description provided for @settings_nearby_error_unreachable.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not connect'**
+  String get settings_nearby_error_unreachable;
+
+  /// No description provided for @settings_nearby_sheet_rename.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename'**
+  String get settings_nearby_sheet_rename;
+
+  /// No description provided for @settings_nearby_sheet_unpair.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpair'**
+  String get settings_nearby_sheet_unpair;
+
+  /// No description provided for @settings_nearby_unpair_confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpair {name}? It will need pairing again to sync nearby.'**
+  String settings_nearby_unpair_confirm(String name);
+
+  /// No description provided for @settings_nearby_rename_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename device'**
+  String get settings_nearby_rename_title;
+
+  /// No description provided for @settings_nearby_notInRange.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is not nearby right now'**
+  String settings_nearby_notInRange(String name);
+
   /// No description provided for @settings_sync_alsoAtLaunch.
   ///
   /// In en, this message translates to:

@@ -37405,6 +37405,88 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_sync_keepInStep => 'Geräte automatisch abgleichen';
 
   @override
+  String get settings_nearby_title => 'Geräte in der Nähe';
+
+  @override
+  String get settings_nearby_auto_title =>
+      'Automatisch mit Geräten in der Nähe synchronisieren';
+
+  @override
+  String get settings_nearby_auto_subtitle =>
+      'Wenn ein gekoppeltes Gerät in der Nähe geöffnet ist, über Bluetooth';
+
+  @override
+  String get settings_nearby_linuxNote =>
+      'Andere Geräte können diesen Computer nicht finden, daher synchronisiert er mit jedem Gerät in der Nähe außer einem anderen Linux-Computer';
+
+  @override
+  String get settings_nearby_pair => 'Gerät koppeln';
+
+  @override
+  String settings_nearby_status_synced(String when) {
+    return 'Synchronisiert $when';
+  }
+
+  @override
+  String settings_nearby_status_syncing(String done, String total) {
+    return 'Synchronisiere: $done von $total';
+  }
+
+  @override
+  String get settings_nearby_status_never => 'Noch nicht synchronisiert';
+
+  @override
+  String settings_nearby_status_notSeen(String date) {
+    return 'Nicht gesehen seit $date';
+  }
+
+  @override
+  String get settings_nearby_error_newerApp =>
+      'Dieses Gerät braucht eine neuere App-Version';
+
+  @override
+  String get settings_nearby_error_peerOlderApp =>
+      'Das andere Gerät braucht eine neuere App-Version';
+
+  @override
+  String get settings_nearby_error_differentLibrary =>
+      'Nicht dieselbe Bibliothek';
+
+  @override
+  String get settings_nearby_error_notPaired =>
+      'Auf dem anderen Gerät entkoppelt';
+
+  @override
+  String get settings_nearby_error_applyFailed =>
+      'Seine Änderungen konnten nicht übernommen werden';
+
+  @override
+  String get settings_nearby_error_bluetoothOff =>
+      'Bluetooth ist aus oder nicht erlaubt';
+
+  @override
+  String get settings_nearby_error_unreachable => 'Verbindung nicht möglich';
+
+  @override
+  String get settings_nearby_sheet_rename => 'Umbenennen';
+
+  @override
+  String get settings_nearby_sheet_unpair => 'Entkoppeln';
+
+  @override
+  String settings_nearby_unpair_confirm(String name) {
+    return '$name entkoppeln? Für die Synchronisierung in der Nähe muss es erneut gekoppelt werden.';
+  }
+
+  @override
+  String get settings_nearby_rename_title => 'Gerät umbenennen';
+
+  @override
+  String settings_nearby_notInRange(String name) {
+    return '$name ist gerade nicht in der Nähe';
+  }
+
+  @override
   String get settings_sync_alsoAtLaunch => 'Auch beim Start synchronisieren';
 
   @override

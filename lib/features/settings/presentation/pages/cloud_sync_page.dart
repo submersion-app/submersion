@@ -22,6 +22,7 @@ import 'package:submersion/features/settings/presentation/widgets/settings_pane_
 import 'package:submersion/features/settings/presentation/widgets/skipped_peer_banner.dart';
 import 'package:submersion/features/settings/presentation/widgets/sync_now_action.dart';
 import 'package:submersion/features/settings/presentation/widgets/sync/sync_account_switch.dart';
+import 'package:submersion/features/settings/presentation/widgets/sync/nearby_devices_section.dart';
 import 'package:submersion/features/settings/presentation/widgets/sync/sync_advanced_section.dart';
 import 'package:submersion/features/settings/presentation/widgets/sync/sync_using_row.dart';
 import 'package:submersion/features/settings/presentation/widgets/conflict_resolution_dialog.dart';
@@ -104,6 +105,10 @@ class _CloudSyncPageState extends ConsumerState<CloudSyncPage>
                       .read(syncBehaviorProvider.notifier)
                       .setAutoSyncEnabled(value),
           ),
+          const Divider(),
+          // Device-to-device sync over Bluetooth, beside the cloud account
+          // rather than instead of it (issue #3731).
+          const NearbyDevicesSection(),
           const Divider(),
           SyncAdvancedSection(hasProvider: hasProvider),
         ],

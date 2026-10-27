@@ -22919,6 +22919,65 @@
   "settings_sync_notSetUp": "Not set up",
   "settings_sync_offCustomFolder": "Off while the database is in a custom folder",
   "settings_sync_keepInStep": "Keep devices in step automatically",
+  "settings_nearby_title": "Nearby devices",
+  "settings_nearby_auto_title": "Sync nearby automatically",
+  "settings_nearby_auto_subtitle": "When a paired device is open nearby, over Bluetooth",
+  "settings_nearby_linuxNote": "Other devices cannot find this computer, so it syncs with any nearby device except another Linux computer",
+  "settings_nearby_pair": "Pair a device",
+  "settings_nearby_status_synced": "Synced {when}",
+  "@settings_nearby_status_synced": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_nearby_status_syncing": "Syncing: {done} of {total}",
+  "@settings_nearby_status_syncing": {
+    "placeholders": {
+      "done": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_nearby_status_never": "Not synced yet",
+  "settings_nearby_status_notSeen": "Not seen since {date}",
+  "@settings_nearby_status_notSeen": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_nearby_error_newerApp": "This device needs a newer app version",
+  "settings_nearby_error_peerOlderApp": "That device needs a newer app version",
+  "settings_nearby_error_differentLibrary": "Not the same library",
+  "settings_nearby_error_notPaired": "Unpaired on the other device",
+  "settings_nearby_error_applyFailed": "Could not apply its changes",
+  "settings_nearby_error_bluetoothOff": "Bluetooth is off or not allowed",
+  "settings_nearby_error_unreachable": "Could not connect",
+  "settings_nearby_sheet_rename": "Rename",
+  "settings_nearby_sheet_unpair": "Unpair",
+  "settings_nearby_unpair_confirm": "Unpair {name}? It will need pairing again to sync nearby.",
+  "@settings_nearby_unpair_confirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_nearby_rename_title": "Rename device",
+  "settings_nearby_notInRange": "{name} is not nearby right now",
+  "@settings_nearby_notInRange": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "settings_sync_alsoAtLaunch": "Also sync at launch",
   "settings_sync_alsoOnReturn": "Also sync when the app returns",
   "settings_sync_encryption": "Encryption",

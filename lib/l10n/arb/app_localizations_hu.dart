@@ -37262,6 +37262,87 @@ class AppLocalizationsHu extends AppLocalizations {
       'Eszközök automatikus szinkronban tartása';
 
   @override
+  String get settings_nearby_title => 'Közeli eszközök';
+
+  @override
+  String get settings_nearby_auto_title =>
+      'Automatikus szinkronizálás a közeli eszközökkel';
+
+  @override
+  String get settings_nearby_auto_subtitle =>
+      'Ha egy párosított eszközön a közelben nyitva van az alkalmazás, Bluetooth-on';
+
+  @override
+  String get settings_nearby_linuxNote =>
+      'Más eszközök nem találják meg ezt a számítógépet, ezért bármely közeli eszközzel szinkronizál, kivéve egy másik Linux számítógépet';
+
+  @override
+  String get settings_nearby_pair => 'Eszköz párosítása';
+
+  @override
+  String settings_nearby_status_synced(String when) {
+    return 'Szinkronizálva: $when';
+  }
+
+  @override
+  String settings_nearby_status_syncing(String done, String total) {
+    return 'Szinkronizálás: $done / $total';
+  }
+
+  @override
+  String get settings_nearby_status_never => 'Még nincs szinkronizálva';
+
+  @override
+  String settings_nearby_status_notSeen(String date) {
+    return 'Nem látható ez óta: $date';
+  }
+
+  @override
+  String get settings_nearby_error_newerApp =>
+      'Ennek az eszköznek újabb alkalmazásverzió kell';
+
+  @override
+  String get settings_nearby_error_peerOlderApp =>
+      'A másik eszköznek újabb alkalmazásverzió kell';
+
+  @override
+  String get settings_nearby_error_differentLibrary => 'Nem ugyanaz a könyvtár';
+
+  @override
+  String get settings_nearby_error_notPaired =>
+      'A másik eszközön megszüntették a párosítást';
+
+  @override
+  String get settings_nearby_error_applyFailed =>
+      'Nem sikerült alkalmazni a módosításait';
+
+  @override
+  String get settings_nearby_error_bluetoothOff =>
+      'A Bluetooth ki van kapcsolva vagy nincs engedélyezve';
+
+  @override
+  String get settings_nearby_error_unreachable => 'Nem sikerült csatlakozni';
+
+  @override
+  String get settings_nearby_sheet_rename => 'Átnevezés';
+
+  @override
+  String get settings_nearby_sheet_unpair => 'Párosítás megszüntetése';
+
+  @override
+  String settings_nearby_unpair_confirm(String name) {
+    return 'Megszünteted a(z) $name párosítását? A közeli szinkronizáláshoz újra párosítani kell.';
+  }
+
+  @override
+  String get settings_nearby_rename_title => 'Eszköz átnevezése';
+
+  @override
+  String settings_nearby_notInRange(String name) {
+    return '$name most nincs a közelben';
+  }
+
+  @override
   String get settings_sync_alsoAtLaunch => 'Szinkronizálás indításkor is';
 
   @override

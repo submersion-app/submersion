@@ -37512,6 +37512,88 @@ class AppLocalizationsEs extends AppLocalizations {
       'Mantener los dispositivos sincronizados automáticamente';
 
   @override
+  String get settings_nearby_title => 'Dispositivos cercanos';
+
+  @override
+  String get settings_nearby_auto_title =>
+      'Sincronizar con dispositivos cercanos automáticamente';
+
+  @override
+  String get settings_nearby_auto_subtitle =>
+      'Cuando un dispositivo vinculado está abierto cerca, por Bluetooth';
+
+  @override
+  String get settings_nearby_linuxNote =>
+      'Otros dispositivos no pueden encontrar este ordenador, así que se sincroniza con cualquier dispositivo cercano excepto otro ordenador Linux';
+
+  @override
+  String get settings_nearby_pair => 'Vincular un dispositivo';
+
+  @override
+  String settings_nearby_status_synced(String when) {
+    return 'Sincronizado $when';
+  }
+
+  @override
+  String settings_nearby_status_syncing(String done, String total) {
+    return 'Sincronizando: $done de $total';
+  }
+
+  @override
+  String get settings_nearby_status_never => 'Aún no sincronizado';
+
+  @override
+  String settings_nearby_status_notSeen(String date) {
+    return 'Sin ver desde $date';
+  }
+
+  @override
+  String get settings_nearby_error_newerApp =>
+      'Este dispositivo necesita una versión más reciente de la app';
+
+  @override
+  String get settings_nearby_error_peerOlderApp =>
+      'Ese dispositivo necesita una versión más reciente de la app';
+
+  @override
+  String get settings_nearby_error_differentLibrary =>
+      'No es la misma biblioteca';
+
+  @override
+  String get settings_nearby_error_notPaired =>
+      'Desvinculado en el otro dispositivo';
+
+  @override
+  String get settings_nearby_error_applyFailed =>
+      'No se pudieron aplicar sus cambios';
+
+  @override
+  String get settings_nearby_error_bluetoothOff =>
+      'Bluetooth está desactivado o no permitido';
+
+  @override
+  String get settings_nearby_error_unreachable => 'No se pudo conectar';
+
+  @override
+  String get settings_nearby_sheet_rename => 'Cambiar nombre';
+
+  @override
+  String get settings_nearby_sheet_unpair => 'Desvincular';
+
+  @override
+  String settings_nearby_unpair_confirm(String name) {
+    return '¿Desvincular $name? Habrá que volver a vincularlo para sincronizar de cerca.';
+  }
+
+  @override
+  String get settings_nearby_rename_title => 'Cambiar nombre del dispositivo';
+
+  @override
+  String settings_nearby_notInRange(String name) {
+    return '$name no está cerca ahora';
+  }
+
+  @override
   String get settings_sync_alsoAtLaunch => 'Sincronizar también al abrir';
 
   @override

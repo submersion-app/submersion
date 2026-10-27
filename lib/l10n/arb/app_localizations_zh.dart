@@ -35273,6 +35273,80 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_sync_keepInStep => '自动保持设备同步';
 
   @override
+  String get settings_nearby_title => '附近的设备';
+
+  @override
+  String get settings_nearby_auto_title => '自动与附近设备同步';
+
+  @override
+  String get settings_nearby_auto_subtitle => '当附近已配对的设备打开时，通过蓝牙同步';
+
+  @override
+  String get settings_nearby_linuxNote =>
+      '其他设备无法发现这台电脑，因此它可以与除另一台 Linux 电脑以外的任何附近设备同步';
+
+  @override
+  String get settings_nearby_pair => '配对设备';
+
+  @override
+  String settings_nearby_status_synced(String when) {
+    return '已同步 $when';
+  }
+
+  @override
+  String settings_nearby_status_syncing(String done, String total) {
+    return '正在同步：$done / $total';
+  }
+
+  @override
+  String get settings_nearby_status_never => '尚未同步';
+
+  @override
+  String settings_nearby_status_notSeen(String date) {
+    return '自 $date 起未见到';
+  }
+
+  @override
+  String get settings_nearby_error_newerApp => '此设备需要更新版本的应用';
+
+  @override
+  String get settings_nearby_error_peerOlderApp => '该设备需要更新版本的应用';
+
+  @override
+  String get settings_nearby_error_differentLibrary => '不是同一个资料库';
+
+  @override
+  String get settings_nearby_error_notPaired => '已在另一台设备上取消配对';
+
+  @override
+  String get settings_nearby_error_applyFailed => '无法应用其更改';
+
+  @override
+  String get settings_nearby_error_bluetoothOff => '蓝牙已关闭或未获允许';
+
+  @override
+  String get settings_nearby_error_unreachable => '无法连接';
+
+  @override
+  String get settings_nearby_sheet_rename => '重命名';
+
+  @override
+  String get settings_nearby_sheet_unpair => '取消配对';
+
+  @override
+  String settings_nearby_unpair_confirm(String name) {
+    return '要取消与 $name 的配对吗？之后需要重新配对才能就近同步。';
+  }
+
+  @override
+  String get settings_nearby_rename_title => '重命名设备';
+
+  @override
+  String settings_nearby_notInRange(String name) {
+    return '$name 目前不在附近';
+  }
+
+  @override
   String get settings_sync_alsoAtLaunch => '启动时也同步';
 
   @override

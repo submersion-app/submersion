@@ -36853,6 +36853,84 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_sync_keepInStep => 'Keep devices in step automatically';
 
   @override
+  String get settings_nearby_title => 'Nearby devices';
+
+  @override
+  String get settings_nearby_auto_title => 'Sync nearby automatically';
+
+  @override
+  String get settings_nearby_auto_subtitle =>
+      'When a paired device is open nearby, over Bluetooth';
+
+  @override
+  String get settings_nearby_linuxNote =>
+      'Other devices cannot find this computer, so it syncs with any nearby device except another Linux computer';
+
+  @override
+  String get settings_nearby_pair => 'Pair a device';
+
+  @override
+  String settings_nearby_status_synced(String when) {
+    return 'Synced $when';
+  }
+
+  @override
+  String settings_nearby_status_syncing(String done, String total) {
+    return 'Syncing: $done of $total';
+  }
+
+  @override
+  String get settings_nearby_status_never => 'Not synced yet';
+
+  @override
+  String settings_nearby_status_notSeen(String date) {
+    return 'Not seen since $date';
+  }
+
+  @override
+  String get settings_nearby_error_newerApp =>
+      'This device needs a newer app version';
+
+  @override
+  String get settings_nearby_error_peerOlderApp =>
+      'That device needs a newer app version';
+
+  @override
+  String get settings_nearby_error_differentLibrary => 'Not the same library';
+
+  @override
+  String get settings_nearby_error_notPaired => 'Unpaired on the other device';
+
+  @override
+  String get settings_nearby_error_applyFailed => 'Could not apply its changes';
+
+  @override
+  String get settings_nearby_error_bluetoothOff =>
+      'Bluetooth is off or not allowed';
+
+  @override
+  String get settings_nearby_error_unreachable => 'Could not connect';
+
+  @override
+  String get settings_nearby_sheet_rename => 'Rename';
+
+  @override
+  String get settings_nearby_sheet_unpair => 'Unpair';
+
+  @override
+  String settings_nearby_unpair_confirm(String name) {
+    return 'Unpair $name? It will need pairing again to sync nearby.';
+  }
+
+  @override
+  String get settings_nearby_rename_title => 'Rename device';
+
+  @override
+  String settings_nearby_notInRange(String name) {
+    return '$name is not nearby right now';
+  }
+
+  @override
   String get settings_sync_alsoAtLaunch => 'Also sync at launch';
 
   @override

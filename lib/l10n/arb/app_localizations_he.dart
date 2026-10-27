@@ -36549,6 +36549,84 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_sync_keepInStep => 'שמירה על סנכרון אוטומטי בין המכשירים';
 
   @override
+  String get settings_nearby_title => 'מכשירים קרובים';
+
+  @override
+  String get settings_nearby_auto_title => 'סנכרון אוטומטי עם מכשירים קרובים';
+
+  @override
+  String get settings_nearby_auto_subtitle =>
+      'כאשר מכשיר מותאם פתוח בקרבת מקום, דרך Bluetooth';
+
+  @override
+  String get settings_nearby_linuxNote =>
+      'מכשירים אחרים לא יכולים למצוא את המחשב הזה, ולכן הוא מסתנכרן עם כל מכשיר קרוב מלבד מחשב Linux אחר';
+
+  @override
+  String get settings_nearby_pair => 'התאמת מכשיר';
+
+  @override
+  String settings_nearby_status_synced(String when) {
+    return 'סונכרן $when';
+  }
+
+  @override
+  String settings_nearby_status_syncing(String done, String total) {
+    return 'מסנכרן: $done מתוך $total';
+  }
+
+  @override
+  String get settings_nearby_status_never => 'עדיין לא סונכרן';
+
+  @override
+  String settings_nearby_status_notSeen(String date) {
+    return 'לא נראה מאז $date';
+  }
+
+  @override
+  String get settings_nearby_error_newerApp =>
+      'המכשיר הזה צריך גרסה חדשה יותר של האפליקציה';
+
+  @override
+  String get settings_nearby_error_peerOlderApp =>
+      'המכשיר השני צריך גרסה חדשה יותר של האפליקציה';
+
+  @override
+  String get settings_nearby_error_differentLibrary => 'לא אותה ספרייה';
+
+  @override
+  String get settings_nearby_error_notPaired => 'ההתאמה בוטלה במכשיר השני';
+
+  @override
+  String get settings_nearby_error_applyFailed =>
+      'לא ניתן היה להחיל את השינויים שלו';
+
+  @override
+  String get settings_nearby_error_bluetoothOff => 'Bluetooth כבוי או לא מורשה';
+
+  @override
+  String get settings_nearby_error_unreachable => 'לא ניתן להתחבר';
+
+  @override
+  String get settings_nearby_sheet_rename => 'שינוי שם';
+
+  @override
+  String get settings_nearby_sheet_unpair => 'ביטול התאמה';
+
+  @override
+  String settings_nearby_unpair_confirm(String name) {
+    return 'לבטל את ההתאמה של $name? יהיה צורך להתאים אותו שוב כדי לסנכרן בקרבת מקום.';
+  }
+
+  @override
+  String get settings_nearby_rename_title => 'שינוי שם המכשיר';
+
+  @override
+  String settings_nearby_notInRange(String name) {
+    return '$name לא נמצא בקרבת מקום כרגע';
+  }
+
+  @override
   String get settings_sync_alsoAtLaunch => 'סנכרון גם בהפעלה';
 
   @override
