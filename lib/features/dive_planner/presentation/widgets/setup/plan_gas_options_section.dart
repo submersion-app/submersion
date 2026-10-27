@@ -5,6 +5,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_choice_wrap.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_number_field.dart';
+import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_ppo2_bands_control.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -133,56 +134,38 @@ class PlanGasOptionsSection extends ConsumerWidget {
           ),
         ),
         if (ref.watch(ppO2DecoBandsEnabledProvider)) ...[
-          PlanNumberField(
-            label: context.l10n.divePlanner_gasOptions_ppO2DecoBand1,
-            value: state.ppO2DecoBand1,
-            hintValue: ref.watch(ppO2DecoBand1Provider),
-            suffixText: 'bar',
-            decimals: 2,
-            onChanged: (value) => notifier.updateGasOptions(
-              ppO2DecoBand1: value,
-              clearPpO2DecoBand1: value == null,
-            ),
-          ),
-          PlanNumberField(
-            label: context.l10n.divePlanner_gasOptions_ppO2DecoBand2,
-            value: state.ppO2DecoBand2,
-            hintValue: ref.watch(ppO2DecoBand2Provider),
-            suffixText: 'bar',
-            decimals: 2,
-            onChanged: (value) => notifier.updateGasOptions(
-              ppO2DecoBand2: value,
-              clearPpO2DecoBand2: value == null,
-            ),
-          ),
-          PlanNumberField(
-            label: context.l10n.divePlanner_gasOptions_ppO2DecoBand3,
-            value: state.ppO2DecoBand3,
-            hintValue: ref.watch(ppO2DecoBand3Provider),
-            suffixText: 'bar',
-            decimals: 2,
-            onChanged: (value) => notifier.updateGasOptions(
-              ppO2DecoBand3: value,
-              clearPpO2DecoBand3: value == null,
+          const SizedBox(height: 8),
+          PlanPpO2BandsControl(
+            band1: state.ppO2DecoBand1,
+            band2: state.ppO2DecoBand2,
+            band3: state.ppO2DecoBand3,
+            defaultBand1: ref.watch(ppO2DecoBand1Provider),
+            defaultBand2: ref.watch(ppO2DecoBand2Provider),
+            defaultBand3: ref.watch(ppO2DecoBand3Provider),
+            onBand1Changed: (value) =>
+                notifier.updateGasOptions(ppO2DecoBand1: value),
+            onBand2Changed: (value) =>
+                notifier.updateGasOptions(ppO2DecoBand2: value),
+            onBand3Changed: (value) =>
+                notifier.updateGasOptions(ppO2DecoBand3: value),
+            onDefault: () => notifier.updateGasOptions(
+              clearPpO2DecoBand1: true,
+              clearPpO2DecoBand2: true,
+              clearPpO2DecoBand3: true,
             ),
           ),
         ],
-        if (ref.watch(maxO2DepthEnabledProvider))
-          PlanNumberField(
-            label: context.l10n.divePlanner_gasOptions_maxO2DepthMeters,
-            value: state.maxO2DepthMeters != null
-                ? units.convertDepth(state.maxO2DepthMeters!)
-                : null,
-            hintValue: units.convertDepth(ref.watch(maxO2DepthMetersProvider)),
-            suffixText: units.depthSymbol,
-            decimals: 1,
-            onChanged: (value) => notifier.updateGasOptions(
-              maxO2DepthMeters: value != null
-                  ? units.depthToMeters(value)
-                  : null,
-              clearMaxO2DepthMeters: value == null,
-            ),
+        if (ref.watch(maxO2DepthEnabledProvider)) ...[
+          const SizedBox(height: 8),
+          PlanMaxO2DepthControl(
+            maxO2DepthMeters: state.maxO2DepthMeters,
+            defaultMaxO2DepthMeters: ref.watch(maxO2DepthMetersProvider),
+            onChanged: (value) =>
+                notifier.updateGasOptions(maxO2DepthMeters: value),
+            onDefault: () =>
+                notifier.updateGasOptions(clearMaxO2DepthMeters: true),
           ),
+        ],
         PlanNumberField(
           label: context.l10n.divePlanner_gasOptions_bestMixEnd,
           value: state.bestMixEndMeters != null
