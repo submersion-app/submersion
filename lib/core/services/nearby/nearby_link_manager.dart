@@ -259,9 +259,27 @@ class NearbyLinkManager {
     return identity;
   }
 
-  Future<void> setForeground(bool inForeground) {
+  Future<void> setForeground(bool inForeground) async {
     _foreground = inForeground;
+    if (!inForeground) await _endSessions();
     return refresh();
+  }
+
+  /// Ends every running session without recording an outcome. Stopping
+  /// the radio leaves an open link connected, and nearby sync is
+  /// foreground-only. The peer is due again on return, and a full copy
+  /// resumes from its last part.
+  Future<void> _endSessions() async {
+    for (final entry in _active.entries.toList()) {
+      _active.remove(entry.key);
+      entry.value.superseded = true;
+      try {
+        await entry.value.channel.close();
+      } on Object {
+        // Already closed.
+      }
+    }
+    _emitState();
   }
 
   Future<void> enterPairingMode() {
@@ -557,7 +575,7 @@ class NearbyLinkManager {
   }
 
   Future<void> _onIncoming(NearbyEndpoint endpoint) async {
-    if (_disposed) {
+    if (_disposed || !_foreground) {
       await endpoint.close();
       return;
     }
@@ -591,6 +609,11 @@ class NearbyLinkManager {
   }
 
   Future<NearbySyncOutcome?> _run(NearbyChannel channel) async {
+    // A handshake that finished after the app left the foreground.
+    if (!_foreground) {
+      await channel.close();
+      return null;
+    }
     final peerId = channel.peer.deviceId;
     final myId = _me!;
     final live = _Live(channel, channel.isInitiator ? myId : peerId, _now());

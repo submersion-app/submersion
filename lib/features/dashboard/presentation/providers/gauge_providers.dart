@@ -67,10 +67,11 @@ NearbyAttention? nearbyAttentionOf(List<NearbyPeer> peers) {
 
 /// [nearbyAttentionOf] the paired devices. The rows are written for every
 /// part a transfer receives; this only notifies when the answer changes,
-/// so the dashboard does not recompute on each one.
+/// so the dashboard does not recompute on each one. Reads the retained
+/// value, so a reload (the store rebuilt) does not hide the chip for a
+/// frame.
 final nearbyAttentionProvider = Provider<NearbyAttention?>(
-  (ref) =>
-      nearbyAttentionOf(ref.watch(nearbyPeersProvider).valueOrNull ?? const []),
+  (ref) => nearbyAttentionOf(ref.watch(nearbyPeersProvider).value ?? const []),
 );
 
 /// The worst service clock for one equipment type, shown as one chip.

@@ -105,6 +105,47 @@ void main() {
       }
       expect(seen, [null, (name: 'Old iPad', more: 0)]);
     });
+
+    test('the chip stays while the paired devices reload for a changed '
+        'dependency', () async {
+      Future<void> settle() async {
+        for (var i = 0; i < 5; i++) {
+          await Future<void>.delayed(Duration.zero);
+        }
+      }
+
+      final loads = <Completer<void>>[];
+      var store = 0;
+      final storeProvider = Provider<int>((ref) => store);
+      final container = ProviderContainer(
+        overrides: [
+          nearbyPeersProvider.overrideWith((ref) async* {
+            ref.watch(storeProvider);
+            final load = Completer<void>();
+            loads.add(load);
+            await load.future;
+            yield [peer('Old iPad', error: 'newerApp')];
+          }),
+        ],
+      );
+      addTearDown(container.dispose);
+      final seen = <NearbyAttention?>[];
+      container.listen(
+        nearbyAttentionProvider,
+        (_, next) => seen.add(next),
+        fireImmediately: true,
+      );
+      await settle();
+      loads.last.complete();
+      await settle();
+      store++;
+      container.invalidate(storeProvider);
+      await settle();
+      expect(loads, hasLength(2), reason: 'reloading');
+      loads.last.complete();
+      await settle();
+      expect(seen, [null, (name: 'Old iPad', more: 0)]);
+    });
   });
 
   group('gearSeverityGroups', () {

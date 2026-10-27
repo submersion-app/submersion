@@ -656,6 +656,40 @@ void main() {
       expect(outcome!.error, isNull);
     });
 
+    test('backgrounding ends a running session without calling it a '
+        'failure', () async {
+      final a = await device('A');
+      final b = await device('B');
+      await pair(a, b);
+      a.engine.identityDelay = const Duration(milliseconds: 80);
+      b.engine.identityDelay = const Duration(milliseconds: 80);
+      await a.manager.setForeground(true);
+      await b.manager.setForeground(true);
+      await until(() => a.manager.state == NearbyLinkState.syncing);
+      await a.manager.setForeground(false);
+      expect(a.manager.state, isNot(NearbyLinkState.syncing));
+      await _settle();
+      final row = (await a.peers.get('B'))!;
+      expect(row.lastSyncedAt, isNull);
+      expect(a.peers.errorOf(row), isNull);
+      expect(a.engine.recordedAcks, isEmpty);
+    });
+
+    test('a handshake that finishes after backgrounding runs no '
+        'session', () async {
+      final a = await device('A');
+      final b = await device('B');
+      await pair(a, b);
+      a.engine.identityDelay = const Duration(milliseconds: 80);
+      b.engine.identityDelay = const Duration(milliseconds: 80);
+      await a.manager.setForeground(true);
+      await b.manager.setForeground(true);
+      await a.manager.setForeground(false);
+      await _settle();
+      expect((await a.peers.get('B'))!.lastSyncedAt, isNull);
+      expect(a.engine.recordedAcks, isEmpty);
+    });
+
     test('a session is stamped synced only at its end', () async {
       final a = await device('A');
       final b = await device('B');

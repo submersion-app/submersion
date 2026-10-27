@@ -90,6 +90,34 @@ void main() {
     },
   );
 
+  test('a shared library site\'s children never travel by their own clock '
+      '(issue #2567)', () async {
+    final watermark = await seed();
+    final db = DatabaseService.instance.database;
+    final later = '${watermark}z';
+    await db.customStatement(
+      'INSERT INTO tags (id, name, created_at, updated_at, hlc) '
+      "VALUES ('tag1', 'Reef', 0, 0, ?)",
+      [hlc(1, 'old')],
+    );
+    await db.customStatement(
+      'INSERT INTO dive_sites (id, name, created_at, updated_at, hlc, '
+      "shared_library_id) VALUES ('mine', 'Home reef', 0, 0, ?, NULL), "
+      "('lib-site', 'Club reef', 0, 0, ?, 'lib-1')",
+      [hlc(1, 'old'), hlc(1, 'old')],
+    );
+    await db.customStatement(
+      'INSERT INTO site_tags (id, site_id, tag_id, created_at, hlc) '
+      "VALUES ('st-mine', 'mine', 'tag1', 0, ?), "
+      "('st-lib', 'lib-site', 'tag1', 0, ?)",
+      [later, later],
+    );
+    await SyncRepository().clearAllSyncRecords();
+
+    final nearby = await export(watermark, byOwnClock: true);
+    expect(nearby.siteTags.map((r) => r['id']), ['st-mine']);
+  });
+
   test('children at or below the watermark stay out', () async {
     final watermark = await seed();
     final nearby = await export(watermark, byOwnClock: true);
