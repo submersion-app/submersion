@@ -6,6 +6,7 @@ import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
+import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
 
 class NotesEditPage extends ConsumerStatefulWidget {
   const NotesEditPage({super.key});
@@ -157,7 +158,7 @@ class _NotesEditPageState extends ConsumerState<NotesEditPage> {
           child: Card(
             child: Padding(
               padding: const EdgeInsets.all(16),
-              child: TextField(
+              child: MarkdownNotesField(
                 controller: _notesCtrl,
                 decoration: InputDecoration(
                   labelText: context.l10n.divers_edit_notesLabel,

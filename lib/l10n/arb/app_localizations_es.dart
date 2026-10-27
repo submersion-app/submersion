@@ -5127,6 +5127,24 @@ class AppLocalizationsEs extends AppLocalizations {
   String get common_placeholder_noValue => '--';
 
   @override
+  String get notesEditor_action_heading => 'Encabezado';
+
+  @override
+  String get notesEditor_action_bold => 'Negrita';
+
+  @override
+  String get notesEditor_action_italic => 'Cursiva';
+
+  @override
+  String get notesEditor_action_bulletList => 'Lista con viñetas';
+
+  @override
+  String get notesEditor_action_numberedList => 'Lista numerada';
+
+  @override
+  String get notesEditor_action_preview => 'Vista previa';
+
+  @override
   String get common_error_tryAgain => 'Algo salió mal. Inténtalo de nuevo.';
 
   @override
@@ -8299,6 +8317,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_filterChip_noBuddy => 'Sin compañero';
 
   @override
+  String get diveLog_filterChip_noRole => 'Sin rol';
+
+  @override
   String diveLog_filterChip_until(Object date) {
     return 'Hasta $date';
   }
@@ -8362,6 +8383,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_filter_noBuddyOnly => 'Sin compañero asignado';
 
   @override
+  String get diveLog_filter_noRoleOnly => 'Sin rol asignado';
+
+  @override
   String get diveLog_filter_noTagsYet => 'Aún no se han creado etiquetas';
 
   @override
@@ -8421,6 +8445,10 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get diveLog_filter_showOnlyNoBuddy =>
       'Mostrar solo inmersiones sin compañero';
+
+  @override
+  String get diveLog_filter_showOnlyNoRole =>
+      'Mostrar solo inmersiones sin tu rol';
 
   @override
   String get diveLog_filter_startDate => 'Fecha de inicio';
@@ -47432,16 +47460,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_filter_speciesSearchHint => 'Buscar especies';
 
   @override
-  String get explore_chip_favorite => 'Favorito';
-
-  @override
   String get explore_chip_deco => 'Inmersión con descompresión';
 
   @override
   String get explore_chip_noDeco => 'Sin descompresión';
-
-  @override
-  String get explore_chip_noBuddy => 'Sin compañero';
 
   @override
   String explore_chip_rating(String op, String value) {
@@ -47499,49 +47521,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'El modelo del dispositivo no entiende este idioma.';
 
   @override
-  String get explore_field_airTemp => 'Temperatura del aire';
-
-  @override
-  String get explore_field_avgDepth => 'Profundidad media';
-
-  @override
   String get explore_field_bottomTime => 'Tiempo de fondo';
 
   @override
-  String get explore_field_currentStrength => 'Corriente';
-
-  @override
-  String get explore_field_depth => 'Profundidad';
-
-  @override
-  String get explore_field_diveMode => 'Modo de inmersión';
-
-  @override
-  String get explore_field_diveNumber => 'Número de inmersión';
-
-  @override
-  String get explore_field_diveType => 'Tipo de inmersión';
-
-  @override
-  String get explore_field_entryMethod => 'Entrada';
-
-  @override
   String get explore_field_o2 => 'Oxígeno';
-
-  @override
-  String get explore_field_rating => 'Valoración';
-
-  @override
-  String get explore_field_visibility => 'Visibilidad';
-
-  @override
-  String get explore_field_waterTemp => 'Temperatura del agua';
-
-  @override
-  String get explore_field_waterType => 'Tipo de agua';
-
-  @override
-  String get explore_field_weekday => 'Día de la semana';
 
   @override
   String get explore_handoff_list => 'Abrir en la lista';
@@ -49245,6 +49228,42 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get importWizard_dc_noDirectDownloadGarminBody =>
       'Los relojes Garmin guardan las inmersiones como archivos FIT en lugar de ofrecer una descarga directa. Conecte el reloj por USB, copie los archivos de su carpeta GARMIN/Activity y luego impórtelos.';
+
+  @override
+  String importWizard_dc_notFoundNearby(String name) {
+    return 'No se encontró $name';
+  }
+
+  @override
+  String importWizard_dc_notFoundNearbyBody(String name) {
+    return 'Submersion buscó por Bluetooth y no encontró $name cerca, o encontró más de uno del mismo modelo. Active el Bluetooth del ordenador, acérquelo a este dispositivo y vuelva a intentarlo.';
+  }
+
+  @override
+  String get importWizard_dc_tryAgain => 'Reintentar';
+
+  @override
+  String get importWizard_dc_bluetoothOffBody =>
+      'Bluetooth está desactivado o no disponible en este dispositivo. Actívelo y toque Reintentar.';
+
+  @override
+  String get importWizard_dc_couldNotScanBody =>
+      'Submersion no pudo buscar por Bluetooth. Compruebe que Bluetooth está activado y que Submersion tiene permiso para usarlo, y toque Reintentar.';
+
+  @override
+  String importWizard_dc_anotherUnit(String name) {
+    return 'No era $name';
+  }
+
+  @override
+  String importWizard_dc_anotherUnitBody(
+    String name,
+    String model,
+    String reported,
+    String stored,
+  ) {
+    return 'El $model que respondió indicó el número de serie $reported, no $stored, así que es otro ordenador y sus inmersiones no se importaron. Desactive el Bluetooth de ese ordenador, acerque $name a este dispositivo y vuelva a descargar.';
+  }
 
   @override
   String get importWizard_dc_noNewDives =>
@@ -53356,6 +53375,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get query_dives_legacyBuddy => 'Compañero (texto antiguo)';
+
+  @override
+  String get query_dives_role => 'Mi rol';
 
   @override
   String get query_dives_media => 'Multimedia';

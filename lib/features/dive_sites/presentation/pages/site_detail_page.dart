@@ -74,6 +74,7 @@ import 'package:submersion/shared/widgets/detail_row/detail_row_group.dart';
 import 'package:submersion/shared/widgets/detail_row/detail_row.dart';
 import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
 import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
+import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_view.dart';
 
 class SiteDetailPage extends ConsumerStatefulWidget {
   final String siteId;
@@ -1131,15 +1132,16 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
               ],
             ),
             const SizedBox(height: 12),
-            Text(
-              hasDescription
-                  ? site.description
-                  : context.l10n.diveSites_detail_noDescription,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: hasDescription ? null : colorScheme.onSurfaceVariant,
-                fontStyle: hasDescription ? null : FontStyle.italic,
+            if (hasDescription)
+              MarkdownNotesView(site.description)
+            else
+              Text(
+                context.l10n.diveSites_detail_noDescription,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                  fontStyle: FontStyle.italic,
+                ),
               ),
-            ),
           ],
         ),
       ),
@@ -2105,6 +2107,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
                 Icons.info_outline,
                 context.l10n.diveSites_detail_access_accessNotes,
                 site.accessNotes!,
+                markdown: true,
               ),
             ],
             if (site.entryMethods.isNotEmpty) ...[
@@ -2156,8 +2159,9 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
     BuildContext context,
     IconData icon,
     String label,
-    String value,
-  ) {
+    String value, {
+    bool markdown = false,
+  }) {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Padding(
@@ -2193,7 +2197,10 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
             ],
           ),
           const SizedBox(height: 4),
-          Text(value, style: Theme.of(context).textTheme.bodyMedium),
+          if (markdown)
+            MarkdownNotesView(value)
+          else
+            Text(value, style: Theme.of(context).textTheme.bodyMedium),
         ],
       ),
     );
@@ -2277,13 +2284,16 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
               ],
             ),
             const SizedBox(height: 12),
-            Text(
-              hasNotes ? site.notes : context.l10n.diveSites_detail_noNotes,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: hasNotes ? null : colorScheme.onSurfaceVariant,
-                fontStyle: hasNotes ? null : FontStyle.italic,
+            if (hasNotes)
+              MarkdownNotesView(site.notes)
+            else
+              Text(
+                context.l10n.diveSites_detail_noNotes,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                  fontStyle: FontStyle.italic,
+                ),
               ),
-            ),
           ],
         ),
       ),

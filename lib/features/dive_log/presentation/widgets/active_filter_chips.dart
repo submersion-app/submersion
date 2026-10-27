@@ -241,6 +241,16 @@ List<Widget> activeDiveFilterChips(
     );
   }
 
+  if (filter.noRoleOnly == true) {
+    chips.add(
+      axisChip(context.l10n.diveLog_filterChip_noRole, () {
+        ref.read(filterProvider.notifier).state = filter.copyWith(
+          clearNoRoleOnly: true,
+        );
+      }),
+    );
+  }
+
   if (filter.tagIds.isNotEmpty) {
     final tagCount = filter.tagIds.length;
     chips.add(

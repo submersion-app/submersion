@@ -117,6 +117,7 @@ void main() {
       'depth range': const DiveFilterState(minDepth: 10, maxDepth: 30),
       'favourites': const DiveFilterState(favoritesOnly: true),
       'no buddy': const DiveFilterState(noBuddyOnly: true),
+      'no role': const DiveFilterState(noRoleOnly: true),
       'tags': const DiveFilterState(tagIds: ['a', 'b']),
       'buddy name': const DiveFilterState(buddyNameFilter: 'Jane'),
     };

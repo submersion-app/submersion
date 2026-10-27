@@ -104,7 +104,8 @@ class CsvEquipmentWriter {
           tagNames[item.id] == null ? null : joinCsvList(tagNames[item.id]!),
         ),
         item.isActive ? 'Yes' : 'No',
-        sanitizeCsvField(item.notes.replaceAll('\n', ' ')),
+        // Raw, line breaks and all: Submersion reads this file back (#3683).
+        sanitizeCsvField(item.notes),
         sanitizeCsvField(locationNames[item.id]),
       ]);
     }

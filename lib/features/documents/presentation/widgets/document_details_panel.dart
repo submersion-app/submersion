@@ -14,6 +14,7 @@ import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_link_providers.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_chip.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_view.dart';
 
 /// The details under a document's pages on a narrow screen. Collapsed it
 /// is one line (type, expiry, what it is filed under) so the pages get the
@@ -195,6 +196,7 @@ class DocumentDetailsCard extends ConsumerWidget {
             icon: Icons.notes_outlined,
             label: l10n.documents_field_notes,
             value: notes,
+            markdown: true,
           ),
       ],
     );
@@ -258,12 +260,16 @@ class _DetailRow extends StatelessWidget {
   final VoidCallback? onTap;
   final Widget? trailing;
 
+  /// Draws [value] as a Markdown note (#3683).
+  final bool markdown;
+
   const _DetailRow({
     required this.icon,
     required this.label,
     required this.value,
     this.onTap,
     this.trailing,
+    this.markdown = false,
   });
 
   @override
@@ -281,7 +287,10 @@ class _DetailRow extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(value, style: theme.textTheme.bodyLarge),
+          if (markdown)
+            MarkdownNotesView(value, style: theme.textTheme.bodyLarge)
+          else
+            Text(value, style: theme.textTheme.bodyLarge),
           if (trailing case final badge?) ...[const SizedBox(height: 4), badge],
         ],
       ),

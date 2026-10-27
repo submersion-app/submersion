@@ -237,14 +237,14 @@ void main() {
     expect(q.subject, ParsedSubject.dives);
   });
 
-  test('version 2 payloads still parse under version 3', () {
+  test('version 2 payloads still parse under the current version', () {
     final q = ParsedQuery.fromJson({
       'schemaVersion': 2,
       'subject': 'dives',
       'clauses': const [],
     });
     expect(q.subject, ParsedSubject.dives);
-    expect(kQuerySchemaVersion, 4);
+    expect(kQuerySchemaVersion, 5);
   });
 
   group('time (#2838)', () {

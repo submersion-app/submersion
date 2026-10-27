@@ -5111,6 +5111,24 @@ class AppLocalizationsHu extends AppLocalizations {
   String get common_placeholder_noValue => '--';
 
   @override
+  String get notesEditor_action_heading => 'Címsor';
+
+  @override
+  String get notesEditor_action_bold => 'Félkövér';
+
+  @override
+  String get notesEditor_action_italic => 'Dőlt';
+
+  @override
+  String get notesEditor_action_bulletList => 'Felsorolás';
+
+  @override
+  String get notesEditor_action_numberedList => 'Számozott lista';
+
+  @override
+  String get notesEditor_action_preview => 'Előnézet';
+
+  @override
   String get common_error_tryAgain =>
       'Valami hiba történt. Kérjük, próbáld újra.';
 
@@ -8278,6 +8296,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_filterChip_noBuddy => 'Nincs búvártárs';
 
   @override
+  String get diveLog_filterChip_noRole => 'Nincs szerep';
+
+  @override
   String diveLog_filterChip_until(Object date) {
     return 'Eddig: $date';
   }
@@ -8341,6 +8362,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_filter_noBuddyOnly => 'Nincs búvártárs hozzárendelve';
 
   @override
+  String get diveLog_filter_noRoleOnly => 'Nincs szerep hozzárendelve';
+
+  @override
   String get diveLog_filter_noTagsYet => 'Még nincsenek létrehozott címkék';
 
   @override
@@ -8401,6 +8425,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get diveLog_filter_showOnlyNoBuddy =>
       'Csak búvártárs nélküli merülések mutatása';
+
+  @override
+  String get diveLog_filter_showOnlyNoRole =>
+      'Csak saját szerep nélküli merülések mutatása';
 
   @override
   String get diveLog_filter_startDate => 'Kezdés dátuma';
@@ -47140,16 +47168,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_filter_speciesSearchHint => 'Fajok keresése';
 
   @override
-  String get explore_chip_favorite => 'Kedvenc';
-
-  @override
   String get explore_chip_deco => 'Dekompressziós merülés';
 
   @override
   String get explore_chip_noDeco => 'Dekompresszió nélkül';
-
-  @override
-  String get explore_chip_noBuddy => 'Társ nélkül';
 
   @override
   String explore_chip_rating(String op, String value) {
@@ -47207,49 +47229,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Az eszközön futó modell nem érti ezt a nyelvet.';
 
   @override
-  String get explore_field_airTemp => 'Levegő hőmérséklete';
-
-  @override
-  String get explore_field_avgDepth => 'Átlagos mélység';
-
-  @override
   String get explore_field_bottomTime => 'Fenékidő';
 
   @override
-  String get explore_field_currentStrength => 'Áramlás';
-
-  @override
-  String get explore_field_depth => 'Mélység';
-
-  @override
-  String get explore_field_diveMode => 'Merülési mód';
-
-  @override
-  String get explore_field_diveNumber => 'Merülés száma';
-
-  @override
-  String get explore_field_diveType => 'Merülés típusa';
-
-  @override
-  String get explore_field_entryMethod => 'Beszállás';
-
-  @override
   String get explore_field_o2 => 'Oxigén';
-
-  @override
-  String get explore_field_rating => 'Értékelés';
-
-  @override
-  String get explore_field_visibility => 'Látótávolság';
-
-  @override
-  String get explore_field_waterTemp => 'Vízhőmérséklet';
-
-  @override
-  String get explore_field_waterType => 'Víztípus';
-
-  @override
-  String get explore_field_weekday => 'Hét napja';
 
   @override
   String get explore_handoff_list => 'Megnyitás a listában';
@@ -48926,6 +48909,42 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get importWizard_dc_noDirectDownloadGarminBody =>
       'A Garmin órák FIT-fájlokként tárolják a merüléseket, és nem kínálnak közvetlen letöltést. Csatlakoztassa az órát USB-n, másolja ki a fájlokat a GARMIN/Activity mappájából, majd importálja őket.';
+
+  @override
+  String importWizard_dc_notFoundNearby(String name) {
+    return 'Nem található: $name';
+  }
+
+  @override
+  String importWizard_dc_notFoundNearbyBody(String name) {
+    return 'A Submersion Bluetooth-on keresett, de nem talált a közelben ilyet: $name, vagy több azonos modellt is talált. Kapcsolja be a számítógép Bluetooth-át, tartsa közel ehhez az eszközhöz, és próbálja újra.';
+  }
+
+  @override
+  String get importWizard_dc_tryAgain => 'Újra';
+
+  @override
+  String get importWizard_dc_bluetoothOffBody =>
+      'A Bluetooth ki van kapcsolva, vagy nem érhető el ezen az eszközön. Kapcsolja be, majd koppintson az Újra gombra.';
+
+  @override
+  String get importWizard_dc_couldNotScanBody =>
+      'A Submersion nem tudott Bluetooth-on keresni. Ellenőrizze, hogy a Bluetooth be van-e kapcsolva, és hogy a Submersion használhatja-e, majd koppintson az Újra gombra.';
+
+  @override
+  String importWizard_dc_anotherUnit(String name) {
+    return 'Nem ez volt: $name';
+  }
+
+  @override
+  String importWizard_dc_anotherUnitBody(
+    String name,
+    String model,
+    String reported,
+    String stored,
+  ) {
+    return 'A válaszoló $model a(z) $reported sorozatszámot jelentette, nem a(z) $stored számot, tehát egy másik számítógép, és a merülései nem lettek importálva. Kapcsolja ki annak a számítógépnek a Bluetooth-át, tartsa közel ezt: $name ehhez az eszközhöz, és töltse le újra.';
+  }
 
   @override
   String get importWizard_dc_noNewDives => 'Nincs letöltendő új merülés';
@@ -53022,6 +53041,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get query_dives_legacyBuddy => 'Merülőtárs (régi szöveg)';
+
+  @override
+  String get query_dives_role => 'Saját szerep';
 
   @override
   String get query_dives_media => 'Média';

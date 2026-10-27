@@ -15,6 +15,7 @@ import 'package:submersion/features/signatures/domain/entities/signature.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
 import 'package:submersion/features/certification_agencies/presentation/certification_entry_display.dart';
+import 'package:submersion/core/services/pdf_templates/pdf_notes_markdown.dart';
 
 /// Handles PDF export for training course logs.
 class PdfCourseExportService {
@@ -225,12 +226,10 @@ class PdfCourseExportService {
             ),
             pw.Divider(color: PdfColors.grey300),
             pw.SizedBox(height: 15),
-            // TextOverflow.span is what lets MultiPage break the notes
-            // across sheets.
-            pw.Text(
+            // One widget per block, each able to break across sheets.
+            ...notesMarkdownPdfBlocks(
               course.notes,
               style: const pw.TextStyle(fontSize: 11),
-              overflow: pw.TextOverflow.span,
             ),
           ],
         ),
@@ -366,7 +365,7 @@ class PdfCourseExportService {
           ),
           if (dive.notes.isNotEmpty) ...[
             pw.SizedBox(height: 8),
-            pw.Text(
+            notesMarkdownPdfInline(
               dive.notes,
               style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700),
               maxLines: 3,

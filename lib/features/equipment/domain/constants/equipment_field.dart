@@ -7,6 +7,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/constants/entity_field.dart';
+import 'package:submersion/core/text/markdown/notes_plain_text.dart';
 
 /// Enumeration of every field from the [EquipmentItem] entity that can appear
 /// in table or card views.
@@ -342,7 +343,7 @@ class EquipmentFieldAdapter
       EquipmentField.nextServiceDue => worstClocks[entity.id]?.dueDate,
       EquipmentField.daysUntilService => worstClocks[entity.id]?.daysUntilDue,
       EquipmentField.serviceIntervalDays => entity.serviceIntervalDays,
-      EquipmentField.notes => entity.notes,
+      EquipmentField.notes => markdownToPlainText(entity.notes),
       EquipmentField.components => componentCounts[entity.id] ?? 0,
       EquipmentField.tags => tagNames[entity.id] ?? const <String>[],
       EquipmentField.owner => ownerNames[entity.diverId] ?? '',

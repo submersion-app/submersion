@@ -15,6 +15,7 @@ import 'package:submersion/features/dive_sites/domain/entry_method_list.dart';
 import 'package:submersion/features/gps_log/domain/entities/gps_track.dart';
 import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
+import 'package:submersion/core/text/markdown/notes_plain_text.dart';
 
 /// Handles KML export for Google Earth visualization.
 class KmlExportService {
@@ -225,7 +226,7 @@ class KmlExportService {
 
     if (site.description.isNotEmpty) {
       buffer.writeln(
-        '<p><b>Description:</b> ${_escapeHtml(site.description)}</p>',
+        '<p><b>Description:</b> ${_plainHtml(site.description)}</p>',
       );
     }
 
@@ -256,7 +257,7 @@ class KmlExportService {
     }
 
     if (site.accessNotes != null && site.accessNotes!.isNotEmpty) {
-      buffer.writeln('<p><b>Access:</b> ${_escapeHtml(site.accessNotes!)}</p>');
+      buffer.writeln('<p><b>Access:</b> ${_plainHtml(site.accessNotes!)}</p>');
     }
 
     if (site.rating != null) {
@@ -287,6 +288,10 @@ class KmlExportService {
 
     return buffer.toString();
   }
+
+  /// A Markdown field as escaped plain words, one line per line (#3683).
+  String _plainHtml(String markdown) =>
+      _escapeHtml(markdownToPlainText(markdown)).replaceAll('\n', '<br>');
 
   String _escapeHtml(String text) {
     return const HtmlEscape().convert(text);

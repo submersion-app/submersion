@@ -22,6 +22,7 @@ import 'package:submersion/features/trips/presentation/widgets/day/today_chip.da
 import 'package:submersion/features/trips/presentation/widgets/itinerary/itinerary_dive_row.dart';
 import 'package:submersion/features/trips/presentation/widgets/itinerary_day_edit_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/core/text/markdown/notes_plain_text.dart';
 
 /// Card for a single itinerary day: type, date and weather, port, notes, the
 /// plan, the day's totals and conditions, its dives, and its photos and
@@ -226,7 +227,7 @@ class ItineraryDayCard extends ConsumerWidget {
                   Padding(
                     padding: const EdgeInsets.only(left: 48),
                     child: Text(
-                      day.notes,
+                      markdownToPlainText(day.notes),
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                         fontStyle: FontStyle.italic,

@@ -153,6 +153,17 @@ void main() {
       );
     });
 
+    test('returns Markdown notes as plain words', () {
+      final entity = BuddyWithDiveCount(
+        buddy: testBuddy.copyWith(notes: '# Plan\n**Bring torch**'),
+        diveCount: 1,
+      );
+      expect(
+        adapter.extractValue(BuddyField.notes, entity),
+        'Plan\nBring torch',
+      );
+    });
+
     test('returns notes when non-empty', () {
       expect(
         adapter.extractValue(BuddyField.notes, testEntity),

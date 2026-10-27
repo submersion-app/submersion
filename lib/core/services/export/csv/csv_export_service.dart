@@ -26,6 +26,7 @@ import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/entities/trip_gas_record.dart';
 import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
+import 'package:submersion/core/text/markdown/notes_plain_text.dart';
 
 /// Handles all CSV export operations: share, generate content, and save to file.
 class CsvExportService {
@@ -181,7 +182,7 @@ class CsvExportService {
         sanitizeCsvField(trip.location),
         sanitizeCsvField(trip.resortName),
         sanitizeCsvField(trip.liveaboardName),
-        sanitizeCsvField(trip.notes.replaceAll('\n', ' ')),
+        sanitizeCsvField(markdownToPlainText(trip.notes).replaceAll('\n', ' ')),
       ]);
     }
 

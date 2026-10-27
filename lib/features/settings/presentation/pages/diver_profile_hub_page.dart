@@ -17,6 +17,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/presentation/providers/document_providers.dart';
 import 'package:submersion/features/safety/presentation/providers/incident_providers.dart';
+import 'package:submersion/core/text/markdown/notes_plain_text.dart';
 
 final _log = LoggerService.forClass(DiverProfileHubPage);
 
@@ -445,7 +446,7 @@ class DiverProfileHubPage extends ConsumerWidget {
     if (diver.notes.isEmpty) {
       return context.l10n.settings_profileHub_notes_notSet;
     }
-    return diver.notes.split('\n').first;
+    return markdownToPlainText(diver.notes).split('\n').first;
   }
 
   String _priorExperienceSubtitle(BuildContext context, Diver diver) {

@@ -11,6 +11,7 @@ import 'package:submersion/features/equipment/presentation/widgets/equipment_loc
 import 'package:submersion/features/equipment/presentation/widgets/location_confirm_dialogs.dart';
 import 'package:submersion/features/equipment/presentation/widgets/move_equipment_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_view.dart';
 
 /// Whether any move names the place, so Delete is offered only for a place
 /// nothing has ever been at. Refreshes on every move.
@@ -121,7 +122,9 @@ class EquipmentLocationDetailPage extends ConsumerWidget {
           ListTile(
             leading: Icon(place.kind.icon),
             title: Text(place.kind.localizedName(l10n)),
-            subtitle: place.notes.isEmpty ? null : Text(place.notes),
+            subtitle: place.notes.isEmpty
+                ? null
+                : MarkdownNotesView(place.notes),
           ),
           const Divider(),
           Padding(

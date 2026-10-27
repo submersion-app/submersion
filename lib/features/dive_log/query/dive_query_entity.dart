@@ -1,4 +1,5 @@
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/core/query/registry/query_entity.dart';
 import 'package:submersion/core/query/registry/query_field.dart';
@@ -427,6 +428,20 @@ final QueryEntity diveQueryEntity = QueryEntity(
     // The legacy free-text buddy column (#757): the dive editor writes only
     // dive_buddies, but old data still carries names here.
     _text('legacyBuddy', 'buddy'),
+    // The diver's own role (#3622), present or not. A null or blank
+    // diver_role is no role whatever dive_diver_roles holds, as
+    // DiveRoleSet.resolve reads it. Matching a named role would need that
+    // resolution in SQL and a name subject for custom roles, so only the
+    // presence operators are offered.
+    QueryField(
+      key: 'role',
+      aliases: const ['myRole'],
+      type: FieldType.text,
+      sql: '{r}.diver_role',
+      emptySql: "({r}.diver_role IS NULL OR {r}.diver_role = '')",
+      labelKey: _label('role'),
+      ops: const {QueryOp.isEmpty, QueryOp.isSet},
+    ),
     _text('diveMaster', 'dive_master'),
     _text('boatName', 'boat_name'),
     _text('boatCaptain', 'boat_captain'),

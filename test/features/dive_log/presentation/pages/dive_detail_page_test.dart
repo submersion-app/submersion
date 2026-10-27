@@ -1961,7 +1961,15 @@ void main() {
       await _pumpDetailPage(tester, dive);
       await scrollToNotes(tester);
 
-      expect(find.widgetWithText(SelectableText, notes), findsOneWidget);
+      // Drawn as Markdown (#3683) inside a SelectionArea, so still
+      // selectable without edit mode.
+      expect(
+        find.ancestor(
+          of: find.text(notes),
+          matching: find.byType(SelectionArea),
+        ),
+        findsOneWidget,
+      );
     });
 
     testWidgets('an empty note shows the placeholder as plain text', (

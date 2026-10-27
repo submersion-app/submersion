@@ -5050,6 +5050,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get common_placeholder_noValue => '--';
 
   @override
+  String get notesEditor_action_heading => 'Heading';
+
+  @override
+  String get notesEditor_action_bold => 'Bold';
+
+  @override
+  String get notesEditor_action_italic => 'Italic';
+
+  @override
+  String get notesEditor_action_bulletList => 'Bulleted list';
+
+  @override
+  String get notesEditor_action_numberedList => 'Numbered list';
+
+  @override
+  String get notesEditor_action_preview => 'Preview';
+
+  @override
   String get common_error_tryAgain => 'Something went wrong. Please try again.';
 
   @override
@@ -8169,6 +8187,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_filterChip_noBuddy => 'No Buddy';
 
   @override
+  String get diveLog_filterChip_noRole => 'No Role';
+
+  @override
   String diveLog_filterChip_until(Object date) {
     return 'Until $date';
   }
@@ -8231,6 +8252,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_filter_noBuddyOnly => 'No Buddy Assigned';
 
   @override
+  String get diveLog_filter_noRoleOnly => 'No Role Assigned';
+
+  @override
   String get diveLog_filter_noTagsYet => 'No tags created yet';
 
   @override
@@ -8287,6 +8311,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get diveLog_filter_showOnlyNoBuddy =>
       'Show only dives without a buddy';
+
+  @override
+  String get diveLog_filter_showOnlyNoRole =>
+      'Show only dives where your role is not set';
 
   @override
   String get diveLog_filter_startDate => 'Start Date';
@@ -46698,16 +46726,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_filter_speciesSearchHint => 'Search species';
 
   @override
-  String get explore_chip_favorite => 'Favourite';
-
-  @override
   String get explore_chip_deco => 'Decompression dive';
 
   @override
   String get explore_chip_noDeco => 'No decompression';
-
-  @override
-  String get explore_chip_noBuddy => 'No buddy';
 
   @override
   String explore_chip_rating(String op, String value) {
@@ -46765,49 +46787,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'The on-device model does not understand this language.';
 
   @override
-  String get explore_field_airTemp => 'Air temperature';
-
-  @override
-  String get explore_field_avgDepth => 'Average depth';
-
-  @override
   String get explore_field_bottomTime => 'Bottom time';
 
   @override
-  String get explore_field_currentStrength => 'Current';
-
-  @override
-  String get explore_field_depth => 'Depth';
-
-  @override
-  String get explore_field_diveMode => 'Dive mode';
-
-  @override
-  String get explore_field_diveNumber => 'Dive number';
-
-  @override
-  String get explore_field_diveType => 'Dive type';
-
-  @override
-  String get explore_field_entryMethod => 'Entry';
-
-  @override
   String get explore_field_o2 => 'Oxygen';
-
-  @override
-  String get explore_field_rating => 'Rating';
-
-  @override
-  String get explore_field_visibility => 'Visibility';
-
-  @override
-  String get explore_field_waterTemp => 'Water temperature';
-
-  @override
-  String get explore_field_waterType => 'Water type';
-
-  @override
-  String get explore_field_weekday => 'Weekday';
 
   @override
   String get explore_handoff_list => 'Open in list';
@@ -48453,6 +48436,42 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get importWizard_dc_noDirectDownloadGarminBody =>
       'Garmin watches store dives as FIT files instead of offering a direct download. Connect the watch by USB, copy the files from its GARMIN/Activity folder, then import them.';
+
+  @override
+  String importWizard_dc_notFoundNearby(String name) {
+    return 'Couldn\'t find $name';
+  }
+
+  @override
+  String importWizard_dc_notFoundNearbyBody(String name) {
+    return 'Submersion searched over Bluetooth and found no $name nearby, or found more than one of the same model. Turn on the computer\'s Bluetooth, hold it close to this device and try again.';
+  }
+
+  @override
+  String get importWizard_dc_tryAgain => 'Try Again';
+
+  @override
+  String get importWizard_dc_bluetoothOffBody =>
+      'Bluetooth is off or unavailable on this device. Turn it on, then tap Try Again.';
+
+  @override
+  String get importWizard_dc_couldNotScanBody =>
+      'Submersion could not search over Bluetooth. Check that Bluetooth is on and that Submersion is allowed to use it, then tap Try Again.';
+
+  @override
+  String importWizard_dc_anotherUnit(String name) {
+    return 'That was not $name';
+  }
+
+  @override
+  String importWizard_dc_anotherUnitBody(
+    String name,
+    String model,
+    String reported,
+    String stored,
+  ) {
+    return 'The $model that answered reported serial number $reported, not $stored, so it is another computer and its dives were not imported. Turn off that computer\'s Bluetooth, keep $name close to this device and download again.';
+  }
 
   @override
   String get importWizard_dc_noNewDives => 'No new dives to download';
@@ -52470,6 +52489,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get query_dives_legacyBuddy => 'Buddy (legacy text)';
+
+  @override
+  String get query_dives_role => 'My role';
 
   @override
   String get query_dives_media => 'Media';

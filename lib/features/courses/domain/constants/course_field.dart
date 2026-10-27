@@ -5,6 +5,7 @@ import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/constants/entity_field.dart';
 import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
+import 'package:submersion/core/text/markdown/notes_plain_text.dart';
 
 /// Enumeration of every displayable field for the course table view.
 enum CourseField implements EntityField {
@@ -198,7 +199,7 @@ class CourseFieldAdapter extends EntityFieldAdapter<Course, CourseField> {
       CourseField.instructorNumber => entity.instructorNumber,
       CourseField.location => entity.location,
       CourseField.isCompleted => entity.isCompleted,
-      CourseField.notes => entity.notes,
+      CourseField.notes => markdownToPlainText(entity.notes),
     };
   }
 

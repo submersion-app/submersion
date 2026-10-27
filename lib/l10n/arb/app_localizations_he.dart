@@ -5019,6 +5019,24 @@ class AppLocalizationsHe extends AppLocalizations {
   String get common_placeholder_noValue => '--';
 
   @override
+  String get notesEditor_action_heading => 'כותרת';
+
+  @override
+  String get notesEditor_action_bold => 'מודגש';
+
+  @override
+  String get notesEditor_action_italic => 'נטוי';
+
+  @override
+  String get notesEditor_action_bulletList => 'רשימת תבליטים';
+
+  @override
+  String get notesEditor_action_numberedList => 'רשימה ממוספרת';
+
+  @override
+  String get notesEditor_action_preview => 'תצוגה מקדימה';
+
+  @override
   String get common_error_tryAgain => 'משהו השתבש. יש לנסות שוב.';
 
   @override
@@ -8118,6 +8136,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_filterChip_noBuddy => 'ללא שותף';
 
   @override
+  String get diveLog_filterChip_noRole => 'ללא תפקיד';
+
+  @override
   String diveLog_filterChip_until(Object date) {
     return 'עד $date';
   }
@@ -8180,6 +8201,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_filter_noBuddyOnly => 'ללא שותף';
 
   @override
+  String get diveLog_filter_noRoleOnly => 'ללא תפקיד';
+
+  @override
   String get diveLog_filter_noTagsYet => 'לא נוצרו תגיות עדיין';
 
   @override
@@ -8235,6 +8259,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_filter_showOnlyNoBuddy => 'הצגת צלילות ללא שותף בלבד';
+
+  @override
+  String get diveLog_filter_showOnlyNoRole => 'הצגת צלילות ללא התפקיד שלך בלבד';
 
   @override
   String get diveLog_filter_startDate => 'תאריך התחלה';
@@ -46382,16 +46409,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_filter_speciesSearchHint => 'חיפוש מינים';
 
   @override
-  String get explore_chip_favorite => 'מועדף';
-
-  @override
   String get explore_chip_deco => 'צלילת דקומפרסיה';
 
   @override
   String get explore_chip_noDeco => 'ללא דקומפרסיה';
-
-  @override
-  String get explore_chip_noBuddy => 'ללא שותף';
 
   @override
   String explore_chip_rating(String op, String value) {
@@ -46447,49 +46468,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'המודל במכשיר אינו מבין שפה זו.';
 
   @override
-  String get explore_field_airTemp => 'טמפרטורת האוויר';
-
-  @override
-  String get explore_field_avgDepth => 'עומק ממוצע';
-
-  @override
   String get explore_field_bottomTime => 'זמן קרקעית';
 
   @override
-  String get explore_field_currentStrength => 'זרם';
-
-  @override
-  String get explore_field_depth => 'עומק';
-
-  @override
-  String get explore_field_diveMode => 'מצב צלילה';
-
-  @override
-  String get explore_field_diveNumber => 'מספר צלילה';
-
-  @override
-  String get explore_field_diveType => 'סוג צלילה';
-
-  @override
-  String get explore_field_entryMethod => 'כניסה';
-
-  @override
   String get explore_field_o2 => 'חמצן';
-
-  @override
-  String get explore_field_rating => 'דירוג';
-
-  @override
-  String get explore_field_visibility => 'ראות';
-
-  @override
-  String get explore_field_waterTemp => 'טמפרטורת המים';
-
-  @override
-  String get explore_field_waterType => 'סוג מים';
-
-  @override
-  String get explore_field_weekday => 'יום בשבוע';
 
   @override
   String get explore_handoff_list => 'פתח ברשימה';
@@ -48181,6 +48163,42 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get importWizard_dc_noDirectDownloadGarminBody =>
       'שעוני Garmin שומרים צלילות כקובצי FIT במקום לאפשר הורדה ישירה. חבר את השעון ב-USB, העתק את הקבצים מהתיקייה GARMIN/Activity שלו, ולאחר מכן ייבא אותם.';
+
+  @override
+  String importWizard_dc_notFoundNearby(String name) {
+    return 'לא נמצא $name';
+  }
+
+  @override
+  String importWizard_dc_notFoundNearbyBody(String name) {
+    return 'Submersion חיפש דרך Bluetooth ולא מצא את $name בקרבת מקום, או שמצא יותר ממחשב אחד מאותו דגם. הפעל את ה-Bluetooth במחשב, קרב אותו למכשיר הזה ונסה שוב.';
+  }
+
+  @override
+  String get importWizard_dc_tryAgain => 'נסה שוב';
+
+  @override
+  String get importWizard_dc_bluetoothOffBody =>
+      'ה-Bluetooth כבוי או לא זמין במכשיר הזה. הפעל אותו ואז הקש על נסה שוב.';
+
+  @override
+  String get importWizard_dc_couldNotScanBody =>
+      'Submersion לא הצליח לחפש דרך Bluetooth. ודא שה-Bluetooth פועל ושל-Submersion יש הרשאה להשתמש בו, ואז הקש על נסה שוב.';
+
+  @override
+  String importWizard_dc_anotherUnit(String name) {
+    return 'זה לא היה $name';
+  }
+
+  @override
+  String importWizard_dc_anotherUnitBody(
+    String name,
+    String model,
+    String reported,
+    String stored,
+  ) {
+    return 'ה-$model שענה דיווח על מספר סידורי $reported, לא $stored, כך שזה מחשב אחר והצלילות שלו לא יובאו. כבה את ה-Bluetooth במחשב ההוא, קרב את $name למכשיר הזה והורד שוב.';
+  }
 
   @override
   String get importWizard_dc_noNewDives => 'אין צלילות חדשות להורדה';
@@ -52178,6 +52196,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get query_dives_legacyBuddy => 'שותף צלילה (טקסט ישן)';
+
+  @override
+  String get query_dives_role => 'התפקיד שלי';
 
   @override
   String get query_dives_media => 'מדיה';

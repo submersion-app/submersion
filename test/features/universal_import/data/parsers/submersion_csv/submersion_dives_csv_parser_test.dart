@@ -60,7 +60,7 @@ void main() {
       expect(d['buddy'], 'Ana Reyes');
       expect(d['diveMaster'], 'Tom Lee');
       expect(d['rating'], 4);
-      expect(d['notes'], 'Great viz saw turtles');
+      expect(d['notes'], 'Great viz\nsaw turtles');
       expect(d['diveComputerModel'], 'Perdix AI');
       expect(d['windSpeed'] as double, closeTo(4.2, 0.06));
       expect(d['windDirection'], 'northEast');
@@ -108,6 +108,19 @@ void main() {
       );
     });
   }
+
+  test(
+    'Markdown notes come back exactly, list marks and all (#3683)',
+    () async {
+      const notes = '- bring torch\n- check **o-ring**\n\n# Plan\nback by 3';
+      final dives = goldenDives();
+      final csv = CsvDivesWriter(
+        CsvExportUnits.metric,
+      ).write([dives.first.copyWith(notes: notes)]);
+      final payload = await const SubmersionDivesCsvParser().parse(_bytes(csv));
+      expect(payload.entitiesOf(ImportEntityType.dives).single['notes'], notes);
+    },
+  );
 
   test('a row with no readable date is skipped and reported', () async {
     final csv = CsvDivesWriter(

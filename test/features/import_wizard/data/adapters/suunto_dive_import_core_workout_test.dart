@@ -13,6 +13,7 @@ import 'package:submersion/core/domain/visibility/visibility_scale.dart';
 import 'package:submersion/features/import_wizard/data/adapters/suunto_route_writer.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
+import 'package:submersion/features/import_wizard/domain/models/unified_import_result.dart';
 
 import 'suunto_cloud_adapter_test.mocks.dart';
 
@@ -164,27 +165,34 @@ void main() {
     );
   }
 
-  Future<void> importWith(ImportBundle bundle, DuplicateAction? action) =>
-      adapter.performImport(
-        bundle,
-        {
-          ImportEntityType.dives: {0},
-        },
-        {
-          if (action != null) ImportEntityType.dives: {0: action},
-        },
-      );
+  Future<UnifiedImportResult> importWith(
+    ImportBundle bundle,
+    DuplicateAction? action,
+  ) => adapter.performImport(
+    bundle,
+    {
+      ImportEntityType.dives: {0},
+    },
+    {
+      if (action != null) ImportEntityType.dives: {0: action},
+    },
+  );
 
   test('a new dive gets the workout buddies and journal', () async {
-    await importWith(await plainBundle(adapter), null);
+    final result = await importWith(await plainBundle(adapter), null);
 
+    expect(result.updatedExistingDiveIds, isEmpty);
     expect(recorder.attached, [('new-dive-id', parsed, diverId)]);
     expect(journalRecorder.attached, [('new-dive-id', parsed, diverId)]);
   });
 
   test('replace source brings them onto the matched dive', () async {
-    await importWith(await bundleWithMatch(), DuplicateAction.replaceSource);
+    final result = await importWith(
+      await bundleWithMatch(),
+      DuplicateAction.replaceSource,
+    );
 
+    expect(result.updatedExistingDiveIds, ['existing-dive']);
     expect(recorder.attached, [('existing-dive', parsed, diverId)]);
     expect(journalRecorder.attached, [('existing-dive', parsed, diverId)]);
   });
@@ -194,8 +202,12 @@ void main() {
       mockDiveRepo.getComputerIdForDive('existing-dive'),
     ).thenAnswer((_) async => 'other-computer');
 
-    await importWith(await bundleWithMatch(), DuplicateAction.consolidate);
+    final result = await importWith(
+      await bundleWithMatch(),
+      DuplicateAction.consolidate,
+    );
 
+    expect(result.updatedExistingDiveIds, ['existing-dive']);
     expect(recorder.attached, [('existing-dive', parsed, diverId)]);
     expect(journalRecorder.attached, [('existing-dive', parsed, diverId)]);
   });

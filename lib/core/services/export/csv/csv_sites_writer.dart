@@ -87,8 +87,10 @@ class CsvSitesWriter {
         // site types and tags use.
         sanitizeCsvField(_methodNames(site.entryMethods)),
         site.rating?.toStringAsFixed(1) ?? '',
-        sanitizeCsvField(site.description.replaceAll('\n', ' ')),
-        sanitizeCsvField(site.notes.replaceAll('\n', ' ')),
+        // Markdown fields raw, line breaks and all: Submersion reads this
+        // file back (#3683).
+        sanitizeCsvField(site.description),
+        sanitizeCsvField(site.notes),
         units.value(CsvColumns.minDepth, site.minDepth),
         site.difficulty?.displayName ?? '',
         units.value(CsvColumns.altitude, site.altitude),
@@ -96,7 +98,7 @@ class CsvSitesWriter {
         sanitizeCsvField(site.island),
         sanitizeCsvField(site.bodyOfWater),
         sanitizeCsvField(site.hazards?.replaceAll('\n', ' ')),
-        sanitizeCsvField(site.accessNotes?.replaceAll('\n', ' ')),
+        sanitizeCsvField(site.accessNotes),
         sanitizeCsvField(site.mooringNumber),
         sanitizeCsvField(site.parkingInfo?.replaceAll('\n', ' ')),
         sanitizeCsvField(_methodNames(site.exitMethods)),

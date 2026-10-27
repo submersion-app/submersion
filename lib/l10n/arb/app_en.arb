@@ -3258,6 +3258,30 @@
   "@common_placeholder_noValue": {
     "description": "Placeholder shown when a value is null or unavailable"
   },
+  "notesEditor_action_heading": "Heading",
+  "@notesEditor_action_heading": {
+    "description": "Tooltip for the notes editor button that makes the current line a heading"
+  },
+  "notesEditor_action_bold": "Bold",
+  "@notesEditor_action_bold": {
+    "description": "Tooltip for the notes editor button that makes the selected text bold"
+  },
+  "notesEditor_action_italic": "Italic",
+  "@notesEditor_action_italic": {
+    "description": "Tooltip for the notes editor button that makes the selected text italic"
+  },
+  "notesEditor_action_bulletList": "Bulleted list",
+  "@notesEditor_action_bulletList": {
+    "description": "Tooltip for the notes editor button that turns lines into a bulleted list"
+  },
+  "notesEditor_action_numberedList": "Numbered list",
+  "@notesEditor_action_numberedList": {
+    "description": "Tooltip for the notes editor button that turns lines into a numbered list"
+  },
+  "notesEditor_action_preview": "Preview",
+  "@notesEditor_action_preview": {
+    "description": "Toggle in the notes editor that shows the notes formatted instead of the Markdown being typed"
+  },
   "common_error_tryAgain": "Something went wrong. Please try again.",
   "@common_error_tryAgain": {
     "description": "Generic error snackbar shown when an action fails and the user should retry."
@@ -4827,6 +4851,7 @@
   "diveLog_filterChip_favorites": "Favorites",
   "diveLog_filterChip_from": "From {date}",
   "diveLog_filterChip_noBuddy": "No Buddy",
+  "diveLog_filterChip_noRole": "No Role",
   "diveLog_filterChip_until": "Until {date}",
   "diveLog_filter_allSites": "All sites",
   "diveLog_filter_allTypes": "All types",
@@ -4847,6 +4872,7 @@
   "diveLog_filter_max": "Max",
   "diveLog_filter_min": "Min",
   "diveLog_filter_noBuddyOnly": "No Buddy Assigned",
+  "diveLog_filter_noRoleOnly": "No Role Assigned",
   "diveLog_filter_noTagsYet": "No tags created yet",
   "diveLog_filter_presetAllTime": "All time",
   "diveLog_filter_presetLast12Months": "Last 12 months",
@@ -4866,6 +4892,7 @@
   "diveLog_filter_sectionWeekdays": "Weekdays",
   "diveLog_filter_showOnlyFavorites": "Show only favorite dives",
   "diveLog_filter_showOnlyNoBuddy": "Show only dives without a buddy",
+  "diveLog_filter_showOnlyNoRole": "Show only dives where your role is not set",
   "diveLog_filter_startDate": "Start Date",
   "diveLog_fullscreenProfile_close": "Close fullscreen",
   "diveLog_fullscreenProfile_title": "Dive #{number} Profile",
@@ -27505,10 +27532,8 @@
   "diveLog_filter_sectionWaterTempUnit": "Water temperature ({unit})",
   "diveLog_filter_sectionWaterType": "Water type",
   "diveLog_filter_speciesSearchHint": "Search species",
-  "explore_chip_favorite": "Favourite",
   "explore_chip_deco": "Decompression dive",
   "explore_chip_noDeco": "No decompression",
-  "explore_chip_noBuddy": "No buddy",
   "explore_chip_rating": "Rating {op} {value}",
   "@explore_chip_rating": {"placeholders": {"op": {"type": "String"}, "value": {"type": "String"}}},
   "explore_chip_numeric": "{field} {op} {value}",
@@ -27526,21 +27551,8 @@
   "explore_error_schemaMismatch": "Could not understand this. Update the app if this keeps happening.",
   "explore_error_unknown": "Something went wrong asking the on-device model.",
   "explore_error_unsupportedLocale": "The on-device model does not understand this language.",
-  "explore_field_airTemp": "Air temperature",
-  "explore_field_avgDepth": "Average depth",
   "explore_field_bottomTime": "Bottom time",
-  "explore_field_currentStrength": "Current",
-  "explore_field_depth": "Depth",
-  "explore_field_diveMode": "Dive mode",
-  "explore_field_diveNumber": "Dive number",
-  "explore_field_diveType": "Dive type",
-  "explore_field_entryMethod": "Entry",
   "explore_field_o2": "Oxygen",
-  "explore_field_rating": "Rating",
-  "explore_field_visibility": "Visibility",
-  "explore_field_waterTemp": "Water temperature",
-  "explore_field_waterType": "Water type",
-  "explore_field_weekday": "Weekday",
   "explore_handoff_list": "Open in list",
   "explore_op_gte": "at least",
   "explore_op_lte": "at most",
@@ -28288,6 +28300,13 @@
   "importWizard_dc_noDirectDownload": "Can't download this computer directly",
   "importWizard_dc_noDirectDownloadBody": "Submersion has no saved connection for {name}. Import its dives from a file, or add it again from Dive Computers to download over Bluetooth or USB.",
   "importWizard_dc_noDirectDownloadGarminBody": "Garmin watches store dives as FIT files instead of offering a direct download. Connect the watch by USB, copy the files from its GARMIN/Activity folder, then import them.",
+  "importWizard_dc_notFoundNearby": "Couldn't find {name}",
+  "importWizard_dc_notFoundNearbyBody": "Submersion searched over Bluetooth and found no {name} nearby, or found more than one of the same model. Turn on the computer's Bluetooth, hold it close to this device and try again.",
+  "importWizard_dc_tryAgain": "Try Again",
+  "importWizard_dc_bluetoothOffBody": "Bluetooth is off or unavailable on this device. Turn it on, then tap Try Again.",
+  "importWizard_dc_couldNotScanBody": "Submersion could not search over Bluetooth. Check that Bluetooth is on and that Submersion is allowed to use it, then tap Try Again.",
+  "importWizard_dc_anotherUnit": "That was not {name}",
+  "importWizard_dc_anotherUnitBody": "The {model} that answered reported serial number {reported}, not {stored}, so it is another computer and its dives were not imported. Turn off that computer's Bluetooth, keep {name} close to this device and download again.",
   "importWizard_dc_noNewDives": "No new dives to download",
   "importWizard_dc_noNewDivesBody": "All dives from this computer have already been imported.",
   "importWizard_dc_noUsbOnThisPlatformBody": "{name} connects with a USB cable, which Submersion cannot use on iPhone or iPad. Download its dives with Submersion on a Mac, Windows or Linux computer, or import them from a file.",
@@ -28757,6 +28776,56 @@
         "type": "String"
       }
     }
+  },
+  "@importWizard_dc_notFoundNearby": {
+    "description": "Download step title when a saved Bluetooth computer with no address on this device was not found by a scan for its make and model.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@importWizard_dc_notFoundNearbyBody": {
+    "description": "Download step body when a scan found no device, or several, of a saved Bluetooth computer's make and model.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@importWizard_dc_anotherUnit": {
+    "description": "Download step title when the one nearby device of a saved computer's make and model turned out to be another unit, such as a buddy's.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@importWizard_dc_anotherUnitBody": {
+    "description": "Download step body when a same-model device reported another serial number than the saved computer, so its dives were not imported.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "model": {
+        "type": "String"
+      },
+      "reported": {
+        "type": "String"
+      },
+      "stored": {
+        "type": "String"
+      }
+    }
+  },
+  "@importWizard_dc_bluetoothOffBody": {
+    "description": "Download step body when the search for a saved Bluetooth computer could not run because Bluetooth is off or missing. Names the Try Again button on the same screen."
+  },
+  "@importWizard_dc_couldNotScanBody": {
+    "description": "Download step body when the search for a saved Bluetooth computer could not start for another reason, such as a denied permission. Names the Try Again button on the same screen."
+  },
+  "@importWizard_dc_tryAgain": {
+    "description": "Button that searches again for a saved Bluetooth computer that was not found."
   },
   "@importWizard_dc_noDirectDownloadBody": {
     "description": "Download step body when a saved dive computer has no stored connection to download from.",
@@ -31676,6 +31745,8 @@
   "@query_dives_id": {"description": "Field label in the query builder"},
   "query_dives_legacyBuddy": "Buddy (legacy text)",
   "@query_dives_legacyBuddy": {"description": "Field label in the query builder"},
+  "query_dives_role": "My role",
+  "@query_dives_role": {"description": "Field label in the query builder: whether the diver's own role on the dive is set"},
   "query_dives_media": "Media",
   "@query_dives_media": {"description": "Field label in the query builder"},
   "query_dives_name": "Name",

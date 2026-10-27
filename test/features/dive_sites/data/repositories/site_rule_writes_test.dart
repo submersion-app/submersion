@@ -86,19 +86,22 @@ void main() {
     ]);
   });
 
-  test('appendDescription adds a newline only after existing text', () async {
-    final sites = SiteRepository();
-    await sites.appendDescription('s1', 'Strong currents');
-    await sites.appendDescription('s2', 'Strong currents');
-    expect((await sites.getSiteById('s1'))!.description, 'Strong currents');
-    expect(
-      (await sites.getSiteById('s2'))!.description,
-      'Reef\nStrong currents',
-    );
-    final pending = await count(
-      "SELECT COUNT(*) AS n FROM sync_records "
-      "WHERE entity_type = 'diveSites' AND record_id IN ('s1', 's2')",
-    );
-    expect(pending, 2);
-  });
+  test(
+    'appendDescription adds a blank line only after existing text',
+    () async {
+      final sites = SiteRepository();
+      await sites.appendDescription('s1', 'Strong currents');
+      await sites.appendDescription('s2', 'Strong currents');
+      expect((await sites.getSiteById('s1'))!.description, 'Strong currents');
+      expect(
+        (await sites.getSiteById('s2'))!.description,
+        'Reef\n\nStrong currents',
+      );
+      final pending = await count(
+        "SELECT COUNT(*) AS n FROM sync_records "
+        "WHERE entity_type = 'diveSites' AND record_id IN ('s1', 's2')",
+      );
+      expect(pending, 2);
+    },
+  );
 }

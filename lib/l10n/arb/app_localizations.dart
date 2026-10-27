@@ -7980,6 +7980,42 @@ abstract class AppLocalizations {
   /// **'--'**
   String get common_placeholder_noValue;
 
+  /// Tooltip for the notes editor button that makes the current line a heading
+  ///
+  /// In en, this message translates to:
+  /// **'Heading'**
+  String get notesEditor_action_heading;
+
+  /// Tooltip for the notes editor button that makes the selected text bold
+  ///
+  /// In en, this message translates to:
+  /// **'Bold'**
+  String get notesEditor_action_bold;
+
+  /// Tooltip for the notes editor button that makes the selected text italic
+  ///
+  /// In en, this message translates to:
+  /// **'Italic'**
+  String get notesEditor_action_italic;
+
+  /// Tooltip for the notes editor button that turns lines into a bulleted list
+  ///
+  /// In en, this message translates to:
+  /// **'Bulleted list'**
+  String get notesEditor_action_bulletList;
+
+  /// Tooltip for the notes editor button that turns lines into a numbered list
+  ///
+  /// In en, this message translates to:
+  /// **'Numbered list'**
+  String get notesEditor_action_numberedList;
+
+  /// Toggle in the notes editor that shows the notes formatted instead of the Markdown being typed
+  ///
+  /// In en, this message translates to:
+  /// **'Preview'**
+  String get notesEditor_action_preview;
+
   /// Generic error snackbar shown when an action fails and the user should retry.
   ///
   /// In en, this message translates to:
@@ -13033,6 +13069,12 @@ abstract class AppLocalizations {
   /// **'No Buddy'**
   String get diveLog_filterChip_noBuddy;
 
+  /// No description provided for @diveLog_filterChip_noRole.
+  ///
+  /// In en, this message translates to:
+  /// **'No Role'**
+  String get diveLog_filterChip_noRole;
+
   /// No description provided for @diveLog_filterChip_until.
   ///
   /// In en, this message translates to:
@@ -13153,6 +13195,12 @@ abstract class AppLocalizations {
   /// **'No Buddy Assigned'**
   String get diveLog_filter_noBuddyOnly;
 
+  /// No description provided for @diveLog_filter_noRoleOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'No Role Assigned'**
+  String get diveLog_filter_noRoleOnly;
+
   /// No description provided for @diveLog_filter_noTagsYet.
   ///
   /// In en, this message translates to:
@@ -13266,6 +13314,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Show only dives without a buddy'**
   String get diveLog_filter_showOnlyNoBuddy;
+
+  /// No description provided for @diveLog_filter_showOnlyNoRole.
+  ///
+  /// In en, this message translates to:
+  /// **'Show only dives where your role is not set'**
+  String get diveLog_filter_showOnlyNoRole;
 
   /// No description provided for @diveLog_filter_startDate.
   ///
@@ -75561,12 +75615,6 @@ abstract class AppLocalizations {
   /// **'Search species'**
   String get diveLog_filter_speciesSearchHint;
 
-  /// No description provided for @explore_chip_favorite.
-  ///
-  /// In en, this message translates to:
-  /// **'Favourite'**
-  String get explore_chip_favorite;
-
   /// No description provided for @explore_chip_deco.
   ///
   /// In en, this message translates to:
@@ -75578,12 +75626,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No decompression'**
   String get explore_chip_noDeco;
-
-  /// No description provided for @explore_chip_noBuddy.
-  ///
-  /// In en, this message translates to:
-  /// **'No buddy'**
-  String get explore_chip_noBuddy;
 
   /// No description provided for @explore_chip_rating.
   ///
@@ -75669,95 +75711,17 @@ abstract class AppLocalizations {
   /// **'The on-device model does not understand this language.'**
   String get explore_error_unsupportedLocale;
 
-  /// No description provided for @explore_field_airTemp.
-  ///
-  /// In en, this message translates to:
-  /// **'Air temperature'**
-  String get explore_field_airTemp;
-
-  /// No description provided for @explore_field_avgDepth.
-  ///
-  /// In en, this message translates to:
-  /// **'Average depth'**
-  String get explore_field_avgDepth;
-
   /// No description provided for @explore_field_bottomTime.
   ///
   /// In en, this message translates to:
   /// **'Bottom time'**
   String get explore_field_bottomTime;
 
-  /// No description provided for @explore_field_currentStrength.
-  ///
-  /// In en, this message translates to:
-  /// **'Current'**
-  String get explore_field_currentStrength;
-
-  /// No description provided for @explore_field_depth.
-  ///
-  /// In en, this message translates to:
-  /// **'Depth'**
-  String get explore_field_depth;
-
-  /// No description provided for @explore_field_diveMode.
-  ///
-  /// In en, this message translates to:
-  /// **'Dive mode'**
-  String get explore_field_diveMode;
-
-  /// No description provided for @explore_field_diveNumber.
-  ///
-  /// In en, this message translates to:
-  /// **'Dive number'**
-  String get explore_field_diveNumber;
-
-  /// No description provided for @explore_field_diveType.
-  ///
-  /// In en, this message translates to:
-  /// **'Dive type'**
-  String get explore_field_diveType;
-
-  /// No description provided for @explore_field_entryMethod.
-  ///
-  /// In en, this message translates to:
-  /// **'Entry'**
-  String get explore_field_entryMethod;
-
   /// No description provided for @explore_field_o2.
   ///
   /// In en, this message translates to:
   /// **'Oxygen'**
   String get explore_field_o2;
-
-  /// No description provided for @explore_field_rating.
-  ///
-  /// In en, this message translates to:
-  /// **'Rating'**
-  String get explore_field_rating;
-
-  /// No description provided for @explore_field_visibility.
-  ///
-  /// In en, this message translates to:
-  /// **'Visibility'**
-  String get explore_field_visibility;
-
-  /// No description provided for @explore_field_waterTemp.
-  ///
-  /// In en, this message translates to:
-  /// **'Water temperature'**
-  String get explore_field_waterTemp;
-
-  /// No description provided for @explore_field_waterType.
-  ///
-  /// In en, this message translates to:
-  /// **'Water type'**
-  String get explore_field_waterType;
-
-  /// No description provided for @explore_field_weekday.
-  ///
-  /// In en, this message translates to:
-  /// **'Weekday'**
-  String get explore_field_weekday;
 
   /// No description provided for @explore_handoff_list.
   ///
@@ -78060,6 +78024,53 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Garmin watches store dives as FIT files instead of offering a direct download. Connect the watch by USB, copy the files from its GARMIN/Activity folder, then import them.'**
   String get importWizard_dc_noDirectDownloadGarminBody;
+
+  /// Download step title when a saved Bluetooth computer with no address on this device was not found by a scan for its make and model.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t find {name}'**
+  String importWizard_dc_notFoundNearby(String name);
+
+  /// Download step body when a scan found no device, or several, of a saved Bluetooth computer's make and model.
+  ///
+  /// In en, this message translates to:
+  /// **'Submersion searched over Bluetooth and found no {name} nearby, or found more than one of the same model. Turn on the computer\'s Bluetooth, hold it close to this device and try again.'**
+  String importWizard_dc_notFoundNearbyBody(String name);
+
+  /// Button that searches again for a saved Bluetooth computer that was not found.
+  ///
+  /// In en, this message translates to:
+  /// **'Try Again'**
+  String get importWizard_dc_tryAgain;
+
+  /// Download step body when the search for a saved Bluetooth computer could not run because Bluetooth is off or missing. Names the Try Again button on the same screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Bluetooth is off or unavailable on this device. Turn it on, then tap Try Again.'**
+  String get importWizard_dc_bluetoothOffBody;
+
+  /// Download step body when the search for a saved Bluetooth computer could not start for another reason, such as a denied permission. Names the Try Again button on the same screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Submersion could not search over Bluetooth. Check that Bluetooth is on and that Submersion is allowed to use it, then tap Try Again.'**
+  String get importWizard_dc_couldNotScanBody;
+
+  /// Download step title when the one nearby device of a saved computer's make and model turned out to be another unit, such as a buddy's.
+  ///
+  /// In en, this message translates to:
+  /// **'That was not {name}'**
+  String importWizard_dc_anotherUnit(String name);
+
+  /// Download step body when a same-model device reported another serial number than the saved computer, so its dives were not imported.
+  ///
+  /// In en, this message translates to:
+  /// **'The {model} that answered reported serial number {reported}, not {stored}, so it is another computer and its dives were not imported. Turn off that computer\'s Bluetooth, keep {name} close to this device and download again.'**
+  String importWizard_dc_anotherUnitBody(
+    String name,
+    String model,
+    String reported,
+    String stored,
+  );
 
   /// No description provided for @importWizard_dc_noNewDives.
   ///
@@ -84455,6 +84466,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Buddy (legacy text)'**
   String get query_dives_legacyBuddy;
+
+  /// Field label in the query builder: whether the diver's own role on the dive is set
+  ///
+  /// In en, this message translates to:
+  /// **'My role'**
+  String get query_dives_role;
 
   /// Field label in the query builder
   ///

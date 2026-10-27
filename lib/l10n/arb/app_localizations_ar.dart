@@ -5229,6 +5229,24 @@ class AppLocalizationsAr extends AppLocalizations {
   String get common_placeholder_noValue => '--';
 
   @override
+  String get notesEditor_action_heading => 'عنوان';
+
+  @override
+  String get notesEditor_action_bold => 'غامق';
+
+  @override
+  String get notesEditor_action_italic => 'مائل';
+
+  @override
+  String get notesEditor_action_bulletList => 'قائمة نقطية';
+
+  @override
+  String get notesEditor_action_numberedList => 'قائمة مرقمة';
+
+  @override
+  String get notesEditor_action_preview => 'معاينة';
+
+  @override
   String get common_error_tryAgain => 'حدث خطأ ما. يُرجى المحاولة مرة أخرى.';
 
   @override
@@ -8435,6 +8453,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_filterChip_noBuddy => 'بدون زميل';
 
   @override
+  String get diveLog_filterChip_noRole => 'بدون دور';
+
+  @override
   String diveLog_filterChip_until(Object date) {
     return 'حتى $date';
   }
@@ -8497,6 +8518,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_filter_noBuddyOnly => 'بدون زميل غوص';
 
   @override
+  String get diveLog_filter_noRoleOnly => 'بدون دور';
+
+  @override
   String get diveLog_filter_noTagsYet => 'لم يتم إنشاء وسوم بعد';
 
   @override
@@ -8552,6 +8576,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_filter_showOnlyNoBuddy => 'عرض الغوصات بدون زميل غوص فقط';
+
+  @override
+  String get diveLog_filter_showOnlyNoRole =>
+      'عرض الغوصات التي لم يُحدَّد فيها دورك فقط';
 
   @override
   String get diveLog_filter_startDate => 'تاريخ البدء';
@@ -47964,16 +47992,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_filter_speciesSearchHint => 'البحث عن الأنواع';
 
   @override
-  String get explore_chip_favorite => 'مفضل';
-
-  @override
   String get explore_chip_deco => 'غطسة تخفيف ضغط';
 
   @override
   String get explore_chip_noDeco => 'بدون تخفيف ضغط';
-
-  @override
-  String get explore_chip_noBuddy => 'بدون رفيق';
 
   @override
   String explore_chip_rating(String op, String value) {
@@ -48029,49 +48051,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'النموذج على الجهاز لا يفهم هذه اللغة.';
 
   @override
-  String get explore_field_airTemp => 'درجة حرارة الهواء';
-
-  @override
-  String get explore_field_avgDepth => 'متوسط العمق';
-
-  @override
   String get explore_field_bottomTime => 'وقت القاع';
 
   @override
-  String get explore_field_currentStrength => 'التيار';
-
-  @override
-  String get explore_field_depth => 'العمق';
-
-  @override
-  String get explore_field_diveMode => 'وضع الغطس';
-
-  @override
-  String get explore_field_diveNumber => 'رقم الغطسة';
-
-  @override
-  String get explore_field_diveType => 'نوع الغطسة';
-
-  @override
-  String get explore_field_entryMethod => 'الدخول';
-
-  @override
   String get explore_field_o2 => 'الأكسجين';
-
-  @override
-  String get explore_field_rating => 'التقييم';
-
-  @override
-  String get explore_field_visibility => 'الرؤية';
-
-  @override
-  String get explore_field_waterTemp => 'درجة حرارة الماء';
-
-  @override
-  String get explore_field_waterType => 'نوع المياه';
-
-  @override
-  String get explore_field_weekday => 'يوم الأسبوع';
 
   @override
   String get explore_handoff_list => 'فتح في القائمة';
@@ -49855,6 +49838,42 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get importWizard_dc_noDirectDownloadGarminBody =>
       'تخزّن ساعات Garmin الغوصات كملفات FIT بدلاً من توفير تنزيل مباشر. وصّل الساعة عبر USB، وانسخ الملفات من مجلد GARMIN/Activity فيها، ثم استوردها.';
+
+  @override
+  String importWizard_dc_notFoundNearby(String name) {
+    return 'تعذّر العثور على $name';
+  }
+
+  @override
+  String importWizard_dc_notFoundNearbyBody(String name) {
+    return 'بحث Submersion عبر Bluetooth ولم يعثر على $name في الجوار، أو عثر على أكثر من جهاز من الطراز نفسه. شغّل Bluetooth في الكمبيوتر، وقرّبه من هذا الجهاز، ثم أعد المحاولة.';
+  }
+
+  @override
+  String get importWizard_dc_tryAgain => 'إعادة المحاولة';
+
+  @override
+  String get importWizard_dc_bluetoothOffBody =>
+      'البلوتوث متوقف أو غير متاح على هذا الجهاز. شغّله، ثم اضغط على إعادة المحاولة.';
+
+  @override
+  String get importWizard_dc_couldNotScanBody =>
+      'تعذّر على Submersion البحث عبر Bluetooth. تأكد من تشغيل Bluetooth ومن السماح لـ Submersion باستخدامه، ثم اضغط على إعادة المحاولة.';
+
+  @override
+  String importWizard_dc_anotherUnit(String name) {
+    return 'لم يكن هذا $name';
+  }
+
+  @override
+  String importWizard_dc_anotherUnitBody(
+    String name,
+    String model,
+    String reported,
+    String stored,
+  ) {
+    return 'أبلغ جهاز $model الذي استجاب عن الرقم التسلسلي $reported، وليس $stored، لذا فهو كمبيوتر آخر ولم يتم استيراد غوصاته. أوقف Bluetooth في ذلك الكمبيوتر، وقرّب $name من هذا الجهاز، ثم نزّل مجدداً.';
+  }
 
   @override
   String get importWizard_dc_noNewDives => 'لا توجد غوصات جديدة للتنزيل';
@@ -53961,6 +53980,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get query_dives_legacyBuddy => 'رفيق الغوص (نص قديم)';
+
+  @override
+  String get query_dives_role => 'دوري';
 
   @override
   String get query_dives_media => 'الوسائط';

@@ -142,7 +142,10 @@ notification).
 
 1. **Import time:** after `DiveImportService.importDives` returns, sweep the
    imported IDs against stored tracks before the import-summary step, so the
-   existing "Match sites" button benefits immediately.
+   existing "Match sites" button benefits immediately. (Since #3704 the
+   sweep runs in the import wizard's `ImportWizardNotifier.performImport`,
+   after any source's adapter returns: the wizard never called
+   `importDives`, so the original hook never ran.)
 2. **Track arrival:** when a track finalizes locally (Stop) or lands via
    sync, sweep GPS-less dives against it. Closes the "Mac imported before the
    phone synced" race.

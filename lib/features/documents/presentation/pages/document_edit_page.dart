@@ -24,6 +24,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/utils/byte_format.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
+import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
 
 /// Creates or edits one document and its pages (issue #2613).
 class DocumentEditPage extends ConsumerStatefulWidget {
@@ -419,7 +420,7 @@ class _DocumentEditPageState extends ConsumerState<DocumentEditPage> {
                   onAdd: _addPage,
                 ),
                 const SizedBox(height: 16),
-                TextFormField(
+                MarkdownNotesField(
                   controller: _controllers.notes,
                   minLines: 2,
                   maxLines: 6,

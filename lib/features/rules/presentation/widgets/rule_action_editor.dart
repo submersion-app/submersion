@@ -24,6 +24,7 @@ import 'package:submersion/features/rules/presentation/widgets/rule_value_input.
 import 'package:submersion/features/settings/presentation/providers/hidden_built_ins_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
 
 /// Opens the right editor for [t] and returns the finished action, or null
 /// when the diver backs out. [initial] prefills it when editing.
@@ -201,7 +202,7 @@ class _TextDialogState extends State<_TextDialog> {
   @override
   Widget build(BuildContext context) => AlertDialog(
     title: Text(widget.title),
-    content: TextField(
+    content: MarkdownNotesField(
       key: const ValueKey('rule_value_append'),
       controller: _controller,
       autofocus: true,

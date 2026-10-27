@@ -3,13 +3,13 @@ import 'package:submersion/core/database/database.dart';
 
 /// Six dives that between them answer every request in #2365:
 ///
-/// | id | weight | gear | temp | buddy | site | notes |
-/// | d1 | table row 2 kg | wetsuit | 24 | Ana (linked) | Salt Pier (Bonaire) | manta |
-/// | d2 | legacy scalar 3 kg | drysuit | null | legacy text "Bob" | Salt Pier | '' |
-/// | d3 | none | bcd only | 18 | none | Hilma Hooker (Bonaire) | 100% night |
-/// | d4 | none | none | null | none | null | '' |
-/// | d5 | table row 1 kg | wetsuit + drysuit | 30 | Ana + Cid | Cenote (Mexico) | '' |
-/// | d6 | none | none | 12 | none | Cenote | '' (other diver) |
+/// | id | weight | gear | temp | buddy | site | notes | my role |
+/// | d1 | table row 2 kg | wetsuit | 24 | Ana (linked) | Salt Pier (Bonaire) | manta | instructor |
+/// | d2 | legacy scalar 3 kg | drysuit | null | legacy text "Bob" | Salt Pier | '' | none |
+/// | d3 | none | bcd only | 18 | none | Hilma Hooker (Bonaire) | 100% night | none |
+/// | d4 | none | none | null | none | null | '' | blank |
+/// | d5 | table row 1 kg | wetsuit + drysuit | 30 | Ana + Cid | Cenote (Mexico) | '' | buddy |
+/// | d6 | none | none | 12 | none | Cenote | '' (other diver) | none |
 class QueryFixtureIds {
   static const dives = ['d1', 'd2', 'd3', 'd4', 'd5', 'd6'];
   static const mine = ['d1', 'd2', 'd3', 'd4', 'd5'];
@@ -100,6 +100,7 @@ Future<void> seedQueryFixture(AppDatabase db) async {
     int? date,
     double? depth,
     int? bottom,
+    String? role,
   }) => db
       .into(db.dives)
       .insert(
@@ -114,6 +115,7 @@ Future<void> seedQueryFixture(AppDatabase db) async {
           weightAmount: Value(legacyWeight),
           maxDepth: Value(depth),
           bottomTime: Value(bottom),
+          diverRole: Value(role),
           createdAt: now,
           updatedAt: now,
         ),
@@ -126,6 +128,7 @@ Future<void> seedQueryFixture(AppDatabase db) async {
     depth: 18,
     bottom: 50 * 60 + 30,
     date: day(2025, 1, 5),
+    role: 'instructor',
   );
   await dive(
     'd2',
@@ -144,7 +147,7 @@ Future<void> seedQueryFixture(AppDatabase db) async {
     depth: 25,
     date: day(2025, 3, 14),
   );
-  await dive('d4', bottom: 10 * 60, date: day(2024, 12, 31));
+  await dive('d4', bottom: 10 * 60, date: day(2024, 12, 31), role: '');
   await dive(
     'd5',
     temp: 30,
@@ -152,6 +155,7 @@ Future<void> seedQueryFixture(AppDatabase db) async {
     depth: 40,
     bottom: 10 * 60 + 59,
     date: day(2025, 3, 15),
+    role: 'buddy',
   );
   await dive(
     'd6',

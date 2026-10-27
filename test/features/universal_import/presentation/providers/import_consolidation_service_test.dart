@@ -169,6 +169,7 @@ void main() {
       expect(summary.consolidated, 1);
       expect(summary.failed, 0);
       expect(summary.removedDiveIds, {'new-dive-1'});
+      expect(summary.consolidatedIntoDiveIds, {'existing-dive-1'});
       verify(
         mockConsolidationService.apply(
           targetDiveId: 'existing-dive-1',
@@ -201,6 +202,10 @@ void main() {
 
       expect(summary.consolidated, 2);
       expect(summary.removedDiveIds, {'new-dive-0', 'new-dive-1'});
+      expect(summary.consolidatedIntoDiveIds, {
+        'existing-dive-a',
+        'existing-dive-b',
+      });
       verify(
         mockConsolidationService.apply(
           targetDiveId: 'existing-dive-a',
@@ -425,6 +430,7 @@ void main() {
       expect(attached, [(0, 'existing-dive-1')]);
       expect(summary.consolidated, 1);
       expect(summary.removedDiveIds, {'new-dive-1'});
+      expect(summary.consolidatedIntoDiveIds, {'existing-dive-1'});
       verify(mockDiveRepository.bulkDeleteDives(['new-dive-1'])).called(1);
       verifyNever(
         mockConsolidationService.apply(

@@ -34,7 +34,19 @@ enum ImportSourceType {
   garminCloud,
 
   /// A divelogs.de logbook import.
-  divelogs,
+  divelogs;
+
+  /// Whether a dive from this source can arrive with gear of its own (a
+  /// file's equipment links), so a set tagged on it may be the diver's own
+  /// choice rather than one the app applied. Downloads bring none.
+  bool get mayBringGear => switch (this) {
+    uddf || fit || universal || divelogs => true,
+    healthKit ||
+    diveComputer ||
+    suuntoCloud ||
+    suuntoFile ||
+    garminCloud => false,
+  };
 }
 
 /// The kind of entity represented by an [EntityGroup].
