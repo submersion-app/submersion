@@ -46,7 +46,16 @@ class FakeNearbySyncEngine implements NearbySyncEngine {
   final adoptedEpochs = <String>[];
 
   @override
-  Future<NearbyIdentity> identity() async => self;
+  Future<NearbyIdentity> identity() async {
+    // A real identity reads the database; a delay lets tests open the race
+    // window between two sessions with the same peer.
+    if (identityDelay > Duration.zero) {
+      await Future<void>.delayed(identityDelay);
+    }
+    return self;
+  }
+
+  Duration identityDelay = Duration.zero;
 
   @override
   Future<NearbyWatermarks> watermarks() async => NearbyWatermarks(marks);
@@ -60,9 +69,13 @@ class FakeNearbySyncEngine implements NearbySyncEngine {
     return delta!;
   }
 
+  /// How long [exportFull] takes, for tests of a slow first copy.
+  Duration exportDelay = Duration.zero;
+
   @override
   Future<StreamedBase> exportFull() async {
     exportFullCalls++;
+    if (exportDelay > Duration.zero) await Future<void>.delayed(exportDelay);
     final file = File(
       p.join(
         tempDir.path,
@@ -121,6 +134,12 @@ class FakeNearbySyncEngine implements NearbySyncEngine {
     required String peerDeviceId,
     required String? peerAppliedHlcHigh,
   }) async => recordedAcks.add((peer: peerDeviceId, ack: peerAppliedHlcHigh));
+
+  /// What [lowestClockOf] answers, per writer.
+  Map<String, String> lowestByWriter = {};
+
+  @override
+  Future<String?> lowestClockOf(String writer) async => lowestByWriter[writer];
 
   @override
   Future<void> adoptEpoch(String epochId) async {

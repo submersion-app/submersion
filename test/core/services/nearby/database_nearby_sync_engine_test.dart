@@ -36,7 +36,8 @@ void main() {
     peers = NearbyPeerStore(db);
     epochs = LibraryEpochStore(await SharedPreferences.getInstance());
     engine = DatabaseNearbySyncEngine(
-      syncService: SyncService(syncRepository: repo, serializer: serializer),
+      syncService: () =>
+          SyncService(syncRepository: repo, serializer: serializer),
       serializer: serializer,
       syncRepository: repo,
       peerCursors: PeerCursorStore(db),
@@ -157,7 +158,32 @@ void main() {
       (await PublishStateStore(db).get('icloud'))!.relayFloorHlc,
       '000000000000500:000002:',
     );
-    expect((await peers.get('peer'))!.lastSyncedAt, isNotNull);
+    // The session's lastSync stays put until the whole session ends: the
+    // manager stamps it then, so both directions merge against one value.
+    expect((await peers.get('peer'))!.lastSyncedAt, isNull);
+  });
+
+  test(
+    'recordApplied for a peer unpaired meanwhile writes no cursor',
+    () async {
+      await engine.recordApplied(
+        peerDeviceId: 'gone',
+        appliedHlcHigh: '000000000000800:000000:gone',
+        lowestAppliedHlc: null,
+      );
+      expect(await PeerCursorStore(db).get('gone', 'nearby'), isNull);
+    },
+  );
+
+  test('lowestClockOf finds the oldest clock a writer has here', () async {
+    await db.customStatement(
+      'INSERT INTO tags (id, name, created_at, updated_at, hlc) VALUES '
+      "('t1', 'A', 0, 0, '000000000000300:000000:w1'), "
+      "('t2', 'B', 0, 0, '000000000000100:000000:w1'), "
+      "('t3', 'C', 0, 0, '000000000000050:000000:w2')",
+    );
+    expect(await engine.lowestClockOf('w1'), '000000000000100:000000:w1');
+    expect(await engine.lowestClockOf('nobody'), isNull);
   });
 
   test('recordPeerAck stores what the peer has of mine', () async {
@@ -174,6 +200,7 @@ void main() {
       (await peers.get('peer'))!.peerAppliedHlcHigh,
       '000000000000700:000000:me',
     );
+    expect((await peers.get('peer'))!.lastSyncedAt, isNull);
   });
 
   test('exportDelta carries rows above the watermark and the epoch', () async {

@@ -62,11 +62,14 @@ abstract class NearbySyncEngine {
   });
 
   Future<void> adoptEpoch(String epochId);
+
+  /// The oldest clock held here from [writer], or null when none is.
+  Future<String?> lowestClockOf(String writer);
 }
 
 class DatabaseNearbySyncEngine implements NearbySyncEngine {
   DatabaseNearbySyncEngine({
-    required SyncService syncService,
+    required SyncService Function() syncService,
     required SyncDataSerializer serializer,
     required SyncRepository syncRepository,
     required PeerCursorStore peerCursors,
@@ -89,7 +92,9 @@ class DatabaseNearbySyncEngine implements NearbySyncEngine {
            resolveIdentity ?? SyncDeviceMetadata(syncRepository).resolve,
        _now = now;
 
-  final SyncService _sync;
+  /// Read on use: the service is rebuilt whenever the cloud backend
+  /// changes, and holding one would rebuild the nearby link with it.
+  final SyncService Function() _sync;
   final SyncDataSerializer _serializer;
   final SyncRepository _repo;
   final PeerCursorStore _cursors;
@@ -155,7 +160,7 @@ class DatabaseNearbySyncEngine implements NearbySyncEngine {
   Future<NearbyApplyResult> applyPayload(
     SyncPayload payload, {
     required String peerDeviceId,
-  }) async => _sync.applyNearbyPayload(
+  }) async => _sync().applyNearbyPayload(
     payload,
     lastSync: await _lastSync(peerDeviceId),
   );
@@ -165,7 +170,7 @@ class DatabaseNearbySyncEngine implements NearbySyncEngine {
     String path, {
     required String peerDeviceId,
     void Function(double fraction)? onProgress,
-  }) async => _sync.applyNearbyBaseFile(
+  }) async => _sync().applyNearbyBaseFile(
     path,
     lastSync: await _lastSync(peerDeviceId),
     onProgress: onProgress,
@@ -177,27 +182,34 @@ class DatabaseNearbySyncEngine implements NearbySyncEngine {
     required String? appliedHlcHigh,
     required String? lowestAppliedHlc,
   }) async {
+    // The relay floor first: the rows are applied whether or not the peer
+    // is still paired, and the cloud must still carry them.
+    if (lowestAppliedHlc != null) {
+      await _publishStates.pullBackRelayFloor(lowestAppliedHlc);
+    }
+    // A peer unpaired during the session gets no cursor back.
+    if (await _peers.get(peerDeviceId) == null) return;
     await _cursors.upsert(
       peerDeviceId: peerDeviceId,
       provider: nearbyCursorProvider,
       lastSeqApplied: 0,
       appliedHlcHigh: appliedHlcHigh,
     );
-    if (lowestAppliedHlc != null) {
-      await _publishStates.pullBackRelayFloor(lowestAppliedHlc);
-    }
-    await _peers.markSynced(peerDeviceId, at: _now().millisecondsSinceEpoch);
   }
 
   @override
   Future<void> recordPeerAck({
     required String peerDeviceId,
     required String? peerAppliedHlcHigh,
-  }) => _peers.markSynced(
-    peerDeviceId,
-    at: _now().millisecondsSinceEpoch,
-    peerAppliedHlcHigh: peerAppliedHlcHigh,
-  );
+  }) async {
+    if (peerAppliedHlcHigh != null) {
+      await _peers.setPeerAck(peerDeviceId, peerAppliedHlcHigh);
+    }
+  }
+
+  @override
+  Future<String?> lowestClockOf(String writer) =>
+      _repo.minRowHlcForWriter(writer);
 
   @override
   Future<void> adoptEpoch(String epochId) async {

@@ -67,6 +67,7 @@ class NearbySyncProtocol {
     DateTime Function() now = DateTime.now,
     this.partSize = 262144,
     this.messageTimeout = const Duration(seconds: 60),
+    this.offerTimeout = const Duration(minutes: 15),
     this.applyTimeout = const Duration(minutes: 30),
     this.onProgress,
   }) : _channel = channel,
@@ -84,6 +85,10 @@ class NearbySyncProtocol {
   final StreamIterator<NearbyMessage> _messages;
   final int partSize;
   final Duration messageTimeout;
+
+  /// The wait for the offer while the peer exports and compresses what it
+  /// sends: minutes for a large first copy.
+  final Duration offerTimeout;
 
   /// The wait for `applied` after the last part, while the peer merges.
   final Duration applyTimeout;
@@ -103,6 +108,7 @@ class NearbySyncProtocol {
     try {
       _self = await _engine.identity();
       _files = NearbyTransferFiles(await _tempDir(), now: _now);
+      await _files.sweepStale();
       await _settleEpoch();
       if (_channel.isInitiator) {
         await _direction(_send);
@@ -183,7 +189,10 @@ class NearbySyncProtocol {
       ...before.toJson(),
       'epoch': _self.epochId,
     });
-    final offer = await _expectJson(NearbyMessageType.baseOffer);
+    final offer = await _expectJson(
+      NearbyMessageType.baseOffer,
+      timeout: offerTimeout,
+    );
     await _adoptFrom(offer);
     final kind = offer['kind'];
     if (kind == 'none') {
@@ -217,7 +226,11 @@ class NearbySyncProtocol {
     await _peers.setResume(_peerId);
     if (await gz.exists()) await gz.delete();
     final after = await _engine.watermarks();
-    await _finishReceive(before, after, lowest: _lowestMoved(before, after));
+    await _finishReceive(
+      before,
+      after,
+      lowest: await _lowestMoved(before, after),
+    );
   }
 
   Future<void> _finishReceive(
@@ -235,14 +248,17 @@ class NearbySyncProtocol {
   }
 
   /// The clock to relay from: for each writer whose mark moved, its old
-  /// mark (every row now held above it is new here), or the very start for
-  /// a writer this device had never heard of.
-  String? _lowestMoved(NearbyWatermarks before, NearbyWatermarks after) {
+  /// mark (every row now held above it is new here); for a writer this
+  /// device had never heard of, its oldest clock now held here.
+  Future<String?> _lowestMoved(
+    NearbyWatermarks before,
+    NearbyWatermarks after,
+  ) async {
     String? low;
     for (final entry in after.highByWriter.entries) {
       final old = before.highByWriter[entry.key];
       if (old == entry.value) continue;
-      final floor = old ?? _zeroFloor;
+      final floor = old ?? await _engine.lowestClockOf(entry.key) ?? _zeroFloor;
       if (low == null || floor.compareTo(low) < 0) low = floor;
     }
     return low;
@@ -260,6 +276,7 @@ class NearbySyncProtocol {
       );
     }
     final file = _files.incoming(_peerId, id);
+    await _files.discardOtherIncoming(_peerId, keep: id);
     final row = await _peers.get(_peerId);
     final offeredAt = row?.resumeOfferedAt;
     final lastPart = row?.resumePartIndex;

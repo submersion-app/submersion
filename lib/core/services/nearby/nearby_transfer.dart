@@ -137,6 +137,40 @@ class NearbyTransferFiles {
     await sidecar.delete();
   }
 
+  /// Drops [peerId]'s partial copies of any offer other than [keep]: a
+  /// new offer replaces an old one for good.
+  Future<void> discardOtherIncoming(String peerId, {required String keep}) =>
+      _deleteWhere((name) {
+        final prefix = 'nearby-in-$peerId-';
+        return name.startsWith(prefix) && !name.startsWith('$prefix$keep.');
+      });
+
+  /// Drops every transfer file past the resume window, whoever it was for:
+  /// copies for peers that never came back, and leftovers of a crash.
+  Future<void> sweepStale() async {
+    final cutoff = _now().subtract(nearbyResumeWindow);
+    await _deleteWhere((name) => name.startsWith('nearby-'), olderThan: cutoff);
+  }
+
+  Future<void> _deleteWhere(
+    bool Function(String name) matches, {
+    DateTime? olderThan,
+  }) async {
+    if (!await dir.exists()) return;
+    await for (final entity in dir.list()) {
+      if (entity is! File || !matches(p.basename(entity.path))) continue;
+      try {
+        if (olderThan != null &&
+            (await entity.lastModified()).isAfter(olderThan)) {
+          continue;
+        }
+        await entity.delete();
+      } on FileSystemException {
+        // Gone already, or in use; the next sweep tries again.
+      }
+    }
+  }
+
   /// Gunzips a received transfer to a JSON file beside it.
   Future<File> gunzip(File gz) async {
     final out = File('${gz.path}.json');

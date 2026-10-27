@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/nearby/nearby_carrier.dart';
-import 'package:submersion/core/services/nearby/nearby_hello.dart';
+import 'package:submersion/core/services/nearby/nearby_hello.dart'
+    show NearbyErrorCode;
 import 'package:submersion/core/services/nearby/nearby_link_manager.dart';
 import 'package:submersion/core/services/nearby/nearby_session.dart';
 import 'package:submersion/features/settings/presentation/pages/nearby_pair_page.dart';
@@ -43,15 +44,10 @@ class _Offer implements NearbyPairingOffer {
   final _confirmed = Completer<void>();
 
   @override
-  NearbyIdentity get peer => const NearbyIdentity(
-    deviceId: 'mac',
-    deviceName: 'MacBook',
-    appVersion: '1.8.4',
-    schemaVersion: 320,
-    schemaFloor: 308,
-    epochId: null,
-    hasDives: true,
-  );
+  String get peerName => 'MacBook';
+
+  @override
+  String get peerKey => 'nonce-mac';
 
   @override
   String get code => '482913';

@@ -43,7 +43,7 @@ final nearbyCanAdvertiseProvider = Provider<bool>(
 final nearbySyncEngineProvider = Provider<NearbySyncEngine>((ref) {
   final db = DatabaseService.instance.database;
   return DatabaseNearbySyncEngine(
-    syncService: ref.watch(syncServiceProvider),
+    syncService: () => ref.read(syncServiceProvider),
     serializer: ref.watch(syncDataSerializerProvider),
     syncRepository: ref.watch(syncRepositoryProvider),
     peerCursors: PeerCursorStore(db),

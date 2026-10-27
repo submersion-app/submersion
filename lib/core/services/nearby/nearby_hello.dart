@@ -167,12 +167,15 @@ class NearbyHello {
     if (rawTags != null && rawTags is! List) {
       throw const FormatException('hello field tags');
     }
+    for (final t in (rawTags as List?) ?? const []) {
+      if (t is! String) throw const FormatException('hello tag');
+    }
     return NearbyHello(
       protocolVersion: v,
       intent: intent.single,
       publicKey: bytes(json['pub']),
       commitment: bytes(json['commit']),
-      tags: [for (final t in (rawTags as List?) ?? const []) bytes(t)!],
+      tags: [for (final t in rawTags ?? const []) bytes(t)!],
       tag: bytes(json['tag']),
     );
   }

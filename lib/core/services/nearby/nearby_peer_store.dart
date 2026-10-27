@@ -104,6 +104,10 @@ class NearbyPeerStore {
     ),
   );
 
+  /// What the peer reported holding of this device's rows.
+  Future<void> setPeerAck(String id, String hlc) =>
+      _update(id, NearbyPeersCompanion(peerAppliedHlcHigh: Value(hlc)));
+
   Future<void> setError(String id, NearbyPeerError? error) =>
       _update(id, NearbyPeersCompanion(lastError: Value(error?.name)));
 

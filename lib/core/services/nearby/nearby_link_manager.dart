@@ -30,7 +30,12 @@ class NearbySyncProgress {
 
 /// A pairing waiting for the diver to compare the codes on both screens.
 abstract class NearbyPairingOffer {
-  NearbyIdentity get peer;
+  /// The other device's name; nothing else about it is known yet.
+  String get peerName;
+
+  /// Tells pairing attempts apart without naming the device (random, per
+  /// pairing mode).
+  String get peerKey;
   String get code;
   bool get bothPopulated;
 
@@ -46,18 +51,23 @@ class NearbyPairingHandle implements NearbyPairingOffer {
   NearbyPairingHandle._(
     this._manager,
     this._pairing, {
-    required this.initiatorId,
+    required this.transportId,
+    required this.initiatorKey,
   });
 
   final NearbyLinkManager _manager;
   final NearbyPairing _pairing;
+  final String transportId;
 
-  /// The device that connected; with two pairings between the same pair
-  /// of devices, the one started by the lower device id is kept.
-  final String initiatorId;
+  /// The pairing nonce of the device that connected; with two pairings
+  /// between the same two devices, the one started by the lower nonce stays.
+  final String initiatorKey;
 
   @override
-  NearbyIdentity get peer => _pairing.peer;
+  String get peerName => _pairing.preview.name;
+
+  @override
+  String get peerKey => _pairing.preview.nonce;
 
   @override
   String get code => _pairing.code;
@@ -85,8 +95,9 @@ class _Live {
 /// what each session leaves on the paired-devices row.
 ///
 /// The radio is on only while the app is in the foreground and either
-/// pairing mode is on or automatic sync is on with at least one paired
-/// device. Every device scans; every device that can also advertises.
+/// pairing mode is on, a one-off "Sync now" is looking for its device, or
+/// automatic sync is on with at least one paired device. Every device
+/// scans; every device that can also advertises.
 class NearbyLinkManager {
   NearbyLinkManager({
     required NearbyCarrier carrier,
@@ -101,6 +112,10 @@ class NearbyLinkManager {
     this.changeDebounce = const Duration(seconds: 5),
     this.perPeerCooldown = const Duration(minutes: 10),
     this.retryAfter = const Duration(seconds: 30),
+    this.strangerBackoff = const Duration(minutes: 1),
+    this.maxStrangerBackoff = const Duration(minutes: 30),
+    this.syncNowTimeout = const Duration(seconds: 20),
+    this.recentSighting = const Duration(minutes: 2),
     this.partSize = 262144,
   }) : _carrier = carrier,
        _engine = engine,
@@ -133,6 +148,17 @@ class NearbyLinkManager {
 
   /// The least time between two connection attempts to one radio address.
   final Duration retryAfter;
+
+  /// How long an address that turned out to be a stranger is left alone,
+  /// doubling with every refusal up to [maxStrangerBackoff].
+  final Duration strangerBackoff;
+  final Duration maxStrangerBackoff;
+
+  /// How long "Sync now" looks for its device.
+  final Duration syncNowTimeout;
+
+  /// A local change dials only peers sighted this recently.
+  final Duration recentSighting;
   final int partSize;
 
   final _subs = <StreamSubscription<Object?>>[];
@@ -147,11 +173,20 @@ class NearbyLinkManager {
   bool _pairingMode = false;
   bool _running = false;
   bool _disposed = false;
+  bool _prunedSecrets = false;
   Future<void> _refreshTail = Future.value();
   Timer? _debounce;
   DateTime? _lastChangeAt;
 
+  /// This device's id, cached by every session as it opens so the
+  /// duplicate check in [_run] needs no await.
+  String? _me;
+  String _pairingNonce = '';
+
   final _lastAttempt = <String, DateTime>{};
+  final _lastSighted = <String, DateTime>{};
+  final _strangerUntil = <String, DateTime>{};
+  final _strangerWait = <String, Duration>{};
   final _connecting = <String>{};
   final _pairingTried = <String>{};
   final _deviceByTransport = <String, String>{};
@@ -159,6 +194,7 @@ class NearbyLinkManager {
   final _active = <String, _Live>{};
   final _lastSessionAt = <String, DateTime>{};
   final _pending = <NearbyPairingHandle>[];
+  final _syncNowWaiters = <String, Completer<NearbySyncOutcome?>>{};
 
   NearbyLinkState get state => !_running && _active.isEmpty
       ? NearbyLinkState.off
@@ -206,6 +242,12 @@ class NearbyLinkManager {
     }
   }
 
+  Future<NearbyIdentity> _identity() async {
+    final identity = await _engine.identity();
+    _me = identity.deviceId;
+    return identity;
+  }
+
   Future<void> setForeground(bool inForeground) {
     _foreground = inForeground;
     return refresh();
@@ -214,6 +256,8 @@ class NearbyLinkManager {
   Future<void> enterPairingMode() {
     _pairingMode = true;
     _pairingTried.clear();
+    _forgetStrangers();
+    _pairingNonce = NearbySession.newPairingNonce();
     return refresh();
   }
 
@@ -223,6 +267,11 @@ class NearbyLinkManager {
       await _reject(handle);
     }
     await refresh();
+  }
+
+  void _forgetStrangers() {
+    _strangerUntil.clear();
+    _strangerWait.clear();
   }
 
   /// Re-decides whether the radio is on, and restarts the scan so nearby
@@ -237,9 +286,14 @@ class NearbyLinkManager {
 
   Future<void> _refresh() async {
     if (_disposed) return;
+    if (!_prunedSecrets) {
+      _prunedSecrets = true;
+      await _pruneOrphanSecrets();
+    }
     final wanted =
         _foreground &&
         (_pairingMode ||
+            _syncNowWaiters.isNotEmpty ||
             (_autoSyncEnabled() && (await _peers.all()).isNotEmpty));
     if (!wanted) {
       await _stopRadio();
@@ -267,6 +321,20 @@ class NearbyLinkManager {
     await _carrier.stopScanning();
     await _carrier.startScanning();
     _emitState();
+  }
+
+  /// A pair secret whose paired-devices row is missing (the app stopped
+  /// between storing the secret and writing the row) cannot be seen or
+  /// unpaired from Settings, so it is dropped once per run.
+  Future<void> _pruneOrphanSecrets() async {
+    try {
+      final rows = {for (final p in await _peers.all()) p.peerDeviceId};
+      for (final id in (await _secrets.all()).keys) {
+        if (!rows.contains(id)) await _secrets.remove(id);
+      }
+    } on Object catch (e) {
+      _log.warning('Nearby secret cleanup failed: $e');
+    }
   }
 
   Future<void> _stopRadio() async {
@@ -304,15 +372,29 @@ class NearbyLinkManager {
     return change != null && change.isAfter(last);
   }
 
-  void _onSighting(String transportId) {
-    if (!_running || _disposed || _connecting.contains(transportId)) return;
+  bool _mayDial(String transportId) {
+    if (_connecting.contains(transportId)) return false;
+    final now = _now();
     final last = _lastAttempt[transportId];
-    if (last != null && _now().difference(last) < retryAfter) return;
+    if (last != null && now.difference(last) < retryAfter) return false;
+    final until = _strangerUntil[transportId];
+    return until == null || !now.isBefore(until);
+  }
+
+  void _onSighting(String transportId) {
+    if (!_running || _disposed) return;
+    _lastSighted[transportId] = _now();
+    if (!_mayDial(transportId)) return;
     final device = _deviceByTransport[transportId];
     if (device != null && _active.containsKey(device)) return;
     if (_pairingMode) {
       if (!_pairingTried.add(transportId)) return;
       unawaited(_openPairing(transportId));
+      return;
+    }
+    if (_syncNowWaiters.isNotEmpty) {
+      // A one-off Sync now dials whatever it sees until it finds its peer.
+      unawaited(_openSync(transportId));
       return;
     }
     if (!_autoSyncEnabled()) return;
@@ -325,22 +407,41 @@ class NearbyLinkManager {
     _debounce = Timer(changeDebounce, () {
       _lastChangeAt = _now();
       if (!_running || !_autoSyncEnabled()) return;
+      final now = _now();
       for (final entry in _transportByDevice.entries) {
-        if (!_active.containsKey(entry.key) &&
-            !_connecting.contains(entry.value)) {
-          unawaited(_openSync(entry.value));
+        final seen = _lastSighted[entry.value];
+        if (seen == null || now.difference(seen) > recentSighting) continue;
+        if (_active.containsKey(entry.key) || !_mayDial(entry.value)) {
+          continue;
         }
+        unawaited(_openSync(entry.value));
       }
     });
   }
 
-  /// One session with [peerDeviceId] now, whatever the cooldown. Null when
-  /// this device has not seen that peer's radio in this run, or a session
+  /// One session with [peerDeviceId] now, whatever the cooldown and the
+  /// automatic switch: the radio comes on until the peer is found or
+  /// [syncNowTimeout] passes. Null when it was not found, or a session
   /// with it is already running.
   Future<NearbySyncOutcome?> syncNow(String peerDeviceId) async {
-    final transport = _transportByDevice[peerDeviceId];
-    if (transport == null || _active.containsKey(peerDeviceId)) return null;
-    return _openSync(transport);
+    if (_active.containsKey(peerDeviceId) || _disposed) return null;
+    final existing = _syncNowWaiters[peerDeviceId];
+    if (existing != null) return existing.future;
+    final waiter = Completer<NearbySyncOutcome?>();
+    _syncNowWaiters[peerDeviceId] = waiter;
+    _lastSessionAt.remove(peerDeviceId);
+    await refresh();
+    final known = _transportByDevice[peerDeviceId];
+    if (known != null && _running && _mayDial(known)) {
+      unawaited(_openSync(known));
+    }
+    final outcome = await waiter.future.timeout(
+      syncNowTimeout,
+      onTimeout: () => null,
+    );
+    _syncNowWaiters.remove(peerDeviceId);
+    await refresh();
+    return outcome;
   }
 
   Future<NearbyEndpoint?> _connect(String transportId) async {
@@ -362,7 +463,7 @@ class NearbyLinkManager {
       try {
         channel = await NearbySession(
           endpoint: endpoint,
-          identity: await _engine.identity(),
+          identity: await _identity(),
           secrets: _secrets,
         ).openSync();
       } on NearbySessionRefused catch (e) {
@@ -380,14 +481,26 @@ class NearbyLinkManager {
     return _run(channel);
   }
 
-  /// A refusal names nobody (the hello is anonymous), so it is recorded
-  /// only on a peer this run already met at that radio address.
+  /// A refusal is recorded on the peer it authenticated as, or on the peer
+  /// already met at that radio address in this run. A refusal from nobody
+  /// known is a stranger: its address is left alone for a while, longer
+  /// each time.
   Future<void> _recordRefusal(
     String transportId,
     NearbySessionRefused e,
   ) async {
-    final device = _deviceByTransport[transportId];
-    if (device == null || !e.fromPeer) return;
+    final device = e.peerDeviceId ?? _deviceByTransport[transportId];
+    if (device == null || await _peers.get(device) == null) {
+      final wait = _strangerWait[transportId];
+      final next = wait == null
+          ? strangerBackoff
+          : (wait * 2 > maxStrangerBackoff ? maxStrangerBackoff : wait * 2);
+      _strangerWait[transportId] = next;
+      _strangerUntil[transportId] = _now().add(next);
+      return;
+    }
+    if (!e.fromPeer) return;
+    _learn(transportId, device);
     final error = switch (e.code) {
       NearbyErrorCode.notPaired => NearbyPeerError.notPaired,
       NearbyErrorCode.differentLibrary => NearbyPeerError.differentLibrary,
@@ -395,11 +508,19 @@ class NearbyLinkManager {
       _ => null,
     };
     if (error != null) await _peers.setError(device, error);
+    _completeSyncNow(device, NearbySyncOutcome(error: error));
+  }
+
+  void _completeSyncNow(String deviceId, NearbySyncOutcome? outcome) {
+    final waiter = _syncNowWaiters[deviceId];
+    if (waiter != null && !waiter.isCompleted) waiter.complete(outcome);
   }
 
   void _learn(String transportId, String deviceId) {
     _deviceByTransport[transportId] = deviceId;
     _transportByDevice[deviceId] = transportId;
+    _strangerUntil.remove(transportId);
+    _strangerWait.remove(transportId);
   }
 
   Future<void> _onIncoming(NearbyEndpoint endpoint) async {
@@ -411,8 +532,9 @@ class NearbyLinkManager {
     try {
       incoming = await NearbySession(
         endpoint: endpoint,
-        identity: await _engine.identity(),
+        identity: await _identity(),
         secrets: _secrets,
+        pairingNonce: _pairingNonce.isEmpty ? null : _pairingNonce,
       ).accept(allowPairing: _pairingMode);
     } on Object catch (e) {
       _log.info('Nearby incoming from ${endpoint.transportId} refused: $e');
@@ -428,18 +550,19 @@ class NearbyLinkManager {
           NearbyPairingHandle._(
             this,
             pairing,
-            initiatorId: pairing.peer.deviceId,
+            transportId: endpoint.transportId,
+            initiatorKey: pairing.preview.nonce,
           ),
         );
     }
   }
 
-  Future<String> _myId() async => (await _engine.identity()).deviceId;
-
   Future<NearbySyncOutcome?> _run(NearbyChannel channel) async {
     final peerId = channel.peer.deviceId;
-    final myId = await _myId();
+    final myId = _me!;
     final live = _Live(channel, channel.isInitiator ? myId : peerId);
+    // Checked and registered with no await in between: two sessions with
+    // the same peer finishing their handshakes together must not both run.
     final existing = _active[peerId];
     if (existing != null) {
       // Both devices connected to each other at once. Each keeps the one
@@ -447,13 +570,15 @@ class NearbyLinkManager {
       final preferred = myId.compareTo(peerId) < 0 ? myId : peerId;
       if (live.initiatorId == preferred && existing.initiatorId != preferred) {
         existing.superseded = true;
-        await existing.channel.close();
+        _active[peerId] = live;
+        unawaited(existing.channel.close());
       } else {
         await channel.close();
         return null;
       }
+    } else {
+      _active[peerId] = live;
     }
-    _active[peerId] = live;
     _emitState();
     NearbySyncOutcome outcome;
     try {
@@ -464,9 +589,12 @@ class NearbyLinkManager {
         tempDir: _tempDir,
         now: _now,
         partSize: partSize,
-        onProgress: (done, total) => _progressController.add(
-          NearbySyncProgress(peerDeviceId: peerId, done: done, total: total),
-        ),
+        onProgress: (done, total) {
+          if (_progressController.isClosed) return;
+          _progressController.add(
+            NearbySyncProgress(peerDeviceId: peerId, done: done, total: total),
+          );
+        },
       ).run();
     } on Object catch (e) {
       _log.warning('Nearby sync with $peerId failed: $e');
@@ -495,10 +623,14 @@ class NearbyLinkManager {
     if (await _peers.get(peerId) != null) {
       await _peers.markSeen(peerId, at.millisecondsSinceEpoch);
       await _peers.setError(peerId, outcome.error);
+      if (outcome.error == null) {
+        await _peers.markSynced(peerId, at: at.millisecondsSinceEpoch);
+      }
     }
     if (outcome.applied > 0 && !_appliedController.isClosed) {
       _appliedController.add(null);
     }
+    _completeSyncNow(peerId, outcome);
     return outcome;
   }
 
@@ -513,12 +645,17 @@ class NearbyLinkManager {
       try {
         final pairing = await NearbySession(
           endpoint: endpoint,
-          identity: await _engine.identity(),
+          identity: await _identity(),
           secrets: _secrets,
+          pairingNonce: _pairingNonce,
         ).openPairing();
-        _learn(transportId, pairing.peer.deviceId);
         await _offer(
-          NearbyPairingHandle._(this, pairing, initiatorId: await _myId()),
+          NearbyPairingHandle._(
+            this,
+            pairing,
+            transportId: transportId,
+            initiatorKey: _pairingNonce,
+          ),
         );
       } on Object catch (e) {
         _log.info('Nearby pairing with $transportId did not open: $e');
@@ -531,19 +668,20 @@ class NearbyLinkManager {
   }
 
   /// Shows [handle], unless a pairing with the same device is already
-  /// shown: then the one the lower device id started stays.
+  /// shown: then the one the lower pairing nonce started stays, on both.
   Future<void> _offer(NearbyPairingHandle handle) async {
     if (!_pairingMode || _disposed) {
       await handle._pairing.reject();
       return;
     }
-    final peerId = handle.peer.deviceId;
-    final existing = _pending.where((h) => h.peer.deviceId == peerId);
+    final peerKey = handle.peerKey;
+    final existing = _pending.where((h) => h.peerKey == peerKey);
     if (existing.isNotEmpty) {
       final other = existing.first;
-      final myId = await _myId();
-      final preferred = myId.compareTo(peerId) < 0 ? myId : peerId;
-      if (handle.initiatorId == preferred && other.initiatorId != preferred) {
+      final preferred = _pairingNonce.compareTo(peerKey) < 0
+          ? _pairingNonce
+          : peerKey;
+      if (handle.initiatorKey == preferred && other.initiatorKey != preferred) {
         _pending.remove(other);
         await other._pairing.reject();
       } else {
@@ -569,6 +707,8 @@ class NearbyLinkManager {
       displayName: peer.deviceName,
       pairedAt: _now().millisecondsSinceEpoch,
     );
+    _learn(handle.transportId, peer.deviceId);
+    _forgetStrangers();
     unawaited(_run(channel));
     unawaited(refresh());
   }
@@ -579,13 +719,19 @@ class NearbyLinkManager {
     await handle._pairing.reject();
   }
 
-  /// Forgets [peerDeviceId]: its pair secret, its row and its progress.
+  /// Forgets [peerDeviceId]: its row and its progress. The secret is kept
+  /// aside so the peer can be told, authenticated, that it is unpaired.
   Future<void> unpair(String peerDeviceId) async {
-    await _secrets.remove(peerDeviceId);
+    final live = _active.remove(peerDeviceId);
+    if (live != null) {
+      live.superseded = true;
+      await live.channel.close();
+    }
+    await _secrets.revoke(peerDeviceId);
     await _peers.remove(peerDeviceId);
     await _cursors.remove(peerDeviceId, nearbyCursorProvider);
     _lastSessionAt.remove(peerDeviceId);
-    await _active[peerDeviceId]?.channel.close();
+    _forgetStrangers();
     await refresh();
   }
 
@@ -603,6 +749,9 @@ class NearbyLinkManager {
       await handle._pairing.reject();
     }
     _pending.clear();
+    for (final waiter in _syncNowWaiters.values) {
+      if (!waiter.isCompleted) waiter.complete(null);
+    }
     if (_running) {
       _running = false;
       await _carrier.stopScanning();

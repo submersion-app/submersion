@@ -9,23 +9,7 @@ import 'package:submersion/core/services/nearby/nearby_hello.dart';
 import 'package:submersion/core/services/nearby/nearby_session.dart';
 
 import '../../../support/in_memory_nearby_carrier.dart';
-
-class _MemorySecrets implements NearbyPairSecrets {
-  final map = <String, Uint8List>{};
-
-  @override
-  Future<Uint8List?> secretFor(String peerDeviceId) async => map[peerDeviceId];
-
-  @override
-  Future<void> store(String peerDeviceId, Uint8List secret) async =>
-      map[peerDeviceId] = secret;
-
-  @override
-  Future<void> remove(String peerDeviceId) async => map.remove(peerDeviceId);
-
-  @override
-  Future<Map<String, Uint8List>> all() async => Map.of(map);
-}
+import '../../../support/memory_nearby_secrets.dart';
 
 NearbyIdentity _identity(
   String id, {
@@ -87,8 +71,8 @@ void main() {
       'both sides show the same code and confirm stores one secret each',
       () async {
         final (out, into) = await _link();
-        final laptopSecrets = _MemorySecrets();
-        final phoneSecrets = _MemorySecrets();
+        final laptopSecrets = MemoryNearbySecrets();
+        final phoneSecrets = MemoryNearbySecrets();
         final laptop = NearbySession(
           endpoint: out,
           identity: _identity('L'),
@@ -105,13 +89,23 @@ void main() {
         final accepted = await incoming as NearbyIncomingPairing;
 
         expect(outgoing.code, accepted.pairing.code);
-        expect(outgoing.peer.deviceId, 'P');
-        expect(accepted.pairing.peer.deviceId, 'L');
+        // Before both divers confirm, each side knows only the other's name.
+        expect(outgoing.preview.name, 'Device P');
+        expect(accepted.pairing.preview.name, 'Device L');
+        expect(outgoing.preview.toJson().keys, {
+          'name',
+          'dives',
+          'epochTag',
+          'nonce',
+        });
 
         final channels = await Future.wait([
           outgoing.confirm(),
           accepted.pairing.confirm(),
         ]);
+        // After, the full identities, and the secret is keyed by device id.
+        expect(channels[0].peer.deviceId, 'P');
+        expect(channels[1].peer.deviceId, 'L');
         expect(laptopSecrets.map['P'], isNotNull);
         expect(laptopSecrets.map['P'], phoneSecrets.map['L']);
 
@@ -124,8 +118,8 @@ void main() {
 
     test('reject on one side fails the other and stores nothing', () async {
       final (out, into) = await _link();
-      final laptopSecrets = _MemorySecrets();
-      final phoneSecrets = _MemorySecrets();
+      final laptopSecrets = MemoryNearbySecrets();
+      final phoneSecrets = MemoryNearbySecrets();
       final incoming = NearbySession(
         endpoint: into,
         identity: _identity('P'),
@@ -150,12 +144,12 @@ void main() {
       final incoming = NearbySession(
         endpoint: into,
         identity: _identity('P'),
-        secrets: _MemorySecrets(),
+        secrets: MemoryNearbySecrets(),
       ).accept(allowPairing: false);
       final outgoing = NearbySession(
         endpoint: out,
         identity: _identity('L'),
-        secrets: _MemorySecrets(),
+        secrets: MemoryNearbySecrets(),
       ).openPairing();
       await Future.wait([
         expectLater(
@@ -180,12 +174,12 @@ void main() {
         final incoming = NearbySession(
           endpoint: into,
           identity: _identity('P', hasDives: phoneDives),
-          secrets: _MemorySecrets(),
+          secrets: MemoryNearbySecrets(),
         ).accept(allowPairing: true);
         final outgoing = await NearbySession(
           endpoint: out,
-          identity: _identity('L', hasDives: laptopDives),
-          secrets: _MemorySecrets(),
+          identity: _identity('L', hasDives: laptopDives, epoch: null),
+          secrets: MemoryNearbySecrets(),
         ).openPairing();
         final accepted = await incoming as NearbyIncomingPairing;
         expect(outgoing.bothPopulated, expected);
@@ -197,10 +191,10 @@ void main() {
 
   group('sync', () {
     /// Pairs L and P and returns their secret stores.
-    Future<(_MemorySecrets, _MemorySecrets)> paired() async {
+    Future<(MemoryNearbySecrets, MemoryNearbySecrets)> paired() async {
       final (out, into) = await _link();
-      final l = _MemorySecrets();
-      final p = _MemorySecrets();
+      final l = MemoryNearbySecrets();
+      final p = MemoryNearbySecrets();
       final incoming = NearbySession(
         endpoint: into,
         identity: _identity('P'),
@@ -304,14 +298,14 @@ void main() {
       final incoming = NearbySession(
         endpoint: into,
         identity: _identity('P', epoch: 'other'),
-        secrets: _MemorySecrets(),
+        secrets: MemoryNearbySecrets(),
       ).accept(allowPairing: true);
       await Future.wait([
         expectLater(
           NearbySession(
             endpoint: out,
             identity: _identity('L'),
-            secrets: _MemorySecrets(),
+            secrets: MemoryNearbySecrets(),
           ).openPairing(),
           throwsA(
             isA<NearbySessionRefused>().having(
@@ -330,19 +324,144 @@ void main() {
       final incoming = NearbySession(
         endpoint: into,
         identity: _identity('P', epoch: null),
-        secrets: _MemorySecrets(),
+        secrets: MemoryNearbySecrets(),
       ).accept(allowPairing: true);
       final outgoing = await NearbySession(
         endpoint: out,
         identity: _identity('L'),
-        secrets: _MemorySecrets(),
+        secrets: MemoryNearbySecrets(),
       ).openPairing();
       expect(
-        (await incoming as NearbyIncomingPairing).pairing.peer.epochId,
-        'epoch-1',
+        (await incoming as NearbyIncomingPairing).pairing.code,
+        isNotEmpty,
       );
-      expect(outgoing.peer.epochId, isNull);
       await outgoing.reject();
+    });
+
+    test(
+      'the pairing preview carries no device id and no library epoch',
+      () async {
+        final (out, into) = await _link();
+        final incoming = NearbySession(
+          endpoint: into,
+          identity: _identity('phone-id-1234', epoch: 'library-epoch-9'),
+          secrets: MemoryNearbySecrets(),
+        ).accept(allowPairing: true);
+        final outgoing = await NearbySession(
+          endpoint: out,
+          identity: _identity('laptop-id', epoch: 'library-epoch-9'),
+          secrets: MemoryNearbySecrets(),
+        ).openPairing();
+        await incoming;
+        final preview = jsonEncode(outgoing.preview.toJson());
+        // The display name is all it says about the device (this test's
+        // names embed the id; a real one is the diver's own name for it).
+        expect(outgoing.preview.toJson().keys, isNot(contains('id')));
+        expect(preview, isNot(contains('"phone-id-1234"')));
+        expect(preview, isNot(contains('library-epoch-9')));
+        await outgoing.reject();
+      },
+    );
+
+    test(
+      'two devices on the same library are not told they will merge',
+      () async {
+        final (out, into) = await _link();
+        final incoming = NearbySession(
+          endpoint: into,
+          identity: _identity('P'),
+          secrets: MemoryNearbySecrets(),
+        ).accept(allowPairing: true);
+        final outgoing = await NearbySession(
+          endpoint: out,
+          identity: _identity('L'),
+          secrets: MemoryNearbySecrets(),
+        ).openPairing();
+        final accepted = await incoming as NearbyIncomingPairing;
+        // Both hold dives, but they are one library already (epoch-1).
+        expect(outgoing.bothPopulated, isFalse);
+        expect(accepted.pairing.bothPopulated, isFalse);
+        await outgoing.reject();
+      },
+    );
+
+    test('a device that unpaired this one says so, naming itself', () async {
+      final (l, p) = await paired();
+      await p.revoke('L');
+      final (out, into) = await _link();
+      final incoming = NearbySession(
+        endpoint: into,
+        identity: _identity('P'),
+        secrets: p,
+      ).accept(allowPairing: false);
+      await Future.wait([
+        expectLater(
+          NearbySession(
+            endpoint: out,
+            identity: _identity('L'),
+            secrets: l,
+          ).openSync(),
+          throwsA(
+            isA<NearbySessionRefused>()
+                .having((e) => e.code, 'code', NearbyErrorCode.notPaired)
+                .having((e) => e.fromPeer, 'fromPeer', isTrue)
+                .having((e) => e.peerDeviceId, 'peerDeviceId', 'P'),
+          ),
+        ),
+        expectLater(incoming, throwsA(isA<NearbySessionRefused>())),
+      ]);
+    });
+
+    test('a malformed hello is refused, not left hanging', () async {
+      final (out, into) = await _link();
+      final incoming = NearbySession(
+        endpoint: into,
+        identity: _identity('P'),
+        secrets: MemoryNearbySecrets(),
+      ).accept(allowPairing: true);
+      await out.send(
+        FrameEncoder.encode(
+          NearbyMessageType.hello,
+          _utf8('{"v":1,"intent":"sync","commit":"AAAA","tags":[null]}'),
+        ),
+      );
+      await expectLater(
+        incoming,
+        throwsA(
+          isA<NearbySessionRefused>().having(
+            (e) => e.code,
+            'code',
+            NearbyErrorCode.protocol,
+          ),
+        ),
+      );
+    });
+
+    test('an error frame injected in the clear after the handshake is not '
+        'believed', () async {
+      final (l, p) = await paired();
+      final (out, into) = await _link();
+      final laptopEnd = _Recording(out);
+      final incoming = NearbySession(
+        endpoint: into,
+        identity: _identity('P'),
+        secrets: p,
+      ).accept(allowPairing: false);
+      await NearbySession(
+        endpoint: laptopEnd,
+        identity: _identity('L'),
+        secrets: l,
+      ).openSync();
+      final phone = (await incoming as NearbyIncomingSync).channel;
+      final first = phone.messages.first;
+      // Someone in range forges a refusal frame without the session key.
+      await out.send(
+        FrameEncoder.encode(
+          NearbyMessageType.error,
+          Uint8List.fromList([NearbyErrorCode.differentLibrary.index]),
+        ),
+      );
+      await expectLater(first, throwsA(isA<Object>()));
     });
 
     test('a newer protocol version refuses with newerApp', () async {
@@ -350,7 +469,7 @@ void main() {
       final incoming = NearbySession(
         endpoint: into,
         identity: _identity('P'),
-        secrets: _MemorySecrets(),
+        secrets: MemoryNearbySecrets(),
       ).accept(allowPairing: true);
       final hello = NearbyHello(
         protocolVersion: NearbyHello.currentProtocolVersion + 1,
@@ -385,7 +504,7 @@ void main() {
       final incoming = NearbySession(
         endpoint: into,
         identity: _identity('P'),
-        secrets: _MemorySecrets(),
+        secrets: MemoryNearbySecrets(),
       ).accept(allowPairing: true);
       // Commit to one key, then reveal another.
       final hello = NearbyHello(
@@ -420,12 +539,13 @@ void main() {
       final stranger = NearbySession(
         endpoint: out,
         identity: _identity('stranger-device-0000'),
-        secrets: _MemorySecrets()..map['someone-else'] = Uint8List(32),
+        secrets: MemoryNearbySecrets()..map['someone-else'] = Uint8List(32),
       ).openSync();
       final incoming = NearbySession(
         endpoint: phoneEnd,
         identity: _identity('phone-device-1234', epoch: 'library-epoch-5678'),
-        secrets: _MemorySecrets()..map['laptop-device-9999'] = Uint8List(32),
+        secrets: MemoryNearbySecrets()
+          ..map['laptop-device-9999'] = Uint8List(32),
       ).accept(allowPairing: false);
       await Future.wait([
         expectLater(stranger, throwsA(isA<NearbySessionRefused>())),
@@ -475,7 +595,7 @@ void main() {
         NearbySession(
               endpoint: into,
               identity: _identity('P'),
-              secrets: _MemorySecrets(),
+              secrets: MemoryNearbySecrets(),
               helloTimeout: const Duration(seconds: 10),
             )
             .accept(allowPairing: true)

@@ -12,26 +12,12 @@ import 'package:submersion/core/services/nearby/nearby_link_manager.dart';
 import 'package:submersion/core/services/nearby/nearby_peer_store.dart';
 import 'package:submersion/core/services/nearby/nearby_session.dart';
 import 'package:submersion/core/services/nearby/nearby_sync_engine.dart';
+import 'package:submersion/core/services/nearby/nearby_sync_protocol.dart';
 import 'package:submersion/core/services/sync/changeset_log/peer_cursor_store.dart';
 
 import '../../../support/fake_nearby_sync_engine.dart';
 import '../../../support/in_memory_nearby_carrier.dart';
-
-class _Secrets implements NearbyPairSecrets {
-  final map = <String, Uint8List>{};
-
-  @override
-  Future<Uint8List?> secretFor(String id) async => map[id];
-
-  @override
-  Future<void> store(String id, Uint8List s) async => map[id] = s;
-
-  @override
-  Future<void> remove(String id) async => map.remove(id);
-
-  @override
-  Future<Map<String, Uint8List>> all() async => Map.of(map);
-}
+import '../../../support/memory_nearby_secrets.dart';
 
 /// One device: carrier, fake library, stores and its manager.
 class _Device {
@@ -51,7 +37,7 @@ class _Device {
   final Directory temp;
   final NearbyPeerStore peers;
   final PeerCursorStore cursors;
-  final secrets = _Secrets();
+  final secrets = MemoryNearbySecrets();
   final changes = StreamController<void>.broadcast();
   bool auto = true;
   DateTime now = DateTime.utc(2026, 10, 27, 12);
@@ -229,8 +215,8 @@ void main() {
 
     final aHandle = aOffers.last.single;
     final bHandle = bOffers.last.single;
-    expect(aHandle.peer.deviceId, 'B');
-    expect(bHandle.peer.deviceId, 'A');
+    expect(aHandle.peerName, 'Device B');
+    expect(bHandle.peerName, 'Device A');
     expect(aHandle.code, bHandle.code);
 
     await Future.wait([aHandle.confirm(), bHandle.confirm()]);
@@ -329,6 +315,9 @@ void main() {
     );
     await a.manager.unpair('B');
     expect(await a.secrets.secretFor('B'), isNull);
+    expect(a.secrets.revokedMap.keys, [
+      'B',
+    ], reason: 'kept aside to tell B it is unpaired');
     expect(await a.peers.get('B'), isNull);
     expect(await a.cursors.get('B', nearbyCursorProvider), isNull);
     expect(await a.cursors.get('B', 'icloud'), isNotNull);
@@ -409,4 +398,195 @@ void main() {
       NearbyAvailability.unauthorized,
     );
   });
+
+  group('review fixes', () {
+    test(
+      'two sessions from one peer finishing together run only once',
+      () async {
+        final a = await device('A');
+        final b = await device('B');
+        await pair(a, b);
+        a.engine.identityDelay = const Duration(milliseconds: 20);
+        await a.manager.setForeground(true);
+        // B, driven by hand, opens two sessions to A at the same moment.
+        Future<NearbySyncOutcome> one() async {
+          final endpoint = await b.carrier.connect('A');
+          final channel = await NearbySession(
+            endpoint: endpoint,
+            identity: b.engine.self,
+            secrets: b.secrets,
+          ).openSync();
+          return NearbySyncProtocol(
+            channel: channel,
+            engine: b.engine,
+            peers: b.peers,
+            tempDir: () async => b.temp,
+          ).run();
+        }
+
+        await Future.wait([one(), one()]);
+        await _settle();
+        expect(
+          a.engine.recordedApplied,
+          hasLength(1),
+          reason: 'the second session was closed before it synced',
+        );
+      },
+    );
+
+    test('a peer that unpaired this device is shown as such, even unmet '
+        'in this run', () async {
+      final a = await device('A');
+      final b = await device('B');
+      await pair(a, b);
+      // B unpairs A while A is not around; A's manager never met B's radio.
+      await b.secrets.revoke('A');
+      await b.peers.remove('A');
+      await b.peers.upsertPaired(
+        peerDeviceId: 'C',
+        displayName: 'C',
+        pairedAt: 1,
+      );
+      await foreground([a, b]);
+      expect(
+        a.peers.errorOf((await a.peers.get('B'))!),
+        NearbyPeerError.notPaired,
+      );
+      expect(a.engine.recordedApplied, isEmpty);
+    });
+
+    test('Sync now works with the automatic switch off', () async {
+      final a = await device('A');
+      final b = await device('B');
+      await pair(a, b);
+      a.auto = false;
+      await b.manager.setForeground(true);
+      await a.manager.setForeground(true);
+      expect(a.carrier.isScanning, isFalse);
+      final outcome = await a.manager.syncNow('B');
+      expect(outcome, isNotNull);
+      expect(outcome!.error, isNull);
+      expect(a.engine.recordedAcks.where((r) => r.peer == 'B'), isNotEmpty);
+      await _settle();
+      expect(a.carrier.isScanning, isFalse, reason: 'off again after');
+    });
+
+    test('Sync now gives up when the peer is nowhere near', () async {
+      final a = await device('A');
+      final b = await device('B');
+      await pair(a, b);
+      a.auto = false;
+      final manager = NearbyLinkManager(
+        carrier: a.carrier,
+        engine: a.engine,
+        secrets: a.secrets,
+        peers: a.peers,
+        cursors: a.cursors,
+        autoSyncEnabled: () => false,
+        tempDir: () async => a.temp,
+        syncNowTimeout: const Duration(milliseconds: 100),
+      );
+      addTearDown(manager.dispose);
+      await manager.setForeground(true);
+      expect(await manager.syncNow('B'), isNull);
+    });
+
+    test('a stranger is not dialled again on every sighting', () async {
+      final a = await device('A');
+      final stranger = await device('S');
+      final c = await device('C');
+      await pair(a, c);
+      await pair(stranger, c); // so the stranger runs its radio too
+      var dials = 0;
+      final counting = _CountingCarrier(a.carrier, () => dials++);
+      final manager = NearbyLinkManager(
+        carrier: counting,
+        engine: a.engine,
+        secrets: a.secrets,
+        peers: a.peers,
+        cursors: a.cursors,
+        autoSyncEnabled: () => true,
+        tempDir: () async => a.temp,
+        retryAfter: Duration.zero,
+      );
+      addTearDown(manager.dispose);
+      await stranger.manager.setForeground(true);
+      await manager.setForeground(true);
+      await _settle();
+      final first = dials;
+      expect(first, greaterThan(0));
+      for (var i = 0; i < 3; i++) {
+        await manager.refresh();
+        await _settle();
+      }
+      expect(dials, first, reason: 'left alone after refusing');
+    });
+
+    test(
+      'a secret without a paired-devices row is dropped once per run',
+      () async {
+        final a = await device('A');
+        await a.secrets.store('ghost', Uint8List(32));
+        await a.peers.upsertPaired(
+          peerDeviceId: 'B',
+          displayName: 'B',
+          pairedAt: 1,
+        );
+        await a.secrets.store('B', Uint8List(32));
+        await a.manager.setForeground(true);
+        expect(await a.secrets.secretFor('ghost'), isNull);
+        expect(await a.secrets.secretFor('B'), isNotNull);
+      },
+    );
+
+    test('a session is stamped synced only at its end', () async {
+      final a = await device('A');
+      final b = await device('B');
+      await pair(a, b);
+      await foreground([a, b]);
+      expect((await a.peers.get('B'))!.lastSyncedAt, isNotNull);
+      expect((await b.peers.get('A'))!.lastSyncedAt, isNotNull);
+    });
+  });
+}
+
+/// Passes everything to [inner] and counts the connection attempts.
+class _CountingCarrier implements NearbyCarrier {
+  _CountingCarrier(this.inner, this.onConnect);
+
+  final InMemoryNearbyCarrier inner;
+  final void Function() onConnect;
+
+  @override
+  bool get canAdvertise => inner.canAdvertise;
+
+  @override
+  Future<void> startAdvertising() => inner.startAdvertising();
+
+  @override
+  Future<void> stopAdvertising() => inner.stopAdvertising();
+
+  @override
+  Future<void> startScanning() => inner.startScanning();
+
+  @override
+  Future<void> stopScanning() => inner.stopScanning();
+
+  @override
+  Stream<NearbyPeerSighting> get sightings => inner.sightings;
+
+  @override
+  Stream<NearbyEndpoint> get incoming => inner.incoming;
+
+  @override
+  Future<NearbyEndpoint> connect(String transportId) {
+    onConnect();
+    return inner.connect(transportId);
+  }
+
+  @override
+  Stream<NearbyAvailability> get availability => inner.availability;
+
+  @override
+  Future<NearbyAvailability> checkAvailability() => inner.checkAvailability();
 }

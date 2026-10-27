@@ -48,4 +48,19 @@ void main() {
     await store.remove('a');
     expect(await store.all(), {'b': b});
   });
+
+  test('revoke keeps the secret aside; pairing again clears it', () async {
+    final store = SecureNearbyPairStore(storage: InMemoryKeychain());
+    final a = Uint8List.fromList([1]);
+    final b = Uint8List.fromList([2]);
+    await store.store('peer', a);
+    await store.revoke('peer');
+    expect(await store.secretFor('peer'), isNull);
+    expect(await store.all(), isEmpty);
+    expect(await store.revoked(), {'peer': a});
+
+    await store.store('peer', b);
+    expect(await store.revoked(), isEmpty);
+    expect(await store.secretFor('peer'), b);
+  });
 }

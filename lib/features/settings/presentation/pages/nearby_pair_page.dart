@@ -92,7 +92,7 @@ class _NearbyPairPageState extends ConsumerState<NearbyPairPage> {
                 ),
               if (offers.isEmpty) const _Looking(),
               for (final offer in offers)
-                _OfferCard(key: ValueKey(offer.peer.deviceId), offer: offer),
+                _OfferCard(key: ValueKey(offer.peerKey), offer: offer),
             ],
           );
         },
@@ -152,9 +152,7 @@ class _OfferCardState extends State<_OfferCard> {
     try {
       await widget.offer.confirm();
       messenger.showSnackBar(
-        SnackBar(
-          content: Text(l10n.nearbyPair_done(widget.offer.peer.deviceName)),
-        ),
+        SnackBar(content: Text(l10n.nearbyPair_done(widget.offer.peerName))),
       );
       navigator.pop();
     } on Object {
@@ -177,7 +175,7 @@ class _OfferCardState extends State<_OfferCard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(l10n.nearbyPair_found(widget.offer.peer.deviceName)),
+            Text(l10n.nearbyPair_found(widget.offer.peerName)),
             if (widget.offer.bothPopulated) ...[
               const SizedBox(height: 8),
               Text(

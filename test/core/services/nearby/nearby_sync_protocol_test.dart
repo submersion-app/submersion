@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:drift/native.dart';
+import 'package:path/path.dart' as p;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
@@ -12,24 +13,7 @@ import 'package:submersion/core/services/nearby/nearby_sync_protocol.dart';
 
 import '../../../support/fake_nearby_sync_engine.dart';
 import '../../../support/in_memory_nearby_carrier.dart';
-
-class _Secrets implements NearbyPairSecrets {
-  _Secrets(this.map);
-
-  final Map<String, Uint8List> map;
-
-  @override
-  Future<Uint8List?> secretFor(String id) async => map[id];
-
-  @override
-  Future<void> store(String id, Uint8List s) async => map[id] = s;
-
-  @override
-  Future<void> remove(String id) async => map.remove(id);
-
-  @override
-  Future<Map<String, Uint8List>> all() async => Map.of(map);
-}
+import '../../../support/memory_nearby_secrets.dart';
 
 NearbyIdentity _id(
   String id, {
@@ -104,6 +88,7 @@ void main() {
     _Device laptop,
     _Device phone, {
     int partSize = 262144,
+    Duration messageTimeout = const Duration(seconds: 60),
   }) async {
     final phoneCarrier = hub.carrier(phone.id) ?? hub.join(phone.id);
     final laptopCarrier = hub.carrier(laptop.id) ?? hub.join(laptop.id);
@@ -114,12 +99,12 @@ void main() {
     final accepted = NearbySession(
       endpoint: into,
       identity: await phone.engine.identity(),
-      secrets: _Secrets({laptop.id: secret}),
+      secrets: MemoryNearbySecrets({laptop.id: secret}),
     ).accept(allowPairing: false);
     final laptopChannel = await NearbySession(
       endpoint: out,
       identity: await laptop.engine.identity(),
-      secrets: _Secrets({phone.id: secret}),
+      secrets: MemoryNearbySecrets({phone.id: secret}),
     ).openSync();
     final phoneChannel = (await accepted as NearbyIncomingSync).channel;
 
@@ -130,6 +115,7 @@ void main() {
       tempDir: () async => d.temp,
       now: () => d.now,
       partSize: partSize,
+      messageTimeout: messageTimeout,
     );
 
     final results = await Future.wait([
@@ -393,5 +379,76 @@ void main() {
     );
     await session(laptop, phone);
     expect(phone.engine.recordedApplied.single.low, '000000000000000:000000:');
+  });
+
+  test(
+    'a writer new to the receiver relays from its oldest clock there',
+    () async {
+      final laptop = await device(
+        'L',
+        peerId: 'P',
+        marks: {'L': fakeHlc(50, 'L')},
+      );
+      laptop.engine.fullContent = '{}';
+      final phone = await device(
+        'P',
+        peerId: 'L',
+        marksAfterApply: {'L': fakeHlc(50, 'L')},
+      );
+      phone.engine.lowestByWriter = {'L': fakeHlc(7, 'L')};
+      await session(laptop, phone);
+      expect(phone.engine.recordedApplied.single.low, fakeHlc(7, 'L'));
+    },
+  );
+
+  test(
+    'the receiver waits while a large first copy is being prepared',
+    () async {
+      final laptop = await device(
+        'L',
+        peerId: 'P',
+        marks: {'L': fakeHlc(5, 'L')},
+      );
+      laptop.engine
+        ..fullContent = '{"slow":true}'
+        ..exportDelay = const Duration(milliseconds: 400);
+      final phone = await device(
+        'P',
+        peerId: 'L',
+        marksAfterApply: {'L': fakeHlc(5, 'L')},
+      );
+      final (lOut, pOut) = await session(
+        laptop,
+        phone,
+        messageTimeout: const Duration(milliseconds: 150),
+      );
+      expect(pOut.error, isNull);
+      expect(lOut.error, isNull);
+      expect(phone.engine.appliedFiles.single, '{"slow":true}');
+    },
+  );
+
+  test('partial copies of an older offer are swept', () async {
+    final laptop = await device(
+      'L',
+      peerId: 'P',
+      marks: {'L': fakeHlc(5, 'L')},
+    );
+    laptop.engine.fullContent = '{}';
+    final phone = await device(
+      'P',
+      peerId: 'L',
+      marksAfterApply: {'L': fakeHlc(5, 'L')},
+    );
+    final stale = File(p.join(phone.temp.path, 'nearby-in-L-old-offer.gz'))
+      ..writeAsBytesSync([1, 2, 3]);
+    final ancient = File(p.join(phone.temp.path, 'nearby-out-X-dead.gz'))
+      ..writeAsBytesSync([1]);
+    ancient.setLastModifiedSync(
+      DateTime.now().subtract(const Duration(days: 3)),
+    );
+    await session(laptop, phone);
+    expect(stale.existsSync(), isFalse);
+    expect(ancient.existsSync(), isFalse);
   });
 }

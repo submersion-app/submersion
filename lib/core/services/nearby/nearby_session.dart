@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:submersion/core/services/nearby/nearby_carrier.dart';
@@ -16,21 +17,85 @@ abstract class NearbyPairSecrets {
 
   Future<void> remove(String peerDeviceId);
 
+  /// Unpairs [peerDeviceId] but keeps its secret aside, so this device can
+  /// still recognise that peer and tell it, authenticated, that it is no
+  /// longer paired. Storing a new secret for it clears the revocation.
+  Future<void> revoke(String peerDeviceId);
+
   /// Every stored secret by peer device id, for the anonymous tags.
   Future<Map<String, Uint8List>> all();
+
+  /// The revoked secrets by peer device id.
+  Future<Map<String, Uint8List>> revoked();
 }
 
 /// A session ended before it started. [fromPeer] is true when the other
 /// device sent the refusal, false when this device refused.
 class NearbySessionRefused implements Exception {
-  const NearbySessionRefused(this.code, {required this.fromPeer});
+  const NearbySessionRefused(
+    this.code, {
+    required this.fromPeer,
+    this.peerDeviceId,
+  });
 
   final NearbyErrorCode code;
   final bool fromPeer;
 
+  /// The peer the refusal is known to come from, when the handshake got far
+  /// enough to authenticate it (a device that unpaired this one says so
+  /// after the key check). Null for a refusal from an unknown device.
+  final String? peerDeviceId;
+
   @override
   String toString() =>
-      'NearbySessionRefused(${code.name}, fromPeer: $fromPeer)';
+      'NearbySessionRefused(${code.name}, fromPeer: $fromPeer, '
+      'peer: $peerDeviceId)';
+}
+
+/// What two devices show each other before both divers confirm a pairing:
+/// a name, whether it holds dives, an [epochTag] that matches the other's
+/// only when both are on the same library (it reveals nothing else about
+/// the library), and a [nonce] that names this pairing attempt without
+/// naming the device.
+class NearbyPairingPreview {
+  const NearbyPairingPreview({
+    required this.name,
+    required this.hasDives,
+    required this.epochTag,
+    required this.nonce,
+  });
+
+  final String name;
+  final bool hasDives;
+  final Uint8List? epochTag;
+  final String nonce;
+
+  Map<String, Object?> toJson() => {
+    'name': name,
+    'dives': hasDives,
+    'epochTag': epochTag == null ? null : base64Encode(epochTag!),
+    'nonce': nonce,
+  };
+
+  /// Throws [FormatException] on anything but a well-formed preview.
+  factory NearbyPairingPreview.fromJson(Map<String, Object?> json) {
+    final name = json['name'];
+    final dives = json['dives'];
+    final tag = json['epochTag'];
+    final nonce = json['nonce'];
+    if (name is! String || dives is! bool || nonce is! String) {
+      throw const FormatException('pairing preview');
+    }
+    if (tag != null && tag is! String) {
+      throw const FormatException('pairing preview epochTag');
+    }
+    return NearbyPairingPreview(
+      name: name,
+      hasDives: dives,
+      epochTag: tag == null ? null : base64Decode(tag as String),
+      nonce: nonce,
+    );
+  }
 }
 
 /// The peer's hello (or key reveal) did not arrive in time.
@@ -65,8 +130,13 @@ class NearbyIncomingPairing extends NearbyIncoming {
 
 const _keyCheckText = 'submersion-nearby-key-check';
 
-bool _isPlaintext(NearbyMessageType type) =>
-    type == NearbyMessageType.error || type == NearbyMessageType.bye;
+/// What a revoked pairing sends in place of its identity.
+const _refusedNotPaired = 'notPaired';
+
+String _newNonce() {
+  final random = Random.secure();
+  return base64Url.encode(List.generate(12, (_) => random.nextInt(256)));
+}
 
 /// Opens one link: hello both ways, the key reveal, the key check, and for
 /// pairing the code on both screens.
@@ -79,12 +149,21 @@ class NearbySession {
     required NearbyEndpoint endpoint,
     required NearbyIdentity identity,
     required NearbyPairSecrets secrets,
+    String? pairingNonce,
     this.helloTimeout = const Duration(seconds: 10),
     this.confirmTimeout = const Duration(minutes: 2),
   }) : _endpoint = endpoint,
        _identity = identity,
        _secrets = secrets,
+       pairingNonce = pairingNonce ?? _newNonce(),
        _inbox = NearbyInbox(endpoint.inbound);
+
+  /// Names this device in pairing previews: random and short-lived, so a
+  /// stranger nearby cannot follow the device from one pairing to the next.
+  final String pairingNonce;
+
+  /// A fresh value for [pairingNonce], one per pairing mode.
+  static String newPairingNonce() => _newNonce();
 
   final NearbyEndpoint _endpoint;
   final NearbyIdentity _identity;
@@ -144,8 +223,8 @@ class NearbySession {
     final shared = await _reveal(handshake, peerKey);
     final cipher = await shared.sessionCipher();
     await _keyCheck(cipher);
-    final peer = await _exchangeIdentity(cipher);
-    return NearbyPairing._(this, peer, shared, cipher);
+    final (mine, peer) = await _exchangePreview(cipher, shared);
+    return NearbyPairing._(this, mine, peer, shared, cipher);
   }
 
   Future<NearbyIncoming> accept({required bool allowPairing}) async {
@@ -154,17 +233,28 @@ class NearbySession {
     if (commitment == null) await _refuse(NearbyErrorCode.protocol);
     String? peerId;
     Uint8List? secret;
+    var revoked = false;
     if (hello.intent == NearbyIntent.sync) {
-      for (final entry in (await _secrets.all()).entries) {
-        final expected = await NearbyHandshake.tag(
-          entry.value,
-          'i',
-          commitment,
-        );
-        if (hello.tags.any((t) => _same(t, expected))) {
-          peerId = entry.key;
-          secret = entry.value;
+      Future<void> match(Map<String, Uint8List> candidates) async {
+        for (final entry in candidates.entries) {
+          final expected = await NearbyHandshake.tag(
+            entry.value,
+            'i',
+            commitment,
+          );
+          if (hello.tags.any((t) => _same(t, expected))) {
+            peerId = entry.key;
+            secret = entry.value;
+          }
         }
+      }
+
+      await match(await _secrets.all());
+      if (peerId == null) {
+        // A device this one unpaired: finish the handshake with the old
+        // secret so the refusal reaches it authenticated and named.
+        await match(await _secrets.revoked());
+        revoked = peerId != null;
       }
       if (peerId == null) await _refuse(NearbyErrorCode.notPaired);
     } else if (!allowPairing) {
@@ -179,7 +269,7 @@ class NearbySession {
         publicKey: handshake.publicKey,
         tag: secret == null
             ? null
-            : await NearbyHandshake.tag(secret, 'r', [
+            : await NearbyHandshake.tag(secret!, 'r', [
                 ...commitment,
                 ...handshake.publicKey,
               ]),
@@ -197,11 +287,77 @@ class NearbySession {
     }
     final cipher = await shared.sessionCipher(pairSecret: secret);
     await _keyCheck(cipher);
-    final peer = await _exchangeIdentity(cipher, expectedId: peerId);
-    if (hello.intent == NearbyIntent.sync) {
-      return NearbyIncomingSync(_channel(peer, cipher));
+    if (hello.intent == NearbyIntent.pair) {
+      final (mine, peer) = await _exchangePreview(cipher, shared);
+      return NearbyIncomingPairing(
+        NearbyPairing._(this, mine, peer, shared, cipher),
+      );
     }
-    return NearbyIncomingPairing(NearbyPairing._(this, peer, shared, cipher));
+    if (revoked) {
+      await _sendFrame(
+        NearbyMessageType.identity,
+        await cipher.seal(
+          Uint8List.fromList(
+            utf8.encode(jsonEncode({'refused': _refusedNotPaired})),
+          ),
+        ),
+      );
+      await _endpoint.close();
+      throw NearbySessionRefused(
+        NearbyErrorCode.notPaired,
+        fromPeer: false,
+        peerDeviceId: peerId,
+      );
+    }
+    final peer = await _exchangeIdentity(cipher, expectedId: peerId);
+    return NearbyIncomingSync(_channel(peer, cipher));
+  }
+
+  /// Both sides of a pairing show each other a preview, sealed: a name and
+  /// whether they hold dives, never a device id or a library epoch. Two
+  /// different libraries are refused here, before either diver confirms.
+  Future<(NearbyPairingPreview, NearbyPairingPreview)> _exchangePreview(
+    NearbySessionCipher cipher,
+    NearbySharedSecret shared,
+  ) async {
+    final epoch = _identity.epochId;
+    final mine = NearbyPairingPreview(
+      name: _identity.deviceName,
+      hasDives: _identity.hasDives,
+      epochTag: epoch == null
+          ? null
+          : await NearbyHandshake.tag(
+              await shared.pairSecret(),
+              'epoch',
+              utf8.encode(epoch),
+            ),
+      nonce: pairingNonce,
+    );
+    await _sendFrame(
+      NearbyMessageType.identity,
+      await cipher.seal(
+        Uint8List.fromList(utf8.encode(jsonEncode(mine.toJson()))),
+      ),
+    );
+    final message = await _expect(NearbyMessageType.identity, hello: true);
+    final NearbyPairingPreview peer;
+    try {
+      final decoded = jsonDecode(utf8.decode(await cipher.open(message.body)));
+      if (decoded is! Map<String, Object?>) {
+        throw const FormatException('pairing preview');
+      }
+      peer = NearbyPairingPreview.fromJson(decoded);
+    } on NearbyAuthFailure {
+      return _refuse(NearbyErrorCode.protocol);
+    } on FormatException {
+      return _refuse(NearbyErrorCode.protocol);
+    }
+    final a = mine.epochTag;
+    final b = peer.epochTag;
+    if (a != null && b != null && !_same(a, b)) {
+      await _refuse(NearbyErrorCode.differentLibrary);
+    }
+    return (mine, peer);
   }
 
   static bool _same(Uint8List a, Uint8List b) {
@@ -236,14 +392,33 @@ class NearbySession {
     NearbySessionCipher cipher, {
     String? expectedId,
   }) async {
-    await _sendFrame(
-      NearbyMessageType.identity,
-      await cipher.seal(_identity.toBytes()),
-    );
+    try {
+      await _sendFrame(
+        NearbyMessageType.identity,
+        await cipher.seal(_identity.toBytes()),
+      );
+    } on NearbyLinkClosed {
+      // A peer that unpaired this device sends its sealed refusal and hangs
+      // up at once; the refusal is already in the inbox.
+    }
     final message = await _expect(NearbyMessageType.identity, hello: true);
     final NearbyIdentity peer;
     try {
-      peer = NearbyIdentity.fromBytes(await cipher.open(message.body));
+      final decoded = jsonDecode(utf8.decode(await cipher.open(message.body)));
+      if (decoded is! Map<String, Object?>) {
+        throw const FormatException('identity');
+      }
+      if (decoded['refused'] == _refusedNotPaired) {
+        // The peer this device is paired with unpaired it. The refusal is
+        // sealed under the pair key, so it is genuine.
+        await _endpoint.close();
+        throw NearbySessionRefused(
+          NearbyErrorCode.notPaired,
+          fromPeer: true,
+          peerDeviceId: expectedId,
+        );
+      }
+      peer = NearbyIdentity.fromJson(decoded);
     } on NearbyAuthFailure {
       return _refuse(NearbyErrorCode.protocol);
     } on FormatException {
@@ -265,7 +440,8 @@ class NearbySession {
     final NearbyHello hello;
     try {
       hello = NearbyHello.fromBytes(message.body);
-    } on FormatException {
+    } on Object {
+      // Malformed in any way, typed or not: refuse rather than hang.
       return _refuse(NearbyErrorCode.protocol);
     }
     if (hello.protocolVersion > NearbyHello.currentProtocolVersion) {
@@ -361,17 +537,32 @@ class NearbySession {
 
 /// A pairing waiting for the diver on each device to compare the codes.
 class NearbyPairing {
-  NearbyPairing._(this._session, this.peer, this._shared, this._cipher);
+  NearbyPairing._(
+    this._session,
+    this._mine,
+    this.preview,
+    this._shared,
+    this._cipher,
+  );
 
   final NearbySession _session;
-  final NearbyIdentity peer;
+  final NearbyPairingPreview _mine;
+
+  /// The other device, as far as this one may know it before both confirm.
+  final NearbyPairingPreview preview;
   final NearbySharedSecret _shared;
   final NearbySessionCipher _cipher;
 
   String get code => _shared.pairingCode;
 
-  /// Both devices already hold dives: pairing merges two logbooks.
-  bool get bothPopulated => peer.hasDives && _session._identity.hasDives;
+  bool get sameLibrary {
+    final a = _mine.epochTag;
+    final b = preview.epochTag;
+    return a != null && b != null && NearbySession._same(a, b);
+  }
+
+  /// Both devices hold dives of two different logbooks: pairing merges them.
+  bool get bothPopulated => preview.hasDives && _mine.hasDives && !sameLibrary;
 
   /// This diver tapped "Same code". Completes once the other diver did too,
   /// with both pair secrets stored and the channel re-keyed with them.
@@ -413,9 +604,13 @@ class NearbyPairing {
       default:
         return s._refuse(NearbyErrorCode.protocol);
     }
+    // Both confirmed: re-key with the pair secret, then exchange the full
+    // identities, which only now either device may know.
     final secret = await _shared.pairSecret();
+    final cipher = await _shared.sessionCipher(pairSecret: secret);
+    final peer = await s._exchangeIdentity(cipher);
     await s._secrets.store(peer.deviceId, secret);
-    return s._channel(peer, await _shared.sessionCipher(pairSecret: secret));
+    return s._channel(peer, cipher);
   }
 
   /// This diver tapped "Not mine": nothing is stored on either device.
@@ -434,8 +629,9 @@ class NearbyPairing {
   }
 }
 
-/// An authenticated, encrypted message channel to one peer. `error` and
-/// `bye` travel in the clear; every other body is sealed.
+/// An authenticated, encrypted message channel to one peer. Every frame is
+/// sealed, `error` and `bye` included, so nobody in range can end a session
+/// with a forged refusal.
 class NearbyChannel {
   NearbyChannel._({
     required this.peer,
@@ -446,9 +642,7 @@ class NearbyChannel {
   }) : _endpoint = endpoint,
        _cipher = cipher,
        messages = raw.asyncMap(
-         (m) async => _isPlaintext(m.type)
-             ? m
-             : NearbyMessage(m.type, await cipher.open(m.body)),
+         (m) async => NearbyMessage(m.type, await cipher.open(m.body)),
        );
 
   final NearbyIdentity peer;
@@ -465,7 +659,7 @@ class NearbyChannel {
   /// Sends are queued so the nonce counter and the frames stay in order.
   Future<void> send(NearbyMessageType type, Uint8List body) {
     final next = _tail.then((_) async {
-      final payload = _isPlaintext(type) ? body : await _cipher.seal(body);
+      final payload = await _cipher.seal(body);
       await _endpoint.send(FrameEncoder.encode(type, payload));
     });
     _tail = next.catchError((Object _) {});

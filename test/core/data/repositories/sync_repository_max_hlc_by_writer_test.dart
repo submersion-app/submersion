@@ -65,4 +65,21 @@ void main() {
   test('an empty library has no writers', () async {
     expect(await repo.maxRowHlcByWriter(), isEmpty);
   });
+
+  test('rows of a shared library site never count: they never travel in '
+      'personal sync', () async {
+    await insertTag('t1', hlc(10, 'aaa'));
+    await db.customStatement(
+      'INSERT INTO dive_sites (id, name, created_at, updated_at, hlc, '
+      'shared_library_id) VALUES (?, ?, 0, 0, ?, ?)',
+      ['lib-site', 'Club reef', hlc(70, 'club'), 'lib-1'],
+    );
+    await db.customStatement(
+      'INSERT INTO site_tags (id, site_id, tag_id, created_at, hlc) '
+      'VALUES (?, ?, ?, 0, ?)',
+      ['st1', 'lib-site', 't1', hlc(80, 'club')],
+    );
+    expect(await repo.maxRowHlcByWriter(), {'aaa': hlc(10, 'aaa')});
+    expect(await repo.minRowHlcForWriter('club'), isNull);
+  });
 }
