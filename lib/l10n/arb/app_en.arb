@@ -6466,6 +6466,8 @@
   "divePlanner_gasOptions_ppO2DecoBand2": "Deco ppO₂ 28-45% O2",
   "divePlanner_gasOptions_ppO2DecoBand3": "Deco ppO₂ 45-99% O2",
   "divePlanner_gasOptions_maxO2DepthMeters": "Max depth 100% O2",
+  "divePlanner_gasOptions_hypercapniaAmv": "Hypercapnia RMV",
+  "divePlanner_gasOptions_hypercapniaMinutes": "Duration",
   "divePlanner_gasOptions_bestMixEnd": "Best mix END",
   "divePlanner_gasOptions_o2Narcotic": "Treat O₂ as narcotic for this plan",
   "divePlanner_label_on": "On",
@@ -12686,6 +12688,7 @@
   },
   "plannerCanvas_chartMode_bailout": "Bailout",
   "plannerCanvas_chartMode_ccr": "CCR",
+  "plannerCanvas_chartMode_scr": "SCR",
   "plannerCanvas_scrub_tts": "TTS {minutes}′",
   "@plannerCanvas_scrub_tts": {
     "placeholders": {
@@ -15051,6 +15054,12 @@
   "settings_decompression_ppO2BandsDialog_band3": "45-99% O2",
   "settings_decompression_ppO2BandsDialog_maxO2DepthToggle": "Use an explicit maximum depth for 100% O2",
   "settings_decompression_ppO2BandsDialog_maxO2DepthLabel": "Maximum depth for 100% O2",
+  "settings_decompression_hypercapniaTitle": "Hypercapnia bailout phase",
+  "settings_decompression_hypercapniaSubtitle": "Optional elevated breathing rate at the start of a CCR/SCR OC bailout",
+  "settings_decompression_hypercapniaDialog_title": "Hypercapnia bailout phase",
+  "settings_decompression_hypercapniaDialog_enabledToggle": "Use a hypercapnia phase for OC bailout",
+  "settings_decompression_hypercapniaDialog_factorLabel": "RMV factor",
+  "settings_decompression_hypercapniaDialog_minutesLabel": "Duration",
   "settings_decompression_ccrPpO2LimitsTitle": "ppO2 limits CCR",
   "settings_decompression_ccrPpO2LimitsSubtitle": "Setpoint low {low} · high {high} · Dil MOD {dil} bar",
   "@settings_decompression_ccrPpO2LimitsSubtitle": {

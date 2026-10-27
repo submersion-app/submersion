@@ -148,6 +148,17 @@ class DivePlans extends Table {
   /// the diver's Settings toggle (issue #3580, v320).
   BoolColumn get maxO2DepthExplicitlyOff =>
       boolean().withDefault(const Constant(false))();
+
+  /// Hypercapnia-bailout overrides for this plan (issue #3743, v321). Null
+  /// = derive from this plan's own base SAC and the diver's Settings
+  /// hypercapnia factor/duration.
+  RealColumn get hypercapniaAmv => real().nullable()();
+  IntColumn get hypercapniaMinutes => integer().nullable()();
+
+  /// True = this plan's OC bailout never uses a hypercapnia phase,
+  /// regardless of the diver's Settings toggle (issue #3743, v321).
+  BoolColumn get hypercapniaExplicitlyOff =>
+      boolean().withDefault(const Constant(false))();
   RealColumn get bestMixEndMeters => real().nullable()();
   BoolColumn get o2Narcotic => boolean().nullable()();
 

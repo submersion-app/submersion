@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_choice_wrap.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The three states a plan's ppO2-band (or explicit-depth) override can be
@@ -274,8 +275,11 @@ class PlanMaxO2DepthControl extends StatelessWidget {
   }
 }
 
-/// A single ppO2 slider row (1.2-1.6 bar, 0.05 bar steps), shared label +
-/// value styling with the Settings dialog's own band sliders.
+/// A single ppO2 slider row (1.2-1.6 bar), shared label + value styling
+/// with the Settings dialog's own band sliders. The step size is
+/// [SettingsNotifier.ppO2DecoBandStep], not a separate copy, so a plan's
+/// own band override can never land off the grid the Settings sliders
+/// snap to (issue #3580 spec: 0.1 bar steps).
 class PlanPpO2Slider extends StatelessWidget {
   const PlanPpO2Slider({
     super.key,
@@ -288,9 +292,10 @@ class PlanPpO2Slider extends StatelessWidget {
   final double value;
   final ValueChanged<double> onChanged;
 
-  static const double _min = 1.2;
-  static const double _max = 1.6;
-  static const int _divisions = 8; // 0.05 bar steps
+  static const double _min = SettingsNotifier.ppO2WorkingMin;
+  static const double _max = SettingsNotifier.ppO2Ceiling;
+  static final int _divisions =
+      ((_max - _min) / SettingsNotifier.ppO2DecoBandStep).round();
 
   @override
   Widget build(BuildContext context) {

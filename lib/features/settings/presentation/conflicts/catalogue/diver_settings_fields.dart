@@ -449,6 +449,18 @@ final Map<String, ConflictField> diverSettingsFields = {
     (l) => l.divePlanner_gasOptions_gasSwitchStopSeconds,
     FieldKind.durationSeconds,
   ),
+  'plannerHypercapniaEnabled': ConflictField(
+    (l) => l.settings_decompression_hypercapniaDialog_enabledToggle,
+    FieldKind.boolean,
+  ),
+  'plannerHypercapniaFactor': ConflictField(
+    (l) => l.settings_decompression_hypercapniaDialog_factorLabel,
+    FieldKind.number,
+  ),
+  'plannerHypercapniaMinutes': ConflictField(
+    (l) => l.settings_decompression_hypercapniaDialog_minutesLabel,
+    FieldKind.durationMinutes,
+  ),
   'plannerIntermediateAscentRate': ConflictField(
     (l) => l.plannerCanvas_rates_intermediateAscent,
     FieldKind.ascentRate,

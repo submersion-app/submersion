@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/settings/presentation/widgets/hypercapnia_dialog.dart';
 import 'package:submersion/features/settings/presentation/widgets/planner_default_number_dialog.dart';
 import 'package:submersion/features/settings/presentation/widgets/ppo2_deco_bands_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -169,6 +170,30 @@ class PlannerGasDefaultsSection extends ConsumerWidget {
                         maxO2DepthMeters: maxO2DepthMeters,
                       );
                     },
+              ),
+            ),
+          ),
+          const Divider(height: 1),
+          ListTile(
+            leading: const Icon(Icons.air),
+            title: Text(context.l10n.settings_decompression_hypercapniaTitle),
+            subtitle: Text(
+              context.l10n.settings_decompression_hypercapniaSubtitle,
+            ),
+            trailing: const Icon(Icons.edit),
+            onTap: () => showDialog(
+              context: context,
+              builder: (dialogContext) => HypercapniaDialog(
+                initialEnabled: settings.plannerHypercapniaEnabled,
+                initialFactor: settings.plannerHypercapniaFactor,
+                initialMinutes: settings.plannerHypercapniaMinutes,
+                onSave: (enabled, factor, minutes) {
+                  notifier.setPlannerHypercapniaConfig(
+                    enabled: enabled,
+                    factor: factor,
+                    minutes: minutes,
+                  );
+                },
               ),
             ),
           ),

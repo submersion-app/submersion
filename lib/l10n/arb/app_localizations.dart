@@ -17059,6 +17059,18 @@ abstract class AppLocalizations {
   /// **'Max depth 100% O2'**
   String get divePlanner_gasOptions_maxO2DepthMeters;
 
+  /// No description provided for @divePlanner_gasOptions_hypercapniaAmv.
+  ///
+  /// In en, this message translates to:
+  /// **'Hypercapnia RMV'**
+  String get divePlanner_gasOptions_hypercapniaAmv;
+
+  /// No description provided for @divePlanner_gasOptions_hypercapniaMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'Duration'**
+  String get divePlanner_gasOptions_hypercapniaMinutes;
+
   /// No description provided for @divePlanner_gasOptions_bestMixEnd.
   ///
   /// In en, this message translates to:
@@ -32130,6 +32142,12 @@ abstract class AppLocalizations {
   /// **'CCR'**
   String get plannerCanvas_chartMode_ccr;
 
+  /// No description provided for @plannerCanvas_chartMode_scr.
+  ///
+  /// In en, this message translates to:
+  /// **'SCR'**
+  String get plannerCanvas_chartMode_scr;
+
   /// No description provided for @plannerCanvas_scrub_tts.
   ///
   /// In en, this message translates to:
@@ -42056,6 +42074,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Maximum depth for 100% O2'**
   String get settings_decompression_ppO2BandsDialog_maxO2DepthLabel;
+
+  /// No description provided for @settings_decompression_hypercapniaTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Hypercapnia bailout phase'**
+  String get settings_decompression_hypercapniaTitle;
+
+  /// No description provided for @settings_decompression_hypercapniaSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional elevated breathing rate at the start of a CCR/SCR OC bailout'**
+  String get settings_decompression_hypercapniaSubtitle;
+
+  /// No description provided for @settings_decompression_hypercapniaDialog_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Hypercapnia bailout phase'**
+  String get settings_decompression_hypercapniaDialog_title;
+
+  /// No description provided for @settings_decompression_hypercapniaDialog_enabledToggle.
+  ///
+  /// In en, this message translates to:
+  /// **'Use a hypercapnia phase for OC bailout'**
+  String get settings_decompression_hypercapniaDialog_enabledToggle;
+
+  /// No description provided for @settings_decompression_hypercapniaDialog_factorLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'RMV factor'**
+  String get settings_decompression_hypercapniaDialog_factorLabel;
+
+  /// No description provided for @settings_decompression_hypercapniaDialog_minutesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Duration'**
+  String get settings_decompression_hypercapniaDialog_minutesLabel;
 
   /// No description provided for @settings_decompression_ccrPpO2LimitsTitle.
   ///

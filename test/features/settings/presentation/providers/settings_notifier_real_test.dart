@@ -398,10 +398,11 @@ void main() {
         );
 
         final s = container.read(settingsProvider);
-        // Bands clamp to 1.2-1.6 and snap to the 0.05 bar grid.
+        // Bands clamp to 1.2-1.6 and snap to the 0.1 bar grid (issue #3580
+        // spec: "a slider from 1.2 to 1.6 in 0.1 steps").
         expect(s.ppO2DecoBand1, closeTo(1.2, 1e-9));
         expect(s.ppO2DecoBand2, closeTo(1.6, 1e-9));
-        expect(s.ppO2DecoBand3, closeTo(1.35, 1e-9));
+        expect(s.ppO2DecoBand3, closeTo(1.4, 1e-9));
         // The explicit depth clamps to 3-9 m and snaps to the 0.5 m grid.
         expect(s.maxO2DepthMeters, closeTo(3.0, 1e-9));
 

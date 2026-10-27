@@ -630,6 +630,16 @@ class DivePlanState extends Equatable {
   /// Mirrors [DivePlan.maxO2DepthExplicitlyOff].
   final bool maxO2DepthExplicitlyOff;
 
+  /// Hypercapnia-bailout overrides for this plan (issue #3743); null =
+  /// derive from this plan's own base SAC and the diver's Settings
+  /// hypercapnia factor/duration. Mirrors
+  /// [DivePlan.hypercapniaAmv]/[DivePlan.hypercapniaMinutes].
+  final double? hypercapniaAmv;
+  final int? hypercapniaMinutes;
+
+  /// Mirrors [DivePlan.hypercapniaExplicitlyOff].
+  final bool hypercapniaExplicitlyOff;
+
   /// Equivalent narcotic depth target for best-mix suggestions. Null = use
   /// the diver's Settings default (issue #3552). Mirrors
   /// [DivePlan.bestMixEndMeters].
@@ -734,6 +744,9 @@ class DivePlanState extends Equatable {
     this.ppO2DecoBandsExplicitlyOff = false,
     this.maxO2DepthMeters,
     this.maxO2DepthExplicitlyOff = false,
+    this.hypercapniaAmv,
+    this.hypercapniaMinutes,
+    this.hypercapniaExplicitlyOff = false,
     this.bestMixEndMeters,
     this.o2Narcotic,
     this.stopMinimums = const {},
@@ -853,6 +866,11 @@ class DivePlanState extends Equatable {
     double? maxO2DepthMeters,
     bool clearMaxO2DepthMeters = false,
     bool? maxO2DepthExplicitlyOff,
+    double? hypercapniaAmv,
+    bool clearHypercapniaAmv = false,
+    int? hypercapniaMinutes,
+    bool clearHypercapniaMinutes = false,
+    bool? hypercapniaExplicitlyOff,
     double? bestMixEndMeters,
     bool clearBestMixEndMeters = false,
     bool? o2Narcotic,
@@ -973,6 +991,14 @@ class DivePlanState extends Equatable {
           : (maxO2DepthMeters ?? this.maxO2DepthMeters),
       maxO2DepthExplicitlyOff:
           maxO2DepthExplicitlyOff ?? this.maxO2DepthExplicitlyOff,
+      hypercapniaAmv: clearHypercapniaAmv
+          ? null
+          : (hypercapniaAmv ?? this.hypercapniaAmv),
+      hypercapniaMinutes: clearHypercapniaMinutes
+          ? null
+          : (hypercapniaMinutes ?? this.hypercapniaMinutes),
+      hypercapniaExplicitlyOff:
+          hypercapniaExplicitlyOff ?? this.hypercapniaExplicitlyOff,
       bestMixEndMeters: clearBestMixEndMeters
           ? null
           : (bestMixEndMeters ?? this.bestMixEndMeters),
@@ -1043,6 +1069,9 @@ class DivePlanState extends Equatable {
     ppO2DecoBandsExplicitlyOff,
     maxO2DepthMeters,
     maxO2DepthExplicitlyOff,
+    hypercapniaAmv,
+    hypercapniaMinutes,
+    hypercapniaExplicitlyOff,
     bestMixEndMeters,
     o2Narcotic,
     stopMinimums,

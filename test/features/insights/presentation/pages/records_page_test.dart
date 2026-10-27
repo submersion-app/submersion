@@ -271,6 +271,16 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
     maxO2DepthMeters: maxO2DepthMeters,
   );
   @override
+  Future<void> setPlannerHypercapniaConfig({
+    required bool enabled,
+    required double factor,
+    required int minutes,
+  }) async => state = state.copyWith(
+    plannerHypercapniaEnabled: enabled,
+    plannerHypercapniaFactor: factor,
+    plannerHypercapniaMinutes: minutes,
+  );
+  @override
   Future<void> setCcrPpO2Limits({
     required double setpointLow,
     required double setpointHigh,

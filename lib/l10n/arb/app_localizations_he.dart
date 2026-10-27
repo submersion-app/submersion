@@ -10451,6 +10451,12 @@ class AppLocalizationsHe extends AppLocalizations {
       'עומק מקס\' ל-100% חמצן';
 
   @override
+  String get divePlanner_gasOptions_hypercapniaAmv => 'Hypercapnia RMV';
+
+  @override
+  String get divePlanner_gasOptions_hypercapniaMinutes => 'Duration';
+
+  @override
   String get divePlanner_gasOptions_bestMixEnd => 'END לתערובת מיטבית';
 
   @override
@@ -19752,6 +19758,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get plannerCanvas_chartMode_ccr => 'CCR';
 
   @override
+  String get plannerCanvas_chartMode_scr => 'SCR';
+
+  @override
   String plannerCanvas_scrub_tts(String minutes) {
     return 'TTS $minutes′';
   }
@@ -25644,6 +25653,30 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_decompression_ppO2BandsDialog_maxO2DepthLabel =>
       'עומק מקסימלי ל-100% חמצן';
+
+  @override
+  String get settings_decompression_hypercapniaTitle =>
+      'Hypercapnia bailout phase';
+
+  @override
+  String get settings_decompression_hypercapniaSubtitle =>
+      'Optional elevated breathing rate at the start of a CCR/SCR OC bailout';
+
+  @override
+  String get settings_decompression_hypercapniaDialog_title =>
+      'Hypercapnia bailout phase';
+
+  @override
+  String get settings_decompression_hypercapniaDialog_enabledToggle =>
+      'Use a hypercapnia phase for OC bailout';
+
+  @override
+  String get settings_decompression_hypercapniaDialog_factorLabel =>
+      'RMV factor';
+
+  @override
+  String get settings_decompression_hypercapniaDialog_minutesLabel =>
+      'Duration';
 
   @override
   String get settings_decompression_ccrPpO2LimitsTitle => 'מגבלות ppO2 CCR';

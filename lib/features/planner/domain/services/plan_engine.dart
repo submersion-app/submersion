@@ -53,6 +53,18 @@ class PlanEngineConfig extends Equatable {
   final bool maxO2DepthEnabled;
   final double maxO2DepthMeters;
 
+  /// Hypercapnia-bailout phase (issue #3743): an elevated RMV for
+  /// [hypercapniaMinutes] at the start of an OC bailout, a multiplier on
+  /// [sacBottom] (issue #3552's "a plan's own value always wins" diver
+  /// default). Off by default. Resolved per plan through
+  /// [hypercapniaEnabledFor]/[hypercapniaAmvFor]/[hypercapniaSecondsFor],
+  /// not a plain `?? this.x` merge - matches [airBreaksFor]'s
+  /// "explicit off wins" shape, since the per-plan override
+  /// ([domain.DivePlan.hypercapniaAmv]) is an absolute rate, not a factor.
+  final bool hypercapniaEnabled;
+  final double hypercapniaFactor;
+  final int hypercapniaMinutes;
+
   /// Diluent MOD limit: the ppO2 a CCR plan's diluent may reach on a flush,
   /// from the diver's "ppO2 limits CCR" Settings. Unlike [ppO2Working] and
   /// [ppO2Deco] (physiological toxicity limits that apply to whatever is
@@ -177,6 +189,9 @@ class PlanEngineConfig extends Equatable {
     this.ppO2DecoBand3 = 1.6,
     this.maxO2DepthEnabled = false,
     this.maxO2DepthMeters = 6.0,
+    this.hypercapniaEnabled = false,
+    this.hypercapniaFactor = 4.0,
+    this.hypercapniaMinutes = 5,
     this.ccrDiluentModPpO2 = 1.6,
     this.ccrSetpointLow = domain.DivePlan.specSetpointLow,
     this.ccrSetpointHigh = domain.DivePlan.specSetpointHigh,
@@ -227,6 +242,9 @@ class PlanEngineConfig extends Equatable {
     ppO2DecoBand3,
     maxO2DepthEnabled,
     maxO2DepthMeters,
+    hypercapniaEnabled,
+    hypercapniaFactor,
+    hypercapniaMinutes,
     ccrDiluentModPpO2,
     ccrSetpointLow,
     ccrSetpointHigh,
@@ -276,6 +294,9 @@ class PlanEngineConfig extends Equatable {
     double? ppO2DecoBand3,
     bool? maxO2DepthEnabled,
     double? maxO2DepthMeters,
+    bool? hypercapniaEnabled,
+    double? hypercapniaFactor,
+    int? hypercapniaMinutes,
     double? ccrDiluentModPpO2,
     double? ccrSetpointLow,
     double? ccrSetpointHigh,
@@ -327,6 +348,9 @@ class PlanEngineConfig extends Equatable {
       ppO2DecoBand3: ppO2DecoBand3 ?? this.ppO2DecoBand3,
       maxO2DepthEnabled: maxO2DepthEnabled ?? this.maxO2DepthEnabled,
       maxO2DepthMeters: maxO2DepthMeters ?? this.maxO2DepthMeters,
+      hypercapniaEnabled: hypercapniaEnabled ?? this.hypercapniaEnabled,
+      hypercapniaFactor: hypercapniaFactor ?? this.hypercapniaFactor,
+      hypercapniaMinutes: hypercapniaMinutes ?? this.hypercapniaMinutes,
       ccrDiluentModPpO2: ccrDiluentModPpO2 ?? this.ccrDiluentModPpO2,
       ccrSetpointLow: ccrSetpointLow ?? this.ccrSetpointLow,
       ccrSetpointHigh: ccrSetpointHigh ?? this.ccrSetpointHigh,
@@ -395,10 +419,22 @@ class PlanEngineConfig extends Equatable {
       ppO2DecoBand1: plan.ppO2DecoBand1,
       ppO2DecoBand2: plan.ppO2DecoBand2,
       ppO2DecoBand3: plan.ppO2DecoBand3,
+      // A plan's own Custom band/depth values govern even when the
+      // diver's Settings toggle is off (issue #3580 follow-up, caught by
+      // a Copilot review): "Custom" is a per-plan opt-in, not something
+      // the global switch can silently veto. "Off"
+      // (ppO2DecoBandsExplicitlyOff/maxO2DepthExplicitlyOff) still always
+      // wins.
       ppO2DecoBandsEnabled:
-          ppO2DecoBandsEnabled && !plan.ppO2DecoBandsExplicitlyOff,
+          !plan.ppO2DecoBandsExplicitlyOff &&
+          (ppO2DecoBandsEnabled ||
+              plan.ppO2DecoBand1 != null ||
+              plan.ppO2DecoBand2 != null ||
+              plan.ppO2DecoBand3 != null),
       maxO2DepthMeters: plan.maxO2DepthMeters,
-      maxO2DepthEnabled: maxO2DepthEnabled && !plan.maxO2DepthExplicitlyOff,
+      maxO2DepthEnabled:
+          !plan.maxO2DepthExplicitlyOff &&
+          (maxO2DepthEnabled || plan.maxO2DepthMeters != null),
       o2Narcotic: plan.o2Narcotic,
       bestMixEndMeters: plan.bestMixEndMeters,
       buddyFactor: plan.sacFactor,
@@ -446,6 +482,39 @@ class PlanEngineConfig extends Equatable {
   /// raw `sacBottom`, see [domain.DivePlan.sacStressedEffective]).
   double sacStressedFor(domain.DivePlan plan) =>
       plan.sacStressed ?? sacBottom * sacStressedFactor;
+
+  /// Whether [plan]'s OC bailout uses a hypercapnia phase at all (issue
+  /// #3743): true when either per-plan override
+  /// ([domain.DivePlan.hypercapniaAmv]/[domain.DivePlan.hypercapniaMinutes])
+  /// is set (an explicit "Custom" choice), else the diver's Settings
+  /// [hypercapniaEnabled] toggle, unless
+  /// [domain.DivePlan.hypercapniaExplicitlyOff] forces it off regardless -
+  /// same "explicit off wins" shape as [airBreaksFor].
+  bool hypercapniaEnabledFor(domain.DivePlan plan) {
+    if (plan.hypercapniaExplicitlyOff) return false;
+    if (plan.hypercapniaAmv != null || plan.hypercapniaMinutes != null) {
+      return true;
+    }
+    return hypercapniaEnabled;
+  }
+
+  /// [plan]'s hypercapnia-bailout AMV in L/min, or null when
+  /// [hypercapniaEnabledFor] is false: its own [domain.DivePlan.hypercapniaAmv]
+  /// override when set, else [sacBottom] (already resolved against this
+  /// plan - call this on a [resolvedFor] config) times the diver's
+  /// [hypercapniaFactor] - same "absolute override, else a factor of
+  /// bottom SAC" shape as [sacStressedFor].
+  double? hypercapniaAmvFor(domain.DivePlan plan) {
+    if (!hypercapniaEnabledFor(plan)) return null;
+    return plan.hypercapniaAmv ?? sacBottom * hypercapniaFactor;
+  }
+
+  /// [plan]'s hypercapnia-bailout phase duration in seconds from the
+  /// bailout instant, or null when [hypercapniaEnabledFor] is false.
+  int? hypercapniaSecondsFor(domain.DivePlan plan) {
+    if (!hypercapniaEnabledFor(plan)) return null;
+    return (plan.hypercapniaMinutes ?? hypercapniaMinutes) * 60;
+  }
 
   /// [plan]'s high (deep) setpoint: its own value when set, else the
   /// diver's [ccrSetpointHigh] (issue #2801).

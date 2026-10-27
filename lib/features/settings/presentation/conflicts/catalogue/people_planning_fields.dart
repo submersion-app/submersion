@@ -197,6 +197,23 @@ final Map<String, ConflictField> peoplePlanningFields = {
     (l) => l.settings_conflict_field_heightCm,
     FieldKind.heightCm,
   ),
+  // Null = derive from this plan's own base SAC and the diver's Settings
+  // hypercapnia factor (issue #3743); the per-plan counterpart of
+  // plannerHypercapniaFactor.
+  'hypercapniaAmv': ConflictField(
+    (l) => l.divePlanner_gasOptions_hypercapniaAmv,
+    FieldKind.rmv,
+  ),
+  // True = this plan's OC bailout never uses a hypercapnia phase,
+  // regardless of the diver's Settings toggle (issue #3743).
+  'hypercapniaExplicitlyOff': ConflictField(
+    (l) => l.settings_decompression_hypercapniaDialog_enabledToggle,
+    FieldKind.boolean,
+  ),
+  'hypercapniaMinutes': ConflictField(
+    (l) => l.divePlanner_gasOptions_hypercapniaMinutes,
+    FieldKind.durationMinutes,
+  ),
   'instructorName': ConflictField(
     (l) => CourseField.instructorName.localizedDisplayName(l),
     FieldKind.shortText,

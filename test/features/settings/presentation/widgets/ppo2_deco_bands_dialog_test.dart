@@ -17,9 +17,9 @@ typedef _SavedCall = ({
 
 Widget _app({
   bool initialBandsEnabled = true,
-  double initialBand1 = 1.35,
-  double initialBand2 = 1.45,
-  double initialBand3 = 1.55,
+  double initialBand1 = 1.3,
+  double initialBand2 = 1.4,
+  double initialBand3 = 1.5,
   bool initialMaxO2DepthEnabled = false,
   double initialMaxO2DepthMeters = 6.0,
   UnitFormatter units = const UnitFormatter(AppSettings()),
@@ -80,9 +80,9 @@ void main() {
       await _openDialog(tester);
 
       expect(find.text('Deco ppO2: per O2 band'), findsOneWidget);
-      expect(find.text('1.35 bar'), findsOneWidget);
-      expect(find.text('1.45 bar'), findsOneWidget);
-      expect(find.text('1.55 bar'), findsOneWidget);
+      expect(find.text('1.3 bar'), findsOneWidget);
+      expect(find.text('1.4 bar'), findsOneWidget);
+      expect(find.text('1.5 bar'), findsOneWidget);
       expect(find.text('6.0m'), findsOneWidget);
       // 4 sliders: 3 bands + 1 explicit depth.
       expect(find.byType(Slider), findsNWidgets(4));
@@ -155,9 +155,9 @@ void main() {
       await tester.pumpWidget(
         _app(
           initialBandsEnabled: true,
-          initialBand1: 1.35,
-          initialBand2: 1.45,
-          initialBand3: 1.55,
+          initialBand1: 1.3,
+          initialBand2: 1.4,
+          initialBand3: 1.5,
           initialMaxO2DepthEnabled: false,
           initialMaxO2DepthMeters: 6.0,
           onSave: (call) => saved = call,
@@ -179,8 +179,8 @@ void main() {
       expect(saved, isNotNull);
       expect(saved!.bandsEnabled, isTrue);
       expect(saved!.band1, closeTo(1.4, 1e-9));
-      expect(saved!.band2, closeTo(1.45, 1e-9));
-      expect(saved!.band3, closeTo(1.55, 1e-9));
+      expect(saved!.band2, closeTo(1.4, 1e-9));
+      expect(saved!.band3, closeTo(1.5, 1e-9));
       expect(saved!.maxO2DepthEnabled, isTrue);
       expect(saved!.maxO2DepthMeters, closeTo(7.5, 1e-9));
     });

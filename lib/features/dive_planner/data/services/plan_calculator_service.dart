@@ -179,11 +179,23 @@ class PlanCalculatorService {
     // for the general ppO2 critical/warning check alone.
     final decoLimits = DecoPpO2Limits(
       flat: decoPpO2 ?? ppO2Critical,
-      bandsEnabled: ppO2DecoBandsEnabled && !decoPpO2BandsExplicitlyOff,
+      // A plan's own Custom band values govern even when the diver's
+      // Settings toggle is off (issue #3580 follow-up, caught by a
+      // Copilot review): "Custom" is a per-plan opt-in, not something the
+      // global switch can silently veto. "Off" (decoPpO2BandsExplicitlyOff)
+      // still always wins.
+      bandsEnabled:
+          !decoPpO2BandsExplicitlyOff &&
+          (ppO2DecoBandsEnabled ||
+              decoPpO2Band1 != null ||
+              decoPpO2Band2 != null ||
+              decoPpO2Band3 != null),
       band1: decoPpO2Band1 ?? ppO2DecoBand1,
       band2: decoPpO2Band2 ?? ppO2DecoBand2,
       band3: decoPpO2Band3 ?? ppO2DecoBand3,
-      explicitO2DepthEnabled: maxO2DepthEnabled && !maxO2DepthExplicitlyOff,
+      explicitO2DepthEnabled:
+          !maxO2DepthExplicitlyOff &&
+          (maxO2DepthEnabled || maxO2DepthMetersOverride != null),
       explicitO2DepthMeters: maxO2DepthMetersOverride ?? maxO2DepthMeters,
     );
 

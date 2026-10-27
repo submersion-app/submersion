@@ -648,5 +648,13 @@ extension RungsFromV231 on AppDatabase {
     // default; re-asserted in beforeOpen.
     if (from < 320) await _assertPpO2DecoBandsExplicitlyOffColumns();
     if (from < 320) await reportProgress();
+
+    // v321: hypercapnia-bailout phase for OC bailout during a CCR/SCR dive
+    // (issue #3743). diver_settings gains the toggle/factor/duration;
+    // dive_plans gains the matching per-plan overrides and "explicitly
+    // off" flag. Column only, both off by default; re-asserted in
+    // beforeOpen.
+    if (from < 321) await _assertHypercapniaBailoutColumns();
+    if (from < 321) await reportProgress();
   }
 }

@@ -4,6 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_choice_wrap.dart';
+import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_hypercapnia_control.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_number_field.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_ppo2_bands_control.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -186,6 +187,30 @@ class PlanGasOptionsSection extends ConsumerWidget {
           onDefault: () => notifier.updateGasOptions(
             clearMaxO2DepthMeters: true,
             maxO2DepthExplicitlyOff: false,
+          ),
+        ),
+        const SizedBox(height: 8),
+        // Hypercapnia-bailout phase (issue #3743): an elevated breathing
+        // rate for a configurable duration at the start of an OC bailout -
+        // its own layer over the stressed-SAC field above, same
+        // Default/Off/Custom shape as the ppO2-band controls.
+        PlanHypercapniaControl(
+          amv: state.hypercapniaAmv,
+          minutes: state.hypercapniaMinutes,
+          explicitlyOff: state.hypercapniaExplicitlyOff,
+          defaultAmv: bottomRmv * ref.watch(plannerHypercapniaFactorProvider),
+          defaultMinutes: ref.watch(plannerHypercapniaMinutesProvider),
+          enabledInSettings: ref.watch(plannerHypercapniaEnabledProvider),
+          onAmvChanged: (value) =>
+              notifier.updateGasOptions(hypercapniaAmv: value),
+          onMinutesChanged: (value) =>
+              notifier.updateGasOptions(hypercapniaMinutes: value),
+          onOff: (off) =>
+              notifier.updateGasOptions(hypercapniaExplicitlyOff: off),
+          onDefault: () => notifier.updateGasOptions(
+            clearHypercapniaAmv: true,
+            clearHypercapniaMinutes: true,
+            hypercapniaExplicitlyOff: false,
           ),
         ),
         PlanNumberField(

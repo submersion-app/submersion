@@ -24,5 +24,9 @@ extension BeforeOpenSettingsColumns on AppDatabase {
     // v320 backstop: dive_plans per-plan "explicitly off" flags for the
     // bands and the explicit-depth override (issue #3580).
     await _assertPpO2DecoBandsExplicitlyOffColumns();
+
+    // v321 backstop: diver_settings hypercapnia-bailout toggle/factor/
+    // duration, plus the matching dive_plans overrides (issue #3743).
+    await _assertHypercapniaBailoutColumns();
   }
 }

@@ -569,6 +569,15 @@ class DiverSettings extends Table {
       real().withDefault(const Constant(2.5))();
   RealColumn get plannerBuddyFactor =>
       real().withDefault(const Constant(2.0))();
+  // Hypercapnia-bailout phase (issue #3743): an elevated RMV for a
+  // configurable duration at the start of an OC bailout, layered over
+  // plannerSacStressedFactor rather than replacing it.
+  BoolColumn get plannerHypercapniaEnabled =>
+      boolean().withDefault(const Constant(false))();
+  RealColumn get plannerHypercapniaFactor =>
+      real().withDefault(const Constant(4.0))();
+  IntColumn get plannerHypercapniaMinutes =>
+      integer().withDefault(const Constant(5))();
   IntColumn get plannerProblemSolvingMinutes =>
       integer().withDefault(const Constant(2))();
   RealColumn get plannerBestMixEndMeters =>

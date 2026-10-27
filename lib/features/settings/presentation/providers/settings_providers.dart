@@ -606,6 +606,14 @@ class AppSettings {
   /// diverging from it.
   final double plannerSacStressedFactor;
   final double plannerBuddyFactor;
+
+  /// Hypercapnia-bailout phase (issue #3743): an elevated RMV for a
+  /// configurable duration at the start of an OC bailout, layered over
+  /// [plannerSacStressedFactor] rather than replacing it. Gated together,
+  /// matching [ppO2DecoBandsEnabled]'s shape.
+  final bool plannerHypercapniaEnabled;
+  final double plannerHypercapniaFactor;
+  final int plannerHypercapniaMinutes;
   final int plannerProblemSolvingMinutes;
   final double plannerBestMixEndMeters;
   final double plannerDeviationDepthDelta;
@@ -853,6 +861,9 @@ class AppSettings {
     this.plannerSacDeco = 15.0,
     this.plannerSacStressedFactor = 2.5,
     this.plannerBuddyFactor = 2.0,
+    this.plannerHypercapniaEnabled = false,
+    this.plannerHypercapniaFactor = 4.0,
+    this.plannerHypercapniaMinutes = 5,
     this.plannerProblemSolvingMinutes = 2,
     this.plannerBestMixEndMeters = 30.0,
     this.plannerDeviationDepthDelta = 5.0,
@@ -1076,6 +1087,9 @@ class AppSettings {
     double? plannerSacDeco,
     double? plannerSacStressedFactor,
     double? plannerBuddyFactor,
+    bool? plannerHypercapniaEnabled,
+    double? plannerHypercapniaFactor,
+    int? plannerHypercapniaMinutes,
     int? plannerProblemSolvingMinutes,
     double? plannerBestMixEndMeters,
     double? plannerDeviationDepthDelta,
@@ -1311,6 +1325,12 @@ class AppSettings {
       plannerSacStressedFactor:
           plannerSacStressedFactor ?? this.plannerSacStressedFactor,
       plannerBuddyFactor: plannerBuddyFactor ?? this.plannerBuddyFactor,
+      plannerHypercapniaEnabled:
+          plannerHypercapniaEnabled ?? this.plannerHypercapniaEnabled,
+      plannerHypercapniaFactor:
+          plannerHypercapniaFactor ?? this.plannerHypercapniaFactor,
+      plannerHypercapniaMinutes:
+          plannerHypercapniaMinutes ?? this.plannerHypercapniaMinutes,
       plannerProblemSolvingMinutes:
           plannerProblemSolvingMinutes ?? this.plannerProblemSolvingMinutes,
       plannerBestMixEndMeters:
@@ -2288,7 +2308,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   /// steps down to [ppO2WorkingMin], not just [ppO2MaxMin] -- and each band
   /// is independent: unlike [setPpO2Limits], there is no enforced ordering
   /// between them.
-  static const double ppO2DecoBandStep = 0.05;
+  static const double ppO2DecoBandStep = 0.1;
 
   /// [value] clamped to [ppO2WorkingMin]..[ppO2Ceiling] and snapped to the
   /// [ppO2DecoBandStep] grid.
@@ -2613,6 +2633,22 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 
   Future<void> setPlannerBuddyFactor(double value) async {
     state = state.copyWith(plannerBuddyFactor: value);
+    await _saveSettings();
+  }
+
+  /// Set the hypercapnia-bailout toggle/factor/duration at once, in a
+  /// single persisted write (issue #3743), mirroring
+  /// [setPpO2DecoBandsConfig]'s shape.
+  Future<void> setPlannerHypercapniaConfig({
+    required bool enabled,
+    required double factor,
+    required int minutes,
+  }) async {
+    state = state.copyWith(
+      plannerHypercapniaEnabled: enabled,
+      plannerHypercapniaFactor: factor,
+      plannerHypercapniaMinutes: minutes,
+    );
     await _saveSettings();
   }
 
@@ -3634,6 +3670,18 @@ final plannerSacStressedFactorProvider = Provider<double>((ref) {
 
 final plannerBuddyFactorProvider = Provider<double>((ref) {
   return ref.watch(settingsProvider.select((s) => s.plannerBuddyFactor));
+});
+
+final plannerHypercapniaEnabledProvider = Provider<bool>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.plannerHypercapniaEnabled));
+});
+
+final plannerHypercapniaFactorProvider = Provider<double>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.plannerHypercapniaFactor));
+});
+
+final plannerHypercapniaMinutesProvider = Provider<int>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.plannerHypercapniaMinutes));
 });
 
 final plannerProblemSolvingMinutesProvider = Provider<int>((ref) {

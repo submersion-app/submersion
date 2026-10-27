@@ -263,9 +263,11 @@ class PlanTankList extends ConsumerWidget {
 
 /// The ppO2 limits each tank's default MOD is worked out at (issue #3567):
 /// the plan's own, falling back to the diver's settings, as the plan engine
-/// resolves them. [deco] carries the per-O2-band limits too (issue #3580);
-/// the band/explicit-depth toggles themselves are Settings-only, with no
-/// plan-level override.
+/// resolves them. [deco] carries the per-O2-band limits too (issue #3580),
+/// including this plan's own Off/Custom choice (issue #3580 follow-up,
+/// caught by a Copilot review): a plan that turned bands/explicit-depth off
+/// must size a tank's default MOD the same way the plan engine itself
+/// would, not fall back to the Settings toggle as if the plan had no say.
 ({double bottom, DecoPpO2Limits deco, double diluent}) _modLimits(
   DivePlanState state,
   UnitFormatter units,
@@ -273,11 +275,18 @@ class PlanTankList extends ConsumerWidget {
   bottom: state.ppO2Bottom ?? units.settings.ppO2MaxWorking,
   deco: DecoPpO2Limits(
     flat: state.ppO2Deco ?? units.settings.ppO2MaxDeco,
-    bandsEnabled: units.settings.ppO2DecoBandsEnabled,
+    bandsEnabled:
+        !state.ppO2DecoBandsExplicitlyOff &&
+        (units.settings.ppO2DecoBandsEnabled ||
+            state.ppO2DecoBand1 != null ||
+            state.ppO2DecoBand2 != null ||
+            state.ppO2DecoBand3 != null),
     band1: state.ppO2DecoBand1 ?? units.settings.ppO2DecoBand1,
     band2: state.ppO2DecoBand2 ?? units.settings.ppO2DecoBand2,
     band3: state.ppO2DecoBand3 ?? units.settings.ppO2DecoBand3,
-    explicitO2DepthEnabled: units.settings.maxO2DepthEnabled,
+    explicitO2DepthEnabled:
+        !state.maxO2DepthExplicitlyOff &&
+        (units.settings.maxO2DepthEnabled || state.maxO2DepthMeters != null),
     explicitO2DepthMeters:
         state.maxO2DepthMeters ?? units.settings.maxO2DepthMeters,
   ),

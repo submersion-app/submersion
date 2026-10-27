@@ -251,6 +251,40 @@ void main() {
       expect(buggyStop30.gasMix.o2, closeTo(21, 1e-6));
     });
 
+    // Regression for a Copilot review finding (issue #3580 follow-up): a
+    // plan's own Custom band override must govern even when the diver's
+    // Settings ppO2DecoBandsEnabled toggle is off - "Custom" is a per-plan
+    // opt-in, not something the global switch can silently veto.
+    test("a plan's custom band override takes effect even when "
+        'ppO2DecoBandsEnabled is off', () {
+      // EAN50 (50% O2) falls in band3 (45-99%). At the flat 1.6 limit its
+      // MOD is 22 m, which lets it cover the 18 m stop (see "deco stops
+      // report the gas actually breathed at each stop" below). Lowering
+      // band3 to 1.3 bar brings that MOD to 16 m, pushing the 18 m stop
+      // back onto back gas - but only if the override actually took
+      // effect despite the global toggle staying off.
+      final overridden = calculator.calculatePlan(
+        segments: decoSegments(),
+        tanks: [air, ean50],
+        sacRate: 15,
+        decoPpO2Band3: 1.3,
+      );
+      final overriddenStop18 = overridden.decoSchedule.firstWhere(
+        (s) => s.depth == 18,
+      );
+      expect(overriddenStop18.gasMix.o2, closeTo(21, 1e-6));
+
+      // Same plan, no override: the flat 1.6 limit keeps EAN50 eligible
+      // at 18 m, same as the dedicated gas-selection test below.
+      final plain = calculator.calculatePlan(
+        segments: decoSegments(),
+        tanks: [air, ean50],
+        sacRate: 15,
+      );
+      final plainStop18 = plain.decoSchedule.firstWhere((s) => s.depth == 18);
+      expect(plainStop18.gasMix.o2, closeTo(50, 1e-6));
+    });
+
     test('deco stops report the gas actually breathed at each stop', () {
       final result = calculator.calculatePlan(
         segments: decoSegments(),
