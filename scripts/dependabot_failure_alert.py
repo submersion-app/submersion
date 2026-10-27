@@ -119,53 +119,55 @@ def _workflow_id(gh, repo):
     )
 
 
+def _since(now):
+    """Return the first day of the lookback, as YYYY-MM-DD."""
+    return (now - datetime.timedelta(days=LOOKBACK_DAYS)).date().isoformat()
+
+
 def _runs(gh, repo, now):
-    since = (now - datetime.timedelta(days=LOOKBACK_DAYS)).date().isoformat()
     query = urllib.parse.urlencode(
-        {"per_page": 100, "status": "completed", "created": f">={since}"}
+        {"per_page": 100, "status": "completed", "created": f">={_since(now)}"}
     )
     path = f"repos/{repo}/actions/workflows/{_workflow_id(gh, repo)}/runs?{query}"
     return [run for page in _api(gh, path) for run in page.get("workflow_runs", [])]
 
 
-def _alerts(gh, repo):
-    """Return every rolling alert issue, open or closed."""
-    listing = gh(
-        [
-            "issue", "list", "--repo", repo, "--state", "all",
-            "--label", LABEL, "--limit", "200",
-            "--json", "number,state,updatedAt,body",
-        ]
-    )
+def _alerts(gh, repo, state, search=None):
+    """Return the rolling alert issues in `state`, narrowed by `search`."""
+    args = [
+        "issue", "list", "--repo", repo, "--state", state,
+        "--label", LABEL, "--limit", "200", "--json", "number,body",
+    ]
+    if search:
+        args += ["--search", search]
     return [
         issue
-        for issue in json.loads(listing or "[]")
+        for issue in json.loads(gh(args) or "[]")
         if MARKER in (issue.get("body") or "")
     ]
 
 
+def _open_alerts(gh, repo):
+    return _alerts(gh, repo, "open")
+
+
+def _recently_closed_alerts(gh, repo, now):
+    # A closed alert last updated before the lookback cannot record a run
+    # inside it. Listing open and closed alerts separately also keeps the
+    # open one from being pushed past --limit by old closed issues.
+    return _alerts(gh, repo, "closed", f"updated:>={_since(now)}")
+
+
 def _open_alert(alerts):
     """Return the number of the oldest open rolling alert issue, or None."""
-    numbers = sorted(
-        int(issue["number"]) for issue in alerts if issue.get("state") == "OPEN"
-    )
+    numbers = sorted(int(issue["number"]) for issue in alerts)
     return numbers[0] if numbers else None
 
 
-def _reported(gh, repo, alerts, now):
-    """Return the ids of the runs any alert issue has already reported.
-
-    An issue last updated before the lookback cannot record a run inside it,
-    so only the alerts touched since are read.
-    """
-    since = now - datetime.timedelta(days=LOOKBACK_DAYS)
+def _reported(gh, repo, alerts):
+    """Return the ids of the runs the given alert issues have reported."""
     reported = set()
     for alert in alerts:
-        updated = alert.get("updatedAt")
-        if updated and datetime.datetime.fromisoformat(
-            updated.replace("Z", "+00:00")
-        ) < since:
-            continue
         issue = json.loads(
             gh(
                 [
@@ -214,9 +216,11 @@ def raise_alert(gh, ctx, failing, now):
     # A login is often written "@name"; verbatim it would be an "@@name"
     # mention and an assignment GitHub rejects, so nobody would be notified.
     assignee = ctx["assignee"].strip().lstrip("@") or DEFAULT_ASSIGNEE
-    alerts = _alerts(gh, repo)
-    number = _open_alert(alerts)
-    reported = _reported(gh, repo, alerts, now)
+    open_alerts = _open_alerts(gh, repo)
+    number = _open_alert(open_alerts)
+    reported = _reported(
+        gh, repo, open_alerts + _recently_closed_alerts(gh, repo, now)
+    )
     new = [run for run in failing if int(run["id"]) not in reported]
     if not new:
         where = f"#{number}" if number is not None else "a closed alert"
@@ -253,7 +257,7 @@ def raise_alert(gh, ctx, failing, now):
 
 def resolve_alert(gh, ctx):
     repo = ctx["repo"]
-    number = _open_alert(_alerts(gh, repo))
+    number = _open_alert(_open_alerts(gh, repo))
     if number is None:
         print("No Dependabot update stream is failing; no alert is open.")
         return

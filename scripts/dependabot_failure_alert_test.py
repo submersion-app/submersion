@@ -115,10 +115,17 @@ class FakeGh:
                     raise answer
                 if isinstance(answer, list):
                     # An issue listing answers with the issues in the state
-                    # it asks for, as gh does.
+                    # it asks for, and updated since the date its search
+                    # names, as gh does.
                     state = args[args.index("--state") + 1].upper()
+                    search = args[args.index("--search") + 1] if "--search" in args else ""
+                    since = search.removeprefix("updated:>=")
                     answer = json.dumps(
-                        [i for i in answer if state == "ALL" or i["state"] == state]
+                        [
+                            i for i in answer
+                            if (state == "ALL" or i["state"] == state)
+                            and i["updatedAt"][:10] >= since
+                        ]
                     )
                 return answer
         return ""
@@ -317,12 +324,16 @@ class RunTest(unittest.TestCase):
         (comment,) = gh.commands("issue", "comment")
         self.assertEqual(comment[2], str(OPEN_ALERT["number"]))
 
-    def test_alerts_are_listed_in_every_state(self):
+    def test_open_and_recently_closed_alerts_are_listed_apart(self):
+        # One listing of every state would let old closed ci issues push the
+        # open alert past --limit, and a duplicate alert would open.
         gh = FakeGh(runs=[BUNDLER_RED])
         _quiet(alert.run, CONTEXT, gh, NOW)
-        (listing,) = gh.commands("issue", "list")
-        self.assertEqual(_value(listing, "--state"), "all")
-        self.assertIn("updatedAt", _value(listing, "--json"))
+        open_listing, closed_listing = gh.commands("issue", "list")
+        self.assertEqual(_value(open_listing, "--state"), "open")
+        self.assertNotIn("--search", open_listing)
+        self.assertEqual(_value(closed_listing, "--state"), "closed")
+        self.assertEqual(_value(closed_listing, "--search"), "updated:>=2026-09-12")
 
     def test_a_closed_alert_older_than_the_lookback_is_not_read(self):
         gh = FakeGh(runs=[BUNDLER_RED], issues=[OLD_CLOSED_ALERT])
