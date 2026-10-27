@@ -367,6 +367,148 @@ const _gates = <(String, String, String, _Kind)>[
     'databaseFile',
     _Kind.ensure,
   ),
+  // Cloud storage backends: the backstop under every sync, backup and
+  // shared-library path, for a caller nobody traced. Writes only; reads
+  // cannot carry demo data out, and the Dropbox and Git createFolder only
+  // compute a path.
+  (
+    'lib/core/services/cloud_storage/dropbox_storage_provider.dart',
+    'Future<UploadResult> uploadFile(',
+    'sync',
+    _Kind.ensure,
+  ),
+  (
+    'lib/core/services/cloud_storage/dropbox_storage_provider.dart',
+    'Future<UploadResult> uploadFileFromPath(',
+    'sync',
+    _Kind.ensure,
+  ),
+  (
+    'lib/core/services/cloud_storage/dropbox_storage_provider.dart',
+    'Future<void> deleteFile(',
+    'sync',
+    _Kind.ensure,
+  ),
+  (
+    'lib/core/services/cloud_storage/google_drive_storage_provider.dart',
+    'Future<UploadResult> uploadFile(',
+    'sync',
+    _Kind.ensure,
+  ),
+  (
+    'lib/core/services/cloud_storage/google_drive_storage_provider.dart',
+    'Future<UploadResult> uploadFileFromPath(',
+    'sync',
+    _Kind.ensure,
+  ),
+  (
+    'lib/core/services/cloud_storage/google_drive_storage_provider.dart',
+    'Future<void> deleteFile(',
+    'sync',
+    _Kind.ensure,
+  ),
+  (
+    'lib/core/services/cloud_storage/google_drive_storage_provider.dart',
+    'Future<String> createFolder(',
+    'sync',
+    _Kind.ensure,
+  ),
+  (
+    'lib/core/services/cloud_storage/s3_storage_provider.dart',
+    'Future<UploadResult> uploadFile(',
+    'sync',
+    _Kind.ensure,
+  ),
+  (
+    'lib/core/services/cloud_storage/s3_storage_provider.dart',
+    'Future<UploadResult> uploadFileFromPath(',
+    'sync',
+    _Kind.ensure,
+  ),
+  (
+    'lib/core/services/cloud_storage/s3_storage_provider.dart',
+    'Future<void> deleteFile(',
+    'sync',
+    _Kind.ensure,
+  ),
+  (
+    'lib/core/services/cloud_storage/s3_storage_provider.dart',
+    'Future<String> createFolder(',
+    'sync',
+    _Kind.ensure,
+  ),
+  (
+    'lib/core/services/cloud_storage/git_storage_provider.dart',
+    'Future<UploadResult> uploadFile(',
+    'sync',
+    _Kind.ensure,
+  ),
+  (
+    'lib/core/services/cloud_storage/git_storage_provider.dart',
+    'Future<UploadResult> uploadFileFromPath(',
+    'sync',
+    _Kind.ensure,
+  ),
+  (
+    'lib/core/services/cloud_storage/git_storage_provider.dart',
+    'Future<void> deleteFile(',
+    'sync',
+    _Kind.ensure,
+  ),
+  (
+    'lib/core/services/cloud_storage/icloud_storage_provider.dart',
+    'Future<UploadResult> uploadFile(',
+    'sync',
+    _Kind.ensure,
+  ),
+  (
+    'lib/core/services/cloud_storage/icloud_storage_provider.dart',
+    'Future<UploadResult> uploadFileFromPath(',
+    'sync',
+    _Kind.ensure,
+  ),
+  (
+    'lib/core/services/cloud_storage/icloud_storage_provider.dart',
+    'Future<void> deleteFile(',
+    'sync',
+    _Kind.ensure,
+  ),
+  (
+    'lib/core/services/cloud_storage/icloud_storage_provider.dart',
+    'Future<String> createFolder(',
+    'sync',
+    _Kind.ensure,
+  ),
+  (
+    'lib/core/services/cloud_storage/webdav_storage_provider.dart',
+    'Future<UploadResult> uploadFile(',
+    'sync',
+    _Kind.ensure,
+  ),
+  (
+    'lib/core/services/cloud_storage/webdav_storage_provider.dart',
+    'Future<UploadResult> uploadFileFromPath(',
+    'sync',
+    _Kind.ensure,
+  ),
+  (
+    'lib/core/services/cloud_storage/webdav_storage_provider.dart',
+    'Future<void> deleteFile(',
+    'sync',
+    _Kind.ensure,
+  ),
+  (
+    'lib/core/services/cloud_storage/webdav_storage_provider.dart',
+    'Future<String> createFolder(',
+    'sync',
+    _Kind.ensure,
+  ),
+  (
+    'lib/core/services/cloud_storage/git_storage_provider.dart',
+    'Future<void> flush(',
+    'sync',
+    _Kind.ensure,
+  ),
 ];
 
 /// Providers that seal a whole subsystem by yielding nothing in demo mode:

@@ -1,7 +1,10 @@
+import 'dart:typed_data';
+
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/cloud_storage/webdav_storage_provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
 import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
@@ -16,6 +19,28 @@ Matcher sealed(DemoSealedFeature feature) => throwsA(
 void main() {
   setUp(() => DemoModeGate.instance.debugActive = true);
   tearDown(applyGlobalTestDefaults);
+
+  test('a cloud backend refuses every write in demo mode', () async {
+    // Fails before reading credentials or opening a connection.
+    final provider = WebDavStorageProvider();
+
+    await expectLater(
+      provider.uploadFile(Uint8List(1), 'f.json'),
+      sealed(DemoSealedFeature.sync),
+    );
+    await expectLater(
+      provider.uploadFileFromPath('/nowhere', 'f.json'),
+      sealed(DemoSealedFeature.sync),
+    );
+    await expectLater(
+      provider.deleteFile('f.json'),
+      sealed(DemoSealedFeature.sync),
+    );
+    await expectLater(
+      provider.createFolder('Submersion Sync'),
+      sealed(DemoSealedFeature.sync),
+    );
+  });
 
   test('exports refuse in demo mode', () async {
     await expectLater(

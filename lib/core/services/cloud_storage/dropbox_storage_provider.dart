@@ -7,6 +7,8 @@ import 'package:submersion/core/services/cloud_storage/dropbox/dropbox_api_clien
 import 'package:submersion/core/services/cloud_storage/dropbox/dropbox_auth_manager.dart';
 import 'package:submersion/core/services/cloud_storage/dropbox/dropbox_auth_store.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 
 /// Dropbox implementation of [CloudStorageProvider] over the HTTP API v2.
 ///
@@ -93,6 +95,8 @@ class DropboxStorageProvider
     String filename, {
     String? folderId,
   }) async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.sync);
+
     final meta = await _client.upload(_join(folderId, filename), data);
     return UploadResult(
       fileId: meta.pathLower,
@@ -115,6 +119,8 @@ class DropboxStorageProvider
     String filename, {
     String? folderId,
   }) async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.sync);
+
     final source = File(sourcePath);
     final length = await source.length();
     if (length <= _transferChunkBytes) {
@@ -223,7 +229,10 @@ class DropboxStorageProvider
   }
 
   @override
-  Future<void> deleteFile(String fileId) => _client.delete(fileId);
+  Future<void> deleteFile(String fileId) async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.sync);
+    return _client.delete(fileId);
+  }
 
   @override
   Future<bool> fileExists(String fileId) async =>
