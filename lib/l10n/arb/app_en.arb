@@ -33043,6 +33043,8 @@
   "@demo_enter_confirm_action": {"description": "Demo mode: asks before downloading the sample logbook (issue #3736)"},
   "demo_enter_confirm_body_firstRun": "This downloads a sample logbook ({size}) to look around the app with. Exit demo mode whenever you are ready to start your own.",
   "@demo_enter_confirm_body_firstRun": {"description": "Demo mode: asks before downloading the sample logbook on the first-run welcome screen, where the user has no logbook yet (issue #3736)", "placeholders": {"size": {"type": "String", "example": "12 MB"}}},
+  "demo_enter_changed_body": "The sample logbook has been updated and is now {size}. Download it?",
+  "@demo_enter_changed_body": {"description": "Demo mode: asks again when the sample logbook on offer changed size after the user agreed to download it (issue #3736)", "placeholders": {"size": {"type": "String", "example": "14 MB"}}},
   "common_byteSize": "{value} {unit, select, B{B} KB{KB} MB{MB} GB{GB} TB{TB} other{{unit}}}",
   "@common_byteSize": {"description": "A file size: value is the number, already in the locale's decimal format, and unit is one of B, KB, MB, GB, TB. Translate the unit symbols where the language uses its own (French: o, Ko, Mo, Go, To).", "placeholders": {"value": {"type": "String", "example": "12.5"}, "unit": {"type": "String", "example": "MB"}}}
 }

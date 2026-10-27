@@ -29,28 +29,30 @@ void main() {
     });
   });
 
-  group('formatBytesLocalized', () {
-    String label(String number, String unit) => '$number|$unit';
+  group('in the active language', () {
+    late String? previous;
 
-    test('passes the number and unit key to the label', () {
-      expect(formatBytesLocalized(12 * 1024 * 1024, label), '12|MB');
-      expect(formatBytesLocalized(512, label), '512|B');
-      expect(formatBytesLocalized(0, label), '0|B');
+    setUp(() => previous = Intl.defaultLocale);
+    tearDown(() => Intl.defaultLocale = previous);
+
+    test('French takes its decimal comma and its own unit symbols', () {
+      Intl.defaultLocale = 'fr';
+
+      expect(formatBytes(1536), '1,5 Ko');
+      expect(formatBytes((2.5 * 1024 * 1024).round()), '2,5 Mo');
+      expect(formatBytes(512), '512 o');
     });
 
-    test('uses the active locale\'s decimal mark', () {
-      final previous = Intl.defaultLocale;
-      addTearDown(() => Intl.defaultLocale = previous);
+    test('German takes its decimal comma and keeps MB', () {
+      Intl.defaultLocale = 'de-DE';
 
-      Intl.defaultLocale = 'fr';
-      expect(
-        formatBytesLocalized((2.5 * 1024 * 1024).round(), label),
-        '2,5|MB',
-      );
-      expect(formatBytesLocalized(1536, label), '1,5|KB');
+      expect(formatBytes((2.5 * 1024 * 1024).round()), '2,5 MB');
+    });
 
-      Intl.defaultLocale = 'en';
-      expect(formatBytesLocalized(1536, label), '1.5|KB');
+    test('a language the app does not have reads as English', () {
+      Intl.defaultLocale = 'ja';
+
+      expect(formatBytes(1536), '1.5 KB');
     });
   });
 }

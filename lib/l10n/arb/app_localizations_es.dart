@@ -56056,7 +56056,12 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String demo_enter_confirm_body_firstRun(String size) {
-    return 'Se descargará un diario de ejemplo ($size) para explorar la aplicación. Sal del modo de demostración cuando quieras empezar el tuyo.';
+    return 'Se descargará un diario de ejemplo ($size) para explorar la aplicación. Sal del modo demo cuando quieras empezar el tuyo.';
+  }
+
+  @override
+  String demo_enter_changed_body(String size) {
+    return 'El diario de ejemplo se ha actualizado y ahora ocupa $size. ¿Descargarlo?';
   }
 
   @override

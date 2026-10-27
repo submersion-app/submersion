@@ -16400,5 +16400,6 @@
   "demo_enter_confirm_body": "Será transferido um diário de exemplo ({size}) e aberto em vez do seu. O seu diário fica de lado, intacto, até sair do modo de demonstração.",
   "demo_enter_confirm_action": "Transferir",
   "demo_enter_confirm_body_firstRun": "Será transferido um diário de exemplo ({size}) para explorar a aplicação. Saia do modo de demonstração quando quiser começar o seu.",
+  "demo_enter_changed_body": "O diário de exemplo foi atualizado e tem agora {size}. Transferi-lo?",
   "common_byteSize": "{value} {unit, select, B{B} KB{KB} MB{MB} GB{GB} TB{TB} other{{unit}}}"
 }

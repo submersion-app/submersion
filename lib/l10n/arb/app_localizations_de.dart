@@ -55894,6 +55894,11 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String demo_enter_changed_body(String size) {
+    return 'Das Beispiel-Logbuch wurde aktualisiert und ist jetzt $size groß. Herunterladen?';
+  }
+
+  @override
   String common_byteSize(String value, String unit) {
     String _temp0 = intl.Intl.selectLogic(unit, {
       'B': 'B',

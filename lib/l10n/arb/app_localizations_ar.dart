@@ -56779,6 +56779,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String demo_enter_changed_body(String size) {
+    return 'تم تحديث السجل التجريبي وأصبح حجمه الآن $size. هل تريد تنزيله؟';
+  }
+
+  @override
   String common_byteSize(String value, String unit) {
     String _temp0 = intl.Intl.selectLogic(unit, {
       'B': 'B',

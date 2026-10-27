@@ -608,7 +608,7 @@ void main() {
       expect(find.text('Explore with sample data?'), findsOneWidget);
       // The available package's own size, in the wording for a user whose
       // logbook is set aside.
-      expect(find.textContaining('(10 B)'), findsOneWidget);
+      expect(find.textContaining('10 B'), findsOneWidget);
       expect(
         find.textContaining('set aside, untouched, until you exit demo mode'),
         findsOneWidget,

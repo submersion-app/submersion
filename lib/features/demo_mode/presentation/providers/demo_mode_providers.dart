@@ -118,6 +118,14 @@ class DemoEnterRunning extends DemoEnterUiState {
   final DemoEnterProgress progress;
 }
 
+/// The sample logbook on offer changed size since the user agreed to it, so
+/// nothing was downloaded and they are asked again about [package].
+class DemoEnterPackageChanged extends DemoEnterUiState {
+  const DemoEnterPackageChanged(this.package);
+
+  final DemoPackage package;
+}
+
 class DemoEnterFailed extends DemoEnterUiState {
   const DemoEnterFailed(this.reason);
 
@@ -138,12 +146,12 @@ class DemoEnterController extends Notifier<DemoEnterUiState> {
   @override
   DemoEnterUiState build() => const DemoEnterIdle();
 
-  /// Enters demo mode with [package], the one the user agreed to download.
+  /// Enters demo mode with [package], the one whose size the user agreed to.
   /// On success the app restarts into the sample logbook, so the last state
   /// seen here is [DemoEnterRunning].
   Future<void> start({
     required bool fromFirstRun,
-    DemoPackage? package,
+    required DemoPackage package,
     DemoUnitSettings? units,
   }) {
     final run = ++_run;
@@ -165,7 +173,7 @@ class DemoEnterController extends Notifier<DemoEnterUiState> {
   Future<void> _enter(
     int run, {
     required bool fromFirstRun,
-    DemoPackage? package,
+    required DemoPackage package,
     DemoUnitSettings? units,
   }) async {
     bool current() => run == _run && ref.mounted;
@@ -181,6 +189,11 @@ class DemoEnterController extends Notifier<DemoEnterUiState> {
           if (current()) state = DemoEnterRunning(p);
         },
       );
+    } on DemoPackageChangedException catch (e) {
+      // The entry points show the size from availability, so it is read
+      // again for them too.
+      ref.invalidate(demoAvailabilityProvider);
+      if (current()) state = DemoEnterPackageChanged(e.current);
     } on DemoDownloadException catch (e) {
       if (current()) {
         state = e.reason == DemoDownloadFailure.cancelled

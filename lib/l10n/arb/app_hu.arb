@@ -16400,5 +16400,6 @@
   "demo_enter_confirm_body": "Ez letölt egy mintanaplót ({size}), és a saját naplód helyett megnyitja. A naplód érintetlenül félre van téve, amíg ki nem lépsz a demó módból.",
   "demo_enter_confirm_action": "Letöltés",
   "demo_enter_confirm_body_firstRun": "Ez letölt egy mintanaplót ({size}), amellyel körülnézhetsz az alkalmazásban. Lépj ki a demó módból, amikor a sajátodat szeretnéd elkezdeni.",
+  "demo_enter_changed_body": "A mintanapló frissült, és most {size} méretű. Letöltöd?",
   "common_byteSize": "{value} {unit, select, B{B} KB{KB} MB{MB} GB{GB} TB{TB} other{{unit}}}"
 }

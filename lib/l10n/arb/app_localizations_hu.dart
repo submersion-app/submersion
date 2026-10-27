@@ -55702,6 +55702,11 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String demo_enter_changed_body(String size) {
+    return 'A mintanapló frissült, és most $size méretű. Letöltöd?';
+  }
+
+  @override
   String common_byteSize(String value, String unit) {
     String _temp0 = intl.Intl.selectLogic(unit, {
       'B': 'B',

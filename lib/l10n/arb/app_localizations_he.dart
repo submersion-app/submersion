@@ -54846,6 +54846,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String demo_enter_changed_body(String size) {
+    return 'יומן הדוגמה עודכן וגודלו כעת $size. להוריד אותו?';
+  }
+
+  @override
   String common_byteSize(String value, String unit) {
     String _temp0 = intl.Intl.selectLogic(unit, {
       'B': 'B',

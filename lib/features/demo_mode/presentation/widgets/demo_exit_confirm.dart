@@ -14,6 +14,8 @@ Future<void> confirmAndExitDemo(BuildContext context, WidgetRef ref) async {
     body: l10n.demo_exit_confirm_body,
     action: l10n.demo_exit_confirm_action,
   );
-  if (!confirmed) return;
+  // The page that asked may have gone while the question was open, and its
+  // ref with it.
+  if (!confirmed || !context.mounted) return;
   await ref.read(demoExitActionProvider)();
 }

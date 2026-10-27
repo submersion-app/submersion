@@ -56009,6 +56009,11 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String demo_enter_changed_body(String size) {
+    return 'O diário de exemplo foi atualizado e tem agora $size. Transferi-lo?';
+  }
+
+  @override
   String common_byteSize(String value, String unit) {
     String _temp0 = intl.Intl.selectLogic(unit, {
       'B': 'B',

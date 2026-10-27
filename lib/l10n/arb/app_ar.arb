@@ -16400,5 +16400,6 @@
   "demo_enter_confirm_body": "سيتم تنزيل سجل تجريبي ({size}) وفتحه بدلًا من سجلك. يُحفظ سجلك جانبًا دون أي تغيير حتى تخرج من الوضع التجريبي.",
   "demo_enter_confirm_action": "تنزيل",
   "demo_enter_confirm_body_firstRun": "سيتم تنزيل سجل تجريبي ({size}) لاستكشاف التطبيق. اخرج من الوضع التجريبي متى كنت مستعدًا لبدء سجلك الخاص.",
+  "demo_enter_changed_body": "تم تحديث السجل التجريبي وأصبح حجمه الآن {size}. هل تريد تنزيله؟",
   "common_byteSize": "{value} {unit, select, B{B} KB{KB} MB{MB} GB{GB} TB{TB} other{{unit}}}"
 }

@@ -52578,6 +52578,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String demo_enter_changed_body(String size) {
+    return '示例日志已更新，现在大小为 $size。要下载吗？';
+  }
+
+  @override
   String common_byteSize(String value, String unit) {
     String _temp0 = intl.Intl.selectLogic(unit, {
       'B': 'B',

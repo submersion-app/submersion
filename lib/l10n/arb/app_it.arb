@@ -16400,5 +16400,6 @@
   "demo_enter_confirm_body": "Verrà scaricato un logbook di esempio ({size}) e aperto al posto del tuo. Il tuo logbook resta da parte, intatto, finché non esci dalla modalità demo.",
   "demo_enter_confirm_action": "Scarica",
   "demo_enter_confirm_body_firstRun": "Verrà scaricato un logbook di esempio ({size}) per esplorare l'app. Esci dalla modalità demo quando vuoi iniziare il tuo.",
+  "demo_enter_changed_body": "Il logbook di esempio è stato aggiornato e ora occupa {size}. Scaricarlo?",
   "common_byteSize": "{value} {unit, select, B{B} KB{KB} MB{MB} GB{GB} TB{TB} other{{unit}}}"
 }

@@ -18,7 +18,11 @@ class _ScriptedController extends DemoEnterController {
   DemoEnterUiState build() => const DemoEnterIdle();
 
   @override
-  Future<void> start({required bool fromFirstRun, package, units}) async {
+  Future<void> start({
+    required bool fromFirstRun,
+    required package,
+    units,
+  }) async {
     starts++;
     lastPackage = package;
     state = const DemoEnterRunning(
@@ -30,6 +34,9 @@ class _ScriptedController extends DemoEnterController {
   void cancel() => cancels++;
 
   void fail() => state = const DemoEnterFailed(DemoDownloadFailure.network);
+
+  void changeSize(DemoPackage package) =>
+      state = DemoEnterPackageChanged(package);
 }
 
 final _package = DemoPackage(
@@ -38,6 +45,14 @@ final _package = DemoPackage(
   sha256: 'a' * 64,
   size: 12 * 1024 * 1024,
   generatedAt: DateTime.utc(2026, 10, 20),
+);
+
+final _bigger = DemoPackage(
+  schemaVersion: 1,
+  url: Uri.parse('https://example.com/bigger.zip'),
+  sha256: 'c' * 64,
+  size: 14 * 1024 * 1024,
+  generatedAt: DateTime.utc(2026, 10, 22),
 );
 
 void main() {
@@ -103,6 +118,40 @@ void main() {
     await open(tester);
 
     expect(controller.lastPackage, _package);
+  });
+
+  testWidgets('a package that changed size asks again, and Download takes '
+      'the new one', (tester) async {
+    await open(tester);
+    controller.changeSize(_bigger);
+    await tester.pump();
+
+    expect(find.textContaining('has been updated'), findsOneWidget);
+    expect(find.textContaining('14 MB'), findsOneWidget);
+
+    await tester.tap(find.text('Download'));
+    await tester.pump();
+
+    expect(controller.starts, 2);
+    expect(controller.lastPackage, _bigger);
+  });
+
+  testWidgets('Cancel on a changed size downloads nothing and closes', (
+    tester,
+  ) async {
+    await open(tester);
+    controller.changeSize(_bigger);
+    await tester.pump();
+
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+
+    expect(controller.starts, 1);
+    expect(find.byType(DemoEnterDialog), findsNothing);
+  });
+
+  test('a size in a sentence is isolated left to right', () {
+    expect(sizeInSentence(12 * 1024 * 1024), '\u206612 MB\u2069');
   });
 
   testWidgets('Cancel on the question downloads nothing', (tester) async {

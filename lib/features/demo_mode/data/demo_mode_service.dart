@@ -31,6 +31,14 @@ class DemoEnterProgress {
   final int total;
 }
 
+/// The sample logbook on offer is no longer the size the user agreed to
+/// download. Nothing was downloaded; [current] is the package now on offer.
+class DemoPackageChangedException implements Exception {
+  const DemoPackageChangedException(this.current);
+
+  final DemoPackage current;
+}
+
 /// Takes the app into the sample logbook and back out.
 ///
 /// The user's own database is never written: entering closes it and opens a
@@ -75,12 +83,17 @@ class DemoModeService {
   final Future<void> Function(List<String> photoPaths)? forgetPhotos;
   final DateTime Function() clock;
 
-  /// Downloads and opens [package], the one the user agreed to download, so
-  /// what is fetched is what was asked about. Without one, the best package
-  /// for this app is looked up first.
+  /// Downloads and opens [package], the one whose size the user agreed to.
+  ///
+  /// That package may have been read from the manifest hours ago, and a
+  /// republish replaces the zip in place (`tool/demo_data/README.md`), so the
+  /// manifest is read again on every attempt, Retry included. A package of
+  /// the same size is downloaded from its current entry; one whose size
+  /// changed throws [DemoPackageChangedException] so the user is asked again.
+  /// When the manifest cannot be reached, [package] itself is tried.
   Future<void> enter({
     required bool fromFirstRun,
-    DemoPackage? package,
+    required DemoPackage package,
     DemoUnitSettings? units,
     void Function(DemoEnterProgress)? onProgress,
     bool Function()? isCancelled,
@@ -94,13 +107,8 @@ class DemoModeService {
       await store.write(state);
       onProgress?.call(const DemoEnterProgress(DemoEnterStage.downloading));
       final pkg =
-          package ?? await manifest.fetchBest(AppDatabase.currentSchemaVersion);
-      if (pkg == null) {
-        throw const DemoDownloadException(
-          DemoDownloadFailure.network,
-          'no compatible sample logbook',
-        );
-      }
+          await manifest.fetchBest(AppDatabase.currentSchemaVersion) ?? package;
+      if (pkg.size != package.size) throw DemoPackageChangedException(pkg);
       final zip = await downloader.download(
         pkg,
         File(paths.packageFile),

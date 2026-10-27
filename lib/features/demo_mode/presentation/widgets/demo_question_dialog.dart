@@ -5,7 +5,8 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// [action] is tapped; Cancel, a tap outside or Back all answer no.
 ///
 /// Both questions go through here so they keep the same buttons, order and
-/// dismissal.
+/// dismissal. The dialog reads only through its own context: it can outlive
+/// the caller's, as when the Settings pane it was opened from is replaced.
 Future<bool> askDemoQuestion(
   BuildContext context, {
   required String title,
@@ -20,7 +21,7 @@ Future<bool> askDemoQuestion(
       actions: [
         TextButton(
           onPressed: () => Navigator.of(dialogContext).pop(false),
-          child: Text(context.l10n.common_action_cancel),
+          child: Text(dialogContext.l10n.common_action_cancel),
         ),
         FilledButton(
           onPressed: () => Navigator.of(dialogContext).pop(true),

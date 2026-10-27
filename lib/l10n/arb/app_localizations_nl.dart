@@ -55664,7 +55664,12 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String demo_enter_confirm_body_firstRun(String size) {
-    return 'Er wordt een voorbeeldlogboek ($size) gedownload om de app mee te verkennen. Verlaat de demomodus zodra je met je eigen logboek wilt beginnen.';
+    return 'Er wordt een voorbeeldlogboek ($size) gedownload om de app mee te verkennen. Sluit de demomodus af zodra je met je eigen logboek wilt beginnen.';
+  }
+
+  @override
+  String demo_enter_changed_body(String size) {
+    return 'Het voorbeeldlogboek is bijgewerkt en is nu $size. Downloaden?';
   }
 
   @override

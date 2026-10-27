@@ -90,7 +90,7 @@ void main() {
 
     expect(find.text('Explore with sample data?'), findsOneWidget);
     // The available package's own size, in the first-run wording.
-    expect(find.textContaining('(10 B)'), findsOneWidget);
+    expect(find.textContaining('10 B'), findsOneWidget);
     expect(find.textContaining('set aside'), findsNothing);
     expect(find.byType(DemoEnterDialog), findsNothing);
 
@@ -109,7 +109,11 @@ class _IdleController extends DemoEnterController {
   static DemoPackage? lastPackage;
 
   @override
-  Future<void> start({required bool fromFirstRun, package, units}) async {
+  Future<void> start({
+    required bool fromFirstRun,
+    required package,
+    units,
+  }) async {
     lastFromFirstRun = fromFirstRun;
     lastPackage = package;
   }

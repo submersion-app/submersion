@@ -16525,5 +16525,6 @@
   "demo_enter_confirm_body": "Dabei wird ein Beispiel-Logbuch ({size}) heruntergeladen und anstelle deines eigenen geöffnet. Dein Logbuch bleibt unberührt beiseite, bis du den Demomodus beendest.",
   "demo_enter_confirm_action": "Herunterladen",
   "demo_enter_confirm_body_firstRun": "Dabei wird ein Beispiel-Logbuch ({size}) heruntergeladen, mit dem du die App erkunden kannst. Beende den Demomodus, sobald du dein eigenes beginnen möchtest.",
+  "demo_enter_changed_body": "Das Beispiel-Logbuch wurde aktualisiert und ist jetzt {size} groß. Herunterladen?",
   "common_byteSize": "{value} {unit, select, B{B} KB{KB} MB{MB} GB{GB} TB{TB} other{{unit}}}"
 }
