@@ -224,16 +224,26 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
     switch (meaning) {
       case LifecycleMeaning.backgrounded:
         ref.read(appLockNotifierProvider.notifier).noteBackgrounded();
-        _setNearbyForeground(false);
       case LifecycleMeaning.resumed:
         ref.read(appLockNotifierProvider.notifier).noteResumed();
         _runStorageCleanupAfter(_maybeSyncOnResume(), StorageGcTrigger.resume);
-        _setNearbyForeground(true);
         _resumeMediaTransfers();
         // NFC may have been turned on in the system settings meanwhile, as
         // the passport screens tell the diver to do.
         ref.invalidate(nfcSupportProvider);
       case LifecycleMeaning.none:
+        break;
+    }
+    // Nearby follows whether the app is on screen, not whether it has the
+    // focus: an inactive window (another app in front on a desktop, Control
+    // Center or an alert over it on iOS) must not end a transfer, though
+    // App Lock counts it as leaving.
+    switch (state) {
+      case AppLifecycleState.hidden || AppLifecycleState.paused:
+        _setNearbyForeground(false);
+      case AppLifecycleState.resumed:
+        _setNearbyForeground(true);
+      case AppLifecycleState.inactive || AppLifecycleState.detached:
         break;
     }
   }
@@ -292,7 +302,7 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
     unawaited(ref.read(equipmentFileConversionProvider)());
   }
 
-  /// The nearby link scans and advertises only while the app is in front
+  /// The nearby link scans and advertises only while the app is on screen
   /// (issue #3731); a failure there never reaches the app.
   void _setNearbyForeground(bool inForeground) {
     unawaited(

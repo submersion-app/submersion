@@ -494,6 +494,10 @@ class _PeripheralEnd implements NearbyEndpoint {
   int readLength = 19;
   bool _closed = false;
 
+  /// [close] is waiting for the outbox to drain: nothing more is queued,
+  /// or a send loop still running (the next base part) would refill it.
+  bool _closing = false;
+
   static final _appleSlices =
       defaultTargetPlatform == TargetPlatform.iOS ||
       defaultTargetPlatform == TargetPlatform.macOS;
@@ -516,7 +520,7 @@ class _PeripheralEnd implements NearbyEndpoint {
 
   @override
   Future<void> send(Uint8List bytes) async {
-    if (_closed) throw const NearbyLinkClosed();
+    if (_closed || _closing) throw const NearbyLinkClosed();
     final ring = _outbox.isEmpty;
     final queued = _outbox.enqueue(bytes);
     if (ring) unawaited(_ringDoorbell());
@@ -551,7 +555,8 @@ class _PeripheralEnd implements NearbyEndpoint {
   /// session is over, so it gets [drainTimeout] to read it first.
   @override
   Future<void> close() async {
-    if (_closed) return;
+    if (_closed || _closing) return;
+    _closing = true;
     await _outbox.drained.timeout(drainTimeout, onTimeout: () {});
     drop();
   }

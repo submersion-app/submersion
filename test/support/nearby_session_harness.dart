@@ -4,6 +4,7 @@ import 'package:submersion/core/services/nearby/nearby_carrier.dart';
 import 'package:submersion/core/services/nearby/nearby_hello.dart';
 import 'package:submersion/core/services/nearby/nearby_session.dart';
 
+import 'forwarding_nearby_endpoint.dart';
 import 'in_memory_nearby_carrier.dart';
 import 'memory_nearby_secrets.dart';
 
@@ -55,27 +56,14 @@ Future<(MemoryNearbySecrets, MemoryNearbySecrets)> pairNearbySessions() async {
 }
 
 /// Passes everything through and keeps a copy of what this side sent.
-class RecordingNearbyEndpoint implements NearbyEndpoint {
-  RecordingNearbyEndpoint(this._inner);
+class RecordingNearbyEndpoint extends ForwardingNearbyEndpoint {
+  RecordingNearbyEndpoint(super.inner);
 
-  final NearbyEndpoint _inner;
   final sent = <int>[];
-
-  @override
-  Stream<Uint8List> get inbound => _inner.inbound;
 
   @override
   Future<void> send(Uint8List bytes) {
     sent.addAll(bytes);
-    return _inner.send(bytes);
+    return super.send(bytes);
   }
-
-  @override
-  Future<void> close() => _inner.close();
-
-  @override
-  bool get isInitiator => _inner.isInitiator;
-
-  @override
-  String get transportId => _inner.transportId;
 }

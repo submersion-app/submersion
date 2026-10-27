@@ -355,15 +355,23 @@ newer device. Unpairing retires the peer from the horizon at once.
 
 **Automatic sync.** With "Sync nearby automatically" on (the default), the
 link scans and advertises whenever the app is in the foreground and the
-Bluetooth radio is on. A session with a paired peer starts on discovery,
+Bluetooth radio is on. In the foreground means on screen, focused or not:
+a desktop window behind another app, or Control Center pulled over the
+app on iOS, keeps a transfer going; a hidden or minimised app ends it. A
+running scan is restarted at most every ten seconds: real radios report
+every advertisement anyway, and Android stops delivering results to an
+app that starts five scans in 30 seconds. A session with a paired peer starts on discovery,
 and again after a local change (`SyncEventBus.notifyLocalChange`, with the
 same five-second debounce the cloud path uses) while the peer stays in
 range, and otherwise not more than once every ten minutes per peer. With
 the switch off, nothing scans or advertises; "Sync now" on a device's row
 turns the radio on until that device is found (or 20 seconds pass) and
-runs one session. An address that turns out to belong to no paired device
+runs one session; with Bluetooth off or not allowed it says so at once. An address that turns out to belong to no paired device
 is left alone for a minute, doubling to half an hour, so a boat full of
-Submersion users does not keep connecting to each other. A paired peer that
+Submersion users does not keep connecting to each other. A device's
+address is learned only from a link this device opened: one the peer
+opened arrives under its central's id, which on Bluetooth is not the
+address it advertises. A paired peer that
 refuses for a reason the diver has to fix (an update, another library, an
 unpairing) waits out the same ten minutes as a synced one. In pairing mode
 a device that could not be paired with yet (its pairing page not open, or

@@ -8,36 +8,27 @@ import 'package:submersion/core/services/nearby/nearby_frame.dart';
 import 'package:submersion/core/services/nearby/nearby_hello.dart';
 import 'package:submersion/core/services/nearby/nearby_session.dart';
 
+import '../../../support/forwarding_nearby_endpoint.dart';
 import '../../../support/memory_nearby_secrets.dart';
 import '../../../support/nearby_session_harness.dart';
 
 /// Passes everything through until [stalled], then never finishes a send:
 /// a peripheral whose central stopped reading a full outbox.
-class _StallingEndpoint implements NearbyEndpoint {
-  _StallingEndpoint(this._inner);
+class _StallingEndpoint extends ForwardingNearbyEndpoint {
+  _StallingEndpoint(super.inner);
 
-  final NearbyEndpoint _inner;
   bool stalled = false;
   bool closed = false;
 
   @override
-  Stream<Uint8List> get inbound => _inner.inbound;
-
-  @override
   Future<void> send(Uint8List bytes) =>
-      stalled ? Completer<void>().future : _inner.send(bytes);
+      stalled ? Completer<void>().future : super.send(bytes);
 
   @override
   Future<void> close() {
     closed = true;
-    return _inner.close();
+    return super.close();
   }
-
-  @override
-  bool get isInitiator => _inner.isInitiator;
-
-  @override
-  String get transportId => _inner.transportId;
 }
 
 /// Refusals that must name the peer, frames that must not be believed, and

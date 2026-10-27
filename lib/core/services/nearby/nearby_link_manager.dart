@@ -75,6 +75,7 @@ class NearbyLinkManager {
     this.maxStrangerBackoff = const Duration(minutes: 30),
     this.syncNowTimeout = const Duration(seconds: 20),
     this.recentSighting = const Duration(minutes: 2),
+    this.scanRestartAfter = const Duration(seconds: 10),
     this.partSize = 262144,
   }) : _carrier = carrier,
        _engine = engine,
@@ -118,6 +119,12 @@ class NearbyLinkManager {
 
   /// A local change dials only peers sighted this recently.
   final Duration recentSighting;
+
+  /// The least time between two starts of a running scan. Real radios
+  /// report every advertisement, so a restart only freshens the sightings,
+  /// and Android stops delivering results to an app that starts five scans
+  /// in 30 seconds.
+  final Duration scanRestartAfter;
   final int partSize;
 
   final _subs = <StreamSubscription<Object?>>[];
@@ -135,6 +142,10 @@ class NearbyLinkManager {
   bool _prunedSecrets = false;
   Future<void> _refreshTail = Future.value();
   Timer? _debounce;
+  DateTime? _scanStartedAt;
+
+  /// The last availability check found Bluetooth off or not allowed.
+  bool _radioOff = false;
   DateTime? _lastChangeAt;
 
   /// This device's id, cached by every session as it opens so the
@@ -285,11 +296,12 @@ class NearbyLinkManager {
       return;
     }
     final availability = await _carrier.checkAvailability();
+    _radioOff =
+        availability == NearbyAvailability.bluetoothOff ||
+        availability == NearbyAvailability.unauthorized;
     if (availability != NearbyAvailability.ready) {
       await _stopRadio();
-      if (availability != NearbyAvailability.unsupported) {
-        await _markRadioOff();
-      }
+      if (_radioOff) await _markRadioOff();
       return;
     }
     await _clearRadioOff();
@@ -300,11 +312,19 @@ class NearbyLinkManager {
         _log.warning('Nearby advertising did not start: $e');
       }
     }
+    final startedAt = _scanStartedAt;
+    final restart =
+        !_running ||
+        startedAt == null ||
+        _now().difference(startedAt) >= scanRestartAfter;
     // Running before the scan starts: a carrier may deliver its first
     // sightings while startScanning is still in flight.
     _running = true;
-    await _carrier.stopScanning();
-    await _carrier.startScanning();
+    if (restart) {
+      _scanStartedAt = _now();
+      await _carrier.stopScanning();
+      await _carrier.startScanning();
+    }
     _emitState();
   }
 
@@ -430,6 +450,16 @@ class NearbyLinkManager {
     _syncNowWaiters[peerDeviceId] = waiter;
     _lastSessionAt.remove(peerDeviceId);
     await refresh();
+    if (!_running) {
+      // The radio could not come on, so no sighting will answer: say why
+      // now rather than after the timeout.
+      final outcome = _radioOff
+          ? const NearbySyncOutcome(error: NearbyPeerError.bluetoothOff)
+          : null;
+      _completeSyncNow(peerDeviceId, outcome);
+      _syncNowWaiters.remove(peerDeviceId);
+      return outcome;
+    }
     final known = _transportByDevice[peerDeviceId];
     if (known != null && _running && _mayDial(known)) {
       unawaited(_openSync(known));
@@ -466,7 +496,7 @@ class NearbyLinkManager {
           secrets: _secrets,
         ).openSync();
       } on NearbySessionRefused catch (e) {
-        await _recordRefusal(transportId, e);
+        await _recordRefusal(transportId, e, dialled: true);
         return null;
       } on Object catch (e) {
         _log.info('Nearby session with $transportId did not open: $e');
@@ -486,8 +516,9 @@ class NearbyLinkManager {
   /// each time.
   Future<void> _recordRefusal(
     String transportId,
-    NearbySessionRefused e,
-  ) async {
+    NearbySessionRefused e, {
+    required bool dialled,
+  }) async {
     final device = e.peerDeviceId ?? _deviceByTransport[transportId];
     if (device == null || await _peers.get(device) == null) {
       final wait = _strangerWait[transportId];
@@ -502,7 +533,7 @@ class NearbyLinkManager {
         ? nearbyPeerRefusalError(e.code)
         : nearbyOwnRefusalError(e.code);
     if (error == null) return;
-    _learn(transportId, device);
+    if (dialled) _learn(transportId, device);
     await _peers.setError(device, error);
     // A refusal the diver has to fix waits out the cooldown like a synced
     // session, instead of a redial on every sighting; a transient one is
@@ -516,6 +547,9 @@ class NearbyLinkManager {
     if (waiter != null && !waiter.isCompleted) waiter.complete(outcome);
   }
 
+  /// [transportId] is where [deviceId] can be dialled: called only for
+  /// links this device opened. A link the peer opened arrives under its
+  /// central's id, which on Bluetooth is not the address it advertises.
   void _learn(String transportId, String deviceId) {
     _deviceByTransport[transportId] = deviceId;
     _transportByDevice[deviceId] = transportId;
@@ -546,13 +580,16 @@ class NearbyLinkManager {
       // and this side may be the one that never dials (a Linux peer).
       final peer = e is NearbySessionRefused ? e.peerDeviceId : null;
       if (peer != null && await _peers.get(peer) != null) {
-        await _recordRefusal(endpoint.transportId, e as NearbySessionRefused);
+        await _recordRefusal(
+          endpoint.transportId,
+          e as NearbySessionRefused,
+          dialled: false,
+        );
       }
       return;
     }
     switch (incoming) {
       case NearbyIncomingSync(:final channel):
-        _learn(endpoint.transportId, channel.peer.deviceId);
         await _run(channel);
       case NearbyIncomingPairing(:final pairing):
         await _offer(
@@ -560,6 +597,7 @@ class NearbyLinkManager {
             this,
             pairing,
             transportId: endpoint.transportId,
+            dialled: false,
             initiatorKey: pairing.preview.nonce,
           ),
         );

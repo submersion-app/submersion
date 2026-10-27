@@ -51,6 +51,9 @@ class NearbyTestDevice {
     now: () => now,
     changeDebounce: const Duration(milliseconds: 20),
     retryAfter: Duration.zero,
+    // Tests sight devices afresh by refreshing; the in-memory carrier
+    // reports a device only when its scan starts.
+    scanRestartAfter: Duration.zero,
   );
 }
 
@@ -132,10 +135,11 @@ Future<void> foregroundNearbyTestDevices(List<NearbyTestDevice> ds) async {
 
 /// Passes everything to [inner] and counts the connection attempts.
 class CountingNearbyCarrier implements NearbyCarrier {
-  CountingNearbyCarrier(this.inner, this.onConnect);
+  CountingNearbyCarrier(this.inner, this.onConnect, {this.onStartScanning});
 
   final InMemoryNearbyCarrier inner;
   final void Function() onConnect;
+  final void Function()? onStartScanning;
 
   @override
   bool get canAdvertise => inner.canAdvertise;
@@ -147,7 +151,10 @@ class CountingNearbyCarrier implements NearbyCarrier {
   Future<void> stopAdvertising() => inner.stopAdvertising();
 
   @override
-  Future<void> startScanning() => inner.startScanning();
+  Future<void> startScanning() {
+    onStartScanning?.call();
+    return inner.startScanning();
+  }
 
   @override
   Future<void> stopScanning() => inner.stopScanning();

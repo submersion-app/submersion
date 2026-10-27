@@ -1032,6 +1032,25 @@ void main() {
     expect(nearby.foreground.last, isTrue);
   });
 
+  testWidgets('a window that only loses focus keeps the nearby link on '
+      '(issue #3731)', (tester) async {
+    final nearby = FakeNearbyLinkManager();
+    await pumpApp(
+      tester,
+      _DrivableSyncNotifier(const SyncState()),
+      nearby: nearby,
+    );
+    expect(nearby.foreground, [true]);
+
+    // Another app took the focus, or Control Center is pulled down: the
+    // window is still there, and a transfer must not end.
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    await tester.pump();
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pump();
+    expect(nearby.foreground, everyElement(isTrue));
+  });
+
   testWidgets('turning nearby sync off or on re-decides the radio '
       '(issue #3731)', (tester) async {
     final nearby = FakeNearbyLinkManager();

@@ -643,4 +643,75 @@ void main() {
       expect((await b.peers.get('A'))!.lastSyncedAt, isNotNull);
     });
   });
+
+  group('addresses and the radio', () {
+    test(
+      'a link the peer opened teaches no address to dial it back by',
+      () async {
+        hub = InMemoryNearbyHub(centralIds: true);
+        final a = await device('A');
+        final b = await device('B');
+        await pair(a, b);
+        // B meets A by dialling it, so B learns A's advertised address.
+        a.carrier.refuseConnects = true;
+        await foreground([a, b]);
+        expect(b.engine.recordedAcks, hasLength(1));
+
+        // Past the cooldown, A dials B: B sees A under its central id.
+        a.carrier.refuseConnects = false;
+        b.carrier.refuseConnects = true;
+        a.now = a.now.add(const Duration(minutes: 11));
+        await a.manager.refresh();
+        await _settle();
+        expect(b.engine.recordedAcks, hasLength(2));
+
+        // An edit on B still reaches A at the address B dialled before.
+        b.carrier.refuseConnects = false;
+        b.changes.add(null);
+        await _settle();
+        expect(b.engine.recordedAcks, hasLength(3));
+      },
+    );
+
+    test('Sync now with Bluetooth off says so at once', () async {
+      final a = await device('A');
+      final b = await device('B');
+      await pair(a, b);
+      await foreground([a, b]);
+      hub.setAvailability('A', NearbyAvailability.bluetoothOff);
+      await _settle();
+
+      final outcome = await a.manager
+          .syncNow('B')
+          .timeout(const Duration(seconds: 2));
+      expect(outcome?.error, NearbyPeerError.bluetoothOff);
+    });
+
+    test('a run of refreshes does not restart a running scan each time: '
+        'Android stops an app that starts five scans in 30 seconds', () async {
+      final a = await device('A');
+      final b = await device('B');
+      await pair(a, b);
+      var starts = 0;
+      final manager = NearbyLinkManager(
+        carrier: CountingNearbyCarrier(
+          a.carrier,
+          () {},
+          onStartScanning: () => starts++,
+        ),
+        engine: a.engine,
+        secrets: a.secrets,
+        peers: a.peers,
+        cursors: a.cursors,
+        autoSyncEnabled: () => true,
+        tempDir: () async => a.temp,
+      );
+      addTearDown(manager.dispose);
+      await manager.setForeground(true);
+      for (var i = 0; i < 6; i++) {
+        await manager.refresh();
+      }
+      expect(starts, 1);
+    });
+  });
 }

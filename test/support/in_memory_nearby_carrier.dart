@@ -7,6 +7,11 @@ import 'package:submersion/core/services/nearby/nearby_carrier.dart';
 /// to the same hub see each other's advertising and connect through
 /// in-memory pipes.
 class InMemoryNearbyHub {
+  /// [centralIds]: a device that connects shows up at the other end under
+  /// an id of its own, not its advertised one, as on Bluetooth.
+  InMemoryNearbyHub({this.centralIds = false});
+
+  final bool centralIds;
   final _carriers = <String, InMemoryNearbyCarrier>{};
   final _budgets = <String, int>{};
 
@@ -70,6 +75,10 @@ class InMemoryNearbyCarrier implements NearbyCarrier {
   final _incoming = StreamController<NearbyEndpoint>.broadcast();
   final _availability = StreamController<NearbyAvailability>.broadcast();
 
+  /// Every connect from this carrier fails, as a busy or out-of-range
+  /// radio's would.
+  bool refuseConnects = false;
+
   bool get isAdvertising => _advertising;
   bool get isScanning => _scanning;
 
@@ -114,6 +123,7 @@ class InMemoryNearbyCarrier implements NearbyCarrier {
 
   @override
   Future<NearbyEndpoint> connect(String targetId) async {
+    if (refuseConnects) throw const NearbyConnectFailed('refused by the test');
     final target = _hub._carriers[targetId];
     if (target == null || !target._advertising) {
       throw NearbyConnectFailed('$targetId is not advertising');
@@ -126,7 +136,7 @@ class InMemoryNearbyCarrier implements NearbyCarrier {
     final responder = _PipeEnd(
       pipe,
       isInitiator: false,
-      transportId: transportId,
+      transportId: _hub.centralIds ? 'central-$transportId' : transportId,
     );
     pipe.ends = (initiator, responder);
     target._incoming.add(responder);

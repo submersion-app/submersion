@@ -24,12 +24,16 @@ class NearbyPairingHandle implements NearbyPairingOffer {
     this._manager,
     this._pairing, {
     required this.transportId,
+    required this.dialled,
     required this.initiatorKey,
   });
 
   final NearbyLinkManager _manager;
   final NearbyPairing _pairing;
   final String transportId;
+
+  /// This device opened the link, so [transportId] is the peer's address.
+  final bool dialled;
 
   /// The pairing nonce of the device that connected; with two pairings
   /// between the same two devices, the one started by the lower nonce stays.
@@ -76,6 +80,7 @@ extension _NearbyLinkPairing on NearbyLinkManager {
             this,
             pairing,
             transportId: transportId,
+            dialled: true,
             initiatorKey: _pairingNonce,
           ),
         );
@@ -135,7 +140,7 @@ extension _NearbyLinkPairing on NearbyLinkManager {
       displayName: peer.deviceName,
       pairedAt: _now().millisecondsSinceEpoch,
     );
-    _learn(handle.transportId, peer.deviceId);
+    if (handle.dialled) _learn(handle.transportId, peer.deviceId);
     _forgetStrangers();
     unawaited(_run(channel));
     unawaited(refresh());

@@ -16,6 +16,7 @@ import 'package:submersion/core/services/nearby/nearby_session.dart';
 import 'package:submersion/core/services/nearby/nearby_sync_protocol.dart';
 
 import '../../../support/fake_nearby_sync_engine.dart';
+import '../../../support/forwarding_nearby_endpoint.dart';
 import '../../../support/in_memory_nearby_carrier.dart';
 import '../../../support/memory_nearby_secrets.dart';
 
@@ -589,29 +590,16 @@ void main() {
 
 /// Delivers every base part [delay] late, as a slow radio link would. The
 /// frame type is the fifth byte, in the clear.
-class _SlowParts implements NearbyEndpoint {
-  _SlowParts(this._inner, this.delay);
+class _SlowParts extends ForwardingNearbyEndpoint {
+  _SlowParts(super.inner, this.delay);
 
-  final NearbyEndpoint _inner;
   final Duration delay;
-
-  @override
-  Stream<Uint8List> get inbound => _inner.inbound;
 
   @override
   Future<void> send(Uint8List bytes) async {
     if (bytes.length > 4 && bytes[4] == NearbyMessageType.basePart.code) {
       await Future<void>.delayed(delay);
     }
-    await _inner.send(bytes);
+    await super.send(bytes);
   }
-
-  @override
-  Future<void> close() => _inner.close();
-
-  @override
-  bool get isInitiator => _inner.isInitiator;
-
-  @override
-  String get transportId => _inner.transportId;
 }
