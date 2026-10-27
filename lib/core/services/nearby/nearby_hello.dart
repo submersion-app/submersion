@@ -184,4 +184,16 @@ class NearbyHello {
 
   factory NearbyHello.fromBytes(Uint8List bytes) =>
       NearbyHello.fromJson(_object(bytes, 'hello'));
+
+  /// The protocol version a hello announces, read on its own so a newer
+  /// hello this build cannot parse still says what it is; null when
+  /// [bytes] are not a hello object with an integer version.
+  static int? versionOf(Uint8List bytes) {
+    try {
+      final v = _object(bytes, 'hello')['v'];
+      return v is int ? v : null;
+    } on Object {
+      return null;
+    }
+  }
 }

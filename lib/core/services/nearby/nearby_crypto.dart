@@ -20,6 +20,18 @@ const _pairInfo = 'submersion-nearby-pair-v1';
 const _sessionInfo = 'submersion-nearby-session-v1';
 const _unpairedSessionInfo = 'submersion-nearby-session-unpaired-v1';
 
+/// Whether [a] and [b] hold the same bytes, in time that depends on their
+/// length only: a tag, commitment or key check compared byte by byte with
+/// an early exit would tell a stranger how much of a guess was right.
+bool constantTimeEquals(List<int> a, List<int> b) {
+  if (a.length != b.length) return false;
+  var diff = 0;
+  for (var i = 0; i < a.length; i++) {
+    diff |= a[i] ^ b[i];
+  }
+  return diff == 0;
+}
+
 const _x25519 = DartX25519();
 const _sha256 = DartSha256();
 final _aesGcm = DartAesGcm.with256bits();
@@ -68,15 +80,7 @@ class NearbyHandshake {
   static Future<bool> verifyCommitment(
     Uint8List commitment,
     Uint8List publicKey,
-  ) async {
-    final expected = await _commit(publicKey);
-    if (expected.length != commitment.length) return false;
-    var diff = 0;
-    for (var i = 0; i < expected.length; i++) {
-      diff |= expected[i] ^ commitment[i];
-    }
-    return diff == 0;
-  }
+  ) async => constantTimeEquals(await _commit(publicKey), commitment);
 
   /// An anonymous 8-byte proof of holding [secret], bound to [data] (this
   /// session's commitment, and for the responder also its public key).

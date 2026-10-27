@@ -8,62 +8,22 @@ import 'package:submersion/core/services/nearby/nearby_frame.dart';
 import 'package:submersion/core/services/nearby/nearby_hello.dart';
 import 'package:submersion/core/services/nearby/nearby_session.dart';
 
-import '../../../support/in_memory_nearby_carrier.dart';
 import '../../../support/memory_nearby_secrets.dart';
+import '../../../support/nearby_session_harness.dart';
 
 NearbyIdentity _identity(
   String id, {
   String? epoch = 'epoch-1',
   bool hasDives = true,
   int schema = 319,
-}) => NearbyIdentity(
-  deviceId: id,
-  deviceName: 'Device $id',
-  appVersion: '1.8.4',
-  schemaVersion: schema,
-  schemaFloor: 308,
-  epochId: epoch,
-  hasDives: hasDives,
-);
+}) =>
+    nearbySessionIdentity(id, epoch: epoch, hasDives: hasDives, schema: schema);
 
-/// Opens a link from 'laptop' (initiator) to 'phone' (responder).
-Future<(NearbyEndpoint, NearbyEndpoint)> _link() async {
-  final hub = InMemoryNearbyHub();
-  final phone = hub.join('phone');
-  final laptop = hub.join('laptop');
-  await phone.startAdvertising();
-  final incoming = phone.incoming.first;
-  final out = await laptop.connect('phone');
-  return (out, await incoming);
-}
+Future<(NearbyEndpoint, NearbyEndpoint)> _link() => nearbyLink();
 
 Uint8List _utf8(String s) => Uint8List.fromList(utf8.encode(s));
 
-/// Passes everything through and keeps a copy of what this side sent.
-class _Recording implements NearbyEndpoint {
-  _Recording(this._inner);
-
-  final NearbyEndpoint _inner;
-  final sent = <int>[];
-
-  @override
-  Stream<Uint8List> get inbound => _inner.inbound;
-
-  @override
-  Future<void> send(Uint8List bytes) {
-    sent.addAll(bytes);
-    return _inner.send(bytes);
-  }
-
-  @override
-  Future<void> close() => _inner.close();
-
-  @override
-  bool get isInitiator => _inner.isInitiator;
-
-  @override
-  String get transportId => _inner.transportId;
-}
+typedef _Recording = RecordingNearbyEndpoint;
 
 void main() {
   group('pairing', () {
@@ -250,25 +210,8 @@ void main() {
   });
 
   group('sync', () {
-    /// Pairs L and P and returns their secret stores.
-    Future<(MemoryNearbySecrets, MemoryNearbySecrets)> paired() async {
-      final (out, into) = await _link();
-      final l = MemoryNearbySecrets();
-      final p = MemoryNearbySecrets();
-      final incoming = NearbySession(
-        endpoint: into,
-        identity: _identity('P'),
-        secrets: p,
-      ).accept(allowPairing: true);
-      final outgoing = await NearbySession(
-        endpoint: out,
-        identity: _identity('L'),
-        secrets: l,
-      ).openPairing();
-      final accepted = await incoming as NearbyIncomingPairing;
-      await Future.wait([outgoing.confirm(), accepted.pairing.confirm()]);
-      return (l, p);
-    }
+    Future<(MemoryNearbySecrets, MemoryNearbySecrets)> paired() =>
+        pairNearbySessions();
 
     test(
       'stored secrets yield encrypted channels that exchange a message',

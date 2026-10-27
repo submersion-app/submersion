@@ -166,7 +166,9 @@ chunks that fit the negotiated MTU, never longer than the 512 bytes one
 attribute value may hold, and a peripheral's send waits while 64 KiB are
 queued. A peripheral cannot hang up on a central, so a closing one first
 lets the central read what is still queued (a refusal, a `bye`), for up
-to three seconds.
+to three seconds. Closing a session waits at most two seconds for its own
+`bye` to get past what is queued ahead of it, so a stalled link never holds
+an unpair or the move to the background.
 Both sides ask for the largest MTU the platform allows and the fastest
 connection priority Android offers. The advertisement carries the service
 UUID and nothing else: no name, no identity. Who the device is comes out
@@ -223,7 +225,9 @@ included, so nobody in range can end a session with a forged refusal.
 `bye`. Unknown types after hello end the session with `error`. The
 protocol version in hello is bumped whenever a type's body changes; a
 device that sees a newer major version replies `error(newerApp)` and the
-peer shows "Needs a newer app version" for it.
+peer shows "Needs a newer app version" for it. The version is read before
+the rest of the hello, so this holds for a newer hello this build cannot
+parse.
 
 **Library check.** The library epoch id (`LibraryEpochStore.lastAccepted`)
 is today written only by the cloud flows, so a device that has never had a
@@ -359,7 +363,12 @@ the switch off, nothing scans or advertises; "Sync now" on a device's row
 turns the radio on until that device is found (or 20 seconds pass) and
 runs one session. An address that turns out to belong to no paired device
 is left alone for a minute, doubling to half an hour, so a boat full of
-Submersion users does not keep connecting to each other. The switch is device-local, stored in `SyncPreferences`
+Submersion users does not keep connecting to each other. A paired peer that
+refuses for a reason the diver has to fix (an update, another library, an
+unpairing) waits out the same ten minutes as a synced one. In pairing mode
+a device that could not be paired with yet (its pairing page not open, or
+the connection failed) is tried again when next seen: a scan-only device
+has no other way to meet it. The switch is device-local, stored in `SyncPreferences`
 (`sync_nearby_auto`), never synced.
 
 **Errors.** Every session failure is recorded on the paired-devices row
@@ -367,6 +376,10 @@ Submersion users does not keep connecting to each other. The switch is device-lo
 `unreachable`, `applyFailed`). A row with an error that is not transient
 (`newerApp`, `differentLibrary`, `applyFailed`) drives the home chip. A
 transient one (`bluetoothOff`, `unreachable`) only shows on the row.
+Refusals count: two paired devices on different libraries refuse each other
+at once, so each records the refusal it made itself, the dialled device as
+well as the dialling one; a refusal the peer gives no reason for reads as
+`unreachable`.
 
 ### 5. Storage
 
@@ -467,7 +480,9 @@ design makes no such choice.
 - X25519 plus a six-digit short authentication string for pairing, and a
   stored pair secret per peer in secure storage.
 - One sync direction at a time, initiator first.
-- Base parts of 256 KB, resume kept for 24 hours.
+- Base parts of 256 KB, each given five minutes to arrive (well under the
+  slowest link expected, an iPhone serving reads at about 3 KB/s), resume
+  kept for 24 hours.
 - Automatic re-sync: on discovery, on local change, else every ten minutes.
 - `nearby_peers` as a database table rather than a preferences blob.
 - Transient errors stay on the row; only lasting ones raise the chip.
@@ -484,6 +499,9 @@ design makes no such choice.
   database but shares secure storage with the real library, so the radio
   must not even start there: its empty paired-devices table would read as
   "every pair secret is an orphan" and the cleanup would delete them.
+  Entering demo mode closes the gate before the app restarts, with the
+  radio still on, so a session that would start in between is turned away
+  too.
 
 ## Left to the builder
 

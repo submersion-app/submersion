@@ -8,6 +8,7 @@ import 'package:path/path.dart' as p;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/nearby/nearby_carrier.dart';
 import 'package:submersion/core/services/nearby/nearby_frame.dart';
 import 'package:submersion/core/services/nearby/nearby_hello.dart';
 import 'package:submersion/core/services/nearby/nearby_peer_store.dart';
@@ -88,13 +89,15 @@ void main() {
   /// An open, paired channel from [laptop] (initiator) to [phone].
   Future<(NearbyChannel, NearbyChannel)> open(
     _Device laptop,
-    _Device phone,
-  ) async {
+    _Device phone, {
+    NearbyEndpoint Function(NearbyEndpoint)? wrapLaptop,
+  }) async {
     final phoneCarrier = hub.carrier(phone.id) ?? hub.join(phone.id);
     final laptopCarrier = hub.carrier(laptop.id) ?? hub.join(laptop.id);
     await phoneCarrier.startAdvertising();
     final incoming = phoneCarrier.incoming.first;
-    final out = await laptopCarrier.connect(phone.id);
+    final connected = await laptopCarrier.connect(phone.id);
+    final out = wrapLaptop?.call(connected) ?? connected;
     final into = await incoming;
     final accepted = NearbySession(
       endpoint: into,
@@ -132,8 +135,13 @@ void main() {
     _Device phone, {
     int partSize = 262144,
     Duration messageTimeout = const Duration(seconds: 60),
+    NearbyEndpoint Function(NearbyEndpoint)? wrapLaptop,
   }) async {
-    final (laptopChannel, phoneChannel) = await open(laptop, phone);
+    final (laptopChannel, phoneChannel) = await open(
+      laptop,
+      phone,
+      wrapLaptop: wrapLaptop,
+    );
     NearbySyncProtocol run(_Device d, NearbyChannel channel) => protocol(
       d,
       channel,
@@ -141,9 +149,22 @@ void main() {
       messageTimeout: messageTimeout,
     );
 
+    // Each side hangs up when its run ends, as the link manager does, so a
+    // side that gave up never leaves the other waiting.
+    Future<NearbySyncOutcome> runThenClose(
+      _Device d,
+      NearbyChannel channel,
+    ) async {
+      try {
+        return await run(d, channel).run();
+      } finally {
+        await channel.close();
+      }
+    }
+
     final results = await Future.wait([
-      run(laptop, laptopChannel).run(),
-      run(phone, phoneChannel).run(),
+      runThenClose(laptop, laptopChannel),
+      runThenClose(phone, phoneChannel),
     ]);
     return (results[0], results[1]);
   }
@@ -219,6 +240,31 @@ void main() {
     expect(laptop.engine.exportFullCalls, 1);
     expect(phone.engine.appliedFiles.single, content);
     expect(lOut.sent, greaterThan(2 * 262144), reason: 'several parts');
+  });
+
+  test('a part slower than the message timeout still arrives, so a full '
+      'copy over a slow link completes', () async {
+    final content = incompressibleJson(700000);
+    final laptop = await device(
+      'L',
+      peerId: 'P',
+      marks: {'L': fakeHlc(5, 'L')},
+    );
+    laptop.engine.fullContent = content;
+    final phone = await device(
+      'P',
+      peerId: 'L',
+      marksAfterApply: {'L': fakeHlc(5, 'L')},
+    );
+    final (lOut, pOut) = await session(
+      laptop,
+      phone,
+      messageTimeout: const Duration(milliseconds: 150),
+      wrapLaptop: (end) => _SlowParts(end, const Duration(milliseconds: 300)),
+    );
+    expect(pOut.error, isNull);
+    expect(lOut.error, isNull);
+    expect(phone.engine.appliedFiles.single, content);
   });
 
   test('a delta over the blob limit goes as a full copy', () async {
@@ -539,4 +585,33 @@ void main() {
     expect(stale.existsSync(), isFalse);
     expect(ancient.existsSync(), isFalse);
   });
+}
+
+/// Delivers every base part [delay] late, as a slow radio link would. The
+/// frame type is the fifth byte, in the clear.
+class _SlowParts implements NearbyEndpoint {
+  _SlowParts(this._inner, this.delay);
+
+  final NearbyEndpoint _inner;
+  final Duration delay;
+
+  @override
+  Stream<Uint8List> get inbound => _inner.inbound;
+
+  @override
+  Future<void> send(Uint8List bytes) async {
+    if (bytes.length > 4 && bytes[4] == NearbyMessageType.basePart.code) {
+      await Future<void>.delayed(delay);
+    }
+    await _inner.send(bytes);
+  }
+
+  @override
+  Future<void> close() => _inner.close();
+
+  @override
+  bool get isInitiator => _inner.isInitiator;
+
+  @override
+  String get transportId => _inner.transportId;
 }

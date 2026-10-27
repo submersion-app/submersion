@@ -38,6 +38,27 @@ class NearbySyncOutcome {
   final int sent;
 }
 
+/// The row error for a refusal the peer sent: what the peer found. Every
+/// one is worth a row, so a refused Sync now never reads as a clean one.
+NearbyPeerError nearbyPeerRefusalError(NearbyErrorCode code) => switch (code) {
+  // The peer cannot read this device's rows: it needs the update.
+  NearbyErrorCode.newerApp => NearbyPeerError.peerOlderApp,
+  NearbyErrorCode.olderApp => NearbyPeerError.newerApp,
+  NearbyErrorCode.differentLibrary => NearbyPeerError.differentLibrary,
+  NearbyErrorCode.notPaired => NearbyPeerError.notPaired,
+  NearbyErrorCode.protocol ||
+  NearbyErrorCode.busy => NearbyPeerError.unreachable,
+};
+
+/// The row error for a refusal this device made, or null when it is not
+/// the diver's to act on (a malformed or forged handshake).
+NearbyPeerError? nearbyOwnRefusalError(NearbyErrorCode code) => switch (code) {
+  // A peer on a newer protocol: this device needs the update.
+  NearbyErrorCode.newerApp => NearbyPeerError.newerApp,
+  NearbyErrorCode.differentLibrary => NearbyPeerError.differentLibrary,
+  _ => null,
+};
+
 /// A refusal or failure inside one direction.
 class _DirectionFailed implements Exception {
   const _DirectionFailed(this.error, {this.tellPeer});
@@ -70,6 +91,7 @@ class NearbySyncProtocol {
     DateTime Function() now = DateTime.now,
     this.partSize = 262144,
     this.messageTimeout = const Duration(seconds: 60),
+    this.partTimeout = const Duration(minutes: 5),
     this.offerTimeout = const Duration(minutes: 15),
     this.applyTimeout = const Duration(minutes: 30),
     this.onProgress,
@@ -88,6 +110,11 @@ class NearbySyncProtocol {
   final StreamIterator<NearbyMessage> _messages;
   final int partSize;
   final Duration messageTimeout;
+
+  /// The wait for one base part: [partSize] bytes take minutes on a slow
+  /// link (an iPhone serving reads of under 200 bytes, about one per two
+  /// connection events, is near 3 KB/s), far past [messageTimeout].
+  final Duration partTimeout;
 
   /// The wait for the offer while the peer exports and compresses what it
   /// sends: minutes for a large first copy.
@@ -327,7 +354,7 @@ class NearbySyncProtocol {
     await _sendJson(NearbyMessageType.baseRequest, {'from': from});
     var done = from * size;
     for (var i = from; i < parts; i++) {
-      final m = await _expect(NearbyMessageType.basePart);
+      final m = await _expect(NearbyMessageType.basePart, timeout: partTimeout);
       if (m.body.length < 4 || ByteData.sublistView(m.body).getUint32(0) != i) {
         throw const _DirectionFailed(
           NearbyPeerError.unreachable,
@@ -492,18 +519,9 @@ class NearbySyncProtocol {
   // ---------------------------------------------------------------------
   // Messages
 
-  NearbyPeerError _peerRefusal(NearbyMessage m) {
-    final code = NearbyErrorCode.fromByte(m.body.isEmpty ? 255 : m.body[0]);
-    return switch (code) {
-      // The peer cannot read this device's rows: it needs the update.
-      NearbyErrorCode.newerApp => NearbyPeerError.peerOlderApp,
-      NearbyErrorCode.olderApp => NearbyPeerError.newerApp,
-      NearbyErrorCode.differentLibrary => NearbyPeerError.differentLibrary,
-      NearbyErrorCode.notPaired => NearbyPeerError.notPaired,
-      NearbyErrorCode.protocol ||
-      NearbyErrorCode.busy => NearbyPeerError.unreachable,
-    };
-  }
+  NearbyPeerError _peerRefusal(NearbyMessage m) => nearbyPeerRefusalError(
+    NearbyErrorCode.fromByte(m.body.isEmpty ? 255 : m.body[0]),
+  );
 
   Future<NearbyMessage> _expect(
     NearbyMessageType type, {

@@ -214,7 +214,7 @@ class NearbySession {
         ...handshake.commitment,
         ...peerKey,
       ]);
-      if (_same(expected, peerTag)) peerId = entry.key;
+      if (constantTimeEquals(expected, peerTag)) peerId = entry.key;
     }
     if (peerId == null) await _refuse(NearbyErrorCode.notPaired);
     final shared = await _reveal(handshake, peerKey);
@@ -258,7 +258,7 @@ class NearbySession {
             'i',
             commitment,
           );
-          if (hello.tags.any((t) => _same(t, expected))) {
+          if (hello.tags.any((t) => constantTimeEquals(t, expected))) {
             peerId = entry.key;
             secret = entry.value;
           }
@@ -370,19 +370,10 @@ class NearbySession {
     }
     final a = mine.epochTag;
     final b = peer.epochTag;
-    if (a != null && b != null && !_same(a, b)) {
+    if (a != null && b != null && !constantTimeEquals(a, b)) {
       await _refuse(NearbyErrorCode.differentLibrary);
     }
     return (mine, peer);
-  }
-
-  static bool _same(Uint8List a, Uint8List b) {
-    if (a.length != b.length) return false;
-    var diff = 0;
-    for (var i = 0; i < a.length; i++) {
-      diff |= a[i] ^ b[i];
-    }
-    return diff == 0;
   }
 
   Future<void> _sendHello(NearbyHello hello) =>
@@ -449,24 +440,28 @@ class NearbySession {
     final mine = _identity.epochId;
     final theirs = peer.epochId;
     if (mine != null && theirs != null && mine != theirs) {
-      await _refuse(NearbyErrorCode.differentLibrary);
+      // Both sides refuse here at once, so neither hears the other's
+      // refusal: a paired peer is named, for its row to say so.
+      await _refuse(NearbyErrorCode.differentLibrary, peerDeviceId: expectedId);
     }
     return peer;
   }
 
   Future<NearbyHello> _readHello() async {
     final message = await _expect(NearbyMessageType.hello, hello: true);
-    final NearbyHello hello;
+    // The version first, on its own: a newer peer's hello may carry an
+    // intent or a field this build cannot parse, and it must still learn
+    // which side needs the update.
+    final version = NearbyHello.versionOf(message.body);
+    if (version != null && version > NearbyHello.currentProtocolVersion) {
+      await _refuse(NearbyErrorCode.newerApp);
+    }
     try {
-      hello = NearbyHello.fromBytes(message.body);
+      return NearbyHello.fromBytes(message.body);
     } on Object {
       // Malformed in any way, typed or not: refuse rather than hang.
       return _refuse(NearbyErrorCode.protocol);
     }
-    if (hello.protocolVersion > NearbyHello.currentProtocolVersion) {
-      await _refuse(NearbyErrorCode.newerApp);
-    }
-    return hello;
   }
 
   /// Both sides send a sealed known text and open the other's. A failure
@@ -529,8 +524,9 @@ class NearbySession {
   Future<void> _sendFrame(NearbyMessageType type, Uint8List body) =>
       _endpoint.send(FrameEncoder.encode(type, body));
 
-  /// Tells the peer why, closes the link, and throws.
-  Future<Never> _refuse(NearbyErrorCode code) async {
+  /// Tells the peer why, closes the link, and throws. [peerDeviceId] names
+  /// the peer once the handshake has authenticated it.
+  Future<Never> _refuse(NearbyErrorCode code, {String? peerDeviceId}) async {
     try {
       await _sendFrame(
         NearbyMessageType.error,
@@ -541,7 +537,11 @@ class NearbySession {
       // The peer is already gone; the refusal stands.
     }
     await _endpoint.close();
-    throw NearbySessionRefused(code, fromPeer: false);
+    throw NearbySessionRefused(
+      code,
+      fromPeer: false,
+      peerDeviceId: peerDeviceId,
+    );
   }
 
   NearbyChannel _channel(NearbyIdentity peer, NearbySessionCipher cipher) =>
@@ -577,7 +577,7 @@ class NearbyPairing {
   bool get sameLibrary {
     final a = _mine.epochTag;
     final b = preview.epochTag;
-    return a != null && b != null && NearbySession._same(a, b);
+    return a != null && b != null && constantTimeEquals(a, b);
   }
 
   /// Both devices hold dives of two different logbooks: pairing merges them.
@@ -624,8 +624,10 @@ class NearbyPairing {
           fromPeer: true,
         );
       case NearbyMessageType.bye:
+        // Unsealed, so it says nothing about the other diver: a real "Not
+        // mine" arrives sealed before its bye.
         await s._endpoint.close();
-        throw const NearbyPairingRejected();
+        throw const NearbyLinkClosed();
       default:
         return s._refuse(NearbyErrorCode.protocol);
     }
@@ -691,12 +693,20 @@ class NearbyChannel {
     return next;
   }
 
+  /// The longest [close] waits for its `bye` to go out. The bye queues
+  /// behind every earlier send, and a stalled link (a central that stopped
+  /// reading a full outbox) would otherwise hold an unpair or the move to
+  /// the background until the peer caught up.
+  static const byeTimeout = Duration(seconds: 2);
+
   /// Says `bye` (best effort) and closes the link.
   Future<void> close() async {
     try {
-      await send(NearbyMessageType.bye, Uint8List(0));
+      await send(NearbyMessageType.bye, Uint8List(0)).timeout(byeTimeout);
     } on NearbyLinkClosed {
       // Already closed.
+    } on TimeoutException {
+      // Stalled: hang up without it.
     }
     await _endpoint.close();
   }

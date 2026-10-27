@@ -1,128 +1,40 @@
 import 'dart:async';
-import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/core/database/app_sql_functions.dart';
-import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/nearby/nearby_carrier.dart';
 import 'package:submersion/core/services/nearby/nearby_frame.dart';
 import 'package:submersion/core/services/nearby/nearby_hello.dart';
 import 'package:submersion/core/services/nearby/nearby_link_manager.dart';
-import 'package:submersion/core/services/nearby/nearby_peer_store.dart';
 import 'package:submersion/core/services/nearby/nearby_session.dart';
 import 'package:submersion/core/services/nearby/nearby_sync_engine.dart';
 import 'package:submersion/core/services/nearby/nearby_sync_protocol.dart';
-import 'package:submersion/core/services/sync/changeset_log/peer_cursor_store.dart';
 import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 
 import '../../../helpers/global_test_defaults.dart';
 import '../../../support/fake_nearby_sync_engine.dart';
 import '../../../support/in_memory_nearby_carrier.dart';
-import '../../../support/memory_nearby_secrets.dart';
+import '../../../support/nearby_link_harness.dart';
 
-/// One device: carrier, fake library, stores and its manager.
-class _Device {
-  _Device({
-    required this.id,
-    required this.carrier,
-    required this.engine,
-    required this.db,
-    required this.temp,
-  }) : peers = NearbyPeerStore(db),
-       cursors = PeerCursorStore(db);
-
-  final String id;
-  final InMemoryNearbyCarrier carrier;
-  final FakeNearbySyncEngine engine;
-  final AppDatabase db;
-  final Directory temp;
-  final NearbyPeerStore peers;
-  final PeerCursorStore cursors;
-  final secrets = MemoryNearbySecrets();
-  final changes = StreamController<void>.broadcast();
-  bool auto = true;
-  DateTime now = DateTime.utc(2026, 10, 27, 12);
-  late final NearbyLinkManager manager = NearbyLinkManager(
-    carrier: carrier,
-    engine: engine,
-    secrets: secrets,
-    peers: peers,
-    cursors: cursors,
-    autoSyncEnabled: () => auto,
-    tempDir: () async => temp,
-    localChanges: changes.stream,
-    now: () => now,
-    changeDebounce: const Duration(milliseconds: 20),
-    retryAfter: Duration.zero,
-  );
-}
+typedef _Device = NearbyTestDevice;
+typedef _CountingCarrier = CountingNearbyCarrier;
 
 NearbyIdentity _id(String id, {int schema = 320, int floor = 308}) =>
-    NearbyIdentity(
-      deviceId: id,
-      deviceName: 'Device $id',
-      appVersion: '1.8.4',
-      schemaVersion: schema,
-      schemaFloor: floor,
-      epochId: 'epoch-1',
-      hasDives: true,
-    );
+    nearbyTestIdentity(id, schema: schema, floor: floor);
 
-Future<void> _settle() async {
-  for (var i = 0; i < 20; i++) {
-    await Future<void>.delayed(const Duration(milliseconds: 10));
-  }
-}
+Future<void> _settle() => settleNearby();
 
 void main() {
   late InMemoryNearbyHub hub;
 
   setUp(() => hub = InMemoryNearbyHub());
 
-  Future<_Device> device(String id, {bool canAdvertise = true}) async {
-    final db = AppDatabase(
-      NativeDatabase.memory(setup: registerAppSqlFunctions),
-    );
-    addTearDown(db.close);
-    final temp = Directory.systemTemp.createTempSync('nearby_mgr_$id');
-    addTearDown(() => temp.deleteSync(recursive: true));
-    final marks = {'A': fakeHlc(5, 'A'), 'B': fakeHlc(5, 'B')};
-    final d = _Device(
-      id: id,
-      carrier: hub.join(id, canAdvertise: canAdvertise),
-      engine: FakeNearbySyncEngine(self: _id(id), marks: marks, tempDir: temp),
-      db: db,
-      temp: temp,
-    );
-    addTearDown(() => d.manager.dispose());
-    return d;
-  }
+  Future<_Device> device(String id, {bool canAdvertise = true}) =>
+      joinNearbyTestDevice(hub, id, canAdvertise: canAdvertise);
 
-  /// Stores a shared pair secret and a paired-devices row on both.
-  Future<void> pair(_Device a, _Device b) async {
-    final secret = Uint8List.fromList(List.generate(32, (i) => i + 7));
-    await a.secrets.store(b.id, secret);
-    await b.secrets.store(a.id, secret);
-    await a.peers.upsertPaired(
-      peerDeviceId: b.id,
-      displayName: 'Device ${b.id}',
-      pairedAt: 1,
-    );
-    await b.peers.upsertPaired(
-      peerDeviceId: a.id,
-      displayName: 'Device ${a.id}',
-      pairedAt: 1,
-    );
-  }
+  Future<void> pair(_Device a, _Device b) => pairNearbyTestDevices(a, b);
 
-  Future<void> foreground(List<_Device> ds) async {
-    for (final d in ds) {
-      await d.manager.setForeground(true);
-    }
-    await _settle();
-  }
+  Future<void> foreground(List<_Device> ds) => foregroundNearbyTestDevices(ds);
 
   test('two paired managers in foreground sync once on discovery', () async {
     final a = await device('A');
@@ -731,45 +643,4 @@ void main() {
       expect((await b.peers.get('A'))!.lastSyncedAt, isNotNull);
     });
   });
-}
-
-/// Passes everything to [inner] and counts the connection attempts.
-class _CountingCarrier implements NearbyCarrier {
-  _CountingCarrier(this.inner, this.onConnect);
-
-  final InMemoryNearbyCarrier inner;
-  final void Function() onConnect;
-
-  @override
-  bool get canAdvertise => inner.canAdvertise;
-
-  @override
-  Future<void> startAdvertising() => inner.startAdvertising();
-
-  @override
-  Future<void> stopAdvertising() => inner.stopAdvertising();
-
-  @override
-  Future<void> startScanning() => inner.startScanning();
-
-  @override
-  Future<void> stopScanning() => inner.stopScanning();
-
-  @override
-  Stream<NearbyPeerSighting> get sightings => inner.sightings;
-
-  @override
-  Stream<NearbyEndpoint> get incoming => inner.incoming;
-
-  @override
-  Future<NearbyEndpoint> connect(String transportId) {
-    onConnect();
-    return inner.connect(transportId);
-  }
-
-  @override
-  Stream<NearbyAvailability> get availability => inner.availability;
-
-  @override
-  Future<NearbyAvailability> checkAvailability() => inner.checkAvailability();
 }

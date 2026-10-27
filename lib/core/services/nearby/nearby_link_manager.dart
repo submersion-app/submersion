@@ -11,6 +11,8 @@ import 'package:submersion/core/services/nearby/nearby_sync_protocol.dart';
 import 'package:submersion/core/services/sync/changeset_log/peer_cursor_store.dart';
 import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 
+part 'nearby_link_pairing.dart';
+
 enum NearbyLinkState { off, scanning, syncing }
 
 /// How far the transfer with one peer has got; [finished] marks the end
@@ -27,60 +29,6 @@ class NearbySyncProgress {
   final int done;
   final int total;
   final bool finished;
-}
-
-/// A pairing waiting for the diver to compare the codes on both screens.
-abstract class NearbyPairingOffer {
-  /// The other device's name; nothing else about it is known yet.
-  String get peerName;
-
-  /// Tells pairing attempts apart without naming the device (random, per
-  /// pairing mode).
-  String get peerKey;
-  String get code;
-  bool get bothPopulated;
-
-  /// Completes once both divers confirmed: the devices are paired and the
-  /// first sync has started. Throws [NearbyPairingRejected] when the other
-  /// diver tapped "Not mine", or a timeout when they never answered.
-  Future<void> confirm();
-
-  Future<void> reject();
-}
-
-class NearbyPairingHandle implements NearbyPairingOffer {
-  NearbyPairingHandle._(
-    this._manager,
-    this._pairing, {
-    required this.transportId,
-    required this.initiatorKey,
-  });
-
-  final NearbyLinkManager _manager;
-  final NearbyPairing _pairing;
-  final String transportId;
-
-  /// The pairing nonce of the device that connected; with two pairings
-  /// between the same two devices, the one started by the lower nonce stays.
-  final String initiatorKey;
-
-  @override
-  String get peerName => _pairing.preview.name;
-
-  @override
-  String get peerKey => _pairing.preview.nonce;
-
-  @override
-  String get code => _pairing.code;
-
-  @override
-  bool get bothPopulated => _pairing.bothPopulated;
-
-  @override
-  Future<void> confirm() => _manager._confirm(this);
-
-  @override
-  Future<void> reject() => _manager._reject(this);
 }
 
 class _Live {
@@ -550,21 +498,16 @@ class NearbyLinkManager {
       _strangerUntil[transportId] = _now().add(next);
       return;
     }
-    // Of this device's own refusals only one is the diver's to act on: a
-    // known peer speaks a newer protocol, so this device needs the update.
-    if (!e.fromPeer && e.code != NearbyErrorCode.newerApp) return;
+    final error = e.fromPeer
+        ? nearbyPeerRefusalError(e.code)
+        : nearbyOwnRefusalError(e.code);
+    if (error == null) return;
     _learn(transportId, device);
-    final error = !e.fromPeer
-        ? NearbyPeerError.newerApp
-        : switch (e.code) {
-            NearbyErrorCode.notPaired => NearbyPeerError.notPaired,
-            NearbyErrorCode.differentLibrary =>
-              NearbyPeerError.differentLibrary,
-            NearbyErrorCode.newerApp => NearbyPeerError.peerOlderApp,
-            NearbyErrorCode.olderApp => NearbyPeerError.newerApp,
-            _ => null,
-          };
-    if (error != null) await _peers.setError(device, error);
+    await _peers.setError(device, error);
+    // A refusal the diver has to fix waits out the cooldown like a synced
+    // session, instead of a redial on every sighting; a transient one is
+    // tried again sooner.
+    if (error.isLasting) _lastSessionAt[device] = _now();
     _completeSyncNow(device, NearbySyncOutcome(error: error));
   }
 
@@ -581,7 +524,9 @@ class NearbyLinkManager {
   }
 
   Future<void> _onIncoming(NearbyEndpoint endpoint) async {
-    if (_disposed || !_foreground) {
+    // Entering demo mode closes the gate before the app restarts, with the
+    // radio still on: no session may run in between.
+    if (_disposed || !_foreground || DemoModeGate.instance.isActive) {
       await endpoint.close();
       return;
     }
@@ -596,6 +541,13 @@ class NearbyLinkManager {
     } on Object catch (e) {
       _log.info('Nearby incoming from ${endpoint.transportId} refused: $e');
       if (_pairingMode) _reportPairingRefusal(e);
+      // A refusal naming a paired peer goes on its row, as one met by
+      // dialling does: often both sides refuse at once (another library),
+      // and this side may be the one that never dials (a Linux peer).
+      final peer = e is NearbySessionRefused ? e.peerDeviceId : null;
+      if (peer != null && await _peers.get(peer) != null) {
+        await _recordRefusal(endpoint.transportId, e as NearbySessionRefused);
+      }
       return;
     }
     switch (incoming) {
@@ -615,8 +567,9 @@ class NearbyLinkManager {
   }
 
   Future<NearbySyncOutcome?> _run(NearbyChannel channel) async {
-    // A handshake that finished after the app left the foreground.
-    if (!_foreground) {
+    // A handshake that finished after the app left the foreground, or
+    // after demo mode closed the gate.
+    if (!_foreground || DemoModeGate.instance.isActive) {
       await channel.close();
       return null;
     }
@@ -704,91 +657,6 @@ class NearbyLinkManager {
     _completeSyncNow(peerId, outcome);
     if (!live.done.isCompleted) live.done.complete(outcome);
     return outcome;
-  }
-
-  // -------------------------------------------------------------------
-  // Pairing
-
-  Future<void> _openPairing(String transportId) async {
-    _connecting.add(transportId);
-    try {
-      final endpoint = await _connect(transportId);
-      if (endpoint == null) return;
-      try {
-        final pairing = await NearbySession(
-          endpoint: endpoint,
-          identity: await _identity(),
-          secrets: _secrets,
-          pairingNonce: _pairingNonce,
-        ).openPairing();
-        await _offer(
-          NearbyPairingHandle._(
-            this,
-            pairing,
-            transportId: transportId,
-            initiatorKey: _pairingNonce,
-          ),
-        );
-      } on Object catch (e) {
-        _log.info('Nearby pairing with $transportId did not open: $e');
-        _reportPairingRefusal(e);
-        await endpoint.close();
-      }
-    } finally {
-      _connecting.remove(transportId);
-    }
-  }
-
-  /// Shows [handle], unless a pairing with the same device is already
-  /// shown: then the one the lower pairing nonce started stays, on both.
-  Future<void> _offer(NearbyPairingHandle handle) async {
-    if (!_pairingMode || _disposed) {
-      await handle._pairing.reject();
-      return;
-    }
-    final peerKey = handle.peerKey;
-    final existing = _pending.where((h) => h.peerKey == peerKey);
-    if (existing.isNotEmpty) {
-      final other = existing.first;
-      final preferred = _pairingNonce.compareTo(peerKey) < 0
-          ? _pairingNonce
-          : peerKey;
-      if (handle.initiatorKey == preferred && other.initiatorKey != preferred) {
-        _pending.remove(other);
-        await other._pairing.reject();
-      } else {
-        await handle._pairing.reject();
-        return;
-      }
-    }
-    _pending.add(handle);
-    _emitPending();
-  }
-
-  Future<void> _confirm(NearbyPairingHandle handle) async {
-    final NearbyChannel channel;
-    try {
-      channel = await handle._pairing.confirm();
-    } finally {
-      _pending.remove(handle);
-      _emitPending();
-    }
-    final peer = channel.peer;
-    await _peers.upsertPaired(
-      peerDeviceId: peer.deviceId,
-      displayName: peer.deviceName,
-      pairedAt: _now().millisecondsSinceEpoch,
-    );
-    _learn(handle.transportId, peer.deviceId);
-    _forgetStrangers();
-    unawaited(_run(channel));
-    unawaited(refresh());
-  }
-
-  Future<void> _reject(NearbyPairingHandle handle) async {
-    _pending.remove(handle);
-    _emitPending();
-    await handle._pairing.reject();
   }
 
   /// Forgets [peerDeviceId]: its row and its progress. The secret is kept
