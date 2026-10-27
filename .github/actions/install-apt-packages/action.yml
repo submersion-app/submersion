@@ -4,8 +4,8 @@ description: >
   cache of the downloaded .deb files. A runner with a slow path to the Ubuntu
   mirror fetched packages at about 50 KB/s and ran the Linux integration job
   into its 25 minute limit twice on run 40535224550, while healthy runners
-  finished the same install in 30 seconds (issue #3751). Every workflow
-  installs apt packages through this action;
+  finished the same install in 30 seconds (issue #3751). Every workflow step
+  that installs apt packages on the runner goes through this action;
   scripts/check_apt_installs_bounded.py enforces that, and that the bound
   below stays in place.
 
@@ -27,13 +27,18 @@ inputs:
 runs:
   using: composite
   steps:
-    # ImageOS and ImageVersion are set on hosted runners. The image version
-    # changes about weekly, so the cache is rewritten as Ubuntu publishes
-    # updates rather than serving a set that grows staler every day; the
-    # restore key below still finds last week's files, and only what changed
-    # is downloaded. The package list is part of the key, sorted, so two jobs
-    # share an entry exactly when they install the same packages. It also
-    # names the directory, so two calls in one job never share one.
+    # Each run saves under a key of its own, and the restore takes the newest
+    # entry for this Ubuntu release and package list (restore-keys returns
+    # the most recently created match). An entry is saved only when the
+    # download fetched a .deb the restored set lacked, so a package Ubuntu
+    # updates is downloaded once and cached from then on, and a run that
+    # fetched nothing saves nothing. ImageOS, set on hosted runners, keeps
+    # Ubuntu releases apart. The image's weekly version is left out: runners
+    # on two versions of one release need nearly the same packages, and
+    # keying on it saved a full copy for each version during a rollout. The
+    # package list is part of the key, sorted, so two jobs share an entry
+    # exactly when they install the same packages. It also names the
+    # directory, so two calls in one job never share one.
     - name: Compute the package cache key
       id: key
       if: inputs.cache == 'true'
@@ -48,14 +53,19 @@ runs:
         prefix="apt-${ImageOS:-unknown}-${list_hash}-"
         {
           echo "prefix=$prefix"
-          echo "key=${prefix}${ImageVersion:-unknown}"
+          echo "key=${prefix}${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           echo "dir=$RUNNER_TEMP/apt-archives-$list_hash"
         } >> "$GITHUB_OUTPUT"
 
+    # actions/cache abandons a stalled download and continues without the
+    # cache only after SEGMENT_DOWNLOAD_TIMEOUT_MINS, 10 minutes by default.
+    # A healthy restore takes about 3 seconds, and the mirror download below
+    # is bounded anyway, so give up on the cache much sooner.
     - name: Restore downloaded packages
-      id: restore
       if: inputs.cache == 'true'
       uses: actions/cache/restore@v6
+      env:
+        SEGMENT_DOWNLOAD_TIMEOUT_MINS: '2'
       with:
         path: ${{ steps.key.outputs.dir }}
         key: ${{ steps.key.outputs.key }}
@@ -73,8 +83,10 @@ runs:
     # holding only this call's packages and the cache saved below cannot pick
     # up an earlier call's. A later call in the same job skips its first
     # update, since the lists were fetched minutes ago; a retry always
-    # updates.
+    # updates. Afterwards the step reports whether apt fetched any .deb that
+    # is not identical to a restored one, which is what decides the save.
     - name: Download and install
+      id: download
       shell: bash
       env:
         PACKAGES: ${{ inputs.packages }}
@@ -112,12 +124,23 @@ runs:
           sleep 10
         done
         sudo apt-get install -y --no-download "${packages[@]}"
+        if [ -n "$ARCHIVE_DIR" ]; then
+          fetched=false
+          for deb in /var/cache/apt/archives/*.deb; do
+            [ -e "$deb" ] || continue
+            if ! cmp -s "$deb" "$ARCHIVE_DIR/${deb##*/}"; then
+              fetched=true
+              break
+            fi
+          done
+          echo "fetched=$fetched" >> "$GITHUB_OUTPUT"
+        fi
 
     # autoclean drops the .deb files the current package lists no longer
-    # offer, so a cache rewritten each week holds one version of each package
-    # instead of every version it has ever seen.
+    # offer, so each new entry holds one version of each package instead of
+    # every version it has ever seen.
     - name: Collect downloaded packages for the cache
-      if: inputs.cache == 'true' && steps.restore.outputs.cache-hit != 'true'
+      if: inputs.cache == 'true' && steps.download.outputs.fetched == 'true'
       shell: bash
       env:
         ARCHIVE_DIR: ${{ steps.key.outputs.dir }}
@@ -131,7 +154,7 @@ runs:
         fi
 
     - name: Save downloaded packages
-      if: inputs.cache == 'true' && steps.restore.outputs.cache-hit != 'true'
+      if: inputs.cache == 'true' && steps.download.outputs.fetched == 'true'
       uses: actions/cache/save@v6
       with:
         path: ${{ steps.key.outputs.dir }}

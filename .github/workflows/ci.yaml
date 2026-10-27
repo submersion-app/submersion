@@ -25,7 +25,7 @@ env:
   # each other's, so a list of its own would download cold on every pull
   # request (issue #3751). Each job installs a few packages only the other
   # needs, which costs seconds from the cache. The cache key also names the
-  # runner image, so the sharing holds only while both jobs run the same
+  # Ubuntu release, so the sharing holds only while both jobs run the same
   # one: build-linux is pinned to ubuntu-24.04 and integration-test follows
   # ubuntu-latest, so when ubuntu-latest moves on, pin integration-test too
   # or it downloads cold again.

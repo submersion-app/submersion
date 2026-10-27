@@ -552,13 +552,16 @@ jobs:
       # than the workflow running it. Take the action from the revision this
       # workflow runs at (github.sha, which has it, since this file names it)
       # instead of from the build checkout, as the swap step below inlines its
-      # script for the same reason.
+      # script for the same reason. Cone mode is off so only the action's
+      # folder arrives: cone mode also brings every root file, and the pub
+      # cache key below would then hash .ci-actions/pubspec.lock as well.
       - name: Check out the apt install action
         uses: actions/checkout@v7
         with:
           ref: ${{ github.sha }}
           path: .ci-actions
           sparse-checkout: .github/actions/install-apt-packages
+          sparse-checkout-cone-mode: false
           persist-credentials: false
 
       # The runner image sets the glibc floor of everything shipped here. On

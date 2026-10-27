@@ -8,13 +8,15 @@ still downloading; healthy runners finish the same step in 30 seconds
 (issue #3751).
 
 `.github/actions/install-apt-packages` downloads under a time limit, retries
-on a fresh connection, and caches the .deb files. This guard keeps it that
+on a fresh connection, and can cache the .deb files. This guard keeps it that
 way, in three parts:
 
 * No workflow, and no other local action, runs an apt or apt-get command
-  that can reach the mirror (install, update, upgrade and the rest) directly.
-  A new job copied from an old example would otherwise bring back the
-  unbounded download.
+  that can reach the mirror (install, update, upgrade and the rest) directly
+  in its `run:` scripts. A new job copied from an old example would otherwise
+  bring back the unbounded download. Scripts those steps call are not read:
+  scripts/release/verify_linux_package.sh still installs packages with
+  apt-get, inside the containers that check the release packages.
 * The local action really bounds the network: every apt-get call that can
   reach the mirror runs under `timeout`, the bounded install is
   `--download-only` (a limit that fires while dpkg unpacks would leave a
@@ -53,10 +55,13 @@ UNCACHED_WORKFLOWS = {
 # apt and apt-get subcommands that never reach the network.
 LOCAL_SUBCOMMANDS = {
     "autoclean",
+    "autopurge",
     "autoremove",
     "clean",
     "list",
     "policy",
+    "purge",
+    "remove",
     "search",
     "show",
 }

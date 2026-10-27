@@ -260,6 +260,16 @@ class WorkflowTests(unittest.TestCase):
         text = "        run: |\n          sudo apt-get clean\n          apt list --installed\n"
         self.assertEqual(guard.direct_calls(text), [])
 
+    def test_removing_packages_is_not_reported(self):
+        # A step that frees disk space removes packages, which downloads none.
+        text = (
+            "        run: |\n"
+            "          sudo apt-get remove -y '^dotnet-.*'\n"
+            "          sudo apt-get purge -y firefox\n"
+            "          sudo apt-get autopurge -y\n"
+        )
+        self.assertEqual(guard.direct_calls(text), [])
+
     def test_cached_step_in_an_uncached_workflow_is_reported(self):
         text = UNCACHED_STEP.replace("          cache: false\n", "")
         self.assertEqual(guard.cached_uses(text), [7])
