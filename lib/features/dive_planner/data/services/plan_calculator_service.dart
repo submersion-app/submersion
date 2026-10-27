@@ -161,19 +161,30 @@ class PlanCalculatorService {
       algorithm.setCompartments(initialTissueState);
     }
 
-    // Initialize O2 toxicity calculator. Deliberately on the flat
-    // ppO2Critical/ppO2Warning, not the resolved per-gas band limit (issue
-    // #3580): O2ToxicityCalculator is a general-purpose, widely shared
-    // utility well outside the Dive Planner, so its ppO2 critical/warning
-    // check -- unlike PlanEngine's own, which IS band-aware -- is out of
-    // scope here. This service's live canvas preview can disagree with the
-    // final PlanEngine result on an edge case near a band boundary; the
-    // saved/computed plan is always the source of truth.
+    // O2 toxicity calculator for CNS%/OTU accumulation, which both depend
+    // only on the actual breathed ppO2 (depth x O2 fraction), never on any
+    // limit - neither the flat ppO2Critical/ppO2Warning passed here nor the
+    // per-band limit below affects those totals.
     final o2Calc = O2ToxicityCalculator(
       ppO2WarningThreshold: ppO2Warning,
       ppO2CriticalThreshold: ppO2Critical,
       cnsWarningThreshold: cnsWarningThreshold,
       cnsMethod: cnsMethod,
+    );
+
+    // This plan's deco ppO2 limits as a DecoPpO2Limits (issue #3580): the
+    // per-gas critical threshold below, and the deco schedule built later,
+    // both resolve through this, so the live canvas preview agrees with the
+    // final PlanEngine result instead of staying on the flat ppO2Critical
+    // for the general ppO2 critical/warning check alone.
+    final decoLimits = DecoPpO2Limits(
+      flat: decoPpO2 ?? ppO2Critical,
+      bandsEnabled: ppO2DecoBandsEnabled && !decoPpO2BandsExplicitlyOff,
+      band1: decoPpO2Band1 ?? ppO2DecoBand1,
+      band2: decoPpO2Band2 ?? ppO2DecoBand2,
+      band3: decoPpO2Band3 ?? ppO2DecoBand3,
+      explicitO2DepthEnabled: maxO2DepthEnabled && !maxO2DepthExplicitlyOff,
+      explicitO2DepthMeters: maxO2DepthMetersOverride ?? maxO2DepthMeters,
     );
 
     // Track results
@@ -225,8 +236,17 @@ class PlanCalculatorService {
       );
       if (segmentMaxPpO2 > maxPpO2) maxPpO2 = segmentMaxPpO2;
 
-      // Check ppO2 limits
-      if (segmentMaxPpO2 > ppO2Critical) {
+      // Check ppO2 limits. The critical threshold is this segment's own
+      // gas's deco ceiling (issue #3580): its band when bands are on, the
+      // ppO2 at the explicit depth for a gas under that setting, otherwise
+      // the flat ppO2Critical - matching PlanEngine's own check so this
+      // live preview agrees with the final, saved plan result.
+      final segmentDecoPpO2 = decoCeilingPpO2For(
+        segment.gasMix,
+        decoLimits,
+        environment: environment,
+      );
+      if (segmentMaxPpO2 > segmentDecoPpO2) {
         warnings.add(
           PlanWarning(
             type: PlanWarningType.ppO2Critical,
@@ -237,7 +257,7 @@ class PlanCalculatorService {
             atDepth: maxDepth,
             segmentId: segment.id,
             value: segmentMaxPpO2,
-            threshold: ppO2Critical,
+            threshold: segmentDecoPpO2,
           ),
         );
       } else if (segmentMaxPpO2 > ppO2Warning) {
@@ -440,15 +460,7 @@ class PlanCalculatorService {
       ],
       runtime: runtime,
       bottomPpO2: bottomPpO2 ?? ppO2Warning,
-      decoPpO2: DecoPpO2Limits(
-        flat: decoPpO2 ?? ppO2Critical,
-        bandsEnabled: ppO2DecoBandsEnabled && !decoPpO2BandsExplicitlyOff,
-        band1: decoPpO2Band1 ?? ppO2DecoBand1,
-        band2: decoPpO2Band2 ?? ppO2DecoBand2,
-        band3: decoPpO2Band3 ?? ppO2DecoBand3,
-        explicitO2DepthEnabled: maxO2DepthEnabled && !maxO2DepthExplicitlyOff,
-        explicitO2DepthMeters: maxO2DepthMetersOverride ?? maxO2DepthMeters,
-      ),
+      decoPpO2: decoLimits,
       environment: environment,
     );
 

@@ -122,17 +122,26 @@ class PlanGasOptionsSection extends ConsumerWidget {
             clearPpO2Bottom: value == null,
           ),
         ),
-        PlanNumberField(
-          label: context.l10n.divePlanner_gasOptions_ppO2Deco,
-          value: state.ppO2Deco,
-          hintValue: globalPpO2Deco,
-          suffixText: 'bar',
-          decimals: 2,
-          onChanged: (value) => notifier.updateGasOptions(
-            ppO2Deco: value,
-            clearPpO2Deco: value == null,
+        // Hidden while per-band deco ppO2 limits actually govern this plan's
+        // deco gases (issue #3580 follow-up): the flat value below is then
+        // replaced everywhere by the band it falls into, so showing it next
+        // to the bands control reads as if it still mattered. Shown again
+        // once this plan's own choice is "Off" - or the diver's Settings
+        // never turned band mode on at all - and the flat value is back in
+        // charge.
+        if (!(ref.watch(ppO2DecoBandsEnabledProvider) &&
+            !state.ppO2DecoBandsExplicitlyOff))
+          PlanNumberField(
+            label: context.l10n.divePlanner_gasOptions_ppO2Deco,
+            value: state.ppO2Deco,
+            hintValue: globalPpO2Deco,
+            suffixText: 'bar',
+            decimals: 2,
+            onChanged: (value) => notifier.updateGasOptions(
+              ppO2Deco: value,
+              clearPpO2Deco: value == null,
+            ),
           ),
-        ),
         const SizedBox(height: 8),
         PlanPpO2BandsControl(
           band1: state.ppO2DecoBand1,
