@@ -145,6 +145,19 @@ class _OfferCard extends StatefulWidget {
 class _OfferCardState extends State<_OfferCard> {
   bool _waiting = false;
 
+  @override
+  void initState() {
+    super.initState();
+    // Confirmed before the diver left the page: wait for that answer again,
+    // so the page still closes when the other device confirms.
+    if (widget.offer.confirming) {
+      _waiting = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) unawaited(_confirm());
+      });
+    }
+  }
+
   Future<void> _confirm() async {
     final l10n = context.l10n;
     final messenger = ScaffoldMessenger.of(context);

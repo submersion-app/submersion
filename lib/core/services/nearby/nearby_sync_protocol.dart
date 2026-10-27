@@ -435,12 +435,13 @@ class NearbySyncProtocol {
         NearbyMessageType.applied,
         timeout: applyTimeout,
       );
-    } on Object {
+    } on Object catch (e) {
       // A delta is rebuilt every session; only a full copy waits for a
-      // resume.
-      if (outgoing != null &&
-          outgoing.kind != 'full' &&
-          await outgoing.file.exists()) {
+      // resume, and only after a lost link: one the peer refused (it could
+      // not unpack or apply it) is made afresh next time.
+      if (outgoing != null && outgoing.kind == 'full') {
+        if (e is _DirectionFailed) await _files.discardOutgoing(_peerId);
+      } else if (outgoing != null && await outgoing.file.exists()) {
         await outgoing.file.delete();
       }
       rethrow;

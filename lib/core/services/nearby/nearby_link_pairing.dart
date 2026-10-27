@@ -11,6 +11,10 @@ abstract class NearbyPairingOffer {
   String get code;
   bool get bothPopulated;
 
+  /// This diver already tapped "Same code" (perhaps before leaving the
+  /// pairing page) and the other has not answered yet.
+  bool get confirming;
+
   /// Completes once both divers confirmed: the devices are paired and the
   /// first sync has started. Throws [NearbyPairingRejected] when the other
   /// diver tapped "Not mine", or a timeout when they never answered.
@@ -42,6 +46,10 @@ class NearbyPairingHandle implements NearbyPairingOffer {
   /// This diver tapped "Same code" and the other has not answered yet.
   bool _confirming = false;
 
+  /// The one confirm a pairing runs, however often "Same code" is tapped:
+  /// a second would send a second confirm on the same link.
+  Future<void>? _confirmation;
+
   @override
   String get peerName => _pairing.preview.name;
 
@@ -55,7 +63,10 @@ class NearbyPairingHandle implements NearbyPairingOffer {
   bool get bothPopulated => _pairing.bothPopulated;
 
   @override
-  Future<void> confirm() => _manager._confirm(this);
+  bool get confirming => _confirming;
+
+  @override
+  Future<void> confirm() => _confirmation ??= _manager._confirm(this);
 
   @override
   Future<void> reject() => _manager._reject(this);
@@ -117,7 +128,10 @@ extension _NearbyLinkPairing on NearbyLinkManager {
       final preferred = _pairingNonce.compareTo(peerKey) < 0
           ? _pairingNonce
           : peerKey;
-      if (handle.initiatorKey == preferred && other.initiatorKey != preferred) {
+      // One the diver already confirmed is never displaced.
+      if (!other._confirming &&
+          handle.initiatorKey == preferred &&
+          other.initiatorKey != preferred) {
         _pending.remove(other);
         await other._pairing.reject();
       } else {

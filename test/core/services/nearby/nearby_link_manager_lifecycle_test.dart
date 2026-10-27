@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/nearby/nearby_carrier.dart';
 import 'package:submersion/core/services/nearby/nearby_link_manager.dart';
 
+import '../../../support/fake_nearby_sync_engine.dart';
 import '../../../support/in_memory_nearby_carrier.dart';
 import '../../../support/nearby_link_harness.dart';
 
@@ -100,4 +101,83 @@ void main() {
     expect(await a.peers.get('B'), isNotNull);
     expect(await b.peers.get('A'), isNotNull);
   });
+
+  test('reopening the pairing page shows a confirmed pairing as such, once, '
+      'and a second tap confirms nothing twice', () async {
+    final a = await device('A');
+    final b = await device('B');
+    final bOffers = <List<NearbyPairingHandle>>[];
+    b.manager.pendingPairings.listen(bOffers.add);
+    await a.manager.setForeground(true);
+    await b.manager.setForeground(true);
+    await a.manager.enterPairingMode();
+    await b.manager.enterPairingMode();
+    await settleNearby();
+
+    final aConfirm = a.manager.currentPairings.single.confirm();
+    await pumpEventQueue();
+    await a.manager.leavePairingMode();
+    await a.manager.enterPairingMode(); // the diver came back
+    await settleNearby();
+    final shown = a.manager.currentPairings;
+    expect(shown, hasLength(1));
+    expect(shown.single.confirming, isTrue);
+    expect(b.manager.currentPairings, hasLength(1), reason: 'no second card');
+
+    final again = shown.single.confirm();
+    await expectLater(
+      Future.wait([aConfirm, again, bOffers.last.single.confirm()]),
+      completes,
+    );
+    await settleNearby();
+    expect(await a.peers.get('B'), isNotNull);
+    expect(await b.peers.get('A'), isNotNull);
+  });
+
+  test('a session replaced by its twin does not end the progress the twin '
+      'is reporting', () async {
+    final a = await device('A');
+    final b = await device('B');
+    await pairNearbyTestDevices(a, b);
+    // A holds a writer B has never heard of, so A's half of every session
+    // is a full copy that takes a while to prepare: B's session is still
+    // running when A's own dial, which lands later, replaces it.
+    a.engine
+      ..marks = {...a.engine.marks, 'Z': fakeHlc(5, 'Z')}
+      ..fullContent = '{}'
+      ..exportDelay = const Duration(milliseconds: 300);
+    final manager = NearbyLinkManager(
+      carrier: _SlowConnect(a.carrier),
+      engine: a.engine,
+      secrets: a.secrets,
+      peers: a.peers,
+      cursors: a.cursors,
+      autoSyncEnabled: () => true,
+      tempDir: () async => a.temp,
+      retryAfter: Duration.zero,
+    );
+    addTearDown(manager.dispose);
+    final finished = <String>[];
+    manager.progress.listen((p) {
+      if (p.finished) finished.add(p.peerDeviceId);
+    });
+    await b.manager.setForeground(true);
+    await manager.setForeground(true);
+    for (var i = 0; i < 6; i++) {
+      await settleNearby();
+    }
+    expect(a.engine.recordedAcks, hasLength(1));
+    expect(finished, ['B']);
+  });
+}
+
+/// Connects only after a pause, so a peer's own connection lands first.
+class _SlowConnect extends CountingNearbyCarrier {
+  _SlowConnect(InMemoryNearbyCarrier inner) : super(inner, () {});
+
+  @override
+  Future<NearbyEndpoint> connect(String transportId) async {
+    await Future<void>.delayed(const Duration(milliseconds: 60));
+    return inner.connect(transportId);
+  }
 }

@@ -587,6 +587,24 @@ void main() {
     expect(ancient.existsSync(), isFalse);
   });
 
+  test('a full copy the peer could not use is not offered again', () async {
+    final laptop = await device(
+      'L',
+      peerId: 'P',
+      marks: {'L': fakeHlc(5, 'L')},
+    );
+    laptop.engine.fullContent = '{}';
+    final phone = await device('P', peerId: 'L');
+    phone.engine.applyError = StateError('database is locked');
+    final (_, failed) = await session(laptop, phone);
+    expect(failed.error, NearbyPeerError.applyFailed);
+
+    phone.engine.applyError = null;
+    final (_, retried) = await session(laptop, phone);
+    expect(retried.error, isNull);
+    expect(laptop.engine.exportFullCalls, 2, reason: 'a fresh copy');
+  });
+
   test('a copy that will not unpack fails its direction only, and nothing '
       'of it is kept for a resume', () async {
     final laptop = await device('L', peerId: 'P');

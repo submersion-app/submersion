@@ -247,7 +247,11 @@ class NearbyLinkManager {
     _pairingMode = true;
     _pairingTried.clear();
     _forgetStrangers();
-    _pairingNonce = NearbySession.newPairingNonce();
+    // A pairing confirmed before the diver left keeps its nonce, so the
+    // other device sees a redial as the same attempt, not a second one.
+    if (!_pending.any((h) => h._confirming)) {
+      _pairingNonce = NearbySession.newPairingNonce();
+    }
     return refresh();
   }
 
@@ -500,6 +504,9 @@ class NearbyLinkManager {
   }
 
   Future<NearbySyncOutcome?> _openSync(String transportId) async {
+    // Who the caller dialled, as far as it knew: the rules for that device
+    // were applied before dialling.
+    final expected = _deviceByTransport[transportId];
     _connecting.add(transportId);
     final NearbyChannel channel;
     try {
@@ -522,7 +529,17 @@ class NearbyLinkManager {
     } finally {
       _connecting.remove(transportId);
     }
-    _learn(transportId, channel.peer.deviceId);
+    final peer = channel.peer.deviceId;
+    _learn(transportId, peer);
+    if (peer != expected &&
+        !_syncNowWaiters.containsKey(peer) &&
+        !(_autoSyncEnabled() && _due(peer))) {
+      // Dialled before its address was known (by a Sync now looking for
+      // another device, or at a first sighting): now that it is, it keeps
+      // to the cooldown and the automatic switch.
+      await channel.close();
+      return null;
+    }
     return _run(channel);
   }
 
@@ -677,7 +694,10 @@ class NearbyLinkManager {
     } on Object {
       // Already closed.
     }
-    if (!_progressController.isClosed) {
+    // A twin that replaced this session reports its own progress, and its
+    // own end.
+    final replaced = live.superseded && live.successor != null;
+    if (!replaced && !_progressController.isClosed) {
       _progressController.add(
         NearbySyncProgress(
           peerDeviceId: peerId,

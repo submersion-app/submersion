@@ -58,6 +58,35 @@ void main() {
     );
   });
 
+  test('a device Sync now dials before it knows its address runs no '
+      'session once it turns out to be another one', () async {
+    final a = await device('A');
+    final b = await device('B');
+    final c = await device('C');
+    await pairNearbyTestDevices(a, b);
+    await pairNearbyTestDevices(a, c);
+    // C meets A by dialling it, so A never learns C's address.
+    a.carrier.refuseConnects = true;
+    await foregroundNearbyTestDevices([a, c]);
+    expect(a.engine.recordedAcks.where((r) => r.peer == 'C'), hasLength(1));
+
+    a.carrier.refuseConnects = false;
+    a.auto = false;
+    await a.manager.refresh();
+    await b.manager.setForeground(true);
+    final outcome = await a.manager
+        .syncNow('B')
+        .timeout(const Duration(seconds: 2));
+    await settleNearby();
+    expect(outcome?.error, isNull);
+    expect(outcome, isNotNull);
+    expect(
+      a.engine.recordedAcks.where((r) => r.peer == 'C'),
+      hasLength(1),
+      reason: 'only the device the diver asked for',
+    );
+  });
+
   test('a row says Bluetooth is off only while the radio is wanted', () async {
     final a = await device('A');
     final b = await device('B');

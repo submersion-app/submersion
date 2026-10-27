@@ -369,7 +369,10 @@ turns the radio on until that device is found (or 20 seconds pass) and
 runs one session; with Bluetooth off or not allowed it says so at once.
 It dials its device's known address at once, even just after a session,
 and any address it cannot yet put a name to; another paired device seen
-meanwhile keeps to its own rules. Every wait (the cooldown, the spacing
+meanwhile keeps to its own rules, whether its address was known or the
+handshake only now named it (then the link is closed before any data
+moves). A dial made at a first sighting obeys the same rules once the
+handshake says who answered. Every wait (the cooldown, the spacing
 between attempts, a stranger's backoff, the scan restart) counts a clock
 set back as time passed, so none outlasts the change. An address that turns out to belong to no paired device
 is left alone for a minute, doubling to half an hour, so a boat full of
@@ -393,7 +396,9 @@ Refusals count: two paired devices on different libraries refuse each other
 at once, so each records the refusal it made itself, the dialled device as
 well as the dialling one; a refusal the peer gives no reason for reads as
 `unreachable`. A full copy that will not unpack is an `applyFailed`: it
-ends that direction only, and nothing of it is kept for a resume. A row
+ends that direction only, and nothing of it is kept for a resume. The
+sender keeps a full copy for a resume only after a lost link; one the peer
+refused is made afresh next time. A row
 says `bluetoothOff` only while the radio is wanted; when nothing wants it,
 whether Bluetooth is on says nothing about why a device is not syncing.
 
@@ -447,7 +452,9 @@ arrives. When both confirm, both pages close to the Sync page with the new
 row, and the first sync starts at once. A diver who tapped "Same code" and
 then left the page has still confirmed: the pairing finishes when the other
 diver answers. Leaving rejects only the pairings this diver has not
-answered. Bluetooth permission is requested
+answered. Reopening the page shows that pairing still waiting, keeps the
+pairing nonce it was made under so the other device does not show it
+twice, and a second tap confirms nothing twice. Bluetooth permission is requested
 the first time this page opens, with the OS prompt; if refused, the page
 explains and offers the system settings.
 

@@ -97,11 +97,17 @@ class FakeNearbySyncEngine implements NearbySyncEngine {
     if (after != null) marks = after;
   }
 
+  /// Thrown by every apply while set, as a locked or failing database
+  /// would.
+  Object? applyError;
+
   @override
   Future<NearbyApplyResult> applyPayload(
     SyncPayload payload, {
     required String peerDeviceId,
   }) async {
+    final error = applyError;
+    if (error != null) throw error;
     appliedPayloads.add(payload);
     _moveMarks();
     return (recordsApplied: 1, conflictsFound: 0, recordsFailed: 0);
@@ -113,6 +119,8 @@ class FakeNearbySyncEngine implements NearbySyncEngine {
     required String peerDeviceId,
     void Function(double fraction)? onProgress,
   }) async {
+    final error = applyError;
+    if (error != null) throw error;
     appliedFiles.add(await File(path).readAsString());
     _moveMarks();
     return (recordsApplied: 1, conflictsFound: 0, recordsFailed: 0);

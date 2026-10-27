@@ -40,10 +40,17 @@ class _Manager implements NearbyLinkManager {
 }
 
 class _Offer implements NearbyPairingOffer {
-  _Offer({this.bothPopulated = false, this.confirmError});
+  _Offer({
+    this.bothPopulated = false,
+    this.confirmError,
+    this.confirming = false,
+  });
 
   @override
   final bool bothPopulated;
+
+  @override
+  final bool confirming;
   final Object? confirmError;
   int confirms = 0;
   int rejects = 0;
@@ -201,6 +208,24 @@ void main() {
     expect(find.text('open'), findsOneWidget, reason: 'the page closed');
     expect(find.text('Paired with MacBook'), findsOneWidget);
     expect(manager.calls, ['enter', 'leave']);
+  });
+
+  testWidgets('a pairing confirmed before the page was left waits again, '
+      'and closes the page when the other device confirms', (tester) async {
+    await pump(tester);
+    final offer = _Offer(confirming: true);
+    offers.add([offer]);
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Waiting for the other device to confirm…'),
+      findsOneWidget,
+    );
+    expect(find.text('Same code'), findsNothing);
+
+    offer.otherSideConfirmed();
+    await tester.pumpAndSettle();
+    expect(find.text('open'), findsOneWidget, reason: 'the page closed');
+    expect(find.text('Paired with MacBook'), findsOneWidget);
   });
 
   testWidgets('a pairing the other side rejected says so and stays', (
