@@ -44,9 +44,11 @@ Back at the dock, open **Tracks** (or tap the red bar) and tap **Stop logging**.
 
 ## 4. Download your dives
 
-Download your dive computer as usual; [Log a Dive from Your Computer](how-to-log-a-dive.md) shows how. You can do this before or after you stop recording.
+Download your dive computer as usual; [Log a Dive from Your Computer](how-to-log-a-dive.md) shows how. Stop recording first if you can.
 
-As the dives come in, Submersion looks for the track that covers each one and gives the dive its **Entry** position (where the boat was when you went down) and **Exit** position (where you came up). When the import finishes, the summary may offer a button such as **Match 3 dives to sites**: tap it to attach the dives to dive sites near those positions.
+As the dives come in, Submersion looks for a finished track that covers each one and gives the dive its **Entry** position (where the boat was when you went down) and **Exit** position (where you came up). When the import finishes, the summary may offer a button such as **Match 3 dives to sites**: tap it to attach the dives to dive sites near those positions.
+
+Downloaded while the phone was still recording? A track in progress is not used yet, so the dives come in without positions. They get them when you tap **Stop logging**.
 
 ## Check it worked
 

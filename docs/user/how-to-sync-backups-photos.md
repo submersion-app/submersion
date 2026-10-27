@@ -85,7 +85,9 @@ Tap **Next**. If you would rather not keep photo copies, tap **Skip**; you can t
 
 ### 6. Finish
 
-On **You're all set**, tap **Get started**. Your logbook opens on the Dashboard.
+If this is the first-run setup, **You're all set** appears next. Tap **Get started** and your logbook opens on the Dashboard.
+
+If you started from **Settings > Data**, the last screen is **This phone is set up** (or tablet, or computer) instead. It lists what is now on for your account, sync, backups and photos. If dives here already have photos attached, it also offers **Upload everything already attached**, which copies them to Google Drive now. Tap **Done** to go back to **Settings > Data**.
 
 ## On your second device
 
