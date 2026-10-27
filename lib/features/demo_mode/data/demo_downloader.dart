@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 import 'package:http/http.dart' as http;
+import 'package:submersion/core/services/cloud_storage/git/git_object_id.dart'
+    show DigestCollector;
 import 'package:submersion/features/demo_mode/domain/demo_manifest.dart';
 
 enum DemoDownloadFailure {
@@ -30,9 +32,19 @@ class DemoDownloadException implements Exception {
 /// Every failure deletes the temporary file, so a broken or tampered download
 /// never reaches the extractor.
 class DemoDownloader {
-  DemoDownloader({http.Client? client}) : _client = client ?? http.Client();
+  DemoDownloader({
+    http.Client? client,
+    this.connectTimeout = const Duration(seconds: 30),
+    this.idleTimeout = const Duration(seconds: 30),
+  }) : _client = client ?? http.Client();
 
   final http.Client _client;
+
+  /// How long the server has to start answering.
+  final Duration connectTimeout;
+
+  /// How long the body may go without a byte arriving.
+  final Duration idleTimeout;
 
   Future<File> download(
     DemoPackage pkg,
@@ -59,7 +71,9 @@ class DemoDownloader {
   ) async {
     final http.StreamedResponse response;
     try {
-      response = await _client.send(http.Request('GET', pkg.url));
+      response = await _client
+          .send(http.Request('GET', pkg.url))
+          .timeout(connectTimeout);
     } on Exception catch (e) {
       throw DemoDownloadException(DemoDownloadFailure.network, '$e');
     }
@@ -70,12 +84,14 @@ class DemoDownloader {
       );
     }
 
-    final digest = _DigestSink();
+    final digest = DigestCollector();
     final hasher = sha256.startChunkedConversion(digest);
     final out = tmp.openWrite();
     var received = 0;
     try {
-      await for (final chunk in response.stream) {
+      // A connection that goes quiet ends as a network failure rather than
+      // a spinner that never stops; Cancel is only seen when a chunk lands.
+      await for (final chunk in response.stream.timeout(idleTimeout)) {
         if (isCancelled?.call() ?? false) {
           throw const DemoDownloadException(DemoDownloadFailure.cancelled);
         }
@@ -99,18 +115,8 @@ class DemoDownloader {
     if (received != pkg.size) {
       throw const DemoDownloadException(DemoDownloadFailure.sizeMismatch);
     }
-    if (digest.value.toString() != pkg.sha256) {
+    if (digest.value?.toString() != pkg.sha256) {
       throw const DemoDownloadException(DemoDownloadFailure.checksumMismatch);
     }
   }
-}
-
-class _DigestSink implements Sink<Digest> {
-  late Digest value;
-
-  @override
-  void add(Digest data) => value = data;
-
-  @override
-  void close() {}
 }

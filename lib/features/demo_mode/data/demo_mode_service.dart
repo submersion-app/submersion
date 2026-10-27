@@ -51,6 +51,7 @@ class DemoModeService {
     required this.deviceId,
     required this.cancelDeviceNotifications,
     required this.restart,
+    this.forgetPhotos,
     this.clock = DateTime.now,
   });
 
@@ -67,6 +68,10 @@ class DemoModeService {
   final String? Function() deviceId;
   final Future<void> Function() cancelDeviceNotifications;
   final VoidCallback restart;
+
+  /// Drops whatever the app cached for the sample photos at these paths,
+  /// such as their thumbnails, so nothing of demo mode outlives it.
+  final Future<void> Function(List<String> photoPaths)? forgetPhotos;
   final DateTime Function() clock;
 
   Future<void> enter({
@@ -156,9 +161,8 @@ class DemoModeService {
       await store.write(current.copyWith(phase: DemoPhase.exiting));
     }
     await cancelDeviceNotifications();
-    // On failure the state stays exiting: startup finishes the exit on the
-    // restart, and shows its own screens if the logbook still cannot open.
-    await switcher.openAt(await realDatabasePath(), keyHex: realKeyHex());
+    // Preferences first: the user's logbook is found through them, so
+    // nothing a demo session wrote can point the reopen elsewhere.
     final snapshot = File(paths.prefsSnapshotFile);
     if (await snapshot.exists()) {
       try {
@@ -167,8 +171,32 @@ class DemoModeService {
         _log.warning('Demo mode preferences could not be restored: $e');
       }
     }
+    await _forgetPhotos();
+    // On failure the state stays exiting: startup finishes the exit on the
+    // restart, and shows its own screens if the logbook still cannot open.
+    await switcher.openAt(await realDatabasePath(), keyHex: realKeyHex());
     await store.deleteAll();
     DemoModeGate.instance.markActive(false);
+  }
+
+  /// Best effort: a cache that cannot be cleared never stops an exit.
+  Future<void> _forgetPhotos() async {
+    final forget = forgetPhotos;
+    final dir = Directory(paths.photosDir);
+    if (forget == null || !await dir.exists()) return;
+    try {
+      final photos = [
+        await for (final entry in dir.list())
+          if (entry is File) entry.path,
+      ]..sort();
+      await forget(photos);
+    } catch (e, st) {
+      _log.warning(
+        'Sample photo caches could not be cleared',
+        error: e,
+        stackTrace: st,
+      );
+    }
   }
 
   static Future<String?> _defaultDiverId(AppDatabase db) async {

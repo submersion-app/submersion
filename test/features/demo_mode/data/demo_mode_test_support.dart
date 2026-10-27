@@ -50,6 +50,12 @@ class FakeDownloader implements DemoDownloader {
   final DemoDownloadFailure? failWith;
 
   @override
+  Duration get connectTimeout => Duration.zero;
+
+  @override
+  Duration get idleTimeout => Duration.zero;
+
+  @override
   Future<File> download(
     DemoPackage pkg,
     File dest, {
@@ -67,6 +73,9 @@ class FakeDownloader implements DemoDownloader {
 /// Writes a demo database with diver `demo-diver` and one photo, as a real
 /// package would unpack.
 class FakeExtractor implements DemoPackageExtractor {
+  @override
+  int get maxExtractedBytes => 0;
+
   @override
   Future<void> extract(File zip, DemoPaths paths) async {
     await writeDatabaseWithDiver(paths.databaseFile, 'demo-diver');

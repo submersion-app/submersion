@@ -368,7 +368,7 @@ depends on it:
 - Paths are built with `p.join`, never by string concatenation.
 - Tests that touch process-wide state (preferences, database service
   singletons) restore it, per `docs/developer/testing.md`.
-- TDD per the repo's CLAUDE.md.
+- TDD, as the repository's development guide requires.
 
 ## Left to the builder
 

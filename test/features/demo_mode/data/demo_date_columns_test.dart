@@ -79,6 +79,9 @@ void main() {
     expect(shifted, isNot(contains('dives.bottom_time')));
     expect(shifted, isNot(contains('dives.runtime')));
     expect(shifted, isNot(contains('divers.diving_since')));
+    // Minutes after local midnight, despite the `_at` in their names.
+    expect(shifted, isNot(contains('dive_centers.fill_opens_at')));
+    expect(shifted, isNot(contains('dive_centers.fill_closes_at')));
   });
 
   test('DateTime columns shift in seconds and int columns in milliseconds', () {

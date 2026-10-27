@@ -14,6 +14,8 @@ import 'package:submersion/features/demo_mode/data/demo_package_extractor.dart';
 import 'package:submersion/features/demo_mode/data/demo_paths.dart';
 import 'package:submersion/features/demo_mode/data/demo_state_store.dart';
 import 'package:submersion/features/demo_mode/domain/demo_manifest.dart';
+import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart'
+    show localThumbnailCacheProvider;
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/main.dart' show restartApp;
 
@@ -56,6 +58,12 @@ final demoModeServiceProvider = FutureProvider<DemoModeService>((ref) async {
     cancelDeviceNotifications:
         NotificationService.instance.cancelAllNotifications,
     restart: restartApp,
+    forgetPhotos: (photoPaths) async {
+      final thumbnails = ref.read(localThumbnailCacheProvider);
+      for (final path in photoPaths) {
+        await thumbnails.removePath(path);
+      }
+    },
   );
 });
 

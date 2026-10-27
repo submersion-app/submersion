@@ -17,7 +17,7 @@
 - Every new string is added to `lib/l10n/arb/app_en.arb` and translated in all 10 other locales (ar, de, es, fr, he, hu, it, nl, pt, zh); run `flutter gen-l10n`; `test/l10n/` must stay green.
 - Paths are built with `p.join`; temp space comes from `Directory.systemTemp`.
 - Tests that change process-wide state (`DemoModeGate.instance`, `DatabaseService.instance`, `SharedPreferences` mocks, `HttpOverrides`) restore it in `addTearDown`.
-- No text anywhere names Claude, Claude Code or Anthropic. No em dashes in code, comments or docs.
+- No attribution lines or tool names in any text. No em dashes in code, comments or docs.
 - Manifest URL: `https://github.com/submersion-app/submersion/releases/download/demo-data/demo-manifest.json`.
 - The `demo-data` release is created with `--latest=false`.
 - Excluded generated sources, refused by name: `Synthetic dives 1000.uddf`, `submersion_multitank_500dives.uddf`, any path containing `scrubber-1500-dives`.

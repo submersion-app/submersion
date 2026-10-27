@@ -10,6 +10,11 @@ import 'package:submersion/features/demo_mode/data/demo_paths.dart';
 /// `photos/`. Anything else, including a path that would land outside the
 /// demo directory, rejects the whole package before a byte is written.
 class DemoPackageExtractor {
+  DemoPackageExtractor({this.maxExtractedBytes = 256 * 1024 * 1024});
+
+  /// The most the package may expand to. The published one is about 15 MB.
+  final int maxExtractedBytes;
+
   static const databaseEntry = 'submersion_demo.db';
   static const _photoExtensions = {'.jpg', '.jpeg', '.png', '.webp'};
 
@@ -28,13 +33,24 @@ class DemoPackageExtractor {
     if (!files.any((f) => f.name == databaseEntry)) {
       throw const FormatException('Sample logbook has no database');
     }
+    // The sizes the archive declares, before anything is inflated; the
+    // bytes each entry really inflates to are counted again as it is written.
+    if (files.fold<int>(0, (sum, f) => sum + f.size) > maxExtractedBytes) {
+      throw const FormatException('Sample logbook expands past its limit');
+    }
 
     await Directory(paths.photosDir).create(recursive: true);
+    var written = 0;
     for (final f in files) {
+      final bytes = f.content;
+      written += bytes.length;
+      if (written > maxExtractedBytes) {
+        throw const FormatException('Sample logbook expands past its limit');
+      }
       final target = f.name == databaseEntry
           ? paths.databaseFile
           : p.join(paths.photosDir, p.posix.basename(f.name));
-      await File(target).writeAsBytes(f.content, flush: true);
+      await File(target).writeAsBytes(bytes, flush: true);
     }
   }
 

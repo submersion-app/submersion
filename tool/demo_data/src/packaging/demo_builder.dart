@@ -16,6 +16,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/demo_mode/domain/demo_manifest.dart';
 
 import '../checks/coverage_check.dart';
+import '../checks/machine_path_check.dart';
 import '../checks/privacy_check.dart';
 import '../checks/public_vocabulary.dart';
 import '../seeders/demo_seeding.dart';
@@ -86,6 +87,16 @@ class DemoBuilder {
         final empty = await CoverageCheck.emptyTables(db);
         if (empty.isNotEmpty) {
           throw DemoBuildRefused('empty tables: ${empty.join(', ')}');
+        }
+        final machinePaths = await MachinePathCheck.run(db, [
+          photosDir,
+          outDir,
+          work.path,
+        ]);
+        if (machinePaths.isNotEmpty) {
+          throw DemoBuildRefused(
+            'values name a folder on this machine: ${machinePaths.join(', ')}',
+          );
         }
         if (sourceStringHashes != null && salt != null) {
           final violations = await PrivacyCheck.run(

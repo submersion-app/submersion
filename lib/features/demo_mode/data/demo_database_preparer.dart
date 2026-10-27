@@ -59,8 +59,10 @@ class DemoDatabasePreparer {
     final latestMs = latest.read<int?>('latest');
     if (latestMs == null) return;
 
+    // Dive times are wall-clock times stored as UTC, so the date the app
+    // shows is the UTC date, whatever the device's time zone.
     final shift = demoShiftFor(
-      latestDive: DateTime.fromMillisecondsSinceEpoch(latestMs),
+      latestDive: DateTime.fromMillisecondsSinceEpoch(latestMs, isUtc: true),
       now: now,
     );
     if (shift == Duration.zero) return;

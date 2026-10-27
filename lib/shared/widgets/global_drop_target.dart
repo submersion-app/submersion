@@ -82,6 +82,8 @@ class _GlobalDropTargetState extends ConsumerState<GlobalDropTarget> {
       },
       onDragDone: (details) {
         if (!demoSealGuard(context, DemoSealedFeature.fileImport)) {
+          // No drag-exit follows a drop, so the overlay is cleared here.
+          setState(() => _isDragging = false);
           return;
         }
         _handleDrop(details);

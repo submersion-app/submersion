@@ -69,6 +69,40 @@ void main() {
     );
   });
 
+  test(
+    'the latest dive lands 7 to 13 days back by the date the app shows',
+    () async {
+      // Dive times are wall-clock times stored as UTC, so the app shows this
+      // one on 12 October whatever the device's time zone. Late in the
+      // evening, a reading in local time would land on another day far
+      // from UTC (run with TZ=Pacific/Kiritimati to see it).
+      final lateEvening = DateTime.utc(2026, 10, 12, 23, 30);
+      await db.customStatement(
+        'INSERT INTO dives (id, diver_id, dive_date_time, created_at, '
+        "updated_at) VALUES ('c', 'd1', "
+        '${lateEvening.millisecondsSinceEpoch}, 0, 0)',
+      );
+
+      await DemoDatabasePreparer().prepare(
+        db,
+        now: now,
+        photosDir: '/demo/photos',
+        deviceId: null,
+      );
+
+      final shown = DateTime.fromMillisecondsSinceEpoch(
+        await intOf("SELECT dive_date_time FROM dives WHERE id = 'c'"),
+        isUtc: true,
+      );
+      final days = DateTime.utc(
+        now.year,
+        now.month,
+        now.day,
+      ).difference(DateTime.utc(shown.year, shown.month, shown.day)).inDays;
+      expect(days, inInclusiveRange(7, 13));
+    },
+  );
+
   test('prepare leaves durations alone', () async {
     await DemoDatabasePreparer().prepare(
       db,

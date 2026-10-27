@@ -251,6 +251,61 @@ void main() {
     },
   );
 
+  test('exit finds the real logbook from the restored preferences', () async {
+    // The real path is read from the storage preferences, as production's
+    // DatabaseLocationService does.
+    final svc = DemoModeService(
+      paths: paths,
+      prefs: prefs,
+      store: store,
+      manifest: FakeManifestClient(testPackage),
+      downloader: FakeDownloader(),
+      extractor: FakeExtractor(),
+      preparer: DemoDatabasePreparer(),
+      switcher: switcher,
+      realDatabasePath: () async => prefs.getString('db_custom_path') == '/x'
+          ? realPath
+          : p.join(root.path, 'elsewhere.db'),
+      realKeyHex: () => 'k' * 64,
+      deviceId: () => null,
+      cancelDeviceNotifications: () async {},
+      restart: () => restarts++,
+    );
+    await svc.enter(fromFirstRun: false);
+    await prefs.setString('db_custom_path', '/moved-during-demo');
+
+    await svc.exit();
+
+    expect(switcher.openPath, realPath);
+    expect(File(p.join(root.path, 'elsewhere.db')).existsSync(), isFalse);
+  });
+
+  test('exit forgets the cached thumbnails of the sample photos', () async {
+    final forgotten = <String>[];
+    final svc = DemoModeService(
+      paths: paths,
+      prefs: prefs,
+      store: store,
+      manifest: FakeManifestClient(testPackage),
+      downloader: FakeDownloader(),
+      extractor: FakeExtractor(),
+      preparer: DemoDatabasePreparer(),
+      switcher: switcher,
+      realDatabasePath: () async => realPath,
+      realKeyHex: () => 'k' * 64,
+      deviceId: () => null,
+      cancelDeviceNotifications: () async {},
+      restart: () => restarts++,
+      forgetPhotos: (photoPaths) async => forgotten.addAll(photoPaths),
+    );
+    await svc.enter(fromFirstRun: false);
+
+    await svc.exit();
+
+    expect(forgotten, [p.join(paths.photosDir, 'reef.jpg')]);
+    expect(Directory(paths.root).existsSync(), isFalse);
+  });
+
   test('exit deletes the demo database, package, photos and state', () async {
     await service().enter(fromFirstRun: false);
 

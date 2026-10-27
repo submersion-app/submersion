@@ -43,6 +43,17 @@ void main() {
     expect(File(p.join(paths.photosDir, 'turtle.webp')).existsSync(), isTrue);
   });
 
+  test('extract refuses a package that expands past the cap', () async {
+    // 64 KB of one byte compresses to almost nothing.
+    final zip = zipOf({'submersion_demo.db': 'A' * 65536});
+
+    await expectLater(
+      DemoPackageExtractor(maxExtractedBytes: 4096).extract(zip, paths),
+      throwsFormatException,
+    );
+    expect(File(paths.databaseFile).existsSync(), isFalse);
+  });
+
   test('extract refuses a zip-slip entry ../evil.txt', () async {
     final zip = zipOf({'submersion_demo.db': 'DB', '../evil.txt': 'x'});
 

@@ -32,7 +32,9 @@ class MediaSeeder implements DemoSeeder {
     for (final photo in ctx.photoFiles) {
       final dive = _diveFor(ctx, photo, candidates, n);
       final id = 'demo-media-${n++}';
-      final path = p.join(ctx.photosDir, photo.fileName);
+      // Relative to the package: the device relinks it into its own photo
+      // folder, and the build machine's folders never reach the public file.
+      final path = p.posix.join('photos', photo.fileName);
       final taken = dive.start.add(Duration(minutes: 12 + n * 3 % 30));
       final site = ctx.plan.sites.firstWhere((s) => s.id == dive.siteId);
       await media.createMedia(

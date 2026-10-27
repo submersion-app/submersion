@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -92,6 +93,59 @@ void main() {
       expect(File('${dest.path}.tmp').existsSync(), isFalse);
     },
   );
+
+  test(
+    'a stalled download ends as a network failure and leaves no file',
+    () async {
+      // The first chunk arrives, then the connection goes quiet for good.
+      final stalled = MockClient.streaming((request, _) async {
+        final controller = StreamController<List<int>>()
+          ..add(body.sublist(0, 5000));
+        return http.StreamedResponse(
+          controller.stream,
+          200,
+          contentLength: body.length,
+        );
+      });
+
+      await expectLater(
+        DemoDownloader(
+          client: stalled,
+          idleTimeout: const Duration(milliseconds: 50),
+        ).download(pkg(), dest),
+        throwsA(
+          isA<DemoDownloadException>().having(
+            (e) => e.reason,
+            'reason',
+            DemoDownloadFailure.network,
+          ),
+        ),
+      );
+      expect(dest.existsSync(), isFalse);
+      expect(File('${dest.path}.tmp').existsSync(), isFalse);
+    },
+    timeout: const Timeout(Duration(seconds: 10)),
+  );
+
+  test('a request that never answers ends as a network failure', () async {
+    final silent = MockClient.streaming(
+      (request, _) => Completer<http.StreamedResponse>().future,
+    );
+
+    await expectLater(
+      DemoDownloader(
+        client: silent,
+        connectTimeout: const Duration(milliseconds: 50),
+      ).download(pkg(), dest),
+      throwsA(
+        isA<DemoDownloadException>().having(
+          (e) => e.reason,
+          'reason',
+          DemoDownloadFailure.network,
+        ),
+      ),
+    );
+  }, timeout: const Timeout(Duration(seconds: 10)));
 
   test('download throws httpStatus on a non-200 response', () async {
     await expectLater(
