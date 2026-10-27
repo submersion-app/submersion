@@ -41,7 +41,10 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_list_add_
 import 'package:submersion/features/dive_log/presentation/widgets/dive_list_content.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_map_content.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_numbering_dialog.dart';
+import 'package:submersion/features/dive_log/presentation/profile_colors/profile_metric.dart';
+import 'package:submersion/features/dive_log/presentation/profile_colors/profile_metric_palette.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/mini_chart_line_color.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_panel.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_summary_widget.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_card_stat_row.dart';
@@ -956,7 +959,19 @@ class DiveListTile extends ConsumerWidget {
                           child: DiveProfileMiniChart(
                             profile: profile,
                             height: 50,
-                            color: accentColor,
+                            color: miniChartLineColor(
+                              depthColor: ProfileMetricPalette(
+                                overrides: settings.profileMetricColors,
+                                temperatureAuto: colorScheme.tertiary,
+                              ).colorOf(ProfileMetric.depth),
+                              fallback: accentColor,
+                              // The selection fill is translucent; judge the
+                              // line against what it shows over the surface.
+                              background: Color.alphaBlend(
+                                effectiveBackground,
+                                colorScheme.surface,
+                              ),
+                            ),
                           ),
                         ),
                       ),
