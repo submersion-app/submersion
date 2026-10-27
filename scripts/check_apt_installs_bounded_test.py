@@ -282,6 +282,16 @@ class WorkflowTests(unittest.TestCase):
         text = "uses: ./.github/actions/install-apt-packages\n"
         self.assertEqual(guard.cached_uses(text), [])
 
+    def test_use_from_a_side_checkout_is_checked(self):
+        text = UNCACHED_STEP.replace(
+            "uses: ./.github/actions/install-apt-packages",
+            "uses: ./.ci-actions/.github/actions/install-apt-packages",
+        )
+        self.assertEqual(guard.cached_uses(text), [])
+        self.assertEqual(
+            guard.cached_uses(text.replace("          cache: false\n", "")), [7]
+        )
+
     def test_inline_step_use_is_reported(self):
         text = (
             "    steps:\n"

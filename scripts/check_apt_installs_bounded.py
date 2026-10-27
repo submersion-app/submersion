@@ -76,8 +76,13 @@ _OPTIONS_WITH_ARGUMENT = {
 _COMMENT = r"\s*(?:#.*)?$"
 _RUN_KEY = re.compile(r"^\s*(?:-\s+)?run:(.*)$")
 _STEP_START = re.compile(r"^(\s*)-\s")
+# A workflow that builds an older ref checks the action out beside it, so the
+# path may carry one leading directory (build-all.yml uses ./.ci-actions/).
 _USES_LOCAL = re.compile(
-    r"^\s*(?:-\s+)?uses:\s*['\"]?" + re.escape(LOCAL_REF) + r"['\"]?" + _COMMENT
+    r"^\s*(?:-\s+)?uses:\s*['\"]?\./(?:[\w.-]+/)?"
+    + re.escape(LOCAL_REF[2:])
+    + r"['\"]?"
+    + _COMMENT
 )
 _CACHE_OFF = re.compile(r"^\s*cache:\s*(['\"]?)false\1" + _COMMENT)
 _ATTEMPTS = re.compile(r"^\s*attempts=(\d+)\s*$")
