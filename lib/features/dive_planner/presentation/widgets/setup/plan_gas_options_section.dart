@@ -178,6 +178,7 @@ class PlanGasOptionsSection extends ConsumerWidget {
           explicitlyOff: state.maxO2DepthExplicitlyOff,
           defaultMaxO2DepthMeters: ref.watch(maxO2DepthMetersProvider),
           enabledInSettings: ref.watch(maxO2DepthEnabledProvider),
+          units: units,
           onChanged: (value) =>
               notifier.updateGasOptions(maxO2DepthMeters: value),
           onOff: (off) =>

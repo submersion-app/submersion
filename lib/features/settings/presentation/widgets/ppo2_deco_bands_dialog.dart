@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/utils/number_input.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -14,6 +15,7 @@ class PpO2DecoBandsDialog extends StatefulWidget {
   final double initialBand3;
   final bool initialMaxO2DepthEnabled;
   final double initialMaxO2DepthMeters;
+  final UnitFormatter units;
   final void Function(
     bool bandsEnabled,
     double band1,
@@ -32,6 +34,7 @@ class PpO2DecoBandsDialog extends StatefulWidget {
     required this.initialBand3,
     required this.initialMaxO2DepthEnabled,
     required this.initialMaxO2DepthMeters,
+    required this.units,
     required this.onSave,
   });
 
@@ -173,7 +176,10 @@ class _PpO2DecoBandsDialogState extends State<PpO2DecoBandsDialog> {
     required ValueChanged<double> onChanged,
   }) => _slider(
     label: label,
-    valueText: '${formatRoundedForInput(value, 1)} m',
+    // The slider's own grid (min/max/step) stays in meters - it mirrors the
+    // physical MOD-for-100%-O2 range divers think in - only the displayed
+    // text respects the diver's unit setting (issue #3580 follow-up).
+    valueText: widget.units.formatDepth(value, decimals: 1),
     value: value,
     min: _depthMin,
     max: _depthMax,

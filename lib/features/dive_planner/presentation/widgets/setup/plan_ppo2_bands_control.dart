@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/utils/number_input.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_choice_wrap.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -176,6 +177,7 @@ class PlanMaxO2DepthControl extends StatelessWidget {
     required this.explicitlyOff,
     required this.defaultMaxO2DepthMeters,
     required this.enabledInSettings,
+    required this.units,
     required this.onChanged,
     required this.onOff,
     required this.onDefault,
@@ -194,6 +196,10 @@ class PlanMaxO2DepthControl extends StatelessWidget {
   /// Whether the diver's Settings have the explicit-depth toggle on at all -
   /// decides what "Default" resolves to and displays.
   final bool enabledInSettings;
+
+  /// Formats the displayed depth in the diver's unit settings; the slider's
+  /// own grid stays in meters (issue #3580 follow-up).
+  final UnitFormatter units;
 
   final ValueChanged<double> onChanged;
 
@@ -249,7 +255,7 @@ class PlanMaxO2DepthControl extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             enabledInSettings
-                ? '${formatRoundedForInput(defaultMaxO2DepthMeters, 1)} m'
+                ? units.formatDepth(defaultMaxO2DepthMeters, decimals: 1)
                 : l10n.divePlanner_label_off,
             style: theme.textTheme.bodySmall?.copyWith(color: theme.hintColor),
           ),
@@ -259,6 +265,7 @@ class PlanMaxO2DepthControl extends StatelessWidget {
           PlanPpO2DepthSlider(
             label: l10n.divePlanner_gasOptions_maxO2DepthMeters,
             value: maxO2DepthMeters ?? defaultMaxO2DepthMeters,
+            units: units,
             onChanged: onChanged,
           ),
         ],
@@ -320,11 +327,17 @@ class PlanPpO2DepthSlider extends StatelessWidget {
     super.key,
     required this.label,
     required this.value,
+    required this.units,
     required this.onChanged,
   });
 
   final String label;
   final double value;
+
+  /// Formats the displayed depth in the diver's unit settings; the slider's
+  /// own grid stays in meters.
+  final UnitFormatter units;
+
   final ValueChanged<double> onChanged;
 
   static const double _min = 3.0;
@@ -333,7 +346,7 @@ class PlanPpO2DepthSlider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final valueText = '${formatRoundedForInput(value, 1)} m';
+    final valueText = units.formatDepth(value, decimals: 1);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
       child: Column(

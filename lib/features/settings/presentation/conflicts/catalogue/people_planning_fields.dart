@@ -265,7 +265,7 @@ final Map<String, ConflictField> peoplePlanningFields = {
   // the diver's Settings toggle (issue #3580); the per-plan counterpart of
   // maxO2DepthMeters itself.
   'maxO2DepthExplicitlyOff': ConflictField(
-    (l) => l.settings_decompression_ppO2BandsDialog_maxO2DepthLabel,
+    (l) => l.settings_conflict_field_maxO2DepthEnabled,
     FieldKind.boolean,
   ),
   'measuredAt': ConflictField(
