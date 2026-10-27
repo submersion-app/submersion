@@ -1,4 +1,4 @@
-import 'package:drift/drift.dart' show Value;
+import 'package:drift/drift.dart';
 
 import 'package:submersion/core/database/database.dart';
 
@@ -80,10 +80,13 @@ class PublishStateStore {
     }
   }
 
-  /// The relay floor served its one export with nothing to say.
-  Future<void> clearRelayFloor(String provider) =>
-      (_db.update(_db.localPublishStates)
-            ..where((t) => t.provider.equals(provider)))
+  /// The relay floor served its one export: cleared, unless it changed
+  /// since [ifEquals] was read.
+  Future<void> clearRelayFloor(String provider, {required String ifEquals}) =>
+      (_db.update(_db.localPublishStates)..where(
+            (t) =>
+                t.provider.equals(provider) & t.relayFloorHlc.equals(ifEquals),
+          ))
           .write(const LocalPublishStatesCompanion(relayFloorHlc: Value(null)));
 
   /// Whether a publish row exists for any provider. Written by the first

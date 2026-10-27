@@ -265,10 +265,10 @@ class ChangesetWriter {
             headSeq: Value(seq),
             publishedHlcHigh: Value(publish.toHlc),
             changesetBytesSinceBase: const Value(0),
-            relayFloorHlc: const Value(null),
             updatedAt: Value(now),
           ),
         );
+        await _clearRelayFloorRead(providerId, relayFloor);
         // A forced base SUPERSEDES an existing log rather than starting one, so
         // the old base parts and changesets are now dead weight -- potentially
         // a whole library's worth. Prune them exactly as compaction does (see
@@ -305,7 +305,7 @@ class ChangesetWriter {
       uploadNonce: uploadNonce,
     );
     if (_isEmpty(payload)) {
-      if (relayFloor != null) await _publishState.clearRelayFloor(providerId);
+      await _clearRelayFloorRead(providerId, relayFloor);
       // Nothing to publish -- but a manifest that goes stale reads as a dead
       // device to peers (retirement) and its acks stop advancing tombstone
       // GC. Rewrite it (contents unchanged, fresh updatedAt + acks) once it
@@ -386,10 +386,10 @@ class ChangesetWriter {
         changesetBytesSinceBase: Value(
           (state?.changesetBytesSinceBase ?? 0) + bytes.length,
         ),
-        relayFloorHlc: const Value(null),
         updatedAt: Value(now),
       ),
     );
+    await _clearRelayFloorRead(providerId, relayFloor);
 
     final bytesSinceBase = (state?.changesetBytesSinceBase ?? 0) + bytes.length;
     final baseBytes = ownManifest?.baseBytes ?? 0;
@@ -469,6 +469,14 @@ class ChangesetWriter {
   /// reader mid-fetch of now-pruned files cold-starts from the new base (their
   /// superset) on the next sync -- self-healing, with no data loss. A time-based
   /// grace remains a possible future optimization to avoid that single re-fetch.
+  /// Clears the relay floor this publish read, and only that one: a floor a
+  /// nearby apply lowered while the publish ran covers rows the publish did
+  /// not export, so it stays for the next one.
+  Future<void> _clearRelayFloorRead(String providerId, String? read) async {
+    if (read == null) return;
+    await _publishState.clearRelayFloor(providerId, ifEquals: read);
+  }
+
   Future<int> _compact({
     required CloudStorageProvider provider,
     required String deviceId,
@@ -544,7 +552,6 @@ class ChangesetWriter {
         headSeq: Value(compSeq),
         publishedHlcHigh: Value(base.toHlc),
         changesetBytesSinceBase: const Value(0),
-        relayFloorHlc: const Value(null),
         updatedAt: Value(now),
       ),
     );

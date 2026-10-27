@@ -1,4 +1,7 @@
+import 'dart:typed_data';
+
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_codec.dart';
@@ -126,4 +129,64 @@ void main() {
     // Cleared: the next publish has nothing to say.
     expect((await publish()).kind, ChangesetWriteKind.noop);
   });
+
+  test('a floor set while a publish is under way survives it (a nearby '
+      'apply recorded during the upload)', () async {
+    final relayed = await seedRelayedDive();
+    // A second relayed dive arrives while the next publish uploads.
+    final during = _UploadHookProvider(provider, () async {
+      await state.pullBackRelayFloor(relayed);
+    });
+    await DiveRepository().createDive(
+      createTestDiveWithBottomTime(id: 'd3', diveNumber: 3),
+    );
+    await Future<void>.delayed(const Duration(milliseconds: 2));
+    await writer.publish(
+      provider: during,
+      deviceId: await SyncRepository().getDeviceId(),
+      folderId: folder,
+      deletions: await SyncRepository().getAllDeletions(),
+    );
+    expect(
+      (await state.get(provider.providerId))!.relayFloorHlc,
+      isNotNull,
+      reason: 'the publish never exported from that floor',
+    );
+    // So the next publish carries the relayed dive.
+    final next = await publish();
+    expect(next.kind, ChangesetWriteKind.changeset);
+    expect(await latestChangesetDiveIds(), contains('d2'));
+  });
+}
+
+/// Delegates to [inner], running [onUpload] once inside the first upload.
+class _UploadHookProvider extends FakeCloudStorageProvider {
+  _UploadHookProvider(this.inner, this.onUpload);
+
+  final FakeCloudStorageProvider inner;
+  Future<void> Function()? onUpload;
+
+  @override
+  String get providerId => inner.providerId;
+
+  @override
+  Future<UploadResult> uploadFile(
+    Uint8List data,
+    String filename, {
+    String? folderId,
+  }) async {
+    final hook = onUpload;
+    onUpload = null;
+    if (hook != null) await hook();
+    return inner.uploadFile(data, filename, folderId: folderId);
+  }
+
+  @override
+  Future<Uint8List> downloadFile(String fileId) => inner.downloadFile(fileId);
+
+  @override
+  Future<List<CloudFileInfo>> listFiles({
+    String? folderId,
+    String? namePattern,
+  }) => inner.listFiles(folderId: folderId, namePattern: namePattern);
 }
