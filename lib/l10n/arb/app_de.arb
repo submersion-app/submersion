@@ -16520,5 +16520,8 @@
   "demo_sealed_note": "Im Demomodus nicht verfügbar",
   "demo_unavailable_title": "Im Demomodus nicht verfügbar",
   "demo_unavailable_body": "Der Demomodus hält das Beispiel-Logbuch von deinen Daten getrennt, daher kann nichts importiert, exportiert, gesichert oder synchronisiert werden.",
-  "demo_row_unavailable": "Im Demomodus nicht verfügbar"
+  "demo_row_unavailable": "Im Demomodus nicht verfügbar",
+  "demo_enter_confirm_title": "Mit Beispieldaten erkunden?",
+  "demo_enter_confirm_body": "Dabei wird ein Beispiel-Logbuch ({size}) heruntergeladen und anstelle deines eigenen geöffnet. Dein Logbuch bleibt unberührt beiseite, bis du den Demomodus beendest.",
+  "demo_enter_confirm_action": "Herunterladen"
 }

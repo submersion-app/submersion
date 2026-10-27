@@ -55876,4 +55876,15 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get demo_row_unavailable => 'Im Demomodus nicht verfügbar';
+
+  @override
+  String get demo_enter_confirm_title => 'Mit Beispieldaten erkunden?';
+
+  @override
+  String demo_enter_confirm_body(String size) {
+    return 'Dabei wird ein Beispiel-Logbuch ($size) heruntergeladen und anstelle deines eigenen geöffnet. Dein Logbuch bleibt unberührt beiseite, bis du den Demomodus beendest.';
+  }
+
+  @override
+  String get demo_enter_confirm_action => 'Herunterladen';
 }

@@ -56761,4 +56761,15 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get demo_row_unavailable => 'غير متاح في الوضع التجريبي';
+
+  @override
+  String get demo_enter_confirm_title => 'الاستكشاف باستخدام بيانات تجريبية؟';
+
+  @override
+  String demo_enter_confirm_body(String size) {
+    return 'سيتم تنزيل سجل تجريبي ($size) وفتحه بدلًا من سجلك. يُحفظ سجلك جانبًا دون أي تغيير حتى تخرج من الوضع التجريبي.';
+  }
+
+  @override
+  String get demo_enter_confirm_action => 'تنزيل';
 }

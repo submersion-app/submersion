@@ -52560,4 +52560,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get demo_row_unavailable => '演示模式下不可用';
+
+  @override
+  String get demo_enter_confirm_title => '使用示例数据体验？';
+
+  @override
+  String demo_enter_confirm_body(String size) {
+    return '这将下载一个示例日志（$size）并用它代替你的日志打开。你的日志会被原封不动地保留，直到你退出演示模式。';
+  }
+
+  @override
+  String get demo_enter_confirm_action => '下载';
 }

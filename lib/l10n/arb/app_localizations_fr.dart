@@ -56121,4 +56121,16 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get demo_row_unavailable => 'Indisponible en mode démo';
+
+  @override
+  String get demo_enter_confirm_title =>
+      'Explorer avec des données d\'exemple ?';
+
+  @override
+  String demo_enter_confirm_body(String size) {
+    return 'Un carnet d\'exemple ($size) sera téléchargé et ouvert à la place du vôtre. Votre carnet est mis de côté, intact, jusqu\'à ce que vous quittiez le mode démo.';
+  }
+
+  @override
+  String get demo_enter_confirm_action => 'Télécharger';
 }

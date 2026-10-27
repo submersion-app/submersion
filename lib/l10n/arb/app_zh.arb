@@ -16395,5 +16395,8 @@
   "demo_sealed_note": "演示模式下不可用",
   "demo_unavailable_title": "演示模式下不可用",
   "demo_unavailable_body": "演示模式会将示例日志与你的数据分开保存，因此无法导入、导出、备份或同步任何内容。",
-  "demo_row_unavailable": "演示模式下不可用"
+  "demo_row_unavailable": "演示模式下不可用",
+  "demo_enter_confirm_title": "使用示例数据体验？",
+  "demo_enter_confirm_body": "这将下载一个示例日志（{size}）并用它代替你的日志打开。你的日志会被原封不动地保留，直到你退出演示模式。",
+  "demo_enter_confirm_action": "下载"
 }

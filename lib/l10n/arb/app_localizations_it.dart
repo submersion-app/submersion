@@ -56000,4 +56000,15 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get demo_row_unavailable => 'Non disponibile in modalità demo';
+
+  @override
+  String get demo_enter_confirm_title => 'Esplorare con dati di esempio?';
+
+  @override
+  String demo_enter_confirm_body(String size) {
+    return 'Verrà scaricato un logbook di esempio ($size) e aperto al posto del tuo. Il tuo logbook resta da parte, intatto, finché non esci dalla modalità demo.';
+  }
+
+  @override
+  String get demo_enter_confirm_action => 'Scarica';
 }

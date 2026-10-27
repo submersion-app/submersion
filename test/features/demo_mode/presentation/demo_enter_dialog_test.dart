@@ -32,7 +32,8 @@ class _ScriptedController extends DemoEnterController {
 void main() {
   late _ScriptedController controller;
 
-  Future<void> open(WidgetTester tester) async {
+  /// Opens the flow, which first asks; [confirm] answers Download.
+  Future<void> open(WidgetTester tester, {bool confirm = true}) async {
     controller = _ScriptedController();
     await tester.pumpWidget(
       ProviderScope(
@@ -42,8 +43,11 @@ void main() {
           supportedLocales: AppLocalizations.supportedLocales,
           home: Builder(
             builder: (context) => TextButton(
-              onPressed: () =>
-                  showDemoEnterDialog(context, fromFirstRun: false),
+              onPressed: () => showDemoEnterDialog(
+                context,
+                fromFirstRun: false,
+                downloadBytes: 12 * 1024 * 1024,
+              ),
               child: const Text('Go'),
             ),
           ),
@@ -51,9 +55,36 @@ void main() {
       ),
     );
     await tester.tap(find.text('Go'));
+    await tester.pumpAndSettle();
+    if (!confirm) return;
+    await tester.tap(find.text('Download'));
     await tester.pump();
-    await tester.pump();
+    // Lets the question finish closing, so only the progress dialog's
+    // buttons remain.
+    await tester.pump(const Duration(seconds: 1));
   }
+
+  testWidgets('asks before downloading, naming the download size', (
+    tester,
+  ) async {
+    await open(tester, confirm: false);
+
+    expect(find.text('Explore with sample data?'), findsOneWidget);
+    expect(find.textContaining('12 MB'), findsOneWidget);
+    expect(controller.starts, 0);
+    expect(find.byType(DemoEnterDialog), findsNothing);
+  });
+
+  testWidgets('Cancel on the question downloads nothing', (tester) async {
+    await open(tester, confirm: false);
+
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+
+    expect(controller.starts, 0);
+    expect(find.text('Explore with sample data?'), findsNothing);
+    expect(find.byType(DemoEnterDialog), findsNothing);
+  });
 
   testWidgets('dialog starts entering and shows download progress', (
     tester,

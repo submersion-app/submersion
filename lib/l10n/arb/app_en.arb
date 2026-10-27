@@ -33034,5 +33034,11 @@
   "demo_unavailable_body": "Demo mode keeps the sample logbook separate from your data, so nothing can be imported, exported, backed up or synced.",
   "@demo_unavailable_body": {"description": "Demo mode (issue #3708)"},
   "demo_row_unavailable": "Unavailable in demo mode",
-  "@demo_row_unavailable": {"description": "Demo mode (issue #3708)"}
+  "@demo_row_unavailable": {"description": "Demo mode (issue #3708)"},
+  "demo_enter_confirm_title": "Explore with sample data?",
+  "@demo_enter_confirm_title": {"description": "Demo mode: asks before downloading the sample logbook (issue #3736)"},
+  "demo_enter_confirm_body": "This downloads a sample logbook ({size}) and opens it in place of your own. Your logbook is set aside, untouched, until you exit demo mode.",
+  "@demo_enter_confirm_body": {"description": "Demo mode: asks before downloading the sample logbook (issue #3736)", "placeholders": {"size": {"type": "String", "example": "12 MB"}}},
+  "demo_enter_confirm_action": "Download",
+  "@demo_enter_confirm_action": {"description": "Demo mode: asks before downloading the sample logbook (issue #3736)"}
 }

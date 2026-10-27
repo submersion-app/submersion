@@ -16395,5 +16395,8 @@
   "demo_sealed_note": "Non disponibile in modalità demo",
   "demo_unavailable_title": "Non disponibile in modalità demo",
   "demo_unavailable_body": "La modalità demo tiene il logbook di esempio separato dai tuoi dati, quindi non è possibile importare, esportare, eseguire il backup o sincronizzare nulla.",
-  "demo_row_unavailable": "Non disponibile in modalità demo"
+  "demo_row_unavailable": "Non disponibile in modalità demo",
+  "demo_enter_confirm_title": "Esplorare con dati di esempio?",
+  "demo_enter_confirm_body": "Verrà scaricato un logbook di esempio ({size}) e aperto al posto del tuo. Il tuo logbook resta da parte, intatto, finché non esci dalla modalità demo.",
+  "demo_enter_confirm_action": "Scarica"
 }

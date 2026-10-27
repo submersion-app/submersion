@@ -54828,4 +54828,15 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get demo_row_unavailable => 'לא זמין במצב הדגמה';
+
+  @override
+  String get demo_enter_confirm_title => 'לסייר עם נתוני דוגמה?';
+
+  @override
+  String demo_enter_confirm_body(String size) {
+    return 'פעולה זו תוריד יומן דוגמה ($size) ותפתח אותו במקום היומן שלכם. היומן שלכם נשמר בצד, ללא שינוי, עד שתצאו ממצב ההדגמה.';
+  }
+
+  @override
+  String get demo_enter_confirm_action => 'הורדה';
 }

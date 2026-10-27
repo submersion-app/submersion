@@ -80,11 +80,18 @@ void main() {
     expect(find.text('Explore with sample data'), findsOneWidget);
   });
 
-  testWidgets('tapping it opens the entering dialog', (tester) async {
+  testWidgets('tapping it asks first, then Download opens the entering '
+      'dialog', (tester) async {
     await pumpPage(tester, _package);
 
     await tester.ensureVisible(find.text('Explore with sample data'));
     await tester.tap(find.text('Explore with sample data'));
+    await pumpWizard(tester);
+
+    expect(find.text('Explore with sample data?'), findsOneWidget);
+    expect(find.byType(DemoEnterDialog), findsNothing);
+
+    await tester.tap(find.text('Download'));
     await pumpWizard(tester);
 
     expect(find.byType(DemoEnterDialog), findsOneWidget);

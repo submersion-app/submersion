@@ -88423,6 +88423,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unavailable in demo mode'**
   String get demo_row_unavailable;
+
+  /// Demo mode: asks before downloading the sample logbook (issue #3736)
+  ///
+  /// In en, this message translates to:
+  /// **'Explore with sample data?'**
+  String get demo_enter_confirm_title;
+
+  /// Demo mode: asks before downloading the sample logbook (issue #3736)
+  ///
+  /// In en, this message translates to:
+  /// **'This downloads a sample logbook ({size}) and opens it in place of your own. Your logbook is set aside, untouched, until you exit demo mode.'**
+  String demo_enter_confirm_body(String size);
+
+  /// Demo mode: asks before downloading the sample logbook (issue #3736)
+  ///
+  /// In en, this message translates to:
+  /// **'Download'**
+  String get demo_enter_confirm_action;
 }
 
 class _AppLocalizationsDelegate

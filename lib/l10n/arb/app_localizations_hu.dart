@@ -55684,4 +55684,15 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get demo_row_unavailable => 'Demó módban nem érhető el';
+
+  @override
+  String get demo_enter_confirm_title => 'Felfedezed mintaadatokkal?';
+
+  @override
+  String demo_enter_confirm_body(String size) {
+    return 'Ez letölt egy mintanaplót ($size), és a saját naplód helyett megnyitja. A naplód érintetlenül félre van téve, amíg ki nem lépsz a demó módból.';
+  }
+
+  @override
+  String get demo_enter_confirm_action => 'Letöltés';
 }

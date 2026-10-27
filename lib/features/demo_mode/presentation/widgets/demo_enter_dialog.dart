@@ -1,23 +1,47 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:submersion/core/utils/byte_format.dart';
 import 'package:submersion/features/demo_mode/data/demo_database_preparer.dart';
 import 'package:submersion/features/demo_mode/data/demo_mode_service.dart';
 import 'package:submersion/features/demo_mode/presentation/providers/demo_mode_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// Downloads and opens the sample logbook, showing progress. On success the
-/// app restarts into demo mode and this dialog goes with the old screen; on
+/// Asks first, naming the [downloadBytes] the sample logbook costs (#3736),
+/// then downloads and opens it, showing progress. On success the app
+/// restarts into demo mode and this dialog goes with the old screen; on
 /// failure it explains and offers Retry; Cancel stops the download and leaves
 /// everything as it was.
 Future<void> showDemoEnterDialog(
   BuildContext context, {
   required bool fromFirstRun,
+  required int downloadBytes,
   DemoUnitSettings? units,
-}) => showDialog<void>(
-  context: context,
-  barrierDismissible: false,
-  builder: (_) => DemoEnterDialog(fromFirstRun: fromFirstRun, units: units),
-);
+}) async {
+  final l10n = context.l10n;
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: Text(l10n.demo_enter_confirm_title),
+      content: Text(l10n.demo_enter_confirm_body(formatBytes(downloadBytes))),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(dialogContext).pop(false),
+          child: Text(l10n.common_action_cancel),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.of(dialogContext).pop(true),
+          child: Text(l10n.demo_enter_confirm_action),
+        ),
+      ],
+    ),
+  );
+  if (confirmed != true || !context.mounted) return;
+  await showDialog<void>(
+    context: context,
+    barrierDismissible: false,
+    builder: (_) => DemoEnterDialog(fromFirstRun: fromFirstRun, units: units),
+  );
+}
 
 class DemoEnterDialog extends ConsumerStatefulWidget {
   const DemoEnterDialog({super.key, required this.fromFirstRun, this.units});
