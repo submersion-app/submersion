@@ -7,6 +7,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
+import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/documents/data/services/document_page_capture.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
@@ -202,6 +204,9 @@ class _DocumentEditPageState extends ConsumerState<DocumentEditPage> {
   /// Asks where the page comes from, captures it, and puts it in the slot
   /// [side] names (replacing what was there) or at the end.
   Future<void> _addPage(DocumentPageSide? side) async {
+    if (!demoSealGuard(context, DemoSealedFeature.mediaImport)) {
+      return;
+    }
     final l10n = context.l10n;
     final messenger = ScaffoldMessenger.of(context);
     final canUseCamera = Platform.isAndroid || Platform.isIOS;

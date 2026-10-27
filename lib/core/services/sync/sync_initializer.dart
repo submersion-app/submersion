@@ -12,6 +12,7 @@ import 'package:submersion/core/services/sync/sync_clock.dart';
 import 'package:submersion/core/services/sync/sync_preferences.dart'
     show syncLastProviderPrefsKey;
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The cloud provider the foreground app last selected, as recorded in
@@ -144,6 +145,9 @@ class SyncInitializer {
   ///
   /// Never throws: a reconcile failure must not block app launch.
   Future<DeviceIdentityStatus> reconcileDeviceIdentity() async {
+    // The open database is the sample logbook, not the one the anchors
+    // describe; comparing them would read as a restore (issue #3708).
+    if (DemoModeGate.instance.isActive) return DeviceIdentityStatus.demoMode;
     try {
       final deviceId = await _syncRepository.getDeviceId();
       final dbToken = await _syncRepository.getInstanceToken();
@@ -603,6 +607,10 @@ enum DeviceIdentityStatus {
   /// or a changed device id: a restore replaced the database. Sync was
   /// re-baselined and the live identity restored.
   rebaselined,
+
+  /// Demo mode is on, so the open database is the sample logbook and nothing
+  /// was compared, seeded or rotated (issue #3708).
+  demoMode,
 
   /// The anchors named a previous install, but the on-disk database has no
   /// sync history at all: a fresh install on a machine whose preferences

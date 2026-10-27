@@ -11,6 +11,8 @@ import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_providers.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 
 /// What the library sync is doing and how each library's last run ended.
 class SharedLibrarySyncState {
@@ -95,6 +97,7 @@ class SharedLibrarySyncNotifier extends StateNotifier<SharedLibrarySyncState> {
   /// this device, one after the other. A call made while one runs is
   /// folded into one more run afterwards.
   Future<void> syncAll({bool auto = false}) async {
+    if (DemoModeGate.instance.isActive) return;
     if (_inFlight) {
       _queued = true;
       return;
@@ -181,6 +184,7 @@ class SharedLibrarySyncNotifier extends StateNotifier<SharedLibrarySyncState> {
 
   /// One library, now.
   Future<SharedLibrarySyncResult> syncOne(String libraryId) async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.sharedLibrary);
     final diverId = await _ref.read(validatedCurrentDiverIdProvider.future);
     if (diverId == null) {
       return const SharedLibrarySyncResult(

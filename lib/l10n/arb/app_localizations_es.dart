@@ -56128,4 +56128,67 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get setup_syncPull_startFresh => 'Empezar un nuevo diario';
+
+  @override
+  String get demo_welcome_title => 'Explorar con datos de ejemplo';
+
+  @override
+  String get demo_welcome_subtitle =>
+      'Recorre un diario de inmersiones de ejemplo completo antes de introducir el tuyo';
+
+  @override
+  String get demo_settings_enter_title => 'Explorar con datos de ejemplo';
+
+  @override
+  String get demo_settings_enter_subtitle =>
+      'Tu diario se guarda aparte, intacto, hasta que salgas';
+
+  @override
+  String get demo_settings_exit_title => 'Salir de la demo';
+
+  @override
+  String get demo_settings_exit_subtitle =>
+      'Descartar el diario de ejemplo y volver al tuyo';
+
+  @override
+  String get demo_strip_label => 'Modo demo: estás explorando datos de ejemplo';
+
+  @override
+  String get demo_strip_exit => 'Salir de la demo';
+
+  @override
+  String get demo_exit_confirm_title => '¿Salir del modo demo?';
+
+  @override
+  String get demo_exit_confirm_body =>
+      'Se descartarán los cambios que hayas hecho en el diario de ejemplo.';
+
+  @override
+  String get demo_exit_confirm_action => 'Salir de la demo';
+
+  @override
+  String get demo_enter_downloading => 'Descargando el diario de ejemplo';
+
+  @override
+  String get demo_enter_preparing => 'Preparando el diario de ejemplo';
+
+  @override
+  String get demo_enter_opening => 'Abriendo el diario de ejemplo';
+
+  @override
+  String get demo_enter_failed =>
+      'No se pudo descargar el diario de ejemplo. Comprueba tu conexión e inténtalo de nuevo.';
+
+  @override
+  String get demo_sealed_note => 'No disponible en el modo demo';
+
+  @override
+  String get demo_unavailable_title => 'No disponible en el modo demo';
+
+  @override
+  String get demo_unavailable_body =>
+      'El modo demo mantiene el diario de ejemplo separado de tus datos, así que no se puede importar, exportar, respaldar ni sincronizar nada.';
+
+  @override
+  String get demo_row_unavailable => 'No disponible en el modo demo';
 }

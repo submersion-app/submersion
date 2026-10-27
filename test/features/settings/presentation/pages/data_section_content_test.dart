@@ -29,7 +29,11 @@ import 'package:submersion/features/settings/presentation/widgets/data_health/da
 import 'package:submersion/features/settings/presentation/widgets/data_health/health_symbol.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_list_content.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
+import 'package:submersion/features/demo_mode/domain/demo_manifest.dart';
+import 'package:submersion/features/demo_mode/presentation/providers/demo_mode_providers.dart';
 
+import '../../../../helpers/global_test_defaults.dart';
 import '../../../../helpers/mock_providers.dart';
 import '../../set_up_progress_fixture.dart';
 
@@ -67,6 +71,8 @@ void main() {
     double textScale = 1,
     bool storeAttachedHere = false,
     SetUpProgress? setUp,
+    DemoPackage? demoPackage,
+    Future<void> Function()? exitDemo,
   }) async {
     // MediaQuery follows the view, which the layout breakpoints read.
     tester.view.devicePixelRatio = 1;
@@ -116,6 +122,7 @@ void main() {
             lastSync: lastSync,
             syncPeerNames: peers,
             mediaStoreAttachedHere: storeAttachedHere,
+            demoPackage: demoPackage,
           ),
           logFileServiceProvider.overrideWithValue(
             LogFileService(logDirectory: logDir.path),
@@ -125,6 +132,8 @@ void main() {
           pendingSetupItemsProvider.overrideWith((ref) async => const []),
           // The flow opened in the pane lists the accounts.
           accountGroupsProvider.overrideWith((ref) async => const []),
+          if (exitDemo != null)
+            demoExitActionProvider.overrideWithValue(exitDemo),
         ],
         child: MaterialApp.router(
           locale: const Locale('en'),
@@ -542,5 +551,91 @@ void main() {
 
     expect(find.text('Copies are not kept in the cloud'), findsOneWidget);
     expect(markBeside('Photos & videos'), findsNothing);
+  });
+
+  group('demo mode (#3708)', () {
+    final package = DemoPackage(
+      schemaVersion: 1,
+      url: Uri.parse('https://example.com/demo.zip'),
+      sha256: 'a' * 64,
+      size: 10,
+      generatedAt: DateTime.utc(2026, 10, 20),
+    );
+
+    tearDown(applyGlobalTestDefaults);
+
+    testWidgets(
+      'shows Explore with sample data when available and not in demo mode',
+      (tester) async {
+        await pumpData(tester, demoPackage: package);
+
+        expect(find.text('Explore with sample data'), findsOneWidget);
+        expect(find.text('Exit demo'), findsNothing);
+      },
+    );
+
+    testWidgets('hides it when no sample logbook is available', (tester) async {
+      await pumpData(tester);
+
+      expect(find.text('Explore with sample data'), findsNothing);
+    });
+
+    testWidgets(
+      'in demo mode shows Exit demo, and the sealed rows are disabled with '
+      'the note',
+      (tester) async {
+        DemoModeGate.instance.debugActive = true;
+
+        await pumpData(tester, demoPackage: package);
+
+        expect(find.text('Exit demo'), findsOneWidget);
+        expect(find.text('Explore with sample data'), findsNothing);
+        for (final title in [
+          'Backups',
+          'Sync between devices',
+          'Photos & videos',
+          'Shared site libraries',
+          'Connected accounts',
+          'Database storage',
+        ]) {
+          final tile = tester.widget<ListTile>(
+            find.ancestor(
+              of: find.text(title),
+              matching: find.byType(ListTile),
+            ),
+          );
+          expect(tile.enabled, isFalse, reason: title);
+        }
+        expect(find.text('Unavailable in demo mode'), findsNWidgets(6));
+        expect(find.byType(SetUpDeviceCard), findsNothing);
+        // The health strip would only recommend sealed backups and sync.
+        expect(find.byType(DataHealthStrip), findsNothing);
+      },
+    );
+
+    testWidgets('Exit demo asks for confirmation and exits only on confirm', (
+      tester,
+    ) async {
+      DemoModeGate.instance.debugActive = true;
+      var exits = 0;
+      await pumpData(
+        tester,
+        demoPackage: package,
+        exitDemo: () async => exits++,
+      );
+
+      await tester.tap(find.text('Exit demo'));
+      await tester.pumpAndSettle();
+      expect(find.text('Exit demo mode?'), findsOneWidget);
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+      expect(exits, 0);
+
+      await tester.tap(find.text('Exit demo'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Exit demo').last);
+      await tester.pumpAndSettle();
+      expect(exits, 1);
+    });
   });
 }

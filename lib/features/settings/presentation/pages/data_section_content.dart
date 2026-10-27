@@ -19,6 +19,10 @@ import 'package:submersion/features/settings/presentation/widgets/set_up_device/
 import 'package:submersion/features/settings/presentation/widgets/settings_section_helpers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/utils/device_kind.dart';
+import 'package:submersion/features/demo_mode/presentation/providers/demo_mode_providers.dart';
+import 'package:submersion/features/demo_mode/presentation/widgets/demo_enter_dialog.dart';
+import 'package:submersion/features/demo_mode/presentation/widgets/demo_exit_confirm.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// Settings > Data: the health strip, the Set up this device card and the
 /// facts line (#3390, #3482), then the five "Your data" rows, each with the
@@ -78,6 +82,11 @@ class _DataSectionContentState extends ConsumerState<DataSectionContent> {
       setUpProgressProvider.select((p) => p != null && !p.showsSteps),
     );
 
+    // Demo mode (issue #3708): features that would reach the user's real
+    // data stay visible but unavailable.
+    final demoActive = ref.watch(demoModeActiveProvider);
+    final demoPackage = ref.watch(demoAvailabilityProvider).value;
+
     Widget feature({
       required IconData icon,
       required String title,
@@ -90,6 +99,7 @@ class _DataSectionContentState extends ConsumerState<DataSectionContent> {
       title: title,
       subtitle: dataRowStatusText(l10n, status, now),
       route: route,
+      enabled: !demoActive,
       health: healthOf == null || !status.showsHealthMark
           ? null
           : health[healthOf],
@@ -101,18 +111,28 @@ class _DataSectionContentState extends ConsumerState<DataSectionContent> {
       IconData icon,
       String title,
       String subtitle,
-      String route,
-    ) =>
-        DataRowTile(icon: icon, title: title, subtitle: subtitle, route: route);
+      String route, {
+      bool sealed = false,
+    }) => DataRowTile(
+      icon: icon,
+      title: title,
+      subtitle: subtitle,
+      route: route,
+      enabled: !(sealed && demoActive),
+    );
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const DataHealthStrip(),
-          const SizedBox(height: 12),
-          const SetUpDeviceCard(margin: EdgeInsets.only(bottom: 12)),
+          // In demo mode the strip could only recommend sealed backups and
+          // sync, so it goes with the set-up card.
+          if (!demoActive) ...[
+            const DataHealthStrip(),
+            const SizedBox(height: 12),
+            const SetUpDeviceCard(margin: EdgeInsets.only(bottom: 12)),
+          ],
           const DataFactsLine(),
           const SizedBox(height: 12),
           const Divider(height: 1),
@@ -162,6 +182,24 @@ class _DataSectionContentState extends ConsumerState<DataSectionContent> {
             status: ref.watch(accountsRowStatusProvider),
             route: '/settings/connected-accounts',
           ),
+          if (demoActive)
+            DataRowTile(
+              icon: Icons.logout,
+              title: l10n.demo_settings_exit_title,
+              subtitle: l10n.demo_settings_exit_subtitle,
+              onTap: () => confirmAndExitDemo(context, ref),
+            )
+          else if (demoPackage != null)
+            DataRowTile(
+              icon: Icons.explore_outlined,
+              title: l10n.demo_settings_enter_title,
+              subtitle: l10n.demo_settings_enter_subtitle,
+              onTap: () => showDemoEnterDialog(
+                context,
+                fromFirstRun: false,
+                units: demoUnitsFromSettings(ref.read(settingsProvider)),
+              ),
+            ),
           const SizedBox(height: 16),
           _header(context, l10n.settings_data_header_advanced),
           advanced(
@@ -171,6 +209,7 @@ class _DataSectionContentState extends ConsumerState<DataSectionContent> {
                 ? l10n.settings_data_customFolder
                 : l10n.settings_data_appDefaultLocation,
             '/settings/storage',
+            sealed: true,
           ),
           advanced(
             Icons.cloud_download,
@@ -192,7 +231,7 @@ class _DataSectionContentState extends ConsumerState<DataSectionContent> {
           ),
           // Reopens the flow from its first step once the card is hidden or
           // complete; a hidden card shows again.
-          if (offerSetUpAgain)
+          if (offerSetUpAgain && !demoActive)
             DataRowTile(
               icon: Icons.restart_alt,
               title: l10n.settings_setUpDevice_again(

@@ -18,6 +18,8 @@ import 'package:submersion/features/dive_sites/domain/entry_method_list.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_session.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 import 'package:submersion/core/text/markdown/notes_plain_text.dart';
 
 /// Handles Excel export with multiple worksheet sheets.
@@ -201,6 +203,8 @@ class ExcelExportService {
 
     final dateStr = _dateFormat.format(DateTime.now());
     final fileName = 'submersion_export_$dateStr.xlsx';
+
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.export);
 
     final result = await FilePicker.saveFile(
       dialogTitle: 'Save Excel File',

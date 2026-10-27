@@ -10,6 +10,8 @@ import 'package:submersion/features/media/data/services/local_media_metadata.dar
 import 'package:submersion/features/media/data/services/photo_picker_service.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_metadata.dart';
 import 'package:submersion/features/media/domain/value_objects/taken_at_source.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 
 /// Photo picker implementation for Windows and Linux using image_picker.
 ///
@@ -55,6 +57,7 @@ class PhotoPickerServiceDesktop implements PhotoPickerService {
   ) async {
     // Desktop doesn't support date-filtered gallery browsing.
     // Instead, open a multi-file picker dialog.
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.mediaImport);
     final files = await _picker.pickMultipleMedia();
 
     if (files.isEmpty) {

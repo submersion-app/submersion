@@ -13,6 +13,8 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/domain/entry_method_list.dart';
 import 'package:submersion/features/gps_log/domain/entities/gps_track.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 import 'package:submersion/core/text/markdown/notes_plain_text.dart';
 
 /// Handles KML export for Google Earth visualization.
@@ -81,6 +83,8 @@ class KmlExportService {
 
     final dateStr = _dateFormat.format(DateTime.now());
     final fileName = 'submersion_sites_$dateStr.kml';
+
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.export);
 
     final result = await FilePicker.saveFile(
       dialogTitle: 'Save KML File',

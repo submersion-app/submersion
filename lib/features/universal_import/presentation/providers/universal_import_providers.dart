@@ -58,6 +58,8 @@ import 'package:submersion/core/services/files/picked_file_materializer.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 
 export 'package:submersion/features/universal_import/presentation/providers/universal_import_state.dart';
 
@@ -608,6 +610,7 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
   /// out before triage. When several Garmin volumes are mounted the first is
   /// used.
   Future<void> importFromGarminDevice() async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.cloudImport);
     state = state.copyWith(
       isLoading: true,
       clearError: true,

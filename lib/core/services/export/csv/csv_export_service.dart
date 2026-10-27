@@ -24,6 +24,8 @@ import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/entities/trip_gas_record.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 import 'package:submersion/core/text/markdown/notes_plain_text.dart';
 
 /// Handles all CSV export operations: share, generate content, and save to file.
@@ -140,6 +142,8 @@ class CsvExportService {
     final dateStr = _dateFormat.format(DateTime.now());
     final fileName = 'observations_export_$dateStr.csv';
 
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.export);
+
     final result = await FilePicker.saveFile(
       dialogTitle: dialogTitle,
       fileName: fileName,
@@ -247,6 +251,8 @@ class CsvExportService {
     final dateStr = _dateFormat.format(DateTime.now());
     final fileName = 'dives_export_$dateStr.csv';
 
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.export);
+
     final result = await FilePicker.saveFile(
       dialogTitle: dialogTitle,
       fileName: fileName,
@@ -278,6 +284,8 @@ class CsvExportService {
     final dateStr = _dateFormat.format(DateTime.now());
     final fileName = 'sites_export_$dateStr.csv';
 
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.export);
+
     final result = await FilePicker.saveFile(
       dialogTitle: dialogTitle,
       fileName: fileName,
@@ -308,6 +316,8 @@ class CsvExportService {
     );
     final dateStr = _dateFormat.format(DateTime.now());
     final fileName = 'equipment_export_$dateStr.csv';
+
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.export);
 
     final result = await FilePicker.saveFile(
       dialogTitle: dialogTitle,
@@ -360,6 +370,8 @@ class CsvExportService {
     final dateStr = _dateFormat.format(DateTime.now());
     final fileName = 'fills_export_$dateStr.csv';
 
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.export);
+
     final result = await FilePicker.saveFile(
       dialogTitle: dialogTitle,
       fileName: fileName,
@@ -408,6 +420,7 @@ class CsvExportService {
     required String dialogTitle,
     CsvExportUnits units = CsvExportUnits.metric,
   }) async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.export);
     final result = await FilePicker.saveFile(
       dialogTitle: dialogTitle,
       fileName: tripGasRecordFileName(tripName, DateTime.now()),

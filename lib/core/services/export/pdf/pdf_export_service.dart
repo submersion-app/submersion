@@ -26,6 +26,8 @@ import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.
 import 'package:submersion/features/signatures/data/services/signature_storage_service.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_notes_markdown.dart';
 
 /// Handles PDF export for dive logbooks and trip reports.
@@ -369,6 +371,7 @@ class PdfExportService {
   /// the selected detail level instead of falling back to the legacy
   /// single-layout builder (#644).
   Future<String?> savePdfBytesToFile(List<int> bytes, String fileName) async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.export);
     final saveResult = await FilePicker.saveFile(
       dialogTitle: 'Save PDF File',
       fileName: fileName,

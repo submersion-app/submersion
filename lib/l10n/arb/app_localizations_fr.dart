@@ -56205,4 +56205,69 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get setup_syncPull_startFresh => 'Commencer un nouveau carnet';
+
+  @override
+  String get demo_welcome_title => 'Explorer avec des données d\'exemple';
+
+  @override
+  String get demo_welcome_subtitle =>
+      'Parcourez un carnet de plongée d\'exemple complet avant de saisir le vôtre';
+
+  @override
+  String get demo_settings_enter_title =>
+      'Explorer avec des données d\'exemple';
+
+  @override
+  String get demo_settings_enter_subtitle =>
+      'Votre carnet est mis de côté, intact, jusqu\'à votre sortie';
+
+  @override
+  String get demo_settings_exit_title => 'Quitter la démo';
+
+  @override
+  String get demo_settings_exit_subtitle =>
+      'Abandonner le carnet d\'exemple et revenir au vôtre';
+
+  @override
+  String get demo_strip_label =>
+      'Mode démo : vous explorez des données d\'exemple';
+
+  @override
+  String get demo_strip_exit => 'Quitter la démo';
+
+  @override
+  String get demo_exit_confirm_title => 'Quitter le mode démo ?';
+
+  @override
+  String get demo_exit_confirm_body =>
+      'Les modifications apportées au carnet d\'exemple seront perdues.';
+
+  @override
+  String get demo_exit_confirm_action => 'Quitter la démo';
+
+  @override
+  String get demo_enter_downloading => 'Téléchargement du carnet d\'exemple';
+
+  @override
+  String get demo_enter_preparing => 'Préparation du carnet d\'exemple';
+
+  @override
+  String get demo_enter_opening => 'Ouverture du carnet d\'exemple';
+
+  @override
+  String get demo_enter_failed =>
+      'Le carnet d\'exemple n\'a pas pu être téléchargé. Vérifiez votre connexion et réessayez.';
+
+  @override
+  String get demo_sealed_note => 'Indisponible en mode démo';
+
+  @override
+  String get demo_unavailable_title => 'Indisponible en mode démo';
+
+  @override
+  String get demo_unavailable_body =>
+      'Le mode démo garde le carnet d\'exemple séparé de vos données : rien ne peut être importé, exporté, sauvegardé ni synchronisé.';
+
+  @override
+  String get demo_row_unavailable => 'Indisponible en mode démo';
 }

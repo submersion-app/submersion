@@ -46,6 +46,7 @@ const harnessDefaults = [
   'DerivedMetricsScheduler.enabled',
   'debugCanShareFiles',
   'GoogleFonts.config.allowRuntimeFetching',
+  'DemoModeGate.instance.debugActive',
 ];
 
 /// Channels whose mock handlers change what the path provider and the share

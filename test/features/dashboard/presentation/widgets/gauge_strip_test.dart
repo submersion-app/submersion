@@ -13,6 +13,7 @@ import 'package:submersion/features/certifications/presentation/providers/certif
 import 'package:submersion/features/certifications/presentation/providers/certification_query_providers.dart';
 import 'package:submersion/features/dashboard/presentation/providers/gauge_providers.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/gauge_strip.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_filter_state.dart';
@@ -28,6 +29,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/features/documents/domain/document_expiry.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 
+import '../../../../helpers/global_test_defaults.dart';
 import '../../../../helpers/mock_providers.dart';
 
 final _t0 = DateTime(2026, 1, 1);
@@ -1133,6 +1135,16 @@ void main() {
   });
 
   group('backup chip', () {
+    tearDown(applyGlobalTestDefaults);
+
+    testWidgets('hidden in demo mode, where backups are sealed (#3708)', (
+      tester,
+    ) async {
+      DemoModeGate.instance.debugActive = true;
+      await pumpStrip(tester, _emptyGauges);
+      expect(find.text('No backup yet'), findsNothing);
+    });
+
     testWidgets('no backup yet navigates to backup settings', (tester) async {
       final spy = await pumpStrip(tester, _emptyGauges);
       expect(find.text('No backup yet'), findsOneWidget);

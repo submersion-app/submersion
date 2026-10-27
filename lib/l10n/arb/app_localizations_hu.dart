@@ -55768,4 +55768,67 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get setup_syncPull_startFresh => 'Új napló kezdése';
+
+  @override
+  String get demo_welcome_title => 'Felfedezés mintaadatokkal';
+
+  @override
+  String get demo_welcome_subtitle =>
+      'Nézz körül egy teljes minta merülési naplóban, mielőtt a sajátodat felviszed';
+
+  @override
+  String get demo_settings_enter_title => 'Felfedezés mintaadatokkal';
+
+  @override
+  String get demo_settings_enter_subtitle =>
+      'A naplód érintetlenül félre van téve, amíg ki nem lépsz';
+
+  @override
+  String get demo_settings_exit_title => 'Kilépés a demóból';
+
+  @override
+  String get demo_settings_exit_subtitle =>
+      'A mintanapló elvetése és visszatérés a sajátodhoz';
+
+  @override
+  String get demo_strip_label => 'Demó mód: mintaadatokat böngészel';
+
+  @override
+  String get demo_strip_exit => 'Kilépés a demóból';
+
+  @override
+  String get demo_exit_confirm_title => 'Kilépsz a demó módból?';
+
+  @override
+  String get demo_exit_confirm_body =>
+      'A mintanaplóban végzett módosítások elvesznek.';
+
+  @override
+  String get demo_exit_confirm_action => 'Kilépés a demóból';
+
+  @override
+  String get demo_enter_downloading => 'Mintanapló letöltése';
+
+  @override
+  String get demo_enter_preparing => 'Mintanapló előkészítése';
+
+  @override
+  String get demo_enter_opening => 'Mintanapló megnyitása';
+
+  @override
+  String get demo_enter_failed =>
+      'A mintanaplót nem sikerült letölteni. Ellenőrizd a kapcsolatot, és próbáld újra.';
+
+  @override
+  String get demo_sealed_note => 'Demó módban nem érhető el';
+
+  @override
+  String get demo_unavailable_title => 'Demó módban nem érhető el';
+
+  @override
+  String get demo_unavailable_body =>
+      'A demó mód elkülöníti a mintanaplót az adataidtól, ezért semmit sem lehet importálni, exportálni, menteni vagy szinkronizálni.';
+
+  @override
+  String get demo_row_unavailable => 'Demó módban nem érhető el';
 }

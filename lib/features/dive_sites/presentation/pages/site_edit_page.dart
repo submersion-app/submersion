@@ -57,6 +57,8 @@ import 'package:submersion/core/data/visibility/item_sharing.dart';
 import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
 import 'package:submersion/shared/widgets/shared_items/item_sharing_row.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 
 const _log = LoggerService('siteEditPage');
 
@@ -2067,6 +2069,9 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     DiveSite site,
     bool classificationChanged,
   ) async {
+    if (!demoSealGuard(context, DemoSealedFeature.sharedLibrary)) {
+      return;
+    }
     final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
     if (diverId == null || !mounted) return;
     final savedPrivate = await _savePrivateFields(site, diverId);

@@ -62,6 +62,7 @@ import 'package:submersion/core/utils/coordinates/coordinate_format.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/nav_customization_tile.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/features/demo_mode/presentation/providers/demo_mode_providers.dart';
 
 import '../../../../support/fake_app_settings_repository.dart';
 
@@ -921,6 +922,8 @@ void main() {
       currentDiverProvider.overrideWith((ref) async => null),
       // Mock diverListNotifierProvider
       diverListNotifierProvider.overrideWith((ref) => _MockDiverListNotifier()),
+      // No sample logbook: the real manifest fetch would reach the network.
+      demoAvailabilityProvider.overrideWith((ref) async => null),
     ];
   }
 

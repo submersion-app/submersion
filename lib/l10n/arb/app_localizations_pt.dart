@@ -56076,4 +56076,68 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get setup_syncPull_startFresh => 'Começar um novo registo';
+
+  @override
+  String get demo_welcome_title => 'Explorar com dados de exemplo';
+
+  @override
+  String get demo_welcome_subtitle =>
+      'Conheça um diário de mergulho de exemplo completo antes de introduzir o seu';
+
+  @override
+  String get demo_settings_enter_title => 'Explorar com dados de exemplo';
+
+  @override
+  String get demo_settings_enter_subtitle =>
+      'O seu diário fica de lado, intacto, até sair';
+
+  @override
+  String get demo_settings_exit_title => 'Sair da demonstração';
+
+  @override
+  String get demo_settings_exit_subtitle =>
+      'Descartar o diário de exemplo e voltar ao seu';
+
+  @override
+  String get demo_strip_label =>
+      'Modo de demonstração: está a explorar dados de exemplo';
+
+  @override
+  String get demo_strip_exit => 'Sair da demonstração';
+
+  @override
+  String get demo_exit_confirm_title => 'Sair do modo de demonstração?';
+
+  @override
+  String get demo_exit_confirm_body =>
+      'As alterações feitas no diário de exemplo serão descartadas.';
+
+  @override
+  String get demo_exit_confirm_action => 'Sair da demonstração';
+
+  @override
+  String get demo_enter_downloading => 'A transferir o diário de exemplo';
+
+  @override
+  String get demo_enter_preparing => 'A preparar o diário de exemplo';
+
+  @override
+  String get demo_enter_opening => 'A abrir o diário de exemplo';
+
+  @override
+  String get demo_enter_failed =>
+      'Não foi possível transferir o diário de exemplo. Verifique a ligação e tente novamente.';
+
+  @override
+  String get demo_sealed_note => 'Indisponível no modo de demonstração';
+
+  @override
+  String get demo_unavailable_title => 'Indisponível no modo de demonstração';
+
+  @override
+  String get demo_unavailable_body =>
+      'O modo de demonstração mantém o diário de exemplo separado dos seus dados, por isso nada pode ser importado, exportado, copiado ou sincronizado.';
+
+  @override
+  String get demo_row_unavailable => 'Indisponível no modo de demonstração';
 }

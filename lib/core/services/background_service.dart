@@ -23,6 +23,7 @@ import 'package:submersion/features/equipment/data/repositories/equipment_reposi
 import 'package:submersion/features/notifications/data/repositories/scheduled_notification_repository.dart';
 import 'package:submersion/features/notifications/data/services/notification_scheduler.dart';
 import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
+import 'package:submersion/features/demo_mode/data/demo_paths.dart';
 
 const String kNotificationRefreshTask = 'com.submersion.notificationRefresh';
 const String kBackupTask = 'com.submersion.backup';
@@ -137,6 +138,13 @@ Future<bool> openHeadlessDatabase({LoggerService? log}) async {
   }
 }
 
+/// Whether background work must stand down because demo mode is in any
+/// phase: entering, exploring the sample logbook, or leaving it. A
+/// synchronous stat of the demo directory, so it costs nothing when demo
+/// mode has never been used.
+bool backgroundWorkBlockedByDemoMode(DemoPaths paths) =>
+    Directory(paths.root).existsSync();
+
 /// Callback for Workmanager background tasks
 @pragma('vm:entry-point')
 void callbackDispatcher() {
@@ -146,6 +154,14 @@ void callbackDispatcher() {
 
     try {
       final prefs = await SharedPreferences.getInstance();
+
+      // Demo mode (issue #3708): the open database may be the sample logbook,
+      // and nothing in it may be backed up or raise a reminder. Checked before
+      // any database is located or opened.
+      if (backgroundWorkBlockedByDemoMode(await DemoPaths.resolve())) {
+        log.info('Background task skipped: demo mode is on.');
+        return true;
+      }
 
       // Resolve WHICH database before unlocking one: a diver with a custom
       // location has no database at the default path, and opening there would

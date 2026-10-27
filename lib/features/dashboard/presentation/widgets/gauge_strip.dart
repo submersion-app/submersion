@@ -7,6 +7,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 
 import 'package:submersion/features/certifications/presentation/certification_attention_navigation.dart';
 import 'package:submersion/features/dashboard/presentation/providers/gauge_providers.dart';
+import 'package:submersion/features/demo_mode/presentation/providers/demo_mode_providers.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_filter_state.dart';
 import 'package:submersion/features/equipment/presentation/equipment_service_navigation.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
@@ -420,7 +421,10 @@ class GaugeStrip extends ConsumerWidget {
       );
     }
 
-    if (_shown(hidden, HomeChipType.backup)) {
+    // Backups are sealed in demo mode (#3708), so the chip would only point
+    // at a page that cannot be used.
+    if (_shown(hidden, HomeChipType.backup) &&
+        !ref.watch(demoModeActiveProvider)) {
       final lastBackup = g.lastBackupTime;
       if (lastBackup == null) {
         chips.add(

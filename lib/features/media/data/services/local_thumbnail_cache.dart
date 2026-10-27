@@ -93,13 +93,21 @@ class LocalThumbnailCache {
   /// could hold a neighbouring photo's picture (two staged at one path), and
   /// nothing on disk says which, so none of them is served; they leave
   /// through the pool's ordinary eviction.
-  static String keyFor(MediaItem item) {
-    final path = item.localPath ?? item.filePath ?? '';
-    final ref = item.bookmarkRef ?? '';
+  static String keyFor(MediaItem item) => _keyOf(
+    path: item.localPath ?? item.filePath ?? '',
+    ref: item.bookmarkRef ?? '',
+    id: item.id,
+  );
+
+  static String _keyOf({
+    required String path,
+    required String ref,
+    required String id,
+  }) {
     // Rows with no pointer at all cannot resolve; the id keeps them from
     // sharing a key with one another.
     final basis = path.isEmpty && ref.isEmpty
-        ? 'local-thumb-v2\u0000id\u0000${item.id}'
+        ? 'local-thumb-v2\u0000id\u0000$id'
         : 'local-thumb-v2\u0000$path\u0000$ref';
     return sha256.convert(utf8.encode(basis)).toString();
   }
@@ -207,6 +215,19 @@ class LocalThumbnailCache {
       // put() moves the staged file into the pool, so one still here is the
       // debris of a failure.
       await _discard(staged);
+    }
+  }
+
+  /// Deletes the thumbnail of the file at [path] (a row with no bookmark),
+  /// if it has one.
+  Future<void> removePath(String path) async {
+    try {
+      await (await _store()).remove(
+        _keyOf(path: path, ref: '', id: ''),
+        MediaCacheKind.thumb,
+      );
+    } on Object catch (e) {
+      _log.debug('Could not remove the thumbnail of $path', error: e);
     }
   }
 

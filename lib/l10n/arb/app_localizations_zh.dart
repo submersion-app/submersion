@@ -52635,4 +52635,62 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get setup_syncPull_startFresh => '开始新的日志';
+
+  @override
+  String get demo_welcome_title => '使用示例数据体验';
+
+  @override
+  String get demo_welcome_subtitle => '在录入自己的数据前，先浏览一份完整的示例潜水日志';
+
+  @override
+  String get demo_settings_enter_title => '使用示例数据体验';
+
+  @override
+  String get demo_settings_enter_subtitle => '你的日志会被原封不动地保留，直到你退出';
+
+  @override
+  String get demo_settings_exit_title => '退出演示';
+
+  @override
+  String get demo_settings_exit_subtitle => '丢弃示例日志并返回你自己的日志';
+
+  @override
+  String get demo_strip_label => '演示模式：你正在浏览示例数据';
+
+  @override
+  String get demo_strip_exit => '退出演示';
+
+  @override
+  String get demo_exit_confirm_title => '退出演示模式？';
+
+  @override
+  String get demo_exit_confirm_body => '你对示例日志所做的更改将被丢弃。';
+
+  @override
+  String get demo_exit_confirm_action => '退出演示';
+
+  @override
+  String get demo_enter_downloading => '正在下载示例日志';
+
+  @override
+  String get demo_enter_preparing => '正在准备示例日志';
+
+  @override
+  String get demo_enter_opening => '正在打开示例日志';
+
+  @override
+  String get demo_enter_failed => '无法下载示例日志。请检查网络连接后重试。';
+
+  @override
+  String get demo_sealed_note => '演示模式下不可用';
+
+  @override
+  String get demo_unavailable_title => '演示模式下不可用';
+
+  @override
+  String get demo_unavailable_body =>
+      '演示模式会将示例日志与你的数据分开保存，因此无法导入、导出、备份或同步任何内容。';
+
+  @override
+  String get demo_row_unavailable => '演示模式下不可用';
 }

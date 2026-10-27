@@ -9,6 +9,8 @@ import 'package:submersion/features/shared_library/presentation/providers/shared
 import 'package:submersion/features/shared_library/presentation/widgets/library_field_labels.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/library_role_chip.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 
 /// Owner review of one suggestion (issue #2567): the note, each field
 /// before and after, Accept and Dismiss.
@@ -124,6 +126,12 @@ class SuggestionReviewSheet extends ConsumerWidget {
               children: [
                 TextButton(
                   onPressed: () async {
+                    if (!demoSealGuard(
+                      context,
+                      DemoSealedFeature.sharedLibrary,
+                    )) {
+                      return;
+                    }
                     final diverId = await ref.read(
                       validatedCurrentDiverIdProvider.future,
                     );
@@ -142,6 +150,12 @@ class SuggestionReviewSheet extends ConsumerWidget {
                 if (!siteGone)
                   FilledButton(
                     onPressed: () async {
+                      if (!demoSealGuard(
+                        context,
+                        DemoSealedFeature.sharedLibrary,
+                      )) {
+                        return;
+                      }
                       final diverId = await ref.read(
                         validatedCurrentDiverIdProvider.future,
                       );

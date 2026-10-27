@@ -56844,4 +56844,67 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get setup_syncPull_startFresh => 'بدء سجل جديد';
+
+  @override
+  String get demo_welcome_title => 'استكشف باستخدام بيانات تجريبية';
+
+  @override
+  String get demo_welcome_subtitle =>
+      'تصفح سجل غوص تجريبيًا كاملًا قبل إدخال سجلك';
+
+  @override
+  String get demo_settings_enter_title => 'استكشف باستخدام بيانات تجريبية';
+
+  @override
+  String get demo_settings_enter_subtitle =>
+      'يُحفظ سجلك جانبًا دون أي تغيير حتى تخرج';
+
+  @override
+  String get demo_settings_exit_title => 'الخروج من العرض التجريبي';
+
+  @override
+  String get demo_settings_exit_subtitle =>
+      'تجاهل السجل التجريبي والعودة إلى سجلك';
+
+  @override
+  String get demo_strip_label => 'الوضع التجريبي: أنت تستكشف بيانات تجريبية';
+
+  @override
+  String get demo_strip_exit => 'الخروج من العرض التجريبي';
+
+  @override
+  String get demo_exit_confirm_title => 'الخروج من الوضع التجريبي؟';
+
+  @override
+  String get demo_exit_confirm_body =>
+      'سيتم تجاهل التغييرات التي أجريتها على السجل التجريبي.';
+
+  @override
+  String get demo_exit_confirm_action => 'الخروج من العرض التجريبي';
+
+  @override
+  String get demo_enter_downloading => 'جارٍ تنزيل السجل التجريبي';
+
+  @override
+  String get demo_enter_preparing => 'جارٍ تجهيز السجل التجريبي';
+
+  @override
+  String get demo_enter_opening => 'جارٍ فتح السجل التجريبي';
+
+  @override
+  String get demo_enter_failed =>
+      'تعذّر تنزيل السجل التجريبي. تحقّق من اتصالك وحاول مرة أخرى.';
+
+  @override
+  String get demo_sealed_note => 'غير متاح في الوضع التجريبي';
+
+  @override
+  String get demo_unavailable_title => 'غير متاح في الوضع التجريبي';
+
+  @override
+  String get demo_unavailable_body =>
+      'يُبقي الوضع التجريبي السجل التجريبي منفصلًا عن بياناتك، لذا لا يمكن استيراد أي شيء أو تصديره أو نسخه احتياطيًا أو مزامنته.';
+
+  @override
+  String get demo_row_unavailable => 'غير متاح في الوضع التجريبي';
 }
