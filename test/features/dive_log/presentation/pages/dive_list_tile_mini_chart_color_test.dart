@@ -9,6 +9,8 @@ import 'package:submersion/core/theme/app_theme_registry.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_list_page.dart';
+import 'package:submersion/features/dive_log/presentation/profile_colors/profile_metric.dart';
+import 'package:submersion/features/dive_log/presentation/profile_colors/profile_metric_color_overrides.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
@@ -42,13 +44,18 @@ void main() {
     double? colorValue,
     bool checked = false,
     Brightness brightness = Brightness.light,
+    ProfileMetricColorOverrides profileMetricColors =
+        ProfileMetricColorOverrides.none,
   }) async {
     await tester.pumpWidget(
       testApp(
         overrides: [
           settingsProvider.overrideWith(
             (ref) => _TestSettingsNotifier(
-              const AppSettings(cardColorAttribute: CardColorAttribute.depth),
+              AppSettings(
+                cardColorAttribute: CardColorAttribute.depth,
+                profileMetricColors: profileMetricColors,
+              ),
             ),
           ),
           detailedCardConfigProvider.overrideWith(
@@ -117,6 +124,19 @@ void main() {
           brightness: Brightness.dark,
         ),
         AppColors.chartDepth,
+      );
+    });
+
+    testWidgets('follows the depth colour the diver chose', (tester) async {
+      const chosen = Color(0xFF6A1B9A);
+      expect(
+        await miniChartColor(
+          tester,
+          profileMetricColors: ProfileMetricColorOverrides.fromArgb({
+            ProfileMetric.depth: chosen.toARGB32(),
+          }),
+        ),
+        chosen,
       );
     });
 
