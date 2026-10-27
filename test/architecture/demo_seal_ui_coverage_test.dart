@@ -42,6 +42,37 @@ const _exemptions = <String, String>{
       'shares the diagnostic log for a bug report, not logbook data',
 };
 
+/// Export and re-import handlers that reach a sealed engine method through
+/// their own sheets rather than a picker or the shared destination sheet.
+/// Each must explain the seal before it does any work, or the engine's
+/// refusal surfaces as a raw exception in an error snackbar.
+const _guardedHandlers = <(String, String)>[
+  (
+    'lib/features/dive_log/presentation/pages/dive_detail_page.dart',
+    'Future<void> _exportProfileChart(',
+  ),
+  (
+    'lib/features/dive_log/presentation/pages/dive_detail_page.dart',
+    'Future<void> _exportDiveDetailsPage(',
+  ),
+  (
+    'lib/features/dive_log/presentation/pages/dive_detail_page.dart',
+    'Future<void> _exportDivePdf(',
+  ),
+  (
+    'lib/features/dive_log/presentation/pages/dive_detail_page.dart',
+    'Future<void> _resyncDive(',
+  ),
+  (
+    'lib/features/gas_calculators/presentation/widgets/blender/blender_invoice_card.dart',
+    'Future<void> _openExportSheet(',
+  ),
+  (
+    'lib/shared/widgets/export_destination_sheet.dart',
+    'showExportDestinationSheetWithOptions(',
+  ),
+];
+
 String _withoutComments(String code) => code
     .split('\n')
     .where((line) => !line.trimLeft().startsWith('//'))
@@ -87,4 +118,17 @@ void main() {
       );
     }
   });
+
+  for (final (path, signature) in _guardedHandlers) {
+    test('$path $signature explains the seal before any work', () {
+      final code = File(path).readAsStringSync();
+      final at = code.indexOf(signature);
+      expect(at, isNonNegative, reason: 'declaration not found');
+      final body = code.substring(at);
+      final guardAt = body.indexOf('demoSealGuard(');
+      final workAt = body.indexOf(RegExp(r'\bawait\b|showModalBottomSheet'));
+      expect(guardAt, isNonNegative, reason: 'no demoSealGuard( in $signature');
+      expect(guardAt < workAt, isTrue, reason: 'the guard must come first');
+    });
+  }
 }
