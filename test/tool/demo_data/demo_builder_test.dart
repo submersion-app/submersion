@@ -94,6 +94,34 @@ void main() {
     }
   });
 
+  test('each photo is taken during its dive, on the same clock', () async {
+    final out = await build();
+    final entry = ZipDecoder()
+        .decodeBytes(out.zip.readAsBytesSync())
+        .files
+        .firstWhere((f) => f.name == 'submersion_demo.db');
+    final copy = File(p.join(dir.path, 'published.db'))
+      ..writeAsBytesSync(entry.content);
+    final db = AppDatabase(
+      NativeDatabase(copy, setup: registerAppSqlFunctions),
+    );
+    addTearDown(db.close);
+
+    final rows = await db
+        .customSelect(
+          'SELECT m.taken_at - d.dive_date_time AS gap FROM media m '
+          'JOIN dives d ON d.id = m.dive_id',
+        )
+        .get();
+    expect(rows, isNotEmpty);
+    for (final row in rows) {
+      expect(
+        row.read<int>('gap'),
+        inInclusiveRange(0, const Duration(hours: 1).inMilliseconds),
+      );
+    }
+  });
+
   test('the build is refused when a value names a build folder', () async {
     await expectLater(
       build(seeders: [...demoSeeders(), _MachinePathSeeder()]),

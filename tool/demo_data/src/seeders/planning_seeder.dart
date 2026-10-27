@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/checklists/data/repositories/checklist_template_repository.dart';
 import 'package:submersion/features/checklists/domain/entities/checklist_template.dart';
 import 'package:submersion/features/checklists/domain/entities/checklist_template_section.dart';
@@ -438,13 +439,5 @@ class PlanningSeeder implements DemoSeeder {
 
   /// A local time as wall-clock-as-UTC epoch seconds, the tracks' convention.
   static int _wallSeconds(DateTime t) =>
-      DateTime.utc(
-        t.year,
-        t.month,
-        t.day,
-        t.hour,
-        t.minute,
-        t.second,
-      ).millisecondsSinceEpoch ~/
-      1000;
+      asWallClockUtc(t).millisecondsSinceEpoch ~/ 1000;
 }

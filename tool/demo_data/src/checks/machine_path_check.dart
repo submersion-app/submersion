@@ -19,27 +19,28 @@ class MachinePathCheck {
   ) async {
     final home =
         Platform.environment['HOME'] ?? Platform.environment['USERPROFILE'];
-    final needles = {
-      for (final f in [...folders, ?home])
-        if (f.isNotEmpty) p.normalize(p.absolute(f)),
-    };
+    // A root (`/`, `C:\`) names no one and would match every URL.
+    final needles = [
+      for (final f in {...folders, ?home})
+        if (f.isNotEmpty && p.split(p.normalize(p.absolute(f))).length > 1)
+          p.normalize(p.absolute(f)),
+    ];
+    if (needles.isEmpty) return const [];
     final found = <String>[];
     for (final t in db.allTables) {
       for (final c in t.$columns) {
         if (c.type != DriftSqlType.string) continue;
-        for (final needle in needles) {
-          final hit = await db
-              .customSelect(
-                'SELECT 1 FROM "${t.actualTableName}" '
-                'WHERE instr("${c.name}", ?) > 0 LIMIT 1',
-                variables: [Variable.withString(needle)],
-              )
-              .getSingleOrNull();
-          if (hit != null) {
-            found.add('${t.actualTableName}.${c.name}');
-            break;
-          }
-        }
+        // One pass over the column for every folder at once.
+        final any = [
+          for (var i = 0; i < needles.length; i++) 'instr("${c.name}", ?) > 0',
+        ].join(' OR ');
+        final hit = await db
+            .customSelect(
+              'SELECT 1 FROM "${t.actualTableName}" WHERE $any LIMIT 1',
+              variables: [for (final n in needles) Variable.withString(n)],
+            )
+            .getSingleOrNull();
+        if (hit != null) found.add('${t.actualTableName}.${c.name}');
       }
     }
     return found;

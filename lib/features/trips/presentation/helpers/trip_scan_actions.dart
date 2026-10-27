@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
+import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/media/data/services/photo_picker_service.dart';
@@ -46,6 +48,9 @@ Future<void> scanGalleryForTripPhotos(
   String tripId,
   Trip trip,
 ) async {
+  if (!demoSealGuard(context, DemoSealedFeature.mediaImport)) {
+    return;
+  }
   final loading = _LoadingDialog(Navigator.of(context, rootNavigator: true));
   showDialog(
     context: context,

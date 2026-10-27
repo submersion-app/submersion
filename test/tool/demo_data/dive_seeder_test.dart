@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' show Variable;
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../helpers/test_database.dart';
@@ -31,6 +32,34 @@ void main() {
   });
 
   tearDownAll(tearDownTestDatabase);
+
+  test('each dive is stored at its planned wall-clock time', () async {
+    // The app keeps dive times as wall-clock time in UTC (what the dive
+    // computer showed), whatever zone the logbook was built in.
+    for (final d in ctx.plan.dives.take(30)) {
+      final row = await ctx.db
+          .customSelect(
+            'SELECT dive_date_time AS t FROM dives WHERE id = ?',
+            variables: [Variable.withString(ctx.diveId(d.number))],
+          )
+          .getSingle();
+      final stored = DateTime.fromMillisecondsSinceEpoch(
+        row.read<int>('t'),
+        isUtc: true,
+      );
+      expect(
+        (stored.year, stored.month, stored.day, stored.hour, stored.minute),
+        (
+          d.start.year,
+          d.start.month,
+          d.start.day,
+          d.start.hour,
+          d.start.minute,
+        ),
+        reason: 'dive ${d.number}',
+      );
+    }
+  });
 
   test('every planned dive is written with a profile and a tank', () async {
     expect(await countRows(ctx, 'dives'), ctx.plan.dives.length);

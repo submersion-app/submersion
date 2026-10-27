@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:archive/archive.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -49,6 +50,40 @@ void main() {
 
     await expectLater(
       DemoPackageExtractor(maxExtractedBytes: 4096).extract(zip, paths),
+      throwsFormatException,
+    );
+    expect(File(paths.databaseFile).existsSync(), isFalse);
+  });
+
+  test('the bounded sink refuses bytes past its limit', () {
+    final out = BoundedOutput(8)..writeBytes(List.filled(8, 1));
+
+    expect(() => out.writeBytes([1]), throwsFormatException);
+    expect(() => out.writeByte(1), throwsFormatException);
+    expect(out.length, 8);
+  });
+
+  test('extract refuses an entry whose header understates its size', () async {
+    final big = Uint8List.fromList(List.filled(65536, 65));
+    final zip = Uint8List.fromList(
+      ZipEncoder().encodeBytes(
+        Archive()..addFile(ArchiveFile.bytes('submersion_demo.db', big)),
+      ),
+    );
+    // Every little-endian 65536 is the declared size; claim 10 bytes.
+    for (var i = 0; i + 4 <= zip.length; i++) {
+      if (zip[i] == 0 &&
+          zip[i + 1] == 0 &&
+          zip[i + 2] == 1 &&
+          zip[i + 3] == 0) {
+        zip[i] = 10;
+        zip[i + 2] = 0;
+      }
+    }
+    final file = File(paths.packageFile)..writeAsBytesSync(zip);
+
+    await expectLater(
+      DemoPackageExtractor(maxExtractedBytes: 4096).extract(file, paths),
       throwsFormatException,
     );
     expect(File(paths.databaseFile).existsSync(), isFalse);

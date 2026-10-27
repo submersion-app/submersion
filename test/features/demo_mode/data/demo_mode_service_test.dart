@@ -10,6 +10,7 @@ import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 import 'package:submersion/features/demo_mode/data/demo_mode_service.dart';
 import 'package:submersion/features/demo_mode/data/demo_paths.dart';
 import 'package:submersion/features/demo_mode/data/demo_state_store.dart';
+import 'package:submersion/features/demo_mode/domain/demo_manifest.dart';
 import 'package:submersion/features/demo_mode/domain/demo_state.dart';
 
 import '../../../helpers/global_test_defaults.dart';
@@ -117,6 +118,29 @@ void main() {
       expect(Directory(paths.root).existsSync(), isFalse);
       expect(DemoModeGate.instance.isActive, isFalse);
       expect(switcher.openPath, realPath);
+      expect(restarts, 0);
+    },
+  );
+
+  test(
+    'a cancel that lands as the download finishes still ends the entry',
+    () async {
+      var cancelled = false;
+
+      await expectLater(
+        service(
+          downloader: _CancelOnLastChunk(() => cancelled = true),
+        ).enter(fromFirstRun: false, isCancelled: () => cancelled),
+        throwsA(
+          isA<DemoDownloadException>().having(
+            (e) => e.reason,
+            'reason',
+            DemoDownloadFailure.cancelled,
+          ),
+        ),
+      );
+      expect(Directory(paths.root).existsSync(), isFalse);
+      expect(DemoModeGate.instance.isActive, isFalse);
       expect(restarts, 0);
     },
   );
@@ -352,5 +376,24 @@ class _RecordingPreparer extends DemoDatabasePreparer {
       deviceId: deviceId,
       units: units,
     );
+  }
+}
+
+/// Completes the download, but the user's Cancel lands with the last chunk.
+class _CancelOnLastChunk extends FakeDownloader {
+  _CancelOnLastChunk(this.cancel);
+
+  final void Function() cancel;
+
+  @override
+  Future<File> download(
+    DemoPackage pkg,
+    File dest, {
+    void Function(int received, int total)? onProgress,
+    bool Function()? isCancelled,
+  }) async {
+    final file = await super.download(pkg, dest, onProgress: onProgress);
+    cancel();
+    return file;
   }
 }

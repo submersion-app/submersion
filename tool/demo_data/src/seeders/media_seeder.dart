@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart' show Variable;
 import 'package:path/path.dart' as p;
+import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_smart_album_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_species_repository.dart';
@@ -50,7 +51,8 @@ class MediaSeeder implements DemoSeeder {
           caption: '${_title(photo)}. Photo: ${photo.credit}',
           latitude: site.latitude,
           longitude: site.longitude,
-          takenAt: taken,
+          // On the dive's clock: wall-clock time stored as UTC.
+          takenAt: asWallClockUtc(taken),
           createdAt: taken,
           updatedAt: taken,
         ),

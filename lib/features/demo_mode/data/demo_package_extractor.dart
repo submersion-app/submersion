@@ -21,7 +21,8 @@ class DemoPackageExtractor {
   Future<void> extract(File zip, DemoPaths paths) async {
     final Archive archive;
     try {
-      archive = ZipDecoder().decodeBytes(await zip.readAsBytes(), verify: true);
+      // The download was already checked against the manifest's SHA-256.
+      archive = ZipDecoder().decodeBytes(await zip.readAsBytes());
     } catch (e) {
       throw FormatException('Sample logbook is not a valid zip: $e');
     }
@@ -33,8 +34,9 @@ class DemoPackageExtractor {
     if (!files.any((f) => f.name == databaseEntry)) {
       throw const FormatException('Sample logbook has no database');
     }
-    // The sizes the archive declares, before anything is inflated; the
-    // bytes each entry really inflates to are counted again as it is written.
+    // The sizes the archive declares, before anything is inflated. A header
+    // can understate them, so each entry also inflates into a sink that
+    // stops at whatever the limit has left.
     if (files.fold<int>(0, (sum, f) => sum + f.size) > maxExtractedBytes) {
       throw const FormatException('Sample logbook expands past its limit');
     }
@@ -42,11 +44,10 @@ class DemoPackageExtractor {
     await Directory(paths.photosDir).create(recursive: true);
     var written = 0;
     for (final f in files) {
-      final bytes = f.content;
+      final out = BoundedOutput(maxExtractedBytes - written);
+      f.decompress(out);
+      final bytes = out.getBytes();
       written += bytes.length;
-      if (written > maxExtractedBytes) {
-        throw const FormatException('Sample logbook expands past its limit');
-      }
       final target = f.name == databaseEntry
           ? paths.databaseFile
           : p.join(paths.photosDir, p.posix.basename(f.name));
@@ -65,5 +66,37 @@ class DemoPackageExtractor {
     if (!isDatabase && !isPhoto) {
       throw FormatException('Unexpected entry in sample logbook: $name');
     }
+  }
+}
+
+/// An in-memory sink that refuses to grow past [limit] bytes, so an entry is
+/// inflated only as far as the package may expand.
+class BoundedOutput extends OutputMemoryStream {
+  BoundedOutput(this.limit);
+
+  final int limit;
+
+  void _room(int bytes) {
+    if (length + bytes > limit) {
+      throw const FormatException('Sample logbook expands past its limit');
+    }
+  }
+
+  @override
+  void writeByte(int value) {
+    _room(1);
+    super.writeByte(value);
+  }
+
+  @override
+  void writeBytes(List<int> bytes, {int? length}) {
+    _room(length ?? bytes.length);
+    super.writeBytes(bytes, length: length);
+  }
+
+  @override
+  void writeStream(InputStream stream) {
+    _room(stream.length);
+    super.writeStream(stream);
   }
 }

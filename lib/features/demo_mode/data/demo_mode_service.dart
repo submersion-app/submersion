@@ -103,9 +103,13 @@ class DemoModeService {
           DemoEnterProgress(DemoEnterStage.downloading, received: r, total: t),
         ),
       );
+      // The downloader sees Cancel only as chunks land, so a tap that comes
+      // with the last one is honoured here, and again before the switch.
+      _throwIfCancelled(isCancelled);
       onProgress?.call(const DemoEnterProgress(DemoEnterStage.preparing));
       await extractor.extract(zip, paths);
       await PrefsSnapshot.capture(prefs, File(paths.prefsSnapshotFile));
+      _throwIfCancelled(isCancelled);
     } catch (_) {
       await store.deleteAll();
       rethrow;
@@ -138,6 +142,12 @@ class DemoModeService {
       rethrow;
     }
     restart();
+  }
+
+  static void _throwIfCancelled(bool Function()? isCancelled) {
+    if (isCancelled?.call() ?? false) {
+      throw const DemoDownloadException(DemoDownloadFailure.cancelled);
+    }
   }
 
   /// Leaves demo mode and restarts. Never throws: whatever is left half done

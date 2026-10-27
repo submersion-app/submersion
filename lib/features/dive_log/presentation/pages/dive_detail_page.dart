@@ -4757,6 +4757,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     WidgetRef ref,
     Dive dive,
   ) async {
+    if (!demoSealGuard(context, DemoSealedFeature.mediaImport)) {
+      return;
+    }
     // Show loading
     showDialog(
       context: context,

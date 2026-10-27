@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -64,14 +65,17 @@ class DiveSeeder implements DemoSeeder {
       final trip = d.tripId == null ? null : trips[d.tripId];
       final runtime = Duration(seconds: shape.durationSec);
       final salt = !d.destination.freshwater;
+      // Dive times are kept as the wall clock the dive computer showed,
+      // stored as UTC; the plan's times are those wall-clock digits.
+      final start = asWallClockUtc(d.start);
 
       final dive = Dive(
         id: id,
         diverId: DemoSeedContext.diverId,
         diveNumber: d.number,
-        dateTime: d.start,
-        entryTime: d.start,
-        exitTime: d.start.add(runtime),
+        dateTime: start,
+        entryTime: start,
+        exitTime: start.add(runtime),
         runtime: runtime,
         maxDepth: shape.maxDepth,
         avgDepth: _avg(shape),

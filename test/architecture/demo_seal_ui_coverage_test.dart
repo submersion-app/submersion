@@ -71,6 +71,32 @@ const _guardedHandlers = <(String, String)>[
     'lib/shared/widgets/export_destination_sheet.dart',
     'showExportDestinationSheetWithOptions(',
   ),
+  // Photo and document imports that reach a gated service through a
+  // helper, so no picker call in their own file would flag them.
+  (
+    'lib/features/media/presentation/pages/photo_picker_page.dart',
+    'Future<List<AssetInfo>?> showPhotoPicker(',
+  ),
+  (
+    'lib/features/dive_log/presentation/pages/dive_detail_page.dart',
+    'Future<void> _scanGalleryForDive(',
+  ),
+  (
+    'lib/features/trips/presentation/pages/trip_gallery_page.dart',
+    'Future<void> _showScanDialog(',
+  ),
+  (
+    'lib/features/trips/presentation/helpers/trip_scan_actions.dart',
+    'Future<void> scanGalleryForTripPhotos(',
+  ),
+  (
+    'lib/features/documents/presentation/pages/document_edit_page.dart',
+    'Future<void> _addPage(',
+  ),
+  (
+    'lib/features/media/presentation/helpers/media_link_replacer.dart',
+    'Future<bool> replaceMediaLink(',
+  ),
 ];
 
 String _withoutComments(String code) => code
@@ -126,9 +152,17 @@ void main() {
       expect(at, isNonNegative, reason: 'declaration not found');
       final body = code.substring(at);
       final guardAt = body.indexOf('demoSealGuard(');
-      final workAt = body.indexOf(RegExp(r'\bawait\b|showModalBottomSheet'));
+      // Work is anything the user would see or wait for: an await, a sheet,
+      // a dialog or a pushed page.
+      final workAt = body.indexOf(
+        RegExp(r'\bawait\b|showModalBottomSheet|showDialog|Navigator\.of\('),
+      );
       expect(guardAt, isNonNegative, reason: 'no demoSealGuard( in $signature');
-      expect(guardAt < workAt, isTrue, reason: 'the guard must come first');
+      expect(
+        workAt < 0 || guardAt < workAt,
+        isTrue,
+        reason: 'the guard must come first',
+      );
     });
   }
 }
