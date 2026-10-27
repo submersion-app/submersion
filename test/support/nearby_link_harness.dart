@@ -39,6 +39,9 @@ class NearbyTestDevice {
   final changes = StreamController<void>.broadcast();
   bool auto = true;
   DateTime now = DateTime.utc(2026, 10, 27, 12);
+
+  /// The manager's retry spacing; set before [manager] is first read.
+  Duration retryAfter = Duration.zero;
   late final NearbyLinkManager manager = NearbyLinkManager(
     carrier: carrier,
     engine: engine,
@@ -50,7 +53,7 @@ class NearbyTestDevice {
     localChanges: changes.stream,
     now: () => now,
     changeDebounce: const Duration(milliseconds: 20),
-    retryAfter: Duration.zero,
+    retryAfter: retryAfter,
     // Tests sight devices afresh by refreshing; the in-memory carrier
     // reports a device only when its scan starts.
     scanRestartAfter: Duration.zero,
@@ -106,12 +109,17 @@ Future<NearbyTestDevice> joinNearbyTestDevice(
   return d;
 }
 
-/// Stores a shared pair secret and a paired-devices row on both.
+/// Stores a shared pair secret and a paired-devices row on both. Each pair
+/// gets a secret of its own, as a real pairing does: a device paired with
+/// two others under one secret could not tell them apart.
 Future<void> pairNearbyTestDevices(
   NearbyTestDevice a,
   NearbyTestDevice b,
 ) async {
-  final secret = Uint8List.fromList(List.generate(32, (i) => i + 7));
+  final ids = ([a.id, b.id]..sort()).join('|').codeUnits;
+  final secret = Uint8List.fromList(
+    List.generate(32, (i) => i < ids.length ? ids[i] : i + 7),
+  );
   await a.secrets.store(b.id, secret);
   await b.secrets.store(a.id, secret);
   await a.peers.upsertPaired(

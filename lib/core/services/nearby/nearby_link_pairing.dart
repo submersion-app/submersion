@@ -39,6 +39,9 @@ class NearbyPairingHandle implements NearbyPairingOffer {
   /// between the same two devices, the one started by the lower nonce stays.
   final String initiatorKey;
 
+  /// This diver tapped "Same code" and the other has not answered yet.
+  bool _confirming = false;
+
   @override
   String get peerName => _pairing.preview.name;
 
@@ -128,6 +131,7 @@ extension _NearbyLinkPairing on NearbyLinkManager {
 
   Future<void> _confirm(NearbyPairingHandle handle) async {
     final NearbyChannel channel;
+    handle._confirming = true;
     try {
       channel = await handle._pairing.confirm();
     } finally {

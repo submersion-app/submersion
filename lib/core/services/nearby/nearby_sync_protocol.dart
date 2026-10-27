@@ -241,7 +241,19 @@ class NearbySyncProtocol {
       );
     }
     final gz = await _receiveParts(offer);
-    final json = await _files.gunzip(gz);
+    final File json;
+    try {
+      json = await _files.gunzip(gz);
+    } on Object catch (e) {
+      _log.warning('Nearby copy from $_peerId did not unpack: $e');
+      // Nothing of it is worth a resume: the next offer starts over.
+      if (await gz.exists()) await gz.delete();
+      await _peers.setResume(_peerId);
+      throw const _DirectionFailed(
+        NearbyPeerError.applyFailed,
+        tellPeer: NearbyErrorCode.protocol,
+      );
+    }
     try {
       final NearbyApplyResult result;
       if (kind == 'delta') {

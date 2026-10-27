@@ -155,7 +155,9 @@ class NearbyLinkManager {
 
   final _lastAttempt = <String, DateTime>{};
   final _lastSighted = <String, DateTime>{};
-  final _strangerUntil = <String, DateTime>{};
+
+  /// When each stranger last refused, and how long it is left alone.
+  final _strangerSince = <String, DateTime>{};
   final _strangerWait = <String, Duration>{};
   final _connecting = <String>{};
   final _pairingTried = <String>{};
@@ -249,16 +251,18 @@ class NearbyLinkManager {
     return refresh();
   }
 
+  /// Rejects the pairings still waiting for this diver. One they already
+  /// confirmed is left to finish: it ends when the other diver answers.
   Future<void> leavePairingMode() async {
     _pairingMode = false;
     for (final handle in List.of(_pending)) {
-      await _reject(handle);
+      if (!handle._confirming) await _reject(handle);
     }
     await refresh();
   }
 
   void _forgetStrangers() {
-    _strangerUntil.clear();
+    _strangerSince.clear();
     _strangerWait.clear();
   }
 
@@ -293,6 +297,9 @@ class NearbyLinkManager {
             (_autoSyncEnabled() && (await _peers.all()).isNotEmpty));
     if (!wanted) {
       await _stopRadio();
+      // The radio is not in use, so whether Bluetooth is on says nothing
+      // about why a device is not syncing.
+      await _clearRadioOff();
       return;
     }
     final availability = await _carrier.checkAvailability();
@@ -314,9 +321,7 @@ class NearbyLinkManager {
     }
     final startedAt = _scanStartedAt;
     final restart =
-        !_running ||
-        startedAt == null ||
-        _now().difference(startedAt) >= scanRestartAfter;
+        !_running || startedAt == null || _waited(startedAt, scanRestartAfter);
     // Running before the scan starts: a carrier may deliver its first
     // sightings while startScanning is still in flight.
     _running = true;
@@ -380,21 +385,27 @@ class NearbyLinkManager {
     }
   }
 
+  /// Whether [wait] has passed since [since]. A clock set back since then
+  /// counts as passed, so no wait outlasts the change.
+  bool _waited(DateTime since, Duration wait) {
+    final elapsed = _now().difference(since);
+    return elapsed.isNegative || elapsed >= wait;
+  }
+
   bool _due(String deviceId) {
     final last = _lastSessionAt[deviceId];
-    if (last == null) return true;
-    if (_now().difference(last) >= perPeerCooldown) return true;
+    if (last == null || _waited(last, perPeerCooldown)) return true;
     final change = _lastChangeAt;
     return change != null && change.isAfter(last);
   }
 
   bool _mayDial(String transportId) {
     if (_connecting.contains(transportId)) return false;
-    final now = _now();
     final last = _lastAttempt[transportId];
-    if (last != null && now.difference(last) < retryAfter) return false;
-    final until = _strangerUntil[transportId];
-    return until == null || !now.isBefore(until);
+    if (last != null && !_waited(last, retryAfter)) return false;
+    final since = _strangerSince[transportId];
+    return since == null ||
+        _waited(since, _strangerWait[transportId] ?? strangerBackoff);
   }
 
   void _onSighting(String transportId) {
@@ -408,8 +419,10 @@ class NearbyLinkManager {
       unawaited(_openPairing(transportId));
       return;
     }
-    if (_syncNowWaiters.isNotEmpty) {
-      // A one-off Sync now dials whatever it sees until it finds its peer.
+    if (_syncNowWaiters.isNotEmpty &&
+        (device == null || _syncNowWaiters.containsKey(device))) {
+      // A one-off Sync now dials whatever might be its device until it
+      // finds it. Another known device keeps to its own rules below.
       unawaited(_openSync(transportId));
       return;
     }
@@ -461,8 +474,11 @@ class NearbyLinkManager {
       return outcome;
     }
     final known = _transportByDevice[peerDeviceId];
-    if (known != null && _running && _mayDial(known)) {
-      unawaited(_openSync(known));
+    if (known != null) {
+      // The diver asked: the spacing that keeps sightings from redialling
+      // does not hold back a tap made just after the last session.
+      _lastAttempt.remove(known);
+      if (_mayDial(known)) unawaited(_openSync(known));
     }
     final outcome = await waiter.future.timeout(
       syncNowTimeout,
@@ -526,7 +542,7 @@ class NearbyLinkManager {
           ? strangerBackoff
           : (wait * 2 > maxStrangerBackoff ? maxStrangerBackoff : wait * 2);
       _strangerWait[transportId] = next;
-      _strangerUntil[transportId] = _now().add(next);
+      _strangerSince[transportId] = _now();
       return;
     }
     final error = e.fromPeer
@@ -553,7 +569,7 @@ class NearbyLinkManager {
   void _learn(String transportId, String deviceId) {
     _deviceByTransport[transportId] = deviceId;
     _transportByDevice[deviceId] = transportId;
-    _strangerUntil.remove(transportId);
+    _strangerSince.remove(transportId);
     _strangerWait.remove(transportId);
   }
 
@@ -605,9 +621,9 @@ class NearbyLinkManager {
   }
 
   Future<NearbySyncOutcome?> _run(NearbyChannel channel) async {
-    // A handshake that finished after the app left the foreground, or
-    // after demo mode closed the gate.
-    if (!_foreground || DemoModeGate.instance.isActive) {
+    // A handshake that finished after the app left the foreground, after
+    // demo mode closed the gate, or after this manager was disposed.
+    if (_disposed || !_foreground || DemoModeGate.instance.isActive) {
       await channel.close();
       return null;
     }
@@ -730,6 +746,9 @@ class NearbyLinkManager {
     for (final waiter in _syncNowWaiters.values) {
       if (!waiter.isCompleted) waiter.complete(null);
     }
+    // A refresh already past its disposed check may still turn the radio
+    // on; any refresh queued after it returns at once.
+    await _refreshTail;
     if (_running) {
       _running = false;
       await _carrier.stopScanning();

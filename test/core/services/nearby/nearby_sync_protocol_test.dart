@@ -586,6 +586,60 @@ void main() {
     expect(stale.existsSync(), isFalse);
     expect(ancient.existsSync(), isFalse);
   });
+
+  test('a copy that will not unpack fails its direction only, and nothing '
+      'of it is kept for a resume', () async {
+    final laptop = await device('L', peerId: 'P');
+    final phone = await device('P', peerId: 'L');
+    final (laptopChannel, phoneChannel) = await open(laptop, phone);
+    final phoneRun = protocol(phone, phoneChannel).run();
+    final inbox = StreamIterator(laptopChannel.messages);
+    Future<NearbyMessageType> next() async {
+      expect(
+        await inbox.moveNext().timeout(const Duration(seconds: 5)),
+        isTrue,
+      );
+      return inbox.current.type;
+    }
+
+    Uint8List json(Map<String, Object?> body) =>
+        Uint8List.fromList(utf8.encode(jsonEncode(body)));
+    expect(await next(), NearbyMessageType.watermarks);
+    await laptopChannel.send(
+      NearbyMessageType.baseOffer,
+      json({
+        'id': 'bad1',
+        'kind': 'full',
+        'parts': 1,
+        'bytes': 3,
+        'partSize': 3,
+        'epoch': 'epoch-1',
+      }),
+    );
+    expect(await next(), NearbyMessageType.baseRequest);
+    final part = Uint8List(7);
+    ByteData.sublistView(part).setUint32(0, 0);
+    part.setRange(4, 7, const [1, 2, 3]); // not gzip
+    await laptopChannel.send(NearbyMessageType.basePart, part);
+    expect(await next(), NearbyMessageType.error);
+
+    // The other direction still runs: the phone answers the laptop's marks.
+    await laptopChannel.send(
+      NearbyMessageType.watermarks,
+      json({'high': <String, String>{}, 'epoch': 'epoch-1'}),
+    );
+    expect(await next(), NearbyMessageType.baseOffer);
+    await laptopChannel.close();
+
+    expect((await phoneRun).error, NearbyPeerError.applyFailed);
+    expect(phone.engine.appliedFiles, isEmpty);
+    expect((await phone.peers.get('L'))!.resumeBaseId, isNull);
+    final left = phone.temp
+        .listSync()
+        .map((f) => p.basename(f.path))
+        .where((n) => n.startsWith('nearby-in-'));
+    expect(left, isEmpty);
+  });
 }
 
 /// Delivers every base part [delay] late, as a slow radio link would. The

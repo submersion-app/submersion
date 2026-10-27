@@ -186,10 +186,20 @@ class NearbyTransferFiles {
     }
   }
 
-  /// Gunzips a received transfer to a JSON file beside it.
+  /// Gunzips a received transfer to a JSON file beside it. A transfer that
+  /// is not valid gzip throws and leaves no output behind.
   Future<File> gunzip(File gz) async {
     final out = File('${gz.path}.json');
-    await gz.openRead().transform(gzip.decoder).pipe(out.openWrite());
+    final sink = out.openWrite();
+    try {
+      await sink.addStream(gz.openRead().transform(gzip.decoder));
+      await sink.close();
+    } on Object {
+      // Closed before the delete: Windows cannot remove an open file.
+      await sink.close().catchError((Object _) {});
+      if (await out.exists()) await out.delete();
+      rethrow;
+    }
     return out;
   }
 }

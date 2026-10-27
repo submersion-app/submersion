@@ -174,6 +174,7 @@ class BleNearbyCarrier implements NearbyCarrier {
 
   @override
   Future<NearbyEndpoint> connect(String transportId) async {
+    _CentralEnd? end;
     try {
       await UniversalBle.connect(
         transportId,
@@ -185,7 +186,7 @@ class BleNearbyCarrier implements NearbyCarrier {
         await UniversalBle.disconnect(transportId);
         throw NearbyConnectFailed('$transportId has no Submersion service');
       }
-      final end = _CentralEnd(
+      end = _CentralEnd(
         transportId,
         mtu: mtu,
         withoutResponse: writeWithoutResponse,
@@ -199,6 +200,8 @@ class BleNearbyCarrier implements NearbyCarrier {
     } on NearbyConnectFailed {
       rethrow;
     } on Object catch (e) {
+      // Its poll and listeners would otherwise outlive the failed connect.
+      end?._drop();
       try {
         await UniversalBle.disconnect(transportId);
       } on Object {

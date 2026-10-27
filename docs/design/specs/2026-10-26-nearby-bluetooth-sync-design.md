@@ -366,7 +366,12 @@ same five-second debounce the cloud path uses) while the peer stays in
 range, and otherwise not more than once every ten minutes per peer. With
 the switch off, nothing scans or advertises; "Sync now" on a device's row
 turns the radio on until that device is found (or 20 seconds pass) and
-runs one session; with Bluetooth off or not allowed it says so at once. An address that turns out to belong to no paired device
+runs one session; with Bluetooth off or not allowed it says so at once.
+It dials its device's known address at once, even just after a session,
+and any address it cannot yet put a name to; another paired device seen
+meanwhile keeps to its own rules. Every wait (the cooldown, the spacing
+between attempts, a stranger's backoff, the scan restart) counts a clock
+set back as time passed, so none outlasts the change. An address that turns out to belong to no paired device
 is left alone for a minute, doubling to half an hour, so a boat full of
 Submersion users does not keep connecting to each other. A device's
 address is learned only from a link this device opened: one the peer
@@ -387,7 +392,10 @@ transient one (`bluetoothOff`, `unreachable`) only shows on the row.
 Refusals count: two paired devices on different libraries refuse each other
 at once, so each records the refusal it made itself, the dialled device as
 well as the dialling one; a refusal the peer gives no reason for reads as
-`unreachable`.
+`unreachable`. A full copy that will not unpack is an `applyFailed`: it
+ends that direction only, and nothing of it is kept for a resume. A row
+says `bluetoothOff` only while the radio is wanted; when nothing wants it,
+whether Bluetooth is on says nothing about why a device is not syncing.
 
 ### 5. Storage
 
@@ -436,7 +444,10 @@ open Submersion and tap Pair on the other device). Tapping one connects
 and shows the six-digit code with "Same code" and "Not mine". The other
 device, also on its pairing page, shows the same code when the connection
 arrives. When both confirm, both pages close to the Sync page with the new
-row, and the first sync starts at once. Bluetooth permission is requested
+row, and the first sync starts at once. A diver who tapped "Same code" and
+then left the page has still confirmed: the pairing finishes when the other
+diver answers. Leaving rejects only the pairings this diver has not
+answered. Bluetooth permission is requested
 the first time this page opens, with the OS prompt; if refused, the page
 explains and offers the system settings.
 
