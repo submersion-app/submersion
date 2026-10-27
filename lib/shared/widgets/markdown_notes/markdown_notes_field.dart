@@ -70,6 +70,10 @@ class _MarkdownNotesFieldState extends State<MarkdownNotesField> {
     if (_previewing) return;
     final next = edit(widget.controller.value);
     if (next == widget.controller.value) return;
+    // The length limiter only sees typing; a toolbar edit that would pass
+    // the limit is refused rather than saved over it.
+    final limit = widget.maxLength;
+    if (limit != null && next.text.characters.length > limit) return;
     widget.controller.value = next;
     widget.onChanged?.call(next.text);
   }
@@ -158,13 +162,20 @@ class _MarkdownNotesFieldState extends State<MarkdownNotesField> {
           SizedBox(
             key: const ValueKey('markdownNotesPreview'),
             height: _previewHeight,
-            child: SingleChildScrollView(
-              // Follows the notes, so a change made while previewing (a
-              // merge cycle) shows at once.
-              child: ValueListenableBuilder<TextEditingValue>(
-                valueListenable: widget.controller,
-                builder: (context, value, _) =>
-                    MarkdownNotesView(value.text, style: widget.style),
+            // The field's own decoration (label, icon, outline) stays around
+            // the preview, so the diver can still tell which notes these are.
+            child: InputDecorator(
+              decoration: (widget.decoration ?? const InputDecoration())
+                  .applyDefaults(Theme.of(context).inputDecorationTheme),
+              expands: _previewHeight != null,
+              child: SingleChildScrollView(
+                // Follows the notes, so a change made while previewing (a
+                // merge cycle) shows at once.
+                child: ValueListenableBuilder<TextEditingValue>(
+                  valueListenable: widget.controller,
+                  builder: (context, value, _) =>
+                      MarkdownNotesView(value.text, style: widget.style),
+                ),
               ),
             ),
           ),

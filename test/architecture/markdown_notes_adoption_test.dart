@@ -64,6 +64,16 @@ void main() {
         'MarkdownNotesField(',
   };
 
+  /// Files holding more than one Markdown surface, with how many times the
+  /// shared editor or view must appear, so one of them going plain fails
+  /// even while another still uses the shared widget.
+  const atLeast = <String, int>{
+    // The bulk notes field and the save-as-set description.
+    'lib/features/dive_log/presentation/pages/dive_edit_page.dart': 2,
+    // Description, notes and (through _buildAccessRow) access notes.
+    'lib/features/dive_sites/presentation/pages/site_detail_page.dart': 3,
+  };
+
   /// Screens that show a Markdown field in full.
   const views = <String>[
     'lib/features/buddies/presentation/pages/buddy_detail_page.dart',
@@ -147,10 +157,13 @@ void main() {
       .map((line) => line.split('//').first)
       .join('\n');
 
+  int uses(String path, String token) => token.allMatches(codeOf(path)).length;
+
   test('every Markdown notes editor uses the shared editor', () {
     final offenders = [
       for (final MapEntry(key: path, value: token) in editors.entries)
-        if (!codeOf(path).contains(token)) '$path (needs $token)',
+        if (uses(path, token) < (atLeast[path] ?? 1))
+          '$path (needs $token ${atLeast[path] ?? 1} time(s))',
     ];
     expect(offenders, isEmpty, reason: offenders.join('\n'));
   });
@@ -158,7 +171,7 @@ void main() {
   test('every full Markdown notes view uses the shared view', () {
     final offenders = [
       for (final path in views)
-        if (!codeOf(path).contains('MarkdownNotesView(')) path,
+        if (uses(path, 'MarkdownNotesView(') < (atLeast[path] ?? 1)) path,
     ];
     expect(offenders, isEmpty, reason: offenders.join('\n'));
   });

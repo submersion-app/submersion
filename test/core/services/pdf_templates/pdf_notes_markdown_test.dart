@@ -132,4 +132,26 @@ void main() {
       expect(text, contains(word), reason: word);
     }
   });
+
+  test('a code block taller than a page spans pages', () async {
+    final code = List.generate(300, (i) => 'log line $i').join('\n');
+    final bytes = await render(
+      notesMarkdownPdfBlocks('```\n$code\n```', style: style),
+    );
+    expect(pdfPageCount(bytes), greaterThan(1));
+  });
+
+  test('a loose list item keeps its paragraphs apart', () async {
+    const note = '- Check o-ring\n\n  Replace if cracked';
+    final inlineText =
+        (notesMarkdownPdfInline(note, style: style, maxLines: 4) as pw.RichText)
+            .text
+            .toPlainText();
+    expect(inlineText, '- Check o-ring\nReplace if cracked');
+    final blockText = pdfVisibleText(
+      await render(notesMarkdownPdfBlocks(note, style: style)),
+    );
+    expect(blockText, isNot(contains('o-ringReplace')));
+    expect(blockText, contains('Replace'));
+  });
 }

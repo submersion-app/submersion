@@ -278,4 +278,29 @@ void main() {
       expect(focusNode.hasFocus, isFalse);
     }
   });
+
+  testWidgets('Preview keeps the field label', (tester) async {
+    await pump(tester, text: '**x**');
+    expect(find.text('Notes'), findsOneWidget);
+    await tester.tap(find.text('Preview'));
+    await tester.pumpAndSettle();
+    expect(find.text('Notes'), findsOneWidget);
+  });
+
+  testWidgets('a toolbar edit that would pass maxLength is not applied', (
+    tester,
+  ) async {
+    controller.text = '123456789';
+    await tester.pumpWidget(
+      testApp(
+        locale: const Locale('en'),
+        child: MarkdownNotesField(controller: controller, maxLength: 10),
+      ),
+    );
+    await tester.pumpAndSettle();
+    controller.selection = const TextSelection(baseOffset: 0, extentOffset: 3);
+    await tester.tap(find.byTooltip('Bold'));
+    await tester.pump();
+    expect(controller.text, '123456789');
+  });
 }

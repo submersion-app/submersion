@@ -212,4 +212,28 @@ void main() {
     await pump(tester, '- loose\n\n- [x] done');
     expect(find.byIcon(Icons.check_box_outlined), findsOneWidget);
   });
+
+  testWidgets('a rebuild with the same note keeps its link recognizers', (
+    tester,
+  ) async {
+    late StateSetter rebuild;
+    await tester.pumpWidget(
+      testApp(
+        child: StatefulBuilder(
+          builder: (context, setState) {
+            rebuild = setState;
+            // Not const, so the rebuild reaches the view.
+            return MarkdownNotesView(
+              '[shop](https://s.test)',
+              style: Theme.of(context).textTheme.bodyMedium,
+            );
+          },
+        ),
+      ),
+    );
+    final before = _span(tester, 'shop').recognizer;
+    rebuild(() {});
+    await tester.pump();
+    expect(_span(tester, 'shop').recognizer, same(before));
+  });
 }

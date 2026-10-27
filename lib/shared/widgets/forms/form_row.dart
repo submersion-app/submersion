@@ -49,7 +49,18 @@ class FormRow extends StatefulWidget {
     this.decoration,
     this.profileSuggestion,
     this.markdown = false,
-  }) : _kind = _RowKind.text,
+  }) : assert(
+         !markdown ||
+             (suffixText == null &&
+                 keyboardType == null &&
+                 inputFormatters == null &&
+                 inputValidator == null &&
+                 profileSuggestion == null),
+         'A Markdown notes row edits free multi-line text: it takes no '
+         'suffix, keyboard type, input formatters, live input validator or '
+         'profile suggestion',
+       ),
+       _kind = _RowKind.text,
        enabled = true,
        helpText = null,
        value = null,

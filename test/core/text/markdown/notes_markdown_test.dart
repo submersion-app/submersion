@@ -143,6 +143,18 @@ void main() {
     expect(items('- a\n\n- [x] b').map(notesTaskState), [null, true]);
   });
 
+  test('notesTableRows reads header and body rows', () {
+    final table =
+        parseNotesMarkdown('| a | b |\n|---|---|\n| 1 | 2 |').single
+            as md.Element;
+    final rows = notesTableRows(table);
+    expect(rows.map((r) => r.header), [true, false]);
+    expect(rows.map((r) => r.cells.map((c) => c.textContent).join(',')), [
+      'a,b',
+      '1,2',
+    ]);
+  });
+
   test('appendMarkdownParagraph starts a new paragraph', () {
     expect(appendMarkdownParagraph('', 'x'), 'x');
     expect(appendMarkdownParagraph('- a', 'x'), '- a\n\nx');

@@ -86,27 +86,12 @@ List<String> _list(md.Element list, {required String indent}) {
   return lines;
 }
 
-List<String> _table(md.Element table) {
-  final rows = <String>[];
-  void visit(md.Node node) {
-    if (node is! md.Element) return;
-    if (node.tag == 'tr') {
-      rows.add(
-        [
-          for (final cell in node.children ?? const <md.Node>[])
-            if (cell is md.Element) _inline(cell.children ?? const []).trim(),
-        ].join(' | '),
-      );
-      return;
-    }
-    for (final child in node.children ?? const <md.Node>[]) {
-      visit(child);
-    }
-  }
-
-  visit(table);
-  return rows;
-}
+List<String> _table(md.Element table) => [
+  for (final row in notesTableRows(table))
+    [
+      for (final cell in row.cells) _inline(cell.children ?? const []).trim(),
+    ].join(' | '),
+];
 
 String _inline(List<md.Node> nodes) {
   final out = StringBuffer();

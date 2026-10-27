@@ -75,6 +75,33 @@ bool? notesTaskState(md.Element item) {
   return null;
 }
 
+/// One row of a parsed table: its cells, and whether it is the header.
+typedef NotesTableRow = ({bool header, List<md.Element> cells});
+
+/// A parsed table's rows in order, header first, for every renderer.
+List<NotesTableRow> notesTableRows(md.Element table) {
+  final rows = <NotesTableRow>[];
+  void visit(md.Node node, {required bool header}) {
+    if (node is! md.Element) return;
+    if (node.tag == 'tr') {
+      rows.add((
+        header: header,
+        cells: [
+          for (final cell in node.children ?? const <md.Node>[])
+            if (cell is md.Element) cell,
+        ],
+      ));
+      return;
+    }
+    for (final child in node.children ?? const <md.Node>[]) {
+      visit(child, header: header || node.tag == 'thead');
+    }
+  }
+
+  visit(table, header: false);
+  return rows;
+}
+
 const _tappableSchemes = {'http', 'https', 'mailto'};
 
 /// Whether a link in a note may be opened: web and mail addresses only, so

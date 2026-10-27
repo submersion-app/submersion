@@ -1,11 +1,10 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:markdown/markdown.dart' as md;
 
 import 'package:submersion/core/text/markdown/notes_markdown.dart';
-import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/utils/browser_launch.dart';
+import 'package:submersion/shared/utils/link_open.dart';
 
 /// A Markdown note drawn formatted (#3683): headings, emphasis, lists,
 /// tasks, quotes, code, tables and tappable web and mail links, all in the
@@ -32,6 +31,14 @@ class MarkdownNotesView extends StatefulWidget {
 class _MarkdownNotesViewState extends State<MarkdownNotesView> {
   final _recognizers = <TapGestureRecognizer>[];
 
+  /// The built note, kept while the note, its style and the theme stay the
+  /// same, so an ancestor rebuild neither re-parses it nor replaces the link
+  /// recognizers (which would cancel a tap in progress).
+  List<Widget>? _blocks;
+  String? _builtSource;
+  TextStyle? _builtStyle;
+  ThemeData? _builtTheme;
+
   void _disposeRecognizers() {
     for (final recognizer in _recognizers) {
       recognizer.dispose();
@@ -45,46 +52,37 @@ class _MarkdownNotesViewState extends State<MarkdownNotesView> {
     super.dispose();
   }
 
-  Future<void> _open(Uri uri) async {
-    // Resolved before the await, and used only while still mounted: see
-    // launchEquipmentWebLink for why both halves matter.
-    final messenger = ScaffoldMessenger.maybeOf(context);
-    final l10n = context.l10n;
-    var opened = false;
-    try {
-      opened = await (widget.launch ?? openInBrowser)(uri);
-    } catch (_) {
-      opened = false;
-    }
-    if (opened || !mounted || messenger == null) return;
-    messenger.showSnackBar(
-      SnackBar(
-        content: Text(l10n.common_link_couldNotOpen),
-        action: SnackBarAction(
-          label: l10n.common_action_copyLink,
-          onPressed: () =>
-              Clipboard.setData(ClipboardData(text: uri.toString())),
-        ),
-      ),
-    );
-  }
+  void _open(Uri uri) =>
+      openLinkOrOfferCopy(context, uri, launch: widget.launch ?? openInBrowser);
 
-  @override
-  Widget build(BuildContext context) {
+  List<Widget> _build(ThemeData theme) {
+    if (_blocks != null &&
+        _builtSource == widget.source &&
+        _builtStyle == widget.style &&
+        identical(_builtTheme, theme)) {
+      return _blocks!;
+    }
     _disposeRecognizers();
-    if (widget.source.trim().isEmpty) return const SizedBox.shrink();
-    final theme = Theme.of(context);
     final builder = _NotesBuilder(
       theme: theme,
       base: widget.style ?? theme.textTheme.bodyMedium ?? const TextStyle(),
       recognizers: _recognizers,
       onOpen: _open,
     );
+    _builtSource = widget.source;
+    _builtStyle = widget.style;
+    _builtTheme = theme;
+    return _blocks = builder.blocks(parseNotesMarkdown(widget.source));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.source.trim().isEmpty) return const SizedBox.shrink();
     return SelectionArea(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,
-        children: builder.blocks(parseNotesMarkdown(widget.source)),
+        children: _build(Theme.of(context)),
       ),
     );
   }
@@ -263,15 +261,18 @@ class _NotesBuilder {
   bool _isBlock(String tag) => _blockTags.contains(tag);
 
   Widget _table(md.Element table, TextStyle style) {
-    final rows = <TableRow>[];
-    void visit(md.Node node, {required bool header}) {
-      if (node is! md.Element) return;
-      if (node.tag == 'tr') {
-        rows.add(
-          TableRow(
-            children: [
-              for (final cell in node.children ?? const <md.Node>[])
-                if (cell is md.Element)
+    final rows = notesTableRows(table);
+    if (rows.isEmpty) return const SizedBox.shrink();
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Table(
+        defaultColumnWidth: const IntrinsicColumnWidth(),
+        border: TableBorder.all(color: _colors.outlineVariant),
+        children: [
+          for (final row in rows)
+            TableRow(
+              children: [
+                for (final cell in row.cells)
                   Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 6,
@@ -279,29 +280,14 @@ class _NotesBuilder {
                     ),
                     child: _rich(
                       cell.children ?? const [],
-                      header
+                      row.header
                           ? style.copyWith(fontWeight: FontWeight.w600)
                           : style,
                     ),
                   ),
-            ],
-          ),
-        );
-        return;
-      }
-      for (final child in node.children ?? const <md.Node>[]) {
-        visit(child, header: header || node.tag == 'thead');
-      }
-    }
-
-    visit(table, header: false);
-    if (rows.isEmpty) return const SizedBox.shrink();
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Table(
-        defaultColumnWidth: const IntrinsicColumnWidth(),
-        border: TableBorder.all(color: _colors.outlineVariant),
-        children: rows,
+              ],
+            ),
+        ],
       ),
     );
   }

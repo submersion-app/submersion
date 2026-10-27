@@ -94,9 +94,12 @@ class _PdfNotesBuilder {
         return pw.Container(
           padding: const pw.EdgeInsets.all(4),
           color: PdfColors.grey200,
+          // Spans, so a code block taller than a page breaks across sheets
+          // instead of failing the export (#2056).
           child: pw.Text(
             node.textContent.replaceFirst(RegExp(r'\n$'), ''),
             style: style.copyWith(font: pw.Font.courier()),
+            overflow: pw.TextOverflow.span,
           ),
         );
       case 'hr':
@@ -137,6 +140,8 @@ class _PdfNotesBuilder {
         } else if (child is md.Element &&
             (child.tag == 'ul' || child.tag == 'ol' || child.tag == 'p')) {
           if (child.tag == 'p') {
+            // A loose item's paragraphs each start a line.
+            if (own.isNotEmpty) own.add(md.Text('\n'));
             own.addAll(child.children ?? const []);
           } else {
             nested.add(_list(child, style, depth: depth + 1));
@@ -172,45 +177,30 @@ class _PdfNotesBuilder {
     );
   }
 
-  pw.Widget _table(md.Element table, pw.TextStyle style) {
-    final rows = <pw.TableRow>[];
-    void visit(md.Node node, {required bool header}) {
-      if (node is! md.Element) return;
-      if (node.tag == 'tr') {
-        rows.add(
-          pw.TableRow(
-            children: [
-              for (final cell in node.children ?? const <md.Node>[])
-                if (cell is md.Element)
-                  pw.Padding(
-                    padding: const pw.EdgeInsets.all(3),
-                    child: pw.RichText(
-                      text: pw.TextSpan(
-                        children: inline(
-                          cell.children ?? const [],
-                          header
-                              ? style.copyWith(fontWeight: pw.FontWeight.bold)
-                              : style,
-                        ),
-                      ),
+  pw.Widget _table(md.Element table, pw.TextStyle style) => pw.Table(
+    border: pw.TableBorder.all(color: PdfColors.grey400, width: 0.5),
+    children: [
+      for (final row in notesTableRows(table))
+        pw.TableRow(
+          children: [
+            for (final cell in row.cells)
+              pw.Padding(
+                padding: const pw.EdgeInsets.all(3),
+                child: pw.RichText(
+                  text: pw.TextSpan(
+                    children: inline(
+                      cell.children ?? const [],
+                      row.header
+                          ? style.copyWith(fontWeight: pw.FontWeight.bold)
+                          : style,
                     ),
                   ),
-            ],
-          ),
-        );
-        return;
-      }
-      for (final child in node.children ?? const <md.Node>[]) {
-        visit(child, header: header || node.tag == 'thead');
-      }
-    }
-
-    visit(table, header: false);
-    return pw.Table(
-      border: pw.TableBorder.all(color: PdfColors.grey400, width: 0.5),
-      children: rows,
-    );
-  }
+                ),
+              ),
+          ],
+        ),
+    ],
+  );
 
   /// One block as a single line of spans, for the capped inline output.
   List<pw.InlineSpan> flatLine(md.Node node, pw.TextStyle style) {
@@ -237,8 +227,12 @@ class _PdfNotesBuilder {
           };
           number++;
           spans.add(pw.TextSpan(text: '$marker ', style: style));
+          var paragraphs = 0;
           for (final child in item.children ?? const <md.Node>[]) {
             if (child is md.Element && child.tag == 'p') {
+              if (paragraphs++ > 0) {
+                spans.add(pw.TextSpan(text: '\n', style: style));
+              }
               spans.addAll(inline(child.children ?? const [], style));
             } else if (child is md.Element &&
                 (child.tag == 'ul' ||
@@ -256,22 +250,10 @@ class _PdfNotesBuilder {
       case 'hr':
         return const [];
       case 'table':
-        final rows = <String>[];
-        void visit(md.Node node) {
-          if (node is! md.Element) return;
-          if (node.tag == 'tr') {
-            rows.add(
-              [
-                for (final cell in node.children ?? const <md.Node>[])
-                  cell.textContent.trim(),
-              ].join(' | '),
-            );
-            return;
-          }
-          (node.children ?? const <md.Node>[]).forEach(visit);
-        }
-
-        visit(node);
+        final rows = [
+          for (final row in notesTableRows(node))
+            row.cells.map((cell) => cell.textContent.trim()).join(' | '),
+        ];
         return [pw.TextSpan(text: rows.join('\n'), style: style)];
       case 'blockquote':
         final spans = <pw.InlineSpan>[];

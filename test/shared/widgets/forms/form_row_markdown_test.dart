@@ -105,4 +105,27 @@ void main() {
     // row stays open, as a plain row does; scrolling must not close it.
     expect(find.byType(MarkdownNotesField), findsOneWidget);
   });
+
+  test('a Markdown row refuses parameters it cannot honour', () {
+    final c = TextEditingController();
+    addTearDown(c.dispose);
+    expect(
+      () => FormRow.text(
+        label: 'Notes',
+        controller: c,
+        markdown: true,
+        suffixText: 'm',
+      ),
+      throwsAssertionError,
+    );
+    expect(
+      () => FormRow.text(
+        label: 'Notes',
+        controller: c,
+        markdown: true,
+        inputValidator: (_) => null,
+      ),
+      throwsAssertionError,
+    );
+  });
 }
