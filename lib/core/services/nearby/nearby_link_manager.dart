@@ -550,14 +550,20 @@ class NearbyLinkManager {
       _strangerUntil[transportId] = _now().add(next);
       return;
     }
-    if (!e.fromPeer) return;
+    // Of this device's own refusals only one is the diver's to act on: a
+    // known peer speaks a newer protocol, so this device needs the update.
+    if (!e.fromPeer && e.code != NearbyErrorCode.newerApp) return;
     _learn(transportId, device);
-    final error = switch (e.code) {
-      NearbyErrorCode.notPaired => NearbyPeerError.notPaired,
-      NearbyErrorCode.differentLibrary => NearbyPeerError.differentLibrary,
-      NearbyErrorCode.newerApp => NearbyPeerError.peerOlderApp,
-      _ => null,
-    };
+    final error = !e.fromPeer
+        ? NearbyPeerError.newerApp
+        : switch (e.code) {
+            NearbyErrorCode.notPaired => NearbyPeerError.notPaired,
+            NearbyErrorCode.differentLibrary =>
+              NearbyPeerError.differentLibrary,
+            NearbyErrorCode.newerApp => NearbyPeerError.peerOlderApp,
+            NearbyErrorCode.olderApp => NearbyPeerError.newerApp,
+            _ => null,
+          };
     if (error != null) await _peers.setError(device, error);
     _completeSyncNow(device, NearbySyncOutcome(error: error));
   }

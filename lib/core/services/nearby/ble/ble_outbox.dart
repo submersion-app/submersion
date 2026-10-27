@@ -23,9 +23,21 @@ class BleOutbox {
   int _queued = 0;
   Uint8List _current = Uint8List(0);
   final _waiters = <Completer<void>>[];
+  final _drainWaiters = <Completer<void>>[];
   bool _closed = false;
 
   bool get isEmpty => _queued == 0;
+
+  /// Completes once every queued byte has been read, or the outbox closed.
+  /// A peripheral cannot hang up on a central, so a closing one waits on
+  /// this: its last frames (a refusal, a bye) are how the central learns
+  /// the session is over.
+  Future<void> get drained {
+    if (_closed || isEmpty) return Future.value();
+    final waiter = Completer<void>();
+    _drainWaiters.add(waiter);
+    return waiter.future;
+  }
 
   /// Queues [bytes]; completes once at most [highWater] bytes are waiting.
   /// Throws [NearbyLinkClosed] once the outbox is closed.
@@ -70,6 +82,7 @@ class BleOutbox {
     _current = out.takeBytes();
     _queued -= _current.length;
     if (_queued <= highWater) _wake();
+    if (_queued == 0) _wakeDrained();
     return _current;
   }
 
@@ -80,6 +93,13 @@ class BleOutbox {
     _waiters.clear();
   }
 
+  void _wakeDrained() {
+    for (final waiter in _drainWaiters) {
+      if (!waiter.isCompleted) waiter.complete();
+    }
+    _drainWaiters.clear();
+  }
+
   void close() {
     _closed = true;
     _chunks.clear();
@@ -88,5 +108,6 @@ class BleOutbox {
       if (!waiter.isCompleted) waiter.completeError(const NearbyLinkClosed());
     }
     _waiters.clear();
+    _wakeDrained();
   }
 }

@@ -206,6 +206,13 @@ class NearbySyncProtocol {
       await _finishReceive(before, before, lowest: null);
       return;
     }
+    // A kind this build does not know is never applied as a full copy.
+    if (kind != 'delta' && kind != 'full') {
+      throw const _DirectionFailed(
+        NearbyPeerError.unreachable,
+        tellPeer: NearbyErrorCode.protocol,
+      );
+    }
     final gz = await _receiveParts(offer);
     final json = await _files.gunzip(gz);
     try {
@@ -375,18 +382,30 @@ class NearbySyncProtocol {
     }
 
     final outgoing = await _prepare(theirs);
-    if (outgoing == null) {
-      await _sendJson(NearbyMessageType.baseOffer, {
-        'kind': 'none',
-        'epoch': _self.epochId,
-      });
-    } else {
-      await _sendParts(outgoing);
+    final Map<String, Object?> applied;
+    try {
+      if (outgoing == null) {
+        await _sendJson(NearbyMessageType.baseOffer, {
+          'kind': 'none',
+          'epoch': _self.epochId,
+        });
+      } else {
+        await _sendParts(outgoing);
+      }
+      applied = await _expectJson(
+        NearbyMessageType.applied,
+        timeout: applyTimeout,
+      );
+    } on Object {
+      // A delta is rebuilt every session; only a full copy waits for a
+      // resume.
+      if (outgoing != null &&
+          outgoing.kind != 'full' &&
+          await outgoing.file.exists()) {
+        await outgoing.file.delete();
+      }
+      rethrow;
     }
-    final applied = await _expectJson(
-      NearbyMessageType.applied,
-      timeout: applyTimeout,
-    );
     final ack = applied['ack'];
     await _engine.recordPeerAck(
       peerDeviceId: _peerId,

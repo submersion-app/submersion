@@ -139,6 +139,66 @@ void main() {
       expect(phoneSecrets.map, isEmpty);
     });
 
+    test('a "Not mine" forged in the clear is not believed', () async {
+      final (out, into) = await _link();
+      final incoming = NearbySession(
+        endpoint: into,
+        identity: _identity('P'),
+        secrets: MemoryNearbySecrets(),
+      ).accept(allowPairing: true);
+      final outgoing = await NearbySession(
+        endpoint: out,
+        identity: _identity('L'),
+        secrets: MemoryNearbySecrets(),
+      ).openPairing();
+      await incoming;
+
+      final confirm = outgoing.confirm();
+      // A reject without the session key, as if from someone in range.
+      await into.send(
+        FrameEncoder.encode(NearbyMessageType.pairReject, Uint8List(0)),
+      );
+      await expectLater(
+        confirm,
+        throwsA(
+          isA<NearbySessionRefused>().having(
+            (e) => e.code,
+            'code',
+            NearbyErrorCode.protocol,
+          ),
+        ),
+      );
+    });
+
+    test('a device reporting the same id as this one (a cloned install) is '
+        'never paired with it', () async {
+      final (out, into) = await _link();
+      final laptopSecrets = MemoryNearbySecrets();
+      final phoneSecrets = MemoryNearbySecrets();
+      final incoming = NearbySession(
+        endpoint: into,
+        identity: _identity('same'),
+        secrets: phoneSecrets,
+      ).accept(allowPairing: true);
+      final outgoing = await NearbySession(
+        endpoint: out,
+        identity: _identity('same'),
+        secrets: laptopSecrets,
+      ).openPairing();
+      final accepted = await incoming as NearbyIncomingPairing;
+
+      final results = await Future.wait([
+        outgoing.confirm().then<Object?>((c) => c, onError: (Object e) => e),
+        accepted.pairing.confirm().then<Object?>(
+          (c) => c,
+          onError: (Object e) => e,
+        ),
+      ]);
+      expect(results, everyElement(isA<NearbySessionRefused>()));
+      expect(laptopSecrets.map, isEmpty);
+      expect(phoneSecrets.map, isEmpty);
+    });
+
     test('a responder not in pairing mode refuses a pairing', () async {
       final (out, into) = await _link();
       final incoming = NearbySession(

@@ -52,6 +52,29 @@ void main() {
     expect(seen, [NearbyAvailability.bluetoothOff]);
   });
 
+  test(
+    'a disposed carrier stops following Bluetooth and ends its '
+    'streams, so a provider-scope restart leaves no listener behind',
+    () async {
+      final updates = StreamController<AvailabilityState>.broadcast();
+      addTearDown(updates.close);
+      final carrier = BleNearbyCarrier(
+        needsPermission: false,
+        readAvailability: () async => AvailabilityState.poweredOn,
+        availabilityUpdates: () => updates.stream,
+      );
+      await carrier.checkAvailability();
+      expect(updates.hasListener, isTrue);
+      final ended = Completer<void>();
+      carrier.availability.listen((_) {}, onDone: ended.complete);
+
+      await carrier.dispose();
+      expect(updates.hasListener, isFalse);
+      await ended.future;
+      updates.add(AvailabilityState.poweredOff); // nothing left to reach
+    },
+  );
+
   test('a Bluetooth stack that fails and leaves a stray error behind reads '
       'as unsupported, with nothing uncaught', () async {
     final carrier = BleNearbyCarrier(

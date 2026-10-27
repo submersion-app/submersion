@@ -70,7 +70,9 @@ class BleNearbyCarrier implements NearbyCarrier {
   /// error.
   final _availability = StreamController<NearbyAvailability>.broadcast();
   StreamSubscription<AvailabilityState>? _availabilitySub;
-  bool _serviceAdded = false;
+
+  /// This carrier's request handlers and peripheral listeners are set up.
+  bool _peripheralWired = false;
 
   @override
   bool get canAdvertise => BleCapabilities.supportsPeripheralApi;
@@ -132,10 +134,9 @@ class BleNearbyCarrier implements NearbyCarrier {
   /// Starts forwarding Bluetooth's own availability changes, once.
   void _followAvailability() {
     if (_availabilitySub != null) return;
-    _availabilitySub = _availabilityUpdates().listen(
-      (state) => _availability.add(_map(state)),
-      onError: (Object e) => _log.info('Bluetooth availability error: $e'),
-    );
+    _availabilitySub = _availabilityUpdates().listen((state) {
+      if (!_availability.isClosed) _availability.add(_map(state));
+    }, onError: (Object e) => _log.info('Bluetooth availability error: $e'));
   }
 
   // -------------------------------------------------------------------
@@ -145,7 +146,9 @@ class BleNearbyCarrier implements NearbyCarrier {
   Future<void> startScanning() async {
     await _scanSub?.cancel();
     _scanSub = UniversalBle.scanStream.listen((device) {
-      if (!device.services.contains(nearbyServiceUuid)) return;
+      if (_sightings.isClosed || !device.services.contains(nearbyServiceUuid)) {
+        return;
+      }
       _sightings.add(
         NearbyPeerSighting(
           transportId: device.deviceId,
@@ -213,30 +216,35 @@ class BleNearbyCarrier implements NearbyCarrier {
     if (!canAdvertise) {
       throw UnsupportedError('This platform cannot host the nearby service');
     }
-    if (!_serviceAdded) {
-      await UniversalBlePeripheral.addService(
-        BlePeripheralService(
-          uuid: nearbyServiceUuid,
-          characteristics: [
-            BlePeripheralCharacteristic(
-              uuid: nearbyInboxUuid,
-              properties: const [
-                CharacteristicProperty.write,
-                CharacteristicProperty.writeWithoutResponse,
-              ],
-              permissions: const [PeripheralAttributePermission.writeable],
-            ),
-            BlePeripheralCharacteristic(
-              uuid: nearbyOutboxUuid,
-              properties: const [
-                CharacteristicProperty.read,
-                CharacteristicProperty.notify,
-              ],
-              permissions: const [PeripheralAttributePermission.readable],
-            ),
-          ],
-        ),
-      );
+    if (!_peripheralWired) {
+      // The GATT server outlives this carrier: after a restart of the
+      // provider scope (a restore, demo mode) the service is still hosted,
+      // and adding it again would give centrals two of it.
+      if (!await _serviceHosted()) {
+        await UniversalBlePeripheral.addService(
+          BlePeripheralService(
+            uuid: nearbyServiceUuid,
+            characteristics: [
+              BlePeripheralCharacteristic(
+                uuid: nearbyInboxUuid,
+                properties: const [
+                  CharacteristicProperty.write,
+                  CharacteristicProperty.writeWithoutResponse,
+                ],
+                permissions: const [PeripheralAttributePermission.writeable],
+              ),
+              BlePeripheralCharacteristic(
+                uuid: nearbyOutboxUuid,
+                properties: const [
+                  CharacteristicProperty.read,
+                  CharacteristicProperty.notify,
+                ],
+                permissions: const [PeripheralAttributePermission.readable],
+              ),
+            ],
+          ),
+        );
+      }
       UniversalBlePeripheral.setWriteRequestHandlers((
         deviceId,
         characteristicId,
@@ -291,7 +299,7 @@ class BleNearbyCarrier implements NearbyCarrier {
           _peripheralEnds[e.deviceId]?.readLength = _readLengthFor(e.mtu);
         }),
       ]);
-      _serviceAdded = true;
+      _peripheralWired = true;
     }
     await UniversalBlePeripheral.startAdvertising(
       services: [nearbyServiceUuid],
@@ -300,12 +308,40 @@ class BleNearbyCarrier implements NearbyCarrier {
 
   @override
   Future<void> stopAdvertising() async {
-    if (!canAdvertise || !_serviceAdded) return;
+    if (!canAdvertise || !_peripheralWired) return;
     try {
       await UniversalBlePeripheral.stopAdvertising();
     } on Object catch (e) {
       _log.info('Stopping nearby advertising failed: $e');
     }
+  }
+
+  static Future<bool> _serviceHosted() async {
+    try {
+      final hosted = await UniversalBlePeripheral.getServices();
+      return hosted.any((uuid) => uuid.toLowerCase() == nearbyServiceUuid);
+    } on Object {
+      return false;
+    }
+  }
+
+  /// Stops listening to Bluetooth. The service stays hosted for the next
+  /// carrier, which takes the request handlers over.
+  Future<void> dispose() async {
+    await _scanSub?.cancel();
+    _scanSub = null;
+    for (final sub in _peripheralSubs) {
+      await sub.cancel();
+    }
+    _peripheralSubs.clear();
+    await _availabilitySub?.cancel();
+    _availabilitySub = null;
+    for (final end in _peripheralEnds.values.toList()) {
+      end.drop();
+    }
+    await _sightings.close();
+    await _incoming.close();
+    await _availability.close();
   }
 
   /// The largest read answer that cannot trigger a long read: an ATT read
@@ -335,7 +371,7 @@ class BleNearbyCarrier implements NearbyCarrier {
         if (limit != null) end.readLength = (limit - 1).clamp(19, 508);
       }, onError: (Object _) {}),
     );
-    _incoming.add(end);
+    if (!_incoming.isClosed) _incoming.add(end);
     return end;
   }
 }
@@ -510,7 +546,15 @@ class _PeripheralEnd implements NearbyEndpoint {
   }
 
   /// A peripheral cannot hang up on a central; it stops listening, and the
-  /// central's own close (after its `bye`) ends the connection.
+  /// central's own close (after its `bye`) ends the connection. What is
+  /// still queued (a refusal, a `bye`) is the central's only sign the
+  /// session is over, so it gets [drainTimeout] to read it first.
   @override
-  Future<void> close() async => drop();
+  Future<void> close() async {
+    if (_closed) return;
+    await _outbox.drained.timeout(drainTimeout, onTimeout: () {});
+    drop();
+  }
+
+  static const drainTimeout = Duration(seconds: 3);
 }

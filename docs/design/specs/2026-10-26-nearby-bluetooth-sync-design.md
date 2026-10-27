@@ -162,8 +162,11 @@ Flutter peripheral has no flow control over notifications (Apple rejects
 them once its queue is full, Android drops them), while reads and
 acknowledged writes pace themselves on every platform. Each direction
 carries a byte stream framed by the link layer; the carrier cuts it into
-chunks that fit the negotiated MTU, and a peripheral's send waits while
-64 KiB are queued.
+chunks that fit the negotiated MTU, never longer than the 512 bytes one
+attribute value may hold, and a peripheral's send waits while 64 KiB are
+queued. A peripheral cannot hang up on a central, so a closing one first
+lets the central read what is still queued (a refusal, a `bye`), for up
+to three seconds.
 Both sides ask for the largest MTU the platform allows and the fastest
 connection priority Android offers. The advertisement carries the service
 UUID and nothing else: no name, no identity. Who the device is comes out
@@ -327,7 +330,9 @@ published to iCloud since the laptop's edit. So after a nearby apply, for
 each cloud backend state in `LocalPublishStates`, if the oldest clock
 applied in this session is older than that backend's `publishedHlcHigh`,
 the watermark is pulled back to that clock. The next cloud publish then
-re-sends everything since it, which the peers' merge rules treat as
+re-sends everything since it, children selected by their own clock too
+(a relayed tank edit on an older dive is not pending on this device),
+which the peers' merge rules treat as
 no-ops for rows they already hold. The amount is bounded by the age of the
 oldest relayed edit. This is the one way a nearby sync touches cloud
 bookkeeping. (Decided by the maintainer.)

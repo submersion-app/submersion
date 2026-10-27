@@ -30,9 +30,11 @@ final nearbyPairSecretsProvider = Provider<NearbyPairSecrets>(
   (ref) => SecureNearbyPairStore(),
 );
 
-final nearbyCarrierProvider = Provider<NearbyCarrier>(
-  (ref) => BleNearbyCarrier(),
-);
+final nearbyCarrierProvider = Provider<NearbyCarrier>((ref) {
+  final carrier = BleNearbyCarrier();
+  ref.onDispose(carrier.dispose);
+  return carrier;
+});
 
 /// False where this device can only scan (Linux).
 final nearbyCanAdvertiseProvider = Provider<bool>(

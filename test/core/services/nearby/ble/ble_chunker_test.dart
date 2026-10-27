@@ -19,8 +19,11 @@ void main() {
     expect(BleChunker.split(Uint8List(0), 185), isEmpty);
   });
 
-  test('payloadSize clamps the negotiated mtu', () {
-    expect(BleChunker.payloadSize(517), 514);
+  test('payloadSize clamps the negotiated mtu, never above the 512-byte '
+      'attribute value limit', () {
+    expect(BleChunker.payloadSize(517), 512);
+    expect(BleChunker.payloadSize(515), 512);
+    expect(BleChunker.payloadSize(247), 244);
     expect(BleChunker.payloadSize(23), 20);
     expect(BleChunker.payloadSize(null), 20);
   });

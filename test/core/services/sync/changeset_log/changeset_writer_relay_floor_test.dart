@@ -63,7 +63,7 @@ void main() {
     ),
   );
 
-  Future<List<String>> latestChangesetDiveIds() async {
+  Future<SyncPayload> latestChangeset() async {
     final files = await provider.listFiles(
       folderId: folder,
       namePattern: ChangesetLogLayout.prefix,
@@ -77,11 +77,14 @@ void main() {
               a.name,
             )!.compareTo(ChangesetLogLayout.changesetSeqOf(b.name)!),
           );
-    final payload = ChangesetCodec(
+    return ChangesetCodec(
       SyncDataSerializer(),
     ).decodeChangeset(await provider.downloadFile(cs.last.id));
-    return payload.data.dives.map((d) => d['id'] as String).toList();
   }
+
+  Future<List<String>> latestChangesetDiveIds() async => [
+    for (final d in (await latestChangeset()).data.dives) d['id'] as String,
+  ];
 
   /// d1 published in a base; then d2 arrives over nearby with a clock older
   /// than what the base published. Returns that older clock.
@@ -128,6 +131,39 @@ void main() {
 
     // Cleared: the next publish has nothing to say.
     expect((await publish()).kind, ChangesetWriteKind.noop);
+  });
+
+  test('a floor also publishes a relayed child edit whose parent is older '
+      'than it (a tank edited on an old dive)', () async {
+    final db = DatabaseService.instance.database;
+    const old = '000000000001000:000000:laptop';
+    await DiveRepository().createDive(
+      createTestDiveWithBottomTime(id: 'old', diveNumber: 1),
+    );
+    await db.customStatement("UPDATE dives SET hlc = ? WHERE id = 'old'", [
+      old,
+    ]);
+    await db.customStatement(
+      "INSERT INTO dive_tanks (id, dive_id, hlc) VALUES ('t1', 'old', ?)",
+      [old],
+    );
+    await DiveRepository().createDive(
+      createTestDiveWithBottomTime(id: 'd1', diveNumber: 2),
+    );
+    await publish();
+    final published = (await manifest()).publishedHlcHigh!;
+    final ms = int.parse(published.substring(0, 15)) - 1000;
+    final relayed = '${ms.toString().padLeft(15, '0')}:000000:laptop';
+    // Nearby applied the laptop's tank edit; the dive itself is unchanged.
+    await db.customStatement("UPDATE dive_tanks SET hlc = ? WHERE id = 't1'", [
+      relayed,
+    ]);
+    await SyncRepository().clearAllSyncRecords();
+    await state.pullBackRelayFloor(relayed);
+
+    expect((await publish()).kind, ChangesetWriteKind.changeset);
+    final tanks = (await latestChangeset()).data.diveTanks;
+    expect(tanks.map((t) => t['id']), ['t1']);
   });
 
   test('a floor set while a publish is under way survives it (a nearby '

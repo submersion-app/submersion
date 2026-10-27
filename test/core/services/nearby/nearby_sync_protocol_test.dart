@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -6,6 +8,7 @@ import 'package:path/path.dart' as p;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/nearby/nearby_frame.dart';
 import 'package:submersion/core/services/nearby/nearby_hello.dart';
 import 'package:submersion/core/services/nearby/nearby_peer_store.dart';
 import 'package:submersion/core/services/nearby/nearby_session.dart';
@@ -82,14 +85,11 @@ void main() {
     return d;
   }
 
-  /// One session from [laptop] (initiator) to [phone], both protocols run to
-  /// completion. Returns (laptop outcome, phone outcome).
-  Future<(NearbySyncOutcome, NearbySyncOutcome)> session(
+  /// An open, paired channel from [laptop] (initiator) to [phone].
+  Future<(NearbyChannel, NearbyChannel)> open(
     _Device laptop,
-    _Device phone, {
-    int partSize = 262144,
-    Duration messageTimeout = const Duration(seconds: 60),
-  }) async {
+    _Device phone,
+  ) async {
     final phoneCarrier = hub.carrier(phone.id) ?? hub.join(phone.id);
     final laptopCarrier = hub.carrier(laptop.id) ?? hub.join(laptop.id);
     await phoneCarrier.startAdvertising();
@@ -107,20 +107,43 @@ void main() {
       secrets: MemoryNearbySecrets({phone.id: secret}),
     ).openSync();
     final phoneChannel = (await accepted as NearbyIncomingSync).channel;
+    return (laptopChannel, phoneChannel);
+  }
 
-    NearbySyncProtocol protocol(_Device d, channel) => NearbySyncProtocol(
-      channel: channel,
-      engine: d.engine,
-      peers: d.peers,
-      tempDir: () async => d.temp,
-      now: () => d.now,
+  NearbySyncProtocol protocol(
+    _Device d,
+    NearbyChannel channel, {
+    int partSize = 262144,
+    Duration messageTimeout = const Duration(seconds: 60),
+  }) => NearbySyncProtocol(
+    channel: channel,
+    engine: d.engine,
+    peers: d.peers,
+    tempDir: () async => d.temp,
+    now: () => d.now,
+    partSize: partSize,
+    messageTimeout: messageTimeout,
+  );
+
+  /// One session from [laptop] (initiator) to [phone], both protocols run to
+  /// completion. Returns (laptop outcome, phone outcome).
+  Future<(NearbySyncOutcome, NearbySyncOutcome)> session(
+    _Device laptop,
+    _Device phone, {
+    int partSize = 262144,
+    Duration messageTimeout = const Duration(seconds: 60),
+  }) async {
+    final (laptopChannel, phoneChannel) = await open(laptop, phone);
+    NearbySyncProtocol run(_Device d, NearbyChannel channel) => protocol(
+      d,
+      channel,
       partSize: partSize,
       messageTimeout: messageTimeout,
     );
 
     final results = await Future.wait([
-      protocol(laptop, laptopChannel).run(),
-      protocol(phone, phoneChannel).run(),
+      run(laptop, laptopChannel).run(),
+      run(phone, phoneChannel).run(),
     ]);
     return (results[0], results[1]);
   }
@@ -427,6 +450,71 @@ void main() {
       expect(phone.engine.appliedFiles.single, '{"slow":true}');
     },
   );
+
+  test('an offer of a kind this build does not know is refused before any '
+      'part is fetched, never applied as a full copy', () async {
+    final laptop = await device('L', peerId: 'P');
+    final phone = await device('P', peerId: 'L');
+    final (laptopChannel, phoneChannel) = await open(laptop, phone);
+    final phoneRun = protocol(phone, phoneChannel).run();
+    final inbox = StreamIterator(laptopChannel.messages);
+    expect(await inbox.moveNext(), isTrue);
+    expect(inbox.current.type, NearbyMessageType.watermarks);
+    await laptopChannel.send(
+      NearbyMessageType.baseOffer,
+      Uint8List.fromList(
+        utf8.encode(
+          jsonEncode({
+            'id': 'x1',
+            'kind': 'mystery',
+            'parts': 1,
+            'bytes': 3,
+            'partSize': 3,
+          }),
+        ),
+      ),
+    );
+    expect(await inbox.moveNext(), isTrue);
+    expect(inbox.current.type, NearbyMessageType.error);
+    await laptopChannel.close();
+    expect((await phoneRun).error, NearbyPeerError.unreachable);
+    expect(phone.engine.appliedFiles, isEmpty);
+  });
+
+  test('a delta whose link drops before it is applied leaves no file '
+      'behind (only a full copy is kept for a resume)', () async {
+    final laptop = await device(
+      'L',
+      peerId: 'P',
+      marks: {'L': fakeHlc(50, 'L')},
+    );
+    laptop.engine.delta = fakeTagsPayload([('new', fakeHlc(50, 'L'))]);
+    final phone = await device('P', peerId: 'L');
+    final (laptopChannel, phoneChannel) = await open(laptop, phone);
+    final laptopRun = protocol(laptop, laptopChannel).run();
+    final inbox = StreamIterator(phoneChannel.messages);
+    await phoneChannel.send(
+      NearbyMessageType.watermarks,
+      Uint8List.fromList(
+        utf8.encode(
+          jsonEncode({
+            'high': {'L': fakeHlc(20, 'L')},
+            'epoch': 'epoch-1',
+          }),
+        ),
+      ),
+    );
+    expect(await inbox.moveNext(), isTrue);
+    expect(inbox.current.type, NearbyMessageType.baseOffer);
+    await phoneChannel.close(); // the link drops before any part
+
+    expect((await laptopRun).error, NearbyPeerError.unreachable);
+    final left = laptop.temp
+        .listSync()
+        .map((f) => p.basename(f.path))
+        .where((n) => n.startsWith('nearby-delta-'));
+    expect(left, isEmpty);
+  });
 
   test('partial copies of an older offer are swept', () async {
     final laptop = await device(

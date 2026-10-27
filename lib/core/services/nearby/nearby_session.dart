@@ -440,7 +440,10 @@ class NearbySession {
     } on FormatException {
       return _refuse(NearbyErrorCode.protocol);
     }
-    if (expectedId != null && peer.deviceId != expectedId) {
+    // A cloned install reports this device's own id; pairing with it would
+    // merge two writers into one.
+    if (peer.deviceId == _identity.deviceId ||
+        (expectedId != null && peer.deviceId != expectedId)) {
       await _refuse(NearbyErrorCode.protocol);
     }
     final mine = _identity.epochId;
@@ -606,6 +609,12 @@ class NearbyPairing {
           return s._refuse(NearbyErrorCode.protocol);
         }
       case NearbyMessageType.pairReject:
+        // Sealed like the confirm: anyone in range could send it bare.
+        try {
+          await _cipher.open(reply.body);
+        } on NearbyAuthFailure {
+          return s._refuse(NearbyErrorCode.protocol);
+        }
         await s._endpoint.close();
         throw const NearbyPairingRejected();
       case NearbyMessageType.error:

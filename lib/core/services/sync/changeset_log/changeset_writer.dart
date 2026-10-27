@@ -109,12 +109,11 @@ class ChangesetWriter {
     // rows, issue #3731) widens this one export; the published clock still
     // never moves down.
     final relayFloor = state?.relayFloorHlc;
-    final exportFrom =
+    final relaying =
         relayFloor != null &&
-            watermark != null &&
-            relayFloor.compareTo(watermark) < 0
-        ? relayFloor
-        : watermark;
+        watermark != null &&
+        relayFloor.compareTo(watermark) < 0;
+    final exportFrom = relaying ? relayFloor : watermark;
     final baseInCloud = ownManifest?.baseSeq != null;
     final adoptedMarker =
         state != null && state.baseSeq == null && watermark != null;
@@ -303,6 +302,9 @@ class ChangesetWriter {
       seq: newSeq,
       epochId: epochId,
       uploadNonce: uploadNonce,
+      // A relayed child edit (a tank on an older dive) is not pending here,
+      // and its parent sits below the floor: only its own clock finds it.
+      childrenByOwnClock: relaying,
     );
     if (_isEmpty(payload)) {
       await _clearRelayFloorRead(providerId, relayFloor);

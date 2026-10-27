@@ -68,6 +68,30 @@ void main() {
     await expectLater(box.enqueue(_b(1)), throwsA(isA<NearbyLinkClosed>()));
   });
 
+  test('drained completes once the central has read every queued byte, '
+      'so a closing peripheral can let its last frames out', () async {
+    final box = BleOutbox();
+    await box.enqueue(_b(10));
+    var drained = false;
+    final wait = box.drained.then((_) => drained = true);
+    box.read(offset: 0, maxLength: 4, platformSlices: false);
+    await pumpEventQueue();
+    expect(drained, isFalse, reason: '6 bytes still waiting');
+    box.read(offset: 0, maxLength: 10, platformSlices: false);
+    await wait;
+    expect(drained, isTrue);
+  });
+
+  test('drained completes at once when nothing waits, and when the outbox '
+      'closes', () async {
+    await BleOutbox().drained;
+    final box = BleOutbox();
+    await box.enqueue(_b(5));
+    final wait = box.drained;
+    box.close();
+    await wait;
+  });
+
   test('wasEmpty reports the transition the doorbell rings on', () async {
     final box = BleOutbox();
     expect(box.isEmpty, isTrue);

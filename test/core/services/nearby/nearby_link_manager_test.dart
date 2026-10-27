@@ -7,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/nearby/nearby_carrier.dart';
+import 'package:submersion/core/services/nearby/nearby_frame.dart';
 import 'package:submersion/core/services/nearby/nearby_hello.dart';
 import 'package:submersion/core/services/nearby/nearby_link_manager.dart';
 import 'package:submersion/core/services/nearby/nearby_peer_store.dart';
@@ -688,6 +689,37 @@ void main() {
       await _settle();
       expect((await a.peers.get('B'))!.lastSyncedAt, isNull);
       expect(a.engine.recordedAcks, isEmpty);
+    });
+
+    test('a known peer that speaks a newer protocol shows that this device '
+        'needs the update', () async {
+      final a = await device('A');
+      final b = await device('B');
+      await pair(a, b);
+      await foreground([a, b]);
+      expect(a.engine.recordedAcks, hasLength(1), reason: 'met once');
+      // B updates to a build with a newer protocol: its hello says so.
+      await b.manager.dispose();
+      await b.carrier.startAdvertising();
+      final newer = b.carrier.incoming.listen((endpoint) {
+        unawaited(
+          endpoint.send(
+            FrameEncoder.encode(
+              NearbyMessageType.hello,
+              const NearbyHello(
+                protocolVersion: NearbyHello.currentProtocolVersion + 1,
+                intent: NearbyIntent.sync,
+              ).toBytes(),
+            ),
+          ),
+        );
+      });
+      addTearDown(newer.cancel);
+
+      final outcome = await a.manager.syncNow('B');
+      expect(outcome?.error, NearbyPeerError.newerApp);
+      final row = (await a.peers.get('B'))!;
+      expect(a.peers.errorOf(row), NearbyPeerError.newerApp);
     });
 
     test('a session is stamped synced only at its end', () async {
