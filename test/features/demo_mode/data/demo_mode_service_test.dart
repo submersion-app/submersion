@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:drift/drift.dart' show GeneratedDatabase;
 import 'package:submersion/features/demo_mode/data/demo_database_preparer.dart';
 import 'package:submersion/features/demo_mode/data/demo_downloader.dart';
 import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
@@ -150,6 +151,73 @@ void main() {
       expect(prefs.getString('current_diver_id'), 'real-diver');
       expect(Directory(paths.root).existsSync(), isFalse);
       expect(DemoModeGate.instance.isActive, isFalse);
+      // The real logbook is a new database instance; the app scope must be
+      // rebuilt or every provider keeps the closed one.
+      expect(restarts, 1);
+    },
+  );
+
+  test(
+    'the state on disk stays entering until the sample logbook is prepared',
+    () async {
+      final phases = <DemoPhase?>[];
+      final gate = <bool>[];
+      final recording = _RecordingPreparer(() async {
+        phases.add((await store.read())?.phase);
+        gate.add(DemoModeGate.instance.isActive);
+      });
+
+      await DemoModeService(
+        paths: paths,
+        prefs: prefs,
+        store: store,
+        manifest: FakeManifestClient(testPackage),
+        downloader: FakeDownloader(),
+        extractor: FakeExtractor(),
+        preparer: recording,
+        switcher: switcher,
+        realDatabasePath: () async => realPath,
+        realKeyHex: () => 'k' * 64,
+        deviceId: () => 'device-1',
+        cancelDeviceNotifications: () async {},
+        restart: () => restarts++,
+      ).enter(fromFirstRun: false);
+
+      // A kill while preparing relaunches as entering, which cleans up,
+      // rather than as active over a half-prepared logbook.
+      expect(phases, [DemoPhase.entering]);
+      // Sealed features already refuse while the switch is under way.
+      expect(gate, [isTrue]);
+      expect((await store.read())!.phase, DemoPhase.active);
+    },
+  );
+
+  test('exit with an unreadable preferences snapshot still finishes', () async {
+    await service().enter(fromFirstRun: false);
+    File(paths.prefsSnapshotFile).writeAsStringSync('not a snapshot');
+
+    await service().exit();
+
+    expect(switcher.openPath, realPath);
+    expect(Directory(paths.root).existsSync(), isFalse);
+    expect(DemoModeGate.instance.isActive, isFalse);
+    expect(restarts, 2);
+  });
+
+  test(
+    'exit when the real logbook cannot reopen leaves exiting for startup and restarts',
+    () async {
+      await service().enter(fromFirstRun: false);
+      final failing = FakeSwitcher(failOpenOf: realPath);
+      await failing.openAt(paths.databaseFile, keyHex: null);
+      addTearDown(failing.close);
+
+      await service(sw: failing).exit();
+
+      // Startup finishes the exit on the restart and shows its own screens
+      // for a logbook it cannot open.
+      expect((await store.read())!.phase, DemoPhase.exiting);
+      expect(restarts, 2);
     },
   );
 
@@ -204,4 +272,30 @@ void main() {
 
     expect(File(realPath).readAsBytesSync(), before);
   });
+}
+
+/// Runs [onPrepare] when the service prepares the sample logbook, then
+/// prepares it as usual.
+class _RecordingPreparer extends DemoDatabasePreparer {
+  _RecordingPreparer(this.onPrepare);
+
+  final Future<void> Function() onPrepare;
+
+  @override
+  Future<void> prepare(
+    GeneratedDatabase db, {
+    required DateTime now,
+    required String photosDir,
+    required String? deviceId,
+    DemoUnitSettings? units,
+  }) async {
+    await onPrepare();
+    return super.prepare(
+      db,
+      now: now,
+      photosDir: photosDir,
+      deviceId: deviceId,
+      units: units,
+    );
+  }
 }

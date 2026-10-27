@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/demo_mode/data/demo_database_preparer.dart';
 import 'package:submersion/features/demo_mode/data/demo_database_switcher.dart';
 import 'package:submersion/features/demo_mode/data/demo_downloader.dart';
@@ -16,6 +17,8 @@ import 'package:submersion/features/demo_mode/domain/demo_state.dart';
 
 /// The pref key the selected diver lives under (`diver_providers.dart`).
 const _currentDiverIdKey = 'current_diver_id';
+
+final _log = LoggerService.forClass(DemoModeService);
 
 enum DemoEnterStage { downloading, preparing, opening }
 
@@ -103,9 +106,7 @@ class DemoModeService {
       rethrow;
     }
 
-    // Commit point: from here a relaunch opens the sample logbook, and every
-    // sealed feature refuses to run.
-    await store.write(state.copyWith(phase: DemoPhase.active));
+    // Every sealed feature refuses from here, while the switch is under way.
     DemoModeGate.instance.markActive(true);
     try {
       onProgress?.call(const DemoEnterProgress(DemoEnterStage.opening));
@@ -120,16 +121,33 @@ class DemoModeService {
       );
       final diverId = await _defaultDiverId(switcher.current);
       if (diverId != null) await prefs.setString(_currentDiverIdKey, diverId);
+      // Commit point: only a fully prepared logbook is reopened on relaunch.
+      // A kill before this line relaunches as entering, which restores the
+      // preferences and opens the user's logbook.
+      await store.write(state.copyWith(phase: DemoPhase.active));
     } catch (_) {
-      await _leave();
+      await _leaveLogged();
+      // The user's logbook is a new database instance, so the scope is
+      // rebuilt for every provider to see it.
+      restart();
       rethrow;
     }
     restart();
   }
 
+  /// Leaves demo mode and restarts. Never throws: whatever is left half done
+  /// is finished by `DemoStartup` on the restart.
   Future<void> exit() async {
-    await _leave();
+    await _leaveLogged();
     restart();
+  }
+
+  Future<void> _leaveLogged() async {
+    try {
+      await _leave();
+    } catch (e, st) {
+      _log.error('Leaving demo mode failed', error: e, stackTrace: st);
+    }
   }
 
   Future<void> _leave() async {
@@ -138,9 +156,17 @@ class DemoModeService {
       await store.write(current.copyWith(phase: DemoPhase.exiting));
     }
     await cancelDeviceNotifications();
+    // On failure the state stays exiting: startup finishes the exit on the
+    // restart, and shows its own screens if the logbook still cannot open.
     await switcher.openAt(await realDatabasePath(), keyHex: realKeyHex());
     final snapshot = File(paths.prefsSnapshotFile);
-    if (await snapshot.exists()) await PrefsSnapshot.restore(prefs, snapshot);
+    if (await snapshot.exists()) {
+      try {
+        await PrefsSnapshot.restore(prefs, snapshot);
+      } on StateError catch (e) {
+        _log.warning('Demo mode preferences could not be restored: $e');
+      }
+    }
     await store.deleteAll();
     DemoModeGate.instance.markActive(false);
   }

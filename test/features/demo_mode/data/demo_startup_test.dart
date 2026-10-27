@@ -58,6 +58,18 @@ void main() {
     expect(DemoModeGate.instance.isActive, isFalse);
   });
 
+  test('entering after the switch restores the preferences snapshot', () async {
+    await PrefsSnapshot.capture(prefs, File(paths.prefsSnapshotFile));
+    await prefs.setString('current_diver_id', 'demo-diver');
+    await writeState(DemoPhase.entering);
+
+    final decision = await resolve();
+
+    expect(decision.demoDatabasePath, isNull);
+    expect(prefs.getString('current_diver_id'), 'real');
+    expect(Directory(paths.root).existsSync(), isFalse);
+  });
+
   test('active opens the demo database', () async {
     await writeState(DemoPhase.active);
     File(paths.databaseFile).writeAsStringSync('db');

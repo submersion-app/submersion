@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_location_service.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/notification_service.dart';
 import 'package:submersion/core/services/security/database_security_service.dart';
 import 'package:submersion/features/demo_mode/data/demo_database_preparer.dart';
@@ -15,6 +16,8 @@ import 'package:submersion/features/demo_mode/data/demo_state_store.dart';
 import 'package:submersion/features/demo_mode/domain/demo_manifest.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/main.dart' show restartApp;
+
+final _log = LoggerService.forClass(DemoEnterController);
 
 /// Whether the sample logbook is open. Read once per app scope: entering and
 /// leaving demo mode restart the scope, so it never changes underneath it.
@@ -146,7 +149,10 @@ class DemoEnterController extends Notifier<DemoEnterUiState> {
             ? const DemoEnterIdle()
             : DemoEnterFailed(e.reason);
       }
-    } on Exception {
+    } catch (e, st) {
+      // Anything else, an Error included, still ends the dialog's spinner:
+      // the opening stage has no button of its own.
+      _log.error('Entering demo mode failed', error: e, stackTrace: st);
       if (ref.mounted) {
         state = const DemoEnterFailed(DemoDownloadFailure.network);
       }

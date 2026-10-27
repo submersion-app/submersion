@@ -19,8 +19,9 @@ class DemoStartupDecision {
 /// Decides at launch, before any database opens, whether the app resumes demo
 /// mode, and finishes whatever a killed app left half done:
 ///
-/// - **entering**: the download never finished, so the partial demo directory
-///   is removed and the user's logbook opens.
+/// - **entering**: the entry never finished, so any preferences it changed
+///   are restored, the partial demo directory is removed and the user's
+///   logbook opens.
 /// - **active**: the sample logbook opens again, with the strip showing.
 /// - **exiting**: the exit is finished (preferences restored, demo directory
 ///   removed) and the user's logbook opens.
@@ -45,11 +46,9 @@ class DemoStartup {
       case null:
         // A directory with no readable state is debris; clear it.
         await store.deleteAll();
-      case DemoPhase.entering:
-        await store.deleteAll();
       case DemoPhase.active when await File(paths.databaseFile).exists():
         demoPath = paths.databaseFile;
-      case DemoPhase.active || DemoPhase.exiting:
+      case DemoPhase.entering || DemoPhase.active || DemoPhase.exiting:
         await _finishExit(store, prefs);
     }
     DemoModeGate.instance.markActive(demoPath != null);

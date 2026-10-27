@@ -96,13 +96,18 @@ void main() {
     setUp(() => root = Directory.systemTemp.createTempSync('demo_ctrl'));
     tearDown(() => root.deleteSync(recursive: true));
 
-    Future<ProviderContainer> containerWith(FakeDownloader downloader) async {
+    Future<ProviderContainer> containerWith(
+      FakeDownloader downloader, {
+      String? failOpenOf,
+    }) async {
       SharedPreferences.setMockInitialValues({});
       final prefs = await SharedPreferences.getInstance();
       final paths = DemoPaths(p.join(root.path, 'support'));
       final realPath = p.join(root.path, 'submersion.db');
       await writeDatabaseWithDiver(realPath, 'real');
-      final switcher = FakeSwitcher();
+      final switcher = FakeSwitcher(
+        failOpenOf: failOpenOf == null ? null : paths.databaseFile,
+      );
       await switcher.openAt(realPath, keyHex: null);
       addTearDown(switcher.close);
       final service = DemoModeService(
@@ -156,6 +161,27 @@ void main() {
       container.read(demoEnterControllerProvider.notifier).reset();
       expect(container.read(demoEnterControllerProvider), isA<DemoEnterIdle>());
     });
+
+    test(
+      'an Error after the download ends failed, not stuck running',
+      () async {
+        // FakeSwitcher throws a StateError (an Error, not an Exception) when
+        // it is asked to open the sample logbook.
+        final container = await containerWith(
+          FakeDownloader(),
+          failOpenOf: 'demo',
+        );
+
+        await container
+            .read(demoEnterControllerProvider.notifier)
+            .start(fromFirstRun: false);
+
+        expect(
+          container.read(demoEnterControllerProvider),
+          isA<DemoEnterFailed>(),
+        );
+      },
+    );
 
     test('a successful entry ends running, not failed', () async {
       final container = await containerWith(FakeDownloader());
