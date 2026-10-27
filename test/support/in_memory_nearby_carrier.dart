@@ -16,6 +16,9 @@ class InMemoryNearbyHub {
     return carrier;
   }
 
+  /// The carrier already joined as [transportId], if any.
+  InMemoryNearbyCarrier? carrier(String transportId) => _carriers[transportId];
+
   /// Every link that [transportId] opens or accepts from now on closes, at
   /// both ends, once a send would take the bytes crossed past [bytes]. The
   /// send that crosses the budget delivers nothing.
@@ -25,6 +28,13 @@ class InMemoryNearbyHub {
       pipe.budget = bytes - pipe.crossed;
     }
   }
+
+  /// Bytes sent, both ways, over every link [transportId] opened or
+  /// accepted so far.
+  int bytesCrossed(String transportId) => [
+    for (final pipe in _carriers[transportId]?._pipes ?? const <_Pipe>[])
+      pipe.crossed,
+  ].fold(0, (a, b) => a + b);
 
   /// Removes a cut set by [cutAfterBytes] for links opened from now on.
   void heal(String transportId) => _budgets.remove(transportId);

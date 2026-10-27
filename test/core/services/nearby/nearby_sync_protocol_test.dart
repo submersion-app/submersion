@@ -1,0 +1,394 @@
+import 'dart:io';
+import 'dart:typed_data';
+
+import 'package:drift/native.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
+import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/nearby/nearby_hello.dart';
+import 'package:submersion/core/services/nearby/nearby_peer_store.dart';
+import 'package:submersion/core/services/nearby/nearby_session.dart';
+import 'package:submersion/core/services/nearby/nearby_sync_protocol.dart';
+
+import '../../../support/fake_nearby_sync_engine.dart';
+import '../../../support/in_memory_nearby_carrier.dart';
+
+class _Secrets implements NearbyPairSecrets {
+  _Secrets(this.map);
+
+  final Map<String, Uint8List> map;
+
+  @override
+  Future<Uint8List?> secretFor(String id) async => map[id];
+
+  @override
+  Future<void> store(String id, Uint8List s) async => map[id] = s;
+
+  @override
+  Future<void> remove(String id) async => map.remove(id);
+}
+
+NearbyIdentity _id(
+  String id, {
+  String? epoch = 'epoch-1',
+  int schema = 320,
+  int floor = 308,
+}) => NearbyIdentity(
+  deviceId: id,
+  deviceName: 'Device $id',
+  appVersion: '1.8.4',
+  schemaVersion: schema,
+  schemaFloor: floor,
+  epochId: epoch,
+  hasDives: true,
+);
+
+/// One device in the room: its fake library, its paired-devices table and
+/// its temp directory, all surviving across sessions.
+class _Device {
+  _Device(this.id, this.engine, this.db, this.temp)
+    : peers = NearbyPeerStore(db);
+
+  final String id;
+  final FakeNearbySyncEngine engine;
+  final AppDatabase db;
+  final Directory temp;
+  final NearbyPeerStore peers;
+  DateTime now = DateTime.utc(2026, 10, 27, 12);
+}
+
+void main() {
+  final secret = Uint8List.fromList(List.generate(32, (i) => i));
+  late InMemoryNearbyHub hub;
+
+  setUp(() => hub = InMemoryNearbyHub());
+
+  Future<_Device> device(
+    String id, {
+    required String peerId,
+    NearbyIdentity? identity,
+    Map<String, String> marks = const {},
+    Map<String, String>? marksAfterApply,
+  }) async {
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
+    addTearDown(db.close);
+    final temp = Directory.systemTemp.createTempSync('nearby_proto_$id');
+    addTearDown(() => temp.deleteSync(recursive: true));
+    final d = _Device(
+      id,
+      FakeNearbySyncEngine(
+        self: identity ?? _id(id),
+        marks: marks,
+        marksAfterApply: marksAfterApply,
+        tempDir: temp,
+      ),
+      db,
+      temp,
+    );
+    await d.peers.upsertPaired(
+      peerDeviceId: peerId,
+      displayName: 'Device $peerId',
+      pairedAt: 1,
+    );
+    return d;
+  }
+
+  /// One session from [laptop] (initiator) to [phone], both protocols run to
+  /// completion. Returns (laptop outcome, phone outcome).
+  Future<(NearbySyncOutcome, NearbySyncOutcome)> session(
+    _Device laptop,
+    _Device phone, {
+    int partSize = 262144,
+  }) async {
+    final phoneCarrier = hub.carrier(phone.id) ?? hub.join(phone.id);
+    final laptopCarrier = hub.carrier(laptop.id) ?? hub.join(laptop.id);
+    await phoneCarrier.startAdvertising();
+    final incoming = phoneCarrier.incoming.first;
+    final out = await laptopCarrier.connect(phone.id);
+    final into = await incoming;
+    final accepted = NearbySession(
+      endpoint: into,
+      identity: await phone.engine.identity(),
+      secrets: _Secrets({laptop.id: secret}),
+    ).accept(allowPairing: false);
+    final laptopChannel = await NearbySession(
+      endpoint: out,
+      identity: await laptop.engine.identity(),
+      secrets: _Secrets({phone.id: secret}),
+    ).openSync();
+    final phoneChannel = (await accepted as NearbyIncomingSync).channel;
+
+    NearbySyncProtocol protocol(_Device d, channel) => NearbySyncProtocol(
+      channel: channel,
+      engine: d.engine,
+      peers: d.peers,
+      tempDir: () async => d.temp,
+      now: () => d.now,
+      partSize: partSize,
+    );
+
+    final results = await Future.wait([
+      protocol(laptop, laptopChannel).run(),
+      protocol(phone, phoneChannel).run(),
+    ]);
+    return (results[0], results[1]);
+  }
+
+  test('a peer behind on one writer receives a trimmed delta; the other '
+      'direction sends nothing', () async {
+    final laptop = await device(
+      'L',
+      peerId: 'P',
+      marks: {'L': fakeHlc(50, 'L')},
+    );
+    final phone = await device(
+      'P',
+      peerId: 'L',
+      marks: {'L': fakeHlc(20, 'L')},
+      marksAfterApply: {'L': fakeHlc(50, 'L')},
+    );
+    laptop.engine.delta = fakeTagsPayload([
+      ('already', fakeHlc(20, 'L')),
+      ('new', fakeHlc(50, 'L')),
+    ]);
+
+    final (lOut, pOut) = await session(laptop, phone);
+
+    expect(lOut.error, isNull);
+    expect(pOut.error, isNull);
+    expect(laptop.engine.exportDeltaCalls, [fakeHlc(20, 'L')]);
+    expect(phone.engine.appliedPayloads, hasLength(1));
+    expect(phone.engine.appliedPayloads.single.data.tags.map((t) => t['id']), [
+      'new',
+    ], reason: 'the row the phone already had is trimmed');
+    expect(laptop.engine.appliedPayloads, isEmpty);
+    expect(laptop.engine.recordedAcks.single, (
+      peer: 'P',
+      ack: fakeHlc(50, 'L'),
+    ));
+    expect(phone.engine.recordedApplied.single.high, fakeHlc(50, 'L'));
+    expect(pOut.applied, 1);
+  });
+
+  test(
+    'a caught-up pair exchanges nothing but still records the session',
+    () async {
+      final marks = {'L': fakeHlc(5, 'L'), 'P': fakeHlc(7, 'P')};
+      final laptop = await device('L', peerId: 'P', marks: marks);
+      final phone = await device('P', peerId: 'L', marks: marks);
+      final (lOut, pOut) = await session(laptop, phone);
+      expect(lOut.error, isNull);
+      expect(pOut.error, isNull);
+      expect(laptop.engine.exportDeltaCalls, isEmpty);
+      expect(phone.engine.exportDeltaCalls, isEmpty);
+      expect(laptop.engine.recordedAcks, hasLength(1));
+      expect(phone.engine.recordedAcks, hasLength(1));
+    },
+  );
+
+  test('an empty-map peer receives a full copy in parts', () async {
+    final content = incompressibleJson(700000);
+    final laptop = await device(
+      'L',
+      peerId: 'P',
+      marks: {'L': fakeHlc(5, 'L')},
+    );
+    laptop.engine.fullContent = content;
+    final phone = await device(
+      'P',
+      peerId: 'L',
+      marksAfterApply: {'L': fakeHlc(5, 'L')},
+    );
+    final (lOut, pOut) = await session(laptop, phone);
+    expect(lOut.error, isNull);
+    expect(pOut.error, isNull);
+    expect(laptop.engine.exportFullCalls, 1);
+    expect(phone.engine.appliedFiles.single, content);
+    expect(lOut.sent, greaterThan(2 * 262144), reason: 'several parts');
+  });
+
+  test('a delta over the blob limit goes as a full copy', () async {
+    final laptop = await device(
+      'L',
+      peerId: 'P',
+      marks: {'L': fakeHlc(50, 'L')},
+    );
+    laptop.engine
+      ..blobBytes = 1 << 30
+      ..fullContent = '{"big":true}';
+    final phone = await device(
+      'P',
+      peerId: 'L',
+      marks: {'L': fakeHlc(20, 'L')},
+    );
+    await session(laptop, phone);
+    expect(laptop.engine.exportDeltaCalls, isEmpty);
+    expect(phone.engine.appliedFiles.single, '{"big":true}');
+  });
+
+  test('a cut mid-copy resumes where it stopped and applies once', () async {
+    final content = incompressibleJson(60000);
+    Future<(_Device, _Device)> pair() async {
+      final laptop = await device(
+        'L',
+        peerId: 'P',
+        marks: {'L': fakeHlc(5, 'L')},
+      );
+      laptop.engine.fullContent = content;
+      final phone = await device(
+        'P',
+        peerId: 'L',
+        marksAfterApply: {'L': fakeHlc(5, 'L')},
+      );
+      return (laptop, phone);
+    }
+
+    // Measure a clean session on its own pair.
+    final (cleanL, cleanP) = await pair();
+    await session(cleanL, cleanP, partSize: 4096);
+    final total = hub.bytesCrossed('L');
+
+    hub = InMemoryNearbyHub();
+    final (laptop, phone) = await pair();
+    hub.cutAfterBytes('L', total ~/ 2);
+    final (cutL, cutP) = await session(laptop, phone, partSize: 4096);
+    expect(cutL.error, NearbyPeerError.unreachable);
+    expect(cutP.error, NearbyPeerError.unreachable);
+    expect(phone.engine.appliedFiles, isEmpty);
+    final resumeAt = (await phone.peers.get('L'))!.resumePartIndex;
+    expect(resumeAt, greaterThan(0));
+
+    hub.heal('L');
+    final before = hub.bytesCrossed('L');
+    final (lOut, pOut) = await session(laptop, phone, partSize: 4096);
+    expect(lOut.error, isNull);
+    expect(pOut.error, isNull);
+    expect(phone.engine.appliedFiles.single, content);
+    expect(laptop.engine.exportFullCalls, 1, reason: 'the same copy reused');
+    expect(
+      hub.bytesCrossed('L') - before,
+      lessThan(total - total ~/ 4),
+      reason: 'only the rest of the parts crossed',
+    );
+    expect((await phone.peers.get('L'))!.resumeBaseId, isNull);
+  });
+
+  test('an offer older than 24 h starts over from part 0', () async {
+    final content = incompressibleJson(60000);
+    final laptop = await device(
+      'L',
+      peerId: 'P',
+      marks: {'L': fakeHlc(5, 'L')},
+    );
+    laptop.engine.fullContent = content;
+    final phone = await device(
+      'P',
+      peerId: 'L',
+      marksAfterApply: {'L': fakeHlc(5, 'L')},
+    );
+    hub.cutAfterBytes('L', 30000);
+    await session(laptop, phone, partSize: 4096);
+    expect((await phone.peers.get('L'))!.resumePartIndex, isNotNull);
+
+    hub.heal('L');
+    phone.now = phone.now.add(const Duration(hours: 25));
+    laptop.now = laptop.now.add(const Duration(hours: 25));
+    final (lOut, pOut) = await session(laptop, phone, partSize: 4096);
+    expect(pOut.error, isNull);
+    expect(lOut.error, isNull);
+    expect(laptop.engine.exportFullCalls, 2, reason: 'the old copy expired');
+    expect(phone.engine.appliedFiles.single, content);
+  });
+
+  test(
+    'a receiver below the sender floor refuses that direction only',
+    () async {
+      final laptop = await device(
+        'L',
+        peerId: 'P',
+        identity: _id('L', schema: 330, floor: 325),
+        marks: {'L': fakeHlc(50, 'L')},
+      );
+      laptop.engine.delta = fakeTagsPayload([('x', fakeHlc(50, 'L'))]);
+      final phone = await device(
+        'P',
+        peerId: 'L',
+        identity: _id('P', schema: 320),
+        marks: {'L': fakeHlc(20, 'L'), 'P': fakeHlc(40, 'P')},
+      );
+      phone.engine.delta = fakeTagsPayload([('y', fakeHlc(40, 'P'))]);
+      laptop.engine.marks = {'L': fakeHlc(50, 'L'), 'P': fakeHlc(10, 'P')};
+
+      final (lOut, pOut) = await session(laptop, phone);
+      expect(pOut.error, NearbyPeerError.newerApp);
+      expect(lOut.error, NearbyPeerError.peerOlderApp);
+      expect(phone.engine.appliedPayloads, isEmpty);
+      // The newer laptop still takes the older phone's rows.
+      expect(laptop.engine.appliedPayloads, hasLength(1));
+    },
+  );
+
+  test('a null epoch adopts the peer epoch', () async {
+    final laptop = await device('L', peerId: 'P', identity: _id('L'));
+    final phone = await device(
+      'P',
+      peerId: 'L',
+      identity: _id('P', epoch: null),
+    );
+    await session(laptop, phone);
+    expect(phone.engine.adoptedEpochs, ['epoch-1']);
+    expect(laptop.engine.adoptedEpochs, isEmpty);
+  });
+
+  test('two null epochs mint one shared epoch', () async {
+    final laptop = await device(
+      'L',
+      peerId: 'P',
+      identity: _id('L', epoch: null),
+    );
+    final phone = await device(
+      'P',
+      peerId: 'L',
+      identity: _id('P', epoch: null),
+    );
+    await session(laptop, phone);
+    expect(laptop.engine.adoptedEpochs, hasLength(1));
+    expect(phone.engine.adoptedEpochs, laptop.engine.adoptedEpochs);
+  });
+
+  test('applied reports the lowest clock to relay from', () async {
+    final laptop = await device(
+      'L',
+      peerId: 'P',
+      marks: {'L': fakeHlc(50, 'L'), 'Z': fakeHlc(9, 'Z')},
+    );
+    laptop.engine.delta = fakeTagsPayload([('n', fakeHlc(50, 'L'))]);
+    final phone = await device(
+      'P',
+      peerId: 'L',
+      marks: {'L': fakeHlc(30, 'L'), 'Z': fakeHlc(9, 'Z')},
+      marksAfterApply: {'L': fakeHlc(50, 'L'), 'Z': fakeHlc(9, 'Z')},
+    );
+    await session(laptop, phone);
+    // Z did not move; L moved from 30, so the cloud must relay from there.
+    expect(phone.engine.recordedApplied.single.low, fakeHlc(30, 'L'));
+  });
+
+  test('a writer new to the receiver relays from the very beginning', () async {
+    final laptop = await device(
+      'L',
+      peerId: 'P',
+      marks: {'L': fakeHlc(50, 'L')},
+    );
+    laptop.engine.fullContent = '{}';
+    final phone = await device(
+      'P',
+      peerId: 'L',
+      marksAfterApply: {'L': fakeHlc(50, 'L')},
+    );
+    await session(laptop, phone);
+    expect(phone.engine.recordedApplied.single.low, '000000000000000:000000:');
+  });
+}

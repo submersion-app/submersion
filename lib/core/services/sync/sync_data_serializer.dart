@@ -2962,10 +2962,12 @@ class SyncDataSerializer {
   /// Verified over the data section as received ([SyncPayload.rawDataJson])
   /// so payloads written by builds with fewer/more entity keys still
   /// validate; falls back to re-serializing for locally built payloads.
-  bool validateChecksum(SyncPayload payload) {
+  bool validateChecksum(SyncPayload payload) => checksumIsValid(payload);
+
+  /// [validateChecksum] without an instance, for nearby sync's receiver.
+  static bool checksumIsValid(SyncPayload payload) {
     final dataJson = payload.rawDataJson ?? jsonEncode(payload.data.toJson());
-    final computed = _computeChecksum(dataJson);
-    return computed == payload.checksum;
+    return _sha256Hex(dataJson) == payload.checksum;
   }
 
   /// Compute SHA-256 checksum
