@@ -144,6 +144,24 @@ void main() {
     );
   });
 
+  test('an output directory in any other git checkout is refused', () async {
+    // Another checkout of the repository (the main one, when the harvest
+    // runs from a worktree) is just as easy to commit from.
+    final result = await harvester().harvest(const []);
+    final checkout = Directory(p.join(dir.path, 'checkout'))..createSync();
+    File(p.join(checkout.path, '.git')).writeAsStringSync('gitdir: x');
+
+    expect(
+      () => HarvestWriter.write(
+        result,
+        outDir: p.join(checkout.path, 'harvest'),
+        salt: 'pepper',
+        repoRoot: p.join(dir.path, 'not-here'),
+      ),
+      throwsArgumentError,
+    );
+  });
+
   test(
     'the writer stores shapes, hashes and salt, and no source text',
     () async {

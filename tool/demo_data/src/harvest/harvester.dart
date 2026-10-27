@@ -290,7 +290,7 @@ class HarvestWriter {
   }) async {
     final out = p.normalize(p.absolute(outDir));
     final repo = p.normalize(p.absolute(repoRoot));
-    if (out == repo || p.isWithin(repo, out)) {
+    if (out == repo || p.isWithin(repo, out) || _inGitCheckout(out)) {
       throw ArgumentError.value(
         outDir,
         'outDir',
@@ -307,6 +307,26 @@ class HarvestWriter {
       p.join(out, 'source_strings.txt'),
     ).writeAsString('${hashes.join('\n')}\n');
     await File(p.join(out, 'salt.txt')).writeAsString('$salt\n');
+  }
+
+  /// Whether [dir], or the nearest folder above it that exists (followed
+  /// through symlinks), sits in any git checkout: another checkout of this
+  /// repository is as easy to commit from as this one.
+  static bool _inGitCheckout(String dir) {
+    var probe = dir;
+    while (!Directory(probe).existsSync() && p.dirname(probe) != probe) {
+      probe = p.dirname(probe);
+    }
+    var current = Directory(probe).resolveSymbolicLinksSync();
+    while (true) {
+      if (FileSystemEntity.typeSync(p.join(current, '.git')) !=
+          FileSystemEntityType.notFound) {
+        return true;
+      }
+      final parent = p.dirname(current);
+      if (parent == current) return false;
+      current = parent;
+    }
   }
 
   static Future<List<DiveShape>> readShapes(String dir) async {

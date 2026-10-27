@@ -26,6 +26,17 @@ void main() {
     expect(next.enteredAt, s.enteredAt);
   });
 
+  test('fromJson throws FormatException for a non-string enteredAt', () {
+    expect(
+      () => DemoState.fromJson({
+        'phase': 'active',
+        'fromFirstRun': false,
+        'enteredAt': 1761469200000,
+      }),
+      throwsFormatException,
+    );
+  });
+
   test('fromJson throws FormatException for an unknown phase', () {
     expect(
       () => DemoState.fromJson({

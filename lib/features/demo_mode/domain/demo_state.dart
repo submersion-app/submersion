@@ -45,7 +45,10 @@ class DemoState extends Equatable {
     final phaseName = json['phase'];
     final phase = DemoPhase.values.where((p) => p.name == phaseName);
     final fromFirstRun = json['fromFirstRun'];
-    final enteredAt = DateTime.tryParse(json['enteredAt'] as String? ?? '');
+    final rawEnteredAt = json['enteredAt'];
+    final enteredAt = rawEnteredAt is String
+        ? DateTime.tryParse(rawEnteredAt)
+        : null;
     if (phase.isEmpty || fromFirstRun is! bool || enteredAt == null) {
       throw FormatException('Invalid demo state: $json');
     }
