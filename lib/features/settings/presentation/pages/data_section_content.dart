@@ -211,8 +211,19 @@ class _DataSectionContentState extends ConsumerState<DataSectionContent> {
             l10n.settings_data_dataTools_subtitle,
             '/settings/data-tools',
           ),
-          // Rarely used, so under Advanced rather than beside the user's real
-          // data (#3736).
+          // Reopens the flow from its first step once the card is hidden or
+          // complete; a hidden card shows again.
+          if (offerSetUpAgain && !demoActive)
+            DataRowTile(
+              icon: Icons.restart_alt,
+              title: l10n.settings_setUpDevice_again(
+                deviceKindArg(deviceKindOf(context)),
+              ),
+              subtitle: l10n.settings_setUpDevice_againSubtitle,
+              route: setUpAgainRoute,
+            ),
+          // Rarely used, so last under Advanced rather than beside the user's
+          // real data (#3736).
           if (demoActive)
             DataRowTile(
               icon: Icons.logout,
@@ -231,17 +242,6 @@ class _DataSectionContentState extends ConsumerState<DataSectionContent> {
                 downloadBytes: demoPackage.size,
                 units: demoUnitsFromSettings(ref.read(settingsProvider)),
               ),
-            ),
-          // Reopens the flow from its first step once the card is hidden or
-          // complete; a hidden card shows again.
-          if (offerSetUpAgain && !demoActive)
-            DataRowTile(
-              icon: Icons.restart_alt,
-              title: l10n.settings_setUpDevice_again(
-                deviceKindArg(deviceKindOf(context)),
-              ),
-              subtitle: l10n.settings_setUpDevice_againSubtitle,
-              route: setUpAgainRoute,
             ),
         ],
       ),

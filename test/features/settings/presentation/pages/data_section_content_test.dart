@@ -584,6 +584,20 @@ void main() {
       );
     });
 
+    testWidgets('Explore with sample data is the last row, below Set up '
+        'again', (tester) async {
+      await pumpData(
+        tester,
+        demoPackage: package,
+        setUp: setUpProgressOf(everything: true),
+      );
+
+      expect(
+        tester.getTopLeft(find.text('Explore with sample data')).dy,
+        greaterThan(tester.getTopLeft(find.text('Set up this phone again')).dy),
+      );
+    });
+
     testWidgets('Explore with sample data asks before downloading', (
       tester,
     ) async {
