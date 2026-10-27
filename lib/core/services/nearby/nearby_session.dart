@@ -181,7 +181,7 @@ class NearbySession {
     if (peerKey == null) await _refuse(NearbyErrorCode.protocol);
     await _sendFrame(NearbyMessageType.helloReveal, handshake.publicKey);
     try {
-      return (peer, await handshake.complete(peerKey!, isInitiator: true));
+      return (peer, await handshake.complete(peerKey, isInitiator: true));
     } on NearbyAuthFailure {
       return _refuse(NearbyErrorCode.protocol);
     }
@@ -237,10 +237,10 @@ class NearbySession {
         timeout: timeout ?? helloTimeout,
         waitingFor: type.name,
       );
-    } on NearbyTimeout catch (e) {
+    } on NearbyTimeout {
       await _endpoint.close();
       if (hello) throw const NearbyHelloTimeout();
-      throw e;
+      rethrow;
     } on NearbyLinkClosed {
       rethrow;
     } on Object {
