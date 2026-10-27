@@ -193,7 +193,7 @@ void main() {
     await tester.pumpWidget(host(override: 24));
     await tester.pumpAndSettle();
 
-    final warning = find.text('ppO2 1.70 at 24m, above the deco limit 1.6');
+    final warning = find.text('ppO2 1.70 at 24m, above the deco limit 1.60');
     expect(warning, findsOneWidget);
     final context = tester.element(warning);
     expect(
