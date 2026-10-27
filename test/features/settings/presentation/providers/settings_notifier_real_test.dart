@@ -357,6 +357,69 @@ void main() {
       expect(container.read(settingsProvider).defaultCurrency, 'ISK');
     });
 
+    test('setPpO2DecoBandsConfig stores all six values in a single write '
+        '(issue #3580)', () async {
+      container.read(settingsProvider.notifier);
+      await waitForInit();
+      final notifier = container.read(settingsProvider.notifier);
+
+      await notifier.setPpO2DecoBandsConfig(
+        bandsEnabled: true,
+        band1: 1.3,
+        band2: 1.4,
+        band3: 1.5,
+        maxO2DepthEnabled: true,
+        maxO2DepthMeters: 7.0,
+      );
+
+      final s = container.read(settingsProvider);
+      expect(s.ppO2DecoBandsEnabled, isTrue);
+      expect(s.ppO2DecoBand1, closeTo(1.3, 1e-9));
+      expect(s.ppO2DecoBand2, closeTo(1.4, 1e-9));
+      expect(s.ppO2DecoBand3, closeTo(1.5, 1e-9));
+      expect(s.maxO2DepthEnabled, isTrue);
+      expect(s.maxO2DepthMeters, closeTo(7.0, 1e-9));
+    });
+
+    test(
+      'setPpO2DecoBandsConfig snaps off-grid band/depth values (issue #3580)',
+      () async {
+        container.read(settingsProvider.notifier);
+        await waitForInit();
+        final notifier = container.read(settingsProvider.notifier);
+
+        await notifier.setPpO2DecoBandsConfig(
+          bandsEnabled: false,
+          band1: 0.5,
+          band2: 2.0,
+          band3: 1.37,
+          maxO2DepthEnabled: false,
+          maxO2DepthMeters: 1.0,
+        );
+
+        final s = container.read(settingsProvider);
+        // Bands clamp to 1.2-1.6 and snap to the 0.05 bar grid.
+        expect(s.ppO2DecoBand1, closeTo(1.2, 1e-9));
+        expect(s.ppO2DecoBand2, closeTo(1.6, 1e-9));
+        expect(s.ppO2DecoBand3, closeTo(1.35, 1e-9));
+        // The explicit depth clamps to 3-9 m and snaps to the 0.5 m grid.
+        expect(s.maxO2DepthMeters, closeTo(3.0, 1e-9));
+
+        await notifier.setPpO2DecoBandsConfig(
+          bandsEnabled: false,
+          band1: 1.2,
+          band2: 1.2,
+          band3: 1.2,
+          maxO2DepthEnabled: false,
+          maxO2DepthMeters: 20.0,
+        );
+        expect(
+          container.read(settingsProvider).maxO2DepthMeters,
+          closeTo(9.0, 1e-9),
+        );
+      },
+    );
+
     test('sets showDetailsPaneSites to true', () async {
       container.read(settingsProvider.notifier);
       await waitForInit();

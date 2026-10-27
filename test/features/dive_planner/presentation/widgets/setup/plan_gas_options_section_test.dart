@@ -6,14 +6,22 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_choice_wrap.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_gas_options_section.dart';
+import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_ppo2_bands_control.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../../../../helpers/test_app.dart';
 
 class _TestSettingsNotifier extends StateNotifier<AppSettings>
     implements SettingsNotifier {
-  _TestSettingsNotifier({DepthUnit depthUnit = DepthUnit.meters})
-    : super(AppSettings(depthUnit: depthUnit));
+  _TestSettingsNotifier({
+    DepthUnit depthUnit = DepthUnit.meters,
+    bool ppO2DecoBandsEnabled = false,
+  }) : super(
+         AppSettings(
+           depthUnit: depthUnit,
+           ppO2DecoBandsEnabled: ppO2DecoBandsEnabled,
+         ),
+       );
 
   @override
   Future<void> setMapStyle(MapStyle style) async =>
@@ -23,11 +31,17 @@ class _TestSettingsNotifier extends StateNotifier<AppSettings>
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-Widget _harness({DepthUnit depthUnit = DepthUnit.meters}) => testApp(
+Widget _harness({
+  DepthUnit depthUnit = DepthUnit.meters,
+  bool ppO2DecoBandsEnabled = false,
+}) => testApp(
   locale: const Locale('en'),
   overrides: [
     settingsProvider.overrideWith(
-      (ref) => _TestSettingsNotifier(depthUnit: depthUnit),
+      (ref) => _TestSettingsNotifier(
+        depthUnit: depthUnit,
+        ppO2DecoBandsEnabled: ppO2DecoBandsEnabled,
+      ),
     ),
   ],
   child: const SingleChildScrollView(child: PlanGasOptionsSection()),
@@ -218,4 +232,60 @@ void main() {
       closeTo(100 / 3.28084, 0.01),
     );
   });
+
+  testWidgets(
+    'the ppO2-band control appears above Grund-ppO2 and Deco-ppO2 (issue '
+    '#3580 follow-up)',
+    (tester) async {
+      await tester.pumpWidget(_harness());
+      await tester.pumpAndSettle();
+
+      final bandsControlTop = tester.getTopLeft(
+        find.byType(PlanPpO2BandsControl),
+      );
+      final bottomPpO2Top = tester.getTopLeft(find.text('Bottom ppO₂'));
+      expect(bandsControlTop.dy, lessThan(bottomPpO2Top.dy));
+    },
+  );
+
+  testWidgets(
+    'the flat Deco-ppO2 field is hidden while the Settings band toggle '
+    'governs this plan (issue #3580 follow-up)',
+    (tester) async {
+      await tester.pumpWidget(_harness(ppO2DecoBandsEnabled: true));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Deco ppO₂'), findsNothing);
+    },
+  );
+
+  testWidgets(
+    'the flat Deco-ppO2 field is shown again once this plan is explicitly '
+    'Off, even with the Settings band toggle on (issue #3580 follow-up)',
+    (tester) async {
+      await tester.pumpWidget(_harness(ppO2DecoBandsEnabled: true));
+      await tester.pumpAndSettle();
+
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(PlanGasOptionsSection)),
+      );
+      container
+          .read(divePlanNotifierProvider.notifier)
+          .updateGasOptions(ppO2DecoBandsExplicitlyOff: true);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Deco ppO₂'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'the flat Deco-ppO2 field is shown when the Settings band toggle itself '
+    'is off (issue #3580 follow-up)',
+    (tester) async {
+      await tester.pumpWidget(_harness());
+      await tester.pumpAndSettle();
+
+      expect(find.text('Deco ppO₂'), findsOneWidget);
+    },
+  );
 }
