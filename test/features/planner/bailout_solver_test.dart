@@ -71,17 +71,14 @@ void main() {
     expect(solver.solve(_plan(tanks: const [_diluentTank])), isNull);
   });
 
-  test(
-    'SCR plans get a bailout outcome too, not just CCR (issue #3743): the '
-    'mode gate widened, and the diluent tank role already honours a loop '
-    'plan generically, not CCR alone (TankRoleResolver)',
-    () {
-      final outcome = solver.solve(_plan(mode: domain.PlanMode.scr));
-      expect(outcome, isNotNull);
-      expect(outcome!.worstCase.litersRequired, greaterThan(0));
-      expect(outcome.bailoutTankUsages, isNotEmpty);
-    },
-  );
+  test('SCR plans get a bailout outcome too, not just CCR (issue #3743): the '
+      'mode gate widened, and the diluent tank role already honours a loop '
+      'plan generically, not CCR alone (TankRoleResolver)', () {
+    final outcome = solver.solve(_plan(mode: domain.PlanMode.scr));
+    expect(outcome, isNotNull);
+    expect(outcome!.worstCase.litersRequired, greaterThan(0));
+    expect(outcome.bailoutTankUsages, isNotEmpty);
+  });
 
   test('worst case sits at (or near) the end of the bottom phase', () {
     final outcome = solver.solve(_plan())!;
@@ -529,98 +526,90 @@ void main() {
   });
 
   group('hypercapnia phase (issue #3743)', () {
-    test(
-      'enabling the phase increases the worst-case demand over the '
-      'stressed-only baseline',
-      () {
-        final baseline = solver.solve(_plan())!;
-        final withHypercapnia = const BailoutSolver(
-          config: PlanEngineConfig(
-            hypercapniaEnabled: true,
-            hypercapniaFactor: 4.0,
-            hypercapniaMinutes: 5,
-          ),
-        ).solve(_plan())!;
-        expect(
-          withHypercapnia.worstCase.litersRequired,
-          greaterThan(baseline.worstCase.litersRequired),
-        );
-      },
-    );
+    test('enabling the phase increases the worst-case demand over the '
+        'stressed-only baseline', () {
+      final baseline = solver.solve(_plan())!;
+      final withHypercapnia = const BailoutSolver(
+        config: PlanEngineConfig(
+          hypercapniaEnabled: true,
+          hypercapniaFactor: 4.0,
+          hypercapniaMinutes: 5,
+        ),
+      ).solve(_plan())!;
+      expect(
+        withHypercapnia.worstCase.litersRequired,
+        greaterThan(baseline.worstCase.litersRequired),
+      );
+    });
 
-    test(
-      'a window at least as long as the whole ascent matches charging the '
-      'entire ascent at that rate - proves the time-split arithmetic '
-      'degenerates correctly rather than double-counting or dropping a '
-      'leg when the boundary never actually falls inside the ascent',
-      () {
-        const factor = 6.0;
-        final allHypercapnia = const BailoutSolver(
-          config: PlanEngineConfig(
-            sacStressedFactor: 2.5,
-            hypercapniaEnabled: true,
-            hypercapniaFactor: factor,
-            hypercapniaMinutes: 999,
-          ),
-        ).solve(_plan())!;
-        final allStressedAtThatRate = const BailoutSolver(
-          config: PlanEngineConfig(sacStressedFactor: factor),
-        ).solve(_plan())!;
+    test('a window at least as long as the whole ascent matches charging the '
+        'entire ascent at that rate - proves the time-split arithmetic '
+        'degenerates correctly rather than double-counting or dropping a '
+        'leg when the boundary never actually falls inside the ascent', () {
+      const factor = 6.0;
+      final allHypercapnia = const BailoutSolver(
+        config: PlanEngineConfig(
+          sacStressedFactor: 2.5,
+          hypercapniaEnabled: true,
+          hypercapniaFactor: factor,
+          hypercapniaMinutes: 999,
+        ),
+      ).solve(_plan())!;
+      final allStressedAtThatRate = const BailoutSolver(
+        config: PlanEngineConfig(sacStressedFactor: factor),
+      ).solve(_plan())!;
 
-        expect(
-          allHypercapnia.worstCase.litersRequired,
-          closeTo(allStressedAtThatRate.worstCase.litersRequired, 0.01),
-        );
-        // Per-tank totals must also agree, not just the headline total - a
-        // bug in the leg-by-leg split could cancel out in the sum while
-        // still misattributing liters between tanks.
-        final hypUsage = {
-          for (final u in allHypercapnia.bailoutTankUsages)
-            u.tankId: u.litersUsed,
-        };
-        final stressedUsage = {
-          for (final u in allStressedAtThatRate.bailoutTankUsages)
-            u.tankId: u.litersUsed,
-        };
-        expect(hypUsage.keys, stressedUsage.keys);
-        for (final id in hypUsage.keys) {
-          expect(hypUsage[id], closeTo(stressedUsage[id]!, 0.01));
-        }
-      },
-    );
+      expect(
+        allHypercapnia.worstCase.litersRequired,
+        closeTo(allStressedAtThatRate.worstCase.litersRequired, 0.01),
+      );
+      // Per-tank totals must also agree, not just the headline total - a
+      // bug in the leg-by-leg split could cancel out in the sum while
+      // still misattributing liters between tanks.
+      final hypUsage = {
+        for (final u in allHypercapnia.bailoutTankUsages)
+          u.tankId: u.litersUsed,
+      };
+      final stressedUsage = {
+        for (final u in allStressedAtThatRate.bailoutTankUsages)
+          u.tankId: u.litersUsed,
+      };
+      expect(hypUsage.keys, stressedUsage.keys);
+      for (final id in hypUsage.keys) {
+        expect(hypUsage[id], closeTo(stressedUsage[id]!, 0.01));
+      }
+    });
 
-    test(
-      'the boundary splits correctly even when it falls inside a leg that '
-      'also carries a gas switch: per-tank usage still sums to the '
-      "worst case's own total",
-      () {
-        final outcome = const BailoutSolver(
-          config: PlanEngineConfig(
-            hypercapniaEnabled: true,
-            hypercapniaFactor: 4.0,
-            hypercapniaMinutes: 1,
-          ),
-        ).solve(
-          _plan(
-            tanks: [
-              _diluentTank,
-              _bailout(),
-              const DiveTank(
-                id: 'deco',
-                volume: 11.1,
-                startPressure: 207,
-                gasMix: GasMix(o2: 100),
-                role: TankRole.bailout,
-              ),
-            ],
-          ),
-        )!;
-        final total = outcome.bailoutTankUsages.fold<double>(
-          0,
-          (sum, u) => sum + u.litersUsed,
-        );
-        expect(total, closeTo(outcome.worstCase.litersRequired, 0.5));
-      },
-    );
+    test('the boundary splits correctly even when it falls inside a leg that '
+        'also carries a gas switch: per-tank usage still sums to the '
+        "worst case's own total", () {
+      final outcome =
+          const BailoutSolver(
+            config: PlanEngineConfig(
+              hypercapniaEnabled: true,
+              hypercapniaFactor: 4.0,
+              hypercapniaMinutes: 1,
+            ),
+          ).solve(
+            _plan(
+              tanks: [
+                _diluentTank,
+                _bailout(),
+                const DiveTank(
+                  id: 'deco',
+                  volume: 11.1,
+                  startPressure: 207,
+                  gasMix: GasMix(o2: 100),
+                  role: TankRole.bailout,
+                ),
+              ],
+            ),
+          )!;
+      final total = outcome.bailoutTankUsages.fold<double>(
+        0,
+        (sum, u) => sum + u.litersUsed,
+      );
+      expect(total, closeTo(outcome.worstCase.litersRequired, 0.5));
+    });
   });
 }
