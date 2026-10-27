@@ -17,7 +17,9 @@ enum NearbyMessageType {
   error(8),
   bye(9),
   baseOffer(10),
-  baseRequest(11);
+  baseRequest(11),
+  helloReveal(12),
+  keyCheck(13);
 
   const NearbyMessageType(this.code);
 
