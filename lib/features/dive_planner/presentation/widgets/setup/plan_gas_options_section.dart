@@ -111,6 +111,36 @@ class PlanGasOptionsSection extends ConsumerWidget {
             clearGasSwitchStopSeconds: value == null,
           ),
         ),
+        // Shown above Grund-ppO2/Deko-ppO2 (issue #3580 follow-up): the band
+        // control is the first thing that decides whether the flat Deko-ppO2
+        // field below even applies, so it reads as the governing choice,
+        // with Grund-ppO2 and (when bands aren't in charge) Deko-ppO2 as the
+        // plain fallback values beneath it.
+        PlanPpO2BandsControl(
+          band1: state.ppO2DecoBand1,
+          band2: state.ppO2DecoBand2,
+          band3: state.ppO2DecoBand3,
+          explicitlyOff: state.ppO2DecoBandsExplicitlyOff,
+          defaultBand1: ref.watch(ppO2DecoBand1Provider),
+          defaultBand2: ref.watch(ppO2DecoBand2Provider),
+          defaultBand3: ref.watch(ppO2DecoBand3Provider),
+          bandsEnabledInSettings: ref.watch(ppO2DecoBandsEnabledProvider),
+          onBand1Changed: (value) =>
+              notifier.updateGasOptions(ppO2DecoBand1: value),
+          onBand2Changed: (value) =>
+              notifier.updateGasOptions(ppO2DecoBand2: value),
+          onBand3Changed: (value) =>
+              notifier.updateGasOptions(ppO2DecoBand3: value),
+          onOff: (off) =>
+              notifier.updateGasOptions(ppO2DecoBandsExplicitlyOff: off),
+          onDefault: () => notifier.updateGasOptions(
+            clearPpO2DecoBand1: true,
+            clearPpO2DecoBand2: true,
+            clearPpO2DecoBand3: true,
+            ppO2DecoBandsExplicitlyOff: false,
+          ),
+        ),
+        const SizedBox(height: 8),
         PlanNumberField(
           label: context.l10n.divePlanner_gasOptions_ppO2Bottom,
           value: state.ppO2Bottom,
@@ -142,31 +172,6 @@ class PlanGasOptionsSection extends ConsumerWidget {
               clearPpO2Deco: value == null,
             ),
           ),
-        const SizedBox(height: 8),
-        PlanPpO2BandsControl(
-          band1: state.ppO2DecoBand1,
-          band2: state.ppO2DecoBand2,
-          band3: state.ppO2DecoBand3,
-          explicitlyOff: state.ppO2DecoBandsExplicitlyOff,
-          defaultBand1: ref.watch(ppO2DecoBand1Provider),
-          defaultBand2: ref.watch(ppO2DecoBand2Provider),
-          defaultBand3: ref.watch(ppO2DecoBand3Provider),
-          bandsEnabledInSettings: ref.watch(ppO2DecoBandsEnabledProvider),
-          onBand1Changed: (value) =>
-              notifier.updateGasOptions(ppO2DecoBand1: value),
-          onBand2Changed: (value) =>
-              notifier.updateGasOptions(ppO2DecoBand2: value),
-          onBand3Changed: (value) =>
-              notifier.updateGasOptions(ppO2DecoBand3: value),
-          onOff: (off) =>
-              notifier.updateGasOptions(ppO2DecoBandsExplicitlyOff: off),
-          onDefault: () => notifier.updateGasOptions(
-            clearPpO2DecoBand1: true,
-            clearPpO2DecoBand2: true,
-            clearPpO2DecoBand3: true,
-            ppO2DecoBandsExplicitlyOff: false,
-          ),
-        ),
         const SizedBox(height: 8),
         PlanMaxO2DepthControl(
           maxO2DepthMeters: state.maxO2DepthMeters,
