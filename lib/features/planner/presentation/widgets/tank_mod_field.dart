@@ -276,7 +276,11 @@ class TankModDetails extends StatelessWidget {
         diluentPpO2: diluentPpO2,
       );
       return Text(
-        l10n.tankMod_default(formatFixedForDisplay(limit, 1), limitName),
+        // 2 decimals (issue #3580): a per-O2-band limit can sit on a 0.05
+        // bar grid, which 1 decimal rounds into a different-looking
+        // neighbour (1.55 -> "1.6"), same precision as tankMod_ppO2At's own
+        // ppO2 below.
+        l10n.tankMod_default(formatFixedForDisplay(limit, 2), limitName),
         style: small,
       );
     }
@@ -330,7 +334,7 @@ class TankModDetails extends StatelessWidget {
                   ppO2,
                   depth,
                   limitName,
-                  formatFixedForDisplay(check.limitPpO2, 1),
+                  formatFixedForDisplay(check.limitPpO2, 2),
                 )
               : l10n.tankMod_ppO2At(ppO2, depth),
           style: check.exceedsLimit

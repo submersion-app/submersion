@@ -76,7 +76,7 @@ void main() {
 
     expect(find.text('MOD'), findsOneWidget);
     expect(fieldText(tester), '22');
-    expect(find.text('Default at ppO2 1.6 (deco limit)'), findsOneWidget);
+    expect(find.text('Default at ppO2 1.60 (deco limit)'), findsOneWidget);
     expect(find.byKey(TankModField.resetKey), findsNothing);
   });
 
@@ -85,7 +85,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(fieldText(tester), '25');
-    expect(find.text('Default at ppO2 1.4 (bottom limit)'), findsOneWidget);
+    expect(find.text('Default at ppO2 1.40 (bottom limit)'), findsOneWidget);
   });
 
   testWidgets('a diluent uses the CCR Dil MOD limit, not the bottom limit', (
@@ -97,7 +97,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(fieldText(tester), '30');
-    expect(find.text('Default at ppO2 1.6 (Dil MOD)'), findsOneWidget);
+    expect(find.text('Default at ppO2 1.60 (Dil MOD)'), findsOneWidget);
   });
 
   testWidgets('typing a depth sets the override', (tester) async {
