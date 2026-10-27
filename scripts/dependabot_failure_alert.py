@@ -223,8 +223,7 @@ def raise_alert(gh, ctx, failing, now):
     )
     new = [run for run in failing if int(run["id"]) not in reported]
     if not new:
-        where = f"#{number}" if number is not None else "a closed alert"
-        print(f"Every failing run is already reported on {where}.")
+        print("Every failing run is already reported on an open or closed alert.")
         return
     if number is None:
         body = "\n".join(
