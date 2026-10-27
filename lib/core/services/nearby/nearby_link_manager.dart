@@ -9,6 +9,7 @@ import 'package:submersion/core/services/nearby/nearby_session.dart';
 import 'package:submersion/core/services/nearby/nearby_sync_engine.dart';
 import 'package:submersion/core/services/nearby/nearby_sync_protocol.dart';
 import 'package:submersion/core/services/sync/changeset_log/peer_cursor_store.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 
 enum NearbyLinkState { off, scanning, syncing }
 
@@ -286,6 +287,14 @@ class NearbyLinkManager {
 
   Future<void> _refresh() async {
     if (_disposed) return;
+    // The sample logbook (demo mode) has a database of its own but shares
+    // secure storage with the real library: its empty paired-devices table
+    // must never be read as "every secret is an orphan", and nothing nearby
+    // may reach it.
+    if (DemoModeGate.instance.isActive) {
+      await _stopRadio();
+      return;
+    }
     if (!_prunedSecrets) {
       _prunedSecrets = true;
       await _pruneOrphanSecrets();

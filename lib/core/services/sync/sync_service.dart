@@ -415,32 +415,38 @@ class SyncService {
   Future<NearbyApplyResult> applyNearbyPayload(
     SyncPayload payload, {
     required DateTime? lastSync,
-  }) => SyncCoordinator.run(() async {
-    final r = await _applyRemotePayload(payload, lastSync);
-    return (
-      recordsApplied: r.recordsApplied,
-      conflictsFound: r.conflictsFound,
-      recordsFailed: r.recordsFailed,
-    );
-  });
+  }) {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.sync);
+    return SyncCoordinator.run(() async {
+      final r = await _applyRemotePayload(payload, lastSync);
+      return (
+        recordsApplied: r.recordsApplied,
+        conflictsFound: r.conflictsFound,
+        recordsFailed: r.recordsFailed,
+      );
+    });
+  }
 
   /// [applyNearbyPayload] for a full copy streamed to [filePath].
   Future<NearbyApplyResult> applyNearbyBaseFile(
     String filePath, {
     required DateTime? lastSync,
     void Function(double fraction)? onProgress,
-  }) => SyncCoordinator.run(() async {
-    final r = await _applyRemoteBaseFile(
-      filePath,
-      lastSync,
-      onProgress: onProgress,
-    );
-    return (
-      recordsApplied: r.recordsApplied,
-      conflictsFound: r.conflictsFound,
-      recordsFailed: r.recordsFailed,
-    );
-  });
+  }) {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.sync);
+    return SyncCoordinator.run(() async {
+      final r = await _applyRemoteBaseFile(
+        filePath,
+        lastSync,
+        onProgress: onProgress,
+      );
+      return (
+        recordsApplied: r.recordsApplied,
+        conflictsFound: r.conflictsFound,
+        recordsFailed: r.recordsFailed,
+      );
+    });
+  }
 
   void _reportProgress(SyncPhase phase, double progress, [String? message]) {
     _progressCallback?.call(

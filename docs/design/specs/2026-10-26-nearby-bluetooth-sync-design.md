@@ -474,6 +474,11 @@ design makes no such choice.
 - Nearby peers hold tombstones back like cloud peers until unpaired or
   silent for the cloud path's retirement period.
 - The merge's `lastSync` is the per-peer `last_synced_at`.
+- Demo mode (the sample logbook, #3729) seals nearby sync like cloud
+  sync: the radio stays off and both applies refuse. The sample has its own
+  database but shares secure storage with the real library, so the radio
+  must not even start there: its empty paired-devices table would read as
+  "every pair secret is an orphan" and the cleanup would delete them.
 
 ## Left to the builder
 

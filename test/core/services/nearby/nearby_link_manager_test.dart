@@ -14,7 +14,9 @@ import 'package:submersion/core/services/nearby/nearby_session.dart';
 import 'package:submersion/core/services/nearby/nearby_sync_engine.dart';
 import 'package:submersion/core/services/nearby/nearby_sync_protocol.dart';
 import 'package:submersion/core/services/sync/changeset_log/peer_cursor_store.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 
+import '../../../helpers/global_test_defaults.dart';
 import '../../../support/fake_nearby_sync_engine.dart';
 import '../../../support/in_memory_nearby_carrier.dart';
 import '../../../support/memory_nearby_secrets.dart';
@@ -536,6 +538,30 @@ void main() {
         await a.manager.setForeground(true);
         expect(await a.secrets.secretFor('ghost'), isNull);
         expect(await a.secrets.secretFor('B'), isNotNull);
+      },
+    );
+
+    test(
+      'while sealed (the sample logbook is open) the radio stays off and '
+      'no pair secret is dropped, though the sample has no paired rows',
+      () async {
+        final a = await device('A');
+        // The real library's pairing: its secret is in secure storage, which
+        // the sample logbook shares, but its row is in the real database.
+        await a.secrets.store('B', Uint8List(32));
+        DemoModeGate.instance.debugActive = true;
+        addTearDown(applyGlobalTestDefaults);
+        final manager = a.manager;
+        await manager.setForeground(true);
+        await manager.enterPairingMode();
+        await _settle();
+        expect(a.carrier.isScanning, isFalse);
+        expect(a.carrier.isAdvertising, isFalse);
+        expect(await a.secrets.secretFor('B'), isNotNull);
+
+        applyGlobalTestDefaults(); // the sample logbook is closed again
+        await manager.refresh();
+        expect(a.carrier.isScanning, isTrue, reason: 'on once unsealed');
       },
     );
 

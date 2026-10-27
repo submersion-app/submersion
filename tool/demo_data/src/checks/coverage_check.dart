@@ -12,6 +12,7 @@ const demoCoverageExclusions = <String, String>{
   'sync_peer_cursors': 'sync bookkeeping; demo mode never syncs',
   'sync_records': 'sync bookkeeping; demo mode never syncs',
   'local_publish_states': 'sync bookkeeping; demo mode never syncs',
+  'nearby_peers': 'devices paired with this one; nearby sync is sealed',
   // Club shared site libraries: sealed in demo mode.
   'shared_libraries': 'shared site libraries are sealed in demo mode',
   'shared_library_backups': 'shared site libraries are sealed in demo mode',

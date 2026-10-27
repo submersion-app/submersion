@@ -40,6 +40,25 @@ const _gates = <(String, String, String, _Kind)>[
     'sync',
     _Kind.ensure,
   ),
+  // Nearby sync (issue #3731): the radio, and the two applies a peer drives.
+  (
+    'lib/core/services/nearby/nearby_link_manager.dart',
+    'Future<void> _refresh(',
+    'sync',
+    _Kind.quiet,
+  ),
+  (
+    'lib/core/services/sync/sync_service.dart',
+    'Future<NearbyApplyResult> applyNearbyPayload(',
+    'sync',
+    _Kind.ensure,
+  ),
+  (
+    'lib/core/services/sync/sync_service.dart',
+    'Future<NearbyApplyResult> applyNearbyBaseFile(',
+    'sync',
+    _Kind.ensure,
+  ),
   // Shared dive-site libraries.
   (
     'lib/core/services/shared_library/shared_library_service.dart',
