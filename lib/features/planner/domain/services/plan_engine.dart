@@ -395,7 +395,10 @@ class PlanEngineConfig extends Equatable {
       ppO2DecoBand1: plan.ppO2DecoBand1,
       ppO2DecoBand2: plan.ppO2DecoBand2,
       ppO2DecoBand3: plan.ppO2DecoBand3,
+      ppO2DecoBandsEnabled:
+          ppO2DecoBandsEnabled && !plan.ppO2DecoBandsExplicitlyOff,
       maxO2DepthMeters: plan.maxO2DepthMeters,
+      maxO2DepthEnabled: maxO2DepthEnabled && !plan.maxO2DepthExplicitlyOff,
       o2Narcotic: plan.o2Narcotic,
       bestMixEndMeters: plan.bestMixEndMeters,
       buddyFactor: plan.sacFactor,

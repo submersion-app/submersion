@@ -261,6 +261,13 @@ final Map<String, ConflictField> peoplePlanningFields = {
     FieldKind.enumValue,
     enumLabel: certificationLevelLabeler,
   ),
+  // True = this plan never uses an explicit MOD for 100% O2, regardless of
+  // the diver's Settings toggle (issue #3580); the per-plan counterpart of
+  // maxO2DepthMeters itself.
+  'maxO2DepthExplicitlyOff': ConflictField(
+    (l) => l.settings_decompression_ppO2BandsDialog_maxO2DepthLabel,
+    FieldKind.boolean,
+  ),
   'measuredAt': ConflictField(
     (l) => l.settings_conflict_field_measuredAt,
     FieldKind.dateTime,
@@ -325,6 +332,13 @@ final Map<String, ConflictField> peoplePlanningFields = {
   'ppO2Deco': ConflictField(
     (l) => l.settings_conflict_field_ppO2Deco,
     FieldKind.partialPressure,
+  ),
+  // True = this plan never uses per-band deco ppO2 limits, regardless of the
+  // diver's Settings band toggle (issue #3580); the per-plan counterpart of
+  // ppO2DecoBand1/2/3 themselves.
+  'ppO2DecoBandsExplicitlyOff': ConflictField(
+    (l) => l.settings_decompression_ppO2BandsTitle,
+    FieldKind.boolean,
   ),
   'priorDiveCount': ConflictField(
     (l) => l.settings_conflict_field_priorDiveCount,

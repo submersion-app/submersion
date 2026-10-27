@@ -4,43 +4,86 @@ import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_choice_wrap.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// Default/Custom control for a plan's per-O2-band deco ppO2 overrides
-/// (issue #3580), styled like the Setup accordion's air-breaks control: a
-/// chip picks between following the diver's Settings bands and a custom
-/// set for this plan alone; Custom reveals a slider per band, seeded from
-/// whichever bands are already custom, the Settings default for the rest.
+/// The three states a plan's ppO2-band (or explicit-depth) override can be
+/// in, matching [PlanAirBreaksControl]'s shape: follow the diver's Settings
+/// default, explicitly off regardless of that default, or a custom value for
+/// this plan.
+enum _PpO2BandsChoice { default_, off, custom }
+
+/// Default/Off/Custom control for a plan's per-O2-band deco ppO2 overrides
+/// (issue #3580), styled like the Setup accordion's air-breaks control.
+/// Unlike the plain two-way Default/Custom switch this replaced, "Default"
+/// here always shows the diver's Settings values as read-only text - it
+/// never hides them - and "Off" is a plan-level choice distinct from the
+/// Settings band toggle itself being off.
 class PlanPpO2BandsControl extends StatelessWidget {
   const PlanPpO2BandsControl({
     super.key,
     required this.band1,
     required this.band2,
     required this.band3,
+    required this.explicitlyOff,
     required this.defaultBand1,
     required this.defaultBand2,
     required this.defaultBand3,
+    required this.bandsEnabledInSettings,
     required this.onBand1Changed,
     required this.onBand2Changed,
     required this.onBand3Changed,
+    required this.onOff,
     required this.onDefault,
   });
 
-  /// This plan's own band overrides; null = follow the Settings default.
+  /// This plan's own band overrides; null = follow the Settings default
+  /// (unless [explicitlyOff]).
   final double? band1;
   final double? band2;
   final double? band3;
+
+  /// True = this plan never uses band mode, regardless of
+  /// [bandsEnabledInSettings] or any of [band1]/[band2]/[band3].
+  final bool explicitlyOff;
 
   final double defaultBand1;
   final double defaultBand2;
   final double defaultBand3;
 
+  /// Whether the diver's Settings have band mode on at all - decides what
+  /// "Default" resolves to and displays.
+  final bool bandsEnabledInSettings;
+
   final ValueChanged<double> onBand1Changed;
   final ValueChanged<double> onBand2Changed;
   final ValueChanged<double> onBand3Changed;
 
-  /// Clears all three band overrides at once, back to Default.
+  /// Sets or clears [explicitlyOff] for this plan.
+  final ValueChanged<bool> onOff;
+
+  /// Clears all three band overrides and [explicitlyOff] at once, back to
+  /// following the diver's Settings.
   final VoidCallback onDefault;
 
   bool get _isCustom => band1 != null || band2 != null || band3 != null;
+
+  _PpO2BandsChoice get _choice {
+    if (explicitlyOff) return _PpO2BandsChoice.off;
+    if (_isCustom) return _PpO2BandsChoice.custom;
+    return _PpO2BandsChoice.default_;
+  }
+
+  void _select(BuildContext context, _PpO2BandsChoice choice) {
+    switch (choice) {
+      case _PpO2BandsChoice.default_:
+        onDefault();
+      case _PpO2BandsChoice.off:
+        onOff(true);
+      case _PpO2BandsChoice.custom:
+        onOff(false);
+        onBand1Changed(band1 ?? defaultBand1);
+        onBand2Changed(band2 ?? defaultBand2);
+        onBand3Changed(band3 ?? defaultBand3);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -55,23 +98,30 @@ class PlanPpO2BandsControl extends StatelessWidget {
           style: theme.textTheme.bodyMedium,
         ),
         const SizedBox(height: 6),
-        PlanChoiceWrap<bool>(
+        PlanChoiceWrap<_PpO2BandsChoice>(
           options: [
-            (false, l10n.divePlanner_label_default),
-            (true, l10n.divePlanner_label_airBreaksCustom),
+            (_PpO2BandsChoice.default_, l10n.divePlanner_label_default),
+            (_PpO2BandsChoice.off, l10n.divePlanner_label_off),
+            (_PpO2BandsChoice.custom, l10n.divePlanner_label_airBreaksCustom),
           ],
-          selected: _isCustom,
-          onChanged: (custom) {
-            if (!custom) {
-              onDefault();
-            } else {
-              onBand1Changed(band1 ?? defaultBand1);
-              onBand2Changed(band2 ?? defaultBand2);
-              onBand3Changed(band3 ?? defaultBand3);
-            }
-          },
+          selected: _choice,
+          onChanged: (choice) => _select(context, choice),
         ),
-        if (_isCustom) ...[
+        if (_choice == _PpO2BandsChoice.default_) ...[
+          const SizedBox(height: 8),
+          Text(
+            bandsEnabledInSettings
+                ? '${l10n.divePlanner_gasOptions_ppO2DecoBand1}: '
+                      '${formatRoundedForInput(defaultBand1, 2)} bar · '
+                      '${l10n.divePlanner_gasOptions_ppO2DecoBand2}: '
+                      '${formatRoundedForInput(defaultBand2, 2)} bar · '
+                      '${l10n.divePlanner_gasOptions_ppO2DecoBand3}: '
+                      '${formatRoundedForInput(defaultBand3, 2)} bar'
+                : l10n.divePlanner_label_off,
+            style: theme.textTheme.bodySmall?.copyWith(color: theme.hintColor),
+          ),
+        ],
+        if (_choice == _PpO2BandsChoice.custom) ...[
           const SizedBox(height: 12),
           PlanPpO2Slider(
             label: l10n.divePlanner_gasOptions_ppO2DecoBand1,
@@ -94,27 +144,66 @@ class PlanPpO2BandsControl extends StatelessWidget {
   }
 }
 
-/// Default/Custom control for a plan's explicit MOD for 100% O2 override
-/// (issue #3580), same Default/Custom shape as [PlanPpO2BandsControl].
+/// Default/Off/Custom control for a plan's explicit MOD for 100% O2 override
+/// (issue #3580), same shape as [PlanPpO2BandsControl].
 class PlanMaxO2DepthControl extends StatelessWidget {
   const PlanMaxO2DepthControl({
     super.key,
     required this.maxO2DepthMeters,
+    required this.explicitlyOff,
     required this.defaultMaxO2DepthMeters,
+    required this.enabledInSettings,
     required this.onChanged,
+    required this.onOff,
     required this.onDefault,
   });
 
+  /// This plan's own override; null = follow the Settings default (unless
+  /// [explicitlyOff]).
   final double? maxO2DepthMeters;
+
+  /// True = this plan never uses an explicit MOD for 100% O2, regardless of
+  /// [enabledInSettings] or [maxO2DepthMeters].
+  final bool explicitlyOff;
+
   final double defaultMaxO2DepthMeters;
+
+  /// Whether the diver's Settings have the explicit-depth toggle on at all -
+  /// decides what "Default" resolves to and displays.
+  final bool enabledInSettings;
+
   final ValueChanged<double> onChanged;
+
+  /// Sets or clears [explicitlyOff] for this plan.
+  final ValueChanged<bool> onOff;
+
+  /// Clears the override and [explicitlyOff] at once, back to following the
+  /// diver's Settings.
   final VoidCallback onDefault;
+
+  _PpO2BandsChoice get _choice {
+    if (explicitlyOff) return _PpO2BandsChoice.off;
+    if (maxO2DepthMeters != null) return _PpO2BandsChoice.custom;
+    return _PpO2BandsChoice.default_;
+  }
+
+  void _select(_PpO2BandsChoice choice) {
+    switch (choice) {
+      case _PpO2BandsChoice.default_:
+        onDefault();
+      case _PpO2BandsChoice.off:
+        onOff(true);
+      case _PpO2BandsChoice.custom:
+        onOff(false);
+        onChanged(maxO2DepthMeters ?? defaultMaxO2DepthMeters);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final isCustom = maxO2DepthMeters != null;
+    final choice = _choice;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -124,21 +213,25 @@ class PlanMaxO2DepthControl extends StatelessWidget {
           style: theme.textTheme.bodyMedium,
         ),
         const SizedBox(height: 6),
-        PlanChoiceWrap<bool>(
+        PlanChoiceWrap<_PpO2BandsChoice>(
           options: [
-            (false, l10n.divePlanner_label_default),
-            (true, l10n.divePlanner_label_airBreaksCustom),
+            (_PpO2BandsChoice.default_, l10n.divePlanner_label_default),
+            (_PpO2BandsChoice.off, l10n.divePlanner_label_off),
+            (_PpO2BandsChoice.custom, l10n.divePlanner_label_airBreaksCustom),
           ],
-          selected: isCustom,
-          onChanged: (custom) {
-            if (!custom) {
-              onDefault();
-            } else {
-              onChanged(maxO2DepthMeters ?? defaultMaxO2DepthMeters);
-            }
-          },
+          selected: choice,
+          onChanged: _select,
         ),
-        if (isCustom) ...[
+        if (choice == _PpO2BandsChoice.default_) ...[
+          const SizedBox(height: 8),
+          Text(
+            enabledInSettings
+                ? '${formatRoundedForInput(defaultMaxO2DepthMeters, 1)} m'
+                : l10n.divePlanner_label_off,
+            style: theme.textTheme.bodySmall?.copyWith(color: theme.hintColor),
+          ),
+        ],
+        if (choice == _PpO2BandsChoice.custom) ...[
           const SizedBox(height: 12),
           PlanPpO2DepthSlider(
             label: l10n.divePlanner_gasOptions_maxO2DepthMeters,

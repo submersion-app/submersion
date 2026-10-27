@@ -20,5 +20,9 @@ extension BeforeOpenSettingsColumns on AppDatabase {
     // explicit MOD for 100% O2, plus the matching dive_plans overrides
     // (issue #3580).
     await _assertPpO2DecoBandColumns();
+
+    // v320 backstop: dive_plans per-plan "explicitly off" flags for the
+    // bands and the explicit-depth override (issue #3580).
+    await _assertPpO2DecoBandsExplicitlyOffColumns();
   }
 }

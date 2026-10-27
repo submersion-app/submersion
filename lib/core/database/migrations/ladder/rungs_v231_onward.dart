@@ -641,5 +641,12 @@ extension RungsFromV231 on AppDatabase {
     // beforeOpen.
     if (from < 319) await _assertPpO2DecoBandColumns();
     if (from < 319) await reportProgress();
+
+    // v320: per-plan "explicitly off" flags for the bands and the
+    // explicit-depth override (issue #3580), so a plan can force either off
+    // regardless of the diver's Settings toggle. Column only, both off by
+    // default; re-asserted in beforeOpen.
+    if (from < 320) await _assertPpO2DecoBandsExplicitlyOffColumns();
+    if (from < 320) await reportProgress();
   }
 }

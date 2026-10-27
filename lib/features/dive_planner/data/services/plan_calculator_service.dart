@@ -139,7 +139,9 @@ class PlanCalculatorService {
     double? decoPpO2Band1,
     double? decoPpO2Band2,
     double? decoPpO2Band3,
+    bool decoPpO2BandsExplicitlyOff = false,
     double? maxO2DepthMetersOverride,
+    bool maxO2DepthExplicitlyOff = false,
   }) {
     if (segments.isEmpty) {
       return PlanResult.empty();
@@ -440,11 +442,11 @@ class PlanCalculatorService {
       bottomPpO2: bottomPpO2 ?? ppO2Warning,
       decoPpO2: DecoPpO2Limits(
         flat: decoPpO2 ?? ppO2Critical,
-        bandsEnabled: ppO2DecoBandsEnabled,
+        bandsEnabled: ppO2DecoBandsEnabled && !decoPpO2BandsExplicitlyOff,
         band1: decoPpO2Band1 ?? ppO2DecoBand1,
         band2: decoPpO2Band2 ?? ppO2DecoBand2,
         band3: decoPpO2Band3 ?? ppO2DecoBand3,
-        explicitO2DepthEnabled: maxO2DepthEnabled,
+        explicitO2DepthEnabled: maxO2DepthEnabled && !maxO2DepthExplicitlyOff,
         explicitO2DepthMeters: maxO2DepthMetersOverride ?? maxO2DepthMeters,
       ),
       environment: environment,

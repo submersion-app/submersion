@@ -292,7 +292,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 319;
+  static const int currentSchemaVersion = 320;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1438,6 +1438,10 @@ class AppDatabase extends _$AppDatabase {
     // (issue #3580). Column only, both off by default, so the floor does
     // not move.
     319,
+    // v320: per-plan "explicitly off" flags for the bands and the
+    // explicit-depth override (issue #3580). Column only, both off by
+    // default, so the floor does not move.
+    320,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

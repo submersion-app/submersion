@@ -4,6 +4,7 @@ import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
+import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_choice_wrap.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_gas_options_section.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -151,17 +152,34 @@ void main() {
       // (true in AppSettings()).
       expect(container.read(divePlanNotifierProvider).o2Narcotic, isNull);
 
-      await tester.tap(find.text('Off'));
+      // Scoped to this control's own chip row: the ppO2-band and max-depth
+      // overrides below it (issue #3580) also show an "Off" chip, and now -
+      // always rendered, not gated behind the Settings toggle - a plain
+      // find.text('Off') is ambiguous.
+      final o2NarcoticChoice = find.byType(PlanChoiceWrap<bool?>);
+      await tester.ensureVisible(o2NarcoticChoice);
+      await tester.pumpAndSettle();
+
+      await tester.tap(
+        find.descendant(of: o2NarcoticChoice, matching: find.text('Off')),
+      );
       await tester.pumpAndSettle();
       expect(container.read(divePlanNotifierProvider).o2Narcotic, isFalse);
 
-      await tester.tap(find.text('On'));
+      await tester.tap(
+        find.descendant(of: o2NarcoticChoice, matching: find.text('On')),
+      );
       await tester.pumpAndSettle();
       expect(container.read(divePlanNotifierProvider).o2Narcotic, isTrue);
 
       // The Default chip shows the resolved value (issue #3552 follow-up):
       // AppSettings() defaults o2Narcotic to true.
-      await tester.tap(find.text('Default (On)'));
+      await tester.tap(
+        find.descendant(
+          of: o2NarcoticChoice,
+          matching: find.text('Default (On)'),
+        ),
+      );
       await tester.pumpAndSettle();
       expect(container.read(divePlanNotifierProvider).o2Narcotic, isNull);
     },

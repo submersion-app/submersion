@@ -620,9 +620,15 @@ class DivePlanState extends Equatable {
   final double? ppO2DecoBand2;
   final double? ppO2DecoBand3;
 
+  /// Mirrors [DivePlan.ppO2DecoBandsExplicitlyOff].
+  final bool ppO2DecoBandsExplicitlyOff;
+
   /// Explicit MOD for 100% O2 for this plan (issue #3580); null = use the
   /// app-wide value. Mirrors [DivePlan.maxO2DepthMeters].
   final double? maxO2DepthMeters;
+
+  /// Mirrors [DivePlan.maxO2DepthExplicitlyOff].
+  final bool maxO2DepthExplicitlyOff;
 
   /// Equivalent narcotic depth target for best-mix suggestions. Null = use
   /// the diver's Settings default (issue #3552). Mirrors
@@ -725,7 +731,9 @@ class DivePlanState extends Equatable {
     this.ppO2DecoBand1,
     this.ppO2DecoBand2,
     this.ppO2DecoBand3,
+    this.ppO2DecoBandsExplicitlyOff = false,
     this.maxO2DepthMeters,
+    this.maxO2DepthExplicitlyOff = false,
     this.bestMixEndMeters,
     this.o2Narcotic,
     this.stopMinimums = const {},
@@ -841,8 +849,10 @@ class DivePlanState extends Equatable {
     bool clearPpO2DecoBand2 = false,
     double? ppO2DecoBand3,
     bool clearPpO2DecoBand3 = false,
+    bool? ppO2DecoBandsExplicitlyOff,
     double? maxO2DepthMeters,
     bool clearMaxO2DepthMeters = false,
+    bool? maxO2DepthExplicitlyOff,
     double? bestMixEndMeters,
     bool clearBestMixEndMeters = false,
     bool? o2Narcotic,
@@ -956,9 +966,13 @@ class DivePlanState extends Equatable {
       ppO2DecoBand3: clearPpO2DecoBand3
           ? null
           : (ppO2DecoBand3 ?? this.ppO2DecoBand3),
+      ppO2DecoBandsExplicitlyOff:
+          ppO2DecoBandsExplicitlyOff ?? this.ppO2DecoBandsExplicitlyOff,
       maxO2DepthMeters: clearMaxO2DepthMeters
           ? null
           : (maxO2DepthMeters ?? this.maxO2DepthMeters),
+      maxO2DepthExplicitlyOff:
+          maxO2DepthExplicitlyOff ?? this.maxO2DepthExplicitlyOff,
       bestMixEndMeters: clearBestMixEndMeters
           ? null
           : (bestMixEndMeters ?? this.bestMixEndMeters),
@@ -1026,7 +1040,9 @@ class DivePlanState extends Equatable {
     ppO2DecoBand1,
     ppO2DecoBand2,
     ppO2DecoBand3,
+    ppO2DecoBandsExplicitlyOff,
     maxO2DepthMeters,
+    maxO2DepthExplicitlyOff,
     bestMixEndMeters,
     o2Narcotic,
     stopMinimums,

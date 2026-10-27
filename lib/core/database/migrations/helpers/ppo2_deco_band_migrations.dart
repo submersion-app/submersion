@@ -45,4 +45,25 @@ extension PpO2DecoBandMigrations on AppDatabase {
     await _addColumnIfMissing('dive_plans', 'ppo2_deco_band3', 'REAL');
     await _addColumnIfMissing('dive_plans', 'max_o2_depth_meters', 'REAL');
   }
+
+  /// v320: dive_plans gains the per-plan "explicitly off" flags for the
+  /// bands and the explicit-depth override, matching
+  /// `air_breaks_explicitly_off`'s shape - a plan can force either off
+  /// regardless of the diver's Settings toggle, distinct from leaving the
+  /// per-plan override unset (which follows that toggle). Idempotent;
+  /// called from the rung and the beforeOpen backstop.
+  Future<void> _assertPpO2DecoBandsExplicitlyOffColumns() async {
+    await _addColumnIfMissing(
+      'dive_plans',
+      'ppo2_deco_bands_explicitly_off',
+      'INTEGER NOT NULL DEFAULT 0 '
+          'CHECK (ppo2_deco_bands_explicitly_off IN (0, 1))',
+    );
+    await _addColumnIfMissing(
+      'dive_plans',
+      'max_o2_depth_explicitly_off',
+      'INTEGER NOT NULL DEFAULT 0 '
+          'CHECK (max_o2_depth_explicitly_off IN (0, 1))',
+    );
+  }
 }

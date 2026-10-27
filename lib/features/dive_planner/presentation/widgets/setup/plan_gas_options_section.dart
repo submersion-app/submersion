@@ -133,39 +133,46 @@ class PlanGasOptionsSection extends ConsumerWidget {
             clearPpO2Deco: value == null,
           ),
         ),
-        if (ref.watch(ppO2DecoBandsEnabledProvider)) ...[
-          const SizedBox(height: 8),
-          PlanPpO2BandsControl(
-            band1: state.ppO2DecoBand1,
-            band2: state.ppO2DecoBand2,
-            band3: state.ppO2DecoBand3,
-            defaultBand1: ref.watch(ppO2DecoBand1Provider),
-            defaultBand2: ref.watch(ppO2DecoBand2Provider),
-            defaultBand3: ref.watch(ppO2DecoBand3Provider),
-            onBand1Changed: (value) =>
-                notifier.updateGasOptions(ppO2DecoBand1: value),
-            onBand2Changed: (value) =>
-                notifier.updateGasOptions(ppO2DecoBand2: value),
-            onBand3Changed: (value) =>
-                notifier.updateGasOptions(ppO2DecoBand3: value),
-            onDefault: () => notifier.updateGasOptions(
-              clearPpO2DecoBand1: true,
-              clearPpO2DecoBand2: true,
-              clearPpO2DecoBand3: true,
-            ),
+        const SizedBox(height: 8),
+        PlanPpO2BandsControl(
+          band1: state.ppO2DecoBand1,
+          band2: state.ppO2DecoBand2,
+          band3: state.ppO2DecoBand3,
+          explicitlyOff: state.ppO2DecoBandsExplicitlyOff,
+          defaultBand1: ref.watch(ppO2DecoBand1Provider),
+          defaultBand2: ref.watch(ppO2DecoBand2Provider),
+          defaultBand3: ref.watch(ppO2DecoBand3Provider),
+          bandsEnabledInSettings: ref.watch(ppO2DecoBandsEnabledProvider),
+          onBand1Changed: (value) =>
+              notifier.updateGasOptions(ppO2DecoBand1: value),
+          onBand2Changed: (value) =>
+              notifier.updateGasOptions(ppO2DecoBand2: value),
+          onBand3Changed: (value) =>
+              notifier.updateGasOptions(ppO2DecoBand3: value),
+          onOff: (off) =>
+              notifier.updateGasOptions(ppO2DecoBandsExplicitlyOff: off),
+          onDefault: () => notifier.updateGasOptions(
+            clearPpO2DecoBand1: true,
+            clearPpO2DecoBand2: true,
+            clearPpO2DecoBand3: true,
+            ppO2DecoBandsExplicitlyOff: false,
           ),
-        ],
-        if (ref.watch(maxO2DepthEnabledProvider)) ...[
-          const SizedBox(height: 8),
-          PlanMaxO2DepthControl(
-            maxO2DepthMeters: state.maxO2DepthMeters,
-            defaultMaxO2DepthMeters: ref.watch(maxO2DepthMetersProvider),
-            onChanged: (value) =>
-                notifier.updateGasOptions(maxO2DepthMeters: value),
-            onDefault: () =>
-                notifier.updateGasOptions(clearMaxO2DepthMeters: true),
+        ),
+        const SizedBox(height: 8),
+        PlanMaxO2DepthControl(
+          maxO2DepthMeters: state.maxO2DepthMeters,
+          explicitlyOff: state.maxO2DepthExplicitlyOff,
+          defaultMaxO2DepthMeters: ref.watch(maxO2DepthMetersProvider),
+          enabledInSettings: ref.watch(maxO2DepthEnabledProvider),
+          onChanged: (value) =>
+              notifier.updateGasOptions(maxO2DepthMeters: value),
+          onOff: (off) =>
+              notifier.updateGasOptions(maxO2DepthExplicitlyOff: off),
+          onDefault: () => notifier.updateGasOptions(
+            clearMaxO2DepthMeters: true,
+            maxO2DepthExplicitlyOff: false,
           ),
-        ],
+        ),
         PlanNumberField(
           label: context.l10n.divePlanner_gasOptions_bestMixEnd,
           value: state.bestMixEndMeters != null

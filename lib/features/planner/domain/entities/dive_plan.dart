@@ -142,17 +142,29 @@ class DivePlan extends Equatable {
   /// Per-O2-band deco ppO2 ceilings (issue #3580), overriding the diver's
   /// Settings band for this plan only: [ppO2DecoBand1] for a deco gas up to
   /// 28% O2, [ppO2DecoBand2] for 28-45%, [ppO2DecoBand3] for 45-99%. Null =
-  /// use the app-wide band. Meaningless unless the diver's Settings have
-  /// band mode on; this plan cannot turn band mode on or off by itself.
+  /// use the app-wide band, unless [ppO2DecoBandsExplicitlyOff] forces band
+  /// mode off for this plan regardless.
   final double? ppO2DecoBand1;
   final double? ppO2DecoBand2;
   final double? ppO2DecoBand3;
 
+  /// True = this plan never uses per-band deco ppO2 limits, regardless of
+  /// the diver's Settings band toggle. Distinct from the bands being unset,
+  /// which follows that toggle instead of forcing it off (issue #3580,
+  /// matching [airBreaksExplicitlyOff]'s shape).
+  final bool ppO2DecoBandsExplicitlyOff;
+
   /// Explicit MOD for 100% O2 (issue #3580), overriding the diver's
-  /// Settings value for this plan only. Null = use the app-wide value.
-  /// Meaningless unless the diver's Settings have the explicit-depth
-  /// setting on.
+  /// Settings value for this plan only. Null = use the app-wide value,
+  /// unless [maxO2DepthExplicitlyOff] forces it off for this plan
+  /// regardless.
   final double? maxO2DepthMeters;
+
+  /// True = this plan never uses an explicit MOD for 100% O2, regardless of
+  /// the diver's Settings toggle. Distinct from [maxO2DepthMeters] being
+  /// unset, which follows that toggle instead of forcing it off (issue
+  /// #3580, matching [airBreaksExplicitlyOff]'s shape).
+  final bool maxO2DepthExplicitlyOff;
 
   /// Equivalent narcotic depth target used when suggesting a best mix for a
   /// depth. Null = use the diver's Settings default (issue #3552;
@@ -241,7 +253,9 @@ class DivePlan extends Equatable {
     this.ppO2DecoBand1,
     this.ppO2DecoBand2,
     this.ppO2DecoBand3,
+    this.ppO2DecoBandsExplicitlyOff = false,
     this.maxO2DepthMeters,
+    this.maxO2DepthExplicitlyOff = false,
     this.bestMixEndMeters,
     this.o2Narcotic,
     this.surfaceInterval,
@@ -366,8 +380,10 @@ class DivePlan extends Equatable {
     bool clearPpO2DecoBand2 = false,
     double? ppO2DecoBand3,
     bool clearPpO2DecoBand3 = false,
+    bool? ppO2DecoBandsExplicitlyOff,
     double? maxO2DepthMeters,
     bool clearMaxO2DepthMeters = false,
+    bool? maxO2DepthExplicitlyOff,
     double? bestMixEndMeters,
     bool clearBestMixEndMeters = false,
     bool? o2Narcotic,
@@ -460,9 +476,13 @@ class DivePlan extends Equatable {
       ppO2DecoBand3: clearPpO2DecoBand3
           ? null
           : (ppO2DecoBand3 ?? this.ppO2DecoBand3),
+      ppO2DecoBandsExplicitlyOff:
+          ppO2DecoBandsExplicitlyOff ?? this.ppO2DecoBandsExplicitlyOff,
       maxO2DepthMeters: clearMaxO2DepthMeters
           ? null
           : (maxO2DepthMeters ?? this.maxO2DepthMeters),
+      maxO2DepthExplicitlyOff:
+          maxO2DepthExplicitlyOff ?? this.maxO2DepthExplicitlyOff,
       bestMixEndMeters: clearBestMixEndMeters
           ? null
           : (bestMixEndMeters ?? this.bestMixEndMeters),
@@ -546,7 +566,9 @@ class DivePlan extends Equatable {
     ppO2DecoBand1,
     ppO2DecoBand2,
     ppO2DecoBand3,
+    ppO2DecoBandsExplicitlyOff,
     maxO2DepthMeters,
+    maxO2DepthExplicitlyOff,
     bestMixEndMeters,
     o2Narcotic,
     surfaceInterval,
