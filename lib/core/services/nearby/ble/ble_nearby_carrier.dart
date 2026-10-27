@@ -24,7 +24,21 @@ import 'package:submersion/core/services/nearby/nearby_carrier.dart';
 /// Tested on real devices only (see the spec's manual checklist); every
 /// layer above it runs against the in-memory carrier in CI.
 class BleNearbyCarrier implements NearbyCarrier {
-  BleNearbyCarrier({this.writeWithoutResponse = false});
+  BleNearbyCarrier({
+    this.writeWithoutResponse = false,
+    bool? needsPermission,
+    Future<AvailabilityState> Function()? readAvailability,
+    Stream<AvailabilityState> Function()? availabilityUpdates,
+  }) : _needsPermission =
+           needsPermission ?? BleCapabilities.requiresRuntimePermission,
+       _readAvailability =
+           readAvailability ?? UniversalBle.getBluetoothAvailabilityState,
+       _availabilityUpdates =
+           availabilityUpdates ?? (() => UniversalBle.availabilityStream);
+
+  final bool _needsPermission;
+  final Future<AvailabilityState> Function() _readAvailability;
+  final Stream<AvailabilityState> Function() _availabilityUpdates;
 
   /// Central writes without an acknowledgement are faster but can be
   /// dropped when a platform's buffer is full; a lost chunk ends the
@@ -48,6 +62,14 @@ class BleNearbyCarrier implements NearbyCarrier {
   final _endedCentrals = <String>{};
   StreamSubscription<BleDevice>? _scanSub;
   final _peripheralSubs = <StreamSubscription<Object?>>[];
+
+  /// Availability as this carrier reports it. Bluetooth itself is followed
+  /// only after the first [checkAvailability], which the link makes only
+  /// when it wants the radio: touching Bluetooth at launch would show the
+  /// permission prompt to every diver, and on Linux without BlueZ raise an
+  /// error.
+  final _availability = StreamController<NearbyAvailability>.broadcast();
+  StreamSubscription<AvailabilityState>? _availabilitySub;
   bool _serviceAdded = false;
 
   @override
@@ -60,8 +82,7 @@ class BleNearbyCarrier implements NearbyCarrier {
   Stream<NearbyEndpoint> get incoming => _incoming.stream;
 
   @override
-  Stream<NearbyAvailability> get availability =>
-      UniversalBle.availabilityStream.map(_map);
+  Stream<NearbyAvailability> get availability => _availability.stream;
 
   static NearbyAvailability _map(AvailabilityState state) => switch (state) {
     AvailabilityState.poweredOn => NearbyAvailability.ready,
@@ -72,21 +93,49 @@ class BleNearbyCarrier implements NearbyCarrier {
     AvailabilityState.unknown => NearbyAvailability.bluetoothOff,
   };
 
+  /// Runs in a guarded zone: universal_ble 3.1.0 on Linux without BlueZ
+  /// fails an internal completer nobody listens to, an error no caller can
+  /// catch otherwise.
   @override
-  Future<NearbyAvailability> checkAvailability() async {
-    try {
-      if (BleCapabilities.requiresRuntimePermission &&
-          !await UniversalBle.hasPermissions()) {
-        await UniversalBle.requestPermissions();
-        if (!await UniversalBle.hasPermissions()) {
-          return NearbyAvailability.unauthorized;
-        }
-      }
-      return _map(await UniversalBle.getBluetoothAvailabilityState());
-    } on Object catch (e) {
-      _log.warning('Bluetooth availability check failed: $e');
-      return NearbyAvailability.unsupported;
+  Future<NearbyAvailability> checkAvailability() {
+    final result = Completer<NearbyAvailability>();
+    void settle(NearbyAvailability value) {
+      if (!result.isCompleted) result.complete(value);
     }
+
+    runZonedGuarded(
+      () async {
+        try {
+          if (_needsPermission && !await UniversalBle.hasPermissions()) {
+            await UniversalBle.requestPermissions();
+            if (!await UniversalBle.hasPermissions()) {
+              settle(NearbyAvailability.unauthorized);
+              return;
+            }
+          }
+          final state = _map(await _readAvailability());
+          _followAvailability();
+          settle(state);
+        } on Object catch (e) {
+          _log.warning('Bluetooth availability check failed: $e');
+          settle(NearbyAvailability.unsupported);
+        }
+      },
+      (Object e, StackTrace _) {
+        _log.warning('Bluetooth reported an error: $e');
+        settle(NearbyAvailability.unsupported);
+      },
+    );
+    return result.future;
+  }
+
+  /// Starts forwarding Bluetooth's own availability changes, once.
+  void _followAvailability() {
+    if (_availabilitySub != null) return;
+    _availabilitySub = _availabilityUpdates().listen(
+      (state) => _availability.add(_map(state)),
+      onError: (Object e) => _log.info('Bluetooth availability error: $e'),
+    );
   }
 
   // -------------------------------------------------------------------
