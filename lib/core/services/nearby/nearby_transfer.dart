@@ -48,11 +48,26 @@ class NearbyTransferFiles {
   final Directory dir;
   final DateTime Function() _now;
 
-  File _sidecar(String peerId) =>
-      File(p.join(dir.path, 'nearby-out-$peerId.json'));
+  /// Whether [value] (a transfer id or device id, both sent by the peer)
+  /// is safe inside a file name: letters, digits, `-` and `_` only, so it
+  /// can never name a path outside [dir].
+  static bool isSafeName(String value) => _safeName.hasMatch(value);
+
+  static final _safeName = RegExp(r'^[A-Za-z0-9_-]{1,64}$');
+
+  File _file(String prefix, List<String> parts, String suffix) {
+    for (final part in parts) {
+      if (!isSafeName(part)) {
+        throw ArgumentError.value(part, 'name', 'not a safe transfer name');
+      }
+    }
+    return File(p.join(dir.path, '$prefix-${parts.join('-')}$suffix'));
+  }
+
+  File _sidecar(String peerId) => _file('nearby-out', [peerId], '.json');
 
   File incoming(String peerId, String id) =>
-      File(p.join(dir.path, 'nearby-in-$peerId-$id.gz'));
+      _file('nearby-in', [peerId, id], '.gz');
 
   /// The full copy last offered to [peerId], when still inside the resume
   /// window and on disk.
@@ -90,7 +105,7 @@ class NearbyTransferFiles {
     File jsonFile,
   ) async {
     await discardOutgoing(peerId);
-    final out = File(p.join(dir.path, 'nearby-out-$peerId-$id.gz'));
+    final out = _file('nearby-out', [peerId, id], '.gz');
     await jsonFile.openRead().transform(gzip.encoder).pipe(out.openWrite());
     await jsonFile.delete();
     await _sidecar(peerId).writeAsString(
@@ -113,7 +128,7 @@ class NearbyTransferFiles {
     String id,
     String json,
   ) async {
-    final out = File(p.join(dir.path, 'nearby-delta-$peerId-$id.gz'));
+    final out = _file('nearby-delta', [peerId, id], '.gz');
     await out.writeAsBytes(gzip.encode(utf8.encode(json)));
     return NearbyOutgoing(
       id: id,

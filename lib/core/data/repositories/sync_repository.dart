@@ -1235,16 +1235,7 @@ class SyncRepository {
   /// The writer is the node id after the packed clock's two fixed-width
   /// fields (15 + 1 + 6 + 1 characters).
   Future<Map<String, String>> maxRowHlcByWriter() async {
-    final present = {
-      for (final r
-          in await _db
-              .customSelect(
-                "SELECT name FROM sqlite_master WHERE type = 'table'",
-              )
-              .get())
-        r.read<String>('name'),
-    };
-    final clocks = _writerClockSelects(present);
+    final clocks = _writerClockSelects(await _presentTables());
     if (clocks.isEmpty) return const {};
     final rows = await _db
         .customSelect(

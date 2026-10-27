@@ -65,6 +65,14 @@ NearbyAttention? nearbyAttentionOf(List<NearbyPeer> peers) {
   return (name: needing.first.displayName, more: needing.length - 1);
 }
 
+/// [nearbyAttentionOf] the paired devices. The rows are written for every
+/// part a transfer receives; this only notifies when the answer changes,
+/// so the dashboard does not recompute on each one.
+final nearbyAttentionProvider = Provider<NearbyAttention?>(
+  (ref) =>
+      nearbyAttentionOf(ref.watch(nearbyPeersProvider).valueOrNull ?? const []),
+);
+
 /// The worst service clock for one equipment type, shown as one chip.
 class GearGauge {
   final EquipmentType type;
@@ -317,8 +325,6 @@ final dashboardGaugesProvider = FutureProvider<DashboardGauges>((ref) async {
     dataQualityFindings: findings,
     flightWindow: flightWindow,
     attentionDocuments: documents,
-    nearbyAttention: nearbyAttentionOf(
-      ref.watch(nearbyPeersProvider).valueOrNull ?? const [],
-    ),
+    nearbyAttention: ref.watch(nearbyAttentionProvider),
   );
 });

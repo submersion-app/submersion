@@ -281,6 +281,28 @@ void main() {
     },
   );
 
+  test(
+    'with Bluetooth still off a refresh does not rewrite the rows',
+    () async {
+      final a = await device('A');
+      final b = await device('B');
+      await pair(a, b);
+      hub.setAvailability('A', NearbyAvailability.bluetoothOff);
+      await a.manager.setForeground(true);
+      await _settle();
+      var emissions = 0;
+      final sub = a.peers.watchAll().listen((_) => emissions++);
+      addTearDown(sub.cancel);
+      await _settle();
+      final settled = emissions;
+      for (var i = 0; i < 3; i++) {
+        await a.manager.refresh();
+      }
+      await _settle();
+      expect(emissions, settled);
+    },
+  );
+
   test('Bluetooth off marks every row and nothing connects', () async {
     final a = await device('A');
     final b = await device('B');
@@ -564,6 +586,47 @@ void main() {
         expect(a.carrier.isScanning, isTrue, reason: 'on once unsealed');
       },
     );
+
+    Future<void> until(bool Function() done) async {
+      for (var i = 0; i < 300 && !done(); i++) {
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+      }
+    }
+
+    test('a local change made while a session ran is synced right after it, '
+        'not a cooldown later', () async {
+      final a = await device('A');
+      final b = await device('B');
+      await pair(a, b);
+      a.engine.identityDelay = const Duration(milliseconds: 80);
+      b.engine.identityDelay = const Duration(milliseconds: 80);
+      await a.manager.setForeground(true);
+      await b.manager.setForeground(true);
+      await until(() => a.manager.state == NearbyLinkState.syncing);
+      a.now = a.now.add(const Duration(seconds: 1));
+      a.changes.add(null); // the debounce fires while the session runs
+      await until(() => a.engine.recordedAcks.isNotEmpty);
+      expect(a.engine.recordedAcks, hasLength(1));
+      await _settle();
+      await a.manager.refresh(); // sighted again
+      await until(() => a.engine.recordedAcks.length > 1);
+      expect(a.engine.recordedAcks, hasLength(2));
+    });
+
+    test('Sync now during a running session reports that session', () async {
+      final a = await device('A');
+      final b = await device('B');
+      await pair(a, b);
+      a.engine.identityDelay = const Duration(milliseconds: 80);
+      b.engine.identityDelay = const Duration(milliseconds: 80);
+      await a.manager.setForeground(true);
+      await b.manager.setForeground(true);
+      await until(() => a.manager.state == NearbyLinkState.syncing);
+      expect(a.manager.state, NearbyLinkState.syncing);
+      final outcome = await a.manager.syncNow('B');
+      expect(outcome, isNotNull);
+      expect(outcome!.error, isNull);
+    });
 
     test('a session is stamped synced only at its end', () async {
       final a = await device('A');

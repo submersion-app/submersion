@@ -5,6 +5,7 @@ import 'dart:typed_data';
 
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/nearby/nearby_carrier.dart';
 import 'package:submersion/core/services/nearby/nearby_crypto.dart';
 import 'package:submersion/core/services/nearby/nearby_export_planner.dart';
@@ -59,6 +60,8 @@ const _zeroFloor = '000000000000000:000000:';
 /// gzipped as one offer, a request for the parts from some index (0, or
 /// where a dropped transfer stopped), the parts, and an `applied` reply.
 class NearbySyncProtocol {
+  static final _log = LoggerService.forClass(NearbySyncProtocol);
+
   NearbySyncProtocol({
     required NearbyChannel channel,
     required NearbySyncEngine engine,
@@ -105,6 +108,10 @@ class NearbySyncProtocol {
   String get _peerId => _channel.peer.deviceId;
 
   Future<NearbySyncOutcome> run() async {
+    // The peer's id names this session's temp files.
+    if (!NearbyTransferFiles.isSafeName(_peerId)) {
+      return const NearbySyncOutcome(error: NearbyPeerError.unreachable);
+    }
     try {
       _self = await _engine.identity();
       _files = NearbyTransferFiles(await _tempDir(), now: _now);
@@ -215,7 +222,12 @@ class NearbySyncProtocol {
         result = await _engine.applyBaseFile(json.path, peerDeviceId: _peerId);
       }
       _applied += result.recordsApplied;
-    } on Object {
+    } on Object catch (e, stack) {
+      _log.warning(
+        'Nearby apply from $_peerId failed: $e',
+        error: e,
+        stackTrace: stack,
+      );
       throw const _DirectionFailed(
         NearbyPeerError.applyFailed,
         tellPeer: NearbyErrorCode.protocol,
@@ -269,7 +281,14 @@ class NearbySyncProtocol {
     final parts = offer['parts'];
     final bytes = offer['bytes'];
     final size = offer['partSize'];
-    if (id is! String || parts is! int || bytes is! int || size is! int) {
+    if (id is! String ||
+        !NearbyTransferFiles.isSafeName(id) ||
+        parts is! int ||
+        bytes is! int ||
+        size is! int ||
+        parts < 0 ||
+        bytes < 0 ||
+        size <= 0) {
       throw const _DirectionFailed(
         NearbyPeerError.unreachable,
         tellPeer: NearbyErrorCode.protocol,

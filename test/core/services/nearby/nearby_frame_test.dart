@@ -106,18 +106,21 @@ void main() {
       },
     );
 
-    test('decoder skips an unknown type code', () async {
-      final unknown = _bytes([0, 0, 0, 2, 200, 9]);
-      final ok = FrameEncoder.encode(NearbyMessageType.applied, _bytes([5]));
-      final seen = await _decode([
-        _bytes([...unknown, ...ok]),
-      ]);
-      expect(seen.first, isA<UnknownMessageType>());
-      expect((seen.first as UnknownMessageType).code, 200);
-      final message = seen.last as NearbyMessage;
-      expect(message.type, NearbyMessageType.applied);
-      expect(message.body, [5]);
-    });
+    test(
+      'an unknown type code is reported and the next frame still decodes',
+      () async {
+        final unknown = _bytes([0, 0, 0, 2, 200, 9]);
+        final ok = FrameEncoder.encode(NearbyMessageType.applied, _bytes([5]));
+        final seen = await _decode([
+          _bytes([...unknown, ...ok]),
+        ]);
+        expect(seen.first, isA<UnknownMessageType>());
+        expect((seen.first as UnknownMessageType).code, 200);
+        final message = seen.last as NearbyMessage;
+        expect(message.type, NearbyMessageType.applied);
+        expect(message.body, [5]);
+      },
+    );
 
     test(
       'a zero declared length is a malformed frame, not a message',

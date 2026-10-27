@@ -462,13 +462,6 @@ class ChangesetWriter {
 
   int _max(int a, int b) => a > b ? a : b;
 
-  /// Rewrite a fresh full base at [afterSeq] + 1, repoint the manifest, reset
-  /// publish state, and prune superseded files. Pruning is inline with no grace
-  /// window: this intentionally diverges from the spec's 14-day grace, which
-  /// only existed to spare an in-flight reader a re-fetch. It is safe because a
-  /// reader mid-fetch of now-pruned files cold-starts from the new base (their
-  /// superset) on the next sync -- self-healing, with no data loss. A time-based
-  /// grace remains a possible future optimization to avoid that single re-fetch.
   /// Clears the relay floor this publish read, and only that one: a floor a
   /// nearby apply lowered while the publish ran covers rows the publish did
   /// not export, so it stays for the next one.
@@ -477,6 +470,13 @@ class ChangesetWriter {
     await _publishState.clearRelayFloor(providerId, ifEquals: read);
   }
 
+  /// Rewrite a fresh full base at [afterSeq] + 1, repoint the manifest, reset
+  /// publish state, and prune superseded files. Pruning is inline with no grace
+  /// window: this intentionally diverges from the spec's 14-day grace, which
+  /// only existed to spare an in-flight reader a re-fetch. It is safe because a
+  /// reader mid-fetch of now-pruned files cold-starts from the new base (their
+  /// superset) on the next sync -- self-healing, with no data loss. A time-based
+  /// grace remains a possible future optimization to avoid that single re-fetch.
   Future<int> _compact({
     required CloudStorageProvider provider,
     required String deviceId,

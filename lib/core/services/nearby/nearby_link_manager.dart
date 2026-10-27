@@ -84,11 +84,21 @@ class NearbyPairingHandle implements NearbyPairingOffer {
 }
 
 class _Live {
-  _Live(this.channel, this.initiatorId);
+  _Live(this.channel, this.initiatorId, this.startedAt);
 
   final NearbyChannel channel;
   final String initiatorId;
+
+  /// When the session began: a local change after this may have missed it.
+  final DateTime startedAt;
   bool superseded = false;
+
+  /// The session that replaced this one when both devices connected at
+  /// once; null when this one was ended for good (unpair, dispose).
+  _Live? successor;
+
+  /// Completes with the session's outcome, or null when it was superseded.
+  final done = Completer<NearbySyncOutcome?>();
 }
 
 /// Runs the nearby link for this device: when to have the radio on, which
@@ -359,6 +369,7 @@ class NearbyLinkManager {
   Future<void> _markRadioOff() async {
     for (final peer in await _peers.all()) {
       final error = _peers.errorOf(peer);
+      if (error == NearbyPeerError.bluetoothOff) continue;
       if (error == null || !error.isLasting) {
         await _peers.setError(peer.peerDeviceId, NearbyPeerError.bluetoothOff);
       }
@@ -433,7 +444,10 @@ class NearbyLinkManager {
   /// [syncNowTimeout] passes. Null when it was not found, or a session
   /// with it is already running.
   Future<NearbySyncOutcome?> syncNow(String peerDeviceId) async {
-    if (_active.containsKey(peerDeviceId) || _disposed) return null;
+    if (_disposed) return null;
+    // Already syncing with it: that session is the answer.
+    final running = _active[peerDeviceId];
+    if (running != null) return running.done.future;
     final existing = _syncNowWaiters[peerDeviceId];
     if (existing != null) return existing.future;
     final waiter = Completer<NearbySyncOutcome?>();
@@ -569,7 +583,7 @@ class NearbyLinkManager {
   Future<NearbySyncOutcome?> _run(NearbyChannel channel) async {
     final peerId = channel.peer.deviceId;
     final myId = _me!;
-    final live = _Live(channel, channel.isInitiator ? myId : peerId);
+    final live = _Live(channel, channel.isInitiator ? myId : peerId, _now());
     // Checked and registered with no await in between: two sessions with
     // the same peer finishing their handshakes together must not both run.
     final existing = _active[peerId];
@@ -578,7 +592,9 @@ class NearbyLinkManager {
       // the lower device id started, so both keep the same one.
       final preferred = myId.compareTo(peerId) < 0 ? myId : peerId;
       if (live.initiatorId == preferred && existing.initiatorId != preferred) {
-        existing.superseded = true;
+        existing
+          ..superseded = true
+          ..successor = live;
         _active[peerId] = live;
         unawaited(existing.channel.close());
       } else {
@@ -626,9 +642,16 @@ class NearbyLinkManager {
       );
     }
     _emitState();
-    if (live.superseded || _disposed) return null;
+    if (live.superseded || _disposed) {
+      final next = _disposed ? null : live.successor;
+      if (!live.done.isCompleted) {
+        live.done.complete(next?.done.future);
+      }
+      return null;
+    }
     final at = _now();
-    _lastSessionAt[peerId] = at;
+    // From the start: a change made while it ran may not be in it.
+    _lastSessionAt[peerId] = live.startedAt;
     if (await _peers.get(peerId) != null) {
       await _peers.markSeen(peerId, at.millisecondsSinceEpoch);
       await _peers.setError(peerId, outcome.error);
@@ -640,6 +663,7 @@ class NearbyLinkManager {
       _appliedController.add(null);
     }
     _completeSyncNow(peerId, outcome);
+    if (!live.done.isCompleted) live.done.complete(outcome);
     return outcome;
   }
 

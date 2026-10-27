@@ -1,7 +1,11 @@
+import 'dart:async';
+
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart' show NearbyPeer;
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dashboard/presentation/providers/gauge_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/nearby_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
@@ -77,6 +81,29 @@ void main() {
 
     test('is null with no paired devices', () {
       expect(nearbyAttentionOf(const []), isNull);
+    });
+
+    test('a peer row write that leaves the attention as it was does not '
+        'notify the dashboard', () async {
+      final rows = StreamController<List<NearbyPeer>>();
+      addTearDown(rows.close);
+      final container = ProviderContainer(
+        overrides: [nearbyPeersProvider.overrideWith((ref) => rows.stream)],
+      );
+      addTearDown(container.dispose);
+      final seen = <NearbyAttention?>[];
+      container.listen(
+        nearbyAttentionProvider,
+        (_, next) => seen.add(next),
+        fireImmediately: true,
+      );
+      final failing = peer('Old iPad', error: 'newerApp');
+      for (var part = 0; part < 5; part++) {
+        // A transfer writes the row once per part.
+        rows.add([peer('Mac', pairedAt: part), failing]);
+        await Future<void>.delayed(Duration.zero);
+      }
+      expect(seen, [null, (name: 'Old iPad', more: 0)]);
     });
   });
 

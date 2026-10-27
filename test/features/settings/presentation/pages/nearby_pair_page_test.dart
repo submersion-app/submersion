@@ -17,8 +17,14 @@ class _Manager implements NearbyLinkManager {
   final refusals = StreamController<NearbyErrorCode>.broadcast();
   final calls = <String>[];
 
+  /// When set, the availability check waits for it.
+  Completer<void>? availabilityGate;
+
   @override
-  Future<NearbyAvailability> checkAvailability() async => availability;
+  Future<NearbyAvailability> checkAvailability() async {
+    await availabilityGate?.future;
+    return availability;
+  }
 
   @override
   Stream<NearbyErrorCode> get pairingRefusals => refusals.stream;
@@ -117,6 +123,17 @@ void main() {
     await tester.tap(find.text('open'));
     await tester.pumpAndSettle();
   }
+
+  testWidgets('leaving before the Bluetooth check ends never enters pairing '
+      'mode', (tester) async {
+    manager.availabilityGate = Completer<void>();
+    await pump(tester);
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+    manager.availabilityGate!.complete();
+    await tester.pumpAndSettle();
+    expect(manager.calls, ['leave']);
+  });
 
   testWidgets('shows Looking and the hint while no device is found', (
     tester,

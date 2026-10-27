@@ -30,6 +30,25 @@ void main() {
     },
   );
 
+  test(
+    'pairings stored at the same moment are all kept in the index',
+    () async {
+      final store = SecureNearbyPairStore(storage: InMemoryKeychain());
+      final secret = Uint8List(32);
+      await Future.wait([
+        for (final id in ['a', 'b', 'c', 'd']) store.store(id, secret),
+      ]);
+      expect((await store.all()).keys.toSet(), {'a', 'b', 'c', 'd'});
+      await Future.wait([
+        store.revoke('a'),
+        store.revoke('b'),
+        store.remove('c'),
+      ]);
+      expect((await store.all()).keys.toSet(), {'d'});
+      expect((await store.revoked()).keys.toSet(), {'a', 'b'});
+    },
+  );
+
   test('a corrupt stored value reads as no secret', () async {
     final keychain = InMemoryKeychain();
     await keychain.write(key: 'nearby_pair_peer-a', value: '%%%not base64');

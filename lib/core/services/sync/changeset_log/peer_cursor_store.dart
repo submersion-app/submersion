@@ -48,9 +48,6 @@ class PeerCursorStore {
         );
   }
 
-  /// Whether any peer cursor exists for any provider. A cursor is written the
-  /// first time this device consumes a peer's log, so a true here is proof
-  /// the device has synced against at least one other device.
   /// Drops one peer's cursor on one provider (nearby unpair).
   Future<void> remove(String peerDeviceId, String provider) =>
       (_db.delete(_db.syncPeerCursors)..where(
@@ -60,6 +57,9 @@ class PeerCursorStore {
           ))
           .go();
 
+  /// Whether any peer cursor exists for any provider. A cursor is written the
+  /// first time this device consumes a peer's log, so a true here is proof
+  /// the device has synced against at least one other device.
   Future<bool> hasAny() async {
     final row =
         await (_db.selectOnly(_db.syncPeerCursors)

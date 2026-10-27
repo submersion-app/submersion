@@ -41,7 +41,8 @@ class _NearbyPairPageState extends ConsumerState<NearbyPairPage> {
 
   Future<NearbyAvailability> _start() async {
     final availability = await _manager.checkAvailability();
-    if (availability == NearbyAvailability.ready) {
+    // Left while the check ran: dispose already left pairing mode.
+    if (availability == NearbyAvailability.ready && mounted) {
       await _manager.enterPairingMode();
     }
     return availability;

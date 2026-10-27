@@ -36,6 +36,16 @@ class BleNearbyCarrier implements NearbyCarrier {
   final _sightings = StreamController<NearbyPeerSighting>.broadcast();
   final _incoming = StreamController<NearbyEndpoint>.broadcast();
   final _peripheralEnds = <String, _PeripheralEnd>{};
+
+  /// The MTU each central negotiated, kept from the moment it connects: it
+  /// asks for a larger MTU before it subscribes, so before its endpoint
+  /// exists.
+  final _mtuByCentral = <String, int>{};
+
+  /// Centrals whose session this device ended while they stay connected.
+  /// Their trailing writes belong to the finished session and must not
+  /// open a new one; a fresh subscription or connection clears the mark.
+  final _endedCentrals = <String>{};
   StreamSubscription<BleDevice>? _scanSub;
   final _peripheralSubs = <StreamSubscription<Object?>>[];
   bool _serviceAdded = false;
@@ -185,7 +195,8 @@ class BleNearbyCarrier implements NearbyCarrier {
         value,
       ) {
         if (characteristicId.toLowerCase() == nearbyInboxUuid &&
-            value != null) {
+            value != null &&
+            !_endedCentrals.contains(deviceId)) {
           _peripheralEnd(deviceId).feed(value);
         }
         return null;
@@ -211,15 +222,23 @@ class BleNearbyCarrier implements NearbyCarrier {
         UniversalBlePeripheral.characteristicSubscriptionStream.listen((e) {
           if (e.characteristicId.toLowerCase() != nearbyOutboxUuid) return;
           if (e.isSubscribed) {
+            _endedCentrals.remove(e.deviceId);
             _peripheralEnd(e.deviceId);
           } else {
             _peripheralEnds.remove(e.deviceId)?.drop();
           }
         }),
         UniversalBlePeripheral.connectionStateStream.listen((e) {
-          if (!e.connected) _peripheralEnds.remove(e.deviceId)?.drop();
+          if (e.connected) {
+            _endedCentrals.remove(e.deviceId);
+            return;
+          }
+          _peripheralEnds.remove(e.deviceId)?.drop();
+          _endedCentrals.remove(e.deviceId);
+          _mtuByCentral.remove(e.deviceId);
         }),
         UniversalBlePeripheral.mtuChangedStream.listen((e) {
+          _mtuByCentral[e.deviceId] = e.mtu;
           _peripheralEnds[e.deviceId]?.readLength = _readLengthFor(e.mtu);
         }),
       ]);
@@ -252,8 +271,13 @@ class BleNearbyCarrier implements NearbyCarrier {
     if (existing != null) return existing;
     final end = _PeripheralEnd(
       deviceId,
-      onClosed: () => _peripheralEnds.remove(deviceId),
+      onClosed: () {
+        if (_peripheralEnds[deviceId] != null) _endedCentrals.add(deviceId);
+        _peripheralEnds.remove(deviceId);
+      },
     );
+    final mtu = _mtuByCentral[deviceId];
+    if (mtu != null) end.readLength = _readLengthFor(mtu);
     _peripheralEnds[deviceId] = end;
     // Apple reports no MTU event to a peripheral; the notify limit is the
     // MTU less its 3-byte header, so a read answer one byte under it is safe.

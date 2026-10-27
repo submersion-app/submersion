@@ -14,6 +14,16 @@ class SecureNearbyPairStore implements NearbyPairSecrets {
 
   final FallbackSecureStorage _storage;
 
+  /// Index updates are read, change, write: run one at a time so two
+  /// pairings stored together both stay listed.
+  Future<void> _tail = Future.value();
+
+  Future<T> _serial<T>(Future<T> Function() body) {
+    final next = _tail.then((_) => body());
+    _tail = next.then((_) {}, onError: (Object _) {});
+    return next;
+  }
+
   static String _key(String peerDeviceId) => 'nearby_pair_$peerDeviceId';
 
   @override
@@ -32,28 +42,27 @@ class SecureNearbyPairStore implements NearbyPairSecrets {
   /// kept beside the secrets.
   static const _indexKey = 'nearby_pair_index';
 
-  Future<List<String>> _index() async {
-    final raw = await _storage.read(key: _indexKey);
-    if (raw == null) return const [];
-    try {
-      return [for (final id in jsonDecode(raw) as List) id as String];
-    } on Object {
-      return const [];
-    }
-  }
+  Future<List<String>> _index() => _readIndex(_indexKey);
 
   Future<void> _writeIndex(Iterable<String> ids) =>
       _storage.write(key: _indexKey, value: jsonEncode(ids.toList()));
 
   @override
-  Future<void> store(String peerDeviceId, Uint8List secret) async {
-    await _storage.write(key: _key(peerDeviceId), value: base64Encode(secret));
-    await _writeIndex({...await _index(), peerDeviceId});
-    await _clearRevoked(peerDeviceId);
-  }
+  Future<void> store(String peerDeviceId, Uint8List secret) =>
+      _serial(() async {
+        await _storage.write(
+          key: _key(peerDeviceId),
+          value: base64Encode(secret),
+        );
+        await _writeIndex({...await _index(), peerDeviceId});
+        await _clearRevoked(peerDeviceId);
+      });
 
   @override
-  Future<void> remove(String peerDeviceId) async {
+  Future<void> remove(String peerDeviceId) =>
+      _serial(() => _remove(peerDeviceId));
+
+  Future<void> _remove(String peerDeviceId) async {
     await _storage.delete(key: _key(peerDeviceId));
     await _writeIndex((await _index()).where((id) => id != peerDeviceId));
   }
@@ -74,9 +83,12 @@ class SecureNearbyPairStore implements NearbyPairSecrets {
   }
 
   @override
-  Future<void> revoke(String peerDeviceId) async {
+  Future<void> revoke(String peerDeviceId) =>
+      _serial(() => _revoke(peerDeviceId));
+
+  Future<void> _revoke(String peerDeviceId) async {
     final secret = await secretFor(peerDeviceId);
-    await remove(peerDeviceId);
+    await _remove(peerDeviceId);
     if (secret == null) return;
     await _storage.write(
       key: _revokedKey(peerDeviceId),

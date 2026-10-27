@@ -187,7 +187,11 @@ class NearbySessionCipher {
       secretKey: _key,
       nonce: _nonce(_isInitiator ? 0 : 1, _sent++),
     );
-    return Uint8List.fromList([...box.cipherText, ...box.mac.bytes]);
+    final text = box.cipherText;
+    final mac = box.mac.bytes;
+    return Uint8List(text.length + mac.length)
+      ..setRange(0, text.length, text)
+      ..setRange(text.length, text.length + mac.length, mac);
   }
 
   Future<Uint8List> open(Uint8List sealed) async {

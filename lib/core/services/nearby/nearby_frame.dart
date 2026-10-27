@@ -68,8 +68,12 @@ class FrameMalformed extends FrameError {
   String toString() => 'FrameMalformed';
 }
 
-/// A complete frame carried a type code this build does not know. The
-/// frame is skipped.
+/// A complete frame carried a type code this build does not know. It is
+/// reported as an error rather than skipped, and the session ends: after
+/// the handshake every frame is sealed under a per-direction counter, so a
+/// frame dropped unopened would make every later one fail to open. A new
+/// message type is therefore sent only to a peer whose hello announces a
+/// protocol version that knows it.
 class UnknownMessageType extends FrameError {
   const UnknownMessageType(this.code);
 
