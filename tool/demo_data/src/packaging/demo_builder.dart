@@ -22,6 +22,7 @@ import '../checks/public_vocabulary.dart';
 import '../seeders/demo_seeding.dart';
 import '../seeders/seed_context.dart';
 import '../shape/dive_shape.dart';
+import '../shape/shape_budget.dart';
 import '../shape/shape_library.dart';
 import '../story/catalog.dart';
 import '../story/story_planner.dart';
@@ -72,10 +73,18 @@ class DemoBuilder {
       );
       DatabaseService.instance.setTestDatabase(db);
       final catalog = Catalog.load(catalogDir);
+      final plan = StoryPlanner(Random(seed), catalog).plan(anchor: anchor);
+      final library = ShapeLibrary(shapes, Random(seed));
+      final short = shapeShortfalls(plan, library.shapes);
+      if (short.isNotEmpty) {
+        await db.close();
+        DatabaseService.instance.resetForTesting();
+        throw DemoBuildRefused('not enough dive shapes: ${short.join('; ')}');
+      }
       final ctx = DemoSeedContext(
         db: db,
-        plan: StoryPlanner(Random(seed), catalog).plan(anchor: anchor),
-        library: ShapeLibrary(shapes, Random(seed)),
+        plan: plan,
+        library: library,
         random: Random(seed),
         photosDir: photosDir,
         photoFiles: photos,

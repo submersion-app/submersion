@@ -26,6 +26,9 @@ class ShapeLibrary {
   static const maxDurationSec = 5 * 3600;
 
   final List<DiveShape> _shapes;
+
+  /// The shapes the library hands out, after the broken ones are left out.
+  List<DiveShape> get shapes => List.unmodifiable(_shapes);
   final Random random;
   final _uses = <String, int>{};
   final _byTrip = <String, Set<String>>{};

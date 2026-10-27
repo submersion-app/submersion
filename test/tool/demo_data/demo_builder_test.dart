@@ -148,6 +148,32 @@ void main() {
     expect(Directory(p.join(dir.path, 'out')).existsSync(), isFalse);
   });
 
+  test('the builder refuses a plan the shapes cannot cover', () async {
+    final noRebreather = [
+      for (final s in syntheticShapes())
+        if (s.diveMode != 'ccr') s,
+    ];
+
+    await expectLater(
+      DemoBuilder().build(
+        shapes: noRebreather,
+        photosDir: p.join(dir.path, 'photos'),
+        photos: testPhotos,
+        seed: 7,
+        anchor: DateTime(2026, 10, 1),
+        outDir: p.join(dir.path, 'out'),
+      ),
+      throwsA(
+        isA<DemoBuildRefused>().having(
+          (e) => e.toString(),
+          'message',
+          contains('ccr'),
+        ),
+      ),
+    );
+    expect(Directory(p.join(dir.path, 'out')).existsSync(), isFalse);
+  });
+
   test('manifest entries merge, keeping older schemas for older apps', () {
     final merged = DemoBuilder.mergeManifest(
       existing:

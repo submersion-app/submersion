@@ -115,7 +115,7 @@ List<DiveShape> syntheticShapes() {
     endBar: 195,
   );
 
-  for (var i = 0; i < 90; i++) {
+  for (var i = 0; i < 260; i++) {
     shapes.add(
       make(
         depth: 8.0 + (i % 14) * 2.2,
@@ -124,6 +124,26 @@ List<DiveShape> syntheticShapes() {
         tanks: [air],
         heartRate: i.isEven,
         computers: i % 4 == 0 ? 2 : 1,
+      ),
+    );
+  }
+  for (var i = 0; i < 80; i++) {
+    shapes.add(
+      make(
+        depth: 28.0 + (i % 9) * 2,
+        minutes: 40 + (i % 8) * 3,
+        kinds: {ShapeKind.deepOpenCircuit},
+        tanks: [air],
+      ),
+    );
+  }
+  for (var i = 0; i < 40; i++) {
+    shapes.add(
+      make(
+        depth: 35.0 + (i % 7) * 3,
+        minutes: 50 + (i % 9) * 4,
+        kinds: {ShapeKind.multiGasDeco},
+        tanks: [air, ean50],
       ),
     );
   }
@@ -151,11 +171,12 @@ List<DiveShape> syntheticShapes() {
       ),
     );
   }
-  for (var i = 0; i < 14; i++) {
+  // As scarce as the real harvest: six rebreather shapes.
+  for (var i = 0; i < 6; i++) {
     shapes.add(
       make(
-        depth: 12.0 + (i % 5) * 10,
-        minutes: 60 + i * 10,
+        depth: 15.0 + i * 9,
+        minutes: 60 + i * 20,
         kinds: {ShapeKind.ccr},
         mode: 'ccr',
         tanks: [o2, dil, bail],
