@@ -10661,7 +10661,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get divePlanner_gasOptions_maxO2DepthMeters => 'Max. mélység 100% O2';
 
   @override
-  String get divePlanner_gasOptions_hypercapniaAmv => 'Hypercapnia RMV';
+  String get divePlanner_gasOptions_hypercapniaAmv => 'Hiperkapniás RMV';
 
   @override
   String get divePlanner_gasOptions_hypercapniaMinutes => 'Duration';
@@ -26179,23 +26179,23 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_decompression_hypercapniaTitle =>
-      'Hypercapnia bailout phase';
+      'Hiperkapniás bailout fázis';
 
   @override
   String get settings_decompression_hypercapniaSubtitle =>
-      'Optional elevated breathing rate at the start of a CCR/SCR OC bailout';
+      'Opcionális, megnövelt légzési ráta egy CCR/SCR OC bailout kezdetén';
 
   @override
   String get settings_decompression_hypercapniaDialog_title =>
-      'Hypercapnia bailout phase';
+      'Hiperkapniás bailout fázis';
 
   @override
   String get settings_decompression_hypercapniaDialog_enabledToggle =>
-      'Use a hypercapnia phase for OC bailout';
+      'Hiperkapniás fázis használata OC bailoutnál';
 
   @override
   String get settings_decompression_hypercapniaDialog_factorLabel =>
-      'RMV factor';
+      'RMV szorzó';
 
   @override
   String get settings_decompression_hypercapniaDialog_minutesLabel =>

@@ -10838,7 +10838,8 @@ class AppLocalizationsAr extends AppLocalizations {
       'أقصى عمق لـ 100% أكسجين';
 
   @override
-  String get divePlanner_gasOptions_hypercapniaAmv => 'Hypercapnia RMV';
+  String get divePlanner_gasOptions_hypercapniaAmv =>
+      'RMV فرط ثاني أكسيد الكربون';
 
   @override
   String get divePlanner_gasOptions_hypercapniaMinutes => 'Duration';
@@ -26576,23 +26577,23 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_decompression_hypercapniaTitle =>
-      'Hypercapnia bailout phase';
+      'مرحلة فرط ثاني أكسيد الكربون أثناء الخروج الطارئ';
 
   @override
   String get settings_decompression_hypercapniaSubtitle =>
-      'Optional elevated breathing rate at the start of a CCR/SCR OC bailout';
+      'معدل تنفس مرتفع اختياري في بداية الخروج الطارئ OC لأنظمة CCR/SCR';
 
   @override
   String get settings_decompression_hypercapniaDialog_title =>
-      'Hypercapnia bailout phase';
+      'مرحلة فرط ثاني أكسيد الكربون أثناء الخروج الطارئ';
 
   @override
   String get settings_decompression_hypercapniaDialog_enabledToggle =>
-      'Use a hypercapnia phase for OC bailout';
+      'استخدام مرحلة فرط ثاني أكسيد الكربون للخروج الطارئ OC';
 
   @override
   String get settings_decompression_hypercapniaDialog_factorLabel =>
-      'RMV factor';
+      'معامل RMV';
 
   @override
   String get settings_decompression_hypercapniaDialog_minutesLabel =>

@@ -10161,7 +10161,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get divePlanner_gasOptions_maxO2DepthMeters => '100% O2 最大深度';
 
   @override
-  String get divePlanner_gasOptions_hypercapniaAmv => 'Hypercapnia RMV';
+  String get divePlanner_gasOptions_hypercapniaAmv => '高碳酸血症 RMV';
 
   @override
   String get divePlanner_gasOptions_hypercapniaMinutes => 'Duration';
@@ -24848,24 +24848,21 @@ class AppLocalizationsZh extends AppLocalizations {
       '100%氧气的最大深度';
 
   @override
-  String get settings_decompression_hypercapniaTitle =>
-      'Hypercapnia bailout phase';
+  String get settings_decompression_hypercapniaTitle => '高碳酸血症应急上升阶段';
 
   @override
   String get settings_decompression_hypercapniaSubtitle =>
-      'Optional elevated breathing rate at the start of a CCR/SCR OC bailout';
+      'CCR/SCR 开放循环应急上升开始时可选的提高呼吸率';
 
   @override
-  String get settings_decompression_hypercapniaDialog_title =>
-      'Hypercapnia bailout phase';
+  String get settings_decompression_hypercapniaDialog_title => '高碳酸血症应急上升阶段';
 
   @override
   String get settings_decompression_hypercapniaDialog_enabledToggle =>
-      'Use a hypercapnia phase for OC bailout';
+      '为开放循环应急上升启用高碳酸血症阶段';
 
   @override
-  String get settings_decompression_hypercapniaDialog_factorLabel =>
-      'RMV factor';
+  String get settings_decompression_hypercapniaDialog_factorLabel => 'RMV 系数';
 
   @override
   String get settings_decompression_hypercapniaDialog_minutesLabel =>

@@ -10681,7 +10681,7 @@ class AppLocalizationsPt extends AppLocalizations {
       'Profundidade máx. 100% O2';
 
   @override
-  String get divePlanner_gasOptions_hypercapniaAmv => 'Hypercapnia RMV';
+  String get divePlanner_gasOptions_hypercapniaAmv => 'RMV de hipercapnia';
 
   @override
   String get divePlanner_gasOptions_hypercapniaMinutes => 'Duration';
@@ -26300,23 +26300,23 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_decompression_hypercapniaTitle =>
-      'Hypercapnia bailout phase';
+      'Fase de hipercapnia do bailout';
 
   @override
   String get settings_decompression_hypercapniaSubtitle =>
-      'Optional elevated breathing rate at the start of a CCR/SCR OC bailout';
+      'Frequência respiratória elevada opcional no início de um bailout OC em CCR/SCR';
 
   @override
   String get settings_decompression_hypercapniaDialog_title =>
-      'Hypercapnia bailout phase';
+      'Fase de hipercapnia do bailout';
 
   @override
   String get settings_decompression_hypercapniaDialog_enabledToggle =>
-      'Use a hypercapnia phase for OC bailout';
+      'Usar uma fase de hipercapnia para o bailout OC';
 
   @override
   String get settings_decompression_hypercapniaDialog_factorLabel =>
-      'RMV factor';
+      'Fator de RMV';
 
   @override
   String get settings_decompression_hypercapniaDialog_minutesLabel =>

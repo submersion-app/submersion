@@ -26259,7 +26259,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_decompression_hypercapniaSubtitle =>
-      'Optionale erhoehte Atemrate zu Beginn eines CCR-/SCR-OC-Bailouts';
+      'Optionale erhöhte Atemrate zu Beginn eines CCR-/SCR-OC-Bailouts';
 
   @override
   String get settings_decompression_hypercapniaDialog_title =>
@@ -26267,7 +26267,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_decompression_hypercapniaDialog_enabledToggle =>
-      'Hyperkapnie-Phase fuer OC-Bailout verwenden';
+      'Hyperkapnie-Phase für OC-Bailout verwenden';
 
   @override
   String get settings_decompression_hypercapniaDialog_factorLabel =>

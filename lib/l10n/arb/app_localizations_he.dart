@@ -10451,7 +10451,7 @@ class AppLocalizationsHe extends AppLocalizations {
       'עומק מקס\' ל-100% חמצן';
 
   @override
-  String get divePlanner_gasOptions_hypercapniaAmv => 'Hypercapnia RMV';
+  String get divePlanner_gasOptions_hypercapniaAmv => 'RMV היפרקפניה';
 
   @override
   String get divePlanner_gasOptions_hypercapniaMinutes => 'Duration';
@@ -25656,23 +25656,22 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_decompression_hypercapniaTitle =>
-      'Hypercapnia bailout phase';
+      'שלב היפרקפניה ביציאת חירום';
 
   @override
   String get settings_decompression_hypercapniaSubtitle =>
-      'Optional elevated breathing rate at the start of a CCR/SCR OC bailout';
+      'קצב נשימה מוגבר אופציונלי בתחילת יציאת חירום OC ב-CCR/SCR';
 
   @override
   String get settings_decompression_hypercapniaDialog_title =>
-      'Hypercapnia bailout phase';
+      'שלב היפרקפניה ביציאת חירום';
 
   @override
   String get settings_decompression_hypercapniaDialog_enabledToggle =>
-      'Use a hypercapnia phase for OC bailout';
+      'השתמש בשלב ההיפרקפניה ליציאת חירום OC';
 
   @override
-  String get settings_decompression_hypercapniaDialog_factorLabel =>
-      'RMV factor';
+  String get settings_decompression_hypercapniaDialog_factorLabel => 'מקדם RMV';
 
   @override
   String get settings_decompression_hypercapniaDialog_minutesLabel =>
