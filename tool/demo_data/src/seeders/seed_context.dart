@@ -5,6 +5,8 @@ import 'package:submersion/core/database/database.dart';
 import '../shape/reshaper.dart';
 import '../shape/shape_library.dart';
 import '../story/story_plan.dart';
+import 'gear_catalog.dart';
+import 'gear_timeline.dart';
 
 /// What every seeder shares while the demo logbook is written (issue #3708).
 ///
@@ -37,6 +39,9 @@ class DemoSeedContext {
   static const partnerId = 'demo-partner';
 
   DateTime get anchor => plan.anchor;
+
+  /// When each piece of kit arrived and left.
+  late final GearTimeline timeline = GearTimeline(plan, demoGear);
 
   String diveId(int number) => 'demo-dive-${number.toString().padLeft(4, '0')}';
 

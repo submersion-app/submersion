@@ -1,13 +1,4 @@
 import 'package:submersion/core/constants/enums.dart';
-import 'package:submersion/features/cylinder_configs/data/repositories/cylinder_config_repository.dart';
-import 'package:submersion/features/cylinder_configs/domain/entities/cylinder_config_item.dart';
-import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart';
-import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_passport_repository.dart';
-import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
-import 'package:submersion/features/dive_computer/data/repositories/dive_computer_connection_repository.dart';
-import 'package:submersion/features/dive_computer/domain/entities/dive_computer_connection.dart';
-import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
-import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_component_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_location_move_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_location_repository.dart';
@@ -18,6 +9,7 @@ import 'package:submersion/features/equipment/data/repositories/equipment_share_
 import 'package:submersion/features/equipment/data/repositories/service_record_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
 import 'package:submersion/features/equipment/data/services/equipment_transfer_service.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_location.dart';
@@ -26,20 +18,118 @@ import 'package:submersion/features/equipment/domain/entities/equipment_set.dart
 import 'package:submersion/features/equipment/domain/entities/equipment_set_geofence.dart';
 import 'package:submersion/features/equipment/domain/entities/service_record.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
-import 'package:submersion/features/tank_presets/data/repositories/tank_preset_repository.dart';
-import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
-import 'package:submersion/features/transmitters/data/repositories/transmitter_repository.dart';
-import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
-import 'package:submersion/features/weight_presets/data/repositories/weight_preset_repository.dart';
 
+import '../story/story_plan.dart';
 import 'gear_assemblies.dart';
 import 'gear_catalog.dart';
-import '../story/story_plan.dart';
 import 'seed_context.dart';
 
-/// The demo diver's kit and everything the app keeps about it: sets, where
-/// it is stored, service history, computers and transmitters, cylinders with
-/// passports and fills, presets.
+/// The kit sets: name, items, and whether the set is the default, applied
+/// automatically, or drawn as a figure.
+const demoSets = <String, (String, List<String>)>{
+  'warm': (
+    'Warm water single',
+    [
+      'mask',
+      'fins',
+      'wetsuit-3',
+      'rash-guard',
+      'boots',
+      'bcd-jacket',
+      'reg-warm',
+      'computer-rec',
+      'smb',
+      'spool',
+      'knife',
+    ],
+  ),
+  'lake': (
+    'Cold lake drysuit',
+    [
+      'mask',
+      'fins',
+      'drysuit',
+      'undersuit',
+      'baselayer',
+      'socks',
+      'dry-gloves',
+      'hood',
+      'reg-cold',
+      'tank-12',
+      'weights',
+      'light-primary',
+      'computer-ai',
+      'smb',
+      'spool',
+      'knife',
+    ],
+  ),
+  'tech': (
+    'Tech doubles',
+    [
+      'mask-2',
+      'fins-jet',
+      'drysuit',
+      'undersuit',
+      'backplate',
+      'harness',
+      'wing',
+      'tank-bands',
+      'twin',
+      'reg-right',
+      'reg-left',
+      'reg-stage-1',
+      'stage-1',
+      'computer-tech',
+      'computer-ai',
+      'light-canister',
+      'light-backup-1',
+      'light-backup-2',
+      'reel',
+      'wetnotes',
+      'pocket',
+      'smb',
+      'knife',
+    ],
+  ),
+  'ccr': (
+    'Rebreather',
+    [
+      'mask-2',
+      'fins-jet',
+      'drysuit',
+      'rebreather',
+      'ccr-o2',
+      'ccr-dil',
+      'stage-1',
+      'reg-stage-bailout',
+      'computer-tech',
+      'light-canister',
+      'light-backup-1',
+      'reel',
+    ],
+  ),
+  'scooter': ('Scooter', ['dpv', 'reel', 'light-canister']),
+  'camera': (
+    'Camera',
+    [
+      'camera',
+      'housing',
+      'port',
+      'tray',
+      'arms',
+      'float-arms',
+      'strobe-left',
+      'strobe-right',
+      'video-light',
+    ],
+  ),
+};
+
+/// The demo diver's kit and what the app keeps about it: every item with
+/// its attributes, the regulators' parts, what is fitted inside the
+/// rebreather and the scooter, the kit sets, where things are stored and
+/// their service history.
 class GearSeeder implements DemoSeeder {
   @override
   String get name => 'gear';
@@ -47,14 +137,25 @@ class GearSeeder implements DemoSeeder {
   @override
   Future<void> seed(DemoSeedContext ctx) async {
     final repo = EquipmentRepository();
-    DateTime bought(int dive) {
-      final d = ctx.plan.dives[dive - 1].start;
-      return DateTime(d.year, d.month, d.day - 7);
-    }
-
     for (final g in demoGear) {
-      final id = 'demo-gear-${g.key}';
-      ctx.equipment[g.key] = id;
+      ctx.equipment[g.key] = 'demo-gear-${g.key}';
+    }
+    final installs = {for (final i in demoInstalls) i.childKey: i};
+    for (final g in demoGear) {
+      final id = ctx.equipment[g.key]!;
+      final bought = ctx.timeline.boughtOn(g.key);
+      final install = installs[g.key];
+      var order = 0;
+      EquipmentAttribute attr(String key, {String? text, double? number}) =>
+          EquipmentAttribute(
+            id: 'demo-attr-${g.key}-$key',
+            equipmentId: id,
+            key: key,
+            isCustom: false,
+            valueText: text,
+            valueNum: number,
+            sortOrder: order++,
+          );
       await repo.createEquipmentWithTags(
         EquipmentItem(
           id: id,
@@ -66,17 +167,27 @@ class GearSeeder implements DemoSeeder {
           serialNumber:
               'DEMO-${g.key.toUpperCase()}-${1000 + g.key.length * 37}',
           status: g.currentStatus,
-          purchaseDate: bought(ctx.plan.milestones[g.bought]! + g.boughtOffset),
-          purchasePrice: 80.0 + g.key.length * 45,
+          purchaseDate: bought,
+          purchasePrice: bought == null ? null : 40.0 + g.key.length * 35,
           serviceIntervalDays: g.serviceIntervalDays,
+          parentEquipmentId: install == null
+              ? null
+              : ctx.equipment[install.parentKey],
           attributes: [
-            if (g.size != null)
-              EquipmentAttribute(
-                id: 'demo-attr-${g.key}-size',
-                equipmentId: id,
-                key: 'Size',
-                isCustom: true,
-                valueText: g.size,
+            if (g.size != null) attr(EquipmentAttrKeys.size, text: g.size),
+            for (final MapEntry(:key, :value) in g.attributes.entries)
+              value is num
+                  ? attr(key, number: value.toDouble())
+                  : attr(key, text: '$value'),
+            if (install?.slot != null)
+              attr(
+                EquipmentAttrKeys.cellSlot,
+                number: install!.slot!.toDouble(),
+              ),
+            if (install != null && bought != null)
+              attr(
+                EquipmentAttrKeys.installedDate,
+                number: bought.millisecondsSinceEpoch.toDouble(),
               ),
           ],
         ),
@@ -96,96 +207,49 @@ class GearSeeder implements DemoSeeder {
     }
 
     await _sets(ctx);
-    await _computers(ctx, bought);
+    DateTime bought(int dive) {
+      final d = ctx.plan.dives[dive - 1].start;
+      return ctx.timeline.homeDayOnOrBefore(
+        DateTime(d.year, d.month, d.day - 7),
+      );
+    }
+
     await _storageAndService(ctx, bought);
-    await _cylinders(ctx, bought);
   }
 
   Future<void> _sets(DemoSeedContext ctx) async {
     final sets = EquipmentSetRepository();
-    final created = ctx.plan.dives.first.start;
-    final e = ctx.equipment;
-    final defs = <String, (String, List<String>)>{
-      'warm': (
-        'Warm water',
-        [
-          'mask',
-          'fins',
-          'wetsuit-3',
-          'reg-warm',
-          'bcd-jacket',
-          'computer-rec',
-          'smb',
-        ],
-      ),
-      'lake': (
-        'Lake, drysuit',
-        [
-          'mask',
-          'fins',
-          'drysuit',
-          'undersuit',
-          'hood',
-          'dry-gloves',
-          'reg-cold',
-          'tank-12',
-          'weights',
-          'light-primary',
-          'computer-rec',
-        ],
-      ),
-      'tech': (
-        'Technical doubles',
-        [
-          'mask',
-          'fins',
-          'drysuit',
-          'wing',
-          'backplate',
-          'twin',
-          'stage-1',
-          'stage-2',
-          'computer-tech',
-          'light-canister',
-          'reel',
-          'smb',
-        ],
-      ),
-      'ccr': (
-        'Rebreather',
-        [
-          'mask',
-          'fins',
-          'drysuit',
-          'rebreather',
-          'ccr-o2',
-          'ccr-dil',
-          'stage-1',
-          'computer-tech',
-          'light-canister',
-        ],
-      ),
-    };
-    for (final MapEntry(key: key, value: (name, items)) in defs.entries) {
+    for (final MapEntry(key: key, value: (name, items)) in demoSets.entries) {
       final id = 'demo-set-$key';
       ctx.equipmentSets[key] = id;
+      // A set is put together once all its items are owned.
+      final created = items
+          .map((k) => ctx.timeline.boughtOn(k)!)
+          .reduce((a, b) => a.isAfter(b) ? a : b);
       await sets.createSet(
         EquipmentSet(
           id: id,
           diverId: DemoSeedContext.diverId,
           name: name,
-          equipmentIds: [for (final k in items) e[k]!],
+          equipmentIds: [for (final k in items) ctx.equipment[k]!],
           isDefault: key == 'warm',
+          autoApplyOnComputerImport: key == 'lake',
+          showFigure: key == 'tech',
           createdAt: created,
           updatedAt: created,
         ),
       );
     }
+    await sets.setAsDefault(
+      ctx.equipmentSets['warm']!,
+      diverId: DemoSeedContext.diverId,
+    );
     final home = ctx.plan.sites.firstWhere(
       (s) => ctx.plan.dives.any(
         (d) => d.siteId == s.id && d.destination.key == 'home',
       ),
     );
+    final created = ctx.timeline.boughtOn('drysuit')!;
     await sets.addGeofence(
       EquipmentSetGeofence(
         id: 'demo-geofence-lake',
@@ -197,100 +261,6 @@ class GearSeeder implements DemoSeeder {
         createdAt: created,
         updatedAt: created,
       ),
-    );
-  }
-
-  Future<void> _computers(
-    DemoSeedContext ctx,
-    DateTime Function(int) bought,
-  ) async {
-    final computers = DiveComputerRepository();
-    final connections = DiveComputerConnectionRepository();
-    for (final (key, gearKey, model, at, kind) in [
-      ('rec', 'computer-rec', 'Peregrine', 1, DiveComputerConnectionKind.ble),
-      (
-        'tech',
-        'computer-tech',
-        'Perdix 2',
-        ctx.plan.milestones[StoryMilestone.techStart]!,
-        DiveComputerConnectionKind.usb,
-      ),
-    ]) {
-      final id = 'demo-computer-$key';
-      ctx.computers[key] = id;
-      final when = bought(at);
-      await computers.createComputer(
-        DiveComputer(
-          id: id,
-          diverId: DemoSeedContext.diverId,
-          name: 'Shearwater $model',
-          manufacturer: 'Shearwater',
-          model: model,
-          serialNumber: key == 'rec' ? 'A1B2C3D4' : 'E5F6A7B8',
-          firmwareVersion: key == 'rec' ? '92' : '84',
-          equipmentId: ctx.equipment[gearKey],
-          createdAt: when,
-          updatedAt: when,
-        ),
-      );
-      await connections.recordConnection(
-        computerId: id,
-        kind: kind,
-        usedAt: ctx.anchor,
-      );
-    }
-    final transmitters = TransmitterRepository();
-    final when = bought(ctx.plan.milestones[StoryMilestone.techStart]!);
-    for (final (n, role) in [(1, TankRole.backGas), (2, TankRole.deco)]) {
-      await transmitters.create(
-        Transmitter(
-          id: 'demo-transmitter-$n',
-          label: n == 1 ? 'Back gas' : 'Stage',
-          transmitterSerial: n == 1 ? '1A2B3C' : '4D5E6F',
-          diveComputerId: ctx.computers['tech'],
-          role: role,
-          volumeL: n == 1 ? 24 : 7,
-          workingPressureBar: n == 1 ? 232 : 207,
-          equipmentId: ctx.equipment['transmitter-$n'],
-          createdAt: when,
-          updatedAt: when,
-        ),
-      );
-    }
-    final presets = TankPresetRepository();
-    await presets.createPreset(
-      TankPresetEntity(
-        id: 'demo-tank-preset-twin12',
-        diverId: DemoSeedContext.diverId,
-        name: 'twin12_steel',
-        displayName: 'Twin 12 L steel',
-        volumeLiters: 24,
-        workingPressureBar: 232,
-        material: TankMaterial.steel,
-        createdAt: when,
-        updatedAt: when,
-      ),
-    );
-    final weights = WeightPresetRepository();
-    await weights.createPreset(
-      diverId: DemoSeedContext.diverId,
-      displayName: 'Warm water',
-      entries: const [
-        (weightType: WeightType.belt, amountKg: 4, notes: '', label: 'Belt'),
-      ],
-    );
-    await weights.createPreset(
-      diverId: DemoSeedContext.diverId,
-      displayName: 'Drysuit in the lake',
-      entries: const [
-        (weightType: WeightType.belt, amountKg: 6, notes: '', label: 'Belt'),
-        (
-          weightType: WeightType.trimWeights,
-          amountKg: 2,
-          notes: 'Tank band',
-          label: 'Trim',
-        ),
-      ],
     );
   }
 
@@ -418,92 +388,5 @@ class GearSeeder implements DemoSeeder {
         updatedAt: ccrAt,
       ),
     );
-  }
-
-  Future<void> _cylinders(
-    DemoSeedContext ctx,
-    DateTime Function(int) bought,
-  ) async {
-    final e = ctx.equipment;
-    final configs = CylinderConfigRepository();
-    final configId = await configs.createConfig(
-      diverId: DemoSeedContext.diverId,
-      equipmentId: e['twin'],
-      name: 'Doubles with two stages',
-      description: 'Trimix back gas, 50% and oxygen to decompress.',
-    );
-    final when = bought(ctx.plan.milestones[StoryMilestone.trimix]!);
-    await configs.saveItems(configId, [
-      CylinderConfigItem(
-        id: 'demo-config-item-1',
-        configId: configId,
-        tankRole: TankRole.backGas,
-        volumeL: 24,
-        workingPressureBar: 232,
-        o2Percent: 21,
-        hePercent: 35,
-        createdAt: when,
-        updatedAt: when,
-      ),
-      CylinderConfigItem(
-        id: 'demo-config-item-2',
-        configId: configId,
-        tankRole: TankRole.deco,
-        volumeL: 7,
-        workingPressureBar: 207,
-        o2Percent: 50,
-        createdAt: when,
-        updatedAt: when,
-      ),
-      CylinderConfigItem(
-        id: 'demo-config-item-3',
-        configId: configId,
-        tankRole: TankRole.deco,
-        volumeL: 7,
-        workingPressureBar: 207,
-        o2Percent: 100,
-        createdAt: when,
-        updatedAt: when,
-      ),
-    ]);
-
-    final passports = CylinderPassportRepository();
-    final fills = CylinderFillRepository();
-    var n = 0;
-    for (final key in ['tank-12', 'twin', 'stage-1']) {
-      final passport = await passports.ensurePassportId(
-        e[key]!,
-        diverId: DemoSeedContext.diverId,
-      );
-      final dives = ctx.plan.dives
-          .where(
-            (d) =>
-                d.destination.key == 'home' && ctx.plan.dives.indexOf(d) >= 30,
-          )
-          .toList();
-      for (final d
-          in dives.where((d) => dives.indexOf(d) % 6 == n % 6).take(8)) {
-        final at = d.start.subtract(const Duration(days: 1));
-        await fills.create(
-          CylinderFill(
-            id: 'demo-fill-${n++}',
-            passportId: passport,
-            equipmentId: e[key],
-            filledAt: at,
-            o2Percent: key == 'stage-1' ? 50 : (key == 'twin' ? 21 : 32),
-            hePercent:
-                key == 'twin' &&
-                    d.number > ctx.plan.milestones[StoryMilestone.trimix]!
-                ? 35
-                : 0,
-            pressureBar: key == 'stage-1' ? 200 : 230,
-            stationName: 'Club fill station',
-            source: FillSource.manual,
-            createdAt: at,
-            updatedAt: at,
-          ),
-        );
-      }
-    }
   }
 }

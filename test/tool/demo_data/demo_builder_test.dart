@@ -174,6 +174,11 @@ void main() {
     expect(Directory(p.join(dir.path, 'out')).existsSync(), isFalse);
   });
 
+  test('the limits are 12 MB for the database and 20 MB for the package', () {
+    expect(DemoBuilder.maxDatabaseZipBytes, 12 * 1024 * 1024);
+    expect(DemoBuilder.maxPackageBytes, 20 * 1024 * 1024);
+  });
+
   test('manifest entries merge, keeping older schemas for older apps', () {
     final merged = DemoBuilder.mergeManifest(
       existing:

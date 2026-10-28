@@ -183,3 +183,7 @@ KitForDive kitFor(PlannedDive d, GearTimeline t, {required bool photo}) {
       : 'warm';
   return (gearKeys: keys, setKey: setKey, weights: weights);
 }
+
+/// Whether the camera came on [d]: every third trip dive once it is owned.
+bool isPhotoDive(PlannedDive d, GearTimeline t) =>
+    d.tripId != null && d.number % 3 == 0 && t.inUseOn('camera', d.start);

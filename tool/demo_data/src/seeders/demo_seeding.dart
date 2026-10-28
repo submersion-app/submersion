@@ -1,6 +1,7 @@
 import 'derived_seeder.dart';
 import 'dive_seeder.dart';
 import 'diver_seeder.dart';
+import 'gear_cylinder_seeder.dart';
 import 'gear_seeder.dart';
 import 'media_seeder.dart';
 import 'misc_seeder.dart';
@@ -16,6 +17,7 @@ List<DemoSeeder> demoSeeders() => [
   PlacesSeeder(),
   TrainingSeeder(),
   GearSeeder(),
+  GearCylinderSeeder(),
   TripSeeder(),
   DiveSeeder(),
   TrainingLinksSeeder(),

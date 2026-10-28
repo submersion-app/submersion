@@ -48,8 +48,8 @@ class DemoBuildOutput {
 /// real dive, and packages the database with its photos for the `demo-data`
 /// release.
 class DemoBuilder {
-  static const maxDatabaseZipBytes = 5 * 1024 * 1024;
-  static const maxPackageBytes = 15 * 1024 * 1024;
+  static const maxDatabaseZipBytes = 12 * 1024 * 1024;
+  static const maxPackageBytes = 20 * 1024 * 1024;
   static const releaseBase =
       'https://github.com/submersion-app/submersion/releases/download/demo-data';
 

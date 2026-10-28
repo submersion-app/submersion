@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import '../../helpers/test_database.dart';
 import '../../../tool/demo_data/src/seeders/diver_seeder.dart';
 import '../../../tool/demo_data/src/seeders/gear_catalog.dart';
+import '../../../tool/demo_data/src/seeders/gear_cylinder_seeder.dart';
 import '../../../tool/demo_data/src/seeders/gear_seeder.dart';
 import '../../../tool/demo_data/src/seeders/places_seeder.dart';
 import '../../../tool/demo_data/src/seeders/seed_context.dart';
@@ -19,6 +20,7 @@ void main() {
     await DiverSeeder().seed(ctx);
     await PlacesSeeder().seed(ctx);
     await GearSeeder().seed(ctx);
+    await GearCylinderSeeder().seed(ctx);
     await TripSeeder().seed(ctx);
   });
 
@@ -53,7 +55,7 @@ void main() {
   });
 
   test('computers, transmitters, presets and cylinders are set up', () async {
-    expect(await countRows(ctx, 'dive_computers'), 2);
+    expect(await countRows(ctx, 'dive_computers'), 3);
     expect(await countRows(ctx, 'transmitters'), 2);
     for (final t in [
       'dive_computer_connections',

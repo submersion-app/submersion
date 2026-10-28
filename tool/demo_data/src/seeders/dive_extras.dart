@@ -166,9 +166,11 @@ class DiveExtras {
     if (switches.isNotEmpty) await _dives.insertGasSwitches(switches);
 
     final computer =
-        ctx.computers[d.number < ctx.plan.milestones[StoryMilestone.techStart]!
-            ? 'rec'
-            : 'tech']!;
+        ctx.computers[d.diveMode == 'ccr' || d.tankCount > 1
+            ? 'tech'
+            : ctx.timeline.inUseOn('computer-ai', d.start)
+            ? 'ai'
+            : 'rec']!;
     await _dives.saveComputerReading(
       DiveDataSourcesCompanion.insert(
         id: 'demo-reading-$id',

@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import '../../helpers/test_database.dart';
 import '../../../tool/demo_data/src/seeders/dive_seeder.dart';
 import '../../../tool/demo_data/src/seeders/diver_seeder.dart';
+import '../../../tool/demo_data/src/seeders/gear_cylinder_seeder.dart';
 import '../../../tool/demo_data/src/seeders/gear_seeder.dart';
 import '../../../tool/demo_data/src/seeders/places_seeder.dart';
 import '../../../tool/demo_data/src/seeders/seed_context.dart';
@@ -23,6 +24,7 @@ void main() {
       PlacesSeeder(),
       TrainingSeeder(),
       GearSeeder(),
+      GearCylinderSeeder(),
       TripSeeder(),
       DiveSeeder(),
       TrainingLinksSeeder(),
