@@ -110,6 +110,9 @@ class NearbyCardHost {
   final _received = <String>{};
   final _channels = <NearbyCardChannel>{};
   NearbyCardDialer? _dial;
+
+  /// Dialers for carriers outside the link manager, by transport prefix.
+  final _carrierDials = <String, NearbyCardDialer>{};
   bool _disposed = false;
 
   Stream<NearbyCardEvent> get events => _events.stream;
@@ -141,10 +144,33 @@ class NearbyCardHost {
   /// Set by the link manager when card mode starts; null when it ends.
   void attach(NearbyCardDialer? dial) => _dial = dial;
 
+  /// A carrier outside the link manager (Multipeer) whose transport ids
+  /// start with [prefix]; null [dial] detaches it.
+  void attachCarrier(String prefix, NearbyCardDialer? dial) {
+    if (dial == null) {
+      _carrierDials.remove(prefix);
+    } else {
+      _carrierDials[prefix] = dial;
+    }
+  }
+
+  NearbyCardDialer? _dialerFor(String transportId) {
+    for (final entry in _carrierDials.entries) {
+      if (transportId.startsWith(entry.key)) return entry.value;
+    }
+    return _dial;
+  }
+
+  /// Whether [transportId] is on a carrier outside the link manager, which
+  /// is faster and preferred for a diver seen over both.
+  bool _isPreferred(String? transportId) =>
+      transportId != null &&
+      _carrierDials.keys.any((prefix) => transportId.startsWith(prefix));
+
   /// A Submersion device was seen at [transportId]: look at who it is,
   /// at most once per [summaryRefresh].
   void onSighting(String transportId) {
-    if (_disposed || _dial == null) return;
+    if (_disposed || _dialerFor(transportId) == null) return;
     _lastSighted[transportId] = _now();
     final last = _lastDial[transportId];
     if (last != null && _now().difference(last) < summaryRefresh) return;
@@ -175,7 +201,7 @@ class NearbyCardHost {
   }
 
   Future<void> _dialAndRun(String transportId) async {
-    final dial = _dial;
+    final dial = _dialerFor(transportId);
     if (dial == null) return;
     final NearbyCardChannel channel;
     try {
@@ -335,7 +361,9 @@ class NearbyCardHost {
     final peer = NearbyCardPeer(
       swapId: theirId,
       name: theirName,
-      transportId: dialled ?? known?.transportId,
+      transportId: _isPreferred(known?.transportId) && !_isPreferred(dialled)
+          ? known!.transportId
+          : dialled ?? known?.transportId,
       photo: photoText is String ? _photo(photoText) : known?.photo,
     );
     _peers[theirId] = peer;
@@ -397,6 +425,7 @@ class NearbyCardHost {
     if (_disposed) return;
     _disposed = true;
     _dial = null;
+    _carrierDials.clear();
     await Future.wait([for (final c in _channels.toList()) c.close()]);
     await _events.close();
   }

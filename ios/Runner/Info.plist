@@ -165,6 +165,15 @@
 	<true/>
 	<key>LSSupportsOpeningDocumentsInPlace</key>
 	<false/>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Submersion finds nearby divers on the swap screen to exchange buddy cards.</string>
+	<key>NSBonjourServices</key>
+	<array>
+		<string>_subm-card._tcp</string>
+		<string>_subm-card._udp</string>
+	</array>
+	<key>NSNearbyInteractionUsageDescription</key>
+	<string>Submersion senses when you hold your phone next to a buddy's to swap buddy cards.</string>
 	<key>NSBluetoothAlwaysUsageDescription</key>
 	<string>Submersion uses Bluetooth to connect to dive computers and to sync with your other devices nearby.</string>
 	<key>NSBluetoothPeripheralUsageDescription</key>
