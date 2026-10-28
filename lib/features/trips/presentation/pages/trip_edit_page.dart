@@ -1129,8 +1129,15 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
       if (_tripType == TripType.liveaboard) {
         final liveaboardRepo = LiveaboardDetailsRepository();
         final capacityText = _capacityController.text.trim();
+        // A retry after a failed create finds the details its first attempt
+        // wrote, so it updates them instead of adding a second set.
+        final existingDetails =
+            _originalLiveaboardDetails ??
+            (createdId != null
+                ? await liveaboardRepo.getByTripId(savedId)
+                : null);
         final details = LiveaboardDetails(
-          id: _originalLiveaboardDetails?.id ?? '',
+          id: existingDetails?.id ?? '',
           tripId: savedId,
           vesselName: _vesselNameController.text.trim(),
           operatorName: _operatorController.text.trim().isEmpty
@@ -1147,14 +1154,17 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
           disembarkPort: _disembarkPortController.text.trim().isEmpty
               ? null
               : _disembarkPortController.text.trim(),
-          createdAt: _originalLiveaboardDetails?.createdAt ?? DateTime.now(),
+          createdAt: existingDetails?.createdAt ?? DateTime.now(),
           updatedAt: DateTime.now(),
         );
         await liveaboardRepo.createOrUpdate(details);
 
-        // Generate itinerary days for new liveaboard trips
-        if (!isEditing) {
-          final itineraryRepo = ItineraryDayRepository();
+        // Generate itinerary days for new liveaboard trips, once: a retry
+        // after a failed create keeps the days its first attempt wrote.
+        final itineraryRepo = ItineraryDayRepository();
+        if (!isEditing &&
+            (createdId == null ||
+                (await itineraryRepo.getByTripId(savedId)).isEmpty)) {
           final days = ItineraryDay.generateForTrip(
             tripId: savedId,
             startDate: _startDate,

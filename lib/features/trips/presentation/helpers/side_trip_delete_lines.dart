@@ -28,7 +28,7 @@ Future<List<String>> sideTripDeleteLines(
   }
 }
 
-final _log = LoggerService.forClass(SideTripRepository);
+const _log = LoggerService('SideTripDeleteLines');
 
 Future<List<String>> _lines(
   AppLocalizations l10n,
