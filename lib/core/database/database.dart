@@ -295,7 +295,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 320;
+  static const int currentSchemaVersion = 323;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1442,6 +1442,11 @@ class AppDatabase extends _$AppDatabase {
     // the floor does not move. 319 is held
     // by PR #3726.
     320,
+    // v323: trips.parent_trip_id, the larger trip a side trip is part of
+    // (issue #3658). Additive and nullable with no backfill: an older peer
+    // omits it and sees a side trip as a trip of its own, so the floor
+    // stays. 321 and 322 are held by other branches.
+    323,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

@@ -9,7 +9,6 @@ import 'package:submersion/core/database/dive_stats_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
-import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/checklists/data/repositories/trip_checklist_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_parent_links.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
@@ -21,6 +20,7 @@ import 'package:submersion/features/trips/data/repositories/liveaboard_details_r
 import 'package:submersion/features/trips/data/repositories/trip_day_weather_repository.dart';
 import 'package:submersion/features/trips/data/repositories/trip_cylinder_repository.dart';
 import 'package:submersion/features/trips/data/repositories/trip_equipment_repository.dart';
+import 'package:submersion/features/trips/data/repositories/trip_row_mapper.dart';
 import 'package:submersion/features/trips/domain/entities/dive_candidate.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart' as domain;
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
@@ -59,7 +59,7 @@ class TripRepository {
       VisibilityFilter.applyToTrips(_db, query, diverId);
 
       final rows = await query.get();
-      return rows.map(_mapRowToTrip).toList();
+      return rows.map(tripFromRow).toList();
     } catch (e, stackTrace) {
       _log.error('Failed to get all trips', error: e, stackTrace: stackTrace);
       rethrow;
@@ -72,7 +72,7 @@ class TripRepository {
       final query = _db.select(_db.trips)..where((t) => t.id.equals(id));
 
       final row = await query.getSingleOrNull();
-      return row != null ? _mapRowToTrip(row) : null;
+      return row != null ? tripFromRow(row) : null;
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get trip by id: $id',
@@ -111,7 +111,7 @@ class TripRepository {
         ORDER BY start_date DESC
       ''', variables: variables).get();
 
-      return results.map((row) => _mapDataToTrip(row.data)).toList();
+      return results.map((row) => tripFromData(row.data)).toList();
     } catch (e, stackTrace) {
       _log.error('Failed to search trips', error: e, stackTrace: stackTrace);
       rethrow;
@@ -147,6 +147,7 @@ class TripRepository {
               expectedRuntimeMinutes: Value(trip.expectedRuntimeMinutes),
               diversSharingCylinders: Value(trip.diversSharingCylinders),
               divesPerDayTarget: Value(trip.divesPerDayTarget),
+              parentTripId: Value(trip.parentTripId),
               createdAt: Value(now.millisecondsSinceEpoch),
               updatedAt: Value(now.millisecondsSinceEpoch),
             ),
@@ -205,6 +206,7 @@ class TripRepository {
           expectedRuntimeMinutes: Value(trip.expectedRuntimeMinutes),
           diversSharingCylinders: Value(trip.diversSharingCylinders),
           divesPerDayTarget: Value(trip.divesPerDayTarget),
+          parentTripId: Value(trip.parentTripId),
           updatedAt: Value(now),
         ),
       );
@@ -650,7 +652,7 @@ class TripRepository {
 
     if (result == null) return null;
 
-    return _mapDataToTrip(result.data);
+    return tripFromData(result.data);
   }
 
   /// Get all trips with their statistics.
@@ -705,7 +707,7 @@ class TripRepository {
       ''', variables: variables).get();
 
       return rows.map((row) {
-        final trip = _mapDataToTrip(row.data);
+        final trip = tripFromData(row.data);
         return domain.TripWithStats(
           trip: trip,
           diveCount: row.data['dive_count'] as int,
@@ -722,68 +724,5 @@ class TripRepository {
       );
       rethrow;
     }
-  }
-
-  domain.Trip _mapRowToTrip(Trip row) {
-    return domain.Trip(
-      id: row.id,
-      diverId: row.diverId,
-      name: row.name,
-      startDate: DateTime.fromMillisecondsSinceEpoch(row.startDate),
-      endDate: DateTime.fromMillisecondsSinceEpoch(row.endDate),
-      location: row.location,
-      resortName: row.resortName,
-      liveaboardName: row.liveaboardName,
-      notes: row.notes,
-      tripType: TripType.fromName(row.tripType),
-      isShared: row.isShared,
-      // Wall-clock-as-UTC: decode with isUtc so the stored components are
-      // preserved rather than shifted into the device's timezone.
-      returnFlightAt: row.returnFlightAt != null
-          ? DateTime.fromMillisecondsSinceEpoch(
-              row.returnFlightAt!,
-              isUtc: true,
-            )
-          : null,
-      expectedDives: row.expectedDives,
-      expectedRuntimeMinutes: row.expectedRuntimeMinutes,
-      diversSharingCylinders: row.diversSharingCylinders,
-      divesPerDayTarget: row.divesPerDayTarget,
-      createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
-      updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt),
-    );
-  }
-
-  /// Shared mapper for customSelect rows (searchTrips, findTripForDate,
-  /// getAllTripsWithStats) so a new trips column cannot silently miss one
-  /// of the hand-written sites.
-  domain.Trip _mapDataToTrip(Map<String, Object?> data) {
-    return domain.Trip(
-      id: data['id'] as String,
-      diverId: data['diver_id'] as String?,
-      name: data['name'] as String,
-      startDate: DateTime.fromMillisecondsSinceEpoch(data['start_date'] as int),
-      endDate: DateTime.fromMillisecondsSinceEpoch(data['end_date'] as int),
-      location: data['location'] as String?,
-      resortName: data['resort_name'] as String?,
-      liveaboardName: data['liveaboard_name'] as String?,
-      notes: (data['notes'] as String?) ?? '',
-      tripType: TripType.fromName((data['trip_type'] as String?) ?? 'shore'),
-      isShared: (data['is_shared'] as int? ?? 0) != 0,
-      // Wall-clock-as-UTC: decode with isUtc so the stored components are
-      // preserved rather than shifted into the device's timezone.
-      returnFlightAt: data['return_flight_at'] != null
-          ? DateTime.fromMillisecondsSinceEpoch(
-              data['return_flight_at'] as int,
-              isUtc: true,
-            )
-          : null,
-      expectedDives: data['expected_dives'] as int?,
-      expectedRuntimeMinutes: data['expected_runtime_minutes'] as int?,
-      diversSharingCylinders: (data['divers_sharing_cylinders'] as int?) ?? 1,
-      divesPerDayTarget: data['dives_per_day_target'] as int?,
-      createdAt: DateTime.fromMillisecondsSinceEpoch(data['created_at'] as int),
-      updatedAt: DateTime.fromMillisecondsSinceEpoch(data['updated_at'] as int),
-    );
   }
 }
