@@ -313,6 +313,24 @@ void main() {
     expect((await outcome)?.error, NearbyPeerError.notPaired);
   });
 
+  test('a device is seen as soon as its session starts, not only when a '
+      'long copy ends', () async {
+    final a = await device('A');
+    final b = await device('B');
+    await pairNearbyTestDevices(a, b);
+    a.engine
+      ..marks = {...a.engine.marks, 'Z': fakeHlc(5, 'Z')}
+      ..fullContent = '{}'
+      ..exportDelay = const Duration(milliseconds: 300);
+    await foregroundNearbyTestDevices([a, b]);
+    for (var i = 0; i < 50; i++) {
+      if (a.manager.state == NearbyLinkState.syncing) break;
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+    }
+    expect(a.manager.state, NearbyLinkState.syncing);
+    expect((await a.peers.get('B'))!.lastSeenAt, isNotNull);
+  });
+
   test('entering demo mode ends a running session before the sample '
       'logbook opens', () async {
     final a = await device('A');

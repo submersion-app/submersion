@@ -163,6 +163,15 @@ void main() {
       expect((await store.get('s3'))!.relayFloorHlc, '000000000000020:000000:');
     });
 
+    test('two sessions lowering it at once keep the lower floor', () async {
+      await seed('s3', high);
+      await Future.wait([
+        store.pullBackRelayFloor('000000000000040:000000:a'),
+        store.pullBackRelayFloor('000000000000060:000000:a'),
+      ]);
+      expect((await store.get('s3'))!.relayFloorHlc, '000000000000040:000000:');
+    });
+
     test('applies to every backend with a published clock', () async {
       await seed('s3', high);
       await seed('dropbox', null);

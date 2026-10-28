@@ -661,6 +661,11 @@ class NearbyLinkManager {
       _active[peerId] = live;
     }
     _emitState();
+    // Seen from the start too: a full copy can run long, and tombstone
+    // cleanup elsewhere must not take a peer mid-session for a silent one.
+    if (await _peers.get(peerId) != null) {
+      await _peers.markSeen(peerId, live.startedAt.millisecondsSinceEpoch);
+    }
     NearbySyncOutcome outcome;
     try {
       outcome = await NearbySyncProtocol(

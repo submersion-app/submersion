@@ -62,22 +62,18 @@ class PublishStateStore {
   /// backend whose published clock is newer, lower the relay floor to just
   /// below it (the clock's time and counter with no writer, which sorts
   /// before every clock of that instant), so the next publish carries them.
-  /// The published clock itself never moves down.
+  /// The published clock itself never moves down. One conditional UPDATE,
+  /// so two sessions lowering it at once cannot leave the higher floor.
   Future<void> pullBackRelayFloor(String lowestAppliedHlc) async {
     if (lowestAppliedHlc.length < 23) return;
     final floor = lowestAppliedHlc.substring(0, 23);
-    final rows = await _db.select(_db.localPublishStates).get();
-    for (final row in rows) {
-      final published = row.publishedHlcHigh;
-      if (published == null || lowestAppliedHlc.compareTo(published) >= 0) {
-        continue;
-      }
-      final current = row.relayFloorHlc;
-      if (current != null && current.compareTo(floor) <= 0) continue;
-      await (_db.update(_db.localPublishStates)
-            ..where((t) => t.provider.equals(row.provider)))
-          .write(LocalPublishStatesCompanion(relayFloorHlc: Value(floor)));
-    }
+    await (_db.update(_db.localPublishStates)..where(
+          (t) =>
+              t.publishedHlcHigh.isBiggerThanValue(lowestAppliedHlc) &
+              (t.relayFloorHlc.isNull() |
+                  t.relayFloorHlc.isBiggerThanValue(floor)),
+        ))
+        .write(LocalPublishStatesCompanion(relayFloorHlc: Value(floor)));
   }
 
   /// The relay floor served its one export: cleared, unless it changed

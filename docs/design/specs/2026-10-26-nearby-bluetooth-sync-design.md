@@ -541,8 +541,9 @@ design makes no such choice.
 - The first sync between populated devices that never shared a cloud is a
   full copy in each direction; deltas only once every writer is known.
 - Nearby peers hold tombstones back like cloud peers until unpaired or
-  silent for the cloud path's retirement period. A refused session counts
-  as contact: a paired device that keeps refusing (it needs an update, or
+  silent for the cloud path's retirement period. A session counts as
+  contact from its start, not only its end (a full copy can run long), and
+  a refused one counts too: a paired device that keeps refusing (it needs an update, or
   moved to another library) is still around and may sync again.
 - The merge's `lastSync` is the per-peer `last_synced_at`.
 - Demo mode (the sample logbook, #3729) seals nearby sync like cloud
