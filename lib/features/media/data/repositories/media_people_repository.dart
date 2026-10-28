@@ -94,44 +94,24 @@ class MediaPeopleRepository {
     }
     final now = DateTime.now().millisecondsSinceEpoch;
     final isVideo = await _isVideo(mediaId);
-    if (isVideo && box == null) {
-      final existing = await _findTag(
-        mediaId,
-        buddyId,
-        diverId,
-        spotless: true,
+    final existing = await _findDuplicate(
+      mediaId,
+      buddyId: buddyId,
+      diverId: diverId,
+      isVideo: isVideo,
+      positionMs: videoPosition?.inMilliseconds,
+      hasBox: box != null,
+    );
+    if (existing != null) {
+      // A tag without a spot adds nothing to the person's tag there.
+      if (box == null) return _tagFromRow(existing);
+      final moved = _tagFromRow(existing).copyWith(
+        box: box,
+        videoPosition: isVideo ? videoPosition : null,
+        updatedAt: DateTime.fromMillisecondsSinceEpoch(now),
       );
-      if (existing != null) return _tagFromRow(existing);
-    }
-    if (isVideo && box != null && videoPosition != null) {
-      final existing = await _findTag(
-        mediaId,
-        buddyId,
-        diverId,
-        near: videoPosition,
-      );
-      if (existing != null) {
-        final moved = _tagFromRow(existing).copyWith(
-          box: box,
-          videoPosition: videoPosition,
-          updatedAt: DateTime.fromMillisecondsSinceEpoch(now),
-        );
-        await updateTag(moved);
-        return moved;
-      }
-    }
-    if (!isVideo) {
-      final existing = await _findTag(mediaId, buddyId, diverId);
-      if (existing != null) {
-        if (box == null) return _tagFromRow(existing);
-        final moved = _tagFromRow(existing).copyWith(
-          box: box,
-          videoPosition: null,
-          updatedAt: DateTime.fromMillisecondsSinceEpoch(now),
-        );
-        await updateTag(moved);
-        return moved;
-      }
+      await updateTag(moved);
+      return moved;
     }
 
     final id = _uuid.v4();
@@ -174,9 +154,11 @@ class MediaPeopleRepository {
   /// Writes [tag]'s person, box and moment over the stored row, stamped with
   /// the later of [MediaPersonTag.updatedAt] and now.
   ///
-  /// The person rules [addTag] keeps hold here too: re-assigning a tag to
-  /// someone already on the photo (or already tagged without a spot on the
-  /// video) removes their other tag, so the edited one is theirs.
+  /// The person rules [addTag] keeps hold here too ([isDuplicatePersonTag]):
+  /// re-assigning or moving a tag onto another of the same person's tags
+  /// removes that other tag, so the edited one is theirs. On a photo, an
+  /// edited tag without a box takes the removed tag's box rather than
+  /// losing it.
   Future<void> updateTag(MediaPersonTag tag) async {
     if ((tag.buddyId == null) == (tag.diverId == null)) {
       throw ArgumentError('A tag names exactly one of buddyId and diverId');
@@ -205,26 +187,7 @@ class MediaPeopleRepository {
       recordId: tag.id,
       localUpdatedAt: now,
     );
-    final isVideo = await _isVideo(tag.mediaId);
-    if (!isVideo || box == null) {
-      final p = _db.mediaPeople;
-      final others =
-          await (_db.select(p)..where(
-                (r) =>
-                    r.mediaId.equals(tag.mediaId) &
-                    r.id.equals(tag.id).not() &
-                    _samePerson(r, tag.buddyId, tag.diverId) &
-                    (isVideo ? _spotless(r) : const Constant(true)),
-              ))
-              .get();
-      for (final other in others) {
-        await (_db.delete(p)..where((r) => r.id.equals(other.id))).go();
-        await _syncRepository.logDeletion(
-          entityType: _entityType,
-          recordId: other.id,
-        );
-      }
-    }
+    await _collapseDuplicates(tag, now);
     SyncEventBus.notifyLocalChange();
   }
 
@@ -237,6 +200,18 @@ class MediaPeopleRepository {
     if (deleted == 0) return;
     await _syncRepository.logDeletion(entityType: _entityType, recordId: tagId);
     SyncEventBus.notifyLocalChange();
+  }
+
+  /// The ids of the buddies tagged on at least one photo or video, scoped to
+  /// [diverId]'s own buddies like every read here.
+  Future<Set<String>> getTaggedBuddyIds({required String? diverId}) async {
+    final p = _db.mediaPeople;
+    final rows =
+        await (_db.selectOnly(p, distinct: true)
+              ..addColumns([p.buddyId])
+              ..where(p.buddyId.isNotNull() & _ownedBy(diverId)))
+            .get();
+    return {for (final row in rows) row.read(p.buddyId)!};
   }
 
   /// Every photo and video [buddyId] is tagged in, newest first, once each.
@@ -306,7 +281,9 @@ class MediaPeopleRepository {
               .map((row) => row.read(_db.mediaPeople.id)!)
               .get();
       if (ids.isEmpty) continue;
-      await (_db.delete(_db.mediaPeople)..where((t) => t.id.isIn(ids))).go();
+      // By the same chunked predicate, not by the ids: one buddy can have
+      // more tags than a single IN (...) may bind.
+      await (_db.delete(_db.mediaPeople)..where((t) => where(t, chunk))).go();
       await _syncRepository.logDeletions(
         entityType: _entityType,
         recordIds: ids,
@@ -346,39 +323,98 @@ class MediaPeopleRepository {
         mediaTypeToDbString(MediaType.video);
   }
 
-  /// A tag of the person on [mediaId]; with [spotless], only one without a
-  /// spot; with [near], only one within [faceTagMomentWindow] of it.
-  Future<MediaPeopleData?> _findTag(
-    String mediaId,
-    String? buddyId,
-    String? diverId, {
-    bool spotless = false,
-    Duration? near,
-  }) =>
-      (_db.select(_db.mediaPeople)
-            ..where(
+  /// Every other tag of [tag]'s person on its media item that duplicates
+  /// it, per [isDuplicatePersonTag], deleted and tombstoned. On a photo the
+  /// edited tag first takes a duplicate's box when it has none.
+  Future<void> _collapseDuplicates(MediaPersonTag tag, int now) async {
+    final isVideo = await _isVideo(tag.mediaId);
+    final p = _db.mediaPeople;
+    final duplicates = [
+      for (final row
+          in await (_db.select(p)..where(
+                (r) =>
+                    r.mediaId.equals(tag.mediaId) &
+                    r.id.equals(tag.id).not() &
+                    _samePerson(r, tag.buddyId, tag.diverId),
+              ))
+              .get())
+        if (_duplicates(
+          row,
+          isVideo: isVideo,
+          positionMs: tag.videoPosition?.inMilliseconds,
+          hasBox: tag.box != null,
+        ))
+          row,
+    ];
+    if (duplicates.isEmpty) return;
+    final boxed = duplicates.where((r) => r.bboxX != null).firstOrNull;
+    if (!isVideo && tag.box == null && boxed != null) {
+      await (_db.update(p)..where((r) => r.id.equals(tag.id))).write(
+        MediaPeopleCompanion(
+          bboxX: Value(boxed.bboxX),
+          bboxY: Value(boxed.bboxY),
+          bboxWidth: Value(boxed.bboxWidth),
+          bboxHeight: Value(boxed.bboxHeight),
+          updatedAt: Value(now),
+        ),
+      );
+    }
+    for (final other in duplicates) {
+      await (_db.delete(p)..where((r) => r.id.equals(other.id))).go();
+      await _syncRepository.logDeletion(
+        entityType: _entityType,
+        recordId: other.id,
+      );
+    }
+  }
+
+  /// A tag of the person on [mediaId] that a new tag with [hasBox] and
+  /// [positionMs] would duplicate, per [isDuplicatePersonTag].
+  Future<MediaPeopleData?> _findDuplicate(
+    String mediaId, {
+    required String? buddyId,
+    required String? diverId,
+    required bool isVideo,
+    required int? positionMs,
+    required bool hasBox,
+  }) async {
+    final rows =
+        await (_db.select(_db.mediaPeople)..where(
               (t) =>
-                  t.mediaId.equals(mediaId) &
-                  _samePerson(t, buddyId, diverId) &
-                  (spotless ? _spotless(t) : const Constant(true)) &
-                  (near == null
-                      ? const Constant(true)
-                      : t.videoPositionMs.isBetweenValues(
-                          (near - faceTagMomentWindow).inMilliseconds,
-                          (near + faceTagMomentWindow).inMilliseconds,
-                        )),
-            )
-            ..limit(1))
-          .getSingleOrNull();
+                  t.mediaId.equals(mediaId) & _samePerson(t, buddyId, diverId),
+            ))
+            .get();
+    for (final row in rows) {
+      if (_duplicates(
+        row,
+        isVideo: isVideo,
+        positionMs: positionMs,
+        hasBox: hasBox,
+      )) {
+        return row;
+      }
+    }
+    return null;
+  }
+
+  static bool _duplicates(
+    MediaPeopleData row, {
+    required bool isVideo,
+    required int? positionMs,
+    required bool hasBox,
+  }) => isDuplicatePersonTag(
+    isVideo: isVideo,
+    aPositionMs: row.videoPositionMs,
+    aHasBox: row.bboxX != null,
+    bPositionMs: positionMs,
+    bHasBox: hasBox,
+  );
 
   Expression<bool> _samePerson(
     $MediaPeopleTable t,
     String? buddyId,
     String? diverId,
   ) => buddyId != null ? t.buddyId.equals(buddyId) : t.diverId.equals(diverId!);
-
-  Expression<bool> _spotless($MediaPeopleTable t) =>
-      t.bboxX.isNull() & t.videoPositionMs.isNull();
 
   static int _compareChips(MediaPersonChip a, MediaPersonChip b) {
     if (a.tag.isMe != b.tag.isMe) return a.tag.isMe ? -1 : 1;

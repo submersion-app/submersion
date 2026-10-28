@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/media/data/repositories/media_people_repository.dart';
@@ -123,6 +124,20 @@ void main() {
     await settle(tester);
 
     expect(await rows(tester), isEmpty);
+  });
+
+  testWidgets('Escape leaves tag mode before it closes the viewer', (
+    tester,
+  ) async {
+    await openViewer(tester);
+    await tester.tap(find.byTooltip('Tag people'));
+    await settle(tester);
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+    await settle(tester);
+
+    expect(find.text('Tap a person to tag them'), findsNothing);
+    expect(find.byType(MediaViewerPage), findsOneWidget);
   });
 
   testWidgets('starting Pick white leaves tag mode, and tagging leaves it', (

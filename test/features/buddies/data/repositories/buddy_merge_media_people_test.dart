@@ -145,6 +145,30 @@ void main() {
     ]);
   });
 
+  test('undoing a three-way merge gives each duplicate its tag back', () async {
+    await insertTestBuddy(id: 'dup2', name: 'A. Rivera', diverId: 'A');
+    const dupBox = FaceBox(x: 0.3, y: 0.3, width: 0.2, height: 0.2);
+    final one = await people.addTag(mediaId: 'p1', buddyId: 'dup');
+    final two = await people.addTag(
+      mediaId: 'p1',
+      buddyId: 'dup2',
+      box: dupBox,
+    );
+    final survivor = (await repo.getBuddyById('keep'))!;
+    final result = await repo.mergeBuddies(
+      mergedBuddy: survivor,
+      buddyIds: ['keep', 'dup', 'dup2'],
+    );
+
+    await repo.undoMerge(result!.snapshot!);
+
+    final back = {
+      for (final t in await people.getTagsForMedia('p1', diverId: 'A'))
+        t.id: (t.buddyId, t.box),
+    };
+    expect(back, {one.id: ('dup', null), two.id: ('dup2', dupBox)});
+  });
+
   test('undoing the merge restores both tags', () async {
     final keep = await people.addTag(mediaId: 'p1', buddyId: 'keep');
     final dup = await people.addTag(mediaId: 'p1', buddyId: 'dup');

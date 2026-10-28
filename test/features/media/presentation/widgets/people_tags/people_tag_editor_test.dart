@@ -56,4 +56,45 @@ void main() {
     expect(moved!.x, lessThan(0.25));
     expect(moved!.width, greaterThan(0.25));
   });
+
+  testWidgets('a dropped box stays put until the save comes back', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1.0;
+    tester.view.physicalSize = const Size(400, 400);
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          // The saved row never changes here: the write has not landed.
+          mediaPeopleChipsProvider('m1').overrideWith(
+            (ref) async => [MediaPersonChip(tag: tag, buddyName: 'Alex')],
+          ),
+        ],
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: PeopleTagEditor(
+            mediaId: 'm1',
+            imageSize: const Size(400, 400),
+            selectedTagId: 't1',
+            canPlace: true,
+            onPlace: (_) {},
+            onSelect: (_) {},
+            onMove: (_, _) {},
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final before = tester.getRect(find.byKey(const ValueKey('edit-box-t1')));
+
+    // Drag the box's middle (150, 150) by 60 px right.
+    await tester.dragFrom(const Offset(150, 150), const Offset(60, 0));
+    await tester.pumpAndSettle();
+
+    // The pan's touch slop takes the first ~20 px of the drag.
+    final after = tester.getRect(find.byKey(const ValueKey('edit-box-t1')));
+    expect(after.left, greaterThan(before.left + 30));
+  });
 }

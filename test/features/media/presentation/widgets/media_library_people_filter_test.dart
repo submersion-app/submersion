@@ -7,6 +7,7 @@ import 'package:submersion/features/dive_sites/presentation/providers/site_provi
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/media/domain/entities/media_library_filter.dart';
 import 'package:submersion/features/media/presentation/providers/media_library_providers.dart';
+import 'package:submersion/features/media/presentation/providers/media_people_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/media_library_active_filter_chips.dart';
 import 'package:submersion/features/media/presentation/widgets/media_library_filter_sheet.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
@@ -19,6 +20,7 @@ void main() {
   final now = DateTime(2026);
   final alex = Buddy(id: 'alex', name: 'Alex', createdAt: now, updatedAt: now);
   final bea = Buddy(id: 'bea', name: 'Bea', createdAt: now, updatedAt: now);
+  final cal = Buddy(id: 'cal', name: 'Cal', createdAt: now, updatedAt: now);
 
   late ProviderContainer container;
 
@@ -30,7 +32,9 @@ void main() {
         allSpeciesProvider.overrideWith((ref) async => []),
         tagsProvider.overrideWith((ref) async => []),
         missingCountProvider.overrideWith((ref) async => 0),
-        allBuddiesProvider.overrideWith((ref) async => [bea, alex]),
+        allBuddiesProvider.overrideWith((ref) async => [bea, alex, cal]),
+        // Cal is a buddy nobody has tagged.
+        taggedBuddyIdsProvider.overrideWith((ref) async => {'alex', 'bea'}),
       ],
     );
     addTearDown(container.dispose);
@@ -76,6 +80,11 @@ void main() {
         tester.getTopLeft(find.byKey(ValueKey('media_filter_person_$key'))).dx;
     expect(x('me'), lessThan(x('alex')));
     expect(x('alex'), lessThan(x('bea')));
+  });
+
+  testWidgets('a buddy never tagged is not offered', (tester) async {
+    await openSheet(tester);
+    expect(find.byKey(const ValueKey('media_filter_person_cal')), findsNothing);
   });
 
   testWidgets('selecting Me and a buddy applies both', (tester) async {

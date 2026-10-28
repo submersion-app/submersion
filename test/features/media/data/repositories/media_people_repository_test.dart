@@ -218,6 +218,19 @@ void main() {
     },
   );
 
+  test(
+    'getTaggedBuddyIds lists the diver\'s tagged buddies once each',
+    () async {
+      await repository.addTag(mediaId: 'p1', buddyId: 'alex');
+      await repository.addTag(mediaId: 'p2', buddyId: 'alex');
+      await repository.addTag(mediaId: 'shared', buddyId: 'zed');
+      await repository.addTag(mediaId: 'p1', diverId: 'A');
+
+      expect(await repository.getTaggedBuddyIds(diverId: 'A'), {'alex'});
+      expect(await repository.getTaggedBuddyIds(diverId: 'B'), {'zed'});
+    },
+  );
+
   test('deleteForBuddies tombstones every tag of those buddies', () async {
     final a = await repository.addTag(mediaId: 'p1', buddyId: 'alex');
     final b = await repository.addTag(mediaId: 'p2', buddyId: 'alex');
@@ -289,6 +302,51 @@ void main() {
         expect(second.id, first.id);
         final tags = await repository.getTagsForMedia('v1', diverId: 'A');
         expect(tags.single.box, moved);
+      },
+    );
+
+    test(
+      'changing a spot-less tag to someone with a box keeps the box',
+      () async {
+        final alex = await repository.addTag(
+          mediaId: 'p1',
+          buddyId: 'alex',
+          box: box,
+        );
+        final bea = await repository.addTag(mediaId: 'p1', buddyId: 'bea');
+
+        await repository.updateTag(bea.copyWith(buddyId: 'alex'));
+
+        final tags = await repository.getTagsForMedia('p1', diverId: 'A');
+        expect(tags.single.buddyId, 'alex');
+        expect(tags.single.box, box);
+        expect(
+          await isTombstoned(alex.id) || await isTombstoned(bea.id),
+          isTrue,
+        );
+      },
+    );
+
+    test(
+      'changing a video tag to someone at that moment leaves one tag',
+      () async {
+        await repository.addTag(
+          mediaId: 'v1',
+          buddyId: 'alex',
+          box: box,
+          videoPosition: const Duration(milliseconds: 42000),
+        );
+        final bea = await repository.addTag(
+          mediaId: 'v1',
+          buddyId: 'bea',
+          box: box,
+          videoPosition: const Duration(milliseconds: 42100),
+        );
+
+        await repository.updateTag(bea.copyWith(buddyId: 'alex'));
+
+        final tags = await repository.getTagsForMedia('v1', diverId: 'A');
+        expect(tags.map((t) => t.buddyId), ['alex']);
       },
     );
 

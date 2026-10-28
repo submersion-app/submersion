@@ -49,6 +49,11 @@ class _PeopleTagEditorState extends ConsumerState<PeopleTagEditor> {
   /// The selected box while a drag is moving it, before it is saved.
   FaceBox? _draft;
 
+  /// A box just dropped on [_droppedFor], drawn until the saved row catches
+  /// up, so the box does not jump back while the write round-trips.
+  FaceBox? _dropped;
+  String? _droppedFor;
+
   /// A corner handle's touch target, centred on the corner.
   static const double _handle = 32;
 
@@ -162,7 +167,12 @@ class _PeopleTagEditorState extends ConsumerState<PeopleTagEditor> {
   Widget _boxFor(MediaPersonChip chip, Size view, String label) {
     final tag = chip.tag;
     final selected = tag.id == widget.selectedTagId;
-    final box = selected ? (_draft ?? tag.box!) : tag.box!;
+    if (_dropped != null && (_droppedFor != tag.id || tag.box == _dropped)) {
+      if (_droppedFor == tag.id) _dropped = null;
+    }
+    final box = selected
+        ? (_draft ?? (_droppedFor == tag.id ? _dropped : null) ?? tag.box!)
+        : tag.box!;
     final rect = boxRect(box, widget.imageSize, view);
     if (!selected) {
       return Positioned.fromRect(
@@ -177,8 +187,15 @@ class _PeopleTagEditorState extends ConsumerState<PeopleTagEditor> {
     );
     void release() {
       final draft = _draft;
-      setState(() => _draft = null);
-      if (draft != null && draft != tag.box) widget.onMove(tag, draft);
+      final moved = draft != null && draft != tag.box;
+      setState(() {
+        _draft = null;
+        if (moved) {
+          _dropped = draft;
+          _droppedFor = tag.id;
+        }
+      });
+      if (moved) widget.onMove(tag, draft);
     }
 
     // The selected box's area grows by half a handle on every side, so each

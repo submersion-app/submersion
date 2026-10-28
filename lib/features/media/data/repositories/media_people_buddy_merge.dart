@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:drift/drift.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
@@ -35,6 +37,9 @@ class MediaPeopleMergeSnapshot {
       );
 }
 
+/// Bound-variable budget per `isIn` chunk, well under SQLite's 999 limit.
+const int _chunkSize = 500;
+
 /// Moves the people tags of [fromBuddyIds] to [toBuddyId] for a buddy merge
 /// that is about to delete [fromBuddyIds]. Without it their tags would go
 /// with them on the foreign-key cascade, silently and without tombstones.
@@ -60,28 +65,34 @@ Future<MediaPeopleMergeSnapshot> repointMediaPeopleForMerge(
   )..where((t) => t.buddyId.isIn(fromBuddyIds))).get();
   if (moving.isEmpty) return const MediaPeopleMergeSnapshot();
 
-  final mediaIds = {for (final r in moving) r.mediaId};
-  final videos = {
-    for (final row
-        in await (db.selectOnly(db.media)
-              ..addColumns([db.media.id])
-              ..where(
-                db.media.id.isIn(mediaIds) &
-                    db.media.fileType.equals(
-                      mediaTypeToDbString(MediaType.video),
-                    ),
-              ))
-            .get())
-      row.read(db.media.id)!,
-  };
-  // The survivor's tags per media item, kept current as tags move onto it.
+  // Chunked: a buddy can be on more media than one IN (...) may bind.
+  final mediaIds = [
+    ...{for (final r in moving) r.mediaId},
+  ];
+  final videos = <String>{};
   final survivor = <String, List<MediaPeopleData>>{};
-  for (final r
-      in await (db.select(p)..where(
-            (t) => t.buddyId.equals(toBuddyId) & t.mediaId.isIn(mediaIds),
-          ))
-          .get()) {
-    survivor.putIfAbsent(r.mediaId, () => []).add(r);
+  for (var i = 0; i < mediaIds.length; i += _chunkSize) {
+    final chunk = mediaIds.sublist(i, min(i + _chunkSize, mediaIds.length));
+    videos.addAll(
+      await (db.selectOnly(db.media)
+            ..addColumns([db.media.id])
+            ..where(
+              db.media.id.isIn(chunk) &
+                  db.media.fileType.equals(
+                    mediaTypeToDbString(MediaType.video),
+                  ),
+            ))
+          .map((row) => row.read(db.media.id)!)
+          .get(),
+    );
+    // The survivor's tags per media item, kept current as tags move onto it.
+    for (final r
+        in await (db.select(p)..where(
+              (t) => t.buddyId.equals(toBuddyId) & t.mediaId.isIn(chunk),
+            ))
+            .get()) {
+      survivor.putIfAbsent(r.mediaId, () => []).add(r);
+    }
   }
 
   final original = <String, String>{};
@@ -141,15 +152,14 @@ Future<MediaPeopleMergeSnapshot> repointMediaPeopleForMerge(
 /// Whether [moving] duplicates the survivor's tag [kept]: on a photo any
 /// tag of the person; on a video both without a spot, or both moments
 /// within [faceTagMomentWindow].
-bool _sameTag(MediaPeopleData kept, MediaPeopleData moving, bool isVideo) {
-  if (!isVideo) return true;
-  final a = kept.videoPositionMs;
-  final b = moving.videoPositionMs;
-  if (a == null || b == null) {
-    return a == null && b == null && kept.bboxX == null && moving.bboxX == null;
-  }
-  return (a - b).abs() <= faceTagMomentWindow.inMilliseconds;
-}
+bool _sameTag(MediaPeopleData kept, MediaPeopleData moving, bool isVideo) =>
+    isDuplicatePersonTag(
+      isVideo: isVideo,
+      aPositionMs: kept.videoPositionMs,
+      aHasBox: kept.bboxX != null,
+      bPositionMs: moving.videoPositionMs,
+      bHasBox: moving.bboxX != null,
+    );
 
 /// Reverses [repointMediaPeopleForMerge] once the merged buddies exist
 /// again: repointed tags go back to their buddy and removed duplicates are
@@ -188,9 +198,17 @@ Future<void> undoMediaPeopleMerge(
       localUpdatedAt: now,
     );
   }
+  // Only the box goes back: a survivor tag may itself be a tag the merge
+  // moved, whose buddy the loop above has just restored.
   for (final row in snapshot.boxedSurvivors) {
     await (db.update(p)..where((t) => t.id.equals(row.id))).write(
-      row.copyWith(updatedAt: now).toCompanion(false),
+      MediaPeopleCompanion(
+        bboxX: Value(row.bboxX),
+        bboxY: Value(row.bboxY),
+        bboxWidth: Value(row.bboxWidth),
+        bboxHeight: Value(row.bboxHeight),
+        updatedAt: Value(now),
+      ),
     );
     await syncRepository.markRecordPending(
       entityType: 'mediaPeople',

@@ -371,6 +371,11 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
       return KeyEventResult.handled;
     }
     if (event.logicalKey == LogicalKeyboardKey.escape) {
+      // Escape backs out one step at a time: people tag mode first.
+      if (taggingPeople) {
+        togglePeopleTagging();
+        return KeyEventResult.handled;
+      }
       if (isFullscreen) {
         exitFullscreen();
       } else {
@@ -1348,7 +1353,11 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
 
   /// Handle keyboard events for video playback
   KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
-    if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.space) {
+    // In people tag mode the video stays on the frame its boxes are drawn
+    // on (issue #1745), so Space does not play it.
+    if (event is KeyDownEvent &&
+        event.logicalKey == LogicalKeyboardKey.space &&
+        !widget.people.active) {
       _togglePlayPause();
       return KeyEventResult.handled;
     }

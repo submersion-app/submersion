@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/features/media/presentation/providers/media_people_providers.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
@@ -207,13 +208,16 @@ class _MediaLibraryFilterSheetState
     );
   }
 
-  /// People tagged on media (issue #1745), any-of: Me first, then the
-  /// diver's buddies by name. A selected buddy no longer listed (deleted
-  /// since an album was saved) still shows, so it can be cleared.
+  /// People tagged on media (issue #1745), any-of: Me first, then by name
+  /// the diver's buddies tagged somewhere (an untagged one would only match
+  /// nothing) and any already selected. A selected buddy no longer listed
+  /// (deleted since an album was saved) still shows, so it can be cleared.
   Widget _buildPeopleSection() {
     final l10n = context.l10n;
+    final tagged = ref.watch(taggedBuddyIdsProvider).value ?? const <String>{};
     final buddies = [
-      ...(ref.watch(allBuddiesProvider).value ?? const <Buddy>[]),
+      for (final b in ref.watch(allBuddiesProvider).value ?? const <Buddy>[])
+        if (tagged.contains(b.id) || _buddyIds.contains(b.id)) b,
     ]..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
     final listed = {for (final b in buddies) b.id};
     final gone = _buddyIds.where((id) => !listed.contains(id)).toList();

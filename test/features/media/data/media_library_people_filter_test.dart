@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/media/data/repositories/media_library_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_people_repository.dart';
 import 'package:submersion/features/media/domain/entities/media_library_filter.dart';
@@ -67,6 +68,20 @@ void main() {
     ]);
   });
 
+  test(
+    'with no current diver, Me is the default diver as tagging uses',
+    () async {
+      await DatabaseService.instance.database.customStatement(
+        "UPDATE divers SET is_default = 1 WHERE id = 'B'",
+      );
+
+      expect(
+        await ids(const MediaLibraryFilter(includeMe: true), diverId: null),
+        ['selfie-b'],
+      );
+    },
+  );
+
   test('Me and a buddy together match either', () async {
     expect(
       await ids(const MediaLibraryFilter(includeMe: true, buddyIds: {'bea'})),
@@ -83,6 +98,15 @@ void main() {
     expect(await ids(const MediaLibraryFilter(buddyIds: {'gone', 'bea'})), [
       'both-photo',
     ]);
+  });
+
+  test('watchMapChanges ticks on a media_people write', () async {
+    final ticks = <void>[];
+    final sub = repo.watchMapChanges().listen(ticks.add);
+    addTearDown(sub.cancel);
+    await people.addTag(mediaId: 'plain', buddyId: 'bea');
+    await Future<void>.delayed(const Duration(seconds: 2));
+    expect(ticks, isNotEmpty);
   });
 
   test('watchMediaChanges ticks on a media_people write', () async {

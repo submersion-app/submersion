@@ -7,6 +7,26 @@ import 'package:equatable/equatable.dart';
 /// again this near an existing tag moves that tag (issue #1745).
 const Duration faceTagMomentWindow = Duration(milliseconds: 500);
 
+/// Whether two tags of one person on the same media item are the same tag
+/// (issue #1745), the rule every writer keeps: on a photo any two are (a
+/// person appears once); on a video two without a spot are, and so are two
+/// moments within [faceTagMomentWindow]. A spot-less tag and a moment on a
+/// video are different tags.
+bool isDuplicatePersonTag({
+  required bool isVideo,
+  required int? aPositionMs,
+  required bool aHasBox,
+  required int? bPositionMs,
+  required bool bHasBox,
+}) {
+  if (!isVideo) return true;
+  if (aPositionMs == null || bPositionMs == null) {
+    return aPositionMs == null && bPositionMs == null && !aHasBox && !bHasBox;
+  }
+  return (aPositionMs - bPositionMs).abs() <=
+      faceTagMomentWindow.inMilliseconds;
+}
+
 /// Where a person is on a photo or a video frame, normalised 0 to 1 against
 /// the full image (issue #1745).
 class FaceBox extends Equatable {
@@ -43,6 +63,14 @@ class FaceBox extends Equatable {
       height: h,
     );
   }
+
+  FaceBox copyWith({double? x, double? y, double? width, double? height}) =>
+      FaceBox(
+        x: x ?? this.x,
+        y: y ?? this.y,
+        width: width ?? this.width,
+        height: height ?? this.height,
+      );
 
   /// The box's centre, normalised.
   ({double x, double y}) get center => (x: x + width / 2, y: y + height / 2);
@@ -138,6 +166,17 @@ class MediaPersonChip extends Equatable {
   final String? buddyName;
 
   const MediaPersonChip({required this.tag, this.buddyName});
+
+  static const Object _undefined = Object();
+
+  /// Sentinel-based so [buddyName] can be cleared with an explicit null.
+  MediaPersonChip copyWith({
+    MediaPersonTag? tag,
+    Object? buddyName = _undefined,
+  }) => MediaPersonChip(
+    tag: tag ?? this.tag,
+    buddyName: buddyName == _undefined ? this.buddyName : buddyName as String?,
+  );
 
   @override
   List<Object?> get props => [tag, buddyName];

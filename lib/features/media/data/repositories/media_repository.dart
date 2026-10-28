@@ -2472,7 +2472,8 @@ class MediaRepository {
   }
 
   /// Of [mediaIds], those carrying metadata a user typed or set that no
-  /// source file holds: a caption, the favorite flag, or a species tag.
+  /// source file holds: a caption, the favorite flag, a species tag, or a
+  /// person tagged on it (issue #1745).
   ///
   /// Used to decide whether an unlink needs to warn before it removes the
   /// rows.
@@ -2500,9 +2501,15 @@ class MediaRepository {
                 ..addColumns([_db.mediaSpecies.mediaId])
                 ..where(_db.mediaSpecies.mediaId.isIn(chunk)))
               .get();
+      final withPeople =
+          await (_db.selectOnly(_db.mediaPeople)
+                ..addColumns([_db.mediaPeople.mediaId])
+                ..where(_db.mediaPeople.mediaId.isIn(chunk)))
+              .get();
       out
         ..addAll(rows.map((row) => row.id))
-        ..addAll(tagged.map((row) => row.read(_db.mediaSpecies.mediaId)!));
+        ..addAll(tagged.map((row) => row.read(_db.mediaSpecies.mediaId)!))
+        ..addAll(withPeople.map((row) => row.read(_db.mediaPeople.mediaId)!));
     }
     return out;
   }
