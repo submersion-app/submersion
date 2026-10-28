@@ -7092,6 +7092,7 @@
   "settings_conflict_field_valueUnit": "Eenheid",
   "settings_conflict_field_verdict": "Oordeel",
   "settings_conflict_field_verifyFactsHlc": "Controlelog",
+  "settings_conflict_field_videoPositionMs": "Tijd in video (ms)",
   "settings_conflict_field_vesselName": "Schip",
   "settings_conflict_field_vesselType": "Soort schip",
   "settings_conflict_field_viewMode": "Weergave",

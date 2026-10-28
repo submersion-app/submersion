@@ -24210,6 +24210,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_field_verifyFactsHlc => 'יומן אימות';
 
   @override
+  String get settings_conflict_field_videoPositionMs =>
+      'זמן בסרטון (אלפיות שנייה)';
+
+  @override
   String get settings_conflict_field_vesselName => 'ספינה';
 
   @override

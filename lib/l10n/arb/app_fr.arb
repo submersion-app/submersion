@@ -6991,6 +6991,7 @@
   "settings_conflict_field_valueUnit": "Unité",
   "settings_conflict_field_verdict": "Verdict",
   "settings_conflict_field_verifyFactsHlc": "Journal de vérification",
+  "settings_conflict_field_videoPositionMs": "Temps dans la vidéo (ms)",
   "settings_conflict_field_vesselName": "Navire",
   "settings_conflict_field_vesselType": "Type de navire",
   "settings_conflict_field_viewMode": "Vue",

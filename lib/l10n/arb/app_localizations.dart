@@ -39723,6 +39723,12 @@ abstract class AppLocalizations {
   /// **'Verification record'**
   String get settings_conflict_field_verifyFactsHlc;
 
+  /// No description provided for @settings_conflict_field_videoPositionMs.
+  ///
+  /// In en, this message translates to:
+  /// **'Time in video (ms)'**
+  String get settings_conflict_field_videoPositionMs;
+
   /// No description provided for @settings_conflict_field_vesselName.
   ///
   /// In en, this message translates to:

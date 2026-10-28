@@ -23446,6 +23446,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_verifyFactsHlc => '验证记录';
 
   @override
+  String get settings_conflict_field_videoPositionMs => '视频中的时间（毫秒）';
+
+  @override
   String get settings_conflict_field_vesselName => '船只';
 
   @override

@@ -7244,6 +7244,7 @@
   "settings_conflict_field_valueUnit": "单位",
   "settings_conflict_field_verdict": "评价",
   "settings_conflict_field_verifyFactsHlc": "验证记录",
+  "settings_conflict_field_videoPositionMs": "视频中的时间（毫秒）",
   "settings_conflict_field_vesselName": "船只",
   "settings_conflict_field_vesselType": "船只类型",
   "settings_conflict_field_viewMode": "视图",

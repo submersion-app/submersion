@@ -6991,6 +6991,7 @@
   "settings_conflict_field_valueUnit": "Mértékegység",
   "settings_conflict_field_verdict": "Értékelés",
   "settings_conflict_field_verifyFactsHlc": "Ellenőrzési napló",
+  "settings_conflict_field_videoPositionMs": "Idő a videóban (ms)",
   "settings_conflict_field_vesselName": "Hajó",
   "settings_conflict_field_vesselType": "Hajó típusa",
   "settings_conflict_field_viewMode": "Nézet",

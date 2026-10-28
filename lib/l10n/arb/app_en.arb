@@ -14521,6 +14521,7 @@
   "settings_conflict_field_valueUnit": "Unit",
   "settings_conflict_field_verdict": "Verdict",
   "settings_conflict_field_verifyFactsHlc": "Verification record",
+  "settings_conflict_field_videoPositionMs": "Time in video (ms)",
   "settings_conflict_field_vesselName": "Vessel",
   "settings_conflict_field_vesselType": "Vessel type",
   "settings_conflict_field_viewMode": "View",

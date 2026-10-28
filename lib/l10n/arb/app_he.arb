@@ -7096,6 +7096,7 @@
   "settings_conflict_field_valueUnit": "יחידה",
   "settings_conflict_field_verdict": "הערכה",
   "settings_conflict_field_verifyFactsHlc": "יומן אימות",
+  "settings_conflict_field_videoPositionMs": "זמן בסרטון (אלפיות שנייה)",
   "settings_conflict_field_vesselName": "ספינה",
   "settings_conflict_field_vesselType": "סוג הספינה",
   "settings_conflict_field_viewMode": "תצוגה",

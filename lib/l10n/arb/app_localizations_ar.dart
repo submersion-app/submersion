@@ -25064,6 +25064,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_field_verifyFactsHlc => 'سجل التحقق';
 
   @override
+  String get settings_conflict_field_videoPositionMs =>
+      'الوقت في الفيديو (مللي ثانية)';
+
+  @override
   String get settings_conflict_field_vesselName => 'السفينة';
 
   @override

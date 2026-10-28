@@ -24857,6 +24857,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_conflict_field_verifyFactsHlc => 'Registro di verifica';
 
   @override
+  String get settings_conflict_field_videoPositionMs => 'Tempo nel video (ms)';
+
+  @override
   String get settings_conflict_field_vesselName => 'Imbarcazione';
 
   @override

@@ -7224,6 +7224,7 @@
   "settings_conflict_field_valueUnit": "Einheit",
   "settings_conflict_field_verdict": "Urteil",
   "settings_conflict_field_verifyFactsHlc": "Prüfprotokoll",
+  "settings_conflict_field_videoPositionMs": "Zeit im Video (ms)",
   "settings_conflict_field_vesselName": "Schiff",
   "settings_conflict_field_vesselType": "Schiffstyp",
   "settings_conflict_field_viewMode": "Ansicht",

@@ -24724,6 +24724,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_field_verifyFactsHlc => 'Ellenőrzési napló';
 
   @override
+  String get settings_conflict_field_videoPositionMs => 'Idő a videóban (ms)';
+
+  @override
   String get settings_conflict_field_vesselName => 'Hajó';
 
   @override

@@ -7092,6 +7092,7 @@
   "settings_conflict_field_valueUnit": "الوحدة",
   "settings_conflict_field_verdict": "الحكم",
   "settings_conflict_field_verifyFactsHlc": "سجل التحقق",
+  "settings_conflict_field_videoPositionMs": "الوقت في الفيديو (مللي ثانية)",
   "settings_conflict_field_vesselName": "السفينة",
   "settings_conflict_field_vesselType": "نوع السفينة",
   "settings_conflict_field_viewMode": "العرض",

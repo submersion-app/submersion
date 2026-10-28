@@ -7092,6 +7092,7 @@
   "settings_conflict_field_valueUnit": "Unidade",
   "settings_conflict_field_verdict": "Veredito",
   "settings_conflict_field_verifyFactsHlc": "Registro de verificação",
+  "settings_conflict_field_videoPositionMs": "Tempo no vídeo (ms)",
   "settings_conflict_field_vesselName": "Embarcação",
   "settings_conflict_field_vesselType": "Tipo de embarcação",
   "settings_conflict_field_viewMode": "Visualização",

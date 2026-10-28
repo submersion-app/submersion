@@ -24684,6 +24684,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_conflict_field_verifyFactsHlc => 'Controlelog';
 
   @override
+  String get settings_conflict_field_videoPositionMs => 'Tijd in video (ms)';
+
+  @override
   String get settings_conflict_field_vesselName => 'Schip';
 
   @override

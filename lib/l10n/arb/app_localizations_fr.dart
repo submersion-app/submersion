@@ -24912,6 +24912,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Journal de vérification';
 
   @override
+  String get settings_conflict_field_videoPositionMs =>
+      'Temps dans la vidéo (ms)';
+
+  @override
   String get settings_conflict_field_vesselName => 'Navire';
 
   @override

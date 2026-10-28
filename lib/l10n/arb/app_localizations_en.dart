@@ -24421,6 +24421,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_conflict_field_verifyFactsHlc => 'Verification record';
 
   @override
+  String get settings_conflict_field_videoPositionMs => 'Time in video (ms)';
+
+  @override
   String get settings_conflict_field_vesselName => 'Vessel';
 
   @override
