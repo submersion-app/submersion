@@ -18,6 +18,7 @@ import 'package:submersion/core/database/tables/equipment_location_tables.dart';
 import 'package:submersion/core/database/tables/equipment_service_status_tables.dart';
 import 'package:submersion/core/database/tables/equipment_tables.dart';
 import 'package:submersion/core/database/tables/marine_life_tables.dart';
+import 'package:submersion/core/database/tables/media_people_tables.dart';
 import 'package:submersion/core/database/tables/media_tables.dart';
 import 'package:submersion/core/database/tables/pre_dive_tables.dart';
 import 'package:submersion/core/database/tables/quality_tables.dart';
@@ -53,6 +54,7 @@ export 'package:submersion/core/database/tables/equipment_location_tables.dart';
 export 'package:submersion/core/database/tables/equipment_service_status_tables.dart';
 export 'package:submersion/core/database/tables/equipment_tables.dart';
 export 'package:submersion/core/database/tables/marine_life_tables.dart';
+export 'package:submersion/core/database/tables/media_people_tables.dart';
 export 'package:submersion/core/database/tables/media_tables.dart';
 export 'package:submersion/core/database/tables/pre_dive_tables.dart';
 export 'package:submersion/core/database/tables/quality_tables.dart';
@@ -117,6 +119,8 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     MediaSpecies,
     // Media tags (v309, issue #1970)
     MediaTags,
+    // People tagged on photos and videos (v323, issue #1745)
+    MediaPeople,
     PendingPhotoSuggestions,
     MediaRepairLog,
     MediaSmartAlbums,
@@ -295,7 +299,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 320;
+  static const int currentSchemaVersion = 323;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1442,6 +1446,11 @@ class AppDatabase extends _$AppDatabase {
     // the floor does not move. 319 is held
     // by PR #3726.
     320,
+    // v323: the synced media_people table, buddies and the diver tagged on
+    // photos and videos (issue #1745). Additive only, so the floor does not
+    // move: an older peer ignores the new payload key. 319, 321 and 322 are
+    // held by PR #3726.
+    323,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

@@ -639,5 +639,11 @@ extension RungsFromV231 on AppDatabase {
     // by PR #3726.
     if (from < 320) await _assertNearbySchema();
     if (from < 320) await reportProgress();
+
+    // v323: people tagged on photos and videos (issue #1745). Table-only
+    // rung, no backfill; re-asserted in beforeOpen. 319, 321 and 322 are
+    // held by PR #3726.
+    if (from < 323) await _assertMediaPeopleSchema();
+    if (from < 323) await reportProgress();
   }
 }

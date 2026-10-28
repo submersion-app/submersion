@@ -70,6 +70,7 @@ part 'helpers/equipment_location_migrations.dart';
 part 'helpers/insight_migrations.dart';
 part 'helpers/nearby_migrations.dart';
 part 'helpers/media_migrations.dart';
+part 'helpers/media_people_migrations.dart';
 part 'helpers/planner_defaults_migrations.dart';
 part 'helpers/air_breaks_turn_pressure_migrations.dart';
 part 'helpers/reserve_pressure_gf_migrations.dart';
