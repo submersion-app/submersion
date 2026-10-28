@@ -445,5 +445,100 @@ void main() {
       await tester.pumpAndSettle();
       expect(deletes, 1);
     });
+    testWidgets(
+      'menu shows Share between Restore and Delete when a share sheet exists',
+      (tester) async {
+        await tester.pumpWidget(
+          _wrap(
+            BackupHistoryTile(
+              record: _manual(),
+              leadingIcon: Icons.phone_android,
+              onPinToggle: () {},
+              onRestore: () {},
+              onShare: () {},
+              onDelete: () {},
+            ),
+          ),
+        );
+        await tester.tap(find.byType(PopupMenuButton<String>));
+        await tester.pumpAndSettle();
+
+        final values = tester
+            .widgetList<PopupMenuItem<String>>(
+              find.byType(PopupMenuItem<String>),
+            )
+            .map((item) => item.value)
+            .toList();
+        expect(values, ['restore', 'share', 'delete']);
+        expect(find.text('Share'), findsOneWidget);
+        expect(find.byIcon(Icons.share), findsOneWidget);
+      },
+    );
+
+    testWidgets('menu shows Save a copy when no share sheet exists', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _wrap(
+          BackupHistoryTile(
+            record: _manual(),
+            leadingIcon: Icons.phone_android,
+            onPinToggle: () {},
+            onRestore: () {},
+            onShare: () {},
+            onDelete: () {},
+            shareSheetAvailable: false,
+          ),
+        ),
+      );
+      await tester.tap(find.byType(PopupMenuButton<String>));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Save a copy'), findsOneWidget);
+      expect(find.byIcon(Icons.save_alt), findsOneWidget);
+      expect(find.text('Share'), findsNothing);
+    });
+
+    testWidgets('Share item is disabled when onShare is null', (tester) async {
+      await tester.pumpWidget(
+        _wrap(
+          BackupHistoryTile(
+            record: _manual(),
+            leadingIcon: Icons.phone_android,
+            onPinToggle: () {},
+            onRestore: () {},
+            onDelete: () {},
+          ),
+        ),
+      );
+      await tester.tap(find.byType(PopupMenuButton<String>));
+      await tester.pumpAndSettle();
+
+      final share = tester
+          .widgetList<PopupMenuItem<String>>(find.byType(PopupMenuItem<String>))
+          .singleWhere((item) => item.value == 'share');
+      expect(share.enabled, isFalse);
+    });
+
+    testWidgets('choosing Share calls onShare', (tester) async {
+      var shares = 0;
+      await tester.pumpWidget(
+        _wrap(
+          BackupHistoryTile(
+            record: _manual(),
+            leadingIcon: Icons.phone_android,
+            onPinToggle: () {},
+            onRestore: () {},
+            onShare: () => shares++,
+            onDelete: () {},
+          ),
+        ),
+      );
+      await tester.tap(find.byType(PopupMenuButton<String>));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byIcon(Icons.share));
+      await tester.pumpAndSettle();
+      expect(shares, 1);
+    });
   });
 }
