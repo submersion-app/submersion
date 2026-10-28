@@ -21,6 +21,7 @@ import 'package:submersion/features/trips/data/repositories/trip_day_weather_rep
 import 'package:submersion/features/trips/data/repositories/trip_cylinder_repository.dart';
 import 'package:submersion/features/trips/data/repositories/trip_equipment_repository.dart';
 import 'package:submersion/features/trips/data/repositories/trip_row_mapper.dart';
+import 'package:submersion/features/trips/data/side_trip_sql.dart';
 import 'package:submersion/features/trips/domain/entities/dive_candidate.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart' as domain;
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
@@ -318,7 +319,8 @@ class TripRepository {
     }
   }
 
-  /// Get dives for a specific trip.
+  /// Get dives for a specific trip, its side trips' dives included (issue
+  /// #3658).
   ///
   /// When [diverId] is non-null only dives belonging to that diver are
   /// returned. Pass null to return dives from all divers (import-time use).
@@ -336,7 +338,7 @@ class TripRepository {
         -- stats-scope-exempt: drives the trip's displayed dive list, which
         -- shows excluded dives like the logbook does
         SELECT id FROM dives
-        WHERE trip_id = ?
+        WHERE ${tripDivesScopeSql('dives', '?1')}
         $diverClause
         ORDER BY dive_date_time DESC
       ''', variables: variables).get();
@@ -352,7 +354,7 @@ class TripRepository {
     }
   }
 
-  /// Get dive count for a trip.
+  /// Get dive count for a trip, its side trips' dives included.
   ///
   /// When [diverId] is non-null only dives belonging to that diver are
   /// counted. Pass null to count dives from all divers (import-time use).
@@ -365,7 +367,7 @@ class TripRepository {
     final result = await _db.customSelect('''
       SELECT COUNT(*) as count
       FROM dives
-      WHERE trip_id = ?
+      WHERE ${tripDivesScopeSql('dives', '?1')}
       $diverClause${DiveStatsScope.and(alias: 'dives')}
     ''', variables: variables).getSingle();
 
@@ -597,7 +599,7 @@ class TripRepository {
           MAX(max_depth) as max_depth,
           AVG(max_depth) as avg_depth
         FROM dives
-        WHERE trip_id = ?
+        WHERE ${tripDivesScopeSql('dives', '?1')}
         $diverClause${DiveStatsScope.and(alias: 'dives')}
       ''', variables: variables).getSingle();
     } catch (e, stackTrace) {
@@ -681,9 +683,11 @@ class TripRepository {
       // LEFT JOIN and a WHERE would turn it inner, dropping every trip that
       // has no in-scope dives instead of showing it with a zero count.
       final scope = DiveStatsScope.and(alias: 'd');
+      // A trip counts its side trips' dives too (issue #3658).
+      final onTrip = tripDivesScopeSql('d', 't.id');
       final joinClause = diverId != null
-          ? 'LEFT JOIN dives d ON d.trip_id = t.id AND d.diver_id = ?$scope'
-          : 'LEFT JOIN dives d ON d.trip_id = t.id$scope';
+          ? 'LEFT JOIN dives d ON $onTrip AND d.diver_id = ?$scope'
+          : 'LEFT JOIN dives d ON $onTrip$scope';
 
       // When diverId is provided, prepend its variable before the visibility
       // filter variables so the positional binding lines up with joinClause.
