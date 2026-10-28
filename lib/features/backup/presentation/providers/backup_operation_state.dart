@@ -22,7 +22,7 @@ class BackupOperationState {
   /// True only while a database *restore* is running (a subset of the
   /// [BackupOperationStatus.inProgress] states). Restore briefly closes and
   /// reopens the database, so the whole app must be blocked from interaction
-  /// until it finishes — but routine backups/exports/deletes, which also use
+  /// until it finishes. Routine backups/exports/deletes, which also use
   /// `inProgress`, must NOT block the app. The global restore barrier keys off
   /// this flag, not `status`.
   final bool isRestoring;

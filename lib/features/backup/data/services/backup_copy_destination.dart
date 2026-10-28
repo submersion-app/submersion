@@ -11,7 +11,9 @@ Future<String> uniqueDestinationPath(String directory, String fileName) async {
   final extension = p.extension(fileName);
   var candidate = p.join(directory, fileName);
   var n = 1;
-  while (await File(candidate).exists()) {
+  // Any entry holds the name, a folder or a link included.
+  while (await FileSystemEntity.type(candidate, followLinks: false) !=
+      FileSystemEntityType.notFound) {
     candidate = p.join(directory, '$stem ($n)$extension');
     n++;
   }

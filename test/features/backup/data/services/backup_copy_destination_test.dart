@@ -31,6 +31,15 @@ void main() {
     );
   });
 
+  test('uniqueDestinationPath skips a folder holding the name', () async {
+    await Directory(p.join(dir.path, 'a.db')).create();
+
+    expect(
+      await uniqueDestinationPath(dir.path, 'a.db'),
+      p.join(dir.path, 'a (1).db'),
+    );
+  });
+
   test('copyWithoutPartial copies the bytes', () async {
     final source = File(p.join(dir.path, 'source.db'));
     await source.writeAsBytes([1, 2, 3]);
