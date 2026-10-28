@@ -31,6 +31,7 @@ import 'package:submersion/features/certifications/domain/certification_primary.
 import 'package:submersion/features/certifications/domain/certification_title.dart';
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
+import 'package:submersion/features/media/data/repositories/media_people_repository.dart';
 
 // Re-export merge types so callers can import from buddy_repository.dart
 export 'package:submersion/features/buddies/data/repositories/buddy_merge_repository.dart'
@@ -384,6 +385,9 @@ class BuddyRepository {
             recordId: cert.id,
           );
         }
+        // Their people tags too, tombstoned (issue #1745): the cascade
+        // would remove them without a word to other devices.
+        await MediaPeopleRepository().deleteForBuddies([id]);
         // Dive buddies will be automatically deleted due to CASCADE
         await (_db.delete(_db.buddies)..where((t) => t.id.equals(id))).go();
         await _syncRepository.logDeletion(entityType: 'buddies', recordId: id);

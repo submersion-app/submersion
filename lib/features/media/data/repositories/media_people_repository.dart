@@ -3,7 +3,6 @@ import 'dart:math';
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
-import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';

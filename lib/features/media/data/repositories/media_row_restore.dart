@@ -7,20 +7,23 @@ import 'package:submersion/core/services/sync/sync_fact_groups.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 
 /// Media rows a delete is about to remove, with the rows that hang off
-/// them, so an undo can put them back (issue #2718). Enrichment and tag
-/// links (issue #1970) are deleted and tombstoned explicitly; species tags
-/// go by the foreign-key cascade, which writes no tombstone.
+/// them, so an undo can put them back (issue #2718). Enrichment, tag links
+/// (issue #1970) and people tags (issue #1745) are deleted and tombstoned
+/// explicitly; species tags go by the foreign-key cascade, which writes no
+/// tombstone.
 class MediaRowsSnapshot {
   final List<MediaData> rows;
   final List<MediaSpecy> species;
   final List<MediaEnrichmentData> enrichment;
   final List<MediaTag> tags;
+  final List<MediaPeopleData> people;
 
   const MediaRowsSnapshot({
     this.rows = const [],
     this.species = const [],
     this.enrichment = const [],
     this.tags = const [],
+    this.people = const [],
   });
 }
 
@@ -35,6 +38,7 @@ Future<MediaRowsSnapshot> readMediaRows(
   final species = <MediaSpecy>[];
   final enrichment = <MediaEnrichmentData>[];
   final tags = <MediaTag>[];
+  final people = <MediaPeopleData>[];
   for (final chunk in seriesIdChunks(ids)) {
     rows.addAll(
       await (db.select(db.media)..where((t) => t.id.isIn(chunk))).get(),
@@ -54,12 +58,18 @@ Future<MediaRowsSnapshot> readMediaRows(
         db.mediaTags,
       )..where((t) => t.mediaId.isIn(chunk))).get(),
     );
+    people.addAll(
+      await (db.select(
+        db.mediaPeople,
+      )..where((t) => t.mediaId.isIn(chunk))).get(),
+    );
   }
   return MediaRowsSnapshot(
     rows: rows,
     species: species,
     enrichment: enrichment,
     tags: tags,
+    people: people,
   );
 }
 
@@ -84,8 +94,8 @@ Future<Map<String, String>> readMediaSiteIds(
 /// tombstones and marks them pending with fresh clocks, facts included, as
 /// [MediaRepository.createMedia] does for a new row. A link whose target
 /// was deleted since is cleared, as its foreign key's SET NULL would have;
-/// a species tag, enrichment row or tag link whose parent is gone is
-/// skipped. A row
+/// a species tag, enrichment row, tag link or people tag whose parent is
+/// gone is skipped. A row
 /// already present is left alone. Returns the media rows it put back.
 Future<List<MediaData>> restoreMediaRows(
   AppDatabase db,
@@ -199,6 +209,36 @@ Future<List<MediaData>> restoreMediaRows(
     );
     await syncRepository.markRecordPending(
       entityType: 'mediaTags',
+      recordId: r.id,
+      localUpdatedAt: now,
+    );
+  }
+  final taggedBuddies = await existingRowIds(db, db.buddies, {
+    for (final r in snapshot.people) ?r.buddyId,
+  });
+  final taggedDivers = await existingRowIds(db, db.divers, {
+    for (final r in snapshot.people) ?r.diverId,
+  });
+  for (final r in snapshot.people) {
+    final personBack = r.buddyId != null
+        ? taggedBuddies.contains(r.buddyId)
+        : taggedDivers.contains(r.diverId);
+    if (!back.contains(r.mediaId) || !personBack) continue;
+    final inserted = await db
+        .into(db.mediaPeople)
+        .insertReturningOrNull(
+          r.copyWith(updatedAt: now),
+          onConflict: DoNothing<$MediaPeopleTable, MediaPeopleData>(
+            target: const [],
+          ),
+        );
+    if (inserted == null) continue;
+    await syncRepository.removeDeletion(
+      entityType: 'mediaPeople',
+      recordId: r.id,
+    );
+    await syncRepository.markRecordPending(
+      entityType: 'mediaPeople',
       recordId: r.id,
       localUpdatedAt: now,
     );

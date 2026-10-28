@@ -12,6 +12,7 @@ import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/utils/stream_debounce.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/media/data/repositories/media_people_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_row_mapper.dart';
 import 'package:submersion/features/media/data/services/repair/media_repair_service.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart'
@@ -26,6 +27,7 @@ class MediaRepository {
   AppDatabase get _db => DatabaseService.instance.database;
   final SyncRepository _syncRepository = SyncRepository();
   final _tagLinks = TagLinkRepository(TagScope.media);
+  final _people = MediaPeopleRepository();
   final _uuid = const Uuid();
   final _log = LoggerService.forClass(MediaRepository);
 
@@ -550,6 +552,7 @@ class MediaRepository {
       await _db.transaction(() async {
         await _dropEnrichmentRows([id]);
         await _tagLinks.deleteLinksFor([id]);
+        await _people.deleteForMedia([id]);
         await (_db.delete(_db.media)..where((t) => t.id.equals(id))).go();
         await _syncRepository.logDeletion(entityType: 'media', recordId: id);
       });
@@ -598,8 +601,9 @@ class MediaRepository {
         // the FK cascade, which removes them without logging anything. See
         // [_dropEnrichmentRows] for why the tombstone matters.
         await _dropEnrichmentRows(targets);
-        // The tag links likewise (issue #1970).
+        // The tag links likewise (issue #1970), and people tags (#1745).
         await _tagLinks.deleteLinksFor(targets);
+        await _people.deleteForMedia(targets);
         for (final id in targets) {
           await (_db.delete(_db.media)..where((t) => t.id.equals(id))).go();
           await _syncRepository.logDeletion(entityType: 'media', recordId: id);
