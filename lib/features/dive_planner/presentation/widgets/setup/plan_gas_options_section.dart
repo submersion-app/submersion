@@ -37,6 +37,15 @@ class PlanGasOptionsSection extends ConsumerWidget {
     // Typed so `??` does not infer the watch as nullable.
     final double bottomRmv =
         state.sacRate ?? ref.watch(plannerSacBottomProvider);
+    // While a Settings layer is off its stored values are not in force, so
+    // this plan's Custom starts from the flat deco ppO2 the plan uses now
+    // instead, and choosing Custom never raises the ceiling by itself.
+    final double planFlatPpO2 = state.ppO2Deco ?? globalPpO2Deco;
+    final bandsInSettings = ref.watch(ppO2DecoBandsEnabledProvider);
+    final maxO2DepthInSettings = ref.watch(maxO2DepthEnabledProvider);
+    double defaultBand(double settingsBand) => bandsInSettings
+        ? settingsBand
+        : SettingsNotifier.ppO2DecoBandOnGrid(planFlatPpO2);
     // The stressed rate the bailout falls back to, resolved the same way as
     // PlanEngineConfig.sacStressedFor.
     final double stressedRmv =
@@ -132,10 +141,10 @@ class PlanGasOptionsSection extends ConsumerWidget {
           band2: state.ppO2DecoBand2,
           band3: state.ppO2DecoBand3,
           explicitlyOff: state.ppO2DecoBandsExplicitlyOff,
-          defaultBand1: ref.watch(ppO2DecoBand1Provider),
-          defaultBand2: ref.watch(ppO2DecoBand2Provider),
-          defaultBand3: ref.watch(ppO2DecoBand3Provider),
-          bandsEnabledInSettings: ref.watch(ppO2DecoBandsEnabledProvider),
+          defaultBand1: defaultBand(ref.watch(ppO2DecoBand1Provider)),
+          defaultBand2: defaultBand(ref.watch(ppO2DecoBand2Provider)),
+          defaultBand3: defaultBand(ref.watch(ppO2DecoBand3Provider)),
+          bandsEnabledInSettings: bandsInSettings,
           onBand1Changed: (value) =>
               notifier.updateGasOptions(ppO2DecoBand1: value),
           onBand2Changed: (value) =>
@@ -174,7 +183,7 @@ class PlanGasOptionsSection extends ConsumerWidget {
         // actually computes band mode with, so this field hides exactly
         // when it stops mattering, not just when the Settings toggle does.
         if (!resolveDecoLayerEnabled(
-          settingsEnabled: ref.watch(ppO2DecoBandsEnabledProvider),
+          settingsEnabled: bandsInSettings,
           explicitlyOff: state.ppO2DecoBandsExplicitlyOff,
           hasCustomValue: hasCustomDecoBands(
             state.ppO2DecoBand1,
@@ -197,8 +206,12 @@ class PlanGasOptionsSection extends ConsumerWidget {
         PlanMaxO2DepthControl(
           maxO2DepthMeters: state.maxO2DepthMeters,
           explicitlyOff: state.maxO2DepthExplicitlyOff,
-          defaultMaxO2DepthMeters: ref.watch(maxO2DepthMetersProvider),
-          enabledInSettings: ref.watch(maxO2DepthEnabledProvider),
+          defaultMaxO2DepthMeters: maxO2DepthInSettings
+              ? ref.watch(maxO2DepthMetersProvider)
+              : SettingsNotifier.maxO2DepthOnGrid(
+                  flatPureO2DepthMeters(planFlatPpO2),
+                ),
+          enabledInSettings: maxO2DepthInSettings,
           units: units,
           onChanged: (value) =>
               notifier.updateGasOptions(maxO2DepthMeters: value),

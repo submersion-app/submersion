@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:submersion/core/deco/deco_ppo2_limits.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -15,6 +16,11 @@ class PpO2DecoBandsDialog extends StatefulWidget {
   final double initialBand3;
   final bool initialMaxO2DepthEnabled;
   final double initialMaxO2DepthMeters;
+
+  /// The diver's flat deco ppO2 ([AppSettings.ppO2MaxDeco]). A layer that is
+  /// off and still at its column default starts from this instead, so
+  /// turning it on keeps today's ceiling rather than jumping back to 1.6.
+  final double initialFlatPpO2;
   final UnitFormatter units;
   final void Function(
     bool bandsEnabled,
@@ -34,6 +40,7 @@ class PpO2DecoBandsDialog extends StatefulWidget {
     required this.initialBand3,
     required this.initialMaxO2DepthEnabled,
     required this.initialMaxO2DepthMeters,
+    required this.initialFlatPpO2,
     required this.units,
     required this.onSave,
   });
@@ -64,13 +71,33 @@ class _PpO2DecoBandsDialogState extends State<PpO2DecoBandsDialog> {
   @override
   void initState() {
     super.initState();
+    const defaults = AppSettings();
+    // Untouched = off and still at the column defaults: the diver never set
+    // these, so they start from the flat limit in force. Once edited (or
+    // on), the stored values are kept as they are.
+    final bandsUntouched =
+        !widget.initialBandsEnabled &&
+        widget.initialBand1 == defaults.ppO2DecoBand1 &&
+        widget.initialBand2 == defaults.ppO2DecoBand2 &&
+        widget.initialBand3 == defaults.ppO2DecoBand3;
+    final depthUntouched =
+        !widget.initialMaxO2DepthEnabled &&
+        widget.initialMaxO2DepthMeters == defaults.maxO2DepthMeters;
     _bandsEnabled = widget.initialBandsEnabled;
-    _band1 = SettingsNotifier.ppO2DecoBandOnGrid(widget.initialBand1);
-    _band2 = SettingsNotifier.ppO2DecoBandOnGrid(widget.initialBand2);
-    _band3 = SettingsNotifier.ppO2DecoBandOnGrid(widget.initialBand3);
+    _band1 = SettingsNotifier.ppO2DecoBandOnGrid(
+      bandsUntouched ? widget.initialFlatPpO2 : widget.initialBand1,
+    );
+    _band2 = SettingsNotifier.ppO2DecoBandOnGrid(
+      bandsUntouched ? widget.initialFlatPpO2 : widget.initialBand2,
+    );
+    _band3 = SettingsNotifier.ppO2DecoBandOnGrid(
+      bandsUntouched ? widget.initialFlatPpO2 : widget.initialBand3,
+    );
     _maxO2DepthEnabled = widget.initialMaxO2DepthEnabled;
     _maxO2DepthMeters = SettingsNotifier.maxO2DepthOnGrid(
-      widget.initialMaxO2DepthMeters,
+      depthUntouched
+          ? flatPureO2DepthMeters(widget.initialFlatPpO2)
+          : widget.initialMaxO2DepthMeters,
     );
   }
 

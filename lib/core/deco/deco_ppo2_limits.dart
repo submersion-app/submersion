@@ -30,6 +30,11 @@ bool resolveDecoLayerEnabled({
   required bool hasCustomValue,
 }) => !explicitlyOff && (settingsEnabled || hasCustomValue);
 
+/// The depth at which pure O2 reaches [ppO2] on the flat model (1 bar plus
+/// 1 bar per 10 m): the explicit-O2-depth value that matches a flat deco
+/// ppO2 limit, e.g. 6 m for 1.6 bar or 4 m for 1.4 bar.
+double flatPureO2DepthMeters(double ppO2) => (ppO2 - 1.0) * 10.0;
+
 /// Whether a plan has its own Custom per-O2-band values: any one band set
 /// counts, since the rest then fall back to the diver's Settings bands.
 bool hasCustomDecoBands(double? band1, double? band2, double? band3) =>

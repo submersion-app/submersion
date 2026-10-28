@@ -22,6 +22,7 @@ Widget _app({
   double initialBand3 = 1.5,
   bool initialMaxO2DepthEnabled = false,
   double initialMaxO2DepthMeters = 6.0,
+  double initialFlatPpO2 = 1.6,
   UnitFormatter units = const UnitFormatter(AppSettings()),
   required void Function(_SavedCall) onSave,
 }) => MaterialApp(
@@ -40,6 +41,7 @@ Widget _app({
             initialBand3: initialBand3,
             initialMaxO2DepthEnabled: initialMaxO2DepthEnabled,
             initialMaxO2DepthMeters: initialMaxO2DepthMeters,
+            initialFlatPpO2: initialFlatPpO2,
             units: units,
             onSave:
                 (
@@ -86,6 +88,49 @@ void main() {
       expect(find.text('6.0m'), findsOneWidget);
       // 4 sliders: 3 bands + 1 explicit depth.
       expect(find.byType(Slider), findsNWidgets(4));
+    });
+
+    testWidgets('untouched layers start from the flat deco ppO2, so turning '
+        'them on keeps the ceiling in force', (tester) async {
+      final saved = <_SavedCall>[];
+      await tester.pumpWidget(
+        _app(
+          initialBandsEnabled: false,
+          initialBand1: 1.6,
+          initialBand2: 1.6,
+          initialBand3: 1.6,
+          initialFlatPpO2: 1.4,
+          onSave: saved.add,
+        ),
+      );
+      await _openDialog(tester);
+
+      expect(find.text('1.4 bar'), findsNWidgets(3));
+      // Pure O2 reaches 1.4 bar at 4 m on the flat model.
+      expect(find.text('4.0m'), findsOneWidget);
+
+      await tester.tap(find.byType(SwitchListTile).first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(saved.single.bandsEnabled, isTrue);
+      expect(saved.single.band1, closeTo(1.4, 1e-9));
+      expect(saved.single.band3, closeTo(1.4, 1e-9));
+      expect(saved.single.maxO2DepthMeters, closeTo(4.0, 1e-9));
+    });
+
+    testWidgets('bands the diver already edited are kept even while off', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _app(initialBandsEnabled: false, initialFlatPpO2: 1.6, onSave: (_) {}),
+      );
+      await _openDialog(tester);
+
+      expect(find.text('1.3 bar'), findsOneWidget);
+      expect(find.text('1.4 bar'), findsOneWidget);
+      expect(find.text('1.5 bar'), findsOneWidget);
     });
 
     testWidgets('the band sliders start disabled when bands are off', (

@@ -10715,7 +10715,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get divePlanner_gasOptions_hypercapniaAmv => 'RMV de hipercapnia';
 
   @override
-  String get divePlanner_gasOptions_hypercapniaMinutes => 'Duration';
+  String get divePlanner_gasOptions_hypercapniaMinutes => 'Duración';
 
   @override
   String get divePlanner_gasOptions_bestMixEnd => 'END de la mejor mezcla';
@@ -26375,7 +26375,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_decompression_hypercapniaDialog_minutesLabel =>
-      'Duration';
+      'Duración';
 
   @override
   String get settings_decompression_ccrPpO2LimitsTitle => 'Límites de ppO2 CCR';

@@ -88,6 +88,29 @@ void main() {
     expect(outcome!.worstCase.litersRequired, greaterThan(0));
   });
 
+  test('the loop rows of an SCR/pSCR bailout read the plan\'s own loop '
+      'model, not a CCR setpoint (issue #3743)', () {
+    for (final mode in [domain.PlanMode.scr, domain.PlanMode.pscr]) {
+      final plan = _plan(mode: mode);
+      final bottomRow = solver.solve(plan)!.ccrRows.last;
+      final expected =
+          breathingFor(
+                plan,
+                _diluent,
+                bottomRow.depthMeters,
+                config: const PlanEngineConfig(),
+                segment: plan.segments.last,
+              )
+              .inspiredAt(
+                PlanEngine.environmentFor(
+                  plan,
+                ).pressureAtDepth(bottomRow.depthMeters),
+              )
+              .pO2;
+      expect(bottomRow.ppO2, closeTo(expected, 1e-9), reason: mode.name);
+    }
+  });
+
   test('worst case sits at (or near) the end of the bottom phase', () {
     final outcome = solver.solve(_plan())!;
     final lastPoint = outcome.points.last;

@@ -10195,7 +10195,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get divePlanner_gasOptions_hypercapniaAmv => '高碳酸血症 RMV';
 
   @override
-  String get divePlanner_gasOptions_hypercapniaMinutes => 'Duration';
+  String get divePlanner_gasOptions_hypercapniaMinutes => '时长';
 
   @override
   String get divePlanner_gasOptions_bestMixEnd => '最佳混合气 END';
@@ -24896,8 +24896,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_decompression_hypercapniaDialog_factorLabel => 'RMV 系数';
 
   @override
-  String get settings_decompression_hypercapniaDialog_minutesLabel =>
-      'Duration';
+  String get settings_decompression_hypercapniaDialog_minutesLabel => '时长';
 
   @override
   String get settings_decompression_ccrPpO2LimitsTitle => '氧分压上限 CCR';

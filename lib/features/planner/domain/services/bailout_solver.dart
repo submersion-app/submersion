@@ -3,7 +3,6 @@ import 'dart:math' as math;
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/deco/ascent/ascent_gas_plan.dart';
 import 'package:submersion/core/deco/deco_model.dart';
-import 'package:submersion/core/deco/entities/breathing_config.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/deco/schedule_policy.dart';
 import 'package:submersion/core/utils/gas_compressibility.dart';
@@ -457,15 +456,22 @@ class BailoutSolver {
           previousFHe == null ||
           (fO2 - previousFO2!).abs() > 0.0005 ||
           (fHe - previousFHe!).abs() > 0.0005;
-      // The loop's real inspired ppO2 is the setpoint, not ambient x the
-      // diluent's own fraction -- same reasoning as PlanEngine's PO2 column
-      // (plan_engine.dart, _buildSchedule's ppO2Override).
-      final setpoint = setpointAt(plan, depth, config: config);
-      final ppO2 = ClosedCircuit(
-        setpoint: setpoint,
-        diluentFO2: fO2,
-        diluentFHe: fHe,
-      ).inspiredAt(environment.pressureAtDepth(depth)).pO2;
+      // A loop leg's real inspired ppO2 comes from its own mode's breathing
+      // model (the CCR setpoint, or the SCR/pSCR loop fraction), not
+      // ambient x the supply gas's own fraction; an OC leg is ambient x
+      // fO2. Same as PlanEngine's PO2 column (plan_engine.dart,
+      // _buildSchedule's ppO2Override), so SCR/pSCR (issue #3743) read as
+      // their own loop rather than as a CCR setpoint.
+      final ambient = environment.pressureAtDepth(depth);
+      final ppO2 = modeFor(plan, leg.segment) == domain.PlanMode.oc
+          ? ambient * fO2
+          : breathingFor(
+              plan,
+              leg.segment.gasMix,
+              depth,
+              config: config,
+              segment: leg.segment,
+            ).inspiredAt(ambient).pO2;
       rows.add(
         PlanScheduleRow(
           kind: switch (leg.phase) {

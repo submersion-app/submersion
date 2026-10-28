@@ -19,9 +19,11 @@ class _TestSettingsNotifier extends StateNotifier<AppSettings>
     DepthUnit depthUnit = DepthUnit.meters,
     bool ppO2DecoBandsEnabled = false,
     double plannerHypercapniaFactor = 4.0,
+    double ppO2MaxDeco = 1.6,
   }) : super(
          AppSettings(
            depthUnit: depthUnit,
+           ppO2MaxDeco: ppO2MaxDeco,
            ppO2DecoBandsEnabled: ppO2DecoBandsEnabled,
            plannerHypercapniaEnabled: true,
            plannerHypercapniaFactor: plannerHypercapniaFactor,
@@ -40,6 +42,7 @@ Widget _harness({
   DepthUnit depthUnit = DepthUnit.meters,
   bool ppO2DecoBandsEnabled = false,
   double plannerHypercapniaFactor = 4.0,
+  double ppO2MaxDeco = 1.6,
 }) => testApp(
   locale: const Locale('en'),
   overrides: [
@@ -48,6 +51,7 @@ Widget _harness({
         depthUnit: depthUnit,
         ppO2DecoBandsEnabled: ppO2DecoBandsEnabled,
         plannerHypercapniaFactor: plannerHypercapniaFactor,
+        ppO2MaxDeco: ppO2MaxDeco,
       ),
     ),
   ],
@@ -55,6 +59,31 @@ Widget _harness({
 );
 
 void main() {
+  testWidgets('with the Settings layers off, Custom starts from the flat '
+      'deco ppO2 in force, not the untouched 1.6 bar column defaults '
+      '(issue #3580)', (tester) async {
+    await tester.pumpWidget(_harness(ppO2MaxDeco: 1.4));
+    await tester.pumpAndSettle();
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(PlanGasOptionsSection)),
+    );
+
+    // Bands first, then the explicit O2 depth (declaration order).
+    await tester.tap(find.widgetWithText(ChoiceChip, 'Custom').first);
+    await tester.pumpAndSettle();
+    final depthCustom = find.widgetWithText(ChoiceChip, 'Custom').last;
+    await tester.ensureVisible(depthCustom);
+    await tester.pumpAndSettle();
+    await tester.tap(depthCustom);
+    await tester.pumpAndSettle();
+
+    final state = container.read(divePlanNotifierProvider);
+    expect(state.ppO2DecoBand1, closeTo(1.4, 1e-9));
+    expect(state.ppO2DecoBand2, closeTo(1.4, 1e-9));
+    expect(state.ppO2DecoBand3, closeTo(1.4, 1e-9));
+    expect(state.maxO2DepthMeters, closeTo(4.0, 1e-9));
+  });
+
   group('hypercapnia bailout phase (issue #3743)', () {
     testWidgets('an OC plan has no OC bailout, so no hypercapnia control', (
       tester,

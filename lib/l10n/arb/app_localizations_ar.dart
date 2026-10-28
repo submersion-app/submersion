@@ -10873,7 +10873,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'RMV فرط ثاني أكسيد الكربون';
 
   @override
-  String get divePlanner_gasOptions_hypercapniaMinutes => 'Duration';
+  String get divePlanner_gasOptions_hypercapniaMinutes => 'المدة';
 
   @override
   String get divePlanner_gasOptions_bestMixEnd => 'END لأفضل خليط';
@@ -26627,8 +26627,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'معامل RMV';
 
   @override
-  String get settings_decompression_hypercapniaDialog_minutesLabel =>
-      'Duration';
+  String get settings_decompression_hypercapniaDialog_minutesLabel => 'المدة';
 
   @override
   String get settings_decompression_ccrPpO2LimitsTitle =>

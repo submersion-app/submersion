@@ -151,6 +151,7 @@ class PlannerGasDefaultsSection extends ConsumerWidget {
                 initialBand3: settings.ppO2DecoBand3,
                 initialMaxO2DepthEnabled: settings.maxO2DepthEnabled,
                 initialMaxO2DepthMeters: settings.maxO2DepthMeters,
+                initialFlatPpO2: settings.ppO2MaxDeco,
                 units: units,
                 onSave:
                     (

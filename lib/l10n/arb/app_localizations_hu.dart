@@ -10695,7 +10695,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get divePlanner_gasOptions_hypercapniaAmv => 'Hiperkapniás RMV';
 
   @override
-  String get divePlanner_gasOptions_hypercapniaMinutes => 'Duration';
+  String get divePlanner_gasOptions_hypercapniaMinutes => 'Időtartam';
 
   @override
   String get divePlanner_gasOptions_bestMixEnd => 'Legjobb keverék END';
@@ -26230,7 +26230,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_decompression_hypercapniaDialog_minutesLabel =>
-      'Duration';
+      'Időtartam';
 
   @override
   String get settings_decompression_ccrPpO2LimitsTitle => 'ppO2-határok CCR';
