@@ -49911,6 +49911,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get media_people_buddyPhotosTitle => 'Photos and videos';
 
   @override
+  String get media_people_buddyThumbnailLabel =>
+      'Photo or video with this buddy';
+
+  @override
   String get media_people_filterSection => 'People';
 
   @override

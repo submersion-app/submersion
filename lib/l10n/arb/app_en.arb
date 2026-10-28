@@ -29989,6 +29989,7 @@
   "@media_people_addToDiveOffer": {"placeholders": {"name": {"type": "String"}}},
   "media_people_addToDiveAction": "Add",
   "media_people_buddyPhotosTitle": "Photos and videos",
+  "media_people_buddyThumbnailLabel": "Photo or video with this buddy",
   "media_people_filterSection": "People",
   "media_info_fileSection": "File",
   "media_info_filename": "Filename",

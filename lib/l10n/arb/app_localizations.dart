@@ -80307,6 +80307,12 @@ abstract class AppLocalizations {
   /// **'Photos and videos'**
   String get media_people_buddyPhotosTitle;
 
+  /// No description provided for @media_people_buddyThumbnailLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo or video with this buddy'**
+  String get media_people_buddyThumbnailLabel;
+
   /// No description provided for @media_people_filterSection.
   ///
   /// In en, this message translates to:
