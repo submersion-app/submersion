@@ -56,8 +56,8 @@ extension TripMigrations on AppDatabase {
     }
   }
 
-  /// Idempotent DDL for the v323 side-trip link (issue #3658): the column and
-  /// its index. Called from the v323 rung and the beforeOpen backstop.
+  /// Idempotent DDL for the v325 side-trip link (issue #3658): the column and
+  /// its index. Called from the v325 rung and the beforeOpen backstop.
   /// Self-guarding when the table is absent (minimal migration-test
   /// fixtures).
   Future<void> _assertTripParentColumn() async {

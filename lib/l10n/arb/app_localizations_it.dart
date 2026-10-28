@@ -2547,6 +2547,15 @@ class AppLocalizationsIt extends AppLocalizations {
       'Invia tramite AirDrop, e-mail o altre app';
 
   @override
+  String get backup_copySheet_deviceLocked =>
+      'Questa copia di sicurezza proviene dal tuo database protetto. Può essere ripristinata solo su questo dispositivo.';
+
+  @override
+  String backup_copySheet_title(String dateTime) {
+    return 'Backup del $dateTime';
+  }
+
+  @override
   String get backup_frequency_daily => 'Giornaliero';
 
   @override
@@ -2560,6 +2569,12 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get backup_history_action_restore => 'Ripristina';
+
+  @override
+  String get backup_history_action_saveCopy => 'Salva una copia';
+
+  @override
+  String get backup_history_action_share => 'Condividi';
 
   @override
   String get backup_history_empty => 'Nessun backup';
@@ -10179,19 +10194,24 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String get diveLog_cylinders_columnTank => 'Bombola';
+  String diveLog_cylinders_figureStart(String pressure) {
+    return 'Inizio $pressure';
+  }
 
   @override
-  String get diveLog_cylinders_columnGas => 'Gas';
+  String diveLog_cylinders_figureEnd(String pressure) {
+    return 'Fine $pressure';
+  }
 
   @override
-  String get diveLog_cylinders_columnStart => 'Inizio';
+  String diveLog_cylinders_figureUsed(String pressure) {
+    return 'Usato $pressure';
+  }
 
   @override
-  String get diveLog_cylinders_columnEnd => 'Fine';
-
-  @override
-  String get diveLog_cylinders_columnUsed => 'Usato';
+  String diveLog_cylinders_gasSemantics(String mix) {
+    return 'Gas $mix';
+  }
 
   @override
   String diveLog_cylinders_gasUsed(String amount) {
@@ -22938,6 +22958,61 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get settings_conflict_field_omitUnusedOcGases =>
       'Salta i gas di bailout inutilizzati';
+
+  @override
+  String get settings_conflict_field_diveListSort => 'Immersioni: ordinamento';
+
+  @override
+  String get settings_conflict_field_divePlanListSort =>
+      'Piani salvati: ordinamento';
+
+  @override
+  String get settings_conflict_field_tripListSort => 'Viaggi: ordinamento';
+
+  @override
+  String get settings_conflict_field_courseListSort => 'Corsi: ordinamento';
+
+  @override
+  String get settings_conflict_field_buddyListSort => 'Compagni: ordinamento';
+
+  @override
+  String get settings_conflict_field_diveCenterListSort =>
+      'Centri immersione: ordinamento';
+
+  @override
+  String get settings_conflict_field_siteListSort => 'Siti: ordinamento';
+
+  @override
+  String get settings_conflict_field_certificationListSort =>
+      'Brevetti: ordinamento';
+
+  @override
+  String get settings_conflict_field_equipmentListSort =>
+      'Attrezzatura: ordinamento';
+
+  @override
+  String get settings_conflict_field_siteListGroupBy => 'Siti: raggruppamento';
+
+  @override
+  String get settings_conflict_field_certificationListGroupBy =>
+      'Brevetti: raggruppamento';
+
+  @override
+  String get settings_conflict_field_equipmentArrangement =>
+      'Disposizione dell\'attrezzatura';
+
+  @override
+  String get settings_conflict_field_equipmentGroupByLocation =>
+      'Attrezzatura raggruppata per posizione';
+
+  @override
+  String get settings_conflict_field_listArrangementHlc =>
+      'Registro della disposizione degli elenchi';
+
+  @override
+  String settings_conflict_sortValue(String field, String direction) {
+    return '$field, $direction';
+  }
 
   @override
   String get settings_conflict_field_avgSpeed => 'Velocità media';

@@ -96,11 +96,13 @@ Future<List<Override>> _buildOverrides({
 
   return [
     sharedPreferencesProvider.overrideWithValue(prefs),
-    settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+    // The view mode is read from the diver's saved settings (#3748).
+    settingsProvider.overrideWith(
+      (ref) => MockSettingsNotifier(AppSettings(siteListViewMode: viewMode)),
+    ),
     currentDiverIdProvider.overrideWith((ref) => MockCurrentDiverIdNotifier()),
     sortedSitesWithCountsProvider.overrideWith((ref) => AsyncValue.data(sites)),
     siteListNotifierProvider.overrideWith((ref) => _MockSiteListNotifier()),
-    siteListViewModeProvider.overrideWith((ref) => viewMode),
     siteTableConfigProvider.overrideWith(
       (ref) => _TestSiteTableConfigNotifier(),
     ),
@@ -471,11 +473,13 @@ void main() {
         final container = ProviderScope.containerOf(
           tester.element(find.byType(SiteListPage)),
         );
-        container.read(siteListViewModeProvider.notifier).state =
-            ListViewMode.detailed;
+        container
+            .read(settingsProvider.notifier)
+            .setSiteListViewMode(ListViewMode.detailed);
         await tester.pumpAndSettle();
-        container.read(siteListViewModeProvider.notifier).state =
-            ListViewMode.table;
+        container
+            .read(settingsProvider.notifier)
+            .setSiteListViewMode(ListViewMode.table);
         await tester.pumpAndSettle();
 
         expect(find.byKey(const ValueKey('selection_exit')), findsNothing);

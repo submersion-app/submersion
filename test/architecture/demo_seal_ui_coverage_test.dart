@@ -23,6 +23,9 @@ const _exemptions = <String, String>{
   'lib/features/backup/presentation/widgets/backup_actions.dart':
       'behind the sealed /settings/backup route; backup and restore are '
       'gated in the engine',
+  'lib/features/backup/presentation/widgets/backup_copy_actions.dart':
+      'behind the sealed /settings/backup route; prepareBackupCopy is gated '
+      'in the engine',
   'lib/features/import_wizard/presentation/widgets/photo_folder_step.dart':
       'a step of the sealed /transfer import wizard',
   'lib/features/import_wizard/presentation/widgets/suunto_file_step.dart':

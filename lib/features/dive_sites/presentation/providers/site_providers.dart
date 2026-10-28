@@ -4,6 +4,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/models/sort_state.dart';
+import 'package:submersion/core/models/sort_state_codec.dart';
 import 'package:submersion/core/performance/perf_timer.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
@@ -39,6 +40,7 @@ import 'package:submersion/shared/providers/entity_table_config_providers.dart';
 import 'package:submersion/core/utils/log_failure.dart';
 import 'package:submersion/features/documents/presentation/providers/document_providers.dart';
 import 'package:submersion/shared/widgets/master_detail/remembered_selection.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 // ============================================================================
 // Site Filter State
@@ -297,11 +299,20 @@ final tagsForSiteProvider = FutureProvider.family<List<Tag>, String>((
 });
 
 /// Site sort state provider
-final siteSortProvider = StateProvider<SortState<SiteSortField>>(
-  (ref) => const SortState(
-    field: SiteSortField.name,
-    direction: SortDirection.descending,
-  ),
+///
+/// Comes back as the diver left it (issue #3748): the active diver's saved
+/// sort, or the starting order below when there is none (or this build
+/// cannot read it). Change it through `ListArrangementWrites`.
+final siteSortProvider = Provider<SortState<SiteSortField>>(
+  (ref) =>
+      decodeSortState(
+        ref.watch(settingsProvider.select((s) => s.listArrangements.siteSort)),
+        SiteSortField.values,
+      ) ??
+      const SortState(
+        field: SiteSortField.name,
+        direction: SortDirection.descending,
+      ),
 );
 
 /// The ids the site filter selects, from the compiled query (#2365). Keyed

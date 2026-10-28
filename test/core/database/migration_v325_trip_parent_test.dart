@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
 
-/// Schema v323: trips gains parent_trip_id (issue #3658), the larger trip a
+/// Schema v325: trips gains parent_trip_id (issue #3658), the larger trip a
 /// side trip is part of. Every existing trip stays a trip of its own.
 void main() {
   NativeDatabase dbAt(int version) => NativeDatabase.memory(
@@ -22,21 +22,21 @@ void main() {
           .map((c) => c.read<String>('name'))
           .toSet();
 
-  test('v323 is in the ladder', () {
-    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(323));
-    expect(AppDatabase.migrationVersions, contains(323));
+  test('v325 is in the ladder', () {
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(325));
+    expect(AppDatabase.migrationVersions, contains(325));
     expect(
-      AppDatabase.migrationStepCount(322),
-      AppDatabase.migrationStepCount(323) + 1,
+      AppDatabase.migrationStepCount(324),
+      AppDatabase.migrationStepCount(325) + 1,
     );
   });
 
   test('the column is additive and did not move the sync floor', () {
-    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(323));
+    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(325));
   });
 
-  test('upgrading from v322 leaves every trip without a parent', () async {
-    final db = AppDatabase(dbAt(322));
+  test('upgrading from v324 leaves every trip without a parent', () async {
+    final db = AppDatabase(dbAt(324));
     addTearDown(db.close);
     final row = await db
         .customSelect('SELECT parent_trip_id FROM trips')
@@ -51,8 +51,8 @@ void main() {
     expect(index, hasLength(1));
   });
 
-  test('beforeOpen heals a database already at v323 that lacks it', () async {
-    final db = AppDatabase(dbAt(323));
+  test('beforeOpen heals a database already at v325 that lacks it', () async {
+    final db = AppDatabase(dbAt(325));
     addTearDown(db.close);
     expect(await tripColumns(db), contains('parent_trip_id'));
   });

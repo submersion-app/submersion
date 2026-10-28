@@ -2538,6 +2538,15 @@ class AppLocalizationsHu extends AppLocalizations {
       'Küldés AirDrop, e-mail vagy más alkalmazáson keresztül';
 
   @override
+  String get backup_copySheet_deviceLocked =>
+      'Ez a biztonsági másolat az Ön védett adatbázisáról készült. Csak ezen az eszközön állítható vissza.';
+
+  @override
+  String backup_copySheet_title(String dateTime) {
+    return 'Biztonsági mentés: $dateTime';
+  }
+
+  @override
   String get backup_frequency_daily => 'Napi';
 
   @override
@@ -2551,6 +2560,12 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get backup_history_action_restore => 'Visszaállítás';
+
+  @override
+  String get backup_history_action_saveCopy => 'Másolat mentése';
+
+  @override
+  String get backup_history_action_share => 'Megosztás';
 
   @override
   String get backup_history_empty => 'Nincsenek mentések';
@@ -10155,19 +10170,24 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get diveLog_cylinders_columnTank => 'Palack';
+  String diveLog_cylinders_figureStart(String pressure) {
+    return 'Kezdő $pressure';
+  }
 
   @override
-  String get diveLog_cylinders_columnGas => 'Gáz';
+  String diveLog_cylinders_figureEnd(String pressure) {
+    return 'Záró $pressure';
+  }
 
   @override
-  String get diveLog_cylinders_columnStart => 'Kezdő';
+  String diveLog_cylinders_figureUsed(String pressure) {
+    return 'Felhasznált $pressure';
+  }
 
   @override
-  String get diveLog_cylinders_columnEnd => 'Záró';
-
-  @override
-  String get diveLog_cylinders_columnUsed => 'Felhasznált';
+  String diveLog_cylinders_gasSemantics(String mix) {
+    return 'Gáz $mix';
+  }
 
   @override
   String diveLog_cylinders_gasUsed(String amount) {
@@ -22859,6 +22879,62 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_conflict_field_omitUnusedOcGases =>
       'Nem használt bailout gázok kihagyása';
+
+  @override
+  String get settings_conflict_field_diveListSort => 'Merülések: rendezés';
+
+  @override
+  String get settings_conflict_field_divePlanListSort =>
+      'Mentett tervek: rendezés';
+
+  @override
+  String get settings_conflict_field_tripListSort => 'Utak: rendezés';
+
+  @override
+  String get settings_conflict_field_courseListSort => 'Tanfolyamok: rendezés';
+
+  @override
+  String get settings_conflict_field_buddyListSort => 'Búvártársak: rendezés';
+
+  @override
+  String get settings_conflict_field_diveCenterListSort =>
+      'Merülőcentrumok: rendezés';
+
+  @override
+  String get settings_conflict_field_siteListSort => 'Merülőhelyek: rendezés';
+
+  @override
+  String get settings_conflict_field_certificationListSort =>
+      'Képesítések: rendezés';
+
+  @override
+  String get settings_conflict_field_equipmentListSort =>
+      'Felszerelés: rendezés';
+
+  @override
+  String get settings_conflict_field_siteListGroupBy =>
+      'Merülőhelyek: csoportosítás';
+
+  @override
+  String get settings_conflict_field_certificationListGroupBy =>
+      'Képesítések: csoportosítás';
+
+  @override
+  String get settings_conflict_field_equipmentArrangement =>
+      'Felszerelés elrendezése';
+
+  @override
+  String get settings_conflict_field_equipmentGroupByLocation =>
+      'Felszerelés hely szerint csoportosítva';
+
+  @override
+  String get settings_conflict_field_listArrangementHlc =>
+      'Listaelrendezési napló';
+
+  @override
+  String settings_conflict_sortValue(String field, String direction) {
+    return '$field, $direction';
+  }
 
   @override
   String get settings_conflict_field_avgSpeed => 'Átlagsebesség';

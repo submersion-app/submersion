@@ -1554,11 +1554,22 @@
   "backup_export_saveToFile_subtitle": "Choose where to save the backup file",
   "backup_export_share": "Share",
   "backup_export_share_subtitle": "Send via AirDrop, email, or other apps",
+  "backup_copySheet_deviceLocked": "This safety copy was taken from your protected database. It can only be restored on this device.",
+  "backup_copySheet_title": "Backup from {dateTime}",
+  "@backup_copySheet_title": {
+    "placeholders": {
+      "dateTime": {
+        "type": "String"
+      }
+    }
+  },
   "backup_frequency_daily": "Daily",
   "backup_frequency_monthly": "Monthly",
   "backup_frequency_weekly": "Weekly",
   "backup_history_action_delete": "Delete",
   "backup_history_action_restore": "Restore",
+  "backup_history_action_saveCopy": "Save a copy",
+  "backup_history_action_share": "Share",
   "backup_history_empty": "No backups yet",
   "backup_history_error": "Failed to load history: {error}",
   "@backup_history_error": {
@@ -5710,11 +5721,10 @@
   "diveLog_tank_label_workingPressure": "Working P",
   "diveLog_tank_mndHelper": "Set to auto-calculate He%",
   "diveLog_tank_modMndInfo": "MOD: {mod} (ppO₂ {ppO2}) | MND: {mnd}",
-  "diveLog_cylinders_columnTank": "Tank",
-  "diveLog_cylinders_columnGas": "Gas",
-  "diveLog_cylinders_columnStart": "Start",
-  "diveLog_cylinders_columnEnd": "End",
-  "diveLog_cylinders_columnUsed": "Used",
+  "diveLog_cylinders_figureStart": "Start {pressure}",
+  "diveLog_cylinders_figureEnd": "End {pressure}",
+  "diveLog_cylinders_figureUsed": "Used {pressure}",
+  "diveLog_cylinders_gasSemantics": "Gas {mix}",
   "diveLog_cylinders_gasUsed": "Gas used {amount}",
   "diveLog_cylinders_mod": "MOD {depth}",
   "diveLog_cylinders_mnd": "MND {depth}",
@@ -6356,20 +6366,37 @@
       }
     }
   },
-  "@diveLog_cylinders_columnTank": {
-    "description": "Cylinders card table header over the tank size, name and role"
+  "@diveLog_cylinders_figureStart": {
+    "description": "Cylinders card tank figure label: the start pressure, at its level beside the tank figure, e.g. \"Start 200 bar\". pressure is the value with its unit.",
+    "placeholders": {
+      "pressure": {
+        "type": "String"
+      }
+    }
   },
-  "@diveLog_cylinders_columnGas": {
-    "description": "Cylinders card table header over the gas mix"
+  "@diveLog_cylinders_figureEnd": {
+    "description": "Cylinders card tank figure label: the end pressure, at its level beside the tank figure, e.g. \"End 200 bar\". pressure is the value with its unit.",
+    "placeholders": {
+      "pressure": {
+        "type": "String"
+      }
+    }
   },
-  "@diveLog_cylinders_columnStart": {
-    "description": "Cylinders card table header over the start pressure; the pressure unit is shown under it"
+  "@diveLog_cylinders_figureUsed": {
+    "description": "Cylinders card tank figure label: the pressure used, between the start and end labels beside the tank figure, e.g. \"Used 200 bar\". pressure is the value with its unit.",
+    "placeholders": {
+      "pressure": {
+        "type": "String"
+      }
+    }
   },
-  "@diveLog_cylinders_columnEnd": {
-    "description": "Cylinders card table header over the end pressure; the pressure unit is shown under it"
-  },
-  "@diveLog_cylinders_columnUsed": {
-    "description": "Cylinders card table header over the pressure used; the pressure unit is shown under it"
+  "@diveLog_cylinders_gasSemantics": {
+    "description": "Cylinders card: what a screen reader says for a cylinder's gas pill, e.g. \"Gas EAN32\". mix is the gas mix name.",
+    "placeholders": {
+      "mix": {
+        "type": "String"
+      }
+    }
   },
   "@diveLog_cylinders_gasUsed": {
     "description": "Cylinders card detail item: the volume of gas the dive consumed from this cylinder, e.g. \"Gas used 1665 L\"",
@@ -13978,6 +14005,70 @@
   "settings_conflict_field_omitUnusedOcGases": "Skip unused bailout gases",
   "@settings_conflict_field_omitUnusedOcGases": {
     "description": "Label for the skip-unused-bailout-gases setting in a sync conflict"
+  },
+  "settings_conflict_field_diveListSort": "Dive list sort",
+  "@settings_conflict_field_diveListSort": {
+    "description": "Label for a saved list arrangement in a sync conflict"
+  },
+  "settings_conflict_field_divePlanListSort": "Saved plans sort",
+  "@settings_conflict_field_divePlanListSort": {
+    "description": "Label for a saved list arrangement in a sync conflict"
+  },
+  "settings_conflict_field_tripListSort": "Trip list sort",
+  "@settings_conflict_field_tripListSort": {
+    "description": "Label for a saved list arrangement in a sync conflict"
+  },
+  "settings_conflict_field_courseListSort": "Course list sort",
+  "@settings_conflict_field_courseListSort": {
+    "description": "Label for a saved list arrangement in a sync conflict"
+  },
+  "settings_conflict_field_buddyListSort": "Buddy list sort",
+  "@settings_conflict_field_buddyListSort": {
+    "description": "Label for a saved list arrangement in a sync conflict"
+  },
+  "settings_conflict_field_diveCenterListSort": "Dive center list sort",
+  "@settings_conflict_field_diveCenterListSort": {
+    "description": "Label for a saved list arrangement in a sync conflict"
+  },
+  "settings_conflict_field_siteListSort": "Dive site list sort",
+  "@settings_conflict_field_siteListSort": {
+    "description": "Label for a saved list arrangement in a sync conflict"
+  },
+  "settings_conflict_field_certificationListSort": "Certification list sort",
+  "@settings_conflict_field_certificationListSort": {
+    "description": "Label for a saved list arrangement in a sync conflict"
+  },
+  "settings_conflict_field_equipmentListSort": "Equipment list sort",
+  "@settings_conflict_field_equipmentListSort": {
+    "description": "Label for a saved list arrangement in a sync conflict"
+  },
+  "settings_conflict_field_siteListGroupBy": "Dive site list grouping",
+  "@settings_conflict_field_siteListGroupBy": {
+    "description": "Label for a saved list arrangement in a sync conflict"
+  },
+  "settings_conflict_field_certificationListGroupBy": "Certification list grouping",
+  "@settings_conflict_field_certificationListGroupBy": {
+    "description": "Label for a saved list arrangement in a sync conflict"
+  },
+  "settings_conflict_field_equipmentArrangement": "Gear arrangement",
+  "@settings_conflict_field_equipmentArrangement": {
+    "description": "Label for a saved list arrangement in a sync conflict"
+  },
+  "settings_conflict_field_equipmentGroupByLocation": "Equipment grouped by location",
+  "@settings_conflict_field_equipmentGroupByLocation": {
+    "description": "Label for a saved list arrangement in a sync conflict"
+  },
+  "settings_conflict_field_listArrangementHlc": "List arrangement record",
+  "@settings_conflict_field_listArrangementHlc": {
+    "description": "Label for a saved list arrangement in a sync conflict"
+  },
+  "settings_conflict_sortValue": "{field}, {direction}",
+  "@settings_conflict_sortValue": {
+    "description": "A saved list sort in a sync conflict: the sort field, then its direction",
+    "placeholders": {
+      "field": {"type": "String"},
+      "direction": {"type": "String"}
+    }
   },
   "settings_conflict_field_avgSpeed": "Average speed",
   "settings_conflict_field_batteryReserveFraction": "Battery reserve",

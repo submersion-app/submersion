@@ -29,6 +29,7 @@ import 'package:submersion/features/dive_centers/query/dive_center_query_entity.
 import 'package:submersion/features/query/presentation/widgets/query_filter_sheet.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_search_delegate.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_list_count_provider.dart';
+import 'package:submersion/features/settings/presentation/providers/list_arrangement_writes.dart';
 
 class DiveCenterListPage extends ConsumerStatefulWidget {
   const DiveCenterListPage({super.key});
@@ -177,10 +178,11 @@ class _DiveCenterListPageState extends ConsumerState<DiveCenterListPage>
                     field.localizedName(context.l10n),
                 getFieldIcon: (field) => field.icon,
                 onSortChanged: (field, direction) {
-                  ref.read(diveCenterSortProvider.notifier).state = SortState(
-                    field: field,
-                    direction: direction,
-                  );
+                  ref
+                      .read(settingsProvider.notifier)
+                      .setDiveCenterSort(
+                        SortState(field: field, direction: direction),
+                      );
                 },
               );
             },
@@ -192,7 +194,9 @@ class _DiveCenterListPageState extends ConsumerState<DiveCenterListPage>
                 final mode = ListViewMode.fromName(
                   value.replaceFirst('view_', ''),
                 );
-                ref.read(diveCenterListViewModeProvider.notifier).state = mode;
+                ref
+                    .read(settingsProvider.notifier)
+                    .setDiveCenterListViewMode(mode);
               }
             },
             itemBuilder: (context) {

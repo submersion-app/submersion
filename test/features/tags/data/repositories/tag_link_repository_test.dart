@@ -108,13 +108,25 @@ void main() {
 
       test('addTags skips pairs that exist and never removes', () async {
         await repository.replaceTags('i1', ['wreck']);
+        // Stamp the existing link instead of waiting on the clock: the adds
+        // below can land in the same millisecond, and the read then orders
+        // by id, a random UUID. An id that sorts after every UUID makes the
+        // order fail if the read ever ignores the timestamps.
+        await DatabaseService.instance.database.customStatement(
+          "UPDATE $junction SET created_at = 0, id = 'z-wreck' "
+          "WHERE ${scope.table.parentColumn} = 'i1'",
+        );
         await repository.addTags(['i1', 'i2'], ['wreck', 'fish']);
 
         final byItem = await repository.getTagIdsByItem(['i1', 'i2']);
-        // A set: the links list by created_at and then by id, a random UUID,
-        // and the replace and the add can share a millisecond. The counts
-        // below show the kept wreck link was not added twice.
-        expect(byItem['i1']!.toSet(), {'wreck', 'fish'});
+        expect(byItem['i1'], ['wreck', 'fish']);
+        expect(
+          await count(
+            "SELECT COUNT(*) AS n FROM $junction WHERE id = 'z-wreck'",
+          ),
+          1,
+          reason: 'the existing wreck link keeps its row',
+        );
         expect(byItem['i2']!.toSet(), {'wreck', 'fish'});
         expect(await repository.tagCountsFor(['i1', 'i2']), {
           'wreck': 2,

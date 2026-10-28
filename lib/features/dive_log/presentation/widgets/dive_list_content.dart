@@ -83,6 +83,9 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_list_co
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/shared/models/subtitle_text.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/list_arrangement_writes.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
+import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
 
 /// True if [d]'s date falls within [r], inclusive of the end calendar day.
 bool inDateRange(DiveSummary d, DateTimeRange r) {
@@ -1084,6 +1087,11 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
       final diveRolesById = format == _BulkExportFormat.pdf
           ? await diveRoleMapOrEmpty(ref.read(diveRoleMapProvider.future))
           : const <String, DiveRole>{};
+      // The diver's own gear arrangement, resolved so a list exported right
+      // after launch does not print the defaults (#3748).
+      final gearArrangement = format == _BulkExportFormat.pdf
+          ? await resolveEquipmentArrangement(ref.read)
+          : EquipmentArrangement.defaults;
       if (!mounted) return BulkActionOutcome.cancelled;
 
       if (!keepDialogForDelivery) {
@@ -1106,6 +1114,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                   diverPhoto: diverPhoto,
                   diveTypesById: diveTypesById,
                   diveRolesById: diveRolesById,
+                  gearArrangement: gearArrangement,
                 )
               : await exportService.saveDivesToPdfFile(
                   selectedDives,
@@ -1117,6 +1126,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                   diverPhoto: diverPhoto,
                   diveTypesById: diveTypesById,
                   diveRolesById: diveRolesById,
+                  gearArrangement: gearArrangement,
                 ),
         _BulkExportFormat.csv =>
           sharing
@@ -1398,10 +1408,9 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
       getFieldDisplayName: (field) => field.localizedName(context.l10n),
       getFieldIcon: (field) => field.icon,
       onSortChanged: (field, direction) {
-        ref.read(diveSortProvider.notifier).state = SortState(
-          field: field,
-          direction: direction,
-        );
+        ref
+            .read(settingsProvider.notifier)
+            .setDiveSort(SortState(field: field, direction: direction));
       },
     );
   }
@@ -1562,9 +1571,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             } else if (value == 'data_quality') {
               context.push('/dives/quality');
             } else if (value == 'group_trips') {
-              final next = !ref.read(diveListGroupTripsProvider);
-              ref.read(diveListGroupTripsProvider.notifier).state = next;
-              ref.read(settingsProvider.notifier).setGroupTripsInDiveList(next);
+              ref.read(settingsProvider.notifier).toggleGroupTripsInDiveList();
             } else if (value == 'expand_all_trips') {
               ref.read(collapsedTripIdsProvider.notifier).expandAll();
             } else if (value == 'collapse_all_trips') {
@@ -1575,7 +1582,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
               final mode = ListViewMode.fromName(
                 value.replaceFirst('view_', ''),
               );
-              ref.read(diveListViewModeProvider.notifier).state = mode;
+              ref.read(settingsProvider.notifier).setDiveListViewMode(mode);
             }
           },
           itemBuilder: (context) {
@@ -1760,11 +1767,9 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                   } else if (value == 'data_quality') {
                     context.push('/dives/quality');
                   } else if (value == 'group_trips') {
-                    final next = !ref.read(diveListGroupTripsProvider);
-                    ref.read(diveListGroupTripsProvider.notifier).state = next;
                     ref
                         .read(settingsProvider.notifier)
-                        .setGroupTripsInDiveList(next);
+                        .toggleGroupTripsInDiveList();
                   } else if (value == 'expand_all_trips') {
                     ref.read(collapsedTripIdsProvider.notifier).expandAll();
                   } else if (value == 'collapse_all_trips') {
@@ -1775,7 +1780,9 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                     final mode = ListViewMode.fromName(
                       value.replaceFirst('view_', ''),
                     );
-                    ref.read(diveListViewModeProvider.notifier).state = mode;
+                    ref
+                        .read(settingsProvider.notifier)
+                        .setDiveListViewMode(mode);
                   }
                 },
                 itemBuilder: (context) {
@@ -2433,10 +2440,14 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
           ),
           TextButton(
             onPressed: () {
-              ref.read(diveSortProvider.notifier).state = const SortState(
-                field: DiveSortField.date,
-                direction: SortDirection.descending,
-              );
+              ref
+                  .read(settingsProvider.notifier)
+                  .setDiveSort(
+                    const SortState(
+                      field: DiveSortField.date,
+                      direction: SortDirection.descending,
+                    ),
+                  );
             },
             child: Text(context.l10n.diveLog_listPage_groupingPausedAction),
           ),

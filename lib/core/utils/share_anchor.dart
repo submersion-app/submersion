@@ -1,4 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/widgets.dart';
+
+/// Whether this platform has a system share sheet. Windows and Linux do not,
+/// so there a file can only be saved to a folder.
+bool get platformHasShareSheet =>
+    Platform.isIOS || Platform.isMacOS || Platform.isAndroid;
 
 /// The screen rectangle of the widget [context] resolves to, for anchoring the
 /// iPad share popover.

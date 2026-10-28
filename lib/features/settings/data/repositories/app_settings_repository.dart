@@ -115,9 +115,10 @@ class AppSettingsRepository {
   }
 
   /// Whether the Equipment page groups its list under one heading per
-  /// location (v268). The Equipment page's own switch: the shared gear
-  /// arrangement, which the dive surfaces also read, is untouched. False
-  /// when unset or on a read error.
+  /// location (v268), as older builds saved it for the whole app. Since
+  /// issue #3748 the switch is saved per diver and this is only the fallback
+  /// for a diver who has not changed it. False when unset or on a read
+  /// error.
   Future<bool> getEquipmentGroupByLocation() async =>
       await getRawSetting(_equipmentGroupByLocationKey) == 'true';
 
@@ -242,10 +243,10 @@ class AppSettingsRepository {
   /// A read that FAILS (the database is unavailable, as in the null-database
   /// window of a restore, or the query errors) is different and rethrows,
   /// unlike the other reads in this class. Reporting it as null would tell
-  /// the arrangement notifier "nothing is stored", so one transient error
-  /// would reset a diver's customized arrangement to the defaults, and the
-  /// next edit would save the defaults over the real value. The notifier
-  /// treats a throw as "could not read" and keeps what it has; the PDF
+  /// the caller "nothing is stored", so one transient error would let the
+  /// next edit save the defaults over the real value. Since issue #3748 the
+  /// arrangement is saved per diver and this is only the fallback for a
+  /// diver who has not changed it: an edit refuses on a throw, and the PDF
   /// export falls back to the defaults itself.
   Future<EquipmentArrangement?> getEquipmentArrangement() async {
     final String? raw;

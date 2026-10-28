@@ -106,6 +106,7 @@ void main() {
           onPinToggle: () => toggled = true,
           onRestore: () {},
           onDelete: () {},
+          shareSheetAvailable: true,
         ),
       ),
     );
@@ -132,6 +133,7 @@ void main() {
             onPinToggle: () {},
             onRestore: () {},
             onDelete: () {},
+            shareSheetAvailable: true,
           ),
         ),
       );
@@ -153,6 +155,7 @@ void main() {
             onPinToggle: () {},
             onRestore: () {},
             onDelete: () {},
+            shareSheetAvailable: true,
           ),
         ),
       );
@@ -174,6 +177,7 @@ void main() {
             onPinToggle: () {},
             onRestore: () {},
             onDelete: () {},
+            shareSheetAvailable: true,
           ),
         ),
       );
@@ -193,6 +197,7 @@ void main() {
             onPinToggle: () {},
             onRestore: () {},
             onDelete: () {},
+            shareSheetAvailable: true,
           ),
         ),
       );
@@ -212,6 +217,7 @@ void main() {
             onPinToggle: () {},
             onRestore: () {},
             onDelete: () {},
+            shareSheetAvailable: true,
           ),
         ),
       );
@@ -230,6 +236,7 @@ void main() {
             onPinToggle: () {},
             onRestore: () {},
             onDelete: () {},
+            shareSheetAvailable: true,
           ),
         ),
       );
@@ -256,6 +263,7 @@ void main() {
             onPinToggle: () {},
             onRestore: () {},
             onDelete: () {},
+            shareSheetAvailable: true,
           ),
         ),
       );
@@ -276,6 +284,7 @@ void main() {
             onPinToggle: () {},
             onRestore: () {},
             onDelete: () {},
+            shareSheetAvailable: true,
           ),
         ),
       );
@@ -298,6 +307,7 @@ void main() {
               onPinToggle: () {},
               onRestore: () {},
               onDelete: () {},
+              shareSheetAvailable: true,
             ),
           ),
         );
@@ -318,6 +328,7 @@ void main() {
               onPinToggle: () {},
               onRestore: () {},
               onDelete: () {},
+              shareSheetAvailable: true,
             ),
           ),
         );
@@ -335,6 +346,7 @@ void main() {
             onPinToggle: () {},
             onRestore: () {},
             onDelete: () {},
+            shareSheetAvailable: true,
           ),
         ),
       );
@@ -354,6 +366,7 @@ void main() {
             onPinToggle: () {},
             onRestore: () {},
             onDelete: () {},
+            shareSheetAvailable: true,
           ),
         ),
       );
@@ -378,6 +391,7 @@ void main() {
             onPinToggle: () {},
             onRestore: () {},
             onDelete: () {},
+            shareSheetAvailable: true,
           ),
         ),
       );
@@ -397,6 +411,7 @@ void main() {
             onPinToggle: () => taps++,
             onRestore: () {},
             onDelete: () {},
+            shareSheetAvailable: true,
           ),
         ),
       );
@@ -417,6 +432,7 @@ void main() {
             onPinToggle: () {},
             onRestore: () => restores++,
             onDelete: () {},
+            shareSheetAvailable: true,
           ),
         ),
       );
@@ -437,6 +453,7 @@ void main() {
             onPinToggle: () {},
             onRestore: () {},
             onDelete: () => deletes++,
+            shareSheetAvailable: true,
           ),
         ),
       );
@@ -445,6 +462,113 @@ void main() {
       await tester.tap(find.byIcon(Icons.delete));
       await tester.pumpAndSettle();
       expect(deletes, 1);
+    });
+    testWidgets(
+      'menu shows Share between Restore and Delete when a share sheet exists',
+      (tester) async {
+        await tester.pumpWidget(
+          _wrap(
+            BackupHistoryTile(
+              record: _manual(),
+              leadingIcon: Icons.phone_android,
+              onPinToggle: () {},
+              onRestore: () {},
+              onShare: (_) {},
+              onDelete: () {},
+              shareSheetAvailable: true,
+            ),
+          ),
+        );
+        await tester.tap(find.byType(PopupMenuButton<String>));
+        await tester.pumpAndSettle();
+
+        final values = tester
+            .widgetList<PopupMenuItem<String>>(
+              find.byType(PopupMenuItem<String>),
+            )
+            .map((item) => item.value)
+            .toList();
+        expect(values, ['restore', 'share', 'delete']);
+        expect(find.text('Share'), findsOneWidget);
+        expect(find.byIcon(Icons.share), findsOneWidget);
+      },
+    );
+
+    testWidgets('menu shows Save a copy when no share sheet exists', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _wrap(
+          BackupHistoryTile(
+            record: _manual(),
+            leadingIcon: Icons.phone_android,
+            onPinToggle: () {},
+            onRestore: () {},
+            onShare: (_) {},
+            onDelete: () {},
+            shareSheetAvailable: false,
+          ),
+        ),
+      );
+      await tester.tap(find.byType(PopupMenuButton<String>));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Save a copy'), findsOneWidget);
+      expect(find.byIcon(Icons.save_alt), findsOneWidget);
+      expect(find.text('Share'), findsNothing);
+    });
+
+    testWidgets('Share item is disabled when onShare is null', (tester) async {
+      await tester.pumpWidget(
+        _wrap(
+          BackupHistoryTile(
+            record: _manual(),
+            leadingIcon: Icons.phone_android,
+            onPinToggle: () {},
+            onRestore: () {},
+            onDelete: () {},
+            shareSheetAvailable: true,
+          ),
+        ),
+      );
+      await tester.tap(find.byType(PopupMenuButton<String>));
+      await tester.pumpAndSettle();
+
+      final share = tester
+          .widgetList<PopupMenuItem<String>>(find.byType(PopupMenuItem<String>))
+          .singleWhere((item) => item.value == 'share');
+      expect(share.enabled, isFalse);
+    });
+
+    testWidgets('choosing Share calls onShare with the tile context', (
+      tester,
+    ) async {
+      // The iPad share popover anchors to this context, so it must be the
+      // row's, not the list's.
+      var shares = 0;
+      BuildContext? shareContext;
+      await tester.pumpWidget(
+        _wrap(
+          BackupHistoryTile(
+            record: _manual(),
+            leadingIcon: Icons.phone_android,
+            onPinToggle: () {},
+            onRestore: () {},
+            onShare: (tileContext) {
+              shares++;
+              shareContext = tileContext;
+            },
+            onDelete: () {},
+            shareSheetAvailable: true,
+          ),
+        ),
+      );
+      await tester.tap(find.byType(PopupMenuButton<String>));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byIcon(Icons.share));
+      await tester.pumpAndSettle();
+      expect(shares, 1);
+      expect(shareContext!.widget, isA<BackupHistoryTile>());
     });
   });
 
@@ -463,6 +587,7 @@ void main() {
             onPinToggle: () {},
             onRestore: () {},
             onDelete: () {},
+            shareSheetAvailable: true,
           ),
         ),
       );

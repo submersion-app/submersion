@@ -2417,6 +2417,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get backup_export_share_subtitle => '通过隔空投送、电子邮件或其他应用发送';
 
   @override
+  String get backup_copySheet_deviceLocked => '此安全副本取自您受保护的数据库，只能在此设备上恢复。';
+
+  @override
+  String backup_copySheet_title(String dateTime) {
+    return '$dateTime 的备份';
+  }
+
+  @override
   String get backup_frequency_daily => '每天';
 
   @override
@@ -2430,6 +2438,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get backup_history_action_restore => '恢复';
+
+  @override
+  String get backup_history_action_saveCopy => '保存副本';
+
+  @override
+  String get backup_history_action_share => '分享';
 
   @override
   String get backup_history_empty => '暂无备份';
@@ -9672,19 +9686,24 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get diveLog_cylinders_columnTank => '气瓶';
+  String diveLog_cylinders_figureStart(String pressure) {
+    return '起始 $pressure';
+  }
 
   @override
-  String get diveLog_cylinders_columnGas => '气体';
+  String diveLog_cylinders_figureEnd(String pressure) {
+    return '结束 $pressure';
+  }
 
   @override
-  String get diveLog_cylinders_columnStart => '起始';
+  String diveLog_cylinders_figureUsed(String pressure) {
+    return '已用 $pressure';
+  }
 
   @override
-  String get diveLog_cylinders_columnEnd => '结束';
-
-  @override
-  String get diveLog_cylinders_columnUsed => '已用';
+  String diveLog_cylinders_gasSemantics(String mix) {
+    return '气体 $mix';
+  }
 
   @override
   String diveLog_cylinders_gasUsed(String amount) {
@@ -21757,6 +21776,53 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_conflict_field_omitUnusedOcGases => '跳过未使用的应急气体';
+
+  @override
+  String get settings_conflict_field_diveListSort => '潜水：排序';
+
+  @override
+  String get settings_conflict_field_divePlanListSort => '已保存的计划：排序';
+
+  @override
+  String get settings_conflict_field_tripListSort => '旅行：排序';
+
+  @override
+  String get settings_conflict_field_courseListSort => '课程：排序';
+
+  @override
+  String get settings_conflict_field_buddyListSort => '潜伴：排序';
+
+  @override
+  String get settings_conflict_field_diveCenterListSort => '潜水中心：排序';
+
+  @override
+  String get settings_conflict_field_siteListSort => '潜水点：排序';
+
+  @override
+  String get settings_conflict_field_certificationListSort => '证书：排序';
+
+  @override
+  String get settings_conflict_field_equipmentListSort => '装备：排序';
+
+  @override
+  String get settings_conflict_field_siteListGroupBy => '潜水点：分组';
+
+  @override
+  String get settings_conflict_field_certificationListGroupBy => '证书：分组';
+
+  @override
+  String get settings_conflict_field_equipmentArrangement => '装备排列';
+
+  @override
+  String get settings_conflict_field_equipmentGroupByLocation => '装备按位置分组';
+
+  @override
+  String get settings_conflict_field_listArrangementHlc => '列表排列记录';
+
+  @override
+  String settings_conflict_sortValue(String field, String direction) {
+    return '$field，$direction';
+  }
 
   @override
   String get settings_conflict_field_avgSpeed => '平均速度';

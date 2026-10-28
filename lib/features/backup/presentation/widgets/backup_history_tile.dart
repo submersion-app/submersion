@@ -24,7 +24,16 @@ class BackupHistoryTile extends ConsumerWidget {
   final IconData leadingIcon;
   final VoidCallback onPinToggle;
   final VoidCallback onRestore;
+
+  /// Opens Save and Share for this backup (issue #3650), given this row's
+  /// context so the iPad share popover can anchor to the row. Null disables
+  /// the item, as while another backup operation runs.
+  final ValueChanged<BuildContext>? onShare;
   final VoidCallback onDelete;
+
+  /// False on Windows and Linux, which have no share sheet: the item then
+  /// reads "Save a copy".
+  final bool shareSheetAvailable;
 
   const BackupHistoryTile({
     super.key,
@@ -33,7 +42,9 @@ class BackupHistoryTile extends ConsumerWidget {
     required this.leadingIcon,
     required this.onPinToggle,
     required this.onRestore,
+    this.onShare,
     required this.onDelete,
+    required this.shareSheetAvailable,
   });
 
   @override
@@ -148,6 +159,8 @@ class BackupHistoryTile extends ConsumerWidget {
               switch (action) {
                 case 'restore':
                   onRestore();
+                case 'share':
+                  onShare?.call(context);
                 case 'delete':
                   onDelete();
               }
@@ -158,6 +171,23 @@ class BackupHistoryTile extends ConsumerWidget {
                 child: ListTile(
                   leading: const Icon(Icons.restore),
                   title: Text(context.l10n.backup_history_action_restore),
+                  contentPadding: EdgeInsets.zero,
+                  dense: true,
+                ),
+              ),
+              PopupMenuItem(
+                value: 'share',
+                enabled: onShare != null,
+                child: ListTile(
+                  leading: Icon(
+                    shareSheetAvailable ? Icons.share : Icons.save_alt,
+                  ),
+                  title: Text(
+                    shareSheetAvailable
+                        ? context.l10n.backup_history_action_share
+                        : context.l10n.backup_history_action_saveCopy,
+                  ),
+                  enabled: onShare != null,
                   contentPadding: EdgeInsets.zero,
                   dense: true,
                 ),

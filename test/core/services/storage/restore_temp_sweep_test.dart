@@ -97,6 +97,45 @@ void main() {
     },
   );
 
+  test('matches a pre-downgrade copy name', () async {
+    // Shared from the history under its own name (issue #3650).
+    final bare = await write(
+      '20261028-101500123-v300-newer.db',
+      100,
+      const Duration(days: 3),
+    );
+    final restoreCopy = await write(
+      'restore-0b9d2f7e-6c1a-4d3e-9f2b-1a2b3c4d5e6f-20261028-101500123-v300-newer.db',
+      100,
+      const Duration(days: 3),
+    );
+
+    await build().run(now: now);
+
+    expect(bare.existsSync(), isFalse);
+    expect(restoreCopy.existsSync(), isFalse);
+  });
+
+  test('matches a safety copy wrapped as .sbe', () async {
+    // "Encrypt existing backups" wraps pre-update copies too, and a shared
+    // one goes out under that name (issue #3650).
+    final bare = await write(
+      '20261012-081200000-v300-v301.sbe',
+      100,
+      const Duration(days: 3),
+    );
+    final staged = await write(
+      'restore-0b9d2f7e-6c1a-4d3e-9f2b-1a2b3c4d5e6f-20261028-101500123-v300-newer.sbe',
+      100,
+      const Duration(days: 3),
+    );
+
+    await build().run(now: now);
+
+    expect(bare.existsSync(), isFalse);
+    expect(staged.existsSync(), isFalse);
+  });
+
   test('keeps a backup-named file younger than 24 hours', () async {
     // The share sheet exports under the same name into the same folder.
     final fresh = await write(

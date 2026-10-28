@@ -53,6 +53,7 @@ import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 export 'package:submersion/features/backup/data/services/backup_database_adapter.dart';
 
 part 'backup_service_cloud_copy.dart';
+part 'backup_service_copy_out.dart';
 part 'backup_service_pruning.dart';
 part 'backup_service_retention.dart';
 
@@ -96,6 +97,22 @@ class _DefaultBackupBookmarkPort implements BackupBookmarkPort {
 /// Dependencies are constructor-injected for testability.
 /// Cloud provider is optional — backups work locally without it.
 class BackupService {
+  /// Why a protected-database copy failed to open with the live key. The
+  /// file cannot say which of these it is: a key from another install and a
+  /// corrupt file fail the keyed open the same way.
+  static const String lockedCopyWrongKeyMessage =
+      'This copy came from a protected database that this install has no key '
+      'for (another device, or protection was turned off and on again since), '
+      'or the file is corrupt.';
+
+  /// Why an encrypted-looking file could not be checked: there is no live
+  /// key to open it with. Restore from file opts every file into this check,
+  /// so it names no particular kind of backup.
+  static const String unreadableCopyNoKeyMessage =
+      'This file is not a plain Submersion database. It may be a copy of a '
+      'protected database whose key this install does not have, or it may be '
+      'corrupt.';
+
   final BackupDatabaseAdapter _dbAdapter;
   final BackupPreferences _preferences;
   final CloudStorageProvider? _cloudProvider;
@@ -653,13 +670,16 @@ class BackupService {
   /// and contains expected Submersion tables.
   ///
   /// [allowLiveDatabaseEncryption] opts into the one artifact kind that may
-  /// legitimately be SQLCipher ciphertext: a [BackupType.preMigration] copy,
-  /// which is a raw byte copy of the live database and so carries the live
+  /// legitimately be SQLCipher ciphertext: a [BackupType.preMigration] or
+  /// [BackupType.preDowngrade] copy, which is a raw byte copy of the live
+  /// database and so carries the live
   /// database's encryption. Such a file is deep-checked with the live key
-  /// instead of being rejected. Portable backups keep the strict plaintext
-  /// rule: they are decrypted on export precisely so they restore on a
-  /// device where the database password is unknown, and an encrypted-looking
-  /// one is a real problem that must fail loudly.
+  /// instead of being rejected. Restore from file opts in too, so such a copy
+  /// saved or shared from the history restores on this install (issue
+  /// #3650). Without the live key, or with a different one, an
+  /// encrypted-looking file still fails loudly: portable backups are
+  /// decrypted on export precisely so they restore on a device where the
+  /// database password is unknown.
   ///
   /// [requireBackupExtension] is false only for a database copy the restore
   /// journal set aside, whose name ends in a timestamp rather than an
@@ -725,11 +745,7 @@ class BackupService {
     if (allowLiveDatabaseEncryption && isEncryptedDatabaseFile(filePath)) {
       deepCheckKeyHex = _dbAdapter.databaseKeyHex;
       if (deepCheckKeyHex == null) {
-        return const BackupValidationResult.invalid(
-          'This safety copy cannot be opened. It was either taken from a '
-          'protected database whose key this install no longer has, or the '
-          'file is corrupt.',
-        );
+        return const BackupValidationResult.invalid(unreadableCopyNoKeyMessage);
       }
     }
 
@@ -785,7 +801,18 @@ class BackupService {
       } finally {
         testDb.close();
       }
-    } catch (e) {
+    } catch (e, stack) {
+      // A keyed open that fails says the live key is not this file's, or the
+      // file is broken; the raw SQLite error says neither, so it goes to the
+      // log rather than the message.
+      if (deepCheckKeyHex != null) {
+        _log.warning(
+          'Keyed open of ${p.basename(filePath)} failed',
+          error: e,
+          stackTrace: stack,
+        );
+        return const BackupValidationResult.invalid(lockedCopyWrongKeyMessage);
+      }
       return BackupValidationResult.invalid('File is not a valid database: $e');
     }
   }
@@ -809,56 +836,21 @@ class BackupService {
     DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.restore);
     _log.info('Starting restore from: ${record.filename} (mode: $mode)');
 
-    // Determine backup source path. A SAF (content://) ref is streamed to a
-    // temp file first; SQLite open + validation need a real filesystem path.
-    String sourcePath;
-    // Set when sourcePath is a copy this restore made (a SAF stream or a
-    // cloud download). Nothing else ever deletes it, so every such restore
-    // would otherwise leave a full-size database in the temp folder
-    // (storage GC design, leak 1).
-    var madeCopy = false;
-    final localRef = record.localPath;
-    if (localRef != null && isSafRef(localRef)) {
-      if (!await _safPort.exists(localRef)) {
-        throw const BackupException(
-          'Backup file not found locally or in cloud',
-        );
-      }
-      final tempDir = await resolveSyncTempDir();
-      sourcePath = p.join(tempDir.path, _restoreCopyName(record.filename));
-      madeCopy = true;
-      try {
-        await _safPort.readBackup(documentUri: localRef, destPath: sourcePath);
-      } catch (_) {
-        // A stream that failed part way leaves a partial copy behind.
-        await _MaterializedBackup(sourcePath, isTemp: true).cleanUp();
-        rethrow;
-      }
-    } else if (localRef != null && await File(localRef).exists()) {
-      sourcePath = localRef;
-    } else if (await _cloudCopyHere(record)) {
-      // Download from cloud to a temp location
-      _log.info('Downloading backup from cloud');
-      madeCopy = true;
-      sourcePath = await _downloadFromCloud(
-        record.cloudFileId!,
-        _restoreCopyName(record.filename),
-      );
-    } else if (record.cloudFileId != null && record.cloudAccountId != null) {
-      throw BackupCopyInOtherAccountException(record.cloudAccountId!);
-    } else {
-      throw const BackupException('Backup file not found locally or in cloud');
-    }
+    // A SAF (content://) ref or a cloud copy is fetched to a temp file first,
+    // since SQLite open + validation need a real filesystem path. Nothing
+    // else ever deletes that copy, so the finally does (storage GC design,
+    // leak 1).
+    final source = await _resolveBackupSource(record);
     try {
       await _restoreFromSource(
         record,
-        sourcePath,
+        source.path,
         mode: mode,
         encryptionSecret: encryptionSecret,
         onMigrationProgress: onMigrationProgress,
       );
     } finally {
-      await _MaterializedBackup(sourcePath, isTemp: madeCopy).cleanUp();
+      await source.discard();
     }
   }
 
@@ -885,15 +877,17 @@ class BackupService {
       // Parity with the file-picker path: the file on disk (or the fresh
       // download) may have been corrupted since the record was written.
       //
-      // A pre-migration copy is the one kind that may legitimately be
-      // SQLCipher ciphertext (it is a raw copy of the live file, taken before
-      // the migration with the database closed), so it is deep-checked with
-      // the live key rather than rejected. DatabaseService.restore already
-      // handles such a source: it detects the encrypted header and skips the
-      // re-encryption it would otherwise apply.
+      // A pre-migration or pre-downgrade copy is the one kind that may
+      // legitimately be SQLCipher ciphertext (a raw copy of the live file,
+      // taken with the database closed), so it is deep-checked with the live
+      // key rather than rejected (issue #3650). DatabaseService.restore
+      // already handles such a source: it detects the encrypted header and
+      // skips the re-encryption it would otherwise apply.
       final validation = await validateBackupFile(
         materialized.path,
-        allowLiveDatabaseEncryption: record.type == BackupType.preMigration,
+        allowLiveDatabaseEncryption:
+            record.type == BackupType.preMigration ||
+            record.type == BackupType.preDowngrade,
       );
       if (!validation.isValid) {
         throw BackupException(
@@ -916,7 +910,7 @@ class BackupService {
         onMigrationProgress: onMigrationProgress,
       );
     } finally {
-      await materialized.cleanUp();
+      await materialized.discard();
     }
     await _armPostRestoreSync(mode);
 
@@ -980,6 +974,24 @@ class BackupService {
         );
       }
 
+      // A decrypted copy has had no deep check: the caller could only
+      // validate the envelope. "Encrypt existing backups" also wraps
+      // pre-update safety copies, whose plaintext is SQLCipher under the
+      // live key, so the same rule as a history row applies (issue #3650).
+      // Swapping in a copy this install cannot open would leave it unable
+      // to start.
+      if (materialized.isTemp) {
+        final validation = await validateBackupFile(
+          materialized.path,
+          allowLiveDatabaseEncryption: true,
+        );
+        if (!validation.isValid) {
+          throw BackupException(
+            validation.error ?? 'Backup file failed validation',
+          );
+        }
+      }
+
       // Create a proper backup before restoring so the user can find it
       // in their configured backup location and in the history list.
       await performBackup();
@@ -991,7 +1003,7 @@ class BackupService {
         onMigrationProgress: onMigrationProgress,
       );
     } finally {
-      await materialized.cleanUp();
+      await materialized.discard();
     }
     await _armPostRestoreSync(mode);
 
@@ -1292,6 +1304,20 @@ class BackupService {
     await _preferences.addRecord(adopted);
     await _writePinMarker(adopted);
   }
+
+  /// [record] as a real file to save or share, its bytes untouched (issue
+  /// #3650). Throws [BackupException] when it is nowhere to be found, and
+  /// [BackupCopyInOtherAccountException] when its only copy is in another
+  /// cloud account. See backup_service_copy_out.dart.
+  Future<PreparedBackupFile> prepareBackupCopy(
+    BackupRecord record, {
+    required BackupCopyPurpose purpose,
+  }) => _prepareBackupCopy(record, purpose: purpose);
+
+  /// Whether [record] is a safety copy of a protected database, which
+  /// restores only on this install.
+  Future<bool> isDeviceLockedSafetyCopy(BackupRecord record) =>
+      _isDeviceLockedSafetyCopy(record);
 
   /// Whether deleting [record] may destroy another device's only copy.
   ///
@@ -1748,12 +1774,12 @@ class BackupService {
   /// matches, else with [encryptionSecret] (passphrase or recovery code)
   /// against the embedded keyslots. Throws [BackupEncryptedException] when
   /// neither is available. Plaintext sources pass through untouched.
-  Future<_MaterializedBackup> _materializePlaintextBackup(
+  Future<PreparedBackupFile> _materializePlaintextBackup(
     String sourcePath, {
     String? encryptionSecret,
   }) async {
     if (!await BackupCrypto.isEncryptedBackup(sourcePath)) {
-      return _MaterializedBackup(sourcePath, isTemp: false);
+      return PreparedBackupFile(sourcePath, isTemp: false);
     }
     final tempDir = await resolveSyncTempDir();
     final decrypted = p.join(tempDir.path, 'restore_${_uuid.v4()}.db');
@@ -1798,7 +1824,7 @@ class BackupService {
       }
       rethrow;
     }
-    return _MaterializedBackup(decrypted, isTemp: true);
+    return PreparedBackupFile(decrypted, isTemp: true);
   }
 
   /// Delete every UNENCRYPTED backup (`submersion_backup_*.db`) from the
@@ -1825,19 +1851,6 @@ class BackupService {
     if (deleted > 0) await resetHistoryNowIfSupported(provider);
     _log.info('Deleted $deleted unencrypted cloud backups');
     return deleted;
-  }
-
-  Future<String> _downloadFromCloud(String cloudFileId, String filename) async {
-    if (_cloudProvider == null) {
-      throw const BackupException('No cloud provider available for download');
-    }
-
-    final tempDir = await resolveSyncTempDir();
-    final tempPath = p.join(tempDir.path, filename);
-    // Path-based download: providers stream to disk and delete a partial
-    // file on failure, so the backup is never resident in memory.
-    await _cloudProvider.downloadToFile(cloudFileId, tempPath);
-    return tempPath;
   }
 
   Future<String?> _getOrCreateCloudBackupFolder() async {
@@ -1884,25 +1897,6 @@ class BackupNewerSchemaException extends BackupException {
 }
 
 /// Result of validating a backup file
-/// A restore source resolved to a plaintext path: either the original file
-/// (pass-through) or a decrypted temp copy that [cleanUp] removes.
-class _MaterializedBackup {
-  final String path;
-  final bool isTemp;
-
-  const _MaterializedBackup(this.path, {required this.isTemp});
-
-  Future<void> cleanUp() async {
-    if (!isTemp) return;
-    try {
-      final f = File(path);
-      if (await f.exists()) await f.delete();
-    } catch (_) {
-      // best-effort temp cleanup
-    }
-  }
-}
-
 class BackupValidationResult {
   final bool isValid;
   final String? error;

@@ -31,7 +31,7 @@ extension BeforeOpenChildColumns on AppDatabase {
     // selects the whole row, for the same reason as the tank columns.
     await _assertTransmitterConfiguredColumn();
 
-    // v323: trips.parent_trip_id (issue #3658). Every trip read selects the
+    // v325: trips.parent_trip_id (issue #3658). Every trip read selects the
     // whole row, for the same reason as the tank columns.
     await _assertTripParentColumn();
   }

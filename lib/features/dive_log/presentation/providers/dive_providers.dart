@@ -5,6 +5,7 @@ import 'package:submersion/core/constants/dive_search.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
+import 'package:submersion/core/models/sort_state_codec.dart';
 import 'package:submersion/core/performance/perf_timer.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -53,11 +54,20 @@ final diveFilterProvider = StateProvider<DiveFilterState>(
 );
 
 /// Dive sort state provider
-final diveSortProvider = StateProvider<SortState<DiveSortField>>(
-  (ref) => const SortState(
-    field: DiveSortField.date,
-    direction: SortDirection.descending,
-  ),
+///
+/// Comes back as the diver left it (issue #3748): the active diver's saved
+/// sort, or the starting order below when there is none (or this build
+/// cannot read it). Change it through `ListArrangementWrites`.
+final diveSortProvider = Provider<SortState<DiveSortField>>(
+  (ref) =>
+      decodeSortState(
+        ref.watch(settingsProvider.select((s) => s.listArrangements.diveSort)),
+        DiveSortField.values,
+      ) ??
+      const SortState(
+        field: DiveSortField.date,
+        direction: SortDirection.descending,
+      ),
 );
 
 /// The ids [filter] keeps, resolved in SQL through the one compiled query

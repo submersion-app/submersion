@@ -9315,7 +9315,14 @@ class SyncDataSerializer {
   ) async {
     final query = _db.select(_db.diverSettings);
     if (hlcSince != null) {
-      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+      // A list arrangement change stamps its own clock, not the row clock
+      // (issue #3748), so a row is due when either has moved past the
+      // watermark.
+      query.where(
+        (t) =>
+            t.hlc.isBiggerThanValue(hlcSince) |
+            t.listArrangementHlc.isBiggerThanValue(hlcSince),
+      );
     }
     final rows = await query.get();
     return rows

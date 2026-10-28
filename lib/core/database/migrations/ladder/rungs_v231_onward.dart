@@ -640,10 +640,17 @@ extension RungsFromV231 on AppDatabase {
     if (from < 320) await _assertNearbySchema();
     if (from < 320) await reportProgress();
 
-    // v323: trips.parent_trip_id, the larger trip a side trip is part of
-    // (issue #3658). Column and index only, no backfill; re-asserted in
-    // beforeOpen. 321 and 322 are held by other branches.
-    if (from < 323) await _assertTripParentColumn();
+    // v323: diver_settings list arrangement columns and their sync clock
+    // (issue #3748); re-asserted in beforeOpen. 321 and 322 are held by
+    // PR #3726.
+    if (from < 323) await _assertListArrangementColumns();
     if (from < 323) await reportProgress();
+
+    // v325: trips.parent_trip_id, the larger trip a side trip is part of
+    // (issue #3658). Column and index only, no backfill; re-asserted in
+    // beforeOpen. Renumbered from 323, which #3748 shipped first; 324 is
+    // held by other branches.
+    if (from < 325) await _assertTripParentColumn();
+    if (from < 325) await reportProgress();
   }
 }
