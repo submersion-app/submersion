@@ -320,6 +320,18 @@ void main() {
     }
   });
 
+  test('an empty date falls back to onSurface when the muted colour '
+      'would not read', () {
+    // A theme whose variant text sits too close to its surface.
+    const scheme = ColorScheme.light(
+      surface: Color(0xFFFFFFFF),
+      onSurface: Color(0xFF111111),
+      onSurfaceVariant: Color(0xFFDDDDDD),
+    );
+
+    expect(calendarCellText(scheme, 0, 5), scheme.onSurface);
+  });
+
   group('cell colours', () {
     for (final brightness in Brightness.values) {
       test('zero is neutral, counts deepen, dark fills use onPrimary '

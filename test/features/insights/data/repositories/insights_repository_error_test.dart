@@ -35,6 +35,7 @@ void main() {
       'getSacVolumeByTankRole': (r) => r.getSacVolumeByTankRole(),
       'getSacPressureByTankRole': (r) => r.getSacPressureByTankRole(),
       'getDiveTypeDistribution': (r) => r.getDiveTypeDistribution(),
+      'getCalendarDayMatrix': (r) => r.getCalendarDayMatrix(),
       'getDepthPerDive': (r) => r.getDepthPerDive(),
       'getBottomTimePerDive': (r) => r.getBottomTimePerDive(),
       'getRuntimePerDive': (r) => r.getRuntimePerDive(),
