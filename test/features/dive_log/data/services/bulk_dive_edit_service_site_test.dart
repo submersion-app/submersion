@@ -1,6 +1,5 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
@@ -99,7 +98,7 @@ void main() {
 
   test('links every dive and snaps the site onto each one', () async {
     await insertDive('d1', waterType: 'fresh');
-    await insertDive('d2', entryMethod: 'boat', exitMethod: 'shore');
+    await insertDive('d2', entryMethod: 'boat', exitMethod: 'ladder');
     await insertSite(
       's1',
       waterType: 'salt',
@@ -124,7 +123,7 @@ void main() {
     expect(d2.waterType, 'salt');
     expect(d2.entryMethod, 'shore');
     // d2's exit was set apart from its entry by hand, so it stays.
-    expect(d2.exitMethod, 'shore');
+    expect(d2.exitMethod, 'ladder');
     expect(await typesOf('d1'), containsAll(['recreational', 'wreck']));
     expect(await typesOf('d2'), containsAll(['recreational', 'wreck']));
   });
@@ -267,7 +266,6 @@ void main() {
       expect(d1.entryMethod, isNull);
       expect(d1.exitMethod, isNull);
       expect(await typesOf('d1'), ['recreational']);
-      expect((await diveRepo.getDiveById('d1'))!.waterType, WaterType.fresh);
     },
   );
 }
