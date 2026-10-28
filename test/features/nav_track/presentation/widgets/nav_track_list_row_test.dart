@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -7,7 +8,9 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
-import 'package:submersion/features/gps_log/presentation/widgets/track_badge_line.dart';
+import 'package:submersion/features/tracks/domain/track_kind.dart';
+import 'package:submersion/features/tracks/presentation/widgets/track_badge_line.dart';
+import 'package:submersion/features/tracks/presentation/widgets/track_kind_badge.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
@@ -379,6 +382,9 @@ void main() {
         ),
         linkedDive: dive,
         locale: const Locale('de'),
+        // The badge shares the link chip's line (#3749): the German chip
+        // and "Unterwasser" must both fit on it.
+        kindBadge: TrackKindBadge(TrackKind.underwater),
       );
 
       final title = tester.getRect(find.text(name));
@@ -399,6 +405,23 @@ void main() {
         label.top,
         greaterThanOrEqualTo(status.bottom),
         reason: 'The link label belongs on its own line below the status line.',
+      );
+      final badge = tester.getRect(
+        find.byKey(const ValueKey('track-kind-badge-underwater')),
+      );
+      // At this width the two do not fit side by side, so the badge drops
+      // below the chip rather than truncating it.
+      expect(badge.overlaps(label), isFalse);
+      final chipText = tester.renderObject<RenderParagraph>(
+        find.descendant(
+          of: find.byKey(const ValueKey('nav-track-link-label')),
+          matching: find.byType(RichText),
+        ),
+      );
+      expect(
+        chipText.didExceedMaxLines,
+        isFalse,
+        reason: 'The badge squeezed the dive link chip into an ellipsis.',
       );
     },
   );

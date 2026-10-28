@@ -5,7 +5,7 @@ import 'package:submersion/features/gps_log/data/repositories/track_geometry_cac
 import 'package:submersion/features/gps_log/domain/entities/gps_track.dart';
 import 'package:submersion/features/gps_log/presentation/providers/gps_track_map_providers.dart';
 import 'package:submersion/features/gps_log/presentation/widgets/gps_track_list_tile.dart';
-import 'package:submersion/features/gps_log/presentation/widgets/track_badge_line.dart';
+import 'package:submersion/features/tracks/presentation/widgets/track_badge_line.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../helpers/mock_providers.dart';

@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
-import 'package:submersion/features/gps_log/presentation/widgets/track_badge_line.dart';
+import 'package:submersion/features/tracks/presentation/widgets/track_badge_line.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
 import 'package:submersion/features/nav_track/presentation/nav_track_dive_label.dart';
@@ -134,14 +134,9 @@ class NavTrackListRow extends ConsumerWidget {
           const SizedBox(height: 4),
           TrackBadgeLine(
             badge: kindBadge,
-            // Align keeps the chip at its own width at the start, rather than
-            // stretched across the space the badge leaves.
-            child: Align(
-              alignment: AlignmentDirectional.centerStart,
-              child: NavTrackLinkLabel(
-                label: _linkLabel(l10n, dive),
-                diveId: diveId,
-              ),
+            child: NavTrackLinkLabel(
+              label: _linkLabel(l10n, dive),
+              diveId: diveId,
             ),
           ),
         ],
