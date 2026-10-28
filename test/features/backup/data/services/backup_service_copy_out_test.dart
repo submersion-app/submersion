@@ -374,6 +374,34 @@ void main() {
       expect(tempNames(), ['submersion_backup_2026-10-20.db']);
     });
 
+    test(
+      'a share copy that cannot take its name leaves nothing in temp',
+      () async {
+        final cloud = FakeCloudStorageProvider();
+        final upload = await cloud.uploadFile(
+          Uint8List.fromList([1, 2, 3]),
+          'submersion_backup_2026-10-20.db',
+        );
+        // A folder holds the share copy's name, so the final move fails.
+        Directory(
+          p.join(_isolatedTempDir.path, 'submersion_backup_2026-10-20.db'),
+        ).createSync();
+
+        await expectLater(
+          service(cloud: cloud).prepareBackupCopy(
+            record(
+              filename: 'submersion_backup_2026-10-20.db',
+              cloudFileId: upload.fileId,
+              location: BackupLocation.cloud,
+            ),
+            purpose: BackupCopyPurpose.share,
+          ),
+          throwsA(isA<FileSystemException>()),
+        );
+        expect(tempNames(), ['submersion_backup_2026-10-20.db']);
+      },
+    );
+
     test('failed cloud download leaves nothing in temp', () async {
       await expectLater(
         service(cloud: _PartialDownloadCloud()).prepareBackupCopy(

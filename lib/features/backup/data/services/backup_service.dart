@@ -829,56 +829,21 @@ class BackupService {
     DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.restore);
     _log.info('Starting restore from: ${record.filename} (mode: $mode)');
 
-    // Determine backup source path. A SAF (content://) ref is streamed to a
-    // temp file first; SQLite open + validation need a real filesystem path.
-    String sourcePath;
-    // Set when sourcePath is a copy this restore made (a SAF stream or a
-    // cloud download). Nothing else ever deletes it, so every such restore
-    // would otherwise leave a full-size database in the temp folder
-    // (storage GC design, leak 1).
-    var madeCopy = false;
-    final localRef = record.localPath;
-    if (localRef != null && isSafRef(localRef)) {
-      if (!await _safPort.exists(localRef)) {
-        throw const BackupException(
-          'Backup file not found locally or in cloud',
-        );
-      }
-      final tempDir = await resolveSyncTempDir();
-      sourcePath = p.join(tempDir.path, _restoreCopyName(record.filename));
-      madeCopy = true;
-      try {
-        await _safPort.readBackup(documentUri: localRef, destPath: sourcePath);
-      } catch (_) {
-        // A stream that failed part way leaves a partial copy behind.
-        await PreparedBackupFile(sourcePath, isTemp: true).discard();
-        rethrow;
-      }
-    } else if (localRef != null && await File(localRef).exists()) {
-      sourcePath = localRef;
-    } else if (await _cloudCopyHere(record)) {
-      // Download from cloud to a temp location
-      _log.info('Downloading backup from cloud');
-      madeCopy = true;
-      sourcePath = await _downloadFromCloud(
-        record.cloudFileId!,
-        _restoreCopyName(record.filename),
-      );
-    } else if (record.cloudFileId != null && record.cloudAccountId != null) {
-      throw BackupCopyInOtherAccountException(record.cloudAccountId!);
-    } else {
-      throw const BackupException('Backup file not found locally or in cloud');
-    }
+    // A SAF (content://) ref or a cloud copy is fetched to a temp file first,
+    // since SQLite open + validation need a real filesystem path. Nothing
+    // else ever deletes that copy, so the finally does (storage GC design,
+    // leak 1).
+    final source = await _resolveBackupSource(record);
     try {
       await _restoreFromSource(
         record,
-        sourcePath,
+        source.path,
         mode: mode,
         encryptionSecret: encryptionSecret,
         onMigrationProgress: onMigrationProgress,
       );
     } finally {
-      await PreparedBackupFile(sourcePath, isTemp: madeCopy).discard();
+      await source.discard();
     }
   }
 
@@ -1877,19 +1842,6 @@ class BackupService {
     if (deleted > 0) await resetHistoryNowIfSupported(provider);
     _log.info('Deleted $deleted unencrypted cloud backups');
     return deleted;
-  }
-
-  Future<String> _downloadFromCloud(String cloudFileId, String filename) async {
-    if (_cloudProvider == null) {
-      throw const BackupException('No cloud provider available for download');
-    }
-
-    final tempDir = await resolveSyncTempDir();
-    final tempPath = p.join(tempDir.path, filename);
-    // Path-based download: providers stream to disk and delete a partial
-    // file on failure, so the backup is never resident in memory.
-    await _cloudProvider.downloadToFile(cloudFileId, tempPath);
-    return tempPath;
   }
 
   Future<String?> _getOrCreateCloudBackupFolder() async {

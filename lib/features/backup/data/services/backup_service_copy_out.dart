@@ -46,14 +46,13 @@ class PreparedBackupFile {
 /// Getting an existing backup out of the app (issue #3650), kept apart from
 /// the rest of [BackupService]. Nothing here adds to or changes the history.
 extension _CopyOut on BackupService {
-  /// Resolves [record] in the order [BackupService.restoreFromBackup] does,
-  /// and returns the file's bytes untouched: an encrypted backup stays
-  /// encrypted and nothing asks for a password.
-  Future<PreparedBackupFile> _prepareBackupCopy(
-    BackupRecord record, {
-    required BackupCopyPurpose purpose,
-  }) async {
-    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.backup);
+  /// [record] as a real file, wherever it lives: a SAF document streamed to
+  /// temp, the local file in place, or the cloud copy downloaded to temp.
+  /// The one resolution order shared by restore and by Save and Share, so a
+  /// backup that restores can always be copied out. A fetched copy carries
+  /// the `restore-<uuid>-` prefix [RestoreTempSweep] reclaims, and a fetch
+  /// that fails part way deletes its partial file.
+  Future<PreparedBackupFile> _resolveBackupSource(BackupRecord record) async {
     final localRef = record.localPath;
     if (localRef != null && isSafRef(localRef)) {
       if (!await _safPort.exists(localRef)) {
@@ -61,24 +60,23 @@ extension _CopyOut on BackupService {
           'Backup file not found locally or in cloud',
         );
       }
-      return _fetchCopy(
+      return _fetchToTemp(
         record,
-        purpose,
         (dest) => _safPort.readBackup(documentUri: localRef, destPath: dest),
       );
     }
     if (localRef != null && await File(localRef).exists()) {
-      return PreparedBackupFile(
-        localRef,
-        isTemp: false,
-        fileName: await _outgoingName(localRef, record.filename),
-      );
+      return PreparedBackupFile(localRef, isTemp: false);
     }
     if (await _cloudCopyHere(record)) {
-      return _fetchCopy(
+      final provider = _cloudProvider;
+      if (provider == null) {
+        throw const BackupException('No cloud provider available for download');
+      }
+      _log.info('Downloading backup from cloud');
+      return _fetchToTemp(
         record,
-        purpose,
-        (dest) => _cloudProvider!.downloadToFile(record.cloudFileId!, dest),
+        (dest) => provider.downloadToFile(record.cloudFileId!, dest),
       );
     }
     if (record.cloudFileId != null && record.cloudAccountId != null) {
@@ -87,29 +85,50 @@ extension _CopyOut on BackupService {
     throw const BackupException('Backup file not found locally or in cloud');
   }
 
-  /// Fetches [record] with [write] into a unique staging file, so a failed
-  /// fetch deletes only its own partial file. A share copy is then moved to
-  /// the backup's own name, replacing an earlier share copy only once the
-  /// new one is complete: a receiving app may still be reading that one.
-  Future<PreparedBackupFile> _fetchCopy(
+  Future<PreparedBackupFile> _fetchToTemp(
     BackupRecord record,
-    BackupCopyPurpose purpose,
     Future<void> Function(String dest) write,
   ) async {
     final tempDir = await resolveSyncTempDir();
-    final staging = p.join(tempDir.path, _restoreCopyName(record.filename));
+    final staging = PreparedBackupFile(
+      p.join(tempDir.path, _restoreCopyName(record.filename)),
+      isTemp: true,
+    );
     try {
-      await write(staging);
+      await write(staging.path);
     } catch (_) {
-      await PreparedBackupFile(staging, isTemp: true).discard();
+      await staging.discard();
       rethrow;
     }
-    final name = await _outgoingName(staging, record.filename);
-    if (purpose == BackupCopyPurpose.save) {
-      return PreparedBackupFile(staging, isTemp: true, fileName: name);
+    return staging;
+  }
+
+  /// [record] as a file to save or share, its bytes untouched: an encrypted
+  /// backup stays encrypted and nothing asks for a password. A share copy is
+  /// moved to the backup's own name, replacing an earlier share copy only
+  /// once the new one is complete: a receiving app may still be reading it.
+  Future<PreparedBackupFile> _prepareBackupCopy(
+    BackupRecord record, {
+    required BackupCopyPurpose purpose,
+  }) async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.backup);
+    final source = await _resolveBackupSource(record);
+    final name = await _outgoingName(source.path, record.filename);
+    if (!source.isTemp || purpose == BackupCopyPurpose.save) {
+      return PreparedBackupFile(
+        source.path,
+        isTemp: source.isTemp,
+        fileName: name,
+      );
     }
-    final shared = await File(staging).rename(p.join(tempDir.path, name));
-    return PreparedBackupFile(shared.path, isTemp: true);
+    final tempDir = await resolveSyncTempDir();
+    try {
+      final shared = await File(source.path).rename(p.join(tempDir.path, name));
+      return PreparedBackupFile(shared.path, isTemp: true);
+    } catch (_) {
+      await source.discard();
+      rethrow;
+    }
   }
 
   /// [filename], with an `.sbe` extension when the bytes at [path] are an

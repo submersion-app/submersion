@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:cryptography/cryptography.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqlite3/sqlite3.dart' as sqlite3;
 
@@ -238,7 +239,7 @@ void main() {
         'there is no key', () async {
       // Restore from file opts in for every file it is given, so the keyless
       // message must fit any corrupt or foreign .db, not just a history row.
-      final path = '${tempDir.path}/random.db';
+      final path = p.join(tempDir.path, 'random.db');
       await File(path).writeAsString('this is not a sqlite database');
       final service = BackupService(
         dbAdapter: _FakeBackupDatabaseAdapter(),
@@ -312,7 +313,7 @@ void main() {
           ),
         ],
       );
-      final sbePath = '${tempDir.path}/wrapped.sbe';
+      final sbePath = p.join(tempDir.path, 'wrapped.sbe');
       await BackupCrypto.encryptFile(
         inPath: plainPath,
         outPath: sbePath,

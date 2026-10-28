@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/utils/share_anchor.dart';
 import 'package:submersion/features/backup/data/services/backup_note_stamp.dart';
-import 'package:submersion/features/backup/presentation/widgets/backup_copy_actions.dart';
 import 'package:submersion/features/backup/presentation/widgets/backup_note_field.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 

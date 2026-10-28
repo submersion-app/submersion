@@ -12,11 +12,6 @@ import 'package:submersion/features/backup/presentation/providers/backup_provide
 import 'package:submersion/features/backup/presentation/widgets/backup_copy_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// Whether this platform has a system share sheet. Windows and Linux do not,
-/// so there a backup can only be saved to a folder.
-bool get platformHasShareSheet =>
-    Platform.isIOS || Platform.isMacOS || Platform.isAndroid;
-
 /// Save to a folder or Share for a backup from the history (issue #3650).
 /// [context] is the history row's, so the iPad share popover anchors to it.
 Future<void> showBackupCopySheet(
