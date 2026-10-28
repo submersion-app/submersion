@@ -130,6 +130,11 @@ class DemoModeService {
       fromFirstRun: fromFirstRun,
       enteredAt: clock(),
     );
+    // Byte or step counts from each stage, placed in that stage's share.
+    void Function(int, int) reportIn(DemoEnterStage stage) =>
+        (done, total) => onProgress?.call(
+          DemoEnterProgress(stage, done: done, total: total),
+        );
     try {
       await store.write(state);
       onProgress?.call(const DemoEnterProgress(DemoEnterStage.downloading));
@@ -140,9 +145,7 @@ class DemoModeService {
         pkg,
         File(paths.packageFile),
         isCancelled: isCancelled,
-        onProgress: (r, t) => onProgress?.call(
-          DemoEnterProgress(DemoEnterStage.downloading, done: r, total: t),
-        ),
+        onProgress: reportIn(DemoEnterStage.downloading),
       );
       // The downloader sees Cancel only as chunks land, so a tap that comes
       // with the last one is honoured here, and again before the switch.
@@ -151,9 +154,7 @@ class DemoModeService {
       await extractor.extract(
         zip,
         paths,
-        onProgress: (d, t) => onProgress?.call(
-          DemoEnterProgress(DemoEnterStage.preparing, done: d, total: t),
-        ),
+        onProgress: reportIn(DemoEnterStage.preparing),
       );
       await PrefsSnapshot.capture(prefs, File(paths.prefsSnapshotFile));
       _throwIfCancelled(isCancelled);
@@ -175,9 +176,7 @@ class DemoModeService {
         photosDir: paths.photosDir,
         deviceId: deviceId(),
         units: units,
-        onProgress: (d, t) => onProgress?.call(
-          DemoEnterProgress(DemoEnterStage.opening, done: d, total: t),
-        ),
+        onProgress: reportIn(DemoEnterStage.opening),
       );
       final diverId = await _defaultDiverId(switcher.current);
       if (diverId != null) await prefs.setString(_currentDiverIdKey, diverId);
