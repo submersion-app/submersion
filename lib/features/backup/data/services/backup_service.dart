@@ -670,8 +670,9 @@ class BackupService {
   /// and contains expected Submersion tables.
   ///
   /// [allowLiveDatabaseEncryption] opts into the one artifact kind that may
-  /// legitimately be SQLCipher ciphertext: a [BackupType.preMigration] copy,
-  /// which is a raw byte copy of the live database and so carries the live
+  /// legitimately be SQLCipher ciphertext: a [BackupType.preMigration] or
+  /// [BackupType.preDowngrade] copy, which is a raw byte copy of the live
+  /// database and so carries the live
   /// database's encryption. Such a file is deep-checked with the live key
   /// instead of being rejected. Restore from file opts in too, so such a copy
   /// saved or shared from the history restores on this install (issue
@@ -870,15 +871,17 @@ class BackupService {
       // Parity with the file-picker path: the file on disk (or the fresh
       // download) may have been corrupted since the record was written.
       //
-      // A pre-migration copy is the one kind that may legitimately be
-      // SQLCipher ciphertext (it is a raw copy of the live file, taken before
-      // the migration with the database closed), so it is deep-checked with
-      // the live key rather than rejected. DatabaseService.restore already
-      // handles such a source: it detects the encrypted header and skips the
-      // re-encryption it would otherwise apply.
+      // A pre-migration or pre-downgrade copy is the one kind that may
+      // legitimately be SQLCipher ciphertext (a raw copy of the live file,
+      // taken with the database closed), so it is deep-checked with the live
+      // key rather than rejected (issue #3650). DatabaseService.restore
+      // already handles such a source: it detects the encrypted header and
+      // skips the re-encryption it would otherwise apply.
       final validation = await validateBackupFile(
         materialized.path,
-        allowLiveDatabaseEncryption: record.type == BackupType.preMigration,
+        allowLiveDatabaseEncryption:
+            record.type == BackupType.preMigration ||
+            record.type == BackupType.preDowngrade,
       );
       if (!validation.isValid) {
         throw BackupException(

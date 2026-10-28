@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 import 'package:submersion/features/backup/presentation/widgets/backup_copy_sheet.dart';
@@ -30,6 +31,19 @@ Widget _wrap(Widget child) => ProviderScope(
 );
 
 void main() {
+  // The title's date is formatted by intl against Intl.defaultLocale, a
+  // process global that MaterialApp.locale does not set. Pin it so the
+  // English month holds on any host, and restore it so the global stays
+  // contained.
+  String? previousLocale;
+
+  setUp(() {
+    previousLocale = Intl.defaultLocale;
+    Intl.defaultLocale = 'en';
+  });
+
+  tearDown(() => Intl.defaultLocale = previousLocale);
+
   testWidgets('shows the title with the formatted date and both actions', (
     tester,
   ) async {

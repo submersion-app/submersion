@@ -373,6 +373,23 @@ void main() {
       expect(adapter.lastRestorePath, path);
     });
 
+    test('restores an encrypted pre-downgrade backup', () async {
+      // The same raw copy of the live database as a pre-migration one, kept
+      // aside when a newer database was left behind (issue #3650).
+      final path = await writeEncryptedPreMigrationCopy('newer.db');
+      final adapter = _FakeBackupDatabaseAdapter(databaseKeyHex: _liveKeyHex);
+      final service = BackupService(
+        dbAdapter: adapter,
+        preferences: preferences,
+        syncRepository: _SpySyncRepository(),
+      );
+
+      await service.restoreFromBackup(recordFor(path, BackupType.preDowngrade));
+
+      expect(adapter.restoreCallCount, 1);
+      expect(adapter.lastRestorePath, path);
+    });
+
     test(
       'still rejects an encrypted artifact offered as a manual backup',
       () async {
