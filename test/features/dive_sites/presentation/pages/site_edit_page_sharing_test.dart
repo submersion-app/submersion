@@ -297,6 +297,73 @@ void main() {
     );
   });
 
+  testWidgets('on the full page, a refused sharing change closes the page and '
+      'says who may change it instead of Site updated', (tester) async {
+    final shares = FakeItemShares.everyone(['pier'])..refuseSet = true;
+    tester.view.physicalSize = const Size(900, 3200);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    final router = GoRouter(
+      initialLocation: '/',
+      routes: [
+        GoRoute(
+          path: '/',
+          builder: (context, _) => Scaffold(
+            body: TextButton(
+              onPressed: () => context.push('/edit'),
+              child: const Text('open'),
+            ),
+          ),
+        ),
+        GoRoute(
+          path: '/edit',
+          builder: (_, _) => const SiteEditPage(siteId: 'pier'),
+        ),
+      ],
+    );
+    addTearDown(router.dispose);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          allDiversProvider.overrideWith((_) async => divers),
+          validatedCurrentDiverIdProvider.overrideWith((_) async => 'd1'),
+          shareByDefaultProvider.overrideWith((_) async => false),
+          itemSharesRepositoryProvider.overrideWithValue(shares),
+        ],
+        child: MaterialApp.router(
+          routerConfig: router,
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    await openLifeSection(tester);
+    await tester.tap(find.byType(SharingTile));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.descendant(of: find.byType(AlertDialog), matching: find.text('Bob')),
+    );
+    await tester.tap(find.text('Save').last);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Save').first);
+    await tester.pumpAndSettle();
+    expect(shares.setCalls, [
+      ('pier', const ItemSharing(profileIds: {'d2'})),
+    ]);
+    expect(find.text('open'), findsOneWidget, reason: 'the page closed');
+    expect(
+      find.text('Only another profile can change sharing'),
+      findsOneWidget,
+    );
+    expect(find.text('Site updated'), findsNothing);
+  });
+
   testWidgets('removing hides it for this profile, closes, and Undo restores', (
     tester,
   ) async {
