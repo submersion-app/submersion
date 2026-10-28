@@ -251,4 +251,30 @@ void main() {
     expect(find.text('14'), findsOneWidget);
     expect(find.text('2'), findsOneWidget);
   });
+
+  testWidgets("a side trip's days past its larger trip still count", (
+    tester,
+  ) async {
+    final year = DateTime.now().year - 1;
+    TripWithStats trip(String id, int from, int to, {String? parent}) =>
+        TripWithStats(
+          trip: Trip(
+            id: id,
+            name: id,
+            startDate: DateTime(year, 3, from),
+            endDate: DateTime(year, 3, to),
+            parentTripId: parent,
+            createdAt: DateTime(year),
+            updatedAt: DateTime(year),
+          ),
+          diveCount: 3,
+        );
+    // Larger trip Mar 2 to 15 (14 days); the side trip runs Mar 12 to 18,
+    // three days past it.
+    await _pump(tester, DateFormatPreference.mmmDYYYY, [
+      trip('p', 2, 15),
+      trip('s', 12, 18, parent: 'p'),
+    ]);
+    expect(find.text('17'), findsOneWidget);
+  });
 }

@@ -88,11 +88,14 @@ class TripSummaryWidget extends ConsumerWidget {
       for (final t in trips) (t.trip as Trip).id: t.trip as Trip,
     };
     for (final tripWithStats in trips) {
-      final isSideTrip =
-          effectiveParentId(tripWithStats.trip as Trip, tripsById) != null;
-      if (!isSideTrip) {
+      final trip = tripWithStats.trip as Trip;
+      final parentId = effectiveParentId(trip, tripsById);
+      if (parentId == null) {
         totalDives += tripWithStats.diveCount as num;
-        totalDays += tripWithStats.trip.durationDays as num;
+        totalDays += trip.durationDays;
+      } else {
+        // Only the side trip's days that fall outside its larger trip.
+        totalDays += _daysOutside(trip, tripsById[parentId]!);
       }
       if (tripWithStats.trip.isLiveaboard) liveaboardCount++;
       if (tripWithStats.maxDepth != null) {
@@ -369,4 +372,13 @@ class TripSummaryWidget extends ConsumerWidget {
       ],
     );
   }
+}
+
+/// The calendar days of [side] that [larger] does not cover.
+int _daysOutside(Trip side, Trip larger) {
+  final before = calendarDaysBetween(side.startDate, larger.startDate);
+  final after = calendarDaysBetween(larger.endDate, side.endDate);
+  final total = side.durationDays;
+  final outside = (before > 0 ? before : 0) + (after > 0 ? after : 0);
+  return outside > total ? total : outside;
 }
