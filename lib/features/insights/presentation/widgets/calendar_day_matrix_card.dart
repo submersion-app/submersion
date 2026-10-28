@@ -36,8 +36,12 @@ Color calendarCellFill(ColorScheme scheme, int count, int maxCount) {
 /// contrast so the 11 px count reads at 4.5:1 or better on every theme: a
 /// mid-range tint sits too near the middle for a fixed onPrimary switch.
 /// Empty dates keep the muted variant colour while it still reads.
-Color calendarCellText(ColorScheme scheme, int count, int maxCount) {
-  final fill = calendarCellFill(scheme, count, maxCount);
+Color calendarCellText(ColorScheme scheme, int count, int maxCount) =>
+    _textOn(scheme, count, maxCount, calendarCellFill(scheme, count, maxCount));
+
+/// [calendarCellText] for a [fill] already worked out, so a cell computes
+/// its fill once.
+Color _textOn(ColorScheme scheme, int count, int maxCount, Color fill) {
   if (count <= 0 || maxCount <= 0) {
     return contrastRatio(scheme.onSurfaceVariant, fill) >= 4.5
         ? scheme.onSurfaceVariant
@@ -410,6 +414,7 @@ class _DayCell extends StatelessWidget {
       );
     }
 
+    final fill = calendarCellFill(scheme, count, maxCount);
     return SizedBox(
       width: size,
       height: size,
@@ -423,7 +428,7 @@ class _DayCell extends StatelessWidget {
           // the node carries it for screen readers.
           onTap: onTap,
           child: Material(
-            color: calendarCellFill(scheme, count, maxCount),
+            color: fill,
             borderRadius: BorderRadius.circular(3),
             child: InkWell(
               onTap: onTap,
@@ -436,7 +441,7 @@ class _DayCell extends StatelessWidget {
                     child: Text(
                       '$count',
                       style: style?.copyWith(
-                        color: calendarCellText(scheme, count, maxCount),
+                        color: _textOn(scheme, count, maxCount, fill),
                         fontFeatures: const [FontFeature.tabularFigures()],
                       ),
                     ),
