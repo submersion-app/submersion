@@ -31681,6 +31681,22 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String trips_list_sideTripCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count zijreizen',
+      one: '$count zijreis',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_partOf(String name) {
+    return 'Onderdeel van $name';
+  }
+
+  @override
   String get trips_list_tooltip_addTrip => 'Reis toevoegen';
 
   @override

@@ -9378,6 +9378,8 @@
   "trips_list_pastSection": "الرحلات السابقة",
   "trips_list_sort_title": "ترتيب الرحلات",
   "trips_list_tile_diveCount": "{count, plural, =1{غوصة واحدة} two{غوصتان} few{{count} غوصات} many{{count} غوصة} other{{count} غوصة}}",
+  "trips_list_sideTripCount": "{count, plural, one{رحلة جانبية واحدة} two{رحلتان جانبيتان} few{{count} رحلات جانبية} many{{count} رحلة جانبية} other{{count} رحلة جانبية}}",
+  "trips_partOf": "جزء من {name}",
   "trips_list_tooltip_addTrip": "إضافة رحلة",
   "trips_list_tooltip_search": "البحث في الرحلات",
   "trips_list_tooltip_sort": "ترتيب",

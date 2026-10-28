@@ -50786,6 +50786,18 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{1 dive} other{{count} dives}}'**
   String trips_list_tile_diveCount(int count);
 
+  /// Trip list note on a larger trip: how many side trips are nested under it
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} side trip} other{{count} side trips}}'**
+  String trips_list_sideTripCount(int count);
+
+  /// Names the larger trip a side trip is part of
+  ///
+  /// In en, this message translates to:
+  /// **'Part of {name}'**
+  String trips_partOf(String name);
+
   /// No description provided for @trips_list_tooltip_addTrip.
   ///
   /// In en, this message translates to:

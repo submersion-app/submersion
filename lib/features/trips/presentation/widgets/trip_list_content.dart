@@ -49,6 +49,8 @@ import 'package:submersion/features/trips/presentation/providers/trip_list_count
 import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
 import 'package:submersion/shared/widgets/shared_items/item_bulk_share.dart';
 import 'package:submersion/core/data/visibility/item_sharing.dart';
+import 'package:submersion/features/trips/presentation/helpers/trip_list_rows.dart';
+import 'package:submersion/features/trips/presentation/widgets/side_trip_indent.dart';
 
 /// Content widget for the trip list, used in master-detail layout.
 final _log = LoggerService.forClass(TripListContent);
@@ -805,16 +807,26 @@ class _TripListContentState extends ConsumerState<TripListContent> {
         ref.watch(itemIdsWithSharesProvider(SharedItemKind.trip)).value ??
         const <String>{};
 
-    final upcoming = trips.where((t) => t.trip.isUpcoming).toList()
-      ..sort((a, b) => a.trip.startDate.compareTo(b.trip.startDate));
-    final past = trips.where((t) => !t.trip.isUpcoming).toList();
+    // Side trips nest under their larger trip, which decides the section
+    // (issue #3658).
+    final allTripsById = {
+      for (final t in ref.watch(allTripsProvider).value ?? const <Trip>[])
+        t.id: t,
+    };
+    final groups = tripRowGroups(nestTripRows(trips, allTripsById));
+    final upcoming = groups.where((g) => g.first.item.trip.isUpcoming).toList()
+      ..sort(
+        (a, b) =>
+            a.first.item.trip.startDate.compareTo(b.first.item.trip.startDate),
+      );
+    final past = groups.where((g) => !g.first.item.trip.isUpcoming).toList();
     // Flatten into one item list: header sentinels + trips, so the
     // existing ListView.builder/itemBuilder structure is preserved.
     final rows = <Object>[
       if (upcoming.isNotEmpty) _SectionHeader.upcoming,
-      ...upcoming,
+      ...upcoming.expand((g) => g),
       if (upcoming.isNotEmpty && past.isNotEmpty) _SectionHeader.past,
-      ...past,
+      ...past.expand((g) => g),
     ];
     final tripsById = {for (final t in trips) t.trip.id: t.trip};
 
@@ -829,7 +841,7 @@ class _TripListContentState extends ConsumerState<TripListContent> {
             child: KeyboardListNavigator(
               keys: [
                 for (final row in rows)
-                  if (row is TripWithStats) row.trip.id,
+                  if (row is TripListRow) row.item.trip.id,
               ],
               currentKey:
                   widget.selectedId ?? ref.watch(highlightedTripIdProvider),
@@ -861,7 +873,15 @@ class _TripListContentState extends ConsumerState<TripListContent> {
                       ),
                     );
                   }
-                  final tripWithStats = row as TripWithStats;
+                  final listRow = row as TripListRow;
+                  final tripWithStats = listRow.item;
+                  final nestingNote = listRow.sideTripCount > 0
+                      ? context.l10n.trips_list_sideTripCount(
+                          listRow.sideTripCount,
+                        )
+                      : listRow.partOfName == null
+                      ? null
+                      : context.l10n.trips_partOf(listRow.partOfName!);
                   final isSelected =
                       widget.selectedId == tripWithStats.trip.id ||
                       ref.watch(highlightedTripIdProvider) ==
@@ -882,6 +902,7 @@ class _TripListContentState extends ConsumerState<TripListContent> {
                   final selectableTile = switch (viewMode) {
                     ListViewMode.detailed => TripListTile(
                       tripWithStats: tripWithStats,
+                      nestingNote: nestingNote,
                       isSelected: isSelected,
                       onTap: () => _handleRowTap(tripWithStats.trip),
                       showSharedBadge: showSharedBadge,
@@ -891,6 +912,7 @@ class _TripListContentState extends ConsumerState<TripListContent> {
                     ),
                     ListViewMode.compact => CompactTripListTile(
                       tripWithStats: tripWithStats,
+                      nestingNote: nestingNote,
                       isSelected: isSelected,
                       onTap: () => _handleRowTap(tripWithStats.trip),
                       showSharedBadge: showSharedBadge,
@@ -919,7 +941,9 @@ class _TripListContentState extends ConsumerState<TripListContent> {
                             child: UpcomingTripBanner(trip: tripWithStats.trip),
                           )
                         : null,
-                    child: selectableTile,
+                    child: listRow.isSideTrip
+                        ? SideTripIndent(child: selectableTile)
+                        : selectableTile,
                   );
                 },
               ),
@@ -1039,9 +1063,14 @@ class TripListTile extends ConsumerWidget {
   final bool isChecked;
   final ValueChanged<bool>? onCheckChanged;
 
+  /// How the trip nests (issue #3658): its side trip count, or the larger
+  /// trip it is part of when that trip is not listed.
+  final String? nestingNote;
+
   const TripListTile({
     super.key,
     required this.tripWithStats,
+    this.nestingNote,
     this.isSelected = false,
     this.onTap,
     this.showSharedBadge = false,
@@ -1172,6 +1201,12 @@ class TripListTile extends ConsumerWidget {
                     CardIconLabel(
                       icon: Icons.timer,
                       text: tripWithStats.formattedRuntime,
+                      color: theme.colorScheme.primary,
+                    ),
+                  if (nestingNote != null)
+                    CardIconLabel(
+                      icon: Icons.account_tree_outlined,
+                      text: nestingNote!,
                       color: theme.colorScheme.primary,
                     ),
                 ],

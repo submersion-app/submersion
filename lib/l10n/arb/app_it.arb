@@ -9273,6 +9273,8 @@
   "trips_list_pastSection": "Viaggi passati",
   "trips_list_sort_title": "Ordina viaggi",
   "trips_list_tile_diveCount": "{count, plural, =1{{count} immersione} other{{count} immersioni}}",
+  "trips_list_sideTripCount": "{count, plural, one{{count} escursione} other{{count} escursioni}}",
+  "trips_partOf": "Parte di {name}",
   "trips_list_tooltip_addTrip": "Aggiungi viaggio",
   "trips_list_tooltip_search": "Cerca viaggi",
   "trips_list_tooltip_sort": "Ordina",

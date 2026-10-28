@@ -9277,6 +9277,8 @@
   "trips_list_pastSection": "Voyages passés",
   "trips_list_sort_title": "Trier les voyages",
   "trips_list_tile_diveCount": "{count, plural, =1{{count} plongée} other{{count} plongées}}",
+  "trips_list_sideTripCount": "{count, plural, one{{count} excursion} other{{count} excursions}}",
+  "trips_partOf": "Fait partie de {name}",
   "trips_list_tooltip_addTrip": "Ajouter un voyage",
   "trips_list_tooltip_search": "Rechercher des voyages",
   "trips_list_tooltip_sort": "Trier",

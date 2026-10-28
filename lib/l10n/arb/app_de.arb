@@ -9510,6 +9510,8 @@
   "trips_list_pastSection": "Vergangene Reisen",
   "trips_list_sort_title": "Reisen sortieren",
   "trips_list_tile_diveCount": "{count, plural, =1{{count} Tauchgang} other{{count} Tauchgänge}}",
+  "trips_list_sideTripCount": "{count, plural, one{{count} Nebenreise} other{{count} Nebenreisen}}",
+  "trips_partOf": "Teil von {name}",
   "trips_list_tooltip_addTrip": "Reise hinzufügen",
   "trips_list_tooltip_search": "Reisen durchsuchen",
   "trips_list_tooltip_sort": "Sortieren",

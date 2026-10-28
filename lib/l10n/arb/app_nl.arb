@@ -9378,6 +9378,8 @@
   "trips_list_pastSection": "Afgelopen reizen",
   "trips_list_sort_title": "Reizen sorteren",
   "trips_list_tile_diveCount": "{count, plural, =1{{count} duik} other{{count} duiken}}",
+  "trips_list_sideTripCount": "{count, plural, one{{count} zijreis} other{{count} zijreizen}}",
+  "trips_partOf": "Onderdeel van {name}",
   "trips_list_tooltip_addTrip": "Reis toevoegen",
   "trips_list_tooltip_search": "Reizen zoeken",
   "trips_list_tooltip_sort": "Sorteren",

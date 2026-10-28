@@ -9378,6 +9378,8 @@
   "trips_list_pastSection": "Viajes pasados",
   "trips_list_sort_title": "Ordenar viajes",
   "trips_list_tile_diveCount": "{count, plural, =1{{count} inmersión} other{{count} inmersiones}}",
+  "trips_list_sideTripCount": "{count, plural, one{{count} viaje secundario} other{{count} viajes secundarios}}",
+  "trips_partOf": "Parte de {name}",
   "trips_list_tooltip_addTrip": "Agregar viaje",
   "trips_list_tooltip_search": "Buscar viajes",
   "trips_list_tooltip_sort": "Ordenar",

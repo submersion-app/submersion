@@ -9277,6 +9277,8 @@
   "trips_list_pastSection": "Korábbi utak",
   "trips_list_sort_title": "Utak rendezése",
   "trips_list_tile_diveCount": "{count, plural, =1{{count} merülés} other{{count} merülés}}",
+  "trips_list_sideTripCount": "{count, plural, one{{count} mellékút} other{{count} mellékút}}",
+  "trips_partOf": "{name} része",
   "trips_list_tooltip_addTrip": "Út hozzáadása",
   "trips_list_tooltip_search": "Utak keresése",
   "trips_list_tooltip_sort": "Rendezés",

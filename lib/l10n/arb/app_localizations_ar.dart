@@ -32214,6 +32214,25 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String trips_list_sideTripCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count رحلة جانبية',
+      many: '$count رحلة جانبية',
+      few: '$count رحلات جانبية',
+      two: 'رحلتان جانبيتان',
+      one: 'رحلة جانبية واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_partOf(String name) {
+    return 'جزء من $name';
+  }
+
+  @override
   String get trips_list_tooltip_addTrip => 'إضافة رحلة';
 
   @override

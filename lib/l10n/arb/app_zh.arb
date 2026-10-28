@@ -9542,6 +9542,8 @@
   "trips_list_pastSection": "过往旅行",
   "trips_list_sort_title": "排序旅行",
   "trips_list_tile_diveCount": "{count, plural, other{{count} 次潜水}}",
+  "trips_list_sideTripCount": "{count, plural, other{{count} 个附属行程}}",
+  "trips_partOf": "属于 {name}",
   "trips_list_tooltip_addTrip": "添加旅行",
   "trips_list_tooltip_search": "搜索旅行",
   "trips_list_tooltip_sort": "排序",

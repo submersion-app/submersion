@@ -9378,6 +9378,8 @@
   "trips_list_pastSection": "טיולים קודמים",
   "trips_list_sort_title": "מיון טיולים",
   "trips_list_tile_diveCount": "{count, plural, =1{צלילה אחת} other{{count} צלילות}}",
+  "trips_list_sideTripCount": "{count, plural, one{טיול צד אחד} other{{count} טיולי צד}}",
+  "trips_partOf": "חלק מ־{name}",
   "trips_list_tooltip_addTrip": "הוסף טיול",
   "trips_list_tooltip_search": "חיפוש טיולים",
   "trips_list_tooltip_sort": "מיון",

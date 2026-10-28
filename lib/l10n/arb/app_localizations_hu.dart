@@ -31723,6 +31723,22 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String trips_list_sideTripCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mellékút',
+      one: '$count mellékút',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_partOf(String name) {
+    return '$name része';
+  }
+
+  @override
   String get trips_list_tooltip_addTrip => 'Út hozzáadása';
 
   @override
