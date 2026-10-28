@@ -111,7 +111,9 @@ void main() {
         await repository.addTags(['i1', 'i2'], ['wreck', 'fish']);
 
         final byItem = await repository.getTagIdsByItem(['i1', 'i2']);
-        expect(byItem['i1'], ['wreck', 'fish']);
+        // Both links can share a millisecond, and then their order falls to
+        // random ids; exactly two entries is what shows wreck was skipped.
+        expect(byItem['i1'], unorderedEquals(['wreck', 'fish']));
         expect(byItem['i2']!.toSet(), {'wreck', 'fish'});
         expect(await repository.tagCountsFor(['i1', 'i2']), {
           'wreck': 2,
