@@ -1,0 +1,199 @@
+import 'dart:typed_data';
+
+import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
+import 'package:submersion/features/buddies/data/services/buddy_card_importer.dart';
+import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/features/buddies/domain/entities/buddy_card.dart';
+import 'package:submersion/features/certification_agencies/data/repositories/custom_certification_repository.dart';
+import 'package:submersion/features/certifications/data/repositories/certification_repository.dart';
+import 'package:submersion/features/certifications/domain/entities/certification.dart';
+import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
+import 'package:submersion/features/divers/domain/entities/diver.dart';
+
+import '../../../helpers/test_database.dart';
+
+void main() {
+  late BuddyRepository buddies;
+  late CertificationRepository certs;
+  late BuddyCardImporter importer;
+  final now = DateTime(2026, 10, 28, 14, 30);
+
+  setUp(() async {
+    await setUpTestDatabase();
+    await DiverRepository().createDiver(
+      Diver(
+        id: 'me',
+        name: 'Me',
+        createdAt: DateTime(2026),
+        updatedAt: DateTime(2026),
+      ),
+    );
+    buddies = BuddyRepository();
+    certs = CertificationRepository();
+    importer = BuddyCardImporter(
+      buddies: buddies,
+      certifications: certs,
+      clock: () => now,
+    );
+  });
+  tearDown(() => DatabaseService.instance.resetForTesting());
+
+  final card = BuddyCard(
+    id: 'diver-sam',
+    name: 'Sam Rivera',
+    phone: '+1 555 0134',
+    email: 'sam@example.com',
+    social: '@samdives',
+    certs: [
+      BuddyCardCert(
+        agency: 'PADI',
+        name: 'Rescue Diver',
+        level: 'Rescue Diver',
+        cardNumber: 'R-1',
+        issueDate: DateTime(2020),
+      ),
+      const BuddyCardCert(
+        agency: 'PADI',
+        name: 'Open Water Diver',
+        level: 'Open Water',
+      ),
+    ],
+    dives: 118,
+    since: 2016,
+    last: DateTime(2026, 10, 3),
+    photo: Uint8List.fromList([1, 2, 3]),
+  );
+
+  test('addNew writes fields, cardId, cardReceivedAt and card certs', () async {
+    final added = await importer.addNew(card, diverId: 'me');
+    final read = (await buddies.getBuddyById(added.id))!;
+    expect(read.diverId, 'me');
+    expect(read.name, 'Sam Rivera');
+    expect(read.phone, '+1 555 0134');
+    expect(read.email, 'sam@example.com');
+    expect(read.socialHandle, '@samdives');
+    expect(read.photo, Uint8List.fromList([1, 2, 3]));
+    expect(read.cardId, 'diver-sam');
+    expect(read.cardDiveCount, 118);
+    expect(read.cardDivingSince, DateTime(2016));
+    expect(read.cardLastDive, DateTime(2026, 10, 3));
+    expect(read.cardReceivedAt, now);
+    final saved = await certs.getCertificationsByBuddy(added.id);
+    expect(saved, hasLength(2));
+    expect(saved.every((c) => c.cardId == 'diver-sam'), isTrue);
+    final rescue = saved.firstWhere((c) => c.name == 'Rescue Diver');
+    expect(rescue.agency, CertificationAgency.padi.name);
+    expect(rescue.level, CertificationLevel.rescue.name);
+    expect(rescue.cardNumber, 'R-1');
+  });
+
+  test('headline certification is the card highest', () async {
+    final added = await importer.addNew(card, diverId: 'me');
+    final read = (await buddies.getBuddyById(added.id))!;
+    expect(read.certificationLevel, CertificationLevel.rescue.name);
+  });
+
+  Future<Buddy> seedExisting() async {
+    final b = await buddies.createBuddy(
+      Buddy(
+        id: '',
+        diverId: 'me',
+        name: 'Sam',
+        phone: '+1 999',
+        notes: 'Great on air',
+        isFavorite: true,
+        cardDiveCount: 50,
+        createdAt: DateTime(2025),
+        updatedAt: DateTime(2025),
+      ),
+    );
+    await certs.createCertification(
+      Certification(
+        id: '',
+        buddyId: b.id,
+        name: 'Hand added deep',
+        agency: CertificationAgency.ssi.name,
+        createdAt: DateTime(2025),
+        updatedAt: DateTime(2025),
+      ),
+    );
+    return b;
+  }
+
+  test('update keeps notes, favourite and hand-added certs', () async {
+    final existing = await seedExisting();
+    await importer.update(existing, card);
+    final read = (await buddies.getBuddyById(existing.id))!;
+    expect(read.notes, 'Great on air');
+    expect(read.isFavorite, isTrue);
+    expect(read.name, 'Sam Rivera');
+    expect(read.phone, '+1 555 0134');
+    expect(read.cardDiveCount, 118);
+    final saved = await certs.getCertificationsByBuddy(existing.id);
+    expect(saved.map((c) => c.name), contains('Hand added deep'));
+    expect(saved, hasLength(3));
+  });
+
+  test('update refreshes a card cert with the same agency and name', () async {
+    final existing = await seedExisting();
+    await importer.update(existing, card);
+    final refreshed = card.copyWith(
+      certs: [
+        BuddyCardCert(
+          agency: 'PADI',
+          name: 'Rescue Diver',
+          level: 'Rescue Diver',
+          cardNumber: 'R-2',
+          issueDate: DateTime(2021),
+        ),
+      ],
+    );
+    final again = (await buddies.getBuddyById(existing.id))!;
+    await importer.update(again, refreshed);
+    final saved = await certs.getCertificationsByBuddy(existing.id);
+    final rescues = saved.where((c) => c.name == 'Rescue Diver').toList();
+    expect(rescues, hasLength(1));
+    expect(rescues.single.cardNumber, 'R-2');
+  });
+
+  test('update keeps a card cert missing from the new card', () async {
+    final existing = await seedExisting();
+    await importer.update(existing, card);
+    final again = (await buddies.getBuddyById(existing.id))!;
+    await importer.update(again, card.copyWith(certs: const []));
+    final saved = await certs.getCertificationsByBuddy(existing.id);
+    expect(saved.map((c) => c.name), contains('Open Water Diver'));
+  });
+
+  test('a field the card omits is left as it was', () async {
+    final existing = await seedExisting();
+    await importer.update(
+      existing,
+      const BuddyCard(id: 'diver-sam', name: 'Sam Rivera'),
+    );
+    final read = (await buddies.getBuddyById(existing.id))!;
+    expect(read.phone, '+1 999');
+    expect(read.cardDiveCount, 50);
+    expect(read.cardId, 'diver-sam');
+  });
+
+  test('an unknown agency is stored as Other with the full title', () async {
+    final added = await importer.addNew(
+      const BuddyCard(
+        id: 'x',
+        name: 'Alex',
+        certs: [
+          BuddyCardCert(agency: 'Blue Lagoon Divers', name: 'Reef Explorer'),
+        ],
+      ),
+      diverId: 'me',
+    );
+    final saved = await certs.getCertificationsByBuddy(added.id);
+    expect(saved.single.agency, CertificationAgency.other.name);
+    expect(saved.single.name, 'Blue Lagoon Divers Reef Explorer');
+    expect(await CustomCertificationRepository().getAllAgencies(), isEmpty);
+  });
+}
