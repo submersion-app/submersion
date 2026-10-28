@@ -301,6 +301,8 @@ class DiverRepository {
                 priorDiveCount: Value(diver.priorDiveCount),
                 priorDiveTimeSeconds: Value(diver.priorDiveTimeSeconds),
                 divingSince: Value(diver.divingSince?.year),
+                socialHandle: Value(diver.socialHandle),
+                buddyCardShare: Value(diver.buddyCardShare),
               ),
             );
 
@@ -400,6 +402,8 @@ class DiverRepository {
           priorDiveCount: Value(diver.priorDiveCount),
           priorDiveTimeSeconds: Value(diver.priorDiveTimeSeconds),
           divingSince: Value(diver.divingSince?.year),
+          socialHandle: Value(diver.socialHandle),
+          buddyCardShare: Value(diver.buddyCardShare),
         ),
       );
       await _syncRepository.markRecordPending(
@@ -1194,6 +1198,8 @@ class DiverRepository {
       priorDiveCount: row.priorDiveCount,
       priorDiveTimeSeconds: row.priorDiveTimeSeconds,
       divingSince: row.divingSince != null ? DateTime(row.divingSince!) : null,
+      socialHandle: row.socialHandle,
+      buddyCardShare: row.buddyCardShare,
     );
   }
 }

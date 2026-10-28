@@ -23,6 +23,7 @@ class _PersonalInfoEditPageState extends ConsumerState<PersonalInfoEditPage> {
   final _nameCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
   final _phoneCtrl = TextEditingController();
+  final _socialCtrl = TextEditingController();
 
   bool _populated = false;
   bool _hasChanges = false;
@@ -34,6 +35,7 @@ class _PersonalInfoEditPageState extends ConsumerState<PersonalInfoEditPage> {
     _nameCtrl.addListener(_onFieldChanged);
     _emailCtrl.addListener(_onFieldChanged);
     _phoneCtrl.addListener(_onFieldChanged);
+    _socialCtrl.addListener(_onFieldChanged);
   }
 
   void _onFieldChanged() {
@@ -47,6 +49,7 @@ class _PersonalInfoEditPageState extends ConsumerState<PersonalInfoEditPage> {
     _nameCtrl.dispose();
     _emailCtrl.dispose();
     _phoneCtrl.dispose();
+    _socialCtrl.dispose();
     super.dispose();
   }
 
@@ -56,6 +59,7 @@ class _PersonalInfoEditPageState extends ConsumerState<PersonalInfoEditPage> {
     _nameCtrl.text = diver.name;
     _emailCtrl.text = diver.email ?? '';
     _phoneCtrl.text = diver.phone ?? '';
+    _socialCtrl.text = diver.socialHandle ?? '';
     _hasChanges = false;
   }
 
@@ -77,6 +81,7 @@ class _PersonalInfoEditPageState extends ConsumerState<PersonalInfoEditPage> {
           name: _nameCtrl.text.trim(),
           email: _trimOrNull(_emailCtrl),
           phone: _trimOrNull(_phoneCtrl),
+          socialHandle: _trimOrNull(_socialCtrl),
           createdAt: now,
           updatedAt: now,
         );
@@ -91,6 +96,7 @@ class _PersonalInfoEditPageState extends ConsumerState<PersonalInfoEditPage> {
           name: _nameCtrl.text.trim(),
           email: _trimOrNull(_emailCtrl),
           phone: _trimOrNull(_phoneCtrl),
+          socialHandle: _trimOrNull(_socialCtrl),
           updatedAt: DateTime.now(),
         );
         await ref.read(diverListNotifierProvider.notifier).updateDiver(updated);
@@ -254,6 +260,14 @@ class _PersonalInfoEditPageState extends ConsumerState<PersonalInfoEditPage> {
                         prefixIcon: const Icon(Icons.phone),
                       ),
                       keyboardType: TextInputType.phone,
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _socialCtrl,
+                      decoration: InputDecoration(
+                        labelText: context.l10n.buddyShare_social,
+                        prefixIcon: const Icon(Icons.alternate_email),
+                      ),
                     ),
                   ],
                 ),

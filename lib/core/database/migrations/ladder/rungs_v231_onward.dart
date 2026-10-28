@@ -646,10 +646,15 @@ extension RungsFromV231 on AppDatabase {
     if (from < 323) await _assertListArrangementColumns();
     if (from < 323) await reportProgress();
 
+    // v324: buddy card swap columns on buddies, certifications and divers
+    // (issue #3728).
+    if (from < 324) await _assertBuddyCardColumns();
+    if (from < 324) await reportProgress();
+
     // v325: trips.parent_trip_id, the larger trip a side trip is part of
     // (issue #3658). Column and index only, no backfill; re-asserted in
-    // beforeOpen. Renumbered from 323, which #3748 shipped first; 324 is
-    // held by other branches.
+    // beforeOpen. Renumbered from 323, which #3748 shipped first; #3728
+    // then shipped 324.
     if (from < 325) await _assertTripParentColumn();
     if (from < 325) await reportProgress();
   }

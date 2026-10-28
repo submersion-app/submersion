@@ -46,8 +46,10 @@ NearbyPeerError nearbyPeerRefusalError(NearbyErrorCode code) => switch (code) {
   NearbyErrorCode.olderApp => NearbyPeerError.newerApp,
   NearbyErrorCode.differentLibrary => NearbyPeerError.differentLibrary,
   NearbyErrorCode.notPaired => NearbyPeerError.notPaired,
+  // notSwapping answers only a card hello, never a sync.
   NearbyErrorCode.protocol ||
-  NearbyErrorCode.busy => NearbyPeerError.unreachable,
+  NearbyErrorCode.busy ||
+  NearbyErrorCode.notSwapping => NearbyPeerError.unreachable,
 };
 
 /// The row error for a refusal this device made, or null when it is not

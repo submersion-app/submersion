@@ -4,6 +4,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/features/buddies/data/repositories/buddy_card_columns.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart'
     as domain;
 import 'package:submersion/features/certifications/data/repositories/certification_repository.dart';
@@ -127,6 +128,14 @@ class BuddyMergeRepository {
       isFavorite: row.isFavorite,
       createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt),
+      // Buddy card fields (issue #3728) ride through the snapshot, so an
+      // undone merge restores them.
+      cardId: row.cardId,
+      socialHandle: row.socialHandle,
+      cardDiveCount: row.cardDiveCount,
+      cardDivingSince: BuddyCardColumns.divingSince(row.cardDivingSince),
+      cardLastDive: BuddyCardColumns.lastDive(row.cardLastDive),
+      cardReceivedAt: BuddyCardColumns.receivedAt(row.cardReceivedAt),
     );
   }
 
@@ -501,7 +510,7 @@ class BuddyMergeRepository {
           await _db
               .into(_db.buddies)
               .insert(
-                BuddiesCompanion(
+                BuddyCardColumns.of(buddy).copyWith(
                   id: Value(buddy.id),
                   diverId: Value(buddy.diverId),
                   linkedDiverId: Value(buddy.linkedDiverId),
@@ -677,7 +686,7 @@ class BuddyMergeRepository {
 
   Future<void> _updateBuddyRow(domain.Buddy buddy, int now) async {
     await (_db.update(_db.buddies)..where((t) => t.id.equals(buddy.id))).write(
-      BuddiesCompanion(
+      BuddyCardColumns.of(buddy).copyWith(
         diverId: Value(buddy.diverId),
         linkedDiverId: Value(buddy.linkedDiverId),
         name: Value(buddy.name),

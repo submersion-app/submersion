@@ -8,6 +8,18 @@
 	<array>
 		<dict>
 			<key>CFBundleTypeName</key>
+			<string>Submersion Buddy Card</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>LSHandlerRank</key>
+			<string>Owner</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>app.submersion.buddy-card</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleTypeName</key>
 			<string>UDDF Dive Log</string>
 			<key>CFBundleTypeRole</key>
 			<string>Viewer</string>
@@ -121,6 +133,13 @@
 	<false/>
 	<key>NSCameraUsageDescription</key>
 	<string>Submersion uses the camera to scan cylinder labels.</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Submersion finds nearby divers on the swap screen to exchange buddy cards.</string>
+	<key>NSBonjourServices</key>
+	<array>
+		<string>_subm-card._tcp</string>
+		<string>_subm-card._udp</string>
+	</array>
 	<key>NSBluetoothAlwaysUsageDescription</key>
 	<string>Submersion uses Bluetooth to connect to dive computers and to sync with your other devices nearby.</string>
 	<key>NSLocationUsageDescription</key>
@@ -131,6 +150,26 @@
 	<string>Submersion can record dive activities to your Health app.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Submersion accesses your photo library to attach images to dive logs.</string>
+	<key>UTExportedTypeDeclarations</key>
+	<array>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.json</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>Submersion Buddy Card</string>
+			<key>UTTypeIdentifier</key>
+			<string>app.submersion.buddy-card</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>subbuddy</string>
+				</array>
+			</dict>
+		</dict>
+	</array>
 	<key>UTImportedTypeDeclarations</key>
 	<array>
 		<dict>

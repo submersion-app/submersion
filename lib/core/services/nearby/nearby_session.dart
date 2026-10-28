@@ -9,6 +9,9 @@ import 'package:submersion/core/services/nearby/nearby_frame.dart';
 import 'package:submersion/core/services/nearby/nearby_hello.dart';
 import 'package:submersion/core/services/nearby/nearby_inbox.dart';
 
+part 'nearby_sealed_channel.dart';
+part 'nearby_session_card.dart';
+
 /// The long-lived pair secrets, one per paired peer, keyed by device id.
 abstract class NearbyPairSecrets {
   Future<Uint8List?> secretFor(String peerDeviceId);
@@ -243,7 +246,12 @@ class NearbySession {
     return NearbyPairing._(this, mine, peer, shared, cipher);
   }
 
-  Future<NearbyIncoming> accept({required bool allowPairing}) async {
+  /// [allowCard] while the buddy card swap screen is open (issue #3728);
+  /// otherwise a card hello is refused with `notSwapping`.
+  Future<NearbyIncoming> accept({
+    required bool allowPairing,
+    bool allowCard = false,
+  }) async {
     final hello = await _readHello();
     final commitment = hello.commitment;
     if (commitment == null) await _refuse(NearbyErrorCode.protocol);
@@ -273,6 +281,8 @@ class NearbySession {
         revoked = peerId != null;
       }
       if (peerId == null) await _refuse(NearbyErrorCode.notPaired);
+    } else if (hello.intent == NearbyIntent.card) {
+      if (!allowCard) await _refuse(NearbyErrorCode.notSwapping);
     } else if (!allowPairing) {
       await _refuse(NearbyErrorCode.notPaired);
     }
@@ -280,7 +290,9 @@ class NearbySession {
     final handshake = await NearbyHandshake.start();
     await _sendHello(
       NearbyHello(
-        protocolVersion: NearbyHello.currentProtocolVersion,
+        protocolVersion: hello.intent == NearbyIntent.card
+            ? NearbyHello.cardProtocolVersion
+            : NearbyHello.currentProtocolVersion,
         intent: hello.intent,
         publicKey: handshake.publicKey,
         tag: secret == null
@@ -303,6 +315,9 @@ class NearbySession {
     }
     final cipher = await shared.sessionCipher(pairSecret: secret);
     await _keyCheck(cipher);
+    if (hello.intent == NearbyIntent.card) {
+      return NearbyIncomingCard(_cardChannel(cipher));
+    }
     if (hello.intent == NearbyIntent.pair) {
       final (mine, peer) = await _exchangePreview(cipher, shared);
       return NearbyIncomingPairing(
@@ -465,15 +480,23 @@ class NearbySession {
     // intent or a field this build cannot parse, and it must still learn
     // which side needs the update.
     final version = NearbyHello.versionOf(message.body);
-    if (version != null && version > NearbyHello.currentProtocolVersion) {
+    if (version != null && version > NearbyHello.maxProtocolVersion) {
       await _refuse(NearbyErrorCode.newerApp);
     }
+    final NearbyHello hello;
     try {
-      return NearbyHello.fromBytes(message.body);
+      hello = NearbyHello.fromBytes(message.body);
     } on Object {
       // Malformed in any way, typed or not: refuse rather than hang.
       return _refuse(NearbyErrorCode.protocol);
     }
+    // Only a card hello may go past the sync and pair version (issue
+    // #3728): a sync or pair hello above it is from a newer build.
+    if (hello.intent != NearbyIntent.card &&
+        hello.protocolVersion > NearbyHello.currentProtocolVersion) {
+      await _refuse(NearbyErrorCode.newerApp);
+    }
+    return hello;
   }
 
   /// Both sides send a sealed known text and open the other's. A failure
@@ -699,64 +722,15 @@ class NearbyPairing {
   }
 }
 
-/// An authenticated, encrypted message channel to one peer. Every frame is
-/// sealed, `error` and `bye` included, so nobody in range can end a session
-/// with a forged refusal.
-class NearbyChannel {
+/// The sealed channel of a sync or pairing session, to one known peer.
+class NearbyChannel extends NearbySealedChannel {
   NearbyChannel._({
     required this.peer,
-    required this.isInitiator,
-    required NearbyEndpoint endpoint,
-    required NearbySessionCipher cipher,
-    required Stream<NearbyMessage> raw,
-  }) : _endpoint = endpoint,
-       _cipher = cipher {
-    messages = raw
-        .asyncMap((m) async => NearbyMessage(m.type, await cipher.open(m.body)))
-        .takeWhile((_) => !_closing);
-  }
+    required super.isInitiator,
+    required super.endpoint,
+    required super.cipher,
+    required super.raw,
+  }) : super._();
 
   final NearbyIdentity peer;
-  final bool isInitiator;
-  final NearbyEndpoint _endpoint;
-  final NearbySessionCipher _cipher;
-
-  /// Decrypted messages in order. A box that fails to open is a stream
-  /// error ([NearbyAuthFailure]); the stream ends when the link does, or
-  /// after [close] at the next frame, so a replaced or ended session reads
-  /// none of the frames still in flight.
-  late final Stream<NearbyMessage> messages;
-
-  bool _closing = false;
-
-  Future<void> _tail = Future.value();
-
-  /// Sends are queued so the nonce counter and the frames stay in order.
-  Future<void> send(NearbyMessageType type, Uint8List body) {
-    final next = _tail.then((_) async {
-      final payload = await _cipher.seal(body);
-      await _endpoint.send(FrameEncoder.encode(type, payload));
-    });
-    _tail = next.catchError((Object _) {});
-    return next;
-  }
-
-  /// The longest [close] waits for its `bye` to go out. The bye queues
-  /// behind every earlier send, and a stalled link (a central that stopped
-  /// reading a full outbox) would otherwise hold an unpair or the move to
-  /// the background until the peer caught up.
-  static const byeTimeout = Duration(seconds: 2);
-
-  /// Says `bye` (best effort) and closes the link.
-  Future<void> close() async {
-    _closing = true;
-    try {
-      await send(NearbyMessageType.bye, Uint8List(0)).timeout(byeTimeout);
-    } on NearbyLinkClosed {
-      // Already closed.
-    } on TimeoutException {
-      // Stalled: hang up without it.
-    }
-    await _endpoint.close();
-  }
 }

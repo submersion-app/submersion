@@ -11,6 +11,7 @@ class MainActivity : FlutterFragmentActivity() {
     private var localMediaHandler: LocalMediaHandler? = null
     private var deviceNameHandler: DeviceNameHandler? = null
     private var systemProxyHandler: SystemProxyHandler? = null
+    private var cardEmulationHandler: CardEmulationHandler? = null
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -38,5 +39,21 @@ class MainActivity : FlutterFragmentActivity() {
             SystemProxyHandler.CHANNEL,
         )
         systemProxyHandler = SystemProxyHandler(applicationContext, systemProxyChannel)
+
+        val cardEmulationChannel = MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            CardEmulationHandler.CHANNEL,
+        )
+        cardEmulationHandler = CardEmulationHandler(this, cardEmulationChannel)
+    }
+
+    override fun onPause() {
+        cardEmulationHandler?.onPause()
+        super.onPause()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        cardEmulationHandler?.onResume()
     }
 }

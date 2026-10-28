@@ -44,6 +44,23 @@ void main() {
     expect(File(p.join(paths.photosDir, 'turtle.webp')).existsSync(), isTrue);
   });
 
+  test('extract reports the bytes written, growing to the total', () async {
+    final zip = zipOf({
+      'submersion_demo.db': 'DB',
+      'photos/reef.jpg': 'JPG',
+      'photos/turtle.webp': 'WEBP',
+    });
+    final progress = <(int, int)>[];
+
+    await DemoPackageExtractor().extract(
+      zip,
+      paths,
+      onProgress: (done, total) => progress.add((done, total)),
+    );
+
+    expect(progress, [(2, 9), (5, 9), (9, 9)]);
+  });
+
   test('extract refuses a package that expands past the cap', () async {
     // 64 KB of one byte compresses to almost nothing.
     final zip = zipOf({'submersion_demo.db': 'A' * 65536});

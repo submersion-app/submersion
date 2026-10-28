@@ -18,7 +18,13 @@ class DemoPackageExtractor {
   static const databaseEntry = 'submersion_demo.db';
   static const _photoExtensions = {'.jpg', '.jpeg', '.png', '.webp'};
 
-  Future<void> extract(File zip, DemoPaths paths) async {
+  /// [onProgress] hears the bytes written after each entry, out of the total
+  /// the archive declares.
+  Future<void> extract(
+    File zip,
+    DemoPaths paths, {
+    void Function(int done, int total)? onProgress,
+  }) async {
     final Archive archive;
     try {
       // The download was already checked against the manifest's SHA-256.
@@ -37,7 +43,8 @@ class DemoPackageExtractor {
     // The sizes the archive declares, before anything is inflated. A header
     // can understate them, so each entry also inflates into a sink that
     // stops at whatever the limit has left.
-    if (files.fold<int>(0, (sum, f) => sum + f.size) > maxExtractedBytes) {
+    final declared = files.fold<int>(0, (sum, f) => sum + f.size);
+    if (declared > maxExtractedBytes) {
       throw const FormatException('Sample logbook expands past its limit');
     }
 
@@ -52,6 +59,7 @@ class DemoPackageExtractor {
           ? paths.databaseFile
           : p.join(paths.photosDir, p.posix.basename(f.name));
       await File(target).writeAsBytes(bytes, flush: true);
+      onProgress?.call(written, declared);
     }
   }
 

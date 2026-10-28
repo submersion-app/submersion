@@ -15,6 +15,7 @@ import 'package:submersion/features/buddies/domain/entities/buddy.dart'
     as domain;
 import 'package:submersion/features/buddies/domain/entities/buddy_with_dive_count.dart';
 import 'package:submersion/features/buddies/domain/entities/legacy_buddy_conversion.dart';
+import 'package:submersion/features/buddies/data/repositories/buddy_card_columns.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_conversion_repository.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_merge_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
@@ -166,24 +167,7 @@ class BuddyRepository {
     final buddies = sortedByText(results, (r) => r.data['name'] as String).map((
       row,
     ) {
-      return domain.Buddy(
-        id: row.data['id'] as String,
-        diverId: row.data['diver_id'] as String?,
-        linkedDiverId: row.data['linked_diver_id'] as String?,
-        name: row.data['name'] as String,
-        email: row.data['email'] as String?,
-        phone: row.data['phone'] as String?,
-        photoPath: row.data['photo_path'] as String?,
-        photo: row.data['photo'] as Uint8List?,
-        notes: (row.data['notes'] as String?) ?? '',
-        isFavorite: (row.data['is_favorite'] as int? ?? 0) == 1,
-        createdAt: DateTime.fromMillisecondsSinceEpoch(
-          row.data['created_at'] as int,
-        ),
-        updatedAt: DateTime.fromMillisecondsSinceEpoch(
-          row.data['updated_at'] as int,
-        ),
-      );
+      return _mapRowToBuddy(_db.buddies.map(row.data));
     }).toList();
     return _withPrimaryCerts(buddies);
   }
@@ -198,7 +182,7 @@ class BuddyRepository {
       await _db
           .into(_db.buddies)
           .insert(
-            BuddiesCompanion(
+            BuddyCardColumns.of(buddy).copyWith(
               id: Value(id),
               diverId: Value(buddy.diverId),
               linkedDiverId: Value(buddy.linkedDiverId),
@@ -272,24 +256,7 @@ class BuddyRepository {
       if (results.isNotEmpty) {
         final row = results.first;
         _log.info('Found existing buddy: $trimmedName');
-        final found = domain.Buddy(
-          id: row.data['id'] as String,
-          linkedDiverId: row.data['linked_diver_id'] as String?,
-          diverId: row.data['diver_id'] as String?,
-          name: row.data['name'] as String,
-          email: row.data['email'] as String?,
-          phone: row.data['phone'] as String?,
-          photoPath: row.data['photo_path'] as String?,
-          photo: row.data['photo'] as Uint8List?,
-          notes: (row.data['notes'] as String?) ?? '',
-          isFavorite: (row.data['is_favorite'] as int? ?? 0) == 1,
-          createdAt: DateTime.fromMillisecondsSinceEpoch(
-            row.data['created_at'] as int,
-          ),
-          updatedAt: DateTime.fromMillisecondsSinceEpoch(
-            row.data['updated_at'] as int,
-          ),
-        );
+        final found = _mapRowToBuddy(_db.buddies.map(row.data));
         return (await _withPrimaryCerts([found])).first;
       }
 
@@ -324,7 +291,7 @@ class BuddyRepository {
       await (_db.update(
         _db.buddies,
       )..where((t) => t.id.equals(buddy.id))).write(
-        BuddiesCompanion(
+        BuddyCardColumns.of(buddy).copyWith(
           diverId: Value(buddy.diverId),
           linkedDiverId: Value(buddy.linkedDiverId),
           name: Value(buddy.name),
@@ -427,24 +394,7 @@ class BuddyRepository {
     final list = sortedByText(results, (r) => r.data['name'] as String).map((
       row,
     ) {
-      final buddy = domain.Buddy(
-        id: row.data['id'] as String,
-        diverId: row.data['diver_id'] as String?,
-        linkedDiverId: row.data['linked_diver_id'] as String?,
-        name: row.data['name'] as String,
-        email: row.data['email'] as String?,
-        phone: row.data['phone'] as String?,
-        photoPath: row.data['photo_path'] as String?,
-        photo: row.data['photo'] as Uint8List?,
-        notes: (row.data['notes'] as String?) ?? '',
-        isFavorite: (row.data['is_favorite'] as int? ?? 0) == 1,
-        createdAt: DateTime.fromMillisecondsSinceEpoch(
-          row.data['created_at'] as int,
-        ),
-        updatedAt: DateTime.fromMillisecondsSinceEpoch(
-          row.data['updated_at'] as int,
-        ),
-      );
+      final buddy = _mapRowToBuddy(_db.buddies.map(row.data));
       final roleIds =
           roleSets[buddy.id] ??
           DiveRoleSet.resolveBuddy(
@@ -517,20 +467,7 @@ class BuddyRepository {
     )) {
       final b = jr.readTable(_db.buddies);
       final link = jr.readTable(_db.diveBuddies);
-      final buddy = domain.Buddy(
-        id: b.id,
-        diverId: b.diverId,
-        linkedDiverId: b.linkedDiverId,
-        name: b.name,
-        email: b.email,
-        phone: b.phone,
-        photoPath: b.photoPath,
-        photo: b.photo,
-        notes: b.notes,
-        isFavorite: b.isFavorite,
-        createdAt: DateTime.fromMillisecondsSinceEpoch(b.createdAt),
-        updatedAt: DateTime.fromMillisecondsSinceEpoch(b.updatedAt),
-      );
+      final buddy = _mapRowToBuddy(b);
       final roleIds =
           roleSets[link.diveId]?[link.buddyId] ??
           DiveRoleSet.resolveBuddy(scalar: link.role, junction: const []);
@@ -962,24 +899,7 @@ class BuddyRepository {
       final list = sortedByText(results, (r) => r.data['name'] as String).map((
         row,
       ) {
-        final buddy = domain.Buddy(
-          id: row.data['id'] as String,
-          diverId: row.data['diver_id'] as String?,
-          linkedDiverId: row.data['linked_diver_id'] as String?,
-          name: row.data['name'] as String,
-          email: row.data['email'] as String?,
-          phone: row.data['phone'] as String?,
-          photoPath: row.data['photo_path'] as String?,
-          photo: row.data['photo'] as Uint8List?,
-          notes: (row.data['notes'] as String?) ?? '',
-          isFavorite: (row.data['is_favorite'] as int? ?? 0) == 1,
-          createdAt: DateTime.fromMillisecondsSinceEpoch(
-            row.data['created_at'] as int,
-          ),
-          updatedAt: DateTime.fromMillisecondsSinceEpoch(
-            row.data['updated_at'] as int,
-          ),
-        );
+        final buddy = _mapRowToBuddy(_db.buddies.map(row.data));
         final lastDive = row.data['last_dive'] as int?;
         return BuddyWithDiveCount(
           buddy: buddy,
@@ -1290,6 +1210,12 @@ class BuddyRepository {
       isFavorite: row.isFavorite,
       createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt),
+      cardId: row.cardId,
+      socialHandle: row.socialHandle,
+      cardDiveCount: row.cardDiveCount,
+      cardDivingSince: BuddyCardColumns.divingSince(row.cardDivingSince),
+      cardLastDive: BuddyCardColumns.lastDive(row.cardLastDive),
+      cardReceivedAt: BuddyCardColumns.receivedAt(row.cardReceivedAt),
     );
   }
 }

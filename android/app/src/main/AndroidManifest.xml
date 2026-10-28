@@ -59,6 +59,8 @@
          must still install the app. NFC is a normal permission. -->
     <uses-permission android:name="android.permission.NFC" />
     <uses-feature android:name="android.hardware.nfc" android:required="false" />
+    <!-- Buddy card tag emulation (issue #3728); optional like NFC itself. -->
+    <uses-feature android:name="android.hardware.nfc.hce" android:required="false" />
 
     <!-- Notification permissions for gear maintenance reminders -->
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
@@ -153,6 +155,8 @@
                 <category android:name="android.intent.category.BROWSABLE"/>
                 <data android:scheme="https" android:host="submersion.app" android:path="/c"/>
                 <data android:scheme="https" android:host="submersion.app" android:path="/g"/>
+                <!-- Buddy cards (issue #3728): the card is in the fragment. -->
+                <data android:scheme="https" android:host="submersion.app" android:path="/b"/>
             </intent-filter>
             <!-- The accepted custom-scheme forms, submersion://c?<payload> and
                  submersion://g?<payload>. -->
@@ -175,8 +179,23 @@
                 <category android:name="android.intent.category.BROWSABLE"/>
                 <data android:scheme="https" android:host="submersion.app" android:path="/c"/>
                 <data android:scheme="https" android:host="submersion.app" android:path="/g"/>
+                <!-- Buddy cards (issue #3728): the card is in the fragment. -->
+                <data android:scheme="https" android:host="submersion.app" android:path="/b"/>
             </intent-filter>
         </activity>
+        <!-- Buddy card swap (issue #3728): while the swap screen is open the
+             phone presents the diver's card as an NFC tag (Type 4 NDEF). -->
+        <service
+            android:name=".CardEmulationService"
+            android:exported="true"
+            android:permission="android.permission.BIND_NFC_SERVICE">
+            <intent-filter>
+                <action android:name="android.nfc.cardemulation.action.HOST_APDU_SERVICE"/>
+            </intent-filter>
+            <meta-data
+                android:name="android.nfc.cardemulation.host_apdu_service"
+                android:resource="@xml/apduservice"/>
+        </service>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data
