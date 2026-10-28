@@ -6,7 +6,6 @@ import '../../../tool/demo_data/src/shape/dive_shape.dart';
 import '../../../tool/demo_data/src/shape/shape_budget.dart';
 import '../../../tool/demo_data/src/story/catalog.dart';
 import '../../../tool/demo_data/src/story/destinations.dart';
-import '../../../tool/demo_data/src/story/milestones.dart';
 import '../../../tool/demo_data/src/story/story_plan.dart';
 import '../../../tool/demo_data/src/story/story_planner.dart';
 import 'synthetic_shapes.dart';
@@ -266,8 +265,9 @@ void main() {
     'no technical-phase dive deeper than 45 m uses a recreational shape kind',
     () {
       for (final d in plan.dives) {
-        if (d.phase == StoryPhase.recreational || d.targetMaxDepth <= 45)
+        if (d.phase == StoryPhase.recreational || d.targetMaxDepth <= 45) {
           continue;
+        }
         expect(d.wantedKinds, isNot(contains(ShapeKind.recreational)));
       }
     },

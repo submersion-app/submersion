@@ -105,7 +105,7 @@ class MiscSeeder implements DemoSeeder {
           'Environmentally sealed first stage for cold water; breathe the reg before descending.',
       diveId: ctx.diveId(freeFlow.number),
       diverId: diver,
-      equipmentId: ctx.equipment['reg'],
+      equipmentId: ctx.equipment['reg-cold'],
     );
     final current = ctx.plan.dives.firstWhere(
       (d) => d.destination.key == 'similan' || d.destination.key == 'maldives',

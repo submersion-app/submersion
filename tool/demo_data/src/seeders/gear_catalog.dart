@@ -1,5 +1,32 @@
 import 'package:submersion/core/constants/enums.dart';
 
+import '../story/story_plan.dart';
+import 'gear_assemblies.dart';
+
+/// What a piece of kit is taken on: the kit for each dive picks from these.
+/// [warm] is water of 26 degrees or more, [temperate] 14 to 26, [cold]
+/// below 14 (a drysuit). [spare] items only stand in for a missing one.
+enum KitUse {
+  always,
+  warm,
+  temperate,
+  cold,
+  tech,
+  ccr,
+  scooter,
+  photo,
+  night,
+  spare,
+}
+
+/// When an item stops being used, and what it is today: sold, lost,
+/// retired, lent out, or kept as a spare.
+typedef GearDeparture = ({
+  StoryMilestone at,
+  int offset,
+  EquipmentStatus status,
+});
+
 /// One piece of the demo diver's kit.
 class DemoGear {
   const DemoGear(
@@ -8,11 +35,16 @@ class DemoGear {
     this.type, {
     this.brand,
     this.model,
-    this.boughtAtDive = 1,
+    this.bought = StoryMilestone.firstDive,
+    this.boughtOffset = 0,
+    this.leaves,
     this.status = EquipmentStatus.active,
     this.serviceIntervalDays,
     this.travel = false,
     this.size,
+    this.attributes = const {},
+    this.uses = const {},
+    this.replaces,
   });
 
   final String key;
@@ -21,27 +53,79 @@ class DemoGear {
   final String? brand;
   final String? model;
 
-  /// Bought just before this planned dive number.
-  final int boughtAtDive;
+  /// Bought for the dive [boughtOffset] dives after this milestone (a
+  /// replacement is bought on the first home day after its predecessor
+  /// left).
+  final StoryMilestone bought;
+  final int boughtOffset;
+  final GearDeparture? leaves;
+
+  /// The status today of an item that never leaves.
   final EquipmentStatus status;
   final int? serviceIntervalDays;
   final bool travel;
   final String? size;
+
+  /// Type-specific attributes by `EquipmentAttrKeys` key.
+  final Map<String, Object> attributes;
+  final Set<KitUse> uses;
+
+  /// The item this one replaced.
+  final String? replaces;
+
+  /// Today's status: where it went, or [status].
+  EquipmentStatus get currentStatus => leaves?.status ?? status;
 }
 
-/// The kit, bought as the story needs it: rental-free recreational gear,
-/// then drysuit and lake kit, technical doubles and stages, a rebreather.
-/// Brands and models are real products; they identify nobody.
-const demoGear = [
-  DemoGear(
+const _warm = {KitUse.warm};
+const _anyWater = {KitUse.warm, KitUse.temperate, KitUse.cold};
+
+/// The kit, bought as the story needs it. Brands and models are real
+/// products; they identify nobody.
+final demoGear = <DemoGear>[
+  // Open Water year.
+  const DemoGear(
     'mask',
     'Low-volume mask',
     EquipmentType.mask,
     brand: 'Atomic Aquatics',
     model: 'Venom',
     travel: true,
+    uses: {KitUse.always},
+    leaves: (at: StoryMilestone.photo, offset: 2, status: EquipmentStatus.lost),
   ),
-  DemoGear(
+  const DemoGear(
+    'mask-spare',
+    'Spare mask',
+    EquipmentType.mask,
+    brand: 'Cressi',
+    model: 'Big Eyes Evolution',
+    travel: true,
+    status: EquipmentStatus.spare,
+    uses: {KitUse.spare},
+  ),
+  const DemoGear(
+    'mask-2',
+    'Frameless mask',
+    EquipmentType.mask,
+    brand: 'Atomic Aquatics',
+    model: 'Subframe',
+    bought: StoryMilestone.photo,
+    boughtOffset: 2,
+    replaces: 'mask',
+    travel: true,
+    uses: {KitUse.always},
+  ),
+  const DemoGear(
+    'snorkel',
+    'Folding snorkel',
+    EquipmentType.snorkel,
+    brand: 'Scubapro',
+    model: 'Spectra',
+    travel: true,
+    uses: _warm,
+  ),
+  const DemoGear(
     'fins',
     'Travel fins',
     EquipmentType.fins,
@@ -49,294 +133,328 @@ const demoGear = [
     model: 'Avanti Quattro+',
     travel: true,
     size: 'L',
+    uses: _anyWater,
   ),
-  DemoGear(
+  const DemoGear(
     'boots',
     'Neoprene boots',
     EquipmentType.boots,
     brand: 'Mares',
     model: 'Classic NG',
     size: '43',
+    uses: {KitUse.warm, KitUse.temperate},
   ),
-  DemoGear(
-    'wetsuit',
-    '5 mm wetsuit',
+  const DemoGear(
+    'wetsuit-7',
+    '7 mm wetsuit',
     EquipmentType.wetsuit,
     brand: 'Waterproof',
-    model: 'W4 5mm',
-    travel: true,
+    model: 'W4 7mm',
     size: 'L',
+    attributes: {'thickness_mm': 7},
+    uses: {KitUse.temperate},
   ),
-  DemoGear(
-    'reg',
-    'Primary regulator',
-    EquipmentType.regulator,
-    brand: 'Apeks',
-    model: 'XTX50',
-    serviceIntervalDays: 365,
-    travel: true,
+  const DemoGear(
+    'hood',
+    '5 mm hood',
+    EquipmentType.hood,
+    brand: 'Waterproof',
+    model: 'H1 5/10mm',
+    uses: {KitUse.temperate, KitUse.cold},
   ),
-  DemoGear(
-    'first-stage',
-    'First stage',
-    EquipmentType.firstStage,
-    brand: 'Apeks',
-    model: 'DST',
+  const DemoGear(
+    'gloves',
+    '5 mm gloves',
+    EquipmentType.gloves,
+    brand: 'Waterproof',
+    model: 'G1 5mm',
+    uses: {KitUse.temperate},
   ),
-  DemoGear(
-    'second-primary',
-    'Primary second stage',
-    EquipmentType.secondStage,
-    brand: 'Apeks',
-    model: 'XTX50',
-  ),
-  DemoGear(
-    'second-octo',
-    'Octopus',
-    EquipmentType.secondStage,
-    brand: 'Apeks',
-    model: 'XTX40',
-  ),
-  DemoGear(
-    'bcd',
+  const DemoGear(
+    'bcd-jacket',
     'Jacket BCD',
     EquipmentType.bcd,
     brand: 'Scubapro',
     model: 'Hydros Pro',
     travel: true,
     size: 'L',
-    status: EquipmentStatus.loaned,
+    uses: _anyWater,
+    leaves: (
+      at: StoryMilestone.techStart,
+      offset: 10,
+      status: EquipmentStatus.sold,
+    ),
   ),
-  DemoGear(
+  const DemoGear(
     'computer-rec',
     'Wrist computer',
     EquipmentType.computer,
     brand: 'Shearwater',
     model: 'Peregrine',
     travel: true,
+    uses: {KitUse.always},
+    leaves: (
+      at: StoryMilestone.airIntegrated,
+      offset: 0,
+      status: EquipmentStatus.retired,
+    ),
   ),
-  DemoGear(
+  const DemoGear(
     'smb',
     'Surface marker buoy',
     EquipmentType.smb,
     brand: 'Halcyon',
     model: 'Diver Alert Marker',
-    boughtAtDive: 20,
+    travel: true,
+    uses: {KitUse.always},
   ),
-  DemoGear(
-    'reel',
+  const DemoGear(
+    'spool',
     'Spool',
     EquipmentType.reel,
     brand: 'Halcyon',
-    model: 'Defender 30 m',
-    boughtAtDive: 20,
+    model: 'Spool 30 m',
+    travel: true,
+    uses: {KitUse.always},
   ),
-  DemoGear(
+  const DemoGear(
+    'knife',
+    'Line cutter',
+    EquipmentType.knife,
+    brand: 'Trilobite',
+    model: 'Line Cutter',
+    travel: true,
+    uses: {KitUse.always},
+  ),
+  const DemoGear(
+    'weights',
+    'Lead weight belt',
+    EquipmentType.weights,
+    brand: 'Beuchat',
+    model: 'Marseillaise belt',
+    uses: {KitUse.temperate, KitUse.cold},
+  ),
+  // First trips and the first summers.
+  const DemoGear(
+    'wetsuit-3',
+    '3 mm wetsuit',
+    EquipmentType.wetsuit,
+    brand: 'Fourth Element',
+    model: 'Proteus II',
+    bought: StoryMilestone.firstTrip,
+    travel: true,
+    size: 'L',
+    attributes: {'thickness_mm': 3},
+    uses: _warm,
+  ),
+  const DemoGear(
+    'rash-guard',
+    'Rash guard',
+    EquipmentType.rashGuard,
+    brand: 'Fourth Element',
+    model: 'Hydroskin',
+    bought: StoryMilestone.firstTrip,
+    travel: true,
+    uses: _warm,
+  ),
+  const DemoGear(
+    'wetsuit-5',
+    '5 mm wetsuit',
+    EquipmentType.wetsuit,
+    brand: 'Waterproof',
+    model: 'W4 5mm',
+    bought: StoryMilestone.advanced,
+    travel: true,
+    size: 'L',
+    attributes: {'thickness_mm': 5},
+    uses: {KitUse.temperate},
+  ),
+  const DemoGear(
+    'tank-12',
+    'Steel 12 L',
+    EquipmentType.tank,
+    brand: 'Faber',
+    model: 'FX 12 L 232 bar',
+    bought: StoryMilestone.ownRegulator,
+    attributes: {
+      'volume_l': 12,
+      'working_pressure_bar': 232,
+      'tank_material': 'steel',
+    },
+    uses: {KitUse.temperate, KitUse.cold},
+  ),
+  const DemoGear(
+    'light-primary',
+    'Dive light',
+    EquipmentType.light,
+    brand: 'Halcyon',
+    model: 'Flare',
+    bought: StoryMilestone.advanced,
+    travel: true,
+    uses: {KitUse.night, KitUse.cold},
+  ),
+  const DemoGear(
+    'o2-analyser',
+    'Oxygen analyser',
+    EquipmentType.tool,
+    brand: 'Divesoft',
+    model: 'Oxygen Analyser',
+    bought: StoryMilestone.nitrox,
+  ),
+  // Drysuit for the cold lakes.
+  const DemoGear(
     'drysuit',
-    'Trilaminate drysuit',
+    'Drysuit',
     EquipmentType.drysuit,
     brand: 'Santi',
     model: 'E.Lite',
-    boughtAtDive: 30,
-    serviceIntervalDays: 365,
-    size: 'ML',
+    bought: StoryMilestone.drysuit,
+    size: 'L',
+    status: EquipmentStatus.needsService,
+    uses: {KitUse.cold},
   ),
-  DemoGear(
+  const DemoGear(
     'undersuit',
     'Undersuit',
     EquipmentType.undersuit,
     brand: 'Santi',
     model: 'BZ400',
-    boughtAtDive: 30,
+    bought: StoryMilestone.drysuit,
+    size: 'L',
+    uses: {KitUse.cold},
   ),
-  DemoGear(
-    'hood',
-    '7 mm hood',
-    EquipmentType.hood,
-    brand: 'Waterproof',
-    model: 'H1',
-    boughtAtDive: 30,
+  const DemoGear(
+    'baselayer',
+    'Base layer',
+    EquipmentType.baselayer,
+    brand: 'Fourth Element',
+    model: 'Xerotherm',
+    bought: StoryMilestone.drysuit,
+    uses: {KitUse.cold},
   ),
-  DemoGear(
-    'gloves',
-    'Dry gloves',
+  const DemoGear(
+    'socks',
+    'Thermal socks',
+    EquipmentType.socks,
+    brand: 'Fourth Element',
+    model: 'Arctic socks',
+    bought: StoryMilestone.drysuit,
+    uses: {KitUse.cold},
+  ),
+  const DemoGear(
+    'dry-gloves',
+    'Dry glove system',
     EquipmentType.gloves,
-    brand: 'Si Tech',
-    model: 'Quick Glove',
-    boughtAtDive: 30,
+    brand: 'SI Tech',
+    model: 'Dry glove system',
+    bought: StoryMilestone.drysuit,
+    uses: {KitUse.cold},
   ),
-  DemoGear(
-    'tank-12',
-    '12 L steel',
-    EquipmentType.tank,
-    brand: 'Faber',
-    model: '12 L 232 bar',
-    boughtAtDive: 30,
-  ),
-  DemoGear('weights', 'Weight belt', EquipmentType.weights, boughtAtDive: 30),
-  DemoGear(
-    'light',
-    'Primary light',
-    EquipmentType.light,
-    brand: 'Light Monkey',
-    model: '21 W',
-    boughtAtDive: 60,
-  ),
-  DemoGear(
-    'camera',
-    'Compact camera',
-    EquipmentType.camera,
-    brand: 'OM System',
-    model: 'TG-7',
-    boughtAtDive: 70,
+  const DemoGear(
+    'computer-ai',
+    'Air-integrated wrist computer',
+    EquipmentType.computer,
+    brand: 'Shearwater',
+    model: 'Teric',
+    bought: StoryMilestone.airIntegrated,
+    replaces: 'computer-rec',
     travel: true,
+    uses: {KitUse.always},
   ),
-  DemoGear(
+  // Camera.
+  const DemoGear(
+    'camera',
+    'Camera',
+    EquipmentType.camera,
+    brand: 'Sony',
+    model: 'Alpha 6400',
+    bought: StoryMilestone.photo,
+    travel: true,
+    uses: {KitUse.photo},
+  ),
+  const DemoGear(
     'housing',
     'Camera housing',
     EquipmentType.housing,
-    brand: 'OM System',
-    model: 'PT-059',
-    boughtAtDive: 70,
+    brand: 'Nauticam',
+    model: 'NA-A6400',
+    bought: StoryMilestone.photo,
+    travel: true,
+    uses: {KitUse.photo},
   ),
-  DemoGear(
-    'strobe',
-    'Strobe',
+  const DemoGear(
+    'port',
+    'Macro port',
+    EquipmentType.port,
+    brand: 'Nauticam',
+    model: 'N85 macro port 45',
+    bought: StoryMilestone.photo,
+    travel: true,
+    uses: {KitUse.photo},
+  ),
+  const DemoGear(
+    'tray',
+    'Tray and handles',
+    EquipmentType.trayHandle,
+    brand: 'Nauticam',
+    model: 'Flexitray',
+    bought: StoryMilestone.photo,
+    travel: true,
+    uses: {KitUse.photo},
+  ),
+  const DemoGear(
+    'arms',
+    'Arms and clamps',
+    EquipmentType.armClamp,
+    brand: 'Nauticam',
+    model: 'Strobe arm set',
+    bought: StoryMilestone.photo,
+    travel: true,
+    uses: {KitUse.photo},
+  ),
+  const DemoGear(
+    'float-arms',
+    'Float arms',
+    EquipmentType.floatArm,
+    brand: 'Nauticam',
+    model: 'Float arm 70',
+    bought: StoryMilestone.photo,
+    travel: true,
+    uses: {KitUse.photo},
+  ),
+  const DemoGear(
+    'strobe-left',
+    'Strobe, left',
     EquipmentType.strobe,
     brand: 'Sea & Sea',
-    model: 'YS-D3',
-    boughtAtDive: 70,
+    model: 'YS-D3 Duo',
+    bought: StoryMilestone.photo,
+    travel: true,
+    uses: {KitUse.photo},
   ),
-  DemoGear(
-    'wing',
-    'Backplate and wing',
-    EquipmentType.wing,
-    brand: 'Halcyon',
-    model: 'Evolve 40',
-    boughtAtDive: 100,
+  const DemoGear(
+    'strobe-right',
+    'Strobe, right',
+    EquipmentType.strobe,
+    brand: 'Sea & Sea',
+    model: 'YS-D3 Duo',
+    bought: StoryMilestone.photo,
+    travel: true,
+    uses: {KitUse.photo},
   ),
-  DemoGear(
-    'backplate',
-    'Steel backplate',
-    EquipmentType.backplate,
-    brand: 'Halcyon',
-    model: 'Steel',
-    boughtAtDive: 100,
+  const DemoGear(
+    'video-light',
+    'Video light',
+    EquipmentType.videoLight,
+    brand: 'Kraken Sports',
+    model: 'Hydra 3500',
+    bought: StoryMilestone.photo,
+    boughtOffset: 40,
+    travel: true,
+    uses: {KitUse.photo},
   ),
-  DemoGear(
-    'computer-tech',
-    'Technical computer',
-    EquipmentType.computer,
-    brand: 'Shearwater',
-    model: 'Perdix 2',
-    boughtAtDive: 130,
-  ),
-  DemoGear(
-    'transmitter-1',
-    'Transmitter, back gas',
-    EquipmentType.transmitter,
-    brand: 'Shearwater',
-    model: 'Swift',
-    boughtAtDive: 130,
-    serviceIntervalDays: 730,
-  ),
-  DemoGear(
-    'transmitter-2',
-    'Transmitter, stage',
-    EquipmentType.transmitter,
-    brand: 'Shearwater',
-    model: 'Swift',
-    boughtAtDive: 130,
-  ),
-  DemoGear(
-    'twin',
-    'Twin 12 L steel',
-    EquipmentType.tank,
-    brand: 'Faber',
-    model: 'Twin 12 L 232 bar',
-    boughtAtDive: 134,
-  ),
-  DemoGear(
-    'stage-1',
-    'Stage 7 L aluminium',
-    EquipmentType.tank,
-    brand: 'Luxfer',
-    model: 'S40',
-    boughtAtDive: 134,
-  ),
-  DemoGear(
-    'stage-2',
-    'Stage 7 L aluminium',
-    EquipmentType.tank,
-    brand: 'Luxfer',
-    model: 'S40',
-    boughtAtDive: 200,
-  ),
-  DemoGear(
-    'dpv',
-    'Scooter',
-    EquipmentType.dpv,
-    brand: 'Seacraft',
-    model: 'Future',
-    boughtAtDive: 220,
-  ),
-  DemoGear(
-    'rebreather',
-    'Closed-circuit rebreather',
-    EquipmentType.rebreather,
-    brand: 'JJ-CCR',
-    model: 'JJ-CCR',
-    boughtAtDive: 285,
-    serviceIntervalDays: 365,
-  ),
-  DemoGear(
-    'o2-cell-1',
-    'Oxygen cell 1',
-    EquipmentType.o2Cell,
-    brand: 'Vandagraph',
-    model: 'R22D',
-    boughtAtDive: 285,
-  ),
-  DemoGear(
-    'o2-cell-2',
-    'Oxygen cell 2',
-    EquipmentType.o2Cell,
-    brand: 'Vandagraph',
-    model: 'R22D',
-    boughtAtDive: 285,
-  ),
-  DemoGear(
-    'o2-cell-3',
-    'Oxygen cell 3',
-    EquipmentType.o2Cell,
-    brand: 'Vandagraph',
-    model: 'R22D',
-    boughtAtDive: 285,
-  ),
-  DemoGear(
-    'ccr-o2',
-    'CCR oxygen cylinder',
-    EquipmentType.tank,
-    brand: 'Faber',
-    model: '3 L 232 bar',
-    boughtAtDive: 285,
-  ),
-  DemoGear(
-    'ccr-dil',
-    'CCR diluent cylinder',
-    EquipmentType.tank,
-    brand: 'Faber',
-    model: '3 L 232 bar',
-    boughtAtDive: 285,
-  ),
-  DemoGear(
-    'old-bcd',
-    'First BCD',
-    EquipmentType.bcd,
-    brand: 'Cressi',
-    model: 'Start',
-    status: EquipmentStatus.sold,
-  ),
+  ...technicalGear,
+  ...regulatorGear,
 ];
 
 /// Product names for the privacy check's allow list.

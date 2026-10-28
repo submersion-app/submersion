@@ -32,6 +32,7 @@ import 'package:submersion/features/transmitters/data/repositories/transmitter_r
 import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
 import 'package:submersion/features/weight_presets/data/repositories/weight_preset_repository.dart';
 
+import 'gear_assemblies.dart';
 import 'gear_catalog.dart';
 import '../story/story_plan.dart';
 import 'seed_context.dart';
@@ -64,8 +65,8 @@ class GearSeeder implements DemoSeeder {
           model: g.model,
           serialNumber:
               'DEMO-${g.key.toUpperCase()}-${1000 + g.key.length * 37}',
-          status: g.status,
-          purchaseDate: bought(g.boughtAtDive),
+          status: g.currentStatus,
+          purchaseDate: bought(ctx.plan.milestones[g.bought]! + g.boughtOffset),
           purchasePrice: 80.0 + g.key.length * 45,
           serviceIntervalDays: g.serviceIntervalDays,
           attributes: [
@@ -84,23 +85,14 @@ class GearSeeder implements DemoSeeder {
     }
 
     final components = EquipmentComponentRepository();
-    for (final (child, role) in [
-      ('first-stage', 'first stage'),
-      ('second-primary', 'primary'),
-      ('second-octo', 'octopus'),
-    ]) {
-      await components.addComponent(
-        parentId: ctx.equipment['reg']!,
-        componentId: ctx.equipment[child]!,
-        role: role,
-      );
-    }
-    for (final cell in ['o2-cell-1', 'o2-cell-2', 'o2-cell-3']) {
-      await components.addComponent(
-        parentId: ctx.equipment['rebreather']!,
-        componentId: ctx.equipment[cell]!,
-        role: 'cell',
-      );
+    for (final a in demoAssemblies) {
+      for (final (child, role) in a.parts) {
+        await components.addComponent(
+          parentId: ctx.equipment[a.parentKey]!,
+          componentId: ctx.equipment[child]!,
+          role: role,
+        );
+      }
     }
 
     await _sets(ctx);
@@ -116,7 +108,15 @@ class GearSeeder implements DemoSeeder {
     final defs = <String, (String, List<String>)>{
       'warm': (
         'Warm water',
-        ['mask', 'fins', 'wetsuit', 'reg', 'bcd', 'computer-rec', 'smb'],
+        [
+          'mask',
+          'fins',
+          'wetsuit-3',
+          'reg-warm',
+          'bcd-jacket',
+          'computer-rec',
+          'smb',
+        ],
       ),
       'lake': (
         'Lake, drysuit',
@@ -126,11 +126,11 @@ class GearSeeder implements DemoSeeder {
           'drysuit',
           'undersuit',
           'hood',
-          'gloves',
-          'reg',
+          'dry-gloves',
+          'reg-cold',
           'tank-12',
           'weights',
-          'light',
+          'light-primary',
           'computer-rec',
         ],
       ),
@@ -146,7 +146,7 @@ class GearSeeder implements DemoSeeder {
           'stage-1',
           'stage-2',
           'computer-tech',
-          'light',
+          'light-canister',
           'reel',
           'smb',
         ],
@@ -162,7 +162,7 @@ class GearSeeder implements DemoSeeder {
           'ccr-dil',
           'stage-1',
           'computer-tech',
-          'light',
+          'light-canister',
         ],
       ),
     };
@@ -212,7 +212,7 @@ class GearSeeder implements DemoSeeder {
         'tech',
         'computer-tech',
         'Perdix 2',
-        130,
+        ctx.plan.milestones[StoryMilestone.techStart]!,
         DiveComputerConnectionKind.usb,
       ),
     ]) {
@@ -240,7 +240,7 @@ class GearSeeder implements DemoSeeder {
       );
     }
     final transmitters = TransmitterRepository();
-    final when = bought(130);
+    final when = bought(ctx.plan.milestones[StoryMilestone.techStart]!);
     for (final (n, role) in [(1, TankRole.backGas), (2, TankRole.deco)]) {
       await transmitters.create(
         Transmitter(
@@ -316,10 +316,10 @@ class GearSeeder implements DemoSeeder {
         for (final k in ['drysuit', 'tank-12', 'twin', 'weights']) e[k]!,
       ],
       locationId: garage.id,
-      movedAt: bought(140),
+      movedAt: bought(ctx.plan.milestones[StoryMilestone.techStart]! + 10),
     );
     await moves.recordMoves(
-      equipmentIds: [e['reg']!],
+      equipmentIds: [e['reg-cold']!],
       locationId: shop.id,
       movedAt: DateTime(ctx.anchor.year, ctx.anchor.month, ctx.anchor.day - 20),
       note: 'Annual service',
@@ -338,7 +338,7 @@ class GearSeeder implements DemoSeeder {
       note: 'Damp left wrist after the dive.',
     );
     await observations.create(
-      equipmentId: e['reg']!,
+      equipmentId: e['reg-cold']!,
       diverId: DemoSeedContext.diverId,
       observedAt: lastLake.start,
       status: ObservationStatus.ok,
@@ -350,7 +350,7 @@ class GearSeeder implements DemoSeeder {
       actingDiverId: DemoSeedContext.diverId,
     );
     await EquipmentTransferService().transfer(
-      equipmentIds: [e['old-bcd']!],
+      equipmentIds: [e['bcd-jacket']!],
       toDiverId: DemoSeedContext.partnerId,
       actingDiverId: DemoSeedContext.diverId,
     );
@@ -363,7 +363,7 @@ class GearSeeder implements DemoSeeder {
       await records.createRecord(
         ServiceRecord(
           id: 'demo-service-reg-$year',
-          equipmentId: e['reg']!,
+          equipmentId: e['reg-cold']!,
           serviceCategory: ServiceCategory.annual,
           serviceKindId: 'regulator-service',
           serviceDate: at,
@@ -397,7 +397,7 @@ class GearSeeder implements DemoSeeder {
     await schedules.createSchedule(
       ServiceSchedule(
         id: 'demo-schedule-reg',
-        equipmentId: e['reg']!,
+        equipmentId: e['reg-cold']!,
         serviceKindId: 'regulator-service',
         intervalDays: 365,
         enabled: true,
@@ -405,7 +405,7 @@ class GearSeeder implements DemoSeeder {
         updatedAt: first,
       ),
     );
-    final ccrAt = bought(285);
+    final ccrAt = bought(ctx.plan.milestones[StoryMilestone.ccrCourse]!);
     await schedules.createSchedule(
       ServiceSchedule(
         id: 'demo-schedule-ccr',
@@ -432,7 +432,7 @@ class GearSeeder implements DemoSeeder {
       name: 'Doubles with two stages',
       description: 'Trimix back gas, 50% and oxygen to decompress.',
     );
-    final when = bought(200);
+    final when = bought(ctx.plan.milestones[StoryMilestone.trimix]!);
     await configs.saveItems(configId, [
       CylinderConfigItem(
         id: 'demo-config-item-1',
