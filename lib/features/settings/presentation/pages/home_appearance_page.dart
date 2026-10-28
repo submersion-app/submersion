@@ -48,6 +48,7 @@ class HomeAppearancePage extends ConsumerWidget {
       HomeChipType.uploads => l10n.settings_homeChips_uploads,
       HomeChipType.backup => l10n.settings_homeChips_backup,
       HomeChipType.sync => l10n.settings_homeChips_sync,
+      HomeChipType.nearby => l10n.settings_homeChips_nearby,
       HomeChipType.dataQuality => l10n.settings_homeChips_dataQuality,
       HomeChipType.flightWindow => l10n.settings_homeChips_flightWindow,
       HomeChipType.documents => l10n.settings_homeChips_documents,

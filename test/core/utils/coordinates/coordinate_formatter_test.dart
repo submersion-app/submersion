@@ -121,6 +121,40 @@ void main() {
     expect(text, "1° 00.000' N");
   });
 
+  group('breakCoordinatesOnlyBetweenAxes (#3745)', () {
+    const nbsp = '\u00A0';
+
+    /// The indices at which [text] may break: plain spaces only.
+    List<int> breaks(String text) => [
+      for (var i = 0; i < text.length; i++)
+        if (text[i] == ' ') i,
+    ];
+
+    for (final format in [
+      CoordinateFormat.decimalDegrees,
+      CoordinateFormat.degreesDecimalMinutes,
+      CoordinateFormat.degreesMinutesSeconds,
+    ]) {
+      test('${format.name} breaks only after the axis separator', () {
+        final formatted = formatCoordinates(-33.856784, 151.215297, format);
+        final wrapped = breakCoordinatesOnlyBetweenAxes(formatted);
+
+        expect(breaks(wrapped), [formatted.indexOf(', ') + 1]);
+        expect(wrapped.replaceAll(nbsp, ' '), formatted);
+      });
+    }
+
+    for (final format in [CoordinateFormat.utm, CoordinateFormat.mgrs]) {
+      test('${format.name} grid reference stays whole', () {
+        final formatted = formatCoordinates(-33.856784, 151.215297, format);
+        final wrapped = breakCoordinatesOnlyBetweenAxes(formatted);
+
+        expect(breaks(wrapped), isEmpty);
+        expect(wrapped.replaceAll(nbsp, ' '), formatted);
+      });
+    }
+  });
+
   group('single-axis formatting', () {
     test('renders one axis for the degree family', () {
       expect(

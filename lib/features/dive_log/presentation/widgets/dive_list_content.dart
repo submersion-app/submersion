@@ -219,6 +219,19 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   final ScrollController _scrollController = ScrollController();
   String? _lastScrolledToId;
 
+  /// On the list's scrubber, which sits inside the keyboard navigator: a
+  /// jump to a typed dive number, or any scroll to a dive, lands on the
+  /// dive's row through it, after the frame.
+  final GlobalKey _listBodyKey = GlobalKey();
+
+  /// Counts jumps to a typed dive number, so only the latest one lands; a
+  /// scroll by the diver counts too, dropping a landing still pending.
+  int _numberJumps = 0;
+
+  /// Counts jumps to a typed dive number alone, so only the latest one
+  /// opens its dive where that waits on the landing.
+  int _jumpRequests = 0;
+
   /// Brings the list back to the dive last opened when it is built again
   /// after the diver left it (#3301).
   late final ListPositionRestorer _positionRestorer = ListPositionRestorer(
@@ -296,6 +309,9 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
 
   void _onScroll() {
     if (!_scrollController.hasClients) return;
+    // The diver comes first: a jump to a typed number still loading drops
+    // its landing rather than pulling the list from where they put it.
+    if (_scrollController.positions.any(isScrolledByDiver)) _numberJumps++;
     // Once a page load has failed, only the Retry button asks again, matching
     // [_loadNextPageIfStranded]. Sitting at the bottom of the list produces a
     // scroll notification on every settle and overscroll bounce, so retrying
@@ -588,14 +604,32 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
               (viewportHeight / 3);
           final clampedOffset = targetOffset.clamp(0.0, maxScroll);
 
+          // The estimate only gets near on a log of uneven rows, landing
+          // dozens of dives off on a long one (#3744). From there, show the
+          // row itself, building it first if the estimate missed it; a row
+          // the estimate already put in view stays where it is. Not after
+          // the diver has taken the list over mid-animation, nor once a newer
+          // scroll to another dive has cut this one short.
+          void showRow() {
+            final listContext = _listBodyKey.currentContext;
+            if (!mounted || listContext == null) return;
+            if (_lastScrolledToId != targetId) return;
+            if (_scrollController.positions.any(isScrolledByDiver)) return;
+            _landOnDive(listContext, targetId, toTop: false);
+          }
+
           if (jump) {
             _scrollController.jumpTo(clampedOffset);
+            WidgetsBinding.instance.addPostFrameCallback((_) => showRow());
+            WidgetsBinding.instance.scheduleFrame();
           } else {
-            _scrollController.animateTo(
-              clampedOffset,
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeInOut,
-            );
+            _scrollController
+                .animateTo(
+                  clampedOffset,
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                )
+                .then((_) => showRow());
           }
           _lastScrolledToId = targetId;
         });
@@ -1261,6 +1295,69 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     }
   }
 
+  /// Takes the list to [dive], found by its typed dive number (#3744), and
+  /// opens it. The search has just cleared, so the whole list is on its way
+  /// back: the dive is paged in behind that reload, its trip opened if it
+  /// was folded, and its row shown at the top once laid out. It lands on the
+  /// row itself, as the scrubber does, not on an offset estimated from the
+  /// average row height, which a long log of uneven rows misses by dozens of
+  /// dives. The table scrolls to the highlighted dive itself.
+  ///
+  /// Where opening pushes the dive's page over the list (a phone), the list
+  /// lands first: under that page it is no longer laid out, so its row could
+  /// not be built, and going back would find the list short of the dive.
+  Future<void> _jumpToDive(DiveSummary dive) async {
+    if (ref.read(diveListViewModeProvider) == ListViewMode.table) {
+      _openDive(dive);
+      return;
+    }
+    final opensOverList = !widget.isMapMode && widget.onItemSelected == null;
+    if (!opensOverList) _openDive(dive);
+    final request = ++_jumpRequests;
+    final jump = ++_numberJumps;
+    // Only the latest jump opens its dive, landed or not.
+    void openOverList() {
+      if (opensOverList && mounted && request == _jumpRequests) {
+        _openDive(dive);
+      }
+    }
+
+    var loaded = false;
+    try {
+      loaded = await ref
+          .read(paginatedDiveListProvider.notifier)
+          .loadUntil(dive.id);
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to load the dive list through a typed dive number',
+        error: e,
+        stackTrace: stackTrace,
+      );
+    }
+    if (!mounted) return;
+    if (jump != _numberJumps || !loaded) {
+      openOverList();
+      return;
+    }
+    // Only a list grouped by trip folds dives away; opening the trip of an
+    // ungrouped one would change its saved folds for nothing.
+    final tripId = dive.tripId;
+    if (tripId != null &&
+        ref.read(diveListGroupTripsProvider) &&
+        ref.read(collapsedTripIdsProvider).contains(tripId)) {
+      ref.read(collapsedTripIdsProvider.notifier).expand(tripId);
+    }
+    _lastScrolledToId = dive.id;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final listContext = _listBodyKey.currentContext;
+      if (mounted && jump == _numberJumps && listContext != null) {
+        _landOnDive(listContext, dive.id, toTop: true);
+      }
+      openOverList();
+    });
+    WidgetsBinding.instance.scheduleFrame();
+  }
+
   void _showSortSheet(BuildContext context) {
     final sort = ref.read(diveSortProvider);
 
@@ -1339,6 +1436,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             children: [
               DiveSearchHeader(
                 onOpenDive: _openDive,
+                onJumpToDive: _jumpToDive,
                 onEscape: selection.isActive ? _selection.exit : null,
               ),
               const MisplacedLogbookBanner(),
@@ -1904,6 +2002,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                 ),
               DiveSearchHeader(
                 onOpenDive: _openDive,
+                onJumpToDive: _jumpToDive,
                 onEscape: selection.isActive ? _selection.exit : null,
               ),
               const MisplacedLogbookBanner(),
@@ -2163,6 +2262,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                 return header;
               },
               child: DiveListScrubber(
+                key: _listBodyKey,
                 controller: _scrollController,
                 loadedDives: dives,
                 groupingEnabled: groupingEnabled,

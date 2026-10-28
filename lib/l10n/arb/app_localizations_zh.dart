@@ -5643,6 +5643,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_homeChips_sync => '同步状态';
 
   @override
+  String get settings_homeChips_nearby => '附近的设备';
+
+  @override
   String get settings_homeChips_dataQuality => '数据质量';
 
   @override
@@ -5692,6 +5695,16 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get dashboard_gauges_synced => '已同步';
+
+  @override
+  String dashboard_gauges_nearby(String name) {
+    return '附近：$name 需要处理';
+  }
+
+  @override
+  String dashboard_gauges_nearbyMore(String name) {
+    return '附近：$name 等设备需要处理';
+  }
 
   @override
   String dashboard_gauges_dataIssues(int count) {
@@ -9689,6 +9702,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String diveLog_cylinders_modNote(String ppO2) {
     return '氧分压 $ppO2 时的最大作业深度';
   }
+
+  @override
+  String diveLog_cylinders_modLimit(String ppO2, String limit) {
+    return '$ppO2（$limit）';
+  }
+
+  @override
+  String get diveLog_cylinders_modLimitSeparator => '、';
 
   @override
   String get diveLog_tank_section_gasMix => '气体混合';
@@ -35273,6 +35294,126 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_sync_keepInStep => '自动保持设备同步';
 
   @override
+  String get settings_nearby_title => '附近的设备';
+
+  @override
+  String get settings_nearby_auto_title => '自动与附近设备同步';
+
+  @override
+  String get settings_nearby_auto_subtitle => '当附近已配对的设备打开时，通过蓝牙同步';
+
+  @override
+  String get settings_nearby_linuxNote =>
+      '其他设备无法发现这台电脑，因此它可以与除另一台 Linux 电脑以外的任何附近设备同步';
+
+  @override
+  String get settings_nearby_pair => '配对设备';
+
+  @override
+  String settings_nearby_status_synced(String when) {
+    return '已同步 $when';
+  }
+
+  @override
+  String settings_nearby_status_syncing(String done, String total) {
+    return '正在同步：$done / $total';
+  }
+
+  @override
+  String get settings_nearby_status_never => '尚未同步';
+
+  @override
+  String settings_nearby_status_notSeen(String date) {
+    return '自 $date 起未见到';
+  }
+
+  @override
+  String get settings_nearby_error_newerApp => '此设备需要更新版本的应用';
+
+  @override
+  String get settings_nearby_error_peerOlderApp => '该设备需要更新版本的应用';
+
+  @override
+  String get settings_nearby_error_differentLibrary => '不是同一个资料库';
+
+  @override
+  String get settings_nearby_error_notPaired => '已在另一台设备上取消配对';
+
+  @override
+  String get settings_nearby_error_applyFailed => '无法应用其更改';
+
+  @override
+  String get settings_nearby_error_bluetoothOff => '蓝牙已关闭或未获允许';
+
+  @override
+  String get settings_nearby_error_unreachable => '无法连接';
+
+  @override
+  String get settings_nearby_sheet_rename => '重命名';
+
+  @override
+  String get settings_nearby_sheet_unpair => '取消配对';
+
+  @override
+  String settings_nearby_unpair_confirm(String name) {
+    return '要取消与 $name 的配对吗？之后需要重新配对才能就近同步。';
+  }
+
+  @override
+  String get settings_nearby_rename_title => '重命名设备';
+
+  @override
+  String settings_nearby_notInRange(String name) {
+    return '$name 目前不在附近';
+  }
+
+  @override
+  String get nearbyPair_looking => '正在查找设备…';
+
+  @override
+  String get nearbyPair_hint => '在另一台设备上打开 Submersion，并同样点按“配对设备”。';
+
+  @override
+  String nearbyPair_found(String name) {
+    return '已找到 $name。确认它显示的是这个代码，然后在两台设备上确认。';
+  }
+
+  @override
+  String get nearbyPair_sameCode => '代码相同';
+
+  @override
+  String get nearbyPair_notMine => '不是我的';
+
+  @override
+  String get nearbyPair_waiting => '正在等待另一台设备确认…';
+
+  @override
+  String get nearbyPair_bothPopulated => '两台设备上都有潜水记录。配对会将它们合并为一个日志。';
+
+  @override
+  String get nearbyPair_differentLibrary => '该设备使用的是另一个资料库，因此无法与此设备配对。';
+
+  @override
+  String get nearbyPair_permissionDenied => 'Submersion 需要蓝牙权限才能查找附近的设备。';
+
+  @override
+  String get nearbyPair_bluetoothOff => '打开蓝牙以查找附近的设备。';
+
+  @override
+  String get nearbyPair_unsupported => '此设备没有可供 Submersion 使用的蓝牙。';
+
+  @override
+  String get nearbyPair_openSettings => '打开设置';
+
+  @override
+  String nearbyPair_done(String name) {
+    return '已与 $name 配对';
+  }
+
+  @override
+  String get nearbyPair_failed => '配对未完成。请在两台设备上重试。';
+
+  @override
   String get settings_sync_alsoAtLaunch => '启动时也同步';
 
   @override
@@ -52006,6 +52147,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get tags_manage_cannotUndo => '此操作无法撤销。';
 
   @override
+  String tags_manage_rowScopes(String scopes) {
+    return '适用于：$scopes';
+  }
+
+  @override
+  String tags_manage_rowUsage(String counts) {
+    return '已用于：$counts';
+  }
+
+  @override
   String get tags_action_edit => '编辑标签';
 
   @override
@@ -52560,4 +52711,38 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get demo_row_unavailable => '演示模式下不可用';
+
+  @override
+  String get demo_enter_confirm_title => '使用示例数据体验？';
+
+  @override
+  String demo_enter_confirm_body(String size) {
+    return '这将下载一个示例日志（$size）并用它代替你的日志打开。你的日志会被原封不动地保留，直到你退出演示模式。';
+  }
+
+  @override
+  String get demo_enter_confirm_action => '下载';
+
+  @override
+  String demo_enter_confirm_body_firstRun(String size) {
+    return '这将下载一个示例日志（$size），供你浏览应用。准备好开始自己的日志时，随时退出演示模式。';
+  }
+
+  @override
+  String demo_enter_changed_body(String size) {
+    return '示例日志已更新，现在大小为 $size。要下载吗？';
+  }
+
+  @override
+  String common_byteSize(String value, String unit) {
+    String _temp0 = intl.Intl.selectLogic(unit, {
+      'B': 'B',
+      'KB': 'KB',
+      'MB': 'MB',
+      'GB': 'GB',
+      'TB': 'TB',
+      'other': '$unit',
+    });
+    return '$value $_temp0';
+  }
 }

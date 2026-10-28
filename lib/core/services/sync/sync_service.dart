@@ -53,6 +53,8 @@ import 'package:submersion/core/services/sync/crypto/sync_encryption_service.dar
 import 'package:submersion/core/services/sync/crypto/sync_envelope.dart';
 import 'package:submersion/core/services/sync/library_moved.dart';
 import 'package:submersion/core/services/sync/sync_clock.dart';
+import 'package:submersion/core/services/sync/sync_coordinator.dart';
+import 'package:submersion/core/services/nearby/nearby_peer_store.dart';
 import 'package:submersion/core/services/shared_library/library_site_notes.dart';
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
@@ -169,6 +171,13 @@ class SyncStepException implements Exception {
 
 /// Progress callback for sync operations
 typedef SyncProgressCallback = void Function(SyncProgress progress);
+
+/// What a nearby apply merged (issue #3731).
+typedef NearbyApplyResult = ({
+  int recordsApplied,
+  int conflictsFound,
+  int recordsFailed,
+});
 
 /// Sync progress information
 class SyncProgress {
@@ -396,6 +405,47 @@ class SyncService {
       conflictsFound: r.conflictsFound,
       recordsFailed: r.recordsFailed,
     );
+  }
+
+  /// Applies a payload a nearby peer sent (issue #3731) through the same
+  /// merge a cloud pull uses, queued behind any running sync. [lastSync] is
+  /// when this device last synced with that peer: it scopes the two-sided
+  /// edit conflict and the tombstone age guard to the peer, as the cloud
+  /// path scopes them to its backend.
+  Future<NearbyApplyResult> applyNearbyPayload(
+    SyncPayload payload, {
+    required DateTime? lastSync,
+  }) {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.sync);
+    return SyncCoordinator.run(() async {
+      final r = await _applyRemotePayload(payload, lastSync);
+      return (
+        recordsApplied: r.recordsApplied,
+        conflictsFound: r.conflictsFound,
+        recordsFailed: r.recordsFailed,
+      );
+    });
+  }
+
+  /// [applyNearbyPayload] for a full copy streamed to [filePath].
+  Future<NearbyApplyResult> applyNearbyBaseFile(
+    String filePath, {
+    required DateTime? lastSync,
+    void Function(double fraction)? onProgress,
+  }) {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.sync);
+    return SyncCoordinator.run(() async {
+      final r = await _applyRemoteBaseFile(
+        filePath,
+        lastSync,
+        onProgress: onProgress,
+      );
+      return (
+        recordsApplied: r.recordsApplied,
+        conflictsFound: r.conflictsFound,
+        recordsFailed: r.recordsFailed,
+      );
+    });
   }
 
   void _reportProgress(SyncPhase phase, double progress, [String? message]) {
@@ -930,6 +980,18 @@ class SyncService {
         selfDeviceId: deviceId,
         peerManifests: pullResult.peerManifests,
         retiredPeerIds: fencedPeerIds,
+        // Paired nearby devices hold tombstones back too (issue #3731).
+        nearbyPeers: [
+          for (final peer in await NearbyPeerStore(
+            DatabaseService.instance.database,
+          ).all())
+            NearbyTombstoneAck(
+              deviceId: peer.peerDeviceId,
+              ackedHlc: peer.peerAppliedHlcHigh,
+              lastSeenAt: peer.lastSeenAt ?? peer.pairedAt,
+            ),
+        ],
+        nowMillis: now.millisecondsSinceEpoch,
       );
       if (gc.allowed) {
         await _syncRepository.clearAcknowledgedDeletions(

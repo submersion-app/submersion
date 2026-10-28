@@ -494,6 +494,24 @@ class GaugeStrip extends ConsumerWidget {
       );
     }
 
+    // A paired nearby device that cannot sync (issue #3731). Shown only when
+    // the diver has to act; a healthy or merely out-of-range device says
+    // nothing here.
+    final nearby = g.nearbyAttention;
+    if (_shown(hidden, HomeChipType.nearby) && nearby != null) {
+      chips.add(
+        _chip(
+          context,
+          icon: Icons.bluetooth_outlined,
+          label: nearby.more == 0
+              ? l10n.dashboard_gauges_nearby(nearby.name)
+              : l10n.dashboard_gauges_nearbyMore(nearby.name),
+          tone: _Tone.warn,
+          onTap: () => context.push('/settings/cloud-sync'),
+        ),
+      );
+    }
+
     if (_shown(hidden, HomeChipType.dataQuality) && g.dataQualityFindings > 0) {
       chips.add(
         _chip(

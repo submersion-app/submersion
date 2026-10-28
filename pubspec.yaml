@@ -163,6 +163,13 @@ dependencies:
   linked_scroll_controller: ^0.2.0
   cryptography: ^2.9.0
   cryptography_flutter: ^2.3.4
+  # Nearby sync between a diver's own devices over Bluetooth LE (issue
+  # #3731): the app's first Bluetooth package of its own (dive computers go
+  # through libdivecomputer's native scanner). Central on every platform,
+  # peripheral (advertising plus a GATT service) on all but Linux. Resolves
+  # to 3.1.0: 3.1.1 moved to bluez 0.9 (dbus 0.8), which geolocator_linux's
+  # dbus ^0.7.3 rules out.
+  universal_ble: ^3.1.0
   flutter_web_auth_2: ^5.0.3
   local_auth: ^3.0.2
   pdfrx: ^2.4.7

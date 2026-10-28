@@ -6,6 +6,7 @@ import 'package:latlong2/latlong.dart';
 
 import 'package:submersion/core/router/track_locations.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/coordinates/coordinate_formatter.dart';
 import 'package:submersion/core/utils/geo_math.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -357,26 +358,38 @@ class _GpsCoordinateRow extends StatelessWidget {
             decoration: BoxDecoration(color: dotColor, shape: BoxShape.circle),
           ),
           const SizedBox(width: 10),
-          SizedBox(
-            width: 52,
-            child: Text(
-              label,
-              style: textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ),
+          // A Wrap rather than a fixed-width label column: the label keeps its
+          // natural width (translations run long), and when the coordinate
+          // does not fit beside it, it drops onto its own line under the label
+          // instead of both wrapping mid-word on a narrow phone (#3745).
           Expanded(
-            child: InkWell(
-              key: coordKey,
-              onTap: onFocus,
-              child: Text(
-                coordText,
-                style: textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.primary,
-                  decoration: TextDecoration.underline,
+            child: Wrap(
+              spacing: 8,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                ConstrainedBox(
+                  // Short labels still line their coordinates up.
+                  constraints: const BoxConstraints(minWidth: 44),
+                  child: Text(
+                    label,
+                    style: textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
                 ),
-              ),
+                InkWell(
+                  key: coordKey,
+                  onTap: onFocus,
+                  child: Text(
+                    breakCoordinatesOnlyBetweenAxes(coordText),
+                    semanticsLabel: coordText,
+                    style: textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.primary,
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
           if (sourceName != null) ...[

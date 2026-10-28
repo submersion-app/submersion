@@ -3715,6 +3715,7 @@
   "settings_homeChips_uploads": "Media uploads",
   "settings_homeChips_backup": "Backup age",
   "settings_homeChips_sync": "Sync status",
+  "settings_homeChips_nearby": "Nearby devices",
   "settings_homeChips_dataQuality": "Data quality",
   "dashboard_gauges_certsNeedAttention": "{count, plural, =1{{count} certification needs attention} other{{count} certifications need attention}}",
   "@dashboard_gauges_certsNeedAttention": {
@@ -3778,6 +3779,22 @@
     }
   },
   "dashboard_gauges_synced": "Synced",
+  "dashboard_gauges_nearby": "Nearby: {name} needs attention",
+  "@dashboard_gauges_nearby": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "dashboard_gauges_nearbyMore": "Nearby: {name} and others need attention",
+  "@dashboard_gauges_nearbyMore": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "dashboard_gauges_dataIssues": "{count, plural, =1{1 data issue} other{{count} data issues}}",
   "@dashboard_gauges_dataIssues": {
     "placeholders": {
@@ -5700,6 +5717,8 @@
   "diveLog_cylinders_mod": "MOD {depth}",
   "diveLog_cylinders_mnd": "MND {depth}",
   "diveLog_cylinders_modNote": "MOD at ppO₂ {ppO2}",
+  "diveLog_cylinders_modLimit": "{ppO2} ({limit})",
+  "diveLog_cylinders_modLimitSeparator": ", ",
   "diveLog_tank_section_gasMix": "Gas Mix",
   "diveLog_tank_computerMix_matches": "Recorded by your dive computer",
   "diveLog_tank_computerMix_differs": "Your dive computer recorded {mix}",
@@ -6374,8 +6393,22 @@
       }
     }
   },
+  "@diveLog_cylinders_modLimit": {
+    "description": "One item of the list in diveLog_cylinders_modNote: a ppO2 and the limit it is (tankMod_limitBottom, tankMod_limitDeco or tankMod_limitDiluent), e.g. \"1.6 (deco limit)\"",
+    "placeholders": {
+      "ppO2": {
+        "type": "String"
+      },
+      "limit": {
+        "type": "String"
+      }
+    }
+  },
+  "@diveLog_cylinders_modLimitSeparator": {
+    "description": "Separator between the diveLog_cylinders_modLimit items in diveLog_cylinders_modNote"
+  },
   "@diveLog_cylinders_modNote": {
-    "description": "Note under the Cylinders card table: the working ppO2 every MOD on the card was computed at, e.g. \"MOD at ppO₂ 1.4\"",
+    "description": "Note under the Cylinders card table: the ppO2 every MOD on the card was computed at. {ppO2} is one value (\"MOD at ppO₂ 1.4\") or, when the cylinders use different limits, a list of diveLog_cylinders_modLimit items (\"MOD at ppO₂ 1.4 (bottom limit), 1.6 (deco limit)\")",
     "placeholders": {
       "ppO2": {
         "type": "String"
@@ -22919,6 +22952,93 @@
   "settings_sync_notSetUp": "Not set up",
   "settings_sync_offCustomFolder": "Off while the database is in a custom folder",
   "settings_sync_keepInStep": "Keep devices in step automatically",
+  "settings_nearby_title": "Nearby devices",
+  "settings_nearby_auto_title": "Sync nearby automatically",
+  "settings_nearby_auto_subtitle": "When a paired device is open nearby, over Bluetooth",
+  "settings_nearby_linuxNote": "Other devices cannot find this computer, so it syncs with any nearby device except another Linux computer",
+  "settings_nearby_pair": "Pair a device",
+  "settings_nearby_status_synced": "Synced {when}",
+  "@settings_nearby_status_synced": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_nearby_status_syncing": "Syncing: {done} of {total}",
+  "@settings_nearby_status_syncing": {
+    "placeholders": {
+      "done": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_nearby_status_never": "Not synced yet",
+  "settings_nearby_status_notSeen": "Not seen since {date}",
+  "@settings_nearby_status_notSeen": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_nearby_error_newerApp": "This device needs a newer app version",
+  "settings_nearby_error_peerOlderApp": "That device needs a newer app version",
+  "settings_nearby_error_differentLibrary": "Not the same library",
+  "settings_nearby_error_notPaired": "Unpaired on the other device",
+  "settings_nearby_error_applyFailed": "Could not apply its changes",
+  "settings_nearby_error_bluetoothOff": "Bluetooth is off or not allowed",
+  "settings_nearby_error_unreachable": "Could not connect",
+  "settings_nearby_sheet_rename": "Rename",
+  "settings_nearby_sheet_unpair": "Unpair",
+  "settings_nearby_unpair_confirm": "Unpair {name}? It will need pairing again to sync nearby.",
+  "@settings_nearby_unpair_confirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_nearby_rename_title": "Rename device",
+  "settings_nearby_notInRange": "{name} is not nearby right now",
+  "@settings_nearby_notInRange": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "nearbyPair_looking": "Looking for devices…",
+  "nearbyPair_hint": "Open Submersion on the other device and tap Pair a device there too.",
+  "nearbyPair_found": "Found {name}. Check that it shows this code, then confirm on both.",
+  "@nearbyPair_found": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "nearbyPair_sameCode": "Same code",
+  "nearbyPair_notMine": "Not mine",
+  "nearbyPair_waiting": "Waiting for the other device to confirm…",
+  "nearbyPair_bothPopulated": "Both devices have dives. Pairing merges them into one logbook.",
+  "nearbyPair_differentLibrary": "That device is on a different library, so it cannot pair with this one.",
+  "nearbyPair_permissionDenied": "Submersion needs Bluetooth permission to find nearby devices.",
+  "nearbyPair_bluetoothOff": "Turn on Bluetooth to find nearby devices.",
+  "nearbyPair_unsupported": "This device has no Bluetooth that Submersion can use.",
+  "nearbyPair_openSettings": "Open settings",
+  "nearbyPair_done": "Paired with {name}",
+  "@nearbyPair_done": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "nearbyPair_failed": "Pairing did not finish. Try again on both devices.",
   "settings_sync_alsoAtLaunch": "Also sync at launch",
   "settings_sync_alsoOnReturn": "Also sync when the app returns",
   "settings_sync_encryption": "Encryption",
@@ -32795,6 +32915,10 @@
   "tags_manage_bulkDeleteMessage_several": "These tags will be removed from:",
   "tags_manage_mergeAffected_several": "This will affect:",
   "tags_manage_cannotUndo": "This cannot be undone.",
+  "tags_manage_rowScopes": "For: {scopes}",
+  "@tags_manage_rowScopes": {"description": "Manage Tags row: where the tag is offered. {scopes} is a list of scope names joined with a middle dot, such as \"Dives · Sites\".", "placeholders": {"scopes": {"type": "String"}}},
+  "tags_manage_rowUsage": "Used on: {counts}",
+  "@tags_manage_rowUsage": {"description": "Manage Tags row: how many items carry the tag. {counts} is a list of counts, such as \"12 dives, 3 sites\".", "placeholders": {"counts": {"type": "String"}}},
   "tags_action_edit": "Edit tags",
   "media_info_tags": "Tags",
   "media_info_noTags": "No tags yet",
@@ -33034,5 +33158,17 @@
   "demo_unavailable_body": "Demo mode keeps the sample logbook separate from your data, so nothing can be imported, exported, backed up or synced.",
   "@demo_unavailable_body": {"description": "Demo mode (issue #3708)"},
   "demo_row_unavailable": "Unavailable in demo mode",
-  "@demo_row_unavailable": {"description": "Demo mode (issue #3708)"}
+  "@demo_row_unavailable": {"description": "Demo mode (issue #3708)"},
+  "demo_enter_confirm_title": "Explore with sample data?",
+  "@demo_enter_confirm_title": {"description": "Demo mode: asks before downloading the sample logbook (issue #3736)"},
+  "demo_enter_confirm_body": "This downloads a sample logbook ({size}) and opens it in place of your own. Your logbook is set aside, untouched, until you exit demo mode.",
+  "@demo_enter_confirm_body": {"description": "Demo mode: asks before downloading the sample logbook (issue #3736)", "placeholders": {"size": {"type": "String", "example": "12 MB"}}},
+  "demo_enter_confirm_action": "Download",
+  "@demo_enter_confirm_action": {"description": "Demo mode: asks before downloading the sample logbook (issue #3736)"},
+  "demo_enter_confirm_body_firstRun": "This downloads a sample logbook ({size}) to look around the app with. Exit demo mode whenever you are ready to start your own.",
+  "@demo_enter_confirm_body_firstRun": {"description": "Demo mode: asks before downloading the sample logbook on the first-run welcome screen, where the user has no logbook yet (issue #3736)", "placeholders": {"size": {"type": "String", "example": "12 MB"}}},
+  "demo_enter_changed_body": "The sample logbook has been updated and is now {size}. Download it?",
+  "@demo_enter_changed_body": {"description": "Demo mode: asks again when the sample logbook on offer changed size after the user agreed to download it (issue #3736)", "placeholders": {"size": {"type": "String", "example": "14 MB"}}},
+  "common_byteSize": "{value} {unit, select, B{B} KB{KB} MB{MB} GB{GB} TB{TB} other{{unit}}}",
+  "@common_byteSize": {"description": "A file size: value is the number, already in the locale's decimal format, and unit is one of B, KB, MB, GB, TB. Translate the unit symbols where the language uses its own (French: o, Ko, Mo, Go, To).", "placeholders": {"value": {"type": "String", "example": "12.5"}, "unit": {"type": "String", "example": "MB"}}}
 }

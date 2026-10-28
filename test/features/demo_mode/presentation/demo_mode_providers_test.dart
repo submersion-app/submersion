@@ -10,6 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/features/demo_mode/data/demo_database_preparer.dart';
 import 'package:submersion/features/demo_mode/data/demo_downloader.dart';
+import 'package:submersion/features/demo_mode/data/demo_manifest_client.dart';
 import 'package:submersion/features/demo_mode/data/demo_mode_service.dart';
 import 'package:submersion/features/demo_mode/data/demo_paths.dart';
 import 'package:submersion/features/demo_mode/data/demo_state_store.dart';
@@ -33,6 +34,16 @@ class _CountingClient extends FakeManifestClient {
     calls++;
     return super.fetchBest(appSchemaVersion);
   }
+}
+
+/// Offers [offered], which a test changes to stand for a republish.
+class _RepublishingClient extends FakeManifestClient {
+  _RepublishingClient(this.offered);
+
+  DemoPackage offered;
+
+  @override
+  Future<DemoPackage?> fetchBest(int appSchemaVersion) async => offered;
 }
 
 void main() {
@@ -106,7 +117,9 @@ void main() {
     Future<ProviderContainer> containerWith(
       DemoDownloader downloader, {
       String? failOpenOf,
+      DemoManifestClient? manifest,
     }) async {
+      final client = manifest ?? FakeManifestClient(testPackage);
       SharedPreferences.setMockInitialValues({});
       final prefs = await SharedPreferences.getInstance();
       final paths = DemoPaths(p.join(root.path, 'support'));
@@ -121,7 +134,7 @@ void main() {
         paths: paths,
         prefs: prefs,
         store: DemoStateStore(paths),
-        manifest: FakeManifestClient(testPackage),
+        manifest: client,
         downloader: downloader,
         extractor: FakeExtractor(),
         preparer: DemoDatabasePreparer(),
@@ -133,7 +146,10 @@ void main() {
         restart: () {},
       );
       final container = ProviderContainer(
-        overrides: [demoModeServiceProvider.overrideWith((ref) => service)],
+        overrides: [
+          demoModeServiceProvider.overrideWith((ref) => service),
+          demoManifestClientProvider.overrideWithValue(client),
+        ],
       );
       addTearDown(container.dispose);
       return container;
@@ -152,7 +168,7 @@ void main() {
 
       await container
           .read(demoEnterControllerProvider.notifier)
-          .start(fromFirstRun: false);
+          .start(fromFirstRun: false, package: testPackage);
 
       expect(states.first, isA<DemoEnterIdle>());
       expect(states.any((s) => s is DemoEnterRunning), isTrue);
@@ -181,7 +197,7 @@ void main() {
 
         await container
             .read(demoEnterControllerProvider.notifier)
-            .start(fromFirstRun: false);
+            .start(fromFirstRun: false, package: testPackage);
 
         expect(
           container.read(demoEnterControllerProvider),
@@ -197,12 +213,15 @@ void main() {
 
       // Cancel while the first download waits for its next chunk, then start
       // again at once, as a quick second tap on the entry would.
-      final first = controller.start(fromFirstRun: false);
+      final first = controller.start(fromFirstRun: false, package: testPackage);
       await pumpEventQueue();
       controller
         ..cancel()
         ..reset();
-      final second = controller.start(fromFirstRun: false);
+      final second = controller.start(
+        fromFirstRun: false,
+        package: testPackage,
+      );
       downloader.release.complete();
       await Future.wait([first, second]);
 
@@ -214,12 +233,49 @@ void main() {
       );
     });
 
+    test('a package that changed size asks again and refreshes '
+        'availability', () async {
+      final bigger = DemoPackage(
+        schemaVersion: testPackage.schemaVersion,
+        url: Uri.parse('https://example.com/bigger.zip'),
+        sha256: 'c' * 64,
+        size: testPackage.size * 4,
+        generatedAt: DateTime.utc(2026, 10, 22),
+      );
+      final manifest = _RepublishingClient(testPackage);
+      final container = await containerWith(
+        FakeDownloader(),
+        manifest: manifest,
+      );
+      // Availability, and so the size the question showed, was read before
+      // the republish.
+      expect(
+        await container.read(demoAvailabilityProvider.future),
+        testPackage,
+      );
+      manifest.offered = bigger;
+
+      await container
+          .read(demoEnterControllerProvider.notifier)
+          .start(fromFirstRun: false, package: testPackage);
+
+      expect(
+        container.read(demoEnterControllerProvider),
+        isA<DemoEnterPackageChanged>().having(
+          (s) => s.package,
+          'package',
+          bigger,
+        ),
+      );
+      expect(await container.read(demoAvailabilityProvider.future), bigger);
+    });
+
     test('a successful entry ends running, not failed', () async {
       final container = await containerWith(FakeDownloader());
 
       await container
           .read(demoEnterControllerProvider.notifier)
-          .start(fromFirstRun: true);
+          .start(fromFirstRun: true, package: testPackage);
 
       expect(
         container.read(demoEnterControllerProvider),

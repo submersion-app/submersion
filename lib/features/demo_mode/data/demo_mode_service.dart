@@ -13,6 +13,7 @@ import 'package:submersion/features/demo_mode/data/demo_package_extractor.dart';
 import 'package:submersion/features/demo_mode/data/demo_paths.dart';
 import 'package:submersion/features/demo_mode/data/demo_state_store.dart';
 import 'package:submersion/features/demo_mode/data/prefs_snapshot.dart';
+import 'package:submersion/features/demo_mode/domain/demo_manifest.dart';
 import 'package:submersion/features/demo_mode/domain/demo_state.dart';
 
 /// The pref key the selected diver lives under (`diver_providers.dart`).
@@ -28,6 +29,14 @@ class DemoEnterProgress {
   final DemoEnterStage stage;
   final int received;
   final int total;
+}
+
+/// The sample logbook on offer is no longer the size the user agreed to
+/// download. Nothing was downloaded; [current] is the package now on offer.
+class DemoPackageChangedException implements Exception {
+  const DemoPackageChangedException(this.current);
+
+  final DemoPackage current;
 }
 
 /// Takes the app into the sample logbook and back out.
@@ -52,6 +61,7 @@ class DemoModeService {
     required this.cancelDeviceNotifications,
     required this.restart,
     this.forgetPhotos,
+    this.endNearbySync,
     this.clock = DateTime.now,
   });
 
@@ -72,10 +82,23 @@ class DemoModeService {
   /// Drops whatever the app cached for the sample photos at these paths,
   /// such as their thumbnails, so nothing of demo mode outlives it.
   final Future<void> Function(List<String> photoPaths)? forgetPhotos;
+
+  /// Ends any nearby Bluetooth session still running, and returns once it
+  /// has, so no session reads or writes across the database switch.
+  final Future<void> Function()? endNearbySync;
   final DateTime Function() clock;
 
+  /// Downloads and opens [package], the one whose size the user agreed to.
+  ///
+  /// That package may have been read from the manifest hours ago, and a
+  /// republish replaces the zip in place (`tool/demo_data/README.md`), so the
+  /// manifest is read again on every attempt, Retry included. A package of
+  /// the same size is downloaded from its current entry; one whose size
+  /// changed throws [DemoPackageChangedException] so the user is asked again.
+  /// When the manifest cannot be reached, [package] itself is tried.
   Future<void> enter({
     required bool fromFirstRun,
+    required DemoPackage package,
     DemoUnitSettings? units,
     void Function(DemoEnterProgress)? onProgress,
     bool Function()? isCancelled,
@@ -88,13 +111,9 @@ class DemoModeService {
     try {
       await store.write(state);
       onProgress?.call(const DemoEnterProgress(DemoEnterStage.downloading));
-      final pkg = await manifest.fetchBest(AppDatabase.currentSchemaVersion);
-      if (pkg == null) {
-        throw const DemoDownloadException(
-          DemoDownloadFailure.network,
-          'no compatible sample logbook',
-        );
-      }
+      final pkg =
+          await manifest.fetchBest(AppDatabase.currentSchemaVersion) ?? package;
+      if (pkg.size != package.size) throw DemoPackageChangedException(pkg);
       final zip = await downloader.download(
         pkg,
         File(paths.packageFile),
@@ -120,6 +139,7 @@ class DemoModeService {
     try {
       onProgress?.call(const DemoEnterProgress(DemoEnterStage.opening));
       await cancelDeviceNotifications();
+      await endNearbySync?.call();
       await switcher.openAt(paths.databaseFile, keyHex: null);
       await preparer.prepare(
         switcher.current,

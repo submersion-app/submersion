@@ -245,21 +245,27 @@ class SyncBehaviorSettings {
   final bool syncOnLaunch;
   final bool syncOnResume;
 
+  /// Sync with paired devices nearby over Bluetooth (issue #3731).
+  final bool nearbyAutoEnabled;
+
   const SyncBehaviorSettings({
     required this.autoSyncEnabled,
     required this.syncOnLaunch,
     required this.syncOnResume,
+    this.nearbyAutoEnabled = true,
   });
 
   SyncBehaviorSettings copyWith({
     bool? autoSyncEnabled,
     bool? syncOnLaunch,
     bool? syncOnResume,
+    bool? nearbyAutoEnabled,
   }) {
     return SyncBehaviorSettings(
       autoSyncEnabled: autoSyncEnabled ?? this.autoSyncEnabled,
       syncOnLaunch: syncOnLaunch ?? this.syncOnLaunch,
       syncOnResume: syncOnResume ?? this.syncOnResume,
+      nearbyAutoEnabled: nearbyAutoEnabled ?? this.nearbyAutoEnabled,
     );
   }
 }
@@ -273,6 +279,7 @@ class SyncBehaviorNotifier extends StateNotifier<SyncBehaviorSettings> {
           autoSyncEnabled: _prefs.autoSyncEnabled,
           syncOnLaunch: _prefs.syncOnLaunch,
           syncOnResume: _prefs.syncOnResume,
+          nearbyAutoEnabled: _prefs.nearbyAutoEnabled,
         ),
       );
 
@@ -289,6 +296,11 @@ class SyncBehaviorNotifier extends StateNotifier<SyncBehaviorSettings> {
   Future<void> setSyncOnResume(bool value) async {
     await _prefs.setSyncOnResume(value);
     state = state.copyWith(syncOnResume: value);
+  }
+
+  Future<void> setNearbyAutoEnabled(bool value) async {
+    await _prefs.setNearbyAutoEnabled(value);
+    state = state.copyWith(nearbyAutoEnabled: value);
   }
 }
 

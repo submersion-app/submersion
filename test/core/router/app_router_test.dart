@@ -2134,6 +2134,7 @@ void main() {
     const locations = [
       '/settings/backup',
       '/settings/cloud-sync',
+      '/settings/cloud-sync/nearby-pair',
       '/settings/shared-libraries',
       '/settings/shared-libraries/connect?prefix=club',
       '/settings/shared-libraries/lib1',

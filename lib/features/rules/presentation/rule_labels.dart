@@ -19,6 +19,8 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 typedef RuleNameOf = String? Function(QuerySubject subject, String id);
 
 String ruleDiveFieldLabel(AppLocalizations l, BulkField f) => switch (f) {
+  // Not a rule field (see kRuleSettableDiveFields), so no rules_field_ key.
+  BulkField.site => l.diveLog_edit_row_site,
   BulkField.diveCenter => l.rules_field_diveCenter,
   BulkField.diveOperator => l.rules_field_diveOperator,
   BulkField.boatName => l.rules_field_boatName,

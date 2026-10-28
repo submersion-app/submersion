@@ -27,7 +27,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 /// Settings > Data: the health strip, the Set up this device card and the
 /// facts line (#3390, #3482), then the five "Your data" rows, each with the
 /// strip's health mark (#3394) and a one-sentence status, then the rarely
-/// used rows under "Advanced" (#3482).
+/// used rows under "Advanced" (#3482), demo mode's among them (#3736).
 class DataSectionContent extends ConsumerStatefulWidget {
   const DataSectionContent({super.key});
 
@@ -182,24 +182,6 @@ class _DataSectionContentState extends ConsumerState<DataSectionContent> {
             status: ref.watch(accountsRowStatusProvider),
             route: '/settings/connected-accounts',
           ),
-          if (demoActive)
-            DataRowTile(
-              icon: Icons.logout,
-              title: l10n.demo_settings_exit_title,
-              subtitle: l10n.demo_settings_exit_subtitle,
-              onTap: () => confirmAndExitDemo(context, ref),
-            )
-          else if (demoPackage != null)
-            DataRowTile(
-              icon: Icons.explore_outlined,
-              title: l10n.demo_settings_enter_title,
-              subtitle: l10n.demo_settings_enter_subtitle,
-              onTap: () => showDemoEnterDialog(
-                context,
-                fromFirstRun: false,
-                units: demoUnitsFromSettings(ref.read(settingsProvider)),
-              ),
-            ),
           const SizedBox(height: 16),
           _header(context, l10n.settings_data_header_advanced),
           advanced(
@@ -239,6 +221,27 @@ class _DataSectionContentState extends ConsumerState<DataSectionContent> {
               ),
               subtitle: l10n.settings_setUpDevice_againSubtitle,
               route: setUpAgainRoute,
+            ),
+          // Rarely used, so last under Advanced rather than beside the user's
+          // real data (#3736).
+          if (demoActive)
+            DataRowTile(
+              icon: Icons.logout,
+              title: l10n.demo_settings_exit_title,
+              subtitle: l10n.demo_settings_exit_subtitle,
+              onTap: () => confirmAndExitDemo(context, ref),
+            )
+          else if (demoPackage != null)
+            DataRowTile(
+              icon: Icons.explore_outlined,
+              title: l10n.demo_settings_enter_title,
+              subtitle: l10n.demo_settings_enter_subtitle,
+              onTap: () => askAndEnterDemo(
+                context,
+                fromFirstRun: false,
+                package: demoPackage,
+                units: demoUnitsFromSettings(ref.read(settingsProvider)),
+              ),
             ),
         ],
       ),

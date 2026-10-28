@@ -5932,6 +5932,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_homeChips_sync => 'Szinkronizálási állapot';
 
   @override
+  String get settings_homeChips_nearby => 'Közeli eszközök';
+
+  @override
   String get settings_homeChips_dataQuality => 'Adatminőség';
 
   @override
@@ -5981,6 +5984,16 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get dashboard_gauges_synced => 'Szinkronizálva';
+
+  @override
+  String dashboard_gauges_nearby(String name) {
+    return 'Közeli: $name figyelmet igényel';
+  }
+
+  @override
+  String dashboard_gauges_nearbyMore(String name) {
+    return 'Közeli: $name és mások figyelmet igényelnek';
+  }
 
   @override
   String dashboard_gauges_dataIssues(int count) {
@@ -10172,6 +10185,14 @@ class AppLocalizationsHu extends AppLocalizations {
   String diveLog_cylinders_modNote(String ppO2) {
     return 'MOD $ppO2 ppO₂-nél';
   }
+
+  @override
+  String diveLog_cylinders_modLimit(String ppO2, String limit) {
+    return '$ppO2 ($limit)';
+  }
+
+  @override
+  String get diveLog_cylinders_modLimitSeparator => ', ';
 
   @override
   String get diveLog_tank_section_gasMix => 'Gázkeverék';
@@ -37262,6 +37283,140 @@ class AppLocalizationsHu extends AppLocalizations {
       'Eszközök automatikus szinkronban tartása';
 
   @override
+  String get settings_nearby_title => 'Közeli eszközök';
+
+  @override
+  String get settings_nearby_auto_title =>
+      'Automatikus szinkronizálás a közeli eszközökkel';
+
+  @override
+  String get settings_nearby_auto_subtitle =>
+      'Ha egy párosított eszközön a közelben nyitva van az alkalmazás, Bluetooth-on';
+
+  @override
+  String get settings_nearby_linuxNote =>
+      'Más eszközök nem találják meg ezt a számítógépet, ezért bármely közeli eszközzel szinkronizál, kivéve egy másik Linux számítógépet';
+
+  @override
+  String get settings_nearby_pair => 'Eszköz párosítása';
+
+  @override
+  String settings_nearby_status_synced(String when) {
+    return 'Szinkronizálva: $when';
+  }
+
+  @override
+  String settings_nearby_status_syncing(String done, String total) {
+    return 'Szinkronizálás: $done / $total';
+  }
+
+  @override
+  String get settings_nearby_status_never => 'Még nincs szinkronizálva';
+
+  @override
+  String settings_nearby_status_notSeen(String date) {
+    return 'Nem látható ez óta: $date';
+  }
+
+  @override
+  String get settings_nearby_error_newerApp =>
+      'Ennek az eszköznek újabb alkalmazásverzió kell';
+
+  @override
+  String get settings_nearby_error_peerOlderApp =>
+      'A másik eszköznek újabb alkalmazásverzió kell';
+
+  @override
+  String get settings_nearby_error_differentLibrary => 'Nem ugyanaz a könyvtár';
+
+  @override
+  String get settings_nearby_error_notPaired =>
+      'A másik eszközön megszüntették a párosítást';
+
+  @override
+  String get settings_nearby_error_applyFailed =>
+      'Nem sikerült alkalmazni a módosításait';
+
+  @override
+  String get settings_nearby_error_bluetoothOff =>
+      'A Bluetooth ki van kapcsolva vagy nincs engedélyezve';
+
+  @override
+  String get settings_nearby_error_unreachable => 'Nem sikerült csatlakozni';
+
+  @override
+  String get settings_nearby_sheet_rename => 'Átnevezés';
+
+  @override
+  String get settings_nearby_sheet_unpair => 'Párosítás megszüntetése';
+
+  @override
+  String settings_nearby_unpair_confirm(String name) {
+    return 'Megszünteted a(z) $name párosítását? A közeli szinkronizáláshoz újra párosítani kell.';
+  }
+
+  @override
+  String get settings_nearby_rename_title => 'Eszköz átnevezése';
+
+  @override
+  String settings_nearby_notInRange(String name) {
+    return '$name most nincs a közelben';
+  }
+
+  @override
+  String get nearbyPair_looking => 'Eszközök keresése…';
+
+  @override
+  String get nearbyPair_hint =>
+      'Nyisd meg a Submersiont a másik eszközön, és ott is koppints az Eszköz párosítása elemre.';
+
+  @override
+  String nearbyPair_found(String name) {
+    return 'Megtaláltuk: $name. Ellenőrizd, hogy ezt a kódot mutatja, majd erősítsd meg mindkettőn.';
+  }
+
+  @override
+  String get nearbyPair_sameCode => 'Ugyanaz a kód';
+
+  @override
+  String get nearbyPair_notMine => 'Nem az enyém';
+
+  @override
+  String get nearbyPair_waiting => 'Várakozás a másik eszköz megerősítésére…';
+
+  @override
+  String get nearbyPair_bothPopulated =>
+      'Mindkét eszközön vannak merülések. A párosítás egy naplóba egyesíti őket.';
+
+  @override
+  String get nearbyPair_differentLibrary =>
+      'Az az eszköz egy másik könyvtárat használ, ezért nem párosítható ezzel.';
+
+  @override
+  String get nearbyPair_permissionDenied =>
+      'A Submersionnek Bluetooth-engedély kell a közeli eszközök megtalálásához.';
+
+  @override
+  String get nearbyPair_bluetoothOff =>
+      'Kapcsold be a Bluetootht a közeli eszközök megtalálásához.';
+
+  @override
+  String get nearbyPair_unsupported =>
+      'Ezen az eszközön nincs olyan Bluetooth, amelyet a Submersion használni tud.';
+
+  @override
+  String get nearbyPair_openSettings => 'Beállítások megnyitása';
+
+  @override
+  String nearbyPair_done(String name) {
+    return 'Párosítva: $name';
+  }
+
+  @override
+  String get nearbyPair_failed =>
+      'A párosítás nem fejeződött be. Próbáld újra mindkét eszközön.';
+
+  @override
   String get settings_sync_alsoAtLaunch => 'Szinkronizálás indításkor is';
 
   @override
@@ -55093,6 +55248,16 @@ class AppLocalizationsHu extends AppLocalizations {
   String get tags_manage_cannotUndo => 'Ez nem vonható vissza.';
 
   @override
+  String tags_manage_rowScopes(String scopes) {
+    return 'Használható: $scopes';
+  }
+
+  @override
+  String tags_manage_rowUsage(String counts) {
+    return 'Használatban: $counts';
+  }
+
+  @override
   String get tags_action_edit => 'Címkék szerkesztése';
 
   @override
@@ -55684,4 +55849,38 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get demo_row_unavailable => 'Demó módban nem érhető el';
+
+  @override
+  String get demo_enter_confirm_title => 'Felfedezed mintaadatokkal?';
+
+  @override
+  String demo_enter_confirm_body(String size) {
+    return 'Ez letölt egy mintanaplót ($size), és a saját naplód helyett megnyitja. A naplód érintetlenül félre van téve, amíg ki nem lépsz a demó módból.';
+  }
+
+  @override
+  String get demo_enter_confirm_action => 'Letöltés';
+
+  @override
+  String demo_enter_confirm_body_firstRun(String size) {
+    return 'Ez letölt egy mintanaplót ($size), amellyel körülnézhetsz az alkalmazásban. Lépj ki a demó módból, amikor a sajátodat szeretnéd elkezdeni.';
+  }
+
+  @override
+  String demo_enter_changed_body(String size) {
+    return 'A mintanapló frissült, és most $size méretű. Letöltöd?';
+  }
+
+  @override
+  String common_byteSize(String value, String unit) {
+    String _temp0 = intl.Intl.selectLogic(unit, {
+      'B': 'B',
+      'KB': 'KB',
+      'MB': 'MB',
+      'GB': 'GB',
+      'TB': 'TB',
+      'other': '$unit',
+    });
+    return '$value $_temp0';
+  }
 }

@@ -5824,6 +5824,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_homeChips_sync => 'מצב סנכרון';
 
   @override
+  String get settings_homeChips_nearby => 'מכשירים קרובים';
+
+  @override
   String get settings_homeChips_dataQuality => 'איכות נתונים';
 
   @override
@@ -5873,6 +5876,16 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get dashboard_gauges_synced => 'מסונכרן';
+
+  @override
+  String dashboard_gauges_nearby(String name) {
+    return 'קרוב: $name דורש תשומת לב';
+  }
+
+  @override
+  String dashboard_gauges_nearbyMore(String name) {
+    return 'קרוב: $name ומכשירים נוספים דורשים תשומת לב';
+  }
 
   @override
   String dashboard_gauges_dataIssues(int count) {
@@ -9971,6 +9984,14 @@ class AppLocalizationsHe extends AppLocalizations {
   String diveLog_cylinders_modNote(String ppO2) {
     return 'MOD ב-ppO₂ $ppO2';
   }
+
+  @override
+  String diveLog_cylinders_modLimit(String ppO2, String limit) {
+    return '$ppO2 ($limit)';
+  }
+
+  @override
+  String get diveLog_cylinders_modLimitSeparator => ', ';
 
   @override
   String get diveLog_tank_section_gasMix => 'תערובת גזים';
@@ -36549,6 +36570,136 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_sync_keepInStep => 'שמירה על סנכרון אוטומטי בין המכשירים';
 
   @override
+  String get settings_nearby_title => 'מכשירים קרובים';
+
+  @override
+  String get settings_nearby_auto_title => 'סנכרון אוטומטי עם מכשירים קרובים';
+
+  @override
+  String get settings_nearby_auto_subtitle =>
+      'כאשר מכשיר מותאם פתוח בקרבת מקום, דרך Bluetooth';
+
+  @override
+  String get settings_nearby_linuxNote =>
+      'מכשירים אחרים לא יכולים למצוא את המחשב הזה, ולכן הוא מסתנכרן עם כל מכשיר קרוב מלבד מחשב Linux אחר';
+
+  @override
+  String get settings_nearby_pair => 'התאמת מכשיר';
+
+  @override
+  String settings_nearby_status_synced(String when) {
+    return 'סונכרן $when';
+  }
+
+  @override
+  String settings_nearby_status_syncing(String done, String total) {
+    return 'מסנכרן: $done מתוך $total';
+  }
+
+  @override
+  String get settings_nearby_status_never => 'עדיין לא סונכרן';
+
+  @override
+  String settings_nearby_status_notSeen(String date) {
+    return 'לא נראה מאז $date';
+  }
+
+  @override
+  String get settings_nearby_error_newerApp =>
+      'המכשיר הזה צריך גרסה חדשה יותר של האפליקציה';
+
+  @override
+  String get settings_nearby_error_peerOlderApp =>
+      'המכשיר השני צריך גרסה חדשה יותר של האפליקציה';
+
+  @override
+  String get settings_nearby_error_differentLibrary => 'לא אותה ספרייה';
+
+  @override
+  String get settings_nearby_error_notPaired => 'ההתאמה בוטלה במכשיר השני';
+
+  @override
+  String get settings_nearby_error_applyFailed =>
+      'לא ניתן היה להחיל את השינויים שלו';
+
+  @override
+  String get settings_nearby_error_bluetoothOff => 'Bluetooth כבוי או לא מורשה';
+
+  @override
+  String get settings_nearby_error_unreachable => 'לא ניתן להתחבר';
+
+  @override
+  String get settings_nearby_sheet_rename => 'שינוי שם';
+
+  @override
+  String get settings_nearby_sheet_unpair => 'ביטול התאמה';
+
+  @override
+  String settings_nearby_unpair_confirm(String name) {
+    return 'לבטל את ההתאמה של $name? יהיה צורך להתאים אותו שוב כדי לסנכרן בקרבת מקום.';
+  }
+
+  @override
+  String get settings_nearby_rename_title => 'שינוי שם המכשיר';
+
+  @override
+  String settings_nearby_notInRange(String name) {
+    return '$name לא נמצא בקרבת מקום כרגע';
+  }
+
+  @override
+  String get nearbyPair_looking => 'מחפש מכשירים…';
+
+  @override
+  String get nearbyPair_hint =>
+      'פתחו את Submersion במכשיר השני והקישו גם שם על התאמת מכשיר.';
+
+  @override
+  String nearbyPair_found(String name) {
+    return 'נמצא $name. ודאו שמוצג בו הקוד הזה, ואז אשרו בשני המכשירים.';
+  }
+
+  @override
+  String get nearbyPair_sameCode => 'אותו קוד';
+
+  @override
+  String get nearbyPair_notMine => 'לא שלי';
+
+  @override
+  String get nearbyPair_waiting => 'ממתין לאישור מהמכשיר השני…';
+
+  @override
+  String get nearbyPair_bothPopulated =>
+      'בשני המכשירים יש צלילות. ההתאמה ממזגת אותן ליומן אחד.';
+
+  @override
+  String get nearbyPair_differentLibrary =>
+      'המכשיר הזה נמצא בספרייה אחרת, ולכן אי אפשר להתאים אותו למכשיר הזה.';
+
+  @override
+  String get nearbyPair_permissionDenied =>
+      'Submersion צריך הרשאת Bluetooth כדי למצוא מכשירים קרובים.';
+
+  @override
+  String get nearbyPair_bluetoothOff =>
+      'הפעילו Bluetooth כדי למצוא מכשירים קרובים.';
+
+  @override
+  String get nearbyPair_unsupported =>
+      'במכשיר הזה אין Bluetooth ש-Submersion יכול להשתמש בו.';
+
+  @override
+  String get nearbyPair_openSettings => 'פתיחת ההגדרות';
+
+  @override
+  String nearbyPair_done(String name) {
+    return 'הותאם עם $name';
+  }
+
+  @override
+  String get nearbyPair_failed => 'ההתאמה לא הושלמה. נסו שוב בשני המכשירים.';
+
+  @override
   String get settings_sync_alsoAtLaunch => 'סנכרון גם בהפעלה';
 
   @override
@@ -54247,6 +54398,16 @@ class AppLocalizationsHe extends AppLocalizations {
   String get tags_manage_cannotUndo => 'לא ניתן לבטל פעולה זו.';
 
   @override
+  String tags_manage_rowScopes(String scopes) {
+    return 'עבור: $scopes';
+  }
+
+  @override
+  String tags_manage_rowUsage(String counts) {
+    return 'בשימוש: $counts';
+  }
+
+  @override
   String get tags_action_edit => 'עריכת תגיות';
 
   @override
@@ -54828,4 +54989,38 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get demo_row_unavailable => 'לא זמין במצב הדגמה';
+
+  @override
+  String get demo_enter_confirm_title => 'לסייר עם נתוני דוגמה?';
+
+  @override
+  String demo_enter_confirm_body(String size) {
+    return 'פעולה זו תוריד יומן דוגמה ($size) ותפתח אותו במקום היומן שלכם. היומן שלכם נשמר בצד, ללא שינוי, עד שתצאו ממצב ההדגמה.';
+  }
+
+  @override
+  String get demo_enter_confirm_action => 'הורדה';
+
+  @override
+  String demo_enter_confirm_body_firstRun(String size) {
+    return 'פעולה זו תוריד יומן דוגמה ($size) כדי להכיר את האפליקציה. צאו ממצב ההדגמה כשתהיו מוכנים להתחיל יומן משלכם.';
+  }
+
+  @override
+  String demo_enter_changed_body(String size) {
+    return 'יומן הדוגמה עודכן וגודלו כעת $size. להוריד אותו?';
+  }
+
+  @override
+  String common_byteSize(String value, String unit) {
+    String _temp0 = intl.Intl.selectLogic(unit, {
+      'B': 'B',
+      'KB': 'KB',
+      'MB': 'MB',
+      'GB': 'GB',
+      'TB': 'TB',
+      'other': '$unit',
+    });
+    return '$value $_temp0';
+  }
 }

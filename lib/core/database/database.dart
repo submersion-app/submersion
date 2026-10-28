@@ -22,6 +22,7 @@ import 'package:submersion/core/database/tables/media_tables.dart';
 import 'package:submersion/core/database/tables/pre_dive_tables.dart';
 import 'package:submersion/core/database/tables/quality_tables.dart';
 import 'package:submersion/core/database/tables/insight_tables.dart';
+import 'package:submersion/core/database/tables/nearby_tables.dart';
 import 'package:submersion/core/database/tables/query_tables.dart';
 import 'package:submersion/core/database/tables/rule_tables.dart';
 import 'package:submersion/core/database/tables/safety_tables.dart';
@@ -56,6 +57,7 @@ export 'package:submersion/core/database/tables/media_tables.dart';
 export 'package:submersion/core/database/tables/pre_dive_tables.dart';
 export 'package:submersion/core/database/tables/quality_tables.dart';
 export 'package:submersion/core/database/tables/insight_tables.dart';
+export 'package:submersion/core/database/tables/nearby_tables.dart';
 export 'package:submersion/core/database/tables/query_tables.dart';
 export 'package:submersion/core/database/tables/rule_tables.dart';
 export 'package:submersion/core/database/tables/safety_tables.dart';
@@ -193,6 +195,7 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     DeletionLog,
     SyncPeerCursors,
     LocalPublishStates,
+    NearbyPeers,
     // Maps & Visualization
     CachedRegions,
     // Notifications
@@ -292,7 +295,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 318;
+  static const int currentSchemaVersion = 320;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1434,6 +1437,11 @@ class AppDatabase extends _$AppDatabase {
     // old shape gets the same move once applied here (SyncService). 317 is
     // #3662 (tank inspection baselines); 316 is held by PR #3685.
     318,
+    // v320: the device-local nearby_peers table and the publish state's
+    // relay floor for nearby Bluetooth sync (issue #3731). Never synced, so
+    // the floor does not move. 319 is held
+    // by PR #3726.
+    320,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

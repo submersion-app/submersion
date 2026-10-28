@@ -1,0 +1,144 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Nearby sync mockup</title>
+<style>:root{--border:#d0d7de;--bg:#fff;--bg-secondary:#f6f8fa;--text-secondary:#57606a;--accent:#0969da}
+body{font-family:system-ui;background:#fff;color:#1f2328;padding:24px;max-width:1100px;margin:auto}
+.mockup{border:1px solid var(--border);border-radius:8px;overflow:hidden}.mockup-header{background:var(--bg-secondary);padding:6px 10px;font-size:12px;color:var(--text-secondary)}.mockup-body{padding:12px}
+.subtitle{color:var(--text-secondary)}.options{display:grid;gap:10px;margin:10px 0}.option{display:flex;gap:12px;border:1px solid var(--border);border-radius:8px;padding:10px}.option .letter{font-weight:700}.placeholder{border:1px dashed var(--border);display:flex;align-items:center;justify-content:center;color:var(--text-secondary)}.section{margin-bottom:24px}
+</style></head><body>
+<h2>Nearby devices: where it lives and what you see</h2>
+<p class="subtitle">Three screens and one chip. First, pick the entry point; then react to the rest.</p>
+
+<style>
+  .phone { width: 300px; border: 2px solid var(--border, #444); border-radius: 22px; padding: 10px 12px 14px; background: var(--bg, #111); margin: 0 auto; font-size: 13px; }
+  .phone .bar { font-size: 15px; font-weight: 600; padding: 6px 2px 10px; display:flex; gap:8px; align-items:center; }
+  .row { display:flex; align-items:center; gap:10px; padding: 9px 4px; border-bottom: 1px solid rgba(128,128,128,.25); }
+  .row .ic { width: 22px; text-align:center; opacity:.8; }
+  .row .t { flex:1; }
+  .row .t small { display:block; opacity:.65; font-size: 11.5px; }
+  .row .chev { opacity:.5; }
+  .hdr { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; opacity:.6; padding: 12px 4px 4px; }
+  .new { outline: 2px dashed #e0a500; outline-offset: -2px; border-radius: 6px; }
+  .sw { width: 34px; height: 18px; border-radius: 9px; background:#3a9a5a; position:relative; }
+  .sw::after { content:""; position:absolute; right:2px; top:2px; width:14px; height:14px; border-radius:7px; background:#fff; }
+  .sw.off { background:#777; } .sw.off::after { right:auto; left:2px; }
+  .dot { width:9px; height:9px; border-radius:5px; display:inline-block; margin-right:4px; }
+  .ok { background:#3a9a5a; } .warn { background:#e0a500; } .idle { background:#888; }
+  .code { font-size: 34px; letter-spacing: .25em; text-align:center; font-weight:700; padding: 14px 0 6px; font-variant-numeric: tabular-nums; }
+  .btnrow { display:flex; gap:8px; padding: 10px 4px 0; }
+  .btn { flex:1; text-align:center; padding: 8px 0; border-radius: 8px; border: 1px solid rgba(128,128,128,.5); }
+  .btn.primary { background:#2f6fde; color:#fff; border-color:#2f6fde; }
+  .chips { display:flex; gap:6px; flex-wrap:wrap; padding: 8px 4px; }
+  .chip { border-radius: 14px; padding: 4px 10px; font-size: 12px; border:1px solid rgba(128,128,128,.5); }
+  .chip.warn { background: rgba(224,165,0,.18); border-color:#e0a500; }
+  .chip.ok { background: rgba(58,154,90,.18); border-color:#3a9a5a; }
+  .grid3 { display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 18px; }
+  .cap { text-align:center; opacity:.7; font-size: 12px; margin-top: 8px; }
+</style>
+
+<div class="section">
+  <h3>1. Entry point: which of these is "next to the other backends"?</h3>
+  <div class="options">
+    <div class="option" data-choice="a">
+      <div class="letter">A</div>
+      <div class="content">
+        <h3>A row in Settings &gt; Data, right under Sync</h3>
+        <p>"Nearby devices" sits in the Your data list with its own status line ("2 devices, synced 5 min ago"). The Sync page stays about the cloud account.</p>
+      </div>
+    </div>
+    <div class="option" data-choice="b">
+      <div class="letter">B</div>
+      <div class="content">
+        <h3>A section inside the Sync page</h3>
+        <p>The Sync page gets a "Nearby devices" block under the account row: the switch and the paired list live there, one page for everything sync.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="grid3">
+  <div class="mockup">
+    <div class="mockup-header">A: Settings &gt; Data</div>
+    <div class="mockup-body">
+      <div class="phone">
+        <div class="bar">&#8592; Data</div>
+        <div class="hdr">Your data</div>
+        <div class="row"><div class="ic">&#9729;</div><div class="t">Backups<small>Last backup yesterday</small></div><div class="chev">&#8250;</div></div>
+        <div class="row"><div class="ic">&#8635;</div><div class="t">Sync<small>iCloud, synced 2 h ago</small></div><div class="chev">&#8250;</div></div>
+        <div class="row new"><div class="ic">&#9673;</div><div class="t">Nearby devices<small>2 devices, synced 5 min ago</small></div><div class="chev">&#8250;</div></div>
+        <div class="row"><div class="ic">&#9635;</div><div class="t">Photos and videos<small>Links only</small></div><div class="chev">&#8250;</div></div>
+        <div class="row"><div class="ic">&#9679;</div><div class="t">Shared libraries<small>None</small></div><div class="chev">&#8250;</div></div>
+        <div class="row"><div class="ic">&#9786;</div><div class="t">Connected accounts<small>iCloud</small></div><div class="chev">&#8250;</div></div>
+      </div>
+      <div class="cap">Dashed outline marks the new row.</div>
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">B: inside the Sync page</div>
+    <div class="mockup-body">
+      <div class="phone">
+        <div class="bar">&#8592; Sync</div>
+        <div class="row"><div class="ic">&#9786;</div><div class="t">Sync using<small>iCloud (eric@…)</small></div><div class="chev">Change</div></div>
+        <div class="row"><div class="t">Synced 2 h ago<small>3 changes waiting</small></div></div>
+        <div class="row"><div class="t">Keep in step<small>Sync when something changes</small></div><div class="sw"></div></div>
+        <div class="hdr new" style="padding:8px 4px">Nearby devices</div>
+        <div class="row new"><div class="t">Sync nearby automatically<small>When a paired device is open nearby</small></div><div class="sw"></div></div>
+        <div class="row new"><div class="ic"><span class="dot ok"></span></div><div class="t">Eric's MacBook<small>Synced 5 min ago</small></div><div class="chev">&#8250;</div></div>
+        <div class="row new"><div class="ic"><span class="dot idle"></span></div><div class="t">Pixel 9<small>Synced 3 days ago</small></div><div class="chev">&#8250;</div></div>
+        <div class="row new"><div class="t" style="color:#2f6fde">+ Pair a device</div></div>
+        <div class="hdr">Advanced</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top:28px">
+  <h3>2. The Nearby devices page (same content either way)</h3>
+  <div class="grid3">
+    <div class="mockup">
+      <div class="mockup-header">Paired list</div>
+      <div class="mockup-body">
+        <div class="phone">
+          <div class="bar">&#8592; Nearby devices</div>
+          <div class="row"><div class="t">Sync nearby automatically<small>Syncs when a paired device is open nearby, over Bluetooth</small></div><div class="sw"></div></div>
+          <div class="hdr">Paired devices</div>
+          <div class="row"><div class="ic"><span class="dot ok"></span></div><div class="t">Eric's MacBook<small>Syncing: 1.2 of 9.8 MB</small></div><div class="chev">&#8250;</div></div>
+          <div class="row"><div class="ic"><span class="dot idle"></span></div><div class="t">Pixel 9<small>Synced 3 days ago</small></div><div class="chev">&#8250;</div></div>
+          <div class="row"><div class="ic"><span class="dot warn"></span></div><div class="t">Old iPad<small>Needs a newer app version</small></div><div class="chev">&#8250;</div></div>
+          <div class="btnrow"><div class="btn primary">Pair a device</div></div>
+          <div class="cap">Tap a device: rename, sync now, unpair.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mockup">
+      <div class="mockup-header">Pairing: both screens show the same code</div>
+      <div class="mockup-body">
+        <div class="phone">
+          <div class="bar">&#8592; Pair a device</div>
+          <div style="padding:6px 4px">Found <b>Eric's MacBook</b>. Check that it shows this code, then confirm on both.</div>
+          <div class="code">482 913</div>
+          <div class="btnrow"><div class="btn">Not mine</div><div class="btn primary">Same code</div></div>
+          <div class="cap">Before this: a short list of nearby Submersion devices to pick from (or "Looking…" with the Bluetooth hint).</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mockup">
+      <div class="mockup-header">Home: the chip, only when something needs you</div>
+      <div class="mockup-body">
+        <div class="phone">
+          <div class="bar">Home</div>
+          <div class="chips">
+            <span class="chip ok">Synced</span>
+            <span class="chip">No-fly clear</span>
+            <span class="chip warn">Nearby: Old iPad needs an update</span>
+            <span class="chip">Reg service due</span>
+          </div>
+          <div class="placeholder" style="height:120px">Dashboard cards</div>
+          <div class="cap">Hidden while nearby sync is healthy. Tap opens Nearby devices.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<p class="subtitle">Chosen: B, a Nearby devices block inside the Sync page.</p></body></html>

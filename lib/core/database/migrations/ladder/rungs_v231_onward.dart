@@ -633,5 +633,11 @@ extension RungsFromV231 on AppDatabase {
     // PR #3685.
     if (from < 318) await _moveComputerTissueScalars();
     if (from < 318) await reportProgress();
+
+    // v320: the device-local nearby_peers table and the publish state's
+    // relay floor (issue #3731). 319 is held
+    // by PR #3726.
+    if (from < 320) await _assertNearbySchema();
+    if (from < 320) await reportProgress();
   }
 }

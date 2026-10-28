@@ -9318,6 +9318,12 @@ abstract class AppLocalizations {
   /// **'Sync status'**
   String get settings_homeChips_sync;
 
+  /// No description provided for @settings_homeChips_nearby.
+  ///
+  /// In en, this message translates to:
+  /// **'Nearby devices'**
+  String get settings_homeChips_nearby;
+
   /// No description provided for @settings_homeChips_dataQuality.
   ///
   /// In en, this message translates to:
@@ -9383,6 +9389,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Synced'**
   String get dashboard_gauges_synced;
+
+  /// No description provided for @dashboard_gauges_nearby.
+  ///
+  /// In en, this message translates to:
+  /// **'Nearby: {name} needs attention'**
+  String dashboard_gauges_nearby(String name);
+
+  /// No description provided for @dashboard_gauges_nearbyMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Nearby: {name} and others need attention'**
+  String dashboard_gauges_nearbyMore(String name);
 
   /// No description provided for @dashboard_gauges_dataIssues.
   ///
@@ -16195,11 +16213,23 @@ abstract class AppLocalizations {
   /// **'MND {depth}'**
   String diveLog_cylinders_mnd(String depth);
 
-  /// Note under the Cylinders card table: the working ppO2 every MOD on the card was computed at, e.g. "MOD at ppO₂ 1.4"
+  /// Note under the Cylinders card table: the ppO2 every MOD on the card was computed at. {ppO2} is one value ("MOD at ppO₂ 1.4") or, when the cylinders use different limits, a list of diveLog_cylinders_modLimit items ("MOD at ppO₂ 1.4 (bottom limit), 1.6 (deco limit)")
   ///
   /// In en, this message translates to:
   /// **'MOD at ppO₂ {ppO2}'**
   String diveLog_cylinders_modNote(String ppO2);
+
+  /// One item of the list in diveLog_cylinders_modNote: a ppO2 and the limit it is (tankMod_limitBottom, tankMod_limitDeco or tankMod_limitDiluent), e.g. "1.6 (deco limit)"
+  ///
+  /// In en, this message translates to:
+  /// **'{ppO2} ({limit})'**
+  String diveLog_cylinders_modLimit(String ppO2, String limit);
+
+  /// Separator between the diveLog_cylinders_modLimit items in diveLog_cylinders_modNote
+  ///
+  /// In en, this message translates to:
+  /// **', '**
+  String get diveLog_cylinders_modLimitSeparator;
 
   /// No description provided for @diveLog_tank_section_gasMix.
   ///
@@ -59121,6 +59151,216 @@ abstract class AppLocalizations {
   /// **'Keep devices in step automatically'**
   String get settings_sync_keepInStep;
 
+  /// No description provided for @settings_nearby_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Nearby devices'**
+  String get settings_nearby_title;
+
+  /// No description provided for @settings_nearby_auto_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync nearby automatically'**
+  String get settings_nearby_auto_title;
+
+  /// No description provided for @settings_nearby_auto_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'When a paired device is open nearby, over Bluetooth'**
+  String get settings_nearby_auto_subtitle;
+
+  /// No description provided for @settings_nearby_linuxNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Other devices cannot find this computer, so it syncs with any nearby device except another Linux computer'**
+  String get settings_nearby_linuxNote;
+
+  /// No description provided for @settings_nearby_pair.
+  ///
+  /// In en, this message translates to:
+  /// **'Pair a device'**
+  String get settings_nearby_pair;
+
+  /// No description provided for @settings_nearby_status_synced.
+  ///
+  /// In en, this message translates to:
+  /// **'Synced {when}'**
+  String settings_nearby_status_synced(String when);
+
+  /// No description provided for @settings_nearby_status_syncing.
+  ///
+  /// In en, this message translates to:
+  /// **'Syncing: {done} of {total}'**
+  String settings_nearby_status_syncing(String done, String total);
+
+  /// No description provided for @settings_nearby_status_never.
+  ///
+  /// In en, this message translates to:
+  /// **'Not synced yet'**
+  String get settings_nearby_status_never;
+
+  /// No description provided for @settings_nearby_status_notSeen.
+  ///
+  /// In en, this message translates to:
+  /// **'Not seen since {date}'**
+  String settings_nearby_status_notSeen(String date);
+
+  /// No description provided for @settings_nearby_error_newerApp.
+  ///
+  /// In en, this message translates to:
+  /// **'This device needs a newer app version'**
+  String get settings_nearby_error_newerApp;
+
+  /// No description provided for @settings_nearby_error_peerOlderApp.
+  ///
+  /// In en, this message translates to:
+  /// **'That device needs a newer app version'**
+  String get settings_nearby_error_peerOlderApp;
+
+  /// No description provided for @settings_nearby_error_differentLibrary.
+  ///
+  /// In en, this message translates to:
+  /// **'Not the same library'**
+  String get settings_nearby_error_differentLibrary;
+
+  /// No description provided for @settings_nearby_error_notPaired.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpaired on the other device'**
+  String get settings_nearby_error_notPaired;
+
+  /// No description provided for @settings_nearby_error_applyFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not apply its changes'**
+  String get settings_nearby_error_applyFailed;
+
+  /// No description provided for @settings_nearby_error_bluetoothOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Bluetooth is off or not allowed'**
+  String get settings_nearby_error_bluetoothOff;
+
+  /// No description provided for @settings_nearby_error_unreachable.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not connect'**
+  String get settings_nearby_error_unreachable;
+
+  /// No description provided for @settings_nearby_sheet_rename.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename'**
+  String get settings_nearby_sheet_rename;
+
+  /// No description provided for @settings_nearby_sheet_unpair.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpair'**
+  String get settings_nearby_sheet_unpair;
+
+  /// No description provided for @settings_nearby_unpair_confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpair {name}? It will need pairing again to sync nearby.'**
+  String settings_nearby_unpair_confirm(String name);
+
+  /// No description provided for @settings_nearby_rename_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename device'**
+  String get settings_nearby_rename_title;
+
+  /// No description provided for @settings_nearby_notInRange.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is not nearby right now'**
+  String settings_nearby_notInRange(String name);
+
+  /// No description provided for @nearbyPair_looking.
+  ///
+  /// In en, this message translates to:
+  /// **'Looking for devices…'**
+  String get nearbyPair_looking;
+
+  /// No description provided for @nearbyPair_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Submersion on the other device and tap Pair a device there too.'**
+  String get nearbyPair_hint;
+
+  /// No description provided for @nearbyPair_found.
+  ///
+  /// In en, this message translates to:
+  /// **'Found {name}. Check that it shows this code, then confirm on both.'**
+  String nearbyPair_found(String name);
+
+  /// No description provided for @nearbyPair_sameCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Same code'**
+  String get nearbyPair_sameCode;
+
+  /// No description provided for @nearbyPair_notMine.
+  ///
+  /// In en, this message translates to:
+  /// **'Not mine'**
+  String get nearbyPair_notMine;
+
+  /// No description provided for @nearbyPair_waiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for the other device to confirm…'**
+  String get nearbyPair_waiting;
+
+  /// No description provided for @nearbyPair_bothPopulated.
+  ///
+  /// In en, this message translates to:
+  /// **'Both devices have dives. Pairing merges them into one logbook.'**
+  String get nearbyPair_bothPopulated;
+
+  /// No description provided for @nearbyPair_differentLibrary.
+  ///
+  /// In en, this message translates to:
+  /// **'That device is on a different library, so it cannot pair with this one.'**
+  String get nearbyPair_differentLibrary;
+
+  /// No description provided for @nearbyPair_permissionDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Submersion needs Bluetooth permission to find nearby devices.'**
+  String get nearbyPair_permissionDenied;
+
+  /// No description provided for @nearbyPair_bluetoothOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on Bluetooth to find nearby devices.'**
+  String get nearbyPair_bluetoothOff;
+
+  /// No description provided for @nearbyPair_unsupported.
+  ///
+  /// In en, this message translates to:
+  /// **'This device has no Bluetooth that Submersion can use.'**
+  String get nearbyPair_unsupported;
+
+  /// No description provided for @nearbyPair_openSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open settings'**
+  String get nearbyPair_openSettings;
+
+  /// No description provided for @nearbyPair_done.
+  ///
+  /// In en, this message translates to:
+  /// **'Paired with {name}'**
+  String nearbyPair_done(String name);
+
+  /// No description provided for @nearbyPair_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Pairing did not finish. Try again on both devices.'**
+  String get nearbyPair_failed;
+
   /// No description provided for @settings_sync_alsoAtLaunch.
   ///
   /// In en, this message translates to:
@@ -87655,6 +87895,18 @@ abstract class AppLocalizations {
   /// **'This cannot be undone.'**
   String get tags_manage_cannotUndo;
 
+  /// Manage Tags row: where the tag is offered. {scopes} is a list of scope names joined with a middle dot, such as "Dives · Sites".
+  ///
+  /// In en, this message translates to:
+  /// **'For: {scopes}'**
+  String tags_manage_rowScopes(String scopes);
+
+  /// Manage Tags row: how many items carry the tag. {counts} is a list of counts, such as "12 dives, 3 sites".
+  ///
+  /// In en, this message translates to:
+  /// **'Used on: {counts}'**
+  String tags_manage_rowUsage(String counts);
+
   /// No description provided for @tags_action_edit.
   ///
   /// In en, this message translates to:
@@ -88423,6 +88675,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unavailable in demo mode'**
   String get demo_row_unavailable;
+
+  /// Demo mode: asks before downloading the sample logbook (issue #3736)
+  ///
+  /// In en, this message translates to:
+  /// **'Explore with sample data?'**
+  String get demo_enter_confirm_title;
+
+  /// Demo mode: asks before downloading the sample logbook (issue #3736)
+  ///
+  /// In en, this message translates to:
+  /// **'This downloads a sample logbook ({size}) and opens it in place of your own. Your logbook is set aside, untouched, until you exit demo mode.'**
+  String demo_enter_confirm_body(String size);
+
+  /// Demo mode: asks before downloading the sample logbook (issue #3736)
+  ///
+  /// In en, this message translates to:
+  /// **'Download'**
+  String get demo_enter_confirm_action;
+
+  /// Demo mode: asks before downloading the sample logbook on the first-run welcome screen, where the user has no logbook yet (issue #3736)
+  ///
+  /// In en, this message translates to:
+  /// **'This downloads a sample logbook ({size}) to look around the app with. Exit demo mode whenever you are ready to start your own.'**
+  String demo_enter_confirm_body_firstRun(String size);
+
+  /// Demo mode: asks again when the sample logbook on offer changed size after the user agreed to download it (issue #3736)
+  ///
+  /// In en, this message translates to:
+  /// **'The sample logbook has been updated and is now {size}. Download it?'**
+  String demo_enter_changed_body(String size);
+
+  /// A file size: value is the number, already in the locale's decimal format, and unit is one of B, KB, MB, GB, TB. Translate the unit symbols where the language uses its own (French: o, Ko, Mo, Go, To).
+  ///
+  /// In en, this message translates to:
+  /// **'{value} {unit, select, B{B} KB{KB} MB{MB} GB{GB} TB{TB} other{{unit}}}'**
+  String common_byteSize(String value, String unit);
 }
 
 class _AppLocalizationsDelegate

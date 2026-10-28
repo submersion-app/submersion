@@ -32,6 +32,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 import 'package:submersion/features/demo_mode/domain/demo_manifest.dart';
 import 'package:submersion/features/demo_mode/presentation/providers/demo_mode_providers.dart';
+import 'package:submersion/features/demo_mode/presentation/widgets/demo_enter_dialog.dart';
 
 import '../../../../helpers/global_test_defaults.dart';
 import '../../../../helpers/mock_providers.dart';
@@ -573,6 +574,62 @@ void main() {
         expect(find.text('Exit demo'), findsNothing);
       },
     );
+
+    testWidgets('Explore with sample data sits under Advanced', (tester) async {
+      await pumpData(tester, demoPackage: package);
+
+      expect(
+        tester.getTopLeft(find.text('Explore with sample data')).dy,
+        greaterThan(tester.getTopLeft(find.text('Advanced')).dy),
+      );
+    });
+
+    testWidgets('Explore with sample data is the last row, below Set up '
+        'again', (tester) async {
+      await pumpData(
+        tester,
+        demoPackage: package,
+        setUp: setUpProgressOf(everything: true),
+      );
+
+      expect(
+        tester.getTopLeft(find.text('Explore with sample data')).dy,
+        greaterThan(tester.getTopLeft(find.text('Set up this phone again')).dy),
+      );
+    });
+
+    testWidgets('Explore with sample data asks before downloading', (
+      tester,
+    ) async {
+      await pumpData(tester, demoPackage: package);
+
+      await tester.tap(find.text('Explore with sample data'));
+      await tester.pumpAndSettle();
+      expect(find.text('Explore with sample data?'), findsOneWidget);
+      // The available package's own size, in the wording for a user whose
+      // logbook is set aside.
+      expect(find.textContaining('10 B'), findsOneWidget);
+      expect(
+        find.textContaining('set aside, untouched, until you exit demo mode'),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+      expect(find.text('Explore with sample data?'), findsNothing);
+      expect(find.byType(DemoEnterDialog), findsNothing);
+    });
+
+    testWidgets('in demo mode Exit demo sits under Advanced', (tester) async {
+      DemoModeGate.instance.debugActive = true;
+
+      await pumpData(tester, demoPackage: package);
+
+      expect(
+        tester.getTopLeft(find.text('Exit demo')).dy,
+        greaterThan(tester.getTopLeft(find.text('Advanced')).dy),
+      );
+    });
 
     testWidgets('hides it when no sample logbook is available', (tester) async {
       await pumpData(tester);

@@ -1200,6 +1200,56 @@ void main() {
     });
   });
 
+  group('nearby chip (issue #3731)', () {
+    const attention = DashboardGauges(
+      hasGear: true,
+      insurance: null,
+      noFlyStatus: null,
+      daysSinceLastDive: null,
+      nearbyAttention: (name: 'Old iPad', more: 0),
+    );
+
+    testWidgets('absent while every paired device is healthy', (tester) async {
+      await pumpStrip(tester, _emptyGauges);
+      expect(find.textContaining('Nearby:'), findsNothing);
+    });
+
+    testWidgets('names the device that needs attention and opens Sync', (
+      tester,
+    ) async {
+      final spy = await pumpStrip(tester, attention);
+      expect(find.text('Nearby: Old iPad needs attention'), findsOneWidget);
+      await tapChip(tester, 'Nearby: Old iPad needs attention');
+      expect(spy.location, '/settings/cloud-sync');
+    });
+
+    testWidgets('says others when more than one needs attention', (
+      tester,
+    ) async {
+      await pumpStrip(
+        tester,
+        const DashboardGauges(
+          hasGear: true,
+          insurance: null,
+          noFlyStatus: null,
+          daysSinceLastDive: null,
+          nearbyAttention: (name: 'Old iPad', more: 2),
+        ),
+      );
+      expect(
+        find.text('Nearby: Old iPad and others need attention'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('hideable like the other attention chips', (tester) async {
+      final notifier = MockSettingsNotifier();
+      await notifier.setHomeChipEnabled(HomeChipType.nearby.name, false);
+      await pumpStrip(tester, attention, settingsNotifier: notifier);
+      expect(find.textContaining('Nearby:'), findsNothing);
+    });
+  });
+
   group('sync chip', () {
     testWidgets('hidden when no backend is configured', (tester) async {
       await pumpStrip(tester, _emptyGauges);

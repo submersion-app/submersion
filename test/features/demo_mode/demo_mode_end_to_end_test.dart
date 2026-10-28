@@ -14,6 +14,7 @@ import 'package:submersion/features/demo_mode/data/demo_mode_service.dart';
 import 'package:submersion/features/demo_mode/data/demo_package_extractor.dart';
 import 'package:submersion/features/demo_mode/data/demo_paths.dart';
 import 'package:submersion/features/demo_mode/data/demo_state_store.dart';
+import 'package:submersion/features/demo_mode/domain/demo_manifest.dart';
 
 import '../../../tool/demo_data/src/packaging/demo_builder.dart';
 import '../../helpers/global_test_defaults.dart';
@@ -32,6 +33,7 @@ void main() {
   late String manifestJson;
   late List<int> packageBytes;
   late Uri packageUrl;
+  late DemoPackage builtPackage;
 
   setUpAll(() async {
     root = Directory.systemTemp.createTempSync('demo_e2e');
@@ -51,6 +53,7 @@ void main() {
     );
     packageBytes = out.zip.readAsBytesSync();
     packageUrl = out.package.url;
+    builtPackage = out.package;
     manifestJson = DemoBuilder.mergeManifest(
       entry: File(
         p.join(root.path, 'out', 'manifest-entry.json'),
@@ -119,7 +122,7 @@ void main() {
   }
 
   test('entering opens the sample logbook as the demo diver', () async {
-    await service().enter(fromFirstRun: false);
+    await service().enter(fromFirstRun: false, package: builtPackage);
 
     expect(switcher.openPath, paths.databaseFile);
     expect(DemoModeGate.instance.isActive, isTrue);
@@ -147,7 +150,7 @@ void main() {
     () async {
       final before = File(realPath).readAsBytesSync();
 
-      await service().enter(fromFirstRun: false);
+      await service().enter(fromFirstRun: false, package: builtPackage);
       await service().exit();
 
       expect(switcher.openPath, realPath);

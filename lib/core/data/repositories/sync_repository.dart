@@ -1168,6 +1168,85 @@ class SyncRepository {
   /// tables.
   Future<String?> maxRowHlc() => _maxRowHlc();
 
+  /// The oldest clock this library holds from [writer] across the same
+  /// clocks as [maxRowHlcByWriter], or null when it holds none. Nearby sync
+  /// relays a writer new to this device from here (issue #3731).
+  Future<String?> minRowHlcForWriter(String writer) async {
+    final clocks = _writerClockSelects(await _presentTables());
+    if (clocks.isEmpty) return null;
+    final row = await _db
+        .customSelect(
+          'SELECT MIN(c) AS m FROM (${clocks.join(' UNION ALL ')}) '
+          'WHERE c IS NOT NULL AND substr(c, 24) = ?',
+          variables: [Variable.withString(writer)],
+        )
+        .getSingleOrNull();
+    return row?.read<String?>('m');
+  }
+
+  static const _librarySiteChildTables = {
+    'site_features',
+    'site_species',
+    'site_site_types',
+    'site_tags',
+  };
+
+  static String _personalOnly(String table) {
+    if (table == 'dive_sites') return ' WHERE shared_library_id IS NULL';
+    if (_librarySiteChildTables.contains(table)) {
+      return ' WHERE site_id NOT IN (SELECT id FROM dive_sites '
+          'WHERE shared_library_id IS NOT NULL)';
+    }
+    return '';
+  }
+
+  Future<Set<String>> _presentTables() async => {
+    for (final r
+        in await _db
+            .customSelect("SELECT name FROM sqlite_master WHERE type = 'table'")
+            .get())
+      r.read<String>('name'),
+  };
+
+  /// One `SELECT <clock> AS c` per clock that personal sync carries: row
+  /// clocks, fact clocks, and tombstones under the device that deleted.
+  ///
+  /// A shared site library's rows (issue #2567) never enter personal sync, so
+  /// their writers (other club members) are left out: counting them would
+  /// make every nearby session a full copy for a writer that never arrives.
+  List<String> _writerClockSelects(Set<String> present) => [
+    for (final t in hlcTargets.values)
+      if (present.contains(t.table))
+        'SELECT hlc AS c FROM "${t.table}"${_personalOnly(t.table)}',
+    for (final e in SyncFactGroups.byEntity.entries)
+      if (present.contains(hlcTargets[e.key]?.table))
+        for (final g in e.value)
+          'SELECT "${g.clockColumn}" AS c '
+              'FROM "${hlcTargets[e.key]!.table}"',
+    if (present.contains('deletion_log'))
+      'SELECT COALESCE(origin_hlc, hlc) AS c FROM deletion_log',
+  ];
+
+  /// For every device whose clock appears in this library, the highest clock
+  /// held from it: row clocks, fact clocks, and tombstones under the device
+  /// that deleted the row (origin clock, else the local one). Nearby sync
+  /// exchanges this to send each peer only what it lacks (issue #3731).
+  ///
+  /// The writer is the node id after the packed clock's two fixed-width
+  /// fields (15 + 1 + 6 + 1 characters).
+  Future<Map<String, String>> maxRowHlcByWriter() async {
+    final clocks = _writerClockSelects(await _presentTables());
+    if (clocks.isEmpty) return const {};
+    final rows = await _db
+        .customSelect(
+          'SELECT substr(c, 24) AS w, MAX(c) AS h '
+          'FROM (${clocks.join(' UNION ALL ')}) '
+          'WHERE c IS NOT NULL AND length(c) > 23 GROUP BY w',
+        )
+        .get();
+    return {for (final r in rows) r.read<String>('w'): r.read<String>('h')};
+  }
+
   /// The highest hlc this device still ACCOUNTS FOR: live rows or tombstones.
   ///
   /// [maxRowHlc] alone answers "what do I still have", which is the wrong

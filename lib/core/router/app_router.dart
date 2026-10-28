@@ -111,6 +111,7 @@ import 'package:submersion/features/backup/presentation/pages/backup_settings_pa
 import 'package:submersion/features/settings/presentation/pages/manage_currency_rules_page.dart';
 import 'package:submersion/features/settings/presentation/pages/hidden_items_page.dart';
 import 'package:submersion/features/settings/presentation/pages/cloud_sync_page.dart';
+import 'package:submersion/features/settings/presentation/pages/nearby_pair_page.dart';
 import 'package:submersion/features/shared_library/presentation/pages/change_library_connection_page.dart';
 import 'package:submersion/features/shared_library/presentation/pages/connect_shared_library_page.dart';
 import 'package:submersion/features/shared_library/presentation/pages/library_backups_page.dart';
@@ -1636,6 +1637,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'webdav-config',
                     redirect: (_, _) => '/settings/connected-accounts',
+                  ),
+                  // Pairing for nearby Bluetooth sync (issue #3731).
+                  GoRoute(
+                    path: 'nearby-pair',
+                    name: 'nearbyPair',
+                    builder: (context, state) => const NearbyPairPage(),
                   ),
                 ],
               ),
