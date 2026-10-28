@@ -85,19 +85,30 @@ extension ListArrangementWrites on SettingsNotifier {
     AppSettingsRepository legacySource,
     EquipmentArrangement Function(EquipmentArrangement current) change,
   ) async {
+    // Decided after the load: until it lands, a diver switch can still show
+    // the previous diver's arrangement.
+    try {
+      await settingsLoaded;
+    } catch (_) {
+      // Already logged by the load; the state it left stands.
+    }
     EquipmentArrangement? legacy;
-    var legacyUnreadable = false;
+    var legacyKnown = false;
     final own = currentListArrangements.equipmentArrangement;
     if (decodeEquipmentArrangement(own) == null) {
       try {
         legacy = await legacySource.getEquipmentArrangement();
+        legacyKnown = true;
       } catch (_) {
-        legacyUnreadable = true;
+        // Unreadable: a diver without their own arrangement is refused below.
       }
     }
     await updateListArrangements((saved) {
       final current = pickEquipmentArrangement(saved.equipmentArrangement, () {
-        if (legacyUnreadable) {
+        // Unreadable, or not read because the diver had their own value when
+        // this began and no longer does (another switch since): building on
+        // the defaults would save them over what the diver sees.
+        if (!legacyKnown) {
           throw StateError(
             'The stored gear arrangement could not be read, so a change '
             'cannot be applied to it',

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter_riverpod/misc.dart' show ProviderListenable;
 import 'dart:convert';
 
@@ -27,6 +28,21 @@ class _LegacyRepository extends FakeAppSettingsRepository {
     reads++;
     if (failRead) throw StateError('read failed');
     return legacy;
+  }
+}
+
+/// Holds the settings load until [gate] completes, then lands [next] (a
+/// diver switch), as the real notifier does.
+class _SwitchingSettings extends MockSettingsNotifier {
+  _SwitchingSettings(super.initial, this.next);
+
+  final AppSettings next;
+  final Completer<void> gate = Completer<void>();
+
+  @override
+  Future<void> get settingsLoaded async {
+    await gate.future;
+    state = next;
   }
 }
 
@@ -156,6 +172,34 @@ void main() {
       return headToToe;
     });
     expect(asked, isFalse, reason: 'own value: the app-wide one is not read');
+  });
+
+  test('an edit during a diver switch builds on the new diver', () async {
+    // The previous diver had their own arrangement; the diver being switched
+    // to has none and sees the app-wide one. Deciding before the load lands
+    // would skip that read and save the defaults for the new diver.
+    repository.legacy = headToToe;
+    final switching = _SwitchingSettings(
+      AppSettings(
+        listArrangements: ListArrangements(
+          equipmentArrangement: encodeEquipmentArrangement(flat),
+        ),
+      ),
+      const AppSettings(),
+    );
+    final editing = switching.updateEquipmentArrangement(
+      repository,
+      (current) => current.copyWith(groupByType: false),
+    );
+    switching.gate.complete();
+    await editing;
+
+    expect(
+      decodeEquipmentArrangement(
+        switching.state.listArrangements.equipmentArrangement,
+      ),
+      headToToe.copyWith(groupByType: false),
+    );
   });
 
   test('failed legacy read refuses the edit', () async {

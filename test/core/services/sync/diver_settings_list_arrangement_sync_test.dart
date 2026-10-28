@@ -232,6 +232,67 @@ void main() {
     expect(row.read<String?>('list_arrangement_hlc'), rowClock);
   });
 
+  group('a never-set arrangement clock', () {
+    // A row from before the HLC rollout has neither clock, and the v323
+    // backfill has no row clock to copy. Its arrangement was never changed
+    // under a clock, so it must lose to any arrangement change a peer made,
+    // however late an unrelated settings save here came.
+    Future<void> makeClockless() => db.customStatement(
+      "UPDATE diver_settings SET hlc = NULL, list_arrangement_hlc = NULL "
+      "WHERE diver_id = 'd1'",
+    );
+
+    test('stays unset through an unrelated settings save', () async {
+      await makeClockless();
+      final current = (await repository.getSettingsForDiver('d1'))!;
+      await repository.updateSettingsForDiver(
+        'd1',
+        current.copyWith(depthUnit: DepthUnit.feet),
+        previous: current,
+      );
+      expect((await read())['list_arrangement_hlc'], isNull);
+    });
+
+    test('loses to a peer sort made before that save', () async {
+      await makeClockless();
+      final peerSortClock = await laterClock();
+      final peer = await local();
+      final current = (await repository.getSettingsForDiver('d1'))!;
+      await repository.updateSettingsForDiver(
+        'd1',
+        current.copyWith(depthUnit: DepthUnit.feet),
+        previous: current,
+      );
+      await apply({
+        ...peer,
+        'siteListSort': 'name:ascending',
+        'listArrangementHlc': peerSortClock,
+        'hlc': peerSortClock,
+      });
+
+      final row = await read();
+      expect(row['site_list_sort'], 'name:ascending');
+      expect(row['depth_unit'], 'feet');
+    });
+
+    test('a peer row with an explicitly unset clock never wins the group '
+        'by its row clock', () async {
+      await saveSort('depth:ascending');
+      final peer = await local();
+      await apply({
+        ...peer,
+        'diveListSort': null,
+        'listArrangementHlc': null,
+        'depthUnit': 'feet',
+        'hlc': await laterClock(),
+      });
+
+      final row = await read();
+      expect(row['depth_unit'], 'feet');
+      expect(row['dive_list_sort'], 'depth:ascending');
+    });
+  });
+
   test(
     'incremental export includes a row whose only change was an arrangement',
     () async {

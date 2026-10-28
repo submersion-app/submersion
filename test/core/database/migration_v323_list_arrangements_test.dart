@@ -99,6 +99,34 @@ void main() {
     expect(row.read<String?>('list_arrangement_hlc'), isNull);
   });
 
+  test('the clock backfill runs once, not on every open', () async {
+    // A null arrangement clock on a row that has one already means "never
+    // arranged" (SyncFactGroup.nullClockIsUnset); a later open must not
+    // hand it the row clock of an unrelated save.
+    final db = AppDatabase(
+      NativeDatabase.memory(
+        setup: (rawDb) {
+          rawDb.execute('PRAGMA user_version = 323');
+          rawDb.execute(
+            'CREATE TABLE diver_settings (id TEXT NOT NULL PRIMARY KEY, '
+            'diver_id TEXT NOT NULL, hlc TEXT, list_arrangement_hlc TEXT)',
+          );
+          rawDb.execute(
+            "INSERT INTO diver_settings (id, diver_id, hlc) "
+            "VALUES ('s1', 'd1', '000001700000000:000001:node-a')",
+          );
+        },
+      ),
+    );
+    addTearDown(db.close);
+    final row = await db
+        .customSelect(
+          "SELECT list_arrangement_hlc FROM diver_settings WHERE id = 's1'",
+        )
+        .getSingle();
+    expect(row.read<String?>('list_arrangement_hlc'), isNull);
+  });
+
   test('beforeOpen heals a database already at v323 that lacks them', () async {
     final db = AppDatabase(dbAt(323));
     addTearDown(db.close);

@@ -10,6 +10,7 @@ class SyncFactGroup {
     required this.clockKey,
     required this.clockColumn,
     required this.columns,
+    this.nullClockIsUnset = false,
   });
 
   final String name;
@@ -22,6 +23,19 @@ class SyncFactGroup {
 
   /// The group's fact columns, JSON key to SQL column.
   final Map<String, String> columns;
+
+  /// Whether a clock present but null means "never written" rather than
+  /// "written under the row clock".
+  ///
+  /// Off for media, whose rows predate their fact clocks and wrote facts
+  /// through the row clock, so a null clock honestly falls back to it, and a
+  /// row-clock stamp seeds the group clock. On for a diver's list
+  /// arrangements (issue #3748): a row whose arrangement clock is null never
+  /// had its arrangement changed under a clock, so it must lose to any
+  /// arrangement change a peer made, not borrow the clock of an unrelated
+  /// settings save. Only a key the side does not send at all (an older peer)
+  /// still falls back to the row clock.
+  final bool nullClockIsUnset;
 }
 
 /// Which entities carry fact groups: media's device observations, and a
@@ -89,6 +103,7 @@ abstract final class SyncFactGroups {
       'courseListViewMode': 'course_list_view_mode',
       'groupTripsInDiveList': 'group_trips_in_dive_list',
     },
+    nullClockIsUnset: true,
   );
 
   static const Map<String, List<SyncFactGroup>> byEntity = {
@@ -123,6 +138,8 @@ String? _effectiveClock(Map<String, dynamic>? side, SyncFactGroup g) {
   if (side == null) return null;
   final own = side[g.clockKey];
   if (own is String && own.isNotEmpty) return own;
+  // Sent, and null: never written (see SyncFactGroup.nullClockIsUnset).
+  if (g.nullClockIsUnset && side.containsKey(g.clockKey)) return null;
   final row = side['hlc'];
   return row is String && row.isNotEmpty ? row : null;
 }

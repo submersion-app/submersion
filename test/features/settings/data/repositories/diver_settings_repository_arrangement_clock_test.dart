@@ -33,6 +33,9 @@ void main() {
     );
   }
 
+  bool isNewer(String? after, String? before) =>
+      after != null && (before == null || after.compareTo(before) > 0);
+
   Future<void> save(AppSettings Function(AppSettings) change) async {
     final current = (await repository.getSettingsForDiver('d1'))!;
     await repository.updateSettingsForDiver(
@@ -66,10 +69,13 @@ void main() {
     SyncClock.instance.reset();
   });
 
-  test('a new row starts with a group clock', () async {
+  test('a new row starts with no arrangement clock', () async {
+    // Nothing was arranged yet: the row's arrangement must lose to any a
+    // peer makes, so its clock stays unset rather than borrowing the row
+    // clock (SyncFactGroup.nullClockIsUnset).
     final c = await clocks();
     expect(c.hlc, isNotNull);
-    expect(c.group, isNotNull);
+    expect(c.group, isNull);
   });
 
   test(
@@ -85,7 +91,7 @@ void main() {
       );
       final after = await clocks();
       expect(after.hlc, before.hlc);
-      expect(after.group!.compareTo(before.group!), greaterThan(0));
+      expect(isNewer(after.group, before.group), isTrue);
       expect(after.status, 'pending');
     },
   );
@@ -95,7 +101,7 @@ void main() {
     await save((s) => s.copyWith(siteListViewMode: ListViewMode.table));
     final after = await clocks();
     expect(after.hlc, before.hlc);
-    expect(after.group!.compareTo(before.group!), greaterThan(0));
+    expect(isNewer(after.group, before.group), isTrue);
   });
 
   test('a units change stamps hlc and leaves a set group clock', () async {
@@ -141,7 +147,7 @@ void main() {
     );
     final after = await clocks();
     expect(after.hlc!.compareTo(before.hlc!), greaterThan(0));
-    expect(after.group!.compareTo(before.group!), greaterThan(0));
+    expect(isNewer(after.group, before.group), isTrue);
     expect(after.status, 'pending');
   });
 }
