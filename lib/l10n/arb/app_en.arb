@@ -12722,14 +12722,7 @@
       }
     }
   },
-  "plannerCanvas_follow_chip": "Following {name}",
-  "@plannerCanvas_follow_chip": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
+
   "plannerCanvas_follow_empty": "No logged dives yet",
   "plannerCanvas_follow_noTissues": "No profile data on that dive — surface interval set without tissue seeding",
   "plannerSeries_dive": "Dive {letter}",

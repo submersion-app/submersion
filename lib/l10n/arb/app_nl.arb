@@ -5854,7 +5854,6 @@
       }
     }
   },
-  "plannerCanvas_follow_chip": "Volgt {name}",
   "plannerCanvas_follow_empty": "Nog geen gelogde duiken",
   "plannerCanvas_follow_noTissues": "Geen profielgegevens voor die duik — oppervlakte-interval ingesteld zonder weefselverzadiging",
   "plannerSeries_dive": "Duik {letter}",

@@ -106,8 +106,8 @@ the plan. Removing dives back to one re-enables both.
   residual tissue. Planned dives and dives logged after the followed one are
   left out.
 - **Bar.** Each logged dive is the main menu's diver, solid, and its name,
-  else its dive number, else its date (the same in the Follow prompt and the
-  Following chip), with the real
+  else its dive number, else its date (the same in the Follow prompt), with
+  the real
   interval between logged dives, then Dive A's interval. Tapping a logged
   dive shows it read-only in place of the planner: its profile (the dive
   log's own chart), Open in dive log, Stop following on the followed dive,
@@ -138,7 +138,9 @@ the plan. Removing dives back to one re-enables both.
     rather than pushing a second one when the planner is already in the
     stack (a dive opened from the planner), which go_router cannot hold. It lands next to the "What if" entry #2407 changes; the
     merge is a matter of keeping both.
-  - The Following chip shows the followed dive and stops following.
+- **Stopping.** Stop following sits in the followed dive's read-only view.
+  There is no Following chip under the profile: it read as part of the chart
+  while acting on the whole series, and one tap dropped the followed dive.
 
 ## Design
 

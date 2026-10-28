@@ -7,11 +7,9 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_gas_section.dart';
-import 'package:submersion/features/planner/domain/entities/series_follow.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_series_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/follow_dive_sheet.dart';
-import 'package:submersion/features/planner/presentation/widgets/plan_status_chips.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../helpers/test_app.dart';
@@ -42,46 +40,6 @@ void main() {
     settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
     diveProvider.overrideWith((ref, id) async => stubDive),
   ];
-
-  testWidgets('FollowingChip appears when following and clears on tap', (
-    tester,
-  ) async {
-    await tester.pumpWidget(
-      testApp(overrides: overrides(), child: const FollowingChip()),
-    );
-    // Hidden with no followed dive.
-    expect(find.byType(PlanChip), findsNothing);
-
-    final container = ProviderScope.containerOf(
-      tester.element(find.byType(FollowingChip)),
-    );
-    container
-        .read(planSeriesNotifierProvider.notifier)
-        .followDive(
-          SeriesFollow(
-            loggedDives: [
-              SeriesLoggedDive(
-                id: 'dive-9',
-                diveNumber: 42,
-                name: 'Reef drift',
-                start: DateTime(2026, 7, 1, 9),
-                end: DateTime(2026, 7, 1, 9, 45),
-              ),
-            ],
-          ),
-          surfaceInterval: const Duration(hours: 1),
-        );
-    await tester.pumpAndSettle();
-
-    // A named logged dive goes by its name, as in the series bar.
-    expect(find.text('Following Reef drift'), findsOneWidget);
-
-    await tester.tap(find.byType(PlanChip));
-    await tester.pumpAndSettle();
-
-    expect(container.read(planSeriesNotifierProvider).follow, isNull);
-    expect(find.byType(PlanChip), findsNothing);
-  });
 
   testWidgets('logged-average SAC button fills the plan SAC rate', (
     tester,

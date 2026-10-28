@@ -20687,11 +20687,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String plannerCanvas_follow_chip(String name) {
-    return 'يتبع $name';
-  }
-
-  @override
   String get plannerCanvas_follow_empty => 'لا توجد غطسات مسجلة بعد';
 
   @override

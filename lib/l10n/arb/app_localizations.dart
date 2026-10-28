@@ -32448,12 +32448,6 @@ abstract class AppLocalizations {
   /// **'Export failed: {error}'**
   String plannerCanvas_export_failed(String error);
 
-  /// No description provided for @plannerCanvas_follow_chip.
-  ///
-  /// In en, this message translates to:
-  /// **'Following {name}'**
-  String plannerCanvas_follow_chip(String name);
-
   /// No description provided for @plannerCanvas_follow_empty.
   ///
   /// In en, this message translates to:

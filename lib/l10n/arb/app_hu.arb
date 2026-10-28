@@ -5753,7 +5753,6 @@
       }
     }
   },
-  "plannerCanvas_follow_chip": "{name} követése",
   "plannerCanvas_follow_empty": "Még nincsenek naplózott merülések",
   "plannerCanvas_follow_noTissues": "Nincs profiladat ehhez a merüléshez — a felszíni intervallum szövettelítés nélkül lett beállítva",
   "plannerSeries_dive": "{letter} merülés",

@@ -19943,11 +19943,6 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String plannerCanvas_follow_chip(String name) {
-    return 'עוקב אחרי $name';
-  }
-
-  @override
   String get plannerCanvas_follow_empty => 'אין עדיין צלילות מתועדות';
 
   @override

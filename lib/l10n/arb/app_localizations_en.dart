@@ -20092,11 +20092,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String plannerCanvas_follow_chip(String name) {
-    return 'Following $name';
-  }
-
-  @override
   String get plannerCanvas_follow_empty => 'No logged dives yet';
 
   @override

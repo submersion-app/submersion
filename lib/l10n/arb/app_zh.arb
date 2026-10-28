@@ -6005,7 +6005,6 @@
       }
     }
   },
-  "plannerCanvas_follow_chip": "跟随 {name}",
   "plannerCanvas_follow_empty": "还没有记录的潜水",
   "plannerCanvas_follow_noTissues": "该潜水没有剖面数据 — 已设置水面间隔但未载入组织饱和度",
   "plannerSeries_dive": "潜水 {letter}",

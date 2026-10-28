@@ -5753,7 +5753,6 @@
       }
     }
   },
-  "plannerCanvas_follow_chip": "Suit {name}",
   "plannerCanvas_follow_empty": "Aucune plongée enregistrée pour l'instant",
   "plannerCanvas_follow_noTissues": "Pas de données de profil pour cette plongée — intervalle de surface défini sans saturation des tissus",
   "plannerSeries_dive": "Plongée {letter}",

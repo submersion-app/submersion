@@ -5753,7 +5753,6 @@
       }
     }
   },
-  "plannerCanvas_follow_chip": "עוקב אחרי {name}",
   "plannerCanvas_follow_empty": "אין עדיין צלילות מתועדות",
   "plannerCanvas_follow_noTissues": "אין נתוני פרופיל לצלילה זו — מרווח הפנים נקבע ללא העמסת רקמות",
   "plannerSeries_dive": "צלילה {letter}",

@@ -4,8 +4,6 @@ import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
-import 'package:submersion/features/planner/domain/entities/series_follow.dart';
-import 'package:submersion/features/planner/presentation/providers/plan_series_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_chart_readouts.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -109,37 +107,5 @@ void main() {
       ),
     );
     expect(cns.style?.color, Colors.orange);
-  });
-
-  testWidgets('following pill shows under runtime and clears on tap', (
-    tester,
-  ) async {
-    await tester.pumpWidget(harness());
-    seed(tester, depth: 30, time: 20);
-    final container = ProviderScope.containerOf(
-      tester.element(find.byType(PlanChartReadouts)),
-    );
-    container
-        .read(planSeriesNotifierProvider.notifier)
-        .followDive(
-          SeriesFollow(
-            loggedDives: [
-              SeriesLoggedDive(
-                id: 'logged-dive',
-                diveNumber: 12,
-                start: DateTime(2026, 10, 1, 9),
-                end: DateTime(2026, 10, 1, 10),
-              ),
-            ],
-          ),
-          surfaceInterval: const Duration(hours: 1),
-        );
-    await tester.pumpAndSettle();
-
-    expect(find.textContaining('Following'), findsOneWidget);
-    await tester.tap(find.textContaining('Following'));
-    await tester.pumpAndSettle();
-    expect(container.read(planSeriesNotifierProvider).follow, isNull);
-    expect(find.textContaining('Following'), findsNothing);
   });
 }

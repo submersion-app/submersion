@@ -20450,11 +20450,6 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String plannerCanvas_follow_chip(String name) {
-    return 'Suit $name';
-  }
-
-  @override
   String get plannerCanvas_follow_empty =>
       'Aucune plongée enregistrée pour l\'instant';
 

@@ -98,8 +98,6 @@ class PlanChartReadouts extends ConsumerWidget {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  const FollowingChip(),
                 ],
               ),
             ),

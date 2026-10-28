@@ -20386,11 +20386,6 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String plannerCanvas_follow_chip(String name) {
-    return 'Siguiendo $name';
-  }
-
-  @override
   String get plannerCanvas_follow_empty => 'Aún no hay inmersiones registradas';
 
   @override

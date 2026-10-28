@@ -5854,7 +5854,6 @@
       }
     }
   },
-  "plannerCanvas_follow_chip": "Seguindo {name}",
   "plannerCanvas_follow_empty": "Ainda não há mergulhos registrados",
   "plannerCanvas_follow_noTissues": "Sem dados de perfil nesse mergulho — intervalo de superfície definido sem saturação dos tecidos",
   "plannerSeries_dive": "Mergulho {letter}",

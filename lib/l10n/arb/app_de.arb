@@ -5980,7 +5980,6 @@
       }
     }
   },
-  "plannerCanvas_follow_chip": "Folgt {name}",
   "plannerCanvas_follow_empty": "Noch keine geloggten Tauchgänge",
   "plannerCanvas_follow_noTissues": "Keine Profildaten für diesen Tauchgang — Oberflächenpause ohne Gewebesättigung übernommen",
   "plannerSeries_dive": "Tauchgang {letter}",

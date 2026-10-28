@@ -5753,7 +5753,6 @@
       }
     }
   },
-  "plannerCanvas_follow_chip": "Segue {name}",
   "plannerCanvas_follow_empty": "Nessuna immersione registrata",
   "plannerCanvas_follow_noTissues": "Nessun dato di profilo per quell'immersione — intervallo di superficie impostato senza saturazione dei tessuti",
   "plannerSeries_dive": "Immersione {letter}",

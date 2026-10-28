@@ -20321,11 +20321,6 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String plannerCanvas_follow_chip(String name) {
-    return '$name követése';
-  }
-
-  @override
   String get plannerCanvas_follow_empty => 'Még nincsenek naplózott merülések';
 
   @override

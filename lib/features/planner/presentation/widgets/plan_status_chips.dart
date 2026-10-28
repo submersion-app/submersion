@@ -8,8 +8,6 @@ import 'package:submersion/features/planner/domain/entities/mission/mission_outc
 import 'package:submersion/features/planner/presentation/providers/mission_issues_provider.dart';
 import 'package:submersion/features/planner/presentation/providers/mission_outcome_provider.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
-import 'package:submersion/features/planner/presentation/providers/plan_series_providers.dart';
-import 'package:submersion/features/planner/presentation/widgets/plan_logged_dive_view.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/planner/domain/services/plan_issue_grouping.dart';
@@ -158,7 +156,6 @@ class PlanStatusChips extends ConsumerWidget {
             onTap: onIssuesTap,
           ),
         const ContingencyPreviewChip(),
-        const FollowingChip(),
         MissionIssuesChip(onTap: onIssuesTap),
       ],
     );
@@ -214,32 +211,6 @@ class ContingencyPreviewChip extends ConsumerWidget {
         ref.read(selectedDeviationProvider.notifier).state = null;
         ref.read(selectedLostGasTankIdProvider.notifier).state = null;
       },
-    );
-  }
-}
-
-/// "Following {dive}" indicator with tap-to-clear; renders nothing when the
-/// series does not follow a logged dive.
-class FollowingChip extends ConsumerWidget {
-  const FollowingChip({super.key});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final followed = ref.watch(
-      planSeriesNotifierProvider.select((s) => s.follow?.followed),
-    );
-    if (followed == null) return const SizedBox.shrink();
-
-    return PlanChip(
-      label: context.l10n.plannerCanvas_follow_chip(
-        seriesLoggedDiveLabel(
-          followed,
-          UnitFormatter(ref.watch(settingsProvider)),
-        ),
-      ),
-      value: '✕',
-      tint: Theme.of(context).colorScheme.tertiary,
-      onTap: () => ref.read(planSeriesNotifierProvider.notifier).unfollow(),
     );
   }
 }
