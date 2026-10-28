@@ -49,7 +49,8 @@ class _PeopleTagEditorState extends ConsumerState<PeopleTagEditor> {
   /// The selected box while a drag is moving it, before it is saved.
   FaceBox? _draft;
 
-  static const double _handle = 24;
+  /// A corner handle's touch target, centred on the corner.
+  static const double _handle = 32;
 
   bool _atMoment(MediaPersonTag tag) {
     final at = widget.showAt;
@@ -187,26 +188,27 @@ class _PeopleTagEditorState extends ConsumerState<PeopleTagEditor> {
       if (draft != null && draft != tag.box) widget.onMove(tag, draft);
     }
 
+    // The selected box's area grows by half a handle on every side, so each
+    // handle sits whole inside it, centred on its corner: hit testing stops
+    // at a widget's bounds, and a handle hanging over the edge could only be
+    // grabbed by its inner quarter.
     Widget handle(int corner, Alignment alignment) => Align(
       alignment: alignment,
-      child: FractionalTranslation(
-        translation: Offset(alignment.x / 2, alignment.y / 2),
-        child: GestureDetector(
-          key: ValueKey('handle-$corner'),
-          behavior: HitTestBehavior.opaque,
-          onPanUpdate: (d) => drag(d.delta, corner),
-          onPanEnd: (_) => release(),
-          child: SizedBox.square(
-            dimension: _handle,
-            child: Center(
-              child: Container(
-                width: 12,
-                height: 12,
-                decoration: BoxDecoration(
-                  color: Colors.amber,
-                  border: Border.all(color: Colors.black54),
-                  shape: BoxShape.circle,
-                ),
+      child: GestureDetector(
+        key: ValueKey('handle-$corner'),
+        behavior: HitTestBehavior.opaque,
+        onPanUpdate: (d) => drag(d.delta, corner),
+        onPanEnd: (_) => release(),
+        child: SizedBox.square(
+          dimension: _handle,
+          child: Center(
+            child: Container(
+              width: 12,
+              height: 12,
+              decoration: BoxDecoration(
+                color: Colors.amber,
+                border: Border.all(color: Colors.black54),
+                shape: BoxShape.circle,
               ),
             ),
           ),
@@ -216,16 +218,19 @@ class _PeopleTagEditorState extends ConsumerState<PeopleTagEditor> {
 
     return Positioned.fromRect(
       key: ValueKey('edit-box-${tag.id}'),
-      rect: rect,
+      rect: rect.inflate(_handle / 2),
       child: Stack(
         clipBehavior: Clip.none,
         children: [
           Positioned.fill(
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onPanUpdate: (d) => drag(d.delta, null),
-              onPanEnd: (_) => release(),
-              child: FaceBoxFrame(label: label, color: Colors.amber),
+            child: Padding(
+              padding: const EdgeInsets.all(_handle / 2),
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onPanUpdate: (d) => drag(d.delta, null),
+                onPanEnd: (_) => release(),
+                child: FaceBoxFrame(label: label, color: Colors.amber),
+              ),
             ),
           ),
           Positioned.fill(
