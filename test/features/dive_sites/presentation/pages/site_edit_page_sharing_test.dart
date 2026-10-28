@@ -290,6 +290,8 @@ void main() {
     expect(shares.setCalls, [
       ('pier', const ItemSharing(profileIds: {'d2'})),
     ]);
+    // The profile acting now, which the repository checks (issue #2151).
+    expect(shares.setActingDivers, ['d1']);
     expect(saved, 'pier');
     expect(
       find.text('Only another profile can change sharing'),
