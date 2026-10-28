@@ -117,8 +117,8 @@ or bottom (End) of the figure.
 
 The MOD note and the Reassign action keep whatever form main has when this
 is built (open PR #3760 rewrites the MOD note to name several limits; this
-feature does not touch that text). A divider separates the last block from
-the note, as the table's closing rule does today.
+feature does not touch that text, nor the spacing above it, so any closing
+rule #3760 adds lands without a conflict here).
 
 ### Size
 

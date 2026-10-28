@@ -115,7 +115,7 @@ expect(tankFigureHeight(null), tankFigureHeight(11.1));
   - rated pressure: a tank with `presetName: 'al80'`, no `workingPressure`, start 190: the figure's levels come from 206.843 (assert via `TankFigure.levels.start` closeTo `190 / 206.843`).
   - Keep every other test's intent (SAC, RMV, serial, check-in, badges, reassign, role); adjust only finders that relied on the table.
 - [ ] **Step 2:** Run both card test files; expect failures.
-- [ ] **Step 3: Implement.** ARB keys in every locale next to `diveLog_cylinders_gasUsed` (feature-grouped), with translations; delete the column keys; `flutter gen-l10n`. `CylinderBlock`: `Row(figure, 12, Expanded(Column(Wrap(icon, title, pill), subtitle, details + trailing)))`. Card: drop the header and its `Divider`; per tank resolve rated (`tank.workingPressure ?? preset?.workingPressureBar`) and volume (`tank.volume ?? preset?.volumeLiters`), build labels via `units.formatPressure`, Used label only when used >= 0; divider before the MOD note.
+- [ ] **Step 3: Implement.** ARB keys in every locale next to `diveLog_cylinders_gasUsed` (feature-grouped), with translations; delete the column keys; `flutter gen-l10n`. `CylinderBlock`: `Row(figure, 12, Expanded(Column(Wrap(icon, title, pill), subtitle, details + trailing)))`. Card: drop the header and its `Divider`; per tank resolve rated (`tank.workingPressure ?? preset?.workingPressureBar`) and volume (`tank.volume ?? preset?.volumeLiters`), build labels via `units.formatPressure`, Used label only when used >= 0; the MOD note and its spacing stay as main has them.
 - [ ] **Step 4:** Run both card files plus `test/l10n/`; expect PASS.
 - [ ] **Step 5: Commit** `feat(dive-log): draw each cylinder as a tank figure on the Cylinders card`.
 
