@@ -28,6 +28,39 @@ void main() {
     expect((seen!.arguments as Map)['fileName'], 'b.db');
   });
 
+  test('writeBackup sends replaceExisting true by default', () async {
+    MethodCall? seen;
+    messenger.setMockMethodCallHandler(channel, (call) async {
+      seen = call;
+      return 'content://doc/1';
+    });
+
+    await SubmersionSaf.writeBackup(
+      treeUri: 'content://tree/1',
+      fileName: 'b.db',
+      sourcePath: '/data/x.db',
+    );
+
+    expect((seen!.arguments as Map)['replaceExisting'], isTrue);
+  });
+
+  test('writeBackup passes replaceExisting false', () async {
+    MethodCall? seen;
+    messenger.setMockMethodCallHandler(channel, (call) async {
+      seen = call;
+      return 'content://doc/1';
+    });
+
+    await SubmersionSaf.writeBackup(
+      treeUri: 'content://tree/1',
+      fileName: 'b.db',
+      sourcePath: '/data/x.db',
+      replaceExisting: false,
+    );
+
+    expect((seen!.arguments as Map)['replaceExisting'], isFalse);
+  });
+
   test('pickFolder maps a null channel result to null', () async {
     messenger.setMockMethodCallHandler(channel, (call) async => null);
     expect(await SubmersionSaf.pickFolder(), isNull);
