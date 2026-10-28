@@ -237,11 +237,15 @@ class NearbyLinkManager {
   /// Ends every running session without recording an outcome. Stopping
   /// the radio leaves an open link connected, and nearby sync is
   /// foreground-only. The peer is due again on return, and a full copy
-  /// resumes from its last part.
-  Future<void> _endSessions() async {
+  /// resumes from its last part. With [untilEnded], returns only once each
+  /// session's run has finished, so none still reads or writes the
+  /// database it started on.
+  Future<void> _endSessions({bool untilEnded = false}) async {
+    final ended = <_Live>[];
     for (final entry in _active.entries.toList()) {
       _active.remove(entry.key);
       entry.value.superseded = true;
+      ended.add(entry.value);
       try {
         await entry.value.channel.close();
       } on Object {
@@ -249,6 +253,7 @@ class NearbyLinkManager {
       }
     }
     _emitState();
+    if (untilEnded) await Future.wait([for (final l in ended) l.done.future]);
   }
 
   Future<void> enterPairingMode() {
@@ -293,9 +298,11 @@ class NearbyLinkManager {
     // The sample logbook (demo mode) has a database of its own but shares
     // secure storage with the real library: its empty paired-devices table
     // must never be read as "every secret is an orphan", and nothing nearby
-    // may reach it.
+    // may reach it. A session already running ends before the sample
+    // logbook opens (entering demo mode refreshes here first).
     if (DemoModeGate.instance.isActive) {
       await _stopRadio();
+      await _endSessions(untilEnded: true);
       return;
     }
     if (!_prunedSecrets) {
@@ -519,6 +526,9 @@ class NearbyLinkManager {
       _strangerSince[transportId] = _now();
       return;
     }
+    // A refused session still opened: the peer is around, and its row
+    // keeps holding tombstones back until it can sync again.
+    await _peers.markSeen(device, _now().millisecondsSinceEpoch);
     final error = e.fromPeer
         ? nearbyPeerRefusalError(e.code)
         : nearbyOwnRefusalError(e.code);

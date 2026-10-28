@@ -216,8 +216,10 @@ way. The library's own encryption (SBE1 envelopes) is not involved:
 changesets travel as plaintext inside the encrypted link, and a device on
 an encrypted library applies them exactly as it applies decrypted cloud
 changesets. Nonces are a per-direction counter; a nonce reuse ends the
-session. Every frame after the handshake is sealed, `error` and `bye`
-included, so nobody in range can end a session with a forged refusal.
+session. Every frame after the key check is sealed, `error` and `bye`
+included (the rest of the handshake as well as the session), so nobody in
+range can end a session with a forged refusal, or leave a false reason on
+a paired device's row. A bare one there is a protocol violation.
 
 **Messages.** A message is a 4-byte length, a 1-byte type, and the
 (encrypted) body. Types are a small enum: `hello`, `pairConfirm`,
@@ -539,7 +541,9 @@ design makes no such choice.
 - The first sync between populated devices that never shared a cloud is a
   full copy in each direction; deltas only once every writer is known.
 - Nearby peers hold tombstones back like cloud peers until unpaired or
-  silent for the cloud path's retirement period.
+  silent for the cloud path's retirement period. A refused session counts
+  as contact: a paired device that keeps refusing (it needs an update, or
+  moved to another library) is still around and may sync again.
 - The merge's `lastSync` is the per-peer `last_synced_at`.
 - Demo mode (the sample logbook, #3729) seals nearby sync like cloud
   sync: the radio stays off and both applies refuse. The sample has its own
@@ -548,7 +552,9 @@ design makes no such choice.
   "every pair secret is an orphan" and the cleanup would delete them.
   Entering demo mode closes the gate before the app restarts, with the
   radio still on, so a session that would start in between is turned away
-  too.
+  too. A session already running is ended, and entering waits for it to
+  finish before the sample logbook opens, so none reads or writes across
+  the switch. Leaving needs no such step: no session runs in demo mode.
 
 ## Left to the builder
 

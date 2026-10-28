@@ -56,6 +56,7 @@ void main() {
     FakeDownloader? downloader,
     FakeSwitcher? sw,
     bool hasPackage = true,
+    Future<void> Function()? endNearbySync,
   }) => DemoModeService(
     paths: paths,
     prefs: prefs,
@@ -70,6 +71,7 @@ void main() {
     deviceId: () => 'device-1',
     cancelDeviceNotifications: () async => notificationCancels++,
     restart: () => restarts++,
+    endNearbySync: endNearbySync,
     clock: () => DateTime(2026, 10, 26, 12),
   );
 
@@ -87,6 +89,20 @@ void main() {
       expect(notificationCancels, 1);
     },
   );
+
+  test('enter ends nearby sync with the gate closed, before the sample '
+      'logbook opens', () async {
+    ({bool sealed, String? open})? seen;
+
+    await service(
+      endNearbySync: () async => seen = (
+        sealed: DemoModeGate.instance.isActive,
+        open: switcher.openPath,
+      ),
+    ).enter(fromFirstRun: false);
+
+    expect(seen, (sealed: true, open: realPath));
+  });
 
   test('enter reports downloading, preparing and opening in order', () async {
     final stages = <DemoEnterStage>[];

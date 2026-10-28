@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/core/services/nearby/nearby_carrier.dart';
 import 'package:submersion/core/services/nearby/nearby_frame.dart';
 import 'package:submersion/core/services/nearby/nearby_hello.dart';
 import 'package:submersion/core/services/nearby/nearby_session.dart';
@@ -28,6 +27,22 @@ class _StallingEndpoint extends ForwardingNearbyEndpoint {
   Future<void> close() {
     closed = true;
     return super.close();
+  }
+}
+
+/// Slips a bare frame of its own onto the link just before the peer's
+/// [at]th frame: someone in range writing to it.
+class _InjectingEndpoint extends ForwardingNearbyEndpoint {
+  _InjectingEndpoint(super.inner, {required this.at, required this.frame});
+
+  final int at;
+  final Uint8List frame;
+  var _sent = 0;
+
+  @override
+  Future<void> send(Uint8List bytes) async {
+    if (++_sent == at) await super.send(frame);
+    return super.send(bytes);
   }
 }
 
@@ -60,6 +75,43 @@ void main() {
     ]);
   });
 
+  test(
+    'a bare refusal that arrives after the key check is not believed',
+    () async {
+      final (l, p) = await pairNearbySessions();
+      final (out, into) = await nearbyLink();
+      // After P's hello and key check, where its identity should come.
+      final forged = _InjectingEndpoint(
+        into,
+        at: 3,
+        frame: FrameEncoder.encode(
+          NearbyMessageType.error,
+          Uint8List.fromList([NearbyErrorCode.differentLibrary.index]),
+        ),
+      );
+      final incoming = NearbySession(
+        endpoint: forged,
+        identity: nearbySessionIdentity('P'),
+        secrets: p,
+      ).accept(allowPairing: false);
+      final outgoing = NearbySession(
+        endpoint: out,
+        identity: nearbySessionIdentity('L'),
+        secrets: l,
+      ).openSync();
+      unawaited(incoming.then<void>((_) {}, onError: (Object _) {}));
+
+      await expectLater(
+        outgoing,
+        throwsA(
+          isA<NearbySessionRefused>()
+              .having((e) => e.code, 'code', NearbyErrorCode.protocol)
+              .having((e) => e.fromPeer, 'fromPeer', isFalse),
+        ),
+      );
+    },
+  );
+
   test('a bye sent in the clear while waiting for the other diver is not '
       'read as their "Not mine"', () async {
     final (out, into) = await nearbyLink();
@@ -77,7 +129,15 @@ void main() {
 
     final confirm = outgoing.confirm();
     await into.send(FrameEncoder.encode(NearbyMessageType.bye, Uint8List(0)));
-    await expectLater(confirm, throwsA(isA<NearbyLinkClosed>()));
+    // Not sealed, so a protocol violation: never the diver's answer.
+    await expectLater(
+      confirm,
+      throwsA(
+        isA<NearbySessionRefused>()
+            .having((e) => e.code, 'code', NearbyErrorCode.protocol)
+            .having((e) => e.fromPeer, 'fromPeer', isFalse),
+      ),
+    );
   });
 
   test('a newer hello this build cannot parse is still refused as newer, so '

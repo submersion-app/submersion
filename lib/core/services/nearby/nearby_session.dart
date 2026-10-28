@@ -355,7 +355,11 @@ class NearbySession {
         Uint8List.fromList(utf8.encode(jsonEncode(mine.toJson()))),
       ),
     );
-    final message = await _expect(NearbyMessageType.identity, hello: true);
+    final message = await _expect(
+      NearbyMessageType.identity,
+      hello: true,
+      cipher: cipher,
+    );
     final NearbyPairingPreview peer;
     try {
       final decoded = jsonDecode(utf8.decode(await cipher.open(message.body)));
@@ -364,14 +368,14 @@ class NearbySession {
       }
       peer = NearbyPairingPreview.fromJson(decoded);
     } on NearbyAuthFailure {
-      return _refuse(NearbyErrorCode.protocol);
+      return _refuse(NearbyErrorCode.protocol, cipher: cipher);
     } on FormatException {
-      return _refuse(NearbyErrorCode.protocol);
+      return _refuse(NearbyErrorCode.protocol, cipher: cipher);
     }
     final a = mine.epochTag;
     final b = peer.epochTag;
     if (a != null && b != null && !constantTimeEquals(a, b)) {
-      await _refuse(NearbyErrorCode.differentLibrary);
+      await _refuse(NearbyErrorCode.differentLibrary, cipher: cipher);
     }
     return (mine, peer);
   }
@@ -408,7 +412,11 @@ class NearbySession {
       // A peer that unpaired this device sends its sealed refusal and hangs
       // up at once; the refusal is already in the inbox.
     }
-    final message = await _expect(NearbyMessageType.identity, hello: true);
+    final message = await _expect(
+      NearbyMessageType.identity,
+      hello: true,
+      cipher: cipher,
+    );
     final NearbyIdentity peer;
     try {
       final decoded = jsonDecode(utf8.decode(await cipher.open(message.body)));
@@ -427,22 +435,26 @@ class NearbySession {
       }
       peer = NearbyIdentity.fromJson(decoded);
     } on NearbyAuthFailure {
-      return _refuse(NearbyErrorCode.protocol);
+      return _refuse(NearbyErrorCode.protocol, cipher: cipher);
     } on FormatException {
-      return _refuse(NearbyErrorCode.protocol);
+      return _refuse(NearbyErrorCode.protocol, cipher: cipher);
     }
     // A cloned install reports this device's own id; pairing with it would
     // merge two writers into one.
     if (peer.deviceId == _identity.deviceId ||
         (expectedId != null && peer.deviceId != expectedId)) {
-      await _refuse(NearbyErrorCode.protocol);
+      await _refuse(NearbyErrorCode.protocol, cipher: cipher);
     }
     final mine = _identity.epochId;
     final theirs = peer.epochId;
     if (mine != null && theirs != null && mine != theirs) {
       // Both sides refuse here at once, so neither hears the other's
       // refusal: a paired peer is named, for its row to say so.
-      await _refuse(NearbyErrorCode.differentLibrary, peerDeviceId: expectedId);
+      await _refuse(
+        NearbyErrorCode.differentLibrary,
+        peerDeviceId: expectedId,
+        cipher: cipher,
+      );
     }
     return peer;
   }
@@ -482,11 +494,13 @@ class NearbySession {
   }
 
   /// Reads the next frame and insists on [type]. An `error` frame becomes
-  /// a refusal from the peer; anything else is a protocol violation.
+  /// a refusal from the peer; anything else is a protocol violation. With
+  /// [cipher] (after the key check) an `error` or `bye` must be sealed.
   Future<NearbyMessage> _expect(
     NearbyMessageType type, {
     required bool hello,
     Duration? timeout,
+    NearbySessionCipher? cipher,
   }) async {
     final NearbyMessage message;
     try {
@@ -505,34 +519,58 @@ class NearbySession {
     }
     if (message.type == type) return message;
     if (message.type == NearbyMessageType.error) {
+      final body = await _openControl(message, cipher);
       await _endpoint.close();
       throw NearbySessionRefused(
-        NearbyErrorCode.fromByte(message.body.isEmpty ? 255 : message.body[0]),
+        NearbyErrorCode.fromByte(body.isEmpty ? 255 : body[0]),
         fromPeer: true,
       );
     }
     if (message.type == NearbyMessageType.bye) {
+      await _openControl(message, cipher);
       await _endpoint.close();
       throw const NearbySessionRefused(
         NearbyErrorCode.protocol,
         fromPeer: true,
       );
     }
-    return _refuse(NearbyErrorCode.protocol);
+    return _refuse(NearbyErrorCode.protocol, cipher: cipher);
+  }
+
+  /// The body of an `error` or `bye`. Once [cipher] exists it must open:
+  /// a bare one could come from anyone in range, so it is a protocol
+  /// violation rather than the peer's word.
+  Future<Uint8List> _openControl(
+    NearbyMessage message,
+    NearbySessionCipher? cipher,
+  ) async {
+    if (cipher == null) return message.body;
+    try {
+      return await cipher.open(message.body);
+    } on NearbyAuthFailure {
+      return _refuse(NearbyErrorCode.protocol, cipher: cipher);
+    }
   }
 
   Future<void> _sendFrame(NearbyMessageType type, Uint8List body) =>
       _endpoint.send(FrameEncoder.encode(type, body));
 
   /// Tells the peer why, closes the link, and throws. [peerDeviceId] names
-  /// the peer once the handshake has authenticated it.
-  Future<Never> _refuse(NearbyErrorCode code, {String? peerDeviceId}) async {
+  /// the peer once the handshake has authenticated it. After the key check
+  /// both frames go sealed under [cipher], as every later frame does.
+  Future<Never> _refuse(
+    NearbyErrorCode code, {
+    String? peerDeviceId,
+    NearbySessionCipher? cipher,
+  }) async {
+    Future<Uint8List> body(List<int> plain) async {
+      final bytes = Uint8List.fromList(plain);
+      return cipher == null ? bytes : cipher.seal(bytes);
+    }
+
     try {
-      await _sendFrame(
-        NearbyMessageType.error,
-        Uint8List.fromList([code.index]),
-      );
-      await _sendFrame(NearbyMessageType.bye, Uint8List(0));
+      await _sendFrame(NearbyMessageType.error, await body([code.index]));
+      await _sendFrame(NearbyMessageType.bye, await body(const []));
     } on NearbyLinkClosed {
       // The peer is already gone; the refusal stands.
     }
@@ -606,30 +644,32 @@ class NearbyPairing {
         try {
           await _cipher.open(reply.body);
         } on NearbyAuthFailure {
-          return s._refuse(NearbyErrorCode.protocol);
+          return s._refuse(NearbyErrorCode.protocol, cipher: _cipher);
         }
       case NearbyMessageType.pairReject:
         // Sealed like the confirm: anyone in range could send it bare.
         try {
           await _cipher.open(reply.body);
         } on NearbyAuthFailure {
-          return s._refuse(NearbyErrorCode.protocol);
+          return s._refuse(NearbyErrorCode.protocol, cipher: _cipher);
         }
         await s._endpoint.close();
         throw const NearbyPairingRejected();
       case NearbyMessageType.error:
+        final body = await s._openControl(reply, _cipher);
         await s._endpoint.close();
         throw NearbySessionRefused(
-          NearbyErrorCode.fromByte(reply.body.isEmpty ? 255 : reply.body[0]),
+          NearbyErrorCode.fromByte(body.isEmpty ? 255 : body[0]),
           fromPeer: true,
         );
       case NearbyMessageType.bye:
-        // Unsealed, so it says nothing about the other diver: a real "Not
-        // mine" arrives sealed before its bye.
+        // A bye says nothing about the other diver: a real "Not mine"
+        // arrives as its own sealed frame before it.
+        await s._openControl(reply, _cipher);
         await s._endpoint.close();
         throw const NearbyLinkClosed();
       default:
-        return s._refuse(NearbyErrorCode.protocol);
+        return s._refuse(NearbyErrorCode.protocol, cipher: _cipher);
     }
     // Both confirmed: re-key with the pair secret, then exchange the full
     // identities, which only now either device may know.
@@ -648,7 +688,10 @@ class NearbyPairing {
         NearbyMessageType.pairReject,
         await _cipher.seal(Uint8List(0)),
       );
-      await s._sendFrame(NearbyMessageType.bye, Uint8List(0));
+      await s._sendFrame(
+        NearbyMessageType.bye,
+        await _cipher.seal(Uint8List(0)),
+      );
     } on NearbyLinkClosed {
       // Already gone.
     }

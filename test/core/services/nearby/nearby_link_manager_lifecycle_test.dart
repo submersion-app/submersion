@@ -5,7 +5,9 @@ import 'package:path/path.dart' as p;
 import 'package:submersion/core/services/nearby/nearby_carrier.dart';
 import 'package:submersion/core/services/nearby/nearby_link_manager.dart';
 import 'package:submersion/core/services/nearby/nearby_peer_store.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 
+import '../../../helpers/global_test_defaults.dart';
 import '../../../support/fake_nearby_sync_engine.dart';
 import '../../../support/in_memory_nearby_carrier.dart';
 import '../../../support/nearby_link_harness.dart';
@@ -309,6 +311,31 @@ void main() {
     final outcome = a.manager.syncNow('B');
     await a.manager.unpair('B');
     expect((await outcome)?.error, NearbyPeerError.notPaired);
+  });
+
+  test('entering demo mode ends a running session before the sample '
+      'logbook opens', () async {
+    final a = await device('A');
+    final b = await device('B');
+    await pairNearbyTestDevices(a, b);
+    a.engine
+      ..marks = {...a.engine.marks, 'Z': fakeHlc(5, 'Z')}
+      ..fullContent = '{}'
+      ..exportDelay = const Duration(milliseconds: 300);
+    await foregroundNearbyTestDevices([a, b]);
+    for (var i = 0; i < 50; i++) {
+      if (a.manager.state == NearbyLinkState.syncing) break;
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+    }
+    expect(a.manager.state, NearbyLinkState.syncing);
+
+    DemoModeGate.instance.debugActive = true;
+    addTearDown(applyGlobalTestDefaults);
+    await a.manager.refresh();
+    expect(a.manager.state, isNot(NearbyLinkState.syncing));
+    await Future<void>.delayed(const Duration(milliseconds: 400));
+    await settleNearby();
+    expect(b.engine.recordedApplied, isEmpty, reason: 'nothing was sent');
   });
 
   test('unpairing a device removes the copies kept for it', () async {

@@ -55,6 +55,18 @@ void main() {
     expect(laptop.engine.recordedApplied, isEmpty);
   });
 
+  test('a paired device that keeps refusing is still seen, so its row '
+      'goes on holding tombstones back', () async {
+    final laptop = await device('A');
+    final phone = await device('B', canAdvertise: false);
+    await pairNearbyTestDevices(laptop, phone);
+    phone.engine.self = nearbyTestIdentity('B', epoch: 'epoch-2');
+    await foregroundNearbyTestDevices([laptop, phone]);
+
+    expect((await laptop.peers.get('B'))!.lastSeenAt, isNotNull);
+    expect((await phone.peers.get('A'))!.lastSeenAt, isNotNull);
+  });
+
   test('a known peer refusing for a reason of its own reads as unreachable, '
       'not as a clean sync', () async {
     final a = await device('A');
