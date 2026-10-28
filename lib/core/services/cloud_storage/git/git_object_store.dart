@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 
 import 'package:submersion/core/services/cloud_storage/git/git_object_id.dart';
@@ -171,21 +172,11 @@ final class _MemoryObjectWriter implements GitObjectWriter {
 final class FileGitObjectStore implements GitObjectStore {
   FileGitObjectStore(this.root, {this.maxBytes = _defaultMaxBytes});
 
-  /// A rename hook for tests; production uses [File.rename].
-  static Future<File> Function(File source, String path) _renameFile =
-      (source, path) => source.rename(path);
-
-  /// Test-only override to force rename outcomes deterministically.
-  static void debugSetRenameForTest(
-    Future<File> Function(File source, String path) rename,
-  ) {
-    _renameFile = rename;
-  }
-
-  /// Restores default rename behavior after tests.
-  static void debugResetRenameForTest() {
-    _renameFile = (source, path) => source.rename(path);
-  }
+  /// Test seam: replaces [File.rename] when an object file moves into place,
+  /// so a test can lose the race to a concurrent put on purpose. Production
+  /// leaves this null.
+  @visibleForTesting
+  static Future<File> Function(File source, String path)? debugRename;
 
   /// The store for [root] in this isolate, made on first use. Each store
   /// scans its whole directory once, which takes seconds on a full cache, and
@@ -358,17 +349,24 @@ final class FileGitObjectStore implements GitObjectStore {
       ..[0] = object.type.packCode
       ..setRange(1, object.body.length + 1, object.body);
     await tmp.writeAsBytes(bytes, flush: true);
-    try {
-      await _renameFile(tmp, file.path);
-    } on FileSystemException {
-      // Another concurrent put may have landed the same object first.
-      if (await file.exists()) {
-        await tmp.delete().catchError((_) => tmp);
-      } else {
-        rethrow;
-      }
-    }
+    await _moveIntoPlace(tmp, file);
     _record(index, file, bytes.length);
+  }
+
+  /// Renames [tmp] onto [file]. A failed rename is a lost race, not an error,
+  /// when [file] is there afterwards: another put of the same object landed
+  /// first, and objects are named by their content, so its copy is ours.
+  Future<void> _moveIntoPlace(File tmp, File file) async {
+    try {
+      await (debugRename ?? (source, path) => source.rename(path))(
+        tmp,
+        file.path,
+      );
+    } on FileSystemException {
+      if (!await file.exists()) rethrow;
+      // Best effort: a stray temp file is swept by the next scan.
+      await tmp.delete().catchError((_) => tmp);
+    }
   }
 
   /// Moves [tmp], a finished object file for [id] of [size] bytes, into
@@ -381,16 +379,7 @@ final class FileGitObjectStore implements GitObjectStore {
       return;
     }
     await file.parent.create(recursive: true);
-    try {
-      await _renameFile(tmp, file.path);
-    } on FileSystemException {
-      // Another concurrent put may have landed the same object first.
-      if (await file.exists()) {
-        await tmp.delete().catchError((_) => tmp);
-      } else {
-        rethrow;
-      }
-    }
+    await _moveIntoPlace(tmp, file);
     _record(index, file, size);
   }
 

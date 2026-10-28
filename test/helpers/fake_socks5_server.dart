@@ -119,9 +119,11 @@ class FakeSocks5Server {
       if (buf.isNotEmpty) upstream.add(buf);
       upstream.listen(
         (data) {
+          // A write to a client that already hung up fails on `done` (caught
+          // above); one after close throws StateError here instead.
           try {
             client.add(data);
-          } on SocketException {
+          } on StateError {
             client.destroy();
             upstream.destroy();
           }
