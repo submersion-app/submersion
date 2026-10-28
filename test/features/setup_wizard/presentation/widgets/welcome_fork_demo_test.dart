@@ -80,24 +80,41 @@ void main() {
     expect(find.text('Explore with sample data'), findsOneWidget);
   });
 
-  testWidgets('tapping it opens the entering dialog', (tester) async {
+  testWidgets('tapping it asks first, then Download opens the entering '
+      'dialog', (tester) async {
     await pumpPage(tester, _package);
 
     await tester.ensureVisible(find.text('Explore with sample data'));
     await tester.tap(find.text('Explore with sample data'));
     await pumpWizard(tester);
 
+    expect(find.text('Explore with sample data?'), findsOneWidget);
+    // The available package's own size, in the first-run wording.
+    expect(find.textContaining('10 B'), findsOneWidget);
+    expect(find.textContaining('set aside'), findsNothing);
+    expect(find.byType(DemoEnterDialog), findsNothing);
+
+    await tester.tap(find.text('Download'));
+    await pumpWizard(tester);
+
     expect(find.byType(DemoEnterDialog), findsOneWidget);
     expect(_IdleController.lastFromFirstRun, isTrue);
+    expect(_IdleController.lastPackage, _package);
   });
 }
 
 /// Records the start request without doing anything.
 class _IdleController extends DemoEnterController {
   static bool? lastFromFirstRun;
+  static DemoPackage? lastPackage;
 
   @override
-  Future<void> start({required bool fromFirstRun, units}) async {
+  Future<void> start({
+    required bool fromFirstRun,
+    required package,
+    units,
+  }) async {
     lastFromFirstRun = fromFirstRun;
+    lastPackage = package;
   }
 }

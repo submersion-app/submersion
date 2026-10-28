@@ -54971,4 +54971,38 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get demo_row_unavailable => 'לא זמין במצב הדגמה';
+
+  @override
+  String get demo_enter_confirm_title => 'לסייר עם נתוני דוגמה?';
+
+  @override
+  String demo_enter_confirm_body(String size) {
+    return 'פעולה זו תוריד יומן דוגמה ($size) ותפתח אותו במקום היומן שלכם. היומן שלכם נשמר בצד, ללא שינוי, עד שתצאו ממצב ההדגמה.';
+  }
+
+  @override
+  String get demo_enter_confirm_action => 'הורדה';
+
+  @override
+  String demo_enter_confirm_body_firstRun(String size) {
+    return 'פעולה זו תוריד יומן דוגמה ($size) כדי להכיר את האפליקציה. צאו ממצב ההדגמה כשתהיו מוכנים להתחיל יומן משלכם.';
+  }
+
+  @override
+  String demo_enter_changed_body(String size) {
+    return 'יומן הדוגמה עודכן וגודלו כעת $size. להוריד אותו?';
+  }
+
+  @override
+  String common_byteSize(String value, String unit) {
+    String _temp0 = intl.Intl.selectLogic(unit, {
+      'B': 'B',
+      'KB': 'KB',
+      'MB': 'MB',
+      'GB': 'GB',
+      'TB': 'TB',
+      'other': '$unit',
+    });
+    return '$value $_temp0';
+  }
 }

@@ -56907,4 +56907,38 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get demo_row_unavailable => 'غير متاح في الوضع التجريبي';
+
+  @override
+  String get demo_enter_confirm_title => 'الاستكشاف باستخدام بيانات تجريبية؟';
+
+  @override
+  String demo_enter_confirm_body(String size) {
+    return 'سيتم تنزيل سجل تجريبي ($size) وفتحه بدلًا من سجلك. يُحفظ سجلك جانبًا دون أي تغيير حتى تخرج من الوضع التجريبي.';
+  }
+
+  @override
+  String get demo_enter_confirm_action => 'تنزيل';
+
+  @override
+  String demo_enter_confirm_body_firstRun(String size) {
+    return 'سيتم تنزيل سجل تجريبي ($size) لاستكشاف التطبيق. اخرج من الوضع التجريبي متى كنت مستعدًا لبدء سجلك الخاص.';
+  }
+
+  @override
+  String demo_enter_changed_body(String size) {
+    return 'تم تحديث السجل التجريبي وأصبح حجمه الآن $size. هل تريد تنزيله؟';
+  }
+
+  @override
+  String common_byteSize(String value, String unit) {
+    String _temp0 = intl.Intl.selectLogic(unit, {
+      'B': 'B',
+      'KB': 'KB',
+      'MB': 'MB',
+      'GB': 'GB',
+      'TB': 'TB',
+      'other': '$unit',
+    });
+    return '$value $_temp0';
+  }
 }

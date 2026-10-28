@@ -16433,5 +16433,11 @@
   "demo_sealed_note": "לא זמין במצב הדגמה",
   "demo_unavailable_title": "לא זמין במצב הדגמה",
   "demo_unavailable_body": "מצב ההדגמה שומר את יומן הדוגמה בנפרד מהנתונים שלכם, ולכן אי אפשר לייבא, לייצא, לגבות או לסנכרן דבר.",
-  "demo_row_unavailable": "לא זמין במצב הדגמה"
+  "demo_row_unavailable": "לא זמין במצב הדגמה",
+  "demo_enter_confirm_title": "לסייר עם נתוני דוגמה?",
+  "demo_enter_confirm_body": "פעולה זו תוריד יומן דוגמה ({size}) ותפתח אותו במקום היומן שלכם. היומן שלכם נשמר בצד, ללא שינוי, עד שתצאו ממצב ההדגמה.",
+  "demo_enter_confirm_action": "הורדה",
+  "demo_enter_confirm_body_firstRun": "פעולה זו תוריד יומן דוגמה ({size}) כדי להכיר את האפליקציה. צאו ממצב ההדגמה כשתהיו מוכנים להתחיל יומן משלכם.",
+  "demo_enter_changed_body": "יומן הדוגמה עודכן וגודלו כעת {size}. להוריד אותו?",
+  "common_byteSize": "{value} {unit, select, B{B} KB{KB} MB{MB} GB{GB} TB{TB} other{{unit}}}"
 }

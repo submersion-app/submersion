@@ -16433,5 +16433,11 @@
   "demo_sealed_note": "No disponible en el modo demo",
   "demo_unavailable_title": "No disponible en el modo demo",
   "demo_unavailable_body": "El modo demo mantiene el diario de ejemplo separado de tus datos, así que no se puede importar, exportar, respaldar ni sincronizar nada.",
-  "demo_row_unavailable": "No disponible en el modo demo"
+  "demo_row_unavailable": "No disponible en el modo demo",
+  "demo_enter_confirm_title": "¿Explorar con datos de ejemplo?",
+  "demo_enter_confirm_body": "Se descargará un diario de ejemplo ({size}) y se abrirá en lugar del tuyo. Tu diario se guarda aparte, intacto, hasta que salgas del modo demo.",
+  "demo_enter_confirm_action": "Descargar",
+  "demo_enter_confirm_body_firstRun": "Se descargará un diario de ejemplo ({size}) para explorar la aplicación. Sal del modo demo cuando quieras empezar el tuyo.",
+  "demo_enter_changed_body": "El diario de ejemplo se ha actualizado y ahora ocupa {size}. ¿Descargarlo?",
+  "common_byteSize": "{value} {unit, select, B{B} KB{KB} MB{MB} GB{GB} TB{TB} other{{unit}}}"
 }

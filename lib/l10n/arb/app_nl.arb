@@ -16433,5 +16433,11 @@
   "demo_sealed_note": "Niet beschikbaar in demomodus",
   "demo_unavailable_title": "Niet beschikbaar in demomodus",
   "demo_unavailable_body": "De demomodus houdt het voorbeeldlogboek gescheiden van je gegevens, dus er kan niets worden geïmporteerd, geëxporteerd, geback-upt of gesynchroniseerd.",
-  "demo_row_unavailable": "Niet beschikbaar in demomodus"
+  "demo_row_unavailable": "Niet beschikbaar in demomodus",
+  "demo_enter_confirm_title": "Verkennen met voorbeeldgegevens?",
+  "demo_enter_confirm_body": "Er wordt een voorbeeldlogboek ({size}) gedownload en geopend in plaats van het jouwe. Je logboek wordt onaangeroerd apart gezet tot je de demomodus afsluit.",
+  "demo_enter_confirm_action": "Downloaden",
+  "demo_enter_confirm_body_firstRun": "Er wordt een voorbeeldlogboek ({size}) gedownload om de app mee te verkennen. Sluit de demomodus af zodra je met je eigen logboek wilt beginnen.",
+  "demo_enter_changed_body": "Het voorbeeldlogboek is bijgewerkt en is nu {size}. Downloaden?",
+  "common_byteSize": "{value} {unit, select, B{B} KB{KB} MB{MB} GB{GB} TB{TB} other{{unit}}}"
 }

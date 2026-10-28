@@ -121,6 +121,14 @@ class DemoEnterRunning extends DemoEnterUiState {
   final DemoEnterProgress progress;
 }
 
+/// The sample logbook on offer changed size since the user agreed to it, so
+/// nothing was downloaded and they are asked again about [package].
+class DemoEnterPackageChanged extends DemoEnterUiState {
+  const DemoEnterPackageChanged(this.package);
+
+  final DemoPackage package;
+}
+
 class DemoEnterFailed extends DemoEnterUiState {
   const DemoEnterFailed(this.reason);
 
@@ -141,15 +149,25 @@ class DemoEnterController extends Notifier<DemoEnterUiState> {
   @override
   DemoEnterUiState build() => const DemoEnterIdle();
 
-  /// Enters demo mode. On success the app restarts into the sample logbook,
-  /// so the last state seen here is [DemoEnterRunning].
-  Future<void> start({required bool fromFirstRun, DemoUnitSettings? units}) {
+  /// Enters demo mode with [package], the one whose size the user agreed to.
+  /// On success the app restarts into the sample logbook, so the last state
+  /// seen here is [DemoEnterRunning].
+  Future<void> start({
+    required bool fromFirstRun,
+    required DemoPackage package,
+    DemoUnitSettings? units,
+  }) {
     final run = ++_run;
     state = const DemoEnterRunning(
       DemoEnterProgress(DemoEnterStage.downloading),
     );
     final entry = (_inFlight ?? Future<void>.value()).then(
-      (_) => _enter(run, fromFirstRun: fromFirstRun, units: units),
+      (_) => _enter(
+        run,
+        fromFirstRun: fromFirstRun,
+        package: package,
+        units: units,
+      ),
     );
     _inFlight = entry;
     return entry;
@@ -158,6 +176,7 @@ class DemoEnterController extends Notifier<DemoEnterUiState> {
   Future<void> _enter(
     int run, {
     required bool fromFirstRun,
+    required DemoPackage package,
     DemoUnitSettings? units,
   }) async {
     bool current() => run == _run && ref.mounted;
@@ -166,12 +185,18 @@ class DemoEnterController extends Notifier<DemoEnterUiState> {
       final service = await ref.read(demoModeServiceProvider.future);
       await service.enter(
         fromFirstRun: fromFirstRun,
+        package: package,
         units: units,
         isCancelled: () => run != _run,
         onProgress: (p) {
           if (current()) state = DemoEnterRunning(p);
         },
       );
+    } on DemoPackageChangedException catch (e) {
+      // The entry points show the size from availability, so it is read
+      // again for them too.
+      ref.invalidate(demoAvailabilityProvider);
+      if (current()) state = DemoEnterPackageChanged(e.current);
     } on DemoDownloadException catch (e) {
       if (current()) {
         state = e.reason == DemoDownloadFailure.cancelled

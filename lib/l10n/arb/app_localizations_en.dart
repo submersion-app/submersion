@@ -55261,4 +55261,38 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get demo_row_unavailable => 'Unavailable in demo mode';
+
+  @override
+  String get demo_enter_confirm_title => 'Explore with sample data?';
+
+  @override
+  String demo_enter_confirm_body(String size) {
+    return 'This downloads a sample logbook ($size) and opens it in place of your own. Your logbook is set aside, untouched, until you exit demo mode.';
+  }
+
+  @override
+  String get demo_enter_confirm_action => 'Download';
+
+  @override
+  String demo_enter_confirm_body_firstRun(String size) {
+    return 'This downloads a sample logbook ($size) to look around the app with. Exit demo mode whenever you are ready to start your own.';
+  }
+
+  @override
+  String demo_enter_changed_body(String size) {
+    return 'The sample logbook has been updated and is now $size. Download it?';
+  }
+
+  @override
+  String common_byteSize(String value, String unit) {
+    String _temp0 = intl.Intl.selectLogic(unit, {
+      'B': 'B',
+      'KB': 'KB',
+      'MB': 'MB',
+      'GB': 'GB',
+      'TB': 'TB',
+      'other': '$unit',
+    });
+    return '$value $_temp0';
+  }
 }

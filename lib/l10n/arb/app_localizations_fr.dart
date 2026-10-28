@@ -56270,4 +56270,39 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get demo_row_unavailable => 'Indisponible en mode démo';
+
+  @override
+  String get demo_enter_confirm_title =>
+      'Explorer avec des données d\'exemple ?';
+
+  @override
+  String demo_enter_confirm_body(String size) {
+    return 'Un carnet d\'exemple ($size) sera téléchargé et ouvert à la place du vôtre. Votre carnet est mis de côté, intact, jusqu\'à ce que vous quittiez le mode démo.';
+  }
+
+  @override
+  String get demo_enter_confirm_action => 'Télécharger';
+
+  @override
+  String demo_enter_confirm_body_firstRun(String size) {
+    return 'Un carnet d\'exemple ($size) sera téléchargé pour découvrir l\'application. Quittez le mode démo dès que vous voulez commencer le vôtre.';
+  }
+
+  @override
+  String demo_enter_changed_body(String size) {
+    return 'Le carnet d\'exemple a été mis à jour et fait maintenant $size. Le télécharger ?';
+  }
+
+  @override
+  String common_byteSize(String value, String unit) {
+    String _temp0 = intl.Intl.selectLogic(unit, {
+      'B': 'o',
+      'KB': 'Ko',
+      'MB': 'Mo',
+      'GB': 'Go',
+      'TB': 'To',
+      'other': '$unit',
+    });
+    return '$value $_temp0';
+  }
 }

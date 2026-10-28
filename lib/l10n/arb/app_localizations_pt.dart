@@ -56140,4 +56140,38 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get demo_row_unavailable => 'Indisponível no modo de demonstração';
+
+  @override
+  String get demo_enter_confirm_title => 'Explorar com dados de exemplo?';
+
+  @override
+  String demo_enter_confirm_body(String size) {
+    return 'Será transferido um diário de exemplo ($size) e aberto em vez do seu. O seu diário fica de lado, intacto, até sair do modo de demonstração.';
+  }
+
+  @override
+  String get demo_enter_confirm_action => 'Transferir';
+
+  @override
+  String demo_enter_confirm_body_firstRun(String size) {
+    return 'Será transferido um diário de exemplo ($size) para explorar a aplicação. Saia do modo de demonstração quando quiser começar o seu.';
+  }
+
+  @override
+  String demo_enter_changed_body(String size) {
+    return 'O diário de exemplo foi atualizado e tem agora $size. Transferi-lo?';
+  }
+
+  @override
+  String common_byteSize(String value, String unit) {
+    String _temp0 = intl.Intl.selectLogic(unit, {
+      'B': 'B',
+      'KB': 'KB',
+      'MB': 'MB',
+      'GB': 'GB',
+      'TB': 'TB',
+      'other': '$unit',
+    });
+    return '$value $_temp0';
+  }
 }

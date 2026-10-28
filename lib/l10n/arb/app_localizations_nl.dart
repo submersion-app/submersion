@@ -55799,4 +55799,38 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get demo_row_unavailable => 'Niet beschikbaar in demomodus';
+
+  @override
+  String get demo_enter_confirm_title => 'Verkennen met voorbeeldgegevens?';
+
+  @override
+  String demo_enter_confirm_body(String size) {
+    return 'Er wordt een voorbeeldlogboek ($size) gedownload en geopend in plaats van het jouwe. Je logboek wordt onaangeroerd apart gezet tot je de demomodus afsluit.';
+  }
+
+  @override
+  String get demo_enter_confirm_action => 'Downloaden';
+
+  @override
+  String demo_enter_confirm_body_firstRun(String size) {
+    return 'Er wordt een voorbeeldlogboek ($size) gedownload om de app mee te verkennen. Sluit de demomodus af zodra je met je eigen logboek wilt beginnen.';
+  }
+
+  @override
+  String demo_enter_changed_body(String size) {
+    return 'Het voorbeeldlogboek is bijgewerkt en is nu $size. Downloaden?';
+  }
+
+  @override
+  String common_byteSize(String value, String unit) {
+    String _temp0 = intl.Intl.selectLogic(unit, {
+      'B': 'B',
+      'KB': 'KB',
+      'MB': 'MB',
+      'GB': 'GB',
+      'TB': 'TB',
+      'other': '$unit',
+    });
+    return '$value $_temp0';
+  }
 }
