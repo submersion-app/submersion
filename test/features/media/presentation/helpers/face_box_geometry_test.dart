@@ -52,4 +52,27 @@ void main() {
       '1:02:05',
     );
   });
+
+  group('faceImageSize', () {
+    test('the decoded size wins: it is drawn upright', () {
+      // Stored 4000 x 3000 from the container, EXIF-rotated portrait on
+      // screen: the decoder's 3000 x 4000 is what the boxes sit on.
+      expect(
+        faceImageSize(width: 4000, height: 3000, decoded: const Size(300, 400)),
+        const Size(300, 400),
+      );
+    });
+
+    test('before decode the stored size stands in', () {
+      expect(
+        faceImageSize(width: 4000, height: 3000, decoded: null),
+        const Size(4000, 3000),
+      );
+    });
+
+    test('nothing known is null', () {
+      expect(faceImageSize(width: null, height: 3000, decoded: null), isNull);
+      expect(faceImageSize(width: 0, height: 0, decoded: null), isNull);
+    });
+  });
 }

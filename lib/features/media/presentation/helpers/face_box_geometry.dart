@@ -45,6 +45,23 @@ Rect boxRect(FaceBox box, Size image, Size viewBox) {
   );
 }
 
+/// The size face boxes on a photo are placed against: the decoded image's
+/// when known, since the decoder applies EXIF orientation and draws a
+/// portrait photo upright, while the row's [width] and [height] are the
+/// container's, unrotated. The row's size stands in only before decode.
+/// Null when neither is known.
+Size? faceImageSize({
+  required int? width,
+  required int? height,
+  required Size? decoded,
+}) {
+  if (decoded != null && !decoded.isEmpty) return decoded;
+  if (width == null || height == null || width <= 0 || height <= 0) {
+    return null;
+  }
+  return Size(width.toDouble(), height.toDouble());
+}
+
 /// A video position the way a player's clock reads it: "0:42", "1:58",
 /// "1:02:05".
 String formatMoment(Duration d) {

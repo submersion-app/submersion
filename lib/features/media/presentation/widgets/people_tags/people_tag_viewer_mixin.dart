@@ -8,6 +8,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_person_tag.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
+import 'package:submersion/features/media/presentation/helpers/face_box_geometry.dart';
 import 'package:submersion/features/media/presentation/providers/media_people_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/people_tags/add_to_dive_offer.dart';
 import 'package:submersion/features/media/presentation/widgets/people_tags/person_picker_sheet.dart';
@@ -82,7 +83,7 @@ mixin PeopleTagViewerMixin<T extends ConsumerStatefulWidget>
   FaceBox? pendingPeopleBox(String mediaId) =>
       _pendingMediaId == mediaId ? _pendingBox : null;
 
-  /// Decoded image sizes of photos whose rows store none.
+  /// Decoded image sizes, which win over a row's unrotated dimensions.
   final Map<String, Size> _decodedSizes = {};
 
   /// Enters or leaves tag mode. A video is paused first, so a box is drawn
@@ -95,16 +96,16 @@ mixin PeopleTagViewerMixin<T extends ConsumerStatefulWidget>
     });
   }
 
-  /// The size a box on [item] is placed against: the row's, the decoded
-  /// image's, or a video player's [videoSize].
+  /// The size a box on [item] is placed against: a video player's
+  /// [videoSize], or for a photo [faceImageSize] of the row and the decoded
+  /// image.
   Size? peopleImageSize(MediaItem item, {Size? videoSize}) {
     if (item.isVideo) return videoSize;
-    final width = item.width;
-    final height = item.height;
-    if (width != null && height != null && width > 0 && height > 0) {
-      return Size(width.toDouble(), height.toDouble());
-    }
-    return _decodedSizes[item.id];
+    return faceImageSize(
+      width: item.width,
+      height: item.height,
+      decoded: _decodedSizes[item.id],
+    );
   }
 
   void rememberImageSize(String mediaId, Size size) {
