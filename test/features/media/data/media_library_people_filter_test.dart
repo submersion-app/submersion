@@ -1,7 +1,4 @@
-import 'dart:async';
-
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/media/data/repositories/media_library_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_people_repository.dart';
 import 'package:submersion/features/media/domain/entities/media_library_filter.dart';
@@ -12,12 +9,11 @@ import 'repositories/species_photo_fixtures.dart';
 /// The library's people facet (issue #1745): any of the selected buddies or
 /// the viewing diver's own Me tags, each item once.
 void main() {
-  late AppDatabase db;
   final repo = MediaLibraryRepository();
   final people = MediaPeopleRepository();
 
   setUp(() async {
-    db = await setUpTestDatabase();
+    await setUpTestDatabase();
     await insertTestDiver('A');
     await insertTestDiver('B');
     await insertTestBuddy(id: 'alex', name: 'Alex', diverId: 'A');
