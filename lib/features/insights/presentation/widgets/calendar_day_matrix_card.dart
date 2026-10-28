@@ -1,16 +1,18 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/theme/contrast_ratio.dart';
+import 'package:submersion/core/theme/foreground_on.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/insights/domain/calendar_day_matrix.dart';
 import 'package:submersion/features/insights/presentation/formatters/distribution_labels.dart';
 import 'package:submersion/features/insights/presentation/insights_place_dives.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_filter_provider.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_section_card.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
-
-/// Share of the darkest fill at which a cell's text switches to onPrimary.
-const double _darkTextFrom = 0.55;
 
 /// Fill of a calendar cell holding [count] dives when the busiest date holds
 /// [maxCount]. Zero is a neutral surface, never the primary hue, so a date
@@ -30,13 +32,18 @@ Color calendarCellFill(ColorScheme scheme, int count, int maxCount) {
   return Color.lerp(scheme.surface, scheme.primary, _share(count, maxCount))!;
 }
 
-/// Text colour for a cell filled by [calendarCellFill]: onPrimary once the
-/// fill is mostly primary, the surface's own text colour below that.
+/// Text colour for a cell filled by [calendarCellFill], chosen by measured
+/// contrast so the 11 px count reads at 4.5:1 or better on every theme: a
+/// mid-range tint sits too near the middle for a fixed onPrimary switch.
+/// Empty dates keep the muted variant colour while it still reads.
 Color calendarCellText(ColorScheme scheme, int count, int maxCount) {
-  if (count <= 0 || maxCount <= 0) return scheme.onSurfaceVariant;
-  return _share(count, maxCount) >= _darkTextFrom
-      ? scheme.onPrimary
-      : scheme.onSurface;
+  final fill = calendarCellFill(scheme, count, maxCount);
+  if (count <= 0 || maxCount <= 0) {
+    return contrastRatio(scheme.onSurfaceVariant, fill) >= 4.5
+        ? scheme.onSurfaceVariant
+        : scheme.onSurface;
+  }
+  return blackOrWhiteOn(fill);
 }
 
 double _share(int count, int maxCount) => 0.3 + 0.7 * (count / maxCount);
@@ -51,6 +58,7 @@ class CalendarDayMatrixCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final matrixAsync = ref.watch(divesByCalendarDayProvider);
+    final units = UnitFormatter(ref.watch(settingsProvider));
 
     return StatSectionCard(
       title: l10n.insights_timePatterns_calendarDays_title,
@@ -63,6 +71,7 @@ class CalendarDayMatrixCard extends ConsumerWidget {
               )
             : _CalendarDayMatrixBody(
                 matrix: matrix,
+                formatDate: units.formatMonthDay,
                 onOpen: (month, day) => openInsightsDives(
                   context,
                   ref,
@@ -86,17 +95,40 @@ class CalendarDayMatrixCard extends ConsumerWidget {
   }
 }
 
-class _CalendarDayMatrixBody extends StatelessWidget {
-  const _CalendarDayMatrixBody({required this.matrix, required this.onOpen});
+class _CalendarDayMatrixBody extends StatefulWidget {
+  const _CalendarDayMatrixBody({
+    required this.matrix,
+    required this.formatDate,
+    required this.onOpen,
+  });
 
   final CalendarDayMatrix matrix;
+
+  /// A cell's date in the diver's month-and-day order.
+  final String Function(DateTime date) formatDate;
   final void Function(int month, int day) onOpen;
 
+  @override
+  State<_CalendarDayMatrixBody> createState() => _CalendarDayMatrixBodyState();
+}
+
+class _CalendarDayMatrixBodyState extends State<_CalendarDayMatrixBody> {
   static const double _monthColumnWidth = 44;
+
+  /// Shared by the scrollbar and the grid, so the thumb tracks the days.
+  final _days = ScrollController();
+
+  @override
+  void dispose() {
+    _days.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final matrix = widget.matrix;
     final l10n = context.l10n;
+    final separator = l10n.insights_timePatterns_calendarDays_listSeparator;
     final months = insightsMonthLabels(l10n);
     final percent = NumberFormat.decimalPercentPattern(
       locale: l10n.localeName,
@@ -126,13 +158,13 @@ class _CalendarDayMatrixBody extends StatelessWidget {
             ),
             Text(
               l10n.insights_timePatterns_calendarDays_busiestMonth(
-                matrix.busiestMonths.map((m) => months[m - 1]).join(', '),
+                matrix.busiestMonths.map((m) => months[m - 1]).join(separator),
               ),
               style: secondary,
             ),
             Text(
               l10n.insights_timePatterns_calendarDays_busiestDay(
-                matrix.busiestDays.join(', '),
+                matrix.busiestDays.join(separator),
               ),
               style: secondary,
             ),
@@ -155,13 +187,28 @@ class _CalendarDayMatrixBody extends StatelessWidget {
                   cell: cell,
                 ),
                 Expanded(
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: _Grid(
-                      matrix: matrix,
-                      months: months,
-                      cell: cell,
-                      onOpen: onOpen,
+                  // A visible thumb, and drag by mouse as well as touch: on
+                  // desktop the master pane is narrower than the year, and
+                  // Material draws no horizontal scrollbar by default.
+                  child: ScrollConfiguration(
+                    behavior: ScrollConfiguration.of(
+                      context,
+                    ).copyWith(dragDevices: PointerDeviceKind.values.toSet()),
+                    child: Scrollbar(
+                      controller: _days,
+                      thumbVisibility: true,
+                      child: SingleChildScrollView(
+                        controller: _days,
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: _Grid(
+                          matrix: matrix,
+                          months: months,
+                          cell: cell,
+                          formatDate: widget.formatDate,
+                          onOpen: widget.onOpen,
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -222,12 +269,14 @@ class _Grid extends StatelessWidget {
     required this.matrix,
     required this.months,
     required this.cell,
+    required this.formatDate,
     required this.onOpen,
   });
 
   final CalendarDayMatrix matrix;
   final List<String> months;
   final double cell;
+  final String Function(DateTime date) formatDate;
   final void Function(int month, int day) onOpen;
 
   @override
@@ -235,7 +284,6 @@ class _Grid extends StatelessWidget {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final dateFormat = DateFormat.MMMMd(l10n.localeName);
     final totalWidth = cell * 1.5;
     final busiestMonths = matrix.busiestMonths.toSet();
     final busiestDays = matrix.busiestDays.toSet();
@@ -244,10 +292,13 @@ class _Grid extends StatelessWidget {
       width: width,
       height: cell,
       child: Center(
-        child: Text(
-          text,
-          style: theme.textTheme.labelSmall?.copyWith(
-            color: scheme.onSurfaceVariant,
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            text,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: scheme.onSurfaceVariant,
+            ),
           ),
         ),
       ),
@@ -290,7 +341,7 @@ class _Grid extends StatelessWidget {
                   size: cell,
                   semanticsLabel: CalendarDayMatrix.isValidDate(m, d)
                       ? l10n.insights_timePatterns_calendarDays_cellSemantics(
-                          dateFormat.format(DateTime(2024, m, d)),
+                          formatDate(DateTime(2024, m, d)),
                           matrix.count(m, d)!,
                         )
                       : null,
@@ -368,6 +419,9 @@ class _DayCell extends StatelessWidget {
           label: semanticsLabel,
           button: true,
           excludeSemantics: true,
+          // Excluding the children drops the InkWell's own tap action, so
+          // the node carries it for screen readers.
+          onTap: onTap,
           child: Material(
             color: calendarCellFill(scheme, count, maxCount),
             borderRadius: BorderRadius.circular(3),

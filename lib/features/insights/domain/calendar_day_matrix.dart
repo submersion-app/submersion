@@ -12,14 +12,16 @@ typedef CalendarDayCount = ({int month, int day, int count});
 /// GROUP BY.
 @immutable
 class CalendarDayMatrix {
-  CalendarDayMatrix._(this._cells)
-    : monthTotals = List.unmodifiable([
-        for (final row in _cells) row.fold<int>(0, (sum, c) => sum + c),
-      ]),
-      dayTotals = List.unmodifiable([
-        for (var d = 0; d < 31; d++)
-          _cells.fold<int>(0, (sum, row) => sum + row[d]),
-      ]);
+  const CalendarDayMatrix._({
+    required List<List<int>> cells,
+    required this.monthTotals,
+    required this.dayTotals,
+    required this.total,
+    required this.coveredDays,
+    required this.maxCount,
+    required this.busiestMonths,
+    required this.busiestDays,
+  }) : _cells = cells;
 
   /// Counts [rows] by date. A row for a date that does not exist (30
   /// February, month 13) is ignored; two rows for one date add up.
@@ -29,8 +31,32 @@ class CalendarDayMatrix {
       if (!isValidDate(r.month, r.day)) continue;
       cells[r.month - 1][r.day - 1] += r.count;
     }
+    // Everything derived is computed once here: the card reads maxCount for
+    // each of its 372 cells.
+    final monthTotals = List<int>.unmodifiable([
+      for (final row in cells) row.fold<int>(0, (sum, c) => sum + c),
+    ]);
+    final dayTotals = List<int>.unmodifiable([
+      for (var d = 0; d < 31; d++)
+        cells.fold<int>(0, (sum, row) => sum + row[d]),
+    ]);
     return CalendarDayMatrix._(
-      List.unmodifiable([for (final row in cells) List<int>.unmodifiable(row)]),
+      cells: List.unmodifiable([
+        for (final row in cells) List<int>.unmodifiable(row),
+      ]),
+      monthTotals: monthTotals,
+      dayTotals: dayTotals,
+      total: monthTotals.fold(0, (sum, t) => sum + t),
+      coveredDays: cells.fold(
+        0,
+        (sum, row) => sum + row.where((c) => c > 0).length,
+      ),
+      maxCount: cells.fold(
+        0,
+        (m, row) => row.fold(m, (rm, c) => c > rm ? c : rm),
+      ),
+      busiestMonths: _argMax(monthTotals),
+      busiestDays: _argMax(dayTotals),
     );
   }
 
@@ -57,28 +83,27 @@ class CalendarDayMatrix {
   int? count(int month, int day) =>
       isValidDate(month, day) ? _cells[month - 1][day - 1] : null;
 
-  int get total => monthTotals.fold(0, (sum, t) => sum + t);
+  /// Every dive counted.
+  final int total;
 
   bool get isEmpty => total == 0;
 
   /// Dates with at least one dive.
-  int get coveredDays =>
-      _cells.fold(0, (sum, row) => sum + row.where((c) => c > 0).length);
+  final int coveredDays;
 
   /// [coveredDays] as a fraction of [calendarDays].
   double get coverage => coveredDays / calendarDays;
 
   /// The most dives on any one date.
-  int get maxCount =>
-      _cells.fold(0, (m, row) => row.fold(m, (rm, c) => c > rm ? c : rm));
+  final int maxCount;
 
   /// Every month tied for the most dives (1-based, in calendar order);
   /// empty when there are no dives.
-  List<int> get busiestMonths => _argMax(monthTotals);
+  final List<int> busiestMonths;
 
   /// Every day of the month tied for the most dives (1-based, ascending);
   /// empty when there are no dives.
-  List<int> get busiestDays => _argMax(dayTotals);
+  final List<int> busiestDays;
 
   static List<int> _argMax(List<int> totals) {
     final best = totals.fold(0, (m, t) => t > m ? t : m);

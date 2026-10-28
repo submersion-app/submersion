@@ -28409,7 +28409,10 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get insights_timePatterns_calendarDays_total => '合计';
+  String get insights_timePatterns_calendarDays_total => '所有日期';
+
+  @override
+  String get insights_timePatterns_calendarDays_listSeparator => '、';
 
   @override
   String get insights_timePatterns_calendarDays_empty => '暂无可显示在日历上的潜水';
@@ -50344,7 +50347,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get query_dives_month => '月份';
 
   @override
-  String get query_dives_day => '日期';
+  String get query_dives_day => '日';
 
   @override
   String get query_entity_buddies => '潜伴';

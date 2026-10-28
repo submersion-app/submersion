@@ -30152,7 +30152,10 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String get insights_timePatterns_calendarDays_total => 'Totale';
+  String get insights_timePatterns_calendarDays_total => 'Tutte le date';
+
+  @override
+  String get insights_timePatterns_calendarDays_listSeparator => ', ';
 
   @override
   String get insights_timePatterns_calendarDays_empty =>

@@ -183,21 +183,23 @@ and opens any dive you tap. Dive focus needs at least three dives to compare.
 
 Calendar days, on Time Patterns, counts your dives on each date of the year
 across every year you have logged: twelve rows for the months, 31 columns for
-the days. A darker cell means more dives on that date; a pale cell is a date
-you have never dived on, and dates that do not exist (30 February) show an
-**×**. The headline tells you how many of the 366 possible dates you have
+the days. The more strongly coloured a cell, the more dives on that date; a
+plain grey cell showing 0 is a date you have never dived on, and dates that do
+not exist (30 February) show an **×**. The headline tells you how many of the 366 possible dates you have
 covered, 29 February included, and names your busiest month and busiest day
 of the month, which are also outlined in the totals. Each row ends with its
 month's total, each column with that day's total, and the corner holds the
 grand total.
 
 Tap a cell to open the dives logged on that date in every year. The list keeps
-your Insights filter, and the filter chips clear it. On a phone the days
-scroll sideways while the month names stay put.
+your Insights filter, and the filter chips clear it. When the year is wider
+than the card (on a phone, or beside the list on a desktop) the days scroll
+sideways under a scrollbar while the month names stay put.
 
 A dive counts on the date it was logged, by the dive's own clock, so a night
 dive at 23:30 on 6 May counts on 6 May wherever you view it. Dives excluded
-from statistics are not counted.
+from statistics are not counted, but they do appear in the list a cell opens,
+so that list can hold more dives than the cell shows.
 
 ### Profile Analysis
 

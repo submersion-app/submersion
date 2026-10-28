@@ -29978,7 +29978,10 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get insights_timePatterns_calendarDays_total => 'Összesen';
+  String get insights_timePatterns_calendarDays_total => 'Minden dátum';
+
+  @override
+  String get insights_timePatterns_calendarDays_listSeparator => ', ';
 
   @override
   String get insights_timePatterns_calendarDays_empty =>

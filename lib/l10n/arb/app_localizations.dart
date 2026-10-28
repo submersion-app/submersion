@@ -48238,11 +48238,17 @@ abstract class AppLocalizations {
   /// **'Day {day}'**
   String insights_timePatterns_calendarDays_dayLabel(int day);
 
-  /// Screen-reader label of the totals row and column header in the calendar days grid
+  /// Screen-reader name of the grand-total cell in the calendar days grid (the sum over every date), read as '<name>, N dives in total'
   ///
   /// In en, this message translates to:
-  /// **'Total'**
+  /// **'All dates'**
   String get insights_timePatterns_calendarDays_total;
+
+  /// Joins several busiest months or days in the calendar days headline, e.g. 'May, Aug'. Include any trailing space your language uses.
+  ///
+  /// In en, this message translates to:
+  /// **', '**
+  String get insights_timePatterns_calendarDays_listSeparator;
 
   /// Calendar days card when there are no dives in scope
   ///

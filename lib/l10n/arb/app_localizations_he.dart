@@ -29377,7 +29377,10 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get insights_timePatterns_calendarDays_total => 'סך הכול';
+  String get insights_timePatterns_calendarDays_total => 'כל התאריכים';
+
+  @override
+  String get insights_timePatterns_calendarDays_listSeparator => ', ';
 
   @override
   String get insights_timePatterns_calendarDays_empty =>

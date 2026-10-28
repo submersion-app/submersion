@@ -30034,7 +30034,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String insights_timePatterns_calendarDays_busiestDay(String days) {
-    return 'Meiste Tauchgänge am Tag: $days';
+    return 'Tag im Monat mit den meisten Tauchgängen: $days';
   }
 
   @override
@@ -30073,7 +30073,10 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get insights_timePatterns_calendarDays_total => 'Gesamt';
+  String get insights_timePatterns_calendarDays_total => 'Alle Daten';
+
+  @override
+  String get insights_timePatterns_calendarDays_listSeparator => ', ';
 
   @override
   String get insights_timePatterns_calendarDays_empty =>

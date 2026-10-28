@@ -30376,7 +30376,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get insights_timePatterns_calendarDays_total => 'المجموع';
+  String get insights_timePatterns_calendarDays_total => 'كل التواريخ';
+
+  @override
+  String get insights_timePatterns_calendarDays_listSeparator => '، ';
 
   @override
   String get insights_timePatterns_calendarDays_empty =>

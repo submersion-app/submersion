@@ -98,6 +98,10 @@ void main() {
       isEmpty,
     );
     expect(await container.read(divesBySeasonProvider.future), isEmpty);
+    expect(
+      (await container.read(divesByCalendarDayProvider.future)).isEmpty,
+      isTrue,
+    );
     final surfaceInterval = await container.read(
       surfaceIntervalStatsProvider.future,
     );

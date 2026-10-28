@@ -1,13 +1,18 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
+import 'package:submersion/core/theme/app_theme_registry.dart';
+import 'package:submersion/core/theme/contrast_ratio.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/insights/domain/calendar_day_matrix.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_filter_provider.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/features/insights/presentation/widgets/calendar_day_matrix_card.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/semantics_finders.dart';
@@ -26,6 +31,8 @@ void main() {
     Future<CalendarDayMatrix> Function() data, {
     DiveFilterState insightsFilter = const DiveFilterState(),
     Size size = const Size(1200, 900),
+    Locale locale = const Locale('en'),
+    DateFormatPreference? dateFormat,
   }) async {
     tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1.0;
@@ -43,11 +50,15 @@ void main() {
         GoRoute(path: '/dives', builder: (_, _) => const Text('dive list')),
       ],
     );
-    final base = await getBaseOverrides();
+    final base = await getBaseOverrides(
+      settingsNotifier: dateFormat == null
+          ? null
+          : MockSettingsNotifier(AppSettings(dateFormat: dateFormat)),
+    );
     await tester.pumpWidget(
       testAppRouter(
         router: router,
-        locale: const Locale('en'),
+        locale: locale,
         overrides: [
           ...base,
           insightsFilterProvider.overrideWith((ref) => insightsFilter),
@@ -78,6 +89,50 @@ void main() {
     expect(find.text('Busiest day of month: 1, 2'), findsOneWidget);
   });
 
+  testWidgets('the busiest totals are outlined, every tie included', (
+    tester,
+  ) async {
+    await pump(tester, () async => matrix([(5, 1, 4), (8, 2, 4), (9, 9, 1)]));
+    final tertiary = Theme.of(
+      tester.element(find.byType(CalendarDayMatrixCard)),
+    ).colorScheme.tertiary;
+    final outline = find.byWidgetPredicate((w) {
+      if (w is! DecoratedBox) return false;
+      final d = w.decoration;
+      return d is BoxDecoration &&
+          d.border is Border &&
+          (d.border! as Border).top.color == tertiary;
+    });
+
+    // May and August month totals, and the day 1 and day 2 totals.
+    expect(outline, findsNWidgets(4));
+    for (final label in [
+      'May, 4 dives in total',
+      'Aug, 4 dives in total',
+      'Day 1, 4 dives in total',
+      'Day 2, 4 dives in total',
+    ]) {
+      expect(
+        find.descendant(of: findSemanticsLabelled(label), matching: outline),
+        findsOneWidget,
+        reason: label,
+      );
+    }
+  });
+
+  testWidgets('several busiest values join with the locale separator', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      () async => matrix([(5, 1, 4), (8, 2, 4)]),
+      locale: const Locale('zh'),
+    );
+
+    expect(find.textContaining('\u3001'), findsWidgets);
+    expect(find.textContaining(', '), findsNothing);
+  });
+
   testWidgets('cells read as their date and count; non-dates are silent', (
     tester,
   ) async {
@@ -85,9 +140,9 @@ void main() {
 
     expect(findSemanticsLabelled('May 6, 14 dives'), findsOneWidget);
     expect(findSemanticsLabelled('May 7, no dives'), findsOneWidget);
-    expect(findSemanticsLabelled('February 29, no dives'), findsOneWidget);
+    expect(findSemanticsLabelled('Feb 29, no dives'), findsOneWidget);
     // 30 February would format as 1 March; it must not be a cell at all.
-    expect(findSemanticsLabelled('March 1, no dives'), findsOneWidget);
+    expect(findSemanticsLabelled('Mar 1, no dives'), findsOneWidget);
     // 30 and 31 February; 31 April, June, September and November.
     expect(find.text('×'), findsNWidgets(6));
   });
@@ -97,7 +152,73 @@ void main() {
 
     expect(findSemanticsLabelled('May, 16 dives in total'), findsOneWidget);
     expect(findSemanticsLabelled('Day 6, 14 dives in total'), findsOneWidget);
-    expect(findSemanticsLabelled('Total, 16 dives in total'), findsOneWidget);
+    expect(
+      findSemanticsLabelled('All dates, 16 dives in total'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('a cell date follows the diver date preference', (tester) async {
+    await pump(
+      tester,
+      () async => matrix([(5, 6, 14)]),
+      dateFormat: DateFormatPreference.dMMMYYYY,
+    );
+
+    expect(findSemanticsLabelled('6 May, 14 dives'), findsOneWidget);
+  });
+
+  testWidgets('a screen reader can activate a cell', (tester) async {
+    await pump(tester, () async => matrix([(5, 6, 14)]));
+
+    final node = tester.widget<Semantics>(
+      findSemanticsLabelled('May 6, 14 dives'),
+    );
+    expect(node.properties.button, isTrue);
+    expect(node.properties.onTap, isNotNull);
+  });
+
+  testWidgets('a desktop window shows a scrollbar and mouse drags the days', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      () async => matrix([(5, 31, 3)]),
+      size: const Size(800, 900),
+    );
+
+    final bar = tester.widget<Scrollbar>(
+      find.descendant(
+        of: find.byType(CalendarDayMatrixCard),
+        matching: find.byType(Scrollbar),
+      ),
+    );
+    expect(bar.thumbVisibility, isTrue);
+    final dayHeader = find.text('31').first;
+    final before = tester.getRect(dayHeader).left;
+
+    await tester.dragFrom(
+      tester.getCenter(find.text('3').first),
+      const Offset(-300, 0),
+      kind: PointerDeviceKind.mouse,
+    );
+    await tester.pumpAndSettle();
+
+    expect(tester.getRect(dayHeader).left, lessThan(before));
+  });
+
+  testWidgets('day headers scale down rather than clip at large text', (
+    tester,
+  ) async {
+    await pump(tester, () async => matrix([(5, 6, 1)]));
+
+    expect(
+      find.ancestor(
+        of: find.text('31').first,
+        matching: find.byType(FittedBox),
+      ),
+      findsOneWidget,
+    );
   });
 
   testWidgets('tapping a cell opens that date under the Insights filter', (
@@ -178,6 +299,27 @@ void main() {
     expect(find.text('Failed to load calendar days'), findsOneWidget);
   });
 
+  group('cell text contrast', () {
+    for (final preset in AppThemeRegistry.presets) {
+      for (final brightness in Brightness.values) {
+        test('every count reads at 4.5:1 or better on ${preset.id} '
+            '(${brightness.name})', () {
+          final scheme = AppThemeRegistry.resolveTheme(
+            preset,
+            brightness,
+          ).colorScheme;
+          for (var count = 0; count <= 15; count++) {
+            final ratio = contrastRatio(
+              calendarCellText(scheme, count, 15),
+              calendarCellFill(scheme, count, 15),
+            );
+            expect(ratio, greaterThanOrEqualTo(4.5), reason: 'count $count');
+          }
+        });
+      }
+    }
+  });
+
   group('cell colours', () {
     for (final brightness in Brightness.values) {
       test('zero is neutral, counts deepen, dark fills use onPrimary '
@@ -194,8 +336,6 @@ void main() {
         expect(zero, isNot(one));
         expect(one, isNot(max));
         expect(max, scheme.primary);
-        expect(calendarCellText(scheme, 15, 15), scheme.onPrimary);
-        expect(calendarCellText(scheme, 1, 15), isNot(scheme.onPrimary));
       });
 
       test('a date with one dive stands clear of an empty date '
