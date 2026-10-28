@@ -202,7 +202,10 @@ def digest():
     files = sorted(list(SRC.glob("*.svg")) + [SRC / "manifest.json"], key=lambda f: f.name)
     for f in files:
         h.update("{}\n".format(f.name).encode("utf-8"))
-        h.update(f.read_bytes())
+        # Keep the digest stable across platforms by hashing normalized text
+        # line endings instead of checkout-specific CRLF/LF bytes.
+        content = f.read_bytes().replace(b"\r\n", b"\n").replace(b"\r", b"\n")
+        h.update(content)
     return h.hexdigest()
 
 

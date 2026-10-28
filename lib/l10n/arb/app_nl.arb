@@ -3093,6 +3093,8 @@
   "diveLog_cylinders_mod": "MOD {depth}",
   "diveLog_cylinders_mnd": "MND {depth}",
   "diveLog_cylinders_modNote": "MOD bij ppO₂ {ppO2}",
+  "diveLog_cylinders_modLimit": "{ppO2} ({limit})",
+  "diveLog_cylinders_modLimitSeparator": ", ",
   "diveLog_tank_section_gasMix": "Gasmengsel",
   "diveLog_tank_computerMix_matches": "Vastgelegd door je duikcomputer",
   "diveLog_tank_computerMix_differs": "Je duikcomputer heeft {mix} vastgelegd",

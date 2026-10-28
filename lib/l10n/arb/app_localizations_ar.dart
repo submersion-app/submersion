@@ -10363,6 +10363,14 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String diveLog_cylinders_modLimit(String ppO2, String limit) {
+    return '$ppO2 ($limit)';
+  }
+
+  @override
+  String get diveLog_cylinders_modLimitSeparator => '، ';
+
+  @override
   String get diveLog_tank_section_gasMix => 'خليط الغاز';
 
   @override

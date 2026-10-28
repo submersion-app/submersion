@@ -6,6 +6,7 @@ import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/settings/presentation/widgets/dive_details_appearance_tiles.dart';
 import 'package:submersion/features/settings/presentation/widgets/gradient_preset_picker.dart';
 import 'package:submersion/features/settings/presentation/widgets/viewer_fullscreen_mode_tile.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -248,7 +249,7 @@ class SectionAppearancePage extends ConsumerWidget {
             context,
             context.l10n.settings_appearance_header_diveDetails,
           ),
-          ..._buildDiveDetailsSettings(context, ref),
+          const DiveDetailsAppearanceTiles(),
         ],
 
         // -- Site Details section (sites only) --
@@ -632,40 +633,6 @@ class SectionAppearancePage extends ConsumerWidget {
       ),
       if (ViewerFullscreenModeTile.isSupported)
         const ViewerFullscreenModeTile(),
-    ];
-  }
-
-  // ---------------------------------------------------------------------------
-  // Dive Details section
-  // ---------------------------------------------------------------------------
-
-  List<Widget> _buildDiveDetailsSettings(BuildContext context, WidgetRef ref) {
-    return [
-      ListTile(
-        leading: const Icon(Icons.reorder),
-        title: Text(
-          context.l10n.settings_appearance_diveDetails_sectionOrderVisibility,
-        ),
-        subtitle: Text(
-          context
-              .l10n
-              .settings_appearance_diveDetails_sectionOrderVisibility_subtitle,
-        ),
-        trailing: const Icon(Icons.chevron_right),
-        onTap: () => context.push('/settings/dive-detail-sections'),
-      ),
-      // The diver figure in the equipment card (issue #2326), off by
-      // default so the dive page is unchanged until the diver opts in.
-      SwitchListTile(
-        secondary: const Icon(Icons.accessibility_new),
-        title: Text(context.l10n.settings_appearance_showDiveFigure),
-        subtitle: Text(
-          context.l10n.settings_appearance_showDiveFigure_subtitle,
-        ),
-        value: ref.watch(settingsProvider.select((s) => s.showDiveFigure)),
-        onChanged: (value) =>
-            ref.read(settingsProvider.notifier).setShowDiveFigure(value),
-      ),
     ];
   }
 
