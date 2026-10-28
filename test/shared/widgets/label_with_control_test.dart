@@ -209,6 +209,9 @@ void main() {
       tester.element(find.byKey(labelKey)),
     ).style;
     expect(label.height, lessThan((style.fontSize ?? 16) * 2));
+    // The dropdown ends where the title slot does, as on rows whose label
+    // leaves it room beside them (#3747): 560 less the 24 end padding.
+    expect(control.right, closeTo(536, 0.5));
     expect(tester.takeException(), isNull);
   });
 }

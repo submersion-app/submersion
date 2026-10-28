@@ -27,6 +27,10 @@ class LabelWithControl extends StatelessWidget {
   });
 
   /// Usually a [Text]. It wraps between words once it has a line of its own.
+  ///
+  /// Its single-line width is read as an intrinsic width to choose between
+  /// the two layouts, so it cannot contain a widget without intrinsic sizes,
+  /// such as a `LayoutBuilder`.
   final Widget label;
 
   /// Sits at the far end of the line when it fits beside [label], and at the
@@ -36,7 +40,7 @@ class LabelWithControl extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _LabelWithControlLayout(
-      textDirection: Directionality.of(context),
+      textDirection: Directionality.maybeOf(context) ?? TextDirection.ltr,
       children: [label, control],
     );
   }
