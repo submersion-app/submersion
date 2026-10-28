@@ -1654,6 +1654,8 @@ class PlanEngine {
       }
       final minGas = usage.minGasBar;
       final start = usage.startPressure;
+      // A fill at or under rock bottom always ends under it too, so the
+      // no-usable-gas alert stands in for the ends-below-minimum one.
       if (minGas != null && start != null && minGas >= start) {
         issues.add(
           PlanIssue(
@@ -1668,10 +1670,7 @@ class PlanEngine {
             threshold: start,
           ),
         );
-      }
-      // A fill at or under rock bottom always ends under it too; the
-      // no-usable-gas alert already says so, more precisely.
-      else if (minGas != null && remaining > 0 && remaining < minGas) {
+      } else if (minGas != null && remaining > 0 && remaining < minGas) {
         issues.add(
           PlanIssue(
             type: PlanIssueType.minGasViolation,

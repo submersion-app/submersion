@@ -402,8 +402,9 @@ void main() {
         domain.TurnPressureRule.allUsable,
         domain.TurnPressureRule.halves,
         domain.TurnPressureRule.thirds,
+        domain.TurnPressureRule.custom,
       ]) {
-        final usage = usageFor(deepPlan(rule));
+        final usage = usageFor(deepPlan(rule, fraction: 0.9));
         expect(
           usage.turnPressureBar!,
           greaterThanOrEqualTo(usage.minGasBar!),
