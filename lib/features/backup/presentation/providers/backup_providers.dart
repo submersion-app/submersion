@@ -15,6 +15,7 @@ import 'package:submersion/features/backup/data/repositories/backup_preferences.
 import 'package:submersion/features/backup/data/services/backup_encryption_key_store.dart';
 import 'package:submersion/features/backup/data/services/backup_copy_guard.dart';
 import 'package:submersion/features/backup/data/services/backup_encryption_service.dart';
+import 'package:submersion/features/backup/data/services/backup_origin.dart';
 import 'package:submersion/features/backup/data/services/backup_service.dart';
 import 'package:submersion/features/backup/data/services/cloud_backup_history.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
@@ -693,6 +694,22 @@ final backupHistoryProvider = FutureProvider.autoDispose<List<BackupRecord>>((
       listedIds.contains(r.cloudFileId) ? r.copyWith(cloudCopyListed: true) : r,
   ];
 });
+
+/// This device's id as backup names record it, or null when it cannot be
+/// read.
+final backupDeviceIdProvider = FutureProvider.autoDispose<String?>(
+  (ref) => ref.watch(backupServiceProvider).thisDeviceIdOrNull(),
+);
+
+/// Names the device behind each history row (issue #3651). Until the id
+/// and the peer names have loaded it knows no devices, so rows show none
+/// rather than a guess.
+final backupOriginResolverProvider = Provider.autoDispose<BackupOriginResolver>(
+  (ref) => BackupOriginResolver(
+    thisDeviceId: ref.watch(backupDeviceIdProvider).value,
+    peerDeviceNames: ref.watch(peerDeviceNamesProvider).value ?? const {},
+  ),
+);
 
 // =============================================================================
 // Convenience Providers
