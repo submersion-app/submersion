@@ -37,3 +37,14 @@ void openMediaWithMe(BuildContext context, WidgetRef ref) {
   Navigator.of(context).popUntil((route) => route.settings is Page);
   router.go('/media');
 }
+
+/// Opens the media library showing only the photos and videos [buddyId] is
+/// tagged in (issue #1745), from the buddy page's photo card.
+void openMediaWithBuddy(BuildContext context, WidgetRef ref, String buddyId) {
+  final router = GoRouter.of(context);
+  ref.read(mediaLibraryFilterProvider.notifier).state = MediaLibraryFilter(
+    buddyIds: {buddyId},
+  );
+  Navigator.of(context).popUntil((route) => route.settings is Page);
+  router.go('/media');
+}

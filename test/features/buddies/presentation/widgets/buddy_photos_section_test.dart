@@ -74,4 +74,23 @@ void main() {
     final viewer = tester.widget<MediaViewerPage>(find.byType(MediaViewerPage));
     expect(viewer.initialMediaId, 'p1');
   });
+
+  testWidgets('shows nine and a View All that filters the library', (
+    tester,
+  ) async {
+    await tester.runAsync(() async {
+      for (var i = 0; i < 10; i++) {
+        await insertTestMedia(
+          id: 'x$i',
+          diveId: 'd1',
+          takenAt: DateTime(2024, 4, 1 + i),
+        );
+        await MediaPeopleRepository().addTag(mediaId: 'x$i', buddyId: 'alex');
+      }
+    });
+    await pump(tester);
+
+    expect(find.byType(MediaThumbnailTile), findsNWidgets(9));
+    expect(find.text('View All (10)'), findsOneWidget);
+  });
 }
