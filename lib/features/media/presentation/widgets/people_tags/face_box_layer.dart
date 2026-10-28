@@ -103,14 +103,25 @@ class FaceBoxFrame extends StatelessWidget {
     return Stack(
       clipBehavior: Clip.none,
       children: [
+        // A dark outline under the light one keeps the box readable on a
+        // pale photo. Two outlines rather than a box shadow: a shadow is a
+        // filled shape and would dim the face inside the box.
         Positioned.fill(
           child: DecoratedBox(
             decoration: BoxDecoration(
-              border: Border.all(color: color, width: 2),
-              borderRadius: BorderRadius.circular(6),
-              boxShadow: const [
-                BoxShadow(color: Colors.black54, spreadRadius: 1),
-              ],
+              border: Border.all(color: Colors.black54, width: 4),
+              borderRadius: BorderRadius.circular(7),
+            ),
+          ),
+        ),
+        Positioned.fill(
+          child: Padding(
+            padding: const EdgeInsets.all(1),
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                border: Border.all(color: color, width: 2),
+                borderRadius: BorderRadius.circular(6),
+              ),
             ),
           ),
         ),

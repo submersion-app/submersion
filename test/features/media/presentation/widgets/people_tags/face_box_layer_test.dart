@@ -111,4 +111,32 @@ void main() {
     await pump(tester, chips: [noSpot]);
     expect(find.text('Cal'), findsNothing);
   });
+
+  testWidgets('a box frame never dims the face inside it', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Center(
+          child: SizedBox(
+            width: 80,
+            height: 80,
+            child: FaceBoxFrame(label: 'A'),
+          ),
+        ),
+      ),
+    );
+    // A box shadow paints a filled shape behind the frame, which shows
+    // through its transparent middle as a dark square over the face.
+    final decorations = tester
+        .widgetList<DecoratedBox>(
+          find.descendant(
+            of: find.byType(FaceBoxFrame),
+            matching: find.byType(DecoratedBox),
+          ),
+        )
+        .map((d) => d.decoration)
+        .whereType<BoxDecoration>();
+    for (final d in decorations) {
+      expect(d.boxShadow ?? const [], isEmpty);
+    }
+  });
 }
