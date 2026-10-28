@@ -191,6 +191,65 @@ void main() {
     ]);
   });
 
+  test('enter fills one bar from 0 to 1 that never moves back', () async {
+    final fractions = <double>[];
+
+    await service().enter(
+      fromFirstRun: false,
+      package: testPackage,
+      onProgress: (p) => fractions.add(p.fraction),
+    );
+
+    expect(fractions.first, 0);
+    expect(fractions.last, 1);
+    for (var i = 1; i < fractions.length; i++) {
+      expect(fractions[i], greaterThanOrEqualTo(fractions[i - 1]));
+    }
+    // Preparing the logbook moves the bar on, not only the download.
+    expect(
+      fractions.where((f) => f > DemoEnterStage.opening.start && f < 1),
+      isNotEmpty,
+    );
+  });
+
+  group('DemoEnterProgress', () {
+    test('the stages share the bar end to end, from 0 to 1', () {
+      expect(DemoEnterStage.values.first.start, 0);
+      expect(DemoEnterStage.values.last.end, 1);
+      for (var i = 1; i < DemoEnterStage.values.length; i++) {
+        expect(
+          DemoEnterStage.values[i].start,
+          DemoEnterStage.values[i - 1].end,
+        );
+      }
+    });
+
+    test('places progress inside its stage\'s share', () {
+      const stage = DemoEnterStage.preparing;
+      expect(const DemoEnterProgress(stage).fraction, stage.start);
+      expect(
+        const DemoEnterProgress(stage, done: 1, total: 2).fraction,
+        closeTo((stage.start + stage.end) / 2, 1e-9),
+      );
+      expect(
+        const DemoEnterProgress(stage, done: 2, total: 2).fraction,
+        stage.end,
+      );
+    });
+
+    test('never leaves its stage\'s share, whatever the counts', () {
+      const stage = DemoEnterStage.downloading;
+      expect(
+        const DemoEnterProgress(stage, done: 5, total: 2).fraction,
+        stage.end,
+      );
+      expect(
+        const DemoEnterProgress(stage, done: 5, total: 0).fraction,
+        stage.start,
+      );
+    });
+  });
+
   test(
     'enter failing during download leaves no demo directory and the gate inactive',
     () async {
@@ -441,6 +500,7 @@ class _RecordingPreparer extends DemoDatabasePreparer {
     required String photosDir,
     required String? deviceId,
     DemoUnitSettings? units,
+    void Function(int done, int total)? onProgress,
   }) async {
     await onPrepare();
     return super.prepare(
@@ -449,6 +509,7 @@ class _RecordingPreparer extends DemoDatabasePreparer {
       photosDir: photosDir,
       deviceId: deviceId,
       units: units,
+      onProgress: onProgress,
     );
   }
 }

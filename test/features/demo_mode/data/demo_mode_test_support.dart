@@ -77,7 +77,11 @@ class FakeExtractor implements DemoPackageExtractor {
   int get maxExtractedBytes => 0;
 
   @override
-  Future<void> extract(File zip, DemoPaths paths) async {
+  Future<void> extract(
+    File zip,
+    DemoPaths paths, {
+    void Function(int done, int total)? onProgress,
+  }) async {
     await writeDatabaseWithDiver(paths.databaseFile, 'demo-diver');
     await Directory(paths.photosDir).create(recursive: true);
     await File(p.join(paths.photosDir, 'reef.jpg')).writeAsString('jpg');
