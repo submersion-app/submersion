@@ -3967,6 +3967,18 @@ abstract class AppLocalizations {
   /// **'Send via AirDrop, email, or other apps'**
   String get backup_export_share_subtitle;
 
+  /// No description provided for @backup_copySheet_deviceLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'This safety copy was taken from your protected database. It can only be restored on this device.'**
+  String get backup_copySheet_deviceLocked;
+
+  /// No description provided for @backup_copySheet_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup from {dateTime}'**
+  String backup_copySheet_title(String dateTime);
+
   /// No description provided for @backup_frequency_daily.
   ///
   /// In en, this message translates to:
@@ -3996,6 +4008,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Restore'**
   String get backup_history_action_restore;
+
+  /// No description provided for @backup_history_action_saveCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Save a copy'**
+  String get backup_history_action_saveCopy;
+
+  /// No description provided for @backup_history_action_share.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get backup_history_action_share;
 
   /// No description provided for @backup_history_empty.
   ///

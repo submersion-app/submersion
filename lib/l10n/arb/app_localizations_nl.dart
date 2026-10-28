@@ -2534,6 +2534,15 @@ class AppLocalizationsNl extends AppLocalizations {
       'Verzenden via AirDrop, e-mail of andere apps';
 
   @override
+  String get backup_copySheet_deviceLocked =>
+      'Deze veiligheidskopie komt uit je beveiligde database. Hij kan alleen op dit apparaat worden hersteld.';
+
+  @override
+  String backup_copySheet_title(String dateTime) {
+    return 'Back-up van $dateTime';
+  }
+
+  @override
   String get backup_frequency_daily => 'Dagelijks';
 
   @override
@@ -2547,6 +2556,12 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get backup_history_action_restore => 'Herstellen';
+
+  @override
+  String get backup_history_action_saveCopy => 'Kopie opslaan';
+
+  @override
+  String get backup_history_action_share => 'Delen';
 
   @override
   String get backup_history_empty => 'Geen back-ups';

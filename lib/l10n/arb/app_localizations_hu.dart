@@ -2538,6 +2538,15 @@ class AppLocalizationsHu extends AppLocalizations {
       'Küldés AirDrop, e-mail vagy más alkalmazáson keresztül';
 
   @override
+  String get backup_copySheet_deviceLocked =>
+      'Ez a biztonsági másolat az Ön védett adatbázisáról készült. Csak ezen az eszközön állítható vissza.';
+
+  @override
+  String backup_copySheet_title(String dateTime) {
+    return 'Biztonsági mentés: $dateTime';
+  }
+
+  @override
   String get backup_frequency_daily => 'Napi';
 
   @override
@@ -2551,6 +2560,12 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get backup_history_action_restore => 'Visszaállítás';
+
+  @override
+  String get backup_history_action_saveCopy => 'Másolat mentése';
+
+  @override
+  String get backup_history_action_share => 'Megosztás';
 
   @override
   String get backup_history_empty => 'Nincsenek mentések';

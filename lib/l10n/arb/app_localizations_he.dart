@@ -2508,6 +2508,15 @@ class AppLocalizationsHe extends AppLocalizations {
       'שליחה דרך AirDrop, דוא\"ל או אפליקציות אחרות';
 
   @override
+  String get backup_copySheet_deviceLocked =>
+      'עותק הבטיחות הזה נלקח ממסד הנתונים המוגן שלכם. אפשר לשחזר אותו רק במכשיר הזה.';
+
+  @override
+  String backup_copySheet_title(String dateTime) {
+    return 'גיבוי מ-$dateTime';
+  }
+
+  @override
   String get backup_frequency_daily => 'יומי';
 
   @override
@@ -2521,6 +2530,12 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get backup_history_action_restore => 'שחזור';
+
+  @override
+  String get backup_history_action_saveCopy => 'שמירת עותק';
+
+  @override
+  String get backup_history_action_share => 'שיתוף';
 
   @override
   String get backup_history_empty => 'אין גיבויים';

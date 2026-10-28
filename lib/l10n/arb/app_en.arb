@@ -1554,11 +1554,22 @@
   "backup_export_saveToFile_subtitle": "Choose where to save the backup file",
   "backup_export_share": "Share",
   "backup_export_share_subtitle": "Send via AirDrop, email, or other apps",
+  "backup_copySheet_deviceLocked": "This safety copy was taken from your protected database. It can only be restored on this device.",
+  "backup_copySheet_title": "Backup from {dateTime}",
+  "@backup_copySheet_title": {
+    "placeholders": {
+      "dateTime": {
+        "type": "String"
+      }
+    }
+  },
   "backup_frequency_daily": "Daily",
   "backup_frequency_monthly": "Monthly",
   "backup_frequency_weekly": "Weekly",
   "backup_history_action_delete": "Delete",
   "backup_history_action_restore": "Restore",
+  "backup_history_action_saveCopy": "Save a copy",
+  "backup_history_action_share": "Share",
   "backup_history_empty": "No backups yet",
   "backup_history_error": "Failed to load history: {error}",
   "@backup_history_error": {

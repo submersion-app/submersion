@@ -2417,6 +2417,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get backup_export_share_subtitle => '通过隔空投送、电子邮件或其他应用发送';
 
   @override
+  String get backup_copySheet_deviceLocked => '此安全副本取自您受保护的数据库，只能在此设备上恢复。';
+
+  @override
+  String backup_copySheet_title(String dateTime) {
+    return '$dateTime 的备份';
+  }
+
+  @override
   String get backup_frequency_daily => '每天';
 
   @override
@@ -2430,6 +2438,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get backup_history_action_restore => '恢复';
+
+  @override
+  String get backup_history_action_saveCopy => '保存副本';
+
+  @override
+  String get backup_history_action_share => '分享';
 
   @override
   String get backup_history_empty => '暂无备份';

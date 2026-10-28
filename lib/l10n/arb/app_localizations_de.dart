@@ -2545,6 +2545,15 @@ class AppLocalizationsDe extends AppLocalizations {
       'Per AirDrop, E-Mail oder andere Apps senden';
 
   @override
+  String get backup_copySheet_deviceLocked =>
+      'Diese Sicherheitskopie stammt aus Ihrer geschützten Datenbank. Sie lässt sich nur auf diesem Gerät wiederherstellen.';
+
+  @override
+  String backup_copySheet_title(String dateTime) {
+    return 'Sicherung vom $dateTime';
+  }
+
+  @override
   String get backup_frequency_daily => 'Täglich';
 
   @override
@@ -2558,6 +2567,12 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get backup_history_action_restore => 'Wiederherstellen';
+
+  @override
+  String get backup_history_action_saveCopy => 'Kopie speichern';
+
+  @override
+  String get backup_history_action_share => 'Teilen';
 
   @override
   String get backup_history_empty => 'Keine Sicherungen vorhanden';

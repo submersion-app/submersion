@@ -1,0 +1,160 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+import 'package:submersion/features/backup/domain/entities/backup_record.dart';
+import 'package:submersion/features/backup/presentation/widgets/backup_copy_sheet.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
+
+import '../../../../helpers/mock_providers.dart';
+
+final _record = BackupRecord(
+  id: 'r1',
+  filename: 'submersion_backup_2026-10-27.db',
+  timestamp: DateTime(2026, 10, 27, 19, 42),
+  sizeBytes: 2048,
+  location: BackupLocation.local,
+  localPath: '/tmp/r1.db',
+);
+
+Widget _wrap(Widget child) => ProviderScope(
+  overrides: [settingsProvider.overrideWith((ref) => MockSettingsNotifier())],
+  child: MaterialApp(
+    // Pinned so English assertions hold on a non-English host.
+    locale: const Locale('en'),
+    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    supportedLocales: AppLocalizations.supportedLocales,
+    home: Scaffold(body: child),
+  ),
+);
+
+void main() {
+  testWidgets('shows the title with the formatted date and both actions', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _wrap(
+        BackupCopySheet(
+          record: _record,
+          deviceLocked: false,
+          onSaveToFolder: () {},
+          onShare: () {},
+        ),
+      ),
+    );
+
+    expect(find.textContaining('Backup from Oct 27, 2026'), findsOneWidget);
+    expect(find.text('Save to a folder'), findsOneWidget);
+    expect(find.text('Choose where to save the backup file'), findsOneWidget);
+    expect(find.text('Share'), findsOneWidget);
+    expect(find.text('Send via AirDrop, email, or other apps'), findsOneWidget);
+    expect(find.byType(TextField), findsNothing);
+  });
+
+  testWidgets('hides Share when onShare is null', (tester) async {
+    await tester.pumpWidget(
+      _wrap(
+        BackupCopySheet(
+          record: _record,
+          deviceLocked: false,
+          onSaveToFolder: () {},
+        ),
+      ),
+    );
+
+    expect(find.text('Save to a folder'), findsOneWidget);
+    expect(find.text('Share'), findsNothing);
+  });
+
+  testWidgets('shows the device-locked line only when deviceLocked', (
+    tester,
+  ) async {
+    const line =
+        'This safety copy was taken from your protected database. It can '
+        'only be restored on this device.';
+    await tester.pumpWidget(
+      _wrap(
+        BackupCopySheet(
+          record: _record,
+          deviceLocked: false,
+          onSaveToFolder: () {},
+        ),
+      ),
+    );
+    expect(find.text(line), findsNothing);
+
+    await tester.pumpWidget(
+      _wrap(
+        BackupCopySheet(
+          record: _record,
+          deviceLocked: true,
+          onSaveToFolder: () {},
+        ),
+      ),
+    );
+    expect(find.text(line), findsOneWidget);
+  });
+
+  testWidgets('tapping Save calls onSaveToFolder', (tester) async {
+    var saved = 0;
+    await tester.pumpWidget(
+      _wrap(
+        BackupCopySheet(
+          record: _record,
+          deviceLocked: false,
+          onSaveToFolder: () => saved++,
+          onShare: () {},
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Save to a folder'));
+    expect(saved, 1);
+  });
+
+  testWidgets('tapping Share calls onShare', (tester) async {
+    var shared = 0;
+    await tester.pumpWidget(
+      _wrap(
+        BackupCopySheet(
+          record: _record,
+          deviceLocked: false,
+          onSaveToFolder: () {},
+          onShare: () => shared++,
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Share'));
+    expect(shared, 1);
+  });
+
+  testWidgets('show pops the sheet before calling back', (tester) async {
+    var shared = 0;
+    await tester.pumpWidget(
+      _wrap(
+        Builder(
+          builder: (context) => TextButton(
+            onPressed: () => BackupCopySheet.show(
+              context,
+              record: _record,
+              deviceLocked: false,
+              onSaveToFolder: () {},
+              onShare: () => shared++,
+            ),
+            child: const Text('open'),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Share'));
+    await tester.pumpAndSettle();
+
+    expect(shared, 1);
+    expect(find.byType(BackupCopySheet), findsNothing);
+  });
+}
