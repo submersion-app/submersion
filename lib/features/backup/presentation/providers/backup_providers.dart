@@ -498,8 +498,15 @@ class BackupOperationNotifier extends StateNotifier<BackupOperationState> {
     );
 
     try {
-      // Validate first
-      final validation = await _service.validateBackupFile(filePath);
+      // Validate first. A pre-update safety copy of a protected database is
+      // SQLCipher under the live key; the history row already restores it,
+      // and the same file saved or shared from there restores here too, on
+      // this install only (issue #3650). Any other encrypted-looking file
+      // still fails, now with a message that says why.
+      final validation = await _service.validateBackupFile(
+        filePath,
+        allowLiveDatabaseEncryption: true,
+      );
       if (!validation.isValid) {
         state = BackupOperationState(
           status: BackupOperationStatus.error,

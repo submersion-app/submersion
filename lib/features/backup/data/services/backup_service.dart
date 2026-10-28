@@ -96,6 +96,14 @@ class _DefaultBackupBookmarkPort implements BackupBookmarkPort {
 /// Dependencies are constructor-injected for testability.
 /// Cloud provider is optional — backups work locally without it.
 class BackupService {
+  /// Why a protected-database copy failed to open with the live key. The
+  /// file cannot say which of these it is: a key from another install and a
+  /// corrupt file fail the keyed open the same way.
+  static const String lockedCopyWrongKeyMessage =
+      'This copy came from a protected database that this install has no key '
+      'for (another device, or protection was turned off and on again since), '
+      'or the file is corrupt.';
+
   final BackupDatabaseAdapter _dbAdapter;
   final BackupPreferences _preferences;
   final CloudStorageProvider? _cloudProvider;
@@ -656,10 +664,12 @@ class BackupService {
   /// legitimately be SQLCipher ciphertext: a [BackupType.preMigration] copy,
   /// which is a raw byte copy of the live database and so carries the live
   /// database's encryption. Such a file is deep-checked with the live key
-  /// instead of being rejected. Portable backups keep the strict plaintext
-  /// rule: they are decrypted on export precisely so they restore on a
-  /// device where the database password is unknown, and an encrypted-looking
-  /// one is a real problem that must fail loudly.
+  /// instead of being rejected. Restore from file opts in too, so such a copy
+  /// saved or shared from the history restores on this install (issue
+  /// #3650). Without the live key, or with a different one, an
+  /// encrypted-looking file still fails loudly: portable backups are
+  /// decrypted on export precisely so they restore on a device where the
+  /// database password is unknown.
   ///
   /// [requireBackupExtension] is false only for a database copy the restore
   /// journal set aside, whose name ends in a timestamp rather than an
@@ -786,6 +796,11 @@ class BackupService {
         testDb.close();
       }
     } catch (e) {
+      // A keyed open that fails says the live key is not this file's, or the
+      // file is broken; the raw SQLite error says neither.
+      if (deepCheckKeyHex != null) {
+        return const BackupValidationResult.invalid(lockedCopyWrongKeyMessage);
+      }
       return BackupValidationResult.invalid('File is not a valid database: $e');
     }
   }
@@ -978,6 +993,24 @@ class BackupService {
           backupSchemaVersion: restoredSchema,
           supportedSchemaVersion: AppDatabase.currentSchemaVersion,
         );
+      }
+
+      // A decrypted copy has had no deep check: the caller could only
+      // validate the envelope. "Encrypt existing backups" also wraps
+      // pre-update safety copies, whose plaintext is SQLCipher under the
+      // live key, so the same rule as a history row applies (issue #3650).
+      // Swapping in a copy this install cannot open would leave it unable
+      // to start.
+      if (materialized.isTemp) {
+        final validation = await validateBackupFile(
+          materialized.path,
+          allowLiveDatabaseEncryption: true,
+        );
+        if (!validation.isValid) {
+          throw BackupException(
+            validation.error ?? 'Backup file failed validation',
+          );
+        }
       }
 
       // Create a proper backup before restoring so the user can find it
