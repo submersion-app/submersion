@@ -49,10 +49,14 @@ class _JumpNotifier extends StateNotifier<AsyncValue<PaginatedDiveListState>>
   /// When set, [loadUntil] waits on it, as a long log's reads do.
   Completer<void>? gate;
 
+  /// When true, [loadUntil] fails, as a read the database refuses does.
+  bool fail = false;
+
   @override
   Future<bool> loadUntil(String diveId) async {
     asked.add(diveId);
     await gate?.future;
+    if (fail) throw StateError('load failed');
     final index = all.indexWhere((d) => d.id == diveId);
     if (index < 0) return false;
     final through = (index + 51).clamp(0, all.length);
@@ -284,6 +288,26 @@ void main() {
       expect(notifier.asked, ['d100']);
       expect(position.pixels, before);
       expect(row('d100'), findsNothing);
+    });
+
+    testWidgets('a failed load still opens the dive and leaves the list', (
+      tester,
+    ) async {
+      String? selected;
+      final notifier = await pumpList(
+        tester,
+        onSelected: (id) => selected = id,
+      );
+      notifier.fail = true;
+
+      await typeNumber(tester, '100');
+      await tester.testTextInput.receiveAction(TextInputAction.search);
+      await settle(tester);
+
+      expect(notifier.asked, ['d100']);
+      expect(selected, 'd100');
+      expect(row('d100'), findsNothing);
+      expect(tester.takeException(), isNull);
     });
   });
 }
