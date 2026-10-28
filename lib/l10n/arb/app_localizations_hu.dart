@@ -51749,6 +51749,17 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get backup_history_device_anotherDevice => 'Másik eszköz';
+
+  @override
+  String get backup_history_device_thisDevice => 'Ez az eszköz';
+
+  @override
+  String backup_history_subtitleWithDevice(String summary, String device) {
+    return '$summary · $device';
+  }
+
+  @override
   String backup_history_manualSubtitle(
     int diveCount,
     int siteCount,

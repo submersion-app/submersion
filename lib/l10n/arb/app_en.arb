@@ -30991,6 +30991,26 @@
       }
     }
   },
+  "backup_history_device_anotherDevice": "Another device",
+  "@backup_history_device_anotherDevice": {
+    "description": "Shown on a backup history row made by a device whose name is not known."
+  },
+  "backup_history_device_thisDevice": "This device",
+  "@backup_history_device_thisDevice": {
+    "description": "Shown on a backup history row made by the device the app is running on."
+  },
+  "backup_history_subtitleWithDevice": "{summary} · {device}",
+  "@backup_history_subtitleWithDevice": {
+    "description": "A backup history row's summary followed by the device that made the backup.",
+    "placeholders": {
+      "summary": {
+        "type": "String"
+      },
+      "device": {
+        "type": "String"
+      }
+    }
+  },
   "backup_history_manualSubtitle": "{diveCount, plural, =1{1 dive} other{{diveCount} dives}}, {siteCount, plural, =1{1 site} other{{siteCount} sites}} - {size}",
   "@backup_history_manualSubtitle": {
     "placeholders": {

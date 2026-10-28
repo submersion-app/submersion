@@ -51705,6 +51705,17 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get backup_history_device_anotherDevice => 'Ander apparaat';
+
+  @override
+  String get backup_history_device_thisDevice => 'Dit apparaat';
+
+  @override
+  String backup_history_subtitleWithDevice(String summary, String device) {
+    return '$summary · $device';
+  }
+
+  @override
   String backup_history_manualSubtitle(
     int diveCount,
     int siteCount,

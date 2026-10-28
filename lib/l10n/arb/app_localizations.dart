@@ -82410,6 +82410,24 @@ abstract class AppLocalizations {
   /// **'In cloud storage ({size})'**
   String backup_history_cloudOnlySubtitle(String size);
 
+  /// Shown on a backup history row made by a device whose name is not known.
+  ///
+  /// In en, this message translates to:
+  /// **'Another device'**
+  String get backup_history_device_anotherDevice;
+
+  /// Shown on a backup history row made by the device the app is running on.
+  ///
+  /// In en, this message translates to:
+  /// **'This device'**
+  String get backup_history_device_thisDevice;
+
+  /// A backup history row's summary followed by the device that made the backup.
+  ///
+  /// In en, this message translates to:
+  /// **'{summary} · {device}'**
+  String backup_history_subtitleWithDevice(String summary, String device);
+
   /// No description provided for @backup_history_manualSubtitle.
   ///
   /// In en, this message translates to:

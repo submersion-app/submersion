@@ -51921,6 +51921,17 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get backup_history_device_anotherDevice => 'Anderes Gerät';
+
+  @override
+  String get backup_history_device_thisDevice => 'Dieses Gerät';
+
+  @override
+  String backup_history_subtitleWithDevice(String summary, String device) {
+    return '$summary · $device';
+  }
+
+  @override
   String backup_history_manualSubtitle(
     int diveCount,
     int siteCount,
