@@ -169,38 +169,58 @@ void main() {
   });
 
   group('tagUsageCounts', () {
+    const all = {_d, _s, _e, _m, _doc};
+
     test('shows dives alone when nothing else carries the tag', () {
-      expect(tagUsageCounts(l10n, const {_d: 12}), '12 dives');
+      expect(tagUsageCounts(l10n, const {_d: 12}, offered: all), '12 dives');
     });
 
-    test('adds sites when some carry the tag', () {
-      expect(tagUsageCounts(l10n, const {_s: 3}), '0 dives, 3 sites');
-    });
-
-    test('adds equipment items when some carry the tag (#1942)', () {
-      expect(tagUsageCounts(l10n, const {_e: 5}), '0 dives, 5 equipment items');
+    test('names only the scopes that carry the tag (#3746)', () {
       expect(
-        tagUsageCounts(l10n, const {_d: 1, _e: 1}),
+        tagUsageCounts(l10n, const {_s: 3}, offered: const {_d, _s}),
+        '3 sites',
+      );
+      expect(
+        tagUsageCounts(l10n, const {_e: 5}, offered: const {_e}),
+        '5 equipment items',
+      );
+      expect(
+        tagUsageCounts(l10n, const {_d: 1, _e: 1}, offered: all),
         '1 dive, 1 equipment item',
       );
     });
 
+    test('an unused tag counts zero of its first offered scope (#3746)', () {
+      expect(tagUsageCounts(l10n, const {}, offered: const {_d}), '0 dives');
+      expect(
+        tagUsageCounts(l10n, const {_s: 0}, offered: const {_e, _s}),
+        '0 sites',
+      );
+    });
+
+    test('an unused tag offered nowhere still counts zero dives', () {
+      expect(tagUsageCounts(l10n, const {}, offered: const {}), '0 dives');
+    });
+
     test('lists every scope in registry order', () {
       expect(
-        tagUsageCounts(l10n, const {_e: 5, _s: 3, _d: 12}),
+        tagUsageCounts(l10n, const {_e: 5, _s: 3, _d: 12}, offered: all),
         '12 dives, 3 sites, 5 equipment items',
       );
     });
 
     test('adds media items and documents when some carry the tag (#1970)', () {
       expect(
-        tagUsageCounts(l10n, const {_doc: 1, _m: 2, _d: 3}),
+        tagUsageCounts(l10n, const {_doc: 1, _m: 2, _d: 3}, offered: all),
         '3 dives, 2 media items, 1 document',
       );
     });
 
     test('leaves out a zero site or equipment count', () {
-      expect(tagUsageCounts(l10n, const {_d: 2, _s: 0, _e: 0}), '2 dives');
+      expect(
+        tagUsageCounts(l10n, const {_d: 2, _s: 0, _e: 0}, offered: all),
+        '2 dives',
+      );
     });
   });
 }

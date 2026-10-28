@@ -20117,6 +20117,11 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String plannerCanvas_issue_noUsableGas(String minGas, String fill) {
+    return 'O mínimo rock bottom de $minGas não deixa gás utilizável numa carga de $fill';
+  }
+
+  @override
   String plannerCanvas_issue_diluentModExceeded(String depth, String value) {
     return 'O diluente excede a MOD Dil a $depth (ppO₂ $value bar)';
   }
@@ -36204,12 +36209,12 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String settings_shareAllSites_confirm(int count) {
-    return 'Escolhe quem vê os teus $count locais. Para alterar um local mais tarde, abre-o e toca em Partilhado com.';
+    return 'Escolhe quem vê os teus $count locais. Para alterar um local mais tarde, edita-o e toca em Partilhado com.';
   }
 
   @override
   String settings_shareAllTrips_confirm(int count) {
-    return 'Escolhe quem vê as tuas $count viagens. Para alterar uma viagem mais tarde, abre-a e toca em Partilhado com.';
+    return 'Escolhe quem vê as tuas $count viagens. Para alterar uma viagem mais tarde, edita-a e toca em Partilhado com.';
   }
 
   @override
@@ -52110,6 +52115,17 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get backup_history_device_anotherDevice => 'Outro dispositivo';
+
+  @override
+  String get backup_history_device_thisDevice => 'Este dispositivo';
+
+  @override
+  String backup_history_subtitleWithDevice(String summary, String device) {
+    return '$summary · $device';
+  }
+
+  @override
   String backup_history_manualSubtitle(
     int diveCount,
     int siteCount,
@@ -55626,6 +55642,16 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get tags_manage_cannotUndo => 'Esta ação não pode ser desfeita.';
+
+  @override
+  String tags_manage_rowScopes(String scopes) {
+    return 'Para: $scopes';
+  }
+
+  @override
+  String tags_manage_rowUsage(String counts) {
+    return 'Usada em: $counts';
+  }
 
   @override
   String get tags_action_edit => 'Editar etiquetas';

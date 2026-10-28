@@ -119,11 +119,15 @@ void main() {
     await tester.pumpWidget(page());
     await tester.pumpAndSettle();
 
-    expect(find.text('Equipment'), findsOneWidget);
-    // The dive count always shows, as it did before sites and equipment.
-    expect(find.text('0 dives, 2 equipment items'), findsOneWidget);
-    expect(find.text('Dives · Sites · Equipment'), findsOneWidget);
-    expect(find.text('1 dive, 1 site, 1 equipment item'), findsOneWidget);
+    expect(find.text('For: Equipment'), findsOneWidget);
+    // Only scopes that carry the tag are counted, so an equipment-only tag
+    // does not report zero dives (#3746).
+    expect(find.text('Used on: 2 equipment items'), findsOneWidget);
+    expect(find.text('For: Dives · Sites · Equipment'), findsOneWidget);
+    expect(
+      find.text('Used on: 1 dive, 1 site, 1 equipment item'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('the editor offers every scope, equipment ticked', (
@@ -163,8 +167,8 @@ void main() {
     expect(await itemsTaggedWith(tester, 'all'), [
       'e1',
     ], reason: 'another tag on the same item keeps its link');
-    expect(find.text('Dives'), findsOneWidget);
-    expect(find.text('0 dives'), findsOneWidget);
+    expect(find.text('For: Dives'), findsOneWidget);
+    expect(find.text('Used on: 0 dives'), findsOneWidget);
   });
 
   testWidgets('cancelling the confirmation keeps the equipment links', (

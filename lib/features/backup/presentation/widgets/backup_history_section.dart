@@ -20,6 +20,7 @@ class BackupHistorySection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final historyAsync = ref.watch(backupHistoryProvider);
+    final origins = ref.watch(backupOriginResolverProvider);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -63,6 +64,7 @@ class BackupHistorySection extends ConsumerWidget {
                 for (final record in history)
                   BackupHistoryTile(
                     record: record,
+                    origin: origins.originOf(record.filename),
                     leadingIcon: _locationIcon(record.location),
                     onPinToggle: () => _togglePin(context, ref, record),
                     onRestore: () => _restore(context, ref, record),

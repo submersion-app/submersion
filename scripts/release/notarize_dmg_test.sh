@@ -85,17 +85,29 @@ run 0 2
   || fail "a staple failure re-submitted the DMG"
 [ "$(count 'stapler staple')" -eq 3 ] || fail "staple retry: staple count"
 [ "$(sleeps)" = "15 30" ] || fail "staple backoff: got '$(sleeps)'"
-echo "$OUT" | grep -q "::warning::Stapling attempt 1/5 failed" \
+echo "$OUT" | grep -q "::warning::Stapling attempt 1/8 failed" \
   || fail "staple retry is not annotated: $OUT"
+
+# --- A CloudKit outage of several minutes is outlasted (issue #3770) --------
+# Beta 9107 lost the ticket download on all five attempts of the old
+# three-minute budget. Six failures in a row must still end in a staple.
+run 0 6
+[ "$STATUS" -eq 0 ] || fail "long staple outage exited $STATUS: $OUT"
+[ "$(count 'notarytool submit')" -eq 1 ] \
+  || fail "a long staple outage re-submitted the DMG"
+[ "$(count 'stapler staple')" -eq 7 ] || fail "long staple outage: staple count"
+[ "$(sleeps)" = "15 30 60 120 120 120" ] \
+  || fail "long staple outage backoff: got '$(sleeps)'"
 
 # --- A staple that never succeeds fails the step, after every attempt --------
 run 0 99
 [ "$STATUS" -ne 0 ] || fail "persistent staple failure exited 0"
 [ "$(count 'notarytool submit')" -eq 1 ] \
   || fail "persistent staple failure re-submitted the DMG"
-[ "$(count 'stapler staple')" -eq 5 ] || fail "persistent staple: staple count"
-[ "$(sleeps)" = "15 30 45 60" ] || fail "persistent staple backoff: '$(sleeps)'"
-echo "$OUT" | grep -q "::error::Stapling failed after 5 attempts" \
+[ "$(count 'stapler staple')" -eq 8 ] || fail "persistent staple: staple count"
+[ "$(sleeps)" = "15 30 60 120 120 120 120" ] \
+  || fail "persistent staple backoff: '$(sleeps)'"
+echo "$OUT" | grep -q "::error::Stapling failed after 8 attempts" \
   || fail "persistent staple failure has no error annotation: $OUT"
 
 # --- A failed submit is still retried, as before -----------------------------

@@ -44,7 +44,14 @@ done
 # it. That download dropping its connection (Error 68) failed Beta 8943, 8970,
 # 8975 and 8977 (issue #3488); falling back to the submit loop would upload
 # and notarize the DMG again just to retry a one-second fetch.
-STAPLE_ATTEMPTS=5
+#
+# The backoff doubles from 15s and holds at 120s, so the retries span about
+# ten minutes. Beta 9107 (issue #3770) lost the connection on every attempt
+# of the earlier three-minute budget; most blips still clear on the first
+# quick retry.
+STAPLE_ATTEMPTS=8
+STAPLE_MAX_DELAY=120
+delay=15
 for ((attempt = 1; attempt <= STAPLE_ATTEMPTS; attempt++)); do
   if "$XCRUN" stapler staple "$DMG"; then
     exit 0
@@ -55,8 +62,8 @@ for ((attempt = 1; attempt <= STAPLE_ATTEMPTS; attempt++)); do
       "ticket from CloudKit kept failing; otherwise there is no ticket."
     exit 1
   fi
-  delay=$((attempt * 15))
   echo "::warning::Stapling attempt $attempt/$STAPLE_ATTEMPTS failed," \
     "retrying in ${delay}s..."
   "$NOTARIZE_SLEEP" "$delay"
+  delay=$((delay * 2 > STAPLE_MAX_DELAY ? STAPLE_MAX_DELAY : delay * 2))
 done

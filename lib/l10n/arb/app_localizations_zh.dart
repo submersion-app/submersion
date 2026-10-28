@@ -19141,6 +19141,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String plannerCanvas_issue_noUsableGas(String minGas, String fill) {
+    return '最低保底气量 $minGas 使 $fill 的充气没有可用气体';
+  }
+
+  @override
   String plannerCanvas_issue_diluentModExceeded(String depth, String value) {
     return '稀释气在 $depth 处超过其 MOD（ppO₂ $value bar）';
   }
@@ -34090,12 +34095,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String settings_shareAllSites_confirm(int count) {
-    return '选择谁可以看到你的全部 $count 个潜点。之后要更改某个潜点，打开它并点按“共享给”。';
+    return '选择谁可以看到你的全部 $count 个潜点。之后要更改某个潜点，编辑它并点按“共享给”。';
   }
 
   @override
   String settings_shareAllTrips_confirm(int count) {
-    return '选择谁可以看到你的全部 $count 个行程。之后要更改某个行程，打开它并点按“共享给”。';
+    return '选择谁可以看到你的全部 $count 个行程。之后要更改某个行程，编辑它并点按“共享给”。';
   }
 
   @override
@@ -48859,6 +48864,17 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get backup_history_device_anotherDevice => '其他设备';
+
+  @override
+  String get backup_history_device_thisDevice => '此设备';
+
+  @override
+  String backup_history_subtitleWithDevice(String summary, String device) {
+    return '$summary · $device';
+  }
+
+  @override
   String backup_history_manualSubtitle(
     int diveCount,
     int siteCount,
@@ -52213,6 +52229,16 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get tags_manage_cannotUndo => '此操作无法撤销。';
+
+  @override
+  String tags_manage_rowScopes(String scopes) {
+    return '适用于：$scopes';
+  }
+
+  @override
+  String tags_manage_rowUsage(String counts) {
+    return '已用于：$counts';
+  }
 
   @override
   String get tags_action_edit => '编辑标签';

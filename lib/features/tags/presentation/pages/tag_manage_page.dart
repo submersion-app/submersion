@@ -203,34 +203,43 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
         alignment: AlignmentDirectional.centerStart,
         child: TagChip(tag: tag),
       ),
-      // Where the tag is offered (issues #1765, #1942).
-      subtitle: Text(
-        [
-          for (final scope in TagScope.values)
-            if (tag.appliesTo(scope)) tagScopeName(context.l10n, scope),
-        ].join(' · '),
-      ),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
+      // Where the tag is offered (issues #1765, #1942), then how often it is
+      // used, each on its own labelled line. Both used to share the title
+      // line with the chip, and the usage text squeezed the name down to an
+      // ellipsis; the two lines also read as one run-on phrase (#3746).
+      isThreeLine: true,
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            tagUsageCounts(context.l10n, stat.counts),
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            context.l10n.tags_manage_rowScopes(
+              [
+                for (final scope in TagScope.values)
+                  if (tag.appliesTo(scope)) tagScopeName(context.l10n, scope),
+              ].join(' · '),
             ),
           ),
-          // The one way to edit a tag. Hidden while selecting, where a row
-          // tap toggles the row and a second target inside it would be a
-          // trap.
-          if (!_isSelectionMode)
-            IconButton(
+          Text(
+            context.l10n.tags_manage_rowUsage(
+              tagUsageCounts(
+                context.l10n,
+                stat.counts,
+                offered: stat.tag.scopes,
+              ),
+            ),
+          ),
+        ],
+      ),
+      // The one way to edit a tag. Hidden while selecting, where a row tap
+      // toggles the row and a second target inside it would be a trap.
+      trailing: _isSelectionMode
+          ? null
+          : IconButton(
               key: ValueKey('tag_edit_${tag.id}'),
               icon: const Icon(Icons.edit_outlined),
               tooltip: context.l10n.tags_manage_editTitle,
               onPressed: () => _showEditDialog(stat),
             ),
-        ],
-      ),
       selected: isSelected,
       // Outside selection the row is inert, whatever the tag's scope: this is
       // a settings page, and a tap here must not leave it. The edit button is

@@ -20114,6 +20114,11 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String plannerCanvas_issue_noUsableGas(String minGas, String fill) {
+    return 'Il minimo rock bottom di $minGas non lascia gas utilizzabile in una carica di $fill';
+  }
+
+  @override
   String plannerCanvas_issue_diluentModExceeded(String depth, String value) {
     return 'Il diluente supera la sua MOD Dil a $depth (ppO₂ $value bar)';
   }
@@ -36221,12 +36226,12 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String settings_shareAllSites_confirm(int count) {
-    return 'Scegli chi vede tutti i tuoi $count siti. Per cambiare un sito in seguito, aprilo e tocca Condiviso con.';
+    return 'Scegli chi vede tutti i tuoi $count siti. Per cambiare un sito in seguito, modificalo e tocca Condiviso con.';
   }
 
   @override
   String settings_shareAllTrips_confirm(int count) {
-    return 'Scegli chi vede tutti i tuoi $count viaggi. Per cambiare un viaggio in seguito, aprilo e tocca Condiviso con.';
+    return 'Scegli chi vede tutti i tuoi $count viaggi. Per cambiare un viaggio in seguito, modificalo e tocca Condiviso con.';
   }
 
   @override
@@ -52115,6 +52120,17 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get backup_history_device_anotherDevice => 'Altro dispositivo';
+
+  @override
+  String get backup_history_device_thisDevice => 'Questo dispositivo';
+
+  @override
+  String backup_history_subtitleWithDevice(String summary, String device) {
+    return '$summary · $device';
+  }
+
+  @override
   String backup_history_manualSubtitle(
     int diveCount,
     int siteCount,
@@ -55638,6 +55654,16 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get tags_manage_cannotUndo =>
       'Questa azione non può essere annullata.';
+
+  @override
+  String tags_manage_rowScopes(String scopes) {
+    return 'Per: $scopes';
+  }
+
+  @override
+  String tags_manage_rowUsage(String counts) {
+    return 'Usato in: $counts';
+  }
 
   @override
   String get tags_action_edit => 'Modifica tag';

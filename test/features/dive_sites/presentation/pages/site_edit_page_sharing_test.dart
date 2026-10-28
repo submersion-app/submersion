@@ -15,7 +15,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/divers/presentation/providers/profile_hides_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
-import 'package:submersion/shared/widgets/shared_items/item_sharing_row.dart';
+import 'package:submersion/shared/widgets/shared_items/item_sharing_field.dart';
 import 'package:submersion/core/data/visibility/item_sharing.dart';
 import 'package:submersion/features/divers/data/repositories/item_shares_repository.dart';
 import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
@@ -239,6 +239,131 @@ void main() {
       tester.widget<SharingTile>(find.byType(SharingTile)).onTap,
       isNotNull,
     );
+  });
+
+  // The edit page is the one place sharing changes (#3766), so a refused
+  // change says so rather than passing silently.
+  testWidgets('a sharing change the repository refuses says who may change '
+      'it', (tester) async {
+    final shares = FakeItemShares.everyone(['pier'])..refuseSet = true;
+    String? saved;
+    tester.view.physicalSize = const Size(900, 3200);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          allDiversProvider.overrideWith((_) async => divers),
+          validatedCurrentDiverIdProvider.overrideWith((_) async => 'd1'),
+          shareByDefaultProvider.overrideWith((_) async => false),
+          itemSharesRepositoryProvider.overrideWithValue(shares),
+        ],
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: SiteEditPage(
+              siteId: 'pier',
+              embedded: true,
+              onSaved: (id) => saved = id,
+              onCancel: () {},
+              onDeleted: () {},
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await openLifeSection(tester);
+    await tester.tap(find.byType(SharingTile));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.descendant(of: find.byType(AlertDialog), matching: find.text('Bob')),
+    );
+    await tester.tap(find.text('Save').last);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Save').first);
+    await tester.pumpAndSettle();
+    expect(shares.setCalls, [
+      ('pier', const ItemSharing(profileIds: {'d2'})),
+    ]);
+    // The profile acting now, which the repository checks (issue #2151).
+    expect(shares.setActingDivers, ['d1']);
+    expect(saved, 'pier');
+    expect(
+      find.text('Only another profile can change sharing'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('on the full page, a refused sharing change closes the page and '
+      'says who may change it instead of Site updated', (tester) async {
+    final shares = FakeItemShares.everyone(['pier'])..refuseSet = true;
+    tester.view.physicalSize = const Size(900, 3200);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    final router = GoRouter(
+      initialLocation: '/',
+      routes: [
+        GoRoute(
+          path: '/',
+          builder: (context, _) => Scaffold(
+            body: TextButton(
+              onPressed: () => context.push('/edit'),
+              child: const Text('open'),
+            ),
+          ),
+        ),
+        GoRoute(
+          path: '/edit',
+          builder: (_, _) => const SiteEditPage(siteId: 'pier'),
+        ),
+      ],
+    );
+    addTearDown(router.dispose);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          allDiversProvider.overrideWith((_) async => divers),
+          validatedCurrentDiverIdProvider.overrideWith((_) async => 'd1'),
+          shareByDefaultProvider.overrideWith((_) async => false),
+          itemSharesRepositoryProvider.overrideWithValue(shares),
+        ],
+        child: MaterialApp.router(
+          routerConfig: router,
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    await openLifeSection(tester);
+    await tester.tap(find.byType(SharingTile));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.descendant(of: find.byType(AlertDialog), matching: find.text('Bob')),
+    );
+    await tester.tap(find.text('Save').last);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Save').first);
+    await tester.pumpAndSettle();
+    expect(shares.setCalls, [
+      ('pier', const ItemSharing(profileIds: {'d2'})),
+    ]);
+    expect(find.text('open'), findsOneWidget, reason: 'the page closed');
+    expect(
+      find.text('Only another profile can change sharing'),
+      findsOneWidget,
+    );
+    expect(find.text('Site updated'), findsNothing);
   });
 
   testWidgets('removing hides it for this profile, closes, and Undo restores', (

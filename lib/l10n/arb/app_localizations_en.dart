@@ -19820,6 +19820,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String plannerCanvas_issue_noUsableGas(String minGas, String fill) {
+    return 'Rock-bottom minimum of $minGas leaves no usable gas in a $fill fill';
+  }
+
+  @override
   String plannerCanvas_issue_diluentModExceeded(String depth, String value) {
     return 'Diluent exceeds its Dil MOD at $depth (ppO₂ $value bar)';
   }
@@ -35602,12 +35607,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String settings_shareAllSites_confirm(int count) {
-    return 'Choose who sees all $count of your sites. To change one site later, open it and tap Shared with.';
+    return 'Choose who sees all $count of your sites. To change one site later, edit it and tap Shared with.';
   }
 
   @override
   String settings_shareAllTrips_confirm(int count) {
-    return 'Choose who sees all $count of your trips. To change one trip later, open it and tap Shared with.';
+    return 'Choose who sees all $count of your trips. To change one trip later, edit it and tap Shared with.';
   }
 
   @override
@@ -51289,6 +51294,17 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get backup_history_device_anotherDevice => 'Another device';
+
+  @override
+  String get backup_history_device_thisDevice => 'This device';
+
+  @override
+  String backup_history_subtitleWithDevice(String summary, String device) {
+    return '$summary · $device';
+  }
+
+  @override
   String backup_history_manualSubtitle(
     int diveCount,
     int siteCount,
@@ -54754,6 +54770,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tags_manage_cannotUndo => 'This cannot be undone.';
+
+  @override
+  String tags_manage_rowScopes(String scopes) {
+    return 'For: $scopes';
+  }
+
+  @override
+  String tags_manage_rowUsage(String counts) {
+    return 'Used on: $counts';
+  }
 
   @override
   String get tags_action_edit => 'Edit tags';

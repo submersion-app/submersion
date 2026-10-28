@@ -15,6 +15,7 @@ import 'package:submersion/features/backup/data/repositories/backup_preferences.
 import 'package:submersion/features/backup/data/services/backup_encryption_key_store.dart';
 import 'package:submersion/features/backup/data/services/backup_copy_guard.dart';
 import 'package:submersion/features/backup/data/services/backup_encryption_service.dart';
+import 'package:submersion/features/backup/data/services/backup_origin.dart';
 import 'package:submersion/features/backup/data/services/backup_service.dart';
 import 'package:submersion/features/backup/data/services/cloud_backup_history.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
@@ -693,6 +694,31 @@ final backupHistoryProvider = FutureProvider.autoDispose<List<BackupRecord>>((
       listedIds.contains(r.cloudFileId) ? r.copyWith(cloudCopyListed: true) : r,
   ];
 });
+
+/// This device's id as backup names record it, or null when it cannot be
+/// read.
+///
+/// Read again whenever the history reloads or the sync identity changes. The
+/// id lives in the database, and a restore reopens the database in place;
+/// Reset Sync State and some syncs mint a fresh id without touching the
+/// history, and SyncNotifier invalidates [conflictLocalDeviceProvider] after
+/// both. An id cached for the life of the Backups page would otherwise
+/// label this device's new backups as another device's.
+final backupDeviceIdProvider = FutureProvider.autoDispose<String?>((ref) {
+  ref.watch(backupHistoryProvider);
+  ref.watch(conflictLocalDeviceProvider);
+  return ref.watch(backupServiceProvider).thisDeviceIdOrNull();
+});
+
+/// Names the device behind each history row (issue #3651). Until the id
+/// and the peer names have loaded it knows no devices, so rows show none
+/// rather than a guess.
+final backupOriginResolverProvider = Provider.autoDispose<BackupOriginResolver>(
+  (ref) => BackupOriginResolver(
+    thisDeviceId: ref.watch(backupDeviceIdProvider).value,
+    peerDeviceNames: ref.watch(peerDeviceNamesProvider).value ?? const {},
+  ),
+);
 
 // =============================================================================
 // Convenience Providers

@@ -17,7 +17,7 @@ import 'package:submersion/features/trips/data/repositories/trip_repository.dart
 import 'package:submersion/features/trips/domain/entities/dive_candidate.dart';
 import 'package:submersion/features/trips/presentation/widgets/dive_assignment_dialog.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
-import 'package:submersion/shared/widgets/shared_items/item_sharing_row.dart';
+import 'package:submersion/shared/widgets/shared_items/item_sharing_field.dart';
 import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
 import 'package:submersion/core/data/visibility/item_sharing.dart';
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
@@ -991,6 +991,8 @@ void main() {
       expect(shares.setCalls, [
         ('new-id-1', const ItemSharing(profileIds: {'d2'})),
       ]);
+      // The profile acting now, which the repository checks (issue #2151).
+      expect(shares.setActingDivers, ['d1']);
     });
 
     testWidgets('saving an existing trip without touching sharing stores no '
@@ -1031,6 +1033,73 @@ void main() {
       await tester.tap(find.text('Save'));
       await tester.pumpAndSettle();
       expect(shares.setCalls, isEmpty);
+    });
+
+    // The edit page is the one place sharing changes (#3766), so a refused
+    // change says so rather than reading as saved.
+    testWidgets('a sharing change the repository refuses says who may change '
+        'it instead of Trip updated', (tester) async {
+      final twoDivers = [
+        for (final (id, name) in [('d1', 'One'), ('d2', 'Two')])
+          Diver(
+            id: id,
+            name: name,
+            createdAt: DateTime(2024),
+            updatedAt: DateTime(2024),
+          ),
+      ];
+      final shares = FakeItemShares.everyone(['test-shared'])..refuseSet = true;
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            validatedCurrentDiverIdProvider.overrideWith((_) async => null),
+            tripRepositoryProvider.overrideWithValue(
+              _MockTripRepositoryWithSharedTrip(),
+            ),
+            tripListNotifierProvider.overrideWith((ref) {
+              return _MockTripListNotifier([]);
+            }),
+            allDiversProvider.overrideWith((_) async => twoDivers),
+            shareByDefaultProvider.overrideWith((_) async => false),
+            itemSharesRepositoryProvider.overrideWithValue(shares),
+          ],
+          child: const MaterialApp(
+            locale: Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: TripEditPage(tripId: 'test-shared'),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        find.text('Shared with'),
+        50.0,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.tap(find.byType(SharingTile));
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.text('Two'),
+        ),
+      );
+      await tester.tap(find.text('Save').last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Unshare'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+      expect(shares.setCalls, [
+        ('test-shared', const ItemSharing(profileIds: {'d2'})),
+      ]);
+      expect(
+        find.text('Only another profile can change sharing'),
+        findsOneWidget,
+      );
+      expect(find.text('Trip updated successfully'), findsNothing);
     });
   });
 

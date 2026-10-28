@@ -19988,6 +19988,11 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String plannerCanvas_issue_noUsableGas(String minGas, String fill) {
+    return 'Rock-bottom-minimum van $minGas laat geen bruikbaar gas over in een vulling van $fill';
+  }
+
+  @override
   String plannerCanvas_issue_diluentModExceeded(String depth, String value) {
     return 'Diluent overschrijdt de Dil-MOD op $depth (ppO₂ $value bar)';
   }
@@ -35965,12 +35970,12 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String settings_shareAllSites_confirm(int count) {
-    return 'Kies wie al je $count duikplekken ziet. Om één duikplek later te wijzigen, open je hem en tik je op Gedeeld met.';
+    return 'Kies wie al je $count duikplekken ziet. Om één duikplek later te wijzigen, bewerk je hem en tik je op Gedeeld met.';
   }
 
   @override
   String settings_shareAllTrips_confirm(int count) {
-    return 'Kies wie al je $count trips ziet. Om één trip later te wijzigen, open je hem en tik je op Gedeeld met.';
+    return 'Kies wie al je $count trips ziet. Om één trip later te wijzigen, bewerk je hem en tik je op Gedeeld met.';
   }
 
   @override
@@ -51783,6 +51788,17 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get backup_history_device_anotherDevice => 'Ander apparaat';
+
+  @override
+  String get backup_history_device_thisDevice => 'Dit apparaat';
+
+  @override
+  String backup_history_subtitleWithDevice(String summary, String device) {
+    return '$summary · $device';
+  }
+
+  @override
   String backup_history_manualSubtitle(
     int diveCount,
     int siteCount,
@@ -55292,6 +55308,16 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get tags_manage_cannotUndo => 'Dit kan niet ongedaan worden gemaakt.';
+
+  @override
+  String tags_manage_rowScopes(String scopes) {
+    return 'Voor: $scopes';
+  }
+
+  @override
+  String tags_manage_rowUsage(String counts) {
+    return 'Gebruikt op: $counts';
+  }
 
   @override
   String get tags_action_edit => 'Tags bewerken';

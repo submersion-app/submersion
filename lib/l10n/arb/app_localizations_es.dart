@@ -20106,6 +20106,11 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String plannerCanvas_issue_noUsableGas(String minGas, String fill) {
+    return 'El mínimo rock bottom de $minGas no deja gas utilizable en una carga de $fill';
+  }
+
+  @override
   String plannerCanvas_issue_diluentModExceeded(String depth, String value) {
     return 'El diluyente excede su MOD Dil a $depth (ppO₂ $value bar)';
   }
@@ -36244,12 +36249,12 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String settings_shareAllSites_confirm(int count) {
-    return 'Elige quién ve tus $count sitios. Para cambiar un sitio más tarde, ábrelo y toca Compartido con.';
+    return 'Elige quién ve tus $count sitios. Para cambiar un sitio más tarde, edítalo y toca Compartido con.';
   }
 
   @override
   String settings_shareAllTrips_confirm(int count) {
-    return 'Elige quién ve tus $count viajes. Para cambiar un viaje más tarde, ábrelo y toca Compartido con.';
+    return 'Elige quién ve tus $count viajes. Para cambiar un viaje más tarde, edítalo y toca Compartido con.';
   }
 
   @override
@@ -52163,6 +52168,17 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get backup_history_device_anotherDevice => 'Otro dispositivo';
+
+  @override
+  String get backup_history_device_thisDevice => 'Este dispositivo';
+
+  @override
+  String backup_history_subtitleWithDevice(String summary, String device) {
+    return '$summary · $device';
+  }
+
+  @override
   String backup_history_manualSubtitle(
     int diveCount,
     int siteCount,
@@ -55676,6 +55692,16 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get tags_manage_cannotUndo => 'Esta acción no se puede deshacer.';
+
+  @override
+  String tags_manage_rowScopes(String scopes) {
+    return 'Para: $scopes';
+  }
+
+  @override
+  String tags_manage_rowUsage(String counts) {
+    return 'Usada en: $counts';
+  }
 
   @override
   String get tags_action_edit => 'Editar etiquetas';

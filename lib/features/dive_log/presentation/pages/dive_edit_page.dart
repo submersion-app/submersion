@@ -1467,6 +1467,18 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             onToggle: null,
             children: [
               _gatedRow(
+                BulkField.site,
+                FormRow.picker(
+                  label: l10n.diveLog_edit_row_site,
+                  value: _selectedSite?.name,
+                  placeholder: l10n.diveLog_edit_row_notSet,
+                  onTap: _showBulkSitePicker,
+                  onClear: _selectedSite == null
+                      ? null
+                      : () => setState(() => _selectedSite = null),
+                ),
+              ),
+              _gatedRow(
                 BulkField.diveCenter,
                 FormRow.picker(
                   label: l10n.diveLog_edit_row_diveCenter,
@@ -1971,8 +1983,28 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     );
   }
 
+  /// The bulk Site row's picker. Unlike [_showSitePicker] it only stages the
+  /// site: the snap onto water type, entry/exit and dive types happens per
+  /// dive in the bulk service, so the form's own rows keep what the diver
+  /// set (#3657).
+  Future<void> _showBulkSitePicker() async {
+    final site = await pickOrCreateSite(
+      context,
+      ref,
+      selectedSiteId: _selectedSite?.id,
+      currentLocation: _currentLocation,
+    );
+    if (site != null && mounted) {
+      _markDirty();
+      setState(() => _selectedSite = site);
+    }
+  }
+
   List<BulkCollectionOp> _collectCollectionOps() {
     final ops = <BulkCollectionOp>[];
+    if (_bulkEnabled.contains(BulkField.site)) {
+      ops.add(SiteOp(siteId: _selectedSite?.id));
+    }
     if (_bulkEnabled.contains(BulkField.diverRole)) {
       ops.add(DiverRolesOp(roleIds: _diverRoleIds));
     }
@@ -2450,9 +2482,11 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       return;
     }
 
-    // The My role gate rides DiverRolesOp (#1221), not a scalar column.
+    // The My role gate rides DiverRolesOp (#1221) and the Site gate SiteOp
+    // (#3657), not a scalar column.
     final scalarFields = Set<BulkField>.from(_bulkEnabled)
-      ..remove(BulkField.diverRole);
+      ..remove(BulkField.diverRole)
+      ..remove(BulkField.site);
     String? notesAppend;
     if (_bulkEnabled.contains(BulkField.notes) && _bulkNotesAppend) {
       scalarFields.remove(BulkField.notes);

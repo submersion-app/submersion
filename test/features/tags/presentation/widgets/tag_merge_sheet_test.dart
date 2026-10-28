@@ -235,7 +235,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // The same wording as the Manage Tags list.
-      expect(find.text('0 dives, 4 sites'), findsOneWidget);
+      expect(find.text('4 sites'), findsOneWidget);
     });
 
     TagStatistic equipmentStat(String id, String name, int items) =>
@@ -277,7 +277,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('0 dives, 4 equipment items'), findsOneWidget);
+      expect(find.text('4 equipment items'), findsOneWidget);
     });
 
     testWidgets('merging equipment-only tags starts from the one on the '

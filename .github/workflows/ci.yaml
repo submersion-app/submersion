@@ -393,6 +393,16 @@ jobs:
         shard: [0, 1, 2, 3, 4, 5]
     env:
       TOTAL_SHARDS: 6
+      # The whole suite runs in a zone with a non-zero offset and daylight
+      # saving time, not the runner's UTC (issue #3659). In UTC the offset is
+      # zero all year, so a test that mixes a local date with a UTC wall clock,
+      # or takes today's offset for another date, passes here and fails on a
+      # contributor's machine (#3656). Sydney is east of Greenwich, so a local
+      # morning falls on the previous UTC day, and it keeps DST in the
+      # southern summer, opposite the northern zones most contributors run
+      # in. The Timezone Tests job below adds a western and a half-hour zone
+      # for the files listed there.
+      TZ: Australia/Sydney
     steps:
       - uses: actions/checkout@v7
         with:
@@ -490,12 +500,14 @@ jobs:
           flags: shard-${{ matrix.shard }}
           fail_ci_if_error: false  # Enable after configuring repo on codecov.io
 
-  # Replays the timezone-sensitive tests under a non-UTC zone. The runners are
-  # UTC, where a device's UTC offset is zero and a whole class of frame bug
+  # Replays the timezone-sensitive tests under more non-UTC zones. The runners
+  # are UTC, where a device's UTC offset is zero and a whole class of frame bug
   # cannot reproduce: `dives.dive_date_time` holds a wall clock flagged as UTC
   # while the filter's dates are built LOCAL, so mixing the two frames shifts
   # the day boundary by exactly that offset and stays invisible here
-  # (issue #1368).
+  # (issue #1368). The test shards above already run the whole suite in
+  # Australia/Sydney (issue #3659); this job covers the directions Sydney
+  # cannot.
   #
   # Two zones, because they fail differently: America/New_York is a whole hour
   # WEST of UTC (a boundary pulls dives out), Australia/Adelaide is a HALF hour

@@ -5,8 +5,8 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/gps_log/domain/entities/gps_track.dart';
 import 'package:submersion/features/gps_log/presentation/widgets/gps_track_thumbnail.dart';
 import 'package:submersion/features/gps_log/presentation/widgets/track_row_labels.dart';
-import 'package:submersion/features/gps_log/presentation/widgets/track_title_row.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/tracks/presentation/widgets/track_badge_line.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// One row in a list of recorded tracks: thumbnail, title, figures.
@@ -34,9 +34,9 @@ class GpsTrackListTile extends ConsumerWidget {
   final VoidCallback? onDelete;
   final EdgeInsetsGeometry? contentPadding;
 
-  /// Shown in the title row, after the title (dive-list parity: the badge
-  /// sits next to the title the way `DiveModeBadge` does, not buried in the
-  /// detail line).
+  /// Shown at the end of the detail line, the same place an
+  /// underwater row puts its badge (next to its dive link), so both kinds
+  /// of row in the mixed Tracks list carry it on their last line.
   final Widget? kindBadge;
 
   @override
@@ -49,11 +49,11 @@ class GpsTrackListTile extends ConsumerWidget {
       contentPadding: contentPadding,
       minLeadingWidth: kTrackThumbnailWidth,
       leading: GpsTrackThumbnail(trackId: track.id),
-      title: TrackTitleRow(
-        title: formatTrackTitle(units, track),
+      title: Text(formatTrackTitle(units, track)),
+      subtitle: TrackBadgeLine(
         badge: kindBadge,
+        child: Text(formatTrackDetailLine(l10n, units, track)),
       ),
-      subtitle: Text(formatTrackDetailLine(l10n, units, track)),
       trailing: onDelete == null
           ? null
           : IconButton(
