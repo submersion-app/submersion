@@ -50826,6 +50826,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get media_people_filterSection => 'Personnes';
 
   @override
+  String get media_people_removedBuddy => 'Binôme supprimé';
+
+  @override
+  String get media_people_saveFailed =>
+      'Impossible d\'enregistrer l\'identification. Réessayez.';
+
+  @override
   String get media_info_fileSection => 'Fichier';
 
   @override

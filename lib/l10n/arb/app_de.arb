@@ -15153,6 +15153,8 @@
   "media_people_buddyPhotosTitle": "Fotos und Videos",
   "media_people_buddyThumbnailLabel": "Foto oder Video mit diesem Tauchpartner",
   "media_people_filterSection": "Personen",
+  "media_people_removedBuddy": "Entfernter Tauchpartner",
+  "media_people_saveFailed": "Die Markierung konnte nicht gespeichert werden. Versuchen Sie es erneut.",
   "media_info_fileSection": "Datei",
   "media_info_filename": "Dateiname",
   "media_info_type": "Typ",

@@ -15001,6 +15001,8 @@
   "media_people_buddyPhotosTitle": "Foto's en video's",
   "media_people_buddyThumbnailLabel": "Foto of video met deze buddy",
   "media_people_filterSection": "Personen",
+  "media_people_removedBuddy": "Verwijderde buddy",
+  "media_people_saveFailed": "De tag kon niet worden opgeslagen. Probeer het opnieuw.",
   "media_info_fileSection": "Bestand",
   "media_info_filename": "Bestandsnaam",
   "media_info_type": "Type",

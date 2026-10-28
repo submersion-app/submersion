@@ -15001,6 +15001,8 @@
   "media_people_buddyPhotosTitle": "Foto e video",
   "media_people_buddyThumbnailLabel": "Foto o video con questo compagno",
   "media_people_filterSection": "Persone",
+  "media_people_removedBuddy": "Compagno rimosso",
+  "media_people_saveFailed": "Impossibile salvare il tag. Riprova.",
   "media_info_fileSection": "File",
   "media_info_filename": "Nome file",
   "media_info_type": "Tipo",

@@ -2,9 +2,10 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_person_tag.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
@@ -12,6 +13,7 @@ import 'package:submersion/features/media/presentation/helpers/face_box_geometry
 import 'package:submersion/features/media/presentation/providers/media_people_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/people_tags/add_to_dive_offer.dart';
 import 'package:submersion/features/media/presentation/widgets/people_tags/person_picker_sheet.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Whether a face box can be placed on [item] here (issue #1745). A photo
 /// needs its size known, to map a tap onto it. A video also needs a player
@@ -83,6 +85,25 @@ mixin PeopleTagViewerMixin<T extends ConsumerStatefulWidget>
   FaceBox? pendingPeopleBox(String mediaId) =>
       _pendingMediaId == mediaId ? _pendingBox : null;
 
+  static final _log = LoggerService.forClass(PeopleTagSession);
+
+  /// Runs a tag write; a failure is logged and told to the diver rather
+  /// than left as an unhandled async error.
+  Future<bool> _save(String what, Future<void> Function() write) async {
+    try {
+      await write();
+      return true;
+    } catch (e, stackTrace) {
+      _log.error('Failed to $what', error: e, stackTrace: stackTrace);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n.media_people_saveFailed)),
+        );
+      }
+      return false;
+    }
+  }
+
   /// Decoded image sizes, which win over a row's unrotated dimensions.
   final Map<String, Size> _decodedSizes = {};
 
@@ -151,17 +172,20 @@ mixin PeopleTagViewerMixin<T extends ConsumerStatefulWidget>
       }
     }
     if (choice == null || !mounted) return;
-    await ref
-        .read(mediaPeopleRepositoryProvider)
-        .addTag(
-          mediaId: item.id,
-          buddyId: choice is BuddyChoice ? choice.buddy.id : null,
-          diverId: choice is MeChoice ? choice.diverId : null,
-          box: box,
-          // A moment belongs to a box: a tag without a spot has neither.
-          videoPosition: box == null ? null : at,
-        );
-    if (!mounted) return;
+    final saved = await _save(
+      'tag a person',
+      () => ref
+          .read(mediaPeopleRepositoryProvider)
+          .addTag(
+            mediaId: item.id,
+            buddyId: choice is BuddyChoice ? choice.buddy.id : null,
+            diverId: choice is MeChoice ? choice.diverId : null,
+            box: box,
+            // A moment belongs to a box: a tag without a spot has neither.
+            videoPosition: box == null ? null : at,
+          ),
+    );
+    if (!saved || !mounted) return;
     await offerAddToDive(context, ref, diveId: item.diveId, choice: choice);
   }
 
@@ -174,25 +198,34 @@ mixin PeopleTagViewerMixin<T extends ConsumerStatefulWidget>
   Future<void> changeTaggedPerson(MediaItem item, MediaPersonTag tag) async {
     final choice = await showPersonPickerSheet(context, diveId: item.diveId);
     if (choice == null || !mounted) return;
-    await ref
-        .read(mediaPeopleRepositoryProvider)
-        .updateTag(
-          tag.copyWith(
-            buddyId: choice is BuddyChoice ? choice.buddy.id : null,
-            diverId: choice is MeChoice ? choice.diverId : null,
-            updatedAt: DateTime.now(),
+    final saved = await _save(
+      'change a tagged person',
+      () => ref
+          .read(mediaPeopleRepositoryProvider)
+          .updateTag(
+            tag.copyWith(
+              buddyId: choice is BuddyChoice ? choice.buddy.id : null,
+              diverId: choice is MeChoice ? choice.diverId : null,
+              updatedAt: DateTime.now(),
+            ),
           ),
-        );
-    if (!mounted) return;
+    );
+    if (!saved || !mounted) return;
     await offerAddToDive(context, ref, diveId: item.diveId, choice: choice);
   }
 
   Future<void> removePeopleTag(String tagId) async {
-    await ref.read(mediaPeopleRepositoryProvider).removeTag(tagId);
-    if (mounted) setState(() => selectedPeopleTagId = null);
+    final saved = await _save(
+      'remove a tag',
+      () => ref.read(mediaPeopleRepositoryProvider).removeTag(tagId),
+    );
+    if (saved && mounted) setState(() => selectedPeopleTagId = null);
   }
 
-  Future<void> movePeopleTag(MediaPersonTag tag, FaceBox box) => ref
-      .read(mediaPeopleRepositoryProvider)
-      .updateTag(tag.copyWith(box: box, updatedAt: DateTime.now()));
+  Future<void> movePeopleTag(MediaPersonTag tag, FaceBox box) => _save(
+    'move a face box',
+    () => ref
+        .read(mediaPeopleRepositoryProvider)
+        .updateTag(tag.copyWith(box: box, updatedAt: DateTime.now())),
+  );
 }

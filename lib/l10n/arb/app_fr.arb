@@ -15001,6 +15001,8 @@
   "media_people_buddyPhotosTitle": "Photos et vidéos",
   "media_people_buddyThumbnailLabel": "Photo ou vidéo avec ce binôme",
   "media_people_filterSection": "Personnes",
+  "media_people_removedBuddy": "Binôme supprimé",
+  "media_people_saveFailed": "Impossible d'enregistrer l'identification. Réessayez.",
   "media_info_fileSection": "Fichier",
   "media_info_filename": "Nom du fichier",
   "media_info_type": "Type",

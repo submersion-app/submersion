@@ -15001,6 +15001,8 @@
   "media_people_buddyPhotosTitle": "Fotók és videók",
   "media_people_buddyThumbnailLabel": "Fotó vagy videó ezzel a búvártárssal",
   "media_people_filterSection": "Személyek",
+  "media_people_removedBuddy": "Törölt búvártárs",
+  "media_people_saveFailed": "A jelölés mentése nem sikerült. Próbálja újra.",
   "media_info_fileSection": "Fájl",
   "media_info_filename": "Fájlnév",
   "media_info_type": "Típus",

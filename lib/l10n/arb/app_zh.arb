@@ -15001,6 +15001,8 @@
   "media_people_buddyPhotosTitle": "照片和视频",
   "media_people_buddyThumbnailLabel": "与此潜伴的照片或视频",
   "media_people_filterSection": "人物",
+  "media_people_removedBuddy": "已删除的潜伴",
+  "media_people_saveFailed": "无法保存标记，请重试。",
   "media_info_fileSection": "文件",
   "media_info_filename": "文件名",
   "media_info_type": "类型",

@@ -49918,6 +49918,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get media_people_filterSection => 'People';
 
   @override
+  String get media_people_removedBuddy => 'Removed buddy';
+
+  @override
+  String get media_people_saveFailed => 'Couldn\'t save the tag. Try again.';
+
+  @override
   String get media_info_fileSection => 'File';
 
   @override

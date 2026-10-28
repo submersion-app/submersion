@@ -50390,6 +50390,13 @@ class AppLocalizationsNl extends AppLocalizations {
   String get media_people_filterSection => 'Personen';
 
   @override
+  String get media_people_removedBuddy => 'Verwijderde buddy';
+
+  @override
+  String get media_people_saveFailed =>
+      'De tag kon niet worden opgeslagen. Probeer het opnieuw.';
+
+  @override
   String get media_info_fileSection => 'Bestand';
 
   @override

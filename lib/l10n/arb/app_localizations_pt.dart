@@ -50708,6 +50708,13 @@ class AppLocalizationsPt extends AppLocalizations {
   String get media_people_filterSection => 'Pessoas';
 
   @override
+  String get media_people_removedBuddy => 'Companheiro removido';
+
+  @override
+  String get media_people_saveFailed =>
+      'Não foi possível salvar a marcação. Tente novamente.';
+
+  @override
   String get media_info_fileSection => 'Arquivo';
 
   @override

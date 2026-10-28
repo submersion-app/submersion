@@ -260,7 +260,7 @@ class _MediaLibraryFilterSheetState
               for (final id in gone)
                 person(
                   id,
-                  l10n.media_people_filterSection,
+                  l10n.media_people_removedBuddy,
                   true,
                   (v) => _toggleBuddy(id, v),
                 ),

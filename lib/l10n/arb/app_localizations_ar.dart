@@ -51342,6 +51342,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_people_filterSection => 'الأشخاص';
 
   @override
+  String get media_people_removedBuddy => 'رفيق محذوف';
+
+  @override
+  String get media_people_saveFailed => 'تعذر حفظ الوسم. حاول مرة أخرى.';
+
+  @override
   String get media_info_fileSection => 'الملف';
 
   @override

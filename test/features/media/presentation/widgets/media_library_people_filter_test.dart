@@ -134,4 +134,14 @@ void main() {
     filter = container.read(mediaLibraryFilterProvider);
     expect(filter.buddyIds, isEmpty);
   });
+
+  testWidgets('a selected buddy no longer listed reads as removed', (
+    tester,
+  ) async {
+    container.read(mediaLibraryFilterProvider.notifier).state =
+        const MediaLibraryFilter(buddyIds: {'gone'});
+    await pump(tester, const MediaLibraryActiveFilterChips());
+
+    expect(find.widgetWithText(InputChip, 'Removed buddy'), findsOneWidget);
+  });
 }

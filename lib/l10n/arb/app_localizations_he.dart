@@ -49638,6 +49638,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_people_filterSection => 'אנשים';
 
   @override
+  String get media_people_removedBuddy => 'חבר צוללים שהוסר';
+
+  @override
+  String get media_people_saveFailed => 'לא ניתן לשמור את התיוג. נסה שוב.';
+
+  @override
   String get media_info_fileSection => 'קובץ';
 
   @override

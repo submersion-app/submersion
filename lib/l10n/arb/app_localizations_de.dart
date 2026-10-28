@@ -50597,6 +50597,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get media_people_filterSection => 'Personen';
 
   @override
+  String get media_people_removedBuddy => 'Entfernter Tauchpartner';
+
+  @override
+  String get media_people_saveFailed =>
+      'Die Markierung konnte nicht gespeichert werden. Versuchen Sie es erneut.';
+
+  @override
   String get media_info_fileSection => 'Datei';
 
   @override

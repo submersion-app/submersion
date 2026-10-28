@@ -50761,6 +50761,13 @@ class AppLocalizationsEs extends AppLocalizations {
   String get media_people_filterSection => 'Personas';
 
   @override
+  String get media_people_removedBuddy => 'Compañero eliminado';
+
+  @override
+  String get media_people_saveFailed =>
+      'No se pudo guardar la etiqueta. Inténtalo de nuevo.';
+
+  @override
   String get media_info_fileSection => 'Archivo';
 
   @override

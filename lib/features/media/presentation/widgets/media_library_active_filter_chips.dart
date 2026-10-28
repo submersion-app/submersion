@@ -143,7 +143,7 @@ class MediaLibraryActiveFilterChips extends ConsumerWidget {
     for (final buddyId in filter.buddyIds) {
       final name =
           buddies.where((b) => b.id == buddyId).firstOrNull?.name ??
-          l10n.media_people_filterSection;
+          l10n.media_people_removedBuddy;
       chips.add(
         chip(
           name,

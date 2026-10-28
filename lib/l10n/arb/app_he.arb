@@ -15001,6 +15001,8 @@
   "media_people_buddyPhotosTitle": "תמונות וסרטונים",
   "media_people_buddyThumbnailLabel": "תמונה או סרטון עם חבר הצוללים הזה",
   "media_people_filterSection": "אנשים",
+  "media_people_removedBuddy": "חבר צוללים שהוסר",
+  "media_people_saveFailed": "לא ניתן לשמור את התיוג. נסה שוב.",
   "media_info_fileSection": "קובץ",
   "media_info_filename": "שם הקובץ",
   "media_info_type": "סוג",

@@ -47557,6 +47557,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_people_filterSection => '人物';
 
   @override
+  String get media_people_removedBuddy => '已删除的潜伴';
+
+  @override
+  String get media_people_saveFailed => '无法保存标记，请重试。';
+
+  @override
   String get media_info_fileSection => '文件';
 
   @override

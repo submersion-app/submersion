@@ -15001,6 +15001,8 @@
   "media_people_buddyPhotosTitle": "Fotos y vídeos",
   "media_people_buddyThumbnailLabel": "Foto o vídeo con este compañero",
   "media_people_filterSection": "Personas",
+  "media_people_removedBuddy": "Compañero eliminado",
+  "media_people_saveFailed": "No se pudo guardar la etiqueta. Inténtalo de nuevo.",
   "media_info_fileSection": "Archivo",
   "media_info_filename": "Nombre del archivo",
   "media_info_type": "Tipo",

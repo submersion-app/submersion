@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_people_providers.dart';
@@ -51,6 +52,8 @@ class _PersonPickerSheet extends ConsumerStatefulWidget {
 }
 
 class _PersonPickerSheetState extends ConsumerState<_PersonPickerSheet> {
+  static final _log = LoggerService.forClass(_PersonPickerSheet);
+
   String _query = '';
   bool _addingBuddy = false;
   bool _saving = false;
@@ -83,9 +86,13 @@ class _PersonPickerSheetState extends ConsumerState<_PersonPickerSheet> {
             ),
           );
       if (mounted) Navigator.of(context).pop(BuddyChoice(created, isNew: true));
-    } catch (_) {
-      if (mounted) setState(() => _saving = false);
-      rethrow;
+    } catch (e, stackTrace) {
+      _log.error('Failed to create a buddy', error: e, stackTrace: stackTrace);
+      if (!mounted) return;
+      setState(() => _saving = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.media_people_saveFailed)),
+      );
     }
   }
 

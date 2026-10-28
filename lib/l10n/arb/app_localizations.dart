@@ -80319,6 +80319,18 @@ abstract class AppLocalizations {
   /// **'People'**
   String get media_people_filterSection;
 
+  /// No description provided for @media_people_removedBuddy.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed buddy'**
+  String get media_people_removedBuddy;
+
+  /// No description provided for @media_people_saveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save the tag. Try again.'**
+  String get media_people_saveFailed;
+
   /// No description provided for @media_info_fileSection.
   ///
   /// In en, this message translates to:

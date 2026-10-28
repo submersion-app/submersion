@@ -50429,6 +50429,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_people_filterSection => 'Személyek';
 
   @override
+  String get media_people_removedBuddy => 'Törölt búvártárs';
+
+  @override
+  String get media_people_saveFailed =>
+      'A jelölés mentése nem sikerült. Próbálja újra.';
+
+  @override
   String get media_info_fileSection => 'Fájl';
 
   @override
