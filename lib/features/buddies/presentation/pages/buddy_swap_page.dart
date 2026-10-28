@@ -108,8 +108,9 @@ class _BuddySwapPageState extends ConsumerState<BuddySwapPage>
     _session = session;
     _events = session.events.listen(_onEvent);
     final availability = await session.start();
-    if (!mounted) {
-      // The page closed while the radio was coming on.
+    if (!mounted || run != _runs) {
+      // The page closed, or was left or restarted, while the radio was
+      // coming on: this start is stale and its session ends.
       await session.stop();
       return;
     }
@@ -213,19 +214,23 @@ class _BuddySwapPageState extends ConsumerState<BuddySwapPage>
     final choices = await ref.read(myBuddyCardChoicesProvider.future);
     final available = await ref.read(myBuddyCardFieldsProvider.future);
     if (!mounted) return;
-    final saves = <Future<void>>[];
+    // Each toggle saves the whole diver row: one at a time, in order, so a
+    // slower earlier save never lands after a newer choice.
+    Future<void>? saves;
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       builder: (_) => ShareChoicesSheet(
         initial: choices,
         available: available,
-        onChanged: (next) => saves.add(saveMyBuddyCardChoices(ref, next)),
+        onChanged: (next) => saves = (saves ?? Future.value()).then(
+          (_) => saveMyBuddyCardChoices(ref, next),
+        ),
       ),
     );
-    if (saves.isEmpty) return;
+    if (saves == null) return;
     // Every toggle is saved before the card is rebuilt from them.
-    await Future.wait(saves);
+    await saves;
     if (mounted) await _restart();
   }
 

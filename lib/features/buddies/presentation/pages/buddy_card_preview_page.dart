@@ -38,7 +38,12 @@ class _BuddyCardPreviewPageState extends ConsumerState<BuddyCardPreviewPage> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final buddiesAsync = ref.watch(allBuddiesProvider);
-    final diverId = ref.watch(validatedCurrentDiverIdProvider).value;
+    // While the current diver reloads, the old id is not trusted: the card
+    // is shown as any other until the answer is in.
+    final diverAsync = ref.watch(validatedCurrentDiverIdProvider);
+    final diverId = diverAsync.isLoading || diverAsync.hasError
+        ? null
+        : diverAsync.value;
     return Scaffold(
       appBar: AppBar(title: Text(l10n.buddyCard_preview_title)),
       body: buddiesAsync.when(
