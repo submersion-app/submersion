@@ -6,6 +6,7 @@ import 'package:latlong2/latlong.dart';
 
 import 'package:submersion/core/router/track_locations.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/coordinates/coordinate_formatter.dart';
 import 'package:submersion/core/utils/geo_math.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -342,12 +343,6 @@ class _GpsCoordinateRow extends StatelessWidget {
   final VoidCallback onCopy;
   final String? sourceName;
 
-  /// [coordText] with every space made non-breaking except the one after the
-  /// axis separator, so a coordinate too wide for its row wraps between
-  /// latitude and longitude, never inside one ("N," then "E" alone, #3745).
-  static String _breakOnlyBetweenAxes(String coordText) =>
-      coordText.replaceAll(' ', '\u00A0').replaceAll(',\u00A0', ', ');
-
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -386,7 +381,7 @@ class _GpsCoordinateRow extends StatelessWidget {
                   key: coordKey,
                   onTap: onFocus,
                   child: Text(
-                    _breakOnlyBetweenAxes(coordText),
+                    breakCoordinatesOnlyBetweenAxes(coordText),
                     semanticsLabel: coordText,
                     style: textTheme.bodyMedium?.copyWith(
                       color: colorScheme.primary,
