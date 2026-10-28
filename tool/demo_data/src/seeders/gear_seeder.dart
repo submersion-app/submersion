@@ -1,20 +1,12 @@
 import 'package:submersion/features/equipment/data/repositories/equipment_component_repository.dart';
-import 'package:submersion/features/equipment/data/repositories/equipment_location_move_repository.dart';
-import 'package:submersion/features/equipment/data/repositories/equipment_location_repository.dart';
-import 'package:submersion/features/equipment/data/repositories/equipment_observation_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_set_repository_impl.dart';
-import 'package:submersion/features/equipment/data/repositories/equipment_share_repository.dart';
-import 'package:submersion/features/equipment/data/services/equipment_transfer_service.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
-import 'package:submersion/features/equipment/domain/entities/equipment_location.dart';
-import 'package:submersion/features/equipment/domain/entities/equipment_observation.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set_geofence.dart';
 
-import '../story/story_plan.dart';
 import 'gear_assemblies.dart';
 import 'gear_catalog.dart';
 import 'seed_context.dart';
@@ -123,7 +115,7 @@ const demoSets = <String, (String, List<String>)>{
 
 /// The demo diver's kit and what the app keeps about it: every item with
 /// its attributes, the regulators' parts, what is fitted inside the
-/// rebreather and the scooter, the kit sets, and where things are stored.
+/// rebreather and the scooter, and the kit sets.
 class GearSeeder implements DemoSeeder {
   @override
   String get name => 'gear';
@@ -201,14 +193,6 @@ class GearSeeder implements DemoSeeder {
     }
 
     await _sets(ctx);
-    DateTime bought(int dive) {
-      final d = ctx.plan.dives[dive - 1].start;
-      return ctx.timeline.homeDayOnOrBefore(
-        DateTime(d.year, d.month, d.day - 7),
-      );
-    }
-
-    await _storageAndService(ctx, bought);
   }
 
   Future<void> _sets(DemoSeedContext ctx) async {
@@ -255,68 +239,6 @@ class GearSeeder implements DemoSeeder {
         createdAt: created,
         updatedAt: created,
       ),
-    );
-  }
-
-  Future<void> _storageAndService(
-    DemoSeedContext ctx,
-    DateTime Function(int) bought,
-  ) async {
-    final e = ctx.equipment;
-    final locations = EquipmentLocationRepository();
-    final garage = await locations.createLocation(
-      diverId: DemoSeedContext.diverId,
-      name: 'Garage shelf',
-      kind: EquipmentLocationKind.storage,
-    );
-    final shop = await locations.createLocation(
-      diverId: DemoSeedContext.diverId,
-      name: 'Regulator service shop',
-      kind: EquipmentLocationKind.serviceShop,
-    );
-    final moves = EquipmentLocationMoveRepository();
-    await moves.recordMoves(
-      equipmentIds: [
-        for (final k in ['drysuit', 'tank-12', 'twin', 'weights']) e[k]!,
-      ],
-      locationId: garage.id,
-      movedAt: bought(ctx.plan.milestones[StoryMilestone.techStart]! + 10),
-    );
-    await moves.recordMoves(
-      equipmentIds: [e['reg-cold']!],
-      locationId: shop.id,
-      movedAt: DateTime(ctx.anchor.year, ctx.anchor.month, ctx.anchor.day - 20),
-      note: 'Annual service',
-    );
-
-    final observations = EquipmentObservationRepository();
-    final lastLake = ctx.plan.dives.lastWhere(
-      (d) => d.destination.key == 'home',
-    );
-    await observations.create(
-      equipmentId: e['drysuit']!,
-      diverId: DemoSeedContext.diverId,
-      observedAt: lastLake.start,
-      status: ObservationStatus.issue,
-      issueTags: const [ObservationTag.leak],
-      note: 'Damp left wrist after the dive.',
-    );
-    await observations.create(
-      equipmentId: e['reg-cold']!,
-      diverId: DemoSeedContext.diverId,
-      observedAt: lastLake.start,
-      status: ObservationStatus.ok,
-    );
-
-    await EquipmentShareRepository().setShares(
-      equipmentId: e['fins']!,
-      diverIds: {DemoSeedContext.partnerId},
-      actingDiverId: DemoSeedContext.diverId,
-    );
-    await EquipmentTransferService().transfer(
-      equipmentIds: [e['bcd-jacket']!],
-      toDiverId: DemoSeedContext.partnerId,
-      actingDiverId: DemoSeedContext.diverId,
     );
   }
 }
