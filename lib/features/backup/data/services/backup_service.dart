@@ -53,6 +53,7 @@ import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 export 'package:submersion/features/backup/data/services/backup_database_adapter.dart';
 
 part 'backup_service_cloud_copy.dart';
+part 'backup_service_copy_out.dart';
 part 'backup_service_pruning.dart';
 part 'backup_service_retention.dart';
 
@@ -1325,6 +1326,20 @@ class BackupService {
     await _preferences.addRecord(adopted);
     await _writePinMarker(adopted);
   }
+
+  /// [record] as a real file to save or share, its bytes untouched (issue
+  /// #3650). Throws [BackupException] when it is nowhere to be found, and
+  /// [BackupCopyInOtherAccountException] when its only copy is in another
+  /// cloud account. See backup_service_copy_out.dart.
+  Future<PreparedBackupFile> prepareBackupCopy(
+    BackupRecord record, {
+    required BackupCopyPurpose purpose,
+  }) => _prepareBackupCopy(record, purpose: purpose);
+
+  /// Whether [record] is a safety copy of a protected database, which
+  /// restores only on this install.
+  Future<bool> isDeviceLockedSafetyCopy(BackupRecord record) =>
+      _isDeviceLockedSafetyCopy(record);
 
   /// Whether deleting [record] may destroy another device's only copy.
   ///
