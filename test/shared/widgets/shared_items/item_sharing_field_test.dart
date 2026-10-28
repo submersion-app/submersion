@@ -4,39 +4,16 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/data/visibility/item_sharing.dart';
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/features/divers/data/repositories/item_shares_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
-import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
-import 'package:submersion/shared/widgets/shared_items/item_sharing_row.dart';
+import 'package:submersion/shared/widgets/shared_items/item_sharing_field.dart';
 
-/// Records what the row asks the repository to store.
-class _RecordingShares extends ItemSharesRepository {
-  _RecordingShares({this.refuse = false});
-
-  /// Answers as the repository does for a profile that may not change it.
-  final bool refuse;
-  final calls = <ItemSharing>[];
-  final actingDivers = <String?>[];
-
-  @override
-  Future<bool> setSharing(
-    SharedItemKind kind,
-    String id,
-    ItemSharing sharing, {
-    required String? actingDiverId,
-  }) async {
-    calls.add(sharing);
-    actingDivers.add(actingDiverId);
-    return !refuse;
-  }
-}
-
-/// The "Shared with" row on a trip or site page (issue #2151). 'me' owns
-/// the trip; 'son' and 'daughter' are the other profiles.
+/// The "Shared with" field on a trip or site edit page (issue #2151), the
+/// one place sharing is shown (#3766). 'me' owns the trip; 'son' and
+/// 'daughter' are the other profiles.
 void main() {
-  final divers = [
+  final everyone = [
     for (final (id, name) in [
       ('me', 'Me'),
       ('son', 'Sam'),
@@ -50,42 +27,51 @@ void main() {
       ),
   ];
 
-  Future<_RecordingShares> pump(
+  /// Pumps the field and returns the choices it reports.
+  Future<List<ItemSharing>> pump(
     WidgetTester tester, {
-    required String active,
-    ItemSharing sharing = ItemSharing.none,
-    bool refuse = false,
+    ItemSharing value = ItemSharing.none,
+    ItemSharing? original,
+    bool? mayShare = true,
+    List<Diver>? divers,
   }) async {
-    final shares = _RecordingShares(refuse: refuse);
+    final changes = <ItemSharing>[];
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          allDiversProvider.overrideWith((_) async => divers),
-          validatedCurrentDiverIdProvider.overrideWith((_) async => active),
-          itemSharesRepositoryProvider.overrideWithValue(shares),
-          itemSharingProvider.overrideWith((ref, item) async => sharing),
+          allDiversProvider.overrideWith((_) async => divers ?? everyone),
         ],
-        child: const MaterialApp(
-          locale: Locale('en'),
+        child: MaterialApp(
+          locale: const Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
-            body: ItemSharingRow(
+            body: ItemSharingField(
               kind: SharedItemKind.trip,
-              itemId: 'bonaire',
+              value: value,
+              original: original ?? value,
+              mayShare: mayShare,
               ownerId: 'me',
               itemName: 'Bonaire',
+              onChanged: changes.add,
             ),
           ),
         ),
       ),
     );
     await tester.pumpAndSettle();
-    return shares;
+    return changes;
+  }
+
+  Future<void> toggleInDialog(WidgetTester tester, String name) async {
+    await tester.tap(
+      find.descendant(of: find.byType(AlertDialog), matching: find.text(name)),
+    );
+    await tester.pump();
   }
 
   testWidgets('the owner sees Not shared and a chevron', (tester) async {
-    await pump(tester, active: 'me');
+    await pump(tester);
     expect(find.text('Shared with'), findsOneWidget);
     expect(find.text('Not shared'), findsOneWidget);
     expect(find.byIcon(Icons.chevron_right), findsOneWidget);
@@ -94,7 +80,7 @@ void main() {
   testWidgets('the summary and chevron sit beside the label (issue #3678)', (
     tester,
   ) async {
-    await pump(tester, active: 'me');
+    await pump(tester);
 
     final labelRight = tester.getTopRight(find.text('Shared with')).dx;
     final summary = find.text('Not shared');
@@ -107,118 +93,118 @@ void main() {
     expect(tester.widget<Text>(summary).textAlign, isNot(TextAlign.end));
   });
 
-  testWidgets('the owner sees who it is shared with', (tester) async {
+  testWidgets('the summary names who it is shared with', (tester) async {
     await pump(
       tester,
-      active: 'me',
-      sharing: const ItemSharing(profileIds: {'son', 'daughter'}),
+      value: const ItemSharing(profileIds: {'son', 'daughter'}),
     );
     expect(find.text('Dana, Sam'), findsOneWidget);
   });
 
-  testWidgets('another profile sees nothing', (tester) async {
-    await pump(tester, active: 'son', sharing: ItemSharing.all);
+  testWidgets('a single profile sees no field', (tester) async {
+    await pump(tester, divers: [everyone.first]);
     expect(find.text('Shared with'), findsNothing);
   });
 
-  testWidgets('choosing the son shares it with him', (tester) async {
-    final shares = await pump(tester, active: 'me');
+  testWidgets('another profile sees it locked, naming the owner', (
+    tester,
+  ) async {
+    final changes = await pump(tester, mayShare: false);
+    expect(find.byIcon(Icons.chevron_right), findsNothing);
+    expect(find.text('Only Me can change sharing'), findsOneWidget);
+    await tester.tap(find.text('Shared with'));
+    await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(changes, isEmpty);
+  });
+
+  testWidgets('an unknown profile sees it locked, naming nobody', (
+    tester,
+  ) async {
+    await pump(tester, mayShare: null);
+    expect(find.byIcon(Icons.chevron_right), findsNothing);
+    expect(find.textContaining('can change sharing'), findsNothing);
+  });
+
+  testWidgets('choosing the son reports sharing with him', (tester) async {
+    final changes = await pump(tester);
     await tester.tap(find.text('Shared with'));
     await tester.pumpAndSettle();
     expect(find.text('Me'), findsNothing, reason: 'the owner is not offered');
-    await tester.tap(
-      find.descendant(of: find.byType(AlertDialog), matching: find.text('Sam')),
-    );
+    await toggleInDialog(tester, 'Sam');
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
-    expect(shares.calls, [
+    expect(changes, [
       const ItemSharing(profileIds: {'son'}),
     ]);
   });
 
   testWidgets('taking the son off asks to confirm first', (tester) async {
-    final shares = await pump(
+    final changes = await pump(
       tester,
-      active: 'me',
-      sharing: const ItemSharing(profileIds: {'son'}),
+      value: const ItemSharing(profileIds: {'son'}),
     );
     await tester.tap(find.text('Shared with'));
     await tester.pumpAndSettle();
-    await tester.tap(
-      find.descendant(of: find.byType(AlertDialog), matching: find.text('Sam')),
-    );
+    await toggleInDialog(tester, 'Sam');
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
     expect(find.text('Unshare this trip?'), findsOneWidget);
-    expect(shares.calls, isEmpty);
+    expect(changes, isEmpty);
     await tester.tap(find.text('Unshare'));
     await tester.pumpAndSettle();
-    expect(shares.calls, [ItemSharing.none]);
+    expect(changes, [ItemSharing.none]);
   });
 
   testWidgets('cancelling the confirmation changes nothing', (tester) async {
-    final shares = await pump(tester, active: 'me', sharing: ItemSharing.all);
+    final changes = await pump(tester, value: ItemSharing.all);
     await tester.tap(find.text('Shared with'));
     await tester.pumpAndSettle();
-    await tester.tap(
-      find.descendant(of: find.byType(AlertDialog), matching: find.text('Sam')),
-    );
+    await toggleInDialog(tester, 'Sam');
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Cancel'));
     await tester.pumpAndSettle();
-    expect(shares.calls, isEmpty);
+    expect(changes, isEmpty);
   });
 
-  testWidgets('the save names the active profile, which the repository '
-      'checks (issue #2151)', (tester) async {
-    final shares = await pump(tester, active: 'me');
-    await tester.tap(find.text('Shared with'));
-    await tester.pumpAndSettle();
-    await tester.tap(
-      find.descendant(of: find.byType(AlertDialog), matching: find.text('Sam')),
-    );
-    await tester.pump();
-    await tester.tap(find.text('Save'));
-    await tester.pumpAndSettle();
-    expect(shares.actingDivers, ['me']);
-  });
-
-  testWidgets('a refused save says only the owner can change it', (
+  testWidgets('a pending choice is confirmed against the saved sharing', (
     tester,
   ) async {
-    await pump(tester, active: 'me', refuse: true);
+    // Saved as shared with the son, then taken off him in this edit: putting
+    // the daughter on alone still takes it from him, so it asks.
+    final changes = await pump(
+      tester,
+      value: ItemSharing.none,
+      original: const ItemSharing(profileIds: {'son'}),
+    );
     await tester.tap(find.text('Shared with'));
     await tester.pumpAndSettle();
-    await tester.tap(
-      find.descendant(of: find.byType(AlertDialog), matching: find.text('Sam')),
-    );
-    await tester.pump();
+    await toggleInDialog(tester, 'Dana');
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
-    expect(find.text('Only Me can change sharing'), findsOneWidget);
+    expect(find.text('Unshare this trip?'), findsOneWidget);
+    await tester.tap(find.text('Unshare'));
+    await tester.pumpAndSettle();
+    expect(changes, [
+      const ItemSharing(profileIds: {'daughter'}),
+    ]);
   });
 
   testWidgets('Everyone to every current profile by name asks nothing', (
     tester,
   ) async {
-    final shares = await pump(tester, active: 'me', sharing: ItemSharing.all);
+    final changes = await pump(tester, value: ItemSharing.all);
     await tester.tap(find.text('Shared with'));
     await tester.pumpAndSettle();
     for (final name in ['Sam', 'Dana']) {
-      await tester.tap(
-        find.descendant(
-          of: find.byType(AlertDialog),
-          matching: find.text(name),
-        ),
-      );
-      await tester.pump();
+      await toggleInDialog(tester, name);
     }
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
     // Nobody who sees it now loses it, so there is nothing to confirm.
     expect(find.text('Unshare this trip?'), findsNothing);
-    expect(shares.calls, [
+    expect(changes, [
       const ItemSharing(profileIds: {'son', 'daughter'}),
     ]);
   });

@@ -11,16 +11,21 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/cylinder_sac.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
+import 'package:submersion/features/dive_log/domain/services/logged_tank_mod.dart';
 import 'package:submersion/features/dive_log/domain/services/source_name_resolver.dart';
 import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_analysis_providers.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/cylinder_table.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/cylinder_block.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/field_attribution_badge.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/gas_colors.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/tank_figure.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/tank_fill_levels.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_series_reassign_sheet.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/observation_status_chip.dart';
+import 'package:submersion/features/planner/domain/services/tank_mod.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
 import 'package:submersion/features/transmitters/presentation/providers/transmitter_providers.dart';
@@ -30,11 +35,12 @@ import 'package:submersion/features/trips/presentation/providers/trip_cylinder_p
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// Unified card showing every cylinder on a dive as a table: one row per
-/// tank with what it is, its gas, and its start, end and used pressures, and
-/// under each row a quiet detail block (gas used, SAC and RMV, MOD/MND, trip
-/// cylinder, transmitter, check-in). Issue #3675 replaced a stack of lines
-/// that each had a style of their own.
+/// Unified card showing every cylinder on a dive: each tank drawn as a
+/// figure filled to show the gas left and the gas used, labelled with its
+/// start, end and used pressures (issue #3773), beside what the tank is, its
+/// gas, and a quiet detail block (gas used, SAC and RMV, MOD/MND, trip
+/// cylinder, transmitter, check-in). Issue #3675 had first made the stack of
+/// differently styled lines a table.
 ///
 /// Replaces the former Tanks card and SAC by Cylinder block. Occupies the
 /// [DiveDetailSectionId.tanks] slot on the dive detail page. Per-tank SAC
@@ -99,13 +105,6 @@ class CylindersCard extends ConsumerWidget {
 
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final columns = (
-      tank: l10n.diveLog_cylinders_columnTank,
-      gas: l10n.diveLog_cylinders_columnGas,
-      start: l10n.diveLog_cylinders_columnStart,
-      end: l10n.diveLog_cylinders_columnEnd,
-      used: l10n.diveLog_cylinders_columnUsed,
-    );
     final rows = [
       for (final entry in dive.tanks.asMap().entries)
         _tankRow(
@@ -120,7 +119,6 @@ class CylindersCard extends ConsumerWidget {
           knownSerials: knownSerials,
           slotLabel: slotLabels[entry.value.tripCylinderId],
           showRole: showRoles,
-          columns: columns,
         ),
     ];
 
@@ -134,28 +132,27 @@ class CylindersCard extends ConsumerWidget {
               l10n.diveLog_detail_section_cylinders,
               style: theme.textTheme.titleMedium,
             ),
-            const SizedBox(height: 12),
-            CylinderTableHeader(labels: columns, unit: units.pressureSymbol),
-            const Divider(height: 1),
+            const SizedBox(height: 4),
             for (var i = 0; i < rows.length; i++) ...[
               if (i > 0)
                 Divider(height: 1, color: theme.colorScheme.outlineVariant),
               rows[i],
             ],
-            // Every MOD on the card is taken at the same working ppO2, so it
-            // is said once here rather than on each row.
-            if (rows.isNotEmpty)
+            // The ppO2 limits behind the MODs are said once here rather than
+            // on each row. A rule closes the table first, so the note reads
+            // as the card's, not as a detail of the last cylinder.
+            if (rows.isNotEmpty) ...[
+              Divider(height: 1, color: theme.colorScheme.outlineVariant),
               Padding(
-                padding: const EdgeInsets.only(top: 4),
+                padding: const EdgeInsets.only(top: 12),
                 child: Text(
-                  l10n.diveLog_cylinders_modNote(
-                    formatFixedForDisplay(settings.ppO2MaxWorking, 1),
-                  ),
+                  l10n.diveLog_cylinders_modNote(_modLimitsNote(l10n)),
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
               ),
+            ],
             if (_canReassign(dive, tankPressures))
               Align(
                 alignment: AlignmentDirectional.centerEnd,
@@ -174,6 +171,50 @@ class CylindersCard extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  /// The diver's ppO2 for [limit]. A cylinder's MOD is taken at the limit
+  /// its role calls for on this dive (issue #3752), not always the bottom
+  /// one.
+  double _modPpO2(ModLimitClass limit) => modLimitPpO2(
+    limit,
+    bottomPpO2: settings.ppO2MaxWorking,
+    decoPpO2: settings.ppO2MaxDeco,
+    diluentPpO2: settings.ccrDiluentModPpO2,
+  );
+
+  /// What the MOD note says the card's MODs are taken at. One ppO2 when
+  /// every cylinder's limit has the same value, even two limits that
+  /// share it (the default deco and Dil MOD limits are both 1.6), as the
+  /// card always said. Otherwise each limit in use with its ppO2, bottom
+  /// first: "1.4 (bottom limit), 1.6 (deco limit)".
+  String _modLimitsNote(AppLocalizations l10n) {
+    final inUse = {
+      for (final tank in dive.tanks)
+        loggedTankModLimit(tank.role, tank.gasMix, dive.diveMode),
+    };
+    final limits = [
+      for (final limit in const [
+        ModLimitClass.bottom,
+        ModLimitClass.deco,
+        ModLimitClass.diluent,
+      ])
+        if (inUse.contains(limit)) limit,
+    ];
+    // Compared as shown: two values that round alike read as one ppO2.
+    final shown = {
+      for (final limit in limits)
+        limit: formatFixedForDisplay(_modPpO2(limit), 1),
+    };
+    if (shown.values.toSet().length == 1) return shown.values.first;
+    return [
+      for (final limit in limits)
+        l10n.diveLog_cylinders_modLimit(shown[limit]!, switch (limit) {
+          ModLimitClass.bottom => l10n.tankMod_limitBottom,
+          ModLimitClass.deco => l10n.tankMod_limitDeco,
+          ModLimitClass.diluent => l10n.tankMod_limitDiluent,
+        }),
+    ].join(l10n.diveLog_cylinders_modLimitSeparator);
   }
 
   /// Two or more of this dive's tanks carry a series from one computer
@@ -201,7 +242,6 @@ class CylindersCard extends ConsumerWidget {
     required Set<String> knownSerials,
     required TripCylinderTankLabel? slotLabel,
     required bool showRole,
-    required CylinderColumnLabels columns,
   }) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
@@ -219,14 +259,38 @@ class CylindersCard extends ConsumerWidget {
     // A tank carried but not breathed used 0, which is not missing data;
     // only a rise (a sensor or entry error) has no meaningful figure.
     final hasUsed = pressureUsed != null && pressureUsed > 0;
-    final usedText = pressureUsed != null && pressureUsed >= 0
-        ? units.formatPressureValue(pressureUsed)
-        : null;
 
     // Preset display name, falling back to formatted volume.
     final preset = tank.presetName != null
         ? TankPresets.byName(tank.presetName!)
         : null;
+    // The figure is full at the tank's rated pressure, so a short fill shows
+    // as a tank never quite full; the preset fills in a tank's own gaps. A
+    // zero or negative value is "not recorded", not a rating, so it is a gap.
+    double? positive(double? value) =>
+        value != null && value > 0 ? value : null;
+    final figure = TankFigure(
+      levels: TankFillLevels.resolve(
+        start: pressures.$1,
+        end: pressures.$2,
+        rated: positive(tank.workingPressure) ?? preset?.workingPressureBar,
+      ),
+      gasColor: GasColors.forGasMix(tank.gasMix),
+      volumeLiters: positive(tank.volume) ?? preset?.volumeLiters,
+      startLabel: l10n.diveLog_cylinders_figureStart(
+        units.formatPressure(pressures.$1),
+      ),
+      endLabel: l10n.diveLog_cylinders_figureEnd(
+        units.formatPressure(pressures.$2),
+      ),
+      usedLabel: pressureUsed != null && pressureUsed >= 0
+          ? l10n.diveLog_cylinders_figureUsed(
+              units.formatPressure(pressureUsed),
+            )
+          : null,
+      markStart: pressures.$1 != null,
+      markEnd: pressures.$2 != null,
+    );
     final sizeLabel =
         preset?.displayName ??
         (tank.volume != null
@@ -244,7 +308,11 @@ class CylindersCard extends ConsumerWidget {
         : sizeLabel ?? l10n.diveLog_tank_title(index + 1);
 
     final modDepth = units.formatDepthFloor(
-      tank.gasMix.mod(ppO2: settings.ppO2MaxWorking),
+      tank.gasMix.mod(
+        ppO2: _modPpO2(
+          loggedTankModLimit(tank.role, tank.gasMix, dive.diveMode),
+        ),
+      ),
       decimals: 0,
     );
     final mndValue = tank.gasMix.mnd(
@@ -258,7 +326,8 @@ class CylindersCard extends ConsumerWidget {
     // volume opens the detail line (after the source badge, when shown).
     final gasUsedLiters = cylinderSac?.gasUsedLiters;
 
-    return CylinderTableRow(
+    return CylinderBlock(
+      figure: figure,
       icon: tank.role.icon,
       title: title,
       subtitle: [
@@ -270,15 +339,7 @@ class CylindersCard extends ConsumerWidget {
           ),
       ],
       gasMix: tank.gasMix,
-      start: pressures.$1 == null
-          ? null
-          : units.formatPressureValue(pressures.$1),
-      end: pressures.$2 == null
-          ? null
-          : units.formatPressureValue(pressures.$2),
-      used: usedText,
-      columnLabels: columns,
-      unit: units.pressureSymbol,
+      gasLabel: l10n.diveLog_cylinders_gasSemantics(tank.gasMix.name),
       details: [
         DotJoinedWrap(
           children: [
@@ -389,21 +450,25 @@ class CylindersCard extends ConsumerWidget {
   }
 
   /// Resolves start/end pressure: stored tank metadata wins, per-tank
-  /// time-series fills any nulls.
+  /// time-series fills any nulls. A negative reading is a sensor or entry
+  /// error, never a pressure, so it counts as missing: no figure level and
+  /// no used amount is drawn from it.
   (double?, double?) _resolveTankPressures({
     required DiveTank tank,
     required Map<String, List<TankPressurePoint>>? tankPressures,
   }) {
-    if (tankPressures != null && tankPressures.containsKey(tank.id)) {
-      final points = tankPressures[tank.id]!;
-      if (points.isNotEmpty) {
-        return (
-          tank.startPressure ?? points.first.pressure,
-          tank.endPressure ?? points.last.pressure,
-        );
-      }
+    double? valid(double? pressure) =>
+        pressure != null && pressure >= 0 ? pressure : null;
+    final start = valid(tank.startPressure);
+    final end = valid(tank.endPressure);
+    final points = tankPressures?[tank.id];
+    if (points != null && points.isNotEmpty) {
+      return (
+        start ?? valid(points.first.pressure),
+        end ?? valid(points.last.pressure),
+      );
     }
-    return (tank.startPressure, tank.endPressure);
+    return (start, end);
   }
 
   /// computerId -> display name via the shared source-name resolver.

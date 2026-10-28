@@ -651,7 +651,8 @@ extension RungsFromV231 on AppDatabase {
     // v321: per-plan "explicitly off" flags for the bands and the
     // explicit-depth override (issue #3580), so a plan can force either off
     // regardless of the diver's Settings toggle. Column only, both off by
-    // default; re-asserted in beforeOpen.
+    // default; re-asserted in beforeOpen, which also covers a database
+    // already at 323 (v321 and v322 sit below main's v323).
     if (from < 321) await _assertPpO2DecoBandsExplicitlyOffColumns();
     if (from < 321) await reportProgress();
 
@@ -662,5 +663,11 @@ extension RungsFromV231 on AppDatabase {
     // beforeOpen.
     if (from < 322) await _assertHypercapniaBailoutColumns();
     if (from < 322) await reportProgress();
+
+    // v323: diver_settings list arrangement columns and their sync clock
+    // (issue #3748); re-asserted in beforeOpen. 321 and 322 are held by
+    // PR #3726.
+    if (from < 323) await _assertListArrangementColumns();
+    if (from < 323) await reportProgress();
   }
 }

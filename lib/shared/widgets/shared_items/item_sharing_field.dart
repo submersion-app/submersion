@@ -5,116 +5,19 @@ import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
-import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/detail_row/detail_row.dart';
 import 'package:submersion/shared/widgets/shared_items/share_target_dialog.dart';
 import 'package:submersion/shared/widgets/shared_items/shared_item_dialogs.dart';
 
-/// "Shared with" on a trip or site page (issue #2151), for its owner only
-/// and only with two or more profiles: who sees the item, and a tap to
-/// change it. Another profile sees "Shared by {owner}" instead
-/// (`SharedByBanner`). A shared site library site follows its library and
-/// shows nothing.
-class ItemSharingRow extends ConsumerWidget {
-  const ItemSharingRow({
-    super.key,
-    required this.kind,
-    required this.itemId,
-    required this.ownerId,
-    required this.itemName,
-    this.isLibrarySite = false,
-  });
-
-  final SharedItemKind kind;
-  final String itemId;
-  final String? ownerId;
-  final String itemName;
-  final bool isLibrarySite;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final owner = ownerId;
-    final divers = ref.watch(allDiversProvider).value;
-    if (isLibrarySite || owner == null || divers == null || divers.length < 2) {
-      return const SizedBox.shrink();
-    }
-    // Nothing until the active profile is known (issue #2682), and nothing
-    // for another profile's item.
-    final mayShare = canDestroySharedItemOnceKnown(
-      ref.watch(validatedCurrentDiverIdProvider),
-      ownerId: owner,
-    );
-    // Until the sharing is read, an unread value is not "Not shared", and
-    // editing from it would start the dialog empty.
-    final sharing = ref
-        .watch(itemSharingProvider((kind: kind, id: itemId)))
-        .value;
-    if (mayShare != true || sharing == null) return const SizedBox.shrink();
-    final names = {for (final d in divers) d.id: d.name};
-    return SharingTile(
-      summary: sharingSummary(sharing, names, context.l10n),
-      onTap: () => _edit(context, ref, divers, owner, sharing),
-    );
-  }
-
-  Future<void> _edit(
-    BuildContext context,
-    WidgetRef ref,
-    List<Diver> divers,
-    String owner,
-    ItemSharing current,
-  ) async {
-    final l10n = context.l10n;
-    final messenger = ScaffoldMessenger.of(context);
-    final chosen = await pickItemSharing(
-      context,
-      kind: kind,
-      profiles: [
-        for (final d in divers)
-          if (d.id != owner) d,
-      ],
-      current: current,
-      itemName: itemName,
-    );
-    if (chosen == null) return;
-    try {
-      // The repository checks the profile acting now, not the one the page
-      // was built for: only the owner changes sharing (issue #2594).
-      final changed = await ref
-          .read(itemSharesRepositoryProvider)
-          .setSharing(
-            kind,
-            itemId,
-            chosen,
-            actingDiverId: ref.read(validatedCurrentDiverIdProvider).value,
-          );
-      if (!changed) {
-        messenger.showSnackBar(
-          SnackBar(
-            content: Text(
-              l10n.sharedItems_shareOwnerOnly(
-                sharedItemOwnerName(divers, owner, l10n),
-              ),
-            ),
-          ),
-        );
-      }
-    } catch (_) {
-      // The page may have closed while the save ran.
-      messenger.showSnackBar(
-        SnackBar(content: Text(l10n.common_error_tryAgain)),
-      );
-    }
-  }
-}
-
-/// "Shared with" on a trip or site edit page (issue #2151): [value] is the
-/// page's pending choice, saved with the form. Shown only with two or more
-/// profiles. [mayShare] is the owner check: true opens the dialog, false
-/// locks it and names [ownerId]'s profile, null (the profile is not known
-/// yet) locks it without naming anyone. A choice that takes the item away
-/// from a profile that sees it in [original] is confirmed first.
+/// "Shared with" on a trip or site edit page (issue #2151), the one place
+/// it is shown (#3766): [value] is the page's pending choice, saved with
+/// the form. Shown only with two or more profiles. [mayShare] is the owner
+/// check: true opens the dialog, false locks it and names [ownerId]'s
+/// profile, null (the profile is not known yet) locks it without naming
+/// anyone. A choice that takes the item away from a profile that sees it in
+/// [original] is confirmed first.
 class ItemSharingField extends ConsumerWidget {
   const ItemSharingField({
     super.key,
@@ -182,6 +85,14 @@ class ItemSharingField extends ConsumerWidget {
     );
   }
 }
+
+/// What an edit page says when the repository refuses its sharing change
+/// (#3766). The repository refuses a profile that is not the owner at
+/// save time: the item changed hands, or the active profile changed, while
+/// the page was open. Either way the page's idea of the owner is out of
+/// date, so the message names nobody.
+String sharingRefusedMessage(AppLocalizations l10n) =>
+    l10n.sharedItems_shareOwnerOnly(l10n.sharedItems_ownerUnknown);
 
 /// Opens the share dialog for one trip or site, starting from [current],
 /// and confirms first when the choice takes the item away from a profile

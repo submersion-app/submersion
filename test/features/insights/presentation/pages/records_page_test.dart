@@ -34,6 +34,7 @@ import 'package:submersion/core/domain/visibility/visibility_scale.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_color_schemes.dart';
 import 'package:submersion/core/utils/coordinates/coordinate_format.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_appearance.dart';
+import 'package:submersion/features/settings/domain/list_arrangements.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/insights/presentation/pages/records_page.dart';
 import 'package:submersion/features/insights/presentation/widgets/insights_filter_bar.dart';
@@ -56,6 +57,16 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
 
   @override
   Future<void> get settingsLoaded async {}
+
+  @override
+  Future<void> toggleGroupTripsInDiveList() async =>
+      state = state.copyWith(groupTripsInDiveList: !state.groupTripsInDiveList);
+
+  @override
+  Future<void> updateListArrangements(
+    ListArrangements Function(ListArrangements current) change,
+  ) async =>
+      state = state.copyWith(listArrangements: change(state.listArrangements));
 
   @override
   Future<void> setAccentNavIcons(bool value) async =>

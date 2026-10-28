@@ -933,6 +933,29 @@ void main() {
       expect(find.text('Row 0'), findsOneWidget);
     });
 
+    testWidgets('a row highlighted before its rows arrive is brought into '
+        'view when they do, as a jump that clears the search (#3744)', (
+      tester,
+    ) async {
+      final rows = List.generate(200, (i) => _TestEntity('j-$i', 'Row $i', i));
+      await tester.pumpWidget(_buildTable(entities: rows.take(100).toList()));
+      await tester.pumpAndSettle();
+
+      // Highlighted while the filtered rows still show, then the whole list
+      // arrives.
+      await tester.pumpWidget(
+        _buildTable(entities: rows.take(100).toList(), highlightedId: 'j-150'),
+      );
+      await tester.pumpAndSettle();
+      await tester.pumpWidget(
+        _buildTable(entities: rows, highlightedId: 'j-150'),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Row 150'), findsOneWidget);
+      expect(find.text('Row 0'), findsNothing);
+    });
+
     // -----------------------------------------------------------------------
     // didUpdateWidget changes highlightedId
     // -----------------------------------------------------------------------

@@ -97,7 +97,9 @@ final class GitTestServer {
     await hook.parent.create(recursive: true);
     final quoted = message.replaceAll("'", "'\\''");
     await hook.writeAsString("#!/bin/sh\necho '$quoted' >&2\nexit 1\n");
-    await Process.run('chmod', ['+x', hook.path]);
+    if (!Platform.isWindows) {
+      await Process.run('chmod', ['+x', hook.path]);
+    }
   }
 
   Future<void> close() async {

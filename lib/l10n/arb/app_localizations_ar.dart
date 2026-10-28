@@ -2604,6 +2604,15 @@ class AppLocalizationsAr extends AppLocalizations {
       'إرسال عبر AirDrop أو البريد الإلكتروني أو تطبيقات أخرى';
 
   @override
+  String get backup_copySheet_deviceLocked =>
+      'أُخذت هذه النسخة الآمنة من قاعدة بياناتك المحمية. لا يمكن استعادتها إلا على هذا الجهاز.';
+
+  @override
+  String backup_copySheet_title(String dateTime) {
+    return 'نسخة احتياطية من $dateTime';
+  }
+
+  @override
   String get backup_frequency_daily => 'يومي';
 
   @override
@@ -2617,6 +2626,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get backup_history_action_restore => 'استعادة';
+
+  @override
+  String get backup_history_action_saveCopy => 'حفظ نسخة';
+
+  @override
+  String get backup_history_action_share => 'مشاركة';
 
   @override
   String get backup_history_empty => 'لا توجد نسخ احتياطية';
@@ -10328,19 +10343,24 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get diveLog_cylinders_columnTank => 'أسطوانة';
+  String diveLog_cylinders_figureStart(String pressure) {
+    return 'البداية $pressure';
+  }
 
   @override
-  String get diveLog_cylinders_columnGas => 'غاز';
+  String diveLog_cylinders_figureEnd(String pressure) {
+    return 'النهاية $pressure';
+  }
 
   @override
-  String get diveLog_cylinders_columnStart => 'البداية';
+  String diveLog_cylinders_figureUsed(String pressure) {
+    return 'المستخدم $pressure';
+  }
 
   @override
-  String get diveLog_cylinders_columnEnd => 'النهاية';
-
-  @override
-  String get diveLog_cylinders_columnUsed => 'المستخدم';
+  String diveLog_cylinders_gasSemantics(String mix) {
+    return 'غاز $mix';
+  }
 
   @override
   String diveLog_cylinders_gasUsed(String amount) {
@@ -10361,6 +10381,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String diveLog_cylinders_modNote(String ppO2) {
     return 'MOD عند ppO₂ $ppO2';
   }
+
+  @override
+  String diveLog_cylinders_modLimit(String ppO2, String limit) {
+    return '$ppO2 ($limit)';
+  }
+
+  @override
+  String get diveLog_cylinders_modLimitSeparator => '، ';
 
   @override
   String get diveLog_tank_section_gasMix => 'خليط الغاز';
@@ -20428,6 +20456,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String plannerCanvas_issue_noUsableGas(String minGas, String fill) {
+    return 'الحد الأدنى الآمن $minGas لا يترك غازًا قابلًا للاستخدام في تعبئة $fill';
+  }
+
+  @override
   String plannerCanvas_issue_diluentModExceeded(String depth, String value) {
     return 'يتجاوز غاز التخفيف حد MOD الخاص به عند $depth (ppO₂ $value bar)';
   }
@@ -23260,6 +23293,58 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_conflict_field_omitUnusedOcGases =>
       'تخطي غازات الطوارئ غير المستخدمة';
+
+  @override
+  String get settings_conflict_field_diveListSort => 'الغوصات: الترتيب';
+
+  @override
+  String get settings_conflict_field_divePlanListSort =>
+      'الخطط المحفوظة: الترتيب';
+
+  @override
+  String get settings_conflict_field_tripListSort => 'الرحلات: الترتيب';
+
+  @override
+  String get settings_conflict_field_courseListSort => 'الدورات: الترتيب';
+
+  @override
+  String get settings_conflict_field_buddyListSort => 'زملاء الغوص: الترتيب';
+
+  @override
+  String get settings_conflict_field_diveCenterListSort =>
+      'مراكز الغوص: الترتيب';
+
+  @override
+  String get settings_conflict_field_siteListSort => 'المواقع: الترتيب';
+
+  @override
+  String get settings_conflict_field_certificationListSort =>
+      'الشهادات: الترتيب';
+
+  @override
+  String get settings_conflict_field_equipmentListSort => 'المعدات: الترتيب';
+
+  @override
+  String get settings_conflict_field_siteListGroupBy => 'المواقع: التجميع';
+
+  @override
+  String get settings_conflict_field_certificationListGroupBy =>
+      'الشهادات: التجميع';
+
+  @override
+  String get settings_conflict_field_equipmentArrangement => 'ترتيب المعدات';
+
+  @override
+  String get settings_conflict_field_equipmentGroupByLocation =>
+      'المعدات مجمعة حسب الموقع';
+
+  @override
+  String get settings_conflict_field_listArrangementHlc => 'سجل ترتيب القوائم';
+
+  @override
+  String settings_conflict_sortValue(String field, String direction) {
+    return '$field، $direction';
+  }
 
   @override
   String get settings_conflict_field_avgSpeed => 'متوسط السرعة';
@@ -36660,12 +36745,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String settings_shareAllSites_confirm(int count) {
-    return 'اختر من يرى كل $count من مواقعك. لتغيير موقع واحد لاحقًا، افتحه واضغط على مُشارَك مع.';
+    return 'اختر من يرى كل $count من مواقعك. لتغيير موقع واحد لاحقًا، عدّله واضغط على مُشارَك مع.';
   }
 
   @override
   String settings_shareAllTrips_confirm(int count) {
-    return 'اختر من يرى كل $count من رحلاتك. لتغيير رحلة واحدة لاحقًا، افتحها واضغط على مُشارَك مع.';
+    return 'اختر من يرى كل $count من رحلاتك. لتغيير رحلة واحدة لاحقًا، عدّلها واضغط على مُشارَك مع.';
   }
 
   @override
@@ -52772,6 +52857,17 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get backup_history_device_anotherDevice => 'جهاز آخر';
+
+  @override
+  String get backup_history_device_thisDevice => 'هذا الجهاز';
+
+  @override
+  String backup_history_subtitleWithDevice(String summary, String device) {
+    return '$summary · $device';
+  }
+
+  @override
   String backup_history_manualSubtitle(
     int diveCount,
     int siteCount,
@@ -56407,6 +56503,16 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get tags_manage_cannotUndo => 'لا يمكن التراجع عن هذا الإجراء.';
+
+  @override
+  String tags_manage_rowScopes(String scopes) {
+    return 'متاح لـ: $scopes';
+  }
+
+  @override
+  String tags_manage_rowUsage(String counts) {
+    return 'مستخدم في: $counts';
+  }
 
   @override
   String get tags_action_edit => 'تعديل الوسوم';

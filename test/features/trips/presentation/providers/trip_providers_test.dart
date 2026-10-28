@@ -20,6 +20,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/list_arrangement_writes.dart';
 
 import '../../../../helpers/test_database.dart';
 
@@ -557,10 +558,14 @@ void main() {
         await Future<void>.delayed(Duration.zero);
       }
 
-      container.read(tripSortProvider.notifier).state = const SortState(
-        field: TripSortField.startDate,
-        direction: SortDirection.ascending,
-      );
+      await container
+          .read(settingsProvider.notifier)
+          .setTripSort(
+            const SortState(
+              field: TripSortField.startDate,
+              direction: SortDirection.ascending,
+            ),
+          );
       final sorted = container.read(sortedFilteredTripsProvider).value!;
       expect(
         sorted.map((s) => s.trip.name).toList(),
@@ -576,10 +581,14 @@ void main() {
         await Future<void>.delayed(Duration.zero);
       }
 
-      container.read(tripSortProvider.notifier).state = const SortState(
-        field: TripSortField.endDate,
-        direction: SortDirection.descending,
-      );
+      await container
+          .read(settingsProvider.notifier)
+          .setTripSort(
+            const SortState(
+              field: TripSortField.endDate,
+              direction: SortDirection.descending,
+            ),
+          );
       final sorted = container.read(sortedFilteredTripsProvider).value!;
       expect(sorted.first.trip.name, equals('Bravo'));
     });
@@ -592,10 +601,14 @@ void main() {
         await Future<void>.delayed(Duration.zero);
       }
 
-      container.read(tripSortProvider.notifier).state = const SortState(
-        field: TripSortField.name,
-        direction: SortDirection.ascending,
-      );
+      await container
+          .read(settingsProvider.notifier)
+          .setTripSort(
+            const SortState(
+              field: TripSortField.name,
+              direction: SortDirection.ascending,
+            ),
+          );
       final sorted = container.read(sortedFilteredTripsProvider).value!;
       expect(sorted.first.trip.name, equals('Charlie'));
     });
@@ -608,10 +621,14 @@ void main() {
         await Future<void>.delayed(Duration.zero);
       }
 
-      container.read(tripSortProvider.notifier).state = const SortState(
-        field: TripSortField.name,
-        direction: SortDirection.descending,
-      );
+      await container
+          .read(settingsProvider.notifier)
+          .setTripSort(
+            const SortState(
+              field: TripSortField.name,
+              direction: SortDirection.descending,
+            ),
+          );
       final sorted = container.read(sortedFilteredTripsProvider).value!;
       expect(sorted.first.trip.name, equals('Alpha'));
     });
@@ -627,10 +644,14 @@ void main() {
         await Future<void>.delayed(Duration.zero);
       }
 
-      container.read(tripSortProvider.notifier).state = const SortState(
-        field: TripSortField.name,
-        direction: SortDirection.descending,
-      );
+      await container
+          .read(settingsProvider.notifier)
+          .setTripSort(
+            const SortState(
+              field: TripSortField.name,
+              direction: SortDirection.descending,
+            ),
+          );
       final sorted = container.read(sortedFilteredTripsProvider).value!;
       expect(
         sorted.map((s) => s.trip.name).toList(),

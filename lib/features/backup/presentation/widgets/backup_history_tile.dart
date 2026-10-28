@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/backup/data/services/backup_origin.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 import 'package:submersion/features/backup/domain/entities/backup_type.dart';
 import 'package:submersion/features/backup/presentation/widgets/pre_migration_badge.dart';
@@ -15,18 +16,35 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// `ProviderScope` must be in the tree above it.
 class BackupHistoryTile extends ConsumerWidget {
   final BackupRecord record;
+
+  /// The device that made this backup (issue #3651), or null when its name
+  /// does not say.
+  final BackupOrigin? origin;
+
   final IconData leadingIcon;
   final VoidCallback onPinToggle;
   final VoidCallback onRestore;
+
+  /// Opens Save and Share for this backup (issue #3650), given this row's
+  /// context so the iPad share popover can anchor to the row. Null disables
+  /// the item, as while another backup operation runs.
+  final ValueChanged<BuildContext>? onShare;
   final VoidCallback onDelete;
+
+  /// False on Windows and Linux, which have no share sheet: the item then
+  /// reads "Save a copy".
+  final bool shareSheetAvailable;
 
   const BackupHistoryTile({
     super.key,
     required this.record,
+    this.origin,
     required this.leadingIcon,
     required this.onPinToggle,
     required this.onRestore,
+    this.onShare,
     required this.onDelete,
+    required this.shareSheetAvailable,
   });
 
   @override
@@ -34,7 +52,7 @@ class BackupHistoryTile extends ConsumerWidget {
     final theme = Theme.of(context);
     final units = UnitFormatter(ref.watch(settingsProvider));
     final note = record.note;
-    final summary = Text(switch (record.type) {
+    final counts = switch (record.type) {
       BackupType.preMigration =>
         context.l10n.backup_history_preMigrationSubtitle(record.formattedSize),
       // Copied from a database this build had already left behind, so it
@@ -63,7 +81,19 @@ class BackupHistoryTile extends ConsumerWidget {
                 record.siteCount ?? 0,
                 record.formattedSize,
               ),
-    });
+    };
+    final device = switch (origin) {
+      null => null,
+      BackupFromThisDevice() => context.l10n.backup_history_device_thisDevice,
+      BackupFromNamedDevice(:final name) => name,
+      BackupFromAnotherDevice() =>
+        context.l10n.backup_history_device_anotherDevice,
+    };
+    final summary = Text(
+      device == null
+          ? counts
+          : context.l10n.backup_history_subtitleWithDevice(counts, device),
+    );
 
     return ListTile(
       leading: Icon(leadingIcon),
@@ -129,6 +159,8 @@ class BackupHistoryTile extends ConsumerWidget {
               switch (action) {
                 case 'restore':
                   onRestore();
+                case 'share':
+                  onShare?.call(context);
                 case 'delete':
                   onDelete();
               }
@@ -139,6 +171,23 @@ class BackupHistoryTile extends ConsumerWidget {
                 child: ListTile(
                   leading: const Icon(Icons.restore),
                   title: Text(context.l10n.backup_history_action_restore),
+                  contentPadding: EdgeInsets.zero,
+                  dense: true,
+                ),
+              ),
+              PopupMenuItem(
+                value: 'share',
+                enabled: onShare != null,
+                child: ListTile(
+                  leading: Icon(
+                    shareSheetAvailable ? Icons.share : Icons.save_alt,
+                  ),
+                  title: Text(
+                    shareSheetAvailable
+                        ? context.l10n.backup_history_action_share
+                        : context.l10n.backup_history_action_saveCopy,
+                  ),
+                  enabled: onShare != null,
                   contentPadding: EdgeInsets.zero,
                   dense: true,
                 ),

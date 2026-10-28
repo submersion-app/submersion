@@ -9,7 +9,6 @@ import 'package:submersion/core/services/export/shared/export_file_name.dart';
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_set_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
-import 'package:submersion/features/settings/data/repositories/app_settings_repository.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
@@ -221,6 +220,11 @@ class PdfExportService {
   /// so the dive-list bulk export and the single-dive export produce the same
   /// document the diver picked. This replaced a duplicated copy of the old
   /// layout that hardcoded A4 and shipped without a Unicode font theme.
+  ///
+  /// The gear follows [gearArrangement], the active diver's own (#1486,
+  /// #1576, #3748): callers resolve it with `resolveEquipmentArrangement`,
+  /// since it lives in the diver's settings rather than anywhere this
+  /// service can read.
   Future<({List<int> bytes, String fileName})> generateDivePdfBytes(
     List<Dive> dives, {
     required PdfDateFormatter dates,
@@ -234,25 +238,13 @@ class PdfExportService {
     Uint8List? diverPhoto,
     Map<String, DiveTypeEntity> diveTypesById = const {},
     Map<String, DiveRole> diveRolesById = const {},
+    required EquipmentArrangement gearArrangement,
   }) async {
     final diveSignatures = await SignatureStorageService()
         .getSignaturesForDives([for (final dive in dives) dive.id]);
 
     // The legacy builder never did this, so accented site names were dropped.
     await PdfFonts.instance.initialize();
-
-    // The printed logbook follows the diver's gear arrangement (#1486,
-    // #1576). Read here rather than threaded through every caller, matching
-    // how this method already reaches for SignatureStorageService. A read
-    // that fails throws; the export still prints, in the default order.
-    EquipmentArrangement gearArrangement;
-    try {
-      gearArrangement =
-          await AppSettingsRepository().getEquipmentArrangement() ??
-          EquipmentArrangement.defaults;
-    } catch (_) {
-      gearArrangement = EquipmentArrangement.defaults;
-    }
 
     // Names the sets a dive's gear came from (#2031), read here for the same
     // reason as the arrangement above.
@@ -311,6 +303,7 @@ class PdfExportService {
     Uint8List? diverPhoto,
     Map<String, DiveTypeEntity> diveTypesById = const {},
     Map<String, DiveRole> diveRolesById = const {},
+    required EquipmentArrangement gearArrangement,
   }) async {
     final result = await generateDivePdfBytes(
       dives,
@@ -325,6 +318,7 @@ class PdfExportService {
       diverPhoto: diverPhoto,
       diveTypesById: diveTypesById,
       diveRolesById: diveRolesById,
+      gearArrangement: gearArrangement,
     );
     return saveAndShareFileBytes(
       result.bytes,
@@ -347,6 +341,7 @@ class PdfExportService {
     Uint8List? diverPhoto,
     Map<String, DiveTypeEntity> diveTypesById = const {},
     Map<String, DiveRole> diveRolesById = const {},
+    required EquipmentArrangement gearArrangement,
   }) async {
     final result = await generateDivePdfBytes(
       dives,
@@ -361,6 +356,7 @@ class PdfExportService {
       diverPhoto: diverPhoto,
       diveTypesById: diveTypesById,
       diveRolesById: diveRolesById,
+      gearArrangement: gearArrangement,
     );
     return savePdfBytesToFile(result.bytes, result.fileName);
   }

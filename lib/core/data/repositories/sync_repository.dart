@@ -1077,7 +1077,8 @@ class SyncRepository {
         ? const <String>[]
         : [
             for (final g in SyncFactGroups.of(entityType))
-              if (!columns.contains(g.clockColumn)) g.clockColumn,
+              if (!columns.contains(g.clockColumn) && !g.nullClockIsUnset)
+                g.clockColumn,
           ];
     final set = [
       ...columns.map((c) => '"$c" = ?'),

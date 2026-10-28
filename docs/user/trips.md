@@ -121,11 +121,11 @@ To see the trip's dive sites on a map, tap the map icon in the trip's app bar. S
 
 With two or more diver profiles on the device (a family sharing one tablet, say), a trip can be shared so the others can add their own dives to it without typing the trip in again.
 
-- **Who sees it:** open the trip and tap **Shared with**. Choose **Everyone** (every profile, including ones you add later), or tick only the profiles that were on the trip. A profile you leave unticked never sees it, so its trip list stays clear of trips it was not on.
+- **Who sees it:** edit the trip (the pencil icon) and tap **Shared with**, then save. Choose **Everyone** (every profile, including ones you add later), or tick only the profiles that were on the trip. A profile you leave unticked never sees it, so its trip list stays clear of trips it was not on.
 - **Several trips at once:** select them in the trip list and choose **Share with...**. This only adds the profiles you tick; it never takes a trip away from anyone. **Settings > Shared data > Share all my trips...** does the same for every trip you own.
 - **Who owns it:** the profile that created the trip. Only the owner can delete it or change who it is shared with. A profile it is shared with sees **Shared by {name}**, can edit its details and add its own dives, but cannot delete it.
 - **Not wanted in your profile?** On a trip someone else shared, choose **Remove from my profile**. It is hidden for you only, stays in the owner's log and every other profile, and your own dives stay linked to it. Bring it back from **Settings > Shared data > Hidden from this profile**.
-- **To stop sharing:** the owner opens the trip, taps **Shared with** and unticks a profile, or every profile. That profile's dives stay linked to the trip; it just no longer appears in that profile's trip list. Nothing is deleted.
+- **To stop sharing:** the owner edits the trip, taps **Shared with**, unticks a profile (or every profile) and saves. That profile's dives stay linked to the trip; it just no longer appears in that profile's trip list. Nothing is deleted.
 
 ## See also
 

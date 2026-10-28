@@ -6,6 +6,7 @@ import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
 
 import '../../../../helpers/pdf_roboto.dart';
 import '../../../../helpers/pdf_text.dart';
@@ -46,6 +47,7 @@ void main() {
         dates: dates,
         units: units,
         options: const PdfExportOptions(template: PdfTemplate.detailed),
+        gearArrangement: EquipmentArrangement.defaults,
       );
 
   test('exports stamped the same minute are the same size', () async {
@@ -79,6 +81,7 @@ void main() {
       dates: dates,
       units: units,
       options: const PdfExportOptions(template: PdfTemplate.detailed),
+      gearArrangement: EquipmentArrangement.defaults,
     );
 
     expect(reads, 1);

@@ -175,6 +175,7 @@ import 'package:submersion/features/rules/domain/rule_subject.dart';
 import 'package:submersion/shared/widgets/detail_row/detail_row_group.dart';
 import 'package:submersion/shared/widgets/detail_row/detail_row.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_view.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
 
 class DiveDetailPage extends ConsumerStatefulWidget {
   final String diveId;
@@ -3181,6 +3182,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         diveRolesById: await diveRoleMapOrEmpty(
           ref.read(diveRoleMapProvider.future),
         ),
+        // The diver's own gear arrangement (#3748).
+        gearArrangement: await resolveEquipmentArrangement(ref.read),
       );
 
       // Close loading dialog BEFORE opening file picker to avoid navigator lock issues

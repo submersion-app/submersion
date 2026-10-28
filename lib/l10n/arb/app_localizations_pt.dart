@@ -2543,6 +2543,15 @@ class AppLocalizationsPt extends AppLocalizations {
       'Enviar por AirDrop, e-mail ou outros apps';
 
   @override
+  String get backup_copySheet_deviceLocked =>
+      'Esta cópia de segurança foi feita do seu banco de dados protegido. Ela só pode ser restaurada neste dispositivo.';
+
+  @override
+  String backup_copySheet_title(String dateTime) {
+    return 'Backup de $dateTime';
+  }
+
+  @override
   String get backup_frequency_daily => 'Diário';
 
   @override
@@ -2556,6 +2565,12 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get backup_history_action_restore => 'Restaurar';
+
+  @override
+  String get backup_history_action_saveCopy => 'Salvar uma cópia';
+
+  @override
+  String get backup_history_action_share => 'Compartilhar';
 
   @override
   String get backup_history_empty => 'Nenhum backup';
@@ -10171,19 +10186,24 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get diveLog_cylinders_columnTank => 'Cilindro';
+  String diveLog_cylinders_figureStart(String pressure) {
+    return 'Início $pressure';
+  }
 
   @override
-  String get diveLog_cylinders_columnGas => 'Gás';
+  String diveLog_cylinders_figureEnd(String pressure) {
+    return 'Fim $pressure';
+  }
 
   @override
-  String get diveLog_cylinders_columnStart => 'Início';
+  String diveLog_cylinders_figureUsed(String pressure) {
+    return 'Usado $pressure';
+  }
 
   @override
-  String get diveLog_cylinders_columnEnd => 'Fim';
-
-  @override
-  String get diveLog_cylinders_columnUsed => 'Usado';
+  String diveLog_cylinders_gasSemantics(String mix) {
+    return 'Gás $mix';
+  }
 
   @override
   String diveLog_cylinders_gasUsed(String amount) {
@@ -10204,6 +10224,14 @@ class AppLocalizationsPt extends AppLocalizations {
   String diveLog_cylinders_modNote(String ppO2) {
     return 'MOD a ppO₂ $ppO2';
   }
+
+  @override
+  String diveLog_cylinders_modLimit(String ppO2, String limit) {
+    return '$ppO2 ($limit)';
+  }
+
+  @override
+  String get diveLog_cylinders_modLimitSeparator => ', ';
 
   @override
   String get diveLog_tank_section_gasMix => 'Mistura de Gás';
@@ -20129,6 +20157,11 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String plannerCanvas_issue_noUsableGas(String minGas, String fill) {
+    return 'O mínimo rock bottom de $minGas não deixa gás utilizável numa carga de $fill';
+  }
+
+  @override
   String plannerCanvas_issue_diluentModExceeded(String depth, String value) {
     return 'O diluente excede a MOD Dil a $depth (ppO₂ $value bar)';
   }
@@ -22944,6 +22977,63 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_conflict_field_omitUnusedOcGases =>
       'Ignorar gases de bailout não usados';
+
+  @override
+  String get settings_conflict_field_diveListSort => 'Mergulhos: ordenação';
+
+  @override
+  String get settings_conflict_field_divePlanListSort =>
+      'Planos salvos: ordenação';
+
+  @override
+  String get settings_conflict_field_tripListSort => 'Viagens: ordenação';
+
+  @override
+  String get settings_conflict_field_courseListSort => 'Cursos: ordenação';
+
+  @override
+  String get settings_conflict_field_buddyListSort => 'Duplas: ordenação';
+
+  @override
+  String get settings_conflict_field_diveCenterListSort =>
+      'Operadoras de Mergulho: ordenação';
+
+  @override
+  String get settings_conflict_field_siteListSort =>
+      'Pontos de Mergulho: ordenação';
+
+  @override
+  String get settings_conflict_field_certificationListSort =>
+      'Certificações: ordenação';
+
+  @override
+  String get settings_conflict_field_equipmentListSort =>
+      'Equipamentos: ordenação';
+
+  @override
+  String get settings_conflict_field_siteListGroupBy =>
+      'Pontos de Mergulho: agrupamento';
+
+  @override
+  String get settings_conflict_field_certificationListGroupBy =>
+      'Certificações: agrupamento';
+
+  @override
+  String get settings_conflict_field_equipmentArrangement =>
+      'Organização do equipamento';
+
+  @override
+  String get settings_conflict_field_equipmentGroupByLocation =>
+      'Equipamentos agrupados por local';
+
+  @override
+  String get settings_conflict_field_listArrangementHlc =>
+      'Registro de organização das listas';
+
+  @override
+  String settings_conflict_sortValue(String field, String direction) {
+    return '$field, $direction';
+  }
 
   @override
   String get settings_conflict_field_avgSpeed => 'Velocidade média';
@@ -36228,12 +36318,12 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String settings_shareAllSites_confirm(int count) {
-    return 'Escolhe quem vê os teus $count locais. Para alterar um local mais tarde, abre-o e toca em Partilhado com.';
+    return 'Escolhe quem vê os teus $count locais. Para alterar um local mais tarde, edita-o e toca em Partilhado com.';
   }
 
   @override
   String settings_shareAllTrips_confirm(int count) {
-    return 'Escolhe quem vê as tuas $count viagens. Para alterar uma viagem mais tarde, abre-a e toca em Partilhado com.';
+    return 'Escolhe quem vê as tuas $count viagens. Para alterar uma viagem mais tarde, edita-a e toca em Partilhado com.';
   }
 
   @override
@@ -52134,6 +52224,17 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get backup_history_device_anotherDevice => 'Outro dispositivo';
+
+  @override
+  String get backup_history_device_thisDevice => 'Este dispositivo';
+
+  @override
+  String backup_history_subtitleWithDevice(String summary, String device) {
+    return '$summary · $device';
+  }
+
+  @override
   String backup_history_manualSubtitle(
     int diveCount,
     int siteCount,
@@ -55647,6 +55748,16 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get tags_manage_cannotUndo => 'Esta ação não pode ser desfeita.';
+
+  @override
+  String tags_manage_rowScopes(String scopes) {
+    return 'Para: $scopes';
+  }
+
+  @override
+  String tags_manage_rowUsage(String counts) {
+    return 'Usada em: $counts';
+  }
 
   @override
   String get tags_action_edit => 'Editar etiquetas';

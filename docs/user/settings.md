@@ -311,7 +311,7 @@ With two or more diver profiles on the device:
   everyone.
 - **Share all my sites...** and **Share all my trips...** ask who should see
   everything you own: **Everyone**, or the profiles you tick. They only add
-  profiles; to change one site or trip later, open it and tap **Shared with**.
+  profiles; to change one site or trip later, edit it and tap **Shared with**.
 - **Share all my equipment...** shares your gear with the profiles you choose.
 - **Hidden from this profile** lists the shared sites and trips you removed from
   your profile, with **Unhide** to bring each one back.

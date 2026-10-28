@@ -5,6 +5,8 @@ import 'package:submersion/features/certifications/presentation/providers/certif
 import 'package:submersion/features/certifications/presentation/utils/certification_group_by_display.dart';
 import 'package:submersion/features/certifications/presentation/utils/certification_grouping.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/list_arrangement_writes.dart';
 
 /// The certification sort sheet's "Group by" control (#3359), a direct port
 /// of the Dive Sites list's [SiteGroupBySelector]. Choosing closes the
@@ -28,7 +30,9 @@ class CertificationGroupBySelector extends ConsumerWidget {
             groupValue: ref.watch(certificationGroupByProvider),
             onChanged: (value) {
               if (value == null) return;
-              ref.read(certificationGroupByProvider.notifier).state = value;
+              ref
+                  .read(settingsProvider.notifier)
+                  .setCertificationGroupBy(value);
               Navigator.of(context).pop();
             },
             child: Column(

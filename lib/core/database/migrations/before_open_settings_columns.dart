@@ -28,5 +28,8 @@ extension BeforeOpenSettingsColumns on AppDatabase {
     // v322 backstop: diver_settings hypercapnia-bailout toggle/factor/
     // duration, plus the matching dive_plans overrides (issue #3743).
     await _assertHypercapniaBailoutColumns();
+
+    // v323 backstop: diver_settings list arrangement columns and clock.
+    await _assertListArrangementColumns();
   }
 }

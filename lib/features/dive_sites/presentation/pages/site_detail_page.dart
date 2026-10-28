@@ -69,7 +69,6 @@ import 'package:submersion/core/services/shared_library/shared_library_models.da
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_providers.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/library_picker_dialog.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/site_edit_history_sheet.dart';
-import 'package:submersion/shared/widgets/shared_items/item_sharing_row.dart';
 import 'package:submersion/shared/widgets/detail_row/detail_row_group.dart';
 import 'package:submersion/shared/widgets/detail_row/detail_row.dart';
 import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
@@ -236,13 +235,6 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
             kind: SharedItemKind.site,
             itemId: site.id,
             ownerId: site.diverId,
-          ),
-          ItemSharingRow(
-            kind: SharedItemKind.site,
-            itemId: site.id,
-            ownerId: site.diverId,
-            itemName: site.name,
-            isLibrarySite: site.isLibrarySite,
           ),
           const SizedBox(height: kSiteDetailCardGap),
           SiteDetailSectionList(

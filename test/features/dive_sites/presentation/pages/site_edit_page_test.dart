@@ -15,7 +15,7 @@ import 'package:submersion/core/providers/location_service_provider.dart';
 import 'package:submersion/core/services/geocoding/place_lookup.dart';
 import 'package:submersion/core/services/location_service.dart';
 import 'package:submersion/shared/widgets/forms/suggestion_form_row.dart';
-import 'package:submersion/shared/widgets/shared_items/item_sharing_row.dart';
+import 'package:submersion/shared/widgets/shared_items/item_sharing_field.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/life_notes_section.dart';
 import 'package:submersion/core/data/visibility/item_sharing.dart';
 import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
