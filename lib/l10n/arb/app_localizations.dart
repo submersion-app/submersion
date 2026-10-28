@@ -31980,6 +31980,12 @@ abstract class AppLocalizations {
   /// **'Tank ends below the rock-bottom minimum of {pressure}'**
   String plannerCanvas_issue_minGas(String pressure);
 
+  /// No description provided for @plannerCanvas_issue_noUsableGas.
+  ///
+  /// In en, this message translates to:
+  /// **'Rock-bottom minimum of {minGas} leaves no usable gas in a {fill} fill'**
+  String plannerCanvas_issue_noUsableGas(String minGas, String fill);
+
   /// No description provided for @plannerCanvas_issue_diluentModExceeded.
   ///
   /// In en, this message translates to:

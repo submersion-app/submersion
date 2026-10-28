@@ -1308,8 +1308,8 @@ class PlanEngine {
                   hePercent: tank.gasMix.he,
                   model: config.gasModel,
                 );
-          final turn = _turnPressureFor(plan, tank);
           final minGas = _minGasFor(plan, tank, environment);
+          final turn = _turnPressureFor(plan, tank, minGasBar: minGas.bar);
           return PlanTankUsage(
             tankId: tank.id,
             litersUsed: used,
@@ -1331,8 +1331,12 @@ class PlanEngine {
   }
 
   /// Turn pressure per the plan's rule; bottom tanks with a start pressure
-  /// only. `usable = start - reserve`; turn when the rule's fraction of the
-  /// usable gas is consumed.
+  /// only. `usable = start - max(reserve, minGasBar)`; turn when the rule's
+  /// fraction of the usable gas is consumed. Flooring at [minGasBar] (the
+  /// cylinder's rock bottom, null where it does not apply) means no rule
+  /// ever turns with less than the plan's own emergency exit needs (#3741);
+  /// a rock bottom at or above the fill leaves nothing usable, so the turn
+  /// is the fill itself.
   ///
   /// Reads the rule/fraction from [config] (issue #3552), not [plan]
   /// directly: by this point [config] is already resolvedFor this plan,
@@ -1343,8 +1347,9 @@ class PlanEngine {
   /// a start pressure alone would still leave the turn blank.
   ({double? bar, PlanGasLimitGap? gap}) _turnPressureFor(
     domain.DivePlan plan,
-    DiveTank tank,
-  ) {
+    DiveTank tank, {
+    double? minGasBar,
+  }) {
     if (tank.role != TankRole.backGas) return (bar: null, gap: null);
     final rule = config.turnPressureRuleFor(plan);
     if (rule == null || rule == domain.TurnPressureRule.off) {
@@ -1354,7 +1359,11 @@ class PlanEngine {
     if (start == null) {
       return (bar: null, gap: PlanGasLimitGap.noStartPressure);
     }
-    final usable = (start - config.reservePressure).clamp(0.0, start);
+    final floor = math.max(
+      config.reservePressure,
+      minGasBar ?? config.reservePressure,
+    );
+    final usable = (start - floor).clamp(0.0, start);
     final fraction = switch (rule) {
       domain.TurnPressureRule.off => 0.0, // unreachable, handled above
       domain.TurnPressureRule.allUsable => 1.0,
@@ -1644,6 +1653,22 @@ class PlanEngine {
         );
       }
       final minGas = usage.minGasBar;
+      final start = usage.startPressure;
+      if (minGas != null && start != null && minGas >= start) {
+        issues.add(
+          PlanIssue(
+            type: PlanIssueType.noUsableGas,
+            severity: PlanIssueSeverity.alert,
+            message:
+                'Rock-bottom minimum of ${minGas.toStringAsFixed(0)} bar '
+                'leaves no usable gas in a '
+                '${start.toStringAsFixed(0)} bar fill',
+            segmentId: usage.tankId,
+            value: minGas,
+            threshold: start,
+          ),
+        );
+      }
       if (minGas != null && remaining > 0 && remaining < minGas) {
         issues.add(
           PlanIssue(

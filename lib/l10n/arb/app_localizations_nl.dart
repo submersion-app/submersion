@@ -19977,6 +19977,11 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String plannerCanvas_issue_noUsableGas(String minGas, String fill) {
+    return 'Rock-bottom-minimum van $minGas laat geen bruikbaar gas over in een vulling van $fill';
+  }
+
+  @override
   String plannerCanvas_issue_diluentModExceeded(String depth, String value) {
     return 'Diluent overschrijdt de Dil-MOD op $depth (ppO₂ $value bar)';
   }

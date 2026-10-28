@@ -5565,6 +5565,7 @@
   "plannerCanvas_issue_gasDensityHigh": "צפיפות הגז {value} g/L מעל הגבול המומלץ",
   "plannerCanvas_issue_hypoxic": "גז היפוקסי ב-{depth} (ppO₂ {value} bar)",
   "plannerCanvas_issue_minGas": "המיכל מסתיים מתחת למינימום rock bottom של {pressure}",
+  "plannerCanvas_issue_noUsableGas": "מינימום rock bottom של {minGas} לא משאיר גז שמיש במילוי של {fill}",
   "plannerCanvas_issue_diluentModExceeded": "המדלל חורג מ-MOD מדלל ב-{depth} (ppO₂ {value} bar)",
   "plannerCanvas_issue_ceilingViolated": "הפרופיל חוצה את תקרת הדקומפרסיה של {ceiling} ומדלג על עצירות נדרשות",
   "plannerCanvas_issue_noBailout": "תוכנית דקומפרסיה CCR ללא גז חילוץ (bailout)",

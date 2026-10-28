@@ -5666,6 +5666,7 @@
   "plannerCanvas_issue_gasDensityHigh": "Densidade do gás {value} g/L acima do limite recomendado",
   "plannerCanvas_issue_hypoxic": "Gás hipóxico a {depth} (ppO₂ {value} bar)",
   "plannerCanvas_issue_minGas": "O cilindro termina abaixo do mínimo rock bottom de {pressure}",
+  "plannerCanvas_issue_noUsableGas": "O mínimo rock bottom de {minGas} não deixa gás utilizável numa carga de {fill}",
   "plannerCanvas_issue_diluentModExceeded": "O diluente excede a MOD Dil a {depth} (ppO₂ {value} bar)",
   "plannerCanvas_issue_ceilingViolated": "O perfil ultrapassa o teto de descompressão de {ceiling}, saltando paragens obrigatórias",
   "plannerCanvas_issue_noBailout": "O plano de descompressão CCR não leva gás de bailout",

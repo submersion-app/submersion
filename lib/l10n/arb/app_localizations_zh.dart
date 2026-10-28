@@ -19130,6 +19130,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String plannerCanvas_issue_noUsableGas(String minGas, String fill) {
+    return '最低保底气量 $minGas 使 $fill 的充气没有可用气体';
+  }
+
+  @override
   String plannerCanvas_issue_diluentModExceeded(String depth, String value) {
     return '稀释气在 $depth 处超过其 MOD（ppO₂ $value bar）';
   }

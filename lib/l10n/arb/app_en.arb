@@ -12647,6 +12647,17 @@
       }
     }
   },
+  "plannerCanvas_issue_noUsableGas": "Rock-bottom minimum of {minGas} leaves no usable gas in a {fill} fill",
+  "@plannerCanvas_issue_noUsableGas": {
+    "placeholders": {
+      "minGas": {
+        "type": "String"
+      },
+      "fill": {
+        "type": "String"
+      }
+    }
+  },
   "plannerCanvas_issue_diluentModExceeded": "Diluent exceeds its Dil MOD at {depth} (ppO₂ {value} bar)",
   "@plannerCanvas_issue_diluentModExceeded": {
     "placeholders": {

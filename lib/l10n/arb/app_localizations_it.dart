@@ -20102,6 +20102,11 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String plannerCanvas_issue_noUsableGas(String minGas, String fill) {
+    return 'Il minimo rock bottom di $minGas non lascia gas utilizzabile in una carica di $fill';
+  }
+
+  @override
   String plannerCanvas_issue_diluentModExceeded(String depth, String value) {
     return 'Il diluente supera la sua MOD Dil a $depth (ppO₂ $value bar)';
   }

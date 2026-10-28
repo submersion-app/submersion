@@ -5565,6 +5565,7 @@
   "plannerCanvas_issue_gasDensityHigh": "Gázsűrűség {value} g/L az ajánlott határ felett",
   "plannerCanvas_issue_hypoxic": "Hipoxiás gáz {depth} mélységben (ppO₂ {value} bar)",
   "plannerCanvas_issue_minGas": "A palack a rock-bottom minimum ({pressure}) alatt végez",
+  "plannerCanvas_issue_noUsableGas": "A rock-bottom minimum ({minGas}) nem hagy felhasználható gázt egy {fill} töltésben",
   "plannerCanvas_issue_diluentModExceeded": "A hígítógáz meghaladja a Dil-MOD-ot {depth} mélységben (ppO₂ {value} bar)",
   "plannerCanvas_issue_ceilingViolated": "A profil a {ceiling} dekompressziós plafon fölé megy, kötelező megállókat kihagyva",
   "plannerCanvas_issue_noBailout": "A CCR dekompressziós terv nem tartalmaz bailout gázt",

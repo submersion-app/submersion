@@ -5817,6 +5817,7 @@
   "plannerCanvas_issue_gasDensityHigh": "气体密度 {value} g/L 超过建议上限",
   "plannerCanvas_issue_hypoxic": "{depth} 处为低氧气体（ppO₂ {value} bar）",
   "plannerCanvas_issue_minGas": "气瓶终压低于最低保底气量 {pressure}",
+  "plannerCanvas_issue_noUsableGas": "最低保底气量 {minGas} 使 {fill} 的充气没有可用气体",
   "plannerCanvas_issue_diluentModExceeded": "稀释气在 {depth} 处超过其 MOD（ppO₂ {value} bar）",
   "plannerCanvas_issue_ceilingViolated": "潜水剖面超过 {ceiling} 的减压上升限制，跳过了必需的停留",
   "plannerCanvas_issue_noBailout": "CCR 减压计划未携带逃生气体",
