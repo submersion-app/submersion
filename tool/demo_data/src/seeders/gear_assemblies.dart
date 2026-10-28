@@ -68,7 +68,6 @@ const technicalGear = <DemoGear>[
     model: 'Eclipse 30',
     bought: StoryMilestone.techStart,
     boughtOffset: 10,
-    replaces: 'bcd-jacket',
     travel: true,
     uses: {KitUse.warm, KitUse.temperate, KitUse.cold},
   ),
@@ -539,7 +538,6 @@ final regulatorGear = <DemoGear>[
     brand: 'Shearwater',
     model: 'Swift',
     bought: StoryMilestone.airIntegrated,
-    replaces: 'spg-cold',
   ),
   // Doubles: a right post with the long hose, a left post with the necklace.
   const DemoGear(

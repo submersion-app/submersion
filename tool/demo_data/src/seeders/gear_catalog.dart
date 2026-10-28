@@ -357,7 +357,6 @@ final demoGear = <DemoGear>[
     brand: 'Shearwater',
     model: 'Teric',
     bought: StoryMilestone.airIntegrated,
-    replaces: 'computer-rec',
     travel: true,
     uses: {KitUse.always},
   ),
