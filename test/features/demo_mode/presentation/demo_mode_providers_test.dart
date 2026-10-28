@@ -16,6 +16,7 @@ import 'package:submersion/features/demo_mode/data/demo_paths.dart';
 import 'package:submersion/features/demo_mode/data/demo_state_store.dart';
 import 'package:submersion/features/demo_mode/domain/demo_manifest.dart';
 import 'package:submersion/features/demo_mode/presentation/providers/demo_mode_providers.dart';
+import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 import 'package:submersion/features/import_wizard/presentation/providers/import_job_provider.dart';
 import 'package:submersion/features/media/data/services/local_thumbnail_cache.dart';
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
@@ -300,6 +301,33 @@ void main() {
         container.read(demoEnterControllerProvider),
         isA<DemoEnterRunning>(),
       );
+    });
+  });
+
+  group('dives being written', () {
+    test('an import job running counts', () {
+      expect(divesBeingWritten(importJobRunning: true), isTrue);
+    });
+
+    test('a dive computer download counts until its dives are saved', () {
+      for (final phase in DownloadPhase.values) {
+        expect(
+          divesBeingWritten(importJobRunning: false, diveComputerPhase: phase),
+          switch (phase) {
+            DownloadPhase.connecting ||
+            DownloadPhase.pinRequired ||
+            DownloadPhase.enumerating ||
+            DownloadPhase.downloading ||
+            DownloadPhase.processing => isTrue,
+            _ => isFalse,
+          },
+          reason: phase.name,
+        );
+      }
+    });
+
+    test('nothing running, or no download ever started, does not', () {
+      expect(divesBeingWritten(importJobRunning: false), isFalse);
     });
   });
 

@@ -14,6 +14,8 @@ import 'package:submersion/features/demo_mode/data/demo_package_extractor.dart';
 import 'package:submersion/features/demo_mode/data/demo_paths.dart';
 import 'package:submersion/features/demo_mode/data/demo_state_store.dart';
 import 'package:submersion/features/demo_mode/domain/demo_manifest.dart';
+import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
+import 'package:submersion/features/dive_computer/presentation/providers/download_providers.dart';
 import 'package:submersion/features/import_wizard/presentation/providers/import_job_provider.dart';
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart'
     show localThumbnailCacheProvider;
@@ -62,9 +64,16 @@ final demoModeServiceProvider = FutureProvider<DemoModeService>((ref) async {
     restart: restartApp,
     // With the gate closed, a refresh ends the running sessions (#3731).
     endNearbySync: () => ref.read(nearbyLinkManagerProvider).refresh(),
-    // An import running on after its wizard closed (#3554) would write its
-    // remaining dives into the sample logbook (#3798).
-    importRunning: () => ref.read(importJobProvider).isRunning,
+    // An import running on after its wizard closed (#3554), or a dive
+    // computer download still saving, would write its remaining dives into
+    // the sample logbook (#3798). A download notifier never built has never
+    // downloaded, so it is not built here just to ask.
+    importRunning: () => divesBeingWritten(
+      importJobRunning: ref.read(importJobProvider).isRunning,
+      diveComputerPhase: ref.exists(downloadNotifierProvider)
+          ? ref.read(downloadNotifierProvider).phase
+          : null,
+    ),
     forgetPhotos: (photoPaths) async {
       final thumbnails = ref.read(localThumbnailCacheProvider);
       for (final path in photoPaths) {
@@ -73,6 +82,22 @@ final demoModeServiceProvider = FutureProvider<DemoModeService>((ref) async {
     },
   );
 });
+
+/// Whether an import or a dive computer download is writing dives to the
+/// open logbook: from connecting to the device until its dives are saved.
+bool divesBeingWritten({
+  required bool importJobRunning,
+  DownloadPhase? diveComputerPhase,
+}) =>
+    importJobRunning ||
+    switch (diveComputerPhase) {
+      DownloadPhase.connecting ||
+      DownloadPhase.pinRequired ||
+      DownloadPhase.enumerating ||
+      DownloadPhase.downloading ||
+      DownloadPhase.processing => true,
+      _ => false,
+    };
 
 /// Leaves demo mode: restores the user's logbook and settings, removes every
 /// demo file, and restarts the app.
