@@ -15,6 +15,8 @@ import 'package:submersion/features/nav_track/presentation/providers/nav_track_i
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 
 /// Opens the Dive Edit page's route sheet (spec
 /// 2026-10-02-underwater-route-entry-points-design.md, section 1). Every
@@ -103,6 +105,9 @@ class _RouteLinkSheetState extends ConsumerState<_RouteLinkSheet> {
   }
 
   Future<void> _import() async {
+    if (!demoSealGuard(context, DemoSealedFeature.fileImport)) {
+      return;
+    }
     final l10n = context.l10n;
     setState(() => _error = null);
 

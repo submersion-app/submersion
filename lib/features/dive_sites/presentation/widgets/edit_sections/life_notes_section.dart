@@ -98,6 +98,7 @@ class LifeNotesSection extends StatelessWidget {
           suggestions: const [],
           placeholder: l10n.diveSites_edit_field_notes_hint,
           maxLines: 4,
+          markdown: true,
           caption: notesExtras?.sourceLabel,
           trailing: notesExtras == null
               ? null

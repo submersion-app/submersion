@@ -5096,6 +5096,24 @@ class AppLocalizationsNl extends AppLocalizations {
   String get common_placeholder_noValue => '--';
 
   @override
+  String get notesEditor_action_heading => 'Kop';
+
+  @override
+  String get notesEditor_action_bold => 'Vet';
+
+  @override
+  String get notesEditor_action_italic => 'Cursief';
+
+  @override
+  String get notesEditor_action_bulletList => 'Opsomming';
+
+  @override
+  String get notesEditor_action_numberedList => 'Genummerde lijst';
+
+  @override
+  String get notesEditor_action_preview => 'Voorbeeld';
+
+  @override
   String get common_error_tryAgain =>
       'Er is iets misgegaan. Probeer het opnieuw.';
 
@@ -5897,6 +5915,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_homeChips_sync => 'Synchronisatiestatus';
 
   @override
+  String get settings_homeChips_nearby => 'Apparaten in de buurt';
+
+  @override
   String get settings_homeChips_dataQuality => 'Datakwaliteit';
 
   @override
@@ -5946,6 +5967,16 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get dashboard_gauges_synced => 'Gesynchroniseerd';
+
+  @override
+  String dashboard_gauges_nearby(String name) {
+    return 'In de buurt: $name vraagt aandacht';
+  }
+
+  @override
+  String dashboard_gauges_nearbyMore(String name) {
+    return 'In de buurt: $name en andere vragen aandacht';
+  }
 
   @override
   String dashboard_gauges_dataIssues(int count) {
@@ -37316,6 +37347,142 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_sync_keepInStep => 'Apparaten automatisch gelijk houden';
 
   @override
+  String get settings_nearby_title => 'Apparaten in de buurt';
+
+  @override
+  String get settings_nearby_auto_title =>
+      'Automatisch synchroniseren met apparaten in de buurt';
+
+  @override
+  String get settings_nearby_auto_subtitle =>
+      'Als een gekoppeld apparaat in de buurt open is, via Bluetooth';
+
+  @override
+  String get settings_nearby_linuxNote =>
+      'Andere apparaten kunnen deze computer niet vinden, dus synchroniseert hij met elk apparaat in de buurt behalve een andere Linux-computer';
+
+  @override
+  String get settings_nearby_pair => 'Apparaat koppelen';
+
+  @override
+  String settings_nearby_status_synced(String when) {
+    return 'Gesynchroniseerd $when';
+  }
+
+  @override
+  String settings_nearby_status_syncing(String done, String total) {
+    return 'Synchroniseren: $done van $total';
+  }
+
+  @override
+  String get settings_nearby_status_never => 'Nog niet gesynchroniseerd';
+
+  @override
+  String settings_nearby_status_notSeen(String date) {
+    return 'Niet gezien sinds $date';
+  }
+
+  @override
+  String get settings_nearby_error_newerApp =>
+      'Dit apparaat heeft een nieuwere app-versie nodig';
+
+  @override
+  String get settings_nearby_error_peerOlderApp =>
+      'Het andere apparaat heeft een nieuwere app-versie nodig';
+
+  @override
+  String get settings_nearby_error_differentLibrary =>
+      'Niet dezelfde bibliotheek';
+
+  @override
+  String get settings_nearby_error_notPaired =>
+      'Ontkoppeld op het andere apparaat';
+
+  @override
+  String get settings_nearby_error_applyFailed =>
+      'Kon de wijzigingen niet toepassen';
+
+  @override
+  String get settings_nearby_error_bluetoothOff =>
+      'Bluetooth staat uit of is niet toegestaan';
+
+  @override
+  String get settings_nearby_error_unreachable => 'Kon geen verbinding maken';
+
+  @override
+  String get settings_nearby_sheet_rename => 'Naam wijzigen';
+
+  @override
+  String get settings_nearby_sheet_unpair => 'Ontkoppelen';
+
+  @override
+  String settings_nearby_unpair_confirm(String name) {
+    return '$name ontkoppelen? Voor synchroniseren in de buurt moet het opnieuw gekoppeld worden.';
+  }
+
+  @override
+  String get settings_nearby_rename_title => 'Apparaat hernoemen';
+
+  @override
+  String settings_nearby_notInRange(String name) {
+    return '$name is nu niet in de buurt';
+  }
+
+  @override
+  String get nearbyPair_looking => 'Apparaten zoeken…';
+
+  @override
+  String get nearbyPair_hint =>
+      'Open Submersion op het andere apparaat en tik daar ook op Apparaat koppelen.';
+
+  @override
+  String nearbyPair_found(String name) {
+    return '$name gevonden. Controleer of het deze code toont en bevestig daarna op beide.';
+  }
+
+  @override
+  String get nearbyPair_sameCode => 'Zelfde code';
+
+  @override
+  String get nearbyPair_notMine => 'Niet van mij';
+
+  @override
+  String get nearbyPair_waiting =>
+      'Wachten op bevestiging van het andere apparaat…';
+
+  @override
+  String get nearbyPair_bothPopulated =>
+      'Beide apparaten bevatten duiken. Koppelen voegt ze samen tot één logboek.';
+
+  @override
+  String get nearbyPair_differentLibrary =>
+      'Dat apparaat gebruikt een andere bibliotheek en kan daarom niet aan dit apparaat gekoppeld worden.';
+
+  @override
+  String get nearbyPair_permissionDenied =>
+      'Submersion heeft Bluetooth-toestemming nodig om apparaten in de buurt te vinden.';
+
+  @override
+  String get nearbyPair_bluetoothOff =>
+      'Zet Bluetooth aan om apparaten in de buurt te vinden.';
+
+  @override
+  String get nearbyPair_unsupported =>
+      'Dit apparaat heeft geen Bluetooth die Submersion kan gebruiken.';
+
+  @override
+  String get nearbyPair_openSettings => 'Instellingen openen';
+
+  @override
+  String nearbyPair_done(String name) {
+    return 'Gekoppeld met $name';
+  }
+
+  @override
+  String get nearbyPair_failed =>
+      'Het koppelen is niet voltooid. Probeer het opnieuw op beide apparaten.';
+
+  @override
   String get settings_sync_alsoAtLaunch => 'Ook synchroniseren bij het starten';
 
   @override
@@ -55673,4 +55840,101 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get setup_syncPull_startFresh => 'Een nieuw logboek beginnen';
+
+  @override
+  String get demo_welcome_title => 'Verkennen met voorbeeldgegevens';
+
+  @override
+  String get demo_welcome_subtitle =>
+      'Bekijk een volledig voorbeeldlogboek voordat je je eigen gegevens invoert';
+
+  @override
+  String get demo_settings_enter_title => 'Verkennen met voorbeeldgegevens';
+
+  @override
+  String get demo_settings_enter_subtitle =>
+      'Je logboek wordt onaangeroerd apart gezet tot je afsluit';
+
+  @override
+  String get demo_settings_exit_title => 'Demo afsluiten';
+
+  @override
+  String get demo_settings_exit_subtitle =>
+      'Voorbeeldlogboek weggooien en terug naar je eigen logboek';
+
+  @override
+  String get demo_strip_label => 'Demomodus: je verkent voorbeeldgegevens';
+
+  @override
+  String get demo_strip_exit => 'Demo afsluiten';
+
+  @override
+  String get demo_exit_confirm_title => 'Demomodus afsluiten?';
+
+  @override
+  String get demo_exit_confirm_body =>
+      'Wijzigingen in het voorbeeldlogboek gaan verloren.';
+
+  @override
+  String get demo_exit_confirm_action => 'Demo afsluiten';
+
+  @override
+  String get demo_enter_downloading => 'Voorbeeldlogboek downloaden';
+
+  @override
+  String get demo_enter_preparing => 'Voorbeeldlogboek voorbereiden';
+
+  @override
+  String get demo_enter_opening => 'Voorbeeldlogboek openen';
+
+  @override
+  String get demo_enter_failed =>
+      'Het voorbeeldlogboek kon niet worden gedownload. Controleer je verbinding en probeer het opnieuw.';
+
+  @override
+  String get demo_sealed_note => 'Niet beschikbaar in demomodus';
+
+  @override
+  String get demo_unavailable_title => 'Niet beschikbaar in demomodus';
+
+  @override
+  String get demo_unavailable_body =>
+      'De demomodus houdt het voorbeeldlogboek gescheiden van je gegevens, dus er kan niets worden geïmporteerd, geëxporteerd, geback-upt of gesynchroniseerd.';
+
+  @override
+  String get demo_row_unavailable => 'Niet beschikbaar in demomodus';
+
+  @override
+  String get demo_enter_confirm_title => 'Verkennen met voorbeeldgegevens?';
+
+  @override
+  String demo_enter_confirm_body(String size) {
+    return 'Er wordt een voorbeeldlogboek ($size) gedownload en geopend in plaats van het jouwe. Je logboek wordt onaangeroerd apart gezet tot je de demomodus afsluit.';
+  }
+
+  @override
+  String get demo_enter_confirm_action => 'Downloaden';
+
+  @override
+  String demo_enter_confirm_body_firstRun(String size) {
+    return 'Er wordt een voorbeeldlogboek ($size) gedownload om de app mee te verkennen. Sluit de demomodus af zodra je met je eigen logboek wilt beginnen.';
+  }
+
+  @override
+  String demo_enter_changed_body(String size) {
+    return 'Het voorbeeldlogboek is bijgewerkt en is nu $size. Downloaden?';
+  }
+
+  @override
+  String common_byteSize(String value, String unit) {
+    String _temp0 = intl.Intl.selectLogic(unit, {
+      'B': 'B',
+      'KB': 'KB',
+      'MB': 'MB',
+      'GB': 'GB',
+      'TB': 'TB',
+      'other': '$unit',
+    });
+    return '$value $_temp0';
+  }
 }

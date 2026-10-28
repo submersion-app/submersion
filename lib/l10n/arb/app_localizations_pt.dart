@@ -5126,6 +5126,24 @@ class AppLocalizationsPt extends AppLocalizations {
   String get common_placeholder_noValue => '--';
 
   @override
+  String get notesEditor_action_heading => 'Título';
+
+  @override
+  String get notesEditor_action_bold => 'Negrito';
+
+  @override
+  String get notesEditor_action_italic => 'Itálico';
+
+  @override
+  String get notesEditor_action_bulletList => 'Lista com marcadores';
+
+  @override
+  String get notesEditor_action_numberedList => 'Lista numerada';
+
+  @override
+  String get notesEditor_action_preview => 'Pré-visualização';
+
+  @override
   String get common_error_tryAgain => 'Algo correu mal. Tenta novamente.';
 
   @override
@@ -5929,6 +5947,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_homeChips_sync => 'Estado de sincronização';
 
   @override
+  String get settings_homeChips_nearby => 'Dispositivos próximos';
+
+  @override
   String get settings_homeChips_dataQuality => 'Qualidade dos dados';
 
   @override
@@ -5979,6 +6000,16 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get dashboard_gauges_synced => 'Sincronizado';
+
+  @override
+  String dashboard_gauges_nearby(String name) {
+    return 'Próximo: $name precisa de atenção';
+  }
+
+  @override
+  String dashboard_gauges_nearbyMore(String name) {
+    return 'Próximos: $name e outros precisam de atenção';
+  }
 
   @override
   String dashboard_gauges_dataIssues(int count) {
@@ -37556,6 +37587,142 @@ class AppLocalizationsPt extends AppLocalizations {
       'Manter os dispositivos sincronizados automaticamente';
 
   @override
+  String get settings_nearby_title => 'Dispositivos próximos';
+
+  @override
+  String get settings_nearby_auto_title =>
+      'Sincronizar automaticamente com dispositivos próximos';
+
+  @override
+  String get settings_nearby_auto_subtitle =>
+      'Quando um dispositivo emparelhado está aberto por perto, via Bluetooth';
+
+  @override
+  String get settings_nearby_linuxNote =>
+      'Outros dispositivos não conseguem encontrar este computador, por isso ele sincroniza com qualquer dispositivo próximo, exceto outro computador Linux';
+
+  @override
+  String get settings_nearby_pair => 'Emparelhar um dispositivo';
+
+  @override
+  String settings_nearby_status_synced(String when) {
+    return 'Sincronizado $when';
+  }
+
+  @override
+  String settings_nearby_status_syncing(String done, String total) {
+    return 'Sincronizando: $done de $total';
+  }
+
+  @override
+  String get settings_nearby_status_never => 'Ainda não sincronizado';
+
+  @override
+  String settings_nearby_status_notSeen(String date) {
+    return 'Não visto desde $date';
+  }
+
+  @override
+  String get settings_nearby_error_newerApp =>
+      'Este dispositivo precisa de uma versão mais recente do app';
+
+  @override
+  String get settings_nearby_error_peerOlderApp =>
+      'Aquele dispositivo precisa de uma versão mais recente do app';
+
+  @override
+  String get settings_nearby_error_differentLibrary =>
+      'Não é a mesma biblioteca';
+
+  @override
+  String get settings_nearby_error_notPaired =>
+      'Desemparelhado no outro dispositivo';
+
+  @override
+  String get settings_nearby_error_applyFailed =>
+      'Não foi possível aplicar as alterações dele';
+
+  @override
+  String get settings_nearby_error_bluetoothOff =>
+      'O Bluetooth está desligado ou não permitido';
+
+  @override
+  String get settings_nearby_error_unreachable => 'Não foi possível conectar';
+
+  @override
+  String get settings_nearby_sheet_rename => 'Renomear';
+
+  @override
+  String get settings_nearby_sheet_unpair => 'Desemparelhar';
+
+  @override
+  String settings_nearby_unpair_confirm(String name) {
+    return 'Desemparelhar $name? Será preciso emparelhar de novo para sincronizar por perto.';
+  }
+
+  @override
+  String get settings_nearby_rename_title => 'Renomear dispositivo';
+
+  @override
+  String settings_nearby_notInRange(String name) {
+    return '$name não está por perto agora';
+  }
+
+  @override
+  String get nearbyPair_looking => 'Procurando dispositivos…';
+
+  @override
+  String get nearbyPair_hint =>
+      'Abra o Submersion no outro dispositivo e toque também em Emparelhar um dispositivo.';
+
+  @override
+  String nearbyPair_found(String name) {
+    return '$name encontrado. Verifique se mostra este código e confirme nos dois.';
+  }
+
+  @override
+  String get nearbyPair_sameCode => 'Mesmo código';
+
+  @override
+  String get nearbyPair_notMine => 'Não é meu';
+
+  @override
+  String get nearbyPair_waiting =>
+      'Aguardando a confirmação do outro dispositivo…';
+
+  @override
+  String get nearbyPair_bothPopulated =>
+      'Os dois dispositivos têm mergulhos. Emparelhar junta-os num único logbook.';
+
+  @override
+  String get nearbyPair_differentLibrary =>
+      'Esse dispositivo usa outra biblioteca, por isso não pode ser emparelhado com este.';
+
+  @override
+  String get nearbyPair_permissionDenied =>
+      'O Submersion precisa da permissão de Bluetooth para encontrar dispositivos próximos.';
+
+  @override
+  String get nearbyPair_bluetoothOff =>
+      'Ligue o Bluetooth para encontrar dispositivos próximos.';
+
+  @override
+  String get nearbyPair_unsupported =>
+      'Este dispositivo não tem um Bluetooth que o Submersion possa usar.';
+
+  @override
+  String get nearbyPair_openSettings => 'Abrir configurações';
+
+  @override
+  String nearbyPair_done(String name) {
+    return 'Emparelhado com $name';
+  }
+
+  @override
+  String get nearbyPair_failed =>
+      'O emparelhamento não terminou. Tente de novo nos dois dispositivos.';
+
+  @override
   String get settings_sync_alsoAtLaunch => 'Sincronizar também ao abrir';
 
   @override
@@ -56014,4 +56181,102 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get setup_syncPull_startFresh => 'Começar um novo registo';
+
+  @override
+  String get demo_welcome_title => 'Explorar com dados de exemplo';
+
+  @override
+  String get demo_welcome_subtitle =>
+      'Conheça um diário de mergulho de exemplo completo antes de introduzir o seu';
+
+  @override
+  String get demo_settings_enter_title => 'Explorar com dados de exemplo';
+
+  @override
+  String get demo_settings_enter_subtitle =>
+      'O seu diário fica de lado, intacto, até sair';
+
+  @override
+  String get demo_settings_exit_title => 'Sair da demonstração';
+
+  @override
+  String get demo_settings_exit_subtitle =>
+      'Descartar o diário de exemplo e voltar ao seu';
+
+  @override
+  String get demo_strip_label =>
+      'Modo de demonstração: está a explorar dados de exemplo';
+
+  @override
+  String get demo_strip_exit => 'Sair da demonstração';
+
+  @override
+  String get demo_exit_confirm_title => 'Sair do modo de demonstração?';
+
+  @override
+  String get demo_exit_confirm_body =>
+      'As alterações feitas no diário de exemplo serão descartadas.';
+
+  @override
+  String get demo_exit_confirm_action => 'Sair da demonstração';
+
+  @override
+  String get demo_enter_downloading => 'A transferir o diário de exemplo';
+
+  @override
+  String get demo_enter_preparing => 'A preparar o diário de exemplo';
+
+  @override
+  String get demo_enter_opening => 'A abrir o diário de exemplo';
+
+  @override
+  String get demo_enter_failed =>
+      'Não foi possível transferir o diário de exemplo. Verifique a ligação e tente novamente.';
+
+  @override
+  String get demo_sealed_note => 'Indisponível no modo de demonstração';
+
+  @override
+  String get demo_unavailable_title => 'Indisponível no modo de demonstração';
+
+  @override
+  String get demo_unavailable_body =>
+      'O modo de demonstração mantém o diário de exemplo separado dos seus dados, por isso nada pode ser importado, exportado, copiado ou sincronizado.';
+
+  @override
+  String get demo_row_unavailable => 'Indisponível no modo de demonstração';
+
+  @override
+  String get demo_enter_confirm_title => 'Explorar com dados de exemplo?';
+
+  @override
+  String demo_enter_confirm_body(String size) {
+    return 'Será transferido um diário de exemplo ($size) e aberto em vez do seu. O seu diário fica de lado, intacto, até sair do modo de demonstração.';
+  }
+
+  @override
+  String get demo_enter_confirm_action => 'Transferir';
+
+  @override
+  String demo_enter_confirm_body_firstRun(String size) {
+    return 'Será transferido um diário de exemplo ($size) para explorar a aplicação. Saia do modo de demonstração quando quiser começar o seu.';
+  }
+
+  @override
+  String demo_enter_changed_body(String size) {
+    return 'O diário de exemplo foi atualizado e tem agora $size. Transferi-lo?';
+  }
+
+  @override
+  String common_byteSize(String value, String unit) {
+    String _temp0 = intl.Intl.selectLogic(unit, {
+      'B': 'B',
+      'KB': 'KB',
+      'MB': 'MB',
+      'GB': 'GB',
+      'TB': 'TB',
+      'other': '$unit',
+    });
+    return '$value $_temp0';
+  }
 }

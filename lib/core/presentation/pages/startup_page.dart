@@ -59,6 +59,9 @@ import 'package:submersion/core/utils/app_version.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 import 'package:submersion/features/backup/data/services/backup_service.dart';
 import 'package:submersion/features/backup/data/services/backup_schema_probe.dart';
+import 'package:submersion/features/demo_mode/data/demo_paths.dart';
+import 'package:submersion/features/demo_mode/data/demo_startup.dart';
+import 'package:submersion/features/demo_mode/data/demo_state_store.dart';
 import 'package:submersion/features/backup/data/services/backup_target.dart';
 import 'package:submersion/features/backup/data/services/downgrade_restore_candidates.dart';
 import 'package:submersion/features/backup/data/services/pre_downgrade_backup_service.dart';
@@ -226,6 +229,15 @@ class StartupWrapper extends StatefulWidget {
   @visibleForTesting
   final DiveLogAvailabilityService? availabilityServiceOverride;
 
+  /// Where demo mode keeps its state (issue #3708). Null (tests that do not
+  /// exercise demo mode) means demo mode is never resumed.
+  final DemoPaths? demoPaths;
+
+  /// Optional override for demo mode's launch decision. See
+  /// [DemoStartup.resolve].
+  @visibleForTesting
+  final Future<DemoStartupDecision> Function()? demoStartupOverride;
+
   const StartupWrapper({
     super.key,
     required this.prefs,
@@ -245,6 +257,8 @@ class StartupWrapper extends StatefulWidget {
     this.fileReachedOverride,
     this.closeDatabaseOverride,
     this.availabilityServiceOverride,
+    this.demoPaths,
+    this.demoStartupOverride,
   });
 
   @override
@@ -276,6 +290,10 @@ class _StartupWrapperState extends State<StartupWrapper>
   /// It opens read-write, which can roll back a hot journal, so after it the
   /// file may have changed however unreachable its folder looks later.
   bool _schemaProbeReachedFile = false;
+
+  /// The sample logbook this launch opens instead of the user's database,
+  /// when demo mode is on (issue #3708). Null opens the user's database.
+  String? _demoDatabasePath;
 
   /// The diver's custom folder, when the failure screen found it unreachable
   /// (#2178). Null at the default location and whenever the folder is fine.
@@ -375,6 +393,10 @@ class _StartupWrapperState extends State<StartupWrapper>
       // without sqlcipher.dll and the app reported a failed upgrade).
       (widget.enginePreflightOverride ?? assertDatabaseEngineAvailable)();
 
+      // Demo mode first (issue #3708): finishing an exit a killed app left
+      // half done restores the preferences everything below reads.
+      _demoDatabasePath = (await _resolveDemoStartup()).demoDatabasePath;
+
       // Determine if migration is needed before opening the database
       final dbPath = await widget.locationService.getDatabasePath();
       final journal = _restoreJournal(dbPath);
@@ -416,22 +438,31 @@ class _StartupWrapperState extends State<StartupWrapper>
         return;
       }
 
+      // Everything above judged the user's own database: whether it is on
+      // this device, the app lock and its encryption key, an unsettled
+      // restore. In demo mode the file opened below is the plaintext sample
+      // logbook instead, so it is opened without the key, and it needs no
+      // pre-upgrade backup (it is discarded on exit).
+      final demoPath = _demoDatabasePath;
+      final openPath = demoPath ?? dbPath;
+      if (demoPath != null) DatabaseService.instance.databaseKeyHex = null;
+
       final int? storedVersion;
       final bool needsMigration;
       final int totalSteps;
 
       // Sync stat on purpose, like _loadRecoveryOptions: a dart:io future
       // started in the widget-test zone never completes.
-      _schemaProbeReachedFile = File(dbPath).existsSync();
+      _schemaProbeReachedFile = File(openPath).existsSync();
       if (widget.schemaVersionProbeOverride != null) {
-        final probe = widget.schemaVersionProbeOverride!(dbPath);
+        final probe = widget.schemaVersionProbeOverride!(openPath);
         needsMigration = probe.needsMigration;
         totalSteps = probe.totalSteps;
         storedVersion =
             null; // probe path doesn't expose storedVersion; backup uses 0 default
       } else {
         storedVersion = DatabaseService.getStoredSchemaVersion(
-          dbPath,
+          openPath,
           keyHex: DatabaseService.instance.databaseKeyHex,
         );
         final sv = storedVersion;
@@ -440,7 +471,7 @@ class _StartupWrapperState extends State<StartupWrapper>
         totalSteps = needsMigration ? AppDatabase.migrationStepCount(sv) : 0;
       }
 
-      if (needsMigration) {
+      if (needsMigration && demoPath == null) {
         if (mounted) {
           setState(() => _state = _StartupState.backingUp);
         }
@@ -925,6 +956,23 @@ class _StartupWrapperState extends State<StartupWrapper>
     _phase = StartupPhase.opening;
   }
 
+  Future<DemoStartupDecision> _resolveDemoStartup() async {
+    final override = widget.demoStartupOverride;
+    if (override != null) return override();
+    final paths = widget.demoPaths;
+    if (paths == null) return const DemoStartupDecision(null);
+    try {
+      return await DemoStartup.resolve(
+        store: DemoStateStore(paths),
+        prefs: widget.prefs,
+      );
+    } catch (e) {
+      // Never block a launch on demo mode: the user's logbook opens.
+      debugPrint('[startup] demo mode state could not be read: $e');
+      return const DemoStartupDecision(null);
+    }
+  }
+
   Future<void> _initializeServices() async {
     void onProgress(int currentStep, int totalSteps) {
       // reportProgress() in the migration ladder increments BEFORE it calls
@@ -977,6 +1025,7 @@ class _StartupWrapperState extends State<StartupWrapper>
         onCompacting: () {
           if (mounted) setState(() => _state = _StartupState.compacting);
         },
+        pathOverride: _demoDatabasePath,
       ),
     );
 

@@ -10,6 +10,7 @@ import 'package:path/path.dart' as p;
 import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 import 'package:submersion/features/media/domain/value_objects/media_attach_target.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/providers/table_details_pane_provider.dart';
@@ -17,6 +18,8 @@ import 'package:submersion/features/media/presentation/helpers/media_drop_destin
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/global_drop_target.dart';
+
+import '../../helpers/global_test_defaults.dart';
 
 /// Platform variant that runs tests as macOS (desktop).
 const _macOS = TargetPlatformVariant({TargetPlatform.macOS});
@@ -253,6 +256,39 @@ void main() {
       await tester.pump();
       expect(find.text('Drop to Import'), findsNothing);
     });
+
+    testWidgets(
+      'a drop refused in demo mode still clears the overlay',
+      variant: _macOS,
+      (tester) async {
+        DemoModeGate.instance.debugActive = true;
+        addTearDown(applyGlobalTestDefaults);
+        await tester.pumpWidget(_buildTestApp());
+        await tester.pumpAndSettle();
+
+        final dropTarget = tester.widget<DropTarget>(find.byType(DropTarget));
+        dropTarget.onDragEntered?.call(
+          DropEventDetails(
+            localPosition: Offset.zero,
+            globalPosition: Offset.zero,
+          ),
+        );
+        await tester.pump();
+        expect(find.text('Drop to Import'), findsOneWidget);
+
+        dropTarget.onDragDone?.call(
+          DropDoneDetails(
+            files: [DropItemFile(p.join(Directory.systemTemp.path, 'a.uddf'))],
+            localPosition: Offset.zero,
+            globalPosition: Offset.zero,
+          ),
+        );
+        await tester.pump();
+
+        expect(find.text('Not available in demo mode'), findsOneWidget);
+        expect(find.text('Drop to Import'), findsNothing);
+      },
+    );
 
     testWidgets('empty drop is a no-op (no navigation)', variant: _macOS, (
       tester,

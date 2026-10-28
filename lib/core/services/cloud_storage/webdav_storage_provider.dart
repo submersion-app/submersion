@@ -10,6 +10,8 @@ import 'package:submersion/core/services/cloud_storage/webdav/webdav_config.dart
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_credentials_store.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_errors.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 
 typedef WebDavClientFactory = WebDavClient Function(WebDavConfig config);
 
@@ -156,6 +158,8 @@ class WebDavStorageProvider
     String filename, {
     String? folderId,
   }) async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.sync);
+
     final session = await _requireSession();
     final path = _pathIn(folderId, session.config, filename);
     await session.client.putBytes(path, data);
@@ -174,6 +178,8 @@ class WebDavStorageProvider
     String filename, {
     String? folderId,
   }) async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.sync);
+
     final session = await _requireSession();
     final path = _pathIn(folderId, session.config, filename);
     final source = File(sourcePath);
@@ -224,6 +230,8 @@ class WebDavStorageProvider
 
   @override
   Future<void> deleteFile(String fileId) async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.sync);
+
     final session = await _requireSession();
     await session.client.delete(fileId);
   }
@@ -237,6 +245,8 @@ class WebDavStorageProvider
     String folderName, {
     String? parentFolderId,
   }) async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.sync);
+
     final session = await _requireSession();
     final path = '${parentFolderId ?? session.config.folder}/$folderName';
     await session.client.ensureCollection(path);

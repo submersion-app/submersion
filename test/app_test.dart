@@ -40,6 +40,7 @@ import 'package:submersion/features/shared_library/presentation/providers/shared
 
 import 'helpers/fake_nfc.dart';
 import 'helpers/mock_providers.dart';
+import 'support/fake_nearby_link_manager.dart';
 
 /// A [SyncNotifier] stand-in whose state can be driven directly from a test,
 /// so the app-root `ref.listen` callback can be exercised through real state
@@ -295,10 +296,12 @@ void main() {
     GoRouter? router,
     FakeNfcTagService? nfc,
     Key? scopeKey,
+    FakeNearbyLinkManager? nearby,
   }) async {
     final base = await getBaseOverrides(
       incomingLinks: links,
       nfcTagService: nfc,
+      nearbyLinkManager: nearby,
     );
     await tester.pumpWidget(
       ProviderScope(
@@ -1002,6 +1005,69 @@ void main() {
       expect(sync.runs, isEmpty);
       expect(cleanup.triggers, [StorageGcTrigger.launch]);
     });
+  });
+
+  testWidgets('the nearby link follows the app into the background and back '
+      '(issue #3731)', (tester) async {
+    final nearby = FakeNearbyLinkManager();
+    await pumpApp(
+      tester,
+      _DrivableSyncNotifier(const SyncState()),
+      nearby: nearby,
+    );
+    expect(nearby.foreground, [true], reason: 'started at launch');
+
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    await tester.pump();
+    // Each backgrounding step may report; the link only has to end off.
+    expect(nearby.foreground.first, isTrue);
+    expect(nearby.foreground.skip(1), everyElement(isFalse));
+
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pump();
+    expect(nearby.foreground.last, isTrue);
+  });
+
+  testWidgets('a window that only loses focus keeps the nearby link on '
+      '(issue #3731)', (tester) async {
+    final nearby = FakeNearbyLinkManager();
+    await pumpApp(
+      tester,
+      _DrivableSyncNotifier(const SyncState()),
+      nearby: nearby,
+    );
+    expect(nearby.foreground, [true]);
+
+    // Another app took the focus, or Control Center is pulled down: the
+    // window is still there, and a transfer must not end.
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    await tester.pump();
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pump();
+    expect(nearby.foreground, everyElement(isTrue));
+  });
+
+  testWidgets('turning nearby sync off or on re-decides the radio '
+      '(issue #3731)', (tester) async {
+    final nearby = FakeNearbyLinkManager();
+    await pumpApp(
+      tester,
+      _DrivableSyncNotifier(const SyncState()),
+      nearby: nearby,
+    );
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(SubmersionApp)),
+    );
+    final before = nearby.refreshes;
+    await container
+        .read(syncBehaviorProvider.notifier)
+        .setNearbyAutoEnabled(false);
+    await tester.pump();
+    expect(nearby.refreshes, before + 1);
   });
 
   testWidgets('the iOS NFC sheet coming and going is not a return to the app', (

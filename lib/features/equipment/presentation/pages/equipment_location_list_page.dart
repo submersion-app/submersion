@@ -10,6 +10,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_p
 import 'package:submersion/features/equipment/presentation/utils/equipment_location_display.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_location_edit_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/core/text/markdown/notes_plain_text.dart';
 
 /// Settings > Manage > Locations: the diver's places by kind, with how many
 /// items are at each now. Archived places sit in a collapsed section.
@@ -104,7 +105,9 @@ class EquipmentLocationListPage extends ConsumerWidget {
       key: ValueKey('equipment_location_${place.id}'),
       leading: Icon(place.kind.icon),
       title: Text(place.name),
-      subtitle: place.notes.isEmpty ? null : Text(place.notes, maxLines: 1),
+      subtitle: place.notes.isEmpty
+          ? null
+          : Text(markdownToPlainText(place.notes), maxLines: 1),
       trailing: Text(
         context.l10n.equipment_location_groupCount(counts[place.id] ?? 0),
       ),

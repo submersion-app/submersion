@@ -93,7 +93,7 @@ void main() {
     expect(r.changes.single.after, <String>[]);
   });
 
-  test('append notes uses a newline only after existing text', () async {
+  test('append notes uses a blank line only after existing text', () async {
     const a = AppendDiveNotesAction('Boat dive');
     final r = await applier.apply(ruleOf(RuleSubject.dives, a), a, [
       'd20',
@@ -102,11 +102,11 @@ void main() {
     final byDive = {for (final c in r.changes) c.targetId: c};
     expect(byDive['d20']!.after, 'Boat dive');
     expect(byDive['d35']!.before, 'Wall');
-    expect(byDive['d35']!.after, 'Wall\nBoat dive');
+    expect(byDive['d35']!.after, 'Wall\n\nBoat dive');
     final notes = await db
         .customSelect("SELECT notes FROM dives WHERE id = 'd35'")
         .getSingle();
-    expect(notes.read<String>('notes'), 'Wall\nBoat dive');
+    expect(notes.read<String>('notes'), 'Wall\n\nBoat dive');
   });
 
   test('a site-only tag added to dives widens to dives first', () async {

@@ -926,6 +926,11 @@ class SyncDataSerializer {
   /// Incremental delta: only rows changed since [hlcWatermark]. Mutable
   /// entities are filtered by their own hlc; write-once children are gathered
   /// by their HLC parent. Pass null to export everything.
+  ///
+  /// [childrenByOwnClock] also selects parent-gated children whose own clock
+  /// is above [hlcWatermark]. Nearby sync needs it: it has no changeset log,
+  /// so a child edit already published to the cloud has lost the pending
+  /// mark that carries it here (issue #3731).
   Future<SyncPayload> exportChangeset({
     required String deviceId,
     required String? hlcWatermark,
@@ -933,8 +938,12 @@ class SyncDataSerializer {
     int? seq,
     String? uploadNonce,
     String? epochId,
+    bool childrenByOwnClock = false,
   }) async {
-    final data = await _buildSyncData(hlcWatermark);
+    final data = await _buildSyncData(
+      hlcWatermark,
+      childrenByOwnClock: childrenByOwnClock,
+    );
     // A base (null watermark) carries the FULL deletion log so a cold-start
     // reader can never miss a tombstone. An incremental changeset carries only
     // tombstones newer than the watermark; a null/legacy hlc is always included
@@ -2203,6 +2212,44 @@ class SyncDataSerializer {
     return byType;
   }
 
+  /// Record ids of [parentGatedChildEntities] rows whose own clock is above
+  /// [hlc], by entity type. Tables a partial database lacks are skipped.
+  Future<Map<String, Set<String>>> _parentGatedChildIdsAbove(String hlc) async {
+    final present = {
+      for (final r
+          in await _db
+              .customSelect(
+                "SELECT name FROM sqlite_master WHERE type = 'table'",
+              )
+              .get())
+        r.read<String>('name'),
+    };
+    final byType = <String, Set<String>>{};
+    for (final entry in parentGatedTables.entries) {
+      if (!present.contains(entry.value)) continue;
+      final table = _db.allTables.firstWhere(
+        (t) => t.actualTableName == entry.value,
+      );
+      final rows = await _db
+          .customSelect(
+            'SELECT * FROM ${entry.value} WHERE hlc > ?',
+            variables: [Variable.withString(hlc)],
+            readsFrom: {table},
+          )
+          .get();
+      for (final row in rows) {
+        final data = table.map(row.data);
+        if (data is! DataClass) continue;
+        final id = parentGatedRecordId(
+          entry.key,
+          data.toJson(serializer: _syncBlobSerializer),
+        );
+        if (id != null) byType.putIfAbsent(entry.key, () => <String>{}).add(id);
+      }
+    }
+    return byType;
+  }
+
   /// [rows] from the parent-gated export plus every pending [entityType] row
   /// it did not already include. A pending id whose row is gone is skipped:
   /// its deletion travels as a tombstone.
@@ -2229,14 +2276,31 @@ class SyncDataSerializer {
   }
 
   /// Build the full SyncData, filtering by [hlcSince] (null = full export).
-  Future<SyncData> _buildSyncData(String? hlcSince) =>
-      _withLibrarySiteIdsMemo(() => _buildSyncDataUnmemoised(hlcSince));
+  Future<SyncData> _buildSyncData(
+    String? hlcSince, {
+    bool childrenByOwnClock = false,
+  }) => _withLibrarySiteIdsMemo(
+    () => _buildSyncDataUnmemoised(
+      hlcSince,
+      childrenByOwnClock: childrenByOwnClock,
+    ),
+  );
 
-  Future<SyncData> _buildSyncDataUnmemoised(String? hlcSince) async {
+  Future<SyncData> _buildSyncDataUnmemoised(
+    String? hlcSince, {
+    bool childrenByOwnClock = false,
+  }) async {
     // A base (null hlcSince) already carries every row.
-    final pendingChildren = hlcSince == null
+    final pending = hlcSince == null
         ? const <String, Set<String>>{}
         : await _pendingParentGatedChildIds();
+    final byOwnClock = hlcSince != null && childrenByOwnClock
+        ? await _parentGatedChildIdsAbove(hlcSince)
+        : const <String, Set<String>>{};
+    final pendingChildren = {
+      for (final type in {...pending.keys, ...byOwnClock.keys})
+        type: {...?pending[type], ...?byOwnClock[type]},
+    };
     return SyncData(
       divers: await _safeExport('divers', () => _exportDivers(hlcSince)),
       diverSettings: await _safeExport(
@@ -2898,18 +2962,24 @@ class SyncDataSerializer {
   /// Verified over the data section as received ([SyncPayload.rawDataJson])
   /// so payloads written by builds with fewer/more entity keys still
   /// validate; falls back to re-serializing for locally built payloads.
-  bool validateChecksum(SyncPayload payload) {
+  bool validateChecksum(SyncPayload payload) => checksumIsValid(payload);
+
+  /// [validateChecksum] without an instance, for nearby sync's receiver.
+  static bool checksumIsValid(SyncPayload payload) {
     final dataJson = payload.rawDataJson ?? jsonEncode(payload.data.toJson());
-    final computed = _computeChecksum(dataJson);
-    return computed == payload.checksum;
+    return _sha256Hex(dataJson) == payload.checksum;
   }
 
   /// Compute SHA-256 checksum
-  String _computeChecksum(String data) {
-    final bytes = utf8.encode(data);
-    final digest = sha256.convert(bytes);
-    return digest.toString();
-  }
+  String _computeChecksum(String data) => _sha256Hex(data);
+
+  /// The checksum a payload carrying [data] must have, for a caller that
+  /// rebuilds a payload's data (nearby sync's per-writer filter).
+  static String checksumOf(SyncData data) =>
+      _sha256Hex(jsonEncode(data.toJson()));
+
+  static String _sha256Hex(String data) =>
+      sha256.convert(utf8.encode(data)).toString();
 
   // ============================================================================
   // Import / Apply Methods

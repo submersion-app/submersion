@@ -26,6 +26,7 @@ import 'package:submersion/features/maps/presentation/widgets/submersion_tile_la
 import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
 import 'package:submersion/features/documents/presentation/widgets/documents_section.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
+import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_view.dart';
 
 class DiveCenterDetailPage extends ConsumerStatefulWidget {
   final String centerId;
@@ -608,7 +609,7 @@ class _NotesSection extends StatelessWidget {
             style: Theme.of(context).textTheme.titleMedium,
           ),
           const SizedBox(height: 8),
-          Text(notes, style: Theme.of(context).textTheme.bodyMedium),
+          MarkdownNotesView(notes),
         ],
       ),
     );

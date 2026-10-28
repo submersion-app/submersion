@@ -8,6 +8,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/site_scape/presentation/site_feature_glyph.dart';
 import 'package:submersion/features/site_scape/presentation/site_feature_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_view.dart';
 
 /// Read-only readout of what the diver recorded for [feature]: what it is,
 /// how deep, which way it runs, and any notes.
@@ -77,7 +78,7 @@ Future<void> showSiteFeatureInfoSheet(
               ),
             if (feature.notes.isNotEmpty) ...[
               const SizedBox(height: 8),
-              Text(feature.notes),
+              MarkdownNotesView(feature.notes),
             ],
           ],
         ),

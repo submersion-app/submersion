@@ -27,6 +27,7 @@ import 'package:submersion/core/data/visibility/item_sharing.dart';
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
 import 'package:submersion/shared/widgets/shared_items/item_sharing_row.dart';
+import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
 
 const _log = LoggerService('tripEditPage');
 
@@ -644,7 +645,7 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
                   const SizedBox(height: 12),
 
                   // Notes field
-                  TextFormField(
+                  MarkdownNotesField(
                     controller: _notesController,
                     decoration: InputDecoration(
                       labelText: context.l10n.trips_edit_label_notes,

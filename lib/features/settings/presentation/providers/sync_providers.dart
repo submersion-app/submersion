@@ -69,6 +69,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/settings/presentation/providers/git_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/webdav_providers.dart';
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 
 /// Sync repository provider
 final syncRepositoryProvider = Provider<SyncRepository>((ref) {
@@ -244,21 +245,27 @@ class SyncBehaviorSettings {
   final bool syncOnLaunch;
   final bool syncOnResume;
 
+  /// Sync with paired devices nearby over Bluetooth (issue #3731).
+  final bool nearbyAutoEnabled;
+
   const SyncBehaviorSettings({
     required this.autoSyncEnabled,
     required this.syncOnLaunch,
     required this.syncOnResume,
+    this.nearbyAutoEnabled = true,
   });
 
   SyncBehaviorSettings copyWith({
     bool? autoSyncEnabled,
     bool? syncOnLaunch,
     bool? syncOnResume,
+    bool? nearbyAutoEnabled,
   }) {
     return SyncBehaviorSettings(
       autoSyncEnabled: autoSyncEnabled ?? this.autoSyncEnabled,
       syncOnLaunch: syncOnLaunch ?? this.syncOnLaunch,
       syncOnResume: syncOnResume ?? this.syncOnResume,
+      nearbyAutoEnabled: nearbyAutoEnabled ?? this.nearbyAutoEnabled,
     );
   }
 }
@@ -272,6 +279,7 @@ class SyncBehaviorNotifier extends StateNotifier<SyncBehaviorSettings> {
           autoSyncEnabled: _prefs.autoSyncEnabled,
           syncOnLaunch: _prefs.syncOnLaunch,
           syncOnResume: _prefs.syncOnResume,
+          nearbyAutoEnabled: _prefs.nearbyAutoEnabled,
         ),
       );
 
@@ -288,6 +296,11 @@ class SyncBehaviorNotifier extends StateNotifier<SyncBehaviorSettings> {
   Future<void> setSyncOnResume(bool value) async {
     await _prefs.setSyncOnResume(value);
     state = state.copyWith(syncOnResume: value);
+  }
+
+  Future<void> setNearbyAutoEnabled(bool value) async {
+    await _prefs.setNearbyAutoEnabled(value);
+    state = state.copyWith(nearbyAutoEnabled: value);
   }
 }
 
@@ -1461,6 +1474,7 @@ class SyncNotifier extends StateNotifier<SyncState> {
   /// An auto sync defers this device's FIRST library-combining contact to a
   /// manual, user-confirmed Sync Now instead of merging unannounced.
   Future<void> performSync({bool auto = false}) async {
+    if (DemoModeGate.instance.isActive) return;
     _log.debug('performSync() called');
     if (_syncInFlight) {
       // One sync at a time, but a request is never lost: the flight runs it

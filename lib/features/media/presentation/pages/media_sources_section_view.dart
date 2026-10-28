@@ -11,6 +11,8 @@ import 'package:submersion/features/media/presentation/providers/media_library_p
 import 'package:submersion/features/media/presentation/providers/media_watcher_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 
 /// Counts per source type for the browse list.
 final sourceCountsProvider = FutureProvider<Map<MediaSourceType, int>>((
@@ -61,6 +63,9 @@ class MediaSourcesSectionView extends ConsumerWidget {
   final Future<String?> Function()? pickFolderOverride;
 
   Future<void> _addRoot(BuildContext context, WidgetRef ref) async {
+    if (!demoSealGuard(context, DemoSealedFeature.mediaImport)) {
+      return;
+    }
     final path =
         await (pickFolderOverride?.call() ?? FilePicker.getDirectoryPath());
     if (path == null) return;

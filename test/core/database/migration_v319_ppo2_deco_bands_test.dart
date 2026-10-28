@@ -9,13 +9,15 @@ import 'package:submersion/core/database/database.dart';
 /// band/depth values, all off/at the flat default; dive_plans gains the
 /// matching per-plan overrides, all nullable.
 ///
-/// v320: dive_plans gains the per-plan "explicitly off" flags for the bands
+/// v321: dive_plans gains the per-plan "explicitly off" flags for the bands
 /// and the explicit-depth override (issue #3580 follow-up), both false by
 /// default.
 ///
-/// v321: diver_settings gains the hypercapnia-bailout toggle/factor/
+/// v322: diver_settings gains the hypercapnia-bailout toggle/factor/
 /// duration; dive_plans gains the matching per-plan overrides and
 /// "explicitly off" flag (issue #3743).
+///
+/// (v320 is main's nearby_peers rung, issue #3731, between them.)
 ///
 /// All three are column only, every toggle/flag off or at its flat default:
 /// no existing diver's planning behavior changes.
@@ -39,16 +41,16 @@ void main() {
     'ppo2_deco_band3',
     'max_o2_depth_meters',
   ];
-  const divePlansColumnsV320 = [
+  const divePlansColumnsV321 = [
     'ppo2_deco_bands_explicitly_off',
     'max_o2_depth_explicitly_off',
   ];
-  const diverSettingsColumnsV321 = [
+  const diverSettingsColumnsV322 = [
     'planner_hypercapnia_enabled',
     'planner_hypercapnia_factor',
     'planner_hypercapnia_minutes',
   ];
-  const divePlansColumnsV321 = [
+  const divePlansColumnsV322 = [
     'hypercapnia_amv',
     'hypercapnia_minutes',
     'hypercapnia_explicitly_off',
@@ -70,7 +72,7 @@ void main() {
     },
   );
 
-  for (final version in [319, 320, 321]) {
+  for (final version in [319, 321, 322]) {
     test(
       'v$version is at or below the current schema version and in the ladder',
       () {
@@ -90,7 +92,7 @@ void main() {
     });
   }
 
-  test('a fresh database has every column through v321', () async {
+  test('a fresh database has every column through v322', () async {
     final db = AppDatabase(
       NativeDatabase.memory(setup: registerAppSqlFunctions),
     );
@@ -99,21 +101,21 @@ void main() {
     final divePlans = await columns(db, 'dive_plans');
     for (final column in [
       ...diverSettingsColumnsV319,
-      ...diverSettingsColumnsV321,
+      ...diverSettingsColumnsV322,
     ]) {
       expect(diverSettings, contains(column), reason: column);
     }
     for (final column in [
       ...divePlansColumnsV319,
-      ...divePlansColumnsV320,
       ...divePlansColumnsV321,
+      ...divePlansColumnsV322,
     ]) {
       expect(divePlans, contains(column), reason: column);
     }
   });
 
   test(
-    'upgrading from v318 adds every column through v321, all off/flat',
+    'upgrading from v318 adds every column through v322, all off/flat',
     () async {
       final db = AppDatabase(strandedAt(318));
       addTearDown(db.close);
@@ -121,14 +123,14 @@ void main() {
       final divePlans = await columns(db, 'dive_plans');
       for (final column in [
         ...diverSettingsColumnsV319,
-        ...diverSettingsColumnsV321,
+        ...diverSettingsColumnsV322,
       ]) {
         expect(diverSettings, contains(column), reason: column);
       }
       for (final column in [
         ...divePlansColumnsV319,
-        ...divePlansColumnsV320,
         ...divePlansColumnsV321,
+        ...divePlansColumnsV322,
       ]) {
         expect(divePlans, contains(column), reason: column);
       }
@@ -162,6 +164,23 @@ void main() {
     },
   );
 
+  test(
+    'a database already at v320 (nearby sync shipped first, so the v319 '
+    'rung never ran) regains the v319 columns (beforeOpen backstop)',
+    () async {
+      final db = AppDatabase(strandedAt(320));
+      addTearDown(db.close);
+      final diverSettings = await columns(db, 'diver_settings');
+      final divePlans = await columns(db, 'dive_plans');
+      for (final column in diverSettingsColumnsV319) {
+        expect(diverSettings, contains(column), reason: column);
+      }
+      for (final column in divePlansColumnsV319) {
+        expect(divePlans, contains(column), reason: column);
+      }
+    },
+  );
+
   test('a database already at the current schema version without these '
       'columns regains all of them (beforeOpen backstop)', () async {
     final db = AppDatabase(strandedAt(AppDatabase.currentSchemaVersion));
@@ -170,14 +189,14 @@ void main() {
     final divePlans = await columns(db, 'dive_plans');
     for (final column in [
       ...diverSettingsColumnsV319,
-      ...diverSettingsColumnsV321,
+      ...diverSettingsColumnsV322,
     ]) {
       expect(diverSettings, contains(column), reason: column);
     }
     for (final column in [
       ...divePlansColumnsV319,
-      ...divePlansColumnsV320,
       ...divePlansColumnsV321,
+      ...divePlansColumnsV322,
     ]) {
       expect(divePlans, contains(column), reason: column);
     }

@@ -26,6 +26,12 @@ import 'csv_test_fixtures.dart';
 /// Operator, Boat Name, Boat Captain and Surface Conditions), then for
 /// visibility ranges (v278, issue #3226: Visibility Min and Visibility Max).
 ///
+/// The dives, sites and equipment goldens moved once more, for Markdown
+/// notes (#3683): their notes cells (and a site's description and access
+/// notes) keep their line breaks inside a quoted cell instead of having them
+/// flattened to spaces, so a round trip brings formatting back. No column
+/// moved.
+///
 /// The fills golden (cylinder passports phase 5) was written by the new
 /// writer on 2026-09-29; it exists so a later change to the sheet is a
 /// deliberate one.

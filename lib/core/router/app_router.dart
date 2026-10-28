@@ -111,6 +111,7 @@ import 'package:submersion/features/backup/presentation/pages/backup_settings_pa
 import 'package:submersion/features/settings/presentation/pages/manage_currency_rules_page.dart';
 import 'package:submersion/features/settings/presentation/pages/hidden_items_page.dart';
 import 'package:submersion/features/settings/presentation/pages/cloud_sync_page.dart';
+import 'package:submersion/features/settings/presentation/pages/nearby_pair_page.dart';
 import 'package:submersion/features/shared_library/presentation/pages/change_library_connection_page.dart';
 import 'package:submersion/features/shared_library/presentation/pages/connect_shared_library_page.dart';
 import 'package:submersion/features/shared_library/presentation/pages/library_backups_page.dart';
@@ -243,6 +244,8 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/main_scaffold.dart';
 import 'package:submersion/features/certification_agencies/presentation/pages/certification_agencies_page.dart';
 import 'package:submersion/features/certification_agencies/presentation/pages/certification_agency_edit_page.dart';
+import 'package:submersion/features/demo_mode/presentation/demo_sealed_routes.dart';
+import 'package:submersion/features/demo_mode/presentation/pages/demo_unavailable_page.dart';
 
 /// Root navigator key, so app-wide modals (e.g. the replaced-library adopt
 /// dialog surfaced from the app root) can be shown above the shell.
@@ -257,6 +260,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       if (DatabaseService.instance.isMigrating) {
         return null;
       }
+
+      // Demo mode (issue #3708): a sealed screen explains itself instead.
+      final sealed = demoRedirect(state.uri.toString());
+      if (sealed != null) return sealed;
 
       final hasDivers = await ref.read(hasAnyDiversProvider.future);
       final isOnWelcome = state.matchedLocation == '/welcome';
@@ -295,6 +302,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           child: Focus(autofocus: true, child: MainScaffold(child: child)),
         ),
         routes: [
+          GoRoute(
+            path: demoUnavailableLocation,
+            name: 'demoUnavailable',
+            builder: (context, state) => DemoUnavailablePage(
+              feature: DemoUnavailablePage.featureFromQuery(
+                state.uri.queryParameters['feature'],
+              ),
+            ),
+          ),
           // Dashboard (Home)
           GoRoute(
             path: '/dashboard',
@@ -1621,6 +1637,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'webdav-config',
                     redirect: (_, _) => '/settings/connected-accounts',
+                  ),
+                  // Pairing for nearby Bluetooth sync (issue #3731).
+                  GoRoute(
+                    path: 'nearby-pair',
+                    name: 'nearbyPair',
+                    builder: (context, state) => const NearbyPairPage(),
                   ),
                 ],
               ),

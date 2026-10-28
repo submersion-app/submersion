@@ -28,6 +28,7 @@ import 'package:submersion/features/documents/presentation/widgets/documents_sec
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/shared/widgets/detail_row/detail_row_group.dart';
 import 'package:submersion/shared/widgets/detail_row/detail_row.dart';
+import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_view.dart';
 
 class CourseDetailPage extends ConsumerWidget {
   final String courseId;
@@ -250,7 +251,7 @@ class CourseDetailPage extends ConsumerWidget {
                       Icons.notes,
                     ),
                     const SizedBox(height: 12),
-                    Text(course.notes),
+                    MarkdownNotesView(course.notes),
                   ],
                 ),
               ),

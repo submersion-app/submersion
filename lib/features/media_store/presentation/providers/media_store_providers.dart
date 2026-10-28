@@ -49,6 +49,7 @@ import 'package:submersion/features/media_store/domain/media_transfer_summary.da
 import 'package:submersion/features/media_store/domain/media_upload_quality.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 
 /// Everything a configured media store needs at runtime. Built once per
 /// attach; disposed and rebuilt on connect/disconnect via provider
@@ -483,6 +484,9 @@ final mediaStoreAccountAttachProvider = Provider<MediaStoreAccountAttach>(
 // under a drain in flight.
 final FutureProvider<MediaObjectStore?> attachedMediaObjectStoreProvider =
     FutureProvider<MediaObjectStore?>((ref) async {
+      // Demo mode (issue #3708): no store, so no drain, verify or sweep ever
+      // compares the user's real store with the sample logbook.
+      if (DemoModeGate.instance.isActive) return null;
       final attachState = ref.watch(mediaStoreAttachStateProvider);
       final attachedId = await attachState.attachedStoreId();
       if (attachedId == null) return null;

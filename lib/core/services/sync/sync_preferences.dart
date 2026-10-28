@@ -20,6 +20,7 @@ class SyncPreferences {
   static const String _syncOnLaunchKey = 'sync_on_launch';
   static const String _syncOnResumeKey = 'sync_on_resume';
   static const String _encryptionEnabledKey = 'sync_encryption_enabled';
+  static const String _nearbyAutoKey = 'sync_nearby_auto';
 
   final SharedPreferences _prefs;
 
@@ -39,6 +40,14 @@ class SyncPreferences {
 
   Future<void> setSyncOnResume(bool value) async {
     await _prefs.setBool(_syncOnResumeKey, value);
+  }
+
+  /// Nearby Bluetooth sync with paired devices (issue #3731). Device-local
+  /// and on by default; independent of the cloud backend's auto sync.
+  bool get nearbyAutoEnabled => _prefs.getBool(_nearbyAutoKey) ?? true;
+
+  Future<void> setNearbyAutoEnabled(bool value) async {
+    await _prefs.setBool(_nearbyAutoKey, value);
   }
 
   bool get syncEncryptionEnabled =>

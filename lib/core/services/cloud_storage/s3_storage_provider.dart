@@ -8,6 +8,8 @@ import 'package:submersion/core/services/cloud_storage/s3/s3_api_client.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_config.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_credentials_store.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 
 /// Builds an [S3ApiClient] for a config; injectable for tests.
 typedef S3ApiClientFactory =
@@ -157,6 +159,8 @@ class S3StorageProvider
     String filename, {
     String? folderId,
   }) async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.sync);
+
     final session = await _requireSession();
     final key = '${folderId ?? session.config.prefix}$filename';
     await session.client.putObject(key, data);
@@ -183,6 +187,8 @@ class S3StorageProvider
     String filename, {
     String? folderId,
   }) async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.sync);
+
     final source = File(sourcePath);
     final length = await source.length();
     if (length <= _transferChunkBytes) {
@@ -314,6 +320,8 @@ class S3StorageProvider
 
   @override
   Future<void> deleteFile(String fileId) async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.sync);
+
     final session = await _requireSession();
     await session.client.deleteObject(fileId);
   }
@@ -329,6 +337,8 @@ class S3StorageProvider
     String folderName, {
     String? parentFolderId,
   }) async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.sync);
+
     final config = await _requireConfig();
     final base = parentFolderId ?? config.prefix;
     return '$base$folderName/';

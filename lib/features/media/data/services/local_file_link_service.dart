@@ -9,6 +9,8 @@ import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_metadata.dart';
 import 'package:submersion/features/media/domain/value_objects/taken_at_source.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 
 /// Reads capture metadata for a file about to be linked. Null when the file
 /// cannot be read; the link still happens, with the caller's fallbacks.
@@ -114,6 +116,7 @@ class LocalFileLinkService {
     double? longitude,
     String? caption,
   }) async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.mediaImport);
     if (linkedPaths.contains(path)) {
       _log.info('Skipping already-linked $path for dive $diveId');
       return null;

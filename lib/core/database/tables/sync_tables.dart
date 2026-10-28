@@ -130,6 +130,12 @@ class LocalPublishStates extends Table {
   TextColumn get publishedHlcHigh => text().nullable()();
   IntColumn get changesetBytesSinceBase =>
       integer().withDefault(const Constant(0))();
+
+  /// Set by nearby sync (issue #3731) when it applied rows whose clocks are
+  /// older than [publishedHlcHigh]: the next publish exports from here
+  /// instead, so a device with no backend reaches the cloud through this
+  /// one. Sorts just below the oldest such clock; cleared by every publish.
+  TextColumn get relayFloorHlc => text().nullable()();
   IntColumn get updatedAt => integer()();
 
   @override

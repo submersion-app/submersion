@@ -8,6 +8,8 @@ import 'package:gal/gal.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 
 /// Whether the running platform's share sheet can carry files.
 ///
@@ -51,12 +53,15 @@ Future<String> saveAndShareFile(
   String fileName,
   String mimeType, {
   Rect? sharePositionOrigin,
-}) => _shareOrSave(
-  Uint8List.fromList(utf8.encode(content)),
-  fileName,
-  mimeType,
-  sharePositionOrigin: sharePositionOrigin,
-);
+}) async {
+  DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.share);
+  return _shareOrSave(
+    Uint8List.fromList(utf8.encode(content)),
+    fileName,
+    mimeType,
+    sharePositionOrigin: sharePositionOrigin,
+  );
+}
 
 /// Save raw bytes and hand them to the system share sheet, or to the save
 /// dialog where [canShareFiles] is false.
@@ -68,12 +73,15 @@ Future<String> saveAndShareFileBytes(
   String fileName,
   String mimeType, {
   Rect? sharePositionOrigin,
-}) => _shareOrSave(
-  Uint8List.fromList(bytes),
-  fileName,
-  mimeType,
-  sharePositionOrigin: sharePositionOrigin,
-);
+}) async {
+  DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.share);
+  return _shareOrSave(
+    Uint8List.fromList(bytes),
+    fileName,
+    mimeType,
+    sharePositionOrigin: sharePositionOrigin,
+  );
+}
 
 Future<String> _shareOrSave(
   Uint8List bytes,
@@ -134,6 +142,7 @@ Future<String?> shareFileAtPath(
   required String dialogTitle,
   Rect? sharePositionOrigin,
 }) async {
+  DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.share);
   if (!canShareFiles) {
     return saveBytesToFile(
       await File(path).readAsBytes(),
@@ -173,6 +182,7 @@ Future<String> exportImageAsPng(
   String fileName, {
   Rect? sharePositionOrigin,
 }) async {
+  DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.export);
   return saveAndShareFileBytes(
     pngBytes,
     fileName,
@@ -186,6 +196,7 @@ Future<String> exportImageAsPng(
 /// Returns the file path where the image was saved.
 /// Throws an exception if saving fails.
 Future<String> saveImageToPhotos(List<int> pngBytes, String fileName) async {
+  DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.export);
   final directory = await getApplicationDocumentsDirectory();
   final filePath = p.join(directory.path, fileName);
   final file = File(filePath);
@@ -221,6 +232,7 @@ Future<String?> saveImageToFile(
   String fileName, {
   String dialogTitle = 'Save Profile Image',
 }) async {
+  DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.export);
   final result = await FilePicker.saveFile(
     dialogTitle: dialogTitle,
     fileName: fileName,
@@ -239,6 +251,7 @@ Future<String> sharePdfBytes(
   String fileName, {
   Rect? sharePositionOrigin,
 }) async {
+  DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.share);
   return saveAndShareFileBytes(
     pdfBytes,
     fileName,
@@ -260,12 +273,15 @@ Future<String?> saveTextToFile(
   String fileName, {
   required String dialogTitle,
   required String mimeType,
-}) => saveBytesToFile(
-  utf8.encode(content),
-  fileName,
-  dialogTitle: dialogTitle,
-  mimeType: mimeType,
-);
+}) async {
+  DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.export);
+  return saveBytesToFile(
+    utf8.encode(content),
+    fileName,
+    dialogTitle: dialogTitle,
+    mimeType: mimeType,
+  );
+}
 
 /// Save raw bytes to a user-selected file location.
 ///
@@ -281,6 +297,7 @@ Future<String?> saveBytesToFile(
   required String dialogTitle,
   required String mimeType,
 }) async {
+  DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.export);
   final result = await FilePicker.saveFile(
     dialogTitle: dialogTitle,
     fileName: fileName,
@@ -297,10 +314,12 @@ Future<String?> saveBytesToFile(
 ///
 /// Opens a file picker dialog allowing the user to choose where to save.
 /// Returns the saved file path, or null if the user cancelled.
-Future<String?> savePdfToFile(List<int> pdfBytes, String fileName) =>
-    saveBytesToFile(
-      pdfBytes,
-      fileName,
-      dialogTitle: 'Save PDF',
-      mimeType: 'application/pdf',
-    );
+Future<String?> savePdfToFile(List<int> pdfBytes, String fileName) async {
+  DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.export);
+  return saveBytesToFile(
+    pdfBytes,
+    fileName,
+    dialogTitle: 'Save PDF',
+    mimeType: 'application/pdf',
+  );
+}

@@ -1,0 +1,65 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Markdown notes mockup</title>
+<style>:root{--border:#d0d7de;--bg-secondary:#f6f8fa;--text-secondary:#57606a;--accent:#0969da}
+body{font-family:system-ui;background:#fff;color:#1f2328;padding:24px;max-width:960px;margin:auto}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:16px}.mockup{border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.mockup-header{background:var(--bg-secondary);padding:6px 10px;font-size:12px;color:var(--text-secondary)}.mockup-body{padding:12px}
+.subtitle{color:var(--text-secondary)}</style></head><body>
+<h2>Previewing a note while editing</h2>
+<p class="subtitle">The same Notes field in any editor (dive, site, trip, buddy, equipment...). A single Preview toggle sits at the right end of the formatting bar.</p>
+
+<style>
+  .tb { display:flex; gap:4px; padding:6px; border:1px solid var(--border); border-bottom:none; border-radius:8px 8px 0 0; background:var(--bg-secondary); align-items:center; }
+  .tb span { min-width:30px; height:28px; display:inline-flex; align-items:center; justify-content:center; border-radius:6px; font-size:13px; padding:0 4px; }
+  .tb .off { opacity:.35; }
+  .tb .grow { flex:1; }
+  .tb .seg { border:1px solid var(--border); border-radius:14px; overflow:hidden; display:inline-flex; height:28px; }
+  .tb .seg b { font-weight:500; font-size:12px; padding:0 10px; display:inline-flex; align-items:center; }
+  .tb .tog { border:1px solid var(--border); border-radius:14px; padding:0 10px; font-size:12px; }
+  .tb .tog.on { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .src { font-family:ui-monospace,Menlo,monospace; font-size:12.5px; line-height:1.55; white-space:pre-wrap; border:1px solid var(--border); border-radius:0 0 8px 8px; padding:10px; min-height:200px; }
+  .ren { font-size:14px; line-height:1.5; border:1px solid var(--border); border-radius:0 0 8px 8px; padding:10px; min-height:200px; }
+  .ren h4 { margin:6px 0 4px; font-size:16px; }
+  .ren ul, .ren ol { margin:4px 0 4px 20px; padding:0; }
+  .lbl { font-size:12px; color:var(--text-secondary); margin-bottom:6px; }
+</style>
+
+<div class="split">
+  <div class="mockup">
+    <div class="mockup-header">Preview off (default)</div>
+    <div class="mockup-body">
+      <div class="lbl">Notes</div>
+      <div class="tb">
+        <span><b>H</b></span><span><b>B</b></span><span><i>I</i></span><span>&bull;&thinsp;list</span><span>1.&thinsp;list</span>
+        <span class="grow"></span>
+        <span class="tog">&#128065;&thinsp;Preview</span>
+      </div>
+<div class="src"># On the wreck
+Viz was **great**, *maybe* 25 m.
+
+- Two turtles at the bow
+- Moray in the boiler
+
+1. Check the SPG o-ring</div>
+    </div>
+  </div>
+  <div class="mockup">
+    <div class="mockup-header">Preview on (toggle highlighted)</div>
+    <div class="mockup-body">
+      <div class="lbl">Notes</div>
+      <div class="tb">
+        <span class="off"><b>H</b></span><span class="off"><b>B</b></span><span class="off"><i>I</i></span><span class="off">&bull;&thinsp;list</span><span class="off">1.&thinsp;list</span>
+        <span class="grow"></span>
+        <span class="tog on">&#128065;&thinsp;Preview</span>
+      </div>
+      <div class="ren">
+        <h4>On the wreck</h4>
+        <div>Viz was <b>great</b>, <i>maybe</i> 25 m.</div>
+        <ul><li>Two turtles at the bow</li><li>Moray in the boiler</li></ul>
+        <ol><li>Check the SPG o-ring</li></ol>
+      </div>
+      <p class="subtitle" style="margin-top:8px">The box swaps to the formatted view at the same size. Formatting buttons grey out. Tap Preview again to switch it off and keep typing where you left off. Saving works from either mode.</p>
+    </div>
+  </div>
+</div>
+
+</body></html>

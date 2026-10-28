@@ -170,6 +170,7 @@ import 'package:submersion/features/tides/data/services/dive_tide_recorder.dart'
 import 'package:submersion/features/dive_log/presentation/providers/shared_gear_overlap_providers.dart';
 import 'package:submersion/features/rules/presentation/run_rules_flow.dart';
 import 'package:submersion/features/rules/domain/rule_subject.dart';
+import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
 
 const _createNewDiveCenterSentinel = '__create_new_dive_center__';
 const _createNewTripSentinel = '__create_new_trip__';
@@ -1581,7 +1582,10 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                           setState(() => _bulkNotesAppend = s.first),
                     ),
                     const SizedBox(height: 8),
-                    TextField(controller: _notesController, maxLines: 4),
+                    MarkdownNotesField(
+                      controller: _notesController,
+                      maxLines: 4,
+                    ),
                   ],
                 ),
               ),
@@ -4948,7 +4952,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
               textCapitalization: TextCapitalization.words,
             ),
             const SizedBox(height: 12),
-            TextField(
+            MarkdownNotesField(
               controller: descriptionController,
               decoration: InputDecoration(
                 labelText:

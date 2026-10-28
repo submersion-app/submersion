@@ -5137,6 +5137,24 @@ class AppLocalizationsFr extends AppLocalizations {
   String get common_placeholder_noValue => '--';
 
   @override
+  String get notesEditor_action_heading => 'Titre';
+
+  @override
+  String get notesEditor_action_bold => 'Gras';
+
+  @override
+  String get notesEditor_action_italic => 'Italique';
+
+  @override
+  String get notesEditor_action_bulletList => 'Liste à puces';
+
+  @override
+  String get notesEditor_action_numberedList => 'Liste numérotée';
+
+  @override
+  String get notesEditor_action_preview => 'Aperçu';
+
+  @override
   String get common_error_tryAgain =>
       'Une erreur s\'est produite. Veuillez réessayer.';
 
@@ -5944,6 +5962,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_homeChips_sync => 'État de synchronisation';
 
   @override
+  String get settings_homeChips_nearby => 'Appareils à proximité';
+
+  @override
   String get settings_homeChips_dataQuality => 'Qualité des données';
 
   @override
@@ -5993,6 +6014,16 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get dashboard_gauges_synced => 'Synchronisé';
+
+  @override
+  String dashboard_gauges_nearby(String name) {
+    return 'À proximité : $name demande votre attention';
+  }
+
+  @override
+  String dashboard_gauges_nearbyMore(String name) {
+    return 'À proximité : $name et d\'autres demandent votre attention';
+  }
 
   @override
   String dashboard_gauges_dataIssues(int count) {
@@ -37678,6 +37709,142 @@ class AppLocalizationsFr extends AppLocalizations {
       'Garder les appareils synchronisés automatiquement';
 
   @override
+  String get settings_nearby_title => 'Appareils à proximité';
+
+  @override
+  String get settings_nearby_auto_title =>
+      'Synchroniser automatiquement à proximité';
+
+  @override
+  String get settings_nearby_auto_subtitle =>
+      'Quand un appareil associé est ouvert à proximité, par Bluetooth';
+
+  @override
+  String get settings_nearby_linuxNote =>
+      'Les autres appareils ne peuvent pas trouver cet ordinateur : il se synchronise donc avec tout appareil à proximité, sauf un autre ordinateur Linux';
+
+  @override
+  String get settings_nearby_pair => 'Associer un appareil';
+
+  @override
+  String settings_nearby_status_synced(String when) {
+    return 'Synchronisé $when';
+  }
+
+  @override
+  String settings_nearby_status_syncing(String done, String total) {
+    return 'Synchronisation : $done sur $total';
+  }
+
+  @override
+  String get settings_nearby_status_never => 'Pas encore synchronisé';
+
+  @override
+  String settings_nearby_status_notSeen(String date) {
+    return 'Non vu depuis le $date';
+  }
+
+  @override
+  String get settings_nearby_error_newerApp =>
+      'Cet appareil a besoin d\'une version plus récente de l\'app';
+
+  @override
+  String get settings_nearby_error_peerOlderApp =>
+      'L\'autre appareil a besoin d\'une version plus récente de l\'app';
+
+  @override
+  String get settings_nearby_error_differentLibrary =>
+      'Pas la même bibliothèque';
+
+  @override
+  String get settings_nearby_error_notPaired =>
+      'Dissocié sur l\'autre appareil';
+
+  @override
+  String get settings_nearby_error_applyFailed =>
+      'Impossible d\'appliquer ses modifications';
+
+  @override
+  String get settings_nearby_error_bluetoothOff =>
+      'Le Bluetooth est désactivé ou non autorisé';
+
+  @override
+  String get settings_nearby_error_unreachable => 'Connexion impossible';
+
+  @override
+  String get settings_nearby_sheet_rename => 'Renommer';
+
+  @override
+  String get settings_nearby_sheet_unpair => 'Dissocier';
+
+  @override
+  String settings_nearby_unpair_confirm(String name) {
+    return 'Dissocier $name ? Il faudra l\'associer à nouveau pour synchroniser à proximité.';
+  }
+
+  @override
+  String get settings_nearby_rename_title => 'Renommer l\'appareil';
+
+  @override
+  String settings_nearby_notInRange(String name) {
+    return '$name n\'est pas à proximité pour le moment';
+  }
+
+  @override
+  String get nearbyPair_looking => 'Recherche d\'appareils…';
+
+  @override
+  String get nearbyPair_hint =>
+      'Ouvrez Submersion sur l\'autre appareil et touchez aussi Associer un appareil.';
+
+  @override
+  String nearbyPair_found(String name) {
+    return '$name trouvé. Vérifiez qu\'il affiche ce code, puis confirmez sur les deux.';
+  }
+
+  @override
+  String get nearbyPair_sameCode => 'Même code';
+
+  @override
+  String get nearbyPair_notMine => 'Pas le mien';
+
+  @override
+  String get nearbyPair_waiting =>
+      'En attente de la confirmation de l\'autre appareil…';
+
+  @override
+  String get nearbyPair_bothPopulated =>
+      'Les deux appareils contiennent des plongées. L\'association les réunit dans un seul carnet.';
+
+  @override
+  String get nearbyPair_differentLibrary =>
+      'Cet appareil utilise une autre bibliothèque : il ne peut donc pas être associé à celui-ci.';
+
+  @override
+  String get nearbyPair_permissionDenied =>
+      'Submersion a besoin de l\'autorisation Bluetooth pour trouver les appareils à proximité.';
+
+  @override
+  String get nearbyPair_bluetoothOff =>
+      'Activez le Bluetooth pour trouver les appareils à proximité.';
+
+  @override
+  String get nearbyPair_unsupported =>
+      'Cet appareil n\'a pas de Bluetooth utilisable par Submersion.';
+
+  @override
+  String get nearbyPair_openSettings => 'Ouvrir les réglages';
+
+  @override
+  String nearbyPair_done(String name) {
+    return 'Associé à $name';
+  }
+
+  @override
+  String get nearbyPair_failed =>
+      'L\'association n\'a pas abouti. Réessayez sur les deux appareils.';
+
+  @override
   String get settings_sync_alsoAtLaunch => 'Synchroniser aussi au lancement';
 
   @override
@@ -56145,4 +56312,104 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get setup_syncPull_startFresh => 'Commencer un nouveau carnet';
+
+  @override
+  String get demo_welcome_title => 'Explorer avec des données d\'exemple';
+
+  @override
+  String get demo_welcome_subtitle =>
+      'Parcourez un carnet de plongée d\'exemple complet avant de saisir le vôtre';
+
+  @override
+  String get demo_settings_enter_title =>
+      'Explorer avec des données d\'exemple';
+
+  @override
+  String get demo_settings_enter_subtitle =>
+      'Votre carnet est mis de côté, intact, jusqu\'à votre sortie';
+
+  @override
+  String get demo_settings_exit_title => 'Quitter la démo';
+
+  @override
+  String get demo_settings_exit_subtitle =>
+      'Abandonner le carnet d\'exemple et revenir au vôtre';
+
+  @override
+  String get demo_strip_label =>
+      'Mode démo : vous explorez des données d\'exemple';
+
+  @override
+  String get demo_strip_exit => 'Quitter la démo';
+
+  @override
+  String get demo_exit_confirm_title => 'Quitter le mode démo ?';
+
+  @override
+  String get demo_exit_confirm_body =>
+      'Les modifications apportées au carnet d\'exemple seront perdues.';
+
+  @override
+  String get demo_exit_confirm_action => 'Quitter la démo';
+
+  @override
+  String get demo_enter_downloading => 'Téléchargement du carnet d\'exemple';
+
+  @override
+  String get demo_enter_preparing => 'Préparation du carnet d\'exemple';
+
+  @override
+  String get demo_enter_opening => 'Ouverture du carnet d\'exemple';
+
+  @override
+  String get demo_enter_failed =>
+      'Le carnet d\'exemple n\'a pas pu être téléchargé. Vérifiez votre connexion et réessayez.';
+
+  @override
+  String get demo_sealed_note => 'Indisponible en mode démo';
+
+  @override
+  String get demo_unavailable_title => 'Indisponible en mode démo';
+
+  @override
+  String get demo_unavailable_body =>
+      'Le mode démo garde le carnet d\'exemple séparé de vos données : rien ne peut être importé, exporté, sauvegardé ni synchronisé.';
+
+  @override
+  String get demo_row_unavailable => 'Indisponible en mode démo';
+
+  @override
+  String get demo_enter_confirm_title =>
+      'Explorer avec des données d\'exemple ?';
+
+  @override
+  String demo_enter_confirm_body(String size) {
+    return 'Un carnet d\'exemple ($size) sera téléchargé et ouvert à la place du vôtre. Votre carnet est mis de côté, intact, jusqu\'à ce que vous quittiez le mode démo.';
+  }
+
+  @override
+  String get demo_enter_confirm_action => 'Télécharger';
+
+  @override
+  String demo_enter_confirm_body_firstRun(String size) {
+    return 'Un carnet d\'exemple ($size) sera téléchargé pour découvrir l\'application. Quittez le mode démo dès que vous voulez commencer le vôtre.';
+  }
+
+  @override
+  String demo_enter_changed_body(String size) {
+    return 'Le carnet d\'exemple a été mis à jour et fait maintenant $size. Le télécharger ?';
+  }
+
+  @override
+  String common_byteSize(String value, String unit) {
+    String _temp0 = intl.Intl.selectLogic(unit, {
+      'B': 'o',
+      'KB': 'Ko',
+      'MB': 'Mo',
+      'GB': 'Go',
+      'TB': 'To',
+      'other': '$unit',
+    });
+    return '$value $_temp0';
+  }
 }

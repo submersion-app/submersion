@@ -26,6 +26,8 @@ import 'package:submersion/core/services/sync/crypto/keyslots.dart';
 import 'package:submersion/core/services/sync/crypto/sync_envelope.dart';
 import 'package:submersion/core/services/sync/sync_device_metadata.dart';
 import 'package:submersion/core/services/sync/sync_preferences.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 
 typedef GitTransportFactory = GitHttpTransport Function(GitConfig config);
 typedef GitStoreFactory = Future<GitObjectStore> Function(GitConfig config);
@@ -570,7 +572,9 @@ class GitStorageProvider
     Uint8List data,
     String filename, {
     String? folderId,
-  }) {
+  }) async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.sync);
+
     final path = _pathIn(folderId, filename);
     return _write(path, GitPut.bytes(data), messagePrefix: _prefixFor(path));
   }
@@ -580,7 +584,9 @@ class GitStorageProvider
     String sourcePath,
     String filename, {
     String? folderId,
-  }) {
+  }) async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.sync);
+
     final path = _pathIn(folderId, filename);
     return _write(
       path,
@@ -593,6 +599,8 @@ class GitStorageProvider
   /// once and from the branch on the next commit or [flush].
   @override
   Future<void> deleteFile(String fileId) async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.sync);
+
     // A caller may delete by id without listing first (backup pruning on a
     // provider built for this account): record it unconditionally then.
     _pendingDeletes[fileId] = _session?.current?.index.entries[fileId]?.blobId;
@@ -611,7 +619,9 @@ class GitStorageProvider
   }
 
   @override
-  Future<void> flush({Duration? timeout}) {
+  Future<void> flush({Duration? timeout}) async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.sync);
+
     // Nothing deferred, and another write holds the branch: waiting for it
     // would only run the due-reset check, which the next flush runs anyway.
     if (_pendingDeletes.isEmpty && _writesInFlight > 0) return Future.value();

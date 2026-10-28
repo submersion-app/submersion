@@ -23,6 +23,8 @@ import 'package:submersion/features/universal_import/presentation/providers/univ
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/services/incoming_file_handler.dart';
 import 'package:submersion/features/import_wizard/presentation/providers/import_job_provider.dart';
+import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 
 /// Wraps content with a desktop drag-and-drop target that navigates to the
 /// import wizard when a supported file is dropped.
@@ -78,7 +80,14 @@ class _GlobalDropTargetState extends ConsumerState<GlobalDropTarget> {
       onDragExited: (_) {
         if (mounted) setState(() => _isDragging = false);
       },
-      onDragDone: (details) => _handleDrop(details),
+      onDragDone: (details) {
+        if (!demoSealGuard(context, DemoSealedFeature.fileImport)) {
+          // No drag-exit follows a drop, so the overlay is cleared here.
+          setState(() => _isDragging = false);
+          return;
+        }
+        _handleDrop(details);
+      },
       child: Stack(
         children: [widget.child, if (_isDragging) const _FrostedDropOverlay()],
       ),

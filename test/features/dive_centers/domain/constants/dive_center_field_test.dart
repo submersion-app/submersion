@@ -213,6 +213,17 @@ void main() {
       );
     });
 
+    test('returns Markdown notes as plain words', () {
+      final entity = (
+        center: testCenter.copyWith(notes: '# Plan\n**Bring torch**'),
+        diveCount: 1,
+      );
+      expect(
+        adapter.extractValue(DiveCenterField.notes, entity),
+        'Plan\nBring torch',
+      );
+    });
+
     test('returns notes when non-empty', () {
       expect(
         adapter.extractValue(DiveCenterField.notes, testEntity),

@@ -9,6 +9,7 @@ import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/presentation/providers/document_providers.dart';
 import 'package:submersion/features/documents/presentation/widgets/document_tile.dart';
+import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
 
 class MedicalInfoEditPage extends ConsumerStatefulWidget {
   const MedicalInfoEditPage({super.key});
@@ -224,7 +225,7 @@ class _MedicalInfoEditPageState extends ConsumerState<MedicalInfoEditPage> {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        TextFormField(
+                        MarkdownNotesField(
                           controller: _medicalNotesCtrl,
                           decoration: InputDecoration(
                             labelText:

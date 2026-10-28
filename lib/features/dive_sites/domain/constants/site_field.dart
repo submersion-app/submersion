@@ -7,6 +7,7 @@ import 'package:submersion/features/dive_sites/domain/entities/site_with_dive_co
 import 'package:submersion/features/dive_sites/domain/entry_method_list.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/constants/entity_field.dart';
+import 'package:submersion/core/text/markdown/notes_plain_text.dart';
 
 /// Entity handed to [SiteFieldAdapter]. An alias of the repository's class so
 /// the table view and the list cards share one type with no conversion.
@@ -733,7 +734,7 @@ class SiteFieldAdapter extends EntityFieldAdapter<SiteWithCount, SiteField> {
       case SiteField.rating:
         return site.rating;
       case SiteField.notes:
-        return site.notes.isEmpty ? null : site.notes;
+        return site.notes.isEmpty ? null : markdownToPlainText(site.notes);
       case SiteField.latitude:
         return site.location?.latitude;
       case SiteField.longitude:

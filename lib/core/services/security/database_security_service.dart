@@ -16,6 +16,8 @@ import 'package:submersion/core/services/sync/crypto/keyslots.dart';
 import 'package:submersion/core/services/sync/crypto/recovery_code.dart';
 import 'package:submersion/core/services/sync/crypto/sync_encryption_service.dart'
     show WrongPassphraseException;
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 
 /// Owns the App Security credential: one Master Key wrapped into a sidecar
 /// keyslot file (password + recovery slots), cached in secure storage after
@@ -112,6 +114,7 @@ class DatabaseSecurityService {
     required String dbPath,
     KdfParams kdf = const KdfParams(),
   }) async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.databaseFile);
     if (await DatabaseSecuritySidecar.read(dbPath) != null) {
       throw StateError('Security is already enabled for $dbPath');
     }
@@ -195,6 +198,7 @@ class DatabaseSecurityService {
   /// Encryption must be disabled first (the file would be unopenable
   /// otherwise) — throws [StateError] if it is still on.
   Future<void> disableSecurity({required String dbPath}) async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.databaseFile);
     if (encryptionEnabled) {
       throw StateError('Disable encryption before disabling security');
     }
@@ -222,6 +226,7 @@ class DatabaseSecurityService {
     @visibleForTesting String? dbPathOverride,
     @visibleForTesting bool skipReopenForTesting = false,
   }) async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.databaseFile);
     final mlk = _mlk;
     if (mlk == null) {
       throw StateError('Cannot enable encryption while locked');
@@ -266,6 +271,7 @@ class DatabaseSecurityService {
     @visibleForTesting String? dbPathOverride,
     @visibleForTesting bool skipReopenForTesting = false,
   }) async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.databaseFile);
     final mlk = _mlk;
     if (mlk == null) {
       throw StateError('Cannot disable encryption while locked');

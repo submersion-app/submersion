@@ -43,6 +43,8 @@ import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 import 'package:submersion/features/backup/domain/entities/backup_settings.dart';
 import 'package:submersion/features/backup/domain/entities/backup_type.dart';
 import 'package:submersion/features/backup/domain/entities/restore_mode.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 
 // BackupDatabaseAdapter + DefaultBackupDatabaseAdapter live in
 // backup_database_adapter.dart; re-exported so existing importers
@@ -190,6 +192,7 @@ class BackupService {
     bool isAutomatic = false,
     String? note,
   }) async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.backup);
     _log.info('Starting backup (automatic: $isAutomatic)');
     // Resolve where the backup goes (filesystem dir or Android SAF tree) and
     // arm any security-scoped access; release it once the write+prune are done.
@@ -344,6 +347,7 @@ class BackupService {
     String destinationPath, {
     String? note,
   }) async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.backup);
     _log.info('Exporting backup to: $destinationPath');
     final normalizedNote = normalizeBackupNote(note);
 
@@ -411,6 +415,7 @@ class BackupService {
   /// Returns the temporary [File] for use with share sheet. [note] is
   /// stamped into the file, the only place it is kept for a share.
   Future<File> exportBackupToTemp({String? note}) async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.backup);
     _log.info('Exporting backup to temp for sharing');
     final normalizedNote = normalizeBackupNote(note);
 
@@ -801,6 +806,7 @@ class BackupService {
     String? encryptionSecret,
     void Function(int currentStep, int totalSteps)? onMigrationProgress,
   }) async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.restore);
     _log.info('Starting restore from: ${record.filename} (mode: $mode)');
 
     // Determine backup source path. A SAF (content://) ref is streamed to a
@@ -930,6 +936,7 @@ class BackupService {
     String? encryptionSecret,
     void Function(int currentStep, int totalSteps)? onMigrationProgress,
   }) async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.restore);
     _log.info('Starting restore from file: $filePath (mode: $mode)');
 
     final file = File(filePath);
@@ -1012,6 +1019,7 @@ class BackupService {
     RestoreMode mode = RestoreMode.merge,
     void Function(int currentStep, int totalSteps)? onMigrationProgress,
   }) async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.restore);
     _log.info('Starting restore from database copy: ${p.basename(path)}');
 
     final validation = await validateBackupFile(

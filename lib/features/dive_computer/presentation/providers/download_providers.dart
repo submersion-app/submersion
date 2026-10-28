@@ -26,6 +26,8 @@ import 'package:submersion/features/tank_presets/domain/entities/tank_preset_ent
 import 'package:submersion/features/tank_presets/domain/services/default_tank_preset_resolver.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/features/transmitters/presentation/providers/transmitter_providers.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 
 /// Provider for the dive computer repository.
 final diveComputerRepositoryProvider = Provider<DiveComputerRepository>((ref) {
@@ -322,6 +324,7 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
     DiscoveredDevice device, {
     DiveComputer? computer,
   }) async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.diveComputerDownload);
     _computer = computer;
     _device = device;
 

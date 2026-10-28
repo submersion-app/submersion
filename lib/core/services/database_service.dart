@@ -24,6 +24,8 @@ import 'package:submersion/core/services/restore_source_missing_exception.dart';
 import 'package:submersion/core/services/security/database_encryption_migrator.dart';
 import 'package:submersion/core/services/security/database_locked_exception.dart';
 import 'package:submersion/core/services/security/database_security_sidecar.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 
 /// Which executor path [DatabaseService] used for the most recent open.
 enum DatabaseOpenMode {
@@ -187,12 +189,17 @@ class DatabaseService {
   /// for (issue #3333); null, the default, never compacts, so only the
   /// foreground launch, which passes it, can spend time rewriting the file.
   /// [onCompacting] is told just before that rewrite starts.
+  /// [pathOverride] opens that file instead of the location service's path,
+  /// without changing the location service: demo mode opens its sample
+  /// logbook this way and leaves the user's database location as it was
+  /// (issue #3708).
   Future<void> initialize({
     DatabaseLocationService? locationService,
     void Function(int currentStep, int totalSteps)? onMigrationProgress,
     bool allowSchemaUpgrade = true,
     DatabaseCompactionPrefs? compaction,
     void Function()? onCompacting,
+    String? pathOverride,
   }) async {
     if (_database != null) return;
     _openAttempted = false;
@@ -202,7 +209,7 @@ class DatabaseService {
     // there would make the reopen resolve the DEFAULT path, silently
     // abandoning a custom database location on every restore.
     _locationService = locationService ?? _locationService;
-    final dbPath = await _resolveDatabasePath();
+    final dbPath = pathOverride ?? await _resolveDatabasePath();
     _currentDatabasePath = dbPath;
 
     // Ensure directory exists
@@ -1026,6 +1033,7 @@ class DatabaseService {
     String backupPath, {
     void Function(int currentStep, int totalSteps)? onMigrationProgress,
   }) async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.restore);
     final backupFile = File(backupPath);
     final destinationPath = await databasePath;
 
@@ -1324,6 +1332,7 @@ class DatabaseService {
   /// If file deletion or reinitialize fails after backup succeeds,
   /// the error propagates and the caller should handle recovery.
   Future<void> resetDatabase({required String backupPath}) async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.databaseFile);
     final dbPath = await databasePath;
 
     // Step 1: Backup first (throws on failure, aborting the reset)

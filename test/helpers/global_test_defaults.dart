@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 
@@ -34,6 +35,8 @@ import 'blocked_network.dart';
 /// test's fake clock stops, and a later test that waits for pending fonts
 /// hangs (issue #2536). The family name is still on every TextStyle.
 ///
+/// Demo mode is off, so no engine method refuses to run (issue #3708).
+///
 /// Network access is limited to this machine (test/helpers/blocked_network.dart):
 /// a request or socket to any other host fails with the URL or host, the same
 /// way in a file run alone and in a bundle.
@@ -43,6 +46,7 @@ void applyGlobalTestDefaults() {
   DerivedMetricsScheduler.enabled = false;
   debugCanShareFiles = true;
   GoogleFonts.config.allowRuntimeFetching = false;
+  DemoModeGate.instance.debugActive = false;
   HttpOverrides.global = blockedNetworkHttpOverrides;
   IOOverrides.global = blockedNetworkIOOverrides;
 }

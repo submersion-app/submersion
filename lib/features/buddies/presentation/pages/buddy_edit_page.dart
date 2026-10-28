@@ -26,6 +26,7 @@ import 'package:submersion/features/certifications/presentation/certification_ti
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 import 'package:submersion/shared/widgets/label_with_control.dart';
+import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
 
 class BuddyEditPage extends ConsumerStatefulWidget {
   final String? buddyId;
@@ -531,7 +532,7 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
             const SizedBox(height: 12),
 
             // Notes field
-            TextFormField(
+            MarkdownNotesField(
               controller: _notesController,
               decoration: _withMergeTextDecoration(
                 key: 'notes',

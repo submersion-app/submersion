@@ -13,6 +13,8 @@ import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
     as domain;
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 
 /// Reader suggestions and owner review (issue #2567). A proposal holds only
 /// the fields that differ from the stored site; the library sync carries
@@ -45,6 +47,7 @@ class SuggestionService {
     String note = '',
     Map<String, Object?> childFields = const {},
   }) async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.sharedLibrary);
     final stored = await SiteRepository().getSiteById(proposed.id);
     final libraryId = stored?.sharedLibraryId;
     if (stored == null || libraryId == null) {
@@ -108,6 +111,7 @@ class SuggestionService {
   /// suggestion here and in the folder. A suggestion whose site is gone is
   /// dismissed instead.
   Future<void> accept(String suggestionId, {required String diverId}) async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.sharedLibrary);
     final s = await _store.getSuggestion(suggestionId);
     if (s == null) return;
     await _requireOwner(s.libraryId, diverId);
@@ -142,6 +146,7 @@ class SuggestionService {
 
   /// Owner: drops the suggestion here and in the folder.
   Future<void> dismiss(String suggestionId, {required String diverId}) async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.sharedLibrary);
     final s = await _store.getSuggestion(suggestionId);
     if (s == null) return;
     await _requireOwner(s.libraryId, diverId);

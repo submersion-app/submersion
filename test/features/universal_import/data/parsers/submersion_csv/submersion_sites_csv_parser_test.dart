@@ -42,7 +42,7 @@ void main() {
       expect(blue['waterType'], 'salt');
       expect(blue['entryMethod'], 'boat');
       expect(blue['rating'], 4.5);
-      expect(blue['notes'], 'Line 1 Line 2');
+      expect(blue['notes'], 'Line 1\nLine 2');
       expect(blue.containsKey('uddfId'), isTrue);
       // A blank cell is absent, so an overwrite keeps the existing value.
       expect(sites.last.keys, unorderedEquals(['uddfId', 'name']));

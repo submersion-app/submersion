@@ -22,6 +22,7 @@ import 'package:submersion/core/database/tables/media_tables.dart';
 import 'package:submersion/core/database/tables/pre_dive_tables.dart';
 import 'package:submersion/core/database/tables/quality_tables.dart';
 import 'package:submersion/core/database/tables/insight_tables.dart';
+import 'package:submersion/core/database/tables/nearby_tables.dart';
 import 'package:submersion/core/database/tables/query_tables.dart';
 import 'package:submersion/core/database/tables/rule_tables.dart';
 import 'package:submersion/core/database/tables/safety_tables.dart';
@@ -56,6 +57,7 @@ export 'package:submersion/core/database/tables/media_tables.dart';
 export 'package:submersion/core/database/tables/pre_dive_tables.dart';
 export 'package:submersion/core/database/tables/quality_tables.dart';
 export 'package:submersion/core/database/tables/insight_tables.dart';
+export 'package:submersion/core/database/tables/nearby_tables.dart';
 export 'package:submersion/core/database/tables/query_tables.dart';
 export 'package:submersion/core/database/tables/rule_tables.dart';
 export 'package:submersion/core/database/tables/safety_tables.dart';
@@ -193,6 +195,7 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     DeletionLog,
     SyncPeerCursors,
     LocalPublishStates,
+    NearbyPeers,
     // Maps & Visualization
     CachedRegions,
     // Notifications
@@ -292,7 +295,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 321;
+  static const int currentSchemaVersion = 322;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1436,16 +1439,22 @@ class AppDatabase extends _$AppDatabase {
     318,
     // v319: per-O2-band deco ppO2 limits and the explicit MOD for 100% O2
     // (issue #3580). Column only, both off by default, so the floor does
-    // not move.
+    // not move. Sits below 320; the beforeOpen backstop covers a database
+    // already at 320.
     319,
-    // v320: per-plan "explicitly off" flags for the bands and the
+    // v320: the device-local nearby_peers table and the publish state's
+    // relay floor for nearby Bluetooth sync (issue #3731). Never synced, so
+    // the floor does not move. 319 is held
+    // by PR #3726.
+    320,
+    // v321: per-plan "explicitly off" flags for the bands and the
     // explicit-depth override (issue #3580). Column only, both off by
     // default, so the floor does not move.
-    320,
-    // v321: hypercapnia-bailout phase for OC bailout during a CCR/SCR dive
+    321,
+    // v322: hypercapnia-bailout phase for OC bailout during a CCR/SCR dive
     // (issue #3743). Column only, both off by default, so the floor does
     // not move.
-    321,
+    322,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

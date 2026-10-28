@@ -6443,8 +6443,10 @@ class DiveRepository {
     }
   }
 
-  /// Append [textToAppend] to the notes of every dive in [diveIds].
-  /// Empty existing notes receive just the text. No transaction/notify.
+  /// Append [textToAppend] to the notes of every dive in [diveIds] as a new
+  /// Markdown paragraph: a blank line after existing notes, so it never
+  /// joins their last paragraph or list item (#3683). Empty existing notes
+  /// receive just the text. No transaction/notify.
   Future<void> bulkAppendNotes(
     List<String> diveIds,
     String textToAppend,
@@ -6453,9 +6455,11 @@ class DiveRepository {
     final now = DateTime.now().millisecondsSinceEpoch;
     final placeholders = List.filled(diveIds.length, '?').join(', ');
     await _db.customUpdate(
-      "UPDATE dives SET notes = COALESCE(notes, '') || ?, updated_at = ? "
+      "UPDATE dives SET notes = CASE WHEN COALESCE(notes, '') = '' THEN ? "
+      'ELSE notes || char(10) || char(10) || ? END, updated_at = ? '
       'WHERE id IN ($placeholders)',
       variables: [
+        Variable.withString(textToAppend),
         Variable.withString(textToAppend),
         Variable.withInt(now),
         ...diveIds.map(Variable.withString),

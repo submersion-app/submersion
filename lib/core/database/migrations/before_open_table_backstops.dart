@@ -118,5 +118,8 @@ extension TableBackstopsFromV217 on AppDatabase {
     // (parallel-branch version-collision self-heal; all idempotent).
     // _beforeOpen asserts the scope columns earlier.
     await _assertMediaAndDocumentTagSchema();
+
+    // v320 backstop: nearby peers and the relay floor (local, idempotent).
+    await _assertNearbySchema();
   }
 }

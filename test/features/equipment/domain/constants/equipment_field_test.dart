@@ -369,6 +369,16 @@ void main() {
       );
     });
 
+    test('returns Markdown notes as plain words', () {
+      expect(
+        adapter.extractValue(
+          EquipmentField.notes,
+          testItem.copyWith(notes: '# Plan\n**Bring torch**'),
+        ),
+        'Plan\nBring torch',
+      );
+    });
+
     test('returns notes when non-empty', () {
       expect(
         adapter.extractValue(EquipmentField.notes, testItem),

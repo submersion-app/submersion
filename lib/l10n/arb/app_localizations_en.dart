@@ -5050,6 +5050,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get common_placeholder_noValue => '--';
 
   @override
+  String get notesEditor_action_heading => 'Heading';
+
+  @override
+  String get notesEditor_action_bold => 'Bold';
+
+  @override
+  String get notesEditor_action_italic => 'Italic';
+
+  @override
+  String get notesEditor_action_bulletList => 'Bulleted list';
+
+  @override
+  String get notesEditor_action_numberedList => 'Numbered list';
+
+  @override
+  String get notesEditor_action_preview => 'Preview';
+
+  @override
   String get common_error_tryAgain => 'Something went wrong. Please try again.';
 
   @override
@@ -5841,6 +5859,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_homeChips_sync => 'Sync status';
 
   @override
+  String get settings_homeChips_nearby => 'Nearby devices';
+
+  @override
   String get settings_homeChips_dataQuality => 'Data quality';
 
   @override
@@ -5890,6 +5911,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dashboard_gauges_synced => 'Synced';
+
+  @override
+  String dashboard_gauges_nearby(String name) {
+    return 'Nearby: $name needs attention';
+  }
+
+  @override
+  String dashboard_gauges_nearbyMore(String name) {
+    return 'Nearby: $name and others need attention';
+  }
 
   @override
   String dashboard_gauges_dataIssues(int count) {
@@ -36938,6 +36969,137 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_sync_keepInStep => 'Keep devices in step automatically';
 
   @override
+  String get settings_nearby_title => 'Nearby devices';
+
+  @override
+  String get settings_nearby_auto_title => 'Sync nearby automatically';
+
+  @override
+  String get settings_nearby_auto_subtitle =>
+      'When a paired device is open nearby, over Bluetooth';
+
+  @override
+  String get settings_nearby_linuxNote =>
+      'Other devices cannot find this computer, so it syncs with any nearby device except another Linux computer';
+
+  @override
+  String get settings_nearby_pair => 'Pair a device';
+
+  @override
+  String settings_nearby_status_synced(String when) {
+    return 'Synced $when';
+  }
+
+  @override
+  String settings_nearby_status_syncing(String done, String total) {
+    return 'Syncing: $done of $total';
+  }
+
+  @override
+  String get settings_nearby_status_never => 'Not synced yet';
+
+  @override
+  String settings_nearby_status_notSeen(String date) {
+    return 'Not seen since $date';
+  }
+
+  @override
+  String get settings_nearby_error_newerApp =>
+      'This device needs a newer app version';
+
+  @override
+  String get settings_nearby_error_peerOlderApp =>
+      'That device needs a newer app version';
+
+  @override
+  String get settings_nearby_error_differentLibrary => 'Not the same library';
+
+  @override
+  String get settings_nearby_error_notPaired => 'Unpaired on the other device';
+
+  @override
+  String get settings_nearby_error_applyFailed => 'Could not apply its changes';
+
+  @override
+  String get settings_nearby_error_bluetoothOff =>
+      'Bluetooth is off or not allowed';
+
+  @override
+  String get settings_nearby_error_unreachable => 'Could not connect';
+
+  @override
+  String get settings_nearby_sheet_rename => 'Rename';
+
+  @override
+  String get settings_nearby_sheet_unpair => 'Unpair';
+
+  @override
+  String settings_nearby_unpair_confirm(String name) {
+    return 'Unpair $name? It will need pairing again to sync nearby.';
+  }
+
+  @override
+  String get settings_nearby_rename_title => 'Rename device';
+
+  @override
+  String settings_nearby_notInRange(String name) {
+    return '$name is not nearby right now';
+  }
+
+  @override
+  String get nearbyPair_looking => 'Looking for devices…';
+
+  @override
+  String get nearbyPair_hint =>
+      'Open Submersion on the other device and tap Pair a device there too.';
+
+  @override
+  String nearbyPair_found(String name) {
+    return 'Found $name. Check that it shows this code, then confirm on both.';
+  }
+
+  @override
+  String get nearbyPair_sameCode => 'Same code';
+
+  @override
+  String get nearbyPair_notMine => 'Not mine';
+
+  @override
+  String get nearbyPair_waiting => 'Waiting for the other device to confirm…';
+
+  @override
+  String get nearbyPair_bothPopulated =>
+      'Both devices have dives. Pairing merges them into one logbook.';
+
+  @override
+  String get nearbyPair_differentLibrary =>
+      'That device is on a different library, so it cannot pair with this one.';
+
+  @override
+  String get nearbyPair_permissionDenied =>
+      'Submersion needs Bluetooth permission to find nearby devices.';
+
+  @override
+  String get nearbyPair_bluetoothOff =>
+      'Turn on Bluetooth to find nearby devices.';
+
+  @override
+  String get nearbyPair_unsupported =>
+      'This device has no Bluetooth that Submersion can use.';
+
+  @override
+  String get nearbyPair_openSettings => 'Open settings';
+
+  @override
+  String nearbyPair_done(String name) {
+    return 'Paired with $name';
+  }
+
+  @override
+  String get nearbyPair_failed =>
+      'Pairing did not finish. Try again on both devices.';
+
+  @override
   String get settings_sync_alsoAtLaunch => 'Also sync at launch';
 
   @override
@@ -55139,4 +55301,101 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get setup_syncPull_startFresh => 'Start a new logbook';
+
+  @override
+  String get demo_welcome_title => 'Explore with sample data';
+
+  @override
+  String get demo_welcome_subtitle =>
+      'Look around a complete sample logbook before entering your own';
+
+  @override
+  String get demo_settings_enter_title => 'Explore with sample data';
+
+  @override
+  String get demo_settings_enter_subtitle =>
+      'Your logbook is set aside, untouched, until you exit';
+
+  @override
+  String get demo_settings_exit_title => 'Exit demo';
+
+  @override
+  String get demo_settings_exit_subtitle =>
+      'Discard the sample logbook and return to your own';
+
+  @override
+  String get demo_strip_label => 'Demo mode: you are exploring sample data';
+
+  @override
+  String get demo_strip_exit => 'Exit demo';
+
+  @override
+  String get demo_exit_confirm_title => 'Exit demo mode?';
+
+  @override
+  String get demo_exit_confirm_body =>
+      'Changes you made to the sample logbook will be discarded.';
+
+  @override
+  String get demo_exit_confirm_action => 'Exit demo';
+
+  @override
+  String get demo_enter_downloading => 'Downloading sample logbook';
+
+  @override
+  String get demo_enter_preparing => 'Preparing sample logbook';
+
+  @override
+  String get demo_enter_opening => 'Opening sample logbook';
+
+  @override
+  String get demo_enter_failed =>
+      'The sample logbook could not be downloaded. Check your connection and try again.';
+
+  @override
+  String get demo_sealed_note => 'Not available in demo mode';
+
+  @override
+  String get demo_unavailable_title => 'Unavailable in demo mode';
+
+  @override
+  String get demo_unavailable_body =>
+      'Demo mode keeps the sample logbook separate from your data, so nothing can be imported, exported, backed up or synced.';
+
+  @override
+  String get demo_row_unavailable => 'Unavailable in demo mode';
+
+  @override
+  String get demo_enter_confirm_title => 'Explore with sample data?';
+
+  @override
+  String demo_enter_confirm_body(String size) {
+    return 'This downloads a sample logbook ($size) and opens it in place of your own. Your logbook is set aside, untouched, until you exit demo mode.';
+  }
+
+  @override
+  String get demo_enter_confirm_action => 'Download';
+
+  @override
+  String demo_enter_confirm_body_firstRun(String size) {
+    return 'This downloads a sample logbook ($size) to look around the app with. Exit demo mode whenever you are ready to start your own.';
+  }
+
+  @override
+  String demo_enter_changed_body(String size) {
+    return 'The sample logbook has been updated and is now $size. Download it?';
+  }
+
+  @override
+  String common_byteSize(String value, String unit) {
+    String _temp0 = intl.Intl.selectLogic(unit, {
+      'B': 'B',
+      'KB': 'KB',
+      'MB': 'MB',
+      'GB': 'GB',
+      'TB': 'TB',
+      'other': '$unit',
+    });
+    return '$value $_temp0';
+  }
 }

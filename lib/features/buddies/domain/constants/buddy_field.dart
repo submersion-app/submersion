@@ -5,6 +5,7 @@ import 'package:submersion/features/buddies/domain/entities/buddy_with_dive_coun
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/constants/entity_field.dart';
 import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
+import 'package:submersion/core/text/markdown/notes_plain_text.dart';
 
 /// Entity handed to [BuddyFieldAdapter]. An alias of the repository's class so
 /// the table view and the list cards share one type with no conversion.
@@ -174,7 +175,7 @@ class BuddyFieldAdapter extends EntityFieldAdapter<BuddyWithCount, BuddyField> {
       BuddyField.certificationLevel => entity.buddy.certificationLevel,
       BuddyField.certificationAgency => entity.buddy.certificationAgency,
       BuddyField.diveCount => entity.diveCount,
-      BuddyField.notes => entity.buddy.notes,
+      BuddyField.notes => markdownToPlainText(entity.buddy.notes),
       BuddyField.lastDive => entity.lastDiveAt,
     };
   }

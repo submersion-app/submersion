@@ -65,6 +65,7 @@ class AccessSafetySection extends StatelessWidget {
     required TextEditingController controller,
     String? placeholder,
     int maxLines = 1,
+    bool markdown = false,
   }) {
     final extras = mergeExtras?.call(key);
     return SuggestionFormRow(
@@ -73,6 +74,7 @@ class AccessSafetySection extends StatelessWidget {
       suggestions: const [],
       placeholder: placeholder,
       maxLines: maxLines,
+      markdown: markdown,
       caption: extras?.sourceLabel,
       trailing: extras == null
           ? null
@@ -134,6 +136,7 @@ class AccessSafetySection extends StatelessWidget {
           controller: accessNotesController,
           placeholder: l10n.diveSites_edit_access_accessNotes_hint,
           maxLines: 3,
+          markdown: true,
         ),
         ?entrySuggestion,
         _methodRow(

@@ -46,7 +46,7 @@ extension PpO2DecoBandMigrations on AppDatabase {
     await _addColumnIfMissing('dive_plans', 'max_o2_depth_meters', 'REAL');
   }
 
-  /// v320: dive_plans gains the per-plan "explicitly off" flags for the
+  /// v321: dive_plans gains the per-plan "explicitly off" flags for the
   /// bands and the explicit-depth override, matching
   /// `air_breaks_explicitly_off`'s shape - a plan can force either off
   /// regardless of the diver's Settings toggle, distinct from leaving the

@@ -25,7 +25,8 @@ import 'global_state_scanner.dart';
 ///   back in `tearDown` or `addTearDown`. Reading the value without assigning
 ///   it back does not count.
 /// * `QualityScanScheduler.enabled`, `SensorSummaryScheduler.enabled`,
-///   `DerivedMetricsScheduler.enabled`, `debugCanShareFiles` or `GoogleFonts.config.allowRuntimeFetching`: call
+///   `DerivedMetricsScheduler.enabled`, `debugCanShareFiles`, `GoogleFonts.config.allowRuntimeFetching` or
+///   `DemoModeGate.instance.debugActive`: call
 ///   `applyGlobalTestDefaults()` from
 ///   `test/helpers/global_test_defaults.dart` in `tearDown`.
 /// * A mock on the path provider or share channel: call

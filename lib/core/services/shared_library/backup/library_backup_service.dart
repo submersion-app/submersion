@@ -16,6 +16,8 @@ import 'package:submersion/core/services/shared_library/shared_library_store.dar
 import 'package:submersion/core/services/shared_library/shared_library_transport.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 
 /// An owner's backups of a shared site library (issue #2567): each one a
 /// signed zip of the library's stored files, kept on this device (beside
@@ -81,9 +83,12 @@ class LibraryBackupService {
     required String libraryId,
     required String diverId,
     String note = '',
-  }) => SyncCoordinator.run(
-    () => backUpHeld(libraryId: libraryId, diverId: diverId, note: note),
-  );
+  }) async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.sharedLibrary);
+    return SyncCoordinator.run(
+      () => backUpHeld(libraryId: libraryId, diverId: diverId, note: note),
+    );
+  }
 
   /// [backUp] for a caller already holding the [SyncCoordinator] (a
   /// restore).
@@ -194,7 +199,10 @@ class LibraryBackupService {
   Future<bool> backUpIfDue({
     required String libraryId,
     required String diverId,
-  }) => SyncCoordinator.run(() => _backUpIfDue(libraryId, diverId));
+  }) async {
+    if (DemoModeGate.instance.isActive) return false;
+    return SyncCoordinator.run(() => _backUpIfDue(libraryId, diverId));
+  }
 
   Future<bool> _backUpIfDue(String libraryId, String diverId) async {
     final library = await _store.getLibrary(libraryId);

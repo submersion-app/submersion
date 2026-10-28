@@ -6,6 +6,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_l
 import 'package:submersion/features/equipment/presentation/utils/equipment_location_display.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_location_edit_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/core/text/markdown/notes_plain_text.dart';
 
 /// What the place picker returned.
 sealed class LocationPick {
@@ -148,7 +149,9 @@ class _EquipmentLocationPickerState
           key: ValueKey('equipment_location_picker_${p.id}'),
           leading: Icon(kind.icon),
           title: Text(p.name),
-          subtitle: p.notes.isEmpty ? null : Text(p.notes, maxLines: 1),
+          subtitle: p.notes.isEmpty
+              ? null
+              : Text(markdownToPlainText(p.notes), maxLines: 1),
           onTap: () => Navigator.of(context).pop(PlacePick(p)),
         ),
     ];

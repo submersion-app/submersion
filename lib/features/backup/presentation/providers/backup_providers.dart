@@ -34,6 +34,7 @@ import 'package:submersion/features/settings/presentation/providers/sync_provide
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/marine_life/data/services/builtin_species_seed_version_store.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 import 'package:submersion_saf/submersion_saf.dart';
 
 // =============================================================================
@@ -624,6 +625,7 @@ class BackupOperationNotifier extends StateNotifier<BackupOperationState> {
   }
 
   Future<void> _checkDesktopBackup() async {
+    if (DemoModeGate.instance.isActive) return;
     final settings = _ref.read(backupSettingsProvider);
     if (!settings.enabled || !settings.isBackupDue) return;
     if (state.status == BackupOperationStatus.inProgress) return;

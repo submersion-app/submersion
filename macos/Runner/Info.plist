@@ -122,7 +122,7 @@
 	<key>NSCameraUsageDescription</key>
 	<string>Submersion uses the camera to scan cylinder labels.</string>
 	<key>NSBluetoothAlwaysUsageDescription</key>
-	<string>Submersion uses Bluetooth to connect to dive computers and import dive data.</string>
+	<string>Submersion uses Bluetooth to connect to dive computers and to sync with your other devices nearby.</string>
 	<key>NSLocationUsageDescription</key>
 	<string>Submersion uses your location to automatically record GPS coordinates when you create or edit dive sites, so you can remember exactly where you dived. Location data is stored locally on your device and is never sent to external servers.</string>
 	<key>NSHealthShareUsageDescription</key>

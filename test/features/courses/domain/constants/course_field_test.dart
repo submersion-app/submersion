@@ -198,6 +198,16 @@ void main() {
       );
     });
 
+    test('returns Markdown notes as plain words', () {
+      expect(
+        adapter.extractValue(
+          CourseField.notes,
+          testCourse.copyWith(notes: '# Plan\n**Bring torch**'),
+        ),
+        'Plan\nBring torch',
+      );
+    });
+
     test('returns notes when non-empty', () {
       expect(
         adapter.extractValue(CourseField.notes, testCourse),
