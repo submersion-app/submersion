@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -28,6 +30,7 @@ Future<void> _pump(
   required List<BackupRecord> history,
   required String? thisDeviceId,
   Map<String, String> peerNames = const {},
+  Stream<Map<String, String>>? peerNameStream,
 }) async {
   await tester.pumpWidget(
     ProviderScope(
@@ -35,7 +38,9 @@ Future<void> _pump(
         settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
         backupHistoryProvider.overrideWith((ref) async => history),
         backupDeviceIdProvider.overrideWith((ref) async => thisDeviceId),
-        peerDeviceNamesProvider.overrideWith((ref) => Stream.value(peerNames)),
+        peerDeviceNamesProvider.overrideWith(
+          (ref) => peerNameStream ?? Stream.value(peerNames),
+        ),
       ],
       child: const MaterialApp(
         locale: Locale('en'),
@@ -79,6 +84,32 @@ void main() {
       );
       // Made before backups recorded their device: nothing to say.
       expect(find.text('In cloud storage (2.0 KB)'), findsOneWidget);
+    });
+
+    testWidgets('a name sync learns later replaces Another device', (
+      tester,
+    ) async {
+      final names = StreamController<Map<String, String>>();
+      addTearDown(names.close);
+      await _pump(
+        tester,
+        history: [_cloudRow('cloud:laptop', _from('laptop-id'))],
+        thisDeviceId: 'phone-id',
+        peerNameStream: names.stream,
+      );
+      names.add(const {});
+      await tester.pumpAndSettle();
+      expect(
+        find.text('In cloud storage (2.0 KB) \u00b7 Another device'),
+        findsOneWidget,
+      );
+
+      names.add(const {'laptop-id': "Eric's MacBook"});
+      await tester.pumpAndSettle();
+      expect(
+        find.text("In cloud storage (2.0 KB) \u00b7 Eric's MacBook"),
+        findsOneWidget,
+      );
     });
 
     testWidgets('an unreadable device id never guesses Another device', (

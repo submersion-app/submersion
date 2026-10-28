@@ -673,6 +673,9 @@ final backupHistoryProvider = FutureProvider.autoDispose<List<BackupRecord>>((
   ref,
 ) async {
   final service = ref.watch(backupServiceProvider);
+  // The same read the rows' device labels use (issue #3651), so one page
+  // load asks for this device's id once. It never throws.
+  final thisDeviceId = ref.watch(backupDeviceIdProvider.future);
   // Started first so the listing overlaps the local read. Not joined with a
   // record `.wait`, which would wrap a history failure in ParallelWaitError
   // and hide the real message; getCloudBackups never throws, so leaving it
@@ -689,7 +692,7 @@ final backupHistoryProvider = FutureProvider.autoDispose<List<BackupRecord>>((
         accountId: await service.cloudCopyAccountId(),
       ),
       listing,
-      thisDeviceId: await service.thisDeviceIdOrNull(),
+      thisDeviceId: await thisDeviceId,
     ))
       listedIds.contains(r.cloudFileId) ? r.copyWith(cloudCopyListed: true) : r,
   ];
