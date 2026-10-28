@@ -22982,6 +22982,55 @@ class AppLocalizationsFr extends AppLocalizations {
       'Ignorer les gaz de secours inutilisés';
 
   @override
+  String get settings_conflict_field_diveListSort => 'Plongées: tri';
+
+  @override
+  String get settings_conflict_field_divePlanListSort =>
+      'Plans enregistrés: tri';
+
+  @override
+  String get settings_conflict_field_tripListSort => 'Voyages: tri';
+
+  @override
+  String get settings_conflict_field_courseListSort => 'Cours: tri';
+
+  @override
+  String get settings_conflict_field_buddyListSort => 'Binômes: tri';
+
+  @override
+  String get settings_conflict_field_diveCenterListSort =>
+      'Centres de plongée: tri';
+
+  @override
+  String get settings_conflict_field_siteListSort => 'Sites: tri';
+
+  @override
+  String get settings_conflict_field_certificationListSort =>
+      'Certifications: tri';
+
+  @override
+  String get settings_conflict_field_equipmentListSort => 'Équipement: tri';
+
+  @override
+  String get settings_conflict_field_siteListGroupBy => 'Sites: regroupement';
+
+  @override
+  String get settings_conflict_field_certificationListGroupBy =>
+      'Certifications: regroupement';
+
+  @override
+  String get settings_conflict_field_equipmentArrangement =>
+      'Organisation de l\'équipement';
+
+  @override
+  String get settings_conflict_field_equipmentGroupByLocation =>
+      'Équipement regroupé par emplacement';
+
+  @override
+  String get settings_conflict_field_listArrangementHlc =>
+      'Journal de l\'organisation des listes';
+
+  @override
   String get settings_conflict_field_avgSpeed => 'Vitesse moyenne';
 
   @override

@@ -23231,6 +23231,53 @@ class AppLocalizationsAr extends AppLocalizations {
       'تخطي غازات الطوارئ غير المستخدمة';
 
   @override
+  String get settings_conflict_field_diveListSort => 'الغوصات: الترتيب';
+
+  @override
+  String get settings_conflict_field_divePlanListSort =>
+      'الخطط المحفوظة: الترتيب';
+
+  @override
+  String get settings_conflict_field_tripListSort => 'الرحلات: الترتيب';
+
+  @override
+  String get settings_conflict_field_courseListSort => 'الدورات: الترتيب';
+
+  @override
+  String get settings_conflict_field_buddyListSort => 'زملاء الغوص: الترتيب';
+
+  @override
+  String get settings_conflict_field_diveCenterListSort =>
+      'مراكز الغوص: الترتيب';
+
+  @override
+  String get settings_conflict_field_siteListSort => 'المواقع: الترتيب';
+
+  @override
+  String get settings_conflict_field_certificationListSort =>
+      'الشهادات: الترتيب';
+
+  @override
+  String get settings_conflict_field_equipmentListSort => 'المعدات: الترتيب';
+
+  @override
+  String get settings_conflict_field_siteListGroupBy => 'المواقع: التجميع';
+
+  @override
+  String get settings_conflict_field_certificationListGroupBy =>
+      'الشهادات: التجميع';
+
+  @override
+  String get settings_conflict_field_equipmentArrangement => 'ترتيب المعدات';
+
+  @override
+  String get settings_conflict_field_equipmentGroupByLocation =>
+      'المعدات مجمعة حسب الموقع';
+
+  @override
+  String get settings_conflict_field_listArrangementHlc => 'سجل ترتيب القوائم';
+
+  @override
   String get settings_conflict_field_avgSpeed => 'متوسط السرعة';
 
   @override

@@ -22845,6 +22845,57 @@ class AppLocalizationsHu extends AppLocalizations {
       'Nem használt bailout gázok kihagyása';
 
   @override
+  String get settings_conflict_field_diveListSort => 'Merülések: rendezés';
+
+  @override
+  String get settings_conflict_field_divePlanListSort =>
+      'Mentett tervek: rendezés';
+
+  @override
+  String get settings_conflict_field_tripListSort => 'Utak: rendezés';
+
+  @override
+  String get settings_conflict_field_courseListSort => 'Tanfolyamok: rendezés';
+
+  @override
+  String get settings_conflict_field_buddyListSort => 'Búvártársak: rendezés';
+
+  @override
+  String get settings_conflict_field_diveCenterListSort =>
+      'Merülőcentrumok: rendezés';
+
+  @override
+  String get settings_conflict_field_siteListSort => 'Merülőhelyek: rendezés';
+
+  @override
+  String get settings_conflict_field_certificationListSort =>
+      'Képesítések: rendezés';
+
+  @override
+  String get settings_conflict_field_equipmentListSort =>
+      'Felszerelés: rendezés';
+
+  @override
+  String get settings_conflict_field_siteListGroupBy =>
+      'Merülőhelyek: csoportosítás';
+
+  @override
+  String get settings_conflict_field_certificationListGroupBy =>
+      'Képesítések: csoportosítás';
+
+  @override
+  String get settings_conflict_field_equipmentArrangement =>
+      'Felszerelés elrendezése';
+
+  @override
+  String get settings_conflict_field_equipmentGroupByLocation =>
+      'Felszerelés hely szerint csoportosítva';
+
+  @override
+  String get settings_conflict_field_listArrangementHlc =>
+      'Listaelrendezési napló';
+
+  @override
   String get settings_conflict_field_avgSpeed => 'Átlagsebesség';
 
   @override

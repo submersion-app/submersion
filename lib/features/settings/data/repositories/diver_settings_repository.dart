@@ -35,6 +35,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/device_local_fields.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/core/services/sync/sync_fact_groups.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_appearance.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_color_schemes.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -536,7 +537,19 @@ class DiverSettingsRepository {
           ...DiverSettingsCompanion(updatedAt: Value(now)).toColumns(false),
         }),
       );
-      await _markSettingsPending(diverId, now);
+      // A list arrangement change stamps only its own clock (issue #3748):
+      // stamping the row clock for a sort would republish this device's
+      // copy of every other setting over a peer's newer change.
+      final arrangement = SyncFactGroups.diverSettingsListArrangement.columns;
+      final synced = changed.keys.where(
+        (name) => !isDeviceLocalColumn('diverSettings', name),
+      );
+      await _markSettingsPending(
+        diverId,
+        now,
+        rowClock: !synced.every(arrangement.containsValue),
+        arrangementClock: synced.any(arrangement.containsValue),
+      );
       _log.info('Updated settings for diver: $diverId');
     } catch (e, stackTrace) {
       _log.error(
@@ -551,18 +564,35 @@ class DiverSettingsRepository {
   /// Queues the diver's settings row for sync after a write at [now], and
   /// unless [notify] is false (a caller inside a transaction notifies after
   /// its commit) tells the sync scheduler.
+  ///
+  /// [rowClock] and [arrangementClock] say which clocks the write moves: the
+  /// row clock for any setting outside the list arrangement group, the
+  /// group's own clock for a list arrangement (issue #3748).
   Future<void> _markSettingsPending(
     String diverId,
     int now, {
     bool notify = true,
+    bool rowClock = true,
+    bool arrangementClock = false,
   }) async {
     final row = await _rowFor(diverId);
     if (row == null) return;
-    await _syncRepository.markRecordPending(
-      entityType: 'diverSettings',
-      recordId: row.id,
-      localUpdatedAt: now,
-    );
+    const group = SyncFactGroups.diverSettingsListArrangement;
+    if (rowClock) {
+      await _syncRepository.markRecordPending(
+        entityType: 'diverSettings',
+        recordId: row.id,
+        localUpdatedAt: now,
+        alsoStamp: [if (arrangementClock) group],
+      );
+    } else {
+      await _syncRepository.markFactsPending(
+        entityType: 'diverSettings',
+        recordId: row.id,
+        localUpdatedAt: now,
+        group: group,
+      );
+    }
     if (notify) SyncEventBus.notifyLocalChange();
   }
 

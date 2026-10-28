@@ -22923,6 +22923,56 @@ class AppLocalizationsIt extends AppLocalizations {
       'Salta i gas di bailout inutilizzati';
 
   @override
+  String get settings_conflict_field_diveListSort => 'Immersioni: ordinamento';
+
+  @override
+  String get settings_conflict_field_divePlanListSort =>
+      'Piani salvati: ordinamento';
+
+  @override
+  String get settings_conflict_field_tripListSort => 'Viaggi: ordinamento';
+
+  @override
+  String get settings_conflict_field_courseListSort => 'Corsi: ordinamento';
+
+  @override
+  String get settings_conflict_field_buddyListSort => 'Compagni: ordinamento';
+
+  @override
+  String get settings_conflict_field_diveCenterListSort =>
+      'Centri immersione: ordinamento';
+
+  @override
+  String get settings_conflict_field_siteListSort => 'Siti: ordinamento';
+
+  @override
+  String get settings_conflict_field_certificationListSort =>
+      'Brevetti: ordinamento';
+
+  @override
+  String get settings_conflict_field_equipmentListSort =>
+      'Attrezzatura: ordinamento';
+
+  @override
+  String get settings_conflict_field_siteListGroupBy => 'Siti: raggruppamento';
+
+  @override
+  String get settings_conflict_field_certificationListGroupBy =>
+      'Brevetti: raggruppamento';
+
+  @override
+  String get settings_conflict_field_equipmentArrangement =>
+      'Disposizione dell\'attrezzatura';
+
+  @override
+  String get settings_conflict_field_equipmentGroupByLocation =>
+      'Attrezzatura raggruppata per posizione';
+
+  @override
+  String get settings_conflict_field_listArrangementHlc =>
+      'Registro della disposizione degli elenchi';
+
+  @override
   String get settings_conflict_field_avgSpeed => 'Velocità media';
 
   @override

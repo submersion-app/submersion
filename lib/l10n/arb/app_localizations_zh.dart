@@ -21743,6 +21743,48 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_omitUnusedOcGases => '跳过未使用的应急气体';
 
   @override
+  String get settings_conflict_field_diveListSort => '潜水：排序';
+
+  @override
+  String get settings_conflict_field_divePlanListSort => '已保存的计划：排序';
+
+  @override
+  String get settings_conflict_field_tripListSort => '旅行：排序';
+
+  @override
+  String get settings_conflict_field_courseListSort => '课程：排序';
+
+  @override
+  String get settings_conflict_field_buddyListSort => '潜伴：排序';
+
+  @override
+  String get settings_conflict_field_diveCenterListSort => '潜水中心：排序';
+
+  @override
+  String get settings_conflict_field_siteListSort => '潜水点：排序';
+
+  @override
+  String get settings_conflict_field_certificationListSort => '证书：排序';
+
+  @override
+  String get settings_conflict_field_equipmentListSort => '装备：排序';
+
+  @override
+  String get settings_conflict_field_siteListGroupBy => '潜水点：分组';
+
+  @override
+  String get settings_conflict_field_certificationListGroupBy => '证书：分组';
+
+  @override
+  String get settings_conflict_field_equipmentArrangement => '装备排列';
+
+  @override
+  String get settings_conflict_field_equipmentGroupByLocation => '装备按位置分组';
+
+  @override
+  String get settings_conflict_field_listArrangementHlc => '列表排列记录';
+
+  @override
   String get settings_conflict_field_avgSpeed => '平均速度';
 
   @override

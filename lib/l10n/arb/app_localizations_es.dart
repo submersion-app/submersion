@@ -22922,6 +22922,56 @@ class AppLocalizationsEs extends AppLocalizations {
       'Omitir gases de bailout sin usar';
 
   @override
+  String get settings_conflict_field_diveListSort => 'Inmersiones: orden';
+
+  @override
+  String get settings_conflict_field_divePlanListSort =>
+      'Planes guardados: orden';
+
+  @override
+  String get settings_conflict_field_tripListSort => 'Viajes: orden';
+
+  @override
+  String get settings_conflict_field_courseListSort => 'Cursos: orden';
+
+  @override
+  String get settings_conflict_field_buddyListSort => 'Compañeros: orden';
+
+  @override
+  String get settings_conflict_field_diveCenterListSort =>
+      'Centros de buceo: orden';
+
+  @override
+  String get settings_conflict_field_siteListSort => 'Puntos de buceo: orden';
+
+  @override
+  String get settings_conflict_field_certificationListSort =>
+      'Certificaciones: orden';
+
+  @override
+  String get settings_conflict_field_equipmentListSort => 'Equipo: orden';
+
+  @override
+  String get settings_conflict_field_siteListGroupBy =>
+      'Puntos de buceo: agrupación';
+
+  @override
+  String get settings_conflict_field_certificationListGroupBy =>
+      'Certificaciones: agrupación';
+
+  @override
+  String get settings_conflict_field_equipmentArrangement =>
+      'Organización del equipo';
+
+  @override
+  String get settings_conflict_field_equipmentGroupByLocation =>
+      'Equipo agrupado por ubicación';
+
+  @override
+  String get settings_conflict_field_listArrangementHlc =>
+      'Registro de organización de listas';
+
+  @override
   String get settings_conflict_field_avgSpeed => 'Velocidad media';
 
   @override

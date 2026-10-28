@@ -337,6 +337,64 @@ final Map<String, ConflictField> diverSettingsFields = {
     (l) => l.settings_conflict_field_groupTripsInDiveList,
     FieldKind.boolean,
   ),
+  // How the diver left each list (issue #3748), synced under
+  // listArrangementHlc.
+  'diveListSort': ConflictField(
+    (l) => l.settings_conflict_field_diveListSort,
+    FieldKind.shortText,
+  ),
+  'divePlanListSort': ConflictField(
+    (l) => l.settings_conflict_field_divePlanListSort,
+    FieldKind.shortText,
+  ),
+  'tripListSort': ConflictField(
+    (l) => l.settings_conflict_field_tripListSort,
+    FieldKind.shortText,
+  ),
+  'courseListSort': ConflictField(
+    (l) => l.settings_conflict_field_courseListSort,
+    FieldKind.shortText,
+  ),
+  'buddyListSort': ConflictField(
+    (l) => l.settings_conflict_field_buddyListSort,
+    FieldKind.shortText,
+  ),
+  'diveCenterListSort': ConflictField(
+    (l) => l.settings_conflict_field_diveCenterListSort,
+    FieldKind.shortText,
+  ),
+  'siteListSort': ConflictField(
+    (l) => l.settings_conflict_field_siteListSort,
+    FieldKind.shortText,
+  ),
+  'certificationListSort': ConflictField(
+    (l) => l.settings_conflict_field_certificationListSort,
+    FieldKind.shortText,
+  ),
+  'equipmentListSort': ConflictField(
+    (l) => l.settings_conflict_field_equipmentListSort,
+    FieldKind.shortText,
+  ),
+  'siteListGroupBy': ConflictField(
+    (l) => l.settings_conflict_field_siteListGroupBy,
+    FieldKind.shortText,
+  ),
+  'certificationListGroupBy': ConflictField(
+    (l) => l.settings_conflict_field_certificationListGroupBy,
+    FieldKind.shortText,
+  ),
+  'equipmentArrangement': ConflictField(
+    (l) => l.settings_conflict_field_equipmentArrangement,
+    FieldKind.opaque,
+  ),
+  'equipmentGroupByLocation': ConflictField(
+    (l) => l.settings_conflict_field_equipmentGroupByLocation,
+    FieldKind.boolean,
+  ),
+  'listArrangementHlc': ConflictField(
+    (l) => l.settings_conflict_field_listArrangementHlc,
+    FieldKind.opaque,
+  ),
   'gtrReservePressure': ConflictField(
     (l) => l.settings_conflict_field_gtrReservePressure,
     FieldKind.pressure,

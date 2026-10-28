@@ -22398,6 +22398,51 @@ class AppLocalizationsHe extends AppLocalizations {
       'דילוג על גזי חילוץ שלא נוצלו';
 
   @override
+  String get settings_conflict_field_diveListSort => 'צלילות: מיון';
+
+  @override
+  String get settings_conflict_field_divePlanListSort => 'תוכניות שמורות: מיון';
+
+  @override
+  String get settings_conflict_field_tripListSort => 'טיולים: מיון';
+
+  @override
+  String get settings_conflict_field_courseListSort => 'קורסים: מיון';
+
+  @override
+  String get settings_conflict_field_buddyListSort => 'שותפים: מיון';
+
+  @override
+  String get settings_conflict_field_diveCenterListSort =>
+      'מועדוני צלילה: מיון';
+
+  @override
+  String get settings_conflict_field_siteListSort => 'אתרים: מיון';
+
+  @override
+  String get settings_conflict_field_certificationListSort => 'הסמכות: מיון';
+
+  @override
+  String get settings_conflict_field_equipmentListSort => 'ציוד: מיון';
+
+  @override
+  String get settings_conflict_field_siteListGroupBy => 'אתרים: קיבוץ';
+
+  @override
+  String get settings_conflict_field_certificationListGroupBy =>
+      'הסמכות: קיבוץ';
+
+  @override
+  String get settings_conflict_field_equipmentArrangement => 'סידור הציוד';
+
+  @override
+  String get settings_conflict_field_equipmentGroupByLocation =>
+      'ציוד מקובץ לפי מיקום';
+
+  @override
+  String get settings_conflict_field_listArrangementHlc => 'יומן סידור הרשימות';
+
+  @override
   String get settings_conflict_field_avgSpeed => 'מהירות ממוצעת';
 
   @override

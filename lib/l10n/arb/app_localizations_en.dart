@@ -22577,6 +22577,54 @@ class AppLocalizationsEn extends AppLocalizations {
       'Skip unused bailout gases';
 
   @override
+  String get settings_conflict_field_diveListSort => 'Dive list sort';
+
+  @override
+  String get settings_conflict_field_divePlanListSort => 'Saved plans sort';
+
+  @override
+  String get settings_conflict_field_tripListSort => 'Trip list sort';
+
+  @override
+  String get settings_conflict_field_courseListSort => 'Course list sort';
+
+  @override
+  String get settings_conflict_field_buddyListSort => 'Buddy list sort';
+
+  @override
+  String get settings_conflict_field_diveCenterListSort =>
+      'Dive center list sort';
+
+  @override
+  String get settings_conflict_field_siteListSort => 'Dive site list sort';
+
+  @override
+  String get settings_conflict_field_certificationListSort =>
+      'Certification list sort';
+
+  @override
+  String get settings_conflict_field_equipmentListSort => 'Equipment list sort';
+
+  @override
+  String get settings_conflict_field_siteListGroupBy =>
+      'Dive site list grouping';
+
+  @override
+  String get settings_conflict_field_certificationListGroupBy =>
+      'Certification list grouping';
+
+  @override
+  String get settings_conflict_field_equipmentArrangement => 'Gear arrangement';
+
+  @override
+  String get settings_conflict_field_equipmentGroupByLocation =>
+      'Equipment grouped by location';
+
+  @override
+  String get settings_conflict_field_listArrangementHlc =>
+      'List arrangement record';
+
+  @override
   String get settings_conflict_field_avgSpeed => 'Average speed';
 
   @override

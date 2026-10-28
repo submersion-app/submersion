@@ -36333,6 +36333,90 @@ abstract class AppLocalizations {
   /// **'Skip unused bailout gases'**
   String get settings_conflict_field_omitUnusedOcGases;
 
+  /// Label for a saved list arrangement in a sync conflict
+  ///
+  /// In en, this message translates to:
+  /// **'Dive list sort'**
+  String get settings_conflict_field_diveListSort;
+
+  /// Label for a saved list arrangement in a sync conflict
+  ///
+  /// In en, this message translates to:
+  /// **'Saved plans sort'**
+  String get settings_conflict_field_divePlanListSort;
+
+  /// Label for a saved list arrangement in a sync conflict
+  ///
+  /// In en, this message translates to:
+  /// **'Trip list sort'**
+  String get settings_conflict_field_tripListSort;
+
+  /// Label for a saved list arrangement in a sync conflict
+  ///
+  /// In en, this message translates to:
+  /// **'Course list sort'**
+  String get settings_conflict_field_courseListSort;
+
+  /// Label for a saved list arrangement in a sync conflict
+  ///
+  /// In en, this message translates to:
+  /// **'Buddy list sort'**
+  String get settings_conflict_field_buddyListSort;
+
+  /// Label for a saved list arrangement in a sync conflict
+  ///
+  /// In en, this message translates to:
+  /// **'Dive center list sort'**
+  String get settings_conflict_field_diveCenterListSort;
+
+  /// Label for a saved list arrangement in a sync conflict
+  ///
+  /// In en, this message translates to:
+  /// **'Dive site list sort'**
+  String get settings_conflict_field_siteListSort;
+
+  /// Label for a saved list arrangement in a sync conflict
+  ///
+  /// In en, this message translates to:
+  /// **'Certification list sort'**
+  String get settings_conflict_field_certificationListSort;
+
+  /// Label for a saved list arrangement in a sync conflict
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment list sort'**
+  String get settings_conflict_field_equipmentListSort;
+
+  /// Label for a saved list arrangement in a sync conflict
+  ///
+  /// In en, this message translates to:
+  /// **'Dive site list grouping'**
+  String get settings_conflict_field_siteListGroupBy;
+
+  /// Label for a saved list arrangement in a sync conflict
+  ///
+  /// In en, this message translates to:
+  /// **'Certification list grouping'**
+  String get settings_conflict_field_certificationListGroupBy;
+
+  /// Label for a saved list arrangement in a sync conflict
+  ///
+  /// In en, this message translates to:
+  /// **'Gear arrangement'**
+  String get settings_conflict_field_equipmentArrangement;
+
+  /// Label for a saved list arrangement in a sync conflict
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment grouped by location'**
+  String get settings_conflict_field_equipmentGroupByLocation;
+
+  /// Label for a saved list arrangement in a sync conflict
+  ///
+  /// In en, this message translates to:
+  /// **'List arrangement record'**
+  String get settings_conflict_field_listArrangementHlc;
+
   /// No description provided for @settings_conflict_field_avgSpeed.
   ///
   /// In en, this message translates to:
