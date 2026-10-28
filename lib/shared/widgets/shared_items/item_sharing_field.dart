@@ -87,8 +87,10 @@ class ItemSharingField extends ConsumerWidget {
 }
 
 /// What an edit page says when the repository refuses its sharing change
-/// (#3766). The page checked the owner before saving, so a refusal means
-/// the item changed hands meanwhile and the page's owner is out of date.
+/// (#3766). The repository refuses a profile that is not the owner at
+/// save time: the item changed hands, or the active profile changed, while
+/// the page was open. Either way the page's idea of the owner is out of
+/// date, so the message names nobody.
 String sharingRefusedMessage(AppLocalizations l10n) =>
     l10n.sharedItems_shareOwnerOnly(l10n.sharedItems_ownerUnknown);
 
