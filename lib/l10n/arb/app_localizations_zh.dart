@@ -47484,10 +47484,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_species_chipsLabel => '物种标签';
 
   @override
-  String get media_people_me => 'Me';
+  String get media_people_me => '我';
 
   @override
-  String get media_people_chipsLabel => 'People tags';
+  String get media_people_chipsLabel => '人物标签';
 
   @override
   String media_people_momentChip(String name, String time) {
@@ -47495,67 +47495,66 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get media_people_actionTooltip => 'Tag people';
+  String get media_people_actionTooltip => '标记人物';
 
   @override
-  String get media_people_tagModeHint => 'Tap a person to tag them';
+  String get media_people_tagModeHint => '点按人物以进行标记';
 
   @override
-  String get media_people_noSpotHint => 'Spots can\'t be marked on this one';
+  String get media_people_noSpotHint => '此处无法标记位置';
 
   @override
-  String get media_people_withoutSpot => 'Tag without a spot';
+  String get media_people_withoutSpot => '无位置标记';
 
   @override
-  String get media_people_done => 'Done';
+  String get media_people_done => '完成';
 
   @override
-  String get media_people_pickerTitle => 'Who is this?';
+  String get media_people_pickerTitle => '这是谁？';
 
   @override
-  String get media_people_searchHint => 'Search buddies';
+  String get media_people_searchHint => '搜索潜伴';
 
   @override
-  String get media_people_onThisDive => 'On this dive';
+  String get media_people_onThisDive => '本次潜水';
 
   @override
-  String get media_people_everyoneElse => 'Everyone else';
+  String get media_people_everyoneElse => '其他人';
 
   @override
-  String get media_people_newBuddy => 'New buddy';
+  String get media_people_newBuddy => '新潜伴';
 
   @override
-  String get media_people_newBuddyName => 'Name';
+  String get media_people_newBuddyName => '姓名';
 
   @override
-  String get media_people_newBuddyAdd => 'Add';
+  String get media_people_newBuddyAdd => '添加';
 
   @override
-  String get media_people_changePerson => 'Change person';
+  String get media_people_changePerson => '更换人物';
 
   @override
-  String get media_people_removeTag => 'Remove tag';
+  String get media_people_removeTag => '移除标记';
 
   @override
-  String get media_people_resizeHint => 'Drag the corners to fit';
+  String get media_people_resizeHint => '拖动四角进行调整';
 
   @override
   String media_people_addToDiveOffer(String name) {
-    return 'Add $name to this dive\'s buddies?';
+    return '将$name添加为本次潜水的潜伴？';
   }
 
   @override
-  String get media_people_addToDiveAction => 'Add';
+  String get media_people_addToDiveAction => '添加';
 
   @override
-  String get media_people_buddyPhotosTitle => 'Photos and videos';
+  String get media_people_buddyPhotosTitle => '照片和视频';
 
   @override
-  String get media_people_buddyThumbnailLabel =>
-      'Photo or video with this buddy';
+  String get media_people_buddyThumbnailLabel => '与此潜伴的照片或视频';
 
   @override
-  String get media_people_filterSection => 'People';
+  String get media_people_filterSection => '人物';
 
   @override
   String get media_info_fileSection => '文件';

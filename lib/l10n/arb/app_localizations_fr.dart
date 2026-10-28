@@ -50750,10 +50750,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get media_species_chipsLabel => 'Étiquettes d\'espèces';
 
   @override
-  String get media_people_me => 'Me';
+  String get media_people_me => 'Moi';
 
   @override
-  String get media_people_chipsLabel => 'People tags';
+  String get media_people_chipsLabel => 'Étiquettes de personnes';
 
   @override
   String media_people_momentChip(String name, String time) {
@@ -50761,67 +50761,69 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get media_people_actionTooltip => 'Tag people';
+  String get media_people_actionTooltip => 'Identifier des personnes';
 
   @override
-  String get media_people_tagModeHint => 'Tap a person to tag them';
+  String get media_people_tagModeHint =>
+      'Touchez une personne pour l\'identifier';
 
   @override
-  String get media_people_noSpotHint => 'Spots can\'t be marked on this one';
+  String get media_people_noSpotHint =>
+      'Impossible de marquer un emplacement ici';
 
   @override
-  String get media_people_withoutSpot => 'Tag without a spot';
+  String get media_people_withoutSpot => 'Identifier sans emplacement';
 
   @override
-  String get media_people_done => 'Done';
+  String get media_people_done => 'Terminé';
 
   @override
-  String get media_people_pickerTitle => 'Who is this?';
+  String get media_people_pickerTitle => 'Qui est-ce ?';
 
   @override
-  String get media_people_searchHint => 'Search buddies';
+  String get media_people_searchHint => 'Rechercher des binômes';
 
   @override
-  String get media_people_onThisDive => 'On this dive';
+  String get media_people_onThisDive => 'Sur cette plongée';
 
   @override
-  String get media_people_everyoneElse => 'Everyone else';
+  String get media_people_everyoneElse => 'Tous les autres';
 
   @override
-  String get media_people_newBuddy => 'New buddy';
+  String get media_people_newBuddy => 'Nouveau binôme';
 
   @override
-  String get media_people_newBuddyName => 'Name';
+  String get media_people_newBuddyName => 'Nom';
 
   @override
-  String get media_people_newBuddyAdd => 'Add';
+  String get media_people_newBuddyAdd => 'Ajouter';
 
   @override
-  String get media_people_changePerson => 'Change person';
+  String get media_people_changePerson => 'Changer de personne';
 
   @override
-  String get media_people_removeTag => 'Remove tag';
+  String get media_people_removeTag => 'Retirer l\'identification';
 
   @override
-  String get media_people_resizeHint => 'Drag the corners to fit';
+  String get media_people_resizeHint => 'Faites glisser les coins pour ajuster';
 
   @override
   String media_people_addToDiveOffer(String name) {
-    return 'Add $name to this dive\'s buddies?';
+    return 'Ajouter $name aux binômes de cette plongée ?';
   }
 
   @override
-  String get media_people_addToDiveAction => 'Add';
+  String get media_people_addToDiveAction => 'Ajouter';
 
   @override
-  String get media_people_buddyPhotosTitle => 'Photos and videos';
+  String get media_people_buddyPhotosTitle => 'Photos et vidéos';
 
   @override
   String get media_people_buddyThumbnailLabel =>
-      'Photo or video with this buddy';
+      'Photo ou vidéo avec ce binôme';
 
   @override
-  String get media_people_filterSection => 'People';
+  String get media_people_filterSection => 'Personnes';
 
   @override
   String get media_info_fileSection => 'Fichier';

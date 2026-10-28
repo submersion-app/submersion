@@ -51269,10 +51269,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_species_chipsLabel => 'وسوم الأنواع';
 
   @override
-  String get media_people_me => 'Me';
+  String get media_people_me => 'أنا';
 
   @override
-  String get media_people_chipsLabel => 'People tags';
+  String get media_people_chipsLabel => 'وسوم الأشخاص';
 
   @override
   String media_people_momentChip(String name, String time) {
@@ -51280,67 +51280,66 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get media_people_actionTooltip => 'Tag people';
+  String get media_people_actionTooltip => 'وسم الأشخاص';
 
   @override
-  String get media_people_tagModeHint => 'Tap a person to tag them';
+  String get media_people_tagModeHint => 'اضغط على شخص لوسمه';
 
   @override
-  String get media_people_noSpotHint => 'Spots can\'t be marked on this one';
+  String get media_people_noSpotHint => 'لا يمكن تحديد موضع هنا';
 
   @override
-  String get media_people_withoutSpot => 'Tag without a spot';
+  String get media_people_withoutSpot => 'وسم دون موضع';
 
   @override
-  String get media_people_done => 'Done';
+  String get media_people_done => 'تم';
 
   @override
-  String get media_people_pickerTitle => 'Who is this?';
+  String get media_people_pickerTitle => 'من هذا؟';
 
   @override
-  String get media_people_searchHint => 'Search buddies';
+  String get media_people_searchHint => 'البحث عن رفاق';
 
   @override
-  String get media_people_onThisDive => 'On this dive';
+  String get media_people_onThisDive => 'في هذه الغطسة';
 
   @override
-  String get media_people_everyoneElse => 'Everyone else';
+  String get media_people_everyoneElse => 'الآخرون';
 
   @override
-  String get media_people_newBuddy => 'New buddy';
+  String get media_people_newBuddy => 'رفيق جديد';
 
   @override
-  String get media_people_newBuddyName => 'Name';
+  String get media_people_newBuddyName => 'الاسم';
 
   @override
-  String get media_people_newBuddyAdd => 'Add';
+  String get media_people_newBuddyAdd => 'إضافة';
 
   @override
-  String get media_people_changePerson => 'Change person';
+  String get media_people_changePerson => 'تغيير الشخص';
 
   @override
-  String get media_people_removeTag => 'Remove tag';
+  String get media_people_removeTag => 'إزالة الوسم';
 
   @override
-  String get media_people_resizeHint => 'Drag the corners to fit';
+  String get media_people_resizeHint => 'اسحب الزوايا للضبط';
 
   @override
   String media_people_addToDiveOffer(String name) {
-    return 'Add $name to this dive\'s buddies?';
+    return 'هل تريد إضافة $name إلى رفاق هذه الغطسة؟';
   }
 
   @override
-  String get media_people_addToDiveAction => 'Add';
+  String get media_people_addToDiveAction => 'إضافة';
 
   @override
-  String get media_people_buddyPhotosTitle => 'Photos and videos';
+  String get media_people_buddyPhotosTitle => 'الصور ومقاطع الفيديو';
 
   @override
-  String get media_people_buddyThumbnailLabel =>
-      'Photo or video with this buddy';
+  String get media_people_buddyThumbnailLabel => 'صورة أو فيديو مع هذا الرفيق';
 
   @override
-  String get media_people_filterSection => 'People';
+  String get media_people_filterSection => 'الأشخاص';
 
   @override
   String get media_info_fileSection => 'الملف';

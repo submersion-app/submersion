@@ -50354,10 +50354,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_species_chipsLabel => 'Fajcímkék';
 
   @override
-  String get media_people_me => 'Me';
+  String get media_people_me => 'Én';
 
   @override
-  String get media_people_chipsLabel => 'People tags';
+  String get media_people_chipsLabel => 'Személycímkék';
 
   @override
   String media_people_momentChip(String name, String time) {
@@ -50365,67 +50365,68 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get media_people_actionTooltip => 'Tag people';
+  String get media_people_actionTooltip => 'Személyek megjelölése';
 
   @override
-  String get media_people_tagModeHint => 'Tap a person to tag them';
+  String get media_people_tagModeHint =>
+      'Koppintson egy személyre a megjelöléséhez';
 
   @override
-  String get media_people_noSpotHint => 'Spots can\'t be marked on this one';
+  String get media_people_noSpotHint => 'Itt nem jelölhető meg hely';
 
   @override
-  String get media_people_withoutSpot => 'Tag without a spot';
+  String get media_people_withoutSpot => 'Megjelölés hely nélkül';
 
   @override
-  String get media_people_done => 'Done';
+  String get media_people_done => 'Kész';
 
   @override
-  String get media_people_pickerTitle => 'Who is this?';
+  String get media_people_pickerTitle => 'Ki ez?';
 
   @override
-  String get media_people_searchHint => 'Search buddies';
+  String get media_people_searchHint => 'Búvártársak keresése';
 
   @override
-  String get media_people_onThisDive => 'On this dive';
+  String get media_people_onThisDive => 'Ezen a merülésen';
 
   @override
-  String get media_people_everyoneElse => 'Everyone else';
+  String get media_people_everyoneElse => 'Mindenki más';
 
   @override
-  String get media_people_newBuddy => 'New buddy';
+  String get media_people_newBuddy => 'Új búvártárs';
 
   @override
-  String get media_people_newBuddyName => 'Name';
+  String get media_people_newBuddyName => 'Név';
 
   @override
-  String get media_people_newBuddyAdd => 'Add';
+  String get media_people_newBuddyAdd => 'Hozzáadás';
 
   @override
-  String get media_people_changePerson => 'Change person';
+  String get media_people_changePerson => 'Személy módosítása';
 
   @override
-  String get media_people_removeTag => 'Remove tag';
+  String get media_people_removeTag => 'Jelölés eltávolítása';
 
   @override
-  String get media_people_resizeHint => 'Drag the corners to fit';
+  String get media_people_resizeHint => 'Húzza a sarkokat az igazításhoz';
 
   @override
   String media_people_addToDiveOffer(String name) {
-    return 'Add $name to this dive\'s buddies?';
+    return 'Hozzáadja $name búvártársat ehhez a merüléshez?';
   }
 
   @override
-  String get media_people_addToDiveAction => 'Add';
+  String get media_people_addToDiveAction => 'Hozzáadás';
 
   @override
-  String get media_people_buddyPhotosTitle => 'Photos and videos';
+  String get media_people_buddyPhotosTitle => 'Fotók és videók';
 
   @override
   String get media_people_buddyThumbnailLabel =>
-      'Photo or video with this buddy';
+      'Fotó vagy videó ezzel a búvártárssal';
 
   @override
-  String get media_people_filterSection => 'People';
+  String get media_people_filterSection => 'Személyek';
 
   @override
   String get media_info_fileSection => 'Fájl';

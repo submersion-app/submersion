@@ -50687,10 +50687,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get media_species_chipsLabel => 'Etiquetas de especies';
 
   @override
-  String get media_people_me => 'Me';
+  String get media_people_me => 'Yo';
 
   @override
-  String get media_people_chipsLabel => 'People tags';
+  String get media_people_chipsLabel => 'Etiquetas de personas';
 
   @override
   String media_people_momentChip(String name, String time) {
@@ -50698,67 +50698,67 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get media_people_actionTooltip => 'Tag people';
+  String get media_people_actionTooltip => 'Etiquetar personas';
 
   @override
-  String get media_people_tagModeHint => 'Tap a person to tag them';
+  String get media_people_tagModeHint => 'Toca a una persona para etiquetarla';
 
   @override
-  String get media_people_noSpotHint => 'Spots can\'t be marked on this one';
+  String get media_people_noSpotHint => 'Aquí no se puede marcar un punto';
 
   @override
-  String get media_people_withoutSpot => 'Tag without a spot';
+  String get media_people_withoutSpot => 'Etiquetar sin punto';
 
   @override
-  String get media_people_done => 'Done';
+  String get media_people_done => 'Listo';
 
   @override
-  String get media_people_pickerTitle => 'Who is this?';
+  String get media_people_pickerTitle => '¿Quién es?';
 
   @override
-  String get media_people_searchHint => 'Search buddies';
+  String get media_people_searchHint => 'Buscar compañeros';
 
   @override
-  String get media_people_onThisDive => 'On this dive';
+  String get media_people_onThisDive => 'En esta inmersión';
 
   @override
-  String get media_people_everyoneElse => 'Everyone else';
+  String get media_people_everyoneElse => 'Todos los demás';
 
   @override
-  String get media_people_newBuddy => 'New buddy';
+  String get media_people_newBuddy => 'Nuevo compañero';
 
   @override
-  String get media_people_newBuddyName => 'Name';
+  String get media_people_newBuddyName => 'Nombre';
 
   @override
-  String get media_people_newBuddyAdd => 'Add';
+  String get media_people_newBuddyAdd => 'Agregar';
 
   @override
-  String get media_people_changePerson => 'Change person';
+  String get media_people_changePerson => 'Cambiar persona';
 
   @override
-  String get media_people_removeTag => 'Remove tag';
+  String get media_people_removeTag => 'Quitar etiqueta';
 
   @override
-  String get media_people_resizeHint => 'Drag the corners to fit';
+  String get media_people_resizeHint => 'Arrastra las esquinas para ajustar';
 
   @override
   String media_people_addToDiveOffer(String name) {
-    return 'Add $name to this dive\'s buddies?';
+    return '¿Agregar a $name a los compañeros de esta inmersión?';
   }
 
   @override
-  String get media_people_addToDiveAction => 'Add';
+  String get media_people_addToDiveAction => 'Agregar';
 
   @override
-  String get media_people_buddyPhotosTitle => 'Photos and videos';
+  String get media_people_buddyPhotosTitle => 'Fotos y vídeos';
 
   @override
   String get media_people_buddyThumbnailLabel =>
-      'Photo or video with this buddy';
+      'Foto o vídeo con este compañero';
 
   @override
-  String get media_people_filterSection => 'People';
+  String get media_people_filterSection => 'Personas';
 
   @override
   String get media_info_fileSection => 'Archivo';

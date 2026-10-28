@@ -49564,10 +49564,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_species_chipsLabel => 'תגיות מינים';
 
   @override
-  String get media_people_me => 'Me';
+  String get media_people_me => 'אני';
 
   @override
-  String get media_people_chipsLabel => 'People tags';
+  String get media_people_chipsLabel => 'תגיות אנשים';
 
   @override
   String media_people_momentChip(String name, String time) {
@@ -49575,67 +49575,67 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get media_people_actionTooltip => 'Tag people';
+  String get media_people_actionTooltip => 'תיוג אנשים';
 
   @override
-  String get media_people_tagModeHint => 'Tap a person to tag them';
+  String get media_people_tagModeHint => 'הקש על אדם כדי לתייג אותו';
 
   @override
-  String get media_people_noSpotHint => 'Spots can\'t be marked on this one';
+  String get media_people_noSpotHint => 'לא ניתן לסמן מיקום כאן';
 
   @override
-  String get media_people_withoutSpot => 'Tag without a spot';
+  String get media_people_withoutSpot => 'תיוג ללא מיקום';
 
   @override
-  String get media_people_done => 'Done';
+  String get media_people_done => 'סיום';
 
   @override
-  String get media_people_pickerTitle => 'Who is this?';
+  String get media_people_pickerTitle => 'מי זה?';
 
   @override
-  String get media_people_searchHint => 'Search buddies';
+  String get media_people_searchHint => 'חיפוש חברי צוללים';
 
   @override
-  String get media_people_onThisDive => 'On this dive';
+  String get media_people_onThisDive => 'בצלילה הזו';
 
   @override
-  String get media_people_everyoneElse => 'Everyone else';
+  String get media_people_everyoneElse => 'כל השאר';
 
   @override
-  String get media_people_newBuddy => 'New buddy';
+  String get media_people_newBuddy => 'חבר צוללים חדש';
 
   @override
-  String get media_people_newBuddyName => 'Name';
+  String get media_people_newBuddyName => 'שם';
 
   @override
-  String get media_people_newBuddyAdd => 'Add';
+  String get media_people_newBuddyAdd => 'הוסף';
 
   @override
-  String get media_people_changePerson => 'Change person';
+  String get media_people_changePerson => 'החלף אדם';
 
   @override
-  String get media_people_removeTag => 'Remove tag';
+  String get media_people_removeTag => 'הסר תיוג';
 
   @override
-  String get media_people_resizeHint => 'Drag the corners to fit';
+  String get media_people_resizeHint => 'גרור את הפינות להתאמה';
 
   @override
   String media_people_addToDiveOffer(String name) {
-    return 'Add $name to this dive\'s buddies?';
+    return 'להוסיף את $name לחברי הצוללים של צלילה זו?';
   }
 
   @override
-  String get media_people_addToDiveAction => 'Add';
+  String get media_people_addToDiveAction => 'הוסף';
 
   @override
-  String get media_people_buddyPhotosTitle => 'Photos and videos';
+  String get media_people_buddyPhotosTitle => 'תמונות וסרטונים';
 
   @override
   String get media_people_buddyThumbnailLabel =>
-      'Photo or video with this buddy';
+      'תמונה או סרטון עם חבר הצוללים הזה';
 
   @override
-  String get media_people_filterSection => 'People';
+  String get media_people_filterSection => 'אנשים';
 
   @override
   String get media_info_fileSection => 'קובץ';
