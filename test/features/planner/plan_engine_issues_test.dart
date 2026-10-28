@@ -444,6 +444,9 @@ void main() {
       expect(issue.segmentId, 'tank-1');
       expect(issue.value, closeTo(usage.minGasBar!, 1e-9));
       expect(issue.threshold, 80.0);
+      // The fill is under rock bottom, so the tank ends under it too; one
+      // alert says that, not two.
+      expect(_types(outcome), isNot(contains(PlanIssueType.minGasViolation)));
     });
 
     test('no usable gas alert stays quiet while gas is left above it', () {

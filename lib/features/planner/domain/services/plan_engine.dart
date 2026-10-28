@@ -1348,7 +1348,7 @@ class PlanEngine {
   ({double? bar, PlanGasLimitGap? gap}) _turnPressureFor(
     domain.DivePlan plan,
     DiveTank tank, {
-    double? minGasBar,
+    required double? minGasBar,
   }) {
     if (tank.role != TankRole.backGas) return (bar: null, gap: null);
     final rule = config.turnPressureRuleFor(plan);
@@ -1669,7 +1669,9 @@ class PlanEngine {
           ),
         );
       }
-      if (minGas != null && remaining > 0 && remaining < minGas) {
+      // A fill at or under rock bottom always ends under it too; the
+      // no-usable-gas alert already says so, more precisely.
+      else if (minGas != null && remaining > 0 && remaining < minGas) {
         issues.add(
           PlanIssue(
             type: PlanIssueType.minGasViolation,
