@@ -80181,6 +80181,138 @@ abstract class AppLocalizations {
   /// **'Species tags'**
   String get media_species_chipsLabel;
 
+  /// No description provided for @media_people_me.
+  ///
+  /// In en, this message translates to:
+  /// **'Me'**
+  String get media_people_me;
+
+  /// No description provided for @media_people_chipsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'People tags'**
+  String get media_people_chipsLabel;
+
+  /// No description provided for @media_people_momentChip.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} · {time}'**
+  String media_people_momentChip(String name, String time);
+
+  /// No description provided for @media_people_actionTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Tag people'**
+  String get media_people_actionTooltip;
+
+  /// No description provided for @media_people_tagModeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a person to tag them'**
+  String get media_people_tagModeHint;
+
+  /// No description provided for @media_people_noSpotHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Spots can\'t be marked on this one'**
+  String get media_people_noSpotHint;
+
+  /// No description provided for @media_people_withoutSpot.
+  ///
+  /// In en, this message translates to:
+  /// **'Tag without a spot'**
+  String get media_people_withoutSpot;
+
+  /// No description provided for @media_people_done.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get media_people_done;
+
+  /// No description provided for @media_people_pickerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Who is this?'**
+  String get media_people_pickerTitle;
+
+  /// No description provided for @media_people_searchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search buddies'**
+  String get media_people_searchHint;
+
+  /// No description provided for @media_people_onThisDive.
+  ///
+  /// In en, this message translates to:
+  /// **'On this dive'**
+  String get media_people_onThisDive;
+
+  /// No description provided for @media_people_everyoneElse.
+  ///
+  /// In en, this message translates to:
+  /// **'Everyone else'**
+  String get media_people_everyoneElse;
+
+  /// No description provided for @media_people_newBuddy.
+  ///
+  /// In en, this message translates to:
+  /// **'New buddy'**
+  String get media_people_newBuddy;
+
+  /// No description provided for @media_people_newBuddyName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get media_people_newBuddyName;
+
+  /// No description provided for @media_people_newBuddyAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get media_people_newBuddyAdd;
+
+  /// No description provided for @media_people_changePerson.
+  ///
+  /// In en, this message translates to:
+  /// **'Change person'**
+  String get media_people_changePerson;
+
+  /// No description provided for @media_people_removeTag.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove tag'**
+  String get media_people_removeTag;
+
+  /// No description provided for @media_people_resizeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag the corners to fit'**
+  String get media_people_resizeHint;
+
+  /// No description provided for @media_people_addToDiveOffer.
+  ///
+  /// In en, this message translates to:
+  /// **'Add {name} to this dive\'s buddies?'**
+  String media_people_addToDiveOffer(String name);
+
+  /// No description provided for @media_people_addToDiveAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get media_people_addToDiveAction;
+
+  /// No description provided for @media_people_buddyPhotosTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos and videos'**
+  String get media_people_buddyPhotosTitle;
+
+  /// No description provided for @media_people_filterSection.
+  ///
+  /// In en, this message translates to:
+  /// **'People'**
+  String get media_people_filterSection;
+
   /// No description provided for @media_info_fileSection.
   ///
   /// In en, this message translates to:

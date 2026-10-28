@@ -50634,6 +50634,76 @@ class AppLocalizationsPt extends AppLocalizations {
   String get media_species_chipsLabel => 'Marcações de espécies';
 
   @override
+  String get media_people_me => 'Me';
+
+  @override
+  String get media_people_chipsLabel => 'People tags';
+
+  @override
+  String media_people_momentChip(String name, String time) {
+    return '$name · $time';
+  }
+
+  @override
+  String get media_people_actionTooltip => 'Tag people';
+
+  @override
+  String get media_people_tagModeHint => 'Tap a person to tag them';
+
+  @override
+  String get media_people_noSpotHint => 'Spots can\'t be marked on this one';
+
+  @override
+  String get media_people_withoutSpot => 'Tag without a spot';
+
+  @override
+  String get media_people_done => 'Done';
+
+  @override
+  String get media_people_pickerTitle => 'Who is this?';
+
+  @override
+  String get media_people_searchHint => 'Search buddies';
+
+  @override
+  String get media_people_onThisDive => 'On this dive';
+
+  @override
+  String get media_people_everyoneElse => 'Everyone else';
+
+  @override
+  String get media_people_newBuddy => 'New buddy';
+
+  @override
+  String get media_people_newBuddyName => 'Name';
+
+  @override
+  String get media_people_newBuddyAdd => 'Add';
+
+  @override
+  String get media_people_changePerson => 'Change person';
+
+  @override
+  String get media_people_removeTag => 'Remove tag';
+
+  @override
+  String get media_people_resizeHint => 'Drag the corners to fit';
+
+  @override
+  String media_people_addToDiveOffer(String name) {
+    return 'Add $name to this dive\'s buddies?';
+  }
+
+  @override
+  String get media_people_addToDiveAction => 'Add';
+
+  @override
+  String get media_people_buddyPhotosTitle => 'Photos and videos';
+
+  @override
+  String get media_people_filterSection => 'People';
+
+  @override
   String get media_info_fileSection => 'Arquivo';
 
   @override

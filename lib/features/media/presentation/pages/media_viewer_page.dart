@@ -42,6 +42,9 @@ import 'package:submersion/features/media/presentation/widgets/mini_dive_profile
 import 'package:submersion/features/media/presentation/widgets/media_info_sheet.dart';
 import 'package:submersion/features/media/presentation/widgets/media_species_chips_row.dart';
 import 'package:submersion/features/media/presentation/widgets/media_species_sheet.dart';
+import 'package:submersion/features/media/domain/entities/media_person_tag.dart';
+import 'package:submersion/features/media/presentation/widgets/people_tags/face_box_layer.dart';
+import 'package:submersion/features/media/presentation/widgets/people_tags/media_people_chips_row.dart';
 import 'package:submersion/features/media/presentation/widgets/media_viewer_toolbar.dart';
 import 'package:submersion/features/media/presentation/widgets/video_color_filter.dart';
 import 'package:submersion/features/media/presentation/helpers/color_pick_white.dart';
@@ -155,6 +158,19 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
       unawaited(_videoControllers[item.id]?.pause());
     }
     togglePickWhite();
+  }
+
+  /// A video face tag's chip was tapped (issue #1745): pause on its frame,
+  /// where the video item draws the tag's box. A video that cannot play
+  /// here (no controller, or one that failed) has no frame to show, so the
+  /// tap does nothing.
+  void _showMoment(MediaItem item, MediaPersonTag tag) {
+    final at = tag.videoPosition;
+    final controller = _videoControllers[item.id];
+    if (at == null || controller == null) return;
+    final value = controller.value;
+    if (!value.isInitialized || value.hasError) return;
+    unawaited(controller.pause().then((_) => controller.seekTo(at)));
   }
 
   /// Dives whose enrichment backfill has already been attempted this session,
@@ -685,6 +701,7 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                     _BottomMetadataOverlay(
                       item: currentItem,
                       settings: settings,
+                      onMomentTap: (tag) => _showMoment(currentItem, tag),
                       profileLengthSeconds: profileLength,
                       // Pinning needs a profile to pin against; a dive with
                       // none has no moments to choose from.
@@ -1035,7 +1052,7 @@ class _PhotoGallery extends ConsumerWidget {
         return PhotoViewGalleryPageOptions.customChild(
           minScale: PhotoViewComputedScale.contained,
           maxScale: PhotoViewComputedScale.covered * 3.0,
-          child: _PhotoItem(item: item),
+          child: _PhotoItem(item: item, showBoxes: showOverlay),
         );
       },
       loadingBuilder: (context, event) =>
@@ -1060,17 +1077,45 @@ MediaItem _withLiveColor(WidgetRef ref, MediaItem item) {
   );
 }
 
-class _PhotoItem extends ConsumerWidget {
+class _PhotoItem extends ConsumerStatefulWidget {
   final MediaItem item;
 
-  const _PhotoItem({required this.item});
+  /// Whether the face boxes show: they follow the viewer's controls.
+  final bool showBoxes;
+
+  const _PhotoItem({required this.item, required this.showBoxes});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return MediaItemView(
-      item: _withLiveColor(ref, item),
-      fit: BoxFit.contain,
-      showAccessActions: true,
+  ConsumerState<_PhotoItem> createState() => _PhotoItemState();
+}
+
+class _PhotoItemState extends ConsumerState<_PhotoItem> {
+  /// The decoded image's size, for a row with no stored width and height.
+  Size? _decodedSize;
+
+  @override
+  Widget build(BuildContext context) {
+    final item = widget.item;
+    final width = item.width;
+    final height = item.height;
+    // Inside the PhotoView child, so the boxes zoom with the photo.
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        MediaItemView(
+          item: _withLiveColor(ref, item),
+          fit: BoxFit.contain,
+          showAccessActions: true,
+          onImageSize: (size) => setState(() => _decodedSize = size),
+        ),
+        FaceBoxLayer(
+          mediaId: item.id,
+          imageSize: width != null && height != null
+              ? Size(width.toDouble(), height.toDouble())
+              : _decodedSize,
+          visible: widget.showBoxes,
+        ),
+      ],
     );
   }
 }
@@ -1439,6 +1484,17 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
             ),
           ),
 
+          // Face tags at the paused frame (issue #1745); none while playing.
+          ValueListenableBuilder<VideoPlayerValue>(
+            valueListenable: controller,
+            builder: (context, value, _) => FaceBoxLayer(
+              mediaId: widget.item.id,
+              imageSize: value.size,
+              visible: widget.showOverlay && !value.isPlaying,
+              showAt: value.position,
+            ),
+          ),
+
           // Play/pause button overlay (center) - visual indicator only when paused
           if (!controller.value.isPlaying &&
               (!widget.fullscreen || widget.showOverlay))
@@ -1642,12 +1698,16 @@ class _BottomMetadataOverlay extends StatelessWidget {
   /// to pin against, which also hides the affordance.
   final VoidCallback? onSetTime;
 
+  /// A video face tag's chip was tapped (issue #1745).
+  final ValueChanged<MediaPersonTag>? onMomentTap;
+
   const _BottomMetadataOverlay({
     required this.item,
     required this.settings,
     required this.profileLengthSeconds,
     this.onSetTime,
     this.siteName,
+    this.onMomentTap,
   });
 
   @override
@@ -1708,6 +1768,7 @@ class _BottomMetadataOverlay extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                 ],
+                MediaPeopleChipsRow(mediaId: item.id, onMomentTap: onMomentTap),
                 MediaSpeciesChipsRow(mediaId: item.id),
                 // Metadata row
                 Row(

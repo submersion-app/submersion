@@ -25,3 +25,15 @@ void openMediaWithTag(BuildContext context, WidgetRef ref, String tagId) {
   Navigator.of(context).popUntil((route) => route.settings is Page);
   router.go('/media');
 }
+
+/// Opens the media library showing only the photos and videos the active
+/// diver is tagged in as "Me" (issue #1745), from the Me chip over the
+/// viewer. Pops the pageless routes first for the reason
+/// [openMediaWithTag] gives.
+void openMediaWithMe(BuildContext context, WidgetRef ref) {
+  final router = GoRouter.of(context);
+  ref.read(mediaLibraryFilterProvider.notifier).state =
+      const MediaLibraryFilter(includeMe: true);
+  Navigator.of(context).popUntil((route) => route.settings is Page);
+  router.go('/media');
+}
