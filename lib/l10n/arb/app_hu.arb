@@ -16309,6 +16309,8 @@
   "tags_manage_bulkDeleteMessage_several": "Ezek a címkék eltávolításra kerülnek innen:",
   "tags_manage_mergeAffected_several": "Ez a következőket érinti:",
   "tags_manage_cannotUndo": "Ez nem vonható vissza.",
+  "tags_manage_rowScopes": "Használható: {scopes}",
+  "tags_manage_rowUsage": "Használatban: {counts}",
   "tags_action_edit": "Címkék szerkesztése",
   "media_info_tags": "Címkék",
   "media_info_noTags": "Még nincsenek címkék",

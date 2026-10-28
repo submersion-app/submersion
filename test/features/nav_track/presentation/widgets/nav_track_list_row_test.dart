@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -7,7 +8,9 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
-import 'package:submersion/features/gps_log/presentation/widgets/track_title_row.dart';
+import 'package:submersion/features/tracks/domain/track_kind.dart';
+import 'package:submersion/features/tracks/presentation/widgets/track_badge_line.dart';
+import 'package:submersion/features/tracks/presentation/widgets/track_kind_badge.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
@@ -119,27 +122,50 @@ void main() {
     expect(line, endsWith('10min'));
   });
 
-  testWidgets('a kind badge sits in the title row, above the status line', (
-    tester,
-  ) async {
-    await _pumpRow(
-      tester,
-      route: _route(
-        id: 'r1',
-        name: 'Wreck dive',
-        deviceName: 'Seacraft ENC3',
-        distance: 1050,
-        maxDepth: 38,
-      ),
-      kindBadge: const SizedBox(key: ValueKey('badge'), width: 10, height: 10),
-    );
-    // The meta line (date + device, still joined with ' · ') is what used to
-    // be called the "status line"; distance/depth/duration moved out of it
-    // into the stat row below.
-    final status = tester.getRect(find.textContaining(' · '));
-    final badge = tester.getRect(find.byKey(const ValueKey('badge')));
-    expect(badge.bottom, lessThanOrEqualTo(status.top));
-  });
+  testWidgets(
+    'a kind badge sits on the dive-link line, the link on the left and the '
+    'badge at the right edge (#3749)',
+    (tester) async {
+      final dive = Dive(
+        id: 'dive-1',
+        diveNumber: 108,
+        dateTime: DateTime(2026, 8, 22, 10, 8),
+      );
+      await _pumpRow(
+        tester,
+        route: _route(
+          id: 'r1',
+          name: 'Wreck dive',
+          diveId: 'dive-1',
+          deviceName: 'Seacraft ENC3',
+          distance: 1050,
+          maxDepth: 38,
+        ),
+        linkedDive: dive,
+        kindBadge: const SizedBox(
+          key: ValueKey('badge'),
+          width: 10,
+          height: 10,
+        ),
+      );
+      // The meta line (date + device, joined with ' · ') sits above the
+      // stat row and the link line; the badge belongs below all of it.
+      final status = tester.getRect(find.textContaining(' · '));
+      final link = tester.getRect(
+        find.byKey(const ValueKey('nav-track-link-label')),
+      );
+      final line = tester.getRect(find.byType(TrackBadgeLine));
+      final badge = tester.getRect(find.byKey(const ValueKey('badge')));
+      expect(badge.top, greaterThanOrEqualTo(status.bottom));
+      expect(badge.center.dy, inInclusiveRange(link.top, link.bottom));
+      expect(link.left, line.left);
+      expect(badge.right, line.right);
+      expect(badge.left, greaterThan(link.right));
+
+      final tile = tester.widget<ListTile>(find.byType(ListTile));
+      expect(tile.title, isA<Text>());
+    },
+  );
 
   testWidgets('no delete button without a delete callback', (tester) async {
     final overrides = await getBaseOverrides();
@@ -277,7 +303,7 @@ void main() {
         expect(find.text('Blue Hole'), findsOneWidget);
         expect(find.text('020.DAT.csv'), findsOneWidget);
         final tile = tester.widget<ListTile>(find.byType(ListTile));
-        expect((tile.title! as TrackTitleRow).title, 'Blue Hole');
+        expect((tile.title! as Text).data, 'Blue Hole');
       },
     );
 
@@ -292,7 +318,7 @@ void main() {
         );
 
         final tile = tester.widget<ListTile>(find.byType(ListTile));
-        expect((tile.title! as TrackTitleRow).title, '020.DAT.csv');
+        expect((tile.title! as Text).data, '020.DAT.csv');
       },
     );
 
@@ -311,7 +337,7 @@ void main() {
         );
 
         final tile = tester.widget<ListTile>(find.byType(ListTile));
-        expect((tile.title! as TrackTitleRow).title, '020.DAT.csv');
+        expect((tile.title! as Text).data, '020.DAT.csv');
       },
     );
 
@@ -324,7 +350,7 @@ void main() {
       );
 
       final tile = tester.widget<ListTile>(find.byType(ListTile));
-      expect((tile.title! as TrackTitleRow).title, '020.DAT.csv');
+      expect((tile.title! as Text).data, '020.DAT.csv');
     });
   });
 
@@ -356,6 +382,9 @@ void main() {
         ),
         linkedDive: dive,
         locale: const Locale('de'),
+        // The badge shares the link chip's line (#3749): the German chip
+        // and "Unterwasser" must both fit on it.
+        kindBadge: TrackKindBadge(TrackKind.underwater),
       );
 
       final title = tester.getRect(find.text(name));
@@ -376,6 +405,23 @@ void main() {
         label.top,
         greaterThanOrEqualTo(status.bottom),
         reason: 'The link label belongs on its own line below the status line.',
+      );
+      final badge = tester.getRect(
+        find.byKey(const ValueKey('track-kind-badge-underwater')),
+      );
+      // At this width the two do not fit side by side, so the badge drops
+      // below the chip rather than truncating it.
+      expect(badge.overlaps(label), isFalse);
+      final chipText = tester.renderObject<RenderParagraph>(
+        find.descendant(
+          of: find.byKey(const ValueKey('nav-track-link-label')),
+          matching: find.byType(RichText),
+        ),
+      );
+      expect(
+        chipText.didExceedMaxLines,
+        isFalse,
+        reason: 'The badge squeezed the dive link chip into an ellipsis.',
       );
     },
   );

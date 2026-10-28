@@ -16309,6 +16309,8 @@
   "tags_manage_bulkDeleteMessage_several": "Questi tag verranno rimossi da:",
   "tags_manage_mergeAffected_several": "Questo influenzerà:",
   "tags_manage_cannotUndo": "Questa azione non può essere annullata.",
+  "tags_manage_rowScopes": "Per: {scopes}",
+  "tags_manage_rowUsage": "Usato in: {counts}",
   "tags_action_edit": "Modifica tag",
   "media_info_tags": "Tag",
   "media_info_noTags": "Ancora nessun tag",

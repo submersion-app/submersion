@@ -5,8 +5,8 @@ import 'package:submersion/l10n/l10n_extension.dart';
 
 /// "GPS" or "Underwater", so rows of both kinds read as one list.
 ///
-/// Sits in the row's title line next to the title text (see
-/// `GpsTrackListTile` / `NavTrackListRow`), so it follows [DiveTypeBadge]'s
+/// Sits at the end of the row's last line, next to the dive link or
+/// the detail line (see `TrackBadgeLine`), and follows [DiveTypeBadge]'s
 /// shape -- a translucent-filled, bordered box sized to its own text --
 /// rather than [DiveModeBadge]'s bare outline: that one exists for short,
 /// fixed, deliberately unlocalized jargon (OC/CCR), while this badge's text

@@ -54683,6 +54683,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tags_manage_cannotUndo => 'This cannot be undone.';
 
   @override
+  String tags_manage_rowScopes(String scopes) {
+    return 'For: $scopes';
+  }
+
+  @override
+  String tags_manage_rowUsage(String counts) {
+    return 'Used on: $counts';
+  }
+
+  @override
   String get tags_action_edit => 'Edit tags';
 
   @override

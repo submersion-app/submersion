@@ -14,10 +14,12 @@ import 'package:submersion/features/rules/domain/site_rule_field.dart';
 enum RuleUnit { none, depth, altitude, windSpeed, millibar, seconds }
 
 /// Every bulk-editable dive field a rule can set (#3513). The diver's own
-/// role rides a separate lane, and notes are appended rather than set.
+/// role rides a separate lane, notes are appended rather than set, and the
+/// site rides SiteOp, whose per-dive snap a rule's column write lacks (#3657).
 final List<BulkField> kRuleSettableDiveFields = [
   for (final f in BulkField.values)
-    if (f != BulkField.diverRole && f != BulkField.notes) f,
+    if (f != BulkField.diverRole && f != BulkField.notes && f != BulkField.site)
+      f,
 ];
 
 /// The [BulkScalarInputs] members [field] writes, which key a

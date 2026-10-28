@@ -16309,6 +16309,8 @@
   "tags_manage_bulkDeleteMessage_several": "سيتم إزالة هذه الوسوم من:",
   "tags_manage_mergeAffected_several": "سيؤثر هذا على:",
   "tags_manage_cannotUndo": "لا يمكن التراجع عن هذا الإجراء.",
+  "tags_manage_rowScopes": "متاح لـ: {scopes}",
+  "tags_manage_rowUsage": "مستخدم في: {counts}",
   "tags_action_edit": "تعديل الوسوم",
   "media_info_tags": "الوسوم",
   "media_info_noTags": "لا توجد وسوم بعد",

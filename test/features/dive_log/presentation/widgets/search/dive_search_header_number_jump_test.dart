@@ -8,6 +8,7 @@ import 'package:submersion/core/query/names/name_index.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_search_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/search/dive_search_header.dart';
 import 'package:submersion/features/dive_log/query/dive_number_query.dart';
@@ -44,6 +45,7 @@ void main() {
   Future<void> pumpHeader(
     WidgetTester tester, {
     ValueChanged<DiveSummary>? onOpenDive,
+    ValueChanged<DiveSummary>? onJumpToDive,
     void Function(String text)? onRecord,
     Future<List<DiveSummary>> Function(QueryNode q) rowsFor = _rowsFor,
   }) async {
@@ -64,7 +66,10 @@ void main() {
             (text, node, locale, diverId) async => onRecord?.call(text),
           ),
         ],
-        child: DiveSearchHeader(onOpenDive: onOpenDive ?? (_) {}),
+        child: DiveSearchHeader(
+          onOpenDive: onOpenDive ?? (_) {},
+          onJumpToDive: onJumpToDive,
+        ),
       ),
     );
     await tester.pumpAndSettle();
@@ -77,6 +82,10 @@ void main() {
     await tester.pump(kDiveSearchDebounce);
     await tester.pump();
   }
+
+  // The header, not the field: a jump closes the row, field and all.
+  ProviderContainer containerOf(WidgetTester tester) =>
+      ProviderScope.containerOf(tester.element(find.byType(DiveSearchHeader)));
 
   Future<void> pressEnter(WidgetTester tester) async {
     await tester.testTextInput.receiveAction(TextInputAction.search);
@@ -233,5 +242,68 @@ void main() {
       ),
       findsOneWidget,
     );
+  });
+
+  group('a jump to a number clears the search to land on it (#3744)', () {
+    testWidgets('Enter jumps to the numbered dive and clears the search', (
+      tester,
+    ) async {
+      DiveSummary? opened;
+      DiveSummary? jumped;
+      await pumpHeader(
+        tester,
+        onOpenDive: (d) => opened = d,
+        onJumpToDive: (d) => jumped = d,
+      );
+      await type(tester, '500');
+      expect(containerOf(tester).read(diveFilterProvider).query, isNotNull);
+      await pressEnter(tester);
+      expect(jumped?.id, 'd500');
+      expect(opened, isNull);
+      // The whole list comes back, so the dive can be shown in it.
+      expect(
+        containerOf(tester).read(diveFilterProvider).hasActiveFilters,
+        isFalse,
+      );
+    });
+
+    testWidgets('tapping the numbered row jumps and clears the search', (
+      tester,
+    ) async {
+      DiveSummary? opened;
+      DiveSummary? jumped;
+      await pumpHeader(
+        tester,
+        onOpenDive: (d) => opened = d,
+        onJumpToDive: (d) => jumped = d,
+      );
+      await type(tester, '#500');
+      await tester.tap(find.byKey(const ValueKey('dive-jump-d500')));
+      await tester.pumpAndSettle();
+      expect(jumped?.id, 'd500');
+      expect(opened, isNull);
+      expect(
+        containerOf(tester).read(diveFilterProvider).hasActiveFilters,
+        isFalse,
+      );
+    });
+
+    testWidgets('tapping a text match only opens it, keeping the search', (
+      tester,
+    ) async {
+      DiveSummary? opened;
+      DiveSummary? jumped;
+      await pumpHeader(
+        tester,
+        onOpenDive: (d) => opened = d,
+        onJumpToDive: (d) => jumped = d,
+      );
+      await type(tester, '500');
+      await tester.tap(find.byKey(const ValueKey('dive-jump-swim')));
+      await tester.pumpAndSettle();
+      expect(opened?.id, 'swim');
+      expect(jumped, isNull);
+      expect(containerOf(tester).read(diveFilterProvider).query, isNotNull);
+    });
   });
 }

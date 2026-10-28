@@ -16309,6 +16309,8 @@
   "tags_manage_bulkDeleteMessage_several": "Deze tags worden verwijderd van:",
   "tags_manage_mergeAffected_several": "Dit heeft betrekking op:",
   "tags_manage_cannotUndo": "Dit kan niet ongedaan worden gemaakt.",
+  "tags_manage_rowScopes": "Voor: {scopes}",
+  "tags_manage_rowUsage": "Gebruikt op: {counts}",
   "tags_action_edit": "Tags bewerken",
   "media_info_tags": "Tags",
   "media_info_noTags": "Nog geen tags",

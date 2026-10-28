@@ -188,12 +188,24 @@ class _EntityTableViewState<T, F extends EntityField>
   /// table was built, so rows arriving after that do not move it again.
   bool _revealedOnBuild = false;
 
+  /// A row highlighted while the rows did not hold it, as when a jump to a
+  /// typed dive number clears the search and highlights its dive before the
+  /// whole list has loaded (#3744). Shown once rows that hold it arrive.
+  String? _awaitedHighlightId;
+
   @override
   void didUpdateWidget(EntityTableView<T, F> oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.highlightedId != null &&
         widget.highlightedId != oldWidget.highlightedId) {
-      _scrollToHighlightedRow();
+      _scrollToHighlightedRow(awaitRows: true);
+    } else if (_awaitedHighlightId != null &&
+        _awaitedHighlightId == widget.highlightedId &&
+        !identical(widget.entities, oldWidget.entities)) {
+      // A jump, as a restore makes: the rows have only just arrived.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _scrollToHighlightedRow(jump: true, awaitRows: true);
+      });
     } else if (!_revealedOnBuild &&
         widget.highlightedId != null &&
         oldWidget.entities.isEmpty &&
@@ -206,14 +218,16 @@ class _EntityTableViewState<T, F extends EntityField>
   }
 
   /// Scrolls the highlighted row into view, by [jump] when the table is
-  /// being restored so it does not visibly travel from the top.
-  void _scrollToHighlightedRow({bool jump = false}) {
+  /// being restored so it does not visibly travel from the top. With
+  /// [awaitRows], a row the rows do not hold yet is shown when they do.
+  void _scrollToHighlightedRow({bool jump = false, bool awaitRows = false}) {
     if (widget.highlightedId == null) return;
 
     final sorted = _sortedEntities();
     final index = sorted.indexWhere(
       (e) => widget.idExtractor(e) == widget.highlightedId,
     );
+    _awaitedHighlightId = index < 0 && awaitRows ? widget.highlightedId : null;
     if (index < 0) return;
     if (jump) _revealedOnBuild = true;
 
@@ -228,10 +242,16 @@ class _EntityTableViewState<T, F extends EntityField>
       return;
     }
 
+    // Rows are one fixed height, so the full extent is known even while the
+    // scroll position still reports the extent of the rows before these.
+    final maxScroll = math.max(
+      _pinnedVerticalController.position.maxScrollExtent,
+      sorted.length * kEntityTableRowHeight - viewportHeight,
+    );
     final targetOffset =
         (rowTop - (viewportHeight / 2) + (kEntityTableRowHeight / 2)).clamp(
           0.0,
-          _pinnedVerticalController.position.maxScrollExtent,
+          maxScroll,
         );
 
     if (jump) {

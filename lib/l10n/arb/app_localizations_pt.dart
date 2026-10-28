@@ -55553,6 +55553,16 @@ class AppLocalizationsPt extends AppLocalizations {
   String get tags_manage_cannotUndo => 'Esta ação não pode ser desfeita.';
 
   @override
+  String tags_manage_rowScopes(String scopes) {
+    return 'Para: $scopes';
+  }
+
+  @override
+  String tags_manage_rowUsage(String counts) {
+    return 'Usada em: $counts';
+  }
+
+  @override
   String get tags_action_edit => 'Editar etiquetas';
 
   @override

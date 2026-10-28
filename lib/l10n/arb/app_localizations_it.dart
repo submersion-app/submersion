@@ -55566,6 +55566,16 @@ class AppLocalizationsIt extends AppLocalizations {
       'Questa azione non può essere annullata.';
 
   @override
+  String tags_manage_rowScopes(String scopes) {
+    return 'Per: $scopes';
+  }
+
+  @override
+  String tags_manage_rowUsage(String counts) {
+    return 'Usato in: $counts';
+  }
+
+  @override
   String get tags_action_edit => 'Modifica tag';
 
   @override

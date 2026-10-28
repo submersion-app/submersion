@@ -16309,6 +16309,8 @@
   "tags_manage_bulkDeleteMessage_several": "这些标签将从以下项目中移除：",
   "tags_manage_mergeAffected_several": "这将影响：",
   "tags_manage_cannotUndo": "此操作无法撤销。",
+  "tags_manage_rowScopes": "适用于：{scopes}",
+  "tags_manage_rowUsage": "已用于：{counts}",
   "tags_action_edit": "编辑标签",
   "media_info_tags": "标签",
   "media_info_noTags": "暂无标签",

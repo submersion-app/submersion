@@ -52147,6 +52147,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get tags_manage_cannotUndo => '此操作无法撤销。';
 
   @override
+  String tags_manage_rowScopes(String scopes) {
+    return '适用于：$scopes';
+  }
+
+  @override
+  String tags_manage_rowUsage(String counts) {
+    return '已用于：$counts';
+  }
+
+  @override
   String get tags_action_edit => '编辑标签';
 
   @override

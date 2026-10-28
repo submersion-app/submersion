@@ -55248,6 +55248,16 @@ class AppLocalizationsHu extends AppLocalizations {
   String get tags_manage_cannotUndo => 'Ez nem vonható vissza.';
 
   @override
+  String tags_manage_rowScopes(String scopes) {
+    return 'Használható: $scopes';
+  }
+
+  @override
+  String tags_manage_rowUsage(String counts) {
+    return 'Használatban: $counts';
+  }
+
+  @override
   String get tags_action_edit => 'Címkék szerkesztése';
 
   @override

@@ -87895,6 +87895,18 @@ abstract class AppLocalizations {
   /// **'This cannot be undone.'**
   String get tags_manage_cannotUndo;
 
+  /// Manage Tags row: where the tag is offered. {scopes} is a list of scope names joined with a middle dot, such as "Dives · Sites".
+  ///
+  /// In en, this message translates to:
+  /// **'For: {scopes}'**
+  String tags_manage_rowScopes(String scopes);
+
+  /// Manage Tags row: how many items carry the tag. {counts} is a list of counts, such as "12 dives, 3 sites".
+  ///
+  /// In en, this message translates to:
+  /// **'Used on: {counts}'**
+  String tags_manage_rowUsage(String counts);
+
   /// No description provided for @tags_action_edit.
   ///
   /// In en, this message translates to:

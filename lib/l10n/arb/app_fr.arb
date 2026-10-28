@@ -16309,6 +16309,8 @@
   "tags_manage_bulkDeleteMessage_several": "Ces étiquettes seront retirées de :",
   "tags_manage_mergeAffected_several": "Cela affectera :",
   "tags_manage_cannotUndo": "Cette action est irréversible.",
+  "tags_manage_rowScopes": "Pour : {scopes}",
+  "tags_manage_rowUsage": "Utilisée sur : {counts}",
   "tags_action_edit": "Modifier les étiquettes",
   "media_info_tags": "Étiquettes",
   "media_info_noTags": "Aucune étiquette pour l'instant",

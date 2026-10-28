@@ -16309,6 +16309,8 @@
   "tags_manage_bulkDeleteMessage_several": "Estas etiquetas serão removidas de:",
   "tags_manage_mergeAffected_several": "Isso afetará:",
   "tags_manage_cannotUndo": "Esta ação não pode ser desfeita.",
+  "tags_manage_rowScopes": "Para: {scopes}",
+  "tags_manage_rowUsage": "Usada em: {counts}",
   "tags_action_edit": "Editar etiquetas",
   "media_info_tags": "Etiquetas",
   "media_info_noTags": "Ainda sem etiquetas",

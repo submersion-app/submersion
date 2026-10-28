@@ -55221,6 +55221,16 @@ class AppLocalizationsNl extends AppLocalizations {
   String get tags_manage_cannotUndo => 'Dit kan niet ongedaan worden gemaakt.';
 
   @override
+  String tags_manage_rowScopes(String scopes) {
+    return 'Voor: $scopes';
+  }
+
+  @override
+  String tags_manage_rowUsage(String counts) {
+    return 'Gebruikt op: $counts';
+  }
+
+  @override
   String get tags_action_edit => 'Tags bewerken';
 
   @override

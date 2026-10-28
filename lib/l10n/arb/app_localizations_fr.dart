@@ -55680,6 +55680,16 @@ class AppLocalizationsFr extends AppLocalizations {
   String get tags_manage_cannotUndo => 'Cette action est irréversible.';
 
   @override
+  String tags_manage_rowScopes(String scopes) {
+    return 'Pour : $scopes';
+  }
+
+  @override
+  String tags_manage_rowUsage(String counts) {
+    return 'Utilisée sur : $counts';
+  }
+
+  @override
   String get tags_action_edit => 'Modifier les étiquettes';
 
   @override

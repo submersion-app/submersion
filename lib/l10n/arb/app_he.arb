@@ -16309,6 +16309,8 @@
   "tags_manage_bulkDeleteMessage_several": "תגיות אלו יוסרו מ:",
   "tags_manage_mergeAffected_several": "פעולה זו תשפיע על:",
   "tags_manage_cannotUndo": "לא ניתן לבטל פעולה זו.",
+  "tags_manage_rowScopes": "עבור: {scopes}",
+  "tags_manage_rowUsage": "בשימוש: {counts}",
   "tags_action_edit": "עריכת תגיות",
   "media_info_tags": "תגיות",
   "media_info_noTags": "אין תגיות עדיין",
