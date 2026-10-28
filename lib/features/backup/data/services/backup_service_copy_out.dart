@@ -56,10 +56,23 @@ extension _CopyOut on BackupService {
     final localRef = record.localPath;
     if (localRef != null && isSafRef(localRef)) {
       if (await _safDocumentPresent(localRef)) {
-        return _fetchToTemp(
-          record,
-          (dest) => _safPort.readBackup(documentUri: localRef, destPath: dest),
-        );
+        try {
+          return await _fetchToTemp(
+            record,
+            (dest) =>
+                _safPort.readBackup(documentUri: localRef, destPath: dest),
+          );
+        } catch (e, stack) {
+          // Gone, or the grant revoked, between the check and the read. The
+          // staging file is already cleaned up; with no cloud copy to fall
+          // back to, the read's own error is the one to report.
+          if (!await _cloudCopyHere(record)) rethrow;
+          _log.warning(
+            'Reading the backup document failed, trying the cloud copy',
+            error: e,
+            stackTrace: stack,
+          );
+        }
       }
       // Gone, or the folder grant was revoked: the cloud copy below is the
       // same backup, as it is for a missing plain local file.

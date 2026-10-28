@@ -322,6 +322,35 @@ void main() {
       });
     }
 
+    test(
+      'a saf read that fails after the check falls back to the cloud copy',
+      () async {
+        // The document went, or the grant was revoked, between the existence
+        // check and the read.
+        final cloud = FakeCloudStorageProvider();
+        final upload = await cloud.uploadFile(
+          Uint8List.fromList([6, 5, 4]),
+          'submersion_backup_2026-10-27.db',
+        );
+
+        final copy =
+            await service(
+              safPort: _SafPort(failAfterPartial: true),
+              cloud: cloud,
+            ).prepareBackupCopy(
+              record(
+                localPath: 'content://tree/doc/1',
+                cloudFileId: upload.fileId,
+                location: BackupLocation.both,
+              ),
+              purpose: BackupCopyPurpose.share,
+            );
+
+        expect(await File(copy.path).readAsBytes(), [6, 5, 4]);
+        expect(tempNames(), ['submersion_backup_2026-10-27.db']);
+      },
+    );
+
     test('a saf stream cut off part way leaves nothing in temp', () async {
       await expectLater(
         service(safPort: _SafPort(failAfterPartial: true)).prepareBackupCopy(
