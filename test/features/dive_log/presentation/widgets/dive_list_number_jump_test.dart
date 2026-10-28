@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -21,6 +22,7 @@ import 'package:submersion/features/explore/presentation/providers/recent_query_
 import 'package:submersion/features/query/presentation/providers/query_name_index_provider.dart';
 import 'package:submersion/features/query/presentation/providers/saved_query_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/master_detail/keyboard_list_navigator.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -93,6 +95,7 @@ void main() {
     Map<String, int> tripCounts = const {},
     List<String> collapsed = const [],
     void Function(String? id)? onSelected,
+    GoRouter Function(Widget list)? router,
   }) async {
     tester.view.physicalSize = const Size(400, 800);
     tester.view.devicePixelRatio = 1;
@@ -103,52 +106,72 @@ void main() {
     final base = await getBaseOverrides();
     final prefs = await SharedPreferences.getInstance();
     await prefs.setStringList(kCollapsedTripIdsPrefsKey, collapsed);
-    await tester.pumpWidget(
-      testApp(
-        locale: const Locale('en'),
-        overrides: [
-          ...base,
-          diveListViewModeProvider.overrideWith((ref) => ListViewMode.compact),
-          diveListGroupTripsProvider.overrideWith((ref) => grouping),
-          tripDiveCountsProvider.overrideWith((ref) async => tripCounts),
-          collapsedTripIdsProvider.overrideWith(
-            (ref) => CollapsedTripsNotifier(prefs, null),
-          ),
-          paginatedDiveListProvider.overrideWith((ref) => notifier),
-          diveScrubberIndexOverride(
-            () => [
-              for (final d in all)
-                DiveScrubberEntry(
-                  id: d.id,
-                  sortTimestamp: d.sortTimestamp,
-                  diveNumber: d.diveNumber,
-                  siteName: d.siteName,
-                  tripId: d.tripId,
-                  tripName: d.tripName,
-                ),
-            ],
-          ),
-          diveSearchBarOpenProvider.overrideWith((ref) => true),
-          queryNameIndexProvider.overrideWith((ref) async => NameIndex.empty),
-          // The numbered dive leads, then a text match, as the real rows do.
-          diveJumpResultsProvider.overrideWith((ref, q) async {
-            final number = bareDiveNumber(q);
-            return [...all.where((d) => d.diveNumber == number), all.first];
-          }),
-          savedQueryLoadsProvider('dives').overrideWith((ref) async => []),
-          recentQueriesProvider.overrideWith((ref) async => []),
-          allBuddiesProvider.overrideWith((ref) async => const <Buddy>[]),
-          validatedCurrentDiverIdProvider.overrideWith((ref) async => 'ana'),
-          recentTypedRecorderProvider.overrideWithValue(
-            (text, node, locale, diverId) async {},
-          ),
-        ],
-        child: DiveListContent(
-          showAppBar: false,
-          onItemSelected: onSelected ?? (_) {},
-        ),
+    final overrides = [
+      ...base,
+      diveListViewModeProvider.overrideWith((ref) => ListViewMode.compact),
+      diveListGroupTripsProvider.overrideWith((ref) => grouping),
+      tripDiveCountsProvider.overrideWith((ref) async => tripCounts),
+      collapsedTripIdsProvider.overrideWith(
+        (ref) => CollapsedTripsNotifier(prefs, null),
       ),
-    );
+      paginatedDiveListProvider.overrideWith((ref) => notifier),
+      diveScrubberIndexOverride(
+        () => [
+          for (final d in all)
+            DiveScrubberEntry(
+              id: d.id,
+              sortTimestamp: d.sortTimestamp,
+              diveNumber: d.diveNumber,
+              siteName: d.siteName,
+              tripId: d.tripId,
+              tripName: d.tripName,
+            ),
+        ],
+      ),
+      diveSearchBarOpenProvider.overrideWith((ref) => true),
+      queryNameIndexProvider.overrideWith((ref) async => NameIndex.empty),
+      // The numbered dive leads, then a text match, as the real rows do.
+      diveJumpResultsProvider.overrideWith((ref, q) async {
+        final number = bareDiveNumber(q);
+        return [...all.where((d) => d.diveNumber == number), all.first];
+      }),
+      savedQueryLoadsProvider('dives').overrideWith((ref) async => []),
+      recentQueriesProvider.overrideWith((ref) async => []),
+      allBuddiesProvider.overrideWith((ref) async => const <Buddy>[]),
+      validatedCurrentDiverIdProvider.overrideWith((ref) async => 'ana'),
+      recentTypedRecorderProvider.overrideWithValue(
+        (text, node, locale, diverId) async {},
+      ),
+    ];
+    if (router == null) {
+      await tester.pumpWidget(
+        testApp(
+          locale: const Locale('en'),
+          overrides: overrides,
+          child: DiveListContent(
+            showAppBar: false,
+            onItemSelected: onSelected ?? (_) {},
+          ),
+        ),
+      );
+    } else {
+      // A phone: opening a dive pushes its page over the list.
+      final config = router(
+        const Scaffold(body: DiveListContent(showAppBar: false)),
+      );
+      addTearDown(config.dispose);
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: overrides.cast(),
+          child: MaterialApp.router(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            routerConfig: config,
+          ),
+        ),
+      );
+    }
     await settle(tester);
     return notifier;
   }
@@ -162,6 +185,24 @@ void main() {
 
   ProviderContainer container(WidgetTester tester) =>
       ProviderScope.containerOf(tester.element(find.byType(DiveListContent)));
+
+  /// The list at /dives, each dive's page pushed over it at /dives/:id.
+  GoRouter phoneRouter(Widget list) => GoRouter(
+    initialLocation: '/dives',
+    routes: [
+      GoRoute(
+        path: '/dives',
+        builder: (_, _) => list,
+        routes: [
+          GoRoute(
+            path: ':id',
+            builder: (_, state) =>
+                Scaffold(body: Text('DIVE ${state.pathParameters['id']}')),
+          ),
+        ],
+      ),
+    ],
+  );
 
   Future<void> typeNumber(WidgetTester tester, String text) async {
     await tester.enterText(find.byKey(kDiveSearchFieldKey), text);
@@ -308,6 +349,48 @@ void main() {
       expect(selected, 'd100');
       expect(row('d100'), findsNothing);
       expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('on a phone, back from the opened dive shows its row', (
+      tester,
+    ) async {
+      late GoRouter router;
+      final notifier = await pumpList(
+        tester,
+        router: (list) => router = phoneRouter(list),
+      );
+
+      // A load slower than a page transition, as a long log's reads are:
+      // the dive opens once the list under it has landed.
+      notifier.gate = Completer<void>();
+      await typeNumber(tester, '100');
+      await tester.testTextInput.receiveAction(TextInputAction.search);
+      await settle(tester);
+      expect(find.text('DIVE d100'), findsNothing);
+      notifier.gate!.complete();
+      await settle(tester);
+      expect(find.text('DIVE d100'), findsOneWidget);
+
+      router.pop();
+      await settle(tester);
+
+      final list = listRect(tester);
+      final target = tester.getRect(row('d100'));
+      expect(target.top, greaterThanOrEqualTo(list.top - 0.5));
+      expect(target.bottom, lessThanOrEqualTo(list.bottom + 0.5));
+    });
+
+    testWidgets('on a phone, a failed load still opens the dive', (
+      tester,
+    ) async {
+      final notifier = await pumpList(tester, router: phoneRouter);
+      notifier.fail = true;
+
+      await typeNumber(tester, '100');
+      await tester.testTextInput.receiveAction(TextInputAction.search);
+      await settle(tester);
+
+      expect(find.text('DIVE d100'), findsOneWidget);
     });
   });
 }

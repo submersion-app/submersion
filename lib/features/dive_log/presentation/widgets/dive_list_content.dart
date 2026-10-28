@@ -228,6 +228,10 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   /// scroll by the diver counts too, dropping a landing still pending.
   int _numberJumps = 0;
 
+  /// Counts jumps to a typed dive number alone, so only the latest one
+  /// opens its dive where that waits on the landing.
+  int _jumpRequests = 0;
+
   /// Brings the list back to the dive last opened when it is built again
   /// after the diver left it (#3301).
   late final ListPositionRestorer _positionRestorer = ListPositionRestorer(
@@ -1296,11 +1300,27 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   /// row itself, as the scrubber does, not on an offset estimated from the
   /// average row height, which a long log of uneven rows misses by dozens of
   /// dives. The table scrolls to the highlighted dive itself.
+  ///
+  /// Where opening pushes the dive's page over the list (a phone), the list
+  /// lands first: under that page it is no longer laid out, so its row could
+  /// not be built, and going back would find the list short of the dive.
   Future<void> _jumpToDive(DiveSummary dive) async {
-    _openDive(dive);
-    if (ref.read(diveListViewModeProvider) == ListViewMode.table) return;
+    if (ref.read(diveListViewModeProvider) == ListViewMode.table) {
+      _openDive(dive);
+      return;
+    }
+    final opensOverList = !widget.isMapMode && widget.onItemSelected == null;
+    if (!opensOverList) _openDive(dive);
+    final request = ++_jumpRequests;
     final jump = ++_numberJumps;
-    final bool loaded;
+    // Only the latest jump opens its dive, landed or not.
+    void openOverList() {
+      if (opensOverList && mounted && request == _jumpRequests) {
+        _openDive(dive);
+      }
+    }
+
+    var loaded = false;
     try {
       loaded = await ref
           .read(paginatedDiveListProvider.notifier)
@@ -1311,9 +1331,12 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
         error: e,
         stackTrace: stackTrace,
       );
+    }
+    if (!mounted) return;
+    if (jump != _numberJumps || !loaded) {
+      openOverList();
       return;
     }
-    if (!mounted || jump != _numberJumps || !loaded) return;
     // Only a list grouped by trip folds dives away; opening the trip of an
     // ungrouped one would change its saved folds for nothing.
     final tripId = dive.tripId;
@@ -1325,8 +1348,10 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     _lastScrolledToId = dive.id;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final listContext = _listBodyKey.currentContext;
-      if (!mounted || jump != _numberJumps || listContext == null) return;
-      _landOnDive(listContext, dive.id, toTop: true);
+      if (mounted && jump == _numberJumps && listContext != null) {
+        _landOnDive(listContext, dive.id, toTop: true);
+      }
+      openOverList();
     });
     WidgetsBinding.instance.scheduleFrame();
   }
