@@ -131,10 +131,7 @@ void main() {
 
   test('unknown value falls back', () {
     saved(
-      const ListArrangements(
-        diveSort: 'bogus:ascending',
-        siteGroupBy: 'bogus',
-      ),
+      const ListArrangements(diveSort: 'bogus:ascending', siteGroupBy: 'bogus'),
     );
     expect(container.read(diveSortProvider).field, DiveSortField.date);
     expect(container.read(siteGroupByProvider), SiteGroupBy.none);
