@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
-import 'package:submersion/features/tracks/presentation/widgets/track_badge_line.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
 import 'package:submersion/features/nav_track/presentation/nav_track_dive_label.dart';
@@ -12,6 +11,7 @@ import 'package:submersion/features/nav_track/presentation/providers/nav_track_p
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_link_label.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_row_stats.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_shape_thumbnail.dart';
+import 'package:submersion/features/tracks/presentation/widgets/track_badge_line.dart';
 import 'package:submersion/features/tracks/presentation/widgets/track_stat_row.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -44,8 +44,8 @@ String formatNavTrackDetailLine(
 
 /// One route row: title, date/device meta, distance/depth/duration stats,
 /// and a link label (`Dive #<n>` or "unlinked") with the kind badge at the
-/// right edge of its line. Unanchored routes show their shape thumbnail in
-/// place of a map preview.
+/// end of its line. Unanchored routes show their shape thumbnail in place of
+/// a map preview.
 ///
 /// When the route is linked to a dive that has a site, the title becomes
 /// that dive's site name -- a diver reading the Tracks list cares which
@@ -73,7 +73,7 @@ class NavTrackListRow extends ConsumerWidget {
   /// No delete button when null.
   final VoidCallback? onDelete;
 
-  /// Shown on the link label's line, at its right edge: which dive the
+  /// Shown on the link label's line, at its end: which dive the
   /// track belongs to and what kind of track it is read together (#3749).
   final Widget? kindBadge;
 
