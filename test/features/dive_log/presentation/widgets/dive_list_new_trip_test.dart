@@ -79,10 +79,20 @@ void main() {
         ),
         GoRoute(
           path: '/trips/new',
-          builder: (_, state) {
+          builder: (context, state) {
             opened = state.extra as TripDraft?;
-            return const Scaffold(body: Text('NEW TRIP'));
+            return Scaffold(
+              body: TextButton(
+                onPressed: () => context.pop('t9'),
+                child: const Text('NEW TRIP'),
+              ),
+            );
           },
+        ),
+        GoRoute(
+          path: '/trips/:id',
+          builder: (_, state) =>
+              Scaffold(body: Text('TRIP ${state.pathParameters['id']}')),
         ),
       ],
     );
@@ -132,5 +142,92 @@ void main() {
     expect(opened!.trip.startDate, DateTime(2026, 3, 8));
     expect(opened!.trip.endDate, DateTime(2026, 3, 9));
     expect(opened!.trip.name, 'Raja Ampat, Indonesia, Mar 2026');
+
+    // Saving the form pops with the new trip, which then opens.
+    await tester.tap(find.text('NEW TRIP'));
+    await tester.pumpAndSettle();
+    expect(find.text('TRIP t9'), findsOneWidget);
+  });
+
+  testWidgets('dives that are gone open no form', (tester) async {
+    tester.view.physicalSize = const Size(1200, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final summaries = [
+      for (final (id, day) in [('d1', 8), ('ghost', 9)])
+        DiveSummary.fromDive(
+          Dive(id: id, dateTime: DateTime.utc(2026, 3, day, 9)),
+        ),
+    ];
+    final base = await getBaseOverrides();
+    TripDraft? opened;
+    final router = GoRouter(
+      initialLocation: '/dives',
+      routes: [
+        GoRoute(
+          path: '/dives',
+          builder: (_, _) =>
+              const Scaffold(body: DiveListContent(showAppBar: false)),
+        ),
+        GoRoute(
+          path: '/trips/new',
+          builder: (context, state) {
+            opened = state.extra as TripDraft?;
+            return Scaffold(
+              body: TextButton(
+                onPressed: () => context.pop('t9'),
+                child: const Text('NEW TRIP'),
+              ),
+            );
+          },
+        ),
+        GoRoute(
+          path: '/trips/:id',
+          builder: (_, state) =>
+              Scaffold(body: Text('TRIP ${state.pathParameters['id']}')),
+        ),
+      ],
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          ...base,
+          diveListViewModeProvider.overrideWith((ref) => ListViewMode.detailed),
+          paginatedDiveListProvider.overrideWith(
+            (ref) => _MockPaginatedNotifier(summaries),
+          ),
+        ],
+        child: MaterialApp.router(
+          routerConfig: router,
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    Finder tile(String id) =>
+        find.byWidgetPredicate((w) => w is DiveListTile && w.diveId == id);
+    await enterSelectionViaMenu(tester);
+    await tester.tap(tile('ghost'));
+    await tester.pumpAndSettle();
+
+    final inline = find.byKey(const ValueKey('selection_action_new_trip'));
+    if (inline.evaluate().isNotEmpty) {
+      await tester.tap(inline);
+    } else {
+      await tester.tap(find.byKey(const ValueKey('selection_overflow')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('New Trip from Selection'));
+    }
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 200)),
+    );
+    await tester.pumpAndSettle();
+
+    // Deleted elsewhere since it was listed: nothing to build a trip from.
+    expect(find.text('NEW TRIP'), findsNothing);
+    expect(opened, isNull);
   });
 }

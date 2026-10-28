@@ -108,4 +108,13 @@ void main() {
     );
     expect(candidates.map((c) => c.dive.id), ['q1']);
   });
+
+  test('a failed read is rethrown, not swallowed', () async {
+    await tearDownTestDatabase();
+    await expectLater(sideTrips.getSideTrips('P'), throwsA(anything));
+    await expectLater(sideTrips.hasSideTrips('P'), throwsA(anything));
+    await expectLater(sideTrips.getParentTrip('S'), throwsA(anything));
+    await expectLater(sideTrips.getVisibleTrip('S'), throwsA(anything));
+    db = await setUpTestDatabase();
+  });
 }

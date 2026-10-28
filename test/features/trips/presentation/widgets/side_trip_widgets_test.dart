@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -151,5 +152,39 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.text('Secret Trip'), findsNothing);
+  });
+
+  testWidgets('PartOfTripLink opens the larger trip', (tester) async {
+    final router = GoRouter(
+      routes: [
+        GoRoute(
+          path: '/',
+          builder: (_, _) => const Scaffold(body: PartOfTripLink(tripId: 's')),
+        ),
+        GoRoute(
+          path: '/trips/:id',
+          builder: (_, state) => Text('TRIP ${state.pathParameters['id']}'),
+        ),
+      ],
+    );
+    addTearDown(router.dispose);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+          parentTripProvider('s').overrideWith((ref) async => indonesia),
+        ],
+        child: MaterialApp.router(
+          routerConfig: router,
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Part of Indonesia'));
+    await tester.pumpAndSettle();
+    expect(find.text('TRIP p'), findsOneWidget);
   });
 }

@@ -129,9 +129,10 @@ void main() {
     WidgetTester tester,
     List<Trip> listed, {
     ListViewMode mode = ListViewMode.detailed,
+    double width = 400,
   }) async {
     tester.view.devicePixelRatio = 1.0;
-    tester.view.physicalSize = const Size(400, 800);
+    tester.view.physicalSize = Size(width, 800);
     addTearDown(tester.view.reset);
     await tester.pumpWidget(
       _buildTestWidget(overrides: overrides(listed, mode: mode)),
@@ -166,5 +167,18 @@ void main() {
   testWidgets('a dense side trip without its parent names it', (tester) async {
     await pump(tester, [rajaAmpat], mode: ListViewMode.dense);
     expect(find.text('Part of Indonesia'), findsOneWidget);
+  });
+
+  testWidgets('compact rows nest and carry the note too', (tester) async {
+    // Wider than the others: the compact row's first line holds a fixed
+    // date range, which the test font draws far wider than a real one.
+    await pump(
+      tester,
+      [rajaAmpat, indonesia],
+      mode: ListViewMode.compact,
+      width: 600,
+    );
+    expect(find.text('1 side trip'), findsOneWidget);
+    expect(find.byIcon(Icons.subdirectory_arrow_right), findsOneWidget);
   });
 }
