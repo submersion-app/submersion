@@ -246,9 +246,7 @@ class NearbySyncProtocol {
       json = await _files.gunzip(gz);
     } on Object catch (e) {
       _log.warning('Nearby copy from $_peerId did not unpack: $e');
-      // Nothing of it is worth a resume: the next offer starts over.
-      if (await gz.exists()) await gz.delete();
-      await _peers.setResume(_peerId);
+      await _dropIncoming(gz);
       throw const _DirectionFailed(
         NearbyPeerError.applyFailed,
         tellPeer: NearbyErrorCode.protocol,
@@ -277,10 +275,7 @@ class NearbySyncProtocol {
         error: e,
         stackTrace: stack,
       );
-      // The sender makes a fresh copy after a refusal, so this one can
-      // never be resumed.
-      if (await gz.exists()) await gz.delete();
-      await _peers.setResume(_peerId);
+      await _dropIncoming(gz);
       throw const _DirectionFailed(
         NearbyPeerError.applyFailed,
         tellPeer: NearbyErrorCode.protocol,
@@ -288,14 +283,21 @@ class NearbySyncProtocol {
     } finally {
       if (await json.exists()) await json.delete();
     }
-    await _peers.setResume(_peerId);
-    if (await gz.exists()) await gz.delete();
+    await _dropIncoming(gz);
     final after = await _engine.watermarks();
     await _finishReceive(
       before,
       after,
       lowest: await _lowestMoved(before, after),
     );
+  }
+
+  /// [gz] is done with, applied or refused: neither it nor its resume
+  /// record is kept. A refused one could never be resumed anyway, since
+  /// the sender makes a fresh copy after a refusal.
+  Future<void> _dropIncoming(File gz) async {
+    if (await gz.exists()) await gz.delete();
+    await _peers.setResume(_peerId);
   }
 
   Future<void> _finishReceive(

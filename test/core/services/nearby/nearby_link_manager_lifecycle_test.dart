@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:submersion/core/services/nearby/nearby_carrier.dart';
 import 'package:submersion/core/services/nearby/nearby_link_manager.dart';
 import 'package:submersion/core/services/nearby/nearby_peer_store.dart';
@@ -241,6 +242,93 @@ void main() {
     final outcome = await looking.timeout(const Duration(seconds: 2));
     expect(outcome?.error, NearbyPeerError.notPaired);
     expect(a.carrier.isScanning, isFalse);
+  });
+
+  test('a peer that fails the same way every time is tried again only a '
+      'few times before it waits out the cooldown', () async {
+    final a = await device('A');
+    final b = await device('B');
+    await pairNearbyTestDevices(a, b);
+    // A holds a writer B has never heard of but cannot write the copy (a
+    // full disk), so every session fails; B sees only its link drop.
+    a.engine
+      ..marks = {...a.engine.marks, 'Z': fakeHlc(5, 'Z')}
+      ..fullContent = null;
+    var links = 0;
+    for (final d in [a, b]) {
+      final sub = d.carrier.incoming.listen((_) => links++);
+      addTearDown(sub.cancel);
+    }
+    await foregroundNearbyTestDevices([a, b]);
+    final counts = <int>[];
+    for (var i = 0; i < 8; i++) {
+      await a.manager.refresh();
+      await b.manager.refresh();
+      await settleNearby();
+      counts.add(links);
+    }
+    expect(counts.first, greaterThan(1), reason: 'retried at first');
+    expect(counts.last, counts[counts.length - 3], reason: 'then it waits');
+  });
+
+  test('with the automatic switch off, a paired device that dials in while '
+      'Sync now looks for another one runs no session', () async {
+    final a = await device('A');
+    final b = await device('B');
+    final c = await device('C');
+    await pairNearbyTestDevices(a, b);
+    await pairNearbyTestDevices(a, c);
+    a.auto = false;
+    a.carrier.refuseConnects = true; // only B's dial can reach A
+    await a.manager.setForeground(true);
+    unawaited(a.manager.syncNow('C')); // C is not open: never found
+    await pumpEventQueue();
+    await b.manager.setForeground(true); // B sees A advertising and dials
+    await settleNearby();
+    expect(a.engine.recordedApplied, isEmpty);
+    expect((await a.peers.get('B'))!.lastSyncedAt, isNull);
+  });
+
+  test('unpairing a device mid-session tells a Sync now waiting on that '
+      'session it was unpaired, not that it is out of range', () async {
+    final a = await device('A');
+    final b = await device('B');
+    await pairNearbyTestDevices(a, b);
+    a.engine
+      ..marks = {...a.engine.marks, 'Z': fakeHlc(5, 'Z')}
+      ..fullContent = '{}'
+      ..exportDelay = const Duration(milliseconds: 300);
+    await a.manager.setForeground(true);
+    await b.manager.setForeground(true);
+    for (var i = 0; i < 50; i++) {
+      if (a.manager.state == NearbyLinkState.syncing) break;
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+    }
+    expect(a.manager.state, NearbyLinkState.syncing);
+
+    final outcome = a.manager.syncNow('B');
+    await a.manager.unpair('B');
+    expect((await outcome)?.error, NearbyPeerError.notPaired);
+  });
+
+  test('unpairing a device removes the copies kept for it', () async {
+    final a = await device('A');
+    final b = await device('B');
+    await pairNearbyTestDevices(a, b);
+    // A's full copy for B is cut off part way, so A keeps it for a resume.
+    a.engine
+      ..marks = {...a.engine.marks, 'Z': fakeHlc(5, 'Z')}
+      ..fullContent = incompressibleJson(40000);
+    hub.cutAfterBytes('A', 20000);
+    await foregroundNearbyTestDevices([a, b]);
+    List<String> keptForB() => [
+      for (final f in a.temp.listSync())
+        if (p.basename(f.path).startsWith('nearby-out-B')) p.basename(f.path),
+    ];
+    expect(keptForB(), isNotEmpty);
+
+    await a.manager.unpair('B');
+    expect(keptForB(), isEmpty);
   });
 }
 

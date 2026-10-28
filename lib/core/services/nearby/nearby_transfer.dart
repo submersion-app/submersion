@@ -152,6 +152,20 @@ class NearbyTransferFiles {
     await sidecar.delete();
   }
 
+  /// Drops everything kept for [peerId] (an unpairing): the full copy
+  /// offered to it, and every copy from it or to it still on disk.
+  Future<void> discardPeer(String peerId) async {
+    if (!isSafeName(peerId)) return;
+    await discardOutgoing(peerId);
+    await _deleteWhere(
+      (name) => [
+        'nearby-out-$peerId-',
+        'nearby-in-$peerId-',
+        'nearby-delta-$peerId-',
+      ].any(name.startsWith),
+    );
+  }
+
   /// Drops [peerId]'s partial copies of any offer other than [keep]: a
   /// new offer replaces an old one for good.
   Future<void> discardOtherIncoming(String peerId, {required String keep}) =>

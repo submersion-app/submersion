@@ -8,10 +8,12 @@ import 'package:submersion/core/services/nearby/nearby_peer_store.dart';
 import 'package:submersion/core/services/nearby/nearby_session.dart';
 import 'package:submersion/core/services/nearby/nearby_sync_engine.dart';
 import 'package:submersion/core/services/nearby/nearby_sync_protocol.dart';
+import 'package:submersion/core/services/nearby/nearby_transfer.dart';
 import 'package:submersion/core/services/sync/changeset_log/peer_cursor_store.dart';
 import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 
 part 'nearby_link_pairing.dart';
+part 'nearby_link_radio.dart';
 
 enum NearbyLinkState { off, scanning, syncing }
 
@@ -168,6 +170,9 @@ class NearbyLinkManager {
   final _transportByDevice = <String, String>{};
   final _active = <String, _Live>{};
   final _lastSessionAt = <String, DateTime>{};
+
+  /// Transient failures in a row per peer, for [_holdAfter].
+  final _transientRuns = <String, int>{};
   final _pending = <NearbyPairingHandle>[];
   final _syncNowWaiters = <String, Completer<NearbySyncOutcome?>>{};
 
@@ -338,58 +343,6 @@ class NearbyLinkManager {
       await _carrier.startScanning();
     }
     _emitState();
-  }
-
-  /// Once per run, drops each half of a pairing whose other half is gone.
-  ///
-  /// A secret with no paired-devices row (the app stopped between storing
-  /// the secret and writing the row) cannot be seen or unpaired from
-  /// Settings. A row with no secret here came in with the database (a
-  /// restored backup, or a copy from another device): it can never sync,
-  /// and until it ages out it would hold tombstone cleanup back.
-  Future<void> _pruneOrphans() async {
-    try {
-      final rows = {for (final p in await _peers.all()) p.peerDeviceId};
-      final secrets = await _secrets.all();
-      for (final id in secrets.keys) {
-        if (!rows.contains(id)) await _secrets.remove(id);
-      }
-      for (final id in rows) {
-        if (secrets.containsKey(id)) continue;
-        await _peers.remove(id);
-        await _cursors.remove(id, nearbyCursorProvider);
-      }
-    } on Object catch (e) {
-      _log.warning('Nearby pairing cleanup failed: $e');
-    }
-  }
-
-  Future<void> _stopRadio() async {
-    if (!_running) return;
-    _running = false;
-    await _carrier.stopScanning();
-    await _carrier.stopAdvertising();
-    _emitState();
-  }
-
-  /// While the radio is off, every row says so, unless it already carries
-  /// an error the diver has to act on.
-  Future<void> _markRadioOff() async {
-    for (final peer in await _peers.all()) {
-      final error = _peers.errorOf(peer);
-      if (error == NearbyPeerError.bluetoothOff) continue;
-      if (error == null || !error.isLasting) {
-        await _peers.setError(peer.peerDeviceId, NearbyPeerError.bluetoothOff);
-      }
-    }
-  }
-
-  Future<void> _clearRadioOff() async {
-    for (final peer in await _peers.all()) {
-      if (_peers.errorOf(peer) == NearbyPeerError.bluetoothOff) {
-        await _peers.setError(peer.peerDeviceId, null);
-      }
-    }
   }
 
   /// Whether [wait] has passed since [since]. A clock set back since then
@@ -573,11 +526,29 @@ class NearbyLinkManager {
     if (dialled) _learn(transportId, device);
     await _peers.setError(device, error);
     // A refusal the diver has to fix waits out the cooldown like a synced
-    // session, instead of a redial on every sighting; a transient one is
-    // tried again sooner.
-    if (error.isLasting) _lastSessionAt[device] = _now();
+    // session, instead of a redial on every sighting.
+    _holdAfter(device, error, _now());
     _completeSyncNow(device, NearbySyncOutcome(error: error));
   }
+
+  /// Starts [deviceId]'s cooldown from [at] after a session or refusal that
+  /// ended with [error]. A transient one (a lost link) is due again at the
+  /// next sighting instead, so a full copy resumes soon, but only
+  /// [_quickRetries] times in a row: a peer that fails the same way every
+  /// time (a full disk on either side, a refusal it always gives) then
+  /// waits like any other.
+  void _holdAfter(String deviceId, NearbyPeerError? error, DateTime at) {
+    if (error != null && !error.isLasting) {
+      final runs = (_transientRuns[deviceId] ?? 0) + 1;
+      _transientRuns[deviceId] = runs;
+      if (runs <= _quickRetries) return;
+    } else {
+      _transientRuns.remove(deviceId);
+    }
+    _lastSessionAt[deviceId] = at;
+  }
+
+  static const _quickRetries = 3;
 
   void _completeSyncNow(String deviceId, NearbySyncOutcome? outcome) {
     final waiter = _syncNowWaiters[deviceId];
@@ -627,6 +598,14 @@ class NearbyLinkManager {
     }
     switch (incoming) {
       case NearbyIncomingSync(:final channel):
+        // With the automatic switch off the radio is on only for pairing
+        // or a Sync now: any other paired device that dials in is turned
+        // away, as one this device dialled is.
+        if (!_autoSyncEnabled() &&
+            !_syncNowWaiters.containsKey(channel.peer.deviceId)) {
+          await channel.close();
+          return;
+        }
         await _run(channel);
       case NearbyIncomingPairing(:final pairing):
         await _offer(
@@ -720,13 +699,9 @@ class NearbyLinkManager {
       return null;
     }
     final at = _now();
-    // From the start: a change made while it ran may not be in it. One cut
-    // short (a lost link) is due again at the next sighting, paced by
-    // retryAfter as a transient refusal is, so a full copy resumes soon.
+    // From the start: a change made while it ran may not be in it.
     final error = outcome.error;
-    if (error == null || error.isLasting) {
-      _lastSessionAt[peerId] = live.startedAt;
-    }
+    _holdAfter(peerId, error, live.startedAt);
     if (await _peers.get(peerId) != null) {
       await _peers.markSeen(peerId, at.millisecondsSinceEpoch);
       await _peers.setError(peerId, error);
@@ -745,23 +720,32 @@ class NearbyLinkManager {
   /// Forgets [peerDeviceId]: its row and its progress. The secret is kept
   /// aside so the peer can be told, authenticated, that it is unpaired.
   Future<void> unpair(String peerDeviceId) async {
+    // A Sync now waiting on it, or on its running session, ends here: it
+    // hears why, rather than calling the device not in range.
+    const unpaired = NearbySyncOutcome(error: NearbyPeerError.notPaired);
     final live = _active.remove(peerDeviceId);
     if (live != null) {
       live.superseded = true;
+      if (!live.done.isCompleted) live.done.complete(unpaired);
       await live.channel.close();
     }
-    // A Sync now looking for it ends here, rather than keeping the radio
-    // on until its timeout and then calling the device not in range.
-    _completeSyncNow(
-      peerDeviceId,
-      const NearbySyncOutcome(error: NearbyPeerError.notPaired),
-    );
+    _completeSyncNow(peerDeviceId, unpaired);
     _syncNowWaiters.remove(peerDeviceId);
     await _secrets.revoke(peerDeviceId);
     await _peers.remove(peerDeviceId);
     await _cursors.remove(peerDeviceId, nearbyCursorProvider);
     _lastSessionAt.remove(peerDeviceId);
+    _transientRuns.remove(peerDeviceId);
     _forgetStrangers();
+    try {
+      // The copies kept for a resume with it can never be resumed now.
+      await NearbyTransferFiles(
+        await _tempDir(),
+        now: _now,
+      ).discardPeer(peerDeviceId);
+    } on Object catch (e) {
+      _log.info('Nearby transfer files for $peerDeviceId stayed: $e');
+    }
     await refresh();
   }
 

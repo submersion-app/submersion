@@ -376,7 +376,9 @@ and any address it cannot yet put a name to; another paired device seen
 meanwhile keeps to its own rules, whether its address was known or the
 handshake only now named it (then the link is closed before any data
 moves). A dial made at a first sighting obeys the same rules once the
-handshake says who answered. Every wait (the cooldown, the spacing
+handshake says who answered. With the switch off, a paired device that
+dials in while the radio is on (for pairing, or a Sync now looking for
+another device) is turned away after the handshake too. Every wait (the cooldown, the spacing
 between attempts, a stranger's backoff, the scan restart) counts a clock
 set back as time passed, so none outlasts the change. An address that turns out to belong to no paired device
 is left alone for a minute, doubling to half an hour, so a boat full of
@@ -388,7 +390,11 @@ refuses for a reason the diver has to fix (an update, another library, an
 unpairing) waits out the same ten minutes as a synced one; a session cut
 short by a lost link, like a transient refusal, is tried again at the
 next sighting (no sooner than the spacing between attempts), so a full
-copy resumes soon. Unpairing a device ends a "Sync now" looking for it. In pairing mode
+copy resumes soon. That holds three times in a row; a fourth transient
+failure waits out the cooldown, so a peer that fails the same way every
+time (a full disk on either side) is not redialled every 30 seconds.
+Unpairing a device ends a "Sync now" looking for it, or waiting on its
+running session, and says it was unpaired. In pairing mode
 a device that could not be paired with yet (its pairing page not open, or
 the connection failed) is tried again when next seen: a scan-only device
 has no other way to meet it. The switch is device-local, stored in `SyncPreferences`
@@ -418,8 +424,9 @@ whether Bluetooth is on says nothing about why a device is not syncing.
   `SyncPeerCursors`): `peer_device_id` (PK), `display_name`, `paired_at`,
   `last_synced_at`, `last_seen_at`, `peer_applied_hlc`, `last_error`,
   `resume_base_id`, `resume_part_index`.
-  One rung on the migration ladder creates it. Unpairing deletes the row
-  and this peer's `nearby` cursor, and keeps the pair secret aside as
+  One rung on the migration ladder creates it. Unpairing deletes the row,
+  this peer's `nearby` cursor and the copies kept for a resume with it,
+  and keeps the pair secret aside as
   revoked: when the old peer next connects, this device recognises its
   tag, completes the key check and answers with a sealed "not paired", so
   the old peer can show the error on the right row.
