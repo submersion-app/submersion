@@ -12,20 +12,24 @@ void main() {
     required double width,
     required String label,
     double controlWidth = 200,
+    TextDirection textDirection = TextDirection.ltr,
   }) async {
     await tester.pumpWidget(
       MaterialApp(
-        home: Scaffold(
-          body: Align(
-            alignment: Alignment.topLeft,
-            child: SizedBox(
-              width: width,
-              child: LabelWithControl(
-                label: Text(label, key: labelKey),
-                control: SizedBox(
-                  key: controlKey,
-                  width: controlWidth,
-                  height: 40,
+        home: Directionality(
+          textDirection: textDirection,
+          child: Scaffold(
+            body: Align(
+              alignment: Alignment.topLeft,
+              child: SizedBox(
+                width: width,
+                child: LabelWithControl(
+                  label: Text(label, key: labelKey),
+                  control: SizedBox(
+                    key: controlKey,
+                    width: controlWidth,
+                    height: 40,
+                  ),
                 ),
               ),
             ),
@@ -63,6 +67,78 @@ void main() {
       expect(tester.takeException(), isNull);
     },
   );
+
+  testWidgets(
+    'keeps the control at the far end when it moves below the label (#3747)',
+    (tester) async {
+      // "Decompression Stop Source" was the one row in its card whose label
+      // wrapped, and its dropdown alone sat at the start of the next line.
+      const longLabel = 'Decompression Stop Source';
+      await pumpRow(tester, width: 300, label: longLabel, controlWidth: 120);
+
+      final label = tester.getRect(find.byKey(labelKey));
+      final control = tester.getRect(find.byKey(controlKey));
+      expect(label.left, 0);
+      expect(control.top, greaterThanOrEqualTo(label.bottom));
+      expect(control.right, 300);
+    },
+  );
+
+  testWidgets('mirrors both layouts in a right-to-left locale', (tester) async {
+    await pumpRow(
+      tester,
+      width: 600,
+      label: 'Short',
+      textDirection: TextDirection.rtl,
+    );
+    var label = tester.getRect(find.byKey(labelKey));
+    var control = tester.getRect(find.byKey(controlKey));
+    expect(label.right, 600);
+    expect(control.left, 0);
+    expect(control.center.dy, closeTo(label.center.dy, 0.5));
+
+    await pumpRow(
+      tester,
+      width: 300,
+      label: 'Decompression Stop Source',
+      controlWidth: 120,
+      textDirection: TextDirection.rtl,
+    );
+    label = tester.getRect(find.byKey(labelKey));
+    control = tester.getRect(find.byKey(controlKey));
+    expect(label.right, 300);
+    expect(control.top, greaterThanOrEqualTo(label.bottom));
+    expect(control.left, 0);
+  });
+
+  testWidgets('sizes to its content in an intrinsic-height parent', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: Align(
+            alignment: Alignment.topLeft,
+            child: SizedBox(
+              width: 300,
+              child: IntrinsicHeight(
+                child: LabelWithControl(
+                  label: Text('Decompression Stop Source', key: labelKey),
+                  control: SizedBox(key: controlKey, width: 120, height: 40),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final label = tester.getRect(find.byKey(labelKey));
+    final control = tester.getRect(find.byKey(controlKey));
+    final whole = tester.getRect(find.byType(LabelWithControl));
+    expect(whole.height, closeTo(control.bottom - label.top, 0.5));
+    expect(tester.takeException(), isNull);
+  });
 
   testWidgets('fills a ListTile title so the control sits at the far end', (
     tester,
