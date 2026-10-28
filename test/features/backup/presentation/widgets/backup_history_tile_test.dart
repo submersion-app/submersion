@@ -587,6 +587,7 @@ void main() {
             onPinToggle: () {},
             onRestore: () {},
             onDelete: () {},
+            shareSheetAvailable: true,
           ),
         ),
       );
