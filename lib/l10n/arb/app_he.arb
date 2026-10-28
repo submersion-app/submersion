@@ -15801,6 +15801,8 @@
   "query_dives_weight": "משקולת",
   "query_dives_weights": "משקולות",
   "query_dives_year": "שנה",
+  "query_dives_month": "חודש",
+  "query_dives_day": "יום בחודש",
   "query_entity_buddies": "שותפי צלילה",
   "query_entity_centers": "מרכזי צלילה",
   "query_entity_certifications": "הסמכות",

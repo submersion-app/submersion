@@ -15801,6 +15801,8 @@
   "query_dives_weight": "الثقل",
   "query_dives_weights": "الأثقال",
   "query_dives_year": "السنة",
+  "query_dives_month": "الشهر",
+  "query_dives_day": "يوم الشهر",
   "query_entity_buddies": "رفاق الغوص",
   "query_entity_centers": "مراكز الغوص",
   "query_entity_certifications": "الشهادات",

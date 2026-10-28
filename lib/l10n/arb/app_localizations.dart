@@ -84923,6 +84923,18 @@ abstract class AppLocalizations {
   /// **'Year'**
   String get query_dives_year;
 
+  /// Field label in the query builder: the month of the year a dive was logged in (1 to 12)
+  ///
+  /// In en, this message translates to:
+  /// **'Month'**
+  String get query_dives_month;
+
+  /// Field label in the query builder: the day of the month a dive was logged on (1 to 31)
+  ///
+  /// In en, this message translates to:
+  /// **'Day of month'**
+  String get query_dives_day;
+
   /// Field label in the query builder
   ///
   /// In en, this message translates to:

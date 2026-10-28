@@ -15801,6 +15801,8 @@
   "query_dives_weight": "Ólom",
   "query_dives_weights": "Ólom",
   "query_dives_year": "Év",
+  "query_dives_month": "Hónap",
+  "query_dives_day": "A hónap napja",
   "query_entity_buddies": "Merülőtársak",
   "query_entity_centers": "Búvárközpontok",
   "query_entity_certifications": "Minősítések",

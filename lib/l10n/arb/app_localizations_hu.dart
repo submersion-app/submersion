@@ -53306,6 +53306,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get query_dives_year => 'Év';
 
   @override
+  String get query_dives_month => 'Hónap';
+
+  @override
+  String get query_dives_day => 'A hónap napja';
+
+  @override
   String get query_entity_buddies => 'Merülőtársak';
 
   @override

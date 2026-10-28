@@ -31,6 +31,30 @@ DiveFilterState regionDivesFilter(
     _site('country', StringValue(country)),
 ]);
 
+/// The dives behind one cell of the Time patterns calendar-days card
+/// (#3127): the Insights filter [scope], narrowed to dives logged on
+/// [month] / [day] in any year.
+///
+/// The `month` and `day` query fields read the same wall-clock date parts
+/// as `getCalendarDayMatrix`, so the list it opens holds the dives the cell
+/// counted (plus any excluded from statistics, as for the place rows).
+DiveFilterState calendarDayDivesFilter(
+  DiveFilterState scope, {
+  required int month,
+  required int day,
+}) => _withPlace(scope, [
+  ConditionNode(
+    FieldPath(const ['month']),
+    QueryOp.eq,
+    NumberValue(month.toDouble(), null),
+  ),
+  ConditionNode(
+    FieldPath(const ['day']),
+    QueryOp.eq,
+    NumberValue(day.toDouble(), null),
+  ),
+]);
+
 /// Opens the dive list showing [filter], replacing its current filter so a
 /// leftover axis cannot hide some of the row's dives. The filter chips on
 /// the dive list clear it again. The list is pushed over Insights, so its

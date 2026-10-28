@@ -15801,6 +15801,8 @@
   "query_dives_weight": "Lastro",
   "query_dives_weights": "Lastro",
   "query_dives_year": "Ano",
+  "query_dives_month": "Mês",
+  "query_dives_day": "Dia do mês",
   "query_entity_buddies": "Duplas",
   "query_entity_centers": "Centros de mergulho",
   "query_entity_certifications": "Certificações",

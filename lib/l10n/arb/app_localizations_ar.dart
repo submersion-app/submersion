@@ -54244,6 +54244,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get query_dives_year => 'السنة';
 
   @override
+  String get query_dives_month => 'الشهر';
+
+  @override
+  String get query_dives_day => 'يوم الشهر';
+
+  @override
   String get query_entity_buddies => 'رفاق الغوص';
 
   @override

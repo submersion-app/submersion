@@ -50274,6 +50274,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get query_dives_year => '年份';
 
   @override
+  String get query_dives_month => '月份';
+
+  @override
+  String get query_dives_day => '日期';
+
+  @override
   String get query_entity_buddies => '潜伴';
 
   @override

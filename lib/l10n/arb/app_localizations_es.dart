@@ -53642,6 +53642,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get query_dives_year => 'Año';
 
   @override
+  String get query_dives_month => 'Mes';
+
+  @override
+  String get query_dives_day => 'Día del mes';
+
+  @override
   String get query_entity_buddies => 'Compañeros';
 
   @override

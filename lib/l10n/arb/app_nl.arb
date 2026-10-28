@@ -15801,6 +15801,8 @@
   "query_dives_weight": "Lood",
   "query_dives_weights": "Lood",
   "query_dives_year": "Jaar",
+  "query_dives_month": "Maand",
+  "query_dives_day": "Dag van de maand",
   "query_entity_buddies": "Buddy's",
   "query_entity_centers": "Duikcentra",
   "query_entity_certifications": "Brevetten",

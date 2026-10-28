@@ -15941,6 +15941,8 @@
   "query_dives_weight": "Blei",
   "query_dives_weights": "Blei",
   "query_dives_year": "Jahr",
+  "query_dives_month": "Monat",
+  "query_dives_day": "Tag des Monats",
   "query_entity_buddies": "Buddys",
   "query_entity_centers": "Tauchbasen",
   "query_entity_certifications": "Zertifizierungen",

@@ -15801,6 +15801,8 @@
   "query_dives_weight": "配重",
   "query_dives_weights": "配重",
   "query_dives_year": "年份",
+  "query_dives_month": "月份",
+  "query_dives_day": "日期",
   "query_entity_buddies": "潜伴",
   "query_entity_centers": "潜水中心",
   "query_entity_certifications": "证书",

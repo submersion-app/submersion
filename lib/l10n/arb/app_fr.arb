@@ -15801,6 +15801,8 @@
   "query_dives_weight": "Lestage",
   "query_dives_weights": "Lestage",
   "query_dives_year": "Année",
+  "query_dives_month": "Mois",
+  "query_dives_day": "Jour du mois",
   "query_entity_buddies": "Binômes",
   "query_entity_centers": "Centres de plongée",
   "query_entity_certifications": "Certifications",

@@ -15801,6 +15801,8 @@
   "query_dives_weight": "Zavorra",
   "query_dives_weights": "Zavorra",
   "query_dives_year": "Anno",
+  "query_dives_month": "Mese",
+  "query_dives_day": "Giorno del mese",
   "query_entity_buddies": "Compagni",
   "query_entity_centers": "Diving center",
   "query_entity_certifications": "Brevetti",
