@@ -64,4 +64,24 @@ void main() {
     expect(saved.single.phone, isFalse);
     expect(saved.single.certifications, isTrue);
   });
+
+  testWidgets('card details can only be shared with the certifications', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      available: const {
+        BuddyCardField.certifications,
+        BuddyCardField.cardDetails,
+      },
+    );
+    SwitchListTile details() => tester.widget<SwitchListTile>(
+      find.widgetWithText(SwitchListTile, 'Card numbers and dates'),
+    );
+    expect(details().onChanged, isNotNull);
+
+    await tester.tap(find.widgetWithText(SwitchListTile, 'Certifications'));
+    await tester.pumpAndSettle();
+    expect(details().onChanged, isNull);
+  });
 }

@@ -762,6 +762,7 @@
   "buddySwap_nearby_heading": "Duikers in de buurt met Submersion open",
   "buddySwap_nearby_tapToSwap": "Tik om te ruilen",
   "buddySwap_nearby_looking": "Zoeken naar meer…",
+  "buddySwap_nearby_failed": "Kon niet naar duikers in de buurt zoeken. De andere manieren om te wisselen hieronder werken nog.",
   "buddySwap_nearby_hint": "Zie je je buddy niet? Jullie hebben allebei dit scherm open nodig en Submersion 1.8.4 of nieuwer.",
   "buddySwap_sharing": "Gedeeld: {summary}",
   "buddySwap_sharing_change": "Wijzigen",

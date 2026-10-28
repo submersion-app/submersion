@@ -762,6 +762,7 @@
   "buddySwap_nearby_heading": "צוללים בקרבת מקום עם Submersion פתוח",
   "buddySwap_nearby_tapToSwap": "הקש להחלפה",
   "buddySwap_nearby_looking": "מחפש עוד…",
+  "buddySwap_nearby_failed": "לא ניתן היה לחפש צוללים בקרבת מקום. שאר דרכי ההחלפה למטה עדיין עובדות.",
   "buddySwap_nearby_hint": "לא רואה את השותף שלך? שניכם צריכים שהמסך הזה יהיה פתוח ו-Submersion 1.8.4 ואילך.",
   "buddySwap_sharing": "משותף: {summary}",
   "buddySwap_sharing_change": "שינוי",

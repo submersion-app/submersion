@@ -161,6 +161,9 @@ class NearbyCardHost {
     return List.unmodifiable(_peers.values.where(fresh));
   }
 
+  /// The longest name a nearby diver is listed by, as on a buddy card.
+  static const int maxNameLength = 200;
+
   static String _newSwapId() {
     final random = Random.secure();
     return base64Url.encode(List.generate(9, (_) => random.nextInt(256)));
@@ -406,10 +409,17 @@ class NearbyCardHost {
   NearbyCardPeer? _readSummary(Uint8List body, String? dialled) {
     final json = _json(body);
     final theirId = json?['s'];
-    final theirName = json?['n'];
-    if (theirId is! String || theirName is! String || theirId == swapId) {
+    final rawName = json?['n'];
+    if (theirId is! String || rawName is! String || theirId == swapId) {
       return null;
     }
+    // A diver is listed by a real name, kept to a card's length: a blank
+    // name lists nobody, and a huge one (from anything in range) is cut.
+    final trimmed = rawName.trim();
+    if (trimmed.isEmpty) return null;
+    final theirName = trimmed.length <= maxNameLength
+        ? trimmed
+        : trimmed.substring(0, maxNameLength);
     final known = _peers[theirId];
     final photoText = json!['p'];
     final peer = NearbyCardPeer(

@@ -787,6 +787,7 @@
   "buddySwap_nearby_heading": "Taucher in der Nähe mit geöffnetem Submersion",
   "buddySwap_nearby_tapToSwap": "Zum Tauschen tippen",
   "buddySwap_nearby_looking": "Suche nach weiteren…",
+  "buddySwap_nearby_failed": "Taucher in der Nähe konnten nicht gesucht werden. Die anderen Wege zum Tauschen unten funktionieren weiterhin.",
   "buddySwap_nearby_hint": "Du siehst deinen Buddy nicht? Ihr braucht beide diesen Bildschirm geöffnet und Submersion 1.8.4 oder neuer.",
   "buddySwap_sharing": "Geteilt: {summary}",
   "buddySwap_sharing_change": "Ändern",

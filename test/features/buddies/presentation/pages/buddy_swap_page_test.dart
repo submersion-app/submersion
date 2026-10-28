@@ -25,6 +25,9 @@ class _FakeSession implements BuddySwapSession {
 
   final NearbyAvailability availability;
   Completer<void>? holdStart;
+
+  /// Thrown by the next start, as a platform error would be.
+  Object? startError;
   final controller = StreamController<NearbyCardEvent>.broadcast();
   final requested = <String>[];
   var starts = 0;
@@ -39,6 +42,11 @@ class _FakeSession implements BuddySwapSession {
   Future<NearbyAvailability> start() async {
     starts++;
     await holdStart?.future;
+    final error = startError;
+    if (error != null) {
+      startError = null;
+      throw error;
+    }
     return availability;
   }
 
@@ -411,6 +419,31 @@ void main() {
     await settle(tester);
     expect(find.text('Alex Kim wants to swap cards'), findsNothing);
     expect(alexAnswer, isFalse);
+  });
+
+  testWidgets('a start that fails says so and can be tried again', (
+    tester,
+  ) async {
+    final hold = Completer<void>();
+    await pump(tester, holdStart: hold);
+    session.startError = StateError('no plugin');
+    hold.complete();
+    await settle(tester);
+    expect(
+      find.text(
+        'Could not look for nearby divers. The other ways to swap below '
+        'still work.',
+      ),
+      findsOneWidget,
+    );
+    await tester.tap(find.text('Try again'));
+    // The restart rebuilds the card through Riverpod, off the fake clock.
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 200)),
+    );
+    await settle(tester);
+    expect(session.starts, 2);
+    expect(find.textContaining('Could not look'), findsNothing);
   });
 
   test('platform default is restored', () {

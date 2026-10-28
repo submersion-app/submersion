@@ -2913,6 +2913,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get buddySwap_nearby_looking => 'Zoeken naar meer…';
 
   @override
+  String get buddySwap_nearby_failed =>
+      'Kon niet naar duikers in de buurt zoeken. De andere manieren om te wisselen hieronder werken nog.';
+
+  @override
   String get buddySwap_nearby_hint =>
       'Zie je je buddy niet? Jullie hebben allebei dit scherm open nodig en Submersion 1.8.4 of nieuwer.';
 

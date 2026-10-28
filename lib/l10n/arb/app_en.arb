@@ -1725,6 +1725,7 @@
   "buddySwap_nearby_heading": "Divers nearby with Submersion open",
   "buddySwap_nearby_tapToSwap": "Tap to swap",
   "buddySwap_nearby_looking": "Looking for more…",
+  "buddySwap_nearby_failed": "Could not look for nearby divers. The other ways to swap below still work.",
   "buddySwap_nearby_hint": "Don't see your buddy? Both of you need this screen open and Submersion 1.8.4 or later.",
   "buddySwap_sharing": "Sharing: {summary}",
   "@buddySwap_sharing": {"placeholders": {"summary": {"type": "String"}}},

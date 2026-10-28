@@ -3003,6 +3003,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get buddySwap_nearby_looking => 'جارٍ البحث عن المزيد…';
 
   @override
+  String get buddySwap_nearby_failed =>
+      'تعذّر البحث عن الغواصين القريبين. لا تزال طرق التبادل الأخرى أدناه تعمل.';
+
+  @override
   String get buddySwap_nearby_hint =>
       'لا ترى رفيقك؟ يجب أن تفتحا هذه الشاشة كلاكما وأن يكون لديكما Submersion 1.8.4 أو أحدث.';
 

@@ -762,6 +762,7 @@
   "buddySwap_nearby_heading": "Közeli búvárok nyitott Submersionnel",
   "buddySwap_nearby_tapToSwap": "Koppints a cseréhez",
   "buddySwap_nearby_looking": "További keresése…",
+  "buddySwap_nearby_failed": "Nem sikerült a közeli búvárokat keresni. Az alábbi többi cseremód továbbra is működik.",
   "buddySwap_nearby_hint": "Nem látod a társad? Mindkettőtöknél nyitva kell lennie ennek a képernyőnek, és Submersion 1.8.4 vagy újabb kell.",
   "buddySwap_sharing": "Megosztva: {summary}",
   "buddySwap_sharing_change": "Módosítás",

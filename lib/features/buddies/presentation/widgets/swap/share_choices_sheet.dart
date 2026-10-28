@@ -91,10 +91,16 @@ class _ShareChoicesSheetState extends State<ShareChoicesSheet> {
               SwitchListTile(
                 title: Text(_label(l10n, field)),
                 value: _isOn(_choices, field),
-                onChanged: (on) {
-                  setState(() => _choices = _set(_choices, field, on));
-                  widget.onChanged(_choices);
-                },
+                // Card numbers and dates travel only with the
+                // certifications they belong to.
+                onChanged:
+                    field == BuddyCardField.cardDetails &&
+                        !_choices.certifications
+                    ? null
+                    : (on) {
+                        setState(() => _choices = _set(_choices, field, on));
+                        widget.onChanged(_choices);
+                      },
               ),
           Padding(
             padding: const EdgeInsets.all(16),

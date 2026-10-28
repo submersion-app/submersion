@@ -2880,6 +2880,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get buddySwap_nearby_looking => 'מחפש עוד…';
 
   @override
+  String get buddySwap_nearby_failed =>
+      'לא ניתן היה לחפש צוללים בקרבת מקום. שאר דרכי ההחלפה למטה עדיין עובדות.';
+
+  @override
   String get buddySwap_nearby_hint =>
       'לא רואה את השותף שלך? שניכם צריכים שהמסך הזה יהיה פתוח ו-Submersion 1.8.4 ואילך.';
 

@@ -762,6 +762,7 @@
   "buddySwap_nearby_heading": "غواصون قريبون يفتحون Submersion",
   "buddySwap_nearby_tapToSwap": "انقر للتبادل",
   "buddySwap_nearby_looking": "جارٍ البحث عن المزيد…",
+  "buddySwap_nearby_failed": "تعذّر البحث عن الغواصين القريبين. لا تزال طرق التبادل الأخرى أدناه تعمل.",
   "buddySwap_nearby_hint": "لا ترى رفيقك؟ يجب أن تفتحا هذه الشاشة كلاكما وأن يكون لديكما Submersion 1.8.4 أو أحدث.",
   "buddySwap_sharing": "المشاركة: {summary}",
   "buddySwap_sharing_change": "تغيير",

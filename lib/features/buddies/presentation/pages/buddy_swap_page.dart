@@ -59,6 +59,10 @@ class _BuddySwapPageState extends ConsumerState<BuddySwapPage>
   /// when the page was left (or started again) gives up.
   int _runs = 0;
   NearbyAvailability? _availability;
+
+  /// The nearby session could not start (a platform error); the fallbacks
+  /// still work and the diver can try again.
+  bool _startFailed = false;
   List<NearbyCardPeer> _peers = const [];
   final _waitingFor = <String>{};
 
@@ -108,7 +112,25 @@ class _BuddySwapPageState extends ConsumerState<BuddySwapPage>
     final session = ref.read(buddySwapSessionFactoryProvider)(card);
     _session = session;
     _events = session.events.listen(_onEvent);
-    final availability = await session.start();
+    final NearbyAvailability availability;
+    try {
+      availability = await session.start();
+    } on Object catch (e, stackTrace) {
+      _log.error(
+        'Buddy swap session did not start',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      await session.stop();
+      if (mounted && run == _runs) {
+        setState(() {
+          _card = card;
+          _availability = null;
+          _startFailed = true;
+        });
+      }
+      return;
+    }
     if (!mounted || run != _runs) {
       // The page closed, or was left or restarted, while the radio was
       // coming on: this start is stale and its session ends.
@@ -117,6 +139,7 @@ class _BuddySwapPageState extends ConsumerState<BuddySwapPage>
     }
     setState(() {
       _card = card;
+      _startFailed = false;
       _availability = availability;
       _peers = session.peers;
     });
@@ -379,7 +402,11 @@ class _BuddySwapPageState extends ConsumerState<BuddySwapPage>
                     onTap: _request,
                   )
                 else
-                  _Unavailable(availability: _availability, onRetry: _restart),
+                  _Unavailable(
+                    availability: _availability,
+                    failed: _startFailed,
+                    onRetry: _restart,
+                  ),
                 const SizedBox(height: 8),
                 _SharingLine(
                   summary: buddyCardSummary(card, l10n),
@@ -430,9 +457,14 @@ class _SharingLine extends StatelessWidget {
 }
 
 class _Unavailable extends StatelessWidget {
-  const _Unavailable({required this.availability, required this.onRetry});
+  const _Unavailable({
+    required this.availability,
+    required this.failed,
+    required this.onRetry,
+  });
 
   final NearbyAvailability? availability;
+  final bool failed;
   final VoidCallback onRetry;
 
   static bool get _isPhone =>
@@ -440,16 +472,18 @@ class _Unavailable extends StatelessWidget {
       (defaultTargetPlatform == TargetPlatform.android ||
           defaultTargetPlatform == TargetPlatform.iOS);
 
-  String _message(AppLocalizations l10n) => switch (availability) {
-    NearbyAvailability.unauthorized => l10n.nearbyPair_permissionDenied,
-    NearbyAvailability.bluetoothOff => l10n.nearbyPair_bluetoothOff,
-    _ => l10n.nearbyPair_unsupported,
-  };
+  String _message(AppLocalizations l10n) => failed
+      ? l10n.buddySwap_nearby_failed
+      : switch (availability) {
+          NearbyAvailability.unauthorized => l10n.nearbyPair_permissionDenied,
+          NearbyAvailability.bluetoothOff => l10n.nearbyPair_bluetoothOff,
+          _ => l10n.nearbyPair_unsupported,
+        };
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    if (availability == null) {
+    if (availability == null && !failed) {
       return const Padding(
         padding: EdgeInsets.all(24),
         child: Center(child: CircularProgressIndicator()),

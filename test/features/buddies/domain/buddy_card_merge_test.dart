@@ -68,4 +68,41 @@ void main() {
       contains(BuddyCardChangeField.photo),
     );
   });
+
+  group('merging buddies keeps what their cards said', () {
+    Buddy buddy(
+      String id, {
+      String? cardId,
+      DateTime? received,
+      String? social,
+    }) => Buddy(
+      id: id,
+      name: 'Sam',
+      cardId: cardId,
+      cardReceivedAt: received,
+      cardDiveCount: cardId == null ? null : 100,
+      socialHandle: social,
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    );
+
+    test('the card source is the buddy whose card arrived last', () {
+      final hand = buddy('a');
+      final older = buddy('b', cardId: 'sam', received: DateTime(2026, 1));
+      final newer = buddy('c', cardId: 'sam', received: DateTime(2026, 9));
+      expect(mergedBuddyCardSource([hand, older, newer]), same(newer));
+    });
+
+    test('with no card among them there is no card source', () {
+      expect(mergedBuddyCardSource([buddy('a'), buddy('b')]), isNull);
+    });
+
+    test('the social handle is the first one any of them has', () {
+      expect(
+        mergedSocialHandle([buddy('a'), buddy('b', social: '@sam')]),
+        '@sam',
+      );
+      expect(mergedSocialHandle([buddy('a'), buddy('b')]), isNull);
+    });
+  });
 }

@@ -2938,6 +2938,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get buddySwap_nearby_looking => 'Recherche d\'autres plongeurs…';
 
   @override
+  String get buddySwap_nearby_failed =>
+      'Impossible de chercher des plongeurs à proximité. Les autres façons d\'échanger ci-dessous fonctionnent toujours.';
+
+  @override
   String get buddySwap_nearby_hint =>
       'Vous ne voyez pas votre binôme ? Vous devez tous les deux ouvrir cet écran et avoir Submersion 1.8.4 ou plus récent.';
 

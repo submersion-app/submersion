@@ -2928,6 +2928,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get buddySwap_nearby_looking => 'A procurar mais…';
 
   @override
+  String get buddySwap_nearby_failed =>
+      'Não foi possível procurar mergulhadores por perto. As outras formas de trocar abaixo continuam a funcionar.';
+
+  @override
   String get buddySwap_nearby_hint =>
       'Não vê o seu parceiro? Ambos precisam deste ecrã aberto e do Submersion 1.8.4 ou posterior.';
 

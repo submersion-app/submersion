@@ -762,6 +762,7 @@
   "buddySwap_nearby_heading": "Subacquei vicini con Submersion aperto",
   "buddySwap_nearby_tapToSwap": "Tocca per scambiare",
   "buddySwap_nearby_looking": "Ricerca di altri…",
+  "buddySwap_nearby_failed": "Impossibile cercare subacquei nelle vicinanze. Gli altri modi per scambiare qui sotto funzionano ancora.",
   "buddySwap_nearby_hint": "Non vedi il tuo compagno? Entrambi dovete avere questa schermata aperta e Submersion 1.8.4 o successivo.",
   "buddySwap_sharing": "Condividi: {summary}",
   "buddySwap_sharing_change": "Modifica",

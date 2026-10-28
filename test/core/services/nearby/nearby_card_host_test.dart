@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/nearby/nearby_card_host.dart';
 import 'package:submersion/core/services/nearby/nearby_carrier.dart';
+import 'package:submersion/core/services/nearby/nearby_frame.dart';
 import 'package:submersion/core/services/nearby/nearby_session.dart';
 
 import '../../../support/in_memory_nearby_carrier.dart';
@@ -369,5 +370,48 @@ void main() {
     await settleNearby();
 
     expect(dials, 2);
+  });
+
+  group('a nearby summary names a diver properly or not at all', () {
+    Future<List<NearbyCardPeer>> seenWith(String name) async {
+      final host = NearbyCardHost(
+        name: 'Ann',
+        card: () async => bytesOf('card'),
+        step: const Duration(milliseconds: 200),
+      );
+      addTearDown(host.dispose);
+      host.attachCarrier('t:', (_) async {
+        final (out, into) = await nearbyLink();
+        unawaited(() async {
+          final incoming = await NearbySession(
+            endpoint: into,
+            identity: nearbySessionIdentity('P'),
+            secrets: MemoryNearbySecrets(),
+          ).accept(allowPairing: false, allowCard: true);
+          final channel = (incoming as NearbyIncomingCard).channel;
+          await channel.send(
+            NearbyMessageType.cardSummary,
+            bytesOf(jsonEncode({'s': 'peer', 'n': name})),
+          );
+        }());
+        return NearbySession(
+          endpoint: out,
+          identity: nearbySessionIdentity('L'),
+          secrets: MemoryNearbySecrets(),
+        ).openCard();
+      });
+      host.onSighting('t:1');
+      await settleNearby();
+      return host.peers;
+    }
+
+    test('a blank name is not listed', () async {
+      expect(await seenWith('   '), isEmpty);
+    });
+
+    test('a name is trimmed and kept to 200 characters', () async {
+      final peers = await seenWith('  ${'x' * 5000}  ');
+      expect(peers.single.name, 'x' * 200);
+    });
   });
 }

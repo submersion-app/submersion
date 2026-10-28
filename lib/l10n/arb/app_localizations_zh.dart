@@ -2774,6 +2774,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get buddySwap_nearby_looking => '正在查找更多…';
 
   @override
+  String get buddySwap_nearby_failed => '无法搜索附近的潜水员。下方的其他交换方式仍可使用。';
+
+  @override
   String get buddySwap_nearby_hint =>
       '看不到你的潜伴？你们双方都需要打开此页面，并使用 Submersion 1.8.4 或更高版本。';
 

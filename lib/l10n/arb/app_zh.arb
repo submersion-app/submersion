@@ -849,6 +849,7 @@
   "buddySwap_nearby_heading": "附近打开了 Submersion 的潜水员",
   "buddySwap_nearby_tapToSwap": "点按以交换",
   "buddySwap_nearby_looking": "正在查找更多…",
+  "buddySwap_nearby_failed": "无法搜索附近的潜水员。下方的其他交换方式仍可使用。",
   "buddySwap_nearby_hint": "看不到你的潜伴？你们双方都需要打开此页面，并使用 Submersion 1.8.4 或更高版本。",
   "buddySwap_sharing": "共享：{summary}",
   "buddySwap_sharing_change": "更改",

@@ -762,6 +762,7 @@
   "buddySwap_nearby_heading": "Buceadores cercanos con Submersion abierto",
   "buddySwap_nearby_tapToSwap": "Toca para intercambiar",
   "buddySwap_nearby_looking": "Buscando más…",
+  "buddySwap_nearby_failed": "No se pudo buscar buceadores cercanos. Las otras formas de intercambiar de abajo siguen funcionando.",
   "buddySwap_nearby_hint": "¿No ves a tu compañero? Ambos necesitáis esta pantalla abierta y Submersion 1.8.4 o posterior.",
   "buddySwap_sharing": "Compartes: {summary}",
   "buddySwap_sharing_change": "Cambiar",

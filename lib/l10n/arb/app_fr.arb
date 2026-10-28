@@ -762,6 +762,7 @@
   "buddySwap_nearby_heading": "Plongeurs à proximité avec Submersion ouvert",
   "buddySwap_nearby_tapToSwap": "Touchez pour échanger",
   "buddySwap_nearby_looking": "Recherche d'autres plongeurs…",
+  "buddySwap_nearby_failed": "Impossible de chercher des plongeurs à proximité. Les autres façons d'échanger ci-dessous fonctionnent toujours.",
   "buddySwap_nearby_hint": "Vous ne voyez pas votre binôme ? Vous devez tous les deux ouvrir cet écran et avoir Submersion 1.8.4 ou plus récent.",
   "buddySwap_sharing": "Partagé : {summary}",
   "buddySwap_sharing_change": "Modifier",

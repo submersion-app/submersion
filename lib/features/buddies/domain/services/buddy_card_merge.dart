@@ -78,6 +78,32 @@ List<BuddyCardChange> buddyCardChanges(
   return out;
 }
 
+/// Of [buddies] being merged into one, the one whose buddy card figures and
+/// card id the merged buddy keeps: the latest card received, so a later
+/// swap with that person still recognises them. Null when no card made any.
+Buddy? mergedBuddyCardSource(List<Buddy> buddies) {
+  Buddy? source;
+  for (final b in buddies) {
+    if (b.cardId == null) continue;
+    final at = b.cardReceivedAt;
+    final best = source?.cardReceivedAt;
+    if (source == null || (at != null && (best == null || at.isAfter(best)))) {
+      source = b;
+    }
+  }
+  return source;
+}
+
+/// The social handle a merge starts with: the first of [buddies] that has
+/// one, in merge order.
+String? mergedSocialHandle(List<Buddy> buddies) {
+  for (final b in buddies) {
+    final handle = b.socialHandle;
+    if (handle != null && handle.trim().isNotEmpty) return handle;
+  }
+  return null;
+}
+
 /// A certification as one line: agency then name, without repeating an
 /// agency the name already starts with.
 String certLabel(BuddyCardCert cert) {

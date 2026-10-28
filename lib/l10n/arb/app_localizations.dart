@@ -4525,6 +4525,12 @@ abstract class AppLocalizations {
   /// **'Looking for more…'**
   String get buddySwap_nearby_looking;
 
+  /// No description provided for @buddySwap_nearby_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not look for nearby divers. The other ways to swap below still work.'**
+  String get buddySwap_nearby_failed;
+
   /// No description provided for @buddySwap_nearby_hint.
   ///
   /// In en, this message translates to:

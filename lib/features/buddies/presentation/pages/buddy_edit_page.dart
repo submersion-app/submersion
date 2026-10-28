@@ -15,6 +15,7 @@ import 'package:submersion/features/certifications/presentation/pages/certificat
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/features/buddies/domain/services/buddy_card_merge.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_profile_link_providers.dart';
 import 'package:submersion/features/buddies/presentation/widgets/linked_profile_field.dart';
@@ -90,6 +91,13 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
   bool _isLoading = false;
   bool _isSaving = false;
   bool _hasChanges = false;
+
+  /// In merge mode, the merged buddy whose card figures survive.
+  Buddy? _cardSource;
+
+  /// Where the saved buddy's card figures come from: the merge's card
+  /// source, or the buddy being edited.
+  Buddy? get _cardBuddy => widget.isMerging ? _cardSource : _originalBuddy;
   Buddy? _originalBuddy;
   Uint8List? _photo;
 
@@ -114,6 +122,11 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
     if (widget.isMerging) {
       _mergeCtrl = BuddyMergeFormController();
       _originalBuddy = widget.mergeBuddies!.first;
+      // The merge controller fills the other fields; the social handle and
+      // the buddy card figures (issue #3728) come from whichever buddy has
+      // them, not only the first.
+      _socialController.text = mergedSocialHandle(widget.mergeBuddies!) ?? '';
+      _cardSource = mergedBuddyCardSource(widget.mergeBuddies!);
       _mergeCtrl!.initialize(
         buddies: widget.mergeBuddies!,
         nameController: _nameController,
@@ -815,14 +828,14 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
         updatedAt: now,
         // The buddy card figures (issue #3728) have no form field: only a
         // card writes them, so an edit carries them over as they were.
-        cardId: _originalBuddy?.cardId,
+        cardId: _cardBuddy?.cardId,
         socialHandle: _socialController.text.trim().isEmpty
             ? null
             : _socialController.text.trim(),
-        cardDiveCount: _originalBuddy?.cardDiveCount,
-        cardDivingSince: _originalBuddy?.cardDivingSince,
-        cardLastDive: _originalBuddy?.cardLastDive,
-        cardReceivedAt: _originalBuddy?.cardReceivedAt,
+        cardDiveCount: _cardBuddy?.cardDiveCount,
+        cardDivingSince: _cardBuddy?.cardDivingSince,
+        cardLastDive: _cardBuddy?.cardLastDive,
+        cardReceivedAt: _cardBuddy?.cardReceivedAt,
       );
 
       if (widget.isMerging) {
