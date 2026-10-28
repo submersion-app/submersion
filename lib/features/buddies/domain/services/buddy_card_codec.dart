@@ -71,7 +71,11 @@ abstract final class BuddyCardCodec {
     'lowerCerts',
     'since',
     'email',
+    'lastCert',
   ];
+
+  /// The most dives a card may claim; more is not a real logbook.
+  static const int maxDives = 100000;
 
   static bool isCardLink(String text) => text.trim().startsWith(linkPrefix);
 
@@ -123,8 +127,9 @@ abstract final class BuddyCardCodec {
   }
 
   /// [card] as a link no longer than [maxBytes] UTF-8 bytes, dropping the
-  /// photo always and then fields in [dropOrder] until it fits. Throws
-  /// [BuddyCardTooLarge] when even name, id and phone do not fit.
+  /// photo always and then fields in [dropOrder] until it fits (the last
+  /// certification goes only after the email). Throws [BuddyCardTooLarge]
+  /// when even name, id and phone do not fit.
   static String encodeLink(BuddyCard card, {required int maxBytes}) {
     var current = card.copyWith(clearPhoto: true);
     var trimmed = false;
@@ -143,6 +148,7 @@ abstract final class BuddyCardCodec {
         'lowerCerts' => _dropLowerCerts(current, fits),
         'since' => current.copyWith(clearSince: true),
         'email' => current.copyWith(clearEmail: true),
+        'lastCert' => current.copyWith(certs: const []),
         _ => current,
       };
     }
@@ -243,12 +249,11 @@ abstract final class BuddyCardCodec {
       email: _string(json['e']),
       social: _string(json['s']),
       certs: _certs(json['c']),
-      dives: json['d'] is int && (json['d'] as int) >= 0
-          ? json['d'] as int
-          : null,
-      since: json['f'] is int && (json['f'] as int) >= 1900
-          ? json['f'] as int
-          : null,
+      dives: switch (json['d']) {
+        final int d when d >= 0 && d <= maxDives => d,
+        _ => null,
+      },
+      since: _year(json['f']),
       last: _parseDate(json['l']),
       photo: _photo(json['ph']),
     );
@@ -257,6 +262,13 @@ abstract final class BuddyCardCodec {
       newerFormat: version > currentVersion,
       trimmed: json['t'] == 1,
     );
+  }
+
+  /// A diving-since year from 1900 to next year (a clock a day ahead of
+  /// the sender's); anything else is not a year a diver started.
+  static int? _year(Object? value) {
+    if (value is! int) return null;
+    return value >= 1900 && value <= DateTime.now().year + 1 ? value : null;
   }
 
   static String? _string(Object? value) {

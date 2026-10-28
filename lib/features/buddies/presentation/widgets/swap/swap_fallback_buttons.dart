@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/utils/share_anchor.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The other ways to swap, under the nearby list (issue #3728). Each is a
@@ -18,7 +19,9 @@ class SwapFallbackButtons extends StatelessWidget {
 
   final VoidCallback onShowCode;
   final VoidCallback onScanCode;
-  final VoidCallback onSendFile;
+
+  /// Gets the button's screen rectangle, for the iPad share popover.
+  final ValueChanged<Rect?> onSendFile;
   final VoidCallback onOpenFile;
   final VoidCallback onWriteSticker;
   final VoidCallback onReadTag;
@@ -50,7 +53,14 @@ class SwapFallbackButtons extends StatelessWidget {
             l10n.buddySwap_action_scanCode,
             onScanCode,
           ),
-          button(Icons.ios_share, l10n.buddySwap_action_sendFile, onSendFile),
+          // A Builder gives the button its own context, for the anchor.
+          Builder(
+            builder: (buttonContext) => button(
+              Icons.ios_share,
+              l10n.buddySwap_action_sendFile,
+              () => onSendFile(shareAnchorFrom(buttonContext)),
+            ),
+          ),
           button(
             Icons.file_open_outlined,
             l10n.buddySwap_action_openFile,

@@ -739,6 +739,7 @@
   "buddyCard_preview_trimmed": "Alguns dados foram omitidos para caber no código.",
   "buddyCard_preview_newer": "Este cartão é de uma versão mais recente do Submersion. Alguns dados podem estar em falta.",
   "buddyCard_preview_noChanges": "Nada neste cartão é novo.",
+  "buddyCard_preview_ownCard": "Este é o seu próprio cartão. Troque com um parceiro para receber o dele.",
   "buddyCard_preview_changed": "{to} (antes {from})",
   "buddyCard_action_add": "Adicionar parceiro",
   "buddyCard_action_update": "Atualizar parceiro",

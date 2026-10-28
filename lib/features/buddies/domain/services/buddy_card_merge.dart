@@ -29,8 +29,14 @@ class BuddyCardChange {
 
 /// What saving [card] onto [existing] (null for a new buddy) would change.
 /// Only fields the card carries and that differ are listed; a field the
-/// card leaves out never changes (issue #3728).
-List<BuddyCardChange> buddyCardChanges(Buddy? existing, BuddyCard card) {
+/// card leaves out never changes (issue #3728). [certs] are the card's
+/// certifications the save would add or change, when the buddy's stored
+/// ones are known; otherwise every one the card carries is listed.
+List<BuddyCardChange> buddyCardChanges(
+  Buddy? existing,
+  BuddyCard card, {
+  List<BuddyCardCert>? certs,
+}) {
   final out = <BuddyCardChange>[];
   void add(BuddyCardChangeField field, String? from, String? to) {
     if (to == null || to == from) return;
@@ -61,11 +67,12 @@ List<BuddyCardChange> buddyCardChanges(Buddy? existing, BuddyCard card) {
       (existing?.photo == null || !_sameBytes(existing!.photo!, photo))) {
     out.add(const BuddyCardChange(BuddyCardChangeField.photo, null, ''));
   }
-  if (card.certs.isNotEmpty) {
+  final written = certs ?? card.certs;
+  if (written.isNotEmpty) {
     add(
       BuddyCardChangeField.certifications,
       null,
-      card.certs.map(certLabel).join(', '),
+      written.map(certLabel).join(', '),
     );
   }
   return out;

@@ -826,6 +826,7 @@
   "buddyCard_preview_trimmed": "为适应代码长度，部分信息已省略。",
   "buddyCard_preview_newer": "此名片来自更新版本的 Submersion，部分信息可能缺失。",
   "buddyCard_preview_noChanges": "名片上没有新信息。",
+  "buddyCard_preview_ownCard": "这是你自己的名片。与潜伴交换以获取对方的名片。",
   "buddyCard_preview_changed": "{to}（原为 {from}）",
   "buddyCard_action_add": "添加潜伴",
   "buddyCard_action_update": "更新潜伴",

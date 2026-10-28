@@ -1,5 +1,4 @@
-import 'dart:typed_data';
-
+import 'package:flutter/foundation.dart';
 import 'package:image/image.dart' as img;
 
 import 'package:submersion/features/buddies/domain/entities/buddy_card.dart';
@@ -59,6 +58,10 @@ class BuddyCardBuilder {
         : const <BuddyCardCert>[];
     final dives = choices.diveCount ? await _diveCount(diver) : null;
     final last = choices.lastDive ? await _lastDive(diverId) : null;
+    // Decoding a full-size photo in Dart takes a while: off the UI isolate.
+    final photo = choices.photo && diver.photo != null
+        ? await compute(thumbnail, diver.photo!)
+        : null;
     return BuddyCard(
       id: diver.id,
       name: diver.name,
@@ -69,9 +72,7 @@ class BuddyCardBuilder {
       dives: dives,
       since: choices.divingSince ? diver.divingSince?.year : null,
       last: last,
-      photo: choices.photo && diver.photo != null
-          ? thumbnail(diver.photo!)
-          : null,
+      photo: photo,
     );
   }
 

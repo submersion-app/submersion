@@ -194,6 +194,28 @@ void main() {
     expect(find.text('118 (was 100)'), findsOneWidget);
   });
 
+  testWidgets('the same card again shows nothing new', (tester) async {
+    await tester.runAsync(
+      () => BuddyCardImporter(
+        buddies: buddies,
+        certifications: CertificationRepository(),
+      ).addNew(_sam, diverId: 'me'),
+    );
+    await pump(tester, const BuddyCardDecoded(_sam));
+    expect(find.text('Nothing on this card is new.'), findsOneWidget);
+    expect(find.text('PADI Rescue Diver'), findsNothing);
+  });
+
+  testWidgets('your own card is not offered as a buddy', (tester) async {
+    await pump(tester, const BuddyCardDecoded(BuddyCard(id: 'me', name: 'Me')));
+    expect(
+      find.text('This is your own card. Swap with a buddy to get theirs.'),
+      findsOneWidget,
+    );
+    expect(find.text('Add buddy'), findsNothing);
+    expect(find.text('Discard'), findsOneWidget);
+  });
+
   testWidgets('a failed save says so and stays on the preview', (tester) async {
     await pump(
       tester,

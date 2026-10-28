@@ -92,31 +92,19 @@ class BuddyCardImporter {
   Future<void> _writeCerts(String buddyId, BuddyCard card) async {
     if (card.certs.isEmpty) return;
     final existing = await _certifications.getCertificationsByBuddy(buddyId);
-    final cardMade = {
-      for (final c in existing)
-        if (c.cardId != null) _key(c.agency, c.name): c,
-    };
-    // The receiver's own entry for the same certification wins: no twin.
-    final byHand = {
-      for (final c in existing)
-        if (c.cardId == null) _key(c.agency, c.name),
-    };
     final now = _clock();
-    for (final cert in card.certs) {
-      final mapped = _mapped(cert);
-      final key = _key(mapped.agency, mapped.name);
-      if (byHand.contains(key)) continue;
-      final current = cardMade[key];
+    for (final write in _plan(card, existing)) {
+      final current = write.current;
       if (current == null) {
         await _certifications.createCertification(
           Certification(
             id: '',
             buddyId: buddyId,
-            name: mapped.name,
-            agency: mapped.agency,
-            level: mapped.level,
-            cardNumber: cert.cardNumber,
-            issueDate: cert.issueDate,
+            name: write.name,
+            agency: write.agency,
+            level: write.level,
+            cardNumber: write.cardNumber,
+            issueDate: write.issueDate,
             cardId: card.id,
             createdAt: now,
             updatedAt: now,
@@ -125,14 +113,61 @@ class BuddyCardImporter {
       } else {
         await _certifications.updateCertification(
           current.copyWith(
-            level: mapped.level,
-            cardNumber: cert.cardNumber,
-            issueDate: cert.issueDate,
+            level: write.level,
+            cardNumber: write.cardNumber,
+            issueDate: write.issueDate,
             cardId: card.id,
           ),
         );
       }
     }
+  }
+
+  /// The card's certifications that saving it onto a buddy holding
+  /// [existing] would add or change, for the import preview.
+  static List<BuddyCardCert> certsToWrite(
+    BuddyCard card,
+    List<Certification> existing,
+  ) => [for (final write in _plan(card, existing)) write.cert];
+
+  /// What saving [card]'s certifications onto [existing] writes. The
+  /// receiver's own entry for the same certification wins (no twin), a
+  /// certification the card names twice is written once, and a detail the
+  /// card leaves out (a trimmed card) keeps the stored one.
+  static List<_CertWrite> _plan(BuddyCard card, List<Certification> existing) {
+    final cardMade = {
+      for (final c in existing)
+        if (c.cardId != null) _key(c.agency, c.name): c,
+    };
+    final byHand = {
+      for (final c in existing)
+        if (c.cardId == null) _key(c.agency, c.name),
+    };
+    final seen = <String>{};
+    final out = <_CertWrite>[];
+    for (final cert in card.certs) {
+      final mapped = _mapped(cert);
+      final key = _key(mapped.agency, mapped.name);
+      if (byHand.contains(key) || !seen.add(key)) continue;
+      final current = cardMade[key];
+      final write = _CertWrite(
+        cert: cert,
+        current: current,
+        agency: mapped.agency,
+        name: mapped.name,
+        level: mapped.level ?? current?.level,
+        cardNumber: cert.cardNumber ?? current?.cardNumber,
+        issueDate: cert.issueDate ?? current?.issueDate,
+      );
+      if (current != null &&
+          current.level == write.level &&
+          current.cardNumber == write.cardNumber &&
+          current.issueDate == write.issueDate) {
+        continue;
+      }
+      out.add(write);
+    }
+    return out;
   }
 
   static String _key(String agency, String name) =>
@@ -175,4 +210,26 @@ class BuddyCardImporter {
     }
     return null;
   }
+}
+
+/// One certification a card save writes: [current] is the card-made row it
+/// refreshes, null for a new one.
+class _CertWrite {
+  const _CertWrite({
+    required this.cert,
+    required this.current,
+    required this.agency,
+    required this.name,
+    required this.level,
+    required this.cardNumber,
+    required this.issueDate,
+  });
+
+  final BuddyCardCert cert;
+  final Certification? current;
+  final String agency;
+  final String name;
+  final String? level;
+  final String? cardNumber;
+  final DateTime? issueDate;
 }

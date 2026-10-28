@@ -240,6 +240,76 @@ void main() {
     );
     expect(await buddies.getAllBuddies(), isEmpty);
   });
+  test('one card naming a certification twice adds it once', () async {
+    final twice = card.copyWith(
+      certs: const [
+        BuddyCardCert(agency: 'PADI', name: 'Open Water Diver'),
+        BuddyCardCert(agency: 'PADI', name: 'Open Water Diver'),
+      ],
+    );
+    final added = await importer.addNew(twice, diverId: 'me');
+    expect(await certs.getCertificationsByBuddy(added.id), hasLength(1));
+  });
+
+  test('certsToWrite lists only certifications a save would change', () async {
+    final added = await importer.addNew(card, diverId: 'me');
+    final stored = await certs.getCertificationsByBuddy(added.id);
+    // The same card again changes no certification.
+    expect(BuddyCardImporter.certsToWrite(card, stored), isEmpty);
+
+    final changed = card.copyWith(
+      certs: [
+        BuddyCardCert(
+          agency: 'PADI',
+          name: 'Rescue Diver',
+          level: 'Rescue Diver',
+          cardNumber: 'R-2',
+          issueDate: DateTime(2020),
+        ),
+        // Without its details (a trimmed QR card): nothing to change.
+        card.certs.last.withoutCardDetails(),
+        const BuddyCardCert(agency: 'SSI', name: 'Nitrox'),
+      ],
+    );
+    expect(BuddyCardImporter.certsToWrite(changed, stored).map((c) => c.name), [
+      'Rescue Diver',
+      'Nitrox',
+    ]);
+  });
+
+  test('a later card without card details keeps the stored number', () async {
+    final added = await importer.addNew(card, diverId: 'me');
+    final trimmed = card.copyWith(
+      certs: [for (final c in card.certs) c.withoutCardDetails()],
+    );
+    await importer.update(added, trimmed);
+    final rescue = (await certs.getCertificationsByBuddy(
+      added.id,
+    )).singleWhere((c) => c.name == 'Rescue Diver');
+    expect(rescue.cardNumber, 'R-1');
+    expect(rescue.issueDate, DateTime(2020));
+  });
+
+  test('certsToWrite leaves out a twin of a hand-entered one', () async {
+    final added = await importer.addNew(
+      card.copyWith(certs: const []),
+      diverId: 'me',
+    );
+    await certs.createCertification(
+      Certification(
+        id: '',
+        buddyId: added.id,
+        name: 'Open Water Diver',
+        agency: CertificationAgency.padi.name,
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
+    final stored = await certs.getCertificationsByBuddy(added.id);
+    expect(BuddyCardImporter.certsToWrite(card, stored).map((c) => c.name), [
+      'Rescue Diver',
+    ]);
+  });
 }
 
 class _FailingCertifications extends CertificationRepository {

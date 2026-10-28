@@ -56,14 +56,22 @@ class NearbyCardBridge {
   }
 
   Future<NearbyCardChannel> _dial(String transportId) async {
+    final identity = await _identity();
     final endpoint = await _carrier.connect(
       transportId.substring(prefix.length),
     );
-    return NearbySession(
-      endpoint: endpoint,
-      identity: await _identity(),
-      secrets: _secrets,
-    ).openCard();
+    try {
+      return await NearbySession(
+        endpoint: endpoint,
+        identity: identity,
+        secrets: _secrets,
+      ).openCard();
+    } on Object {
+      // The session closes its link on a refusal or a timeout; anything
+      // else would leave it open, and a peer may hold only one.
+      await endpoint.close();
+      rethrow;
+    }
   }
 
   Future<void> _accept(NearbyEndpoint endpoint) async {
@@ -80,6 +88,7 @@ class NearbyCardBridge {
       }
     } on Object catch (e) {
       _log.info('Card session over $prefix refused: $e');
+      await endpoint.close();
     }
   }
 

@@ -89,6 +89,8 @@ class NearbyCardHost {
     this.summaryRefresh = const Duration(minutes: 2),
     this.staleAfter = const Duration(seconds: 45),
     this.mutualGrace = const Duration(seconds: 10),
+    this.step = const Duration(seconds: 10),
+    this.dialRetry = const Duration(seconds: 10),
     String? swapId,
     DateTime Function()? now,
   }) : _card = card,
@@ -108,6 +110,12 @@ class NearbyCardHost {
 
   /// How long after a swap a crossing link counts as the same swap.
   final Duration mutualGrace;
+
+  /// How long one step of the exchange may take.
+  final Duration step;
+
+  /// How soon a dial that did not connect is tried again.
+  final Duration dialRetry;
   final String swapId;
   final DateTime Function() _now;
 
@@ -223,16 +231,16 @@ class NearbyCardHost {
       return;
     }
     _lastDial[transport] = _now();
-    final ran = await _dialAndRun(transport);
-    // The dial never reached them: free the row rather than let the
-    // request fire minutes later on an unrelated look.
-    if (!ran && _pending.remove(id)) _fail(peer, NearbyCardFailure.lost);
+    await _dialAndRun(transport);
+    // No session heard them (the dial failed, or the link ended before
+    // their summary): free the row rather than let the request fire
+    // minutes later on an unrelated look.
+    if (_pending.remove(id)) _fail(peer, NearbyCardFailure.lost);
   }
 
-  /// Whether a session ran with [transportId].
-  Future<bool> _dialAndRun(String transportId) async {
+  Future<void> _dialAndRun(String transportId) async {
     final dial = _dialerFor(transportId);
-    if (dial == null) return false;
+    if (dial == null) return;
     final NearbyCardChannel channel;
     try {
       channel = await dial(transportId);
@@ -240,13 +248,15 @@ class NearbyCardHost {
       // Off its swap screen, or a build without card swaps: not listed.
       _forgetTransport(transportId);
       _log.info('Card session to $transportId refused: ${e.code}');
-      return false;
+      return;
     } on Object catch (e) {
       _log.info('Card session to $transportId failed: $e');
-      return false;
+      // A dial that did not connect is tried again on a sighting after
+      // [dialRetry], not a whole [summaryRefresh] later.
+      _lastDial[transportId] = _now().subtract(summaryRefresh - dialRetry);
+      return;
     }
     await _run(channel, dialled: transportId);
-    return true;
   }
 
   bool _swappedLately(String swapId) {
@@ -295,12 +305,15 @@ class NearbyCardHost {
     _channels.add(channel);
     final reader = StreamIterator(channel.messages);
     NearbyCardPeer? peer;
+    // This diver said yes to their request: a link lost after that is
+    // reported, though they were not the one asking.
+    var acceptedTheirs = false;
     Future<NearbyMessage?> next(Duration within) async =>
         await reader.moveNext().timeout(within) ? reader.current : null;
 
     try {
       await channel.send(NearbyMessageType.cardSummary, _summary());
-      final summary = await next(_step);
+      final summary = await next(step);
       if (summary?.type != NearbyMessageType.cardSummary) return;
       peer = _readSummary(summary!.body, dialled);
       if (peer == null) return;
@@ -311,7 +324,7 @@ class NearbyCardHost {
         NearbyMessageType.cardRequest,
         _jsonBytes({'want': iWant}),
       );
-      final theirRequest = await next(_step);
+      final theirRequest = await next(step);
       if (theirRequest?.type != NearbyMessageType.cardRequest) {
         if (iWant) _fail(peer, NearbyCardFailure.lost);
         return;
@@ -324,6 +337,7 @@ class NearbyCardHost {
         // screen already: both said yes, so no question.
         final mutual = _requested.contains(theirId) || _swappedLately(theirId);
         final accepted = mutual || await _ask(peer, channel);
+        acceptedTheirs = accepted;
         await channel.send(
           accepted
               ? NearbyMessageType.cardAccept
@@ -378,7 +392,8 @@ class NearbyCardHost {
       }
     } on Object catch (e) {
       _log.info('Card session ended: $e');
-      if (peer != null && _requested.contains(peer.swapId)) {
+      if (peer != null &&
+          (acceptedTheirs || _requested.contains(peer.swapId))) {
         _fail(peer, NearbyCardFailure.lost);
       }
     } finally {
@@ -426,8 +441,6 @@ class NearbyCardHost {
   static Uint8List _jsonBytes(Map<String, Object?> json) =>
       Uint8List.fromList(utf8.encode(jsonEncode(json)));
 
-  /// How long one step of the exchange may take.
-  static const _step = Duration(seconds: 10);
   static const _cardStep = Duration(seconds: 30);
 
   /// Extra time a waiting asker allows past the answer window, for the

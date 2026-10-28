@@ -116,4 +116,29 @@ void main() {
     await settleNearby();
     expect(hostA.peers.map((p) => p.name), ['Ben']);
   });
+
+  test('a dial that fails after connecting closes its link', () async {
+    final mpc = InMemoryNearbyHub();
+    final host = NearbyCardHost(name: 'Ann', card: () async => bytesOf('a'));
+    addTearDown(host.dispose);
+    final bridge = NearbyCardBridge(
+      carrier: mpc.join('A'),
+      host: host,
+      // The identity cannot be read (a keychain error, say).
+      identity: () async => throw StateError('no identity'),
+      secrets: MemoryNearbySecrets(),
+    );
+    addTearDown(bridge.stop);
+    await bridge.start();
+    final other = mpc.join('B');
+    other.incoming.listen((_) {});
+    await other.startAdvertising();
+
+    await host.request(
+      const NearbyCardPeer(swapId: 'b', name: 'Ben', transportId: 'mpc:B'),
+    );
+    await settleNearby();
+
+    expect(mpc.openLinks, 0);
+  });
 }

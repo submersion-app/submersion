@@ -50,6 +50,13 @@ class _BuddySwapPageState extends ConsumerState<BuddySwapPage>
   /// The diver whose request sheet is open, so an expired request can close
   /// it.
   String? _openRequest;
+
+  /// Requests waiting for the open sheet to close: one question at a time.
+  final _queuedRequests = <CardRequested>[];
+
+  /// Bumped by every start and stop, so a start still building the card
+  /// when the page was left (or started again) gives up.
+  int _runs = 0;
   NearbyAvailability? _availability;
   List<NearbyCardPeer> _peers = const [];
   final _waitingFor = <String>{};
@@ -83,6 +90,7 @@ class _BuddySwapPageState extends ConsumerState<BuddySwapPage>
   }
 
   Future<void> _start() async {
+    final run = ++_runs;
     final BuddyCard? card;
     try {
       card = await ref.read(myBuddyCardProvider.future);
@@ -95,7 +103,7 @@ class _BuddySwapPageState extends ConsumerState<BuddySwapPage>
       if (mounted) setState(() => _cardFailed = true);
       return;
     }
-    if (!mounted || card == null) return;
+    if (!mounted || card == null || run != _runs) return;
     final session = ref.read(buddySwapSessionFactoryProvider)(card);
     _session = session;
     _events = session.events.listen(_onEvent);
@@ -115,6 +123,7 @@ class _BuddySwapPageState extends ConsumerState<BuddySwapPage>
   /// Stops at once, before any await: from [dispose] nothing after the
   /// first await is guaranteed to run before the page is gone.
   Future<void> _stop() async {
+    _runs++;
     final session = _session;
     _session = null;
     final stopping = session?.stop();
@@ -136,13 +145,24 @@ class _BuddySwapPageState extends ConsumerState<BuddySwapPage>
     switch (event) {
       case CardPeersChanged(:final peers):
         setState(() => _peers = peers);
-      case CardRequested(:final from, :final decide):
-        unawaited(_answer(from, decide));
+      case CardRequested():
+        _queuedRequests.add(event);
+        if (_openRequest == null) unawaited(_answerQueued());
       case CardReceived(:final from, :final cardBytes):
         setState(() => _waitingFor.remove(from.swapId));
         openBuddyCard(context, BuddyCardCodec.decodeFull(cardBytes));
       case CardRequestExpired(:final from):
-        if (_openRequest == from.swapId) Navigator.of(context).pop(false);
+        if (_openRequest == from.swapId) {
+          Navigator.of(context).pop(false);
+        } else {
+          final queued = _queuedRequests
+              .where((r) => r.from.swapId == from.swapId)
+              .toList();
+          for (final r in queued) {
+            _queuedRequests.remove(r);
+            r.decide(false);
+          }
+        }
       case CardSwapFailed(:final peer, :final reason):
         setState(() => _waitingFor.remove(peer.swapId));
         _say(switch (reason) {
@@ -160,17 +180,24 @@ class _BuddySwapPageState extends ConsumerState<BuddySwapPage>
     }
   }
 
-  Future<void> _answer(NearbyCardPeer from, NearbyCardDecision decide) async {
-    final card = _card;
-    if (card == null) return decide(false);
-    _openRequest = from.swapId;
-    final accepted = await showSwapRequestSheet(
-      context,
-      from: from,
-      youSend: buddyCardSummary(card, context.l10n),
-    );
-    _openRequest = null;
-    decide(accepted);
+  /// Asks about each queued request in turn, one sheet at a time.
+  Future<void> _answerQueued() async {
+    while (mounted && _queuedRequests.isNotEmpty) {
+      final request = _queuedRequests.removeAt(0);
+      final card = _card;
+      if (card == null) {
+        request.decide(false);
+        continue;
+      }
+      _openRequest = request.from.swapId;
+      final accepted = await showSwapRequestSheet(
+        context,
+        from: request.from,
+        youSend: buddyCardSummary(card, context.l10n),
+      );
+      _openRequest = null;
+      request.decide(accepted);
+    }
   }
 
   void _say(String message) => ScaffoldMessenger.maybeOf(
@@ -208,23 +235,27 @@ class _BuddySwapPageState extends ConsumerState<BuddySwapPage>
     openBuddyCard(context, BuddyCardCodec.decodeLink(text));
   }
 
-  /// Shares the card as a file written to a temporary folder, removed
-  /// once the share sheet is done with it.
-  Future<void> _sendFile() async {
+  /// Shares the card as a file written to a temporary folder. A share
+  /// keeps the file: the receiving app may read it after the share sheet
+  /// returns, and the OS clears its temporary folder in time.
+  Future<void> _sendFile(Rect? anchor) async {
     final card = _card;
     if (card == null) return;
     final l10n = context.l10n;
     Directory? temp;
+    var keepForShare = false;
     try {
       temp = await Directory.systemTemp.createTemp('buddy_card');
       final name = BuddyCardCodec.fileNameFor(card.name);
       final file = File(p.join(temp.path, name));
       await file.writeAsBytes(BuddyCardCodec.encodeFull(card));
+      keepForShare = canShareFiles;
       await shareFileAtPath(
         file.path,
         name,
         'application/json',
         dialogTitle: l10n.buddySwap_action_sendFile,
+        sharePositionOrigin: anchor,
       );
     } on Object catch (e, stackTrace) {
       _log.error(
@@ -234,10 +265,12 @@ class _BuddySwapPageState extends ConsumerState<BuddySwapPage>
       );
       if (mounted) _say(l10n.buddySwap_sendFailed);
     } finally {
-      try {
-        await temp?.delete(recursive: true);
-      } on Object {
-        // The OS clears its temporary folder in time.
+      if (!keepForShare) {
+        try {
+          await temp?.delete(recursive: true);
+        } on Object {
+          // The OS clears its temporary folder in time.
+        }
       }
     }
   }
@@ -280,20 +313,23 @@ class _BuddySwapPageState extends ConsumerState<BuddySwapPage>
     final card = _card;
     if (card == null) return;
     final l10n = context.l10n;
+    String? message;
     try {
       await ref
           .read(buddyCardNfcProvider)
           .writeSticker(card, promptIos: l10n.buddySwap_sticker_prompt);
-      _say(l10n.buddySwap_sticker_written);
+      message = l10n.buddySwap_sticker_written;
     } on NfcSessionCancelled {
       // The diver closed the sheet.
     } on BuddyCardStickerTooSmall {
-      _say(l10n.buddySwap_sticker_tooSmall);
+      message = l10n.buddySwap_sticker_tooSmall;
     } on BuddyCardStickerNotWritable {
-      _say(l10n.buddySwap_sticker_notWritable);
+      message = l10n.buddySwap_sticker_notWritable;
     } on Object {
-      _say(l10n.buddySwap_nfc_unavailable);
+      message = l10n.buddySwap_nfc_unavailable;
     }
+    // The diver may have left the screen while the sticker was written.
+    if (message != null && mounted) _say(message);
   }
 
   @override

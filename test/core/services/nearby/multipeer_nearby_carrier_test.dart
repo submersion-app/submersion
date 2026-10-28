@@ -170,4 +170,14 @@ void main() {
     expect(seen.length, atLoss);
     await sub.cancel();
   });
+
+  test('stopping the scan forgets found peers: native does too', () async {
+    await carrier.startScanning();
+    await nativeSends({'type': 'found', 'peerId': 'p1'});
+    await carrier.stopScanning();
+    final sightings = <NearbyPeerSighting>[];
+    carrier.sightings.listen(sightings.add);
+    await Future<void>.delayed(const Duration(milliseconds: 200));
+    expect(sightings, isEmpty);
+  });
 }

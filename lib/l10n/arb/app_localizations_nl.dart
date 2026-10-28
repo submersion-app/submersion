@@ -2835,6 +2835,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get buddyCard_preview_noChanges => 'Niets op deze kaart is nieuw.';
 
   @override
+  String get buddyCard_preview_ownCard =>
+      'Dit is je eigen kaart. Wissel met een buddy om de zijne te krijgen.';
+
+  @override
   String buddyCard_preview_changed(String from, String to) {
     return '$to (was $from)';
   }

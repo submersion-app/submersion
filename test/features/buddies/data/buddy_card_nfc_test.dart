@@ -4,10 +4,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:ndef_record/ndef_record.dart';
 import 'package:submersion/features/buddies/data/services/buddy_card_nfc.dart';
 import 'package:submersion/features/buddies/data/services/card_emulation_service.dart';
-import 'package:submersion/features/buddies/data/services/ndef_bytes.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy_card.dart';
 import 'package:submersion/features/buddies/domain/services/buddy_card_codec.dart';
 import 'package:submersion/features/cylinder_passports/domain/services/passport_ndef.dart';
+
+import '../../../support/ndef_decode.dart';
 
 import '../../../helpers/fake_nfc.dart';
 

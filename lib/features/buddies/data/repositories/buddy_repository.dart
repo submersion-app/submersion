@@ -15,6 +15,7 @@ import 'package:submersion/features/buddies/domain/entities/buddy.dart'
     as domain;
 import 'package:submersion/features/buddies/domain/entities/buddy_with_dive_count.dart';
 import 'package:submersion/features/buddies/domain/entities/legacy_buddy_conversion.dart';
+import 'package:submersion/features/buddies/data/repositories/buddy_card_columns.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_conversion_repository.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_merge_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
@@ -198,7 +199,7 @@ class BuddyRepository {
       await _db
           .into(_db.buddies)
           .insert(
-            BuddiesCompanion(
+            BuddyCardColumns.of(buddy).copyWith(
               id: Value(id),
               diverId: Value(buddy.diverId),
               linkedDiverId: Value(buddy.linkedDiverId),
@@ -211,14 +212,6 @@ class BuddyRepository {
               isFavorite: Value(buddy.isFavorite),
               createdAt: Value(now.millisecondsSinceEpoch),
               updatedAt: Value(now.millisecondsSinceEpoch),
-              cardId: Value(buddy.cardId),
-              socialHandle: Value(buddy.socialHandle),
-              cardDiveCount: Value(buddy.cardDiveCount),
-              cardDivingSince: Value(buddy.cardDivingSince?.year),
-              cardLastDive: Value(buddy.cardLastDive?.millisecondsSinceEpoch),
-              cardReceivedAt: Value(
-                buddy.cardReceivedAt?.millisecondsSinceEpoch,
-              ),
             ),
           );
 
@@ -332,7 +325,7 @@ class BuddyRepository {
       await (_db.update(
         _db.buddies,
       )..where((t) => t.id.equals(buddy.id))).write(
-        BuddiesCompanion(
+        BuddyCardColumns.of(buddy).copyWith(
           diverId: Value(buddy.diverId),
           linkedDiverId: Value(buddy.linkedDiverId),
           name: Value(buddy.name),
@@ -343,12 +336,6 @@ class BuddyRepository {
           notes: Value(buddy.notes),
           isFavorite: Value(buddy.isFavorite),
           updatedAt: Value(now),
-          cardId: Value(buddy.cardId),
-          socialHandle: Value(buddy.socialHandle),
-          cardDiveCount: Value(buddy.cardDiveCount),
-          cardDivingSince: Value(buddy.cardDivingSince?.year),
-          cardLastDive: Value(buddy.cardLastDive?.millisecondsSinceEpoch),
-          cardReceivedAt: Value(buddy.cardReceivedAt?.millisecondsSinceEpoch),
         ),
       );
       await _syncRepository.markRecordPending(
@@ -1307,16 +1294,11 @@ class BuddyRepository {
       cardId: row.cardId,
       socialHandle: row.socialHandle,
       cardDiveCount: row.cardDiveCount,
-      cardDivingSince: row.cardDivingSince == null
-          ? null
-          : DateTime(row.cardDivingSince!),
-      cardLastDive: _fromMs(row.cardLastDive),
-      cardReceivedAt: _fromMs(row.cardReceivedAt),
+      cardDivingSince: BuddyCardColumns.divingSince(row.cardDivingSince),
+      cardLastDive: BuddyCardColumns.lastDive(row.cardLastDive),
+      cardReceivedAt: BuddyCardColumns.receivedAt(row.cardReceivedAt),
     );
   }
-
-  static DateTime? _fromMs(int? ms) =>
-      ms == null ? null : DateTime.fromMillisecondsSinceEpoch(ms);
 }
 
 /// Statistics about a buddy's dive history

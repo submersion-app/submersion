@@ -4,12 +4,14 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/buddies/data/services/buddy_card_importer.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/domain/services/buddy_card_codec.dart';
 import 'package:submersion/features/buddies/domain/services/buddy_card_matcher.dart';
 import 'package:submersion/features/buddies/domain/services/buddy_card_merge.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_card_providers.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
+import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -36,14 +38,38 @@ class _BuddyCardPreviewPageState extends ConsumerState<BuddyCardPreviewPage> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final buddiesAsync = ref.watch(allBuddiesProvider);
+    final diverId = ref.watch(validatedCurrentDiverIdProvider).value;
     return Scaffold(
       appBar: AppBar(title: Text(l10n.buddyCard_preview_title)),
       body: buddiesAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('$e')),
-        data: (buddies) =>
-            _body(context, matchBuddyCard(widget.decoded.card, buddies)),
+        // A card made from this logbook's own diver (scanned from a
+        // tablet sharing the logbook, say) is not a buddy.
+        data: (buddies) => widget.decoded.card.id == diverId
+            ? _ownCard(context)
+            : _body(context, matchBuddyCard(widget.decoded.card, buddies)),
       ),
+    );
+  }
+
+  Widget _ownCard(BuildContext context) {
+    final l10n = context.l10n;
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          child: Text(
+            l10n.buddyCard_preview_ownCard,
+            textAlign: TextAlign.center,
+          ),
+        ),
+        TextButton(
+          onPressed: _discard,
+          child: Text(l10n.buddyCard_action_discard),
+        ),
+      ],
     );
   }
 
@@ -57,7 +83,16 @@ class _BuddyCardPreviewPageState extends ConsumerState<BuddyCardPreviewPage> {
     };
     // A possible match shows what updating it would change; the Add as
     // new choice beside it changes nothing that exists.
-    final changes = buddyCardChanges(existing, card);
+    final stored = existing == null
+        ? null
+        : ref.watch(buddyCertificationsProvider(existing.id)).value;
+    final changes = buddyCardChanges(
+      existing,
+      card,
+      certs: existing == null
+          ? null
+          : BuddyCardImporter.certsToWrite(card, stored ?? const []),
+    );
     final title = switch (match) {
       CardRecognised(:final buddy) => l10n.buddyCard_preview_updateTitle(
         buddy.name,

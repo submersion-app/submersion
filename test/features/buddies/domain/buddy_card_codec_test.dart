@@ -249,4 +249,38 @@ void main() {
     );
     expect(card.last, isNull);
   });
+
+  test('a long last certification goes when only it stands in the way', () {
+    final card = BuddyCard(
+      id: 'diver-sam',
+      name: 'Sam Rivera',
+      phone: '+1 555 0134',
+      certs: [BuddyCardCert(agency: 'PADI', name: 'x' * 200)],
+    );
+    final bare = BuddyCardCodec.encodeLink(
+      card.copyWith(certs: const []),
+      maxBytes: 1000,
+    );
+    final link = BuddyCardCodec.encodeLink(card, maxBytes: bare.length + 8);
+    final decoded = BuddyCardCodec.decodeLink(link) as BuddyCardDecoded;
+    expect(decoded.card.certs, isEmpty);
+    expect(decoded.card.phone, '+1 555 0134');
+    expect(decoded.trimmed, isTrue);
+  });
+
+  test('a diving-since year in the future and an absurd dive count are '
+      'dropped', () {
+    final json = jsonEncode({
+      'v': 1,
+      'i': 'x',
+      'n': 'Xan',
+      'f': DateTime.now().year + 2,
+      'd': 1000000,
+    });
+    final decoded =
+        BuddyCardCodec.decodeFull(Uint8List.fromList(utf8.encode(json)))
+            as BuddyCardDecoded;
+    expect(decoded.card.since, isNull);
+    expect(decoded.card.dives, isNull);
+  });
 }

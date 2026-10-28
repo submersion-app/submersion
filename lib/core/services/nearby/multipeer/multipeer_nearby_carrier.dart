@@ -73,8 +73,14 @@ class MultipeerNearbyCarrier implements NearbyCarrier {
   @override
   Future<void> startScanning() => _channel.invokeMethod('browse', true);
 
+  /// Native forgets every found peer when it stops browsing, without a
+  /// `lost` for each: so does this side, or it would re-sight them forever.
   @override
-  Future<void> stopScanning() => _channel.invokeMethod('browse', false);
+  Future<void> stopScanning() {
+    _found.clear();
+    _updatePresence();
+    return _channel.invokeMethod('browse', false);
+  }
 
   @override
   Future<NearbyEndpoint> connect(String transportId) async {

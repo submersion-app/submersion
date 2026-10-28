@@ -5,6 +5,8 @@ import 'package:ndef_record/ndef_record.dart';
 import 'package:submersion/features/buddies/data/services/ndef_bytes.dart';
 import 'package:submersion/features/cylinder_passports/domain/services/passport_ndef.dart';
 
+import '../../../support/ndef_decode.dart';
+
 void main() {
   test('a one-record URI message encodes to the NFC Forum short record', () {
     final bytes = encodeNdef(NdefMessage(records: [uriRecord('https://ab')]));

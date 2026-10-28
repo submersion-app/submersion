@@ -739,6 +739,7 @@
   "buddyCard_preview_trimmed": "Sommige gegevens zijn weggelaten om in de code te passen.",
   "buddyCard_preview_newer": "Deze kaart komt uit een nieuwere versie van Submersion. Sommige gegevens kunnen ontbreken.",
   "buddyCard_preview_noChanges": "Niets op deze kaart is nieuw.",
+  "buddyCard_preview_ownCard": "Dit is je eigen kaart. Wissel met een buddy om de zijne te krijgen.",
   "buddyCard_preview_changed": "{to} (was {from})",
   "buddyCard_action_add": "Buddy toevoegen",
   "buddyCard_action_update": "Buddy bijwerken",

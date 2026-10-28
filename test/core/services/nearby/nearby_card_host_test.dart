@@ -4,9 +4,13 @@ import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/nearby/nearby_card_host.dart';
+import 'package:submersion/core/services/nearby/nearby_carrier.dart';
+import 'package:submersion/core/services/nearby/nearby_session.dart';
 
 import '../../../support/in_memory_nearby_carrier.dart';
+import '../../../support/memory_nearby_secrets.dart';
 import '../../../support/nearby_link_harness.dart';
+import '../../../support/nearby_session_harness.dart';
 
 /// Card mode on the link manager (issue #3728): discovery, requests and the
 /// swap itself between strangers' phones on their swap screens.
@@ -283,5 +287,87 @@ void main() {
     await settleNearby();
 
     expect(hostA.peers.map((p) => p.name), contains('Ben'));
+  });
+  test(
+    'a request whose session ends before the diver is heard fails',
+    () async {
+      final host = NearbyCardHost(
+        name: 'Ann',
+        card: () async => bytesOf('card'),
+        step: const Duration(milliseconds: 100),
+      );
+      addTearDown(host.dispose);
+      final events = <NearbyCardEvent>[];
+      host.events.listen(events.add);
+      host.attachCarrier('t:', (_) async {
+        final (out, into) = await nearbyLink();
+        // The other phone opens the session and then says nothing.
+        unawaited(
+          NearbySession(
+            endpoint: into,
+            identity: nearbySessionIdentity('P'),
+            secrets: MemoryNearbySecrets(),
+          ).accept(allowPairing: false, allowCard: true),
+        );
+        return NearbySession(
+          endpoint: out,
+          identity: nearbySessionIdentity('L'),
+          secrets: MemoryNearbySecrets(),
+        ).openCard();
+      });
+
+      await host.request(
+        const NearbyCardPeer(swapId: 'ben', name: 'Ben', transportId: 't:1'),
+      );
+      await settleNearby();
+
+      expect(
+        events.whereType<CardSwapFailed>().single.reason,
+        NearbyCardFailure.lost,
+      );
+    },
+  );
+
+  test('accepting after the asker has gone says the swap was lost', () async {
+    final hub = InMemoryNearbyHub();
+    final (a, hostA, _) = await onScreen(hub, 'A', 'Ann');
+    final (b, _, eventsB) = await onScreen(hub, 'B', 'Ben');
+    await discover([a, b]);
+
+    unawaited(hostA.request(peerNamed(hostA, 'Ben')));
+    await settleNearby();
+    final asked = eventsB.whereType<CardRequested>().single;
+    await hostA.dispose();
+    await settleNearby();
+    asked.decide(true);
+    await settleNearby();
+
+    expect(
+      eventsB.whereType<CardSwapFailed>().single.reason,
+      NearbyCardFailure.lost,
+    );
+  });
+
+  test('a dial that fails is tried again soon, not minutes later', () async {
+    var clock = DateTime(2026, 10, 28, 12);
+    final host = NearbyCardHost(
+      name: 'Ann',
+      card: () async => bytesOf('card'),
+      now: () => clock,
+    );
+    addTearDown(host.dispose);
+    var dials = 0;
+    host.attachCarrier('t:', (_) async {
+      dials++;
+      throw const NearbyConnectFailed('busy');
+    });
+
+    host.onSighting('t:1');
+    await settleNearby();
+    clock = clock.add(const Duration(seconds: 11));
+    host.onSighting('t:1');
+    await settleNearby();
+
+    expect(dials, 2);
   });
 }

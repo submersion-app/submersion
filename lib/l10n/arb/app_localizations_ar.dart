@@ -2927,6 +2927,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get buddyCard_preview_noChanges => 'لا جديد في هذه البطاقة.';
 
   @override
+  String get buddyCard_preview_ownCard =>
+      'هذه بطاقتك أنت. تبادل مع رفيق غوص لتحصل على بطاقته.';
+
+  @override
   String buddyCard_preview_changed(String from, String to) {
     return '$to (كان $from)';
   }

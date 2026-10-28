@@ -80,7 +80,7 @@ final Map<String, ConflictField> peoplePlanningFields = {
   ),
   'cardLastDive': ConflictField(
     (l) => l.settings_conflict_field_cardLastDive,
-    FieldKind.date,
+    FieldKind.utcDate,
   ),
   'cardNumber': ConflictField(
     (l) => CertificationField.cardNumber.localizedDisplayName(l),

@@ -27,6 +27,7 @@ class _FakeSession implements BuddySwapSession {
   Completer<void>? holdStart;
   final controller = StreamController<NearbyCardEvent>.broadcast();
   final requested = <String>[];
+  var starts = 0;
   var stops = 0;
   @override
   List<NearbyCardPeer> peers = [];
@@ -36,6 +37,7 @@ class _FakeSession implements BuddySwapSession {
 
   @override
   Future<NearbyAvailability> start() async {
+    starts++;
     await holdStart?.future;
     return availability;
   }
@@ -65,6 +67,8 @@ const _sam = NearbyCardPeer(
   name: 'Sam Rivera',
   transportId: 't1',
 );
+
+const _alex = NearbyCardPeer(swapId: 'a1', name: 'Alex Kim', transportId: 't2');
 
 /// The nearby list animates a spinner forever, so pumpAndSettle never
 /// settles; pump a bounded while instead.
@@ -311,6 +315,64 @@ void main() {
       find.text('Your card is too long for a code. Try Send file instead.'),
       findsOneWidget,
     );
+  });
+
+  testWidgets('leaving and coming back while the card builds starts once', (
+    tester,
+  ) async {
+    final card = Completer<BuddyCard?>();
+    await pump(tester, card: () => card.future);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    card.complete(_me);
+    await settle(tester);
+    expect(session.starts, 1);
+  });
+
+  testWidgets('leaving while the card builds starts nothing', (tester) async {
+    final card = Completer<BuddyCard?>();
+    await pump(tester, card: () => card.future);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    card.complete(_me);
+    await settle(tester);
+    expect(session.starts, 0);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await settle(tester);
+  });
+
+  testWidgets('two requests are asked in turn; the first expiring closes '
+      'its own sheet', (tester) async {
+    await pump(tester);
+    bool? alexAnswer;
+    session.controller.add(CardRequested(_sam, (_) {}));
+    session.controller.add(CardRequested(_alex, (a) => alexAnswer = a));
+    await settle(tester);
+    expect(find.text('Sam Rivera wants to swap cards'), findsOneWidget);
+    expect(find.text('Alex Kim wants to swap cards'), findsNothing);
+
+    session.controller.add(const CardRequestExpired(_sam));
+    await settle(tester);
+    expect(find.text('Sam Rivera wants to swap cards'), findsNothing);
+    expect(find.text('Alex Kim wants to swap cards'), findsOneWidget);
+    await tester.tap(find.text('Swap'));
+    await settle(tester);
+    expect(alexAnswer, isTrue);
+  });
+
+  testWidgets('a request that expires before its turn is never shown', (
+    tester,
+  ) async {
+    await pump(tester);
+    bool? alexAnswer;
+    session.controller.add(CardRequested(_sam, (_) {}));
+    session.controller.add(CardRequested(_alex, (a) => alexAnswer = a));
+    await settle(tester);
+    session.controller.add(const CardRequestExpired(_alex));
+    await settle(tester);
+    await tester.tap(find.text('Decline'));
+    await settle(tester);
+    expect(find.text('Alex Kim wants to swap cards'), findsNothing);
+    expect(alexAnswer, isFalse);
   });
 
   test('platform default is restored', () {

@@ -2841,6 +2841,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get buddyCard_preview_noChanges => 'A kártyán nincs új adat.';
 
   @override
+  String get buddyCard_preview_ownCard =>
+      'Ez a saját kártyád. Cserélj egy búvártárssal, hogy megkapd az övét.';
+
+  @override
   String buddyCard_preview_changed(String from, String to) {
     return '$to (korábban $from)';
   }

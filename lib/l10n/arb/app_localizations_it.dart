@@ -2852,6 +2852,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get buddyCard_preview_noChanges => 'Niente di nuovo in questa scheda.';
 
   @override
+  String get buddyCard_preview_ownCard =>
+      'Questa è la tua scheda. Scambia con un compagno per ricevere la sua.';
+
+  @override
   String buddyCard_preview_changed(String from, String to) {
     return '$to (prima $from)';
   }

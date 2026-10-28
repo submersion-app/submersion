@@ -49,6 +49,19 @@ void main() {
     expect(read.cardId, 'diver-sam');
   });
 
+  test('the last dive is stored as a calendar date, the same in every time '
+      'zone', () async {
+    final repo = BuddyRepository();
+    await repo.createBuddy(carded);
+    final db = DatabaseService.instance.database;
+    final row = await (db.select(
+      db.buddies,
+    )..where((t) => t.id.equals(carded.id))).getSingle();
+    // UTC midnight of the date: a synced device in another zone reads the
+    // same day back.
+    expect(row.cardLastDive, DateTime.utc(2026, 10, 3).millisecondsSinceEpoch);
+  });
+
   test('clearPhoto and clearLinkedDiver keep the card fields', () {
     expect(carded.clearPhoto().cardDiveCount, 118);
     expect(carded.clearLinkedDiver().cardId, 'diver-sam');

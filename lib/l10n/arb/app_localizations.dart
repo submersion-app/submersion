@@ -4387,6 +4387,12 @@ abstract class AppLocalizations {
   /// **'Nothing on this card is new.'**
   String get buddyCard_preview_noChanges;
 
+  /// No description provided for @buddyCard_preview_ownCard.
+  ///
+  /// In en, this message translates to:
+  /// **'This is your own card. Swap with a buddy to get theirs.'**
+  String get buddyCard_preview_ownCard;
+
   /// No description provided for @buddyCard_preview_changed.
   ///
   /// In en, this message translates to:

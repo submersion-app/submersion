@@ -2847,6 +2847,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get buddyCard_preview_noChanges => 'Nichts auf dieser Karte ist neu.';
 
   @override
+  String get buddyCard_preview_ownCard =>
+      'Das ist deine eigene Karte. Tausche mit einem Buddy, um seine zu bekommen.';
+
+  @override
   String buddyCard_preview_changed(String from, String to) {
     return '$to (vorher $from)';
   }

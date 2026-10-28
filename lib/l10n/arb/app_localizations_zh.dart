@@ -2699,6 +2699,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get buddyCard_preview_noChanges => '名片上没有新信息。';
 
   @override
+  String get buddyCard_preview_ownCard => '这是你自己的名片。与潜伴交换以获取对方的名片。';
+
+  @override
   String buddyCard_preview_changed(String from, String to) {
     return '$to（原为 $from）';
   }
