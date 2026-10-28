@@ -227,6 +227,173 @@ void main() {
       expect(find.textContaining('ppO₂ 1.4'), findsNothing);
     });
 
+    testWidgets('a deco tank takes the deco limit, and the note says both '
+        '(issue #3752)', (tester) async {
+      // EAN32 at the bottom 1.4 is 33.75 m; EAN50 at the deco 1.6 is 22 m.
+      // Both used to be taken at 1.4, which put the EAN50 at 18 m.
+      await tester.pumpWidget(
+        _buildCard(
+          dive: _makeDive([
+            _makeTank(),
+            _makeTank(
+              id: 'tank-2',
+              gasMix: const GasMix(o2: 50),
+              role: TankRole.deco,
+            ),
+          ]),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('MOD 33m'), findsOneWidget);
+      expect(find.text('MOD 22m'), findsOneWidget);
+      expect(find.text('MOD 18m'), findsNothing);
+      expect(
+        find.text('MOD at ppO₂ 1.4 (bottom limit), 1.6 (deco limit)'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a diluent takes the Dil MOD limit on a CCR dive (#3752)', (
+      tester,
+    ) async {
+      // Air at the Dil MOD 1.2 is 47.1 m; at the bottom 1.4 it is 56.7 m.
+      const settings = AppSettings(ccrDiluentModPpO2: 1.2);
+      await tester.pumpWidget(
+        _buildCard(
+          dive: _makeDive([
+            _makeTank(gasMix: const GasMix(o2: 21), role: TankRole.diluent),
+          ]).copyWith(diveMode: DiveMode.ccr),
+          settings: settings,
+          units: const UnitFormatter(settings),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('MOD 47m'), findsOneWidget);
+      // One limit in use: the note names its value alone, as before.
+      expect(find.text('MOD at ppO₂ 1.2'), findsOneWidget);
+    });
+
+    testWidgets('a diluent left on an open-circuit dive takes the bottom '
+        'limit (#3752)', (tester) async {
+      const settings = AppSettings(ccrDiluentModPpO2: 1.2);
+      await tester.pumpWidget(
+        _buildCard(
+          dive: _makeDive([
+            _makeTank(gasMix: const GasMix(o2: 21), role: TankRole.diluent),
+          ]),
+          settings: settings,
+          units: const UnitFormatter(settings),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('MOD 56m'), findsOneWidget);
+      expect(find.text('MOD at ppO₂ 1.4'), findsOneWidget);
+    });
+
+    testWidgets('limits that share a value are named once, by value (#3752)', (
+      tester,
+    ) async {
+      // The CCR loop: diluent at the Dil MOD 1.6, oxygen at the deco 1.6.
+      // Two limits, one ppO2, so the note says only the ppO2.
+      await tester.pumpWidget(
+        _buildCard(
+          dive: _makeDive([
+            _makeTank(gasMix: const GasMix(o2: 21), role: TankRole.diluent),
+            _makeTank(
+              id: 'tank-2',
+              gasMix: const GasMix(o2: 100),
+              role: TankRole.oxygenSupply,
+            ),
+          ]).copyWith(diveMode: DiveMode.ccr),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('MOD at ppO₂ 1.6'), findsOneWidget);
+    });
+
+    testWidgets('the note names every limit a CCR dive uses, bottom first '
+        '(#3752)', (tester) async {
+      // Diluent air at the Dil MOD 1.2, an EAN50 bailout at the deco 1.6,
+      // an air bailout at the bottom 1.4.
+      const settings = AppSettings(ccrDiluentModPpO2: 1.2);
+      await tester.pumpWidget(
+        _buildCard(
+          dive: _makeDive([
+            _makeTank(gasMix: const GasMix(o2: 21), role: TankRole.diluent),
+            _makeTank(
+              id: 'tank-2',
+              gasMix: const GasMix(o2: 50),
+              role: TankRole.bailout,
+            ),
+            _makeTank(
+              id: 'tank-3',
+              gasMix: const GasMix(o2: 21),
+              role: TankRole.bailout,
+            ),
+          ]).copyWith(diveMode: DiveMode.ccr),
+          settings: settings,
+          units: const UnitFormatter(settings),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text(
+          'MOD at ppO₂ 1.4 (bottom limit), 1.6 (deco limit), 1.2 (Dil MOD)',
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('limits that round to one shown value read as one (#3752)', (
+      tester,
+    ) async {
+      // 1.42 and 1.4 both show as 1.4; "1.4 (bottom limit), 1.4 (deco
+      // limit)" would say nothing the plain note does not.
+      const settings = AppSettings(ppO2MaxWorking: 1.42, ppO2MaxDeco: 1.4);
+      await tester.pumpWidget(
+        _buildCard(
+          dive: _makeDive([
+            _makeTank(),
+            _makeTank(
+              id: 'tank-2',
+              gasMix: const GasMix(o2: 50),
+              role: TankRole.deco,
+            ),
+          ]),
+          settings: settings,
+          units: const UnitFormatter(settings),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('MOD at ppO₂ 1.4'), findsOneWidget);
+    });
+
+    testWidgets('the MOD note stands apart from the last row (#3752)', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _buildCard(dive: _makeDive([_makeTank()]), cylinderSacs: [_makeSac()]),
+      );
+      await tester.pumpAndSettle();
+
+      final lastDetail = tester.getBottomLeft(find.text('MOD 33m')).dy;
+      final note = tester.getTopLeft(find.text('MOD at ppO₂ 1.4')).dy;
+      // A rule closes the table, and the note sits clear of it: it reads as
+      // a note on the card, not as one more detail of the last cylinder.
+      final rules = tester
+          .widgetList<Divider>(find.byType(Divider))
+          .map((d) => tester.getTopLeft(find.byWidget(d)).dy)
+          .where((y) => y > lastDetail && y < note);
+      expect(rules, hasLength(1));
+      expect(note - rules.single, greaterThanOrEqualTo(12));
+    });
+
     testWidgets('MOD is rounded down, never up (issue #2342)', (tester) async {
       // EAN32 at ppO2 1.4 is 33.75 m. Rounded to nearest it showed as 34 m,
       // deeper than the gas may be taken.

@@ -3671,6 +3671,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             suggested: _suggestedTankIds.contains(_tanks[i].id),
             // A saved dive's tanks can show the mix their computer logged.
             diveId: _existingDive?.id,
+            // A diluent's MOD follows the Dil MOD limit on a rebreather
+            // dive only (issue #3752).
+            diveMode: _diveMode,
             onChanged: (updatedTank) {
               final before = _tanks[i];
               setState(() {

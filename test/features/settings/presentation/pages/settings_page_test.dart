@@ -1743,10 +1743,9 @@ void main() {
       final phoneTitles = tileTitles(tester);
 
       expect(hubTitles, phoneTitles);
-      expect(
-        hubTitles,
-        containsAll(['Language', 'Display size', 'Gear arrangement']),
-      );
+      expect(hubTitles, containsAll(['Language', 'Display size']));
+      // Gear arrangement lives on the Dives appearance page (#3750).
+      expect(hubTitles, isNot(contains('Gear arrangement')));
       expect(hubTitles, isNot(contains('App Language')));
     });
 
@@ -1803,26 +1802,6 @@ void main() {
         hasLength(LanguageSettingsPage.supportedLocales.length),
       );
       expect(inlineTitles.first, 'System Default');
-    });
-
-    testWidgets('hub opens the gear arrangement sheet', (tester) async {
-      await tester.binding.setSurfaceSize(const Size(500, 4000));
-      addTearDown(() => tester.binding.setSurfaceSize(null));
-
-      await tester.pumpWidget(
-        buildAppearanceWidget([
-          ...getOverrides(),
-          appSettingsRepositoryProvider.overrideWithValue(
-            FakeAppSettingsRepository(),
-          ),
-        ]),
-      );
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.text('Gear arrangement'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Order types by'), findsOneWidget);
     });
 
     // The desktop master-detail pane renders _AppearanceSectionContent, a
