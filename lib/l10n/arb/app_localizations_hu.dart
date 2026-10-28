@@ -2827,6 +2827,312 @@ class AppLocalizationsHu extends AppLocalizations {
   String get buddies_action_addTooltip => 'Új búvártárs hozzáadása';
 
   @override
+  String get buddyCard_preview_title => 'Társkártya';
+
+  @override
+  String buddyCard_preview_addTitle(String name) {
+    return '$name hozzáadása társként';
+  }
+
+  @override
+  String buddyCard_preview_updateTitle(String name) {
+    return '$name frissítése';
+  }
+
+  @override
+  String buddyCard_preview_possibleTitle(String name) {
+    return 'Ez $name a társaid közül?';
+  }
+
+  @override
+  String get buddyCard_preview_trimmed =>
+      'Néhány adat kimaradt, hogy elférjen a kódban.';
+
+  @override
+  String get buddyCard_preview_newer =>
+      'Ez a kártya a Submersion egy újabb verziójából származik. Néhány adat hiányozhat.';
+
+  @override
+  String get buddyCard_preview_noChanges => 'A kártyán nincs új adat.';
+
+  @override
+  String get buddyCard_preview_ownCard =>
+      'Ez a saját kártyád. Cserélj egy búvártárssal, hogy megkapd az övét.';
+
+  @override
+  String buddyCard_preview_changed(String from, String to) {
+    return '$to (korábban $from)';
+  }
+
+  @override
+  String get buddyCard_action_add => 'Társ hozzáadása';
+
+  @override
+  String get buddyCard_action_update => 'Társ frissítése';
+
+  @override
+  String get buddyCard_action_addAsNew => 'Hozzáadás új társként';
+
+  @override
+  String get buddyCard_action_discard => 'Elvetés';
+
+  @override
+  String get buddyCard_field_name => 'Név';
+
+  @override
+  String get buddyCard_field_phone => 'Telefon';
+
+  @override
+  String get buddyCard_field_email => 'E-mail';
+
+  @override
+  String get buddyCard_field_social => 'Közösségimédia-név';
+
+  @override
+  String get buddyCard_field_dives => 'Merülések';
+
+  @override
+  String get buddyCard_field_divingSince => 'Merül óta';
+
+  @override
+  String get buddyCard_field_lastDive => 'Utolsó merülés';
+
+  @override
+  String get buddyCard_field_certifications => 'Minősítések';
+
+  @override
+  String buddyCard_saved_added(String name) {
+    return '$name hozzáadva a társaidhoz';
+  }
+
+  @override
+  String buddyCard_saved_updated(String name) {
+    return '$name frissítve';
+  }
+
+  @override
+  String get buddyCard_saved_view => 'Megtekintés';
+
+  @override
+  String get buddyCard_error_notACard => 'Ez nem Submersion társkártya.';
+
+  @override
+  String get buddyCard_error_unreadable =>
+      'Ezt a társkártyát nem sikerült beolvasni.';
+
+  @override
+  String get buddySwap_title => 'Csere egy társsal';
+
+  @override
+  String get buddySwap_nearby_heading => 'Közeli búvárok nyitott Submersionnel';
+
+  @override
+  String get buddySwap_nearby_tapToSwap => 'Koppints a cseréhez';
+
+  @override
+  String get buddySwap_nearby_looking => 'További keresése…';
+
+  @override
+  String get buddySwap_nearby_failed =>
+      'Nem sikerült a közeli búvárokat keresni. Az alábbi többi cseremód továbbra is működik.';
+
+  @override
+  String get buddySwap_nearby_hint =>
+      'Nem látod a társad? Mindkettőtöknél nyitva kell lennie ennek a képernyőnek, és Submersion 1.8.4 vagy újabb kell.';
+
+  @override
+  String buddySwap_sharing(String summary) {
+    return 'Megosztva: $summary';
+  }
+
+  @override
+  String get buddySwap_sharing_change => 'Módosítás';
+
+  @override
+  String buddySwap_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülés',
+      one: '1 merülés',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddySwap_action_showCode => 'Kódom megjelenítése';
+
+  @override
+  String get buddySwap_action_scanCode => 'Kód beolvasása';
+
+  @override
+  String get buddySwap_action_sendFile => 'Fájl küldése';
+
+  @override
+  String get buddySwap_action_openFile => 'Kártyafájl megnyitása';
+
+  @override
+  String get buddySwap_action_writeSticker => 'NFC-matrica írása';
+
+  @override
+  String get buddySwap_action_tapAndroid => 'Androidos telefon érintése';
+
+  @override
+  String get buddySwap_action_receiveByTap => 'Fogadás érintéssel';
+
+  @override
+  String get buddySwap_tap_prompt =>
+      'Tartsd a telefonod a másik telefonhoz vagy a matricához';
+
+  @override
+  String get buddySwap_sticker_prompt =>
+      'Tartsd a telefonod egy üres NFC-matricához';
+
+  @override
+  String get buddySwap_sticker_written =>
+      'Matrica megírva. Írd újra, ha változnak az adataid.';
+
+  @override
+  String get buddySwap_sticker_tooSmall =>
+      'Ez a matrica túl kicsi a kártyádhoz.';
+
+  @override
+  String get buddySwap_sticker_notWritable =>
+      'Erre a matricára nem lehet írni.';
+
+  @override
+  String get buddySwap_nfc_unavailable =>
+      'Az NFC nem érhető el ezen az eszközön.';
+
+  @override
+  String get buddySwap_qr_title => 'A társkártyád';
+
+  @override
+  String get buddySwap_qr_hint =>
+      'Kérd meg a társad, hogy olvassa be a Submersionnel vagy a kamerájával.';
+
+  @override
+  String buddySwap_request_title(String name) {
+    return '$name kártyát szeretne cserélni';
+  }
+
+  @override
+  String buddySwap_request_youSend(String summary) {
+    return 'Ezt küldöd: $summary';
+  }
+
+  @override
+  String get buddySwap_request_swap => 'Csere';
+
+  @override
+  String get buddySwap_request_decline => 'Elutasítás';
+
+  @override
+  String buddySwap_waiting(String name) {
+    return 'Várakozás $name válaszára';
+  }
+
+  @override
+  String buddySwap_failed_declined(String name) {
+    return '$name elutasította a cserét';
+  }
+
+  @override
+  String buddySwap_failed_timedOut(String name) {
+    return '$name nem válaszolt';
+  }
+
+  @override
+  String buddySwap_failed_lost(String name) {
+    return 'Megszakadt a kapcsolat vele: $name';
+  }
+
+  @override
+  String buddySwap_failed_newerApp(String name) {
+    return '$name a Submersion újabb verziójára van szüksége';
+  }
+
+  @override
+  String get buddySwap_cardFailed =>
+      'Nem sikerült elkészíteni a társkártyádat.';
+
+  @override
+  String get buddySwap_qr_tooLarge =>
+      'A kártyád túl hosszú egy kódhoz. Próbáld inkább a Fájl küldése lehetőséget.';
+
+  @override
+  String get buddySwap_sendFailed => 'A kártyafájlt nem sikerült megosztani.';
+
+  @override
+  String get buddyCard_saveFailed => 'A társat nem sikerült menteni.';
+
+  @override
+  String get buddyCard_field_photo => 'Fotó';
+
+  @override
+  String get buddyCard_change_newPhoto => 'Új fotó';
+
+  @override
+  String get buddyShare_title => 'Amit megosztasz';
+
+  @override
+  String get buddyShare_name => 'Név';
+
+  @override
+  String get buddyShare_alwaysShared => 'Mindig megosztva';
+
+  @override
+  String get buddyShare_neverShared =>
+      'Az egészségügyi, biztosítási és vészhelyzeti adatokat soha nem osztjuk meg.';
+
+  @override
+  String get buddyShare_photo => 'Fotó';
+
+  @override
+  String get buddyShare_phone => 'Telefon';
+
+  @override
+  String get buddyShare_email => 'E-mail';
+
+  @override
+  String get buddyShare_certifications => 'Minősítések';
+
+  @override
+  String get buddyShare_cardDetails => 'Kártyaszámok és dátumok';
+
+  @override
+  String get buddyShare_diveCount => 'Merülések száma';
+
+  @override
+  String get buddyShare_divingSince => 'Merül óta';
+
+  @override
+  String get buddyShare_lastDive => 'Utolsó merülés dátuma';
+
+  @override
+  String get buddyShare_social => 'Közösségimédia-név';
+
+  @override
+  String buddyCard_detail_heading(String name) {
+    return '$name kártyájáról';
+  }
+
+  @override
+  String buddyCard_detail_since(String year) {
+    return '$year óta merül';
+  }
+
+  @override
+  String buddyCard_detail_last(String date) {
+    return 'Utolsó merülés: $date';
+  }
+
+  @override
+  String buddyCard_detail_received(String date) {
+    return 'Fogadva: $date';
+  }
+
+  @override
   String get buddies_action_clearSearch => 'Keresés törlése';
 
   @override
@@ -24155,6 +24461,30 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_conflict_field_priorDiveCount =>
       'Merülések a napló előtt';
+
+  @override
+  String get settings_conflict_field_buddyCardShare => 'Társkártya megosztása';
+
+  @override
+  String get settings_conflict_field_cardDiveCount =>
+      'Merülések (a kártyája szerint)';
+
+  @override
+  String get settings_conflict_field_cardDivingSince =>
+      'Merül óta (a kártyája szerint)';
+
+  @override
+  String get settings_conflict_field_cardId => 'Társkártya';
+
+  @override
+  String get settings_conflict_field_cardLastDive =>
+      'Utolsó merülés (a kártyája szerint)';
+
+  @override
+  String get settings_conflict_field_cardReceivedAt => 'Kártya fogadva';
+
+  @override
+  String get settings_conflict_field_socialHandle => 'Közösségimédia-név';
 
   @override
   String get settings_conflict_field_priorDiveTimeSeconds =>

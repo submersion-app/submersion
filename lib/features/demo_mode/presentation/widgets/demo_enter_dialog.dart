@@ -156,10 +156,6 @@ class _DemoEnterDialogState extends ConsumerState<DemoEnterDialog> {
       DemoEnterStage.preparing => l10n.demo_enter_preparing,
       DemoEnterStage.opening => l10n.demo_enter_opening,
     };
-    final fraction =
-        progress.stage == DemoEnterStage.downloading && progress.total > 0
-        ? progress.received / progress.total
-        : null;
     return AlertDialog(
       title: Text(l10n.demo_welcome_title),
       content: Column(
@@ -168,7 +164,8 @@ class _DemoEnterDialogState extends ConsumerState<DemoEnterDialog> {
         children: [
           Text(label),
           const SizedBox(height: 16),
-          LinearProgressIndicator(value: fraction),
+          // Always a value: one bar fills across every stage, never a sweep.
+          LinearProgressIndicator(value: progress.fraction),
         ],
       ),
       actions: [

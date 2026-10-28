@@ -73,6 +73,10 @@ Widget _buildTestWidget({
             builder: (context, state) => const Scaffold(body: Text('new')),
           ),
           GoRoute(
+            path: 'swap',
+            builder: (context, state) => const Scaffold(body: Text('SWAP')),
+          ),
+          GoRoute(
             path: ':id',
             builder: (context, state) => const Scaffold(body: Text('detail')),
           ),
@@ -143,6 +147,35 @@ void main() {
       expect(find.byType(BuddyListContent), findsOneWidget);
       expect(find.byType(TableModeLayout), findsNothing);
       expect(find.byType(MasterDetailScaffold), findsNothing);
+    });
+
+    testWidgets('the swap action opens the swap screen (#3728)', (
+      tester,
+    ) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(400, 800);
+      addTearDown(tester.view.reset);
+
+      await tester.pumpWidget(_buildTestWidget(overrides: baseOverrides()));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byTooltip('Swap with a buddy'));
+      await tester.pumpAndSettle();
+      expect(find.text('SWAP'), findsOneWidget);
+    });
+
+    testWidgets('table mode also has the swap action', (tester) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(1200, 800);
+      addTearDown(tester.view.reset);
+
+      await tester.pumpWidget(
+        _buildTestWidget(
+          overrides: baseOverrides(viewMode: ListViewMode.table),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byTooltip('Swap with a buddy'), findsOneWidget);
     });
 
     testWidgets('renders TableModeLayout in table mode', (tester) async {

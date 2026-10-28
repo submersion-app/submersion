@@ -2838,6 +2838,316 @@ class AppLocalizationsEs extends AppLocalizations {
   String get buddies_action_addTooltip => 'Agregar un nuevo compañero de buceo';
 
   @override
+  String get buddyCard_preview_title => 'Tarjeta de compañero';
+
+  @override
+  String buddyCard_preview_addTitle(String name) {
+    return 'Añadir a $name como compañero';
+  }
+
+  @override
+  String buddyCard_preview_updateTitle(String name) {
+    return 'Actualizar a $name';
+  }
+
+  @override
+  String buddyCard_preview_possibleTitle(String name) {
+    return '¿Es $name de tus compañeros?';
+  }
+
+  @override
+  String get buddyCard_preview_trimmed =>
+      'Se omitieron algunos datos para que cupieran en el código.';
+
+  @override
+  String get buddyCard_preview_newer =>
+      'Esta tarjeta es de una versión más reciente de Submersion. Puede que falten algunos datos.';
+
+  @override
+  String get buddyCard_preview_noChanges =>
+      'No hay nada nuevo en esta tarjeta.';
+
+  @override
+  String get buddyCard_preview_ownCard =>
+      'Esta es tu propia tarjeta. Intercambia con un compañero para obtener la suya.';
+
+  @override
+  String buddyCard_preview_changed(String from, String to) {
+    return '$to (antes $from)';
+  }
+
+  @override
+  String get buddyCard_action_add => 'Añadir compañero';
+
+  @override
+  String get buddyCard_action_update => 'Actualizar compañero';
+
+  @override
+  String get buddyCard_action_addAsNew => 'Añadir como nuevo compañero';
+
+  @override
+  String get buddyCard_action_discard => 'Descartar';
+
+  @override
+  String get buddyCard_field_name => 'Nombre';
+
+  @override
+  String get buddyCard_field_phone => 'Teléfono';
+
+  @override
+  String get buddyCard_field_email => 'Correo electrónico';
+
+  @override
+  String get buddyCard_field_social => 'Usuario en redes sociales';
+
+  @override
+  String get buddyCard_field_dives => 'Inmersiones';
+
+  @override
+  String get buddyCard_field_divingSince => 'Bucea desde';
+
+  @override
+  String get buddyCard_field_lastDive => 'Última inmersión';
+
+  @override
+  String get buddyCard_field_certifications => 'Certificaciones';
+
+  @override
+  String buddyCard_saved_added(String name) {
+    return '$name añadido a tus compañeros';
+  }
+
+  @override
+  String buddyCard_saved_updated(String name) {
+    return '$name actualizado';
+  }
+
+  @override
+  String get buddyCard_saved_view => 'Ver';
+
+  @override
+  String get buddyCard_error_notACard =>
+      'Eso no es una tarjeta de compañero de Submersion.';
+
+  @override
+  String get buddyCard_error_unreadable =>
+      'No se pudo leer esta tarjeta de compañero.';
+
+  @override
+  String get buddySwap_title => 'Intercambiar con un compañero';
+
+  @override
+  String get buddySwap_nearby_heading =>
+      'Buceadores cercanos con Submersion abierto';
+
+  @override
+  String get buddySwap_nearby_tapToSwap => 'Toca para intercambiar';
+
+  @override
+  String get buddySwap_nearby_looking => 'Buscando más…';
+
+  @override
+  String get buddySwap_nearby_failed =>
+      'No se pudo buscar buceadores cercanos. Las otras formas de intercambiar de abajo siguen funcionando.';
+
+  @override
+  String get buddySwap_nearby_hint =>
+      '¿No ves a tu compañero? Ambos necesitáis esta pantalla abierta y Submersion 1.8.4 o posterior.';
+
+  @override
+  String buddySwap_sharing(String summary) {
+    return 'Compartes: $summary';
+  }
+
+  @override
+  String get buddySwap_sharing_change => 'Cambiar';
+
+  @override
+  String buddySwap_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count inmersiones',
+      one: '1 inmersión',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddySwap_action_showCode => 'Mostrar mi código';
+
+  @override
+  String get buddySwap_action_scanCode => 'Escanear código';
+
+  @override
+  String get buddySwap_action_sendFile => 'Enviar archivo';
+
+  @override
+  String get buddySwap_action_openFile => 'Abrir archivo de tarjeta';
+
+  @override
+  String get buddySwap_action_writeSticker => 'Escribir pegatina NFC';
+
+  @override
+  String get buddySwap_action_tapAndroid => 'Acercar un teléfono Android';
+
+  @override
+  String get buddySwap_action_receiveByTap => 'Recibir acercando';
+
+  @override
+  String get buddySwap_tap_prompt =>
+      'Acerca tu teléfono al otro teléfono o a la pegatina';
+
+  @override
+  String get buddySwap_sticker_prompt =>
+      'Acerca tu teléfono a una pegatina NFC vacía';
+
+  @override
+  String get buddySwap_sticker_written =>
+      'Pegatina escrita. Vuelve a escribirla cuando cambien tus datos.';
+
+  @override
+  String get buddySwap_sticker_tooSmall =>
+      'Esa pegatina es demasiado pequeña para tu tarjeta.';
+
+  @override
+  String get buddySwap_sticker_notWritable =>
+      'No se puede escribir en esa pegatina.';
+
+  @override
+  String get buddySwap_nfc_unavailable =>
+      'NFC no está disponible en este dispositivo.';
+
+  @override
+  String get buddySwap_qr_title => 'Tu tarjeta de compañero';
+
+  @override
+  String get buddySwap_qr_hint =>
+      'Pide a tu compañero que lo escanee con Submersion o con su cámara.';
+
+  @override
+  String buddySwap_request_title(String name) {
+    return '$name quiere intercambiar tarjetas';
+  }
+
+  @override
+  String buddySwap_request_youSend(String summary) {
+    return 'Enviarás: $summary';
+  }
+
+  @override
+  String get buddySwap_request_swap => 'Intercambiar';
+
+  @override
+  String get buddySwap_request_decline => 'Rechazar';
+
+  @override
+  String buddySwap_waiting(String name) {
+    return 'Esperando la respuesta de $name';
+  }
+
+  @override
+  String buddySwap_failed_declined(String name) {
+    return '$name rechazó el intercambio';
+  }
+
+  @override
+  String buddySwap_failed_timedOut(String name) {
+    return '$name no respondió';
+  }
+
+  @override
+  String buddySwap_failed_lost(String name) {
+    return 'Se perdió la conexión con $name';
+  }
+
+  @override
+  String buddySwap_failed_newerApp(String name) {
+    return '$name necesita una versión más reciente de Submersion';
+  }
+
+  @override
+  String get buddySwap_cardFailed =>
+      'No se pudo crear tu tarjeta de compañero.';
+
+  @override
+  String get buddySwap_qr_tooLarge =>
+      'Tu tarjeta es demasiado larga para un código. Prueba Enviar archivo.';
+
+  @override
+  String get buddySwap_sendFailed =>
+      'No se pudo compartir el archivo de la tarjeta.';
+
+  @override
+  String get buddyCard_saveFailed => 'No se pudo guardar el compañero.';
+
+  @override
+  String get buddyCard_field_photo => 'Foto';
+
+  @override
+  String get buddyCard_change_newPhoto => 'Foto nueva';
+
+  @override
+  String get buddyShare_title => 'Qué compartes';
+
+  @override
+  String get buddyShare_name => 'Nombre';
+
+  @override
+  String get buddyShare_alwaysShared => 'Siempre se comparte';
+
+  @override
+  String get buddyShare_neverShared =>
+      'Los datos médicos, de seguro y de emergencia nunca se comparten.';
+
+  @override
+  String get buddyShare_photo => 'Foto';
+
+  @override
+  String get buddyShare_phone => 'Teléfono';
+
+  @override
+  String get buddyShare_email => 'Correo electrónico';
+
+  @override
+  String get buddyShare_certifications => 'Certificaciones';
+
+  @override
+  String get buddyShare_cardDetails => 'Números y fechas de tarjeta';
+
+  @override
+  String get buddyShare_diveCount => 'Número de inmersiones';
+
+  @override
+  String get buddyShare_divingSince => 'Bucea desde';
+
+  @override
+  String get buddyShare_lastDive => 'Fecha de la última inmersión';
+
+  @override
+  String get buddyShare_social => 'Usuario en redes sociales';
+
+  @override
+  String buddyCard_detail_heading(String name) {
+    return 'De la tarjeta de $name';
+  }
+
+  @override
+  String buddyCard_detail_since(String year) {
+    return 'Bucea desde $year';
+  }
+
+  @override
+  String buddyCard_detail_last(String date) {
+    return 'Última inmersión $date';
+  }
+
+  @override
+  String buddyCard_detail_received(String date) {
+    return 'Recibida el $date';
+  }
+
+  @override
   String get buddies_action_clearSearch => 'Limpiar búsqueda';
 
   @override
@@ -24267,6 +24577,32 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get settings_conflict_field_priorDiveCount =>
       'Inmersiones antes de este registro';
+
+  @override
+  String get settings_conflict_field_buddyCardShare =>
+      'Datos compartidos en la tarjeta de compañero';
+
+  @override
+  String get settings_conflict_field_cardDiveCount =>
+      'Inmersiones (según su tarjeta)';
+
+  @override
+  String get settings_conflict_field_cardDivingSince =>
+      'Bucea desde (según su tarjeta)';
+
+  @override
+  String get settings_conflict_field_cardId => 'Tarjeta de compañero';
+
+  @override
+  String get settings_conflict_field_cardLastDive =>
+      'Última inmersión (según su tarjeta)';
+
+  @override
+  String get settings_conflict_field_cardReceivedAt => 'Tarjeta recibida';
+
+  @override
+  String get settings_conflict_field_socialHandle =>
+      'Usuario en redes sociales';
 
   @override
   String get settings_conflict_field_priorDiveTimeSeconds =>

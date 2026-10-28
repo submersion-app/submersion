@@ -11,7 +11,7 @@ import 'package:submersion/features/media/data/repositories/media_row_mapper.dar
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_person_tag.dart';
 
-/// People tagged on photos and videos: the `media_people` table (v324,
+/// People tagged on photos and videos: the `media_people` table (v326,
 /// issue #1745).
 ///
 /// A row is a buddy or the diver themself ("Me"), with an optional face box

@@ -1,8 +1,9 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-/// What the initiator wants from a session.
-enum NearbyIntent { sync, pair }
+/// What a session is for. `card` is the buddy card swap (issue #3728): an
+/// unpaired exchange between strangers, carried at [NearbyHello.cardProtocolVersion].
+enum NearbyIntent { sync, pair, card }
 
 /// Why a session was refused. The [index] travels as the single byte of an
 /// `error` frame, so values are only ever appended.
@@ -15,7 +16,11 @@ enum NearbyErrorCode {
   differentLibrary,
   notPaired,
   protocol,
-  busy;
+  busy,
+
+  /// The other device is not on its buddy card swap screen (issue #3728).
+  /// Appended, so an older build reads it as [protocol].
+  notSwapping;
 
   static NearbyErrorCode fromByte(int byte) =>
       byte < values.length ? values[byte] : protocol;
@@ -131,7 +136,16 @@ class NearbyHello {
     this.tag,
   });
 
+  /// The version sync and pair hellos carry. It stays at 1 so nearby sync
+  /// with builds that know nothing of card swaps keeps working.
   static const currentProtocolVersion = 1;
+
+  /// The version a buddy card hello carries (issue #3728). A build that
+  /// predates card swaps refuses it as newer, which is the answer it needs.
+  static const cardProtocolVersion = 2;
+
+  /// The newest hello this build reads.
+  static const maxProtocolVersion = 2;
 
   final int protocolVersion;
   final NearbyIntent intent;

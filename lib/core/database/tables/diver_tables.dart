@@ -66,6 +66,11 @@ class Divers extends Table {
   IntColumn get priorDiveTimeSeconds => integer().nullable()();
   IntColumn get divingSince => integer().nullable()(); // year, e.g. 1990
 
+  /// v324 buddy card swap (issue #3728): a handle shared on the diver's
+  /// card, and which fields the diver shares, as JSON (null = defaults).
+  TextColumn get socialHandle => text().nullable()();
+  TextColumn get buddyCardShare => text().nullable()();
+
   @override
   Set<Column> get primaryKey => {id};
 }

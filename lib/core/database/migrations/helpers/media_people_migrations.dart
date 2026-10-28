@@ -2,7 +2,7 @@ part of '../app_database_migrations.dart';
 
 /// People tagged on photos and videos (issue #1745).
 extension MediaPeopleMigrations on AppDatabase {
-  /// v324: the media_people table and its lookup indexes. Idempotent.
+  /// v326: the media_people table and its lookup indexes. Idempotent.
   Future<void> _assertMediaPeopleSchema() async {
     if (!await _tableExists('media_people')) {
       await Migrator(this).createTable(mediaPeople);

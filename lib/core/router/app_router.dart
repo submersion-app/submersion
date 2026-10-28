@@ -10,6 +10,9 @@ import 'package:submersion/core/router/nav_shortcut_pages.dart';
 
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/notification_service.dart';
+import 'package:submersion/features/buddies/domain/services/buddy_card_codec.dart';
+import 'package:submersion/features/buddies/presentation/pages/buddy_card_preview_page.dart';
+import 'package:submersion/features/buddies/presentation/pages/buddy_swap_page.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_list_page.dart';
 import 'package:submersion/features/cylinder_passports/presentation/pages/foreign_passport_page.dart';
 import 'package:submersion/features/cylinder_passports/presentation/pages/passport_page.dart';
@@ -874,6 +877,25 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                       const <String>[];
                   return BuddyMergePage(buddyIds: buddyIds);
                 },
+              ),
+              GoRoute(
+                path: 'swap',
+                name: 'buddySwap',
+                builder: (context, state) => const BuddySwapPage(),
+              ),
+              GoRoute(
+                path: 'card',
+                name: 'buddyCardPreview',
+                // A card can arrive from anywhere (a link, a file, a tap):
+                // on the root navigator it opens over whatever is showing.
+                parentNavigatorKey: rootNavigatorKey,
+                // Restored or typed without its card, there is nothing to
+                // preview.
+                redirect: (context, state) =>
+                    state.extra is BuddyCardDecoded ? null : '/buddies',
+                builder: (context, state) => BuddyCardPreviewPage(
+                  decoded: state.extra! as BuddyCardDecoded,
+                ),
               ),
               GoRoute(
                 path: ':buddyId',

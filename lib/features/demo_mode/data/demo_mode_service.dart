@@ -21,14 +21,36 @@ const _currentDiverIdKey = 'current_diver_id';
 
 final _log = LoggerService.forClass(DemoModeService);
 
-enum DemoEnterStage { downloading, preparing, opening }
+/// The steps of entering demo mode, each filling its share of one progress
+/// bar, from [start] to [end]. The shares meet end to end, so the bar fills
+/// once and never sweeps or moves back (#3797). The download gets most of it,
+/// since on a slow connection it is nearly all of the wait.
+enum DemoEnterStage {
+  downloading(0, 0.6),
+  preparing(0.6, 0.75),
+  opening(0.75, 1);
+
+  const DemoEnterStage(this.start, this.end);
+
+  final double start;
+  final double end;
+}
 
 class DemoEnterProgress {
-  const DemoEnterProgress(this.stage, {this.received = 0, this.total = 0});
+  const DemoEnterProgress(this.stage, {this.done = 0, this.total = 0});
 
   final DemoEnterStage stage;
-  final int received;
+
+  /// How far through [stage]: [done] of [total] bytes or steps. A [total] of
+  /// 0 means the stage has only begun.
+  final int done;
   final int total;
+
+  /// How far the whole entry has come, from 0 to 1.
+  double get fraction {
+    final through = total > 0 ? (done / total).clamp(0.0, 1.0) : 0.0;
+    return stage.start + (stage.end - stage.start) * through;
+  }
 }
 
 /// The sample logbook on offer is no longer the size the user agreed to
@@ -108,6 +130,11 @@ class DemoModeService {
       fromFirstRun: fromFirstRun,
       enteredAt: clock(),
     );
+    // Byte or step counts from each stage, placed in that stage's share.
+    void Function(int, int) reportIn(DemoEnterStage stage) =>
+        (done, total) => onProgress?.call(
+          DemoEnterProgress(stage, done: done, total: total),
+        );
     try {
       await store.write(state);
       onProgress?.call(const DemoEnterProgress(DemoEnterStage.downloading));
@@ -118,15 +145,17 @@ class DemoModeService {
         pkg,
         File(paths.packageFile),
         isCancelled: isCancelled,
-        onProgress: (r, t) => onProgress?.call(
-          DemoEnterProgress(DemoEnterStage.downloading, received: r, total: t),
-        ),
+        onProgress: reportIn(DemoEnterStage.downloading),
       );
       // The downloader sees Cancel only as chunks land, so a tap that comes
       // with the last one is honoured here, and again before the switch.
       _throwIfCancelled(isCancelled);
       onProgress?.call(const DemoEnterProgress(DemoEnterStage.preparing));
-      await extractor.extract(zip, paths);
+      await extractor.extract(
+        zip,
+        paths,
+        onProgress: reportIn(DemoEnterStage.preparing),
+      );
       await PrefsSnapshot.capture(prefs, File(paths.prefsSnapshotFile));
       _throwIfCancelled(isCancelled);
     } catch (_) {
@@ -147,6 +176,7 @@ class DemoModeService {
         photosDir: paths.photosDir,
         deviceId: deviceId(),
         units: units,
+        onProgress: reportIn(DemoEnterStage.opening),
       );
       final diverId = await _defaultDiverId(switcher.current);
       if (diverId != null) await prefs.setString(_currentDiverIdKey, diverId);
@@ -154,6 +184,9 @@ class DemoModeService {
       // A kill before this line relaunches as entering, which restores the
       // preferences and opens the user's logbook.
       await store.write(state.copyWith(phase: DemoPhase.active));
+      onProgress?.call(
+        const DemoEnterProgress(DemoEnterStage.opening, done: 1, total: 1),
+      );
     } catch (_) {
       await _leaveLogged();
       // The user's logbook is a new database instance, so the scope is

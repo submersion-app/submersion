@@ -2821,6 +2821,313 @@ class AppLocalizationsNl extends AppLocalizations {
   String get buddies_action_addTooltip => 'Nieuwe duikbuddy toevoegen';
 
   @override
+  String get buddyCard_preview_title => 'Buddykaart';
+
+  @override
+  String buddyCard_preview_addTitle(String name) {
+    return '$name toevoegen als buddy';
+  }
+
+  @override
+  String buddyCard_preview_updateTitle(String name) {
+    return '$name bijwerken';
+  }
+
+  @override
+  String buddyCard_preview_possibleTitle(String name) {
+    return 'Is dit $name uit je buddy\'s?';
+  }
+
+  @override
+  String get buddyCard_preview_trimmed =>
+      'Sommige gegevens zijn weggelaten om in de code te passen.';
+
+  @override
+  String get buddyCard_preview_newer =>
+      'Deze kaart komt uit een nieuwere versie van Submersion. Sommige gegevens kunnen ontbreken.';
+
+  @override
+  String get buddyCard_preview_noChanges => 'Niets op deze kaart is nieuw.';
+
+  @override
+  String get buddyCard_preview_ownCard =>
+      'Dit is je eigen kaart. Wissel met een buddy om de zijne te krijgen.';
+
+  @override
+  String buddyCard_preview_changed(String from, String to) {
+    return '$to (was $from)';
+  }
+
+  @override
+  String get buddyCard_action_add => 'Buddy toevoegen';
+
+  @override
+  String get buddyCard_action_update => 'Buddy bijwerken';
+
+  @override
+  String get buddyCard_action_addAsNew => 'Toevoegen als nieuwe buddy';
+
+  @override
+  String get buddyCard_action_discard => 'Negeren';
+
+  @override
+  String get buddyCard_field_name => 'Naam';
+
+  @override
+  String get buddyCard_field_phone => 'Telefoon';
+
+  @override
+  String get buddyCard_field_email => 'E-mail';
+
+  @override
+  String get buddyCard_field_social => 'Socialemedianaam';
+
+  @override
+  String get buddyCard_field_dives => 'Duiken';
+
+  @override
+  String get buddyCard_field_divingSince => 'Duikt sinds';
+
+  @override
+  String get buddyCard_field_lastDive => 'Laatste duik';
+
+  @override
+  String get buddyCard_field_certifications => 'Brevetten';
+
+  @override
+  String buddyCard_saved_added(String name) {
+    return '$name toegevoegd aan je buddy\'s';
+  }
+
+  @override
+  String buddyCard_saved_updated(String name) {
+    return '$name bijgewerkt';
+  }
+
+  @override
+  String get buddyCard_saved_view => 'Bekijken';
+
+  @override
+  String get buddyCard_error_notACard => 'Dat is geen Submersion-buddykaart.';
+
+  @override
+  String get buddyCard_error_unreadable =>
+      'Deze buddykaart kon niet worden gelezen.';
+
+  @override
+  String get buddySwap_title => 'Ruilen met een buddy';
+
+  @override
+  String get buddySwap_nearby_heading =>
+      'Duikers in de buurt met Submersion open';
+
+  @override
+  String get buddySwap_nearby_tapToSwap => 'Tik om te ruilen';
+
+  @override
+  String get buddySwap_nearby_looking => 'Zoeken naar meer…';
+
+  @override
+  String get buddySwap_nearby_failed =>
+      'Kon niet naar duikers in de buurt zoeken. De andere manieren om te wisselen hieronder werken nog.';
+
+  @override
+  String get buddySwap_nearby_hint =>
+      'Zie je je buddy niet? Jullie hebben allebei dit scherm open nodig en Submersion 1.8.4 of nieuwer.';
+
+  @override
+  String buddySwap_sharing(String summary) {
+    return 'Gedeeld: $summary';
+  }
+
+  @override
+  String get buddySwap_sharing_change => 'Wijzigen';
+
+  @override
+  String buddySwap_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duiken',
+      one: '1 duik',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddySwap_action_showCode => 'Mijn code tonen';
+
+  @override
+  String get buddySwap_action_scanCode => 'Code scannen';
+
+  @override
+  String get buddySwap_action_sendFile => 'Bestand verzenden';
+
+  @override
+  String get buddySwap_action_openFile => 'Kaartbestand openen';
+
+  @override
+  String get buddySwap_action_writeSticker => 'NFC-sticker schrijven';
+
+  @override
+  String get buddySwap_action_tapAndroid => 'Android-telefoon aantikken';
+
+  @override
+  String get buddySwap_action_receiveByTap => 'Ontvangen door aantikken';
+
+  @override
+  String get buddySwap_tap_prompt =>
+      'Houd je telefoon bij de andere telefoon of de sticker';
+
+  @override
+  String get buddySwap_sticker_prompt =>
+      'Houd je telefoon bij een lege NFC-sticker';
+
+  @override
+  String get buddySwap_sticker_written =>
+      'Sticker geschreven. Schrijf hem opnieuw als je gegevens veranderen.';
+
+  @override
+  String get buddySwap_sticker_tooSmall =>
+      'Die sticker is te klein voor je kaart.';
+
+  @override
+  String get buddySwap_sticker_notWritable =>
+      'Die sticker kan niet worden beschreven.';
+
+  @override
+  String get buddySwap_nfc_unavailable =>
+      'NFC is niet beschikbaar op dit apparaat.';
+
+  @override
+  String get buddySwap_qr_title => 'Je buddykaart';
+
+  @override
+  String get buddySwap_qr_hint =>
+      'Vraag je buddy dit te scannen met Submersion of de camera.';
+
+  @override
+  String buddySwap_request_title(String name) {
+    return '$name wil kaarten ruilen';
+  }
+
+  @override
+  String buddySwap_request_youSend(String summary) {
+    return 'Je verstuurt: $summary';
+  }
+
+  @override
+  String get buddySwap_request_swap => 'Ruilen';
+
+  @override
+  String get buddySwap_request_decline => 'Weigeren';
+
+  @override
+  String buddySwap_waiting(String name) {
+    return 'Wachten op antwoord van $name';
+  }
+
+  @override
+  String buddySwap_failed_declined(String name) {
+    return '$name heeft de ruil geweigerd';
+  }
+
+  @override
+  String buddySwap_failed_timedOut(String name) {
+    return '$name heeft niet geantwoord';
+  }
+
+  @override
+  String buddySwap_failed_lost(String name) {
+    return 'Verbinding met $name verbroken';
+  }
+
+  @override
+  String buddySwap_failed_newerApp(String name) {
+    return '$name heeft een nieuwere versie van Submersion nodig';
+  }
+
+  @override
+  String get buddySwap_cardFailed => 'Je buddykaart kon niet worden gemaakt.';
+
+  @override
+  String get buddySwap_qr_tooLarge =>
+      'Je kaart is te lang voor een code. Probeer in plaats daarvan Bestand verzenden.';
+
+  @override
+  String get buddySwap_sendFailed =>
+      'Het kaartbestand kon niet worden gedeeld.';
+
+  @override
+  String get buddyCard_saveFailed => 'De buddy kon niet worden opgeslagen.';
+
+  @override
+  String get buddyCard_field_photo => 'Foto';
+
+  @override
+  String get buddyCard_change_newPhoto => 'Nieuwe foto';
+
+  @override
+  String get buddyShare_title => 'Wat je deelt';
+
+  @override
+  String get buddyShare_name => 'Naam';
+
+  @override
+  String get buddyShare_alwaysShared => 'Altijd gedeeld';
+
+  @override
+  String get buddyShare_neverShared =>
+      'Medische, verzekerings- en noodgegevens worden nooit gedeeld.';
+
+  @override
+  String get buddyShare_photo => 'Foto';
+
+  @override
+  String get buddyShare_phone => 'Telefoon';
+
+  @override
+  String get buddyShare_email => 'E-mail';
+
+  @override
+  String get buddyShare_certifications => 'Brevetten';
+
+  @override
+  String get buddyShare_cardDetails => 'Kaartnummers en datums';
+
+  @override
+  String get buddyShare_diveCount => 'Aantal duiken';
+
+  @override
+  String get buddyShare_divingSince => 'Duikt sinds';
+
+  @override
+  String get buddyShare_lastDive => 'Datum laatste duik';
+
+  @override
+  String get buddyShare_social => 'Socialemedianaam';
+
+  @override
+  String buddyCard_detail_heading(String name) {
+    return 'Van de kaart van $name';
+  }
+
+  @override
+  String buddyCard_detail_since(String year) {
+    return 'Duikt sinds $year';
+  }
+
+  @override
+  String buddyCard_detail_last(String date) {
+    return 'Laatste duik $date';
+  }
+
+  @override
+  String buddyCard_detail_received(String date) {
+    return 'Ontvangen op $date';
+  }
+
+  @override
   String get buddies_action_clearSearch => 'Zoekopdracht wissen';
 
   @override
@@ -24109,6 +24416,29 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_conflict_field_priorDiveCount =>
       'Duiken voor dit logboek';
+
+  @override
+  String get settings_conflict_field_buddyCardShare => 'Delen van buddykaart';
+
+  @override
+  String get settings_conflict_field_cardDiveCount => 'Duiken (volgens kaart)';
+
+  @override
+  String get settings_conflict_field_cardDivingSince =>
+      'Duikt sinds (volgens kaart)';
+
+  @override
+  String get settings_conflict_field_cardId => 'Buddykaart';
+
+  @override
+  String get settings_conflict_field_cardLastDive =>
+      'Laatste duik (volgens kaart)';
+
+  @override
+  String get settings_conflict_field_cardReceivedAt => 'Kaart ontvangen';
+
+  @override
+  String get settings_conflict_field_socialHandle => 'Socialemedianaam';
 
   @override
   String get settings_conflict_field_priorDiveTimeSeconds =>

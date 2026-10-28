@@ -103,6 +103,43 @@ void main() {
     },
   );
 
+  test('prepare reports each step, growing to the total', () async {
+    final progress = <(int, int)>[];
+
+    await DemoDatabasePreparer().prepare(
+      db,
+      now: now,
+      photosDir: '/demo/photos',
+      deviceId: 'device-1',
+      onProgress: (done, total) => progress.add((done, total)),
+    );
+
+    final total = progress.first.$2;
+    expect(progress.map((e) => e.$2), everyElement(total));
+    expect(progress.map((e) => e.$1), [for (var i = 1; i <= total; i++) i]);
+    // One step per date column at least, so the bar moves in many steps.
+    expect(total, greaterThan(10));
+  });
+
+  test(
+    'prepare still reaches its total when there is nothing to shift',
+    () async {
+      await db.customStatement('DELETE FROM dives');
+      final progress = <(int, int)>[];
+
+      await DemoDatabasePreparer().prepare(
+        db,
+        now: now,
+        photosDir: '/demo/photos',
+        deviceId: 'device-1',
+        onProgress: (done, total) => progress.add((done, total)),
+      );
+
+      final total = progress.first.$2;
+      expect(progress.map((e) => e.$1), [for (var i = 1; i <= total; i++) i]);
+    },
+  );
+
   test('prepare leaves durations alone', () async {
     await DemoDatabasePreparer().prepare(
       db,

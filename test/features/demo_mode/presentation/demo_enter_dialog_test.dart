@@ -26,12 +26,15 @@ class _ScriptedController extends DemoEnterController {
     starts++;
     lastPackage = package;
     state = const DemoEnterRunning(
-      DemoEnterProgress(DemoEnterStage.downloading, received: 50, total: 100),
+      DemoEnterProgress(DemoEnterStage.downloading, done: 50, total: 100),
     );
   }
 
   @override
   void cancel() => cancels++;
+
+  void progress(DemoEnterProgress progress) =>
+      state = DemoEnterRunning(progress);
 
   void fail() => state = const DemoEnterFailed(DemoDownloadFailure.network);
 
@@ -175,7 +178,31 @@ void main() {
     final bar = tester.widget<LinearProgressIndicator>(
       find.byType(LinearProgressIndicator),
     );
-    expect(bar.value, 0.5);
+    expect(bar.value, DemoEnterStage.downloading.end / 2);
+  });
+
+  testWidgets('the bar shows real progress at every stage, never a sweep', (
+    tester,
+  ) async {
+    await open(tester);
+    double? barValue() => tester
+        .widget<LinearProgressIndicator>(find.byType(LinearProgressIndicator))
+        .value;
+
+    for (final (progress, label) in const [
+      (DemoEnterProgress(DemoEnterStage.downloading), 'Downloading'),
+      (
+        DemoEnterProgress(DemoEnterStage.preparing, done: 1, total: 2),
+        'Preparing',
+      ),
+      (DemoEnterProgress(DemoEnterStage.opening, done: 3, total: 4), 'Opening'),
+    ]) {
+      controller.progress(progress);
+      await tester.pump();
+
+      expect(find.textContaining(label), findsOneWidget);
+      expect(barValue(), progress.fraction);
+    }
   });
 
   testWidgets('a failure shows the message and Retry starts again', (

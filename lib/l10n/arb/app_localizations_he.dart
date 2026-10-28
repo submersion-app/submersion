@@ -2790,6 +2790,305 @@ class AppLocalizationsHe extends AppLocalizations {
   String get buddies_action_addTooltip => 'הוסף חבר צוללים חדש';
 
   @override
+  String get buddyCard_preview_title => 'כרטיס שותף';
+
+  @override
+  String buddyCard_preview_addTitle(String name) {
+    return 'הוספת $name כשותף';
+  }
+
+  @override
+  String buddyCard_preview_updateTitle(String name) {
+    return 'עדכון $name';
+  }
+
+  @override
+  String buddyCard_preview_possibleTitle(String name) {
+    return 'האם זה $name מהשותפים שלך?';
+  }
+
+  @override
+  String get buddyCard_preview_trimmed =>
+      'חלק מהפרטים הושמטו כדי שייכנסו לקוד.';
+
+  @override
+  String get buddyCard_preview_newer =>
+      'הכרטיס הזה מגרסה חדשה יותר של Submersion. ייתכן שחלק מהפרטים חסרים.';
+
+  @override
+  String get buddyCard_preview_noChanges => 'אין בכרטיס הזה שום דבר חדש.';
+
+  @override
+  String get buddyCard_preview_ownCard =>
+      'זה הכרטיס שלך. החלף עם שותף צלילה כדי לקבל את שלו.';
+
+  @override
+  String buddyCard_preview_changed(String from, String to) {
+    return '$to (קודם $from)';
+  }
+
+  @override
+  String get buddyCard_action_add => 'הוספת שותף';
+
+  @override
+  String get buddyCard_action_update => 'עדכון שותף';
+
+  @override
+  String get buddyCard_action_addAsNew => 'הוספה כשותף חדש';
+
+  @override
+  String get buddyCard_action_discard => 'ביטול';
+
+  @override
+  String get buddyCard_field_name => 'שם';
+
+  @override
+  String get buddyCard_field_phone => 'טלפון';
+
+  @override
+  String get buddyCard_field_email => 'אימייל';
+
+  @override
+  String get buddyCard_field_social => 'שם משתמש ברשתות חברתיות';
+
+  @override
+  String get buddyCard_field_dives => 'צלילות';
+
+  @override
+  String get buddyCard_field_divingSince => 'צולל מאז';
+
+  @override
+  String get buddyCard_field_lastDive => 'צלילה אחרונה';
+
+  @override
+  String get buddyCard_field_certifications => 'הסמכות';
+
+  @override
+  String buddyCard_saved_added(String name) {
+    return '$name נוסף לשותפים שלך';
+  }
+
+  @override
+  String buddyCard_saved_updated(String name) {
+    return '$name עודכן';
+  }
+
+  @override
+  String get buddyCard_saved_view => 'הצג';
+
+  @override
+  String get buddyCard_error_notACard => 'זה לא כרטיס שותף של Submersion.';
+
+  @override
+  String get buddyCard_error_unreadable => 'לא ניתן לקרוא את כרטיס השותף הזה.';
+
+  @override
+  String get buddySwap_title => 'החלפה עם שותף';
+
+  @override
+  String get buddySwap_nearby_heading => 'צוללים בקרבת מקום עם Submersion פתוח';
+
+  @override
+  String get buddySwap_nearby_tapToSwap => 'הקש להחלפה';
+
+  @override
+  String get buddySwap_nearby_looking => 'מחפש עוד…';
+
+  @override
+  String get buddySwap_nearby_failed =>
+      'לא ניתן היה לחפש צוללים בקרבת מקום. שאר דרכי ההחלפה למטה עדיין עובדות.';
+
+  @override
+  String get buddySwap_nearby_hint =>
+      'לא רואה את השותף שלך? שניכם צריכים שהמסך הזה יהיה פתוח ו-Submersion 1.8.4 ואילך.';
+
+  @override
+  String buddySwap_sharing(String summary) {
+    return 'משותף: $summary';
+  }
+
+  @override
+  String get buddySwap_sharing_change => 'שינוי';
+
+  @override
+  String buddySwap_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count צלילות',
+      one: 'צלילה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddySwap_action_showCode => 'הצג את הקוד שלי';
+
+  @override
+  String get buddySwap_action_scanCode => 'סרוק קוד';
+
+  @override
+  String get buddySwap_action_sendFile => 'שלח קובץ';
+
+  @override
+  String get buddySwap_action_openFile => 'פתח קובץ כרטיס';
+
+  @override
+  String get buddySwap_action_writeSticker => 'כתוב מדבקת NFC';
+
+  @override
+  String get buddySwap_action_tapAndroid => 'הצמד טלפון אנדרואיד';
+
+  @override
+  String get buddySwap_action_receiveByTap => 'קבל בהצמדה';
+
+  @override
+  String get buddySwap_tap_prompt => 'קרב את הטלפון לטלפון השני או למדבקה';
+
+  @override
+  String get buddySwap_sticker_prompt => 'קרב את הטלפון למדבקת NFC ריקה';
+
+  @override
+  String get buddySwap_sticker_written =>
+      'המדבקה נכתבה. כתוב אותה מחדש כשהפרטים שלך משתנים.';
+
+  @override
+  String get buddySwap_sticker_tooSmall => 'המדבקה קטנה מדי לכרטיס שלך.';
+
+  @override
+  String get buddySwap_sticker_notWritable => 'לא ניתן לכתוב על המדבקה הזו.';
+
+  @override
+  String get buddySwap_nfc_unavailable => 'NFC אינו זמין במכשיר זה.';
+
+  @override
+  String get buddySwap_qr_title => 'כרטיס השותף שלך';
+
+  @override
+  String get buddySwap_qr_hint =>
+      'בקש מהשותף לסרוק את זה עם Submersion או במצלמה.';
+
+  @override
+  String buddySwap_request_title(String name) {
+    return '$name רוצה להחליף כרטיסים';
+  }
+
+  @override
+  String buddySwap_request_youSend(String summary) {
+    return 'תשלח: $summary';
+  }
+
+  @override
+  String get buddySwap_request_swap => 'החלף';
+
+  @override
+  String get buddySwap_request_decline => 'דחה';
+
+  @override
+  String buddySwap_waiting(String name) {
+    return 'ממתין לתשובה של $name';
+  }
+
+  @override
+  String buddySwap_failed_declined(String name) {
+    return '$name דחה את ההחלפה';
+  }
+
+  @override
+  String buddySwap_failed_timedOut(String name) {
+    return '$name לא ענה';
+  }
+
+  @override
+  String buddySwap_failed_lost(String name) {
+    return 'החיבור ל-$name אבד';
+  }
+
+  @override
+  String buddySwap_failed_newerApp(String name) {
+    return '$name צריך גרסה חדשה יותר של Submersion';
+  }
+
+  @override
+  String get buddySwap_cardFailed => 'לא ניתן ליצור את כרטיס השותף שלך.';
+
+  @override
+  String get buddySwap_qr_tooLarge =>
+      'הכרטיס שלך ארוך מדי לקוד. נסה במקום זאת לשלוח קובץ.';
+
+  @override
+  String get buddySwap_sendFailed => 'לא ניתן לשתף את קובץ הכרטיס.';
+
+  @override
+  String get buddyCard_saveFailed => 'לא ניתן לשמור את השותף.';
+
+  @override
+  String get buddyCard_field_photo => 'תמונה';
+
+  @override
+  String get buddyCard_change_newPhoto => 'תמונה חדשה';
+
+  @override
+  String get buddyShare_title => 'מה אתה משתף';
+
+  @override
+  String get buddyShare_name => 'שם';
+
+  @override
+  String get buddyShare_alwaysShared => 'משותף תמיד';
+
+  @override
+  String get buddyShare_neverShared =>
+      'פרטים רפואיים, ביטוח ופרטי חירום לעולם אינם משותפים.';
+
+  @override
+  String get buddyShare_photo => 'תמונה';
+
+  @override
+  String get buddyShare_phone => 'טלפון';
+
+  @override
+  String get buddyShare_email => 'אימייל';
+
+  @override
+  String get buddyShare_certifications => 'הסמכות';
+
+  @override
+  String get buddyShare_cardDetails => 'מספרי כרטיסים ותאריכים';
+
+  @override
+  String get buddyShare_diveCount => 'מספר צלילות';
+
+  @override
+  String get buddyShare_divingSince => 'צולל מאז';
+
+  @override
+  String get buddyShare_lastDive => 'תאריך הצלילה האחרונה';
+
+  @override
+  String get buddyShare_social => 'שם משתמש ברשתות חברתיות';
+
+  @override
+  String buddyCard_detail_heading(String name) {
+    return 'מהכרטיס של $name';
+  }
+
+  @override
+  String buddyCard_detail_since(String year) {
+    return 'צולל מאז $year';
+  }
+
+  @override
+  String buddyCard_detail_last(String date) {
+    return 'צלילה אחרונה $date';
+  }
+
+  @override
+  String buddyCard_detail_received(String date) {
+    return 'התקבל ב-$date';
+  }
+
+  @override
   String get buddies_action_clearSearch => 'נקה חיפוש';
 
   @override
@@ -23663,6 +23962,27 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_conflict_field_priorDiveCount => 'צלילות לפני היומן הזה';
+
+  @override
+  String get settings_conflict_field_buddyCardShare => 'שיתוף כרטיס שותף';
+
+  @override
+  String get settings_conflict_field_cardDiveCount => 'צלילות (מהכרטיס)';
+
+  @override
+  String get settings_conflict_field_cardDivingSince => 'צולל מאז (מהכרטיס)';
+
+  @override
+  String get settings_conflict_field_cardId => 'כרטיס שותף';
+
+  @override
+  String get settings_conflict_field_cardLastDive => 'צלילה אחרונה (מהכרטיס)';
+
+  @override
+  String get settings_conflict_field_cardReceivedAt => 'הכרטיס התקבל';
+
+  @override
+  String get settings_conflict_field_socialHandle => 'שם משתמש ברשתות חברתיות';
 
   @override
   String get settings_conflict_field_priorDiveTimeSeconds =>

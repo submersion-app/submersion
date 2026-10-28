@@ -2803,6 +2803,309 @@ class AppLocalizationsEn extends AppLocalizations {
   String get buddies_action_addTooltip => 'Add a new dive buddy';
 
   @override
+  String get buddyCard_preview_title => 'Buddy card';
+
+  @override
+  String buddyCard_preview_addTitle(String name) {
+    return 'Add $name as a buddy';
+  }
+
+  @override
+  String buddyCard_preview_updateTitle(String name) {
+    return 'Update $name';
+  }
+
+  @override
+  String buddyCard_preview_possibleTitle(String name) {
+    return 'Is this $name from your buddies?';
+  }
+
+  @override
+  String get buddyCard_preview_trimmed =>
+      'Some details were left out to fit the code.';
+
+  @override
+  String get buddyCard_preview_newer =>
+      'This card is from a newer version of Submersion. Some details may be missing.';
+
+  @override
+  String get buddyCard_preview_noChanges => 'Nothing on this card is new.';
+
+  @override
+  String get buddyCard_preview_ownCard =>
+      'This is your own card. Swap with a buddy to get theirs.';
+
+  @override
+  String buddyCard_preview_changed(String from, String to) {
+    return '$to (was $from)';
+  }
+
+  @override
+  String get buddyCard_action_add => 'Add buddy';
+
+  @override
+  String get buddyCard_action_update => 'Update buddy';
+
+  @override
+  String get buddyCard_action_addAsNew => 'Add as new buddy';
+
+  @override
+  String get buddyCard_action_discard => 'Discard';
+
+  @override
+  String get buddyCard_field_name => 'Name';
+
+  @override
+  String get buddyCard_field_phone => 'Phone';
+
+  @override
+  String get buddyCard_field_email => 'Email';
+
+  @override
+  String get buddyCard_field_social => 'Social handle';
+
+  @override
+  String get buddyCard_field_dives => 'Dives';
+
+  @override
+  String get buddyCard_field_divingSince => 'Diving since';
+
+  @override
+  String get buddyCard_field_lastDive => 'Last dive';
+
+  @override
+  String get buddyCard_field_certifications => 'Certifications';
+
+  @override
+  String buddyCard_saved_added(String name) {
+    return '$name added to your buddies';
+  }
+
+  @override
+  String buddyCard_saved_updated(String name) {
+    return '$name updated';
+  }
+
+  @override
+  String get buddyCard_saved_view => 'View';
+
+  @override
+  String get buddyCard_error_notACard => 'That is not a Submersion buddy card.';
+
+  @override
+  String get buddyCard_error_unreadable => 'This buddy card could not be read.';
+
+  @override
+  String get buddySwap_title => 'Swap with a buddy';
+
+  @override
+  String get buddySwap_nearby_heading => 'Divers nearby with Submersion open';
+
+  @override
+  String get buddySwap_nearby_tapToSwap => 'Tap to swap';
+
+  @override
+  String get buddySwap_nearby_looking => 'Looking for more…';
+
+  @override
+  String get buddySwap_nearby_failed =>
+      'Could not look for nearby divers. The other ways to swap below still work.';
+
+  @override
+  String get buddySwap_nearby_hint =>
+      'Don\'t see your buddy? Both of you need this screen open and Submersion 1.8.4 or later.';
+
+  @override
+  String buddySwap_sharing(String summary) {
+    return 'Sharing: $summary';
+  }
+
+  @override
+  String get buddySwap_sharing_change => 'Change';
+
+  @override
+  String buddySwap_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dives',
+      one: '1 dive',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddySwap_action_showCode => 'Show my code';
+
+  @override
+  String get buddySwap_action_scanCode => 'Scan code';
+
+  @override
+  String get buddySwap_action_sendFile => 'Send file';
+
+  @override
+  String get buddySwap_action_openFile => 'Open card file';
+
+  @override
+  String get buddySwap_action_writeSticker => 'Write NFC sticker';
+
+  @override
+  String get buddySwap_action_tapAndroid => 'Tap an Android phone';
+
+  @override
+  String get buddySwap_action_receiveByTap => 'Receive by tap';
+
+  @override
+  String get buddySwap_tap_prompt =>
+      'Hold your phone near the other phone or the sticker';
+
+  @override
+  String get buddySwap_sticker_prompt =>
+      'Hold your phone near a blank NFC sticker';
+
+  @override
+  String get buddySwap_sticker_written =>
+      'Sticker written. Rewrite it when your details change.';
+
+  @override
+  String get buddySwap_sticker_tooSmall =>
+      'That sticker is too small for your card.';
+
+  @override
+  String get buddySwap_sticker_notWritable => 'That sticker cannot be written.';
+
+  @override
+  String get buddySwap_nfc_unavailable =>
+      'NFC is not available on this device.';
+
+  @override
+  String get buddySwap_qr_title => 'Your buddy card';
+
+  @override
+  String get buddySwap_qr_hint =>
+      'Ask your buddy to scan this with Submersion or their camera.';
+
+  @override
+  String buddySwap_request_title(String name) {
+    return '$name wants to swap cards';
+  }
+
+  @override
+  String buddySwap_request_youSend(String summary) {
+    return 'You\'ll send: $summary';
+  }
+
+  @override
+  String get buddySwap_request_swap => 'Swap';
+
+  @override
+  String get buddySwap_request_decline => 'Decline';
+
+  @override
+  String buddySwap_waiting(String name) {
+    return 'Waiting for $name to answer';
+  }
+
+  @override
+  String buddySwap_failed_declined(String name) {
+    return '$name declined the swap';
+  }
+
+  @override
+  String buddySwap_failed_timedOut(String name) {
+    return '$name didn\'t answer';
+  }
+
+  @override
+  String buddySwap_failed_lost(String name) {
+    return 'Lost the connection to $name';
+  }
+
+  @override
+  String buddySwap_failed_newerApp(String name) {
+    return '$name needs a newer version of Submersion';
+  }
+
+  @override
+  String get buddySwap_cardFailed => 'Your buddy card could not be built.';
+
+  @override
+  String get buddySwap_qr_tooLarge =>
+      'Your card is too long for a code. Try Send file instead.';
+
+  @override
+  String get buddySwap_sendFailed => 'The card file could not be shared.';
+
+  @override
+  String get buddyCard_saveFailed => 'The buddy could not be saved.';
+
+  @override
+  String get buddyCard_field_photo => 'Photo';
+
+  @override
+  String get buddyCard_change_newPhoto => 'New photo';
+
+  @override
+  String get buddyShare_title => 'What you share';
+
+  @override
+  String get buddyShare_name => 'Name';
+
+  @override
+  String get buddyShare_alwaysShared => 'Always shared';
+
+  @override
+  String get buddyShare_neverShared =>
+      'Medical, insurance and emergency details are never shared.';
+
+  @override
+  String get buddyShare_photo => 'Photo';
+
+  @override
+  String get buddyShare_phone => 'Phone';
+
+  @override
+  String get buddyShare_email => 'Email';
+
+  @override
+  String get buddyShare_certifications => 'Certifications';
+
+  @override
+  String get buddyShare_cardDetails => 'Card numbers and dates';
+
+  @override
+  String get buddyShare_diveCount => 'Dive count';
+
+  @override
+  String get buddyShare_divingSince => 'Diving since';
+
+  @override
+  String get buddyShare_lastDive => 'Last dive date';
+
+  @override
+  String get buddyShare_social => 'Social handle';
+
+  @override
+  String buddyCard_detail_heading(String name) {
+    return 'From $name\'s card';
+  }
+
+  @override
+  String buddyCard_detail_since(String year) {
+    return 'Diving since $year';
+  }
+
+  @override
+  String buddyCard_detail_last(String date) {
+    return 'Last dive $date';
+  }
+
+  @override
+  String buddyCard_detail_received(String date) {
+    return 'Received $date';
+  }
+
+  @override
   String get buddies_action_clearSearch => 'Clear search';
 
   @override
@@ -23863,6 +24166,29 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_conflict_field_priorDiveCount => 'Dives before this log';
+
+  @override
+  String get settings_conflict_field_buddyCardShare => 'Buddy card sharing';
+
+  @override
+  String get settings_conflict_field_cardDiveCount => 'Dives (from their card)';
+
+  @override
+  String get settings_conflict_field_cardDivingSince =>
+      'Diving since (from their card)';
+
+  @override
+  String get settings_conflict_field_cardId => 'Buddy card';
+
+  @override
+  String get settings_conflict_field_cardLastDive =>
+      'Last dive (from their card)';
+
+  @override
+  String get settings_conflict_field_cardReceivedAt => 'Card received';
+
+  @override
+  String get settings_conflict_field_socialHandle => 'Social handle';
 
   @override
   String get settings_conflict_field_priorDiveTimeSeconds =>

@@ -159,7 +159,7 @@ void main() {
         Uint8List.fromList(
           utf8.encode(
             jsonEncode({
-              'v': NearbyHello.currentProtocolVersion + 1,
+              'v': NearbyHello.maxProtocolVersion + 1,
               'intent': 'swapCards',
               'commit': base64Encode(Uint8List(32)),
             }),
@@ -180,6 +180,36 @@ void main() {
     await pumpEventQueue();
     expect(replies.first.type, NearbyMessageType.error);
     expect(replies.first.body, [NearbyErrorCode.newerApp.index]);
+  });
+
+  test('a sync hello above the sync version is refused as newer, though '
+      'card hellos go higher', () async {
+    final (out, into) = await nearbyLink();
+    final incoming = NearbySession(
+      endpoint: into,
+      identity: nearbySessionIdentity('P'),
+      secrets: MemoryNearbySecrets(),
+    ).accept(allowPairing: true, allowCard: true);
+    await out.send(
+      FrameEncoder.encode(
+        NearbyMessageType.hello,
+        NearbyHello(
+          protocolVersion: NearbyHello.currentProtocolVersion + 1,
+          intent: NearbyIntent.sync,
+          commitment: Uint8List(32),
+        ).toBytes(),
+      ),
+    );
+    await expectLater(
+      incoming,
+      throwsA(
+        isA<NearbySessionRefused>().having(
+          (e) => e.code,
+          'code',
+          NearbyErrorCode.newerApp,
+        ),
+      ),
+    );
   });
 
   test('closing a channel whose link has stalled hangs up without waiting '

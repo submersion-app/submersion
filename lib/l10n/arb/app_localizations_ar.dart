@@ -2914,6 +2914,307 @@ class AppLocalizationsAr extends AppLocalizations {
   String get buddies_action_addTooltip => 'إضافة رفيق غوص جديد';
 
   @override
+  String get buddyCard_preview_title => 'بطاقة الرفيق';
+
+  @override
+  String buddyCard_preview_addTitle(String name) {
+    return 'إضافة $name كرفيق';
+  }
+
+  @override
+  String buddyCard_preview_updateTitle(String name) {
+    return 'تحديث $name';
+  }
+
+  @override
+  String buddyCard_preview_possibleTitle(String name) {
+    return 'هل هذا $name من رفاقك؟';
+  }
+
+  @override
+  String get buddyCard_preview_trimmed => 'حُذفت بعض التفاصيل لتتسع في الرمز.';
+
+  @override
+  String get buddyCard_preview_newer =>
+      'هذه البطاقة من إصدار أحدث من Submersion. قد تكون بعض التفاصيل مفقودة.';
+
+  @override
+  String get buddyCard_preview_noChanges => 'لا جديد في هذه البطاقة.';
+
+  @override
+  String get buddyCard_preview_ownCard =>
+      'هذه بطاقتك أنت. تبادل مع رفيق غوص لتحصل على بطاقته.';
+
+  @override
+  String buddyCard_preview_changed(String from, String to) {
+    return '$to (كان $from)';
+  }
+
+  @override
+  String get buddyCard_action_add => 'إضافة رفيق';
+
+  @override
+  String get buddyCard_action_update => 'تحديث الرفيق';
+
+  @override
+  String get buddyCard_action_addAsNew => 'إضافة كرفيق جديد';
+
+  @override
+  String get buddyCard_action_discard => 'تجاهل';
+
+  @override
+  String get buddyCard_field_name => 'الاسم';
+
+  @override
+  String get buddyCard_field_phone => 'الهاتف';
+
+  @override
+  String get buddyCard_field_email => 'البريد الإلكتروني';
+
+  @override
+  String get buddyCard_field_social => 'اسم المستخدم على مواقع التواصل';
+
+  @override
+  String get buddyCard_field_dives => 'الغطسات';
+
+  @override
+  String get buddyCard_field_divingSince => 'يغطس منذ';
+
+  @override
+  String get buddyCard_field_lastDive => 'آخر غطسة';
+
+  @override
+  String get buddyCard_field_certifications => 'الشهادات';
+
+  @override
+  String buddyCard_saved_added(String name) {
+    return 'تمت إضافة $name إلى رفاقك';
+  }
+
+  @override
+  String buddyCard_saved_updated(String name) {
+    return 'تم تحديث $name';
+  }
+
+  @override
+  String get buddyCard_saved_view => 'عرض';
+
+  @override
+  String get buddyCard_error_notACard => 'هذه ليست بطاقة رفيق من Submersion.';
+
+  @override
+  String get buddyCard_error_unreadable => 'تعذّرت قراءة بطاقة الرفيق هذه.';
+
+  @override
+  String get buddySwap_title => 'تبادل مع رفيق';
+
+  @override
+  String get buddySwap_nearby_heading => 'غواصون قريبون يفتحون Submersion';
+
+  @override
+  String get buddySwap_nearby_tapToSwap => 'انقر للتبادل';
+
+  @override
+  String get buddySwap_nearby_looking => 'جارٍ البحث عن المزيد…';
+
+  @override
+  String get buddySwap_nearby_failed =>
+      'تعذّر البحث عن الغواصين القريبين. لا تزال طرق التبادل الأخرى أدناه تعمل.';
+
+  @override
+  String get buddySwap_nearby_hint =>
+      'لا ترى رفيقك؟ يجب أن تفتحا هذه الشاشة كلاكما وأن يكون لديكما Submersion 1.8.4 أو أحدث.';
+
+  @override
+  String buddySwap_sharing(String summary) {
+    return 'المشاركة: $summary';
+  }
+
+  @override
+  String get buddySwap_sharing_change => 'تغيير';
+
+  @override
+  String buddySwap_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count غطسة',
+      many: '$count غطسة',
+      few: '$count غطسات',
+      two: 'غطستان',
+      one: 'غطسة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddySwap_action_showCode => 'عرض رمزي';
+
+  @override
+  String get buddySwap_action_scanCode => 'مسح الرمز';
+
+  @override
+  String get buddySwap_action_sendFile => 'إرسال ملف';
+
+  @override
+  String get buddySwap_action_openFile => 'فتح ملف بطاقة';
+
+  @override
+  String get buddySwap_action_writeSticker => 'كتابة ملصق NFC';
+
+  @override
+  String get buddySwap_action_tapAndroid => 'المس هاتف Android';
+
+  @override
+  String get buddySwap_action_receiveByTap => 'الاستلام باللمس';
+
+  @override
+  String get buddySwap_tap_prompt => 'قرّب هاتفك من الهاتف الآخر أو الملصق';
+
+  @override
+  String get buddySwap_sticker_prompt => 'قرّب هاتفك من ملصق NFC فارغ';
+
+  @override
+  String get buddySwap_sticker_written =>
+      'تمت كتابة الملصق. أعد كتابته عند تغيّر بياناتك.';
+
+  @override
+  String get buddySwap_sticker_tooSmall => 'هذا الملصق صغير جدًا لبطاقتك.';
+
+  @override
+  String get buddySwap_sticker_notWritable => 'لا يمكن الكتابة على هذا الملصق.';
+
+  @override
+  String get buddySwap_nfc_unavailable => 'NFC غير متاح على هذا الجهاز.';
+
+  @override
+  String get buddySwap_qr_title => 'بطاقة الرفيق الخاصة بك';
+
+  @override
+  String get buddySwap_qr_hint =>
+      'اطلب من رفيقك مسح هذا بـ Submersion أو بالكاميرا.';
+
+  @override
+  String buddySwap_request_title(String name) {
+    return 'يريد $name تبادل البطاقات';
+  }
+
+  @override
+  String buddySwap_request_youSend(String summary) {
+    return 'سترسل: $summary';
+  }
+
+  @override
+  String get buddySwap_request_swap => 'تبادل';
+
+  @override
+  String get buddySwap_request_decline => 'رفض';
+
+  @override
+  String buddySwap_waiting(String name) {
+    return 'بانتظار رد $name';
+  }
+
+  @override
+  String buddySwap_failed_declined(String name) {
+    return 'رفض $name التبادل';
+  }
+
+  @override
+  String buddySwap_failed_timedOut(String name) {
+    return 'لم يرد $name';
+  }
+
+  @override
+  String buddySwap_failed_lost(String name) {
+    return 'انقطع الاتصال بـ $name';
+  }
+
+  @override
+  String buddySwap_failed_newerApp(String name) {
+    return 'يحتاج $name إلى إصدار أحدث من Submersion';
+  }
+
+  @override
+  String get buddySwap_cardFailed => 'تعذّر إنشاء بطاقة الرفيق الخاصة بك.';
+
+  @override
+  String get buddySwap_qr_tooLarge =>
+      'بطاقتك أطول من أن تتسع في رمز. جرّب إرسال ملف بدلًا من ذلك.';
+
+  @override
+  String get buddySwap_sendFailed => 'تعذّرت مشاركة ملف البطاقة.';
+
+  @override
+  String get buddyCard_saveFailed => 'تعذّر حفظ الرفيق.';
+
+  @override
+  String get buddyCard_field_photo => 'الصورة';
+
+  @override
+  String get buddyCard_change_newPhoto => 'صورة جديدة';
+
+  @override
+  String get buddyShare_title => 'ما تشاركه';
+
+  @override
+  String get buddyShare_name => 'الاسم';
+
+  @override
+  String get buddyShare_alwaysShared => 'تُشارك دائمًا';
+
+  @override
+  String get buddyShare_neverShared =>
+      'لا تُشارك أبدًا التفاصيل الطبية وتفاصيل التأمين والطوارئ.';
+
+  @override
+  String get buddyShare_photo => 'الصورة';
+
+  @override
+  String get buddyShare_phone => 'الهاتف';
+
+  @override
+  String get buddyShare_email => 'البريد الإلكتروني';
+
+  @override
+  String get buddyShare_certifications => 'الشهادات';
+
+  @override
+  String get buddyShare_cardDetails => 'أرقام البطاقات وتواريخها';
+
+  @override
+  String get buddyShare_diveCount => 'عدد الغطسات';
+
+  @override
+  String get buddyShare_divingSince => 'يغطس منذ';
+
+  @override
+  String get buddyShare_lastDive => 'تاريخ آخر غطسة';
+
+  @override
+  String get buddyShare_social => 'اسم المستخدم على مواقع التواصل';
+
+  @override
+  String buddyCard_detail_heading(String name) {
+    return 'من بطاقة $name';
+  }
+
+  @override
+  String buddyCard_detail_since(String year) {
+    return 'يغطس منذ $year';
+  }
+
+  @override
+  String buddyCard_detail_last(String date) {
+    return 'آخر غطسة $date';
+  }
+
+  @override
+  String buddyCard_detail_received(String date) {
+    return 'استُلمت في $date';
+  }
+
+  @override
   String get buddies_action_clearSearch => 'مسح البحث';
 
   @override
@@ -24507,6 +24808,28 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_conflict_field_priorDiveCount => 'الغوصات قبل هذا السجل';
+
+  @override
+  String get settings_conflict_field_buddyCardShare => 'مشاركة بطاقة الرفيق';
+
+  @override
+  String get settings_conflict_field_cardDiveCount => 'الغطسات (من بطاقته)';
+
+  @override
+  String get settings_conflict_field_cardDivingSince => 'يغطس منذ (من بطاقته)';
+
+  @override
+  String get settings_conflict_field_cardId => 'بطاقة الرفيق';
+
+  @override
+  String get settings_conflict_field_cardLastDive => 'آخر غطسة (من بطاقته)';
+
+  @override
+  String get settings_conflict_field_cardReceivedAt => 'تاريخ استلام البطاقة';
+
+  @override
+  String get settings_conflict_field_socialHandle =>
+      'اسم المستخدم على مواقع التواصل';
 
   @override
   String get settings_conflict_field_priorDiveTimeSeconds =>

@@ -1961,7 +1961,7 @@ class SyncService {
             records: data.mediaSpecies,
             hasUpdatedAt: false,
           ),
-          // After media, buddies and divers (v324, issue #1745). Edited rows,
+          // After media, buddies and divers (v326, issue #1745). Edited rows,
           // but clock-guarded like media: a moved box never raises a card.
           (type: 'mediaPeople', records: data.mediaPeople, hasUpdatedAt: false),
           (
@@ -3434,7 +3434,7 @@ class SyncService {
       (field: 'mediaId', parent: 'media', nullable: false),
       (field: 'speciesId', parent: 'species', nullable: false),
     ],
-    // v324: people tagged on photos and videos (issue #1745). buddyId is
+    // v326: people tagged on photos and videos (issue #1745). buddyId is
     // nullable (a Me tag has none), so a tag whose buddy is gone arrives
     // with the reference cleared; diverId is left to repairDanglingForeignKeys
     // like every diver key. A row left naming nobody is never shown
