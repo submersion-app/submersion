@@ -673,9 +673,6 @@ final backupHistoryProvider = FutureProvider.autoDispose<List<BackupRecord>>((
   ref,
 ) async {
   final service = ref.watch(backupServiceProvider);
-  // The same read the rows' device labels use (issue #3651), so one page
-  // load asks for this device's id once. It never throws.
-  final thisDeviceId = ref.watch(backupDeviceIdProvider.future);
   // Started first so the listing overlaps the local read. Not joined with a
   // record `.wait`, which would wrap a history failure in ParallelWaitError
   // and hide the real message; getCloudBackups never throws, so leaving it
@@ -692,7 +689,7 @@ final backupHistoryProvider = FutureProvider.autoDispose<List<BackupRecord>>((
         accountId: await service.cloudCopyAccountId(),
       ),
       listing,
-      thisDeviceId: await thisDeviceId,
+      thisDeviceId: await service.thisDeviceIdOrNull(),
     ))
       listedIds.contains(r.cloudFileId) ? r.copyWith(cloudCopyListed: true) : r,
   ];
@@ -700,9 +697,14 @@ final backupHistoryProvider = FutureProvider.autoDispose<List<BackupRecord>>((
 
 /// This device's id as backup names record it, or null when it cannot be
 /// read.
-final backupDeviceIdProvider = FutureProvider.autoDispose<String?>(
-  (ref) => ref.watch(backupServiceProvider).thisDeviceIdOrNull(),
-);
+///
+/// Read again whenever the history reloads: the id lives in the database,
+/// and a restore reopens the database in place, so an id cached for the
+/// life of the Backups page could be the restored backup's device.
+final backupDeviceIdProvider = FutureProvider.autoDispose<String?>((ref) {
+  ref.watch(backupHistoryProvider);
+  return ref.watch(backupServiceProvider).thisDeviceIdOrNull();
+});
 
 /// Names the device behind each history row (issue #3651). Until the id
 /// and the peer names have loaded it knows no devices, so rows show none
