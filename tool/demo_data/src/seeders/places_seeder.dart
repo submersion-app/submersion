@@ -196,21 +196,62 @@ class PlacesSeeder implements DemoSeeder {
           updatedAt: created,
         ),
       );
-      await notes.create(
+      // What was rented here: cylinders and lead every time, the
+      // regulator too before the diver owned one.
+      final here = [
+        for (final d in ctx.plan.dives)
+          if (d.centerId == center.id) d,
+      ];
+      final first = here.isEmpty ? created : here.first.start;
+      final ownReg = ctx.plan.milestones[StoryMilestone.ownRegulator]!;
+      final rentedRegulator = here.any((d) => d.number < ownReg);
+      var k = 0;
+      Future<void> note(
+        EquipmentType type,
+        String label,
+        RentalVerdict verdict,
+        String text, {
+        double? lead,
+        double? litres,
+      }) => notes.create(
         DiveCenterGearNote(
-          id: 'demo-gear-note-$c',
+          id: 'demo-gear-note-$c-${k++}',
           diveCenterId: id,
-          gearType: c.isEven ? EquipmentType.tank : EquipmentType.weights,
-          label: c.isEven ? 'Rental 12 L steel' : 'Lead',
-          verdict: c % 3 == 0 ? RentalVerdict.avoid : RentalVerdict.worked,
-          leadAdjustmentKg: c.isEven ? null : -1.0,
-          volumeLiters: c.isEven ? 12 : null,
-          note: c % 3 == 0 ? 'Valve was stiff; ask for another.' : 'Fine.',
-          notedAt: created,
-          createdAt: created,
-          updatedAt: created,
+          gearType: type,
+          label: label,
+          verdict: verdict,
+          leadAdjustmentKg: lead,
+          volumeLiters: litres,
+          note: text,
+          notedAt: first,
+          createdAt: first,
+          updatedAt: first,
         ),
       );
+      await note(
+        EquipmentType.tank,
+        'Rental 12 L aluminium',
+        c % 3 == 0 ? RentalVerdict.avoid : RentalVerdict.worked,
+        c % 3 == 0 ? 'Valve was stiff; ask for another.' : 'Fine.',
+        litres: 11.1,
+      );
+      await note(
+        EquipmentType.weights,
+        'Lead',
+        RentalVerdict.worked,
+        'Two kilos less than at home with the aluminium.',
+        lead: -2,
+      );
+      if (rentedRegulator) {
+        await note(
+          EquipmentType.regulator,
+          'Rental regulator',
+          c.isEven ? RentalVerdict.worked : RentalVerdict.avoid,
+          c.isEven
+              ? 'Breathed well.'
+              : 'Octopus breathed wet; bring my own next time.',
+        );
+      }
       c++;
     }
   }

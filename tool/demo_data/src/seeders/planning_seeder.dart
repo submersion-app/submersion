@@ -216,6 +216,12 @@ class PlanningSeeder implements DemoSeeder {
       'Positive and negative checks',
       'Bailout analysed and labelled',
     ];
+    // The gear the checklist names, each item checked over before the dive.
+    const gear = [
+      ('rebreather', 'Rebreather'),
+      ('reg-stage-bailout', 'Bailout regulator'),
+      ('computer-tech', 'Technical computer'),
+    ];
     await templates.saveItems(template.id, [
       for (var i = 0; i < titles.length; i++)
         PreDiveChecklistTemplateItem(
@@ -224,6 +230,19 @@ class PlanningSeeder implements DemoSeeder {
           sectionId: 'demo-predive-sec-1',
           title: titles[i],
           sortOrder: i,
+          isRequired: true,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      for (var i = 0; i < gear.length; i++)
+        PreDiveChecklistTemplateItem(
+          id: 'demo-predive-gear-$i',
+          templateId: template.id,
+          sectionId: 'demo-predive-sec-1',
+          title: gear[i].$2,
+          sortOrder: titles.length + i,
+          itemType: PreDiveItemType.equipment,
+          equipmentId: ctx.equipment[gear[i].$1],
           isRequired: true,
           createdAt: now,
           updatedAt: now,
@@ -247,6 +266,21 @@ class PlanningSeeder implements DemoSeeder {
             isRequired: true,
             state: PreDiveItemState.done,
             completedAt: dive.start.subtract(const Duration(minutes: 40)),
+          ),
+        for (var i = 0; i < gear.length; i++)
+          PreDiveSessionItem(
+            id: 'demo-session-gear-$i',
+            sessionId: sessionId,
+            sectionId: 'demo-session-section',
+            createdAt: dive.start,
+            updatedAt: dive.start,
+            title: gear[i].$2,
+            sortOrder: titles.length + i,
+            isRequired: true,
+            itemType: PreDiveItemType.equipment,
+            equipmentId: ctx.equipment[gear[i].$1],
+            state: PreDiveItemState.done,
+            completedAt: dive.start.subtract(const Duration(minutes: 35)),
           ),
       ],
       sections: [

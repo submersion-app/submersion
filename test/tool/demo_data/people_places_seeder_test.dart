@@ -67,10 +67,11 @@ void main() {
     'centres, gear notes, tags and the species catalogue are there',
     () async {
       expect(await countRows(ctx, 'dive_centers'), ctx.plan.centers.length);
-      expect(
-        await countRows(ctx, 'dive_center_gear_notes'),
-        ctx.plan.centers.length,
-      );
+      // Cylinders and lead at every centre, the regulator where it was
+      // rented too.
+      final notes = await countRows(ctx, 'dive_center_gear_notes');
+      expect(notes, greaterThanOrEqualTo(2 * ctx.plan.centers.length));
+      expect(notes, lessThanOrEqualTo(3 * ctx.plan.centers.length));
       expect(await countRows(ctx, 'tags'), 7);
       expect(await countRows(ctx, 'species'), greaterThan(600));
     },
