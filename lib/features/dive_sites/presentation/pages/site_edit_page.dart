@@ -2340,12 +2340,13 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
       // them; the save above already wrote the everyone flag. Checked in
       // this order so an unchanged save never reads the active profile. A
       // merge carries each site's sharing itself.
+      var sharingRefused = false;
       if (!widget.isMerging &&
           !_sharingUnread &&
           (_sharing != _originalSharing ||
               (_staleShareRows && _sharing.everyone)) &&
           (!widget.isEditing || _mayShareNow())) {
-        await ref
+        sharingRefused = !await ref
             .read(itemSharesRepositoryProvider)
             .setSharing(
               SharedItemKind.site,
@@ -2388,8 +2389,17 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
 
       if (mounted) {
         _hasChanges = false;
+        // The rest of the site is saved, so a refused sharing change says
+        // so (in place of the saved message) rather than keeping the page.
+        final messenger = ScaffoldMessenger.of(context);
+        final refusedMessage = sharingRefused
+            ? sharingRefusedMessage(context.l10n)
+            : null;
         if (widget.embedded) {
           widget.onSaved?.call(savedId);
+          if (refusedMessage != null) {
+            messenger.showSnackBar(SnackBar(content: Text(refusedMessage)));
+          }
         } else if (widget.isMerging) {
           context.pop(
             SiteMergeResult(survivorId: savedId, snapshot: mergeSnapshot),
@@ -2398,14 +2408,15 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
           // A duplicate's opener takes the id and shows the copy where it
           // shows sites (openDuplicateSite).
           context.pop(savedId);
-          ScaffoldMessenger.of(context).showSnackBar(
+          messenger.showSnackBar(
             SnackBar(
               content: Text(
-                widget.isEditing
-                    ? context.l10n.diveSites_edit_snackbar_siteUpdated
-                    : featuresNotCopied
-                    ? context.l10n.diveSites_edit_snackbar_featuresNotCopied
-                    : context.l10n.diveSites_edit_snackbar_siteAdded,
+                refusedMessage ??
+                    (widget.isEditing
+                        ? context.l10n.diveSites_edit_snackbar_siteUpdated
+                        : featuresNotCopied
+                        ? context.l10n.diveSites_edit_snackbar_featuresNotCopied
+                        : context.l10n.diveSites_edit_snackbar_siteAdded),
               ),
             ),
           );

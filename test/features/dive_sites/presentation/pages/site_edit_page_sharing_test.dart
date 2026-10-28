@@ -241,6 +241,62 @@ void main() {
     );
   });
 
+  // The edit page is the one place sharing changes (#3766), so a refused
+  // change says so rather than passing silently.
+  testWidgets('a sharing change the repository refuses says who may change '
+      'it', (tester) async {
+    final shares = FakeItemShares.everyone(['pier'])..refuseSet = true;
+    String? saved;
+    tester.view.physicalSize = const Size(900, 3200);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          allDiversProvider.overrideWith((_) async => divers),
+          validatedCurrentDiverIdProvider.overrideWith((_) async => 'd1'),
+          shareByDefaultProvider.overrideWith((_) async => false),
+          itemSharesRepositoryProvider.overrideWithValue(shares),
+        ],
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: SiteEditPage(
+              siteId: 'pier',
+              embedded: true,
+              onSaved: (id) => saved = id,
+              onCancel: () {},
+              onDeleted: () {},
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await openLifeSection(tester);
+    await tester.tap(find.byType(SharingTile));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.descendant(of: find.byType(AlertDialog), matching: find.text('Bob')),
+    );
+    await tester.tap(find.text('Save').last);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Save').first);
+    await tester.pumpAndSettle();
+    expect(shares.setCalls, [
+      ('pier', const ItemSharing(profileIds: {'d2'})),
+    ]);
+    expect(saved, 'pier');
+    expect(
+      find.text('Only another profile can change sharing'),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('removing hides it for this profile, closes, and Undo restores', (
     tester,
   ) async {

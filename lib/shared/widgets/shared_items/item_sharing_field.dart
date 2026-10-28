@@ -5,6 +5,7 @@ import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/detail_row/detail_row.dart';
 import 'package:submersion/shared/widgets/shared_items/share_target_dialog.dart';
@@ -84,6 +85,12 @@ class ItemSharingField extends ConsumerWidget {
     );
   }
 }
+
+/// What an edit page says when the repository refuses its sharing change
+/// (#3766). The page checked the owner before saving, so a refusal means
+/// the item changed hands meanwhile and the page's owner is out of date.
+String sharingRefusedMessage(AppLocalizations l10n) =>
+    l10n.sharedItems_shareOwnerOnly(l10n.sharedItems_ownerUnknown);
 
 /// Opens the share dialog for one trip or site, starting from [current],
 /// and confirms first when the choice takes the item away from a profile

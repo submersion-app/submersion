@@ -227,9 +227,14 @@ class FakeItemShares extends ItemSharesRepository {
     required String? actingDiverId,
   }) async {
     setCalls.add((id, sharing));
+    if (refuseSet) return false;
     this.sharing[id] = sharing;
     return true;
   }
+
+  /// [setSharing] answers false, as the repository does for a profile that
+  /// is not the owner (an item that changed hands meanwhile).
+  bool refuseSet = false;
 
   @override
   Future<ItemShareResult> addSharing(

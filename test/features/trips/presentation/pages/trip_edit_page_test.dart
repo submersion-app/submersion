@@ -1032,6 +1032,73 @@ void main() {
       await tester.pumpAndSettle();
       expect(shares.setCalls, isEmpty);
     });
+
+    // The edit page is the one place sharing changes (#3766), so a refused
+    // change says so rather than reading as saved.
+    testWidgets('a sharing change the repository refuses says who may change '
+        'it instead of Trip updated', (tester) async {
+      final twoDivers = [
+        for (final (id, name) in [('d1', 'One'), ('d2', 'Two')])
+          Diver(
+            id: id,
+            name: name,
+            createdAt: DateTime(2024),
+            updatedAt: DateTime(2024),
+          ),
+      ];
+      final shares = FakeItemShares.everyone(['test-shared'])..refuseSet = true;
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            validatedCurrentDiverIdProvider.overrideWith((_) async => null),
+            tripRepositoryProvider.overrideWithValue(
+              _MockTripRepositoryWithSharedTrip(),
+            ),
+            tripListNotifierProvider.overrideWith((ref) {
+              return _MockTripListNotifier([]);
+            }),
+            allDiversProvider.overrideWith((_) async => twoDivers),
+            shareByDefaultProvider.overrideWith((_) async => false),
+            itemSharesRepositoryProvider.overrideWithValue(shares),
+          ],
+          child: const MaterialApp(
+            locale: Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: TripEditPage(tripId: 'test-shared'),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        find.text('Shared with'),
+        50.0,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.tap(find.byType(SharingTile));
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.text('Two'),
+        ),
+      );
+      await tester.tap(find.text('Save').last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Unshare'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+      expect(shares.setCalls, [
+        ('test-shared', const ItemSharing(profileIds: {'d2'})),
+      ]);
+      expect(
+        find.text('Only another profile can change sharing'),
+        findsOneWidget,
+      );
+      expect(find.text('Trip updated successfully'), findsNothing);
+    });
   });
 
   testWidgets('an owner save clears share rows left beside the everyone flag '
