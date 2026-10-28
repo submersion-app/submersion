@@ -4,6 +4,7 @@ import 'package:submersion/core/query/registry/query_entity.dart';
 import 'package:submersion/core/query/registry/query_field.dart';
 import 'package:submersion/core/query/registry/query_relation.dart';
 import 'package:submersion/features/dive_log/query/dive_aggregate_fields.dart';
+import 'package:submersion/features/trips/data/side_trip_sql.dart';
 
 QueryField _text(String key, String column) => QueryField(
   key: key,
@@ -62,7 +63,8 @@ final tripQueryEntity = QueryEntity(
       emptySql: '0',
       labelKey: 'query_trips_shared',
     ),
-    diveCountField('trips', 'ad.trip_id = {r}.id'),
+    // A trip counts its side trips' dives too (issue #3658).
+    diveCountField('trips', tripDivesScopeSql('ad', '{r}.id')),
   ],
   relations: const [
     QueryRelation(
@@ -72,6 +74,17 @@ final tripQueryEntity = QueryEntity(
       joinSql: '{to}.trip_id = {from}.id',
       isMany: true,
       labelKey: 'query_trips_dives',
+    ),
+    // The larger trip a side trip is part of (issue #3658). A link to a
+    // trip that is itself a side trip, or to the trip itself, is no link.
+    QueryRelation(
+      key: 'partOf',
+      target: QuerySubject.trips,
+      shape: RelationShape.fk,
+      joinSql: '{to}.id = {from}.parent_trip_id',
+      targetFilterSql: '{to}.parent_trip_id IS NULL',
+      isMany: false,
+      labelKey: 'query_trips_partOf',
     ),
   ],
 );

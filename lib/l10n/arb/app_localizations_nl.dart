@@ -53523,6 +53523,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get query_trips_dives => 'Duiken';
 
   @override
+  String get query_trips_partOf => 'Onderdeel van';
+
+  @override
   String get query_trips_endDate => 'Einddatum';
 
   @override

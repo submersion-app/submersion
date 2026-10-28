@@ -85463,6 +85463,12 @@ abstract class AppLocalizations {
   /// **'Dives'**
   String get query_trips_dives;
 
+  /// Relation label in the query builder: the larger trip a side trip is part of
+  ///
+  /// In en, this message translates to:
+  /// **'Part of'**
+  String get query_trips_partOf;
+
   /// Field label in the query builder
   ///
   /// In en, this message translates to:

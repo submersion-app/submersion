@@ -15891,6 +15891,7 @@
   "query_tanks_volume": "Volume",
   "query_trips_diveCount": "Nombre de plongées",
   "query_trips_dives": "Plongées",
+  "query_trips_partOf": "Fait partie de",
   "query_trips_endDate": "Date de fin",
   "query_trips_liveaboardName": "Croisière",
   "query_trips_location": "Lieu",

@@ -15891,6 +15891,7 @@
   "query_tanks_volume": "Volumen",
   "query_trips_diveCount": "Número de inmersiones",
   "query_trips_dives": "Inmersiones",
+  "query_trips_partOf": "Parte de",
   "query_trips_endDate": "Fecha de fin",
   "query_trips_liveaboardName": "Vida a bordo",
   "query_trips_location": "Ubicación",

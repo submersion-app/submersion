@@ -15891,6 +15891,7 @@
   "query_tanks_volume": "Volume",
   "query_trips_diveCount": "Numero di immersioni",
   "query_trips_dives": "Immersioni",
+  "query_trips_partOf": "Parte di",
   "query_trips_endDate": "Data di fine",
   "query_trips_liveaboardName": "Crociera subacquea",
   "query_trips_location": "Località",

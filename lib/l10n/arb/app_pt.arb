@@ -15891,6 +15891,7 @@
   "query_tanks_volume": "Volume",
   "query_trips_diveCount": "Número de mergulhos",
   "query_trips_dives": "Mergulhos",
+  "query_trips_partOf": "Parte de",
   "query_trips_endDate": "Data de fim",
   "query_trips_liveaboardName": "Liveaboard",
   "query_trips_location": "Local",

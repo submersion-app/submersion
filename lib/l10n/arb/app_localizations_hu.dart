@@ -53574,6 +53574,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get query_trips_dives => 'Merülések';
 
   @override
+  String get query_trips_partOf => 'Nagyobb út része';
+
+  @override
   String get query_trips_endDate => 'Záró dátum';
 
   @override

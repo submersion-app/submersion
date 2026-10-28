@@ -15891,6 +15891,7 @@
   "query_tanks_volume": "Térfogat",
   "query_trips_diveCount": "Merülések száma",
   "query_trips_dives": "Merülések",
+  "query_trips_partOf": "Nagyobb út része",
   "query_trips_endDate": "Záró dátum",
   "query_trips_liveaboardName": "Hajószállás",
   "query_trips_location": "Helyszín",

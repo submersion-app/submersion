@@ -15891,6 +15891,7 @@
   "query_tanks_volume": "נפח",
   "query_trips_diveCount": "מספר צלילות",
   "query_trips_dives": "צלילות",
+  "query_trips_partOf": "חלק מ־",
   "query_trips_endDate": "תאריך סיום",
   "query_trips_liveaboardName": "ספינת צלילה",
   "query_trips_location": "מיקום",

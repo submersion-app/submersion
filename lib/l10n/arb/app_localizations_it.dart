@@ -53869,6 +53869,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get query_trips_dives => 'Immersioni';
 
   @override
+  String get query_trips_partOf => 'Parte di';
+
+  @override
   String get query_trips_endDate => 'Data di fine';
 
   @override

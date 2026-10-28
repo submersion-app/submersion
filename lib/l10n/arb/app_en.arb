@@ -32104,6 +32104,8 @@
   "@query_trips_diveCount": {"description": "Field label in the query builder: how many counted dives the trip has"},
   "query_trips_dives": "Dives",
   "@query_trips_dives": {"description": "Relation label in the query builder: the dives on a trip"},
+  "query_trips_partOf": "Part of",
+  "@query_trips_partOf": {"description": "Relation label in the query builder: the larger trip a side trip is part of"},
   "query_trips_endDate": "End date",
   "@query_trips_endDate": {"description": "Field label in the query builder"},
   "query_trips_liveaboardName": "Liveaboard",

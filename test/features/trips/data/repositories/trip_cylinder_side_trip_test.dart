@@ -100,9 +100,7 @@ void main() {
     trips = TripRepository();
     cylinders = TripCylinderRepository();
     parent = await trips.createTrip(trip('Indonesia'));
-    side = await trips.createTrip(
-      trip('Raja Ampat', parentTripId: parent.id),
-    );
+    side = await trips.createTrip(trip('Raja Ampat', parentTripId: parent.id));
     slotX = await slot(parent.id, 'X');
     slotY = await slot(side.id, 'Y');
   });

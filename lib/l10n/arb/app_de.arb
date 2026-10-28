@@ -16031,6 +16031,7 @@
   "query_tanks_volume": "Volumen",
   "query_trips_diveCount": "Anzahl Tauchgänge",
   "query_trips_dives": "Tauchgänge",
+  "query_trips_partOf": "Teil von",
   "query_trips_endDate": "Enddatum",
   "query_trips_liveaboardName": "Tauchsafari",
   "query_trips_location": "Ort",

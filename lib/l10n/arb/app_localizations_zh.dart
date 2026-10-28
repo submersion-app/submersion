@@ -50542,6 +50542,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get query_trips_dives => '潜水';
 
   @override
+  String get query_trips_partOf => '所属行程';
+
+  @override
   String get query_trips_endDate => '结束日期';
 
   @override

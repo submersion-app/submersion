@@ -53980,6 +53980,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get query_trips_dives => 'Plongées';
 
   @override
+  String get query_trips_partOf => 'Fait partie de';
+
+  @override
   String get query_trips_endDate => 'Date de fin';
 
   @override

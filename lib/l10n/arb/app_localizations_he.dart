@@ -52725,6 +52725,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get query_trips_dives => 'צלילות';
 
   @override
+  String get query_trips_partOf => 'חלק מ־';
+
+  @override
   String get query_trips_endDate => 'תאריך סיום';
 
   @override

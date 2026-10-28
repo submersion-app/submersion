@@ -50,19 +50,23 @@ void main() {
         [id, owner, tripId],
       );
 
-  Future<String?> tripOf(String diveId) async => (await db
-      .customSelect(
-        'SELECT trip_id FROM dives WHERE id = ?',
-        variables: [Variable<String>(diveId)],
-      )
-      .getSingle()).readNullable<String>('trip_id');
+  Future<String?> tripOf(String diveId) async =>
+      (await db
+              .customSelect(
+                'SELECT trip_id FROM dives WHERE id = ?',
+                variables: [Variable<String>(diveId)],
+              )
+              .getSingle())
+          .readNullable<String>('trip_id');
 
-  Future<String?> parentOf(String tripId) async => (await db
-      .customSelect(
-        'SELECT parent_trip_id FROM trips WHERE id = ?',
-        variables: [Variable<String>(tripId)],
-      )
-      .getSingle()).readNullable<String>('parent_trip_id');
+  Future<String?> parentOf(String tripId) async =>
+      (await db
+              .customSelect(
+                'SELECT parent_trip_id FROM trips WHERE id = ?',
+                variables: [Variable<String>(tripId)],
+              )
+              .getSingle())
+          .readNullable<String>('parent_trip_id');
 
   Future<bool> pending(String entityType, String recordId) async =>
       (await db

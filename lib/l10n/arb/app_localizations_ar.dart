@@ -54512,6 +54512,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get query_trips_dives => 'الغطسات';
 
   @override
+  String get query_trips_partOf => 'جزء من';
+
+  @override
   String get query_trips_endDate => 'تاريخ الانتهاء';
 
   @override
