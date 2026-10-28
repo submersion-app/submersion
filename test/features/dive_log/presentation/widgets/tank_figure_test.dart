@@ -182,4 +182,30 @@ void main() {
     );
     expect(_painted(tester), paints..rect(color: used));
   });
+
+  testWidgets('a moved used label is joined to its bracket', (tester) async {
+    // Start 200 and end 190 sit close, so the Used label is pushed off the
+    // bracket's middle; its leader starts on the bracket, not beside it.
+    await tester.pumpWidget(
+      _host(_figure(start: 200, end: 190, usedLabel: 'Used 10 bar')),
+    );
+
+    final height = tankFigureHeight(11.1);
+    final bodyWidth =
+        18 +
+        (height - tankFigureMinHeight) /
+            (tankFigureMaxHeight - tankFigureMinHeight) *
+            10;
+    final bracketX = bodyWidth + 3;
+    expect(
+      _painted(tester),
+      paints..something((method, args) {
+        if (method != #drawLine) return false;
+        final from = args[0] as Offset;
+        final to = args[1] as Offset;
+        // A leader runs sideways to a label; the bracket itself is vertical.
+        return (from.dx - bracketX).abs() < 0.01 && (to.dx - from.dx) > 1;
+      }),
+    );
+  });
 }

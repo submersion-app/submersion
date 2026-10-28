@@ -104,7 +104,7 @@ class TankFigure extends StatelessWidget {
         : double.infinity;
     final sizes = [
       for (final (text, style) in texts)
-        _measure(text, style, textScaler, direction, labelMaxWidth),
+        _measure(text, style, textScaler, direction, labelMaxWidth, context),
     ];
     final labelsHeight =
         sizes.fold(0.0, (sum, s) => sum + s.height) +
@@ -140,11 +140,15 @@ class TankFigure extends StatelessWidget {
     // one without a level (a missing value, an outline) points at nothing.
     final startMarked = fill && markStart;
     final endMarked = fill && markEnd;
+    final hasBracket =
+        usedLabel != null && startMarked && endMarked && endY - startY > 1;
     final marked = [
       startMarked,
       if (usedLabel != null) startMarked && endMarked,
       endMarked,
     ];
+    // The used label's leader starts on its bracket, the others on a tick.
+    final fromBracket = [false, if (usedLabel != null) hasBracket, false];
     return SizedBox(
       width: width,
       height: extent,
@@ -166,16 +170,15 @@ class TankFigure extends StatelessWidget {
                 marks: colors.onSurfaceVariant,
                 startTick: startMarked ? startY : null,
                 endTick: endMarked ? endY : null,
-                bracket:
-                    usedLabel != null &&
-                        startMarked &&
-                        endMarked &&
-                        endY - startY > 1
-                    ? (startY, endY)
-                    : null,
+                bracket: hasBracket ? (startY, endY) : null,
                 leaders: [
                   for (var i = 0; i < targets.length; i++)
-                    if (marked[i]) (targets[i], tops[i] + sizes[i].height / 2),
+                    if (marked[i])
+                      (
+                        level: targets[i],
+                        centre: tops[i] + sizes[i].height / 2,
+                        fromBracket: fromBracket[i],
+                      ),
                 ],
                 labelX: labelX,
                 textDirection: direction,
@@ -201,17 +204,26 @@ class TankFigure extends StatelessWidget {
     TextScaler scaler,
     TextDirection direction,
     double maxWidth,
+    BuildContext context,
   ) {
+    // The settings a Text below takes from its context, so the label is
+    // measured as it will be drawn (the locale picks a script's font).
+    final defaults = DefaultTextStyle.of(context);
     final painter = TextPainter(
       text: TextSpan(text: text, style: style),
       textDirection: direction,
       textScaler: scaler,
+      locale: Localizations.maybeLocaleOf(context),
+      textHeightBehavior: defaults.textHeightBehavior,
+      textWidthBasis: defaults.textWidthBasis,
     )..layout(maxWidth: maxWidth);
     final size = painter.size;
     painter.dispose();
     return size;
   }
 }
+
+typedef _Leader = ({double level, double centre, bool fromBracket});
 
 class _TankPainter extends CustomPainter {
   _TankPainter({
@@ -243,8 +255,9 @@ class _TankPainter extends CustomPainter {
   final double? endTick;
   final (double, double)? bracket;
 
-  /// The (level, label centre) of each label that has a level.
-  final List<(double, double)> leaders;
+  /// Each label that has a level: where it points, where its centre sits,
+  /// and whether its leader starts on the used bracket rather than a tick.
+  final List<_Leader> leaders;
   final double labelX;
   final TextDirection textDirection;
 
@@ -320,11 +333,11 @@ class _TankPainter extends CustomPainter {
     }
 
     // A label moved off its level is joined to it by a leader line.
-    for (final (target, centre) in leaders) {
-      if ((target - centre).abs() < 1) continue;
+    for (final leader in leaders) {
+      if ((leader.level - leader.centre).abs() < 1) continue;
       canvas.drawLine(
-        Offset(tickEnd, target),
-        Offset(labelX - 2, centre),
+        Offset(leader.fromBracket ? bracketX : tickEnd, leader.level),
+        Offset(labelX - 2, leader.centre),
         line,
       );
     }
@@ -347,7 +360,7 @@ class _TankPainter extends CustomPainter {
       old.textDirection != textDirection ||
       !_sameLeaders(old.leaders, leaders);
 
-  static bool _sameLeaders(List<(double, double)> a, List<(double, double)> b) {
+  static bool _sameLeaders(List<_Leader> a, List<_Leader> b) {
     if (a.length != b.length) return false;
     for (var i = 0; i < a.length; i++) {
       if (a[i] != b[i]) return false;
