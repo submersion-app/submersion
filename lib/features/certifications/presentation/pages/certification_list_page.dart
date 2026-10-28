@@ -28,6 +28,7 @@ import 'package:submersion/features/certifications/presentation/providers/certif
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 import 'package:submersion/shared/widgets/section_header_title.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 class CertificationListPage extends ConsumerStatefulWidget {
   const CertificationListPage({super.key, this.headerTitle});
@@ -168,8 +169,9 @@ class _CertificationListPageState extends ConsumerState<CertificationListPage>
                   final mode = ListViewMode.fromName(
                     value.replaceFirst('view_', ''),
                   );
-                  ref.read(certificationListViewModeProvider.notifier).state =
-                      mode;
+                  ref
+                      .read(settingsProvider.notifier)
+                      .setCertificationListViewMode(mode);
                 }
               },
               itemBuilder: (context) {

@@ -1,6 +1,7 @@
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
+import 'package:submersion/core/models/sort_state_codec.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/courses/data/repositories/course_repository.dart';
 import 'package:submersion/features/courses/domain/constants/course_field.dart';
@@ -59,11 +60,22 @@ final completedCoursesProvider = FutureProvider<List<Course>>((ref) async {
 });
 
 /// Sort state for course list
-final courseSortProvider = StateProvider<SortState<CourseSortField>>(
-  (ref) => const SortState(
-    field: CourseSortField.startDate,
-    direction: SortDirection.descending,
-  ),
+///
+/// Comes back as the diver left it (issue #3748): the active diver's saved
+/// sort, or the starting order below when there is none (or this build
+/// cannot read it). Change it through `ListArrangementWrites`.
+final courseSortProvider = Provider<SortState<CourseSortField>>(
+  (ref) =>
+      decodeSortState(
+        ref.watch(
+          settingsProvider.select((s) => s.listArrangements.courseSort),
+        ),
+        CourseSortField.values,
+      ) ??
+      const SortState(
+        field: CourseSortField.startDate,
+        direction: SortDirection.descending,
+      ),
 );
 
 /// Apply sorting to a list of courses
@@ -381,11 +393,10 @@ final inProgressCourseCountProvider = FutureProvider<int>((ref) async {
 // Course List View Mode
 // ============================================================================
 
-/// Runtime-scoped course list view mode. Same contract as
-/// [certificationListViewModeProvider]: seeded once from the saved setting
-/// (v262) with `ref.read`, overridden by the list's menu for the session.
-final courseListViewModeProvider = StateProvider<ListViewMode>((ref) {
-  return ref.read(settingsProvider).courseListViewMode;
+/// The course list's view mode, as the diver left it (issue #3748); same
+/// contract as [diveListViewModeProvider].
+final courseListViewModeProvider = Provider<ListViewMode>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.courseListViewMode));
 });
 
 // ============================================================================

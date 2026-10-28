@@ -47,6 +47,7 @@ import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_pro
 import 'package:submersion/core/utils/coordinates/coordinate_format.dart';
 import 'package:submersion/features/settings/data/data_facts_repository.dart';
 import 'package:submersion/features/settings/domain/data_health/feature_health.dart';
+import 'package:submersion/features/settings/domain/list_arrangements.dart';
 import 'package:submersion/features/settings/presentation/providers/data_health_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/data_row_status_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
@@ -599,6 +600,14 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setGroupTripsInDiveList(bool value) async =>
       state = state.copyWith(groupTripsInDiveList: value);
+  @override
+  Future<void> toggleGroupTripsInDiveList() async =>
+      state = state.copyWith(groupTripsInDiveList: !state.groupTripsInDiveList);
+  @override
+  Future<void> updateListArrangements(
+    ListArrangements Function(ListArrangements current) change,
+  ) async =>
+      state = state.copyWith(listArrangements: change(state.listArrangements));
   @override
   Future<void> setAutoTagImports(bool value) async =>
       state = state.copyWith(autoTagImports: value);

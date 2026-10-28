@@ -16,5 +16,7 @@ extension BeforeOpenSettingsColumns on AppDatabase {
     await _assertDownloadOwnerColumn();
     // v315 backstop: diver_settings.omit_unused_oc_gases.
     await _assertOmitUnusedOcGasesColumn();
+    // v323 backstop: diver_settings list arrangement columns and clock.
+    await _assertListArrangementColumns();
   }
 }

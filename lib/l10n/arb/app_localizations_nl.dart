@@ -2534,6 +2534,15 @@ class AppLocalizationsNl extends AppLocalizations {
       'Verzenden via AirDrop, e-mail of andere apps';
 
   @override
+  String get backup_copySheet_deviceLocked =>
+      'Deze veiligheidskopie komt uit je beveiligde database. Hij kan alleen op dit apparaat worden hersteld.';
+
+  @override
+  String backup_copySheet_title(String dateTime) {
+    return 'Back-up van $dateTime';
+  }
+
+  @override
   String get backup_frequency_daily => 'Dagelijks';
 
   @override
@@ -2547,6 +2556,12 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get backup_history_action_restore => 'Herstellen';
+
+  @override
+  String get backup_history_action_saveCopy => 'Kopie opslaan';
+
+  @override
+  String get backup_history_action_share => 'Delen';
 
   @override
   String get backup_history_empty => 'Geen back-ups';
@@ -10109,19 +10124,24 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get diveLog_cylinders_columnTank => 'Fles';
+  String diveLog_cylinders_figureStart(String pressure) {
+    return 'Begin $pressure';
+  }
 
   @override
-  String get diveLog_cylinders_columnGas => 'Gas';
+  String diveLog_cylinders_figureEnd(String pressure) {
+    return 'Eind $pressure';
+  }
 
   @override
-  String get diveLog_cylinders_columnStart => 'Begin';
+  String diveLog_cylinders_figureUsed(String pressure) {
+    return 'Gebruikt $pressure';
+  }
 
   @override
-  String get diveLog_cylinders_columnEnd => 'Eind';
-
-  @override
-  String get diveLog_cylinders_columnUsed => 'Gebruikt';
+  String diveLog_cylinders_gasSemantics(String mix) {
+    return 'Gas $mix';
+  }
 
   @override
   String diveLog_cylinders_gasUsed(String amount) {
@@ -10142,6 +10162,14 @@ class AppLocalizationsNl extends AppLocalizations {
   String diveLog_cylinders_modNote(String ppO2) {
     return 'MOD bij ppO₂ $ppO2';
   }
+
+  @override
+  String diveLog_cylinders_modLimit(String ppO2, String limit) {
+    return '$ppO2 ($limit)';
+  }
+
+  @override
+  String get diveLog_cylinders_modLimitSeparator => ', ';
 
   @override
   String get diveLog_tank_section_gasMix => 'Gasmengsel';
@@ -19977,6 +20005,11 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String plannerCanvas_issue_noUsableGas(String minGas, String fill) {
+    return 'Rock-bottom-minimum van $minGas laat geen bruikbaar gas over in een vulling van $fill';
+  }
+
+  @override
   String plannerCanvas_issue_diluentModExceeded(String depth, String value) {
     return 'Diluent overschrijdt de Dil-MOD op $depth (ppO₂ $value bar)';
   }
@@ -22778,6 +22811,62 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_conflict_field_omitUnusedOcGases =>
       'Ongebruikte bailoutgassen overslaan';
+
+  @override
+  String get settings_conflict_field_diveListSort => 'Duiken: sortering';
+
+  @override
+  String get settings_conflict_field_divePlanListSort =>
+      'Opgeslagen plannen: sortering';
+
+  @override
+  String get settings_conflict_field_tripListSort => 'Reizen: sortering';
+
+  @override
+  String get settings_conflict_field_courseListSort => 'Cursussen: sortering';
+
+  @override
+  String get settings_conflict_field_buddyListSort => 'Buddy\'s: sortering';
+
+  @override
+  String get settings_conflict_field_diveCenterListSort =>
+      'Duikcentra: sortering';
+
+  @override
+  String get settings_conflict_field_siteListSort => 'Duikstekken: sortering';
+
+  @override
+  String get settings_conflict_field_certificationListSort =>
+      'Brevetten: sortering';
+
+  @override
+  String get settings_conflict_field_equipmentListSort =>
+      'Uitrusting: sortering';
+
+  @override
+  String get settings_conflict_field_siteListGroupBy =>
+      'Duikstekken: groepering';
+
+  @override
+  String get settings_conflict_field_certificationListGroupBy =>
+      'Brevetten: groepering';
+
+  @override
+  String get settings_conflict_field_equipmentArrangement =>
+      'Ordening van uitrusting';
+
+  @override
+  String get settings_conflict_field_equipmentGroupByLocation =>
+      'Uitrusting gegroepeerd op locatie';
+
+  @override
+  String get settings_conflict_field_listArrangementHlc =>
+      'Log van lijstordening';
+
+  @override
+  String settings_conflict_sortValue(String field, String direction) {
+    return '$field, $direction';
+  }
 
   @override
   String get settings_conflict_field_avgSpeed => 'Gemiddelde snelheid';
@@ -35890,12 +35979,12 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String settings_shareAllSites_confirm(int count) {
-    return 'Kies wie al je $count duikplekken ziet. Om één duikplek later te wijzigen, open je hem en tik je op Gedeeld met.';
+    return 'Kies wie al je $count duikplekken ziet. Om één duikplek later te wijzigen, bewerk je hem en tik je op Gedeeld met.';
   }
 
   @override
   String settings_shareAllTrips_confirm(int count) {
-    return 'Kies wie al je $count trips ziet. Om één trip later te wijzigen, open je hem en tik je op Gedeeld met.';
+    return 'Kies wie al je $count trips ziet. Om één trip later te wijzigen, bewerk je hem en tik je op Gedeeld met.';
   }
 
   @override
@@ -51796,6 +51885,17 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get backup_history_device_anotherDevice => 'Ander apparaat';
+
+  @override
+  String get backup_history_device_thisDevice => 'Dit apparaat';
+
+  @override
+  String backup_history_subtitleWithDevice(String summary, String device) {
+    return '$summary · $device';
+  }
+
+  @override
   String backup_history_manualSubtitle(
     int diveCount,
     int siteCount,
@@ -55302,6 +55402,16 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get tags_manage_cannotUndo => 'Dit kan niet ongedaan worden gemaakt.';
+
+  @override
+  String tags_manage_rowScopes(String scopes) {
+    return 'Voor: $scopes';
+  }
+
+  @override
+  String tags_manage_rowUsage(String counts) {
+    return 'Gebruikt op: $counts';
+  }
 
   @override
   String get tags_action_edit => 'Tags bewerken';

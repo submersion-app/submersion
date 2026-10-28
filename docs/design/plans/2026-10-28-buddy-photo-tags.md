@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- Schema version **323** (v319, v321, v322 are held by open PR #3726; v320 is main). `minimumCompatibleSchemaVersion` stays 308: the change is additive.
+- Schema version **324** (v319, v321, v322 are held by open PR #3726; v320 is main; planned as 323, renumbered at merge when #3748 took 323). `minimumCompatibleSchemaVersion` stays 308: the change is additive.
 - Tables go in `lib/core/database/tables/`, rungs and helpers in `lib/core/database/migrations/`; `database.dart` only gains the table in its `tables:` list, the version constant and the `migrationVersions` entry.
 - Exactly one of `buddy_id` / `diver_id` is set on a row; box columns are all set or all null; normalised 0 to 1 against the full image.
 - A profile sees only its own tags: buddy tags whose buddy has `buddies.diver_id` = the viewing diver, and Me tags whose `diver_id` = the viewing diver. A buddy's `linked_diver_id` is never treated as Me.
@@ -83,24 +83,24 @@ Tests (create): one file per task named below, under the mirrored `test/` path.
 
 ---
 
-### Task 1: The `media_people` table and the v323 rung
+### Task 1: The `media_people` table and the v324 rung
 
 **Files:**
 - Create: `lib/core/database/tables/media_people_tables.dart`, `lib/core/database/migrations/helpers/media_people_migrations.dart`
 - Modify: `database.dart`, `app_database_migrations.dart`, `rungs_v231_onward.dart`, `before_open_table_backstops.dart`
-- Test: `test/core/database/migration_v323_media_people_test.dart`
+- Test: `test/core/database/migration_v324_media_people_test.dart`
 
 **Interfaces:**
 - Produces: Drift table `MediaPeople` (accessor `db.mediaPeople`, data class `MediaPeopleData`, companion `MediaPeopleCompanion`) with columns `id` (text pk), `mediaId` (FK `media`, cascade), `buddyId` (nullable FK `buddies`, cascade), `diverId` (nullable FK `divers`, cascade), `bboxX`, `bboxY`, `bboxWidth`, `bboxHeight` (nullable real), `videoPositionMs` (nullable int), `createdAt`, `updatedAt` (int), `hlc` (nullable text). Indexes `idx_media_people_media` on `media_id`, `idx_media_people_buddy` on `buddy_id`, `idx_media_people_diver` on `diver_id`, created in `_assertMediaPeopleSchema()`.
 
 - [ ] **Step 1: Write the failing migration test**, modelled on `migration_v320_nearby_peers_test.dart`:
-  - `'v323 is in the ladder and did not move the sync floor'`: `currentSchemaVersion >= 323`, `migrationVersions` contains 323, `minimumCompatibleSchemaVersion` is not 323, step count from the version below 323 is one more than from 323.
+  - `'v324 is in the ladder and did not move the sync floor'`: `currentSchemaVersion >= 324`, `migrationVersions` contains 324, `minimumCompatibleSchemaVersion` is not 324, step count from the version below 324 is one more than from 324.
   - `'a v320 database gains media_people with its columns and indexes on open'`: a `PRAGMA user_version = 320` memory DB (with `divers`, `buddies`, `media` stubs) opened as `AppDatabase` has `media_people` with exactly the columns above, and the three indexes in `PRAGMA index_list('media_people')`.
-  - `'the backstop recreates media_people when a parallel branch skipped it'`: a DB at `user_version = 323` without the table gains it on open.
-- [ ] **Step 2: Run** `flutter test test/core/database/migration_v323_media_people_test.dart`. Expected: FAIL (no table, version 320).
-- [ ] **Step 3: Implement.** Table class with a doc comment saying why it carries `updated_at` (rows are edited: box moved, person changed) unlike `MediaSpecies`. Register in `database.dart` `tables:` after `MediaTags`; `currentSchemaVersion = 323`; append `323,` to `migrationVersions` with a comment naming #1745 and that 319/321/322 are held by #3726 and the floor does not move. Helper `_assertMediaPeopleSchema()` in a part file (create table if missing, then `CREATE INDEX IF NOT EXISTS` for each index); add the `part` line; rung `if (from < 323) { await _assertMediaPeopleSchema(); } if (from < 323) await reportProgress();`; call it from the table backstops.
+  - `'the backstop recreates media_people when a parallel branch skipped it'`: a DB at `user_version = 324` without the table gains it on open.
+- [ ] **Step 2: Run** `flutter test test/core/database/migration_v324_media_people_test.dart`. Expected: FAIL (no table, version 320).
+- [ ] **Step 3: Implement.** Table class with a doc comment saying why it carries `updated_at` (rows are edited: box moved, person changed) unlike `MediaSpecies`. Register in `database.dart` `tables:` after `MediaTags`; `currentSchemaVersion = 324`; append `324,` to `migrationVersions` with a comment naming #1745 and that 319/321/322 are held by #3726 and the floor does not move. Helper `_assertMediaPeopleSchema()` in a part file (create table if missing, then `CREATE INDEX IF NOT EXISTS` for each index); add the `part` line; rung `if (from < 324) { await _assertMediaPeopleSchema(); } if (from < 324) await reportProgress();`; call it from the table backstops.
 - [ ] **Step 4: Regenerate and run.** `dart run build_runner build --delete-conflicting-outputs` (or `bash scripts/setup.sh` if denied), then the test. Expected: PASS. Also run `flutter test test/core/database` (the before-open guard lives there).
-- [ ] **Step 5: Commit** `feat(media): media_people table at schema v323`.
+- [ ] **Step 5: Commit** `feat(media): media_people table at schema v324`.
 
 ### Task 2: Domain entities and `MediaPeopleRepository`
 

@@ -22,7 +22,6 @@ import 'package:submersion/features/trips/presentation/widgets/trip_detail_tabs.
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/shared_items/shared_by_banner.dart';
 import 'package:submersion/shared/widgets/shared_items/shared_item_dialogs.dart';
-import 'package:submersion/shared/widgets/shared_items/item_sharing_row.dart';
 
 class TripDetailPage extends ConsumerStatefulWidget {
   final String tripId;
@@ -110,18 +109,14 @@ class _TripDetailContent extends ConsumerWidget {
     final trip = tripWithStats.trip;
     // One layout for every trip type (#2845): the tab row under the "Shared
     // by" banner, embedded under the master-detail header or in a Scaffold.
+    // Who the trip is shared with is shown and changed on the edit page
+    // only (#3766).
     final body = Column(
       children: [
         SharedByBanner(
           kind: SharedItemKind.trip,
           itemId: trip.id,
           ownerId: trip.diverId,
-        ),
-        ItemSharingRow(
-          kind: SharedItemKind.trip,
-          itemId: trip.id,
-          ownerId: trip.diverId,
-          itemName: trip.name,
         ),
         Expanded(
           child: TripDetailTabs(

@@ -640,10 +640,16 @@ extension RungsFromV231 on AppDatabase {
     if (from < 320) await _assertNearbySchema();
     if (from < 320) await reportProgress();
 
-    // v323: people tagged on photos and videos (issue #1745). Table-only
-    // rung, no backfill; re-asserted in beforeOpen. 319, 321 and 322 are
-    // held by PR #3726.
-    if (from < 323) await _assertMediaPeopleSchema();
+    // v323: diver_settings list arrangement columns and their sync clock
+    // (issue #3748); re-asserted in beforeOpen. 321 and 322 are held by
+    // PR #3726.
+    if (from < 323) await _assertListArrangementColumns();
     if (from < 323) await reportProgress();
+
+    // v324: people tagged on photos and videos (issue #1745). Table-only
+    // rung, no backfill; re-asserted in beforeOpen. Renumbered from 323,
+    // which #3748 took; 319, 321 and 322 are held by PR #3726.
+    if (from < 324) await _assertMediaPeopleSchema();
+    if (from < 324) await reportProgress();
   }
 }

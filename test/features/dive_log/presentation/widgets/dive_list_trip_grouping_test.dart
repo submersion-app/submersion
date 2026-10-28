@@ -9,6 +9,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/dive_log/presentation/widgets/dive_list_content.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/trip_group_header.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/settings/domain/list_arrangements.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
@@ -106,12 +107,22 @@ Future<List<Override>> groupingOverrides(
   Map<String, int> tripTotals = const {},
   MockPaginatedNotifier? notifier,
   ListViewMode viewMode = ListViewMode.detailed,
+  ListArrangements listArrangements = ListArrangements.none,
 }) async {
-  final base = await getBaseOverrides();
+  // The view mode, group-trips toggle and sort are read from the diver's
+  // saved settings (issue #3748), so a test that changes them through the
+  // list sees the change.
+  final base = await getBaseOverrides(
+    settingsNotifier: MockSettingsNotifier(
+      AppSettings(
+        diveListViewMode: viewMode,
+        groupTripsInDiveList: grouping,
+        listArrangements: listArrangements,
+      ),
+    ),
+  );
   return [
     ...base,
-    diveListViewModeProvider.overrideWith((ref) => viewMode),
-    diveListGroupTripsProvider.overrideWith((ref) => grouping),
     tripDiveCountsProvider.overrideWith((ref) async => tripTotals),
     paginatedDiveListProvider.overrideWith(
       (ref) => notifier ?? MockPaginatedNotifier(dives),

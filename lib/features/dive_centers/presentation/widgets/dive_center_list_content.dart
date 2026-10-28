@@ -44,6 +44,7 @@ import 'package:submersion/features/query/presentation/providers/query_id_set_pr
 import 'package:submersion/features/query/presentation/widgets/query_filter_sheet.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_list_count_provider.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_closed_tag.dart';
+import 'package:submersion/features/settings/presentation/providers/list_arrangement_writes.dart';
 
 /// Content widget for the dive center list, used in master-detail layout.
 class DiveCenterListContent extends ConsumerStatefulWidget {
@@ -335,9 +336,8 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
                             value.replaceFirst('view_', ''),
                           );
                           ref
-                                  .read(diveCenterListViewModeProvider.notifier)
-                                  .state =
-                              mode;
+                              .read(settingsProvider.notifier)
+                              .setDiveCenterListViewMode(mode);
                         }
                       },
                       itemBuilder: (context) {
@@ -660,7 +660,9 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
                 final mode = ListViewMode.fromName(
                   value.replaceFirst('view_', ''),
                 );
-                ref.read(diveCenterListViewModeProvider.notifier).state = mode;
+                ref
+                    .read(settingsProvider.notifier)
+                    .setDiveCenterListViewMode(mode);
               }
             },
             itemBuilder: (context) {
@@ -703,10 +705,9 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
       getFieldDisplayName: (field) => field.localizedName(context.l10n),
       getFieldIcon: (field) => field.icon,
       onSortChanged: (field, direction) {
-        ref.read(diveCenterSortProvider.notifier).state = SortState(
-          field: field,
-          direction: direction,
-        );
+        ref
+            .read(settingsProvider.notifier)
+            .setDiveCenterSort(SortState(field: field, direction: direction));
       },
     );
   }

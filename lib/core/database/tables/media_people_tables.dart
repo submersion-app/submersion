@@ -13,7 +13,7 @@ import 'package:submersion/core/database/tables/buddy_tables.dart';
 import 'package:submersion/core/database/tables/diver_tables.dart';
 import 'package:submersion/core/database/tables/media_tables.dart';
 
-/// One person tagged on a photo or video (v323): a buddy, or the diver
+/// One person tagged on a photo or video (v324): a buddy, or the diver
 /// themself ("Me"). Exactly one of [buddyId] and [diverId] is set.
 ///
 /// The box marks where the person is, normalised 0 to 1 against the full

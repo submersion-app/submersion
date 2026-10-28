@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
-import 'package:submersion/features/gps_log/presentation/widgets/track_title_row.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
 import 'package:submersion/features/nav_track/presentation/nav_track_dive_label.dart';
@@ -12,6 +11,7 @@ import 'package:submersion/features/nav_track/presentation/providers/nav_track_p
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_link_label.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_row_stats.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_shape_thumbnail.dart';
+import 'package:submersion/features/tracks/presentation/widgets/track_badge_line.dart';
 import 'package:submersion/features/tracks/presentation/widgets/track_stat_row.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -42,9 +42,10 @@ String formatNavTrackDetailLine(
   ].join(' · ');
 }
 
-/// One route row: title, kind badge, date/device meta, distance/depth/
-/// duration stats, and a link label (`Dive #<n>` or "unlinked"). Unanchored
-/// routes show their shape thumbnail in place of a map preview.
+/// One route row: title, date/device meta, distance/depth/duration stats,
+/// and a link label (`Dive #<n>` or "unlinked") with the kind badge at the
+/// end of its line. Unanchored routes show their shape thumbnail in place of
+/// a map preview.
 ///
 /// When the route is linked to a dive that has a site, the title becomes
 /// that dive's site name -- a diver reading the Tracks list cares which
@@ -72,8 +73,8 @@ class NavTrackListRow extends ConsumerWidget {
   /// No delete button when null.
   final VoidCallback? onDelete;
 
-  /// Shown in the title row, after the title (dive-list parity: the badge
-  /// sits next to the title the way `DiveModeBadge` does).
+  /// Shown on the link label's line, at its end: which dive the
+  /// track belongs to and what kind of track it is read together (#3749).
   final Widget? kindBadge;
 
   /// `Dive #<n>` once the dive has loaded, its id while it is still
@@ -119,7 +120,7 @@ class NavTrackListRow extends ConsumerWidget {
       leading: anchored
           ? const Icon(Icons.route)
           : NavTrackShapeThumbnail(points: hydratedPoints),
-      title: TrackTitleRow(title: titleText, badge: kindBadge),
+      title: Text(titleText),
       subtitle: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -131,7 +132,13 @@ class NavTrackListRow extends ConsumerWidget {
           // tag chips (`dive_list_page.dart`, where this chip style came
           // from) -- without it the link label crowded the stats above it.
           const SizedBox(height: 4),
-          NavTrackLinkLabel(label: _linkLabel(l10n, dive), diveId: diveId),
+          TrackBadgeLine(
+            badge: kindBadge,
+            child: NavTrackLinkLabel(
+              label: _linkLabel(l10n, dive),
+              diveId: diveId,
+            ),
+          ),
         ],
       ),
       trailing: onDelete == null

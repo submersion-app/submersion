@@ -2545,6 +2545,15 @@ class AppLocalizationsDe extends AppLocalizations {
       'Per AirDrop, E-Mail oder andere Apps senden';
 
   @override
+  String get backup_copySheet_deviceLocked =>
+      'Diese Sicherheitskopie stammt aus Ihrer geschützten Datenbank. Sie lässt sich nur auf diesem Gerät wiederherstellen.';
+
+  @override
+  String backup_copySheet_title(String dateTime) {
+    return 'Sicherung vom $dateTime';
+  }
+
+  @override
   String get backup_frequency_daily => 'Täglich';
 
   @override
@@ -2558,6 +2567,12 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get backup_history_action_restore => 'Wiederherstellen';
+
+  @override
+  String get backup_history_action_saveCopy => 'Kopie speichern';
+
+  @override
+  String get backup_history_action_share => 'Teilen';
 
   @override
   String get backup_history_empty => 'Keine Sicherungen vorhanden';
@@ -10169,19 +10184,24 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get diveLog_cylinders_columnTank => 'Flasche';
+  String diveLog_cylinders_figureStart(String pressure) {
+    return 'Beginn $pressure';
+  }
 
   @override
-  String get diveLog_cylinders_columnGas => 'Gas';
+  String diveLog_cylinders_figureEnd(String pressure) {
+    return 'Ende $pressure';
+  }
 
   @override
-  String get diveLog_cylinders_columnStart => 'Beginn';
+  String diveLog_cylinders_figureUsed(String pressure) {
+    return 'Verbraucht $pressure';
+  }
 
   @override
-  String get diveLog_cylinders_columnEnd => 'Ende';
-
-  @override
-  String get diveLog_cylinders_columnUsed => 'Verbraucht';
+  String diveLog_cylinders_gasSemantics(String mix) {
+    return 'Gas $mix';
+  }
 
   @override
   String diveLog_cylinders_gasUsed(String amount) {
@@ -10202,6 +10222,14 @@ class AppLocalizationsDe extends AppLocalizations {
   String diveLog_cylinders_modNote(String ppO2) {
     return 'MOD bei ppO₂ $ppO2';
   }
+
+  @override
+  String diveLog_cylinders_modLimit(String ppO2, String limit) {
+    return '$ppO2 ($limit)';
+  }
+
+  @override
+  String get diveLog_cylinders_modLimitSeparator => ', ';
 
   @override
   String get diveLog_tank_section_gasMix => 'Gasgemisch';
@@ -20081,6 +20109,11 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String plannerCanvas_issue_noUsableGas(String minGas, String fill) {
+    return 'Rock-Bottom-Minimum von $minGas lässt bei einer Füllung von $fill kein nutzbares Gas übrig';
+  }
+
+  @override
   String plannerCanvas_issue_diluentModExceeded(String depth, String value) {
     return 'Diluent überschreitet seine Dil-MOD-Grenze bei $depth (ppO₂ $value bar)';
   }
@@ -22889,6 +22922,63 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_conflict_field_omitUnusedOcGases =>
       'Ungenutzte Bailout-Gase auslassen';
+
+  @override
+  String get settings_conflict_field_diveListSort => 'Tauchgänge: Sortierung';
+
+  @override
+  String get settings_conflict_field_divePlanListSort =>
+      'Gespeicherte Pläne: Sortierung';
+
+  @override
+  String get settings_conflict_field_tripListSort => 'Reisen: Sortierung';
+
+  @override
+  String get settings_conflict_field_courseListSort => 'Kurse: Sortierung';
+
+  @override
+  String get settings_conflict_field_buddyListSort =>
+      'Tauchpartner: Sortierung';
+
+  @override
+  String get settings_conflict_field_diveCenterListSort =>
+      'Tauchbasen: Sortierung';
+
+  @override
+  String get settings_conflict_field_siteListSort => 'Tauchplätze: Sortierung';
+
+  @override
+  String get settings_conflict_field_certificationListSort =>
+      'Brevets: Sortierung';
+
+  @override
+  String get settings_conflict_field_equipmentListSort =>
+      'Ausrüstung: Sortierung';
+
+  @override
+  String get settings_conflict_field_siteListGroupBy =>
+      'Tauchplätze: Gruppierung';
+
+  @override
+  String get settings_conflict_field_certificationListGroupBy =>
+      'Brevets: Gruppierung';
+
+  @override
+  String get settings_conflict_field_equipmentArrangement =>
+      'Ausrüstungsanordnung';
+
+  @override
+  String get settings_conflict_field_equipmentGroupByLocation =>
+      'Ausrüstung nach Ort gruppiert';
+
+  @override
+  String get settings_conflict_field_listArrangementHlc =>
+      'Protokoll der Listenanordnung';
+
+  @override
+  String settings_conflict_sortValue(String field, String direction) {
+    return '$field, $direction';
+  }
 
   @override
   String get settings_conflict_field_avgSpeed => 'Durchschnittsgeschwindigkeit';
@@ -36061,12 +36151,12 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String settings_shareAllSites_confirm(int count) {
-    return 'Wähle aus, wer alle $count deiner Tauchplätze sieht. Um einen Tauchplatz später zu ändern, öffne ihn und tippe auf Geteilt mit.';
+    return 'Wähle aus, wer alle $count deiner Tauchplätze sieht. Um einen Tauchplatz später zu ändern, bearbeite ihn und tippe auf Geteilt mit.';
   }
 
   @override
   String settings_shareAllTrips_confirm(int count) {
-    return 'Wähle aus, wer alle $count deiner Reisen sieht. Um eine Reise später zu ändern, öffne sie und tippe auf Geteilt mit.';
+    return 'Wähle aus, wer alle $count deiner Reisen sieht. Um eine Reise später zu ändern, bearbeite sie und tippe auf Geteilt mit.';
   }
 
   @override
@@ -52015,6 +52105,17 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get backup_history_device_anotherDevice => 'Anderes Gerät';
+
+  @override
+  String get backup_history_device_thisDevice => 'Dieses Gerät';
+
+  @override
+  String backup_history_subtitleWithDevice(String summary, String device) {
+    return '$summary · $device';
+  }
+
+  @override
   String backup_history_manualSubtitle(
     int diveCount,
     int siteCount,
@@ -55529,6 +55630,16 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get tags_manage_cannotUndo =>
       'Dies kann nicht rückgängig gemacht werden.';
+
+  @override
+  String tags_manage_rowScopes(String scopes) {
+    return 'Für: $scopes';
+  }
+
+  @override
+  String tags_manage_rowUsage(String counts) {
+    return 'Verwendung: $counts';
+  }
 
   @override
   String get tags_action_edit => 'Tags bearbeiten';

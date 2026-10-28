@@ -329,12 +329,8 @@ class _CertificationListContentState
                               value.replaceFirst('view_', ''),
                             );
                             ref
-                                    .read(
-                                      certificationListViewModeProvider
-                                          .notifier,
-                                    )
-                                    .state =
-                                mode;
+                                .read(settingsProvider.notifier)
+                                .setCertificationListViewMode(mode);
                           }
                         },
                         itemBuilder: (context) {
@@ -624,8 +620,9 @@ class _CertificationListContentState
                 final mode = ListViewMode.fromName(
                   value.replaceFirst('view_', ''),
                 );
-                ref.read(certificationListViewModeProvider.notifier).state =
-                    mode;
+                ref
+                    .read(settingsProvider.notifier)
+                    .setCertificationListViewMode(mode);
               }
             },
             itemBuilder: (context) {

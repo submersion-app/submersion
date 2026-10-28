@@ -13,6 +13,7 @@ import 'package:submersion/features/planner/presentation/providers/plan_reposito
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
+import 'package:submersion/features/settings/presentation/providers/list_arrangement_writes.dart';
 
 /// The saved-plans list: every plan, grouped by [PlanMode] and sorted per
 /// [divePlanSortProvider].
@@ -106,10 +107,9 @@ void openSavedPlansSortSheet(BuildContext context, WidgetRef ref) {
     getFieldDisplayName: (field) => field.localizedName(l10n),
     getFieldIcon: (field) => field.icon,
     onSortChanged: (field, direction) {
-      ref.read(divePlanSortProvider.notifier).state = SortState(
-        field: field,
-        direction: direction,
-      );
+      ref
+          .read(settingsProvider.notifier)
+          .setDivePlanSort(SortState(field: field, direction: direction));
     },
   );
 }

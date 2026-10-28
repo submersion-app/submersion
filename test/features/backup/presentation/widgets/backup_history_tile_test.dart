@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/features/backup/data/services/backup_origin.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 import 'package:submersion/features/backup/domain/entities/backup_type.dart';
 import 'package:submersion/features/backup/presentation/widgets/backup_history_tile.dart';
@@ -105,6 +106,7 @@ void main() {
           onPinToggle: () => toggled = true,
           onRestore: () {},
           onDelete: () {},
+          shareSheetAvailable: true,
         ),
       ),
     );
@@ -131,6 +133,7 @@ void main() {
             onPinToggle: () {},
             onRestore: () {},
             onDelete: () {},
+            shareSheetAvailable: true,
           ),
         ),
       );
@@ -152,6 +155,7 @@ void main() {
             onPinToggle: () {},
             onRestore: () {},
             onDelete: () {},
+            shareSheetAvailable: true,
           ),
         ),
       );
@@ -173,6 +177,7 @@ void main() {
             onPinToggle: () {},
             onRestore: () {},
             onDelete: () {},
+            shareSheetAvailable: true,
           ),
         ),
       );
@@ -192,6 +197,7 @@ void main() {
             onPinToggle: () {},
             onRestore: () {},
             onDelete: () {},
+            shareSheetAvailable: true,
           ),
         ),
       );
@@ -211,6 +217,7 @@ void main() {
             onPinToggle: () {},
             onRestore: () {},
             onDelete: () {},
+            shareSheetAvailable: true,
           ),
         ),
       );
@@ -229,6 +236,7 @@ void main() {
             onPinToggle: () {},
             onRestore: () {},
             onDelete: () {},
+            shareSheetAvailable: true,
           ),
         ),
       );
@@ -255,6 +263,7 @@ void main() {
             onPinToggle: () {},
             onRestore: () {},
             onDelete: () {},
+            shareSheetAvailable: true,
           ),
         ),
       );
@@ -275,6 +284,7 @@ void main() {
             onPinToggle: () {},
             onRestore: () {},
             onDelete: () {},
+            shareSheetAvailable: true,
           ),
         ),
       );
@@ -297,6 +307,7 @@ void main() {
               onPinToggle: () {},
               onRestore: () {},
               onDelete: () {},
+              shareSheetAvailable: true,
             ),
           ),
         );
@@ -317,6 +328,7 @@ void main() {
               onPinToggle: () {},
               onRestore: () {},
               onDelete: () {},
+              shareSheetAvailable: true,
             ),
           ),
         );
@@ -334,6 +346,7 @@ void main() {
             onPinToggle: () {},
             onRestore: () {},
             onDelete: () {},
+            shareSheetAvailable: true,
           ),
         ),
       );
@@ -353,6 +366,7 @@ void main() {
             onPinToggle: () {},
             onRestore: () {},
             onDelete: () {},
+            shareSheetAvailable: true,
           ),
         ),
       );
@@ -377,6 +391,7 @@ void main() {
             onPinToggle: () {},
             onRestore: () {},
             onDelete: () {},
+            shareSheetAvailable: true,
           ),
         ),
       );
@@ -396,6 +411,7 @@ void main() {
             onPinToggle: () => taps++,
             onRestore: () {},
             onDelete: () {},
+            shareSheetAvailable: true,
           ),
         ),
       );
@@ -416,6 +432,7 @@ void main() {
             onPinToggle: () {},
             onRestore: () => restores++,
             onDelete: () {},
+            shareSheetAvailable: true,
           ),
         ),
       );
@@ -436,6 +453,7 @@ void main() {
             onPinToggle: () {},
             onRestore: () {},
             onDelete: () => deletes++,
+            shareSheetAvailable: true,
           ),
         ),
       );
@@ -444,6 +462,216 @@ void main() {
       await tester.tap(find.byIcon(Icons.delete));
       await tester.pumpAndSettle();
       expect(deletes, 1);
+    });
+    testWidgets(
+      'menu shows Share between Restore and Delete when a share sheet exists',
+      (tester) async {
+        await tester.pumpWidget(
+          _wrap(
+            BackupHistoryTile(
+              record: _manual(),
+              leadingIcon: Icons.phone_android,
+              onPinToggle: () {},
+              onRestore: () {},
+              onShare: (_) {},
+              onDelete: () {},
+              shareSheetAvailable: true,
+            ),
+          ),
+        );
+        await tester.tap(find.byType(PopupMenuButton<String>));
+        await tester.pumpAndSettle();
+
+        final values = tester
+            .widgetList<PopupMenuItem<String>>(
+              find.byType(PopupMenuItem<String>),
+            )
+            .map((item) => item.value)
+            .toList();
+        expect(values, ['restore', 'share', 'delete']);
+        expect(find.text('Share'), findsOneWidget);
+        expect(find.byIcon(Icons.share), findsOneWidget);
+      },
+    );
+
+    testWidgets('menu shows Save a copy when no share sheet exists', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _wrap(
+          BackupHistoryTile(
+            record: _manual(),
+            leadingIcon: Icons.phone_android,
+            onPinToggle: () {},
+            onRestore: () {},
+            onShare: (_) {},
+            onDelete: () {},
+            shareSheetAvailable: false,
+          ),
+        ),
+      );
+      await tester.tap(find.byType(PopupMenuButton<String>));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Save a copy'), findsOneWidget);
+      expect(find.byIcon(Icons.save_alt), findsOneWidget);
+      expect(find.text('Share'), findsNothing);
+    });
+
+    testWidgets('Share item is disabled when onShare is null', (tester) async {
+      await tester.pumpWidget(
+        _wrap(
+          BackupHistoryTile(
+            record: _manual(),
+            leadingIcon: Icons.phone_android,
+            onPinToggle: () {},
+            onRestore: () {},
+            onDelete: () {},
+            shareSheetAvailable: true,
+          ),
+        ),
+      );
+      await tester.tap(find.byType(PopupMenuButton<String>));
+      await tester.pumpAndSettle();
+
+      final share = tester
+          .widgetList<PopupMenuItem<String>>(find.byType(PopupMenuItem<String>))
+          .singleWhere((item) => item.value == 'share');
+      expect(share.enabled, isFalse);
+    });
+
+    testWidgets('choosing Share calls onShare with the tile context', (
+      tester,
+    ) async {
+      // The iPad share popover anchors to this context, so it must be the
+      // row's, not the list's.
+      var shares = 0;
+      BuildContext? shareContext;
+      await tester.pumpWidget(
+        _wrap(
+          BackupHistoryTile(
+            record: _manual(),
+            leadingIcon: Icons.phone_android,
+            onPinToggle: () {},
+            onRestore: () {},
+            onShare: (tileContext) {
+              shares++;
+              shareContext = tileContext;
+            },
+            onDelete: () {},
+            shareSheetAvailable: true,
+          ),
+        ),
+      );
+      await tester.tap(find.byType(PopupMenuButton<String>));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byIcon(Icons.share));
+      await tester.pumpAndSettle();
+      expect(shares, 1);
+      expect(shareContext!.widget, isA<BackupHistoryTile>());
+    });
+  });
+
+  group('originating device (#3651)', () {
+    Future<void> pumpTile(
+      WidgetTester tester, {
+      required BackupRecord record,
+      BackupOrigin? origin,
+    }) {
+      return tester.pumpWidget(
+        _wrap(
+          BackupHistoryTile(
+            record: record,
+            origin: origin,
+            leadingIcon: Icons.cloud,
+            onPinToggle: () {},
+            onRestore: () {},
+            onDelete: () {},
+            shareSheetAvailable: true,
+          ),
+        ),
+      );
+    }
+
+    testWidgets('a backup made here ends its summary with This device', (
+      tester,
+    ) async {
+      await pumpTile(
+        tester,
+        record: _manual(isAutomatic: true),
+        origin: const BackupFromThisDevice(),
+      );
+      expect(
+        find.text('5 dives, 3 sites - 2.0 KB (auto) \u00b7 This device'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a named peer backup ends its summary with that name', (
+      tester,
+    ) async {
+      await pumpTile(
+        tester,
+        record: BackupRecord(
+          id: 'cloud:x',
+          filename: 'x.db',
+          timestamp: DateTime(2026, 10, 27, 21, 2),
+          sizeBytes: 2048,
+          location: BackupLocation.cloud,
+        ),
+        origin: const BackupFromNamedDevice("Eric's MacBook"),
+      );
+      expect(
+        find.text("In cloud storage (2.0 KB) \u00b7 Eric's MacBook"),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('an unnamed peer backup says Another device', (tester) async {
+      await pumpTile(
+        tester,
+        record: _manual(),
+        origin: const BackupFromAnotherDevice(),
+      );
+      expect(
+        find.text('5 dives, 3 sites - 2.0 KB \u00b7 Another device'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a pre-migration backup names its device too', (tester) async {
+      await pumpTile(
+        tester,
+        record: _preMigration(),
+        origin: const BackupFromThisDevice(),
+      );
+      expect(
+        find.text('Pre-migration backup - 4.0 KB \u00b7 This device'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('the device stays on the summary line under a note', (
+      tester,
+    ) async {
+      await pumpTile(
+        tester,
+        record: _manual(note: 'Before the Cozumel trip'),
+        origin: const BackupFromThisDevice(),
+      );
+      expect(find.text('Before the Cozumel trip'), findsOneWidget);
+      expect(
+        find.text('5 dives, 3 sites - 2.0 KB \u00b7 This device'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a backup with no known origin shows no device', (
+      tester,
+    ) async {
+      await pumpTile(tester, record: _manual());
+      expect(find.text('5 dives, 3 sites - 2.0 KB'), findsOneWidget);
+      expect(find.textContaining('\u00b7'), findsNothing);
     });
   });
 }

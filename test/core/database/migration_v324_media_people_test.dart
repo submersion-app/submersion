@@ -3,8 +3,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 
-/// Schema v323: the synced `media_people` table, people tagged on photos and
-/// videos (issue #1745). 319, 321 and 322 are held by PR #3726.
+/// Schema v324: the synced `media_people` table, people tagged on photos and
+/// videos (issue #1745). Renumbered from 323, which #3748 took; 319,
+/// 321 and 322 are held by PR #3726.
 void main() {
   /// A database at [version] with the parents the table references and no
   /// media_people table.
@@ -62,15 +63,15 @@ void main() {
     'idx_media_people_diver',
   };
 
-  test('v323 is in the ladder and did not move the sync floor', () {
-    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(323));
-    expect(AppDatabase.migrationVersions, contains(323));
-    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(323));
+  test('v324 is in the ladder and did not move the sync floor', () {
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(324));
+    expect(AppDatabase.migrationVersions, contains(324));
+    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(324));
     const versions = AppDatabase.migrationVersions;
-    final below = versions[versions.indexOf(323) - 1];
+    final below = versions[versions.indexOf(324) - 1];
     expect(
       AppDatabase.migrationStepCount(below),
-      AppDatabase.migrationStepCount(323) + 1,
+      AppDatabase.migrationStepCount(324) + 1,
     );
   });
 
@@ -88,7 +89,7 @@ void main() {
   test(
     'the backstop recreates media_people when a parallel branch skipped it',
     () async {
-      final db = AppDatabase(setupDb(323));
+      final db = AppDatabase(setupDb(324));
       addTearDown(db.close);
       final names = (await tableInfo(db, 'media_people')).map((c) => c['name']);
       expect(names, unorderedEquals(columns));

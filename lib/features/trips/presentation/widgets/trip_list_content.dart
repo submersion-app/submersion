@@ -49,6 +49,7 @@ import 'package:submersion/features/trips/presentation/providers/trip_list_count
 import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
 import 'package:submersion/shared/widgets/shared_items/item_bulk_share.dart';
 import 'package:submersion/core/data/visibility/item_sharing.dart';
+import 'package:submersion/features/settings/presentation/providers/list_arrangement_writes.dart';
 
 /// Content widget for the trip list, used in master-detail layout.
 final _log = LoggerService.forClass(TripListContent);
@@ -203,10 +204,9 @@ class _TripListContentState extends ConsumerState<TripListContent> {
       getFieldDisplayName: (field) => field.localizedName(context.l10n),
       getFieldIcon: (field) => field.icon,
       onSortChanged: (field, direction) {
-        ref.read(tripSortProvider.notifier).state = SortState(
-          field: field,
-          direction: direction,
-        );
+        ref
+            .read(settingsProvider.notifier)
+            .setTripSort(SortState(field: field, direction: direction));
       },
     );
   }
@@ -325,8 +325,9 @@ class _TripListContentState extends ConsumerState<TripListContent> {
                           final mode = ListViewMode.fromName(
                             value.replaceFirst('view_', ''),
                           );
-                          ref.read(tripListViewModeProvider.notifier).state =
-                              mode;
+                          ref
+                              .read(settingsProvider.notifier)
+                              .setTripListViewMode(mode);
                         }
                       },
                       itemBuilder: (context) {
@@ -712,7 +713,7 @@ class _TripListContentState extends ConsumerState<TripListContent> {
                 final mode = ListViewMode.fromName(
                   value.replaceFirst('view_', ''),
                 );
-                ref.read(tripListViewModeProvider.notifier).state = mode;
+                ref.read(settingsProvider.notifier).setTripListViewMode(mode);
               }
             },
             itemBuilder: (context) {

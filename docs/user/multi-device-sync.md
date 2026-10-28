@@ -128,6 +128,14 @@ species and sightings, presets, dive computers and the ways each one has been
 downloaded or imported, transmitters and cylinder fills,
 GPS tracks, saved searches, near-miss reports, and your photo and video links.
 
+How you leave each list also syncs, for each diver: its sort, its grouping and
+its view mode (dives, saved plans, trips, courses, buddies, dive centers, dive
+sites, certifications and equipment, including how gear is arranged). Sort the
+dive list on your phone and it is sorted that way on your computer too. These
+travel separately from your other settings, so sorting a list on a device that
+has not synced for a while never puts back an older setting, such as gradient
+factors or units, that you changed on another device.
+
 Some things stay with each device, because the right answer differs from one
 device to the next:
 

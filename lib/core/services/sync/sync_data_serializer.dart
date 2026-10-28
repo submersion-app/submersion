@@ -395,7 +395,7 @@ class SyncData {
   final List<Map<String, dynamic>> librarySiteNotes;
   final List<Map<String, dynamic>> mediaSpecies;
 
-  /// People tagged on photos and videos (v323, issue #1745).
+  /// People tagged on photos and videos (v324, issue #1745).
   final List<Map<String, dynamic>> mediaPeople;
   final List<Map<String, dynamic>> siteFeatures;
   final List<Map<String, dynamic>> csvPresets;
@@ -9363,7 +9363,14 @@ class SyncDataSerializer {
   ) async {
     final query = _db.select(_db.diverSettings);
     if (hlcSince != null) {
-      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+      // A list arrangement change stamps its own clock, not the row clock
+      // (issue #3748), so a row is due when either has moved past the
+      // watermark.
+      query.where(
+        (t) =>
+            t.hlc.isBiggerThanValue(hlcSince) |
+            t.listArrangementHlc.isBiggerThanValue(hlcSince),
+      );
     }
     final rows = await query.get();
     return rows
@@ -11171,7 +11178,7 @@ class SyncDataSerializer {
     return rows.map((r) => r.toJson()).toList();
   }
 
-  /// `media_people` (v323, issue #1745) carries its own clock from its first
+  /// `media_people` (v324, issue #1745) carries its own clock from its first
   /// write, so an incremental export filters on the tag's `hlc` like
   /// [_exportMediaSpecies]; a full export ships the table.
   Future<List<Map<String, dynamic>>> _exportMediaPeople(

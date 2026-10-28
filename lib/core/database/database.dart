@@ -119,7 +119,7 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     MediaSpecies,
     // Media tags (v309, issue #1970)
     MediaTags,
-    // People tagged on photos and videos (v323, issue #1745)
+    // People tagged on photos and videos (v324, issue #1745)
     MediaPeople,
     PendingPhotoSuggestions,
     MediaRepairLog,
@@ -299,7 +299,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 323;
+  static const int currentSchemaVersion = 324;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1446,11 +1446,15 @@ class AppDatabase extends _$AppDatabase {
     // the floor does not move. 319 is held
     // by PR #3726.
     320,
-    // v323: the synced media_people table, buddies and the diver tagged on
-    // photos and videos (issue #1745). Additive only, so the floor does not
-    // move: an older peer ignores the new payload key. 319, 321 and 322 are
-    // held by PR #3726.
+    // v323: diver_settings list arrangement columns and their sync clock
+    // (issue #3748). Additive and nullable, and an older peer omits them,
+    // so the floor does not move. 321 and 322 are held by PR #3726.
     323,
+    // v324: the synced media_people table, buddies and the diver tagged on
+    // photos and videos (issue #1745). Additive only, so the floor does not
+    // move: an older peer ignores the new payload key. Renumbered from 323,
+    // which #3748 took; 319, 321 and 322 are held by PR #3726.
+    324,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

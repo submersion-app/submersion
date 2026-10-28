@@ -26,6 +26,7 @@ import 'package:submersion/shared/widgets/list_scrubber/list_scrubber_density_pa
 import 'package:submersion/shared/widgets/list_scrubber/list_scrubber_geometry.dart';
 import 'package:submersion/shared/widgets/list_scrubber/scrubber_marker.dart';
 import 'package:submersion/shared/widgets/master_detail/keyboard_list_navigator.dart';
+import 'package:submersion/features/settings/presentation/providers/list_arrangement_writes.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
@@ -270,12 +271,9 @@ void main() {
       DiveSortField field, [
       SortDirection direction = SortDirection.descending,
     ]) async {
-      ProviderScope.containerOf(
-        ctx(tester),
-      ).read(diveSortProvider.notifier).state = SortState(
-        field: field,
-        direction: direction,
-      );
+      ProviderScope.containerOf(ctx(tester))
+          .read(settingsProvider.notifier)
+          .setDiveSort(SortState(field: field, direction: direction));
       await tester.pump();
     }
 
@@ -629,12 +627,14 @@ void main() {
     expect(slotOf('2023'), lessThan(150));
     expect(slotOf('2022'), greaterThan(150));
 
-    ProviderScope.containerOf(
-      tester.element(find.byType(ListScrubber)),
-    ).read(diveSortProvider.notifier).state = const SortState(
-      field: DiveSortField.date,
-      direction: SortDirection.ascending,
-    );
+    ProviderScope.containerOf(tester.element(find.byType(ListScrubber)))
+        .read(settingsProvider.notifier)
+        .setDiveSort(
+          const SortState(
+            field: DiveSortField.date,
+            direction: SortDirection.ascending,
+          ),
+        );
     await settle(tester);
     expect(markers().map((m) => m.slot), [0, 100, 200]);
   });

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -67,9 +68,10 @@ Future<void> _pump(
   bool expanded = true,
   ScrollController? scrollController,
   Key? sectionKey,
+  double width = 600,
 }) async {
   final overrides = await getBaseOverrides();
-  await tester.binding.setSurfaceSize(const Size(600, 1200));
+  await tester.binding.setSurfaceSize(Size(width, 1200));
   addTearDown(() => tester.binding.setSurfaceSize(null));
   final originalOnError = FlutterError.onError;
   FlutterError.onError = (d) {
@@ -182,10 +184,106 @@ void main() {
 
     expect(find.byType(FlutterMap), findsOneWidget);
     // Rendered in the diver's coordinate notation, decimal degrees here.
-    expect(find.text('12.345670° N, 98.765430° E'), findsOneWidget); // entry
-    expect(find.text('12.346120° N, 98.764890° E'), findsOneWidget); // exit
-    expect(find.text('12.340000° N, 98.760000° E'), findsOneWidget); // site
+    expect(
+      find.bySemanticsLabel('12.345670° N, 98.765430° E'),
+      findsOneWidget,
+    ); // entry
+    expect(
+      find.bySemanticsLabel('12.346120° N, 98.764890° E'),
+      findsOneWidget,
+    ); // exit
+    expect(
+      find.bySemanticsLabel('12.340000° N, 98.760000° E'),
+      findsOneWidget,
+    ); // site
     expect(find.text('Open in Maps'), findsNothing);
+  });
+
+  group('coordinate rows stay readable at any width (#3745)', () {
+    /// The rendered paragraph of the [coordinate] link.
+    RenderParagraph paragraphOf(WidgetTester tester, Finder coordinate) =>
+        tester.renderObject<RenderParagraph>(
+          find.descendant(of: coordinate, matching: find.byType(RichText)),
+        );
+
+    /// The character offsets at which [coordinate]'s rendered text starts a
+    /// new line.
+    List<int> lineStarts(WidgetTester tester, Finder coordinate) {
+      final paragraph = paragraphOf(tester, coordinate);
+      final text = paragraph.text.toPlainText();
+      double top(int offset) => paragraph
+          .getOffsetForCaret(TextPosition(offset: offset), Rect.zero)
+          .dy;
+      return [
+        for (var i = 1; i < text.length; i++)
+          if (top(i) > top(i - 1)) i,
+      ];
+    }
+
+    /// Whether [label] renders on a single line.
+    bool isOneLine(WidgetTester tester, Finder label) {
+      final paragraph = tester.renderObject<RenderParagraph>(label);
+      return paragraph.getMaxIntrinsicWidth(double.infinity) <=
+          paragraph.size.width;
+    }
+
+    testWidgets('a wide row keeps label and coordinate on one line', (
+      tester,
+    ) async {
+      await _pump(tester);
+
+      final label = find.text('Entry');
+      final coordinate = find.byKey(const ValueKey('gps-coord-entry'));
+      expect(isOneLine(tester, label), isTrue);
+      expect(lineStarts(tester, coordinate), isEmpty);
+      expect(
+        tester.getCenter(label).dy,
+        moreOrLessEquals(tester.getCenter(coordinate).dy, epsilon: 1),
+      );
+    });
+
+    testWidgets('a narrow row stacks the label above the coordinate', (
+      tester,
+    ) async {
+      await _pump(tester, width: 320);
+
+      final label = find.text('Entry');
+      final coordinate = find.byKey(const ValueKey('gps-coord-entry'));
+      expect(isOneLine(tester, label), isTrue);
+      expect(
+        tester.getRect(coordinate).top,
+        greaterThanOrEqualTo(tester.getRect(label).bottom),
+      );
+    });
+
+    testWidgets('a coordinate breaks only between latitude and longitude', (
+      tester,
+    ) async {
+      await _pump(tester, width: 320);
+
+      final coordinate = find.byKey(const ValueKey('gps-coord-entry'));
+      final text = paragraphOf(tester, coordinate).text.toPlainText();
+      final starts = lineStarts(tester, coordinate);
+      expect(starts, isNotEmpty, reason: 'the width should force a break');
+      for (final start in starts) {
+        expect(
+          text.substring(0, start),
+          endsWith(', '),
+          reason: 'line broke inside an axis at offset $start of "$text"',
+        );
+      }
+    });
+
+    testWidgets('screen readers hear the coordinate with plain spaces', (
+      tester,
+    ) async {
+      await _pump(tester, width: 320);
+
+      expect(
+        find.bySemanticsLabel('12.345670° N, 98.765430° E'),
+        findsOneWidget,
+      );
+    });
   });
 
   testWidgets('copy icon copies the coordinate at full (6-dp) precision', (
@@ -251,7 +349,10 @@ void main() {
       expect(find.text('Surface GPS'), findsNothing);
       expect(find.byType(FlutterMap), findsOneWidget);
       expect(find.byKey(const ValueKey('gps-coord-site')), findsOneWidget);
-      expect(find.text('12.340000° N, 98.760000° E'), findsOneWidget);
+      expect(
+        find.bySemanticsLabel('12.340000° N, 98.760000° E'),
+        findsOneWidget,
+      );
       expect(find.byKey(const ValueKey('gps-coord-entry')), findsNothing);
       expect(find.byKey(const ValueKey('gps-coord-exit')), findsNothing);
       expect(find.textContaining('Drift'), findsNothing);

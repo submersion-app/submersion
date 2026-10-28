@@ -109,7 +109,11 @@ void main() {
     }) {
       return [
         sharedPreferencesProvider.overrideWithValue(prefs),
-        settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+        // The view mode is read from the diver's saved settings (#3748).
+        settingsProvider.overrideWith(
+          (ref) =>
+              MockSettingsNotifier(AppSettings(buddyListViewMode: viewMode)),
+        ),
         currentDiverIdProvider.overrideWith(
           (ref) => MockCurrentDiverIdNotifier(),
         ),
@@ -119,7 +123,6 @@ void main() {
         buddyListNotifierProvider.overrideWith(
           (ref) => _MockBuddyListNotifier(),
         ),
-        buddyListViewModeProvider.overrideWith((ref) => viewMode),
         buddyTableConfigProvider.overrideWith(
           (ref) => _TestBuddyTableConfigNotifier(),
         ),
@@ -431,11 +434,13 @@ void main() {
         final container = ProviderScope.containerOf(
           tester.element(find.byType(BuddyListPage)),
         );
-        container.read(buddyListViewModeProvider.notifier).state =
-            ListViewMode.detailed;
+        container
+            .read(settingsProvider.notifier)
+            .setBuddyListViewMode(ListViewMode.detailed);
         await tester.pumpAndSettle();
-        container.read(buddyListViewModeProvider.notifier).state =
-            ListViewMode.table;
+        container
+            .read(settingsProvider.notifier)
+            .setBuddyListViewMode(ListViewMode.table);
         await tester.pumpAndSettle();
 
         expect(find.byKey(const ValueKey('selection_exit')), findsNothing);

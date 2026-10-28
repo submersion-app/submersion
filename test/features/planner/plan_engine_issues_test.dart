@@ -269,7 +269,9 @@ void main() {
 
   group('PlanEngine turn pressure and rock-bottom', () {
     test('thirds rule turns at start minus a third of usable', () {
-      final plan = _airPlan(depth: 30.0, minutes: 10).copyWith(
+      // 20 m on a 24 L tank: minimum gas is under the reserve, so the
+      // reserve is the floor the usable gas is measured from (#3741).
+      final plan = _airPlan(depth: 20.0, minutes: 10).copyWith(
         turnPressureRule: domain.TurnPressureRule.thirds,
         reservePressure: 50.0,
         tanks: const [
@@ -331,6 +333,152 @@ void main() {
         ),
       );
       expect(_types(outcome), isNot(contains(PlanIssueType.minGasViolation)));
+    });
+  });
+
+  // Issue #3741: the turn pressure is floored at minimum gas, so a diver
+  // who turns on it never turns with less than the plan's emergency exit.
+  group('PlanEngine turn pressure floored at minimum gas', () {
+    // 40 m on an AL80: a ~90 bar rock bottom, well above the 50 bar
+    // reserve, so minimum gas is the floor that binds.
+    domain.DivePlan deepPlan(
+      domain.TurnPressureRule rule, {
+      double? fraction,
+      double startPressure = 207,
+    }) =>
+        _airPlan(
+          depth: 40.0,
+          minutes: 5,
+          tanks: [
+            DiveTank(
+              id: 'tank-1',
+              volume: 11.1,
+              startPressure: startPressure,
+              gasMix: _air,
+            ),
+          ],
+        ).copyWith(
+          problemSolvingMinutes: 0,
+          turnPressureRule: rule,
+          turnPressureFraction: fraction,
+        );
+
+    PlanTankUsage usageFor(domain.DivePlan plan) =>
+        engine.compute(plan).tankUsages.single;
+
+    test('minimum gas is above the reserve on the deep plan', () {
+      final usage = usageFor(deepPlan(domain.TurnPressureRule.allUsable));
+      expect(usage.minGasBar!, greaterThan(50.0));
+      expect(usage.minGasBar!, lessThan(207.0));
+    });
+
+    test('all usable turns at minimum gas, not the reserve', () {
+      final usage = usageFor(deepPlan(domain.TurnPressureRule.allUsable));
+      expect(usage.turnPressureBar, closeTo(usage.minGasBar!, 1e-9));
+    });
+
+    test('thirds take a third of the gas above minimum gas', () {
+      final usage = usageFor(deepPlan(domain.TurnPressureRule.thirds));
+      final usable = 207.0 - usage.minGasBar!;
+      expect(usage.turnPressureBar, closeTo(207.0 - usable / 3.0, 1e-9));
+    });
+
+    test('halves take half of the gas above minimum gas', () {
+      final usage = usageFor(deepPlan(domain.TurnPressureRule.halves));
+      final usable = 207.0 - usage.minGasBar!;
+      expect(usage.turnPressureBar, closeTo(207.0 - usable / 2.0, 1e-9));
+    });
+
+    test('a custom fraction is taken from the gas above minimum gas', () {
+      final usage = usageFor(
+        deepPlan(domain.TurnPressureRule.custom, fraction: 0.25),
+      );
+      final usable = 207.0 - usage.minGasBar!;
+      expect(usage.turnPressureBar, closeTo(207.0 - usable * 0.25, 1e-9));
+    });
+
+    test('every rule turns at or above minimum gas', () {
+      for (final rule in [
+        domain.TurnPressureRule.allUsable,
+        domain.TurnPressureRule.halves,
+        domain.TurnPressureRule.thirds,
+        domain.TurnPressureRule.custom,
+      ]) {
+        final usage = usageFor(deepPlan(rule, fraction: 0.9));
+        expect(
+          usage.turnPressureBar!,
+          greaterThanOrEqualTo(usage.minGasBar!),
+          reason: '$rule',
+        );
+      }
+    });
+
+    test('a custom fraction over one still turns at minimum gas', () {
+      // A plan file or an older database row can carry any fraction; one
+      // over 1 must not push the turn under the floor.
+      final usage = usageFor(
+        deepPlan(domain.TurnPressureRule.custom, fraction: 1.5),
+      );
+      expect(usage.turnPressureBar, closeTo(usage.minGasBar!, 1e-9));
+    });
+
+    test('a negative custom fraction turns at the fill, not above it', () {
+      final usage = usageFor(
+        deepPlan(domain.TurnPressureRule.custom, fraction: -0.5),
+      );
+      expect(usage.turnPressureBar, closeTo(207.0, 1e-9));
+    });
+
+    test('the reserve still binds when it is above minimum gas', () {
+      final plan = _airPlan(depth: 20.0, minutes: 10).copyWith(
+        turnPressureRule: domain.TurnPressureRule.allUsable,
+        reservePressure: 50.0,
+        tanks: const [
+          DiveTank(
+            id: 'tank-1',
+            volume: 24.0,
+            startPressure: 200,
+            gasMix: _air,
+          ),
+        ],
+      );
+      final usage = engine.compute(plan).tankUsages.single;
+      expect(usage.minGasBar!, lessThan(50.0));
+      expect(usage.turnPressureBar, closeTo(50.0, 1e-9));
+    });
+
+    test('minimum gas above the fill turns at the fill and alerts', () {
+      final outcome = engine.compute(
+        deepPlan(domain.TurnPressureRule.thirds, startPressure: 80),
+      );
+      final usage = outcome.tankUsages.single;
+      expect(usage.minGasBar!, greaterThan(80.0));
+      expect(usage.turnPressureBar, closeTo(80.0, 1e-9));
+      final issue = outcome.issues.firstWhere(
+        (i) => i.type == PlanIssueType.noUsableGas,
+      );
+      expect(issue.severity, PlanIssueSeverity.alert);
+      expect(issue.segmentId, 'tank-1');
+      expect(issue.value, closeTo(usage.minGasBar!, 1e-9));
+      expect(issue.threshold, 80.0);
+      // The fill is under rock bottom, so the tank ends under it too; one
+      // alert says that, not two.
+      expect(_types(outcome), isNot(contains(PlanIssueType.minGasViolation)));
+    });
+
+    test('no usable gas alert stays quiet while gas is left above it', () {
+      final outcome = engine.compute(deepPlan(domain.TurnPressureRule.thirds));
+      expect(_types(outcome), isNot(contains(PlanIssueType.noUsableGas)));
+    });
+
+    test('no usable gas alert fires without a turn rule too', () {
+      final outcome = engine.compute(
+        deepPlan(
+          domain.TurnPressureRule.thirds,
+          startPressure: 80,
+        ).copyWith(clearTurnPressureRule: true),
+      );
+      expect(_types(outcome), contains(PlanIssueType.noUsableGas));
     });
   });
 
