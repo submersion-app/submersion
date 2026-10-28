@@ -1699,7 +1699,7 @@
   "buddyCard_preview_trimmed": "Some details were left out to fit the code.",
   "buddyCard_preview_newer": "This card is from a newer version of Submersion. Some details may be missing.",
   "buddyCard_preview_noChanges": "Nothing on this card is new.",
-  "buddyCard_preview_changed": "{from} → {to}",
+  "buddyCard_preview_changed": "{to} (was {from})",
   "@buddyCard_preview_changed": {"placeholders": {"from": {"type": "String"}, "to": {"type": "String"}}},
   "buddyCard_action_add": "Add buddy",
   "buddyCard_action_update": "Update buddy",

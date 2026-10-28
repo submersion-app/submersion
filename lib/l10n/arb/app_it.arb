@@ -739,7 +739,7 @@
   "buddyCard_preview_trimmed": "Alcuni dettagli sono stati omessi per stare nel codice.",
   "buddyCard_preview_newer": "Questa scheda proviene da una versione più recente di Submersion. Alcuni dettagli potrebbero mancare.",
   "buddyCard_preview_noChanges": "Niente di nuovo in questa scheda.",
-  "buddyCard_preview_changed": "{from} → {to}",
+  "buddyCard_preview_changed": "{to} (prima {from})",
   "buddyCard_action_add": "Aggiungi compagno",
   "buddyCard_action_update": "Aggiorna compagno",
   "buddyCard_action_addAsNew": "Aggiungi come nuovo compagno",

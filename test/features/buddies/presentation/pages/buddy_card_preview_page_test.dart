@@ -127,7 +127,7 @@ void main() {
     await seed(tester, 'Sam R', cardId: 'diver-sam');
     await pump(tester, const BuddyCardDecoded(_sam));
     expect(find.text('Update Sam R'), findsOneWidget);
-    expect(find.text('100 → 118'), findsOneWidget);
+    expect(find.text('118 (was 100)'), findsOneWidget);
     expect(find.text('Update buddy'), findsOneWidget);
   });
 

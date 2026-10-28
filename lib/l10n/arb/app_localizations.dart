@@ -4390,7 +4390,7 @@ abstract class AppLocalizations {
   /// No description provided for @buddyCard_preview_changed.
   ///
   /// In en, this message translates to:
-  /// **'{from} → {to}'**
+  /// **'{to} (was {from})'**
   String buddyCard_preview_changed(String from, String to);
 
   /// No description provided for @buddyCard_action_add.

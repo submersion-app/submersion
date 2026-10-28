@@ -739,7 +739,7 @@
   "buddyCard_preview_trimmed": "Certains détails ont été omis pour tenir dans le code.",
   "buddyCard_preview_newer": "Cette carte provient d'une version plus récente de Submersion. Certains détails peuvent manquer.",
   "buddyCard_preview_noChanges": "Rien de nouveau sur cette carte.",
-  "buddyCard_preview_changed": "{from} → {to}",
+  "buddyCard_preview_changed": "{to} (avant : {from})",
   "buddyCard_action_add": "Ajouter le binôme",
   "buddyCard_action_update": "Mettre à jour le binôme",
   "buddyCard_action_addAsNew": "Ajouter comme nouveau binôme",

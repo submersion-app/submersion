@@ -739,7 +739,7 @@
   "buddyCard_preview_trimmed": "حُذفت بعض التفاصيل لتتسع في الرمز.",
   "buddyCard_preview_newer": "هذه البطاقة من إصدار أحدث من Submersion. قد تكون بعض التفاصيل مفقودة.",
   "buddyCard_preview_noChanges": "لا جديد في هذه البطاقة.",
-  "buddyCard_preview_changed": "{from} ← {to}",
+  "buddyCard_preview_changed": "{to} (كان {from})",
   "buddyCard_action_add": "إضافة رفيق",
   "buddyCard_action_update": "تحديث الرفيق",
   "buddyCard_action_addAsNew": "إضافة كرفيق جديد",

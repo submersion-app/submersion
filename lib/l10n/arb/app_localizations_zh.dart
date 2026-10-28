@@ -2700,7 +2700,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String buddyCard_preview_changed(String from, String to) {
-    return '$from → $to';
+    return '$to（原为 $from）';
   }
 
   @override

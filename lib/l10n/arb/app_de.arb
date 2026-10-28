@@ -764,7 +764,7 @@
   "buddyCard_preview_trimmed": "Einige Angaben wurden weggelassen, damit sie in den Code passen.",
   "buddyCard_preview_newer": "Diese Karte stammt aus einer neueren Version von Submersion. Einige Angaben fehlen eventuell.",
   "buddyCard_preview_noChanges": "Nichts auf dieser Karte ist neu.",
-  "buddyCard_preview_changed": "{from} → {to}",
+  "buddyCard_preview_changed": "{to} (vorher {from})",
   "buddyCard_action_add": "Buddy hinzufügen",
   "buddyCard_action_update": "Buddy aktualisieren",
   "buddyCard_action_addAsNew": "Als neuen Buddy hinzufügen",

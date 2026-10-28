@@ -739,7 +739,7 @@
   "buddyCard_preview_trimmed": "חלק מהפרטים הושמטו כדי שייכנסו לקוד.",
   "buddyCard_preview_newer": "הכרטיס הזה מגרסה חדשה יותר של Submersion. ייתכן שחלק מהפרטים חסרים.",
   "buddyCard_preview_noChanges": "אין בכרטיס הזה שום דבר חדש.",
-  "buddyCard_preview_changed": "{from} ← {to}",
+  "buddyCard_preview_changed": "{to} (קודם {from})",
   "buddyCard_action_add": "הוספת שותף",
   "buddyCard_action_update": "עדכון שותף",
   "buddyCard_action_addAsNew": "הוספה כשותף חדש",

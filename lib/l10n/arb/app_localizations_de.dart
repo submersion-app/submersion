@@ -2848,7 +2848,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String buddyCard_preview_changed(String from, String to) {
-    return '$from → $to';
+    return '$to (vorher $from)';
   }
 
   @override

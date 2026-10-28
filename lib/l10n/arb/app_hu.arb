@@ -739,7 +739,7 @@
   "buddyCard_preview_trimmed": "Néhány adat kimaradt, hogy elférjen a kódban.",
   "buddyCard_preview_newer": "Ez a kártya a Submersion egy újabb verziójából származik. Néhány adat hiányozhat.",
   "buddyCard_preview_noChanges": "A kártyán nincs új adat.",
-  "buddyCard_preview_changed": "{from} → {to}",
+  "buddyCard_preview_changed": "{to} (korábban {from})",
   "buddyCard_action_add": "Társ hozzáadása",
   "buddyCard_action_update": "Társ frissítése",
   "buddyCard_action_addAsNew": "Hozzáadás új társként",
