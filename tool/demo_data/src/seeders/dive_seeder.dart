@@ -55,7 +55,7 @@ class DiveSeeder implements DemoSeeder {
         startBar: [for (final t in tanks) t.startBar],
         volumesL: [for (final t in tanks) t.volumeL],
       );
-      final shift = _temperatureShift(shape, d, ctx.random);
+      final shift = _temperatureShift(shape, d);
       final id = ctx.diveId(d.number);
       final tankIds = [
         for (var i = 0; i < tanks.length; i++) 'demo-tank-${d.number}-$i',
@@ -223,13 +223,12 @@ class DiveSeeder implements DemoSeeder {
     return temps.isEmpty ? null : temps.reduce(min);
   }
 
-  /// Moves the shape's temperatures to the destination's water.
-  static double _temperatureShift(DiveShape s, PlannedDive d, Random random) {
+  /// Moves the shape's temperatures so its coldest reading is the water the
+  /// story planned for that day.
+  static double _temperatureShift(DiveShape s, PlannedDive d) {
     final coldest = _minTemp(s);
     if (coldest == null) return 0;
-    final (lo, hi) = d.destination.waterTempC;
-    final target = lo + random.nextDouble() * (hi - lo);
-    return ((target - coldest) * 10).roundToDouble() / 10;
+    return ((d.waterTempC - coldest) * 10).roundToDouble() / 10;
   }
 
   static double _avg(DiveShape s) {

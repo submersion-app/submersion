@@ -1,137 +1,48 @@
 import 'dart:math';
 
 import '../shape/dive_shape.dart';
+import 'buddy_picker.dart';
 import 'catalog.dart';
+import 'course_plan.dart';
 import 'destinations.dart';
+import 'dive_spec.dart';
+import 'milestones.dart';
+import 'people.dart';
+import 'schedule.dart';
 import 'story_plan.dart';
 
-/// Plans the demo diver's six years (issue #3708): a recreational start,
-/// technical open circuit, then a rebreather course and a few CCR dives, with
-/// every certification earned before the first dive that needs it.
+/// Plans the demo diver's six years: a recreational start, technical open
+/// circuit from dive 250, then a rebreather course and 15 to 18 rebreather
+/// dives at the end, with every certification earned before the first dive
+/// that needs it.
 ///
-/// Home waters are a lake region; about three trips a year go to warm-water
-/// destinations, with Mediterranean wrecks once the diver is technical. Every
-/// place is a site from the app's own public catalogue.
+/// Home waters are a lake region dived all year; 6 to 8 trips a year go all
+/// over the world. Every place is a site from the app's own public
+/// catalogue, and every person is fictional.
 class StoryPlanner {
-  StoryPlanner(this.random, this.catalog);
+  StoryPlanner(this.random, this.catalog, {this.refusedNames = const {}});
 
   final Random random;
   final Catalog catalog;
 
+  /// Names the privacy check refused; the people factory skips them.
+  final Set<String> refusedNames;
+
   static const home = homeDestination;
 
-  static List<Destination> get tropical => [
-    for (final d in tripDestinations)
-      if (const {
-        'red-sea',
-        'bali',
-        'cebu',
-        'similan',
-        'maldives',
-        'raja-ampat',
-      }.contains(d.key))
-        d,
-  ];
-
-  static Destination get mediterranean =>
-      tripDestinations.firstWhere((d) => d.key == 'med');
-
-  static const people = [
-    FictionalPerson(
-      id: 'p-mara',
-      firstName: 'Mara',
-      lastName: 'Lindqvist',
-      role: PersonRole.regular,
-    ),
-    FictionalPerson(
-      id: 'p-tobias',
-      firstName: 'Tobias',
-      lastName: 'Reinholt',
-      role: PersonRole.regular,
-    ),
-    FictionalPerson(
-      id: 'p-priya',
-      firstName: 'Priya',
-      lastName: 'Varadan',
-      role: PersonRole.regular,
-    ),
-    FictionalPerson(
-      id: 'p-sam',
-      firstName: 'Sam',
-      lastName: 'Okonkwo-Hale',
-      role: PersonRole.regular,
-    ),
-    FictionalPerson(
-      id: 'p-lena',
-      firstName: 'Lena',
-      lastName: 'Marchetti',
-      role: PersonRole.regular,
-    ),
-    FictionalPerson(
-      id: 'p-jonas',
-      firstName: 'Jonas',
-      lastName: 'Vettermann',
-      role: PersonRole.regular,
-    ),
-    FictionalPerson(
-      id: 'p-hannah',
-      firstName: 'Hannah',
-      lastName: 'Brookfield',
-      role: PersonRole.instructor,
-    ),
-    FictionalPerson(
-      id: 'p-diego',
-      firstName: 'Diego',
-      lastName: 'Albarrán',
-      role: PersonRole.instructor,
-    ),
-    FictionalPerson(
-      id: 'p-kenji',
-      firstName: 'Kenji',
-      lastName: 'Moriwaki',
-      role: PersonRole.instructor,
-    ),
-    FictionalPerson(
-      id: 'p-ayu',
-      firstName: 'Ayu',
-      lastName: 'Setiawati',
-      role: PersonRole.guide,
-    ),
-  ];
-
-  /// The courses and the dive numbers of their training dives, for a
-  /// [diveCount] dive story with [ccrCount] CCR dives at the end.
-  static Map<CertLevel, (int, int)> courseDives(int diveCount, int ccrCount) {
-    final ccrStart = diveCount - ccrCount + 1;
-    return {
-      CertLevel.openWater: (1, 4),
-      CertLevel.advanced: (16, 20),
-      CertLevel.rescue: (60, 61),
-      CertLevel.deep: (100, 103),
-      CertLevel.decoProcedures: (136, 139),
-      CertLevel.trimix: (200, 203),
-      CertLevel.ccr: (ccrStart, ccrStart + 4),
-    };
-  }
-
-  static const _techStart = 136;
-  static const _trimixCertAfter = 203;
-
-  StoryPlan plan({required DateTime anchor, int diveCount = 300}) {
-    final ccrCount = 8 + random.nextInt(5);
+  StoryPlan plan({required DateTime anchor, int diveCount = 700}) {
+    final ccrCount = 15 + random.nextInt(4);
     final ccrStart = diveCount - ccrCount + 1;
     final courseRanges = courseDives(diveCount, ccrCount);
-    final sitesByDest = <String, List<CatalogSite>>{};
-    List<CatalogSite> sitesFor(Destination d) =>
-        sitesByDest.putIfAbsent(d.key, () => _pickSites(d, d == home ? 8 : 7));
-
-    final slots = _schedule(anchor, diveCount, sitesFor);
-    final instructors = people
-        .where((p) => p.role == PersonRole.instructor)
-        .toList();
-    final buddies = people
-        .where((p) => p.role != PersonRole.instructor)
-        .toList();
+    final schedule = StorySchedule(random, catalog);
+    final slots = schedule.build(anchor, diveCount);
+    final buddies = BuddyPicker(
+      random,
+      PeopleFactory(random, refused: refusedNames),
+    );
+    for (final t in schedule.trips) {
+      buddies.meetTrip(t);
+    }
 
     final courses = <PlannedCourse>[];
     final courseOf = <int, PlannedCourse>{};
@@ -144,7 +55,9 @@ class StoryPlanner {
         level: level,
         start: DateTime(first.year, first.month, first.day),
         end: DateTime(last.year, last.month, last.day, 23),
-        instructorId: instructors[courses.length % instructors.length].id,
+        instructorId: buddies
+            .instructorFor(level, slots[from - 1].destination)
+            .id,
       );
       courses.add(course);
       for (var n = from; n <= to; n++) {
@@ -167,7 +80,9 @@ class StoryPlanner {
       PlannedCert(
         id: 'cert-nitrox',
         level: CertLevel.nitrox,
-        issueDate: slots[29].start.subtract(const Duration(days: 3)),
+        issueDate: slots[nitroxDive - 1].start.subtract(
+          const Duration(days: 3),
+        ),
       ),
     ]..sort((a, b) => a.issueDate.compareTo(b.issueDate));
 
@@ -178,10 +93,23 @@ class StoryPlanner {
       final course = courseOf[n];
       final phase = n >= ccrStart
           ? StoryPhase.rebreather
-          : n >= _techStart
+          : n >= techStartDive
           ? StoryPhase.technicalOc
           : StoryPhase.recreational;
-      final spec = _spec(n, phase, course?.level, ccrStart);
+      final spec = diveSpecFor(
+        n,
+        phase,
+        course?.level,
+        slot.destination,
+        random,
+      );
+      final rebreather = phase == StoryPhase.rebreather;
+      final scooter =
+          n >= scooterDive &&
+          slot.destination.scooterOk &&
+          (spec.tanks > 1 || rebreather) &&
+          course == null &&
+          random.nextDouble() < 0.3;
       dives.add(
         PlannedDive(
           number: n,
@@ -191,14 +119,9 @@ class StoryPlanner {
           siteId: slot.siteId,
           destination: slot.destination,
           targetMaxDepth: spec.depth,
-          diveMode: phase == StoryPhase.rebreather ? 'ccr' : 'oc',
+          diveMode: rebreather ? 'ccr' : 'oc',
           tankCount: spec.tanks,
-          buddyIds: {
-            if (course != null) course.instructorId,
-            buddies[random.nextInt(buddies.length)].id,
-            if (course == null && random.nextDouble() < 0.3)
-              buddies[random.nextInt(buddies.length)].id,
-          }.toList(),
+          buddyIds: buddies.forDive(slot, spec.kinds, phase, course),
           plannedDuration: Duration(
             minutes: switch (phase) {
               StoryPhase.recreational => 75,
@@ -206,299 +129,122 @@ class StoryPlanner {
               StoryPhase.rebreather => 160,
             },
           ),
+          waterTempC: slot.waterTempC,
           tripId: slot.tripId,
           courseId: course?.id,
           requiresCert: spec.requires,
           night: slot.night,
+          centerId: slot.centerId,
+          scooter: scooter,
+          boat: slot.boat,
         ),
       );
     }
+    _placeUnseen(dives, buddies);
 
+    final trips = [
+      for (final t in schedule.trips)
+        PlannedTrip(
+          id: t.id,
+          destination: t.destination,
+          start: t.start,
+          end: t.end,
+          siteIds: t.siteIds,
+          centerIds: t.centerIds,
+          guideIds: buddies.tripPeople[t.id]!.guides,
+          boatBuddyIds: buddies.tripPeople[t.id]!.guests,
+          boatName: t.boatName,
+          resortName: t.resortName,
+        ),
+    ];
     final usedSites = <String>{for (final d in dives) d.siteId};
+    final usedCenters = <String>{
+      for (final d in dives) ?d.centerId,
+      for (final t in trips) ...t.centerIds,
+    };
     final allSites = {for (final s in catalog.sites) s.id: s};
+    final allCenters = {for (final c in catalog.centers) c.id: c};
     return StoryPlan(
       anchor: anchor,
       dives: dives,
-      trips: _trips,
+      trips: trips,
       certs: certs,
       courses: courses,
       sites: [for (final id in usedSites) allSites[id]!],
-      centers: _centers.values.whereType<CatalogCenter>().toList(),
-      people: people,
+      centers: [for (final id in usedCenters) allCenters[id]!],
+      people: buddies.all,
       home: home,
+      milestones: storyMilestones(dives, ccrStart: ccrStart),
     );
   }
 
-  ({Set<ShapeKind> kinds, double depth, int tanks, CertLevel? requires}) _spec(
-    int n,
-    StoryPhase phase,
-    CertLevel? course,
-    int ccrStart,
-  ) {
-    double range(double lo, double hi) =>
-        (lo + random.nextDouble() * (hi - lo)).roundToDouble();
-    const rec = {ShapeKind.recreational};
-    const deco = {ShapeKind.deepOpenCircuit, ShapeKind.multiGasDeco};
-    switch (course) {
-      case CertLevel.openWater:
-        return (kinds: rec, depth: range(6, 12), tanks: 1, requires: null);
-      case CertLevel.advanced:
-        return (
-          kinds: rec,
-          depth: range(16, 28),
-          tanks: 1,
-          requires: CertLevel.openWater,
-        );
-      case CertLevel.rescue:
-        return (
-          kinds: rec,
-          depth: range(5, 12),
-          tanks: 1,
-          requires: CertLevel.advanced,
-        );
-      case CertLevel.deep:
-        return (
-          kinds: rec,
-          depth: range(28, 38),
-          tanks: 1,
-          requires: CertLevel.advanced,
-        );
-      case CertLevel.decoProcedures:
-        return (
-          kinds: deco,
-          depth: range(30, 45),
-          tanks: 2,
-          requires: CertLevel.deep,
-        );
-      case CertLevel.trimix:
-        return (
-          kinds: {ShapeKind.trimix},
-          depth: range(45, 60),
-          tanks: 3,
-          requires: CertLevel.decoProcedures,
-        );
-      case CertLevel.ccr:
-        return (
-          kinds: {ShapeKind.ccr},
-          depth: range(10, 30),
-          tanks: 3,
-          requires: CertLevel.decoProcedures,
-        );
-      case CertLevel.nitrox || null:
-        break;
+  /// Someone the dice left off every dive joins one where they belong: a
+  /// guide or guest a dive of their trip, a regular a home weekend, a tech
+  /// team member a technical dive. Nobody is in the logbook without a dive.
+  void _placeUnseen(List<PlannedDive> dives, BuddyPicker buddies) {
+    final seen = <String>{for (final d in dives) ...d.buddyIds};
+    void join(String id, bool Function(PlannedDive d) fits) {
+      if (seen.contains(id)) return;
+      final where = [
+        for (var i = 0; i < dives.length; i++)
+          if (fits(dives[i])) i,
+      ];
+      final i = where[random.nextInt(where.length)];
+      dives[i] = _withBuddy(dives[i], id);
+      seen.add(id);
     }
-    switch (phase) {
-      case StoryPhase.recreational:
-        final max = n < 16 ? 18.0 : (n > 103 ? 38.0 : 30.0);
-        return (
-          kinds: rec,
-          depth: range(10, max),
-          tanks: 1,
-          requires: n < 16
-              ? CertLevel.openWater
-              : (n > 103 ? CertLevel.deep : CertLevel.advanced),
-        );
-      case StoryPhase.technicalOc:
-        final roll = random.nextDouble();
-        if (roll < 0.25) {
-          return (
-            kinds: rec,
-            depth: range(15, 30),
-            tanks: 1,
-            requires: CertLevel.advanced,
-          );
-        }
-        if (n > _trimixCertAfter && roll > 0.7) {
-          return (
-            kinds: {ShapeKind.trimix},
-            depth: range(50, 70),
-            tanks: 3,
-            requires: CertLevel.trimix,
-          );
-        }
-        return (
-          kinds: deco,
-          depth: range(38, 55),
-          tanks: 2,
-          requires: CertLevel.decoProcedures,
-        );
-      case StoryPhase.rebreather:
-        return (
-          kinds: {ShapeKind.ccr},
-          depth: range(30, 60),
-          tanks: 3,
-          requires: CertLevel.ccr,
-        );
-    }
-  }
 
-  final _trips = <PlannedTrip>[];
-  final _centers = <String, CatalogCenter?>{};
-
-  /// Dive slots in time order: a weekend at home, trips three times a year and
-  /// local days between, spread evenly over six years before [anchor].
-  List<_Slot> _schedule(
-    DateTime anchor,
-    int diveCount,
-    List<CatalogSite> Function(Destination) sitesFor,
-  ) {
-    final windowStart = DateTime(anchor.year - 6, anchor.month, anchor.day + 7);
-    final windowEnd = DateTime(anchor.year, anchor.month, anchor.day - 10);
-    final yearDays = windowEnd.difference(windowStart).inDays / 6;
-    final slots = <_Slot>[];
-    var tropicalIndex = random.nextInt(tropical.length);
-    for (var y = 0; y < 6; y++) {
-      final yearStart = DateTime(
-        windowStart.year,
-        windowStart.month,
-        windowStart.day + (y * yearDays).round(),
+    for (final p in buddies.regulars) {
+      join(
+        p.id,
+        (d) =>
+            d.tripId == null &&
+            d.courseId == null &&
+            d.wantedKinds.contains(ShapeKind.recreational),
       );
-      final target = y < 5 ? diveCount ~/ 6 : diveCount - 5 * (diveCount ~/ 6);
-      final tripSizes = [for (var i = 0; i < 3; i++) 9 + random.nextInt(5)];
-      var local = target - tripSizes.fold<int>(0, (a, b) => a + b);
-      final busy = <(DateTime, DateTime)>[];
-      for (var i = 0; i < 3; i++) {
-        final dest = y >= 3 && i == 1
-            ? mediterranean
-            : tropical[tropicalIndex++ % tropical.length];
-        final offset = (yearDays * (0.15 + 0.3 * i) + random.nextInt(25))
-            .round();
-        final first = DateTime(
-          yearStart.year,
-          yearStart.month,
-          yearStart.day + offset,
-        );
-        busy.add(_trip(dest, first, tripSizes[i], slots, sitesFor));
-      }
-      // Local days: weekends at home, two dives each, between the trips.
-      final days = (local / 2).ceil();
-      for (var k = 0; k < days; k++) {
-        var day = DateTime(
-          yearStart.year,
-          yearStart.month,
-          yearStart.day + ((k + 0.5) * yearDays / days).round(),
-        );
-        while (day.weekday != DateTime.saturday ||
-            busy.any((b) => !day.isBefore(b.$1) && !day.isAfter(b.$2))) {
-          day = DateTime(day.year, day.month, day.day + 1);
-        }
-        final count = min(2, local);
-        local -= count;
-        // The first weekend is the Open Water course: four dives over two days.
-        if (y == 0 && k == 0) {
-          _day(home, day, 2, slots, sitesFor, null);
-          _day(
-            home,
-            DateTime(day.year, day.month, day.day + 1),
-            2,
-            slots,
-            sitesFor,
-            null,
-          );
-          local -= 2;
-          continue;
-        }
-        if (count > 0) _day(home, day, count, slots, sitesFor, null);
+    }
+    for (final p in buddies.techTeam) {
+      join(
+        p.id,
+        (d) =>
+            d.phase != StoryPhase.recreational &&
+            !d.wantedKinds.contains(ShapeKind.recreational),
+      );
+    }
+    for (final MapEntry(key: tripId, value: met)
+        in buddies.tripPeople.entries) {
+      for (final id in [...met.guides, ...met.guests]) {
+        if (seen.contains(id)) continue;
+        final onTrip = [
+          for (var i = 0; i < dives.length; i++)
+            if (dives[i].tripId == tripId) i,
+        ];
+        final i = onTrip[random.nextInt(onTrip.length)];
+        dives[i] = _withBuddy(dives[i], id);
+        seen.add(id);
       }
     }
-    slots.sort((a, b) => a.start.compareTo(b.start));
-    return slots.take(diveCount).toList();
   }
 
-  (DateTime, DateTime) _trip(
-    Destination dest,
-    DateTime first,
-    int size,
-    List<_Slot> slots,
-    List<CatalogSite> Function(Destination) sitesFor,
-  ) {
-    final perDay = dest.liveaboard ? 3 : 2;
-    final days = (size / perDay).ceil();
-    final id = 'trip-${_trips.length + 1}';
-    var left = size;
-    for (var d = 0; d < days; d++) {
-      final count = min(perDay, left);
-      left -= count;
-      _day(
-        dest,
-        DateTime(first.year, first.month, first.day + d),
-        count,
-        slots,
-        sitesFor,
-        id,
-      );
-    }
-    final start = DateTime(first.year, first.month, first.day - 1);
-    final end = DateTime(first.year, first.month, first.day + days, 12);
-    _trips.add(
-      PlannedTrip(
-        id: id,
-        destination: dest,
-        start: start,
-        end: end,
-        siteIds: [for (final s in sitesFor(dest)) s.id],
-        centerId: _centerFor(dest)?.id,
-      ),
-    );
-    return (start, end);
-  }
-
-  void _day(
-    Destination dest,
-    DateTime day,
-    int count,
-    List<_Slot> slots,
-    List<CatalogSite> Function(Destination) sitesFor,
-    String? tripId,
-  ) {
-    const starts = [(8, 30), (12, 0), (15, 30)];
-    final sites = sitesFor(dest);
-    for (var i = 0; i < count; i++) {
-      final night = i == count - 1 && count > 1 && random.nextDouble() < 0.12;
-      final (h, m) = night ? (19, 30) : starts[i];
-      slots.add(
-        _Slot(
-          start: DateTime(
-            day.year,
-            day.month,
-            day.day,
-            h,
-            m + random.nextInt(20),
-          ),
-          destination: dest,
-          siteId: sites[random.nextInt(sites.length)].id,
-          tripId: tripId,
-          night: night,
-        ),
-      );
-    }
-  }
-
-  List<CatalogSite> _pickSites(Destination d, int count) {
-    final pool = catalogSitesFor(d, catalog)..shuffle(random);
-    if (pool.isEmpty) throw StateError('no catalogue sites for ${d.label}');
-    return pool.take(count).toList();
-  }
-
-  CatalogCenter? _centerFor(Destination d) => _centers.putIfAbsent(d.key, () {
-    final pool = catalog.centers.where((c) => c.country == d.country).toList()
-      ..sort((a, b) => a.id.compareTo(b.id));
-    return pool.isEmpty ? null : pool[random.nextInt(pool.length)];
-  });
-}
-
-class _Slot {
-  const _Slot({
-    required this.start,
-    required this.destination,
-    required this.siteId,
-    required this.night,
-    this.tripId,
-  });
-
-  final DateTime start;
-  final Destination destination;
-  final String siteId;
-  final bool night;
-  final String? tripId;
+  static PlannedDive _withBuddy(PlannedDive d, String id) => PlannedDive(
+    number: d.number,
+    start: d.start,
+    phase: d.phase,
+    wantedKinds: d.wantedKinds,
+    siteId: d.siteId,
+    destination: d.destination,
+    targetMaxDepth: d.targetMaxDepth,
+    diveMode: d.diveMode,
+    tankCount: d.tankCount,
+    buddyIds: [...d.buddyIds, id],
+    plannedDuration: d.plannedDuration,
+    waterTempC: d.waterTempC,
+    tripId: d.tripId,
+    courseId: d.courseId,
+    requiresCert: d.requiresCert,
+    night: d.night,
+    centerId: d.centerId,
+    scooter: d.scooter,
+    boat: d.boat,
+  );
 }

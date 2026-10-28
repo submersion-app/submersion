@@ -37,6 +37,7 @@ void main() {
           tankCount: 1,
           buddyIds: const [],
           plannedDuration: const Duration(hours: 2),
+          waterTempC: 12,
         ),
     ],
     trips: const [],

@@ -33,6 +33,7 @@ import 'package:submersion/features/transmitters/domain/entities/transmitter.dar
 import 'package:submersion/features/weight_presets/data/repositories/weight_preset_repository.dart';
 
 import 'gear_catalog.dart';
+import '../story/story_plan.dart';
 import 'seed_context.dart';
 
 /// The demo diver's kit and everything the app keeps about it: sets, where
@@ -490,7 +491,11 @@ class GearSeeder implements DemoSeeder {
             equipmentId: e[key],
             filledAt: at,
             o2Percent: key == 'stage-1' ? 50 : (key == 'twin' ? 21 : 32),
-            hePercent: key == 'twin' && d.number > 203 ? 35 : 0,
+            hePercent:
+                key == 'twin' &&
+                    d.number > ctx.plan.milestones[StoryMilestone.trimix]!
+                ? 35
+                : 0,
             pressureBar: key == 'stage-1' ? 200 : 230,
             stationName: 'Club fill station',
             source: FillSource.manual,

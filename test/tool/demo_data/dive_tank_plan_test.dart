@@ -8,18 +8,25 @@ import '../../../tool/demo_data/src/shape/dive_shape.dart';
 import '../../../tool/demo_data/src/story/story_plan.dart';
 import '../../../tool/demo_data/src/story/story_planner.dart';
 
-PlannedDive _dive(StoryPhase phase, String mode) => PlannedDive(
+PlannedDive _dive(
+  StoryPhase phase,
+  String mode, {
+  double depth = 45,
+  CertLevel? requires,
+}) => PlannedDive(
   number: 250,
   start: DateTime.utc(2026, 6, 1, 9),
   phase: phase,
   wantedKinds: const {},
   siteId: 'site',
   destination: StoryPlanner.home,
-  targetMaxDepth: 45,
+  targetMaxDepth: depth,
   diveMode: mode,
   tankCount: 2,
   buddyIds: const [],
   plannedDuration: const Duration(minutes: 60),
+  waterTempC: 12,
+  requiresCert: requires,
 );
 
 DiveShape _shape(String mode, List<ShapeTank> tanks) => DiveShape(
@@ -105,6 +112,35 @@ void main() {
         TankRole.backGas,
         TankRole.stage,
       ]);
+    });
+  });
+
+  group('trimix', () {
+    test('a 60 m dive after the trimix card breathes trimix', () {
+      final tanks = planTanks(
+        _dive(
+          StoryPhase.technicalOc,
+          'oc',
+          depth: 60,
+          requires: CertLevel.trimix,
+        ),
+        _shape('oc', [_tank(21), _tank(50)]),
+        Random(1),
+      );
+
+      expect(tanks.first.role, TankRole.backGas);
+      expect(tanks.first.he, greaterThanOrEqualTo(35));
+      expect(tanks.first.o2, lessThanOrEqualTo(21));
+    });
+
+    test('a 45 m deco dive without the trimix card keeps its nitrox', () {
+      final tanks = planTanks(
+        _dive(StoryPhase.technicalOc, 'oc', requires: CertLevel.decoProcedures),
+        _shape('oc', [_tank(28), _tank(50)]),
+        Random(1),
+      );
+
+      expect(tanks.first.he, 0);
     });
   });
 }

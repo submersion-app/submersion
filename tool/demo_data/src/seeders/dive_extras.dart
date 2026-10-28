@@ -166,7 +166,7 @@ class DiveExtras {
     if (switches.isNotEmpty) await _dives.insertGasSwitches(switches);
 
     final computer =
-        ctx.computers[d.phase == StoryPhase.recreational && d.number < 130
+        ctx.computers[d.number < ctx.plan.milestones[StoryMilestone.techStart]!
             ? 'rec'
             : 'tech']!;
     await _dives.saveComputerReading(

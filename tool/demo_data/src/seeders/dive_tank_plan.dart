@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:submersion/core/constants/enums.dart';
 
 import '../shape/dive_shape.dart';
+import '../story/course_plan.dart';
 import '../story/story_plan.dart';
 
 /// One cylinder a demo dive is breathed from.
@@ -41,7 +42,9 @@ List<PlannedTank> planTanks(PlannedDive d, DiveShape shape, Random random) {
   if (d.phase == StoryPhase.recreational ||
       shape.tanks.length <= 1 && d.diveMode == 'oc') {
     final nitrox =
-        d.number >= 30 && d.targetMaxDepth <= 30 && random.nextDouble() < 0.6;
+        d.number >= nitroxDive &&
+        d.targetMaxDepth <= 30 &&
+        random.nextDouble() < 0.6;
     return [
       PlannedTank(
         o2: nitrox ? 32 : 21,
@@ -85,11 +88,16 @@ List<PlannedTank> planTanks(PlannedDive d, DiveShape shape, Random random) {
     ];
   }
   final bottomO2 = shape.tanks.first.o2;
+  // A trimix dive breathes trimix whatever the source shape carried: real
+  // open-circuit trimix shapes are scarce, so deep deco shapes stand in.
+  final (o2, he) = d.requiresCert == CertLevel.trimix
+      ? (d.targetMaxDepth > 60 ? (18.0, 45.0) : (21.0, 35.0))
+      : (shape.tanks.first.o2, shape.tanks.first.he);
   return [
     for (var i = 0; i < shape.tanks.length; i++)
       PlannedTank(
-        o2: shape.tanks[i].o2,
-        he: shape.tanks[i].he,
+        o2: i == 0 ? o2 : shape.tanks[i].o2,
+        he: i == 0 ? he : shape.tanks[i].he,
         role: i == 0
             ? TankRole.backGas
             : _specificRole(shape.tanks[i].role) ??

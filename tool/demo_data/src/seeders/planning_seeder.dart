@@ -415,9 +415,7 @@ class PlanningSeeder implements DemoSeeder {
       );
     }
 
-    final scooterDive = ctx.plan.dives.firstWhere(
-      (d) => d.number > 225 && d.tankCount > 1,
-    );
+    final scooterDive = ctx.plan.dives.firstWhere((d) => d.scooter);
     final routeStart = scooterDive.start.add(const Duration(minutes: 3));
     await NavTrackRepository().insertImportedRoute(
       points: [

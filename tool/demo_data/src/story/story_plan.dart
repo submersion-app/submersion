@@ -3,6 +3,25 @@ import 'catalog.dart';
 
 enum StoryPhase { recreational, technicalOc, rebreather }
 
+/// Turning points of the story that the kit follows: each is a dive number,
+/// and gear bought "at" a milestone is bought in the week before that dive.
+enum StoryMilestone {
+  firstDive,
+  firstTrip,
+  ownRegulator,
+  advanced,
+  firstColdLake,
+  drysuit,
+  photo,
+  airIntegrated,
+  nitrox,
+  techStart,
+  trimix,
+  scooter,
+  ccrCourse,
+  cellSwap,
+}
+
 /// The certifications of the demo diver's progression, in order.
 enum CertLevel {
   openWater('Open Water Diver'),
@@ -142,7 +161,11 @@ class PlannedTrip {
     required this.start,
     required this.end,
     required this.siteIds,
-    this.centerId,
+    this.centerIds = const [],
+    this.guideIds = const [],
+    this.boatBuddyIds = const [],
+    this.boatName,
+    this.resortName,
   });
 
   final String id;
@@ -150,7 +173,17 @@ class PlannedTrip {
   final DateTime start;
   final DateTime end;
   final List<String> siteIds;
-  final String? centerId;
+
+  /// The catalogue dive centres the trip dived with.
+  final List<String> centerIds;
+
+  /// People met on the trip: its guides and other guests on the boat.
+  final List<String> guideIds;
+  final List<String> boatBuddyIds;
+
+  /// The liveaboard, or the resort stayed at (fictional).
+  final String? boatName;
+  final String? resortName;
 
   String get name => '${destination.label} ${start.year}';
 }
@@ -168,10 +201,14 @@ class PlannedDive {
     required this.tankCount,
     required this.buddyIds,
     required this.plannedDuration,
+    required this.waterTempC,
     this.tripId,
     this.courseId,
     this.requiresCert,
     this.night = false,
+    this.centerId,
+    this.scooter = false,
+    this.boat = false,
   });
 
   final int number;
@@ -193,6 +230,19 @@ class PlannedDive {
   final String? courseId;
   final CertLevel? requiresCert;
   final bool night;
+
+  /// The water at depth that day, in degrees: the destination's range,
+  /// following the season where the range is wide.
+  final double waterTempC;
+
+  /// The catalogue dive centre the dive was made with, if any.
+  final String? centerId;
+
+  /// Dived on the scooter.
+  final bool scooter;
+
+  /// From a boat rather than the shore.
+  final bool boat;
 }
 
 class StoryPlan {
@@ -206,6 +256,7 @@ class StoryPlan {
     required this.centers,
     required this.people,
     required this.home,
+    this.milestones = const {},
   });
 
   final DateTime anchor;
@@ -219,4 +270,7 @@ class StoryPlan {
   final List<CatalogCenter> centers;
   final List<FictionalPerson> people;
   final Destination home;
+
+  /// The dive number of each turning point of the story.
+  final Map<StoryMilestone, int> milestones;
 }
