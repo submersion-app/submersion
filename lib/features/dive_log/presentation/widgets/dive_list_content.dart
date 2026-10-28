@@ -608,10 +608,12 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
           // dozens of dives off on a long one (#3744). From there, show the
           // row itself, building it first if the estimate missed it; a row
           // the estimate already put in view stays where it is. Not after
-          // the diver has taken the list over mid-animation.
+          // the diver has taken the list over mid-animation, nor once a newer
+          // scroll to another dive has cut this one short.
           void showRow() {
             final listContext = _listBodyKey.currentContext;
             if (!mounted || listContext == null) return;
+            if (_lastScrolledToId != targetId) return;
             if (_scrollController.positions.any(isScrolledByDiver)) return;
             _landOnDive(listContext, targetId, toTop: false);
           }

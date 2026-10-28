@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/sort_options.dart';
@@ -17,9 +19,14 @@ import '../../../../helpers/test_database.dart';
 
 /// Counts the notifier's row reads.
 class _CountingRepository implements DiveRepository {
-  _CountingRepository(this._inner);
+  _CountingRepository(this._inner, {this.gateCall});
 
   final DiveRepository _inner;
+
+  /// When set, the `getDiveSummaries` call held open until [release].
+  final int? gateCall;
+  final Completer<void> gateReached = Completer<void>();
+  final Completer<void> release = Completer<void>();
   int summaryCalls = 0;
   final profileCalls = <List<String>>[];
 
@@ -32,8 +39,12 @@ class _CountingRepository implements DiveRepository {
     int limit = 50,
     SortState<DiveSortField>? sort,
     Set<String> disabledSafetyRules = const {},
-  }) {
+  }) async {
     summaryCalls++;
+    if (summaryCalls == gateCall) {
+      gateReached.complete();
+      await release.future;
+    }
     return _inner.getDiveSummaries(
       diverId: diverId,
       filter: filter,
@@ -56,6 +67,10 @@ class _CountingRepository implements DiveRepository {
 
   @override
   Stream<void> watchDiveListChanges() => _inner.watchDiveListChanges();
+
+  @override
+  Stream<void> watchTables(Set<String> tableNames) =>
+      _inner.watchTables(tableNames);
 
   @override
   Future<Map<String, List<DiveProfilePoint>>> getBatchProfileSummaries(
@@ -186,6 +201,38 @@ void main() {
         );
       },
     );
+
+    test('stops paging once the query changes under it', () async {
+      final diverId = await setUpCurrentDiver();
+      final dives = await seedDives(diverId, 700);
+      // The first page is read 1; loadUntil's second read is read 3.
+      final repository = _CountingRepository(diveRepo, gateCall: 3);
+      final container = makeContainer(repository: repository);
+      await firstPage(container);
+
+      final loading = container
+          .read(paginatedDiveListProvider.notifier)
+          .loadUntil(dives[600].id);
+      await repository.gateReached.future;
+      container.read(diveFilterProvider.notifier).state = DiveFilterState(
+        query: TextNode(['reef']),
+      );
+      repository.release.complete();
+
+      expect(await loading, isFalse);
+      // Settles on the new query's reload, its own one read, rather than
+      // paging the new query on from the old one's cursor first.
+      final reloaded = await firstPage(container);
+      while (container
+              .read(paginatedDiveListProvider)
+              .value!
+              .unfilteredTotalCount ==
+          null) {
+        await Future<void>.delayed(Duration.zero);
+      }
+      expect(repository.summaryCalls, 4);
+      expect(reloaded.dives, isNotEmpty);
+    });
 
     test('a dive already loaded is a no-op', () async {
       final diverId = await setUpCurrentDiver();

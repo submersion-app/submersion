@@ -1025,8 +1025,18 @@ class PaginatedDiveListNotifier
   /// log takes a handful of reads rather than one per page.
   Future<bool> loadUntil(String diveId) async {
     await _enqueuePaging(() async {
+      // A change of query meanwhile queues its own reload behind this; the
+      // rows read so far no longer answer it, so stop rather than page the
+      // new query from the old one's cursor.
+      final filterLoads = _filterLoads;
+      final diverSwitches = _diverSwitches;
+      final sort = _ref.read(diveSortProvider);
+      bool queryChanged() =>
+          filterLoads != _filterLoads ||
+          diverSwitches != _diverSwitches ||
+          sort != _ref.read(diveSortProvider);
       var limit = _pageSize;
-      while (mounted) {
+      while (mounted && !queryChanged()) {
         final current = state.valueOrNull;
         if (current == null || !current.hasMore) return;
         if (current.dives.any((d) => d.id == diveId)) return;

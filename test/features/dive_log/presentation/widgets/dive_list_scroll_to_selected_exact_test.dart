@@ -65,8 +65,11 @@ void main() {
     (w) => w is KeyboardListItem && w.navigationKey == id,
   );
 
-  testWidgets('a selection from outside the list shows its row (#3744)', (
-    tester,
+  /// Pumps the list with [selected] as its address's selection, which a
+  /// test changes from outside the list, as the detail pane does.
+  Future<void> pumpList(
+    WidgetTester tester,
+    ValueNotifier<String?> selected,
   ) async {
     tester.view.physicalSize = const Size(400, 800);
     tester.view.devicePixelRatio = 1;
@@ -102,20 +105,53 @@ void main() {
             ],
           ),
         ],
-        child: DiveListContent(
-          showAppBar: false,
-          selectedId: 'd100',
-          onItemSelected: (_) {},
+        child: ValueListenableBuilder<String?>(
+          valueListenable: selected,
+          builder: (_, id, _) => DiveListContent(
+            showAppBar: false,
+            selectedId: id,
+            onItemSelected: (_) {},
+          ),
         ),
       ),
     );
     await settle(tester);
+  }
 
-    // The row itself, whole and on screen, not one somewhere around it.
-    expect(row('d100'), findsOneWidget);
+  void expectInView(WidgetTester tester, String id) {
+    expect(row(id), findsOneWidget);
     final list = tester.getRect(find.byType(CustomScrollView));
-    final target = tester.getRect(row('d100'));
+    final target = tester.getRect(row(id));
     expect(target.top, greaterThanOrEqualTo(list.top - 0.5));
     expect(target.bottom, lessThanOrEqualTo(list.bottom + 0.5));
+  }
+
+  testWidgets('a selection from outside the list shows its row (#3744)', (
+    tester,
+  ) async {
+    final selected = ValueNotifier<String?>('d100');
+    addTearDown(selected.dispose);
+    await pumpList(tester, selected);
+
+    // The row itself, whole and on screen, not one somewhere around it.
+    expectInView(tester, 'd100');
+  });
+
+  testWidgets('a newer selection is not pulled back by the scroll it cut '
+      'short', (tester) async {
+    final selected = ValueNotifier<String?>('d100');
+    addTearDown(selected.dispose);
+    await pumpList(tester, selected);
+
+    // Away from both, then to one dive and, mid-scroll, to another.
+    selected.value = 'd300';
+    await settle(tester);
+    selected.value = 'd60';
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+    selected.value = 'd280';
+    await settle(tester);
+
+    expectInView(tester, 'd280');
   });
 }
