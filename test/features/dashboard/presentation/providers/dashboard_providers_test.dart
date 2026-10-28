@@ -120,23 +120,22 @@ void main() {
     final today = DateTime(2026, 7, 24, 12);
 
     test('hydrates dives from this date in prior years', () async {
-      final now = today;
       await repository.createDive(
         Dive(
           id: 'two-years-ago',
-          dateTime: DateTime.utc(now.year - 2, now.month, now.day, 10),
+          dateTime: DateTime.utc(today.year - 2, today.month, today.day, 10),
         ),
       );
       await repository.createDive(
         Dive(
           id: 'last-year',
-          dateTime: DateTime.utc(now.year - 1, now.month, now.day, 10),
+          dateTime: DateTime.utc(today.year - 1, today.month, today.day, 10),
         ),
       );
       await repository.createDive(
         Dive(
           id: 'this-year',
-          dateTime: DateTime.utc(now.year, now.month, now.day, 8),
+          dateTime: DateTime.utc(today.year, today.month, today.day, 8),
         ),
       );
 
@@ -148,11 +147,15 @@ void main() {
     });
 
     test('is empty when no prior-year dive shares the date', () async {
-      final now = today;
       await repository.createDive(
         Dive(
           id: 'other-day',
-          dateTime: DateTime.utc(now.year - 1, now.month, now.day + 3, 10),
+          dateTime: DateTime.utc(
+            today.year - 1,
+            today.month,
+            today.day + 3,
+            10,
+          ),
         ),
       );
 
