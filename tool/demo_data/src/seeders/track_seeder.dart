@@ -7,6 +7,7 @@ import 'package:submersion/features/nav_track/data/repositories/nav_track_reposi
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 
 import '../story/catalog.dart';
+import '../story/destinations.dart';
 import '../story/story_plan.dart';
 import 'route_shapes.dart';
 import 'seed_context.dart';
@@ -82,7 +83,7 @@ class TrackSeeder implements DemoSeeder {
           points: points,
           startTimeMs: points.first.timestamp * 1000,
           endTimeMs: points.last.timestamp * 1000,
-          tzOffsetMinutes: 0,
+          tzOffsetMinutes: utcOffsetOn(trip.destination, day.first.start),
           source: 'demo',
           name: 'Boat to ${sites[day.first.siteId]!.name}',
         );

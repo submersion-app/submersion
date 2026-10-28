@@ -1,7 +1,6 @@
 import 'dart:math';
 
 import '../shape/dive_shape.dart';
-import 'course_plan.dart';
 import 'story_plan.dart';
 
 /// What kind of dive a planned dive is: the shape kinds it wants, how deep
@@ -29,10 +28,10 @@ DiveSpec diveSpecFor(
   CertLevel? course,
   Destination destination,
   Random random,
+  Map<CertLevel, (int, int)> courses,
 ) {
   double range(double lo, double hi) =>
       (lo + random.nextDouble() * (hi - lo)).roundToDouble();
-  final courses = courseDives(n, 0);
   switch (course) {
     case CertLevel.openWater:
       return (kinds: _rec, depth: range(6, 12), tanks: 1, requires: null);
@@ -83,6 +82,17 @@ DiveSpec diveSpecFor(
   }
   final deepCardFrom = courses[CertLevel.deep]!.$2 + 1;
   final advancedFrom = courses[CertLevel.advanced]!.$2 + 1;
+  // Where the water is an overhead below a cavern's depth (the springs),
+  // every dive is a recreational cavern dive.
+  final cap = destination.maxDepthM;
+  if (cap != null && phase != StoryPhase.rebreather) {
+    return (
+      kinds: _rec,
+      depth: range(8, n < advancedFrom ? min(cap, 18.0) : cap),
+      tanks: 1,
+      requires: n < advancedFrom ? CertLevel.openWater : CertLevel.advanced,
+    );
+  }
   switch (phase) {
     case StoryPhase.recreational:
       final max = n < advancedFrom ? 18.0 : (n >= deepCardFrom ? 38.0 : 30.0);
@@ -131,7 +141,7 @@ DiveSpec diveSpecFor(
     case StoryPhase.rebreather:
       return (
         kinds: {ShapeKind.ccr},
-        depth: range(20, 55),
+        depth: range(20, 40),
         tanks: 3,
         requires: CertLevel.ccr,
       );

@@ -2,6 +2,7 @@ import 'package:submersion/core/constants/enums.dart';
 
 import '../story/story_plan.dart';
 import 'gear_assemblies.dart';
+import 'gear_regulators.dart';
 
 /// What a piece of kit is taken on: the kit for each dive picks from these.
 /// [warm] is water of 26 degrees or more, [temperate] 14 to 26, [cold]

@@ -23,6 +23,8 @@ import 'src/seeders/seed_context.dart';
 ///   DEMO_PACK_OUT     where the zip, manifest entry and manifest go
 ///   DEMO_PACK_SEED    optional, default 1
 ///   DEMO_PACK_ANCHOR  optional build date (yyyy-mm-dd), default today
+///   DEMO_PACK_REFUSED_NAMES  optional, comma-separated names the privacy
+///                     check refused; the people factory skips them
 void main() {
   // The species catalogue loads from the app's bundled assets.
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -72,6 +74,10 @@ void main() {
       outDir: out!,
       sourceStringHashes: hashes,
       salt: salt,
+      refusedNames: {
+        for (final n in (env['DEMO_PACK_REFUSED_NAMES'] ?? '').split(','))
+          if (n.trim().isNotEmpty) n.trim(),
+      },
     );
 
     final manifest = File(p.join(out, 'demo-manifest.json'));

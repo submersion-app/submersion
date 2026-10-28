@@ -103,6 +103,10 @@ The checks:
 
 Limits: the database 12 MB compressed, the whole package 20 MB.
 
+When the privacy check refuses a generated name, list it in
+`DEMO_PACK_REFUSED_NAMES` (comma-separated) and build again: the people
+factory skips it, and nobody else in the story changes.
+
 The output is `submersion-demo-s<schema>.zip`, `manifest-entry.json`, and
 `demo-manifest.json` with this entry merged in (a package for the same schema
 is replaced; older schemas stay so older apps keep a file they can open).

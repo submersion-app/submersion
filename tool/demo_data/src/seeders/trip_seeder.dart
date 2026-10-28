@@ -110,38 +110,40 @@ class TripSeeder implements DemoSeeder {
           ),
         );
       }
-      // Every trip rents its cylinders; the diver logs the one they dived.
+      // A trip away rents its cylinders; near home the diver brings theirs.
       final cylId = 'demo-trip-cyl-${t.id}';
-      await cylinders.createCylinder(
-        TripCylinder(
-          id: cylId,
-          tripId: t.id,
-          label: t.destination.liveaboard
-              ? 'Boat 12 L aluminium'
-              : 'Rental 12 L aluminium',
-          volume: 11.1,
-          workingPressure: 207,
-          material: TankMaterial.aluminum,
-          presetName: 'al80',
-          createdAt: t.start,
-          updatedAt: t.start,
-        ),
-      );
-      await cylinders.createEvent(
-        TripCylinderEvent(
-          id: 'demo-trip-cyl-fill-${t.id}',
-          tripCylinderId: cylId,
-          kind: TripCylinderEventKind.fill,
-          occurredAt: t.start,
-          pressure: 210,
-          o2Percent: 32,
-          analyzedO2: 31.8,
-          cost: 8,
-          currency: 'USD',
-          createdAt: t.start,
-          updatedAt: t.start,
-        ),
-      );
+      if (!t.destination.nearHome) {
+        await cylinders.createCylinder(
+          TripCylinder(
+            id: cylId,
+            tripId: t.id,
+            label: t.destination.liveaboard
+                ? 'Boat 12 L aluminium'
+                : 'Rental 12 L aluminium',
+            volume: 11.1,
+            workingPressure: 207,
+            material: TankMaterial.aluminum,
+            presetName: 'al80',
+            createdAt: t.start,
+            updatedAt: t.start,
+          ),
+        );
+        await cylinders.createEvent(
+          TripCylinderEvent(
+            id: 'demo-trip-cyl-fill-${t.id}',
+            tripCylinderId: cylId,
+            kind: TripCylinderEventKind.fill,
+            occurredAt: t.start,
+            pressure: 210,
+            o2Percent: 32,
+            analyzedO2: 31.8,
+            cost: 8,
+            currency: 'USD',
+            createdAt: t.start,
+            updatedAt: t.start,
+          ),
+        );
+      }
       // Packed: everything the trip's dives were dived with.
       await packing.pack(t.id, [
         ...{

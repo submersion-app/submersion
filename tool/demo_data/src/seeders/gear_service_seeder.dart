@@ -182,12 +182,25 @@ class GearServiceSeeder implements DemoSeeder {
       }
     }
 
-    // Anything else the dice left due today gets serviced after the last
-    // weekend, as a diver clears the list before the next trip.
+    // Clocks the app attached itself are stamped with the build clock; each
+    // belongs to its item's purchase.
+    await ctx.db.customStatement(
+      'UPDATE service_schedules SET created_at = (SELECT purchase_date FROM '
+      'equipment e WHERE e.id = service_schedules.equipment_id), updated_at = '
+      '(SELECT purchase_date FROM equipment e WHERE e.id = '
+      'service_schedules.equipment_id) WHERE created_at > ? AND EXISTS '
+      '(SELECT 1 FROM equipment e WHERE e.id = service_schedules.equipment_id '
+      'AND e.purchase_date IS NOT NULL)',
+      [ctx.anchor.millisecondsSinceEpoch],
+    );
+
+    // Anything else the dice left due in the explorer's first two weeks gets
+    // serviced after the last weekend, as a diver clears the list.
     final tidy = ctx.timeline.homeDayOnOrBefore(
       ctx.anchor.subtract(const Duration(days: 2)),
     );
-    for (final (key, status) in await demoClockStatuses(ctx, ctx.anchor)) {
+    final explorerLatest = ctx.anchor.add(const Duration(days: 14));
+    for (final (key, status) in await demoClockStatuses(ctx, explorerLatest)) {
       final clock = (key, status.kind.id);
       if (status.severity == ServiceClockSeverity.ok ||
           overdueClocks.contains(clock) ||

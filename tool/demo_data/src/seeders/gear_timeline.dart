@@ -72,7 +72,10 @@ class GearTimeline {
     final leaves = _gear[key]!.leaves;
     if (leaves == null) return null;
     final dive = _dive(leaves.at, leaves.offset);
-    return dive.start.add(dive.plannedDuration);
+    final end = dive.start.add(dive.plannedDuration);
+    // Sold, lent or retired once home; only a loss happens on the trip.
+    if (leaves.status == EquipmentStatus.lost || !_away(end)) return end;
+    return homeDayOnOrAfter(end);
   }
 
   /// Whether [key] is the diver's and still in use at [when].

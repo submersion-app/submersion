@@ -64,6 +64,7 @@ class DemoBuilder {
     Set<String>? sourceStringHashes,
     String? salt,
     List<DemoSeeder>? seeders,
+    Set<String> refusedNames = const {},
   }) async {
     final work = Directory.systemTemp.createTempSync('demo_pack');
     try {
@@ -73,7 +74,11 @@ class DemoBuilder {
       );
       DatabaseService.instance.setTestDatabase(db);
       final catalog = Catalog.load(catalogDir);
-      final plan = StoryPlanner(Random(seed), catalog).plan(anchor: anchor);
+      final plan = StoryPlanner(
+        Random(seed),
+        catalog,
+        refusedNames: refusedNames,
+      ).plan(anchor: anchor);
       final library = ShapeLibrary(shapes, Random(seed));
       final short = shapeShortfalls(plan, library.shapes);
       if (short.isNotEmpty) {

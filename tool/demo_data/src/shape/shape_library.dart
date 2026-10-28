@@ -22,6 +22,16 @@ class ShapeLibrary {
 
   static const maxUses = 3;
 
+  /// The kinds that say what sort of dive a shape is.
+  static const _storyKinds = {
+    ShapeKind.recreational,
+    ShapeKind.deepOpenCircuit,
+    ShapeKind.multiGasDeco,
+    ShapeKind.trimix,
+    ShapeKind.ccr,
+    ShapeKind.scr,
+  };
+
   /// Five hours: longer than any dive in the story.
   static const maxDurationSec = 5 * 3600;
 
@@ -49,7 +59,17 @@ class ShapeLibrary {
     final ofMode = _shapes
         .where((s) => s.diveMode == diveMode && underCap(s))
         .toList();
-    final ofKind = ofMode.where((s) => s.kinds.containsAll(kinds)).toList();
+    // Of the shapes with every wanted kind, those carrying the fewest other
+    // story kinds: a deco dive leaves the scarce deep-and-deco shapes to the
+    // dives that need both.
+    int extra(DiveShape s) =>
+        s.kinds.difference(kinds).where(_storyKinds.contains).length;
+    final withKinds = ofMode.where((s) => s.kinds.containsAll(kinds)).toList();
+    final fewest = withKinds.isEmpty ? 0 : withKinds.map(extra).reduce(min);
+    final ofKind = withKinds.where((s) => extra(s) == fewest).toList();
+    if (ofKind.isEmpty && !kinds.contains(ShapeKind.recreational)) {
+      throw StateError('no $diveMode shape left for $kinds');
+    }
     final newOnTrip = ofKind.where((s) => !usedOnTrip.contains(s.id)).toList();
 
     // Preferred to least preferred: fits the depth and is new on this trip;

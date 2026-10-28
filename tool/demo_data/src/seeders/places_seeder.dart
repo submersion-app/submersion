@@ -37,6 +37,26 @@ class PlacesSeeder implements DemoSeeder {
     'Needs service': ('#FB8C00', {TagScope.equipment}),
   };
 
+  static const _tankNotes = [
+    'Valve was stiff; ask for another.',
+    'Fine.',
+    'Filled to 200 bar every morning.',
+    'O-ring needed changing on the second day.',
+    'Nitrox on request, analysed on the dock.',
+    'Tanks a little low; check before kitting up.',
+  ];
+  static const _leadNotes = [
+    'Two kilos less than at home with the aluminium.',
+    'Soft weights, plenty of them.',
+    'Only block weights; bring a pocket belt.',
+    'One kilo less in the 3 mm.',
+  ];
+  static const _regulatorNotes = [
+    'Breathed well.',
+    'Octopus breathed wet; bring my own next time.',
+    'Old but serviced; fine for the shallow reef.',
+  ];
+
   /// The demo's tag names, for the privacy check's allow list.
   static Iterable<String> get tagNames => _tags.keys;
 
@@ -232,14 +252,14 @@ class PlacesSeeder implements DemoSeeder {
         EquipmentType.tank,
         'Rental 12 L aluminium',
         c % 3 == 0 ? RentalVerdict.avoid : RentalVerdict.worked,
-        c % 3 == 0 ? 'Valve was stiff; ask for another.' : 'Fine.',
+        _tankNotes[c % _tankNotes.length],
         litres: 11.1,
       );
       await note(
         EquipmentType.weights,
         'Lead',
         RentalVerdict.worked,
-        'Two kilos less than at home with the aluminium.',
+        _leadNotes[c % _leadNotes.length],
         lead: -2,
       );
       if (rentedRegulator) {
@@ -247,9 +267,7 @@ class PlacesSeeder implements DemoSeeder {
           EquipmentType.regulator,
           'Rental regulator',
           c.isEven ? RentalVerdict.worked : RentalVerdict.avoid,
-          c.isEven
-              ? 'Breathed well.'
-              : 'Octopus breathed wet; bring my own next time.',
+          _regulatorNotes[c % _regulatorNotes.length],
         );
       }
       c++;

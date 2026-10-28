@@ -170,15 +170,19 @@ class GearSeeder implements DemoSeeder {
                 EquipmentAttrKeys.cellSlot,
                 number: install!.slot!.toDouble(),
               ),
-            if (install != null && bought != null)
-              attr(
-                EquipmentAttrKeys.installedDate,
-                number: bought.millisecondsSinceEpoch.toDouble(),
-              ),
           ],
         ),
         [if (g.travel) ctx.tags['Travel kit']!],
       );
+      // A fitted child counts its parent's dives from its created date
+      // (the repository stamps the build time). The demo date shift moves
+      // it with the dives, where an installed_date attribute would not move.
+      if (install != null && bought != null) {
+        await ctx.db.customStatement(
+          'UPDATE equipment SET created_at = ? WHERE id = ?',
+          [bought.millisecondsSinceEpoch, id],
+        );
+      }
     }
 
     final components = EquipmentComponentRepository();

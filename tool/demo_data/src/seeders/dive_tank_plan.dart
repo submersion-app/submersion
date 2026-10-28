@@ -38,7 +38,7 @@ class PlannedTank {
 /// home), and technical and rebreather dives keep the gas plan of the real
 /// dive their shape came from.
 List<PlannedTank> planTanks(PlannedDive d, DiveShape shape, Random random) {
-  final home = d.destination.key == 'home';
+  final home = d.destination.key == 'home' || d.destination.nearHome;
   if (d.phase == StoryPhase.recreational ||
       shape.tanks.length <= 1 && d.diveMode == 'oc') {
     final nitrox =
@@ -90,7 +90,10 @@ List<PlannedTank> planTanks(PlannedDive d, DiveShape shape, Random random) {
   final bottomO2 = shape.tanks.first.o2;
   // A trimix dive breathes trimix whatever the source shape carried: real
   // open-circuit trimix shapes are scarce, so deep deco shapes stand in.
-  final (o2, he) = d.requiresCert == CertLevel.trimix
+  final trimix =
+      d.targetMaxDepth > 45 &&
+      (d.requiresCert == CertLevel.trimix || d.courseId == 'course-trimix');
+  final (o2, he) = trimix
       ? (d.targetMaxDepth > 60 ? (18.0, 45.0) : (21.0, 35.0))
       : (shape.tanks.first.o2, shape.tanks.first.he);
   return [

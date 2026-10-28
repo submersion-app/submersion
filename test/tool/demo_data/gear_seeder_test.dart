@@ -54,16 +54,36 @@ void main() {
             )
             .getSingle();
         expect(row.read<String?>('p'), id('rebreather'), reason: cell);
-        for (final key in ['cell_slot', 'installed_date']) {
-          expect(
-            await count(
-              "SELECT 1 FROM equipment_attributes WHERE equipment_id = '${id(cell)}' "
-              "AND attr_key = '$key' AND value_num IS NOT NULL",
-            ),
-            1,
-            reason: '$cell $key',
-          );
-        }
+        expect(
+          await count(
+            "SELECT 1 FROM equipment_attributes WHERE equipment_id = '${id(cell)}' "
+            "AND attr_key = 'cell_slot' AND value_num IS NOT NULL",
+          ),
+          1,
+          reason: cell,
+        );
+        // The install date is the item's own created date, which the demo
+        // date shift moves with the dives; an installed_date attribute would
+        // not move, and the condition program would read the wrong dives.
+        expect(
+          await count(
+            "SELECT 1 FROM equipment_attributes WHERE equipment_id = '${id(cell)}' "
+            "AND attr_key = 'installed_date'",
+          ),
+          0,
+          reason: cell,
+        );
+        final created = await ctx.db
+            .customSelect(
+              'SELECT created_at AS c FROM equipment WHERE id = ?',
+              variables: [Variable.withString(id(cell))],
+            )
+            .getSingle();
+        expect(
+          created.read<int>('c'),
+          ctx.timeline.boughtOn(cell)!.millisecondsSinceEpoch,
+          reason: cell,
+        );
       }
       expect(
         await count(

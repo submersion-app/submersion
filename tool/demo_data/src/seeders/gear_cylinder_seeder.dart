@@ -1,9 +1,7 @@
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/cylinder_configs/data/repositories/cylinder_config_repository.dart';
 import 'package:submersion/features/cylinder_configs/domain/entities/cylinder_config_item.dart';
-import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_passport_repository.dart';
-import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
 import 'package:submersion/features/dive_computer/data/repositories/dive_computer_connection_repository.dart';
 import 'package:submersion/features/dive_computer/domain/entities/dive_computer_connection.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
@@ -14,7 +12,6 @@ import 'package:submersion/features/transmitters/data/repositories/transmitter_r
 import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
 import 'package:submersion/features/weight_presets/data/repositories/weight_preset_repository.dart';
 
-import '../story/story_plan.dart';
 import 'seed_context.dart';
 
 const _ble = DiveComputerConnectionKind.ble;
@@ -183,53 +180,13 @@ class GearCylinderSeeder implements DemoSeeder {
     ]);
 
     final passports = CylinderPassportRepository();
-    final fills = CylinderFillRepository();
-    var n = 0;
-    // Fills before home dives the cylinder was taken on, a few per year.
+    // Each owned cylinder carries a passport; its fills are written with the
+    // dives they were filled for.
     for (final key in ['tank-12', 'twin', 'stage-1', 'stage-2']) {
-      final passport = await passports.ensurePassportId(
+      await passports.ensurePassportId(
         e[key]!,
         diverId: DemoSeedContext.diverId,
       );
-      final doubles = key != 'tank-12';
-      final dives = ctx.plan.dives
-          .where(
-            (d) =>
-                d.destination.key == 'home' &&
-                d.diveMode == 'oc' &&
-                (d.tankCount > 1) == doubles &&
-                (key != 'stage-2' || d.tankCount > 2) &&
-                ctx.timeline.inUseOn(key, d.start),
-          )
-          .toList();
-      for (var i = 0; i < dives.length; i += 4) {
-        final d = dives[i];
-        final at = ctx.timeline.homeDayOnOrBefore(
-          d.start.subtract(const Duration(days: 1)),
-        );
-        await fills.create(
-          CylinderFill(
-            id: 'demo-fill-${n++}',
-            passportId: passport,
-            equipmentId: e[key],
-            filledAt: at,
-            o2Percent: switch (key) {
-              'stage-1' => 50,
-              'stage-2' => 100,
-              'twin' => d.requiresCert == CertLevel.trimix ? 21 : 28,
-              _ => 32,
-            },
-            hePercent: key == 'twin' && d.requiresCert == CertLevel.trimix
-                ? 35
-                : 0,
-            pressureBar: key.startsWith('stage') ? 200 : 230,
-            stationName: 'Club fill station',
-            source: FillSource.manual,
-            createdAt: at,
-            updatedAt: at,
-          ),
-        );
-      }
     }
   }
 }

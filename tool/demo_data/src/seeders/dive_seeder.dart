@@ -2,6 +2,9 @@ import 'dart:math';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/util/wall_clock_utc.dart';
+import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart';
+import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_passport_repository.dart';
+import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
@@ -53,6 +56,7 @@ class DiveSeeder implements DemoSeeder {
         targetMaxDepth: d.targetMaxDepth,
         tripId: d.tripId,
       );
+      ctx.pickedKinds[d.number] = source.kinds;
       final tanks = planTanks(d, source, ctx.random);
       final trimmed = DiveShape(
         id: source.id,
@@ -168,12 +172,14 @@ class DiveSeeder implements DemoSeeder {
             DiveCustomField(
               id: 'demo-field-$id',
               key: 'Boat',
-              value: 'MV Coral Spirit',
+              value: trip.boatName ?? '',
               sortOrder: 0,
             ),
         ],
         waterTemp: _minTemp(shape) == null ? null : _minTemp(shape)! + shift,
-        airTemp: (d.destination.waterTempC.$2 + ctx.between(0, 6))
+        // Air follows the water through the seasons; in the tropics it is
+        // a little warmer than the sea.
+        airTemp: (d.waterTempC + ctx.between(_seasonal(d) ? -3 : 0, 5))
             .roundToDouble(),
         visibilityMeters:
             (d.destination.freshwater
@@ -189,9 +195,7 @@ class DiveSeeder implements DemoSeeder {
             ? CurrentDirection.values[ctx.random.nextInt(8)]
             : null,
         waterType: salt ? WaterType.salt : WaterType.fresh,
-        entryMethod: d.destination.key == 'home'
-            ? EntryMethod.shore
-            : EntryMethod.backRoll,
+        entryMethod: d.boat ? EntryMethod.backRoll : EntryMethod.shore,
         diveMode: d.diveMode == 'ccr' ? DiveMode.ccr : DiveMode.oc,
         setpointLow: d.diveMode == 'ccr' ? 0.7 : null,
         setpointHigh: d.diveMode == 'ccr' ? 1.3 : null,
@@ -251,6 +255,7 @@ class DiveSeeder implements DemoSeeder {
                 (timestamp: t, pressure: bar),
             ],
       });
+      await _fills(ctx, d, kit.gearKeys, tanks);
       await extras.write(d, id, shape, tanks, tankIds);
     }
     await extras.finish();
@@ -330,7 +335,7 @@ class DiveSeeder implements DemoSeeder {
     if (d.targetMaxDepth >= 30) 'deep',
     if (d.courseId != null) 'training',
     if (d.night) 'night',
-    if (d.destination.key == 'home') 'shore' else 'boat',
+    if (d.boat) 'boat' else 'shore',
     if (trip != null && trip.destination.liveaboard) 'liveaboard',
   ];
 
@@ -399,5 +404,63 @@ class DiveSeeder implements DemoSeeder {
       o2SensorMv2: mv(1),
       o2SensorMv3: mv(2),
     );
+  }
+
+  /// Whether [d]'s destination has seasons (a wide temperature range).
+  static bool _seasonal(PlannedDive d) =>
+      d.destination.waterTempC.$2 - d.destination.waterTempC.$1 >= 6;
+
+  final _passports = <String, String>{};
+  final _fillCount = <String, int>{};
+
+  /// A fill on the day before every fourth home dive an owned cylinder was
+  /// taken on, of the gas that dive breathed from it.
+  Future<void> _fills(
+    DemoSeedContext ctx,
+    PlannedDive d,
+    List<String> kit,
+    List<PlannedTank> tanks,
+  ) async {
+    for (var i = 0; i < tanks.length; i++) {
+      final key = _cylinderKey(kit, tanks[i].role, i);
+      if (key == null) continue;
+      final n = _fillCount[key] = (_fillCount[key] ?? 0) + 1;
+      if (n % 4 != 1) continue;
+      final passport = _passports[key] ??= await CylinderPassportRepository()
+          .ensurePassportId(
+            ctx.equipment[key]!,
+            diverId: DemoSeedContext.diverId,
+          );
+      final at = ctx.timeline.homeDayOnOrBefore(
+        d.start.subtract(const Duration(days: 1)),
+      );
+      await CylinderFillRepository().create(
+        CylinderFill(
+          id: 'demo-fill-$key-$n',
+          passportId: passport,
+          equipmentId: ctx.equipment[key],
+          filledAt: at,
+          o2Percent: tanks[i].o2,
+          hePercent: tanks[i].he,
+          pressureBar: tanks[i].startBar,
+          stationName: 'Club fill station',
+          source: FillSource.manual,
+          createdAt: at,
+          updatedAt: at,
+        ),
+      );
+    }
+  }
+
+  /// The diver's own cylinder for tank [i], when the kit took one.
+  static String? _cylinderKey(List<String> kit, TankRole role, int i) {
+    final key = switch (role) {
+      TankRole.diluent => 'ccr-dil',
+      TankRole.oxygenSupply => 'ccr-o2',
+      TankRole.bailout => 'stage-1',
+      _ when kit.contains('twin') => ['twin', 'stage-1', 'stage-2'][min(i, 2)],
+      _ => 'tank-12',
+    };
+    return kit.contains(key) ? key : null;
   }
 }

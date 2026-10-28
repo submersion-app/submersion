@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import '../shape/dive_shape.dart';
+import 'dive_spec.dart';
 import 'people.dart';
 import 'schedule.dart';
 import 'story_plan.dart';
@@ -43,7 +44,12 @@ class BuddyPicker {
   final tripPeople =
       <
         String,
-        ({List<String> guides, List<String> guests, String? companion})
+        ({
+          List<String> guides,
+          List<String> guests,
+          String? companion,
+          String? techMate,
+        })
       >{};
 
   /// Everyone, the partner first.
@@ -68,6 +74,7 @@ class BuddyPicker {
         guides: const [],
         guests: const [],
         companion: _regular().id,
+        techMate: null,
       );
       return;
     }
@@ -102,7 +109,11 @@ class BuddyPicker {
     tripPeople[trip.id] = (
       guides: guides,
       guests: guests,
-      companion: random.nextDouble() < 0.4 ? _regular().id : null,
+      companion: random.nextDouble() < 0.6 ? _regular().id : null,
+      // A wreck or cold-water trip may take one of the technical team.
+      techMate: isTechnicalDestination(dest) && random.nextDouble() < 0.5
+          ? techTeam[random.nextInt(techTeam.length)].id
+          : null,
     );
   }
 
@@ -128,11 +139,11 @@ class BuddyPicker {
         }
       } else {
         ids.add(_regular().id);
-        if (random.nextDouble() < 0.5) ids.add(_regular().id);
+        if (random.nextDouble() < 0.75) ids.add(_regular().id);
       }
       return ids.toList();
     }
-    if (trip.guides.isNotEmpty && random.nextDouble() < 0.6) {
+    if (trip.guides.isNotEmpty && random.nextDouble() < 0.5) {
       ids.add(trip.guides[random.nextInt(trip.guides.length)]);
     }
     if (trip.guests.isNotEmpty && random.nextDouble() < 0.35) {
@@ -141,8 +152,8 @@ class BuddyPicker {
     if (trip.companion != null && random.nextDouble() < 0.9) {
       ids.add(trip.companion!);
     }
-    if (technical && random.nextDouble() < 0.5) {
-      ids.add(techTeam[random.nextInt(techTeam.length)].id);
+    if (technical && trip.techMate != null && random.nextDouble() < 0.8) {
+      ids.add(trip.techMate!);
     }
     if (ids.isEmpty) {
       ids.add(

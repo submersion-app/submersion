@@ -55,7 +55,9 @@ void main() {
     final phases = [for (final d in plan.dives) d.phase];
     final firstTech = phases.indexOf(StoryPhase.technicalOc);
     final firstCcr = phases.indexOf(StoryPhase.rebreather);
-    expect(firstTech, 249);
+    // The deco course opens the technical phase, placed near dive 250.
+    expect(firstTech + 1, plan.milestones[StoryMilestone.techStart]);
+    expect(firstTech + 1, inInclusiveRange(220, 280));
     expect(firstCcr, greaterThan(firstTech));
     expect(
       phases.sublist(firstTech).contains(StoryPhase.recreational),
@@ -103,10 +105,13 @@ void main() {
         reason: '${trips[i - 1].id} and ${trips[i].id}',
       );
     }
-    final first = plan.dives.first.start;
+    // The schedule's own years, counted back from the anchor.
+    final start = DateTime(anchor.year - 6, anchor.month, anchor.day + 7);
+    final end = DateTime(anchor.year, anchor.month, anchor.day - 1);
+    final yearDays = end.difference(start).inDays / 6;
     for (var y = 0; y < 6; y++) {
-      final from = DateTime(first.year + y, first.month, first.day);
-      final to = DateTime(first.year + y + 1, first.month, first.day);
+      final from = start.add(Duration(days: (y * yearDays).round()));
+      final to = start.add(Duration(days: ((y + 1) * yearDays).round()));
       final count = trips
           .where((t) => !t.start.isBefore(from) && t.start.isBefore(to))
           .length;
@@ -215,7 +220,7 @@ void main() {
     final m = plan.milestones;
     expect(m.keys.toSet(), StoryMilestone.values.toSet());
     expect(m[StoryMilestone.firstDive], 1);
-    expect(m[StoryMilestone.techStart], 250);
+    expect(m[StoryMilestone.techStart], inInclusiveRange(220, 280));
     expect(
       m[StoryMilestone.ownRegulator]!,
       greaterThan(m[StoryMilestone.firstTrip]!),

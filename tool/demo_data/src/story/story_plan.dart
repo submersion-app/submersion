@@ -38,6 +38,9 @@ enum CertLevel {
   final String title;
 }
 
+/// The hemisphere whose summer a destination's clocks go forward in.
+enum DaylightSaving { north, south }
+
 /// Where the diver dives: home waters or a trip destination.
 class Destination {
   const Destination({
@@ -48,11 +51,14 @@ class Destination {
     required this.waterTempC,
     required this.freshwater,
     required this.nameRegion,
+    this.utcOffsetMinutes = 0,
+    this.daylightSaving,
     this.liveaboard = false,
     this.area,
     this.minPhase = StoryPhase.recreational,
     this.nearHome = false,
     this.scooterOk = true,
+    this.maxDepthM,
     this.boatNames = const [],
     this.resortNames = const [],
   });
@@ -79,6 +85,15 @@ class Destination {
   /// False where a scooter run would be cave diving, which the diver is not
   /// trained for.
   final bool scooterOk;
+
+  /// The deepest a dive goes here within the diver's training: below it
+  /// the water is a cave.
+  final double? maxDepthM;
+
+  /// Standard time's offset from UTC, in minutes, and whether clocks go
+  /// forward an hour in summer.
+  final int utcOffsetMinutes;
+  final DaylightSaving? daylightSaving;
 
   /// Which name pool the people met here are drawn from.
   final String nameRegion;

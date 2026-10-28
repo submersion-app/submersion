@@ -11,6 +11,7 @@ const scooterDive = 450;
 Map<StoryMilestone, int> storyMilestones(
   List<PlannedDive> dives, {
   required int ccrStart,
+  required Map<CertLevel, (int, int)> courses,
 }) {
   int first(bool Function(PlannedDive d) test, {int from = 1}) =>
       dives.firstWhere((d) => d.number >= from && test(d)).number;
@@ -29,18 +30,15 @@ Map<StoryMilestone, int> storyMilestones(
     StoryMilestone.firstTrip: first((d) => d.tripId != null),
     // Rented for the first two trips.
     StoryMilestone.ownRegulator: first((d) => d.tripId == trips[2]),
-    StoryMilestone.advanced: courseDives(
-      dives.length,
-      0,
-    )[CertLevel.advanced]!.$1,
+    StoryMilestone.advanced: courses[CertLevel.advanced]!.$1,
     StoryMilestone.firstColdLake: coldLake,
     StoryMilestone.drysuit: coldLake,
     // A camera for a trip.
     StoryMilestone.photo: first((d) => d.tripId != null, from: 120),
     StoryMilestone.airIntegrated: 180,
     StoryMilestone.nitrox: nitroxDive,
-    StoryMilestone.techStart: techStartDive,
-    StoryMilestone.trimix: courseDives(dives.length, 0)[CertLevel.trimix]!.$1,
+    StoryMilestone.techStart: courses[CertLevel.decoProcedures]!.$1,
+    StoryMilestone.trimix: courses[CertLevel.trimix]!.$1,
     StoryMilestone.scooter: scooterDive,
     StoryMilestone.ccrCourse: ccrStart,
     StoryMilestone.cellSwap: ccrStart + 8,

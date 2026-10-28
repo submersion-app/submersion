@@ -33,9 +33,10 @@ class StoryPlanner {
   StoryPlan plan({required DateTime anchor, int diveCount = 700}) {
     final ccrCount = 15 + random.nextInt(4);
     final ccrStart = diveCount - ccrCount + 1;
-    final courseRanges = courseDives(diveCount, ccrCount);
     final schedule = StorySchedule(random, catalog);
     final slots = schedule.build(anchor, diveCount);
+    final courseRanges = placeCourses(slots, ccrCount);
+    final techStart = courseRanges[CertLevel.decoProcedures]!.$1;
     final buddies = BuddyPicker(
       random,
       PeopleFactory(random, refused: refusedNames),
@@ -93,7 +94,7 @@ class StoryPlanner {
       final course = courseOf[n];
       final phase = n >= ccrStart
           ? StoryPhase.rebreather
-          : n >= techStartDive
+          : n >= techStart
           ? StoryPhase.technicalOc
           : StoryPhase.recreational;
       final spec = diveSpecFor(
@@ -102,6 +103,7 @@ class StoryPlanner {
         course?.level,
         slot.destination,
         random,
+        courseRanges,
       );
       final rebreather = phase == StoryPhase.rebreather;
       final scooter =
@@ -174,7 +176,11 @@ class StoryPlanner {
       centers: [for (final id in usedCenters) allCenters[id]!],
       people: buddies.all,
       home: home,
-      milestones: storyMilestones(dives, ccrStart: ccrStart),
+      milestones: storyMilestones(
+        dives,
+        ccrStart: ccrStart,
+        courses: courseRanges,
+      ),
     );
   }
 
@@ -207,6 +213,7 @@ class StoryPlanner {
       join(
         p.id,
         (d) =>
+            d.tripId == null &&
             d.phase != StoryPhase.recreational &&
             !d.wantedKinds.contains(ShapeKind.recreational),
       );

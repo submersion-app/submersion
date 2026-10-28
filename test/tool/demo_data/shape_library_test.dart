@@ -130,4 +130,33 @@ void main() {
     expect(shape.durationSec, lessThanOrEqualTo(2400 + 120));
     expect(shape.tanks.single.pressures.last.$1, lessThanOrEqualTo(2400 + 120));
   });
+
+  test('a dive wanting one kind takes a shape without extra kinds first', () {
+    final library = ShapeLibrary(syntheticShapes(), Random(3));
+
+    for (var i = 0; i < 30; i++) {
+      final s = library.pick(
+        kinds: const {ShapeKind.multiGasDeco},
+        diveMode: 'oc',
+        targetMaxDepth: 45,
+      );
+      expect(s.kinds, isNot(contains(ShapeKind.deepOpenCircuit)));
+    }
+  });
+
+  test('no shape of the wanted kinds for a technical dive is an error', () {
+    final library = ShapeLibrary([
+      for (final s in syntheticShapes())
+        if (s.kinds.contains(ShapeKind.recreational)) s,
+    ], Random(4));
+
+    expect(
+      () => library.pick(
+        kinds: const {ShapeKind.multiGasDeco},
+        diveMode: 'oc',
+        targetMaxDepth: 45,
+      ),
+      throwsStateError,
+    );
+  });
 }

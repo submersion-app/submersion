@@ -12,6 +12,8 @@ const homeDestination = Destination(
   waterTempC: (5.0, 16.0),
   freshwater: true,
   nameRegion: 'de',
+  utcOffsetMinutes: 60,
+  daylightSaving: DaylightSaving.north,
 );
 
 /// Every trip destination of the story, worldwide. Each one is a place in
@@ -26,6 +28,8 @@ const tripDestinations = <Destination>[
     waterTempC: (4.0, 18.0),
     freshwater: true,
     nameRegion: 'de',
+    utcOffsetMinutes: 60,
+    daylightSaving: DaylightSaving.north,
     nearHome: true,
     resortNames: ['Seehof am Ufer', 'Gasthof Seeblick'],
   ),
@@ -37,6 +41,8 @@ const tripDestinations = <Destination>[
     waterTempC: (6.0, 19.0),
     freshwater: true,
     nameRegion: 'it',
+    utcOffsetMinutes: 60,
+    daylightSaving: DaylightSaving.north,
     nearHome: true,
     resortNames: ['Albergo Riva Chiara', 'Casa Lucerna'],
   ),
@@ -48,8 +54,11 @@ const tripDestinations = <Destination>[
     waterTempC: (21.0, 23.0),
     freshwater: true,
     nameRegion: 'en',
+    utcOffsetMinutes: -300,
+    daylightSaving: DaylightSaving.north,
     area: (lat: 29.6, lon: -82.5, km: 130.0),
     scooterOk: false,
+    maxDepthM: 20,
     resortNames: ['Cypress Hollow Lodge', 'Spring Run Cabins'],
   ),
   Destination(
@@ -60,6 +69,7 @@ const tripDestinations = <Destination>[
     waterTempC: (22.0, 28.0),
     freshwater: false,
     nameRegion: 'ar',
+    utcOffsetMinutes: 120,
     liveaboard: true,
     boatNames: ['MV Tarvenna', 'MV Seluna'],
   ),
@@ -71,6 +81,7 @@ const tripDestinations = <Destination>[
     waterTempC: (21.0, 27.0),
     freshwater: false,
     nameRegion: 'ar',
+    utcOffsetMinutes: 120,
     resortNames: ['Coral Moon Lodge', 'Wadi Breeze Camp'],
   ),
   Destination(
@@ -81,6 +92,7 @@ const tripDestinations = <Destination>[
     waterTempC: (27.0, 30.0),
     freshwater: false,
     nameRegion: 'dv',
+    utcOffsetMinutes: 300,
     liveaboard: true,
     boatNames: ['MV Ameeru Dhoni', 'MV Falhu Star'],
   ),
@@ -92,6 +104,7 @@ const tripDestinations = <Destination>[
     waterTempC: (27.0, 30.0),
     freshwater: false,
     nameRegion: 'dv',
+    utcOffsetMinutes: 300,
     resortNames: ['Kandu Reef Island', 'Thila Sands'],
   ),
   Destination(
@@ -102,6 +115,7 @@ const tripDestinations = <Destination>[
     waterTempC: (26.0, 29.0),
     freshwater: false,
     nameRegion: 'id',
+    utcOffsetMinutes: 480,
     resortNames: ['Pondok Laut Biru', 'Rumah Karang'],
   ),
   Destination(
@@ -112,6 +126,7 @@ const tripDestinations = <Destination>[
     waterTempC: (27.0, 30.0),
     freshwater: false,
     nameRegion: 'id',
+    utcOffsetMinutes: 540,
     liveaboard: true,
     boatNames: ['KLM Bintang Senja', 'KLM Arus Biru'],
   ),
@@ -123,6 +138,7 @@ const tripDestinations = <Destination>[
     waterTempC: (24.0, 28.0),
     freshwater: false,
     nameRegion: 'id',
+    utcOffsetMinutes: 480,
     liveaboard: true,
     boatNames: ['KLM Naga Laut', 'KLM Pelangi Timur'],
   ),
@@ -134,6 +150,7 @@ const tripDestinations = <Destination>[
     waterTempC: (26.0, 29.0),
     freshwater: false,
     nameRegion: 'id',
+    utcOffsetMinutes: 480,
     resortNames: ['Selat Muck Lodge', 'Rumah Pasir Hitam'],
   ),
   Destination(
@@ -144,6 +161,7 @@ const tripDestinations = <Destination>[
     waterTempC: (26.0, 29.0),
     freshwater: false,
     nameRegion: 'fil',
+    utcOffsetMinutes: 480,
     resortNames: ['Bahay Dagat Resort', 'Isla Banog Lodge'],
   ),
   Destination(
@@ -154,6 +172,7 @@ const tripDestinations = <Destination>[
     waterTempC: (27.0, 30.0),
     freshwater: false,
     nameRegion: 'fil',
+    utcOffsetMinutes: 480,
     resortNames: ['Bangka Cove Lodge', 'Lagoon Hut Resort'],
   ),
   Destination(
@@ -164,6 +183,7 @@ const tripDestinations = <Destination>[
     waterTempC: (27.0, 29.0),
     freshwater: false,
     nameRegion: 'th',
+    utcOffsetMinutes: 420,
     liveaboard: true,
     boatNames: ['MV Sai Nam', 'MV Talay Fah'],
   ),
@@ -175,6 +195,7 @@ const tripDestinations = <Destination>[
     waterTempC: (28.0, 30.0),
     freshwater: false,
     nameRegion: 'th',
+    utcOffsetMinutes: 420,
     resortNames: ['Baan Hin Sai', 'Ao Leuk Cabanas'],
   ),
   Destination(
@@ -185,6 +206,7 @@ const tripDestinations = <Destination>[
     waterTempC: (27.0, 30.0),
     freshwater: false,
     nameRegion: 'ms',
+    utcOffsetMinutes: 480,
     resortNames: ['Pulau Teduh Lodge', 'Rumah Penyu'],
   ),
   Destination(
@@ -195,6 +217,7 @@ const tripDestinations = <Destination>[
     waterTempC: (28.0, 30.0),
     freshwater: false,
     nameRegion: 'pacific',
+    utcOffsetMinutes: 600,
     minPhase: StoryPhase.technicalOc,
     resortNames: ['Lagoon Anchor Hotel', 'Weno Shore Lodge'],
   ),
@@ -206,6 +229,7 @@ const tripDestinations = <Destination>[
     waterTempC: (27.0, 30.0),
     freshwater: false,
     nameRegion: 'pacific',
+    utcOffsetMinutes: 540,
     liveaboard: true,
     boatNames: ['MV Rock Island Wren', 'MV Ngemelis Drift'],
   ),
@@ -217,6 +241,7 @@ const tripDestinations = <Destination>[
     waterTempC: (27.0, 29.0),
     freshwater: false,
     nameRegion: 'pacific',
+    utcOffsetMinutes: 720,
     liveaboard: true,
     minPhase: StoryPhase.technicalOc,
     boatNames: ['MV Atoll Sentry', 'MV Lagoon Runner'],
@@ -229,6 +254,7 @@ const tripDestinations = <Destination>[
     waterTempC: (21.0, 28.0),
     freshwater: false,
     nameRegion: 'ja',
+    utcOffsetMinutes: 540,
     resortNames: ['Umikaze Guesthouse', 'Sango Minshuku'],
   ),
   Destination(
@@ -239,6 +265,8 @@ const tripDestinations = <Destination>[
     waterTempC: (17.0, 23.0),
     freshwater: false,
     nameRegion: 'en',
+    utcOffsetMinutes: 600,
+    daylightSaving: DaylightSaving.south,
     resortNames: ['Headland Dive Lodge', 'Bay Swell Cabins'],
   ),
   Destination(
@@ -249,6 +277,7 @@ const tripDestinations = <Destination>[
     waterTempC: (26.0, 28.0),
     freshwater: false,
     nameRegion: 'nl',
+    utcOffsetMinutes: -240,
     resortNames: ['Kas di Laman', 'Bon Bida Lodge'],
   ),
   Destination(
@@ -259,6 +288,7 @@ const tripDestinations = <Destination>[
     waterTempC: (26.0, 28.0),
     freshwater: false,
     nameRegion: 'es',
+    utcOffsetMinutes: -240,
     resortNames: ['Casa Arrecife', 'Bahía Clara Lodge'],
   ),
   Destination(
@@ -269,6 +299,7 @@ const tripDestinations = <Destination>[
     waterTempC: (26.0, 29.0),
     freshwater: false,
     nameRegion: 'es',
+    utcOffsetMinutes: -300,
     resortNames: ['Posada Mar de Siete Colores', 'Cayo Brisa'],
   ),
   Destination(
@@ -279,6 +310,7 @@ const tripDestinations = <Destination>[
     waterTempC: (18.0, 25.0),
     freshwater: false,
     nameRegion: 'es',
+    utcOffsetMinutes: -360,
     liveaboard: true,
     boatNames: ['MV Garúa', 'MV Corriente Fría'],
   ),
@@ -290,6 +322,7 @@ const tripDestinations = <Destination>[
     waterTempC: (25.0, 28.0),
     freshwater: false,
     nameRegion: 'fr',
+    utcOffsetMinutes: -600,
     resortNames: ['Fare Lagon', 'Pension Hoa Nui'],
   ),
   Destination(
@@ -300,6 +333,7 @@ const tripDestinations = <Destination>[
     waterTempC: (24.0, 27.0),
     freshwater: false,
     nameRegion: 'en',
+    utcOffsetMinutes: -600,
     resortNames: ['Lava Point Inn', 'Makai Reef Cottages'],
   ),
   Destination(
@@ -310,6 +344,7 @@ const tripDestinations = <Destination>[
     waterTempC: (26.0, 29.0),
     freshwater: false,
     nameRegion: 'es',
+    utcOffsetMinutes: -300,
     area: (lat: 20.4, lon: -86.95, km: 35.0),
     resortNames: ['Posada Arrecife', 'Casa Corriente'],
   ),
@@ -321,6 +356,8 @@ const tripDestinations = <Destination>[
     waterTempC: (14.0, 22.0),
     freshwater: false,
     nameRegion: 'fr',
+    utcOffsetMinutes: 60,
+    daylightSaving: DaylightSaving.north,
     minPhase: StoryPhase.technicalOc,
     resortNames: ['Hôtel du Phare', 'Mas des Épaves'],
   ),
@@ -332,6 +369,8 @@ const tripDestinations = <Destination>[
     waterTempC: (14.0, 23.0),
     freshwater: false,
     nameRegion: 'hr',
+    utcOffsetMinutes: 60,
+    daylightSaving: DaylightSaving.north,
     resortNames: ['Pansion Uvala', 'Kuća Kvarner'],
   ),
   Destination(
@@ -342,6 +381,8 @@ const tripDestinations = <Destination>[
     waterTempC: (15.0, 25.0),
     freshwater: false,
     nameRegion: 'mt',
+    utcOffsetMinutes: 60,
+    daylightSaving: DaylightSaving.north,
     resortNames: ['Dar il-Baħar', 'Kantuniera Guesthouse'],
   ),
   Destination(
@@ -352,6 +393,8 @@ const tripDestinations = <Destination>[
     waterTempC: (17.0, 27.0),
     freshwater: false,
     nameRegion: 'el',
+    utcOffsetMinutes: 120,
+    daylightSaving: DaylightSaving.north,
     resortNames: ['Spiti Akti', 'Limani Rooms'],
   ),
   Destination(
@@ -362,6 +405,8 @@ const tripDestinations = <Destination>[
     waterTempC: (6.0, 13.0),
     freshwater: false,
     nameRegion: 'no',
+    utcOffsetMinutes: 60,
+    daylightSaving: DaylightSaving.north,
     resortNames: ['Fjordbu Rorbuer', 'Skjærgård Hytter'],
   ),
   Destination(
@@ -372,6 +417,8 @@ const tripDestinations = <Destination>[
     waterTempC: (8.0, 12.0),
     freshwater: false,
     nameRegion: 'en',
+    utcOffsetMinutes: 0,
+    daylightSaving: DaylightSaving.north,
     minPhase: StoryPhase.technicalOc,
     resortNames: ['Harbour Brae House', 'Stromness Quay Rooms'],
   ),
@@ -390,7 +437,7 @@ List<CatalogSite> catalogSitesFor(Destination d, Catalog catalog) {
   bool inArea(CatalogSite s) {
     final a = d.area;
     if (a == null) return true;
-    return _km(a.lat, a.lon, s.latitude, s.longitude) <= a.km;
+    return kmBetween(a.lat, a.lon, s.latitude, s.longitude) <= a.km;
   }
 
   return catalog.sites
@@ -407,7 +454,7 @@ List<CatalogSite> catalogSitesFor(Destination d, Catalog catalog) {
 }
 
 /// Great-circle distance in kilometres.
-double _km(double lat1, double lon1, double lat2, double lon2) {
+double kmBetween(double lat1, double lon1, double lat2, double lon2) {
   const r = 6371.0;
   double rad(double deg) => deg * pi / 180;
   final dLat = rad(lat2 - lat1);
@@ -416,4 +463,15 @@ double _km(double lat1, double lon1, double lat2, double lon2) {
       pow(sin(dLat / 2), 2) +
       cos(rad(lat1)) * cos(rad(lat2)) * pow(sin(dLon / 2), 2);
   return 2 * r * asin(sqrt(h));
+}
+
+/// [d]'s offset from UTC in minutes on [when], with its daylight saving
+/// (taken as April to October in the north, October to March in the south).
+int utcOffsetOn(Destination d, DateTime when) {
+  final summer = switch (d.daylightSaving) {
+    DaylightSaving.north => when.month >= 4 && when.month <= 10,
+    DaylightSaving.south => when.month >= 10 || when.month <= 3,
+    null => false,
+  };
+  return d.utcOffsetMinutes + (summer ? 60 : 0);
 }

@@ -56,7 +56,6 @@ void main() {
       'weight_preset_entries',
       'cylinder_configs',
       'cylinder_config_items',
-      'cylinder_fills',
     ]) {
       expect(await countRows(ctx, t), greaterThan(0), reason: t);
     }

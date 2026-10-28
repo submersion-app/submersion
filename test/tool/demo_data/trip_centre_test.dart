@@ -74,7 +74,13 @@ void main() {
       'SELECT DISTINCT trip_id AS t FROM trip_cylinders',
       't',
     );
-    expect(withCylinders, containsAll([for (final t in ctx.plan.trips) t.id]));
+    expect(
+      withCylinders,
+      containsAll([
+        for (final t in ctx.plan.trips)
+          if (!t.destination.nearHome) t.id,
+      ]),
+    );
   });
 
   test("checklist gear items are from that dive's kit", () async {

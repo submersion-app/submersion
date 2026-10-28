@@ -62,17 +62,23 @@ void main() {
   test(
     'exactly two clocks are overdue and at least two due soon at the anchor',
     () async {
-      final statuses = await demoClockStatuses(ctx, ctx.anchor);
-      final overdue = {
-        for (final (key, s) in statuses)
-          if (s.severity == ServiceClockSeverity.overdue) (key, s.kind.id),
-      };
-      final dueSoon = {
-        for (final (key, s) in statuses)
-          if (s.severity == ServiceClockSeverity.dueSoon) (key, s.kind.id),
-      };
-      expect(overdue, overdueClocks);
-      expect(dueSoon, containsAll(dueSoonClocks));
+      // The explorer's today lands from the anchor to 13 days after it: the
+      // newest dive is in the week before the anchor, and the demo shift
+      // puts it one to two weeks before the explorer's today.
+      for (final days in [0, 13]) {
+        final at = ctx.anchor.add(Duration(days: days));
+        final statuses = await demoClockStatuses(ctx, at);
+        final overdue = {
+          for (final (key, s) in statuses)
+            if (s.severity == ServiceClockSeverity.overdue) (key, s.kind.id),
+        };
+        final dueSoon = {
+          for (final (key, s) in statuses)
+            if (s.severity == ServiceClockSeverity.dueSoon) (key, s.kind.id),
+        };
+        expect(overdue, overdueClocks, reason: 'anchor + $days days');
+        expect(dueSoon, containsAll(dueSoonClocks), reason: 'anchor + $days');
+      }
     },
   );
 

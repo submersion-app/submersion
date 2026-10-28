@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:submersion/features/equipment/data/repositories/equipment_observation_repository.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_observation.dart';
 
@@ -72,12 +74,12 @@ FaultPlan planFaults(StoryPlan plan, GearTimeline t) {
     lightFloodDives: deep.length > 3 ? deep.sublist(deep.length - 3) : deep,
     // The last eight, so the five latest that carry pressure all show it
     // (a dive whose source logged no tank pressure has nothing to drop).
-    dropoutDives: doubles.sublist(doubles.length - 8),
+    dropoutDives: doubles.sublist(max(0, doubles.length - 8)),
     cellDriftDives: [
       for (final n in ccr)
         if (n < swap && n >= swap - 4) n,
     ],
-    divergentCellDives: ccr.sublist(ccr.length - 4),
+    divergentCellDives: ccr.sublist(max(0, ccr.length - 4)),
   );
 }
 

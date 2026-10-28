@@ -149,9 +149,12 @@ void main() {
   });
 
   test('the builder refuses a plan the shapes cannot cover', () async {
+    // Four rebreather shapes cover at most twelve rebreather dives; the story
+    // has 15 to 18.
+    var rebreather = 0;
     final noRebreather = [
       for (final s in syntheticShapes())
-        if (s.diveMode != 'ccr') s,
+        if (s.diveMode != 'ccr' || rebreather++ < 4) s,
     ];
 
     await expectLater(
@@ -179,6 +182,24 @@ void main() {
     expect(DemoBuilder.maxPackageBytes, 20 * 1024 * 1024);
   });
 
+  test('a refused name never reaches the logbook', () async {
+    final plain = await build();
+    final names = await _buddyNames(plain);
+    final refused = names.firstWhere((n) => n != 'Mara Lindqvist');
+
+    final again = await DemoBuilder().build(
+      shapes: syntheticShapes(),
+      photosDir: p.join(dir.path, 'photos'),
+      photos: testPhotos,
+      seed: 7,
+      anchor: DateTime(2026, 10, 1),
+      outDir: p.join(dir.path, 'out2'),
+      refusedNames: {refused},
+    );
+
+    expect(await _buddyNames(again), isNot(contains(refused)));
+  });
+
   test('manifest entries merge, keeping older schemas for older apps', () {
     final merged = DemoBuilder.mergeManifest(
       existing:
@@ -204,4 +225,21 @@ class _MachinePathSeeder implements DemoSeeder {
     'UPDATE dives SET notes = ? WHERE id = (SELECT id FROM dives LIMIT 1)',
     ['See ${ctx.photosDir}'],
   );
+}
+
+/// The buddies' names in a built package's database.
+Future<List<String>> _buddyNames(DemoBuildOutput out) async {
+  final entry = ZipDecoder()
+      .decodeBytes(out.zip.readAsBytesSync())
+      .files
+      .firstWhere((f) => f.name == 'submersion_demo.db');
+  final copy = File(p.join(out.zip.parent.path, 'names.db'))
+    ..writeAsBytesSync(entry.content);
+  final db = AppDatabase(NativeDatabase(copy, setup: registerAppSqlFunctions));
+  try {
+    final rows = await db.customSelect('SELECT name FROM buddies').get();
+    return [for (final r in rows) r.read<String>('name')];
+  } finally {
+    await db.close();
+  }
 }

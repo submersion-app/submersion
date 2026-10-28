@@ -71,14 +71,41 @@ class StorySchedule {
 
   static const firstYearDives = 90;
 
+  /// A destination's sites: one picked at random, then its nearest
+  /// neighbours within [clusterKm] (or the nearest few where the catalogue
+  /// is sparse), so a day's dives are a boat ride apart, not a flight.
   List<CatalogSite> sitesFor(Destination d) => _sites.putIfAbsent(d.key, () {
-    final pool = catalogSitesFor(d, catalog)..shuffle(random);
-    return pool.take(d == homeDestination ? 8 : 7).toList();
+    final pool = catalogSitesFor(d, catalog);
+    List<CatalogSite> around(CatalogSite seed) => [
+      for (final s in pool)
+        if (kmBetween(seed.latitude, seed.longitude, s.latitude, s.longitude) <=
+            clusterKm)
+          s,
+    ];
+    // A seed whose neighbourhood is as full as any, picked at random.
+    final sizes = {for (final s in pool) s.id: around(s).length};
+    final best = sizes.values.reduce(max);
+    final seeds = [
+      for (final s in pool)
+        if (sizes[s.id]! >= min(best, 4)) s,
+    ];
+    final seed = seeds[random.nextInt(seeds.length)];
+    double away(CatalogSite s) =>
+        kmBetween(seed.latitude, seed.longitude, s.latitude, s.longitude);
+    final cluster = around(seed)..sort((a, b) => away(a).compareTo(away(b)));
+    return cluster.take(d == homeDestination ? 8 : 7).toList();
   });
+
+  static const clusterKm = 25.0;
+
+  /// The final weeks before the anchor are home weekends, both days dived:
+  /// the rebreather phase is dived at the home lakes, and the newest dive
+  /// is days before the anchor.
+  static const finalHomeDays = 70;
 
   List<Slot> build(DateTime anchor, int diveCount) {
     final windowStart = DateTime(anchor.year - 6, anchor.month, anchor.day + 7);
-    final windowEnd = DateTime(anchor.year, anchor.month, anchor.day - 10);
+    final windowEnd = DateTime(anchor.year, anchor.month, anchor.day - 1);
     final yearDays = windowEnd.difference(windowStart).inDays / 6;
     final slots = <Slot>[];
     final perYear = ((diveCount - firstYearDives) / 5).floor();
@@ -90,27 +117,20 @@ class StorySchedule {
           : (y < 5 ? perYear : diveCount - firstYearDives - 4 * perYear);
       final yearSlots = <Slot>[];
       final busy = <(DateTime, DateTime)>[];
-      var opening = yearStart;
-      if (y == 0) {
-        // The Open Water course: four dives over the first weekend.
-        while (opening.weekday != DateTime.saturday) {
-          opening = _day(opening, 1);
-        }
-        _dayAtHome(opening, 2, yearSlots);
-        _dayAtHome(_day(opening, 1), 2, yearSlots);
-        busy.add((opening, _day(opening, 1)));
-      }
+      final last = y == 5;
       final tripCount = y == 0 ? 6 : 6 + random.nextInt(3);
-      final minHome = y == 0 ? 12 : 34;
+      // Weekends at the lakes are most of a year's diving days.
+      final minHome = y == 0 ? 12 : 45;
       final sizes = _tripPlans(y, tripCount, planned, target, yearDays);
-      final tripBudget = target - minHome - (y == 0 ? 4 : 0);
+      final tripBudget = target - minHome;
       while (sizes.fold(0, (a, t) => a + t.days * t.perDay) > tripBudget) {
         final biggest = sizes.reduce(
           (a, b) => a.days * a.perDay >= b.days * b.perDay ? a : b,
         );
         biggest.days--;
       }
-      final segment = (yearDays - 20) / tripCount;
+      final tripDays = yearDays - 20 - (last ? finalHomeDays : 0);
+      final segment = tripDays / tripCount;
       for (var i = 0; i < tripCount; i++) {
         final plan = sizes[i];
         final room = segment - plan.days - 12;
@@ -119,7 +139,19 @@ class StorySchedule {
         busy.add(_trip(plan, first, yearSlots));
       }
       final home = target - yearSlots.length;
-      _weekends(yearStart, yearDays, home, busy, yearSlots, warmOnly: y == 0);
+      _weekends(
+        yearStart,
+        yearDays,
+        home,
+        busy,
+        yearSlots,
+        // The Open Water course is on the first trip; the lakes wait for it
+        // and for the warm months.
+        warmOnly: y == 0,
+        notBefore: y == 0 ? busy.first.$2 : null,
+        finalDays: last ? finalHomeDays : 0,
+        windowEnd: windowEnd,
+      );
       planned += yearSlots.length;
       slots.addAll(yearSlots);
     }
@@ -169,7 +201,11 @@ class StorySchedule {
             ? _TripPlan(dest, 6 + random.nextInt(3), 3)
             : dest.nearHome
             ? _TripPlan(dest, 2 + random.nextInt(2), 2)
-            : _TripPlan(dest, 5 + random.nextInt(5), 2),
+            : _TripPlan(
+                dest,
+                5 + random.nextInt(5),
+                random.nextDouble() < 0.3 ? 3 : 2,
+              ),
       );
     }
     return plans;
@@ -181,7 +217,7 @@ class StorySchedule {
     final centers = _centersFor(dest);
     final boat = dest.liveaboard;
     for (var d = 0; d < plan.days; d++) {
-      final perDay = plan.perDay + (random.nextDouble() < 0.25 ? 1 : 0);
+      final perDay = plan.perDay;
       final centerId = centers.isEmpty ? null : centers[d % centers.length];
       _dayAt(
         dest,
@@ -224,19 +260,50 @@ class StorySchedule {
     List<(DateTime, DateTime)> busy,
     List<Slot> out, {
     required bool warmOnly,
+    required DateTime windowEnd,
+    DateTime? notBefore,
+    int finalDays = 0,
   }) {
     final saturdays = <DateTime>[];
+    final finalFrom = _day(windowEnd, -finalDays);
+    var left = dives;
+    // The final weeks first: every weekend, both days.
+    if (finalDays > 0) {
+      var day = windowEnd;
+      while (day.weekday != DateTime.sunday &&
+          day.weekday != DateTime.saturday) {
+        day = _day(day, -1);
+      }
+      if (day.weekday == DateTime.sunday) day = _day(day, -1);
+      final finals = <DateTime>[];
+      for (; !day.isBefore(finalFrom); day = _day(day, -7)) {
+        finals.add(day);
+      }
+      // Newest first, so the last weekend before the anchor is always dived.
+      for (final saturday in finals) {
+        if (left <= 0) break;
+        final sunday = _day(saturday, 1);
+        if (!sunday.isAfter(windowEnd)) {
+          _dayAtHome(sunday, min(2, left), out);
+          left -= min(2, left);
+        }
+        if (left <= 0) break;
+        _dayAtHome(saturday, min(2, left), out);
+        left -= min(2, left);
+      }
+    }
     for (var d = 0; d < yearDays - 7; d++) {
       final day = _day(yearStart, d);
       if (day.weekday != DateTime.saturday) continue;
+      if (finalDays > 0 && !day.isBefore(finalFrom)) continue;
+      if (notBefore != null && !day.isAfter(notBefore)) continue;
       if (warmOnly && (day.month < 5 || day.month > 9)) continue;
       final clash = busy.any(
         (b) => !day.isBefore(_day(b.$1, -2)) && !day.isAfter(_day(b.$2, 3)),
       );
       if (!clash) saturdays.add(day);
     }
-    var left = dives;
-    final days = (dives / 2).ceil();
+    final days = (left / 2).ceil();
     for (var k = 0; k < days && left > 0; k++) {
       final day = saturdays[(k * saturdays.length / days).floor()];
       final count = min(2, left);
@@ -321,11 +388,22 @@ class StorySchedule {
     final site = sitesFor(d).first;
     double distance(CatalogCenter c) => c.latitude == null
         ? double.infinity
-        : (pow(c.latitude! - site.latitude, 2) +
-                  pow(c.longitude! - site.longitude, 2))
-              .toDouble();
+        : kmBetween(c.latitude!, c.longitude!, site.latitude, site.longitude);
     final near = [...pool]..sort((a, b) => distance(a).compareTo(distance(b)));
-    final choices = near.take(6).toList()..shuffle(random);
+    // Centres near the sites; where none is, one whose place the catalogue
+    // does not give (likely local), and never one known to be far away: a
+    // trip with none dives on its own from the shore.
+    final close = near.where((c) => distance(c) <= 30).toList();
+    final unplaced = pool.where((c) => c.latitude == null).toList();
+    final choices =
+        (close.isNotEmpty
+                ? close
+                : unplaced.isNotEmpty
+                ? unplaced
+                : const <CatalogCenter>[])
+            .take(6)
+            .toList()
+          ..shuffle(random);
     final count = d.liveaboard || d.nearHome ? 1 : 1 + random.nextInt(2);
     return [for (final c in choices.take(count)) c.id];
   }

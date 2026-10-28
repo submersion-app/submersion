@@ -145,5 +145,23 @@ class GearLifeSeeder implements DemoSeeder {
       toDiverId: DemoSeedContext.partnerId,
       actingDiverId: DemoSeedContext.diverId,
     );
+
+    // The share, the sale and the places are stamped with the build clock by
+    // their repositories; they belong in the story.
+    final bcdSold = t.leftOn('bcd-jacket')!.millisecondsSinceEpoch;
+    await ctx.db.customStatement(
+      'UPDATE equipment_ownership_events SET occurred_at = ?',
+      [bcdSold],
+    );
+    final finsShared = t.boughtOn('fins')!.millisecondsSinceEpoch;
+    await ctx.db.customStatement('UPDATE equipment_shares SET created_at = ?', [
+      finsShared,
+    ]);
+    await ctx.db.customStatement(
+      'UPDATE equipment_locations SET created_at = (SELECT MIN(moved_at) '
+      'FROM equipment_location_moves m WHERE m.location_id = '
+      'equipment_locations.id), updated_at = (SELECT MIN(moved_at) FROM '
+      'equipment_location_moves m WHERE m.location_id = equipment_locations.id)',
+    );
   }
 }
