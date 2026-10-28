@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../../tool/demo_data/src/shape/dive_shape.dart';
 import '../../../tool/demo_data/src/story/catalog.dart';
 import '../../../tool/demo_data/src/story/destinations.dart';
 import '../../../tool/demo_data/src/story/story_plan.dart';
@@ -96,6 +97,26 @@ void main() {
           reason: '$name ${d.number}',
         );
         expect(d.tankCount, 1, reason: '$name ${d.number}');
+      }
+    });
+  });
+
+  test('a dive is planned where shapes of its kinds exist', () {
+    // The harvester calls an open-circuit shape deep from 40 m, and a
+    // single-gas one shallower than that recreational; the picker only
+    // reshapes within 0.85 to 1.15 of a shape's depth.
+    eachPlan((name, plan) {
+      for (final d in plan.dives) {
+        if (d.wantedKinds.contains(ShapeKind.deepOpenCircuit)) {
+          expect(
+            d.targetMaxDepth,
+            greaterThanOrEqualTo(40),
+            reason: '$name ${d.number}',
+          );
+        }
+        if (d.wantedKinds.contains(ShapeKind.recreational)) {
+          expect(d.targetMaxDepth, lessThan(40), reason: '$name ${d.number}');
+        }
       }
     });
   });

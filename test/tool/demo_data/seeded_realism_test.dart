@@ -59,6 +59,25 @@ void main() {
     }
   });
 
+  test('each ownership event is dated by its own item', () async {
+    final events = await rows(
+      'SELECT equipment_id AS e, occurred_at AS at '
+      'FROM equipment_ownership_events',
+    );
+    final keyOf = {for (final e in ctx.equipment.entries) e.value: e.key};
+    expect(
+      events.map((e) => keyOf[e['e']]),
+      containsAll(['bcd-jacket', 'fins']),
+    );
+    for (final e in events) {
+      final key = keyOf[e['e']]!;
+      final expected = key == 'bcd-jacket'
+          ? ctx.timeline.leftOn(key)!
+          : ctx.timeline.boughtOn(key)!;
+      expect(e['at'], expected.millisecondsSinceEpoch, reason: key);
+    }
+  });
+
   test('every technical dive was written from a shape of its kinds', () {
     for (final d in ctx.plan.dives) {
       if (d.wantedKinds.contains(ShapeKind.recreational)) continue;

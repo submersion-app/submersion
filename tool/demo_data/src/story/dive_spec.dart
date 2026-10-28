@@ -118,8 +118,10 @@ DiveSpec diveSpecFor(
       final deep = random.nextDouble();
       if (deep < 0.4) {
         return (
-          kinds: {ShapeKind.deepOpenCircuit},
-          depth: range(28, 40),
+          // A single-gas dive shallower than 40 m: the harvest calls those
+          // recreational, and keeps deep for 40 m and beyond.
+          kinds: _rec,
+          depth: range(28, 38),
           tanks: 1,
           requires: CertLevel.deep,
         );

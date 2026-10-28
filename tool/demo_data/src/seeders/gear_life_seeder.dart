@@ -149,11 +149,14 @@ class GearLifeSeeder implements DemoSeeder {
     // The share, the sale and the places are stamped with the build clock by
     // their repositories; they belong in the story.
     final bcdSold = t.leftOn('bcd-jacket')!.millisecondsSinceEpoch;
-    await ctx.db.customStatement(
-      'UPDATE equipment_ownership_events SET occurred_at = ?',
-      [bcdSold],
-    );
     final finsShared = t.boughtOn('fins')!.millisecondsSinceEpoch;
+    for (final (key, at) in [('bcd-jacket', bcdSold), ('fins', finsShared)]) {
+      await ctx.db.customStatement(
+        'UPDATE equipment_ownership_events SET occurred_at = ? '
+        'WHERE equipment_id = ?',
+        [at, e[key]!],
+      );
+    }
     await ctx.db.customStatement('UPDATE equipment_shares SET created_at = ?', [
       finsShared,
     ]);
