@@ -11,6 +11,7 @@ import 'package:submersion/core/services/nearby/nearby_session.dart';
 import 'package:submersion/features/buddies/data/services/buddy_card_nfc.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy_card.dart';
 import 'package:submersion/features/buddies/domain/services/buddy_card_codec.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 
 /// What the swap screen runs while it is open (issue #3728): looking for
 /// divers nearby, answering their requests, and (on Android) presenting
@@ -91,6 +92,10 @@ class NearbyBuddySwapSession implements BuddySwapSession {
 
   Future<NearbyAvailability> _start() async {
     await _stop();
+    // Demo mode (issue #3708): the sample logbook's card goes nowhere and
+    // nothing is received, however the swap screen was reached. No radio,
+    // no Multipeer, no tag; the screen says nearby swaps are unavailable.
+    if (DemoModeGate.instance.isActive) return NearbyAvailability.unsupported;
     final full = BuddyCardCodec.encodeFull(_card);
     final host = NearbyCardHost(
       name: _card.name,

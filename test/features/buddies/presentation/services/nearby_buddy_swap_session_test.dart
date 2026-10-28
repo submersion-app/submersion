@@ -6,8 +6,11 @@ import 'package:submersion/features/buddies/data/services/buddy_card_nfc.dart';
 import 'package:submersion/features/buddies/data/services/card_emulation_service.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy_card.dart';
 import 'package:submersion/features/buddies/presentation/services/buddy_swap_session.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
+import 'package:submersion/core/services/nearby/nearby_carrier.dart';
 
 import '../../../../helpers/fake_nfc.dart';
+import '../../../../helpers/global_test_defaults.dart';
 import '../../../../support/in_memory_nearby_carrier.dart';
 import '../../../../support/memory_nearby_secrets.dart';
 import '../../../../support/nearby_link_harness.dart';
@@ -76,5 +79,27 @@ void main() {
     expect(emulation.presenting, isNotNull);
     await session.stop();
     expect(emulation.presenting, isNull);
+  });
+
+  test('in demo mode nothing starts: no radio, no tag', () async {
+    DemoModeGate.instance.debugActive = true;
+    addTearDown(applyGlobalTestDefaults);
+    final hub = InMemoryNearbyHub();
+    final a = await joinNearbyTestDevice(hub, 'A');
+    a.auto = false;
+    await foregroundNearbyTestDevices([a]);
+    final emulation = _FakeEmulation();
+    final session = NearbyBuddySwapSession(
+      card: const BuddyCard(id: 'a', name: 'Ann'),
+      manager: a.manager,
+      identity: () async => nearbyTestIdentity('A'),
+      secrets: MemoryNearbySecrets(),
+      nfc: BuddyCardNfc(tags: FakeNfcTagService(), emulation: emulation),
+    );
+    addTearDown(session.stop);
+
+    expect(await session.start(), NearbyAvailability.unsupported);
+    expect(emulation.presenting, isNull);
+    expect(session.peers, isEmpty);
   });
 }

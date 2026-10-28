@@ -577,7 +577,9 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
       case IncomingFileOutcome.buddyCard:
         final navContext = rootNavigatorKey.currentContext;
         if (navContext == null || !navContext.mounted) return false;
-        openBuddyCard(navContext, BuddyCardCodec.decodeFull(bytes));
+        // Awaited, so the share gate holds the next shared card until this
+        // preview closes, as several cards shared together do.
+        await openBuddyCard(navContext, BuddyCardCodec.decodeFull(bytes));
       case IncomingFileOutcome.none:
         break;
     }
@@ -613,7 +615,7 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
   Future<void> _openBuddyCardLink(String text) async {
     final context = rootNavigatorKey.currentContext;
     if (context == null || !context.mounted) return;
-    openBuddyCard(context, BuddyCardCodec.decodeLink(text));
+    await openBuddyCard(context, BuddyCardCodec.decodeLink(text));
   }
 
   /// Opens a passport tag that arrived as a link. The root navigator's
