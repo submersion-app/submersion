@@ -126,6 +126,11 @@ class TripRepository {
       _log.info('Creating trip: ${trip.name}');
       final id = trip.id.isEmpty ? _uuid.v4() : trip.id;
       final now = DateTime.now();
+      final parentTripId = await writableParentId(
+        _db,
+        tripId: id,
+        parentId: trip.parentTripId,
+      );
 
       await _db
           .into(_db.trips)
@@ -149,7 +154,7 @@ class TripRepository {
               expectedRuntimeMinutes: Value(trip.expectedRuntimeMinutes),
               diversSharingCylinders: Value(trip.diversSharingCylinders),
               divesPerDayTarget: Value(trip.divesPerDayTarget),
-              parentTripId: Value(trip.parentTripId),
+              parentTripId: Value(parentTripId),
               createdAt: Value(now.millisecondsSinceEpoch),
               updatedAt: Value(now.millisecondsSinceEpoch),
             ),
@@ -163,7 +168,12 @@ class TripRepository {
       SyncEventBus.notifyLocalChange();
 
       _log.info('Created trip with id: $id');
-      return trip.copyWith(id: id, createdAt: now, updatedAt: now);
+      return trip.copyWith(
+        id: id,
+        parentTripId: parentTripId,
+        createdAt: now,
+        updatedAt: now,
+      );
     } catch (e, stackTrace) {
       _log.error(
         'Failed to create trip: ${trip.name}',
@@ -191,8 +201,13 @@ class TripRepository {
             activeDiverId: actingDiverId,
           );
 
+      final parentTripId = await writableParentId(
+        _db,
+        tripId: trip.id,
+        parentId: trip.parentTripId,
+      );
       final parentChanged =
-          stored != null && stored.parentTripId != trip.parentTripId;
+          stored != null && stored.parentTripId != parentTripId;
       await _db.transaction(() async {
         await (_db.update(_db.trips)..where((t) => t.id.equals(trip.id))).write(
           TripsCompanion(
@@ -213,7 +228,7 @@ class TripRepository {
             expectedRuntimeMinutes: Value(trip.expectedRuntimeMinutes),
             diversSharingCylinders: Value(trip.diversSharingCylinders),
             divesPerDayTarget: Value(trip.divesPerDayTarget),
-            parentTripId: Value(trip.parentTripId),
+            parentTripId: Value(parentTripId),
             updatedAt: Value(now),
           ),
         );
@@ -507,6 +522,8 @@ class TripRepository {
         WHERE d.dive_date_time >= ? AND d.dive_date_time <= ?
           AND d.diver_id = ?
           AND (d.trip_id IS NULL OR d.trip_id != ?)
+          -- A side trip's dives are already the larger trip's (#3658).
+          AND (d.trip_id IS NULL OR d.trip_id NOT IN (${sideTripIdsSql('?')}))
         ORDER BY d.dive_date_time ASC
       ''',
             variables: [
@@ -514,6 +531,7 @@ class TripRepository {
               Variable.withInt(startMs),
               Variable.withInt(endMs),
               Variable.withString(diverId),
+              Variable.withString(tripId),
               Variable.withString(tripId),
             ],
           )

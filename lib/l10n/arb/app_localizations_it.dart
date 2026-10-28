@@ -31518,6 +31518,21 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String trips_bulkDelete_sideTripsStandalone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count escursioni diventano viaggi a sé.',
+      one: '$count escursione diventa un viaggio a sé.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_bulkDelete_divesReturnToParents =>
+      'Le immersioni delle escursioni eliminate tornano ai rispettivi viaggi principali.';
+
+  @override
   String get trips_detail_dialog_deleteTitle => 'Eliminare il viaggio?';
 
   @override

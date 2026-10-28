@@ -85,3 +85,28 @@ Future<void> detachSideTripsForDelete(
     );
   }
 }
+
+/// [parentId] when trip [tripId] may be its side trip, else null (issue
+/// #3658): never itself, never a trip that is missing or is a side trip,
+/// and never for a trip that has side trips of its own. The trip form only
+/// offers valid parents; this keeps a stale choice or a sync race from
+/// writing a link every reader would then ignore.
+Future<String?> writableParentId(
+  AppDatabase db, {
+  required String tripId,
+  required String? parentId,
+}) async {
+  if (parentId == null || parentId == tripId) return null;
+  final row = await db
+      .customSelect(
+        'SELECT '
+        '(SELECT COUNT(*) FROM trips WHERE id = ?1 '
+        'AND parent_trip_id IS NULL) AS parent_ok, '
+        '(SELECT COUNT(*) FROM trips WHERE parent_trip_id = ?2) AS children',
+        variables: [Variable.withString(parentId), Variable.withString(tripId)],
+        readsFrom: {db.trips},
+      )
+      .getSingle();
+  final ok = row.read<int>('parent_ok') == 1 && row.read<int>('children') == 0;
+  return ok ? parentId : null;
+}

@@ -31436,6 +31436,21 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String trips_bulkDelete_sideTripsStandalone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Nebenreisen werden zu eigenständigen Reisen.',
+      one: '$count Nebenreise wird zu einer eigenständigen Reise.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_bulkDelete_divesReturnToParents =>
+      'Tauchgänge gelöschter Nebenreisen gehen zurück an ihre größeren Reisen.';
+
+  @override
   String get trips_detail_dialog_deleteTitle => 'Reise löschen?';
 
   @override

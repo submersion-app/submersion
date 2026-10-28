@@ -8630,6 +8630,8 @@
   "trips_detail_dialog_deleteContent": "Sei sicuro di voler eliminare \"{name}\"? Il viaggio verrà rimosso ma le immersioni saranno mantenute.",
   "trips_delete_sideTripsStandalone": "{count, plural, one{La sua escursione diventa un viaggio a sé.} other{Le sue {count} escursioni diventano viaggi a sé.}}",
   "trips_delete_divesReturnToParent": "Le sue immersioni tornano a {name}.",
+  "trips_bulkDelete_sideTripsStandalone": "{count, plural, one{{count} escursione diventa un viaggio a sé.} other{{count} escursioni diventano viaggi a sé.}}",
+  "trips_bulkDelete_divesReturnToParents": "Le immersioni delle escursioni eliminate tornano ai rispettivi viaggi principali.",
   "trips_detail_dialog_deleteTitle": "Eliminare il viaggio?",
   "trips_detail_dives_empty": "Nessuna immersione in questo viaggio ancora",
   "trips_detail_dives_errorLoading": "Impossibile caricare le immersioni",

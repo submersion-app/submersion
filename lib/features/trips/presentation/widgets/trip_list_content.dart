@@ -12,6 +12,8 @@ import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/trips/presentation/helpers/side_trip_delete_lines.dart';
+import 'package:submersion/features/trips/presentation/providers/side_trip_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/selection/bulk_action.dart';
 import 'package:submersion/shared/selection/select_items_menu_entries.dart';
@@ -434,6 +436,14 @@ class _TripListContentState extends ConsumerState<TripListContent> {
         ? await ref.read(itemIdsWithSharesProvider(SharedItemKind.trip).future)
         : const <String>{};
     if (!mounted) return BulkActionOutcome.cancelled;
+    // What the delete does to side trips and their dives (issue #3658).
+    final sideTripLines = await sideTripDeleteLines(
+      context.l10n,
+      ref.read(sideTripRepositoryProvider),
+      [for (final t in split.destroy) t.id],
+      diverId: sharing.activeDiverId,
+    );
+    if (!mounted) return BulkActionOutcome.cancelled;
     final sharedDeleteCount = sharing.diverCount >= 2
         ? split.destroy
               .where(
@@ -465,6 +475,7 @@ class _TripListContentState extends ConsumerState<TripListContent> {
               hideCount: hideCount,
               sharedDeleteCount: sharedDeleteCount,
             ),
+            ...sideTripLines,
             if (deleteCount > 0) ctx.l10n.common_bulkDelete_body,
           ].join('\n\n'),
         ),
@@ -1354,8 +1365,14 @@ class TripSearchDelegate extends SearchDelegate<Trip?> {
                     },
                   ),
                   title: Text(trip.name),
+                  // A side trip names its larger trip (issue #3658).
                   subtitle: Text(
-                    '${units.formatDate(trip.startDate)} - ${units.formatDate(trip.endDate)}',
+                    [
+                      '${units.formatDate(trip.startDate)} - ${units.formatDate(trip.endDate)}',
+                      if (ref.watch(parentTripProvider(trip.id)).value
+                          case final parent?)
+                        context.l10n.trips_partOf(parent.name),
+                    ].join('  ·  '),
                   ),
                   // Opened over the search rather than in place of it, so back
                   // from the detail returns to these results (#3377).

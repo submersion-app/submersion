@@ -67,4 +67,36 @@ void main() {
     final found = await repository.searchTrips('Raja');
     expect(found.single.parentTripId, parent.id);
   });
+
+  group('an invalid link is never written', () {
+    test('a side trip cannot be a parent', () async {
+      final p = await repository.createTrip(trip('Indonesia'));
+      final s = await repository.createTrip(
+        trip('Raja Ampat', parentTripId: p.id),
+      );
+      final nested = await repository.createTrip(
+        trip('Day boat', parentTripId: s.id),
+      );
+      expect((await repository.getTripById(nested.id))!.parentTripId, isNull);
+    });
+
+    test('a missing trip cannot be a parent', () async {
+      final t = await repository.createTrip(trip('Lost', parentTripId: 'gone'));
+      expect((await repository.getTripById(t.id))!.parentTripId, isNull);
+    });
+
+    test('a trip with side trips cannot become one', () async {
+      final p = await repository.createTrip(trip('Indonesia'));
+      await repository.createTrip(trip('Raja Ampat', parentTripId: p.id));
+      final q = await repository.createTrip(trip('Asia'));
+      await repository.updateTrip(p.copyWith(parentTripId: q.id));
+      expect((await repository.getTripById(p.id))!.parentTripId, isNull);
+    });
+
+    test('a trip cannot be its own parent', () async {
+      final t = await repository.createTrip(trip('Loop'));
+      await repository.updateTrip(t.copyWith(parentTripId: t.id));
+      expect((await repository.getTripById(t.id))!.parentTripId, isNull);
+    });
+  });
 }

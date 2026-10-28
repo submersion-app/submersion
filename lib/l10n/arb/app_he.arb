@@ -8735,6 +8735,8 @@
   "trips_detail_dialog_deleteContent": "האם אתה בטוח שברצונך למחוק את \"{name}\"? פעולה זו תסיר את הטיול אך תשמור על הצלילות.",
   "trips_delete_sideTripsStandalone": "{count, plural, one{טיול הצד שלו הופך לטיול עצמאי.} other{{count} טיולי הצד שלו הופכים לטיולים עצמאיים.}}",
   "trips_delete_divesReturnToParent": "הצלילות שלו חוזרות אל {name}.",
+  "trips_bulkDelete_sideTripsStandalone": "{count, plural, one{טיול צד אחד הופך לטיול עצמאי.} other{{count} טיולי צד הופכים לטיולים עצמאיים.}}",
+  "trips_bulkDelete_divesReturnToParents": "הצלילות של טיולי הצד שנמחקו חוזרות לטיולים הגדולים שלהם.",
   "trips_detail_dialog_deleteTitle": "למחוק טיול?",
   "trips_detail_dives_empty": "אין עדיין צלילות בטיול זה",
   "trips_detail_dives_errorLoading": "לא ניתן לטעון צלילות",

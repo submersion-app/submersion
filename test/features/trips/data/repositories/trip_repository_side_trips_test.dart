@@ -90,4 +90,22 @@ void main() {
     expect(await sideTrips.getParentTrip('T', diverId: 'me'), isNull);
     expect((await sideTrips.getParentTrip('T'))!.id, 'Hidden');
   });
+
+  test("a larger trip's scan leaves its side trips' dives alone", () async {
+    await db.customStatement(
+      "INSERT INTO divers (id, name, created_at, updated_at) "
+      "VALUES ('me', 'Me', 0, 0)",
+    );
+    await db.customStatement("UPDATE dives SET diver_id = 'me'");
+    await trip('Q');
+    await dive('q1', 'Q', 12);
+    await db.customStatement("UPDATE dives SET diver_id = 'me'");
+    final candidates = await trips.findCandidateDivesForTrip(
+      tripId: 'P',
+      startDate: DateTime.fromMillisecondsSinceEpoch(0),
+      endDate: DateTime(2100),
+      diverId: 'me',
+    );
+    expect(candidates.map((c) => c.dive.id), ['q1']);
+  });
 }

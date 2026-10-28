@@ -126,7 +126,7 @@ void main() {
           allTripsProvider.overrideWith(
             (ref) async => [indonesia, rajaAmpat, cozumel],
           ),
-          tripByIdProvider('p').overrideWith((ref) async => indonesia),
+          visibleTripProvider('p').overrideWith((ref) async => indonesia),
         ],
       ),
     );
@@ -137,5 +137,19 @@ void main() {
     await tester.tap(find.text('None (a trip of its own)'));
     await tester.pumpAndSettle();
     expect(chosen, isNull);
+  });
+
+  testWidgets("the field never names a trip the profile can't see", (
+    tester,
+  ) async {
+    final secret = trip('x', 'Secret Trip');
+    await tester.pumpWidget(
+      app(PartOfTripField(tripId: 's', value: 'x', onChanged: (_) {}), [
+        tripByIdProvider('x').overrideWith((ref) async => secret),
+        visibleTripProvider('x').overrideWith((ref) async => null),
+      ]),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Secret Trip'), findsNothing);
   });
 }

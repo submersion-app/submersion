@@ -8867,6 +8867,8 @@
   "trips_detail_dialog_deleteContent": "Sind Sie sicher, dass Sie \"{name}\" löschen möchten? Die Reise wird entfernt, aber die Tauchgänge bleiben erhalten.",
   "trips_delete_sideTripsStandalone": "{count, plural, one{Ihre Nebenreise wird zu einer eigenständigen Reise.} other{Ihre {count} Nebenreisen werden zu eigenständigen Reisen.}}",
   "trips_delete_divesReturnToParent": "Ihre Tauchgänge gehen zurück an {name}.",
+  "trips_bulkDelete_sideTripsStandalone": "{count, plural, one{{count} Nebenreise wird zu einer eigenständigen Reise.} other{{count} Nebenreisen werden zu eigenständigen Reisen.}}",
+  "trips_bulkDelete_divesReturnToParents": "Tauchgänge gelöschter Nebenreisen gehen zurück an ihre größeren Reisen.",
   "trips_detail_dialog_deleteTitle": "Reise löschen?",
   "trips_detail_dives_empty": "Noch keine Tauchgänge in dieser Reise",
   "trips_detail_dives_errorLoading": "Tauchgänge konnten nicht geladen werden",

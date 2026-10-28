@@ -8886,6 +8886,8 @@
   "trips_detail_dialog_deleteContent": "确定要删除「{name}」吗？这将移除旅行但保留潜水记录。",
   "trips_delete_sideTripsStandalone": "{count, plural, other{其 {count} 个附属行程将成为独立行程。}}",
   "trips_delete_divesReturnToParent": "其潜水将归回 {name}。",
+  "trips_bulkDelete_sideTripsStandalone": "{count, plural, other{{count} 个附属行程将成为独立行程。}}",
+  "trips_bulkDelete_divesReturnToParents": "已删除附属行程中的潜水将归回其所属的大行程。",
   "trips_detail_dialog_deleteTitle": "删除旅行？",
   "trips_detail_dives_empty": "此旅行暂无潜水记录",
   "trips_detail_dives_errorLoading": "无法加载潜水记录",

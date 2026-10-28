@@ -8735,6 +8735,8 @@
   "trips_detail_dialog_deleteContent": "هل أنت متأكد أنك تريد حذف \"{name}\"؟ سيتم إزالة الرحلة مع الاحتفاظ بالغوصات.",
   "trips_delete_sideTripsStandalone": "{count, plural, one{تصبح رحلتها الجانبية رحلة مستقلة.} two{تصبح رحلتاها الجانبيتان رحلتين مستقلتين.} few{تصبح رحلاتها الجانبية الـ {count} رحلات مستقلة.} many{تصبح رحلاتها الجانبية الـ {count} رحلات مستقلة.} other{تصبح رحلاتها الجانبية الـ {count} رحلات مستقلة.}}",
   "trips_delete_divesReturnToParent": "تعود غطساتها إلى {name}.",
+  "trips_bulkDelete_sideTripsStandalone": "{count, plural, one{تصبح رحلة جانبية واحدة رحلة مستقلة.} two{تصبح رحلتان جانبيتان رحلتين مستقلتين.} few{تصبح {count} رحلات جانبية رحلات مستقلة.} many{تصبح {count} رحلة جانبية رحلات مستقلة.} other{تصبح {count} رحلة جانبية رحلات مستقلة.}}",
+  "trips_bulkDelete_divesReturnToParents": "تعود غطسات الرحلات الجانبية المحذوفة إلى رحلاتها الأكبر.",
   "trips_detail_dialog_deleteTitle": "حذف الرحلة؟",
   "trips_detail_dives_empty": "لا توجد غوصات في هذه الرحلة بعد",
   "trips_detail_dives_errorLoading": "تعذر تحميل الغوصات",

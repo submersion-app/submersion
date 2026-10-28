@@ -8735,6 +8735,8 @@
   "trips_detail_dialog_deleteContent": "Estás seguro de que deseas eliminar \"{name}\"? Se eliminará el viaje pero se conservarán las inmersiones.",
   "trips_delete_sideTripsStandalone": "{count, plural, one{Su viaje secundario pasa a ser un viaje independiente.} other{Sus {count} viajes secundarios pasan a ser viajes independientes.}}",
   "trips_delete_divesReturnToParent": "Sus inmersiones vuelven a {name}.",
+  "trips_bulkDelete_sideTripsStandalone": "{count, plural, one{{count} viaje secundario pasa a ser un viaje independiente.} other{{count} viajes secundarios pasan a ser viajes independientes.}}",
+  "trips_bulkDelete_divesReturnToParents": "Las inmersiones de los viajes secundarios eliminados vuelven a sus viajes principales.",
   "trips_detail_dialog_deleteTitle": "Eliminar viaje?",
   "trips_detail_dives_empty": "No hay inmersiones en este viaje aún",
   "trips_detail_dives_errorLoading": "No se pudieron cargar las inmersiones",

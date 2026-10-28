@@ -19,12 +19,17 @@ class _RecordingNotifier extends StateNotifier<AsyncValue<List<TripWithStats>>>
   _RecordingNotifier() : super(const AsyncValue.data([]));
 
   Trip? added;
+  int adds = 0;
+  int updates = 0;
+  int assigns = 0;
+  int failAssigns = 0;
   List<String>? assignedIds;
   String? assignedTripId;
   Set<String>? assignedOldTripIds;
 
   @override
   Future<Trip> addTrip(Trip trip) async {
+    adds++;
     added = trip;
     return trip.copyWith(id: 'new-trip');
   }
@@ -35,9 +40,20 @@ class _RecordingNotifier extends StateNotifier<AsyncValue<List<TripWithStats>>>
     String tripId, {
     Set<String>? oldTripIds,
   }) async {
+    assigns++;
+    if (failAssigns > 0) {
+      failAssigns--;
+      throw StateError('database is locked');
+    }
     assignedIds = diveIds;
     assignedTripId = tripId;
     assignedOldTripIds = oldTripIds;
+  }
+
+  @override
+  Future<void> updateTrip(Trip trip) async {
+    updates++;
+    added = trip;
   }
 
   @override
@@ -106,7 +122,7 @@ void main() {
           tripRepositoryProvider.overrideWithValue(repository),
           validatedCurrentDiverIdProvider.overrideWith((ref) async => 'me'),
           shareByDefaultProvider.overrideWith((ref) async => false),
-          tripByIdProvider('p').overrideWith((ref) async => indonesia),
+          visibleTripProvider('p').overrideWith((ref) async => indonesia),
           hasSideTripsProvider('p').overrideWith((ref) async => false),
         ],
         child: MaterialApp(
@@ -135,5 +151,48 @@ void main() {
     expect(notifier.assignedTripId, 'new-trip');
     expect(notifier.assignedOldTripIds, {'p'});
     expect(repository.scans, 0);
+  });
+
+  testWidgets('a failed move retried saves the same trip, not a second', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(800, 1600);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final notifier = _RecordingNotifier()..failAssigns = 1;
+    final repository = _ScanCountingRepository();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+          tripListNotifierProvider.overrideWith((ref) => notifier),
+          tripRepositoryProvider.overrideWithValue(repository),
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => 'me'),
+          shareByDefaultProvider.overrideWith((ref) async => false),
+          visibleTripProvider('p').overrideWith((ref) async => indonesia),
+          hasSideTripsProvider('p').overrideWith((ref) async => false),
+        ],
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: TripEditPage(draft: draft),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect(notifier.adds, 1);
+    expect(notifier.assignedIds, isNull);
+
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect(notifier.adds, 1);
+    expect(notifier.updates, 1);
+    expect(notifier.added!.id, 'new-trip');
+    expect(notifier.assignedIds, ['d1', 'd2']);
+    expect(notifier.assignedTripId, 'new-trip');
   });
 }

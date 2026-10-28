@@ -29701,6 +29701,19 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String trips_bulkDelete_sideTripsStandalone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个附属行程将成为独立行程。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_bulkDelete_divesReturnToParents => '已删除附属行程中的潜水将归回其所属的大行程。';
+
+  @override
   String get trips_detail_dialog_deleteTitle => '删除旅行？';
 
   @override

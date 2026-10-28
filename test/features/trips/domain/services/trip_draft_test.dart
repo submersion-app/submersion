@@ -133,4 +133,8 @@ void main() {
     ], trips: trips);
     expect(d.trip.parentTripId, isNull);
   });
+
+  test('a draft needs at least one dive', () {
+    expect(() => draft(const []), throwsArgumentError);
+  });
 }

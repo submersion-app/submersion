@@ -31809,6 +31809,24 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String trips_bulkDelete_sideTripsStandalone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تصبح $count رحلة جانبية رحلات مستقلة.',
+      many: 'تصبح $count رحلة جانبية رحلات مستقلة.',
+      few: 'تصبح $count رحلات جانبية رحلات مستقلة.',
+      two: 'تصبح رحلتان جانبيتان رحلتين مستقلتين.',
+      one: 'تصبح رحلة جانبية واحدة رحلة مستقلة.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_bulkDelete_divesReturnToParents =>
+      'تعود غطسات الرحلات الجانبية المحذوفة إلى رحلاتها الأكبر.';
+
+  @override
   String get trips_detail_dialog_deleteTitle => 'حذف الرحلة؟';
 
   @override

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/services/side_trips.dart';
+import 'package:submersion/features/trips/presentation/providers/side_trip_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -27,11 +28,12 @@ class PartOfTripField extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
-    // The chosen trip by id; the candidates only once the sheet opens, so
-    // building the form resolves no profile.
+    // The chosen trip, only when this profile can see it; the candidates
+    // only once the sheet opens, so a form with no larger trip resolves no
+    // profile while it builds.
     final chosen = value == null
         ? null
-        : ref.watch(tripByIdProvider(value!)).value;
+        : ref.watch(visibleTripProvider(value!)).value;
 
     return ListTile(
       contentPadding: EdgeInsets.zero,

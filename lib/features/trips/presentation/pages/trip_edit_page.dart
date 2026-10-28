@@ -90,6 +90,10 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
 
   /// The larger trip this one is a side trip of (issue #3658).
   String? _parentTripId;
+
+  /// A new trip already created by a save that failed afterwards: a retry
+  /// updates it instead of creating a second one.
+  String? _createdTripId;
   late DateTime _endDate;
   // Controls where the end-date picker opens, not whether _endDate still
   // holds the placeholder value -- _endDate can also get auto-synced to
@@ -1049,7 +1053,7 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
 
       final now = DateTime.now();
       final trip = Trip(
-        id: widget.tripId ?? '',
+        id: widget.tripId ?? _createdTripId ?? '',
         diverId: diverId,
         name: _nameController.text.trim(),
         startDate: _startDate,
@@ -1085,14 +1089,16 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
       );
 
       String savedId;
-      if (isEditing) {
+      final createdId = _createdTripId;
+      if (isEditing || createdId != null) {
         await ref.read(tripListNotifierProvider.notifier).updateTrip(trip);
-        savedId = widget.tripId!;
+        savedId = widget.tripId ?? createdId!;
       } else {
         final newTrip = await ref
             .read(tripListNotifierProvider.notifier)
             .addTrip(trip);
         savedId = newTrip.id;
+        _createdTripId = savedId;
       }
 
       // The chosen profiles (issue #2151), only when the owner changed

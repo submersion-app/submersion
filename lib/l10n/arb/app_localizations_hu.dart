@@ -31341,6 +31341,21 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String trips_bulkDelete_sideTripsStandalone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mellékút önálló út lesz.',
+      one: '$count mellékút önálló út lesz.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_bulkDelete_divesReturnToParents =>
+      'A törölt mellékutak merülései visszakerülnek a nagyobb útjaikhoz.';
+
+  @override
   String get trips_detail_dialog_deleteTitle => 'Út törlése?';
 
   @override

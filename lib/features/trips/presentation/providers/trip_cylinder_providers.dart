@@ -7,6 +7,7 @@ import 'package:submersion/features/trips/domain/entities/trip_cylinder_event.da
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_state.dart';
 import 'package:submersion/features/trips/domain/services/trip_cylinder_labels.dart';
 import 'package:submersion/features/trips/domain/services/trip_cylinder_state_fold.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 
 final tripCylinderRepositoryProvider = Provider<TripCylinderRepository>(
   (ref) => TripCylinderRepository(),
@@ -97,6 +98,10 @@ final tripCylinderLabelsAtProvider = FutureProvider.autoDispose
     >((ref, key) async {
       final repository = ref.watch(tripCylinderRepositoryProvider);
       ref.invalidateSelfWhen(repository.watchLedgerChanges());
+      // The larger trip whose slots count changes with the trip rows.
+      ref.invalidateSelfWhen(
+        ref.read(tripRepositoryProvider).watchTripsChanges(),
+      );
       // A side trip's dives may breathe from the larger trip's slots too
       // (issue #3658); each trip's ledger folds on its own.
       final labels = <String, TripCylinderTankLabel>{};
@@ -127,6 +132,10 @@ final tripCylinderStatesAtProvider = FutureProvider.autoDispose
     >((ref, key) async {
       final repository = ref.watch(tripCylinderRepositoryProvider);
       ref.invalidateSelfWhen(repository.watchTripCylinderChanges());
+      // The larger trip whose slots count changes with the trip rows.
+      ref.invalidateSelfWhen(
+        ref.read(tripRepositoryProvider).watchTripsChanges(),
+      );
       // The trip's own slots first, then, for a side trip, the larger trip's
       // (issue #3658), each folded against its own trip's ledger and uses.
       return [

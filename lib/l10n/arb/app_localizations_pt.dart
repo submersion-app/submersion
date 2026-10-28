@@ -31500,6 +31500,21 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String trips_bulkDelete_sideTripsStandalone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count viagens secundárias passam a ser viagens independentes.',
+      one: '$count viagem secundária passa a ser uma viagem independente.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_bulkDelete_divesReturnToParents =>
+      'Os mergulhos das viagens secundárias eliminadas voltam para as respetivas viagens principais.';
+
+  @override
   String get trips_detail_dialog_deleteTitle => 'Excluir Viagem?';
 
   @override

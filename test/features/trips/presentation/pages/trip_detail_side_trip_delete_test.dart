@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/trips/data/repositories/side_trip_repository.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_detail_page.dart';
 import 'package:submersion/features/trips/presentation/providers/side_trip_providers.dart';
@@ -18,6 +19,19 @@ class _MockTripListNotifier
 
   @override
   dynamic noSuchMethod(Invocation invocation) => null;
+}
+
+class _FakeSideTrips extends SideTripRepository {
+  _FakeSideTrips(this.sideTrips, this.parent);
+  final List<Trip> sideTrips;
+  final Trip? parent;
+
+  @override
+  Future<List<Trip>> getSideTrips(String tripId, {String? diverId}) async =>
+      sideTrips;
+
+  @override
+  Future<Trip?> getParentTrip(String tripId, {String? diverId}) async => parent;
 }
 
 /// The trip page for a side trip names its larger trip, and the delete
@@ -62,6 +76,9 @@ void main() {
           settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
           sideTripsProvider(shown.id).overrideWith((ref) async => sideTrips),
           parentTripProvider(shown.id).overrideWith((ref) async => parent),
+          sideTripRepositoryProvider.overrideWithValue(
+            _FakeSideTrips(sideTrips, parent),
+          ),
         ],
         child: MaterialApp(
           locale: const Locale('en'),

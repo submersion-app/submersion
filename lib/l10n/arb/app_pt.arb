@@ -8735,6 +8735,8 @@
   "trips_detail_dialog_deleteContent": "Tem certeza de que deseja excluir \"{name}\"? Isso removerá a viagem, mas manterá os mergulhos.",
   "trips_delete_sideTripsStandalone": "{count, plural, one{A sua viagem secundária passa a ser uma viagem independente.} other{As suas {count} viagens secundárias passam a ser viagens independentes.}}",
   "trips_delete_divesReturnToParent": "Os seus mergulhos voltam para {name}.",
+  "trips_bulkDelete_sideTripsStandalone": "{count, plural, one{{count} viagem secundária passa a ser uma viagem independente.} other{{count} viagens secundárias passam a ser viagens independentes.}}",
+  "trips_bulkDelete_divesReturnToParents": "Os mergulhos das viagens secundárias eliminadas voltam para as respetivas viagens principais.",
   "trips_detail_dialog_deleteTitle": "Excluir Viagem?",
   "trips_detail_dives_empty": "Nenhum mergulho nesta viagem ainda",
   "trips_detail_dives_errorLoading": "Não foi possível carregar os mergulhos",

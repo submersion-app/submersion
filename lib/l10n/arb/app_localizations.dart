@@ -50204,6 +50204,18 @@ abstract class AppLocalizations {
   /// **'Its dives go back to {name}.'**
   String trips_delete_divesReturnToParent(String name);
 
+  /// Bulk delete confirmation line: side trips of the deleted trips that are kept
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} side trip becomes a trip of its own.} other{{count} side trips become trips of their own.}}'**
+  String trips_bulkDelete_sideTripsStandalone(int count);
+
+  /// Delete confirmation line when side trips are deleted: their dives move to the larger trips
+  ///
+  /// In en, this message translates to:
+  /// **'Dives on deleted side trips go back to their larger trips.'**
+  String get trips_bulkDelete_divesReturnToParents;
+
   /// No description provided for @trips_detail_dialog_deleteTitle.
   ///
   /// In en, this message translates to:

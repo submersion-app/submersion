@@ -8634,6 +8634,8 @@
   "trips_detail_dialog_deleteContent": "Biztosan törli a(z) \"{name}\" utat? Az út törlődik, de a merülések megmaradnak.",
   "trips_delete_sideTripsStandalone": "{count, plural, one{A mellékútja önálló út lesz.} other{A {count} mellékútja önálló út lesz.}}",
   "trips_delete_divesReturnToParent": "A merülései visszakerülnek ide: {name}.",
+  "trips_bulkDelete_sideTripsStandalone": "{count, plural, one{{count} mellékút önálló út lesz.} other{{count} mellékút önálló út lesz.}}",
+  "trips_bulkDelete_divesReturnToParents": "A törölt mellékutak merülései visszakerülnek a nagyobb útjaikhoz.",
   "trips_detail_dialog_deleteTitle": "Út törlése?",
   "trips_detail_dives_empty": "Még nincsenek merülések ezen az úton",
   "trips_detail_dives_errorLoading": "Nem sikerült a merülések betöltése",

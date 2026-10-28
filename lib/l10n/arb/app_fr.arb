@@ -8634,6 +8634,8 @@
   "trips_detail_dialog_deleteContent": "Voulez-vous vraiment supprimer \"{name}\" ? Le voyage sera supprimé mais les plongées seront conservées.",
   "trips_delete_sideTripsStandalone": "{count, plural, one{Son excursion devient un voyage à part entière.} other{Ses {count} excursions deviennent des voyages à part entière.}}",
   "trips_delete_divesReturnToParent": "Ses plongées retournent à {name}.",
+  "trips_bulkDelete_sideTripsStandalone": "{count, plural, one{{count} excursion devient un voyage à part entière.} other{{count} excursions deviennent des voyages à part entière.}}",
+  "trips_bulkDelete_divesReturnToParents": "Les plongées des excursions supprimées retournent à leurs voyages principaux.",
   "trips_detail_dialog_deleteTitle": "Supprimer le voyage ?",
   "trips_detail_dives_empty": "Aucune plongée dans ce voyage pour le moment",
   "trips_detail_dives_errorLoading": "Impossible de charger les plongées",

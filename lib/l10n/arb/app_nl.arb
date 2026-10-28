@@ -8735,6 +8735,8 @@
   "trips_detail_dialog_deleteContent": "Weet je zeker dat je \"{name}\" wilt verwijderen? De reis wordt verwijderd maar de duiken blijven bewaard.",
   "trips_delete_sideTripsStandalone": "{count, plural, one{De zijreis wordt een eigen reis.} other{De {count} zijreizen worden eigen reizen.}}",
   "trips_delete_divesReturnToParent": "De duiken gaan terug naar {name}.",
+  "trips_bulkDelete_sideTripsStandalone": "{count, plural, one{{count} zijreis wordt een eigen reis.} other{{count} zijreizen worden eigen reizen.}}",
+  "trips_bulkDelete_divesReturnToParents": "Duiken van verwijderde zijreizen gaan terug naar hun grotere reizen.",
   "trips_detail_dialog_deleteTitle": "Reis verwijderen?",
   "trips_detail_dives_empty": "Nog geen duiken in deze reis",
   "trips_detail_dives_errorLoading": "Kan duiken niet laden",

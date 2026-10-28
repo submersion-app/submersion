@@ -1,3 +1,5 @@
+import 'package:clock/clock.dart';
+
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/services/side_trips.dart';
 
@@ -53,6 +55,9 @@ TripDraft buildTripDraft(
   required Map<String, Trip> tripsById,
   required String Function(String? location, DateTime start) nameFor,
 }) {
+  if (facts.isEmpty) {
+    throw ArgumentError.value(facts, 'facts', 'needs at least one dive');
+  }
   final days = [
     for (final f in facts)
       () {
@@ -63,7 +68,7 @@ TripDraft buildTripDraft(
   final start = days.first;
   final end = days.last;
   final location = _sharedLocation(facts);
-  final now = DateTime.now();
+  final now = clock.now();
   return TripDraft(
     trip: Trip(
       id: '',
