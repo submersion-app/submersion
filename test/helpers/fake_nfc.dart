@@ -117,7 +117,13 @@ class FakeNfcTagService implements NfcTagService {
       await waiting.future;
       throw const NfcSessionCancelled();
     }
-    final result = await onTag(tag);
+    final T result;
+    try {
+      result = await onTag(tag);
+    } catch (_) {
+      lastIosEnd = iosFailure == null ? null : IosSheetEnd.failure(iosFailure);
+      rethrow;
+    }
     lastIosEnd = iosEnd?.call(result);
     beforeEnd?.call();
     return result;

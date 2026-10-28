@@ -48,8 +48,9 @@ class _BuddySwapPageState extends ConsumerState<BuddySwapPage>
   bool _cardFailed = false;
 
   /// The diver whose request sheet is open, so an expired request can close
-  /// it.
+  /// it, and what closes it.
   String? _openRequest;
+  Completer<void>? _closeOpenRequest;
 
   /// Requests waiting for the open sheet to close: one question at a time.
   final _queuedRequests = <CardRequested>[];
@@ -125,6 +126,13 @@ class _BuddySwapPageState extends ConsumerState<BuddySwapPage>
   /// first await is guaranteed to run before the page is gone.
   Future<void> _stop() async {
     _runs++;
+    // Requests made on this session end with it: their rows are free
+    // again, and requests still waiting their turn are declined.
+    _waitingFor.clear();
+    for (final request in _queuedRequests) {
+      request.decide(false);
+    }
+    _queuedRequests.clear();
     final session = _session;
     _session = null;
     final stopping = session?.stop();
@@ -154,7 +162,8 @@ class _BuddySwapPageState extends ConsumerState<BuddySwapPage>
         openBuddyCard(context, BuddyCardCodec.decodeFull(cardBytes));
       case CardRequestExpired(:final from):
         if (_openRequest == from.swapId) {
-          Navigator.of(context).pop(false);
+          final close = _closeOpenRequest;
+          if (close != null && !close.isCompleted) close.complete();
         } else {
           final queued = _queuedRequests
               .where((r) => r.from.swapId == from.swapId)
@@ -191,12 +200,15 @@ class _BuddySwapPageState extends ConsumerState<BuddySwapPage>
         continue;
       }
       _openRequest = request.from.swapId;
+      final close = _closeOpenRequest = Completer<void>();
       final accepted = await showSwapRequestSheet(
         context,
         from: request.from,
         youSend: buddyCardSummary(card, context.l10n),
+        closed: close.future,
       );
       _openRequest = null;
+      _closeOpenRequest = null;
       request.decide(accepted);
     }
   }
@@ -300,12 +312,24 @@ class _BuddySwapPageState extends ConsumerState<BuddySwapPage>
     }
   }
 
+  static BuddyCardNfcText _nfcText(AppLocalizations l10n) => BuddyCardNfcText(
+    readPrompt: l10n.buddySwap_tap_prompt,
+    writePrompt: l10n.buddySwap_sticker_prompt,
+    notACard: l10n.buddyCard_error_notACard,
+    unreadable: l10n.buddyCard_error_unreadable,
+    readFailed: l10n.passport_nfc_readFailed,
+    written: l10n.buddySwap_sticker_written,
+    tooSmall: l10n.buddySwap_sticker_tooSmall,
+    notWritable: l10n.buddySwap_sticker_notWritable,
+    writeFailed: l10n.passport_nfc_writeFailed,
+  );
+
   Future<void> _readTag() async {
     final l10n = context.l10n;
     try {
       final result = await ref
           .read(buddyCardNfcProvider)
-          .readCard(promptIos: l10n.buddySwap_tap_prompt);
+          .readCard(_nfcText(l10n));
       if (mounted) openBuddyCard(context, result);
     } on NfcSessionCancelled {
       // The diver closed the sheet.
@@ -320,9 +344,7 @@ class _BuddySwapPageState extends ConsumerState<BuddySwapPage>
     final l10n = context.l10n;
     String? message;
     try {
-      await ref
-          .read(buddyCardNfcProvider)
-          .writeSticker(card, promptIos: l10n.buddySwap_sticker_prompt);
+      await ref.read(buddyCardNfcProvider).writeSticker(card, _nfcText(l10n));
       message = l10n.buddySwap_sticker_written;
     } on NfcSessionCancelled {
       // The diver closed the sheet.

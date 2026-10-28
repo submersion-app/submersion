@@ -2982,6 +2982,9 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get buddyCard_saved_view => 'عرض';
+
+  @override
   String get buddyCard_error_notACard => 'هذه ليست بطاقة رفيق من Submersion.';
 
   @override

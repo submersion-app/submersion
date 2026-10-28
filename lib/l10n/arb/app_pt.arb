@@ -755,6 +755,7 @@
   "buddyCard_field_certifications": "Certificações",
   "buddyCard_saved_added": "{name} adicionado aos seus parceiros",
   "buddyCard_saved_updated": "{name} atualizado",
+  "buddyCard_saved_view": "Ver",
   "buddyCard_error_notACard": "Isto não é um cartão de parceiro do Submersion.",
   "buddyCard_error_unreadable": "Não foi possível ler este cartão de parceiro.",
   "buddySwap_title": "Trocar com um parceiro",

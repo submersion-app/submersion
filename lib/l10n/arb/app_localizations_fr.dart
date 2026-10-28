@@ -2914,6 +2914,9 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get buddyCard_saved_view => 'Voir';
+
+  @override
   String get buddyCard_error_notACard =>
       'Ce n\'est pas une carte de binôme Submersion.';
 

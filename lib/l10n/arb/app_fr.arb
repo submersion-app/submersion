@@ -755,6 +755,7 @@
   "buddyCard_field_certifications": "Certifications",
   "buddyCard_saved_added": "{name} ajouté à vos binômes",
   "buddyCard_saved_updated": "{name} mis à jour",
+  "buddyCard_saved_view": "Voir",
   "buddyCard_error_notACard": "Ce n'est pas une carte de binôme Submersion.",
   "buddyCard_error_unreadable": "Impossible de lire cette carte de binôme.",
   "buddySwap_title": "Échanger avec un binôme",

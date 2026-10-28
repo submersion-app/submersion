@@ -755,6 +755,7 @@
   "buddyCard_field_certifications": "Certificaciones",
   "buddyCard_saved_added": "{name} añadido a tus compañeros",
   "buddyCard_saved_updated": "{name} actualizado",
+  "buddyCard_saved_view": "Ver",
   "buddyCard_error_notACard": "Eso no es una tarjeta de compañero de Submersion.",
   "buddyCard_error_unreadable": "No se pudo leer esta tarjeta de compañero.",
   "buddySwap_title": "Intercambiar con un compañero",

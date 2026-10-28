@@ -7,6 +7,7 @@ import 'package:submersion/features/buddies/data/services/buddy_card_nfc.dart';
 import 'package:submersion/features/buddies/data/services/card_emulation_service.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy_card.dart';
 import 'package:submersion/features/buddies/presentation/services/buddy_swap_session.dart';
+import 'package:submersion/features/buddies/presentation/services/recent_buddy_card_links.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
 import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
@@ -17,6 +18,7 @@ final buddyCardNfcProvider = Provider<BuddyCardNfc>((ref) {
   return BuddyCardNfc(
     tags: ref.watch(nfcTagServiceProvider),
     emulation: ref.watch(cardEmulationProvider),
+    onTagLink: ref.watch(recentBuddyCardLinksProvider).note,
   );
 });
 

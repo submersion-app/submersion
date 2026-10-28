@@ -472,6 +472,7 @@ class CertificationRepository {
       instructorNumber: row.data['instructor_number'] as String?,
       instructorId: row.data['instructor_id'] as String?,
       courseId: row.data['course_id'] as String?,
+      cardId: row.data['card_id'] as String?,
       notes: (row.data['notes'] as String?) ?? '',
       createdAt: DateTime.fromMillisecondsSinceEpoch(
         row.data['created_at'] as int,

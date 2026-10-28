@@ -780,6 +780,7 @@
   "buddyCard_field_certifications": "Brevets",
   "buddyCard_saved_added": "{name} zu deinen Buddys hinzugefügt",
   "buddyCard_saved_updated": "{name} aktualisiert",
+  "buddyCard_saved_view": "Anzeigen",
   "buddyCard_error_notACard": "Das ist keine Submersion-Buddy-Karte.",
   "buddyCard_error_unreadable": "Diese Buddy-Karte konnte nicht gelesen werden.",
   "buddySwap_title": "Mit Buddy tauschen",

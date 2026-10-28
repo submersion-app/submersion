@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -61,12 +63,13 @@ void main() {
     WidgetTester tester,
     BuddyCardDecoded decoded, {
     BuddyCardImporter? importer,
+    bool overList = false,
   }) async {
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = const Size(600, 1400);
     addTearDown(tester.view.reset);
     final router = GoRouter(
-      initialLocation: '/buddies/card',
+      initialLocation: overList ? '/buddies' : '/buddies/card',
       routes: [
         GoRoute(
           path: '/buddies',
@@ -102,6 +105,10 @@ void main() {
       ),
     );
     await settle(tester);
+    if (overList) {
+      unawaited(router.push('/buddies/card'));
+      await settle(tester);
+    }
   }
 
   Future<void> seed(WidgetTester tester, String name, {String? cardId}) =>
@@ -177,13 +184,13 @@ void main() {
     expect(all, isEmpty);
   });
 
-  testWidgets('Add saves the buddy and opens it', (tester) async {
+  testWidgets('Add saves the buddy and says so', (tester) async {
     await pump(tester, const BuddyCardDecoded(_sam));
     await tester.tap(find.text('Add buddy'));
     await settle(tester);
     final all = (await tester.runAsync(() => buddies.getAllBuddies()))!;
     expect(all.single.cardId, 'diver-sam');
-    expect(find.text('DETAIL ${all.single.id}'), findsOneWidget);
+    expect(find.text('Sam Rivera added to your buddies'), findsOneWidget);
   });
 
   testWidgets('a possible match shows what updating would change', (
@@ -214,6 +221,20 @@ void main() {
     );
     expect(find.text('Add buddy'), findsNothing);
     expect(find.text('Discard'), findsOneWidget);
+  });
+
+  testWidgets('a card opened over another screen goes back to it after '
+      'saving, with a way to the buddy', (tester) async {
+    await pump(tester, const BuddyCardDecoded(_sam), overList: true);
+    await tester.tap(find.text('Add buddy'));
+    await settle(tester);
+    // Back where the card arrived (the swap screen, on the boat), so the
+    // next swap is a tap away.
+    expect(find.text('LIST'), findsOneWidget);
+    final all = (await tester.runAsync(() => buddies.getAllBuddies()))!;
+    await tester.tap(find.text('View'));
+    await settle(tester);
+    expect(find.text('DETAIL ${all.single.id}'), findsOneWidget);
   });
 
   testWidgets('a failed save says so and stays on the preview', (tester) async {

@@ -277,6 +277,12 @@ void main() {
     ]);
   });
 
+  test('a certification found by search still knows its card', () async {
+    await importer.addNew(card, diverId: 'me');
+    final found = await certs.searchCertifications('Rescue');
+    expect(found.single.cardId, 'diver-sam');
+  });
+
   test('a later card without card details keeps the stored number', () async {
     final added = await importer.addNew(card, diverId: 'me');
     final trimmed = card.copyWith(

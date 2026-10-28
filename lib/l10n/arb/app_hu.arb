@@ -755,6 +755,7 @@
   "buddyCard_field_certifications": "Minősítések",
   "buddyCard_saved_added": "{name} hozzáadva a társaidhoz",
   "buddyCard_saved_updated": "{name} frissítve",
+  "buddyCard_saved_view": "Megtekintés",
   "buddyCard_error_notACard": "Ez nem Submersion társkártya.",
   "buddyCard_error_unreadable": "Ezt a társkártyát nem sikerült beolvasni.",
   "buddySwap_title": "Csere egy társsal",

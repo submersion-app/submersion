@@ -755,6 +755,7 @@
   "buddyCard_field_certifications": "הסמכות",
   "buddyCard_saved_added": "{name} נוסף לשותפים שלך",
   "buddyCard_saved_updated": "{name} עודכן",
+  "buddyCard_saved_view": "הצג",
   "buddyCard_error_notACard": "זה לא כרטיס שותף של Submersion.",
   "buddyCard_error_unreadable": "לא ניתן לקרוא את כרטיס השותף הזה.",
   "buddySwap_title": "החלפה עם שותף",

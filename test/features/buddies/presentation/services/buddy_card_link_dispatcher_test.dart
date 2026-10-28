@@ -47,6 +47,21 @@ void main() {
     await d.dispose();
   });
 
+  test('drops a link the app has just read or written over NFC', () async {
+    final source = _FakeSource();
+    final opened = <String>[];
+    final d = BuddyCardLinkDispatcher(
+      source: source,
+      open: (t) async => opened.add(t),
+      alreadyHandled: (t) => t == _card,
+    )..start();
+    d.setReady(true);
+    source.controller.add(_card);
+    await pumpEventQueue();
+    expect(opened, isEmpty);
+    await d.dispose();
+  });
+
   test('ignores passport links and other hosts', () async {
     final source = _FakeSource();
     final opened = <String>[];

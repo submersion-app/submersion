@@ -2753,6 +2753,9 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get buddyCard_saved_view => '查看';
+
+  @override
   String get buddyCard_error_notACard => '这不是 Submersion 潜伴名片。';
 
   @override

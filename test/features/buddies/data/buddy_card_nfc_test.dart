@@ -32,6 +32,18 @@ class _FakeEmulation implements CardEmulation {
   }
 }
 
+const _text = BuddyCardNfcText(
+  readPrompt: 'Hold near',
+  writePrompt: 'Hold near a sticker',
+  notACard: 'Not a card',
+  unreadable: 'Unreadable',
+  readFailed: 'Read failed',
+  written: 'Written',
+  tooSmall: 'Too small',
+  notWritable: 'Not writable',
+  writeFailed: 'Write failed',
+);
+
 const _sam = BuddyCard(
   id: 'diver-sam',
   name: 'Sam Rivera',
@@ -54,7 +66,7 @@ void main() {
     final tags = FakeNfcTagService(
       tag: FakeTagHandle(stored: cardMessage(_sam)),
     );
-    final result = await nfc(tags).readCard(promptIos: 'Hold near');
+    final result = await nfc(tags).readCard(_text);
     expect((result as BuddyCardDecoded).card.name, 'Sam Rivera');
   });
 
@@ -64,7 +76,7 @@ void main() {
         stored: NdefMessage(records: [uriRecord('https://submersion.app/c?x')]),
       ),
     );
-    final result = await nfc(tags).readCard(promptIos: 'Hold near');
+    final result = await nfc(tags).readCard(_text);
     expect(
       (result as BuddyCardRejected).reason,
       BuddyCardRejectReason.notACard,
@@ -83,9 +95,7 @@ void main() {
       greaterThan(180),
     );
     final tag = FakeTagHandle(maxMessageBytes: 180);
-    await nfc(
-      FakeNfcTagService(tag: tag),
-    ).writeSticker(full, promptIos: 'Hold near');
+    await nfc(FakeNfcTagService(tag: tag)).writeSticker(full, _text);
     final records = tag.stored!.records;
     expect(records, hasLength(1));
     expect(tag.stored!.byteLength, lessThanOrEqualTo(180));
@@ -99,10 +109,9 @@ void main() {
   test('writeSticker on a tag too small even for the name throws', () async {
     final tag = FakeTagHandle(maxMessageBytes: 48);
     await expectLater(
-      nfc(FakeNfcTagService(tag: tag)).writeSticker(
-        _sam.copyWith(name: 'A very long name ' * 4),
-        promptIos: 'Hold near',
-      ),
+      nfc(
+        FakeNfcTagService(tag: tag),
+      ).writeSticker(_sam.copyWith(name: 'A very long name ' * 4), _text),
       throwsA(isA<BuddyCardStickerTooSmall>()),
     );
     expect(tag.writes, 0);
@@ -112,7 +121,7 @@ void main() {
     await expectLater(
       nfc(
         FakeNfcTagService(tag: FakeTagHandle(isWritable: false)),
-      ).writeSticker(_sam, promptIos: 'Hold near'),
+      ).writeSticker(_sam, _text),
       throwsA(isA<BuddyCardStickerNotWritable>()),
     );
   });
@@ -130,8 +139,73 @@ void main() {
     );
     final cards = nfc(tags);
     await cards.startSharing(_sam);
-    await cards.readCard(promptIos: 'Hold near');
+    await cards.readCard(_text);
     expect(emulation.log, ['start', 'stop', 'start']);
     expect(emulation.presenting, isNotNull);
+  });
+
+  group('the iOS sheet closes as the result says', () {
+    test('a card read closes as a success', () async {
+      final tags = FakeNfcTagService(
+        tag: FakeTagHandle(stored: cardMessage(_sam)),
+      );
+      await nfc(tags).readCard(_text);
+      expect(tags.lastIosEnd?.error, isNull);
+      expect(tags.lastIosEnd, isNotNull);
+    });
+
+    test('a tag that is not a card closes as a failure', () async {
+      final tags = FakeNfcTagService(
+        tag: FakeTagHandle(
+          stored: NdefMessage(records: [uriRecord('https://example.com/x')]),
+        ),
+      );
+      await nfc(tags).readCard(_text);
+      expect(tags.lastIosEnd?.error, 'Not a card');
+    });
+
+    test('a sticker too small closes as a failure saying so', () async {
+      final tags = FakeNfcTagService(tag: FakeTagHandle(maxMessageBytes: 48));
+      await expectLater(
+        nfc(tags).writeSticker(_sam.copyWith(name: 'A long name ' * 6), _text),
+        throwsA(isA<BuddyCardStickerTooSmall>()),
+      );
+      expect(tags.lastIosEnd?.error, 'Too small');
+    });
+
+    test('a written sticker closes with the written message', () async {
+      final tags = FakeNfcTagService(tag: FakeTagHandle());
+      await nfc(tags).writeSticker(_sam, _text);
+      expect(tags.lastIosEnd?.alert, 'Written');
+    });
+  });
+
+  group('the link read or written is noted for the link dispatcher', () {
+    test('a card read notes its link while the session is open', () async {
+      final noted = <String>[];
+      final tags = FakeNfcTagService(
+        tag: FakeTagHandle(stored: cardMessage(_sam)),
+      );
+      final seenAtEnd = <int>[];
+      tags.beforeEnd = () => seenAtEnd.add(noted.length);
+      await BuddyCardNfc(
+        tags: tags,
+        emulation: emulation,
+        onTagLink: noted.add,
+      ).readCard(_text);
+      expect(noted.single, uriOf(cardMessage(_sam).records.single));
+      expect(seenAtEnd, [1]);
+    });
+
+    test('a written sticker notes the link it holds', () async {
+      final noted = <String>[];
+      final tag = FakeTagHandle();
+      await BuddyCardNfc(
+        tags: FakeNfcTagService(tag: tag),
+        emulation: emulation,
+        onTagLink: noted.add,
+      ).writeSticker(_sam, _text);
+      expect(noted.single, BuddyCardCodec.encodeLink(_sam, maxBytes: 1000));
+    });
   });
 }

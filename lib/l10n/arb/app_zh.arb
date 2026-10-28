@@ -842,6 +842,7 @@
   "buddyCard_field_certifications": "证书",
   "buddyCard_saved_added": "已将 {name} 添加到你的潜伴",
   "buddyCard_saved_updated": "已更新 {name}",
+  "buddyCard_saved_view": "查看",
   "buddyCard_error_notACard": "这不是 Submersion 潜伴名片。",
   "buddyCard_error_unreadable": "无法读取此潜伴名片。",
   "buddySwap_title": "与潜伴交换",

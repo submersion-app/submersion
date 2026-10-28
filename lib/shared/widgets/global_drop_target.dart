@@ -157,8 +157,19 @@ class _GlobalDropTargetState extends ConsumerState<GlobalDropTarget> {
   }
 
   /// Sends dropped dive-log files to the import wizard.
-  Future<void> _importDiveLogs(List<String> paths) async {
-    if (paths.isEmpty || !mounted) return;
+  Future<void> _importDiveLogs(List<String> dropped) async {
+    if (dropped.isEmpty || !mounted) return;
+    // Buddy cards in a drop of several files open on their own.
+    final (:cards, others: paths) = splitBuddyCardPaths(dropped);
+    if (dropped.length > 1) {
+      for (final path in cards) {
+        await _openBuddyCardFile(path);
+        if (!mounted) return;
+      }
+    } else {
+      paths.addAll(cards);
+    }
+    if (paths.isEmpty) return;
     // Re-read: a media import that ran first may have moved the user on.
     final currentPath = GoRouterState.of(context).uri.path;
 
@@ -226,6 +237,26 @@ class _GlobalDropTargetState extends ConsumerState<GlobalDropTarget> {
       case IncomingFileOutcome.none:
         break;
     }
+  }
+
+  /// Opens the buddy card in the file at [path], or says it is unreadable.
+  Future<void> _openBuddyCardFile(String path) async {
+    final Uint8List bytes;
+    try {
+      bytes = await File(path).readAsBytes();
+    } catch (e) {
+      reportIncomingFileError(
+        e,
+        messenger: mounted ? ScaffoldMessenger.of(context) : null,
+        readFailedMessage: mounted
+            ? context.l10n.dropTarget_error_readFailed
+            : null,
+      );
+      return;
+    }
+    if (!mounted) return;
+    // Awaited: the next card opens once this one's preview closes.
+    await openBuddyCard(context, BuddyCardCodec.decodeFull(bytes));
   }
 }
 

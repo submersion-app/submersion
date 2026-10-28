@@ -91,13 +91,20 @@ abstract final class BuddyCardCodec {
     return '$base.$fileExtension';
   }
 
+  /// How every full card this app writes begins: its version key first.
+  static final List<int> _fullCardStart = utf8.encode('{"v":');
+
   /// Whether [bytes] read as a full card, for a file whose name was lost on
-  /// the way (an Android content URI often carries none). A small JSON
-  /// object with the card's version, id and name keys; no dive log format
-  /// has that shape.
+  /// the way (an Android content URI often carries none). A JSON object
+  /// that starts as this app writes a card, with the card's version, id and
+  /// name keys; no dive log format has that shape. The start is checked
+  /// first, so other JSON (a large dive log export) is never parsed here.
   static bool looksLikeFullCard(Uint8List bytes) {
-    if (bytes.isEmpty || bytes.length > maxFullBytes || bytes.first != 0x7B) {
+    if (bytes.length < _fullCardStart.length || bytes.length > maxFullBytes) {
       return false;
+    }
+    for (var i = 0; i < _fullCardStart.length; i++) {
+      if (bytes[i] != _fullCardStart[i]) return false;
     }
     try {
       final json = jsonDecode(utf8.decode(bytes));

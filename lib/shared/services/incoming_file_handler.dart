@@ -112,6 +112,23 @@ Future<IncomingFileOutcome> handleIncomingFile({
   return IncomingFileOutcome.navigateToWizard;
 }
 
+/// [paths] split into buddy card files (issue #3728), found by name, and
+/// everything else. Several files arriving together go to the import
+/// wizard as a batch; a card is not a dive log, so each opens its preview
+/// instead.
+({List<String> cards, List<String> others}) splitBuddyCardPaths(
+  List<String> paths,
+) => (
+  cards: [
+    for (final path in paths)
+      if (BuddyCardCodec.isCardFileName(path)) path,
+  ],
+  others: [
+    for (final path in paths)
+      if (!BuddyCardCodec.isCardFileName(path)) path,
+  ],
+);
+
 /// Multi-file counterpart of [handleIncomingFile], for a share-sheet intent
 /// carrying several files at once. The files enter the import wizard as one
 /// batch, the way several dropped files do in [GlobalDropTarget].

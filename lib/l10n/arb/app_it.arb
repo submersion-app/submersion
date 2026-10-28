@@ -755,6 +755,7 @@
   "buddyCard_field_certifications": "Brevetti",
   "buddyCard_saved_added": "{name} aggiunto ai tuoi compagni",
   "buddyCard_saved_updated": "{name} aggiornato",
+  "buddyCard_saved_view": "Visualizza",
   "buddyCard_error_notACard": "Non è una scheda compagno di Submersion.",
   "buddyCard_error_unreadable": "Impossibile leggere questa scheda compagno.",
   "buddySwap_title": "Scambia con un compagno",

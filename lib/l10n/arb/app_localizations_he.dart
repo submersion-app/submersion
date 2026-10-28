@@ -2859,6 +2859,9 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get buddyCard_saved_view => 'הצג';
+
+  @override
   String get buddyCard_error_notACard => 'זה לא כרטיס שותף של Submersion.';
 
   @override

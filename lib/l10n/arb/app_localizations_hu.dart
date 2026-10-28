@@ -2896,6 +2896,9 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get buddyCard_saved_view => 'Megtekintés';
+
+  @override
   String get buddyCard_error_notACard => 'Ez nem Submersion társkártya.';
 
   @override

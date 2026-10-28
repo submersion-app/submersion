@@ -2907,6 +2907,9 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get buddyCard_saved_view => 'Visualizza';
+
+  @override
   String get buddyCard_error_notACard =>
       'Non è una scheda compagno di Submersion.';
 

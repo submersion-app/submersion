@@ -2,6 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
+import 'package:submersion/features/divers/domain/entities/diver.dart';
 
 import '../../../helpers/test_database.dart';
 
@@ -60,6 +62,34 @@ void main() {
     // UTC midnight of the date: a synced device in another zone reads the
     // same day back.
     expect(row.cardLastDive, DateTime.utc(2026, 10, 3).millisecondsSinceEpoch);
+  });
+
+  test('every buddy lookup carries the card fields, so an update through '
+      'one keeps them', () async {
+    final repo = BuddyRepository();
+    // No diver yet, as a buddy from an older import can be.
+    await repo.createBuddy(carded);
+
+    final found = await repo.findOrCreateByName('Sam Rivera');
+    expect(found.cardId, 'diver-sam');
+    expect(found.socialHandle, '@samdives');
+    final searched = (await repo.searchBuddies('sam')).single;
+    expect(searched.cardDiveCount, 118);
+
+    // What a dive import does with a buddy that has no diver.
+    await DiverRepository().createDiver(
+      Diver(
+        id: 'me',
+        name: 'Me',
+        createdAt: DateTime(2026),
+        updatedAt: DateTime(2026),
+      ),
+    );
+    await repo.updateBuddy(found.copyWith(diverId: 'me'));
+    final read = (await repo.getBuddyById(carded.id))!;
+    expect(read.cardId, 'diver-sam');
+    expect(read.socialHandle, '@samdives');
+    expect(read.cardLastDive, DateTime(2026, 10, 3));
   });
 
   test('clearPhoto and clearLinkedDiver keep the card fields', () {

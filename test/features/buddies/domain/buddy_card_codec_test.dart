@@ -63,13 +63,13 @@ void main() {
 
   test('link fits 504 bytes for 12 certs and long emoji and Arabic names', () {
     final card = _sam(
-      name: 'سامي ريفيرا الغواص من البحر الأحمر 🐠🤿🌊',
+      name: 'سامي ريفيرا الغواص من البحر الأحمر \u{1F420}\u{1F93F}\u{1F30A}',
       social: '@a_very_long_social_handle_for_testing',
       certs: [
         for (var i = 0; i < 12; i++)
           BuddyCardCert(
             agency: 'SSI',
-            name: 'Specialty course number $i 🐙',
+            name: 'Specialty course number $i \u{1F419}',
             level: 'Level $i',
             cardNumber: 'SSI-000$i-XYZ',
             issueDate: DateTime(2015 + i),
@@ -282,5 +282,24 @@ void main() {
             as BuddyCardDecoded;
     expect(decoded.card.since, isNull);
     expect(decoded.card.dives, isNull);
+  });
+
+  test('a file is sniffed as a card only when it starts as this app writes '
+      'one, so other JSON is never parsed for it', () {
+    Uint8List bytesOf(String text) => Uint8List.fromList(utf8.encode(text));
+    expect(
+      BuddyCardCodec.looksLikeFullCard(
+        BuddyCardCodec.encodeFull(const BuddyCard(id: 'x', name: 'Sam')),
+      ),
+      isTrue,
+    );
+    // A dive log export: JSON, but not shaped like a card from its first
+    // byte, however its keys happen to read.
+    expect(
+      BuddyCardCodec.looksLikeFullCard(
+        bytesOf('{"i":"x","n":"Sam","v":1,"samples":[]}'),
+      ),
+      isFalse,
+    );
   });
 }

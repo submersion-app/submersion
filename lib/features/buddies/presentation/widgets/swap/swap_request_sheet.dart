@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/services/nearby/nearby_card_host.dart';
@@ -6,15 +8,27 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/profile_photo/profile_avatar.dart';
 
 /// Asks this diver whether to swap cards with [from] (issue #3728).
-/// Resolves true for Swap, false for Decline or a dismissed sheet.
+/// Resolves true for Swap, false for Decline, a dismissed sheet, or
+/// [closed] completing (the request expired): that removes this sheet even
+/// when another page has opened over it.
 Future<bool> showSwapRequestSheet(
   BuildContext context, {
   required NearbyCardPeer from,
   required String youSend,
+  Future<void>? closed,
 }) async {
+  ModalRoute<Object?>? sheet;
+  final navigator = Navigator.of(context);
+  unawaited(
+    closed?.then((_) {
+      final route = sheet;
+      if (route != null && route.isActive) navigator.removeRoute(route);
+    }),
+  );
   final answer = await showModalBottomSheet<bool>(
     context: context,
     builder: (context) {
+      sheet ??= ModalRoute.of(context);
       final l10n = context.l10n;
       final theme = Theme.of(context);
       return SafeArea(

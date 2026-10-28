@@ -755,6 +755,7 @@
   "buddyCard_field_certifications": "الشهادات",
   "buddyCard_saved_added": "تمت إضافة {name} إلى رفاقك",
   "buddyCard_saved_updated": "تم تحديث {name}",
+  "buddyCard_saved_view": "عرض",
   "buddyCard_error_notACard": "هذه ليست بطاقة رفيق من Submersion.",
   "buddyCard_error_unreadable": "تعذّرت قراءة بطاقة الرفيق هذه.",
   "buddySwap_title": "تبادل مع رفيق",

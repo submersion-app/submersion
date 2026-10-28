@@ -42,15 +42,21 @@ class BuddyCardLinkDispatcher {
   BuddyCardLinkDispatcher({
     required IncomingLinkSource source,
     required Future<void> Function(String text) open,
+    bool Function(String text)? alreadyHandled,
     DateTime Function()? clock,
     Duration repeatWindow = const Duration(seconds: 2),
   }) : _source = source,
        _open = open,
+       _alreadyHandled = alreadyHandled,
        _clock = clock ?? DateTime.now,
        _repeatWindow = repeatWindow;
 
   final IncomingLinkSource _source;
   final Future<void> Function(String text) _open;
+
+  /// Whether the app itself just read or wrote [text] over NFC: Android
+  /// then delivers a tag still held as a link, which is dropped.
+  final bool Function(String text)? _alreadyHandled;
   final DateTime Function() _clock;
   final Duration _repeatWindow;
 
@@ -94,6 +100,7 @@ class BuddyCardLinkDispatcher {
 
   void _onLink(String text) {
     if (!BuddyCardCodec.isCardLink(text)) return;
+    if (_alreadyHandled?.call(text) ?? false) return;
     final now = _clock();
     final last = _lastAt;
     if (text == _lastText &&

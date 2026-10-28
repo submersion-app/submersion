@@ -4483,6 +4483,12 @@ abstract class AppLocalizations {
   /// **'{name} updated'**
   String buddyCard_saved_updated(String name);
 
+  /// No description provided for @buddyCard_saved_view.
+  ///
+  /// In en, this message translates to:
+  /// **'View'**
+  String get buddyCard_saved_view;
+
   /// No description provided for @buddyCard_error_notACard.
   ///
   /// In en, this message translates to:

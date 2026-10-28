@@ -2904,6 +2904,9 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get buddyCard_saved_view => 'Ver';
+
+  @override
   String get buddyCard_error_notACard =>
       'Isto não é um cartão de parceiro do Submersion.';
 

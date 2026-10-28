@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
@@ -29,6 +30,7 @@ import 'package:submersion/features/backup/presentation/providers/backup_provide
 import 'package:submersion/features/backup/presentation/widgets/restore_barrier.dart';
 import 'package:submersion/features/buddies/domain/services/buddy_card_codec.dart';
 import 'package:submersion/features/buddies/presentation/services/buddy_card_link_dispatcher.dart';
+import 'package:submersion/features/buddies/presentation/services/recent_buddy_card_links.dart';
 import 'package:submersion/features/buddies/presentation/utils/open_buddy_card.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
 import 'package:submersion/features/cylinder_passports/presentation/services/passport_link_dispatcher.dart';
@@ -150,6 +152,8 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
     _buddyCardLinks = BuddyCardLinkDispatcher(
       source: _incomingLinks,
       open: _openBuddyCardLink,
+      alreadyHandled: (text) =>
+          ref.read(recentBuddyCardLinksProvider).takeJustHandled(text),
     );
     _passportLinks = PassportLinkDispatcher(
       source: _incomingLinks,
@@ -623,7 +627,23 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
 
   /// Opens a batch of shared files. False when this root can no longer
   /// open them.
-  Future<bool> _handleIncomingFiles(List<String> paths) async {
+  Future<bool> _handleIncomingFiles(List<String> shared) async {
+    // Buddy cards shared with other files open on their own (issue #3728).
+    final (:cards, others: paths) = splitBuddyCardPaths(shared);
+    for (final path in cards) {
+      final navContext = rootNavigatorKey.currentContext;
+      if (navContext == null || !navContext.mounted) return false;
+      try {
+        final bytes = await File(path).readAsBytes();
+        final current = rootNavigatorKey.currentContext;
+        if (current == null || !current.mounted) return false;
+        // Awaited: the next card opens once this one's preview closes.
+        await openBuddyCard(current, BuddyCardCodec.decodeFull(bytes));
+      } on FileSystemException catch (e) {
+        _reportShareError(e);
+      }
+    }
+    if (paths.isEmpty) return true;
     final router = ref.read(appRouterProvider);
     final location = router.routeInformationProvider.value.uri.path;
 

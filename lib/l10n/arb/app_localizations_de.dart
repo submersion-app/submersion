@@ -2902,6 +2902,9 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get buddyCard_saved_view => 'Anzeigen';
+
+  @override
   String get buddyCard_error_notACard =>
       'Das ist keine Submersion-Buddy-Karte.';
 

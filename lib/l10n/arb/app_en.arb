@@ -1718,6 +1718,7 @@
   "@buddyCard_saved_added": {"placeholders": {"name": {"type": "String"}}},
   "buddyCard_saved_updated": "{name} updated",
   "@buddyCard_saved_updated": {"placeholders": {"name": {"type": "String"}}},
+  "buddyCard_saved_view": "View",
   "buddyCard_error_notACard": "That is not a Submersion buddy card.",
   "buddyCard_error_unreadable": "This buddy card could not be read.",
   "buddySwap_title": "Swap with a buddy",

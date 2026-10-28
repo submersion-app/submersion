@@ -270,15 +270,29 @@ class _BuddyCardPreviewPageState extends ConsumerState<BuddyCardPreviewPage> {
       }
       if (!mounted) return;
       final l10n = context.l10n;
-      ScaffoldMessenger.maybeOf(context)?.showSnackBar(
-        SnackBar(
-          content: Text(
-            added
-                ? l10n.buddyCard_saved_added(buddy.name)
-                : l10n.buddyCard_saved_updated(buddy.name),
+      final message = added
+          ? l10n.buddyCard_saved_added(buddy.name)
+          : l10n.buddyCard_saved_updated(buddy.name);
+      // Opened over another screen (the swap screen, on the boat): go back
+      // to it, so the next swap is a tap away and the swap keeps running,
+      // with a way to the buddy. Opened on its own: show the buddy.
+      if (context.canPop()) {
+        final router = GoRouter.of(context);
+        ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+          SnackBar(
+            content: Text(message),
+            action: SnackBarAction(
+              label: l10n.buddyCard_saved_view,
+              onPressed: () => router.push('/buddies/${buddy.id}'),
+            ),
           ),
-        ),
-      );
+        );
+        context.pop();
+        return;
+      }
+      ScaffoldMessenger.maybeOf(
+        context,
+      )?.showSnackBar(SnackBar(content: Text(message)));
       context.go('/buddies/${buddy.id}');
     } finally {
       if (mounted) setState(() => _saving = false);

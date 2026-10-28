@@ -278,6 +278,44 @@ void main() {
     expect(find.text('Sam Rivera wants to swap cards'), findsNothing);
   });
 
+  testWidgets('an expired request closes its own sheet, not a card '
+      'preview opened over it', (tester) async {
+    await pump(tester);
+    session.controller.add(CardRequested(_sam, (_) {}));
+    await settle(tester);
+    session.controller.add(
+      CardReceived(
+        _alex,
+        BuddyCardCodec.encodeFull(const BuddyCard(id: 'a', name: 'Alex Kim')),
+      ),
+    );
+    await settle(tester);
+    expect(find.text('PREVIEW Alex Kim'), findsOneWidget);
+
+    session.controller.add(const CardRequestExpired(_sam));
+    await settle(tester);
+    expect(find.text('PREVIEW Alex Kim'), findsOneWidget);
+    expect(find.text('Sam Rivera wants to swap cards'), findsNothing);
+  });
+
+  testWidgets('a restart frees a row still waiting on the old session', (
+    tester,
+  ) async {
+    await pump(tester);
+    session.see([_sam]);
+    await settle(tester);
+    await tester.tap(find.text('Sam Rivera'));
+    await settle(tester);
+    expect(find.textContaining('Waiting'), findsOneWidget);
+
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await settle(tester);
+    session.see([_sam]);
+    await settle(tester);
+    expect(find.textContaining('Waiting'), findsNothing);
+  });
+
   testWidgets('closing the page while the session starts still stops it', (
     tester,
   ) async {

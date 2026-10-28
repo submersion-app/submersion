@@ -755,6 +755,7 @@
   "buddyCard_field_certifications": "Brevetten",
   "buddyCard_saved_added": "{name} toegevoegd aan je buddy's",
   "buddyCard_saved_updated": "{name} bijgewerkt",
+  "buddyCard_saved_view": "Bekijken",
   "buddyCard_error_notACard": "Dat is geen Submersion-buddykaart.",
   "buddyCard_error_unreadable": "Deze buddykaart kon niet worden gelezen.",
   "buddySwap_title": "Ruilen met een buddy",
