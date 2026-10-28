@@ -3118,6 +3118,8 @@
   "diveLog_cylinders_mod": "MOD {depth}",
   "diveLog_cylinders_mnd": "MND {depth}",
   "diveLog_cylinders_modNote": "MOD bei ppO₂ {ppO2}",
+  "diveLog_cylinders_modLimit": "{ppO2} ({limit})",
+  "diveLog_cylinders_modLimitSeparator": ", ",
   "diveLog_tank_section_gasMix": "Gasgemisch",
   "diveLog_tank_computerMix_matches": "Von Ihrem Tauchcomputer aufgezeichnet",
   "diveLog_tank_computerMix_differs": "Ihr Tauchcomputer hat {mix} aufgezeichnet",

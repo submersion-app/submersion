@@ -2992,6 +2992,8 @@
   "diveLog_cylinders_mod": "PMU {depth}",
   "diveLog_cylinders_mnd": "PNM {depth}",
   "diveLog_cylinders_modNote": "PMU à ppO₂ {ppO2}",
+  "diveLog_cylinders_modLimit": "{ppO2} ({limit})",
+  "diveLog_cylinders_modLimitSeparator": ", ",
   "diveLog_tank_section_gasMix": "Mélange gazeux",
   "diveLog_tank_computerMix_matches": "Enregistré par votre ordinateur de plongée",
   "diveLog_tank_computerMix_differs": "Votre ordinateur de plongée a enregistré {mix}",

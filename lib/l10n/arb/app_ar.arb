@@ -3093,6 +3093,8 @@
   "diveLog_cylinders_mod": "MOD {depth}",
   "diveLog_cylinders_mnd": "MND {depth}",
   "diveLog_cylinders_modNote": "MOD عند ppO₂ {ppO2}",
+  "diveLog_cylinders_modLimit": "{ppO2} ({limit})",
+  "diveLog_cylinders_modLimitSeparator": "، ",
   "diveLog_tank_section_gasMix": "خليط الغاز",
   "diveLog_tank_computerMix_matches": "سجّله كمبيوتر الغوص الخاص بك",
   "diveLog_tank_computerMix_differs": "سجّل كمبيوتر الغوص الخاص بك {mix}",

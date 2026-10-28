@@ -3208,6 +3208,8 @@
   "diveLog_cylinders_mod": "最大作业深度 {depth}",
   "diveLog_cylinders_mnd": "最大等效氮深 {depth}",
   "diveLog_cylinders_modNote": "氧分压 {ppO2} 时的最大作业深度",
+  "diveLog_cylinders_modLimit": "{ppO2}（{limit}）",
+  "diveLog_cylinders_modLimitSeparator": "、",
   "diveLog_tank_section_gasMix": "气体混合",
   "diveLog_tank_computerMix_matches": "由潜水电脑记录",
   "diveLog_tank_computerMix_differs": "潜水电脑记录的是 {mix}",

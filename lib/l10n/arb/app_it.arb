@@ -2992,6 +2992,8 @@
   "diveLog_cylinders_mod": "MOD {depth}",
   "diveLog_cylinders_mnd": "MND {depth}",
   "diveLog_cylinders_modNote": "MOD a ppO₂ {ppO2}",
+  "diveLog_cylinders_modLimit": "{ppO2} ({limit})",
+  "diveLog_cylinders_modLimitSeparator": ", ",
   "diveLog_tank_section_gasMix": "Miscela gas",
   "diveLog_tank_computerMix_matches": "Registrato dal tuo computer subacqueo",
   "diveLog_tank_computerMix_differs": "Il tuo computer subacqueo ha registrato {mix}",

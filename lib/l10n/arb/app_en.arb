@@ -5717,6 +5717,8 @@
   "diveLog_cylinders_mod": "MOD {depth}",
   "diveLog_cylinders_mnd": "MND {depth}",
   "diveLog_cylinders_modNote": "MOD at ppO₂ {ppO2}",
+  "diveLog_cylinders_modLimit": "{ppO2} ({limit})",
+  "diveLog_cylinders_modLimitSeparator": ", ",
   "diveLog_tank_section_gasMix": "Gas Mix",
   "diveLog_tank_computerMix_matches": "Recorded by your dive computer",
   "diveLog_tank_computerMix_differs": "Your dive computer recorded {mix}",
@@ -6391,8 +6393,22 @@
       }
     }
   },
+  "@diveLog_cylinders_modLimit": {
+    "description": "One item of the list in diveLog_cylinders_modNote: a ppO2 and the limit it is (tankMod_limitBottom, tankMod_limitDeco or tankMod_limitDiluent), e.g. \"1.6 (deco limit)\"",
+    "placeholders": {
+      "ppO2": {
+        "type": "String"
+      },
+      "limit": {
+        "type": "String"
+      }
+    }
+  },
+  "@diveLog_cylinders_modLimitSeparator": {
+    "description": "Separator between the diveLog_cylinders_modLimit items in diveLog_cylinders_modNote"
+  },
   "@diveLog_cylinders_modNote": {
-    "description": "Note under the Cylinders card table: the working ppO2 every MOD on the card was computed at, e.g. \"MOD at ppO₂ 1.4\"",
+    "description": "Note under the Cylinders card table: the ppO2 every MOD on the card was computed at. {ppO2} is one value (\"MOD at ppO₂ 1.4\") or, when the cylinders use different limits, a list of diveLog_cylinders_modLimit items (\"MOD at ppO₂ 1.4 (bottom limit), 1.6 (deco limit)\")",
     "placeholders": {
       "ppO2": {
         "type": "String"
