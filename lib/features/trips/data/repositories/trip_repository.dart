@@ -20,6 +20,7 @@ import 'package:submersion/features/trips/data/repositories/liveaboard_details_r
 import 'package:submersion/features/trips/data/repositories/trip_day_weather_repository.dart';
 import 'package:submersion/features/trips/data/repositories/trip_cylinder_repository.dart';
 import 'package:submersion/features/trips/data/repositories/trip_equipment_repository.dart';
+import 'package:submersion/features/trips/data/repositories/side_trip_links.dart';
 import 'package:submersion/features/trips/data/repositories/trip_row_mapper.dart';
 import 'package:submersion/features/trips/data/side_trip_sql.dart';
 import 'package:submersion/features/trips/domain/entities/dive_candidate.dart';
@@ -328,6 +329,9 @@ class TripRepository {
         await ProfileHidesRepository().deleteHides(SharedItemKind.trip, [id]);
         // Every share row of the trip (issue #2151), tombstoned.
         await ItemSharesRepository().deleteShares(SharedItemKind.trip, [id]);
+        // A side trip's dives go back to its larger trip, and a larger
+        // trip's side trips become trips of their own (issue #3658).
+        await detachSideTripsForDelete(_db, _syncRepository, [id], now: now);
         // Every profile's dives lose the trip, stamped and marked pending.
         await clearDiveTripLinks(_db, _syncRepository, [id], now: now);
         // Its documents go with it, tombstoned (issue #2613).
