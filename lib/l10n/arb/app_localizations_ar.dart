@@ -30309,6 +30309,84 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insights_timePatterns_seasonal_title => 'الأنماط الموسمية';
 
   @override
+  String get insights_timePatterns_calendarDays_title => 'أيام التقويم';
+
+  @override
+  String get insights_timePatterns_calendarDays_subtitle =>
+      'الغطسات في كل تاريخ من السنة (كل السنوات)';
+
+  @override
+  String insights_timePatterns_calendarDays_coverage(
+    int covered,
+    int total,
+    String percent,
+  ) {
+    return '$covered من $total يومًا في التقويم ($percent)';
+  }
+
+  @override
+  String insights_timePatterns_calendarDays_busiestMonth(String months) {
+    return 'الشهر الأكثر غطسًا: $months';
+  }
+
+  @override
+  String insights_timePatterns_calendarDays_busiestDay(String days) {
+    return 'يوم الشهر الأكثر غطسًا: $days';
+  }
+
+  @override
+  String insights_timePatterns_calendarDays_cellSemantics(
+    String date,
+    int count,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count غطسة',
+      many: '$count غطسة',
+      few: '$count غطسات',
+      two: 'غطستان',
+      one: 'غطسة واحدة',
+      zero: 'لا غطسات',
+    );
+    return '$date، $_temp0';
+  }
+
+  @override
+  String insights_timePatterns_calendarDays_totalSemantics(
+    String label,
+    int count,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count غطسة',
+      many: '$count غطسة',
+      few: '$count غطسات',
+      two: 'غطستان',
+      one: 'غطسة واحدة',
+      zero: 'لا غطسات',
+    );
+    return '$label، المجموع $_temp0';
+  }
+
+  @override
+  String insights_timePatterns_calendarDays_dayLabel(int day) {
+    return 'اليوم $day';
+  }
+
+  @override
+  String get insights_timePatterns_calendarDays_total => 'المجموع';
+
+  @override
+  String get insights_timePatterns_calendarDays_empty =>
+      'لا توجد غطسات لعرضها في التقويم بعد';
+
+  @override
+  String get insights_timePatterns_calendarDays_error =>
+      'تعذر تحميل أيام التقويم';
+
+  @override
   String get insights_timePatterns_surfaceInterval_average => 'المتوسط';
 
   @override

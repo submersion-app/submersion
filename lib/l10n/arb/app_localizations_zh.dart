@@ -28351,6 +28351,73 @@ class AppLocalizationsZh extends AppLocalizations {
   String get insights_timePatterns_seasonal_title => '季节性模式';
 
   @override
+  String get insights_timePatterns_calendarDays_title => '日历日';
+
+  @override
+  String get insights_timePatterns_calendarDays_subtitle => '一年中每个日期的潜水（所有年份）';
+
+  @override
+  String insights_timePatterns_calendarDays_coverage(
+    int covered,
+    int total,
+    String percent,
+  ) {
+    return '$total 个日历日中的 $covered 天（$percent）';
+  }
+
+  @override
+  String insights_timePatterns_calendarDays_busiestMonth(String months) {
+    return '潜水最多的月份：$months';
+  }
+
+  @override
+  String insights_timePatterns_calendarDays_busiestDay(String days) {
+    return '潜水最多的日期：$days 日';
+  }
+
+  @override
+  String insights_timePatterns_calendarDays_cellSemantics(
+    String date,
+    int count,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次潜水',
+      zero: '无潜水',
+    );
+    return '$date，$_temp0';
+  }
+
+  @override
+  String insights_timePatterns_calendarDays_totalSemantics(
+    String label,
+    int count,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次潜水',
+      zero: '无潜水',
+    );
+    return '$label，共 $_temp0';
+  }
+
+  @override
+  String insights_timePatterns_calendarDays_dayLabel(int day) {
+    return '$day 日';
+  }
+
+  @override
+  String get insights_timePatterns_calendarDays_total => '合计';
+
+  @override
+  String get insights_timePatterns_calendarDays_empty => '暂无可显示在日历上的潜水';
+
+  @override
+  String get insights_timePatterns_calendarDays_error => '无法加载日历日';
+
+  @override
   String get insights_timePatterns_surfaceInterval_average => '平均';
 
   @override

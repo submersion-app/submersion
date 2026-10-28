@@ -30012,6 +30012,78 @@ class AppLocalizationsDe extends AppLocalizations {
   String get insights_timePatterns_seasonal_title => 'Saisonale Muster';
 
   @override
+  String get insights_timePatterns_calendarDays_title => 'Kalendertage';
+
+  @override
+  String get insights_timePatterns_calendarDays_subtitle =>
+      'Tauchgänge an jedem Datum des Jahres (alle Jahre)';
+
+  @override
+  String insights_timePatterns_calendarDays_coverage(
+    int covered,
+    int total,
+    String percent,
+  ) {
+    return '$covered von $total Kalendertagen ($percent)';
+  }
+
+  @override
+  String insights_timePatterns_calendarDays_busiestMonth(String months) {
+    return 'Meiste Tauchgänge im Monat: $months';
+  }
+
+  @override
+  String insights_timePatterns_calendarDays_busiestDay(String days) {
+    return 'Meiste Tauchgänge am Tag: $days';
+  }
+
+  @override
+  String insights_timePatterns_calendarDays_cellSemantics(
+    String date,
+    int count,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchgänge',
+      one: '$count Tauchgang',
+      zero: 'keine Tauchgänge',
+    );
+    return '$date, $_temp0';
+  }
+
+  @override
+  String insights_timePatterns_calendarDays_totalSemantics(
+    String label,
+    int count,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchgänge',
+      one: '$count Tauchgang',
+      zero: 'keine Tauchgänge',
+    );
+    return '$label, insgesamt $_temp0';
+  }
+
+  @override
+  String insights_timePatterns_calendarDays_dayLabel(int day) {
+    return 'Tag $day';
+  }
+
+  @override
+  String get insights_timePatterns_calendarDays_total => 'Gesamt';
+
+  @override
+  String get insights_timePatterns_calendarDays_empty =>
+      'Noch keine Tauchgänge für den Kalender';
+
+  @override
+  String get insights_timePatterns_calendarDays_error =>
+      'Kalendertage konnten nicht geladen werden';
+
+  @override
   String get insights_timePatterns_surfaceInterval_average => 'Durchschnitt';
 
   @override

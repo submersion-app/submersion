@@ -30090,6 +30090,79 @@ class AppLocalizationsIt extends AppLocalizations {
   String get insights_timePatterns_seasonal_title => 'Distribuzioni stagionali';
 
   @override
+  String get insights_timePatterns_calendarDays_title =>
+      'Giorni del calendario';
+
+  @override
+  String get insights_timePatterns_calendarDays_subtitle =>
+      'Immersioni in ogni data dell\'anno (tutti gli anni)';
+
+  @override
+  String insights_timePatterns_calendarDays_coverage(
+    int covered,
+    int total,
+    String percent,
+  ) {
+    return '$covered giorni del calendario su $total ($percent)';
+  }
+
+  @override
+  String insights_timePatterns_calendarDays_busiestMonth(String months) {
+    return 'Mese con più immersioni: $months';
+  }
+
+  @override
+  String insights_timePatterns_calendarDays_busiestDay(String days) {
+    return 'Giorno del mese con più immersioni: $days';
+  }
+
+  @override
+  String insights_timePatterns_calendarDays_cellSemantics(
+    String date,
+    int count,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count immersioni',
+      one: '$count immersione',
+      zero: 'nessuna immersione',
+    );
+    return '$date, $_temp0';
+  }
+
+  @override
+  String insights_timePatterns_calendarDays_totalSemantics(
+    String label,
+    int count,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count immersioni',
+      one: '$count immersione',
+      zero: 'nessuna immersione',
+    );
+    return '$label, $_temp0 in totale';
+  }
+
+  @override
+  String insights_timePatterns_calendarDays_dayLabel(int day) {
+    return 'Giorno $day';
+  }
+
+  @override
+  String get insights_timePatterns_calendarDays_total => 'Totale';
+
+  @override
+  String get insights_timePatterns_calendarDays_empty =>
+      'Ancora nessuna immersione da mostrare sul calendario';
+
+  @override
+  String get insights_timePatterns_calendarDays_error =>
+      'Impossibile caricare i giorni del calendario';
+
+  @override
   String get insights_timePatterns_surfaceInterval_average => 'Media';
 
   @override

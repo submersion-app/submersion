@@ -29917,6 +29917,78 @@ class AppLocalizationsHu extends AppLocalizations {
   String get insights_timePatterns_seasonal_title => 'Évszakos minták';
 
   @override
+  String get insights_timePatterns_calendarDays_title => 'Naptári napok';
+
+  @override
+  String get insights_timePatterns_calendarDays_subtitle =>
+      'Merülések az év minden dátumán (minden év)';
+
+  @override
+  String insights_timePatterns_calendarDays_coverage(
+    int covered,
+    int total,
+    String percent,
+  ) {
+    return '$total naptári napból $covered ($percent)';
+  }
+
+  @override
+  String insights_timePatterns_calendarDays_busiestMonth(String months) {
+    return 'Legtöbb merülés hónapja: $months';
+  }
+
+  @override
+  String insights_timePatterns_calendarDays_busiestDay(String days) {
+    return 'Legtöbb merülés napja a hónapban: $days';
+  }
+
+  @override
+  String insights_timePatterns_calendarDays_cellSemantics(
+    String date,
+    int count,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülés',
+      one: '$count merülés',
+      zero: 'nincs merülés',
+    );
+    return '$date, $_temp0';
+  }
+
+  @override
+  String insights_timePatterns_calendarDays_totalSemantics(
+    String label,
+    int count,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülés',
+      one: '$count merülés',
+      zero: 'nincs merülés',
+    );
+    return '$label, összesen $_temp0';
+  }
+
+  @override
+  String insights_timePatterns_calendarDays_dayLabel(int day) {
+    return '$day. nap';
+  }
+
+  @override
+  String get insights_timePatterns_calendarDays_total => 'Összesen';
+
+  @override
+  String get insights_timePatterns_calendarDays_empty =>
+      'Még nincs merülés a naptárhoz';
+
+  @override
+  String get insights_timePatterns_calendarDays_error =>
+      'A naptári napok betöltése sikertelen';
+
+  @override
   String get insights_timePatterns_surfaceInterval_average => 'Átlag';
 
   @override

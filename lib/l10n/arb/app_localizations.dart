@@ -48180,6 +48180,82 @@ abstract class AppLocalizations {
   /// **'Seasonal Patterns'**
   String get insights_timePatterns_seasonal_title;
 
+  /// Title of the Time patterns card showing dives on each calendar date (a 12 x 31 grid)
+  ///
+  /// In en, this message translates to:
+  /// **'Calendar Days'**
+  String get insights_timePatterns_calendarDays_title;
+
+  /// Subtitle of the calendar days card
+  ///
+  /// In en, this message translates to:
+  /// **'Dives on each date of the year (all years)'**
+  String get insights_timePatterns_calendarDays_subtitle;
+
+  /// Headline: how many of the 366 calendar dates have at least one dive
+  ///
+  /// In en, this message translates to:
+  /// **'{covered} of {total} calendar days ({percent})'**
+  String insights_timePatterns_calendarDays_coverage(
+    int covered,
+    int total,
+    String percent,
+  );
+
+  /// The month or months with the most dives; several are joined with commas
+  ///
+  /// In en, this message translates to:
+  /// **'Busiest month: {months}'**
+  String insights_timePatterns_calendarDays_busiestMonth(String months);
+
+  /// The day or days of the month (1 to 31) with the most dives; several are joined with commas
+  ///
+  /// In en, this message translates to:
+  /// **'Busiest day of month: {days}'**
+  String insights_timePatterns_calendarDays_busiestDay(String days);
+
+  /// Screen-reader label of one calendar cell: the date and its dive count
+  ///
+  /// In en, this message translates to:
+  /// **'{date}, {count, plural, =0{no dives} one{{count} dive} other{{count} dives}}'**
+  String insights_timePatterns_calendarDays_cellSemantics(
+    String date,
+    int count,
+  );
+
+  /// Screen-reader label of a month or day-of-month total in the calendar days grid
+  ///
+  /// In en, this message translates to:
+  /// **'{label}, {count, plural, =0{no dives} one{{count} dive} other{{count} dives}} in total'**
+  String insights_timePatterns_calendarDays_totalSemantics(
+    String label,
+    int count,
+  );
+
+  /// Names a day of the month in a screen-reader label, for its column total
+  ///
+  /// In en, this message translates to:
+  /// **'Day {day}'**
+  String insights_timePatterns_calendarDays_dayLabel(int day);
+
+  /// Screen-reader label of the totals row and column header in the calendar days grid
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get insights_timePatterns_calendarDays_total;
+
+  /// Calendar days card when there are no dives in scope
+  ///
+  /// In en, this message translates to:
+  /// **'No dives to place on the calendar yet'**
+  String get insights_timePatterns_calendarDays_empty;
+
+  /// Calendar days card when its data failed to load
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load calendar days'**
+  String get insights_timePatterns_calendarDays_error;
+
   /// No description provided for @insights_timePatterns_surfaceInterval_average.
   ///
   /// In en, this message translates to:

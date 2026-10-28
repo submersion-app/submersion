@@ -29316,6 +29316,78 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_timePatterns_seasonal_title => 'דפוסים עונתיים';
 
   @override
+  String get insights_timePatterns_calendarDays_title => 'ימי לוח השנה';
+
+  @override
+  String get insights_timePatterns_calendarDays_subtitle =>
+      'צלילות בכל תאריך בשנה (כל השנים)';
+
+  @override
+  String insights_timePatterns_calendarDays_coverage(
+    int covered,
+    int total,
+    String percent,
+  ) {
+    return '$covered מתוך $total ימים בלוח השנה ($percent)';
+  }
+
+  @override
+  String insights_timePatterns_calendarDays_busiestMonth(String months) {
+    return 'החודש העמוס ביותר: $months';
+  }
+
+  @override
+  String insights_timePatterns_calendarDays_busiestDay(String days) {
+    return 'היום בחודש העמוס ביותר: $days';
+  }
+
+  @override
+  String insights_timePatterns_calendarDays_cellSemantics(
+    String date,
+    int count,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count צלילות',
+      one: 'צלילה אחת',
+      zero: 'אין צלילות',
+    );
+    return '$date, $_temp0';
+  }
+
+  @override
+  String insights_timePatterns_calendarDays_totalSemantics(
+    String label,
+    int count,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count צלילות',
+      one: 'צלילה אחת',
+      zero: 'אין צלילות',
+    );
+    return '$label, סך הכול $_temp0';
+  }
+
+  @override
+  String insights_timePatterns_calendarDays_dayLabel(int day) {
+    return 'יום $day';
+  }
+
+  @override
+  String get insights_timePatterns_calendarDays_total => 'סך הכול';
+
+  @override
+  String get insights_timePatterns_calendarDays_empty =>
+      'עדיין אין צלילות להצגה בלוח השנה';
+
+  @override
+  String get insights_timePatterns_calendarDays_error =>
+      'טעינת ימי לוח השנה נכשלה';
+
+  @override
   String get insights_timePatterns_surfaceInterval_average => 'ממוצע';
 
   @override

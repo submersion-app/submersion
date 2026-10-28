@@ -8,6 +8,7 @@ import 'package:submersion/features/insights/domain/time_of_day_bucket.dart';
 import 'package:submersion/features/insights/presentation/formatters/distribution_labels.dart';
 import 'package:submersion/features/insights/presentation/formatters/time_of_day_colors.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
+import 'package:submersion/features/insights/presentation/widgets/calendar_day_matrix_card.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_charts.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_section_card.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -39,6 +40,8 @@ class InsightsTimePatternsPage extends ConsumerWidget {
           _buildTimeOfDaySection(context, ref),
           const SizedBox(height: 16),
           _buildSeasonalSection(context, ref),
+          const SizedBox(height: 16),
+          const CalendarDayMatrixCard(),
           const SizedBox(height: 16),
           _buildSurfaceIntervalSection(context, ref),
         ],

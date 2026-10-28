@@ -30101,6 +30101,78 @@ class AppLocalizationsEs extends AppLocalizations {
   String get insights_timePatterns_seasonal_title => 'Patrones estacionales';
 
   @override
+  String get insights_timePatterns_calendarDays_title => 'Días del calendario';
+
+  @override
+  String get insights_timePatterns_calendarDays_subtitle =>
+      'Inmersiones en cada fecha del año (todos los años)';
+
+  @override
+  String insights_timePatterns_calendarDays_coverage(
+    int covered,
+    int total,
+    String percent,
+  ) {
+    return '$covered de $total días del calendario ($percent)';
+  }
+
+  @override
+  String insights_timePatterns_calendarDays_busiestMonth(String months) {
+    return 'Mes con más inmersiones: $months';
+  }
+
+  @override
+  String insights_timePatterns_calendarDays_busiestDay(String days) {
+    return 'Día del mes con más inmersiones: $days';
+  }
+
+  @override
+  String insights_timePatterns_calendarDays_cellSemantics(
+    String date,
+    int count,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count inmersiones',
+      one: '$count inmersión',
+      zero: 'sin inmersiones',
+    );
+    return '$date, $_temp0';
+  }
+
+  @override
+  String insights_timePatterns_calendarDays_totalSemantics(
+    String label,
+    int count,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count inmersiones',
+      one: '$count inmersión',
+      zero: 'sin inmersiones',
+    );
+    return '$label, $_temp0 en total';
+  }
+
+  @override
+  String insights_timePatterns_calendarDays_dayLabel(int day) {
+    return 'Día $day';
+  }
+
+  @override
+  String get insights_timePatterns_calendarDays_total => 'Total';
+
+  @override
+  String get insights_timePatterns_calendarDays_empty =>
+      'Aún no hay inmersiones para el calendario';
+
+  @override
+  String get insights_timePatterns_calendarDays_error =>
+      'No se pudieron cargar los días del calendario';
+
+  @override
   String get insights_timePatterns_surfaceInterval_average => 'Promedio';
 
   @override

@@ -29567,6 +29567,78 @@ class AppLocalizationsEn extends AppLocalizations {
   String get insights_timePatterns_seasonal_title => 'Seasonal Patterns';
 
   @override
+  String get insights_timePatterns_calendarDays_title => 'Calendar Days';
+
+  @override
+  String get insights_timePatterns_calendarDays_subtitle =>
+      'Dives on each date of the year (all years)';
+
+  @override
+  String insights_timePatterns_calendarDays_coverage(
+    int covered,
+    int total,
+    String percent,
+  ) {
+    return '$covered of $total calendar days ($percent)';
+  }
+
+  @override
+  String insights_timePatterns_calendarDays_busiestMonth(String months) {
+    return 'Busiest month: $months';
+  }
+
+  @override
+  String insights_timePatterns_calendarDays_busiestDay(String days) {
+    return 'Busiest day of month: $days';
+  }
+
+  @override
+  String insights_timePatterns_calendarDays_cellSemantics(
+    String date,
+    int count,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dives',
+      one: '$count dive',
+      zero: 'no dives',
+    );
+    return '$date, $_temp0';
+  }
+
+  @override
+  String insights_timePatterns_calendarDays_totalSemantics(
+    String label,
+    int count,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dives',
+      one: '$count dive',
+      zero: 'no dives',
+    );
+    return '$label, $_temp0 in total';
+  }
+
+  @override
+  String insights_timePatterns_calendarDays_dayLabel(int day) {
+    return 'Day $day';
+  }
+
+  @override
+  String get insights_timePatterns_calendarDays_total => 'Total';
+
+  @override
+  String get insights_timePatterns_calendarDays_empty =>
+      'No dives to place on the calendar yet';
+
+  @override
+  String get insights_timePatterns_calendarDays_error =>
+      'Failed to load calendar days';
+
+  @override
   String get insights_timePatterns_surfaceInterval_average => 'Average';
 
   @override
