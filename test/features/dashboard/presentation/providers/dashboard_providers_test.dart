@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
@@ -113,9 +114,13 @@ void main() {
 
     // Dive times are wall clocks flagged as UTC, so today's local date is
     // stored with DateTime.utc. A local DateTime would land on the previous
-    // UTC day east of Greenwich and miss the month/day match.
+    // UTC day east of Greenwich and miss the month/day match. Today is
+    // pinned: a real 29 February has no match in the prior years, and a run
+    // across midnight would split the test's date from the provider's.
+    final today = DateTime(2026, 7, 24, 12);
+
     test('hydrates dives from this date in prior years', () async {
-      final now = DateTime.now();
+      final now = today;
       await repository.createDive(
         Dive(
           id: 'two-years-ago',
@@ -135,12 +140,15 @@ void main() {
         ),
       );
 
-      final dives = await container.read(onThisDayProvider.future);
+      final dives = await withClock(
+        Clock.fixed(today),
+        () => container.read(onThisDayProvider.future),
+      );
       expect(dives.map((d) => d.id), ['last-year', 'two-years-ago']);
     });
 
     test('is empty when no prior-year dive shares the date', () async {
-      final now = DateTime.now();
+      final now = today;
       await repository.createDive(
         Dive(
           id: 'other-day',
@@ -148,7 +156,10 @@ void main() {
         ),
       );
 
-      final dives = await container.read(onThisDayProvider.future);
+      final dives = await withClock(
+        Clock.fixed(today),
+        () => container.read(onThisDayProvider.future),
+      );
       expect(dives, isEmpty);
     });
   });
