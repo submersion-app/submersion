@@ -6443,6 +6443,7 @@
   "settings_conflict_field_equipmentArrangement": "Felszerelés elrendezése",
   "settings_conflict_field_equipmentGroupByLocation": "Felszerelés hely szerint csoportosítva",
   "settings_conflict_field_listArrangementHlc": "Listaelrendezési napló",
+  "settings_conflict_sortValue": "{field}, {direction}",
   "settings_conflict_field_avgSpeed": "Átlagsebesség",
   "settings_conflict_field_batteryReserveFraction": "Akkumulátortartalék",
   "settings_conflict_field_bboxHeight": "Keret magassága",

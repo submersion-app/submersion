@@ -6,7 +6,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 /// How the diver grouped the Dive Sites list, as they left it (issue #3748):
 /// the active diver's saved grouping, or ungrouped when there is none.
 /// Change it through `ListArrangementWrites.setSiteGroupBy`.
-final siteGroupByProvider = StateProvider<SiteGroupBy>(
+final siteGroupByProvider = Provider<SiteGroupBy>(
   (ref) =>
       decodeEnumName(
         ref.watch(

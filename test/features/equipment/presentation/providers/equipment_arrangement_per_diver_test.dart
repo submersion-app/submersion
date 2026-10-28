@@ -20,9 +20,11 @@ import '../../../../support/fake_app_settings_repository.dart';
 class _LegacyRepository extends FakeAppSettingsRepository {
   EquipmentArrangement? legacy;
   bool failRead = false;
+  int reads = 0;
 
   @override
   Future<EquipmentArrangement?> getEquipmentArrangement() async {
+    reads++;
     if (failRead) throw StateError('read failed');
     return legacy;
   }
@@ -127,6 +129,33 @@ void main() {
       (current) => current.copyWith(groupByType: true),
     );
     expect(saved(), flat.copyWith(groupByType: true));
+  });
+
+  test('a diver with their own value never reads the app-wide one', () async {
+    ownArrangement(flat);
+    await settings.updateEquipmentArrangement(
+      repository,
+      (current) => current.copyWith(groupByType: true),
+    );
+    expect(repository.reads, 0);
+    expect(saved(), flat.copyWith(groupByType: true));
+  });
+
+  test('the fallback order is own, then app-wide, then defaults', () {
+    final own = encodeEquipmentArrangement(flat);
+    expect(pickEquipmentArrangement(own, () => headToToe), flat);
+    expect(pickEquipmentArrangement(null, () => headToToe), headToToe);
+    expect(pickEquipmentArrangement('not json', () => headToToe), headToToe);
+    expect(
+      pickEquipmentArrangement(null, () => null),
+      EquipmentArrangement.defaults,
+    );
+    var asked = false;
+    pickEquipmentArrangement(own, () {
+      asked = true;
+      return headToToe;
+    });
+    expect(asked, isFalse, reason: 'own value: the app-wide one is not read');
   });
 
   test('failed legacy read refuses the edit', () async {

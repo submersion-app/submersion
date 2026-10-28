@@ -22839,6 +22839,11 @@ class AppLocalizationsNl extends AppLocalizations {
       'Log van lijstordening';
 
   @override
+  String settings_conflict_sortValue(String field, String direction) {
+    return '$field, $direction';
+  }
+
+  @override
   String get settings_conflict_field_avgSpeed => 'Gemiddelde snelheid';
 
   @override

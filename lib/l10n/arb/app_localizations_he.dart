@@ -22451,6 +22451,11 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_field_listArrangementHlc => 'יומן סידור הרשימות';
 
   @override
+  String settings_conflict_sortValue(String field, String direction) {
+    return '$field, $direction';
+  }
+
+  @override
   String get settings_conflict_field_avgSpeed => 'מהירות ממוצעת';
 
   @override

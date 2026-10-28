@@ -6443,6 +6443,7 @@
   "settings_conflict_field_equipmentArrangement": "Disposizione dell'attrezzatura",
   "settings_conflict_field_equipmentGroupByLocation": "Attrezzatura raggruppata per posizione",
   "settings_conflict_field_listArrangementHlc": "Registro della disposizione degli elenchi",
+  "settings_conflict_sortValue": "{field}, {direction}",
   "settings_conflict_field_avgSpeed": "Velocità media",
   "settings_conflict_field_batteryReserveFraction": "Riserva della batteria",
   "settings_conflict_field_bboxHeight": "Altezza del riquadro",

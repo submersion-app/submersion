@@ -165,3 +165,16 @@ EquipmentArrangement? decodeEquipmentArrangement(String? raw) {
   if (decoded is! Map<String, dynamic>) return null;
   return EquipmentArrangement.fromJson(decoded);
 }
+
+/// The arrangement a diver sees (issue #3748): their own saved value, else
+/// the app-wide one older builds saved, else [EquipmentArrangement.defaults].
+///
+/// [legacy] is asked only when [saved] holds nothing usable, so a diver with
+/// their own arrangement never reads the app-wide value.
+EquipmentArrangement pickEquipmentArrangement(
+  String? saved,
+  EquipmentArrangement? Function() legacy,
+) =>
+    decodeEquipmentArrangement(saved) ??
+    legacy() ??
+    EquipmentArrangement.defaults;

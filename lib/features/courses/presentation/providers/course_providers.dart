@@ -64,7 +64,7 @@ final completedCoursesProvider = FutureProvider<List<Course>>((ref) async {
 /// Comes back as the diver left it (issue #3748): the active diver's saved
 /// sort, or the starting order below when there is none (or this build
 /// cannot read it). Change it through `ListArrangementWrites`.
-final courseSortProvider = StateProvider<SortState<CourseSortField>>(
+final courseSortProvider = Provider<SortState<CourseSortField>>(
   (ref) =>
       decodeSortState(
         ref.watch(
@@ -395,7 +395,7 @@ final inProgressCourseCountProvider = FutureProvider<int>((ref) async {
 
 /// The course list's view mode, as the diver left it (issue #3748); same
 /// contract as [diveListViewModeProvider].
-final courseListViewModeProvider = StateProvider<ListViewMode>((ref) {
+final courseListViewModeProvider = Provider<ListViewMode>((ref) {
   return ref.watch(settingsProvider.select((s) => s.courseListViewMode));
 });
 

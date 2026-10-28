@@ -13,6 +13,7 @@ import 'package:submersion/features/weight_planner/presentation/widgets/weight_e
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 export 'conflict_enum_labels_equipment.dart';
+export 'conflict_enum_labels_lists.dart';
 export 'conflict_enum_labels_people.dart';
 export 'conflict_enum_labels_settings.dart';
 export 'conflict_enum_labels_sites.dart';

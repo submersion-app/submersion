@@ -22981,6 +22981,11 @@ class AppLocalizationsIt extends AppLocalizations {
       'Registro della disposizione degli elenchi';
 
   @override
+  String settings_conflict_sortValue(String field, String direction) {
+    return '$field, $direction';
+  }
+
+  @override
   String get settings_conflict_field_avgSpeed => 'Velocità media';
 
   @override

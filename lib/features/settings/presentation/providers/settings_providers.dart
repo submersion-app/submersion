@@ -1798,7 +1798,11 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     });
   }
 
-  Future<void> _saveSettings() async {
+  /// Saves [state]: the device-local preferences, then the diver's row.
+  ///
+  /// [devicePrefs] false skips the preferences for a change that has none,
+  /// such as how a list was left (issue #3748), saved on most list taps.
+  Future<void> _saveSettings({bool devicePrefs = true}) async {
     // Taken before the first await: [state] can move on, and a diver switch
     // can start, while the writes below are out. The row write carries
     // exactly this change, to the diver it was made for.
@@ -1810,37 +1814,40 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     final turnDone = Completer<void>();
     _rowWriteTurn = turnDone.future;
     try {
-      // Device-local preferences are always persisted to SharedPreferences,
-      // independent of whether a diver is currently selected.
       final prefs = _ref.read(sharedPreferencesProvider);
-      await prefs.setStringList(
-        SettingsKeys.hiddenHomeChips,
-        state.hiddenHomeChips.toList()..sort(),
-      );
-      await prefs.setStringList(
-        SettingsKeys.homeCardOrder,
-        state.homeCardOrder,
-      );
-      await prefs.setStringList(
-        SettingsKeys.hiddenHomeCards,
-        state.hiddenHomeCards.toList()..sort(),
-      );
-      await prefs.setString(SettingsKeys.o2CellUnit, state.o2CellUnit.name);
-      await prefs.setBool(
-        SettingsKeys.perdixOverlayEnabled,
-        state.perdixOverlayEnabled,
-      );
-      final perdixX = state.perdixOverlayX;
-      if (perdixX != null) {
-        await prefs.setDouble(SettingsKeys.perdixOverlayX, perdixX);
+      if (devicePrefs) {
+        // Device-local preferences are always persisted to SharedPreferences,
+        // independent of whether a diver is currently selected.
+        await prefs.setStringList(
+          SettingsKeys.hiddenHomeChips,
+          state.hiddenHomeChips.toList()..sort(),
+        );
+        await prefs.setStringList(
+          SettingsKeys.homeCardOrder,
+          state.homeCardOrder,
+        );
+        await prefs.setStringList(
+          SettingsKeys.hiddenHomeCards,
+          state.hiddenHomeCards.toList()..sort(),
+        );
+        await prefs.setString(SettingsKeys.o2CellUnit, state.o2CellUnit.name);
+        await prefs.setBool(
+          SettingsKeys.perdixOverlayEnabled,
+          state.perdixOverlayEnabled,
+        );
+        final perdixX = state.perdixOverlayX;
+        if (perdixX != null) {
+          await prefs.setDouble(SettingsKeys.perdixOverlayX, perdixX);
+        }
+        final perdixY = state.perdixOverlayY;
+        if (perdixY != null) {
+          await prefs.setDouble(SettingsKeys.perdixOverlayY, perdixY);
+        }
+        await _writeCachedTheme(prefs);
       }
-      final perdixY = state.perdixOverlayY;
-      if (perdixY != null) {
-        await prefs.setDouble(SettingsKeys.perdixOverlayY, perdixY);
-      }
-      await _writeCachedTheme(prefs);
 
       if (diverId == null) {
+        if (!devicePrefs) return;
         // No diver yet: these prefs are the pSCR ratio's and viewport
         // choice's only store; a diver row adopts them on load (v262).
         if (_prefsAreStore) {
@@ -2830,7 +2837,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       }
       if (!mounted) return;
       state = change(state);
-      await _saveSettings();
+      await _saveSettings(devicePrefs: false);
     }
 
     final saving = work();
@@ -3793,32 +3800,32 @@ final tissueVizModeProvider = Provider<TissueVizMode>((ref) {
 /// value: it follows a diver switch and a change synced from another device.
 /// It watches only its own column, so a write to any other setting leaves
 /// it alone. The view modes below follow the same contract.
-final diveListViewModeProvider = StateProvider<ListViewMode>((ref) {
+final diveListViewModeProvider = Provider<ListViewMode>((ref) {
   return ref.watch(settingsProvider.select((s) => s.diveListViewMode));
 });
 
 /// The dive list's "group trips" toggle (issue #1193), as the diver left it;
 /// same contract as [diveListViewModeProvider].
-final diveListGroupTripsProvider = StateProvider<bool>((ref) {
+final diveListGroupTripsProvider = Provider<bool>((ref) {
   return ref.watch(settingsProvider.select((s) => s.groupTripsInDiveList));
 });
 
-final siteListViewModeProvider = StateProvider<ListViewMode>((ref) {
+final siteListViewModeProvider = Provider<ListViewMode>((ref) {
   return ref.watch(settingsProvider.select((s) => s.siteListViewMode));
 });
 
-final tripListViewModeProvider = StateProvider<ListViewMode>((ref) {
+final tripListViewModeProvider = Provider<ListViewMode>((ref) {
   return ref.watch(settingsProvider.select((s) => s.tripListViewMode));
 });
 
-final equipmentListViewModeProvider = StateProvider<ListViewMode>((ref) {
+final equipmentListViewModeProvider = Provider<ListViewMode>((ref) {
   return ref.watch(settingsProvider.select((s) => s.equipmentListViewMode));
 });
 
-final buddyListViewModeProvider = StateProvider<ListViewMode>((ref) {
+final buddyListViewModeProvider = Provider<ListViewMode>((ref) {
   return ref.watch(settingsProvider.select((s) => s.buddyListViewMode));
 });
 
-final diveCenterListViewModeProvider = StateProvider<ListViewMode>((ref) {
+final diveCenterListViewModeProvider = Provider<ListViewMode>((ref) {
   return ref.watch(settingsProvider.select((s) => s.diveCenterListViewMode));
 });

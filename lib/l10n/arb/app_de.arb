@@ -6675,6 +6675,7 @@
   "settings_conflict_field_equipmentArrangement": "Ausrüstungsanordnung",
   "settings_conflict_field_equipmentGroupByLocation": "Ausrüstung nach Ort gruppiert",
   "settings_conflict_field_listArrangementHlc": "Protokoll der Listenanordnung",
+  "settings_conflict_sortValue": "{field}, {direction}",
   "settings_conflict_field_avgSpeed": "Durchschnittsgeschwindigkeit",
   "settings_conflict_field_batteryReserveFraction": "Akkureserve",
   "settings_conflict_field_bboxHeight": "Rahmenhöhe",

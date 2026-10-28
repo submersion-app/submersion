@@ -64,7 +64,7 @@ final allBuddiesProvider = FutureProvider<List<Buddy>>((ref) async {
 /// Comes back as the diver left it (issue #3748): the active diver's saved
 /// sort, or the starting order below when there is none (or this build
 /// cannot read it). Change it through `ListArrangementWrites`.
-final buddySortProvider = StateProvider<SortState<BuddySortField>>(
+final buddySortProvider = Provider<SortState<BuddySortField>>(
   (ref) =>
       decodeSortState(
         ref.watch(settingsProvider.select((s) => s.listArrangements.buddySort)),

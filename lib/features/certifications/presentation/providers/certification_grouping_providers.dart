@@ -10,7 +10,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 /// Comes back as the diver left it (issue #3748): the active diver's saved
 /// grouping, or by status when there is none. Change it through
 /// `ListArrangementWrites.setCertificationGroupBy`.
-final certificationGroupByProvider = StateProvider<CertificationGroupBy>(
+final certificationGroupByProvider = Provider<CertificationGroupBy>(
   (ref) =>
       decodeEnumName(
         ref.watch(

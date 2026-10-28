@@ -6544,6 +6544,7 @@
   "settings_conflict_field_equipmentArrangement": "Ordening van uitrusting",
   "settings_conflict_field_equipmentGroupByLocation": "Uitrusting gegroepeerd op locatie",
   "settings_conflict_field_listArrangementHlc": "Log van lijstordening",
+  "settings_conflict_sortValue": "{field}, {direction}",
   "settings_conflict_field_avgSpeed": "Gemiddelde snelheid",
   "settings_conflict_field_batteryReserveFraction": "Accureserve",
   "settings_conflict_field_bboxHeight": "Hoogte van het kader",

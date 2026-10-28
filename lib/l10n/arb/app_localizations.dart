@@ -36429,6 +36429,12 @@ abstract class AppLocalizations {
   /// **'List arrangement record'**
   String get settings_conflict_field_listArrangementHlc;
 
+  /// A saved list sort in a sync conflict: the sort field, then its direction
+  ///
+  /// In en, this message translates to:
+  /// **'{field}, {direction}'**
+  String settings_conflict_sortValue(String field, String direction);
+
   /// No description provided for @settings_conflict_field_avgSpeed.
   ///
   /// In en, this message translates to:

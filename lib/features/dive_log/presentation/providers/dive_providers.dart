@@ -58,7 +58,7 @@ final diveFilterProvider = StateProvider<DiveFilterState>(
 /// Comes back as the diver left it (issue #3748): the active diver's saved
 /// sort, or the starting order below when there is none (or this build
 /// cannot read it). Change it through `ListArrangementWrites`.
-final diveSortProvider = StateProvider<SortState<DiveSortField>>(
+final diveSortProvider = Provider<SortState<DiveSortField>>(
   (ref) =>
       decodeSortState(
         ref.watch(settingsProvider.select((s) => s.listArrangements.diveSort)),

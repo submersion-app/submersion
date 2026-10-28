@@ -5,6 +5,7 @@ import 'package:submersion/features/certifications/presentation/utils/certificat
 import 'package:submersion/features/dive_sites/domain/utils/site_grouping.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
 import 'package:submersion/features/settings/data/repositories/app_settings_repository.dart';
+import 'package:submersion/features/settings/domain/list_arrangements.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// Saves how the diver left each list (issue #3748), for the active diver.
@@ -86,25 +87,37 @@ extension ListArrangementWrites on SettingsNotifier {
   ) async {
     EquipmentArrangement? legacy;
     var legacyUnreadable = false;
-    try {
-      legacy = await legacySource.getEquipmentArrangement();
-    } catch (_) {
-      legacyUnreadable = true;
+    final own = currentListArrangements.equipmentArrangement;
+    if (decodeEquipmentArrangement(own) == null) {
+      try {
+        legacy = await legacySource.getEquipmentArrangement();
+      } catch (_) {
+        legacyUnreadable = true;
+      }
     }
     await updateListArrangements((saved) {
-      var current = decodeEquipmentArrangement(saved.equipmentArrangement);
-      if (current == null) {
+      final current = pickEquipmentArrangement(saved.equipmentArrangement, () {
         if (legacyUnreadable) {
           throw StateError(
             'The stored gear arrangement could not be read, so a change '
             'cannot be applied to it',
           );
         }
-        current = legacy ?? EquipmentArrangement.defaults;
-      }
+        return legacy;
+      });
       return saved.copyWith(
         equipmentArrangement: encodeEquipmentArrangement(change(current)),
       );
     });
+  }
+
+  /// How the diver left their lists as the notifier holds it now, read
+  /// without a ref: a listener fires once, immediately, with the state, and
+  /// is removed straight away so nothing stays registered.
+  ListArrangements get currentListArrangements {
+    late ListArrangements current;
+    final removeListener = addListener((s) => current = s.listArrangements);
+    removeListener();
+    return current;
   }
 }

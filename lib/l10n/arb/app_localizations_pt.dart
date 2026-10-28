@@ -22979,6 +22979,11 @@ class AppLocalizationsPt extends AppLocalizations {
       'Registro de organização das listas';
 
   @override
+  String settings_conflict_sortValue(String field, String direction) {
+    return '$field, $direction';
+  }
+
+  @override
   String get settings_conflict_field_avgSpeed => 'Velocidade média';
 
   @override

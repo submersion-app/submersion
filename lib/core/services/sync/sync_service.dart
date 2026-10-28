@@ -3970,16 +3970,21 @@ class SyncService {
         // media: a stale row still hands over a newer sort, and a newer
         // settings change does not take a stale one. An unorderable pending
         // row keeps its own user fields, as the gate above intends, and
-        // opens only its groups to the peer.
+        // opens only its groups to the peer. A row new here takes every
+        // group from the peer, and a peer too old to send a group clock
+        // hands over its row clock as that clock (mergeFactGroups), so a
+        // later local save cannot give its untouched groups a fresh clock.
         if (factGroups.isNotEmpty &&
-            local != null &&
-            (pendingUnorderable || (localHlc != null && remoteHlc != null))) {
+            (local == null ||
+                pendingUnorderable ||
+                (localHlc != null && remoteHlc != null))) {
           for (final g in factGroups) {
             final factClock = _parseHlc(record[g.clockKey]);
             if (factClock != null) SyncClock.instance.receive(factClock);
           }
           final rowFromRemote =
-              !pendingUnorderable && remoteHlc!.compareTo(localHlc!) > 0;
+              local == null ||
+              (!pendingUnorderable && remoteHlc!.compareTo(localHlc!) > 0);
           final resolved = mergeFactGroups(
             entityType: entityType,
             base: rowFromRemote

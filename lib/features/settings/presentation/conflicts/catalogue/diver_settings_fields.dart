@@ -341,47 +341,58 @@ final Map<String, ConflictField> diverSettingsFields = {
   // listArrangementHlc.
   'diveListSort': ConflictField(
     (l) => l.settings_conflict_field_diveListSort,
-    FieldKind.shortText,
+    FieldKind.enumValue,
+    enumLabel: diveListSortLabeler,
   ),
   'divePlanListSort': ConflictField(
     (l) => l.settings_conflict_field_divePlanListSort,
-    FieldKind.shortText,
+    FieldKind.enumValue,
+    enumLabel: divePlanListSortLabeler,
   ),
   'tripListSort': ConflictField(
     (l) => l.settings_conflict_field_tripListSort,
-    FieldKind.shortText,
+    FieldKind.enumValue,
+    enumLabel: tripListSortLabeler,
   ),
   'courseListSort': ConflictField(
     (l) => l.settings_conflict_field_courseListSort,
-    FieldKind.shortText,
+    FieldKind.enumValue,
+    enumLabel: courseListSortLabeler,
   ),
   'buddyListSort': ConflictField(
     (l) => l.settings_conflict_field_buddyListSort,
-    FieldKind.shortText,
+    FieldKind.enumValue,
+    enumLabel: buddyListSortLabeler,
   ),
   'diveCenterListSort': ConflictField(
     (l) => l.settings_conflict_field_diveCenterListSort,
-    FieldKind.shortText,
+    FieldKind.enumValue,
+    enumLabel: diveCenterListSortLabeler,
   ),
   'siteListSort': ConflictField(
     (l) => l.settings_conflict_field_siteListSort,
-    FieldKind.shortText,
+    FieldKind.enumValue,
+    enumLabel: siteListSortLabeler,
   ),
   'certificationListSort': ConflictField(
     (l) => l.settings_conflict_field_certificationListSort,
-    FieldKind.shortText,
+    FieldKind.enumValue,
+    enumLabel: certificationListSortLabeler,
   ),
   'equipmentListSort': ConflictField(
     (l) => l.settings_conflict_field_equipmentListSort,
-    FieldKind.shortText,
+    FieldKind.enumValue,
+    enumLabel: equipmentListSortLabeler,
   ),
   'siteListGroupBy': ConflictField(
     (l) => l.settings_conflict_field_siteListGroupBy,
-    FieldKind.shortText,
+    FieldKind.enumValue,
+    enumLabel: siteListGroupByLabeler,
   ),
   'certificationListGroupBy': ConflictField(
     (l) => l.settings_conflict_field_certificationListGroupBy,
-    FieldKind.shortText,
+    FieldKind.enumValue,
+    enumLabel: certificationListGroupByLabeler,
   ),
   'equipmentArrangement': ConflictField(
     (l) => l.settings_conflict_field_equipmentArrangement,

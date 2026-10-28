@@ -125,6 +125,20 @@ void main() {
     expect(a.diveSort, isNull);
   });
 
+  test('a list save leaves the device-local preferences alone', () async {
+    // A sort is one of the most frequent taps in the app; it saves one
+    // diver-settings column and has no business rewriting every
+    // device-local preference as well.
+    final notifier = await loaded();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(SettingsKeys.o2CellUnit, 'untouched');
+
+    await notifier.setTripSort(const SortState(field: TripSortField.name));
+
+    expect(prefs.getString(SettingsKeys.o2CellUnit), 'untouched');
+    expect((await stored()).listArrangements.tripSort, 'name:descending');
+  });
+
   test('two quick sorts both land', () async {
     final notifier = await loaded();
     await Future.wait([

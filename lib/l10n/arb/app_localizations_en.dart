@@ -22633,6 +22633,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'List arrangement record';
 
   @override
+  String settings_conflict_sortValue(String field, String direction) {
+    return '$field, $direction';
+  }
+
+  @override
   String get settings_conflict_field_avgSpeed => 'Average speed';
 
   @override

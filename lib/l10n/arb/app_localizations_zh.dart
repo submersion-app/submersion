@@ -21793,6 +21793,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_listArrangementHlc => '列表排列记录';
 
   @override
+  String settings_conflict_sortValue(String field, String direction) {
+    return '$field，$direction';
+  }
+
+  @override
   String get settings_conflict_field_avgSpeed => '平均速度';
 
   @override

@@ -23286,6 +23286,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_field_listArrangementHlc => 'سجل ترتيب القوائم';
 
   @override
+  String settings_conflict_sortValue(String field, String direction) {
+    return '$field، $direction';
+  }
+
+  @override
   String get settings_conflict_field_avgSpeed => 'متوسط السرعة';
 
   @override

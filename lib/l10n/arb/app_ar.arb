@@ -6544,6 +6544,7 @@
   "settings_conflict_field_equipmentArrangement": "ترتيب المعدات",
   "settings_conflict_field_equipmentGroupByLocation": "المعدات مجمعة حسب الموقع",
   "settings_conflict_field_listArrangementHlc": "سجل ترتيب القوائم",
+  "settings_conflict_sortValue": "{field}، {direction}",
   "settings_conflict_field_avgSpeed": "متوسط السرعة",
   "settings_conflict_field_batteryReserveFraction": "احتياطي البطارية",
   "settings_conflict_field_bboxHeight": "ارتفاع الإطار",

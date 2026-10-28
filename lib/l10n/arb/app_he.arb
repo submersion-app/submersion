@@ -6548,6 +6548,7 @@
   "settings_conflict_field_equipmentArrangement": "סידור הציוד",
   "settings_conflict_field_equipmentGroupByLocation": "ציוד מקובץ לפי מיקום",
   "settings_conflict_field_listArrangementHlc": "יומן סידור הרשימות",
+  "settings_conflict_sortValue": "{field}, {direction}",
   "settings_conflict_field_avgSpeed": "מהירות ממוצעת",
   "settings_conflict_field_batteryReserveFraction": "עתודת סוללה",
   "settings_conflict_field_bboxHeight": "גובה המסגרת",

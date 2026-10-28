@@ -22904,6 +22904,11 @@ class AppLocalizationsHu extends AppLocalizations {
       'Listaelrendezési napló';
 
   @override
+  String settings_conflict_sortValue(String field, String direction) {
+    return '$field, $direction';
+  }
+
+  @override
   String get settings_conflict_field_avgSpeed => 'Átlagsebesség';
 
   @override

@@ -6696,6 +6696,7 @@
   "settings_conflict_field_equipmentArrangement": "装备排列",
   "settings_conflict_field_equipmentGroupByLocation": "装备按位置分组",
   "settings_conflict_field_listArrangementHlc": "列表排列记录",
+  "settings_conflict_sortValue": "{field}，{direction}",
   "settings_conflict_field_avgSpeed": "平均速度",
   "settings_conflict_field_batteryReserveFraction": "电池余量",
   "settings_conflict_field_bboxHeight": "框高",

@@ -103,7 +103,11 @@ Future<List<Override>> _buildOverrides({
 
   return [
     sharedPreferencesProvider.overrideWithValue(prefs),
-    settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+    // The view mode is read from the diver's saved settings (#3748).
+    settingsProvider.overrideWith(
+      (ref) =>
+          MockSettingsNotifier(AppSettings(equipmentListViewMode: viewMode)),
+    ),
     currentDiverIdProvider.overrideWith((ref) => MockCurrentDiverIdNotifier()),
     equipmentByStatusProvider.overrideWith((ref, status) => <EquipmentItem>[]),
     activeEquipmentProvider.overrideWith((ref) async => <EquipmentItem>[]),
@@ -113,7 +117,6 @@ Future<List<Override>> _buildOverrides({
     tagListNotifierProvider.overrideWith((ref) => _EmptyTagList()),
     fakeEquipmentQueryIds(),
     allEquipmentProvider.overrideWith((ref) async => <EquipmentItem>[]),
-    equipmentListViewModeProvider.overrideWith((ref) => viewMode),
     equipmentTableConfigProvider.overrideWith(
       (ref) => _TestEquipTableConfigNotifier(),
     ),
@@ -530,11 +533,13 @@ void main() {
         final container = ProviderScope.containerOf(
           tester.element(find.byType(EquipmentListPage)),
         );
-        container.read(equipmentListViewModeProvider.notifier).state =
-            ListViewMode.detailed;
+        container
+            .read(settingsProvider.notifier)
+            .setEquipmentListViewMode(ListViewMode.detailed);
         await tester.pumpAndSettle();
-        container.read(equipmentListViewModeProvider.notifier).state =
-            ListViewMode.table;
+        container
+            .read(settingsProvider.notifier)
+            .setEquipmentListViewMode(ListViewMode.table);
         await tester.pumpAndSettle();
 
         expect(find.byKey(const ValueKey('selection_exit')), findsNothing);

@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/misc.dart' show ProviderListenable;
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
+import 'package:submersion/features/settings/presentation/providers/list_arrangement_writes.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// The app-wide arrangement older builds saved under the
@@ -31,14 +32,12 @@ final legacyEquipmentArrangementProvider =
 /// preference; it settles on the fallback once that read lands. Change it
 /// through `ListArrangementWrites.updateEquipmentArrangement`.
 final equipmentArrangementProvider = Provider<EquipmentArrangement>((ref) {
-  final own = decodeEquipmentArrangement(
+  return pickEquipmentArrangement(
     ref.watch(
       settingsProvider.select((s) => s.listArrangements.equipmentArrangement),
     ),
+    () => ref.watch(legacyEquipmentArrangementProvider).value,
   );
-  if (own != null) return own;
-  return ref.watch(legacyEquipmentArrangementProvider).value ??
-      EquipmentArrangement.defaults;
 });
 
 /// The arrangement for a one-shot reader such as the PDF export, which must
@@ -61,20 +60,14 @@ Future<EquipmentArrangement> resolveEquipmentArrangement(
   } catch (_) {
     // Already logged by the load; the state it left stands.
   }
-  // The notifier's current state, read without the caller's ref: a
-  // listener fires once, immediately, with it, and is removed straight away
-  // so nothing stays registered.
-  String? saved;
-  final removeListener = settings.addListener(
-    (s) => saved = s.listArrangements.equipmentArrangement,
-  );
-  removeListener();
-  final own = decodeEquipmentArrangement(saved);
-  if (own != null) return own;
-  try {
-    return await repository.getEquipmentArrangement() ??
-        EquipmentArrangement.defaults;
-  } catch (_) {
-    return EquipmentArrangement.defaults;
+  final saved = settings.currentListArrangements.equipmentArrangement;
+  EquipmentArrangement? legacy;
+  if (decodeEquipmentArrangement(saved) == null) {
+    try {
+      legacy = await repository.getEquipmentArrangement();
+    } catch (_) {
+      // Unreadable: the export still prints, in the default order.
+    }
   }
+  return pickEquipmentArrangement(saved, () => legacy);
 }

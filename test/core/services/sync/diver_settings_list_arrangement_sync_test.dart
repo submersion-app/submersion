@@ -201,6 +201,37 @@ void main() {
     },
   );
 
+  test('a row first arriving from an older peer takes its row clock as the '
+      'group clock', () async {
+    // An older build sends no group clock. Left null, the next local
+    // settings save here would fill it with a brand-new clock and let this
+    // row's untouched view modes beat a newer change made elsewhere.
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await db
+        .into(db.divers)
+        .insert(
+          DiversCompanion.insert(
+            id: 'd2',
+            name: 'Second Diver',
+            createdAt: now,
+            updatedAt: now,
+          ),
+        );
+    final rowClock = await laterClock();
+    final peer = Map<String, dynamic>.of(await local())
+      ..remove('listArrangementHlc')
+      ..remove('diveListSort');
+    await apply({...peer, 'id': 'peer-row', 'diverId': 'd2', 'hlc': rowClock});
+
+    final row = await db
+        .customSelect(
+          "SELECT list_arrangement_hlc FROM diver_settings "
+          "WHERE id = 'peer-row'",
+        )
+        .getSingle();
+    expect(row.read<String?>('list_arrangement_hlc'), rowClock);
+  });
+
   test(
     'incremental export includes a row whose only change was an arrangement',
     () async {

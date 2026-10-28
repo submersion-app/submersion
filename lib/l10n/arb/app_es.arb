@@ -6544,6 +6544,7 @@
   "settings_conflict_field_equipmentArrangement": "Organización del equipo",
   "settings_conflict_field_equipmentGroupByLocation": "Equipo agrupado por ubicación",
   "settings_conflict_field_listArrangementHlc": "Registro de organización de listas",
+  "settings_conflict_sortValue": "{field}, {direction}",
   "settings_conflict_field_avgSpeed": "Velocidad media",
   "settings_conflict_field_batteryReserveFraction": "Reserva de batería",
   "settings_conflict_field_bboxHeight": "Alto del recuadro",

@@ -22951,6 +22951,11 @@ class AppLocalizationsDe extends AppLocalizations {
       'Protokoll der Listenanordnung';
 
   @override
+  String settings_conflict_sortValue(String field, String direction) {
+    return '$field, $direction';
+  }
+
+  @override
   String get settings_conflict_field_avgSpeed => 'Durchschnittsgeschwindigkeit';
 
   @override
