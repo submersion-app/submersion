@@ -144,8 +144,8 @@ Top to bottom:
    and "Tap to swap". A diver found on both carriers shows once, using
    Multipeer. "Looking for more..." sits under the list.
 2. **"Sharing: name, phone, AOW + Nitrox, 342 dives · Change".**
-3. **Fallbacks**, as buttons: Show my code, Scan code, Send file, Write NFC
-   sticker. On iPhone, "Tap an Android phone" too. On Android, "Receive by
+3. **Fallbacks**, as buttons: Show my code, Scan code, Send file, Open card
+   file, Write NFC sticker. On iPhone, "Tap an Android phone" too. On Android, "Receive by
    tap" too.
 
 While the screen is open:
@@ -181,9 +181,11 @@ All six end in the same import preview (section 6).
 3. **Share-sheet file.** "Send file" writes the full card to a temporary
    `<name>.subbuddy` file and opens the system share sheet (AirDrop, Quick
    Share, Messages, email). The app registers the type: an exported UTI on
-   Apple platforms (`app.submersion.buddy-card`, extension `subbuddy`), an
-   intent filter on Android, file associations on Windows and Linux.
-   Opening the file lands in the preview.
+   Apple platforms (`app.submersion.buddy-card`, extension `subbuddy`) and
+   an intent filter on Android. Windows and Linux register no file types
+   today (not even UDDF), so there a card file opens by dropping it on the
+   app or through an "Open card file" button on the swap screen. Opening the
+   file lands in the preview.
 4. **iPhone nearby swap (Multipeer).** A new native Swift plugin wraps
    `MCNearbyServiceAdvertiser` and `MCNearbyServiceBrowser` with a
    Submersion service type, used only while the swap screen is open. It
@@ -282,8 +284,9 @@ New on `certifications`: `card_id` (text, nullable, synced), the id of the
 card that created the row; null for rows entered by hand.
 
 New on `divers`: `social_handle` (text, nullable, synced). Entities, mappers
-and `copyWith` follow. The share choices live in the per-diver settings the
-app already syncs.
+and `copyWith` follow. The share choices live on the diver's own row in
+`buddy_card_share`, a JSON text column (null means the defaults), so they
+are per diver profile and sync with it.
 
 ### 8. What else the diver sees
 
@@ -347,7 +350,9 @@ that repository, since this worktree cannot write there.
 - A 60-second answer window for a swap request.
 - Hold-together on iPhone 11 and later sends the request automatically; the
   receiver still accepts.
-- Share choices are per diver profile and synced with the diver's settings.
+- Share choices are per diver profile, stored as JSON on the diver's row.
+- No Windows or Linux file association; card files open there by drop or
+  an "Open card file" button.
 - File extension `.subbuddy`, link path `/b`, card payload in the URL
   fragment.
 - Certification provenance in a `card_id` column; card-made certifications
