@@ -29,6 +29,8 @@ class MediaLibraryFilter {
     this.sourceType,
     this.health,
     this.tagIds = const {},
+    this.buddyIds = const {},
+    this.includeMe = false,
   });
 
   final MediaType? mediaType;
@@ -51,6 +53,18 @@ class MediaLibraryFilter {
   /// constraint.
   final Set<String> tagIds;
 
+  /// Rows tagged with any of these buddies (issue #1745). Empty means no
+  /// buddy constraint.
+  final Set<String> buddyIds;
+
+  /// Rows the viewing diver is tagged in as "Me" (issue #1745). A flag, not
+  /// a diver id: smart albums are shared by every profile on the device, so
+  /// "Photos of me" shows each profile its own photos.
+  final bool includeMe;
+
+  /// Whether a person (a buddy or Me) narrows the rows.
+  bool get hasPeople => buddyIds.isNotEmpty || includeMe;
+
   static const MediaLibraryFilter none = MediaLibraryFilter();
 
   bool get isEmpty =>
@@ -63,7 +77,8 @@ class MediaLibraryFilter {
       toDate == null &&
       sourceType == null &&
       health == null &&
-      tagIds.isEmpty;
+      tagIds.isEmpty &&
+      !hasPeople;
 
   /// Sentinel-based copyWith so callers can explicitly clear a field back to
   /// null (the plain `??` idiom cannot).
@@ -78,6 +93,8 @@ class MediaLibraryFilter {
     Object? sourceType = _undefined,
     Object? health = _undefined,
     Set<String>? tagIds,
+    Set<String>? buddyIds,
+    bool? includeMe,
   }) {
     return MediaLibraryFilter(
       mediaType: mediaType == _undefined
@@ -96,6 +113,8 @@ class MediaLibraryFilter {
           : sourceType as MediaSourceType?,
       health: health == _undefined ? this.health : health as MediaHealthFilter?,
       tagIds: tagIds ?? this.tagIds,
+      buddyIds: buddyIds ?? this.buddyIds,
+      includeMe: includeMe ?? this.includeMe,
     );
   }
 
@@ -124,6 +143,9 @@ class MediaLibraryFilter {
     // Left out when empty, so an album saved before tags keeps the JSON it
     // always had. Sorted, so the same selection always encodes the same.
     if (tagIds.isNotEmpty) 'tagIds': tagIds.sorted(),
+    // Left out when empty or off, like the tags (issue #1745).
+    if (buddyIds.isNotEmpty) 'buddyIds': buddyIds.sorted(),
+    if (includeMe) 'me': true,
   };
 
   /// Decodes leniently: an album written by a newer version (or a value
@@ -144,6 +166,11 @@ class MediaLibraryFilter {
         final List<dynamic> ids => {...ids.whereType<String>()},
         _ => const {},
       },
+      buddyIds: switch (json['buddyIds']) {
+        final List<dynamic> ids => {...ids.whereType<String>()},
+        _ => const {},
+      },
+      includeMe: json['me'] == true,
     );
   }
 
@@ -174,7 +201,9 @@ class MediaLibraryFilter {
         other.toDate == toDate &&
         other.sourceType == sourceType &&
         other.health == health &&
-        const SetEquality<String>().equals(other.tagIds, tagIds);
+        const SetEquality<String>().equals(other.tagIds, tagIds) &&
+        const SetEquality<String>().equals(other.buddyIds, buddyIds) &&
+        other.includeMe == includeMe;
   }
 
   @override
@@ -189,6 +218,8 @@ class MediaLibraryFilter {
     sourceType,
     health,
     const SetEquality<String>().hash(tagIds),
+    const SetEquality<String>().hash(buddyIds),
+    includeMe,
   );
 }
 

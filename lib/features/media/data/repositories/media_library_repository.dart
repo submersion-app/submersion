@@ -78,6 +78,37 @@ class MediaLibraryRepository {
       ? const Constant(true)
       : _db.media.diveId.isNull() | _db.dives.diverId.equals(diverId);
 
+  /// Any of the selected buddies, or the viewing diver's own Me tags
+  /// (issue #1745). EXISTS for the same reason as the tag facet: a photo
+  /// with two of them comes back once. Without a diver (all profiles), Me
+  /// matches any Me tag. When Me is off and none of the selected buddies
+  /// still exists (an album outliving them), the facet is dropped rather
+  /// than matching nothing, as the tag facet does.
+  Expression<bool> _peopleFacet(String? diverId, MediaLibraryFilter filter) {
+    final m = _db.media;
+    final p = _db.mediaPeople;
+    final b = _db.buddies;
+    final buddyIds = filter.buddyIds;
+    final me = !filter.includeMe
+        ? const Constant(false)
+        : diverId == null
+        ? p.diverId.isNotNull()
+        : p.diverId.equals(diverId);
+    final person = buddyIds.isEmpty ? me : (p.buddyId.isIn(buddyIds) | me);
+    final tagged = existsQuery(
+      _db.selectOnly(p)
+        ..addColumns([p.id])
+        ..where(p.mediaId.equalsExp(m.id) & person),
+    );
+    if (filter.includeMe) return tagged;
+    final anySelectedBuddyExists = existsQuery(
+      _db.selectOnly(b)
+        ..addColumns([b.id])
+        ..where(b.id.isIn(buddyIds)),
+    );
+    return anySelectedBuddyExists.not() | tagged;
+  }
+
   Expression<bool> _baseWhere(String? diverId, MediaLibraryFilter filter) {
     final m = _db.media;
     final d = _db.dives;
@@ -136,6 +167,9 @@ class MediaLibraryRepository {
                   ..addColumns([mt.id])
                   ..where(mt.mediaId.equalsExp(m.id) & mt.tagId.isIn(tagIds)),
               ));
+    }
+    if (filter.hasPeople) {
+      where = where & _peopleFacet(diverId, filter);
     }
     // taken_at is stored as wall-clock-as-UTC millis, so a bound picked in
     // local time has to be normalised the same way before it can be
@@ -530,6 +564,12 @@ class MediaLibraryRepository {
   /// `remote_uploaded_at` row by row as it drains -- collapse into one reload
   /// instead of one per write.
   Stream<void> watchMediaChanges() => _db
-      .tableUpdates(TableUpdateQuery.onAllTables([_db.media, _db.mediaTags]))
+      .tableUpdates(
+        TableUpdateQuery.onAllTables([
+          _db.media,
+          _db.mediaTags,
+          _db.mediaPeople,
+        ]),
+      )
       .debounce(MediaRepository.changeTickDebounce);
 }
