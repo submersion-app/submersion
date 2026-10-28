@@ -16165,35 +16165,23 @@ abstract class AppLocalizations {
   /// **'MOD: {mod} (ppO₂ {ppO2}) | MND: {mnd}'**
   String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd);
 
-  /// Cylinders card table header over the tank size, name and role
+  /// Cylinders card tank figure label: the start pressure, at its level beside the tank figure, e.g. "Start 200 bar". pressure is the value with its unit.
   ///
   /// In en, this message translates to:
-  /// **'Tank'**
-  String get diveLog_cylinders_columnTank;
+  /// **'Start {pressure}'**
+  String diveLog_cylinders_figureStart(String pressure);
 
-  /// Cylinders card table header over the gas mix
+  /// Cylinders card tank figure label: the end pressure, at its level beside the tank figure, e.g. "End 200 bar". pressure is the value with its unit.
   ///
   /// In en, this message translates to:
-  /// **'Gas'**
-  String get diveLog_cylinders_columnGas;
+  /// **'End {pressure}'**
+  String diveLog_cylinders_figureEnd(String pressure);
 
-  /// Cylinders card table header over the start pressure; the pressure unit is shown under it
+  /// Cylinders card tank figure label: the pressure used, between the start and end labels beside the tank figure, e.g. "Used 200 bar". pressure is the value with its unit.
   ///
   /// In en, this message translates to:
-  /// **'Start'**
-  String get diveLog_cylinders_columnStart;
-
-  /// Cylinders card table header over the end pressure; the pressure unit is shown under it
-  ///
-  /// In en, this message translates to:
-  /// **'End'**
-  String get diveLog_cylinders_columnEnd;
-
-  /// Cylinders card table header over the pressure used; the pressure unit is shown under it
-  ///
-  /// In en, this message translates to:
-  /// **'Used'**
-  String get diveLog_cylinders_columnUsed;
+  /// **'Used {pressure}'**
+  String diveLog_cylinders_figureUsed(String pressure);
 
   /// Cylinders card detail item: the volume of gas the dive consumed from this cylinder, e.g. "Gas used 1665 L"
   ///

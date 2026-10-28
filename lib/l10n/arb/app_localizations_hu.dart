@@ -10152,19 +10152,19 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get diveLog_cylinders_columnTank => 'Palack';
+  String diveLog_cylinders_figureStart(String pressure) {
+    return 'Kezdő $pressure';
+  }
 
   @override
-  String get diveLog_cylinders_columnGas => 'Gáz';
+  String diveLog_cylinders_figureEnd(String pressure) {
+    return 'Záró $pressure';
+  }
 
   @override
-  String get diveLog_cylinders_columnStart => 'Kezdő';
-
-  @override
-  String get diveLog_cylinders_columnEnd => 'Záró';
-
-  @override
-  String get diveLog_cylinders_columnUsed => 'Felhasznált';
+  String diveLog_cylinders_figureUsed(String pressure) {
+    return 'Felhasznált $pressure';
+  }
 
   @override
   String diveLog_cylinders_gasUsed(String amount) {

@@ -15,9 +15,12 @@ import 'package:submersion/features/dive_log/domain/services/source_name_resolve
 import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_analysis_providers.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/cylinder_table.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/cylinder_block.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/field_attribution_badge.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/gas_colors.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/tank_figure.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/tank_fill_levels.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_series_reassign_sheet.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/observation_status_chip.dart';
@@ -30,11 +33,12 @@ import 'package:submersion/features/trips/presentation/providers/trip_cylinder_p
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// Unified card showing every cylinder on a dive as a table: one row per
-/// tank with what it is, its gas, and its start, end and used pressures, and
-/// under each row a quiet detail block (gas used, SAC and RMV, MOD/MND, trip
-/// cylinder, transmitter, check-in). Issue #3675 replaced a stack of lines
-/// that each had a style of their own.
+/// Unified card showing every cylinder on a dive: each tank drawn as a
+/// figure filled to show the gas left and the gas used, labelled with its
+/// start, end and used pressures (issue #3773), beside what the tank is, its
+/// gas, and a quiet detail block (gas used, SAC and RMV, MOD/MND, trip
+/// cylinder, transmitter, check-in). Issue #3675 had first made the stack of
+/// differently styled lines a table.
 ///
 /// Replaces the former Tanks card and SAC by Cylinder block. Occupies the
 /// [DiveDetailSectionId.tanks] slot on the dive detail page. Per-tank SAC
@@ -99,13 +103,6 @@ class CylindersCard extends ConsumerWidget {
 
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final columns = (
-      tank: l10n.diveLog_cylinders_columnTank,
-      gas: l10n.diveLog_cylinders_columnGas,
-      start: l10n.diveLog_cylinders_columnStart,
-      end: l10n.diveLog_cylinders_columnEnd,
-      used: l10n.diveLog_cylinders_columnUsed,
-    );
     final rows = [
       for (final entry in dive.tanks.asMap().entries)
         _tankRow(
@@ -120,7 +117,6 @@ class CylindersCard extends ConsumerWidget {
           knownSerials: knownSerials,
           slotLabel: slotLabels[entry.value.tripCylinderId],
           showRole: showRoles,
-          columns: columns,
         ),
     ];
 
@@ -134,9 +130,7 @@ class CylindersCard extends ConsumerWidget {
               l10n.diveLog_detail_section_cylinders,
               style: theme.textTheme.titleMedium,
             ),
-            const SizedBox(height: 12),
-            CylinderTableHeader(labels: columns, unit: units.pressureSymbol),
-            const Divider(height: 1),
+            const SizedBox(height: 4),
             for (var i = 0; i < rows.length; i++) ...[
               if (i > 0)
                 Divider(height: 1, color: theme.colorScheme.outlineVariant),
@@ -201,7 +195,6 @@ class CylindersCard extends ConsumerWidget {
     required Set<String> knownSerials,
     required TripCylinderTankLabel? slotLabel,
     required bool showRole,
-    required CylinderColumnLabels columns,
   }) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
@@ -219,14 +212,35 @@ class CylindersCard extends ConsumerWidget {
     // A tank carried but not breathed used 0, which is not missing data;
     // only a rise (a sensor or entry error) has no meaningful figure.
     final hasUsed = pressureUsed != null && pressureUsed > 0;
-    final usedText = pressureUsed != null && pressureUsed >= 0
-        ? units.formatPressureValue(pressureUsed)
-        : null;
 
     // Preset display name, falling back to formatted volume.
     final preset = tank.presetName != null
         ? TankPresets.byName(tank.presetName!)
         : null;
+    // The figure is full at the tank's rated pressure, so a short fill shows
+    // as a tank never quite full; the preset fills in a tank's own gaps.
+    final figure = TankFigure(
+      levels: TankFillLevels.resolve(
+        start: pressures.$1,
+        end: pressures.$2,
+        rated: tank.workingPressure ?? preset?.workingPressureBar,
+      ),
+      gasColor: GasColors.forGasMix(tank.gasMix),
+      volumeLiters: tank.volume ?? preset?.volumeLiters,
+      startLabel: l10n.diveLog_cylinders_figureStart(
+        units.formatPressure(pressures.$1),
+      ),
+      endLabel: l10n.diveLog_cylinders_figureEnd(
+        units.formatPressure(pressures.$2),
+      ),
+      usedLabel: pressureUsed != null && pressureUsed >= 0
+          ? l10n.diveLog_cylinders_figureUsed(
+              units.formatPressure(pressureUsed),
+            )
+          : null,
+      markStart: pressures.$1 != null,
+      markEnd: pressures.$2 != null,
+    );
     final sizeLabel =
         preset?.displayName ??
         (tank.volume != null
@@ -258,7 +272,8 @@ class CylindersCard extends ConsumerWidget {
     // volume opens the detail line (after the source badge, when shown).
     final gasUsedLiters = cylinderSac?.gasUsedLiters;
 
-    return CylinderTableRow(
+    return CylinderBlock(
+      figure: figure,
       icon: tank.role.icon,
       title: title,
       subtitle: [
@@ -270,15 +285,6 @@ class CylindersCard extends ConsumerWidget {
           ),
       ],
       gasMix: tank.gasMix,
-      start: pressures.$1 == null
-          ? null
-          : units.formatPressureValue(pressures.$1),
-      end: pressures.$2 == null
-          ? null
-          : units.formatPressureValue(pressures.$2),
-      used: usedText,
-      columnLabels: columns,
-      unit: units.pressureSymbol,
       details: [
         DotJoinedWrap(
           children: [

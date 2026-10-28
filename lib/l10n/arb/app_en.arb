@@ -5708,11 +5708,9 @@
   "diveLog_tank_label_workingPressure": "Working P",
   "diveLog_tank_mndHelper": "Set to auto-calculate He%",
   "diveLog_tank_modMndInfo": "MOD: {mod} (ppO₂ {ppO2}) | MND: {mnd}",
-  "diveLog_cylinders_columnTank": "Tank",
-  "diveLog_cylinders_columnGas": "Gas",
-  "diveLog_cylinders_columnStart": "Start",
-  "diveLog_cylinders_columnEnd": "End",
-  "diveLog_cylinders_columnUsed": "Used",
+  "diveLog_cylinders_figureStart": "Start {pressure}",
+  "diveLog_cylinders_figureEnd": "End {pressure}",
+  "diveLog_cylinders_figureUsed": "Used {pressure}",
   "diveLog_cylinders_gasUsed": "Gas used {amount}",
   "diveLog_cylinders_mod": "MOD {depth}",
   "diveLog_cylinders_mnd": "MND {depth}",
@@ -6352,20 +6350,29 @@
       }
     }
   },
-  "@diveLog_cylinders_columnTank": {
-    "description": "Cylinders card table header over the tank size, name and role"
+  "@diveLog_cylinders_figureStart": {
+    "description": "Cylinders card tank figure label: the start pressure, at its level beside the tank figure, e.g. \"Start 200 bar\". pressure is the value with its unit.",
+    "placeholders": {
+      "pressure": {
+        "type": "String"
+      }
+    }
   },
-  "@diveLog_cylinders_columnGas": {
-    "description": "Cylinders card table header over the gas mix"
+  "@diveLog_cylinders_figureEnd": {
+    "description": "Cylinders card tank figure label: the end pressure, at its level beside the tank figure, e.g. \"End 200 bar\". pressure is the value with its unit.",
+    "placeholders": {
+      "pressure": {
+        "type": "String"
+      }
+    }
   },
-  "@diveLog_cylinders_columnStart": {
-    "description": "Cylinders card table header over the start pressure; the pressure unit is shown under it"
-  },
-  "@diveLog_cylinders_columnEnd": {
-    "description": "Cylinders card table header over the end pressure; the pressure unit is shown under it"
-  },
-  "@diveLog_cylinders_columnUsed": {
-    "description": "Cylinders card table header over the pressure used; the pressure unit is shown under it"
+  "@diveLog_cylinders_figureUsed": {
+    "description": "Cylinders card tank figure label: the pressure used, between the start and end labels beside the tank figure, e.g. \"Used 200 bar\". pressure is the value with its unit.",
+    "placeholders": {
+      "pressure": {
+        "type": "String"
+      }
+    }
   },
   "@diveLog_cylinders_gasUsed": {
     "description": "Cylinders card detail item: the volume of gas the dive consumed from this cylinder, e.g. \"Gas used 1665 L\"",

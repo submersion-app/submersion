@@ -9669,19 +9669,19 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get diveLog_cylinders_columnTank => '气瓶';
+  String diveLog_cylinders_figureStart(String pressure) {
+    return '起始 $pressure';
+  }
 
   @override
-  String get diveLog_cylinders_columnGas => '气体';
+  String diveLog_cylinders_figureEnd(String pressure) {
+    return '结束 $pressure';
+  }
 
   @override
-  String get diveLog_cylinders_columnStart => '起始';
-
-  @override
-  String get diveLog_cylinders_columnEnd => '结束';
-
-  @override
-  String get diveLog_cylinders_columnUsed => '已用';
+  String diveLog_cylinders_figureUsed(String pressure) {
+    return '已用 $pressure';
+  }
 
   @override
   String diveLog_cylinders_gasUsed(String amount) {

@@ -10173,19 +10173,19 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get diveLog_cylinders_columnTank => 'Tanque';
+  String diveLog_cylinders_figureStart(String pressure) {
+    return 'Inicio $pressure';
+  }
 
   @override
-  String get diveLog_cylinders_columnGas => 'Gas';
+  String diveLog_cylinders_figureEnd(String pressure) {
+    return 'Fin $pressure';
+  }
 
   @override
-  String get diveLog_cylinders_columnStart => 'Inicio';
-
-  @override
-  String get diveLog_cylinders_columnEnd => 'Fin';
-
-  @override
-  String get diveLog_cylinders_columnUsed => 'Usado';
+  String diveLog_cylinders_figureUsed(String pressure) {
+    return 'Usado $pressure';
+  }
 
   @override
   String diveLog_cylinders_gasUsed(String amount) {

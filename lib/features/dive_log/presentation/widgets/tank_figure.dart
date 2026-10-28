@@ -10,8 +10,10 @@ const _valveHeight = 6.0;
 const _tickLength = 6.0;
 const _labelGap = 10.0;
 
-/// The least space between two labels.
+/// The least space between two labels, and the narrowest a label is
+/// squeezed to before it is allowed past the figure's width.
 const _labelSpacing = 2.0;
+const _minLabelWidth = 24.0;
 
 /// Body width at the smallest and the largest figure height.
 const _minBodyWidth = 18.0;
@@ -54,6 +56,21 @@ class TankFigure extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return Semantics(
+      container: true,
+      label: [startLabel, endLabel, ?usedLabel].join(', '),
+      excludeSemantics: true,
+      child: LayoutBuilder(
+        builder: (context, constraints) =>
+            _layout(context, constraints.maxWidth),
+      ),
+    );
+  }
+
+  /// Within [maxWidth] a label too wide for the space beside the cylinder
+  /// wraps onto another line rather than crowding what sits beside the
+  /// figure; the figure grows taller to make room.
+  Widget _layout(BuildContext context, double maxWidth) {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
     final textScaler = MediaQuery.textScalerOf(context);
@@ -78,8 +95,13 @@ class TankFigure extends StatelessWidget {
       if (usedLabel != null) (usedLabel!, usedStyle),
       (endLabel, base),
     ];
+    final labelX = bodyWidth + _labelGap;
+    final labelMaxWidth = maxWidth.isFinite
+        ? math.max(maxWidth - labelX, _minLabelWidth)
+        : double.infinity;
     final sizes = [
-      for (final (text, style) in texts) _measure(text, style, textScaler),
+      for (final (text, style) in texts)
+        _measure(text, style, textScaler, labelMaxWidth),
     ];
     final labelsHeight =
         sizes.fold(0.0, (sum, s) => sum + s.height) +
@@ -103,77 +125,70 @@ class TankFigure extends StatelessWidget {
       gap: _labelSpacing,
     );
 
-    final labelX = bodyWidth + _labelGap;
     final width =
         labelX + sizes.fold(0.0, (widest, s) => math.max(widest, s.width));
-    final semantics = [startLabel, endLabel, ?usedLabel].join(', ');
-
-    return Semantics(
-      container: true,
-      label: semantics,
-      excludeSemantics: true,
-      child: SizedBox(
-        width: width,
-        height: extent,
-        child: Stack(
-          children: [
-            Positioned.fill(
-              child: CustomPaint(
-                painter: _TankPainter(
-                  bodyTop: bodyTop,
-                  bodyWidth: bodyWidth,
-                  bodyHeight: bodyHeight,
-                  levels: levels,
-                  solid: gasColor,
-                  used: Color.alphaBlend(
-                    gasColor.withValues(alpha: 0.35),
-                    theme.cardTheme.color ?? colors.surfaceContainerLow,
-                  ),
-                  outline: colors.outline,
-                  marks: colors.onSurfaceVariant,
-                  startTick: fill && markStart ? startY : null,
-                  endTick: fill && markEnd ? endY : null,
-                  bracket:
-                      usedLabel != null &&
-                          fill &&
-                          markStart &&
-                          markEnd &&
-                          endY - startY > 1
-                      ? (startY, endY)
-                      : null,
-                  leaders: [
-                    for (var i = 0; i < targets.length; i++)
-                      (targets[i], tops[i] + sizes[i].height / 2),
-                  ],
-                  labelX: labelX,
-                  textDirection: direction,
+    return SizedBox(
+      width: width,
+      height: extent,
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: CustomPaint(
+              painter: _TankPainter(
+                bodyTop: bodyTop,
+                bodyWidth: bodyWidth,
+                bodyHeight: bodyHeight,
+                levels: levels,
+                solid: gasColor,
+                used: Color.alphaBlend(
+                  gasColor.withValues(alpha: 0.35),
+                  theme.cardTheme.color ?? colors.surfaceContainerLow,
                 ),
+                outline: colors.outline,
+                marks: colors.onSurfaceVariant,
+                startTick: fill && markStart ? startY : null,
+                endTick: fill && markEnd ? endY : null,
+                bracket:
+                    usedLabel != null &&
+                        fill &&
+                        markStart &&
+                        markEnd &&
+                        endY - startY > 1
+                    ? (startY, endY)
+                    : null,
+                leaders: [
+                  for (var i = 0; i < targets.length; i++)
+                    (targets[i], tops[i] + sizes[i].height / 2),
+                ],
+                labelX: labelX,
+                textDirection: direction,
               ),
             ),
-            for (var i = 0; i < texts.length; i++)
-              PositionedDirectional(
-                start: labelX,
-                top: tops[i],
-                child: Text(
-                  texts[i].$1,
-                  style: texts[i].$2,
-                  maxLines: 1,
-                  softWrap: false,
-                ),
-              ),
-          ],
-        ),
+          ),
+          for (var i = 0; i < texts.length; i++)
+            PositionedDirectional(
+              start: labelX,
+              top: tops[i],
+              // Rounded up, so the label breaks where it was measured.
+              width: sizes[i].width.ceilToDouble(),
+              child: Text(texts[i].$1, style: texts[i].$2),
+            ),
+        ],
       ),
     );
   }
 
-  static Size _measure(String text, TextStyle style, TextScaler scaler) {
+  static Size _measure(
+    String text,
+    TextStyle style,
+    TextScaler scaler,
+    double maxWidth,
+  ) {
     final painter = TextPainter(
       text: TextSpan(text: text, style: style),
       textDirection: TextDirection.ltr,
       textScaler: scaler,
-      maxLines: 1,
-    )..layout();
+    )..layout(maxWidth: maxWidth);
     final size = painter.size;
     painter.dispose();
     return size;

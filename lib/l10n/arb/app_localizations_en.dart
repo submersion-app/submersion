@@ -10015,19 +10015,19 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get diveLog_cylinders_columnTank => 'Tank';
+  String diveLog_cylinders_figureStart(String pressure) {
+    return 'Start $pressure';
+  }
 
   @override
-  String get diveLog_cylinders_columnGas => 'Gas';
+  String diveLog_cylinders_figureEnd(String pressure) {
+    return 'End $pressure';
+  }
 
   @override
-  String get diveLog_cylinders_columnStart => 'Start';
-
-  @override
-  String get diveLog_cylinders_columnEnd => 'End';
-
-  @override
-  String get diveLog_cylinders_columnUsed => 'Used';
+  String diveLog_cylinders_figureUsed(String pressure) {
+    return 'Used $pressure';
+  }
 
   @override
   String diveLog_cylinders_gasUsed(String amount) {

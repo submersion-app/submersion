@@ -10328,19 +10328,19 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get diveLog_cylinders_columnTank => 'أسطوانة';
+  String diveLog_cylinders_figureStart(String pressure) {
+    return 'البداية $pressure';
+  }
 
   @override
-  String get diveLog_cylinders_columnGas => 'غاز';
+  String diveLog_cylinders_figureEnd(String pressure) {
+    return 'النهاية $pressure';
+  }
 
   @override
-  String get diveLog_cylinders_columnStart => 'البداية';
-
-  @override
-  String get diveLog_cylinders_columnEnd => 'النهاية';
-
-  @override
-  String get diveLog_cylinders_columnUsed => 'المستخدم';
+  String diveLog_cylinders_figureUsed(String pressure) {
+    return 'المستخدم $pressure';
+  }
 
   @override
   String diveLog_cylinders_gasUsed(String amount) {

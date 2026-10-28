@@ -9951,19 +9951,19 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get diveLog_cylinders_columnTank => 'בלון';
+  String diveLog_cylinders_figureStart(String pressure) {
+    return 'התחלה $pressure';
+  }
 
   @override
-  String get diveLog_cylinders_columnGas => 'גז';
+  String diveLog_cylinders_figureEnd(String pressure) {
+    return 'סיום $pressure';
+  }
 
   @override
-  String get diveLog_cylinders_columnStart => 'התחלה';
-
-  @override
-  String get diveLog_cylinders_columnEnd => 'סיום';
-
-  @override
-  String get diveLog_cylinders_columnUsed => 'נוצל';
+  String diveLog_cylinders_figureUsed(String pressure) {
+    return 'נוצל $pressure';
+  }
 
   @override
   String diveLog_cylinders_gasUsed(String amount) {
