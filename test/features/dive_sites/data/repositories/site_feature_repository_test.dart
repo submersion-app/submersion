@@ -78,27 +78,31 @@ void main() {
             updatedAt: 1,
           ),
         );
-    final first = await repo.addFeature(
-      siteId: 'site-1',
-      typeName: 'entry',
-      latitude: 12.1,
-      longitude: -68.3,
-    );
-    final second = await repo.addFeature(
-      siteId: 'site-1',
-      typeName: 'exit',
-      latitude: 12.2,
-      longitude: -68.4,
-    );
-    await repo.addFeature(
-      siteId: 'site-2',
-      typeName: 'hazard',
-      latitude: 12.3,
-      longitude: -68.5,
-    );
+    // Stamped explicitly and inserted newest first, with ids that sort the
+    // other way: two adds in a row can share a millisecond, which would
+    // leave the order to the ids.
+    for (final (id, site, type, created) in [
+      ('a-exit', 'site-1', 'exit', 200),
+      ('b-entry', 'site-1', 'entry', 100),
+      ('x-hazard', 'site-2', 'hazard', 150),
+    ]) {
+      await db
+          .into(db.siteFeatures)
+          .insert(
+            SiteFeaturesCompanion.insert(
+              id: id,
+              siteId: site,
+              type: type,
+              latitude: 12.1,
+              longitude: -68.3,
+              createdAt: created,
+              updatedAt: created,
+            ),
+          );
+    }
 
     final forSite1 = await repo.getFeaturesForSite('site-1');
-    expect(forSite1.map((f) => f.id), [first.id, second.id]);
+    expect(forSite1.map((f) => f.id), ['b-entry', 'a-exit']);
   });
   test('getFeaturesForSites reads every site in one query', () async {
     await db
@@ -226,13 +230,22 @@ void main() {
 
       await repo.copyFeatures(fromSiteId: 'site-1', toSiteId: 'site-2');
 
+      // The copies keep the source's listed order. The two adds can land in
+      // the same millisecond, and the read then breaks the tie by id (a
+      // random UUID), so the source order is not always the order they were
+      // added in; the tie-break itself is pinned by the test below.
+      final source = await repo.getFeaturesForSite('site-1');
       final copies = await repo.getFeaturesForSite('site-2');
-      expect(copies.map((f) => f.typeName), ['mooring', 'wreck']);
+      expect(copies.map((f) => f.typeName), source.map((f) => f.typeName));
+      expect(
+        copies.map((f) => f.typeName),
+        unorderedEquals(['mooring', 'wreck']),
+      );
       expect(
         copies.map((f) => f.id),
         everyElement(isNot(anyOf(mooring.id, wreck.id))),
       );
-      final copy = copies.first;
+      final copy = copies.firstWhere((f) => f.typeName == 'mooring');
       expect(copy.siteId, 'site-2');
       expect(copy.name, 'North ball');
       expect(copy.latitude, 12.151);
@@ -241,10 +254,10 @@ void main() {
       expect(copy.depthMeters, 6);
       expect(copy.notes, 'Blue buoy');
       // The source keeps its own features untouched.
-      expect((await repo.getFeaturesForSite('site-1')).map((f) => f.id), [
-        mooring.id,
-        wreck.id,
-      ]);
+      expect(
+        (await repo.getFeaturesForSite('site-1')).map((f) => f.id),
+        unorderedEquals([mooring.id, wreck.id]),
+      );
     });
 
     test('each copy is pending for sync', () async {
