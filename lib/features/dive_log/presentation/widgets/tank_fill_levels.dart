@@ -28,7 +28,10 @@ class TankFillLevels {
   /// - A missing end fills solid to the start, a missing start solid to the
   ///   end; neither has a used zone.
   /// - An overfill (start above rated) is drawn full to the top.
+  /// - A negative reading is a sensor or entry error and counts as missing.
   factory TankFillLevels.resolve({double? start, double? end, double? rated}) {
+    if (start != null && start < 0) start = null;
+    if (end != null && end < 0) end = null;
     final full = rated != null && rated > 0
         ? rated
         : (start != null && start > 0 ? start : null);

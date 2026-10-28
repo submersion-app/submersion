@@ -396,21 +396,25 @@ class CylindersCard extends ConsumerWidget {
   }
 
   /// Resolves start/end pressure: stored tank metadata wins, per-tank
-  /// time-series fills any nulls.
+  /// time-series fills any nulls. A negative reading is a sensor or entry
+  /// error, never a pressure, so it counts as missing: no figure level and
+  /// no used amount is drawn from it.
   (double?, double?) _resolveTankPressures({
     required DiveTank tank,
     required Map<String, List<TankPressurePoint>>? tankPressures,
   }) {
-    if (tankPressures != null && tankPressures.containsKey(tank.id)) {
-      final points = tankPressures[tank.id]!;
-      if (points.isNotEmpty) {
-        return (
-          tank.startPressure ?? points.first.pressure,
-          tank.endPressure ?? points.last.pressure,
-        );
-      }
+    double? valid(double? pressure) =>
+        pressure != null && pressure >= 0 ? pressure : null;
+    final start = valid(tank.startPressure);
+    final end = valid(tank.endPressure);
+    final points = tankPressures?[tank.id];
+    if (points != null && points.isNotEmpty) {
+      return (
+        start ?? valid(points.first.pressure),
+        end ?? valid(points.last.pressure),
+      );
     }
-    return (tank.startPressure, tank.endPressure);
+    return (start, end);
   }
 
   /// computerId -> display name via the shared source-name resolver.

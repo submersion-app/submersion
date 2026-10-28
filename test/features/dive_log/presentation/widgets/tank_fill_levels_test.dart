@@ -71,6 +71,20 @@ void main() {
       expect(levels.start, isNull);
     });
 
+    test('a negative reading counts as missing', () {
+      // A sensor or entry error: never a level, never part of a used zone.
+      expectLevels(
+        TankFillLevels.resolve(start: 100, end: -10, rated: 232),
+        end: 100 / 232,
+        start: 100 / 232,
+      );
+      expect(
+        TankFillLevels.resolve(start: -5, end: -10, rated: 232).hasFill,
+        isFalse,
+      );
+      expect(TankFillLevels.resolve(start: -5, end: 60).hasFill, isFalse);
+    });
+
     test('no pressures draws an outline', () {
       expect(TankFillLevels.resolve().hasFill, isFalse);
     });

@@ -363,6 +363,24 @@ void main() {
       expect(figure.levels.hasFill, isFalse);
     });
 
+    testWidgets('a negative pressure reads as missing, with no used label', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _buildCard(
+          dive: _makeDive([_makeTank(startPressure: 100, endPressure: -10)]),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Start 100 bar'), findsOneWidget);
+      expect(find.text('End --'), findsOneWidget);
+      expect(find.textContaining('-10'), findsNothing);
+      expect(find.textContaining('Used'), findsNothing);
+      final figure = tester.widget<TankFigure>(find.byType(TankFigure));
+      expect(figure.markEnd, isFalse);
+    });
+
     testWidgets('full height is the preset rated pressure when the tank has '
         'none of its own', (tester) async {
       await tester.pumpWidget(
