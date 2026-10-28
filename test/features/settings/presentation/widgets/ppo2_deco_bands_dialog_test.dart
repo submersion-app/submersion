@@ -117,6 +117,39 @@ void main() {
       expect(saved.single.bandsEnabled, isTrue);
       expect(saved.single.band1, closeTo(1.4, 1e-9));
       expect(saved.single.band3, closeTo(1.4, 1e-9));
+      // The depth layer was left off, so it keeps its stored value rather
+      // than the 4 m it was shown seeded at.
+      expect(saved.single.maxO2DepthMeters, 6.0);
+    });
+
+    testWidgets('saving for the other layer leaves a seeded layer that is '
+        'still off as stored, not pinned to today\'s flat limit', (
+      tester,
+    ) async {
+      final saved = <_SavedCall>[];
+      await tester.pumpWidget(
+        _app(
+          initialBandsEnabled: false,
+          initialBand1: 1.6,
+          initialBand2: 1.6,
+          initialBand3: 1.6,
+          initialFlatPpO2: 1.4,
+          onSave: saved.add,
+        ),
+      );
+      await _openDialog(tester);
+
+      // Only the explicit O2 depth switch is turned on.
+      await tester.tap(find.byType(SwitchListTile).last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(saved.single.bandsEnabled, isFalse);
+      expect(saved.single.band1, 1.6);
+      expect(saved.single.band2, 1.6);
+      expect(saved.single.band3, 1.6);
+      expect(saved.single.maxO2DepthEnabled, isTrue);
       expect(saved.single.maxO2DepthMeters, closeTo(4.0, 1e-9));
     });
 

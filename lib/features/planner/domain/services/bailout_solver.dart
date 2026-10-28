@@ -857,10 +857,10 @@ class BailoutSolver {
 /// [startSecondsSinceBailout] after the bailout instant, split at the
 /// hypercapnia-phase boundary (issue #3743): the portion before
 /// [hypercapniaSeconds] charged at [hypercapniaAmv], the remainder at
-/// [stressedAmv]. A span entirely on one side of the boundary - the only
-/// case when [hypercapniaSeconds] is 0, i.e. the phase is off for this
-/// plan - is charged at the span's mean depth, same as before this
-/// feature existed.
+/// [stressedAmv]. A span entirely on one side of the boundary is charged at
+/// the span's mean depth, same as before this feature existed; that is
+/// every span when [hypercapniaSeconds] is 0, i.e. the phase is off for
+/// this plan.
 ///
 /// The span runs linearly from [fromDepth] to [toDepth] (equal for a
 /// stop), so each portion is charged at its OWN mean depth: on a travel

@@ -2304,8 +2304,8 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   }
 
   /// Per-O2-band deco ppO2 limits (issue #3580): a wider range than the
-  /// [ppO2MaxDeco] ceiling alone -- 0.1 bar steps down to [ppO2WorkingMin],
-  /// not just [ppO2MaxMin] -- and each band is independent: unlike
+  /// [ppO2MaxDeco] ceiling alone, in 0.1 bar steps down to [ppO2WorkingMin]
+  /// rather than [ppO2MaxMin]. Each band is independent: unlike
   /// [setPpO2Limits], there is no enforced ordering between them.
   static const double ppO2DecoBandStep = 0.1;
 
@@ -2314,6 +2314,18 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   /// nearest double (1.4, not 1.4000000000000001).
   static double onStepGrid(double value, double step) =>
       (value / step).round() / (1 / step);
+
+  /// [value] rounded DOWN onto the grid of [step], for a limit seeded from
+  /// another one: the seed is never more permissive than its source. The
+  /// 1e-9 keeps a value float noise put just under a grid line on it.
+  static double onStepGridFloor(double value, double step) =>
+      (value / step + 1e-9).floorToDouble() / (1 / step);
+
+  /// [ppO2DecoBandOnGrid], rounding down instead of to the nearest step.
+  static double ppO2DecoBandFloorOnGrid(double value) => onStepGridFloor(
+    value.clamp(ppO2WorkingMin, ppO2Ceiling),
+    ppO2DecoBandStep,
+  );
 
   /// [value] clamped to [ppO2WorkingMin]..[ppO2Ceiling] and snapped to the
   /// [ppO2DecoBandStep] grid.
@@ -2329,6 +2341,12 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   /// [maxO2DepthStep] grid.
   static double maxO2DepthOnGrid(double value) =>
       onStepGrid(value.clamp(maxO2DepthMin, maxO2DepthMax), maxO2DepthStep);
+
+  /// [maxO2DepthOnGrid], rounding down instead of to the nearest step.
+  static double maxO2DepthFloorOnGrid(double value) => onStepGridFloor(
+    value.clamp(maxO2DepthMin, maxO2DepthMax),
+    maxO2DepthStep,
+  );
 
   /// Set both optional deco layers at once, in a single persisted write
   /// (issue #3580): the per-O2-band toggle/values and the explicit-100%-O2-

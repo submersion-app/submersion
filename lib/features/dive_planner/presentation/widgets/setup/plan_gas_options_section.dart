@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/deco/deco_ppo2_limits.dart';
+import 'package:submersion/core/deco/max_operating_depth.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
@@ -39,13 +40,14 @@ class PlanGasOptionsSection extends ConsumerWidget {
         state.sacRate ?? ref.watch(plannerSacBottomProvider);
     // While a Settings layer is off its stored values are not in force, so
     // this plan's Custom starts from the flat deco ppO2 the plan uses now
-    // instead, and choosing Custom never raises the ceiling by itself.
+    // instead, rounded down onto the grid, so choosing Custom never raises
+    // the ceiling by itself.
     final double planFlatPpO2 = state.ppO2Deco ?? globalPpO2Deco;
     final bandsInSettings = ref.watch(ppO2DecoBandsEnabledProvider);
     final maxO2DepthInSettings = ref.watch(maxO2DepthEnabledProvider);
     double defaultBand(double settingsBand) => bandsInSettings
         ? settingsBand
-        : SettingsNotifier.ppO2DecoBandOnGrid(planFlatPpO2);
+        : SettingsNotifier.ppO2DecoBandFloorOnGrid(planFlatPpO2);
     // The stressed rate the bailout falls back to, resolved the same way as
     // PlanEngineConfig.sacStressedFor.
     final double stressedRmv =
@@ -208,8 +210,8 @@ class PlanGasOptionsSection extends ConsumerWidget {
           explicitlyOff: state.maxO2DepthExplicitlyOff,
           defaultMaxO2DepthMeters: maxO2DepthInSettings
               ? ref.watch(maxO2DepthMetersProvider)
-              : SettingsNotifier.maxO2DepthOnGrid(
-                  flatPureO2DepthMeters(planFlatPpO2),
+              : SettingsNotifier.maxO2DepthFloorOnGrid(
+                  maxOperatingDepthMeters(1.0, maxPpO2: planFlatPpO2),
                 ),
           enabledInSettings: maxO2DepthInSettings,
           units: units,

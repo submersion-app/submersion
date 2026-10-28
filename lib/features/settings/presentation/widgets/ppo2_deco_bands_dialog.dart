@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:submersion/core/deco/deco_ppo2_limits.dart';
+import 'package:submersion/core/deco/max_operating_depth.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -68,6 +68,13 @@ class _PpO2DecoBandsDialogState extends State<PpO2DecoBandsDialog> {
   late bool _maxO2DepthEnabled;
   late double _maxO2DepthMeters;
 
+  /// Whether a layer's sliders still show values seeded from the flat
+  /// limit rather than ones the diver stored or moved. A seeded layer that
+  /// is still off when the dialog is saved keeps its stored values, so
+  /// saving for the other layer never pins it to today's flat limit.
+  late bool _bandsSeeded;
+  late bool _depthSeeded;
+
   @override
   void initState() {
     super.initState();
@@ -83,22 +90,29 @@ class _PpO2DecoBandsDialogState extends State<PpO2DecoBandsDialog> {
     final depthUntouched =
         !widget.initialMaxO2DepthEnabled &&
         widget.initialMaxO2DepthMeters == defaults.maxO2DepthMeters;
+    _bandsSeeded = bandsUntouched;
+    _depthSeeded = depthUntouched;
+    // Seeds round DOWN onto the grid, so a seeded limit is never more
+    // permissive than the flat one it comes from.
+    final seededBand = SettingsNotifier.ppO2DecoBandFloorOnGrid(
+      widget.initialFlatPpO2,
+    );
     _bandsEnabled = widget.initialBandsEnabled;
-    _band1 = SettingsNotifier.ppO2DecoBandOnGrid(
-      bandsUntouched ? widget.initialFlatPpO2 : widget.initialBand1,
-    );
-    _band2 = SettingsNotifier.ppO2DecoBandOnGrid(
-      bandsUntouched ? widget.initialFlatPpO2 : widget.initialBand2,
-    );
-    _band3 = SettingsNotifier.ppO2DecoBandOnGrid(
-      bandsUntouched ? widget.initialFlatPpO2 : widget.initialBand3,
-    );
+    _band1 = bandsUntouched
+        ? seededBand
+        : SettingsNotifier.ppO2DecoBandOnGrid(widget.initialBand1);
+    _band2 = bandsUntouched
+        ? seededBand
+        : SettingsNotifier.ppO2DecoBandOnGrid(widget.initialBand2);
+    _band3 = bandsUntouched
+        ? seededBand
+        : SettingsNotifier.ppO2DecoBandOnGrid(widget.initialBand3);
     _maxO2DepthEnabled = widget.initialMaxO2DepthEnabled;
-    _maxO2DepthMeters = SettingsNotifier.maxO2DepthOnGrid(
-      depthUntouched
-          ? flatPureO2DepthMeters(widget.initialFlatPpO2)
-          : widget.initialMaxO2DepthMeters,
-    );
+    _maxO2DepthMeters = depthUntouched
+        ? SettingsNotifier.maxO2DepthFloorOnGrid(
+            maxOperatingDepthMeters(1.0, maxPpO2: widget.initialFlatPpO2),
+          )
+        : SettingsNotifier.maxO2DepthOnGrid(widget.initialMaxO2DepthMeters);
   }
 
   @override
@@ -124,19 +138,28 @@ class _PpO2DecoBandsDialogState extends State<PpO2DecoBandsDialog> {
               label: l10n.settings_decompression_ppO2BandsDialog_band1,
               value: _band1,
               enabled: _bandsEnabled,
-              onChanged: (v) => setState(() => _band1 = v),
+              onChanged: (v) => setState(() {
+                _band1 = v;
+                _bandsSeeded = false;
+              }),
             ),
             _ppO2Slider(
               label: l10n.settings_decompression_ppO2BandsDialog_band2,
               value: _band2,
               enabled: _bandsEnabled,
-              onChanged: (v) => setState(() => _band2 = v),
+              onChanged: (v) => setState(() {
+                _band2 = v;
+                _bandsSeeded = false;
+              }),
             ),
             _ppO2Slider(
               label: l10n.settings_decompression_ppO2BandsDialog_band3,
               value: _band3,
               enabled: _bandsEnabled,
-              onChanged: (v) => setState(() => _band3 = v),
+              onChanged: (v) => setState(() {
+                _band3 = v;
+                _bandsSeeded = false;
+              }),
             ),
             const Divider(height: 24),
             SwitchListTile(
@@ -152,7 +175,10 @@ class _PpO2DecoBandsDialogState extends State<PpO2DecoBandsDialog> {
                   l10n.settings_decompression_ppO2BandsDialog_maxO2DepthLabel,
               value: _maxO2DepthMeters,
               enabled: _maxO2DepthEnabled,
-              onChanged: (v) => setState(() => _maxO2DepthMeters = v),
+              onChanged: (v) => setState(() {
+                _maxO2DepthMeters = v;
+                _depthSeeded = false;
+              }),
             ),
           ],
         ),
@@ -164,13 +190,15 @@ class _PpO2DecoBandsDialogState extends State<PpO2DecoBandsDialog> {
         ),
         FilledButton(
           onPressed: () {
+            final keepBands = _bandsSeeded && !_bandsEnabled;
+            final keepDepth = _depthSeeded && !_maxO2DepthEnabled;
             widget.onSave(
               _bandsEnabled,
-              _band1,
-              _band2,
-              _band3,
+              keepBands ? widget.initialBand1 : _band1,
+              keepBands ? widget.initialBand2 : _band2,
+              keepBands ? widget.initialBand3 : _band3,
               _maxO2DepthEnabled,
-              _maxO2DepthMeters,
+              keepDepth ? widget.initialMaxO2DepthMeters : _maxO2DepthMeters,
             );
             Navigator.of(context).pop();
           },

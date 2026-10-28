@@ -84,6 +84,32 @@ void main() {
     expect(state.maxO2DepthMeters, closeTo(4.0, 1e-9));
   });
 
+  testWidgets('Custom seeds from a 2-decimal plan limit round down, never '
+      'raising the ceiling (issue #3580)', (tester) async {
+    await tester.pumpWidget(_harness());
+    await tester.pumpAndSettle();
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(PlanGasOptionsSection)),
+    );
+    container
+        .read(divePlanNotifierProvider.notifier)
+        .updateGasOptions(ppO2Deco: 1.58);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(ChoiceChip, 'Custom').first);
+    await tester.pumpAndSettle();
+    final depthCustom = find.widgetWithText(ChoiceChip, 'Custom').last;
+    await tester.ensureVisible(depthCustom);
+    await tester.pumpAndSettle();
+    await tester.tap(depthCustom);
+    await tester.pumpAndSettle();
+
+    final state = container.read(divePlanNotifierProvider);
+    expect(state.ppO2DecoBand1, closeTo(1.5, 1e-9));
+    // Pure O2 reaches 1.58 bar at 5.8 m; the 0.5 m grid floors it to 5.5.
+    expect(state.maxO2DepthMeters, closeTo(5.5, 1e-9));
+  });
+
   group('hypercapnia bailout phase (issue #3743)', () {
     testWidgets('an OC plan has no OC bailout, so no hypercapnia control', (
       tester,

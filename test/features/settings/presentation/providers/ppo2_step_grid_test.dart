@@ -21,6 +21,15 @@ void main() {
       expect(SettingsNotifier.ppO2DecoBandOnGrid(1.9), 1.6);
     });
 
+    test('the floor variants round down, never up, onto exact grid points', () {
+      expect(SettingsNotifier.ppO2DecoBandFloorOnGrid(1.55), 1.5);
+      expect(SettingsNotifier.ppO2DecoBandFloorOnGrid(1.4), 1.4);
+      // Float noise just under a grid line stays on it.
+      expect(SettingsNotifier.ppO2DecoBandFloorOnGrid(1.2 + 0.1 * 2), 1.4);
+      expect(SettingsNotifier.maxO2DepthFloorOnGrid(5.8), 5.5);
+      expect(SettingsNotifier.maxO2DepthFloorOnGrid(6.0), 6.0);
+    });
+
     test('the explicit O2 depth snaps to exact half meters', () {
       expect(SettingsNotifier.maxO2DepthOnGrid(4.4), 4.5);
       expect(SettingsNotifier.maxO2DepthOnGrid(6.2), 6.0);
