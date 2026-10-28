@@ -10219,6 +10219,14 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String diveLog_cylinders_modLimit(String ppO2, String limit) {
+    return '$ppO2 ($limit)';
+  }
+
+  @override
+  String get diveLog_cylinders_modLimitSeparator => ', ';
+
+  @override
   String get diveLog_tank_section_gasMix => 'Gasgemisch';
 
   @override
@@ -55450,6 +55458,16 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get tags_manage_cannotUndo =>
       'Dies kann nicht rückgängig gemacht werden.';
+
+  @override
+  String tags_manage_rowScopes(String scopes) {
+    return 'Für: $scopes';
+  }
+
+  @override
+  String tags_manage_rowUsage(String counts) {
+    return 'Verwendung: $counts';
+  }
 
   @override
   String get tags_action_edit => 'Tags bearbeiten';

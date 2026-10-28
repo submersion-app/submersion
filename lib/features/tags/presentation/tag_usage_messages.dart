@@ -120,11 +120,27 @@ String tagsMergeAffectedMessage(
   };
 }
 
-/// One tag's usage as a row subtitle: its dives always, then every other
-/// scope that carries it, in registry order ("12 dives, 3 sites, 5 equipment
-/// items"). Shared by the Manage Tags list and the merge sheet.
-String tagUsageCounts(AppLocalizations l10n, Map<TagScope, int> usage) => [
-  for (final scope in TagScope.values)
-    if (scope == TagScope.dives || (usage[scope] ?? 0) > 0)
-      tagScopeCount(l10n, scope, usage[scope] ?? 0),
-].join(', ');
+/// One tag's usage as a row subtitle: every scope that carries it, in
+/// registry order ("12 dives, 3 sites, 5 equipment items"). Shared by the
+/// Manage Tags list and the merge sheet.
+///
+/// An unused tag counts zero of the first scope in [offered], so the line is
+/// never empty. Dives were once counted always, which had an equipment-only
+/// tag report "0 dives" under a scope line that never mentions dives (#3746).
+String tagUsageCounts(
+  AppLocalizations l10n,
+  Map<TagScope, int> usage, {
+  required Set<TagScope> offered,
+}) {
+  final affected = _affected(usage);
+  if (affected.isEmpty) {
+    final first = TagScope.values.firstWhere(
+      offered.contains,
+      orElse: () => TagScope.dives,
+    );
+    return tagScopeCount(l10n, first, 0);
+  }
+  return [
+    for (final scope in affected) tagScopeCount(l10n, scope, usage[scope]!),
+  ].join(', ');
+}

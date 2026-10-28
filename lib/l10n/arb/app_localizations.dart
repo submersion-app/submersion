@@ -16237,11 +16237,23 @@ abstract class AppLocalizations {
   /// **'MND {depth}'**
   String diveLog_cylinders_mnd(String depth);
 
-  /// Note under the Cylinders card table: the working ppO2 every MOD on the card was computed at, e.g. "MOD at ppO₂ 1.4"
+  /// Note under the Cylinders card table: the ppO2 every MOD on the card was computed at. {ppO2} is one value ("MOD at ppO₂ 1.4") or, when the cylinders use different limits, a list of diveLog_cylinders_modLimit items ("MOD at ppO₂ 1.4 (bottom limit), 1.6 (deco limit)")
   ///
   /// In en, this message translates to:
   /// **'MOD at ppO₂ {ppO2}'**
   String diveLog_cylinders_modNote(String ppO2);
+
+  /// One item of the list in diveLog_cylinders_modNote: a ppO2 and the limit it is (tankMod_limitBottom, tankMod_limitDeco or tankMod_limitDiluent), e.g. "1.6 (deco limit)"
+  ///
+  /// In en, this message translates to:
+  /// **'{ppO2} ({limit})'**
+  String diveLog_cylinders_modLimit(String ppO2, String limit);
+
+  /// Separator between the diveLog_cylinders_modLimit items in diveLog_cylinders_modNote
+  ///
+  /// In en, this message translates to:
+  /// **', '**
+  String get diveLog_cylinders_modLimitSeparator;
 
   /// No description provided for @diveLog_tank_section_gasMix.
   ///
@@ -87906,6 +87918,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This cannot be undone.'**
   String get tags_manage_cannotUndo;
+
+  /// Manage Tags row: where the tag is offered. {scopes} is a list of scope names joined with a middle dot, such as "Dives · Sites".
+  ///
+  /// In en, this message translates to:
+  /// **'For: {scopes}'**
+  String tags_manage_rowScopes(String scopes);
+
+  /// Manage Tags row: how many items carry the tag. {counts} is a list of counts, such as "12 dives, 3 sites".
+  ///
+  /// In en, this message translates to:
+  /// **'Used on: {counts}'**
+  String tags_manage_rowUsage(String counts);
 
   /// No description provided for @tags_action_edit.
   ///

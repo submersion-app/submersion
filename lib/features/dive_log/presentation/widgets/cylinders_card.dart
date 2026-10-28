@@ -11,6 +11,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/cylinder_sac.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
+import 'package:submersion/features/dive_log/domain/services/logged_tank_mod.dart';
 import 'package:submersion/features/dive_log/domain/services/source_name_resolver.dart';
 import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
@@ -21,6 +22,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_disp
 import 'package:submersion/features/dive_log/presentation/widgets/tank_series_reassign_sheet.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/observation_status_chip.dart';
+import 'package:submersion/features/planner/domain/services/tank_mod.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
 import 'package:submersion/features/transmitters/presentation/providers/transmitter_providers.dart';
@@ -142,20 +144,21 @@ class CylindersCard extends ConsumerWidget {
                 Divider(height: 1, color: theme.colorScheme.outlineVariant),
               rows[i],
             ],
-            // Every MOD on the card is taken at the same working ppO2, so it
-            // is said once here rather than on each row.
-            if (rows.isNotEmpty)
+            // The ppO2 limits behind the MODs are said once here rather than
+            // on each row. A rule closes the table first, so the note reads
+            // as the card's, not as a detail of the last cylinder.
+            if (rows.isNotEmpty) ...[
+              Divider(height: 1, color: theme.colorScheme.outlineVariant),
               Padding(
-                padding: const EdgeInsets.only(top: 4),
+                padding: const EdgeInsets.only(top: 12),
                 child: Text(
-                  l10n.diveLog_cylinders_modNote(
-                    formatFixedForDisplay(settings.ppO2MaxWorking, 1),
-                  ),
+                  l10n.diveLog_cylinders_modNote(_modLimitsNote(l10n)),
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
               ),
+            ],
             if (_canReassign(dive, tankPressures))
               Align(
                 alignment: AlignmentDirectional.centerEnd,
@@ -174,6 +177,50 @@ class CylindersCard extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  /// The diver's ppO2 for [limit]. A cylinder's MOD is taken at the limit
+  /// its role calls for on this dive (issue #3752), not always the bottom
+  /// one.
+  double _modPpO2(ModLimitClass limit) => modLimitPpO2(
+    limit,
+    bottomPpO2: settings.ppO2MaxWorking,
+    decoPpO2: settings.ppO2MaxDeco,
+    diluentPpO2: settings.ccrDiluentModPpO2,
+  );
+
+  /// What the MOD note says the card's MODs are taken at. One ppO2 when
+  /// every cylinder's limit has the same value, even two limits that
+  /// share it (the default deco and Dil MOD limits are both 1.6), as the
+  /// card always said. Otherwise each limit in use with its ppO2, bottom
+  /// first: "1.4 (bottom limit), 1.6 (deco limit)".
+  String _modLimitsNote(AppLocalizations l10n) {
+    final inUse = {
+      for (final tank in dive.tanks)
+        loggedTankModLimit(tank.role, tank.gasMix, dive.diveMode),
+    };
+    final limits = [
+      for (final limit in const [
+        ModLimitClass.bottom,
+        ModLimitClass.deco,
+        ModLimitClass.diluent,
+      ])
+        if (inUse.contains(limit)) limit,
+    ];
+    // Compared as shown: two values that round alike read as one ppO2.
+    final shown = {
+      for (final limit in limits)
+        limit: formatFixedForDisplay(_modPpO2(limit), 1),
+    };
+    if (shown.values.toSet().length == 1) return shown.values.first;
+    return [
+      for (final limit in limits)
+        l10n.diveLog_cylinders_modLimit(shown[limit]!, switch (limit) {
+          ModLimitClass.bottom => l10n.tankMod_limitBottom,
+          ModLimitClass.deco => l10n.tankMod_limitDeco,
+          ModLimitClass.diluent => l10n.tankMod_limitDiluent,
+        }),
+    ].join(l10n.diveLog_cylinders_modLimitSeparator);
   }
 
   /// Two or more of this dive's tanks carry a series from one computer
@@ -244,7 +291,11 @@ class CylindersCard extends ConsumerWidget {
         : sizeLabel ?? l10n.diveLog_tank_title(index + 1);
 
     final modDepth = units.formatDepthFloor(
-      tank.gasMix.mod(ppO2: settings.ppO2MaxWorking),
+      tank.gasMix.mod(
+        ppO2: _modPpO2(
+          loggedTankModLimit(tank.role, tank.gasMix, dive.diveMode),
+        ),
+      ),
       decimals: 0,
     );
     final mndValue = tank.gasMix.mnd(

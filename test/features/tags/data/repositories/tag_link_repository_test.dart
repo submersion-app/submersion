@@ -111,11 +111,10 @@ void main() {
         await repository.addTags(['i1', 'i2'], ['wreck', 'fish']);
 
         final byItem = await repository.getTagIdsByItem(['i1', 'i2']);
-        // Compared as sets: the read orders by created_at then id, and the
-        // replace and the add can land in the same millisecond, which leaves
-        // the order to the random ids.
+        // A set: the links list by created_at and then by id, a random UUID,
+        // and the replace and the add can share a millisecond. The counts
+        // below show the kept wreck link was not added twice.
         expect(byItem['i1']!.toSet(), {'wreck', 'fish'});
-        expect(byItem['i1'], hasLength(2));
         expect(byItem['i2']!.toSet(), {'wreck', 'fish'});
         expect(await repository.tagCountsFor(['i1', 'i2']), {
           'wreck': 2,
