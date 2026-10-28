@@ -2157,8 +2157,15 @@ void main() {
 
       test('restoreFromFile decrypts and restores without a pre-created '
           'temp dir', () async {
-        final plain = File('${sandbox.path}/plain.db');
-        await plain.writeAsString('fake db contents');
+        // A real database: restore deep-checks the decrypted copy.
+        final plain = File(p.join(sandbox.path, 'plain.db'));
+        final db = sqlite3.sqlite3.open(plain.path);
+        try {
+          db.execute('CREATE TABLE dives (id TEXT PRIMARY KEY)');
+          db.execute('CREATE TABLE dive_sites (id TEXT PRIMARY KEY)');
+        } finally {
+          db.close();
+        }
         final sbe = File('${sandbox.path}/backup${BackupCrypto.fileExtension}');
         await BackupCrypto.encryptFile(
           inPath: plain.path,

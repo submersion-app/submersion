@@ -5,9 +5,8 @@ import 'package:submersion/core/constants/card_color.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
-import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/settings/presentation/widgets/dive_details_appearance_tiles.dart';
 import 'package:submersion/features/settings/presentation/widgets/gradient_preset_picker.dart';
 import 'package:submersion/features/settings/presentation/widgets/viewer_fullscreen_mode_tile.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -250,7 +249,7 @@ class SectionAppearancePage extends ConsumerWidget {
             context,
             context.l10n.settings_appearance_header_diveDetails,
           ),
-          ..._buildDiveDetailsSettings(context, ref),
+          const DiveDetailsAppearanceTiles(),
         ],
 
         // -- Site Details section (sites only) --
@@ -638,40 +637,6 @@ class SectionAppearancePage extends ConsumerWidget {
   }
 
   // ---------------------------------------------------------------------------
-  // Dive Details section
-  // ---------------------------------------------------------------------------
-
-  List<Widget> _buildDiveDetailsSettings(BuildContext context, WidgetRef ref) {
-    return [
-      ListTile(
-        leading: const Icon(Icons.reorder),
-        title: Text(
-          context.l10n.settings_appearance_diveDetails_sectionOrderVisibility,
-        ),
-        subtitle: Text(
-          context
-              .l10n
-              .settings_appearance_diveDetails_sectionOrderVisibility_subtitle,
-        ),
-        trailing: const Icon(Icons.chevron_right),
-        onTap: () => context.push('/settings/dive-detail-sections'),
-      ),
-      // The diver figure in the equipment card (issue #2326), off by
-      // default so the dive page is unchanged until the diver opts in.
-      SwitchListTile(
-        secondary: const Icon(Icons.accessibility_new),
-        title: Text(context.l10n.settings_appearance_showDiveFigure),
-        subtitle: Text(
-          context.l10n.settings_appearance_showDiveFigure_subtitle,
-        ),
-        value: ref.watch(settingsProvider.select((s) => s.showDiveFigure)),
-        onChanged: (value) =>
-            ref.read(settingsProvider.notifier).setShowDiveFigure(value),
-      ),
-    ];
-  }
-
-  // ---------------------------------------------------------------------------
   // Site Details section
   // ---------------------------------------------------------------------------
 
@@ -715,28 +680,20 @@ class SectionAppearancePage extends ConsumerWidget {
     switch (key) {
       case 'dives':
         ref.read(settingsProvider.notifier).setDiveListViewMode(mode);
-        ref.read(diveListViewModeProvider.notifier).state = mode;
       case 'sites':
         ref.read(settingsProvider.notifier).setSiteListViewMode(mode);
-        ref.read(siteListViewModeProvider.notifier).state = mode;
       case 'trips':
         ref.read(settingsProvider.notifier).setTripListViewMode(mode);
-        ref.read(tripListViewModeProvider.notifier).state = mode;
       case 'equipment':
         ref.read(settingsProvider.notifier).setEquipmentListViewMode(mode);
-        ref.read(equipmentListViewModeProvider.notifier).state = mode;
       case 'buddies':
         ref.read(settingsProvider.notifier).setBuddyListViewMode(mode);
-        ref.read(buddyListViewModeProvider.notifier).state = mode;
       case 'diveCenters':
         ref.read(settingsProvider.notifier).setDiveCenterListViewMode(mode);
-        ref.read(diveCenterListViewModeProvider.notifier).state = mode;
       case 'certifications':
         ref.read(settingsProvider.notifier).setCertificationListViewMode(mode);
-        ref.read(certificationListViewModeProvider.notifier).state = mode;
       case 'courses':
         ref.read(settingsProvider.notifier).setCourseListViewMode(mode);
-        ref.read(courseListViewModeProvider.notifier).state = mode;
     }
   }
 

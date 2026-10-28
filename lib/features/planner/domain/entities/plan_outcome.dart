@@ -21,6 +21,11 @@ enum PlanIssueType {
   ndlExceededNoDecoGas,
   noBailoutCarried,
   minGasViolation,
+
+  /// A back gas whose rock-bottom minimum is at or above its fill, so no
+  /// gas is usable before the turn (#3741). [PlanIssue.value] is the
+  /// minimum gas and [PlanIssue.threshold] the start pressure, both in bar.
+  noUsableGas,
   diluentModExceeded,
 
   /// An authored segment takes the diver shallower than the deco ceiling,

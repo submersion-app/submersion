@@ -26,7 +26,7 @@ import 'package:submersion/shared/widgets/label_with_control.dart';
 import 'package:submersion/core/data/visibility/item_sharing.dart';
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
-import 'package:submersion/shared/widgets/shared_items/item_sharing_row.dart';
+import 'package:submersion/shared/widgets/shared_items/item_sharing_field.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
 
 const _log = LoggerService('tripEditPage');
@@ -1055,6 +1055,7 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
       // The chosen profiles (issue #2151), only when the owner changed
       // them; the save above already wrote the everyone flag. Checked in
       // this order so an unchanged save never reads the active profile.
+      var sharingRefused = false;
       if (!_sharingUnread &&
           (_sharing != _originalSharing ||
               (_staleShareRows && _sharing.everyone)) &&
@@ -1064,7 +1065,7 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
                     ownerId: _originalTrip?.diverId,
                   ) ==
                   true)) {
-        await ref
+        sharingRefused = !await ref
             .read(itemSharesRepositoryProvider)
             .setSharing(
               SharedItemKind.trip,
@@ -1183,18 +1184,24 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
       }
 
       if (mounted) {
+        // The rest of the trip is saved, so a refused sharing change says
+        // so in place of the saved message rather than keeping the page.
+        final l10n = context.l10n;
+        final message = sharingRefused
+            ? sharingRefusedMessage(l10n)
+            : widget.embedded
+            ? null
+            : isEditing
+            ? l10n.trips_edit_snackBar_updated
+            : l10n.trips_edit_snackBar_added;
+        if (message != null) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(message)));
+        }
         if (widget.embedded) {
           widget.onSaved?.call(savedId);
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                isEditing
-                    ? context.l10n.trips_edit_snackBar_updated
-                    : context.l10n.trips_edit_snackBar_added,
-              ),
-            ),
-          );
           context.pop(savedId);
         }
       }

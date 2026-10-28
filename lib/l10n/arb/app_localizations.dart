@@ -3967,6 +3967,18 @@ abstract class AppLocalizations {
   /// **'Send via AirDrop, email, or other apps'**
   String get backup_export_share_subtitle;
 
+  /// No description provided for @backup_copySheet_deviceLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'This safety copy was taken from your protected database. It can only be restored on this device.'**
+  String get backup_copySheet_deviceLocked;
+
+  /// No description provided for @backup_copySheet_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup from {dateTime}'**
+  String backup_copySheet_title(String dateTime);
+
   /// No description provided for @backup_frequency_daily.
   ///
   /// In en, this message translates to:
@@ -3996,6 +4008,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Restore'**
   String get backup_history_action_restore;
+
+  /// No description provided for @backup_history_action_saveCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Save a copy'**
+  String get backup_history_action_saveCopy;
+
+  /// No description provided for @backup_history_action_share.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get backup_history_action_share;
 
   /// No description provided for @backup_history_empty.
   ///
@@ -16657,35 +16681,29 @@ abstract class AppLocalizations {
   /// **'MOD: {mod} (ppO₂ {ppO2}) | MND: {mnd}'**
   String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd);
 
-  /// Cylinders card table header over the tank size, name and role
+  /// Cylinders card tank figure label: the start pressure, at its level beside the tank figure, e.g. "Start 200 bar". pressure is the value with its unit.
   ///
   /// In en, this message translates to:
-  /// **'Tank'**
-  String get diveLog_cylinders_columnTank;
+  /// **'Start {pressure}'**
+  String diveLog_cylinders_figureStart(String pressure);
 
-  /// Cylinders card table header over the gas mix
+  /// Cylinders card tank figure label: the end pressure, at its level beside the tank figure, e.g. "End 200 bar". pressure is the value with its unit.
   ///
   /// In en, this message translates to:
-  /// **'Gas'**
-  String get diveLog_cylinders_columnGas;
+  /// **'End {pressure}'**
+  String diveLog_cylinders_figureEnd(String pressure);
 
-  /// Cylinders card table header over the start pressure; the pressure unit is shown under it
+  /// Cylinders card tank figure label: the pressure used, between the start and end labels beside the tank figure, e.g. "Used 200 bar". pressure is the value with its unit.
   ///
   /// In en, this message translates to:
-  /// **'Start'**
-  String get diveLog_cylinders_columnStart;
+  /// **'Used {pressure}'**
+  String diveLog_cylinders_figureUsed(String pressure);
 
-  /// Cylinders card table header over the end pressure; the pressure unit is shown under it
+  /// Cylinders card: what a screen reader says for a cylinder's gas pill, e.g. "Gas EAN32". mix is the gas mix name.
   ///
   /// In en, this message translates to:
-  /// **'End'**
-  String get diveLog_cylinders_columnEnd;
-
-  /// Cylinders card table header over the pressure used; the pressure unit is shown under it
-  ///
-  /// In en, this message translates to:
-  /// **'Used'**
-  String get diveLog_cylinders_columnUsed;
+  /// **'Gas {mix}'**
+  String diveLog_cylinders_gasSemantics(String mix);
 
   /// Cylinders card detail item: the volume of gas the dive consumed from this cylinder, e.g. "Gas used 1665 L"
   ///
@@ -16705,11 +16723,23 @@ abstract class AppLocalizations {
   /// **'MND {depth}'**
   String diveLog_cylinders_mnd(String depth);
 
-  /// Note under the Cylinders card table: the working ppO2 every MOD on the card was computed at, e.g. "MOD at ppO₂ 1.4"
+  /// Note under the Cylinders card table: the ppO2 every MOD on the card was computed at. {ppO2} is one value ("MOD at ppO₂ 1.4") or, when the cylinders use different limits, a list of diveLog_cylinders_modLimit items ("MOD at ppO₂ 1.4 (bottom limit), 1.6 (deco limit)")
   ///
   /// In en, this message translates to:
   /// **'MOD at ppO₂ {ppO2}'**
   String diveLog_cylinders_modNote(String ppO2);
+
+  /// One item of the list in diveLog_cylinders_modNote: a ppO2 and the limit it is (tankMod_limitBottom, tankMod_limitDeco or tankMod_limitDiluent), e.g. "1.6 (deco limit)"
+  ///
+  /// In en, this message translates to:
+  /// **'{ppO2} ({limit})'**
+  String diveLog_cylinders_modLimit(String ppO2, String limit);
+
+  /// Separator between the diveLog_cylinders_modLimit items in diveLog_cylinders_modNote
+  ///
+  /// In en, this message translates to:
+  /// **', '**
+  String get diveLog_cylinders_modLimitSeparator;
 
   /// No description provided for @diveLog_tank_section_gasMix.
   ///
@@ -32472,6 +32502,12 @@ abstract class AppLocalizations {
   /// **'Tank ends below the rock-bottom minimum of {pressure}'**
   String plannerCanvas_issue_minGas(String pressure);
 
+  /// No description provided for @plannerCanvas_issue_noUsableGas.
+  ///
+  /// In en, this message translates to:
+  /// **'Rock-bottom minimum of {minGas} leaves no usable gas in a {fill} fill'**
+  String plannerCanvas_issue_noUsableGas(String minGas, String fill);
+
   /// No description provided for @plannerCanvas_issue_diluentModExceeded.
   ///
   /// In en, this message translates to:
@@ -36824,6 +36860,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Skip unused bailout gases'**
   String get settings_conflict_field_omitUnusedOcGases;
+
+  /// Label for a saved list arrangement in a sync conflict
+  ///
+  /// In en, this message translates to:
+  /// **'Dive list sort'**
+  String get settings_conflict_field_diveListSort;
+
+  /// Label for a saved list arrangement in a sync conflict
+  ///
+  /// In en, this message translates to:
+  /// **'Saved plans sort'**
+  String get settings_conflict_field_divePlanListSort;
+
+  /// Label for a saved list arrangement in a sync conflict
+  ///
+  /// In en, this message translates to:
+  /// **'Trip list sort'**
+  String get settings_conflict_field_tripListSort;
+
+  /// Label for a saved list arrangement in a sync conflict
+  ///
+  /// In en, this message translates to:
+  /// **'Course list sort'**
+  String get settings_conflict_field_courseListSort;
+
+  /// Label for a saved list arrangement in a sync conflict
+  ///
+  /// In en, this message translates to:
+  /// **'Buddy list sort'**
+  String get settings_conflict_field_buddyListSort;
+
+  /// Label for a saved list arrangement in a sync conflict
+  ///
+  /// In en, this message translates to:
+  /// **'Dive center list sort'**
+  String get settings_conflict_field_diveCenterListSort;
+
+  /// Label for a saved list arrangement in a sync conflict
+  ///
+  /// In en, this message translates to:
+  /// **'Dive site list sort'**
+  String get settings_conflict_field_siteListSort;
+
+  /// Label for a saved list arrangement in a sync conflict
+  ///
+  /// In en, this message translates to:
+  /// **'Certification list sort'**
+  String get settings_conflict_field_certificationListSort;
+
+  /// Label for a saved list arrangement in a sync conflict
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment list sort'**
+  String get settings_conflict_field_equipmentListSort;
+
+  /// Label for a saved list arrangement in a sync conflict
+  ///
+  /// In en, this message translates to:
+  /// **'Dive site list grouping'**
+  String get settings_conflict_field_siteListGroupBy;
+
+  /// Label for a saved list arrangement in a sync conflict
+  ///
+  /// In en, this message translates to:
+  /// **'Certification list grouping'**
+  String get settings_conflict_field_certificationListGroupBy;
+
+  /// Label for a saved list arrangement in a sync conflict
+  ///
+  /// In en, this message translates to:
+  /// **'Gear arrangement'**
+  String get settings_conflict_field_equipmentArrangement;
+
+  /// Label for a saved list arrangement in a sync conflict
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment grouped by location'**
+  String get settings_conflict_field_equipmentGroupByLocation;
+
+  /// Label for a saved list arrangement in a sync conflict
+  ///
+  /// In en, this message translates to:
+  /// **'List arrangement record'**
+  String get settings_conflict_field_listArrangementHlc;
+
+  /// A saved list sort in a sync conflict: the sort field, then its direction
+  ///
+  /// In en, this message translates to:
+  /// **'{field}, {direction}'**
+  String settings_conflict_sortValue(String field, String direction);
 
   /// No description provided for @settings_conflict_field_avgSpeed.
   ///
@@ -57646,13 +57772,13 @@ abstract class AppLocalizations {
   /// No description provided for @settings_shareAllSites_confirm.
   ///
   /// In en, this message translates to:
-  /// **'Choose who sees all {count} of your sites. To change one site later, open it and tap Shared with.'**
+  /// **'Choose who sees all {count} of your sites. To change one site later, edit it and tap Shared with.'**
   String settings_shareAllSites_confirm(int count);
 
   /// No description provided for @settings_shareAllTrips_confirm.
   ///
   /// In en, this message translates to:
-  /// **'Choose who sees all {count} of your trips. To change one trip later, open it and tap Shared with.'**
+  /// **'Choose who sees all {count} of your trips. To change one trip later, edit it and tap Shared with.'**
   String settings_shareAllTrips_confirm(int count);
 
   /// Message shown when there are no sites/trips to share
@@ -82944,6 +83070,24 @@ abstract class AppLocalizations {
   /// **'In cloud storage ({size})'**
   String backup_history_cloudOnlySubtitle(String size);
 
+  /// Shown on a backup history row made by a device whose name is not known.
+  ///
+  /// In en, this message translates to:
+  /// **'Another device'**
+  String get backup_history_device_anotherDevice;
+
+  /// Shown on a backup history row made by the device the app is running on.
+  ///
+  /// In en, this message translates to:
+  /// **'This device'**
+  String get backup_history_device_thisDevice;
+
+  /// A backup history row's summary followed by the device that made the backup.
+  ///
+  /// In en, this message translates to:
+  /// **'{summary} · {device}'**
+  String backup_history_subtitleWithDevice(String summary, String device);
+
   /// No description provided for @backup_history_manualSubtitle.
   ///
   /// In en, this message translates to:
@@ -88416,6 +88560,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This cannot be undone.'**
   String get tags_manage_cannotUndo;
+
+  /// Manage Tags row: where the tag is offered. {scopes} is a list of scope names joined with a middle dot, such as "Dives · Sites".
+  ///
+  /// In en, this message translates to:
+  /// **'For: {scopes}'**
+  String tags_manage_rowScopes(String scopes);
+
+  /// Manage Tags row: how many items carry the tag. {counts} is a list of counts, such as "12 dives, 3 sites".
+  ///
+  /// In en, this message translates to:
+  /// **'Used on: {counts}'**
+  String tags_manage_rowUsage(String counts);
 
   /// No description provided for @tags_action_edit.
   ///

@@ -285,7 +285,7 @@ class _DiveListPageState extends ConsumerState<DiveListPage>
                 final mode = ListViewMode.fromName(
                   value.replaceFirst('view_', ''),
                 );
-                ref.read(diveListViewModeProvider.notifier).state = mode;
+                ref.read(settingsProvider.notifier).setDiveListViewMode(mode);
               }
             },
             itemBuilder: (context) {

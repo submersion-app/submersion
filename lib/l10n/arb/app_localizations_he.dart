@@ -2508,6 +2508,15 @@ class AppLocalizationsHe extends AppLocalizations {
       'שליחה דרך AirDrop, דוא\"ל או אפליקציות אחרות';
 
   @override
+  String get backup_copySheet_deviceLocked =>
+      'עותק הבטיחות הזה נלקח ממסד הנתונים המוגן שלכם. אפשר לשחזר אותו רק במכשיר הזה.';
+
+  @override
+  String backup_copySheet_title(String dateTime) {
+    return 'גיבוי מ-$dateTime';
+  }
+
+  @override
   String get backup_frequency_daily => 'יומי';
 
   @override
@@ -2521,6 +2530,12 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get backup_history_action_restore => 'שחזור';
+
+  @override
+  String get backup_history_action_saveCopy => 'שמירת עותק';
+
+  @override
+  String get backup_history_action_share => 'שיתוף';
 
   @override
   String get backup_history_empty => 'אין גיבויים';
@@ -10250,19 +10265,24 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get diveLog_cylinders_columnTank => 'בלון';
+  String diveLog_cylinders_figureStart(String pressure) {
+    return 'התחלה $pressure';
+  }
 
   @override
-  String get diveLog_cylinders_columnGas => 'גז';
+  String diveLog_cylinders_figureEnd(String pressure) {
+    return 'סיום $pressure';
+  }
 
   @override
-  String get diveLog_cylinders_columnStart => 'התחלה';
+  String diveLog_cylinders_figureUsed(String pressure) {
+    return 'נוצל $pressure';
+  }
 
   @override
-  String get diveLog_cylinders_columnEnd => 'סיום';
-
-  @override
-  String get diveLog_cylinders_columnUsed => 'נוצל';
+  String diveLog_cylinders_gasSemantics(String mix) {
+    return 'גז $mix';
+  }
 
   @override
   String diveLog_cylinders_gasUsed(String amount) {
@@ -10283,6 +10303,14 @@ class AppLocalizationsHe extends AppLocalizations {
   String diveLog_cylinders_modNote(String ppO2) {
     return 'MOD ב-ppO₂ $ppO2';
   }
+
+  @override
+  String diveLog_cylinders_modLimit(String ppO2, String limit) {
+    return '$ppO2 ($limit)';
+  }
+
+  @override
+  String get diveLog_cylinders_modLimitSeparator => ', ';
 
   @override
   String get diveLog_tank_section_gasMix => 'תערובת גזים';
@@ -19961,6 +19989,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String plannerCanvas_issue_noUsableGas(String minGas, String fill) {
+    return 'מינימום rock bottom של $minGas לא משאיר גז שמיש במילוי של $fill';
+  }
+
+  @override
   String plannerCanvas_issue_diluentModExceeded(String depth, String value) {
     return 'המדלל חורג מ-MOD מדלל ב-$depth (ppO₂ $value bar)';
   }
@@ -22695,6 +22728,56 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_conflict_field_omitUnusedOcGases =>
       'דילוג על גזי חילוץ שלא נוצלו';
+
+  @override
+  String get settings_conflict_field_diveListSort => 'צלילות: מיון';
+
+  @override
+  String get settings_conflict_field_divePlanListSort => 'תוכניות שמורות: מיון';
+
+  @override
+  String get settings_conflict_field_tripListSort => 'טיולים: מיון';
+
+  @override
+  String get settings_conflict_field_courseListSort => 'קורסים: מיון';
+
+  @override
+  String get settings_conflict_field_buddyListSort => 'שותפים: מיון';
+
+  @override
+  String get settings_conflict_field_diveCenterListSort =>
+      'מועדוני צלילה: מיון';
+
+  @override
+  String get settings_conflict_field_siteListSort => 'אתרים: מיון';
+
+  @override
+  String get settings_conflict_field_certificationListSort => 'הסמכות: מיון';
+
+  @override
+  String get settings_conflict_field_equipmentListSort => 'ציוד: מיון';
+
+  @override
+  String get settings_conflict_field_siteListGroupBy => 'אתרים: קיבוץ';
+
+  @override
+  String get settings_conflict_field_certificationListGroupBy =>
+      'הסמכות: קיבוץ';
+
+  @override
+  String get settings_conflict_field_equipmentArrangement => 'סידור הציוד';
+
+  @override
+  String get settings_conflict_field_equipmentGroupByLocation =>
+      'ציוד מקובץ לפי מיקום';
+
+  @override
+  String get settings_conflict_field_listArrangementHlc => 'יומן סידור הרשימות';
+
+  @override
+  String settings_conflict_sortValue(String field, String direction) {
+    return '$field, $direction';
+  }
 
   @override
   String get settings_conflict_field_avgSpeed => 'מהירות ממוצעת';
@@ -35557,12 +35640,12 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String settings_shareAllSites_confirm(int count) {
-    return 'בחר מי רואה את כל $count האתרים שלך. כדי לשנות אתר אחד בהמשך, פתח אותו והקש על משותף עם.';
+    return 'בחר מי רואה את כל $count האתרים שלך. כדי לשנות אתר אחד בהמשך, ערוך אותו והקש על משותף עם.';
   }
 
   @override
   String settings_shareAllTrips_confirm(int count) {
-    return 'בחר מי רואה את כל $count הטיולים שלך. כדי לשנות טיול אחד בהמשך, פתח אותו והקש על משותף עם.';
+    return 'בחר מי רואה את כל $count הטיולים שלך. כדי לשנות טיול אחד בהמשך, ערוך אותו והקש על משותף עם.';
   }
 
   @override
@@ -51242,6 +51325,17 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get backup_history_device_anotherDevice => 'מכשיר אחר';
+
+  @override
+  String get backup_history_device_thisDevice => 'מכשיר זה';
+
+  @override
+  String backup_history_subtitleWithDevice(String summary, String device) {
+    return '$summary · $device';
+  }
+
+  @override
   String backup_history_manualSubtitle(
     int diveCount,
     int siteCount,
@@ -54708,6 +54802,16 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get tags_manage_cannotUndo => 'לא ניתן לבטל פעולה זו.';
+
+  @override
+  String tags_manage_rowScopes(String scopes) {
+    return 'עבור: $scopes';
+  }
+
+  @override
+  String tags_manage_rowUsage(String counts) {
+    return 'בשימוש: $counts';
+  }
 
   @override
   String get tags_action_edit => 'עריכת תגיות';

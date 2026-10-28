@@ -34,7 +34,9 @@ class RestoreTempSweep {
   /// - a backup name (`submersion_backup_...`, plain or encrypted), bare (a
   ///   share-sheet export, an older restore copy) or behind the
   ///   `restore-<uuid>-` restore-copy or `<uuid>-` staging prefix;
-  /// - a pre-migration copy (`<yyyyMMdd>-<HHmmssSSS>-v<n>-v<m>.db`), bare or
+  /// - a pre-migration copy (`<yyyyMMdd>-<HHmmssSSS>-v<n>-v<m>.db`) or a
+  ///   pre-downgrade copy (`<yyyyMMdd>-<HHmmssSSS>-v<n>-newer.db`), either
+  ///   possibly wrapped as `.sbe`, bare (one shared from the history) or
   ///   behind the restore-copy prefix;
   /// - the decrypted plaintext copy of an encrypted backup
   ///   (`restore_<uuid>.db`), and the export and re-encryption copies
@@ -42,7 +44,7 @@ class RestoreTempSweep {
   static final _backupName = RegExp(
     r'^(?:'
     r'(?:restore-)?(?:[0-9a-f-]{36}-)?submersion_backup_.+\.(?:db|sbe)'
-    r'|(?:restore-[0-9a-f-]{36}-)?\d{8}-\d{9}-v\d+-v\d+\.db'
+    r'|(?:restore-[0-9a-f-]{36}-)?\d{8}-\d{9}-v\d+-(?:v\d+|newer)\.(?:db|sbe)'
     r'|restore_[0-9a-f-]{36}\.db'
     r'|export_[0-9a-f-]{36}\.db'
     r'|reenc_[0-9a-f-]{36}\.sbe'

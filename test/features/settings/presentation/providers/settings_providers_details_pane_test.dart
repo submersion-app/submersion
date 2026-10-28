@@ -410,9 +410,10 @@ void main() {
       expect(container.read(diveListViewModeProvider), ListViewMode.detailed);
     });
 
-    test('diveListViewModeProvider can be updated to table', () {
-      container.read(diveListViewModeProvider.notifier).state =
-          ListViewMode.table;
+    test('diveListViewModeProvider follows the saved view mode', () async {
+      await container
+          .read(settingsProvider.notifier)
+          .setDiveListViewMode(ListViewMode.table);
       expect(container.read(diveListViewModeProvider), ListViewMode.table);
     });
 
@@ -420,9 +421,10 @@ void main() {
       expect(container.read(siteListViewModeProvider), ListViewMode.detailed);
     });
 
-    test('siteListViewModeProvider can be updated to compact', () {
-      container.read(siteListViewModeProvider.notifier).state =
-          ListViewMode.compact;
+    test('siteListViewModeProvider follows the saved view mode', () async {
+      await container
+          .read(settingsProvider.notifier)
+          .setSiteListViewMode(ListViewMode.compact);
       expect(container.read(siteListViewModeProvider), ListViewMode.compact);
     });
 
@@ -430,9 +432,10 @@ void main() {
       expect(container.read(tripListViewModeProvider), ListViewMode.detailed);
     });
 
-    test('tripListViewModeProvider can be updated to dense', () {
-      container.read(tripListViewModeProvider.notifier).state =
-          ListViewMode.dense;
+    test('tripListViewModeProvider follows the saved view mode', () async {
+      await container
+          .read(settingsProvider.notifier)
+          .setTripListViewMode(ListViewMode.dense);
       expect(container.read(tripListViewModeProvider), ListViewMode.dense);
     });
 
@@ -443,9 +446,10 @@ void main() {
       );
     });
 
-    test('equipmentListViewModeProvider can be updated to table', () {
-      container.read(equipmentListViewModeProvider.notifier).state =
-          ListViewMode.table;
+    test('equipmentListViewModeProvider follows the saved view mode', () async {
+      await container
+          .read(settingsProvider.notifier)
+          .setEquipmentListViewMode(ListViewMode.table);
       expect(container.read(equipmentListViewModeProvider), ListViewMode.table);
     });
 
@@ -453,9 +457,10 @@ void main() {
       expect(container.read(buddyListViewModeProvider), ListViewMode.detailed);
     });
 
-    test('buddyListViewModeProvider can be updated to compact', () {
-      container.read(buddyListViewModeProvider.notifier).state =
-          ListViewMode.compact;
+    test('buddyListViewModeProvider follows the saved view mode', () async {
+      await container
+          .read(settingsProvider.notifier)
+          .setBuddyListViewMode(ListViewMode.compact);
       expect(container.read(buddyListViewModeProvider), ListViewMode.compact);
     });
 
@@ -466,13 +471,17 @@ void main() {
       );
     });
 
-    test('diveCenterListViewModeProvider can be updated to table', () {
-      container.read(diveCenterListViewModeProvider.notifier).state =
-          ListViewMode.table;
-      expect(
-        container.read(diveCenterListViewModeProvider),
-        ListViewMode.table,
-      );
-    });
+    test(
+      'diveCenterListViewModeProvider follows the saved view mode',
+      () async {
+        await container
+            .read(settingsProvider.notifier)
+            .setDiveCenterListViewMode(ListViewMode.table);
+        expect(
+          container.read(diveCenterListViewModeProvider),
+          ListViewMode.table,
+        );
+      },
+    );
   });
 }

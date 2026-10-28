@@ -70,23 +70,12 @@ class BulkDiveEditService {
             priorTagIds[r.diveId]!.add(r.tagId);
           }
         case DiveTypesOp():
-          // Order by createdAt so undo restores the original representative
-          // (the first type), matching _diveTypesForDives.
-          final rows =
-              await (_db.select(_db.diveDiveTypes)
-                    ..where((t) => t.diveId.isIn(ids))
-                    ..orderBy([(t) => OrderingTerm(expression: t.createdAt)]))
-                  .get();
-          priorDiveTypeIds = {for (final id in ids) id: <String>[]};
-          for (final r in rows) {
-            priorDiveTypeIds[r.diveId]!.add(r.diveTypeId);
-          }
-          // Legacy dives with no junction rows: seed from the representative
-          // column so undo restores their type instead of recreational.
-          for (final row in priorDiveRows) {
-            if (priorDiveTypeIds[row.id]!.isEmpty) {
-              priorDiveTypeIds[row.id]!.add(row.diveType);
-            }
+          priorDiveTypeIds ??= await _priorDiveTypeIds(ids, priorDiveRows);
+        // A site adds the dive types its site types stand for, so undo needs
+        // them too. Unlinking adds none.
+        case SiteOp(:final siteId):
+          if (siteId != null) {
+            priorDiveTypeIds ??= await _priorDiveTypeIds(ids, priorDiveRows);
           }
         case DiveCoursesOp():
           final current = await _diveRepo.courseIdsForDives(ids);
@@ -146,6 +135,12 @@ class BulkDiveEditService {
     }
 
     await _db.transaction(() async {
+      // The site goes first: its snap fills in water type, entry/exit and
+      // dive types, and every row the diver set in this edit then lands on
+      // top of it (#3657).
+      for (final op in req.ops.whereType<SiteOp>()) {
+        await _diveRepo.bulkSetSite(ids, op.siteId);
+      }
       if (req.hasScalarChanges) {
         await _diveRepo.bulkUpdateFields(ids, req.scalars);
       }
@@ -339,6 +334,9 @@ class BulkDiveEditService {
             // add + overwriteRole (#893).
             await _buddyRepo.bulkUpdateBuddyRoles(ids, buddies);
         }
+      // Applied ahead of the scalars and every other op, in [apply].
+      case SiteOp():
+        break;
       case DiverRolesOp(:final roleIds):
         final now = DateTime.now().millisecondsSinceEpoch;
         for (final id in ids) {
@@ -391,6 +389,32 @@ class BulkDiveEditService {
             throw UnsupportedError('Sightings have no in-place update');
         }
     }
+  }
+
+  /// Each dive's dive types before the edit, for undo. Ordered by createdAt so
+  /// undo restores the original representative (the first type), matching
+  /// _diveTypesForDives.
+  Future<Map<String, List<String>>> _priorDiveTypeIds(
+    List<String> ids,
+    List<Dive> priorDiveRows,
+  ) async {
+    final rows =
+        await (_db.select(_db.diveDiveTypes)
+              ..where((t) => t.diveId.isIn(ids))
+              ..orderBy([(t) => OrderingTerm(expression: t.createdAt)]))
+            .get();
+    final prior = {for (final id in ids) id: <String>[]};
+    for (final r in rows) {
+      prior[r.diveId]!.add(r.diveTypeId);
+    }
+    // Legacy dives with no junction rows: seed from the representative
+    // column so undo restores their type instead of recreational.
+    for (final row in priorDiveRows) {
+      if (prior[row.id]!.isEmpty) {
+        prior[row.id]!.add(row.diveType);
+      }
+    }
+    return prior;
   }
 
   // Map Drift rows back to the domain objects the bulk-replace methods consume.

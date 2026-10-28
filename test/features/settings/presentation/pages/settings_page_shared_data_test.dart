@@ -49,6 +49,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/tissue_color_s
 import 'package:submersion/core/services/log_file_service.dart';
 import 'package:submersion/features/settings/presentation/providers/debug_log_providers.dart';
 import 'package:submersion/core/utils/coordinates/coordinate_format.dart';
+import 'package:submersion/features/settings/domain/list_arrangements.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart' as trips;
@@ -182,6 +183,16 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
 
   @override
   Future<void> get settingsLoaded async {}
+
+  @override
+  Future<void> toggleGroupTripsInDiveList() async =>
+      state = state.copyWith(groupTripsInDiveList: !state.groupTripsInDiveList);
+
+  @override
+  Future<void> updateListArrangements(
+    ListArrangements Function(ListArrangements current) change,
+  ) async =>
+      state = state.copyWith(listArrangements: change(state.listArrangements));
 
   @override
   Future<void> setAccentNavIcons(bool value) async =>
@@ -1282,7 +1293,7 @@ void main() {
       expect(
         find.text(
           'Choose who sees all 3 of your sites. To change one site later, '
-          'open it and tap Shared with.',
+          'edit it and tap Shared with.',
         ),
         findsOneWidget,
       );
@@ -1385,7 +1396,7 @@ void main() {
       expect(
         find.text(
           'Choose who sees all 2 of your trips. To change one trip later, '
-          'open it and tap Shared with.',
+          'edit it and tap Shared with.',
         ),
         findsOneWidget,
       );

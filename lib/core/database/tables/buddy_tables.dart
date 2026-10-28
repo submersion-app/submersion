@@ -44,7 +44,7 @@ class Buddies extends Table {
   /// (nullable: rows written before HLC rollout fall back to updatedAt).
   TextColumn get hlc => text().nullable()();
 
-  /// v321 buddy card swap (issue #3728). [cardId] is the id of the person
+  /// v324 buddy card swap (issue #3728). [cardId] is the id of the person
   /// whose card this buddy came from, so a later swap updates this buddy
   /// rather than adding another. The `card*` figures are what that card
   /// said, as of [cardReceivedAt]; only a card writes them.
@@ -130,7 +130,7 @@ class Certifications extends Table {
   /// (nullable: rows written before HLC rollout fall back to updatedAt).
   TextColumn get hlc => text().nullable()();
 
-  /// v321: the buddy card that created this row (issue #3728). Null for a
+  /// v324: the buddy card that created this row (issue #3728). Null for a
   /// certification entered by hand, which a later card never touches.
   TextColumn get cardId => text().nullable()();
 

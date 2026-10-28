@@ -10,6 +10,7 @@ class SyncFactGroup {
     required this.clockKey,
     required this.clockColumn,
     required this.columns,
+    this.nullClockIsUnset = false,
   });
 
   final String name;
@@ -22,10 +23,23 @@ class SyncFactGroup {
 
   /// The group's fact columns, JSON key to SQL column.
   final Map<String, String> columns;
+
+  /// Whether a clock present but null means "never written" rather than
+  /// "written under the row clock".
+  ///
+  /// Off for media, whose rows predate their fact clocks and wrote facts
+  /// through the row clock, so a null clock honestly falls back to it, and a
+  /// row-clock stamp seeds the group clock. On for a diver's list
+  /// arrangements (issue #3748): a row whose arrangement clock is null never
+  /// had its arrangement changed under a clock, so it must lose to any
+  /// arrangement change a peer made, not borrow the clock of an unrelated
+  /// settings save. Only a key the side does not send at all (an older peer)
+  /// still falls back to the row clock.
+  final bool nullClockIsUnset;
 }
 
-/// Which entities carry fact groups. Only media does today; an entity with
-/// none merges exactly as before.
+/// Which entities carry fact groups: media's device observations, and a
+/// diver's list arrangements. An entity with none merges exactly as before.
 abstract final class SyncFactGroups {
   static const SyncFactGroup mediaUpload = SyncFactGroup(
     name: 'upload',
@@ -53,8 +67,48 @@ abstract final class SyncFactGroups {
     },
   );
 
+  /// How the diver left each list (issue #3748). Not a device observation
+  /// but the same need: sorting is one of the most frequent taps in the
+  /// app, and stamping the settings row's clock for it would let a device
+  /// holding stale settings republish them over a gradient-factor or units
+  /// change made on another device. Under its own clock a sort orders only
+  /// against other arrangement changes. The view modes and the group-trips
+  /// toggle are in the group because the in-list toggles change them as
+  /// often.
+  static const SyncFactGroup diverSettingsListArrangement = SyncFactGroup(
+    name: 'listArrangement',
+    clockKey: 'listArrangementHlc',
+    clockColumn: 'list_arrangement_hlc',
+    columns: {
+      'diveListSort': 'dive_list_sort',
+      'divePlanListSort': 'dive_plan_list_sort',
+      'tripListSort': 'trip_list_sort',
+      'courseListSort': 'course_list_sort',
+      'buddyListSort': 'buddy_list_sort',
+      'diveCenterListSort': 'dive_center_list_sort',
+      'siteListSort': 'site_list_sort',
+      'certificationListSort': 'certification_list_sort',
+      'equipmentListSort': 'equipment_list_sort',
+      'siteListGroupBy': 'site_list_group_by',
+      'certificationListGroupBy': 'certification_list_group_by',
+      'equipmentArrangement': 'equipment_arrangement',
+      'equipmentGroupByLocation': 'equipment_group_by_location',
+      'diveListViewMode': 'dive_list_view_mode',
+      'siteListViewMode': 'site_list_view_mode',
+      'tripListViewMode': 'trip_list_view_mode',
+      'equipmentListViewMode': 'equipment_list_view_mode',
+      'buddyListViewMode': 'buddy_list_view_mode',
+      'diveCenterListViewMode': 'dive_center_list_view_mode',
+      'certificationListViewMode': 'certification_list_view_mode',
+      'courseListViewMode': 'course_list_view_mode',
+      'groupTripsInDiveList': 'group_trips_in_dive_list',
+    },
+    nullClockIsUnset: true,
+  );
+
   static const Map<String, List<SyncFactGroup>> byEntity = {
     'media': [mediaUpload, mediaVerification],
+    'diverSettings': [diverSettingsListArrangement],
   };
 
   static List<SyncFactGroup> of(String entityType) =>
@@ -64,6 +118,7 @@ abstract final class SyncFactGroups {
   /// pins it to SyncRepository.hlcTargets, which is test-visible only.
   static const Map<String, ({String table, String pk})> tables = {
     'media': (table: 'media', pk: 'id'),
+    'diverSettings': (table: 'diver_settings', pk: 'id'),
   };
 }
 
@@ -83,6 +138,8 @@ String? _effectiveClock(Map<String, dynamic>? side, SyncFactGroup g) {
   if (side == null) return null;
   final own = side[g.clockKey];
   if (own is String && own.isNotEmpty) return own;
+  // Sent, and null: never written (see SyncFactGroup.nullClockIsUnset).
+  if (g.nullClockIsUnset && side.containsKey(g.clockKey)) return null;
   final row = side['hlc'];
   return row is String && row.isNotEmpty ? row : null;
 }

@@ -3964,6 +3964,56 @@ class SyncService {
           }
         }
 
+        // A row carrying fact groups (a diver's list arrangements, issue
+        // #3748) resolves its user fields by the row clock and each group by
+        // its own clock, exactly as the clock-guarded path above does for
+        // media: a stale row still hands over a newer sort, and a newer
+        // settings change does not take a stale one. An unorderable pending
+        // row keeps its own user fields, as the gate above intends, and
+        // opens only its groups to the peer. A row new here takes every
+        // group from the peer, and a peer too old to send a group clock
+        // hands over its row clock as that clock (mergeFactGroups), so a
+        // later local save cannot give its untouched groups a fresh clock.
+        if (factGroups.isNotEmpty &&
+            (local == null ||
+                pendingUnorderable ||
+                (localHlc != null && remoteHlc != null))) {
+          for (final g in factGroups) {
+            final factClock = _parseHlc(record[g.clockKey]);
+            if (factClock != null) SyncClock.instance.receive(factClock);
+          }
+          final rowFromRemote =
+              local == null ||
+              (!pendingUnorderable && remoteHlc!.compareTo(localHlc!) > 0);
+          final resolved = mergeFactGroups(
+            entityType: entityType,
+            base: rowFromRemote
+                ? overlayOntoLocal(entityType, recordToApply, local)
+                : local,
+            local: local,
+            remote: recordToApply,
+          );
+          if (rowFromRemote) {
+            toUpsert.add(resolved.row);
+            factWrites.add((
+              id: recordId,
+              row: resolved.row,
+              groups: factGroups,
+              inBatch: true,
+            ));
+            applied += 1;
+          } else if (resolved.fromRemote.isNotEmpty) {
+            factWrites.add((
+              id: recordId,
+              row: resolved.row,
+              groups: resolved.fromRemote,
+              inBatch: false,
+            ));
+            applied += 1;
+          }
+          continue;
+        }
+
         // When BOTH sides carry an HLC it is the authoritative, deterministic
         // resolution -- it already encodes causal order across devices, so we
         // do NOT raise a manual conflict (that would defeat the purpose of the

@@ -191,6 +191,9 @@ class FakeItemShares extends ItemSharesRepository {
 
   final Map<String, ItemSharing> sharing;
   final setCalls = <(String, ItemSharing)>[];
+
+  /// The acting profile each [setSharing] call named, in order.
+  final setActingDivers = <String?>[];
   final addCalls = <(List<String>, ItemSharing)>[];
 
   @override
@@ -227,9 +230,15 @@ class FakeItemShares extends ItemSharesRepository {
     required String? actingDiverId,
   }) async {
     setCalls.add((id, sharing));
+    setActingDivers.add(actingDiverId);
+    if (refuseSet) return false;
     this.sharing[id] = sharing;
     return true;
   }
+
+  /// [setSharing] answers false, as the repository does for a profile that
+  /// is not the owner (an item that changed hands meanwhile).
+  bool refuseSet = false;
 
   @override
   Future<ItemShareResult> addSharing(

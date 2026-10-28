@@ -640,9 +640,15 @@ extension RungsFromV231 on AppDatabase {
     if (from < 320) await _assertNearbySchema();
     if (from < 320) await reportProgress();
 
-    // v321: buddy card swap columns on buddies, certifications and divers
+    // v323: diver_settings list arrangement columns and their sync clock
+    // (issue #3748); re-asserted in beforeOpen. 321 and 322 are held by
+    // PR #3726.
+    if (from < 323) await _assertListArrangementColumns();
+    if (from < 323) await reportProgress();
+
+    // v324: buddy card swap columns on buddies, certifications and divers
     // (issue #3728).
-    if (from < 321) await _assertBuddyCardColumns();
-    if (from < 321) await reportProgress();
+    if (from < 324) await _assertBuddyCardColumns();
+    if (from < 324) await reportProgress();
   }
 }

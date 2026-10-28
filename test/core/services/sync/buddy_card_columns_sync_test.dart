@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart' as db;
 
 /// The sync serializer sends buddy, certification and diver rows as their
-/// Drift `toJson` and applies them with `fromJson`, so the v321 card columns
+/// Drift `toJson` and applies them with `fromJson`, so the v324 card columns
 /// (issue #3728) travel with no serializer change. These pin that, and that a
 /// row from an older peer without the keys still applies.
 void main() {

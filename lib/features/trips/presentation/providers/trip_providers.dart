@@ -1,6 +1,7 @@
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/models/sort_state.dart';
+import 'package:submersion/core/models/sort_state_codec.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/text/text_sort.dart';
@@ -24,6 +25,7 @@ import 'package:submersion/shared/models/entity_card_view_config.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
 import 'package:submersion/shared/providers/entity_table_config_providers.dart';
 import 'package:submersion/shared/widgets/master_detail/remembered_selection.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// Filter state for trip list
 class TripFilterState {
@@ -155,11 +157,20 @@ final filteredTripsProvider = Provider<AsyncValue<List<TripWithStats>>>((ref) {
 });
 
 /// Trip sort state provider
-final tripSortProvider = StateProvider<SortState<TripSortField>>(
-  (ref) => const SortState(
-    field: TripSortField.startDate,
-    direction: SortDirection.descending,
-  ),
+///
+/// Comes back as the diver left it (issue #3748): the active diver's saved
+/// sort, or the starting order below when there is none (or this build
+/// cannot read it). Change it through `ListArrangementWrites`.
+final tripSortProvider = Provider<SortState<TripSortField>>(
+  (ref) =>
+      decodeSortState(
+        ref.watch(settingsProvider.select((s) => s.listArrangements.tripSort)),
+        TripSortField.values,
+      ) ??
+      const SortState(
+        field: TripSortField.startDate,
+        direction: SortDirection.descending,
+      ),
 );
 
 /// Sorted and filtered trips provider

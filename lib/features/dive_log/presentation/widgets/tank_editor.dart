@@ -25,6 +25,7 @@ import 'package:submersion/features/tank_presets/domain/entities/tank_preset_ent
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/services/computer_recorded_tank.dart';
+import 'package:submersion/features/dive_log/domain/services/logged_tank_mod.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/computer_mix_note.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/own_cylinder_picker_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
@@ -92,6 +93,10 @@ class TankEditor extends ConsumerStatefulWidget {
   /// #3021). Null while creating a dive, and in bulk edits.
   final String? diveId;
 
+  /// How the dive is breathed, which settles the ppO2 limit a diluent's MOD
+  /// is shown at (issue #3752). Open circuit where the editor has no dive.
+  final DiveMode diveMode;
+
   const TankEditor({
     super.key,
     required this.tank,
@@ -106,6 +111,7 @@ class TankEditor extends ConsumerStatefulWidget {
     this.takenTripCylinderIds = const {},
     this.suggested = false,
     this.diveId,
+    this.diveMode = DiveMode.oc,
   });
 
   @override
@@ -977,9 +983,15 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     UnitFormatter units,
     AppSettings settings,
   ) {
-    final workingPpO2 = settings.ppO2MaxWorking;
+    // The limit the role picked above calls for on this dive (issue #3752).
+    final modPpO2 = modLimitPpO2(
+      loggedTankModLimit(_role, gasMix, widget.diveMode),
+      bottomPpO2: settings.ppO2MaxWorking,
+      decoPpO2: settings.ppO2MaxDeco,
+      diluentPpO2: settings.ccrDiluentModPpO2,
+    );
     final modDepth = units.formatDepthFloor(
-      gasMix.mod(ppO2: workingPpO2),
+      gasMix.mod(ppO2: modPpO2),
       decimals: 0,
     );
     final mndValue = gasMix.mnd(
@@ -1010,7 +1022,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
               child: Text(
                 context.l10n.diveLog_tank_modMndInfo(
                   modDepth,
-                  formatFixedForDisplay(workingPpO2, 1),
+                  formatFixedForDisplay(modPpO2, 1),
                   mndDepth,
                 ),
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(

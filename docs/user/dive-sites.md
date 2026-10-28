@@ -202,7 +202,7 @@ Nothing is linked until you tap **Confirm N matches**, which writes every select
 
 Sites are shared the way trips are (see [Sharing a trip with other profiles](trips.md#sharing-a-trip-with-other-profiles)):
 
-- Open the site and tap **Shared with** to choose **Everyone** or only the profiles you tick. To share several sites, select them in the list and choose **Share with...**; **Settings > Shared data > Share all my sites...** shares every site you own. Bulk sharing only ever adds profiles.
+- Edit the site and tap **Shared with** to choose **Everyone** or only the profiles you tick. To share several sites, select them in the list and choose **Share with...**; **Settings > Shared data > Share all my sites...** shares every site you own. Bulk sharing only ever adds profiles.
 - Only the profile that created the site can delete it, merge it away or change who it is shared with. Any other profile that sees it can edit its details, log its own dives there, or choose **Remove from my profile** to hide it for itself only.
 - When the owner unticks a profile, that profile's dives keep their site; the site just leaves its site list.
 - Merging sites keeps the profiles each site was shared with: the site that is kept is shared with all of them.

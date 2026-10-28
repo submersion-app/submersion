@@ -2538,6 +2538,15 @@ class AppLocalizationsHu extends AppLocalizations {
       'Küldés AirDrop, e-mail vagy más alkalmazáson keresztül';
 
   @override
+  String get backup_copySheet_deviceLocked =>
+      'Ez a biztonsági másolat az Ön védett adatbázisáról készült. Csak ezen az eszközön állítható vissza.';
+
+  @override
+  String backup_copySheet_title(String dateTime) {
+    return 'Biztonsági mentés: $dateTime';
+  }
+
+  @override
   String get backup_frequency_daily => 'Napi';
 
   @override
@@ -2551,6 +2560,12 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get backup_history_action_restore => 'Visszaállítás';
+
+  @override
+  String get backup_history_action_saveCopy => 'Másolat mentése';
+
+  @override
+  String get backup_history_action_share => 'Megosztás';
 
   @override
   String get backup_history_empty => 'Nincsenek mentések';
@@ -10458,19 +10473,24 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get diveLog_cylinders_columnTank => 'Palack';
+  String diveLog_cylinders_figureStart(String pressure) {
+    return 'Kezdő $pressure';
+  }
 
   @override
-  String get diveLog_cylinders_columnGas => 'Gáz';
+  String diveLog_cylinders_figureEnd(String pressure) {
+    return 'Záró $pressure';
+  }
 
   @override
-  String get diveLog_cylinders_columnStart => 'Kezdő';
+  String diveLog_cylinders_figureUsed(String pressure) {
+    return 'Felhasznált $pressure';
+  }
 
   @override
-  String get diveLog_cylinders_columnEnd => 'Záró';
-
-  @override
-  String get diveLog_cylinders_columnUsed => 'Felhasznált';
+  String diveLog_cylinders_gasSemantics(String mix) {
+    return 'Gáz $mix';
+  }
 
   @override
   String diveLog_cylinders_gasUsed(String amount) {
@@ -10491,6 +10511,14 @@ class AppLocalizationsHu extends AppLocalizations {
   String diveLog_cylinders_modNote(String ppO2) {
     return 'MOD $ppO2 ppO₂-nél';
   }
+
+  @override
+  String diveLog_cylinders_modLimit(String ppO2, String limit) {
+    return '$ppO2 ($limit)';
+  }
+
+  @override
+  String get diveLog_cylinders_modLimitSeparator => ', ';
 
   @override
   String get diveLog_tank_section_gasMix => 'Gázkeverék';
@@ -20341,6 +20369,11 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String plannerCanvas_issue_noUsableGas(String minGas, String fill) {
+    return 'A rock-bottom minimum ($minGas) nem hagy felhasználható gázt egy $fill töltésben';
+  }
+
+  @override
   String plannerCanvas_issue_diluentModExceeded(String depth, String value) {
     return 'A hígítógáz meghaladja a Dil-MOD-ot $depth mélységben (ppO₂ $value bar)';
   }
@@ -23149,6 +23182,62 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_conflict_field_omitUnusedOcGases =>
       'Nem használt bailout gázok kihagyása';
+
+  @override
+  String get settings_conflict_field_diveListSort => 'Merülések: rendezés';
+
+  @override
+  String get settings_conflict_field_divePlanListSort =>
+      'Mentett tervek: rendezés';
+
+  @override
+  String get settings_conflict_field_tripListSort => 'Utak: rendezés';
+
+  @override
+  String get settings_conflict_field_courseListSort => 'Tanfolyamok: rendezés';
+
+  @override
+  String get settings_conflict_field_buddyListSort => 'Búvártársak: rendezés';
+
+  @override
+  String get settings_conflict_field_diveCenterListSort =>
+      'Merülőcentrumok: rendezés';
+
+  @override
+  String get settings_conflict_field_siteListSort => 'Merülőhelyek: rendezés';
+
+  @override
+  String get settings_conflict_field_certificationListSort =>
+      'Képesítések: rendezés';
+
+  @override
+  String get settings_conflict_field_equipmentListSort =>
+      'Felszerelés: rendezés';
+
+  @override
+  String get settings_conflict_field_siteListGroupBy =>
+      'Merülőhelyek: csoportosítás';
+
+  @override
+  String get settings_conflict_field_certificationListGroupBy =>
+      'Képesítések: csoportosítás';
+
+  @override
+  String get settings_conflict_field_equipmentArrangement =>
+      'Felszerelés elrendezése';
+
+  @override
+  String get settings_conflict_field_equipmentGroupByLocation =>
+      'Felszerelés hely szerint csoportosítva';
+
+  @override
+  String get settings_conflict_field_listArrangementHlc =>
+      'Listaelrendezési napló';
+
+  @override
+  String settings_conflict_sortValue(String field, String direction) {
+    return '$field, $direction';
+  }
 
   @override
   String get settings_conflict_field_avgSpeed => 'Átlagsebesség';
@@ -36266,12 +36355,12 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String settings_shareAllSites_confirm(int count) {
-    return 'Válaszd ki, ki lássa mind a(z) $count merülőhelyedet. Ha később egy helyet módosítanál, nyisd meg, és koppints a Megosztva elemre.';
+    return 'Válaszd ki, ki lássa mind a(z) $count merülőhelyedet. Ha később egy helyet módosítanál, szerkeszd, és koppints a Megosztva elemre.';
   }
 
   @override
   String settings_shareAllTrips_confirm(int count) {
-    return 'Válaszd ki, ki lássa mind a(z) $count túrádat. Ha később egy túrát módosítanál, nyisd meg, és koppints a Megosztva elemre.';
+    return 'Válaszd ki, ki lássa mind a(z) $count túrádat. Ha később egy túrát módosítanál, szerkeszd, és koppints a Megosztva elemre.';
   }
 
   @override
@@ -52079,6 +52168,17 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get backup_history_device_anotherDevice => 'Másik eszköz';
+
+  @override
+  String get backup_history_device_thisDevice => 'Ez az eszköz';
+
+  @override
+  String backup_history_subtitleWithDevice(String summary, String device) {
+    return '$summary · $device';
+  }
+
+  @override
   String backup_history_manualSubtitle(
     int diveCount,
     int siteCount,
@@ -55568,6 +55668,16 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get tags_manage_cannotUndo => 'Ez nem vonható vissza.';
+
+  @override
+  String tags_manage_rowScopes(String scopes) {
+    return 'Használható: $scopes';
+  }
+
+  @override
+  String tags_manage_rowUsage(String counts) {
+    return 'Használatban: $counts';
+  }
 
   @override
   String get tags_action_edit => 'Címkék szerkesztése';

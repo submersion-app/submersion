@@ -693,18 +693,7 @@ class DiveRepository {
           _db.dives,
         )..where((t) => t.id.equals(diveId))).getSingleOrNull();
         if (dive == null) return;
-        final siteRow = siteId == null
-            ? null
-            : await (_db.select(
-                _db.diveSites,
-              )..where((t) => t.id.equals(siteId))).getSingleOrNull();
-        await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
-          siteSnapColumns(
-            dive,
-            siteRow == null ? null : mapDiveSiteRow(siteRow),
-          ).copyWith(siteId: Value(siteId), updatedAt: Value(now)),
-        );
-        if (siteRow != null) await _addSiteDiveTypes(dive, siteRow.id, now);
+        await _writeSiteLink(dive, siteId, await _siteRowOrNull(siteId), now);
       });
       await _syncRepository.markRecordPending(
         entityType: 'dives',
@@ -720,6 +709,69 @@ class DiveRepository {
       );
       rethrow;
     }
+  }
+
+  /// [setSite] for every dive in [diveIds], for the bulk edit Site row
+  /// (issue #3657): each dive is linked to [siteId] (or unlinked when it is
+  /// null) and gets the site's snap from its own current values. Marks each
+  /// dive pending. Does NOT open a transaction or notify sync;
+  /// BulkDiveEditService owns those.
+  Future<void> bulkSetSite(List<String> diveIds, String? siteId) async {
+    if (diveIds.isEmpty) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final siteRow = await _siteRowOrNull(siteId);
+    final dives = await (_db.select(
+      _db.dives,
+    )..where((t) => t.id.isIn(diveIds))).get();
+    // One site, so its dive types are looked up once per diver, not per dive.
+    final siteTypeIdsByDiver = <String?, List<String>>{};
+    for (final dive in dives) {
+      await _writeSiteLink(
+        dive,
+        siteId,
+        siteRow,
+        now,
+        siteTypeIdsByDiver: siteTypeIdsByDiver,
+      );
+      await _syncRepository.markRecordPending(
+        entityType: 'dives',
+        recordId: dive.id,
+        localUpdatedAt: now,
+      );
+    }
+  }
+
+  Future<DiveSite?> _siteRowOrNull(String? siteId) async => siteId == null
+      ? null
+      : await (_db.select(
+          _db.diveSites,
+        )..where((t) => t.id.equals(siteId))).getSingleOrNull();
+
+  /// Links [dive] to [siteId] and writes the snap of [siteRow] onto it: only
+  /// the site link and the columns the snap changes, plus any dive types the
+  /// site adds. Shared by [setSite] and [bulkSetSite]; the latter passes
+  /// [siteTypeIdsByDiver] to reuse the site's dive types across its dives.
+  Future<void> _writeSiteLink(
+    Dive dive,
+    String? siteId,
+    DiveSite? siteRow,
+    int now, {
+    Map<String?, List<String>>? siteTypeIdsByDiver,
+  }) async {
+    await (_db.update(_db.dives)..where((t) => t.id.equals(dive.id))).write(
+      siteSnapColumns(
+        dive,
+        siteRow == null ? null : mapDiveSiteRow(siteRow),
+      ).copyWith(siteId: Value(siteId), updatedAt: Value(now)),
+    );
+    if (siteRow == null) return;
+    final siteTypeIds = siteTypeIdsByDiver == null
+        ? await diveTypeIdsForSite(siteRow.id, dive.diverId)
+        : siteTypeIdsByDiver[dive.diverId] ??= await diveTypeIdsForSite(
+            siteRow.id,
+            dive.diverId,
+          );
+    await _addSiteDiveTypes(dive, siteTypeIds, now);
   }
 
   /// Records (or clears, when [dismissed] is false) the diver's dismissal of
@@ -6890,10 +6942,14 @@ class DiveRepository {
     await _bumpDives(diveIds, now);
   }
 
-  /// Adds the dive types [siteId]'s site types stand for to [dive]'s set, for
-  /// [setSite]. Rewrites the junction only when a type is actually new.
-  Future<void> _addSiteDiveTypes(Dive dive, String siteId, int now) async {
-    final siteTypeIds = await diveTypeIdsForSite(siteId, dive.diverId);
+  /// Adds [siteTypeIds], the dive types a site's types stand for, to [dive]'s
+  /// set, for [setSite] and [bulkSetSite]. Rewrites the junction only when a
+  /// type is actually new.
+  Future<void> _addSiteDiveTypes(
+    Dive dive,
+    List<String> siteTypeIds,
+    int now,
+  ) async {
     if (siteTypeIds.isEmpty) return;
     final current =
         (await _diveTypesForDives([dive.id]))[dive.id] ?? [dive.diveType];

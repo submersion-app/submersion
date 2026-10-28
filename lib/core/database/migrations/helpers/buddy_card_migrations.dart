@@ -1,6 +1,6 @@
 part of '../app_database_migrations.dart';
 
-/// Buddy card swap columns (issue #3728, v321).
+/// Buddy card swap columns (issue #3728, v324).
 extension BuddyCardMigrations on AppDatabase {
   static const _columns = {
     'buddies': {
@@ -15,7 +15,7 @@ extension BuddyCardMigrations on AppDatabase {
     'divers': {'social_handle': 'TEXT', 'buddy_card_share': 'TEXT'},
   };
 
-  /// Adds whichever of the v321 columns a table lacks. Idempotent, so the
+  /// Adds whichever of the v324 columns a table lacks. Idempotent, so the
   /// ladder and the beforeOpen backstop (a database that arrived by restore
   /// or sync-adopt) can both call it; a table not created yet is skipped.
   Future<void> _assertBuddyCardColumns() async {

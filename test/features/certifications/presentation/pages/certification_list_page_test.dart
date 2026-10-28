@@ -110,14 +110,18 @@ void main() {
     }) {
       return [
         sharedPreferencesProvider.overrideWithValue(prefs),
-        settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+        // The view mode is read from the diver's saved settings (#3748).
+        settingsProvider.overrideWith(
+          (ref) => MockSettingsNotifier(
+            AppSettings(certificationListViewMode: viewMode),
+          ),
+        ),
         currentDiverIdProvider.overrideWith(
           (ref) => MockCurrentDiverIdNotifier(),
         ),
         certificationListNotifierProvider.overrideWith(
           (ref) => _MockCertificationListNotifier(),
         ),
-        certificationListViewModeProvider.overrideWith((ref) => viewMode),
         certificationTableConfigProvider.overrideWith(
           (ref) => _TestCertificationTableConfigNotifier(),
         ),
@@ -474,11 +478,13 @@ void main() {
         final container = ProviderScope.containerOf(
           tester.element(find.byType(CertificationListPage)),
         );
-        container.read(certificationListViewModeProvider.notifier).state =
-            ListViewMode.detailed;
+        container
+            .read(settingsProvider.notifier)
+            .setCertificationListViewMode(ListViewMode.detailed);
         await tester.pumpAndSettle();
-        container.read(certificationListViewModeProvider.notifier).state =
-            ListViewMode.table;
+        container
+            .read(settingsProvider.notifier)
+            .setCertificationListViewMode(ListViewMode.table);
         await tester.pumpAndSettle();
 
         expect(find.byKey(const ValueKey('selection_exit')), findsNothing);

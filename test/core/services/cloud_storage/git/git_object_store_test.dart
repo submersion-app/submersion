@@ -30,9 +30,39 @@ void main() {
       expect(back.type, GitObjectType.blob);
       expect(back.body, a.body);
     });
+
+    test('open/create streams and abort behave as expected', () async {
+      final store = MemoryGitObjectStore();
+
+      expect(await store.open(_blob('missing').id), isNull);
+
+      final writer = store.create(GitObjectType.blob, 6);
+      writer.add(utf8.encode('abc'));
+      writer.add(utf8.encode('def'));
+      final id = await writer.close();
+
+      final reader = (await store.open(id))!;
+      expect(reader.type, GitObjectType.blob);
+      expect(reader.length, 6);
+      expect(reader.readSync(0, 3), Uint8List.fromList(utf8.encode('abc')));
+      expect(reader.readSync(3, 10), Uint8List.fromList(utf8.encode('def')));
+      final streamed = await reader.openRead().expand((b) => b).toList();
+      expect(streamed, utf8.encode('abcdef'));
+      await reader.close();
+
+      final bad = store.create(GitObjectType.blob, 2);
+      bad.add(utf8.encode('abc'));
+      await expectLater(bad.close(), throwsFormatException);
+
+      final aborted = store.create(GitObjectType.blob, 3);
+      aborted.add(utf8.encode('abc'));
+      await aborted.abort();
+    });
   });
 
   group('FileGitObjectStore', () {
+    tearDown(() => FileGitObjectStore.debugRename = null);
+
     test('survives a new instance on the same directory', () async {
       final dir = tempDirForTest('git_store_');
       final a = _blob('persisted');
@@ -134,6 +164,62 @@ void main() {
       expect(await store.has(a.id), isTrue);
       expect(await store.has(b.id), isTrue);
     });
+
+    test('put adopts when rename loses a race to an existing target', () async {
+      final dir = tempDirForTest('git_store_');
+      final store = FileGitObjectStore(dir);
+      final object = _blob('rename-race-put');
+
+      FileGitObjectStore.debugRename = (source, path) async {
+        await File(path).writeAsBytes(await source.readAsBytes(), flush: true);
+        throw FileSystemException(
+          'simulated race',
+          source.path,
+          const OSError('', 1),
+        );
+      };
+
+      await store.put(object);
+
+      expect((await store.get(object.id))?.body, object.body);
+      final leftovers = dir
+          .listSync(recursive: true)
+          .whereType<File>()
+          .where((f) => f.path.endsWith('.tmp'));
+      expect(leftovers, isEmpty);
+    });
+
+    test(
+      'create close adopts when rename loses a race to an existing target',
+      () async {
+        final dir = tempDirForTest('git_store_');
+        final store = FileGitObjectStore(dir);
+        final body = Uint8List.fromList(utf8.encode('rename-race-adopt'));
+
+        FileGitObjectStore.debugRename = (source, path) async {
+          await File(
+            path,
+          ).writeAsBytes(await source.readAsBytes(), flush: true);
+          throw FileSystemException(
+            'simulated race',
+            source.path,
+            const OSError('', 1),
+          );
+        };
+
+        final writer = store.create(GitObjectType.blob, body.length);
+        writer.add(body);
+        final id = await writer.close();
+
+        expect(id, hashGitObject(GitObjectType.blob, body));
+        expect((await store.get(id))?.body, body);
+        final leftovers = dir
+            .listSync(recursive: true)
+            .whereType<File>()
+            .where((f) => f.path.endsWith('.tmp'));
+        expect(leftovers, isEmpty);
+      },
+    );
   });
 
   group('FileGitObjectStore, two stores on one directory', () {
@@ -185,6 +271,135 @@ void main() {
         expect((await evicting.get(a.id))?.body, a.body);
       },
     );
+  });
+
+  group('FileGitObjectStore streaming object API', () {
+    test('create writes in chunks and open reads sync and async', () async {
+      final dir = tempDirForTest('git_store_');
+      final store = FileGitObjectStore(dir);
+      final body = Uint8List.fromList(utf8.encode('abcdef'));
+
+      final writer = store.create(GitObjectType.blob, body.length);
+      writer.add(body.sublist(0, 2));
+      writer.add(body.sublist(2, 4));
+      writer.add(body.sublist(4));
+      final id = await writer.close();
+
+      final reader = (await store.open(id))!;
+      expect(reader.type, GitObjectType.blob);
+      expect(reader.length, body.length);
+      expect(reader.readSync(0, 3), Uint8List.fromList(utf8.encode('abc')));
+      expect(reader.readSync(3, 10), Uint8List.fromList(utf8.encode('def')));
+
+      final streamed = BytesBuilder();
+      await for (final chunk in reader.openRead()) {
+        streamed.add(chunk);
+      }
+      expect(streamed.takeBytes(), body);
+      await reader.close();
+    });
+
+    test('create abort drops temp and stores nothing', () async {
+      final dir = tempDirForTest('git_store_');
+      final store = FileGitObjectStore(dir);
+
+      final writer = store.create(GitObjectType.blob, 3);
+      writer.add(const [1, 2]);
+      await writer.abort();
+
+      final leftovers = dir
+          .listSync(recursive: true)
+          .whereType<File>()
+          .where((f) => f.path.endsWith('.tmp'));
+      expect(leftovers, isEmpty);
+    });
+
+    test('create close rejects wrong body size and stores nothing', () async {
+      final dir = tempDirForTest('git_store_');
+      final store = FileGitObjectStore(dir);
+
+      final writer = store.create(GitObjectType.blob, 4);
+      writer.add(utf8.encode('abc'));
+      await expectLater(writer.close(), throwsFormatException);
+
+      final objectFiles = dir
+          .listSync(recursive: true)
+          .whereType<File>()
+          .where((f) => !f.path.endsWith('.tmp'));
+      expect(objectFiles, isEmpty);
+    });
+
+    test('create close adopts existing object and drops temp', () async {
+      final dir = tempDirForTest('git_store_');
+      final store = FileGitObjectStore(dir);
+      final body = utf8.encode('already-there');
+      final existing = _blob('already-there');
+      await store.put(existing);
+
+      final writer = store.create(GitObjectType.blob, body.length);
+      writer.add(body);
+      final id = await writer.close();
+
+      expect(id, existing.id);
+      final leftovers = dir
+          .listSync(recursive: true)
+          .whereType<File>()
+          .where((f) => f.path.endsWith('.tmp'));
+      expect(leftovers, isEmpty);
+      expect((await store.get(id))?.body, existing.body);
+    });
+
+    test('open returns null for an emptied file and forgets it', () async {
+      final dir = tempDirForTest('git_store_');
+      final store = FileGitObjectStore(dir);
+      final a = _blob('stream-open');
+      await store.put(a);
+
+      final file = File(
+        p.join(dir.path, a.id.hex.substring(0, 2), a.id.hex.substring(2)),
+      );
+      file.writeAsBytesSync(const []);
+
+      expect(await store.open(a.id), isNull);
+      expect(await store.has(a.id), isFalse);
+    });
+
+    test('open closes and rethrows on invalid pack type', () async {
+      final dir = tempDirForTest('git_store_');
+      final id = _blob('invalid-open').id;
+      final file = File(
+        p.join(dir.path, id.hex.substring(0, 2), id.hex.substring(2)),
+      )..createSync(recursive: true);
+      // Unknown type code, with one byte of body.
+      file.writeAsBytesSync(const [0xff, 0x01]);
+
+      final store = FileGitObjectStore(dir);
+      await expectLater(store.open(id), throwsA(anything));
+    });
+
+    test('trim ignores delete errors for already-gone files', () async {
+      final dir = tempDirForTest('git_store_');
+      final store = FileGitObjectStore(dir, maxBytes: 1);
+      final a = _blob('a', pad: 2000);
+      await store.put(a);
+      final file = File(
+        p.join(dir.path, a.id.hex.substring(0, 2), a.id.hex.substring(2)),
+      );
+      file.deleteSync();
+
+      await store.trim();
+      expect(await store.has(a.id), isFalse);
+    });
+
+    test('abort is idempotent after tmp has already been deleted', () async {
+      final dir = tempDirForTest('git_store_');
+      final store = FileGitObjectStore(dir);
+      final writer = store.create(GitObjectType.blob, 3);
+      writer.add(utf8.encode('abc'));
+
+      await writer.abort();
+      await writer.abort();
+    });
   });
 
   test(
