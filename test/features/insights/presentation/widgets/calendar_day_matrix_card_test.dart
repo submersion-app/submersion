@@ -197,6 +197,27 @@ void main() {
         expect(calendarCellText(scheme, 15, 15), scheme.onPrimary);
         expect(calendarCellText(scheme, 1, 15), isNot(scheme.onPrimary));
       });
+
+      test('a date with one dive stands clear of an empty date '
+          '(${brightness.name})', () {
+        final scheme = ColorScheme.fromSeed(
+          seedColor: Colors.blue,
+          brightness: brightness,
+        );
+        double distance(Color a, Color b) {
+          final dr = a.r - b.r, dg = a.g - b.g, db = a.b - b.b;
+          return dr * dr + dg * dg + db * db;
+        }
+
+        // Squared RGB distance; 0.0225 is a 0.15 step on the unit cube.
+        expect(
+          distance(
+            calendarCellFill(scheme, 0, 15),
+            calendarCellFill(scheme, 1, 15),
+          ),
+          greaterThan(0.0225),
+        );
+      });
     }
   });
 }

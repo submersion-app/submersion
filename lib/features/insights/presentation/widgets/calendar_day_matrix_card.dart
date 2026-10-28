@@ -18,7 +18,14 @@ const double _darkTextFrom = 0.55;
 /// light primary tint to [ColorScheme.primary] at the busiest date. Opaque,
 /// so it reads the same on any card surface.
 Color calendarCellFill(ColorScheme scheme, int count, int maxCount) {
-  if (count <= 0 || maxCount <= 0) return scheme.surfaceContainerHighest;
+  if (count <= 0 || maxCount <= 0) {
+    // A whisper of the text colour on the surface: empty dates recede, so
+    // even a one-dive tint reads as covered.
+    return Color.alphaBlend(
+      scheme.onSurface.withValues(alpha: 0.05),
+      scheme.surface,
+    );
+  }
   if (count >= maxCount) return scheme.primary;
   return Color.lerp(scheme.surface, scheme.primary, _share(count, maxCount))!;
 }
@@ -32,7 +39,7 @@ Color calendarCellText(ColorScheme scheme, int count, int maxCount) {
       : scheme.onSurface;
 }
 
-double _share(int count, int maxCount) => 0.2 + 0.8 * (count / maxCount);
+double _share(int count, int maxCount) => 0.3 + 0.7 * (count / maxCount);
 
 /// Dives on each calendar date across all years, as a 12 x 31 grid with
 /// month and day-of-month totals (issue #3127). A cell opens the dives
