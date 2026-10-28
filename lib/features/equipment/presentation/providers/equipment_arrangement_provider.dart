@@ -62,11 +62,13 @@ Future<EquipmentArrangement> resolveEquipmentArrangement(
     // Already logged by the load; the state it left stands.
   }
   // The notifier's current state, read without the caller's ref: a
-  // listener fires once, immediately, with it.
+  // listener fires once, immediately, with it, and is removed straight away
+  // so nothing stays registered.
   String? saved;
-  settings.addListener(
+  final removeListener = settings.addListener(
     (s) => saved = s.listArrangements.equipmentArrangement,
-  )();
+  );
+  removeListener();
   final own = decodeEquipmentArrangement(saved);
   if (own != null) return own;
   try {
