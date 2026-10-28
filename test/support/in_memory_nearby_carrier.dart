@@ -41,6 +41,14 @@ class InMemoryNearbyHub {
       pipe.crossed,
   ].fold(0, (a, b) => a + b);
 
+  /// Links still open, across every device: a Bluetooth peripheral holds
+  /// one connection at a time, so short sessions must close theirs.
+  int get openLinks => {
+    for (final c in _carriers.values)
+      for (final pipe in c._pipes)
+        if (!pipe.closed) pipe,
+  }.length;
+
   /// Removes a cut set by [cutAfterBytes] for links opened from now on.
   void heal(String transportId) => _budgets.remove(transportId);
 

@@ -1,0 +1,199 @@
+import 'dart:async';
+import 'dart:convert';
+import 'dart:typed_data';
+
+import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/services/nearby/nearby_card_host.dart';
+
+import '../../../support/in_memory_nearby_carrier.dart';
+import '../../../support/nearby_link_harness.dart';
+
+/// Card mode on the link manager (issue #3728): discovery, requests and the
+/// swap itself between strangers' phones on their swap screens.
+void main() {
+  Uint8List bytesOf(String s) => Uint8List.fromList(utf8.encode(s));
+
+  Future<(NearbyTestDevice, NearbyCardHost, List<NearbyCardEvent>)> onScreen(
+    InMemoryNearbyHub hub,
+    String id,
+    String name, {
+    Duration answerWindow = const Duration(seconds: 60),
+    DateTime Function()? now,
+  }) async {
+    final device = await joinNearbyTestDevice(hub, id);
+    device.auto = false;
+    final host = NearbyCardHost(
+      name: name,
+      card: () async => bytesOf('card of $name'),
+      answerWindow: answerWindow,
+      now: now,
+    );
+    addTearDown(host.dispose);
+    final events = <NearbyCardEvent>[];
+    host.events.listen(events.add);
+    await device.manager.setForeground(true);
+    await device.manager.enterCardMode(host);
+    return (device, host, events);
+  }
+
+  Future<void> discover(List<NearbyTestDevice> devices) async {
+    for (final d in devices) {
+      await d.manager.refresh();
+    }
+    await settleNearby();
+  }
+
+  List<String> namesSeen(NearbyCardHost host) =>
+      host.peers.map((p) => p.name).toList()..sort();
+
+  NearbyCardPeer peerNamed(NearbyCardHost host, String name) =>
+      host.peers.firstWhere((p) => p.name == name);
+
+  test('discovery lists the other diver and closes the link', () async {
+    final hub = InMemoryNearbyHub();
+    final (a, hostA, _) = await onScreen(hub, 'A', 'Ann');
+    final (b, hostB, _) = await onScreen(hub, 'B', 'Ben');
+    await discover([a, b]);
+    expect(namesSeen(hostA), ['Ben']);
+    expect(namesSeen(hostB), ['Ann']);
+    expect(hub.openLinks, 0);
+  });
+
+  test('a device not on its swap screen is not listed', () async {
+    final hub = InMemoryNearbyHub();
+    final (a, hostA, _) = await onScreen(hub, 'A', 'Ann');
+    final b = await joinNearbyTestDevice(hub, 'B');
+    b.auto = true;
+    await b.manager.setForeground(true);
+    await b.carrier.startAdvertising();
+    await discover([a]);
+    expect(hostA.peers, isEmpty);
+  });
+
+  test('three divers are all listed and no link stays open', () async {
+    final hub = InMemoryNearbyHub();
+    final (a, hostA, _) = await onScreen(hub, 'A', 'Ann');
+    final (b, _, _) = await onScreen(hub, 'B', 'Ben');
+    final (c, _, _) = await onScreen(hub, 'C', 'Cat');
+    await discover([a, b, c]);
+    expect(namesSeen(hostA), ['Ben', 'Cat']);
+    expect(hub.openLinks, 0);
+  });
+
+  test('a request asks the other diver; accepting swaps both cards', () async {
+    final hub = InMemoryNearbyHub();
+    final (a, hostA, eventsA) = await onScreen(hub, 'A', 'Ann');
+    final (b, _, eventsB) = await onScreen(hub, 'B', 'Ben');
+    await discover([a, b]);
+
+    unawaited(hostA.request(peerNamed(hostA, 'Ben')));
+    await settleNearby();
+    final asked = eventsB.whereType<CardRequested>().single;
+    expect(asked.from.name, 'Ann');
+    asked.decide(true);
+    await settleNearby();
+
+    final gotA = eventsA.whereType<CardReceived>().single;
+    final gotB = eventsB.whereType<CardReceived>().single;
+    expect(utf8.decode(gotA.cardBytes), 'card of Ben');
+    expect(utf8.decode(gotB.cardBytes), 'card of Ann');
+    expect(hub.openLinks, 0);
+  });
+
+  test('declining tells the asker and sends no card', () async {
+    final hub = InMemoryNearbyHub();
+    final (a, hostA, eventsA) = await onScreen(hub, 'A', 'Ann');
+    final (b, _, eventsB) = await onScreen(hub, 'B', 'Ben');
+    await discover([a, b]);
+
+    unawaited(hostA.request(peerNamed(hostA, 'Ben')));
+    await settleNearby();
+    eventsB.whereType<CardRequested>().single.decide(false);
+    await settleNearby();
+
+    expect(
+      eventsA.whereType<CardSwapFailed>().single.reason,
+      NearbyCardFailure.declined,
+    );
+    expect(eventsA.whereType<CardReceived>(), isEmpty);
+    expect(eventsB.whereType<CardReceived>(), isEmpty);
+  });
+
+  test('no answer within the window times out', () async {
+    final hub = InMemoryNearbyHub();
+    const window = Duration(milliseconds: 150);
+    final (a, hostA, eventsA) = await onScreen(
+      hub,
+      'A',
+      'Ann',
+      answerWindow: window,
+    );
+    final (b, _, eventsB) = await onScreen(
+      hub,
+      'B',
+      'Ben',
+      answerWindow: window,
+    );
+    await discover([a, b]);
+
+    unawaited(hostA.request(peerNamed(hostA, 'Ben')));
+    await settleNearby();
+    expect(eventsB.whereType<CardRequested>(), hasLength(1));
+    await Future<void>.delayed(const Duration(milliseconds: 400));
+    await settleNearby();
+
+    expect(
+      eventsA.whereType<CardSwapFailed>().single.reason,
+      NearbyCardFailure.timedOut,
+    );
+    expect(eventsB.whereType<CardReceived>(), isEmpty);
+  });
+
+  test('both requesting at once makes one swap and one card each', () async {
+    final hub = InMemoryNearbyHub();
+    final (a, hostA, eventsA) = await onScreen(hub, 'A', 'Ann');
+    final (b, hostB, eventsB) = await onScreen(hub, 'B', 'Ben');
+    await discover([a, b]);
+
+    unawaited(hostA.request(peerNamed(hostA, 'Ben')));
+    unawaited(hostB.request(peerNamed(hostB, 'Ann')));
+    await settleNearby();
+    await settleNearby();
+
+    expect(eventsA.whereType<CardRequested>(), isEmpty);
+    expect(eventsB.whereType<CardRequested>(), isEmpty);
+    expect(eventsA.whereType<CardReceived>(), hasLength(1));
+    expect(eventsB.whereType<CardReceived>(), hasLength(1));
+  });
+
+  test('leaving card mode ends a waiting swap and refuses new ones', () async {
+    final hub = InMemoryNearbyHub();
+    var clock = DateTime(2026, 10, 28, 12);
+    final (a, hostA, eventsA) = await onScreen(
+      hub,
+      'A',
+      'Ann',
+      now: () => clock,
+    );
+    final (b, hostB, _) = await onScreen(hub, 'B', 'Ben');
+    await discover([a, b]);
+
+    unawaited(hostA.request(peerNamed(hostA, 'Ben')));
+    await settleNearby();
+    await b.manager.leaveCardMode();
+    await settleNearby();
+    expect(
+      eventsA.whereType<CardSwapFailed>().single.reason,
+      NearbyCardFailure.lost,
+    );
+    expect(hub.openLinks, 0);
+
+    // B is off its swap screen and its radio is off: A stops seeing it,
+    // and after a while stops listing it.
+    await hostB.dispose();
+    await discover([a]);
+    expect(hostA.peers.where((p) => p.name == 'Ben'), hasLength(1));
+    clock = clock.add(const Duration(minutes: 1));
+    expect(hostA.peers.where((p) => p.name == 'Ben'), isEmpty);
+  });
+}
