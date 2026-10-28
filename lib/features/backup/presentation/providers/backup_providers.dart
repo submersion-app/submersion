@@ -698,11 +698,15 @@ final backupHistoryProvider = FutureProvider.autoDispose<List<BackupRecord>>((
 /// This device's id as backup names record it, or null when it cannot be
 /// read.
 ///
-/// Read again whenever the history reloads: the id lives in the database,
-/// and a restore reopens the database in place, so an id cached for the
-/// life of the Backups page could be the restored backup's device.
+/// Read again whenever the history reloads or the sync identity changes. The
+/// id lives in the database, and a restore reopens the database in place;
+/// Reset Sync State and some syncs mint a fresh id without touching the
+/// history, and SyncNotifier invalidates [conflictLocalDeviceProvider] after
+/// both. An id cached for the life of the Backups page would otherwise
+/// label this device's new backups as another device's.
 final backupDeviceIdProvider = FutureProvider.autoDispose<String?>((ref) {
   ref.watch(backupHistoryProvider);
+  ref.watch(conflictLocalDeviceProvider);
   return ref.watch(backupServiceProvider).thisDeviceIdOrNull();
 });
 
