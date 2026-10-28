@@ -38547,6 +38547,48 @@ abstract class AppLocalizations {
   /// **'Dives before this log'**
   String get settings_conflict_field_priorDiveCount;
 
+  /// No description provided for @settings_conflict_field_buddyCardShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Buddy card sharing'**
+  String get settings_conflict_field_buddyCardShare;
+
+  /// No description provided for @settings_conflict_field_cardDiveCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives (from their card)'**
+  String get settings_conflict_field_cardDiveCount;
+
+  /// No description provided for @settings_conflict_field_cardDivingSince.
+  ///
+  /// In en, this message translates to:
+  /// **'Diving since (from their card)'**
+  String get settings_conflict_field_cardDivingSince;
+
+  /// No description provided for @settings_conflict_field_cardId.
+  ///
+  /// In en, this message translates to:
+  /// **'Buddy card'**
+  String get settings_conflict_field_cardId;
+
+  /// No description provided for @settings_conflict_field_cardLastDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Last dive (from their card)'**
+  String get settings_conflict_field_cardLastDive;
+
+  /// No description provided for @settings_conflict_field_cardReceivedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Card received'**
+  String get settings_conflict_field_cardReceivedAt;
+
+  /// No description provided for @settings_conflict_field_socialHandle.
+  ///
+  /// In en, this message translates to:
+  /// **'Social handle'**
+  String get settings_conflict_field_socialHandle;
+
   /// No description provided for @settings_conflict_field_priorDiveTimeSeconds.
   ///
   /// In en, this message translates to:

@@ -24068,6 +24068,30 @@ class AppLocalizationsHu extends AppLocalizations {
       'Merülések a napló előtt';
 
   @override
+  String get settings_conflict_field_buddyCardShare => 'Társkártya megosztása';
+
+  @override
+  String get settings_conflict_field_cardDiveCount =>
+      'Merülések (a kártyája szerint)';
+
+  @override
+  String get settings_conflict_field_cardDivingSince =>
+      'Merül óta (a kártyája szerint)';
+
+  @override
+  String get settings_conflict_field_cardId => 'Társkártya';
+
+  @override
+  String get settings_conflict_field_cardLastDive =>
+      'Utolsó merülés (a kártyája szerint)';
+
+  @override
+  String get settings_conflict_field_cardReceivedAt => 'Kártya fogadva';
+
+  @override
+  String get settings_conflict_field_socialHandle => 'Közösségimédia-név';
+
+  @override
   String get settings_conflict_field_priorDiveTimeSeconds =>
       'Merülési idő a napló előtt';
 

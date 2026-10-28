@@ -24424,6 +24424,28 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_field_priorDiveCount => 'الغوصات قبل هذا السجل';
 
   @override
+  String get settings_conflict_field_buddyCardShare => 'مشاركة بطاقة الرفيق';
+
+  @override
+  String get settings_conflict_field_cardDiveCount => 'الغطسات (من بطاقته)';
+
+  @override
+  String get settings_conflict_field_cardDivingSince => 'يغطس منذ (من بطاقته)';
+
+  @override
+  String get settings_conflict_field_cardId => 'بطاقة الرفيق';
+
+  @override
+  String get settings_conflict_field_cardLastDive => 'آخر غطسة (من بطاقته)';
+
+  @override
+  String get settings_conflict_field_cardReceivedAt => 'تاريخ استلام البطاقة';
+
+  @override
+  String get settings_conflict_field_socialHandle =>
+      'اسم المستخدم على مواقع التواصل';
+
+  @override
   String get settings_conflict_field_priorDiveTimeSeconds =>
       'وقت الغوص قبل هذا السجل';
 

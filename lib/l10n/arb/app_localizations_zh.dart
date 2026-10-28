@@ -22853,6 +22853,27 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_priorDiveCount => '本日志之前的潜水次数';
 
   @override
+  String get settings_conflict_field_buddyCardShare => '潜伴名片共享';
+
+  @override
+  String get settings_conflict_field_cardDiveCount => '潜水次数（来自名片）';
+
+  @override
+  String get settings_conflict_field_cardDivingSince => '开始潜水年份（来自名片）';
+
+  @override
+  String get settings_conflict_field_cardId => '潜伴名片';
+
+  @override
+  String get settings_conflict_field_cardLastDive => '最近一次潜水（来自名片）';
+
+  @override
+  String get settings_conflict_field_cardReceivedAt => '名片接收时间';
+
+  @override
+  String get settings_conflict_field_socialHandle => '社交账号';
+
+  @override
   String get settings_conflict_field_priorDiveTimeSeconds => '本日志之前的潜水时间';
 
   @override

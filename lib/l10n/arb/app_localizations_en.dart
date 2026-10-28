@@ -23779,6 +23779,29 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_conflict_field_priorDiveCount => 'Dives before this log';
 
   @override
+  String get settings_conflict_field_buddyCardShare => 'Buddy card sharing';
+
+  @override
+  String get settings_conflict_field_cardDiveCount => 'Dives (from their card)';
+
+  @override
+  String get settings_conflict_field_cardDivingSince =>
+      'Diving since (from their card)';
+
+  @override
+  String get settings_conflict_field_cardId => 'Buddy card';
+
+  @override
+  String get settings_conflict_field_cardLastDive =>
+      'Last dive (from their card)';
+
+  @override
+  String get settings_conflict_field_cardReceivedAt => 'Card received';
+
+  @override
+  String get settings_conflict_field_socialHandle => 'Social handle';
+
+  @override
   String get settings_conflict_field_priorDiveTimeSeconds =>
       'Dive time before this log';
 

@@ -24244,6 +24244,32 @@ class AppLocalizationsFr extends AppLocalizations {
       'Plongées avant ce carnet';
 
   @override
+  String get settings_conflict_field_buddyCardShare =>
+      'Partage de la carte de binôme';
+
+  @override
+  String get settings_conflict_field_cardDiveCount =>
+      'Plongées (selon sa carte)';
+
+  @override
+  String get settings_conflict_field_cardDivingSince =>
+      'Plonge depuis (selon sa carte)';
+
+  @override
+  String get settings_conflict_field_cardId => 'Carte de binôme';
+
+  @override
+  String get settings_conflict_field_cardLastDive =>
+      'Dernière plongée (selon sa carte)';
+
+  @override
+  String get settings_conflict_field_cardReceivedAt => 'Carte reçue';
+
+  @override
+  String get settings_conflict_field_socialHandle =>
+      'Pseudo sur les réseaux sociaux';
+
+  @override
   String get settings_conflict_field_priorDiveTimeSeconds =>
       'Temps de plongée avant ce carnet';
 

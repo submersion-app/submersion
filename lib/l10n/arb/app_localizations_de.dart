@@ -24131,6 +24131,30 @@ class AppLocalizationsDe extends AppLocalizations {
       'Tauchgänge vor diesem Logbuch';
 
   @override
+  String get settings_conflict_field_buddyCardShare =>
+      'Freigabe der Buddy-Karte';
+
+  @override
+  String get settings_conflict_field_cardDiveCount => 'Tauchgänge (laut Karte)';
+
+  @override
+  String get settings_conflict_field_cardDivingSince =>
+      'Taucht seit (laut Karte)';
+
+  @override
+  String get settings_conflict_field_cardId => 'Buddy-Karte';
+
+  @override
+  String get settings_conflict_field_cardLastDive =>
+      'Letzter Tauchgang (laut Karte)';
+
+  @override
+  String get settings_conflict_field_cardReceivedAt => 'Karte empfangen';
+
+  @override
+  String get settings_conflict_field_socialHandle => 'Social-Media-Name';
+
+  @override
   String get settings_conflict_field_priorDiveTimeSeconds =>
       'Tauchzeit vor diesem Logbuch';
 

@@ -24022,6 +24022,29 @@ class AppLocalizationsNl extends AppLocalizations {
       'Duiken voor dit logboek';
 
   @override
+  String get settings_conflict_field_buddyCardShare => 'Delen van buddykaart';
+
+  @override
+  String get settings_conflict_field_cardDiveCount => 'Duiken (volgens kaart)';
+
+  @override
+  String get settings_conflict_field_cardDivingSince =>
+      'Duikt sinds (volgens kaart)';
+
+  @override
+  String get settings_conflict_field_cardId => 'Buddykaart';
+
+  @override
+  String get settings_conflict_field_cardLastDive =>
+      'Laatste duik (volgens kaart)';
+
+  @override
+  String get settings_conflict_field_cardReceivedAt => 'Kaart ontvangen';
+
+  @override
+  String get settings_conflict_field_socialHandle => 'Socialemedianaam';
+
+  @override
   String get settings_conflict_field_priorDiveTimeSeconds =>
       'Duiktijd voor dit logboek';
 

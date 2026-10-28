@@ -24183,6 +24183,31 @@ class AppLocalizationsIt extends AppLocalizations {
       'Immersioni prima di questo logbook';
 
   @override
+  String get settings_conflict_field_buddyCardShare =>
+      'Condivisione della scheda compagno';
+
+  @override
+  String get settings_conflict_field_cardDiveCount =>
+      'Immersioni (dalla scheda)';
+
+  @override
+  String get settings_conflict_field_cardDivingSince =>
+      'Si immerge dal (dalla scheda)';
+
+  @override
+  String get settings_conflict_field_cardId => 'Scheda compagno';
+
+  @override
+  String get settings_conflict_field_cardLastDive =>
+      'Ultima immersione (dalla scheda)';
+
+  @override
+  String get settings_conflict_field_cardReceivedAt => 'Scheda ricevuta';
+
+  @override
+  String get settings_conflict_field_socialHandle => 'Nome utente social';
+
+  @override
   String get settings_conflict_field_priorDiveTimeSeconds =>
       'Tempo di immersione prima di questo logbook';
 

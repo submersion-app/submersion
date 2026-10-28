@@ -24164,6 +24164,30 @@ class AppLocalizationsPt extends AppLocalizations {
       'Mergulhos antes deste registro';
 
   @override
+  String get settings_conflict_field_buddyCardShare =>
+      'Partilha do cartão de parceiro';
+
+  @override
+  String get settings_conflict_field_cardDiveCount => 'Mergulhos (do cartão)';
+
+  @override
+  String get settings_conflict_field_cardDivingSince =>
+      'Mergulha desde (do cartão)';
+
+  @override
+  String get settings_conflict_field_cardId => 'Cartão de parceiro';
+
+  @override
+  String get settings_conflict_field_cardLastDive =>
+      'Último mergulho (do cartão)';
+
+  @override
+  String get settings_conflict_field_cardReceivedAt => 'Cartão recebido';
+
+  @override
+  String get settings_conflict_field_socialHandle => 'Nome nas redes sociais';
+
+  @override
   String get settings_conflict_field_priorDiveTimeSeconds =>
       'Tempo de mergulho antes deste registro';
 

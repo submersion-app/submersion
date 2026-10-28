@@ -23582,6 +23582,27 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_field_priorDiveCount => 'צלילות לפני היומן הזה';
 
   @override
+  String get settings_conflict_field_buddyCardShare => 'שיתוף כרטיס שותף';
+
+  @override
+  String get settings_conflict_field_cardDiveCount => 'צלילות (מהכרטיס)';
+
+  @override
+  String get settings_conflict_field_cardDivingSince => 'צולל מאז (מהכרטיס)';
+
+  @override
+  String get settings_conflict_field_cardId => 'כרטיס שותף';
+
+  @override
+  String get settings_conflict_field_cardLastDive => 'צלילה אחרונה (מהכרטיס)';
+
+  @override
+  String get settings_conflict_field_cardReceivedAt => 'הכרטיס התקבל';
+
+  @override
+  String get settings_conflict_field_socialHandle => 'שם משתמש ברשתות חברתיות';
+
+  @override
   String get settings_conflict_field_priorDiveTimeSeconds =>
       'זמן צלילה לפני היומן הזה';
 

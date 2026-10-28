@@ -639,5 +639,10 @@ extension RungsFromV231 on AppDatabase {
     // by PR #3726.
     if (from < 320) await _assertNearbySchema();
     if (from < 320) await reportProgress();
+
+    // v321: buddy card swap columns on buddies, certifications and divers
+    // (issue #3728).
+    if (from < 321) await _assertBuddyCardColumns();
+    if (from < 321) await reportProgress();
   }
 }

@@ -24181,6 +24181,32 @@ class AppLocalizationsEs extends AppLocalizations {
       'Inmersiones antes de este registro';
 
   @override
+  String get settings_conflict_field_buddyCardShare =>
+      'Datos compartidos en la tarjeta de compañero';
+
+  @override
+  String get settings_conflict_field_cardDiveCount =>
+      'Inmersiones (según su tarjeta)';
+
+  @override
+  String get settings_conflict_field_cardDivingSince =>
+      'Bucea desde (según su tarjeta)';
+
+  @override
+  String get settings_conflict_field_cardId => 'Tarjeta de compañero';
+
+  @override
+  String get settings_conflict_field_cardLastDive =>
+      'Última inmersión (según su tarjeta)';
+
+  @override
+  String get settings_conflict_field_cardReceivedAt => 'Tarjeta recibida';
+
+  @override
+  String get settings_conflict_field_socialHandle =>
+      'Usuario en redes sociales';
+
+  @override
   String get settings_conflict_field_priorDiveTimeSeconds =>
       'Tiempo de buceo antes de este registro';
 
