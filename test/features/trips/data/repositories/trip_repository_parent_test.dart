@@ -99,4 +99,18 @@ void main() {
       expect((await repository.getTripById(t.id))!.parentTripId, isNull);
     });
   });
+
+  test('two saves racing to link each other leave one level', () async {
+    final a = await repository.createTrip(trip('A'));
+    final b = await repository.createTrip(trip('B'));
+    await Future.wait([
+      repository.updateTrip(a.copyWith(parentTripId: b.id)),
+      repository.updateTrip(b.copyWith(parentTripId: a.id)),
+    ]);
+    final linked = [
+      (await repository.getTripById(a.id))!.parentTripId,
+      (await repository.getTripById(b.id))!.parentTripId,
+    ].whereType<String>();
+    expect(linked, hasLength(1));
+  });
 }

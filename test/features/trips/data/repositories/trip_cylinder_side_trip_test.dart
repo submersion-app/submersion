@@ -141,4 +141,26 @@ void main() {
     expect(await pendingCountFor('diveTanks', 't1'), 1);
     expect(await linkOf('t2'), slotY);
   });
+
+  test("the larger trip's gaps take in side-trip tanks on no slot", () async {
+    await diveWithTank('d1', 't1', tripId: side.id, cylinderId: slotY);
+    await db
+        .into(db.dives)
+        .insert(
+          DivesCompanion.insert(
+            id: 'd2',
+            diveDateTime: at.millisecondsSinceEpoch,
+            tripId: Value(side.id),
+            createdAt: 1,
+            updatedAt: 1,
+          ),
+        );
+    await db
+        .into(db.diveTanks)
+        .insert(DiveTanksCompanion.insert(id: 't2', diveId: 'd2'));
+    final gaps = await cylinders.getUnlinkedTanksForTrip(parent.id);
+    // t1 breathes from the liveaboard's own slot: accounted for. t2 from
+    // none: a gap the larger trip's record shows.
+    expect(gaps.map((g) => g.tankId), ['t2']);
+  });
 }

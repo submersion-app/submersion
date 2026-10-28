@@ -741,8 +741,10 @@ class TripCylinderRepository {
   }
 
   /// Tanks on the trip's dives that breathe from no slot of the trip: no
-  /// link, or a link to another trip's slot. Planned dives are left out:
-  /// no gas was breathed on them.
+  /// link, or a link to another trip's slot. A larger trip takes in its side
+  /// trips' dives, and a slot of the trip, of a side trip or of its larger
+  /// trip accounts for a tank (issue #3658). Planned dives are left out: no
+  /// gas was breathed on them.
   Future<List<TripUnlinkedTank>> getUnlinkedTanksForTrip(String tripId) async {
     final rows = await _db
         .customSelect(
@@ -757,10 +759,10 @@ class TripCylinderRepository {
           JOIN dives d ON d.id = t.dive_id
           LEFT JOIN divers v ON v.id = d.diver_id
           LEFT JOIN dive_sites s ON s.id = d.site_id
-          WHERE d.trip_id = ?1
+          WHERE ${tripDivesScopeSql('d', '?1')}
             AND d.is_planned = 0
             AND (t.trip_cylinder_id IS NULL
-                 OR t.trip_cylinder_id NOT IN (${linkableSlotIdsSql('?1')}))
+                 OR t.trip_cylinder_id NOT IN (${accountedSlotIdsSql('?1')}))
           ORDER BY entry_ms ASC, t.dive_id ASC, t.tank_order ASC
           ''',
           variables: [Variable.withString(tripId)],

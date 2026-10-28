@@ -126,39 +126,44 @@ class TripRepository {
       _log.info('Creating trip: ${trip.name}');
       final id = trip.id.isEmpty ? _uuid.v4() : trip.id;
       final now = DateTime.now();
-      final parentTripId = await writableParentId(
-        _db,
-        tripId: id,
-        parentId: trip.parentTripId,
-      );
-
-      await _db
-          .into(_db.trips)
-          .insert(
-            TripsCompanion(
-              id: Value(id),
-              diverId: Value(trip.diverId),
-              name: Value(trip.name),
-              startDate: Value(trip.startDate.millisecondsSinceEpoch),
-              endDate: Value(trip.endDate.millisecondsSinceEpoch),
-              location: Value(trip.location),
-              resortName: Value(trip.resortName),
-              liveaboardName: Value(trip.liveaboardName),
-              notes: Value(trip.notes),
-              tripType: Value(trip.tripType.name),
-              isShared: Value(trip.isShared),
-              returnFlightAt: Value(
-                trip.returnFlightAt?.millisecondsSinceEpoch,
+      // The link is checked inside the insert's transaction, as updateTrip
+      // checks it, so a racing save cannot make the parent a side trip in
+      // between (issue #3658).
+      final parentTripId = await _db.transaction(() async {
+        final parentTripId = await writableParentId(
+          _db,
+          tripId: id,
+          parentId: trip.parentTripId,
+        );
+        await _db
+            .into(_db.trips)
+            .insert(
+              TripsCompanion(
+                id: Value(id),
+                diverId: Value(trip.diverId),
+                name: Value(trip.name),
+                startDate: Value(trip.startDate.millisecondsSinceEpoch),
+                endDate: Value(trip.endDate.millisecondsSinceEpoch),
+                location: Value(trip.location),
+                resortName: Value(trip.resortName),
+                liveaboardName: Value(trip.liveaboardName),
+                notes: Value(trip.notes),
+                tripType: Value(trip.tripType.name),
+                isShared: Value(trip.isShared),
+                returnFlightAt: Value(
+                  trip.returnFlightAt?.millisecondsSinceEpoch,
+                ),
+                expectedDives: Value(trip.expectedDives),
+                expectedRuntimeMinutes: Value(trip.expectedRuntimeMinutes),
+                diversSharingCylinders: Value(trip.diversSharingCylinders),
+                divesPerDayTarget: Value(trip.divesPerDayTarget),
+                parentTripId: Value(parentTripId),
+                createdAt: Value(now.millisecondsSinceEpoch),
+                updatedAt: Value(now.millisecondsSinceEpoch),
               ),
-              expectedDives: Value(trip.expectedDives),
-              expectedRuntimeMinutes: Value(trip.expectedRuntimeMinutes),
-              diversSharingCylinders: Value(trip.diversSharingCylinders),
-              divesPerDayTarget: Value(trip.divesPerDayTarget),
-              parentTripId: Value(parentTripId),
-              createdAt: Value(now.millisecondsSinceEpoch),
-              updatedAt: Value(now.millisecondsSinceEpoch),
-            ),
-          );
+            );
+        return parentTripId;
+      });
 
       await _syncRepository.markRecordPending(
         entityType: 'trips',
@@ -201,14 +206,20 @@ class TripRepository {
             activeDiverId: actingDiverId,
           );
 
-      final parentTripId = await writableParentId(
-        _db,
-        tripId: trip.id,
-        parentId: trip.parentTripId,
-      );
-      final parentChanged =
-          stored != null && stored.parentTripId != parentTripId;
       await _db.transaction(() async {
+        // Checked inside the write's transaction, which Drift runs one at a
+        // time: two saves racing to link a pair of trips each see the
+        // other's link and cannot both write one (issue #3658).
+        final parentTripId = await writableParentId(
+          _db,
+          tripId: trip.id,
+          parentId: trip.parentTripId,
+        );
+        final current = await (_db.select(
+          _db.trips,
+        )..where((t) => t.id.equals(trip.id))).getSingleOrNull();
+        final parentChanged =
+            current != null && current.parentTripId != parentTripId;
         await (_db.update(_db.trips)..where((t) => t.id.equals(trip.id))).write(
           TripsCompanion(
             name: Value(trip.name),

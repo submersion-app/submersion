@@ -67,3 +67,11 @@ const String topLevelTripSql =
 String linkableSlotIdsSql(String tripRef) =>
     'SELECT id FROM trip_cylinders WHERE trip_id = $tripRef '
     'OR trip_id IN (${validParentIdSql(tripRef)})';
+
+/// The ids of the slots that account for a tank on a dive [tripRef]'s
+/// figures count: the trip's own, its side trips' and its larger trip's. A
+/// tank on none of them is a gap in the trip's gas record.
+String accountedSlotIdsSql(String tripRef) =>
+    'SELECT id FROM trip_cylinders WHERE trip_id = $tripRef '
+    'OR trip_id IN (${sideTripIdsSql(tripRef)}) '
+    'OR trip_id IN (${validParentIdSql(tripRef)})';
