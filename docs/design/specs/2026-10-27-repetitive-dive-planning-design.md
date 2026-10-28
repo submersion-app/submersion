@@ -110,7 +110,9 @@ the plan. Removing dives back to one re-enables both.
   the real
   interval between logged dives, then Dive A's interval. Tapping a logged
   dive shows it read-only in place of the planner: its profile (the dive
-  log's own chart), Open in dive log, Stop following on the followed dive,
+  log's own chart, starting on depth, NDL, deco stops and ceiling, with NDL
+  on the right axis; its toggles are scoped to the view, so the dive log
+  keeps its own), Open in dive log, Stop following on the followed dive,
   and what it carries into the next dive (interval, end CNS, OTU, each
   tank's end pressure). Tapping a planned dive goes back. The bar opens on
   the selected planned dive, scrolled past the logged ones.

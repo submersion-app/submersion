@@ -6,6 +6,8 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart_host.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/plan_tank_list.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -209,6 +211,49 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(find.byType(PlanLoggedDiveView), findsOneWidget);
     expect(find.text('Carried into Dive A'), findsOneWidget);
+  });
+
+  testWidgets('the logged dive chart starts clean, apart from the dive log', (
+    tester,
+  ) async {
+    await pumpPlan(tester, [
+      loggedDive('d41', morning, number: 41),
+      Dive(
+        id: 'd42',
+        diveNumber: 42,
+        dateTime: morning.add(const Duration(hours: 3)),
+        entryTime: morning.add(const Duration(hours: 3)),
+        runtime: const Duration(minutes: 10),
+        profile: [
+          for (var t = 0; t <= 600; t += 30)
+            DiveProfilePoint(
+              timestamp: t,
+              depth: t < 60 || t > 540 ? t / 30 : 18,
+              temperature: 22,
+            ),
+        ],
+      ),
+    ]);
+    await follow(tester, 'd42');
+    await tester.tap(find.byTooltip('Logged dive #42'));
+    await tester.pumpAndSettle();
+
+    final chart = find.byType(DiveProfileChartHost);
+    expect(chart, findsOneWidget);
+    final legend = ProviderScope.containerOf(
+      tester.element(chart),
+    ).read(profileLegendProvider);
+    expect(legend.showNdl, isTrue);
+    expect(legend.showDecoStops, isTrue);
+    expect(legend.showCeiling, isTrue);
+    expect(legend.showTemperature, isFalse);
+    expect(legend.showEvents, isFalse);
+    expect(legend.showMaxDepthMarker, isFalse);
+    // The dive log's own legend is left as the diver set it.
+    expect(
+      containerOf(tester).read(profileLegendProvider).showTemperature,
+      isTrue,
+    );
   });
 
   testWidgets('an earlier logged dive carries into the next logged one', (

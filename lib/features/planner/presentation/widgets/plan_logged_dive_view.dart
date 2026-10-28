@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart_host.dart';
 import 'package:submersion/features/planner/domain/entities/plan_series.dart';
 import 'package:submersion/features/planner/domain/entities/series_follow.dart';
@@ -23,6 +25,54 @@ String seriesLoggedDiveLabel(SeriesLoggedDive dive, UnitFormatter units) {
   final number = dive.diveNumber;
   if (number != null) return '#$number';
   return units.formatDate(dive.start);
+}
+
+/// The dive log's chart, pared back for a dive shown in the planner: depth,
+/// NDL, deco stops and the ceiling, and nothing else until the diver turns
+/// it on. Scoped to the view, so the dive log keeps its own choices.
+final loggedDiveChartOverrides = [
+  profileLegendProvider.overrideWith(_LoggedDiveLegend.new),
+  showMaxDepthMarkerProvider.overrideWithValue(false),
+  showPressureThresholdMarkersProvider.overrideWithValue(false),
+];
+
+class _LoggedDiveLegend extends ProfileLegend {
+  @override
+  ProfileLegendState build() => super.build().copyWith(
+    // The right axis reads NDL, not the temperature it would default to.
+    rightAxisMetric: ProfileRightAxisMetric.ndl,
+    showNdl: true,
+    showDecoStops: true,
+    showCeiling: true,
+    showTemperature: false,
+    showPressure: false,
+    showTankPressure: const {},
+    showGas: false,
+    showHeartRate: false,
+    showSac: false,
+    showAscentRateColors: false,
+    showAscentRateLine: false,
+    showEvents: false,
+    showComputedEvents: false,
+    showMaxDepthMarker: false,
+    showPressureMarkers: false,
+    showGasSwitchMarkers: false,
+    showLateGasSwitches: false,
+    showPhotoMarkers: false,
+    showPpO2: false,
+    showPpN2: false,
+    showPpHe: false,
+    showMod: false,
+    showDensity: false,
+    showGf: false,
+    showSurfaceGf: false,
+    showMeanDepth: false,
+    showTts: false,
+    showCns: false,
+    showOtu: false,
+    showO2Cells: false,
+    showGtr: false,
+  );
 }
 
 /// A logged dive picked in the series bar (issue #3565), in place of the
@@ -69,7 +119,10 @@ class PlanLoggedDiveView extends ConsumerWidget {
     final chart = dive.when(
       data: (dive) => dive == null || dive.profile.isEmpty
           ? _Placeholder(message: l10n.dashboard_recentDives_noProfileData)
-          : DiveProfileChartHost(dive: dive),
+          : ProviderScope(
+              overrides: loggedDiveChartOverrides,
+              child: DiveProfileChartHost(dive: dive),
+            ),
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (_, _) =>
           _Placeholder(message: l10n.dashboard_recentDives_profileLoadError),
