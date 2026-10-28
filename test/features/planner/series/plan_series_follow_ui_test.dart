@@ -176,6 +176,29 @@ void main() {
     expect(find.byType(PlanTankList), findsOneWidget);
   });
 
+  testWidgets('a named logged dive goes by its name', (tester) async {
+    await pumpPlan(tester, [
+      loggedDive('d41', morning, number: 41),
+      loggedDive(
+        'd42',
+        morning.add(const Duration(hours: 3)),
+        number: 42,
+        name: 'Blue Hole',
+      ),
+    ]);
+    await follow(tester, 'd42');
+
+    expect(inBar(find.text('Blue Hole')), findsOneWidget);
+    expect(inBar(find.text('#42')), findsNothing);
+    expect(inBar(find.text('#41')), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Logged dive Blue Hole'));
+    await tester.pumpAndSettle();
+
+    // The number the label leaves out stays beside the date.
+    expect(find.textContaining('#42 · '), findsOneWidget);
+  });
+
   testWidgets('the logged view fits a phone', (tester) async {
     await pumpPlan(tester, dayDives, size: const Size(420, 900));
     await follow(tester, 'd42');
@@ -243,6 +266,19 @@ void main() {
         containerOf(tester).read(divePlanNotifierProvider).surfaceInterval,
         const Duration(hours: 2, minutes: 15),
       );
+    });
+
+    testWidgets('names a named dive', (tester) async {
+      await pumpPlan(tester, [
+        loggedDive(
+          'd42',
+          NoFlyService.wallClockNowUtc().subtract(const Duration(hours: 3)),
+          number: 42,
+          name: 'Blue Hole',
+        ),
+      ]);
+
+      expect(find.textContaining('Blue Hole ended'), findsOneWidget);
     });
 
     testWidgets('goes away when dismissed', (tester) async {

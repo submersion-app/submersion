@@ -19471,8 +19471,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get plannerSeries_otu => 'OTU';
 
   @override
-  String plannerSeries_followPrompt(String label, String time) {
-    return '潜水 $label 已于 $time 前结束。';
+  String plannerSeries_followPrompt(String dive, String time) {
+    return '$dive 已于 $time 前结束。';
+  }
+
+  @override
+  String plannerSeries_loggedDiveNumber(int number) {
+    return '潜水 #$number';
   }
 
   @override

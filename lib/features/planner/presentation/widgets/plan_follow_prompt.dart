@@ -54,11 +54,12 @@ class _PlanFollowPromptState extends ConsumerState<PlanFollowPrompt> {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final units = UnitFormatter(ref.watch(settingsProvider));
+    // Its name, else its number, as in the series bar.
     final number = dive.diveNumber;
-    final label = number != null
-        ? '#$number'
-        : (dive.name?.isNotEmpty ?? false)
+    final label = (dive.name?.isNotEmpty ?? false)
         ? dive.name!
+        : number != null
+        ? l10n.plannerSeries_loggedDiveNumber(number)
         : units.formatDate(diveStart(dive));
     final ago = formatHoursMinutes(
       NoFlyService.wallClockNowUtc().difference(diveEnd(dive)),

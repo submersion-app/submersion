@@ -20,8 +20,8 @@ import 'package:submersion/l10n/l10n_extension.dart';
 ///                 1:00                       1:30
 ///   [(diver) #213]  ~~  [(diver) Morning dive]  ~~  [(diver) B]   (+)
 ///
-/// Each logged dive the series follows is a solid diver and its dive
-/// number; each planned dive is an outlined diver and its name, or its
+/// Each logged dive the series follows is a solid diver and its name, else
+/// its dive number; each planned dive is an outlined diver and its name, or its
 /// letter while it has none; each surface interval is its time above two
 /// waves. Tapping a planned dive selects it, and tapping a logged one shows
 /// it read-only; + adds a dive after the last one. The selected dive can be
@@ -288,7 +288,7 @@ class _DiveChip extends StatelessWidget {
 }
 
 /// A logged dive the series follows: the main menu's diver, solid, and its
-/// dive number. Read-only; tapping it shows the dive.
+/// name, else its dive number. Read-only; tapping it shows the dive.
 class _LoggedDiveChip extends StatelessWidget {
   const _LoggedDiveChip({
     super.key,
@@ -308,7 +308,10 @@ class _LoggedDiveChip extends StatelessWidget {
         Icons.scuba_diving,
         color: Theme.of(context).colorScheme.primary,
       ),
-      label: Text(label),
+      label: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: _DiveChip._maxNameWidth),
+        child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
+      ),
       tooltip: context.l10n.plannerSeries_loggedDive(label),
       selected: selected,
       showCheckmark: false,

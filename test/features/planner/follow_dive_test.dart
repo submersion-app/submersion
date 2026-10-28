@@ -73,8 +73,8 @@ void main() {
         );
     await tester.pumpAndSettle();
 
-    // A logged dive goes by its number, as in the series bar.
-    expect(find.textContaining('#42'), findsOneWidget);
+    // A named logged dive goes by its name, as in the series bar.
+    expect(find.text('Following Reef drift'), findsOneWidget);
 
     await tester.tap(find.byType(PlanChip));
     await tester.pumpAndSettle();

@@ -20755,8 +20755,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get plannerSeries_otu => 'OTU';
 
   @override
-  String plannerSeries_followPrompt(String label, String time) {
-    return 'انتهت الغطسة $label منذ $time.';
+  String plannerSeries_followPrompt(String dive, String time) {
+    return 'انتهت $dive منذ $time.';
+  }
+
+  @override
+  String plannerSeries_loggedDiveNumber(int number) {
+    return 'الغطسة #$number';
   }
 
   @override

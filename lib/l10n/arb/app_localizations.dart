@@ -32550,11 +32550,17 @@ abstract class AppLocalizations {
   /// **'OTU'**
   String get plannerSeries_otu;
 
-  /// Offer to follow the most recent logged dive; time is h:mm since it ended
+  /// Offer to follow the most recent logged dive: its name or number, then h:mm since it ended
   ///
   /// In en, this message translates to:
-  /// **'Dive {label} ended {time} ago.'**
-  String plannerSeries_followPrompt(String label, String time);
+  /// **'{dive} ended {time} ago.'**
+  String plannerSeries_followPrompt(String dive, String time);
+
+  /// A logged dive by its number in the log
+  ///
+  /// In en, this message translates to:
+  /// **'Dive #{number}'**
+  String plannerSeries_loggedDiveNumber(int number);
 
   /// No description provided for @plannerSeries_follow.
   ///

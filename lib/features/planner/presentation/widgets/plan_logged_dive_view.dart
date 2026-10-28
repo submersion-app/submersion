@@ -15,13 +15,13 @@ import 'package:submersion/features/planner/presentation/providers/plan_series_p
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// How a logged dive goes by in the series bar: its dive number, else its
-/// name, else its date.
+/// How a logged dive goes by in the series bar: its name, else its dive
+/// number, else its date.
 String seriesLoggedDiveLabel(SeriesLoggedDive dive, UnitFormatter units) {
-  final number = dive.diveNumber;
-  if (number != null) return '#$number';
   final name = dive.name;
   if (name != null && name.isNotEmpty) return name;
+  final number = dive.diveNumber;
+  if (number != null) return '#$number';
   return units.formatDate(dive.start);
 }
 
@@ -79,11 +79,10 @@ class PlanLoggedDiveView extends ConsumerWidget {
         if (tank.endPressure != null) tank,
     ];
 
+    // A named dive's number, which its label leaves out, then its date.
+    final number = logged.diveNumber;
     final subtitle = [
-      if (logged.diveNumber != null &&
-          logged.name != null &&
-          logged.name!.isNotEmpty)
-        logged.name!,
+      if (number != null && label != '#$number') '#$number',
       units.formatDateTime(logged.start, l10n: l10n),
     ].join(' · ');
 

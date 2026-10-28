@@ -20011,8 +20011,13 @@ class AppLocalizationsHe extends AppLocalizations {
   String get plannerSeries_otu => 'OTU';
 
   @override
-  String plannerSeries_followPrompt(String label, String time) {
-    return 'צלילה $label הסתיימה לפני $time.';
+  String plannerSeries_followPrompt(String dive, String time) {
+    return '$dive הסתיימה לפני $time.';
+  }
+
+  @override
+  String plannerSeries_loggedDiveNumber(int number) {
+    return 'צלילה #$number';
   }
 
   @override

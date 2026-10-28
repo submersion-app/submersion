@@ -12802,15 +12802,25 @@
   },
   "plannerSeries_endCns": "CNS at the end",
   "plannerSeries_otu": "OTU",
-  "plannerSeries_followPrompt": "Dive {label} ended {time} ago.",
+  "plannerSeries_followPrompt": "{dive} ended {time} ago.",
   "@plannerSeries_followPrompt": {
-    "description": "Offer to follow the most recent logged dive; time is h:mm since it ended",
+    "description": "Offer to follow the most recent logged dive: its name or number, then h:mm since it ended",
     "placeholders": {
-      "label": {
+      "dive": {
         "type": "String"
       },
       "time": {
         "type": "String"
+      }
+    }
+  },
+
+  "plannerSeries_loggedDiveNumber": "Dive #{number}",
+  "@plannerSeries_loggedDiveNumber": {
+    "description": "A logged dive by its number in the log",
+    "placeholders": {
+      "number": {
+        "type": "int"
       }
     }
   },

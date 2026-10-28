@@ -105,13 +105,15 @@ the plan. Removing dives back to one re-enables both.
   back to the first gap of 48 hours or more, the window the log uses for
   residual tissue. Planned dives and dives logged after the followed one are
   left out.
-- **Bar.** Each logged dive is the main menu's diver, solid, and its dive
-  number (its name, else its date, when it has none), with the real
+- **Bar.** Each logged dive is the main menu's diver, solid, and its name,
+  else its dive number, else its date (the same in the Follow prompt and the
+  Following chip), with the real
   interval between logged dives, then Dive A's interval. Tapping a logged
   dive shows it read-only in place of the planner: its profile (the dive
   log's own chart), Open in dive log, Stop following on the followed dive,
   and what it carries into the next dive (interval, end CNS, OTU, each
-  tank's end pressure). Tapping a planned dive goes back.
+  tank's end pressure). Tapping a planned dive goes back. The bar opens on
+  the selected planned dive, scrolled past the logged ones.
 - **Carry into Dive A.** As between planned dives: the followed dive's end
   tissues and CNS (the dive log's analysis, residual from the dives before
   it included), off-gassed and decayed over Dive A's interval; the OTU of
@@ -132,7 +134,9 @@ the plan. Removing dives back to one re-enables both.
     follows a dive, and once dismissed (for the session).
   - **Plan repetitive dive** in the dive detail menu, right after "Replan
     this dive", on every logged dive (not a planned one), opens a new plan
-    that follows it. It lands next to the "What if" entry #2407 changes; the
+    that follows it. Like "Replan this dive", it goes back to the planner
+    rather than pushing a second one when the planner is already in the
+    stack (a dive opened from the planner), which go_router cannot hold. It lands next to the "What if" entry #2407 changes; the
     merge is a matter of keeping both.
   - The Following chip shows the followed dive and stops following.
 
