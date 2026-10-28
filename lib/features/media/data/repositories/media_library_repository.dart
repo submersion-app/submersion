@@ -551,4 +551,13 @@ class MediaLibraryRepository {
   Stream<void> watchMediaChanges() => _db
       .tableUpdates(TableUpdateQuery.onAllTables([_db.media, _db.mediaTags]))
       .debounce(MediaRepository.changeTickDebounce);
+
+  /// [watchMediaChanges] plus the trips table, for the library grid: its trip
+  /// filter takes in the trip's side trips, so linking or unlinking one
+  /// changes the page without a media row being written (issue #3658).
+  Stream<void> watchLibraryChanges() => _db
+      .tableUpdates(
+        TableUpdateQuery.onAllTables([_db.media, _db.mediaTags, _db.trips]),
+      )
+      .debounce(MediaRepository.changeTickDebounce);
 }

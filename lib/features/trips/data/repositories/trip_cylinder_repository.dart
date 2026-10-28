@@ -67,6 +67,9 @@ class TripCylinderRepository {
     TableUpdateQuery.onTable(_db.dives),
     // Tank uses carry the dive's site name.
     TableUpdateQuery.onTable(_db.diveSites),
+    // A larger trip's usage takes in its side trips' dives, so linking or
+    // unlinking one changes it with only a trips row written (issue #3658).
+    TableUpdateQuery.onTable(_db.trips),
   ];
 
   /// Changes to the slots alone: which equipment sits on a trip's board
