@@ -130,6 +130,29 @@ void main() {
     expect(si.enabled, isTrue);
   });
 
+  testWidgets('following scrolls the bar to the planned dive', (tester) async {
+    final longDay = [
+      for (var i = 0; i < 5; i++)
+        loggedDive(
+          'd${40 + i}',
+          morning.add(Duration(hours: 2 * i)),
+          number: 40 + i,
+        ),
+    ];
+    await pumpPlan(tester, longDay, size: const Size(360, 900));
+    await follow(tester, 'd44');
+
+    final bar = tester.getRect(find.byType(PlanSeriesNavigator));
+    final chip = tester.getRect(find.byTooltip('Dive A'));
+    expect(chip.left, greaterThanOrEqualTo(bar.left));
+    expect(chip.right, lessThanOrEqualTo(bar.right));
+    // The oldest logged dive has scrolled out of view to make room.
+    expect(
+      tester.getRect(inBar(find.text('#40'))).right,
+      lessThan(bar.left + 16),
+    );
+  });
+
   testWidgets('tapping a logged dive shows it read-only in place of the plan', (
     tester,
   ) async {

@@ -44,6 +44,14 @@ class _PlanSeriesNavigatorState extends ConsumerState<PlanSeriesNavigator> {
   static const _fadeWidth = 16.0;
 
   @override
+  void initState() {
+    super.initState();
+    // Opened on a plan that follows logged dives, the bar starts on the
+    // planned dive rather than the oldest logged one.
+    _revealSelected();
+  }
+
+  @override
   void dispose() {
     _scrollController.dispose();
     super.dispose();
@@ -100,6 +108,11 @@ class _PlanSeriesNavigatorState extends ConsumerState<PlanSeriesNavigator> {
       (_, _) => _revealSelected(),
     );
     ref.listen(viewedLoggedDiveProvider, (_, _) => _revealSelected());
+    // Following puts logged dives ahead of the selected one.
+    ref.listen(
+      planSeriesNotifierProvider.select((s) => s.follow),
+      (_, _) => _revealSelected(),
+    );
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final units = UnitFormatter(ref.watch(settingsProvider));
