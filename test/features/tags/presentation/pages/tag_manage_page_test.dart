@@ -284,7 +284,7 @@ void main() {
 
       expect(find.text('Night Dive'), findsOneWidget);
       expect(find.text('Photography'), findsOneWidget);
-      // Usage counts: "12 dives" and "5 dives"
+      // Usage counts, each on its own labelled line (#3746).
       expect(find.text('Used on: 12 dives'), findsOneWidget);
       expect(find.text('Used on: 5 dives'), findsOneWidget);
     });
