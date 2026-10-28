@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
+import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -63,6 +64,9 @@ class BackupCopySheet extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final units = UnitFormatter(ref.watch(settingsProvider));
+    // A sheet opened while idle stays open if a backup then starts, and the
+    // notifier ignores a copy-out while busy: offer nothing it would ignore.
+    final busy = ref.watch(isBackupInProgressProvider);
     final onShare = this.onShare;
     final when = units.formatDateTime(record.timestamp, l10n: context.l10n);
 
@@ -110,6 +114,7 @@ class BackupCopySheet extends ConsumerWidget {
               leading: const Icon(Icons.save_alt),
               title: Text(context.l10n.settings_backups_saveToFolder),
               subtitle: Text(context.l10n.backup_export_saveToFile_subtitle),
+              enabled: !busy,
               onTap: onSaveToFolder,
             ),
             if (onShare != null)
@@ -117,6 +122,7 @@ class BackupCopySheet extends ConsumerWidget {
                 leading: const Icon(Icons.share),
                 title: Text(context.l10n.backup_export_share),
                 subtitle: Text(context.l10n.backup_export_share_subtitle),
+                enabled: !busy,
                 onTap: onShare,
               ),
           ],

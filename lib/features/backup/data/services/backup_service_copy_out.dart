@@ -55,17 +55,15 @@ extension _CopyOut on BackupService {
   Future<PreparedBackupFile> _resolveBackupSource(BackupRecord record) async {
     final localRef = record.localPath;
     if (localRef != null && isSafRef(localRef)) {
-      if (!await _safPort.exists(localRef)) {
-        throw const BackupException(
-          'Backup file not found locally or in cloud',
+      if (await _safDocumentPresent(localRef)) {
+        return _fetchToTemp(
+          record,
+          (dest) => _safPort.readBackup(documentUri: localRef, destPath: dest),
         );
       }
-      return _fetchToTemp(
-        record,
-        (dest) => _safPort.readBackup(documentUri: localRef, destPath: dest),
-      );
-    }
-    if (localRef != null && await File(localRef).exists()) {
+      // Gone, or the folder grant was revoked: the cloud copy below is the
+      // same backup, as it is for a missing plain local file.
+    } else if (localRef != null && await File(localRef).exists()) {
       return PreparedBackupFile(localRef, isTemp: false);
     }
     if (await _cloudCopyHere(record)) {
@@ -83,6 +81,21 @@ extension _CopyOut on BackupService {
       throw BackupCopyInOtherAccountException(record.cloudAccountId!);
     }
     throw const BackupException('Backup file not found locally or in cloud');
+  }
+
+  /// Whether the SAF document at [ref] can still be read. A check that
+  /// fails (a revoked folder grant) counts as gone.
+  Future<bool> _safDocumentPresent(String ref) async {
+    try {
+      return await _safPort.exists(ref);
+    } catch (e, stack) {
+      _log.warning(
+        'Could not check the backup document, trying the cloud copy',
+        error: e,
+        stackTrace: stack,
+      );
+      return false;
+    }
   }
 
   Future<PreparedBackupFile> _fetchToTemp(
@@ -121,9 +134,11 @@ extension _CopyOut on BackupService {
         fileName: name,
       );
     }
-    final tempDir = await resolveSyncTempDir();
     try {
-      final shared = await File(source.path).rename(p.join(tempDir.path, name));
+      // The staging file is already in the temp folder; the move stays there.
+      final shared = await File(
+        source.path,
+      ).rename(p.join(p.dirname(source.path), name));
       return PreparedBackupFile(shared.path, isTemp: true);
     } catch (_) {
       await source.discard();

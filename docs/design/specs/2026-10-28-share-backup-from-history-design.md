@@ -90,8 +90,9 @@ the database file and never includes that sidecar
 SQLCipher-encrypted files (the rejection is in
 `BackupOperationNotifier.restoreFromFilePath`, which calls
 `validateBackupFile` without `allowLiveDatabaseEncryption`;
-`BackupService.restoreFromFile` itself does no validation). So on another
-device neither the password nor the recovery code can open it.
+`BackupService.restoreFromFile` itself did no validation before this change).
+So on another device neither the password nor the recovery code can open
+it.
 
 ## Restore from file accepts a protected safety copy on this device
 
@@ -128,8 +129,9 @@ copies, extended to the same file picked from outside.
 Resolution order, matching `BackupService.restoreFromBackup`:
 
 1. `localPath` is a SAF `content://` ref: stream it to a temp file with
-   `BackupSafPort.readBackup` (fails with the existing "not found" error if
-   the document is gone).
+   `BackupSafPort.readBackup`. If the document is gone, or its folder grant
+   was revoked, fall through to the cloud copy below, as a missing plain
+   local file does (one resolver now serves restore, Save and Share).
 2. `localPath` is a plain path that exists: use it in place, no copy.
 3. The cloud copy is reachable with the current account (`_cloudCopyHere`):
    download it with `downloadToFile` into the temp folder.

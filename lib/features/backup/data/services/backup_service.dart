@@ -801,10 +801,16 @@ class BackupService {
       } finally {
         testDb.close();
       }
-    } catch (e) {
+    } catch (e, stack) {
       // A keyed open that fails says the live key is not this file's, or the
-      // file is broken; the raw SQLite error says neither.
+      // file is broken; the raw SQLite error says neither, so it goes to the
+      // log rather than the message.
       if (deepCheckKeyHex != null) {
+        _log.warning(
+          'Keyed open of ${p.basename(filePath)} failed',
+          error: e,
+          stackTrace: stack,
+        );
         return const BackupValidationResult.invalid(lockedCopyWrongKeyMessage);
       }
       return BackupValidationResult.invalid('File is not a valid database: $e');

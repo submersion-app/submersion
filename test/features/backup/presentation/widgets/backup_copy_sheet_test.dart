@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
 
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
+import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/backup/presentation/widgets/backup_copy_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -19,8 +20,11 @@ final _record = BackupRecord(
   localPath: '/tmp/r1.db',
 );
 
-Widget _wrap(Widget child) => ProviderScope(
-  overrides: [settingsProvider.overrideWith((ref) => MockSettingsNotifier())],
+Widget _wrap(Widget child, {bool busy = false}) => ProviderScope(
+  overrides: [
+    settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+    isBackupInProgressProvider.overrideWithValue(busy),
+  ],
   child: MaterialApp(
     // Pinned so English assertions hold on a non-English host.
     locale: const Locale('en'),
@@ -198,5 +202,29 @@ void main() {
 
     expect(saved, 1);
     expect(find.byType(BackupCopySheet), findsNothing);
+  });
+
+  testWidgets('disables Save and Share while a backup operation runs', (
+    tester,
+  ) async {
+    // Opened while idle, then a backup started: the notifier would ignore a
+    // tap, so the sheet must not offer one.
+    var taps = 0;
+    await tester.pumpWidget(
+      _wrap(
+        BackupCopySheet(
+          record: _record,
+          deviceLocked: false,
+          onSaveToFolder: () => taps++,
+          onShare: () => taps++,
+        ),
+        busy: true,
+      ),
+    );
+
+    await tester.tap(find.text('Save to a folder'));
+    await tester.tap(find.text('Share'));
+
+    expect(taps, 0);
   });
 }

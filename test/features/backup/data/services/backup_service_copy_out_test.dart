@@ -52,11 +52,20 @@ class _Adapter implements BackupDatabaseAdapter {
 }
 
 class _SafPort implements BackupSafPort {
-  _SafPort({this.source, this.present = true, this.failAfterPartial = false});
+  _SafPort({
+    this.source,
+    this.present = true,
+    this.failAfterPartial = false,
+    this.existsThrows = false,
+  });
 
   /// Copied to the destination on a read.
   final String? source;
   final bool present;
+
+  /// The existence check itself fails, as when the folder permission was
+  /// revoked.
+  final bool existsThrows;
 
   /// Writes a few bytes, then throws: a stream cut off part way.
   final bool failAfterPartial;
@@ -74,7 +83,10 @@ class _SafPort implements BackupSafPort {
   }
 
   @override
-  Future<bool> exists(String documentUri) async => present;
+  Future<bool> exists(String documentUri) async {
+    if (existsThrows) throw PlatformException(code: 'PERMISSION_DENIED');
+    return present;
+  }
 
   @override
   Future<String> writeBackup({
@@ -282,6 +294,33 @@ void main() {
       );
       expect(tempNames(), isEmpty);
     });
+
+    for (final (label, port) in [
+      ('is gone', _SafPort(present: false)),
+      ('cannot be checked', _SafPort(existsThrows: true)),
+    ]) {
+      test('a saf document that $label falls back to the cloud copy', () async {
+        // As a missing plain local file does: the cloud copy is the same
+        // backup.
+        final cloud = FakeCloudStorageProvider();
+        final upload = await cloud.uploadFile(
+          Uint8List.fromList([9, 8, 7]),
+          'submersion_backup_2026-10-27.db',
+        );
+
+        final copy = await service(safPort: port, cloud: cloud)
+            .prepareBackupCopy(
+              record(
+                localPath: 'content://tree/doc/1',
+                cloudFileId: upload.fileId,
+                location: BackupLocation.both,
+              ),
+              purpose: BackupCopyPurpose.share,
+            );
+
+        expect(await File(copy.path).readAsBytes(), [9, 8, 7]);
+      });
+    }
 
     test('a saf stream cut off part way leaves nothing in temp', () async {
       await expectLater(

@@ -24,9 +24,7 @@ class BackupHistorySection extends ConsumerWidget {
     final historyAsync = ref.watch(backupHistoryProvider);
     // Share waits while another backup operation runs, as Back up now does:
     // two full-size file jobs never overlap.
-    final busy =
-        ref.watch(backupOperationProvider).status ==
-        BackupOperationStatus.inProgress;
+    final busy = ref.watch(isBackupInProgressProvider);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

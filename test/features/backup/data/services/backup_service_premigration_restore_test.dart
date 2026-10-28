@@ -9,6 +9,7 @@ import 'package:sqlite3/sqlite3.dart' as sqlite3;
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/security/database_encryption_migrator.dart';
 import 'package:submersion/core/services/security/database_security_sidecar.dart';
 import 'package:submersion/core/services/sync/crypto/keyslots.dart';
@@ -253,6 +254,24 @@ void main() {
 
       expect(result.error, BackupService.unreadableCopyNoKeyMessage);
       expect(result.error, isNot(contains('safety copy')));
+    });
+
+    test('logs why the keyed open failed', () async {
+      // The message names no cause it cannot prove, so the real error must
+      // reach the diagnostic log.
+      final path = await writeEncryptedPreMigrationCopy('enc.db');
+      final service = BackupService(
+        dbAdapter: _FakeBackupDatabaseAdapter(databaseKeyHex: 'ff' * 32),
+        preferences: preferences,
+      );
+      final logged = <String>[];
+      final sub = LoggerService.logStream.listen((e) => logged.add(e.message));
+      addTearDown(sub.cancel);
+
+      await service.validateBackupFile(path, allowLiveDatabaseEncryption: true);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(logged, contains(contains('file is not a database')));
     });
 
     test(
