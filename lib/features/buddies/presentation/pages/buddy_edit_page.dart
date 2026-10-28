@@ -801,6 +801,14 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
         isFavorite: _originalBuddy?.isFavorite ?? false,
         createdAt: _originalBuddy?.createdAt ?? now,
         updatedAt: now,
+        // The buddy card figures (issue #3728) have no form field: only a
+        // card writes them, so an edit carries them over as they were.
+        cardId: _originalBuddy?.cardId,
+        socialHandle: _originalBuddy?.socialHandle,
+        cardDiveCount: _originalBuddy?.cardDiveCount,
+        cardDivingSince: _originalBuddy?.cardDivingSince,
+        cardLastDive: _originalBuddy?.cardLastDive,
+        cardReceivedAt: _originalBuddy?.cardReceivedAt,
       );
 
       if (widget.isMerging) {

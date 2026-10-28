@@ -211,6 +211,14 @@ class BuddyRepository {
               isFavorite: Value(buddy.isFavorite),
               createdAt: Value(now.millisecondsSinceEpoch),
               updatedAt: Value(now.millisecondsSinceEpoch),
+              cardId: Value(buddy.cardId),
+              socialHandle: Value(buddy.socialHandle),
+              cardDiveCount: Value(buddy.cardDiveCount),
+              cardDivingSince: Value(buddy.cardDivingSince?.year),
+              cardLastDive: Value(buddy.cardLastDive?.millisecondsSinceEpoch),
+              cardReceivedAt: Value(
+                buddy.cardReceivedAt?.millisecondsSinceEpoch,
+              ),
             ),
           );
 
@@ -335,6 +343,12 @@ class BuddyRepository {
           notes: Value(buddy.notes),
           isFavorite: Value(buddy.isFavorite),
           updatedAt: Value(now),
+          cardId: Value(buddy.cardId),
+          socialHandle: Value(buddy.socialHandle),
+          cardDiveCount: Value(buddy.cardDiveCount),
+          cardDivingSince: Value(buddy.cardDivingSince?.year),
+          cardLastDive: Value(buddy.cardLastDive?.millisecondsSinceEpoch),
+          cardReceivedAt: Value(buddy.cardReceivedAt?.millisecondsSinceEpoch),
         ),
       );
       await _syncRepository.markRecordPending(
@@ -1290,8 +1304,19 @@ class BuddyRepository {
       isFavorite: row.isFavorite,
       createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt),
+      cardId: row.cardId,
+      socialHandle: row.socialHandle,
+      cardDiveCount: row.cardDiveCount,
+      cardDivingSince: row.cardDivingSince == null
+          ? null
+          : DateTime(row.cardDivingSince!),
+      cardLastDive: _fromMs(row.cardLastDive),
+      cardReceivedAt: _fromMs(row.cardReceivedAt),
     );
   }
+
+  static DateTime? _fromMs(int? ms) =>
+      ms == null ? null : DateTime.fromMillisecondsSinceEpoch(ms);
 }
 
 /// Statistics about a buddy's dive history
