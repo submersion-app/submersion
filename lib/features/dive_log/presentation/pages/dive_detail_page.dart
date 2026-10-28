@@ -84,6 +84,7 @@ import 'package:submersion/features/media/presentation/pages/dive_species_photo_
 import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/what_if_sheet.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
+import 'package:submersion/features/planner/presentation/planner_navigation.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_follow_providers.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_session.dart';
 import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_providers.dart';
@@ -1767,11 +1768,10 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   /// Open a new plan that follows this dive (issue #3565): a series whose
   /// first dive starts from where this one left off.
   Future<void> _planRepetitiveDive(Dive dive) async {
-    final router = GoRouter.of(context);
     ref.read(divePlanNotifierProvider.notifier).newPlan();
     await followLoggedDive(ref, dive.id);
     if (!mounted) return;
-    router.push('/planning/dive-planner');
+    openDivePlanner(context);
   }
 
   /// Promote a planned dive by hand (issue #2002): clears the flag and takes
