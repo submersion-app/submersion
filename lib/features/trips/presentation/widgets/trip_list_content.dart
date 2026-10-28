@@ -923,6 +923,7 @@ class _TripListContentState extends ConsumerState<TripListContent> {
                     ListViewMode.dense ||
                     ListViewMode.table => DenseTripListTile(
                       tripWithStats: tripWithStats,
+                      nestingNote: nestingNote,
                       isSelected: isSelected,
                       onTap: () => _handleRowTap(tripWithStats.trip),
                       showSharedBadge: showSharedBadge,

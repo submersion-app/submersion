@@ -41,7 +41,7 @@ class TripHistoryRepository {
             COUNT(d.id) AS dives,
             COUNT(DISTINCT date(d.dive_date_time / 1000, 'unixepoch')) AS days
           FROM trips t
-          JOIN dives d ON ${tripDivesScopeSql('d', 't.id')}
+          ${tripDivesJoinSql(tripAlias: 't', diveAlias: 'd', joinKind: '')}
           WHERE t.end_date < ? AND d.is_planned = 0 $diverFilter
             AND $topLevelTripSql
           GROUP BY t.id

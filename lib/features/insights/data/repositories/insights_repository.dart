@@ -2133,7 +2133,7 @@ class InsightsRepository {
           t.location,
           COUNT(d.id) AS dive_count
         FROM trips t
-        JOIN dives d ON ${tripDivesScopeSql('d', 't.id')}
+        ${tripDivesJoinSql(tripAlias: 't', diveAlias: 'd', joinKind: '')}
         WHERE $topLevelTripSql $diverFilter ${df.clause}
         GROUP BY t.id
         ORDER BY dive_count DESC

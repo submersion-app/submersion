@@ -123,4 +123,14 @@ void main() {
       isNull,
     );
   });
+
+  test('a side trip whose larger trip is gone is never offered as one', () {
+    // C keeps a link to a trip deleted elsewhere: readers treat it as a trip
+    // of its own, but a new trip pointing at it would be two levels deep.
+    final trips = {'C': trip('C', parent: 'gone')};
+    final d = draft([
+      dive('a', DateTime.utc(2026, 3, 8), tripId: 'C'),
+    ], trips: trips);
+    expect(d.trip.parentTripId, isNull);
+  });
 }

@@ -100,7 +100,11 @@ String? _sharedParent(
   if (tripId == null) return null;
   final trip = tripsById[tripId];
   if (trip == null) return null;
-  return effectiveParentId(trip, tripsById) ?? tripId;
+  // A side trip offers its larger trip. One with any stored link offers
+  // only that: when the link is broken, pointing at the trip itself would
+  // write a link two levels deep, which every reader ignores.
+  if (trip.parentTripId != null) return effectiveParentId(trip, tripsById);
+  return tripId;
 }
 
 /// The one non-blank value every entry has, else null: a blank entry means

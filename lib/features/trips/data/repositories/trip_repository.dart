@@ -720,10 +720,11 @@ class TripRepository {
       // has no in-scope dives instead of showing it with a zero count.
       final scope = DiveStatsScope.and(alias: 'd');
       // A trip counts its side trips' dives too (issue #3658).
-      final onTrip = tripDivesScopeSql('d', 't.id');
-      final joinClause = diverId != null
-          ? 'LEFT JOIN dives d ON $onTrip AND d.diver_id = ?$scope'
-          : 'LEFT JOIN dives d ON $onTrip$scope';
+      final joinClause = tripDivesJoinSql(
+        tripAlias: 't',
+        diveAlias: 'd',
+        extraOn: diverId != null ? ' AND d.diver_id = ?$scope' : scope,
+      );
 
       // When diverId is provided, prepend its variable before the visibility
       // filter variables so the positional binding lines up with joinClause.

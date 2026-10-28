@@ -22,10 +22,39 @@ String validParentIdSql(String tripRef) =>
     'WHERE c.id = $tripRef AND p.parent_trip_id IS NULL AND p.id <> c.id';
 
 /// True for a dive (alias [diveAlias]) on [tripRef] or on one of its valid
-/// side trips: the dives every per-trip figure counts.
+/// side trips: the dives every per-trip figure counts. For one trip, with
+/// [tripRef] a bound parameter; across many trips use [tripDivesJoinSql].
 String tripDivesScopeSql(String diveAlias, String tripRef) =>
     '($diveAlias.trip_id = $tripRef OR $diveAlias.trip_id IN '
     '(${sideTripIdsSql(tripRef)}))';
+
+/// Every trip paired with each trip whose dives it counts: itself, and its
+/// valid side trips. `owner_id` is the counting trip, `home_id` the dives'.
+const String _tripDiveHomesSql =
+    '(SELECT id AS owner_id, id AS home_id FROM trips '
+    'UNION ALL '
+    'SELECT p.id, c.id FROM trips c JOIN trips p ON p.id = c.parent_trip_id '
+    'WHERE p.parent_trip_id IS NULL AND c.id <> p.id)';
+
+/// Joins each trip (alias [tripAlias]) to the dives (alias [diveAlias]) its
+/// per-trip figures count, for a query over many trips. Through a mapping
+/// from each trip to the trips whose dives it counts, so the dives join is
+/// an equality on `trip_id` and uses its index: [tripDivesScopeSql] in an
+/// ON clause made SQLite walk every dive for every trip. [joinKind] is
+/// `LEFT` (trips with no dives kept) or empty for an inner join; [extraOn]
+/// adds conditions on the dive, starting with `AND`.
+String tripDivesJoinSql({
+  required String tripAlias,
+  required String diveAlias,
+  String joinKind = 'LEFT',
+  String extraOn = '',
+}) {
+  final homes = '${diveAlias}_homes';
+  return '$joinKind JOIN $_tripDiveHomesSql $homes '
+      'ON $homes.owner_id = $tripAlias.id '
+      '$joinKind JOIN dives $diveAlias '
+      'ON $diveAlias.trip_id = $homes.home_id$extraOn';
+}
 
 /// True for a trip (alias `t`) that is not a valid side trip: the trips a
 /// comparison across trips samples, so no dive counts twice.

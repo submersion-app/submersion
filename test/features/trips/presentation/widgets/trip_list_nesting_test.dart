@@ -102,7 +102,10 @@ void main() {
   final rajaAmpat = trip('s', 'Raja Ampat', parent: 'p', day: 8);
   final all = [indonesia, rajaAmpat];
 
-  List<Override> overrides(List<Trip> listed) => [
+  List<Override> overrides(
+    List<Trip> listed, {
+    ListViewMode mode = ListViewMode.detailed,
+  }) => [
     sharedPreferencesProvider.overrideWithValue(prefs),
     settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
     currentDiverIdProvider.overrideWith((ref) => MockCurrentDiverIdNotifier()),
@@ -112,7 +115,7 @@ void main() {
           AsyncValue.data([for (final t in listed) TripWithStats(trip: t)]),
     ),
     allTripsProvider.overrideWith((ref) async => all),
-    tripListViewModeProvider.overrideWith((ref) => ListViewMode.detailed),
+    tripListViewModeProvider.overrideWith((ref) => mode),
     tripTableConfigProvider.overrideWith(
       (ref) => _TestTripTableConfigNotifier(),
     ),
@@ -122,11 +125,17 @@ void main() {
       ).overrideWith((ref) async => (done: 0, total: 0)),
   ];
 
-  Future<void> pump(WidgetTester tester, List<Trip> listed) async {
+  Future<void> pump(
+    WidgetTester tester,
+    List<Trip> listed, {
+    ListViewMode mode = ListViewMode.detailed,
+  }) async {
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = const Size(400, 800);
     addTearDown(tester.view.reset);
-    await tester.pumpWidget(_buildTestWidget(overrides: overrides(listed)));
+    await tester.pumpWidget(
+      _buildTestWidget(overrides: overrides(listed, mode: mode)),
+    );
     await tester.pumpAndSettle();
   }
 
@@ -146,5 +155,16 @@ void main() {
     await pump(tester, [rajaAmpat]);
     expect(find.text('Part of Indonesia'), findsOneWidget);
     expect(find.byIcon(Icons.subdirectory_arrow_right), findsNothing);
+  });
+
+  testWidgets('dense rows nest and carry the note too', (tester) async {
+    await pump(tester, [rajaAmpat, indonesia], mode: ListViewMode.dense);
+    expect(find.text('1 side trip'), findsOneWidget);
+    expect(find.byIcon(Icons.subdirectory_arrow_right), findsOneWidget);
+  });
+
+  testWidgets('a dense side trip without its parent names it', (tester) async {
+    await pump(tester, [rajaAmpat], mode: ListViewMode.dense);
+    expect(find.text('Part of Indonesia'), findsOneWidget);
   });
 }
