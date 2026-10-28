@@ -433,12 +433,14 @@ class BuddyMergeRepository {
           toBuddyId: survivorId,
           now: now,
         );
-        await repointSmartAlbumBuddies(
-          _db,
-          _syncRepository,
-          fromBuddyIds: duplicateIds,
-          toBuddyId: survivorId,
-          now: now,
+        mediaPeople = mediaPeople.withAlbumFilters(
+          await repointSmartAlbumBuddies(
+            _db,
+            _syncRepository,
+            fromBuddyIds: duplicateIds,
+            toBuddyId: survivorId,
+            now: now,
+          ),
         );
 
         // Delete duplicate buddy rows (CASCADE cleans remaining junction rows)

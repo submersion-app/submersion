@@ -132,6 +132,32 @@ void main() {
       expect(json['futureKey'], 1);
     },
   );
+
+  test('undoing the merge puts the album back on the duplicate', () async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final original = jsonEncode({
+      'buddyIds': ['dup'],
+    });
+    await db
+        .into(db.mediaSmartAlbums)
+        .insert(
+          MediaSmartAlbumsCompanion(
+            id: const Value('album'),
+            name: const Value('With Alex R'),
+            filterJson: Value(original),
+            createdAt: Value(now),
+            updatedAt: Value(now),
+          ),
+        );
+    final merged = await merge();
+
+    await repo.undoMerge(merged.snapshot);
+
+    final row = await (db.select(
+      db.mediaSmartAlbums,
+    )..where((t) => t.id.equals('album'))).getSingle();
+    expect(row.filterJson, original);
+  });
 }
 
 /// Keeps the test independent of the result class's import path.

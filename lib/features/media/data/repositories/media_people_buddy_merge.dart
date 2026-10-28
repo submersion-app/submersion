@@ -15,10 +15,21 @@ class MediaPeopleMergeSnapshot {
   final Map<String, String> originalBuddyIds;
   final List<MediaPeopleData> removedDuplicates;
 
+  /// Smart album id -> its filter JSON before [repointSmartAlbumBuddies].
+  final Map<String, String> albumFilters;
+
   const MediaPeopleMergeSnapshot({
     this.originalBuddyIds = const {},
     this.removedDuplicates = const [],
+    this.albumFilters = const {},
   });
+
+  MediaPeopleMergeSnapshot withAlbumFilters(Map<String, String> filters) =>
+      MediaPeopleMergeSnapshot(
+        originalBuddyIds: originalBuddyIds,
+        removedDuplicates: removedDuplicates,
+        albumFilters: filters,
+      );
 }
 
 /// Moves the people tags of [fromBuddyIds] to [toBuddyId] for a buddy merge
@@ -97,8 +108,9 @@ Future<MediaPeopleMergeSnapshot> repointMediaPeopleForMerge(
 
 /// Reverses [repointMediaPeopleForMerge] once the merged buddies exist
 /// again: repointed tags go back to their buddy and removed duplicates are
-/// re-inserted under their own ids, their tombstones dropped. Runs inside
-/// the caller's transaction and does not notify.
+/// re-inserted under their own ids, their tombstones dropped, and repointed
+/// smart albums get their filters back. Runs inside the caller's
+/// transaction and does not notify.
 Future<void> undoMediaPeopleMerge(
   AppDatabase db,
   SyncRepository syncRepository,
@@ -113,6 +125,20 @@ Future<void> undoMediaPeopleMerge(
     );
     await syncRepository.markRecordPending(
       entityType: 'mediaPeople',
+      recordId: id,
+      localUpdatedAt: now,
+    );
+  }
+  for (final MapEntry(key: id, value: filterJson)
+      in snapshot.albumFilters.entries) {
+    await (db.update(db.mediaSmartAlbums)..where((t) => t.id.equals(id))).write(
+      MediaSmartAlbumsCompanion(
+        filterJson: Value(filterJson),
+        updatedAt: Value(now),
+      ),
+    );
+    await syncRepository.markRecordPending(
+      entityType: 'mediaSmartAlbums',
       recordId: id,
       localUpdatedAt: now,
     );
@@ -142,9 +168,10 @@ Future<void> undoMediaPeopleMerge(
 /// Rewrites every saved smart album whose filter names one of
 /// [fromBuddyIds] to name [toBuddyId] instead (issue #1745), the people
 /// twin of `repointSmartAlbumTags`. Keys this build does not know are kept.
-/// Each rewritten album is stamped and marked pending. Runs inside the
+/// Each rewritten album is stamped and marked pending. Returns each
+/// rewritten album's previous filter JSON, for an undo. Runs inside the
 /// caller's transaction and does not notify.
-Future<void> repointSmartAlbumBuddies(
+Future<Map<String, String>> repointSmartAlbumBuddies(
   AppDatabase db,
   SyncRepository syncRepository, {
   required List<String> fromBuddyIds,
@@ -152,6 +179,7 @@ Future<void> repointSmartAlbumBuddies(
   required int now,
 }) async {
   final from = fromBuddyIds.toSet();
+  final previous = <String, String>{};
   for (final row in await db.select(db.mediaSmartAlbums).get()) {
     final Object? decoded;
     try {
@@ -162,6 +190,7 @@ Future<void> repointSmartAlbumBuddies(
     if (decoded is! Map<String, dynamic>) continue;
     final filter = MediaLibraryFilter.fromJson(decoded);
     if (!filter.buddyIds.any(from.contains)) continue;
+    previous[row.id] = row.filterJson;
     final repointed = filter.copyWith(
       buddyIds: {
         for (final id in filter.buddyIds) from.contains(id) ? toBuddyId : id,
@@ -181,4 +210,5 @@ Future<void> repointSmartAlbumBuddies(
       localUpdatedAt: now,
     );
   }
+  return previous;
 }
