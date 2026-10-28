@@ -153,6 +153,8 @@
                 <category android:name="android.intent.category.BROWSABLE"/>
                 <data android:scheme="https" android:host="submersion.app" android:path="/c"/>
                 <data android:scheme="https" android:host="submersion.app" android:path="/g"/>
+                <!-- Buddy cards (issue #3728): the card is in the fragment. -->
+                <data android:scheme="https" android:host="submersion.app" android:path="/b"/>
             </intent-filter>
             <!-- The accepted custom-scheme forms, submersion://c?<payload> and
                  submersion://g?<payload>. -->
@@ -175,6 +177,8 @@
                 <category android:name="android.intent.category.BROWSABLE"/>
                 <data android:scheme="https" android:host="submersion.app" android:path="/c"/>
                 <data android:scheme="https" android:host="submersion.app" android:path="/g"/>
+                <!-- Buddy cards (issue #3728): the card is in the fragment. -->
+                <data android:scheme="https" android:host="submersion.app" android:path="/b"/>
             </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.

@@ -1,7 +1,9 @@
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/buddies/data/services/buddy_card_builder.dart';
+import 'package:submersion/features/buddies/data/services/buddy_card_importer.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy_card.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy_card_share_choices.dart';
+import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
@@ -15,6 +17,14 @@ final buddyCardBuilderProvider = Provider<BuddyCardBuilder>((ref) {
     certifications: ref.watch(certificationRepositoryProvider),
     dives: ref.watch(diveRepositoryProvider),
     catalog: () => ref.read(certificationCatalogProvider.future),
+  );
+});
+
+/// Saves received buddy cards.
+final buddyCardImporterProvider = Provider<BuddyCardImporter>((ref) {
+  return BuddyCardImporter(
+    buddies: ref.watch(buddyRepositoryProvider),
+    certifications: ref.watch(certificationRepositoryProvider),
   );
 });
 

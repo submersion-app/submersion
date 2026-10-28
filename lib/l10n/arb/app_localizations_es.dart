@@ -2823,6 +2823,95 @@ class AppLocalizationsEs extends AppLocalizations {
   String get buddies_action_addTooltip => 'Agregar un nuevo compañero de buceo';
 
   @override
+  String get buddyCard_preview_title => 'Tarjeta de compañero';
+
+  @override
+  String buddyCard_preview_addTitle(String name) {
+    return 'Añadir a $name como compañero';
+  }
+
+  @override
+  String buddyCard_preview_updateTitle(String name) {
+    return 'Actualizar a $name';
+  }
+
+  @override
+  String buddyCard_preview_possibleTitle(String name) {
+    return '¿Es $name de tus compañeros?';
+  }
+
+  @override
+  String get buddyCard_preview_trimmed =>
+      'Se omitieron algunos datos para que cupieran en el código.';
+
+  @override
+  String get buddyCard_preview_newer =>
+      'Esta tarjeta es de una versión más reciente de Submersion. Puede que falten algunos datos.';
+
+  @override
+  String get buddyCard_preview_noChanges =>
+      'No hay nada nuevo en esta tarjeta.';
+
+  @override
+  String buddyCard_preview_changed(String from, String to) {
+    return '$from → $to';
+  }
+
+  @override
+  String get buddyCard_action_add => 'Añadir compañero';
+
+  @override
+  String get buddyCard_action_update => 'Actualizar compañero';
+
+  @override
+  String get buddyCard_action_addAsNew => 'Añadir como nuevo compañero';
+
+  @override
+  String get buddyCard_action_discard => 'Descartar';
+
+  @override
+  String get buddyCard_field_name => 'Nombre';
+
+  @override
+  String get buddyCard_field_phone => 'Teléfono';
+
+  @override
+  String get buddyCard_field_email => 'Correo electrónico';
+
+  @override
+  String get buddyCard_field_social => 'Usuario en redes sociales';
+
+  @override
+  String get buddyCard_field_dives => 'Inmersiones';
+
+  @override
+  String get buddyCard_field_divingSince => 'Bucea desde';
+
+  @override
+  String get buddyCard_field_lastDive => 'Última inmersión';
+
+  @override
+  String get buddyCard_field_certifications => 'Certificaciones';
+
+  @override
+  String buddyCard_saved_added(String name) {
+    return '$name añadido a tus compañeros';
+  }
+
+  @override
+  String buddyCard_saved_updated(String name) {
+    return '$name actualizado';
+  }
+
+  @override
+  String get buddyCard_error_notACard =>
+      'Eso no es una tarjeta de compañero de Submersion.';
+
+  @override
+  String get buddyCard_error_unreadable =>
+      'No se pudo leer esta tarjeta de compañero.';
+
+  @override
   String get buddies_action_clearSearch => 'Limpiar búsqueda';
 
   @override

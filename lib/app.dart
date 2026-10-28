@@ -27,6 +27,9 @@ import 'package:submersion/features/auto_update/presentation/providers/update_me
 import 'package:submersion/features/backup/presentation/pages/restore_complete_page.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/backup/presentation/widgets/restore_barrier.dart';
+import 'package:submersion/features/buddies/domain/services/buddy_card_codec.dart';
+import 'package:submersion/features/buddies/presentation/services/buddy_card_link_dispatcher.dart';
+import 'package:submersion/features/buddies/presentation/utils/open_buddy_card.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
 import 'package:submersion/features/cylinder_passports/presentation/services/passport_link_dispatcher.dart';
 import 'package:submersion/features/cylinder_passports/presentation/services/recent_passport_tags.dart';
@@ -111,6 +114,8 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
   final _lifecycle = SystemSheetLifecycle();
   late final FileShareHandler _fileShareHandler;
   late final PassportLinkDispatcher _passportLinks;
+  late final SharedIncomingLinks _incomingLinks;
+  late final BuddyCardLinkDispatcher _buddyCardLinks;
   late final GoRouter _linkRouter;
   bool _hasDivers = false;
   bool _navigationReadyRetryScheduled = false;
@@ -139,8 +144,15 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
       onFilesReceived: (paths) => shareGate.run(SharedFileBatch(paths)),
       onError: _reportShareError,
     );
+    // Passport and buddy card links share one platform subscription, made
+    // once both dispatchers listen, so neither misses the launch link.
+    _incomingLinks = SharedIncomingLinks(ref.read(incomingLinkSourceProvider));
+    _buddyCardLinks = BuddyCardLinkDispatcher(
+      source: _incomingLinks,
+      open: _openBuddyCardLink,
+    );
     _passportLinks = PassportLinkDispatcher(
-      source: ref.read(incomingLinkSourceProvider),
+      source: _incomingLinks,
       open: _openPassportLink,
       alreadyHandled: (text) =>
           ref.read(recentPassportTagsProvider).takeJustHandled(text),
@@ -175,6 +187,8 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
       _convertGearFiles();
       _fileShareHandler.initialize();
       _passportLinks.start();
+      _buddyCardLinks.start();
+      _incomingLinks.connect();
       // Fill the per-dive sensor summary cache for dives that predate it or
       // changed since. Single-flight, oldest first, no-op when current.
       SensorSummaryScheduler.instance.scheduleStaleSweep();
@@ -187,6 +201,8 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
     _linkRouter.routeInformationProvider.removeListener(_updateNavigationReady);
     _shares.release();
     unawaited(_passportLinks.dispose());
+    unawaited(_buddyCardLinks.dispose());
+    unawaited(_incomingLinks.dispose());
     _fileShareHandler.dispose();
     _lifecycleListener.dispose();
     WidgetsBinding.instance.removeObserver(this);
@@ -554,6 +570,10 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
           suuntoFileImportPath,
           extra: [SuuntoJsonFile(name: fileName, bytes: bytes)],
         );
+      case IncomingFileOutcome.buddyCard:
+        final navContext = rootNavigatorKey.currentContext;
+        if (navContext == null || !navContext.mounted) return false;
+        openBuddyCard(navContext, BuddyCardCodec.decodeFull(bytes));
       case IncomingFileOutcome.none:
         break;
     }
@@ -573,6 +593,7 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
     final navigatorBuilt = rootNavigatorKey.currentContext != null;
     final ready = settled && navigatorBuilt;
     _passportLinks.setReady(ready);
+    _buddyCardLinks.setReady(ready);
     _shares.setReady(ready);
     // One pending retry at most, however many updates arrive meanwhile.
     if (settled && !navigatorBuilt && !_navigationReadyRetryScheduled) {
@@ -587,6 +608,13 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
   /// Opens a passport tag that arrived as a link. The root navigator's
   /// context sits under the router and the scaffold messenger, which is all
   /// [openScannedTag] needs.
+  /// Opens a buddy card that arrived as a link (issue #3728).
+  Future<void> _openBuddyCardLink(String text) async {
+    final context = rootNavigatorKey.currentContext;
+    if (context == null || !context.mounted) return;
+    openBuddyCard(context, BuddyCardCodec.decodeLink(text));
+  }
+
   Future<void> _openPassportLink(String text) async {
     final context = rootNavigatorKey.currentContext;
     if (context == null || !context.mounted) return;

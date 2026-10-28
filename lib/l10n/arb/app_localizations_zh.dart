@@ -2672,6 +2672,90 @@ class AppLocalizationsZh extends AppLocalizations {
   String get buddies_action_addTooltip => '添加新潜伴';
 
   @override
+  String get buddyCard_preview_title => '潜伴名片';
+
+  @override
+  String buddyCard_preview_addTitle(String name) {
+    return '将 $name 添加为潜伴';
+  }
+
+  @override
+  String buddyCard_preview_updateTitle(String name) {
+    return '更新 $name';
+  }
+
+  @override
+  String buddyCard_preview_possibleTitle(String name) {
+    return '这是你潜伴中的 $name 吗？';
+  }
+
+  @override
+  String get buddyCard_preview_trimmed => '为适应代码长度，部分信息已省略。';
+
+  @override
+  String get buddyCard_preview_newer => '此名片来自更新版本的 Submersion，部分信息可能缺失。';
+
+  @override
+  String get buddyCard_preview_noChanges => '名片上没有新信息。';
+
+  @override
+  String buddyCard_preview_changed(String from, String to) {
+    return '$from → $to';
+  }
+
+  @override
+  String get buddyCard_action_add => '添加潜伴';
+
+  @override
+  String get buddyCard_action_update => '更新潜伴';
+
+  @override
+  String get buddyCard_action_addAsNew => '添加为新潜伴';
+
+  @override
+  String get buddyCard_action_discard => '放弃';
+
+  @override
+  String get buddyCard_field_name => '姓名';
+
+  @override
+  String get buddyCard_field_phone => '电话';
+
+  @override
+  String get buddyCard_field_email => '电子邮件';
+
+  @override
+  String get buddyCard_field_social => '社交账号';
+
+  @override
+  String get buddyCard_field_dives => '潜水次数';
+
+  @override
+  String get buddyCard_field_divingSince => '开始潜水年份';
+
+  @override
+  String get buddyCard_field_lastDive => '最近一次潜水';
+
+  @override
+  String get buddyCard_field_certifications => '证书';
+
+  @override
+  String buddyCard_saved_added(String name) {
+    return '已将 $name 添加到你的潜伴';
+  }
+
+  @override
+  String buddyCard_saved_updated(String name) {
+    return '已更新 $name';
+  }
+
+  @override
+  String get buddyCard_error_notACard => '这不是 Submersion 潜伴名片。';
+
+  @override
+  String get buddyCard_error_unreadable => '无法读取此潜伴名片。';
+
+  @override
   String get buddies_action_clearSearch => '清除搜索';
 
   @override

@@ -2899,6 +2899,91 @@ class AppLocalizationsAr extends AppLocalizations {
   String get buddies_action_addTooltip => 'إضافة رفيق غوص جديد';
 
   @override
+  String get buddyCard_preview_title => 'بطاقة الرفيق';
+
+  @override
+  String buddyCard_preview_addTitle(String name) {
+    return 'إضافة $name كرفيق';
+  }
+
+  @override
+  String buddyCard_preview_updateTitle(String name) {
+    return 'تحديث $name';
+  }
+
+  @override
+  String buddyCard_preview_possibleTitle(String name) {
+    return 'هل هذا $name من رفاقك؟';
+  }
+
+  @override
+  String get buddyCard_preview_trimmed => 'حُذفت بعض التفاصيل لتتسع في الرمز.';
+
+  @override
+  String get buddyCard_preview_newer =>
+      'هذه البطاقة من إصدار أحدث من Submersion. قد تكون بعض التفاصيل مفقودة.';
+
+  @override
+  String get buddyCard_preview_noChanges => 'لا جديد في هذه البطاقة.';
+
+  @override
+  String buddyCard_preview_changed(String from, String to) {
+    return '$from ← $to';
+  }
+
+  @override
+  String get buddyCard_action_add => 'إضافة رفيق';
+
+  @override
+  String get buddyCard_action_update => 'تحديث الرفيق';
+
+  @override
+  String get buddyCard_action_addAsNew => 'إضافة كرفيق جديد';
+
+  @override
+  String get buddyCard_action_discard => 'تجاهل';
+
+  @override
+  String get buddyCard_field_name => 'الاسم';
+
+  @override
+  String get buddyCard_field_phone => 'الهاتف';
+
+  @override
+  String get buddyCard_field_email => 'البريد الإلكتروني';
+
+  @override
+  String get buddyCard_field_social => 'اسم المستخدم على مواقع التواصل';
+
+  @override
+  String get buddyCard_field_dives => 'الغطسات';
+
+  @override
+  String get buddyCard_field_divingSince => 'يغطس منذ';
+
+  @override
+  String get buddyCard_field_lastDive => 'آخر غطسة';
+
+  @override
+  String get buddyCard_field_certifications => 'الشهادات';
+
+  @override
+  String buddyCard_saved_added(String name) {
+    return 'تمت إضافة $name إلى رفاقك';
+  }
+
+  @override
+  String buddyCard_saved_updated(String name) {
+    return 'تم تحديث $name';
+  }
+
+  @override
+  String get buddyCard_error_notACard => 'هذه ليست بطاقة رفيق من Submersion.';
+
+  @override
+  String get buddyCard_error_unreadable => 'تعذّرت قراءة بطاقة الرفيق هذه.';
+
+  @override
   String get buddies_action_clearSearch => 'مسح البحث';
 
   @override

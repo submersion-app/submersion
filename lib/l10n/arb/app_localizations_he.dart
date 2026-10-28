@@ -2775,6 +2775,92 @@ class AppLocalizationsHe extends AppLocalizations {
   String get buddies_action_addTooltip => 'הוסף חבר צוללים חדש';
 
   @override
+  String get buddyCard_preview_title => 'כרטיס שותף';
+
+  @override
+  String buddyCard_preview_addTitle(String name) {
+    return 'הוספת $name כשותף';
+  }
+
+  @override
+  String buddyCard_preview_updateTitle(String name) {
+    return 'עדכון $name';
+  }
+
+  @override
+  String buddyCard_preview_possibleTitle(String name) {
+    return 'האם זה $name מהשותפים שלך?';
+  }
+
+  @override
+  String get buddyCard_preview_trimmed =>
+      'חלק מהפרטים הושמטו כדי שייכנסו לקוד.';
+
+  @override
+  String get buddyCard_preview_newer =>
+      'הכרטיס הזה מגרסה חדשה יותר של Submersion. ייתכן שחלק מהפרטים חסרים.';
+
+  @override
+  String get buddyCard_preview_noChanges => 'אין בכרטיס הזה שום דבר חדש.';
+
+  @override
+  String buddyCard_preview_changed(String from, String to) {
+    return '$from ← $to';
+  }
+
+  @override
+  String get buddyCard_action_add => 'הוספת שותף';
+
+  @override
+  String get buddyCard_action_update => 'עדכון שותף';
+
+  @override
+  String get buddyCard_action_addAsNew => 'הוספה כשותף חדש';
+
+  @override
+  String get buddyCard_action_discard => 'ביטול';
+
+  @override
+  String get buddyCard_field_name => 'שם';
+
+  @override
+  String get buddyCard_field_phone => 'טלפון';
+
+  @override
+  String get buddyCard_field_email => 'אימייל';
+
+  @override
+  String get buddyCard_field_social => 'שם משתמש ברשתות חברתיות';
+
+  @override
+  String get buddyCard_field_dives => 'צלילות';
+
+  @override
+  String get buddyCard_field_divingSince => 'צולל מאז';
+
+  @override
+  String get buddyCard_field_lastDive => 'צלילה אחרונה';
+
+  @override
+  String get buddyCard_field_certifications => 'הסמכות';
+
+  @override
+  String buddyCard_saved_added(String name) {
+    return '$name נוסף לשותפים שלך';
+  }
+
+  @override
+  String buddyCard_saved_updated(String name) {
+    return '$name עודכן';
+  }
+
+  @override
+  String get buddyCard_error_notACard => 'זה לא כרטיס שותף של Submersion.';
+
+  @override
+  String get buddyCard_error_unreadable => 'לא ניתן לקרוא את כרטיס השותף הזה.';
+
+  @override
   String get buddies_action_clearSearch => 'נקה חיפוש';
 
   @override

@@ -72,6 +72,25 @@ abstract final class BuddyCardCodec {
   static bool isCardFileName(String fileName) =>
       fileName.toLowerCase().endsWith('.$fileExtension');
 
+  /// Whether [bytes] read as a full card, for a file whose name was lost on
+  /// the way (an Android content URI often carries none). A small JSON
+  /// object with the card's version, id and name keys; no dive log format
+  /// has that shape.
+  static bool looksLikeFullCard(Uint8List bytes) {
+    if (bytes.isEmpty || bytes.length > maxFullBytes || bytes.first != 0x7B) {
+      return false;
+    }
+    try {
+      final json = jsonDecode(utf8.decode(bytes));
+      return json is Map<String, Object?> &&
+          json['v'] is int &&
+          json['i'] is String &&
+          json['n'] is String;
+    } on FormatException {
+      return false;
+    }
+  }
+
   static Uint8List encodeFull(BuddyCard card) =>
       Uint8List.fromList(utf8.encode(jsonEncode(_toJson(card))));
 

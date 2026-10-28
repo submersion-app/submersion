@@ -4345,6 +4345,150 @@ abstract class AppLocalizations {
   /// **'Add a new dive buddy'**
   String get buddies_action_addTooltip;
 
+  /// No description provided for @buddyCard_preview_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Buddy card'**
+  String get buddyCard_preview_title;
+
+  /// No description provided for @buddyCard_preview_addTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add {name} as a buddy'**
+  String buddyCard_preview_addTitle(String name);
+
+  /// No description provided for @buddyCard_preview_updateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Update {name}'**
+  String buddyCard_preview_updateTitle(String name);
+
+  /// No description provided for @buddyCard_preview_possibleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Is this {name} from your buddies?'**
+  String buddyCard_preview_possibleTitle(String name);
+
+  /// No description provided for @buddyCard_preview_trimmed.
+  ///
+  /// In en, this message translates to:
+  /// **'Some details were left out to fit the code.'**
+  String get buddyCard_preview_trimmed;
+
+  /// No description provided for @buddyCard_preview_newer.
+  ///
+  /// In en, this message translates to:
+  /// **'This card is from a newer version of Submersion. Some details may be missing.'**
+  String get buddyCard_preview_newer;
+
+  /// No description provided for @buddyCard_preview_noChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing on this card is new.'**
+  String get buddyCard_preview_noChanges;
+
+  /// No description provided for @buddyCard_preview_changed.
+  ///
+  /// In en, this message translates to:
+  /// **'{from} → {to}'**
+  String buddyCard_preview_changed(String from, String to);
+
+  /// No description provided for @buddyCard_action_add.
+  ///
+  /// In en, this message translates to:
+  /// **'Add buddy'**
+  String get buddyCard_action_add;
+
+  /// No description provided for @buddyCard_action_update.
+  ///
+  /// In en, this message translates to:
+  /// **'Update buddy'**
+  String get buddyCard_action_update;
+
+  /// No description provided for @buddyCard_action_addAsNew.
+  ///
+  /// In en, this message translates to:
+  /// **'Add as new buddy'**
+  String get buddyCard_action_addAsNew;
+
+  /// No description provided for @buddyCard_action_discard.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard'**
+  String get buddyCard_action_discard;
+
+  /// No description provided for @buddyCard_field_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get buddyCard_field_name;
+
+  /// No description provided for @buddyCard_field_phone.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get buddyCard_field_phone;
+
+  /// No description provided for @buddyCard_field_email.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get buddyCard_field_email;
+
+  /// No description provided for @buddyCard_field_social.
+  ///
+  /// In en, this message translates to:
+  /// **'Social handle'**
+  String get buddyCard_field_social;
+
+  /// No description provided for @buddyCard_field_dives.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives'**
+  String get buddyCard_field_dives;
+
+  /// No description provided for @buddyCard_field_divingSince.
+  ///
+  /// In en, this message translates to:
+  /// **'Diving since'**
+  String get buddyCard_field_divingSince;
+
+  /// No description provided for @buddyCard_field_lastDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Last dive'**
+  String get buddyCard_field_lastDive;
+
+  /// No description provided for @buddyCard_field_certifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Certifications'**
+  String get buddyCard_field_certifications;
+
+  /// No description provided for @buddyCard_saved_added.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} added to your buddies'**
+  String buddyCard_saved_added(String name);
+
+  /// No description provided for @buddyCard_saved_updated.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} updated'**
+  String buddyCard_saved_updated(String name);
+
+  /// No description provided for @buddyCard_error_notACard.
+  ///
+  /// In en, this message translates to:
+  /// **'That is not a Submersion buddy card.'**
+  String get buddyCard_error_notACard;
+
+  /// No description provided for @buddyCard_error_unreadable.
+  ///
+  /// In en, this message translates to:
+  /// **'This buddy card could not be read.'**
+  String get buddyCard_error_unreadable;
+
   /// No description provided for @buddies_action_clearSearch.
   ///
   /// In en, this message translates to:

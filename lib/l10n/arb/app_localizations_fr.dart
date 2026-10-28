@@ -2830,6 +2830,94 @@ class AppLocalizationsFr extends AppLocalizations {
       'Ajouter un nouveau binôme de plongée';
 
   @override
+  String get buddyCard_preview_title => 'Carte de binôme';
+
+  @override
+  String buddyCard_preview_addTitle(String name) {
+    return 'Ajouter $name comme binôme';
+  }
+
+  @override
+  String buddyCard_preview_updateTitle(String name) {
+    return 'Mettre à jour $name';
+  }
+
+  @override
+  String buddyCard_preview_possibleTitle(String name) {
+    return 'Est-ce $name parmi vos binômes ?';
+  }
+
+  @override
+  String get buddyCard_preview_trimmed =>
+      'Certains détails ont été omis pour tenir dans le code.';
+
+  @override
+  String get buddyCard_preview_newer =>
+      'Cette carte provient d\'une version plus récente de Submersion. Certains détails peuvent manquer.';
+
+  @override
+  String get buddyCard_preview_noChanges => 'Rien de nouveau sur cette carte.';
+
+  @override
+  String buddyCard_preview_changed(String from, String to) {
+    return '$from → $to';
+  }
+
+  @override
+  String get buddyCard_action_add => 'Ajouter le binôme';
+
+  @override
+  String get buddyCard_action_update => 'Mettre à jour le binôme';
+
+  @override
+  String get buddyCard_action_addAsNew => 'Ajouter comme nouveau binôme';
+
+  @override
+  String get buddyCard_action_discard => 'Ignorer';
+
+  @override
+  String get buddyCard_field_name => 'Nom';
+
+  @override
+  String get buddyCard_field_phone => 'Téléphone';
+
+  @override
+  String get buddyCard_field_email => 'E-mail';
+
+  @override
+  String get buddyCard_field_social => 'Pseudo sur les réseaux sociaux';
+
+  @override
+  String get buddyCard_field_dives => 'Plongées';
+
+  @override
+  String get buddyCard_field_divingSince => 'Plonge depuis';
+
+  @override
+  String get buddyCard_field_lastDive => 'Dernière plongée';
+
+  @override
+  String get buddyCard_field_certifications => 'Certifications';
+
+  @override
+  String buddyCard_saved_added(String name) {
+    return '$name ajouté à vos binômes';
+  }
+
+  @override
+  String buddyCard_saved_updated(String name) {
+    return '$name mis à jour';
+  }
+
+  @override
+  String get buddyCard_error_notACard =>
+      'Ce n\'est pas une carte de binôme Submersion.';
+
+  @override
+  String get buddyCard_error_unreadable =>
+      'Impossible de lire cette carte de binôme.';
+
+  @override
   String get buddies_action_clearSearch => 'Effacer la recherche';
 
   @override

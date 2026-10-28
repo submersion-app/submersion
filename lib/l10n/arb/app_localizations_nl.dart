@@ -2806,6 +2806,93 @@ class AppLocalizationsNl extends AppLocalizations {
   String get buddies_action_addTooltip => 'Nieuwe duikbuddy toevoegen';
 
   @override
+  String get buddyCard_preview_title => 'Buddykaart';
+
+  @override
+  String buddyCard_preview_addTitle(String name) {
+    return '$name toevoegen als buddy';
+  }
+
+  @override
+  String buddyCard_preview_updateTitle(String name) {
+    return '$name bijwerken';
+  }
+
+  @override
+  String buddyCard_preview_possibleTitle(String name) {
+    return 'Is dit $name uit je buddy\'s?';
+  }
+
+  @override
+  String get buddyCard_preview_trimmed =>
+      'Sommige gegevens zijn weggelaten om in de code te passen.';
+
+  @override
+  String get buddyCard_preview_newer =>
+      'Deze kaart komt uit een nieuwere versie van Submersion. Sommige gegevens kunnen ontbreken.';
+
+  @override
+  String get buddyCard_preview_noChanges => 'Niets op deze kaart is nieuw.';
+
+  @override
+  String buddyCard_preview_changed(String from, String to) {
+    return '$from → $to';
+  }
+
+  @override
+  String get buddyCard_action_add => 'Buddy toevoegen';
+
+  @override
+  String get buddyCard_action_update => 'Buddy bijwerken';
+
+  @override
+  String get buddyCard_action_addAsNew => 'Toevoegen als nieuwe buddy';
+
+  @override
+  String get buddyCard_action_discard => 'Negeren';
+
+  @override
+  String get buddyCard_field_name => 'Naam';
+
+  @override
+  String get buddyCard_field_phone => 'Telefoon';
+
+  @override
+  String get buddyCard_field_email => 'E-mail';
+
+  @override
+  String get buddyCard_field_social => 'Socialemedianaam';
+
+  @override
+  String get buddyCard_field_dives => 'Duiken';
+
+  @override
+  String get buddyCard_field_divingSince => 'Duikt sinds';
+
+  @override
+  String get buddyCard_field_lastDive => 'Laatste duik';
+
+  @override
+  String get buddyCard_field_certifications => 'Brevetten';
+
+  @override
+  String buddyCard_saved_added(String name) {
+    return '$name toegevoegd aan je buddy\'s';
+  }
+
+  @override
+  String buddyCard_saved_updated(String name) {
+    return '$name bijgewerkt';
+  }
+
+  @override
+  String get buddyCard_error_notACard => 'Dat is geen Submersion-buddykaart.';
+
+  @override
+  String get buddyCard_error_unreadable =>
+      'Deze buddykaart kon niet worden gelezen.';
+
+  @override
   String get buddies_action_clearSearch => 'Zoekopdracht wissen';
 
   @override

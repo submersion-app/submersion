@@ -2812,6 +2812,93 @@ class AppLocalizationsHu extends AppLocalizations {
   String get buddies_action_addTooltip => 'Új búvártárs hozzáadása';
 
   @override
+  String get buddyCard_preview_title => 'Társkártya';
+
+  @override
+  String buddyCard_preview_addTitle(String name) {
+    return '$name hozzáadása társként';
+  }
+
+  @override
+  String buddyCard_preview_updateTitle(String name) {
+    return '$name frissítése';
+  }
+
+  @override
+  String buddyCard_preview_possibleTitle(String name) {
+    return 'Ez $name a társaid közül?';
+  }
+
+  @override
+  String get buddyCard_preview_trimmed =>
+      'Néhány adat kimaradt, hogy elférjen a kódban.';
+
+  @override
+  String get buddyCard_preview_newer =>
+      'Ez a kártya a Submersion egy újabb verziójából származik. Néhány adat hiányozhat.';
+
+  @override
+  String get buddyCard_preview_noChanges => 'A kártyán nincs új adat.';
+
+  @override
+  String buddyCard_preview_changed(String from, String to) {
+    return '$from → $to';
+  }
+
+  @override
+  String get buddyCard_action_add => 'Társ hozzáadása';
+
+  @override
+  String get buddyCard_action_update => 'Társ frissítése';
+
+  @override
+  String get buddyCard_action_addAsNew => 'Hozzáadás új társként';
+
+  @override
+  String get buddyCard_action_discard => 'Elvetés';
+
+  @override
+  String get buddyCard_field_name => 'Név';
+
+  @override
+  String get buddyCard_field_phone => 'Telefon';
+
+  @override
+  String get buddyCard_field_email => 'E-mail';
+
+  @override
+  String get buddyCard_field_social => 'Közösségimédia-név';
+
+  @override
+  String get buddyCard_field_dives => 'Merülések';
+
+  @override
+  String get buddyCard_field_divingSince => 'Merül óta';
+
+  @override
+  String get buddyCard_field_lastDive => 'Utolsó merülés';
+
+  @override
+  String get buddyCard_field_certifications => 'Minősítések';
+
+  @override
+  String buddyCard_saved_added(String name) {
+    return '$name hozzáadva a társaidhoz';
+  }
+
+  @override
+  String buddyCard_saved_updated(String name) {
+    return '$name frissítve';
+  }
+
+  @override
+  String get buddyCard_error_notACard => 'Ez nem Submersion társkártya.';
+
+  @override
+  String get buddyCard_error_unreadable =>
+      'Ezt a társkártyát nem sikerült beolvasni.';
+
+  @override
   String get buddies_action_clearSearch => 'Keresés törlése';
 
   @override

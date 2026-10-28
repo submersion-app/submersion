@@ -2788,6 +2788,92 @@ class AppLocalizationsEn extends AppLocalizations {
   String get buddies_action_addTooltip => 'Add a new dive buddy';
 
   @override
+  String get buddyCard_preview_title => 'Buddy card';
+
+  @override
+  String buddyCard_preview_addTitle(String name) {
+    return 'Add $name as a buddy';
+  }
+
+  @override
+  String buddyCard_preview_updateTitle(String name) {
+    return 'Update $name';
+  }
+
+  @override
+  String buddyCard_preview_possibleTitle(String name) {
+    return 'Is this $name from your buddies?';
+  }
+
+  @override
+  String get buddyCard_preview_trimmed =>
+      'Some details were left out to fit the code.';
+
+  @override
+  String get buddyCard_preview_newer =>
+      'This card is from a newer version of Submersion. Some details may be missing.';
+
+  @override
+  String get buddyCard_preview_noChanges => 'Nothing on this card is new.';
+
+  @override
+  String buddyCard_preview_changed(String from, String to) {
+    return '$from → $to';
+  }
+
+  @override
+  String get buddyCard_action_add => 'Add buddy';
+
+  @override
+  String get buddyCard_action_update => 'Update buddy';
+
+  @override
+  String get buddyCard_action_addAsNew => 'Add as new buddy';
+
+  @override
+  String get buddyCard_action_discard => 'Discard';
+
+  @override
+  String get buddyCard_field_name => 'Name';
+
+  @override
+  String get buddyCard_field_phone => 'Phone';
+
+  @override
+  String get buddyCard_field_email => 'Email';
+
+  @override
+  String get buddyCard_field_social => 'Social handle';
+
+  @override
+  String get buddyCard_field_dives => 'Dives';
+
+  @override
+  String get buddyCard_field_divingSince => 'Diving since';
+
+  @override
+  String get buddyCard_field_lastDive => 'Last dive';
+
+  @override
+  String get buddyCard_field_certifications => 'Certifications';
+
+  @override
+  String buddyCard_saved_added(String name) {
+    return '$name added to your buddies';
+  }
+
+  @override
+  String buddyCard_saved_updated(String name) {
+    return '$name updated';
+  }
+
+  @override
+  String get buddyCard_error_notACard => 'That is not a Submersion buddy card.';
+
+  @override
+  String get buddyCard_error_unreadable => 'This buddy card could not be read.';
+
+  @override
   String get buddies_action_clearSearch => 'Clear search';
 
   @override

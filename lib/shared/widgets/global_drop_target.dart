@@ -10,6 +10,8 @@ import 'package:desktop_drop/desktop_drop.dart';
 import 'package:go_router/go_router.dart';
 import 'package:path/path.dart' as p;
 
+import 'package:submersion/features/buddies/domain/services/buddy_card_codec.dart';
+import 'package:submersion/features/buddies/presentation/utils/open_buddy_card.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/data/services/media_file_types.dart';
 import 'package:submersion/features/media/presentation/helpers/media_drop_destination.dart';
@@ -219,6 +221,8 @@ class _GlobalDropTargetState extends ConsumerState<GlobalDropTarget> {
         await openSuuntoFileImport(context, [
           SuuntoJsonFile(name: fileName, bytes: bytes),
         ]);
+      case IncomingFileOutcome.buddyCard:
+        openBuddyCard(context, BuddyCardCodec.decodeFull(bytes));
       case IncomingFileOutcome.none:
         break;
     }
