@@ -121,7 +121,12 @@ void main() {
     final dir = await Directory(p.join(tmp.path, 'temp')).create();
     final f = File(p.join(dir.path, name));
     await f.writeAsBytes([7, 8, 9]);
-    service.next = PreparedBackupFile(f.path, isTemp: true);
+    // As the service does: the temp copy goes out under the backup's name.
+    service.next = PreparedBackupFile(
+      f.path,
+      isTemp: true,
+      fileName: record.filename,
+    );
     return f;
   }
 
@@ -208,6 +213,30 @@ void main() {
       expect(state.status, BackupOperationStatus.success);
       expect(state.message, startsWith('Backup exported'));
       expect(BackupPreferences(prefs).getHistory(), isEmpty);
+    });
+
+    test('names the saved copy from the prepared file', () async {
+      // A cloud copy that came back as an encrypted envelope under a .db
+      // record name is saved as .sbe.
+      final copy = await tempCopy('restore-x-${record.filename}');
+      service.next = PreparedBackupFile(
+        copy.path,
+        isTemp: true,
+        fileName: 'submersion_backup_2026-10-27.sbe',
+      );
+      final dest = await Directory(p.join(tmp.path, 'dest')).create();
+      final container = makeContainer();
+
+      await container
+          .read(backupOperationProvider.notifier)
+          .saveBackupCopyToDirectory(record, dest.path);
+
+      expect(
+        File(
+          p.join(dest.path, 'submersion_backup_2026-10-27.sbe'),
+        ).existsSync(),
+        isTrue,
+      );
     });
 
     test('save into the source folder never overwrites the source', () async {

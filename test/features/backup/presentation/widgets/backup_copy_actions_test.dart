@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -36,13 +38,24 @@ class _NoopAdapter implements BackupDatabaseAdapter {
 }
 
 class _LockedService extends BackupService {
-  _LockedService(BackupPreferences prefs, {required this.locked})
-    : super(dbAdapter: _NoopAdapter(), preferences: prefs);
+  _LockedService(
+    BackupPreferences prefs, {
+    required this.locked,
+    this.probeFails = false,
+  }) : super(dbAdapter: _NoopAdapter(), preferences: prefs);
 
   final bool locked;
 
+  /// The header read fails, as when a security-scoped folder lost access.
+  final bool probeFails;
+
   @override
-  Future<bool> isDeviceLockedSafetyCopy(BackupRecord record) async => locked;
+  Future<bool> isDeviceLockedSafetyCopy(BackupRecord record) async {
+    if (probeFails) {
+      throw const FileSystemException('Operation not permitted');
+    }
+    return locked;
+  }
 }
 
 final _record = BackupRecord(
@@ -55,7 +68,11 @@ final _record = BackupRecord(
 );
 
 void main() {
-  Future<void> openSheet(WidgetTester tester, {required bool locked}) async {
+  Future<void> openSheet(
+    WidgetTester tester, {
+    required bool locked,
+    bool probeFails = false,
+  }) async {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
     await tester.pumpWidget(
@@ -63,7 +80,11 @@ void main() {
         overrides: [
           settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
           backupServiceProvider.overrideWithValue(
-            _LockedService(BackupPreferences(prefs), locked: locked),
+            _LockedService(
+              BackupPreferences(prefs),
+              locked: locked,
+              probeFails: probeFails,
+            ),
           ),
         ],
         child: MaterialApp(
@@ -101,6 +122,18 @@ void main() {
     tester,
   ) async {
     await openSheet(tester, locked: false);
+
+    expect(find.byType(BackupCopySheet), findsOneWidget);
+    expect(
+      find.textContaining('can only be restored on this device'),
+      findsNothing,
+    );
+  });
+
+  testWidgets('still opens the sheet when the safety-copy probe fails', (
+    tester,
+  ) async {
+    await openSheet(tester, locked: true, probeFails: true);
 
     expect(find.byType(BackupCopySheet), findsOneWidget);
     expect(

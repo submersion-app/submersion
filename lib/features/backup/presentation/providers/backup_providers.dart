@@ -1,3 +1,4 @@
+export 'package:submersion/features/backup/presentation/providers/backup_operation_state.dart';
 export 'package:submersion/features/backup/presentation/providers/backup_settings_notifier.dart';
 
 import 'dart:async';
@@ -20,6 +21,7 @@ import 'package:submersion/features/backup/data/services/backup_service.dart';
 import 'package:submersion/features/backup/data/services/cloud_backup_history.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_copy_providers.dart';
+import 'package:submersion/features/backup/presentation/providers/backup_operation_state.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_settings_notifier.dart';
 import 'package:submersion/core/services/sync/crypto/sync_encryption_service.dart'
     show WrongPassphraseException;
@@ -101,68 +103,6 @@ final backupSettingsProvider =
 // =============================================================================
 // Operation State
 // =============================================================================
-
-/// Status of a backup operation
-enum BackupOperationStatus { idle, inProgress, success, restoreComplete, error }
-
-/// Progress of the whole-library safety review sweep that runs at the end of a
-/// restore. Structured rather than a pre-formatted string so the restore
-/// barrier can render it in the user's language.
-class SafetyReviewSweepProgress {
-  final int done;
-  final int total;
-
-  const SafetyReviewSweepProgress({required this.done, required this.total});
-}
-
-/// State for backup/restore operations
-class BackupOperationState {
-  final BackupOperationStatus status;
-  final String? message;
-  final BackupRecord? lastRecord;
-
-  /// True only while a database *restore* is running (a subset of the
-  /// [BackupOperationStatus.inProgress] states). Restore briefly closes and
-  /// reopens the database, so the whole app must be blocked from interaction
-  /// until it finishes — but routine backups/exports/deletes, which also use
-  /// `inProgress`, must NOT block the app. The global restore barrier keys off
-  /// this flag, not `status`.
-  final bool isRestoring;
-
-  /// Non-null only while the post-restore safety sweep is running.
-  final SafetyReviewSweepProgress? sweepProgress;
-
-  const BackupOperationState({
-    this.status = BackupOperationStatus.idle,
-    this.message,
-    this.lastRecord,
-    this.isRestoring = false,
-    this.sweepProgress,
-  });
-
-  /// [clearSweepProgress] separates "leave the sweep progress alone" from
-  /// "clear it". Omitting [sweepProgress] means unchanged, matching every other
-  /// field, so an unrelated `copyWith` cannot silently blank an in-flight
-  /// sweep; pass `clearSweepProgress: true` to actually null it out.
-  BackupOperationState copyWith({
-    BackupOperationStatus? status,
-    String? message,
-    BackupRecord? lastRecord,
-    bool? isRestoring,
-    SafetyReviewSweepProgress? sweepProgress,
-    bool clearSweepProgress = false,
-  }) {
-    return BackupOperationState(
-      status: status ?? this.status,
-      message: message ?? this.message,
-      lastRecord: lastRecord ?? this.lastRecord,
-      isRestoring: isRestoring ?? this.isRestoring,
-      sweepProgress: clearSweepProgress
-          ? null
-          : (sweepProgress ?? this.sweepProgress),
-    );
-  }
-}
 
 /// Notifier managing backup/restore/delete operations with state transitions
 class BackupOperationNotifier extends StateNotifier<BackupOperationState> {
@@ -462,9 +402,9 @@ class BackupOperationNotifier extends StateNotifier<BackupOperationState> {
   Future<void> saveBackupCopyToDirectory(
     BackupRecord record,
     String directory,
-  ) => _saveBackupCopy(record, (source) async {
-    final dest = await uniqueDestinationPath(directory, record.filename);
-    await File(source).copy(dest);
+  ) => _saveBackupCopy(record, (copy) async {
+    final dest = await uniqueDestinationPath(directory, copy.fileName);
+    await copyWithoutPartial(copy.path, dest);
   });
 
   /// The Android counterpart to [saveBackupCopyToDirectory]: streams the copy
@@ -473,17 +413,17 @@ class BackupOperationNotifier extends StateNotifier<BackupOperationState> {
   Future<void> saveBackupCopyToSafTree(BackupRecord record, String treeUri) =>
       _saveBackupCopy(
         record,
-        (source) => SubmersionSaf.writeBackup(
+        (copy) => SubmersionSaf.writeBackup(
           treeUri: treeUri,
-          fileName: record.filename,
-          sourcePath: source,
+          fileName: copy.fileName,
+          sourcePath: copy.path,
           replaceExisting: false,
         ),
       );
 
   Future<void> _saveBackupCopy(
     BackupRecord record,
-    Future<void> Function(String sourcePath) write,
+    Future<void> Function(PreparedBackupFile copy) write,
   ) async {
     if (state.status == BackupOperationStatus.inProgress) return;
 
@@ -498,7 +438,7 @@ class BackupOperationNotifier extends StateNotifier<BackupOperationState> {
         record,
         purpose: BackupCopyPurpose.save,
       );
-      await write(prepared.path);
+      await write(prepared);
       state = BackupOperationState(
         status: BackupOperationStatus.success,
         message: _l10n.backup_operation_exported(record.formattedSize),

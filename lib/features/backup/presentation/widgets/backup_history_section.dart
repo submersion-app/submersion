@@ -74,7 +74,8 @@ class BackupHistorySection extends ConsumerWidget {
                     onRestore: () => _restore(context, ref, record),
                     onShare: busy
                         ? null
-                        : () => showBackupCopySheet(context, ref, record),
+                        : (rowContext) =>
+                              showBackupCopySheet(rowContext, ref, record),
                     onDelete: () => _delete(context, ref, record),
                     shareSheetAvailable: platformHasShareSheet,
                   ),

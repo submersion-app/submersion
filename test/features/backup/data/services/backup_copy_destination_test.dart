@@ -30,4 +30,40 @@ void main() {
       p.join(dir.path, 'a (2).db'),
     );
   });
+
+  test('copyWithoutPartial copies the bytes', () async {
+    final source = File(p.join(dir.path, 'source.db'));
+    await source.writeAsBytes([1, 2, 3]);
+    final dest = p.join(dir.path, 'out.db');
+
+    await copyWithoutPartial(source.path, dest);
+
+    expect(await File(dest).readAsBytes(), [1, 2, 3]);
+    expect(dir.listSync().map((e) => p.basename(e.path)).toSet(), {
+      'source.db',
+      'out.db',
+    });
+  });
+
+  test(
+    'copyWithoutPartial leaves nothing behind when it fails part way',
+    () async {
+      final source = File(p.join(dir.path, 'source.db'));
+      await source.writeAsBytes([1, 2, 3]);
+      // The bytes copy, then the final move fails: a folder holds the name.
+      final dest = p.join(dir.path, 'out.db');
+      await Directory(dest).create();
+
+      await expectLater(
+        copyWithoutPartial(source.path, dest),
+        throwsA(isA<FileSystemException>()),
+      );
+
+      expect(dir.listSync().map((e) => p.basename(e.path)).toSet(), {
+        'source.db',
+        'out.db',
+      });
+      expect(FileSystemEntity.isDirectorySync(dest), isTrue);
+    },
+  );
 }

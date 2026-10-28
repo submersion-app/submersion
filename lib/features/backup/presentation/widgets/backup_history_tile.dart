@@ -19,9 +19,10 @@ class BackupHistoryTile extends ConsumerWidget {
   final VoidCallback onPinToggle;
   final VoidCallback onRestore;
 
-  /// Opens Save and Share for this backup (issue #3650). Null disables the
-  /// item, as while another backup operation runs.
-  final VoidCallback? onShare;
+  /// Opens Save and Share for this backup (issue #3650), given this row's
+  /// context so the iPad share popover can anchor to the row. Null disables
+  /// the item, as while another backup operation runs.
+  final ValueChanged<BuildContext>? onShare;
   final VoidCallback onDelete;
 
   /// False on Windows and Linux, which have no share sheet: the item then
@@ -36,7 +37,7 @@ class BackupHistoryTile extends ConsumerWidget {
     required this.onRestore,
     this.onShare,
     required this.onDelete,
-    this.shareSheetAvailable = true,
+    required this.shareSheetAvailable,
   });
 
   @override
@@ -140,7 +141,7 @@ class BackupHistoryTile extends ConsumerWidget {
                 case 'restore':
                   onRestore();
                 case 'share':
-                  onShare?.call();
+                  onShare?.call(context);
                 case 'delete':
                   onDelete();
               }

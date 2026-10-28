@@ -105,6 +105,7 @@ void main() {
           onPinToggle: () => toggled = true,
           onRestore: () {},
           onDelete: () {},
+          shareSheetAvailable: true,
         ),
       ),
     );
@@ -131,6 +132,7 @@ void main() {
             onPinToggle: () {},
             onRestore: () {},
             onDelete: () {},
+            shareSheetAvailable: true,
           ),
         ),
       );
@@ -152,6 +154,7 @@ void main() {
             onPinToggle: () {},
             onRestore: () {},
             onDelete: () {},
+            shareSheetAvailable: true,
           ),
         ),
       );
@@ -173,6 +176,7 @@ void main() {
             onPinToggle: () {},
             onRestore: () {},
             onDelete: () {},
+            shareSheetAvailable: true,
           ),
         ),
       );
@@ -192,6 +196,7 @@ void main() {
             onPinToggle: () {},
             onRestore: () {},
             onDelete: () {},
+            shareSheetAvailable: true,
           ),
         ),
       );
@@ -211,6 +216,7 @@ void main() {
             onPinToggle: () {},
             onRestore: () {},
             onDelete: () {},
+            shareSheetAvailable: true,
           ),
         ),
       );
@@ -229,6 +235,7 @@ void main() {
             onPinToggle: () {},
             onRestore: () {},
             onDelete: () {},
+            shareSheetAvailable: true,
           ),
         ),
       );
@@ -255,6 +262,7 @@ void main() {
             onPinToggle: () {},
             onRestore: () {},
             onDelete: () {},
+            shareSheetAvailable: true,
           ),
         ),
       );
@@ -275,6 +283,7 @@ void main() {
             onPinToggle: () {},
             onRestore: () {},
             onDelete: () {},
+            shareSheetAvailable: true,
           ),
         ),
       );
@@ -297,6 +306,7 @@ void main() {
               onPinToggle: () {},
               onRestore: () {},
               onDelete: () {},
+              shareSheetAvailable: true,
             ),
           ),
         );
@@ -317,6 +327,7 @@ void main() {
               onPinToggle: () {},
               onRestore: () {},
               onDelete: () {},
+              shareSheetAvailable: true,
             ),
           ),
         );
@@ -334,6 +345,7 @@ void main() {
             onPinToggle: () {},
             onRestore: () {},
             onDelete: () {},
+            shareSheetAvailable: true,
           ),
         ),
       );
@@ -353,6 +365,7 @@ void main() {
             onPinToggle: () {},
             onRestore: () {},
             onDelete: () {},
+            shareSheetAvailable: true,
           ),
         ),
       );
@@ -377,6 +390,7 @@ void main() {
             onPinToggle: () {},
             onRestore: () {},
             onDelete: () {},
+            shareSheetAvailable: true,
           ),
         ),
       );
@@ -396,6 +410,7 @@ void main() {
             onPinToggle: () => taps++,
             onRestore: () {},
             onDelete: () {},
+            shareSheetAvailable: true,
           ),
         ),
       );
@@ -416,6 +431,7 @@ void main() {
             onPinToggle: () {},
             onRestore: () => restores++,
             onDelete: () {},
+            shareSheetAvailable: true,
           ),
         ),
       );
@@ -436,6 +452,7 @@ void main() {
             onPinToggle: () {},
             onRestore: () {},
             onDelete: () => deletes++,
+            shareSheetAvailable: true,
           ),
         ),
       );
@@ -455,8 +472,9 @@ void main() {
               leadingIcon: Icons.phone_android,
               onPinToggle: () {},
               onRestore: () {},
-              onShare: () {},
+              onShare: (_) {},
               onDelete: () {},
+              shareSheetAvailable: true,
             ),
           ),
         );
@@ -485,7 +503,7 @@ void main() {
             leadingIcon: Icons.phone_android,
             onPinToggle: () {},
             onRestore: () {},
-            onShare: () {},
+            onShare: (_) {},
             onDelete: () {},
             shareSheetAvailable: false,
           ),
@@ -508,6 +526,7 @@ void main() {
             onPinToggle: () {},
             onRestore: () {},
             onDelete: () {},
+            shareSheetAvailable: true,
           ),
         ),
       );
@@ -520,8 +539,13 @@ void main() {
       expect(share.enabled, isFalse);
     });
 
-    testWidgets('choosing Share calls onShare', (tester) async {
+    testWidgets('choosing Share calls onShare with the tile context', (
+      tester,
+    ) async {
+      // The iPad share popover anchors to this context, so it must be the
+      // row's, not the list's.
       var shares = 0;
+      BuildContext? shareContext;
       await tester.pumpWidget(
         _wrap(
           BackupHistoryTile(
@@ -529,8 +553,12 @@ void main() {
             leadingIcon: Icons.phone_android,
             onPinToggle: () {},
             onRestore: () {},
-            onShare: () => shares++,
+            onShare: (tileContext) {
+              shares++;
+              shareContext = tileContext;
+            },
             onDelete: () {},
+            shareSheetAvailable: true,
           ),
         ),
       );
@@ -539,6 +567,7 @@ void main() {
       await tester.tap(find.byIcon(Icons.share));
       await tester.pumpAndSettle();
       expect(shares, 1);
+      expect(shareContext!.widget, isA<BackupHistoryTile>());
     });
   });
 }

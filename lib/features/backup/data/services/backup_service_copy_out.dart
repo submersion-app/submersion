@@ -16,11 +16,17 @@ enum BackupCopyPurpose {
 }
 
 /// A backup resolved to a real file: the backup itself, or a temp copy made
-/// for it (a SAF stream or a cloud download).
+/// for it (a SAF stream, a cloud download, or a restore's decrypted copy).
 class PreparedBackupFile {
-  const PreparedBackupFile(this.path, {required this.isTemp});
+  PreparedBackupFile(this.path, {required this.isTemp, String? fileName})
+    : fileName = fileName ?? p.basename(path);
 
   final String path;
+
+  /// The name the file goes out under: what the receiving device sees, and
+  /// the name a saved copy takes in the chosen folder. It differs from
+  /// [path]'s name for a save's temp copy.
+  final String fileName;
 
   /// True when [path] is a copy made for this action, which [discard]
   /// removes. A backup used in place is never deleted.
@@ -55,23 +61,25 @@ extension _CopyOut on BackupService {
           'Backup file not found locally or in cloud',
         );
       }
-      final dest = await _copyOutTempPath(record, purpose);
-      await _streamOrCleanUp(
-        dest,
-        () => _safPort.readBackup(documentUri: localRef, destPath: dest),
+      return _fetchCopy(
+        record,
+        purpose,
+        (dest) => _safPort.readBackup(documentUri: localRef, destPath: dest),
       );
-      return PreparedBackupFile(dest, isTemp: true);
     }
     if (localRef != null && await File(localRef).exists()) {
-      return PreparedBackupFile(localRef, isTemp: false);
+      return PreparedBackupFile(
+        localRef,
+        isTemp: false,
+        fileName: await _outgoingName(localRef, record.filename),
+      );
     }
     if (await _cloudCopyHere(record)) {
-      final dest = await _copyOutTempPath(record, purpose);
-      await _streamOrCleanUp(
-        dest,
-        () => _cloudProvider!.downloadToFile(record.cloudFileId!, dest),
+      return _fetchCopy(
+        record,
+        purpose,
+        (dest) => _cloudProvider!.downloadToFile(record.cloudFileId!, dest),
       );
-      return PreparedBackupFile(dest, isTemp: true);
     }
     if (record.cloudFileId != null && record.cloudAccountId != null) {
       throw BackupCopyInOtherAccountException(record.cloudAccountId!);
@@ -79,30 +87,41 @@ extension _CopyOut on BackupService {
     throw const BackupException('Backup file not found locally or in cloud');
   }
 
-  Future<String> _copyOutTempPath(
+  /// Fetches [record] with [write] into a unique staging file, so a failed
+  /// fetch deletes only its own partial file. A share copy is then moved to
+  /// the backup's own name, replacing an earlier share copy only once the
+  /// new one is complete: a receiving app may still be reading that one.
+  Future<PreparedBackupFile> _fetchCopy(
     BackupRecord record,
     BackupCopyPurpose purpose,
+    Future<void> Function(String dest) write,
   ) async {
     final tempDir = await resolveSyncTempDir();
-    final name = switch (purpose) {
-      BackupCopyPurpose.share => record.filename,
-      BackupCopyPurpose.save => _restoreCopyName(record.filename),
-    };
-    return p.join(tempDir.path, name);
-  }
-
-  /// Runs [write] into [dest], deleting whatever part of it landed when the
-  /// write fails, so a cut-off stream leaves no partial backup behind.
-  Future<void> _streamOrCleanUp(
-    String dest,
-    Future<void> Function() write,
-  ) async {
+    final staging = p.join(tempDir.path, _restoreCopyName(record.filename));
     try {
-      await write();
+      await write(staging);
     } catch (_) {
-      await PreparedBackupFile(dest, isTemp: true).discard();
+      await PreparedBackupFile(staging, isTemp: true).discard();
       rethrow;
     }
+    final name = await _outgoingName(staging, record.filename);
+    if (purpose == BackupCopyPurpose.save) {
+      return PreparedBackupFile(staging, isTemp: true, fileName: name);
+    }
+    final shared = await File(staging).rename(p.join(tempDir.path, name));
+    return PreparedBackupFile(shared.path, isTemp: true);
+  }
+
+  /// [filename], with an `.sbe` extension when the bytes at [path] are an
+  /// encrypted envelope. With sync encryption on, a local `X.db` is uploaded
+  /// as `X.sbe` while its record keeps the `.db` name, and a file named
+  /// `.db` that is not SQLite would mislead any other tool.
+  Future<String> _outgoingName(String path, String filename) async {
+    if (p.extension(filename) == BackupCrypto.fileExtension ||
+        !await BackupCrypto.isEncryptedBackup(path)) {
+      return filename;
+    }
+    return p.basenameWithoutExtension(filename) + BackupCrypto.fileExtension;
   }
 
   /// Whether [record] is a raw copy of a protected live database, which

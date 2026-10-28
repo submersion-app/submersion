@@ -26,32 +26,47 @@ Future<void> showBackupCopySheet(
 ) async {
   // Captured now: the sheet is gone before Share runs.
   final anchor = shareAnchorFrom(context);
-  final deviceLocked = await ref
-      .read(backupServiceProvider)
-      .isDeviceLockedSafetyCopy(record);
+  bool deviceLocked;
+  try {
+    deviceLocked = await ref
+        .read(backupServiceProvider)
+        .isDeviceLockedSafetyCopy(record);
+  } catch (e, stackTrace) {
+    // The line is advice; an unreadable header (a security-scoped folder
+    // that lost access) must not stop Save or Share from opening.
+    debugPrint('Could not check the backup for a safety copy: $e\n$stackTrace');
+    deviceLocked = false;
+  }
   if (!context.mounted) return;
+  final messenger = ScaffoldMessenger.maybeOf(context);
+  final l10n = context.l10n;
   final notifier = ref.read(backupOperationProvider.notifier);
-  final dialogTitle = context.l10n.settings_backups_saveFile;
+  final dialogTitle = l10n.settings_backups_saveFile;
 
   await BackupCopySheet.show(
     context,
     record: record,
     deviceLocked: deviceLocked,
     onSaveToFolder: () async {
-      if (Platform.isAndroid) {
-        // Scoped storage: a file_picker path is unwritable, so take a SAF
-        // tree and stream into it, as saveBackupFile does.
-        // coverage:ignore-start
-        final folder = await SubmersionSaf.pickFolder();
-        if (folder == null) return;
-        await notifier.saveBackupCopyToSafTree(record, folder.uri);
-        return;
-        // coverage:ignore-end
-      }
       // coverage:ignore-start
-      final dir = await FilePicker.getDirectoryPath(dialogTitle: dialogTitle);
-      if (dir == null) return;
-      await notifier.saveBackupCopyToDirectory(record, dir);
+      try {
+        if (Platform.isAndroid) {
+          // Scoped storage: a file_picker path is unwritable, so take a SAF
+          // tree and stream into it, as saveBackupFile does.
+          final folder = await SubmersionSaf.pickFolder();
+          if (folder == null) return;
+          await notifier.saveBackupCopyToSafTree(record, folder.uri);
+          return;
+        }
+        final dir = await FilePicker.getDirectoryPath(dialogTitle: dialogTitle);
+        if (dir == null) return;
+        await notifier.saveBackupCopyToDirectory(record, dir);
+      } on Exception catch (e) {
+        // The folder picker itself failed; the save reports its own errors.
+        messenger?.showSnackBar(
+          SnackBar(content: Text(l10n.backup_operation_exportFailed('$e'))),
+        );
+      }
       // coverage:ignore-end
     },
     onShare: platformHasShareSheet
@@ -59,12 +74,20 @@ Future<void> showBackupCopySheet(
             // coverage:ignore-start
             final file = await notifier.prepareBackupForSharing(record);
             if (file == null) return;
-            await SharePlus.instance.share(
-              ShareParams(
-                files: [XFile(file.path)],
-                sharePositionOrigin: anchor,
-              ),
-            );
+            try {
+              await SharePlus.instance.share(
+                ShareParams(
+                  files: [XFile(file.path)],
+                  sharePositionOrigin: anchor,
+                ),
+              );
+            } on Exception catch (e) {
+              messenger?.showSnackBar(
+                SnackBar(
+                  content: Text(l10n.backup_operation_exportFailed('$e')),
+                ),
+              );
+            }
             // coverage:ignore-end
           }
         : null,

@@ -316,6 +316,64 @@ void main() {
       expect(await File(copy.path).readAsBytes(), bytes);
     });
 
+    test(
+      'a cloud copy stored encrypted under a .db name goes out as .sbe',
+      () async {
+        // With sync encryption on, a local X.db is uploaded as X.sbe while the
+        // record keeps the .db name; the bytes that come back are an envelope.
+        final cloud = FakeCloudStorageProvider();
+        final sbe = await wrapAsSbe(writeDb('plain.db'), 'envelope.sbe');
+        final upload = await cloud.uploadFile(
+          await File(sbe).readAsBytes(),
+          'submersion_backup_2026-10-20.sbe',
+        );
+        final cloudRecord = record(
+          filename: 'submersion_backup_2026-10-20.db',
+          cloudFileId: upload.fileId,
+          location: BackupLocation.cloud,
+        );
+
+        final shared = await service(
+          cloud: cloud,
+        ).prepareBackupCopy(cloudRecord, purpose: BackupCopyPurpose.share);
+        final saved = await service(
+          cloud: cloud,
+        ).prepareBackupCopy(cloudRecord, purpose: BackupCopyPurpose.save);
+
+        expect(p.basename(shared.path), 'submersion_backup_2026-10-20.sbe');
+        expect(shared.fileName, 'submersion_backup_2026-10-20.sbe');
+        expect(p.basename(saved.path), startsWith('restore-'));
+        expect(saved.fileName, 'submersion_backup_2026-10-20.sbe');
+      },
+    );
+
+    test('a failed re-download keeps an earlier share copy', () async {
+      // The receiving app may not have read the first copy yet.
+      final cloud = FakeCloudStorageProvider();
+      final upload = await cloud.uploadFile(
+        Uint8List.fromList([4, 5, 6]),
+        'submersion_backup_2026-10-20.db',
+      );
+      final cloudRecord = record(
+        filename: 'submersion_backup_2026-10-20.db',
+        cloudFileId: upload.fileId,
+        location: BackupLocation.cloud,
+      );
+      final first = await service(
+        cloud: cloud,
+      ).prepareBackupCopy(cloudRecord, purpose: BackupCopyPurpose.share);
+
+      await expectLater(
+        service(
+          cloud: _PartialDownloadCloud(),
+        ).prepareBackupCopy(cloudRecord, purpose: BackupCopyPurpose.share),
+        throwsA(isA<Exception>()),
+      );
+
+      expect(await File(first.path).readAsBytes(), [4, 5, 6]);
+      expect(tempNames(), ['submersion_backup_2026-10-20.db']);
+    });
+
     test('failed cloud download leaves nothing in temp', () async {
       await expectLater(
         service(cloud: _PartialDownloadCloud()).prepareBackupCopy(

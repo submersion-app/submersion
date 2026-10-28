@@ -105,6 +105,14 @@ class BackupService {
       'for (another device, or protection was turned off and on again since), '
       'or the file is corrupt.';
 
+  /// Why an encrypted-looking file could not be checked: there is no live
+  /// key to open it with. Restore from file opts every file into this check,
+  /// so it names no particular kind of backup.
+  static const String unreadableCopyNoKeyMessage =
+      'This file is not a plain Submersion database. It may be a copy of a '
+      'protected database whose key this install does not have, or it may be '
+      'corrupt.';
+
   final BackupDatabaseAdapter _dbAdapter;
   final BackupPreferences _preferences;
   final CloudStorageProvider? _cloudProvider;
@@ -736,11 +744,7 @@ class BackupService {
     if (allowLiveDatabaseEncryption && isEncryptedDatabaseFile(filePath)) {
       deepCheckKeyHex = _dbAdapter.databaseKeyHex;
       if (deepCheckKeyHex == null) {
-        return const BackupValidationResult.invalid(
-          'This safety copy cannot be opened. It was either taken from a '
-          'protected database whose key this install no longer has, or the '
-          'file is corrupt.',
-        );
+        return const BackupValidationResult.invalid(unreadableCopyNoKeyMessage);
       }
     }
 
@@ -847,7 +851,7 @@ class BackupService {
         await _safPort.readBackup(documentUri: localRef, destPath: sourcePath);
       } catch (_) {
         // A stream that failed part way leaves a partial copy behind.
-        await _MaterializedBackup(sourcePath, isTemp: true).cleanUp();
+        await PreparedBackupFile(sourcePath, isTemp: true).discard();
         rethrow;
       }
     } else if (localRef != null && await File(localRef).exists()) {
@@ -874,7 +878,7 @@ class BackupService {
         onMigrationProgress: onMigrationProgress,
       );
     } finally {
-      await _MaterializedBackup(sourcePath, isTemp: madeCopy).cleanUp();
+      await PreparedBackupFile(sourcePath, isTemp: madeCopy).discard();
     }
   }
 
@@ -932,7 +936,7 @@ class BackupService {
         onMigrationProgress: onMigrationProgress,
       );
     } finally {
-      await materialized.cleanUp();
+      await materialized.discard();
     }
     await _armPostRestoreSync(mode);
 
@@ -1025,7 +1029,7 @@ class BackupService {
         onMigrationProgress: onMigrationProgress,
       );
     } finally {
-      await materialized.cleanUp();
+      await materialized.discard();
     }
     await _armPostRestoreSync(mode);
 
@@ -1796,12 +1800,12 @@ class BackupService {
   /// matches, else with [encryptionSecret] (passphrase or recovery code)
   /// against the embedded keyslots. Throws [BackupEncryptedException] when
   /// neither is available. Plaintext sources pass through untouched.
-  Future<_MaterializedBackup> _materializePlaintextBackup(
+  Future<PreparedBackupFile> _materializePlaintextBackup(
     String sourcePath, {
     String? encryptionSecret,
   }) async {
     if (!await BackupCrypto.isEncryptedBackup(sourcePath)) {
-      return _MaterializedBackup(sourcePath, isTemp: false);
+      return PreparedBackupFile(sourcePath, isTemp: false);
     }
     final tempDir = await resolveSyncTempDir();
     final decrypted = p.join(tempDir.path, 'restore_${_uuid.v4()}.db');
@@ -1846,7 +1850,7 @@ class BackupService {
       }
       rethrow;
     }
-    return _MaterializedBackup(decrypted, isTemp: true);
+    return PreparedBackupFile(decrypted, isTemp: true);
   }
 
   /// Delete every UNENCRYPTED backup (`submersion_backup_*.db`) from the
@@ -1932,25 +1936,6 @@ class BackupNewerSchemaException extends BackupException {
 }
 
 /// Result of validating a backup file
-/// A restore source resolved to a plaintext path: either the original file
-/// (pass-through) or a decrypted temp copy that [cleanUp] removes.
-class _MaterializedBackup {
-  final String path;
-  final bool isTemp;
-
-  const _MaterializedBackup(this.path, {required this.isTemp});
-
-  Future<void> cleanUp() async {
-    if (!isTemp) return;
-    try {
-      final f = File(path);
-      if (await f.exists()) await f.delete();
-    } catch (_) {
-      // best-effort temp cleanup
-    }
-  }
-}
-
 class BackupValidationResult {
   final bool isValid;
   final String? error;

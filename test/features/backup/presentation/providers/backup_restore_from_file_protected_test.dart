@@ -139,7 +139,7 @@ void main() {
 
       final state = container.read(backupOperationProvider);
       expect(state.status, BackupOperationStatus.error);
-      expect(state.message, contains('This safety copy cannot be opened'));
+      expect(state.message, BackupService.unreadableCopyNoKeyMessage);
       expect(service.restoredPaths, isEmpty);
     },
   );

@@ -234,6 +234,26 @@ void main() {
       },
     );
 
+    test('names an unreadable file without calling it a safety copy when '
+        'there is no key', () async {
+      // Restore from file opts in for every file it is given, so the keyless
+      // message must fit any corrupt or foreign .db, not just a history row.
+      final path = '${tempDir.path}/random.db';
+      await File(path).writeAsString('this is not a sqlite database');
+      final service = BackupService(
+        dbAdapter: _FakeBackupDatabaseAdapter(),
+        preferences: preferences,
+      );
+
+      final result = await service.validateBackupFile(
+        path,
+        allowLiveDatabaseEncryption: true,
+      );
+
+      expect(result.error, BackupService.unreadableCopyNoKeyMessage);
+      expect(result.error, isNot(contains('safety copy')));
+    });
+
     test(
       'names a key mismatch when the live key does not open the file',
       () async {

@@ -17,3 +17,22 @@ Future<String> uniqueDestinationPath(String directory, String fileName) async {
   }
   return candidate;
 }
+
+/// Copies [source] to [dest] through a `.partial` file next to it, moved
+/// into place only once complete. A copy that fails part way removes its
+/// partial file, so the diver's folder never holds a truncated file named
+/// like a real backup.
+Future<void> copyWithoutPartial(String source, String dest) async {
+  final partial = File('$dest.partial');
+  try {
+    await File(source).copy(partial.path);
+    await partial.rename(dest);
+  } catch (_) {
+    try {
+      if (await partial.exists()) await partial.delete();
+    } catch (_) {
+      // best-effort cleanup
+    }
+    rethrow;
+  }
+}
