@@ -63,8 +63,13 @@ final tripQueryEntity = QueryEntity(
       emptySql: '0',
       labelKey: 'query_trips_shared',
     ),
-    // A trip counts its side trips' dives too (issue #3658).
-    diveCountField('trips', tripDivesScopeSql('ad', '{r}.id')),
+    // A trip counts its side trips' dives too (issue #3658), read through
+    // the trips table.
+    diveCountField(
+      'trips',
+      tripDivesScopeSql('ad', '{r}.id'),
+      tables: const ['trips'],
+    ),
   ],
   relations: [
     // A trip's dives take in its side trips' (issue #3658). As an IN list
