@@ -75,9 +75,11 @@ class TankFigure extends StatelessWidget {
     final colors = theme.colorScheme;
     final textScaler = MediaQuery.textScalerOf(context);
     final direction = Directionality.of(context);
-    final base = (theme.textTheme.bodySmall ?? const TextStyle()).copyWith(
-      color: colors.onSurfaceVariant,
-    );
+    // Measured and drawn in the same style, so a label breaks and stands as
+    // tall as the space it was given.
+    final base = DefaultTextStyle.of(context).style
+        .merge(theme.textTheme.bodySmall)
+        .copyWith(color: colors.onSurfaceVariant);
     final usedStyle = base.copyWith(
       color: colors.onSurface,
       fontWeight: FontWeight.w700,
@@ -101,7 +103,7 @@ class TankFigure extends StatelessWidget {
         : double.infinity;
     final sizes = [
       for (final (text, style) in texts)
-        _measure(text, style, textScaler, labelMaxWidth),
+        _measure(text, style, textScaler, direction, labelMaxWidth),
     ];
     final labelsHeight =
         sizes.fold(0.0, (sum, s) => sum + s.height) +
@@ -125,8 +127,23 @@ class TankFigure extends StatelessWidget {
       gap: _labelSpacing,
     );
 
+    // Each label is laid out at its width rounded up (below), so the figure
+    // is as wide as the widest of those, or the Stack would clip it.
     final width =
-        labelX + sizes.fold(0.0, (widest, s) => math.max(widest, s.width));
+        labelX +
+        sizes.fold(
+          0.0,
+          (widest, s) => math.max(widest, s.width.ceilToDouble()),
+        );
+    // A label pointing at a level gets a leader when it was moved off it;
+    // one without a level (a missing value, an outline) points at nothing.
+    final startMarked = fill && markStart;
+    final endMarked = fill && markEnd;
+    final marked = [
+      startMarked,
+      if (usedLabel != null) startMarked && endMarked,
+      endMarked,
+    ];
     return SizedBox(
       width: width,
       height: extent,
@@ -146,19 +163,18 @@ class TankFigure extends StatelessWidget {
                 ),
                 outline: colors.outline,
                 marks: colors.onSurfaceVariant,
-                startTick: fill && markStart ? startY : null,
-                endTick: fill && markEnd ? endY : null,
+                startTick: startMarked ? startY : null,
+                endTick: endMarked ? endY : null,
                 bracket:
                     usedLabel != null &&
-                        fill &&
-                        markStart &&
-                        markEnd &&
+                        startMarked &&
+                        endMarked &&
                         endY - startY > 1
                     ? (startY, endY)
                     : null,
                 leaders: [
                   for (var i = 0; i < targets.length; i++)
-                    (targets[i], tops[i] + sizes[i].height / 2),
+                    if (marked[i]) (targets[i], tops[i] + sizes[i].height / 2),
                 ],
                 labelX: labelX,
                 textDirection: direction,
@@ -182,11 +198,12 @@ class TankFigure extends StatelessWidget {
     String text,
     TextStyle style,
     TextScaler scaler,
+    TextDirection direction,
     double maxWidth,
   ) {
     final painter = TextPainter(
       text: TextSpan(text: text, style: style),
-      textDirection: TextDirection.ltr,
+      textDirection: direction,
       textScaler: scaler,
     )..layout(maxWidth: maxWidth);
     final size = painter.size;
@@ -225,7 +242,7 @@ class _TankPainter extends CustomPainter {
   final double? endTick;
   final (double, double)? bracket;
 
-  /// Each label's (level, label centre), in label order.
+  /// The (level, label centre) of each label that has a level.
   final List<(double, double)> leaders;
   final double labelX;
   final TextDirection textDirection;

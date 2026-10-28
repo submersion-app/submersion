@@ -3,14 +3,28 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_figure.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_fill_levels.dart';
 
-Widget _host(Widget child, {double textScale = 1}) {
+Widget _host(
+  Widget child, {
+  double textScale = 1,
+  TextDirection direction = TextDirection.ltr,
+}) {
   return MaterialApp(
     home: MediaQuery(
       data: MediaQueryData(textScaler: TextScaler.linear(textScale)),
-      child: Scaffold(body: Center(child: child)),
+      child: Directionality(
+        textDirection: direction,
+        child: Scaffold(body: Center(child: child)),
+      ),
     ),
   );
 }
+
+RenderObject _painted(WidgetTester tester) => tester.renderObject(
+  find.descendant(
+    of: find.byType(TankFigure),
+    matching: find.byType(CustomPaint),
+  ),
+);
 
 TankFigure _figure({
   double? start = 200,
@@ -116,5 +130,38 @@ void main() {
     final small = tester.getSize(find.byKey(const Key('small')));
     final big = tester.getSize(find.byKey(const Key('big')));
     expect(big.height, greaterThan(small.height));
+  });
+
+  testWidgets('an outline figure draws no ticks or leader lines', (
+    tester,
+  ) async {
+    // End above start: nothing honest to fill, so no label has a level to
+    // point at, even when the labels are moved off the body's edges.
+    await tester.pumpWidget(
+      _host(_figure(start: 100, end: 150, usedLabel: null)),
+    );
+
+    expect(_painted(tester), paintsExactlyCountTimes(#drawLine, 0));
+  });
+
+  testWidgets('a filled figure draws a tick at start and end', (tester) async {
+    await tester.pumpWidget(_host(_figure()));
+
+    // Two ticks and the bracket; the labels have room, so no leaders.
+    expect(_painted(tester), paintsExactlyCountTimes(#drawLine, 3));
+  });
+
+  testWidgets('right to left puts the labels on the other side', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_host(_figure(), direction: TextDirection.rtl));
+
+    final figure = tester.getRect(find.byType(TankFigure));
+    for (final label in ['Start 200 bar', 'Used 140 bar', 'End 60 bar']) {
+      final rect = tester.getRect(find.text(label));
+      expect(rect.left, greaterThanOrEqualTo(figure.left - 0.01));
+      // The cylinder (at least 18 wide) keeps the right edge.
+      expect(rect.right, lessThanOrEqualTo(figure.right - 18));
+    }
   });
 }
