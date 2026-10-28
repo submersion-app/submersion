@@ -214,13 +214,18 @@ class _MediaLibraryFilterSheetState
   /// (deleted since an album was saved) still shows, so it can be cleared.
   Widget _buildPeopleSection() {
     final l10n = context.l10n;
+    final all = ref.watch(allBuddiesProvider).value;
     final tagged = ref.watch(taggedBuddyIdsProvider).value ?? const <String>{};
     final buddies = [
-      for (final b in ref.watch(allBuddiesProvider).value ?? const <Buddy>[])
+      for (final b in all ?? const <Buddy>[])
         if (tagged.contains(b.id) || _buddyIds.contains(b.id)) b,
     ]..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
     final listed = {for (final b in buddies) b.id};
-    final gone = _buddyIds.where((id) => !listed.contains(id)).toList();
+    // Only once the buddy list has loaded: before that every selected id
+    // is unlisted, and would be drawn as a removed buddy.
+    final gone = all == null
+        ? const <String>[]
+        : _buddyIds.where((id) => !listed.contains(id)).toList();
 
     Widget person(
       String key,

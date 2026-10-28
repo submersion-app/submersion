@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
@@ -139,10 +138,13 @@ class MediaLibraryActiveFilterChips extends ConsumerWidget {
         ),
       );
     }
-    final buddies = ref.watch(allBuddiesProvider).value ?? const <Buddy>[];
-    for (final buddyId in filter.buddyIds) {
+    // Buddy chips wait for the buddy list: drawn before it loads, every
+    // selected buddy would read as removed and then change its label.
+    final buddies = ref.watch(allBuddiesProvider).value;
+    for (final buddyId
+        in buddies == null ? const <String>[] : filter.buddyIds) {
       final name =
-          buddies.where((b) => b.id == buddyId).firstOrNull?.name ??
+          buddies!.where((b) => b.id == buddyId).firstOrNull?.name ??
           l10n.media_people_removedBuddy;
       chips.add(
         chip(

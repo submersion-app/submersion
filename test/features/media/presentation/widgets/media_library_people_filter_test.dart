@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -152,5 +154,35 @@ void main() {
     await pump(tester, const MediaLibraryActiveFilterChips());
 
     expect(find.widgetWithText(InputChip, 'Removed buddy'), findsOneWidget);
+  });
+
+  group('while the buddies are still loading', () {
+    setUp(() {
+      final pending = Completer<List<Buddy>>();
+      container = ProviderContainer(
+        overrides: [
+          sitesProvider.overrideWith((ref) async => []),
+          allTripsProvider.overrideWith((ref) async => []),
+          allSpeciesProvider.overrideWith((ref) async => []),
+          tagsProvider.overrideWith((ref) async => []),
+          missingCountProvider.overrideWith((ref) async => 0),
+          allBuddiesProvider.overrideWith((ref) => pending.future),
+          taggedBuddyIdsProvider.overrideWith((ref) async => {'alex'}),
+        ],
+      );
+      addTearDown(container.dispose);
+      container.read(mediaLibraryFilterProvider.notifier).state =
+          const MediaLibraryFilter(buddyIds: {'alex'});
+    });
+
+    testWidgets('the strip shows no buddy as removed', (tester) async {
+      await pump(tester, const MediaLibraryActiveFilterChips());
+      expect(find.text('Removed buddy'), findsNothing);
+    });
+
+    testWidgets('the sheet shows no buddy as removed', (tester) async {
+      await openSheet(tester);
+      expect(find.text('Removed buddy'), findsNothing);
+    });
   });
 }

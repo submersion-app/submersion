@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -93,6 +95,41 @@ void main() {
     await tester.tap(find.text('Alex'));
     await tester.pumpAndSettle();
     expect(find.text('BUDDY alex'), findsOneWidget);
+  });
+
+  testWidgets('a buddy chip over a pushed viewer opens the buddy on top', (
+    tester,
+  ) async {
+    final router = await pump(tester, const []);
+    // The viewer is pushed imperatively, above the router's page.
+    final navigator = tester.state<NavigatorState>(
+      find.byType(Navigator).first,
+    );
+    unawaited(
+      navigator.push(
+        MaterialPageRoute<void>(
+          builder: (_) => ProviderScope(
+            overrides: [
+              mediaPeopleChipsProvider('m1').overrideWith(
+                (ref) async => [
+                  MediaPersonChip(
+                    tag: tag('t1', buddyId: 'alex'),
+                    buddyName: 'Alex',
+                  ),
+                ],
+              ),
+            ],
+            child: const Scaffold(body: MediaPeopleChipsRow(mediaId: 'm1')),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Alex'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('BUDDY alex'), findsOneWidget);
+    expect(router.state.uri.path, '/buddies/alex');
   });
 
   testWidgets('tapping a moment chip reports the moment', (tester) async {
