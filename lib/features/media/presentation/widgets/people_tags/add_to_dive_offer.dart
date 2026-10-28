@@ -60,4 +60,4 @@ Future<void> offerAddToDive(
     );
 }
 
-final _log = LoggerService.forClass(BuddyChoice);
+const _log = LoggerService('AddToDiveOffer');

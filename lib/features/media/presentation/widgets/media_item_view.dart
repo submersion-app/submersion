@@ -188,7 +188,7 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
         if (mounted) report(size);
       });
       _stopSizeWatch();
-    });
+    }, onError: (_, _) => _stopSizeWatch());
     _sizeStream = stream;
     _sizeListener = listener;
     stream.addListener(listener);

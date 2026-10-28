@@ -63,6 +63,17 @@ void main() {
     expect(await rowCount(), 0);
   });
 
+  test('the orphan cleanup tombstones the people tags it drops', () async {
+    final tag = await people.addTag(mediaId: 'p1', buddyId: 'alex');
+    await db.customStatement(
+      "UPDATE media SET is_orphaned = 1 WHERE id = 'p1'",
+    );
+
+    await MediaRepository().deleteOrphanedMedia();
+
+    expect(await tombstones(), {tag.id});
+  });
+
   test('undoing a media delete restores its people tags', () async {
     final tag = await people.addTag(mediaId: 'p1', buddyId: 'alex');
     final me = await people.addTag(mediaId: 'p1', diverId: 'A');

@@ -52,14 +52,6 @@ class _PeopleTagEditorState extends ConsumerState<PeopleTagEditor> {
   /// A corner handle's touch target, centred on the corner.
   static const double _handle = 32;
 
-  bool _atMoment(MediaPersonTag tag) {
-    final at = widget.showAt;
-    final moment = tag.videoPosition;
-    if (moment == null) return at == null;
-    if (at == null) return false;
-    return (moment - at).abs() <= faceBoxMomentWindow;
-  }
-
   void _onTapUp(TapUpDetails details, Size view, List<MediaPersonChip> shown) {
     final point = normalizedPoint(
       details.localPosition,
@@ -135,7 +127,8 @@ class _PeopleTagEditorState extends ConsumerState<PeopleTagEditor> {
         const <MediaPersonChip>[];
     final shown = [
       for (final chip in chips)
-        if (chip.tag.box != null && _atMoment(chip.tag)) chip,
+        if (chip.tag.box != null && isTagAtMoment(chip.tag, widget.showAt))
+          chip,
     ];
     final l10n = context.l10n;
 

@@ -87,7 +87,7 @@ mixin PeopleTagViewerMixin<T extends ConsumerStatefulWidget>
   FaceBox? pendingPeopleBox(String mediaId) =>
       _pendingMediaId == mediaId ? _pendingBox : null;
 
-  static final _log = LoggerService.forClass(PeopleTagSession);
+  static const _log = LoggerService('PeopleTagViewerMixin');
 
   /// Runs a tag write; a failure is logged and told to the diver rather
   /// than left as an unhandled async error.

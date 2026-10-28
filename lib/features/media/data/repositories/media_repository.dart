@@ -1420,6 +1420,10 @@ class MediaRepository {
           ..where((t) => t.isOrphaned.equals(true));
         final orphaned = await orphanedQuery.get();
 
+        // People tags (issue #1745) would otherwise go by the cascade with
+        // no tombstone, and a peer would keep them.
+        await _people.deleteForMedia([for (final item in orphaned) item.id]);
+
         // Delete and log each deletion
         for (final item in orphaned) {
           await _syncRepository.logDeletion(

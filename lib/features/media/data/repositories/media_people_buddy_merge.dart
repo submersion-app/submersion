@@ -1,12 +1,10 @@
-import 'dart:convert';
-
 import 'package:drift/drift.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/media/data/repositories/media_row_mapper.dart';
+import 'package:submersion/features/media/data/repositories/smart_album_tag_repoint.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
-import 'package:submersion/features/media/domain/entities/media_library_filter.dart';
 
 /// What a buddy merge did to people tags (issue #1745), so its undo can put
 /// them back: each repointed tag's original buddy, and the duplicates the
@@ -167,48 +165,26 @@ Future<void> undoMediaPeopleMerge(
 
 /// Rewrites every saved smart album whose filter names one of
 /// [fromBuddyIds] to name [toBuddyId] instead (issue #1745), the people
-/// twin of `repointSmartAlbumTags`. Keys this build does not know are kept.
-/// Each rewritten album is stamped and marked pending. Returns each
-/// rewritten album's previous filter JSON, for an undo. Runs inside the
-/// caller's transaction and does not notify.
+/// twin of `repointSmartAlbumTags`. Returns each rewritten album's previous
+/// filter JSON, for an undo. Runs inside the caller's transaction and does
+/// not notify.
 Future<Map<String, String>> repointSmartAlbumBuddies(
   AppDatabase db,
   SyncRepository syncRepository, {
   required List<String> fromBuddyIds,
   required String toBuddyId,
   required int now,
-}) async {
+}) {
   final from = fromBuddyIds.toSet();
-  final previous = <String, String>{};
-  for (final row in await db.select(db.mediaSmartAlbums).get()) {
-    final Object? decoded;
-    try {
-      decoded = jsonDecode(row.filterJson);
-    } on FormatException {
-      continue;
-    }
-    if (decoded is! Map<String, dynamic>) continue;
-    final filter = MediaLibraryFilter.fromJson(decoded);
-    if (!filter.buddyIds.any(from.contains)) continue;
-    previous[row.id] = row.filterJson;
-    final repointed = filter.copyWith(
+  return repointSmartAlbums(
+    db,
+    syncRepository,
+    names: (filter) => filter.buddyIds.any(from.contains),
+    repoint: (filter) => filter.copyWith(
       buddyIds: {
         for (final id in filter.buddyIds) from.contains(id) ? toBuddyId : id,
       },
-    );
-    await (db.update(
-      db.mediaSmartAlbums,
-    )..where((t) => t.id.equals(row.id))).write(
-      MediaSmartAlbumsCompanion(
-        filterJson: Value(jsonEncode({...decoded, ...repointed.toJson()})),
-        updatedAt: Value(now),
-      ),
-    );
-    await syncRepository.markRecordPending(
-      entityType: 'mediaSmartAlbums',
-      recordId: row.id,
-      localUpdatedAt: now,
-    );
-  }
-  return previous;
+    ),
+    now: now,
+  );
 }
