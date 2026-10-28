@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/nearby/nearby_carrier.dart';
 import 'package:submersion/core/services/nearby/nearby_link_manager.dart';
+import 'package:submersion/core/services/nearby/nearby_peer_store.dart';
 
 import '../../../support/fake_nearby_sync_engine.dart';
 import '../../../support/in_memory_nearby_carrier.dart';
@@ -168,6 +169,78 @@ void main() {
     }
     expect(a.engine.recordedAcks, hasLength(1));
     expect(finished, ['B']);
+  });
+
+  test('a pairing this diver confirmed gives way to its twin on both '
+      'devices, so the two still pair', () async {
+    final a = await device('A');
+    final b = await device('B');
+    // B's nonce is the lower, so the pairing B starts is the one both keep.
+    a.pairingNonce = () => 'nonce-z';
+    b.pairingNonce = () => 'nonce-a';
+    // Only A can connect at first: A's pairing is the one the divers see.
+    b.carrier.refuseConnects = true;
+    await a.manager.setForeground(true);
+    await b.manager.setForeground(true);
+    await a.manager.enterPairingMode();
+    await b.manager.enterPairingMode();
+    await settleNearby();
+    final first = a.manager.currentPairings.single.confirm().then(
+      (_) => 'paired',
+      onError: (Object _) => 'replaced',
+    );
+    await pumpEventQueue();
+
+    // B now meets A from its own side.
+    b.carrier.refuseConnects = false;
+    await b.manager.refresh();
+    await settleNearby();
+    expect(await first, 'replaced');
+    final onA = a.manager.currentPairings.single;
+    final onB = b.manager.currentPairings.single;
+    expect(onA.code, onB.code, reason: 'one pairing, on both screens');
+    await expectLater(Future.wait([onA.confirm(), onB.confirm()]), completes);
+    await settleNearby();
+    expect(await a.peers.get('B'), isNotNull);
+    expect(await b.peers.get('A'), isNotNull);
+  });
+
+  test('a session cut short by a lost link is tried again at the next '
+      'sighting, not after the cooldown', () async {
+    final a = await device('A');
+    final b = await device('B');
+    await pairNearbyTestDevices(a, b);
+    // A holds a writer B has never heard of: its half is a full copy, and
+    // the link drops part way through it.
+    a.engine
+      ..marks = {...a.engine.marks, 'Z': fakeHlc(5, 'Z')}
+      ..fullContent = incompressibleJson(40000);
+    hub.cutAfterBytes('A', 20000);
+    await foregroundNearbyTestDevices([a, b]);
+    expect(b.engine.appliedFiles, isEmpty, reason: 'the link dropped');
+
+    hub.heal('A');
+    await a.manager.refresh();
+    await b.manager.refresh();
+    await settleNearby();
+    expect(b.engine.appliedFiles, hasLength(1));
+  });
+
+  test('unpairing the device a Sync now is looking for ends that Sync now '
+      'and turns the radio off', () async {
+    final a = await device('A');
+    final b = await device('B');
+    await pairNearbyTestDevices(a, b);
+    a.auto = false; // only the Sync now wants the radio
+    await a.manager.setForeground(true);
+    final looking = a.manager.syncNow('B'); // B is not open: never found
+    await pumpEventQueue();
+    expect(a.carrier.isScanning, isTrue);
+
+    await a.manager.unpair('B');
+    final outcome = await looking.timeout(const Duration(seconds: 2));
+    expect(outcome?.error, NearbyPeerError.notPaired);
+    expect(a.carrier.isScanning, isFalse);
   });
 }
 

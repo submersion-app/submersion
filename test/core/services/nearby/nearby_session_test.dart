@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -241,6 +242,30 @@ void main() {
         expect(utf8.decode(message.body), 'done');
       },
     );
+
+    test('a closed channel hands over nothing more, not even frames already '
+        'on their way: a replaced or ended session stops at once', () async {
+      final (l, p) = await paired();
+      final (out, into) = await _link();
+      final incoming = NearbySession(
+        endpoint: into,
+        identity: _identity('P'),
+        secrets: p,
+      ).accept(allowPairing: false);
+      final laptop = await NearbySession(
+        endpoint: out,
+        identity: _identity('L'),
+        secrets: l,
+      ).openSync();
+      final phone = (await incoming as NearbyIncomingSync).channel;
+      final reader = StreamIterator(phone.messages);
+
+      await laptop.send(NearbyMessageType.basePart, _utf8('part 0'));
+      await laptop.send(NearbyMessageType.basePart, _utf8('part 1'));
+      await pumpEventQueue();
+      await phone.close();
+      expect(await reader.moveNext(), isFalse);
+    });
 
     test('a peer that removed its secret refuses with notPaired', () async {
       final (l, p) = await paired();

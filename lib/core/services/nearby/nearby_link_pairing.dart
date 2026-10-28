@@ -128,10 +128,10 @@ extension _NearbyLinkPairing on NearbyLinkManager {
       final preferred = _pairingNonce.compareTo(peerKey) < 0
           ? _pairingNonce
           : peerKey;
-      // One the diver already confirmed is never displaced.
-      if (!other._confirming &&
-          handle.initiatorKey == preferred &&
-          other.initiatorKey != preferred) {
+      // Decided from the nonces alone, even over one this diver already
+      // confirmed: the other device cannot know that, and both must keep
+      // the same pairing. A redial under the same nonce never displaces.
+      if (handle.initiatorKey == preferred && other.initiatorKey != preferred) {
         _pending.remove(other);
         await other._pairing.reject();
       } else {

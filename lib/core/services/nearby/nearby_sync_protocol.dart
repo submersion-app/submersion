@@ -268,12 +268,19 @@ class NearbySyncProtocol {
         result = await _engine.applyBaseFile(json.path, peerDeviceId: _peerId);
       }
       _applied += result.recordsApplied;
+      // Rows the merge could not take: not a clean session, as on the cloud
+      // path, though what did apply is still acknowledged below.
+      if (result.recordsFailed > 0) _errors.add(NearbyPeerError.applyFailed);
     } on Object catch (e, stack) {
       _log.warning(
         'Nearby apply from $_peerId failed: $e',
         error: e,
         stackTrace: stack,
       );
+      // The sender makes a fresh copy after a refusal, so this one can
+      // never be resumed.
+      if (await gz.exists()) await gz.delete();
+      await _peers.setResume(_peerId);
       throw const _DirectionFailed(
         NearbyPeerError.applyFailed,
         tellPeer: NearbyErrorCode.protocol,

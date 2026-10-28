@@ -667,10 +667,11 @@ class NearbyChannel {
     required NearbySessionCipher cipher,
     required Stream<NearbyMessage> raw,
   }) : _endpoint = endpoint,
-       _cipher = cipher,
-       messages = raw.asyncMap(
-         (m) async => NearbyMessage(m.type, await cipher.open(m.body)),
-       );
+       _cipher = cipher {
+    messages = raw
+        .asyncMap((m) async => NearbyMessage(m.type, await cipher.open(m.body)))
+        .takeWhile((_) => !_closing);
+  }
 
   final NearbyIdentity peer;
   final bool isInitiator;
@@ -678,8 +679,12 @@ class NearbyChannel {
   final NearbySessionCipher _cipher;
 
   /// Decrypted messages in order. A box that fails to open is a stream
-  /// error ([NearbyAuthFailure]); the stream ends when the link does.
-  final Stream<NearbyMessage> messages;
+  /// error ([NearbyAuthFailure]); the stream ends when the link does, or
+  /// after [close] at the next frame, so a replaced or ended session reads
+  /// none of the frames still in flight.
+  late final Stream<NearbyMessage> messages;
+
+  bool _closing = false;
 
   Future<void> _tail = Future.value();
 
@@ -701,6 +706,7 @@ class NearbyChannel {
 
   /// Says `bye` (best effort) and closes the link.
   Future<void> close() async {
+    _closing = true;
     try {
       await send(NearbyMessageType.bye, Uint8List(0)).timeout(byeTimeout);
     } on NearbyLinkClosed {

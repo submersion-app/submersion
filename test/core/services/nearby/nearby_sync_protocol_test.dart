@@ -605,6 +605,41 @@ void main() {
     expect(laptop.engine.exportFullCalls, 2, reason: 'a fresh copy');
   });
 
+  test('a copy that would not apply leaves nothing of it behind', () async {
+    final laptop = await device(
+      'L',
+      peerId: 'P',
+      marks: {'L': fakeHlc(5, 'L')},
+    );
+    laptop.engine.fullContent = '{}';
+    final phone = await device('P', peerId: 'L');
+    phone.engine.applyError = StateError('database is locked');
+    final (_, failed) = await session(laptop, phone);
+    expect(failed.error, NearbyPeerError.applyFailed);
+    expect((await phone.peers.get('L'))!.resumeBaseId, isNull);
+    final left = phone.temp
+        .listSync()
+        .map((f) => p.basename(f.path))
+        .where((n) => n.startsWith('nearby-in-'));
+    expect(left, isEmpty, reason: 'the sender makes a fresh copy');
+  });
+
+  test('rows the merge could not apply fail the direction, and what did '
+      'apply is still acknowledged', () async {
+    final laptop = await device(
+      'L',
+      peerId: 'P',
+      marks: {'L': fakeHlc(5, 'L')},
+    );
+    laptop.engine.fullContent = '{}';
+    final phone = await device('P', peerId: 'L');
+    phone.engine.recordsFailed = 2;
+    final (_, outcome) = await session(laptop, phone);
+    expect(outcome.error, NearbyPeerError.applyFailed);
+    expect(phone.engine.appliedFiles, hasLength(1));
+    expect(phone.engine.recordedApplied, hasLength(1), reason: 'acknowledged');
+  });
+
   test('a copy that will not unpack fails its direction only, and nothing '
       'of it is kept for a resume', () async {
     final laptop = await device('L', peerId: 'P');

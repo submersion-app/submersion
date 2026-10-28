@@ -101,6 +101,10 @@ class FakeNearbySyncEngine implements NearbySyncEngine {
   /// would.
   Object? applyError;
 
+  /// Rows every apply reports it could not merge, as a constraint error
+  /// on some of them would.
+  int recordsFailed = 0;
+
   @override
   Future<NearbyApplyResult> applyPayload(
     SyncPayload payload, {
@@ -110,7 +114,7 @@ class FakeNearbySyncEngine implements NearbySyncEngine {
     if (error != null) throw error;
     appliedPayloads.add(payload);
     _moveMarks();
-    return (recordsApplied: 1, conflictsFound: 0, recordsFailed: 0);
+    return (recordsApplied: 1, conflictsFound: 0, recordsFailed: recordsFailed);
   }
 
   @override
@@ -123,7 +127,7 @@ class FakeNearbySyncEngine implements NearbySyncEngine {
     if (error != null) throw error;
     appliedFiles.add(await File(path).readAsString());
     _moveMarks();
-    return (recordsApplied: 1, conflictsFound: 0, recordsFailed: 0);
+    return (recordsApplied: 1, conflictsFound: 0, recordsFailed: recordsFailed);
   }
 
   @override

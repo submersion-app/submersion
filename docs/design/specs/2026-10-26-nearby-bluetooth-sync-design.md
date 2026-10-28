@@ -261,7 +261,11 @@ flow to the older one; its "last synced" stays put and it shows the chip.
 **One session per peer at a time.** Both devices scan and (where able)
 advertise. When both can see each other, the device with the lower device
 id (string order) connects and the other declines a second connection, so
-a pair never opens two sessions. A device in pairing mode accepts a
+a pair never opens two sessions. When both connect at once anyway, each
+keeps the session the lower device id started and closes the other. A
+closed session stops at once and reads nothing more, frames still in
+flight included, so the one replaced writes nothing more to the files and
+the row its successor uses. A device in pairing mode accepts a
 connection from any Submersion device; otherwise it accepts only a device
 in its paired list and drops anything else after hello without replying
 beyond `bye`.
@@ -381,7 +385,10 @@ address is learned only from a link this device opened: one the peer
 opened arrives under its central's id, which on Bluetooth is not the
 address it advertises. A paired peer that
 refuses for a reason the diver has to fix (an update, another library, an
-unpairing) waits out the same ten minutes as a synced one. In pairing mode
+unpairing) waits out the same ten minutes as a synced one; a session cut
+short by a lost link, like a transient refusal, is tried again at the
+next sighting (no sooner than the spacing between attempts), so a full
+copy resumes soon. Unpairing a device ends a "Sync now" looking for it. In pairing mode
 a device that could not be paired with yet (its pairing page not open, or
 the connection failed) is tried again when next seen: a scan-only device
 has no other way to meet it. The switch is device-local, stored in `SyncPreferences`
@@ -395,8 +402,11 @@ transient one (`bluetoothOff`, `unreachable`) only shows on the row.
 Refusals count: two paired devices on different libraries refuse each other
 at once, so each records the refusal it made itself, the dialled device as
 well as the dialling one; a refusal the peer gives no reason for reads as
-`unreachable`. A full copy that will not unpack is an `applyFailed`: it
-ends that direction only, and nothing of it is kept for a resume. The
+`unreachable`. A copy that will not unpack or apply is an `applyFailed`:
+it ends that direction only, and nothing of it is kept for a resume. Rows
+the merge could not take make the session an `applyFailed` too, as a
+failed record makes a cloud sync an error, though what did apply is
+acknowledged. The
 sender keeps a full copy for a resume only after a lost link; one the peer
 refused is made afresh next time. A row
 says `bluetoothOff` only while the radio is wanted; when nothing wants it,
@@ -454,7 +464,11 @@ then left the page has still confirmed: the pairing finishes when the other
 diver answers. Leaving rejects only the pairings this diver has not
 answered. Reopening the page shows that pairing still waiting, keeps the
 pairing nonce it was made under so the other device does not show it
-twice, and a second tap confirms nothing twice. Bluetooth permission is requested
+twice, and a second tap confirms nothing twice. When the two devices
+found each other from both sides, each keeps the pairing the lower nonce
+started, even over one its diver already confirmed: the other device
+cannot know that, and both must show the same code, so that diver
+confirms the one left. Bluetooth permission is requested
 the first time this page opens, with the OS prompt; if refused, the page
 explains and offers the system settings.
 

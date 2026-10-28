@@ -77,6 +77,7 @@ class NearbyLinkManager {
     this.recentSighting = const Duration(minutes: 2),
     this.scanRestartAfter = const Duration(seconds: 10),
     this.partSize = 262144,
+    String Function() pairingNonce = NearbySession.newPairingNonce,
   }) : _carrier = carrier,
        _engine = engine,
        _secrets = secrets,
@@ -84,7 +85,8 @@ class NearbyLinkManager {
        _cursors = cursors,
        _autoSyncEnabled = autoSyncEnabled,
        _tempDir = tempDir,
-       _now = now {
+       _now = now,
+       _newPairingNonce = pairingNonce {
     _subs.addAll([
       carrier.sightings.listen((s) => _onSighting(s.transportId)),
       carrier.incoming.listen((e) => unawaited(_onIncoming(e))),
@@ -103,6 +105,7 @@ class NearbyLinkManager {
   final bool Function() _autoSyncEnabled;
   final Future<Directory> Function() _tempDir;
   final DateTime Function() _now;
+  final String Function() _newPairingNonce;
   final Duration changeDebounce;
   final Duration perPeerCooldown;
 
@@ -250,7 +253,7 @@ class NearbyLinkManager {
     // A pairing confirmed before the diver left keeps its nonce, so the
     // other device sees a redial as the same attempt, not a second one.
     if (!_pending.any((h) => h._confirming)) {
-      _pairingNonce = NearbySession.newPairingNonce();
+      _pairingNonce = _newPairingNonce();
     }
     return refresh();
   }
@@ -455,7 +458,8 @@ class NearbyLinkManager {
   /// One session with [peerDeviceId] now, whatever the cooldown and the
   /// automatic switch: the radio comes on until the peer is found or
   /// [syncNowTimeout] passes. Null when it was not found, or a session
-  /// with it is already running.
+  /// with it is already running; [NearbyPeerError.notPaired] when it was
+  /// unpaired meanwhile.
   Future<NearbySyncOutcome?> syncNow(String peerDeviceId) async {
     if (_disposed) return null;
     // Already syncing with it: that session is the answer.
@@ -716,12 +720,17 @@ class NearbyLinkManager {
       return null;
     }
     final at = _now();
-    // From the start: a change made while it ran may not be in it.
-    _lastSessionAt[peerId] = live.startedAt;
+    // From the start: a change made while it ran may not be in it. One cut
+    // short (a lost link) is due again at the next sighting, paced by
+    // retryAfter as a transient refusal is, so a full copy resumes soon.
+    final error = outcome.error;
+    if (error == null || error.isLasting) {
+      _lastSessionAt[peerId] = live.startedAt;
+    }
     if (await _peers.get(peerId) != null) {
       await _peers.markSeen(peerId, at.millisecondsSinceEpoch);
-      await _peers.setError(peerId, outcome.error);
-      if (outcome.error == null) {
+      await _peers.setError(peerId, error);
+      if (error == null) {
         await _peers.markSynced(peerId, at: at.millisecondsSinceEpoch);
       }
     }
@@ -741,6 +750,13 @@ class NearbyLinkManager {
       live.superseded = true;
       await live.channel.close();
     }
+    // A Sync now looking for it ends here, rather than keeping the radio
+    // on until its timeout and then calling the device not in range.
+    _completeSyncNow(
+      peerDeviceId,
+      const NearbySyncOutcome(error: NearbyPeerError.notPaired),
+    );
+    _syncNowWaiters.remove(peerDeviceId);
     await _secrets.revoke(peerDeviceId);
     await _peers.remove(peerDeviceId);
     await _cursors.remove(peerDeviceId, nearbyCursorProvider);

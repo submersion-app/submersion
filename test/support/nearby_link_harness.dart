@@ -10,6 +10,7 @@ import 'package:submersion/core/services/nearby/nearby_carrier.dart';
 import 'package:submersion/core/services/nearby/nearby_hello.dart';
 import 'package:submersion/core/services/nearby/nearby_link_manager.dart';
 import 'package:submersion/core/services/nearby/nearby_peer_store.dart';
+import 'package:submersion/core/services/nearby/nearby_session.dart';
 import 'package:submersion/core/services/sync/changeset_log/peer_cursor_store.dart';
 
 import 'fake_nearby_sync_engine.dart';
@@ -42,6 +43,10 @@ class NearbyTestDevice {
 
   /// The manager's retry spacing; set before [manager] is first read.
   Duration retryAfter = Duration.zero;
+
+  /// The manager's pairing nonces, so a test can say which of two twin
+  /// pairings is kept; set before [manager] is first read.
+  String Function() pairingNonce = NearbySession.newPairingNonce;
   late final NearbyLinkManager manager = NearbyLinkManager(
     carrier: carrier,
     engine: engine,
@@ -54,6 +59,7 @@ class NearbyTestDevice {
     now: () => now,
     changeDebounce: const Duration(milliseconds: 20),
     retryAfter: retryAfter,
+    pairingNonce: pairingNonce,
     // Tests sight devices afresh by refreshing; the in-memory carrier
     // reports a device only when its scan starts.
     scanRestartAfter: Duration.zero,
