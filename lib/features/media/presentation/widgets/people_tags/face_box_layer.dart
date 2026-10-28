@@ -6,16 +6,13 @@ import 'package:submersion/features/media/presentation/helpers/face_box_geometry
 import 'package:submersion/features/media/presentation/providers/media_people_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// How close a video face tag's moment must be to the shown frame to draw.
-const Duration faceBoxMomentWindow = Duration(milliseconds: 500);
-
 /// Whether [tag] belongs on the frame at [showAt]: a photo tag (no moment)
-/// when no frame is given, a video tag within [faceBoxMomentWindow] of it.
+/// when no frame is given, a video tag within [faceTagMomentWindow] of it.
 bool isTagAtMoment(MediaPersonTag tag, Duration? showAt) {
   final moment = tag.videoPosition;
   if (moment == null) return showAt == null;
   if (showAt == null) return false;
-  return (moment - showAt).abs() <= faceBoxMomentWindow;
+  return (moment - showAt).abs() <= faceTagMomentWindow;
 }
 
 /// The face boxes tagged on a photo or a paused video frame (issue #1745),

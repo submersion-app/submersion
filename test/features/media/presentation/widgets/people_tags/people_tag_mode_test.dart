@@ -125,6 +125,25 @@ void main() {
     expect(await rows(tester), isEmpty);
   });
 
+  testWidgets('starting Pick white leaves tag mode, and tagging leaves it', (
+    tester,
+  ) async {
+    await openViewer(tester);
+    await tester.tap(find.byTooltip('Tag people'));
+    await settle(tester);
+    expect(find.text('Tap a person to tag them'), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('viewer_adjust_color')));
+    await settle(tester);
+    await tester.tap(find.text('Pick white'));
+    await settle(tester);
+    expect(find.text('Tap a person to tag them'), findsNothing);
+    expect(
+      find.text('Tap something that should be white or gray'),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('a tag without a spot can be picked from the bar and removed', (
     tester,
   ) async {

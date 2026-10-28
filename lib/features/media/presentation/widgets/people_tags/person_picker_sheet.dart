@@ -158,7 +158,10 @@ class _PersonPickerSheetState extends ConsumerState<_PersonPickerSheet> {
               child: ListView(
                 shrinkWrap: true,
                 children: [
-                  if (meDiverId != null && _query.isEmpty)
+                  if (meDiverId != null &&
+                      l10n.media_people_me.toLowerCase().contains(
+                        _query.toLowerCase(),
+                      ))
                     ListTile(
                       leading: const CircleAvatar(child: Icon(Icons.person)),
                       title: Text(l10n.media_people_me),

@@ -269,6 +269,29 @@ void main() {
       );
     });
 
+    test(
+      'tagging someone again at the same video moment moves the box',
+      () async {
+        final first = await repository.addTag(
+          mediaId: 'v1',
+          buddyId: 'alex',
+          box: box,
+          videoPosition: const Duration(milliseconds: 42000),
+        );
+        const moved = FaceBox(x: 0.6, y: 0.4, width: 0.1, height: 0.1);
+        final second = await repository.addTag(
+          mediaId: 'v1',
+          buddyId: 'alex',
+          box: moved,
+          videoPosition: const Duration(milliseconds: 42200),
+        );
+
+        expect(second.id, first.id);
+        final tags = await repository.getTagsForMedia('v1', diverId: 'A');
+        expect(tags.single.box, moved);
+      },
+    );
+
     test('a video keeps one tag without a spot per person', () async {
       final first = await repository.addTag(mediaId: 'v1', buddyId: 'alex');
       final second = await repository.addTag(mediaId: 'v1', buddyId: 'alex');

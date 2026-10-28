@@ -80,7 +80,8 @@ class MediaPeopleRepository {
   /// moves their existing box rather than adding a second row, and a tag
   /// without a spot leaves an existing box alone. On a video every boxed
   /// call adds a row, one per moment, but a person has at most one tag
-  /// without a spot.
+  /// without a spot, and tagging someone again within
+  /// [faceTagMomentWindow] of one of their moments moves that tag.
   Future<MediaPersonTag> addTag({
     required String mediaId,
     String? buddyId,
@@ -101,6 +102,23 @@ class MediaPeopleRepository {
         spotless: true,
       );
       if (existing != null) return _tagFromRow(existing);
+    }
+    if (isVideo && box != null && videoPosition != null) {
+      final existing = await _findTag(
+        mediaId,
+        buddyId,
+        diverId,
+        near: videoPosition,
+      );
+      if (existing != null) {
+        final moved = _tagFromRow(existing).copyWith(
+          box: box,
+          videoPosition: videoPosition,
+          updatedAt: DateTime.fromMillisecondsSinceEpoch(now),
+        );
+        await updateTag(moved);
+        return moved;
+      }
     }
     if (!isVideo) {
       final existing = await _findTag(mediaId, buddyId, diverId);
@@ -329,19 +347,26 @@ class MediaPeopleRepository {
   }
 
   /// A tag of the person on [mediaId]; with [spotless], only one without a
-  /// spot.
+  /// spot; with [near], only one within [faceTagMomentWindow] of it.
   Future<MediaPeopleData?> _findTag(
     String mediaId,
     String? buddyId,
     String? diverId, {
     bool spotless = false,
+    Duration? near,
   }) =>
       (_db.select(_db.mediaPeople)
             ..where(
               (t) =>
                   t.mediaId.equals(mediaId) &
                   _samePerson(t, buddyId, diverId) &
-                  (spotless ? _spotless(t) : const Constant(true)),
+                  (spotless ? _spotless(t) : const Constant(true)) &
+                  (near == null
+                      ? const Constant(true)
+                      : t.videoPositionMs.isBetweenValues(
+                          (near - faceTagMomentWindow).inMilliseconds,
+                          (near + faceTagMomentWindow).inMilliseconds,
+                        )),
             )
             ..limit(1))
           .getSingleOrNull();

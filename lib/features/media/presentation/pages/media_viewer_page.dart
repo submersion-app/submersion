@@ -158,6 +158,10 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
   /// Enters "Pick white"; a video is paused first so the tap reads the
   /// frame on screen.
   void _startPickingWhite(MediaItem item) {
+    // One tap-capturing mode at a time: Pick white leaves people tag mode
+    // (issue #1745). The toolbar is hidden while Pick white waits, so tag
+    // mode cannot be entered the other way round.
+    if (!pickingWhite && taggingPeople) togglePeopleTagging();
     // Tapping Pick white again cancels it.
     if (!pickingWhite && item.isVideo) {
       unawaited(_videoControllers[item.id]?.pause());

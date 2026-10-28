@@ -2,6 +2,11 @@ import 'dart:math';
 
 import 'package:equatable/equatable.dart';
 
+/// How close two video positions must be to count as the same moment: a
+/// face tag is drawn on frames this near its own, and tagging a person
+/// again this near an existing tag moves that tag (issue #1745).
+const Duration faceTagMomentWindow = Duration(milliseconds: 500);
+
 /// Where a person is on a photo or a video frame, normalised 0 to 1 against
 /// the full image (issue #1745).
 class FaceBox extends Equatable {

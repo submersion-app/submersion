@@ -84,6 +84,13 @@ void main() {
     expect(find.text('Cal'), findsNothing);
   });
 
+  testWidgets('searching for me still finds Me', (tester) async {
+    await open(tester, 'd1');
+    await tester.enterText(find.byType(TextField), 'me');
+    await tester.pumpAndSettle();
+    expect(find.text('Me'), findsOneWidget);
+  });
+
   testWidgets('New buddy creates the buddy and returns it', (tester) async {
     final result = await open(tester, 'd1');
     await tester.tap(find.text('New buddy'));
