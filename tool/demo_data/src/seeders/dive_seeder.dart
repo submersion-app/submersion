@@ -21,6 +21,7 @@ import '../story/story_plan.dart';
 import 'dive_extras.dart';
 import 'dive_kit.dart';
 import 'dive_tank_plan.dart';
+import 'fault_signals.dart';
 import 'gear_cylinder_seeder.dart';
 import 'gear_seeder.dart';
 import 'seed_context.dart';
@@ -43,6 +44,7 @@ class DiveSeeder implements DemoSeeder {
       await EquipmentComponentRepository().getAllComponents(),
     );
     final keyOf = {for (final e in ctx.equipment.entries) e.value: e.key};
+    final faults = ctx.faults;
 
     for (final d in ctx.plan.dives) {
       final source = ctx.library.pick(
@@ -70,6 +72,12 @@ class DiveSeeder implements DemoSeeder {
       final shift = _temperatureShift(shape, d);
       final id = ctx.diveId(d.number);
       final kit = kitFor(d, ctx.timeline, photo: isPhotoDive(d, ctx.timeline));
+      // Each cell's output per bar; the swapped-in cell 2 is new and strong.
+      final gains = [
+        50.0,
+        ctx.timeline.inUseOn('o2-cell-2b', d.start) ? 53.0 : 47.0,
+        49.0,
+      ];
       final tankIds = [
         for (var i = 0; i < tanks.length; i++) 'demo-tank-${d.number}-$i',
       ];
@@ -120,22 +128,16 @@ class DiveSeeder implements DemoSeeder {
         ],
         profile: [
           for (final s in shape.samples)
-            DiveProfilePoint(
-              timestamp: s.t,
-              depth: s.depth,
-              temperature: s.temp == null ? null : s.temp! + shift,
-              heartRate: s.heartRate,
-              ppO2: s.ppO2,
-              setpoint: s.setpoint,
-              o2Sensor1: s.cells != null && s.cells!.isNotEmpty
-                  ? s.cells![0]
-                  : null,
-              o2Sensor2: s.cells != null && s.cells!.length > 1
-                  ? s.cells![1]
-                  : null,
-              o2Sensor3: s.cells != null && s.cells!.length > 2
-                  ? s.cells![2]
-                  : null,
+            _point(
+              s,
+              shift,
+              cellReadings(
+                s.cells,
+                s.t / max(1, shape.durationSec),
+                drifting2: faults.cellDriftDives.contains(d.number),
+                divergent3: faults.divergentCellDives.contains(d.number),
+              ),
+              gains,
             ),
         ],
         weights: [
@@ -237,7 +239,14 @@ class DiveSeeder implements DemoSeeder {
         for (var i = 0; i < tanks.length; i++)
           if (shape.tanks[i].pressures.isNotEmpty)
             tankIds[i]: [
-              for (final (t, bar) in shape.tanks[i].pressures)
+              for (final (t, bar)
+                  in i == 0 && faults.dropoutDives.contains(d.number)
+                      ? withDropouts(
+                          shape.tanks[i].pressures,
+                          gapFraction: 0.15,
+                          random: ctx.random,
+                        )
+                      : shape.tanks[i].pressures)
                 (timestamp: t, pressure: bar),
             ],
       });
@@ -363,5 +372,31 @@ class DiveSeeder implements DemoSeeder {
       }
     }
     return null;
+  }
+
+  /// One profile sample, with the cells as the loop read them and each
+  /// cell's millivolts.
+  static DiveProfilePoint _point(
+    ShapeSample s,
+    double shift,
+    List<double>? cells,
+    List<double> gains,
+  ) {
+    double? cell(int i) => cells != null && cells.length > i ? cells[i] : null;
+    int? mv(int i) => cell(i) == null ? null : cellMv(cell(i)!, gains[i]);
+    return DiveProfilePoint(
+      timestamp: s.t,
+      depth: s.depth,
+      temperature: s.temp == null ? null : s.temp! + shift,
+      heartRate: s.heartRate,
+      ppO2: s.ppO2,
+      setpoint: s.setpoint,
+      o2Sensor1: cell(0),
+      o2Sensor2: cell(1),
+      o2Sensor3: cell(2),
+      o2SensorMv1: mv(0),
+      o2SensorMv2: mv(1),
+      o2SensorMv3: mv(2),
+    );
   }
 }

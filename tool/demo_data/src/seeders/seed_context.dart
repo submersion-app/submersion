@@ -6,6 +6,7 @@ import '../shape/reshaper.dart';
 import '../shape/shape_library.dart';
 import '../story/story_plan.dart';
 import 'gear_catalog.dart';
+import 'gear_faults.dart';
 import 'gear_timeline.dart';
 
 /// What every seeder shares while the demo logbook is written (issue #3708).
@@ -42,6 +43,9 @@ class DemoSeedContext {
 
   /// When each piece of kit arrived and left.
   late final GearTimeline timeline = GearTimeline(plan, demoGear);
+
+  /// What goes wrong with the kit, and on which dives.
+  late final FaultPlan faults = planFaults(plan, timeline);
 
   String diveId(int number) => 'demo-dive-${number.toString().padLeft(4, '0')}';
 

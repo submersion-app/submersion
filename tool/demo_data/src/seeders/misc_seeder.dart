@@ -92,9 +92,7 @@ class MiscSeeder implements DemoSeeder {
     );
 
     final incidents = IncidentRepository();
-    final freeFlow = ctx.plan.dives.firstWhere(
-      (d) => d.destination.key == 'home' && d.number > 60,
-    );
+    final freeFlow = ctx.plan.dives[ctx.faults.freeFlowDives.first - 1];
     await incidents.createIncident(
       occurredAt: freeFlow.start.add(const Duration(minutes: 25)),
       category: IncidentCategory.equipment,
