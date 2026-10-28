@@ -6,6 +6,7 @@ import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain
     show TurnPressureRule;
 import 'package:submersion/features/equipment/domain/models/equipment_default_view.dart';
+import 'package:submersion/features/settings/data/repositories/list_arrangement_columns.dart';
 import 'package:submersion/features/settings/data/repositories/profile_metric_color_columns.dart';
 import 'package:submersion/core/built_ins/hidden_built_ins_codec.dart';
 import 'package:submersion/core/constants/place_name_language.dart';
@@ -465,7 +466,7 @@ class DiverSettingsRepository {
                 updatedAt: Value(now),
               ),
               s.profileMetricColors,
-            ),
+            ).withListArrangements(s.listArrangements),
           );
 
       await _syncRepository.markRecordPending(
@@ -800,7 +801,7 @@ class DiverSettingsRepository {
       ),
     ),
     settings.profileMetricColors,
-  );
+  ).withListArrangements(settings.listArrangements);
 
   /// Get or create settings for a diver (ensures settings always exist)
   Future<AppSettings> getOrCreateSettingsForDiver(
@@ -1009,6 +1010,7 @@ class DiverSettingsRepository {
         row.trendGapCollapseMonths,
       ),
       profileMetricColors: profileMetricColorsFromRow(row),
+      listArrangements: listArrangementsFromRow(row),
       reminderTime: _parseReminderTime(row.reminderTime),
       showDataSourceBadges: row.showDataSourceBadges,
       showDiveFigure: row.showDiveFigure,

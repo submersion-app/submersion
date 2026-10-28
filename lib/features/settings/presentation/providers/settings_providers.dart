@@ -47,6 +47,7 @@ import 'package:submersion/features/dive_3d/domain/spatial/seascape_appearance.d
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_color_schemes.dart';
 import 'package:submersion/features/settings/data/repositories/app_settings_repository.dart';
 import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
+import 'package:submersion/features/settings/domain/list_arrangements.dart';
 
 /// Which cylinders the simulated (ideal) ascent may breathe.
 enum AscentGasSet {
@@ -314,6 +315,9 @@ class AppSettings {
 
   /// The profile-chart metric colours this diver chose (issue #3012).
   final ProfileMetricColorOverrides profileMetricColors;
+
+  /// How the diver left each list (issue #3748); see [ListArrangements].
+  final ListArrangements listArrangements;
 
   /// Bundled chamber ids hidden from the emergency card
   final Set<String> hiddenChamberIds;
@@ -732,6 +736,7 @@ class AppSettings {
     this.trendGapThreshold = TrendGapThreshold.year1,
     this.equipmentDefaultStatuses = factoryDefaultEquipmentStatuses,
     this.profileMetricColors = ProfileMetricColorOverrides.none,
+    this.listArrangements = ListArrangements.none,
     this.hiddenChamberIds = const {},
     this.emergencyRegion,
     this.showAscentRateColors = false,
@@ -951,6 +956,7 @@ class AppSettings {
     TrendGapThreshold? trendGapThreshold,
     Set<EquipmentStatus>? equipmentDefaultStatuses,
     ProfileMetricColorOverrides? profileMetricColors,
+    ListArrangements? listArrangements,
     Set<String>? hiddenChamberIds,
     String? emergencyRegion,
     bool clearEmergencyRegion = false,
@@ -1152,6 +1158,7 @@ class AppSettings {
       equipmentDefaultStatuses:
           equipmentDefaultStatuses ?? this.equipmentDefaultStatuses,
       profileMetricColors: profileMetricColors ?? this.profileMetricColors,
+      listArrangements: listArrangements ?? this.listArrangements,
       hiddenChamberIds: hiddenChamberIds ?? this.hiddenChamberIds,
       emergencyRegion: clearEmergencyRegion
           ? null

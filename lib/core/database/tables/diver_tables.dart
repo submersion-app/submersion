@@ -349,6 +349,35 @@ class DiverSettings extends Table {
   TextColumn get courseListViewMode =>
       text().withDefault(const Constant('detailed'))();
 
+  /// v323 (issue #3748): how the diver left each list, so it comes back the
+  /// same way. Null until the diver changes that list, which reads as the
+  /// list's starting order. Sorts are `field:direction`, groupings enum
+  /// names; an unknown value (from a newer build) is kept, not cleared.
+  TextColumn get diveListSort => text().nullable()();
+  TextColumn get divePlanListSort => text().nullable()();
+  TextColumn get tripListSort => text().nullable()();
+  TextColumn get courseListSort => text().nullable()();
+  TextColumn get buddyListSort => text().nullable()();
+  TextColumn get diveCenterListSort => text().nullable()();
+  TextColumn get siteListSort => text().nullable()();
+  TextColumn get certificationListSort => text().nullable()();
+  TextColumn get equipmentListSort => text().nullable()();
+  TextColumn get siteListGroupBy => text().nullable()();
+  TextColumn get certificationListGroupBy => text().nullable()();
+
+  /// v323: the gear arrangement as JSON, moved here from the app-wide
+  /// `equipment_arrangement` settings key. Null falls back to that key.
+  TextColumn get equipmentArrangement => text().nullable()();
+
+  /// v323: the Equipment page's group-by-location switch, moved here from
+  /// the app-wide `equipment_group_by_location` key. Null falls back to it.
+  BoolColumn get equipmentGroupByLocation => boolean().nullable()();
+
+  /// v323: the clock the arrangement columns above, the list view modes and
+  /// [groupTripsInDiveList] sync under (`SyncFactGroups`), so a sort tap
+  /// never restamps [hlc] and republishes the diver's other settings.
+  TextColumn get listArrangementHlc => text().nullable()();
+
   /// v262 (issue #2948): profile metric overlays follow the zoomed depth
   /// window, and the passive-SCR ratio. Both were device-local prefs.
   /// Nullable ON PURPOSE: null marks a row that has never held a value,
