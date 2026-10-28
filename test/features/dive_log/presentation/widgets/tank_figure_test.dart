@@ -164,4 +164,22 @@ void main() {
       expect(rect.right, lessThanOrEqualTo(figure.right - 18));
     }
   });
+
+  testWidgets('the used tint is blended over the card it sits on', (
+    tester,
+  ) async {
+    // A translucent card fill (as in the Deep dark preset) is composited
+    // over the page; the tint has to match that, not the theme's card
+    // colour alone.
+    const cardFill = Color(0x80FF0000);
+    await tester.pumpWidget(_host(Card(color: cardFill, child: _figure())));
+
+    final context = tester.element(find.byType(TankFigure));
+    final surface = Theme.of(context).colorScheme.surface;
+    final used = Color.alphaBlend(
+      Colors.green.withValues(alpha: 0.35),
+      Color.alphaBlend(cardFill, surface),
+    );
+    expect(_painted(tester), paints..rect(color: used));
+  });
 }

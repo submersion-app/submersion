@@ -2986,6 +2986,7 @@
   "diveLog_cylinders_figureStart": "Début {pressure}",
   "diveLog_cylinders_figureEnd": "Fin {pressure}",
   "diveLog_cylinders_figureUsed": "Utilisé {pressure}",
+  "diveLog_cylinders_gasSemantics": "Gaz {mix}",
   "diveLog_cylinders_gasUsed": "Gaz utilisé {amount}",
   "diveLog_cylinders_mod": "PMU {depth}",
   "diveLog_cylinders_mnd": "PNM {depth}",

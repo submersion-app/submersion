@@ -9684,6 +9684,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String diveLog_cylinders_gasSemantics(String mix) {
+    return '气体 $mix';
+  }
+
+  @override
   String diveLog_cylinders_gasUsed(String amount) {
     return '已用气体 $amount';
   }

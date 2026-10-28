@@ -285,6 +285,7 @@ class CylindersCard extends ConsumerWidget {
           ),
       ],
       gasMix: tank.gasMix,
+      gasLabel: l10n.diveLog_cylinders_gasSemantics(tank.gasMix.name),
       details: [
         DotJoinedWrap(
           children: [

@@ -3112,6 +3112,7 @@
   "diveLog_cylinders_figureStart": "Beginn {pressure}",
   "diveLog_cylinders_figureEnd": "Ende {pressure}",
   "diveLog_cylinders_figureUsed": "Verbraucht {pressure}",
+  "diveLog_cylinders_gasSemantics": "Gas {mix}",
   "diveLog_cylinders_gasUsed": "Gasverbrauch {amount}",
   "diveLog_cylinders_mod": "MOD {depth}",
   "diveLog_cylinders_mnd": "MND {depth}",

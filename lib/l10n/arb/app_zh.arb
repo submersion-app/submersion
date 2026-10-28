@@ -3202,6 +3202,7 @@
   "diveLog_cylinders_figureStart": "起始 {pressure}",
   "diveLog_cylinders_figureEnd": "结束 {pressure}",
   "diveLog_cylinders_figureUsed": "已用 {pressure}",
+  "diveLog_cylinders_gasSemantics": "气体 {mix}",
   "diveLog_cylinders_gasUsed": "已用气体 {amount}",
   "diveLog_cylinders_mod": "最大作业深度 {depth}",
   "diveLog_cylinders_mnd": "最大等效氮深 {depth}",

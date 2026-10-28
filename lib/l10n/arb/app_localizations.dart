@@ -16183,6 +16183,12 @@ abstract class AppLocalizations {
   /// **'Used {pressure}'**
   String diveLog_cylinders_figureUsed(String pressure);
 
+  /// Cylinders card: what a screen reader says for a cylinder's gas pill, e.g. "Gas EAN32". mix is the gas mix name.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas {mix}'**
+  String diveLog_cylinders_gasSemantics(String mix);
+
   /// Cylinders card detail item: the volume of gas the dive consumed from this cylinder, e.g. "Gas used 1665 L"
   ///
   /// In en, this message translates to:

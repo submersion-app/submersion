@@ -28,6 +28,7 @@ class CylinderBlock extends StatelessWidget {
     required this.title,
     this.subtitle = const [],
     required this.gasMix,
+    required this.gasLabel,
     this.details = const [],
     this.trailing,
   });
@@ -42,6 +43,10 @@ class CylinderBlock extends StatelessWidget {
   /// role), joined by dots.
   final List<Widget> subtitle;
   final GasMix gasMix;
+
+  /// What a screen reader says for the gas pill ("Gas EAN32"), so a mix is
+  /// not read as a bare name among the other cylinders.
+  final String gasLabel;
   final List<Widget> details;
   final Widget? trailing;
 
@@ -91,7 +96,12 @@ class CylinderBlock extends StatelessWidget {
                           ),
                         ],
                       ),
-                      GasMixPill(gasMix: gasMix),
+                      Semantics(
+                        container: true,
+                        label: gasLabel,
+                        excludeSemantics: true,
+                        child: GasMixPill(gasMix: gasMix),
+                      ),
                     ],
                   ),
                   if (subtitle.isNotEmpty)

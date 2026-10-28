@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/theme/backdrop_color.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_fill_levels.dart';
 
 /// The valve drawn on top of the cylinder, and the space between the
@@ -159,7 +160,7 @@ class TankFigure extends StatelessWidget {
                 solid: gasColor,
                 used: Color.alphaBlend(
                   gasColor.withValues(alpha: 0.35),
-                  theme.cardTheme.color ?? colors.surfaceContainerLow,
+                  backdropColorOf(context),
                 ),
                 outline: colors.outline,
                 marks: colors.onSurfaceVariant,

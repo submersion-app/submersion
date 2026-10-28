@@ -443,7 +443,8 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.bySemanticsLabel(RegExp(r'11\.1 L')), findsOneWidget);
-      expect(find.bySemanticsLabel(RegExp('EAN32')), findsOneWidget);
+      // The pill keeps its context, so several mixes are not bare names.
+      expect(find.bySemanticsLabel('Gas EAN32'), findsOneWidget);
       semantics.dispose();
     });
 

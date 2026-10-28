@@ -9966,6 +9966,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String diveLog_cylinders_gasSemantics(String mix) {
+    return 'גז $mix';
+  }
+
+  @override
   String diveLog_cylinders_gasUsed(String amount) {
     return 'גז שנוצל $amount';
   }

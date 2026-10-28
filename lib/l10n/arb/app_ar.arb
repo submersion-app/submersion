@@ -3087,6 +3087,7 @@
   "diveLog_cylinders_figureStart": "البداية {pressure}",
   "diveLog_cylinders_figureEnd": "النهاية {pressure}",
   "diveLog_cylinders_figureUsed": "المستخدم {pressure}",
+  "diveLog_cylinders_gasSemantics": "غاز {mix}",
   "diveLog_cylinders_gasUsed": "الغاز المستخدم {amount}",
   "diveLog_cylinders_mod": "MOD {depth}",
   "diveLog_cylinders_mnd": "MND {depth}",

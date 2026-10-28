@@ -2986,6 +2986,7 @@
   "diveLog_cylinders_figureStart": "התחלה {pressure}",
   "diveLog_cylinders_figureEnd": "סיום {pressure}",
   "diveLog_cylinders_figureUsed": "נוצל {pressure}",
+  "diveLog_cylinders_gasSemantics": "גז {mix}",
   "diveLog_cylinders_gasUsed": "גז שנוצל {amount}",
   "diveLog_cylinders_mod": "MOD {depth}",
   "diveLog_cylinders_mnd": "MND {depth}",

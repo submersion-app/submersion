@@ -5711,6 +5711,7 @@
   "diveLog_cylinders_figureStart": "Start {pressure}",
   "diveLog_cylinders_figureEnd": "End {pressure}",
   "diveLog_cylinders_figureUsed": "Used {pressure}",
+  "diveLog_cylinders_gasSemantics": "Gas {mix}",
   "diveLog_cylinders_gasUsed": "Gas used {amount}",
   "diveLog_cylinders_mod": "MOD {depth}",
   "diveLog_cylinders_mnd": "MND {depth}",
@@ -6370,6 +6371,14 @@
     "description": "Cylinders card tank figure label: the pressure used, between the start and end labels beside the tank figure, e.g. \"Used 200 bar\". pressure is the value with its unit.",
     "placeholders": {
       "pressure": {
+        "type": "String"
+      }
+    }
+  },
+  "@diveLog_cylinders_gasSemantics": {
+    "description": "Cylinders card: what a screen reader says for a cylinder's gas pill, e.g. \"Gas EAN32\". mix is the gas mix name.",
+    "placeholders": {
+      "mix": {
         "type": "String"
       }
     }

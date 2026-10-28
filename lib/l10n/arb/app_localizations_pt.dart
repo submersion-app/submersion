@@ -10186,6 +10186,11 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String diveLog_cylinders_gasSemantics(String mix) {
+    return 'Gás $mix';
+  }
+
+  @override
   String diveLog_cylinders_gasUsed(String amount) {
     return 'Gás usado $amount';
   }

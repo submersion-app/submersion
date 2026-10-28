@@ -2986,6 +2986,7 @@
   "diveLog_cylinders_figureStart": "Kezdő {pressure}",
   "diveLog_cylinders_figureEnd": "Záró {pressure}",
   "diveLog_cylinders_figureUsed": "Felhasznált {pressure}",
+  "diveLog_cylinders_gasSemantics": "Gáz {mix}",
   "diveLog_cylinders_gasUsed": "Felhasznált gáz {amount}",
   "diveLog_cylinders_mod": "MOD {depth}",
   "diveLog_cylinders_mnd": "MND {depth}",
