@@ -153,6 +153,17 @@ void main() {
     expect((await stored()).listArrangements.diveSort, 'depth:descending');
   });
 
+  test('two group-trips toggles made before the load both count', () async {
+    final notifier = container.read(settingsProvider.notifier);
+    final first = notifier.toggleGroupTripsInDiveList();
+    final second = notifier.toggleGroupTripsInDiveList();
+    gate.complete();
+    await Future.wait([first, second]);
+
+    expect(container.read(settingsProvider).groupTripsInDiveList, isFalse);
+    expect((await stored()).groupTripsInDiveList, isFalse);
+  });
+
   test('setSiteListViewMode waits for the load', () async {
     final notifier = container.read(settingsProvider.notifier);
     final pending = notifier.setSiteListViewMode(ListViewMode.table);

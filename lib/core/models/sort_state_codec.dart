@@ -23,10 +23,5 @@ SortState<T>? decodeSortState<T extends Enum>(String? raw, List<T> values) {
 }
 
 /// The value of [values] named [raw], or null when there is none.
-T? decodeEnumName<T extends Enum>(String? raw, List<T> values) {
-  if (raw == null) return null;
-  for (final value in values) {
-    if (value.name == raw) return value;
-  }
-  return null;
-}
+T? decodeEnumName<T extends Enum>(String? raw, List<T> values) =>
+    raw == null ? null : values.asNameMap()[raw];

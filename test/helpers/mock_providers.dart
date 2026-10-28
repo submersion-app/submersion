@@ -601,6 +601,9 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
   Future<void> setGroupTripsInDiveList(bool value) async =>
       state = state.copyWith(groupTripsInDiveList: value);
   @override
+  Future<void> toggleGroupTripsInDiveList() async =>
+      state = state.copyWith(groupTripsInDiveList: !state.groupTripsInDiveList);
+  @override
   Future<void> updateListArrangements(
     ListArrangements Function(ListArrangements current) change,
   ) async =>

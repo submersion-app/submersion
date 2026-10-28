@@ -2772,17 +2772,11 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     await _saveSettings();
   }
 
-  Future<void> setDiveListViewMode(ListViewMode mode) async {
-    if (!await _loadedForListArrangement()) return;
-    state = state.copyWith(diveListViewMode: mode);
-    await _saveSettings();
-  }
+  Future<void> setDiveListViewMode(ListViewMode mode) =>
+      _saveListArrangement((s) => s.copyWith(diveListViewMode: mode));
 
-  Future<void> setGroupTripsInDiveList(bool value) async {
-    if (!await _loadedForListArrangement()) return;
-    state = state.copyWith(groupTripsInDiveList: value);
-    await _saveSettings();
-  }
+  Future<void> setGroupTripsInDiveList(bool value) =>
+      _saveListArrangement((s) => s.copyWith(groupTripsInDiveList: value));
 
   /// Waits for [settingsLoaded] first: until the diver's row lands, [state]
   /// holds the defaults (or, after a diver switch, the previous diver's
@@ -2809,66 +2803,61 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   /// build on each other. Typed setters live in `list_arrangement_writes`.
   Future<void> updateListArrangements(
     ListArrangements Function(ListArrangements current) change,
-  ) async {
-    if (!await _loadedForListArrangement()) return;
-    state = state.copyWith(listArrangements: change(state.listArrangements));
-    await _saveSettings();
-  }
+  ) => _saveListArrangement(
+    (s) => s.copyWith(listArrangements: change(s.listArrangements)),
+  );
 
-  /// Waits for the diver's settings to load before a list saves how it was
-  /// left (issue #3748); the list view modes and group-trips toggle are
-  /// saved from the lists themselves, so they wait too. False when the
-  /// notifier was disposed meanwhile.
-  Future<bool> _loadedForListArrangement() async {
-    try {
-      await settingsLoaded;
-    } catch (_) {
-      // Already logged by the load; defaults are the fallback.
+  /// Flips the dive list's "group trips" toggle. The flip is computed from
+  /// the loaded state, so two taps made before the load both count.
+  Future<void> toggleGroupTripsInDiveList() => _saveListArrangement(
+    (s) => s.copyWith(groupTripsInDiveList: !s.groupTripsInDiveList),
+  );
+
+  /// Saves a change to how the diver left a list (issue #3748): its sort,
+  /// grouping or view mode. Waits for the diver's settings to load, or a
+  /// change made at launch would be overwritten when the load lands, then
+  /// applies [change] to the state as it is then. The lists start these
+  /// without awaiting them, so a failed save is logged here rather than
+  /// left to the zone; a caller that awaits still sees it.
+  Future<void> _saveListArrangement(
+    AppSettings Function(AppSettings current) change,
+  ) {
+    Future<void> work() async {
+      try {
+        await settingsLoaded;
+      } catch (_) {
+        // Already logged by the load; defaults are the fallback.
+      }
+      if (!mounted) return;
+      state = change(state);
+      await _saveSettings();
     }
-    return mounted;
+
+    final saving = work();
+    logFailure(saving, SettingsNotifier, 'save how a list was left');
+    return saving;
   }
 
-  Future<void> setSiteListViewMode(ListViewMode mode) async {
-    if (!await _loadedForListArrangement()) return;
-    state = state.copyWith(siteListViewMode: mode);
-    await _saveSettings();
-  }
+  Future<void> setSiteListViewMode(ListViewMode mode) =>
+      _saveListArrangement((s) => s.copyWith(siteListViewMode: mode));
 
-  Future<void> setTripListViewMode(ListViewMode mode) async {
-    if (!await _loadedForListArrangement()) return;
-    state = state.copyWith(tripListViewMode: mode);
-    await _saveSettings();
-  }
+  Future<void> setTripListViewMode(ListViewMode mode) =>
+      _saveListArrangement((s) => s.copyWith(tripListViewMode: mode));
 
-  Future<void> setEquipmentListViewMode(ListViewMode mode) async {
-    if (!await _loadedForListArrangement()) return;
-    state = state.copyWith(equipmentListViewMode: mode);
-    await _saveSettings();
-  }
+  Future<void> setEquipmentListViewMode(ListViewMode mode) =>
+      _saveListArrangement((s) => s.copyWith(equipmentListViewMode: mode));
 
-  Future<void> setBuddyListViewMode(ListViewMode mode) async {
-    if (!await _loadedForListArrangement()) return;
-    state = state.copyWith(buddyListViewMode: mode);
-    await _saveSettings();
-  }
+  Future<void> setBuddyListViewMode(ListViewMode mode) =>
+      _saveListArrangement((s) => s.copyWith(buddyListViewMode: mode));
 
-  Future<void> setDiveCenterListViewMode(ListViewMode mode) async {
-    if (!await _loadedForListArrangement()) return;
-    state = state.copyWith(diveCenterListViewMode: mode);
-    await _saveSettings();
-  }
+  Future<void> setDiveCenterListViewMode(ListViewMode mode) =>
+      _saveListArrangement((s) => s.copyWith(diveCenterListViewMode: mode));
 
-  Future<void> setCertificationListViewMode(ListViewMode mode) async {
-    if (!await _loadedForListArrangement()) return;
-    state = state.copyWith(certificationListViewMode: mode);
-    await _saveSettings();
-  }
+  Future<void> setCertificationListViewMode(ListViewMode mode) =>
+      _saveListArrangement((s) => s.copyWith(certificationListViewMode: mode));
 
-  Future<void> setCourseListViewMode(ListViewMode mode) async {
-    if (!await _loadedForListArrangement()) return;
-    state = state.copyWith(courseListViewMode: mode);
-    await _saveSettings();
-  }
+  Future<void> setCourseListViewMode(ListViewMode mode) =>
+      _saveListArrangement((s) => s.copyWith(courseListViewMode: mode));
 
   Future<void> setMapStyle(MapStyle style) async {
     state = state.copyWith(mapStyle: style);

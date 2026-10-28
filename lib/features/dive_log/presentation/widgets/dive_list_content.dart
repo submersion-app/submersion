@@ -1445,8 +1445,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             } else if (value == 'data_quality') {
               context.push('/dives/quality');
             } else if (value == 'group_trips') {
-              final next = !ref.read(diveListGroupTripsProvider);
-              ref.read(settingsProvider.notifier).setGroupTripsInDiveList(next);
+              ref.read(settingsProvider.notifier).toggleGroupTripsInDiveList();
             } else if (value == 'expand_all_trips') {
               ref.read(collapsedTripIdsProvider.notifier).expandAll();
             } else if (value == 'collapse_all_trips') {
@@ -1642,10 +1641,9 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                   } else if (value == 'data_quality') {
                     context.push('/dives/quality');
                   } else if (value == 'group_trips') {
-                    final next = !ref.read(diveListGroupTripsProvider);
                     ref
                         .read(settingsProvider.notifier)
-                        .setGroupTripsInDiveList(next);
+                        .toggleGroupTripsInDiveList();
                   } else if (value == 'expand_all_trips') {
                     ref.read(collapsedTripIdsProvider.notifier).expandAll();
                   } else if (value == 'collapse_all_trips') {
