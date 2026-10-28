@@ -1,10 +1,15 @@
+import 'dart:math';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 
 import '../../../tool/demo_data/src/seeders/demo_seeding.dart';
+import '../../../tool/demo_data/src/seeders/dive_kit.dart';
 import '../../../tool/demo_data/src/seeders/gear_catalog.dart';
 import '../../../tool/demo_data/src/seeders/seed_context.dart';
 import '../../../tool/demo_data/src/shape/dive_shape.dart';
+import '../../../tool/demo_data/src/story/destination_life.dart';
 import '../../../tool/demo_data/src/story/story_plan.dart';
 import '../../helpers/test_database.dart';
 import 'seed_harness.dart';
@@ -168,6 +173,105 @@ void main() {
     for (final f in early) {
       expect(f['o'] as double, 21);
     }
+  });
+
+  test('water temperatures change smoothly and fit the water', () async {
+    final dives = DiveRepository();
+    for (final d in ctx.plan.dives.where((d) => d.number % 7 == 0)) {
+      final temps = [
+        for (final p in await dives.getDiveProfile(ctx.diveId(d.number)))
+          if (p.temperature != null) p.temperature!,
+      ];
+      expect(temps, isNotEmpty, reason: 'dive ${d.number}');
+      for (var i = 1; i < temps.length - 1; i++) {
+        expect(
+          temps[i - 1] == temps[i + 1] && temps[i] != temps[i - 1],
+          isFalse,
+          reason: 'dive ${d.number} flickers at sample $i',
+        );
+      }
+      final (lo, hi) = d.destination.waterTempC;
+      if (hi - lo < 6) {
+        expect(
+          temps.reduce(max) - temps.reduce(min),
+          lessThanOrEqualTo(2.5),
+          reason: 'dive ${d.number} at ${d.destination.key}',
+        );
+      }
+    }
+  });
+
+  group('photos', () {
+    late List<Map<String, Object?>> photos;
+    late Map<String, PlannedDive> diveById;
+
+    setUpAll(() async {
+      photos = await rows(
+        'SELECT m.dive_id AS dive, m.original_filename AS file, '
+        'm.taken_at AS taken, d.dive_date_time AS start, d.runtime AS runtime, '
+        'e.depth_meters AS depth, e.temperature_celsius AS temp, '
+        'e.elapsed_seconds AS elapsed '
+        'FROM media m JOIN dives d ON d.id = m.dive_id '
+        'JOIN media_enrichment e ON e.media_id = m.id',
+      );
+      diveById = {for (final d in ctx.plan.dives) ctx.diveId(d.number): d};
+    });
+
+    test('every photo is linked to a dive', () {
+      expect(photos, hasLength(testPhotos.length));
+    });
+
+    test('every photo is on a camera dive where its subject lives', () {
+      final subjects = {for (final p in testPhotos) p.fileName: p.subject};
+      for (final photo in photos) {
+        final d = diveById[photo['dive']]!;
+        final subject = subjects[photo['file']]!;
+        expect(
+          isPhotoDive(d, ctx.timeline),
+          isTrue,
+          reason: '${photo['file']} on dive ${d.number}',
+        );
+        final key = d.destination.key;
+        expect(
+          [...destinationSpecies[key]!, ...destinationSiteTypes[key]!],
+          contains(subject),
+          reason: '${photo['file']} at $key',
+        );
+      }
+    });
+
+    test('a dive keeps at most three photos, each at its own moment', () {
+      final byDive = <Object?, List<Map<String, Object?>>>{};
+      for (final photo in photos) {
+        byDive.putIfAbsent(photo['dive'], () => []).add(photo);
+      }
+      expect(byDive.length, greaterThan(1));
+      for (final list in byDive.values) {
+        expect(list.length, lessThanOrEqualTo(3));
+        expect({for (final p in list) p['taken']}, hasLength(list.length));
+        for (final p in list) {
+          final into = (p['taken']! as int) - (p['start']! as int);
+          expect(into, greaterThan(0), reason: '${p['file']}');
+          expect(
+            into,
+            lessThan((p['runtime']! as int) * 1000),
+            reason: '${p['file']}',
+          );
+        }
+      }
+    });
+
+    test('a photo records the depth and temperature of its moment', () async {
+      final dives = DiveRepository();
+      for (final photo in photos) {
+        final profile = await dives.getDiveProfile(photo['dive']! as String);
+        final at = profile.lastWhere(
+          (p) => p.timestamp <= (photo['elapsed']! as int),
+        );
+        expect(photo['depth'], at.depth, reason: '${photo['file']}');
+        expect(photo['temp'], at.temperature, reason: '${photo['file']}');
+      }
+    });
   });
 
   test('boat tracks carry their destination time zone', () async {

@@ -19,6 +19,11 @@ gas, size and pressure trace. Dates, places, names, notes, serial numbers and
 source ids are never read into a shape. The same dive exported in two formats
 becomes one shape.
 
+A shape's own temperatures belong to its source dive's water, so the demo
+dives do not use them: each dive's temperatures come from the water of its
+destination and season (`src/seeders/water_column.dart`), read through a
+slow sensor at 0.1 degree steps.
+
 Computer-generated logbooks are refused by name: `Synthetic dives 1000.uddf`,
 `submersion_multitank_500dives.uddf` and anything under `scrubber-1500-dives`.
 
@@ -59,6 +64,9 @@ donated logbook. `tool/demo_data/photos/credits.json` records the photos in
 the published package; fetch each from its `sourceUrl` to rebuild it. The
 photos themselves are not kept in the repository. `subject` is a species name from `assets/data/species.json`
 or a word like `reef` or `wreck`; it decides which dive the photo goes on.
+Photos go on the dives that carried the camera, up to three a dive, where the
+subject lives (`src/story/destination_life.dart`). A photo no such dive can
+take is left out of the logbook and out of the package.
 
 The build plans a six-year story for a fictional diver
 (`docs/design/specs/2026-10-27-demo-data-realism-design.md`), seeds every
@@ -101,7 +109,7 @@ The checks:
   seeds, real product names, and the seeders' fixed labels
   (`src/checks/public_vocabulary.dart`). A refusal names the demo's value.
 
-Limits: the database 12 MB compressed, the whole package 20 MB.
+Limits: the database 12 MB compressed, the whole package 28 MB.
 
 When the privacy check refuses a generated name, list it in
 `DEMO_PACK_REFUSED_NAMES` (comma-separated) and build again: the people

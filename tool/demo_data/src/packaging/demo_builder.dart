@@ -49,7 +49,7 @@ class DemoBuildOutput {
 /// release.
 class DemoBuilder {
   static const maxDatabaseZipBytes = 12 * 1024 * 1024;
-  static const maxPackageBytes = 20 * 1024 * 1024;
+  static const maxPackageBytes = 28 * 1024 * 1024;
   static const releaseBase =
       'https://github.com/submersion-app/submersion/releases/download/demo-data';
 
@@ -150,6 +150,7 @@ class DemoBuilder {
       final archive = Archive()
         ..addFile(ArchiveFile.bytes('submersion_demo.db', dbBytes));
       for (final photo in photos) {
+        if (!ctx.linkedPhotos.contains(photo.fileName)) continue;
         archive.addFile(
           ArchiveFile.bytes(
             'photos/${photo.fileName}',

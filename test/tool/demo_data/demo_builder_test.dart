@@ -20,9 +20,17 @@ void main() {
 
   late Directory dir;
 
+  // A photo of something no dive meets: it never reaches the package.
+  const stray = DemoPhoto(
+    fileName: 'stray.jpg',
+    credit: 'Test Author, CC0',
+    subject: 'A fish that lives nowhere',
+  );
+  final photos = [...testPhotos, stray];
+
   setUp(() {
     dir = Directory.systemTemp.createTempSync('demo_build');
-    for (final photo in testPhotos) {
+    for (final photo in photos) {
       File(p.join(dir.path, 'photos', photo.fileName))
         ..createSync(recursive: true)
         ..writeAsBytesSync([0xFF, 0xD8, 0xFF]);
@@ -37,7 +45,7 @@ void main() {
   Future<DemoBuildOutput> build({List<Object>? seeders}) => DemoBuilder().build(
     shapes: syntheticShapes(),
     photosDir: p.join(dir.path, 'photos'),
-    photos: testPhotos,
+    photos: photos,
     seed: 7,
     anchor: DateTime(2026, 10, 1),
     outDir: p.join(dir.path, 'out'),
@@ -61,6 +69,7 @@ void main() {
           .toSet();
       expect(names, contains('submersion_demo.db'));
       expect(names, containsAll(testPhotos.map((f) => 'photos/${f.fileName}')));
+      expect(names, isNot(contains('photos/${stray.fileName}')));
       expect(
         File(p.join(dir.path, 'out', 'manifest-entry.json')).existsSync(),
         isTrue,
@@ -177,28 +186,34 @@ void main() {
     expect(Directory(p.join(dir.path, 'out')).existsSync(), isFalse);
   });
 
-  test('the limits are 12 MB for the database and 20 MB for the package', () {
+  test('the limits are 12 MB for the database and 28 MB for the package', () {
     expect(DemoBuilder.maxDatabaseZipBytes, 12 * 1024 * 1024);
-    expect(DemoBuilder.maxPackageBytes, 20 * 1024 * 1024);
+    expect(DemoBuilder.maxPackageBytes, 28 * 1024 * 1024);
   });
 
-  test('a refused name never reaches the logbook', () async {
-    final plain = await build();
-    final names = await _buddyNames(plain);
-    final refused = names.firstWhere((n) => n != 'Mara Lindqvist');
+  test(
+    'a refused name never reaches the logbook',
+    () async {
+      final plain = await build();
+      final names = await _buddyNames(plain);
+      final refused = names.firstWhere((n) => n != 'Mara Lindqvist');
 
-    final again = await DemoBuilder().build(
-      shapes: syntheticShapes(),
-      photosDir: p.join(dir.path, 'photos'),
-      photos: testPhotos,
-      seed: 7,
-      anchor: DateTime(2026, 10, 1),
-      outDir: p.join(dir.path, 'out2'),
-      refusedNames: {refused},
-    );
+      final again = await DemoBuilder().build(
+        shapes: syntheticShapes(),
+        photosDir: p.join(dir.path, 'photos'),
+        photos: photos,
+        seed: 7,
+        anchor: DateTime(2026, 10, 1),
+        outDir: p.join(dir.path, 'out2'),
+        refusedNames: {refused},
+      );
 
-    expect(await _buddyNames(again), isNot(contains(refused)));
-  });
+      expect(await _buddyNames(again), isNot(contains(refused)));
+    },
+    // Two whole 700-dive builds, which a shared CI runner can take past the
+    // usual two minutes for.
+    timeout: const Timeout(Duration(minutes: 6)),
+  );
 
   test('manifest entries merge, keeping older schemas for older apps', () {
     final merged = DemoBuilder.mergeManifest(

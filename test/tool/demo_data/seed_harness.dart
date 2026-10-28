@@ -12,18 +12,35 @@ import 'synthetic_shapes.dart';
 
 final _catalog = Catalog.load('assets/data');
 
-const testPhotos = [
-  DemoPhoto(fileName: 'reef.jpg', credit: 'Test Author, CC0', subject: 'reef'),
-  DemoPhoto(
+final testPhotos = [
+  const DemoPhoto(
+    fileName: 'reef.jpg',
+    credit: 'Test Author, CC0',
+    subject: 'reef',
+  ),
+  const DemoPhoto(
     fileName: 'turtle.jpg',
     credit: 'Test Author, CC0',
     subject: 'Green Sea Turtle',
   ),
-  DemoPhoto(
+  const DemoPhoto(
     fileName: 'wreck.jpg',
     credit: 'Test Author, CC0',
     subject: 'wreck',
   ),
+  // Enough of one subject that they must spread over several dives.
+  for (var i = 2; i <= 8; i++)
+    DemoPhoto(
+      fileName: 'turtle-$i.jpg',
+      credit: 'Test Author, CC0',
+      subject: 'Green Sea Turtle',
+    ),
+  for (var i = 2; i <= 5; i++)
+    DemoPhoto(
+      fileName: 'reef-$i.jpg',
+      credit: 'Test Author, CC0',
+      subject: 'reef',
+    ),
 ];
 
 /// A seed context over a fresh in-memory database (set as the app's open

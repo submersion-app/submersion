@@ -37,6 +37,10 @@ class DemoSeedContext {
   /// The photo files in [photosDir], with their credit lines.
   final List<DemoPhoto> photoFiles;
 
+  /// The names of the [photoFiles] the media seeder linked to a dive: the
+  /// ones the package carries.
+  final linkedPhotos = <String>{};
+
   static const diverId = 'demo-diver';
   static const partnerId = 'demo-partner';
 

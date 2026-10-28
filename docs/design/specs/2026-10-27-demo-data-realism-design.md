@@ -112,7 +112,10 @@ Trips run 4 to 14 days. Liveaboards have 3 to 4 dives a day, resorts 2 to 3,
 and a few short weekend trips sit closer to home. Each trip uses one or two
 dive centres from the catalogue near its sites. Water temperature, exposure
 suit, time zone and gas (air, nitrox, trimix) follow the destination and the
-phase.
+phase. A dive's temperature trace comes from its destination's water in that
+season (a summer lake's thermocline, a degree or so in the tropics), read
+through a slow sensor, never from the harvested shape, whose source water
+may have been anywhere.
 
 ### People (maintainer's choices)
 
@@ -294,7 +297,9 @@ something on screen in demo mode:
   may be higher. The maintainer accepted a download of around 20 MB, so the
   build's limits become 12 MB for the compressed database and 20 MB for the
   package. This replaces the earlier design's 15 MB promise. (The figures
-  are my call, within the 20 MB the maintainer accepted.)
+  are my call, within the 20 MB the maintainer accepted.) After walking the
+  first build the maintainer asked for many more photos and accepted about
+  25 MB for about 150 of them, so the package limit is now 28 MB.
 - **Dates.** All dates are generated relative to the anchor and shifted at
   open time, as now, so "overdue" and "due soon" stay true on any day the
   logbook is opened.
