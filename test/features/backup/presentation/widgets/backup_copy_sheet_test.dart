@@ -171,4 +171,32 @@ void main() {
     expect(shared, 1);
     expect(find.byType(BackupCopySheet), findsNothing);
   });
+
+  testWidgets('show pops the sheet before calling Save', (tester) async {
+    var saved = 0;
+    await tester.pumpWidget(
+      _wrap(
+        Builder(
+          builder: (context) => TextButton(
+            onPressed: () => BackupCopySheet.show(
+              context,
+              record: _record,
+              deviceLocked: false,
+              onSaveToFolder: () => saved++,
+            ),
+            child: const Text('open'),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    expect(find.text('Share'), findsNothing);
+    await tester.tap(find.text('Save to a folder'));
+    await tester.pumpAndSettle();
+
+    expect(saved, 1);
+    expect(find.byType(BackupCopySheet), findsNothing);
+  });
 }

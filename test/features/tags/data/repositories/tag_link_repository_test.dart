@@ -111,7 +111,11 @@ void main() {
         await repository.addTags(['i1', 'i2'], ['wreck', 'fish']);
 
         final byItem = await repository.getTagIdsByItem(['i1', 'i2']);
-        expect(byItem['i1'], ['wreck', 'fish']);
+        // Compared as sets: the read orders by created_at then id, and the
+        // replace and the add can land in the same millisecond, which leaves
+        // the order to the random ids.
+        expect(byItem['i1']!.toSet(), {'wreck', 'fish'});
+        expect(byItem['i1'], hasLength(2));
         expect(byItem['i2']!.toSet(), {'wreck', 'fish'});
         expect(await repository.tagCountsFor(['i1', 'i2']), {
           'wreck': 2,
