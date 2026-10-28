@@ -16438,6 +16438,7 @@
   "demo_enter_preparing": "Préparation du carnet d'exemple",
   "demo_enter_opening": "Ouverture du carnet d'exemple",
   "demo_enter_failed": "Le carnet d'exemple n'a pas pu être téléchargé. Vérifiez votre connexion et réessayez.",
+  "demo_enter_importRunning": "Une importation est encore en cours. Explorez les données d'exemple une fois qu'elle est terminée.",
   "demo_sealed_note": "Indisponible en mode démo",
   "demo_unavailable_title": "Indisponible en mode démo",
   "demo_unavailable_body": "Le mode démo garde le carnet d'exemple séparé de vos données : rien ne peut être importé, exporté, sauvegardé ni synchronisé.",

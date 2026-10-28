@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:drift/drift.dart' show GeneratedDatabase;
+import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/features/demo_mode/data/demo_database_preparer.dart';
 import 'package:submersion/features/demo_mode/data/demo_downloader.dart';
 import 'package:submersion/features/demo_mode/data/demo_manifest_client.dart';
@@ -59,6 +61,7 @@ void main() {
     bool hasPackage = true,
     DemoManifestClient? manifest,
     Future<void> Function()? endNearbySync,
+    bool Function()? importRunning,
   }) => DemoModeService(
     paths: paths,
     prefs: prefs,
@@ -74,6 +77,7 @@ void main() {
     cancelDeviceNotifications: () async => notificationCancels++,
     restart: () => restarts++,
     endNearbySync: endNearbySync,
+    importRunning: importRunning,
     clock: () => DateTime(2026, 10, 26, 12),
   );
 
@@ -104,6 +108,104 @@ void main() {
     ).enter(fromFirstRun: false, package: testPackage);
 
     expect(seen, (sealed: true, open: realPath));
+  });
+
+  test('enter waits for a sync already merging, so it never reaches the '
+      'sample logbook (issue #3798)', () async {
+    addTearDown(SyncCoordinator.reset);
+    final events = <String>[];
+    final merging = Completer<void>();
+    final sw = _RecordingSwitcher(events);
+    await sw.openAt(realPath, keyHex: null);
+    events.clear();
+    // A sync that started before the gate closed, still merging when the
+    // switch comes.
+    final sync = SyncCoordinator.run(() async {
+      events.add('sync start');
+      await merging.future;
+      events.add('sync end on ${p.basename(sw.openPath!)}');
+    });
+
+    await service(
+      sw: sw,
+      // The sync ends only after every microtask the switch could run.
+      endNearbySync: () async => Timer.run(merging.complete),
+    ).enter(fromFirstRun: false, package: testPackage);
+    await sync;
+    await sw.close();
+
+    expect(events, [
+      'sync start',
+      'sync end on submersion.db',
+      'open ${p.basename(paths.databaseFile)}',
+    ]);
+  });
+
+  test('enter refuses while an import is running, downloading '
+      'nothing', () async {
+    final downloader = _RecordingDownloader();
+
+    await expectLater(
+      service(
+        downloader: downloader,
+        importRunning: () => true,
+      ).enter(fromFirstRun: false, package: testPackage),
+      throwsA(isA<DemoImportRunningException>()),
+    );
+
+    expect(downloader.downloaded, isEmpty);
+    expect(Directory(paths.root).existsSync(), isFalse);
+    expect(switcher.openPath, realPath);
+    expect(DemoModeGate.instance.isActive, isFalse);
+    expect(restarts, 0);
+  });
+
+  test('an import that starts during the download is refused once the '
+      'gate closes, leaving the user logbook open', () async {
+    var checks = 0;
+
+    await expectLater(
+      service(
+        importRunning: () => checks++ > 0,
+      ).enter(fromFirstRun: false, package: testPackage),
+      throwsA(isA<DemoImportRunningException>()),
+    );
+
+    expect(checks, 2);
+    expect(Directory(paths.root).existsSync(), isFalse);
+    expect(switcher.openPath, realPath);
+    expect(prefs.getString('current_diver_id'), 'real-diver');
+    expect(DemoModeGate.instance.isActive, isFalse);
+    expect(restarts, 0);
+  });
+
+  test('a sync queued during the switch runs only once the sample logbook '
+      'is ready, with the gate closed', () async {
+    addTearDown(SyncCoordinator.reset);
+    final events = <String>[];
+    final sw = _RecordingSwitcher(events);
+    await sw.openAt(realPath, keyHex: null);
+    events.clear();
+    late Future<void> queued;
+
+    await service(
+      sw: sw,
+      endNearbySync: () async => Timer.run(
+        () => queued = SyncCoordinator.run(() async {
+          events.add(
+            'sync sealed=${DemoModeGate.instance.isActive} '
+            'phase=${(await store.read())?.phase.name}',
+          );
+        }),
+      ),
+    ).enter(fromFirstRun: false, package: testPackage);
+    await queued;
+    await sw.close();
+
+    expect(events, [
+      'open ${p.basename(paths.databaseFile)}',
+      'sync sealed=true phase=active',
+    ]);
   });
 
   test('enter reads the manifest again and downloads its current entry when '
@@ -502,5 +604,19 @@ class _RecordingDownloader extends FakeDownloader {
       onProgress: onProgress,
       isCancelled: isCancelled,
     );
+  }
+}
+
+/// Records each open as it is asked for, before the file is touched, so the
+/// order against a sync is exact.
+class _RecordingSwitcher extends FakeSwitcher {
+  _RecordingSwitcher(this.events);
+
+  final List<String> events;
+
+  @override
+  Future<void> openAt(String path, {required String? keyHex}) {
+    events.add('open ${p.basename(path)}');
+    return super.openAt(path, keyHex: keyHex);
   }
 }

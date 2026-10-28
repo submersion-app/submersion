@@ -16438,6 +16438,7 @@
   "demo_enter_preparing": "Preparando el diario de ejemplo",
   "demo_enter_opening": "Abriendo el diario de ejemplo",
   "demo_enter_failed": "No se pudo descargar el diario de ejemplo. Comprueba tu conexión e inténtalo de nuevo.",
+  "demo_enter_importRunning": "Todavía hay una importación en curso. Explora los datos de ejemplo cuando haya terminado.",
   "demo_sealed_note": "No disponible en el modo demo",
   "demo_unavailable_title": "No disponible en el modo demo",
   "demo_unavailable_body": "El modo demo mantiene el diario de ejemplo separado de tus datos, así que no se puede importar, exportar, respaldar ni sincronizar nada.",

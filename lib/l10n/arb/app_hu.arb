@@ -16438,6 +16438,7 @@
   "demo_enter_preparing": "Mintanapló előkészítése",
   "demo_enter_opening": "Mintanapló megnyitása",
   "demo_enter_failed": "A mintanaplót nem sikerült letölteni. Ellenőrizd a kapcsolatot, és próbáld újra.",
+  "demo_enter_importRunning": "Egy importálás még folyamatban van. Fedezd fel a mintaadatokat, amint befejeződött.",
   "demo_sealed_note": "Demó módban nem érhető el",
   "demo_unavailable_title": "Demó módban nem érhető el",
   "demo_unavailable_body": "A demó mód elkülöníti a mintanaplót az adataidtól, ezért semmit sem lehet importálni, exportálni, menteni vagy szinkronizálni.",

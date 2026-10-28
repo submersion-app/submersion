@@ -56048,6 +56048,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Das Beispiel-Logbuch konnte nicht heruntergeladen werden. Prüfe deine Verbindung und versuche es erneut.';
 
   @override
+  String get demo_enter_importRunning =>
+      'Ein Import läuft noch. Erkunde die Beispieldaten, sobald er abgeschlossen ist.';
+
+  @override
   String get demo_sealed_note => 'Im Demomodus nicht verfügbar';
 
   @override

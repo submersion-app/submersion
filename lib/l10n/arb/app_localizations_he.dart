@@ -54994,6 +54994,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'לא ניתן היה להוריד את יומן הדוגמה. בדקו את החיבור ונסו שוב.';
 
   @override
+  String get demo_enter_importRunning =>
+      'ייבוא עדיין פועל. גלו את נתוני הדוגמה לאחר שיסתיים.';
+
+  @override
   String get demo_sealed_note => 'לא זמין במצב הדגמה';
 
   @override

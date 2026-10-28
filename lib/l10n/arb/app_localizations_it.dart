@@ -56172,6 +56172,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Impossibile scaricare il logbook di esempio. Controlla la connessione e riprova.';
 
   @override
+  String get demo_enter_importRunning =>
+      'Un\'importazione è ancora in corso. Esplora i dati di esempio quando sarà terminata.';
+
+  @override
   String get demo_sealed_note => 'Non disponibile in modalità demo';
 
   @override

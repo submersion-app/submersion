@@ -16438,6 +16438,7 @@
   "demo_enter_preparing": "Voorbeeldlogboek voorbereiden",
   "demo_enter_opening": "Voorbeeldlogboek openen",
   "demo_enter_failed": "Het voorbeeldlogboek kon niet worden gedownload. Controleer je verbinding en probeer het opnieuw.",
+  "demo_enter_importRunning": "Er loopt nog een import. Verken de voorbeeldgegevens zodra die klaar is.",
   "demo_sealed_note": "Niet beschikbaar in demomodus",
   "demo_unavailable_title": "Niet beschikbaar in demomodus",
   "demo_unavailable_body": "De demomodus houdt het voorbeeldlogboek gescheiden van je gegevens, dus er kan niets worden geïmporteerd, geëxporteerd, geback-upt of gesynchroniseerd.",

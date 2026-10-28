@@ -56163,6 +56163,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Não foi possível transferir o diário de exemplo. Verifique a ligação e tente novamente.';
 
   @override
+  String get demo_enter_importRunning =>
+      'Ainda está a decorrer uma importação. Explore os dados de exemplo quando terminar.';
+
+  @override
   String get demo_sealed_note => 'Indisponível no modo de demonstração';
 
   @override

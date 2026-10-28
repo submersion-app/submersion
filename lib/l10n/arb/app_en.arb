@@ -33182,6 +33182,8 @@
   "@demo_enter_opening": {"description": "Demo mode (issue #3708)"},
   "demo_enter_failed": "The sample logbook could not be downloaded. Check your connection and try again.",
   "@demo_enter_failed": {"description": "Demo mode (issue #3708)"},
+  "demo_enter_importRunning": "An import is still running. Explore with sample data once it has finished.",
+  "@demo_enter_importRunning": {"description": "Demo mode (issue #3798): entering refused while an import is still writing"},
   "demo_sealed_note": "Not available in demo mode",
   "@demo_sealed_note": {"description": "Demo mode (issue #3708)"},
   "demo_unavailable_title": "Unavailable in demo mode",

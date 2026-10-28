@@ -56930,6 +56930,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'تعذّر تنزيل السجل التجريبي. تحقّق من اتصالك وحاول مرة أخرى.';
 
   @override
+  String get demo_enter_importRunning =>
+      'لا يزال الاستيراد قيد التشغيل. استكشف البيانات التجريبية بعد انتهائه.';
+
+  @override
   String get demo_sealed_note => 'غير متاح في الوضع التجريبي';
 
   @override

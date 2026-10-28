@@ -55822,6 +55822,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Het voorbeeldlogboek kon niet worden gedownload. Controleer je verbinding en probeer het opnieuw.';
 
   @override
+  String get demo_enter_importRunning =>
+      'Er loopt nog een import. Verken de voorbeeldgegevens zodra die klaar is.';
+
+  @override
   String get demo_sealed_note => 'Niet beschikbaar in demomodus';
 
   @override

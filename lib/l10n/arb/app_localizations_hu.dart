@@ -55854,6 +55854,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'A mintanaplót nem sikerült letölteni. Ellenőrizd a kapcsolatot, és próbáld újra.';
 
   @override
+  String get demo_enter_importRunning =>
+      'Egy importálás még folyamatban van. Fedezd fel a mintaadatokat, amint befejeződött.';
+
+  @override
   String get demo_sealed_note => 'Demó módban nem érhető el';
 
   @override

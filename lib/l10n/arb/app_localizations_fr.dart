@@ -56293,6 +56293,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Le carnet d\'exemple n\'a pas pu être téléchargé. Vérifiez votre connexion et réessayez.';
 
   @override
+  String get demo_enter_importRunning =>
+      'Une importation est encore en cours. Explorez les données d\'exemple une fois qu\'elle est terminée.';
+
+  @override
   String get demo_sealed_note => 'Indisponible en mode démo';
 
   @override

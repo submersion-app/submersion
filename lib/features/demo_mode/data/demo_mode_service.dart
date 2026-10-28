@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/features/demo_mode/data/demo_database_preparer.dart';
 import 'package:submersion/features/demo_mode/data/demo_database_switcher.dart';
 import 'package:submersion/features/demo_mode/data/demo_downloader.dart';
@@ -39,6 +40,13 @@ class DemoPackageChangedException implements Exception {
   final DemoPackage current;
 }
 
+/// An import is still writing to the user's logbook, so demo mode was not
+/// entered: its remaining dives would land in the sample logbook and be
+/// discarded with it (issue #3798). Nothing was changed.
+class DemoImportRunningException implements Exception {
+  const DemoImportRunningException();
+}
+
 /// Takes the app into the sample logbook and back out.
 ///
 /// The user's own database is never written: entering closes it and opens a
@@ -62,6 +70,7 @@ class DemoModeService {
     required this.restart,
     this.forgetPhotos,
     this.endNearbySync,
+    this.importRunning,
     this.clock = DateTime.now,
   });
 
@@ -86,6 +95,10 @@ class DemoModeService {
   /// Ends any nearby Bluetooth session still running, and returns once it
   /// has, so no session reads or writes across the database switch.
   final Future<void> Function()? endNearbySync;
+
+  /// Whether an import is writing to the user's logbook. Entering refuses
+  /// while one is, before downloading and again once the gate has closed.
+  final bool Function()? importRunning;
   final DateTime Function() clock;
 
   /// Downloads and opens [package], the one whose size the user agreed to.
@@ -96,6 +109,9 @@ class DemoModeService {
   /// the same size is downloaded from its current entry; one whose size
   /// changed throws [DemoPackageChangedException] so the user is asked again.
   /// When the manifest cannot be reached, [package] itself is tried.
+  ///
+  /// Throws [DemoImportRunningException] while [importRunning] says an
+  /// import is writing, leaving everything as it was.
   Future<void> enter({
     required bool fromFirstRun,
     required DemoPackage package,
@@ -103,6 +119,7 @@ class DemoModeService {
     void Function(DemoEnterProgress)? onProgress,
     bool Function()? isCancelled,
   }) async {
+    _throwIfImporting();
     final state = DemoState(
       phase: DemoPhase.entering,
       fromFirstRun: fromFirstRun,
@@ -136,24 +153,25 @@ class DemoModeService {
 
     // Every sealed feature refuses from here, while the switch is under way.
     DemoModeGate.instance.markActive(true);
+    // An import (a file dropped on the window, say) may have started during
+    // the download, before the gate could refuse it. The user's logbook is
+    // still the open one, so stepping back only reopens the gate.
+    if (importRunning?.call() ?? false) {
+      DemoModeGate.instance.markActive(false);
+      await store.deleteAll();
+      throw const DemoImportRunningException();
+    }
     try {
       onProgress?.call(const DemoEnterProgress(DemoEnterStage.opening));
       await cancelDeviceNotifications();
       await endNearbySync?.call();
-      await switcher.openAt(paths.databaseFile, keyHex: null);
-      await preparer.prepare(
-        switcher.current,
-        now: clock(),
-        photosDir: paths.photosDir,
-        deviceId: deviceId(),
-        units: units,
-      );
-      final diverId = await _defaultDiverId(switcher.current);
-      if (diverId != null) await prefs.setString(_currentDiverIdKey, diverId);
-      // Commit point: only a fully prepared logbook is reopened on relaunch.
-      // A kill before this line relaunches as entering, which restores the
-      // preferences and opens the user's logbook.
-      await store.write(state.copyWith(phase: DemoPhase.active));
+      // A sync that started before the gate closed may still be merging, and
+      // its later steps reach whichever database is open: in the sample
+      // logbook, whose cursors are empty, a pull brings in every record from
+      // the user's other devices (issue #3798). Switching as a coordinator
+      // turn waits for that merge and lets no other merge in until the
+      // sample logbook is ready.
+      await SyncCoordinator.run(() => _openSampleLogbook(state, units: units));
     } catch (_) {
       await _leaveLogged();
       // The user's logbook is a new database instance, so the scope is
@@ -162,6 +180,32 @@ class DemoModeService {
       rethrow;
     }
     restart();
+  }
+
+  Future<void> _openSampleLogbook(
+    DemoState state, {
+    DemoUnitSettings? units,
+  }) async {
+    await switcher.openAt(paths.databaseFile, keyHex: null);
+    await preparer.prepare(
+      switcher.current,
+      now: clock(),
+      photosDir: paths.photosDir,
+      deviceId: deviceId(),
+      units: units,
+    );
+    final diverId = await _defaultDiverId(switcher.current);
+    if (diverId != null) await prefs.setString(_currentDiverIdKey, diverId);
+    // Commit point: only a fully prepared logbook is reopened on relaunch.
+    // A kill before this line relaunches as entering, which restores the
+    // preferences and opens the user's logbook.
+    await store.write(state.copyWith(phase: DemoPhase.active));
+  }
+
+  void _throwIfImporting() {
+    if (importRunning?.call() ?? false) {
+      throw const DemoImportRunningException();
+    }
   }
 
   static void _throwIfCancelled(bool Function()? isCancelled) {

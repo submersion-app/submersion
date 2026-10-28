@@ -16438,6 +16438,7 @@
   "demo_enter_preparing": "正在准备示例日志",
   "demo_enter_opening": "正在打开示例日志",
   "demo_enter_failed": "无法下载示例日志。请检查网络连接后重试。",
+  "demo_enter_importRunning": "导入仍在进行中。请在导入完成后再使用示例数据探索。",
   "demo_sealed_note": "演示模式下不可用",
   "demo_unavailable_title": "演示模式下不可用",
   "demo_unavailable_body": "演示模式会将示例日志与你的数据分开保存，因此无法导入、导出、备份或同步任何内容。",

@@ -52716,6 +52716,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get demo_enter_failed => '无法下载示例日志。请检查网络连接后重试。';
 
   @override
+  String get demo_enter_importRunning => '导入仍在进行中。请在导入完成后再使用示例数据探索。';
+
+  @override
   String get demo_sealed_note => '演示模式下不可用';
 
   @override

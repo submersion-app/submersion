@@ -16438,6 +16438,7 @@
   "demo_enter_preparing": "Preparazione del logbook di esempio",
   "demo_enter_opening": "Apertura del logbook di esempio",
   "demo_enter_failed": "Impossibile scaricare il logbook di esempio. Controlla la connessione e riprova.",
+  "demo_enter_importRunning": "Un'importazione è ancora in corso. Esplora i dati di esempio quando sarà terminata.",
   "demo_sealed_note": "Non disponibile in modalità demo",
   "demo_unavailable_title": "Non disponibile in modalità demo",
   "demo_unavailable_body": "La modalità demo tiene il logbook di esempio separato dai tuoi dati, quindi non è possibile importare, esportare, eseguire il backup o sincronizzare nulla.",

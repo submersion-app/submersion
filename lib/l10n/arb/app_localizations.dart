@@ -88676,6 +88676,12 @@ abstract class AppLocalizations {
   /// **'The sample logbook could not be downloaded. Check your connection and try again.'**
   String get demo_enter_failed;
 
+  /// Demo mode (issue #3798): entering refused while an import is still writing
+  ///
+  /// In en, this message translates to:
+  /// **'An import is still running. Explore with sample data once it has finished.'**
+  String get demo_enter_importRunning;
+
   /// Demo mode (issue #3708)
   ///
   /// In en, this message translates to:

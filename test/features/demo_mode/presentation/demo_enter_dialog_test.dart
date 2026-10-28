@@ -35,6 +35,8 @@ class _ScriptedController extends DemoEnterController {
 
   void fail() => state = const DemoEnterFailed(DemoDownloadFailure.network);
 
+  void refuseForImport() => state = const DemoEnterImportRunning();
+
   void changeSize(DemoPackage package) =>
       state = DemoEnterPackageChanged(package);
 }
@@ -197,6 +199,28 @@ void main() {
     await tester.pump();
 
     expect(controller.starts, 2);
+  });
+
+  testWidgets('a running import asks to wait, and Close leaves everything '
+      'as it was', (tester) async {
+    await open(tester);
+    controller.refuseForImport();
+    await tester.pump();
+
+    expect(
+      find.text(
+        'An import is still running. Explore with sample data once it '
+        'has finished.',
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('Retry'), findsNothing);
+
+    await tester.tap(find.text('Close'));
+    await tester.pumpAndSettle();
+
+    expect(controller.cancels, 1);
+    expect(find.byType(DemoEnterDialog), findsNothing);
   });
 
   testWidgets('Cancel stops the download and closes the dialog', (

@@ -55284,6 +55284,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'The sample logbook could not be downloaded. Check your connection and try again.';
 
   @override
+  String get demo_enter_importRunning =>
+      'An import is still running. Explore with sample data once it has finished.';
+
+  @override
   String get demo_sealed_note => 'Not available in demo mode';
 
   @override

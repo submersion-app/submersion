@@ -56214,6 +56214,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'No se pudo descargar el diario de ejemplo. Comprueba tu conexión e inténtalo de nuevo.';
 
   @override
+  String get demo_enter_importRunning =>
+      'Todavía hay una importación en curso. Explora los datos de ejemplo cuando haya terminado.';
+
+  @override
   String get demo_sealed_note => 'No disponible en el modo demo';
 
   @override

@@ -16438,6 +16438,7 @@
   "demo_enter_preparing": "A preparar o diário de exemplo",
   "demo_enter_opening": "A abrir o diário de exemplo",
   "demo_enter_failed": "Não foi possível transferir o diário de exemplo. Verifique a ligação e tente novamente.",
+  "demo_enter_importRunning": "Ainda está a decorrer uma importação. Explore os dados de exemplo quando terminar.",
   "demo_sealed_note": "Indisponível no modo de demonstração",
   "demo_unavailable_title": "Indisponível no modo de demonstração",
   "demo_unavailable_body": "O modo de demonstração mantém o diário de exemplo separado dos seus dados, por isso nada pode ser importado, exportado, copiado ou sincronizado.",

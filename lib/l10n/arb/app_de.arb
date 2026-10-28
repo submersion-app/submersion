@@ -16563,6 +16563,7 @@
   "demo_enter_preparing": "Beispiel-Logbuch wird vorbereitet",
   "demo_enter_opening": "Beispiel-Logbuch wird geöffnet",
   "demo_enter_failed": "Das Beispiel-Logbuch konnte nicht heruntergeladen werden. Prüfe deine Verbindung und versuche es erneut.",
+  "demo_enter_importRunning": "Ein Import läuft noch. Erkunde die Beispieldaten, sobald er abgeschlossen ist.",
   "demo_sealed_note": "Im Demomodus nicht verfügbar",
   "demo_unavailable_title": "Im Demomodus nicht verfügbar",
   "demo_unavailable_body": "Der Demomodus hält das Beispiel-Logbuch von deinen Daten getrennt, daher kann nichts importiert, exportiert, gesichert oder synchronisiert werden.",

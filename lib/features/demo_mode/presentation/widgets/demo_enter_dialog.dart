@@ -121,6 +121,13 @@ class _DemoEnterDialogState extends ConsumerState<DemoEnterDialog> {
           ),
         ],
       ),
+      DemoEnterImportRunning() => AlertDialog(
+        title: Text(l10n.demo_welcome_title),
+        content: Text(l10n.demo_enter_importRunning),
+        actions: [
+          FilledButton(onPressed: close, child: Text(l10n.common_action_close)),
+        ],
+      ),
       DemoEnterFailed() => AlertDialog(
         title: Text(l10n.demo_welcome_title),
         content: Text(l10n.demo_enter_failed),
