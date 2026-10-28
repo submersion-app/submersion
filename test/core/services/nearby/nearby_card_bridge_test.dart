@@ -21,10 +21,12 @@ void main() {
     String id,
     String name, {
     NearbyTestDevice? ble,
+    DateTime Function()? now,
   }) async {
     final host = NearbyCardHost(
       name: name,
       card: () async => bytesOf('card of $name'),
+      now: now,
     );
     addTearDown(host.dispose);
     final events = <NearbyCardEvent>[];
@@ -84,5 +86,34 @@ void main() {
     final bens = hostA.peers.where((p) => p.name == 'Ben').toList();
     expect(bens, hasLength(1));
     expect(bens.single.transportId, startsWith('mpc:'));
+  });
+
+  test('a diver seen over both carriers stays listed while either sees '
+      'them', () async {
+    final mpc = InMemoryNearbyHub();
+    final ble = InMemoryNearbyHub();
+    final bleA = await joinNearbyTestDevice(ble, 'A');
+    final bleB = await joinNearbyTestDevice(ble, 'B');
+    bleA.auto = false;
+    bleB.auto = false;
+    var clock = DateTime(2026, 10, 28, 12);
+    final (hostA, _) = await phone(
+      mpc,
+      'A',
+      'Ann',
+      ble: bleA,
+      now: () => clock,
+    );
+    await phone(mpc, 'B', 'Ben', ble: bleB);
+    await bleA.manager.refresh();
+    await bleB.manager.refresh();
+    await settleNearby();
+    expect(hostA.peers.single.transportId, startsWith('mpc:'));
+
+    // A minute on, Bluetooth still sees Ben, Multipeer has said nothing new.
+    clock = clock.add(const Duration(minutes: 1));
+    await bleA.manager.refresh();
+    await settleNearby();
+    expect(hostA.peers.map((p) => p.name), ['Ben']);
   });
 }

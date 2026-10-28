@@ -3001,6 +3001,25 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get buddySwap_cardFailed => 'Your buddy card could not be built.';
+
+  @override
+  String get buddySwap_qr_tooLarge =>
+      'Your card is too long for a code. Try Send file instead.';
+
+  @override
+  String get buddySwap_sendFailed => 'The card file could not be shared.';
+
+  @override
+  String get buddyCard_saveFailed => 'The buddy could not be saved.';
+
+  @override
+  String get buddyCard_field_photo => 'Photo';
+
+  @override
+  String get buddyCard_change_newPhoto => 'New photo';
+
+  @override
   String get buddyShare_title => 'What you share';
 
   @override

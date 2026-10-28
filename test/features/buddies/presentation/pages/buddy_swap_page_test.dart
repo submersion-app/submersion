@@ -24,6 +24,7 @@ class _FakeSession implements BuddySwapSession {
   _FakeSession(this.availability);
 
   final NearbyAvailability availability;
+  Completer<void>? holdStart;
   final controller = StreamController<NearbyCardEvent>.broadcast();
   final requested = <String>[];
   var stops = 0;
@@ -34,7 +35,10 @@ class _FakeSession implements BuddySwapSession {
   Stream<NearbyCardEvent> get events => controller.stream;
 
   @override
-  Future<NearbyAvailability> start() async => availability;
+  Future<NearbyAvailability> start() async {
+    await holdStart?.future;
+    return availability;
+  }
 
   @override
   Future<void> request(NearbyCardPeer peer) async => requested.add(peer.name);
@@ -77,8 +81,10 @@ void main() {
     WidgetTester tester, {
     NearbyAvailability availability = NearbyAvailability.ready,
     Future<Uint8List?> Function()? pickFile,
+    Future<BuddyCard?> Function()? card,
+    Completer<void>? holdStart,
   }) async {
-    session = _FakeSession(availability);
+    session = _FakeSession(availability)..holdStart = holdStart;
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = const Size(500, 1200);
     addTearDown(tester.view.reset);
@@ -106,7 +112,9 @@ void main() {
       ProviderScope(
         overrides: [
           settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
-          myBuddyCardProvider.overrideWith((ref) async => _me),
+          myBuddyCardProvider.overrideWith(
+            (ref) => card == null ? Future.value(_me) : card(),
+          ),
           myBuddyCardChoicesProvider.overrideWith(
             (ref) async => BuddyCardShareChoices.defaults,
           ),
@@ -254,6 +262,55 @@ void main() {
     GoRouter.of(tester.element(find.byType(BuddySwapPage))).go('/buddies');
     await settle(tester);
     expect(session.stops, greaterThan(0));
+  });
+
+  testWidgets('an expired request closes the sheet', (tester) async {
+    await pump(tester);
+    session.controller.add(CardRequested(_sam, (_) {}));
+    await settle(tester);
+    expect(find.text('Sam Rivera wants to swap cards'), findsOneWidget);
+    session.controller.add(const CardRequestExpired(_sam));
+    await settle(tester);
+    expect(find.text('Sam Rivera wants to swap cards'), findsNothing);
+  });
+
+  testWidgets('closing the page while the session starts still stops it', (
+    tester,
+  ) async {
+    final hold = Completer<void>();
+    await pump(tester, holdStart: hold);
+    GoRouter.of(tester.element(find.byType(BuddySwapPage))).go('/buddies');
+    await settle(tester);
+    hold.complete();
+    await settle(tester);
+    expect(session.stops, greaterThan(0));
+  });
+
+  testWidgets('a card that cannot be built says so and still offers scan', (
+    tester,
+  ) async {
+    await pump(tester, card: () => Future.error(StateError('no diver')));
+    expect(find.text('Your buddy card could not be built.'), findsOneWidget);
+    expect(find.text('Scan code'), findsOneWidget);
+    expect(find.text('Open card file'), findsOneWidget);
+  });
+
+  testWidgets('a card too long for a code says so', (tester) async {
+    await pump(
+      tester,
+      card: () async => BuddyCard(id: 'me', name: 'x' * 3000),
+    );
+    await tester.scrollUntilVisible(
+      find.text('Show my code'),
+      400,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(find.text('Show my code'));
+    await settle(tester);
+    expect(
+      find.text('Your card is too long for a code. Try Send file instead.'),
+      findsOneWidget,
+    );
   });
 
   test('platform default is restored', () {

@@ -75,9 +75,22 @@ class NearbyBuddySwapSession implements BuddySwapSession {
   @override
   List<NearbyCardPeer> get peers => _host?.peers ?? const [];
 
+  /// Starts and stops run one at a time, in the order called: a stop that
+  /// arrives while a start is still waiting on the radio runs after it, so
+  /// the session always ends in the state last asked for.
+  Future<void> _queue = Future.value();
+
+  Future<T> _serially<T>(Future<T> Function() op) {
+    final result = _queue.then((_) => op());
+    _queue = result.then<void>((_) {}, onError: (Object _) {});
+    return result;
+  }
+
   @override
-  Future<NearbyAvailability> start() async {
-    await stop();
+  Future<NearbyAvailability> start() => _serially(_start);
+
+  Future<NearbyAvailability> _start() async {
+    await _stop();
     final full = BuddyCardCodec.encodeFull(_card);
     final host = NearbyCardHost(
       name: _card.name,
@@ -127,7 +140,9 @@ class NearbyBuddySwapSession implements BuddySwapSession {
   Future<void> request(NearbyCardPeer peer) async => _host?.request(peer);
 
   @override
-  Future<void> stop() async {
+  Future<void> stop() => _serially(_stop);
+
+  Future<void> _stop() async {
     await _proximity?.cancel();
     _proximity = null;
     await _bridge?.stop();

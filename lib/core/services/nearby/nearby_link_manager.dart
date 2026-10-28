@@ -385,14 +385,18 @@ class NearbyLinkManager {
   void _onSighting(String transportId) {
     if (!_running || _disposed) return;
     _lastSighted[transportId] = _now();
+    final host = _cardHost;
+    if (host != null) {
+      // On the swap screen this device looks only for divers; sync waits.
+      // Ahead of the stranger backoff: a buddy's phone this device dialled
+      // for sync before is a stranger to sync, not to a swap, and the
+      // host spaces its own looks.
+      if (!_connecting.contains(transportId)) host.onSighting(transportId);
+      return;
+    }
     if (!_mayDial(transportId)) return;
     final device = _deviceByTransport[transportId];
     if (device != null && _active.containsKey(device)) return;
-    if (_cardHost != null) {
-      // On the swap screen this device looks only for divers; sync waits.
-      _cardHost!.onSighting(transportId);
-      return;
-    }
     if (_pairingMode) {
       if (!_pairingTried.add(transportId)) return;
       unawaited(_openPairing(transportId));

@@ -47,6 +47,13 @@ class CardRequested extends NearbyCardEvent {
   final NearbyCardDecision decide;
 }
 
+/// [from]'s request went unanswered for the whole window; any open
+/// question about it should close.
+class CardRequestExpired extends NearbyCardEvent {
+  const CardRequestExpired(this.from);
+  final NearbyCardPeer from;
+}
+
 class CardReceived extends NearbyCardEvent {
   const CardReceived(this.from, this.cardBytes);
   final NearbyCardPeer from;
@@ -81,6 +88,7 @@ class NearbyCardHost {
     this.answerWindow = const Duration(seconds: 60),
     this.summaryRefresh = const Duration(minutes: 2),
     this.staleAfter = const Duration(seconds: 45),
+    this.mutualGrace = const Duration(seconds: 10),
     String? swapId,
     DateTime Function()? now,
   }) : _card = card,
@@ -97,6 +105,9 @@ class NearbyCardHost {
 
   /// A diver not seen for this long has left the screen or the boat.
   final Duration staleAfter;
+
+  /// How long after a swap a crossing link counts as the same swap.
+  final Duration mutualGrace;
   final String swapId;
   final DateTime Function() _now;
 
@@ -107,7 +118,16 @@ class NearbyCardHost {
   final _lastSeen = <String, DateTime>{};
   final _lastSighted = <String, DateTime>{};
   final _requested = <String>{};
-  final _received = <String>{};
+
+  /// When each diver's card last arrived. Within [mutualGrace] a second
+  /// link carrying the same swap is quiet (no second card, no question);
+  /// after it, a new request is a new question.
+  final _swappedAt = <String, DateTime>{};
+
+  /// Every transport each diver was dialled over, so a sighting on any of
+  /// them keeps the diver listed.
+  final _transportsBySwap = <String, Set<String>>{};
+  final _requestTimers = <String, Timer>{};
   final _channels = <NearbyCardChannel>{};
   NearbyCardDialer? _dial;
 
@@ -121,15 +141,12 @@ class NearbyCardHost {
   List<NearbyCardPeer> get peers {
     final now = _now();
     bool fresh(NearbyCardPeer p) {
-      final transport = p.transportId;
-      final seen =
-          [
-            _lastSeen[p.swapId],
-            if (transport != null) _lastSighted[transport],
-          ].whereType<DateTime>().fold<DateTime?>(
-            null,
-            (a, b) => a == null || b.isAfter(a) ? b : a,
-          );
+      final transports = {?p.transportId, ...?_transportsBySwap[p.swapId]};
+      DateTime? seen = _lastSeen[p.swapId];
+      for (final t in transports) {
+        final at = _lastSighted[t];
+        if (at != null && (seen == null || at.isAfter(seen))) seen = at;
+      }
       return seen != null && now.difference(seen) <= staleAfter;
     }
 
@@ -188,21 +205,34 @@ class NearbyCardHost {
   }
 
   /// Asks [peer] to swap. When this device cannot dial them, the request
-  /// waits for their next look at this one.
+  /// waits for their next look at this one, for at most [answerWindow].
+  /// A request that cannot reach them ends with [CardSwapFailed].
   Future<void> request(NearbyCardPeer peer) async {
     if (_disposed) return;
-    _pending.add(peer.swapId);
-    _requested.add(peer.swapId);
+    final id = peer.swapId;
+    _pending.add(id);
+    _requested.add(id);
+    _swappedAt.remove(id);
     final transport = peer.transportId;
-    if (transport != null) {
-      _lastDial[transport] = _now();
-      await _dialAndRun(transport);
+    if (transport == null) {
+      _requestTimers[id]?.cancel();
+      _requestTimers[id] = Timer(answerWindow, () {
+        _requestTimers.remove(id);
+        if (_pending.remove(id)) _fail(peer, NearbyCardFailure.timedOut);
+      });
+      return;
     }
+    _lastDial[transport] = _now();
+    final ran = await _dialAndRun(transport);
+    // The dial never reached them: free the row rather than let the
+    // request fire minutes later on an unrelated look.
+    if (!ran && _pending.remove(id)) _fail(peer, NearbyCardFailure.lost);
   }
 
-  Future<void> _dialAndRun(String transportId) async {
+  /// Whether a session ran with [transportId].
+  Future<bool> _dialAndRun(String transportId) async {
     final dial = _dialerFor(transportId);
-    if (dial == null) return;
+    if (dial == null) return false;
     final NearbyCardChannel channel;
     try {
       channel = await dial(transportId);
@@ -210,12 +240,18 @@ class NearbyCardHost {
       // Off its swap screen, or a build without card swaps: not listed.
       _forgetTransport(transportId);
       _log.info('Card session to $transportId refused: ${e.code}');
-      return;
+      return false;
     } on Object catch (e) {
       _log.info('Card session to $transportId failed: $e');
-      return;
+      return false;
     }
     await _run(channel, dialled: transportId);
+    return true;
+  }
+
+  bool _swappedLately(String swapId) {
+    final at = _swappedAt[swapId];
+    return at != null && _now().difference(at) < mutualGrace;
   }
 
   void _forgetTransport(String transportId) {
@@ -286,8 +322,7 @@ class NearbyCardHost {
       if (!iWant) {
         // Asked while this diver asked them too, or after a swap on this
         // screen already: both said yes, so no question.
-        final mutual =
-            _requested.contains(theirId) || _received.contains(theirId);
+        final mutual = _requested.contains(theirId) || _swappedLately(theirId);
         final accepted = mutual || await _ask(peer, channel);
         await channel.send(
           accepted
@@ -323,7 +358,11 @@ class NearbyCardHost {
       _requested.remove(theirId);
       // Two links to one diver (both asked at once) both carry the card;
       // the diver sees it once.
-      if (_received.add(theirId)) _emit(CardReceived(peer, theirCard!.body));
+      _requestTimers.remove(theirId)?.cancel();
+      if (!_swappedLately(theirId)) {
+        _swappedAt[theirId] = _now();
+        _emit(CardReceived(peer, theirCard!.body));
+      }
     } on _AnswerTimedOut {
       // This diver did not answer; the asker was told.
     } on TimeoutException {
@@ -368,6 +407,9 @@ class NearbyCardHost {
     );
     _peers[theirId] = peer;
     _lastSeen[theirId] = _now();
+    if (dialled != null) {
+      (_transportsBySwap[theirId] ??= <String>{}).add(dialled);
+    }
     _emitPeers();
     return peer;
   }
@@ -375,8 +417,9 @@ class NearbyCardHost {
   /// Reports [reason] for [peer], unless their card already arrived over
   /// another link.
   void _fail(NearbyCardPeer peer, NearbyCardFailure reason) {
-    if (_received.contains(peer.swapId)) return;
+    if (_swappedLately(peer.swapId)) return;
     _requested.remove(peer.swapId);
+    _requestTimers.remove(peer.swapId)?.cancel();
     _emit(CardSwapFailed(peer, reason));
   }
 
@@ -403,6 +446,7 @@ class NearbyCardHost {
     try {
       return await answer.future.timeout(answerWindow);
     } on TimeoutException {
+      _emit(CardRequestExpired(peer));
       await channel.send(
         NearbyMessageType.cardDecline,
         _jsonBytes(const {'r': 'timeout'}),
@@ -426,6 +470,10 @@ class NearbyCardHost {
     _disposed = true;
     _dial = null;
     _carrierDials.clear();
+    for (final timer in _requestTimers.values) {
+      timer.cancel();
+    }
+    _requestTimers.clear();
     await Future.wait([for (final c in _channels.toList()) c.close()]);
     await _events.close();
   }

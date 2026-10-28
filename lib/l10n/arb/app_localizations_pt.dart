@@ -3037,6 +3037,27 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get buddySwap_cardFailed =>
+      'Não foi possível criar o seu cartão de parceiro.';
+
+  @override
+  String get buddySwap_qr_tooLarge =>
+      'O seu cartão é demasiado longo para um código. Experimente Enviar ficheiro.';
+
+  @override
+  String get buddySwap_sendFailed =>
+      'Não foi possível partilhar o ficheiro do cartão.';
+
+  @override
+  String get buddyCard_saveFailed => 'Não foi possível guardar o parceiro.';
+
+  @override
+  String get buddyCard_field_photo => 'Fotografia';
+
+  @override
+  String get buddyCard_change_newPhoto => 'Nova fotografia';
+
+  @override
   String get buddyShare_title => 'O que partilha';
 
   @override

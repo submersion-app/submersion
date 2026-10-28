@@ -72,6 +72,15 @@ abstract final class BuddyCardCodec {
   static bool isCardFileName(String fileName) =>
       fileName.toLowerCase().endsWith('.$fileExtension');
 
+  /// A file name for [name]'s card that every platform accepts: path and
+  /// reserved characters become `_`, and the name is kept short.
+  static String fileNameFor(String name) {
+    var base = name.trim().replaceAll(RegExp(r'[\\/:*?"<>|\x00-\x1F]'), '_');
+    if (base.length > 100) base = base.substring(0, 100);
+    if (base.isEmpty) base = 'buddy';
+    return '$base.$fileExtension';
+  }
+
   /// Whether [bytes] read as a full card, for a file whose name was lost on
   /// the way (an Android content URI often carries none). A small JSON
   /// object with the card's version, id and name keys; no dive log format

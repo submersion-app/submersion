@@ -3047,6 +3047,27 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get buddySwap_cardFailed =>
+      'Impossible de créer votre carte de binôme.';
+
+  @override
+  String get buddySwap_qr_tooLarge =>
+      'Votre carte est trop longue pour un code. Essayez plutôt Envoyer un fichier.';
+
+  @override
+  String get buddySwap_sendFailed =>
+      'Impossible de partager le fichier de la carte.';
+
+  @override
+  String get buddyCard_saveFailed => 'Impossible d\'enregistrer le binôme.';
+
+  @override
+  String get buddyCard_field_photo => 'Photo';
+
+  @override
+  String get buddyCard_change_newPhoto => 'Nouvelle photo';
+
+  @override
   String get buddyShare_title => 'Ce que vous partagez';
 
   @override

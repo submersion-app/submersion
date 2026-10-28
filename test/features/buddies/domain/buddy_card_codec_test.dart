@@ -217,4 +217,17 @@ void main() {
     expect(BuddyCardCodec.isCardFileName('SAM.SUBBUDDY'), isTrue);
     expect(BuddyCardCodec.isCardFileName('dives.uddf'), isFalse);
   });
+
+  test('fileNameFor makes a safe file name from a diver name', () {
+    expect(BuddyCardCodec.fileNameFor('Sam Rivera'), 'Sam Rivera.subbuddy');
+    expect(
+      BuddyCardCodec.fileNameFor('a/b\\c:d*e?"f<g>h|i'),
+      'a_b_c_d_e__f_g_h_i.subbuddy',
+    );
+    expect(BuddyCardCodec.fileNameFor('  '), 'buddy.subbuddy');
+    expect(
+      BuddyCardCodec.fileNameFor('x' * 300).length,
+      lessThanOrEqualTo(110),
+    );
+  });
 }

@@ -147,6 +147,8 @@ void main() {
       NearbyCardFailure.timedOut,
     );
     expect(eventsB.whereType<CardReceived>(), isEmpty);
+    // The asked diver's sheet is told to close.
+    expect(eventsB.whereType<CardRequestExpired>(), hasLength(1));
   });
 
   test('both requesting at once makes one swap and one card each', () async {
@@ -195,5 +197,91 @@ void main() {
     expect(hostA.peers.where((p) => p.name == 'Ben'), hasLength(1));
     clock = clock.add(const Duration(minutes: 1));
     expect(hostA.peers.where((p) => p.name == 'Ben'), isEmpty);
+  });
+
+  test('a request to a diver who left fails and frees the row', () async {
+    final hub = InMemoryNearbyHub();
+    final (a, hostA, eventsA) = await onScreen(hub, 'A', 'Ann');
+    final (b, _, _) = await onScreen(hub, 'B', 'Ben');
+    await discover([a, b]);
+    final ben = peerNamed(hostA, 'Ben');
+
+    await b.manager.leaveCardMode();
+    await settleNearby();
+    await hostA.request(ben);
+    await settleNearby();
+
+    expect(
+      eventsA.whereType<CardSwapFailed>().single.reason,
+      NearbyCardFailure.lost,
+    );
+  });
+
+  test('a request with no way to dial times out', () async {
+    final host = NearbyCardHost(
+      name: 'Ann',
+      card: () async => bytesOf('card'),
+      answerWindow: const Duration(milliseconds: 100),
+    );
+    addTearDown(host.dispose);
+    final events = <NearbyCardEvent>[];
+    host.events.listen(events.add);
+    await host.request(const NearbyCardPeer(swapId: 'x', name: 'Xan'));
+    await Future<void>.delayed(const Duration(milliseconds: 300));
+    expect(
+      events.whereType<CardSwapFailed>().single.reason,
+      NearbyCardFailure.timedOut,
+    );
+  });
+
+  test('after a swap, the same diver asking again is asked again', () async {
+    final hub = InMemoryNearbyHub();
+    var clock = DateTime(2026, 10, 28, 12);
+    final (a, hostA, _) = await onScreen(hub, 'A', 'Ann');
+    final (b, hostB, eventsB) = await onScreen(
+      hub,
+      'B',
+      'Ben',
+      now: () => clock,
+    );
+    await discover([a, b]);
+    unawaited(hostA.request(peerNamed(hostA, 'Ben')));
+    await settleNearby();
+    eventsB.whereType<CardRequested>().single.decide(true);
+    await settleNearby();
+    expect(eventsB.whereType<CardReceived>(), hasLength(1));
+
+    clock = clock.add(const Duration(minutes: 1));
+    unawaited(hostA.request(peerNamed(hostA, 'Ben')));
+    await settleNearby();
+    expect(eventsB.whereType<CardRequested>(), hasLength(2));
+  });
+
+  test('a buddy first met as a stranger is still listed on the swap '
+      'screen', () async {
+    final hub = InMemoryNearbyHub();
+    // A syncs with its own paired laptop L, so it dials every Submersion
+    // device it sees, and B (not paired) refuses it as a stranger. A can
+    // only scan (as on Linux), so B can never list A by dialling it: only
+    // A's own look at B can put Ben on A's list.
+    final a = await joinNearbyTestDevice(hub, 'A', canAdvertise: false);
+    final l = await joinNearbyTestDevice(hub, 'L');
+    final b = await joinNearbyTestDevice(hub, 'B');
+    await pairNearbyTestDevices(a, l);
+    await foregroundNearbyTestDevices([a, b]);
+    await b.carrier.startAdvertising();
+    await a.manager.refresh();
+    await settleNearby();
+
+    final hostA = NearbyCardHost(name: 'Ann', card: () async => bytesOf('a'));
+    final hostB = NearbyCardHost(name: 'Ben', card: () async => bytesOf('b'));
+    addTearDown(hostA.dispose);
+    addTearDown(hostB.dispose);
+    await b.manager.enterCardMode(hostB);
+    await a.manager.enterCardMode(hostA);
+    await a.manager.refresh();
+    await settleNearby();
+
+    expect(hostA.peers.map((p) => p.name), contains('Ben'));
   });
 }

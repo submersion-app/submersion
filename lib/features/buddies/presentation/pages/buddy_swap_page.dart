@@ -1,11 +1,14 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:path/path.dart' as p;
 import 'package:permission_handler/permission_handler.dart' as permissions;
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/nearby/nearby_card_host.dart';
 import 'package:submersion/core/services/nearby/nearby_carrier.dart';
 import 'package:submersion/features/buddies/data/services/buddy_card_nfc.dart';
@@ -37,10 +40,16 @@ class BuddySwapPage extends ConsumerStatefulWidget {
 
 class _BuddySwapPageState extends ConsumerState<BuddySwapPage>
     with WidgetsBindingObserver {
+  static final _log = LoggerService.forClass(BuddySwapPage);
   BuddySwapSession? _session;
   StreamSubscription<NearbyCardEvent>? _events;
   Timer? _refresh;
   BuddyCard? _card;
+  bool _cardFailed = false;
+
+  /// The diver whose request sheet is open, so an expired request can close
+  /// it.
+  String? _openRequest;
   NearbyAvailability? _availability;
   List<NearbyCardPeer> _peers = const [];
   final _waitingFor = <String>{};
@@ -74,13 +83,28 @@ class _BuddySwapPageState extends ConsumerState<BuddySwapPage>
   }
 
   Future<void> _start() async {
-    final card = await ref.read(myBuddyCardProvider.future);
+    final BuddyCard? card;
+    try {
+      card = await ref.read(myBuddyCardProvider.future);
+    } on Object catch (e, stackTrace) {
+      _log.error(
+        'Buddy card could not be built',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      if (mounted) setState(() => _cardFailed = true);
+      return;
+    }
     if (!mounted || card == null) return;
     final session = ref.read(buddySwapSessionFactoryProvider)(card);
     _session = session;
     _events = session.events.listen(_onEvent);
     final availability = await session.start();
-    if (!mounted) return;
+    if (!mounted) {
+      // The page closed while the radio was coming on.
+      await session.stop();
+      return;
+    }
     setState(() {
       _card = card;
       _availability = availability;
@@ -117,6 +141,8 @@ class _BuddySwapPageState extends ConsumerState<BuddySwapPage>
       case CardReceived(:final from, :final cardBytes):
         setState(() => _waitingFor.remove(from.swapId));
         openBuddyCard(context, BuddyCardCodec.decodeFull(cardBytes));
+      case CardRequestExpired(:final from):
+        if (_openRequest == from.swapId) Navigator.of(context).pop(false);
       case CardSwapFailed(:final peer, :final reason):
         setState(() => _waitingFor.remove(peer.swapId));
         _say(switch (reason) {
@@ -137,13 +163,14 @@ class _BuddySwapPageState extends ConsumerState<BuddySwapPage>
   Future<void> _answer(NearbyCardPeer from, NearbyCardDecision decide) async {
     final card = _card;
     if (card == null) return decide(false);
-    decide(
-      await showSwapRequestSheet(
-        context,
-        from: from,
-        youSend: buddyCardSummary(card, context.l10n),
-      ),
+    _openRequest = from.swapId;
+    final accepted = await showSwapRequestSheet(
+      context,
+      from: from,
+      youSend: buddyCardSummary(card, context.l10n),
     );
+    _openRequest = null;
+    decide(accepted);
   }
 
   void _say(String message) => ScaffoldMessenger.maybeOf(
@@ -159,20 +186,20 @@ class _BuddySwapPageState extends ConsumerState<BuddySwapPage>
     final choices = await ref.read(myBuddyCardChoicesProvider.future);
     final available = await ref.read(myBuddyCardFieldsProvider.future);
     if (!mounted) return;
-    var changed = false;
+    final saves = <Future<void>>[];
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       builder: (_) => ShareChoicesSheet(
         initial: choices,
         available: available,
-        onChanged: (next) {
-          changed = true;
-          unawaited(saveMyBuddyCardChoices(ref, next));
-        },
+        onChanged: (next) => saves.add(saveMyBuddyCardChoices(ref, next)),
       ),
     );
-    if (changed && mounted) await _restart();
+    if (saves.isEmpty) return;
+    // Every toggle is saved before the card is rebuilt from them.
+    await Future.wait(saves);
+    if (mounted) await _restart();
   }
 
   Future<void> _scanCode() async {
@@ -181,20 +208,58 @@ class _BuddySwapPageState extends ConsumerState<BuddySwapPage>
     openBuddyCard(context, BuddyCardCodec.decodeLink(text));
   }
 
+  /// Shares the card as a file written to a temporary folder, removed
+  /// once the share sheet is done with it.
   Future<void> _sendFile() async {
     final card = _card;
     if (card == null) return;
-    await saveAndShareFileBytes(
-      BuddyCardCodec.encodeFull(card),
-      '${card.name}.${BuddyCardCodec.fileExtension}',
-      'application/json',
-    );
+    final l10n = context.l10n;
+    Directory? temp;
+    try {
+      temp = await Directory.systemTemp.createTemp('buddy_card');
+      final name = BuddyCardCodec.fileNameFor(card.name);
+      final file = File(p.join(temp.path, name));
+      await file.writeAsBytes(BuddyCardCodec.encodeFull(card));
+      await shareFileAtPath(
+        file.path,
+        name,
+        'application/json',
+        dialogTitle: l10n.buddySwap_action_sendFile,
+      );
+    } on Object catch (e, stackTrace) {
+      _log.error(
+        'Buddy card file was not shared',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      if (mounted) _say(l10n.buddySwap_sendFailed);
+    } finally {
+      try {
+        await temp?.delete(recursive: true);
+      } on Object {
+        // The OS clears its temporary folder in time.
+      }
+    }
   }
 
   Future<void> _openFile() async {
-    final bytes = await ref.read(buddyCardFilePickerProvider)();
-    if (bytes == null || !mounted) return;
-    openBuddyCard(context, BuddyCardCodec.decodeFull(bytes));
+    final l10n = context.l10n;
+    try {
+      final bytes = await ref.read(buddyCardFilePickerProvider)();
+      if (bytes == null || !mounted) return;
+      openBuddyCard(context, BuddyCardCodec.decodeFull(bytes));
+    } on Object catch (e) {
+      _log.info('Buddy card file was not opened: $e');
+      if (mounted) _say(l10n.buddyCard_error_unreadable);
+    }
+  }
+
+  void _showCode(BuddyCard card) {
+    try {
+      unawaited(showCardQrSheet(context, card));
+    } on BuddyCardTooLarge {
+      _say(context.l10n.buddySwap_qr_tooLarge);
+    }
   }
 
   Future<void> _readTag() async {
@@ -238,7 +303,9 @@ class _BuddySwapPageState extends ConsumerState<BuddySwapPage>
     return Scaffold(
       appBar: AppBar(title: Text(l10n.buddySwap_title)),
       body: card == null
-          ? const Center(child: CircularProgressIndicator())
+          ? _cardFailed
+                ? _CardFailed(onScan: _scanCode, onOpen: _openFile)
+                : const Center(child: CircularProgressIndicator())
           : ListView(
               padding: const EdgeInsets.symmetric(vertical: 8),
               children: [
@@ -256,7 +323,7 @@ class _BuddySwapPageState extends ConsumerState<BuddySwapPage>
                   onChange: _changeChoices,
                 ),
                 SwapFallbackButtons(
-                  onShowCode: () => showCardQrSheet(context, card),
+                  onShowCode: () => _showCode(card),
                   onScanCode: _scanCode,
                   onSendFile: _sendFile,
                   onOpenFile: _openFile,
@@ -354,6 +421,44 @@ class _Unavailable extends StatelessWidget {
             ),
         ],
       ),
+    );
+  }
+}
+
+/// The diver's own card could not be built (a missing profile, a database
+/// error): receiving still works.
+class _CardFailed extends StatelessWidget {
+  const _CardFailed({required this.onScan, required this.onOpen});
+
+  final VoidCallback onScan;
+  final VoidCallback onOpen;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return ListView(
+      padding: const EdgeInsets.all(24),
+      children: [
+        Text(l10n.buddySwap_cardFailed, textAlign: TextAlign.center),
+        const SizedBox(height: 16),
+        Wrap(
+          alignment: WrapAlignment.center,
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            OutlinedButton.icon(
+              onPressed: onScan,
+              icon: const Icon(Icons.qr_code_scanner),
+              label: Text(l10n.buddySwap_action_scanCode),
+            ),
+            OutlinedButton.icon(
+              onPressed: onOpen,
+              icon: const Icon(Icons.file_open_outlined),
+              label: Text(l10n.buddySwap_action_openFile),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

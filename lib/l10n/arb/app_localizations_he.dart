@@ -2984,6 +2984,25 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get buddySwap_cardFailed => 'לא ניתן ליצור את כרטיס השותף שלך.';
+
+  @override
+  String get buddySwap_qr_tooLarge =>
+      'הכרטיס שלך ארוך מדי לקוד. נסה במקום זאת לשלוח קובץ.';
+
+  @override
+  String get buddySwap_sendFailed => 'לא ניתן לשתף את קובץ הכרטיס.';
+
+  @override
+  String get buddyCard_saveFailed => 'לא ניתן לשמור את השותף.';
+
+  @override
+  String get buddyCard_field_photo => 'תמונה';
+
+  @override
+  String get buddyCard_change_newPhoto => 'תמונה חדשה';
+
+  @override
   String get buddyShare_title => 'מה אתה משתף';
 
   @override

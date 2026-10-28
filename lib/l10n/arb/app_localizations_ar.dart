@@ -3107,6 +3107,25 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get buddySwap_cardFailed => 'تعذّر إنشاء بطاقة الرفيق الخاصة بك.';
+
+  @override
+  String get buddySwap_qr_tooLarge =>
+      'بطاقتك أطول من أن تتسع في رمز. جرّب إرسال ملف بدلًا من ذلك.';
+
+  @override
+  String get buddySwap_sendFailed => 'تعذّرت مشاركة ملف البطاقة.';
+
+  @override
+  String get buddyCard_saveFailed => 'تعذّر حفظ الرفيق.';
+
+  @override
+  String get buddyCard_field_photo => 'الصورة';
+
+  @override
+  String get buddyCard_change_newPhoto => 'صورة جديدة';
+
+  @override
   String get buddyShare_title => 'ما تشاركه';
 
   @override

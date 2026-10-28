@@ -2876,6 +2876,24 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get buddySwap_cardFailed => '无法生成你的潜伴名片。';
+
+  @override
+  String get buddySwap_qr_tooLarge => '你的名片太长，无法生成二维码。请改用发送文件。';
+
+  @override
+  String get buddySwap_sendFailed => '无法共享名片文件。';
+
+  @override
+  String get buddyCard_saveFailed => '无法保存潜伴。';
+
+  @override
+  String get buddyCard_field_photo => '照片';
+
+  @override
+  String get buddyCard_change_newPhoto => '新照片';
+
+  @override
   String get buddyShare_title => '你共享的内容';
 
   @override

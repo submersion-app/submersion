@@ -3027,6 +3027,26 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get buddySwap_cardFailed =>
+      'Nem sikerült elkészíteni a társkártyádat.';
+
+  @override
+  String get buddySwap_qr_tooLarge =>
+      'A kártyád túl hosszú egy kódhoz. Próbáld inkább a Fájl küldése lehetőséget.';
+
+  @override
+  String get buddySwap_sendFailed => 'A kártyafájlt nem sikerült megosztani.';
+
+  @override
+  String get buddyCard_saveFailed => 'A társat nem sikerült menteni.';
+
+  @override
+  String get buddyCard_field_photo => 'Fotó';
+
+  @override
+  String get buddyCard_change_newPhoto => 'Új fotó';
+
+  @override
   String get buddyShare_title => 'Amit megosztasz';
 
   @override

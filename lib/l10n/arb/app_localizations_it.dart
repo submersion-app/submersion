@@ -3040,6 +3040,27 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get buddySwap_cardFailed =>
+      'Impossibile creare la tua scheda compagno.';
+
+  @override
+  String get buddySwap_qr_tooLarge =>
+      'La tua scheda è troppo lunga per un codice. Prova invece Invia file.';
+
+  @override
+  String get buddySwap_sendFailed =>
+      'Impossibile condividere il file della scheda.';
+
+  @override
+  String get buddyCard_saveFailed => 'Impossibile salvare il compagno.';
+
+  @override
+  String get buddyCard_field_photo => 'Foto';
+
+  @override
+  String get buddyCard_change_newPhoto => 'Nuova foto';
+
+  @override
   String get buddyShare_title => 'Cosa condividi';
 
   @override

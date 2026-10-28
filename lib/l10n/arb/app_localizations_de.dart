@@ -3035,6 +3035,28 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get buddySwap_cardFailed =>
+      'Deine Buddy-Karte konnte nicht erstellt werden.';
+
+  @override
+  String get buddySwap_qr_tooLarge =>
+      'Deine Karte ist zu lang für einen Code. Versuche stattdessen Datei senden.';
+
+  @override
+  String get buddySwap_sendFailed =>
+      'Die Kartendatei konnte nicht geteilt werden.';
+
+  @override
+  String get buddyCard_saveFailed =>
+      'Der Buddy konnte nicht gespeichert werden.';
+
+  @override
+  String get buddyCard_field_photo => 'Foto';
+
+  @override
+  String get buddyCard_change_newPhoto => 'Neues Foto';
+
+  @override
   String get buddyShare_title => 'Was du teilst';
 
   @override

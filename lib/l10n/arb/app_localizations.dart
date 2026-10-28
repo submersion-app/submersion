@@ -4681,6 +4681,42 @@ abstract class AppLocalizations {
   /// **'{name} needs a newer version of Submersion'**
   String buddySwap_failed_newerApp(String name);
 
+  /// No description provided for @buddySwap_cardFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Your buddy card could not be built.'**
+  String get buddySwap_cardFailed;
+
+  /// No description provided for @buddySwap_qr_tooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'Your card is too long for a code. Try Send file instead.'**
+  String get buddySwap_qr_tooLarge;
+
+  /// No description provided for @buddySwap_sendFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The card file could not be shared.'**
+  String get buddySwap_sendFailed;
+
+  /// No description provided for @buddyCard_saveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The buddy could not be saved.'**
+  String get buddyCard_saveFailed;
+
+  /// No description provided for @buddyCard_field_photo.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo'**
+  String get buddyCard_field_photo;
+
+  /// No description provided for @buddyCard_change_newPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'New photo'**
+  String get buddyCard_change_newPhoto;
+
   /// No description provided for @buddyShare_title.
   ///
   /// In en, this message translates to:
