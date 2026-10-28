@@ -41,61 +41,61 @@ class StoryPlanner {
       id: 'p-mara',
       firstName: 'Mara',
       lastName: 'Lindqvist',
-      role: 'buddy',
+      role: PersonRole.regular,
     ),
     FictionalPerson(
       id: 'p-tobias',
       firstName: 'Tobias',
       lastName: 'Reinholt',
-      role: 'buddy',
+      role: PersonRole.regular,
     ),
     FictionalPerson(
       id: 'p-priya',
       firstName: 'Priya',
       lastName: 'Varadan',
-      role: 'buddy',
+      role: PersonRole.regular,
     ),
     FictionalPerson(
       id: 'p-sam',
       firstName: 'Sam',
       lastName: 'Okonkwo-Hale',
-      role: 'buddy',
+      role: PersonRole.regular,
     ),
     FictionalPerson(
       id: 'p-lena',
       firstName: 'Lena',
       lastName: 'Marchetti',
-      role: 'buddy',
+      role: PersonRole.regular,
     ),
     FictionalPerson(
       id: 'p-jonas',
       firstName: 'Jonas',
       lastName: 'Vettermann',
-      role: 'buddy',
+      role: PersonRole.regular,
     ),
     FictionalPerson(
       id: 'p-hannah',
       firstName: 'Hannah',
       lastName: 'Brookfield',
-      role: 'instructor',
+      role: PersonRole.instructor,
     ),
     FictionalPerson(
       id: 'p-diego',
       firstName: 'Diego',
       lastName: 'Albarrán',
-      role: 'instructor',
+      role: PersonRole.instructor,
     ),
     FictionalPerson(
       id: 'p-kenji',
       firstName: 'Kenji',
       lastName: 'Moriwaki',
-      role: 'instructor',
+      role: PersonRole.instructor,
     ),
     FictionalPerson(
       id: 'p-ayu',
       firstName: 'Ayu',
       lastName: 'Setiawati',
-      role: 'guide',
+      role: PersonRole.guide,
     ),
   ];
 
@@ -126,8 +126,12 @@ class StoryPlanner {
         sitesByDest.putIfAbsent(d.key, () => _pickSites(d, d == home ? 8 : 7));
 
     final slots = _schedule(anchor, diveCount, sitesFor);
-    final instructors = people.where((p) => p.role == 'instructor').toList();
-    final buddies = people.where((p) => p.role != 'instructor').toList();
+    final instructors = people
+        .where((p) => p.role == PersonRole.instructor)
+        .toList();
+    final buddies = people
+        .where((p) => p.role != PersonRole.instructor)
+        .toList();
 
     final courses = <PlannedCourse>[];
     final courseOf = <int, PlannedCourse>{};

@@ -6,6 +6,7 @@ import 'package:submersion/features/divers/data/repositories/diver_weight_entry_
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/domain/entities/diver_weight_entry.dart';
 
+import '../story/story_plan.dart';
 import 'seed_context.dart';
 
 /// The demo diver, a second profile (their regular buddy, so the profile
@@ -84,20 +85,23 @@ class DiverSeeder implements DemoSeeder {
           diverId: DemoSeedContext.diverId,
           name: person.name,
           email:
-              '${person.firstName.toLowerCase()}.${person.lastName.toLowerCase().replaceAll(RegExp('[^a-z]'), '')}@example.com',
+              '${_local(person.firstName)}.${_local(person.lastName)}@example.com',
           certificationLevel: switch (person.role) {
-            'instructor' => 'Instructor',
-            'guide' => 'Divemaster',
-            _ => 'Advanced Open Water',
+            PersonRole.instructor => 'Instructor',
+            PersonRole.guide => 'Divemaster',
+            PersonRole.techTeam => 'Normoxic Trimix',
+            PersonRole.regular || PersonRole.boatBuddy => 'Advanced Open Water',
           },
           isFavorite: person.id == 'p-mara',
           linkedDiverId: person.id == 'p-mara'
               ? DemoSeedContext.partnerId
               : null,
           notes: switch (person.role) {
-            'instructor' => 'Taught one of the courses.',
-            'guide' => 'Guide on several trips.',
-            _ => '',
+            PersonRole.instructor => 'Taught one of the courses.',
+            PersonRole.guide => 'Guided a trip.',
+            PersonRole.techTeam => 'Technical team.',
+            PersonRole.boatBuddy => 'Met on a trip.',
+            PersonRole.regular => '',
           },
           createdAt: created,
           updatedAt: ctx.anchor,
@@ -110,6 +114,10 @@ class DiverSeeder implements DemoSeeder {
       diverId: DemoSeedContext.diverId,
     );
   }
+
+  /// A name as the local part of an email address: lower case, letters only.
+  static String _local(String name) =>
+      name.toLowerCase().replaceAll(RegExp('[^a-z]'), '');
 
   static DateTime _days(DateTime from, int days) =>
       DateTime(from.year, from.month, from.day + days);

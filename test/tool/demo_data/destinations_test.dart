@@ -78,14 +78,14 @@ void main() {
   test('every destination names known species and built-in site types', () {
     final species = {
       for (final s
-          in (jsonDecode(
-                    File('assets/data/species.json').readAsStringSync(),
-                  )
+          in (jsonDecode(File('assets/data/species.json').readAsStringSync())
                   as Map<String, Object?>)['species']!
               as List)
         (s as Map)['commonName'] as String,
     };
-    final seed = File('lib/core/database/site_type_seed.dart').readAsStringSync();
+    final seed = File(
+      'lib/core/database/site_type_seed.dart',
+    ).readAsStringSync();
     for (final d in all) {
       final names = destinationSpecies[d.key];
       expect(names, isNotNull, reason: d.key);

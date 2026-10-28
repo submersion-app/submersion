@@ -74,20 +74,29 @@ class Destination {
   final bool liveaboard;
 }
 
+/// Who a person is in the diver's story.
+enum PersonRole { regular, techTeam, instructor, guide, boatBuddy }
+
 class FictionalPerson {
   const FictionalPerson({
     required this.id,
     required this.firstName,
     required this.lastName,
     required this.role,
+    this.destinationKey,
+    this.course,
   });
 
   final String id;
   final String firstName;
   final String lastName;
+  final PersonRole role;
 
-  /// buddy, instructor or guide.
-  final String role;
+  /// Where a guide works or a boat buddy was met.
+  final String? destinationKey;
+
+  /// The course an instructor taught.
+  final CertLevel? course;
 
   String get name => '$firstName $lastName';
 }

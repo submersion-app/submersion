@@ -40,7 +40,7 @@ class DiveExtras {
   ) async {
     final instructors = {
       for (final p in ctx.plan.people)
-        if (p.role == 'instructor') p.id,
+        if (p.role == PersonRole.instructor) p.id,
     };
     for (final person in d.buddyIds) {
       await _buddies.addBuddyToDiveWithRoles(id, ctx.buddyId(person), [
