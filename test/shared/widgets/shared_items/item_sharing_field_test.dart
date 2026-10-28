@@ -7,7 +7,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
-import 'package:submersion/shared/widgets/shared_items/item_sharing_row.dart';
+import 'package:submersion/shared/widgets/shared_items/item_sharing_field.dart';
 
 /// The "Shared with" field on a trip or site edit page (issue #2151), the
 /// one place sharing is shown (#3766). 'me' owns the trip; 'son' and

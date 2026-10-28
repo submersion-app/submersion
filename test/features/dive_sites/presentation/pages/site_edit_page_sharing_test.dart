@@ -15,7 +15,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/divers/presentation/providers/profile_hides_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
-import 'package:submersion/shared/widgets/shared_items/item_sharing_row.dart';
+import 'package:submersion/shared/widgets/shared_items/item_sharing_field.dart';
 import 'package:submersion/core/data/visibility/item_sharing.dart';
 import 'package:submersion/features/divers/data/repositories/item_shares_repository.dart';
 import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';

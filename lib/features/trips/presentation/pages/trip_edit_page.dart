@@ -26,7 +26,7 @@ import 'package:submersion/shared/widgets/label_with_control.dart';
 import 'package:submersion/core/data/visibility/item_sharing.dart';
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
-import 'package:submersion/shared/widgets/shared_items/item_sharing_row.dart';
+import 'package:submersion/shared/widgets/shared_items/item_sharing_field.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
 
 const _log = LoggerService('tripEditPage');

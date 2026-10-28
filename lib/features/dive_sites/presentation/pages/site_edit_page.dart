@@ -55,7 +55,7 @@ import 'package:submersion/features/rules/presentation/run_rules_flow.dart';
 import 'package:submersion/features/rules/domain/rule_subject.dart';
 import 'package:submersion/core/data/visibility/item_sharing.dart';
 import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
-import 'package:submersion/shared/widgets/shared_items/item_sharing_row.dart';
+import 'package:submersion/shared/widgets/shared_items/item_sharing_field.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
 import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';

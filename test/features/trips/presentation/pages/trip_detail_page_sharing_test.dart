@@ -15,6 +15,7 @@ import 'package:submersion/features/trips/presentation/providers/trip_providers.
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
 import 'package:submersion/core/data/visibility/item_sharing.dart';
+import 'package:submersion/shared/widgets/shared_items/item_sharing_field.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/shared_items_fixture.dart';
@@ -327,6 +328,7 @@ void main() {
   testWidgets('the owner sees no Shared with row on the page', (tester) async {
     await pump(tester, active: 'd1');
 
+    expect(find.byType(SharingTile), findsNothing);
     expect(find.text('Shared with'), findsNothing);
     expect(find.text('Everyone'), findsNothing);
   });
