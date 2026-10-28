@@ -252,4 +252,52 @@ void main() {
     final tiny = FaceBox.clamped(x: 0.5, y: 0.5, width: 0, height: 0);
     expect(tiny.width, FaceBox.minSize);
   });
+
+  group('one person per photo', () {
+    test('a tag without a spot keeps an existing box', () async {
+      final boxed = await repository.addTag(
+        mediaId: 'p1',
+        buddyId: 'alex',
+        box: box,
+      );
+      final again = await repository.addTag(mediaId: 'p1', buddyId: 'alex');
+
+      expect(again.id, boxed.id);
+      expect(
+        (await repository.getTagsForMedia('p1', diverId: 'A')).single.box,
+        box,
+      );
+    });
+
+    test('a video keeps one tag without a spot per person', () async {
+      final first = await repository.addTag(mediaId: 'v1', buddyId: 'alex');
+      final second = await repository.addTag(mediaId: 'v1', buddyId: 'alex');
+
+      expect(second.id, first.id);
+      expect(
+        await repository.getTagsForMedia('v1', diverId: 'A'),
+        hasLength(1),
+      );
+    });
+
+    test(
+      'changing a box to someone already tagged leaves one tag for them',
+      () async {
+        final bea = await repository.addTag(mediaId: 'p1', buddyId: 'bea');
+        final alex = await repository.addTag(
+          mediaId: 'p1',
+          buddyId: 'alex',
+          box: box,
+        );
+
+        await repository.updateTag(alex.copyWith(buddyId: 'bea'));
+
+        final tags = await repository.getTagsForMedia('p1', diverId: 'A');
+        expect(tags.map((t) => (t.id, t.buddyId, t.box)), [
+          (alex.id, 'bea', box),
+        ]);
+        expect(await isTombstoned(bea.id), isTrue);
+      },
+    );
+  });
 }

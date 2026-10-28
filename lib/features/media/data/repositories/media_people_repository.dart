@@ -77,8 +77,10 @@ class MediaPeopleRepository {
   /// exactly one of them.
   ///
   /// On a photo a person appears once, so tagging someone already tagged
-  /// moves their existing box rather than adding a second row. On a video
-  /// every call adds a row: one per moment.
+  /// moves their existing box rather than adding a second row, and a tag
+  /// without a spot leaves an existing box alone. On a video every boxed
+  /// call adds a row, one per moment, but a person has at most one tag
+  /// without a spot.
   Future<MediaPersonTag> addTag({
     required String mediaId,
     String? buddyId,
@@ -90,9 +92,20 @@ class MediaPeopleRepository {
       throw ArgumentError('A tag names exactly one of buddyId and diverId');
     }
     final now = DateTime.now().millisecondsSinceEpoch;
-    if (!await _isVideo(mediaId)) {
-      final existing = await _findPhotoTag(mediaId, buddyId, diverId);
+    final isVideo = await _isVideo(mediaId);
+    if (isVideo && box == null) {
+      final existing = await _findTag(
+        mediaId,
+        buddyId,
+        diverId,
+        spotless: true,
+      );
+      if (existing != null) return _tagFromRow(existing);
+    }
+    if (!isVideo) {
+      final existing = await _findTag(mediaId, buddyId, diverId);
       if (existing != null) {
+        if (box == null) return _tagFromRow(existing);
         final moved = _tagFromRow(existing).copyWith(
           box: box,
           videoPosition: null,
@@ -142,6 +155,10 @@ class MediaPeopleRepository {
 
   /// Writes [tag]'s person, box and moment over the stored row, stamped with
   /// the later of [MediaPersonTag.updatedAt] and now.
+  ///
+  /// The person rules [addTag] keeps hold here too: re-assigning a tag to
+  /// someone already on the photo (or already tagged without a spot on the
+  /// video) removes their other tag, so the edited one is theirs.
   Future<void> updateTag(MediaPersonTag tag) async {
     if ((tag.buddyId == null) == (tag.diverId == null)) {
       throw ArgumentError('A tag names exactly one of buddyId and diverId');
@@ -170,6 +187,26 @@ class MediaPeopleRepository {
       recordId: tag.id,
       localUpdatedAt: now,
     );
+    final isVideo = await _isVideo(tag.mediaId);
+    if (!isVideo || box == null) {
+      final p = _db.mediaPeople;
+      final others =
+          await (_db.select(p)..where(
+                (r) =>
+                    r.mediaId.equals(tag.mediaId) &
+                    r.id.equals(tag.id).not() &
+                    _samePerson(r, tag.buddyId, tag.diverId) &
+                    (isVideo ? _spotless(r) : const Constant(true)),
+              ))
+              .get();
+      for (final other in others) {
+        await (_db.delete(p)..where((r) => r.id.equals(other.id))).go();
+        await _syncRepository.logDeletion(
+          entityType: _entityType,
+          recordId: other.id,
+        );
+      }
+    }
     SyncEventBus.notifyLocalChange();
   }
 
@@ -291,21 +328,32 @@ class MediaPeopleRepository {
         mediaTypeToDbString(MediaType.video);
   }
 
-  Future<MediaPeopleData?> _findPhotoTag(
+  /// A tag of the person on [mediaId]; with [spotless], only one without a
+  /// spot.
+  Future<MediaPeopleData?> _findTag(
     String mediaId,
     String? buddyId,
-    String? diverId,
-  ) =>
+    String? diverId, {
+    bool spotless = false,
+  }) =>
       (_db.select(_db.mediaPeople)
             ..where(
               (t) =>
                   t.mediaId.equals(mediaId) &
-                  (buddyId != null
-                      ? t.buddyId.equals(buddyId)
-                      : t.diverId.equals(diverId!)),
+                  _samePerson(t, buddyId, diverId) &
+                  (spotless ? _spotless(t) : const Constant(true)),
             )
             ..limit(1))
           .getSingleOrNull();
+
+  Expression<bool> _samePerson(
+    $MediaPeopleTable t,
+    String? buddyId,
+    String? diverId,
+  ) => buddyId != null ? t.buddyId.equals(buddyId) : t.diverId.equals(diverId!);
+
+  Expression<bool> _spotless($MediaPeopleTable t) =>
+      t.bboxX.isNull() & t.videoPositionMs.isNull();
 
   static int _compareChips(MediaPersonChip a, MediaPersonChip b) {
     if (a.tag.isMe != b.tag.isMe) return a.tag.isMe ? -1 : 1;
