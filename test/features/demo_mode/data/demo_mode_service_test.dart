@@ -186,20 +186,22 @@ void main() {
     final sw = _RecordingSwitcher(events);
     await sw.openAt(realPath, keyHex: null);
     events.clear();
-    late Future<void> queued;
+    final queued = Completer<void>();
 
     await service(
       sw: sw,
       endNearbySync: () async => Timer.run(
-        () => queued = SyncCoordinator.run(() async {
-          events.add(
-            'sync sealed=${DemoModeGate.instance.isActive} '
-            'phase=${(await store.read())?.phase.name}',
-          );
-        }),
+        () => queued.complete(
+          SyncCoordinator.run<void>(() async {
+            events.add(
+              'sync sealed=${DemoModeGate.instance.isActive} '
+              'phase=${(await store.read())?.phase.name}',
+            );
+          }),
+        ),
       ),
     ).enter(fromFirstRun: false, package: testPackage);
-    await queued;
+    await queued.future;
     await sw.close();
 
     expect(events, [

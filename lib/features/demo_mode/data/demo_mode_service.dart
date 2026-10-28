@@ -156,7 +156,7 @@ class DemoModeService {
     // An import (a file dropped on the window, say) may have started during
     // the download, before the gate could refuse it. The user's logbook is
     // still the open one, so stepping back only reopens the gate.
-    if (importRunning?.call() ?? false) {
+    if (_importing) {
       DemoModeGate.instance.markActive(false);
       await store.deleteAll();
       throw const DemoImportRunningException();
@@ -202,10 +202,10 @@ class DemoModeService {
     await store.write(state.copyWith(phase: DemoPhase.active));
   }
 
+  bool get _importing => importRunning?.call() ?? false;
+
   void _throwIfImporting() {
-    if (importRunning?.call() ?? false) {
-      throw const DemoImportRunningException();
-    }
+    if (_importing) throw const DemoImportRunningException();
   }
 
   static void _throwIfCancelled(bool Function()? isCancelled) {
