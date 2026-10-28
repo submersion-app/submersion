@@ -118,12 +118,15 @@ the plan. Removing dives back to one re-enables both.
   tissues and CNS (the dive log's analysis, residual from the dives before
   it included), off-gassed and decayed over Dive A's interval; the OTU of
   every logged dive that ended less than 24 hours before the dive starts,
-  for Dive A and every later dive; and tank pressures. Each tank of Dive A
-  starts at the end pressure of the first logged tank of the same gas
-  (rounded O2 and He); a tank with no match, or no recorded end pressure,
-  keeps its own. Fill on Dive A fills to its own pressure from before it
-  followed the dive. Removing Dive A leaves Dive B following, after its own
-  interval.
+  for Dive A and every later dive; and the tanks. Dive A takes the followed
+  dive's own tanks (name, size, rated pressure, gas, role), each starting at
+  the pressure it ended with; one with no recorded end pressure starts at
+  its logged fill. Fill fills to the logged fill. The profile, and Dive B's
+  tank links, move to the new tank of the same gas (rounded O2 and He),
+  else to the first. A followed dive with no tanks leaves Dive A's own,
+  which keep their pressures. Stop following keeps the tanks, back at their
+  fills. Removing Dive A leaves Dive B following, its tanks carrying from
+  the logged tanks Dive A's did, after its own interval.
 - **Interval.** Following a dive that ended less than 48 hours ago (and more
   than 10 minutes ago) starts Dive A after the time since, so the plan is for
   now; an older dive gets the usual 1:00.

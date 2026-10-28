@@ -116,7 +116,12 @@ class PlanSeriesNotifier extends StateNotifier<PlanSeries> {
   /// Follows the logged dives in [follow]: the first dive starts from the
   /// followed one, after [surfaceInterval].
   void followDive(SeriesFollow follow, {required Duration surfaceInterval}) {
-    state = edits.followDive(state, follow, surfaceInterval: surfaceInterval);
+    state = edits.followDive(
+      state,
+      follow,
+      surfaceInterval: surfaceInterval,
+      newId: _newId,
+    );
     _loadSelected();
   }
 

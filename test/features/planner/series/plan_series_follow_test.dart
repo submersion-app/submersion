@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
 import 'package:submersion/features/planner/domain/entities/plan_series.dart';
@@ -35,7 +36,26 @@ void main() {
       ],
       endTissues: endTissues,
       endCns: 18,
-      endTanks: const [DiveTank(id: 'l1', endPressure: 110, gasMix: ean32)],
+      endTanks: const [
+        DiveTank(
+          id: 'l2',
+          volume: 7,
+          startPressure: 200,
+          endPressure: 150,
+          gasMix: ean50,
+          role: TankRole.deco,
+          order: 1,
+        ),
+        DiveTank(
+          id: 'l1',
+          name: 'Twin 12',
+          volume: 24,
+          workingPressure: 232,
+          startPressure: 220,
+          endPressure: 110,
+          gasMix: ean32,
+        ),
+      ],
     );
   }
 
@@ -43,7 +63,12 @@ void main() {
     PlanSeries series, {
     SeriesFollow? using,
     Duration interval = const Duration(hours: 1),
-  }) => followDive(series, using ?? follow(), surfaceInterval: interval);
+  }) => followDive(
+    series,
+    using ?? follow(),
+    surfaceInterval: interval,
+    newId: idSequence('t'),
+  );
 
   group('the first dive of a series that follows a logged dive', () {
     test('starts from its end tissues, CNS and tank pressures', () {
@@ -59,9 +84,9 @@ void main() {
       expect(first.initialTissueState, endTissues);
       expect(first.initialCns, 18);
       expect(first.surfaceInterval, const Duration(hours: 1));
-      // The back gas carries the logged EAN32's 110 bar; the stage has no
-      // logged EAN50 and keeps its own fill.
-      expect(first.tanks.map((t) => t.startPressure), [110, 200]);
+      // Each tank is the followed dive's own, in its order, at the pressure
+      // it ended with.
+      expect(first.tanks.map((t) => t.startPressure), [110, 150]);
       expect(
         results.first.outcome.totalDecoSeconds,
         greaterThan(fresh.totalDecoSeconds),
@@ -98,6 +123,43 @@ void main() {
   });
 
   group('following and unfollowing', () {
+    test('the first dive takes the followed dive tanks and breathes them', () {
+      final first = followed(
+        PlanSeries.single(seriesDiveState()),
+      ).dives.first.state;
+
+      expect(first.tanks.map((t) => t.id), ['t-0', 't-1']);
+      expect(first.tanks.first.name, 'Twin 12');
+      expect(first.tanks.first.volume, 24);
+      expect(first.tanks.last.role, TankRole.deco);
+      // The profile moves to the new tank of the same gas.
+      expect(first.segments.map((s) => s.tankId).toSet(), {'t-0'});
+    });
+
+    test('a followed dive with no tanks leaves the plan tanks', () {
+      final series = followed(
+        PlanSeries.single(seriesDiveState()),
+        using: SeriesFollow(
+          loggedDives: [seriesLoggedDive('followed', followedEnd)],
+        ),
+      );
+
+      expect(series.dives.first.state.tanks.map((t) => t.id), [
+        'dive-a-back',
+        'dive-a-stage',
+      ]);
+    });
+
+    test('a dive after the first carries from the new tanks', () {
+      var series = appendDive(
+        PlanSeries.single(seriesDiveState()),
+        newId: idSequence(),
+      );
+      series = followed(series);
+
+      expect(series.dives[1].sourceTankIds.values.toSet(), {'t-0', 't-1'});
+    });
+
     test('following keeps the first dive own pressures for Fill', () {
       final series = followed(PlanSeries.single(seriesDiveState()));
       // The editor stores what was carried in.
@@ -108,12 +170,10 @@ void main() {
         pinTypedPressures: false,
       );
 
-      expect(series.follow!.ownStartPressures, {
-        'dive-a-back': 232,
-        'dive-a-stage': 200,
-      });
+      // The logged fills, which the carried pressures replace.
+      expect(series.follow!.ownStartPressures, {'t-0': 220, 't-1': 200});
       expect(carried.dives.first.state.tanks.first.startPressure, 110);
-      expect(fullPressureFor(carried, 0, 'dive-a-back'), 232);
+      expect(fullPressureFor(carried, 0, 't-0'), 220);
     });
 
     test('unfollowing restores the first dive', () {
@@ -132,7 +192,9 @@ void main() {
       expect(first.surfaceInterval, isNull);
       expect(first.initialTissueState, isNull);
       expect(first.initialCns, isNull);
-      expect(first.tanks.map((t) => t.startPressure), [232, 200]);
+      // The followed dive's tanks stay, back at their fills.
+      expect(first.tanks.map((t) => t.id), ['t-0', 't-1']);
+      expect(first.tanks.map((t) => t.startPressure), [220, 200]);
     });
 
     test('removing the first dive leaves the next one following', () {
@@ -148,9 +210,17 @@ void main() {
         b.state.surfaceInterval,
       );
       expect(removed.follow!.ownStartPressures, {
-        b.state.tanks[0].id: 232,
+        b.state.tanks[0].id: 220,
         b.state.tanks[1].id: 200,
       });
+      // Its tanks now carry from the logged tanks.
+      final first = carriedState(
+        removed.dives,
+        0,
+        const [],
+        follow: removed.follow,
+      );
+      expect(first.tanks.map((t) => t.startPressure), [110, 150]);
     });
   });
 }

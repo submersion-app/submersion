@@ -82,36 +82,21 @@ void main() {
           ownStartPressures: own ?? const {},
         );
 
-    test(
-      'each tank starts at the end pressure of a logged tank of its gas',
-      () {
-        final tanks = followedTankPressures(
-          planTanks,
-          follow(const [
-            DiveTank(id: 'l1', endPressure: 90, gasMix: ean32),
-            DiveTank(id: 'l2', endPressure: 140, gasMix: ean50),
-          ]),
-        );
-
-        expect(tanks.map((t) => t.startPressure), [90, 140, 210]);
-      },
-    );
-
-    test('a logged tank is matched once, in order', () {
+    test('a tank linked to a logged tank starts at its end pressure', () {
       final tanks = followedTankPressures(
         planTanks,
         follow(const [
           DiveTank(id: 'l1', endPressure: 90, gasMix: ean32),
-          DiveTank(id: 'l2', endPressure: 60, gasMix: ean32),
+          DiveTank(id: 'l2', endPressure: 140, gasMix: ean50),
         ]),
+        sources: {'back': 'l1', 'stage': 'l2'},
       );
 
-      expect(tanks[0].startPressure, 90);
-      expect(tanks[2].startPressure, 60);
+      expect(tanks.map((t) => t.startPressure), [90, 140, 210]);
     });
 
     test('a pinned tank, or one with no logged end pressure, is not carried; '
-        'an unmatched tank keeps its own pressure', () {
+        'an unlinked tank keeps its own pressure', () {
       final tanks = followedTankPressures(
         [planTanks[0].copyWith(startPressure: 100), ...planTanks.skip(1)],
         follow(
@@ -121,6 +106,7 @@ void main() {
           ],
           {'back': 232},
         ),
+        sources: {'back': 'l1', 'stage': 'l2'},
         pinned: {'stage'},
       );
 
@@ -131,6 +117,7 @@ void main() {
       final tanks = followedTankPressures(
         planTanks,
         follow(const [DiveTank(id: 'l1', endPressure: -5, gasMix: ean32)]),
+        sources: {'back': 'l1'},
       );
 
       expect(tanks.first.startPressure, 0);

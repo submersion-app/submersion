@@ -66,6 +66,7 @@ DivePlanState carriedState(
       tanks: followedTankPressures(
         dive.state.tanks,
         follow,
+        sources: dive.sourceTankIds,
         pinned: dive.pinnedTankIds,
       ),
     );

@@ -81,7 +81,14 @@ PlanSeries removeDive(PlanSeries series, int index) {
           clearInitialTissueState: true,
           clearInitialExposure: true,
         ),
-        sourceTankIds: const {},
+        // Following, its tanks now carry from the logged tanks the removed
+        // dive's carried from.
+        sourceTankIds: follow == null
+            ? const {}
+            : {
+                for (final e in next.sourceTankIds.entries)
+                  e.key: ?removed.sourceTankIds[e.value],
+              },
       );
       // The new first dive's tanks fill to what the removed dive's did.
       if (follow != null) {
@@ -189,33 +196,105 @@ double? fullPressureFor(PlanSeries series, int index, String tankId) {
 }
 
 /// The series following the logged dives in [follow], the first dive after
-/// [surfaceInterval]. The first dive's own tank pressures are kept, so Fill
-/// and [unfollow] can return to them; following another dive keeps the ones
-/// kept before.
+/// [surfaceInterval].
+///
+/// The first dive takes the followed dive's tanks, under fresh ids from
+/// [newId], each linked to the logged tank it copies so it starts at that
+/// tank's end pressure. Their own pressure, for Fill and [unfollow], is the
+/// logged tank's start pressure. The profile, and the next dive's tank
+/// links, move from each old tank to the new one of the same gas, else to
+/// the first. A followed dive with no tanks leaves the plan's own.
 PlanSeries followDive(
   PlanSeries series,
   SeriesFollow follow, {
   required Duration surfaceInterval,
+  required String Function() newId,
 }) {
   final first = series.dives.first;
-  final kept = series.follow?.ownStartPressures ?? const <String, double>{};
-  final own = {
-    for (final tank in first.state.tanks)
-      tank.id: ?(kept[tank.id] ?? tank.startPressure),
-  };
   final dives = [...series.dives];
+  if (follow.endTanks.isEmpty) {
+    final kept = series.follow?.ownStartPressures ?? const <String, double>{};
+    final own = {
+      for (final tank in first.state.tanks)
+        tank.id: ?(kept[tank.id] ?? tank.startPressure),
+    };
+    dives[0] = first.copyWith(
+      state: first.state.copyWith(surfaceInterval: surfaceInterval),
+      sourceTankIds: const {},
+    );
+    return series.copyWith(
+      dives: dives,
+      follow: follow.copyWith(ownStartPressures: own),
+    );
+  }
+
+  final logged = [...follow.endTanks]
+    ..sort((a, b) => a.order.compareTo(b.order));
+  final tanks = [
+    for (final tank in logged)
+      DiveTank(
+        id: newId(),
+        name: tank.name,
+        volume: tank.volume,
+        workingPressure: tank.workingPressure,
+        startPressure: tank.startPressure ?? tank.workingPressure,
+        gasMix: tank.gasMix,
+        role: tank.role,
+        material: tank.material,
+        order: tank.order,
+        presetName: tank.presetName,
+      ),
+  ];
+  final replaced = {
+    for (final old in first.state.tanks)
+      old.id: tanks.firstWhere(
+        (t) => _sameGas(t.gasMix, old.gasMix),
+        orElse: () => tanks.first,
+      ),
+  };
+  final segments = [
+    for (final segment in first.state.segments)
+      if (replaced[segment.tankId] case final tank?)
+        segment.copyWith(tankId: tank.id, gasMix: tank.gasMix)
+      else
+        segment,
+  ];
   dives[0] = first.copyWith(
-    state: first.state.copyWith(surfaceInterval: surfaceInterval),
+    state: first.state.copyWith(
+      surfaceInterval: surfaceInterval,
+      tanks: tanks,
+      segments: segments,
+    ),
+    sourceTankIds: {
+      for (var i = 0; i < tanks.length; i++) tanks[i].id: logged[i].id,
+    },
+    pinnedTankIds: const {},
   );
+  if (dives.length > 1) {
+    final next = dives[1];
+    dives[1] = next.copyWith(
+      sourceTankIds: {
+        for (final e in next.sourceTankIds.entries)
+          e.key: ?replaced[e.value]?.id,
+      },
+    );
+  }
   return series.copyWith(
     dives: dives,
-    follow: follow.copyWith(ownStartPressures: own),
+    follow: follow.copyWith(
+      ownStartPressures: {
+        for (final tank in tanks) tank.id: ?tank.startPressure,
+      },
+    ),
   );
 }
 
+bool _sameGas(GasMix a, GasMix b) =>
+    a.roundedO2 == b.roundedO2 && a.roundedHe == b.roundedHe;
+
 /// The series no longer following a logged dive: the first dive drops what
 /// it carried in and its interval, and its tanks that were carried go back
-/// to their own pressures.
+/// to their own pressures. Tanks taken from the followed dive stay.
 PlanSeries unfollow(PlanSeries series) {
   final follow = series.follow;
   if (follow == null) return series;
@@ -236,6 +315,7 @@ PlanSeries unfollow(PlanSeries series) {
       clearInitialTissueState: true,
       clearInitialExposure: true,
     ),
+    sourceTankIds: const {},
   );
   return series.copyWith(dives: dives, clearFollow: true);
 }

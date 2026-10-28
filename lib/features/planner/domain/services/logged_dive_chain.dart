@@ -54,36 +54,25 @@ Duration followSurfaceInterval(DateTime end, {required DateTime now}) {
 }
 
 /// [tanks] with what [follow] carries into the first planned dive: each tank
-/// not in [pinned] starts at the end pressure of the first logged tank of
-/// the same gas not already matched, clamped at 0. A tank with no match
-/// keeps its own start pressure, from before it followed the dive.
+/// not in [pinned] that [sources] links to a logged tank (by id) starts at
+/// that tank's end pressure, clamped at 0. Any other tank, or one whose
+/// logged tank has no end pressure, keeps its own start pressure.
 List<DiveTank> followedTankPressures(
   List<DiveTank> tanks,
   SeriesFollow follow, {
+  Map<String, String> sources = const {},
   Set<String> pinned = const {},
 }) {
-  final used = <int>{};
+  final ends = {for (final tank in follow.endTanks) tank.id: ?tank.endPressure};
   return [
     for (final tank in tanks)
       if (pinned.contains(tank.id))
         tank
+      else if (ends[sources[tank.id]] case final end?)
+        tank.copyWith(startPressure: end < 0 ? 0.0 : end)
+      else if (follow.ownStartPressures[tank.id] case final own?)
+        tank.copyWith(startPressure: own)
       else
-        () {
-          for (var i = 0; i < follow.endTanks.length; i++) {
-            final logged = follow.endTanks[i];
-            final end = logged.endPressure;
-            if (used.contains(i) || end == null) continue;
-            if (!_sameGas(logged.gasMix, tank.gasMix)) continue;
-            used.add(i);
-            return tank.copyWith(startPressure: end < 0 ? 0.0 : end);
-          }
-          if (follow.ownStartPressures[tank.id] case final own?) {
-            return tank.copyWith(startPressure: own);
-          }
-          return tank;
-        }(),
+        tank,
   ];
 }
-
-bool _sameGas(GasMix a, GasMix b) =>
-    a.roundedO2 == b.roundedO2 && a.roundedHe == b.roundedHe;
