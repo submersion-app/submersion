@@ -107,6 +107,30 @@ void main() {
     expect(after.status, 'pending');
   });
 
+  test(
+    'a row with no row clock gets one with its first arrangement change',
+    () async {
+      // A row from before the HLC rollout, never edited since: without a row
+      // clock it cannot be ordered against a peer, whose updatedAt fallback
+      // would then take this device's whole row, stale settings included,
+      // because a sort tap moved updatedAt.
+      await db.customStatement(
+        "UPDATE diver_settings SET hlc = NULL, list_arrangement_hlc = NULL "
+        "WHERE diver_id = 'd1'",
+      );
+      await save(
+        (s) => s.copyWith(
+          listArrangements: s.listArrangements.copyWith(
+            diveSort: 'depth:ascending',
+          ),
+        ),
+      );
+      final after = await clocks();
+      expect(after.hlc, isNotNull);
+      expect(after.group, isNotNull);
+    },
+  );
+
   test('a mixed change stamps both', () async {
     final before = await clocks();
     await save(

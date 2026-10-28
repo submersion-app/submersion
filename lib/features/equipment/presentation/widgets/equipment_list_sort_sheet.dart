@@ -62,12 +62,14 @@ class EquipmentListSortSheet extends ConsumerWidget {
     // Builds on the saved sort as it is when the change applies rather than
     // the `sort` this build saw: the sheet stays open, and two taps before
     // the save lands would otherwise both start from the same snapshot, the
-    // second undoing the first. Saved for the diver (issue #3748).
+    // second undoing the first. Saved for the diver (issue #3748). The
+    // change can run after the sheet is closed (it waits for the diver's
+    // settings to load), so it must not touch this widget's ref.
     void updateSort({EquipmentSortField? field, SortDirection? direction}) {
       ref.read(settingsProvider.notifier).updateListArrangements((saved) {
-        final SortState<EquipmentSortField> current =
+        final current =
             decodeSortState(saved.equipmentSort, EquipmentSortField.values) ??
-            ref.read(equipmentSortProvider);
+            equipmentStartingSort;
         return saved.copyWith(
           equipmentSort: encodeSortState(
             SortState(

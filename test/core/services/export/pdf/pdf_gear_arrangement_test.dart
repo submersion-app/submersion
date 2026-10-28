@@ -106,14 +106,4 @@ void main() {
     );
     expect(template.gearArrangement, flat);
   });
-
-  test('without one it prints in the default arrangement', () async {
-    await service.generateDivePdfBytes(
-      dives,
-      dates: dates,
-      units: units,
-      options: const PdfExportOptions(template: PdfTemplate.simple),
-    );
-    expect(template.gearArrangement, EquipmentArrangement.defaults);
-  });
 }

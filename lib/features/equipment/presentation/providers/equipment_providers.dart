@@ -238,10 +238,13 @@ final equipmentSortProvider = StateProvider<SortState<EquipmentSortField>>(
         ),
         EquipmentSortField.values,
       ) ??
-      const SortState(
-        field: EquipmentSortField.name,
-        direction: SortDirection.ascending,
-      ),
+      equipmentStartingSort,
+);
+
+/// The Equipment page's sort before the diver changes it: A to Z.
+const equipmentStartingSort = SortState<EquipmentSortField>(
+  field: EquipmentSortField.name,
+  direction: SortDirection.ascending,
 );
 
 /// Apply sorting to a list of equipment items.

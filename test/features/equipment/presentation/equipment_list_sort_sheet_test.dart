@@ -131,6 +131,31 @@ void main() {
     expect(find.text('Group by type'), findsOneWidget);
   });
 
+  testWidgets('a pick made before settings load survives closing the sheet', (
+    tester,
+  ) async {
+    // The save waits for the diver's settings to load (issue #3748), and the
+    // diver can close the sheet before it does: the change must not depend
+    // on the sheet still being there.
+    await pumpSheet(tester);
+    fake.settings.holdWrites = true;
+
+    await tester.tap(find.text('Service Due'));
+    await tester.pump();
+    Navigator.of(tester.element(find.text('Service Due'))).pop();
+    await tester.pumpAndSettle();
+    while (fake.settings.heldWrites.isNotEmpty) {
+      fake.settings.heldWrites.removeAt(0).complete();
+      await tester.pumpAndSettle();
+    }
+
+    expect(tester.takeException(), isNull);
+    expect(
+      container.read(equipmentSortProvider).field,
+      EquipmentSortField.serviceDue,
+    );
+  });
+
   testWidgets('the header arrow sets the item direction', (tester) async {
     await pumpSheet(tester);
 

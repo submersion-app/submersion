@@ -96,7 +96,7 @@ class _RecordingExportService implements ExportService {
     Uint8List? diverPhoto,
     Map<String, DiveTypeEntity> diveTypesById = const {},
     Map<String, DiveRole> diveRolesById = const {},
-    EquipmentArrangement gearArrangement = EquipmentArrangement.defaults,
+    required EquipmentArrangement gearArrangement,
   }) async {
     calls.add('generate:pdf');
     pdfDiver = diver;

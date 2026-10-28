@@ -238,7 +238,7 @@ class PdfExportService {
     Uint8List? diverPhoto,
     Map<String, DiveTypeEntity> diveTypesById = const {},
     Map<String, DiveRole> diveRolesById = const {},
-    EquipmentArrangement gearArrangement = EquipmentArrangement.defaults,
+    required EquipmentArrangement gearArrangement,
   }) async {
     final diveSignatures = await SignatureStorageService()
         .getSignaturesForDives([for (final dive in dives) dive.id]);
@@ -303,7 +303,7 @@ class PdfExportService {
     Uint8List? diverPhoto,
     Map<String, DiveTypeEntity> diveTypesById = const {},
     Map<String, DiveRole> diveRolesById = const {},
-    EquipmentArrangement gearArrangement = EquipmentArrangement.defaults,
+    required EquipmentArrangement gearArrangement,
   }) async {
     final result = await generateDivePdfBytes(
       dives,
@@ -341,7 +341,7 @@ class PdfExportService {
     Uint8List? diverPhoto,
     Map<String, DiveTypeEntity> diveTypesById = const {},
     Map<String, DiveRole> diveRolesById = const {},
-    EquipmentArrangement gearArrangement = EquipmentArrangement.defaults,
+    required EquipmentArrangement gearArrangement,
   }) async {
     final result = await generateDivePdfBytes(
       dives,

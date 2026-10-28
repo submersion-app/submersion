@@ -578,7 +578,10 @@ class DiverSettingsRepository {
     final row = await _rowFor(diverId);
     if (row == null) return;
     const group = SyncFactGroups.diverSettingsListArrangement;
-    if (rowClock) {
+    // A row with no row clock (from before the HLC rollout, never edited
+    // since) cannot be ordered against a peer, whose updatedAt fallback would
+    // then take this whole row, stale settings included. Give it one now.
+    if (rowClock || row.hlc == null) {
       await _syncRepository.markRecordPending(
         entityType: 'diverSettings',
         recordId: row.id,

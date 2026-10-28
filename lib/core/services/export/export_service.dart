@@ -309,7 +309,7 @@ class ExportService {
     Uint8List? diverPhoto,
     Map<String, DiveTypeEntity> diveTypesById = const {},
     Map<String, DiveRole> diveRolesById = const {},
-    EquipmentArrangement gearArrangement = EquipmentArrangement.defaults,
+    required EquipmentArrangement gearArrangement,
   }) => _pdf.generateDivePdfBytes(
     dives,
     dates: dates,
@@ -339,7 +339,7 @@ class ExportService {
     Uint8List? diverPhoto,
     Map<String, DiveTypeEntity> diveTypesById = const {},
     Map<String, DiveRole> diveRolesById = const {},
-    EquipmentArrangement gearArrangement = EquipmentArrangement.defaults,
+    required EquipmentArrangement gearArrangement,
   }) => _pdf.exportDivesToPdf(
     dives,
     dates: dates,
@@ -369,7 +369,7 @@ class ExportService {
     Uint8List? diverPhoto,
     Map<String, DiveTypeEntity> diveTypesById = const {},
     Map<String, DiveRole> diveRolesById = const {},
-    EquipmentArrangement gearArrangement = EquipmentArrangement.defaults,
+    required EquipmentArrangement gearArrangement,
   }) => _pdf.saveDivesToPdfFile(
     dives,
     dates: dates,
