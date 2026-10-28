@@ -179,13 +179,13 @@ abstract final class BuddyCardCodec {
     if (c.certs.isNotEmpty)
       'c': [
         for (final cert in c.certs)
-          [
+          _withoutTrailingNulls([
             cert.agency,
             cert.name,
             cert.level,
             cert.cardNumber,
             if (cert.issueDate != null) _date(cert.issueDate!) else null,
-          ],
+          ]),
       ],
     'd': ?c.dives,
     'f': ?c.since,
@@ -193,6 +193,16 @@ abstract final class BuddyCardCodec {
     if (c.photo != null) 'ph': base64.encode(c.photo!),
     if (trimmed) 't': 1,
   };
+
+  /// [values] without the empty fields at its end: every byte counts on a
+  /// QR code or sticker, and the reader takes a shorter array as missing.
+  static List<Object?> _withoutTrailingNulls(List<Object?> values) {
+    var end = values.length;
+    while (end > 0 && values[end - 1] == null) {
+      end--;
+    }
+    return values.sublist(0, end);
+  }
 
   static BuddyCardDecodeResult _fromJson(Object? json) {
     if (json is! Map<String, Object?>) {

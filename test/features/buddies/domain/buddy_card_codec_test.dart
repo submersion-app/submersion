@@ -102,6 +102,23 @@ void main() {
     expect(out.last, card.last);
   });
 
+  test('certifications carry no trailing empty fields', () {
+    final link = BuddyCardCodec.encodeLink(
+      const BuddyCard(
+        id: 'x',
+        name: 'Sam',
+        certs: [BuddyCardCert(agency: 'PADI', name: 'Rescue Diver')],
+      ),
+      maxBytes: 2000,
+    );
+    final payload = link.substring(BuddyCardCodec.linkPrefix.length);
+    final json = utf8.decode(
+      base64Url.decode(payload.padRight((payload.length + 3) ~/ 4 * 4, '=')),
+    );
+    expect(json, contains('["PADI","Rescue Diver"]'));
+    expect(json, isNot(contains('null')));
+  });
+
   test('a card too large even after every drop throws', () {
     expect(
       () => BuddyCardCodec.encodeLink(_sam(name: 'x' * 600), maxBytes: 200),
