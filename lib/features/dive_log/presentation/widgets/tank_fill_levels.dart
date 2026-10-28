@@ -83,6 +83,10 @@ List<double> spreadLabels({
   return tops;
 }
 
+/// The shortest and the tallest a cylinder's body is drawn.
+const tankFigureMinHeight = 64.0;
+const tankFigureMaxHeight = 104.0;
+
 /// The volume the figure assumes for a cylinder with none on record: a
 /// typical single tank (an AL80).
 const _typicalVolumeLiters = 11.1;
@@ -93,10 +97,9 @@ const _typicalVolumeLiters = 11.1;
 /// do not dominate the card.
 double tankFigureHeight(double? volumeLiters) {
   const minVolume = 5.0, maxVolume = 18.0;
-  const minHeight = 64.0, maxHeight = 104.0;
   final volume = volumeLiters != null && volumeLiters > 0
       ? volumeLiters
       : _typicalVolumeLiters;
   final t = ((volume - minVolume) / (maxVolume - minVolume)).clamp(0.0, 1.0);
-  return minHeight + t * (maxHeight - minHeight);
+  return tankFigureMinHeight + t * (tankFigureMaxHeight - tankFigureMinHeight);
 }
