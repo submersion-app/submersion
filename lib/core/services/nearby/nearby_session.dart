@@ -483,12 +483,20 @@ class NearbySession {
     if (version != null && version > NearbyHello.maxProtocolVersion) {
       await _refuse(NearbyErrorCode.newerApp);
     }
+    final NearbyHello hello;
     try {
-      return NearbyHello.fromBytes(message.body);
+      hello = NearbyHello.fromBytes(message.body);
     } on Object {
       // Malformed in any way, typed or not: refuse rather than hang.
       return _refuse(NearbyErrorCode.protocol);
     }
+    // Only a card hello may go past the sync and pair version (issue
+    // #3728): a sync or pair hello above it is from a newer build.
+    if (hello.intent != NearbyIntent.card &&
+        hello.protocolVersion > NearbyHello.currentProtocolVersion) {
+      await _refuse(NearbyErrorCode.newerApp);
+    }
+    return hello;
   }
 
   /// Both sides send a sealed known text and open the other's. A failure

@@ -49,10 +49,9 @@ import 'package:submersion/features/query/presentation/widgets/query_chips_frame
 import 'package:submersion/features/query/presentation/providers/query_id_set_providers.dart';
 import 'package:submersion/features/query/presentation/widgets/query_filter_sheet.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_list_count_provider.dart';
+import 'package:submersion/features/buddies/presentation/widgets/swap/swap_with_buddy_button.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
-import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
-import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
 
 /// Content widget for the buddy list, used in master-detail layout.
 ///
@@ -593,15 +592,7 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
                     subtitle: buddyListCountLabel(context, ref),
                   ),
                   actions: [
-                    IconButton(
-                      icon: const Icon(Icons.swap_horiz),
-                      tooltip: context.l10n.buddySwap_title,
-                      onPressed: () {
-                        if (demoSealGuard(context, DemoSealedFeature.share)) {
-                          context.push('/buddies/swap');
-                        }
-                      },
-                    ),
+                    const SwapWithBuddyButton(),
                     IconButton(
                       icon: const Icon(Icons.search),
                       tooltip: context.l10n.buddies_action_search,
@@ -830,15 +821,7 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
             ),
           ),
-          IconButton(
-            icon: const Icon(Icons.swap_horiz, size: 20),
-            tooltip: context.l10n.buddySwap_title,
-            onPressed: () {
-              if (demoSealGuard(context, DemoSealedFeature.share)) {
-                context.push('/buddies/swap');
-              }
-            },
-          ),
+          const SwapWithBuddyButton(iconSize: 20),
           IconButton(
             icon: const Icon(Icons.search, size: 20),
             tooltip: context.l10n.buddies_action_search,

@@ -107,7 +107,7 @@ class _BuddyCardPreviewPageState extends ConsumerState<BuddyCardPreviewPage> {
         Center(
           child: ProfileAvatar(
             photo: card.photo,
-            initials: _initials(card.name),
+            initials: Buddy.initialsOf(card.name),
             radius: 40,
           ),
         ),
@@ -221,15 +221,6 @@ class _BuddyCardPreviewPageState extends ConsumerState<BuddyCardPreviewPage> {
     final to = show(change.to);
     final from = change.from;
     return from == null ? to : l10n.buddyCard_preview_changed(show(from), to);
-  }
-
-  static String _initials(String name) {
-    final parts = name.trim().split(RegExp(r'\s+'));
-    final letters = parts
-        .where((p) => p.isNotEmpty)
-        .take(2)
-        .map((p) => p.characters.first.toUpperCase());
-    return letters.join();
   }
 
   Future<void> _addNew() async {

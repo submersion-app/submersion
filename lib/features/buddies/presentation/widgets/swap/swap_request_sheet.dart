@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/services/nearby/nearby_card_host.dart';
+import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/profile_photo/profile_avatar.dart';
 
@@ -24,7 +25,7 @@ Future<bool> showSwapRequestSheet(
             children: [
               ProfileAvatar(
                 photo: from.photo,
-                initials: _initials(from.name),
+                initials: Buddy.initialsOf(from.name),
                 radius: 32,
               ),
               const SizedBox(height: 12),
@@ -65,11 +66,3 @@ Future<bool> showSwapRequestSheet(
   );
   return answer ?? false;
 }
-
-String _initials(String name) => name
-    .trim()
-    .split(RegExp(r'\s+'))
-    .where((p) => p.isNotEmpty)
-    .take(2)
-    .map((p) => p.characters.first.toUpperCase())
-    .join();

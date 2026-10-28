@@ -136,6 +136,7 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
     _emailController.addListener(_onFieldChanged);
     _phoneController.addListener(_onFieldChanged);
     _notesController.addListener(_onFieldChanged);
+    _socialController.addListener(_onFieldChanged);
   }
 
   Future<void> _pickPhoto() async {

@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:characters/characters.dart';
 import 'package:equatable/equatable.dart';
 
 import 'package:submersion/core/constants/enums.dart';
@@ -124,12 +125,22 @@ class Buddy extends Equatable {
   }
 
   /// Get initials for avatar
-  String get initials {
-    final parts = name.trim().split(' ');
-    if (parts.length >= 2) {
-      return '${parts.first[0]}${parts.last[0]}'.toUpperCase();
-    }
-    return name.isNotEmpty ? name[0].toUpperCase() : '?';
+  String get initials => initialsOf(name);
+
+  /// The first letters of [name]'s first and last words, or of its only
+  /// word; `?` for a blank name. Shared with the buddy card swap screens
+  /// (issue #3728), so a diver's avatar matches before and after a swap.
+  static String initialsOf(String name) {
+    final words = name
+        .trim()
+        .split(RegExp(r'\s+'))
+        .where((w) => w.isNotEmpty)
+        .toList();
+    if (words.isEmpty) return '?';
+    String first(String word) => word.characters.first.toUpperCase();
+    return words.length >= 2
+        ? '${first(words.first)}${first(words.last)}'
+        : first(words.first);
   }
 
   /// Check if buddy has contact info

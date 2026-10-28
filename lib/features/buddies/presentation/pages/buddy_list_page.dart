@@ -28,10 +28,9 @@ import 'package:submersion/features/buddies/presentation/widgets/buddy_search_de
 import 'package:submersion/features/buddies/query/buddy_query_entity.dart';
 import 'package:submersion/features/query/presentation/widgets/query_filter_sheet.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_list_count_provider.dart';
+import 'package:submersion/features/buddies/presentation/widgets/swap/swap_with_buddy_button.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
-import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
-import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
 
 class BuddyListPage extends ConsumerStatefulWidget {
   const BuddyListPage({super.key});
@@ -114,15 +113,7 @@ class _BuddyListPageState extends ConsumerState<BuddyListPage>
             ),
           ),
           appBarActions: [
-            IconButton(
-              icon: const Icon(Icons.swap_horiz, size: 20),
-              tooltip: context.l10n.buddySwap_title,
-              onPressed: () {
-                if (demoSealGuard(context, DemoSealedFeature.share)) {
-                  context.push('/buddies/swap');
-                }
-              },
-            ),
+            const SwapWithBuddyButton(iconSize: 20),
             IconButton(
               icon: const Icon(Icons.search, size: 20),
               tooltip: context.l10n.buddies_action_search,

@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-/// What the initiator wants from a session.
 /// What a session is for. `card` is the buddy card swap (issue #3728): an
 /// unpaired exchange between strangers, carried at [NearbyHello.cardProtocolVersion].
 enum NearbyIntent { sync, pair, card }

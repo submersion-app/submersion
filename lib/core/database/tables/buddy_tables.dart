@@ -54,7 +54,10 @@ class Buddies extends Table {
 
   /// A year, like `divers.diving_since`.
   IntColumn get cardDivingSince => integer().nullable()();
-  IntColumn get cardLastDive => integer().nullable()(); // Unix ms, a date
+
+  /// A calendar date: Unix ms of its midnight in wall-clock UTC, so every
+  /// time zone reads the same day back.
+  IntColumn get cardLastDive => integer().nullable()();
   IntColumn get cardReceivedAt => integer().nullable()(); // Unix ms
 
   @override

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/services/nearby/nearby_card_host.dart';
+import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/profile_photo/profile_avatar.dart';
 
@@ -39,7 +40,7 @@ class NearbyDiversList extends StatelessWidget {
             child: ListTile(
               leading: ProfileAvatar(
                 photo: peer.photo,
-                initials: _initials(peer.name),
+                initials: Buddy.initialsOf(peer.name),
               ),
               title: Text(peer.name),
               subtitle: Text(
@@ -80,12 +81,4 @@ class NearbyDiversList extends StatelessWidget {
       ],
     );
   }
-
-  static String _initials(String name) => name
-      .trim()
-      .split(RegExp(r'\s+'))
-      .where((p) => p.isNotEmpty)
-      .take(2)
-      .map((p) => p.characters.first.toUpperCase())
-      .join();
 }

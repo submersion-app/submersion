@@ -56,6 +56,10 @@ class MultipeerHandler: NSObject {
   private var ranging: [String: AnyObject] = [:]
   private var pendingTokens: [String: Data] = [:]
 
+  /// Ranging sessions that connected, so only a drop (not a declined
+  /// invitation from a phone that cannot range) starts ranging again.
+  private var rangingConnected: Set<String> = []
+
   init(messenger: FlutterBinaryMessenger) {
     channel = FlutterMethodChannel(
       name: "app.submersion/multipeer",
@@ -201,8 +205,14 @@ class MultipeerHandler: NSObject {
   }
 
   private func endRanging(_ id: String) {
+    #if os(iOS) && canImport(NearbyInteraction)
+    if #available(iOS 16.0, *) {
+      (ranging[id] as? NISession)?.invalidate()
+    }
+    #endif
     ranging.removeValue(forKey: id)
     pendingTokens.removeValue(forKey: id)
+    rangingConnected.remove(id)
     if let session = rangingSessions.removeValue(forKey: id) {
       session.delegate = nil
       session.disconnect()
@@ -304,8 +314,16 @@ extension MultipeerHandler: MCSessionDelegate {
     DispatchQueue.main.async {
       if let id = self.rangingId(of: session) {
         switch state {
-        case .connected: self.sendToken(to: id)
-        case .notConnected: self.endRanging(id)
+        case .connected:
+          self.rangingConnected.insert(id)
+          self.sendToken(to: id)
+        case .notConnected:
+          let dropped = self.rangingConnected.contains(id)
+          self.endRanging(id)
+          // A dropped link to a diver still in range ranges again, or
+          // hold-together stops for them until Multipeer loses and finds
+          // them. A declined invitation is not retried.
+          if dropped, let peer = self.found[id] { self.startRanging(with: peer) }
         default: break
         }
         return

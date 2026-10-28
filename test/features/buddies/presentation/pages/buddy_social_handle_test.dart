@@ -138,4 +138,48 @@ void main() {
     expect(read!.socialHandle, '@sam');
     expect(read.cardDiveCount, 118);
   });
+
+  testWidgets('editing only the social handle counts as an unsaved change', (
+    tester,
+  ) async {
+    final buddy = await BuddyRepository().createBuddy(
+      Buddy(
+        id: '',
+        diverId: ownerId,
+        name: 'Sam',
+        createdAt: DateTime(2024),
+        updatedAt: DateTime(2024),
+      ),
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+        ],
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          locale: const Locale('en'),
+          home: Scaffold(
+            body: BuddyEditPage(buddyId: buddy.id, embedded: true),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    bool canPop() => tester
+        .widget<PopScope<Object?>>(
+          find.byWidgetPredicate((w) => w is PopScope).first,
+        )
+        .canPop;
+    expect(canPop(), isTrue);
+
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Social handle'),
+      '@sam',
+    );
+    await tester.pump();
+    expect(canPop(), isFalse);
+  });
 }
