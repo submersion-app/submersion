@@ -220,7 +220,8 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   String? _lastScrolledToId;
 
   /// On the list's scrubber, which sits inside the keyboard navigator: a
-  /// jump to a typed dive number lands through it, after the frame.
+  /// jump to a typed dive number, or any scroll to a dive, lands on the
+  /// dive's row through it, after the frame.
   final GlobalKey _listBodyKey = GlobalKey();
 
   /// Counts jumps to a typed dive number, so only the latest one lands; a
@@ -599,14 +600,30 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
               (viewportHeight / 3);
           final clampedOffset = targetOffset.clamp(0.0, maxScroll);
 
+          // The estimate only gets near on a log of uneven rows, landing
+          // dozens of dives off on a long one (#3744). From there, show the
+          // row itself, building it first if the estimate missed it; a row
+          // the estimate already put in view stays where it is. Not after
+          // the diver has taken the list over mid-animation.
+          void showRow() {
+            final listContext = _listBodyKey.currentContext;
+            if (!mounted || listContext == null) return;
+            if (_scrollController.positions.any(isScrolledByDiver)) return;
+            _landOnDive(listContext, targetId, toTop: false);
+          }
+
           if (jump) {
             _scrollController.jumpTo(clampedOffset);
+            WidgetsBinding.instance.addPostFrameCallback((_) => showRow());
+            WidgetsBinding.instance.scheduleFrame();
           } else {
-            _scrollController.animateTo(
-              clampedOffset,
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeInOut,
-            );
+            _scrollController
+                .animateTo(
+                  clampedOffset,
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                )
+                .then((_) => showRow());
           }
           _lastScrolledToId = targetId;
         });
