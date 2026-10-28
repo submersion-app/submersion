@@ -10,9 +10,12 @@ import 'package:submersion/features/buddies/domain/entities/buddy_card.dart';
 import 'package:submersion/features/certification_agencies/data/repositories/custom_certification_repository.dart';
 import 'package:submersion/features/certifications/data/repositories/certification_repository.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 
+import '../../../helpers/global_test_defaults.dart';
 import '../../../helpers/test_database.dart';
 
 void main() {
@@ -88,6 +91,16 @@ void main() {
     expect(rescue.agency, CertificationAgency.padi.name);
     expect(rescue.level, CertificationLevel.rescue.name);
     expect(rescue.cardNumber, 'R-1');
+  });
+
+  test('demo mode refuses to save a card', () async {
+    DemoModeGate.instance.debugActive = true;
+    addTearDown(applyGlobalTestDefaults);
+    await expectLater(
+      importer.addNew(card, diverId: 'me'),
+      throwsA(isA<DemoModeSealedException>()),
+    );
+    expect(await buddies.getAllBuddies(), isEmpty);
   });
 
   test('headline certification is the card highest', () async {

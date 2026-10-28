@@ -2756,6 +2756,165 @@ class AppLocalizationsZh extends AppLocalizations {
   String get buddyCard_error_unreadable => '无法读取此潜伴名片。';
 
   @override
+  String get buddySwap_title => '与潜伴交换';
+
+  @override
+  String get buddySwap_nearby_heading => '附近打开了 Submersion 的潜水员';
+
+  @override
+  String get buddySwap_nearby_tapToSwap => '点按以交换';
+
+  @override
+  String get buddySwap_nearby_looking => '正在查找更多…';
+
+  @override
+  String get buddySwap_nearby_hint =>
+      '看不到你的潜伴？你们双方都需要打开此页面，并使用 Submersion 1.8.4 或更高版本。';
+
+  @override
+  String buddySwap_sharing(String summary) {
+    return '共享：$summary';
+  }
+
+  @override
+  String get buddySwap_sharing_change => '更改';
+
+  @override
+  String buddySwap_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddySwap_action_showCode => '显示我的二维码';
+
+  @override
+  String get buddySwap_action_scanCode => '扫描二维码';
+
+  @override
+  String get buddySwap_action_sendFile => '发送文件';
+
+  @override
+  String get buddySwap_action_openFile => '打开名片文件';
+
+  @override
+  String get buddySwap_action_writeSticker => '写入 NFC 贴纸';
+
+  @override
+  String get buddySwap_action_tapAndroid => '轻触安卓手机';
+
+  @override
+  String get buddySwap_action_receiveByTap => '轻触接收';
+
+  @override
+  String get buddySwap_tap_prompt => '将手机靠近另一部手机或贴纸';
+
+  @override
+  String get buddySwap_sticker_prompt => '将手机靠近空白 NFC 贴纸';
+
+  @override
+  String get buddySwap_sticker_written => '贴纸已写入。信息变更后请重新写入。';
+
+  @override
+  String get buddySwap_sticker_tooSmall => '该贴纸容量不足以写入你的名片。';
+
+  @override
+  String get buddySwap_sticker_notWritable => '无法写入该贴纸。';
+
+  @override
+  String get buddySwap_nfc_unavailable => '此设备不支持 NFC。';
+
+  @override
+  String get buddySwap_qr_title => '你的潜伴名片';
+
+  @override
+  String get buddySwap_qr_hint => '请潜伴用 Submersion 或相机扫描此二维码。';
+
+  @override
+  String buddySwap_request_title(String name) {
+    return '$name 想交换名片';
+  }
+
+  @override
+  String buddySwap_request_youSend(String summary) {
+    return '你将发送：$summary';
+  }
+
+  @override
+  String get buddySwap_request_swap => '交换';
+
+  @override
+  String get buddySwap_request_decline => '拒绝';
+
+  @override
+  String buddySwap_waiting(String name) {
+    return '正在等待 $name 回应';
+  }
+
+  @override
+  String buddySwap_failed_declined(String name) {
+    return '$name 拒绝了交换';
+  }
+
+  @override
+  String buddySwap_failed_timedOut(String name) {
+    return '$name 未回应';
+  }
+
+  @override
+  String buddySwap_failed_lost(String name) {
+    return '与 $name 的连接已断开';
+  }
+
+  @override
+  String buddySwap_failed_newerApp(String name) {
+    return '$name 需要更新版本的 Submersion';
+  }
+
+  @override
+  String get buddyShare_title => '你共享的内容';
+
+  @override
+  String get buddyShare_name => '姓名';
+
+  @override
+  String get buddyShare_alwaysShared => '始终共享';
+
+  @override
+  String get buddyShare_neverShared => '医疗、保险和紧急联系信息绝不会共享。';
+
+  @override
+  String get buddyShare_photo => '照片';
+
+  @override
+  String get buddyShare_phone => '电话';
+
+  @override
+  String get buddyShare_email => '电子邮件';
+
+  @override
+  String get buddyShare_certifications => '证书';
+
+  @override
+  String get buddyShare_cardDetails => '证书编号与日期';
+
+  @override
+  String get buddyShare_diveCount => '潜水次数';
+
+  @override
+  String get buddyShare_divingSince => '开始潜水年份';
+
+  @override
+  String get buddyShare_lastDive => '最近一次潜水日期';
+
+  @override
+  String get buddyShare_social => '社交账号';
+
+  @override
   String get buddies_action_clearSearch => '清除搜索';
 
   @override

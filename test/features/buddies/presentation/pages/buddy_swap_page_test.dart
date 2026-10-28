@@ -1,0 +1,262 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/nearby/nearby_card_host.dart';
+import 'package:submersion/core/services/nearby/nearby_carrier.dart';
+import 'package:submersion/features/buddies/data/services/buddy_card_builder.dart';
+import 'package:submersion/features/buddies/domain/entities/buddy_card.dart';
+import 'package:submersion/features/buddies/domain/entities/buddy_card_share_choices.dart';
+import 'package:submersion/features/buddies/domain/services/buddy_card_codec.dart';
+import 'package:submersion/features/buddies/presentation/pages/buddy_swap_page.dart';
+import 'package:submersion/features/buddies/presentation/providers/buddy_card_providers.dart';
+import 'package:submersion/features/buddies/presentation/providers/buddy_swap_providers.dart';
+import 'package:submersion/features/buddies/presentation/services/buddy_swap_session.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
+
+import '../../../../helpers/mock_providers.dart';
+
+class _FakeSession implements BuddySwapSession {
+  _FakeSession(this.availability);
+
+  final NearbyAvailability availability;
+  final controller = StreamController<NearbyCardEvent>.broadcast();
+  final requested = <String>[];
+  var stops = 0;
+  @override
+  List<NearbyCardPeer> peers = [];
+
+  @override
+  Stream<NearbyCardEvent> get events => controller.stream;
+
+  @override
+  Future<NearbyAvailability> start() async => availability;
+
+  @override
+  Future<void> request(NearbyCardPeer peer) async => requested.add(peer.name);
+
+  @override
+  Future<void> stop() async => stops++;
+
+  void see(List<NearbyCardPeer> seen) {
+    peers = seen;
+    controller.add(CardPeersChanged(seen));
+  }
+}
+
+const _me = BuddyCard(
+  id: 'me',
+  name: 'Jordan Blake',
+  phone: '+1 555 0199',
+  certs: [BuddyCardCert(agency: 'PADI', name: 'Advanced Open Water Diver')],
+  dives: 342,
+);
+
+const _sam = NearbyCardPeer(
+  swapId: 's1',
+  name: 'Sam Rivera',
+  transportId: 't1',
+);
+
+/// The nearby list animates a spinner forever, so pumpAndSettle never
+/// settles; pump a bounded while instead.
+Future<void> settle(WidgetTester tester) async {
+  for (var i = 0; i < 10; i++) {
+    await tester.pump(const Duration(milliseconds: 100));
+  }
+}
+
+void main() {
+  late _FakeSession session;
+
+  Future<void> pump(
+    WidgetTester tester, {
+    NearbyAvailability availability = NearbyAvailability.ready,
+    Future<Uint8List?> Function()? pickFile,
+  }) async {
+    session = _FakeSession(availability);
+    tester.view.devicePixelRatio = 1.0;
+    tester.view.physicalSize = const Size(500, 1200);
+    addTearDown(tester.view.reset);
+    final router = GoRouter(
+      initialLocation: '/buddies/swap',
+      routes: [
+        GoRoute(
+          path: '/buddies',
+          builder: (_, _) => const Scaffold(body: Text('LIST')),
+          routes: [
+            GoRoute(path: 'swap', builder: (_, _) => const BuddySwapPage()),
+            GoRoute(
+              path: 'card',
+              builder: (_, state) => Scaffold(
+                body: Text(
+                  'PREVIEW ${(state.extra as BuddyCardDecoded).card.name}',
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+          myBuddyCardProvider.overrideWith((ref) async => _me),
+          myBuddyCardChoicesProvider.overrideWith(
+            (ref) async => BuddyCardShareChoices.defaults,
+          ),
+          myBuddyCardFieldsProvider.overrideWith(
+            (ref) async => {
+              BuddyCardField.phone,
+              BuddyCardField.certifications,
+              BuddyCardField.diveCount,
+            },
+          ),
+          buddySwapSessionFactoryProvider.overrideWithValue((_) => session),
+          buddyCardFilePickerProvider.overrideWithValue(
+            pickFile ?? () async => null,
+          ),
+        ],
+        child: MaterialApp.router(
+          routerConfig: router,
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+        ),
+      ),
+    );
+    await settle(tester);
+  }
+
+  testWidgets('lists nearby divers and tapping one requests a swap', (
+    tester,
+  ) async {
+    await pump(tester);
+    session.see([_sam]);
+    await settle(tester);
+    expect(find.text('Sam Rivera'), findsOneWidget);
+    await tester.tap(find.text('Sam Rivera'));
+    await settle(tester);
+    expect(session.requested, ['Sam Rivera']);
+  });
+
+  testWidgets('a request shows the sheet; Swap accepts', (tester) async {
+    await pump(tester);
+    bool? answer;
+    session.controller.add(CardRequested(_sam, (a) => answer = a));
+    await settle(tester);
+    expect(find.text('Sam Rivera wants to swap cards'), findsOneWidget);
+    expect(find.textContaining("You'll send:"), findsOneWidget);
+    await tester.tap(find.text('Swap'));
+    await settle(tester);
+    expect(answer, isTrue);
+  });
+
+  testWidgets('a request shows the sheet; Decline declines', (tester) async {
+    await pump(tester);
+    bool? answer;
+    session.controller.add(CardRequested(_sam, (a) => answer = a));
+    await settle(tester);
+    await tester.tap(find.text('Decline'));
+    await settle(tester);
+    expect(answer, isFalse);
+  });
+
+  testWidgets('a received card opens the preview', (tester) async {
+    await pump(tester);
+    session.controller.add(
+      CardReceived(
+        _sam,
+        BuddyCardCodec.encodeFull(const BuddyCard(id: 'x', name: 'Sam Rivera')),
+      ),
+    );
+    await settle(tester);
+    expect(find.text('PREVIEW Sam Rivera'), findsOneWidget);
+  });
+
+  testWidgets('a declined swap says so', (tester) async {
+    await pump(tester);
+    session.controller.add(
+      const CardSwapFailed(_sam, NearbyCardFailure.declined),
+    );
+    await tester.pump();
+    expect(find.text('Sam Rivera declined the swap'), findsOneWidget);
+  });
+
+  testWidgets('the sharing line lists what is shared and opens the sheet', (
+    tester,
+  ) async {
+    await pump(tester);
+    expect(find.textContaining('Advanced Open Water Diver'), findsOneWidget);
+    expect(find.textContaining('342 dives'), findsOneWidget);
+    await tester.tap(find.text('Change'));
+    await settle(tester);
+    expect(find.text('What you share'), findsOneWidget);
+  });
+
+  testWidgets('Bluetooth refused explains and the fallbacks still show', (
+    tester,
+  ) async {
+    await pump(tester, availability: NearbyAvailability.unauthorized);
+    expect(
+      find.text(
+        'Submersion needs Bluetooth permission to find nearby devices.',
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('Show my code'), findsOneWidget);
+    expect(find.text('Scan code'), findsOneWidget);
+    expect(find.text('Send file'), findsOneWidget);
+  });
+
+  testWidgets('Tap an Android phone shows on iOS', (tester) async {
+    await pump(tester);
+    expect(find.text('Tap an Android phone'), findsOneWidget);
+    expect(find.text('Receive by tap'), findsNothing);
+  }, variant: TargetPlatformVariant.only(TargetPlatform.iOS));
+
+  testWidgets('Receive by tap shows on Android', (tester) async {
+    await pump(tester);
+    expect(find.text('Receive by tap'), findsOneWidget);
+    expect(find.text('Tap an Android phone'), findsNothing);
+  }, variant: TargetPlatformVariant.only(TargetPlatform.android));
+
+  testWidgets('the hint about both screens and versions shows', (tester) async {
+    await pump(tester);
+    expect(
+      find.text(
+        "Don't see your buddy? Both of you need this screen open and "
+        'Submersion 1.8.4 or later.',
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('Open card file opens the preview', (tester) async {
+    await pump(
+      tester,
+      pickFile: () async =>
+          BuddyCardCodec.encodeFull(const BuddyCard(id: 'x', name: 'Alex')),
+    );
+    await tester.tap(find.text('Open card file'));
+    await settle(tester);
+    expect(find.text('PREVIEW Alex'), findsOneWidget);
+  });
+
+  testWidgets('leaving the page stops the session', (tester) async {
+    await pump(tester);
+    expect(session.stops, 0);
+    GoRouter.of(tester.element(find.byType(BuddySwapPage))).go('/buddies');
+    await settle(tester);
+    expect(session.stops, greaterThan(0));
+  });
+
+  test('platform default is restored', () {
+    expect(debugDefaultTargetPlatformOverride, isNull);
+  });
+}

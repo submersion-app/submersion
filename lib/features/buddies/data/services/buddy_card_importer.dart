@@ -5,6 +5,8 @@ import 'package:submersion/features/buddies/domain/entities/buddy_card.dart';
 import 'package:submersion/features/buddies/domain/services/buddy_card_merge.dart';
 import 'package:submersion/features/certifications/data/repositories/certification_repository.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 
 /// Saves a received buddy card (issue #3728), after the diver confirmed the
 /// preview.
@@ -26,6 +28,8 @@ class BuddyCardImporter {
   final DateTime Function() _clock;
 
   Future<Buddy> addNew(BuddyCard card, {required String diverId}) async {
+    // Demo mode (issue #3708): nothing comes into the sample logbook.
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.fileImport);
     final now = _clock();
     final buddy = await _buddies.createBuddy(
       Buddy(
@@ -50,6 +54,7 @@ class BuddyCardImporter {
   }
 
   Future<Buddy> update(Buddy existing, BuddyCard card) async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.fileImport);
     final updated = existing.copyWith(
       name: card.name,
       phone: card.phone,

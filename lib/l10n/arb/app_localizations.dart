@@ -4489,6 +4489,276 @@ abstract class AppLocalizations {
   /// **'This buddy card could not be read.'**
   String get buddyCard_error_unreadable;
 
+  /// No description provided for @buddySwap_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Swap with a buddy'**
+  String get buddySwap_title;
+
+  /// No description provided for @buddySwap_nearby_heading.
+  ///
+  /// In en, this message translates to:
+  /// **'Divers nearby with Submersion open'**
+  String get buddySwap_nearby_heading;
+
+  /// No description provided for @buddySwap_nearby_tapToSwap.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to swap'**
+  String get buddySwap_nearby_tapToSwap;
+
+  /// No description provided for @buddySwap_nearby_looking.
+  ///
+  /// In en, this message translates to:
+  /// **'Looking for more…'**
+  String get buddySwap_nearby_looking;
+
+  /// No description provided for @buddySwap_nearby_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t see your buddy? Both of you need this screen open and Submersion 1.8.4 or later.'**
+  String get buddySwap_nearby_hint;
+
+  /// No description provided for @buddySwap_sharing.
+  ///
+  /// In en, this message translates to:
+  /// **'Sharing: {summary}'**
+  String buddySwap_sharing(String summary);
+
+  /// No description provided for @buddySwap_sharing_change.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get buddySwap_sharing_change;
+
+  /// No description provided for @buddySwap_dives.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 dive} other{{count} dives}}'**
+  String buddySwap_dives(int count);
+
+  /// No description provided for @buddySwap_action_showCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Show my code'**
+  String get buddySwap_action_showCode;
+
+  /// No description provided for @buddySwap_action_scanCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan code'**
+  String get buddySwap_action_scanCode;
+
+  /// No description provided for @buddySwap_action_sendFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Send file'**
+  String get buddySwap_action_sendFile;
+
+  /// No description provided for @buddySwap_action_openFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Open card file'**
+  String get buddySwap_action_openFile;
+
+  /// No description provided for @buddySwap_action_writeSticker.
+  ///
+  /// In en, this message translates to:
+  /// **'Write NFC sticker'**
+  String get buddySwap_action_writeSticker;
+
+  /// No description provided for @buddySwap_action_tapAndroid.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap an Android phone'**
+  String get buddySwap_action_tapAndroid;
+
+  /// No description provided for @buddySwap_action_receiveByTap.
+  ///
+  /// In en, this message translates to:
+  /// **'Receive by tap'**
+  String get buddySwap_action_receiveByTap;
+
+  /// No description provided for @buddySwap_tap_prompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold your phone near the other phone or the sticker'**
+  String get buddySwap_tap_prompt;
+
+  /// No description provided for @buddySwap_sticker_prompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold your phone near a blank NFC sticker'**
+  String get buddySwap_sticker_prompt;
+
+  /// No description provided for @buddySwap_sticker_written.
+  ///
+  /// In en, this message translates to:
+  /// **'Sticker written. Rewrite it when your details change.'**
+  String get buddySwap_sticker_written;
+
+  /// No description provided for @buddySwap_sticker_tooSmall.
+  ///
+  /// In en, this message translates to:
+  /// **'That sticker is too small for your card.'**
+  String get buddySwap_sticker_tooSmall;
+
+  /// No description provided for @buddySwap_sticker_notWritable.
+  ///
+  /// In en, this message translates to:
+  /// **'That sticker cannot be written.'**
+  String get buddySwap_sticker_notWritable;
+
+  /// No description provided for @buddySwap_nfc_unavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'NFC is not available on this device.'**
+  String get buddySwap_nfc_unavailable;
+
+  /// No description provided for @buddySwap_qr_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Your buddy card'**
+  String get buddySwap_qr_title;
+
+  /// No description provided for @buddySwap_qr_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask your buddy to scan this with Submersion or their camera.'**
+  String get buddySwap_qr_hint;
+
+  /// No description provided for @buddySwap_request_title.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} wants to swap cards'**
+  String buddySwap_request_title(String name);
+
+  /// No description provided for @buddySwap_request_youSend.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ll send: {summary}'**
+  String buddySwap_request_youSend(String summary);
+
+  /// No description provided for @buddySwap_request_swap.
+  ///
+  /// In en, this message translates to:
+  /// **'Swap'**
+  String get buddySwap_request_swap;
+
+  /// No description provided for @buddySwap_request_decline.
+  ///
+  /// In en, this message translates to:
+  /// **'Decline'**
+  String get buddySwap_request_decline;
+
+  /// No description provided for @buddySwap_waiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for {name} to answer'**
+  String buddySwap_waiting(String name);
+
+  /// No description provided for @buddySwap_failed_declined.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} declined the swap'**
+  String buddySwap_failed_declined(String name);
+
+  /// No description provided for @buddySwap_failed_timedOut.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} didn\'t answer'**
+  String buddySwap_failed_timedOut(String name);
+
+  /// No description provided for @buddySwap_failed_lost.
+  ///
+  /// In en, this message translates to:
+  /// **'Lost the connection to {name}'**
+  String buddySwap_failed_lost(String name);
+
+  /// No description provided for @buddySwap_failed_newerApp.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} needs a newer version of Submersion'**
+  String buddySwap_failed_newerApp(String name);
+
+  /// No description provided for @buddyShare_title.
+  ///
+  /// In en, this message translates to:
+  /// **'What you share'**
+  String get buddyShare_title;
+
+  /// No description provided for @buddyShare_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get buddyShare_name;
+
+  /// No description provided for @buddyShare_alwaysShared.
+  ///
+  /// In en, this message translates to:
+  /// **'Always shared'**
+  String get buddyShare_alwaysShared;
+
+  /// No description provided for @buddyShare_neverShared.
+  ///
+  /// In en, this message translates to:
+  /// **'Medical, insurance and emergency details are never shared.'**
+  String get buddyShare_neverShared;
+
+  /// No description provided for @buddyShare_photo.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo'**
+  String get buddyShare_photo;
+
+  /// No description provided for @buddyShare_phone.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get buddyShare_phone;
+
+  /// No description provided for @buddyShare_email.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get buddyShare_email;
+
+  /// No description provided for @buddyShare_certifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Certifications'**
+  String get buddyShare_certifications;
+
+  /// No description provided for @buddyShare_cardDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Card numbers and dates'**
+  String get buddyShare_cardDetails;
+
+  /// No description provided for @buddyShare_diveCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive count'**
+  String get buddyShare_diveCount;
+
+  /// No description provided for @buddyShare_divingSince.
+  ///
+  /// In en, this message translates to:
+  /// **'Diving since'**
+  String get buddyShare_divingSince;
+
+  /// No description provided for @buddyShare_lastDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Last dive date'**
+  String get buddyShare_lastDive;
+
+  /// No description provided for @buddyShare_social.
+  ///
+  /// In en, this message translates to:
+  /// **'Social handle'**
+  String get buddyShare_social;
+
   /// No description provided for @buddies_action_clearSearch.
   ///
   /// In en, this message translates to:

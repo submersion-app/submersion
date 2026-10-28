@@ -2906,6 +2906,175 @@ class AppLocalizationsDe extends AppLocalizations {
       'Diese Buddy-Karte konnte nicht gelesen werden.';
 
   @override
+  String get buddySwap_title => 'Mit Buddy tauschen';
+
+  @override
+  String get buddySwap_nearby_heading =>
+      'Taucher in der Nähe mit geöffnetem Submersion';
+
+  @override
+  String get buddySwap_nearby_tapToSwap => 'Zum Tauschen tippen';
+
+  @override
+  String get buddySwap_nearby_looking => 'Suche nach weiteren…';
+
+  @override
+  String get buddySwap_nearby_hint =>
+      'Du siehst deinen Buddy nicht? Ihr braucht beide diesen Bildschirm geöffnet und Submersion 1.8.4 oder neuer.';
+
+  @override
+  String buddySwap_sharing(String summary) {
+    return 'Geteilt: $summary';
+  }
+
+  @override
+  String get buddySwap_sharing_change => 'Ändern';
+
+  @override
+  String buddySwap_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchgänge',
+      one: '1 Tauchgang',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddySwap_action_showCode => 'Meinen Code zeigen';
+
+  @override
+  String get buddySwap_action_scanCode => 'Code scannen';
+
+  @override
+  String get buddySwap_action_sendFile => 'Datei senden';
+
+  @override
+  String get buddySwap_action_openFile => 'Kartendatei öffnen';
+
+  @override
+  String get buddySwap_action_writeSticker => 'NFC-Sticker beschreiben';
+
+  @override
+  String get buddySwap_action_tapAndroid => 'Android-Telefon antippen';
+
+  @override
+  String get buddySwap_action_receiveByTap => 'Per Antippen empfangen';
+
+  @override
+  String get buddySwap_tap_prompt =>
+      'Halte dein Telefon an das andere Telefon oder den Sticker';
+
+  @override
+  String get buddySwap_sticker_prompt =>
+      'Halte dein Telefon an einen leeren NFC-Sticker';
+
+  @override
+  String get buddySwap_sticker_written =>
+      'Sticker beschrieben. Beschreibe ihn neu, wenn sich deine Angaben ändern.';
+
+  @override
+  String get buddySwap_sticker_tooSmall =>
+      'Dieser Sticker ist zu klein für deine Karte.';
+
+  @override
+  String get buddySwap_sticker_notWritable =>
+      'Dieser Sticker kann nicht beschrieben werden.';
+
+  @override
+  String get buddySwap_nfc_unavailable =>
+      'NFC ist auf diesem Gerät nicht verfügbar.';
+
+  @override
+  String get buddySwap_qr_title => 'Deine Buddy-Karte';
+
+  @override
+  String get buddySwap_qr_hint =>
+      'Bitte deinen Buddy, dies mit Submersion oder der Kamera zu scannen.';
+
+  @override
+  String buddySwap_request_title(String name) {
+    return '$name möchte Karten tauschen';
+  }
+
+  @override
+  String buddySwap_request_youSend(String summary) {
+    return 'Du sendest: $summary';
+  }
+
+  @override
+  String get buddySwap_request_swap => 'Tauschen';
+
+  @override
+  String get buddySwap_request_decline => 'Ablehnen';
+
+  @override
+  String buddySwap_waiting(String name) {
+    return 'Warte auf die Antwort von $name';
+  }
+
+  @override
+  String buddySwap_failed_declined(String name) {
+    return '$name hat den Tausch abgelehnt';
+  }
+
+  @override
+  String buddySwap_failed_timedOut(String name) {
+    return '$name hat nicht geantwortet';
+  }
+
+  @override
+  String buddySwap_failed_lost(String name) {
+    return 'Verbindung zu $name verloren';
+  }
+
+  @override
+  String buddySwap_failed_newerApp(String name) {
+    return '$name braucht eine neuere Version von Submersion';
+  }
+
+  @override
+  String get buddyShare_title => 'Was du teilst';
+
+  @override
+  String get buddyShare_name => 'Name';
+
+  @override
+  String get buddyShare_alwaysShared => 'Wird immer geteilt';
+
+  @override
+  String get buddyShare_neverShared =>
+      'Medizinische, Versicherungs- und Notfallangaben werden nie geteilt.';
+
+  @override
+  String get buddyShare_photo => 'Foto';
+
+  @override
+  String get buddyShare_phone => 'Telefon';
+
+  @override
+  String get buddyShare_email => 'E-Mail';
+
+  @override
+  String get buddyShare_certifications => 'Brevets';
+
+  @override
+  String get buddyShare_cardDetails => 'Kartennummern und Daten';
+
+  @override
+  String get buddyShare_diveCount => 'Anzahl Tauchgänge';
+
+  @override
+  String get buddyShare_divingSince => 'Taucht seit';
+
+  @override
+  String get buddyShare_lastDive => 'Datum des letzten Tauchgangs';
+
+  @override
+  String get buddyShare_social => 'Social-Media-Name';
+
+  @override
   String get buddies_action_clearSearch => 'Suche löschen';
 
   @override

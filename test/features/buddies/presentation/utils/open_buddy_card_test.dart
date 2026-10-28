@@ -4,7 +4,10 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy_card.dart';
 import 'package:submersion/features/buddies/domain/services/buddy_card_codec.dart';
 import 'package:submersion/features/buddies/presentation/utils/open_buddy_card.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+
+import '../../../../helpers/global_test_defaults.dart';
 
 void main() {
   Future<BuildContext> pump(WidgetTester tester) async {
@@ -48,6 +51,19 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.text('PREVIEW Sam'), findsOneWidget);
+  });
+
+  testWidgets('demo mode explains the seal and opens nothing', (tester) async {
+    final context = await pump(tester);
+    DemoModeGate.instance.debugActive = true;
+    addTearDown(applyGlobalTestDefaults);
+    openBuddyCard(
+      context,
+      const BuddyCardDecoded(BuddyCard(id: 'x', name: 'Sam')),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('PREVIEW Sam'), findsNothing);
+    expect(find.byType(SnackBar), findsOneWidget);
   });
 
   testWidgets('a passport or other link says it is not a card', (tester) async {

@@ -2984,6 +2984,169 @@ class AppLocalizationsAr extends AppLocalizations {
   String get buddyCard_error_unreadable => 'تعذّرت قراءة بطاقة الرفيق هذه.';
 
   @override
+  String get buddySwap_title => 'تبادل مع رفيق';
+
+  @override
+  String get buddySwap_nearby_heading => 'غواصون قريبون يفتحون Submersion';
+
+  @override
+  String get buddySwap_nearby_tapToSwap => 'انقر للتبادل';
+
+  @override
+  String get buddySwap_nearby_looking => 'جارٍ البحث عن المزيد…';
+
+  @override
+  String get buddySwap_nearby_hint =>
+      'لا ترى رفيقك؟ يجب أن تفتحا هذه الشاشة كلاكما وأن يكون لديكما Submersion 1.8.4 أو أحدث.';
+
+  @override
+  String buddySwap_sharing(String summary) {
+    return 'المشاركة: $summary';
+  }
+
+  @override
+  String get buddySwap_sharing_change => 'تغيير';
+
+  @override
+  String buddySwap_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count غطسة',
+      one: 'غطسة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddySwap_action_showCode => 'عرض رمزي';
+
+  @override
+  String get buddySwap_action_scanCode => 'مسح الرمز';
+
+  @override
+  String get buddySwap_action_sendFile => 'إرسال ملف';
+
+  @override
+  String get buddySwap_action_openFile => 'فتح ملف بطاقة';
+
+  @override
+  String get buddySwap_action_writeSticker => 'كتابة ملصق NFC';
+
+  @override
+  String get buddySwap_action_tapAndroid => 'المس هاتف Android';
+
+  @override
+  String get buddySwap_action_receiveByTap => 'الاستلام باللمس';
+
+  @override
+  String get buddySwap_tap_prompt => 'قرّب هاتفك من الهاتف الآخر أو الملصق';
+
+  @override
+  String get buddySwap_sticker_prompt => 'قرّب هاتفك من ملصق NFC فارغ';
+
+  @override
+  String get buddySwap_sticker_written =>
+      'تمت كتابة الملصق. أعد كتابته عند تغيّر بياناتك.';
+
+  @override
+  String get buddySwap_sticker_tooSmall => 'هذا الملصق صغير جدًا لبطاقتك.';
+
+  @override
+  String get buddySwap_sticker_notWritable => 'لا يمكن الكتابة على هذا الملصق.';
+
+  @override
+  String get buddySwap_nfc_unavailable => 'NFC غير متاح على هذا الجهاز.';
+
+  @override
+  String get buddySwap_qr_title => 'بطاقة الرفيق الخاصة بك';
+
+  @override
+  String get buddySwap_qr_hint =>
+      'اطلب من رفيقك مسح هذا بـ Submersion أو بالكاميرا.';
+
+  @override
+  String buddySwap_request_title(String name) {
+    return 'يريد $name تبادل البطاقات';
+  }
+
+  @override
+  String buddySwap_request_youSend(String summary) {
+    return 'سترسل: $summary';
+  }
+
+  @override
+  String get buddySwap_request_swap => 'تبادل';
+
+  @override
+  String get buddySwap_request_decline => 'رفض';
+
+  @override
+  String buddySwap_waiting(String name) {
+    return 'بانتظار رد $name';
+  }
+
+  @override
+  String buddySwap_failed_declined(String name) {
+    return 'رفض $name التبادل';
+  }
+
+  @override
+  String buddySwap_failed_timedOut(String name) {
+    return 'لم يرد $name';
+  }
+
+  @override
+  String buddySwap_failed_lost(String name) {
+    return 'انقطع الاتصال بـ $name';
+  }
+
+  @override
+  String buddySwap_failed_newerApp(String name) {
+    return 'يحتاج $name إلى إصدار أحدث من Submersion';
+  }
+
+  @override
+  String get buddyShare_title => 'ما تشاركه';
+
+  @override
+  String get buddyShare_name => 'الاسم';
+
+  @override
+  String get buddyShare_alwaysShared => 'تُشارك دائمًا';
+
+  @override
+  String get buddyShare_neverShared =>
+      'لا تُشارك أبدًا التفاصيل الطبية وتفاصيل التأمين والطوارئ.';
+
+  @override
+  String get buddyShare_photo => 'الصورة';
+
+  @override
+  String get buddyShare_phone => 'الهاتف';
+
+  @override
+  String get buddyShare_email => 'البريد الإلكتروني';
+
+  @override
+  String get buddyShare_certifications => 'الشهادات';
+
+  @override
+  String get buddyShare_cardDetails => 'أرقام البطاقات وتواريخها';
+
+  @override
+  String get buddyShare_diveCount => 'عدد الغطسات';
+
+  @override
+  String get buddyShare_divingSince => 'يغطس منذ';
+
+  @override
+  String get buddyShare_lastDive => 'تاريخ آخر غطسة';
+
+  @override
+  String get buddyShare_social => 'اسم المستخدم على مواقع التواصل';
+
+  @override
   String get buddies_action_clearSearch => 'مسح البحث';
 
   @override
