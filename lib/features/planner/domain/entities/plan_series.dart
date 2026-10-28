@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
+import 'package:submersion/features/planner/domain/entities/series_follow.dart';
 
 /// The surface interval a dive gets when it is added to a series.
 const defaultSeriesSurfaceInterval = Duration(hours: 1);
@@ -53,12 +54,17 @@ class PlanSeriesDive extends Equatable {
   List<Object?> get props => [state, sourceTankIds, pinnedTankIds, name];
 }
 
-/// An ordered series of planned dives and the one being edited.
+/// An ordered series of planned dives and the one being edited, and the
+/// logged dives it follows, if any.
 class PlanSeries extends Equatable {
   final List<PlanSeriesDive> dives;
   final int selectedIndex;
 
-  const PlanSeries({required this.dives, this.selectedIndex = 0})
+  /// The logged dives before the first planned dive; null when the series
+  /// follows none.
+  final SeriesFollow? follow;
+
+  const PlanSeries({required this.dives, this.selectedIndex = 0, this.follow})
     : assert(dives.length > 0);
 
   /// A plan of one dive: where every plan starts.
@@ -70,15 +76,21 @@ class PlanSeries extends Equatable {
   /// Whether this is a repetitive series rather than a single dive.
   bool get isSeries => dives.length > 1;
 
-  PlanSeries copyWith({List<PlanSeriesDive>? dives, int? selectedIndex}) {
+  PlanSeries copyWith({
+    List<PlanSeriesDive>? dives,
+    int? selectedIndex,
+    SeriesFollow? follow,
+    bool clearFollow = false,
+  }) {
     return PlanSeries(
       dives: dives ?? this.dives,
       selectedIndex: selectedIndex ?? this.selectedIndex,
+      follow: clearFollow ? null : (follow ?? this.follow),
     );
   }
 
   @override
-  List<Object?> get props => [dives, selectedIndex];
+  List<Object?> get props => [dives, selectedIndex, follow];
 }
 
 /// The letter a planned dive goes by within its series: A, B ... Z, AA, AB.

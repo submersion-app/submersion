@@ -1,6 +1,7 @@
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
 import 'package:submersion/features/planner/domain/entities/plan_series.dart';
+import 'package:submersion/features/planner/domain/entities/series_follow.dart';
 
 /// Edits to a repetitive series (issue #3565). Each returns a new series;
 /// none mutates the one it is given.
@@ -60,25 +61,37 @@ PlanSeries appendDive(
 ///
 /// The dive after it is re-linked to the dive before it. When the first dive
 /// goes, the next one becomes a first dive: nothing is carried into it, so
-/// it starts fresh at the tank pressures it was last given.
+/// it starts fresh at the tank pressures it was last given. When the series
+/// follows a logged dive, the new first dive follows it instead, after its
+/// own surface interval.
 PlanSeries removeDive(PlanSeries series, int index) {
   if (series.dives.length <= 1 || index < 0 || index >= series.dives.length) {
     return series;
   }
   final dives = [...series.dives];
   final removed = dives.removeAt(index);
+  var follow = series.follow;
 
   if (index < dives.length) {
     final next = dives[index];
     if (index == 0) {
       dives[0] = next.copyWith(
         state: next.state.copyWith(
-          clearSurfaceInterval: true,
+          clearSurfaceInterval: follow == null,
           clearInitialTissueState: true,
           clearInitialExposure: true,
         ),
         sourceTankIds: const {},
       );
+      // The new first dive's tanks fill to what the removed dive's did.
+      if (follow != null) {
+        follow = follow.copyWith(
+          ownStartPressures: {
+            for (final e in next.sourceTankIds.entries)
+              e.key: ?follow.ownStartPressures[e.value],
+          },
+        );
+      }
     } else {
       dives[index] = next.copyWith(
         sourceTankIds: {
@@ -96,7 +109,7 @@ PlanSeries removeDive(PlanSeries series, int index) {
       : selected == index
       ? (index - 1).clamp(0, dives.length - 1)
       : selected;
-  return PlanSeries(dives: dives, selectedIndex: newSelected);
+  return PlanSeries(dives: dives, selectedIndex: newSelected, follow: follow);
 }
 
 /// Selects the dive at [index], clamped to the series.
@@ -149,7 +162,9 @@ PlanSeries updateDiveState(
 
 /// The pressure the tank [tankId] of the dive at [index] is filled to: its
 /// start pressure in the dive the series first carried it in, falling back
-/// to its rated working pressure. Null for a tank the dive does not have.
+/// to its rated working pressure. A first dive that follows a logged dive
+/// fills to its own pressure from before it followed it. Null for a tank
+/// the dive does not have.
 double? fullPressureFor(PlanSeries series, int index, String tankId) {
   var diveIndex = index;
   var id = tankId;
@@ -164,7 +179,65 @@ double? fullPressureFor(PlanSeries series, int index, String tankId) {
     id = source;
     tank = earlier;
   }
+  final follow = series.follow;
+  if (diveIndex == 0 && follow != null) {
+    return follow.ownStartPressures[id] ??
+        tank!.workingPressure ??
+        tank!.startPressure;
+  }
   return tank!.startPressure ?? tank.workingPressure;
+}
+
+/// The series following the logged dives in [follow], the first dive after
+/// [surfaceInterval]. The first dive's own tank pressures are kept, so Fill
+/// and [unfollow] can return to them; following another dive keeps the ones
+/// kept before.
+PlanSeries followDive(
+  PlanSeries series,
+  SeriesFollow follow, {
+  required Duration surfaceInterval,
+}) {
+  final first = series.dives.first;
+  final kept = series.follow?.ownStartPressures ?? const <String, double>{};
+  final own = {
+    for (final tank in first.state.tanks)
+      tank.id: ?(kept[tank.id] ?? tank.startPressure),
+  };
+  final dives = [...series.dives];
+  dives[0] = first.copyWith(
+    state: first.state.copyWith(surfaceInterval: surfaceInterval),
+  );
+  return series.copyWith(
+    dives: dives,
+    follow: follow.copyWith(ownStartPressures: own),
+  );
+}
+
+/// The series no longer following a logged dive: the first dive drops what
+/// it carried in and its interval, and its tanks that were carried go back
+/// to their own pressures.
+PlanSeries unfollow(PlanSeries series) {
+  final follow = series.follow;
+  if (follow == null) return series;
+  final first = series.dives.first;
+  final tanks = [
+    for (final tank in first.state.tanks)
+      if (!first.pinnedTankIds.contains(tank.id) &&
+          follow.ownStartPressures[tank.id] != null)
+        tank.copyWith(startPressure: follow.ownStartPressures[tank.id])
+      else
+        tank,
+  ];
+  final dives = [...series.dives];
+  dives[0] = first.copyWith(
+    state: first.state.copyWith(
+      tanks: tanks,
+      clearSurfaceInterval: true,
+      clearInitialTissueState: true,
+      clearInitialExposure: true,
+    ),
+  );
+  return series.copyWith(dives: dives, clearFollow: true);
 }
 
 /// Fills one tank of the dive at [index] and pins it.

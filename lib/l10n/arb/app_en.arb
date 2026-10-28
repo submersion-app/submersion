@@ -12780,6 +12780,41 @@
       }
     }
   },
+  "plannerSeries_loggedDive": "Logged dive {label}",
+  "@plannerSeries_loggedDive": {
+    "description": "A logged dive shown in the planner series bar, by its dive number, name or date",
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerSeries_openInLog": "Open in dive log",
+  "plannerSeries_stopFollowing": "Stop following",
+  "plannerSeries_carriedInto": "Carried into {dive}",
+  "@plannerSeries_carriedInto": {
+    "description": "Heading over what a logged dive passes on to the dive after it",
+    "placeholders": {
+      "dive": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerSeries_endCns": "CNS at the end",
+  "plannerSeries_otu": "OTU",
+  "plannerSeries_followPrompt": "Dive {label} ended {time} ago.",
+  "@plannerSeries_followPrompt": {
+    "description": "Offer to follow the most recent logged dive; time is h:mm since it ended",
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerSeries_follow": "Follow",
   "plannerSeries_surfaceInterval": "Surface interval",
   "plannerSeries_surfaceIntervalValue": "Surface interval {time}",
   "@plannerSeries_surfaceIntervalValue": {
@@ -32017,6 +32052,7 @@
     }
   },
   "diveLog_detail_menu_whatIf": "Replan this dive",
+  "diveLog_detail_menu_planRepetitive": "Plan repetitive dive",
   "plannerCanvas_sourceCompare_title": "vs. original dive",
   "plannerCanvas_issue_repeated": "{message} ({count} legs)",
   "@plannerCanvas_issue_repeated": {

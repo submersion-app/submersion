@@ -32,6 +32,9 @@ import 'package:submersion/features/planner/presentation/widgets/plan_chart_read
 import 'package:submersion/features/planner/presentation/widgets/plan_export_actions.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_export_files.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_name_dialog.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_follow_providers.dart';
+import 'package:submersion/features/planner/presentation/widgets/plan_follow_prompt.dart';
+import 'package:submersion/features/planner/presentation/widgets/plan_logged_dive_view.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_series_navigator.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_status_chips.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_dive_details_card.dart';
@@ -373,6 +376,19 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
   /// behind a drawer). At full width the results pane shows by default; at
   /// middle widths it defaults to hidden and the right chevron reveals it.
   Widget _buildDesktop({required bool fullWidth}) {
+    // A logged dive picked in the series bar is shown read-only in place of
+    // the planner, under the same bar.
+    if (ref.watch(viewedLoggedDiveProvider) != null) {
+      return const Column(
+        children: [
+          Padding(
+            padding: EdgeInsets.fromLTRB(4, 4, 4, 0),
+            child: PlanSeriesNavigator(),
+          ),
+          Expanded(child: PlanLoggedDiveView()),
+        ],
+      );
+    }
     final editorCollapsed = ref.watch(editorPaneCollapsedProvider);
     final resultsVisible = fullWidth
         ? !ref.watch(resultsPaneCollapsedProvider)
@@ -425,6 +441,7 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
           padding: EdgeInsets.fromLTRB(4, 4, 4, 0),
           child: PlanSeriesNavigator(),
         ),
+        const PlanFollowPrompt(),
         Expanded(
           child: Stack(
             children: [
@@ -500,9 +517,20 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
     // A single CustomScrollView so the chart and tab selector scroll away
     // with the rest of the page instead of staying pinned and eating the
     // viewport (#1428).
+    if (ref.watch(viewedLoggedDiveProvider) != null) {
+      return CustomScrollView(
+        slivers: [
+          const SliverToBoxAdapter(child: PlanSeriesNavigator()),
+          SliverToBoxAdapter(
+            child: PlanLoggedDiveView(chartHeight: chartHeight),
+          ),
+        ],
+      );
+    }
     return CustomScrollView(
       slivers: [
         const SliverToBoxAdapter(child: PlanSeriesNavigator()),
+        const SliverToBoxAdapter(child: PlanFollowPrompt()),
         SliverToBoxAdapter(
           child: SizedBox(
             height: chartHeight,

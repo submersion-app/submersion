@@ -801,6 +801,35 @@ void main() {
       expect(find.text('Replan this dive'), findsOneWidget);
     });
 
+    testWidgets('Plan repetitive dive follows Replan this dive in the menu', (
+      tester,
+    ) async {
+      await _pumpDetailPage(tester, makeDiveWithTanksAndProfile());
+
+      await tester.tap(find.byIcon(Icons.more_vert).last);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Plan repetitive dive'), findsOneWidget);
+      expect(
+        tester.getTopLeft(find.text('Plan repetitive dive')).dy,
+        greaterThan(tester.getTopLeft(find.text('Replan this dive')).dy),
+      );
+    });
+
+    testWidgets('a planned dive offers no repetitive dive to plan', (
+      tester,
+    ) async {
+      await _pumpDetailPage(
+        tester,
+        makeDiveWithTanksAndProfile().copyWith(isPlanned: true),
+      );
+
+      await tester.tap(find.byIcon(Icons.more_vert).last);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Plan repetitive dive'), findsNothing);
+    });
+
     testWidgets('renders without crash when dive has tanks and a profile', (
       tester,
     ) async {

@@ -19449,6 +19449,36 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String plannerSeries_loggedDive(String label) {
+    return '已记录潜水 $label';
+  }
+
+  @override
+  String get plannerSeries_openInLog => '在潜水日志中打开';
+
+  @override
+  String get plannerSeries_stopFollowing => '停止跟随';
+
+  @override
+  String plannerSeries_carriedInto(String dive) {
+    return '带入 $dive';
+  }
+
+  @override
+  String get plannerSeries_endCns => '结束时 CNS';
+
+  @override
+  String get plannerSeries_otu => 'OTU';
+
+  @override
+  String plannerSeries_followPrompt(String label, String time) {
+    return '潜水 $label 已于 $time 前结束。';
+  }
+
+  @override
+  String get plannerSeries_follow => '跟随';
+
+  @override
   String get plannerSeries_surfaceInterval => '水面间隔';
 
   @override
@@ -50509,6 +50539,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_detail_menu_whatIf => '重新规划此次潜水';
+
+  @override
+  String get diveLog_detail_menu_planRepetitive => '计划重复潜水';
 
   @override
   String get plannerCanvas_sourceCompare_title => '对比原始潜水';

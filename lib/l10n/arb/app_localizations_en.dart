@@ -20138,6 +20138,36 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String plannerSeries_loggedDive(String label) {
+    return 'Logged dive $label';
+  }
+
+  @override
+  String get plannerSeries_openInLog => 'Open in dive log';
+
+  @override
+  String get plannerSeries_stopFollowing => 'Stop following';
+
+  @override
+  String plannerSeries_carriedInto(String dive) {
+    return 'Carried into $dive';
+  }
+
+  @override
+  String get plannerSeries_endCns => 'CNS at the end';
+
+  @override
+  String get plannerSeries_otu => 'OTU';
+
+  @override
+  String plannerSeries_followPrompt(String label, String time) {
+    return 'Dive $label ended $time ago.';
+  }
+
+  @override
+  String get plannerSeries_follow => 'Follow';
+
+  @override
   String get plannerSeries_surfaceInterval => 'Surface interval';
 
   @override
@@ -53030,6 +53060,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveLog_detail_menu_whatIf => 'Replan this dive';
+
+  @override
+  String get diveLog_detail_menu_planRepetitive => 'Plan repetitive dive';
 
   @override
   String get plannerCanvas_sourceCompare_title => 'vs. original dive';

@@ -20442,6 +20442,36 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String plannerSeries_loggedDive(String label) {
+    return 'Mergulho registado $label';
+  }
+
+  @override
+  String get plannerSeries_openInLog => 'Abrir no registo';
+
+  @override
+  String get plannerSeries_stopFollowing => 'Deixar de seguir';
+
+  @override
+  String plannerSeries_carriedInto(String dive) {
+    return 'Transportado para $dive';
+  }
+
+  @override
+  String get plannerSeries_endCns => 'CNS no final';
+
+  @override
+  String get plannerSeries_otu => 'OTU';
+
+  @override
+  String plannerSeries_followPrompt(String label, String time) {
+    return 'O mergulho $label terminou há $time.';
+  }
+
+  @override
+  String get plannerSeries_follow => 'Seguir';
+
+  @override
   String get plannerSeries_surfaceInterval => 'Intervalo de superfície';
 
   @override
@@ -53884,6 +53914,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diveLog_detail_menu_whatIf => 'Replanejar este mergulho';
+
+  @override
+  String get diveLog_detail_menu_planRepetitive => 'Planear mergulho sucessivo';
 
   @override
   String get plannerCanvas_sourceCompare_title => 'vs. mergulho original';

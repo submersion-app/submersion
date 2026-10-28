@@ -2,26 +2,33 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/features/planner/domain/entities/plan_series.dart';
 import 'package:submersion/features/planner/domain/utils/hours_minutes.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_follow_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_series_providers.dart';
+import 'package:submersion/features/planner/presentation/widgets/plan_logged_dive_view.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_status_chips.dart';
 import 'package:submersion/features/planner/presentation/widgets/planned_dive_icon.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The bar across the top of the dive profile that moves between the dives
 /// of a repetitive series (issue #3565):
 ///
-///                    1:00               1:30
-///   [(diver) Morning dive]  ~~  [(diver) B]  ~~  [(diver) C]   (+)
+///                 1:00                       1:30
+///   [(diver) #213]  ~~  [(diver) Morning dive]  ~~  [(diver) B]   (+)
 ///
-/// Each planned dive is an outlined diver and its name, or its letter while
-/// it has none; each surface interval is its time above two waves. Tapping a
-/// dive selects it; + adds a dive after the last one. The selected dive can
-/// be removed from its chip. A dot marks a dive with a warning: red when
-/// any is critical, orange otherwise. Wider than the screen, the dives scroll by touch or mouse drag behind faded edges,
-/// keeping the selected dive in view.
+/// Each logged dive the series follows is a solid diver and its dive
+/// number; each planned dive is an outlined diver and its name, or its
+/// letter while it has none; each surface interval is its time above two
+/// waves. Tapping a planned dive selects it, and tapping a logged one shows
+/// it read-only; + adds a dive after the last one. The selected dive can be
+/// removed from its chip. A dot marks a dive with a warning: red when any is
+/// critical, orange otherwise. Wider than the screen, the dives scroll by
+/// touch or mouse drag behind faded edges, keeping the selected dive in
+/// view.
 class PlanSeriesNavigator extends ConsumerStatefulWidget {
   const PlanSeriesNavigator({super.key});
 
@@ -49,7 +56,9 @@ class _PlanSeriesNavigatorState extends ConsumerState<PlanSeriesNavigator> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       final series = ref.read(planSeriesNotifierProvider);
-      final chip = _chipKeys[series.selected.state.id]?.currentContext;
+      final id =
+          ref.read(viewedLoggedDiveProvider)?.id ?? series.selected.state.id;
+      final chip = _chipKeys[id]?.currentContext;
       if (chip == null) return;
       Scrollable.ensureVisible(
         chip,
@@ -90,18 +99,41 @@ class _PlanSeriesNavigatorState extends ConsumerState<PlanSeriesNavigator> {
       planSeriesNotifierProvider.select((s) => s.selected.state.id),
       (_, _) => _revealSelected(),
     );
+    ref.listen(viewedLoggedDiveProvider, (_, _) => _revealSelected());
     final l10n = context.l10n;
     final theme = Theme.of(context);
+    final units = UnitFormatter(ref.watch(settingsProvider));
     final series = ref.watch(planSeriesNotifierProvider);
     final results = ref.watch(planSeriesResultsProvider);
     final canAdd = ref.watch(canAddSeriesDiveProvider);
+    final viewed = ref.watch(viewedLoggedDiveProvider);
     final notifier = ref.read(planSeriesNotifierProvider.notifier);
-    final selected = series.selectedIndex;
+    final viewedNotifier = ref.read(viewedLoggedDiveIdProvider.notifier);
+    final selected = viewed == null ? series.selectedIndex : -1;
 
     final items = <Widget>[];
+    final logged = series.follow?.loggedDives ?? const [];
+    for (var i = 0; i < logged.length; i++) {
+      final dive = logged[i];
+      if (i > 0) {
+        final gap = dive.start.difference(logged[i - 1].end);
+        items.add(
+          _SurfaceIntervalMark(interval: gap.isNegative ? Duration.zero : gap),
+        );
+      }
+      items.add(
+        _LoggedDiveChip(
+          key: _keyFor(dive.id),
+          label: seriesLoggedDiveLabel(dive, units),
+          selected: viewed?.id == dive.id,
+          onSelected: () => viewedNotifier.state = dive.id,
+        ),
+      );
+    }
+
     for (var i = 0; i < series.dives.length; i++) {
       final dive = series.dives[i];
-      if (i > 0) {
+      if (i > 0 || logged.isNotEmpty) {
         items.add(
           _SurfaceIntervalMark(
             interval:
@@ -121,7 +153,10 @@ class _PlanSeriesNavigatorState extends ConsumerState<PlanSeriesNavigator> {
           issueColor: worst == null
               ? null
               : planIssueSeverityColor(theme.colorScheme, worst),
-          onSelected: () => notifier.select(i),
+          onSelected: () {
+            viewedNotifier.state = null;
+            notifier.select(i);
+          },
           onRemove: i == selected && series.isSeries
               ? () => _confirmRemove(i)
               : null,
@@ -165,7 +200,12 @@ class _PlanSeriesNavigatorState extends ConsumerState<PlanSeriesNavigator> {
         IconButton.filledTonal(
           icon: const Icon(Icons.add),
           tooltip: l10n.plannerSeries_addDive,
-          onPressed: canAdd ? notifier.addDive : null,
+          onPressed: canAdd
+              ? () {
+                  viewedNotifier.state = null;
+                  notifier.addDive();
+                }
+              : null,
           color: theme.colorScheme.onSecondaryContainer,
         ),
         const SizedBox(width: 4),
@@ -230,6 +270,36 @@ class _DiveChip extends StatelessWidget {
           deleteButtonTooltipMessage: l10n.plannerSeries_removeDive(letter),
         ),
       ),
+    );
+  }
+}
+
+/// A logged dive the series follows: the main menu's diver, solid, and its
+/// dive number. Read-only; tapping it shows the dive.
+class _LoggedDiveChip extends StatelessWidget {
+  const _LoggedDiveChip({
+    super.key,
+    required this.label,
+    required this.selected,
+    required this.onSelected,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return InputChip(
+      avatar: Icon(
+        Icons.scuba_diving,
+        color: Theme.of(context).colorScheme.primary,
+      ),
+      label: Text(label),
+      tooltip: context.l10n.plannerSeries_loggedDive(label),
+      selected: selected,
+      showCheckmark: false,
+      onSelected: (_) => onSelected(),
     );
   }
 }

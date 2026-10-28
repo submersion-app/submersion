@@ -4,6 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/planner/domain/entities/plan_series.dart';
+import 'package:submersion/features/planner/domain/entities/series_follow.dart';
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 import 'package:submersion/features/planner/domain/services/plan_series_calculator.dart'
     as calculator;
@@ -66,8 +67,14 @@ class PlanSeriesNotifier extends StateNotifier<PlanSeries> {
     }
     state = edits.updateDiveState(state, index, next);
     // The OTU carried in depends on how long ago each earlier dive ended.
-    if (index > 0 && previous?.surfaceInterval != next.surfaceInterval) {
-      final carried = calculator.carriedState(state.dives, index, _earlier);
+    if ((index > 0 || state.follow != null) &&
+        previous?.surfaceInterval != next.surfaceInterval) {
+      final carried = calculator.carriedState(
+        state.dives,
+        index,
+        _earlier,
+        follow: state.follow,
+      );
       if (carried.initialOtu != next.initialOtu) {
         _push(next.copyWith(initialOtu: carried.initialOtu));
       }
@@ -106,6 +113,20 @@ class PlanSeriesNotifier extends StateNotifier<PlanSeries> {
     state = edits.renameDive(state, state.selectedIndex, name);
   }
 
+  /// Follows the logged dives in [follow]: the first dive starts from the
+  /// followed one, after [surfaceInterval].
+  void followDive(SeriesFollow follow, {required Duration surfaceInterval}) {
+    state = edits.followDive(state, follow, surfaceInterval: surfaceInterval);
+    _loadSelected();
+  }
+
+  /// Stops following a logged dive.
+  void unfollow() {
+    if (state.follow == null) return;
+    state = edits.unfollow(state);
+    _loadSelected();
+  }
+
   /// Fills one tank of the selected dive.
   void fillTank(String tankId) {
     state = edits.fillTank(state, state.selectedIndex, tankId);
@@ -123,8 +144,16 @@ class PlanSeriesNotifier extends StateNotifier<PlanSeries> {
     _earlier = calculator.computeSeries(
       state.dives.sublist(0, index),
       config: _getConfig(),
+      follow: state.follow,
     );
-    _push(calculator.carriedState(state.dives, index, _earlier));
+    _push(
+      calculator.carriedState(
+        state.dives,
+        index,
+        _earlier,
+        follow: state.follow,
+      ),
+    );
   }
 
   /// Loads [plan] into the editor and stores what the editor ends up with.
@@ -175,6 +204,7 @@ final planSeriesResultsProvider = Provider<List<calculator.SeriesDiveResult>>((
   return calculator.computeSeries(
     series.dives,
     config: ref.watch(planEngineConfigProvider),
+    follow: series.follow,
   );
 });
 
@@ -197,11 +227,12 @@ final followAllowedProvider = Provider<bool>(
 );
 
 /// The tanks of the selected dive that Fill would top up, with the pressure
-/// it fills each to. Empty on the first dive, where nothing is carried in.
+/// it fills each to. Empty on a first dive that follows no logged dive,
+/// where nothing is carried in.
 final seriesFillPressuresProvider = Provider<Map<String, double>>((ref) {
   final series = ref.watch(planSeriesNotifierProvider);
   final index = series.selectedIndex;
-  if (index == 0) return const {};
+  if (index == 0 && series.follow == null) return const {};
   return {
     for (final tank in series.selected.state.tanks)
       if (edits.fullPressureFor(series, index, tank.id) case final full?

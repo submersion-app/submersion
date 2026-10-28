@@ -2,13 +2,14 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/features/planner/domain/entities/mission/mission_outcome.dart';
 import 'package:submersion/features/planner/presentation/providers/mission_issues_provider.dart';
 import 'package:submersion/features/planner/presentation/providers/mission_outcome_provider.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_series_providers.dart';
+import 'package:submersion/features/planner/presentation/widgets/plan_logged_dive_view.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/planner/domain/services/plan_issue_grouping.dart';
@@ -218,28 +219,27 @@ class ContingencyPreviewChip extends ConsumerWidget {
 }
 
 /// "Following {dive}" indicator with tap-to-clear; renders nothing when the
-/// plan does not follow a logged dive.
+/// series does not follow a logged dive.
 class FollowingChip extends ConsumerWidget {
   const FollowingChip({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final sourceDiveId = ref.watch(
-      divePlanNotifierProvider.select((s) => s.sourceDiveId),
+    final followed = ref.watch(
+      planSeriesNotifierProvider.select((s) => s.follow?.followed),
     );
-    if (sourceDiveId == null) return const SizedBox.shrink();
-
-    final dive = ref.watch(diveProvider(sourceDiveId)).valueOrNull;
-    final name = (dive?.name?.isNotEmpty ?? false)
-        ? dive!.name!
-        : (dive?.diveNumber != null ? '#${dive!.diveNumber}' : '…');
+    if (followed == null) return const SizedBox.shrink();
 
     return PlanChip(
-      label: context.l10n.plannerCanvas_follow_chip(name),
+      label: context.l10n.plannerCanvas_follow_chip(
+        seriesLoggedDiveLabel(
+          followed,
+          UnitFormatter(ref.watch(settingsProvider)),
+        ),
+      ),
       value: '✕',
       tint: Theme.of(context).colorScheme.tertiary,
-      onTap: () =>
-          ref.read(divePlanNotifierProvider.notifier).clearFollowedDive(),
+      onTap: () => ref.read(planSeriesNotifierProvider.notifier).unfollow(),
     );
   }
 }

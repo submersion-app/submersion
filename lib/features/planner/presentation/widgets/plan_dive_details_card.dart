@@ -55,10 +55,15 @@ class _PlanDiveDetailsCardState extends ConsumerState<PlanDiveDetailsCard> {
     final index = ref.watch(
       planSeriesNotifierProvider.select((s) => s.selectedIndex),
     );
+    // A first dive has an interval when it follows a logged dive, or when it
+    // is a replan seeded from the dive before the one it replans.
     final followsDive = ref.watch(
-      divePlanNotifierProvider.select((s) => s.sourceDiveId != null),
+      planSeriesNotifierProvider.select((s) => s.follow != null),
     );
-    final hasInterval = index > 0 || followsDive;
+    final seeded = ref.watch(
+      divePlanNotifierProvider.select((s) => s.initialTissueState != null),
+    );
+    final hasInterval = index > 0 || followsDive || seeded;
 
     final l10n = context.l10n;
     final theme = Theme.of(context);

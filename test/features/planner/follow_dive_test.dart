@@ -7,7 +7,9 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_gas_section.dart';
+import 'package:submersion/features/planner/domain/entities/series_follow.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_series_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/follow_dive_sheet.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_status_chips.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -54,20 +56,30 @@ void main() {
       tester.element(find.byType(FollowingChip)),
     );
     container
-        .read(divePlanNotifierProvider.notifier)
-        .setFollowedDive(
-          diveId: 'dive-9',
-          compartments: null,
+        .read(planSeriesNotifierProvider.notifier)
+        .followDive(
+          SeriesFollow(
+            loggedDives: [
+              SeriesLoggedDive(
+                id: 'dive-9',
+                diveNumber: 42,
+                name: 'Reef drift',
+                start: DateTime(2026, 7, 1, 9),
+                end: DateTime(2026, 7, 1, 9, 45),
+              ),
+            ],
+          ),
           surfaceInterval: const Duration(hours: 1),
         );
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('Reef drift'), findsOneWidget);
+    // A logged dive goes by its number, as in the series bar.
+    expect(find.textContaining('#42'), findsOneWidget);
 
     await tester.tap(find.byType(PlanChip));
     await tester.pumpAndSettle();
 
-    expect(container.read(divePlanNotifierProvider).sourceDiveId, isNull);
+    expect(container.read(planSeriesNotifierProvider).follow, isNull);
     expect(find.byType(PlanChip), findsNothing);
   });
 
@@ -113,6 +125,7 @@ void main() {
         overrides: [
           settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
           divesProvider.overrideWith((ref) async => [stubDive]),
+          diveProvider.overrideWith((ref, id) async => stubDive),
           // No profile analysis -> follows with a surface interval but no
           // tissue seed (the null-compartments branch).
           profileAnalysisProvider.overrideWith((ref, id) async => null),
@@ -137,9 +150,13 @@ void main() {
     await tester.tap(find.text('Reef drift'));
     await tester.pumpAndSettle();
 
+    // The series follows the dive; the plan's own source dive is left for
+    // replans. The dive is months old, so the interval is the default hour.
+    final follow = container.read(planSeriesNotifierProvider).follow;
+    expect(follow?.followed.id, 'dive-9');
     final state = container.read(divePlanNotifierProvider);
-    expect(state.sourceDiveId, 'dive-9');
-    expect(state.surfaceInterval, isNotNull);
+    expect(state.sourceDiveId, isNull);
+    expect(state.surfaceInterval, const Duration(hours: 1));
     // The sheet closed after following.
     expect(find.byType(FollowDiveSheet), findsNothing);
   });

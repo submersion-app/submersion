@@ -20310,6 +20310,36 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String plannerSeries_loggedDive(String label) {
+    return 'Gelogde duik $label';
+  }
+
+  @override
+  String get plannerSeries_openInLog => 'Openen in logboek';
+
+  @override
+  String get plannerSeries_stopFollowing => 'Niet meer volgen';
+
+  @override
+  String plannerSeries_carriedInto(String dive) {
+    return 'Overgedragen naar $dive';
+  }
+
+  @override
+  String get plannerSeries_endCns => 'CNS aan het einde';
+
+  @override
+  String get plannerSeries_otu => 'OTU';
+
+  @override
+  String plannerSeries_followPrompt(String label, String time) {
+    return 'Duik $label eindigde $time geleden.';
+  }
+
+  @override
+  String get plannerSeries_follow => 'Volgen';
+
+  @override
   String get plannerSeries_surfaceInterval => 'Oppervlakte-interval';
 
   @override
@@ -53538,6 +53568,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_detail_menu_whatIf => 'Deze duik opnieuw plannen';
+
+  @override
+  String get diveLog_detail_menu_planRepetitive => 'Herhalingsduik plannen';
 
   @override
   String get plannerCanvas_sourceCompare_title => 'vs. oorspronkelijke duik';

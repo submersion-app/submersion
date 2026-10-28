@@ -20733,6 +20733,36 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String plannerSeries_loggedDive(String label) {
+    return 'غطسة مسجلة $label';
+  }
+
+  @override
+  String get plannerSeries_openInLog => 'فتح في سجل الغطس';
+
+  @override
+  String get plannerSeries_stopFollowing => 'إيقاف المتابعة';
+
+  @override
+  String plannerSeries_carriedInto(String dive) {
+    return 'ينتقل إلى $dive';
+  }
+
+  @override
+  String get plannerSeries_endCns => 'CNS في النهاية';
+
+  @override
+  String get plannerSeries_otu => 'OTU';
+
+  @override
+  String plannerSeries_followPrompt(String label, String time) {
+    return 'انتهت الغطسة $label منذ $time.';
+  }
+
+  @override
+  String get plannerSeries_follow => 'متابعة';
+
+  @override
   String get plannerSeries_surfaceInterval => 'الفاصل السطحي';
 
   @override
@@ -54538,6 +54568,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_detail_menu_whatIf => 'إعادة تخطيط هذه الغطسة';
+
+  @override
+  String get diveLog_detail_menu_planRepetitive => 'تخطيط غطسة متكررة';
 
   @override
   String get plannerCanvas_sourceCompare_title => 'مقابل الغطسة الأصلية';

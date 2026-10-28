@@ -32514,6 +32514,54 @@ abstract class AppLocalizations {
   /// **'Dive {letter}: {name}'**
   String plannerSeries_diveNamed(String letter, String name);
 
+  /// A logged dive shown in the planner series bar, by its dive number, name or date
+  ///
+  /// In en, this message translates to:
+  /// **'Logged dive {label}'**
+  String plannerSeries_loggedDive(String label);
+
+  /// No description provided for @plannerSeries_openInLog.
+  ///
+  /// In en, this message translates to:
+  /// **'Open in dive log'**
+  String get plannerSeries_openInLog;
+
+  /// No description provided for @plannerSeries_stopFollowing.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop following'**
+  String get plannerSeries_stopFollowing;
+
+  /// Heading over what a logged dive passes on to the dive after it
+  ///
+  /// In en, this message translates to:
+  /// **'Carried into {dive}'**
+  String plannerSeries_carriedInto(String dive);
+
+  /// No description provided for @plannerSeries_endCns.
+  ///
+  /// In en, this message translates to:
+  /// **'CNS at the end'**
+  String get plannerSeries_endCns;
+
+  /// No description provided for @plannerSeries_otu.
+  ///
+  /// In en, this message translates to:
+  /// **'OTU'**
+  String get plannerSeries_otu;
+
+  /// Offer to follow the most recent logged dive; time is h:mm since it ended
+  ///
+  /// In en, this message translates to:
+  /// **'Dive {label} ended {time} ago.'**
+  String plannerSeries_followPrompt(String label, String time);
+
+  /// No description provided for @plannerSeries_follow.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow'**
+  String get plannerSeries_follow;
+
   /// No description provided for @plannerSeries_surfaceInterval.
   ///
   /// In en, this message translates to:
@@ -85172,6 +85220,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Replan this dive'**
   String get diveLog_detail_menu_whatIf;
+
+  /// No description provided for @diveLog_detail_menu_planRepetitive.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan repetitive dive'**
+  String get diveLog_detail_menu_planRepetitive;
 
   /// No description provided for @plannerCanvas_sourceCompare_title.
   ///

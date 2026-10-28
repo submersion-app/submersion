@@ -19989,6 +19989,36 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String plannerSeries_loggedDive(String label) {
+    return 'צלילה מתועדת $label';
+  }
+
+  @override
+  String get plannerSeries_openInLog => 'פתיחה ביומן';
+
+  @override
+  String get plannerSeries_stopFollowing => 'הפסקת מעקב';
+
+  @override
+  String plannerSeries_carriedInto(String dive) {
+    return 'מועבר אל $dive';
+  }
+
+  @override
+  String get plannerSeries_endCns => 'CNS בסוף';
+
+  @override
+  String get plannerSeries_otu => 'OTU';
+
+  @override
+  String plannerSeries_followPrompt(String label, String time) {
+    return 'צלילה $label הסתיימה לפני $time.';
+  }
+
+  @override
+  String get plannerSeries_follow => 'מעקב';
+
+  @override
   String get plannerSeries_surfaceInterval => 'מרווח שטח';
 
   @override
@@ -52727,6 +52757,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_detail_menu_whatIf => 'תכנון מחדש של צלילה זו';
+
+  @override
+  String get diveLog_detail_menu_planRepetitive => 'תכנון צלילה חוזרת';
 
   @override
   String get plannerCanvas_sourceCompare_title => 'לעומת הצלילה המקורית';

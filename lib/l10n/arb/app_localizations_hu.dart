@@ -20367,6 +20367,36 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String plannerSeries_loggedDive(String label) {
+    return 'Naplózott merülés: $label';
+  }
+
+  @override
+  String get plannerSeries_openInLog => 'Megnyitás a naplóban';
+
+  @override
+  String get plannerSeries_stopFollowing => 'Követés leállítása';
+
+  @override
+  String plannerSeries_carriedInto(String dive) {
+    return 'Átvitel ide: $dive';
+  }
+
+  @override
+  String get plannerSeries_endCns => 'CNS a végén';
+
+  @override
+  String get plannerSeries_otu => 'OTU';
+
+  @override
+  String plannerSeries_followPrompt(String label, String time) {
+    return 'A(z) $label merülés $time ideje ért véget.';
+  }
+
+  @override
+  String get plannerSeries_follow => 'Követés';
+
+  @override
   String get plannerSeries_surfaceInterval => 'Felszíni idő';
 
   @override
@@ -53590,6 +53620,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_detail_menu_whatIf => 'Merülés újratervezése';
+
+  @override
+  String get diveLog_detail_menu_planRepetitive => 'Ismétlő merülés tervezése';
 
   @override
   String get plannerCanvas_sourceCompare_title => 'vs. eredeti merülés';

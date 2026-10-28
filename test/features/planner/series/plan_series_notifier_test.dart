@@ -6,6 +6,7 @@ import 'package:submersion/features/dive_planner/domain/entities/plan_result.dar
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/planner/domain/entities/mission/dpv_mission.dart';
+import 'package:submersion/features/planner/domain/entities/series_follow.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_series_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -314,6 +315,71 @@ void main() {
       series(c).renameSelected('Wreck');
       c.read(divePlanNotifierProvider.notifier).newPlan();
       expect(c.read(planSeriesNotifierProvider).selected.name, isNull);
+    });
+  });
+
+  group('following a logged dive', () {
+    final end = DateTime(2026, 10, 25, 11);
+    SeriesFollow follow({double otu = 40}) => SeriesFollow(
+      loggedDives: [
+        SeriesLoggedDive(
+          id: 'logged',
+          diveNumber: 7,
+          start: end.subtract(const Duration(minutes: 45)),
+          end: end,
+          otu: otu,
+        ),
+      ],
+      endCns: 20,
+    );
+
+    test('the first dive starts from it in the editor', () async {
+      final c = await makeContainer();
+      series(c).followDive(follow(), surfaceInterval: const Duration(hours: 2));
+
+      expect(editor(c).surfaceInterval, const Duration(hours: 2));
+      expect(editor(c).initialCns, 20);
+      expect(editor(c).initialOtu, 40);
+      expect(editor(c).sourceDiveId, isNull);
+    });
+
+    test('a later dive still counts the logged dive', () async {
+      final c = await makeContainer();
+      series(c).followDive(follow(), surfaceInterval: const Duration(hours: 1));
+      series(c).addDive();
+
+      expect(editor(c).initialOtu, greaterThan(40));
+    });
+
+    test('the first dive drops the logged OTU once its interval passes '
+        'a day', () async {
+      final c = await makeContainer();
+      series(c).followDive(follow(), surfaceInterval: const Duration(hours: 1));
+
+      c
+          .read(divePlanNotifierProvider.notifier)
+          .setSurfaceInterval(const Duration(hours: 25));
+
+      expect(editor(c).initialOtu, 0);
+    });
+
+    test('unfollowing clears what it carried in', () async {
+      final c = await makeContainer();
+      series(c).followDive(follow(), surfaceInterval: const Duration(hours: 1));
+      series(c).unfollow();
+
+      expect(c.read(planSeriesNotifierProvider).follow, isNull);
+      expect(editor(c).surfaceInterval, isNull);
+      expect(editor(c).initialCns, isNull);
+      expect(editor(c).initialOtu, isNull);
+    });
+
+    test('a new plan starts without it', () async {
+      final c = await makeContainer();
+      series(c).followDive(follow(), surfaceInterval: const Duration(hours: 1));
+      c.read(divePlanNotifierProvider.notifier).newPlan();
+
+      expect(c.read(planSeriesNotifierProvider).follow, isNull);
     });
   });
 }

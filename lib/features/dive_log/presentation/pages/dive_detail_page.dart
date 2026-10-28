@@ -83,6 +83,8 @@ import 'package:submersion/features/dive_log/presentation/utils/sac_segments_ava
 import 'package:submersion/features/media/presentation/pages/dive_species_photo_viewer_page.dart';
 import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/what_if_sheet.dart';
+import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_follow_providers.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_session.dart';
 import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_providers.dart';
 import 'package:submersion/features/pre_dive/presentation/widgets/link_session_picker.dart';
@@ -1311,6 +1313,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                   case 'whatIf':
                     showWhatIfSheet(context, dive);
                     break;
+                  case 'planRepetitive':
+                    _planRepetitiveDive(dive);
+                    break;
                   case 'delete':
                     _showDeleteConfirmation(context, ref);
                     break;
@@ -1395,6 +1400,17 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                     child: ListTile(
                       leading: const Icon(Icons.tune),
                       title: Text(context.l10n.diveLog_detail_menu_whatIf),
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                if (!dive.isPlanned)
+                  PopupMenuItem(
+                    value: 'planRepetitive',
+                    child: ListTile(
+                      leading: const Icon(Icons.add_circle_outline),
+                      title: Text(
+                        context.l10n.diveLog_detail_menu_planRepetitive,
+                      ),
                       contentPadding: EdgeInsets.zero,
                     ),
                   ),
@@ -1574,6 +1590,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                       case 'whatIf':
                         showWhatIfSheet(context, dive);
                         break;
+                      case 'planRepetitive':
+                        _planRepetitiveDive(dive);
+                        break;
                       case 'delete':
                         _showDeleteConfirmation(context, ref);
                         break;
@@ -1670,6 +1689,17 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                           contentPadding: EdgeInsets.zero,
                         ),
                       ),
+                    if (!dive.isPlanned)
+                      PopupMenuItem(
+                        value: 'planRepetitive',
+                        child: ListTile(
+                          leading: const Icon(Icons.add_circle_outline),
+                          title: Text(
+                            context.l10n.diveLog_detail_menu_planRepetitive,
+                          ),
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                      ),
                     PopupMenuItem(
                       value: 'delete',
                       child: ListTile(
@@ -1732,6 +1762,16 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     );
     container.invalidate(mirrorCandidatesProvider(dive.id));
     container.invalidate(siblingDivesProvider(dive.id));
+  }
+
+  /// Open a new plan that follows this dive (issue #3565): a series whose
+  /// first dive starts from where this one left off.
+  Future<void> _planRepetitiveDive(Dive dive) async {
+    final router = GoRouter.of(context);
+    ref.read(divePlanNotifierProvider.notifier).newPlan();
+    await followLoggedDive(ref, dive.id);
+    if (!mounted) return;
+    router.push('/planning/dive-planner');
   }
 
   /// Promote a planned dive by hand (issue #2002): clears the flag and takes
