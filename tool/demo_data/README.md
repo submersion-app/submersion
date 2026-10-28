@@ -60,10 +60,31 @@ the published package; fetch each from its `sourceUrl` to rebuild it. The
 photos themselves are not kept in the repository. `subject` is a species name from `assets/data/species.json`
 or a word like `reef` or `wreck`; it decides which dive the photo goes on.
 
-The build plans a six-year story for a fictional diver (recreational, then
-technical open circuit, then a rebreather), seeds every part of the app
-through the app's own repositories, and refuses to write a file when either
-check fails:
+The build plans a six-year story for a fictional diver
+(`docs/design/specs/2026-10-27-demo-data-realism-design.md`), seeds every
+part of the app through the app's own repositories, and refuses to write a
+file when a check fails.
+
+The story:
+
+- About 700 dives: recreational, technical open circuit from dive 250, then a
+  rebreather course and 15 to 18 rebreather dives at the end.
+- Weekends at the home lakes, and 6 to 8 trips a year to about 30
+  destinations worldwide, with their dive centres.
+- 60 to 100 fictional people: home regulars, a technical team, guides, other
+  guests and instructors.
+- A full kit bought as the story needs it, with regulators built from their
+  parts. The kit is serviced on every clock, and faults sit in the dives
+  themselves for the condition program to find: transmitter dropouts, a
+  drifting cell, free-flows in the cold.
+- Scooter routes and boat tracks.
+
+The rebreather phase is short because the harvest holds only six rebreather
+shapes, and no shape is used more than three times. Before seeding, the
+build checks that the harvested shapes can cover every planned dive
+(`src/shape/shape_budget.dart`) and refuses with the kinds that fall short.
+
+The checks:
 
 - **Coverage.** Every table holding user data has rows, except those listed
   with a reason in `src/checks/coverage_check.dart`. CI runs the same check on
@@ -80,7 +101,7 @@ check fails:
   seeds, real product names, and the seeders' fixed labels
   (`src/checks/public_vocabulary.dart`). A refusal names the demo's value.
 
-Limits: the database 5 MB compressed, the whole package 15 MB.
+Limits: the database 12 MB compressed, the whole package 20 MB.
 
 The output is `submersion-demo-s<schema>.zip`, `manifest-entry.json`, and
 `demo-manifest.json` with this entry merged in (a package for the same schema
