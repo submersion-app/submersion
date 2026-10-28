@@ -31266,6 +31266,22 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String trips_delete_sideTripsStandalone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'De $count zijreizen worden eigen reizen.',
+      one: 'De zijreis wordt een eigen reis.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_delete_divesReturnToParent(String name) {
+    return 'De duiken gaan terug naar $name.';
+  }
+
+  @override
   String get trips_detail_dialog_deleteTitle => 'Reis verwijderen?';
 
   @override
@@ -31493,6 +31509,16 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get trips_edit_hint_tripName => 'bijv. Rode Zee Safari 2024';
+
+  @override
+  String get trips_edit_field_partOf => 'Onderdeel van';
+
+  @override
+  String get trips_edit_partOf_none => 'Geen (een eigen reis)';
+
+  @override
+  String get trips_edit_partOf_helper =>
+      'Maakt hiervan een zijreis binnen een grotere reis';
 
   @override
   String get trips_edit_label_endDate => 'Einddatum';

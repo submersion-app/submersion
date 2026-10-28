@@ -30,3 +30,15 @@ final parentTripProvider = FutureProvider.family<Trip?, String>((
   ref.invalidateSelfWhen(repository.watchChanges());
   return repository.getParentTrip(tripId, diverId: diverId);
 });
+
+/// Whether any profile's trip is a side trip of a trip: one that has side
+/// trips cannot become one itself, whoever owns them (issue #3658). Not
+/// scoped to the active profile, so reading it resolves no profile.
+final hasSideTripsProvider = FutureProvider.family<bool, String>((
+  ref,
+  tripId,
+) async {
+  final repository = ref.watch(sideTripRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchChanges());
+  return (await repository.getSideTrips(tripId)).isNotEmpty;
+});

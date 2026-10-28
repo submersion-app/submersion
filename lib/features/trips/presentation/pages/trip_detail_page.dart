@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
 import 'package:submersion/features/connections/presentation/widgets/open_in_connections.dart';
@@ -17,12 +18,17 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_edit_navigation.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_scan_actions.dart';
+import 'package:submersion/features/trips/presentation/providers/side_trip_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
+import 'package:submersion/features/trips/presentation/widgets/part_of_trip_link.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_detail_tabs.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/shared_items/shared_by_banner.dart';
 import 'package:submersion/shared/widgets/shared_items/shared_item_dialogs.dart';
 import 'package:submersion/shared/widgets/shared_items/item_sharing_row.dart';
+
+final _log = LoggerService.forClass(TripDetailPage);
 
 class TripDetailPage extends ConsumerStatefulWidget {
   final String tripId;
@@ -122,6 +128,11 @@ class _TripDetailContent extends ConsumerWidget {
           itemId: trip.id,
           ownerId: trip.diverId,
           itemName: trip.name,
+        ),
+        // A side trip names its larger trip (issue #3658).
+        PartOfTripLink(
+          tripId: trip.id,
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
         ),
         Expanded(
           child: TripDetailTabs(
@@ -414,6 +425,32 @@ class _TripDetailContent extends ConsumerWidget {
     );
   }
 
+  /// What deleting [trip] does to side trips and their dives (issue #3658).
+  /// Only informs the confirmation, so a failed read leaves it out rather
+  /// than blocking the delete.
+  Future<List<String>> _sideTripDeleteLines(
+    AppLocalizations l10n,
+    WidgetRef ref,
+    Trip trip,
+  ) async {
+    try {
+      final sideTrips = await ref.read(sideTripsProvider(trip.id).future);
+      final parent = await ref.read(parentTripProvider(trip.id).future);
+      return [
+        if (sideTrips.isNotEmpty)
+          l10n.trips_delete_sideTripsStandalone(sideTrips.length),
+        if (parent != null) l10n.trips_delete_divesReturnToParent(parent.name),
+      ];
+    } catch (e, stackTrace) {
+      _log.warning(
+        'Could not read the side trips of trip ${trip.id}',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return const [];
+    }
+  }
+
   Future<bool> _showDeleteConfirmation(
     BuildContext context,
     WidgetRef ref,
@@ -438,6 +475,8 @@ class _TripDetailContent extends ConsumerWidget {
         ? (await readDiveLinkCounts(ref, SharedItemKind.trip, trip.id)).others
         : 0;
     if (!context.mounted) return false;
+    final sideTripLines = await _sideTripDeleteLines(context.l10n, ref, trip);
+    if (!context.mounted) return false;
 
     return await showDialog<bool>(
           context: context,
@@ -456,8 +495,12 @@ class _TripDetailContent extends ConsumerWidget {
                         SharedItemKind.trip,
                         others,
                       ),
+                      ...sideTripLines,
                     ].join('\n\n')
-                  : ctx.l10n.trips_detail_dialog_deleteContent(trip.name),
+                  : [
+                      ctx.l10n.trips_detail_dialog_deleteContent(trip.name),
+                      ...sideTripLines,
+                    ].join('\n\n'),
             ),
             actions: [
               TextButton(

@@ -31779,6 +31779,25 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String trips_delete_sideTripsStandalone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تصبح رحلاتها الجانبية الـ $count رحلات مستقلة.',
+      many: 'تصبح رحلاتها الجانبية الـ $count رحلات مستقلة.',
+      few: 'تصبح رحلاتها الجانبية الـ $count رحلات مستقلة.',
+      two: 'تصبح رحلتاها الجانبيتان رحلتين مستقلتين.',
+      one: 'تصبح رحلتها الجانبية رحلة مستقلة.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_delete_divesReturnToParent(String name) {
+    return 'تعود غطساتها إلى $name.';
+  }
+
+  @override
   String get trips_detail_dialog_deleteTitle => 'حذف الرحلة؟';
 
   @override
@@ -32018,6 +32037,15 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get trips_edit_hint_tripName => 'مثال: رحلة البحر الأحمر 2024';
+
+  @override
+  String get trips_edit_field_partOf => 'جزء من';
+
+  @override
+  String get trips_edit_partOf_none => 'لا شيء (رحلة مستقلة)';
+
+  @override
+  String get trips_edit_partOf_helper => 'يجعل هذه رحلة جانبية ضمن رحلة أكبر';
 
   @override
   String get trips_edit_label_endDate => 'تاريخ الانتهاء';

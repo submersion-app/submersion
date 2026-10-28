@@ -29675,6 +29675,21 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String trips_delete_sideTripsStandalone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '其 $count 个附属行程将成为独立行程。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_delete_divesReturnToParent(String name) {
+    return '其潜水将归回 $name。';
+  }
+
+  @override
   String get trips_detail_dialog_deleteTitle => '删除旅行？';
 
   @override
@@ -29881,6 +29896,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get trips_edit_hint_tripName => '例如：红海探险 2024';
+
+  @override
+  String get trips_edit_field_partOf => '所属行程';
+
+  @override
+  String get trips_edit_partOf_none => '无（独立行程）';
+
+  @override
+  String get trips_edit_partOf_helper => '将此行程设为更大行程中的附属行程';
 
   @override
   String get trips_edit_label_endDate => '结束日期';

@@ -31471,6 +31471,23 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String trips_delete_sideTripsStandalone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'As suas $count viagens secundárias passam a ser viagens independentes.',
+      one: 'A sua viagem secundária passa a ser uma viagem independente.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_delete_divesReturnToParent(String name) {
+    return 'Os seus mergulhos voltam para $name.';
+  }
+
+  @override
   String get trips_detail_dialog_deleteTitle => 'Excluir Viagem?';
 
   @override
@@ -31700,6 +31717,16 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get trips_edit_hint_tripName => 'ex., Safari Mar Vermelho 2024';
+
+  @override
+  String get trips_edit_field_partOf => 'Parte de';
+
+  @override
+  String get trips_edit_partOf_none => 'Nenhuma (viagem independente)';
+
+  @override
+  String get trips_edit_partOf_helper =>
+      'Torna esta viagem uma viagem secundária dentro de uma viagem maior';
 
   @override
   String get trips_edit_label_endDate => 'Data Final';

@@ -28,6 +28,8 @@ import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
 import 'package:submersion/shared/widgets/shared_items/item_sharing_row.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
+import 'package:submersion/features/trips/presentation/providers/side_trip_providers.dart';
+import 'package:submersion/features/trips/presentation/widgets/part_of_trip_field.dart';
 
 const _log = LoggerService('tripEditPage');
 
@@ -79,6 +81,9 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
 
   late DateTime _startDate;
   DateTime? _returnFlightAt;
+
+  /// The larger trip this one is a side trip of (issue #3658).
+  String? _parentTripId;
   late DateTime _endDate;
   // Controls where the end-date picker opens, not whether _endDate still
   // holds the placeholder value -- _endDate can also get auto-synced to
@@ -105,6 +110,10 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
   Trip? _originalTrip;
 
   bool get isEditing => widget.tripId != null;
+
+  bool get _hasSideTrips =>
+      isEditing &&
+      (ref.watch(hasSideTripsProvider(widget.tripId!)).value ?? false);
 
   /// A day trip's end follows its start. A day trip stored before the form
   /// enforced that can span several days; its end stays editable until the
@@ -197,6 +206,7 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
         }
         if (!mounted) return;
         _nameController.text = trip.name;
+        _parentTripId = trip.parentTripId;
         _locationController.text = trip.location ?? '';
         _resortController.text = trip.resortName ?? '';
         _liveaboardController.text = trip.liveaboardName ?? '';
@@ -355,6 +365,19 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
                       return null;
                     },
                   ),
+                  // A trip with side trips of its own cannot be one: one
+                  // level deep (issue #3658).
+                  if (!_hasSideTrips) ...[
+                    const SizedBox(height: 8),
+                    PartOfTripField(
+                      tripId: widget.tripId,
+                      value: _parentTripId,
+                      onChanged: (id) => setState(() {
+                        _parentTripId = id;
+                        _hasChanges = true;
+                      }),
+                    ),
+                  ],
                   const SizedBox(height: 24),
 
                   // Date section header
@@ -1024,6 +1047,7 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
         tripType: _tripType,
         notes: _notesController.text.trim(),
         isShared: _sharing.everyone,
+        parentTripId: _parentTripId,
         returnFlightAt: _returnFlightAt,
         // Non-positive is not a plan, it is an empty field said twice:
         // the scrubber margin multiplies both of these, and a zero or a

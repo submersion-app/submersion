@@ -30949,6 +30949,22 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String trips_delete_sideTripsStandalone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Its $count side trips become trips of their own.',
+      one: 'Its side trip becomes a trip of its own.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_delete_divesReturnToParent(String name) {
+    return 'Its dives go back to $name.';
+  }
+
+  @override
   String get trips_detail_dialog_deleteTitle => 'Delete Trip?';
 
   @override
@@ -31172,6 +31188,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get trips_edit_hint_tripName => 'e.g., Red Sea Safari 2024';
+
+  @override
+  String get trips_edit_field_partOf => 'Part of';
+
+  @override
+  String get trips_edit_partOf_none => 'None (a trip of its own)';
+
+  @override
+  String get trips_edit_partOf_helper =>
+      'Makes this a side trip within a larger trip';
 
   @override
   String get trips_edit_label_endDate => 'End Date';

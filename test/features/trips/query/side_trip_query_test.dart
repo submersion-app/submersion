@@ -63,7 +63,7 @@ void main() {
         ConditionNode(
           FieldPath(['diveCount']),
           QueryOp.gt,
-          NumberValue(4, null),
+          const NumberValue(4, null),
         ),
       ),
       {'P'},

@@ -30689,6 +30689,22 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String trips_delete_sideTripsStandalone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count טיולי הצד שלו הופכים לטיולים עצמאיים.',
+      one: 'טיול הצד שלו הופך לטיול עצמאי.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_delete_divesReturnToParent(String name) {
+    return 'הצלילות שלו חוזרות אל $name.';
+  }
+
+  @override
   String get trips_detail_dialog_deleteTitle => 'למחוק טיול?';
 
   @override
@@ -30911,6 +30927,16 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get trips_edit_hint_tripName => 'לדוגמה, ספארי ים סוף 2024';
+
+  @override
+  String get trips_edit_field_partOf => 'חלק מ־';
+
+  @override
+  String get trips_edit_partOf_none => 'ללא (טיול עצמאי)';
+
+  @override
+  String get trips_edit_partOf_helper =>
+      'הופך את הטיול לטיול צד בתוך טיול גדול יותר';
 
   @override
   String get trips_edit_label_endDate => 'תאריך סיום';

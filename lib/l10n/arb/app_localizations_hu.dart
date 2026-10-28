@@ -31314,6 +31314,22 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String trips_delete_sideTripsStandalone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'A $count mellékútja önálló út lesz.',
+      one: 'A mellékútja önálló út lesz.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_delete_divesReturnToParent(String name) {
+    return 'A merülései visszakerülnek ide: $name.';
+  }
+
+  @override
   String get trips_detail_dialog_deleteTitle => 'Út törlése?';
 
   @override
@@ -31534,6 +31550,16 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get trips_edit_hint_tripName => 'pl. Vörös-tengeri szafari 2024';
+
+  @override
+  String get trips_edit_field_partOf => 'Nagyobb út része';
+
+  @override
+  String get trips_edit_partOf_none => 'Nincs (önálló út)';
+
+  @override
+  String get trips_edit_partOf_helper =>
+      'Ezt az utat egy nagyobb út mellékútjává teszi';
 
   @override
   String get trips_edit_label_endDate => 'Befejezés dátuma';

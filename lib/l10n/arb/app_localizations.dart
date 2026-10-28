@@ -50174,6 +50174,18 @@ abstract class AppLocalizations {
   /// **'Are you sure you want to delete \"{name}\"? This will remove the trip but keep the dives.'**
   String trips_detail_dialog_deleteContent(Object name);
 
+  /// Delete confirmation line for a trip with side trips
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Its side trip becomes a trip of its own.} other{Its {count} side trips become trips of their own.}}'**
+  String trips_delete_sideTripsStandalone(int count);
+
+  /// Delete confirmation line for a side trip: where its dives go
+  ///
+  /// In en, this message translates to:
+  /// **'Its dives go back to {name}.'**
+  String trips_delete_divesReturnToParent(String name);
+
   /// No description provided for @trips_detail_dialog_deleteTitle.
   ///
   /// In en, this message translates to:
@@ -50503,6 +50515,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'e.g., Red Sea Safari 2024'**
   String get trips_edit_hint_tripName;
+
+  /// Trip form field: the larger trip this trip is a side trip of
+  ///
+  /// In en, this message translates to:
+  /// **'Part of'**
+  String get trips_edit_field_partOf;
+
+  /// Trip form Part of choice for a trip that is not a side trip
+  ///
+  /// In en, this message translates to:
+  /// **'None (a trip of its own)'**
+  String get trips_edit_partOf_none;
+
+  /// Explains the trip form Part of field
+  ///
+  /// In en, this message translates to:
+  /// **'Makes this a side trip within a larger trip'**
+  String get trips_edit_partOf_helper;
 
   /// No description provided for @trips_edit_label_endDate.
   ///
