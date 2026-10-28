@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
+import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
@@ -53,6 +55,8 @@ class _MediaLibraryFilterSheetState
   DateTime? _toDate;
   bool _missingOnly = false;
   Set<String> _tagIds = const {};
+  Set<String> _buddyIds = const {};
+  bool _includeMe = false;
 
   @override
   void initState() {
@@ -66,6 +70,8 @@ class _MediaLibraryFilterSheetState
     _toDate = filter.toDate;
     _missingOnly = filter.health == MediaHealthFilter.missing;
     _tagIds = filter.tagIds;
+    _buddyIds = filter.buddyIds;
+    _includeMe = filter.includeMe;
   }
 
   void _clearAll() {
@@ -78,6 +84,8 @@ class _MediaLibraryFilterSheetState
       _toDate = null;
       _missingOnly = false;
       _tagIds = const {};
+      _buddyIds = const {};
+      _includeMe = false;
     });
   }
 
@@ -96,6 +104,8 @@ class _MediaLibraryFilterSheetState
       toDate: _toDate,
       health: _missingOnly ? MediaHealthFilter.missing : null,
       tagIds: _tagIds,
+      buddyIds: _buddyIds,
+      includeMe: _includeMe,
     );
     Navigator.of(context).pop();
   }
@@ -197,6 +207,76 @@ class _MediaLibraryFilterSheetState
     );
   }
 
+  /// People tagged on media (issue #1745), any-of: Me first, then the
+  /// diver's buddies by name. A selected buddy no longer listed (deleted
+  /// since an album was saved) still shows, so it can be cleared.
+  Widget _buildPeopleSection() {
+    final l10n = context.l10n;
+    final buddies = [
+      ...(ref.watch(allBuddiesProvider).value ?? const <Buddy>[]),
+    ]..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+    final listed = {for (final b in buddies) b.id};
+    final gone = _buddyIds.where((id) => !listed.contains(id)).toList();
+
+    Widget person(
+      String key,
+      String label,
+      bool selected,
+      ValueChanged<bool> onSelected,
+    ) => FilterChip(
+      key: ValueKey('media_filter_person_$key'),
+      label: Text(label),
+      selected: selected,
+      onSelected: (value) => setState(() => onSelected(value)),
+    );
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l10n.media_people_filterSection,
+            style: Theme.of(context).textTheme.bodyLarge,
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              person(
+                'me',
+                l10n.media_people_me,
+                _includeMe,
+                (v) => _includeMe = v,
+              ),
+              for (final b in buddies)
+                person(
+                  b.id,
+                  b.name,
+                  _buddyIds.contains(b.id),
+                  (v) => _toggleBuddy(b.id, v),
+                ),
+              for (final id in gone)
+                person(
+                  id,
+                  l10n.media_people_filterSection,
+                  true,
+                  (v) => _toggleBuddy(id, v),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _toggleBuddy(String id, bool selected) {
+    _buddyIds = selected
+        ? {..._buddyIds, id}
+        : _buddyIds.where((b) => b != id).toSet();
+  }
+
   Future<void> _loadAlbum() async {
     final albums = ref.read(mediaSmartAlbumsProvider).value ?? const [];
     if (albums.isEmpty) return;
@@ -229,6 +309,8 @@ class _MediaLibraryFilterSheetState
                     _missingOnly =
                         album.filter.health == MediaHealthFilter.missing;
                     _tagIds = album.filter.tagIds;
+                    _buddyIds = album.filter.buddyIds;
+                    _includeMe = album.filter.includeMe;
                   });
                 },
               ),
@@ -401,6 +483,7 @@ class _MediaLibraryFilterSheetState
                         ),
                       ),
                       _buildTagSection(),
+                      _buildPeopleSection(),
                       ListTile(
                         contentPadding: EdgeInsets.zero,
                         title: Text(l10n.media_library_filter_dates),
