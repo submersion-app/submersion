@@ -234,6 +234,14 @@ void main() {
     );
   });
 
+  // Sharing is seen and changed on the edit page only (issue #3766).
+  testWidgets('the owner sees no Shared with row on the page', (tester) async {
+    await pump(tester, active: 'd1');
+
+    expect(find.text('Shared with'), findsNothing);
+    expect(find.text('Everyone'), findsNothing);
+  });
+
   testWidgets('a profile the site no longer reaches is not offered Remove '
       '(issue #2151)', (tester) async {
     // Opened by id from one of this profile's dives after its owner took
