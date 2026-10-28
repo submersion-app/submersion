@@ -207,20 +207,19 @@ class CylindersCard extends ConsumerWidget {
       ])
         if (inUse.contains(limit)) limit,
     ];
-    final values = {for (final limit in limits) _modPpO2(limit)};
-    if (values.length == 1) {
-      return formatFixedForDisplay(values.single, 1);
-    }
+    // Compared as shown: two values that round alike read as one ppO2.
+    final shown = {
+      for (final limit in limits)
+        limit: formatFixedForDisplay(_modPpO2(limit), 1),
+    };
+    if (shown.values.toSet().length == 1) return shown.values.first;
     return [
       for (final limit in limits)
-        l10n.diveLog_cylinders_modLimit(
-          formatFixedForDisplay(_modPpO2(limit), 1),
-          switch (limit) {
-            ModLimitClass.bottom => l10n.tankMod_limitBottom,
-            ModLimitClass.deco => l10n.tankMod_limitDeco,
-            ModLimitClass.diluent => l10n.tankMod_limitDiluent,
-          },
-        ),
+        l10n.diveLog_cylinders_modLimit(shown[limit]!, switch (limit) {
+          ModLimitClass.bottom => l10n.tankMod_limitBottom,
+          ModLimitClass.deco => l10n.tankMod_limitDeco,
+          ModLimitClass.diluent => l10n.tankMod_limitDiluent,
+        }),
     ].join(l10n.diveLog_cylinders_modLimitSeparator);
   }
 

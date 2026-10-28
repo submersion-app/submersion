@@ -315,6 +315,31 @@ void main() {
       expect(find.text('MOD at ppO₂ 1.6'), findsOneWidget);
     });
 
+    testWidgets('limits that round to one shown value read as one (#3752)', (
+      tester,
+    ) async {
+      // 1.42 and 1.4 both show as 1.4; "1.4 (bottom limit), 1.4 (deco
+      // limit)" would say nothing the plain note does not.
+      const settings = AppSettings(ppO2MaxWorking: 1.42, ppO2MaxDeco: 1.4);
+      await tester.pumpWidget(
+        _buildCard(
+          dive: _makeDive([
+            _makeTank(),
+            _makeTank(
+              id: 'tank-2',
+              gasMix: const GasMix(o2: 50),
+              role: TankRole.deco,
+            ),
+          ]),
+          settings: settings,
+          units: const UnitFormatter(settings),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('MOD at ppO₂ 1.4'), findsOneWidget);
+    });
+
     testWidgets('the MOD note stands apart from the last row (#3752)', (
       tester,
     ) async {
