@@ -700,19 +700,17 @@ class ExportNotifier extends StateNotifier<ExportState> {
     // times follow the diver's preferences (#964); the file name stays ISO.
     final settings = _ref.read(settingsProvider);
 
-    // The arrangement notifier starts at the defaults and adopts the stored
-    // value asynchronously, so reading it straight away would export the
-    // defaults over a saved preference whenever nothing in the session had
-    // instantiated it yet. Awaiting the first load is what the sibling path
-    // in PdfExportService gets by reading the repository directly.
-    await _ref.read(equipmentArrangementNotifierProvider.notifier).loaded;
+    // Resolved, not read from the live provider: that one shows the defaults
+    // until the diver's settings and the app-wide fallback load, and a
+    // document must not bake "not loaded yet" in (#3748).
+    final gearArrangement = await resolveEquipmentArrangement(_ref.read);
 
     return builder.buildPdf(
       generatedAt: generatedAt,
       dives: dives,
       // The logbook is a document a human reads, so gear follows the diver's
       // arrangement (#1486, #1576).
-      gearArrangement: _ref.read(equipmentArrangementProvider),
+      gearArrangement: gearArrangement,
       // Names the sets a dive's gear came from (#2031).
       equipmentSetNamesById: await equipmentSetNamesOrEmpty(
         _ref.read(equipmentSetRepositoryProvider),

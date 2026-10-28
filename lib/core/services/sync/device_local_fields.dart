@@ -38,7 +38,10 @@ const Map<String, Set<String>> deviceLocalSyncColumns = {
 /// `media_library_view_mode`, `media_library_sort` and
 /// `media_watcher_auto_apply`, plus two keys per connected Lightroom account,
 /// `lightroom_<account>_album_ids` and `lightroom_<account>_auto_poll`
-/// (written by `LightroomConnectorState`).
+/// (written by `LightroomConnectorState`). `equipment_arrangement` and
+/// `equipment_group_by_location` moved into each diver's settings (issue
+/// #3748); this build only reads them, as the fallback for a diver who has
+/// not changed them since, and an older build may still write them.
 ///
 /// Rule for a new key: "is this answer the same across all of one user's
 /// devices?" If not, add it here. Either way, update the "What Syncs Between

@@ -3,6 +3,8 @@ import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/models/sort_state_codec.dart';
 import 'package:submersion/features/certifications/presentation/utils/certification_grouping.dart';
 import 'package:submersion/features/dive_sites/domain/utils/site_grouping.dart';
+import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
+import 'package:submersion/features/settings/data/repositories/app_settings_repository.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// Saves how the diver left each list (issue #3748), for the active diver.
@@ -69,4 +71,40 @@ extension ListArrangementWrites on SettingsNotifier {
       updateListArrangements(
         (a) => a.copyWith(equipmentGroupByLocation: value),
       );
+
+  /// Applies [change] to the diver's gear arrangement and saves it.
+  ///
+  /// A diver who has not changed it since it moved per diver sees the
+  /// app-wide value older builds saved, read from [legacySource], so the
+  /// change builds on that rather than on the defaults. If that read fails
+  /// for such a diver the change is refused (a [StateError]), since building
+  /// on the defaults would save them over the diver's real arrangement. A
+  /// diver with their own value never needs the read.
+  Future<void> updateEquipmentArrangement(
+    AppSettingsRepository legacySource,
+    EquipmentArrangement Function(EquipmentArrangement current) change,
+  ) async {
+    EquipmentArrangement? legacy;
+    var legacyUnreadable = false;
+    try {
+      legacy = await legacySource.getEquipmentArrangement();
+    } catch (_) {
+      legacyUnreadable = true;
+    }
+    await updateListArrangements((saved) {
+      var current = decodeEquipmentArrangement(saved.equipmentArrangement);
+      if (current == null) {
+        if (legacyUnreadable) {
+          throw StateError(
+            'The stored gear arrangement could not be read, so a change '
+            'cannot be applied to it',
+          );
+        }
+        current = legacy ?? EquipmentArrangement.defaults;
+      }
+      return saved.copyWith(
+        equipmentArrangement: encodeEquipmentArrangement(change(current)),
+      );
+    });
+  }
 }

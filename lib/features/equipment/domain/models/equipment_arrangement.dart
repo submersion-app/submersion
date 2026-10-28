@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 
 import 'package:submersion/core/constants/sort_options.dart';
@@ -141,4 +143,25 @@ class EquipmentArrangement {
       'EquipmentArrangement(typeOrder: $typeOrder, '
       'typeOrderDescending: $typeOrderDescending, groupByType: $groupByType, '
       'itemSortField: $itemSortField, itemSortDirection: $itemSortDirection)';
+}
+
+/// Encodes [arrangement] as the JSON a diver's settings row stores (issue
+/// #3748), the same shape the app-wide key held.
+String encodeEquipmentArrangement(EquipmentArrangement arrangement) =>
+    jsonEncode(arrangement.toJson());
+
+/// Decodes a value written by [encodeEquipmentArrangement]: null for a
+/// missing value or anything that is not a JSON object, so the caller falls
+/// back rather than throwing. Each axis degrades on its own, as in
+/// [EquipmentArrangement.fromJson].
+EquipmentArrangement? decodeEquipmentArrangement(String? raw) {
+  if (raw == null) return null;
+  final Object? decoded;
+  try {
+    decoded = jsonDecode(raw);
+  } on FormatException {
+    return null;
+  }
+  if (decoded is! Map<String, dynamic>) return null;
+  return EquipmentArrangement.fromJson(decoded);
 }
