@@ -219,6 +219,13 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   final ScrollController _scrollController = ScrollController();
   String? _lastScrolledToId;
 
+  /// On the list's scrubber, which sits inside the keyboard navigator: a
+  /// jump to a typed dive number lands through it, after the frame.
+  final GlobalKey _listBodyKey = GlobalKey();
+
+  /// Counts jumps to a typed dive number, so only the latest one lands.
+  int _numberJumps = 0;
+
   /// Brings the list back to the dive last opened when it is built again
   /// after the diver left it (#3301).
   late final ListPositionRestorer _positionRestorer = ListPositionRestorer(
@@ -1261,6 +1268,48 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     }
   }
 
+  /// Takes the list to [dive], found by its typed dive number (#3744), and
+  /// opens it. The search has just cleared, so the whole list is on its way
+  /// back: the dive is paged in behind that reload, its trip opened if it
+  /// was folded, and its row shown at the top once laid out. It lands on the
+  /// row itself, as the scrubber does, not on an offset estimated from the
+  /// average row height, which a long log of uneven rows misses by dozens of
+  /// dives. The table scrolls to the highlighted dive itself.
+  Future<void> _jumpToDive(DiveSummary dive) async {
+    _openDive(dive);
+    if (ref.read(diveListViewModeProvider) == ListViewMode.table) return;
+    final jump = ++_numberJumps;
+    final bool loaded;
+    try {
+      loaded = await ref
+          .read(paginatedDiveListProvider.notifier)
+          .loadUntil(dive.id);
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to load the dive list through a typed dive number',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return;
+    }
+    if (!mounted || jump != _numberJumps || !loaded) return;
+    // Only a list grouped by trip folds dives away; opening the trip of an
+    // ungrouped one would change its saved folds for nothing.
+    final tripId = dive.tripId;
+    if (tripId != null &&
+        ref.read(diveListGroupTripsProvider) &&
+        ref.read(collapsedTripIdsProvider).contains(tripId)) {
+      ref.read(collapsedTripIdsProvider.notifier).expand(tripId);
+    }
+    _lastScrolledToId = dive.id;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final listContext = _listBodyKey.currentContext;
+      if (!mounted || jump != _numberJumps || listContext == null) return;
+      _landOnDive(listContext, dive.id, toTop: true);
+    });
+    WidgetsBinding.instance.scheduleFrame();
+  }
+
   void _showSortSheet(BuildContext context) {
     final sort = ref.read(diveSortProvider);
 
@@ -1339,6 +1388,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             children: [
               DiveSearchHeader(
                 onOpenDive: _openDive,
+                onJumpToDive: _jumpToDive,
                 onEscape: selection.isActive ? _selection.exit : null,
               ),
               const MisplacedLogbookBanner(),
@@ -1904,6 +1954,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                 ),
               DiveSearchHeader(
                 onOpenDive: _openDive,
+                onJumpToDive: _jumpToDive,
                 onEscape: selection.isActive ? _selection.exit : null,
               ),
               const MisplacedLogbookBanner(),
@@ -2163,6 +2214,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                 return header;
               },
               child: DiveListScrubber(
+                key: _listBodyKey,
                 controller: _scrollController,
                 loadedDives: dives,
                 groupingEnabled: groupingEnabled,

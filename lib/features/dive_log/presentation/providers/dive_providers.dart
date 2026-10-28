@@ -1017,6 +1017,28 @@ class PaginatedDiveListNotifier
     return state.valueOrNull?.dives.any((d) => d.id == diveId) ?? false;
   }
 
+  /// Pages forward until [diveId] is loaded or the list runs out, and reports
+  /// whether it is loaded, for a dive number typed in search (#3744), whose
+  /// place in the list nothing has worked out. Queued like every load, so it
+  /// runs behind a reload asked for just before it, such as the search
+  /// clearing. Each read asks for twice the last, so a dive deep in a long
+  /// log takes a handful of reads rather than one per page.
+  Future<bool> loadUntil(String diveId) async {
+    await _enqueuePaging(() async {
+      var limit = _pageSize;
+      while (mounted) {
+        final current = state.valueOrNull;
+        if (current == null || !current.hasMore) return;
+        if (current.dives.any((d) => d.id == diveId)) return;
+        await _appendRows(current, limit: limit, jump: true);
+        // A failed read raises the flag; the Retry row takes it from there.
+        if (state.valueOrNull?.loadMoreFailed ?? true) return;
+        limit *= 2;
+      }
+    });
+    return state.valueOrNull?.dives.any((d) => d.id == diveId) ?? false;
+  }
+
   /// Loads every row past the end of the list in one query, so End in the
   /// list reaches the last dive rather than the last loaded one (#3302).
   /// Asks for a page more than the count left; a count lagging rows written
