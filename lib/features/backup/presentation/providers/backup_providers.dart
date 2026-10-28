@@ -13,6 +13,7 @@ import 'package:submersion/core/services/sync/library_epoch_store.dart';
 import 'package:submersion/core/services/sync/post_restore_sync_store.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 import 'package:submersion/features/backup/data/services/backup_encryption_key_store.dart';
+import 'package:submersion/features/backup/data/services/backup_copy_destination.dart';
 import 'package:submersion/features/backup/data/services/backup_copy_guard.dart';
 import 'package:submersion/features/backup/data/services/backup_encryption_service.dart';
 import 'package:submersion/features/backup/data/services/backup_service.dart';
@@ -425,6 +426,99 @@ class BackupOperationNotifier extends StateNotifier<BackupOperationState> {
       );
       return null;
     }
+  }
+
+  /// [record] from the history as a file for the share sheet (issue #3650),
+  /// downloading a cloud-only backup first. The file is not deleted here:
+  /// some receiving apps read it only when the diver finally presses Send,
+  /// so a temp copy is left for the day-old temp sweep. Null when busy or on
+  /// failure, which the state reports.
+  Future<File?> prepareBackupForSharing(BackupRecord record) async {
+    if (state.status == BackupOperationStatus.inProgress) return null;
+
+    state = BackupOperationState(
+      status: BackupOperationStatus.inProgress,
+      message: _l10n.backup_operation_preparingShare,
+    );
+
+    try {
+      final prepared = await _service.prepareBackupCopy(
+        record,
+        purpose: BackupCopyPurpose.share,
+      );
+      state = BackupOperationState(
+        status: BackupOperationStatus.success,
+        message: _l10n.backup_operation_shareReady,
+      );
+      return File(prepared.path);
+    } catch (e) {
+      _reportCopyOutFailure(e);
+      return null;
+    }
+  }
+
+  /// Copies [record] from the history into [directory], never overwriting a
+  /// file already there (issue #3650). Adds nothing to the history.
+  Future<void> saveBackupCopyToDirectory(
+    BackupRecord record,
+    String directory,
+  ) => _saveBackupCopy(record, (source) async {
+    final dest = await uniqueDestinationPath(directory, record.filename);
+    await File(source).copy(dest);
+  });
+
+  /// The Android counterpart to [saveBackupCopyToDirectory]: streams the copy
+  /// into a SAF tree without replacing a same-name document, which may be
+  /// the very backup being copied.
+  Future<void> saveBackupCopyToSafTree(BackupRecord record, String treeUri) =>
+      _saveBackupCopy(
+        record,
+        (source) => SubmersionSaf.writeBackup(
+          treeUri: treeUri,
+          fileName: record.filename,
+          sourcePath: source,
+          replaceExisting: false,
+        ),
+      );
+
+  Future<void> _saveBackupCopy(
+    BackupRecord record,
+    Future<void> Function(String sourcePath) write,
+  ) async {
+    if (state.status == BackupOperationStatus.inProgress) return;
+
+    state = BackupOperationState(
+      status: BackupOperationStatus.inProgress,
+      message: _l10n.backup_operation_exporting,
+    );
+
+    PreparedBackupFile? prepared;
+    try {
+      prepared = await _service.prepareBackupCopy(
+        record,
+        purpose: BackupCopyPurpose.save,
+      );
+      await write(prepared.path);
+      state = BackupOperationState(
+        status: BackupOperationStatus.success,
+        message: _l10n.backup_operation_exported(record.formattedSize),
+      );
+    } catch (e) {
+      _reportCopyOutFailure(e);
+    } finally {
+      // A downloaded or streamed copy is a full library, plaintext when the
+      // backup is; it must not outlive the save.
+      await prepared?.discard();
+    }
+  }
+
+  void _reportCopyOutFailure(Object e) {
+    state = BackupOperationState(
+      status: BackupOperationStatus.error,
+      message: e is BackupCopyInOtherAccountException
+          ? _l10n.backup_restore_copyInOtherAccount
+          : _l10n.backup_operation_exportFailed('$e'),
+    );
   }
 
   /// Export a backup into an Android SAF tree, streaming it in.
