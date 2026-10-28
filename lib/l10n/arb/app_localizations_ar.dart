@@ -3013,6 +3013,9 @@ class AppLocalizationsAr extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count غطسة',
+      many: '$count غطسة',
+      few: '$count غطسات',
+      two: 'غطستان',
       one: 'غطسة واحدة',
     );
     return '$_temp0';

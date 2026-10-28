@@ -763,7 +763,7 @@
   "buddySwap_nearby_hint": "Vous ne voyez pas votre binôme ? Vous devez tous les deux ouvrir cet écran et avoir Submersion 1.8.4 ou plus récent.",
   "buddySwap_sharing": "Partagé : {summary}",
   "buddySwap_sharing_change": "Modifier",
-  "buddySwap_dives": "{count, plural, =1{1 plongée} other{{count} plongées}}",
+  "buddySwap_dives": "{count, plural, =1{{count} plongée} other{{count} plongées}}",
   "buddySwap_action_showCode": "Afficher mon code",
   "buddySwap_action_scanCode": "Scanner un code",
   "buddySwap_action_sendFile": "Envoyer un fichier",

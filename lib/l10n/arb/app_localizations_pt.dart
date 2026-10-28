@@ -2938,7 +2938,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count mergulhos',
-      one: '1 mergulho',
+      one: '$count mergulho',
     );
     return '$_temp0';
   }

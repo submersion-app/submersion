@@ -763,7 +763,7 @@
   "buddySwap_nearby_hint": "لا ترى رفيقك؟ يجب أن تفتحا هذه الشاشة كلاكما وأن يكون لديكما Submersion 1.8.4 أو أحدث.",
   "buddySwap_sharing": "المشاركة: {summary}",
   "buddySwap_sharing_change": "تغيير",
-  "buddySwap_dives": "{count, plural, =1{غطسة واحدة} other{{count} غطسة}}",
+  "buddySwap_dives": "{count, plural, =1{غطسة واحدة} two{غطستان} few{{count} غطسات} many{{count} غطسة} other{{count} غطسة}}",
   "buddySwap_action_showCode": "عرض رمزي",
   "buddySwap_action_scanCode": "مسح الرمز",
   "buddySwap_action_sendFile": "إرسال ملف",

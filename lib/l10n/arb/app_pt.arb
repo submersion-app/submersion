@@ -763,7 +763,7 @@
   "buddySwap_nearby_hint": "Não vê o seu parceiro? Ambos precisam deste ecrã aberto e do Submersion 1.8.4 ou posterior.",
   "buddySwap_sharing": "Partilha: {summary}",
   "buddySwap_sharing_change": "Alterar",
-  "buddySwap_dives": "{count, plural, =1{1 mergulho} other{{count} mergulhos}}",
+  "buddySwap_dives": "{count, plural, =1{{count} mergulho} other{{count} mergulhos}}",
   "buddySwap_action_showCode": "Mostrar o meu código",
   "buddySwap_action_scanCode": "Ler código",
   "buddySwap_action_sendFile": "Enviar ficheiro",
