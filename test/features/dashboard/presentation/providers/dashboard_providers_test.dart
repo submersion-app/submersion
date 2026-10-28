@@ -115,8 +115,10 @@ void main() {
     // Dive times are wall clocks flagged as UTC, so today's local date is
     // stored with DateTime.utc. A local DateTime would land on the previous
     // UTC day east of Greenwich and miss the month/day match. Today is
-    // pinned: a real 29 February has no match in the prior years, and a run
-    // across midnight would split the test's date from the provider's.
+    // pinned for two reasons. On a real 29 February, DateTime.utc for a
+    // non-leap prior year rolls over to 1 March, so no fixture would match
+    // the 29 February query. And a run across midnight would split the
+    // test's date from the one the provider reads.
     final today = DateTime(2026, 7, 24, 12);
 
     test('hydrates dives from this date in prior years', () async {

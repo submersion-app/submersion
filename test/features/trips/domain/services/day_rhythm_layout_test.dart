@@ -5,7 +5,10 @@ import 'package:submersion/features/trips/domain/services/day_rhythm_layout.dart
 
 void main() {
   // Dive times are wall clocks flagged as UTC, so every dive here is built
-  // with DateTime.utc; a local DateTime would move with the machine's zone.
+  // with DateTime.utc. The block's position reads only the hour and minute,
+  // but night compares the entry instant with a sunrise and sunset built
+  // as UTC wall clocks: a local 06:00 in Sydney is 19:00 UTC the day
+  // before, past the 18:00 fallback sunset, so it would read as night.
   Dive dive(DateTime dt, {Duration? bottomTime}) =>
       Dive(id: dt.toIso8601String(), dateTime: dt, bottomTime: bottomTime);
 
