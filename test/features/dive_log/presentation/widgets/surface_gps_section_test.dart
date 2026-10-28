@@ -200,12 +200,16 @@ void main() {
   });
 
   group('coordinate rows stay readable at any width (#3745)', () {
+    /// The rendered paragraph of the [coordinate] link.
+    RenderParagraph paragraphOf(WidgetTester tester, Finder coordinate) =>
+        tester.renderObject<RenderParagraph>(
+          find.descendant(of: coordinate, matching: find.byType(RichText)),
+        );
+
     /// The character offsets at which [coordinate]'s rendered text starts a
     /// new line.
     List<int> lineStarts(WidgetTester tester, Finder coordinate) {
-      final paragraph = tester.renderObject<RenderParagraph>(
-        find.descendant(of: coordinate, matching: find.byType(RichText)),
-      );
+      final paragraph = paragraphOf(tester, coordinate);
       final text = paragraph.text.toPlainText();
       double top(int offset) => paragraph
           .getOffsetForCaret(TextPosition(offset: offset), Rect.zero)
@@ -258,12 +262,7 @@ void main() {
       await _pump(tester, width: 320);
 
       final coordinate = find.byKey(const ValueKey('gps-coord-entry'));
-      final text = tester
-          .renderObject<RenderParagraph>(
-            find.descendant(of: coordinate, matching: find.byType(RichText)),
-          )
-          .text
-          .toPlainText();
+      final text = paragraphOf(tester, coordinate).text.toPlainText();
       final starts = lineStarts(tester, coordinate);
       expect(starts, isNotEmpty, reason: 'the width should force a break');
       for (final start in starts) {
