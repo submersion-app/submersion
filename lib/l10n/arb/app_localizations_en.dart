@@ -3041,6 +3041,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get buddyShare_social => 'Social handle';
 
   @override
+  String buddyCard_detail_heading(String name) {
+    return 'From $name\'s card';
+  }
+
+  @override
+  String buddyCard_detail_since(String year) {
+    return 'Diving since $year';
+  }
+
+  @override
+  String buddyCard_detail_last(String date) {
+    return 'Last dive $date';
+  }
+
+  @override
+  String buddyCard_detail_received(String date) {
+    return 'Received $date';
+  }
+
+  @override
   String get buddies_action_clearSearch => 'Clear search';
 
   @override

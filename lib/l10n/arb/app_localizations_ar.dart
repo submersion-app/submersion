@@ -3147,6 +3147,26 @@ class AppLocalizationsAr extends AppLocalizations {
   String get buddyShare_social => 'اسم المستخدم على مواقع التواصل';
 
   @override
+  String buddyCard_detail_heading(String name) {
+    return 'من بطاقة $name';
+  }
+
+  @override
+  String buddyCard_detail_since(String year) {
+    return 'يغطس منذ $year';
+  }
+
+  @override
+  String buddyCard_detail_last(String date) {
+    return 'آخر غطسة $date';
+  }
+
+  @override
+  String buddyCard_detail_received(String date) {
+    return 'استُلمت في $date';
+  }
+
+  @override
   String get buddies_action_clearSearch => 'مسح البحث';
 
   @override

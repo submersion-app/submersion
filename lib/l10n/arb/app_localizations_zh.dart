@@ -2915,6 +2915,26 @@ class AppLocalizationsZh extends AppLocalizations {
   String get buddyShare_social => '社交账号';
 
   @override
+  String buddyCard_detail_heading(String name) {
+    return '来自 $name 的名片';
+  }
+
+  @override
+  String buddyCard_detail_since(String year) {
+    return '自 $year 年开始潜水';
+  }
+
+  @override
+  String buddyCard_detail_last(String date) {
+    return '最近一次潜水 $date';
+  }
+
+  @override
+  String buddyCard_detail_received(String date) {
+    return '接收于 $date';
+  }
+
+  @override
   String get buddies_action_clearSearch => '清除搜索';
 
   @override

@@ -4759,6 +4759,30 @@ abstract class AppLocalizations {
   /// **'Social handle'**
   String get buddyShare_social;
 
+  /// No description provided for @buddyCard_detail_heading.
+  ///
+  /// In en, this message translates to:
+  /// **'From {name}\'s card'**
+  String buddyCard_detail_heading(String name);
+
+  /// No description provided for @buddyCard_detail_since.
+  ///
+  /// In en, this message translates to:
+  /// **'Diving since {year}'**
+  String buddyCard_detail_since(String year);
+
+  /// No description provided for @buddyCard_detail_last.
+  ///
+  /// In en, this message translates to:
+  /// **'Last dive {date}'**
+  String buddyCard_detail_last(String date);
+
+  /// No description provided for @buddyCard_detail_received.
+  ///
+  /// In en, this message translates to:
+  /// **'Received {date}'**
+  String buddyCard_detail_received(String date);
+
   /// No description provided for @buddies_action_clearSearch.
   ///
   /// In en, this message translates to:

@@ -77,6 +77,7 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
+  final _socialController = TextEditingController();
   final _notesController = TextEditingController();
 
   List<Certification> _certifications = [];
@@ -174,6 +175,7 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
         _nameController.text = buddy.name;
         _emailController.text = buddy.email ?? '';
         _phoneController.text = buddy.phone ?? '';
+        _socialController.text = buddy.socialHandle ?? '';
         _notesController.text = buddy.notes;
         setState(() {
           _certifications = certs;
@@ -257,6 +259,7 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
     _nameController.dispose();
     _emailController.dispose();
     _phoneController.dispose();
+    _socialController.dispose();
     _notesController.dispose();
     super.dispose();
   }
@@ -443,6 +446,14 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
                 ),
               ),
               keyboardType: TextInputType.phone,
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _socialController,
+              decoration: InputDecoration(
+                labelText: context.l10n.buddyShare_social,
+                prefixIcon: const Icon(Icons.alternate_email),
+              ),
             ),
             const SizedBox(height: 24),
 
@@ -804,7 +815,9 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
         // The buddy card figures (issue #3728) have no form field: only a
         // card writes them, so an edit carries them over as they were.
         cardId: _originalBuddy?.cardId,
-        socialHandle: _originalBuddy?.socialHandle,
+        socialHandle: _socialController.text.trim().isEmpty
+            ? null
+            : _socialController.text.trim(),
         cardDiveCount: _originalBuddy?.cardDiveCount,
         cardDivingSince: _originalBuddy?.cardDivingSince,
         cardLastDive: _originalBuddy?.cardLastDive,

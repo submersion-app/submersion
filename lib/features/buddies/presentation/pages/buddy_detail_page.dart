@@ -20,6 +20,7 @@ import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/buddies/presentation/widgets/buddy_favorite_button.dart';
 import 'package:submersion/features/buddies/presentation/widgets/buddy_shared_dives_section.dart';
+import 'package:submersion/features/buddies/presentation/widgets/buddy_card_details_section.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -148,8 +149,16 @@ class _BuddyDetailContent extends ConsumerWidget {
           const SizedBox(height: 24),
 
           // Contact info
-          if (buddy.hasContactInfo || buddy.linkedDiverId != null) ...[
+          if (buddy.hasContactInfo ||
+              buddy.socialHandle != null ||
+              buddy.linkedDiverId != null) ...[
             _buildContactSection(context, ref),
+            const SizedBox(height: 24),
+          ],
+
+          // What their buddy card said (issue #3728).
+          if (buddy.hasCardDetails) ...[
+            BuddyCardDetailsSection(buddy: buddy),
             const SizedBox(height: 24),
           ],
 
@@ -444,6 +453,13 @@ class _BuddyDetailContent extends ConsumerWidget {
                 onTap: () => _launchPhone(buddy.phone!),
                 contentPadding: EdgeInsets.zero,
                 trailing: const Icon(Icons.open_in_new, size: 16),
+              ),
+            if (buddy.socialHandle != null)
+              ListTile(
+                leading: const Icon(Icons.alternate_email),
+                title: Text(buddy.socialHandle!),
+                subtitle: Text(context.l10n.buddyShare_social),
+                contentPadding: EdgeInsets.zero,
               ),
           ],
         ),

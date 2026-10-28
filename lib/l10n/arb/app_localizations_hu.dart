@@ -3067,6 +3067,26 @@ class AppLocalizationsHu extends AppLocalizations {
   String get buddyShare_social => 'Közösségimédia-név';
 
   @override
+  String buddyCard_detail_heading(String name) {
+    return '$name kártyájáról';
+  }
+
+  @override
+  String buddyCard_detail_since(String year) {
+    return '$year óta merül';
+  }
+
+  @override
+  String buddyCard_detail_last(String date) {
+    return 'Utolsó merülés: $date';
+  }
+
+  @override
+  String buddyCard_detail_received(String date) {
+    return 'Fogadva: $date';
+  }
+
+  @override
   String get buddies_action_clearSearch => 'Keresés törlése';
 
   @override

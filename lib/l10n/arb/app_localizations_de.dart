@@ -3075,6 +3075,26 @@ class AppLocalizationsDe extends AppLocalizations {
   String get buddyShare_social => 'Social-Media-Name';
 
   @override
+  String buddyCard_detail_heading(String name) {
+    return 'Laut Karte von $name';
+  }
+
+  @override
+  String buddyCard_detail_since(String year) {
+    return 'Taucht seit $year';
+  }
+
+  @override
+  String buddyCard_detail_last(String date) {
+    return 'Letzter Tauchgang $date';
+  }
+
+  @override
+  String buddyCard_detail_received(String date) {
+    return 'Empfangen am $date';
+  }
+
+  @override
   String get buddies_action_clearSearch => 'Suche löschen';
 
   @override

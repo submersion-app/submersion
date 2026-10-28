@@ -3024,6 +3024,26 @@ class AppLocalizationsHe extends AppLocalizations {
   String get buddyShare_social => 'שם משתמש ברשתות חברתיות';
 
   @override
+  String buddyCard_detail_heading(String name) {
+    return 'מהכרטיס של $name';
+  }
+
+  @override
+  String buddyCard_detail_since(String year) {
+    return 'צולל מאז $year';
+  }
+
+  @override
+  String buddyCard_detail_last(String date) {
+    return 'צלילה אחרונה $date';
+  }
+
+  @override
+  String buddyCard_detail_received(String date) {
+    return 'התקבל ב-$date';
+  }
+
+  @override
   String get buddies_action_clearSearch => 'נקה חיפוש';
 
   @override

@@ -3062,6 +3062,26 @@ class AppLocalizationsNl extends AppLocalizations {
   String get buddyShare_social => 'Socialemedianaam';
 
   @override
+  String buddyCard_detail_heading(String name) {
+    return 'Van de kaart van $name';
+  }
+
+  @override
+  String buddyCard_detail_since(String year) {
+    return 'Duikt sinds $year';
+  }
+
+  @override
+  String buddyCard_detail_last(String date) {
+    return 'Laatste duik $date';
+  }
+
+  @override
+  String buddyCard_detail_received(String date) {
+    return 'Ontvangen op $date';
+  }
+
+  @override
   String get buddies_action_clearSearch => 'Zoekopdracht wissen';
 
   @override
