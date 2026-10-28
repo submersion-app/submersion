@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:video_player/video_player.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -12,6 +13,7 @@ import 'package:submersion/features/media/domain/entities/media_source_type.dart
 import 'package:submersion/features/media/presentation/helpers/face_box_geometry.dart';
 import 'package:submersion/features/media/presentation/providers/media_people_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/people_tags/add_to_dive_offer.dart';
+import 'package:submersion/features/media/presentation/widgets/people_tags/people_tag_hint.dart';
 import 'package:submersion/features/media/presentation/widgets/people_tags/person_picker_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -106,6 +108,66 @@ mixin PeopleTagViewerMixin<T extends ConsumerStatefulWidget>
 
   /// Decoded image sizes, which win over a row's unrotated dimensions.
   final Map<String, Size> _decodedSizes = {};
+
+  /// The session the gallery's pages share. [pauseVideo] pauses a video by
+  /// id: placing a box pauses it again, so a box never lands on a frame that
+  /// has already moved on.
+  PeopleTagSession buildPeopleSession({
+    required void Function(String mediaId) pauseVideo,
+  }) => PeopleTagSession(
+    active: taggingPeople,
+    selectedTagId: selectedPeopleTagId,
+    pendingBoxFor: pendingPeopleBox,
+    imageSizeOf: peopleImageSize,
+    onImageSize: rememberImageSize,
+    canPlace: (item, {videoSize, videoReady = false}) => canPlaceSpot(
+      item,
+      videoReady: videoReady,
+      imageSize: peopleImageSize(item, videoSize: videoSize),
+    ),
+    onPlace: (item, box, at) {
+      if (item.isVideo) pauseVideo(item.id);
+      unawaited(placePeopleTag(item, box, at: at));
+    },
+    onSelect: selectPeopleTag,
+    onMove: (tag, box) => unawaited(movePeopleTag(tag, box)),
+  );
+
+  /// Tag mode's hint and bar over the viewer for [item]; [video] is its
+  /// player's state, and [onShowMoment] shows a video tag's frame.
+  Widget peopleTagHint(
+    MediaItem item, {
+    required VideoPlayerValue? video,
+    required ValueChanged<MediaPersonTag> onShowMoment,
+  }) {
+    final selected = selectedPeopleTag(item.id);
+    return Positioned.fill(
+      child: PeopleTagHint(
+        canPlaceSpot: canPlaceSpot(
+          item,
+          videoReady: video != null && video.isInitialized && !video.hasError,
+          imageSize: peopleImageSize(item, videoSize: video?.size),
+        ),
+        hasSelection: selected != null,
+        selectionHasBox: selected?.box != null,
+        chips: ref.watch(mediaPeopleChipsProvider(item.id)).value ?? const [],
+        selectedTagId: selectedPeopleTagId,
+        onSelectTag: (tag) {
+          selectPeopleTag(tag);
+          // A moment off screen: show its frame where the video can play.
+          if (tag.videoPosition != null) onShowMoment(tag);
+        },
+        onWithoutSpot: () => unawaited(tagWithoutSpot(item)),
+        onDone: togglePeopleTagging,
+        onChangePerson: () {
+          if (selected != null) unawaited(changeTaggedPerson(item, selected));
+        },
+        onRemove: () {
+          if (selected != null) unawaited(removePeopleTag(selected.id));
+        },
+      ),
+    );
+  }
 
   /// Enters or leaves tag mode. A video is paused first, so a box is drawn
   /// on the frame on screen.

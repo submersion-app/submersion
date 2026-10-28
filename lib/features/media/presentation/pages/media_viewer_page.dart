@@ -43,12 +43,11 @@ import 'package:submersion/features/media/presentation/widgets/media_info_sheet.
 import 'package:submersion/features/media/presentation/widgets/media_species_chips_row.dart';
 import 'package:submersion/features/media/presentation/widgets/media_species_sheet.dart';
 import 'package:submersion/features/media/domain/entities/media_person_tag.dart';
-import 'package:submersion/features/media/presentation/providers/media_people_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/people_tags/face_box_layer.dart';
 import 'package:submersion/features/media/presentation/widgets/people_tags/media_people_chips_row.dart';
 import 'package:submersion/features/media/presentation/widgets/people_tags/people_tag_editor.dart';
-import 'package:submersion/features/media/presentation/widgets/people_tags/people_tag_hint.dart';
 import 'package:submersion/features/media/presentation/widgets/people_tags/people_tag_viewer_mixin.dart';
+import 'package:submersion/features/media/presentation/widgets/people_tags/video_people_layer.dart';
 import 'package:submersion/features/media/presentation/widgets/people_tags/video_tag_marks.dart';
 import 'package:submersion/features/media/presentation/widgets/media_viewer_toolbar.dart';
 import 'package:submersion/features/media/presentation/widgets/video_color_filter.dart';
@@ -538,26 +537,9 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                 perdixPrecondition && (diveProfile?.isNotEmpty ?? false);
 
             // People tag mode (issue #1745), shared with every gallery page.
-            final peopleSession = PeopleTagSession(
-              active: taggingPeople,
-              selectedTagId: selectedPeopleTagId,
-              pendingBoxFor: pendingPeopleBox,
-              imageSizeOf: peopleImageSize,
-              onImageSize: rememberImageSize,
-              canPlace: (item, {videoSize, videoReady = false}) => canPlaceSpot(
-                item,
-                videoReady: videoReady,
-                imageSize: peopleImageSize(item, videoSize: videoSize),
-              ),
-              onPlace: (item, box, at) =>
-                  unawaited(placePeopleTag(item, box, at: at)),
-              onSelect: selectPeopleTag,
-              onMove: (tag, box) => unawaited(movePeopleTag(tag, box)),
+            final peopleSession = buildPeopleSession(
+              pauseVideo: (id) => unawaited(_videoControllers[id]?.pause()),
             );
-            final currentVideo = currentItem.isVideo
-                ? _videoControllers[currentItem.id]?.value
-                : null;
-            final currentSelectedTag = selectedPeopleTag(currentItem.id);
 
             final viewer = GestureDetector(
               // Swipe down to close (common pattern for fullscreen viewers)
@@ -757,49 +739,12 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
 
                   // People tag mode's hint and actions (issue #1745).
                   if (taggingPeople)
-                    Positioned.fill(
-                      child: PeopleTagHint(
-                        canPlaceSpot: canPlaceSpot(
-                          currentItem,
-                          videoReady:
-                              currentVideo != null &&
-                              currentVideo.isInitialized &&
-                              !currentVideo.hasError,
-                          imageSize: peopleImageSize(
-                            currentItem,
-                            videoSize: currentVideo?.size,
-                          ),
-                        ),
-                        hasSelection: currentSelectedTag != null,
-                        selectionHasBox: currentSelectedTag?.box != null,
-                        chips:
-                            ref
-                                .watch(mediaPeopleChipsProvider(currentItem.id))
-                                .value ??
-                            const [],
-                        selectedTagId: selectedPeopleTagId,
-                        onSelectTag: (tag) {
-                          selectPeopleTag(tag);
-                          // A moment off screen: show its frame where the
-                          // video can play.
-                          if (tag.videoPosition != null) {
-                            _showMoment(currentItem, tag);
-                          }
-                        },
-                        onWithoutSpot: () =>
-                            unawaited(tagWithoutSpot(currentItem)),
-                        onDone: () => togglePeopleTagging(),
-                        onChangePerson: () {
-                          final tag = currentSelectedTag;
-                          if (tag != null) {
-                            unawaited(changeTaggedPerson(currentItem, tag));
-                          }
-                        },
-                        onRemove: () {
-                          final tag = currentSelectedTag;
-                          if (tag != null) unawaited(removePeopleTag(tag.id));
-                        },
-                      ),
+                    peopleTagHint(
+                      currentItem,
+                      video: currentItem.isVideo
+                          ? _videoControllers[currentItem.id]?.value
+                          : null,
+                      onShowMoment: (tag) => _showMoment(currentItem, tag),
                     ),
 
                   // Perdix dive computer overlay. Deliberately independent of
@@ -1589,38 +1534,12 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
             ),
           ),
 
-          // Face tags at the paused frame (issue #1745); none while playing.
-          // In tag mode the editor takes the taps the player would.
-          ValueListenableBuilder<VideoPlayerValue>(
-            valueListenable: controller,
-            builder: (context, value, _) {
-              final people = widget.people;
-              if (!people.active) {
-                return FaceBoxLayer(
-                  mediaId: widget.item.id,
-                  imageSize: value.size,
-                  visible: widget.showOverlay && !value.isPlaying,
-                  showAt: value.position,
-                );
-              }
-              if (value.size.isEmpty) return const SizedBox.shrink();
-              return PeopleTagEditor(
-                mediaId: widget.item.id,
-                imageSize: value.size,
-                showAt: value.position,
-                selectedTagId: people.selectedTagId,
-                pendingBox: people.pendingBoxFor(widget.item.id),
-                canPlace: people.canPlace(
-                  widget.item,
-                  videoSize: value.size,
-                  videoReady: value.isInitialized && !value.hasError,
-                ),
-                onPlace: (box) =>
-                    people.onPlace(widget.item, box, value.position),
-                onSelect: people.onSelect,
-                onMove: people.onMove,
-              );
-            },
+          // People tags (issue #1745).
+          VideoPeopleLayer(
+            controller: controller,
+            item: widget.item,
+            people: widget.people,
+            showOverlay: widget.showOverlay,
           ),
 
           // Play/pause button overlay (center) - visual indicator only when paused
@@ -1642,8 +1561,9 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
               ),
             ),
 
-          // Video controls overlay (bottom)
-          if (widget.showOverlay)
+          // Video controls overlay (bottom). Not in tag mode: the video stays
+          // on the frame its boxes are drawn on.
+          if (widget.showOverlay && !widget.people.active)
             Positioned(
               left: 0,
               right: 0,
