@@ -9483,6 +9483,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_selection_tooltip_edit => '编辑所选';
 
   @override
+  String get diveLog_selection_tooltip_newTrip => '用所选潜水新建行程';
+
+  @override
   String get diveLog_selection_tooltip_export => '导出所选';
 
   @override
@@ -30093,6 +30096,16 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String trips_partOf(String name) {
     return '属于 $name';
+  }
+
+  @override
+  String trips_fromSelection_name(String location, String monthYear) {
+    return '$location，$monthYear';
+  }
+
+  @override
+  String trips_fromSelection_nameNoLocation(String monthYear) {
+    return '行程，$monthYear';
   }
 
   @override

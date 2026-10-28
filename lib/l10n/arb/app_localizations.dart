@@ -15841,6 +15841,12 @@ abstract class AppLocalizations {
   /// **'Edit Selected'**
   String get diveLog_selection_tooltip_edit;
 
+  /// Dive list selection action: make a new trip from the selected dives
+  ///
+  /// In en, this message translates to:
+  /// **'New Trip from Selection'**
+  String get diveLog_selection_tooltip_newTrip;
+
   /// No description provided for @diveLog_selection_tooltip_export.
   ///
   /// In en, this message translates to:
@@ -50827,6 +50833,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Part of {name}'**
   String trips_partOf(String name);
+
+  /// Suggested name for a trip made from selected dives: the shared location and the month it starts
+  ///
+  /// In en, this message translates to:
+  /// **'{location}, {monthYear}'**
+  String trips_fromSelection_name(String location, String monthYear);
+
+  /// Suggested name for a trip made from selected dives with no shared location
+  ///
+  /// In en, this message translates to:
+  /// **'Trip, {monthYear}'**
+  String trips_fromSelection_nameNoLocation(String monthYear);
 
   /// No description provided for @trips_list_tooltip_addTrip.
   ///

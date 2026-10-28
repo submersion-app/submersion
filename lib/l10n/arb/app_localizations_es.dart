@@ -9981,6 +9981,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_selection_tooltip_edit => 'Editar seleccionados';
 
   @override
+  String get diveLog_selection_tooltip_newTrip =>
+      'Nuevo viaje con la selección';
+
+  @override
   String get diveLog_selection_tooltip_export => 'Exportar seleccionados';
 
   @override
@@ -31965,6 +31969,16 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String trips_partOf(String name) {
     return 'Parte de $name';
+  }
+
+  @override
+  String trips_fromSelection_name(String location, String monthYear) {
+    return '$location, $monthYear';
+  }
+
+  @override
+  String trips_fromSelection_nameNoLocation(String monthYear) {
+    return 'Viaje, $monthYear';
   }
 
   @override

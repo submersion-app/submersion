@@ -10134,6 +10134,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_selection_tooltip_edit => 'تعديل المحدد';
 
   @override
+  String get diveLog_selection_tooltip_newTrip => 'رحلة جديدة من المحدد';
+
+  @override
   String get diveLog_selection_tooltip_export => 'تصدير المحدد';
 
   @override
@@ -32258,6 +32261,16 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String trips_partOf(String name) {
     return 'جزء من $name';
+  }
+
+  @override
+  String trips_fromSelection_name(String location, String monthYear) {
+    return '$location، $monthYear';
+  }
+
+  @override
+  String trips_fromSelection_nameNoLocation(String monthYear) {
+    return 'رحلة، $monthYear';
   }
 
   @override

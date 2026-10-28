@@ -9763,6 +9763,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_selection_tooltip_edit => 'ערוך נבחרים';
 
   @override
+  String get diveLog_selection_tooltip_newTrip => 'טיול חדש מהבחירה';
+
+  @override
   String get diveLog_selection_tooltip_export => 'ייצא נבחרים';
 
   @override
@@ -31134,6 +31137,16 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String trips_partOf(String name) {
     return 'חלק מ־$name';
+  }
+
+  @override
+  String trips_fromSelection_name(String location, String monthYear) {
+    return '$location, $monthYear';
+  }
+
+  @override
+  String trips_fromSelection_nameNoLocation(String monthYear) {
+    return 'טיול, $monthYear';
   }
 
   @override

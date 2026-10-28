@@ -12,6 +12,7 @@ import 'package:submersion/features/trips/data/repositories/itinerary_day_reposi
 import 'package:submersion/features/trips/data/repositories/liveaboard_details_repository.dart';
 import 'package:submersion/features/trips/domain/entities/itinerary_day.dart';
 import 'package:submersion/features/trips/domain/entities/liveaboard_details.dart';
+import 'package:submersion/features/trips/domain/services/trip_draft.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_edit_navigation.dart';
@@ -43,6 +44,10 @@ class TripEditPage extends ConsumerStatefulWidget {
   /// at the top (#2880).
   final TripEditSection? initialSection;
 
+  /// A new trip prefilled from selected dives, which move into it on save
+  /// (issue #3658). Only for a new trip.
+  final TripDraft? draft;
+
   const TripEditPage({
     super.key,
     this.tripId,
@@ -50,6 +55,7 @@ class TripEditPage extends ConsumerStatefulWidget {
     this.onSaved,
     this.onCancel,
     this.initialSection,
+    this.draft,
   });
 
   @override
@@ -111,6 +117,17 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
 
   bool get isEditing => widget.tripId != null;
 
+  /// Seeds the form from a trip made from selected dives (issue #3658).
+  void _applyDraft(Trip trip) {
+    _nameController.text = trip.name;
+    _locationController.text = trip.location ?? '';
+    _resortController.text = trip.resortName ?? '';
+    _startDate = trip.startDate;
+    _endDate = trip.endDate;
+    _endDateTouched = true;
+    _parentTripId = trip.parentTripId;
+  }
+
   bool get _hasSideTrips =>
       isEditing &&
       (ref.watch(hasSideTripsProvider(widget.tripId!)).value ?? false);
@@ -142,6 +159,8 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
     final now = clock.now();
     _startDate = now;
     _endDate = now.copyWith(day: now.day + 7);
+    final draft = widget.draft;
+    if (!isEditing && draft != null) _applyDraft(draft.trip);
     if (isEditing) {
       _loadTrip();
     } else {
@@ -1145,13 +1164,26 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
         await liveaboardRepo.deleteByTripId(savedId);
       }
 
+      // A trip made from selected dives takes exactly those dives, so no
+      // date-range scan offers others (issue #3658).
+      final draft = widget.draft;
+      if (!isEditing && draft != null && draft.diveIds.isNotEmpty) {
+        await ref
+            .read(tripListNotifierProvider.notifier)
+            .assignDivesToTrip(
+              draft.diveIds,
+              savedId,
+              oldTripIds: draft.sourceTripIds,
+            );
+      }
+
       // Scan for candidate dives (on create, or when dates changed on edit)
       final datesChanged =
           !isEditing ||
           _originalTrip?.startDate != _startDate ||
           _originalTrip?.endDate != _endDate;
 
-      if (mounted && datesChanged) {
+      if (mounted && datesChanged && draft == null) {
         // Resolved only once a scan is actually going to run: this provider
         // hits the database, and the save above may not have warmed it (the
         // `??` at the top of this method short-circuits for existing trips).

@@ -9960,6 +9960,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_selection_tooltip_edit => 'Kiválasztottak szerkesztése';
 
   @override
+  String get diveLog_selection_tooltip_newTrip => 'Új út a kijelöltekből';
+
+  @override
   String get diveLog_selection_tooltip_export => 'Kiválasztottak exportálása';
 
   @override
@@ -31762,6 +31765,16 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String trips_partOf(String name) {
     return '$name része';
+  }
+
+  @override
+  String trips_fromSelection_name(String location, String monthYear) {
+    return '$location, $monthYear';
+  }
+
+  @override
+  String trips_fromSelection_nameNoLocation(String monthYear) {
+    return 'Út, $monthYear';
   }
 
   @override
