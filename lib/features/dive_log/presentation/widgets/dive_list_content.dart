@@ -1165,6 +1165,33 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     }
   }
 
+  /// Open the new-trip form prefilled from the checked dives (issue #3658).
+  /// Backing out keeps the selection; a failed read says so and keeps it.
+  Future<BulkActionOutcome> _newTripFromSelection() async {
+    try {
+      final tripId = await newTripFromSelection(
+        context,
+        ref,
+        _selectedIds.toList(),
+      );
+      return tripId == null
+          ? BulkActionOutcome.cancelled
+          : BulkActionOutcome.completed;
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to start a trip from the selected dives',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n.common_error_tryAgain)),
+        );
+      }
+      return BulkActionOutcome.failed;
+    }
+  }
+
   /// Open the bulk edit form for the selected dives.
   ///
   /// Reports completed either way. The form leaves itself with
@@ -1828,16 +1855,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
         id: 'new_trip',
         icon: Icons.card_travel,
         label: context.l10n.diveLog_selection_tooltip_newTrip,
-        onInvoke: () async {
-          final tripId = await newTripFromSelection(
-            context,
-            ref,
-            _selectedIds.toList(),
-          );
-          return tripId == null
-              ? BulkActionOutcome.cancelled
-              : BulkActionOutcome.completed;
-        },
+        onInvoke: _newTripFromSelection,
       ),
       // Logbook rules on the checked dives, previewed first (#3513). Last,
       // so the existing inline actions keep their places.

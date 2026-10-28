@@ -66,18 +66,25 @@ final tripQueryEntity = QueryEntity(
     // A trip counts its side trips' dives too (issue #3658).
     diveCountField('trips', tripDivesScopeSql('ad', '{r}.id')),
   ],
-  relations: const [
+  relations: [
+    // A trip's dives take in its side trips' (issue #3658). As an IN list
+    // of the trip and its side trips, so the dives lookup keeps using
+    // idx_dives_trip_id.
     QueryRelation(
       key: 'dives',
       target: QuerySubject.dives,
-      shape: RelationShape.child,
-      joinSql: '{to}.trip_id = {from}.id',
+      // Custom, not child: the hop is an IN list, not one equality.
+      shape: RelationShape.custom,
+      joinSql:
+          '{to}.trip_id IN (SELECT {from}.id UNION ALL '
+          '${sideTripIdsSql('{from}.id')})',
       isMany: true,
       labelKey: 'query_trips_dives',
+      tables: const ['trips'],
     ),
     // The larger trip a side trip is part of (issue #3658). A link to a
     // trip that is itself a side trip, or to the trip itself, is no link.
-    QueryRelation(
+    const QueryRelation(
       key: 'partOf',
       target: QuerySubject.trips,
       shape: RelationShape.fk,

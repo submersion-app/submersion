@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/router/section_navigation.dart';
+import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/domain/services/side_trips.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -80,9 +82,18 @@ class TripSummaryWidget extends ConsumerWidget {
     int liveaboardCount = 0;
     double? maxDepth;
 
+    // A larger trip's figures already include its side trips' dives, and
+    // its dates span theirs, so a side trip adds neither (issue #3658).
+    final tripsById = <String, Trip>{
+      for (final t in trips) (t.trip as Trip).id: t.trip as Trip,
+    };
     for (final tripWithStats in trips) {
-      totalDives += tripWithStats.diveCount as num;
-      totalDays += tripWithStats.trip.durationDays as num;
+      final isSideTrip =
+          effectiveParentId(tripWithStats.trip as Trip, tripsById) != null;
+      if (!isSideTrip) {
+        totalDives += tripWithStats.diveCount as num;
+        totalDays += tripWithStats.trip.durationDays as num;
+      }
       if (tripWithStats.trip.isLiveaboard) liveaboardCount++;
       if (tripWithStats.maxDepth != null) {
         if (maxDepth == null || tripWithStats.maxDepth > maxDepth) {

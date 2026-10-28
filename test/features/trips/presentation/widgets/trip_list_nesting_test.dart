@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -11,6 +13,7 @@ import 'package:submersion/features/trips/domain/constants/trip_field.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_list_page.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
+import 'package:submersion/features/trips/presentation/widgets/upcoming_trip_banner.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
 import 'package:submersion/shared/providers/entity_table_config_providers.dart';
@@ -105,6 +108,8 @@ void main() {
   List<Override> overrides(
     List<Trip> listed, {
     ListViewMode mode = ListViewMode.detailed,
+    bool allTripsLoaded = true,
+    List<Trip>? known,
   }) => [
     sharedPreferencesProvider.overrideWithValue(prefs),
     settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
@@ -114,12 +119,16 @@ void main() {
       (ref) =>
           AsyncValue.data([for (final t in listed) TripWithStats(trip: t)]),
     ),
-    allTripsProvider.overrideWith((ref) async => all),
+    allTripsProvider.overrideWith(
+      (ref) => allTripsLoaded
+          ? Future.value(known ?? all)
+          : Completer<List<Trip>>().future,
+    ),
     tripListViewModeProvider.overrideWith((ref) => mode),
     tripTableConfigProvider.overrideWith(
       (ref) => _TestTripTableConfigNotifier(),
     ),
-    for (final t in all)
+    for (final t in known ?? all)
       tripChecklistProgressProvider(
         t.id,
       ).overrideWith((ref) async => (done: 0, total: 0)),
@@ -130,12 +139,19 @@ void main() {
     List<Trip> listed, {
     ListViewMode mode = ListViewMode.detailed,
     double width = 400,
+    bool allTripsLoaded = true,
   }) async {
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = Size(width, 800);
     addTearDown(tester.view.reset);
     await tester.pumpWidget(
-      _buildTestWidget(overrides: overrides(listed, mode: mode)),
+      _buildTestWidget(
+        overrides: overrides(
+          listed,
+          mode: mode,
+          allTripsLoaded: allTripsLoaded,
+        ),
+      ),
     );
     await tester.pumpAndSettle();
   }
@@ -180,5 +196,53 @@ void main() {
     );
     expect(find.text('1 side trip'), findsOneWidget);
     expect(find.byIcon(Icons.subdirectory_arrow_right), findsOneWidget);
+  });
+
+  testWidgets('listed trips nest before the full trip list loads', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1.0;
+    tester.view.physicalSize = const Size(400, 800);
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      _buildTestWidget(
+        overrides: overrides([rajaAmpat, indonesia], allTripsLoaded: false),
+      ),
+    );
+    await tester.pump();
+    expect(find.byIcon(Icons.subdirectory_arrow_right), findsOneWidget);
+    expect(find.text('1 side trip'), findsOneWidget);
+  });
+
+  testWidgets("an upcoming side trip's banner is indented with its card", (
+    tester,
+  ) async {
+    final now = DateTime.now();
+    Trip soon(String id, String name, int from, int to, {String? parent}) =>
+        Trip(
+          id: id,
+          name: name,
+          startDate: DateTime(now.year, now.month, now.day + from),
+          endDate: DateTime(now.year, now.month, now.day + to),
+          parentTripId: parent,
+          createdAt: now,
+          updatedAt: now,
+        );
+    final larger = soon('p2', 'Palau', 10, 24);
+    final side = soon('s2', 'Palau liveaboard', 14, 18, parent: 'p2');
+    tester.view.devicePixelRatio = 1.0;
+    tester.view.physicalSize = const Size(600, 1200);
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      _buildTestWidget(
+        overrides: overrides([larger, side], known: [larger, side]),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final banners = find.byType(UpcomingTripBanner);
+    expect(banners, findsNWidgets(2));
+    final parentLeft = tester.getTopLeft(banners.at(0)).dx;
+    final sideLeft = tester.getTopLeft(banners.at(1)).dx;
+    expect(sideLeft, greaterThan(parentLeft));
   });
 }

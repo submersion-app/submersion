@@ -820,7 +820,10 @@ class _TripListContentState extends ConsumerState<TripListContent> {
 
     // Side trips nest under their larger trip, which decides the section
     // (issue #3658).
+    // The listed trips nest on their own; the full list adds larger trips a
+    // filter hid, and fills in once it has loaded.
     final allTripsById = {
+      for (final t in trips) t.trip.id: t.trip,
       for (final t in ref.watch(allTripsProvider).value ?? const <Trip>[])
         t.id: t,
     };
@@ -949,7 +952,15 @@ class _TripListContentState extends ConsumerState<TripListContent> {
                     navigationKey: tripWithStats.trip.id,
                     header: tripWithStats.trip.isUpcoming
                         ? Padding(
-                            padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
+                            // Indented with a side trip's card (#3658).
+                            padding: EdgeInsetsDirectional.fromSTEB(
+                              listRow.isSideTrip
+                                  ? 20 + sideTripIndentWidth
+                                  : 20,
+                              4,
+                              20,
+                              0,
+                            ),
                             child: UpcomingTripBanner(trip: tripWithStats.trip),
                           )
                         : null,

@@ -90,4 +90,21 @@ void main() {
     expect(await dives('P'), {'p1', 'p2', 's1', 's2', 's3'});
     expect(await dives('S'), {'s1', 's2', 's3'});
   });
+
+  test("a trip filter on dives takes in its side trips' dives", () async {
+    await db.customStatement(
+      'INSERT INTO equipment (id, name, type, created_at, updated_at) '
+      "VALUES ('drysuit', 'Drysuit', 'drysuit', 0, 0)",
+    );
+    await db.customStatement(
+      "INSERT INTO dive_equipment (dive_id, equipment_id) "
+      "VALUES ('s1', 'drysuit')",
+    );
+    expect(
+      await QueryIdSetRunner(
+        db,
+      ).ids(compileTripFilter(const TripFilterState(equipmentId: 'drysuit'))),
+      {'P', 'S'},
+    );
+  });
 }

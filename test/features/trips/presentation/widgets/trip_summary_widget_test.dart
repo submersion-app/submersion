@@ -218,4 +218,37 @@ void main() {
     expect(find.text("Couldn't load your trips."), findsOneWidget);
     expect(find.textContaining('database is locked'), findsNothing);
   });
+
+  // Issue #3658: a larger trip's dive count already includes its side trips'
+  // dives, so adding the side trip again would count those dives twice.
+  testWidgets('the overview counts each dive and day once', (tester) async {
+    final start = DateTime(DateTime.now().year - 1, 3, 2);
+    final larger = TripWithStats(
+      trip: Trip(
+        id: 'p',
+        name: 'Indonesia',
+        startDate: start,
+        endDate: DateTime(start.year, 3, 15),
+        createdAt: start,
+        updatedAt: start,
+      ),
+      diveCount: 5,
+    );
+    final side = TripWithStats(
+      trip: Trip(
+        id: 's',
+        name: 'Raja Ampat',
+        startDate: DateTime(start.year, 3, 8),
+        endDate: DateTime(start.year, 3, 11),
+        parentTripId: 'p',
+        createdAt: start,
+        updatedAt: start,
+      ),
+      diveCount: 2,
+    );
+    await _pump(tester, DateFormatPreference.mmmDYYYY, [larger, side]);
+    expect(find.text('5'), findsOneWidget);
+    expect(find.text('14'), findsOneWidget);
+    expect(find.text('2'), findsOneWidget);
+  });
 }
