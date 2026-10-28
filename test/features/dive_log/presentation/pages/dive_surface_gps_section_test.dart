@@ -84,7 +84,7 @@ void main() {
       findsOneWidget,
     );
     expect(find.textContaining('Drift'), findsWidgets);
-    expect(find.text('12.345670° N, 98.765430° E'), findsOneWidget);
+    expect(find.bySemanticsLabel('12.345670° N, 98.765430° E'), findsOneWidget);
     expect(find.text('Open in Maps'), findsNothing);
   });
 
@@ -200,7 +200,7 @@ void main() {
       find.descendant(of: section, matching: find.byType(FlutterMap)),
       findsOneWidget,
     );
-    expect(find.text('12.340000° N, 98.760000° E'), findsOneWidget);
+    expect(find.bySemanticsLabel('12.340000° N, 98.760000° E'), findsOneWidget);
     expect(find.text('Surface GPS'), findsNothing);
   });
 

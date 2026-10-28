@@ -342,6 +342,12 @@ class _GpsCoordinateRow extends StatelessWidget {
   final VoidCallback onCopy;
   final String? sourceName;
 
+  /// [coordText] with every space made non-breaking except the one after the
+  /// axis separator, so a coordinate too wide for its row wraps between
+  /// latitude and longitude, never inside one ("N," then "E" alone, #3745).
+  static String _breakOnlyBetweenAxes(String coordText) =>
+      coordText.replaceAll(' ', '\u00A0').replaceAll(',\u00A0', ', ');
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -357,26 +363,38 @@ class _GpsCoordinateRow extends StatelessWidget {
             decoration: BoxDecoration(color: dotColor, shape: BoxShape.circle),
           ),
           const SizedBox(width: 10),
-          SizedBox(
-            width: 52,
-            child: Text(
-              label,
-              style: textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ),
+          // A Wrap rather than a fixed-width label column: the label keeps its
+          // natural width (translations run long), and when the coordinate
+          // does not fit beside it, it drops onto its own line under the label
+          // instead of both wrapping mid-word on a narrow phone (#3745).
           Expanded(
-            child: InkWell(
-              key: coordKey,
-              onTap: onFocus,
-              child: Text(
-                coordText,
-                style: textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.primary,
-                  decoration: TextDecoration.underline,
+            child: Wrap(
+              spacing: 8,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                ConstrainedBox(
+                  // Short labels still line their coordinates up.
+                  constraints: const BoxConstraints(minWidth: 44),
+                  child: Text(
+                    label,
+                    style: textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
                 ),
-              ),
+                InkWell(
+                  key: coordKey,
+                  onTap: onFocus,
+                  child: Text(
+                    _breakOnlyBetweenAxes(coordText),
+                    semanticsLabel: coordText,
+                    style: textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.primary,
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
           if (sourceName != null) ...[
