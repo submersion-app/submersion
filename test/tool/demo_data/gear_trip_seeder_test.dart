@@ -40,19 +40,21 @@ void main() {
     }
   });
 
-  test('storage, service, sharing and a transfer are recorded', () async {
-    for (final t in [
-      'equipment_locations',
-      'equipment_location_moves',
-      'equipment_observations',
-      'equipment_shares',
-      'equipment_ownership_events',
-      'service_records',
-      'service_schedules',
-    ]) {
-      expect(await countRows(ctx, t), greaterThan(0), reason: t);
-    }
-  });
+  test(
+    'storage, service clocks, sharing and a transfer are recorded',
+    () async {
+      for (final t in [
+        'equipment_locations',
+        'equipment_location_moves',
+        'equipment_observations',
+        'equipment_shares',
+        'equipment_ownership_events',
+        'service_schedules',
+      ]) {
+        expect(await countRows(ctx, t), greaterThan(0), reason: t);
+      }
+    },
+  );
 
   test('computers, transmitters, presets and cylinders are set up', () async {
     expect(await countRows(ctx, 'dive_computers'), 3);

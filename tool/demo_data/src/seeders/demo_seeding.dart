@@ -3,6 +3,7 @@ import 'dive_seeder.dart';
 import 'diver_seeder.dart';
 import 'gear_cylinder_seeder.dart';
 import 'gear_seeder.dart';
+import 'gear_service_seeder.dart';
 import 'media_seeder.dart';
 import 'misc_seeder.dart';
 import 'places_seeder.dart';
@@ -20,6 +21,7 @@ List<DemoSeeder> demoSeeders() => [
   GearCylinderSeeder(),
   TripSeeder(),
   DiveSeeder(),
+  GearServiceSeeder(),
   TrainingLinksSeeder(),
   MediaSeeder(),
   PlanningSeeder(),

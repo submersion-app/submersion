@@ -1,4 +1,3 @@
-import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_component_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_location_move_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_location_repository.dart';
@@ -6,8 +5,6 @@ import 'package:submersion/features/equipment/data/repositories/equipment_observ
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_set_repository_impl.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_share_repository.dart';
-import 'package:submersion/features/equipment/data/repositories/service_record_repository.dart';
-import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
 import 'package:submersion/features/equipment/data/services/equipment_transfer_service.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
@@ -16,8 +13,6 @@ import 'package:submersion/features/equipment/domain/entities/equipment_location
 import 'package:submersion/features/equipment/domain/entities/equipment_observation.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set_geofence.dart';
-import 'package:submersion/features/equipment/domain/entities/service_record.dart';
-import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 
 import '../story/story_plan.dart';
 import 'gear_assemblies.dart';
@@ -128,8 +123,7 @@ const demoSets = <String, (String, List<String>)>{
 
 /// The demo diver's kit and what the app keeps about it: every item with
 /// its attributes, the regulators' parts, what is fitted inside the
-/// rebreather and the scooter, the kit sets, where things are stored and
-/// their service history.
+/// rebreather and the scooter, the kit sets, and where things are stored.
 class GearSeeder implements DemoSeeder {
   @override
   String get name => 'gear';
@@ -323,70 +317,6 @@ class GearSeeder implements DemoSeeder {
       equipmentIds: [e['bcd-jacket']!],
       toDiverId: DemoSeedContext.partnerId,
       actingDiverId: DemoSeedContext.diverId,
-    );
-
-    final records = ServiceRecordRepository();
-    final first = ctx.plan.dives.first.start;
-    for (var year = 1; year < 6; year++) {
-      final at = DateTime(first.year + year, first.month, 15);
-      if (at.isAfter(ctx.anchor)) break;
-      await records.createRecord(
-        ServiceRecord(
-          id: 'demo-service-reg-$year',
-          equipmentId: e['reg-cold']!,
-          serviceCategory: ServiceCategory.annual,
-          serviceKindId: 'regulator-service',
-          serviceDate: at,
-          provider: 'Regulator service shop',
-          cost: 95,
-          currency: 'EUR',
-          nextServiceDue: DateTime(at.year + 1, at.month, at.day),
-          notes: 'Annual service, new seats and O-rings.',
-          createdAt: at,
-          updatedAt: at,
-        ),
-      );
-    }
-    final seals = DateTime(ctx.anchor.year, ctx.anchor.month - 10, 4);
-    await records.createRecord(
-      ServiceRecord(
-        id: 'demo-service-drysuit',
-        equipmentId: e['drysuit']!,
-        serviceCategory: ServiceCategory.repair,
-        serviceKindId: 'drysuit-seals',
-        serviceDate: seals,
-        provider: 'Drysuit repair',
-        cost: 140,
-        currency: 'EUR',
-        notes: 'New latex wrist seals.',
-        createdAt: seals,
-        updatedAt: seals,
-      ),
-    );
-    final schedules = ServiceScheduleRepository();
-    await schedules.createSchedule(
-      ServiceSchedule(
-        id: 'demo-schedule-reg',
-        equipmentId: e['reg-cold']!,
-        serviceKindId: 'regulator-service',
-        intervalDays: 365,
-        enabled: true,
-        createdAt: first,
-        updatedAt: first,
-      ),
-    );
-    final ccrAt = bought(ctx.plan.milestones[StoryMilestone.ccrCourse]!);
-    await schedules.createSchedule(
-      ServiceSchedule(
-        id: 'demo-schedule-ccr',
-        equipmentId: e['rebreather']!,
-        serviceKindId: 'o2-cell-replacement',
-        intervalDays: 365,
-        anchorDate: ccrAt,
-        enabled: true,
-        createdAt: ccrAt,
-        updatedAt: ccrAt,
-      ),
     );
   }
 }
