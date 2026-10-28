@@ -315,6 +315,40 @@ void main() {
       expect(find.text('MOD at ppO₂ 1.6'), findsOneWidget);
     });
 
+    testWidgets('the note names every limit a CCR dive uses, bottom first '
+        '(#3752)', (tester) async {
+      // Diluent air at the Dil MOD 1.2, an EAN50 bailout at the deco 1.6,
+      // an air bailout at the bottom 1.4.
+      const settings = AppSettings(ccrDiluentModPpO2: 1.2);
+      await tester.pumpWidget(
+        _buildCard(
+          dive: _makeDive([
+            _makeTank(gasMix: const GasMix(o2: 21), role: TankRole.diluent),
+            _makeTank(
+              id: 'tank-2',
+              gasMix: const GasMix(o2: 50),
+              role: TankRole.bailout,
+            ),
+            _makeTank(
+              id: 'tank-3',
+              gasMix: const GasMix(o2: 21),
+              role: TankRole.bailout,
+            ),
+          ]).copyWith(diveMode: DiveMode.ccr),
+          settings: settings,
+          units: const UnitFormatter(settings),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text(
+          'MOD at ppO₂ 1.4 (bottom limit), 1.6 (deco limit), 1.2 (Dil MOD)',
+        ),
+        findsOneWidget,
+      );
+    });
+
     testWidgets('limits that round to one shown value read as one (#3752)', (
       tester,
     ) async {
