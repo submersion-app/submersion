@@ -262,7 +262,9 @@ class TankModDetails extends StatelessWidget {
       if (usesDecoLimitByDepth(role, gas, decoPpO2)) {
         return Text(
           l10n.tankMod_defaultDepth(
-            units.formatDepthFloor(decoPpO2.explicitO2DepthMeters, decimals: 0),
+            // 1 decimal, as the 0.5 m-step sliders show it: the explicit
+            // depth is used exactly as set, so 4.5 m must not read as 4 m.
+            units.formatDepthFloor(decoPpO2.explicitO2DepthMeters, decimals: 1),
             limitName,
           ),
           style: small,
@@ -276,8 +278,8 @@ class TankModDetails extends StatelessWidget {
         diluentPpO2: diluentPpO2,
       );
       return Text(
-        // 2 decimals (issue #3580): a per-O2-band limit can sit on a 0.05
-        // bar grid, which 1 decimal rounds into a different-looking
+        // 2 decimals (issue #3580): a plan's own deco ppO2 field takes 2
+        // decimals, which 1 decimal rounds into a different-looking
         // neighbour (1.55 -> "1.6"), same precision as tankMod_ppO2At's own
         // ppO2 below.
         l10n.tankMod_default(formatFixedForDisplay(limit, 2), limitName),

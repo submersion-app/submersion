@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
@@ -78,6 +79,13 @@ void main() {
     expect(outcome, isNotNull);
     expect(outcome!.worstCase.litersRequired, greaterThan(0));
     expect(outcome.bailoutTankUsages, isNotEmpty);
+  });
+
+  test('pSCR plans get a bailout outcome too: every non-OC mode is a loop '
+      'with bailout tanks (TankRoleResolver), not CCR and SCR alone', () {
+    final outcome = solver.solve(_plan(mode: domain.PlanMode.pscr));
+    expect(outcome, isNotNull);
+    expect(outcome!.worstCase.litersRequired, greaterThan(0));
   });
 
   test('worst case sits at (or near) the end of the bottom phase', () {
@@ -610,6 +618,63 @@ void main() {
         (sum, u) => sum + u.litersUsed,
       );
       expect(total, closeTo(outcome.worstCase.litersRequired, 0.5));
+    });
+
+    test('a hypercapnia rate below the stressed rate never shrinks the '
+        'bailout requirement: the phase is layered over stressed SAC', () {
+      final baseline = solver.solve(_plan())!;
+      final lowFactor = const BailoutSolver(
+        config: PlanEngineConfig(
+          hypercapniaEnabled: true,
+          hypercapniaFactor: 1.0,
+          hypercapniaMinutes: 5,
+        ),
+      ).solve(_plan())!;
+      expect(
+        lowFactor.worstCase.litersRequired,
+        closeTo(baseline.worstCase.litersRequired, 0.01),
+      );
+    });
+
+    test('each side of the boundary is charged at its own mean depth on a '
+        'travel leg, not the whole leg midpoint', () {
+      const environment = DiveEnvironment.standard;
+      // 30 m to 0 m over 60 s, boundary at 30 s: the hypercapnia half runs
+      // 30 m to 15 m (mean 22.5 m), the stressed half 15 m to 0 m (7.5 m).
+      final liters = bailoutSpanLiters(
+        startSecondsSinceBailout: 0,
+        durationSeconds: 60,
+        fromDepth: 30,
+        toDepth: 0,
+        hypercapniaAmv: 100,
+        stressedAmv: 40,
+        hypercapniaSeconds: 30,
+        environment: environment,
+      );
+      expect(
+        liters,
+        closeTo(
+          100 * 0.5 * environment.pressureAtDepth(22.5) +
+              40 * 0.5 * environment.pressureAtDepth(7.5),
+          1e-9,
+        ),
+      );
+    });
+
+    test('a span entirely past the boundary is charged at its mean depth, '
+        'as before the phase existed', () {
+      const environment = DiveEnvironment.standard;
+      final liters = bailoutSpanLiters(
+        startSecondsSinceBailout: 600,
+        durationSeconds: 120,
+        fromDepth: 21,
+        toDepth: 9,
+        hypercapniaAmv: 100,
+        stressedAmv: 40,
+        hypercapniaSeconds: 300,
+        environment: environment,
+      );
+      expect(liters, closeTo(40 * 2 * environment.pressureAtDepth(15), 1e-9));
     });
   });
 }

@@ -11,19 +11,18 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// Switches the chart between the live loop plan and the worst-case bailout
 /// picture: one chip per picture, the active one emphasized, same
 /// selection style as the Base/+depth/+time contingency chips right next
-/// to it. Hidden for an OC plan or a CCR/SCR plan with nothing to bail out
+/// to it. Hidden for an OC plan or a loop plan with nothing to bail out
 /// to (no bailout-role tank carried), same gate [planBailoutProvider]
-/// already uses. CCR and SCR share this toggle (issue #3743): the bailout
-/// picture is now computed for either loop mode, not CCR alone.
+/// already uses. Every loop mode (CCR, SCR, pSCR) shares this toggle
+/// (issue #3743): the bailout picture is computed for any of them, not
+/// CCR alone.
 class ChartModeToggle extends ConsumerWidget {
   const ChartModeToggle({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(divePlanNotifierProvider);
-    if (state.mode != PlanMode.ccr && state.mode != PlanMode.scr) {
-      return const SizedBox.shrink();
-    }
+    if (state.mode == PlanMode.oc) return const SizedBox.shrink();
     final bailout = ref.watch(planBailoutProvider);
     if (bailout == null) return const SizedBox.shrink();
 
@@ -40,9 +39,10 @@ class ChartModeToggle extends ConsumerWidget {
       children: [
         chip(
           ChartDisplayMode.ccr,
-          state.mode == PlanMode.scr
-              ? context.l10n.plannerCanvas_chartMode_scr
-              : context.l10n.plannerCanvas_chartMode_ccr,
+          // pSCR is a semi-closed loop too, so it reads as SCR here.
+          state.mode == PlanMode.ccr
+              ? context.l10n.plannerCanvas_chartMode_ccr
+              : context.l10n.plannerCanvas_chartMode_scr,
         ),
         const SizedBox(width: 6),
         chip(

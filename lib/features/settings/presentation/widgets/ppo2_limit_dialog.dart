@@ -37,7 +37,7 @@ class _PpO2LimitDialogState extends State<PpO2LimitDialog> {
   /// so a stored value (float noise, or off-grid after a clamp) lands
   /// exactly on a slider division.
   static double _onGrid(double value, double min) =>
-      (value.clamp(min, _ceiling) / _step).round() * _step;
+      SettingsNotifier.onStepGrid(value.clamp(min, _ceiling), _step);
 
   late double _working;
   late double _max;
@@ -52,6 +52,7 @@ class _PpO2LimitDialogState extends State<PpO2LimitDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
     return AlertDialog(
@@ -64,9 +65,7 @@ class _PpO2LimitDialogState extends State<PpO2LimitDialog> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Theme.of(
-                  context,
-                ).colorScheme.primaryContainer.withValues(alpha: 0.3),
+                color: colorScheme.primaryContainer.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
@@ -74,7 +73,7 @@ class _PpO2LimitDialogState extends State<PpO2LimitDialog> {
                   Icon(
                     Icons.info_outline,
                     size: 20,
-                    color: Theme.of(context).colorScheme.primary,
+                    color: colorScheme.primary,
                   ),
                   const SizedBox(width: 8),
                   Expanded(
@@ -94,8 +93,10 @@ class _PpO2LimitDialogState extends State<PpO2LimitDialog> {
               value: _working,
               min: _workingMin,
               divisions: _workingDivisions,
+              // The slider interpolates its divisions, so snap what it
+              // reports onto the exact grid before it is saved.
               onChanged: (v) => setState(() {
-                _working = v;
+                _working = _onGrid(v, _workingMin);
                 if (_max < _working) _max = _onGrid(_working, _maxMin);
               }),
             ),
@@ -108,8 +109,8 @@ class _PpO2LimitDialogState extends State<PpO2LimitDialog> {
               min: _maxMin,
               divisions: _maxDivisions,
               onChanged: (v) => setState(() {
-                _max = v;
-                if (_working > _max) _working = v;
+                _max = _onGrid(v, _maxMin);
+                if (_working > _max) _working = _max;
               }),
             ),
           ],

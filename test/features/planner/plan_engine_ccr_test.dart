@@ -177,6 +177,54 @@ void main() {
       );
     });
 
+    test('per-O2-band deco limits are OC gas limits: a loop segment keeps '
+        'the flat ppO2Deco, not the band its diluent falls in (#3580)', () {
+      // 18% diluent falls in band 1; at 1.2 bar it would sit below the
+      // 1.3 bar setpoint the loop actually holds.
+      const banded = PlanEngine(
+        config: PlanEngineConfig(
+          ppO2DecoBandsEnabled: true,
+          ppO2DecoBand1: 1.2,
+        ),
+      );
+      final outcome = banded.compute(_plan());
+      expect(
+        outcome.issues.map((i) => i.type),
+        isNot(contains(PlanIssueType.ppO2Critical)),
+      );
+    });
+
+    test('the explicit 100% O2 MOD does not flag a pure-O2 diluent loop '
+        'segment by depth alone (#3580)', () {
+      // 5 m on a pure-O2 loop is 1.5 bar, under the 1.6 bar flat ppO2Deco,
+      // but deeper than a 3 m explicit MOD meant for OC deco gas.
+      const oxygen = GasMix(o2: 100);
+      const explicitDepth = PlanEngine(
+        config: PlanEngineConfig(
+          maxO2DepthEnabled: true,
+          maxO2DepthMeters: 3.0,
+        ),
+      );
+      final outcome = explicitDepth.compute(
+        _plan(
+          tanks: const [
+            DiveTank(
+              id: 'dil',
+              volume: 3.0,
+              startPressure: 200,
+              gasMix: oxygen,
+              role: TankRole.diluent,
+            ),
+          ],
+          segments: _segments(depth: 5.0, minutes: 20, gasMix: oxygen),
+        ),
+      );
+      expect(
+        outcome.issues.map((i) => i.type),
+        isNot(contains(PlanIssueType.ppO2Critical)),
+      );
+    });
+
     test('a lean diluent within Dil MOD raises no issue', () {
       final outcome = engine.compute(_plan());
       // _diluent is 18% O2: ~1.27 bar at 60 m, under the 1.6 bar default.

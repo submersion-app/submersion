@@ -30,6 +30,11 @@ bool resolveDecoLayerEnabled({
   required bool hasCustomValue,
 }) => !explicitlyOff && (settingsEnabled || hasCustomValue);
 
+/// Whether a plan has its own Custom per-O2-band values: any one band set
+/// counts, since the rest then fall back to the diver's Settings bands.
+bool hasCustomDecoBands(double? band1, double? band2, double? band3) =>
+    band1 != null || band2 != null || band3 != null;
+
 class DecoPpO2Limits extends Equatable {
   const DecoPpO2Limits({
     required this.flat,
@@ -40,6 +45,42 @@ class DecoPpO2Limits extends Equatable {
     this.explicitO2DepthEnabled = false,
     this.explicitO2DepthMeters = 6.0,
   });
+
+  /// A plan's limits: the diver's Settings layers with this plan's own
+  /// overrides merged in, each layer switched on or off through
+  /// [resolveDecoLayerEnabled]. The one place that rule is applied for a
+  /// plan, so every caller resolves a plan's limits the same way.
+  factory DecoPpO2Limits.forPlan({
+    required double flat,
+    required bool settingsBandsEnabled,
+    required double settingsBand1,
+    required double settingsBand2,
+    required double settingsBand3,
+    required bool settingsMaxO2DepthEnabled,
+    required double settingsMaxO2DepthMeters,
+    double? band1,
+    double? band2,
+    double? band3,
+    bool bandsExplicitlyOff = false,
+    double? maxO2DepthMeters,
+    bool maxO2DepthExplicitlyOff = false,
+  }) => DecoPpO2Limits(
+    flat: flat,
+    bandsEnabled: resolveDecoLayerEnabled(
+      settingsEnabled: settingsBandsEnabled,
+      explicitlyOff: bandsExplicitlyOff,
+      hasCustomValue: hasCustomDecoBands(band1, band2, band3),
+    ),
+    band1: band1 ?? settingsBand1,
+    band2: band2 ?? settingsBand2,
+    band3: band3 ?? settingsBand3,
+    explicitO2DepthEnabled: resolveDecoLayerEnabled(
+      settingsEnabled: settingsMaxO2DepthEnabled,
+      explicitlyOff: maxO2DepthExplicitlyOff,
+      hasCustomValue: maxO2DepthMeters != null,
+    ),
+    explicitO2DepthMeters: maxO2DepthMeters ?? settingsMaxO2DepthMeters,
+  );
 
   /// The single ppO2 value every deco gas uses when [bandsEnabled] is off -
   /// the diver's existing ppO2MaxDeco/plan ppO2Deco.

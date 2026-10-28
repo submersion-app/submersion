@@ -422,10 +422,11 @@ class PlanEngineConfig extends Equatable {
       ppO2DecoBandsEnabled: resolveDecoLayerEnabled(
         settingsEnabled: ppO2DecoBandsEnabled,
         explicitlyOff: plan.ppO2DecoBandsExplicitlyOff,
-        hasCustomValue:
-            plan.ppO2DecoBand1 != null ||
-            plan.ppO2DecoBand2 != null ||
-            plan.ppO2DecoBand3 != null,
+        hasCustomValue: hasCustomDecoBands(
+          plan.ppO2DecoBand1,
+          plan.ppO2DecoBand2,
+          plan.ppO2DecoBand3,
+        ),
       ),
       maxO2DepthMeters: plan.maxO2DepthMeters,
       maxO2DepthEnabled: resolveDecoLayerEnabled(
@@ -1590,19 +1591,29 @@ class PlanEngine {
       // explicit-depth gas instead of this (environment-aware) ppO2 against
       // outcome.maxPpO2 (the flat-model one), a mismatch a Copilot review
       // caught disagreeing in salt water/at altitude.
-      final segmentDecoPpO2 = decoCeilingPpO2For(
-        segment.gasMix,
-        config.decoLimits,
-        environment: environment,
-      );
+      //
+      // A loop segment's ppO2 follows the setpoint, not its diluent's O2
+      // fraction, so those per-gas layers (OC deco gas limits) do not apply
+      // there: it keeps the flat ppO2Deco, as before.
+      final segmentIsLoop = _modeFor(plan, segment) != domain.PlanMode.oc;
+      final segmentDecoPpO2 = segmentIsLoop
+          ? config.ppO2Deco
+          : decoCeilingPpO2For(
+              segment.gasMix,
+              config.decoLimits,
+              environment: environment,
+            );
+      final decoCeilingBreached = segmentIsLoop
+          ? outcome.maxPpO2 > config.ppO2Deco
+          : decoCeilingBreachedFor(
+              segment.gasMix,
+              config.decoLimits,
+              depthMeters: deeperEnd,
+              actualPpO2: outcome.maxPpO2,
+              environment: environment,
+            );
 
-      if (decoCeilingBreachedFor(
-        segment.gasMix,
-        config.decoLimits,
-        depthMeters: deeperEnd,
-        actualPpO2: outcome.maxPpO2,
-        environment: environment,
-      )) {
+      if (decoCeilingBreached) {
         issues.add(
           PlanIssue(
             type: PlanIssueType.ppO2Critical,

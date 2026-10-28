@@ -2303,18 +2303,22 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     await _saveSettings();
   }
 
-  /// Per-O2-band deco ppO2 limits (issue #3580): a wider, finer range than
-  /// the single [ppO2MaxWorking]/[ppO2MaxDeco] ceiling pair -- 0.05 bar
-  /// steps down to [ppO2WorkingMin], not just [ppO2MaxMin] -- and each band
-  /// is independent: unlike [setPpO2Limits], there is no enforced ordering
-  /// between them.
+  /// Per-O2-band deco ppO2 limits (issue #3580): a wider range than the
+  /// [ppO2MaxDeco] ceiling alone -- 0.1 bar steps down to [ppO2WorkingMin],
+  /// not just [ppO2MaxMin] -- and each band is independent: unlike
+  /// [setPpO2Limits], there is no enforced ordering between them.
   static const double ppO2DecoBandStep = 0.1;
+
+  /// [value] snapped to the grid of [step]: divides by the step count per
+  /// unit rather than multiplying by [step], so a grid point is the exact
+  /// nearest double (1.4, not 1.4000000000000001).
+  static double onStepGrid(double value, double step) =>
+      (value / step).round() / (1 / step);
 
   /// [value] clamped to [ppO2WorkingMin]..[ppO2Ceiling] and snapped to the
   /// [ppO2DecoBandStep] grid.
   static double ppO2DecoBandOnGrid(double value) =>
-      (value.clamp(ppO2WorkingMin, ppO2Ceiling) / ppO2DecoBandStep).round() *
-      ppO2DecoBandStep;
+      onStepGrid(value.clamp(ppO2WorkingMin, ppO2Ceiling), ppO2DecoBandStep);
 
   /// Explicit MOD for 100% O2 (issue #3580): 3-9 m in 0.5 m steps.
   static const double maxO2DepthMin = 3.0;
@@ -2324,8 +2328,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   /// [value] clamped to [maxO2DepthMin]..[maxO2DepthMax] and snapped to the
   /// [maxO2DepthStep] grid.
   static double maxO2DepthOnGrid(double value) =>
-      (value.clamp(maxO2DepthMin, maxO2DepthMax) / maxO2DepthStep).round() *
-      maxO2DepthStep;
+      onStepGrid(value.clamp(maxO2DepthMin, maxO2DepthMax), maxO2DepthStep);
 
   /// Set both optional deco layers at once, in a single persisted write
   /// (issue #3580): the per-O2-band toggle/values and the explicit-100%-O2-

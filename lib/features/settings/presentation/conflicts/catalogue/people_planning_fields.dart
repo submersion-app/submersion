@@ -205,9 +205,12 @@ final Map<String, ConflictField> peoplePlanningFields = {
     FieldKind.rmv,
   ),
   // True = this plan's OC bailout never uses a hypercapnia phase,
-  // regardless of the diver's Settings toggle (issue #3743).
+  // regardless of the diver's Settings toggle (issue #3743). Labelled with
+  // the feature's name, like airBreaksExplicitlyOff, not the Settings
+  // "Use a hypercapnia phase" toggle, which a true (= off) value would read
+  // as the opposite of.
   'hypercapniaExplicitlyOff': ConflictField(
-    (l) => l.settings_decompression_hypercapniaDialog_enabledToggle,
+    (l) => l.settings_decompression_hypercapniaTitle,
     FieldKind.boolean,
   ),
   'hypercapniaMinutes': ConflictField(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/deco/deco_ppo2_limits.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_choice_wrap.dart';
@@ -65,7 +66,7 @@ class PlanPpO2BandsControl extends StatelessWidget {
   /// following the diver's Settings.
   final VoidCallback onDefault;
 
-  bool get _isCustom => band1 != null || band2 != null || band3 != null;
+  bool get _isCustom => hasCustomDecoBands(band1, band2, band3);
 
   _PpO2BandsChoice get _choice {
     if (explicitlyOff) return _PpO2BandsChoice.off;
@@ -73,7 +74,7 @@ class PlanPpO2BandsControl extends StatelessWidget {
     return _PpO2BandsChoice.default_;
   }
 
-  void _select(BuildContext context, _PpO2BandsChoice choice) {
+  void _select(_PpO2BandsChoice choice) {
     switch (choice) {
       case _PpO2BandsChoice.default_:
         onDefault();
@@ -107,7 +108,7 @@ class PlanPpO2BandsControl extends StatelessWidget {
             (_PpO2BandsChoice.custom, l10n.divePlanner_label_airBreaksCustom),
           ],
           selected: _choice,
-          onChanged: (choice) => _select(context, choice),
+          onChanged: _select,
         ),
         if (_choice == _PpO2BandsChoice.default_) ...[
           const SizedBox(height: 8),
@@ -317,7 +318,9 @@ class PlanPpO2Slider extends StatelessWidget {
             max: _max,
             divisions: _divisions,
             label: valueText,
-            onChanged: onChanged,
+            // The slider interpolates its divisions; report the exact grid
+            // point so a plan override never carries float noise.
+            onChanged: (v) => onChanged(SettingsNotifier.ppO2DecoBandOnGrid(v)),
           ),
         ],
       ),
@@ -369,7 +372,7 @@ class PlanPpO2DepthSlider extends StatelessWidget {
             max: _max,
             divisions: _divisions,
             label: valueText,
-            onChanged: onChanged,
+            onChanged: (v) => onChanged(SettingsNotifier.maxO2DepthOnGrid(v)),
           ),
         ],
       ),

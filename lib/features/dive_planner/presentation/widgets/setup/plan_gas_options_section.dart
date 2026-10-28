@@ -167,10 +167,11 @@ class PlanGasOptionsSection extends ConsumerWidget {
         if (!resolveDecoLayerEnabled(
           settingsEnabled: ref.watch(ppO2DecoBandsEnabledProvider),
           explicitlyOff: state.ppO2DecoBandsExplicitlyOff,
-          hasCustomValue:
-              state.ppO2DecoBand1 != null ||
-              state.ppO2DecoBand2 != null ||
-              state.ppO2DecoBand3 != null,
+          hasCustomValue: hasCustomDecoBands(
+            state.ppO2DecoBand1,
+            state.ppO2DecoBand2,
+            state.ppO2DecoBand3,
+          ),
         ))
           PlanNumberField(
             label: context.l10n.divePlanner_gasOptions_ppO2Deco,

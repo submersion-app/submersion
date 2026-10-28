@@ -177,25 +177,20 @@ class PlanCalculatorService {
     // both resolve through this, so the live canvas preview agrees with the
     // final PlanEngine result instead of staying on the flat ppO2Critical
     // for the general ppO2 critical/warning check alone.
-    final decoLimits = DecoPpO2Limits(
+    final decoLimits = DecoPpO2Limits.forPlan(
       flat: decoPpO2 ?? ppO2Critical,
-      bandsEnabled: resolveDecoLayerEnabled(
-        settingsEnabled: ppO2DecoBandsEnabled,
-        explicitlyOff: decoPpO2BandsExplicitlyOff,
-        hasCustomValue:
-            decoPpO2Band1 != null ||
-            decoPpO2Band2 != null ||
-            decoPpO2Band3 != null,
-      ),
-      band1: decoPpO2Band1 ?? ppO2DecoBand1,
-      band2: decoPpO2Band2 ?? ppO2DecoBand2,
-      band3: decoPpO2Band3 ?? ppO2DecoBand3,
-      explicitO2DepthEnabled: resolveDecoLayerEnabled(
-        settingsEnabled: maxO2DepthEnabled,
-        explicitlyOff: maxO2DepthExplicitlyOff,
-        hasCustomValue: maxO2DepthMetersOverride != null,
-      ),
-      explicitO2DepthMeters: maxO2DepthMetersOverride ?? maxO2DepthMeters,
+      settingsBandsEnabled: ppO2DecoBandsEnabled,
+      settingsBand1: ppO2DecoBand1,
+      settingsBand2: ppO2DecoBand2,
+      settingsBand3: ppO2DecoBand3,
+      settingsMaxO2DepthEnabled: maxO2DepthEnabled,
+      settingsMaxO2DepthMeters: maxO2DepthMeters,
+      band1: decoPpO2Band1,
+      band2: decoPpO2Band2,
+      band3: decoPpO2Band3,
+      bandsExplicitlyOff: decoPpO2BandsExplicitlyOff,
+      maxO2DepthMeters: maxO2DepthMetersOverride,
+      maxO2DepthExplicitlyOff: maxO2DepthExplicitlyOff,
     );
 
     // Track results

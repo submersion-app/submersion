@@ -273,26 +273,20 @@ class PlanTankList extends ConsumerWidget {
   UnitFormatter units,
 ) => (
   bottom: state.ppO2Bottom ?? units.settings.ppO2MaxWorking,
-  deco: DecoPpO2Limits(
+  deco: DecoPpO2Limits.forPlan(
     flat: state.ppO2Deco ?? units.settings.ppO2MaxDeco,
-    bandsEnabled: resolveDecoLayerEnabled(
-      settingsEnabled: units.settings.ppO2DecoBandsEnabled,
-      explicitlyOff: state.ppO2DecoBandsExplicitlyOff,
-      hasCustomValue:
-          state.ppO2DecoBand1 != null ||
-          state.ppO2DecoBand2 != null ||
-          state.ppO2DecoBand3 != null,
-    ),
-    band1: state.ppO2DecoBand1 ?? units.settings.ppO2DecoBand1,
-    band2: state.ppO2DecoBand2 ?? units.settings.ppO2DecoBand2,
-    band3: state.ppO2DecoBand3 ?? units.settings.ppO2DecoBand3,
-    explicitO2DepthEnabled: resolveDecoLayerEnabled(
-      settingsEnabled: units.settings.maxO2DepthEnabled,
-      explicitlyOff: state.maxO2DepthExplicitlyOff,
-      hasCustomValue: state.maxO2DepthMeters != null,
-    ),
-    explicitO2DepthMeters:
-        state.maxO2DepthMeters ?? units.settings.maxO2DepthMeters,
+    settingsBandsEnabled: units.settings.ppO2DecoBandsEnabled,
+    settingsBand1: units.settings.ppO2DecoBand1,
+    settingsBand2: units.settings.ppO2DecoBand2,
+    settingsBand3: units.settings.ppO2DecoBand3,
+    settingsMaxO2DepthEnabled: units.settings.maxO2DepthEnabled,
+    settingsMaxO2DepthMeters: units.settings.maxO2DepthMeters,
+    band1: state.ppO2DecoBand1,
+    band2: state.ppO2DecoBand2,
+    band3: state.ppO2DecoBand3,
+    bandsExplicitlyOff: state.ppO2DecoBandsExplicitlyOff,
+    maxO2DepthMeters: state.maxO2DepthMeters,
+    maxO2DepthExplicitlyOff: state.maxO2DepthExplicitlyOff,
   ),
   diluent: units.settings.ccrDiluentModPpO2,
 );
