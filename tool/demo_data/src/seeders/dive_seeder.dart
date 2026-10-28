@@ -28,6 +28,7 @@ import 'fault_signals.dart';
 import 'gear_cylinder_seeder.dart';
 import 'gear_seeder.dart';
 import 'seed_context.dart';
+import 'water_column.dart';
 
 /// Every planned dive, written through the app's own repository: a real
 /// dive's shape, reshaped onto this dive's tanks and place.
@@ -73,7 +74,11 @@ class DiveSeeder implements DemoSeeder {
         startBar: [for (final t in tanks) t.startBar],
         volumesL: [for (final t in tanks) t.volumeL],
       );
-      final shift = _temperatureShift(shape, d);
+      final temps = WaterColumn.forDive(
+        d.destination,
+        d.waterTempC,
+        ctx.random,
+      ).trace(shape.samples, ctx.random);
       if (d.scooter) ctx.scooterProfiles[d.number] = shape.samples;
       final id = ctx.diveId(d.number);
       final kit = kitFor(d, ctx.timeline, photo: isPhotoDive(d, ctx.timeline));
@@ -132,10 +137,10 @@ class DiveSeeder implements DemoSeeder {
             ),
         ],
         profile: [
-          for (final s in shape.samples)
+          for (final (i, s) in shape.samples.indexed)
             _point(
               s,
-              shift,
+              temps[i],
               cellReadings(
                 s.cells,
                 s.t / max(1, shape.durationSec),
@@ -176,7 +181,7 @@ class DiveSeeder implements DemoSeeder {
               sortOrder: 0,
             ),
         ],
-        waterTemp: _minTemp(shape) == null ? null : _minTemp(shape)! + shift,
+        waterTemp: temps.reduce(min),
         // Air follows the water through the seasons; in the tropics it is
         // a little warmer than the sea.
         airTemp: (d.waterTempC + ctx.between(_seasonal(d) ? -3 : 0, 5))
@@ -283,22 +288,6 @@ class DiveSeeder implements DemoSeeder {
             ),
   ];
 
-  static double? _minTemp(DiveShape s) {
-    final temps = [
-      for (final x in s.samples)
-        if (x.temp != null) x.temp!,
-    ];
-    return temps.isEmpty ? null : temps.reduce(min);
-  }
-
-  /// Moves the shape's temperatures so its coldest reading is the water the
-  /// story planned for that day.
-  static double _temperatureShift(DiveShape s, PlannedDive d) {
-    final coldest = _minTemp(s);
-    if (coldest == null) return 0;
-    return ((d.waterTempC - coldest) * 10).roundToDouble() / 10;
-  }
-
   static double _avg(DiveShape s) {
     final under = [
       for (final x in s.samples)
@@ -380,11 +369,11 @@ class DiveSeeder implements DemoSeeder {
     return null;
   }
 
-  /// One profile sample, with the cells as the loop read them and each
-  /// cell's millivolts.
+  /// One profile sample, with the water's [temperature] as the computer read
+  /// it, the cells as the loop read them and each cell's millivolts.
   static DiveProfilePoint _point(
     ShapeSample s,
-    double shift,
+    double temperature,
     List<double>? cells,
     List<double> gains,
   ) {
@@ -393,7 +382,7 @@ class DiveSeeder implements DemoSeeder {
     return DiveProfilePoint(
       timestamp: s.t,
       depth: s.depth,
-      temperature: s.temp == null ? null : s.temp! + shift,
+      temperature: temperature,
       heartRate: s.heartRate,
       ppO2: s.ppO2,
       setpoint: s.setpoint,

@@ -182,6 +182,63 @@ void main() {
     });
   });
 
+  test('the trips reach every part of the diving world', () {
+    const regions = {
+      'the Americas': {
+        'florida-springs',
+        'curacao',
+        'dominican',
+        'san-andres',
+        'galapagos',
+        'cozumel',
+      },
+      'Europe': {
+        'austria-lakes',
+        'swiss-lakes',
+        'med',
+        'croatia',
+        'malta',
+        'cyprus',
+        'norway',
+        'scotland',
+      },
+      'the Red Sea and Indian Ocean': {
+        'red-sea',
+        'sinai',
+        'maldives',
+        'ari-atoll',
+      },
+      'South-east Asia': {
+        'bali',
+        'raja-ampat',
+        'komodo',
+        'lembeh',
+        'cebu',
+        'palawan',
+        'similan',
+        'koh-tao',
+        'sabah',
+        'okinawa',
+      },
+      'the Pacific': {'chuuk', 'palau', 'bikini', 'nsw', 'polynesia', 'hawaii'},
+    };
+    expect(regions.values.expand((r) => r).toSet(), {
+      for (final d in tripDestinations) d.key,
+    }, reason: 'every destination belongs to one region');
+    eachPlan((name, plan) {
+      final tripDives = plan.dives.where((d) => d.tripId != null).toList();
+      for (final MapEntry(key: region, value: keys) in regions.entries) {
+        final there = tripDives.where((d) => keys.contains(d.destination.key));
+        expect(there, isNotEmpty, reason: '$name: no dives in $region');
+        expect(
+          there.length / tripDives.length,
+          lessThan(0.45),
+          reason: '$name: $region dominates',
+        );
+      }
+    });
+  });
+
   test('a resort dive centre is near the sites it dives', () {
     eachPlan((name, plan) {
       final sites = {for (final s in plan.sites) s.id: s};
