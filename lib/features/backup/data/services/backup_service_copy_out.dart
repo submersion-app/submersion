@@ -54,32 +54,35 @@ extension _CopyOut on BackupService {
   /// that fails part way deletes its partial file.
   Future<PreparedBackupFile> _resolveBackupSource(BackupRecord record) async {
     final localRef = record.localPath;
+    bool? cloudHere;
     if (localRef != null && isSafRef(localRef)) {
-      if (await _safDocumentPresent(localRef)) {
-        try {
+      try {
+        if (await _safPort.exists(localRef)) {
           return await _fetchToTemp(
             record,
             (dest) =>
                 _safPort.readBackup(documentUri: localRef, destPath: dest),
           );
-        } catch (e, stack) {
-          // Gone, or the grant revoked, between the check and the read. The
-          // staging file is already cleaned up; with no cloud copy to fall
-          // back to, the read's own error is the one to report.
-          if (!await _cloudCopyHere(record)) rethrow;
-          _log.warning(
-            'Reading the backup document failed, trying the cloud copy',
-            error: e,
-            stackTrace: stack,
-          );
         }
+      } catch (e, stack) {
+        // The check or the read failed (a revoked folder grant, or the
+        // document went between the two); the staging file is already
+        // cleaned up. With no cloud copy to fall back to, this error, not
+        // "not found", is the true cause.
+        cloudHere = await _cloudCopyHere(record);
+        if (!cloudHere) rethrow;
+        _log.warning(
+          'Reading the backup document failed, trying the cloud copy',
+          error: e,
+          stackTrace: stack,
+        );
       }
-      // Gone, or the folder grant was revoked: the cloud copy below is the
-      // same backup, as it is for a missing plain local file.
+      // Gone or unreadable: the cloud copy below is the same backup, as it
+      // is for a missing plain local file.
     } else if (localRef != null && await File(localRef).exists()) {
       return PreparedBackupFile(localRef, isTemp: false);
     }
-    if (await _cloudCopyHere(record)) {
+    if (cloudHere ?? await _cloudCopyHere(record)) {
       final provider = _cloudProvider;
       if (provider == null) {
         throw const BackupException('No cloud provider available for download');
@@ -94,21 +97,6 @@ extension _CopyOut on BackupService {
       throw BackupCopyInOtherAccountException(record.cloudAccountId!);
     }
     throw const BackupException('Backup file not found locally or in cloud');
-  }
-
-  /// Whether the SAF document at [ref] can still be read. A check that
-  /// fails (a revoked folder grant) counts as gone.
-  Future<bool> _safDocumentPresent(String ref) async {
-    try {
-      return await _safPort.exists(ref);
-    } catch (e, stack) {
-      _log.warning(
-        'Could not check the backup document, trying the cloud copy',
-        error: e,
-        stackTrace: stack,
-      );
-      return false;
-    }
   }
 
   Future<PreparedBackupFile> _fetchToTemp(

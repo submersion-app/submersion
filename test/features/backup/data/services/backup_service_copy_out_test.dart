@@ -351,6 +351,21 @@ void main() {
       },
     );
 
+    test(
+      'a saf check that fails with no cloud copy surfaces its own error',
+      () async {
+        // "Not found" would send the diver looking for a file that is still
+        // there; the revoked grant is the real cause.
+        await expectLater(
+          service(safPort: _SafPort(existsThrows: true)).prepareBackupCopy(
+            record(localPath: 'content://tree/doc/1'),
+            purpose: BackupCopyPurpose.share,
+          ),
+          throwsA(isA<PlatformException>()),
+        );
+      },
+    );
+
     test('a saf stream cut off part way leaves nothing in temp', () async {
       await expectLater(
         service(safPort: _SafPort(failAfterPartial: true)).prepareBackupCopy(
