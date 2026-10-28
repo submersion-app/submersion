@@ -71,7 +71,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('For: Dives · Sites'), findsOneWidget);
-    expect(find.text('Used on: 0 dives, 1 site'), findsOneWidget);
+    expect(find.text('Used on: 1 site'), findsOneWidget);
   });
 
   testWidgets('turning off sites confirms, then removes the site links', (

@@ -120,8 +120,9 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('For: Equipment'), findsOneWidget);
-    // The dive count always shows, as it did before sites and equipment.
-    expect(find.text('Used on: 0 dives, 2 equipment items'), findsOneWidget);
+    // Only scopes that carry the tag are counted, so an equipment-only tag
+    // does not report zero dives (#3746).
+    expect(find.text('Used on: 2 equipment items'), findsOneWidget);
     expect(find.text('For: Dives · Sites · Equipment'), findsOneWidget);
     expect(
       find.text('Used on: 1 dive, 1 site, 1 equipment item'),

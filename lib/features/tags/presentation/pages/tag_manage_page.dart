@@ -221,7 +221,11 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
           ),
           Text(
             context.l10n.tags_manage_rowUsage(
-              tagUsageCounts(context.l10n, stat.counts),
+              tagUsageCounts(
+                context.l10n,
+                stat.counts,
+                offered: stat.tag.scopes,
+              ),
             ),
           ),
         ],
