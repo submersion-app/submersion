@@ -102,7 +102,8 @@ class Destination {
   final List<String> boatNames;
   final List<String> resortNames;
 
-  /// (min, max) bottom temperature over the year.
+  /// (min, max) water temperature over the year: a lake's deep water, and
+  /// a sea's water near the top, as divers quote it.
   final (double, double) waterTempC;
   final bool freshwater;
   final bool liveaboard;

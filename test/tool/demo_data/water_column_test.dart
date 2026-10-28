@@ -75,10 +75,32 @@ void main() {
     }
   });
 
-  test('the deep water reads the planned temperature', () {
+  test("a lake's planned temperature is its deep water", () {
     for (final seed in seeds) {
-      final trace = _trace('red-sea', 24, _square(32), seed);
-      expect((trace.reduce(min) - 24).abs(), lessThanOrEqualTo(0.35));
+      final trace = _trace('home', 12, _square(25), seed);
+      expect((trace.reduce(min) - 12).abs(), lessThanOrEqualTo(0.35));
+    }
+  });
+
+  test("a sea's planned temperature is its top water, colder below", () {
+    for (final seed in seeds) {
+      final trace = _trace('cyprus', 27, _square(30), seed);
+      expect((trace.first - 27).abs(), lessThanOrEqualTo(0.35));
+      expect(trace.reduce(min), lessThan(25));
+    }
+  });
+
+  test('no sea is ever warmer than its warmest water', () {
+    for (final d in tripDestinations.where((d) => !d.freshwater)) {
+      final warmest = d.waterTempC.$2;
+      for (final seed in seeds) {
+        final trace = _trace(d.key, warmest, _square(12), seed);
+        expect(
+          trace.reduce(max),
+          lessThanOrEqualTo(warmest + 0.3),
+          reason: '${d.key} seed $seed',
+        );
+      }
     }
   });
 

@@ -3,8 +3,8 @@ import 'dart:math';
 import '../shape/dive_shape.dart';
 import '../story/story_plan.dart';
 
-/// The water a dive goes through: warm at the top, the planned temperature
-/// below a thermocline, and what a dive computer's slow sensor makes of it.
+/// The water a dive goes through: warm at the top, colder below a
+/// thermocline, and what a dive computer's slow sensor makes of it.
 ///
 /// A harvested shape's own temperatures belong to its source dive's water (a
 /// summer lake can span 14 degrees), so the demo dives are given the water
@@ -17,22 +17,26 @@ class WaterColumn {
     required this.widthM,
   });
 
-  /// The water at [destination] on a day whose deep water is [deepC].
+  /// The water at [destination] on a day planned at [plannedC].
   ///
-  /// Lakes stratify strongly in summer and turn over in winter; seas with
-  /// seasons warm a few degrees at the top in summer; tropical water is
-  /// within a degree or so from top to bottom, and a spring is the same
-  /// all the way down.
+  /// A lake's planned temperature is its deep water, which the summer sun
+  /// warms above the thermocline; a sea's is the water near the top, as
+  /// divers quote it, colder below. Lakes stratify strongly in summer and
+  /// turn over in winter; seas with seasons cool a few degrees at depth in
+  /// summer; tropical water is within a degree or so from top to bottom,
+  /// and a spring is the same all the way down.
   factory WaterColumn.forDive(
     Destination destination,
-    double deepC,
+    double plannedC,
     Random random,
   ) {
     double between(double lo, double hi) =>
         lo + random.nextDouble() * (hi - lo);
     final (lo, hi) = destination.waterTempC;
     final seasonal = hi - lo >= 6;
-    final summer = seasonal ? ((deepC - lo) / (hi - lo)).clamp(0.0, 1.0) : 0.0;
+    final summer = seasonal
+        ? ((plannedC - lo) / (hi - lo)).clamp(0.0, 1.0)
+        : 0.0;
     final (double layer, double depth, double width) = switch ((
       seasonal,
       destination.freshwater,
@@ -42,9 +46,10 @@ class WaterColumn {
       (false, true) => (0.2, 5.0, 2.0),
       (false, false) => (between(0.3, 1.3), between(15, 30), 5.0),
     };
+    final fresh = destination.freshwater;
     return WaterColumn(
-      surfaceC: deepC + layer,
-      deepC: deepC,
+      surfaceC: fresh ? plannedC + layer : plannedC,
+      deepC: fresh ? plannedC : plannedC - layer,
       thermoclineM: depth,
       widthM: width,
     );
