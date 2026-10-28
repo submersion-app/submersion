@@ -49,23 +49,28 @@ final equipmentArrangementProvider = Provider<EquipmentArrangement>((ref) {
 /// prints.
 ///
 /// Takes the caller's `ref.read`, which a `Ref`, a `WidgetRef` and a
-/// `ProviderContainer` all offer.
+/// `ProviderContainer` all offer, and uses it only before the first await:
+/// a widget that started an export may be gone by the time it resumes.
 Future<EquipmentArrangement> resolveEquipmentArrangement(
   T Function<T>(ProviderListenable<T> provider) read,
 ) async {
+  final settings = read(settingsProvider.notifier);
+  final repository = read(appSettingsRepositoryProvider);
   try {
-    await read(settingsProvider.notifier).settingsLoaded;
+    await settings.settingsLoaded;
   } catch (_) {
     // Already logged by the load; the state it left stands.
   }
-  final own = decodeEquipmentArrangement(
-    read(settingsProvider).listArrangements.equipmentArrangement,
-  );
+  // The notifier's current state, read without the caller's ref: a
+  // listener fires once, immediately, with it.
+  String? saved;
+  settings.addListener(
+    (s) => saved = s.listArrangements.equipmentArrangement,
+  )();
+  final own = decodeEquipmentArrangement(saved);
   if (own != null) return own;
   try {
-    return await read(
-          appSettingsRepositoryProvider,
-        ).getEquipmentArrangement() ??
+    return await repository.getEquipmentArrangement() ??
         EquipmentArrangement.defaults;
   } catch (_) {
     return EquipmentArrangement.defaults;

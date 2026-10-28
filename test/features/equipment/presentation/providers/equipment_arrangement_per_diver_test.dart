@@ -1,3 +1,4 @@
+import 'package:flutter_riverpod/misc.dart' show ProviderListenable;
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -162,6 +163,21 @@ void main() {
     expect(await resolveEquipmentArrangement(container.read), headToToe);
     ownArrangement(flat);
     expect(await resolveEquipmentArrangement(container.read), flat);
+  });
+
+  test('resolve reads providers only before it awaits', () async {
+    // The PDF export passes a widget's ref.read; the widget can be gone by
+    // the time the settings load lands.
+    repository.legacy = headToToe;
+    var gone = false;
+    T read<T>(ProviderListenable<T> provider) {
+      if (gone) throw StateError('ref used after the widget was unmounted');
+      return container.read(provider);
+    }
+
+    final resolving = resolveEquipmentArrangement(read);
+    gone = true;
+    expect(await resolving, headToToe);
   });
 
   test('a failed legacy read resolves to the defaults', () async {
