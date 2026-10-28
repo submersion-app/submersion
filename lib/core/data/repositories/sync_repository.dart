@@ -173,6 +173,7 @@ class SyncRepository {
     'media': (table: 'media', pk: 'id'),
     'mediaEnrichment': (table: 'media_enrichment', pk: 'id'),
     'mediaSpecies': (table: 'media_species', pk: 'id'),
+    'mediaPeople': (table: 'media_people', pk: 'id'),
     'species': (table: 'species', pk: 'id'),
     'fieldPresets': (table: 'field_presets', pk: 'id'),
     'qualityFindings': (table: 'quality_findings', pk: 'id'),

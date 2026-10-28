@@ -1961,6 +1961,9 @@ class SyncService {
             records: data.mediaSpecies,
             hasUpdatedAt: false,
           ),
+          // After media, buddies and divers (v323, issue #1745). Edited rows,
+          // but clock-guarded like media: a moved box never raises a card.
+          (type: 'mediaPeople', records: data.mediaPeople, hasUpdatedAt: false),
           (
             type: 'siteFeatures',
             records: data.siteFeatures,
@@ -2959,6 +2962,7 @@ class SyncService {
     'equipmentLocations': true,
     'equipmentLocationMoves': false,
     'mediaSpecies': false,
+    'mediaPeople': false,
     'siteFeatures': true,
     'csvPresets': true,
     'viewConfigs': true,
@@ -3429,6 +3433,15 @@ class SyncService {
     'mediaSpecies': [
       (field: 'mediaId', parent: 'media', nullable: false),
       (field: 'speciesId', parent: 'species', nullable: false),
+    ],
+    // v323: people tagged on photos and videos (issue #1745). buddyId is
+    // nullable (a Me tag has none), so a tag whose buddy is gone arrives
+    // with the reference cleared; diverId is left to repairDanglingForeignKeys
+    // like every diver key. A row left naming nobody is never shown
+    // (MediaPeopleRepository reads only rows that name someone).
+    'mediaPeople': [
+      (field: 'mediaId', parent: 'media', nullable: false),
+      (field: 'buddyId', parent: 'buddies', nullable: true),
     ],
     'siteFeatures': [(field: 'siteId', parent: 'diveSites', nullable: false)],
     'liveaboardDetails': [(field: 'tripId', parent: 'trips', nullable: false)],
