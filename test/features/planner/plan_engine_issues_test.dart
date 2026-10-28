@@ -413,6 +413,22 @@ void main() {
       }
     });
 
+    test('a custom fraction over one still turns at minimum gas', () {
+      // A plan file or an older database row can carry any fraction; one
+      // over 1 must not push the turn under the floor.
+      final usage = usageFor(
+        deepPlan(domain.TurnPressureRule.custom, fraction: 1.5),
+      );
+      expect(usage.turnPressureBar, closeTo(usage.minGasBar!, 1e-9));
+    });
+
+    test('a negative custom fraction turns at the fill, not above it', () {
+      final usage = usageFor(
+        deepPlan(domain.TurnPressureRule.custom, fraction: -0.5),
+      );
+      expect(usage.turnPressureBar, closeTo(207.0, 1e-9));
+    });
+
     test('the reserve still binds when it is above minimum gas', () {
       final plan = _airPlan(depth: 20.0, minutes: 10).copyWith(
         turnPressureRule: domain.TurnPressureRule.allUsable,

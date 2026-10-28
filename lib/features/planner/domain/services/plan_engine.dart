@@ -1372,7 +1372,9 @@ class PlanEngine {
       domain.TurnPressureRule.custom =>
         config.turnPressureFractionFor(plan) ?? 1.0 / 3.0,
     };
-    return (bar: start - usable * fraction, gap: null);
+    // A plan file or a stored row can carry any custom fraction; outside
+    // [0, 1] the turn would land under the floor or above the fill.
+    return (bar: start - usable * fraction.clamp(0.0, 1.0), gap: null);
   }
 
   /// Rock-bottom minimum gas: a stressed, buddy-shared emergency exit from
