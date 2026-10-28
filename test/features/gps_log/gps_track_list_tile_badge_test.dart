@@ -103,12 +103,15 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    // No badge, no Row: the line renders the detail text alone.
+    // No badge: the subtitle is a badge-less TrackBadgeLine around the
+    // detail text, which renders that text alone, with no Wrap around it.
+    final tile = tester.widget<ListTile>(find.byType(ListTile));
+    expect(tile.subtitle, isA<TrackBadgeLine>());
+    final line = tile.subtitle! as TrackBadgeLine;
+    expect(line.badge, isNull);
+    expect((line.child as Text).data, '1 point, 1h 30m');
     expect(
-      find.descendant(
-        of: find.byType(TrackBadgeLine),
-        matching: find.byType(Row),
-      ),
+      find.descendant(of: find.byWidget(line), matching: find.byType(Wrap)),
       findsNothing,
     );
     expect(find.text('1 point, 1h 30m'), findsOneWidget);

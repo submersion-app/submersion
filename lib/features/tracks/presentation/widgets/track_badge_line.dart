@@ -7,8 +7,9 @@ import 'package:flutter/material.dart';
 ///
 /// When the line and the badge do not both fit (a narrow phone, a long
 /// locale such as German's "Tauchgang #412" beside "Unterwasser", large
-/// text), the badge drops to its own line below rather than truncating
-/// either: the dive link is worth more whole than the badge is on one line.
+/// text), the badge drops to the start of its own line below rather than
+/// truncating either: the dive link is worth more whole than the badge is
+/// on one line.
 ///
 /// Shared by `GpsTrackListTile` and `NavTrackListRow`, the two kinds of row
 /// one mixed Tracks list shows, so their badge placement cannot drift apart.
