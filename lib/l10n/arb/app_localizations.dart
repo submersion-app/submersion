@@ -57112,13 +57112,13 @@ abstract class AppLocalizations {
   /// No description provided for @settings_shareAllSites_confirm.
   ///
   /// In en, this message translates to:
-  /// **'Choose who sees all {count} of your sites. To change one site later, open it and tap Shared with.'**
+  /// **'Choose who sees all {count} of your sites. To change one site later, edit it and tap Shared with.'**
   String settings_shareAllSites_confirm(int count);
 
   /// No description provided for @settings_shareAllTrips_confirm.
   ///
   /// In en, this message translates to:
-  /// **'Choose who sees all {count} of your trips. To change one trip later, open it and tap Shared with.'**
+  /// **'Choose who sees all {count} of your trips. To change one trip later, edit it and tap Shared with.'**
   String settings_shareAllTrips_confirm(int count);
 
   /// Message shown when there are no sites/trips to share

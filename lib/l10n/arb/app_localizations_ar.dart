@@ -36549,12 +36549,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String settings_shareAllSites_confirm(int count) {
-    return 'اختر من يرى كل $count من مواقعك. لتغيير موقع واحد لاحقًا، افتحه واضغط على مُشارَك مع.';
+    return 'اختر من يرى كل $count من مواقعك. لتغيير موقع واحد لاحقًا، عدّله واضغط على مُشارَك مع.';
   }
 
   @override
   String settings_shareAllTrips_confirm(int count) {
-    return 'اختر من يرى كل $count من رحلاتك. لتغيير رحلة واحدة لاحقًا، افتحها واضغط على مُشارَك مع.';
+    return 'اختر من يرى كل $count من رحلاتك. لتغيير رحلة واحدة لاحقًا، عدّلها واضغط على مُشارَك مع.';
   }
 
   @override

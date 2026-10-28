@@ -36237,12 +36237,12 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String settings_shareAllSites_confirm(int count) {
-    return 'Choisissez qui voit vos $count sites. Pour modifier un site plus tard, ouvrez-le et touchez Partagé avec.';
+    return 'Choisissez qui voit vos $count sites. Pour modifier un site plus tard, modifiez-le et touchez Partagé avec.';
   }
 
   @override
   String settings_shareAllTrips_confirm(int count) {
-    return 'Choisissez qui voit vos $count voyages. Pour modifier un voyage plus tard, ouvrez-le et touchez Partagé avec.';
+    return 'Choisissez qui voit vos $count voyages. Pour modifier un voyage plus tard, modifiez-le et touchez Partagé avec.';
   }
 
   @override

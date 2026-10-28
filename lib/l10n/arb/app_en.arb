@@ -21810,7 +21810,7 @@
   "@settings_shareAllTrips_title": {
     "description": "Button/menu item to share all trips at once"
   },
-  "settings_shareAllSites_confirm": "Choose who sees all {count} of your sites. To change one site later, open it and tap Shared with.",
+  "settings_shareAllSites_confirm": "Choose who sees all {count} of your sites. To change one site later, edit it and tap Shared with.",
   "@settings_shareAllSites_confirm": {
     "placeholders": {
       "count": {
@@ -21819,7 +21819,7 @@
       }
     }
   },
-  "settings_shareAllTrips_confirm": "Choose who sees all {count} of your trips. To change one trip later, open it and tap Shared with.",
+  "settings_shareAllTrips_confirm": "Choose who sees all {count} of your trips. To change one trip later, edit it and tap Shared with.",
   "@settings_shareAllTrips_confirm": {
     "placeholders": {
       "count": {

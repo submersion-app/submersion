@@ -35936,12 +35936,12 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String settings_shareAllSites_confirm(int count) {
-    return 'Válaszd ki, ki lássa mind a(z) $count merülőhelyedet. Ha később egy helyet módosítanál, nyisd meg, és koppints a Megosztva elemre.';
+    return 'Válaszd ki, ki lássa mind a(z) $count merülőhelyedet. Ha később egy helyet módosítanál, szerkeszd, és koppints a Megosztva elemre.';
   }
 
   @override
   String settings_shareAllTrips_confirm(int count) {
-    return 'Válaszd ki, ki lássa mind a(z) $count túrádat. Ha később egy túrát módosítanál, nyisd meg, és koppints a Megosztva elemre.';
+    return 'Válaszd ki, ki lássa mind a(z) $count túrádat. Ha később egy túrát módosítanál, szerkeszd, és koppints a Megosztva elemre.';
   }
 
   @override

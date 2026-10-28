@@ -34017,12 +34017,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String settings_shareAllSites_confirm(int count) {
-    return '选择谁可以看到你的全部 $count 个潜点。之后要更改某个潜点，打开它并点按“共享给”。';
+    return '选择谁可以看到你的全部 $count 个潜点。之后要更改某个潜点，编辑它并点按“共享给”。';
   }
 
   @override
   String settings_shareAllTrips_confirm(int count) {
-    return '选择谁可以看到你的全部 $count 个行程。之后要更改某个行程，打开它并点按“共享给”。';
+    return '选择谁可以看到你的全部 $count 个行程。之后要更改某个行程，编辑它并点按“共享给”。';
   }
 
   @override

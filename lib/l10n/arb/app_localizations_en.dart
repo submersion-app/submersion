@@ -35524,12 +35524,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String settings_shareAllSites_confirm(int count) {
-    return 'Choose who sees all $count of your sites. To change one site later, open it and tap Shared with.';
+    return 'Choose who sees all $count of your sites. To change one site later, edit it and tap Shared with.';
   }
 
   @override
   String settings_shareAllTrips_confirm(int count) {
-    return 'Choose who sees all $count of your trips. To change one trip later, open it and tap Shared with.';
+    return 'Choose who sees all $count of your trips. To change one trip later, edit it and tap Shared with.';
   }
 
   @override

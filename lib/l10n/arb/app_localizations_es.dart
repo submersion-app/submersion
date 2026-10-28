@@ -36165,12 +36165,12 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String settings_shareAllSites_confirm(int count) {
-    return 'Elige quién ve tus $count sitios. Para cambiar un sitio más tarde, ábrelo y toca Compartido con.';
+    return 'Elige quién ve tus $count sitios. Para cambiar un sitio más tarde, edítalo y toca Compartido con.';
   }
 
   @override
   String settings_shareAllTrips_confirm(int count) {
-    return 'Elige quién ve tus $count viajes. Para cambiar un viaje más tarde, ábrelo y toca Compartido con.';
+    return 'Elige quién ve tus $count viajes. Para cambiar un viaje más tarde, edítalo y toca Compartido con.';
   }
 
   @override

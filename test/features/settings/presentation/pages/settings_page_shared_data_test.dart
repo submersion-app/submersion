@@ -1282,7 +1282,7 @@ void main() {
       expect(
         find.text(
           'Choose who sees all 3 of your sites. To change one site later, '
-          'open it and tap Shared with.',
+          'edit it and tap Shared with.',
         ),
         findsOneWidget,
       );
@@ -1385,7 +1385,7 @@ void main() {
       expect(
         find.text(
           'Choose who sees all 2 of your trips. To change one trip later, '
-          'open it and tap Shared with.',
+          'edit it and tap Shared with.',
         ),
         findsOneWidget,
       );
