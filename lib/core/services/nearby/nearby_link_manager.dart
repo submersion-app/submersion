@@ -617,6 +617,8 @@ class NearbyLinkManager {
           return;
         }
         await _run(channel);
+      case NearbyIncomingCard(:final channel):
+        await channel.close();
       case NearbyIncomingPairing(:final pairing):
         await _offer(
           NearbyPairingHandle._(

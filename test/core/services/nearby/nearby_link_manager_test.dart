@@ -619,7 +619,7 @@ void main() {
             FrameEncoder.encode(
               NearbyMessageType.hello,
               const NearbyHello(
-                protocolVersion: NearbyHello.currentProtocolVersion + 1,
+                protocolVersion: NearbyHello.maxProtocolVersion + 1,
                 intent: NearbyIntent.sync,
               ).toBytes(),
             ),

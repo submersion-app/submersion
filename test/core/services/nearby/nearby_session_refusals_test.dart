@@ -159,7 +159,7 @@ void main() {
         Uint8List.fromList(
           utf8.encode(
             jsonEncode({
-              'v': NearbyHello.currentProtocolVersion + 1,
+              'v': NearbyHello.maxProtocolVersion + 1,
               'intent': 'swapCards',
               'commit': base64Encode(Uint8List(32)),
             }),

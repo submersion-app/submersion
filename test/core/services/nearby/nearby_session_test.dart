@@ -500,7 +500,7 @@ void main() {
         secrets: MemoryNearbySecrets(),
       ).accept(allowPairing: true);
       final hello = NearbyHello(
-        protocolVersion: NearbyHello.currentProtocolVersion + 1,
+        protocolVersion: NearbyHello.maxProtocolVersion + 1,
         intent: NearbyIntent.pair,
         commitment: Uint8List(32),
       );
