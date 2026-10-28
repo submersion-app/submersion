@@ -693,18 +693,7 @@ class DiveRepository {
           _db.dives,
         )..where((t) => t.id.equals(diveId))).getSingleOrNull();
         if (dive == null) return;
-        final siteRow = siteId == null
-            ? null
-            : await (_db.select(
-                _db.diveSites,
-              )..where((t) => t.id.equals(siteId))).getSingleOrNull();
-        await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
-          siteSnapColumns(
-            dive,
-            siteRow == null ? null : mapDiveSiteRow(siteRow),
-          ).copyWith(siteId: Value(siteId), updatedAt: Value(now)),
-        );
-        if (siteRow != null) await _addSiteDiveTypes(dive, siteRow.id, now);
+        await _writeSiteLink(dive, siteId, await _siteRowOrNull(siteId), now);
       });
       await _syncRepository.markRecordPending(
         entityType: 'dives',
@@ -720,6 +709,52 @@ class DiveRepository {
       );
       rethrow;
     }
+  }
+
+  /// [setSite] for every dive in [diveIds], for the bulk edit Site row
+  /// (issue #3657): each dive is linked to [siteId] (or unlinked when it is
+  /// null) and gets the site's snap from its own current values. Marks each
+  /// dive pending. Does NOT open a transaction or notify sync;
+  /// BulkDiveEditService owns those.
+  Future<void> bulkSetSite(List<String> diveIds, String? siteId) async {
+    if (diveIds.isEmpty) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final siteRow = await _siteRowOrNull(siteId);
+    final dives = await (_db.select(
+      _db.dives,
+    )..where((t) => t.id.isIn(diveIds))).get();
+    for (final dive in dives) {
+      await _writeSiteLink(dive, siteId, siteRow, now);
+      await _syncRepository.markRecordPending(
+        entityType: 'dives',
+        recordId: dive.id,
+        localUpdatedAt: now,
+      );
+    }
+  }
+
+  Future<DiveSite?> _siteRowOrNull(String? siteId) async => siteId == null
+      ? null
+      : await (_db.select(
+          _db.diveSites,
+        )..where((t) => t.id.equals(siteId))).getSingleOrNull();
+
+  /// Links [dive] to [siteId] and writes the snap of [siteRow] onto it: only
+  /// the site link and the columns the snap changes, plus any dive types the
+  /// site adds. Shared by [setSite] and [bulkSetSite].
+  Future<void> _writeSiteLink(
+    Dive dive,
+    String? siteId,
+    DiveSite? siteRow,
+    int now,
+  ) async {
+    await (_db.update(_db.dives)..where((t) => t.id.equals(dive.id))).write(
+      siteSnapColumns(
+        dive,
+        siteRow == null ? null : mapDiveSiteRow(siteRow),
+      ).copyWith(siteId: Value(siteId), updatedAt: Value(now)),
+    );
+    if (siteRow != null) await _addSiteDiveTypes(dive, siteRow.id, now);
   }
 
   /// Records (or clears, when [dismissed] is false) the diver's dismissal of
