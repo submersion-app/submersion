@@ -82,8 +82,9 @@ class MediaLibraryRepository {
   /// (issue #1745). EXISTS for the same reason as the tag facet: a photo
   /// with two of them comes back once. Without a diver (all profiles), Me
   /// matches any Me tag. When Me is off and none of the selected buddies
-  /// still exists (an album outliving them), the facet is dropped rather
-  /// than matching nothing, as the tag facet does.
+  /// still exists for this diver (an album outliving them, or naming
+  /// another profile's buddy), the facet is dropped rather than matching
+  /// nothing, as the tag facet does.
   Expression<bool> _peopleFacet(String? diverId, MediaLibraryFilter filter) {
     final m = _db.media;
     final p = _db.mediaPeople;
@@ -94,7 +95,20 @@ class MediaLibraryRepository {
         : diverId == null
         ? p.diverId.isNotNull()
         : p.diverId.equals(diverId);
-    final person = buddyIds.isEmpty ? me : (p.buddyId.isIn(buddyIds) | me);
+    // Only the viewing diver's own buddies count (spec decision 9): an
+    // album is shared by every profile, and another profile's buddy must
+    // neither match that profile's tags nor keep the facet alive.
+    Expression<bool> ownBuddy(Expression<bool> ids) => diverId == null
+        ? ids
+        : ids &
+              p.buddyId.isInQuery(
+                _db.selectOnly(b)
+                  ..addColumns([b.id])
+                  ..where(b.diverId.equals(diverId)),
+              );
+    final person = buddyIds.isEmpty
+        ? me
+        : (ownBuddy(p.buddyId.isIn(buddyIds)) | me);
     final tagged = existsQuery(
       _db.selectOnly(p)
         ..addColumns([p.id])
@@ -104,7 +118,12 @@ class MediaLibraryRepository {
     final anySelectedBuddyExists = existsQuery(
       _db.selectOnly(b)
         ..addColumns([b.id])
-        ..where(b.id.isIn(buddyIds)),
+        ..where(
+          b.id.isIn(buddyIds) &
+              (diverId == null
+                  ? const Constant(true)
+                  : b.diverId.equals(diverId)),
+        ),
     );
     return anySelectedBuddyExists.not() | tagged;
   }

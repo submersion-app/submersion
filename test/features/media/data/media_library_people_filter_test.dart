@@ -93,4 +93,26 @@ void main() {
     await Future<void>.delayed(const Duration(seconds: 2));
     expect(ticks, isNotEmpty);
   });
+
+  test(
+    "another profile's buddy in a shared album matches nothing for B",
+    () async {
+      await insertTestBuddy(id: 'zed', name: 'Zed', diverId: 'B');
+      await people.addTag(mediaId: 'plain', buddyId: 'zed');
+
+      // A's album names A's buddy Alex: for B that buddy is not theirs, so
+      // the facet drops as for a deleted buddy rather than leaking A's tags.
+      expect(
+        await ids(const MediaLibraryFilter(buddyIds: {'alex'}), diverId: 'B'),
+        hasLength(5),
+      );
+      expect(
+        await ids(
+          const MediaLibraryFilter(buddyIds: {'alex', 'zed'}),
+          diverId: 'B',
+        ),
+        ['plain'],
+      );
+    },
+  );
 }
