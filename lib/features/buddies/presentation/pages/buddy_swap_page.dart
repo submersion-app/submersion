@@ -26,6 +26,8 @@ import 'package:submersion/features/buddies/presentation/widgets/swap/swap_fallb
 import 'package:submersion/features/buddies/presentation/widgets/swap/swap_request_sheet.dart';
 import 'package:submersion/features/cylinder_passports/data/services/nfc_tag_service.dart';
 import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_scan_sheet.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
+import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -156,6 +158,9 @@ class _BuddySwapPageState extends ConsumerState<BuddySwapPage>
       request.decide(false);
     }
     _queuedRequests.clear();
+    // The request on screen closes too; its sheet answers no.
+    final close = _closeOpenRequest;
+    if (close != null && !close.isCompleted) close.complete();
     final session = _session;
     _session = null;
     final stopping = session?.stop();
@@ -236,6 +241,10 @@ class _BuddySwapPageState extends ConsumerState<BuddySwapPage>
     }
   }
 
+  /// Demo mode (issue #3708): the sample diver's card leaves the phone by
+  /// no route, however this screen was reached.
+  bool _mayShare() => demoSealGuard(context, DemoSealedFeature.share);
+
   void _say(String message) => ScaffoldMessenger.maybeOf(
     context,
   )?.showSnackBar(SnackBar(content: Text(message)));
@@ -280,7 +289,7 @@ class _BuddySwapPageState extends ConsumerState<BuddySwapPage>
   /// returns, and the OS clears its temporary folder in time.
   Future<void> _sendFile(Rect? anchor) async {
     final card = _card;
-    if (card == null) return;
+    if (card == null || !_mayShare()) return;
     final l10n = context.l10n;
     Directory? temp;
     var keepForShare = false;
@@ -328,6 +337,7 @@ class _BuddySwapPageState extends ConsumerState<BuddySwapPage>
   }
 
   void _showCode(BuddyCard card) {
+    if (!_mayShare()) return;
     try {
       unawaited(showCardQrSheet(context, card));
     } on BuddyCardTooLarge {
@@ -363,7 +373,7 @@ class _BuddySwapPageState extends ConsumerState<BuddySwapPage>
 
   Future<void> _writeSticker() async {
     final card = _card;
-    if (card == null) return;
+    if (card == null || !_mayShare()) return;
     final l10n = context.l10n;
     String? message;
     try {

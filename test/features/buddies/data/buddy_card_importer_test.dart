@@ -316,6 +316,32 @@ void main() {
       'Rescue Diver',
     ]);
   });
+
+  test(
+    'update re-reads the buddy, so changes made meanwhile survive',
+    () async {
+      final added = await importer.addNew(card, diverId: 'me');
+      // The preview opened with this copy; the diver then edited the buddy.
+      final shown = (await buddies.getBuddyById(added.id))!;
+      await buddies.updateBuddy(
+        shown.copyWith(notes: 'Met on the Red Sea trip'),
+      );
+
+      await importer.update(shown, card.copyWith(dives: 130));
+
+      final read = (await buddies.getBuddyById(added.id))!;
+      expect(read.notes, 'Met on the Red Sea trip');
+      expect(read.cardDiveCount, 130);
+    },
+  );
+
+  test('update of a buddy deleted meanwhile fails instead of resurrecting '
+      'it', () async {
+    final added = await importer.addNew(card, diverId: 'me');
+    await buddies.deleteBuddy(added.id);
+    await expectLater(importer.update(added, card), throwsStateError);
+    expect(await buddies.getBuddyById(added.id), isNull);
+  });
 }
 
 class _FailingCertifications extends CertificationRepository {

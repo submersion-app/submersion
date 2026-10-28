@@ -114,9 +114,13 @@ class NearbyBuddySwapSession implements BuddySwapSession {
         identity: _identity,
         secrets: _secrets,
       );
+      // Owned before it starts: a start that fails partway (advertising
+      // refused) is still stopped by the normal teardown.
+      _bridge = bridge;
       if (await bridge.start()) {
-        _bridge = bridge;
         _proximity = multipeer.proximity.listen(_onProximity);
+      } else {
+        _bridge = null;
       }
     }
     try {

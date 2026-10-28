@@ -15,9 +15,11 @@ import 'package:submersion/features/buddies/presentation/pages/buddy_swap_page.d
 import 'package:submersion/features/buddies/presentation/providers/buddy_card_providers.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_swap_providers.dart';
 import 'package:submersion/features/buddies/presentation/services/buddy_swap_session.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
+import '../../../../helpers/global_test_defaults.dart';
 import '../../../../helpers/mock_providers.dart';
 
 class _FakeSession implements BuddySwapSession {
@@ -444,6 +446,37 @@ void main() {
     await settle(tester);
     expect(session.starts, 2);
     expect(find.textContaining('Could not look'), findsNothing);
+  });
+
+  testWidgets('leaving the screen closes the request sheet and declines it', (
+    tester,
+  ) async {
+    await pump(tester);
+    bool? answer;
+    session.controller.add(CardRequested(_sam, (a) => answer = a));
+    await settle(tester);
+    expect(find.text('Sam Rivera wants to swap cards'), findsOneWidget);
+
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    await settle(tester);
+    expect(find.text('Sam Rivera wants to swap cards'), findsNothing);
+    expect(answer, isFalse);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await settle(tester);
+  });
+
+  testWidgets('in demo mode the card is not shown as a code', (tester) async {
+    await pump(tester);
+    DemoModeGate.instance.debugActive = true;
+    addTearDown(applyGlobalTestDefaults);
+    await tester.scrollUntilVisible(
+      find.text('Show my code'),
+      400,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(find.text('Show my code'));
+    await settle(tester);
+    expect(find.text('Your buddy card'), findsNothing);
   });
 
   test('platform default is restored', () {

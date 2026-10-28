@@ -82,12 +82,19 @@ abstract final class BuddyCardCodec {
   static bool isCardFileName(String fileName) =>
       fileName.toLowerCase().endsWith('.$fileExtension');
 
+  static final _windowsReserved = RegExp(
+    r'^(con|prn|aux|nul|com[1-9]|lpt[1-9])(\..*)?$',
+    caseSensitive: false,
+  );
+
   /// A file name for [name]'s card that every platform accepts: path and
   /// reserved characters become `_`, and the name is kept short.
   static String fileNameFor(String name) {
     var base = name.trim().replaceAll(RegExp(r'[\\/:*?"<>|\x00-\x1F]'), '_');
     if (base.length > 100) base = base.substring(0, 100);
     if (base.isEmpty) base = 'buddy';
+    // Windows reserves these device names, with any extension.
+    if (_windowsReserved.hasMatch(base)) base = '_$base';
     return '$base.$fileExtension';
   }
 

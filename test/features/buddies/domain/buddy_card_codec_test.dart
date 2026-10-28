@@ -302,4 +302,11 @@ void main() {
       isFalse,
     );
   });
+
+  test('a name Windows reserves for a device gets a usable file name', () {
+    for (final name in ['CON', 'nul', 'Com1', 'LPT9', 'aux', 'PRN']) {
+      expect(BuddyCardCodec.fileNameFor(name), '_$name.subbuddy');
+    }
+    expect(BuddyCardCodec.fileNameFor('Connor'), 'Connor.subbuddy');
+  });
 }

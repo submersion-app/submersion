@@ -67,7 +67,14 @@ class BuddyCardImporter {
     return _atomically(() => _update(existing, card));
   }
 
-  Future<Buddy> _update(Buddy existing, BuddyCard card) async {
+  Future<Buddy> _update(Buddy shown, BuddyCard card) async {
+    // The buddy as it is now, not as the preview showed it: the diver or a
+    // sync may have changed their notes or favourite flag meanwhile, and
+    // the whole row is written back.
+    final existing = await _buddies.getBuddyById(shown.id);
+    if (existing == null) {
+      throw StateError('Buddy ${shown.id} no longer exists');
+    }
     final updated = existing.copyWith(
       name: card.name,
       phone: card.phone,

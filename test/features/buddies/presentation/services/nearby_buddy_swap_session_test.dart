@@ -1,6 +1,6 @@
-import 'dart:typed_data';
-
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/services/nearby/multipeer/multipeer_nearby_carrier.dart';
 import 'package:submersion/core/services/nearby/nearby_card_host.dart';
 import 'package:submersion/features/buddies/data/services/buddy_card_nfc.dart';
 import 'package:submersion/features/buddies/data/services/card_emulation_service.dart';
@@ -29,6 +29,8 @@ class _FakeEmulation implements CardEmulation {
 /// starting, as when the screen closes or the app leaves the foreground
 /// right after it opened.
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   test('a stop during start leaves nothing running', () async {
     final hub = InMemoryNearbyHub();
     final a = await joinNearbyTestDevice(hub, 'A');
@@ -101,5 +103,42 @@ void main() {
     expect(await session.start(), NearbyAvailability.unsupported);
     expect(emulation.presenting, isNull);
     expect(session.peers, isEmpty);
+  });
+
+  test('a Multipeer start that fails partway is still stopped', () async {
+    const channel = MethodChannel('app.submersion/multipeer-test');
+    final messenger =
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+    final calls = <String>[];
+    messenger.setMockMethodCallHandler(channel, (call) async {
+      calls.add('${call.method} ${call.arguments}');
+      if (call.method == 'isSupported') return true;
+      if (call.method == 'advertise' && call.arguments == true) {
+        throw PlatformException(code: 'failed');
+      }
+      return null;
+    });
+    addTearDown(() => messenger.setMockMethodCallHandler(channel, null));
+    final multipeer = MultipeerNearbyCarrier(channel: channel);
+    addTearDown(multipeer.dispose);
+
+    final hub = InMemoryNearbyHub();
+    final a = await joinNearbyTestDevice(hub, 'A');
+    a.auto = false;
+    await foregroundNearbyTestDevices([a]);
+    final session = NearbyBuddySwapSession(
+      card: const BuddyCard(id: 'a', name: 'Ann'),
+      manager: a.manager,
+      identity: () async => nearbyTestIdentity('A'),
+      secrets: MemoryNearbySecrets(),
+      nfc: BuddyCardNfc(tags: FakeNfcTagService(), emulation: _FakeEmulation()),
+      multipeer: multipeer,
+    );
+
+    await expectLater(session.start(), throwsA(isA<PlatformException>()));
+    await session.stop();
+    // The bridge the failed start opened is closed: browsing and
+    // advertising are turned off again.
+    expect(calls, contains('advertise false'));
   });
 }
