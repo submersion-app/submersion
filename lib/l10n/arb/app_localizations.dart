@@ -32016,6 +32016,12 @@ abstract class AppLocalizations {
   /// **'Tank ends below the rock-bottom minimum of {pressure}'**
   String plannerCanvas_issue_minGas(String pressure);
 
+  /// No description provided for @plannerCanvas_issue_noUsableGas.
+  ///
+  /// In en, this message translates to:
+  /// **'Rock-bottom minimum of {minGas} leaves no usable gas in a {fill} fill'**
+  String plannerCanvas_issue_noUsableGas(String minGas, String fill);
+
   /// No description provided for @plannerCanvas_issue_diluentModExceeded.
   ///
   /// In en, this message translates to:
@@ -82445,6 +82451,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'In cloud storage ({size})'**
   String backup_history_cloudOnlySubtitle(String size);
+
+  /// Shown on a backup history row made by a device whose name is not known.
+  ///
+  /// In en, this message translates to:
+  /// **'Another device'**
+  String get backup_history_device_anotherDevice;
+
+  /// Shown on a backup history row made by the device the app is running on.
+  ///
+  /// In en, this message translates to:
+  /// **'This device'**
+  String get backup_history_device_thisDevice;
+
+  /// A backup history row's summary followed by the device that made the backup.
+  ///
+  /// In en, this message translates to:
+  /// **'{summary} · {device}'**
+  String backup_history_subtitleWithDevice(String summary, String device);
 
   /// No description provided for @backup_history_manualSubtitle.
   ///

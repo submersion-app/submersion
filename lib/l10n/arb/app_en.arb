@@ -12674,6 +12674,17 @@
       }
     }
   },
+  "plannerCanvas_issue_noUsableGas": "Rock-bottom minimum of {minGas} leaves no usable gas in a {fill} fill",
+  "@plannerCanvas_issue_noUsableGas": {
+    "placeholders": {
+      "minGas": {
+        "type": "String"
+      },
+      "fill": {
+        "type": "String"
+      }
+    }
+  },
   "plannerCanvas_issue_diluentModExceeded": "Diluent exceeds its Dil MOD at {depth} (ppO₂ {value} bar)",
   "@plannerCanvas_issue_diluentModExceeded": {
     "placeholders": {
@@ -31014,6 +31025,26 @@
   "@backup_history_cloudOnlySubtitle": {
     "placeholders": {
       "size": {
+        "type": "String"
+      }
+    }
+  },
+  "backup_history_device_anotherDevice": "Another device",
+  "@backup_history_device_anotherDevice": {
+    "description": "Shown on a backup history row made by a device whose name is not known."
+  },
+  "backup_history_device_thisDevice": "This device",
+  "@backup_history_device_thisDevice": {
+    "description": "Shown on a backup history row made by the device the app is running on."
+  },
+  "backup_history_subtitleWithDevice": "{summary} · {device}",
+  "@backup_history_subtitleWithDevice": {
+    "description": "A backup history row's summary followed by the device that made the backup.",
+    "placeholders": {
+      "summary": {
+        "type": "String"
+      },
+      "device": {
         "type": "String"
       }
     }

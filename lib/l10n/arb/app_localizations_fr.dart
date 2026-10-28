@@ -20182,6 +20182,11 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String plannerCanvas_issue_noUsableGas(String minGas, String fill) {
+    return 'Le minimum rock bottom de $minGas ne laisse aucun gaz utilisable dans un gonflage de $fill';
+  }
+
+  @override
   String plannerCanvas_issue_diluentModExceeded(String depth, String value) {
     return 'Le diluant dépasse sa MOD Dil à $depth (ppO₂ $value bar)';
   }
@@ -52170,6 +52175,17 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String backup_history_cloudOnlySubtitle(String size) {
     return 'Dans le stockage cloud ($size)';
+  }
+
+  @override
+  String get backup_history_device_anotherDevice => 'Autre appareil';
+
+  @override
+  String get backup_history_device_thisDevice => 'Cet appareil';
+
+  @override
+  String backup_history_subtitleWithDevice(String summary, String device) {
+    return '$summary · $device';
   }
 
   @override

@@ -20000,6 +20000,11 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String plannerCanvas_issue_noUsableGas(String minGas, String fill) {
+    return 'Rock-bottom-minimum van $minGas laat geen bruikbaar gas over in een vulling van $fill';
+  }
+
+  @override
   String plannerCanvas_issue_diluentModExceeded(String depth, String value) {
     return 'Diluent overschrijdt de Dil-MOD op $depth (ppO₂ $value bar)';
   }
@@ -51725,6 +51730,17 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String backup_history_cloudOnlySubtitle(String size) {
     return 'In cloudopslag ($size)';
+  }
+
+  @override
+  String get backup_history_device_anotherDevice => 'Ander apparaat';
+
+  @override
+  String get backup_history_device_thisDevice => 'Dit apparaat';
+
+  @override
+  String backup_history_subtitleWithDevice(String summary, String device) {
+    return '$summary · $device';
   }
 
   @override

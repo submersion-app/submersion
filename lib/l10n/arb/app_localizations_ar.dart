@@ -20423,6 +20423,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String plannerCanvas_issue_noUsableGas(String minGas, String fill) {
+    return 'الحد الأدنى الآمن $minGas لا يترك غازًا قابلًا للاستخدام في تعبئة $fill';
+  }
+
+  @override
   String plannerCanvas_issue_diluentModExceeded(String depth, String value) {
     return 'يتجاوز غاز التخفيف حد MOD الخاص به عند $depth (ppO₂ $value bar)';
   }
@@ -52681,6 +52686,17 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String backup_history_cloudOnlySubtitle(String size) {
     return 'في التخزين السحابي ($size)';
+  }
+
+  @override
+  String get backup_history_device_anotherDevice => 'جهاز آخر';
+
+  @override
+  String get backup_history_device_thisDevice => 'هذا الجهاز';
+
+  @override
+  String backup_history_subtitleWithDevice(String summary, String device) {
+    return '$summary · $device';
   }
 
   @override
