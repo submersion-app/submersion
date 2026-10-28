@@ -267,14 +267,14 @@ class _CylinderConfigItemEditorState extends State<CylinderConfigItemEditor> {
     // No plan context here (this is the saved-cylinder-config editor, not
     // the planner), so always the diver's full Settings resolution,
     // issue #3580.
-    final decoPpO2Limits = DecoPpO2Limits(
+    final decoPpO2Limits = DecoPpO2Limits.forPlan(
       flat: settings.ppO2MaxDeco,
-      bandsEnabled: settings.ppO2DecoBandsEnabled,
-      band1: settings.ppO2DecoBand1,
-      band2: settings.ppO2DecoBand2,
-      band3: settings.ppO2DecoBand3,
-      explicitO2DepthEnabled: settings.maxO2DepthEnabled,
-      explicitO2DepthMeters: settings.maxO2DepthMeters,
+      settingsBandsEnabled: settings.ppO2DecoBandsEnabled,
+      settingsBand1: settings.ppO2DecoBand1,
+      settingsBand2: settings.ppO2DecoBand2,
+      settingsBand3: settings.ppO2DecoBand3,
+      settingsMaxO2DepthEnabled: settings.maxO2DepthEnabled,
+      settingsMaxO2DepthMeters: settings.maxO2DepthMeters,
     );
 
     return Card(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/utils/number_input.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Picks the hypercapnia-bailout phase (issue #3743): an elevated RMV for a
@@ -25,14 +26,17 @@ class HypercapniaDialog extends StatefulWidget {
 }
 
 class _HypercapniaDialogState extends State<HypercapniaDialog> {
-  static const double _factorMin = 1.0;
-  static const double _factorMax = 10.0;
-  static const double _factorStep = 0.5;
+  // The notifier's own bounds, so the dialog never offers a value
+  // setPlannerHypercapniaConfig would clamp away.
+  static const double _factorMin = SettingsNotifier.plannerHypercapniaFactorMin;
+  static const double _factorMax = SettingsNotifier.plannerHypercapniaFactorMax;
+  static const double _factorStep =
+      SettingsNotifier.plannerHypercapniaFactorStep;
   static final int _factorDivisions = ((_factorMax - _factorMin) / _factorStep)
       .round();
 
-  static const int _minutesMin = 1;
-  static const int _minutesMax = 15;
+  static const int _minutesMin = SettingsNotifier.plannerHypercapniaMinutesMin;
+  static const int _minutesMax = SettingsNotifier.plannerHypercapniaMinutesMax;
   static const int _minutesDivisions = _minutesMax - _minutesMin;
 
   late bool _enabled;

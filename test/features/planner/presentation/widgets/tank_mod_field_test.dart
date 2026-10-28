@@ -37,6 +37,7 @@ void main() {
     double? override,
     UnitFormatter units = metric,
     double diluentPpO2 = 1.6,
+    DecoPpO2Limits decoPpO2 = const DecoPpO2Limits(flat: 1.6),
   }) {
     reported = override;
     reports = 0;
@@ -50,7 +51,7 @@ void main() {
             role: role,
             overrideMeters: reported,
             bottomPpO2: 1.4,
-            decoPpO2: const DecoPpO2Limits(flat: 1.6),
+            decoPpO2: decoPpO2,
             diluentPpO2: diluentPpO2,
             units: units,
             onChanged: (value) => setState(() {
@@ -76,7 +77,7 @@ void main() {
 
     expect(find.text('MOD'), findsOneWidget);
     expect(fieldText(tester), '22');
-    expect(find.text('Default at ppO2 1.60 (deco limit)'), findsOneWidget);
+    expect(find.text('Default at ppO2 1.6 (deco limit)'), findsOneWidget);
     expect(find.byKey(TankModField.resetKey), findsNothing);
   });
 
@@ -85,7 +86,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(fieldText(tester), '25');
-    expect(find.text('Default at ppO2 1.40 (bottom limit)'), findsOneWidget);
+    expect(find.text('Default at ppO2 1.4 (bottom limit)'), findsOneWidget);
   });
 
   testWidgets('a diluent uses the CCR Dil MOD limit, not the bottom limit', (
@@ -97,7 +98,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(fieldText(tester), '30');
-    expect(find.text('Default at ppO2 1.60 (Dil MOD)'), findsOneWidget);
+    expect(find.text('Default at ppO2 1.6 (Dil MOD)'), findsOneWidget);
   });
 
   testWidgets('typing a depth sets the override', (tester) async {
@@ -193,7 +194,7 @@ void main() {
     await tester.pumpWidget(host(override: 24));
     await tester.pumpAndSettle();
 
-    final warning = find.text('ppO2 1.70 at 24m, above the deco limit 1.60');
+    final warning = find.text('ppO2 1.70 at 24m, above the deco limit 1.6');
     expect(warning, findsOneWidget);
     final context = tester.element(warning);
     expect(
@@ -201,6 +202,34 @@ void main() {
       Theme.of(context).colorScheme.error,
     );
     expect(find.byIcon(Icons.warning_amber_rounded), findsOneWidget);
+  });
+
+  testWidgets('a limit off the 0.1 bar grid keeps its second decimal, one '
+      'on it does not gain a trailing zero (issue #3580)', (tester) async {
+    await tester.pumpWidget(host(decoPpO2: const DecoPpO2Limits(flat: 1.55)));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Default at ppO2 1.55 (deco limit)'), findsOneWidget);
+  });
+
+  testWidgets('an explicit O2 depth reads back as set, with and without an '
+      'override (issue #3580)', (tester) async {
+    const explicit = DecoPpO2Limits(
+      flat: 1.6,
+      explicitO2DepthEnabled: true,
+      explicitO2DepthMeters: 4.5,
+    );
+    await tester.pumpWidget(
+      host(gas: const GasMix(o2: 100), decoPpO2: explicit),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Default at 4.5m (deco limit)'), findsOneWidget);
+
+    await tester.pumpWidget(
+      host(gas: const GasMix(o2: 100), decoPpO2: explicit, override: 6),
+    );
+    await tester.pumpAndSettle();
+    expect(find.textContaining('default 4.5m'), findsOneWidget);
   });
 
   testWidgets('a shallower override is not flagged', (tester) async {

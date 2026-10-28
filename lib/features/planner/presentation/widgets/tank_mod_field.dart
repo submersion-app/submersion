@@ -278,11 +278,7 @@ class TankModDetails extends StatelessWidget {
         diluentPpO2: diluentPpO2,
       );
       return Text(
-        // 2 decimals (issue #3580): a plan's own deco ppO2 field takes 2
-        // decimals, which 1 decimal rounds into a different-looking
-        // neighbour (1.55 -> "1.6"), same precision as tankMod_ppO2At's own
-        // ppO2 below.
-        l10n.tankMod_default(formatFixedForDisplay(limit, 2), limitName),
+        l10n.tankMod_default(_limitText(limit), limitName),
         style: small,
       );
     }
@@ -314,7 +310,12 @@ class TankModDetails extends StatelessWidget {
             Expanded(
               child: Text(
                 l10n.tankMod_overridden(
-                  units.formatDepthFloor(defaultMeters, decimals: 0),
+                  units.formatDepthFloor(
+                    defaultMeters,
+                    // An explicit O2 depth is used exactly as set (0.5 m
+                    // steps), as the no-override line shows it.
+                    decimals: usesDecoLimitByDepth(role, gas, decoPpO2) ? 1 : 0,
+                  ),
                 ),
                 style: small,
               ),
@@ -336,7 +337,7 @@ class TankModDetails extends StatelessWidget {
                   ppO2,
                   depth,
                   limitName,
-                  formatFixedForDisplay(check.limitPpO2, 2),
+                  _limitText(check.limitPpO2),
                 )
               : l10n.tankMod_ppO2At(ppO2, depth),
           style: check.exceedsLimit
@@ -371,3 +372,10 @@ int shownDefaultMod(
   );
   return (units.convertDepth(meters) + 1e-6).floor();
 }
+
+/// A ppO2 limit for the MOD details: up to 2 decimals, trailing zeros
+/// dropped (issue #3580). A plan's own deco ppO2 takes 2 decimals, which 1
+/// decimal would round into a different-looking neighbour (1.55 -> "1.6"),
+/// while a limit on the 0.1 grid keeps reading "1.6", not "1.60".
+String _limitText(double ppO2) =>
+    formatDecimalForDisplay(double.parse(ppO2.toStringAsFixed(2)));

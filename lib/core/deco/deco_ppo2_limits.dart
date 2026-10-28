@@ -48,8 +48,9 @@ class DecoPpO2Limits extends Equatable {
 
   /// A plan's limits: the diver's Settings layers with this plan's own
   /// overrides merged in, each layer switched on or off through
-  /// [resolveDecoLayerEnabled]. The one place that rule is applied for a
-  /// plan, so every caller resolves a plan's limits the same way.
+  /// [resolveDecoLayerEnabled]. The one place that rule is applied, so every
+  /// caller resolves limits the same way; with no plan overrides passed it
+  /// is the diver's Settings alone (the saved-cylinder editor).
   factory DecoPpO2Limits.forPlan({
     required double flat,
     required bool settingsBandsEnabled,

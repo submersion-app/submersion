@@ -7,6 +7,8 @@ import 'package:submersion/features/dive_planner/presentation/providers/dive_pla
 import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_choice_wrap.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_gas_options_section.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_ppo2_bands_control.dart';
+import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
+    show PlanMode;
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../../../../helpers/test_app.dart';
@@ -16,10 +18,13 @@ class _TestSettingsNotifier extends StateNotifier<AppSettings>
   _TestSettingsNotifier({
     DepthUnit depthUnit = DepthUnit.meters,
     bool ppO2DecoBandsEnabled = false,
+    double plannerHypercapniaFactor = 4.0,
   }) : super(
          AppSettings(
            depthUnit: depthUnit,
            ppO2DecoBandsEnabled: ppO2DecoBandsEnabled,
+           plannerHypercapniaEnabled: true,
+           plannerHypercapniaFactor: plannerHypercapniaFactor,
          ),
        );
 
@@ -34,6 +39,7 @@ class _TestSettingsNotifier extends StateNotifier<AppSettings>
 Widget _harness({
   DepthUnit depthUnit = DepthUnit.meters,
   bool ppO2DecoBandsEnabled = false,
+  double plannerHypercapniaFactor = 4.0,
 }) => testApp(
   locale: const Locale('en'),
   overrides: [
@@ -41,6 +47,7 @@ Widget _harness({
       (ref) => _TestSettingsNotifier(
         depthUnit: depthUnit,
         ppO2DecoBandsEnabled: ppO2DecoBandsEnabled,
+        plannerHypercapniaFactor: plannerHypercapniaFactor,
       ),
     ),
   ],
@@ -48,6 +55,40 @@ Widget _harness({
 );
 
 void main() {
+  group('hypercapnia bailout phase (issue #3743)', () {
+    testWidgets('an OC plan has no OC bailout, so no hypercapnia control', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_harness());
+      await tester.pumpAndSettle();
+
+      expect(find.text('Hypercapnia bailout phase'), findsNothing);
+    });
+
+    testWidgets('a loop plan shows it, its default never below the stressed '
+        'rate the bailout falls back to', (tester) async {
+      // Factor 2.0 sits below the 2.5 stressed factor.
+      await tester.pumpWidget(_harness(plannerHypercapniaFactor: 2.0));
+      await tester.pumpAndSettle();
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(PlanGasOptionsSection)),
+      );
+      container
+          .read(divePlanNotifierProvider.notifier)
+          .updateMode(PlanMode.ccr);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Hypercapnia bailout phase'), findsOneWidget);
+      const settings = AppSettings();
+      final stressed =
+          settings.plannerSacBottom * settings.plannerSacStressedFactor;
+      expect(
+        find.textContaining('${stressed.toStringAsFixed(1)} L/min'),
+        findsOneWidget,
+      );
+    });
+  });
+
   testWidgets('editing the RMV factor updates the notifier state', (
     tester,
   ) async {

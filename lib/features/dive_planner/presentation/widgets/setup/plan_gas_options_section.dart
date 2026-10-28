@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/deco/deco_ppo2_limits.dart';
@@ -8,6 +10,8 @@ import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan
 import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_hypercapnia_control.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_number_field.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_ppo2_bands_control.dart';
+import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
+    show PlanMode;
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -33,6 +37,11 @@ class PlanGasOptionsSection extends ConsumerWidget {
     // Typed so `??` does not infer the watch as nullable.
     final double bottomRmv =
         state.sacRate ?? ref.watch(plannerSacBottomProvider);
+    // The stressed rate the bailout falls back to, resolved the same way as
+    // PlanEngineConfig.sacStressedFor.
+    final double stressedRmv =
+        state.sacStressed ??
+        bottomRmv * ref.watch(plannerSacStressedFactorProvider);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -200,31 +209,38 @@ class PlanGasOptionsSection extends ConsumerWidget {
             maxO2DepthExplicitlyOff: false,
           ),
         ),
-        const SizedBox(height: 8),
         // Hypercapnia-bailout phase (issue #3743): an elevated breathing
         // rate for a configurable duration at the start of an OC bailout -
         // its own layer over the stressed-SAC field above, same
-        // Default/Off/Custom shape as the ppO2-band controls.
-        PlanHypercapniaControl(
-          amv: state.hypercapniaAmv,
-          minutes: state.hypercapniaMinutes,
-          explicitlyOff: state.hypercapniaExplicitlyOff,
-          defaultAmv: bottomRmv * ref.watch(plannerHypercapniaFactorProvider),
-          defaultMinutes: ref.watch(plannerHypercapniaMinutesProvider),
-          enabledInSettings: ref.watch(plannerHypercapniaEnabledProvider),
-          units: units,
-          onAmvChanged: (value) =>
-              notifier.updateGasOptions(hypercapniaAmv: value),
-          onMinutesChanged: (value) =>
-              notifier.updateGasOptions(hypercapniaMinutes: value),
-          onOff: (off) =>
-              notifier.updateGasOptions(hypercapniaExplicitlyOff: off),
-          onDefault: () => notifier.updateGasOptions(
-            clearHypercapniaAmv: true,
-            clearHypercapniaMinutes: true,
-            hypercapniaExplicitlyOff: false,
+        // Default/Off/Custom shape as the ppO2-band controls. Only a loop
+        // plan has an OC bailout, so an OC plan never shows it.
+        if (state.mode != PlanMode.oc) ...[
+          const SizedBox(height: 8),
+          PlanHypercapniaControl(
+            amv: state.hypercapniaAmv,
+            minutes: state.hypercapniaMinutes,
+            explicitlyOff: state.hypercapniaExplicitlyOff,
+            // Never below the stressed rate, as BailoutSolver charges it.
+            defaultAmv: math.max(
+              bottomRmv * ref.watch(plannerHypercapniaFactorProvider),
+              stressedRmv,
+            ),
+            defaultMinutes: ref.watch(plannerHypercapniaMinutesProvider),
+            enabledInSettings: ref.watch(plannerHypercapniaEnabledProvider),
+            units: units,
+            onAmvChanged: (value) =>
+                notifier.updateGasOptions(hypercapniaAmv: value),
+            onMinutesChanged: (value) =>
+                notifier.updateGasOptions(hypercapniaMinutes: value),
+            onOff: (off) =>
+                notifier.updateGasOptions(hypercapniaExplicitlyOff: off),
+            onDefault: () => notifier.updateGasOptions(
+              clearHypercapniaAmv: true,
+              clearHypercapniaMinutes: true,
+              hypercapniaExplicitlyOff: false,
+            ),
           ),
-        ),
+        ],
         PlanNumberField(
           label: context.l10n.divePlanner_gasOptions_bestMixEnd,
           value: state.bestMixEndMeters != null

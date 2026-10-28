@@ -1573,6 +1573,8 @@ class PlanEngine {
       );
     }
 
+    // Built once per call, not per leg: the getter constructs a new object.
+    final decoLimits = config.decoLimits;
     for (var i = 0; i < legs.length; i++) {
       final leg = legs[i];
       final segment = leg.segment;
@@ -1600,14 +1602,14 @@ class PlanEngine {
           ? config.ppO2Deco
           : decoCeilingPpO2For(
               segment.gasMix,
-              config.decoLimits,
+              decoLimits,
               environment: environment,
             );
       final decoCeilingBreached = segmentIsLoop
           ? outcome.maxPpO2 > config.ppO2Deco
           : decoCeilingBreachedFor(
               segment.gasMix,
-              config.decoLimits,
+              decoLimits,
               depthMeters: deeperEnd,
               actualPpO2: outcome.maxPpO2,
               environment: environment,
@@ -1927,11 +1929,12 @@ class PlanEngine {
     DiveEnvironment environment,
   ) {
     final issues = <PlanIssue>[];
+    final decoLimits = config.decoLimits;
     for (final tank in tanks) {
       final check = modOverrideCheck(
         tank,
         bottomPpO2: config.ppO2Working,
-        decoPpO2: config.decoLimits,
+        decoPpO2: decoLimits,
         diluentPpO2: config.ccrDiluentModPpO2,
         environment: environment,
       );
@@ -1947,11 +1950,7 @@ class PlanEngine {
       // calls for (bottom or deco), not necessarily the deco ceiling.
       final isCritical =
           check.ppO2 >
-          decoCeilingPpO2For(
-            tank.gasMix,
-            config.decoLimits,
-            environment: environment,
-          );
+          decoCeilingPpO2For(tank.gasMix, decoLimits, environment: environment);
       issues.add(
         PlanIssue(
           type: isCritical

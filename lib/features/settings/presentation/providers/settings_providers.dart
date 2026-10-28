@@ -2639,9 +2639,17 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     await _saveSettings();
   }
 
+  /// Hypercapnia-bailout phase (issue #3743): an RMV factor of 1-10x bottom
+  /// RMV in 0.5 steps, held for 1-15 minutes.
+  static const double plannerHypercapniaFactorMin = 1.0;
+  static const double plannerHypercapniaFactorMax = 10.0;
+  static const double plannerHypercapniaFactorStep = 0.5;
+  static const int plannerHypercapniaMinutesMin = 1;
+  static const int plannerHypercapniaMinutesMax = 15;
+
   /// Set the hypercapnia-bailout toggle/factor/duration at once, in a
   /// single persisted write (issue #3743), mirroring
-  /// [setPpO2DecoBandsConfig]'s shape.
+  /// [setPpO2DecoBandsConfig]'s shape, including its clamping and snapping.
   Future<void> setPlannerHypercapniaConfig({
     required bool enabled,
     required double factor,
@@ -2649,8 +2657,14 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   }) async {
     state = state.copyWith(
       plannerHypercapniaEnabled: enabled,
-      plannerHypercapniaFactor: factor,
-      plannerHypercapniaMinutes: minutes,
+      plannerHypercapniaFactor: onStepGrid(
+        factor.clamp(plannerHypercapniaFactorMin, plannerHypercapniaFactorMax),
+        plannerHypercapniaFactorStep,
+      ),
+      plannerHypercapniaMinutes: minutes.clamp(
+        plannerHypercapniaMinutesMin,
+        plannerHypercapniaMinutesMax,
+      ),
     );
     await _saveSettings();
   }

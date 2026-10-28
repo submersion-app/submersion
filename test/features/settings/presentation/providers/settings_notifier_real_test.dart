@@ -381,6 +381,32 @@ void main() {
       expect(s.maxO2DepthMeters, closeTo(7.0, 1e-9));
     });
 
+    test('setPlannerHypercapniaConfig clamps and snaps its inputs '
+        '(issue #3743)', () async {
+      container.read(settingsProvider.notifier);
+      await waitForInit();
+      final notifier = container.read(settingsProvider.notifier);
+
+      await notifier.setPlannerHypercapniaConfig(
+        enabled: true,
+        factor: 0.2,
+        minutes: -3,
+      );
+      var s = container.read(settingsProvider);
+      expect(s.plannerHypercapniaEnabled, isTrue);
+      expect(s.plannerHypercapniaFactor, 1.0);
+      expect(s.plannerHypercapniaMinutes, 1);
+
+      await notifier.setPlannerHypercapniaConfig(
+        enabled: true,
+        factor: 4.3,
+        minutes: 99,
+      );
+      s = container.read(settingsProvider);
+      expect(s.plannerHypercapniaFactor, 4.5);
+      expect(s.plannerHypercapniaMinutes, 15);
+    });
+
     test(
       'setPpO2DecoBandsConfig snaps off-grid band/depth values (issue #3580)',
       () async {

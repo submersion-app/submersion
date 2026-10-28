@@ -156,6 +156,9 @@ class PlanHypercapniaControl extends StatelessWidget {
             hintValue: defaultMinutes.toDouble(),
             suffixText: l10n.divePlanner_label_minutesUnit,
             isInteger: true,
+            // A Custom phase of 0 minutes would read as on but size the
+            // bailout as if it were off.
+            min: 1,
             allowEmpty: false,
             onChanged: (value) =>
                 onMinutesChanged((value ?? defaultMinutes.toDouble()).round()),
