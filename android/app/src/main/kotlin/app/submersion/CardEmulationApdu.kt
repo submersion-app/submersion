@@ -59,6 +59,12 @@ class CardEmulationApdu {
 
     fun process(apdu: ByteArray): ByteArray {
         if (apdu.size < 4) return NOT_SUPPORTED
+        // In the background no tag is presented, not even to a reader that
+        // selected it before the app paused.
+        if (paused) {
+            reset()
+            return NOT_FOUND
+        }
         val ins = apdu[1].toInt() and 0xFF
         val p1 = apdu[2].toInt() and 0xFF
         return when (ins) {
@@ -74,7 +80,7 @@ class CardEmulationApdu {
         if (apdu.size < 5 + length) return NOT_FOUND
         val data = apdu.copyOfRange(5, 5 + length)
         if (p1 == 0x04) {
-            appSelected = !paused && message != null && data.contentEquals(NDEF_AID)
+            appSelected = message != null && data.contentEquals(NDEF_AID)
             selected = Selected.NONE
             return if (appSelected) OK else NOT_FOUND
         }

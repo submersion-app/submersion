@@ -105,4 +105,14 @@ class CardEmulationApduTest {
         apdu.paused = false
         assertArrayEquals(ok, apdu.process(selectApp))
     }
+
+    @Test
+    fun aReaderAlreadyInsideTheTagGetsNothingOncePaused() {
+        apdu.message = bytes(0xD1, 0x01)
+        apdu.process(selectApp)
+        apdu.process(selectNdef)
+        apdu.paused = true
+        assertArrayEquals(notFound, apdu.process(readBinary(0, 2)))
+        assertArrayEquals(notFound, apdu.process(selectCc))
+    }
 }
