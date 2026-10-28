@@ -217,6 +217,41 @@ void main() {
     expect((await repository.getDiveById('d2'))!.site, isNull);
   });
 
+  testWidgets('clearing a picked site unlinks every dive on apply', (
+    tester,
+  ) async {
+    for (final id in ['d1', 'd2']) {
+      await repository.createDive(
+        domain.Dive(
+          id: id,
+          dateTime: DateTime(2026, 1, 1),
+          notes: '',
+          site: _reef,
+        ),
+      );
+    }
+    await pumpBulk(tester);
+
+    await enableSiteGate(tester);
+    await tester.tap(find.text('Site'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('House Reef'));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.descendant(of: siteGate(), matching: find.byIcon(Icons.clear)),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      find.descendant(of: siteGate(), matching: find.text('Not set')),
+      findsOneWidget,
+    );
+
+    await saveAndApply(tester);
+
+    expect((await repository.getDiveById('d1'))!.site, isNull);
+    expect((await repository.getDiveById('d2'))!.site, isNull);
+  });
+
   testWidgets('a picked site with its gate off writes nothing', (tester) async {
     await repository.createDive(
       domain.Dive(id: 'd1', dateTime: DateTime(2026, 1, 1), notes: ''),
