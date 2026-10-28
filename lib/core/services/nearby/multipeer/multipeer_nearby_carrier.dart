@@ -15,20 +15,32 @@ typedef MultipeerProximity = ({String transportId, double meters});
 /// One method channel both ways. Dart calls `isSupported`, `advertise`,
 /// `browse`, `connect`, `send` and `close`; native calls `onEvent` with a
 /// map whose `type` is `found`, `lost`, `incoming`, `data`, `closed` or
-/// `proximity`.
+/// `proximity`. A link is a peer plus a direction (`out` for one this
+/// device opened, `in` for one it accepted): two divers who dial each
+/// other at once hold two separate links, not one that each tears down.
+///
+/// Multipeer reports a peer once when found and once when lost, so a found
+/// peer is re-sighted every [presenceInterval] until it is lost: the card
+/// host keeps a diver listed only while they keep being seen.
 class MultipeerNearbyCarrier implements NearbyCarrier {
   MultipeerNearbyCarrier({
     MethodChannel channel = const MethodChannel('app.submersion/multipeer'),
+    this.presenceInterval = const Duration(seconds: 10),
   }) : _channel = channel {
     _channel.setMethodCallHandler(_onCall);
   }
 
   final MethodChannel _channel;
+  final Duration presenceInterval;
+  final _found = <String>{};
+  Timer? _presence;
   final _sightings = StreamController<NearbyPeerSighting>.broadcast();
   final _incoming = StreamController<NearbyEndpoint>.broadcast();
   final _availability = StreamController<NearbyAvailability>.broadcast();
   final _proximity = StreamController<MultipeerProximity>.broadcast();
   final _ends = <String, _MultipeerEnd>{};
+
+  static String _key(String peerId, String dir) => '$dir|$peerId';
 
   @override
   bool get canAdvertise => true;
@@ -75,10 +87,27 @@ class MultipeerNearbyCarrier implements NearbyCarrier {
   }
 
   _MultipeerEnd _open(String peerId, {required bool isInitiator}) {
-    _ends.remove(peerId)?._closeLocally();
     final end = _MultipeerEnd(this, peerId, isInitiator);
-    _ends[peerId] = end;
+    _ends.remove(end.key)?._closeLocally();
+    _ends[end.key] = end;
     return end;
+  }
+
+  void _sight(String peerId) => _sightings.add(
+    NearbyPeerSighting(transportId: peerId, seenAt: DateTime.now()),
+  );
+
+  void _updatePresence() {
+    if (_found.isEmpty) {
+      _presence?.cancel();
+      _presence = null;
+    } else {
+      _presence ??= Timer.periodic(presenceInterval, (_) {
+        for (final peerId in _found.toList()) {
+          _sight(peerId);
+        }
+      });
+    }
   }
 
   Future<dynamic> _onCall(MethodCall call) async {
@@ -87,18 +116,22 @@ class MultipeerNearbyCarrier implements NearbyCarrier {
     if (event is! Map) return null;
     final peerId = event['peerId'];
     if (peerId is! String) return null;
+    final dir = event['dir'] == 'in' ? 'in' : 'out';
     switch (event['type']) {
       case 'found':
-        _sightings.add(
-          NearbyPeerSighting(transportId: peerId, seenAt: DateTime.now()),
-        );
+        _found.add(peerId);
+        _sight(peerId);
+        _updatePresence();
+      case 'lost':
+        _found.remove(peerId);
+        _updatePresence();
       case 'incoming':
         _incoming.add(_open(peerId, isInitiator: false));
       case 'data':
         final bytes = event['bytes'];
-        if (bytes is Uint8List) _ends[peerId]?._receive(bytes);
+        if (bytes is Uint8List) _ends[_key(peerId, dir)]?._receive(bytes);
       case 'closed':
-        _ends.remove(peerId)?._closeLocally();
+        _ends.remove(_key(peerId, dir))?._closeLocally();
       case 'proximity':
         final meters = event['meters'];
         if (meters is num) {
@@ -110,6 +143,8 @@ class MultipeerNearbyCarrier implements NearbyCarrier {
 
   Future<void> dispose() async {
     _channel.setMethodCallHandler(null);
+    _presence?.cancel();
+    _found.clear();
     for (final end in _ends.values.toList()) {
       end._closeLocally();
     }
@@ -134,6 +169,10 @@ class _MultipeerEnd implements NearbyEndpoint {
   @override
   final bool isInitiator;
 
+  String get _dir => isInitiator ? 'out' : 'in';
+
+  String get key => MultipeerNearbyCarrier._key(transportId, _dir);
+
   @override
   Stream<Uint8List> get inbound => _inbound.stream;
 
@@ -153,6 +192,7 @@ class _MultipeerEnd implements NearbyEndpoint {
     try {
       await _carrier._channel.invokeMethod('send', {
         'peerId': transportId,
+        'dir': _dir,
         'bytes': bytes,
       });
     } on PlatformException {
@@ -165,9 +205,10 @@ class _MultipeerEnd implements NearbyEndpoint {
   Future<void> close() async {
     if (_closed) return;
     _closeLocally();
-    if (_carrier._ends[transportId] == this) {
-      _carrier._ends.remove(transportId);
-    }
-    await _carrier._channel.invokeMethod('close', {'peerId': transportId});
+    if (_carrier._ends[key] == this) _carrier._ends.remove(key);
+    await _carrier._channel.invokeMethod('close', {
+      'peerId': transportId,
+      'dir': _dir,
+    });
   }
 }

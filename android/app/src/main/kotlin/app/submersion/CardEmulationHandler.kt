@@ -38,6 +38,22 @@ class CardEmulationHandler(
         return CardEmulation.getInstance(adapter)
     }
 
+    /**
+     * Android asks for the preferred service to be released in onPause; it
+     * is taken back on resume while the swap screen still shares a card.
+     */
+    fun onPause() {
+        CardEmulationApdu.shared.paused = true
+        runCatching { cardEmulation()?.unsetPreferredService(activity) }
+    }
+
+    fun onResume() {
+        CardEmulationApdu.shared.paused = false
+        if (CardEmulationApdu.shared.message != null) {
+            runCatching { cardEmulation()?.setPreferredService(activity, component) }
+        }
+    }
+
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
         when (call.method) {
             "isSupported" -> result.success(

@@ -46,4 +46,14 @@ class MainActivity : FlutterFragmentActivity() {
         )
         cardEmulationHandler = CardEmulationHandler(this, cardEmulationChannel)
     }
+
+    override fun onPause() {
+        cardEmulationHandler?.onPause()
+        super.onPause()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        cardEmulationHandler?.onResume()
+    }
 }

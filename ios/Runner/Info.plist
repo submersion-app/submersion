@@ -172,6 +172,13 @@
 		<string>_subm-card._tcp</string>
 		<string>_subm-card._udp</string>
 	</array>
+	<key>com.apple.developer.nfc.readersession.iso7816.select-identifiers</key>
+	<array>
+		<!-- The NFC Forum Type 4 tag application: an Android phone presenting a
+		     buddy card (issue #3728). Core NFC only surfaces an ISO 7816 tag
+		     whose application identifier is listed here. -->
+		<string>D2760000850101</string>
+	</array>
 	<key>NSNearbyInteractionUsageDescription</key>
 	<string>Submersion senses when you hold your phone next to a buddy's to swap buddy cards.</string>
 	<key>NSBluetoothAlwaysUsageDescription</key>

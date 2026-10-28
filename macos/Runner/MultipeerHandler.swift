@@ -17,19 +17,28 @@ import MultipeerConnectivity
 ///   - isSupported() -> Bool
 ///   - advertise(Bool), browse(Bool)
 ///   - connect({peerId}) completes once connected, or fails
-///   - send({peerId, bytes}), close({peerId})
+///   - send({peerId, dir, bytes}), close({peerId, dir})
 /// Events, as onEvent({type, peerId, ...}) calls into Dart:
-///   found, lost, incoming, data {bytes}, closed, proximity {meters}
+///   found, lost, incoming {dir}, data {dir, bytes}, closed {dir},
+///   proximity {meters}
+///
+/// A card link is a peer plus a direction: `out` for one this device
+/// invited, `in` for one it accepted. Two divers who dial each other at
+/// once hold two separate sessions rather than one each side tears down.
 ///
 /// The advertised peer name is random per run, so nothing in range learns
 /// who the device belongs to before the card session's own handshake. On
-/// iPhone 11 and later, Nearby Interaction ranging reports how close each
-/// connected peer is, from discovery tokens exchanged over the session.
+/// iPhone 11 and later, Nearby Interaction ranging runs on a separate
+/// session per found peer that lasts until the peer is lost (card sessions
+/// close within a second of a look); only the peer with the lower name
+/// invites it, so the two never cross.
 class MultipeerHandler: NSObject {
   private static let serviceType = "subm-card"
 
-  /// Prefixes a Nearby Interaction token on the session. A nearby frame
-  /// starts with its 4-byte length, and no frame is this long.
+  /// The invitation context that asks for a ranging session.
+  private static let rangingContext = Data("ni".utf8)
+
+  /// Prefixes a Nearby Interaction token on a ranging session.
   private static let tokenMarker = Data("NI1:".utf8)
 
   private let channel: FlutterMethodChannel
@@ -37,10 +46,15 @@ class MultipeerHandler: NSObject {
   private var advertiser: MCNearbyServiceAdvertiser?
   private var browser: MCNearbyServiceBrowser?
   private var found: [String: MCPeerID] = [:]
+
+  /// Card sessions, keyed "out|id" or "in|id".
   private var sessions: [String: MCSession] = [:]
-  private var invited: Set<String> = []
   private var pendingConnects: [String: FlutterResult] = [:]
+
+  /// Ranging sessions and their Nearby Interaction state, keyed by peer id.
+  private var rangingSessions: [String: MCSession] = [:]
   private var ranging: [String: AnyObject] = [:]
+  private var pendingTokens: [String: Data] = [:]
 
   init(messenger: FlutterBinaryMessenger) {
     channel = FlutterMethodChannel(
@@ -51,9 +65,12 @@ class MultipeerHandler: NSObject {
     channel.setMethodCallHandler(handle)
   }
 
+  private static func key(_ id: String, _ dir: String) -> String { "\(dir)|\(id)" }
+
   private func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
     let args = call.arguments as? [String: Any]
     let peerId = args?["peerId"] as? String
+    let dir = (args?["dir"] as? String) == "in" ? "in" : "out"
     switch call.method {
     case "isSupported":
       result(true)
@@ -68,11 +85,12 @@ class MultipeerHandler: NSObject {
         result(FlutterError(code: "notFound", message: "Peer not in range", details: nil))
         return
       }
-      let session = newSession(for: id)
-      pendingConnects[id] = result
+      let key = Self.key(id, "out")
+      let session = newCardSession(key)
+      pendingConnects[key] = result
       browser.invitePeer(peer, to: session, withContext: nil, timeout: 15)
     case "send":
-      guard let id = peerId, let session = sessions[id],
+      guard let id = peerId, let session = sessions[Self.key(id, dir)],
             let bytes = args?["bytes"] as? FlutterStandardTypedData else {
         result(FlutterError(code: "closed", message: "No session", details: nil))
         return
@@ -84,7 +102,7 @@ class MultipeerHandler: NSObject {
         result(FlutterError(code: "sendFailed", message: error.localizedDescription, details: nil))
       }
     case "close":
-      if let id = peerId { endSession(id, notify: false) }
+      if let id = peerId { endCardSession(Self.key(id, dir), notify: false) }
       result(nil)
     default:
       result(FlutterMethodNotImplemented)
@@ -105,6 +123,7 @@ class MultipeerHandler: NSObject {
   private func setBrowsing(_ on: Bool) {
     browser?.stopBrowsingForPeers()
     browser = nil
+    for id in found.keys { endRanging(id) }
     found.removeAll()
     guard on else { return }
     let b = MCNearbyServiceBrowser(peer: myPeer, serviceType: Self.serviceType)
@@ -113,26 +132,35 @@ class MultipeerHandler: NSObject {
     browser = b
   }
 
-  private func newSession(for id: String) -> MCSession {
-    endSession(id, notify: false)
+  private func newSession() -> MCSession {
     let session = MCSession(
       peer: myPeer, securityIdentity: nil, encryptionPreference: .required)
     session.delegate = self
-    sessions[id] = session
     return session
   }
 
-  private func endSession(_ id: String, notify: Bool) {
-    ranging.removeValue(forKey: id)
-    if let session = sessions.removeValue(forKey: id) {
+  private func newCardSession(_ key: String) -> MCSession {
+    endCardSession(key, notify: false)
+    let session = newSession()
+    sessions[key] = session
+    return session
+  }
+
+  private func endCardSession(_ key: String, notify: Bool) {
+    if let session = sessions.removeValue(forKey: key) {
       session.delegate = nil
       session.disconnect()
     }
-    invited.remove(id)
-    if let pending = pendingConnects.removeValue(forKey: id) {
+    if let pending = pendingConnects.removeValue(forKey: key) {
       pending(FlutterError(code: "notConnected", message: "Connection failed", details: nil))
     }
-    if notify { emit(["type": "closed", "peerId": id]) }
+    if notify, let bar = key.firstIndex(of: "|") {
+      emit([
+        "type": "closed",
+        "peerId": String(key[key.index(after: bar)...]),
+        "dir": String(key[..<bar]),
+      ])
+    }
   }
 
   private func emit(_ event: [String: Any]) {
@@ -141,19 +169,71 @@ class MultipeerHandler: NSObject {
     }
   }
 
-  private func startRanging(with id: String) {
+  private func cardKey(of session: MCSession) -> String? {
+    sessions.first(where: { $0.value === session })?.key
+  }
+
+  private func rangingId(of session: MCSession) -> String? {
+    rangingSessions.first(where: { $0.value === session })?.key
+  }
+
+  // MARK: Nearby Interaction
+
+  private var supportsRanging: Bool {
     #if os(iOS) && canImport(NearbyInteraction)
     if #available(iOS 16.0, *) {
-      guard NISession.deviceCapabilities.supportsPreciseDistanceMeasurement,
-            let session = sessions[id] else { return }
+      return NISession.deviceCapabilities.supportsPreciseDistanceMeasurement
+    }
+    #endif
+    return false
+  }
+
+  /// Opens the ranging session with a newly found peer, from the side with
+  /// the lower name only; the other side accepts its invitation.
+  private func startRanging(with peer: MCPeerID) {
+    guard supportsRanging, let browser = browser,
+          myPeer.displayName < peer.displayName,
+          rangingSessions[peer.displayName] == nil else { return }
+    let session = newSession()
+    rangingSessions[peer.displayName] = session
+    createNI(for: peer.displayName)
+    browser.invitePeer(peer, to: session, withContext: Self.rangingContext, timeout: 15)
+  }
+
+  private func endRanging(_ id: String) {
+    ranging.removeValue(forKey: id)
+    pendingTokens.removeValue(forKey: id)
+    if let session = rangingSessions.removeValue(forKey: id) {
+      session.delegate = nil
+      session.disconnect()
+    }
+  }
+
+  /// The Nearby Interaction session for [id], made before any token can
+  /// arrive, so a token that beats this side's own connected callback is
+  /// kept rather than dropped.
+  private func createNI(for id: String) {
+    #if os(iOS) && canImport(NearbyInteraction)
+    if #available(iOS 16.0, *), ranging[id] == nil {
       let ni = NISession()
       ni.delegate = self
       ranging[id] = ni
-      guard let token = ni.discoveryToken,
+    }
+    #endif
+  }
+
+  private func sendToken(to id: String) {
+    #if os(iOS) && canImport(NearbyInteraction)
+    if #available(iOS 16.0, *) {
+      guard let ni = ranging[id] as? NISession, let session = rangingSessions[id],
+            let token = ni.discoveryToken,
             let tokenData = try? NSKeyedArchiver.archivedData(
               withRootObject: token, requiringSecureCoding: true) else { return }
       try? session.send(
         Self.tokenMarker + tokenData, toPeers: session.connectedPeers, with: .reliable)
+      if let early = pendingTokens.removeValue(forKey: id) {
+        receivedToken(early, from: id)
+      }
     }
     #endif
   }
@@ -161,16 +241,15 @@ class MultipeerHandler: NSObject {
   private func receivedToken(_ data: Data, from id: String) {
     #if os(iOS) && canImport(NearbyInteraction)
     if #available(iOS 16.0, *) {
-      guard let ni = ranging[id] as? NISession,
-            let token = try? NSKeyedUnarchiver.unarchivedObject(
-              ofClass: NIDiscoveryToken.self, from: data) else { return }
+      guard let ni = ranging[id] as? NISession else {
+        pendingTokens[id] = data
+        return
+      }
+      guard let token = try? NSKeyedUnarchiver.unarchivedObject(
+        ofClass: NIDiscoveryToken.self, from: data) else { return }
       ni.run(NINearbyPeerConfiguration(peerToken: token))
     }
     #endif
-  }
-
-  private func id(of session: MCSession) -> String? {
-    sessions.first(where: { $0.value === session })?.key
   }
 }
 
@@ -182,12 +261,14 @@ extension MultipeerHandler: MCNearbyServiceBrowserDelegate {
     DispatchQueue.main.async {
       self.found[peerID.displayName] = peerID
       self.emit(["type": "found", "peerId": peerID.displayName])
+      self.startRanging(with: peerID)
     }
   }
 
   func browser(_ browser: MCNearbyServiceBrowser, lostPeer peerID: MCPeerID) {
     DispatchQueue.main.async {
       self.found.removeValue(forKey: peerID.displayName)
+      self.endRanging(peerID.displayName)
       self.emit(["type": "lost", "peerId": peerID.displayName])
     }
   }
@@ -201,9 +282,19 @@ extension MultipeerHandler: MCNearbyServiceAdvertiserDelegate {
   ) {
     DispatchQueue.main.async {
       let id = peerID.displayName
-      let session = self.newSession(for: id)
-      self.invited.insert(id)
-      invitationHandler(true, session)
+      if context == Self.rangingContext {
+        guard self.supportsRanging else {
+          invitationHandler(false, nil)
+          return
+        }
+        self.endRanging(id)
+        let session = self.newSession()
+        self.rangingSessions[id] = session
+        self.createNI(for: id)
+        invitationHandler(true, session)
+        return
+      }
+      invitationHandler(true, self.newCardSession(Self.key(id, "in")))
     }
   }
 }
@@ -211,17 +302,28 @@ extension MultipeerHandler: MCNearbyServiceAdvertiserDelegate {
 extension MultipeerHandler: MCSessionDelegate {
   func session(_ session: MCSession, peer peerID: MCPeerID, didChange state: MCSessionState) {
     DispatchQueue.main.async {
-      guard let id = self.id(of: session) else { return }
+      if let id = self.rangingId(of: session) {
+        switch state {
+        case .connected: self.sendToken(to: id)
+        case .notConnected: self.endRanging(id)
+        default: break
+        }
+        return
+      }
+      guard let key = self.cardKey(of: session), let bar = key.firstIndex(of: "|") else {
+        return
+      }
+      let dir = String(key[..<bar])
+      let id = String(key[key.index(after: bar)...])
       switch state {
       case .connected:
-        if let pending = self.pendingConnects.removeValue(forKey: id) {
+        if let pending = self.pendingConnects.removeValue(forKey: key) {
           pending(nil)
-        } else if self.invited.remove(id) != nil {
-          self.emit(["type": "incoming", "peerId": id])
+        } else if dir == "in" {
+          self.emit(["type": "incoming", "peerId": id, "dir": "in"])
         }
-        self.startRanging(with: id)
       case .notConnected:
-        self.endSession(id, notify: true)
+        self.endCardSession(key, notify: true)
       default:
         break
       }
@@ -230,13 +332,20 @@ extension MultipeerHandler: MCSessionDelegate {
 
   func session(_ session: MCSession, didReceive data: Data, fromPeer peerID: MCPeerID) {
     DispatchQueue.main.async {
-      guard let id = self.id(of: session) else { return }
-      if data.starts(with: Self.tokenMarker) {
-        self.receivedToken(data.dropFirst(Self.tokenMarker.count), from: id)
+      if let id = self.rangingId(of: session) {
+        if data.starts(with: Self.tokenMarker) {
+          self.receivedToken(data.dropFirst(Self.tokenMarker.count), from: id)
+        }
+        return
+      }
+      guard let key = self.cardKey(of: session), let bar = key.firstIndex(of: "|") else {
         return
       }
       self.emit([
-        "type": "data", "peerId": id, "bytes": FlutterStandardTypedData(bytes: data),
+        "type": "data",
+        "peerId": String(key[key.index(after: bar)...]),
+        "dir": String(key[..<bar]),
+        "bytes": FlutterStandardTypedData(bytes: data),
       ])
     }
   }

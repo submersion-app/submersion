@@ -17,6 +17,7 @@ class CardEmulationApdu {
         private val OK = bytes(0x90, 0x00)
         private val NOT_FOUND = bytes(0x6A, 0x82)
         private val NOT_SUPPORTED = bytes(0x6D, 0x00)
+        private val WRONG_OFFSET = bytes(0x6B, 0x00)
         private val NDEF_AID = bytes(0xD2, 0x76, 0x00, 0x00, 0x85, 0x01, 0x01)
         private val CC_FILE = bytes(0xE1, 0x03)
         private val NDEF_FILE = bytes(0xE1, 0x04)
@@ -42,6 +43,10 @@ class CardEmulationApdu {
     /** The NDEF message presented; null while the swap screen is closed. */
     @Volatile
     var message: ByteArray? = null
+
+    /** True while the app is not in the foreground: no tag is presented. */
+    @Volatile
+    var paused = false
 
     private var appSelected = false
     private var selected = Selected.NONE
@@ -69,7 +74,7 @@ class CardEmulationApdu {
         if (apdu.size < 5 + length) return NOT_FOUND
         val data = apdu.copyOfRange(5, 5 + length)
         if (p1 == 0x04) {
-            appSelected = message != null && data.contentEquals(NDEF_AID)
+            appSelected = !paused && message != null && data.contentEquals(NDEF_AID)
             selected = Selected.NONE
             return if (appSelected) OK else NOT_FOUND
         }
@@ -90,7 +95,7 @@ class CardEmulationApdu {
         }
         val offset = ((apdu[2].toInt() and 0xFF) shl 8) or (apdu[3].toInt() and 0xFF)
         val wanted = if (apdu.size > 4) apdu[4].toInt() and 0xFF else 0
-        if (offset > file.size) return NOT_FOUND
+        if (offset >= file.size) return WRONG_OFFSET
         val end = minOf(file.size, offset + if (wanted == 0) 256 else wanted)
         return file.copyOfRange(offset, end) + OK
     }

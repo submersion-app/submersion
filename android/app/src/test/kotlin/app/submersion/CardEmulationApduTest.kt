@@ -86,4 +86,23 @@ class CardEmulationApduTest {
         apdu.process(selectApp)
         assertArrayEquals(notFound, apdu.process(readBinary(0, 2)))
     }
+
+    @Test
+    fun readingFromTheEndOfTheFileIsAWrongOffset() {
+        apdu.message = bytes(0xD1, 0x01)
+        apdu.process(selectApp)
+        apdu.process(selectNdef)
+        // The NDEF file is 2 length bytes plus 2 message bytes.
+        assertArrayEquals(bytes(0x6B, 0x00), apdu.process(readBinary(4, 2)))
+        assertArrayEquals(bytes(0x6B, 0x00), apdu.process(readBinary(9, 2)))
+    }
+
+    @Test
+    fun pausingStopsAnsweringUntilResumed() {
+        apdu.message = bytes(0xD1)
+        apdu.paused = true
+        assertArrayEquals(notFound, apdu.process(selectApp))
+        apdu.paused = false
+        assertArrayEquals(ok, apdu.process(selectApp))
+    }
 }
