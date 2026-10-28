@@ -111,24 +111,27 @@ void main() {
     });
     tearDown(() async => tearDownTestDatabase());
 
+    // Dive times are wall clocks flagged as UTC, so today's local date is
+    // stored with DateTime.utc. A local DateTime would land on the previous
+    // UTC day east of Greenwich and miss the month/day match.
     test('hydrates dives from this date in prior years', () async {
       final now = DateTime.now();
       await repository.createDive(
         Dive(
           id: 'two-years-ago',
-          dateTime: DateTime(now.year - 2, now.month, now.day, 10),
+          dateTime: DateTime.utc(now.year - 2, now.month, now.day, 10),
         ),
       );
       await repository.createDive(
         Dive(
           id: 'last-year',
-          dateTime: DateTime(now.year - 1, now.month, now.day, 10),
+          dateTime: DateTime.utc(now.year - 1, now.month, now.day, 10),
         ),
       );
       await repository.createDive(
         Dive(
           id: 'this-year',
-          dateTime: DateTime(now.year, now.month, now.day, 8),
+          dateTime: DateTime.utc(now.year, now.month, now.day, 8),
         ),
       );
 
@@ -141,12 +144,7 @@ void main() {
       await repository.createDive(
         Dive(
           id: 'other-day',
-          dateTime: DateTime(
-            now.year - 1,
-            now.month,
-            now.day,
-            10,
-          ).add(const Duration(days: 3)),
+          dateTime: DateTime.utc(now.year - 1, now.month, now.day + 3, 10),
         ),
       );
 

@@ -4,13 +4,15 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/trips/domain/services/day_rhythm_layout.dart';
 
 void main() {
+  // Dive times are wall clocks flagged as UTC, so every dive here is built
+  // with DateTime.utc; a local DateTime would move with the machine's zone.
   Dive dive(DateTime dt, {Duration? bottomTime}) =>
       Dive(id: dt.toIso8601String(), dateTime: dt, bottomTime: bottomTime);
 
   test('positions a morning dive at its fraction of the day', () {
     final blocks = computeRhythmBlocks([
       dive(
-        DateTime(2026, 3, 8, 6),
+        DateTime.utc(2026, 3, 8, 6),
         bottomTime: const Duration(hours: 2, minutes: 24),
       ),
     ]);
@@ -22,7 +24,7 @@ void main() {
   test('marks night dives and enforces minimum width', () {
     final blocks = computeRhythmBlocks([
       dive(
-        DateTime(2026, 3, 8, 19, 30),
+        DateTime.utc(2026, 3, 8, 19, 30),
         bottomTime: const Duration(minutes: 5),
       ),
     ]);
@@ -47,7 +49,7 @@ void main() {
 
   test('clamps blocks that run past midnight', () {
     final blocks = computeRhythmBlocks([
-      dive(DateTime(2026, 3, 8, 23, 30)), // default 45min crosses midnight
+      dive(DateTime.utc(2026, 3, 8, 23, 30)), // default 45min crosses midnight
     ]);
     expect(
       blocks.single.startFraction + blocks.single.widthFraction,
