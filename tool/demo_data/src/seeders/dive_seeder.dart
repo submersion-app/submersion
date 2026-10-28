@@ -70,6 +70,7 @@ class DiveSeeder implements DemoSeeder {
         volumesL: [for (final t in tanks) t.volumeL],
       );
       final shift = _temperatureShift(shape, d);
+      if (d.scooter) ctx.scooterProfiles[d.number] = shape.samples;
       final id = ctx.diveId(d.number);
       final kit = kitFor(d, ctx.timeline, photo: isPhotoDive(d, ctx.timeline));
       // Each cell's output per bar; the swapped-in cell 2 is new and strong.

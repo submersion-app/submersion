@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:submersion/core/database/database.dart';
 
+import '../shape/dive_shape.dart';
 import '../shape/reshaper.dart';
 import '../shape/shape_library.dart';
 import '../story/story_plan.dart';
@@ -72,6 +73,9 @@ class DemoSeedContext {
 
   /// Species ids by common name, after the built-in species are seeded.
   final species = <String, String>{};
+
+  /// The profile each scooter dive was written with, for its route.
+  final scooterProfiles = <int, List<ShapeSample>>{};
 
   /// Planned dive number to the shape and tank ids it was written with.
   final diveTankIds = <int, List<String>>{};

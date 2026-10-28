@@ -1,7 +1,4 @@
-import 'dart:math';
-
 import 'package:submersion/core/constants/enums.dart';
-import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/checklists/data/repositories/checklist_template_repository.dart';
 import 'package:submersion/features/checklists/domain/entities/checklist_template.dart';
 import 'package:submersion/features/checklists/domain/entities/checklist_template_section.dart';
@@ -10,11 +7,6 @@ import 'package:submersion/features/dive_planner/domain/entities/plan_segment.da
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/domain/entities/document_page.dart';
-import 'package:submersion/features/gps_log/data/repositories/gps_track_repository.dart';
-import 'package:submersion/features/gps_log/domain/entities/gps_track.dart';
-import 'package:submersion/features/nav_track/data/repositories/nav_track_repository.dart';
-import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
-import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
 import 'package:submersion/features/planner/data/repositories/dive_plan_repository.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart';
 import 'package:submersion/features/planner/domain/entities/mission/dpv_mission.dart';
@@ -33,18 +25,17 @@ import 'seed_context.dart';
 import 'trip_seeder.dart';
 
 /// Dive plans (an open-circuit deco plan, a rebreather plan and a scooter
-/// mission), checklists before a dive and before a trip, travel documents,
-/// and the GPS and underwater route tracks.
+/// mission), checklists before a dive and before a trip, and travel
+/// documents.
 class PlanningSeeder implements DemoSeeder {
   @override
-  String get name => 'plans, checklists, documents and tracks';
+  String get name => 'plans, checklists and documents';
 
   @override
   Future<void> seed(DemoSeedContext ctx) async {
     await _plans(ctx);
     await _checklists(ctx);
     await _documents(ctx);
-    await _tracks(ctx);
   }
 
   Future<void> _plans(DemoSeedContext ctx) async {
@@ -418,58 +409,4 @@ class PlanningSeeder implements DemoSeeder {
       ['Pre-dive checks', 'Cell calibration', 'Bailout procedure'],
     );
   }
-
-  Future<void> _tracks(DemoSeedContext ctx) async {
-    final gps = GpsTrackRepository();
-    final boatDives = ctx.plan.dives
-        .where((d) => d.destination.key != 'home')
-        .toList();
-    for (final d in [
-      boatDives[3],
-      boatDives[boatDives.length ~/ 2],
-      boatDives[boatDives.length - 5],
-    ]) {
-      final site = ctx.plan.sites.firstWhere((s) => s.id == d.siteId);
-      final start = d.start.subtract(const Duration(minutes: 45));
-      final points = [
-        for (var i = 0; i <= 150; i++)
-          GpsTrackPoint(
-            timestamp: _wallSeconds(start.add(Duration(minutes: i))),
-            latitude: site.latitude + 0.02 * cos(i / 25) - 0.02,
-            longitude: site.longitude + 0.02 * sin(i / 25),
-          ),
-      ];
-      await gps.insertImportedTrack(
-        points: points,
-        startTimeMs: points.first.timestamp * 1000,
-        endTimeMs: points.last.timestamp * 1000,
-        tzOffsetMinutes: 0,
-        source: 'demo',
-        name: 'Boat to ${site.name}',
-      );
-    }
-
-    final scooterDive = ctx.plan.dives.firstWhere((d) => d.scooter);
-    final routeStart = scooterDive.start.add(const Duration(minutes: 3));
-    await NavTrackRepository().insertImportedRoute(
-      points: [
-        for (var i = 0; i <= 600; i++)
-          NavTrackPoint(
-            timestamp: _wallSeconds(routeStart.add(Duration(seconds: i * 5))),
-            north: 600 * sin(pi * i / 600),
-            east: 220 * sin(2 * pi * i / 600),
-            depth: 22 + 6 * sin(pi * i / 300).abs(),
-          ),
-      ],
-      source: NavTrackSource.seacraftEnc,
-      sourceRef: 'demo-route-1',
-      diveId: ctx.diveId(scooterDive.number),
-      siteId: ctx.siteId(scooterDive.siteId),
-      diverId: DemoSeedContext.diverId,
-    );
-  }
-
-  /// A local time as wall-clock-as-UTC epoch seconds, the tracks' convention.
-  static int _wallSeconds(DateTime t) =>
-      asWallClockUtc(t).millisecondsSinceEpoch ~/ 1000;
 }

@@ -18,7 +18,7 @@ void main() {
 
   Future<Set<String>> column(String sql, String name) async => {
     for (final r in await ctx.db.customSelect(sql).get())
-      if (r.read<String?>(name) case final v?) v,
+      ?r.read<String?>(name),
   };
 
   test("every trip's packing list is the kit its dives used", () async {

@@ -11,6 +11,7 @@ import 'misc_seeder.dart';
 import 'places_seeder.dart';
 import 'planning_seeder.dart';
 import 'seed_context.dart';
+import 'track_seeder.dart';
 import 'training_seeder.dart';
 import 'trip_seeder.dart';
 
@@ -29,6 +30,7 @@ List<DemoSeeder> demoSeeders() => [
   TrainingLinksSeeder(),
   MediaSeeder(),
   PlanningSeeder(),
+  TrackSeeder(),
   MiscSeeder(),
   DerivedSeeder(),
 ];
