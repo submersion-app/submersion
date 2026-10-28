@@ -82,8 +82,12 @@ side effect of 300 dives. The builder sets the boundaries so each phase has a
 believable length and every certification comes before the first dive that
 needs it.
 
-The rebreather phase stays short and recent: about 15 to 18 dives, the most
-the harvest's 6 rebreather shapes allow (maintainer's choice). The cell drift,
+The rebreather phase stays short and recent: 15 dives, the most the harvest's
+rebreather shapes allow (maintainer's choice, first 15 to 18). The shapes go
+to 39 to 107 m, so a rebreather shape may be squeezed to 0.7 of its depth,
+against 0.85 for open circuit, and the dives sit at 29 to 40 m inside the
+rebreather card: the course at 29 to 32 m, the dives after it at 38 to 40 m
+(maintainer's choice, over a trimix rebreather card or only six dives). The cell drift,
 the cell swap, scrubber repacks and the Rebreather kit set all fit inside it.
 The rebreather's annual service shows as due soon, not done, because the
 diver has owned it for less than a year.

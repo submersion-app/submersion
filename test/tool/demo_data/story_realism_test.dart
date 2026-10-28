@@ -121,15 +121,39 @@ void main() {
     });
   });
 
-  test('rebreather dives stay within a CCR card', () {
+  test('rebreather dives stay within a CCR card, where the shapes reach', () {
+    // The harvest's rebreather shapes squeeze to 29 m at the shallowest, and
+    // only two of them reach below 36 m: the course dives take those. All
+    // five reach 38 to 40 m, so the dives after it always find a shape.
     eachPlan((name, plan) {
       for (final d in plan.dives.where((d) => d.diveMode == 'ccr')) {
+        final course = d.courseId == 'course-ccr';
         expect(
           d.targetMaxDepth,
-          lessThanOrEqualTo(40),
+          course ? inInclusiveRange(29, 32) : inInclusiveRange(38, 40),
           reason: '$name ${d.number}',
         );
       }
+    });
+  });
+
+  test('trimix dives stay at 50 to 62 m, where the harvest has shapes', () {
+    eachPlan((name, plan) {
+      final trimix = plan.dives.where(
+        (d) => d.wantedKinds.contains(ShapeKind.deepOpenCircuit),
+      );
+      expect(trimix, isNotEmpty, reason: name);
+      for (final d in trimix) {
+        expect(
+          d.targetMaxDepth,
+          inInclusiveRange(50, 62),
+          reason: '$name ${d.number}',
+        );
+      }
+      final technical = plan.dives.where(
+        (d) => d.phase == StoryPhase.technicalOc,
+      );
+      expect(trimix.length / technical.length, lessThan(0.12), reason: name);
     });
   });
 

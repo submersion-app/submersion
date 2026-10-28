@@ -21,33 +21,34 @@ void main() {
     computerCount: 1,
   );
 
-  StoryPlan plan(List<(Set<ShapeKind>, String)> wanted) => StoryPlan(
-    anchor: DateTime(2026, 10, 1),
-    dives: [
-      for (var i = 0; i < wanted.length; i++)
-        PlannedDive(
-          number: i + 1,
-          start: DateTime(2026, 1, 1, 9).add(Duration(hours: 4 * i)),
-          phase: StoryPhase.technicalOc,
-          wantedKinds: wanted[i].$1,
-          siteId: 'site',
-          destination: StoryPlanner.home,
-          targetMaxDepth: 20,
-          diveMode: wanted[i].$2,
-          tankCount: 1,
-          buddyIds: const [],
-          plannedDuration: const Duration(hours: 2),
-          waterTempC: 12,
-        ),
-    ],
-    trips: const [],
-    certs: const [],
-    courses: const [],
-    sites: const [],
-    centers: const [],
-    people: const [],
-    home: StoryPlanner.home,
-  );
+  StoryPlan plan(List<(Set<ShapeKind>, String)> wanted, {double depth = 20}) =>
+      StoryPlan(
+        anchor: DateTime(2026, 10, 1),
+        dives: [
+          for (var i = 0; i < wanted.length; i++)
+            PlannedDive(
+              number: i + 1,
+              start: DateTime(2026, 1, 1, 9).add(Duration(hours: 4 * i)),
+              phase: StoryPhase.technicalOc,
+              wantedKinds: wanted[i].$1,
+              siteId: 'site',
+              destination: StoryPlanner.home,
+              targetMaxDepth: depth,
+              diveMode: wanted[i].$2,
+              tankCount: 1,
+              buddyIds: const [],
+              plannedDuration: const Duration(hours: 2),
+              waterTempC: 12,
+            ),
+        ],
+        trips: const [],
+        certs: const [],
+        courses: const [],
+        sites: const [],
+        centers: const [],
+        people: const [],
+        home: StoryPlanner.home,
+      );
 
   test('a rebreather phase of 18 dives fits six rebreather shapes', () {
     final shapes = [
@@ -106,5 +107,23 @@ void main() {
 
     expect(shortfalls.single.kinds, {ShapeKind.multiGasDeco});
     expect(shortfalls.single.available, 0);
+  });
+
+  test('a dive deeper than any shape can be stretched to is a shortfall', () {
+    // Every shape goes to 20 m; the reshaper stretches depth by 1.15 at most.
+    final shapes = [
+      for (var i = 0; i < 5; i++) shape({ShapeKind.recreational}),
+    ];
+    final dives = [
+      ({ShapeKind.recreational}, 'oc'),
+    ];
+
+    final shortfalls = shapeShortfalls(plan(dives, depth: 30), shapes);
+
+    expect(shortfalls, hasLength(1));
+    expect(shortfalls.single.needed, 1);
+    expect(shortfalls.single.available, 0);
+    expect(shortfalls.single.toString(), contains('at 30 to 30 m'));
+    expect(shapeShortfalls(plan(dives, depth: 22), shapes), isEmpty);
   });
 }

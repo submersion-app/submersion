@@ -76,7 +76,7 @@ file when a check fails.
 The story:
 
 - About 700 dives: recreational, technical open circuit from dive 250, then a
-  rebreather course and 15 to 18 rebreather dives at the end.
+  rebreather course and 15 rebreather dives at the end.
 - Weekends at the home lakes, and 6 to 8 trips a year to about 30
   destinations worldwide, with their dive centres.
 - 60 to 100 fictional people: home regulars, a technical team, guides, other
@@ -88,9 +88,15 @@ The story:
 - Scooter routes and boat tracks.
 
 The rebreather phase is short because the harvest holds only six rebreather
-shapes, and no shape is used more than three times. Before seeding, the
-build checks that the harvested shapes can cover every planned dive
-(`src/shape/shape_budget.dart`) and refuses with the kinds that fall short.
+shapes, all of them deep, and no shape is used more than three times. A
+rebreather shape may be squeezed to 0.7 of its depth (open circuit stops at
+0.85), so five of them reach a first rebreather card's depths: the course at
+29 to 32 m and the dives after it at 38 to 40 m, which all five reach. Trimix
+dives stay at 50 to 62 m, where the harvest has enough deep multi-gas
+shapes. Before seeding, the build
+checks that the harvested shapes can cover every planned dive at its planned
+depth (`src/shape/shape_budget.dart`) and refuses with the kinds and depths
+that fall short.
 
 The checks:
 

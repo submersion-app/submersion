@@ -115,10 +115,11 @@ List<DiveShape> syntheticShapes() {
     endBar: 195,
   );
 
-  for (var i = 0; i < 260; i++) {
+  // A shape's deepest point is about 1.15 times the depth it is made at.
+  for (var i = 0; i < 700; i++) {
     shapes.add(
       make(
-        depth: 8.0 + (i % 14) * 2.2,
+        depth: 4.0 + (i % 17) * 2,
         minutes: 35 + (i % 20),
         kinds: {ShapeKind.recreational},
         tanks: [air],
@@ -137,30 +138,30 @@ List<DiveShape> syntheticShapes() {
       ),
     );
   }
-  for (var i = 0; i < 40; i++) {
+  for (var i = 0; i < 120; i++) {
     shapes.add(
       make(
-        depth: 35.0 + (i % 7) * 3,
+        depth: 27.0 + (i % 9) * 3,
         minutes: 50 + (i % 9) * 4,
         kinds: {ShapeKind.multiGasDeco},
         tanks: [air, ean50],
       ),
     );
   }
-  for (var i = 0; i < 45; i++) {
+  for (var i = 0; i < 90; i++) {
     shapes.add(
       make(
-        depth: 40.0 + (i % 6) * 3,
+        depth: 38.0 + (i % 10) * 3,
         minutes: 55 + (i % 9) * 4,
         kinds: {ShapeKind.deepOpenCircuit, ShapeKind.multiGasDeco},
         tanks: [air, ean50],
       ),
     );
   }
-  for (var i = 0; i < 25; i++) {
+  for (var i = 0; i < 40; i++) {
     shapes.add(
       make(
-        depth: 50.0 + (i % 5) * 4,
+        depth: 45.0 + (i % 8) * 4,
         minutes: 70 + (i % 6) * 5,
         kinds: {
           ShapeKind.trimix,
@@ -171,11 +172,13 @@ List<DiveShape> syntheticShapes() {
       ),
     );
   }
-  // As scarce as the real harvest: six rebreather shapes.
+  // As scarce and as deep as the real harvest: six rebreather shapes, going
+  // to about 39, 41, 47, 47, 53 and 107 m.
+  const ccrDepths = [33.7, 35.5, 41.0, 41.0, 46.4, 93.4];
   for (var i = 0; i < 6; i++) {
     shapes.add(
       make(
-        depth: 15.0 + i * 9,
+        depth: ccrDepths[i],
         minutes: 60 + i * 20,
         kinds: {ShapeKind.ccr},
         mode: 'ccr',

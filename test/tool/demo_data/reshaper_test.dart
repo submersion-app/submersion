@@ -77,6 +77,25 @@ void main() {
     expect(same.maxDepth / 30, isNot(inInclusiveRange(0.97, 1.03)));
   });
 
+  test('a rebreather shape is squeezed to as little as 0.7 of its depth', () {
+    final ccr = DiveShape(
+      id: 'ccr',
+      kinds: const {ShapeKind.ccr},
+      diveMode: 'ccr',
+      sampleIntervalSec: 10,
+      samples: source().samples,
+      tanks: const [],
+    );
+    final squeezed = Reshaper(Random(1)).reshape(ccr, targetMaxDepth: 21.5);
+    expect(squeezed.maxDepth, closeTo(21.5, 0.3));
+
+    // Open circuit still stops at 0.85.
+    final oc = Reshaper(Random(1)).reshape(source(), targetMaxDepth: 21.5);
+    expect(oc.maxDepth, closeTo(30 * 0.85, 0.3));
+    expect(Reshaper.minDepthScale('ccr'), 0.7);
+    expect(Reshaper.minDepthScale('oc'), 0.85);
+  });
+
   test('samples stay on the source interval', () {
     final out = Reshaper(Random(3)).reshape(source());
 

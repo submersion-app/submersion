@@ -1,12 +1,13 @@
 import 'dart:math';
 
 import 'dive_shape.dart';
+import 'reshaper.dart';
 
 /// Hands out harvested shapes to planned dives.
 ///
 /// A shape fits a dive when it has every wanted kind, the same dive mode,
-/// and a maximum depth the reshaper can reach (within its 0.85 to 1.15
-/// depth scale). No shape is used more than [maxUses] times in the logbook,
+/// and a maximum depth the reshaper can take to the dive's ([reaches]). No
+/// shape is used more than [maxUses] times in the logbook,
 /// and a trip repeats a shape only when its kind has run out of new ones
 /// (rebreather dives, for which real data is scarce).
 class ShapeLibrary {
@@ -43,6 +44,12 @@ class ShapeLibrary {
   final _uses = <String, int>{};
   final _byTrip = <String, Set<String>>{};
 
+  /// Whether the reshaper can take [shape] to [targetMaxDepth], scaling its
+  /// depth by up to 1.15 and down to [Reshaper.minDepthScale].
+  static bool reaches(DiveShape shape, double targetMaxDepth) =>
+      shape.maxDepth >= targetMaxDepth / 1.15 &&
+      shape.maxDepth * Reshaper.minDepthScale(shape.diveMode) <= targetMaxDepth;
+
   DiveShape pick({
     required Set<ShapeKind> kinds,
     required String diveMode,
@@ -53,35 +60,45 @@ class ShapeLibrary {
         ? const <String>{}
         : _byTrip[tripId] ?? const <String>{};
     bool underCap(DiveShape s) => (_uses[s.id] ?? 0) < maxUses;
-    bool fits(DiveShape s) =>
-        s.maxDepth >= targetMaxDepth / 1.15 &&
-        s.maxDepth <= targetMaxDepth / 0.85;
     final ofMode = _shapes
         .where((s) => s.diveMode == diveMode && underCap(s))
         .toList();
-    // Of the shapes with every wanted kind, those carrying the fewest other
-    // story kinds: a deco dive leaves the scarce deep-and-deco shapes to the
-    // dives that need both.
+    // Among candidates, those carrying the fewest story kinds beyond the
+    // wanted ones: a deco dive leaves the scarce deep-and-deco shapes to the
+    // dives that need both, as long as it has a shape of its own that
+    // reaches its depth.
     int extra(DiveShape s) =>
         s.kinds.difference(kinds).where(_storyKinds.contains).length;
+    List<DiveShape> leastExtra(Iterable<DiveShape> shapes) {
+      final list = shapes.toList();
+      if (list.isEmpty) return list;
+      final fewest = list.map(extra).reduce(min);
+      return list.where((s) => extra(s) == fewest).toList();
+    }
+
     final withKinds = ofMode.where((s) => s.kinds.containsAll(kinds)).toList();
-    final fewest = withKinds.isEmpty ? 0 : withKinds.map(extra).reduce(min);
-    final ofKind = withKinds.where((s) => extra(s) == fewest).toList();
-    if (ofKind.isEmpty && !kinds.contains(ShapeKind.recreational)) {
+    if (withKinds.isEmpty && !kinds.contains(ShapeKind.recreational)) {
       throw StateError('no $diveMode shape left for $kinds');
     }
-    final newOnTrip = ofKind.where((s) => !usedOnTrip.contains(s.id)).toList();
+    final ofKind = leastExtra(withKinds);
+    final newOnTrip = withKinds
+        .where((s) => !usedOnTrip.contains(s.id))
+        .toList();
 
-    // Preferred to least preferred: fits the depth and is new on this trip;
-    // new on this trip; any of the kind (a scarce kind may repeat on a
-    // trip); any of the dive mode.
-    final fitting = newOnTrip.where(fits).toList();
+    // Preferred to least preferred: reaches the depth and is new on this
+    // trip; new on this trip; any of the kind (a scarce kind may repeat on a
+    // trip); any of the dive mode. Reaching the depth comes before carrying
+    // no extra kinds.
+    final fitting = leastExtra(
+      newOnTrip.where((s) => reaches(s, targetMaxDepth)),
+    );
     final DiveShape chosen;
     if (fitting.isNotEmpty) {
       chosen = fitting[random.nextInt(fitting.length)];
     } else {
-      final pool = newOnTrip.isNotEmpty
-          ? newOnTrip
+      final newFewest = leastExtra(newOnTrip);
+      final pool = newFewest.isNotEmpty
+          ? newFewest
           : ofKind.isNotEmpty
           ? ofKind
           : ofMode;

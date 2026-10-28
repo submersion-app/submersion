@@ -51,7 +51,7 @@ void main() {
     }
   });
 
-  test('phases run recreational, technical OC, then 15 to 18 CCR dives', () {
+  test('phases run recreational, technical OC, then 15 CCR dives', () {
     final phases = [for (final d in plan.dives) d.phase];
     final firstTech = phases.indexOf(StoryPhase.technicalOc);
     final firstCcr = phases.indexOf(StoryPhase.rebreather);
@@ -64,7 +64,8 @@ void main() {
       isFalse,
     );
     final ccr = plan.dives.where((d) => d.diveMode == 'ccr').toList();
-    expect(ccr.length, inInclusiveRange(15, 18));
+    // Five rebreather shapes reach a first card's depths, three uses each.
+    expect(ccr.length, 15);
     expect(ccr.every((d) => d.phase == StoryPhase.rebreather), isTrue);
   });
 

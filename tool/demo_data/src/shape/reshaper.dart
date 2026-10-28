@@ -8,6 +8,8 @@ import 'shape_extractor.dart';
 ///
 /// - Time is stretched and depth scaled by factors drawn from
 ///   [0.85, 0.96] or [1.04, 1.15], never close to the source's own scale.
+///   A target depth may scale a rebreather shape down to 0.7
+///   ([minDepthScale]).
 /// - The profile is re-sampled onto the source's regular sample interval,
 ///   as a dive computer would log it, with a little depth and temperature
 ///   jitter and a constant temperature offset.
@@ -21,6 +23,12 @@ class Reshaper {
   final Random random;
 
   static const ascentLimit = 18.0;
+
+  /// The least a target depth may scale a shape's depth by. Rebreather
+  /// shapes are scarce and deep in the harvest, so they may be squeezed
+  /// further, to reach the depths a first rebreather card allows.
+  static double minDepthScale(String diveMode) =>
+      diveMode == 'ccr' ? 0.7 : 0.85;
 
   /// The limit the time stretch aims for, leaving room for jitter.
   static const _ascentTarget = 17.4;
@@ -37,7 +45,7 @@ class Reshaper {
 
     var df = targetMaxDepth == null
         ? _offScale()
-        : (targetMaxDepth / srcMax).clamp(0.85, 1.15);
+        : (targetMaxDepth / srcMax).clamp(minDepthScale(source.diveMode), 1.15);
     if (df > 0.96 && df < 1.04) df = df < 1 ? 0.96 : 1.04;
 
     var tf = _offScale();

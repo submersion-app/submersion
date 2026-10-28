@@ -30,8 +30,11 @@ class StoryPlanner {
 
   static const home = homeDestination;
 
+  /// Rebreather dives: the five harvested rebreather shapes that reach a
+  /// first card's depths, three uses each.
+  static const ccrCount = 15;
+
   StoryPlan plan({required DateTime anchor, int diveCount = 700}) {
-    final ccrCount = 15 + random.nextInt(4);
     final ccrStart = diveCount - ccrCount + 1;
     final schedule = StorySchedule(random, catalog);
     final slots = schedule.build(anchor, diveCount);

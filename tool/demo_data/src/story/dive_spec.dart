@@ -71,9 +71,12 @@ DiveSpec diveSpecFor(
         requires: CertLevel.decoProcedures,
       );
     case CertLevel.ccr:
+      // The harvest's rebreather shapes are deep: squeezed as far as the
+      // reshaper allows, only two reach below 36 m, and the course takes
+      // those.
       return (
         kinds: {ShapeKind.ccr},
-        depth: range(10, 30),
+        depth: range(29, 32),
         tanks: 3,
         requires: CertLevel.decoProcedures,
       );
@@ -126,7 +129,7 @@ DiveSpec diveSpecFor(
           requires: CertLevel.deep,
         );
       }
-      if (deep < 0.85 || !trimixHeld) {
+      if (deep < 0.9 || !trimixHeld) {
         return (
           kinds: {ShapeKind.multiGasDeco},
           depth: range(35, 45),
@@ -134,16 +137,20 @@ DiveSpec diveSpecFor(
           requires: CertLevel.decoProcedures,
         );
       }
+      // The harvest has few deep multi-gas shapes past 60 m, so trimix
+      // dives are an occasional 50 to 62 m.
       return (
         kinds: {ShapeKind.deepOpenCircuit, ShapeKind.multiGasDeco},
-        depth: range(50, 70),
+        depth: range(50, 62),
         tanks: 3,
         requires: CertLevel.trimix,
       );
     case StoryPhase.rebreather:
+      // Every rebreather shape that reaches a first card's depths reaches
+      // 38 to 40 m.
       return (
         kinds: {ShapeKind.ccr},
-        depth: range(20, 40),
+        depth: range(38, 40),
         tanks: 3,
         requires: CertLevel.ccr,
       );
