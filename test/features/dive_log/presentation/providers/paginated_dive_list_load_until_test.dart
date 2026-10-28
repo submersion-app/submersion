@@ -21,6 +21,7 @@ class _CountingRepository implements DiveRepository {
 
   final DiveRepository _inner;
   int summaryCalls = 0;
+  final profileCalls = <List<String>>[];
 
   @override
   Future<List<DiveSummary>> getDiveSummaries({
@@ -60,7 +61,10 @@ class _CountingRepository implements DiveRepository {
   Future<Map<String, List<DiveProfilePoint>>> getBatchProfileSummaries(
     List<String> diveIds, {
     int maxSamples = 120,
-  }) => _inner.getBatchProfileSummaries(diveIds, maxSamples: maxSamples);
+  }) {
+    profileCalls.add(diveIds);
+    return _inner.getBatchProfileSummaries(diveIds, maxSamples: maxSamples);
+  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -158,6 +162,30 @@ void main() {
       // Fifty at a time would take twelve more reads; doubling takes four.
       expect(repository.summaryCalls - readsBefore, lessThanOrEqualTo(4));
     });
+
+    test(
+      'preloads profiles around the dive, not only a read\'s tail',
+      () async {
+        final diverId = await setUpCurrentDiver();
+        final dives = await seedDives(diverId, 700);
+        final repository = _CountingRepository(diveRepo);
+        final container = makeContainer(repository: repository);
+        await firstPage(container);
+
+        // Row 210 arrives in a read of rows 200 to 399, whose last hundred
+        // rows are the ones a read preloads.
+        final target = dives[210];
+        await container
+            .read(paginatedDiveListProvider.notifier)
+            .loadUntil(target.id);
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+
+        expect(
+          repository.profileCalls.any((ids) => ids.contains(target.id)),
+          isTrue,
+        );
+      },
+    );
 
     test('a dive already loaded is a no-op', () async {
       final diverId = await setUpCurrentDiver();

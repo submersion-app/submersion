@@ -1036,7 +1036,18 @@ class PaginatedDiveListNotifier
         limit *= 2;
       }
     });
-    return state.valueOrNull?.dives.any((d) => d.id == diveId) ?? false;
+    final dives = state.valueOrNull?.dives ?? const <DiveSummary>[];
+    final index = dives.indexWhere((d) => d.id == diveId);
+    if (index < 0) return false;
+    // A read preloads profiles for its last rows, but a doubled read can end
+    // well past the dive: preload the rows the list lands on instead.
+    const half = _jumpProfileWindow ~/ 2;
+    final around = dives.sublist(
+      (index - half).clamp(0, index),
+      (index + half).clamp(index + 1, dives.length),
+    );
+    _loadBatchProfiles([for (final d in around) d.id]);
+    return true;
   }
 
   /// Loads every row past the end of the list in one query, so End in the

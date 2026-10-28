@@ -223,7 +223,8 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   /// jump to a typed dive number lands through it, after the frame.
   final GlobalKey _listBodyKey = GlobalKey();
 
-  /// Counts jumps to a typed dive number, so only the latest one lands.
+  /// Counts jumps to a typed dive number, so only the latest one lands; a
+  /// scroll by the diver counts too, dropping a landing still pending.
   int _numberJumps = 0;
 
   /// Brings the list back to the dive last opened when it is built again
@@ -303,6 +304,9 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
 
   void _onScroll() {
     if (!_scrollController.hasClients) return;
+    // The diver comes first: a jump to a typed number still loading drops
+    // its landing rather than pulling the list from where they put it.
+    if (_scrollController.positions.any(isScrolledByDiver)) _numberJumps++;
     // Once a page load has failed, only the Retry button asks again, matching
     // [_loadNextPageIfStranded]. Sitting at the bottom of the list produces a
     // scroll notification on every settle and overscroll bounce, so retrying

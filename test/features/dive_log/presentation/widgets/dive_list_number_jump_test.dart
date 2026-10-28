@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -44,9 +46,13 @@ class _JumpNotifier extends StateNotifier<AsyncValue<PaginatedDiveListState>>
   final List<DiveSummary> all;
   final asked = <String>[];
 
+  /// When set, [loadUntil] waits on it, as a long log's reads do.
+  Completer<void>? gate;
+
   @override
   Future<bool> loadUntil(String diveId) async {
     asked.add(diveId);
+    await gate?.future;
     final index = all.indexWhere((d) => d.id == diveId);
     if (index < 0) return false;
     final through = (index + 51).clamp(0, all.length);
@@ -249,6 +255,35 @@ void main() {
       final target = tester.getRect(row('d160'));
       expect(target.top, greaterThanOrEqualTo(list.top - 0.5));
       expect(target.bottom, lessThanOrEqualTo(list.bottom + 0.5));
+    });
+
+    testWidgets('a scroll by hand while the dive loads keeps the list put', (
+      tester,
+    ) async {
+      final notifier = await pumpList(tester);
+      notifier.gate = Completer<void>();
+
+      await typeNumber(tester, '100');
+      await tester.testTextInput.receiveAction(TextInputAction.search);
+      await tester.pump();
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -300));
+      await settle(tester);
+      final position = tester
+          .state<ScrollableState>(
+            find.descendant(
+              of: find.byType(CustomScrollView),
+              matching: find.byType(Scrollable),
+            ),
+          )
+          .position;
+      final before = position.pixels;
+
+      notifier.gate!.complete();
+      await settle(tester);
+
+      expect(notifier.asked, ['d100']);
+      expect(position.pixels, before);
+      expect(row('d100'), findsNothing);
     });
   });
 }
