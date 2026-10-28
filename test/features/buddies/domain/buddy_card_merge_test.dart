@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy_card.dart';
@@ -53,5 +55,17 @@ void main() {
     ]);
     expect(changes.every((c) => c.from == null), isTrue);
     expect(changes.last.to, 'PADI Rescue Diver');
+  });
+
+  test('a card photo is listed as a change', () {
+    final card = BuddyCard(
+      id: 'diver-sam',
+      name: 'Sam Rivera',
+      photo: Uint8List.fromList([1, 2, 3]),
+    );
+    expect(
+      buddyCardChanges(existing, card).map((c) => c.field),
+      contains(BuddyCardChangeField.photo),
+    );
   });
 }

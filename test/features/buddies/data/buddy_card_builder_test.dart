@@ -48,6 +48,7 @@ void main() {
     Uint8List? photo,
     int? prior = 20,
     bool medical = false,
+    String? social = '@jordan',
   }) async {
     await DiverRepository().createDiver(
       Diver(
@@ -56,7 +57,7 @@ void main() {
         phone: phone,
         email: email,
         photo: photo,
-        socialHandle: '@jordan',
+        socialHandle: social,
         priorDiveCount: prior,
         divingSince: DateTime(2012),
         medicalNotes: medical ? 'SECRET-MEDICAL' : '',
@@ -178,7 +179,7 @@ void main() {
   });
 
   test('a diver with nothing filled gives a name-only card', () async {
-    await seedDiver(phone: null, email: null, prior: null);
+    await seedDiver(phone: null, email: null, prior: null, social: null);
     final card = await builder.build('d1', BuddyCardShareChoices.defaults);
     expect(card.phone, isNull);
     expect(card.email, isNull);
@@ -186,7 +187,7 @@ void main() {
     expect(card.photo, isNull);
     expect(card.dives, isNull, reason: 'no dives logged and no prior count');
     final fields = await builder.availableFields('d1');
-    expect(fields, {BuddyCardField.divingSince, BuddyCardField.social});
+    expect(fields, {BuddyCardField.divingSince});
   });
 
   test('never reads medical, insurance or emergency fields', () async {

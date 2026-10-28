@@ -605,9 +605,6 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
     }
   }
 
-  /// Opens a passport tag that arrived as a link. The root navigator's
-  /// context sits under the router and the scaffold messenger, which is all
-  /// [openScannedTag] needs.
   /// Opens a buddy card that arrived as a link (issue #3728).
   Future<void> _openBuddyCardLink(String text) async {
     final context = rootNavigatorKey.currentContext;
@@ -615,6 +612,9 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
     openBuddyCard(context, BuddyCardCodec.decodeLink(text));
   }
 
+  /// Opens a passport tag that arrived as a link. The root navigator's
+  /// context sits under the router and the scaffold messenger, which is all
+  /// [openScannedTag] needs.
   Future<void> _openPassportLink(String text) async {
     final context = rootNavigatorKey.currentContext;
     if (context == null || !context.mounted) return;

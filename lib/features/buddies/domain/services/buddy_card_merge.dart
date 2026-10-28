@@ -11,6 +11,9 @@ enum BuddyCardChangeField {
   divingSince,
   lastDive,
   certifications,
+
+  /// The card's photo replaces the buddy's; [BuddyCardChange.to] is empty.
+  photo,
 }
 
 /// One line of the import preview: what a field was and what the card sets
@@ -53,6 +56,11 @@ List<BuddyCardChange> buddyCardChanges(Buddy? existing, BuddyCard card) {
     _date(existing?.cardLastDive),
     _date(card.last),
   );
+  final photo = card.photo;
+  if (photo != null &&
+      (existing?.photo == null || !_sameBytes(existing!.photo!, photo))) {
+    out.add(const BuddyCardChange(BuddyCardChangeField.photo, null, ''));
+  }
   if (card.certs.isNotEmpty) {
     add(
       BuddyCardChangeField.certifications,
@@ -78,3 +86,11 @@ String? _date(DateTime? d) => d == null
     : '${d.year.toString().padLeft(4, '0')}-'
           '${d.month.toString().padLeft(2, '0')}-'
           '${d.day.toString().padLeft(2, '0')}';
+
+bool _sameBytes(List<int> a, List<int> b) {
+  if (a.length != b.length) return false;
+  for (var i = 0; i < a.length; i++) {
+    if (a[i] != b[i]) return false;
+  }
+  return true;
+}

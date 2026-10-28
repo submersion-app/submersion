@@ -54,6 +54,12 @@ abstract final class BuddyCardCodec {
   static const String fileExtension = 'subbuddy';
   static const int maxPhotoBytes = 12 * 1024;
 
+  /// The longest name a received card keeps.
+  static const int maxNameLength = 200;
+
+  static String _capped(String text, int max) =>
+      text.length <= max ? text : text.substring(0, max);
+
   /// The largest full card read; anything bigger is not a card.
   static const int maxFullBytes = 4 * 1024 * 1024;
 
@@ -232,7 +238,7 @@ abstract final class BuddyCardCodec {
     final card = BuddyCard(
       version: version,
       id: id,
-      name: name.trim(),
+      name: _capped(name.trim(), maxNameLength),
       phone: _string(json['p']),
       email: _string(json['e']),
       social: _string(json['s']),
@@ -304,7 +310,12 @@ abstract final class BuddyCardCodec {
     final year = int.parse(match[1]!);
     final month = int.parse(match[2]!);
     final day = int.parse(match[3]!);
-    if (month < 1 || month > 12 || day < 1 || day > 31) return null;
-    return DateTime(year, month, day);
+    final date = DateTime(year, month, day);
+    // DateTime rolls 2026-02-31 over to 3 March; a date that does not
+    // come back as written is not a date.
+    if (date.year != year || date.month != month || date.day != day) {
+      return null;
+    }
+    return date;
   }
 }

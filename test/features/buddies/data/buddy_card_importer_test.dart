@@ -209,4 +209,43 @@ void main() {
     expect(saved.single.name, 'Blue Lagoon Divers Reef Explorer');
     expect(await CustomCertificationRepository().getAllAgencies(), isEmpty);
   });
+
+  test('a card cert matching one entered by hand is not added twice', () async {
+    final existing = await seedExisting();
+    await certs.createCertification(
+      Certification(
+        id: '',
+        buddyId: existing.id,
+        name: 'Rescue Diver',
+        agency: CertificationAgency.padi.name,
+        createdAt: DateTime(2025),
+        updatedAt: DateTime(2025),
+      ),
+    );
+    await importer.update(existing, card);
+    final saved = await certs.getCertificationsByBuddy(existing.id);
+    expect(saved.where((c) => c.name == 'Rescue Diver'), hasLength(1));
+    expect(saved.firstWhere((c) => c.name == 'Rescue Diver').cardId, isNull);
+  });
+
+  test('a failed certification write leaves no half-saved buddy', () async {
+    final failing = BuddyCardImporter(
+      buddies: buddies,
+      certifications: _FailingCertifications(),
+      clock: () => now,
+    );
+    await expectLater(
+      failing.addNew(card, diverId: 'me'),
+      throwsA(isA<StateError>()),
+    );
+    expect(await buddies.getAllBuddies(), isEmpty);
+  });
+}
+
+class _FailingCertifications extends CertificationRepository {
+  @override
+  Future<Certification> createCertification(
+    Certification cert, {
+    bool notify = true,
+  }) async => throw StateError('disk full');
 }

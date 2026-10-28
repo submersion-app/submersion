@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/domain/services/buddy_card_codec.dart';
@@ -28,6 +29,7 @@ class BuddyCardPreviewPage extends ConsumerStatefulWidget {
 }
 
 class _BuddyCardPreviewPageState extends ConsumerState<BuddyCardPreviewPage> {
+  static final _log = LoggerService.forClass(BuddyCardPreviewPage);
   bool _saving = false;
 
   @override
@@ -53,10 +55,9 @@ class _BuddyCardPreviewPageState extends ConsumerState<BuddyCardPreviewPage> {
       CardPossibleMatch(:final buddy) => buddy,
       CardNew() => null,
     };
-    final changes = buddyCardChanges(
-      match is CardRecognised ? existing : null,
-      card,
-    );
+    // A possible match shows what updating it would change; the Add as
+    // new choice beside it changes nothing that exists.
+    final changes = buddyCardChanges(existing, card);
     final title = switch (match) {
       CardRecognised(:final buddy) => l10n.buddyCard_preview_updateTitle(
         buddy.name,
@@ -170,9 +171,13 @@ class _BuddyCardPreviewPageState extends ConsumerState<BuddyCardPreviewPage> {
         BuddyCardChangeField.lastDive => l10n.buddyCard_field_lastDive,
         BuddyCardChangeField.certifications =>
           l10n.buddyCard_field_certifications,
+        BuddyCardChangeField.photo => l10n.buddyCard_field_photo,
       };
 
   String _changeText(AppLocalizations l10n, BuddyCardChange change) {
+    if (change.field == BuddyCardChangeField.photo) {
+      return l10n.buddyCard_change_newPhoto;
+    }
     String show(String value) => change.field == BuddyCardChangeField.lastDive
         ? UnitFormatter(
             ref.read(settingsProvider),
@@ -216,7 +221,22 @@ class _BuddyCardPreviewPageState extends ConsumerState<BuddyCardPreviewPage> {
   }) async {
     setState(() => _saving = true);
     try {
-      final buddy = await write();
+      final Buddy buddy;
+      try {
+        buddy = await write();
+      } on Object catch (e, stackTrace) {
+        _log.error(
+          'Buddy card was not saved',
+          error: e,
+          stackTrace: stackTrace,
+        );
+        if (mounted) {
+          ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+            SnackBar(content: Text(context.l10n.buddyCard_saveFailed)),
+          );
+        }
+        return;
+      }
       if (!mounted) return;
       final l10n = context.l10n;
       ScaffoldMessenger.maybeOf(context)?.showSnackBar(

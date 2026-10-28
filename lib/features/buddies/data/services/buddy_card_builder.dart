@@ -91,7 +91,7 @@ class BuddyCardBuilder {
       if (await _diveCount(diver) != null) BuddyCardField.diveCount,
       if (diver.divingSince != null) BuddyCardField.divingSince,
       if (await _lastDive(diverId) != null) BuddyCardField.lastDive,
-      BuddyCardField.social,
+      if (_nonEmpty(diver.socialHandle) != null) BuddyCardField.social,
     };
   }
 

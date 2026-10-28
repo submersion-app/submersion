@@ -127,8 +127,33 @@ class BuddyMergeRepository {
       isFavorite: row.isFavorite,
       createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt),
+      // Buddy card fields (issue #3728) ride through the snapshot, so an
+      // undone merge restores them.
+      cardId: row.cardId,
+      socialHandle: row.socialHandle,
+      cardDiveCount: row.cardDiveCount,
+      cardDivingSince: row.cardDivingSince == null
+          ? null
+          : DateTime(row.cardDivingSince!),
+      cardLastDive: _fromMs(row.cardLastDive),
+      cardReceivedAt: _fromMs(row.cardReceivedAt),
     );
   }
+
+  /// A local calendar date or timestamp written by the buddy repository,
+  /// not a dive time.
+  static DateTime? _fromMs(int? ms) =>
+      ms == null ? null : DateTime.fromMillisecondsSinceEpoch(ms);
+
+  /// The buddy card columns of [buddy], for a row write.
+  static BuddiesCompanion _cardColumns(domain.Buddy buddy) => BuddiesCompanion(
+    cardId: Value(buddy.cardId),
+    socialHandle: Value(buddy.socialHandle),
+    cardDiveCount: Value(buddy.cardDiveCount),
+    cardDivingSince: Value(buddy.cardDivingSince?.year),
+    cardLastDive: Value(buddy.cardLastDive?.millisecondsSinceEpoch),
+    cardReceivedAt: Value(buddy.cardReceivedAt?.millisecondsSinceEpoch),
+  );
 
   /// Merge multiple buddies into the first buddy in [buddyIds].
   ///
@@ -501,7 +526,7 @@ class BuddyMergeRepository {
           await _db
               .into(_db.buddies)
               .insert(
-                BuddiesCompanion(
+                _cardColumns(buddy).copyWith(
                   id: Value(buddy.id),
                   diverId: Value(buddy.diverId),
                   linkedDiverId: Value(buddy.linkedDiverId),
@@ -677,7 +702,7 @@ class BuddyMergeRepository {
 
   Future<void> _updateBuddyRow(domain.Buddy buddy, int now) async {
     await (_db.update(_db.buddies)..where((t) => t.id.equals(buddy.id))).write(
-      BuddiesCompanion(
+      _cardColumns(buddy).copyWith(
         diverId: Value(buddy.diverId),
         linkedDiverId: Value(buddy.linkedDiverId),
         name: Value(buddy.name),

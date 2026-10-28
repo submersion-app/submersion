@@ -230,4 +230,23 @@ void main() {
       lessThanOrEqualTo(110),
     );
   });
+
+  test('a name over 200 characters is cut to 200', () {
+    final out = BuddyCardCodec.decodeFull(
+      BuddyCardCodec.encodeFull(BuddyCard(id: 'x', name: 'n' * 5000)),
+    );
+    expect((out as BuddyCardDecoded).card.name.length, 200);
+  });
+
+  test('an impossible date is dropped, not rolled over', () {
+    String linkOf(Object json) =>
+        BuddyCardCodec.linkPrefix +
+        base64Url.encode(utf8.encode(jsonEncode(json))).replaceAll('=', '');
+    final card = _decoded(
+      BuddyCardCodec.decodeLink(
+        linkOf({'v': 1, 'i': 'x', 'n': 'Sam', 'l': '2026-02-31'}),
+      ),
+    );
+    expect(card.last, isNull);
+  });
 }

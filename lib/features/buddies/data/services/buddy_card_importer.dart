@@ -7,6 +7,7 @@ import 'package:submersion/features/certifications/data/repositories/certificati
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
+import 'package:submersion/core/services/database_service.dart';
 
 /// Saves a received buddy card (issue #3728), after the diver confirmed the
 /// preview.
@@ -27,9 +28,17 @@ class BuddyCardImporter {
   final CertificationRepository _certifications;
   final DateTime Function() _clock;
 
+  /// The buddy and its certifications are saved together or not at all.
+  Future<T> _atomically<T>(Future<T> Function() work) =>
+      DatabaseService.instance.database.transaction(work);
+
   Future<Buddy> addNew(BuddyCard card, {required String diverId}) async {
     // Demo mode (issue #3708): nothing comes into the sample logbook.
     DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.fileImport);
+    return _atomically(() => _addNew(card, diverId: diverId));
+  }
+
+  Future<Buddy> _addNew(BuddyCard card, {required String diverId}) async {
     final now = _clock();
     final buddy = await _buddies.createBuddy(
       Buddy(
@@ -55,6 +64,10 @@ class BuddyCardImporter {
 
   Future<Buddy> update(Buddy existing, BuddyCard card) async {
     DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.fileImport);
+    return _atomically(() => _update(existing, card));
+  }
+
+  Future<Buddy> _update(Buddy existing, BuddyCard card) async {
     final updated = existing.copyWith(
       name: card.name,
       phone: card.phone,
@@ -83,10 +96,17 @@ class BuddyCardImporter {
       for (final c in existing)
         if (c.cardId != null) _key(c.agency, c.name): c,
     };
+    // The receiver's own entry for the same certification wins: no twin.
+    final byHand = {
+      for (final c in existing)
+        if (c.cardId == null) _key(c.agency, c.name),
+    };
     final now = _clock();
     for (final cert in card.certs) {
       final mapped = _mapped(cert);
-      final current = cardMade[_key(mapped.agency, mapped.name)];
+      final key = _key(mapped.agency, mapped.name);
+      if (byHand.contains(key)) continue;
+      final current = cardMade[key];
       if (current == null) {
         await _certifications.createCertification(
           Certification(

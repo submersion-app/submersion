@@ -4,10 +4,13 @@ import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
+import 'package:submersion/features/buddies/data/services/buddy_card_importer.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy_card.dart';
 import 'package:submersion/features/buddies/domain/services/buddy_card_codec.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_card_preview_page.dart';
+import 'package:submersion/features/buddies/presentation/providers/buddy_card_providers.dart';
+import 'package:submersion/features/certifications/data/repositories/certification_repository.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -54,7 +57,11 @@ void main() {
     }
   }
 
-  Future<void> pump(WidgetTester tester, BuddyCardDecoded decoded) async {
+  Future<void> pump(
+    WidgetTester tester,
+    BuddyCardDecoded decoded, {
+    BuddyCardImporter? importer,
+  }) async {
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = const Size(600, 1400);
     addTearDown(tester.view.reset);
@@ -83,6 +90,8 @@ void main() {
         overrides: [
           sharedPreferencesProvider.overrideWithValue(prefs),
           settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+          if (importer != null)
+            buddyCardImporterProvider.overrideWithValue(importer),
         ],
         child: MaterialApp.router(
           routerConfig: router,
@@ -176,4 +185,36 @@ void main() {
     expect(all.single.cardId, 'diver-sam');
     expect(find.text('DETAIL ${all.single.id}'), findsOneWidget);
   });
+
+  testWidgets('a possible match shows what updating would change', (
+    tester,
+  ) async {
+    await seed(tester, 'Sam Rivera');
+    await pump(tester, const BuddyCardDecoded(_sam));
+    expect(find.text('118 (was 100)'), findsOneWidget);
+  });
+
+  testWidgets('a failed save says so and stays on the preview', (tester) async {
+    await pump(
+      tester,
+      const BuddyCardDecoded(_sam),
+      importer: _FailingImporter(),
+    );
+    await tester.tap(find.text('Add buddy'));
+    await settle(tester);
+    expect(find.text('The buddy could not be saved.'), findsOneWidget);
+    expect(find.text('Add buddy'), findsOneWidget);
+  });
+}
+
+class _FailingImporter extends BuddyCardImporter {
+  _FailingImporter()
+    : super(
+        buddies: BuddyRepository(),
+        certifications: CertificationRepository(),
+      );
+
+  @override
+  Future<Buddy> addNew(BuddyCard card, {required String diverId}) async =>
+      throw StateError('disk full');
 }

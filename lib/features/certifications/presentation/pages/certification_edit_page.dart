@@ -1108,9 +1108,6 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
         photoFront: _photoFront,
         photoBack: _photoBack,
         notes: _notesController.text.trim(),
-        // A card-made certification stays the card's through a hand edit
-        // (issue #3728), so a later card refreshes it, not adds a twin.
-        cardId: widget.initialCertification?.cardId,
         createdAt: widget.initialCertification?.createdAt ?? now,
         // Preserve updatedAt so an unmodified Save equals the persisted cert
         // and replaceBuddyCertifications skips it (issue #553 review). A real
@@ -1162,7 +1159,6 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
         photoFront: _photoFront,
         photoBack: _photoBack,
         notes: _notesController.text.trim(),
-        cardId: _originalCertification?.cardId,
         createdAt: _originalCertification?.createdAt ?? now,
         updatedAt: now,
       );

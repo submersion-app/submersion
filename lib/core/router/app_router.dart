@@ -889,6 +889,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 // A card can arrive from anywhere (a link, a file, a tap):
                 // on the root navigator it opens over whatever is showing.
                 parentNavigatorKey: rootNavigatorKey,
+                // Restored or typed without its card, there is nothing to
+                // preview.
+                redirect: (context, state) =>
+                    state.extra is BuddyCardDecoded ? null : '/buddies',
                 builder: (context, state) => BuddyCardPreviewPage(
                   decoded: state.extra! as BuddyCardDecoded,
                 ),
