@@ -125,6 +125,25 @@ void main() {
     expect(await rows(tester), isEmpty);
   });
 
+  testWidgets('a tag without a spot can be picked from the bar and removed', (
+    tester,
+  ) async {
+    await tester.runAsync(
+      () => MediaPeopleRepository().addTag(mediaId: 'p1', buddyId: 'bea'),
+    );
+    await openViewer(tester);
+    await tester.tap(find.byTooltip('Tag people'));
+    await settle(tester);
+
+    await tester.tap(find.widgetWithText(ChoiceChip, 'Bea'));
+    await settle(tester);
+    expect(find.text('Change person'), findsOneWidget);
+    await tester.tap(find.text('Remove tag'));
+    await settle(tester);
+
+    expect(await rows(tester), isEmpty);
+  });
+
   testWidgets(
     'without a known image size only a tag without a spot is offered',
     (tester) async {

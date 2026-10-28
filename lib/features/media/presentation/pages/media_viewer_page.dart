@@ -43,6 +43,7 @@ import 'package:submersion/features/media/presentation/widgets/media_info_sheet.
 import 'package:submersion/features/media/presentation/widgets/media_species_chips_row.dart';
 import 'package:submersion/features/media/presentation/widgets/media_species_sheet.dart';
 import 'package:submersion/features/media/domain/entities/media_person_tag.dart';
+import 'package:submersion/features/media/presentation/providers/media_people_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/people_tags/face_box_layer.dart';
 import 'package:submersion/features/media/presentation/widgets/people_tags/media_people_chips_row.dart';
 import 'package:submersion/features/media/presentation/widgets/people_tags/people_tag_editor.dart';
@@ -770,6 +771,21 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                           ),
                         ),
                         hasSelection: currentSelectedTag != null,
+                        selectionHasBox: currentSelectedTag?.box != null,
+                        chips:
+                            ref
+                                .watch(mediaPeopleChipsProvider(currentItem.id))
+                                .value ??
+                            const [],
+                        selectedTagId: selectedPeopleTagId,
+                        onSelectTag: (tag) {
+                          selectPeopleTag(tag);
+                          // A moment off screen: show its frame where the
+                          // video can play.
+                          if (tag.videoPosition != null) {
+                            _showMoment(currentItem, tag);
+                          }
+                        },
                         onWithoutSpot: () =>
                             unawaited(tagWithoutSpot(currentItem)),
                         onDone: () => togglePeopleTagging(),
