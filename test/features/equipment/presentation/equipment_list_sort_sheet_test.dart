@@ -13,6 +13,8 @@ import 'package:submersion/features/settings/data/repositories/app_settings_repo
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
+import '../../../helpers/mock_providers.dart';
+
 class _FakeSettingsRepository extends AppSettingsRepository {
   _FakeSettingsRepository() {
     // Not awaited: closing a single-subscription controller that never had a
@@ -69,7 +71,11 @@ void main() {
 
     fake = _FakeSettingsRepository()..stored = stored;
     container = ProviderContainer(
-      overrides: [appSettingsRepositoryProvider.overrideWithValue(fake)],
+      overrides: [
+        appSettingsRepositoryProvider.overrideWithValue(fake),
+        // The sort is saved for the diver (issue #3748).
+        settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+      ],
     );
     addTearDown(container.dispose);
 

@@ -16,6 +16,7 @@ import 'package:submersion/features/dive_sites/presentation/widgets/site_list_ti
 import 'package:submersion/features/dive_sites/presentation/widgets/site_picker/grouped_site_list_view.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/settings/domain/list_arrangements.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/select_items_menu.dart';
@@ -79,7 +80,14 @@ Future<void> _pumpGrouped(
       locale: const Locale('en'),
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
-        settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+        // The grouping is read from the diver's saved settings (issue #3748).
+        settingsProvider.overrideWith(
+          (ref) => MockSettingsNotifier(
+            AppSettings(
+              listArrangements: ListArrangements(siteGroupBy: groupBy.name),
+            ),
+          ),
+        ),
         currentDiverIdProvider.overrideWith(
           (ref) => MockCurrentDiverIdNotifier(),
         ),
@@ -89,7 +97,6 @@ Future<void> _pumpGrouped(
         siteListNotifierProvider.overrideWith((ref) => _MockSiteListNotifier()),
         siteListViewModeProvider.overrideWith((ref) => viewMode),
         highlightedSiteIdProvider.overrideWith((ref) => highlightedId),
-        siteGroupByProvider.overrideWith((ref) => groupBy),
         if (storedExpansion != null)
           siteListExpandedGroupsProvider.overrideWith((ref) => storedExpansion),
       ],

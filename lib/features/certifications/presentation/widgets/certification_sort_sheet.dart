@@ -9,6 +9,8 @@ import 'package:submersion/features/certifications/presentation/widgets/certific
 import 'package:submersion/features/certifications/presentation/widgets/certification_view_switch_selector.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/list_arrangement_writes.dart';
 
 /// Opens the certification sort sheet, shared by the list (phone, compact
 /// bar and table mode) and the wallet page (#3359), so sort, grouping and
@@ -32,10 +34,9 @@ void showCertificationSortSheet(
     getFieldDisplayName: (field) => field.localizedName(context.l10n),
     getFieldIcon: (field) => field.icon,
     onSortChanged: (field, direction) {
-      ref.read(certificationSortProvider.notifier).state = SortState(
-        field: field,
-        direction: direction,
-      );
+      ref
+          .read(settingsProvider.notifier)
+          .setCertificationSort(SortState(field: field, direction: direction));
     },
     footer: Column(
       mainAxisSize: MainAxisSize.min,

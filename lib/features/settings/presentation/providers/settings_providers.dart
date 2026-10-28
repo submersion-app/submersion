@@ -3797,49 +3797,39 @@ final tissueVizModeProvider = Provider<TissueVizMode>((ref) {
   return ref.watch(settingsProvider.select((s) => s.tissueVizMode));
 });
 
-/// Runtime-scoped dive list view mode. Initialized from persisted setting,
-/// can be overridden by app bar toggle without changing the saved default.
+/// The dive list's view mode, as the diver left it (issue #3748).
 ///
-/// IMPORTANT: Uses `ref.read()` (not `ref.watch()`) to read the persisted
-/// default only once at creation time. If we used `ref.watch()`, any change
-/// to *any* setting would reset the runtime override back to the default,
-/// breaking the session-scoped toggle behavior.
+/// The list's own toggle and Settings > Appearance > Sections both save it
+/// through [SettingsNotifier.setDiveListViewMode], so this watches the saved
+/// value: it follows a diver switch and a change synced from another device.
+/// It watches only its own column, so a write to any other setting leaves
+/// it alone. The view modes below follow the same contract.
 final diveListViewModeProvider = StateProvider<ListViewMode>((ref) {
-  final settings = ref.read(settingsProvider);
-  return settings.diveListViewMode;
+  return ref.watch(settingsProvider.select((s) => s.diveListViewMode));
 });
 
-/// Runtime-scoped "group trips" toggle for the dive list (issue #1193).
-///
-/// Same contract as [diveListViewModeProvider] directly above, and for the
-/// same reason: seeded once with `ref.read` so a write to any other setting
-/// cannot stomp a session override.
+/// The dive list's "group trips" toggle (issue #1193), as the diver left it;
+/// same contract as [diveListViewModeProvider].
 final diveListGroupTripsProvider = StateProvider<bool>((ref) {
-  final settings = ref.read(settingsProvider);
-  return settings.groupTripsInDiveList;
+  return ref.watch(settingsProvider.select((s) => s.groupTripsInDiveList));
 });
 
 final siteListViewModeProvider = StateProvider<ListViewMode>((ref) {
-  final settings = ref.read(settingsProvider);
-  return settings.siteListViewMode;
+  return ref.watch(settingsProvider.select((s) => s.siteListViewMode));
 });
 
 final tripListViewModeProvider = StateProvider<ListViewMode>((ref) {
-  final settings = ref.read(settingsProvider);
-  return settings.tripListViewMode;
+  return ref.watch(settingsProvider.select((s) => s.tripListViewMode));
 });
 
 final equipmentListViewModeProvider = StateProvider<ListViewMode>((ref) {
-  final settings = ref.read(settingsProvider);
-  return settings.equipmentListViewMode;
+  return ref.watch(settingsProvider.select((s) => s.equipmentListViewMode));
 });
 
 final buddyListViewModeProvider = StateProvider<ListViewMode>((ref) {
-  final settings = ref.read(settingsProvider);
-  return settings.buddyListViewMode;
+  return ref.watch(settingsProvider.select((s) => s.buddyListViewMode));
 });
 
 final diveCenterListViewModeProvider = StateProvider<ListViewMode>((ref) {
-  final settings = ref.read(settingsProvider);
-  return settings.diveCenterListViewMode;
+  return ref.watch(settingsProvider.select((s) => s.diveCenterListViewMode));
 });

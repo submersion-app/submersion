@@ -6,7 +6,6 @@ import 'package:submersion/features/cylinder_passports/presentation/widgets/pass
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/sort_options.dart';
-import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_field.dart';
@@ -117,12 +116,6 @@ Future<List<Override>> _buildOverrides({
     equipmentListViewModeProvider.overrideWith((ref) => viewMode),
     equipmentTableConfigProvider.overrideWith(
       (ref) => _TestEquipTableConfigNotifier(),
-    ),
-    equipmentSortProvider.overrideWith(
-      (ref) => const SortState(
-        field: EquipmentSortField.name,
-        direction: SortDirection.ascending,
-      ),
     ),
   ];
 }
