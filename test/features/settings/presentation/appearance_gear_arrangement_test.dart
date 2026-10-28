@@ -54,6 +54,27 @@ void main() {
     expect(find.text('Order types by'), findsOneWidget);
   });
 
+  // The tablet and desktop settings pane embeds the same page without its
+  // Scaffold; the sheet has to open from there too.
+  testWidgets('the embedded Dives page opens the arrange sheet', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      const Scaffold(
+        body: SectionAppearancePage(sectionKey: 'dives', embedded: true),
+      ),
+    );
+
+    final entry = find.text('Gear arrangement');
+    await tester.ensureVisible(entry);
+    await tester.pumpAndSettle();
+    await tester.tap(entry);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Order types by'), findsOneWidget);
+  });
+
   testWidgets('the entry sits in the Dive Details group', (tester) async {
     await _pump(tester, const SectionAppearancePage(sectionKey: 'dives'));
 
