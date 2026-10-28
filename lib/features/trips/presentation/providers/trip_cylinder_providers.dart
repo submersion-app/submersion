@@ -97,15 +97,23 @@ final tripCylinderLabelsAtProvider = FutureProvider.autoDispose
     >((ref, key) async {
       final repository = ref.watch(tripCylinderRepositoryProvider);
       ref.invalidateSelfWhen(repository.watchLedgerChanges());
-      final (cylinders, events) = await (
-        repository.getCylindersForTrip(key.tripId),
-        repository.getEventsForTrip(key.tripId),
-      ).wait;
-      return tripCylinderLabelsAt(
-        cylinders: cylinders,
-        eventsBySlot: events,
-        atMillis: key.atMillis,
-      );
+      // A side trip's dives may breathe from the larger trip's slots too
+      // (issue #3658); each trip's ledger folds on its own.
+      final labels = <String, TripCylinderTankLabel>{};
+      for (final tripId in await repository.linkableTripIds(key.tripId)) {
+        final (cylinders, events) = await (
+          repository.getCylindersForTrip(tripId),
+          repository.getEventsForTrip(tripId),
+        ).wait;
+        labels.addAll(
+          tripCylinderLabelsAt(
+            cylinders: cylinders,
+            eventsBySlot: events,
+            atMillis: key.atMillis,
+          ),
+        );
+      }
+      return labels;
     });
 
 /// The trip's slots as they stood when a dive started, for the dive
@@ -119,16 +127,29 @@ final tripCylinderStatesAtProvider = FutureProvider.autoDispose
     >((ref, key) async {
       final repository = ref.watch(tripCylinderRepositoryProvider);
       ref.invalidateSelfWhen(repository.watchTripCylinderChanges());
-      final (cylinders, events, uses) = await (
-        repository.getCylindersForTrip(key.tripId),
-        repository.getEventsForTrip(key.tripId),
-        repository.getTankUsesForTrip(key.tripId),
-      ).wait;
-      return foldCylinderStatesAt(
-        cylinders: cylinders,
-        eventsBySlot: events,
-        usesBySlot: uses,
-        atMillis: key.atMillis,
-        excludeDiveId: key.excludeDiveId,
-      );
+      // The trip's own slots first, then, for a side trip, the larger trip's
+      // (issue #3658), each folded against its own trip's ledger and uses.
+      return [
+        for (final tripId in await repository.linkableTripIds(key.tripId))
+          ...await _statesAt(repository, tripId, key),
+      ];
     });
+
+Future<List<TripCylinderState>> _statesAt(
+  TripCylinderRepository repository,
+  String tripId,
+  ({String tripId, int atMillis, String? excludeDiveId}) key,
+) async {
+  final (cylinders, events, uses) = await (
+    repository.getCylindersForTrip(tripId),
+    repository.getEventsForTrip(tripId),
+    repository.getTankUsesForTrip(tripId),
+  ).wait;
+  return foldCylinderStatesAt(
+    cylinders: cylinders,
+    eventsBySlot: events,
+    usesBySlot: uses,
+    atMillis: key.atMillis,
+    excludeDiveId: key.excludeDiveId,
+  );
+}

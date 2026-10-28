@@ -190,27 +190,47 @@ class TripRepository {
             activeDiverId: actingDiverId,
           );
 
-      await (_db.update(_db.trips)..where((t) => t.id.equals(trip.id))).write(
-        TripsCompanion(
-          name: Value(trip.name),
-          startDate: Value(trip.startDate.millisecondsSinceEpoch),
-          endDate: Value(trip.endDate.millisecondsSinceEpoch),
-          location: Value(trip.location),
-          resortName: Value(trip.resortName),
-          liveaboardName: Value(trip.liveaboardName),
-          notes: Value(trip.notes),
-          tripType: Value(trip.tripType.name),
-          isShared: maySetSharing ? Value(trip.isShared) : const Value.absent(),
-          // Value(null) writes SQL NULL, so clearing the flight time works.
-          returnFlightAt: Value(trip.returnFlightAt?.millisecondsSinceEpoch),
-          expectedDives: Value(trip.expectedDives),
-          expectedRuntimeMinutes: Value(trip.expectedRuntimeMinutes),
-          diversSharingCylinders: Value(trip.diversSharingCylinders),
-          divesPerDayTarget: Value(trip.divesPerDayTarget),
-          parentTripId: Value(trip.parentTripId),
-          updatedAt: Value(now),
-        ),
-      );
+      final parentChanged =
+          stored != null && stored.parentTripId != trip.parentTripId;
+      await _db.transaction(() async {
+        await (_db.update(_db.trips)..where((t) => t.id.equals(trip.id))).write(
+          TripsCompanion(
+            name: Value(trip.name),
+            startDate: Value(trip.startDate.millisecondsSinceEpoch),
+            endDate: Value(trip.endDate.millisecondsSinceEpoch),
+            location: Value(trip.location),
+            resortName: Value(trip.resortName),
+            liveaboardName: Value(trip.liveaboardName),
+            notes: Value(trip.notes),
+            tripType: Value(trip.tripType.name),
+            isShared: maySetSharing
+                ? Value(trip.isShared)
+                : const Value.absent(),
+            // Value(null) writes SQL NULL, so clearing the flight time works.
+            returnFlightAt: Value(trip.returnFlightAt?.millisecondsSinceEpoch),
+            expectedDives: Value(trip.expectedDives),
+            expectedRuntimeMinutes: Value(trip.expectedRuntimeMinutes),
+            diversSharingCylinders: Value(trip.diversSharingCylinders),
+            divesPerDayTarget: Value(trip.divesPerDayTarget),
+            parentTripId: Value(trip.parentTripId),
+            updatedAt: Value(now),
+          ),
+        );
+        // A side trip moved to another larger trip, or made a trip of its
+        // own, drops its dives' links to the old larger trip's cylinders
+        // (issue #3658). After the write, so the rule reads the new parent.
+        if (parentChanged) {
+          for (final diveId in await _diveIdsOnTrip(trip.id)) {
+            await clearForeignTripCylinderLinks(
+              _db,
+              _syncRepository,
+              diveId,
+              tripId: trip.id,
+              now: now,
+            );
+          }
+        }
+      });
       await _syncRepository.markRecordPending(
         entityType: 'trips',
         recordId: trip.id,
@@ -242,6 +262,18 @@ class TripRepository {
       );
       rethrow;
     }
+  }
+
+  /// The ids of the dives whose own trip is [tripId], every profile's.
+  Future<List<String>> _diveIdsOnTrip(String tripId) async {
+    final rows = await _db
+        .customSelect(
+          // stats-scope-exempt: tank link cleanup, excluded dives included.
+          'SELECT id FROM dives WHERE trip_id = ?',
+          variables: [Variable.withString(tripId)],
+        )
+        .get();
+    return [for (final r in rows) r.read<String>('id')];
   }
 
   /// Delete a trip and all associated child records, when [actingDiverId]

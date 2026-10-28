@@ -32,3 +32,9 @@ String tripDivesScopeSql(String diveAlias, String tripRef) =>
 const String topLevelTripSql =
     'NOT EXISTS (SELECT 1 FROM trips p WHERE p.id = t.parent_trip_id '
     'AND p.parent_trip_id IS NULL AND p.id <> t.id)';
+
+/// The ids of the cylinder slots a dive on [tripRef] may breathe from: the
+/// trip's own and, for a side trip, its larger trip's.
+String linkableSlotIdsSql(String tripRef) =>
+    'SELECT id FROM trip_cylinders WHERE trip_id = $tripRef '
+    'OR trip_id IN (${validParentIdSql(tripRef)})';
