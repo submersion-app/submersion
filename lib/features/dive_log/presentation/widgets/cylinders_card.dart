@@ -218,15 +218,18 @@ class CylindersCard extends ConsumerWidget {
         ? TankPresets.byName(tank.presetName!)
         : null;
     // The figure is full at the tank's rated pressure, so a short fill shows
-    // as a tank never quite full; the preset fills in a tank's own gaps.
+    // as a tank never quite full; the preset fills in a tank's own gaps. A
+    // zero or negative value is "not recorded", not a rating, so it is a gap.
+    double? positive(double? value) =>
+        value != null && value > 0 ? value : null;
     final figure = TankFigure(
       levels: TankFillLevels.resolve(
         start: pressures.$1,
         end: pressures.$2,
-        rated: tank.workingPressure ?? preset?.workingPressureBar,
+        rated: positive(tank.workingPressure) ?? preset?.workingPressureBar,
       ),
       gasColor: GasColors.forGasMix(tank.gasMix),
-      volumeLiters: tank.volume ?? preset?.volumeLiters,
+      volumeLiters: positive(tank.volume) ?? preset?.volumeLiters,
       startLabel: l10n.diveLog_cylinders_figureStart(
         units.formatPressure(pressures.$1),
       ),

@@ -406,6 +406,32 @@ void main() {
       expect(figure.volumeLiters, 11.1);
     });
 
+    testWidgets('a zero rated pressure or volume falls back to the preset', (
+      tester,
+    ) async {
+      // Zero is "not recorded", not a rating; the preset still knows it.
+      await tester.pumpWidget(
+        _buildCard(
+          dive: _makeDive([
+            const DiveTank(
+              id: 'tank-1',
+              presetName: 'al80',
+              workingPressure: 0,
+              volume: 0,
+              startPressure: 190,
+              endPressure: 60,
+              gasMix: GasMix(o2: 32),
+            ),
+          ]),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final figure = tester.widget<TankFigure>(find.byType(TankFigure));
+      expect(figure.levels.start, closeTo(190 / 206.843, 1e-9));
+      expect(figure.volumeLiters, 11.1);
+    });
+
     testWidgets('a tank rated pressure wins over its preset', (tester) async {
       await tester.pumpWidget(
         _buildCard(
