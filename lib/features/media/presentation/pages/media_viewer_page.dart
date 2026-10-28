@@ -540,6 +540,7 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
             final peopleSession = PeopleTagSession(
               active: taggingPeople,
               selectedTagId: selectedPeopleTagId,
+              pendingBoxFor: pendingPeopleBox,
               imageSizeOf: peopleImageSize,
               onImageSize: rememberImageSize,
               canPlace: (item, {videoSize, videoReady = false}) => canPlaceSpot(
@@ -1187,6 +1188,7 @@ class _PhotoItem extends ConsumerWidget {
             mediaId: item.id,
             imageSize: imageSize,
             selectedTagId: people.selectedTagId,
+            pendingBox: people.pendingBoxFor(item.id),
             canPlace: people.canPlace(item),
             onPlace: (box) => people.onPlace(item, box, null),
             onSelect: people.onSelect,
@@ -1591,6 +1593,7 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
                 imageSize: value.size,
                 showAt: value.position,
                 selectedTagId: people.selectedTagId,
+                pendingBox: people.pendingBoxFor(widget.item.id),
                 canPlace: people.canPlace(
                   widget.item,
                   videoSize: value.size,

@@ -76,9 +76,12 @@ void main() {
     await tester.tapAt(const Offset(600, 450));
     await settle(tester);
     expect(find.text('Who is this?'), findsOneWidget);
+    // The dropped box shows while the picker asks who it is.
+    expect(find.byKey(const ValueKey('pending-face-box')), findsOneWidget);
     await tester.tap(find.text('Alex'));
     await settle(tester);
 
+    expect(find.byKey(const ValueKey('pending-face-box')), findsNothing);
     final row = (await rows(tester)).single;
     expect(row.buddyId, 'alex');
     expect(row.bboxX! + row.bboxWidth! / 2, closeTo(0.5, 0.01));

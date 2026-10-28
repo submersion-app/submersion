@@ -20,6 +20,9 @@ class PeopleTagEditor extends ConsumerStatefulWidget {
   final Size imageSize;
   final Duration? showAt;
   final String? selectedTagId;
+
+  /// A box just dropped, drawn while the picker asks who it is.
+  final FaceBox? pendingBox;
   final bool canPlace;
   final ValueChanged<FaceBox> onPlace;
   final ValueChanged<MediaPersonTag> onSelect;
@@ -31,6 +34,7 @@ class PeopleTagEditor extends ConsumerStatefulWidget {
     required this.imageSize,
     this.showAt,
     required this.selectedTagId,
+    this.pendingBox,
     required this.canPlace,
     required this.onPlace,
     required this.onSelect,
@@ -147,6 +151,12 @@ class _PeopleTagEditorState extends ConsumerState<PeopleTagEditor> {
                   chip,
                   view,
                   chip.tag.isMe ? l10n.media_people_me : (chip.buddyName ?? ''),
+                ),
+              if (widget.pendingBox case final pending?)
+                Positioned.fromRect(
+                  key: const ValueKey('pending-face-box'),
+                  rect: boxRect(pending, widget.imageSize, view),
+                  child: const FaceBoxFrame(label: '', color: Colors.amber),
                 ),
             ],
           ),

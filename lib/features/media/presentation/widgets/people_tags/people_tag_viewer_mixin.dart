@@ -38,6 +38,10 @@ bool canPlaceSpot(
 class PeopleTagSession {
   final bool active;
   final String? selectedTagId;
+
+  /// The box just dropped on a media item, shown while the picker asks who
+  /// it is; null for any other item.
+  final FaceBox? Function(String mediaId) pendingBoxFor;
   final Size? Function(MediaItem item, {Size? videoSize}) imageSizeOf;
   final void Function(String mediaId, Size size) onImageSize;
   final bool Function(MediaItem item, {Size? videoSize, bool videoReady})
@@ -49,6 +53,7 @@ class PeopleTagSession {
   const PeopleTagSession({
     required this.active,
     required this.selectedTagId,
+    required this.pendingBoxFor,
     required this.imageSizeOf,
     required this.onImageSize,
     required this.canPlace,
@@ -69,6 +74,13 @@ mixin PeopleTagViewerMixin<T extends ConsumerStatefulWidget>
 
   /// The tag whose box is selected for editing, if any.
   String? selectedPeopleTagId;
+
+  /// The box dropped on [_pendingMediaId] while the picker is open.
+  FaceBox? _pendingBox;
+  String? _pendingMediaId;
+
+  FaceBox? pendingPeopleBox(String mediaId) =>
+      _pendingMediaId == mediaId ? _pendingBox : null;
 
   /// Decoded image sizes of photos whose rows store none.
   final Map<String, Size> _decodedSizes = {};
@@ -120,7 +132,23 @@ mixin PeopleTagViewerMixin<T extends ConsumerStatefulWidget>
   Future<void> tagWithoutSpot(MediaItem item) => _tagWith(item);
 
   Future<void> _tagWith(MediaItem item, {FaceBox? box, Duration? at}) async {
-    final choice = await showPersonPickerSheet(context, diveId: item.diveId);
+    if (box != null) {
+      setState(() {
+        _pendingBox = box;
+        _pendingMediaId = item.id;
+      });
+    }
+    final PersonChoice? choice;
+    try {
+      choice = await showPersonPickerSheet(context, diveId: item.diveId);
+    } finally {
+      if (mounted && box != null) {
+        setState(() {
+          _pendingBox = null;
+          _pendingMediaId = null;
+        });
+      }
+    }
     if (choice == null || !mounted) return;
     await ref
         .read(mediaPeopleRepositoryProvider)
