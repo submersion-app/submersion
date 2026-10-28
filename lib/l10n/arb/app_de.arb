@@ -15155,6 +15155,8 @@
   "media_people_filterSection": "Personen",
   "media_people_removedBuddy": "Entfernter Tauchpartner",
   "media_people_saveFailed": "Die Markierung konnte nicht gespeichert werden. Versuchen Sie es erneut.",
+  "media_people_addToDiveFailed": "Der Tauchpartner konnte diesem Tauchgang nicht hinzugefügt werden. Versuchen Sie es erneut.",
+  "media_people_createBuddyFailed": "Der Tauchpartner konnte nicht angelegt werden. Versuchen Sie es erneut.",
   "media_info_fileSection": "Datei",
   "media_info_filename": "Dateiname",
   "media_info_type": "Typ",

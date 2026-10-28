@@ -50397,6 +50397,14 @@ class AppLocalizationsNl extends AppLocalizations {
       'De tag kon niet worden opgeslagen. Probeer het opnieuw.';
 
   @override
+  String get media_people_addToDiveFailed =>
+      'De buddy kon niet aan deze duik worden toegevoegd. Probeer het opnieuw.';
+
+  @override
+  String get media_people_createBuddyFailed =>
+      'De buddy kon niet worden aangemaakt. Probeer het opnieuw.';
+
+  @override
   String get media_info_fileSection => 'Bestand';
 
   @override

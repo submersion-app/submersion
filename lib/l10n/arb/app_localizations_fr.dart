@@ -50833,6 +50833,14 @@ class AppLocalizationsFr extends AppLocalizations {
       'Impossible d\'enregistrer l\'identification. Réessayez.';
 
   @override
+  String get media_people_addToDiveFailed =>
+      'Impossible d\'ajouter le binôme à cette plongée. Réessayez.';
+
+  @override
+  String get media_people_createBuddyFailed =>
+      'Impossible de créer le binôme. Réessayez.';
+
+  @override
   String get media_info_fileSection => 'Fichier';
 
   @override

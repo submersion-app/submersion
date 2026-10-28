@@ -15003,6 +15003,8 @@
   "media_people_filterSection": "الأشخاص",
   "media_people_removedBuddy": "رفيق محذوف",
   "media_people_saveFailed": "تعذر حفظ الوسم. حاول مرة أخرى.",
+  "media_people_addToDiveFailed": "تعذرت إضافة الرفيق إلى هذه الغطسة. حاول مرة أخرى.",
+  "media_people_createBuddyFailed": "تعذر إنشاء الرفيق. حاول مرة أخرى.",
   "media_info_fileSection": "الملف",
   "media_info_filename": "اسم الملف",
   "media_info_type": "النوع",

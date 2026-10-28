@@ -47563,6 +47563,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_people_saveFailed => '无法保存标记，请重试。';
 
   @override
+  String get media_people_addToDiveFailed => '无法将潜伴添加到本次潜水，请重试。';
+
+  @override
+  String get media_people_createBuddyFailed => '无法创建潜伴，请重试。';
+
+  @override
   String get media_info_fileSection => '文件';
 
   @override

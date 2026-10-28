@@ -15003,6 +15003,8 @@
   "media_people_filterSection": "Persone",
   "media_people_removedBuddy": "Compagno rimosso",
   "media_people_saveFailed": "Impossibile salvare il tag. Riprova.",
+  "media_people_addToDiveFailed": "Impossibile aggiungere il compagno a questa immersione. Riprova.",
+  "media_people_createBuddyFailed": "Impossibile creare il compagno. Riprova.",
   "media_info_fileSection": "File",
   "media_info_filename": "Nome file",
   "media_info_type": "Tipo",

@@ -80331,6 +80331,18 @@ abstract class AppLocalizations {
   /// **'Couldn\'t save the tag. Try again.'**
   String get media_people_saveFailed;
 
+  /// No description provided for @media_people_addToDiveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t add the buddy to this dive. Try again.'**
+  String get media_people_addToDiveFailed;
+
+  /// No description provided for @media_people_createBuddyFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t create the buddy. Try again.'**
+  String get media_people_createBuddyFailed;
+
   /// No description provided for @media_info_fileSection.
   ///
   /// In en, this message translates to:

@@ -29993,6 +29993,8 @@
   "media_people_filterSection": "People",
   "media_people_removedBuddy": "Removed buddy",
   "media_people_saveFailed": "Couldn't save the tag. Try again.",
+  "media_people_addToDiveFailed": "Couldn't add the buddy to this dive. Try again.",
+  "media_people_createBuddyFailed": "Couldn't create the buddy. Try again.",
   "media_info_fileSection": "File",
   "media_info_filename": "Filename",
   "media_info_type": "Type",

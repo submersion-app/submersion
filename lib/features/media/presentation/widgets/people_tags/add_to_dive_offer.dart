@@ -28,7 +28,7 @@ Future<void> offerAddToDive(
   if (!context.mounted) return;
   final l10n = context.l10n;
   final messenger = ScaffoldMessenger.of(context);
-  final failed = l10n.media_people_saveFailed;
+  final failed = l10n.media_people_addToDiveFailed;
   Future<void> add() async {
     try {
       // An empty role list means the Buddy role.

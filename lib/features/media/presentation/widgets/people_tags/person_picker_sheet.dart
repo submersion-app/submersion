@@ -91,7 +91,7 @@ class _PersonPickerSheetState extends ConsumerState<_PersonPickerSheet> {
       if (!mounted) return;
       setState(() => _saving = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.l10n.media_people_saveFailed)),
+        SnackBar(content: Text(context.l10n.media_people_createBuddyFailed)),
       );
     }
   }

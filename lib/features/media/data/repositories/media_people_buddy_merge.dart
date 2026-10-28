@@ -5,13 +5,16 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/media/data/repositories/media_row_mapper.dart';
 import 'package:submersion/features/media/data/repositories/smart_album_tag_repoint.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/domain/entities/media_person_tag.dart';
 
 /// What a buddy merge did to people tags (issue #1745), so its undo can put
-/// them back: each repointed tag's original buddy, and the duplicates the
-/// merge removed because the survivor was already tagged on that photo.
+/// them back: each repointed tag's original buddy, the duplicates the merge
+/// removed because the survivor was already tagged there, and the
+/// survivor's tags as they were before a duplicate's box moved onto them.
 class MediaPeopleMergeSnapshot {
   final Map<String, String> originalBuddyIds;
   final List<MediaPeopleData> removedDuplicates;
+  final List<MediaPeopleData> boxedSurvivors;
 
   /// Smart album id -> its filter JSON before [repointSmartAlbumBuddies].
   final Map<String, String> albumFilters;
@@ -19,6 +22,7 @@ class MediaPeopleMergeSnapshot {
   const MediaPeopleMergeSnapshot({
     this.originalBuddyIds = const {},
     this.removedDuplicates = const [],
+    this.boxedSurvivors = const [],
     this.albumFilters = const {},
   });
 
@@ -26,6 +30,7 @@ class MediaPeopleMergeSnapshot {
       MediaPeopleMergeSnapshot(
         originalBuddyIds: originalBuddyIds,
         removedDuplicates: removedDuplicates,
+        boxedSurvivors: boxedSurvivors,
         albumFilters: filters,
       );
 }
@@ -34,10 +39,13 @@ class MediaPeopleMergeSnapshot {
 /// that is about to delete [fromBuddyIds]. Without it their tags would go
 /// with them on the foreign-key cascade, silently and without tombstones.
 ///
-/// A photo shows a person once, so where the survivor (or another merged
-/// buddy) is already tagged on a photo, the extra tag is deleted and
-/// tombstoned instead. Every moment on a video is kept. Runs inside the
-/// caller's transaction and does not notify.
+/// The person rules `MediaPeopleRepository.addTag` keeps hold here too.
+/// A photo shows a person once: where the survivor is already tagged there,
+/// the duplicate is deleted and tombstoned, and if only the duplicate had a
+/// box, the box moves onto the survivor's tag first. On a video every
+/// moment is kept, but a duplicate without a spot, or within
+/// [faceTagMomentWindow] of a survivor's moment, collapses into the
+/// survivor's tag. Runs inside the caller's transaction and does not notify.
 Future<MediaPeopleMergeSnapshot> repointMediaPeopleForMerge(
   AppDatabase db,
   SyncRepository syncRepository, {
@@ -66,42 +74,81 @@ Future<MediaPeopleMergeSnapshot> repointMediaPeopleForMerge(
             .get())
       row.read(db.media.id)!,
   };
-  // Photos the survivor is already on, filled as tags move onto it.
-  final survivorPhotos = {
-    for (final r in await (db.select(
-      p,
-    )..where((t) => t.buddyId.equals(toBuddyId))).get())
-      if (!videos.contains(r.mediaId)) r.mediaId,
-  };
+  // The survivor's tags per media item, kept current as tags move onto it.
+  final survivor = <String, List<MediaPeopleData>>{};
+  for (final r
+      in await (db.select(p)..where(
+            (t) => t.buddyId.equals(toBuddyId) & t.mediaId.isIn(mediaIds),
+          ))
+          .get()) {
+    survivor.putIfAbsent(r.mediaId, () => []).add(r);
+  }
 
   final original = <String, String>{};
   final removed = <MediaPeopleData>[];
+  final boxed = <MediaPeopleData>[];
   for (final row in moving) {
-    final isPhoto = !videos.contains(row.mediaId);
-    if (isPhoto && survivorPhotos.contains(row.mediaId)) {
-      await (db.delete(p)..where((t) => t.id.equals(row.id))).go();
-      await syncRepository.logDeletion(
+    final isVideo = videos.contains(row.mediaId);
+    final mine = survivor.putIfAbsent(row.mediaId, () => []);
+    final keeper = mine.where((s) => _sameTag(s, row, isVideo)).firstOrNull;
+    if (keeper == null) {
+      await (db.update(p)..where((t) => t.id.equals(row.id))).write(
+        MediaPeopleCompanion(buddyId: Value(toBuddyId), updatedAt: Value(now)),
+      );
+      await syncRepository.markRecordPending(
         entityType: 'mediaPeople',
         recordId: row.id,
+        localUpdatedAt: now,
       );
-      removed.add(row);
+      original[row.id] = row.buddyId!;
+      mine.add(row.copyWith(buddyId: Value(toBuddyId)));
       continue;
     }
-    await (db.update(p)..where((t) => t.id.equals(row.id))).write(
-      MediaPeopleCompanion(buddyId: Value(toBuddyId), updatedAt: Value(now)),
-    );
-    await syncRepository.markRecordPending(
+    if (!isVideo && keeper.bboxX == null && row.bboxX != null) {
+      // Only the duplicate marked the face: keep its box.
+      boxed.add(keeper);
+      final withBox = keeper.copyWith(
+        bboxX: Value(row.bboxX),
+        bboxY: Value(row.bboxY),
+        bboxWidth: Value(row.bboxWidth),
+        bboxHeight: Value(row.bboxHeight),
+        updatedAt: now,
+      );
+      await (db.update(p)..where((t) => t.id.equals(keeper.id))).write(
+        withBox.toCompanion(false),
+      );
+      await syncRepository.markRecordPending(
+        entityType: 'mediaPeople',
+        recordId: keeper.id,
+        localUpdatedAt: now,
+      );
+      mine[mine.indexOf(keeper)] = withBox;
+    }
+    await (db.delete(p)..where((t) => t.id.equals(row.id))).go();
+    await syncRepository.logDeletion(
       entityType: 'mediaPeople',
       recordId: row.id,
-      localUpdatedAt: now,
     );
-    original[row.id] = row.buddyId!;
-    if (isPhoto) survivorPhotos.add(row.mediaId);
+    removed.add(row);
   }
   return MediaPeopleMergeSnapshot(
     originalBuddyIds: original,
     removedDuplicates: removed,
+    boxedSurvivors: boxed,
   );
+}
+
+/// Whether [moving] duplicates the survivor's tag [kept]: on a photo any
+/// tag of the person; on a video both without a spot, or both moments
+/// within [faceTagMomentWindow].
+bool _sameTag(MediaPeopleData kept, MediaPeopleData moving, bool isVideo) {
+  if (!isVideo) return true;
+  final a = kept.videoPositionMs;
+  final b = moving.videoPositionMs;
+  if (a == null || b == null) {
+    return a == null && b == null && kept.bboxX == null && moving.bboxX == null;
+  }
+  return (a - b).abs() <= faceTagMomentWindow.inMilliseconds;
 }
 
 /// Reverses [repointMediaPeopleForMerge] once the merged buddies exist
@@ -138,6 +185,16 @@ Future<void> undoMediaPeopleMerge(
     await syncRepository.markRecordPending(
       entityType: 'mediaSmartAlbums',
       recordId: id,
+      localUpdatedAt: now,
+    );
+  }
+  for (final row in snapshot.boxedSurvivors) {
+    await (db.update(p)..where((t) => t.id.equals(row.id))).write(
+      row.copyWith(updatedAt: now).toCompanion(false),
+    );
+    await syncRepository.markRecordPending(
+      entityType: 'mediaPeople',
+      recordId: row.id,
       localUpdatedAt: now,
     );
   }

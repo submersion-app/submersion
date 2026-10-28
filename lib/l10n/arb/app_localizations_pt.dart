@@ -50715,6 +50715,14 @@ class AppLocalizationsPt extends AppLocalizations {
       'Não foi possível salvar a marcação. Tente novamente.';
 
   @override
+  String get media_people_addToDiveFailed =>
+      'Não foi possível adicionar o companheiro a este mergulho. Tente novamente.';
+
+  @override
+  String get media_people_createBuddyFailed =>
+      'Não foi possível criar o companheiro. Tente novamente.';
+
+  @override
   String get media_info_fileSection => 'Arquivo';
 
   @override

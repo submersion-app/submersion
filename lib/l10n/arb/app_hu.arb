@@ -15003,6 +15003,8 @@
   "media_people_filterSection": "Személyek",
   "media_people_removedBuddy": "Törölt búvártárs",
   "media_people_saveFailed": "A jelölés mentése nem sikerült. Próbálja újra.",
+  "media_people_addToDiveFailed": "A búvártársat nem sikerült hozzáadni ehhez a merüléshez. Próbálja újra.",
+  "media_people_createBuddyFailed": "A búvártársat nem sikerült létrehozni. Próbálja újra.",
   "media_info_fileSection": "Fájl",
   "media_info_filename": "Fájlnév",
   "media_info_type": "Típus",

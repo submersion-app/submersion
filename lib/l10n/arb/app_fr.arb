@@ -15003,6 +15003,8 @@
   "media_people_filterSection": "Personnes",
   "media_people_removedBuddy": "Binôme supprimé",
   "media_people_saveFailed": "Impossible d'enregistrer l'identification. Réessayez.",
+  "media_people_addToDiveFailed": "Impossible d'ajouter le binôme à cette plongée. Réessayez.",
+  "media_people_createBuddyFailed": "Impossible de créer le binôme. Réessayez.",
   "media_info_fileSection": "Fichier",
   "media_info_filename": "Nom du fichier",
   "media_info_type": "Type",

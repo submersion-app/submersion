@@ -49924,6 +49924,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get media_people_saveFailed => 'Couldn\'t save the tag. Try again.';
 
   @override
+  String get media_people_addToDiveFailed =>
+      'Couldn\'t add the buddy to this dive. Try again.';
+
+  @override
+  String get media_people_createBuddyFailed =>
+      'Couldn\'t create the buddy. Try again.';
+
+  @override
   String get media_info_fileSection => 'File';
 
   @override

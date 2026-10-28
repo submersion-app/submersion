@@ -86,6 +86,65 @@ void main() {
     expect(v1.map((t) => t.buddyId), ['keep', 'keep']);
   });
 
+  test(
+    'a boxed duplicate gives its box to a survivor tag without one',
+    () async {
+      const dupBox = FaceBox(x: 0.3, y: 0.3, width: 0.2, height: 0.2);
+      final keep = await people.addTag(mediaId: 'p1', buddyId: 'keep');
+      final dup = await people.addTag(
+        mediaId: 'p1',
+        buddyId: 'dup',
+        box: dupBox,
+      );
+
+      final merged = await merge();
+
+      final tags = await people.getTagsForMedia('p1', diverId: 'A');
+      expect(tags.map((t) => (t.id, t.buddyId, t.box)), [
+        (keep.id, 'keep', dupBox),
+      ]);
+
+      await repo.undoMerge(merged.snapshot);
+      final back = {
+        for (final t in await people.getTagsForMedia('p1', diverId: 'A'))
+          t.id: (t.buddyId, t.box),
+      };
+      expect(back, {keep.id: ('keep', null), dup.id: ('dup', dupBox)});
+    },
+  );
+
+  test('on a video, spot-less and same-moment duplicates collapse', () async {
+    await people.addTag(mediaId: 'v1', buddyId: 'keep');
+    await people.addTag(mediaId: 'v1', buddyId: 'dup');
+    await people.addTag(
+      mediaId: 'v1',
+      buddyId: 'keep',
+      box: const FaceBox(x: 0.1, y: 0.1, width: 0.2, height: 0.2),
+      videoPosition: const Duration(milliseconds: 42000),
+    );
+    await people.addTag(
+      mediaId: 'v1',
+      buddyId: 'dup',
+      box: const FaceBox(x: 0.5, y: 0.5, width: 0.2, height: 0.2),
+      videoPosition: const Duration(milliseconds: 42300),
+    );
+    await people.addTag(
+      mediaId: 'v1',
+      buddyId: 'dup',
+      box: const FaceBox(x: 0.5, y: 0.5, width: 0.2, height: 0.2),
+      videoPosition: const Duration(seconds: 90),
+    );
+
+    await merge();
+
+    final tags = await people.getTagsForMedia('v1', diverId: 'A');
+    expect(tags.map((t) => (t.buddyId, t.videoPosition)), [
+      ('keep', null),
+      ('keep', const Duration(milliseconds: 42000)),
+      ('keep', const Duration(seconds: 90)),
+    ]);
+  });
+
   test('undoing the merge restores both tags', () async {
     final keep = await people.addTag(mediaId: 'p1', buddyId: 'keep');
     final dup = await people.addTag(mediaId: 'p1', buddyId: 'dup');

@@ -50717,6 +50717,14 @@ class AppLocalizationsIt extends AppLocalizations {
   String get media_people_saveFailed => 'Impossibile salvare il tag. Riprova.';
 
   @override
+  String get media_people_addToDiveFailed =>
+      'Impossibile aggiungere il compagno a questa immersione. Riprova.';
+
+  @override
+  String get media_people_createBuddyFailed =>
+      'Impossibile creare il compagno. Riprova.';
+
+  @override
   String get media_info_fileSection => 'File';
 
   @override

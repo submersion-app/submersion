@@ -15003,6 +15003,8 @@
   "media_people_filterSection": "Personen",
   "media_people_removedBuddy": "Verwijderde buddy",
   "media_people_saveFailed": "De tag kon niet worden opgeslagen. Probeer het opnieuw.",
+  "media_people_addToDiveFailed": "De buddy kon niet aan deze duik worden toegevoegd. Probeer het opnieuw.",
+  "media_people_createBuddyFailed": "De buddy kon niet worden aangemaakt. Probeer het opnieuw.",
   "media_info_fileSection": "Bestand",
   "media_info_filename": "Bestandsnaam",
   "media_info_type": "Type",

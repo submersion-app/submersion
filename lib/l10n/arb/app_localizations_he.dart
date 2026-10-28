@@ -49644,6 +49644,14 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_people_saveFailed => 'לא ניתן לשמור את התיוג. נסה שוב.';
 
   @override
+  String get media_people_addToDiveFailed =>
+      'לא ניתן להוסיף את חבר הצוללים לצלילה זו. נסה שוב.';
+
+  @override
+  String get media_people_createBuddyFailed =>
+      'לא ניתן ליצור את חבר הצוללים. נסה שוב.';
+
+  @override
   String get media_info_fileSection => 'קובץ';
 
   @override

@@ -50604,6 +50604,14 @@ class AppLocalizationsDe extends AppLocalizations {
       'Die Markierung konnte nicht gespeichert werden. Versuchen Sie es erneut.';
 
   @override
+  String get media_people_addToDiveFailed =>
+      'Der Tauchpartner konnte diesem Tauchgang nicht hinzugefügt werden. Versuchen Sie es erneut.';
+
+  @override
+  String get media_people_createBuddyFailed =>
+      'Der Tauchpartner konnte nicht angelegt werden. Versuchen Sie es erneut.';
+
+  @override
   String get media_info_fileSection => 'Datei';
 
   @override

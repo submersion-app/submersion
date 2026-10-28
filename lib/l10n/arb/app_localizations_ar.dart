@@ -51348,6 +51348,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_people_saveFailed => 'تعذر حفظ الوسم. حاول مرة أخرى.';
 
   @override
+  String get media_people_addToDiveFailed =>
+      'تعذرت إضافة الرفيق إلى هذه الغطسة. حاول مرة أخرى.';
+
+  @override
+  String get media_people_createBuddyFailed =>
+      'تعذر إنشاء الرفيق. حاول مرة أخرى.';
+
+  @override
   String get media_info_fileSection => 'الملف';
 
   @override

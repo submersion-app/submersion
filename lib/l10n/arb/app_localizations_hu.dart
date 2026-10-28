@@ -50436,6 +50436,14 @@ class AppLocalizationsHu extends AppLocalizations {
       'A jelölés mentése nem sikerült. Próbálja újra.';
 
   @override
+  String get media_people_addToDiveFailed =>
+      'A búvártársat nem sikerült hozzáadni ehhez a merüléshez. Próbálja újra.';
+
+  @override
+  String get media_people_createBuddyFailed =>
+      'A búvártársat nem sikerült létrehozni. Próbálja újra.';
+
+  @override
   String get media_info_fileSection => 'Fájl';
 
   @override

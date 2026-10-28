@@ -15003,6 +15003,8 @@
   "media_people_filterSection": "Pessoas",
   "media_people_removedBuddy": "Companheiro removido",
   "media_people_saveFailed": "Não foi possível salvar a marcação. Tente novamente.",
+  "media_people_addToDiveFailed": "Não foi possível adicionar o companheiro a este mergulho. Tente novamente.",
+  "media_people_createBuddyFailed": "Não foi possível criar o companheiro. Tente novamente.",
   "media_info_fileSection": "Arquivo",
   "media_info_filename": "Nome do arquivo",
   "media_info_type": "Tipo",

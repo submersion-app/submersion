@@ -50768,6 +50768,14 @@ class AppLocalizationsEs extends AppLocalizations {
       'No se pudo guardar la etiqueta. Inténtalo de nuevo.';
 
   @override
+  String get media_people_addToDiveFailed =>
+      'No se pudo agregar el compañero a esta inmersión. Inténtalo de nuevo.';
+
+  @override
+  String get media_people_createBuddyFailed =>
+      'No se pudo crear el compañero. Inténtalo de nuevo.';
+
+  @override
   String get media_info_fileSection => 'Archivo';
 
   @override
