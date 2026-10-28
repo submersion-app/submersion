@@ -31,6 +31,7 @@ import 'package:submersion/features/insights/data/repositories/site_entry_method
 import 'package:submersion/features/insights/data/repositories/visibility_band_sql.dart';
 import 'package:submersion/features/insights/data/dive_filter_sql.dart';
 import 'package:submersion/features/insights/data/series_profile_aggregates.dart';
+import 'package:submersion/features/insights/domain/calendar_day_matrix.dart';
 import 'package:submersion/features/insights/domain/conditions/conditions_row.dart';
 import 'package:submersion/features/insights/domain/entities/species_insights.dart';
 import 'package:submersion/features/insights/domain/focus/focus_factor_row.dart';
@@ -43,6 +44,7 @@ import 'package:submersion/features/insights/domain/water_temp_bands.dart';
 export 'package:submersion/features/insights/domain/trend_aggregation.dart'
     show TrendDataPoint;
 
+part 'insights_repository_calendar_days.dart';
 part 'insights_repository_conditions.dart';
 part 'insights_repository_focus.dart';
 part 'insights_repository_focus_series.dart';
