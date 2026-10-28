@@ -56298,6 +56298,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get tags_manage_cannotUndo => 'لا يمكن التراجع عن هذا الإجراء.';
 
   @override
+  String tags_manage_rowScopes(String scopes) {
+    return 'متاح لـ: $scopes';
+  }
+
+  @override
+  String tags_manage_rowUsage(String counts) {
+    return 'مستخدم في: $counts';
+  }
+
+  @override
   String get tags_action_edit => 'تعديل الوسوم';
 
   @override

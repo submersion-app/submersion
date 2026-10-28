@@ -54390,6 +54390,16 @@ class AppLocalizationsHe extends AppLocalizations {
   String get tags_manage_cannotUndo => 'לא ניתן לבטל פעולה זו.';
 
   @override
+  String tags_manage_rowScopes(String scopes) {
+    return 'עבור: $scopes';
+  }
+
+  @override
+  String tags_manage_rowUsage(String counts) {
+    return 'בשימוש: $counts';
+  }
+
+  @override
   String get tags_action_edit => 'עריכת תגיות';
 
   @override
