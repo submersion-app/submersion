@@ -19,6 +19,7 @@ library;
 
 import 'package:drift/drift.dart';
 
+import 'package:submersion/core/database/table_columns.dart';
 import 'package:submersion/core/database/tag_scope_tables.dart';
 
 /// Unique index over `tags`, keyed on (diver scope, case-folded name).
@@ -219,11 +220,6 @@ Future<bool> _tableExists(DatabaseConnectionUser db, String name) async {
   return rows.isNotEmpty;
 }
 
-Future<Set<String>> _columnsOf(DatabaseConnectionUser db, String table) async {
-  final columns = await db.customSelect("PRAGMA table_info('$table')").get();
-  return {for (final column in columns) column.read<String>('name')};
-}
-
 /// Collapses duplicate tags and duplicate links, in the only order that
 /// leaves no ties: normalize the names the grouping keys on, give each
 /// survivor the union of its group's scopes, repoint every junction in the
@@ -240,7 +236,7 @@ Future<void> collapseDuplicateTags(DatabaseConnectionUser db) async {
     for (final junction in tagScopeTables)
       if (await _tableExists(db, junction.junctionTable)) junction,
   ];
-  final tagColumns = await _columnsOf(db, 'tags');
+  final tagColumns = await tableColumnNames(db, 'tags');
   final scopeColumns = [
     for (final junction in tagScopeTables)
       if (tagColumns.contains(junction.scopeColumn)) junction.scopeColumn,

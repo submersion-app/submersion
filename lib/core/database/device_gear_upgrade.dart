@@ -3,6 +3,7 @@ import 'package:drift/drift.dart';
 import 'package:submersion/core/database/imported_computer_identity.dart';
 import 'package:submersion/core/database/device_gear_heal.dart';
 import 'package:submersion/core/database/dive_computer_gear_identity.dart';
+import 'package:submersion/core/database/table_columns.dart';
 import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
 
 /// The ladder-only steps of the v316 upgrade (issue #3676), beside
@@ -23,8 +24,8 @@ import 'package:submersion/features/dive_log/domain/services/transmitter_serial.
 /// computer's go below the item's, since the v175 twins were all seeded with
 /// blank notes and the old computer edit dialog was where divers wrote them.
 Future<void> alignComputerNamesAndNotes(DatabaseConnectionUser db) async {
-  final computerCols = await _columnsOf(db, 'dive_computers');
-  final equipmentCols = await _columnsOf(db, 'equipment');
+  final computerCols = await tableColumnNames(db, 'dive_computers');
+  final equipmentCols = await tableColumnNames(db, 'equipment');
   if (!computerCols.containsAll({
         'id',
         'name',
@@ -129,8 +130,8 @@ String _mergedNotes({
 /// The rung cannot read the app's localizations, so the stored name is the
 /// English placeholder; the diver renames it when setting it up.
 Future<int> registerUnassignedSerials(DatabaseConnectionUser db) async {
-  final txCols = await _columnsOf(db, 'transmitters');
-  final tankCols = await _columnsOf(db, 'dive_tanks');
+  final txCols = await tableColumnNames(db, 'transmitters');
+  final tankCols = await tableColumnNames(db, 'dive_tanks');
   if (!txCols.containsAll({
         'id',
         'diver_id',
@@ -143,7 +144,7 @@ Future<int> registerUnassignedSerials(DatabaseConnectionUser db) async {
         'updated_at',
       }) ||
       !tankCols.containsAll({'dive_id', 'transmitter_serial', 'tank_role'}) ||
-      !(await _columnsOf(
+      !(await tableColumnNames(
         db,
         'dives',
       )).containsAll({'id', 'diver_id', 'dive_date_time'})) {
@@ -173,7 +174,7 @@ Future<int> registerUnassignedSerials(DatabaseConnectionUser db) async {
       .get();
   var created = 0;
   final now = DateTime.now().millisecondsSinceEpoch;
-  final hasLog = (await _columnsOf(db, 'deletion_log')).isNotEmpty;
+  final hasLog = (await tableColumnNames(db, 'deletion_log')).isNotEmpty;
   for (final r in seen) {
     final serial = normalizeTransmitterSerial(r.read<String?>('serial'));
     if (serial == null) continue;
@@ -224,19 +225,19 @@ Future<int> registerUnassignedSerials(DatabaseConnectionUser db) async {
 /// Puts every transmitter item on the gear of each dive whose tanks carry
 /// one of its rows' serials, as v175 did for computers.
 Future<void> linkTransmitterGearToDives(DatabaseConnectionUser db) async {
-  final junction = await _columnsOf(db, 'dive_equipment');
-  final txCols = await _columnsOf(db, 'transmitters');
+  final junction = await tableColumnNames(db, 'dive_equipment');
+  final txCols = await tableColumnNames(db, 'transmitters');
   if (!junction.containsAll({'dive_id', 'equipment_id'}) ||
       !txCols.containsAll({
         'diver_id',
         'transmitter_serial',
         'transmitter_equipment_id',
       }) ||
-      !(await _columnsOf(
+      !(await tableColumnNames(
         db,
         'dive_tanks',
       )).containsAll({'dive_id', 'transmitter_serial'}) ||
-      !(await _columnsOf(db, 'dives')).containsAll({'id', 'diver_id'})) {
+      !(await tableColumnNames(db, 'dives')).containsAll({'id', 'diver_id'})) {
     return;
   }
   final items = <String, String>{};
@@ -290,8 +291,3 @@ Future<bool> _isTombstoned(
         )
         .getSingleOrNull() !=
     null;
-
-Future<Set<String>> _columnsOf(DatabaseConnectionUser db, String table) async {
-  final rows = await db.customSelect("PRAGMA table_info('$table')").get();
-  return rows.map((c) => c.read<String>('name')).toSet();
-}

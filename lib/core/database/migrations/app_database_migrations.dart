@@ -28,6 +28,7 @@ import 'package:submersion/core/database/shearwater_serial_heal.dart';
 import 'package:submersion/core/database/performance_indexes.dart';
 import 'package:submersion/core/database/profile_series_pack_coverage.dart';
 import 'package:submersion/core/database/profile_series_pack.dart';
+import 'package:submersion/core/database/table_columns.dart';
 import 'package:submersion/core/database/profile_series_safety_stop_scrub.dart';
 import 'package:submersion/core/database/raw_dive_data_codec.dart';
 import 'package:submersion/core/database/site_classification_uniqueness.dart';

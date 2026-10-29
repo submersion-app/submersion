@@ -35,10 +35,8 @@ extension SupportMigrations on AppDatabase {
       (await _columnNames(table)).contains(column);
 
   /// The names of [table]'s columns right now; empty when it is absent.
-  Future<Set<String>> _columnNames(String table) async {
-    final cols = await customSelect("PRAGMA table_info('$table')").get();
-    return {for (final c in cols) c.read<String>('name')};
-  }
+  Future<Set<String>> _columnNames(String table) =>
+      tableColumnNames(this, table);
 
   /// Idempotent and a no-op when the table or column is absent, so it is
   /// safe to call from both onUpgrade and the beforeOpen backstop.

@@ -91,6 +91,12 @@ void main() {
         await before.customStatement(
           'ALTER TABLE ${table.key} DROP COLUMN ${column.key}',
         );
+        // The explicitly-off flag arrived with v321, so a database stamped
+        // below that has it under neither spelling: the v321 rung adds it.
+        if (userVersion < 321 &&
+            column.key == 'pp_o2_deco_bands_explicitly_off') {
+          continue;
+        }
         await before.customStatement(
           'ALTER TABLE ${table.key} ADD COLUMN ${column.value}',
         );
