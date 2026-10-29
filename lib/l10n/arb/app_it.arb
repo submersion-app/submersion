@@ -5781,7 +5781,7 @@
   "plannerSeries_fillAll": "Riempi tutte le bombole",
   "plannerSeries_saveUnavailable": "Non è ancora possibile salvare una serie di immersioni",
   "plannerSeries_convertUnavailable": "Non è ancora possibile convertire una serie di immersioni in immersioni registrate",
-  "plannerSeries_followFirstDiveOnly": "Solo la prima immersione di una serie può seguire un'immersione registrata",
+  "plannerSeries_followUnavailableInReplan": "Una ripianificazione non può seguire un'altra immersione",
   "plannerCanvas_follow_title": "Segui un'immersione",
   "plannerCanvas_gas_minGas": "gas minimo {pressure}",
   "plannerCanvas_gas_turnAt": "rientro a {pressure}",

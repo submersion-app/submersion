@@ -114,8 +114,10 @@ class PlanSeriesNotifier extends StateNotifier<PlanSeries> {
   }
 
   /// Follows the logged dives in [follow]: the first dive starts from the
-  /// followed one, after [surfaceInterval].
+  /// followed one, after [surfaceInterval]. Ignored for a replan, which
+  /// keeps the seed it was opened with (see [followAllowedProvider]).
   void followDive(SeriesFollow follow, {required Duration surfaceInterval}) {
+    if (isReplan(_readEditor())) return;
     state = edits.followDive(
       state,
       follow,
@@ -224,12 +226,15 @@ final planSaveAllowedProvider = Provider<bool>(
   (ref) => !ref.watch(planSeriesNotifierProvider).isSeries,
 );
 
-/// Whether the selected dive can follow a logged dive. Only the first dive
-/// of a series can: every later one starts from the dive before it.
+/// Whether the plan can follow a logged dive. A replan cannot: it already
+/// starts from the dive before the one it replans, and its source dive is
+/// what makes it a replan.
 final followAllowedProvider = Provider<bool>(
-  (ref) =>
-      ref.watch(planSeriesNotifierProvider.select((s) => s.selectedIndex)) == 0,
+  (ref) => !ref.watch(divePlanNotifierProvider.select(isReplan)),
 );
+
+/// Whether [plan] replans a logged dive.
+bool isReplan(DivePlanState plan) => plan.sourceDiveId != null;
 
 /// The tanks of the selected dive that Fill would top up, with the pressure
 /// it fills each to. Empty on a first dive that follows no logged dive,

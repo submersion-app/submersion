@@ -12844,7 +12844,7 @@
   "plannerSeries_fillAll": "Fill all tanks",
   "plannerSeries_saveUnavailable": "A series of dives can't be saved yet",
   "plannerSeries_convertUnavailable": "A series of dives can't be converted to logged dives yet",
-  "plannerSeries_followFirstDiveOnly": "Only the first dive of a series can follow a logged dive",
+  "plannerSeries_followUnavailableInReplan": "A replan can't follow another dive",
   "plannerCanvas_follow_title": "Follow a dive",
   "plannerCanvas_gas_minGas": "min gas {pressure}",
   "@plannerCanvas_gas_minGas": {

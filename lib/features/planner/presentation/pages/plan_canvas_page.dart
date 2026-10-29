@@ -236,7 +236,7 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
                   enabled: followAllowed,
                   tooltip: followAllowed
                       ? null
-                      : context.l10n.plannerSeries_followFirstDiveOnly,
+                      : context.l10n.plannerSeries_followUnavailableInReplan,
                 ),
                 _menuItem(
                   'settings',

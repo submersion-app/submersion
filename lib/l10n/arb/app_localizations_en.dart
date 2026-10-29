@@ -20201,8 +20201,8 @@ class AppLocalizationsEn extends AppLocalizations {
       'A series of dives can\'t be converted to logged dives yet';
 
   @override
-  String get plannerSeries_followFirstDiveOnly =>
-      'Only the first dive of a series can follow a logged dive';
+  String get plannerSeries_followUnavailableInReplan =>
+      'A replan can\'t follow another dive';
 
   @override
   String get plannerCanvas_follow_title => 'Follow a dive';

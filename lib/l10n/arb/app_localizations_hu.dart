@@ -20431,8 +20431,8 @@ class AppLocalizationsHu extends AppLocalizations {
       'Merülések sorozata még nem alakítható naplózott merülésekké';
 
   @override
-  String get plannerSeries_followFirstDiveOnly =>
-      'Csak a sorozat első merülése követhet egy naplózott merülést';
+  String get plannerSeries_followUnavailableInReplan =>
+      'Az újratervezés nem követhet másik merülést';
 
   @override
   String get plannerCanvas_follow_title => 'Merülés követése';

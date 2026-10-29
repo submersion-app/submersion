@@ -5781,7 +5781,7 @@
   "plannerSeries_fillAll": "Remplir tous les blocs",
   "plannerSeries_saveUnavailable": "Une série de plongées ne peut pas encore être enregistrée",
   "plannerSeries_convertUnavailable": "Une série de plongées ne peut pas encore être convertie en plongées enregistrées",
-  "plannerSeries_followFirstDiveOnly": "Seule la première plongée d'une série peut suivre une plongée enregistrée",
+  "plannerSeries_followUnavailableInReplan": "Une replanification ne peut pas suivre une autre plongée",
   "plannerCanvas_follow_title": "Suivre une plongée",
   "plannerCanvas_gas_minGas": "gaz mini {pressure}",
   "plannerCanvas_gas_turnAt": "demi-tour à {pressure}",

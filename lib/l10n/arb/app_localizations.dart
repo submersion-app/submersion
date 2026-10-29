@@ -32616,11 +32616,11 @@ abstract class AppLocalizations {
   /// **'A series of dives can\'t be converted to logged dives yet'**
   String get plannerSeries_convertUnavailable;
 
-  /// No description provided for @plannerSeries_followFirstDiveOnly.
+  /// No description provided for @plannerSeries_followUnavailableInReplan.
   ///
   /// In en, this message translates to:
-  /// **'Only the first dive of a series can follow a logged dive'**
-  String get plannerSeries_followFirstDiveOnly;
+  /// **'A replan can\'t follow another dive'**
+  String get plannerSeries_followUnavailableInReplan;
 
   /// No description provided for @plannerCanvas_follow_title.
   ///

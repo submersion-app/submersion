@@ -20504,8 +20504,8 @@ class AppLocalizationsIt extends AppLocalizations {
       'Non è ancora possibile convertire una serie di immersioni in immersioni registrate';
 
   @override
-  String get plannerSeries_followFirstDiveOnly =>
-      'Solo la prima immersione di una serie può seguire un\'immersione registrata';
+  String get plannerSeries_followUnavailableInReplan =>
+      'Una ripianificazione non può seguire un\'altra immersione';
 
   @override
   String get plannerCanvas_follow_title => 'Segui un\'immersione';

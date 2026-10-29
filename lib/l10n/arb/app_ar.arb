@@ -5882,7 +5882,7 @@
   "plannerSeries_fillAll": "ملء كل الأسطوانات",
   "plannerSeries_saveUnavailable": "لا يمكن حفظ سلسلة غطسات بعد",
   "plannerSeries_convertUnavailable": "لا يمكن تحويل سلسلة غطسات إلى غطسات مسجلة بعد",
-  "plannerSeries_followFirstDiveOnly": "يمكن للغطسة الأولى فقط في السلسلة اتباع غطسة مسجلة",
+  "plannerSeries_followUnavailableInReplan": "لا يمكن لإعادة التخطيط اتباع غطسة أخرى",
   "plannerCanvas_follow_title": "اتباع غطسة",
   "plannerCanvas_gas_minGas": "الحد الأدنى للغاز {pressure}",
   "plannerCanvas_gas_turnAt": "العودة عند {pressure}",

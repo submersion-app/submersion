@@ -343,6 +343,30 @@ void main() {
       expect(editor(c).sourceDiveId, isNull);
     });
 
+    test('applies from a later dive too', () async {
+      final c = await makeContainer();
+      series(c).addDive();
+      series(c).followDive(follow(), surfaceInterval: const Duration(hours: 2));
+
+      final s = c.read(planSeriesNotifierProvider);
+      expect(s.follow, isNotNull);
+      expect(s.dives.first.state.surfaceInterval, const Duration(hours: 2));
+    });
+
+    test('is refused for a replan, which keeps its own seed', () async {
+      final c = await makeContainer();
+      c.read(planSeriesNotifierProvider);
+      final notifier = c.read(divePlanNotifierProvider.notifier);
+      notifier.loadPlan(editor(c).copyWith(sourceDiveId: 'replanned'));
+      final before = editor(c);
+
+      series(c).followDive(follow(), surfaceInterval: const Duration(hours: 2));
+
+      expect(c.read(planSeriesNotifierProvider).follow, isNull);
+      expect(editor(c), same(before));
+      expect(c.read(followAllowedProvider), isFalse);
+    });
+
     test('a later dive still counts the logged dive', () async {
       final c = await makeContainer();
       series(c).followDive(follow(), surfaceInterval: const Duration(hours: 1));

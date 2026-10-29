@@ -6008,7 +6008,7 @@
   "plannerSeries_fillAll": "Alle Flaschen füllen",
   "plannerSeries_saveUnavailable": "Eine Tauchgangsserie kann noch nicht gespeichert werden",
   "plannerSeries_convertUnavailable": "Eine Tauchgangsserie kann noch nicht in geloggte Tauchgänge umgewandelt werden",
-  "plannerSeries_followFirstDiveOnly": "Nur der erste Tauchgang einer Serie kann einem geloggten Tauchgang folgen",
+  "plannerSeries_followUnavailableInReplan": "Eine Neuplanung kann keinem anderen Tauchgang folgen",
   "plannerCanvas_follow_title": "Einem Tauchgang folgen",
   "plannerCanvas_gas_minGas": "Min-Gas {pressure}",
   "plannerCanvas_gas_turnAt": "Umkehr bei {pressure}",

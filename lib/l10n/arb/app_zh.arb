@@ -6033,7 +6033,7 @@
   "plannerSeries_fillAll": "加满所有气瓶",
   "plannerSeries_saveUnavailable": "暂时无法保存潜水系列",
   "plannerSeries_convertUnavailable": "暂时无法将潜水系列转换为已记录的潜水",
-  "plannerSeries_followFirstDiveOnly": "只有系列中的第一次潜水可以跟随已记录的潜水",
+  "plannerSeries_followUnavailableInReplan": "重新规划无法跟随另一次潜水",
   "plannerCanvas_follow_title": "跟随一次潜水",
   "plannerCanvas_gas_minGas": "最低气量 {pressure}",
   "plannerCanvas_gas_turnAt": "{pressure} 时折返",

@@ -20052,8 +20052,8 @@ class AppLocalizationsHe extends AppLocalizations {
       'עדיין לא ניתן להמיר סדרת צלילות לצלילות מתועדות';
 
   @override
-  String get plannerSeries_followFirstDiveOnly =>
-      'רק הצלילה הראשונה בסדרה יכולה לעקוב אחרי צלילה מתועדת';
+  String get plannerSeries_followUnavailableInReplan =>
+      'תכנון מחדש לא יכול לעקוב אחרי צלילה אחרת';
 
   @override
   String get plannerCanvas_follow_title => 'עקוב אחרי צלילה';
