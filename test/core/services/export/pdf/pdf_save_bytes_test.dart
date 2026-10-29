@@ -10,6 +10,7 @@ import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
 
 import '../../../../helpers/mock_file_picker_platform.dart';
 import '../../../../helpers/test_database.dart';
@@ -150,6 +151,7 @@ void main() {
       ],
       dates: isoDates,
       units: testUnits,
+      gearArrangement: EquipmentArrangement.defaults,
     );
 
     expect(path, target);

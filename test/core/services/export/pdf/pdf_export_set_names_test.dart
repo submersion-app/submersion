@@ -13,6 +13,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_set.dart
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_provenance.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
 
 import '../../../../helpers/fake_hosts.dart';
 import '../../../../helpers/test_database.dart';
@@ -85,6 +86,7 @@ void main() {
     dates: dates,
     units: units,
     options: detailed,
+    gearArrangement: EquipmentArrangement.defaults,
   )).bytes.length;
 
   test('the exported logbook names the set the gear came from', () async {

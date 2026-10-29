@@ -95,6 +95,8 @@ class MediaViewerToolbar extends StatelessWidget {
     required this.onShowInfo,
     required this.onWriteMetadata,
     required this.onTagSpecies,
+    this.onTagPeople,
+    this.peopleTaggingActive = false,
     required this.canWriteMetadata,
     required this.showPerdixToggle,
     required this.perdixEnabled,
@@ -114,6 +116,12 @@ class MediaViewerToolbar extends StatelessWidget {
   final VoidCallback onShowInfo;
   final VoidCallback onWriteMetadata;
   final VoidCallback onTagSpecies;
+
+  /// Turns people tag mode on or off (issue #1745); null hides the action.
+  final VoidCallback? onTagPeople;
+
+  /// Whether people tag mode is on (tints the icon).
+  final bool peopleTaggingActive;
 
   /// Whether the write-dive-data action is offered. Needs enrichment depth to
   /// have anything to write, and a photo to write it to: videos cannot be
@@ -185,6 +193,19 @@ class MediaViewerToolbar extends StatelessWidget {
         priority: 4,
         onPressed: (_) => onTagSpecies(),
       ),
+      if (onTagPeople != null)
+        MediaViewerAction(
+          id: 'people',
+          icon: Icons.person_add_alt_1,
+          label: l10n.media_people_actionTooltip,
+          // After Adjust color: on a narrow phone it moves to the overflow
+          // menu rather than displacing an existing action.
+          priority: 6,
+          iconColor: peopleTaggingActive
+              ? Theme.of(context).colorScheme.primary
+              : null,
+          onPressed: (_) => onTagPeople!(),
+        ),
       MediaViewerAction(
         id: 'info',
         icon: Icons.info_outline,

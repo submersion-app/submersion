@@ -36,6 +36,7 @@ const demoNotDateColumns = <String, String>{
   'dives.bottom_time': 'a duration in seconds',
   'dives.runtime': 'a duration in seconds',
   'divers.diving_since': 'a calendar year, not an instant',
+  'buddies.card_diving_since': 'a calendar year, not an instant',
   'dive_centers.fill_opens_at': 'minutes after local midnight',
   'dive_centers.fill_closes_at': 'minutes after local midnight',
 };

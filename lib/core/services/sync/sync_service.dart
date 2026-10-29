@@ -1961,6 +1961,9 @@ class SyncService {
             records: data.mediaSpecies,
             hasUpdatedAt: false,
           ),
+          // After media, buddies and divers (v326, issue #1745). Edited rows,
+          // but clock-guarded like media: a moved box never raises a card.
+          (type: 'mediaPeople', records: data.mediaPeople, hasUpdatedAt: false),
           (
             type: 'siteFeatures',
             records: data.siteFeatures,
@@ -2959,6 +2962,7 @@ class SyncService {
     'equipmentLocations': true,
     'equipmentLocationMoves': false,
     'mediaSpecies': false,
+    'mediaPeople': false,
     'siteFeatures': true,
     'csvPresets': true,
     'viewConfigs': true,
@@ -3429,6 +3433,15 @@ class SyncService {
     'mediaSpecies': [
       (field: 'mediaId', parent: 'media', nullable: false),
       (field: 'speciesId', parent: 'species', nullable: false),
+    ],
+    // v326: people tagged on photos and videos (issue #1745). buddyId is
+    // nullable (a Me tag has none), so a tag whose buddy is gone arrives
+    // with the reference cleared; diverId is left to repairDanglingForeignKeys
+    // like every diver key. A row left naming nobody is never shown
+    // (MediaPeopleRepository reads only rows that name someone).
+    'mediaPeople': [
+      (field: 'mediaId', parent: 'media', nullable: false),
+      (field: 'buddyId', parent: 'buddies', nullable: true),
     ],
     'siteFeatures': [(field: 'siteId', parent: 'diveSites', nullable: false)],
     'liveaboardDetails': [(field: 'tripId', parent: 'trips', nullable: false)],
@@ -3962,6 +3975,56 @@ class SyncService {
             case null:
               break;
           }
+        }
+
+        // A row carrying fact groups (a diver's list arrangements, issue
+        // #3748) resolves its user fields by the row clock and each group by
+        // its own clock, exactly as the clock-guarded path above does for
+        // media: a stale row still hands over a newer sort, and a newer
+        // settings change does not take a stale one. An unorderable pending
+        // row keeps its own user fields, as the gate above intends, and
+        // opens only its groups to the peer. A row new here takes every
+        // group from the peer, and a peer too old to send a group clock
+        // hands over its row clock as that clock (mergeFactGroups), so a
+        // later local save cannot give its untouched groups a fresh clock.
+        if (factGroups.isNotEmpty &&
+            (local == null ||
+                pendingUnorderable ||
+                (localHlc != null && remoteHlc != null))) {
+          for (final g in factGroups) {
+            final factClock = _parseHlc(record[g.clockKey]);
+            if (factClock != null) SyncClock.instance.receive(factClock);
+          }
+          final rowFromRemote =
+              local == null ||
+              (!pendingUnorderable && remoteHlc!.compareTo(localHlc!) > 0);
+          final resolved = mergeFactGroups(
+            entityType: entityType,
+            base: rowFromRemote
+                ? overlayOntoLocal(entityType, recordToApply, local)
+                : local,
+            local: local,
+            remote: recordToApply,
+          );
+          if (rowFromRemote) {
+            toUpsert.add(resolved.row);
+            factWrites.add((
+              id: recordId,
+              row: resolved.row,
+              groups: factGroups,
+              inBatch: true,
+            ));
+            applied += 1;
+          } else if (resolved.fromRemote.isNotEmpty) {
+            factWrites.add((
+              id: recordId,
+              row: resolved.row,
+              groups: resolved.fromRemote,
+              inBatch: false,
+            ));
+            applied += 1;
+          }
+          continue;
         }
 
         // When BOTH sides carry an HLC it is the authoritative, deterministic

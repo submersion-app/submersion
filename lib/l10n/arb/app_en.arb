@@ -1554,11 +1554,22 @@
   "backup_export_saveToFile_subtitle": "Choose where to save the backup file",
   "backup_export_share": "Share",
   "backup_export_share_subtitle": "Send via AirDrop, email, or other apps",
+  "backup_copySheet_deviceLocked": "This safety copy was taken from your protected database. It can only be restored on this device.",
+  "backup_copySheet_title": "Backup from {dateTime}",
+  "@backup_copySheet_title": {
+    "placeholders": {
+      "dateTime": {
+        "type": "String"
+      }
+    }
+  },
   "backup_frequency_daily": "Daily",
   "backup_frequency_monthly": "Monthly",
   "backup_frequency_weekly": "Weekly",
   "backup_history_action_delete": "Delete",
   "backup_history_action_restore": "Restore",
+  "backup_history_action_saveCopy": "Save a copy",
+  "backup_history_action_share": "Share",
   "backup_history_empty": "No backups yet",
   "backup_history_error": "Failed to load history: {error}",
   "@backup_history_error": {
@@ -1689,6 +1700,107 @@
   "buddies_action_addCertification": "Add certification",
   "buddies_action_addFirst": "Add your first buddy",
   "buddies_action_addTooltip": "Add a new dive buddy",
+  "buddyCard_preview_title": "Buddy card",
+  "buddyCard_preview_addTitle": "Add {name} as a buddy",
+  "@buddyCard_preview_addTitle": {"placeholders": {"name": {"type": "String"}}},
+  "buddyCard_preview_updateTitle": "Update {name}",
+  "@buddyCard_preview_updateTitle": {"placeholders": {"name": {"type": "String"}}},
+  "buddyCard_preview_possibleTitle": "Is this {name} from your buddies?",
+  "@buddyCard_preview_possibleTitle": {"placeholders": {"name": {"type": "String"}}},
+  "buddyCard_preview_trimmed": "Some details were left out to fit the code.",
+  "buddyCard_preview_newer": "This card is from a newer version of Submersion. Some details may be missing.",
+  "buddyCard_preview_noChanges": "Nothing on this card is new.",
+  "buddyCard_preview_ownCard": "This is your own card. Swap with a buddy to get theirs.",
+  "buddyCard_preview_changed": "{to} (was {from})",
+  "@buddyCard_preview_changed": {"placeholders": {"from": {"type": "String"}, "to": {"type": "String"}}},
+  "buddyCard_action_add": "Add buddy",
+  "buddyCard_action_update": "Update buddy",
+  "buddyCard_action_addAsNew": "Add as new buddy",
+  "buddyCard_action_discard": "Discard",
+  "buddyCard_field_name": "Name",
+  "buddyCard_field_phone": "Phone",
+  "buddyCard_field_email": "Email",
+  "buddyCard_field_social": "Social handle",
+  "buddyCard_field_dives": "Dives",
+  "buddyCard_field_divingSince": "Diving since",
+  "buddyCard_field_lastDive": "Last dive",
+  "buddyCard_field_certifications": "Certifications",
+  "buddyCard_saved_added": "{name} added to your buddies",
+  "@buddyCard_saved_added": {"placeholders": {"name": {"type": "String"}}},
+  "buddyCard_saved_updated": "{name} updated",
+  "@buddyCard_saved_updated": {"placeholders": {"name": {"type": "String"}}},
+  "buddyCard_saved_view": "View",
+  "buddyCard_error_notACard": "That is not a Submersion buddy card.",
+  "buddyCard_error_unreadable": "This buddy card could not be read.",
+  "buddySwap_title": "Swap with a buddy",
+  "buddySwap_nearby_heading": "Divers nearby with Submersion open",
+  "buddySwap_nearby_tapToSwap": "Tap to swap",
+  "buddySwap_nearby_looking": "Looking for more…",
+  "buddySwap_nearby_failed": "Could not look for nearby divers. The other ways to swap below still work.",
+  "buddySwap_nearby_hint": "Don't see your buddy? Both of you need this screen open and Submersion 1.8.4 or later.",
+  "buddySwap_sharing": "Sharing: {summary}",
+  "@buddySwap_sharing": {"placeholders": {"summary": {"type": "String"}}},
+  "buddySwap_sharing_change": "Change",
+  "buddySwap_dives": "{count, plural, =1{1 dive} other{{count} dives}}",
+  "@buddySwap_dives": {"placeholders": {"count": {"type": "int"}}},
+  "buddySwap_action_showCode": "Show my code",
+  "buddySwap_action_scanCode": "Scan code",
+  "buddySwap_action_sendFile": "Send file",
+  "buddySwap_action_openFile": "Open card file",
+  "buddySwap_action_writeSticker": "Write NFC sticker",
+  "buddySwap_action_tapAndroid": "Tap an Android phone",
+  "buddySwap_action_receiveByTap": "Receive by tap",
+  "buddySwap_tap_prompt": "Hold your phone near the other phone or the sticker",
+  "buddySwap_sticker_prompt": "Hold your phone near a blank NFC sticker",
+  "buddySwap_sticker_written": "Sticker written. Rewrite it when your details change.",
+  "buddySwap_sticker_tooSmall": "That sticker is too small for your card.",
+  "buddySwap_sticker_notWritable": "That sticker cannot be written.",
+  "buddySwap_nfc_unavailable": "NFC is not available on this device.",
+  "buddySwap_qr_title": "Your buddy card",
+  "buddySwap_qr_hint": "Ask your buddy to scan this with Submersion or their camera.",
+  "buddySwap_request_title": "{name} wants to swap cards",
+  "@buddySwap_request_title": {"placeholders": {"name": {"type": "String"}}},
+  "buddySwap_request_youSend": "You'll send: {summary}",
+  "@buddySwap_request_youSend": {"placeholders": {"summary": {"type": "String"}}},
+  "buddySwap_request_swap": "Swap",
+  "buddySwap_request_decline": "Decline",
+  "buddySwap_waiting": "Waiting for {name} to answer",
+  "@buddySwap_waiting": {"placeholders": {"name": {"type": "String"}}},
+  "buddySwap_failed_declined": "{name} declined the swap",
+  "@buddySwap_failed_declined": {"placeholders": {"name": {"type": "String"}}},
+  "buddySwap_failed_timedOut": "{name} didn't answer",
+  "@buddySwap_failed_timedOut": {"placeholders": {"name": {"type": "String"}}},
+  "buddySwap_failed_lost": "Lost the connection to {name}",
+  "@buddySwap_failed_lost": {"placeholders": {"name": {"type": "String"}}},
+  "buddySwap_failed_newerApp": "{name} needs a newer version of Submersion",
+  "@buddySwap_failed_newerApp": {"placeholders": {"name": {"type": "String"}}},
+  "buddySwap_cardFailed": "Your buddy card could not be built.",
+  "buddySwap_qr_tooLarge": "Your card is too long for a code. Try Send file instead.",
+  "buddySwap_sendFailed": "The card file could not be shared.",
+  "buddyCard_saveFailed": "The buddy could not be saved.",
+  "buddyCard_field_photo": "Photo",
+  "buddyCard_change_newPhoto": "New photo",
+  "buddyShare_title": "What you share",
+  "buddyShare_name": "Name",
+  "buddyShare_alwaysShared": "Always shared",
+  "buddyShare_neverShared": "Medical, insurance and emergency details are never shared.",
+  "buddyShare_photo": "Photo",
+  "buddyShare_phone": "Phone",
+  "buddyShare_email": "Email",
+  "buddyShare_certifications": "Certifications",
+  "buddyShare_cardDetails": "Card numbers and dates",
+  "buddyShare_diveCount": "Dive count",
+  "buddyShare_divingSince": "Diving since",
+  "buddyShare_lastDive": "Last dive date",
+  "buddyShare_social": "Social handle",
+  "buddyCard_detail_heading": "From {name}'s card",
+  "@buddyCard_detail_heading": {"placeholders": {"name": {"type": "String"}}},
+  "buddyCard_detail_since": "Diving since {year}",
+  "@buddyCard_detail_since": {"placeholders": {"year": {"type": "String"}}},
+  "buddyCard_detail_last": "Last dive {date}",
+  "@buddyCard_detail_last": {"placeholders": {"date": {"type": "String"}}},
+  "buddyCard_detail_received": "Received {date}",
+  "@buddyCard_detail_received": {"placeholders": {"date": {"type": "String"}}},
   "buddies_action_clearSearch": "Clear search",
   "buddies_action_edit": "Edit buddy",
   "buddies_action_importFromContacts": "Import from Contacts",
@@ -5654,6 +5766,8 @@
   "diveLog_search_section_organization": "Organization",
   "diveLog_selection_tooltip_combine": "Combine",
   "diveLog_selection_tooltip_edit": "Edit Selected",
+  "diveLog_selection_tooltip_newTrip": "New Trip from Selection",
+  "@diveLog_selection_tooltip_newTrip": {"description": "Dive list selection action: make a new trip from the selected dives"},
   "diveLog_selection_tooltip_export": "Export Selected",
   "diveLog_selection_tooltip_selectDateRange": "Select by date range",
   "diveLog_sighting_add": "Add",
@@ -5708,11 +5822,10 @@
   "diveLog_tank_label_workingPressure": "Working P",
   "diveLog_tank_mndHelper": "Set to auto-calculate He%",
   "diveLog_tank_modMndInfo": "MOD: {mod} (ppO₂ {ppO2}) | MND: {mnd}",
-  "diveLog_cylinders_columnTank": "Tank",
-  "diveLog_cylinders_columnGas": "Gas",
-  "diveLog_cylinders_columnStart": "Start",
-  "diveLog_cylinders_columnEnd": "End",
-  "diveLog_cylinders_columnUsed": "Used",
+  "diveLog_cylinders_figureStart": "Start {pressure}",
+  "diveLog_cylinders_figureEnd": "End {pressure}",
+  "diveLog_cylinders_figureUsed": "Used {pressure}",
+  "diveLog_cylinders_gasSemantics": "Gas {mix}",
   "diveLog_cylinders_gasUsed": "Gas used {amount}",
   "diveLog_cylinders_mod": "MOD {depth}",
   "diveLog_cylinders_mnd": "MND {depth}",
@@ -6354,20 +6467,37 @@
       }
     }
   },
-  "@diveLog_cylinders_columnTank": {
-    "description": "Cylinders card table header over the tank size, name and role"
+  "@diveLog_cylinders_figureStart": {
+    "description": "Cylinders card tank figure label: the start pressure, at its level beside the tank figure, e.g. \"Start 200 bar\". pressure is the value with its unit.",
+    "placeholders": {
+      "pressure": {
+        "type": "String"
+      }
+    }
   },
-  "@diveLog_cylinders_columnGas": {
-    "description": "Cylinders card table header over the gas mix"
+  "@diveLog_cylinders_figureEnd": {
+    "description": "Cylinders card tank figure label: the end pressure, at its level beside the tank figure, e.g. \"End 200 bar\". pressure is the value with its unit.",
+    "placeholders": {
+      "pressure": {
+        "type": "String"
+      }
+    }
   },
-  "@diveLog_cylinders_columnStart": {
-    "description": "Cylinders card table header over the start pressure; the pressure unit is shown under it"
+  "@diveLog_cylinders_figureUsed": {
+    "description": "Cylinders card tank figure label: the pressure used, between the start and end labels beside the tank figure, e.g. \"Used 200 bar\". pressure is the value with its unit.",
+    "placeholders": {
+      "pressure": {
+        "type": "String"
+      }
+    }
   },
-  "@diveLog_cylinders_columnEnd": {
-    "description": "Cylinders card table header over the end pressure; the pressure unit is shown under it"
-  },
-  "@diveLog_cylinders_columnUsed": {
-    "description": "Cylinders card table header over the pressure used; the pressure unit is shown under it"
+  "@diveLog_cylinders_gasSemantics": {
+    "description": "Cylinders card: what a screen reader says for a cylinder's gas pill, e.g. \"Gas EAN32\". mix is the gas mix name.",
+    "placeholders": {
+      "mix": {
+        "type": "String"
+      }
+    }
   },
   "@diveLog_cylinders_gasUsed": {
     "description": "Cylinders card detail item: the volume of gas the dive consumed from this cylinder, e.g. \"Gas used 1665 L\"",
@@ -12663,6 +12793,17 @@
       }
     }
   },
+  "plannerCanvas_issue_noUsableGas": "Rock-bottom minimum of {minGas} leaves no usable gas in a {fill} fill",
+  "@plannerCanvas_issue_noUsableGas": {
+    "placeholders": {
+      "minGas": {
+        "type": "String"
+      },
+      "fill": {
+        "type": "String"
+      }
+    }
+  },
   "plannerCanvas_issue_diluentModExceeded": "Diluent exceeds its Dil MOD at {depth} (ppO₂ {value} bar)",
   "@plannerCanvas_issue_diluentModExceeded": {
     "placeholders": {
@@ -13966,6 +14107,70 @@
   "@settings_conflict_field_omitUnusedOcGases": {
     "description": "Label for the skip-unused-bailout-gases setting in a sync conflict"
   },
+  "settings_conflict_field_diveListSort": "Dive list sort",
+  "@settings_conflict_field_diveListSort": {
+    "description": "Label for a saved list arrangement in a sync conflict"
+  },
+  "settings_conflict_field_divePlanListSort": "Saved plans sort",
+  "@settings_conflict_field_divePlanListSort": {
+    "description": "Label for a saved list arrangement in a sync conflict"
+  },
+  "settings_conflict_field_tripListSort": "Trip list sort",
+  "@settings_conflict_field_tripListSort": {
+    "description": "Label for a saved list arrangement in a sync conflict"
+  },
+  "settings_conflict_field_courseListSort": "Course list sort",
+  "@settings_conflict_field_courseListSort": {
+    "description": "Label for a saved list arrangement in a sync conflict"
+  },
+  "settings_conflict_field_buddyListSort": "Buddy list sort",
+  "@settings_conflict_field_buddyListSort": {
+    "description": "Label for a saved list arrangement in a sync conflict"
+  },
+  "settings_conflict_field_diveCenterListSort": "Dive center list sort",
+  "@settings_conflict_field_diveCenterListSort": {
+    "description": "Label for a saved list arrangement in a sync conflict"
+  },
+  "settings_conflict_field_siteListSort": "Dive site list sort",
+  "@settings_conflict_field_siteListSort": {
+    "description": "Label for a saved list arrangement in a sync conflict"
+  },
+  "settings_conflict_field_certificationListSort": "Certification list sort",
+  "@settings_conflict_field_certificationListSort": {
+    "description": "Label for a saved list arrangement in a sync conflict"
+  },
+  "settings_conflict_field_equipmentListSort": "Equipment list sort",
+  "@settings_conflict_field_equipmentListSort": {
+    "description": "Label for a saved list arrangement in a sync conflict"
+  },
+  "settings_conflict_field_siteListGroupBy": "Dive site list grouping",
+  "@settings_conflict_field_siteListGroupBy": {
+    "description": "Label for a saved list arrangement in a sync conflict"
+  },
+  "settings_conflict_field_certificationListGroupBy": "Certification list grouping",
+  "@settings_conflict_field_certificationListGroupBy": {
+    "description": "Label for a saved list arrangement in a sync conflict"
+  },
+  "settings_conflict_field_equipmentArrangement": "Gear arrangement",
+  "@settings_conflict_field_equipmentArrangement": {
+    "description": "Label for a saved list arrangement in a sync conflict"
+  },
+  "settings_conflict_field_equipmentGroupByLocation": "Equipment grouped by location",
+  "@settings_conflict_field_equipmentGroupByLocation": {
+    "description": "Label for a saved list arrangement in a sync conflict"
+  },
+  "settings_conflict_field_listArrangementHlc": "List arrangement record",
+  "@settings_conflict_field_listArrangementHlc": {
+    "description": "Label for a saved list arrangement in a sync conflict"
+  },
+  "settings_conflict_sortValue": "{field}, {direction}",
+  "@settings_conflict_sortValue": {
+    "description": "A saved list sort in a sync conflict: the sort field, then its direction",
+    "placeholders": {
+      "field": {"type": "String"},
+      "direction": {"type": "String"}
+    }
+  },
   "settings_conflict_field_avgSpeed": "Average speed",
   "settings_conflict_field_batteryReserveFraction": "Battery reserve",
   "settings_conflict_field_bboxHeight": "Box height",
@@ -14337,6 +14542,13 @@
   "settings_conflict_field_pressureBar": "Pressure",
   "settings_conflict_field_pressureUnit": "Pressure unit",
   "settings_conflict_field_priorDiveCount": "Dives before this log",
+  "settings_conflict_field_buddyCardShare": "Buddy card sharing",
+  "settings_conflict_field_cardDiveCount": "Dives (from their card)",
+  "settings_conflict_field_cardDivingSince": "Diving since (from their card)",
+  "settings_conflict_field_cardId": "Buddy card",
+  "settings_conflict_field_cardLastDive": "Last dive (from their card)",
+  "settings_conflict_field_cardReceivedAt": "Card received",
+  "settings_conflict_field_socialHandle": "Social handle",
   "settings_conflict_field_priorDiveTimeSeconds": "Dive time before this log",
   "settings_conflict_field_problemSolvingMinutes": "Problem-solving time",
   "settings_conflict_field_provider": "Provider",
@@ -14537,6 +14749,7 @@
   "settings_conflict_field_valueUnit": "Unit",
   "settings_conflict_field_verdict": "Verdict",
   "settings_conflict_field_verifyFactsHlc": "Verification record",
+  "settings_conflict_field_videoPositionMs": "Time in video (ms)",
   "settings_conflict_field_vesselName": "Vessel",
   "settings_conflict_field_vesselType": "Vessel type",
   "settings_conflict_field_viewMode": "View",
@@ -18229,6 +18442,14 @@
   "trips_detail_dialog_cancel": "Cancel",
   "trips_detail_dialog_deleteConfirm": "Delete",
   "trips_detail_dialog_deleteContent": "Are you sure you want to delete \"{name}\"? This will remove the trip but keep the dives.",
+  "trips_delete_sideTripsStandalone": "{count, plural, one{Its side trip becomes a trip of its own.} other{Its {count} side trips become trips of their own.}}",
+  "@trips_delete_sideTripsStandalone": {"description": "Delete confirmation line for a trip with side trips", "placeholders": {"count": {"type": "int"}}},
+  "trips_delete_divesReturnToParent": "Its dives go back to {name}.",
+  "@trips_delete_divesReturnToParent": {"description": "Delete confirmation line for a side trip: where its dives go", "placeholders": {"name": {"type": "String"}}},
+  "trips_bulkDelete_sideTripsStandalone": "{count, plural, one{{count} side trip becomes a trip of its own.} other{{count} side trips become trips of their own.}}",
+  "@trips_bulkDelete_sideTripsStandalone": {"description": "Bulk delete confirmation line: side trips of the deleted trips that are kept", "placeholders": {"count": {"type": "int"}}},
+  "trips_bulkDelete_divesReturnToParents": "Dives on deleted side trips go back to their larger trips.",
+  "@trips_bulkDelete_divesReturnToParents": {"description": "Delete confirmation line when side trips are deleted: their dives move to the larger trips"},
   "trips_detail_dialog_deleteTitle": "Delete Trip?",
   "trips_detail_dives_empty": "No dives in this trip yet",
   "trips_detail_dives_errorLoading": "Unable to load dives",
@@ -18326,6 +18547,12 @@
   "trips_edit_hint_notes": "Any additional notes about this trip",
   "trips_edit_hint_resortName": "e.g., Marsa Shagra",
   "trips_edit_hint_tripName": "e.g., Red Sea Safari 2024",
+  "trips_edit_field_partOf": "Part of",
+  "@trips_edit_field_partOf": {"description": "Trip form field: the larger trip this trip is a side trip of"},
+  "trips_edit_partOf_none": "None (a trip of its own)",
+  "@trips_edit_partOf_none": {"description": "Trip form Part of choice for a trip that is not a side trip"},
+  "trips_edit_partOf_helper": "Makes this a side trip within a larger trip",
+  "@trips_edit_partOf_helper": {"description": "Explains the trip form Part of field"},
   "trips_edit_label_endDate": "End Date",
   "trips_edit_label_liveaboardName": "Liveaboard Name",
   "trips_edit_label_location": "Location",
@@ -18380,6 +18607,14 @@
   "trips_list_pastSection": "Past Trips",
   "trips_list_sort_title": "Sort Trips",
   "trips_list_tile_diveCount": "{count, plural, =1{1 dive} other{{count} dives}}",
+  "trips_list_sideTripCount": "{count, plural, one{{count} side trip} other{{count} side trips}}",
+  "@trips_list_sideTripCount": {"description": "Trip list note on a larger trip: how many side trips are nested under it", "placeholders": {"count": {"type": "int"}}},
+  "trips_partOf": "Part of {name}",
+  "@trips_partOf": {"description": "Names the larger trip a side trip is part of", "placeholders": {"name": {"type": "String"}}},
+  "trips_fromSelection_name": "{location}, {monthYear}",
+  "@trips_fromSelection_name": {"description": "Suggested name for a trip made from selected dives: the shared location and the month it starts", "placeholders": {"location": {"type": "String"}, "monthYear": {"type": "String"}}},
+  "trips_fromSelection_nameNoLocation": "Trip, {monthYear}",
+  "@trips_fromSelection_nameNoLocation": {"description": "Suggested name for a trip made from selected dives with no shared location", "placeholders": {"monthYear": {"type": "String"}}},
   "trips_list_tooltip_addTrip": "Add Trip",
   "trips_list_tooltip_search": "Search trips",
   "trips_list_tooltip_sort": "Sort",
@@ -21826,7 +22061,7 @@
   "@settings_shareAllTrips_title": {
     "description": "Button/menu item to share all trips at once"
   },
-  "settings_shareAllSites_confirm": "Choose who sees all {count} of your sites. To change one site later, open it and tap Shared with.",
+  "settings_shareAllSites_confirm": "Choose who sees all {count} of your sites. To change one site later, edit it and tap Shared with.",
   "@settings_shareAllSites_confirm": {
     "placeholders": {
       "count": {
@@ -21835,7 +22070,7 @@
       }
     }
   },
-  "settings_shareAllTrips_confirm": "Choose who sees all {count} of your trips. To change one trip later, open it and tap Shared with.",
+  "settings_shareAllTrips_confirm": "Choose who sees all {count} of your trips. To change one trip later, edit it and tap Shared with.",
   "@settings_shareAllTrips_confirm": {
     "placeholders": {
       "count": {
@@ -29982,6 +30217,35 @@
   "media_species_otherSpecies": "Other species...",
   "media_species_noDiveHint": "This photo is not linked to a dive. Search for a species to tag it.",
   "media_species_chipsLabel": "Species tags",
+  "media_people_me": "Me",
+  "media_people_chipsLabel": "People tags",
+  "media_people_momentChip": "{name} · {time}",
+  "@media_people_momentChip": {"placeholders": {"name": {"type": "String"}, "time": {"type": "String"}}},
+  "media_people_actionTooltip": "Tag people",
+  "media_people_tagModeHint": "Tap a person to tag them",
+  "media_people_noSpotHint": "Spots can't be marked on this one",
+  "media_people_withoutSpot": "Tag without a spot",
+  "media_people_done": "Done",
+  "media_people_pickerTitle": "Who is this?",
+  "media_people_searchHint": "Search buddies",
+  "media_people_onThisDive": "On this dive",
+  "media_people_everyoneElse": "Everyone else",
+  "media_people_newBuddy": "New buddy",
+  "media_people_newBuddyName": "Name",
+  "media_people_newBuddyAdd": "Add",
+  "media_people_changePerson": "Change person",
+  "media_people_removeTag": "Remove tag",
+  "media_people_resizeHint": "Drag the corners to fit",
+  "media_people_addToDiveOffer": "Add {name} to this dive's buddies?",
+  "@media_people_addToDiveOffer": {"placeholders": {"name": {"type": "String"}}},
+  "media_people_addToDiveAction": "Add",
+  "media_people_buddyPhotosTitle": "Photos and videos",
+  "media_people_buddyThumbnailLabel": "Photo or video with this buddy",
+  "media_people_filterSection": "People",
+  "media_people_removedBuddy": "Removed buddy",
+  "media_people_saveFailed": "Couldn't save the tag. Try again.",
+  "media_people_addToDiveFailed": "Couldn't add the buddy to this dive. Try again.",
+  "media_people_createBuddyFailed": "Couldn't create the buddy. Try again.",
   "media_info_fileSection": "File",
   "media_info_filename": "Filename",
   "media_info_type": "Type",
@@ -31003,6 +31267,26 @@
   "@backup_history_cloudOnlySubtitle": {
     "placeholders": {
       "size": {
+        "type": "String"
+      }
+    }
+  },
+  "backup_history_device_anotherDevice": "Another device",
+  "@backup_history_device_anotherDevice": {
+    "description": "Shown on a backup history row made by a device whose name is not known."
+  },
+  "backup_history_device_thisDevice": "This device",
+  "@backup_history_device_thisDevice": {
+    "description": "Shown on a backup history row made by the device the app is running on."
+  },
+  "backup_history_subtitleWithDevice": "{summary} · {device}",
+  "@backup_history_subtitleWithDevice": {
+    "description": "A backup history row's summary followed by the device that made the backup.",
+    "placeholders": {
+      "summary": {
+        "type": "String"
+      },
+      "device": {
         "type": "String"
       }
     }
@@ -32120,6 +32404,8 @@
   "@query_trips_diveCount": {"description": "Field label in the query builder: how many counted dives the trip has"},
   "query_trips_dives": "Dives",
   "@query_trips_dives": {"description": "Relation label in the query builder: the dives on a trip"},
+  "query_trips_partOf": "Part of",
+  "@query_trips_partOf": {"description": "Relation label in the query builder: the larger trip a side trip is part of"},
   "query_trips_endDate": "End date",
   "@query_trips_endDate": {"description": "Field label in the query builder"},
   "query_trips_liveaboardName": "Liveaboard",

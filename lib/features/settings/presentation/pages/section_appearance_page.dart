@@ -5,8 +5,6 @@ import 'package:submersion/core/constants/card_color.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
-import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/dive_details_appearance_tiles.dart';
 import 'package:submersion/features/settings/presentation/widgets/gradient_preset_picker.dart';
@@ -682,28 +680,20 @@ class SectionAppearancePage extends ConsumerWidget {
     switch (key) {
       case 'dives':
         ref.read(settingsProvider.notifier).setDiveListViewMode(mode);
-        ref.read(diveListViewModeProvider.notifier).state = mode;
       case 'sites':
         ref.read(settingsProvider.notifier).setSiteListViewMode(mode);
-        ref.read(siteListViewModeProvider.notifier).state = mode;
       case 'trips':
         ref.read(settingsProvider.notifier).setTripListViewMode(mode);
-        ref.read(tripListViewModeProvider.notifier).state = mode;
       case 'equipment':
         ref.read(settingsProvider.notifier).setEquipmentListViewMode(mode);
-        ref.read(equipmentListViewModeProvider.notifier).state = mode;
       case 'buddies':
         ref.read(settingsProvider.notifier).setBuddyListViewMode(mode);
-        ref.read(buddyListViewModeProvider.notifier).state = mode;
       case 'diveCenters':
         ref.read(settingsProvider.notifier).setDiveCenterListViewMode(mode);
-        ref.read(diveCenterListViewModeProvider.notifier).state = mode;
       case 'certifications':
         ref.read(settingsProvider.notifier).setCertificationListViewMode(mode);
-        ref.read(certificationListViewModeProvider.notifier).state = mode;
       case 'courses':
         ref.read(settingsProvider.notifier).setCourseListViewMode(mode);
-        ref.read(courseListViewModeProvider.notifier).state = mode;
     }
   }
 

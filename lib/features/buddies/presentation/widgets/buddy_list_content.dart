@@ -49,8 +49,10 @@ import 'package:submersion/features/query/presentation/widgets/query_chips_frame
 import 'package:submersion/features/query/presentation/providers/query_id_set_providers.dart';
 import 'package:submersion/features/query/presentation/widgets/query_filter_sheet.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_list_count_provider.dart';
+import 'package:submersion/features/buddies/presentation/widgets/swap/swap_with_buddy_button.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/list_arrangement_writes.dart';
 
 /// Content widget for the buddy list, used in master-detail layout.
 ///
@@ -591,6 +593,7 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
                     subtitle: buddyListCountLabel(context, ref),
                   ),
                   actions: [
+                    const SwapWithBuddyButton(),
                     IconButton(
                       icon: const Icon(Icons.search),
                       tooltip: context.l10n.buddies_action_search,
@@ -621,8 +624,9 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
                           final mode = ListViewMode.fromName(
                             value.replaceFirst('view_', ''),
                           );
-                          ref.read(buddyListViewModeProvider.notifier).state =
-                              mode;
+                          ref
+                              .read(settingsProvider.notifier)
+                              .setBuddyListViewMode(mode);
                         }
                       },
                       itemBuilder: (context) {
@@ -819,6 +823,7 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
             ),
           ),
+          const SwapWithBuddyButton(iconSize: 20),
           IconButton(
             icon: const Icon(Icons.search, size: 20),
             tooltip: context.l10n.buddies_action_search,
@@ -847,7 +852,7 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
                 final mode = ListViewMode.fromName(
                   value.replaceFirst('view_', ''),
                 );
-                ref.read(buddyListViewModeProvider.notifier).state = mode;
+                ref.read(settingsProvider.notifier).setBuddyListViewMode(mode);
               }
             },
             itemBuilder: (context) {
@@ -935,10 +940,9 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
       getFieldDisplayName: (field) => field.localizedName(context.l10n),
       getFieldIcon: (field) => field.icon,
       onSortChanged: (field, direction) {
-        ref.read(buddySortProvider.notifier).state = SortState(
-          field: field,
-          direction: direction,
-        );
+        ref
+            .read(settingsProvider.notifier)
+            .setBuddySort(SortState(field: field, direction: direction));
       },
     );
   }

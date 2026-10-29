@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:characters/characters.dart';
 import 'package:equatable/equatable.dart';
 
 import 'package:submersion/core/constants/enums.dart';
@@ -37,6 +38,18 @@ class Buddy extends Equatable {
   final DateTime createdAt;
   final DateTime updatedAt;
 
+  /// Buddy card swap (issue #3728): the id of the person whose card this
+  /// buddy came from, so a later swap updates this buddy.
+  final String? cardId;
+  final String? socialHandle;
+
+  /// What the buddy's card said, as of [cardReceivedAt]. Only a card writes
+  /// these. [cardDivingSince] carries a year.
+  final int? cardDiveCount;
+  final DateTime? cardDivingSince;
+  final DateTime? cardLastDive;
+  final DateTime? cardReceivedAt;
+
   const Buddy({
     required this.id,
     this.diverId,
@@ -53,7 +66,20 @@ class Buddy extends Equatable {
     this.isFavorite = false,
     required this.createdAt,
     required this.updatedAt,
+    this.cardId,
+    this.socialHandle,
+    this.cardDiveCount,
+    this.cardDivingSince,
+    this.cardLastDive,
+    this.cardReceivedAt,
   });
+
+  /// Whether any figure from a buddy card is set.
+  bool get hasCardDetails =>
+      cardDiveCount != null ||
+      cardDivingSince != null ||
+      cardLastDive != null ||
+      cardReceivedAt != null;
 
   /// The primary level's English name, from the built-in catalog. A custom
   /// level is named through certificationTitle, which hydration derives.
@@ -99,12 +125,22 @@ class Buddy extends Equatable {
   }
 
   /// Get initials for avatar
-  String get initials {
-    final parts = name.trim().split(' ');
-    if (parts.length >= 2) {
-      return '${parts.first[0]}${parts.last[0]}'.toUpperCase();
-    }
-    return name.isNotEmpty ? name[0].toUpperCase() : '?';
+  String get initials => initialsOf(name);
+
+  /// The first letters of [name]'s first and last words, or of its only
+  /// word; `?` for a blank name. Shared with the buddy card swap screens
+  /// (issue #3728), so a diver's avatar matches before and after a swap.
+  static String initialsOf(String name) {
+    final words = name
+        .trim()
+        .split(RegExp(r'\s+'))
+        .where((w) => w.isNotEmpty)
+        .toList();
+    if (words.isEmpty) return '?';
+    String first(String word) => word.characters.first.toUpperCase();
+    return words.length >= 2
+        ? '${first(words.first)}${first(words.last)}'
+        : first(words.first);
   }
 
   /// Check if buddy has contact info
@@ -130,6 +166,12 @@ class Buddy extends Equatable {
     bool? isFavorite,
     DateTime? createdAt,
     DateTime? updatedAt,
+    String? cardId,
+    String? socialHandle,
+    int? cardDiveCount,
+    DateTime? cardDivingSince,
+    DateTime? cardLastDive,
+    DateTime? cardReceivedAt,
   }) {
     return Buddy(
       id: id ?? this.id,
@@ -147,6 +189,12 @@ class Buddy extends Equatable {
       isFavorite: isFavorite ?? this.isFavorite,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      cardId: cardId ?? this.cardId,
+      socialHandle: socialHandle ?? this.socialHandle,
+      cardDiveCount: cardDiveCount ?? this.cardDiveCount,
+      cardDivingSince: cardDivingSince ?? this.cardDivingSince,
+      cardLastDive: cardLastDive ?? this.cardLastDive,
+      cardReceivedAt: cardReceivedAt ?? this.cardReceivedAt,
     );
   }
 
@@ -173,6 +221,12 @@ class Buddy extends Equatable {
       isFavorite: isFavorite,
       createdAt: createdAt,
       updatedAt: updatedAt,
+      cardId: cardId,
+      socialHandle: socialHandle,
+      cardDiveCount: cardDiveCount,
+      cardDivingSince: cardDivingSince,
+      cardLastDive: cardLastDive,
+      cardReceivedAt: cardReceivedAt,
     );
   }
 
@@ -196,6 +250,12 @@ class Buddy extends Equatable {
       isFavorite: isFavorite,
       createdAt: createdAt,
       updatedAt: updatedAt,
+      cardId: cardId,
+      socialHandle: socialHandle,
+      cardDiveCount: cardDiveCount,
+      cardDivingSince: cardDivingSince,
+      cardLastDive: cardLastDive,
+      cardReceivedAt: cardReceivedAt,
     );
   }
 
@@ -216,6 +276,12 @@ class Buddy extends Equatable {
     isFavorite,
     createdAt,
     updatedAt,
+    cardId,
+    socialHandle,
+    cardDiveCount,
+    cardDivingSince,
+    cardLastDive,
+    cardReceivedAt,
   ];
 }
 

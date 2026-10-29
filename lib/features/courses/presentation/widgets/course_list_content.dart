@@ -42,6 +42,7 @@ import 'package:submersion/features/query/presentation/widgets/query_filter_shee
 import 'package:submersion/features/courses/presentation/providers/course_list_count_provider.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/list_arrangement_writes.dart';
 
 /// Content widget for the course list
 class CourseListContent extends ConsumerStatefulWidget {
@@ -278,9 +279,8 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
                               value.replaceFirst('view_', ''),
                             );
                             ref
-                                    .read(courseListViewModeProvider.notifier)
-                                    .state =
-                                mode;
+                                .read(settingsProvider.notifier)
+                                .setCourseListViewMode(mode);
                           }
                         },
                         itemBuilder: (context) {
@@ -597,7 +597,7 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
                 final mode = ListViewMode.fromName(
                   value.replaceFirst('view_', ''),
                 );
-                ref.read(courseListViewModeProvider.notifier).state = mode;
+                ref.read(settingsProvider.notifier).setCourseListViewMode(mode);
               }
             },
             itemBuilder: (context) {
@@ -846,10 +846,9 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
       getFieldDisplayName: (field) => field.localizedName(context.l10n),
       getFieldIcon: (field) => field.icon,
       onSortChanged: (field, direction) {
-        ref.read(courseSortProvider.notifier).state = SortState(
-          field: field,
-          direction: direction,
-        );
+        ref
+            .read(settingsProvider.notifier)
+            .setCourseSort(SortState(field: field, direction: direction));
       },
     );
   }

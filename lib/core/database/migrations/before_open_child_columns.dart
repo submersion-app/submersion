@@ -30,5 +30,12 @@ extension BeforeOpenChildColumns on AppDatabase {
     // v316: transmitters.is_configured (issue #3676). Every registry read
     // selects the whole row, for the same reason as the tank columns.
     await _assertTransmitterConfiguredColumn();
+
+    // v324: buddy card swap columns (issue #3728).
+    await _assertBuddyCardColumns();
+
+    // v325: trips.parent_trip_id (issue #3658). Every trip read selects the
+    // whole row, for the same reason as the tank columns.
+    await _assertTripParentColumn();
   }
 }

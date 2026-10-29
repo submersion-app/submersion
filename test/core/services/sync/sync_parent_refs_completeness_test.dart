@@ -80,6 +80,7 @@ void main() {
     'dive_data_sources': 'diveDataSources',
     'site_species': 'siteSpecies',
     'media_species': 'mediaSpecies',
+    'media_people': 'mediaPeople',
     'site_features': 'siteFeatures',
     'csv_presets': 'csvPresets',
     'view_configs': 'viewConfigs',

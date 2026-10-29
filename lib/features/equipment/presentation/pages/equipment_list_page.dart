@@ -376,7 +376,7 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
             unawaited(scanAndOpenTag(context, ref));
           } else if (value.startsWith('view_')) {
             final mode = ListViewMode.fromName(value.replaceFirst('view_', ''));
-            ref.read(equipmentListViewModeProvider.notifier).state = mode;
+            ref.read(settingsProvider.notifier).setEquipmentListViewMode(mode);
           }
         },
         itemBuilder: (context) {

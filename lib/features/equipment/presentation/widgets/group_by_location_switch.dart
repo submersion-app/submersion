@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_location_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/list_arrangement_writes.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -21,7 +22,7 @@ class GroupByLocationSwitch extends ConsumerWidget {
       onChanged: (value) async {
         try {
           await ref
-              .read(appSettingsRepositoryProvider)
+              .read(settingsProvider.notifier)
               .setEquipmentGroupByLocation(value);
         } catch (_) {
           if (!context.mounted) return;

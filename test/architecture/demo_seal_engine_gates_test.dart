@@ -189,6 +189,19 @@ const _gates = <(String, String, String, _Kind)>[
     _Kind.ensure,
   ),
   // Imports and dive computer downloads.
+  // Buddy cards received by any route (issue #3728).
+  (
+    'lib/features/buddies/data/services/buddy_card_importer.dart',
+    'Future<Buddy> addNew(',
+    'fileImport',
+    _Kind.ensure,
+  ),
+  (
+    'lib/features/buddies/data/services/buddy_card_importer.dart',
+    'Future<Buddy> update(',
+    'fileImport',
+    _Kind.ensure,
+  ),
   (
     'lib/features/import_wizard/presentation/providers/import_wizard_providers.dart',
     'Future<void> performImport(',

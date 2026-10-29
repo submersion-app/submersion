@@ -394,6 +394,9 @@ class SyncData {
   /// #2567).
   final List<Map<String, dynamic>> librarySiteNotes;
   final List<Map<String, dynamic>> mediaSpecies;
+
+  /// People tagged on photos and videos (v326, issue #1745).
+  final List<Map<String, dynamic>> mediaPeople;
   final List<Map<String, dynamic>> siteFeatures;
   final List<Map<String, dynamic>> csvPresets;
   final List<Map<String, dynamic>> viewConfigs;
@@ -526,6 +529,7 @@ class SyncData {
     this.sharedLibraryMemberships = const [],
     this.librarySiteNotes = const [],
     this.mediaSpecies = const [],
+    this.mediaPeople = const [],
     this.siteFeatures = const [],
     this.csvPresets = const [],
     this.viewConfigs = const [],
@@ -657,6 +661,7 @@ class SyncData {
     'sharedLibraryMemberships': sharedLibraryMemberships,
     'librarySiteNotes': librarySiteNotes,
     'mediaSpecies': mediaSpecies,
+    'mediaPeople': mediaPeople,
     'siteFeatures': siteFeatures,
     'csvPresets': csvPresets,
     'viewConfigs': viewConfigs,
@@ -805,6 +810,7 @@ class SyncData {
       sharedLibraryMemberships: _parseList(json['sharedLibraryMemberships']),
       librarySiteNotes: _parseList(json['librarySiteNotes']),
       mediaSpecies: _parseList(json['mediaSpecies']),
+      mediaPeople: _parseList(json['mediaPeople']),
       siteFeatures: _parseList(json['siteFeatures']),
       csvPresets: _parseList(json['csvPresets']),
       viewConfigs: _parseList(json['viewConfigs']),
@@ -1454,6 +1460,7 @@ class SyncDataSerializer {
       full: null,
     ),
     (key: 'mediaSpecies', table: _db.mediaSpecies, blob: false, full: null),
+    (key: 'mediaPeople', table: _db.mediaPeople, blob: false, full: null),
     (key: 'siteFeatures', table: _db.siteFeatures, blob: false, full: null),
     (key: 'csvPresets', table: _db.csvPresets, blob: false, full: null),
     (key: 'viewConfigs', table: _db.viewConfigs, blob: false, full: null),
@@ -1901,6 +1908,7 @@ class SyncDataSerializer {
     'media',
     'mediaEnrichment',
     'mediaSpecies',
+    'mediaPeople',
     'mediaStores',
     'species',
     'importedFiles',
@@ -2909,6 +2917,10 @@ class SyncDataSerializer {
         'mediaSpecies',
         () => _exportMediaSpecies(hlcSince),
       ),
+      mediaPeople: await _safeExport(
+        'mediaPeople',
+        () => _exportMediaPeople(hlcSince),
+      ),
       siteFeatures: await _safeExport(
         'siteFeatures',
         () => _exportSiteFeatures(hlcSince),
@@ -3781,6 +3793,11 @@ class SyncDataSerializer {
           _db.mediaSpecies,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
         return row?.toJson();
+      case 'mediaPeople':
+        final row = await (_db.select(
+          _db.mediaPeople,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
       case 'siteFeatures':
         final row = await (_db.select(
           _db.siteFeatures,
@@ -3926,6 +3943,11 @@ class SyncDataSerializer {
       case 'mediaSpecies':
         final rows = await (_db.select(
           _db.mediaSpecies,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'mediaPeople':
+        final rows = await (_db.select(
+          _db.mediaPeople,
         )..where((t) => t.id.isIn(idList))).get();
         return {for (final r in rows) r.id: r.toJson()};
       case 'species':
@@ -5912,6 +5934,13 @@ class SyncDataSerializer {
               MediaSpecy.fromJson(_withTimestampDefaults(data)),
             );
         return;
+      case 'mediaPeople':
+        await _db
+            .into(_db.mediaPeople)
+            .insertOnConflictUpdate(
+              MediaPeopleData.fromJson(_withTimestampDefaults(data)),
+            );
+        return;
       case 'siteFeatures':
         await _db
             .into(_db.siteFeatures)
@@ -7624,6 +7653,16 @@ class SyncDataSerializer {
           ),
         );
         return;
+      case 'mediaPeople':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.mediaPeople,
+            records
+                .map((r) => MediaPeopleData.fromJson(_withTimestampDefaults(r)))
+                .toList(),
+          ),
+        );
+        return;
       case 'siteFeatures':
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
@@ -8022,6 +8061,8 @@ class SyncDataSerializer {
         return plain(_db.siteSpecies, _db.siteSpecies.id);
       case 'mediaSpecies':
         return plain(_db.mediaSpecies, _db.mediaSpecies.id);
+      case 'mediaPeople':
+        return plain(_db.mediaPeople, _db.mediaPeople.id);
       case 'siteFeatures':
         return plain(_db.siteFeatures, _db.siteFeatures.id);
       case 'csvPresets':
@@ -8547,6 +8588,8 @@ class SyncDataSerializer {
         return _db.siteSpecies;
       case 'mediaSpecies':
         return _db.mediaSpecies;
+      case 'mediaPeople':
+        return _db.mediaPeople;
       case 'siteFeatures':
         return _db.siteFeatures;
       case 'csvPresets':
@@ -9259,6 +9302,11 @@ class SyncDataSerializer {
           _db.mediaSpecies,
         )..where((t) => t.id.equals(recordId))).go();
         return;
+      case 'mediaPeople':
+        await (_db.delete(
+          _db.mediaPeople,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
       case 'siteFeatures':
         await (_db.delete(
           _db.siteFeatures,
@@ -9315,7 +9363,14 @@ class SyncDataSerializer {
   ) async {
     final query = _db.select(_db.diverSettings);
     if (hlcSince != null) {
-      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+      // A list arrangement change stamps its own clock, not the row clock
+      // (issue #3748), so a row is due when either has moved past the
+      // watermark.
+      query.where(
+        (t) =>
+            t.hlc.isBiggerThanValue(hlcSince) |
+            t.listArrangementHlc.isBiggerThanValue(hlcSince),
+      );
     }
     final rows = await query.get();
     return rows
@@ -11116,6 +11171,20 @@ class SyncDataSerializer {
     String? hlcSince,
   ) async {
     final query = _db.select(_db.mediaSpecies);
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+    }
+    final rows = await query.get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  /// `media_people` (v326, issue #1745) carries its own clock from its first
+  /// write, so an incremental export filters on the tag's `hlc` like
+  /// [_exportMediaSpecies]; a full export ships the table.
+  Future<List<Map<String, dynamic>>> _exportMediaPeople(
+    String? hlcSince,
+  ) async {
+    final query = _db.select(_db.mediaPeople);
     if (hlcSince != null) {
       query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
     }

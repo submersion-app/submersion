@@ -12,6 +12,7 @@ import 'package:submersion/features/trips/data/repositories/itinerary_day_reposi
 import 'package:submersion/features/trips/data/repositories/liveaboard_details_repository.dart';
 import 'package:submersion/features/trips/domain/entities/itinerary_day.dart';
 import 'package:submersion/features/trips/domain/entities/liveaboard_details.dart';
+import 'package:submersion/features/trips/domain/services/trip_draft.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_edit_navigation.dart';
@@ -26,8 +27,10 @@ import 'package:submersion/shared/widgets/label_with_control.dart';
 import 'package:submersion/core/data/visibility/item_sharing.dart';
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
-import 'package:submersion/shared/widgets/shared_items/item_sharing_row.dart';
+import 'package:submersion/shared/widgets/shared_items/item_sharing_field.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
+import 'package:submersion/features/trips/presentation/providers/side_trip_providers.dart';
+import 'package:submersion/features/trips/presentation/widgets/part_of_trip_field.dart';
 
 const _log = LoggerService('tripEditPage');
 
@@ -41,6 +44,10 @@ class TripEditPage extends ConsumerStatefulWidget {
   /// at the top (#2880).
   final TripEditSection? initialSection;
 
+  /// A new trip prefilled from selected dives, which move into it on save
+  /// (issue #3658). Only for a new trip.
+  final TripDraft? draft;
+
   const TripEditPage({
     super.key,
     this.tripId,
@@ -48,6 +55,7 @@ class TripEditPage extends ConsumerStatefulWidget {
     this.onSaved,
     this.onCancel,
     this.initialSection,
+    this.draft,
   });
 
   @override
@@ -79,6 +87,13 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
 
   late DateTime _startDate;
   DateTime? _returnFlightAt;
+
+  /// The larger trip this one is a side trip of (issue #3658).
+  String? _parentTripId;
+
+  /// A new trip already created by a save that failed afterwards: a retry
+  /// updates it instead of creating a second one.
+  String? _createdTripId;
   late DateTime _endDate;
   // Controls where the end-date picker opens, not whether _endDate still
   // holds the placeholder value -- _endDate can also get auto-synced to
@@ -105,6 +120,21 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
   Trip? _originalTrip;
 
   bool get isEditing => widget.tripId != null;
+
+  /// Seeds the form from a trip made from selected dives (issue #3658).
+  void _applyDraft(Trip trip) {
+    _nameController.text = trip.name;
+    _locationController.text = trip.location ?? '';
+    _resortController.text = trip.resortName ?? '';
+    _startDate = trip.startDate;
+    _endDate = trip.endDate;
+    _endDateTouched = true;
+    _parentTripId = trip.parentTripId;
+  }
+
+  bool get _hasSideTrips =>
+      isEditing &&
+      (ref.watch(hasSideTripsProvider(widget.tripId!)).value ?? false);
 
   /// A day trip's end follows its start. A day trip stored before the form
   /// enforced that can span several days; its end stays editable until the
@@ -133,6 +163,8 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
     final now = clock.now();
     _startDate = now;
     _endDate = now.copyWith(day: now.day + 7);
+    final draft = widget.draft;
+    if (!isEditing && draft != null) _applyDraft(draft.trip);
     if (isEditing) {
       _loadTrip();
     } else {
@@ -197,6 +229,7 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
         }
         if (!mounted) return;
         _nameController.text = trip.name;
+        _parentTripId = trip.parentTripId;
         _locationController.text = trip.location ?? '';
         _resortController.text = trip.resortName ?? '';
         _liveaboardController.text = trip.liveaboardName ?? '';
@@ -355,6 +388,19 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
                       return null;
                     },
                   ),
+                  // A trip with side trips of its own cannot be one: one
+                  // level deep (issue #3658).
+                  if (!_hasSideTrips) ...[
+                    const SizedBox(height: 8),
+                    PartOfTripField(
+                      tripId: widget.tripId,
+                      value: _parentTripId,
+                      onChanged: (id) => setState(() {
+                        _parentTripId = id;
+                        _hasChanges = true;
+                      }),
+                    ),
+                  ],
                   const SizedBox(height: 24),
 
                   // Date section header
@@ -1007,7 +1053,7 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
 
       final now = DateTime.now();
       final trip = Trip(
-        id: widget.tripId ?? '',
+        id: widget.tripId ?? _createdTripId ?? '',
         diverId: diverId,
         name: _nameController.text.trim(),
         startDate: _startDate,
@@ -1024,6 +1070,7 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
         tripType: _tripType,
         notes: _notesController.text.trim(),
         isShared: _sharing.everyone,
+        parentTripId: _parentTripId,
         returnFlightAt: _returnFlightAt,
         // Non-positive is not a plan, it is an empty field said twice:
         // the scrubber margin multiplies both of these, and a zero or a
@@ -1042,19 +1089,22 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
       );
 
       String savedId;
-      if (isEditing) {
+      final createdId = _createdTripId;
+      if (isEditing || createdId != null) {
         await ref.read(tripListNotifierProvider.notifier).updateTrip(trip);
-        savedId = widget.tripId!;
+        savedId = widget.tripId ?? createdId!;
       } else {
         final newTrip = await ref
             .read(tripListNotifierProvider.notifier)
             .addTrip(trip);
         savedId = newTrip.id;
+        _createdTripId = savedId;
       }
 
       // The chosen profiles (issue #2151), only when the owner changed
       // them; the save above already wrote the everyone flag. Checked in
       // this order so an unchanged save never reads the active profile.
+      var sharingRefused = false;
       if (!_sharingUnread &&
           (_sharing != _originalSharing ||
               (_staleShareRows && _sharing.everyone)) &&
@@ -1064,7 +1114,7 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
                     ownerId: _originalTrip?.diverId,
                   ) ==
                   true)) {
-        await ref
+        sharingRefused = !await ref
             .read(itemSharesRepositoryProvider)
             .setSharing(
               SharedItemKind.trip,
@@ -1080,8 +1130,15 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
       if (_tripType == TripType.liveaboard) {
         final liveaboardRepo = LiveaboardDetailsRepository();
         final capacityText = _capacityController.text.trim();
+        // A retry after a failed create finds the details its first attempt
+        // wrote, so it updates them instead of adding a second set.
+        final existingDetails =
+            _originalLiveaboardDetails ??
+            (createdId != null
+                ? await liveaboardRepo.getByTripId(savedId)
+                : null);
         final details = LiveaboardDetails(
-          id: _originalLiveaboardDetails?.id ?? '',
+          id: existingDetails?.id ?? '',
           tripId: savedId,
           vesselName: _vesselNameController.text.trim(),
           operatorName: _operatorController.text.trim().isEmpty
@@ -1098,14 +1155,17 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
           disembarkPort: _disembarkPortController.text.trim().isEmpty
               ? null
               : _disembarkPortController.text.trim(),
-          createdAt: _originalLiveaboardDetails?.createdAt ?? DateTime.now(),
+          createdAt: existingDetails?.createdAt ?? DateTime.now(),
           updatedAt: DateTime.now(),
         );
         await liveaboardRepo.createOrUpdate(details);
 
-        // Generate itinerary days for new liveaboard trips
-        if (!isEditing) {
-          final itineraryRepo = ItineraryDayRepository();
+        // Generate itinerary days for new liveaboard trips, once: a retry
+        // after a failed create keeps the days its first attempt wrote.
+        final itineraryRepo = ItineraryDayRepository();
+        if (!isEditing &&
+            (createdId == null ||
+                (await itineraryRepo.getByTripId(savedId)).isEmpty)) {
           final days = ItineraryDay.generateForTrip(
             tripId: savedId,
             startDate: _startDate,
@@ -1121,13 +1181,26 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
         await liveaboardRepo.deleteByTripId(savedId);
       }
 
+      // A trip made from selected dives takes exactly those dives, so no
+      // date-range scan offers others (issue #3658).
+      final draft = widget.draft;
+      if (!isEditing && draft != null && draft.diveIds.isNotEmpty) {
+        await ref
+            .read(tripListNotifierProvider.notifier)
+            .assignDivesToTrip(
+              draft.diveIds,
+              savedId,
+              oldTripIds: draft.sourceTripIds,
+            );
+      }
+
       // Scan for candidate dives (on create, or when dates changed on edit)
       final datesChanged =
           !isEditing ||
           _originalTrip?.startDate != _startDate ||
           _originalTrip?.endDate != _endDate;
 
-      if (mounted && datesChanged) {
+      if (mounted && datesChanged && draft == null) {
         // Resolved only once a scan is actually going to run: this provider
         // hits the database, and the save above may not have warmed it (the
         // `??` at the top of this method short-circuits for existing trips).
@@ -1183,18 +1256,24 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
       }
 
       if (mounted) {
+        // The rest of the trip is saved, so a refused sharing change says
+        // so in place of the saved message rather than keeping the page.
+        final l10n = context.l10n;
+        final message = sharingRefused
+            ? sharingRefusedMessage(l10n)
+            : widget.embedded
+            ? null
+            : isEditing
+            ? l10n.trips_edit_snackBar_updated
+            : l10n.trips_edit_snackBar_added;
+        if (message != null) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(message)));
+        }
         if (widget.embedded) {
           widget.onSaved?.call(savedId);
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                isEditing
-                    ? context.l10n.trips_edit_snackBar_updated
-                    : context.l10n.trips_edit_snackBar_added,
-              ),
-            ),
-          );
           context.pop(savedId);
         }
       }

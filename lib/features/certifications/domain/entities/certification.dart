@@ -67,6 +67,10 @@ class Certification extends Equatable {
   /// The course this certification came from (issue #2515). Read-only here:
   /// only CourseCertificationLinks writes `certifications.course_id`.
   final String? courseId;
+
+  /// The buddy card that created this certification (issue #3728); null
+  /// for one entered by hand.
+  final String? cardId;
   final Uint8List? photoFront;
   final Uint8List? photoBack;
   final String notes;
@@ -88,6 +92,7 @@ class Certification extends Equatable {
     this.instructorNumber,
     this.instructorId,
     this.courseId,
+    this.cardId,
     this.photoFront,
     this.photoBack,
     this.notes = '',
@@ -157,6 +162,7 @@ class Certification extends Equatable {
     String? instructorNumber,
     String? instructorId,
     String? courseId,
+    String? cardId,
     Uint8List? photoFront,
     Uint8List? photoBack,
     String? notes,
@@ -179,6 +185,7 @@ class Certification extends Equatable {
       instructorNumber: instructorNumber ?? this.instructorNumber,
       instructorId: instructorId ?? this.instructorId,
       courseId: courseId ?? this.courseId,
+      cardId: cardId ?? this.cardId,
       photoFront: photoFront ?? this.photoFront,
       photoBack: photoBack ?? this.photoBack,
       notes: notes ?? this.notes,
@@ -204,6 +211,7 @@ class Certification extends Equatable {
       instructorNumber: instructorNumber,
       instructorId: instructorId,
       courseId: courseId,
+      cardId: cardId,
       photoFront: clearFront ? null : photoFront,
       photoBack: clearBack ? null : photoBack,
       notes: notes,
@@ -240,6 +248,7 @@ class Certification extends Equatable {
     instructorNumber,
     instructorId,
     courseId,
+    cardId,
     photoFront,
     photoBack,
     notes,

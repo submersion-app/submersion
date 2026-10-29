@@ -18,6 +18,8 @@ import 'package:submersion/features/media/presentation/helpers/media_drop_destin
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/global_drop_target.dart';
+import 'package:submersion/features/buddies/domain/entities/buddy_card.dart';
+import 'package:submersion/features/buddies/domain/services/buddy_card_codec.dart';
 
 import '../../helpers/global_test_defaults.dart';
 
@@ -73,6 +75,11 @@ Widget _buildTestApp({
             path: '/transfer/import-wizard',
             builder: (context, state) => const Text('Import Wizard'),
           ),
+          GoRoute(
+            path: '/buddies/card',
+            builder: (context, state) =>
+                Text('Card ${(state.extra! as BuddyCardDecoded).card.name}'),
+          ),
         ],
       ),
     ],
@@ -100,6 +107,16 @@ Future<void> _triggerDrop(WidgetTester tester, DropDoneDetails details) async {
     dropTarget.onDragDone?.call(details);
     await Future<void>.delayed(const Duration(milliseconds: 500));
   });
+  for (var i = 0; i < 10; i++) {
+    await tester.pump(const Duration(milliseconds: 50));
+  }
+}
+
+/// Lets a drop still in progress (reading its next file) run on.
+Future<void> _settleDrop(WidgetTester tester) async {
+  await tester.runAsync(
+    () => Future<void>.delayed(const Duration(milliseconds: 300)),
+  );
   for (var i = 0; i < 10; i++) {
     await tester.pump(const Duration(milliseconds: 50));
   }
@@ -308,6 +325,37 @@ void main() {
 
       expect(find.text('Home Content'), findsOneWidget);
     });
+
+    testWidgets(
+      'two buddy card files dropped together each open, not the wizard',
+      variant: _macOS,
+      (tester) async {
+        await tester.pumpWidget(_buildTestApp());
+        await tester.pumpAndSettle();
+        Uint8List cardOf(String name) =>
+            BuddyCardCodec.encodeFull(BuddyCard(id: name, name: name));
+
+        await _triggerDrop(
+          tester,
+          DropDoneDetails(
+            files: [
+              _dropItemFromBytes(cardOf('Sam'), 'Sam.subbuddy'),
+              _dropItemFromBytes(cardOf('Alex'), 'Alex.subbuddy'),
+            ],
+            localPosition: Offset.zero,
+            globalPosition: Offset.zero,
+          ),
+        );
+
+        // One at a time: Sam's card first, Alex's once it closes.
+        expect(find.text('Import Wizard'), findsNothing);
+        expect(find.text('Card Sam'), findsOneWidget);
+        GoRouter.of(tester.element(find.text('Card Sam'))).pop();
+        await _settleDrop(tester);
+        expect(find.text('Card Alex'), findsOneWidget);
+        expect(find.text('Import Wizard'), findsNothing);
+      },
+    );
 
     testWidgets(
       'shows error snackbar when wizard is already active',

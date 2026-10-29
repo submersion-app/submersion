@@ -2508,6 +2508,15 @@ class AppLocalizationsHe extends AppLocalizations {
       'שליחה דרך AirDrop, דוא\"ל או אפליקציות אחרות';
 
   @override
+  String get backup_copySheet_deviceLocked =>
+      'עותק הבטיחות הזה נלקח ממסד הנתונים המוגן שלכם. אפשר לשחזר אותו רק במכשיר הזה.';
+
+  @override
+  String backup_copySheet_title(String dateTime) {
+    return 'גיבוי מ-$dateTime';
+  }
+
+  @override
   String get backup_frequency_daily => 'יומי';
 
   @override
@@ -2521,6 +2530,12 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get backup_history_action_restore => 'שחזור';
+
+  @override
+  String get backup_history_action_saveCopy => 'שמירת עותק';
+
+  @override
+  String get backup_history_action_share => 'שיתוף';
 
   @override
   String get backup_history_empty => 'אין גיבויים';
@@ -2773,6 +2788,305 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get buddies_action_addTooltip => 'הוסף חבר צוללים חדש';
+
+  @override
+  String get buddyCard_preview_title => 'כרטיס שותף';
+
+  @override
+  String buddyCard_preview_addTitle(String name) {
+    return 'הוספת $name כשותף';
+  }
+
+  @override
+  String buddyCard_preview_updateTitle(String name) {
+    return 'עדכון $name';
+  }
+
+  @override
+  String buddyCard_preview_possibleTitle(String name) {
+    return 'האם זה $name מהשותפים שלך?';
+  }
+
+  @override
+  String get buddyCard_preview_trimmed =>
+      'חלק מהפרטים הושמטו כדי שייכנסו לקוד.';
+
+  @override
+  String get buddyCard_preview_newer =>
+      'הכרטיס הזה מגרסה חדשה יותר של Submersion. ייתכן שחלק מהפרטים חסרים.';
+
+  @override
+  String get buddyCard_preview_noChanges => 'אין בכרטיס הזה שום דבר חדש.';
+
+  @override
+  String get buddyCard_preview_ownCard =>
+      'זה הכרטיס שלך. החלף עם שותף צלילה כדי לקבל את שלו.';
+
+  @override
+  String buddyCard_preview_changed(String from, String to) {
+    return '$to (קודם $from)';
+  }
+
+  @override
+  String get buddyCard_action_add => 'הוספת שותף';
+
+  @override
+  String get buddyCard_action_update => 'עדכון שותף';
+
+  @override
+  String get buddyCard_action_addAsNew => 'הוספה כשותף חדש';
+
+  @override
+  String get buddyCard_action_discard => 'ביטול';
+
+  @override
+  String get buddyCard_field_name => 'שם';
+
+  @override
+  String get buddyCard_field_phone => 'טלפון';
+
+  @override
+  String get buddyCard_field_email => 'אימייל';
+
+  @override
+  String get buddyCard_field_social => 'שם משתמש ברשתות חברתיות';
+
+  @override
+  String get buddyCard_field_dives => 'צלילות';
+
+  @override
+  String get buddyCard_field_divingSince => 'צולל מאז';
+
+  @override
+  String get buddyCard_field_lastDive => 'צלילה אחרונה';
+
+  @override
+  String get buddyCard_field_certifications => 'הסמכות';
+
+  @override
+  String buddyCard_saved_added(String name) {
+    return '$name נוסף לשותפים שלך';
+  }
+
+  @override
+  String buddyCard_saved_updated(String name) {
+    return '$name עודכן';
+  }
+
+  @override
+  String get buddyCard_saved_view => 'הצג';
+
+  @override
+  String get buddyCard_error_notACard => 'זה לא כרטיס שותף של Submersion.';
+
+  @override
+  String get buddyCard_error_unreadable => 'לא ניתן לקרוא את כרטיס השותף הזה.';
+
+  @override
+  String get buddySwap_title => 'החלפה עם שותף';
+
+  @override
+  String get buddySwap_nearby_heading => 'צוללים בקרבת מקום עם Submersion פתוח';
+
+  @override
+  String get buddySwap_nearby_tapToSwap => 'הקש להחלפה';
+
+  @override
+  String get buddySwap_nearby_looking => 'מחפש עוד…';
+
+  @override
+  String get buddySwap_nearby_failed =>
+      'לא ניתן היה לחפש צוללים בקרבת מקום. שאר דרכי ההחלפה למטה עדיין עובדות.';
+
+  @override
+  String get buddySwap_nearby_hint =>
+      'לא רואה את השותף שלך? שניכם צריכים שהמסך הזה יהיה פתוח ו-Submersion 1.8.4 ואילך.';
+
+  @override
+  String buddySwap_sharing(String summary) {
+    return 'משותף: $summary';
+  }
+
+  @override
+  String get buddySwap_sharing_change => 'שינוי';
+
+  @override
+  String buddySwap_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count צלילות',
+      one: 'צלילה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddySwap_action_showCode => 'הצג את הקוד שלי';
+
+  @override
+  String get buddySwap_action_scanCode => 'סרוק קוד';
+
+  @override
+  String get buddySwap_action_sendFile => 'שלח קובץ';
+
+  @override
+  String get buddySwap_action_openFile => 'פתח קובץ כרטיס';
+
+  @override
+  String get buddySwap_action_writeSticker => 'כתוב מדבקת NFC';
+
+  @override
+  String get buddySwap_action_tapAndroid => 'הצמד טלפון אנדרואיד';
+
+  @override
+  String get buddySwap_action_receiveByTap => 'קבל בהצמדה';
+
+  @override
+  String get buddySwap_tap_prompt => 'קרב את הטלפון לטלפון השני או למדבקה';
+
+  @override
+  String get buddySwap_sticker_prompt => 'קרב את הטלפון למדבקת NFC ריקה';
+
+  @override
+  String get buddySwap_sticker_written =>
+      'המדבקה נכתבה. כתוב אותה מחדש כשהפרטים שלך משתנים.';
+
+  @override
+  String get buddySwap_sticker_tooSmall => 'המדבקה קטנה מדי לכרטיס שלך.';
+
+  @override
+  String get buddySwap_sticker_notWritable => 'לא ניתן לכתוב על המדבקה הזו.';
+
+  @override
+  String get buddySwap_nfc_unavailable => 'NFC אינו זמין במכשיר זה.';
+
+  @override
+  String get buddySwap_qr_title => 'כרטיס השותף שלך';
+
+  @override
+  String get buddySwap_qr_hint =>
+      'בקש מהשותף לסרוק את זה עם Submersion או במצלמה.';
+
+  @override
+  String buddySwap_request_title(String name) {
+    return '$name רוצה להחליף כרטיסים';
+  }
+
+  @override
+  String buddySwap_request_youSend(String summary) {
+    return 'תשלח: $summary';
+  }
+
+  @override
+  String get buddySwap_request_swap => 'החלף';
+
+  @override
+  String get buddySwap_request_decline => 'דחה';
+
+  @override
+  String buddySwap_waiting(String name) {
+    return 'ממתין לתשובה של $name';
+  }
+
+  @override
+  String buddySwap_failed_declined(String name) {
+    return '$name דחה את ההחלפה';
+  }
+
+  @override
+  String buddySwap_failed_timedOut(String name) {
+    return '$name לא ענה';
+  }
+
+  @override
+  String buddySwap_failed_lost(String name) {
+    return 'החיבור ל-$name אבד';
+  }
+
+  @override
+  String buddySwap_failed_newerApp(String name) {
+    return '$name צריך גרסה חדשה יותר של Submersion';
+  }
+
+  @override
+  String get buddySwap_cardFailed => 'לא ניתן ליצור את כרטיס השותף שלך.';
+
+  @override
+  String get buddySwap_qr_tooLarge =>
+      'הכרטיס שלך ארוך מדי לקוד. נסה במקום זאת לשלוח קובץ.';
+
+  @override
+  String get buddySwap_sendFailed => 'לא ניתן לשתף את קובץ הכרטיס.';
+
+  @override
+  String get buddyCard_saveFailed => 'לא ניתן לשמור את השותף.';
+
+  @override
+  String get buddyCard_field_photo => 'תמונה';
+
+  @override
+  String get buddyCard_change_newPhoto => 'תמונה חדשה';
+
+  @override
+  String get buddyShare_title => 'מה אתה משתף';
+
+  @override
+  String get buddyShare_name => 'שם';
+
+  @override
+  String get buddyShare_alwaysShared => 'משותף תמיד';
+
+  @override
+  String get buddyShare_neverShared =>
+      'פרטים רפואיים, ביטוח ופרטי חירום לעולם אינם משותפים.';
+
+  @override
+  String get buddyShare_photo => 'תמונה';
+
+  @override
+  String get buddyShare_phone => 'טלפון';
+
+  @override
+  String get buddyShare_email => 'אימייל';
+
+  @override
+  String get buddyShare_certifications => 'הסמכות';
+
+  @override
+  String get buddyShare_cardDetails => 'מספרי כרטיסים ותאריכים';
+
+  @override
+  String get buddyShare_diveCount => 'מספר צלילות';
+
+  @override
+  String get buddyShare_divingSince => 'צולל מאז';
+
+  @override
+  String get buddyShare_lastDive => 'תאריך הצלילה האחרונה';
+
+  @override
+  String get buddyShare_social => 'שם משתמש ברשתות חברתיות';
+
+  @override
+  String buddyCard_detail_heading(String name) {
+    return 'מהכרטיס של $name';
+  }
+
+  @override
+  String buddyCard_detail_since(String year) {
+    return 'צולל מאז $year';
+  }
+
+  @override
+  String buddyCard_detail_last(String date) {
+    return 'צלילה אחרונה $date';
+  }
+
+  @override
+  String buddyCard_detail_received(String date) {
+    return 'התקבל ב-$date';
+  }
 
   @override
   String get buddies_action_clearSearch => 'נקה חיפוש';
@@ -9763,6 +10077,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_selection_tooltip_edit => 'ערוך נבחרים';
 
   @override
+  String get diveLog_selection_tooltip_newTrip => 'טיול חדש מהבחירה';
+
+  @override
   String get diveLog_selection_tooltip_export => 'ייצא נבחרים';
 
   @override
@@ -9951,19 +10268,24 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get diveLog_cylinders_columnTank => 'בלון';
+  String diveLog_cylinders_figureStart(String pressure) {
+    return 'התחלה $pressure';
+  }
 
   @override
-  String get diveLog_cylinders_columnGas => 'גז';
+  String diveLog_cylinders_figureEnd(String pressure) {
+    return 'סיום $pressure';
+  }
 
   @override
-  String get diveLog_cylinders_columnStart => 'התחלה';
+  String diveLog_cylinders_figureUsed(String pressure) {
+    return 'נוצל $pressure';
+  }
 
   @override
-  String get diveLog_cylinders_columnEnd => 'סיום';
-
-  @override
-  String get diveLog_cylinders_columnUsed => 'נוצל';
+  String diveLog_cylinders_gasSemantics(String mix) {
+    return 'גז $mix';
+  }
 
   @override
   String diveLog_cylinders_gasUsed(String amount) {
@@ -19670,6 +19992,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String plannerCanvas_issue_noUsableGas(String minGas, String fill) {
+    return 'מינימום rock bottom של $minGas לא משאיר גז שמיש במילוי של $fill';
+  }
+
+  @override
   String plannerCanvas_issue_diluentModExceeded(String depth, String value) {
     return 'המדלל חורג מ-MOD מדלל ב-$depth (ppO₂ $value bar)';
   }
@@ -22406,6 +22733,56 @@ class AppLocalizationsHe extends AppLocalizations {
       'דילוג על גזי חילוץ שלא נוצלו';
 
   @override
+  String get settings_conflict_field_diveListSort => 'צלילות: מיון';
+
+  @override
+  String get settings_conflict_field_divePlanListSort => 'תוכניות שמורות: מיון';
+
+  @override
+  String get settings_conflict_field_tripListSort => 'טיולים: מיון';
+
+  @override
+  String get settings_conflict_field_courseListSort => 'קורסים: מיון';
+
+  @override
+  String get settings_conflict_field_buddyListSort => 'שותפים: מיון';
+
+  @override
+  String get settings_conflict_field_diveCenterListSort =>
+      'מועדוני צלילה: מיון';
+
+  @override
+  String get settings_conflict_field_siteListSort => 'אתרים: מיון';
+
+  @override
+  String get settings_conflict_field_certificationListSort => 'הסמכות: מיון';
+
+  @override
+  String get settings_conflict_field_equipmentListSort => 'ציוד: מיון';
+
+  @override
+  String get settings_conflict_field_siteListGroupBy => 'אתרים: קיבוץ';
+
+  @override
+  String get settings_conflict_field_certificationListGroupBy =>
+      'הסמכות: קיבוץ';
+
+  @override
+  String get settings_conflict_field_equipmentArrangement => 'סידור הציוד';
+
+  @override
+  String get settings_conflict_field_equipmentGroupByLocation =>
+      'ציוד מקובץ לפי מיקום';
+
+  @override
+  String get settings_conflict_field_listArrangementHlc => 'יומן סידור הרשימות';
+
+  @override
+  String settings_conflict_sortValue(String field, String direction) {
+    return '$field, $direction';
+  }
+
+  @override
   String get settings_conflict_field_avgSpeed => 'מהירות ממוצעת';
 
   @override
@@ -23590,6 +23967,27 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_field_priorDiveCount => 'צלילות לפני היומן הזה';
 
   @override
+  String get settings_conflict_field_buddyCardShare => 'שיתוף כרטיס שותף';
+
+  @override
+  String get settings_conflict_field_cardDiveCount => 'צלילות (מהכרטיס)';
+
+  @override
+  String get settings_conflict_field_cardDivingSince => 'צולל מאז (מהכרטיס)';
+
+  @override
+  String get settings_conflict_field_cardId => 'כרטיס שותף';
+
+  @override
+  String get settings_conflict_field_cardLastDive => 'צלילה אחרונה (מהכרטיס)';
+
+  @override
+  String get settings_conflict_field_cardReceivedAt => 'הכרטיס התקבל';
+
+  @override
+  String get settings_conflict_field_socialHandle => 'שם משתמש ברשתות חברתיות';
+
+  @override
   String get settings_conflict_field_priorDiveTimeSeconds =>
       'זמן צלילה לפני היומן הזה';
 
@@ -24216,6 +24614,10 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_conflict_field_verifyFactsHlc => 'יומן אימות';
+
+  @override
+  String get settings_conflict_field_videoPositionMs =>
+      'זמן בסרטון (אלפיות שנייה)';
 
   @override
   String get settings_conflict_field_vesselName => 'ספינה';
@@ -30697,6 +31099,37 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String trips_delete_sideTripsStandalone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count טיולי הצד שלו הופכים לטיולים עצמאיים.',
+      one: 'טיול הצד שלו הופך לטיול עצמאי.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_delete_divesReturnToParent(String name) {
+    return 'הצלילות שלו חוזרות אל $name.';
+  }
+
+  @override
+  String trips_bulkDelete_sideTripsStandalone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count טיולי צד הופכים לטיולים עצמאיים.',
+      one: 'טיול צד אחד הופך לטיול עצמאי.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_bulkDelete_divesReturnToParents =>
+      'הצלילות של טיולי הצד שנמחקו חוזרות לטיולים הגדולים שלהם.';
+
+  @override
   String get trips_detail_dialog_deleteTitle => 'למחוק טיול?';
 
   @override
@@ -30921,6 +31354,16 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_edit_hint_tripName => 'לדוגמה, ספארי ים סוף 2024';
 
   @override
+  String get trips_edit_field_partOf => 'חלק מ־';
+
+  @override
+  String get trips_edit_partOf_none => 'ללא (טיול עצמאי)';
+
+  @override
+  String get trips_edit_partOf_helper =>
+      'הופך את הטיול לטיול צד בתוך טיול גדול יותר';
+
+  @override
   String get trips_edit_label_endDate => 'תאריך סיום';
 
   @override
@@ -31100,6 +31543,32 @@ class AppLocalizationsHe extends AppLocalizations {
       one: 'צלילה אחת',
     );
     return '$_temp0';
+  }
+
+  @override
+  String trips_list_sideTripCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count טיולי צד',
+      one: 'טיול צד אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_partOf(String name) {
+    return 'חלק מ־$name';
+  }
+
+  @override
+  String trips_fromSelection_name(String location, String monthYear) {
+    return '$location, $monthYear';
+  }
+
+  @override
+  String trips_fromSelection_nameNoLocation(String monthYear) {
+    return 'טיול, $monthYear';
   }
 
   @override
@@ -35245,12 +35714,12 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String settings_shareAllSites_confirm(int count) {
-    return 'בחר מי רואה את כל $count האתרים שלך. כדי לשנות אתר אחד בהמשך, פתח אותו והקש על משותף עם.';
+    return 'בחר מי רואה את כל $count האתרים שלך. כדי לשנות אתר אחד בהמשך, ערוך אותו והקש על משותף עם.';
   }
 
   @override
   String settings_shareAllTrips_confirm(int count) {
-    return 'בחר מי רואה את כל $count הטיולים שלך. כדי לשנות טיול אחד בהמשך, פתח אותו והקש על משותף עם.';
+    return 'בחר מי רואה את כל $count הטיולים שלך. כדי לשנות טיול אחד בהמשך, ערוך אותו והקש על משותף עם.';
   }
 
   @override
@@ -49572,6 +50041,94 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_species_chipsLabel => 'תגיות מינים';
 
   @override
+  String get media_people_me => 'אני';
+
+  @override
+  String get media_people_chipsLabel => 'תגיות אנשים';
+
+  @override
+  String media_people_momentChip(String name, String time) {
+    return '$name · $time';
+  }
+
+  @override
+  String get media_people_actionTooltip => 'תיוג אנשים';
+
+  @override
+  String get media_people_tagModeHint => 'הקש על אדם כדי לתייג אותו';
+
+  @override
+  String get media_people_noSpotHint => 'לא ניתן לסמן מיקום כאן';
+
+  @override
+  String get media_people_withoutSpot => 'תיוג ללא מיקום';
+
+  @override
+  String get media_people_done => 'סיום';
+
+  @override
+  String get media_people_pickerTitle => 'מי זה?';
+
+  @override
+  String get media_people_searchHint => 'חיפוש חברי צוללים';
+
+  @override
+  String get media_people_onThisDive => 'בצלילה הזו';
+
+  @override
+  String get media_people_everyoneElse => 'כל השאר';
+
+  @override
+  String get media_people_newBuddy => 'חבר צוללים חדש';
+
+  @override
+  String get media_people_newBuddyName => 'שם';
+
+  @override
+  String get media_people_newBuddyAdd => 'הוסף';
+
+  @override
+  String get media_people_changePerson => 'החלף אדם';
+
+  @override
+  String get media_people_removeTag => 'הסר תיוג';
+
+  @override
+  String get media_people_resizeHint => 'גרור את הפינות להתאמה';
+
+  @override
+  String media_people_addToDiveOffer(String name) {
+    return 'להוסיף את $name לחברי הצוללים של צלילה זו?';
+  }
+
+  @override
+  String get media_people_addToDiveAction => 'הוסף';
+
+  @override
+  String get media_people_buddyPhotosTitle => 'תמונות וסרטונים';
+
+  @override
+  String get media_people_buddyThumbnailLabel =>
+      'תמונה או סרטון עם חבר הצוללים הזה';
+
+  @override
+  String get media_people_filterSection => 'אנשים';
+
+  @override
+  String get media_people_removedBuddy => 'חבר צוללים שהוסר';
+
+  @override
+  String get media_people_saveFailed => 'לא ניתן לשמור את התיוג. נסה שוב.';
+
+  @override
+  String get media_people_addToDiveFailed =>
+      'לא ניתן להוסיף את חבר הצוללים לצלילה זו. נסה שוב.';
+
+  @override
+  String get media_people_createBuddyFailed =>
+      'לא ניתן ליצור את חבר הצוללים. נסה שוב.';
+
+  @override
   String get media_info_fileSection => 'קובץ';
 
   @override
@@ -50927,6 +51484,17 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String backup_history_cloudOnlySubtitle(String size) {
     return 'באחסון בענן ($size)';
+  }
+
+  @override
+  String get backup_history_device_anotherDevice => 'מכשיר אחר';
+
+  @override
+  String get backup_history_device_thisDevice => 'מכשיר זה';
+
+  @override
+  String backup_history_subtitleWithDevice(String summary, String device) {
+    return '$summary · $device';
   }
 
   @override
@@ -52731,6 +53299,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get query_trips_dives => 'צלילות';
+
+  @override
+  String get query_trips_partOf => 'חלק מ־';
 
   @override
   String get query_trips_endDate => 'תאריך סיום';

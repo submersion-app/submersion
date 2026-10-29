@@ -50,7 +50,19 @@ extension DiveFilterQuery on DiveFilterState {
     }
     if (diveTypeId != null) parts.add(c('types', QueryOp.eq, ref(diveTypeId!)));
     if (siteId != null) parts.add(c('site', QueryOp.eq, ref(siteId!)));
-    if (tripId != null) parts.add(c('trip', QueryOp.eq, ref(tripId!)));
+    // A larger trip takes in its side trips' dives (issue #3658).
+    if (tripId != null) {
+      parts.add(
+        OrNode([
+          c('trip', QueryOp.eq, ref(tripId!)),
+          ConditionNode(
+            FieldPath(['trip', 'partOf']),
+            QueryOp.eq,
+            ref(tripId!),
+          ),
+        ]),
+      );
+    }
     if (diveCenterId != null) {
       parts.add(c('center', QueryOp.eq, ref(diveCenterId!)));
     }

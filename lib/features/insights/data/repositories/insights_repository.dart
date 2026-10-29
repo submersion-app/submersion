@@ -39,6 +39,7 @@ import 'package:submersion/features/insights/domain/tank_configuration/tank_conf
 import 'package:submersion/features/insights/domain/time_of_day_bucket.dart';
 import 'package:submersion/features/insights/domain/trend_aggregation.dart';
 import 'package:submersion/features/insights/domain/water_temp_bands.dart';
+import 'package:submersion/features/trips/data/side_trip_sql.dart';
 
 export 'package:submersion/features/insights/domain/trend_aggregation.dart'
     show TrendDataPoint;
@@ -2110,7 +2111,9 @@ class InsightsRepository {
     }
   }
 
-  /// Get dives per trip
+  /// Get dives per trip. A larger trip counts its side trips' dives, and
+  /// the side trips are left out of the ranking so no dive counts twice
+  /// (issue #3658).
   Future<List<RankingItem>> getDivesPerTrip({
     String? diverId,
     int limit = 10,
@@ -2130,8 +2133,8 @@ class InsightsRepository {
           t.location,
           COUNT(d.id) AS dive_count
         FROM trips t
-        JOIN dives d ON d.trip_id = t.id
-        WHERE 1=1 $diverFilter ${df.clause}
+        ${tripDivesJoinSql(tripAlias: 't', diveAlias: 'd', joinKind: '')}
+        WHERE $topLevelTripSql $diverFilter ${df.clause}
         GROUP BY t.id
         ORDER BY dive_count DESC
         LIMIT ?

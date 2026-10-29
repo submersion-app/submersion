@@ -77,6 +77,15 @@ Future<void> deleteDiverRows(
 // stats-scope-exempt: deletion cascade. Deletes the diver's dives, excluded
 // ones included.
 const List<DiverDeleteStep> diverDiveSteps = [
+  // People tags first (issue #1745): the diver's own Me tags and their
+  // buddies' tags, which the buddies' cascade later would drop untombstoned.
+  (
+    table: 'media_people',
+    entityType: 'mediaPeople',
+    where:
+        'diver_id = ?1 OR buddy_id IN (SELECT id FROM buddies WHERE '
+        'diver_id = ?1)',
+  ),
   // Documents first: their owner links (dive, site, trip, gear, course,
   // cert, buddy, center) point at rows deleted below, and documents.diver_id
   // has no ON DELETE action. Documents follow the diver who filed them,

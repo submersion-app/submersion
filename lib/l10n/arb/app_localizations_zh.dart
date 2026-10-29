@@ -2417,6 +2417,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get backup_export_share_subtitle => '通过隔空投送、电子邮件或其他应用发送';
 
   @override
+  String get backup_copySheet_deviceLocked => '此安全副本取自您受保护的数据库，只能在此设备上恢复。';
+
+  @override
+  String backup_copySheet_title(String dateTime) {
+    return '$dateTime 的备份';
+  }
+
+  @override
   String get backup_frequency_daily => '每天';
 
   @override
@@ -2430,6 +2438,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get backup_history_action_restore => '恢复';
+
+  @override
+  String get backup_history_action_saveCopy => '保存副本';
+
+  @override
+  String get backup_history_action_share => '分享';
 
   @override
   String get backup_history_empty => '暂无备份';
@@ -2670,6 +2684,296 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get buddies_action_addTooltip => '添加新潜伴';
+
+  @override
+  String get buddyCard_preview_title => '潜伴名片';
+
+  @override
+  String buddyCard_preview_addTitle(String name) {
+    return '将 $name 添加为潜伴';
+  }
+
+  @override
+  String buddyCard_preview_updateTitle(String name) {
+    return '更新 $name';
+  }
+
+  @override
+  String buddyCard_preview_possibleTitle(String name) {
+    return '这是你潜伴中的 $name 吗？';
+  }
+
+  @override
+  String get buddyCard_preview_trimmed => '为适应代码长度，部分信息已省略。';
+
+  @override
+  String get buddyCard_preview_newer => '此名片来自更新版本的 Submersion，部分信息可能缺失。';
+
+  @override
+  String get buddyCard_preview_noChanges => '名片上没有新信息。';
+
+  @override
+  String get buddyCard_preview_ownCard => '这是你自己的名片。与潜伴交换以获取对方的名片。';
+
+  @override
+  String buddyCard_preview_changed(String from, String to) {
+    return '$to（原为 $from）';
+  }
+
+  @override
+  String get buddyCard_action_add => '添加潜伴';
+
+  @override
+  String get buddyCard_action_update => '更新潜伴';
+
+  @override
+  String get buddyCard_action_addAsNew => '添加为新潜伴';
+
+  @override
+  String get buddyCard_action_discard => '放弃';
+
+  @override
+  String get buddyCard_field_name => '姓名';
+
+  @override
+  String get buddyCard_field_phone => '电话';
+
+  @override
+  String get buddyCard_field_email => '电子邮件';
+
+  @override
+  String get buddyCard_field_social => '社交账号';
+
+  @override
+  String get buddyCard_field_dives => '潜水次数';
+
+  @override
+  String get buddyCard_field_divingSince => '开始潜水年份';
+
+  @override
+  String get buddyCard_field_lastDive => '最近一次潜水';
+
+  @override
+  String get buddyCard_field_certifications => '证书';
+
+  @override
+  String buddyCard_saved_added(String name) {
+    return '已将 $name 添加到你的潜伴';
+  }
+
+  @override
+  String buddyCard_saved_updated(String name) {
+    return '已更新 $name';
+  }
+
+  @override
+  String get buddyCard_saved_view => '查看';
+
+  @override
+  String get buddyCard_error_notACard => '这不是 Submersion 潜伴名片。';
+
+  @override
+  String get buddyCard_error_unreadable => '无法读取此潜伴名片。';
+
+  @override
+  String get buddySwap_title => '与潜伴交换';
+
+  @override
+  String get buddySwap_nearby_heading => '附近打开了 Submersion 的潜水员';
+
+  @override
+  String get buddySwap_nearby_tapToSwap => '点按以交换';
+
+  @override
+  String get buddySwap_nearby_looking => '正在查找更多…';
+
+  @override
+  String get buddySwap_nearby_failed => '无法搜索附近的潜水员。下方的其他交换方式仍可使用。';
+
+  @override
+  String get buddySwap_nearby_hint =>
+      '看不到你的潜伴？你们双方都需要打开此页面，并使用 Submersion 1.8.4 或更高版本。';
+
+  @override
+  String buddySwap_sharing(String summary) {
+    return '共享：$summary';
+  }
+
+  @override
+  String get buddySwap_sharing_change => '更改';
+
+  @override
+  String buddySwap_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddySwap_action_showCode => '显示我的二维码';
+
+  @override
+  String get buddySwap_action_scanCode => '扫描二维码';
+
+  @override
+  String get buddySwap_action_sendFile => '发送文件';
+
+  @override
+  String get buddySwap_action_openFile => '打开名片文件';
+
+  @override
+  String get buddySwap_action_writeSticker => '写入 NFC 贴纸';
+
+  @override
+  String get buddySwap_action_tapAndroid => '轻触安卓手机';
+
+  @override
+  String get buddySwap_action_receiveByTap => '轻触接收';
+
+  @override
+  String get buddySwap_tap_prompt => '将手机靠近另一部手机或贴纸';
+
+  @override
+  String get buddySwap_sticker_prompt => '将手机靠近空白 NFC 贴纸';
+
+  @override
+  String get buddySwap_sticker_written => '贴纸已写入。信息变更后请重新写入。';
+
+  @override
+  String get buddySwap_sticker_tooSmall => '该贴纸容量不足以写入你的名片。';
+
+  @override
+  String get buddySwap_sticker_notWritable => '无法写入该贴纸。';
+
+  @override
+  String get buddySwap_nfc_unavailable => '此设备不支持 NFC。';
+
+  @override
+  String get buddySwap_qr_title => '你的潜伴名片';
+
+  @override
+  String get buddySwap_qr_hint => '请潜伴用 Submersion 或相机扫描此二维码。';
+
+  @override
+  String buddySwap_request_title(String name) {
+    return '$name 想交换名片';
+  }
+
+  @override
+  String buddySwap_request_youSend(String summary) {
+    return '你将发送：$summary';
+  }
+
+  @override
+  String get buddySwap_request_swap => '交换';
+
+  @override
+  String get buddySwap_request_decline => '拒绝';
+
+  @override
+  String buddySwap_waiting(String name) {
+    return '正在等待 $name 回应';
+  }
+
+  @override
+  String buddySwap_failed_declined(String name) {
+    return '$name 拒绝了交换';
+  }
+
+  @override
+  String buddySwap_failed_timedOut(String name) {
+    return '$name 未回应';
+  }
+
+  @override
+  String buddySwap_failed_lost(String name) {
+    return '与 $name 的连接已断开';
+  }
+
+  @override
+  String buddySwap_failed_newerApp(String name) {
+    return '$name 需要更新版本的 Submersion';
+  }
+
+  @override
+  String get buddySwap_cardFailed => '无法生成你的潜伴名片。';
+
+  @override
+  String get buddySwap_qr_tooLarge => '你的名片太长，无法生成二维码。请改用发送文件。';
+
+  @override
+  String get buddySwap_sendFailed => '无法共享名片文件。';
+
+  @override
+  String get buddyCard_saveFailed => '无法保存潜伴。';
+
+  @override
+  String get buddyCard_field_photo => '照片';
+
+  @override
+  String get buddyCard_change_newPhoto => '新照片';
+
+  @override
+  String get buddyShare_title => '你共享的内容';
+
+  @override
+  String get buddyShare_name => '姓名';
+
+  @override
+  String get buddyShare_alwaysShared => '始终共享';
+
+  @override
+  String get buddyShare_neverShared => '医疗、保险和紧急联系信息绝不会共享。';
+
+  @override
+  String get buddyShare_photo => '照片';
+
+  @override
+  String get buddyShare_phone => '电话';
+
+  @override
+  String get buddyShare_email => '电子邮件';
+
+  @override
+  String get buddyShare_certifications => '证书';
+
+  @override
+  String get buddyShare_cardDetails => '证书编号与日期';
+
+  @override
+  String get buddyShare_diveCount => '潜水次数';
+
+  @override
+  String get buddyShare_divingSince => '开始潜水年份';
+
+  @override
+  String get buddyShare_lastDive => '最近一次潜水日期';
+
+  @override
+  String get buddyShare_social => '社交账号';
+
+  @override
+  String buddyCard_detail_heading(String name) {
+    return '来自 $name 的名片';
+  }
+
+  @override
+  String buddyCard_detail_since(String year) {
+    return '自 $year 年开始潜水';
+  }
+
+  @override
+  String buddyCard_detail_last(String date) {
+    return '最近一次潜水 $date';
+  }
+
+  @override
+  String buddyCard_detail_received(String date) {
+    return '接收于 $date';
+  }
 
   @override
   String get buddies_action_clearSearch => '清除搜索';
@@ -9483,6 +9787,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_selection_tooltip_edit => '编辑所选';
 
   @override
+  String get diveLog_selection_tooltip_newTrip => '用所选潜水新建行程';
+
+  @override
   String get diveLog_selection_tooltip_export => '导出所选';
 
   @override
@@ -9669,19 +9976,24 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get diveLog_cylinders_columnTank => '气瓶';
+  String diveLog_cylinders_figureStart(String pressure) {
+    return '起始 $pressure';
+  }
 
   @override
-  String get diveLog_cylinders_columnGas => '气体';
+  String diveLog_cylinders_figureEnd(String pressure) {
+    return '结束 $pressure';
+  }
 
   @override
-  String get diveLog_cylinders_columnStart => '起始';
+  String diveLog_cylinders_figureUsed(String pressure) {
+    return '已用 $pressure';
+  }
 
   @override
-  String get diveLog_cylinders_columnEnd => '结束';
-
-  @override
-  String get diveLog_cylinders_columnUsed => '已用';
+  String diveLog_cylinders_gasSemantics(String mix) {
+    return '气体 $mix';
+  }
 
   @override
   String diveLog_cylinders_gasUsed(String amount) {
@@ -19138,6 +19450,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String plannerCanvas_issue_noUsableGas(String minGas, String fill) {
+    return '最低保底气量 $minGas 使 $fill 的充气没有可用气体';
+  }
+
+  @override
   String plannerCanvas_issue_diluentModExceeded(String depth, String value) {
     return '稀释气在 $depth 处超过其 MOD（ppO₂ $value bar）';
   }
@@ -21751,6 +22068,53 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_omitUnusedOcGases => '跳过未使用的应急气体';
 
   @override
+  String get settings_conflict_field_diveListSort => '潜水：排序';
+
+  @override
+  String get settings_conflict_field_divePlanListSort => '已保存的计划：排序';
+
+  @override
+  String get settings_conflict_field_tripListSort => '旅行：排序';
+
+  @override
+  String get settings_conflict_field_courseListSort => '课程：排序';
+
+  @override
+  String get settings_conflict_field_buddyListSort => '潜伴：排序';
+
+  @override
+  String get settings_conflict_field_diveCenterListSort => '潜水中心：排序';
+
+  @override
+  String get settings_conflict_field_siteListSort => '潜水点：排序';
+
+  @override
+  String get settings_conflict_field_certificationListSort => '证书：排序';
+
+  @override
+  String get settings_conflict_field_equipmentListSort => '装备：排序';
+
+  @override
+  String get settings_conflict_field_siteListGroupBy => '潜水点：分组';
+
+  @override
+  String get settings_conflict_field_certificationListGroupBy => '证书：分组';
+
+  @override
+  String get settings_conflict_field_equipmentArrangement => '装备排列';
+
+  @override
+  String get settings_conflict_field_equipmentGroupByLocation => '装备按位置分组';
+
+  @override
+  String get settings_conflict_field_listArrangementHlc => '列表排列记录';
+
+  @override
+  String settings_conflict_sortValue(String field, String direction) {
+    return '$field，$direction';
+  }
+
+  @override
   String get settings_conflict_field_avgSpeed => '平均速度';
 
   @override
@@ -22861,6 +23225,27 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_priorDiveCount => '本日志之前的潜水次数';
 
   @override
+  String get settings_conflict_field_buddyCardShare => '潜伴名片共享';
+
+  @override
+  String get settings_conflict_field_cardDiveCount => '潜水次数（来自名片）';
+
+  @override
+  String get settings_conflict_field_cardDivingSince => '开始潜水年份（来自名片）';
+
+  @override
+  String get settings_conflict_field_cardId => '潜伴名片';
+
+  @override
+  String get settings_conflict_field_cardLastDive => '最近一次潜水（来自名片）';
+
+  @override
+  String get settings_conflict_field_cardReceivedAt => '名片接收时间';
+
+  @override
+  String get settings_conflict_field_socialHandle => '社交账号';
+
+  @override
   String get settings_conflict_field_priorDiveTimeSeconds => '本日志之前的潜水时间';
 
   @override
@@ -23452,6 +23837,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_conflict_field_verifyFactsHlc => '验证记录';
+
+  @override
+  String get settings_conflict_field_videoPositionMs => '视频中的时间（毫秒）';
 
   @override
   String get settings_conflict_field_vesselName => '船只';
@@ -29683,6 +30071,34 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String trips_delete_sideTripsStandalone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '其 $count 个附属行程将成为独立行程。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_delete_divesReturnToParent(String name) {
+    return '其潜水将归回 $name。';
+  }
+
+  @override
+  String trips_bulkDelete_sideTripsStandalone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个附属行程将成为独立行程。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_bulkDelete_divesReturnToParents => '已删除附属行程中的潜水将归回其所属的大行程。';
+
+  @override
   String get trips_detail_dialog_deleteTitle => '删除旅行？';
 
   @override
@@ -29891,6 +30307,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_edit_hint_tripName => '例如：红海探险 2024';
 
   @override
+  String get trips_edit_field_partOf => '所属行程';
+
+  @override
+  String get trips_edit_partOf_none => '无（独立行程）';
+
+  @override
+  String get trips_edit_partOf_helper => '将此行程设为更大行程中的附属行程';
+
+  @override
   String get trips_edit_label_endDate => '结束日期';
 
   @override
@@ -30062,6 +30487,31 @@ class AppLocalizationsZh extends AppLocalizations {
       other: '$count 次潜水',
     );
     return '$_temp0';
+  }
+
+  @override
+  String trips_list_sideTripCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个附属行程',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_partOf(String name) {
+    return '属于 $name';
+  }
+
+  @override
+  String trips_fromSelection_name(String location, String monthYear) {
+    return '$location，$monthYear';
+  }
+
+  @override
+  String trips_fromSelection_nameNoLocation(String monthYear) {
+    return '行程，$monthYear';
   }
 
   @override
@@ -34025,12 +34475,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String settings_shareAllSites_confirm(int count) {
-    return '选择谁可以看到你的全部 $count 个潜点。之后要更改某个潜点，打开它并点按“共享给”。';
+    return '选择谁可以看到你的全部 $count 个潜点。之后要更改某个潜点，编辑它并点按“共享给”。';
   }
 
   @override
   String settings_shareAllTrips_confirm(int count) {
-    return '选择谁可以看到你的全部 $count 个行程。之后要更改某个行程，打开它并点按“共享给”。';
+    return '选择谁可以看到你的全部 $count 个行程。之后要更改某个行程，编辑它并点按“共享给”。';
   }
 
   @override
@@ -47492,6 +47942,91 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_species_chipsLabel => '物种标签';
 
   @override
+  String get media_people_me => '我';
+
+  @override
+  String get media_people_chipsLabel => '人物标签';
+
+  @override
+  String media_people_momentChip(String name, String time) {
+    return '$name · $time';
+  }
+
+  @override
+  String get media_people_actionTooltip => '标记人物';
+
+  @override
+  String get media_people_tagModeHint => '点按人物以进行标记';
+
+  @override
+  String get media_people_noSpotHint => '此处无法标记位置';
+
+  @override
+  String get media_people_withoutSpot => '无位置标记';
+
+  @override
+  String get media_people_done => '完成';
+
+  @override
+  String get media_people_pickerTitle => '这是谁？';
+
+  @override
+  String get media_people_searchHint => '搜索潜伴';
+
+  @override
+  String get media_people_onThisDive => '本次潜水';
+
+  @override
+  String get media_people_everyoneElse => '其他人';
+
+  @override
+  String get media_people_newBuddy => '新潜伴';
+
+  @override
+  String get media_people_newBuddyName => '姓名';
+
+  @override
+  String get media_people_newBuddyAdd => '添加';
+
+  @override
+  String get media_people_changePerson => '更换人物';
+
+  @override
+  String get media_people_removeTag => '移除标记';
+
+  @override
+  String get media_people_resizeHint => '拖动四角进行调整';
+
+  @override
+  String media_people_addToDiveOffer(String name) {
+    return '将$name添加为本次潜水的潜伴？';
+  }
+
+  @override
+  String get media_people_addToDiveAction => '添加';
+
+  @override
+  String get media_people_buddyPhotosTitle => '照片和视频';
+
+  @override
+  String get media_people_buddyThumbnailLabel => '与此潜伴的照片或视频';
+
+  @override
+  String get media_people_filterSection => '人物';
+
+  @override
+  String get media_people_removedBuddy => '已删除的潜伴';
+
+  @override
+  String get media_people_saveFailed => '无法保存标记，请重试。';
+
+  @override
+  String get media_people_addToDiveFailed => '无法将潜伴添加到本次潜水，请重试。';
+
+  @override
+  String get media_people_createBuddyFailed => '无法创建潜伴，请重试。';
+
+  @override
   String get media_info_fileSection => '文件';
 
   @override
@@ -48791,6 +49326,17 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String backup_history_cloudOnlySubtitle(String size) {
     return '在云存储中 ($size)';
+  }
+
+  @override
+  String get backup_history_device_anotherDevice => '其他设备';
+
+  @override
+  String get backup_history_device_thisDevice => '此设备';
+
+  @override
+  String backup_history_subtitleWithDevice(String summary, String device) {
+    return '$summary · $device';
   }
 
   @override
@@ -50548,6 +51094,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get query_trips_dives => '潜水';
+
+  @override
+  String get query_trips_partOf => '所属行程';
 
   @override
   String get query_trips_endDate => '结束日期';

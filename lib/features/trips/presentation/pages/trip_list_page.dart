@@ -31,6 +31,7 @@ import 'package:submersion/features/trips/presentation/pages/trip_detail_page.da
 import 'package:submersion/features/trips/presentation/pages/trip_edit_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_list_count_provider.dart';
+import 'package:submersion/features/settings/presentation/providers/list_arrangement_writes.dart';
 
 class TripListPage extends ConsumerStatefulWidget {
   const TripListPage({super.key, this.returnTo});
@@ -137,10 +138,11 @@ class _TripListPageState extends ConsumerState<TripListPage>
                       field.localizedName(context.l10n),
                   getFieldIcon: (field) => field.icon,
                   onSortChanged: (field, direction) {
-                    ref.read(tripSortProvider.notifier).state = SortState(
-                      field: field,
-                      direction: direction,
-                    );
+                    ref
+                        .read(settingsProvider.notifier)
+                        .setTripSort(
+                          SortState(field: field, direction: direction),
+                        );
                   },
                 );
               },
@@ -165,7 +167,7 @@ class _TripListPageState extends ConsumerState<TripListPage>
                   final mode = ListViewMode.fromName(
                     value.replaceFirst('view_', ''),
                   );
-                  ref.read(tripListViewModeProvider.notifier).state = mode;
+                  ref.read(settingsProvider.notifier).setTripListViewMode(mode);
                 }
               },
               itemBuilder: (context) {

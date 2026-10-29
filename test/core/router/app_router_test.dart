@@ -229,6 +229,40 @@ void main() {
     });
   });
 
+  group('buddy card preview (#3728)', () {
+    testWidgets('without its card the preview goes to the buddy list', (
+      tester,
+    ) async {
+      late BuildContext capturedContext;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (context) {
+              capturedContext = context;
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+      );
+      final route = _findRouteByName(
+        router.configuration.routes,
+        'buddyCardPreview',
+      )!;
+      final redirect = route.redirect!(
+        capturedContext,
+        GoRouterState(
+          router.configuration,
+          uri: Uri.parse('/buddies/card'),
+          matchedLocation: '/buddies/card',
+          fullPath: '/buddies/card',
+          pathParameters: const {},
+          pageKey: const ValueKey('/buddies/card'),
+        ),
+      );
+      expect(await redirect, '/buddies');
+    });
+  });
+
   group('site duplicate (#3575)', () {
     test('openDuplicateSite pushes the newSite route', () {
       // openDuplicateSite writes the path by hand; it must stay this route's.

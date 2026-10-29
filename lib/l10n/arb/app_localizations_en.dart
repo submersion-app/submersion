@@ -2519,6 +2519,15 @@ class AppLocalizationsEn extends AppLocalizations {
       'Send via AirDrop, email, or other apps';
 
   @override
+  String get backup_copySheet_deviceLocked =>
+      'This safety copy was taken from your protected database. It can only be restored on this device.';
+
+  @override
+  String backup_copySheet_title(String dateTime) {
+    return 'Backup from $dateTime';
+  }
+
+  @override
   String get backup_frequency_daily => 'Daily';
 
   @override
@@ -2532,6 +2541,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get backup_history_action_restore => 'Restore';
+
+  @override
+  String get backup_history_action_saveCopy => 'Save a copy';
+
+  @override
+  String get backup_history_action_share => 'Share';
 
   @override
   String get backup_history_empty => 'No backups yet';
@@ -2786,6 +2801,309 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get buddies_action_addTooltip => 'Add a new dive buddy';
+
+  @override
+  String get buddyCard_preview_title => 'Buddy card';
+
+  @override
+  String buddyCard_preview_addTitle(String name) {
+    return 'Add $name as a buddy';
+  }
+
+  @override
+  String buddyCard_preview_updateTitle(String name) {
+    return 'Update $name';
+  }
+
+  @override
+  String buddyCard_preview_possibleTitle(String name) {
+    return 'Is this $name from your buddies?';
+  }
+
+  @override
+  String get buddyCard_preview_trimmed =>
+      'Some details were left out to fit the code.';
+
+  @override
+  String get buddyCard_preview_newer =>
+      'This card is from a newer version of Submersion. Some details may be missing.';
+
+  @override
+  String get buddyCard_preview_noChanges => 'Nothing on this card is new.';
+
+  @override
+  String get buddyCard_preview_ownCard =>
+      'This is your own card. Swap with a buddy to get theirs.';
+
+  @override
+  String buddyCard_preview_changed(String from, String to) {
+    return '$to (was $from)';
+  }
+
+  @override
+  String get buddyCard_action_add => 'Add buddy';
+
+  @override
+  String get buddyCard_action_update => 'Update buddy';
+
+  @override
+  String get buddyCard_action_addAsNew => 'Add as new buddy';
+
+  @override
+  String get buddyCard_action_discard => 'Discard';
+
+  @override
+  String get buddyCard_field_name => 'Name';
+
+  @override
+  String get buddyCard_field_phone => 'Phone';
+
+  @override
+  String get buddyCard_field_email => 'Email';
+
+  @override
+  String get buddyCard_field_social => 'Social handle';
+
+  @override
+  String get buddyCard_field_dives => 'Dives';
+
+  @override
+  String get buddyCard_field_divingSince => 'Diving since';
+
+  @override
+  String get buddyCard_field_lastDive => 'Last dive';
+
+  @override
+  String get buddyCard_field_certifications => 'Certifications';
+
+  @override
+  String buddyCard_saved_added(String name) {
+    return '$name added to your buddies';
+  }
+
+  @override
+  String buddyCard_saved_updated(String name) {
+    return '$name updated';
+  }
+
+  @override
+  String get buddyCard_saved_view => 'View';
+
+  @override
+  String get buddyCard_error_notACard => 'That is not a Submersion buddy card.';
+
+  @override
+  String get buddyCard_error_unreadable => 'This buddy card could not be read.';
+
+  @override
+  String get buddySwap_title => 'Swap with a buddy';
+
+  @override
+  String get buddySwap_nearby_heading => 'Divers nearby with Submersion open';
+
+  @override
+  String get buddySwap_nearby_tapToSwap => 'Tap to swap';
+
+  @override
+  String get buddySwap_nearby_looking => 'Looking for more…';
+
+  @override
+  String get buddySwap_nearby_failed =>
+      'Could not look for nearby divers. The other ways to swap below still work.';
+
+  @override
+  String get buddySwap_nearby_hint =>
+      'Don\'t see your buddy? Both of you need this screen open and Submersion 1.8.4 or later.';
+
+  @override
+  String buddySwap_sharing(String summary) {
+    return 'Sharing: $summary';
+  }
+
+  @override
+  String get buddySwap_sharing_change => 'Change';
+
+  @override
+  String buddySwap_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dives',
+      one: '1 dive',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddySwap_action_showCode => 'Show my code';
+
+  @override
+  String get buddySwap_action_scanCode => 'Scan code';
+
+  @override
+  String get buddySwap_action_sendFile => 'Send file';
+
+  @override
+  String get buddySwap_action_openFile => 'Open card file';
+
+  @override
+  String get buddySwap_action_writeSticker => 'Write NFC sticker';
+
+  @override
+  String get buddySwap_action_tapAndroid => 'Tap an Android phone';
+
+  @override
+  String get buddySwap_action_receiveByTap => 'Receive by tap';
+
+  @override
+  String get buddySwap_tap_prompt =>
+      'Hold your phone near the other phone or the sticker';
+
+  @override
+  String get buddySwap_sticker_prompt =>
+      'Hold your phone near a blank NFC sticker';
+
+  @override
+  String get buddySwap_sticker_written =>
+      'Sticker written. Rewrite it when your details change.';
+
+  @override
+  String get buddySwap_sticker_tooSmall =>
+      'That sticker is too small for your card.';
+
+  @override
+  String get buddySwap_sticker_notWritable => 'That sticker cannot be written.';
+
+  @override
+  String get buddySwap_nfc_unavailable =>
+      'NFC is not available on this device.';
+
+  @override
+  String get buddySwap_qr_title => 'Your buddy card';
+
+  @override
+  String get buddySwap_qr_hint =>
+      'Ask your buddy to scan this with Submersion or their camera.';
+
+  @override
+  String buddySwap_request_title(String name) {
+    return '$name wants to swap cards';
+  }
+
+  @override
+  String buddySwap_request_youSend(String summary) {
+    return 'You\'ll send: $summary';
+  }
+
+  @override
+  String get buddySwap_request_swap => 'Swap';
+
+  @override
+  String get buddySwap_request_decline => 'Decline';
+
+  @override
+  String buddySwap_waiting(String name) {
+    return 'Waiting for $name to answer';
+  }
+
+  @override
+  String buddySwap_failed_declined(String name) {
+    return '$name declined the swap';
+  }
+
+  @override
+  String buddySwap_failed_timedOut(String name) {
+    return '$name didn\'t answer';
+  }
+
+  @override
+  String buddySwap_failed_lost(String name) {
+    return 'Lost the connection to $name';
+  }
+
+  @override
+  String buddySwap_failed_newerApp(String name) {
+    return '$name needs a newer version of Submersion';
+  }
+
+  @override
+  String get buddySwap_cardFailed => 'Your buddy card could not be built.';
+
+  @override
+  String get buddySwap_qr_tooLarge =>
+      'Your card is too long for a code. Try Send file instead.';
+
+  @override
+  String get buddySwap_sendFailed => 'The card file could not be shared.';
+
+  @override
+  String get buddyCard_saveFailed => 'The buddy could not be saved.';
+
+  @override
+  String get buddyCard_field_photo => 'Photo';
+
+  @override
+  String get buddyCard_change_newPhoto => 'New photo';
+
+  @override
+  String get buddyShare_title => 'What you share';
+
+  @override
+  String get buddyShare_name => 'Name';
+
+  @override
+  String get buddyShare_alwaysShared => 'Always shared';
+
+  @override
+  String get buddyShare_neverShared =>
+      'Medical, insurance and emergency details are never shared.';
+
+  @override
+  String get buddyShare_photo => 'Photo';
+
+  @override
+  String get buddyShare_phone => 'Phone';
+
+  @override
+  String get buddyShare_email => 'Email';
+
+  @override
+  String get buddyShare_certifications => 'Certifications';
+
+  @override
+  String get buddyShare_cardDetails => 'Card numbers and dates';
+
+  @override
+  String get buddyShare_diveCount => 'Dive count';
+
+  @override
+  String get buddyShare_divingSince => 'Diving since';
+
+  @override
+  String get buddyShare_lastDive => 'Last dive date';
+
+  @override
+  String get buddyShare_social => 'Social handle';
+
+  @override
+  String buddyCard_detail_heading(String name) {
+    return 'From $name\'s card';
+  }
+
+  @override
+  String buddyCard_detail_since(String year) {
+    return 'Diving since $year';
+  }
+
+  @override
+  String buddyCard_detail_last(String date) {
+    return 'Last dive $date';
+  }
+
+  @override
+  String buddyCard_detail_received(String date) {
+    return 'Received $date';
+  }
 
   @override
   String get buddies_action_clearSearch => 'Clear search';
@@ -9826,6 +10144,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_selection_tooltip_edit => 'Edit Selected';
 
   @override
+  String get diveLog_selection_tooltip_newTrip => 'New Trip from Selection';
+
+  @override
   String get diveLog_selection_tooltip_export => 'Export Selected';
 
   @override
@@ -10015,19 +10336,24 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get diveLog_cylinders_columnTank => 'Tank';
+  String diveLog_cylinders_figureStart(String pressure) {
+    return 'Start $pressure';
+  }
 
   @override
-  String get diveLog_cylinders_columnGas => 'Gas';
+  String diveLog_cylinders_figureEnd(String pressure) {
+    return 'End $pressure';
+  }
 
   @override
-  String get diveLog_cylinders_columnStart => 'Start';
+  String diveLog_cylinders_figureUsed(String pressure) {
+    return 'Used $pressure';
+  }
 
   @override
-  String get diveLog_cylinders_columnEnd => 'End';
-
-  @override
-  String get diveLog_cylinders_columnUsed => 'Used';
+  String diveLog_cylinders_gasSemantics(String mix) {
+    return 'Gas $mix';
+  }
 
   @override
   String diveLog_cylinders_gasUsed(String amount) {
@@ -19817,6 +20143,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String plannerCanvas_issue_noUsableGas(String minGas, String fill) {
+    return 'Rock-bottom minimum of $minGas leaves no usable gas in a $fill fill';
+  }
+
+  @override
   String plannerCanvas_issue_diluentModExceeded(String depth, String value) {
     return 'Diluent exceeds its Dil MOD at $depth (ppO₂ $value bar)';
   }
@@ -22585,6 +22916,59 @@ class AppLocalizationsEn extends AppLocalizations {
       'Skip unused bailout gases';
 
   @override
+  String get settings_conflict_field_diveListSort => 'Dive list sort';
+
+  @override
+  String get settings_conflict_field_divePlanListSort => 'Saved plans sort';
+
+  @override
+  String get settings_conflict_field_tripListSort => 'Trip list sort';
+
+  @override
+  String get settings_conflict_field_courseListSort => 'Course list sort';
+
+  @override
+  String get settings_conflict_field_buddyListSort => 'Buddy list sort';
+
+  @override
+  String get settings_conflict_field_diveCenterListSort =>
+      'Dive center list sort';
+
+  @override
+  String get settings_conflict_field_siteListSort => 'Dive site list sort';
+
+  @override
+  String get settings_conflict_field_certificationListSort =>
+      'Certification list sort';
+
+  @override
+  String get settings_conflict_field_equipmentListSort => 'Equipment list sort';
+
+  @override
+  String get settings_conflict_field_siteListGroupBy =>
+      'Dive site list grouping';
+
+  @override
+  String get settings_conflict_field_certificationListGroupBy =>
+      'Certification list grouping';
+
+  @override
+  String get settings_conflict_field_equipmentArrangement => 'Gear arrangement';
+
+  @override
+  String get settings_conflict_field_equipmentGroupByLocation =>
+      'Equipment grouped by location';
+
+  @override
+  String get settings_conflict_field_listArrangementHlc =>
+      'List arrangement record';
+
+  @override
+  String settings_conflict_sortValue(String field, String direction) {
+    return '$field, $direction';
+  }
+
+  @override
   String get settings_conflict_field_avgSpeed => 'Average speed';
 
   @override
@@ -23787,6 +24171,29 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_conflict_field_priorDiveCount => 'Dives before this log';
 
   @override
+  String get settings_conflict_field_buddyCardShare => 'Buddy card sharing';
+
+  @override
+  String get settings_conflict_field_cardDiveCount => 'Dives (from their card)';
+
+  @override
+  String get settings_conflict_field_cardDivingSince =>
+      'Diving since (from their card)';
+
+  @override
+  String get settings_conflict_field_cardId => 'Buddy card';
+
+  @override
+  String get settings_conflict_field_cardLastDive =>
+      'Last dive (from their card)';
+
+  @override
+  String get settings_conflict_field_cardReceivedAt => 'Card received';
+
+  @override
+  String get settings_conflict_field_socialHandle => 'Social handle';
+
+  @override
   String get settings_conflict_field_priorDiveTimeSeconds =>
       'Dive time before this log';
 
@@ -24427,6 +24834,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_conflict_field_verifyFactsHlc => 'Verification record';
+
+  @override
+  String get settings_conflict_field_videoPositionMs => 'Time in video (ms)';
 
   @override
   String get settings_conflict_field_vesselName => 'Vessel';
@@ -30957,6 +31367,37 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String trips_delete_sideTripsStandalone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Its $count side trips become trips of their own.',
+      one: 'Its side trip becomes a trip of its own.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_delete_divesReturnToParent(String name) {
+    return 'Its dives go back to $name.';
+  }
+
+  @override
+  String trips_bulkDelete_sideTripsStandalone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count side trips become trips of their own.',
+      one: '$count side trip becomes a trip of its own.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_bulkDelete_divesReturnToParents =>
+      'Dives on deleted side trips go back to their larger trips.';
+
+  @override
   String get trips_detail_dialog_deleteTitle => 'Delete Trip?';
 
   @override
@@ -31182,6 +31623,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trips_edit_hint_tripName => 'e.g., Red Sea Safari 2024';
 
   @override
+  String get trips_edit_field_partOf => 'Part of';
+
+  @override
+  String get trips_edit_partOf_none => 'None (a trip of its own)';
+
+  @override
+  String get trips_edit_partOf_helper =>
+      'Makes this a side trip within a larger trip';
+
+  @override
   String get trips_edit_label_endDate => 'End Date';
 
   @override
@@ -31362,6 +31813,32 @@ class AppLocalizationsEn extends AppLocalizations {
       one: '1 dive',
     );
     return '$_temp0';
+  }
+
+  @override
+  String trips_list_sideTripCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count side trips',
+      one: '$count side trip',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_partOf(String name) {
+    return 'Part of $name';
+  }
+
+  @override
+  String trips_fromSelection_name(String location, String monthYear) {
+    return '$location, $monthYear';
+  }
+
+  @override
+  String trips_fromSelection_nameNoLocation(String monthYear) {
+    return 'Trip, $monthYear';
   }
 
   @override
@@ -35532,12 +36009,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String settings_shareAllSites_confirm(int count) {
-    return 'Choose who sees all $count of your sites. To change one site later, open it and tap Shared with.';
+    return 'Choose who sees all $count of your sites. To change one site later, edit it and tap Shared with.';
   }
 
   @override
   String settings_shareAllTrips_confirm(int count) {
-    return 'Choose who sees all $count of your trips. To change one trip later, open it and tap Shared with.';
+    return 'Choose who sees all $count of your trips. To change one trip later, edit it and tap Shared with.';
   }
 
   @override
@@ -49852,6 +50329,94 @@ class AppLocalizationsEn extends AppLocalizations {
   String get media_species_chipsLabel => 'Species tags';
 
   @override
+  String get media_people_me => 'Me';
+
+  @override
+  String get media_people_chipsLabel => 'People tags';
+
+  @override
+  String media_people_momentChip(String name, String time) {
+    return '$name · $time';
+  }
+
+  @override
+  String get media_people_actionTooltip => 'Tag people';
+
+  @override
+  String get media_people_tagModeHint => 'Tap a person to tag them';
+
+  @override
+  String get media_people_noSpotHint => 'Spots can\'t be marked on this one';
+
+  @override
+  String get media_people_withoutSpot => 'Tag without a spot';
+
+  @override
+  String get media_people_done => 'Done';
+
+  @override
+  String get media_people_pickerTitle => 'Who is this?';
+
+  @override
+  String get media_people_searchHint => 'Search buddies';
+
+  @override
+  String get media_people_onThisDive => 'On this dive';
+
+  @override
+  String get media_people_everyoneElse => 'Everyone else';
+
+  @override
+  String get media_people_newBuddy => 'New buddy';
+
+  @override
+  String get media_people_newBuddyName => 'Name';
+
+  @override
+  String get media_people_newBuddyAdd => 'Add';
+
+  @override
+  String get media_people_changePerson => 'Change person';
+
+  @override
+  String get media_people_removeTag => 'Remove tag';
+
+  @override
+  String get media_people_resizeHint => 'Drag the corners to fit';
+
+  @override
+  String media_people_addToDiveOffer(String name) {
+    return 'Add $name to this dive\'s buddies?';
+  }
+
+  @override
+  String get media_people_addToDiveAction => 'Add';
+
+  @override
+  String get media_people_buddyPhotosTitle => 'Photos and videos';
+
+  @override
+  String get media_people_buddyThumbnailLabel =>
+      'Photo or video with this buddy';
+
+  @override
+  String get media_people_filterSection => 'People';
+
+  @override
+  String get media_people_removedBuddy => 'Removed buddy';
+
+  @override
+  String get media_people_saveFailed => 'Couldn\'t save the tag. Try again.';
+
+  @override
+  String get media_people_addToDiveFailed =>
+      'Couldn\'t add the buddy to this dive. Try again.';
+
+  @override
+  String get media_people_createBuddyFailed =>
+      'Couldn\'t create the buddy. Try again.';
+
+  @override
   String get media_info_fileSection => 'File';
 
   @override
@@ -51216,6 +51781,17 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String backup_history_cloudOnlySubtitle(String size) {
     return 'In cloud storage ($size)';
+  }
+
+  @override
+  String get backup_history_device_anotherDevice => 'Another device';
+
+  @override
+  String get backup_history_device_thisDevice => 'This device';
+
+  @override
+  String backup_history_subtitleWithDevice(String summary, String device) {
+    return '$summary · $device';
   }
 
   @override
@@ -53025,6 +53601,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get query_trips_dives => 'Dives';
+
+  @override
+  String get query_trips_partOf => 'Part of';
 
   @override
   String get query_trips_endDate => 'End date';

@@ -36,6 +36,7 @@
 		DEAD1234BEEF56780022AABC /* PhotoMetadataHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEAD1234BEEF56780022AABB /* PhotoMetadataHandler.swift */; };
 		BB05C0DEBB05C0DE00000012 /* BackupBookmarkHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB05C0DEBB05C0DE00000011 /* BackupBookmarkHandler.swift */; };
 		5E5C0DE05E5C0DE000000012 /* SystemProxyHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E5C0DE05E5C0DE000000011 /* SystemProxyHandler.swift */; };
+		2707EC0E30990F92C001370D /* MultipeerHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EC87276CBF32E1064229A5E /* MultipeerHandler.swift */; };
 		3531C0DE3531C0DE00000012 /* RendererDartProject.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3531C0DE3531C0DE00000011 /* RendererDartProject.swift */; };
 		F00D1234ABCDEF0011223345 /* ICloudContainerHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00D1234ABCDEF0011223344 /* ICloudContainerHandler.swift */; };
 /* End PBXBuildFile section */
@@ -104,6 +105,7 @@
 		DEAD1234BEEF56780022AABB /* PhotoMetadataHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoMetadataHandler.swift; sourceTree = "<group>"; };
 		BB05C0DEBB05C0DE00000011 /* BackupBookmarkHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupBookmarkHandler.swift; sourceTree = "<group>"; };
 		5E5C0DE05E5C0DE000000011 /* SystemProxyHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemProxyHandler.swift; sourceTree = "<group>"; };
+		7EC87276CBF32E1064229A5E /* MultipeerHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultipeerHandler.swift; sourceTree = "<group>"; };
 		3531C0DE3531C0DE00000011 /* RendererDartProject.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RendererDartProject.swift; sourceTree = "<group>"; };
 		F00D1234ABCDEF0011223344 /* ICloudContainerHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ICloudContainerHandler.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -215,6 +217,7 @@
 				DEAD1234BEEF56780022AABB /* PhotoMetadataHandler.swift */,
 				BB05C0DEBB05C0DE00000011 /* BackupBookmarkHandler.swift */,
 				5E5C0DE05E5C0DE000000011 /* SystemProxyHandler.swift */,
+				7EC87276CBF32E1064229A5E /* MultipeerHandler.swift */,
 				3531C0DE3531C0DE00000011 /* RendererDartProject.swift */,
 				A1B2C3D4E5F6A7B80011AABB /* PrivacyInfo.xcprivacy */,
 				33E51913231747F40026EE4D /* DebugProfile.entitlements */,
@@ -510,6 +513,7 @@
 				E9F0A1B42F0D4567001F5061 /* LocalMediaHandler.swift in Sources */,
 				BB05C0DEBB05C0DE00000012 /* BackupBookmarkHandler.swift in Sources */,
 				5E5C0DE05E5C0DE000000012 /* SystemProxyHandler.swift in Sources */,
+				2707EC0E30990F92C001370D /* MultipeerHandler.swift in Sources */,
 				3531C0DE3531C0DE00000012 /* RendererDartProject.swift in Sources */,
 				335BBD1B22A9A15E00E9071D /* GeneratedPluginRegistrant.swift in Sources */,
 			);

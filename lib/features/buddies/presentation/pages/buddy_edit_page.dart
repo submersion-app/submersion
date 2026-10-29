@@ -15,6 +15,7 @@ import 'package:submersion/features/certifications/presentation/pages/certificat
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/features/buddies/domain/services/buddy_card_merge.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_profile_link_providers.dart';
 import 'package:submersion/features/buddies/presentation/widgets/linked_profile_field.dart';
@@ -77,6 +78,7 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
+  final _socialController = TextEditingController();
   final _notesController = TextEditingController();
 
   List<Certification> _certifications = [];
@@ -89,6 +91,13 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
   bool _isLoading = false;
   bool _isSaving = false;
   bool _hasChanges = false;
+
+  /// In merge mode, the merged buddy whose card figures survive.
+  Buddy? _cardSource;
+
+  /// Where the saved buddy's card figures come from: the merge's card
+  /// source, or the buddy being edited.
+  Buddy? get _cardBuddy => widget.isMerging ? _cardSource : _originalBuddy;
   Buddy? _originalBuddy;
   Uint8List? _photo;
 
@@ -113,6 +122,11 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
     if (widget.isMerging) {
       _mergeCtrl = BuddyMergeFormController();
       _originalBuddy = widget.mergeBuddies!.first;
+      // The merge controller fills the other fields; the social handle and
+      // the buddy card figures (issue #3728) come from whichever buddy has
+      // them, not only the first.
+      _socialController.text = mergedSocialHandle(widget.mergeBuddies!) ?? '';
+      _cardSource = mergedBuddyCardSource(widget.mergeBuddies!);
       _mergeCtrl!.initialize(
         buddies: widget.mergeBuddies!,
         nameController: _nameController,
@@ -135,6 +149,7 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
     _emailController.addListener(_onFieldChanged);
     _phoneController.addListener(_onFieldChanged);
     _notesController.addListener(_onFieldChanged);
+    _socialController.addListener(_onFieldChanged);
   }
 
   Future<void> _pickPhoto() async {
@@ -174,6 +189,7 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
         _nameController.text = buddy.name;
         _emailController.text = buddy.email ?? '';
         _phoneController.text = buddy.phone ?? '';
+        _socialController.text = buddy.socialHandle ?? '';
         _notesController.text = buddy.notes;
         setState(() {
           _certifications = certs;
@@ -257,6 +273,7 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
     _nameController.dispose();
     _emailController.dispose();
     _phoneController.dispose();
+    _socialController.dispose();
     _notesController.dispose();
     super.dispose();
   }
@@ -443,6 +460,14 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
                 ),
               ),
               keyboardType: TextInputType.phone,
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _socialController,
+              decoration: InputDecoration(
+                labelText: context.l10n.buddyShare_social,
+                prefixIcon: const Icon(Icons.alternate_email),
+              ),
             ),
             const SizedBox(height: 24),
 
@@ -801,6 +826,16 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
         isFavorite: _originalBuddy?.isFavorite ?? false,
         createdAt: _originalBuddy?.createdAt ?? now,
         updatedAt: now,
+        // The buddy card figures (issue #3728) have no form field: only a
+        // card writes them, so an edit carries them over as they were.
+        cardId: _cardBuddy?.cardId,
+        socialHandle: _socialController.text.trim().isEmpty
+            ? null
+            : _socialController.text.trim(),
+        cardDiveCount: _cardBuddy?.cardDiveCount,
+        cardDivingSince: _cardBuddy?.cardDivingSince,
+        cardLastDive: _cardBuddy?.cardLastDive,
+        cardReceivedAt: _cardBuddy?.cardReceivedAt,
       );
 
       if (widget.isMerging) {

@@ -75,6 +75,12 @@ class MediaItemView extends ConsumerStatefulWidget {
   /// viewer sets it; a grid tile has no room for buttons.
   final bool showAccessActions;
 
+  /// Called once with the decoded image's pixel size, for a caller that
+  /// lays something over the image by its aspect (the viewer's face boxes,
+  /// issue #1745). The size is the decode-bounded one, so only its aspect
+  /// is the original's.
+  final ValueChanged<Size>? onImageSize;
+
   const MediaItemView({
     super.key,
     required this.item,
@@ -82,6 +88,7 @@ class MediaItemView extends ConsumerStatefulWidget {
     this.targetSize,
     this.thumbnail = false,
     this.showAccessActions = false,
+    this.onImageSize,
   });
 
   @override
@@ -133,10 +140,58 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
   /// lands; that picture must not be analysed as the new item's colours.
   String? _resolvedFor;
 
+  /// The image stream [MediaItemView.onImageSize] listens to, and its
+  /// listener, held so the listener is removed when the image changes or
+  /// the view goes away.
+  ImageStream? _sizeStream;
+  ImageStreamListener? _sizeListener;
+  String? _sizeReportedFor;
+
   @override
   void initState() {
     super.initState();
     _future = _resolve();
+  }
+
+  @override
+  void dispose() {
+    _stopSizeWatch();
+    super.dispose();
+  }
+
+  void _stopSizeWatch() {
+    final listener = _sizeListener;
+    if (listener != null) _sizeStream?.removeListener(listener);
+    _sizeStream = null;
+    _sizeListener = null;
+  }
+
+  /// Reports [provider]'s decoded size to [MediaItemView.onImageSize], once
+  /// per item.
+  void _watchSize(ImageProvider provider) {
+    final report = widget.onImageSize;
+    if (report == null || _sizeReportedFor == widget.item.id) return;
+    final stream = provider.resolve(ImageConfiguration.empty);
+    if (stream.key == _sizeStream?.key) return;
+    _stopSizeWatch();
+    final itemId = widget.item.id;
+    final listener = ImageStreamListener((info, _) {
+      if (!mounted || _sizeReportedFor == itemId) return;
+      _sizeReportedFor = itemId;
+      final size = Size(
+        info.image.width.toDouble(),
+        info.image.height.toDouble(),
+      );
+      // A cached image answers synchronously, inside this build; the caller
+      // may setState with the size, so it hears after the frame.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) report(size);
+      });
+      _stopSizeWatch();
+    }, onError: (_, _) => _stopSizeWatch());
+    _sizeStream = stream;
+    _sizeListener = listener;
+    stream.addListener(listener);
   }
 
   @override
@@ -389,6 +444,7 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
   /// then, and only once the frame has decoded: a tile flung past before it
   /// draws asks for nothing.
   Widget _correctedImage(ImageProvider provider, {required bool resolved}) {
+    _watchSize(provider);
     final ownPixels = !resolved || _resolvedFor == widget.item.id;
     return Image(
       image: provider,
