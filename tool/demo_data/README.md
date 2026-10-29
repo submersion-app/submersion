@@ -142,5 +142,12 @@ gh release upload demo-data <out_dir>/submersion-demo-s<schema>.zip \
 ```
 
 The release must never be marked latest: the in-app updater and the beta
-appcast read `releases/latest`. Upload the current `demo-manifest.json` from
-the release first if it already exists, so the merge keeps its older entries.
+appcast read `releases/latest`. `pack.sh` downloads the release's current
+`demo-manifest.json` into `<out_dir>` before building when none is there, so
+the merge keeps its older entries; upload the zip before the manifest, so the
+manifest never names a file that is not there yet.
+
+The app keeps the logbook's seasons true only while the package is younger
+than six weeks (it moves dates by whole years while that keeps the newest
+dive recent). `.github/workflows/demo-package-age.yml` opens an issue each
+week the published package is older, and closes it once a rebuild is out.
