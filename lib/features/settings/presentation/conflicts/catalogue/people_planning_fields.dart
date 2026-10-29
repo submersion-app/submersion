@@ -58,13 +58,37 @@ final Map<String, ConflictField> peoplePlanningFields = {
     (l) => l.settings_conflict_field_bloodType,
     FieldKind.shortText,
   ),
+  'buddyCardShare': ConflictField(
+    (l) => l.settings_conflict_field_buddyCardShare,
+    FieldKind.opaque,
+  ),
   'builtinKey': ConflictField(
     (l) => l.settings_conflict_field_builtinKey,
     FieldKind.shortText,
   ),
+  'cardDiveCount': ConflictField(
+    (l) => l.settings_conflict_field_cardDiveCount,
+    FieldKind.number,
+  ),
+  'cardDivingSince': ConflictField(
+    (l) => l.settings_conflict_field_cardDivingSince,
+    FieldKind.number,
+  ),
+  'cardId': ConflictField(
+    (l) => l.settings_conflict_field_cardId,
+    FieldKind.opaque,
+  ),
+  'cardLastDive': ConflictField(
+    (l) => l.settings_conflict_field_cardLastDive,
+    FieldKind.utcDate,
+  ),
   'cardNumber': ConflictField(
     (l) => CertificationField.cardNumber.localizedDisplayName(l),
     FieldKind.shortText,
+  ),
+  'cardReceivedAt': ConflictField(
+    (l) => l.settings_conflict_field_cardReceivedAt,
+    FieldKind.dateTime,
   ),
   // A custom agency's card colour (issue #690); an ARGB integer means
   // nothing to a diver, so the dialog only says it changed.
@@ -401,6 +425,10 @@ final Map<String, ConflictField> peoplePlanningFields = {
   'shoreWalkM': ConflictField(
     (l) => l.settings_conflict_field_shoreWalkM,
     FieldKind.distance,
+  ),
+  'socialHandle': ConflictField(
+    (l) => l.settings_conflict_field_socialHandle,
+    FieldKind.shortText,
   ),
   'sourceItemId': ConflictField(
     (l) => l.settings_conflict_field_sourceItemId,

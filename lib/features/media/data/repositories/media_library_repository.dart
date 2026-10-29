@@ -78,6 +78,93 @@ class MediaLibraryRepository {
       ? const Constant(true)
       : _db.media.diveId.isNull() | _db.dives.diverId.equals(diverId);
 
+  /// Any of the selected buddies, or the viewing diver's own Me tags
+  /// (issue #1745). EXISTS for the same reason as the tag facet: a photo
+  /// with two of them comes back once. Me is one diver even when the
+  /// library shows every profile ([_meDiverId]). When Me is off and none of
+  /// the selected buddies
+  /// still exists for this diver (an album outliving them, or naming
+  /// another profile's buddy), the facet is dropped rather than matching
+  /// nothing, as the tag facet does.
+  Expression<bool> _peopleFacet(String? diverId, MediaLibraryFilter filter) {
+    final m = _db.media;
+    final p = _db.mediaPeople;
+    final b = _db.buddies;
+    final buddyIds = filter.buddyIds;
+    final me = filter.includeMe
+        ? p.diverId.equalsExp(_meDiverId(diverId))
+        : const Constant<bool>(false);
+    // Only the viewing diver's own buddies count (spec decision 9): an
+    // album is shared by every profile, and another profile's buddy must
+    // neither match that profile's tags nor keep the facet alive.
+    Expression<bool> ownBuddy(Expression<bool> ids) => diverId == null
+        ? ids
+        : ids &
+              p.buddyId.isInQuery(
+                _db.selectOnly(b)
+                  ..addColumns([b.id])
+                  ..where(b.diverId.equals(diverId)),
+              );
+    final person = buddyIds.isEmpty
+        ? me
+        : (ownBuddy(p.buddyId.isIn(buddyIds)) | me);
+    final tagged = existsQuery(
+      _db.selectOnly(p)
+        ..addColumns([p.id])
+        ..where(p.mediaId.equalsExp(m.id) & person),
+    );
+    if (filter.includeMe) return tagged;
+    final anySelectedBuddyExists = existsQuery(
+      _db.selectOnly(b)
+        ..addColumns([b.id])
+        ..where(
+          b.id.isIn(buddyIds) &
+              (diverId == null
+                  ? const Constant(true)
+                  : b.diverId.equals(diverId)),
+        ),
+    );
+    return anySelectedBuddyExists.not() | tagged;
+  }
+
+  /// The diver "Me" names: [diverId] while it exists, else the default
+  /// diver, else the oldest, the same fallback
+  /// `validatedCurrentDiverIdProvider` gives the tagging side, so the
+  /// filter and the tags agree on who Me is.
+  Expression<String> _meDiverId(String? diverId) {
+    final d = _db.divers;
+    Expression<String> first(Expression<bool> where) =>
+        subqueryExpression<String>(
+          _db.selectOnly(d)
+            ..addColumns([d.id])
+            ..where(where)
+            ..orderBy([OrderingTerm.asc(d.createdAt)])
+            ..limit(1),
+        );
+    return coalesce([
+      if (diverId != null) first(d.id.equals(diverId)),
+      first(d.isDefault.equals(true)),
+      first(const Constant(true)),
+    ]);
+  }
+
+  /// The ids of [tripId]'s valid side trips, whose photos the trip shows too
+  /// (issue #3658). The rule of `side_trip_sql.dart`: the parent has no
+  /// parent of its own and is not the side trip itself.
+  BaseSelectStatement _sideTripIds(String tripId) {
+    final side = _db.alias(_db.trips, 'side');
+    final parent = _db.alias(_db.trips, 'parent');
+    return (_db.selectOnly(side).join([
+        innerJoin(parent, parent.id.equalsExp(side.parentTripId)),
+      ])
+      ..addColumns([side.id])
+      ..where(
+        side.parentTripId.equals(tripId) &
+            parent.parentTripId.isNull() &
+            side.id.equalsExp(parent.id).not(),
+      ));
+  }
+
   Expression<bool> _baseWhere(String? diverId, MediaLibraryFilter filter) {
     final m = _db.media;
     final d = _db.dives;
@@ -97,7 +184,9 @@ class MediaLibraryRepository {
     }
     final tripId = filter.tripId;
     if (tripId != null) {
-      where = where & d.tripId.equals(tripId);
+      where =
+          where &
+          (d.tripId.equals(tripId) | d.tripId.isInQuery(_sideTripIds(tripId)));
     }
     final speciesId = filter.speciesId;
     if (speciesId != null) {
@@ -136,6 +225,9 @@ class MediaLibraryRepository {
                   ..addColumns([mt.id])
                   ..where(mt.mediaId.equalsExp(m.id) & mt.tagId.isIn(tagIds)),
               ));
+    }
+    if (filter.hasPeople) {
+      where = where & _peopleFacet(diverId, filter);
     }
     // taken_at is stored as wall-clock-as-UTC millis, so a bound picked in
     // local time has to be normalised the same way before it can be
@@ -494,8 +586,8 @@ class MediaLibraryRepository {
 
   /// Emits whenever anything that can move a map point, or change which
   /// points are in scope, changes: the media row itself, a dive's entry fix,
-  /// a site's coordinates, or a species tag (the species filter is an EXISTS
-  /// over media_species). Built and debounced exactly like
+  /// a site's coordinates, or a species, tag or people tag (each filter is
+  /// an EXISTS over its link table). Built and debounced exactly like
   /// [watchMediaChanges]; see its notes on why a `tableUpdates` stream and
   /// not a watched query.
   Stream<void> watchMapChanges() => _db
@@ -506,6 +598,7 @@ class MediaLibraryRepository {
           _db.diveSites,
           _db.mediaSpecies,
           _db.mediaTags,
+          _db.mediaPeople,
         ]),
       )
       .debounce(MediaRepository.changeTickDebounce);
@@ -530,6 +623,21 @@ class MediaLibraryRepository {
   /// `remote_uploaded_at` row by row as it drains -- collapse into one reload
   /// instead of one per write.
   Stream<void> watchMediaChanges() => _db
-      .tableUpdates(TableUpdateQuery.onAllTables([_db.media, _db.mediaTags]))
+      .tableUpdates(
+        TableUpdateQuery.onAllTables([
+          _db.media,
+          _db.mediaTags,
+          _db.mediaPeople,
+        ]),
+      )
+      .debounce(MediaRepository.changeTickDebounce);
+
+  /// [watchMediaChanges] plus the trips table, for the library grid: its trip
+  /// filter takes in the trip's side trips, so linking or unlinking one
+  /// changes the page without a media row being written (issue #3658).
+  Stream<void> watchLibraryChanges() => _db
+      .tableUpdates(
+        TableUpdateQuery.onAllTables([_db.media, _db.mediaTags, _db.trips]),
+      )
       .debounce(MediaRepository.changeTickDebounce);
 }

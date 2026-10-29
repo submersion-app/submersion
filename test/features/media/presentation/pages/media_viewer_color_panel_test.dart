@@ -113,7 +113,15 @@ void main() {
   }
 
   Future<void> openPanel(WidgetTester tester) async {
-    await tester.tap(find.byKey(const ValueKey('viewer_adjust_color')));
+    // On a narrow phone the action sits in the overflow menu.
+    final inBar = find.byKey(const ValueKey('viewer_adjust_color'));
+    if (inBar.evaluate().isEmpty) {
+      await tester.tap(find.byKey(const ValueKey('viewer_overflow')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('viewer_menu_adjust_color')));
+    } else {
+      await tester.tap(inBar);
+    }
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
   }

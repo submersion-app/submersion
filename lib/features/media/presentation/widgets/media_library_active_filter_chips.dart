@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/marine_life/presentation/species_display.dart';
@@ -123,6 +124,36 @@ class MediaLibraryActiveFilterChips extends ConsumerWidget {
             ref,
             (f) =>
                 f.copyWith(tagIds: f.tagIds.where((id) => id != tagId).toSet()),
+          ),
+        ),
+      );
+    }
+
+    // People (issue #1745): Me, then one chip per selected buddy.
+    if (filter.includeMe) {
+      chips.add(
+        chip(
+          l10n.media_people_me,
+          () => _update(ref, (f) => f.copyWith(includeMe: false)),
+        ),
+      );
+    }
+    // Buddy chips wait for the buddy list: drawn before it loads, every
+    // selected buddy would read as removed and then change its label.
+    final buddies = ref.watch(allBuddiesProvider).value;
+    for (final buddyId
+        in buddies == null ? const <String>[] : filter.buddyIds) {
+      final name =
+          buddies!.where((b) => b.id == buddyId).firstOrNull?.name ??
+          l10n.media_people_removedBuddy;
+      chips.add(
+        chip(
+          name,
+          () => _update(
+            ref,
+            (f) => f.copyWith(
+              buddyIds: f.buddyIds.where((id) => id != buddyId).toSet(),
+            ),
           ),
         ),
       );

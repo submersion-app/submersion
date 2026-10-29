@@ -12,6 +12,18 @@
 	<array>
 		<dict>
 			<key>CFBundleTypeName</key>
+			<string>Submersion Buddy Card</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>LSHandlerRank</key>
+			<string>Owner</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>app.submersion.buddy-card</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleTypeName</key>
 			<string>UDDF Dive Log</string>
 			<key>CFBundleTypeRole</key>
 			<string>Viewer</string>
@@ -153,6 +165,22 @@
 	<true/>
 	<key>LSSupportsOpeningDocumentsInPlace</key>
 	<false/>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Submersion finds nearby divers on the swap screen to exchange buddy cards.</string>
+	<key>NSBonjourServices</key>
+	<array>
+		<string>_subm-card._tcp</string>
+		<string>_subm-card._udp</string>
+	</array>
+	<key>com.apple.developer.nfc.readersession.iso7816.select-identifiers</key>
+	<array>
+		<!-- The NFC Forum Type 4 tag application: an Android phone presenting a
+		     buddy card (issue #3728). Core NFC only surfaces an ISO 7816 tag
+		     whose application identifier is listed here. -->
+		<string>D2760000850101</string>
+	</array>
+	<key>NSNearbyInteractionUsageDescription</key>
+	<string>Submersion senses when you hold your phone next to a buddy's to swap buddy cards.</string>
 	<key>NSBluetoothAlwaysUsageDescription</key>
 	<string>Submersion uses Bluetooth to connect to dive computers and to sync with your other devices nearby.</string>
 	<key>NSBluetoothPeripheralUsageDescription</key>
@@ -207,6 +235,26 @@
 	<array>
 		<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 		<string>com.submersion.notificationRefresh</string>
+	</array>
+	<key>UTExportedTypeDeclarations</key>
+	<array>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.json</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>Submersion Buddy Card</string>
+			<key>UTTypeIdentifier</key>
+			<string>app.submersion.buddy-card</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>subbuddy</string>
+				</array>
+			</dict>
+		</dict>
 	</array>
 	<key>UTImportedTypeDeclarations</key>
 	<array>

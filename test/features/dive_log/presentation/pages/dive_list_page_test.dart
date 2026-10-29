@@ -185,7 +185,11 @@ void main() {
 
       return [
         sharedPreferencesProvider.overrideWithValue(prefs),
-        settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+        // The view mode is read from the diver's saved settings (#3748).
+        settingsProvider.overrideWith(
+          (ref) =>
+              MockSettingsNotifier(AppSettings(diveListViewMode: viewMode)),
+        ),
         currentDiverIdProvider.overrideWith(
           (ref) => MockCurrentDiverIdNotifier(),
         ),
@@ -193,7 +197,6 @@ void main() {
           (ref) => _MockPaginatedDiveListNotifier(),
         ),
         diveListNotifierProvider.overrideWith((ref) => _MockDiveListNotifier()),
-        diveListViewModeProvider.overrideWith((ref) => viewMode),
         showProfilePanelProvider.overrideWith((ref) => showProfilePanel),
         customTankPresetsProvider.overrideWith((ref) async => []),
       ];
@@ -535,11 +538,13 @@ void main() {
         final container = ProviderScope.containerOf(
           tester.element(find.byType(DiveListPage)),
         );
-        container.read(diveListViewModeProvider.notifier).state =
-            ListViewMode.detailed;
+        container
+            .read(settingsProvider.notifier)
+            .setDiveListViewMode(ListViewMode.detailed);
         await tester.pumpAndSettle();
-        container.read(diveListViewModeProvider.notifier).state =
-            ListViewMode.table;
+        container
+            .read(settingsProvider.notifier)
+            .setDiveListViewMode(ListViewMode.table);
         await tester.pumpAndSettle();
 
         expect(find.byKey(const ValueKey('selection_exit')), findsNothing);

@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sqlite3/sqlite3.dart' as sqlite3;
 
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
@@ -48,11 +49,29 @@ class _HistoryKeepingCloud extends FakeCloudStorageProvider
 }
 
 class _FakeBackupDatabaseAdapter implements BackupDatabaseAdapter {
+  _FakeBackupDatabaseAdapter({this.writesRealDatabase = false});
+
+  /// Backs up a minimal Submersion-shaped SQLite file instead of the marker
+  /// text, for tests that restore what they backed up: a restore deep-checks
+  /// a decrypted copy, and the marker text is not a database.
+  final bool writesRealDatabase;
+
   @override
   Future<void> backup(String destinationPath, {String? note}) async {
     final file = File(destinationPath);
     await file.parent.create(recursive: true);
-    await file.writeAsString('fake backup data');
+    if (!writesRealDatabase) {
+      await file.writeAsString('fake backup data');
+      return;
+    }
+    if (await file.exists()) await file.delete();
+    final db = sqlite3.sqlite3.open(destinationPath);
+    try {
+      db.execute('CREATE TABLE dives (id TEXT PRIMARY KEY)');
+      db.execute('CREATE TABLE dive_sites (id TEXT PRIMARY KEY)');
+    } finally {
+      db.close();
+    }
   }
 
   @override
@@ -130,12 +149,15 @@ void main() {
     cloud = FakeCloudStorageProvider();
   });
 
-  BackupService buildService() => BackupService(
-    dbAdapter: _FakeBackupDatabaseAdapter(),
-    preferences: preferences,
-    cloudProvider: cloud,
-    backupEncryptionKeyStore: backupKeyStore,
-  );
+  BackupService buildService({bool writesRealDatabase = false}) =>
+      BackupService(
+        dbAdapter: _FakeBackupDatabaseAdapter(
+          writesRealDatabase: writesRealDatabase,
+        ),
+        preferences: preferences,
+        cloudProvider: cloud,
+        backupEncryptionKeyStore: backupKeyStore,
+      );
 
   /// Enable backup encryption end-to-end (key + mirror + flag) with a fast KDF.
   Future<void> enableBackupEncryption() async {
@@ -266,7 +288,9 @@ void main() {
     'restore: silent with the stored backup key; via passphrase after clear',
     () async {
       await enableBackupEncryption();
-      final file = await buildService().exportBackupToTemp(); // encrypted .sbe
+      final file = await buildService(
+        writesRealDatabase: true,
+      ).exportBackupToTemp(); // encrypted .sbe
       final picked = File(
         p.join(
           _isolatedTempDir.path,

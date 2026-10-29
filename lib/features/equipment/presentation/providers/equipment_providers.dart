@@ -1,5 +1,6 @@
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
+import 'package:submersion/core/models/sort_state_codec.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/constants/enums.dart';
@@ -225,11 +226,25 @@ final equipmentPickerFilterProvider =
 /// Ascending means A to Z and oldest first, the same as the dive surfaces'
 /// `EquipmentArrangement`, because both sheets now share one layout and the
 /// same arrow must mean the same thing on each.
-final equipmentSortProvider = StateProvider<SortState<EquipmentSortField>>(
-  (ref) => const SortState(
-    field: EquipmentSortField.name,
-    direction: SortDirection.ascending,
-  ),
+///
+/// Comes back as the diver left it (issue #3748): the active diver's saved
+/// sort, or the starting order below when there is none (or this build
+/// cannot read it). Change it through `ListArrangementWrites`.
+final equipmentSortProvider = Provider<SortState<EquipmentSortField>>(
+  (ref) =>
+      decodeSortState(
+        ref.watch(
+          settingsProvider.select((s) => s.listArrangements.equipmentSort),
+        ),
+        EquipmentSortField.values,
+      ) ??
+      equipmentStartingSort,
+);
+
+/// The Equipment page's sort before the diver changes it: A to Z.
+const equipmentStartingSort = SortState<EquipmentSortField>(
+  field: EquipmentSortField.name,
+  direction: SortDirection.ascending,
 );
 
 /// Apply sorting to a list of equipment items.

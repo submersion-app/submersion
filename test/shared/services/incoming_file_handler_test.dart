@@ -84,6 +84,32 @@ void main() {
       expect(result, IncomingFileOutcome.none);
     });
 
+    test('a .subbuddy file is a buddy card, never an import (#3728)', () async {
+      final result = await handleIncomingFile(
+        bytes: Uint8List.fromList('{"v":1,"i":"x","n":"Sam"}'.codeUnits),
+        fileName: 'Sam Rivera.subbuddy',
+        currentPath: '/transfer/import-wizard',
+        notifier: notifier,
+        messenger: null,
+        isImportRunning: () => true,
+      );
+
+      expect(result, IncomingFileOutcome.buddyCard);
+      expect(notifier.state.fileBytes, isNull);
+    });
+
+    test('a card file renamed by the sender is still a buddy card', () async {
+      final result = await handleIncomingFile(
+        bytes: Uint8List.fromList('{"v":1,"i":"x","n":"Sam"}'.codeUnits),
+        fileName: 'document.json',
+        currentPath: '/dives',
+        notifier: notifier,
+        messenger: null,
+      );
+
+      expect(result, IncomingFileOutcome.buddyCard);
+    });
+
     test('turns a file away while an import runs on alone (#3554)', () async {
       final result = await handleIncomingFile(
         bytes: _uddfBytes,

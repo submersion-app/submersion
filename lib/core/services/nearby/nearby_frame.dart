@@ -20,7 +20,14 @@ enum NearbyMessageType {
   baseRequest(11),
   helloReveal(12),
   keyCheck(13),
-  identity(14);
+  identity(14),
+
+  // Buddy card swap (issue #3728), protocol version 2.
+  cardSummary(15),
+  cardRequest(16),
+  cardAccept(17),
+  cardDecline(18),
+  card(19);
 
   const NearbyMessageType(this.code);
 

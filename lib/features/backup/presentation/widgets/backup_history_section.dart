@@ -2,17 +2,19 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/share_anchor.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 import 'package:submersion/features/backup/domain/exceptions/backup_encrypted_exception.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
+import 'package:submersion/features/backup/presentation/widgets/backup_copy_actions.dart';
 import 'package:submersion/features/backup/presentation/widgets/backup_history_tile.dart';
 import 'package:submersion/features/backup/presentation/widgets/restore_confirmation_dialog.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/encryption_passphrase_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// Every backup this device knows of, with pin, Restore and Delete,
-/// unchanged inside (spec section 8.2).
+/// Every backup this device knows of, with pin, Restore, Share (or Save a
+/// copy, issue #3650) and Delete (spec section 8.2).
 class BackupHistorySection extends ConsumerWidget {
   const BackupHistorySection({super.key});
 
@@ -21,6 +23,9 @@ class BackupHistorySection extends ConsumerWidget {
     final theme = Theme.of(context);
     final historyAsync = ref.watch(backupHistoryProvider);
     final origins = ref.watch(backupOriginResolverProvider);
+    // Share waits while another backup operation runs, as Back up now does:
+    // two full-size file jobs never overlap.
+    final busy = ref.watch(isBackupInProgressProvider);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -68,7 +73,12 @@ class BackupHistorySection extends ConsumerWidget {
                     leadingIcon: _locationIcon(record.location),
                     onPinToggle: () => _togglePin(context, ref, record),
                     onRestore: () => _restore(context, ref, record),
+                    onShare: busy
+                        ? null
+                        : (rowContext) =>
+                              showBackupCopySheet(rowContext, ref, record),
                     onDelete: () => _delete(context, ref, record),
+                    shareSheetAvailable: platformHasShareSheet,
                   ),
               ],
             );

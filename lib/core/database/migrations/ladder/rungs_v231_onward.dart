@@ -639,5 +639,30 @@ extension RungsFromV231 on AppDatabase {
     // by PR #3726.
     if (from < 320) await _assertNearbySchema();
     if (from < 320) await reportProgress();
+
+    // v323: diver_settings list arrangement columns and their sync clock
+    // (issue #3748); re-asserted in beforeOpen. 321 and 322 are held by
+    // PR #3726.
+    if (from < 323) await _assertListArrangementColumns();
+    if (from < 323) await reportProgress();
+
+    // v324: buddy card swap columns on buddies, certifications and divers
+    // (issue #3728).
+    if (from < 324) await _assertBuddyCardColumns();
+    if (from < 324) await reportProgress();
+
+    // v325: trips.parent_trip_id, the larger trip a side trip is part of
+    // (issue #3658). Column and index only, no backfill; re-asserted in
+    // beforeOpen. Renumbered from 323, which #3748 shipped first; #3728
+    // then shipped 324.
+    if (from < 325) await _assertTripParentColumn();
+    if (from < 325) await reportProgress();
+
+    // v326: people tagged on photos and videos (issue #1745). Table-only
+    // rung, no backfill; re-asserted in beforeOpen. Renumbered from 323 and
+    // 324, which #3748 and #3728 took; 325 is #3786's; 319, 321 and 322 are
+    // held by PR #3726.
+    if (from < 326) await _assertMediaPeopleSchema();
+    if (from < 326) await reportProgress();
   }
 }

@@ -525,9 +525,8 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
                             value.replaceFirst('view_', ''),
                           );
                           ref
-                                  .read(equipmentListViewModeProvider.notifier)
-                                  .state =
-                              mode;
+                              .read(settingsProvider.notifier)
+                              .setEquipmentListViewMode(mode);
                         }
                       },
                       itemBuilder: (context) {
@@ -994,7 +993,9 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
               final mode = ListViewMode.fromName(
                 value.replaceFirst('view_', ''),
               );
-              ref.read(equipmentListViewModeProvider.notifier).state = mode;
+              ref
+                  .read(settingsProvider.notifier)
+                  .setEquipmentListViewMode(mode);
             }
           },
           itemBuilder: (context) {

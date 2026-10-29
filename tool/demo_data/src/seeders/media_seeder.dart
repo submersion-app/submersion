@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart' show Variable;
 import 'package:path/path.dart' as p;
 import 'package:submersion/core/util/wall_clock_utc.dart';
+import 'package:submersion/features/media/data/repositories/media_people_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_smart_album_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_species_repository.dart';
@@ -24,6 +25,7 @@ class MediaSeeder implements DemoSeeder {
   Future<void> seed(DemoSeedContext ctx) async {
     final media = MediaRepository();
     final species = MediaSpeciesRepository();
+    final people = MediaPeopleRepository();
     final tags = TagLinkRepository(TagScope.media);
     final candidates = ctx.plan.dives
         .where((d) => d.destination.key != 'home' && !d.night)
@@ -89,6 +91,24 @@ class MediaSeeder implements DemoSeeder {
       if (speciesId != null) {
         await species.addTag(mediaId: id, speciesId: speciesId);
         if (photo.subject.contains('Turtle')) turtleTrip ??= dive.tripId;
+      }
+      // Every third photo is tagged with a buddy from its dive (issue
+      // #1745), without a spot: the demo photos show marine life, so there
+      // is no face to box.
+      if (n % 3 == 0) {
+        final buddy = await ctx.db
+            .customSelect(
+              'SELECT buddy_id FROM dive_buddies WHERE dive_id = ? '
+              'ORDER BY buddy_id LIMIT 1',
+              variables: [Variable.withString(ctx.diveId(dive.number))],
+            )
+            .getSingleOrNull();
+        if (buddy != null) {
+          await people.addTag(
+            mediaId: id,
+            buddyId: buddy.read<String>('buddy_id'),
+          );
+        }
       }
     }
 

@@ -22,6 +22,34 @@ Future<void> repointSmartAlbumTags(
   required int now,
 }) async {
   final from = fromTagIds.toSet();
+  await repointSmartAlbums(
+    db,
+    syncRepository,
+    names: (filter) => filter.tagIds.any(from.contains),
+    repoint: (filter) => filter.copyWith(
+      tagIds: {
+        for (final id in filter.tagIds) from.contains(id) ? toTagId : id,
+      },
+    ),
+    now: now,
+  );
+}
+
+/// Rewrites every saved smart album whose filter [names] something being
+/// merged away, using [repoint], the loop the tag and buddy merges share.
+///
+/// Keys this build does not know are kept, so an album saved by a newer
+/// build loses nothing. Each rewritten album is stamped and marked pending.
+/// Returns each rewritten album's previous filter JSON, for an undo. Runs
+/// inside the caller's transaction and does not notify.
+Future<Map<String, String>> repointSmartAlbums(
+  AppDatabase db,
+  SyncRepository syncRepository, {
+  required bool Function(MediaLibraryFilter filter) names,
+  required MediaLibraryFilter Function(MediaLibraryFilter filter) repoint,
+  required int now,
+}) async {
+  final previous = <String, String>{};
   for (final row in await db.select(db.mediaSmartAlbums).get()) {
     final Object? decoded;
     try {
@@ -31,17 +59,15 @@ Future<void> repointSmartAlbumTags(
     }
     if (decoded is! Map<String, dynamic>) continue;
     final filter = MediaLibraryFilter.fromJson(decoded);
-    if (!filter.tagIds.any(from.contains)) continue;
-    final repointed = filter.copyWith(
-      tagIds: {
-        for (final id in filter.tagIds) from.contains(id) ? toTagId : id,
-      },
-    );
+    if (!names(filter)) continue;
+    previous[row.id] = row.filterJson;
     await (db.update(
       db.mediaSmartAlbums,
     )..where((t) => t.id.equals(row.id))).write(
       MediaSmartAlbumsCompanion(
-        filterJson: Value(jsonEncode({...decoded, ...repointed.toJson()})),
+        filterJson: Value(
+          jsonEncode({...decoded, ...repoint(filter).toJson()}),
+        ),
         updatedAt: Value(now),
       ),
     );
@@ -51,4 +77,5 @@ Future<void> repointSmartAlbumTags(
       localUpdatedAt: now,
     );
   }
+  return previous;
 }

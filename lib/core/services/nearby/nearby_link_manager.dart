@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/nearby/nearby_card_host.dart';
 import 'package:submersion/core/services/nearby/nearby_carrier.dart';
 import 'package:submersion/core/services/nearby/nearby_hello.dart';
 import 'package:submersion/core/services/nearby/nearby_peer_store.dart';
@@ -12,6 +13,8 @@ import 'package:submersion/core/services/nearby/nearby_transfer.dart';
 import 'package:submersion/core/services/sync/changeset_log/peer_cursor_store.dart';
 import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 
+part 'nearby_link_cards.dart';
+part 'nearby_link_incoming.dart';
 part 'nearby_link_pairing.dart';
 part 'nearby_link_radio.dart';
 
@@ -142,6 +145,9 @@ class NearbyLinkManager {
 
   bool _foreground = false;
   bool _pairingMode = false;
+
+  /// The buddy card swap screen's host while it is open (issue #3728).
+  NearbyCardHost? _cardHost;
   bool _running = false;
   bool _disposed = false;
   bool _prunedSecrets = false;
@@ -312,6 +318,7 @@ class NearbyLinkManager {
     final wanted =
         _foreground &&
         (_pairingMode ||
+            _cardHost != null ||
             _syncNowWaiters.isNotEmpty ||
             (_autoSyncEnabled() && (await _peers.all()).isNotEmpty));
     if (!wanted) {
@@ -378,6 +385,15 @@ class NearbyLinkManager {
   void _onSighting(String transportId) {
     if (!_running || _disposed) return;
     _lastSighted[transportId] = _now();
+    final host = _cardHost;
+    if (host != null) {
+      // On the swap screen this device looks only for divers; sync waits.
+      // Ahead of the stranger backoff: a buddy's phone this device dialled
+      // for sync before is a stranger to sync, not to a swap, and the
+      // host spaces its own looks.
+      if (!_connecting.contains(transportId)) host.onSighting(transportId);
+      return;
+    }
     if (!_mayDial(transportId)) return;
     final device = _deviceByTransport[transportId];
     if (device != null && _active.containsKey(device)) return;
@@ -565,71 +581,6 @@ class NearbyLinkManager {
     if (waiter != null && !waiter.isCompleted) waiter.complete(outcome);
   }
 
-  /// [transportId] is where [deviceId] can be dialled: called only for
-  /// links this device opened. A link the peer opened arrives under its
-  /// central's id, which on Bluetooth is not the address it advertises.
-  void _learn(String transportId, String deviceId) {
-    _deviceByTransport[transportId] = deviceId;
-    _transportByDevice[deviceId] = transportId;
-    _strangerSince.remove(transportId);
-    _strangerWait.remove(transportId);
-  }
-
-  Future<void> _onIncoming(NearbyEndpoint endpoint) async {
-    // Entering demo mode closes the gate before the app restarts, with the
-    // radio still on: no session may run in between.
-    if (_disposed || !_foreground || DemoModeGate.instance.isActive) {
-      await endpoint.close();
-      return;
-    }
-    final NearbyIncoming incoming;
-    try {
-      incoming = await NearbySession(
-        endpoint: endpoint,
-        identity: await _identity(),
-        secrets: _secrets,
-        pairingNonce: _pairingNonce.isEmpty ? null : _pairingNonce,
-      ).accept(allowPairing: _pairingMode);
-    } on Object catch (e) {
-      _log.info('Nearby incoming from ${endpoint.transportId} refused: $e');
-      if (_pairingMode) _reportPairingRefusal(e);
-      // A refusal naming a paired peer goes on its row, as one met by
-      // dialling does: often both sides refuse at once (another library),
-      // and this side may be the one that never dials (a Linux peer).
-      final peer = e is NearbySessionRefused ? e.peerDeviceId : null;
-      if (peer != null && await _peers.get(peer) != null) {
-        await _recordRefusal(
-          endpoint.transportId,
-          e as NearbySessionRefused,
-          dialled: false,
-        );
-      }
-      return;
-    }
-    switch (incoming) {
-      case NearbyIncomingSync(:final channel):
-        // With the automatic switch off the radio is on only for pairing
-        // or a Sync now: any other paired device that dials in is turned
-        // away, as one this device dialled is.
-        if (!_autoSyncEnabled() &&
-            !_syncNowWaiters.containsKey(channel.peer.deviceId)) {
-          await channel.close();
-          return;
-        }
-        await _run(channel);
-      case NearbyIncomingPairing(:final pairing):
-        await _offer(
-          NearbyPairingHandle._(
-            this,
-            pairing,
-            transportId: endpoint.transportId,
-            dialled: false,
-            initiatorKey: pairing.preview.nonce,
-          ),
-        );
-    }
-  }
-
   Future<NearbySyncOutcome?> _run(NearbyChannel channel) async {
     // A handshake that finished after the app left the foreground, after
     // demo mode closed the gate, or after this manager was disposed.
@@ -764,9 +715,29 @@ class NearbyLinkManager {
     await refresh();
   }
 
+  /// Opens card mode for the buddy card swap screen (issue #3728): the
+  /// radio comes on, [host] answers card sessions and is handed what the
+  /// scan sees. One host at a time.
+  Future<void> enterCardMode(NearbyCardHost host) {
+    _cardHost?.attach(null);
+    _cardHost = host..attach(_dialCard);
+    return refresh();
+  }
+
+  /// Ends card mode: no more card sessions are accepted, and the radio
+  /// returns to the sync rules.
+  Future<void> leaveCardMode() async {
+    final host = _cardHost;
+    _cardHost = null;
+    host?.attach(null);
+    await host?.dispose();
+    await refresh();
+  }
+
   Future<void> dispose() async {
     if (_disposed) return;
     _disposed = true;
+    _cardHost?.attach(null);
     _debounce?.cancel();
     for (final sub in _subs) {
       await sub.cancel();

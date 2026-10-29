@@ -6,6 +6,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/helpers/dive_list_sections.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/trips/presentation/providers/side_trip_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/keyboard_list_navigator.dart';
 
@@ -81,6 +82,13 @@ class TripGroupHeader extends ConsumerWidget {
       section.endDate,
       l10n: l10n,
     );
+    // A side trip names its larger trip (issue #3658).
+    final parent = ref.watch(parentTripProvider(section.tripId)).value;
+    final detailText = [
+      dateText,
+      countText,
+      if (parent != null) l10n.trips_partOf(parent.name),
+    ].join('  ·  ');
 
     return Semantics(
       button: true,
@@ -137,7 +145,7 @@ class TripGroupHeader extends ConsumerWidget {
                         ],
                       ),
                       Text(
-                        '$dateText  ·  $countText',
+                        detailText,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: theme.textTheme.bodySmall?.copyWith(

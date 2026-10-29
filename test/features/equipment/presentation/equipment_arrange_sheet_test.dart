@@ -10,28 +10,25 @@ import 'package:submersion/features/equipment/presentation/widgets/equipment_arr
 import 'package:submersion/features/settings/data/repositories/app_settings_repository.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import '../../../support/recording_arrangement_settings.dart';
 
 class _FakeSettingsRepository extends AppSettingsRepository {
-  _FakeSettingsRepository({this.stored, this.failWrite = false}) {
+  _FakeSettingsRepository({this.stored, bool failWrite = false}) {
+    settings.failWrite = failWrite;
     // Self-registering so no construction site can forget it, and a new
     // one cannot reintroduce the leak.
     addTearDown(settingsTicks.close);
   }
 
   EquipmentArrangement? stored;
-  bool failWrite;
-  final List<EquipmentArrangement> written = [];
+
+  /// Where the sheet saves the arrangement now that it is per diver
+  /// (issue #3748); [stored] is the app-wide value older builds saved.
+  final settings = RecordingArrangementSettings();
   final StreamController<void> settingsTicks = StreamController<void>();
 
   @override
   Future<EquipmentArrangement?> getEquipmentArrangement() async => stored;
-
-  @override
-  Future<void> setEquipmentArrangement(EquipmentArrangement arrangement) async {
-    if (failWrite) throw StateError('write failed');
-    written.add(arrangement);
-    stored = arrangement;
-  }
 
   @override
   Stream<void> watchSettingsChanges() => settingsTicks.stream;
@@ -44,7 +41,10 @@ void main() {
   ) async {
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [appSettingsRepositoryProvider.overrideWithValue(fake)],
+        overrides: [
+          appSettingsRepositoryProvider.overrideWithValue(fake),
+          settingsProvider.overrideWith((ref) => fake.settings),
+        ],
         child: MaterialApp(
           locale: const Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -110,8 +110,11 @@ void main() {
     await tester.tap(find.byIcon(SortDirection.descending.icon).first);
     await tester.pumpAndSettle();
 
-    expect(fake.written.single.itemSortDirection, SortDirection.descending);
-    expect(fake.written.single.typeOrderDescending, isFalse);
+    expect(
+      fake.settings.written.single.itemSortDirection,
+      SortDirection.descending,
+    );
+    expect(fake.settings.written.single.typeOrderDescending, isFalse);
   });
 
   testWidgets('changing the type order writes the preference', (tester) async {
@@ -121,7 +124,10 @@ void main() {
     await tester.tap(find.text('Head to toe'));
     await tester.pumpAndSettle();
 
-    expect(fake.written.single.typeOrder, EquipmentTypeOrder.headToToe);
+    expect(
+      fake.settings.written.single.typeOrder,
+      EquipmentTypeOrder.headToToe,
+    );
   });
 
   testWidgets('changing the item sort writes the preference', (tester) async {
@@ -135,7 +141,7 @@ void main() {
     await tester.tap(find.text('Purchase date'));
     await tester.pumpAndSettle();
 
-    expect(fake.written.single.itemSortField.name, 'purchaseDate');
+    expect(fake.settings.written.single.itemSortField.name, 'purchaseDate');
   });
 
   testWidgets('the item order label reads "Then by" while types order first', (
@@ -202,7 +208,7 @@ void main() {
     await tester.tap(find.text('Reset to defaults'));
     await tester.pumpAndSettle();
 
-    expect(fake.written.last, EquipmentArrangement.defaults);
+    expect(fake.settings.written.last, EquipmentArrangement.defaults);
   });
 
   testWidgets('a failed save shows a message and leaves state unchanged', (
@@ -215,7 +221,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Could not save the arrangement'), findsOneWidget);
-    expect(fake.written, isEmpty);
+    expect(fake.settings.written, isEmpty);
   });
 
   testWidgets('the sheet header survives a narrow phone in Portuguese', (

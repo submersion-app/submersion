@@ -77,11 +77,19 @@ void main() {
           QueryOp.eq,
           const RefValue('s1', 's1'),
         ),
-        ConditionNode(
-          FieldPath(['trip']),
-          QueryOp.eq,
-          const RefValue('t1', 't1'),
-        ),
+        // A larger trip takes in its side trips' dives (issue #3658).
+        OrNode([
+          ConditionNode(
+            FieldPath(['trip']),
+            QueryOp.eq,
+            const RefValue('t1', 't1'),
+          ),
+          ConditionNode(
+            FieldPath(['trip', 'partOf']),
+            QueryOp.eq,
+            const RefValue('t1', 't1'),
+          ),
+        ]),
         ConditionNode(
           FieldPath(['center']),
           QueryOp.eq,

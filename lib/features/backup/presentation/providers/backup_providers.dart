@@ -1,3 +1,4 @@
+export 'package:submersion/features/backup/presentation/providers/backup_operation_state.dart';
 export 'package:submersion/features/backup/presentation/providers/backup_settings_notifier.dart';
 
 import 'dart:async';
@@ -13,6 +14,7 @@ import 'package:submersion/core/services/sync/library_epoch_store.dart';
 import 'package:submersion/core/services/sync/post_restore_sync_store.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 import 'package:submersion/features/backup/data/services/backup_encryption_key_store.dart';
+import 'package:submersion/features/backup/data/services/backup_copy_destination.dart';
 import 'package:submersion/features/backup/data/services/backup_copy_guard.dart';
 import 'package:submersion/features/backup/data/services/backup_encryption_service.dart';
 import 'package:submersion/features/backup/data/services/backup_origin.dart';
@@ -20,6 +22,7 @@ import 'package:submersion/features/backup/data/services/backup_service.dart';
 import 'package:submersion/features/backup/data/services/cloud_backup_history.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_copy_providers.dart';
+import 'package:submersion/features/backup/presentation/providers/backup_operation_state.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_settings_notifier.dart';
 import 'package:submersion/core/services/sync/crypto/sync_encryption_service.dart'
     show WrongPassphraseException;
@@ -101,68 +104,6 @@ final backupSettingsProvider =
 // =============================================================================
 // Operation State
 // =============================================================================
-
-/// Status of a backup operation
-enum BackupOperationStatus { idle, inProgress, success, restoreComplete, error }
-
-/// Progress of the whole-library safety review sweep that runs at the end of a
-/// restore. Structured rather than a pre-formatted string so the restore
-/// barrier can render it in the user's language.
-class SafetyReviewSweepProgress {
-  final int done;
-  final int total;
-
-  const SafetyReviewSweepProgress({required this.done, required this.total});
-}
-
-/// State for backup/restore operations
-class BackupOperationState {
-  final BackupOperationStatus status;
-  final String? message;
-  final BackupRecord? lastRecord;
-
-  /// True only while a database *restore* is running (a subset of the
-  /// [BackupOperationStatus.inProgress] states). Restore briefly closes and
-  /// reopens the database, so the whole app must be blocked from interaction
-  /// until it finishes — but routine backups/exports/deletes, which also use
-  /// `inProgress`, must NOT block the app. The global restore barrier keys off
-  /// this flag, not `status`.
-  final bool isRestoring;
-
-  /// Non-null only while the post-restore safety sweep is running.
-  final SafetyReviewSweepProgress? sweepProgress;
-
-  const BackupOperationState({
-    this.status = BackupOperationStatus.idle,
-    this.message,
-    this.lastRecord,
-    this.isRestoring = false,
-    this.sweepProgress,
-  });
-
-  /// [clearSweepProgress] separates "leave the sweep progress alone" from
-  /// "clear it". Omitting [sweepProgress] means unchanged, matching every other
-  /// field, so an unrelated `copyWith` cannot silently blank an in-flight
-  /// sweep; pass `clearSweepProgress: true` to actually null it out.
-  BackupOperationState copyWith({
-    BackupOperationStatus? status,
-    String? message,
-    BackupRecord? lastRecord,
-    bool? isRestoring,
-    SafetyReviewSweepProgress? sweepProgress,
-    bool clearSweepProgress = false,
-  }) {
-    return BackupOperationState(
-      status: status ?? this.status,
-      message: message ?? this.message,
-      lastRecord: lastRecord ?? this.lastRecord,
-      isRestoring: isRestoring ?? this.isRestoring,
-      sweepProgress: clearSweepProgress
-          ? null
-          : (sweepProgress ?? this.sweepProgress),
-    );
-  }
-}
 
 /// Notifier managing backup/restore/delete operations with state transitions
 class BackupOperationNotifier extends StateNotifier<BackupOperationState> {
@@ -428,6 +369,99 @@ class BackupOperationNotifier extends StateNotifier<BackupOperationState> {
     }
   }
 
+  /// [record] from the history as a file for the share sheet (issue #3650),
+  /// downloading a cloud-only backup first. The file is not deleted here:
+  /// some receiving apps read it only when the diver finally presses Send,
+  /// so a temp copy is left for the day-old temp sweep. Null when busy or on
+  /// failure, which the state reports.
+  Future<File?> prepareBackupForSharing(BackupRecord record) async {
+    if (state.status == BackupOperationStatus.inProgress) return null;
+
+    state = BackupOperationState(
+      status: BackupOperationStatus.inProgress,
+      message: _l10n.backup_operation_preparingShare,
+    );
+
+    try {
+      final prepared = await _service.prepareBackupCopy(
+        record,
+        purpose: BackupCopyPurpose.share,
+      );
+      state = BackupOperationState(
+        status: BackupOperationStatus.success,
+        message: _l10n.backup_operation_shareReady,
+      );
+      return File(prepared.path);
+    } catch (e) {
+      _reportCopyOutFailure(e);
+      return null;
+    }
+  }
+
+  /// Copies [record] from the history into [directory], never overwriting a
+  /// file already there (issue #3650). Adds nothing to the history.
+  Future<void> saveBackupCopyToDirectory(
+    BackupRecord record,
+    String directory,
+  ) => _saveBackupCopy(record, (copy) async {
+    final dest = await uniqueDestinationPath(directory, copy.fileName);
+    await copyWithoutPartial(copy.path, dest);
+  });
+
+  /// The Android counterpart to [saveBackupCopyToDirectory]: streams the copy
+  /// into a SAF tree without replacing a same-name document, which may be
+  /// the very backup being copied.
+  Future<void> saveBackupCopyToSafTree(BackupRecord record, String treeUri) =>
+      _saveBackupCopy(
+        record,
+        (copy) => SubmersionSaf.writeBackup(
+          treeUri: treeUri,
+          fileName: copy.fileName,
+          sourcePath: copy.path,
+          replaceExisting: false,
+        ),
+      );
+
+  Future<void> _saveBackupCopy(
+    BackupRecord record,
+    Future<void> Function(PreparedBackupFile copy) write,
+  ) async {
+    if (state.status == BackupOperationStatus.inProgress) return;
+
+    state = BackupOperationState(
+      status: BackupOperationStatus.inProgress,
+      message: _l10n.backup_operation_exporting,
+    );
+
+    PreparedBackupFile? prepared;
+    try {
+      prepared = await _service.prepareBackupCopy(
+        record,
+        purpose: BackupCopyPurpose.save,
+      );
+      await write(prepared);
+      state = BackupOperationState(
+        status: BackupOperationStatus.success,
+        message: _l10n.backup_operation_exported(record.formattedSize),
+      );
+    } catch (e) {
+      _reportCopyOutFailure(e);
+    } finally {
+      // A downloaded or streamed copy is a full library, plaintext when the
+      // backup is; it must not outlive the save.
+      await prepared?.discard();
+    }
+  }
+
+  void _reportCopyOutFailure(Object e) {
+    state = BackupOperationState(
+      status: BackupOperationStatus.error,
+      message: e is BackupCopyInOtherAccountException
+          ? _l10n.backup_restore_copyInOtherAccount
+          : _l10n.backup_operation_exportFailed('$e'),
+    );
+  }
+
   /// Export a backup into an Android SAF tree, streaming it in.
   ///
   /// The Android counterpart to [exportToPath]. Scoped storage gives no
@@ -499,8 +533,15 @@ class BackupOperationNotifier extends StateNotifier<BackupOperationState> {
     );
 
     try {
-      // Validate first
-      final validation = await _service.validateBackupFile(filePath);
+      // Validate first. A pre-update safety copy of a protected database is
+      // SQLCipher under the live key; the history row already restores it,
+      // and the same file saved or shared from there restores here too, on
+      // this install only (issue #3650). Any other encrypted-looking file
+      // still fails, now with a message that says why.
+      final validation = await _service.validateBackupFile(
+        filePath,
+        allowLiveDatabaseEncryption: true,
+      );
       if (!validation.isValid) {
         state = BackupOperationState(
           status: BackupOperationStatus.error,

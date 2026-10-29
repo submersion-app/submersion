@@ -8,6 +8,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_log/data/repositories/trip_cylinder_links.dart';
+import 'package:submersion/features/trips/data/side_trip_sql.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     show GasMix;
 import 'package:submersion/features/trips/domain/entities/trip_cylinder.dart'
@@ -66,6 +67,9 @@ class TripCylinderRepository {
     TableUpdateQuery.onTable(_db.dives),
     // Tank uses carry the dive's site name.
     TableUpdateQuery.onTable(_db.diveSites),
+    // A larger trip's usage takes in its side trips' dives, so linking or
+    // unlinking one changes it with only a trips row written (issue #3658).
+    TableUpdateQuery.onTable(_db.trips),
   ];
 
   /// Changes to the slots alone: which equipment sits on a trip's board
@@ -600,6 +604,19 @@ class TripCylinderRepository {
     }
   }
 
+  /// The trips whose slots a dive on [tripId] may link, own trip first: the
+  /// trip and, for a side trip, its larger trip (issue #3658).
+  Future<List<String>> linkableTripIds(String tripId) async {
+    final rows = await _db
+        .customSelect(
+          validParentIdSql('?1'),
+          variables: [Variable.withString(tripId)],
+          readsFrom: {_db.trips},
+        )
+        .get();
+    return [tripId, for (final r in rows) r.read<String>('id')];
+  }
+
   // ----------------------------------------------------------- tank uses
 
   /// The dive tanks linked to a trip's slots, as the lean facts the state
@@ -622,7 +639,7 @@ class TripCylinderRepository {
           FROM dive_tanks t
           JOIN dives d ON d.id = t.dive_id
           LEFT JOIN dive_sites s ON s.id = d.site_id
-          WHERE d.trip_id = ?1
+          WHERE ${tripDivesScopeSql('d', '?1')}
             AND d.is_planned = 0
             AND t.trip_cylinder_id IN
                 (SELECT id FROM trip_cylinders WHERE trip_id = ?1)
@@ -634,6 +651,7 @@ class TripCylinderRepository {
             _db.dives,
             _db.tripCylinders,
             _db.diveSites,
+            _db.trips,
           },
         )
         .get();
@@ -680,7 +698,7 @@ class TripCylinderRepository {
           JOIN dives d ON d.id = t.dive_id
           LEFT JOIN divers v ON v.id = d.diver_id
           LEFT JOIN dive_sites s ON s.id = d.site_id
-          WHERE d.trip_id = ?1
+          WHERE ${tripDivesScopeSql('d', '?1')}
             AND d.is_planned = 0
             AND t.trip_cylinder_id IN
                 (SELECT id FROM trip_cylinders WHERE trip_id = ?1)
@@ -693,6 +711,7 @@ class TripCylinderRepository {
             _db.divers,
             _db.diveSites,
             _db.tripCylinders,
+            _db.trips,
           },
         )
         .get();
@@ -722,8 +741,10 @@ class TripCylinderRepository {
   }
 
   /// Tanks on the trip's dives that breathe from no slot of the trip: no
-  /// link, or a link to another trip's slot. Planned dives are left out:
-  /// no gas was breathed on them.
+  /// link, or a link to another trip's slot. A larger trip takes in its side
+  /// trips' dives, and a slot of the trip, of a side trip or of its larger
+  /// trip accounts for a tank (issue #3658). Planned dives are left out: no
+  /// gas was breathed on them.
   Future<List<TripUnlinkedTank>> getUnlinkedTanksForTrip(String tripId) async {
     final rows = await _db
         .customSelect(
@@ -738,11 +759,10 @@ class TripCylinderRepository {
           JOIN dives d ON d.id = t.dive_id
           LEFT JOIN divers v ON v.id = d.diver_id
           LEFT JOIN dive_sites s ON s.id = d.site_id
-          WHERE d.trip_id = ?1
+          WHERE ${tripDivesScopeSql('d', '?1')}
             AND d.is_planned = 0
             AND (t.trip_cylinder_id IS NULL
-                 OR t.trip_cylinder_id NOT IN
-                    (SELECT id FROM trip_cylinders WHERE trip_id = ?1))
+                 OR t.trip_cylinder_id NOT IN (${accountedSlotIdsSql('?1')}))
           ORDER BY entry_ms ASC, t.dive_id ASC, t.tank_order ASC
           ''',
           variables: [Variable.withString(tripId)],
@@ -752,6 +772,7 @@ class TripCylinderRepository {
             _db.divers,
             _db.diveSites,
             _db.tripCylinders,
+            _db.trips,
           },
         )
         .get();
@@ -789,7 +810,7 @@ class TripCylinderRepository {
           -- trip, as the board does
           SELECT COALESCE(MAX(n), 0) AS n FROM (
             SELECT COUNT(*) AS n FROM dives
-            WHERE trip_id = ?1
+            WHERE ${tripDivesScopeSql('dives', '?1')}
               AND is_planned = 0
               AND COALESCE(entry_time, dive_date_time) >= ?2
               AND COALESCE(entry_time, dive_date_time) < ?3
@@ -801,7 +822,7 @@ class TripCylinderRepository {
             Variable.withInt(from.millisecondsSinceEpoch),
             Variable.withInt(to.millisecondsSinceEpoch),
           ],
-          readsFrom: {_db.dives},
+          readsFrom: {_db.dives, _db.trips},
         )
         .getSingle();
     return row.read<int>('n');

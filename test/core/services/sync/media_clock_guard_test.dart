@@ -119,6 +119,7 @@ void main() {
       'media',
       'mediaEnrichment',
       'mediaSpecies',
+      'mediaPeople',
       'mediaStores',
       'species',
       'importedFiles',

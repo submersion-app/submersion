@@ -3,9 +3,10 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
-import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_list_content.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/trip_group_header.dart';
+import 'package:submersion/features/settings/domain/list_arrangements.dart';
+import 'package:submersion/core/models/sort_state_codec.dart';
 
 import '../../../../helpers/test_app.dart';
 import 'dive_list_trip_grouping_test.dart' show groupingOverrides, makeDive;
@@ -20,20 +21,17 @@ void main() {
       [makeDive('d1', tripId: 't1', tripName: 'Tassie')],
       grouping: grouping,
       tripTotals: const {'t1': 1},
+      listArrangements: ListArrangements(
+        diveSort: encodeSortState(
+          SortState(field: sortField, direction: SortDirection.descending),
+        ),
+      ),
     );
 
     await tester.pumpWidget(
       testApp(
         locale: const Locale('en'),
-        overrides: [
-          ...base,
-          diveSortProvider.overrideWith(
-            (ref) => SortState(
-              field: sortField,
-              direction: SortDirection.descending,
-            ),
-          ),
-        ],
+        overrides: [...base],
         child: const DiveListContent(showAppBar: false),
       ),
     );

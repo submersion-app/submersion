@@ -3967,6 +3967,18 @@ abstract class AppLocalizations {
   /// **'Send via AirDrop, email, or other apps'**
   String get backup_export_share_subtitle;
 
+  /// No description provided for @backup_copySheet_deviceLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'This safety copy was taken from your protected database. It can only be restored on this device.'**
+  String get backup_copySheet_deviceLocked;
+
+  /// No description provided for @backup_copySheet_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup from {dateTime}'**
+  String backup_copySheet_title(String dateTime);
+
   /// No description provided for @backup_frequency_daily.
   ///
   /// In en, this message translates to:
@@ -3996,6 +4008,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Restore'**
   String get backup_history_action_restore;
+
+  /// No description provided for @backup_history_action_saveCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Save a copy'**
+  String get backup_history_action_saveCopy;
+
+  /// No description provided for @backup_history_action_share.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get backup_history_action_share;
 
   /// No description provided for @backup_history_empty.
   ///
@@ -4344,6 +4368,498 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add a new dive buddy'**
   String get buddies_action_addTooltip;
+
+  /// No description provided for @buddyCard_preview_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Buddy card'**
+  String get buddyCard_preview_title;
+
+  /// No description provided for @buddyCard_preview_addTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add {name} as a buddy'**
+  String buddyCard_preview_addTitle(String name);
+
+  /// No description provided for @buddyCard_preview_updateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Update {name}'**
+  String buddyCard_preview_updateTitle(String name);
+
+  /// No description provided for @buddyCard_preview_possibleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Is this {name} from your buddies?'**
+  String buddyCard_preview_possibleTitle(String name);
+
+  /// No description provided for @buddyCard_preview_trimmed.
+  ///
+  /// In en, this message translates to:
+  /// **'Some details were left out to fit the code.'**
+  String get buddyCard_preview_trimmed;
+
+  /// No description provided for @buddyCard_preview_newer.
+  ///
+  /// In en, this message translates to:
+  /// **'This card is from a newer version of Submersion. Some details may be missing.'**
+  String get buddyCard_preview_newer;
+
+  /// No description provided for @buddyCard_preview_noChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing on this card is new.'**
+  String get buddyCard_preview_noChanges;
+
+  /// No description provided for @buddyCard_preview_ownCard.
+  ///
+  /// In en, this message translates to:
+  /// **'This is your own card. Swap with a buddy to get theirs.'**
+  String get buddyCard_preview_ownCard;
+
+  /// No description provided for @buddyCard_preview_changed.
+  ///
+  /// In en, this message translates to:
+  /// **'{to} (was {from})'**
+  String buddyCard_preview_changed(String from, String to);
+
+  /// No description provided for @buddyCard_action_add.
+  ///
+  /// In en, this message translates to:
+  /// **'Add buddy'**
+  String get buddyCard_action_add;
+
+  /// No description provided for @buddyCard_action_update.
+  ///
+  /// In en, this message translates to:
+  /// **'Update buddy'**
+  String get buddyCard_action_update;
+
+  /// No description provided for @buddyCard_action_addAsNew.
+  ///
+  /// In en, this message translates to:
+  /// **'Add as new buddy'**
+  String get buddyCard_action_addAsNew;
+
+  /// No description provided for @buddyCard_action_discard.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard'**
+  String get buddyCard_action_discard;
+
+  /// No description provided for @buddyCard_field_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get buddyCard_field_name;
+
+  /// No description provided for @buddyCard_field_phone.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get buddyCard_field_phone;
+
+  /// No description provided for @buddyCard_field_email.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get buddyCard_field_email;
+
+  /// No description provided for @buddyCard_field_social.
+  ///
+  /// In en, this message translates to:
+  /// **'Social handle'**
+  String get buddyCard_field_social;
+
+  /// No description provided for @buddyCard_field_dives.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives'**
+  String get buddyCard_field_dives;
+
+  /// No description provided for @buddyCard_field_divingSince.
+  ///
+  /// In en, this message translates to:
+  /// **'Diving since'**
+  String get buddyCard_field_divingSince;
+
+  /// No description provided for @buddyCard_field_lastDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Last dive'**
+  String get buddyCard_field_lastDive;
+
+  /// No description provided for @buddyCard_field_certifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Certifications'**
+  String get buddyCard_field_certifications;
+
+  /// No description provided for @buddyCard_saved_added.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} added to your buddies'**
+  String buddyCard_saved_added(String name);
+
+  /// No description provided for @buddyCard_saved_updated.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} updated'**
+  String buddyCard_saved_updated(String name);
+
+  /// No description provided for @buddyCard_saved_view.
+  ///
+  /// In en, this message translates to:
+  /// **'View'**
+  String get buddyCard_saved_view;
+
+  /// No description provided for @buddyCard_error_notACard.
+  ///
+  /// In en, this message translates to:
+  /// **'That is not a Submersion buddy card.'**
+  String get buddyCard_error_notACard;
+
+  /// No description provided for @buddyCard_error_unreadable.
+  ///
+  /// In en, this message translates to:
+  /// **'This buddy card could not be read.'**
+  String get buddyCard_error_unreadable;
+
+  /// No description provided for @buddySwap_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Swap with a buddy'**
+  String get buddySwap_title;
+
+  /// No description provided for @buddySwap_nearby_heading.
+  ///
+  /// In en, this message translates to:
+  /// **'Divers nearby with Submersion open'**
+  String get buddySwap_nearby_heading;
+
+  /// No description provided for @buddySwap_nearby_tapToSwap.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to swap'**
+  String get buddySwap_nearby_tapToSwap;
+
+  /// No description provided for @buddySwap_nearby_looking.
+  ///
+  /// In en, this message translates to:
+  /// **'Looking for more…'**
+  String get buddySwap_nearby_looking;
+
+  /// No description provided for @buddySwap_nearby_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not look for nearby divers. The other ways to swap below still work.'**
+  String get buddySwap_nearby_failed;
+
+  /// No description provided for @buddySwap_nearby_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t see your buddy? Both of you need this screen open and Submersion 1.8.4 or later.'**
+  String get buddySwap_nearby_hint;
+
+  /// No description provided for @buddySwap_sharing.
+  ///
+  /// In en, this message translates to:
+  /// **'Sharing: {summary}'**
+  String buddySwap_sharing(String summary);
+
+  /// No description provided for @buddySwap_sharing_change.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get buddySwap_sharing_change;
+
+  /// No description provided for @buddySwap_dives.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 dive} other{{count} dives}}'**
+  String buddySwap_dives(int count);
+
+  /// No description provided for @buddySwap_action_showCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Show my code'**
+  String get buddySwap_action_showCode;
+
+  /// No description provided for @buddySwap_action_scanCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan code'**
+  String get buddySwap_action_scanCode;
+
+  /// No description provided for @buddySwap_action_sendFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Send file'**
+  String get buddySwap_action_sendFile;
+
+  /// No description provided for @buddySwap_action_openFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Open card file'**
+  String get buddySwap_action_openFile;
+
+  /// No description provided for @buddySwap_action_writeSticker.
+  ///
+  /// In en, this message translates to:
+  /// **'Write NFC sticker'**
+  String get buddySwap_action_writeSticker;
+
+  /// No description provided for @buddySwap_action_tapAndroid.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap an Android phone'**
+  String get buddySwap_action_tapAndroid;
+
+  /// No description provided for @buddySwap_action_receiveByTap.
+  ///
+  /// In en, this message translates to:
+  /// **'Receive by tap'**
+  String get buddySwap_action_receiveByTap;
+
+  /// No description provided for @buddySwap_tap_prompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold your phone near the other phone or the sticker'**
+  String get buddySwap_tap_prompt;
+
+  /// No description provided for @buddySwap_sticker_prompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold your phone near a blank NFC sticker'**
+  String get buddySwap_sticker_prompt;
+
+  /// No description provided for @buddySwap_sticker_written.
+  ///
+  /// In en, this message translates to:
+  /// **'Sticker written. Rewrite it when your details change.'**
+  String get buddySwap_sticker_written;
+
+  /// No description provided for @buddySwap_sticker_tooSmall.
+  ///
+  /// In en, this message translates to:
+  /// **'That sticker is too small for your card.'**
+  String get buddySwap_sticker_tooSmall;
+
+  /// No description provided for @buddySwap_sticker_notWritable.
+  ///
+  /// In en, this message translates to:
+  /// **'That sticker cannot be written.'**
+  String get buddySwap_sticker_notWritable;
+
+  /// No description provided for @buddySwap_nfc_unavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'NFC is not available on this device.'**
+  String get buddySwap_nfc_unavailable;
+
+  /// No description provided for @buddySwap_qr_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Your buddy card'**
+  String get buddySwap_qr_title;
+
+  /// No description provided for @buddySwap_qr_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask your buddy to scan this with Submersion or their camera.'**
+  String get buddySwap_qr_hint;
+
+  /// No description provided for @buddySwap_request_title.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} wants to swap cards'**
+  String buddySwap_request_title(String name);
+
+  /// No description provided for @buddySwap_request_youSend.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ll send: {summary}'**
+  String buddySwap_request_youSend(String summary);
+
+  /// No description provided for @buddySwap_request_swap.
+  ///
+  /// In en, this message translates to:
+  /// **'Swap'**
+  String get buddySwap_request_swap;
+
+  /// No description provided for @buddySwap_request_decline.
+  ///
+  /// In en, this message translates to:
+  /// **'Decline'**
+  String get buddySwap_request_decline;
+
+  /// No description provided for @buddySwap_waiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for {name} to answer'**
+  String buddySwap_waiting(String name);
+
+  /// No description provided for @buddySwap_failed_declined.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} declined the swap'**
+  String buddySwap_failed_declined(String name);
+
+  /// No description provided for @buddySwap_failed_timedOut.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} didn\'t answer'**
+  String buddySwap_failed_timedOut(String name);
+
+  /// No description provided for @buddySwap_failed_lost.
+  ///
+  /// In en, this message translates to:
+  /// **'Lost the connection to {name}'**
+  String buddySwap_failed_lost(String name);
+
+  /// No description provided for @buddySwap_failed_newerApp.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} needs a newer version of Submersion'**
+  String buddySwap_failed_newerApp(String name);
+
+  /// No description provided for @buddySwap_cardFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Your buddy card could not be built.'**
+  String get buddySwap_cardFailed;
+
+  /// No description provided for @buddySwap_qr_tooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'Your card is too long for a code. Try Send file instead.'**
+  String get buddySwap_qr_tooLarge;
+
+  /// No description provided for @buddySwap_sendFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The card file could not be shared.'**
+  String get buddySwap_sendFailed;
+
+  /// No description provided for @buddyCard_saveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The buddy could not be saved.'**
+  String get buddyCard_saveFailed;
+
+  /// No description provided for @buddyCard_field_photo.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo'**
+  String get buddyCard_field_photo;
+
+  /// No description provided for @buddyCard_change_newPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'New photo'**
+  String get buddyCard_change_newPhoto;
+
+  /// No description provided for @buddyShare_title.
+  ///
+  /// In en, this message translates to:
+  /// **'What you share'**
+  String get buddyShare_title;
+
+  /// No description provided for @buddyShare_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get buddyShare_name;
+
+  /// No description provided for @buddyShare_alwaysShared.
+  ///
+  /// In en, this message translates to:
+  /// **'Always shared'**
+  String get buddyShare_alwaysShared;
+
+  /// No description provided for @buddyShare_neverShared.
+  ///
+  /// In en, this message translates to:
+  /// **'Medical, insurance and emergency details are never shared.'**
+  String get buddyShare_neverShared;
+
+  /// No description provided for @buddyShare_photo.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo'**
+  String get buddyShare_photo;
+
+  /// No description provided for @buddyShare_phone.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get buddyShare_phone;
+
+  /// No description provided for @buddyShare_email.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get buddyShare_email;
+
+  /// No description provided for @buddyShare_certifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Certifications'**
+  String get buddyShare_certifications;
+
+  /// No description provided for @buddyShare_cardDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Card numbers and dates'**
+  String get buddyShare_cardDetails;
+
+  /// No description provided for @buddyShare_diveCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive count'**
+  String get buddyShare_diveCount;
+
+  /// No description provided for @buddyShare_divingSince.
+  ///
+  /// In en, this message translates to:
+  /// **'Diving since'**
+  String get buddyShare_divingSince;
+
+  /// No description provided for @buddyShare_lastDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Last dive date'**
+  String get buddyShare_lastDive;
+
+  /// No description provided for @buddyShare_social.
+  ///
+  /// In en, this message translates to:
+  /// **'Social handle'**
+  String get buddyShare_social;
+
+  /// No description provided for @buddyCard_detail_heading.
+  ///
+  /// In en, this message translates to:
+  /// **'From {name}\'s card'**
+  String buddyCard_detail_heading(String name);
+
+  /// No description provided for @buddyCard_detail_since.
+  ///
+  /// In en, this message translates to:
+  /// **'Diving since {year}'**
+  String buddyCard_detail_since(String year);
+
+  /// No description provided for @buddyCard_detail_last.
+  ///
+  /// In en, this message translates to:
+  /// **'Last dive {date}'**
+  String buddyCard_detail_last(String date);
+
+  /// No description provided for @buddyCard_detail_received.
+  ///
+  /// In en, this message translates to:
+  /// **'Received {date}'**
+  String buddyCard_detail_received(String date);
 
   /// No description provided for @buddies_action_clearSearch.
   ///
@@ -15841,6 +16357,12 @@ abstract class AppLocalizations {
   /// **'Edit Selected'**
   String get diveLog_selection_tooltip_edit;
 
+  /// Dive list selection action: make a new trip from the selected dives
+  ///
+  /// In en, this message translates to:
+  /// **'New Trip from Selection'**
+  String get diveLog_selection_tooltip_newTrip;
+
   /// No description provided for @diveLog_selection_tooltip_export.
   ///
   /// In en, this message translates to:
@@ -16165,35 +16687,29 @@ abstract class AppLocalizations {
   /// **'MOD: {mod} (ppO₂ {ppO2}) | MND: {mnd}'**
   String diveLog_tank_modMndInfo(Object mod, String ppO2, Object mnd);
 
-  /// Cylinders card table header over the tank size, name and role
+  /// Cylinders card tank figure label: the start pressure, at its level beside the tank figure, e.g. "Start 200 bar". pressure is the value with its unit.
   ///
   /// In en, this message translates to:
-  /// **'Tank'**
-  String get diveLog_cylinders_columnTank;
+  /// **'Start {pressure}'**
+  String diveLog_cylinders_figureStart(String pressure);
 
-  /// Cylinders card table header over the gas mix
+  /// Cylinders card tank figure label: the end pressure, at its level beside the tank figure, e.g. "End 200 bar". pressure is the value with its unit.
   ///
   /// In en, this message translates to:
-  /// **'Gas'**
-  String get diveLog_cylinders_columnGas;
+  /// **'End {pressure}'**
+  String diveLog_cylinders_figureEnd(String pressure);
 
-  /// Cylinders card table header over the start pressure; the pressure unit is shown under it
+  /// Cylinders card tank figure label: the pressure used, between the start and end labels beside the tank figure, e.g. "Used 200 bar". pressure is the value with its unit.
   ///
   /// In en, this message translates to:
-  /// **'Start'**
-  String get diveLog_cylinders_columnStart;
+  /// **'Used {pressure}'**
+  String diveLog_cylinders_figureUsed(String pressure);
 
-  /// Cylinders card table header over the end pressure; the pressure unit is shown under it
+  /// Cylinders card: what a screen reader says for a cylinder's gas pill, e.g. "Gas EAN32". mix is the gas mix name.
   ///
   /// In en, this message translates to:
-  /// **'End'**
-  String get diveLog_cylinders_columnEnd;
-
-  /// Cylinders card table header over the pressure used; the pressure unit is shown under it
-  ///
-  /// In en, this message translates to:
-  /// **'Used'**
-  String get diveLog_cylinders_columnUsed;
+  /// **'Gas {mix}'**
+  String diveLog_cylinders_gasSemantics(String mix);
 
   /// Cylinders card detail item: the volume of gas the dive consumed from this cylinder, e.g. "Gas used 1665 L"
   ///
@@ -36351,6 +36867,96 @@ abstract class AppLocalizations {
   /// **'Skip unused bailout gases'**
   String get settings_conflict_field_omitUnusedOcGases;
 
+  /// Label for a saved list arrangement in a sync conflict
+  ///
+  /// In en, this message translates to:
+  /// **'Dive list sort'**
+  String get settings_conflict_field_diveListSort;
+
+  /// Label for a saved list arrangement in a sync conflict
+  ///
+  /// In en, this message translates to:
+  /// **'Saved plans sort'**
+  String get settings_conflict_field_divePlanListSort;
+
+  /// Label for a saved list arrangement in a sync conflict
+  ///
+  /// In en, this message translates to:
+  /// **'Trip list sort'**
+  String get settings_conflict_field_tripListSort;
+
+  /// Label for a saved list arrangement in a sync conflict
+  ///
+  /// In en, this message translates to:
+  /// **'Course list sort'**
+  String get settings_conflict_field_courseListSort;
+
+  /// Label for a saved list arrangement in a sync conflict
+  ///
+  /// In en, this message translates to:
+  /// **'Buddy list sort'**
+  String get settings_conflict_field_buddyListSort;
+
+  /// Label for a saved list arrangement in a sync conflict
+  ///
+  /// In en, this message translates to:
+  /// **'Dive center list sort'**
+  String get settings_conflict_field_diveCenterListSort;
+
+  /// Label for a saved list arrangement in a sync conflict
+  ///
+  /// In en, this message translates to:
+  /// **'Dive site list sort'**
+  String get settings_conflict_field_siteListSort;
+
+  /// Label for a saved list arrangement in a sync conflict
+  ///
+  /// In en, this message translates to:
+  /// **'Certification list sort'**
+  String get settings_conflict_field_certificationListSort;
+
+  /// Label for a saved list arrangement in a sync conflict
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment list sort'**
+  String get settings_conflict_field_equipmentListSort;
+
+  /// Label for a saved list arrangement in a sync conflict
+  ///
+  /// In en, this message translates to:
+  /// **'Dive site list grouping'**
+  String get settings_conflict_field_siteListGroupBy;
+
+  /// Label for a saved list arrangement in a sync conflict
+  ///
+  /// In en, this message translates to:
+  /// **'Certification list grouping'**
+  String get settings_conflict_field_certificationListGroupBy;
+
+  /// Label for a saved list arrangement in a sync conflict
+  ///
+  /// In en, this message translates to:
+  /// **'Gear arrangement'**
+  String get settings_conflict_field_equipmentArrangement;
+
+  /// Label for a saved list arrangement in a sync conflict
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment grouped by location'**
+  String get settings_conflict_field_equipmentGroupByLocation;
+
+  /// Label for a saved list arrangement in a sync conflict
+  ///
+  /// In en, this message translates to:
+  /// **'List arrangement record'**
+  String get settings_conflict_field_listArrangementHlc;
+
+  /// A saved list sort in a sync conflict: the sort field, then its direction
+  ///
+  /// In en, this message translates to:
+  /// **'{field}, {direction}'**
+  String settings_conflict_sortValue(String field, String direction);
+
   /// No description provided for @settings_conflict_field_avgSpeed.
   ///
   /// In en, this message translates to:
@@ -38565,6 +39171,48 @@ abstract class AppLocalizations {
   /// **'Dives before this log'**
   String get settings_conflict_field_priorDiveCount;
 
+  /// No description provided for @settings_conflict_field_buddyCardShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Buddy card sharing'**
+  String get settings_conflict_field_buddyCardShare;
+
+  /// No description provided for @settings_conflict_field_cardDiveCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives (from their card)'**
+  String get settings_conflict_field_cardDiveCount;
+
+  /// No description provided for @settings_conflict_field_cardDivingSince.
+  ///
+  /// In en, this message translates to:
+  /// **'Diving since (from their card)'**
+  String get settings_conflict_field_cardDivingSince;
+
+  /// No description provided for @settings_conflict_field_cardId.
+  ///
+  /// In en, this message translates to:
+  /// **'Buddy card'**
+  String get settings_conflict_field_cardId;
+
+  /// No description provided for @settings_conflict_field_cardLastDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Last dive (from their card)'**
+  String get settings_conflict_field_cardLastDive;
+
+  /// No description provided for @settings_conflict_field_cardReceivedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Card received'**
+  String get settings_conflict_field_cardReceivedAt;
+
+  /// No description provided for @settings_conflict_field_socialHandle.
+  ///
+  /// In en, this message translates to:
+  /// **'Social handle'**
+  String get settings_conflict_field_socialHandle;
+
   /// No description provided for @settings_conflict_field_priorDiveTimeSeconds.
   ///
   /// In en, this message translates to:
@@ -39740,6 +40388,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Verification record'**
   String get settings_conflict_field_verifyFactsHlc;
+
+  /// No description provided for @settings_conflict_field_videoPositionMs.
+  ///
+  /// In en, this message translates to:
+  /// **'Time in video (ms)'**
+  String get settings_conflict_field_videoPositionMs;
 
   /// No description provided for @settings_conflict_field_vesselName.
   ///
@@ -50192,6 +50846,30 @@ abstract class AppLocalizations {
   /// **'Are you sure you want to delete \"{name}\"? This will remove the trip but keep the dives.'**
   String trips_detail_dialog_deleteContent(Object name);
 
+  /// Delete confirmation line for a trip with side trips
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Its side trip becomes a trip of its own.} other{Its {count} side trips become trips of their own.}}'**
+  String trips_delete_sideTripsStandalone(int count);
+
+  /// Delete confirmation line for a side trip: where its dives go
+  ///
+  /// In en, this message translates to:
+  /// **'Its dives go back to {name}.'**
+  String trips_delete_divesReturnToParent(String name);
+
+  /// Bulk delete confirmation line: side trips of the deleted trips that are kept
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} side trip becomes a trip of its own.} other{{count} side trips become trips of their own.}}'**
+  String trips_bulkDelete_sideTripsStandalone(int count);
+
+  /// Delete confirmation line when side trips are deleted: their dives move to the larger trips
+  ///
+  /// In en, this message translates to:
+  /// **'Dives on deleted side trips go back to their larger trips.'**
+  String get trips_bulkDelete_divesReturnToParents;
+
   /// No description provided for @trips_detail_dialog_deleteTitle.
   ///
   /// In en, this message translates to:
@@ -50522,6 +51200,24 @@ abstract class AppLocalizations {
   /// **'e.g., Red Sea Safari 2024'**
   String get trips_edit_hint_tripName;
 
+  /// Trip form field: the larger trip this trip is a side trip of
+  ///
+  /// In en, this message translates to:
+  /// **'Part of'**
+  String get trips_edit_field_partOf;
+
+  /// Trip form Part of choice for a trip that is not a side trip
+  ///
+  /// In en, this message translates to:
+  /// **'None (a trip of its own)'**
+  String get trips_edit_partOf_none;
+
+  /// Explains the trip form Part of field
+  ///
+  /// In en, this message translates to:
+  /// **'Makes this a side trip within a larger trip'**
+  String get trips_edit_partOf_helper;
+
   /// No description provided for @trips_edit_label_endDate.
   ///
   /// In en, this message translates to:
@@ -50803,6 +51499,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{1 dive} other{{count} dives}}'**
   String trips_list_tile_diveCount(int count);
+
+  /// Trip list note on a larger trip: how many side trips are nested under it
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} side trip} other{{count} side trips}}'**
+  String trips_list_sideTripCount(int count);
+
+  /// Names the larger trip a side trip is part of
+  ///
+  /// In en, this message translates to:
+  /// **'Part of {name}'**
+  String trips_partOf(String name);
+
+  /// Suggested name for a trip made from selected dives: the shared location and the month it starts
+  ///
+  /// In en, this message translates to:
+  /// **'{location}, {monthYear}'**
+  String trips_fromSelection_name(String location, String monthYear);
+
+  /// Suggested name for a trip made from selected dives with no shared location
+  ///
+  /// In en, this message translates to:
+  /// **'Trip, {monthYear}'**
+  String trips_fromSelection_nameNoLocation(String monthYear);
 
   /// No description provided for @trips_list_tooltip_addTrip.
   ///
@@ -80199,6 +80919,168 @@ abstract class AppLocalizations {
   /// **'Species tags'**
   String get media_species_chipsLabel;
 
+  /// No description provided for @media_people_me.
+  ///
+  /// In en, this message translates to:
+  /// **'Me'**
+  String get media_people_me;
+
+  /// No description provided for @media_people_chipsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'People tags'**
+  String get media_people_chipsLabel;
+
+  /// No description provided for @media_people_momentChip.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} · {time}'**
+  String media_people_momentChip(String name, String time);
+
+  /// No description provided for @media_people_actionTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Tag people'**
+  String get media_people_actionTooltip;
+
+  /// No description provided for @media_people_tagModeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a person to tag them'**
+  String get media_people_tagModeHint;
+
+  /// No description provided for @media_people_noSpotHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Spots can\'t be marked on this one'**
+  String get media_people_noSpotHint;
+
+  /// No description provided for @media_people_withoutSpot.
+  ///
+  /// In en, this message translates to:
+  /// **'Tag without a spot'**
+  String get media_people_withoutSpot;
+
+  /// No description provided for @media_people_done.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get media_people_done;
+
+  /// No description provided for @media_people_pickerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Who is this?'**
+  String get media_people_pickerTitle;
+
+  /// No description provided for @media_people_searchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search buddies'**
+  String get media_people_searchHint;
+
+  /// No description provided for @media_people_onThisDive.
+  ///
+  /// In en, this message translates to:
+  /// **'On this dive'**
+  String get media_people_onThisDive;
+
+  /// No description provided for @media_people_everyoneElse.
+  ///
+  /// In en, this message translates to:
+  /// **'Everyone else'**
+  String get media_people_everyoneElse;
+
+  /// No description provided for @media_people_newBuddy.
+  ///
+  /// In en, this message translates to:
+  /// **'New buddy'**
+  String get media_people_newBuddy;
+
+  /// No description provided for @media_people_newBuddyName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get media_people_newBuddyName;
+
+  /// No description provided for @media_people_newBuddyAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get media_people_newBuddyAdd;
+
+  /// No description provided for @media_people_changePerson.
+  ///
+  /// In en, this message translates to:
+  /// **'Change person'**
+  String get media_people_changePerson;
+
+  /// No description provided for @media_people_removeTag.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove tag'**
+  String get media_people_removeTag;
+
+  /// No description provided for @media_people_resizeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag the corners to fit'**
+  String get media_people_resizeHint;
+
+  /// No description provided for @media_people_addToDiveOffer.
+  ///
+  /// In en, this message translates to:
+  /// **'Add {name} to this dive\'s buddies?'**
+  String media_people_addToDiveOffer(String name);
+
+  /// No description provided for @media_people_addToDiveAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get media_people_addToDiveAction;
+
+  /// No description provided for @media_people_buddyPhotosTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos and videos'**
+  String get media_people_buddyPhotosTitle;
+
+  /// No description provided for @media_people_buddyThumbnailLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo or video with this buddy'**
+  String get media_people_buddyThumbnailLabel;
+
+  /// No description provided for @media_people_filterSection.
+  ///
+  /// In en, this message translates to:
+  /// **'People'**
+  String get media_people_filterSection;
+
+  /// No description provided for @media_people_removedBuddy.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed buddy'**
+  String get media_people_removedBuddy;
+
+  /// No description provided for @media_people_saveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save the tag. Try again.'**
+  String get media_people_saveFailed;
+
+  /// No description provided for @media_people_addToDiveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t add the buddy to this dive. Try again.'**
+  String get media_people_addToDiveFailed;
+
+  /// No description provided for @media_people_createBuddyFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t create the buddy. Try again.'**
+  String get media_people_createBuddyFailed;
+
   /// No description provided for @media_info_fileSection.
   ///
   /// In en, this message translates to:
@@ -85498,6 +86380,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Dives'**
   String get query_trips_dives;
+
+  /// Relation label in the query builder: the larger trip a side trip is part of
+  ///
+  /// In en, this message translates to:
+  /// **'Part of'**
+  String get query_trips_partOf;
 
   /// Field label in the query builder
   ///
