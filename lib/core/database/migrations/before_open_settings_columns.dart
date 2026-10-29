@@ -25,6 +25,11 @@ extension BeforeOpenSettingsColumns on AppDatabase {
     // bands and the explicit-depth override (issue #3580).
     await _assertPpO2DecoBandsExplicitlyOffColumns();
 
+    // The v319 and v321 band columns first shipped spelled `ppo2_*`, beside
+    // which Drift's `pp_o2_*` columns were missing (issue #3809). The two
+    // calls above add the right ones; this drops the misspelled ones.
+    await _dropMisspelledPpO2DecoBandColumns();
+
     // v322 backstop: diver_settings hypercapnia-bailout toggle/factor/
     // duration, plus the matching dive_plans overrides (issue #3743).
     await _assertHypercapniaBailoutColumns();

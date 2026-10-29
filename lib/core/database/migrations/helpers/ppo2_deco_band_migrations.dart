@@ -4,6 +4,9 @@ part of '../app_database_migrations.dart';
 /// O2 (issue #3580), Dive Planner only. Both are optional layers over the
 /// existing single `ppO2MaxDeco`/`ppO2Deco` value, off by default: no
 /// existing diver's planning behavior changes until they turn one on.
+///
+/// Column names are Drift's for the getters: `ppO2DecoBand1` is
+/// `pp_o2_deco_band1`, as `ppO2MaxDeco` is `pp_o2_max_deco`.
 extension PpO2DecoBandMigrations on AppDatabase {
   /// v319: diver_settings gains the band toggle/values and the
   /// explicit-depth toggle/value; dive_plans gains the matching per-plan
@@ -12,22 +15,22 @@ extension PpO2DecoBandMigrations on AppDatabase {
   Future<void> _assertPpO2DecoBandColumns() async {
     await _addColumnIfMissing(
       'diver_settings',
-      'ppo2_deco_bands_enabled',
-      'INTEGER NOT NULL DEFAULT 0 CHECK (ppo2_deco_bands_enabled IN (0, 1))',
+      'pp_o2_deco_bands_enabled',
+      'INTEGER NOT NULL DEFAULT 0 CHECK (pp_o2_deco_bands_enabled IN (0, 1))',
     );
     await _addColumnIfMissing(
       'diver_settings',
-      'ppo2_deco_band1',
+      'pp_o2_deco_band1',
       'REAL NOT NULL DEFAULT 1.6',
     );
     await _addColumnIfMissing(
       'diver_settings',
-      'ppo2_deco_band2',
+      'pp_o2_deco_band2',
       'REAL NOT NULL DEFAULT 1.6',
     );
     await _addColumnIfMissing(
       'diver_settings',
-      'ppo2_deco_band3',
+      'pp_o2_deco_band3',
       'REAL NOT NULL DEFAULT 1.6',
     );
     await _addColumnIfMissing(
@@ -40,9 +43,9 @@ extension PpO2DecoBandMigrations on AppDatabase {
       'max_o2_depth_meters',
       'REAL NOT NULL DEFAULT 6.0',
     );
-    await _addColumnIfMissing('dive_plans', 'ppo2_deco_band1', 'REAL');
-    await _addColumnIfMissing('dive_plans', 'ppo2_deco_band2', 'REAL');
-    await _addColumnIfMissing('dive_plans', 'ppo2_deco_band3', 'REAL');
+    await _addColumnIfMissing('dive_plans', 'pp_o2_deco_band1', 'REAL');
+    await _addColumnIfMissing('dive_plans', 'pp_o2_deco_band2', 'REAL');
+    await _addColumnIfMissing('dive_plans', 'pp_o2_deco_band3', 'REAL');
     await _addColumnIfMissing('dive_plans', 'max_o2_depth_meters', 'REAL');
   }
 
@@ -55,9 +58,9 @@ extension PpO2DecoBandMigrations on AppDatabase {
   Future<void> _assertPpO2DecoBandsExplicitlyOffColumns() async {
     await _addColumnIfMissing(
       'dive_plans',
-      'ppo2_deco_bands_explicitly_off',
+      'pp_o2_deco_bands_explicitly_off',
       'INTEGER NOT NULL DEFAULT 0 '
-          'CHECK (ppo2_deco_bands_explicitly_off IN (0, 1))',
+          'CHECK (pp_o2_deco_bands_explicitly_off IN (0, 1))',
     );
     await _addColumnIfMissing(
       'dive_plans',
@@ -65,5 +68,36 @@ extension PpO2DecoBandMigrations on AppDatabase {
       'INTEGER NOT NULL DEFAULT 0 '
           'CHECK (max_o2_depth_explicitly_off IN (0, 1))',
     );
+  }
+
+  /// The band columns as the v319 and v321 helpers first added them, spelled
+  /// `ppo2_*`. Drift never read or wrote them, so they hold only their
+  /// defaults; on an upgraded database the `pp_o2_*` columns Drift reads
+  /// were missing beside them, and every settings and plan read failed
+  /// (issue #3809).
+  static const _misspelledColumns = {
+    'diver_settings': [
+      'ppo2_deco_bands_enabled',
+      'ppo2_deco_band1',
+      'ppo2_deco_band2',
+      'ppo2_deco_band3',
+    ],
+    'dive_plans': [
+      'ppo2_deco_band1',
+      'ppo2_deco_band2',
+      'ppo2_deco_band3',
+      'ppo2_deco_bands_explicitly_off',
+    ],
+  };
+
+  /// Drops whichever misspelled band columns a database carries.
+  /// Idempotent; called from the beforeOpen backstop, which reaches every
+  /// database the misspelled helpers did.
+  Future<void> _dropMisspelledPpO2DecoBandColumns() async {
+    for (final table in _misspelledColumns.entries) {
+      for (final column in table.value) {
+        await _dropColumnIfExists(table.key, column);
+      }
+    }
   }
 }

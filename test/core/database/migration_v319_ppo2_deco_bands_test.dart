@@ -1,5 +1,9 @@
+import 'dart:io';
+
+import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 
 import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
@@ -21,6 +25,11 @@ import 'package:submersion/core/database/database.dart';
 ///
 /// All three are column only, every toggle/flag off or at its flat default:
 /// no existing diver's planning behavior changes.
+///
+/// The band columns first shipped spelled `ppo2_*` where Drift reads
+/// `pp_o2_*`, so on every upgraded database the settings and plan rows
+/// failed to read (issue #3809). The column names here are checked against
+/// the Drift tables, not only against what the rung adds.
 void main() {
   Future<Set<String>> columns(AppDatabase db, String table) async {
     final rows = await db.customSelect("PRAGMA table_info('$table')").get();
@@ -28,21 +37,21 @@ void main() {
   }
 
   const diverSettingsColumnsV319 = [
-    'ppo2_deco_bands_enabled',
-    'ppo2_deco_band1',
-    'ppo2_deco_band2',
-    'ppo2_deco_band3',
+    'pp_o2_deco_bands_enabled',
+    'pp_o2_deco_band1',
+    'pp_o2_deco_band2',
+    'pp_o2_deco_band3',
     'max_o2_depth_enabled',
     'max_o2_depth_meters',
   ];
   const divePlansColumnsV319 = [
-    'ppo2_deco_band1',
-    'ppo2_deco_band2',
-    'ppo2_deco_band3',
+    'pp_o2_deco_band1',
+    'pp_o2_deco_band2',
+    'pp_o2_deco_band3',
     'max_o2_depth_meters',
   ];
   const divePlansColumnsV321 = [
-    'ppo2_deco_bands_explicitly_off',
+    'pp_o2_deco_bands_explicitly_off',
     'max_o2_depth_explicitly_off',
   ];
   const diverSettingsColumnsV322 = [
@@ -63,8 +72,8 @@ void main() {
       rawDb.execute('PRAGMA user_version = $userVersion');
       rawDb.execute(
         'CREATE TABLE diver_settings (id TEXT NOT NULL PRIMARY KEY, '
-        'ppo2_max_working REAL NOT NULL DEFAULT 1.4, '
-        'ppo2_max_deco REAL NOT NULL DEFAULT 1.6)',
+        'pp_o2_max_working REAL NOT NULL DEFAULT 1.4, '
+        'pp_o2_max_deco REAL NOT NULL DEFAULT 1.6)',
       );
       rawDb.execute("INSERT INTO diver_settings (id) VALUES ('s1')");
       rawDb.execute('CREATE TABLE dive_plans (id TEXT NOT NULL PRIMARY KEY)');
@@ -114,6 +123,123 @@ void main() {
     }
   });
 
+  test('every column through v322 is one the Drift tables read', () async {
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
+    addTearDown(db.close);
+    final diverSettings = {for (final c in db.diverSettings.$columns) c.name};
+    final divePlans = {for (final c in db.divePlans.$columns) c.name};
+    for (final column in [
+      ...diverSettingsColumnsV319,
+      ...diverSettingsColumnsV322,
+    ]) {
+      expect(diverSettings, contains(column), reason: column);
+    }
+    for (final column in [
+      ...divePlansColumnsV319,
+      ...divePlansColumnsV321,
+      ...divePlansColumnsV322,
+    ]) {
+      expect(divePlans, contains(column), reason: column);
+    }
+  });
+
+  test('a database the misspelled columns reached reads through Drift again, '
+      'keeping its settings (issue #3809)', () async {
+    final dir = Directory.systemTemp.createTempSync('v319_misspelled');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final file = File(p.join(dir.path, 'submersion.db'));
+
+    final before = AppDatabase(
+      NativeDatabase(file, setup: registerAppSqlFunctions),
+    );
+    await before
+        .into(before.divers)
+        .insert(
+          DiversCompanion.insert(
+            id: 'd1',
+            name: 'Diver',
+            createdAt: 0,
+            updatedAt: 0,
+          ),
+        );
+    await before
+        .into(before.diverSettings)
+        .insert(
+          DiverSettingsCompanion.insert(
+            id: 's1',
+            diverId: 'd1',
+            createdAt: 0,
+            updatedAt: 0,
+            depthUnit: const Value('feet'),
+          ),
+        );
+    await before
+        .into(before.divePlans)
+        .insert(
+          DivePlansCompanion.insert(
+            id: 'p1',
+            name: 'Plan',
+            createdAt: 0,
+            updatedAt: 0,
+          ),
+        );
+    // What the misspelled rung left on an upgraded database: the
+    // `ppo2_*` columns, and none of the `pp_o2_*` ones Drift reads.
+    const misspelled = {
+      'diver_settings': {
+        'pp_o2_deco_bands_enabled':
+            'ppo2_deco_bands_enabled INTEGER NOT NULL '
+            'DEFAULT 0 CHECK (ppo2_deco_bands_enabled IN (0, 1))',
+        'pp_o2_deco_band1': 'ppo2_deco_band1 REAL NOT NULL DEFAULT 1.6',
+        'pp_o2_deco_band2': 'ppo2_deco_band2 REAL NOT NULL DEFAULT 1.6',
+        'pp_o2_deco_band3': 'ppo2_deco_band3 REAL NOT NULL DEFAULT 1.6',
+      },
+      'dive_plans': {
+        'pp_o2_deco_band1': 'ppo2_deco_band1 REAL',
+        'pp_o2_deco_band2': 'ppo2_deco_band2 REAL',
+        'pp_o2_deco_band3': 'ppo2_deco_band3 REAL',
+        'pp_o2_deco_bands_explicitly_off':
+            'ppo2_deco_bands_explicitly_off INTEGER NOT NULL DEFAULT 0 '
+            'CHECK (ppo2_deco_bands_explicitly_off IN (0, 1))',
+      },
+    };
+    for (final table in misspelled.entries) {
+      final existing = await columns(before, table.key);
+      for (final column in table.value.entries) {
+        await before.customStatement(
+          'ALTER TABLE ${table.key} DROP COLUMN ${column.key}',
+        );
+        final added = column.value.split(' ').first;
+        if (existing.contains(added)) continue;
+        await before.customStatement(
+          'ALTER TABLE ${table.key} ADD COLUMN ${column.value}',
+        );
+      }
+    }
+    await before.close();
+
+    final after = AppDatabase(
+      NativeDatabase(file, setup: registerAppSqlFunctions),
+    );
+    addTearDown(after.close);
+    final row = await after.select(after.diverSettings).getSingle();
+    expect(row.depthUnit, 'feet');
+    expect(row.ppO2DecoBandsEnabled, isFalse);
+    expect(row.ppO2DecoBand1, 1.6);
+    final plan = await after.select(after.divePlans).getSingle();
+    expect(plan.ppO2DecoBand1, isNull);
+    expect(plan.ppO2DecoBandsExplicitlyOff, isFalse);
+    for (final table in misspelled.keys) {
+      expect(
+        (await columns(after, table)).where((c) => c.startsWith('ppo2_')),
+        isEmpty,
+        reason: '$table keeps a misspelled column',
+      );
+    }
+  });
+
   test(
     'upgrading from v318 adds every column through v322, all off/flat',
     () async {
@@ -136,16 +262,16 @@ void main() {
       }
       final row = await db
           .customSelect(
-            'SELECT ppo2_deco_bands_enabled, max_o2_depth_enabled, '
-            'ppo2_deco_band1, max_o2_depth_meters, '
+            'SELECT pp_o2_deco_bands_enabled, max_o2_depth_enabled, '
+            'pp_o2_deco_band1, max_o2_depth_meters, '
             'planner_hypercapnia_enabled, planner_hypercapnia_factor, '
             'planner_hypercapnia_minutes '
             "FROM diver_settings WHERE id = 's1'",
           )
           .getSingle();
-      expect(row.read<int>('ppo2_deco_bands_enabled'), 0);
+      expect(row.read<int>('pp_o2_deco_bands_enabled'), 0);
       expect(row.read<int>('max_o2_depth_enabled'), 0);
-      expect(row.read<double>('ppo2_deco_band1'), 1.6);
+      expect(row.read<double>('pp_o2_deco_band1'), 1.6);
       expect(row.read<double>('max_o2_depth_meters'), 6.0);
       expect(row.read<int>('planner_hypercapnia_enabled'), 0);
       expect(row.read<double>('planner_hypercapnia_factor'), 4.0);
@@ -153,12 +279,12 @@ void main() {
 
       final planRow = await db
           .customSelect(
-            'SELECT ppo2_deco_bands_explicitly_off, '
+            'SELECT pp_o2_deco_bands_explicitly_off, '
             'max_o2_depth_explicitly_off, hypercapnia_explicitly_off '
             "FROM dive_plans WHERE id = 'p1'",
           )
           .getSingle();
-      expect(planRow.read<int>('ppo2_deco_bands_explicitly_off'), 0);
+      expect(planRow.read<int>('pp_o2_deco_bands_explicitly_off'), 0);
       expect(planRow.read<int>('max_o2_depth_explicitly_off'), 0);
       expect(planRow.read<int>('hypercapnia_explicitly_off'), 0);
     },

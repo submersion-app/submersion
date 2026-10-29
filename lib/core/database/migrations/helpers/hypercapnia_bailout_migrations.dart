@@ -8,7 +8,7 @@ extension HypercapniaBailoutMigrations on AppDatabase {
   /// v322: diver_settings gains the hypercapnia toggle/factor/duration;
   /// dive_plans gains the matching per-plan overrides and "explicitly off"
   /// flag (null/false = follow the diver's Settings, matching
-  /// `ppo2_deco_bands_explicitly_off`'s shape). Idempotent; called from the
+  /// `pp_o2_deco_bands_explicitly_off`'s shape). Idempotent; called from the
   /// rung and the beforeOpen backstop.
   Future<void> _assertHypercapniaBailoutColumns() async {
     await _addColumnIfMissing(
