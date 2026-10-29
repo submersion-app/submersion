@@ -665,11 +665,15 @@
   "backup_export_saveToFile_subtitle": "Kies waar het back-upbestand wordt opgeslagen",
   "backup_export_share": "Delen",
   "backup_export_share_subtitle": "Verzenden via AirDrop, e-mail of andere apps",
+  "backup_copySheet_deviceLocked": "Deze veiligheidskopie komt uit je beveiligde database. Hij kan alleen op dit apparaat worden hersteld.",
+  "backup_copySheet_title": "Back-up van {dateTime}",
   "backup_frequency_daily": "Dagelijks",
   "backup_frequency_monthly": "Maandelijks",
   "backup_frequency_weekly": "Wekelijks",
   "backup_history_action_delete": "Verwijderen",
   "backup_history_action_restore": "Herstellen",
+  "backup_history_action_saveCopy": "Kopie opslaan",
+  "backup_history_action_share": "Delen",
   "backup_history_empty": "Geen back-ups",
   "backup_history_error": "Fout bij laden geschiedenis: {error}",
   "backup_import_invalidFile": "Dit bestand lijkt geen geldige Submersion-back-up te zijn",
@@ -732,6 +736,88 @@
   "buddies_action_add": "Buddy toevoegen",
   "buddies_action_addFirst": "Voeg je eerste buddy toe",
   "buddies_action_addTooltip": "Nieuwe duikbuddy toevoegen",
+  "buddyCard_preview_title": "Buddykaart",
+  "buddyCard_preview_addTitle": "{name} toevoegen als buddy",
+  "buddyCard_preview_updateTitle": "{name} bijwerken",
+  "buddyCard_preview_possibleTitle": "Is dit {name} uit je buddy's?",
+  "buddyCard_preview_trimmed": "Sommige gegevens zijn weggelaten om in de code te passen.",
+  "buddyCard_preview_newer": "Deze kaart komt uit een nieuwere versie van Submersion. Sommige gegevens kunnen ontbreken.",
+  "buddyCard_preview_noChanges": "Niets op deze kaart is nieuw.",
+  "buddyCard_preview_ownCard": "Dit is je eigen kaart. Wissel met een buddy om de zijne te krijgen.",
+  "buddyCard_preview_changed": "{to} (was {from})",
+  "buddyCard_action_add": "Buddy toevoegen",
+  "buddyCard_action_update": "Buddy bijwerken",
+  "buddyCard_action_addAsNew": "Toevoegen als nieuwe buddy",
+  "buddyCard_action_discard": "Negeren",
+  "buddyCard_field_name": "Naam",
+  "buddyCard_field_phone": "Telefoon",
+  "buddyCard_field_email": "E-mail",
+  "buddyCard_field_social": "Socialemedianaam",
+  "buddyCard_field_dives": "Duiken",
+  "buddyCard_field_divingSince": "Duikt sinds",
+  "buddyCard_field_lastDive": "Laatste duik",
+  "buddyCard_field_certifications": "Brevetten",
+  "buddyCard_saved_added": "{name} toegevoegd aan je buddy's",
+  "buddyCard_saved_updated": "{name} bijgewerkt",
+  "buddyCard_saved_view": "Bekijken",
+  "buddyCard_error_notACard": "Dat is geen Submersion-buddykaart.",
+  "buddyCard_error_unreadable": "Deze buddykaart kon niet worden gelezen.",
+  "buddySwap_title": "Ruilen met een buddy",
+  "buddySwap_nearby_heading": "Duikers in de buurt met Submersion open",
+  "buddySwap_nearby_tapToSwap": "Tik om te ruilen",
+  "buddySwap_nearby_looking": "Zoeken naar meer…",
+  "buddySwap_nearby_failed": "Kon niet naar duikers in de buurt zoeken. De andere manieren om te wisselen hieronder werken nog.",
+  "buddySwap_nearby_hint": "Zie je je buddy niet? Jullie hebben allebei dit scherm open nodig en Submersion 1.8.4 of nieuwer.",
+  "buddySwap_sharing": "Gedeeld: {summary}",
+  "buddySwap_sharing_change": "Wijzigen",
+  "buddySwap_dives": "{count, plural, =1{1 duik} other{{count} duiken}}",
+  "buddySwap_action_showCode": "Mijn code tonen",
+  "buddySwap_action_scanCode": "Code scannen",
+  "buddySwap_action_sendFile": "Bestand verzenden",
+  "buddySwap_action_openFile": "Kaartbestand openen",
+  "buddySwap_action_writeSticker": "NFC-sticker schrijven",
+  "buddySwap_action_tapAndroid": "Android-telefoon aantikken",
+  "buddySwap_action_receiveByTap": "Ontvangen door aantikken",
+  "buddySwap_tap_prompt": "Houd je telefoon bij de andere telefoon of de sticker",
+  "buddySwap_sticker_prompt": "Houd je telefoon bij een lege NFC-sticker",
+  "buddySwap_sticker_written": "Sticker geschreven. Schrijf hem opnieuw als je gegevens veranderen.",
+  "buddySwap_sticker_tooSmall": "Die sticker is te klein voor je kaart.",
+  "buddySwap_sticker_notWritable": "Die sticker kan niet worden beschreven.",
+  "buddySwap_nfc_unavailable": "NFC is niet beschikbaar op dit apparaat.",
+  "buddySwap_qr_title": "Je buddykaart",
+  "buddySwap_qr_hint": "Vraag je buddy dit te scannen met Submersion of de camera.",
+  "buddySwap_request_title": "{name} wil kaarten ruilen",
+  "buddySwap_request_youSend": "Je verstuurt: {summary}",
+  "buddySwap_request_swap": "Ruilen",
+  "buddySwap_request_decline": "Weigeren",
+  "buddySwap_waiting": "Wachten op antwoord van {name}",
+  "buddySwap_failed_declined": "{name} heeft de ruil geweigerd",
+  "buddySwap_failed_timedOut": "{name} heeft niet geantwoord",
+  "buddySwap_failed_lost": "Verbinding met {name} verbroken",
+  "buddySwap_failed_newerApp": "{name} heeft een nieuwere versie van Submersion nodig",
+  "buddySwap_cardFailed": "Je buddykaart kon niet worden gemaakt.",
+  "buddySwap_qr_tooLarge": "Je kaart is te lang voor een code. Probeer in plaats daarvan Bestand verzenden.",
+  "buddySwap_sendFailed": "Het kaartbestand kon niet worden gedeeld.",
+  "buddyCard_saveFailed": "De buddy kon niet worden opgeslagen.",
+  "buddyCard_field_photo": "Foto",
+  "buddyCard_change_newPhoto": "Nieuwe foto",
+  "buddyShare_title": "Wat je deelt",
+  "buddyShare_name": "Naam",
+  "buddyShare_alwaysShared": "Altijd gedeeld",
+  "buddyShare_neverShared": "Medische, verzekerings- en noodgegevens worden nooit gedeeld.",
+  "buddyShare_photo": "Foto",
+  "buddyShare_phone": "Telefoon",
+  "buddyShare_email": "E-mail",
+  "buddyShare_certifications": "Brevetten",
+  "buddyShare_cardDetails": "Kaartnummers en datums",
+  "buddyShare_diveCount": "Aantal duiken",
+  "buddyShare_divingSince": "Duikt sinds",
+  "buddyShare_lastDive": "Datum laatste duik",
+  "buddyShare_social": "Socialemedianaam",
+  "buddyCard_detail_heading": "Van de kaart van {name}",
+  "buddyCard_detail_since": "Duikt sinds {year}",
+  "buddyCard_detail_last": "Laatste duik {date}",
+  "buddyCard_detail_received": "Ontvangen op {date}",
   "buddies_action_clearSearch": "Zoekopdracht wissen",
   "buddies_action_edit": "Buddy bewerken",
   "buddies_action_importFromContacts": "Importeren uit contacten",
@@ -1453,7 +1539,13 @@
   "connections_tab_view": "Weergave",
   "connections_tab_filter": "Filter",
   "connections_tab_filterCount": "Filter ({count})",
-  "@connections_tab_filterCount": {"placeholders": {"count": {"type": "int"}}},
+  "@connections_tab_filterCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "connections_tab_details": "Details",
   "connections_presets_title": "Voorinstellingen",
   "connections_preset_circle": "Duikkring",
@@ -1470,16 +1562,37 @@
   "connections_editor_kinds": "Soorten",
   "connections_editor_links": "Koppelingen",
   "connections_editor_link": "{a} met {b}",
-  "@connections_editor_link": {"placeholders": {"a": {"type": "String"}, "b": {"type": "String"}}},
+  "@connections_editor_link": {
+    "placeholders": {
+      "a": {
+        "type": "String"
+      },
+      "b": {
+        "type": "String"
+      }
+    }
+  },
   "connections_editor_minShared": "{count, plural, =1{Minstens 1 gedeelde duik} other{Minstens {count} gedeelde duiken}}",
-  "@connections_editor_minShared": {"placeholders": {"count": {"type": "int"}}},
+  "@connections_editor_minShared": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "connections_editor_saveAsMap": "Opslaan als kaart",
   "connections_savedMap_saveTitle": "Kaart opslaan",
   "connections_savedMap_nameLabel": "Naam",
   "connections_savedMap_rename": "Hernoemen",
   "connections_savedMap_update": "Bijwerken met huidige weergave",
   "connections_savedMap_deleted": "\"{name}\" verwijderd",
-  "@connections_savedMap_deleted": {"placeholders": {"name": {"type": "String"}}},
+  "@connections_savedMap_deleted": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "connections_savedMap_undo": "Ongedaan maken",
   "connections_savedMap_badge": "Opgeslagen kaart",
   "connections_around_searchHint": "Zoek buddy's, duikplekken, reizen en meer",
@@ -1500,7 +1613,16 @@
   "connections_caption_around": "{hops, plural, =1{Alles wat een duik deelt met dit middelpunt.} other{Alles binnen {hops} stappen van dit middelpunt, verbonden door gedeelde duiken.}}",
   "connections_caption_thicker": "Dikkere lijnen betekenen meer duiken.",
   "connections_around_kindChip": "{kind} ({count})",
-  "@connections_around_kindChip": {"placeholders": {"kind": {"type": "String"}, "count": {"type": "int"}}},
+  "@connections_around_kindChip": {
+    "placeholders": {
+      "kind": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "connections_around_prompt": "Zoek een buddy, duikplek, reis of iets anders om de kaart erop te centreren.",
   "connections_around_noResults": "Geen resultaten",
   "connections_action_centreHere": "Hier centreren",
@@ -1572,10 +1694,28 @@
   "connections_share_allDives": "Alle duiken, {first} tot {last}",
   "connections_share_details": "{range}. {counts}",
   "connections_summary_pairValue": "{count, plural, =1{{a} en {b}, 1 duik} other{{a} en {b}, {count} duiken}}",
-  "@connections_summary_pairValue": {"placeholders": {"count": {"type": "int"}, "a": {"type": "String"}, "b": {"type": "String"}}},
+  "@connections_summary_pairValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "a": {
+        "type": "String"
+      },
+      "b": {
+        "type": "String"
+      }
+    }
+  },
   "connections_summary_closest": "Dichtstbij",
   "connections_summary_entitiesAround": "{count, plural, =1{1 item} other{{count} items}}",
-  "@connections_summary_entitiesAround": {"placeholders": {"count": {"type": "int"}}},
+  "@connections_summary_entitiesAround": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "connections_filter_allFilters": "Alle filters",
   "connections_filter_clear": "Wissen",
   "connections_filter_none": "Geen filters actief.",
@@ -1583,20 +1723,50 @@
   "connections_tooltip_relayout": "Opnieuw schikken",
   "connections_tooltip_showWholeWeb": "Terug naar de hele kaart",
   "connections_filterBar_edges": "{count, plural, =1{1 verbinding} other{{count} verbindingen}}",
-  "@connections_filterBar_edges": {"placeholders": {"count": {"type": "int"}}},
+  "@connections_filterBar_edges": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "connections_hiddenNodes": "{count, plural, =1{1 meer niet getoond} other{{count} meer niet getoond}}",
-  "@connections_hiddenNodes": {"placeholders": {"count": {"type": "int"}}},
+  "@connections_hiddenNodes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "connections_showAll": "Alles tonen",
   "connections_showAll_confirmTitle": "Alle knooppunten tonen?",
   "connections_showAll_confirmBody": "{count} knooppunten kunnen op dit apparaat even duren om te schikken.",
-  "@connections_showAll_confirmBody": {"placeholders": {"count": {"type": "int"}}},
+  "@connections_showAll_confirmBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "connections_action_open": "Openen",
   "connections_action_showDives": "Duiken tonen",
   "connections_action_openInConnections": "Openen in Verbindingen",
   "connections_selection_divesTogether": "{count, plural, =1{1 duik samen} other{{count} duiken samen}}",
-  "@connections_selection_divesTogether": {"placeholders": {"count": {"type": "int"}}},
+  "@connections_selection_divesTogether": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "connections_selection_dives": "{count, plural, =1{1 duik} other{{count} duiken}}",
-  "@connections_selection_dives": {"placeholders": {"count": {"type": "int"}}},
+  "@connections_selection_dives": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "connections_selection_topConnections": "Sterkste verbindingen",
   "connections_selection_hint": "Tik op een knooppunt of lijn voor details.",
   "connections_details_dives": "Duiken",
@@ -1622,11 +1792,35 @@
   "connections_error_load": "Verbindingen konden niet worden geladen.",
   "connections_legend_title": "Legenda",
   "connections_timeline_range": "{start} tot {end}",
-  "@connections_timeline_range": {"placeholders": {"start": {"type": "String"}, "end": {"type": "String"}}},
+  "@connections_timeline_range": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
   "connections_semantics_summary": "{nodes} knooppunten en {edges} verbindingen",
-  "@connections_semantics_summary": {"placeholders": {"nodes": {"type": "int"}, "edges": {"type": "int"}}},
+  "@connections_semantics_summary": {
+    "placeholders": {
+      "nodes": {
+        "type": "int"
+      },
+      "edges": {
+        "type": "int"
+      }
+    }
+  },
   "connections_semantics_selected": "Geselecteerd: {label}",
-  "@connections_semantics_selected": {"placeholders": {"label": {"type": "String"}}},
+  "@connections_semantics_selected": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
   "connections_kind_buddy": "Buddy's",
   "connections_kind_site": "Duikplekken",
   "connections_kind_trip": "Reizen",
@@ -1644,6 +1838,12 @@
   "common_label_error": "Fout",
   "common_label_loading": "Laden",
   "common_placeholder_noValue": "--",
+  "notesEditor_action_heading": "Kop",
+  "notesEditor_action_bold": "Vet",
+  "notesEditor_action_italic": "Cursief",
+  "notesEditor_action_bulletList": "Opsomming",
+  "notesEditor_action_numberedList": "Genummerde lijst",
+  "notesEditor_action_preview": "Voorbeeld",
   "courses_action_add": "Cursus toevoegen",
   "courses_action_addFromTemplate": "Toevoegen vanuit sjabloon",
   "courses_action_addRequirement": "Vereiste toevoegen",
@@ -3024,6 +3224,7 @@
   "diveLog_search_section_organization": "Organisatie",
   "diveLog_selection_tooltip_combine": "Samenvoegen",
   "diveLog_selection_tooltip_edit": "Geselecteerde bewerken",
+  "diveLog_selection_tooltip_newTrip": "Nieuwe reis van selectie",
   "diveLog_selection_tooltip_export": "Geselecteerde exporteren",
   "diveLog_selection_tooltip_selectDateRange": "Selecteren op datumbereik",
   "diveLog_sighting_add": "Toevoegen",
@@ -3078,15 +3279,16 @@
   "diveLog_tank_label_workingPressure": "Werkdruk",
   "diveLog_tank_mndHelper": "Instellen op automatische He%-berekening",
   "diveLog_tank_modMndInfo": "MOD: {mod} (ppO₂ {ppO2}) | MND: {mnd}",
-  "diveLog_cylinders_columnTank": "Fles",
-  "diveLog_cylinders_columnGas": "Gas",
-  "diveLog_cylinders_columnStart": "Begin",
-  "diveLog_cylinders_columnEnd": "Eind",
-  "diveLog_cylinders_columnUsed": "Gebruikt",
+  "diveLog_cylinders_figureStart": "Begin {pressure}",
+  "diveLog_cylinders_figureEnd": "Eind {pressure}",
+  "diveLog_cylinders_figureUsed": "Gebruikt {pressure}",
+  "diveLog_cylinders_gasSemantics": "Gas {mix}",
   "diveLog_cylinders_gasUsed": "Gas gebruikt {amount}",
   "diveLog_cylinders_mod": "MOD {depth}",
   "diveLog_cylinders_mnd": "MND {depth}",
   "diveLog_cylinders_modNote": "MOD bij ppO₂ {ppO2}",
+  "diveLog_cylinders_modLimit": "{ppO2} ({limit})",
+  "diveLog_cylinders_modLimitSeparator": ", ",
   "diveLog_tank_section_gasMix": "Gasmengsel",
   "diveLog_tank_computerMix_matches": "Vastgelegd door je duikcomputer",
   "diveLog_tank_computerMix_differs": "Je duikcomputer heeft {mix} vastgelegd",
@@ -3224,6 +3426,12 @@
   "divePlanner_gasOptions_problemSolvingMinutes": "Tijd voor probleemoplossing",
   "divePlanner_gasOptions_ppO2Bottom": "Bodem-ppO₂",
   "divePlanner_gasOptions_ppO2Deco": "Deco-ppO₂",
+  "divePlanner_gasOptions_ppO2DecoBand1": "Deco-ppO₂ tot 28% O2",
+  "divePlanner_gasOptions_ppO2DecoBand2": "Deco-ppO₂ 28-45% O2",
+  "divePlanner_gasOptions_ppO2DecoBand3": "Deco-ppO₂ 45-99% O2",
+  "divePlanner_gasOptions_maxO2DepthMeters": "Max. diepte 100% O2",
+  "divePlanner_gasOptions_hypercapniaAmv": "Hypercapnie-RMV",
+  "divePlanner_gasOptions_hypercapniaMinutes": "Duur",
   "divePlanner_gasOptions_bestMixEnd": "END voor beste mengsel",
   "divePlanner_gasOptions_o2Narcotic": "O₂ als narcotisch behandelen voor dit plan",
   "divePlanner_label_on": "Aan",
@@ -4301,6 +4509,7 @@
   "cylinderConfigs_fromPreset": "Uit voorinstelling",
   "tankMod_label": "MOD",
   "tankMod_default": "Standaard bij ppO2 {ppO2} ({limit})",
+  "tankMod_defaultDepth": "Standaard bij {depth} ({limit})",
   "tankMod_limitBottom": "bodemlimiet",
   "tankMod_limitDeco": "decolimiet",
   "tankMod_limitDiluent": "Dil-MOD",
@@ -5660,6 +5869,7 @@
   "plannerCanvas_issue_gasDensityHigh": "Gasdichtheid {value} g/L boven aanbevolen limiet",
   "plannerCanvas_issue_hypoxic": "Hypoxisch gas op {depth} (ppO₂ {value} bar)",
   "plannerCanvas_issue_minGas": "Fles eindigt onder het rock-bottom-minimum van {pressure}",
+  "plannerCanvas_issue_noUsableGas": "Rock-bottom-minimum van {minGas} laat geen bruikbaar gas over in een vulling van {fill}",
   "plannerCanvas_issue_diluentModExceeded": "Diluent overschrijdt de Dil-MOD op {depth} (ppO₂ {value} bar)",
   "plannerCanvas_issue_ceilingViolated": "Het profiel gaat boven het decompressieplafond van {ceiling} en slaat verplichte stops over",
   "plannerCanvas_issue_noBailout": "CCR-decompressieplan heeft geen bailoutgas aan boord",
@@ -5998,7 +6208,13 @@
   "sharedLibrary_connect_folderChars": "Een bibliotheekmap mag geen *, ? of dollartekens bevatten.",
   "sharedLibrary_setup_title": "Opslag instellen",
   "sharedLibrary_setup_where": "Deze bibliotheek staat in {folder} bovenaan de bucket of server, naast submersion-sync en submersion-media.",
-  "@sharedLibrary_setup_where": {"placeholders": {"folder": {"type": "String"}}},
+  "@sharedLibrary_setup_where": {
+    "placeholders": {
+      "folder": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_setup_keys": "Geef eigenaars en redacteuren sleutels die de bibliotheekmap lezen en schrijven. Geef alle anderen sleutels die haar lezen en alleen in members/ en suggestions/ schrijven. De opslag, niet de app, houdt een sleutel tegen bij het schrijven.",
   "sharedLibrary_setup_s3Full": "S3-beleid voor eigenaars en redacteuren",
   "sharedLibrary_setup_s3Reader": "S3-beleid voor lezers",
@@ -6013,22 +6229,52 @@
   "sharedLibrary_members_approve": "Goedkeuren",
   "sharedLibrary_members_reject": "Weigeren",
   "sharedLibrary_members_fingerprint": "Sleutel {fingerprint}",
-  "@sharedLibrary_members_fingerprint": {"placeholders": {"fingerprint": {"type": "String"}}},
+  "@sharedLibrary_members_fingerprint": {
+    "placeholders": {
+      "fingerprint": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_members_unsignedCard": "Kaart niet ondertekend door het lid",
   "sharedLibrary_members_rejectTitle": "{name} weigeren?",
-  "@sharedLibrary_members_rejectTitle": {"placeholders": {"name": {"type": "String"}}},
+  "@sharedLibrary_members_rejectTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_members_rejectBody": "De kaart wordt verwijderd en niets wat diegene schrijft telt mee. Alleen nieuwe opslagsleutels houden diegene helemaal tegen bij het schrijven van bestanden.",
   "sharedLibrary_members_left": "Hebben de bibliotheek verlaten",
   "sharedLibrary_members_removeRole": "Rol verwijderen",
   "sharedLibrary_members_remove": "Uit de bibliotheek verwijderen",
   "sharedLibrary_members_removeTitle": "{name} verwijderen?",
-  "@sharedLibrary_members_removeTitle": {"placeholders": {"name": {"type": "String"}}},
+  "@sharedLibrary_members_removeTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_members_removeBody": "{name} kan dan geen locaties meer bewerken of wijzigingen voorstellen. Locaties en wijzigingen die diegene al heeft bijgedragen, blijven in de bibliotheek.\n\nLezen kan diegene de bibliotheek nog tot je de opslagsleutels wijzigt, en de wachtwoordzin als ze versleuteld is.",
-  "@sharedLibrary_members_removeBody": {"placeholders": {"name": {"type": "String"}}},
+  "@sharedLibrary_members_removeBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_members_removeConfirm": "Verwijderen",
   "sharedLibrary_members_removedHeader": "Verwijderd",
   "sharedLibrary_members_removedOn": "Verwijderd op {date}",
-  "@sharedLibrary_members_removedOn": {"placeholders": {"date": {"type": "String"}}},
+  "@sharedLibrary_members_removedOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_members_allowBack": "Weer toelaten",
   "sharedLibrary_owner_onlyOne": "Er is maar één eigenaar. Verliest die de toegang, dan kan alleen de herstelcode die terugbrengen.",
   "sharedLibrary_owner_addOwner": "Nog een eigenaar kiezen",
@@ -6043,7 +6289,19 @@
   "sharedLibrary_owner_resetHelp": "Alleen als er geen eigenaar en geen herstelcode meer is. Elk lid moet het accepteren.",
   "sharedLibrary_owner_resetConfirm": "Jezelf de enige eigenaar maken? Het apparaat van elk ander lid vraagt om dit te accepteren en schrijft tot dan niet naar de bibliotheek.",
   "sharedLibrary_owner_resetPrompt": "{name} heeft het eigenaarschap van {library} opnieuw ingesteld (sleutel {fingerprint}). Tot je accepteert, leest dit apparaat de bibliotheek alleen.",
-  "@sharedLibrary_owner_resetPrompt": {"placeholders": {"library": {"type": "String"}, "name": {"type": "String"}, "fingerprint": {"type": "String"}}},
+  "@sharedLibrary_owner_resetPrompt": {
+    "placeholders": {
+      "library": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      },
+      "fingerprint": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_owner_resetAccept": "Accepteren",
   "sharedLibrary_connect_untrusted": "De rollen van deze bibliotheek zijn niet ondertekend door een van haar eigenaars. Vraag een eigenaar dit na te kijken.",
   "sharedLibrary_retired": "Deze bibliotheek is gemaakt met een testversie van Submersion. Maak haar opnieuw.",
@@ -6062,7 +6320,16 @@
   "sharedLibrary_backups_inStorage": "In de opslag",
   "sharedLibrary_backups_both": "Op dit apparaat en in de opslag",
   "sharedLibrary_backups_summary": "Duiklocaties: {sites} · {size}",
-  "@sharedLibrary_backups_summary": {"placeholders": {"sites": {"type": "int"}, "size": {"type": "String"}}},
+  "@sharedLibrary_backups_summary": {
+    "placeholders": {
+      "sites": {
+        "type": "int"
+      },
+      "size": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_backups_pin": "Vastmaken",
   "sharedLibrary_backups_unpin": "Losmaken",
   "sharedLibrary_backups_delete": "Verwijderen",
@@ -6071,7 +6338,13 @@
   "sharedLibrary_backups_export": "Exporteren",
   "sharedLibrary_backups_restore": "Herstellen",
   "sharedLibrary_backups_restoreConfirm": "De bibliotheek herstellen naar hoe die was op {date}? Elk lid krijgt deze versie bij de volgende synchronisatie. Eerst wordt een vastgemaakte back-up van de huidige bibliotheek gemaakt.",
-  "@sharedLibrary_backups_restoreConfirm": {"placeholders": {"date": {"type": "String"}}},
+  "@sharedLibrary_backups_restoreConfirm": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_backups_restoreDone": "Bibliotheek hersteld",
   "sharedLibrary_backups_oldKey": "Deze back-up is verzegeld met een eerdere wachtwoordzin. Voer die wachtwoordzin of de herstelcode van toen in.",
   "sharedLibrary_backups_empty": "Nog geen back-ups. De apparaten van eigenaars maken er elke dag een, en Nu back-up maken maakt er meteen een.",
@@ -6079,17 +6352,41 @@
   "sharedLibrary_backups_ownersOnly": "Alleen eigenaars beheren back-ups.",
   "sharedLibrary_backups_done": "Back-up gemaakt",
   "sharedLibrary_library_myKey": "Jouw sleutel {fingerprint}",
-  "@sharedLibrary_library_myKey": {"placeholders": {"fingerprint": {"type": "String"}}},
+  "@sharedLibrary_library_myKey": {
+    "placeholders": {
+      "fingerprint": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_suggest_held": "{count, plural, =1{1 suggestie wacht tot je de auteur goedkeurt} other{{count} suggesties wachten tot je hun auteurs goedkeurt}}",
-  "@sharedLibrary_suggest_held": {"placeholders": {"count": {"type": "int"}}},
+  "@sharedLibrary_suggest_held": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "sharedLibrary_restoreInto_action": "Herstellen uit een back-upbestand",
   "sharedLibrary_restoreInto_needsKey": "Deze back-up is versleuteld. Voer de wachtwoordzin of herstelcode in.",
   "sharedLibrary_restoreInto_refused": "Dat bestand is geen bibliotheekback-up die door een eigenaar is gemaakt.",
   "sharedLibrary_restoreInto_oldStillThere": "De bibliotheek staat ook nog in de oude map. Leden daar blijven die kopie gebruiken tot ze verbinding maken met deze map.",
   "sharedLibrary_encrypted_locked": "Voer de wachtwoordzin voor {library} in.",
-  "@sharedLibrary_encrypted_locked": {"placeholders": {"library": {"type": "String"}}},
+  "@sharedLibrary_encrypted_locked": {
+    "placeholders": {
+      "library": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_encrypted_changed": "De wachtwoordzin van {library} is gewijzigd. Voer de nieuwe in.",
-  "@sharedLibrary_encrypted_changed": {"placeholders": {"library": {"type": "String"}}},
+  "@sharedLibrary_encrypted_changed": {
+    "placeholders": {
+      "library": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_encryption_title": "Versleuteling",
   "sharedLibrary_encryption_statusOn": "Versleuteld met een wachtwoordzin",
   "sharedLibrary_encryption_statusOff": "Niet versleuteld: iedereen met toegang tot de opslag kan haar lezen",
@@ -6102,7 +6399,13 @@
   "sharedLibrary_encryption_passphrase": "Wachtwoordzin",
   "sharedLibrary_encryption_confirm": "Wachtwoordzin opnieuw",
   "sharedLibrary_connect_join_action": "Deelnemen aan {name}",
-  "@sharedLibrary_connect_join_action": {"placeholders": {"name": {"type": "String"}}},
+  "@sharedLibrary_connect_join_action": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_connect_create_action": "Bibliotheek maken",
   "sharedLibrary_connect_create_name_label": "Naam van de bibliotheek",
   "sharedLibrary_connect_displayName_label": "Je naam in deze bibliotheek",
@@ -6114,15 +6417,33 @@
   "sharedLibrary_role_owner": "Eigenaar",
   "sharedLibrary_library_members": "Leden",
   "sharedLibrary_library_memberCount": "{count, plural, =1{1 lid} other{{count} leden}}",
-  "@sharedLibrary_library_memberCount": {"placeholders": {"count": {"type": "int"}}},
+  "@sharedLibrary_library_memberCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "sharedLibrary_library_syncNow": "Nu synchroniseren",
   "sharedLibrary_library_lastSync": "Laatste synchronisatie {when}",
-  "@sharedLibrary_library_lastSync": {"placeholders": {"when": {"type": "String"}}},
+  "@sharedLibrary_library_lastSync": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_library_neverSynced": "Nog niet gesynchroniseerd",
   "sharedLibrary_library_readOnlyBanner": "Je inloggegevens staan alleen lezen toe. Je kunt wijzigingen voorstellen; een beheerder past ze toe.",
   "sharedLibrary_library_removedBanner": "Een beheerder heeft je uit deze bibliotheek verwijderd. De locaties blijven op dit apparaat, maar je kunt ze niet meer wijzigen. Als je de bibliotheek verlaat, houd je eigen kopieën van de locaties waar je gedoken hebt.",
   "sharedLibrary_library_errorBanner": "Laatste synchronisatie mislukt: {error}",
-  "@sharedLibrary_library_errorBanner": {"placeholders": {"error": {"type": "String"}}},
+  "@sharedLibrary_library_errorBanner": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_syncError_accountMissing": "Het account van deze bibliotheek staat niet meer op dit apparaat. Gebruik Verbinding wijzigen om het opnieuw te kiezen.",
   "sharedLibrary_syncError_accountSignedOut": "Dit apparaat is afgemeld bij het account van deze bibliotheek. Meld je opnieuw aan via Gekoppelde accounts, of gebruik Verbinding wijzigen.",
   "sharedLibrary_syncError_notALibrary": "Geen bibliotheek op deze locatie.",
@@ -6131,7 +6452,13 @@
   "sharedLibrary_library_suggestions": "Suggesties",
   "sharedLibrary_library_leave": "Bibliotheek verlaten",
   "sharedLibrary_library_leaveConfirm_title": "{name} verlaten?",
-  "@sharedLibrary_library_leaveConfirm_title": {"placeholders": {"name": {"type": "String"}}},
+  "@sharedLibrary_library_leaveConfirm_title": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_library_leaveConfirm_body": "Gedeelde duikstekken die je duiken gebruiken blijven als persoonlijke kopieën. Andere gedeelde duikstekken worden van dit apparaat verwijderd.",
   "sharedLibrary_library_rename_label": "Weergavenaam",
   "sharedLibrary_members_setRole": "Rol wijzigen",
@@ -6143,23 +6470,68 @@
   "sharedLibrary_connect_exists": "Iemand heeft hier intussen een bibliotheek gemaakt. Controleer opnieuw om lid te worden.",
   "sharedLibrary_library_lastOwnerLeave": "Maak een ander lid eigenaar voordat je vertrekt.",
   "sharedLibrary_site_badgeTooltip": "In {name}",
-  "@sharedLibrary_site_badgeTooltip": {"placeholders": {"name": {"type": "String"}}},
+  "@sharedLibrary_site_badgeTooltip": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_site_lastEdited": "Laatst bewerkt door {name}, {when}",
-  "@sharedLibrary_site_lastEdited": {"placeholders": {"name": {"type": "String"}, "when": {"type": "String"}}},
+  "@sharedLibrary_site_lastEdited": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_site_history": "Bewerkingsgeschiedenis",
   "sharedLibrary_site_addToLibrary": "Toevoegen aan gedeelde duikstekbibliotheek",
   "sharedLibrary_add_confirm_title": "{name} toevoegen aan {library}?",
-  "@sharedLibrary_add_confirm_title": {"placeholders": {"name": {"type": "String"}, "library": {"type": "String"}}},
+  "@sharedLibrary_add_confirm_title": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "library": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_add_confirm_titleMany": "{count, plural, =1{{count} duikstek toevoegen aan {library}?} other{{count} duikstekken toevoegen aan {library}?}}",
-  "@sharedLibrary_add_confirm_titleMany": {"placeholders": {"count": {"type": "int"}, "library": {"type": "String"}}},
+  "@sharedLibrary_add_confirm_titleMany": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "library": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_add_confirm_shared": "Elk lid ziet: naam, locatie, dieptes, beschrijving, gevaren, toegang, in- en uitstap, afmeren, parkeren, stektypes, tags, soorten en kenmerken.",
   "sharedLibrary_add_confirm_private": "Blijft van jou: je notities en beoordeling. Duiken en foto's verlaten je persoonlijke bibliotheek nooit.",
   "sharedLibrary_add_confirm_action": "Toevoegen",
   "sharedLibrary_site_chooseLibrary": "Kies een bibliotheek",
   "sharedLibrary_site_added": "Toegevoegd aan {name}",
-  "@sharedLibrary_site_added": {"placeholders": {"name": {"type": "String"}}},
+  "@sharedLibrary_site_added": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_site_notConnectedHere": "Deze duikstek staat in {name}, die niet is verbonden op dit apparaat.",
-  "@sharedLibrary_site_notConnectedHere": {"placeholders": {"name": {"type": "String"}}},
+  "@sharedLibrary_site_notConnectedHere": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_site_connectHere": "Verbinden op dit apparaat",
   "sharedLibrary_site_deleteFromLibrary_title": "Verwijderen uit de gedeelde duikstekbibliotheek?",
   "sharedLibrary_site_deleteFromLibrary_body": "Leden van wie de duiken deze duikstek gebruiken, houden een persoonlijke kopie.",
@@ -6171,12 +6543,27 @@
   "sharedLibrary_suggest_nothingChanged": "Niets gewijzigd.",
   "sharedLibrary_suggest_savedPrivate": "Je notities en beoordeling zijn opgeslagen.",
   "sharedLibrary_suggest_pending": "{count, plural, =1{1 suggestie in behandeling} other{{count} suggesties in behandeling}}",
-  "@sharedLibrary_suggest_pending": {"placeholders": {"count": {"type": "int"}}},
+  "@sharedLibrary_suggest_pending": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "sharedLibrary_suggest_withdraw": "Intrekken",
   "sharedLibrary_inbox_title": "Suggesties",
   "sharedLibrary_inbox_empty": "Geen suggesties in behandeling.",
   "sharedLibrary_inbox_from": "Van {name}, {when}",
-  "@sharedLibrary_inbox_from": {"placeholders": {"name": {"type": "String"}, "when": {"type": "String"}}},
+  "@sharedLibrary_inbox_from": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_inbox_accept": "Accepteren",
   "sharedLibrary_inbox_dismiss": "Negeren",
   "sharedLibrary_inbox_siteDeleted": "Deze duikstek is uit de bibliotheek verwijderd.",
@@ -6522,6 +6909,21 @@
   "settings_conflict_field_autoTagImports": "Geïmporteerde duiken labelen",
   "settings_conflict_field_downloadsFollowComputerOwner": "Downloads toevoegen aan de eigenaar van de computer",
   "settings_conflict_field_omitUnusedOcGases": "Ongebruikte bailoutgassen overslaan",
+  "settings_conflict_field_diveListSort": "Duiken: sortering",
+  "settings_conflict_field_divePlanListSort": "Opgeslagen plannen: sortering",
+  "settings_conflict_field_tripListSort": "Reizen: sortering",
+  "settings_conflict_field_courseListSort": "Cursussen: sortering",
+  "settings_conflict_field_buddyListSort": "Buddy's: sortering",
+  "settings_conflict_field_diveCenterListSort": "Duikcentra: sortering",
+  "settings_conflict_field_siteListSort": "Duikstekken: sortering",
+  "settings_conflict_field_certificationListSort": "Brevetten: sortering",
+  "settings_conflict_field_equipmentListSort": "Uitrusting: sortering",
+  "settings_conflict_field_siteListGroupBy": "Duikstekken: groepering",
+  "settings_conflict_field_certificationListGroupBy": "Brevetten: groepering",
+  "settings_conflict_field_equipmentArrangement": "Ordening van uitrusting",
+  "settings_conflict_field_equipmentGroupByLocation": "Uitrusting gegroepeerd op locatie",
+  "settings_conflict_field_listArrangementHlc": "Log van lijstordening",
+  "settings_conflict_sortValue": "{field}, {direction}",
   "settings_conflict_field_avgSpeed": "Gemiddelde snelheid",
   "settings_conflict_field_batteryReserveFraction": "Accureserve",
   "settings_conflict_field_bboxHeight": "Hoogte van het kader",
@@ -6881,6 +7283,12 @@
   "settings_conflict_field_portName": "Haven",
   "settings_conflict_field_ppO2Bottom": "ppO2 op de bodem",
   "settings_conflict_field_ppO2Deco": "ppO2 tijdens deco",
+  "settings_conflict_field_ppO2DecoBand1": "Deco-ppO2 tot 28% O2",
+  "settings_conflict_field_ppO2DecoBand2": "Deco-ppO2 28-45% O2",
+  "settings_conflict_field_ppO2DecoBand3": "Deco-ppO2 45-99% O2",
+  "settings_conflict_field_ppO2DecoBandsEnabled": "Deco-ppO2-limieten per O2-band",
+  "settings_conflict_field_maxO2DepthEnabled": "Expliciete maximale diepte voor 100% O2",
+  "settings_conflict_field_maxO2DepthMeters": "Maximale diepte voor 100% O2",
   "settings_conflict_field_ppO2MaxDeco": "Hoogste ppO2 tijdens deco",
   "settings_conflict_field_ppO2MaxWorking": "Hoogste werk-ppO2",
   "settings_conflict_field_preDiveChecklistTemplates_category": "Categorie",
@@ -6891,6 +7299,13 @@
   "settings_conflict_field_pressureBar": "Druk",
   "settings_conflict_field_pressureUnit": "Eenheid voor druk",
   "settings_conflict_field_priorDiveCount": "Duiken voor dit logboek",
+  "settings_conflict_field_buddyCardShare": "Delen van buddykaart",
+  "settings_conflict_field_cardDiveCount": "Duiken (volgens kaart)",
+  "settings_conflict_field_cardDivingSince": "Duikt sinds (volgens kaart)",
+  "settings_conflict_field_cardId": "Buddykaart",
+  "settings_conflict_field_cardLastDive": "Laatste duik (volgens kaart)",
+  "settings_conflict_field_cardReceivedAt": "Kaart ontvangen",
+  "settings_conflict_field_socialHandle": "Socialemedianaam",
   "settings_conflict_field_priorDiveTimeSeconds": "Duiktijd voor dit logboek",
   "settings_conflict_field_problemSolvingMinutes": "Tijd om problemen op te lossen",
   "settings_conflict_field_provider": "Aanbieder",
@@ -7086,6 +7501,7 @@
   "settings_conflict_field_valueUnit": "Eenheid",
   "settings_conflict_field_verdict": "Oordeel",
   "settings_conflict_field_verifyFactsHlc": "Controlelog",
+  "settings_conflict_field_videoPositionMs": "Tijd in video (ms)",
   "settings_conflict_field_vesselName": "Schip",
   "settings_conflict_field_vesselType": "Soort schip",
   "settings_conflict_field_viewMode": "Weergave",
@@ -7307,6 +7723,21 @@
   "settings_decompression_ppO2LimitsTitle": "ppO2-limieten OC",
   "settings_decompression_ppO2LimitsSubtitle": "Werk {working} bar · Max {max} bar",
   "settings_decompression_ppO2Dialog_title": "ppO2-limieten OC",
+  "settings_decompression_ppO2BandsTitle": "Deco-limieten per O2-band",
+  "settings_decompression_ppO2BandsSubtitle": "Optionele, fijnere deco-ppO2-limieten voor de Dive Planner",
+  "settings_decompression_ppO2BandsDialog_title": "Deco-ppO2: per O2-band",
+  "settings_decompression_ppO2BandsDialog_bandsToggle": "Deco-limieten per O2-band gebruiken",
+  "settings_decompression_ppO2BandsDialog_band1": "Tot 28% O2",
+  "settings_decompression_ppO2BandsDialog_band2": "28–45% O2",
+  "settings_decompression_ppO2BandsDialog_band3": "45–99% O2",
+  "settings_decompression_ppO2BandsDialog_maxO2DepthToggle": "Expliciete maximale diepte voor 100% O2 gebruiken",
+  "settings_decompression_ppO2BandsDialog_maxO2DepthLabel": "Maximale diepte voor 100% O2",
+  "settings_decompression_hypercapniaTitle": "Hypercapnie-bailoutfase",
+  "settings_decompression_hypercapniaSubtitle": "Optioneel verhoogde ademfrequentie bij het begin van een CCR/SCR OC-bailout",
+  "settings_decompression_hypercapniaDialog_title": "Hypercapnie-bailoutfase",
+  "settings_decompression_hypercapniaDialog_enabledToggle": "Hypercapniefase gebruiken voor OC-bailout",
+  "settings_decompression_hypercapniaDialog_factorLabel": "RMV-factor",
+  "settings_decompression_hypercapniaDialog_minutesLabel": "Duur",
   "settings_decompression_ccrPpO2LimitsTitle": "ppO2-limieten CCR",
   "settings_decompression_ccrPpO2LimitsSubtitle": "Setpoint laag {low} · hoog {high} · Dil-MOD {dil} bar",
   "settings_decompression_ccrDialog_info": "Standaardwaarden voor duiken met een rebreather. De CCR-modus van de MOD-calculator start met deze waarden.",
@@ -8332,6 +8763,18 @@
   "insights_timePatterns_seasonal_error": "Kan seizoensgegevens niet laden",
   "insights_timePatterns_seasonal_subtitle": "Duiken per maand (alle jaren)",
   "insights_timePatterns_seasonal_title": "Seizoenspatronen",
+  "insights_timePatterns_calendarDays_title": "Kalenderdagen",
+  "insights_timePatterns_calendarDays_subtitle": "Duiken op elke datum van het jaar (alle jaren)",
+  "insights_timePatterns_calendarDays_coverage": "{covered} van {total} kalenderdagen ({percent})",
+  "insights_timePatterns_calendarDays_busiestMonth": "Drukste maand: {months}",
+  "insights_timePatterns_calendarDays_busiestDay": "Drukste dag van de maand: {days}",
+  "insights_timePatterns_calendarDays_cellSemantics": "{date}, {count, plural, =0{geen duiken} one{{count} duik} other{{count} duiken}}",
+  "insights_timePatterns_calendarDays_totalSemantics": "{label}, {count, plural, =0{geen duiken} one{{count} duik} other{{count} duiken}} in totaal",
+  "insights_timePatterns_calendarDays_dayLabel": "Dag {day}",
+  "insights_timePatterns_calendarDays_total": "Alle datums",
+  "insights_timePatterns_calendarDays_listSeparator": ", ",
+  "insights_timePatterns_calendarDays_empty": "Nog geen duiken om op de kalender te zetten",
+  "insights_timePatterns_calendarDays_error": "Kalenderdagen konden niet worden geladen",
   "insights_timePatterns_surfaceInterval_average": "Gemiddeld",
   "insights_timePatterns_surfaceInterval_empty": "Geen oppervlakte-intervalgegevens beschikbaar",
   "insights_timePatterns_surfaceInterval_error": "Kan oppervlakte-intervalgegevens niet laden",
@@ -8724,6 +9167,10 @@
   "trips_detail_dialog_cancel": "Annuleren",
   "trips_detail_dialog_deleteConfirm": "Verwijderen",
   "trips_detail_dialog_deleteContent": "Weet je zeker dat je \"{name}\" wilt verwijderen? De reis wordt verwijderd maar de duiken blijven bewaard.",
+  "trips_delete_sideTripsStandalone": "{count, plural, one{De zijreis wordt een eigen reis.} other{De {count} zijreizen worden eigen reizen.}}",
+  "trips_delete_divesReturnToParent": "De duiken gaan terug naar {name}.",
+  "trips_bulkDelete_sideTripsStandalone": "{count, plural, one{{count} zijreis wordt een eigen reis.} other{{count} zijreizen worden eigen reizen.}}",
+  "trips_bulkDelete_divesReturnToParents": "Duiken van verwijderde zijreizen gaan terug naar hun grotere reizen.",
   "trips_detail_dialog_deleteTitle": "Reis verwijderen?",
   "trips_detail_dives_empty": "Nog geen duiken in deze reis",
   "trips_detail_dives_errorLoading": "Kan duiken niet laden",
@@ -8870,6 +9317,9 @@
   "trips_edit_hint_operatorName": "bijv. Red Sea Divers",
   "trips_edit_hint_resortName": "bijv. Marsa Shagra",
   "trips_edit_hint_tripName": "bijv. Rode Zee Safari 2024",
+  "trips_edit_field_partOf": "Onderdeel van",
+  "trips_edit_partOf_none": "Geen (een eigen reis)",
+  "trips_edit_partOf_helper": "Maakt hiervan een zijreis binnen een grotere reis",
   "trips_edit_hint_vesselName": "bijv. Ocean Explorer",
   "trips_edit_label_cabinType": "Type hut",
   "trips_edit_label_capacity": "Passagierscapaciteit",
@@ -9372,6 +9822,10 @@
   "trips_list_pastSection": "Afgelopen reizen",
   "trips_list_sort_title": "Reizen sorteren",
   "trips_list_tile_diveCount": "{count, plural, =1{{count} duik} other{{count} duiken}}",
+  "trips_list_sideTripCount": "{count, plural, one{{count} zijreis} other{{count} zijreizen}}",
+  "trips_partOf": "Onderdeel van {name}",
+  "trips_fromSelection_name": "{location}, {monthYear}",
+  "trips_fromSelection_nameNoLocation": "Reis, {monthYear}",
   "trips_list_tooltip_addTrip": "Reis toevoegen",
   "trips_list_tooltip_search": "Reizen zoeken",
   "trips_list_tooltip_sort": "Sorteren",
@@ -9821,6 +10275,7 @@
   "settings_homeChips_uploads": "Media-uploads",
   "settings_homeChips_backup": "Back-upleeftijd",
   "settings_homeChips_sync": "Synchronisatiestatus",
+  "settings_homeChips_nearby": "Apparaten in de buurt",
   "settings_homeChips_dataQuality": "Datakwaliteit",
   "dashboard_gauges_certsNeedAttention": "{count, plural, =1{{count} certificering vraagt aandacht} other{{count} certificeringen vragen aandacht}}",
   "dashboard_gauges_tripCountdown": "{name} over {days}d",
@@ -9832,6 +10287,8 @@
   "dashboard_gauges_backupDays": "Back-up {days}d geleden",
   "dashboard_gauges_syncPending": "{count} niet gesynchroniseerd",
   "dashboard_gauges_synced": "Gesynchroniseerd",
+  "dashboard_gauges_nearby": "In de buurt: {name} vraagt aandacht",
+  "dashboard_gauges_nearbyMore": "In de buurt: {name} en andere vragen aandacht",
   "dashboard_gauges_dataIssues": "{count, plural, =1{1 dataprobleem} other{{count} dataproblemen}}",
   "dashboard_gauges_retry": "Status niet beschikbaar - tik om opnieuw te proberen",
   "dashboard_media_title": "Recente media",
@@ -10158,9 +10615,9 @@
   "divers_delete_keptEquipment_toOne": "{count, plural, one{{count} uitrustingsstuk overgedragen aan {name}.} other{{count} uitrustingsstukken overgedragen aan {name}.}}",
   "divers_delete_keptEquipment_toMany": "{count, plural, one{{count} uitrustingsstuk overgedragen aan de profielen die het gebruiken.} other{{count} uitrustingsstukken overgedragen aan de profielen die ze gebruiken.}}",
   "divers_delete_handedOver": "{count, plural, one{{count} gedeelde trip of site ging naar het profiel waarmee hij gedeeld was.} other{{count} gedeelde trips en sites gingen naar de profielen waarmee ze gedeeld waren.}}",
-  "settings_shareAllSites_confirm": "Kies wie al je {count} duikplekken ziet. Om één duikplek later te wijzigen, open je hem en tik je op Gedeeld met.",
+  "settings_shareAllSites_confirm": "Kies wie al je {count} duikplekken ziet. Om één duikplek later te wijzigen, bewerk je hem en tik je op Gedeeld met.",
   "settings_shareAllSites_title": "Al mijn duikplekken delen...",
-  "settings_shareAllTrips_confirm": "Kies wie al je {count} trips ziet. Om één trip later te wijzigen, open je hem en tik je op Gedeeld met.",
+  "settings_shareAllTrips_confirm": "Kies wie al je {count} trips ziet. Om één trip later te wijzigen, bewerk je hem en tik je op Gedeeld met.",
   "settings_shareAllTrips_title": "Al mijn trips delen...",
   "settings_shareAll_noneToShare": "Niets om te delen.",
   "settings_shareByDefault_title": "Nieuwe sites en trips standaard delen",
@@ -10607,7 +11064,6 @@
   "settings_connectedAccounts_status_signedIn": "Aangemeld",
   "settings_connectedAccounts_status_unavailable": "Niet beschikbaar op dit apparaat",
   "settings_connectedAccounts_disconnectDevice": "Afmelden op dit apparaat",
-
   "settings_connectedAccounts_rename": "Naam wijzigen",
   "settings_connectedAccounts_renameTitle": "Accountnaam wijzigen",
   "settings_connectedAccounts_renameField": "Naam",
@@ -10652,6 +11108,41 @@
   "settings_sync_notSetUp": "Niet ingesteld",
   "settings_sync_offCustomFolder": "Uit zolang de database in een eigen map staat",
   "settings_sync_keepInStep": "Apparaten automatisch gelijk houden",
+  "settings_nearby_title": "Apparaten in de buurt",
+  "settings_nearby_auto_title": "Automatisch synchroniseren met apparaten in de buurt",
+  "settings_nearby_auto_subtitle": "Als een gekoppeld apparaat in de buurt open is, via Bluetooth",
+  "settings_nearby_linuxNote": "Andere apparaten kunnen deze computer niet vinden, dus synchroniseert hij met elk apparaat in de buurt behalve een andere Linux-computer",
+  "settings_nearby_pair": "Apparaat koppelen",
+  "settings_nearby_status_synced": "Gesynchroniseerd {when}",
+  "settings_nearby_status_syncing": "Synchroniseren: {done} van {total}",
+  "settings_nearby_status_never": "Nog niet gesynchroniseerd",
+  "settings_nearby_status_notSeen": "Niet gezien sinds {date}",
+  "settings_nearby_error_newerApp": "Dit apparaat heeft een nieuwere app-versie nodig",
+  "settings_nearby_error_peerOlderApp": "Het andere apparaat heeft een nieuwere app-versie nodig",
+  "settings_nearby_error_differentLibrary": "Niet dezelfde bibliotheek",
+  "settings_nearby_error_notPaired": "Ontkoppeld op het andere apparaat",
+  "settings_nearby_error_applyFailed": "Kon de wijzigingen niet toepassen",
+  "settings_nearby_error_bluetoothOff": "Bluetooth staat uit of is niet toegestaan",
+  "settings_nearby_error_unreachable": "Kon geen verbinding maken",
+  "settings_nearby_sheet_rename": "Naam wijzigen",
+  "settings_nearby_sheet_unpair": "Ontkoppelen",
+  "settings_nearby_unpair_confirm": "{name} ontkoppelen? Voor synchroniseren in de buurt moet het opnieuw gekoppeld worden.",
+  "settings_nearby_rename_title": "Apparaat hernoemen",
+  "settings_nearby_notInRange": "{name} is nu niet in de buurt",
+  "nearbyPair_looking": "Apparaten zoeken…",
+  "nearbyPair_hint": "Open Submersion op het andere apparaat en tik daar ook op Apparaat koppelen.",
+  "nearbyPair_found": "{name} gevonden. Controleer of het deze code toont en bevestig daarna op beide.",
+  "nearbyPair_sameCode": "Zelfde code",
+  "nearbyPair_notMine": "Niet van mij",
+  "nearbyPair_waiting": "Wachten op bevestiging van het andere apparaat…",
+  "nearbyPair_bothPopulated": "Beide apparaten bevatten duiken. Koppelen voegt ze samen tot één logboek.",
+  "nearbyPair_differentLibrary": "Dat apparaat gebruikt een andere bibliotheek en kan daarom niet aan dit apparaat gekoppeld worden.",
+  "nearbyPair_permissionDenied": "Submersion heeft Bluetooth-toestemming nodig om apparaten in de buurt te vinden.",
+  "nearbyPair_bluetoothOff": "Zet Bluetooth aan om apparaten in de buurt te vinden.",
+  "nearbyPair_unsupported": "Dit apparaat heeft geen Bluetooth die Submersion kan gebruiken.",
+  "nearbyPair_openSettings": "Instellingen openen",
+  "nearbyPair_done": "Gekoppeld met {name}",
+  "nearbyPair_failed": "Het koppelen is niet voltooid. Probeer het opnieuw op beide apparaten.",
   "settings_sync_alsoAtLaunch": "Ook synchroniseren bij het starten",
   "settings_sync_alsoOnReturn": "Ook synchroniseren bij terugkeer naar de app",
   "settings_sync_encryption": "Versleuteling",
@@ -14934,6 +15425,33 @@
   "media_species_otherSpecies": "Andere soorten...",
   "media_species_noDiveHint": "Deze foto is niet aan een duik gekoppeld. Zoek een soort om de foto te taggen.",
   "media_species_chipsLabel": "Soorttags",
+  "media_people_me": "Ik",
+  "media_people_chipsLabel": "Personentags",
+  "media_people_momentChip": "{name} · {time}",
+  "media_people_actionTooltip": "Personen taggen",
+  "media_people_tagModeHint": "Tik op een persoon om die te taggen",
+  "media_people_noSpotHint": "Hier kan geen plek worden gemarkeerd",
+  "media_people_withoutSpot": "Taggen zonder plek",
+  "media_people_done": "Gereed",
+  "media_people_pickerTitle": "Wie is dit?",
+  "media_people_searchHint": "Buddies zoeken",
+  "media_people_onThisDive": "Bij deze duik",
+  "media_people_everyoneElse": "Alle anderen",
+  "media_people_newBuddy": "Nieuwe buddy",
+  "media_people_newBuddyName": "Naam",
+  "media_people_newBuddyAdd": "Toevoegen",
+  "media_people_changePerson": "Persoon wijzigen",
+  "media_people_removeTag": "Tag verwijderen",
+  "media_people_resizeHint": "Sleep de hoeken om aan te passen",
+  "media_people_addToDiveOffer": "{name} toevoegen aan de buddies van deze duik?",
+  "media_people_addToDiveAction": "Toevoegen",
+  "media_people_buddyPhotosTitle": "Foto's en video's",
+  "media_people_buddyThumbnailLabel": "Foto of video met deze buddy",
+  "media_people_filterSection": "Personen",
+  "media_people_removedBuddy": "Verwijderde buddy",
+  "media_people_saveFailed": "De tag kon niet worden opgeslagen. Probeer het opnieuw.",
+  "media_people_addToDiveFailed": "De buddy kon niet aan deze duik worden toegevoegd. Probeer het opnieuw.",
+  "media_people_createBuddyFailed": "De buddy kon niet worden aangemaakt. Probeer het opnieuw.",
   "media_info_fileSection": "Bestand",
   "media_info_filename": "Bestandsnaam",
   "media_info_type": "Type",
@@ -15303,6 +15821,9 @@
   "startup_diveLogUnavailable_startNew_confirm": "Nieuw logboek beginnen",
   "backup_history_preDowngradeSubtitle": "Nieuwere database, bewaard bij het teruggaan - {size}",
   "backup_history_cloudOnlySubtitle": "In cloudopslag ({size})",
+  "backup_history_device_anotherDevice": "Ander apparaat",
+  "backup_history_device_thisDevice": "Dit apparaat",
+  "backup_history_subtitleWithDevice": "{summary} · {device}",
   "backup_history_manualSubtitle": "{diveCount, plural, =1{1 duik} other{{diveCount} duiken}}, {siteCount, plural, =1{1 duikstek} other{{siteCount} duikstekken}} - {size}",
   "backup_history_manualSubtitleAuto": "{diveCount, plural, =1{1 duik} other{{diveCount} duiken}}, {siteCount, plural, =1{1 duikstek} other{{siteCount} duikstekken}} - {size} (automatisch)",
   "settings_manage_transmitters": "Zenders",
@@ -15544,8 +16065,7 @@
   "diveDetailSection_navTrack_trackName": "Onderwatertrack",
   "diveDetailSection_navTrack_trackDescription": "Gemeten onderwatertrack vanaf een navigatieconsole",
   "navTrack_list_durationHours": "{hours}u {minutes}min",
-  "navTrack_list_durationMinutes": "{minutes}min"
-,
+  "navTrack_list_durationMinutes": "{minutes}min",
   "gasCalculators_mod_semanticsLabel": "Maximale werkdiepte: {depth} {unit} bij {ppo2} bar ppO2 met {o2}% zuurstof",
   "gasCalculators_blender_stepColumnAction": "Actie",
   "gasCalculators_blender_stepColumnAdded": "Toegevoegd",
@@ -15755,6 +16275,8 @@
   "query_dives_weight": "Lood",
   "query_dives_weights": "Lood",
   "query_dives_year": "Jaar",
+  "query_dives_month": "Maand",
+  "query_dives_day": "Dag van de maand",
   "query_entity_buddies": "Buddy's",
   "query_entity_centers": "Duikcentra",
   "query_entity_certifications": "Brevetten",
@@ -15847,6 +16369,7 @@
   "query_tanks_volume": "Volume",
   "query_trips_diveCount": "Aantal duiken",
   "query_trips_dives": "Duiken",
+  "query_trips_partOf": "Onderdeel van",
   "query_trips_endDate": "Einddatum",
   "query_trips_liveaboardName": "Liveaboard",
   "query_trips_location": "Locatie",
@@ -16172,6 +16695,7 @@
   "plannerCanvas_bailout_schedule": "Plan vanaf het ergste geval",
   "plannerCanvas_chartMode_bailout": "Bailout",
   "plannerCanvas_chartMode_ccr": "CCR",
+  "plannerCanvas_chartMode_scr": "SCR",
   "plannerCanvas_scrub_tts": "TTS {minutes}′",
   "plannerCanvas_table_end": "END",
   "plannerCanvas_table_ppO2": "PO2",
@@ -16263,6 +16787,8 @@
   "tags_manage_bulkDeleteMessage_several": "Deze tags worden verwijderd van:",
   "tags_manage_mergeAffected_several": "Dit heeft betrekking op:",
   "tags_manage_cannotUndo": "Dit kan niet ongedaan worden gemaakt.",
+  "tags_manage_rowScopes": "Voor: {scopes}",
+  "tags_manage_rowUsage": "Gebruikt op: {counts}",
   "tags_action_edit": "Tags bewerken",
   "media_info_tags": "Tags",
   "media_info_noTags": "Nog geen tags",
@@ -16370,5 +16896,31 @@
   "settings_setUpDevice_done_title": "{device, select, phone{Deze telefoon is ingesteld} tablet{Deze tablet is ingesteld} computer{Deze computer is ingesteld} other{Dit apparaat is ingesteld}}",
   "settings_setUpDevice_done_otherDevices": "Open Submersion op je andere apparaten, kies {account}, en dezelfde bibliotheek verschijnt.",
   "settings_setUpDevice_sync_inStep": "De duiken hier zijn gelijk met je bibliotheek in {account}.",
-  "setup_syncPull_startFresh": "Een nieuw logboek beginnen"
+  "setup_syncPull_startFresh": "Een nieuw logboek beginnen",
+  "demo_welcome_title": "Verkennen met voorbeeldgegevens",
+  "demo_welcome_subtitle": "Bekijk een volledig voorbeeldlogboek voordat je je eigen gegevens invoert",
+  "demo_settings_enter_title": "Verkennen met voorbeeldgegevens",
+  "demo_settings_enter_subtitle": "Je logboek wordt onaangeroerd apart gezet tot je afsluit",
+  "demo_settings_exit_title": "Demo afsluiten",
+  "demo_settings_exit_subtitle": "Voorbeeldlogboek weggooien en terug naar je eigen logboek",
+  "demo_strip_label": "Demomodus: je verkent voorbeeldgegevens",
+  "demo_strip_exit": "Demo afsluiten",
+  "demo_exit_confirm_title": "Demomodus afsluiten?",
+  "demo_exit_confirm_body": "Wijzigingen in het voorbeeldlogboek gaan verloren.",
+  "demo_exit_confirm_action": "Demo afsluiten",
+  "demo_enter_downloading": "Voorbeeldlogboek downloaden",
+  "demo_enter_preparing": "Voorbeeldlogboek voorbereiden",
+  "demo_enter_opening": "Voorbeeldlogboek openen",
+  "demo_enter_failed": "Het voorbeeldlogboek kon niet worden gedownload. Controleer je verbinding en probeer het opnieuw.",
+  "demo_enter_importRunning": "Er loopt nog een import. Verken de voorbeeldgegevens zodra die klaar is.",
+  "demo_sealed_note": "Niet beschikbaar in demomodus",
+  "demo_unavailable_title": "Niet beschikbaar in demomodus",
+  "demo_unavailable_body": "De demomodus houdt het voorbeeldlogboek gescheiden van je gegevens, dus er kan niets worden geïmporteerd, geëxporteerd, geback-upt of gesynchroniseerd.",
+  "demo_row_unavailable": "Niet beschikbaar in demomodus",
+  "demo_enter_confirm_title": "Verkennen met voorbeeldgegevens?",
+  "demo_enter_confirm_body": "Er wordt een voorbeeldlogboek ({size}) gedownload en geopend in plaats van het jouwe. Je logboek wordt onaangeroerd apart gezet tot je de demomodus afsluit.",
+  "demo_enter_confirm_action": "Downloaden",
+  "demo_enter_confirm_body_firstRun": "Er wordt een voorbeeldlogboek ({size}) gedownload om de app mee te verkennen. Sluit de demomodus af zodra je met je eigen logboek wilt beginnen.",
+  "demo_enter_changed_body": "Het voorbeeldlogboek is bijgewerkt en is nu {size}. Downloaden?",
+  "common_byteSize": "{value} {unit, select, B{B} KB{KB} MB{MB} GB{GB} TB{TB} other{{unit}}}"
 }

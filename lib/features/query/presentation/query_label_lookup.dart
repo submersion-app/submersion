@@ -135,6 +135,8 @@ String queryLabelForKey(AppLocalizations l10n, String key) {
       return l10n.query_dives_customFields;
     case 'query_dives_date':
       return l10n.query_dives_date;
+    case 'query_dives_day':
+      return l10n.query_dives_day;
     case 'query_dives_deco':
       return l10n.query_dives_deco;
     case 'query_dives_depth':
@@ -181,6 +183,8 @@ String queryLabelForKey(AppLocalizations l10n, String key) {
       return l10n.query_dives_legacyBuddy;
     case 'query_dives_media':
       return l10n.query_dives_media;
+    case 'query_dives_month':
+      return l10n.query_dives_month;
     case 'query_dives_name':
       return l10n.query_dives_name;
     case 'query_dives_notes':
@@ -545,6 +549,8 @@ String queryLabelForKey(AppLocalizations l10n, String key) {
       return l10n.query_trips_name;
     case 'query_trips_notes':
       return l10n.query_trips_notes;
+    case 'query_trips_partOf':
+      return l10n.query_trips_partOf;
     case 'query_trips_resortName':
       return l10n.query_trips_resortName;
     case 'query_trips_shared':

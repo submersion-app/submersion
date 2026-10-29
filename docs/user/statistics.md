@@ -98,7 +98,7 @@ rolling average and an overall trend line, and let you choose the range shown.
 | **Social** | Solo versus buddy dives, your top buddies, and your top dive centers |
 | **Geographic** | Dives by country, by region and by trip |
 | **Species** | Species spotted, your most common sightings, and the sites with the most variety |
-| **Time Patterns** | Dives by day of week, time of day and month, and your surface intervals |
+| **Time Patterns** | Dives by day of week, time of day and month, the calendar days you have dived on, and your surface intervals |
 | **Equipment** | Your most used gear, gear exposure, condition findings, reported issues, and your weight trend |
 | **Profile Analysis** | Average ascent and descent rates, time at depth ranges, and how many of your dives needed decompression stops |
 
@@ -178,6 +178,28 @@ dashed line. **Full comparison** gives every factor with the group's value,
 the value across all dives and the difference; rows that say nothing fold
 behind **Show more factors**. **The dives** lists the group, five at a time,
 and opens any dive you tap. Dive focus needs at least three dives to compare.
+
+### Calendar days
+
+Calendar days, on Time Patterns, counts your dives on each date of the year
+across every year you have logged: twelve rows for the months, 31 columns for
+the days. The more strongly coloured a cell, the more dives on that date; a
+plain grey cell showing 0 is a date you have never dived on, and dates that do
+not exist (30 February) show an **×**. The headline tells you how many of the 366 possible dates you have
+covered, 29 February included, and names your busiest month and busiest day
+of the month, which are also outlined in the totals. Each row ends with its
+month's total, each column with that day's total, and the corner holds the
+grand total.
+
+Tap a cell to open the dives logged on that date in every year. The list keeps
+your Insights filter, and the filter chips clear it. When the year is wider
+than the card (on a phone, or beside the list on a desktop) the days scroll
+sideways under a scrollbar while the month names stay put.
+
+A dive counts on the date it was logged, by the dive's own clock, so a night
+dive at 23:30 on 6 May counts on 6 May wherever you view it. Dives excluded
+from statistics are not counted, but they do appear in the list a cell opens,
+so that list can hold more dives than the cell shows.
 
 ### Profile Analysis
 

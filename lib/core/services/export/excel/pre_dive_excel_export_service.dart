@@ -9,6 +9,8 @@ import 'package:submersion/core/services/export/shared/file_export_utils.dart';
 import 'package:submersion/core/services/export/shared/unit_converters.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_template.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_session.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 
 /// Exports pre-dive checklist runs to a spreadsheet.
 ///
@@ -101,6 +103,7 @@ class PreDiveExcelExportService {
       sectionsBySession: sectionsBySession,
       dateFormat: dateFormat,
     );
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.export);
     final result = await FilePicker.saveFile(
       dialogTitle: 'Save Checklist Export',
       fileName: _fileName(),

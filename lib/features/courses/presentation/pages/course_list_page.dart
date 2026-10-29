@@ -29,6 +29,8 @@ import 'package:submersion/features/courses/presentation/providers/course_list_c
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 import 'package:submersion/shared/widgets/section_header_title.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/list_arrangement_writes.dart';
 
 class CourseListPage extends ConsumerStatefulWidget {
   const CourseListPage({super.key, this.headerTitle});
@@ -154,10 +156,11 @@ class _CourseListPageState extends ConsumerState<CourseListPage>
                       field.localizedName(context.l10n),
                   getFieldIcon: (field) => field.icon,
                   onSortChanged: (field, direction) {
-                    ref.read(courseSortProvider.notifier).state = SortState(
-                      field: field,
-                      direction: direction,
-                    );
+                    ref
+                        .read(settingsProvider.notifier)
+                        .setCourseSort(
+                          SortState(field: field, direction: direction),
+                        );
                   },
                 );
               },
@@ -169,7 +172,9 @@ class _CourseListPageState extends ConsumerState<CourseListPage>
                   final mode = ListViewMode.fromName(
                     value.replaceFirst('view_', ''),
                   );
-                  ref.read(courseListViewModeProvider.notifier).state = mode;
+                  ref
+                      .read(settingsProvider.notifier)
+                      .setCourseListViewMode(mode);
                 }
               },
               itemBuilder: (context) {

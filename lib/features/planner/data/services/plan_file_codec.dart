@@ -69,6 +69,18 @@ String planToSubplanJson(domain.DivePlan plan) {
       'sacBottom': plan.sacBottom,
       'sacDeco': plan.sacDeco,
       'sacStressed': plan.sacStressed,
+      // Per-plan deco ppO2 layers (issue #3580) and hypercapnia phase
+      // (issue #3743): absent from an older file, which imports as "follow
+      // Settings".
+      'ppO2DecoBand1': plan.ppO2DecoBand1,
+      'ppO2DecoBand2': plan.ppO2DecoBand2,
+      'ppO2DecoBand3': plan.ppO2DecoBand3,
+      'ppO2DecoBandsExplicitlyOff': plan.ppO2DecoBandsExplicitlyOff,
+      'maxO2DepthMeters': plan.maxO2DepthMeters,
+      'maxO2DepthExplicitlyOff': plan.maxO2DepthExplicitlyOff,
+      'hypercapniaAmv': plan.hypercapniaAmv,
+      'hypercapniaMinutes': plan.hypercapniaMinutes,
+      'hypercapniaExplicitlyOff': plan.hypercapniaExplicitlyOff,
       'reservePressure': plan.reservePressure,
       'setpointLow': plan.setpointLow,
       'setpointHigh': plan.setpointHigh,
@@ -253,6 +265,17 @@ domain.DivePlan _planFromMap(Map<String, dynamic> plan, DateTime timestamp) {
     sacBottom: (plan['sacBottom'] as num?)?.toDouble(),
     sacDeco: (plan['sacDeco'] as num?)?.toDouble(),
     sacStressed: (plan['sacStressed'] as num?)?.toDouble(),
+    ppO2DecoBand1: (plan['ppO2DecoBand1'] as num?)?.toDouble(),
+    ppO2DecoBand2: (plan['ppO2DecoBand2'] as num?)?.toDouble(),
+    ppO2DecoBand3: (plan['ppO2DecoBand3'] as num?)?.toDouble(),
+    ppO2DecoBandsExplicitlyOff:
+        plan['ppO2DecoBandsExplicitlyOff'] as bool? ?? false,
+    maxO2DepthMeters: (plan['maxO2DepthMeters'] as num?)?.toDouble(),
+    maxO2DepthExplicitlyOff: plan['maxO2DepthExplicitlyOff'] as bool? ?? false,
+    hypercapniaAmv: (plan['hypercapniaAmv'] as num?)?.toDouble(),
+    hypercapniaMinutes: (plan['hypercapniaMinutes'] as num?)?.toInt(),
+    hypercapniaExplicitlyOff:
+        plan['hypercapniaExplicitlyOff'] as bool? ?? false,
     reservePressure: (plan['reservePressure'] as num?)?.toDouble(),
     setpointLow: (plan['setpointLow'] as num?)?.toDouble(),
     setpointHigh: (plan['setpointHigh'] as num?)?.toDouble(),

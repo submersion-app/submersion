@@ -30,15 +30,23 @@ class SubmersionSaf {
 
   /// Streams the file at [sourcePath] into [treeUri] as [fileName]. Returns the
   /// created document's URI (stored as the backup record's ref).
+  ///
+  /// [replaceExisting] deletes a same-name document first, so a retried
+  /// scheduled backup does not pile up copies. Pass false for a copy the
+  /// diver saves into a folder of their choosing: the existing document is
+  /// left alone and the document provider picks a new name, such as
+  /// `name (1).db` (issue #3650).
   static Future<String> writeBackup({
     required String treeUri,
     required String fileName,
     required String sourcePath,
+    bool replaceExisting = true,
   }) async {
     final uri = await _channel.invokeMethod<String>('writeBackup', {
       'treeUri': treeUri,
       'fileName': fileName,
       'sourcePath': sourcePath,
+      'replaceExisting': replaceExisting,
     });
     return uri!;
   }

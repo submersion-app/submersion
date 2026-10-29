@@ -14,6 +14,8 @@ import 'package:submersion/core/services/cloud_storage/google_drive/google_drive
 import 'package:submersion/core/services/cloud_storage/google_drive/google_sign_in_authenticator.dart';
 import 'package:submersion/core/services/cloud_storage/google_drive/keychain_gated_authenticator.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 
 /// Google Drive implementation of CloudStorageProvider
 ///
@@ -291,6 +293,8 @@ class GoogleDriveStorageProvider
     String filename, {
     String? folderId,
   }) async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.sync);
+
     try {
       return await _run(() async {
         final targetFolder = folderId ?? await getOrCreateSyncFolder();
@@ -381,6 +385,8 @@ class GoogleDriveStorageProvider
     String filename, {
     String? folderId,
   }) async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.sync);
+
     try {
       return await _run(() async {
         final targetFolder = folderId ?? await getOrCreateSyncFolder();
@@ -534,6 +540,8 @@ class GoogleDriveStorageProvider
 
   @override
   Future<void> deleteFile(String fileId) async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.sync);
+
     try {
       await _run(() => _requireApi.files.delete(fileId));
       _log.info('Deleted file: $fileId');
@@ -572,6 +580,8 @@ class GoogleDriveStorageProvider
     String folderName, {
     String? parentFolderId,
   }) async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.sync);
+
     final parent = parentFolderId ?? 'appDataFolder';
     try {
       return await _run(() async {

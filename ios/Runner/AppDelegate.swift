@@ -11,6 +11,7 @@ import workmanager_apple
   private var backupBookmarkHandler: BackupBookmarkHandler?
   private var deviceNameHandler: DeviceNameHandler?
   private var systemProxyHandler: SystemProxyHandler?
+  private var multipeerHandler: MultipeerHandler?
 
   override func application(
     _ application: UIApplication,
@@ -45,6 +46,9 @@ import workmanager_apple
     }
     if let systemProxyRegistrar = self.registrar(forPlugin: "SystemProxyHandler") {
       systemProxyHandler = SystemProxyHandler(messenger: systemProxyRegistrar.messenger())
+    }
+    if let multipeerRegistrar = self.registrar(forPlugin: "MultipeerHandler") {
+      multipeerHandler = MultipeerHandler(messenger: multipeerRegistrar.messenger())
     }
 
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)

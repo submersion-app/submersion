@@ -665,11 +665,15 @@
   "backup_export_saveToFile_subtitle": "Scegli dove salvare il file di backup",
   "backup_export_share": "Condividi",
   "backup_export_share_subtitle": "Invia tramite AirDrop, e-mail o altre app",
+  "backup_copySheet_deviceLocked": "Questa copia di sicurezza proviene dal tuo database protetto. Può essere ripristinata solo su questo dispositivo.",
+  "backup_copySheet_title": "Backup del {dateTime}",
   "backup_frequency_daily": "Giornaliero",
   "backup_frequency_monthly": "Mensile",
   "backup_frequency_weekly": "Settimanale",
   "backup_history_action_delete": "Elimina",
   "backup_history_action_restore": "Ripristina",
+  "backup_history_action_saveCopy": "Salva una copia",
+  "backup_history_action_share": "Condividi",
   "backup_history_empty": "Nessun backup",
   "backup_history_error": "Errore nel caricamento della cronologia: {error}",
   "backup_import_invalidFile": "Questo file non sembra essere un backup Submersion valido",
@@ -732,6 +736,88 @@
   "buddies_action_add": "Aggiungi Compagno",
   "buddies_action_addFirst": "Aggiungi il tuo primo compagno",
   "buddies_action_addTooltip": "Aggiungi un nuovo compagno di immersione",
+  "buddyCard_preview_title": "Scheda compagno",
+  "buddyCard_preview_addTitle": "Aggiungi {name} come compagno",
+  "buddyCard_preview_updateTitle": "Aggiorna {name}",
+  "buddyCard_preview_possibleTitle": "È {name} tra i tuoi compagni?",
+  "buddyCard_preview_trimmed": "Alcuni dettagli sono stati omessi per stare nel codice.",
+  "buddyCard_preview_newer": "Questa scheda proviene da una versione più recente di Submersion. Alcuni dettagli potrebbero mancare.",
+  "buddyCard_preview_noChanges": "Niente di nuovo in questa scheda.",
+  "buddyCard_preview_ownCard": "Questa è la tua scheda. Scambia con un compagno per ricevere la sua.",
+  "buddyCard_preview_changed": "{to} (prima {from})",
+  "buddyCard_action_add": "Aggiungi compagno",
+  "buddyCard_action_update": "Aggiorna compagno",
+  "buddyCard_action_addAsNew": "Aggiungi come nuovo compagno",
+  "buddyCard_action_discard": "Scarta",
+  "buddyCard_field_name": "Nome",
+  "buddyCard_field_phone": "Telefono",
+  "buddyCard_field_email": "Email",
+  "buddyCard_field_social": "Nome utente social",
+  "buddyCard_field_dives": "Immersioni",
+  "buddyCard_field_divingSince": "Si immerge dal",
+  "buddyCard_field_lastDive": "Ultima immersione",
+  "buddyCard_field_certifications": "Brevetti",
+  "buddyCard_saved_added": "{name} aggiunto ai tuoi compagni",
+  "buddyCard_saved_updated": "{name} aggiornato",
+  "buddyCard_saved_view": "Visualizza",
+  "buddyCard_error_notACard": "Non è una scheda compagno di Submersion.",
+  "buddyCard_error_unreadable": "Impossibile leggere questa scheda compagno.",
+  "buddySwap_title": "Scambia con un compagno",
+  "buddySwap_nearby_heading": "Subacquei vicini con Submersion aperto",
+  "buddySwap_nearby_tapToSwap": "Tocca per scambiare",
+  "buddySwap_nearby_looking": "Ricerca di altri…",
+  "buddySwap_nearby_failed": "Impossibile cercare subacquei nelle vicinanze. Gli altri modi per scambiare qui sotto funzionano ancora.",
+  "buddySwap_nearby_hint": "Non vedi il tuo compagno? Entrambi dovete avere questa schermata aperta e Submersion 1.8.4 o successivo.",
+  "buddySwap_sharing": "Condividi: {summary}",
+  "buddySwap_sharing_change": "Modifica",
+  "buddySwap_dives": "{count, plural, =1{1 immersione} other{{count} immersioni}}",
+  "buddySwap_action_showCode": "Mostra il mio codice",
+  "buddySwap_action_scanCode": "Scansiona codice",
+  "buddySwap_action_sendFile": "Invia file",
+  "buddySwap_action_openFile": "Apri file scheda",
+  "buddySwap_action_writeSticker": "Scrivi adesivo NFC",
+  "buddySwap_action_tapAndroid": "Avvicina un telefono Android",
+  "buddySwap_action_receiveByTap": "Ricevi avvicinando",
+  "buddySwap_tap_prompt": "Avvicina il telefono all'altro telefono o all'adesivo",
+  "buddySwap_sticker_prompt": "Avvicina il telefono a un adesivo NFC vuoto",
+  "buddySwap_sticker_written": "Adesivo scritto. Riscrivilo quando cambiano i tuoi dati.",
+  "buddySwap_sticker_tooSmall": "Questo adesivo è troppo piccolo per la tua scheda.",
+  "buddySwap_sticker_notWritable": "Impossibile scrivere su questo adesivo.",
+  "buddySwap_nfc_unavailable": "NFC non è disponibile su questo dispositivo.",
+  "buddySwap_qr_title": "La tua scheda compagno",
+  "buddySwap_qr_hint": "Chiedi al tuo compagno di scansionarlo con Submersion o con la fotocamera.",
+  "buddySwap_request_title": "{name} vuole scambiare le schede",
+  "buddySwap_request_youSend": "Invierai: {summary}",
+  "buddySwap_request_swap": "Scambia",
+  "buddySwap_request_decline": "Rifiuta",
+  "buddySwap_waiting": "In attesa della risposta di {name}",
+  "buddySwap_failed_declined": "{name} ha rifiutato lo scambio",
+  "buddySwap_failed_timedOut": "{name} non ha risposto",
+  "buddySwap_failed_lost": "Connessione con {name} persa",
+  "buddySwap_failed_newerApp": "{name} ha bisogno di una versione più recente di Submersion",
+  "buddySwap_cardFailed": "Impossibile creare la tua scheda compagno.",
+  "buddySwap_qr_tooLarge": "La tua scheda è troppo lunga per un codice. Prova invece Invia file.",
+  "buddySwap_sendFailed": "Impossibile condividere il file della scheda.",
+  "buddyCard_saveFailed": "Impossibile salvare il compagno.",
+  "buddyCard_field_photo": "Foto",
+  "buddyCard_change_newPhoto": "Nuova foto",
+  "buddyShare_title": "Cosa condividi",
+  "buddyShare_name": "Nome",
+  "buddyShare_alwaysShared": "Sempre condiviso",
+  "buddyShare_neverShared": "I dati medici, assicurativi e di emergenza non vengono mai condivisi.",
+  "buddyShare_photo": "Foto",
+  "buddyShare_phone": "Telefono",
+  "buddyShare_email": "Email",
+  "buddyShare_certifications": "Brevetti",
+  "buddyShare_cardDetails": "Numeri e date dei brevetti",
+  "buddyShare_diveCount": "Numero di immersioni",
+  "buddyShare_divingSince": "Si immerge dal",
+  "buddyShare_lastDive": "Data dell'ultima immersione",
+  "buddyShare_social": "Nome utente social",
+  "buddyCard_detail_heading": "Dalla scheda di {name}",
+  "buddyCard_detail_since": "Si immerge dal {year}",
+  "buddyCard_detail_last": "Ultima immersione {date}",
+  "buddyCard_detail_received": "Ricevuta il {date}",
   "buddies_action_clearSearch": "Cancella ricerca",
   "buddies_action_edit": "Modifica compagno",
   "buddies_action_importFromContacts": "Importa da Contatti",
@@ -1453,7 +1539,13 @@
   "connections_tab_view": "Vista",
   "connections_tab_filter": "Filtro",
   "connections_tab_filterCount": "Filtro ({count})",
-  "@connections_tab_filterCount": {"placeholders": {"count": {"type": "int"}}},
+  "@connections_tab_filterCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "connections_tab_details": "Dettagli",
   "connections_presets_title": "Predefiniti",
   "connections_preset_circle": "Cerchia di immersione",
@@ -1470,16 +1562,37 @@
   "connections_editor_kinds": "Tipi",
   "connections_editor_links": "Collegamenti",
   "connections_editor_link": "{a} con {b}",
-  "@connections_editor_link": {"placeholders": {"a": {"type": "String"}, "b": {"type": "String"}}},
+  "@connections_editor_link": {
+    "placeholders": {
+      "a": {
+        "type": "String"
+      },
+      "b": {
+        "type": "String"
+      }
+    }
+  },
   "connections_editor_minShared": "{count, plural, =1{Almeno 1 immersione in comune} other{Almeno {count} immersioni in comune}}",
-  "@connections_editor_minShared": {"placeholders": {"count": {"type": "int"}}},
+  "@connections_editor_minShared": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "connections_editor_saveAsMap": "Salva come mappa",
   "connections_savedMap_saveTitle": "Salva mappa",
   "connections_savedMap_nameLabel": "Nome",
   "connections_savedMap_rename": "Rinomina",
   "connections_savedMap_update": "Aggiorna con la vista attuale",
   "connections_savedMap_deleted": "\"{name}\" eliminata",
-  "@connections_savedMap_deleted": {"placeholders": {"name": {"type": "String"}}},
+  "@connections_savedMap_deleted": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "connections_savedMap_undo": "Annulla",
   "connections_savedMap_badge": "Mappa salvata",
   "connections_around_searchHint": "Cerca compagni, siti, viaggi e altro",
@@ -1500,7 +1613,16 @@
   "connections_caption_around": "{hops, plural, =1{Tutto ciò che condivide un'immersione con l'elemento centrale.} other{Tutto ciò che è entro {hops} passi dall'elemento centrale, unito da immersioni in comune.}}",
   "connections_caption_thicker": "Le linee più spesse indicano più immersioni.",
   "connections_around_kindChip": "{kind} ({count})",
-  "@connections_around_kindChip": {"placeholders": {"kind": {"type": "String"}, "count": {"type": "int"}}},
+  "@connections_around_kindChip": {
+    "placeholders": {
+      "kind": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "connections_around_prompt": "Cerca un compagno, un sito, un viaggio o altro per centrarvi la mappa.",
   "connections_around_noResults": "Nessun risultato",
   "connections_action_centreHere": "Centra qui",
@@ -1572,10 +1694,28 @@
   "connections_share_allDives": "Tutte le immersioni, dal {first} al {last}",
   "connections_share_details": "{range}. {counts}",
   "connections_summary_pairValue": "{count, plural, =1{{a} e {b}, 1 immersione} other{{a} e {b}, {count} immersioni}}",
-  "@connections_summary_pairValue": {"placeholders": {"count": {"type": "int"}, "a": {"type": "String"}, "b": {"type": "String"}}},
+  "@connections_summary_pairValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "a": {
+        "type": "String"
+      },
+      "b": {
+        "type": "String"
+      }
+    }
+  },
   "connections_summary_closest": "Il più vicino",
   "connections_summary_entitiesAround": "{count, plural, =1{1 elemento} other{{count} elementi}}",
-  "@connections_summary_entitiesAround": {"placeholders": {"count": {"type": "int"}}},
+  "@connections_summary_entitiesAround": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "connections_filter_allFilters": "Tutti i filtri",
   "connections_filter_clear": "Cancella",
   "connections_filter_none": "Nessun filtro attivo.",
@@ -1583,20 +1723,50 @@
   "connections_tooltip_relayout": "Ridisponi",
   "connections_tooltip_showWholeWeb": "Torna alla mappa completa",
   "connections_filterBar_edges": "{count, plural, =1{1 connessione} other{{count} connessioni}}",
-  "@connections_filterBar_edges": {"placeholders": {"count": {"type": "int"}}},
+  "@connections_filterBar_edges": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "connections_hiddenNodes": "{count, plural, =1{1 altro non mostrato} other{{count} altri non mostrati}}",
-  "@connections_hiddenNodes": {"placeholders": {"count": {"type": "int"}}},
+  "@connections_hiddenNodes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "connections_showAll": "Mostra tutto",
   "connections_showAll_confirmTitle": "Mostrare tutti i nodi?",
   "connections_showAll_confirmBody": "{count} nodi potrebbero richiedere un momento per disporsi su questo dispositivo.",
-  "@connections_showAll_confirmBody": {"placeholders": {"count": {"type": "int"}}},
+  "@connections_showAll_confirmBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "connections_action_open": "Apri",
   "connections_action_showDives": "Mostra immersioni",
   "connections_action_openInConnections": "Apri in Connessioni",
   "connections_selection_divesTogether": "{count, plural, =1{1 immersione insieme} other{{count} immersioni insieme}}",
-  "@connections_selection_divesTogether": {"placeholders": {"count": {"type": "int"}}},
+  "@connections_selection_divesTogether": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "connections_selection_dives": "{count, plural, =1{1 immersione} other{{count} immersioni}}",
-  "@connections_selection_dives": {"placeholders": {"count": {"type": "int"}}},
+  "@connections_selection_dives": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "connections_selection_topConnections": "Connessioni principali",
   "connections_selection_hint": "Tocca un nodo o una linea per vedere i dettagli.",
   "connections_details_dives": "Immersioni",
@@ -1622,11 +1792,35 @@
   "connections_error_load": "Impossibile caricare le connessioni.",
   "connections_legend_title": "Legenda",
   "connections_timeline_range": "Dal {start} al {end}",
-  "@connections_timeline_range": {"placeholders": {"start": {"type": "String"}, "end": {"type": "String"}}},
+  "@connections_timeline_range": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
   "connections_semantics_summary": "{nodes} nodi e {edges} connessioni",
-  "@connections_semantics_summary": {"placeholders": {"nodes": {"type": "int"}, "edges": {"type": "int"}}},
+  "@connections_semantics_summary": {
+    "placeholders": {
+      "nodes": {
+        "type": "int"
+      },
+      "edges": {
+        "type": "int"
+      }
+    }
+  },
   "connections_semantics_selected": "Selezionato: {label}",
-  "@connections_semantics_selected": {"placeholders": {"label": {"type": "String"}}},
+  "@connections_semantics_selected": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
   "connections_kind_buddy": "Compagni",
   "connections_kind_site": "Siti",
   "connections_kind_trip": "Viaggi",
@@ -1644,6 +1838,12 @@
   "common_label_error": "Errore",
   "common_label_loading": "Caricamento",
   "common_placeholder_noValue": "--",
+  "notesEditor_action_heading": "Titolo",
+  "notesEditor_action_bold": "Grassetto",
+  "notesEditor_action_italic": "Corsivo",
+  "notesEditor_action_bulletList": "Elenco puntato",
+  "notesEditor_action_numberedList": "Elenco numerato",
+  "notesEditor_action_preview": "Anteprima",
   "courses_action_add": "Aggiungi Corso",
   "courses_action_addFromTemplate": "Aggiungi da modello",
   "courses_action_addRequirement": "Aggiungi requisito",
@@ -2923,6 +3123,7 @@
   "diveLog_search_section_organization": "Organizzazione",
   "diveLog_selection_tooltip_combine": "Unisci",
   "diveLog_selection_tooltip_edit": "Modifica selezionati",
+  "diveLog_selection_tooltip_newTrip": "Nuovo viaggio dalla selezione",
   "diveLog_selection_tooltip_export": "Esporta selezionati",
   "diveLog_selection_tooltip_selectDateRange": "Seleziona per intervallo di date",
   "diveLog_sighting_add": "Aggiungi",
@@ -2977,15 +3178,16 @@
   "diveLog_tank_label_workingPressure": "P di esercizio",
   "diveLog_tank_mndHelper": "Imposta per calcolare automaticamente He%",
   "diveLog_tank_modMndInfo": "MOD: {mod} (ppO₂ {ppO2}) | MND: {mnd}",
-  "diveLog_cylinders_columnTank": "Bombola",
-  "diveLog_cylinders_columnGas": "Gas",
-  "diveLog_cylinders_columnStart": "Inizio",
-  "diveLog_cylinders_columnEnd": "Fine",
-  "diveLog_cylinders_columnUsed": "Usato",
+  "diveLog_cylinders_figureStart": "Inizio {pressure}",
+  "diveLog_cylinders_figureEnd": "Fine {pressure}",
+  "diveLog_cylinders_figureUsed": "Usato {pressure}",
+  "diveLog_cylinders_gasSemantics": "Gas {mix}",
   "diveLog_cylinders_gasUsed": "Gas usato {amount}",
   "diveLog_cylinders_mod": "MOD {depth}",
   "diveLog_cylinders_mnd": "MND {depth}",
   "diveLog_cylinders_modNote": "MOD a ppO₂ {ppO2}",
+  "diveLog_cylinders_modLimit": "{ppO2} ({limit})",
+  "diveLog_cylinders_modLimitSeparator": ", ",
   "diveLog_tank_section_gasMix": "Miscela gas",
   "diveLog_tank_computerMix_matches": "Registrato dal tuo computer subacqueo",
   "diveLog_tank_computerMix_differs": "Il tuo computer subacqueo ha registrato {mix}",
@@ -3123,6 +3325,12 @@
   "divePlanner_gasOptions_problemSolvingMinutes": "Tempo di risoluzione del problema",
   "divePlanner_gasOptions_ppO2Bottom": "ppO₂ di fondo",
   "divePlanner_gasOptions_ppO2Deco": "ppO₂ di deco",
+  "divePlanner_gasOptions_ppO2DecoBand1": "ppO₂ di deco fino al 28% O2",
+  "divePlanner_gasOptions_ppO2DecoBand2": "ppO₂ di deco 28-45% O2",
+  "divePlanner_gasOptions_ppO2DecoBand3": "ppO₂ di deco 45-99% O2",
+  "divePlanner_gasOptions_maxO2DepthMeters": "Profondità max 100% O2",
+  "divePlanner_gasOptions_hypercapniaAmv": "RMV da ipercapnia",
+  "divePlanner_gasOptions_hypercapniaMinutes": "Durata",
   "divePlanner_gasOptions_bestMixEnd": "END miscela migliore",
   "divePlanner_gasOptions_o2Narcotic": "Considera l'O₂ narcotico per questo piano",
   "divePlanner_label_on": "Attivo",
@@ -4200,6 +4408,7 @@
   "cylinderConfigs_fromPreset": "Da preimpostazione",
   "tankMod_label": "MOD",
   "tankMod_default": "Predefinita a ppO2 {ppO2} ({limit})",
+  "tankMod_defaultDepth": "Predefinita a {depth} ({limit})",
   "tankMod_limitBottom": "limite di fondo",
   "tankMod_limitDeco": "limite deco",
   "tankMod_limitDiluent": "MOD Dil",
@@ -5559,6 +5768,7 @@
   "plannerCanvas_issue_gasDensityHigh": "Densità del gas {value} g/L oltre il limite consigliato",
   "plannerCanvas_issue_hypoxic": "Gas ipossico a {depth} (ppO₂ {value} bar)",
   "plannerCanvas_issue_minGas": "La bombola termina sotto il minimo rock bottom di {pressure}",
+  "plannerCanvas_issue_noUsableGas": "Il minimo rock bottom di {minGas} non lascia gas utilizzabile in una carica di {fill}",
   "plannerCanvas_issue_diluentModExceeded": "Il diluente supera la sua MOD Dil a {depth} (ppO₂ {value} bar)",
   "plannerCanvas_issue_ceilingViolated": "Il profilo supera il ceiling di decompressione di {ceiling}, saltando soste obbligatorie",
   "plannerCanvas_issue_noBailout": "Il piano di decompressione CCR non prevede gas di bailout",
@@ -5897,7 +6107,13 @@
   "sharedLibrary_connect_folderChars": "Una cartella di libreria non può contenere *, ? o simboli del dollaro.",
   "sharedLibrary_setup_title": "Come configurare lo spazio di archiviazione",
   "sharedLibrary_setup_where": "Questa libreria si trova in {folder}, alla radice del bucket o del server, accanto a submersion-sync e submersion-media.",
-  "@sharedLibrary_setup_where": {"placeholders": {"folder": {"type": "String"}}},
+  "@sharedLibrary_setup_where": {
+    "placeholders": {
+      "folder": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_setup_keys": "Dai a proprietari ed editor chiavi che leggono e scrivono la cartella della libreria. Dai a tutti gli altri chiavi che la leggono e scrivono solo in members/ e suggestions/. È lo spazio di archiviazione, non l'app, a impedire a una chiave di scrivere.",
   "sharedLibrary_setup_s3Full": "Policy S3 per proprietari ed editor",
   "sharedLibrary_setup_s3Reader": "Policy S3 per i lettori",
@@ -5912,22 +6128,52 @@
   "sharedLibrary_members_approve": "Approva",
   "sharedLibrary_members_reject": "Rifiuta",
   "sharedLibrary_members_fingerprint": "Chiave {fingerprint}",
-  "@sharedLibrary_members_fingerprint": {"placeholders": {"fingerprint": {"type": "String"}}},
+  "@sharedLibrary_members_fingerprint": {
+    "placeholders": {
+      "fingerprint": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_members_unsignedCard": "Scheda non firmata dal suo membro",
   "sharedLibrary_members_rejectTitle": "Rifiutare {name}?",
-  "@sharedLibrary_members_rejectTitle": {"placeholders": {"name": {"type": "String"}}},
+  "@sharedLibrary_members_rejectTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_members_rejectBody": "La sua scheda viene rimossa e nulla di ciò che scrive conta. Solo nuove chiavi di archiviazione gli impediscono di scrivere file.",
   "sharedLibrary_members_left": "Hanno lasciato la libreria",
   "sharedLibrary_members_removeRole": "Rimuovi ruolo",
   "sharedLibrary_members_remove": "Rimuovi dalla libreria",
   "sharedLibrary_members_removeTitle": "Rimuovere {name}?",
-  "@sharedLibrary_members_removeTitle": {"placeholders": {"name": {"type": "String"}}},
+  "@sharedLibrary_members_removeTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_members_removeBody": "{name} non potrà più modificare siti né suggerire modifiche. I siti e le modifiche già apportati restano nella libreria.\n\nPotrà ancora leggere la libreria finché non cambi le sue chiavi di archiviazione, e la sua passphrase se è cifrata.",
-  "@sharedLibrary_members_removeBody": {"placeholders": {"name": {"type": "String"}}},
+  "@sharedLibrary_members_removeBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_members_removeConfirm": "Rimuovi",
   "sharedLibrary_members_removedHeader": "Rimossi",
   "sharedLibrary_members_removedOn": "Rimosso il {date}",
-  "@sharedLibrary_members_removedOn": {"placeholders": {"date": {"type": "String"}}},
+  "@sharedLibrary_members_removedOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_members_allowBack": "Riammetti",
   "sharedLibrary_owner_onlyOne": "C'è un solo proprietario. Se perde l'accesso, solo il codice di recupero può ripristinarlo.",
   "sharedLibrary_owner_addOwner": "Scegli un altro proprietario",
@@ -5942,7 +6188,19 @@
   "sharedLibrary_owner_resetHelp": "Solo se non restano né proprietari né codice di recupero. Ogni membro deve accettarlo.",
   "sharedLibrary_owner_resetConfirm": "Diventare l'unico proprietario? Il dispositivo di ogni altro membro chiederà di accettarlo e non scriverà nella libreria finché non lo farà.",
   "sharedLibrary_owner_resetPrompt": "{name} ha reimpostato la proprietà di {library} (chiave {fingerprint}). Finché non accetti, questo dispositivo legge solo la libreria.",
-  "@sharedLibrary_owner_resetPrompt": {"placeholders": {"library": {"type": "String"}, "name": {"type": "String"}, "fingerprint": {"type": "String"}}},
+  "@sharedLibrary_owner_resetPrompt": {
+    "placeholders": {
+      "library": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      },
+      "fingerprint": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_owner_resetAccept": "Accetta",
   "sharedLibrary_connect_untrusted": "I ruoli di questa libreria non sono firmati da uno dei suoi proprietari. Chiedi a un proprietario di verificarlo.",
   "sharedLibrary_retired": "Questa libreria è stata creata da una versione di prova di Submersion. Creala di nuovo.",
@@ -5961,7 +6219,16 @@
   "sharedLibrary_backups_inStorage": "Nello spazio di archiviazione",
   "sharedLibrary_backups_both": "Su questo dispositivo e nello spazio di archiviazione",
   "sharedLibrary_backups_summary": "Siti: {sites} · {size}",
-  "@sharedLibrary_backups_summary": {"placeholders": {"sites": {"type": "int"}, "size": {"type": "String"}}},
+  "@sharedLibrary_backups_summary": {
+    "placeholders": {
+      "sites": {
+        "type": "int"
+      },
+      "size": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_backups_pin": "Fissa",
   "sharedLibrary_backups_unpin": "Sblocca",
   "sharedLibrary_backups_delete": "Elimina",
@@ -5970,7 +6237,13 @@
   "sharedLibrary_backups_export": "Esporta",
   "sharedLibrary_backups_restore": "Ripristina",
   "sharedLibrary_backups_restoreConfirm": "Ripristinare la libreria com'era il {date}? Ogni membro riceve questa versione alla prossima sincronizzazione. Prima viene creato un backup fissato della libreria com'è ora.",
-  "@sharedLibrary_backups_restoreConfirm": {"placeholders": {"date": {"type": "String"}}},
+  "@sharedLibrary_backups_restoreConfirm": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_backups_restoreDone": "Libreria ripristinata",
   "sharedLibrary_backups_oldKey": "Questo backup è stato sigillato con una passphrase precedente. Inserisci quella passphrase o il codice di recupero di allora.",
   "sharedLibrary_backups_empty": "Ancora nessun backup. I dispositivi dei proprietari ne creano uno ogni giorno, ed Esegui backup ora ne crea uno subito.",
@@ -5978,17 +6251,41 @@
   "sharedLibrary_backups_ownersOnly": "Solo i proprietari gestiscono i backup.",
   "sharedLibrary_backups_done": "Backup creato",
   "sharedLibrary_library_myKey": "La tua chiave {fingerprint}",
-  "@sharedLibrary_library_myKey": {"placeholders": {"fingerprint": {"type": "String"}}},
+  "@sharedLibrary_library_myKey": {
+    "placeholders": {
+      "fingerprint": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_suggest_held": "{count, plural, =1{1 suggerimento attende che tu ne approvi l'autore} other{{count} suggerimenti attendono che tu ne approvi gli autori}}",
-  "@sharedLibrary_suggest_held": {"placeholders": {"count": {"type": "int"}}},
+  "@sharedLibrary_suggest_held": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "sharedLibrary_restoreInto_action": "Ripristina da un file di backup",
   "sharedLibrary_restoreInto_needsKey": "Questo backup è cifrato. Inserisci la sua passphrase o il codice di recupero.",
   "sharedLibrary_restoreInto_refused": "Questo file non è un backup di libreria creato da un proprietario.",
   "sharedLibrary_restoreInto_oldStillThere": "La libreria è ancora anche nella vecchia cartella. I membri che la usano lì continuano con quella copia finché non si collegano a questa cartella.",
   "sharedLibrary_encrypted_locked": "Inserisci la passphrase di {library}.",
-  "@sharedLibrary_encrypted_locked": {"placeholders": {"library": {"type": "String"}}},
+  "@sharedLibrary_encrypted_locked": {
+    "placeholders": {
+      "library": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_encrypted_changed": "La passphrase di {library} è cambiata. Inserisci quella nuova.",
-  "@sharedLibrary_encrypted_changed": {"placeholders": {"library": {"type": "String"}}},
+  "@sharedLibrary_encrypted_changed": {
+    "placeholders": {
+      "library": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_encryption_title": "Cifratura",
   "sharedLibrary_encryption_statusOn": "Cifrata con una passphrase",
   "sharedLibrary_encryption_statusOff": "Non cifrata: chiunque abbia accesso allo spazio di archiviazione può leggerla",
@@ -6001,7 +6298,13 @@
   "sharedLibrary_encryption_passphrase": "Passphrase",
   "sharedLibrary_encryption_confirm": "Ripeti la passphrase",
   "sharedLibrary_connect_join_action": "Unisciti a {name}",
-  "@sharedLibrary_connect_join_action": {"placeholders": {"name": {"type": "String"}}},
+  "@sharedLibrary_connect_join_action": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_connect_create_action": "Crea libreria",
   "sharedLibrary_connect_create_name_label": "Nome della libreria",
   "sharedLibrary_connect_displayName_label": "Il tuo nome in questa libreria",
@@ -6013,15 +6316,33 @@
   "sharedLibrary_role_owner": "Proprietario",
   "sharedLibrary_library_members": "Membri",
   "sharedLibrary_library_memberCount": "{count, plural, =1{1 membro} other{{count} membri}}",
-  "@sharedLibrary_library_memberCount": {"placeholders": {"count": {"type": "int"}}},
+  "@sharedLibrary_library_memberCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "sharedLibrary_library_syncNow": "Sincronizza ora",
   "sharedLibrary_library_lastSync": "Ultima sincronizzazione {when}",
-  "@sharedLibrary_library_lastSync": {"placeholders": {"when": {"type": "String"}}},
+  "@sharedLibrary_library_lastSync": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_library_neverSynced": "Non ancora sincronizzata",
   "sharedLibrary_library_readOnlyBanner": "Le tue credenziali consentono solo la lettura. Puoi suggerire modifiche; un referente le applicherà.",
   "sharedLibrary_library_removedBanner": "Un referente ti ha rimosso da questa libreria. I suoi siti restano su questo dispositivo, ma non puoi più modificarli. Lasciando la libreria conservi copie personali dei siti in cui hai fatto immersioni.",
   "sharedLibrary_library_errorBanner": "Ultima sincronizzazione non riuscita: {error}",
-  "@sharedLibrary_library_errorBanner": {"placeholders": {"error": {"type": "String"}}},
+  "@sharedLibrary_library_errorBanner": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_syncError_accountMissing": "L'account di questa libreria non è più su questo dispositivo. Usa Cambia connessione per sceglierlo di nuovo.",
   "sharedLibrary_syncError_accountSignedOut": "Questo dispositivo è disconnesso dall'account di questa libreria. Accedi di nuovo in Account collegati oppure usa Cambia connessione.",
   "sharedLibrary_syncError_notALibrary": "Nessuna libreria in questa posizione.",
@@ -6030,7 +6351,13 @@
   "sharedLibrary_library_suggestions": "Suggerimenti",
   "sharedLibrary_library_leave": "Lascia la libreria",
   "sharedLibrary_library_leaveConfirm_title": "Lasciare {name}?",
-  "@sharedLibrary_library_leaveConfirm_title": {"placeholders": {"name": {"type": "String"}}},
+  "@sharedLibrary_library_leaveConfirm_title": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_library_leaveConfirm_body": "I siti condivisi usati dalle tue immersioni restano come copie personali. Gli altri siti condivisi vengono rimossi da questo dispositivo.",
   "sharedLibrary_library_rename_label": "Nome visualizzato",
   "sharedLibrary_members_setRole": "Cambia ruolo",
@@ -6042,23 +6369,68 @@
   "sharedLibrary_connect_exists": "Nel frattempo qualcuno ha creato qui una libreria. Controlla di nuovo per unirti.",
   "sharedLibrary_library_lastOwnerLeave": "Rendi proprietario un altro membro prima di uscire.",
   "sharedLibrary_site_badgeTooltip": "In {name}",
-  "@sharedLibrary_site_badgeTooltip": {"placeholders": {"name": {"type": "String"}}},
+  "@sharedLibrary_site_badgeTooltip": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_site_lastEdited": "Ultima modifica di {name}, {when}",
-  "@sharedLibrary_site_lastEdited": {"placeholders": {"name": {"type": "String"}, "when": {"type": "String"}}},
+  "@sharedLibrary_site_lastEdited": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_site_history": "Cronologia modifiche",
   "sharedLibrary_site_addToLibrary": "Aggiungi alla libreria di siti condivisa",
   "sharedLibrary_add_confirm_title": "Aggiungere {name} a {library}?",
-  "@sharedLibrary_add_confirm_title": {"placeholders": {"name": {"type": "String"}, "library": {"type": "String"}}},
+  "@sharedLibrary_add_confirm_title": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "library": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_add_confirm_titleMany": "{count, plural, =1{Aggiungere {count} sito a {library}?} other{Aggiungere {count} siti a {library}?}}",
-  "@sharedLibrary_add_confirm_titleMany": {"placeholders": {"count": {"type": "int"}, "library": {"type": "String"}}},
+  "@sharedLibrary_add_confirm_titleMany": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "library": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_add_confirm_shared": "Tutti i membri vedranno: nome, posizione, profondità, descrizione, pericoli, accesso, entrata e uscita, ormeggio, parcheggio, tipi di sito, tag, specie e caratteristiche.",
   "sharedLibrary_add_confirm_private": "Resta tuo: le tue note e la tua valutazione. Immersioni e foto non lasciano mai la tua libreria personale.",
   "sharedLibrary_add_confirm_action": "Aggiungi",
   "sharedLibrary_site_chooseLibrary": "Scegli una libreria",
   "sharedLibrary_site_added": "Aggiunto a {name}",
-  "@sharedLibrary_site_added": {"placeholders": {"name": {"type": "String"}}},
+  "@sharedLibrary_site_added": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_site_notConnectedHere": "Questo sito è in {name}, che non è collegata su questo dispositivo.",
-  "@sharedLibrary_site_notConnectedHere": {"placeholders": {"name": {"type": "String"}}},
+  "@sharedLibrary_site_notConnectedHere": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_site_connectHere": "Collega su questo dispositivo",
   "sharedLibrary_site_deleteFromLibrary_title": "Eliminare dalla libreria di siti condivisa?",
   "sharedLibrary_site_deleteFromLibrary_body": "I membri le cui immersioni usano questo sito ne conservano una copia personale.",
@@ -6070,12 +6442,27 @@
   "sharedLibrary_suggest_nothingChanged": "Nessuna modifica.",
   "sharedLibrary_suggest_savedPrivate": "Le tue note e la tua valutazione sono state salvate.",
   "sharedLibrary_suggest_pending": "{count, plural, =1{1 suggerimento in attesa} other{{count} suggerimenti in attesa}}",
-  "@sharedLibrary_suggest_pending": {"placeholders": {"count": {"type": "int"}}},
+  "@sharedLibrary_suggest_pending": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "sharedLibrary_suggest_withdraw": "Ritira",
   "sharedLibrary_inbox_title": "Suggerimenti",
   "sharedLibrary_inbox_empty": "Nessun suggerimento in attesa.",
   "sharedLibrary_inbox_from": "Da {name}, {when}",
-  "@sharedLibrary_inbox_from": {"placeholders": {"name": {"type": "String"}, "when": {"type": "String"}}},
+  "@sharedLibrary_inbox_from": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_inbox_accept": "Accetta",
   "sharedLibrary_inbox_dismiss": "Ignora",
   "sharedLibrary_inbox_siteDeleted": "Questo sito è stato eliminato dalla libreria.",
@@ -6421,6 +6808,21 @@
   "settings_conflict_field_autoTagImports": "Etichetta le immersioni importate",
   "settings_conflict_field_downloadsFollowComputerOwner": "Aggiungi i download al proprietario del computer",
   "settings_conflict_field_omitUnusedOcGases": "Salta i gas di bailout inutilizzati",
+  "settings_conflict_field_diveListSort": "Immersioni: ordinamento",
+  "settings_conflict_field_divePlanListSort": "Piani salvati: ordinamento",
+  "settings_conflict_field_tripListSort": "Viaggi: ordinamento",
+  "settings_conflict_field_courseListSort": "Corsi: ordinamento",
+  "settings_conflict_field_buddyListSort": "Compagni: ordinamento",
+  "settings_conflict_field_diveCenterListSort": "Centri immersione: ordinamento",
+  "settings_conflict_field_siteListSort": "Siti: ordinamento",
+  "settings_conflict_field_certificationListSort": "Brevetti: ordinamento",
+  "settings_conflict_field_equipmentListSort": "Attrezzatura: ordinamento",
+  "settings_conflict_field_siteListGroupBy": "Siti: raggruppamento",
+  "settings_conflict_field_certificationListGroupBy": "Brevetti: raggruppamento",
+  "settings_conflict_field_equipmentArrangement": "Disposizione dell'attrezzatura",
+  "settings_conflict_field_equipmentGroupByLocation": "Attrezzatura raggruppata per posizione",
+  "settings_conflict_field_listArrangementHlc": "Registro della disposizione degli elenchi",
+  "settings_conflict_sortValue": "{field}, {direction}",
   "settings_conflict_field_avgSpeed": "Velocità media",
   "settings_conflict_field_batteryReserveFraction": "Riserva della batteria",
   "settings_conflict_field_bboxHeight": "Altezza del riquadro",
@@ -6780,6 +7182,12 @@
   "settings_conflict_field_portName": "Porto",
   "settings_conflict_field_ppO2Bottom": "ppO2 di fondo",
   "settings_conflict_field_ppO2Deco": "ppO2 deco",
+  "settings_conflict_field_ppO2DecoBand1": "ppO2 deco fino al 28% O2",
+  "settings_conflict_field_ppO2DecoBand2": "ppO2 deco 28-45% O2",
+  "settings_conflict_field_ppO2DecoBand3": "ppO2 deco 45-99% O2",
+  "settings_conflict_field_ppO2DecoBandsEnabled": "Limiti ppO2 deco per banda di O2",
+  "settings_conflict_field_maxO2DepthEnabled": "Profondità massima esplicita per il 100% O2",
+  "settings_conflict_field_maxO2DepthMeters": "Profondità massima per il 100% O2",
   "settings_conflict_field_ppO2MaxDeco": "ppO2 massima deco",
   "settings_conflict_field_ppO2MaxWorking": "ppO2 massima di lavoro",
   "settings_conflict_field_preDiveChecklistTemplates_category": "Categoria",
@@ -6790,6 +7198,13 @@
   "settings_conflict_field_pressureBar": "Pressione",
   "settings_conflict_field_pressureUnit": "Unità di pressione",
   "settings_conflict_field_priorDiveCount": "Immersioni prima di questo logbook",
+  "settings_conflict_field_buddyCardShare": "Condivisione della scheda compagno",
+  "settings_conflict_field_cardDiveCount": "Immersioni (dalla scheda)",
+  "settings_conflict_field_cardDivingSince": "Si immerge dal (dalla scheda)",
+  "settings_conflict_field_cardId": "Scheda compagno",
+  "settings_conflict_field_cardLastDive": "Ultima immersione (dalla scheda)",
+  "settings_conflict_field_cardReceivedAt": "Scheda ricevuta",
+  "settings_conflict_field_socialHandle": "Nome utente social",
   "settings_conflict_field_priorDiveTimeSeconds": "Tempo di immersione prima di questo logbook",
   "settings_conflict_field_problemSolvingMinutes": "Tempo per risolvere problemi",
   "settings_conflict_field_provider": "Fornitore",
@@ -6985,6 +7400,7 @@
   "settings_conflict_field_valueUnit": "Unità",
   "settings_conflict_field_verdict": "Giudizio",
   "settings_conflict_field_verifyFactsHlc": "Registro di verifica",
+  "settings_conflict_field_videoPositionMs": "Tempo nel video (ms)",
   "settings_conflict_field_vesselName": "Imbarcazione",
   "settings_conflict_field_vesselType": "Tipo di imbarcazione",
   "settings_conflict_field_viewMode": "Vista",
@@ -7206,6 +7622,21 @@
   "settings_decompression_ppO2LimitsTitle": "Limiti di ppO2 OC",
   "settings_decompression_ppO2LimitsSubtitle": "Lavoro {working} bar · Max {max} bar",
   "settings_decompression_ppO2Dialog_title": "Limiti di ppO2 OC",
+  "settings_decompression_ppO2BandsTitle": "Limiti deco per banda di O2",
+  "settings_decompression_ppO2BandsSubtitle": "Limiti ppO2 deco opzionali e più precisi per il Dive Planner",
+  "settings_decompression_ppO2BandsDialog_title": "ppO2 deco: per banda di O2",
+  "settings_decompression_ppO2BandsDialog_bandsToggle": "Usa i limiti deco per banda di O2",
+  "settings_decompression_ppO2BandsDialog_band1": "Fino al 28% O2",
+  "settings_decompression_ppO2BandsDialog_band2": "28–45% O2",
+  "settings_decompression_ppO2BandsDialog_band3": "45–99% O2",
+  "settings_decompression_ppO2BandsDialog_maxO2DepthToggle": "Usa una profondità massima esplicita per il 100% O2",
+  "settings_decompression_ppO2BandsDialog_maxO2DepthLabel": "Profondità massima per il 100% O2",
+  "settings_decompression_hypercapniaTitle": "Fase di ipercapnia del bailout",
+  "settings_decompression_hypercapniaSubtitle": "Frequenza respiratoria elevata opzionale all'inizio di un bailout OC in CCR/SCR",
+  "settings_decompression_hypercapniaDialog_title": "Fase di ipercapnia del bailout",
+  "settings_decompression_hypercapniaDialog_enabledToggle": "Usa una fase di ipercapnia per il bailout OC",
+  "settings_decompression_hypercapniaDialog_factorLabel": "Fattore RMV",
+  "settings_decompression_hypercapniaDialog_minutesLabel": "Durata",
   "settings_decompression_ccrPpO2LimitsTitle": "Limiti di ppO2 CCR",
   "settings_decompression_ccrPpO2LimitsSubtitle": "Setpoint basso {low} · alto {high} · MOD Dil {dil} bar",
   "settings_decompression_ccrDialog_info": "Valori predefiniti per le immersioni con rebreather. La modalità CCR del calcolatore di MOD parte da questi valori.",
@@ -8227,6 +8658,18 @@
   "insights_timePatterns_seasonal_error": "Impossibile caricare i dati stagionali",
   "insights_timePatterns_seasonal_subtitle": "Immersioni per mese (tutti gli anni)",
   "insights_timePatterns_seasonal_title": "Distribuzioni stagionali",
+  "insights_timePatterns_calendarDays_title": "Giorni del calendario",
+  "insights_timePatterns_calendarDays_subtitle": "Immersioni in ogni data dell'anno (tutti gli anni)",
+  "insights_timePatterns_calendarDays_coverage": "{covered} giorni del calendario su {total} ({percent})",
+  "insights_timePatterns_calendarDays_busiestMonth": "Mese con più immersioni: {months}",
+  "insights_timePatterns_calendarDays_busiestDay": "Giorno del mese con più immersioni: {days}",
+  "insights_timePatterns_calendarDays_cellSemantics": "{date}, {count, plural, =0{nessuna immersione} one{{count} immersione} other{{count} immersioni}}",
+  "insights_timePatterns_calendarDays_totalSemantics": "{label}, {count, plural, =0{nessuna immersione} one{{count} immersione} other{{count} immersioni}} in totale",
+  "insights_timePatterns_calendarDays_dayLabel": "Giorno {day}",
+  "insights_timePatterns_calendarDays_total": "Tutte le date",
+  "insights_timePatterns_calendarDays_listSeparator": ", ",
+  "insights_timePatterns_calendarDays_empty": "Ancora nessuna immersione da mostrare sul calendario",
+  "insights_timePatterns_calendarDays_error": "Impossibile caricare i giorni del calendario",
   "insights_timePatterns_surfaceInterval_average": "Media",
   "insights_timePatterns_surfaceInterval_empty": "Nessun dato sull'intervallo di superficie disponibile",
   "insights_timePatterns_surfaceInterval_error": "Impossibile caricare i dati sull'intervallo di superficie",
@@ -8619,6 +9062,10 @@
   "trips_detail_dialog_cancel": "Annulla",
   "trips_detail_dialog_deleteConfirm": "Elimina",
   "trips_detail_dialog_deleteContent": "Sei sicuro di voler eliminare \"{name}\"? Il viaggio verrà rimosso ma le immersioni saranno mantenute.",
+  "trips_delete_sideTripsStandalone": "{count, plural, one{La sua escursione diventa un viaggio a sé.} other{Le sue {count} escursioni diventano viaggi a sé.}}",
+  "trips_delete_divesReturnToParent": "Le sue immersioni tornano a {name}.",
+  "trips_bulkDelete_sideTripsStandalone": "{count, plural, one{{count} escursione diventa un viaggio a sé.} other{{count} escursioni diventano viaggi a sé.}}",
+  "trips_bulkDelete_divesReturnToParents": "Le immersioni delle escursioni eliminate tornano ai rispettivi viaggi principali.",
   "trips_detail_dialog_deleteTitle": "Eliminare il viaggio?",
   "trips_detail_dives_empty": "Nessuna immersione in questo viaggio ancora",
   "trips_detail_dives_errorLoading": "Impossibile caricare le immersioni",
@@ -8765,6 +9212,9 @@
   "trips_edit_hint_operatorName": "es. Red Sea Divers",
   "trips_edit_hint_resortName": "es. Marsa Shagra",
   "trips_edit_hint_tripName": "es. Safari Mar Rosso 2024",
+  "trips_edit_field_partOf": "Parte di",
+  "trips_edit_partOf_none": "Nessuno (viaggio a sé)",
+  "trips_edit_partOf_helper": "Rende questo viaggio un'escursione all'interno di un viaggio più lungo",
   "trips_edit_hint_vesselName": "es. Ocean Explorer",
   "trips_edit_label_cabinType": "Tipo di cabina",
   "trips_edit_label_capacity": "Capacità passeggeri",
@@ -9267,6 +9717,10 @@
   "trips_list_pastSection": "Viaggi passati",
   "trips_list_sort_title": "Ordina viaggi",
   "trips_list_tile_diveCount": "{count, plural, =1{{count} immersione} other{{count} immersioni}}",
+  "trips_list_sideTripCount": "{count, plural, one{{count} escursione} other{{count} escursioni}}",
+  "trips_partOf": "Parte di {name}",
+  "trips_fromSelection_name": "{location}, {monthYear}",
+  "trips_fromSelection_nameNoLocation": "Viaggio, {monthYear}",
   "trips_list_tooltip_addTrip": "Aggiungi viaggio",
   "trips_list_tooltip_search": "Cerca viaggi",
   "trips_list_tooltip_sort": "Ordina",
@@ -9821,6 +10275,7 @@
   "settings_homeChips_uploads": "Caricamenti media",
   "settings_homeChips_backup": "Età del backup",
   "settings_homeChips_sync": "Stato sincronizzazione",
+  "settings_homeChips_nearby": "Dispositivi vicini",
   "settings_homeChips_dataQuality": "Qualità dei dati",
   "dashboard_gauges_certsNeedAttention": "{count, plural, =1{{count} certificazione richiede attenzione} other{{count} certificazioni richiedono attenzione}}",
   "dashboard_gauges_tripCountdown": "{name} tra {days}g",
@@ -9832,6 +10287,8 @@
   "dashboard_gauges_backupDays": "Backup {days}g fa",
   "dashboard_gauges_syncPending": "{count} non sincronizzati",
   "dashboard_gauges_synced": "Sincronizzato",
+  "dashboard_gauges_nearby": "Vicino: {name} richiede attenzione",
+  "dashboard_gauges_nearbyMore": "Vicini: {name} e altri richiedono attenzione",
   "dashboard_gauges_dataIssues": "{count, plural, =1{1 problema nei dati} other{{count} problemi nei dati}}",
   "dashboard_gauges_retry": "Stato non disponibile - tocca per riprovare",
   "dashboard_media_title": "Media recenti",
@@ -10158,9 +10615,9 @@
   "divers_delete_keptEquipment_toOne": "{count, plural, one{{count} pezzo di attrezzatura consegnato a {name}.} other{{count} pezzi di attrezzatura consegnati a {name}.}}",
   "divers_delete_keptEquipment_toMany": "{count, plural, one{{count} pezzo di attrezzatura consegnato ai profili che lo usano.} other{{count} pezzi di attrezzatura consegnati ai profili che li usano.}}",
   "divers_delete_handedOver": "{count, plural, one{{count} viaggio o sito condiviso è passato al profilo con cui era condiviso.} other{{count} viaggi e siti condivisi sono passati ai profili con cui erano condivisi.}}",
-  "settings_shareAllSites_confirm": "Scegli chi vede tutti i tuoi {count} siti. Per cambiare un sito in seguito, aprilo e tocca Condiviso con.",
+  "settings_shareAllSites_confirm": "Scegli chi vede tutti i tuoi {count} siti. Per cambiare un sito in seguito, modificalo e tocca Condiviso con.",
   "settings_shareAllSites_title": "Condividi tutti i miei siti...",
-  "settings_shareAllTrips_confirm": "Scegli chi vede tutti i tuoi {count} viaggi. Per cambiare un viaggio in seguito, aprilo e tocca Condiviso con.",
+  "settings_shareAllTrips_confirm": "Scegli chi vede tutti i tuoi {count} viaggi. Per cambiare un viaggio in seguito, modificalo e tocca Condiviso con.",
   "settings_shareAllTrips_title": "Condividi tutti i miei viaggi...",
   "settings_shareAll_noneToShare": "Niente da condividere.",
   "settings_shareByDefault_title": "Condividi i nuovi siti e viaggi per impostazione predefinita",
@@ -10607,7 +11064,6 @@
   "settings_connectedAccounts_status_signedIn": "Accesso effettuato",
   "settings_connectedAccounts_status_unavailable": "Non disponibile su questo dispositivo",
   "settings_connectedAccounts_disconnectDevice": "Esci su questo dispositivo",
-
   "settings_connectedAccounts_rename": "Rinomina",
   "settings_connectedAccounts_renameTitle": "Rinomina account",
   "settings_connectedAccounts_renameField": "Nome",
@@ -10652,6 +11108,41 @@
   "settings_sync_notSetUp": "Non configurato",
   "settings_sync_offCustomFolder": "Disattivata finché il database è in una cartella personalizzata",
   "settings_sync_keepInStep": "Mantieni i dispositivi allineati automaticamente",
+  "settings_nearby_title": "Dispositivi vicini",
+  "settings_nearby_auto_title": "Sincronizza automaticamente con i dispositivi vicini",
+  "settings_nearby_auto_subtitle": "Quando un dispositivo associato è aperto nelle vicinanze, tramite Bluetooth",
+  "settings_nearby_linuxNote": "Gli altri dispositivi non possono trovare questo computer, quindi si sincronizza con qualsiasi dispositivo vicino tranne un altro computer Linux",
+  "settings_nearby_pair": "Associa un dispositivo",
+  "settings_nearby_status_synced": "Sincronizzato {when}",
+  "settings_nearby_status_syncing": "Sincronizzazione: {done} di {total}",
+  "settings_nearby_status_never": "Non ancora sincronizzato",
+  "settings_nearby_status_notSeen": "Non visto dal {date}",
+  "settings_nearby_error_newerApp": "Questo dispositivo ha bisogno di una versione più recente dell'app",
+  "settings_nearby_error_peerOlderApp": "L'altro dispositivo ha bisogno di una versione più recente dell'app",
+  "settings_nearby_error_differentLibrary": "Non è la stessa libreria",
+  "settings_nearby_error_notPaired": "Associazione rimossa sull'altro dispositivo",
+  "settings_nearby_error_applyFailed": "Impossibile applicare le sue modifiche",
+  "settings_nearby_error_bluetoothOff": "Il Bluetooth è spento o non consentito",
+  "settings_nearby_error_unreachable": "Impossibile connettersi",
+  "settings_nearby_sheet_rename": "Rinomina",
+  "settings_nearby_sheet_unpair": "Rimuovi associazione",
+  "settings_nearby_unpair_confirm": "Rimuovere l'associazione di {name}? Servirà associarlo di nuovo per sincronizzare da vicino.",
+  "settings_nearby_rename_title": "Rinomina dispositivo",
+  "settings_nearby_notInRange": "{name} non è nelle vicinanze ora",
+  "nearbyPair_looking": "Ricerca dei dispositivi…",
+  "nearbyPair_hint": "Apri Submersion sull'altro dispositivo e tocca anche lì Associa un dispositivo.",
+  "nearbyPair_found": "Trovato {name}. Controlla che mostri questo codice, poi conferma su entrambi.",
+  "nearbyPair_sameCode": "Stesso codice",
+  "nearbyPair_notMine": "Non è mio",
+  "nearbyPair_waiting": "In attesa della conferma dell'altro dispositivo…",
+  "nearbyPair_bothPopulated": "Entrambi i dispositivi hanno immersioni. L'associazione le unisce in un solo logbook.",
+  "nearbyPair_differentLibrary": "Quel dispositivo usa un'altra libreria, quindi non può essere associato a questo.",
+  "nearbyPair_permissionDenied": "Submersion ha bisogno del permesso Bluetooth per trovare i dispositivi vicini.",
+  "nearbyPair_bluetoothOff": "Attiva il Bluetooth per trovare i dispositivi vicini.",
+  "nearbyPair_unsupported": "Questo dispositivo non ha un Bluetooth che Submersion possa usare.",
+  "nearbyPair_openSettings": "Apri impostazioni",
+  "nearbyPair_done": "Associato a {name}",
+  "nearbyPair_failed": "L'associazione non si è completata. Riprova su entrambi i dispositivi.",
   "settings_sync_alsoAtLaunch": "Sincronizza anche all'avvio",
   "settings_sync_alsoOnReturn": "Sincronizza anche quando torni all'app",
   "settings_sync_encryption": "Crittografia",
@@ -14934,6 +15425,33 @@
   "media_species_otherSpecies": "Altre specie...",
   "media_species_noDiveHint": "Questa foto non è collegata a un'immersione. Cerca una specie per taggarla.",
   "media_species_chipsLabel": "Tag delle specie",
+  "media_people_me": "Io",
+  "media_people_chipsLabel": "Tag delle persone",
+  "media_people_momentChip": "{name} · {time}",
+  "media_people_actionTooltip": "Tagga persone",
+  "media_people_tagModeHint": "Tocca una persona per taggarla",
+  "media_people_noSpotHint": "Qui non si può segnare un punto",
+  "media_people_withoutSpot": "Tagga senza punto",
+  "media_people_done": "Fatto",
+  "media_people_pickerTitle": "Chi è?",
+  "media_people_searchHint": "Cerca compagni",
+  "media_people_onThisDive": "In questa immersione",
+  "media_people_everyoneElse": "Tutti gli altri",
+  "media_people_newBuddy": "Nuovo compagno",
+  "media_people_newBuddyName": "Nome",
+  "media_people_newBuddyAdd": "Aggiungi",
+  "media_people_changePerson": "Cambia persona",
+  "media_people_removeTag": "Rimuovi tag",
+  "media_people_resizeHint": "Trascina gli angoli per adattare",
+  "media_people_addToDiveOffer": "Aggiungere {name} ai compagni di questa immersione?",
+  "media_people_addToDiveAction": "Aggiungi",
+  "media_people_buddyPhotosTitle": "Foto e video",
+  "media_people_buddyThumbnailLabel": "Foto o video con questo compagno",
+  "media_people_filterSection": "Persone",
+  "media_people_removedBuddy": "Compagno rimosso",
+  "media_people_saveFailed": "Impossibile salvare il tag. Riprova.",
+  "media_people_addToDiveFailed": "Impossibile aggiungere il compagno a questa immersione. Riprova.",
+  "media_people_createBuddyFailed": "Impossibile creare il compagno. Riprova.",
   "media_info_fileSection": "File",
   "media_info_filename": "Nome file",
   "media_info_type": "Tipo",
@@ -15303,6 +15821,9 @@
   "startup_diveLogUnavailable_startNew_confirm": "Inizia nuovo diario",
   "backup_history_preDowngradeSubtitle": "Database più recente, conservato tornando indietro - {size}",
   "backup_history_cloudOnlySubtitle": "Nell'archivio cloud ({size})",
+  "backup_history_device_anotherDevice": "Altro dispositivo",
+  "backup_history_device_thisDevice": "Questo dispositivo",
+  "backup_history_subtitleWithDevice": "{summary} · {device}",
   "backup_history_manualSubtitle": "{diveCount, plural, =1{1 immersione} other{{diveCount} immersioni}}, {siteCount, plural, =1{1 sito} other{{siteCount} siti}} - {size}",
   "backup_history_manualSubtitleAuto": "{diveCount, plural, =1{1 immersione} other{{diveCount} immersioni}}, {siteCount, plural, =1{1 sito} other{{siteCount} siti}} - {size} (auto)",
   "settings_manage_transmitters": "Trasmettitori",
@@ -15544,8 +16065,7 @@
   "diveDetailSection_navTrack_trackName": "Traccia subacquea",
   "diveDetailSection_navTrack_trackDescription": "Traccia subacquea misurata da una consolle di navigazione",
   "navTrack_list_durationHours": "{hours}h {minutes}min",
-  "navTrack_list_durationMinutes": "{minutes}min"
-,
+  "navTrack_list_durationMinutes": "{minutes}min",
   "gasCalculators_mod_semanticsLabel": "Profondità massima operativa: {depth} {unit} a {ppo2} bar ppO2 con {o2}% di ossigeno",
   "gasCalculators_blender_stepColumnAction": "Azione",
   "gasCalculators_blender_stepColumnAdded": "Aggiunto",
@@ -15755,6 +16275,8 @@
   "query_dives_weight": "Zavorra",
   "query_dives_weights": "Zavorra",
   "query_dives_year": "Anno",
+  "query_dives_month": "Mese",
+  "query_dives_day": "Giorno del mese",
   "query_entity_buddies": "Compagni",
   "query_entity_centers": "Diving center",
   "query_entity_certifications": "Brevetti",
@@ -15847,6 +16369,7 @@
   "query_tanks_volume": "Volume",
   "query_trips_diveCount": "Numero di immersioni",
   "query_trips_dives": "Immersioni",
+  "query_trips_partOf": "Parte di",
   "query_trips_endDate": "Data di fine",
   "query_trips_liveaboardName": "Crociera subacquea",
   "query_trips_location": "Località",
@@ -16172,6 +16695,7 @@
   "plannerCanvas_bailout_schedule": "Piano dal caso peggiore",
   "plannerCanvas_chartMode_bailout": "Bailout",
   "plannerCanvas_chartMode_ccr": "CCR",
+  "plannerCanvas_chartMode_scr": "SCR",
   "plannerCanvas_scrub_tts": "TTS {minutes}′",
   "plannerCanvas_table_end": "END",
   "plannerCanvas_table_ppO2": "PO2",
@@ -16263,6 +16787,8 @@
   "tags_manage_bulkDeleteMessage_several": "Questi tag verranno rimossi da:",
   "tags_manage_mergeAffected_several": "Questo influenzerà:",
   "tags_manage_cannotUndo": "Questa azione non può essere annullata.",
+  "tags_manage_rowScopes": "Per: {scopes}",
+  "tags_manage_rowUsage": "Usato in: {counts}",
   "tags_action_edit": "Modifica tag",
   "media_info_tags": "Tag",
   "media_info_noTags": "Ancora nessun tag",
@@ -16370,5 +16896,31 @@
   "settings_setUpDevice_done_title": "{device, select, phone{Questo telefono è configurato} tablet{Questo tablet è configurato} computer{Questo computer è configurato} other{Questo dispositivo è configurato}}",
   "settings_setUpDevice_done_otherDevices": "Sugli altri dispositivi, apri Submersion, scegli {account} e comparirà la stessa libreria.",
   "settings_setUpDevice_sync_inStep": "Le immersioni qui sono allineate con la tua libreria in {account}.",
-  "setup_syncPull_startFresh": "Inizia un nuovo logbook"
+  "setup_syncPull_startFresh": "Inizia un nuovo logbook",
+  "demo_welcome_title": "Esplora con dati di esempio",
+  "demo_welcome_subtitle": "Dai un'occhiata a un logbook di esempio completo prima di inserire il tuo",
+  "demo_settings_enter_title": "Esplora con dati di esempio",
+  "demo_settings_enter_subtitle": "Il tuo logbook resta da parte, intatto, finché non esci",
+  "demo_settings_exit_title": "Esci dalla demo",
+  "demo_settings_exit_subtitle": "Scarta il logbook di esempio e torna al tuo",
+  "demo_strip_label": "Modalità demo: stai esplorando dati di esempio",
+  "demo_strip_exit": "Esci dalla demo",
+  "demo_exit_confirm_title": "Uscire dalla modalità demo?",
+  "demo_exit_confirm_body": "Le modifiche apportate al logbook di esempio andranno perse.",
+  "demo_exit_confirm_action": "Esci dalla demo",
+  "demo_enter_downloading": "Download del logbook di esempio",
+  "demo_enter_preparing": "Preparazione del logbook di esempio",
+  "demo_enter_opening": "Apertura del logbook di esempio",
+  "demo_enter_failed": "Impossibile scaricare il logbook di esempio. Controlla la connessione e riprova.",
+  "demo_enter_importRunning": "Un'importazione è ancora in corso. Esplora i dati di esempio quando sarà terminata.",
+  "demo_sealed_note": "Non disponibile in modalità demo",
+  "demo_unavailable_title": "Non disponibile in modalità demo",
+  "demo_unavailable_body": "La modalità demo tiene il logbook di esempio separato dai tuoi dati, quindi non è possibile importare, esportare, eseguire il backup o sincronizzare nulla.",
+  "demo_row_unavailable": "Non disponibile in modalità demo",
+  "demo_enter_confirm_title": "Esplorare con dati di esempio?",
+  "demo_enter_confirm_body": "Verrà scaricato un logbook di esempio ({size}) e aperto al posto del tuo. Il tuo logbook resta da parte, intatto, finché non esci dalla modalità demo.",
+  "demo_enter_confirm_action": "Scarica",
+  "demo_enter_confirm_body_firstRun": "Verrà scaricato un logbook di esempio ({size}) per esplorare l'app. Esci dalla modalità demo quando vuoi iniziare il tuo.",
+  "demo_enter_changed_body": "Il logbook di esempio è stato aggiornato e ora occupa {size}. Scaricarlo?",
+  "common_byteSize": "{value} {unit, select, B{B} KB{KB} MB{MB} GB{GB} TB{TB} other{{unit}}}"
 }

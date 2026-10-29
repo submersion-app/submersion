@@ -56,13 +56,23 @@ String idTokenWithEmail(String email) {
   return 'header.$payload.signature';
 }
 
-gauth.AccessCredentials creds({String? refreshToken, String? idToken}) =>
-    gauth.AccessCredentials(
-      gauth.AccessToken('Bearer', 'at-1', DateTime.utc(2026, 7, 2, 12)),
-      refreshToken,
-      DesktopOAuthAuthenticator.scopes,
-      idToken: idToken,
-    );
+gauth.AccessCredentials creds({
+  String? refreshToken,
+  String? idToken,
+  List<String> scopes = DesktopOAuthAuthenticator.scopes,
+}) => gauth.AccessCredentials(
+  gauth.AccessToken('Bearer', 'at-1', DateTime.utc(2026, 7, 2, 12)),
+  refreshToken,
+  scopes,
+  idToken: idToken,
+);
+
+/// What Google grants when the diver leaves the Drive box unticked on the
+/// granular consent screen: sign-in only (issue #3742).
+const signInOnlyScopes = [
+  'openid',
+  'https://www.googleapis.com/auth/userinfo.email',
+];
 
 void main() {
   late _MemoryTokenStore store;
@@ -294,6 +304,44 @@ void main() {
     expect(store.stored?.refreshToken, 'rt-9');
     expect(auth.authClient, isNotNull);
     expect(await auth.userEmail, 'new@example.com');
+  });
+
+  group('Drive access left unticked on the consent screen (#3742)', () {
+    // Google's granular consent gives the Drive scope its own checkbox. Left
+    // unticked, the token exchange still succeeds with sign-in scopes only,
+    // so the account read as signed in while every Drive call failed with
+    // `insufficient_scope`, shown as "Could not read Google Drive".
+    test('authenticate refuses a grant without Drive access', () async {
+      final auth = authenticator(
+        consentResult: creds(refreshToken: 'rt-9', scopes: signInOnlyScopes),
+      );
+
+      await expectLater(
+        auth.authenticate(),
+        throwsA(
+          isA<CloudStorageException>().having(
+            (e) => e.message,
+            'message',
+            contains('Google Drive access was not allowed'),
+          ),
+        ),
+      );
+      expect(store.stored, isNull, reason: 'a useless grant is not kept');
+      expect(auth.authClient, isNull);
+    });
+
+    test('silent sign-in drops a stored grant without Drive access', () async {
+      // Diver who signed in before the fix: the sign-in-only grant is in the
+      // keychain, so the account kept reading as signed in.
+      store.stored = creds(refreshToken: 'rt-1', scopes: signInOnlyScopes);
+      final built = <_FakeRefreshingClient>[];
+      final auth = authenticator(builtClients: built);
+
+      expect(await auth.attemptSilentAuth(), isFalse);
+      expect(built, isEmpty);
+      expect(auth.authClient, isNull);
+      expect(store.stored, isNull, reason: 'the next sign-in asks again');
+    });
   });
 
   test('a credential update from the refreshing client is persisted', () async {

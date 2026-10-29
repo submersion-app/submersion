@@ -21,6 +21,8 @@ import 'package:submersion/features/rules/data/services/import_rules_pass.dart';
 import 'package:submersion/features/rules/data/services/rule_engine.dart';
 import 'package:submersion/features/rules/domain/entities/rule_run.dart';
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 
 // ============================================================================
 // Public value types
@@ -1117,6 +1119,7 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
   /// stores the result on success, or sets [ImportWizardState.error] on
   /// failure. Advances [currentStep] past the importing step on success.
   Future<void> performImport() async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.fileImport);
     // A change of profile is re-checking the rows (issue #2050); importing
     // now would apply the previous profile's choices.
     if (state.isRetargeting) return;

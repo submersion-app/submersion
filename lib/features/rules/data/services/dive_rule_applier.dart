@@ -17,6 +17,7 @@ import 'package:submersion/features/rules/domain/entities/rule_action.dart';
 import 'package:submersion/features/rules/domain/rule_field_value.dart';
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
+import 'package:submersion/core/text/markdown/notes_markdown.dart';
 
 /// Applies one dive action of a logbook rule (#3513) through the bulk edit
 /// primitives, writing only the dives it changes and recording each change.
@@ -362,11 +363,9 @@ class DiveRuleApplier {
       if (before[id] == null) continue;
       ((notes ?? '').isEmpty ? empty : filled).add(id);
     }
-    for (final chunk in ruleIdChunks(empty)) {
+    // bulkAppendNotes adds the paragraph break only where notes exist.
+    for (final chunk in ruleIdChunks([...empty, ...filled])) {
       await _dives.bulkAppendNotes(chunk, text);
-    }
-    for (final chunk in ruleIdChunks(filled)) {
-      await _dives.bulkAppendNotes(chunk, '\n$text');
     }
     return AppliedAction([
       for (final id in empty) ruleChange(rule, id, 'notes', '', text),
@@ -376,7 +375,7 @@ class DiveRuleApplier {
           id,
           'notes',
           before[id]!['notes'] as String,
-          '${before[id]!['notes']}\n$text',
+          appendMarkdownParagraph(before[id]!['notes'] as String, text),
         ),
     ]);
   }

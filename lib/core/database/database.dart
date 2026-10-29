@@ -18,10 +18,12 @@ import 'package:submersion/core/database/tables/equipment_location_tables.dart';
 import 'package:submersion/core/database/tables/equipment_service_status_tables.dart';
 import 'package:submersion/core/database/tables/equipment_tables.dart';
 import 'package:submersion/core/database/tables/marine_life_tables.dart';
+import 'package:submersion/core/database/tables/media_people_tables.dart';
 import 'package:submersion/core/database/tables/media_tables.dart';
 import 'package:submersion/core/database/tables/pre_dive_tables.dart';
 import 'package:submersion/core/database/tables/quality_tables.dart';
 import 'package:submersion/core/database/tables/insight_tables.dart';
+import 'package:submersion/core/database/tables/nearby_tables.dart';
 import 'package:submersion/core/database/tables/query_tables.dart';
 import 'package:submersion/core/database/tables/rule_tables.dart';
 import 'package:submersion/core/database/tables/safety_tables.dart';
@@ -52,10 +54,12 @@ export 'package:submersion/core/database/tables/equipment_location_tables.dart';
 export 'package:submersion/core/database/tables/equipment_service_status_tables.dart';
 export 'package:submersion/core/database/tables/equipment_tables.dart';
 export 'package:submersion/core/database/tables/marine_life_tables.dart';
+export 'package:submersion/core/database/tables/media_people_tables.dart';
 export 'package:submersion/core/database/tables/media_tables.dart';
 export 'package:submersion/core/database/tables/pre_dive_tables.dart';
 export 'package:submersion/core/database/tables/quality_tables.dart';
 export 'package:submersion/core/database/tables/insight_tables.dart';
+export 'package:submersion/core/database/tables/nearby_tables.dart';
 export 'package:submersion/core/database/tables/query_tables.dart';
 export 'package:submersion/core/database/tables/rule_tables.dart';
 export 'package:submersion/core/database/tables/safety_tables.dart';
@@ -115,6 +119,8 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     MediaSpecies,
     // Media tags (v309, issue #1970)
     MediaTags,
+    // People tagged on photos and videos (v326, issue #1745)
+    MediaPeople,
     PendingPhotoSuggestions,
     MediaRepairLog,
     MediaSmartAlbums,
@@ -193,6 +199,7 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     DeletionLog,
     SyncPeerCursors,
     LocalPublishStates,
+    NearbyPeers,
     // Maps & Visualization
     CachedRegions,
     // Notifications
@@ -292,7 +299,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 318;
+  static const int currentSchemaVersion = 326;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1434,6 +1441,44 @@ class AppDatabase extends _$AppDatabase {
     // old shape gets the same move once applied here (SyncService). 317 is
     // #3662 (tank inspection baselines); 316 is held by PR #3685.
     318,
+    // v319: per-O2-band deco ppO2 limits and the explicit MOD for 100% O2
+    // (issue #3580). Column only, both off by default, so the floor does
+    // not move. Sits below 320; the beforeOpen backstop covers a database
+    // already at 320.
+    319,
+    // v320: the device-local nearby_peers table and the publish state's
+    // relay floor for nearby Bluetooth sync (issue #3731). Never synced, so
+    // the floor does not move. 319 is held
+    // by PR #3726.
+    320,
+    // v321: per-plan "explicitly off" flags for the bands and the
+    // explicit-depth override (issue #3580). Column only, both off by
+    // default, so the floor does not move.
+    321,
+    // v322: hypercapnia-bailout phase for OC bailout during a CCR/SCR dive
+    // (issue #3743). Column only, both off by default, so the floor does
+    // not move.
+    322,
+    // v323: diver_settings list arrangement columns and their sync clock
+    // (issue #3748). Additive and nullable, and an older peer omits them,
+    // so the floor does not move. 321 and 322 are held by PR #3726.
+    323,
+    // v324: buddy card swap columns on buddies, certifications and divers
+    // (issue #3728). Additive and nullable: an older peer drops the keys it
+    // does not know, so the floor does not move.
+    324,
+    // v325: trips.parent_trip_id, the larger trip a side trip is part of
+    // (issue #3658). Additive and nullable with no backfill: an older peer
+    // omits it and sees a side trip as a trip of its own, so the floor
+    // stays. Renumbered from 323, which #3748 shipped first; #3728 then
+    // shipped 324.
+    325,
+    // v326: the synced media_people table, buddies and the diver tagged on
+    // photos and videos (issue #1745). Additive only, so the floor does not
+    // move: an older peer ignores the new payload key. Renumbered from 323
+    // and 324, which #3748 and #3728 took; 325 is #3786's; 319, 321 and 322
+    // are held by PR #3726.
+    326,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

@@ -122,3 +122,23 @@ Future<void> insertTestMedia({
         ),
       );
 }
+
+Future<void> insertTestBuddy({
+  required String id,
+  required String name,
+  String? diverId,
+}) async {
+  final db = DatabaseService.instance.database;
+  final now = DateTime.now().millisecondsSinceEpoch;
+  await db
+      .into(db.buddies)
+      .insert(
+        BuddiesCompanion(
+          id: Value(id),
+          name: Value(name),
+          diverId: Value(diverId),
+          createdAt: Value(now),
+          updatedAt: Value(now),
+        ),
+      );
+}

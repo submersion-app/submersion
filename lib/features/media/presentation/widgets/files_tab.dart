@@ -11,6 +11,8 @@ import 'package:submersion/features/media/presentation/widgets/file_review_pane.
 import 'package:submersion/features/media/presentation/helpers/files_tab_staging.dart';
 import 'package:submersion/features/media/presentation/helpers/offer_site_review_after_import.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 
 /// Files tab in the photo picker.
 ///
@@ -80,6 +82,9 @@ class FilesTab extends ConsumerWidget {
   // files_tab_staging_test; the build() branches it drives (extraction
   // progress, empty/non-empty file lists) are covered by files_tab_test.
   Future<void> _pickFiles(BuildContext context) async {
+    if (!demoSealGuard(context, DemoSealedFeature.mediaImport)) {
+      return;
+    }
     final container = ProviderScope.containerOf(context, listen: false);
     // FileType.media admits both images and videos at the OS picker layer.
     // Their capture time is recovered by ExifExtractor (JPEG EXIF or the
@@ -97,6 +102,9 @@ class FilesTab extends ConsumerWidget {
   }
 
   Future<void> _pickFolder(BuildContext context) async {
+    if (!demoSealGuard(context, DemoSealedFeature.mediaImport)) {
+      return;
+    }
     final container = ProviderScope.containerOf(context, listen: false);
     final dirPath = await FilePicker.getDirectoryPath();
     if (dirPath == null) return;

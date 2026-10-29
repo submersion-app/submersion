@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/text/fuzzy_match.dart';
 import 'package:submersion/shared/widgets/forms/autocomplete_options_list.dart';
 import 'package:submersion/shared/widgets/forms/form_style.dart';
+import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
 
 /// Row-styled autocomplete text field: label left, always-mounted bare
 /// field right (safe for validators inside always-open sections), with a
@@ -26,7 +27,11 @@ class SuggestionFormRow extends StatefulWidget {
     this.maxLines = 1,
     this.caption,
     this.trailing,
-  });
+    this.markdown = false,
+  }) : assert(
+         !markdown || suggestions.length == 0,
+         'A Markdown notes row offers no suggestions',
+       );
 
   final String label;
   final TextEditingController controller;
@@ -38,6 +43,11 @@ class SuggestionFormRow extends StatefulWidget {
   final int maxLines;
   final String? caption;
   final Widget? trailing;
+
+  /// A Markdown notes row (#3683): the label and [trailing] sit above the
+  /// notes editor with its formatting bar, in place of the autocomplete
+  /// field.
+  final bool markdown;
 
   @override
   State<SuggestionFormRow> createState() => _SuggestionFormRowState();
@@ -75,9 +85,60 @@ class _SuggestionFormRowState extends State<SuggestionFormRow> {
     return [...substring, ...fuzzy.map((pair) => pair.$1)];
   }
 
+  Widget _caption(ThemeData theme) => Padding(
+    padding: const EdgeInsets.only(top: 2),
+    child: Text(
+      widget.caption!,
+      style: theme.textTheme.bodySmall!.copyWith(
+        color: theme.colorScheme.onSurfaceVariant,
+      ),
+    ),
+  );
+
+  Widget _markdownRow(ThemeData theme) {
+    return Padding(
+      padding: FormStyle.rowPadding,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(widget.label, style: theme.textTheme.bodyMedium),
+              ),
+              ?widget.trailing,
+            ],
+          ),
+          const SizedBox(height: 4),
+          MarkdownNotesField(
+            controller: widget.controller,
+            focusNode: _focusNode,
+            validator: widget.validator,
+            maxLines: widget.maxLines,
+            textCapitalization: widget.textCapitalization,
+            style: theme.textTheme.bodyMedium,
+            decoration: InputDecoration(
+              isDense: true,
+              filled: false,
+              border: InputBorder.none,
+              enabledBorder: InputBorder.none,
+              focusedBorder: InputBorder.none,
+              errorBorder: InputBorder.none,
+              focusedErrorBorder: InputBorder.none,
+              contentPadding: EdgeInsets.zero,
+              hintText: widget.placeholder,
+            ),
+          ),
+          if (widget.caption != null) _caption(theme),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    if (widget.markdown) return _markdownRow(theme);
     return Padding(
       padding: FormStyle.rowPadding,
       child: Column(
@@ -135,16 +196,7 @@ class _SuggestionFormRowState extends State<SuggestionFormRow> {
               ],
             ],
           ),
-          if (widget.caption != null)
-            Padding(
-              padding: const EdgeInsets.only(top: 2),
-              child: Text(
-                widget.caption!,
-                style: theme.textTheme.bodySmall!.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ),
+          if (widget.caption != null) _caption(theme),
         ],
       ),
     );

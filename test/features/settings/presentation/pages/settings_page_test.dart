@@ -59,9 +59,11 @@ import 'package:submersion/features/settings/presentation/providers/debug_log_pr
 import 'package:submersion/features/settings/presentation/providers/debug_mode_provider.dart';
 import 'package:submersion/core/constants/o2_cell_unit.dart';
 import 'package:submersion/core/utils/coordinates/coordinate_format.dart';
+import 'package:submersion/features/settings/domain/list_arrangements.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/nav_customization_tile.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/features/demo_mode/presentation/providers/demo_mode_providers.dart';
 
 import '../../../../support/fake_app_settings_repository.dart';
 
@@ -100,6 +102,16 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
 
   @override
   Future<void> get settingsLoaded async {}
+
+  @override
+  Future<void> toggleGroupTripsInDiveList() async =>
+      state = state.copyWith(groupTripsInDiveList: !state.groupTripsInDiveList);
+
+  @override
+  Future<void> updateListArrangements(
+    ListArrangements Function(ListArrangements current) change,
+  ) async =>
+      state = state.copyWith(listArrangements: change(state.listArrangements));
 
   @override
   Future<void> setAccentNavIcons(bool value) async =>
@@ -312,6 +324,32 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setPpO2Limits(double working, double max) async =>
       state = state.copyWith(ppO2MaxWorking: working, ppO2MaxDeco: max);
+  @override
+  Future<void> setPpO2DecoBandsConfig({
+    required bool bandsEnabled,
+    required double band1,
+    required double band2,
+    required double band3,
+    required bool maxO2DepthEnabled,
+    required double maxO2DepthMeters,
+  }) async => state = state.copyWith(
+    ppO2DecoBandsEnabled: bandsEnabled,
+    ppO2DecoBand1: band1,
+    ppO2DecoBand2: band2,
+    ppO2DecoBand3: band3,
+    maxO2DepthEnabled: maxO2DepthEnabled,
+    maxO2DepthMeters: maxO2DepthMeters,
+  );
+  @override
+  Future<void> setPlannerHypercapniaConfig({
+    required bool enabled,
+    required double factor,
+    required int minutes,
+  }) async => state = state.copyWith(
+    plannerHypercapniaEnabled: enabled,
+    plannerHypercapniaFactor: factor,
+    plannerHypercapniaMinutes: minutes,
+  );
   @override
   Future<void> setCcrPpO2Limits({
     required double setpointLow,
@@ -921,6 +959,8 @@ void main() {
       currentDiverProvider.overrideWith((ref) async => null),
       // Mock diverListNotifierProvider
       diverListNotifierProvider.overrideWith((ref) => _MockDiverListNotifier()),
+      // No sample logbook: the real manifest fetch would reach the network.
+      demoAvailabilityProvider.overrideWith((ref) async => null),
     ];
   }
 
@@ -1740,10 +1780,9 @@ void main() {
       final phoneTitles = tileTitles(tester);
 
       expect(hubTitles, phoneTitles);
-      expect(
-        hubTitles,
-        containsAll(['Language', 'Display size', 'Gear arrangement']),
-      );
+      expect(hubTitles, containsAll(['Language', 'Display size']));
+      // Gear arrangement lives on the Dives appearance page (#3750).
+      expect(hubTitles, isNot(contains('Gear arrangement')));
       expect(hubTitles, isNot(contains('App Language')));
     });
 
@@ -1800,26 +1839,6 @@ void main() {
         hasLength(LanguageSettingsPage.supportedLocales.length),
       );
       expect(inlineTitles.first, 'System Default');
-    });
-
-    testWidgets('hub opens the gear arrangement sheet', (tester) async {
-      await tester.binding.setSurfaceSize(const Size(500, 4000));
-      addTearDown(() => tester.binding.setSurfaceSize(null));
-
-      await tester.pumpWidget(
-        buildAppearanceWidget([
-          ...getOverrides(),
-          appSettingsRepositoryProvider.overrideWithValue(
-            FakeAppSettingsRepository(),
-          ),
-        ]),
-      );
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.text('Gear arrangement'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Order types by'), findsOneWidget);
     });
 
     // The desktop master-detail pane renders _AppearanceSectionContent, a
@@ -2723,10 +2742,10 @@ void main() {
       await tester.tap(find.text('ppO2 limits OC'));
       await tester.pumpAndSettle();
 
-      // The "Maximum ppO2" dropdown currently reads 1.6 bar (working is 1.4).
-      await tester.tap(find.text('1.6 bar'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('1.5 bar').last);
+      // Max currently reads 1.6 bar (working is 1.4); tap the midpoint of
+      // its slider's 1.4-1.6 range, which snaps to the 1.5 division.
+      final maxSlider = find.byType(Slider).at(1);
+      await tester.tapAt(tester.getRect(maxSlider).center);
       await tester.pumpAndSettle();
       await tester.tap(find.widgetWithText(FilledButton, 'Save'));
       await tester.pumpAndSettle();
@@ -2746,10 +2765,9 @@ void main() {
       await tester.tap(find.text('ppO2 limits OC'));
       await tester.pumpAndSettle();
 
-      // Working starts at 1.4; raise it to 1.6, above the 1.4/1.5/1.6 max.
-      await tester.tap(find.text('1.4 bar'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('1.6 bar').last);
+      // Working starts below its 1.6 ceiling; drag its slider all the way
+      // right, past the current max, which pulls max up to match.
+      await tester.drag(find.byType(Slider).first, const Offset(1000, 0));
       await tester.pumpAndSettle();
       await tester.tap(find.widgetWithText(FilledButton, 'Save'));
       await tester.pumpAndSettle();
@@ -2780,14 +2798,8 @@ void main() {
       await tester.pumpAndSettle();
 
       // Snapped to the grid: 1.4 working, 1.5 max.
-      expect(
-        find.widgetWithText(DropdownButton<double>, '1.4 bar'),
-        findsOneWidget,
-      );
-      expect(
-        find.widgetWithText(DropdownButton<double>, '1.5 bar'),
-        findsOneWidget,
-      );
+      expect(find.text('1.4 bar'), findsOneWidget);
+      expect(find.text('1.5 bar'), findsOneWidget);
     });
   });
 

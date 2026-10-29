@@ -362,6 +362,39 @@ void main() {
     },
   );
 
+  test('restoreFromBackup restores from the cloud copy when the SAF document '
+      'is gone', () async {
+    // One resolver serves restore and copy-out (issue #3650): the cloud copy
+    // is the same backup, as it is for a missing plain local file.
+    final cloud = FakeCloudStorageProvider();
+    final upload = await cloud.uploadFile(
+      await File(_validDb(tmp.path, 'cloud_copy.db')).readAsBytes(),
+      'gone.db',
+    );
+    final adapter = _FileWritingAdapter(_validDb(tmp.path, 'live.db'));
+    final service = BackupService(
+      dbAdapter: adapter,
+      preferences: prefs,
+      safPort: _MissingSafPort(),
+      cloudProvider: cloud,
+      syncRepository: _SpySync(),
+    );
+
+    await service.restoreFromBackup(
+      BackupRecord(
+        id: 'r',
+        filename: 'gone.db',
+        timestamp: DateTime(2026),
+        sizeBytes: 1,
+        location: BackupLocation.both,
+        localPath: 'content://tree/doc/gone',
+        cloudFileId: upload.fileId,
+      ),
+    );
+
+    expect(adapter.restoreCalls, 1);
+  });
+
   test('restoreFromBackup throws when the SAF document is gone', () async {
     final port = _FakeSafPort()..wroteFrom = null;
     // exists() returns true in the fake; override via a record whose doc is

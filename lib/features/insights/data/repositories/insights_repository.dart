@@ -31,6 +31,7 @@ import 'package:submersion/features/insights/data/repositories/site_entry_method
 import 'package:submersion/features/insights/data/repositories/visibility_band_sql.dart';
 import 'package:submersion/features/insights/data/dive_filter_sql.dart';
 import 'package:submersion/features/insights/data/series_profile_aggregates.dart';
+import 'package:submersion/features/insights/domain/calendar_day_matrix.dart';
 import 'package:submersion/features/insights/domain/conditions/conditions_row.dart';
 import 'package:submersion/features/insights/domain/entities/species_insights.dart';
 import 'package:submersion/features/insights/domain/focus/focus_factor_row.dart';
@@ -39,10 +40,12 @@ import 'package:submersion/features/insights/domain/tank_configuration/tank_conf
 import 'package:submersion/features/insights/domain/time_of_day_bucket.dart';
 import 'package:submersion/features/insights/domain/trend_aggregation.dart';
 import 'package:submersion/features/insights/domain/water_temp_bands.dart';
+import 'package:submersion/features/trips/data/side_trip_sql.dart';
 
 export 'package:submersion/features/insights/domain/trend_aggregation.dart'
     show TrendDataPoint;
 
+part 'insights_repository_calendar_days.dart';
 part 'insights_repository_conditions.dart';
 part 'insights_repository_focus.dart';
 part 'insights_repository_focus_series.dart';
@@ -2110,7 +2113,9 @@ class InsightsRepository {
     }
   }
 
-  /// Get dives per trip
+  /// Get dives per trip. A larger trip counts its side trips' dives, and
+  /// the side trips are left out of the ranking so no dive counts twice
+  /// (issue #3658).
   Future<List<RankingItem>> getDivesPerTrip({
     String? diverId,
     int limit = 10,
@@ -2130,8 +2135,8 @@ class InsightsRepository {
           t.location,
           COUNT(d.id) AS dive_count
         FROM trips t
-        JOIN dives d ON d.trip_id = t.id
-        WHERE 1=1 $diverFilter ${df.clause}
+        ${tripDivesJoinSql(tripAlias: 't', diveAlias: 'd', joinKind: '')}
+        WHERE $topLevelTripSql $diverFilter ${df.clause}
         GROUP BY t.id
         ORDER BY dive_count DESC
         LIMIT ?

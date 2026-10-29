@@ -5,6 +5,7 @@ import 'package:submersion/core/constants/dive_search.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
+import 'package:submersion/core/models/sort_state_codec.dart';
 import 'package:submersion/core/performance/perf_timer.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -53,11 +54,20 @@ final diveFilterProvider = StateProvider<DiveFilterState>(
 );
 
 /// Dive sort state provider
-final diveSortProvider = StateProvider<SortState<DiveSortField>>(
-  (ref) => const SortState(
-    field: DiveSortField.date,
-    direction: SortDirection.descending,
-  ),
+///
+/// Comes back as the diver left it (issue #3748): the active diver's saved
+/// sort, or the starting order below when there is none (or this build
+/// cannot read it). Change it through `ListArrangementWrites`.
+final diveSortProvider = Provider<SortState<DiveSortField>>(
+  (ref) =>
+      decodeSortState(
+        ref.watch(settingsProvider.select((s) => s.listArrangements.diveSort)),
+        DiveSortField.values,
+      ) ??
+      const SortState(
+        field: DiveSortField.date,
+        direction: SortDirection.descending,
+      ),
 );
 
 /// The ids [filter] keeps, resolved in SQL through the one compiled query
@@ -1015,6 +1025,49 @@ class PaginatedDiveListNotifier
       await _appendRows(current, limit: missing + _pageSize, jump: true);
     });
     return state.valueOrNull?.dives.any((d) => d.id == diveId) ?? false;
+  }
+
+  /// Pages forward until [diveId] is loaded or the list runs out, and reports
+  /// whether it is loaded, for a dive number typed in search (#3744), whose
+  /// place in the list nothing has worked out. Queued like every load, so it
+  /// runs behind a reload asked for just before it, such as the search
+  /// clearing. Each read asks for twice the last, so a dive deep in a long
+  /// log takes a handful of reads rather than one per page.
+  Future<bool> loadUntil(String diveId) async {
+    await _enqueuePaging(() async {
+      // A change of query meanwhile queues its own reload behind this; the
+      // rows read so far no longer answer it, so stop rather than page the
+      // new query from the old one's cursor.
+      final filterLoads = _filterLoads;
+      final diverSwitches = _diverSwitches;
+      final sort = _ref.read(diveSortProvider);
+      bool queryChanged() =>
+          filterLoads != _filterLoads ||
+          diverSwitches != _diverSwitches ||
+          sort != _ref.read(diveSortProvider);
+      var limit = _pageSize;
+      while (mounted && !queryChanged()) {
+        final current = state.valueOrNull;
+        if (current == null || !current.hasMore) return;
+        if (current.dives.any((d) => d.id == diveId)) return;
+        await _appendRows(current, limit: limit, jump: true);
+        // A failed read raises the flag; the Retry row takes it from there.
+        if (state.valueOrNull?.loadMoreFailed ?? true) return;
+        limit *= 2;
+      }
+    });
+    final dives = state.valueOrNull?.dives ?? const <DiveSummary>[];
+    final index = dives.indexWhere((d) => d.id == diveId);
+    if (index < 0) return false;
+    // A read preloads profiles for its last rows, but a doubled read can end
+    // well past the dive: preload the rows the list lands on instead.
+    const half = _jumpProfileWindow ~/ 2;
+    final around = dives.sublist(
+      (index - half).clamp(0, index),
+      (index + half).clamp(index + 1, dives.length),
+    );
+    _loadBatchProfiles([for (final d in around) d.id]);
+    return true;
   }
 
   /// Loads every row past the end of the list in one query, so End in the

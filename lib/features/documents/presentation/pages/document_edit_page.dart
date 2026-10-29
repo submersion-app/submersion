@@ -7,6 +7,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
+import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/documents/data/services/document_page_capture.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
@@ -24,6 +26,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/utils/byte_format.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
+import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
 
 /// Creates or edits one document and its pages (issue #2613).
 class DocumentEditPage extends ConsumerStatefulWidget {
@@ -201,6 +204,9 @@ class _DocumentEditPageState extends ConsumerState<DocumentEditPage> {
   /// Asks where the page comes from, captures it, and puts it in the slot
   /// [side] names (replacing what was there) or at the end.
   Future<void> _addPage(DocumentPageSide? side) async {
+    if (!demoSealGuard(context, DemoSealedFeature.mediaImport)) {
+      return;
+    }
     final l10n = context.l10n;
     final messenger = ScaffoldMessenger.of(context);
     final canUseCamera = Platform.isAndroid || Platform.isIOS;
@@ -419,7 +425,7 @@ class _DocumentEditPageState extends ConsumerState<DocumentEditPage> {
                   onAdd: _addPage,
                 ),
                 const SizedBox(height: 16),
-                TextFormField(
+                MarkdownNotesField(
                   controller: _controllers.notes,
                   minLines: 2,
                   maxLines: 6,

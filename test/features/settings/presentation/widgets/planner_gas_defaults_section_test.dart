@@ -71,4 +71,60 @@ void main() {
 
     expect(notifier.state.plannerBuddyFactor, 2.5);
   });
+
+  testWidgets(
+    'the "Per-O2-band deco limits" tile opens the dialog seeded with the '
+    'current settings (issue #3580)',
+    (tester) async {
+      final notifier = MockSettingsNotifier(
+        const AppSettings(
+          ppO2DecoBandsEnabled: true,
+          ppO2DecoBand1: 1.3,
+          ppO2DecoBand2: 1.4,
+          ppO2DecoBand3: 1.5,
+          maxO2DepthEnabled: true,
+          maxO2DepthMeters: 7.0,
+        ),
+      );
+      await tester.pumpWidget(_app(notifier));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Per-O2-band deco limits'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('1.3 bar'), findsOneWidget);
+      expect(find.text('1.4 bar'), findsOneWidget);
+      expect(find.text('1.5 bar'), findsOneWidget);
+      expect(find.text('7.0m'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'saving the dialog writes every value through setPpO2DecoBandsConfig '
+    '(issue #3580)',
+    (tester) async {
+      final notifier = MockSettingsNotifier(const AppSettings());
+      await tester.pumpWidget(_app(notifier));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Per-O2-band deco limits'));
+      await tester.pumpAndSettle();
+
+      final bandsSwitch = find.byType(SwitchListTile).first;
+      await tester.tap(bandsSwitch);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(notifier.state.ppO2DecoBandsEnabled, isTrue);
+      // The three bands and the explicit depth keep their (unedited)
+      // defaults, snapped onto the grid.
+      expect(notifier.state.ppO2DecoBand1, const AppSettings().ppO2DecoBand1);
+      expect(
+        notifier.state.maxO2DepthMeters,
+        const AppSettings().maxO2DepthMeters,
+      );
+    },
+  );
 }

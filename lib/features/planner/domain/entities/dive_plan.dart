@@ -139,6 +139,54 @@ class DivePlan extends Equatable {
   /// Null = use the app-wide setting.
   final double? ppO2Deco;
 
+  /// Per-O2-band deco ppO2 ceilings (issue #3580), overriding the diver's
+  /// Settings band for this plan only: [ppO2DecoBand1] for a deco gas up to
+  /// 28% O2, [ppO2DecoBand2] for 28-45%, [ppO2DecoBand3] for 45-99%. Null =
+  /// use the app-wide band, unless [ppO2DecoBandsExplicitlyOff] forces band
+  /// mode off for this plan regardless.
+  final double? ppO2DecoBand1;
+  final double? ppO2DecoBand2;
+  final double? ppO2DecoBand3;
+
+  /// True = this plan never uses per-band deco ppO2 limits, regardless of
+  /// the diver's Settings band toggle. Distinct from the bands being unset,
+  /// which follows that toggle instead of forcing it off (issue #3580,
+  /// matching [airBreaksExplicitlyOff]'s shape).
+  final bool ppO2DecoBandsExplicitlyOff;
+
+  /// Explicit MOD for 100% O2 (issue #3580), overriding the diver's
+  /// Settings value for this plan only. Null = use the app-wide value,
+  /// unless [maxO2DepthExplicitlyOff] forces it off for this plan
+  /// regardless.
+  final double? maxO2DepthMeters;
+
+  /// True = this plan never uses an explicit MOD for 100% O2, regardless of
+  /// the diver's Settings toggle. Distinct from [maxO2DepthMeters] being
+  /// unset, which follows that toggle instead of forcing it off (issue
+  /// #3580, matching [airBreaksExplicitlyOff]'s shape).
+  final bool maxO2DepthExplicitlyOff;
+
+  /// Hypercapnia-bailout AMV override for this plan (issue #3743), L/min:
+  /// the elevated breathing rate charged for [hypercapniaMinutes] at the
+  /// start of an OC bailout. Null = derive from this plan's own base SAC
+  /// and the diver's Settings hypercapnia factor, unless
+  /// [hypercapniaExplicitlyOff] forces the phase off for this plan
+  /// regardless.
+  final double? hypercapniaAmv;
+
+  /// Hypercapnia-bailout phase duration override for this plan (issue
+  /// #3743), minutes from the bailout instant. Null = use the diver's
+  /// Settings default, unless [hypercapniaExplicitlyOff] forces the phase
+  /// off for this plan regardless.
+  final int? hypercapniaMinutes;
+
+  /// True = this plan's OC bailout never uses a hypercapnia phase,
+  /// regardless of the diver's Settings toggle. Distinct from
+  /// [hypercapniaAmv]/[hypercapniaMinutes] being unset, which follows that
+  /// toggle instead of forcing it off (issue #3743, matching
+  /// [airBreaksExplicitlyOff]'s shape).
+  final bool hypercapniaExplicitlyOff;
+
   /// Equivalent narcotic depth target used when suggesting a best mix for a
   /// depth. Null = use the diver's Settings default (issue #3552;
   /// Subsurface default: 30 m, its UI shows 28 m).
@@ -223,6 +271,15 @@ class DivePlan extends Equatable {
     this.problemSolvingMinutes,
     this.ppO2Bottom,
     this.ppO2Deco,
+    this.ppO2DecoBand1,
+    this.ppO2DecoBand2,
+    this.ppO2DecoBand3,
+    this.ppO2DecoBandsExplicitlyOff = false,
+    this.maxO2DepthMeters,
+    this.maxO2DepthExplicitlyOff = false,
+    this.hypercapniaAmv,
+    this.hypercapniaMinutes,
+    this.hypercapniaExplicitlyOff = false,
     this.bestMixEndMeters,
     this.o2Narcotic,
     this.surfaceInterval,
@@ -341,6 +398,21 @@ class DivePlan extends Equatable {
     bool clearPpO2Bottom = false,
     double? ppO2Deco,
     bool clearPpO2Deco = false,
+    double? ppO2DecoBand1,
+    bool clearPpO2DecoBand1 = false,
+    double? ppO2DecoBand2,
+    bool clearPpO2DecoBand2 = false,
+    double? ppO2DecoBand3,
+    bool clearPpO2DecoBand3 = false,
+    bool? ppO2DecoBandsExplicitlyOff,
+    double? maxO2DepthMeters,
+    bool clearMaxO2DepthMeters = false,
+    bool? maxO2DepthExplicitlyOff,
+    double? hypercapniaAmv,
+    bool clearHypercapniaAmv = false,
+    int? hypercapniaMinutes,
+    bool clearHypercapniaMinutes = false,
+    bool? hypercapniaExplicitlyOff,
     double? bestMixEndMeters,
     bool clearBestMixEndMeters = false,
     bool? o2Narcotic,
@@ -424,6 +496,30 @@ class DivePlan extends Equatable {
           : (problemSolvingMinutes ?? this.problemSolvingMinutes),
       ppO2Bottom: clearPpO2Bottom ? null : (ppO2Bottom ?? this.ppO2Bottom),
       ppO2Deco: clearPpO2Deco ? null : (ppO2Deco ?? this.ppO2Deco),
+      ppO2DecoBand1: clearPpO2DecoBand1
+          ? null
+          : (ppO2DecoBand1 ?? this.ppO2DecoBand1),
+      ppO2DecoBand2: clearPpO2DecoBand2
+          ? null
+          : (ppO2DecoBand2 ?? this.ppO2DecoBand2),
+      ppO2DecoBand3: clearPpO2DecoBand3
+          ? null
+          : (ppO2DecoBand3 ?? this.ppO2DecoBand3),
+      ppO2DecoBandsExplicitlyOff:
+          ppO2DecoBandsExplicitlyOff ?? this.ppO2DecoBandsExplicitlyOff,
+      maxO2DepthMeters: clearMaxO2DepthMeters
+          ? null
+          : (maxO2DepthMeters ?? this.maxO2DepthMeters),
+      maxO2DepthExplicitlyOff:
+          maxO2DepthExplicitlyOff ?? this.maxO2DepthExplicitlyOff,
+      hypercapniaAmv: clearHypercapniaAmv
+          ? null
+          : (hypercapniaAmv ?? this.hypercapniaAmv),
+      hypercapniaMinutes: clearHypercapniaMinutes
+          ? null
+          : (hypercapniaMinutes ?? this.hypercapniaMinutes),
+      hypercapniaExplicitlyOff:
+          hypercapniaExplicitlyOff ?? this.hypercapniaExplicitlyOff,
       bestMixEndMeters: clearBestMixEndMeters
           ? null
           : (bestMixEndMeters ?? this.bestMixEndMeters),
@@ -504,6 +600,15 @@ class DivePlan extends Equatable {
     problemSolvingMinutes,
     ppO2Bottom,
     ppO2Deco,
+    ppO2DecoBand1,
+    ppO2DecoBand2,
+    ppO2DecoBand3,
+    ppO2DecoBandsExplicitlyOff,
+    maxO2DepthMeters,
+    maxO2DepthExplicitlyOff,
+    hypercapniaAmv,
+    hypercapniaMinutes,
+    hypercapniaExplicitlyOff,
     bestMixEndMeters,
     o2Narcotic,
     surfaceInterval,

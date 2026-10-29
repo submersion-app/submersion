@@ -12,6 +12,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
 
 import '../../../../helpers/pdf_roboto.dart';
 import '../../../../helpers/pdf_text.dart';
@@ -64,12 +65,14 @@ void main() {
       dates: dates,
       units: units,
       options: const PdfExportOptions(template: PdfTemplate.simple),
+      gearArrangement: EquipmentArrangement.defaults,
     );
     final detailed = await service.generateDivePdfBytes(
       dives,
       dates: dates,
       units: units,
       options: const PdfExportOptions(template: PdfTemplate.detailed),
+      gearArrangement: EquipmentArrangement.defaults,
     );
 
     // Simple puts both dives in one table; detailed gives each its own page.
@@ -88,6 +91,7 @@ void main() {
       dates: dates,
       units: units,
       options: const PdfExportOptions(template: PdfTemplate.detailed),
+      gearArrangement: EquipmentArrangement.defaults,
     );
 
     await PdfFonts.instance.initialize();
@@ -113,6 +117,7 @@ void main() {
       dates: dates,
       units: units,
       options: const PdfExportOptions(template: PdfTemplate.simple),
+      gearArrangement: EquipmentArrangement.defaults,
     );
 
     await PdfFonts.instance.initialize();
@@ -132,12 +137,14 @@ void main() {
       dates: dates,
       units: units,
       options: const PdfExportOptions(pageSize: PdfPageSize.letter),
+      gearArrangement: EquipmentArrangement.defaults,
     );
     final a4 = await service.generateDivePdfBytes(
       [makeDive()],
       dates: dates,
       units: units,
       options: const PdfExportOptions(pageSize: PdfPageSize.a4),
+      gearArrangement: EquipmentArrangement.defaults,
     );
 
     expect(
@@ -154,6 +161,7 @@ void main() {
       [makeDive(site: site)],
       dates: dates,
       units: units,
+      gearArrangement: EquipmentArrangement.defaults,
     );
 
     // The legacy builder used `pw.Document()` with no theme, so it fell back
@@ -185,12 +193,14 @@ void main() {
       units: units,
       options: const PdfExportOptions(includeCertificationCards: true),
       certifications: certs,
+      gearArrangement: EquipmentArrangement.defaults,
     );
     final without = await service.generateDivePdfBytes(
       [makeDive()],
       dates: dates,
       units: units,
       certifications: certs,
+      gearArrangement: EquipmentArrangement.defaults,
     );
 
     expect(
@@ -206,6 +216,7 @@ void main() {
       dates: dates,
       units: units,
       options: const PdfExportOptions(template: PdfTemplate.simple),
+      gearArrangement: EquipmentArrangement.defaults,
     );
 
     expect(result.fileName, startsWith('dive_logbook_simple_'));

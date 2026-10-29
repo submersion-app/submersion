@@ -40,6 +40,7 @@ import 'package:submersion/features/dive_log/presentation/helpers/dive_list_nav_
 import 'package:submersion/features/dive_log/presentation/widgets/dive_list_item.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_list_scrubber.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/trip_group_header.dart';
+import 'package:submersion/features/trips/presentation/helpers/new_trip_from_selection.dart';
 import 'package:submersion/shared/widgets/export_destination_sheet.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/keyboard_list_navigator.dart';
@@ -82,6 +83,9 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_list_co
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/shared/models/subtitle_text.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/list_arrangement_writes.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
+import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
 
 /// True if [d]'s date falls within [r], inclusive of the end calendar day.
 bool inDateRange(DiveSummary d, DateTimeRange r) {
@@ -219,6 +223,19 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   final ScrollController _scrollController = ScrollController();
   String? _lastScrolledToId;
 
+  /// On the list's scrubber, which sits inside the keyboard navigator: a
+  /// jump to a typed dive number, or any scroll to a dive, lands on the
+  /// dive's row through it, after the frame.
+  final GlobalKey _listBodyKey = GlobalKey();
+
+  /// Counts jumps to a typed dive number, so only the latest one lands; a
+  /// scroll by the diver counts too, dropping a landing still pending.
+  int _numberJumps = 0;
+
+  /// Counts jumps to a typed dive number alone, so only the latest one
+  /// opens its dive where that waits on the landing.
+  int _jumpRequests = 0;
+
   /// Brings the list back to the dive last opened when it is built again
   /// after the diver left it (#3301).
   late final ListPositionRestorer _positionRestorer = ListPositionRestorer(
@@ -296,6 +313,9 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
 
   void _onScroll() {
     if (!_scrollController.hasClients) return;
+    // The diver comes first: a jump to a typed number still loading drops
+    // its landing rather than pulling the list from where they put it.
+    if (_scrollController.positions.any(isScrolledByDiver)) _numberJumps++;
     // Once a page load has failed, only the Retry button asks again, matching
     // [_loadNextPageIfStranded]. Sitting at the bottom of the list produces a
     // scroll notification on every settle and overscroll bounce, so retrying
@@ -588,14 +608,32 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
               (viewportHeight / 3);
           final clampedOffset = targetOffset.clamp(0.0, maxScroll);
 
+          // The estimate only gets near on a log of uneven rows, landing
+          // dozens of dives off on a long one (#3744). From there, show the
+          // row itself, building it first if the estimate missed it; a row
+          // the estimate already put in view stays where it is. Not after
+          // the diver has taken the list over mid-animation, nor once a newer
+          // scroll to another dive has cut this one short.
+          void showRow() {
+            final listContext = _listBodyKey.currentContext;
+            if (!mounted || listContext == null) return;
+            if (_lastScrolledToId != targetId) return;
+            if (_scrollController.positions.any(isScrolledByDiver)) return;
+            _landOnDive(listContext, targetId, toTop: false);
+          }
+
           if (jump) {
             _scrollController.jumpTo(clampedOffset);
+            WidgetsBinding.instance.addPostFrameCallback((_) => showRow());
+            WidgetsBinding.instance.scheduleFrame();
           } else {
-            _scrollController.animateTo(
-              clampedOffset,
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeInOut,
-            );
+            _scrollController
+                .animateTo(
+                  clampedOffset,
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                )
+                .then((_) => showRow());
           }
           _lastScrolledToId = targetId;
         });
@@ -1049,6 +1087,11 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
       final diveRolesById = format == _BulkExportFormat.pdf
           ? await diveRoleMapOrEmpty(ref.read(diveRoleMapProvider.future))
           : const <String, DiveRole>{};
+      // The diver's own gear arrangement, resolved so a list exported right
+      // after launch does not print the defaults (#3748).
+      final gearArrangement = format == _BulkExportFormat.pdf
+          ? await resolveEquipmentArrangement(ref.read)
+          : EquipmentArrangement.defaults;
       if (!mounted) return BulkActionOutcome.cancelled;
 
       if (!keepDialogForDelivery) {
@@ -1071,6 +1114,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                   diverPhoto: diverPhoto,
                   diveTypesById: diveTypesById,
                   diveRolesById: diveRolesById,
+                  gearArrangement: gearArrangement,
                 )
               : await exportService.saveDivesToPdfFile(
                   selectedDives,
@@ -1082,6 +1126,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                   diverPhoto: diverPhoto,
                   diveTypesById: diveTypesById,
                   diveRolesById: diveRolesById,
+                  gearArrangement: gearArrangement,
                 ),
         _BulkExportFormat.csv =>
           sharing
@@ -1158,6 +1203,33 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             content: Text(context.l10n.diveLog_bulkExport_failed(e.toString())),
             backgroundColor: Colors.red,
           ),
+        );
+      }
+      return BulkActionOutcome.failed;
+    }
+  }
+
+  /// Open the new-trip form prefilled from the checked dives (issue #3658).
+  /// Backing out keeps the selection; a failed read says so and keeps it.
+  Future<BulkActionOutcome> _newTripFromSelection() async {
+    try {
+      final tripId = await newTripFromSelection(
+        context,
+        ref,
+        _selectedIds.toList(),
+      );
+      return tripId == null
+          ? BulkActionOutcome.cancelled
+          : BulkActionOutcome.completed;
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to start a trip from the selected dives',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n.common_error_tryAgain)),
         );
       }
       return BulkActionOutcome.failed;
@@ -1261,6 +1333,69 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     }
   }
 
+  /// Takes the list to [dive], found by its typed dive number (#3744), and
+  /// opens it. The search has just cleared, so the whole list is on its way
+  /// back: the dive is paged in behind that reload, its trip opened if it
+  /// was folded, and its row shown at the top once laid out. It lands on the
+  /// row itself, as the scrubber does, not on an offset estimated from the
+  /// average row height, which a long log of uneven rows misses by dozens of
+  /// dives. The table scrolls to the highlighted dive itself.
+  ///
+  /// Where opening pushes the dive's page over the list (a phone), the list
+  /// lands first: under that page it is no longer laid out, so its row could
+  /// not be built, and going back would find the list short of the dive.
+  Future<void> _jumpToDive(DiveSummary dive) async {
+    if (ref.read(diveListViewModeProvider) == ListViewMode.table) {
+      _openDive(dive);
+      return;
+    }
+    final opensOverList = !widget.isMapMode && widget.onItemSelected == null;
+    if (!opensOverList) _openDive(dive);
+    final request = ++_jumpRequests;
+    final jump = ++_numberJumps;
+    // Only the latest jump opens its dive, landed or not.
+    void openOverList() {
+      if (opensOverList && mounted && request == _jumpRequests) {
+        _openDive(dive);
+      }
+    }
+
+    var loaded = false;
+    try {
+      loaded = await ref
+          .read(paginatedDiveListProvider.notifier)
+          .loadUntil(dive.id);
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to load the dive list through a typed dive number',
+        error: e,
+        stackTrace: stackTrace,
+      );
+    }
+    if (!mounted) return;
+    if (jump != _numberJumps || !loaded) {
+      openOverList();
+      return;
+    }
+    // Only a list grouped by trip folds dives away; opening the trip of an
+    // ungrouped one would change its saved folds for nothing.
+    final tripId = dive.tripId;
+    if (tripId != null &&
+        ref.read(diveListGroupTripsProvider) &&
+        ref.read(collapsedTripIdsProvider).contains(tripId)) {
+      ref.read(collapsedTripIdsProvider.notifier).expand(tripId);
+    }
+    _lastScrolledToId = dive.id;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final listContext = _listBodyKey.currentContext;
+      if (mounted && jump == _numberJumps && listContext != null) {
+        _landOnDive(listContext, dive.id, toTop: true);
+      }
+      openOverList();
+    });
+    WidgetsBinding.instance.scheduleFrame();
+  }
+
   void _showSortSheet(BuildContext context) {
     final sort = ref.read(diveSortProvider);
 
@@ -1273,10 +1408,9 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
       getFieldDisplayName: (field) => field.localizedName(context.l10n),
       getFieldIcon: (field) => field.icon,
       onSortChanged: (field, direction) {
-        ref.read(diveSortProvider.notifier).state = SortState(
-          field: field,
-          direction: direction,
-        );
+        ref
+            .read(settingsProvider.notifier)
+            .setDiveSort(SortState(field: field, direction: direction));
       },
     );
   }
@@ -1339,6 +1473,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             children: [
               DiveSearchHeader(
                 onOpenDive: _openDive,
+                onJumpToDive: _jumpToDive,
                 onEscape: selection.isActive ? _selection.exit : null,
               ),
               const MisplacedLogbookBanner(),
@@ -1436,9 +1571,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             } else if (value == 'data_quality') {
               context.push('/dives/quality');
             } else if (value == 'group_trips') {
-              final next = !ref.read(diveListGroupTripsProvider);
-              ref.read(diveListGroupTripsProvider.notifier).state = next;
-              ref.read(settingsProvider.notifier).setGroupTripsInDiveList(next);
+              ref.read(settingsProvider.notifier).toggleGroupTripsInDiveList();
             } else if (value == 'expand_all_trips') {
               ref.read(collapsedTripIdsProvider.notifier).expandAll();
             } else if (value == 'collapse_all_trips') {
@@ -1449,7 +1582,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
               final mode = ListViewMode.fromName(
                 value.replaceFirst('view_', ''),
               );
-              ref.read(diveListViewModeProvider.notifier).state = mode;
+              ref.read(settingsProvider.notifier).setDiveListViewMode(mode);
             }
           },
           itemBuilder: (context) {
@@ -1634,11 +1767,9 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                   } else if (value == 'data_quality') {
                     context.push('/dives/quality');
                   } else if (value == 'group_trips') {
-                    final next = !ref.read(diveListGroupTripsProvider);
-                    ref.read(diveListGroupTripsProvider.notifier).state = next;
                     ref
                         .read(settingsProvider.notifier)
-                        .setGroupTripsInDiveList(next);
+                        .toggleGroupTripsInDiveList();
                   } else if (value == 'expand_all_trips') {
                     ref.read(collapsedTripIdsProvider.notifier).expandAll();
                   } else if (value == 'collapse_all_trips') {
@@ -1649,7 +1780,9 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                     final mode = ListViewMode.fromName(
                       value.replaceFirst('view_', ''),
                     );
-                    ref.read(diveListViewModeProvider.notifier).state = mode;
+                    ref
+                        .read(settingsProvider.notifier)
+                        .setDiveListViewMode(mode);
                   }
                 },
                 itemBuilder: (context) {
@@ -1820,6 +1953,15 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
         alwaysEnabled: true,
         onInvoke: () => _selectByDateRange(dives),
       ),
+      // A new trip made from the checked dives (issue #3658). After the
+      // inline icons, so it sits in the overflow menu with its label and the
+      // phone bar keeps room for Deselect All.
+      BulkAction(
+        id: 'new_trip',
+        icon: Icons.card_travel,
+        label: context.l10n.diveLog_selection_tooltip_newTrip,
+        onInvoke: _newTripFromSelection,
+      ),
       // Logbook rules on the checked dives, previewed first (#3513). Last,
       // so the existing inline actions keep their places.
       rulesBulkAction(
@@ -1904,6 +2046,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                 ),
               DiveSearchHeader(
                 onOpenDive: _openDive,
+                onJumpToDive: _jumpToDive,
                 onEscape: selection.isActive ? _selection.exit : null,
               ),
               const MisplacedLogbookBanner(),
@@ -2163,6 +2306,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                 return header;
               },
               child: DiveListScrubber(
+                key: _listBodyKey,
                 controller: _scrollController,
                 loadedDives: dives,
                 groupingEnabled: groupingEnabled,
@@ -2296,10 +2440,14 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
           ),
           TextButton(
             onPressed: () {
-              ref.read(diveSortProvider.notifier).state = const SortState(
-                field: DiveSortField.date,
-                direction: SortDirection.descending,
-              );
+              ref
+                  .read(settingsProvider.notifier)
+                  .setDiveSort(
+                    const SortState(
+                      field: DiveSortField.date,
+                      direction: SortDirection.descending,
+                    ),
+                  );
             },
             child: Text(context.l10n.diveLog_listPage_groupingPausedAction),
           ),

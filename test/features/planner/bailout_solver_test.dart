@@ -1,11 +1,13 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/features/planner/domain/services/bailout_solver.dart';
+import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 
 const _diluent = GasMix(o2: 18, he: 45);
 const _diluentTank = DiveTank(
@@ -68,6 +70,45 @@ void main() {
   test('returns null for OC plans and when no bailout tanks are carried', () {
     expect(solver.solve(_plan(mode: domain.PlanMode.oc)), isNull);
     expect(solver.solve(_plan(tanks: const [_diluentTank])), isNull);
+  });
+
+  test('SCR plans get a bailout outcome too, not just CCR (issue #3743): the '
+      'mode gate widened, and the diluent tank role already honours a loop '
+      'plan generically, not CCR alone (TankRoleResolver)', () {
+    final outcome = solver.solve(_plan(mode: domain.PlanMode.scr));
+    expect(outcome, isNotNull);
+    expect(outcome!.worstCase.litersRequired, greaterThan(0));
+    expect(outcome.bailoutTankUsages, isNotEmpty);
+  });
+
+  test('pSCR plans get a bailout outcome too: every non-OC mode is a loop '
+      'with bailout tanks (TankRoleResolver), not CCR and SCR alone', () {
+    final outcome = solver.solve(_plan(mode: domain.PlanMode.pscr));
+    expect(outcome, isNotNull);
+    expect(outcome!.worstCase.litersRequired, greaterThan(0));
+  });
+
+  test('the loop rows of an SCR/pSCR bailout read the plan\'s own loop '
+      'model, not a CCR setpoint (issue #3743)', () {
+    for (final mode in [domain.PlanMode.scr, domain.PlanMode.pscr]) {
+      final plan = _plan(mode: mode);
+      final bottomRow = solver.solve(plan)!.ccrRows.last;
+      final expected =
+          breathingFor(
+                plan,
+                _diluent,
+                bottomRow.depthMeters,
+                config: const PlanEngineConfig(),
+                segment: plan.segments.last,
+              )
+              .inspiredAt(
+                PlanEngine.environmentFor(
+                  plan,
+                ).pressureAtDepth(bottomRow.depthMeters),
+              )
+              .pO2;
+      expect(bottomRow.ppO2, closeTo(expected, 1e-9), reason: mode.name);
+    }
   });
 
   test('worst case sits at (or near) the end of the bottom phase', () {
@@ -513,5 +554,150 @@ void main() {
         expect(usage.percentUsed, greaterThan(100));
       },
     );
+  });
+
+  group('hypercapnia phase (issue #3743)', () {
+    test('enabling the phase increases the worst-case demand over the '
+        'stressed-only baseline', () {
+      final baseline = solver.solve(_plan())!;
+      final withHypercapnia = const BailoutSolver(
+        config: PlanEngineConfig(
+          hypercapniaEnabled: true,
+          hypercapniaFactor: 4.0,
+          hypercapniaMinutes: 5,
+        ),
+      ).solve(_plan())!;
+      expect(
+        withHypercapnia.worstCase.litersRequired,
+        greaterThan(baseline.worstCase.litersRequired),
+      );
+    });
+
+    test('a window at least as long as the whole ascent matches charging the '
+        'entire ascent at that rate - proves the time-split arithmetic '
+        'degenerates correctly rather than double-counting or dropping a '
+        'leg when the boundary never actually falls inside the ascent', () {
+      const factor = 6.0;
+      final allHypercapnia = const BailoutSolver(
+        config: PlanEngineConfig(
+          sacStressedFactor: 2.5,
+          hypercapniaEnabled: true,
+          hypercapniaFactor: factor,
+          hypercapniaMinutes: 999,
+        ),
+      ).solve(_plan())!;
+      final allStressedAtThatRate = const BailoutSolver(
+        config: PlanEngineConfig(sacStressedFactor: factor),
+      ).solve(_plan())!;
+
+      expect(
+        allHypercapnia.worstCase.litersRequired,
+        closeTo(allStressedAtThatRate.worstCase.litersRequired, 0.01),
+      );
+      // Per-tank totals must also agree, not just the headline total - a
+      // bug in the leg-by-leg split could cancel out in the sum while
+      // still misattributing liters between tanks.
+      final hypUsage = {
+        for (final u in allHypercapnia.bailoutTankUsages)
+          u.tankId: u.litersUsed,
+      };
+      final stressedUsage = {
+        for (final u in allStressedAtThatRate.bailoutTankUsages)
+          u.tankId: u.litersUsed,
+      };
+      expect(hypUsage.keys, stressedUsage.keys);
+      for (final id in hypUsage.keys) {
+        expect(hypUsage[id], closeTo(stressedUsage[id]!, 0.01));
+      }
+    });
+
+    test('the boundary splits correctly even when it falls inside a leg that '
+        'also carries a gas switch: per-tank usage still sums to the '
+        "worst case's own total", () {
+      final outcome =
+          const BailoutSolver(
+            config: PlanEngineConfig(
+              hypercapniaEnabled: true,
+              hypercapniaFactor: 4.0,
+              hypercapniaMinutes: 1,
+            ),
+          ).solve(
+            _plan(
+              tanks: [
+                _diluentTank,
+                _bailout(),
+                const DiveTank(
+                  id: 'deco',
+                  volume: 11.1,
+                  startPressure: 207,
+                  gasMix: GasMix(o2: 100),
+                  role: TankRole.bailout,
+                ),
+              ],
+            ),
+          )!;
+      final total = outcome.bailoutTankUsages.fold<double>(
+        0,
+        (sum, u) => sum + u.litersUsed,
+      );
+      expect(total, closeTo(outcome.worstCase.litersRequired, 0.5));
+    });
+
+    test('a hypercapnia rate below the stressed rate never shrinks the '
+        'bailout requirement: the phase is layered over stressed SAC', () {
+      final baseline = solver.solve(_plan())!;
+      final lowFactor = const BailoutSolver(
+        config: PlanEngineConfig(
+          hypercapniaEnabled: true,
+          hypercapniaFactor: 1.0,
+          hypercapniaMinutes: 5,
+        ),
+      ).solve(_plan())!;
+      expect(
+        lowFactor.worstCase.litersRequired,
+        closeTo(baseline.worstCase.litersRequired, 0.01),
+      );
+    });
+
+    test('each side of the boundary is charged at its own mean depth on a '
+        'travel leg, not the whole leg midpoint', () {
+      const environment = DiveEnvironment.standard;
+      // 30 m to 0 m over 60 s, boundary at 30 s: the hypercapnia half runs
+      // 30 m to 15 m (mean 22.5 m), the stressed half 15 m to 0 m (7.5 m).
+      final liters = bailoutSpanLiters(
+        startSecondsSinceBailout: 0,
+        durationSeconds: 60,
+        fromDepth: 30,
+        toDepth: 0,
+        hypercapniaAmv: 100,
+        stressedAmv: 40,
+        hypercapniaSeconds: 30,
+        environment: environment,
+      );
+      expect(
+        liters,
+        closeTo(
+          100 * 0.5 * environment.pressureAtDepth(22.5) +
+              40 * 0.5 * environment.pressureAtDepth(7.5),
+          1e-9,
+        ),
+      );
+    });
+
+    test('a span entirely past the boundary is charged at its mean depth, '
+        'as before the phase existed', () {
+      const environment = DiveEnvironment.standard;
+      final liters = bailoutSpanLiters(
+        startSecondsSinceBailout: 600,
+        durationSeconds: 120,
+        fromDepth: 21,
+        toDepth: 9,
+        hypercapniaAmv: 100,
+        stressedAmv: 40,
+        hypercapniaSeconds: 300,
+        environment: environment,
+      );
+      expect(liters, closeTo(40 * 2 * environment.pressureAtDepth(15), 1e-9));
+    });
   });
 }

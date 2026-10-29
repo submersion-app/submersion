@@ -19,6 +19,8 @@ import 'package:submersion/shared/widgets/nav/nav_order_provider.dart';
 import 'package:submersion/shared/widgets/nav/nav_selection.dart';
 import 'package:submersion/shared/widgets/nav/nav_slot_count.dart';
 import 'package:submersion/shared/widgets/shell_chrome_scope.dart';
+import 'package:submersion/features/demo_mode/presentation/widgets/demo_mode_strip.dart';
+import 'package:submersion/features/demo_mode/presentation/providers/demo_mode_providers.dart';
 
 class MainScaffold extends ConsumerStatefulWidget {
   final Widget child;
@@ -64,8 +66,24 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
   /// every page on the shell navigator alive: go_router builds that
   /// navigator with a GlobalKey (ShellRoute.navigatorKey), so the element is
   /// reparented rather than rebuilt.
-  Widget _buildChromelessScaffold() =>
-      Scaffold(body: GlobalDropTarget(child: widget.child));
+  /// The demo strip already sits below the status bar, so the page under it
+  /// must not pad for the status bar a second time (issue #3708).
+  Widget _belowDemoStrip(Widget child) => MediaQuery.removePadding(
+    context: context,
+    removeTop: ref.watch(demoModeActiveProvider),
+    child: child,
+  );
+
+  Widget _buildChromelessScaffold() => Scaffold(
+    body: GlobalDropTarget(
+      child: Column(
+        children: [
+          const DemoModeStrip(),
+          Expanded(child: _belowDemoStrip(widget.child)),
+        ],
+      ),
+    ),
+  );
 
   /// Builds a per-destination accent color lookup for the navigation surfaces.
   ///
@@ -384,6 +402,7 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
                 Expanded(
                   child: Column(
                     children: [
+                      const DemoModeStrip(),
                       const UpdateBanner(),
                       Expanded(child: widget.child),
                       const GpsRecordingStrip(),
@@ -402,8 +421,9 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
       body: GlobalDropTarget(
         child: Column(
           children: [
+            const DemoModeStrip(),
             const UpdateBanner(),
-            Expanded(child: widget.child),
+            Expanded(child: _belowDemoStrip(widget.child)),
             const GpsRecordingStrip(),
           ],
         ),

@@ -82,6 +82,31 @@ void main() {
         ]),
       );
     });
+
+    test('a calendar day keeps the scope and adds month and day', () {
+      final filter = calendarDayDivesFilter(
+        const DiveFilterState(minDepth: 20),
+        month: 5,
+        day: 6,
+      );
+
+      expect(filter.minDepth, 20);
+      expect(
+        filter.query,
+        AndNode([
+          ConditionNode(
+            FieldPath(const ['month']),
+            QueryOp.eq,
+            const NumberValue(5, null),
+          ),
+          ConditionNode(
+            FieldPath(const ['day']),
+            QueryOp.eq,
+            const NumberValue(6, null),
+          ),
+        ]),
+      );
+    });
   });
 
   group('each row opens exactly the dives it counted', () {
@@ -247,6 +272,45 @@ void main() {
 
       expect([for (final r in rows) (r.name, r.count)], [('Fiji', 2)]);
       expect(await divesOpenedBy(countryDivesFilter(scope, 'Fiji')), 2);
+    });
+
+    test('a calendar day cell opens exactly the dives it counted', () async {
+      // Wall clocks flagged as UTC, the way dive_date_time stores them; the
+      // 23:30 and 00:10 dives sit either side of midnight.
+      for (final (id, at) in [
+        ('a', DateTime.utc(2019, 5, 6, 9)),
+        ('b', DateTime.utc(2024, 5, 6, 23, 30)),
+        ('c', DateTime.utc(2024, 5, 7, 0, 10)),
+        ('d', DateTime.utc(2024, 2, 29, 8)),
+      ]) {
+        await db
+            .into(db.dives)
+            .insert(
+              DivesCompanion(
+                id: Value(id),
+                diveDateTime: Value(at.millisecondsSinceEpoch),
+                createdAt: Value(now),
+                updatedAt: Value(now),
+              ),
+            );
+      }
+
+      final m = await repository.getCalendarDayMatrix();
+
+      expect(m.count(5, 6), 2);
+      for (final (month, day) in [(5, 6), (5, 7), (2, 29), (1, 1)]) {
+        expect(
+          await divesOpenedBy(
+            calendarDayDivesFilter(
+              const DiveFilterState(),
+              month: month,
+              day: day,
+            ),
+          ),
+          m.count(month, day),
+          reason: '$month/$day',
+        );
+      }
     });
   });
 }

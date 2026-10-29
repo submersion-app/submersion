@@ -16,5 +16,20 @@ extension BeforeOpenSettingsColumns on AppDatabase {
     await _assertDownloadOwnerColumn();
     // v315 backstop: diver_settings.omit_unused_oc_gases.
     await _assertOmitUnusedOcGasesColumn();
+    // v319 backstop: diver_settings per-O2-band deco ppO2 limits and the
+    // explicit MOD for 100% O2, plus the matching dive_plans overrides
+    // (issue #3580).
+    await _assertPpO2DecoBandColumns();
+
+    // v321 backstop: dive_plans per-plan "explicitly off" flags for the
+    // bands and the explicit-depth override (issue #3580).
+    await _assertPpO2DecoBandsExplicitlyOffColumns();
+
+    // v322 backstop: diver_settings hypercapnia-bailout toggle/factor/
+    // duration, plus the matching dive_plans overrides (issue #3743).
+    await _assertHypercapniaBailoutColumns();
+
+    // v323 backstop: diver_settings list arrangement columns and clock.
+    await _assertListArrangementColumns();
   }
 }

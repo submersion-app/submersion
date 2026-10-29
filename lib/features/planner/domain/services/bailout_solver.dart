@@ -3,7 +3,6 @@ import 'dart:math' as math;
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/deco/ascent/ascent_gas_plan.dart';
 import 'package:submersion/core/deco/deco_model.dart';
-import 'package:submersion/core/deco/entities/breathing_config.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/deco/schedule_policy.dart';
 import 'package:submersion/core/utils/gas_compressibility.dart';
@@ -163,7 +162,11 @@ class BailoutSolver {
         'BailoutSolver only accepts a BuhlmannState tissue seed',
       );
     }
-    if (inputPlan.mode != domain.PlanMode.ccr) return null;
+    // Every loop mode (CCR, SCR, pSCR) gets the same bailout picture (issue
+    // #3743): the bottom-phase tissue walk below is already mode-aware
+    // (breathingFor) and TankRoleResolver already derives bailout-role tanks
+    // generically for any non-OC plan, so only this gate needs to widen.
+    if (inputPlan.mode == domain.PlanMode.oc) return null;
     // Diluent is the diver's one explicit per-tank choice on a loop plan
     // (TankRoleResolver); every other open-circuit cylinder carried
     // defaults to bailout, so this is simply whatever the resolver left
@@ -224,7 +227,7 @@ class BailoutSolver {
       gases: ascentGasesFor(
         bailoutTanks,
         bottomPpO2: config.ppO2Working,
-        decoPpO2: config.ppO2Deco,
+        decoPpO2: config.decoLimits,
         environment: environment,
       ),
     );
@@ -247,6 +250,19 @@ class BailoutSolver {
       (sum, s) => sum + s.durationSeconds,
     );
     final sampleInterval = totalSeconds > 60 * 40 ? totalSeconds ~/ 40 : 60;
+
+    // Resolved once per solve, not per sample: the hypercapnia phase (issue
+    // #3743) is a plan-level choice, not something that varies by which
+    // instant the loop is assumed to die at.
+    final stressedAmv = config.sacStressedFor(plan);
+    // Never below the stressed rate: the phase is layered over stressed SAC,
+    // so a low factor or custom AMV must not shrink the bailout requirement
+    // the diver would get with the phase off.
+    final hypercapniaAmv = math.max(
+      config.hypercapniaAmvFor(plan) ?? stressedAmv,
+      stressedAmv,
+    );
+    final hypercapniaSeconds = config.hypercapniaSecondsFor(plan) ?? 0;
 
     var state = startState ?? model.initial();
     var elapsed = 0;
@@ -308,7 +324,9 @@ class BailoutSolver {
               litersRequired: _ascentLiters(
                 schedule,
                 fromDepth: chunkEndDepth,
-                sac: config.sacStressedFor(plan),
+                hypercapniaAmv: hypercapniaAmv,
+                stressedAmv: stressedAmv,
+                hypercapniaSeconds: hypercapniaSeconds,
                 policy: policy,
                 environment: environment,
               ),
@@ -335,7 +353,9 @@ class BailoutSolver {
       bailoutPlan: bailoutPlan,
       policy: policy,
       environment: environment,
-      sac: config.sacStressedFor(plan),
+      hypercapniaAmv: hypercapniaAmv,
+      stressedAmv: stressedAmv,
+      hypercapniaSeconds: hypercapniaSeconds,
     );
     return BailoutOutcome(
       points: points,
@@ -436,15 +456,22 @@ class BailoutSolver {
           previousFHe == null ||
           (fO2 - previousFO2!).abs() > 0.0005 ||
           (fHe - previousFHe!).abs() > 0.0005;
-      // The loop's real inspired ppO2 is the setpoint, not ambient x the
-      // diluent's own fraction -- same reasoning as PlanEngine's PO2 column
-      // (plan_engine.dart, _buildSchedule's ppO2Override).
-      final setpoint = setpointAt(plan, depth, config: config);
-      final ppO2 = ClosedCircuit(
-        setpoint: setpoint,
-        diluentFO2: fO2,
-        diluentFHe: fHe,
-      ).inspiredAt(environment.pressureAtDepth(depth)).pO2;
+      // A loop leg's real inspired ppO2 comes from its own mode's breathing
+      // model (the CCR setpoint, or the SCR/pSCR loop fraction), not
+      // ambient x the supply gas's own fraction; an OC leg is ambient x
+      // fO2. Same as PlanEngine's PO2 column (plan_engine.dart,
+      // _buildSchedule's ppO2Override), so SCR/pSCR (issue #3743) read as
+      // their own loop rather than as a CCR setpoint.
+      final ambient = environment.pressureAtDepth(depth);
+      final ppO2 = modeFor(plan, leg.segment) == domain.PlanMode.oc
+          ? ambient * fO2
+          : breathingFor(
+              plan,
+              leg.segment.gasMix,
+              depth,
+              config: config,
+              segment: leg.segment,
+            ).inspiredAt(ambient).pO2;
       rows.add(
         PlanScheduleRow(
           kind: switch (leg.phase) {
@@ -512,7 +539,9 @@ class BailoutSolver {
     required AscentGasPlan bailoutPlan,
     required SchedulePolicy policy,
     required DiveEnvironment environment,
-    required double sac,
+    required double hypercapniaAmv,
+    required double stressedAmv,
+    required int hypercapniaSeconds,
   }) {
     final rows = <PlanScheduleRow>[];
     final litersByTank = <String, double>{};
@@ -530,15 +559,31 @@ class BailoutSolver {
       return null;
     }
 
-    // Same per-leg liters formula as _ascentLiters (average depth across a
-    // travel leg, the stop's own depth across a stop), just split by which
-    // tank supplied it instead of summed into one total -- so this always
-    // adds up to exactly the same worst-case total shown next to it.
-    void charge(String? tankId, double seconds, double atDepth) {
+    // Same per-leg liters formula as _ascentLiters (a travel leg's linear
+    // depth range, the stop's own depth across a stop, split at the
+    // hypercapnia-phase boundary, issue #3743), just split by which tank
+    // supplied it instead of summed into one total -- so this always adds
+    // up to exactly the same worst-case total shown next to it.
+    void charge(
+      String? tankId,
+      double secondsSinceBailoutStart,
+      double seconds,
+      double fromDepth,
+      double toDepth,
+    ) {
       final id = tankId ?? '';
       litersByTank[id] =
           (litersByTank[id] ?? 0) +
-          sac * (seconds / 60.0) * environment.pressureAtDepth(atDepth);
+          bailoutSpanLiters(
+            startSecondsSinceBailout: secondsSinceBailoutStart,
+            durationSeconds: seconds,
+            fromDepth: fromDepth,
+            toDepth: toDepth,
+            hypercapniaAmv: hypercapniaAmv,
+            stressedAmv: stressedAmv,
+            hypercapniaSeconds: hypercapniaSeconds,
+            environment: environment,
+          );
     }
 
     void add({
@@ -610,6 +655,10 @@ class BailoutSolver {
         toDepth: stop.depthMeters,
         phase: phase,
       );
+      // This iteration's own absolute start, captured before `end` moves
+      // past it below -- the base every charge() call in this iteration
+      // measures its own secondsSinceBailoutStart from (issue #3743).
+      final iterStartRuntime = end;
       if (i == 0 && travelSeconds > 0) {
         // Split at every gas-switch depth crossed, same as PlanEngine's own
         // first travel leg (#3225): a carried gas whose MOD falls strictly
@@ -633,6 +682,7 @@ class BailoutSolver {
               ? remaining
               : (travelSeconds * (legDepth - legTo) / totalSpan).round();
           remaining -= legSeconds;
+          final legStartRuntime = legRuntime;
           legRuntime += legSeconds;
           final gas = bailoutPlan.gasForDepth(legDepth);
           final fO2 = 1.0 - gas.fN2 - gas.fHe;
@@ -647,8 +697,10 @@ class BailoutSolver {
           );
           charge(
             tankForGas(fO2, gas.fHe),
+            (legStartRuntime - point.runtimeSeconds).toDouble(),
             legSeconds.toDouble(),
-            (legDepth + legTo) / 2.0,
+            legDepth,
+            legTo,
           );
           legDepth = legTo;
         }
@@ -678,15 +730,24 @@ class BailoutSolver {
         // plan with more than one stop.
         charge(
           stopTankId,
+          (iterStartRuntime - point.runtimeSeconds).toDouble(),
           travelSeconds.toDouble(),
-          (depth + stop.depthMeters) / 2.0,
+          depth,
+          stop.depthMeters,
         );
       }
-      charge(stopTankId, stop.durationSeconds.toDouble(), stop.depthMeters);
+      charge(
+        stopTankId,
+        (iterStartRuntime + travelSeconds - point.runtimeSeconds).toDouble(),
+        stop.durationSeconds.toDouble(),
+        stop.depthMeters,
+        stop.depthMeters,
+      );
       depth = stop.depthMeters;
       phase = AscentPhase.betweenStops;
     }
     if (depth > 0) {
+      final finalStartRuntime = end;
       final travelSeconds = policy.ascentSeconds(
         fromDepth: depth,
         toDepth: 0,
@@ -705,7 +766,13 @@ class BailoutSolver {
         physicsDepth: depth,
         endPhysicsDepth: 0,
       );
-      charge(tankForGas(fO2, gas.fHe), travelSeconds.toDouble(), depth / 2.0);
+      charge(
+        tankForGas(fO2, gas.fHe),
+        (finalStartRuntime - point.runtimeSeconds).toDouble(),
+        travelSeconds.toDouble(),
+        depth,
+        0,
+      );
     }
     return (rows: rows, litersByTank: litersByTank);
   }
@@ -715,30 +782,53 @@ class BailoutSolver {
   /// leg. Measuring the legs through the policy is what keeps the gas
   /// estimate honest about the slow final stretch, which is where a bailout
   /// spends a surprising share of its volume.
+  ///
+  /// [hypercapniaAmv]/[hypercapniaSeconds] (issue #3743) charge the elevated
+  /// hypercapnia-phase rate for the first [hypercapniaSeconds] of the
+  /// ascent, [stressedAmv] for the remainder; [hypercapniaSeconds] is 0 when
+  /// the phase is off for this plan, which charges every leg at
+  /// [stressedAmv] alone, same as before this feature existed.
   double _ascentLiters(
     DecoSchedule schedule, {
     required double fromDepth,
-    required double sac,
+    required double hypercapniaAmv,
+    required double stressedAmv,
+    required int hypercapniaSeconds,
     required SchedulePolicy policy,
     required DiveEnvironment environment,
   }) {
     var liters = 0.0;
     var depth = fromDepth;
     var phase = AscentPhase.toFirstStop;
+    var elapsed = 0.0;
     for (final stop in schedule.stops) {
       final legSeconds = policy.ascentSeconds(
         fromDepth: depth,
         toDepth: stop.depthMeters,
         phase: phase,
       );
-      liters +=
-          sac *
-          (legSeconds / 60.0) *
-          environment.pressureAtDepth((depth + stop.depthMeters) / 2.0);
-      liters +=
-          sac *
-          (stop.durationSeconds / 60.0) *
-          environment.pressureAtDepth(stop.depthMeters);
+      liters += bailoutSpanLiters(
+        startSecondsSinceBailout: elapsed,
+        durationSeconds: legSeconds.toDouble(),
+        fromDepth: depth,
+        toDepth: stop.depthMeters,
+        hypercapniaAmv: hypercapniaAmv,
+        stressedAmv: stressedAmv,
+        hypercapniaSeconds: hypercapniaSeconds,
+        environment: environment,
+      );
+      elapsed += legSeconds;
+      liters += bailoutSpanLiters(
+        startSecondsSinceBailout: elapsed,
+        durationSeconds: stop.durationSeconds.toDouble(),
+        fromDepth: stop.depthMeters,
+        toDepth: stop.depthMeters,
+        hypercapniaAmv: hypercapniaAmv,
+        stressedAmv: stressedAmv,
+        hypercapniaSeconds: hypercapniaSeconds,
+        environment: environment,
+      );
+      elapsed += stop.durationSeconds;
       depth = stop.depthMeters;
       phase = AscentPhase.betweenStops;
     }
@@ -748,9 +838,67 @@ class BailoutSolver {
         toDepth: 0,
         phase: AscentPhase.surfacingAfter(phase),
       );
-      liters +=
-          sac * (legSeconds / 60.0) * environment.pressureAtDepth(depth / 2.0);
+      liters += bailoutSpanLiters(
+        startSecondsSinceBailout: elapsed,
+        durationSeconds: legSeconds.toDouble(),
+        fromDepth: depth,
+        toDepth: 0,
+        hypercapniaAmv: hypercapniaAmv,
+        stressedAmv: stressedAmv,
+        hypercapniaSeconds: hypercapniaSeconds,
+        environment: environment,
+      );
     }
     return liters;
   }
+}
+
+/// Surface liters for a span of [durationSeconds] starting
+/// [startSecondsSinceBailout] after the bailout instant, split at the
+/// hypercapnia-phase boundary (issue #3743): the portion before
+/// [hypercapniaSeconds] charged at [hypercapniaAmv], the remainder at
+/// [stressedAmv]. A span entirely on one side of the boundary is charged at
+/// the span's mean depth, same as before this feature existed; that is
+/// every span when [hypercapniaSeconds] is 0, i.e. the phase is off for
+/// this plan.
+///
+/// The span runs linearly from [fromDepth] to [toDepth] (equal for a
+/// stop), so each portion is charged at its OWN mean depth: on a travel
+/// leg the hypercapnia portion is always the deeper start, and charging
+/// it at the whole leg's midpoint would undercount the bailout gas.
+double bailoutSpanLiters({
+  required double startSecondsSinceBailout,
+  required double durationSeconds,
+  required double fromDepth,
+  required double toDepth,
+  required double hypercapniaAmv,
+  required double stressedAmv,
+  required int hypercapniaSeconds,
+  required DiveEnvironment environment,
+}) {
+  if (durationSeconds <= 0) return 0.0;
+  final endSeconds = startSecondsSinceBailout + durationSeconds;
+  final hypercapniaPortion = hypercapniaSeconds <= startSecondsSinceBailout
+      ? 0.0
+      : math.min(endSeconds, hypercapniaSeconds.toDouble()) -
+            startSecondsSinceBailout;
+  final stressedPortion = durationSeconds - hypercapniaPortion;
+  // Depth after [seconds] into the span.
+  double depthAt(double seconds) =>
+      fromDepth + (toDepth - fromDepth) * (seconds / durationSeconds);
+  final hypercapniaLiters = hypercapniaPortion <= 0
+      ? 0.0
+      : hypercapniaAmv *
+            (hypercapniaPortion / 60.0) *
+            environment.pressureAtDepth(
+              (fromDepth + depthAt(hypercapniaPortion)) / 2.0,
+            );
+  final stressedLiters = stressedPortion <= 0
+      ? 0.0
+      : stressedAmv *
+            (stressedPortion / 60.0) *
+            environment.pressureAtDepth(
+              (depthAt(hypercapniaPortion) + toDepth) / 2.0,
+            );
+  return hypercapniaLiters + stressedLiters;
 }

@@ -240,6 +240,10 @@ final Map<String, ConflictField> mediaLibraryFields = {
     (l) => l.settings_conflict_field_verifyFactsHlc,
     FieldKind.opaque,
   ),
+  'videoPositionMs': ConflictField(
+    (l) => l.settings_conflict_field_videoPositionMs,
+    FieldKind.number,
+  ),
   'viewMode': ConflictField(
     (l) => l.settings_conflict_field_viewMode,
     FieldKind.enumValue,

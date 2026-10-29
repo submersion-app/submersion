@@ -10,23 +10,29 @@ import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
 /// One row of Settings > Data (issue #3482): an icon, the feature's name
 /// with its health mark, a one-sentence status with a "Set up" action under
 /// it for a feature that is not set up, and a chevron. The whole row opens
-/// [route]; the button opens [setUpRoute], or [route] when none is given.
+/// [route] (or runs [onTap]); the button opens [setUpRoute], or [route] when
+/// none is given. A row that is not [enabled] is greyed out and says it is
+/// unavailable in demo mode (issue #3708).
 class DataRowTile extends StatelessWidget {
   const DataRowTile({
     super.key,
     required this.icon,
     required this.title,
     required this.subtitle,
-    required this.route,
+    this.route,
+    this.onTap,
     this.health,
     this.offersSetUp = false,
     this.setUpRoute,
-  });
+    this.enabled = true,
+  }) : assert(route != null || onTap != null);
 
   final IconData icon;
   final String title;
   final String subtitle;
-  final String route;
+  final String? route;
+  final VoidCallback? onTap;
+  final bool enabled;
 
   /// Drawn as a 16 dp mark beside the title unless the feature is not set up.
   final FeatureHealth? health;
@@ -38,7 +44,16 @@ class DataRowTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final h = health;
-    final showMark = h != null && h.level != HealthLevel.notSetUp;
+    final showMark = enabled && h != null && h.level != HealthLevel.notSetUp;
+    if (!enabled) {
+      return ListTile(
+        enabled: false,
+        contentPadding: EdgeInsets.zero,
+        leading: Icon(icon),
+        title: Text(title),
+        subtitle: Text(l10n.demo_row_unavailable),
+      );
+    }
     return ListTile(
       contentPadding: EdgeInsets.zero,
       leading: Icon(icon),
@@ -68,14 +83,14 @@ class DataRowTile extends StatelessWidget {
                   // Several rows offer Set up; name the one this acts on.
                   semanticsLabel: l10n.settings_data_setUpFeature(title),
                   onPressed: () =>
-                      context.pushSettingsPage(setUpRoute ?? route),
+                      context.pushSettingsPage(setUpRoute ?? route!),
                 ),
               ],
             )
           : Text(subtitle),
       trailing: const Icon(Icons.chevron_right),
       // In the desktop detail pane when it can show the page (#3467).
-      onTap: () => context.pushSettingsPage(route),
+      onTap: onTap ?? () => context.pushSettingsPage(route!),
     );
   }
 }

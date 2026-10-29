@@ -4,15 +4,31 @@ import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
+import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_choice_wrap.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_gas_options_section.dart';
+import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_ppo2_bands_control.dart';
+import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
+    show PlanMode;
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../../../../helpers/test_app.dart';
 
 class _TestSettingsNotifier extends StateNotifier<AppSettings>
     implements SettingsNotifier {
-  _TestSettingsNotifier({DepthUnit depthUnit = DepthUnit.meters})
-    : super(AppSettings(depthUnit: depthUnit));
+  _TestSettingsNotifier({
+    DepthUnit depthUnit = DepthUnit.meters,
+    bool ppO2DecoBandsEnabled = false,
+    double plannerHypercapniaFactor = 4.0,
+    double ppO2MaxDeco = 1.6,
+  }) : super(
+         AppSettings(
+           depthUnit: depthUnit,
+           ppO2MaxDeco: ppO2MaxDeco,
+           ppO2DecoBandsEnabled: ppO2DecoBandsEnabled,
+           plannerHypercapniaEnabled: true,
+           plannerHypercapniaFactor: plannerHypercapniaFactor,
+         ),
+       );
 
   @override
   Future<void> setMapStyle(MapStyle style) async =>
@@ -22,17 +38,112 @@ class _TestSettingsNotifier extends StateNotifier<AppSettings>
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-Widget _harness({DepthUnit depthUnit = DepthUnit.meters}) => testApp(
+Widget _harness({
+  DepthUnit depthUnit = DepthUnit.meters,
+  bool ppO2DecoBandsEnabled = false,
+  double plannerHypercapniaFactor = 4.0,
+  double ppO2MaxDeco = 1.6,
+}) => testApp(
   locale: const Locale('en'),
   overrides: [
     settingsProvider.overrideWith(
-      (ref) => _TestSettingsNotifier(depthUnit: depthUnit),
+      (ref) => _TestSettingsNotifier(
+        depthUnit: depthUnit,
+        ppO2DecoBandsEnabled: ppO2DecoBandsEnabled,
+        plannerHypercapniaFactor: plannerHypercapniaFactor,
+        ppO2MaxDeco: ppO2MaxDeco,
+      ),
     ),
   ],
   child: const SingleChildScrollView(child: PlanGasOptionsSection()),
 );
 
 void main() {
+  testWidgets('with the Settings layers off, Custom starts from the flat '
+      'deco ppO2 in force, not the untouched 1.6 bar column defaults '
+      '(issue #3580)', (tester) async {
+    await tester.pumpWidget(_harness(ppO2MaxDeco: 1.4));
+    await tester.pumpAndSettle();
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(PlanGasOptionsSection)),
+    );
+
+    // Bands first, then the explicit O2 depth (declaration order).
+    await tester.tap(find.widgetWithText(ChoiceChip, 'Custom').first);
+    await tester.pumpAndSettle();
+    final depthCustom = find.widgetWithText(ChoiceChip, 'Custom').last;
+    await tester.ensureVisible(depthCustom);
+    await tester.pumpAndSettle();
+    await tester.tap(depthCustom);
+    await tester.pumpAndSettle();
+
+    final state = container.read(divePlanNotifierProvider);
+    expect(state.ppO2DecoBand1, closeTo(1.4, 1e-9));
+    expect(state.ppO2DecoBand2, closeTo(1.4, 1e-9));
+    expect(state.ppO2DecoBand3, closeTo(1.4, 1e-9));
+    expect(state.maxO2DepthMeters, closeTo(4.0, 1e-9));
+  });
+
+  testWidgets('Custom seeds from a 2-decimal plan limit round down, never '
+      'raising the ceiling (issue #3580)', (tester) async {
+    await tester.pumpWidget(_harness());
+    await tester.pumpAndSettle();
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(PlanGasOptionsSection)),
+    );
+    container
+        .read(divePlanNotifierProvider.notifier)
+        .updateGasOptions(ppO2Deco: 1.58);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(ChoiceChip, 'Custom').first);
+    await tester.pumpAndSettle();
+    final depthCustom = find.widgetWithText(ChoiceChip, 'Custom').last;
+    await tester.ensureVisible(depthCustom);
+    await tester.pumpAndSettle();
+    await tester.tap(depthCustom);
+    await tester.pumpAndSettle();
+
+    final state = container.read(divePlanNotifierProvider);
+    expect(state.ppO2DecoBand1, closeTo(1.5, 1e-9));
+    // Pure O2 reaches 1.58 bar at 5.8 m; the 0.5 m grid floors it to 5.5.
+    expect(state.maxO2DepthMeters, closeTo(5.5, 1e-9));
+  });
+
+  group('hypercapnia bailout phase (issue #3743)', () {
+    testWidgets('an OC plan has no OC bailout, so no hypercapnia control', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_harness());
+      await tester.pumpAndSettle();
+
+      expect(find.text('Hypercapnia bailout phase'), findsNothing);
+    });
+
+    testWidgets('a loop plan shows it, its default never below the stressed '
+        'rate the bailout falls back to', (tester) async {
+      // Factor 2.0 sits below the 2.5 stressed factor.
+      await tester.pumpWidget(_harness(plannerHypercapniaFactor: 2.0));
+      await tester.pumpAndSettle();
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(PlanGasOptionsSection)),
+      );
+      container
+          .read(divePlanNotifierProvider.notifier)
+          .updateMode(PlanMode.ccr);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Hypercapnia bailout phase'), findsOneWidget);
+      const settings = AppSettings();
+      final stressed =
+          settings.plannerSacBottom * settings.plannerSacStressedFactor;
+      expect(
+        find.textContaining('${stressed.toStringAsFixed(1)} L/min'),
+        findsOneWidget,
+      );
+    });
+  });
+
   testWidgets('editing the RMV factor updates the notifier state', (
     tester,
   ) async {
@@ -151,17 +262,34 @@ void main() {
       // (true in AppSettings()).
       expect(container.read(divePlanNotifierProvider).o2Narcotic, isNull);
 
-      await tester.tap(find.text('Off'));
+      // Scoped to this control's own chip row: the ppO2-band and max-depth
+      // overrides below it (issue #3580) also show an "Off" chip, and now -
+      // always rendered, not gated behind the Settings toggle - a plain
+      // find.text('Off') is ambiguous.
+      final o2NarcoticChoice = find.byType(PlanChoiceWrap<bool?>);
+      await tester.ensureVisible(o2NarcoticChoice);
+      await tester.pumpAndSettle();
+
+      await tester.tap(
+        find.descendant(of: o2NarcoticChoice, matching: find.text('Off')),
+      );
       await tester.pumpAndSettle();
       expect(container.read(divePlanNotifierProvider).o2Narcotic, isFalse);
 
-      await tester.tap(find.text('On'));
+      await tester.tap(
+        find.descendant(of: o2NarcoticChoice, matching: find.text('On')),
+      );
       await tester.pumpAndSettle();
       expect(container.read(divePlanNotifierProvider).o2Narcotic, isTrue);
 
       // The Default chip shows the resolved value (issue #3552 follow-up):
       // AppSettings() defaults o2Narcotic to true.
-      await tester.tap(find.text('Default (On)'));
+      await tester.tap(
+        find.descendant(
+          of: o2NarcoticChoice,
+          matching: find.text('Default (On)'),
+        ),
+      );
       await tester.pumpAndSettle();
       expect(container.read(divePlanNotifierProvider).o2Narcotic, isNull);
     },
@@ -200,4 +328,60 @@ void main() {
       closeTo(100 / 3.28084, 0.01),
     );
   });
+
+  testWidgets(
+    'the ppO2-band control appears above Grund-ppO2 and Deco-ppO2 (issue '
+    '#3580 follow-up)',
+    (tester) async {
+      await tester.pumpWidget(_harness());
+      await tester.pumpAndSettle();
+
+      final bandsControlTop = tester.getTopLeft(
+        find.byType(PlanPpO2BandsControl),
+      );
+      final bottomPpO2Top = tester.getTopLeft(find.text('Bottom ppO₂'));
+      expect(bandsControlTop.dy, lessThan(bottomPpO2Top.dy));
+    },
+  );
+
+  testWidgets(
+    'the flat Deco-ppO2 field is hidden while the Settings band toggle '
+    'governs this plan (issue #3580 follow-up)',
+    (tester) async {
+      await tester.pumpWidget(_harness(ppO2DecoBandsEnabled: true));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Deco ppO₂'), findsNothing);
+    },
+  );
+
+  testWidgets(
+    'the flat Deco-ppO2 field is shown again once this plan is explicitly '
+    'Off, even with the Settings band toggle on (issue #3580 follow-up)',
+    (tester) async {
+      await tester.pumpWidget(_harness(ppO2DecoBandsEnabled: true));
+      await tester.pumpAndSettle();
+
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(PlanGasOptionsSection)),
+      );
+      container
+          .read(divePlanNotifierProvider.notifier)
+          .updateGasOptions(ppO2DecoBandsExplicitlyOff: true);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Deco ppO₂'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'the flat Deco-ppO2 field is shown when the Settings band toggle itself '
+    'is off (issue #3580 follow-up)',
+    (tester) async {
+      await tester.pumpWidget(_harness());
+      await tester.pumpAndSettle();
+
+      expect(find.text('Deco ppO₂'), findsOneWidget);
+    },
+  );
 }

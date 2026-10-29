@@ -4,6 +4,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/gas_template_display.dart';
 import 'package:submersion/core/constants/gas_templates.dart';
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/deco/deco_ppo2_limits.dart';
 import 'package:submersion/core/services/export/csv/codec/tank_capacity.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -263,6 +264,18 @@ class _CylinderConfigItemEditorState extends State<CylinderConfigItemEditor> {
     final item = _item;
     final gas = _gas;
     final settings = _units.settings;
+    // No plan context here (this is the saved-cylinder-config editor, not
+    // the planner), so always the diver's full Settings resolution,
+    // issue #3580.
+    final decoPpO2Limits = DecoPpO2Limits.forPlan(
+      flat: settings.ppO2MaxDeco,
+      settingsBandsEnabled: settings.ppO2DecoBandsEnabled,
+      settingsBand1: settings.ppO2DecoBand1,
+      settingsBand2: settings.ppO2DecoBand2,
+      settingsBand3: settings.ppO2DecoBand3,
+      settingsMaxO2DepthEnabled: settings.maxO2DepthEnabled,
+      settingsMaxO2DepthMeters: settings.maxO2DepthMeters,
+    );
 
     return Card(
       margin: EdgeInsets.zero,
@@ -466,7 +479,7 @@ class _CylinderConfigItemEditorState extends State<CylinderConfigItemEditor> {
                     role: item.tankRole,
                     overrideMeters: item.decoSwitchDepth,
                     bottomPpO2: settings.ppO2MaxWorking,
-                    decoPpO2: settings.ppO2MaxDeco,
+                    decoPpO2: decoPpO2Limits,
                     diluentPpO2: settings.ccrDiluentModPpO2,
                     units: _units,
                     onChanged: (meters) => _emit(
@@ -484,7 +497,7 @@ class _CylinderConfigItemEditorState extends State<CylinderConfigItemEditor> {
               role: item.tankRole,
               overrideMeters: item.decoSwitchDepth,
               bottomPpO2: settings.ppO2MaxWorking,
-              decoPpO2: settings.ppO2MaxDeco,
+              decoPpO2: decoPpO2Limits,
               diluentPpO2: settings.ccrDiluentModPpO2,
               units: _units,
               onReset: () => _emit(item.copyWith(clearDecoSwitchDepth: true)),

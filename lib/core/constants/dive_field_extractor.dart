@@ -3,6 +3,7 @@ import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/domain/services/dive_participant_names.dart';
+import 'package:submersion/core/text/markdown/notes_plain_text.dart';
 
 /// Extension providing raw value extraction from [Dive] and [DiveSummary]
 /// entities for each [DiveField].
@@ -153,7 +154,7 @@ extension DiveFieldExtractor on DiveField {
       case DiveField.isFavorite:
         return dive.isFavorite;
       case DiveField.notes:
-        return dive.notes.isNotEmpty ? dive.notes : null;
+        return dive.notes.isNotEmpty ? markdownToPlainText(dive.notes) : null;
       case DiveField.tags:
         return dive.tags.map((t) => t.name).toList();
       case DiveField.importSource:

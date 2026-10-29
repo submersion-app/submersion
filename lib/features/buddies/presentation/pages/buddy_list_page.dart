@@ -28,8 +28,10 @@ import 'package:submersion/features/buddies/presentation/widgets/buddy_search_de
 import 'package:submersion/features/buddies/query/buddy_query_entity.dart';
 import 'package:submersion/features/query/presentation/widgets/query_filter_sheet.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_list_count_provider.dart';
+import 'package:submersion/features/buddies/presentation/widgets/swap/swap_with_buddy_button.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/list_arrangement_writes.dart';
 
 class BuddyListPage extends ConsumerStatefulWidget {
   const BuddyListPage({super.key});
@@ -112,6 +114,7 @@ class _BuddyListPageState extends ConsumerState<BuddyListPage>
             ),
           ),
           appBarActions: [
+            const SwapWithBuddyButton(iconSize: 20),
             IconButton(
               icon: const Icon(Icons.search, size: 20),
               tooltip: context.l10n.buddies_action_search,
@@ -143,10 +146,11 @@ class _BuddyListPageState extends ConsumerState<BuddyListPage>
                       field.localizedName(context.l10n),
                   getFieldIcon: (field) => field.icon,
                   onSortChanged: (field, direction) {
-                    ref.read(buddySortProvider.notifier).state = SortState(
-                      field: field,
-                      direction: direction,
-                    );
+                    ref
+                        .read(settingsProvider.notifier)
+                        .setBuddySort(
+                          SortState(field: field, direction: direction),
+                        );
                   },
                 );
               },
@@ -158,7 +162,9 @@ class _BuddyListPageState extends ConsumerState<BuddyListPage>
                   final mode = ListViewMode.fromName(
                     value.replaceFirst('view_', ''),
                   );
-                  ref.read(buddyListViewModeProvider.notifier).state = mode;
+                  ref
+                      .read(settingsProvider.notifier)
+                      .setBuddyListViewMode(mode);
                 }
               },
               itemBuilder: (context) {

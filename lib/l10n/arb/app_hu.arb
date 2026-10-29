@@ -665,11 +665,15 @@
   "backup_export_saveToFile_subtitle": "Válassza ki, hová mentse a biztonsági mentés fájlt",
   "backup_export_share": "Megosztás",
   "backup_export_share_subtitle": "Küldés AirDrop, e-mail vagy más alkalmazáson keresztül",
+  "backup_copySheet_deviceLocked": "Ez a biztonsági másolat az Ön védett adatbázisáról készült. Csak ezen az eszközön állítható vissza.",
+  "backup_copySheet_title": "Biztonsági mentés: {dateTime}",
   "backup_frequency_daily": "Napi",
   "backup_frequency_monthly": "Havi",
   "backup_frequency_weekly": "Heti",
   "backup_history_action_delete": "Törlés",
   "backup_history_action_restore": "Visszaállítás",
+  "backup_history_action_saveCopy": "Másolat mentése",
+  "backup_history_action_share": "Megosztás",
   "backup_history_empty": "Nincsenek mentések",
   "backup_history_error": "Hiba az előzmények betöltésekor: {error}",
   "backup_import_invalidFile": "Ez a fájl nem tűnik érvényes Submersion biztonsági mentésnek",
@@ -732,6 +736,88 @@
   "buddies_action_add": "Búvártárs hozzáadása",
   "buddies_action_addFirst": "Add hozzá az első búvártársad",
   "buddies_action_addTooltip": "Új búvártárs hozzáadása",
+  "buddyCard_preview_title": "Társkártya",
+  "buddyCard_preview_addTitle": "{name} hozzáadása társként",
+  "buddyCard_preview_updateTitle": "{name} frissítése",
+  "buddyCard_preview_possibleTitle": "Ez {name} a társaid közül?",
+  "buddyCard_preview_trimmed": "Néhány adat kimaradt, hogy elférjen a kódban.",
+  "buddyCard_preview_newer": "Ez a kártya a Submersion egy újabb verziójából származik. Néhány adat hiányozhat.",
+  "buddyCard_preview_noChanges": "A kártyán nincs új adat.",
+  "buddyCard_preview_ownCard": "Ez a saját kártyád. Cserélj egy búvártárssal, hogy megkapd az övét.",
+  "buddyCard_preview_changed": "{to} (korábban {from})",
+  "buddyCard_action_add": "Társ hozzáadása",
+  "buddyCard_action_update": "Társ frissítése",
+  "buddyCard_action_addAsNew": "Hozzáadás új társként",
+  "buddyCard_action_discard": "Elvetés",
+  "buddyCard_field_name": "Név",
+  "buddyCard_field_phone": "Telefon",
+  "buddyCard_field_email": "E-mail",
+  "buddyCard_field_social": "Közösségimédia-név",
+  "buddyCard_field_dives": "Merülések",
+  "buddyCard_field_divingSince": "Merül óta",
+  "buddyCard_field_lastDive": "Utolsó merülés",
+  "buddyCard_field_certifications": "Minősítések",
+  "buddyCard_saved_added": "{name} hozzáadva a társaidhoz",
+  "buddyCard_saved_updated": "{name} frissítve",
+  "buddyCard_saved_view": "Megtekintés",
+  "buddyCard_error_notACard": "Ez nem Submersion társkártya.",
+  "buddyCard_error_unreadable": "Ezt a társkártyát nem sikerült beolvasni.",
+  "buddySwap_title": "Csere egy társsal",
+  "buddySwap_nearby_heading": "Közeli búvárok nyitott Submersionnel",
+  "buddySwap_nearby_tapToSwap": "Koppints a cseréhez",
+  "buddySwap_nearby_looking": "További keresése…",
+  "buddySwap_nearby_failed": "Nem sikerült a közeli búvárokat keresni. Az alábbi többi cseremód továbbra is működik.",
+  "buddySwap_nearby_hint": "Nem látod a társad? Mindkettőtöknél nyitva kell lennie ennek a képernyőnek, és Submersion 1.8.4 vagy újabb kell.",
+  "buddySwap_sharing": "Megosztva: {summary}",
+  "buddySwap_sharing_change": "Módosítás",
+  "buddySwap_dives": "{count, plural, =1{1 merülés} other{{count} merülés}}",
+  "buddySwap_action_showCode": "Kódom megjelenítése",
+  "buddySwap_action_scanCode": "Kód beolvasása",
+  "buddySwap_action_sendFile": "Fájl küldése",
+  "buddySwap_action_openFile": "Kártyafájl megnyitása",
+  "buddySwap_action_writeSticker": "NFC-matrica írása",
+  "buddySwap_action_tapAndroid": "Androidos telefon érintése",
+  "buddySwap_action_receiveByTap": "Fogadás érintéssel",
+  "buddySwap_tap_prompt": "Tartsd a telefonod a másik telefonhoz vagy a matricához",
+  "buddySwap_sticker_prompt": "Tartsd a telefonod egy üres NFC-matricához",
+  "buddySwap_sticker_written": "Matrica megírva. Írd újra, ha változnak az adataid.",
+  "buddySwap_sticker_tooSmall": "Ez a matrica túl kicsi a kártyádhoz.",
+  "buddySwap_sticker_notWritable": "Erre a matricára nem lehet írni.",
+  "buddySwap_nfc_unavailable": "Az NFC nem érhető el ezen az eszközön.",
+  "buddySwap_qr_title": "A társkártyád",
+  "buddySwap_qr_hint": "Kérd meg a társad, hogy olvassa be a Submersionnel vagy a kamerájával.",
+  "buddySwap_request_title": "{name} kártyát szeretne cserélni",
+  "buddySwap_request_youSend": "Ezt küldöd: {summary}",
+  "buddySwap_request_swap": "Csere",
+  "buddySwap_request_decline": "Elutasítás",
+  "buddySwap_waiting": "Várakozás {name} válaszára",
+  "buddySwap_failed_declined": "{name} elutasította a cserét",
+  "buddySwap_failed_timedOut": "{name} nem válaszolt",
+  "buddySwap_failed_lost": "Megszakadt a kapcsolat vele: {name}",
+  "buddySwap_failed_newerApp": "{name} a Submersion újabb verziójára van szüksége",
+  "buddySwap_cardFailed": "Nem sikerült elkészíteni a társkártyádat.",
+  "buddySwap_qr_tooLarge": "A kártyád túl hosszú egy kódhoz. Próbáld inkább a Fájl küldése lehetőséget.",
+  "buddySwap_sendFailed": "A kártyafájlt nem sikerült megosztani.",
+  "buddyCard_saveFailed": "A társat nem sikerült menteni.",
+  "buddyCard_field_photo": "Fotó",
+  "buddyCard_change_newPhoto": "Új fotó",
+  "buddyShare_title": "Amit megosztasz",
+  "buddyShare_name": "Név",
+  "buddyShare_alwaysShared": "Mindig megosztva",
+  "buddyShare_neverShared": "Az egészségügyi, biztosítási és vészhelyzeti adatokat soha nem osztjuk meg.",
+  "buddyShare_photo": "Fotó",
+  "buddyShare_phone": "Telefon",
+  "buddyShare_email": "E-mail",
+  "buddyShare_certifications": "Minősítések",
+  "buddyShare_cardDetails": "Kártyaszámok és dátumok",
+  "buddyShare_diveCount": "Merülések száma",
+  "buddyShare_divingSince": "Merül óta",
+  "buddyShare_lastDive": "Utolsó merülés dátuma",
+  "buddyShare_social": "Közösségimédia-név",
+  "buddyCard_detail_heading": "{name} kártyájáról",
+  "buddyCard_detail_since": "{year} óta merül",
+  "buddyCard_detail_last": "Utolsó merülés: {date}",
+  "buddyCard_detail_received": "Fogadva: {date}",
   "buddies_action_clearSearch": "Keresés törlése",
   "buddies_action_edit": "Búvártárs szerkesztése",
   "buddies_action_importFromContacts": "Importálás névjegyekből",
@@ -1453,7 +1539,13 @@
   "connections_tab_view": "Nézet",
   "connections_tab_filter": "Szűrő",
   "connections_tab_filterCount": "Szűrő ({count})",
-  "@connections_tab_filterCount": {"placeholders": {"count": {"type": "int"}}},
+  "@connections_tab_filterCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "connections_tab_details": "Részletek",
   "connections_presets_title": "Előbeállítások",
   "connections_preset_circle": "Búvárkör",
@@ -1470,16 +1562,37 @@
   "connections_editor_kinds": "Típusok",
   "connections_editor_links": "Kapcsolatok",
   "connections_editor_link": "{a} és {b}",
-  "@connections_editor_link": {"placeholders": {"a": {"type": "String"}, "b": {"type": "String"}}},
+  "@connections_editor_link": {
+    "placeholders": {
+      "a": {
+        "type": "String"
+      },
+      "b": {
+        "type": "String"
+      }
+    }
+  },
   "connections_editor_minShared": "{count, plural, =1{Legalább 1 közös merülés} other{Legalább {count} közös merülés}}",
-  "@connections_editor_minShared": {"placeholders": {"count": {"type": "int"}}},
+  "@connections_editor_minShared": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "connections_editor_saveAsMap": "Mentés térképként",
   "connections_savedMap_saveTitle": "Térkép mentése",
   "connections_savedMap_nameLabel": "Név",
   "connections_savedMap_rename": "Átnevezés",
   "connections_savedMap_update": "Frissítés a jelenlegi nézettel",
   "connections_savedMap_deleted": "\"{name}\" törölve",
-  "@connections_savedMap_deleted": {"placeholders": {"name": {"type": "String"}}},
+  "@connections_savedMap_deleted": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "connections_savedMap_undo": "Visszavonás",
   "connections_savedMap_badge": "Mentett térkép",
   "connections_around_searchHint": "Búvártársak, helyek, utak és más keresése",
@@ -1500,7 +1613,16 @@
   "connections_caption_around": "{hops, plural, =1{Minden, aminek van közös merülése ezzel a középponttal.} other{Minden {hops} lépésen belül ettől a középponttól, közös merülésekkel összekötve.}}",
   "connections_caption_thicker": "A vastagabb vonal több merülést jelent.",
   "connections_around_kindChip": "{kind} ({count})",
-  "@connections_around_kindChip": {"placeholders": {"kind": {"type": "String"}, "count": {"type": "int"}}},
+  "@connections_around_kindChip": {
+    "placeholders": {
+      "kind": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "connections_around_prompt": "Keress egy búvártársat, helyet, utat vagy bármi mást, hogy a térképet köré igazítsd.",
   "connections_around_noResults": "Nincs találat",
   "connections_action_centreHere": "Középre ide",
@@ -1572,10 +1694,28 @@
   "connections_share_allDives": "Minden merülés, {first} és {last} között",
   "connections_share_details": "{range}. {counts}",
   "connections_summary_pairValue": "{count, plural, =1{{a} és {b}, 1 merülés} other{{a} és {b}, {count} merülés}}",
-  "@connections_summary_pairValue": {"placeholders": {"count": {"type": "int"}, "a": {"type": "String"}, "b": {"type": "String"}}},
+  "@connections_summary_pairValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "a": {
+        "type": "String"
+      },
+      "b": {
+        "type": "String"
+      }
+    }
+  },
   "connections_summary_closest": "Legközelebbi",
   "connections_summary_entitiesAround": "{count, plural, =1{1 elem} other{{count} elem}}",
-  "@connections_summary_entitiesAround": {"placeholders": {"count": {"type": "int"}}},
+  "@connections_summary_entitiesAround": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "connections_filter_allFilters": "Összes szűrő",
   "connections_filter_clear": "Törlés",
   "connections_filter_none": "Nincs aktív szűrő.",
@@ -1583,20 +1723,50 @@
   "connections_tooltip_relayout": "Újrarendezés",
   "connections_tooltip_showWholeWeb": "Vissza a teljes térképhez",
   "connections_filterBar_edges": "{count, plural, =1{1 kapcsolat} other{{count} kapcsolat}}",
-  "@connections_filterBar_edges": {"placeholders": {"count": {"type": "int"}}},
+  "@connections_filterBar_edges": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "connections_hiddenNodes": "{count, plural, =1{1 további nincs megjelenítve} other{{count} további nincs megjelenítve}}",
-  "@connections_hiddenNodes": {"placeholders": {"count": {"type": "int"}}},
+  "@connections_hiddenNodes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "connections_showAll": "Összes megjelenítése",
   "connections_showAll_confirmTitle": "Minden csomópont megjelenítése?",
   "connections_showAll_confirmBody": "{count} csomópont elrendezése eltarthat egy pillanatig ezen az eszközön.",
-  "@connections_showAll_confirmBody": {"placeholders": {"count": {"type": "int"}}},
+  "@connections_showAll_confirmBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "connections_action_open": "Megnyitás",
   "connections_action_showDives": "Merülések megjelenítése",
   "connections_action_openInConnections": "Megnyitás a Kapcsolatokban",
   "connections_selection_divesTogether": "{count, plural, =1{1 közös merülés} other{{count} közös merülés}}",
-  "@connections_selection_divesTogether": {"placeholders": {"count": {"type": "int"}}},
+  "@connections_selection_divesTogether": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "connections_selection_dives": "{count, plural, =1{1 merülés} other{{count} merülés}}",
-  "@connections_selection_dives": {"placeholders": {"count": {"type": "int"}}},
+  "@connections_selection_dives": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "connections_selection_topConnections": "Legerősebb kapcsolatok",
   "connections_selection_hint": "Koppints egy csomópontra vagy vonalra a részletekhez.",
   "connections_details_dives": "Merülések",
@@ -1622,11 +1792,35 @@
   "connections_error_load": "A kapcsolatok betöltése nem sikerült.",
   "connections_legend_title": "Jelmagyarázat",
   "connections_timeline_range": "{start} és {end} között",
-  "@connections_timeline_range": {"placeholders": {"start": {"type": "String"}, "end": {"type": "String"}}},
+  "@connections_timeline_range": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
   "connections_semantics_summary": "{nodes} csomópont és {edges} kapcsolat",
-  "@connections_semantics_summary": {"placeholders": {"nodes": {"type": "int"}, "edges": {"type": "int"}}},
+  "@connections_semantics_summary": {
+    "placeholders": {
+      "nodes": {
+        "type": "int"
+      },
+      "edges": {
+        "type": "int"
+      }
+    }
+  },
   "connections_semantics_selected": "Kijelölve: {label}",
-  "@connections_semantics_selected": {"placeholders": {"label": {"type": "String"}}},
+  "@connections_semantics_selected": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
   "connections_kind_buddy": "Búvártársak",
   "connections_kind_site": "Merülőhelyek",
   "connections_kind_trip": "Utak",
@@ -1644,6 +1838,12 @@
   "common_label_error": "Hiba",
   "common_label_loading": "Betöltés",
   "common_placeholder_noValue": "--",
+  "notesEditor_action_heading": "Címsor",
+  "notesEditor_action_bold": "Félkövér",
+  "notesEditor_action_italic": "Dőlt",
+  "notesEditor_action_bulletList": "Felsorolás",
+  "notesEditor_action_numberedList": "Számozott lista",
+  "notesEditor_action_preview": "Előnézet",
   "courses_action_add": "Tanfolyam hozzáadása",
   "courses_action_addFromTemplate": "Hozzáadás sablonból",
   "courses_action_addRequirement": "Követelmény hozzáadása",
@@ -2923,6 +3123,7 @@
   "diveLog_search_section_organization": "Szervezet",
   "diveLog_selection_tooltip_combine": "Összevonás",
   "diveLog_selection_tooltip_edit": "Kiválasztottak szerkesztése",
+  "diveLog_selection_tooltip_newTrip": "Új út a kijelöltekből",
   "diveLog_selection_tooltip_export": "Kiválasztottak exportálása",
   "diveLog_selection_tooltip_selectDateRange": "Kijelölés dátumtartomány szerint",
   "diveLog_sighting_add": "Hozzáadás",
@@ -2977,15 +3178,16 @@
   "diveLog_tank_label_workingPressure": "Üzemi ny.",
   "diveLog_tank_mndHelper": "Állítsa automatikusra a He% kiszámításához",
   "diveLog_tank_modMndInfo": "MOD: {mod} (ppO₂ {ppO2}) | MND: {mnd}",
-  "diveLog_cylinders_columnTank": "Palack",
-  "diveLog_cylinders_columnGas": "Gáz",
-  "diveLog_cylinders_columnStart": "Kezdő",
-  "diveLog_cylinders_columnEnd": "Záró",
-  "diveLog_cylinders_columnUsed": "Felhasznált",
+  "diveLog_cylinders_figureStart": "Kezdő {pressure}",
+  "diveLog_cylinders_figureEnd": "Záró {pressure}",
+  "diveLog_cylinders_figureUsed": "Felhasznált {pressure}",
+  "diveLog_cylinders_gasSemantics": "Gáz {mix}",
   "diveLog_cylinders_gasUsed": "Felhasznált gáz {amount}",
   "diveLog_cylinders_mod": "MOD {depth}",
   "diveLog_cylinders_mnd": "MND {depth}",
   "diveLog_cylinders_modNote": "MOD {ppO2} ppO₂-nél",
+  "diveLog_cylinders_modLimit": "{ppO2} ({limit})",
+  "diveLog_cylinders_modLimitSeparator": ", ",
   "diveLog_tank_section_gasMix": "Gázkeverék",
   "diveLog_tank_computerMix_matches": "A búvárkomputered rögzítette",
   "diveLog_tank_computerMix_differs": "A búvárkomputered {mix} keveréket rögzített",
@@ -3123,6 +3325,12 @@
   "divePlanner_gasOptions_problemSolvingMinutes": "Problémamegoldási idő",
   "divePlanner_gasOptions_ppO2Bottom": "Fenék-ppO₂",
   "divePlanner_gasOptions_ppO2Deco": "Dekó-ppO₂",
+  "divePlanner_gasOptions_ppO2DecoBand1": "Dekó-ppO₂ 28% O2-ig",
+  "divePlanner_gasOptions_ppO2DecoBand2": "Dekó-ppO₂ 28-45% O2",
+  "divePlanner_gasOptions_ppO2DecoBand3": "Dekó-ppO₂ 45-99% O2",
+  "divePlanner_gasOptions_maxO2DepthMeters": "Max. mélység 100% O2",
+  "divePlanner_gasOptions_hypercapniaAmv": "Hiperkapniás RMV",
+  "divePlanner_gasOptions_hypercapniaMinutes": "Időtartam",
   "divePlanner_gasOptions_bestMixEnd": "Legjobb keverék END",
   "divePlanner_gasOptions_o2Narcotic": "O₂ narkotikusként kezelése ebben a tervben",
   "divePlanner_label_on": "Be",
@@ -4200,6 +4408,7 @@
   "cylinderConfigs_fromPreset": "Sablonból",
   "tankMod_label": "MOD",
   "tankMod_default": "Alapértelmezés ppO2 {ppO2} mellett ({limit})",
+  "tankMod_defaultDepth": "Alapértelmezés {depth} mellett ({limit})",
   "tankMod_limitBottom": "fenékidő-határ",
   "tankMod_limitDeco": "dekó határ",
   "tankMod_limitDiluent": "Dil-MOD",
@@ -5559,6 +5768,7 @@
   "plannerCanvas_issue_gasDensityHigh": "Gázsűrűség {value} g/L az ajánlott határ felett",
   "plannerCanvas_issue_hypoxic": "Hipoxiás gáz {depth} mélységben (ppO₂ {value} bar)",
   "plannerCanvas_issue_minGas": "A palack a rock-bottom minimum ({pressure}) alatt végez",
+  "plannerCanvas_issue_noUsableGas": "A rock-bottom minimum ({minGas}) nem hagy felhasználható gázt egy {fill} töltésben",
   "plannerCanvas_issue_diluentModExceeded": "A hígítógáz meghaladja a Dil-MOD-ot {depth} mélységben (ppO₂ {value} bar)",
   "plannerCanvas_issue_ceilingViolated": "A profil a {ceiling} dekompressziós plafon fölé megy, kötelező megállókat kihagyva",
   "plannerCanvas_issue_noBailout": "A CCR dekompressziós terv nem tartalmaz bailout gázt",
@@ -5897,7 +6107,13 @@
   "sharedLibrary_connect_folderChars": "A könyvtár mappája nem tartalmazhat *, ? vagy dollárjel karaktert.",
   "sharedLibrary_setup_title": "A tárhely beállítása",
   "sharedLibrary_setup_where": "Ez a könyvtár itt található: {folder}, a bucket vagy a szerver legfelső szintjén, a submersion-sync és a submersion-media mellett.",
-  "@sharedLibrary_setup_where": {"placeholders": {"folder": {"type": "String"}}},
+  "@sharedLibrary_setup_where": {
+    "placeholders": {
+      "folder": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_setup_keys": "A tulajdonosok és a szerkesztők olyan kulcsot kapjanak, amely olvassa és írja a könyvtár mappáját. Mindenki más olyat, amely olvassa, és csak a members/ és a suggestions/ mappába ír. Nem az alkalmazás, hanem a tárhely akadályozza meg, hogy egy kulcs írjon.",
   "sharedLibrary_setup_s3Full": "S3-szabályzat tulajdonosoknak és szerkesztőknek",
   "sharedLibrary_setup_s3Reader": "S3-szabályzat olvasóknak",
@@ -5912,22 +6128,52 @@
   "sharedLibrary_members_approve": "Jóváhagyás",
   "sharedLibrary_members_reject": "Elutasítás",
   "sharedLibrary_members_fingerprint": "Kulcs: {fingerprint}",
-  "@sharedLibrary_members_fingerprint": {"placeholders": {"fingerprint": {"type": "String"}}},
+  "@sharedLibrary_members_fingerprint": {
+    "placeholders": {
+      "fingerprint": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_members_unsignedCard": "A kártyát nem a tagja írta alá",
   "sharedLibrary_members_rejectTitle": "Elutasítod: {name}?",
-  "@sharedLibrary_members_rejectTitle": {"placeholders": {"name": {"type": "String"}}},
+  "@sharedLibrary_members_rejectTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_members_rejectBody": "A kártyája törlődik, és semmi, amit ír, nem számít. Csak új tárhelykulcsok akadályozzák meg teljesen a fájlok írásában.",
   "sharedLibrary_members_left": "Kiléptek a könyvtárból",
   "sharedLibrary_members_removeRole": "Szerepkör eltávolítása",
   "sharedLibrary_members_remove": "Eltávolítás a könyvtárból",
   "sharedLibrary_members_removeTitle": "Eltávolítod: {name}?",
-  "@sharedLibrary_members_removeTitle": {"placeholders": {"name": {"type": "String"}}},
+  "@sharedLibrary_members_removeTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_members_removeBody": "{name} ezután nem szerkeszthet helyszíneket, és nem javasolhat módosításokat. Az általa már hozzáadott helyszínek és módosítások a könyvtárban maradnak.\n\nA könyvtárat továbbra is olvashatja, amíg meg nem változtatod a tárhelykulcsait, és a jelmondatát, ha titkosított.",
-  "@sharedLibrary_members_removeBody": {"placeholders": {"name": {"type": "String"}}},
+  "@sharedLibrary_members_removeBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_members_removeConfirm": "Eltávolítás",
   "sharedLibrary_members_removedHeader": "Eltávolítva",
   "sharedLibrary_members_removedOn": "Eltávolítva: {date}",
-  "@sharedLibrary_members_removedOn": {"placeholders": {"date": {"type": "String"}}},
+  "@sharedLibrary_members_removedOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_members_allowBack": "Visszaengedés",
   "sharedLibrary_owner_onlyOne": "Csak egy tulajdonos van. Ha elveszíti a hozzáférést, csak a helyreállítási kód állíthatja vissza.",
   "sharedLibrary_owner_addOwner": "Másik tulajdonos választása",
@@ -5942,7 +6188,19 @@
   "sharedLibrary_owner_resetHelp": "Csak ha nem maradt tulajdonos és helyreállítási kód sem. Minden tagnak el kell fogadnia.",
   "sharedLibrary_owner_resetConfirm": "Egyedüli tulajdonossá teszed magad? Minden más tag eszköze elfogadást kér tőle, és addig nem ír a könyvtárba.",
   "sharedLibrary_owner_resetPrompt": "{name} visszaállította a(z) {library} tulajdonjogát (kulcs: {fingerprint}). Amíg el nem fogadod, ez az eszköz csak olvassa a könyvtárat.",
-  "@sharedLibrary_owner_resetPrompt": {"placeholders": {"library": {"type": "String"}, "name": {"type": "String"}, "fingerprint": {"type": "String"}}},
+  "@sharedLibrary_owner_resetPrompt": {
+    "placeholders": {
+      "library": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      },
+      "fingerprint": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_owner_resetAccept": "Elfogadás",
   "sharedLibrary_connect_untrusted": "A könyvtár szerepköreit nem írta alá egyik tulajdonosa sem. Kérj meg egy tulajdonost, hogy ellenőrizze.",
   "sharedLibrary_retired": "Ezt a könyvtárat a Submersion egy tesztverziója hozta létre. Hozd létre újra.",
@@ -5961,7 +6219,16 @@
   "sharedLibrary_backups_inStorage": "A tárhelyen",
   "sharedLibrary_backups_both": "Ezen az eszközön és a tárhelyen",
   "sharedLibrary_backups_summary": "Helyszínek: {sites} · {size}",
-  "@sharedLibrary_backups_summary": {"placeholders": {"sites": {"type": "int"}, "size": {"type": "String"}}},
+  "@sharedLibrary_backups_summary": {
+    "placeholders": {
+      "sites": {
+        "type": "int"
+      },
+      "size": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_backups_pin": "Rögzítés",
   "sharedLibrary_backups_unpin": "Rögzítés feloldása",
   "sharedLibrary_backups_delete": "Törlés",
@@ -5970,7 +6237,13 @@
   "sharedLibrary_backups_export": "Exportálás",
   "sharedLibrary_backups_restore": "Visszaállítás",
   "sharedLibrary_backups_restoreConfirm": "Visszaállítod a könyvtárat a(z) {date} állapotára? Minden tag a következő szinkronizáláskor megkapja ezt a változatot. Előbb rögzített mentés készül a könyvtár jelenlegi állapotáról.",
-  "@sharedLibrary_backups_restoreConfirm": {"placeholders": {"date": {"type": "String"}}},
+  "@sharedLibrary_backups_restoreConfirm": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_backups_restoreDone": "A könyvtár visszaállítva",
   "sharedLibrary_backups_oldKey": "Ezt a mentést egy korábbi jelmondattal pecsételték le. Add meg azt a jelmondatot vagy az akkori helyreállítási kódot.",
   "sharedLibrary_backups_empty": "Még nincs mentés. A tulajdonosok eszközei naponta készítenek egyet, a Mentés most pedig azonnal.",
@@ -5978,17 +6251,41 @@
   "sharedLibrary_backups_ownersOnly": "Csak a tulajdonosok kezelik a mentéseket.",
   "sharedLibrary_backups_done": "Mentés elkészült",
   "sharedLibrary_library_myKey": "A kulcsod: {fingerprint}",
-  "@sharedLibrary_library_myKey": {"placeholders": {"fingerprint": {"type": "String"}}},
+  "@sharedLibrary_library_myKey": {
+    "placeholders": {
+      "fingerprint": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_suggest_held": "{count, plural, =1{1 javaslat arra vár, hogy jóváhagyd a szerzőjét} other{{count} javaslat arra vár, hogy jóváhagyd a szerzőiket}}",
-  "@sharedLibrary_suggest_held": {"placeholders": {"count": {"type": "int"}}},
+  "@sharedLibrary_suggest_held": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "sharedLibrary_restoreInto_action": "Visszaállítás mentésfájlból",
   "sharedLibrary_restoreInto_needsKey": "Ez a mentés titkosított. Add meg a jelmondatát vagy a helyreállítási kódját.",
   "sharedLibrary_restoreInto_refused": "Ez a fájl nem tulajdonos által készített könyvtármentés.",
   "sharedLibrary_restoreInto_oldStillThere": "A könyvtár a régi mappájában is megvan még. Az ottani tagok azt a példányt használják, amíg nem csatlakoznak ehhez a mappához.",
   "sharedLibrary_encrypted_locked": "Add meg a(z) {library} jelmondatát.",
-  "@sharedLibrary_encrypted_locked": {"placeholders": {"library": {"type": "String"}}},
+  "@sharedLibrary_encrypted_locked": {
+    "placeholders": {
+      "library": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_encrypted_changed": "A(z) {library} jelmondata megváltozott. Add meg az újat.",
-  "@sharedLibrary_encrypted_changed": {"placeholders": {"library": {"type": "String"}}},
+  "@sharedLibrary_encrypted_changed": {
+    "placeholders": {
+      "library": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_encryption_title": "Titkosítás",
   "sharedLibrary_encryption_statusOn": "Jelmondattal titkosítva",
   "sharedLibrary_encryption_statusOff": "Nincs titkosítva: aki hozzáfér a tárhelyhez, olvashatja",
@@ -6001,7 +6298,13 @@
   "sharedLibrary_encryption_passphrase": "Jelmondat",
   "sharedLibrary_encryption_confirm": "Jelmondat újra",
   "sharedLibrary_connect_join_action": "Csatlakozás: {name}",
-  "@sharedLibrary_connect_join_action": {"placeholders": {"name": {"type": "String"}}},
+  "@sharedLibrary_connect_join_action": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_connect_create_action": "Könyvtár létrehozása",
   "sharedLibrary_connect_create_name_label": "Könyvtár neve",
   "sharedLibrary_connect_displayName_label": "A neved ebben a könyvtárban",
@@ -6013,15 +6316,33 @@
   "sharedLibrary_role_owner": "Tulajdonos",
   "sharedLibrary_library_members": "Tagok",
   "sharedLibrary_library_memberCount": "{count, plural, =1{1 tag} other{{count} tag}}",
-  "@sharedLibrary_library_memberCount": {"placeholders": {"count": {"type": "int"}}},
+  "@sharedLibrary_library_memberCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "sharedLibrary_library_syncNow": "Szinkronizálás most",
   "sharedLibrary_library_lastSync": "Utolsó szinkronizálás: {when}",
-  "@sharedLibrary_library_lastSync": {"placeholders": {"when": {"type": "String"}}},
+  "@sharedLibrary_library_lastSync": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_library_neverSynced": "Még nincs szinkronizálva",
   "sharedLibrary_library_readOnlyBanner": "A hitelesítő adataid csak olvasást engednek. Javasolhatsz módosításokat, egy felelős alkalmazza őket.",
   "sharedLibrary_library_removedBanner": "Egy felelős eltávolított ebből a könyvtárból. A helyszínei ezen az eszközön maradnak, de már nem módosíthatod őket. Ha kilépsz a könyvtárból, megtartod azoknak a helyszíneknek a saját másolatát, ahol merültél.",
   "sharedLibrary_library_errorBanner": "Az utolsó szinkronizálás sikertelen: {error}",
-  "@sharedLibrary_library_errorBanner": {"placeholders": {"error": {"type": "String"}}},
+  "@sharedLibrary_library_errorBanner": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_syncError_accountMissing": "A könyvtár fiókja már nincs ezen az eszközön. A Kapcsolat módosítása gombbal válaszd ki újra.",
   "sharedLibrary_syncError_accountSignedOut": "Ez az eszköz ki van jelentkezve a könyvtár fiókjából. Jelentkezz be újra a Csatlakoztatott fiókok között, vagy használd a Kapcsolat módosítása lehetőséget.",
   "sharedLibrary_syncError_notALibrary": "Ezen a helyen nincs könyvtár.",
@@ -6030,7 +6351,13 @@
   "sharedLibrary_library_suggestions": "Javaslatok",
   "sharedLibrary_library_leave": "Kilépés a könyvtárból",
   "sharedLibrary_library_leaveConfirm_title": "Kilépsz innen: {name}?",
-  "@sharedLibrary_library_leaveConfirm_title": {"placeholders": {"name": {"type": "String"}}},
+  "@sharedLibrary_library_leaveConfirm_title": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_library_leaveConfirm_body": "A merüléseid által használt megosztott helyek személyes másolatként megmaradnak. A többi megosztott hely törlődik erről az eszközről.",
   "sharedLibrary_library_rename_label": "Megjelenített név",
   "sharedLibrary_members_setRole": "Szerep módosítása",
@@ -6042,23 +6369,68 @@
   "sharedLibrary_connect_exists": "Közben valaki könyvtárat hozott létre itt. Ellenőrizd újra a csatlakozáshoz.",
   "sharedLibrary_library_lastOwnerLeave": "Kilépés előtt tegyél meg egy másik tagot tulajdonosnak.",
   "sharedLibrary_site_badgeTooltip": "Itt: {name}",
-  "@sharedLibrary_site_badgeTooltip": {"placeholders": {"name": {"type": "String"}}},
+  "@sharedLibrary_site_badgeTooltip": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_site_lastEdited": "Utoljára szerkesztette: {name}, {when}",
-  "@sharedLibrary_site_lastEdited": {"placeholders": {"name": {"type": "String"}, "when": {"type": "String"}}},
+  "@sharedLibrary_site_lastEdited": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_site_history": "Szerkesztési előzmények",
   "sharedLibrary_site_addToLibrary": "Hozzáadás a megosztott merülőhely-könyvtárhoz",
   "sharedLibrary_add_confirm_title": "Hozzáadod: {name} → {library}?",
-  "@sharedLibrary_add_confirm_title": {"placeholders": {"name": {"type": "String"}, "library": {"type": "String"}}},
+  "@sharedLibrary_add_confirm_title": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "library": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_add_confirm_titleMany": "{count, plural, =1{Hozzáadsz {count} merülőhelyet ehhez: {library}?} other{Hozzáadsz {count} merülőhelyet ehhez: {library}?}}",
-  "@sharedLibrary_add_confirm_titleMany": {"placeholders": {"count": {"type": "int"}, "library": {"type": "String"}}},
+  "@sharedLibrary_add_confirm_titleMany": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "library": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_add_confirm_shared": "Minden tag látni fogja: név, hely, mélységek, leírás, veszélyek, megközelítés, be- és kiszállás, kikötés, parkolás, helytípusok, címkék, fajok és jellemzők.",
   "sharedLibrary_add_confirm_private": "A tiéd marad: a jegyzeteid és az értékelésed. A merülések és a fotók soha nem hagyják el a személyes könyvtáradat.",
   "sharedLibrary_add_confirm_action": "Hozzáadás",
   "sharedLibrary_site_chooseLibrary": "Válassz könyvtárat",
   "sharedLibrary_site_added": "Hozzáadva ide: {name}",
-  "@sharedLibrary_site_added": {"placeholders": {"name": {"type": "String"}}},
+  "@sharedLibrary_site_added": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_site_notConnectedHere": "Ez a hely itt található: {name}, amely nincs csatlakoztatva ezen az eszközön.",
-  "@sharedLibrary_site_notConnectedHere": {"placeholders": {"name": {"type": "String"}}},
+  "@sharedLibrary_site_notConnectedHere": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_site_connectHere": "Csatlakoztatás ezen az eszközön",
   "sharedLibrary_site_deleteFromLibrary_title": "Törlöd a megosztott merülőhely-könyvtárból?",
   "sharedLibrary_site_deleteFromLibrary_body": "Azok a tagok, akiknek a merülései ezt a helyet használják, megtartanak egy személyes másolatot.",
@@ -6070,12 +6442,27 @@
   "sharedLibrary_suggest_nothingChanged": "Semmi sem változott.",
   "sharedLibrary_suggest_savedPrivate": "A jegyzeteid és az értékelésed mentve.",
   "sharedLibrary_suggest_pending": "{count, plural, =1{1 javaslat függőben} other{{count} javaslat függőben}}",
-  "@sharedLibrary_suggest_pending": {"placeholders": {"count": {"type": "int"}}},
+  "@sharedLibrary_suggest_pending": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "sharedLibrary_suggest_withdraw": "Visszavonás",
   "sharedLibrary_inbox_title": "Javaslatok",
   "sharedLibrary_inbox_empty": "Nincs függőben lévő javaslat.",
   "sharedLibrary_inbox_from": "Tőle: {name}, {when}",
-  "@sharedLibrary_inbox_from": {"placeholders": {"name": {"type": "String"}, "when": {"type": "String"}}},
+  "@sharedLibrary_inbox_from": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_inbox_accept": "Elfogadás",
   "sharedLibrary_inbox_dismiss": "Elvetés",
   "sharedLibrary_inbox_siteDeleted": "Ezt a helyet törölték a könyvtárból.",
@@ -6421,6 +6808,21 @@
   "settings_conflict_field_autoTagImports": "Importált merülések címkézése",
   "settings_conflict_field_downloadsFollowComputerOwner": "Letöltések hozzáadása a komputer tulajdonosához",
   "settings_conflict_field_omitUnusedOcGases": "Nem használt bailout gázok kihagyása",
+  "settings_conflict_field_diveListSort": "Merülések: rendezés",
+  "settings_conflict_field_divePlanListSort": "Mentett tervek: rendezés",
+  "settings_conflict_field_tripListSort": "Utak: rendezés",
+  "settings_conflict_field_courseListSort": "Tanfolyamok: rendezés",
+  "settings_conflict_field_buddyListSort": "Búvártársak: rendezés",
+  "settings_conflict_field_diveCenterListSort": "Merülőcentrumok: rendezés",
+  "settings_conflict_field_siteListSort": "Merülőhelyek: rendezés",
+  "settings_conflict_field_certificationListSort": "Képesítések: rendezés",
+  "settings_conflict_field_equipmentListSort": "Felszerelés: rendezés",
+  "settings_conflict_field_siteListGroupBy": "Merülőhelyek: csoportosítás",
+  "settings_conflict_field_certificationListGroupBy": "Képesítések: csoportosítás",
+  "settings_conflict_field_equipmentArrangement": "Felszerelés elrendezése",
+  "settings_conflict_field_equipmentGroupByLocation": "Felszerelés hely szerint csoportosítva",
+  "settings_conflict_field_listArrangementHlc": "Listaelrendezési napló",
+  "settings_conflict_sortValue": "{field}, {direction}",
   "settings_conflict_field_avgSpeed": "Átlagsebesség",
   "settings_conflict_field_batteryReserveFraction": "Akkumulátortartalék",
   "settings_conflict_field_bboxHeight": "Keret magassága",
@@ -6780,6 +7182,12 @@
   "settings_conflict_field_portName": "Kikötő",
   "settings_conflict_field_ppO2Bottom": "Fenékidő ppO2",
   "settings_conflict_field_ppO2Deco": "Dekó ppO2",
+  "settings_conflict_field_ppO2DecoBand1": "Dekó ppO2 28% O2-ig",
+  "settings_conflict_field_ppO2DecoBand2": "Dekó ppO2 28-45% O2",
+  "settings_conflict_field_ppO2DecoBand3": "Dekó ppO2 45-99% O2",
+  "settings_conflict_field_ppO2DecoBandsEnabled": "Dekó ppO2-határok O2-sáv szerint",
+  "settings_conflict_field_maxO2DepthEnabled": "Explicit maximális mélység 100% O2-hez",
+  "settings_conflict_field_maxO2DepthMeters": "Maximális mélység 100% O2-hez",
   "settings_conflict_field_ppO2MaxDeco": "Legnagyobb dekó ppO2",
   "settings_conflict_field_ppO2MaxWorking": "Legnagyobb munka ppO2",
   "settings_conflict_field_preDiveChecklistTemplates_category": "Kategória",
@@ -6790,6 +7198,13 @@
   "settings_conflict_field_pressureBar": "Nyomás",
   "settings_conflict_field_pressureUnit": "Nyomás mértékegysége",
   "settings_conflict_field_priorDiveCount": "Merülések a napló előtt",
+  "settings_conflict_field_buddyCardShare": "Társkártya megosztása",
+  "settings_conflict_field_cardDiveCount": "Merülések (a kártyája szerint)",
+  "settings_conflict_field_cardDivingSince": "Merül óta (a kártyája szerint)",
+  "settings_conflict_field_cardId": "Társkártya",
+  "settings_conflict_field_cardLastDive": "Utolsó merülés (a kártyája szerint)",
+  "settings_conflict_field_cardReceivedAt": "Kártya fogadva",
+  "settings_conflict_field_socialHandle": "Közösségimédia-név",
   "settings_conflict_field_priorDiveTimeSeconds": "Merülési idő a napló előtt",
   "settings_conflict_field_problemSolvingMinutes": "Problémamegoldási idő",
   "settings_conflict_field_provider": "Szolgáltató",
@@ -6985,6 +7400,7 @@
   "settings_conflict_field_valueUnit": "Mértékegység",
   "settings_conflict_field_verdict": "Értékelés",
   "settings_conflict_field_verifyFactsHlc": "Ellenőrzési napló",
+  "settings_conflict_field_videoPositionMs": "Idő a videóban (ms)",
   "settings_conflict_field_vesselName": "Hajó",
   "settings_conflict_field_vesselType": "Hajó típusa",
   "settings_conflict_field_viewMode": "Nézet",
@@ -7206,6 +7622,21 @@
   "settings_decompression_ppO2LimitsTitle": "ppO2-határok OC",
   "settings_decompression_ppO2LimitsSubtitle": "Munka {working} bar · Max. {max} bar",
   "settings_decompression_ppO2Dialog_title": "ppO2-határok OC",
+  "settings_decompression_ppO2BandsTitle": "Dekó-határok O2-sáv szerint",
+  "settings_decompression_ppO2BandsSubtitle": "Opcionális, finomabb dekó ppO2-határok a merüléstervezőhöz",
+  "settings_decompression_ppO2BandsDialog_title": "Dekó ppO2: O2-sávok szerint",
+  "settings_decompression_ppO2BandsDialog_bandsToggle": "O2-sáv szerinti dekóhatárok használata",
+  "settings_decompression_ppO2BandsDialog_band1": "28% O2-ig",
+  "settings_decompression_ppO2BandsDialog_band2": "28–45% O2",
+  "settings_decompression_ppO2BandsDialog_band3": "45–99% O2",
+  "settings_decompression_ppO2BandsDialog_maxO2DepthToggle": "Explicit maximális mélység használata 100% O2-hez",
+  "settings_decompression_ppO2BandsDialog_maxO2DepthLabel": "Maximális mélység 100% O2-hez",
+  "settings_decompression_hypercapniaTitle": "Hiperkapniás bailout fázis",
+  "settings_decompression_hypercapniaSubtitle": "Opcionális, megnövelt légzési ráta egy CCR/SCR OC bailout kezdetén",
+  "settings_decompression_hypercapniaDialog_title": "Hiperkapniás bailout fázis",
+  "settings_decompression_hypercapniaDialog_enabledToggle": "Hiperkapniás fázis használata OC bailoutnál",
+  "settings_decompression_hypercapniaDialog_factorLabel": "RMV szorzó",
+  "settings_decompression_hypercapniaDialog_minutesLabel": "Időtartam",
   "settings_decompression_ccrPpO2LimitsTitle": "ppO2-határok CCR",
   "settings_decompression_ccrPpO2LimitsSubtitle": "Setpoint alacsony {low} · magas {high} · Dil-MOD {dil} bar",
   "settings_decompression_ccrDialog_info": "Alapértékek zárt rendszerű merülésekhez. A MOD-kalkulátor CCR módja ezekkel az értékekkel indul.",
@@ -8231,6 +8662,18 @@
   "insights_timePatterns_seasonal_error": "Nem sikerült az évszakos adatok betöltése",
   "insights_timePatterns_seasonal_subtitle": "Merülések hónaponként (minden év)",
   "insights_timePatterns_seasonal_title": "Évszakos minták",
+  "insights_timePatterns_calendarDays_title": "Naptári napok",
+  "insights_timePatterns_calendarDays_subtitle": "Merülések az év minden dátumán (minden év)",
+  "insights_timePatterns_calendarDays_coverage": "{total} naptári napból {covered} ({percent})",
+  "insights_timePatterns_calendarDays_busiestMonth": "Legtöbb merülés hónapja: {months}",
+  "insights_timePatterns_calendarDays_busiestDay": "Legtöbb merülés napja a hónapban: {days}",
+  "insights_timePatterns_calendarDays_cellSemantics": "{date}, {count, plural, =0{nincs merülés} one{{count} merülés} other{{count} merülés}}",
+  "insights_timePatterns_calendarDays_totalSemantics": "{label}, összesen {count, plural, =0{nincs merülés} one{{count} merülés} other{{count} merülés}}",
+  "insights_timePatterns_calendarDays_dayLabel": "{day}. nap",
+  "insights_timePatterns_calendarDays_total": "Minden dátum",
+  "insights_timePatterns_calendarDays_listSeparator": ", ",
+  "insights_timePatterns_calendarDays_empty": "Még nincs merülés a naptárhoz",
+  "insights_timePatterns_calendarDays_error": "A naptári napok betöltése sikertelen",
   "insights_timePatterns_surfaceInterval_average": "Átlag",
   "insights_timePatterns_surfaceInterval_empty": "Nincsenek felszíni intervallum adatok",
   "insights_timePatterns_surfaceInterval_error": "Nem sikerült a felszíni intervallum adatok betöltése",
@@ -8623,6 +9066,10 @@
   "trips_detail_dialog_cancel": "Mégse",
   "trips_detail_dialog_deleteConfirm": "Törlés",
   "trips_detail_dialog_deleteContent": "Biztosan törli a(z) \"{name}\" utat? Az út törlődik, de a merülések megmaradnak.",
+  "trips_delete_sideTripsStandalone": "{count, plural, one{A mellékútja önálló út lesz.} other{A {count} mellékútja önálló út lesz.}}",
+  "trips_delete_divesReturnToParent": "A merülései visszakerülnek ide: {name}.",
+  "trips_bulkDelete_sideTripsStandalone": "{count, plural, one{{count} mellékút önálló út lesz.} other{{count} mellékút önálló út lesz.}}",
+  "trips_bulkDelete_divesReturnToParents": "A törölt mellékutak merülései visszakerülnek a nagyobb útjaikhoz.",
   "trips_detail_dialog_deleteTitle": "Út törlése?",
   "trips_detail_dives_empty": "Még nincsenek merülések ezen az úton",
   "trips_detail_dives_errorLoading": "Nem sikerült a merülések betöltése",
@@ -8769,6 +9216,9 @@
   "trips_edit_hint_operatorName": "pl. Red Sea Divers",
   "trips_edit_hint_resortName": "pl. Marsa Shagra",
   "trips_edit_hint_tripName": "pl. Vörös-tengeri szafari 2024",
+  "trips_edit_field_partOf": "Nagyobb út része",
+  "trips_edit_partOf_none": "Nincs (önálló út)",
+  "trips_edit_partOf_helper": "Ezt az utat egy nagyobb út mellékútjává teszi",
   "trips_edit_hint_vesselName": "pl. Ocean Explorer",
   "trips_edit_label_cabinType": "Kabin típusa",
   "trips_edit_label_capacity": "Utaskapacitás",
@@ -9271,6 +9721,10 @@
   "trips_list_pastSection": "Korábbi utak",
   "trips_list_sort_title": "Utak rendezése",
   "trips_list_tile_diveCount": "{count, plural, =1{{count} merülés} other{{count} merülés}}",
+  "trips_list_sideTripCount": "{count, plural, one{{count} mellékút} other{{count} mellékút}}",
+  "trips_partOf": "{name} része",
+  "trips_fromSelection_name": "{location}, {monthYear}",
+  "trips_fromSelection_nameNoLocation": "Út, {monthYear}",
   "trips_list_tooltip_addTrip": "Út hozzáadása",
   "trips_list_tooltip_search": "Utak keresése",
   "trips_list_tooltip_sort": "Rendezés",
@@ -9821,6 +10275,7 @@
   "settings_homeChips_uploads": "Médiafeltöltések",
   "settings_homeChips_backup": "Mentés kora",
   "settings_homeChips_sync": "Szinkronizálási állapot",
+  "settings_homeChips_nearby": "Közeli eszközök",
   "settings_homeChips_dataQuality": "Adatminőség",
   "dashboard_gauges_certsNeedAttention": "{count, plural, =1{{count} képesítés figyelmet igényel} other{{count} képesítés figyelmet igényel}}",
   "dashboard_gauges_tripCountdown": "{name} {days} nap múlva",
@@ -9832,6 +10287,8 @@
   "dashboard_gauges_backupDays": "Mentés {days} napja",
   "dashboard_gauges_syncPending": "{count} nem szinkronizált",
   "dashboard_gauges_synced": "Szinkronizálva",
+  "dashboard_gauges_nearby": "Közeli: {name} figyelmet igényel",
+  "dashboard_gauges_nearbyMore": "Közeli: {name} és mások figyelmet igényelnek",
   "dashboard_gauges_dataIssues": "{count, plural, =1{1 adatprobléma} other{{count} adatprobléma}}",
   "dashboard_gauges_retry": "Az állapot nem érhető el - koppints az újrapróbáláshoz",
   "dashboard_media_title": "Legutóbbi médiaelemek",
@@ -10158,9 +10615,9 @@
   "divers_delete_keptEquipment_toOne": "{count, plural, one{{count} felszerelés átadva: {name}.} other{{count} felszerelés átadva: {name}.}}",
   "divers_delete_keptEquipment_toMany": "{count, plural, one{{count} felszerelés átadva az azt használó profiloknak.} other{{count} felszerelés átadva az azokat használó profiloknak.}}",
   "divers_delete_handedOver": "{count, plural, one{{count} megosztott túra vagy helyszín ahhoz a profilhoz került, amellyel meg volt osztva.} other{{count} megosztott túra és helyszín azokhoz a profilokhoz került, amelyekkel meg voltak osztva.}}",
-  "settings_shareAllSites_confirm": "Válaszd ki, ki lássa mind a(z) {count} merülőhelyedet. Ha később egy helyet módosítanál, nyisd meg, és koppints a Megosztva elemre.",
+  "settings_shareAllSites_confirm": "Válaszd ki, ki lássa mind a(z) {count} merülőhelyedet. Ha később egy helyet módosítanál, szerkeszd, és koppints a Megosztva elemre.",
   "settings_shareAllSites_title": "Az összes merülőhelyem megosztása...",
-  "settings_shareAllTrips_confirm": "Válaszd ki, ki lássa mind a(z) {count} túrádat. Ha később egy túrát módosítanál, nyisd meg, és koppints a Megosztva elemre.",
+  "settings_shareAllTrips_confirm": "Válaszd ki, ki lássa mind a(z) {count} túrádat. Ha később egy túrát módosítanál, szerkeszd, és koppints a Megosztva elemre.",
   "settings_shareAllTrips_title": "Az összes túrám megosztása...",
   "settings_shareAll_noneToShare": "Nincs mit megosztani.",
   "settings_shareByDefault_title": "Új helyszínek és túrák megosztása alapértelmezetten",
@@ -10607,7 +11064,6 @@
   "settings_connectedAccounts_status_signedIn": "Bejelentkezve",
   "settings_connectedAccounts_status_unavailable": "Ezen az eszközön nem érhető el",
   "settings_connectedAccounts_disconnectDevice": "Kijelentkezés ezen az eszközön",
-
   "settings_connectedAccounts_rename": "Átnevezés",
   "settings_connectedAccounts_renameTitle": "Fiók átnevezése",
   "settings_connectedAccounts_renameField": "Név",
@@ -10652,6 +11108,41 @@
   "settings_sync_notSetUp": "Nincs beállítva",
   "settings_sync_offCustomFolder": "Kikapcsolva, amíg az adatbázis egyéni mappában van",
   "settings_sync_keepInStep": "Eszközök automatikus szinkronban tartása",
+  "settings_nearby_title": "Közeli eszközök",
+  "settings_nearby_auto_title": "Automatikus szinkronizálás a közeli eszközökkel",
+  "settings_nearby_auto_subtitle": "Ha egy párosított eszközön a közelben nyitva van az alkalmazás, Bluetooth-on",
+  "settings_nearby_linuxNote": "Más eszközök nem találják meg ezt a számítógépet, ezért bármely közeli eszközzel szinkronizál, kivéve egy másik Linux számítógépet",
+  "settings_nearby_pair": "Eszköz párosítása",
+  "settings_nearby_status_synced": "Szinkronizálva: {when}",
+  "settings_nearby_status_syncing": "Szinkronizálás: {done} / {total}",
+  "settings_nearby_status_never": "Még nincs szinkronizálva",
+  "settings_nearby_status_notSeen": "Nem látható ez óta: {date}",
+  "settings_nearby_error_newerApp": "Ennek az eszköznek újabb alkalmazásverzió kell",
+  "settings_nearby_error_peerOlderApp": "A másik eszköznek újabb alkalmazásverzió kell",
+  "settings_nearby_error_differentLibrary": "Nem ugyanaz a könyvtár",
+  "settings_nearby_error_notPaired": "A másik eszközön megszüntették a párosítást",
+  "settings_nearby_error_applyFailed": "Nem sikerült alkalmazni a módosításait",
+  "settings_nearby_error_bluetoothOff": "A Bluetooth ki van kapcsolva vagy nincs engedélyezve",
+  "settings_nearby_error_unreachable": "Nem sikerült csatlakozni",
+  "settings_nearby_sheet_rename": "Átnevezés",
+  "settings_nearby_sheet_unpair": "Párosítás megszüntetése",
+  "settings_nearby_unpair_confirm": "Megszünteted a(z) {name} párosítását? A közeli szinkronizáláshoz újra párosítani kell.",
+  "settings_nearby_rename_title": "Eszköz átnevezése",
+  "settings_nearby_notInRange": "{name} most nincs a közelben",
+  "nearbyPair_looking": "Eszközök keresése…",
+  "nearbyPair_hint": "Nyisd meg a Submersiont a másik eszközön, és ott is koppints az Eszköz párosítása elemre.",
+  "nearbyPair_found": "Megtaláltuk: {name}. Ellenőrizd, hogy ezt a kódot mutatja, majd erősítsd meg mindkettőn.",
+  "nearbyPair_sameCode": "Ugyanaz a kód",
+  "nearbyPair_notMine": "Nem az enyém",
+  "nearbyPair_waiting": "Várakozás a másik eszköz megerősítésére…",
+  "nearbyPair_bothPopulated": "Mindkét eszközön vannak merülések. A párosítás egy naplóba egyesíti őket.",
+  "nearbyPair_differentLibrary": "Az az eszköz egy másik könyvtárat használ, ezért nem párosítható ezzel.",
+  "nearbyPair_permissionDenied": "A Submersionnek Bluetooth-engedély kell a közeli eszközök megtalálásához.",
+  "nearbyPair_bluetoothOff": "Kapcsold be a Bluetootht a közeli eszközök megtalálásához.",
+  "nearbyPair_unsupported": "Ezen az eszközön nincs olyan Bluetooth, amelyet a Submersion használni tud.",
+  "nearbyPair_openSettings": "Beállítások megnyitása",
+  "nearbyPair_done": "Párosítva: {name}",
+  "nearbyPair_failed": "A párosítás nem fejeződött be. Próbáld újra mindkét eszközön.",
   "settings_sync_alsoAtLaunch": "Szinkronizálás indításkor is",
   "settings_sync_alsoOnReturn": "Szinkronizálás az alkalmazásba visszatéréskor is",
   "settings_sync_encryption": "Titkosítás",
@@ -14934,6 +15425,33 @@
   "media_species_otherSpecies": "Más fajok...",
   "media_species_noDiveHint": "Ez a fotó nincs merüléshez kapcsolva. Keress egy fajt a címkézéshez.",
   "media_species_chipsLabel": "Fajcímkék",
+  "media_people_me": "Én",
+  "media_people_chipsLabel": "Személycímkék",
+  "media_people_momentChip": "{name} · {time}",
+  "media_people_actionTooltip": "Személyek megjelölése",
+  "media_people_tagModeHint": "Koppintson egy személyre a megjelöléséhez",
+  "media_people_noSpotHint": "Itt nem jelölhető meg hely",
+  "media_people_withoutSpot": "Megjelölés hely nélkül",
+  "media_people_done": "Kész",
+  "media_people_pickerTitle": "Ki ez?",
+  "media_people_searchHint": "Búvártársak keresése",
+  "media_people_onThisDive": "Ezen a merülésen",
+  "media_people_everyoneElse": "Mindenki más",
+  "media_people_newBuddy": "Új búvártárs",
+  "media_people_newBuddyName": "Név",
+  "media_people_newBuddyAdd": "Hozzáadás",
+  "media_people_changePerson": "Személy módosítása",
+  "media_people_removeTag": "Jelölés eltávolítása",
+  "media_people_resizeHint": "Húzza a sarkokat az igazításhoz",
+  "media_people_addToDiveOffer": "Hozzáadja {name} búvártársat ehhez a merüléshez?",
+  "media_people_addToDiveAction": "Hozzáadás",
+  "media_people_buddyPhotosTitle": "Fotók és videók",
+  "media_people_buddyThumbnailLabel": "Fotó vagy videó ezzel a búvártárssal",
+  "media_people_filterSection": "Személyek",
+  "media_people_removedBuddy": "Törölt búvártárs",
+  "media_people_saveFailed": "A jelölés mentése nem sikerült. Próbálja újra.",
+  "media_people_addToDiveFailed": "A búvártársat nem sikerült hozzáadni ehhez a merüléshez. Próbálja újra.",
+  "media_people_createBuddyFailed": "A búvártársat nem sikerült létrehozni. Próbálja újra.",
   "media_info_fileSection": "Fájl",
   "media_info_filename": "Fájlnév",
   "media_info_type": "Típus",
@@ -15303,6 +15821,9 @@
   "startup_diveLogUnavailable_startNew_confirm": "Új merülési napló indítása",
   "backup_history_preDowngradeSubtitle": "Újabb adatbázis, visszalépéskor megőrizve - {size}",
   "backup_history_cloudOnlySubtitle": "Felhőtárhelyen ({size})",
+  "backup_history_device_anotherDevice": "Másik eszköz",
+  "backup_history_device_thisDevice": "Ez az eszköz",
+  "backup_history_subtitleWithDevice": "{summary} · {device}",
   "backup_history_manualSubtitle": "{diveCount, plural, =1{1 merülés} other{{diveCount} merülés}}, {siteCount, plural, =1{1 merülőhely} other{{siteCount} merülőhely}} - {size}",
   "backup_history_manualSubtitleAuto": "{diveCount, plural, =1{1 merülés} other{{diveCount} merülés}}, {siteCount, plural, =1{1 merülőhely} other{{siteCount} merülőhely}} - {size} (automatikus)",
   "settings_manage_transmitters": "Jeladók",
@@ -15544,8 +16065,7 @@
   "diveDetailSection_navTrack_trackName": "Víz alatti nyomvonal",
   "diveDetailSection_navTrack_trackDescription": "Navigációs konzolról mért víz alatti nyomvonal",
   "navTrack_list_durationHours": "{hours}ó {minutes}p",
-  "navTrack_list_durationMinutes": "{minutes}p"
-,
+  "navTrack_list_durationMinutes": "{minutes}p",
   "gasCalculators_mod_semanticsLabel": "Maximális üzemi mélység: {depth} {unit}, {ppo2} bar ppO2 mellett, {o2}% oxigénnel",
   "gasCalculators_blender_stepColumnAction": "Művelet",
   "gasCalculators_blender_stepColumnAdded": "Hozzáadva",
@@ -15755,6 +16275,8 @@
   "query_dives_weight": "Ólom",
   "query_dives_weights": "Ólom",
   "query_dives_year": "Év",
+  "query_dives_month": "Hónap",
+  "query_dives_day": "A hónap napja",
   "query_entity_buddies": "Merülőtársak",
   "query_entity_centers": "Búvárközpontok",
   "query_entity_certifications": "Minősítések",
@@ -15847,6 +16369,7 @@
   "query_tanks_volume": "Térfogat",
   "query_trips_diveCount": "Merülések száma",
   "query_trips_dives": "Merülések",
+  "query_trips_partOf": "Nagyobb út része",
   "query_trips_endDate": "Záró dátum",
   "query_trips_liveaboardName": "Hajószállás",
   "query_trips_location": "Helyszín",
@@ -16172,6 +16695,7 @@
   "plannerCanvas_bailout_schedule": "Terv a legrosszabb esetből",
   "plannerCanvas_chartMode_bailout": "Bailout",
   "plannerCanvas_chartMode_ccr": "CCR",
+  "plannerCanvas_chartMode_scr": "SCR",
   "plannerCanvas_scrub_tts": "TTS {minutes}′",
   "plannerCanvas_table_end": "END",
   "plannerCanvas_table_ppO2": "PO2",
@@ -16263,6 +16787,8 @@
   "tags_manage_bulkDeleteMessage_several": "Ezek a címkék eltávolításra kerülnek innen:",
   "tags_manage_mergeAffected_several": "Ez a következőket érinti:",
   "tags_manage_cannotUndo": "Ez nem vonható vissza.",
+  "tags_manage_rowScopes": "Használható: {scopes}",
+  "tags_manage_rowUsage": "Használatban: {counts}",
   "tags_action_edit": "Címkék szerkesztése",
   "media_info_tags": "Címkék",
   "media_info_noTags": "Még nincsenek címkék",
@@ -16370,5 +16896,31 @@
   "settings_setUpDevice_done_title": "{device, select, phone{Ez a telefon be van állítva} tablet{Ez a táblagép be van állítva} computer{Ez a számítógép be van állítva} other{Ez az eszköz be van állítva}}",
   "settings_setUpDevice_done_otherDevices": "A többi eszközén nyissa meg a Submersiont, válassza ezt: {account}, és ugyanaz a könyvtár jelenik meg.",
   "settings_setUpDevice_sync_inStep": "Az itteni merülések összhangban vannak a könyvtárával itt: {account}.",
-  "setup_syncPull_startFresh": "Új napló kezdése"
+  "setup_syncPull_startFresh": "Új napló kezdése",
+  "demo_welcome_title": "Felfedezés mintaadatokkal",
+  "demo_welcome_subtitle": "Nézz körül egy teljes minta merülési naplóban, mielőtt a sajátodat felviszed",
+  "demo_settings_enter_title": "Felfedezés mintaadatokkal",
+  "demo_settings_enter_subtitle": "A naplód érintetlenül félre van téve, amíg ki nem lépsz",
+  "demo_settings_exit_title": "Kilépés a demóból",
+  "demo_settings_exit_subtitle": "A mintanapló elvetése és visszatérés a sajátodhoz",
+  "demo_strip_label": "Demó mód: mintaadatokat böngészel",
+  "demo_strip_exit": "Kilépés a demóból",
+  "demo_exit_confirm_title": "Kilépsz a demó módból?",
+  "demo_exit_confirm_body": "A mintanaplóban végzett módosítások elvesznek.",
+  "demo_exit_confirm_action": "Kilépés a demóból",
+  "demo_enter_downloading": "Mintanapló letöltése",
+  "demo_enter_preparing": "Mintanapló előkészítése",
+  "demo_enter_opening": "Mintanapló megnyitása",
+  "demo_enter_failed": "A mintanaplót nem sikerült letölteni. Ellenőrizd a kapcsolatot, és próbáld újra.",
+  "demo_enter_importRunning": "Egy importálás még folyamatban van. Fedezd fel a mintaadatokat, amint befejeződött.",
+  "demo_sealed_note": "Demó módban nem érhető el",
+  "demo_unavailable_title": "Demó módban nem érhető el",
+  "demo_unavailable_body": "A demó mód elkülöníti a mintanaplót az adataidtól, ezért semmit sem lehet importálni, exportálni, menteni vagy szinkronizálni.",
+  "demo_row_unavailable": "Demó módban nem érhető el",
+  "demo_enter_confirm_title": "Felfedezed mintaadatokkal?",
+  "demo_enter_confirm_body": "Ez letölt egy mintanaplót ({size}), és a saját naplód helyett megnyitja. A naplód érintetlenül félre van téve, amíg ki nem lépsz a demó módból.",
+  "demo_enter_confirm_action": "Letöltés",
+  "demo_enter_confirm_body_firstRun": "Ez letölt egy mintanaplót ({size}), amellyel körülnézhetsz az alkalmazásban. Lépj ki a demó módból, amikor a sajátodat szeretnéd elkezdeni.",
+  "demo_enter_changed_body": "A mintanapló frissült, és most {size} méretű. Letöltöd?",
+  "common_byteSize": "{value} {unit, select, B{B} KB{KB} MB{MB} GB{GB} TB{TB} other{{unit}}}"
 }

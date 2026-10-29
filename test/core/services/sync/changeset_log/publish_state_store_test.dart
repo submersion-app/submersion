@@ -119,4 +119,65 @@ void main() {
       expect(await store.hasAny(), isFalse);
     },
   );
+
+  group('pullBackRelayFloor (nearby relay, issue #3731)', () {
+    const high = '000000000000100:000000:dev';
+
+    Future<void> seed(String provider, String? published) => store.upsert(
+      LocalPublishStatesCompanion(
+        provider: Value(provider),
+        headSeq: const Value(1),
+        publishedHlcHigh: Value(published),
+        updatedAt: const Value(1),
+      ),
+    );
+
+    test(
+      'sets a floor just below a clock older than the published one',
+      () async {
+        await seed('s3', high);
+        await store.pullBackRelayFloor('000000000000040:000003:laptop');
+        final s = await store.get('s3');
+        expect(s!.relayFloorHlc, '000000000000040:000003:');
+        expect(s.publishedHlcHigh, high, reason: 'never moved down');
+        // The floor sorts below every clock of that instant, whatever writer.
+        expect(
+          s.relayFloorHlc!.compareTo('000000000000040:000003:a'),
+          lessThan(0),
+        );
+      },
+    );
+
+    test('ignores a clock at or above the published one', () async {
+      await seed('s3', high);
+      await store.pullBackRelayFloor('000000000000100:000000:zzz');
+      expect((await store.get('s3'))!.relayFloorHlc, isNull);
+    });
+
+    test('keeps the lower of an existing floor and a new one', () async {
+      await seed('s3', high);
+      await store.pullBackRelayFloor('000000000000040:000000:a');
+      await store.pullBackRelayFloor('000000000000060:000000:a');
+      expect((await store.get('s3'))!.relayFloorHlc, '000000000000040:000000:');
+      await store.pullBackRelayFloor('000000000000020:000000:a');
+      expect((await store.get('s3'))!.relayFloorHlc, '000000000000020:000000:');
+    });
+
+    test('two sessions lowering it at once keep the lower floor', () async {
+      await seed('s3', high);
+      await Future.wait([
+        store.pullBackRelayFloor('000000000000040:000000:a'),
+        store.pullBackRelayFloor('000000000000060:000000:a'),
+      ]);
+      expect((await store.get('s3'))!.relayFloorHlc, '000000000000040:000000:');
+    });
+
+    test('applies to every backend with a published clock', () async {
+      await seed('s3', high);
+      await seed('dropbox', null);
+      await store.pullBackRelayFloor('000000000000040:000000:a');
+      expect((await store.get('s3'))!.relayFloorHlc, isNotNull);
+      expect((await store.get('dropbox'))!.relayFloorHlc, isNull);
+    });
+  });
 }

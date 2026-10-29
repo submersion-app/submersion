@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
+import 'package:submersion/features/insights/domain/calendar_day_matrix.dart';
 import 'package:submersion/features/insights/presentation/pages/insights_time_patterns_page.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -61,6 +62,9 @@ void main() {
           divesByDayOfWeekProvider.overrideWith((ref) => days()),
           divesByTimeOfDayProvider.overrideWith((ref) => timesOfDay()),
           divesBySeasonProvider.overrideWith((ref) => months()),
+          divesByCalendarDayProvider.overrideWith(
+            (ref) async => CalendarDayMatrix.fromCounts(const []),
+          ),
           surfaceIntervalStatsProvider.overrideWith((ref) => surfaceInterval()),
           if (timeFormat != null)
             timeFormatProvider.overrideWithValue(timeFormat),

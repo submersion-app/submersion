@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
@@ -82,6 +83,9 @@ class EquipmentFileConverter {
 
   Future<EquipmentFileConversionResult> run() async {
     final previouslyTooLarge = {...?_prefs.getStringList(skippedKey)};
+    // Runs unawaited after a sync, so a restore, a storage move or demo mode
+    // can open another database part way through (issue #3798).
+    final startedOn = _db;
     final rows = await _db
         .customSelect(
           'SELECT m.id, e.diver_id FROM media m '
@@ -105,9 +109,16 @@ class EquipmentFileConverter {
         final item = await _media.getMediaById(mediaId);
         if (item == null) continue;
         final outcome = diverId != null && _acceptedKind(_fileName(item))
-            ? await _convert(item, diverId)
+            ? await _convert(item, diverId, startedOn)
             : _Outcome.left;
         switch (outcome) {
+          case _Outcome.swapped:
+            // The rows read belong to a database no longer open. Its links
+            // and skip list stay as they were for the next run there.
+            return EquipmentFileConversionResult(
+              converted,
+              rows.length - converted,
+            );
           case _Outcome.converted:
             converted++;
           case _Outcome.tooLarge:
@@ -125,7 +136,15 @@ class EquipmentFileConverter {
         );
       }
     }
-    await _prefs.setStringList(skippedKey, tooLarge..sort());
+    // The skip list is shared by every database, so it is replaced only
+    // while the one these rows came from is still open.
+    final kept = await _onDatabase(startedOn, () async {
+      await _prefs.setStringList(skippedKey, tooLarge..sort());
+      return true;
+    });
+    if (kept == null) {
+      return EquipmentFileConversionResult(converted, rows.length - converted);
+    }
     if (converted > 0) SyncEventBus.notifyLocalChange();
     return EquipmentFileConversionResult(converted, remaining);
   }
@@ -157,12 +176,31 @@ class EquipmentFileConverter {
     }
   }
 
-  Future<_Outcome> _convert(MediaItem item, String diverId) async {
+  /// Runs [write] as a [SyncCoordinator] turn while [startedOn] is still
+  /// the open database, or returns null once it is not. Every database swap
+  /// is a coordinator turn too, so the database cannot change mid-write.
+  Future<T?> _onDatabase<T>(
+    AppDatabase startedOn,
+    Future<T> Function() write,
+  ) => SyncCoordinator.run(
+    () async => identical(DatabaseService.instance.databaseOrNull, startedOn)
+        ? await write()
+        : null,
+  );
+
+  Future<_Outcome> _convert(
+    MediaItem item,
+    String diverId,
+    AppDatabase startedOn,
+  ) async {
     final docId = documentEquipmentFileId(item.id);
-    if (await _documents.getById(docId) != null) {
+    final peerConverted = await _onDatabase(startedOn, () async {
+      if (await _documents.getById(docId) == null) return false;
       await _unlink(item.id);
-      return _Outcome.converted;
-    }
+      return true;
+    });
+    if (peerConverted == null) return _Outcome.swapped;
+    if (peerConverted) return _Outcome.converted;
     // Checked before reading: an old link can be a PDF of hundreds of MB,
     // and reading it whole only to refuse it could exhaust a phone's memory.
     if ((_knownSize(item) ?? 0) > kMaxDocumentPageBytes) {
@@ -175,36 +213,43 @@ class EquipmentFileConverter {
     if (verdict is DocumentFileTooLarge) return _Outcome.tooLarge;
     if (verdict is! DocumentFileAccepted) return _Outcome.left;
     final now = DateTime.now();
-    await _db.transaction(() async {
-      await _documents.save(
-        Document(
-          id: docId,
-          diverId: diverId,
-          owner: DocumentOwner(DocumentOwnerKind.equipment, item.equipmentId!),
-          type: DocumentType.receipt,
-          title: p.basenameWithoutExtension(name),
-          notes: item.caption?.trim() ?? '',
-          createdAt: item.createdAt,
-          updatedAt: now,
-        ),
-        [
-          DocumentPage(
-            id: documentEquipmentFilePageId(docId),
-            documentId: docId,
-            pageIndex: 0,
-            fileName: name,
-            mimeType: verdict.mimeType,
-            sizeBytes: bytes.length,
-            bytes: bytes,
-            createdAt: now,
+    final saved = await _onDatabase(
+      startedOn,
+      () => _db.transaction(() async {
+        await _documents.save(
+          Document(
+            id: docId,
+            diverId: diverId,
+            owner: DocumentOwner(
+              DocumentOwnerKind.equipment,
+              item.equipmentId!,
+            ),
+            type: DocumentType.receipt,
+            title: p.basenameWithoutExtension(name),
+            notes: item.caption?.trim() ?? '',
+            createdAt: item.createdAt,
             updatedAt: now,
           ),
-        ],
-        notify: false,
-      );
-      await _unlink(item.id);
-    });
-    return _Outcome.converted;
+          [
+            DocumentPage(
+              id: documentEquipmentFilePageId(docId),
+              documentId: docId,
+              pageIndex: 0,
+              fileName: name,
+              mimeType: verdict.mimeType,
+              sizeBytes: bytes.length,
+              bytes: bytes,
+              createdAt: now,
+              updatedAt: now,
+            ),
+          ],
+          notify: false,
+        );
+        await _unlink(item.id);
+        return true;
+      }),
+    );
+    return saved == null ? _Outcome.swapped : _Outcome.converted;
   }
 }
 
@@ -218,4 +263,7 @@ enum _Outcome {
 
   /// Not convertible here, or not yet: left linked, tried again next run.
   left,
+
+  /// Another database was opened during the run: nothing was written.
+  swapped,
 }

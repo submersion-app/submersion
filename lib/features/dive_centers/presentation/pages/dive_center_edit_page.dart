@@ -20,6 +20,7 @@ import 'package:submersion/shared/widgets/forms/coordinate_field_group.dart';
 import 'package:submersion/shared/widgets/forms/coordinate_validation_messages.dart';
 import 'package:submersion/core/utils/log_failure.dart';
 import 'package:submersion/shared/widgets/label_with_control.dart';
+import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
 
 class DiveCenterEditPage extends ConsumerStatefulWidget {
   final String? centerId;
@@ -633,7 +634,7 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
             style: Theme.of(context).textTheme.titleMedium,
           ),
           const SizedBox(height: 16),
-          TextFormField(
+          MarkdownNotesField(
             controller: _notesController,
             decoration: InputDecoration(
               labelText: context.l10n.diveCenters_section_notes,

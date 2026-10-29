@@ -7,6 +7,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
 
 import '../../../../helpers/fake_hosts.dart';
 import '../../../../helpers/test_database.dart';
@@ -103,6 +104,7 @@ void main() {
         dives,
         dates: isoDates,
         units: testUnits,
+        gearArrangement: EquipmentArrangement.defaults,
       );
       expect(result.bytes, isNotEmpty);
       expect(String.fromCharCodes(result.bytes.take(4)), '%PDF');
@@ -134,6 +136,7 @@ void main() {
         dives,
         dates: isoDates,
         units: testUnits,
+        gearArrangement: EquipmentArrangement.defaults,
       );
 
       expect(result.bytes, isNotEmpty);
@@ -149,6 +152,7 @@ void main() {
         dives,
         dates: isoDates,
         units: testUnits,
+        gearArrangement: EquipmentArrangement.defaults,
       );
 
       expect(result.bytes, isNotEmpty);
@@ -171,6 +175,7 @@ void main() {
             timeFormat: TimeFormat.twelveHour,
           ),
           units: testUnits,
+          gearArrangement: EquipmentArrangement.defaults,
         );
         final monthFirst = await service.generateDivePdfBytes(
           [dive],
@@ -179,6 +184,7 @@ void main() {
             timeFormat: TimeFormat.twentyFourHour,
           ),
           units: testUnits,
+          gearArrangement: EquipmentArrangement.defaults,
         );
 
         // The rendered strings themselves are asserted per template in
@@ -197,6 +203,7 @@ void main() {
           timeFormat: TimeFormat.twelveHour,
         ),
         units: testUnits,
+        gearArrangement: EquipmentArrangement.defaults,
       );
 
       expect(
@@ -226,6 +233,7 @@ void main() {
         dives,
         dates: isoDates,
         units: testUnits,
+        gearArrangement: EquipmentArrangement.defaults,
       );
 
       expect(result.bytes, isNotEmpty);

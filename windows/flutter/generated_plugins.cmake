@@ -21,6 +21,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   share_plus
   submersion_ocr
   submersion_transcoder
+  universal_ble
   url_launcher_windows
   video_player_win
   window_manager

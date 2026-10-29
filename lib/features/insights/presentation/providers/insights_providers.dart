@@ -13,6 +13,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_gas_lane_provider.dart';
 import 'package:submersion/features/insights/data/services/deco_classification_service.dart';
+import 'package:submersion/features/insights/domain/calendar_day_matrix.dart';
 import 'package:submersion/features/insights/domain/entities/species_insights.dart';
 import 'package:submersion/features/insights/domain/suit_thickness_stats.dart';
 import 'package:submersion/features/insights/domain/tank_configuration/tank_configuration.dart';
@@ -619,6 +620,20 @@ final divesBySeasonProvider = FutureProvider<List<({int month, int count})>>((
   final currentDiverId = ref.watch(currentDiverIdProvider);
   final filter = ref.watch(insightsFilterProvider);
   return repository.getDivesBySeason(diverId: currentDiverId, filter: filter);
+});
+
+/// Dives on each calendar date across all years (issue #3127).
+final divesByCalendarDayProvider = FutureProvider<CalendarDayMatrix>((
+  ref,
+) async {
+  _keepAliveWithExpiry(ref);
+  final repository = ref.watch(insightsRepositoryProvider);
+  final currentDiverId = ref.watch(currentDiverIdProvider);
+  final filter = ref.watch(insightsFilterProvider);
+  return repository.getCalendarDayMatrix(
+    diverId: currentDiverId,
+    filter: filter,
+  );
 });
 
 final surfaceIntervalStatsProvider =

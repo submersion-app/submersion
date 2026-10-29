@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/deco/deco_ppo2_limits.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/deco/max_operating_depth.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -9,7 +10,7 @@ import 'package:submersion/features/planner/domain/services/tank_mod.dart';
 /// ppO2 limit its role calls for, unless the diver has set one by hand.
 void main() {
   const bottom = 1.4;
-  const deco = 1.6;
+  const deco = DecoPpO2Limits(flat: 1.6);
   const air = GasMix(o2: 21);
   const ean32 = GasMix(o2: 32);
   const ean40 = GasMix(o2: 40);
@@ -28,7 +29,7 @@ void main() {
       for (final role in [TankRole.deco, TankRole.oxygenSupply]) {
         expect(
           modPpO2For(role, ean50, bottomPpO2: bottom, decoPpO2: deco),
-          deco,
+          deco.flat,
           reason: role.name,
         );
       }
@@ -55,7 +56,7 @@ void main() {
       for (final gas in [ean32, ean50, oxygen]) {
         expect(
           modPpO2For(TankRole.bailout, gas, bottomPpO2: bottom, decoPpO2: deco),
-          deco,
+          deco.flat,
           reason: gas.name,
         );
       }
@@ -123,7 +124,7 @@ void main() {
           TankRole.deco,
           ean50,
           bottomPpO2: bottom,
-          decoPpO2: 1.5,
+          decoPpO2: const DecoPpO2Limits(flat: 1.5),
         ),
         closeTo(20, 1e-9),
       );
@@ -170,7 +171,14 @@ void main() {
     test('is the override when one is set, whatever the limits', () {
       final t = tank(ean40, role: TankRole.deco, override: 21);
       expect(effectiveModMeters(t, bottomPpO2: bottom, decoPpO2: deco), 21);
-      expect(effectiveModMeters(t, bottomPpO2: 1.2, decoPpO2: 1.4), 21);
+      expect(
+        effectiveModMeters(
+          t,
+          bottomPpO2: 1.2,
+          decoPpO2: const DecoPpO2Limits(flat: 1.4),
+        ),
+        21,
+      );
     });
   });
 
@@ -186,7 +194,7 @@ void main() {
         bottomPpO2: bottom,
         decoPpO2: deco,
       );
-      expect(ppO2AtDepth(ean50, mod), closeTo(deco, 1e-9));
+      expect(ppO2AtDepth(ean50, mod), closeTo(deco.flat, 1e-9));
     });
   });
 
@@ -200,7 +208,7 @@ void main() {
       expect(check, isNotNull);
       expect(check!.exceedsLimit, isTrue);
       expect(check.ppO2, closeTo(1.70, 1e-9));
-      expect(check.limitPpO2, deco);
+      expect(check.limitPpO2, deco.flat);
     });
 
     test('a shallower override is not flagged', () {
@@ -268,7 +276,7 @@ void main() {
       final check = modOverrideCheckFor(
         TankRole.deco,
         ean40,
-        gasSwitchDepthMeters(0.40, maxPpO2: deco, environment: seawater),
+        gasSwitchDepthMeters(0.40, maxPpO2: deco.flat, environment: seawater),
         bottomPpO2: bottom,
         decoPpO2: deco,
         environment: seawater,
@@ -338,6 +346,168 @@ void main() {
           1e-9,
         ),
       );
+    });
+  });
+
+  group('per-O2-band deco ppO2 limits (issue #3580)', () {
+    const bands = DecoPpO2Limits(
+      flat: 1.6,
+      bandsEnabled: true,
+      band1: 1.6,
+      band2: 1.5,
+      band3: 1.4,
+    );
+
+    test('a deco gas up to 28% O2 uses band1', () {
+      expect(
+        modPpO2For(
+          TankRole.deco,
+          const GasMix(o2: 28),
+          bottomPpO2: bottom,
+          decoPpO2: bands,
+        ),
+        1.6,
+      );
+    });
+
+    test('a deco gas from 28% up to 45% O2 uses band2', () {
+      expect(
+        modPpO2For(
+          TankRole.deco,
+          const GasMix(o2: 45),
+          bottomPpO2: bottom,
+          decoPpO2: bands,
+        ),
+        1.5,
+      );
+    });
+
+    test('a deco gas above 45% O2 uses band3', () {
+      expect(
+        modPpO2For(TankRole.deco, ean50, bottomPpO2: bottom, decoPpO2: bands),
+        1.4,
+      );
+    });
+
+    test('band3 still covers pure O2 while the explicit depth is off', () {
+      expect(
+        modPpO2For(TankRole.deco, oxygen, bottomPpO2: bottom, decoPpO2: bands),
+        1.4,
+      );
+    });
+
+    test('bands off falls back to the flat value regardless of O2%', () {
+      const flatOnly = DecoPpO2Limits(flat: 1.6);
+      expect(
+        modPpO2For(
+          TankRole.deco,
+          ean50,
+          bottomPpO2: bottom,
+          decoPpO2: flatOnly,
+        ),
+        1.6,
+      );
+    });
+  });
+
+  group('explicit MOD for 100% O2 (issue #3580)', () {
+    const explicit = DecoPpO2Limits(
+      flat: 1.6,
+      explicitO2DepthEnabled: true,
+      explicitO2DepthMeters: 6.0,
+    );
+    final salt = DiveEnvironment.forConditions(waterType: WaterType.salt);
+
+    test(
+      'a pure O2 deco gas gets the explicit depth, not the ppO2 formula',
+      () {
+        expect(
+          defaultModMeters(
+            TankRole.deco,
+            oxygen,
+            bottomPpO2: bottom,
+            decoPpO2: explicit,
+          ),
+          6.0,
+        );
+      },
+    );
+
+    test('an O2 supply tank gets the explicit depth too', () {
+      expect(
+        defaultModMeters(
+          TankRole.oxygenSupply,
+          oxygen,
+          bottomPpO2: bottom,
+          decoPpO2: explicit,
+        ),
+        6.0,
+      );
+    });
+
+    test('a non-pure deco gas is unaffected by the explicit depth', () {
+      expect(
+        defaultModMeters(
+          TankRole.deco,
+          ean50,
+          bottomPpO2: bottom,
+          decoPpO2: explicit,
+        ),
+        closeTo(22, 1e-9),
+      );
+    });
+
+    test(
+      'a diluent is never governed by the explicit depth, even with pure O2',
+      () {
+        expect(
+          defaultModMeters(
+            TankRole.diluent,
+            oxygen,
+            bottomPpO2: bottom,
+            decoPpO2: explicit,
+            diluentPpO2: 1.3,
+          ),
+          closeTo(3, 1e-9),
+        );
+      },
+    );
+
+    test(
+      'ascentGasesFor gives the explicit depth directly, bypassing water',
+      () {
+        final gases = ascentGasesFor(
+          [const DiveTank(id: 'o2', gasMix: oxygen, role: TankRole.deco)],
+          bottomPpO2: bottom,
+          decoPpO2: explicit,
+          environment: salt,
+        );
+        // Not the salt-water switch depth for 1.6 bar pure O2 (which would be
+        // a shade less than 6 m): the configured depth exactly, regardless of
+        // water density.
+        expect(gases.single.maxPpO2Mod, 6.0);
+      },
+    );
+
+    test('a hand-set MOD on a pure O2 gas is checked against the explicit '
+        'depth, not a ppO2 formula', () {
+      final check = modOverrideCheckFor(
+        TankRole.deco,
+        oxygen,
+        7.0,
+        bottomPpO2: bottom,
+        decoPpO2: explicit,
+      );
+      expect(check.exceedsLimit, isTrue);
+
+      final shallower = modOverrideCheckFor(
+        TankRole.deco,
+        oxygen,
+        5.0,
+        bottomPpO2: bottom,
+        decoPpO2: explicit,
+      );
+      expect(shallower.exceedsLimit, isFalse);
     });
   });
 }

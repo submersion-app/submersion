@@ -16,6 +16,8 @@ import 'package:submersion/features/certifications/presentation/certification_ti
 import 'package:submersion/features/certifications/domain/certification_title.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
+import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 
 /// Bottom sheet for sharing a certification as an image.
 ///
@@ -109,6 +111,9 @@ class _CertificationShareSheetState
   }
 
   Future<void> _shareAsCard(Rect? anchor) async {
+    if (!demoSealGuard(context, DemoSealedFeature.share)) {
+      return;
+    }
     // Read before the first await: the context is not used across gaps.
     final catalog = context.certificationCatalog;
     setState(() => _isExporting = true);
@@ -152,6 +157,9 @@ class _CertificationShareSheetState
   }
 
   Future<void> _shareAsCertificate(Rect? anchor) async {
+    if (!demoSealGuard(context, DemoSealedFeature.share)) {
+      return;
+    }
     // Read before the first await: the context is not used across gaps.
     final catalog = context.certificationCatalog;
     setState(() => _isExporting = true);

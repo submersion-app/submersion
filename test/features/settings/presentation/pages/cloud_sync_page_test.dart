@@ -25,7 +25,8 @@ import 'package:submersion/core/services/cloud_storage/icloud_native_service.dar
 import 'package:submersion/core/services/cloud_storage/s3/s3_config.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_credentials_store.dart';
 import 'package:submersion/core/services/cloud_storage/s3_storage_provider.dart';
-import 'package:submersion/core/database/database.dart' show AppDatabase;
+import 'package:submersion/core/database/database.dart'
+    show AppDatabase, NearbyPeer;
 import 'package:submersion/core/services/sync/library_epoch.dart';
 import 'package:submersion/core/services/sync/library_moved.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
@@ -48,6 +49,9 @@ import 'package:submersion/features/settings/presentation/providers/storage_prov
     show StoragePlatformCapabilities, storagePlatformCapabilitiesProvider;
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/webdav_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/nearby_providers.dart';
+import 'package:submersion/core/services/nearby/nearby_link_manager.dart'
+    show NearbySyncProgress;
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 
@@ -346,6 +350,10 @@ class _FakeSyncBehaviorNotifier extends StateNotifier<SyncBehaviorSettings>
   @override
   Future<void> setSyncOnResume(bool value) async =>
       state = state.copyWith(syncOnResume: value);
+
+  @override
+  Future<void> setNearbyAutoEnabled(bool value) async =>
+      state = state.copyWith(nearbyAutoEnabled: value);
 }
 
 /// Fake [DiverMergeRepository] that records merge/undo calls and returns an
@@ -526,6 +534,15 @@ void main() {
           // Same for the Dropbox connection: null means not connected.
           dropboxAuthDataProvider.overrideWith((ref) async => dropboxAuth),
           dropboxConfiguredProvider.overrideWith((ref) => dropboxConfigured),
+          // The Nearby devices block reads the peers table and the link
+          // manager; neither exists in this harness.
+          nearbyPeersProvider.overrideWith(
+            (ref) => Stream.value(const <NearbyPeer>[]),
+          ),
+          nearbyProgressProvider.overrideWith(
+            (ref) => Stream.value(const <String, NearbySyncProgress>{}),
+          ),
+          nearbyCanAdvertiseProvider.overrideWithValue(true),
           if (dropboxInstance != null)
             dropboxStorageProviderInstanceProvider.overrideWithValue(
               dropboxInstance,
@@ -739,14 +756,23 @@ void main() {
       expect(find.byIcon(Icons.info_outline), findsOneWidget);
       expect(find.text('Storage Settings'), findsOneWidget);
 
-      // All three behavior switches are disabled (onChanged null).
-      final switches = tester
+      // All three cloud behavior switches are disabled (onChanged null).
+      // Nearby sync (issue #3731) writes the local database like any edit,
+      // so its switch stays on in custom-folder mode.
+      final all = tester
           .widgetList<SwitchListTile>(find.byType(SwitchListTile))
+          .toList();
+      final switches = all
+          .where((s) => s.key != const Key('nearby-auto'))
           .toList();
       expect(switches.length, 3);
       for (final s in switches) {
         expect(s.onChanged, isNull);
       }
+      expect(
+        all.singleWhere((s) => s.key == const Key('nearby-auto')).onChanged,
+        isNotNull,
+      );
     });
 
     testWidgets('credits the folder\'s sync service where folders really sync', (

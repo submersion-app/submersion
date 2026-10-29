@@ -12,6 +12,8 @@ import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/trips/presentation/helpers/side_trip_delete_lines.dart';
+import 'package:submersion/features/trips/presentation/providers/side_trip_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/selection/bulk_action.dart';
 import 'package:submersion/shared/selection/select_items_menu_entries.dart';
@@ -49,6 +51,9 @@ import 'package:submersion/features/trips/presentation/providers/trip_list_count
 import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
 import 'package:submersion/shared/widgets/shared_items/item_bulk_share.dart';
 import 'package:submersion/core/data/visibility/item_sharing.dart';
+import 'package:submersion/features/trips/presentation/helpers/trip_list_rows.dart';
+import 'package:submersion/features/trips/presentation/widgets/side_trip_indent.dart';
+import 'package:submersion/features/settings/presentation/providers/list_arrangement_writes.dart';
 
 /// Content widget for the trip list, used in master-detail layout.
 final _log = LoggerService.forClass(TripListContent);
@@ -203,10 +208,9 @@ class _TripListContentState extends ConsumerState<TripListContent> {
       getFieldDisplayName: (field) => field.localizedName(context.l10n),
       getFieldIcon: (field) => field.icon,
       onSortChanged: (field, direction) {
-        ref.read(tripSortProvider.notifier).state = SortState(
-          field: field,
-          direction: direction,
-        );
+        ref
+            .read(settingsProvider.notifier)
+            .setTripSort(SortState(field: field, direction: direction));
       },
     );
   }
@@ -325,8 +329,9 @@ class _TripListContentState extends ConsumerState<TripListContent> {
                           final mode = ListViewMode.fromName(
                             value.replaceFirst('view_', ''),
                           );
-                          ref.read(tripListViewModeProvider.notifier).state =
-                              mode;
+                          ref
+                              .read(settingsProvider.notifier)
+                              .setTripListViewMode(mode);
                         }
                       },
                       itemBuilder: (context) {
@@ -432,6 +437,14 @@ class _TripListContentState extends ConsumerState<TripListContent> {
         ? await ref.read(itemIdsWithSharesProvider(SharedItemKind.trip).future)
         : const <String>{};
     if (!mounted) return BulkActionOutcome.cancelled;
+    // What the delete does to side trips and their dives (issue #3658).
+    final sideTripLines = await sideTripDeleteLines(
+      context.l10n,
+      ref.read(sideTripRepositoryProvider),
+      [for (final t in split.destroy) t.id],
+      diverId: sharing.activeDiverId,
+    );
+    if (!mounted) return BulkActionOutcome.cancelled;
     final sharedDeleteCount = sharing.diverCount >= 2
         ? split.destroy
               .where(
@@ -463,6 +476,7 @@ class _TripListContentState extends ConsumerState<TripListContent> {
               hideCount: hideCount,
               sharedDeleteCount: sharedDeleteCount,
             ),
+            ...sideTripLines,
             if (deleteCount > 0) ctx.l10n.common_bulkDelete_body,
           ].join('\n\n'),
         ),
@@ -712,7 +726,7 @@ class _TripListContentState extends ConsumerState<TripListContent> {
                 final mode = ListViewMode.fromName(
                   value.replaceFirst('view_', ''),
                 );
-                ref.read(tripListViewModeProvider.notifier).state = mode;
+                ref.read(settingsProvider.notifier).setTripListViewMode(mode);
               }
             },
             itemBuilder: (context) {
@@ -805,16 +819,29 @@ class _TripListContentState extends ConsumerState<TripListContent> {
         ref.watch(itemIdsWithSharesProvider(SharedItemKind.trip)).value ??
         const <String>{};
 
-    final upcoming = trips.where((t) => t.trip.isUpcoming).toList()
-      ..sort((a, b) => a.trip.startDate.compareTo(b.trip.startDate));
-    final past = trips.where((t) => !t.trip.isUpcoming).toList();
+    // Side trips nest under their larger trip, which decides the section
+    // (issue #3658).
+    // The listed trips nest on their own; the full list adds larger trips a
+    // filter hid, and fills in once it has loaded.
+    final allTripsById = {
+      for (final t in trips) t.trip.id: t.trip,
+      for (final t in ref.watch(allTripsProvider).value ?? const <Trip>[])
+        t.id: t,
+    };
+    final groups = tripRowGroups(nestTripRows(trips, allTripsById));
+    final upcoming = groups.where((g) => g.first.item.trip.isUpcoming).toList()
+      ..sort(
+        (a, b) =>
+            a.first.item.trip.startDate.compareTo(b.first.item.trip.startDate),
+      );
+    final past = groups.where((g) => !g.first.item.trip.isUpcoming).toList();
     // Flatten into one item list: header sentinels + trips, so the
     // existing ListView.builder/itemBuilder structure is preserved.
     final rows = <Object>[
       if (upcoming.isNotEmpty) _SectionHeader.upcoming,
-      ...upcoming,
+      ...upcoming.expand((g) => g),
       if (upcoming.isNotEmpty && past.isNotEmpty) _SectionHeader.past,
-      ...past,
+      ...past.expand((g) => g),
     ];
     final tripsById = {for (final t in trips) t.trip.id: t.trip};
 
@@ -829,7 +856,7 @@ class _TripListContentState extends ConsumerState<TripListContent> {
             child: KeyboardListNavigator(
               keys: [
                 for (final row in rows)
-                  if (row is TripWithStats) row.trip.id,
+                  if (row is TripListRow) row.item.trip.id,
               ],
               currentKey:
                   widget.selectedId ?? ref.watch(highlightedTripIdProvider),
@@ -861,7 +888,15 @@ class _TripListContentState extends ConsumerState<TripListContent> {
                       ),
                     );
                   }
-                  final tripWithStats = row as TripWithStats;
+                  final listRow = row as TripListRow;
+                  final tripWithStats = listRow.item;
+                  final nestingNote = listRow.sideTripCount > 0
+                      ? context.l10n.trips_list_sideTripCount(
+                          listRow.sideTripCount,
+                        )
+                      : listRow.partOfName == null
+                      ? null
+                      : context.l10n.trips_partOf(listRow.partOfName!);
                   final isSelected =
                       widget.selectedId == tripWithStats.trip.id ||
                       ref.watch(highlightedTripIdProvider) ==
@@ -882,6 +917,7 @@ class _TripListContentState extends ConsumerState<TripListContent> {
                   final selectableTile = switch (viewMode) {
                     ListViewMode.detailed => TripListTile(
                       tripWithStats: tripWithStats,
+                      nestingNote: nestingNote,
                       isSelected: isSelected,
                       onTap: () => _handleRowTap(tripWithStats.trip),
                       showSharedBadge: showSharedBadge,
@@ -891,6 +927,7 @@ class _TripListContentState extends ConsumerState<TripListContent> {
                     ),
                     ListViewMode.compact => CompactTripListTile(
                       tripWithStats: tripWithStats,
+                      nestingNote: nestingNote,
                       isSelected: isSelected,
                       onTap: () => _handleRowTap(tripWithStats.trip),
                       showSharedBadge: showSharedBadge,
@@ -901,6 +938,7 @@ class _TripListContentState extends ConsumerState<TripListContent> {
                     ListViewMode.dense ||
                     ListViewMode.table => DenseTripListTile(
                       tripWithStats: tripWithStats,
+                      nestingNote: nestingNote,
                       isSelected: isSelected,
                       onTap: () => _handleRowTap(tripWithStats.trip),
                       showSharedBadge: showSharedBadge,
@@ -915,11 +953,21 @@ class _TripListContentState extends ConsumerState<TripListContent> {
                     navigationKey: tripWithStats.trip.id,
                     header: tripWithStats.trip.isUpcoming
                         ? Padding(
-                            padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
+                            // Indented with a side trip's card (#3658).
+                            padding: EdgeInsetsDirectional.fromSTEB(
+                              listRow.isSideTrip
+                                  ? 20 + sideTripIndentWidth
+                                  : 20,
+                              4,
+                              20,
+                              0,
+                            ),
                             child: UpcomingTripBanner(trip: tripWithStats.trip),
                           )
                         : null,
-                    child: selectableTile,
+                    child: listRow.isSideTrip
+                        ? SideTripIndent(child: selectableTile)
+                        : selectableTile,
                   );
                 },
               ),
@@ -1039,9 +1087,14 @@ class TripListTile extends ConsumerWidget {
   final bool isChecked;
   final ValueChanged<bool>? onCheckChanged;
 
+  /// How the trip nests (issue #3658): its side trip count, or the larger
+  /// trip it is part of when that trip is not listed.
+  final String? nestingNote;
+
   const TripListTile({
     super.key,
     required this.tripWithStats,
+    this.nestingNote,
     this.isSelected = false,
     this.onTap,
     this.showSharedBadge = false,
@@ -1172,6 +1225,12 @@ class TripListTile extends ConsumerWidget {
                     CardIconLabel(
                       icon: Icons.timer,
                       text: tripWithStats.formattedRuntime,
+                      color: theme.colorScheme.primary,
+                    ),
+                  if (nestingNote != null)
+                    CardIconLabel(
+                      icon: Icons.account_tree_outlined,
+                      text: nestingNote!,
                       color: theme.colorScheme.primary,
                     ),
                 ],
@@ -1318,8 +1377,14 @@ class TripSearchDelegate extends SearchDelegate<Trip?> {
                     },
                   ),
                   title: Text(trip.name),
+                  // A side trip names its larger trip (issue #3658).
                   subtitle: Text(
-                    '${units.formatDate(trip.startDate)} - ${units.formatDate(trip.endDate)}',
+                    [
+                      '${units.formatDate(trip.startDate)} - ${units.formatDate(trip.endDate)}',
+                      if (ref.watch(parentTripProvider(trip.id)).value
+                          case final parent?)
+                        context.l10n.trips_partOf(parent.name),
+                    ].join('  ·  '),
                   ),
                   // Opened over the search rather than in place of it, so back
                   // from the detail returns to these results (#3377).

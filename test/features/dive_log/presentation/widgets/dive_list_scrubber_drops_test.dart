@@ -19,6 +19,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/shared/widgets/list_scrubber/list_scrubber.dart';
 import 'package:submersion/shared/widgets/list_scrubber/list_scrubber_geometry.dart';
 import 'package:submersion/shared/widgets/master_detail/keyboard_list_navigator.dart';
+import 'package:submersion/features/settings/presentation/providers/list_arrangement_writes.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
@@ -279,10 +280,14 @@ void main() {
       );
       expect(scrubber(tester).slotCount, 300);
 
-      container(tester).read(diveSortProvider.notifier).state = const SortState(
-        field: DiveSortField.depth,
-        direction: SortDirection.descending,
-      );
+      container(tester)
+          .read(settingsProvider.notifier)
+          .setDiveSort(
+            const SortState(
+              field: DiveSortField.depth,
+              direction: SortDirection.descending,
+            ),
+          );
       await tester.pump();
       expect(scrubber(tester).slotCount, 0);
 

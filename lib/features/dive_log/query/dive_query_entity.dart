@@ -26,6 +26,10 @@ const _weekday =
     "CAST(strftime('%w', {r}.dive_date_time / 1000, 'unixepoch') AS INTEGER)";
 const _year =
     "CAST(strftime('%Y', {r}.dive_date_time / 1000, 'unixepoch') AS INTEGER)";
+const _month =
+    "CAST(strftime('%m', {r}.dive_date_time / 1000, 'unixepoch') AS INTEGER)";
+const _day =
+    "CAST(strftime('%d', {r}.dive_date_time / 1000, 'unixepoch') AS INTEGER)";
 
 /// No weight entry at all: neither a `dive_weights` row nor the legacy
 /// scalar the edit form migrates into the table on load (#1392). ONE rule,
@@ -245,6 +249,22 @@ final QueryEntity diveQueryEntity = QueryEntity(
       'year',
       _year,
       dimension: FieldDimension.count,
+      emptySql: '{r}.dive_date_time IS NULL',
+    ),
+    // The calendar date's month and day of the month (#3127), for the
+    // Insights calendar-days cells; wall clock, like year and weekday.
+    _num(
+      'month',
+      _month,
+      dimension: FieldDimension.count,
+      sanity: (min: 1, max: 12),
+      emptySql: '{r}.dive_date_time IS NULL',
+    ),
+    _num(
+      'day',
+      _day,
+      dimension: FieldDimension.count,
+      sanity: (min: 1, max: 31),
       emptySql: '{r}.dive_date_time IS NULL',
     ),
     QueryField(

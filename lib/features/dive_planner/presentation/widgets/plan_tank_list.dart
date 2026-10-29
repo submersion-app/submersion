@@ -5,6 +5,7 @@ import 'package:uuid/uuid.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/constants/tank_presets.dart';
+import 'package:submersion/core/deco/deco_ppo2_limits.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/export/csv/codec/tank_capacity.dart';
 import 'package:submersion/core/utils/number_input.dart';
@@ -262,13 +263,31 @@ class PlanTankList extends ConsumerWidget {
 
 /// The ppO2 limits each tank's default MOD is worked out at (issue #3567):
 /// the plan's own, falling back to the diver's settings, as the plan engine
-/// resolves them.
-({double bottom, double deco, double diluent}) _modLimits(
+/// resolves them. [deco] carries the per-O2-band limits too (issue #3580),
+/// including this plan's own Off/Custom choice (issue #3580 follow-up,
+/// caught by a Copilot review): a plan that turned bands/explicit-depth off
+/// must size a tank's default MOD the same way the plan engine itself
+/// would, not fall back to the Settings toggle as if the plan had no say.
+({double bottom, DecoPpO2Limits deco, double diluent}) _modLimits(
   DivePlanState state,
   UnitFormatter units,
 ) => (
   bottom: state.ppO2Bottom ?? units.settings.ppO2MaxWorking,
-  deco: state.ppO2Deco ?? units.settings.ppO2MaxDeco,
+  deco: DecoPpO2Limits.forPlan(
+    flat: state.ppO2Deco ?? units.settings.ppO2MaxDeco,
+    settingsBandsEnabled: units.settings.ppO2DecoBandsEnabled,
+    settingsBand1: units.settings.ppO2DecoBand1,
+    settingsBand2: units.settings.ppO2DecoBand2,
+    settingsBand3: units.settings.ppO2DecoBand3,
+    settingsMaxO2DepthEnabled: units.settings.maxO2DepthEnabled,
+    settingsMaxO2DepthMeters: units.settings.maxO2DepthMeters,
+    band1: state.ppO2DecoBand1,
+    band2: state.ppO2DecoBand2,
+    band3: state.ppO2DecoBand3,
+    bandsExplicitlyOff: state.ppO2DecoBandsExplicitlyOff,
+    maxO2DepthMeters: state.maxO2DepthMeters,
+    maxO2DepthExplicitlyOff: state.maxO2DepthExplicitlyOff,
+  ),
   diluent: units.settings.ccrDiluentModPpO2,
 );
 
@@ -294,7 +313,7 @@ class _TankEditDialog extends StatefulWidget {
   final UnitFormatter units;
 
   /// The ppO2 limits the tank's default MOD is worked out at (#3567).
-  final ({double bottom, double deco, double diluent}) modLimits;
+  final ({double bottom, DecoPpO2Limits deco, double diluent}) modLimits;
 
   /// The plan's breathing mode. Only a loop plan can carry bailout gas, so
   /// the diluent flag is offered there and nowhere else.

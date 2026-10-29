@@ -14,6 +14,8 @@ import 'package:submersion/features/media/data/services/photo_picker_service.dar
 import 'package:submersion/features/media/data/services/trip_media_scanner.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 
 /// Result of a media import operation.
 class ImportResult {
@@ -138,6 +140,7 @@ class MediaImportService {
     double? longitude,
     String subdirectory = kScannedLogsSubdirectory,
   }) async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.mediaImport);
     final docs = await _documentsDirectory();
     final dir = destinationDirectory(docs, subdirectory);
     await dir.create(recursive: true);
@@ -183,6 +186,7 @@ class MediaImportService {
     required List<AssetInfo> selectedAssets,
     required Dive dive,
   }) async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.mediaImport);
     final List<MediaItem> imported = [];
     final Map<String, String> failures = {};
 
@@ -281,6 +285,7 @@ class MediaImportService {
     required List<AssetInfo> selectedAssets,
     required String siteId,
   }) async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.mediaImport);
     final List<MediaItem> imported = [];
     final Map<String, String> failures = {};
 

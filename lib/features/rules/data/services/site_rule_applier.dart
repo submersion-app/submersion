@@ -11,6 +11,7 @@ import 'package:submersion/features/rules/domain/entities/rule_action.dart';
 import 'package:submersion/features/rules/domain/entities/rule_run.dart';
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
+import 'package:submersion/core/text/markdown/notes_markdown.dart';
 
 /// Applies one site action of a logbook rule (#3513), writing only the
 /// sites it changes and recording each change. The engine scopes targets
@@ -195,7 +196,7 @@ class SiteRuleApplier {
           id,
           'description',
           old,
-          old.isEmpty ? text : '$old\n$text',
+          appendMarkdownParagraph(old, text),
         ),
       );
     }

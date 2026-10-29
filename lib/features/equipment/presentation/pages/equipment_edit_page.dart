@@ -42,6 +42,7 @@ import 'package:submersion/features/equipment/domain/services/equipment_clone_se
 import 'package:submersion/features/equipment/presentation/providers/equipment_clone_providers.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 import 'package:submersion/shared/widgets/label_with_control.dart';
+import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
 
 class EquipmentEditPage extends ConsumerStatefulWidget {
   final String? equipmentId;
@@ -683,7 +684,7 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
           const SizedBox(height: 24),
 
           // Notes
-          TextFormField(
+          MarkdownNotesField(
             controller: _notesController,
             decoration: InputDecoration(
               labelText: context.l10n.equipment_edit_notesLabel,

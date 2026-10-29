@@ -47,6 +47,7 @@ import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_pro
 import 'package:submersion/core/utils/coordinates/coordinate_format.dart';
 import 'package:submersion/features/settings/data/data_facts_repository.dart';
 import 'package:submersion/features/settings/domain/data_health/feature_health.dart';
+import 'package:submersion/features/settings/domain/list_arrangements.dart';
 import 'package:submersion/features/settings/presentation/providers/data_health_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/data_row_status_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
@@ -61,6 +62,12 @@ import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/presentation/providers/document_providers.dart';
 import 'package:submersion/features/safety/domain/entities/incident.dart';
 import 'package:submersion/features/safety/presentation/providers/incident_providers.dart';
+import 'package:submersion/features/demo_mode/presentation/providers/demo_mode_providers.dart';
+import 'package:submersion/features/demo_mode/domain/demo_manifest.dart';
+import 'package:submersion/core/services/nearby/nearby_link_manager.dart';
+import 'package:submersion/features/settings/presentation/providers/nearby_providers.dart';
+
+import '../support/fake_nearby_link_manager.dart';
 
 typedef Override = riverpod.Override;
 
@@ -241,6 +248,32 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setPpO2Limits(double working, double max) async =>
       state = state.copyWith(ppO2MaxWorking: working, ppO2MaxDeco: max);
+  @override
+  Future<void> setPpO2DecoBandsConfig({
+    required bool bandsEnabled,
+    required double band1,
+    required double band2,
+    required double band3,
+    required bool maxO2DepthEnabled,
+    required double maxO2DepthMeters,
+  }) async => state = state.copyWith(
+    ppO2DecoBandsEnabled: bandsEnabled,
+    ppO2DecoBand1: band1,
+    ppO2DecoBand2: band2,
+    ppO2DecoBand3: band3,
+    maxO2DepthEnabled: maxO2DepthEnabled,
+    maxO2DepthMeters: maxO2DepthMeters,
+  );
+  @override
+  Future<void> setPlannerHypercapniaConfig({
+    required bool enabled,
+    required double factor,
+    required int minutes,
+  }) async => state = state.copyWith(
+    plannerHypercapniaEnabled: enabled,
+    plannerHypercapniaFactor: factor,
+    plannerHypercapniaMinutes: minutes,
+  );
   @override
   Future<void> setCcrPpO2Limits({
     required double setpointLow,
@@ -594,6 +627,14 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
   Future<void> setGroupTripsInDiveList(bool value) async =>
       state = state.copyWith(groupTripsInDiveList: value);
   @override
+  Future<void> toggleGroupTripsInDiveList() async =>
+      state = state.copyWith(groupTripsInDiveList: !state.groupTripsInDiveList);
+  @override
+  Future<void> updateListArrangements(
+    ListArrangements Function(ListArrangements current) change,
+  ) async =>
+      state = state.copyWith(listArrangements: change(state.listArrangements));
+  @override
   Future<void> setAutoTagImports(bool value) async =>
       state = state.copyWith(autoTagImports: value);
   @override
@@ -890,6 +931,8 @@ Dive createTestDiveWithBottomTime({
 /// because Riverpod refuses to override the same family twice in one
 /// container.
 Future<List<Override>> getBaseOverrides({
+  NearbyLinkManager? nearbyLinkManager,
+  DemoPackage? demoPackage,
   MockSettingsNotifier? settingsNotifier,
   http.Client? weatherHttpClient,
   PreDiveSession? linkedPreDiveSession,
@@ -916,6 +959,9 @@ Future<List<Override>> getBaseOverrides({
   final prefs = await SharedPreferences.getInstance();
 
   return [
+    // No sample logbook is reachable unless a test says so: the real manifest
+    // fetch would reach the network (demo mode, issue #3708).
+    demoAvailabilityProvider.overrideWith((ref) async => demoPackage),
     sharedPreferencesProvider.overrideWithValue(prefs),
     settingsProvider.overrideWith(
       (ref) =>
@@ -936,6 +982,10 @@ Future<List<Override>> getBaseOverrides({
     // Widget tests never reach the NFC plugin.
     nfcTagServiceProvider.overrideWithValue(
       nfcTagService ?? const UnsupportedNfcTagService(),
+    ),
+    // Nor the Bluetooth radio the nearby link runs (issue #3731).
+    nearbyLinkManagerProvider.overrideWithValue(
+      nearbyLinkManager ?? FakeNearbyLinkManager(),
     ),
     currentDiverIdProvider.overrideWith((ref) => MockCurrentDiverIdNotifier()),
     // Settings > Data health (#3390, #3394) reads live sync, backup, library

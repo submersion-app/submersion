@@ -6,6 +6,7 @@ import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain
     show TurnPressureRule;
 import 'package:submersion/features/equipment/domain/models/equipment_default_view.dart';
+import 'package:submersion/features/settings/data/repositories/list_arrangement_columns.dart';
 import 'package:submersion/features/settings/data/repositories/profile_metric_color_columns.dart';
 import 'package:submersion/core/built_ins/hidden_built_ins_codec.dart';
 import 'package:submersion/core/constants/place_name_language.dart';
@@ -34,6 +35,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/device_local_fields.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/core/services/sync/sync_fact_groups.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_appearance.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_color_schemes.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -275,6 +277,12 @@ class DiverSettingsRepository {
                 gfHigh: Value(s.gfHigh),
                 ppO2MaxWorking: Value(s.ppO2MaxWorking),
                 ppO2MaxDeco: Value(s.ppO2MaxDeco),
+                ppO2DecoBandsEnabled: Value(s.ppO2DecoBandsEnabled),
+                ppO2DecoBand1: Value(s.ppO2DecoBand1),
+                ppO2DecoBand2: Value(s.ppO2DecoBand2),
+                ppO2DecoBand3: Value(s.ppO2DecoBand3),
+                maxO2DepthEnabled: Value(s.maxO2DepthEnabled),
+                maxO2DepthMeters: Value(s.maxO2DepthMeters),
                 ccrSetpointLow: Value(s.ccrSetpointLow),
                 ccrSetpointHigh: Value(s.ccrSetpointHigh),
                 ccrDiluentModPpO2: Value(s.ccrDiluentModPpO2),
@@ -416,6 +424,9 @@ class DiverSettingsRepository {
                 plannerSacDeco: Value(s.plannerSacDeco),
                 plannerSacStressedFactor: Value(s.plannerSacStressedFactor),
                 plannerBuddyFactor: Value(s.plannerBuddyFactor),
+                plannerHypercapniaEnabled: Value(s.plannerHypercapniaEnabled),
+                plannerHypercapniaFactor: Value(s.plannerHypercapniaFactor),
+                plannerHypercapniaMinutes: Value(s.plannerHypercapniaMinutes),
                 plannerProblemSolvingMinutes: Value(
                   s.plannerProblemSolvingMinutes,
                 ),
@@ -465,7 +476,7 @@ class DiverSettingsRepository {
                 updatedAt: Value(now),
               ),
               s.profileMetricColors,
-            ),
+            ).withListArrangements(s.listArrangements),
           );
 
       await _syncRepository.markRecordPending(
@@ -535,7 +546,19 @@ class DiverSettingsRepository {
           ...DiverSettingsCompanion(updatedAt: Value(now)).toColumns(false),
         }),
       );
-      await _markSettingsPending(diverId, now);
+      // A list arrangement change stamps only its own clock (issue #3748):
+      // stamping the row clock for a sort would republish this device's
+      // copy of every other setting over a peer's newer change.
+      final arrangement = SyncFactGroups.diverSettingsListArrangement.columns;
+      final synced = changed.keys.where(
+        (name) => !isDeviceLocalColumn('diverSettings', name),
+      );
+      await _markSettingsPending(
+        diverId,
+        now,
+        rowClock: !synced.every(arrangement.containsValue),
+        arrangementClock: synced.any(arrangement.containsValue),
+      );
       _log.info('Updated settings for diver: $diverId');
     } catch (e, stackTrace) {
       _log.error(
@@ -550,18 +573,38 @@ class DiverSettingsRepository {
   /// Queues the diver's settings row for sync after a write at [now], and
   /// unless [notify] is false (a caller inside a transaction notifies after
   /// its commit) tells the sync scheduler.
+  ///
+  /// [rowClock] and [arrangementClock] say which clocks the write moves: the
+  /// row clock for any setting outside the list arrangement group, the
+  /// group's own clock for a list arrangement (issue #3748).
   Future<void> _markSettingsPending(
     String diverId,
     int now, {
     bool notify = true,
+    bool rowClock = true,
+    bool arrangementClock = false,
   }) async {
     final row = await _rowFor(diverId);
     if (row == null) return;
-    await _syncRepository.markRecordPending(
-      entityType: 'diverSettings',
-      recordId: row.id,
-      localUpdatedAt: now,
-    );
+    const group = SyncFactGroups.diverSettingsListArrangement;
+    // A row with no row clock (from before the HLC rollout, never edited
+    // since) cannot be ordered against a peer, whose updatedAt fallback would
+    // then take this whole row, stale settings included. Give it one now.
+    if (rowClock || row.hlc == null) {
+      await _syncRepository.markRecordPending(
+        entityType: 'diverSettings',
+        recordId: row.id,
+        localUpdatedAt: now,
+        alsoStamp: [if (arrangementClock) group],
+      );
+    } else {
+      await _syncRepository.markFactsPending(
+        entityType: 'diverSettings',
+        recordId: row.id,
+        localUpdatedAt: now,
+        group: group,
+      );
+    }
     if (notify) SyncEventBus.notifyLocalChange();
   }
 
@@ -628,6 +671,12 @@ class DiverSettingsRepository {
       gfHigh: Value(settings.gfHigh),
       ppO2MaxWorking: Value(settings.ppO2MaxWorking),
       ppO2MaxDeco: Value(settings.ppO2MaxDeco),
+      ppO2DecoBandsEnabled: Value(settings.ppO2DecoBandsEnabled),
+      ppO2DecoBand1: Value(settings.ppO2DecoBand1),
+      ppO2DecoBand2: Value(settings.ppO2DecoBand2),
+      ppO2DecoBand3: Value(settings.ppO2DecoBand3),
+      maxO2DepthEnabled: Value(settings.maxO2DepthEnabled),
+      maxO2DepthMeters: Value(settings.maxO2DepthMeters),
       ccrSetpointLow: Value(settings.ccrSetpointLow),
       ccrSetpointHigh: Value(settings.ccrSetpointHigh),
       ccrDiluentModPpO2: Value(settings.ccrDiluentModPpO2),
@@ -761,6 +810,9 @@ class DiverSettingsRepository {
       plannerSacDeco: Value(settings.plannerSacDeco),
       plannerSacStressedFactor: Value(settings.plannerSacStressedFactor),
       plannerBuddyFactor: Value(settings.plannerBuddyFactor),
+      plannerHypercapniaEnabled: Value(settings.plannerHypercapniaEnabled),
+      plannerHypercapniaFactor: Value(settings.plannerHypercapniaFactor),
+      plannerHypercapniaMinutes: Value(settings.plannerHypercapniaMinutes),
       plannerProblemSolvingMinutes: Value(
         settings.plannerProblemSolvingMinutes,
       ),
@@ -800,7 +852,7 @@ class DiverSettingsRepository {
       ),
     ),
     settings.profileMetricColors,
-  );
+  ).withListArrangements(settings.listArrangements);
 
   /// Get or create settings for a diver (ensures settings always exist)
   Future<AppSettings> getOrCreateSettingsForDiver(
@@ -894,6 +946,12 @@ class DiverSettingsRepository {
       gfHigh: row.gfHigh,
       ppO2MaxWorking: row.ppO2MaxWorking,
       ppO2MaxDeco: row.ppO2MaxDeco,
+      ppO2DecoBandsEnabled: row.ppO2DecoBandsEnabled,
+      ppO2DecoBand1: row.ppO2DecoBand1,
+      ppO2DecoBand2: row.ppO2DecoBand2,
+      ppO2DecoBand3: row.ppO2DecoBand3,
+      maxO2DepthEnabled: row.maxO2DepthEnabled,
+      maxO2DepthMeters: row.maxO2DepthMeters,
       ccrSetpointLow: row.ccrSetpointLow,
       ccrSetpointHigh: row.ccrSetpointHigh,
       ccrDiluentModPpO2: row.ccrDiluentModPpO2,
@@ -1009,6 +1067,7 @@ class DiverSettingsRepository {
         row.trendGapCollapseMonths,
       ),
       profileMetricColors: profileMetricColorsFromRow(row),
+      listArrangements: listArrangementsFromRow(row),
       reminderTime: _parseReminderTime(row.reminderTime),
       showDataSourceBadges: row.showDataSourceBadges,
       showDiveFigure: row.showDiveFigure,
@@ -1023,6 +1082,9 @@ class DiverSettingsRepository {
       plannerSacDeco: row.plannerSacDeco,
       plannerSacStressedFactor: row.plannerSacStressedFactor,
       plannerBuddyFactor: row.plannerBuddyFactor,
+      plannerHypercapniaEnabled: row.plannerHypercapniaEnabled,
+      plannerHypercapniaFactor: row.plannerHypercapniaFactor,
+      plannerHypercapniaMinutes: row.plannerHypercapniaMinutes,
       plannerProblemSolvingMinutes: row.plannerProblemSolvingMinutes,
       plannerBestMixEndMeters: row.plannerBestMixEndMeters,
       plannerDeviationDepthDelta: row.plannerDeviationDepthDelta,

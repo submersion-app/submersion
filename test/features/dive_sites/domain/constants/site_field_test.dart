@@ -178,6 +178,15 @@ void main() {
       );
     });
 
+    test('returns Markdown notes as plain words', () {
+      final site = testSite.copyWith(notes: '# Plan\n**Bring torch**');
+      final entity = SiteWithDiveCount(site: site, diveCount: 0);
+      expect(
+        adapter.extractValue(SiteField.notes, entity),
+        'Plan\nBring torch',
+      );
+    });
+
     test('returns null for notes when empty', () {
       final emptyNotesSite = testSite.copyWith(notes: '');
       final entity = SiteWithDiveCount(site: emptyNotesSite, diveCount: 0);

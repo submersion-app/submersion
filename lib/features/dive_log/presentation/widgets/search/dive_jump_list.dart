@@ -13,10 +13,20 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// the list's other filters (#2773, the Search overlay's old job). A typed
 /// dive number's dives lead, titled by their number (#3455).
 class DiveJumpList extends ConsumerStatefulWidget {
-  const DiveJumpList({super.key, required this.query, required this.onOpen});
+  const DiveJumpList({
+    super.key,
+    required this.query,
+    required this.onOpen,
+    required this.onJump,
+  });
 
   final QueryNode query;
+
+  /// A text match's row: opens the dive.
   final ValueChanged<DiveSummary> onOpen;
+
+  /// A row titled by the typed dive number: jumps the list to it (#3744).
+  final ValueChanged<DiveSummary> onJump;
 
   @override
   ConsumerState<DiveJumpList> createState() => _DiveJumpListState();
@@ -47,11 +57,12 @@ class _DiveJumpListState extends ConsumerState<DiveJumpList> {
     final units = UnitFormatter(ref.watch(settingsProvider));
     final theme = Theme.of(context);
     final number = _shownNumber;
+    bool numbered(DiveSummary d) => number != null && d.diveNumber == number;
     String title(DiveSummary d) {
       final name =
           d.siteName ?? d.name ?? units.formatMonthDayWithYear(d.dateTime);
-      return number != null && d.diveNumber == number
-          ? context.l10n.diveLog_search_jumpNumberTitle(number, name)
+      return numbered(d)
+          ? context.l10n.diveLog_search_jumpNumberTitle(number!, name)
           : name;
     }
 
@@ -85,7 +96,7 @@ class _DiveJumpListState extends ConsumerState<DiveJumpList> {
                   '${units.formatMonthDayWithYear(d.dateTime)} · '
                   '${units.formatDepth(d.maxDepth)}',
                 ),
-                onTap: () => widget.onOpen(d),
+                onTap: () => numbered(d) ? widget.onJump(d) : widget.onOpen(d),
               ),
           ],
         ),

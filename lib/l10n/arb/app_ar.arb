@@ -665,11 +665,15 @@
   "backup_export_saveToFile_subtitle": "اختر مكان حفظ ملف النسخة الاحتياطية",
   "backup_export_share": "مشاركة",
   "backup_export_share_subtitle": "إرسال عبر AirDrop أو البريد الإلكتروني أو تطبيقات أخرى",
+  "backup_copySheet_deviceLocked": "أُخذت هذه النسخة الآمنة من قاعدة بياناتك المحمية. لا يمكن استعادتها إلا على هذا الجهاز.",
+  "backup_copySheet_title": "نسخة احتياطية من {dateTime}",
   "backup_frequency_daily": "يومي",
   "backup_frequency_monthly": "شهري",
   "backup_frequency_weekly": "أسبوعي",
   "backup_history_action_delete": "حذف",
   "backup_history_action_restore": "استعادة",
+  "backup_history_action_saveCopy": "حفظ نسخة",
+  "backup_history_action_share": "مشاركة",
   "backup_history_empty": "لا توجد نسخ احتياطية",
   "backup_history_error": "فشل في تحميل السجل: {error}",
   "backup_import_invalidFile": "لا يبدو أن هذا الملف نسخة احتياطية صالحة من Submersion",
@@ -732,6 +736,88 @@
   "buddies_action_add": "إضافة رفيق",
   "buddies_action_addFirst": "أضف أول رفيق غوص",
   "buddies_action_addTooltip": "إضافة رفيق غوص جديد",
+  "buddyCard_preview_title": "بطاقة الرفيق",
+  "buddyCard_preview_addTitle": "إضافة {name} كرفيق",
+  "buddyCard_preview_updateTitle": "تحديث {name}",
+  "buddyCard_preview_possibleTitle": "هل هذا {name} من رفاقك؟",
+  "buddyCard_preview_trimmed": "حُذفت بعض التفاصيل لتتسع في الرمز.",
+  "buddyCard_preview_newer": "هذه البطاقة من إصدار أحدث من Submersion. قد تكون بعض التفاصيل مفقودة.",
+  "buddyCard_preview_noChanges": "لا جديد في هذه البطاقة.",
+  "buddyCard_preview_ownCard": "هذه بطاقتك أنت. تبادل مع رفيق غوص لتحصل على بطاقته.",
+  "buddyCard_preview_changed": "{to} (كان {from})",
+  "buddyCard_action_add": "إضافة رفيق",
+  "buddyCard_action_update": "تحديث الرفيق",
+  "buddyCard_action_addAsNew": "إضافة كرفيق جديد",
+  "buddyCard_action_discard": "تجاهل",
+  "buddyCard_field_name": "الاسم",
+  "buddyCard_field_phone": "الهاتف",
+  "buddyCard_field_email": "البريد الإلكتروني",
+  "buddyCard_field_social": "اسم المستخدم على مواقع التواصل",
+  "buddyCard_field_dives": "الغطسات",
+  "buddyCard_field_divingSince": "يغطس منذ",
+  "buddyCard_field_lastDive": "آخر غطسة",
+  "buddyCard_field_certifications": "الشهادات",
+  "buddyCard_saved_added": "تمت إضافة {name} إلى رفاقك",
+  "buddyCard_saved_updated": "تم تحديث {name}",
+  "buddyCard_saved_view": "عرض",
+  "buddyCard_error_notACard": "هذه ليست بطاقة رفيق من Submersion.",
+  "buddyCard_error_unreadable": "تعذّرت قراءة بطاقة الرفيق هذه.",
+  "buddySwap_title": "تبادل مع رفيق",
+  "buddySwap_nearby_heading": "غواصون قريبون يفتحون Submersion",
+  "buddySwap_nearby_tapToSwap": "انقر للتبادل",
+  "buddySwap_nearby_looking": "جارٍ البحث عن المزيد…",
+  "buddySwap_nearby_failed": "تعذّر البحث عن الغواصين القريبين. لا تزال طرق التبادل الأخرى أدناه تعمل.",
+  "buddySwap_nearby_hint": "لا ترى رفيقك؟ يجب أن تفتحا هذه الشاشة كلاكما وأن يكون لديكما Submersion 1.8.4 أو أحدث.",
+  "buddySwap_sharing": "المشاركة: {summary}",
+  "buddySwap_sharing_change": "تغيير",
+  "buddySwap_dives": "{count, plural, =1{غطسة واحدة} two{غطستان} few{{count} غطسات} many{{count} غطسة} other{{count} غطسة}}",
+  "buddySwap_action_showCode": "عرض رمزي",
+  "buddySwap_action_scanCode": "مسح الرمز",
+  "buddySwap_action_sendFile": "إرسال ملف",
+  "buddySwap_action_openFile": "فتح ملف بطاقة",
+  "buddySwap_action_writeSticker": "كتابة ملصق NFC",
+  "buddySwap_action_tapAndroid": "المس هاتف Android",
+  "buddySwap_action_receiveByTap": "الاستلام باللمس",
+  "buddySwap_tap_prompt": "قرّب هاتفك من الهاتف الآخر أو الملصق",
+  "buddySwap_sticker_prompt": "قرّب هاتفك من ملصق NFC فارغ",
+  "buddySwap_sticker_written": "تمت كتابة الملصق. أعد كتابته عند تغيّر بياناتك.",
+  "buddySwap_sticker_tooSmall": "هذا الملصق صغير جدًا لبطاقتك.",
+  "buddySwap_sticker_notWritable": "لا يمكن الكتابة على هذا الملصق.",
+  "buddySwap_nfc_unavailable": "NFC غير متاح على هذا الجهاز.",
+  "buddySwap_qr_title": "بطاقة الرفيق الخاصة بك",
+  "buddySwap_qr_hint": "اطلب من رفيقك مسح هذا بـ Submersion أو بالكاميرا.",
+  "buddySwap_request_title": "يريد {name} تبادل البطاقات",
+  "buddySwap_request_youSend": "سترسل: {summary}",
+  "buddySwap_request_swap": "تبادل",
+  "buddySwap_request_decline": "رفض",
+  "buddySwap_waiting": "بانتظار رد {name}",
+  "buddySwap_failed_declined": "رفض {name} التبادل",
+  "buddySwap_failed_timedOut": "لم يرد {name}",
+  "buddySwap_failed_lost": "انقطع الاتصال بـ {name}",
+  "buddySwap_failed_newerApp": "يحتاج {name} إلى إصدار أحدث من Submersion",
+  "buddySwap_cardFailed": "تعذّر إنشاء بطاقة الرفيق الخاصة بك.",
+  "buddySwap_qr_tooLarge": "بطاقتك أطول من أن تتسع في رمز. جرّب إرسال ملف بدلًا من ذلك.",
+  "buddySwap_sendFailed": "تعذّرت مشاركة ملف البطاقة.",
+  "buddyCard_saveFailed": "تعذّر حفظ الرفيق.",
+  "buddyCard_field_photo": "الصورة",
+  "buddyCard_change_newPhoto": "صورة جديدة",
+  "buddyShare_title": "ما تشاركه",
+  "buddyShare_name": "الاسم",
+  "buddyShare_alwaysShared": "تُشارك دائمًا",
+  "buddyShare_neverShared": "لا تُشارك أبدًا التفاصيل الطبية وتفاصيل التأمين والطوارئ.",
+  "buddyShare_photo": "الصورة",
+  "buddyShare_phone": "الهاتف",
+  "buddyShare_email": "البريد الإلكتروني",
+  "buddyShare_certifications": "الشهادات",
+  "buddyShare_cardDetails": "أرقام البطاقات وتواريخها",
+  "buddyShare_diveCount": "عدد الغطسات",
+  "buddyShare_divingSince": "يغطس منذ",
+  "buddyShare_lastDive": "تاريخ آخر غطسة",
+  "buddyShare_social": "اسم المستخدم على مواقع التواصل",
+  "buddyCard_detail_heading": "من بطاقة {name}",
+  "buddyCard_detail_since": "يغطس منذ {year}",
+  "buddyCard_detail_last": "آخر غطسة {date}",
+  "buddyCard_detail_received": "استُلمت في {date}",
   "buddies_action_clearSearch": "مسح البحث",
   "buddies_action_edit": "تعديل الرفيق",
   "buddies_action_importFromContacts": "استيراد من جهات الاتصال",
@@ -1453,7 +1539,13 @@
   "connections_tab_view": "العرض",
   "connections_tab_filter": "التصفية",
   "connections_tab_filterCount": "التصفية ({count})",
-  "@connections_tab_filterCount": {"placeholders": {"count": {"type": "int"}}},
+  "@connections_tab_filterCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "connections_tab_details": "التفاصيل",
   "connections_presets_title": "الإعدادات المسبقة",
   "connections_preset_circle": "دائرة الغوص",
@@ -1470,16 +1562,37 @@
   "connections_editor_kinds": "الأنواع",
   "connections_editor_links": "الروابط",
   "connections_editor_link": "{a} مع {b}",
-  "@connections_editor_link": {"placeholders": {"a": {"type": "String"}, "b": {"type": "String"}}},
+  "@connections_editor_link": {
+    "placeholders": {
+      "a": {
+        "type": "String"
+      },
+      "b": {
+        "type": "String"
+      }
+    }
+  },
   "connections_editor_minShared": "{count, plural, =1{غوصة مشتركة واحدة على الأقل} two{غوصتان مشتركتان على الأقل} few{{count} غوصات مشتركة على الأقل} many{{count} غوصة مشتركة على الأقل} other{{count} غوصة مشتركة على الأقل}}",
-  "@connections_editor_minShared": {"placeholders": {"count": {"type": "int"}}},
+  "@connections_editor_minShared": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "connections_editor_saveAsMap": "حفظ كخريطة",
   "connections_savedMap_saveTitle": "حفظ الخريطة",
   "connections_savedMap_nameLabel": "الاسم",
   "connections_savedMap_rename": "إعادة التسمية",
   "connections_savedMap_update": "التحديث من العرض الحالي",
   "connections_savedMap_deleted": "تم حذف \"{name}\"",
-  "@connections_savedMap_deleted": {"placeholders": {"name": {"type": "String"}}},
+  "@connections_savedMap_deleted": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "connections_savedMap_undo": "تراجع",
   "connections_savedMap_badge": "خريطة محفوظة",
   "connections_around_searchHint": "ابحث عن الرفقاء والمواقع والرحلات والمزيد",
@@ -1500,7 +1613,16 @@
   "connections_caption_around": "{hops, plural, =1{كل ما يشترك في غوصة مع العنصر المركزي.} two{كل ما يقع ضمن خطوتين من العنصر المركزي، مرتبطًا بغوصات مشتركة.} few{كل ما يقع ضمن {hops} خطوات من العنصر المركزي، مرتبطًا بغوصات مشتركة.} many{كل ما يقع ضمن {hops} خطوة من العنصر المركزي، مرتبطًا بغوصات مشتركة.} other{كل ما يقع ضمن {hops} خطوة من العنصر المركزي، مرتبطًا بغوصات مشتركة.}}",
   "connections_caption_thicker": "الخطوط الأسمك تعني غوصات أكثر.",
   "connections_around_kindChip": "{kind} ({count})",
-  "@connections_around_kindChip": {"placeholders": {"kind": {"type": "String"}, "count": {"type": "int"}}},
+  "@connections_around_kindChip": {
+    "placeholders": {
+      "kind": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "connections_around_prompt": "ابحث عن رفيق أو موقع أو رحلة أو أي شيء آخر لتوسيط الخريطة عليه.",
   "connections_around_noResults": "لا توجد نتائج",
   "connections_action_centreHere": "التوسيط هنا",
@@ -1572,10 +1694,28 @@
   "connections_share_allDives": "كل الغوصات، من {first} إلى {last}",
   "connections_share_details": "{range}. {counts}",
   "connections_summary_pairValue": "{count, plural, =1{{a} و{b}، غوصة واحدة} two{{a} و{b}، غوصتان} few{{a} و{b}، {count} غوصات} many{{a} و{b}، {count} غوصة} other{{a} و{b}، {count} غوصة}}",
-  "@connections_summary_pairValue": {"placeholders": {"count": {"type": "int"}, "a": {"type": "String"}, "b": {"type": "String"}}},
+  "@connections_summary_pairValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "a": {
+        "type": "String"
+      },
+      "b": {
+        "type": "String"
+      }
+    }
+  },
   "connections_summary_closest": "الأقرب",
   "connections_summary_entitiesAround": "{count, plural, =1{عنصر واحد} two{عنصران} few{{count} عناصر} many{{count} عنصرًا} other{{count} عنصر}}",
-  "@connections_summary_entitiesAround": {"placeholders": {"count": {"type": "int"}}},
+  "@connections_summary_entitiesAround": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "connections_filter_allFilters": "كل عوامل التصفية",
   "connections_filter_clear": "مسح",
   "connections_filter_none": "لا توجد عوامل تصفية نشطة.",
@@ -1583,20 +1723,50 @@
   "connections_tooltip_relayout": "إعادة الترتيب",
   "connections_tooltip_showWholeWeb": "العودة إلى الخريطة الكاملة",
   "connections_filterBar_edges": "{count, plural, =1{رابط واحد} two{رابطان} few{{count} روابط} many{{count} رابطًا} other{{count} رابط}}",
-  "@connections_filterBar_edges": {"placeholders": {"count": {"type": "int"}}},
+  "@connections_filterBar_edges": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "connections_hiddenNodes": "{count, plural, =1{عقدة أخرى غير معروضة} two{عقدتان أخريان غير معروضتين} few{{count} عقد أخرى غير معروضة} many{{count} عقدة أخرى غير معروضة} other{{count} عقدة أخرى غير معروضة}}",
-  "@connections_hiddenNodes": {"placeholders": {"count": {"type": "int"}}},
+  "@connections_hiddenNodes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "connections_showAll": "عرض الكل",
   "connections_showAll_confirmTitle": "عرض كل العقد؟",
   "connections_showAll_confirmBody": "قد يستغرق ترتيب {count} عقدة لحظة على هذا الجهاز.",
-  "@connections_showAll_confirmBody": {"placeholders": {"count": {"type": "int"}}},
+  "@connections_showAll_confirmBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "connections_action_open": "فتح",
   "connections_action_showDives": "عرض الغوصات",
   "connections_action_openInConnections": "فتح في الروابط",
   "connections_selection_divesTogether": "{count, plural, =1{غوصة واحدة معًا} two{غوصتان معًا} few{{count} غوصات معًا} many{{count} غوصة معًا} other{{count} غوصة معًا}}",
-  "@connections_selection_divesTogether": {"placeholders": {"count": {"type": "int"}}},
+  "@connections_selection_divesTogether": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "connections_selection_dives": "{count, plural, =1{غوصة واحدة} two{غوصتان} few{{count} غوصات} many{{count} غوصة} other{{count} غوصة}}",
-  "@connections_selection_dives": {"placeholders": {"count": {"type": "int"}}},
+  "@connections_selection_dives": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "connections_selection_topConnections": "أقوى الروابط",
   "connections_selection_hint": "انقر على عقدة أو خط لعرض التفاصيل.",
   "connections_details_dives": "الغوصات",
@@ -1622,11 +1792,35 @@
   "connections_error_load": "تعذر تحميل الروابط.",
   "connections_legend_title": "مفتاح الرسم",
   "connections_timeline_range": "من {start} إلى {end}",
-  "@connections_timeline_range": {"placeholders": {"start": {"type": "String"}, "end": {"type": "String"}}},
+  "@connections_timeline_range": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
   "connections_semantics_summary": "{nodes} عقدة و{edges} رابطًا",
-  "@connections_semantics_summary": {"placeholders": {"nodes": {"type": "int"}, "edges": {"type": "int"}}},
+  "@connections_semantics_summary": {
+    "placeholders": {
+      "nodes": {
+        "type": "int"
+      },
+      "edges": {
+        "type": "int"
+      }
+    }
+  },
   "connections_semantics_selected": "المحدد: {label}",
-  "@connections_semantics_selected": {"placeholders": {"label": {"type": "String"}}},
+  "@connections_semantics_selected": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
   "connections_kind_buddy": "الرفقاء",
   "connections_kind_site": "المواقع",
   "connections_kind_trip": "الرحلات",
@@ -1644,6 +1838,12 @@
   "common_label_error": "خطأ",
   "common_label_loading": "جارٍ التحميل",
   "common_placeholder_noValue": "--",
+  "notesEditor_action_heading": "عنوان",
+  "notesEditor_action_bold": "غامق",
+  "notesEditor_action_italic": "مائل",
+  "notesEditor_action_bulletList": "قائمة نقطية",
+  "notesEditor_action_numberedList": "قائمة مرقمة",
+  "notesEditor_action_preview": "معاينة",
   "courses_action_add": "إضافة دورة",
   "courses_action_addFromTemplate": "إضافة من قالب",
   "courses_action_addRequirement": "إضافة متطلب",
@@ -3024,6 +3224,7 @@
   "diveLog_search_section_organization": "المنظمة",
   "diveLog_selection_tooltip_combine": "دمج",
   "diveLog_selection_tooltip_edit": "تعديل المحدد",
+  "diveLog_selection_tooltip_newTrip": "رحلة جديدة من المحدد",
   "diveLog_selection_tooltip_export": "تصدير المحدد",
   "diveLog_selection_tooltip_selectDateRange": "التحديد حسب نطاق التاريخ",
   "diveLog_sighting_add": "إضافة",
@@ -3078,15 +3279,16 @@
   "diveLog_tank_label_workingPressure": "ضغط العمل",
   "diveLog_tank_mndHelper": "تعيين لحساب He% تلقائياً",
   "diveLog_tank_modMndInfo": "MOD: {mod} (ppO₂ {ppO2}) | MND: {mnd}",
-  "diveLog_cylinders_columnTank": "أسطوانة",
-  "diveLog_cylinders_columnGas": "غاز",
-  "diveLog_cylinders_columnStart": "البداية",
-  "diveLog_cylinders_columnEnd": "النهاية",
-  "diveLog_cylinders_columnUsed": "المستخدم",
+  "diveLog_cylinders_figureStart": "البداية {pressure}",
+  "diveLog_cylinders_figureEnd": "النهاية {pressure}",
+  "diveLog_cylinders_figureUsed": "المستخدم {pressure}",
+  "diveLog_cylinders_gasSemantics": "غاز {mix}",
   "diveLog_cylinders_gasUsed": "الغاز المستخدم {amount}",
   "diveLog_cylinders_mod": "MOD {depth}",
   "diveLog_cylinders_mnd": "MND {depth}",
   "diveLog_cylinders_modNote": "MOD عند ppO₂ {ppO2}",
+  "diveLog_cylinders_modLimit": "{ppO2} ({limit})",
+  "diveLog_cylinders_modLimitSeparator": "، ",
   "diveLog_tank_section_gasMix": "خليط الغاز",
   "diveLog_tank_computerMix_matches": "سجّله كمبيوتر الغوص الخاص بك",
   "diveLog_tank_computerMix_differs": "سجّل كمبيوتر الغوص الخاص بك {mix}",
@@ -3224,6 +3426,12 @@
   "divePlanner_gasOptions_problemSolvingMinutes": "زمن حل المشكلة",
   "divePlanner_gasOptions_ppO2Bottom": "ppO₂ القاع",
   "divePlanner_gasOptions_ppO2Deco": "ppO₂ تخفيف الضغط",
+  "divePlanner_gasOptions_ppO2DecoBand1": "ppO₂ تخفيف الضغط حتى 28% أكسجين",
+  "divePlanner_gasOptions_ppO2DecoBand2": "ppO₂ تخفيف الضغط 28-45% أكسجين",
+  "divePlanner_gasOptions_ppO2DecoBand3": "ppO₂ تخفيف الضغط 45-99% أكسجين",
+  "divePlanner_gasOptions_maxO2DepthMeters": "أقصى عمق لـ 100% أكسجين",
+  "divePlanner_gasOptions_hypercapniaAmv": "RMV فرط ثاني أكسيد الكربون",
+  "divePlanner_gasOptions_hypercapniaMinutes": "المدة",
   "divePlanner_gasOptions_bestMixEnd": "END لأفضل خليط",
   "divePlanner_gasOptions_o2Narcotic": "اعتبار O₂ مخدرًا في هذه الخطة",
   "divePlanner_label_on": "تشغيل",
@@ -4301,6 +4509,7 @@
   "cylinderConfigs_fromPreset": "من قالب",
   "tankMod_label": "MOD",
   "tankMod_default": "الافتراضي عند ppO2 {ppO2} ({limit})",
+  "tankMod_defaultDepth": "الافتراضي عند {depth} ({limit})",
   "tankMod_limitBottom": "حد القاع",
   "tankMod_limitDeco": "حد تخفيف الضغط",
   "tankMod_limitDiluent": "MOD غاز التخفيف",
@@ -5660,6 +5869,7 @@
   "plannerCanvas_issue_gasDensityHigh": "كثافة الغاز {value} g/L تتجاوز الحد الموصى به",
   "plannerCanvas_issue_hypoxic": "غاز ناقص الأكسجين عند {depth} (ppO₂ {value} bar)",
   "plannerCanvas_issue_minGas": "تنتهي الأسطوانة تحت الحد الأدنى الآمن {pressure}",
+  "plannerCanvas_issue_noUsableGas": "الحد الأدنى الآمن {minGas} لا يترك غازًا قابلًا للاستخدام في تعبئة {fill}",
   "plannerCanvas_issue_diluentModExceeded": "يتجاوز غاز التخفيف حد MOD الخاص به عند {depth} (ppO₂ {value} bar)",
   "plannerCanvas_issue_ceilingViolated": "المسار يتجاوز سقف تخفيف الضغط عند {ceiling} ويتخطى توقفات إلزامية",
   "plannerCanvas_issue_noBailout": "خطة تخفيف الضغط CCR لا تتضمن غاز إنقاذ (bailout)",
@@ -5998,7 +6208,13 @@
   "sharedLibrary_connect_folderChars": "لا يمكن أن يحتوي مجلد المكتبة على * أو ? أو علامات الدولار.",
   "sharedLibrary_setup_title": "كيفية إعداد التخزين",
   "sharedLibrary_setup_where": "توجد هذه المكتبة في {folder} في أعلى الحاوية أو الخادم، بجانب submersion-sync وsubmersion-media.",
-  "@sharedLibrary_setup_where": {"placeholders": {"folder": {"type": "String"}}},
+  "@sharedLibrary_setup_where": {
+    "placeholders": {
+      "folder": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_setup_keys": "امنح المالكين والمحررين مفاتيح تقرأ مجلد المكتبة وتكتب فيه. وامنح الآخرين مفاتيح تقرؤه ولا تكتب إلا في members/ وsuggestions/. التخزين، لا التطبيق، هو ما يمنع المفتاح من الكتابة.",
   "sharedLibrary_setup_s3Full": "سياسة S3 للمالكين والمحررين",
   "sharedLibrary_setup_s3Reader": "سياسة S3 للقراء",
@@ -6013,22 +6229,52 @@
   "sharedLibrary_members_approve": "موافقة",
   "sharedLibrary_members_reject": "رفض",
   "sharedLibrary_members_fingerprint": "المفتاح {fingerprint}",
-  "@sharedLibrary_members_fingerprint": {"placeholders": {"fingerprint": {"type": "String"}}},
+  "@sharedLibrary_members_fingerprint": {
+    "placeholders": {
+      "fingerprint": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_members_unsignedCard": "البطاقة غير موقعة من صاحبها",
   "sharedLibrary_members_rejectTitle": "رفض {name}؟",
-  "@sharedLibrary_members_rejectTitle": {"placeholders": {"name": {"type": "String"}}},
+  "@sharedLibrary_members_rejectTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_members_rejectBody": "تُزال بطاقته ولا يُعتدّ بأي شيء يكتبه. وحدها مفاتيح تخزين جديدة تمنعه من كتابة الملفات تمامًا.",
   "sharedLibrary_members_left": "غادروا المكتبة",
   "sharedLibrary_members_removeRole": "إزالة الدور",
   "sharedLibrary_members_remove": "إزالة من المكتبة",
   "sharedLibrary_members_removeTitle": "إزالة {name}؟",
-  "@sharedLibrary_members_removeTitle": {"placeholders": {"name": {"type": "String"}}},
+  "@sharedLibrary_members_removeTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_members_removeBody": "لن يتمكن {name} بعد الآن من تعديل المواقع أو اقتراح تغييرات. تبقى المواقع والتعديلات التي ساهم بها في المكتبة.\n\nيظل قادرًا على قراءة المكتبة حتى تغيّر مفاتيح التخزين الخاصة بها، وعبارة المرور إن كانت مشفّرة.",
-  "@sharedLibrary_members_removeBody": {"placeholders": {"name": {"type": "String"}}},
+  "@sharedLibrary_members_removeBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_members_removeConfirm": "إزالة",
   "sharedLibrary_members_removedHeader": "تمت إزالتهم",
   "sharedLibrary_members_removedOn": "أُزيل في {date}",
-  "@sharedLibrary_members_removedOn": {"placeholders": {"date": {"type": "String"}}},
+  "@sharedLibrary_members_removedOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_members_allowBack": "السماح بالعودة",
   "sharedLibrary_owner_onlyOne": "مالك واحد فقط. إن فقد الوصول، فلا يعيده إلا رمز الاسترداد.",
   "sharedLibrary_owner_addOwner": "اختر مالكًا آخر",
@@ -6043,7 +6289,19 @@
   "sharedLibrary_owner_resetHelp": "فقط إن لم يبقَ مالك ولا رمز استرداد. يجب أن يقبله كل الأعضاء.",
   "sharedLibrary_owner_resetConfirm": "هل تجعل نفسك المالك الوحيد؟ سيطلب جهاز كل عضو آخر منه قبول ذلك، ويتوقف عن الكتابة في المكتبة حتى يقبل.",
   "sharedLibrary_owner_resetPrompt": "أعاد {name} تعيين ملكية {library} (المفتاح {fingerprint}). حتى تقبل، يكتفي هذا الجهاز بقراءة المكتبة.",
-  "@sharedLibrary_owner_resetPrompt": {"placeholders": {"library": {"type": "String"}, "name": {"type": "String"}, "fingerprint": {"type": "String"}}},
+  "@sharedLibrary_owner_resetPrompt": {
+    "placeholders": {
+      "library": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      },
+      "fingerprint": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_owner_resetAccept": "قبول",
   "sharedLibrary_connect_untrusted": "أدوار هذه المكتبة غير موقعة من أحد مالكيها. اطلب من مالك التحقق منها.",
   "sharedLibrary_retired": "أُنشئت هذه المكتبة بإصدار تجريبي من Submersion. أنشئها من جديد.",
@@ -6062,7 +6320,16 @@
   "sharedLibrary_backups_inStorage": "في التخزين",
   "sharedLibrary_backups_both": "على هذا الجهاز وفي التخزين",
   "sharedLibrary_backups_summary": "المواقع: {sites} · {size}",
-  "@sharedLibrary_backups_summary": {"placeholders": {"sites": {"type": "int"}, "size": {"type": "String"}}},
+  "@sharedLibrary_backups_summary": {
+    "placeholders": {
+      "sites": {
+        "type": "int"
+      },
+      "size": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_backups_pin": "تثبيت",
   "sharedLibrary_backups_unpin": "إلغاء التثبيت",
   "sharedLibrary_backups_delete": "حذف",
@@ -6071,7 +6338,13 @@
   "sharedLibrary_backups_export": "تصدير",
   "sharedLibrary_backups_restore": "استعادة",
   "sharedLibrary_backups_restoreConfirm": "هل تريد إعادة المكتبة إلى حالتها في {date}؟ يحصل كل عضو على هذه النسخة في مزامنته التالية. تُنشأ أولًا نسخة احتياطية مثبتة من المكتبة بحالتها الحالية.",
-  "@sharedLibrary_backups_restoreConfirm": {"placeholders": {"date": {"type": "String"}}},
+  "@sharedLibrary_backups_restoreConfirm": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_backups_restoreDone": "تمت استعادة المكتبة",
   "sharedLibrary_backups_oldKey": "خُتمت هذه النسخة الاحتياطية بعبارة مرور سابقة. أدخل تلك العبارة أو رمز الاسترداد من ذلك الوقت.",
   "sharedLibrary_backups_empty": "لا توجد نسخ احتياطية بعد. تنشئ أجهزة المالكين نسخة كل يوم، وينشئ زر نسخ احتياطي الآن نسخة فورًا.",
@@ -6079,17 +6352,41 @@
   "sharedLibrary_backups_ownersOnly": "يدير المالكون وحدهم النسخ الاحتياطية.",
   "sharedLibrary_backups_done": "تم إنشاء النسخة الاحتياطية",
   "sharedLibrary_library_myKey": "مفتاحك {fingerprint}",
-  "@sharedLibrary_library_myKey": {"placeholders": {"fingerprint": {"type": "String"}}},
+  "@sharedLibrary_library_myKey": {
+    "placeholders": {
+      "fingerprint": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_suggest_held": "{count, plural, =1{اقتراح واحد ينتظر موافقتك على كاتبه} two{اقتراحان ينتظران موافقتك على كاتبيهما} few{{count} اقتراحات تنتظر موافقتك على كتّابها} many{{count} اقتراحًا ينتظر موافقتك على كتّابه} other{{count} اقتراح ينتظر موافقتك على كتّابه}}",
-  "@sharedLibrary_suggest_held": {"placeholders": {"count": {"type": "int"}}},
+  "@sharedLibrary_suggest_held": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "sharedLibrary_restoreInto_action": "الاستعادة من ملف نسخة احتياطية",
   "sharedLibrary_restoreInto_needsKey": "هذه النسخة الاحتياطية مشفرة. أدخل عبارة المرور أو رمز الاسترداد الخاص بها.",
   "sharedLibrary_restoreInto_refused": "هذا الملف ليس نسخة احتياطية لمكتبة أنشأها مالك.",
   "sharedLibrary_restoreInto_oldStillThere": "لا تزال المكتبة في مجلدها القديم أيضًا. يواصل الأعضاء هناك استخدام تلك النسخة حتى يتصلوا بهذا المجلد.",
   "sharedLibrary_encrypted_locked": "أدخل عبارة المرور لـ {library}.",
-  "@sharedLibrary_encrypted_locked": {"placeholders": {"library": {"type": "String"}}},
+  "@sharedLibrary_encrypted_locked": {
+    "placeholders": {
+      "library": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_encrypted_changed": "تغيرت عبارة مرور {library}. أدخل العبارة الجديدة.",
-  "@sharedLibrary_encrypted_changed": {"placeholders": {"library": {"type": "String"}}},
+  "@sharedLibrary_encrypted_changed": {
+    "placeholders": {
+      "library": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_encryption_title": "التشفير",
   "sharedLibrary_encryption_statusOn": "مشفرة بعبارة مرور",
   "sharedLibrary_encryption_statusOff": "غير مشفرة: يمكن لأي شخص لديه وصول إلى التخزين قراءتها",
@@ -6102,7 +6399,13 @@
   "sharedLibrary_encryption_passphrase": "عبارة المرور",
   "sharedLibrary_encryption_confirm": "عبارة المرور مرة أخرى",
   "sharedLibrary_connect_join_action": "الانضمام إلى {name}",
-  "@sharedLibrary_connect_join_action": {"placeholders": {"name": {"type": "String"}}},
+  "@sharedLibrary_connect_join_action": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_connect_create_action": "إنشاء مكتبة",
   "sharedLibrary_connect_create_name_label": "اسم المكتبة",
   "sharedLibrary_connect_displayName_label": "اسمك في هذه المكتبة",
@@ -6114,15 +6417,33 @@
   "sharedLibrary_role_owner": "مالك",
   "sharedLibrary_library_members": "الأعضاء",
   "sharedLibrary_library_memberCount": "{count, plural, =1{عضو واحد} two{عضوان} few{{count} أعضاء} many{{count} عضوًا} other{{count} عضو}}",
-  "@sharedLibrary_library_memberCount": {"placeholders": {"count": {"type": "int"}}},
+  "@sharedLibrary_library_memberCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "sharedLibrary_library_syncNow": "مزامنة الآن",
   "sharedLibrary_library_lastSync": "آخر مزامنة {when}",
-  "@sharedLibrary_library_lastSync": {"placeholders": {"when": {"type": "String"}}},
+  "@sharedLibrary_library_lastSync": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_library_neverSynced": "لم تتم المزامنة بعد",
   "sharedLibrary_library_readOnlyBanner": "تسمح بيانات اعتمادك بالقراءة فقط. يمكنك اقتراح تغييرات ويقوم مرجع بتطبيقها.",
   "sharedLibrary_library_removedBanner": "أزالك مرجع من هذه المكتبة. تبقى مواقعها على هذا الجهاز، لكن لم يعد بإمكانك تغييرها. عند مغادرة المكتبة تحتفظ بنسخ شخصية من المواقع التي غصت فيها.",
   "sharedLibrary_library_errorBanner": "فشلت آخر مزامنة: {error}",
-  "@sharedLibrary_library_errorBanner": {"placeholders": {"error": {"type": "String"}}},
+  "@sharedLibrary_library_errorBanner": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_syncError_accountMissing": "لم يعد حساب هذه المكتبة على هذا الجهاز. استخدم تغيير الاتصال لاختياره مرة أخرى.",
   "sharedLibrary_syncError_accountSignedOut": "تم تسجيل خروج هذا الجهاز من حساب هذه المكتبة. سجّل الدخول إليه مرة أخرى من الحسابات المتصلة، أو استخدم تغيير الاتصال.",
   "sharedLibrary_syncError_notALibrary": "لا توجد مكتبة في هذا الموقع.",
@@ -6131,7 +6452,13 @@
   "sharedLibrary_library_suggestions": "الاقتراحات",
   "sharedLibrary_library_leave": "مغادرة المكتبة",
   "sharedLibrary_library_leaveConfirm_title": "مغادرة {name}؟",
-  "@sharedLibrary_library_leaveConfirm_title": {"placeholders": {"name": {"type": "String"}}},
+  "@sharedLibrary_library_leaveConfirm_title": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_library_leaveConfirm_body": "تبقى المواقع المشتركة التي تستخدمها غوصاتك كنسخ شخصية. تُزال المواقع المشتركة الأخرى من هذا الجهاز.",
   "sharedLibrary_library_rename_label": "الاسم المعروض",
   "sharedLibrary_members_setRole": "تغيير الدور",
@@ -6143,23 +6470,68 @@
   "sharedLibrary_connect_exists": "أنشأ أحدهم مكتبة هنا في الأثناء. تحقق مرة أخرى للانضمام إليها.",
   "sharedLibrary_library_lastOwnerLeave": "اجعل عضوًا آخر مالكًا قبل المغادرة.",
   "sharedLibrary_site_badgeTooltip": "في {name}",
-  "@sharedLibrary_site_badgeTooltip": {"placeholders": {"name": {"type": "String"}}},
+  "@sharedLibrary_site_badgeTooltip": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_site_lastEdited": "آخر تعديل بواسطة {name}، {when}",
-  "@sharedLibrary_site_lastEdited": {"placeholders": {"name": {"type": "String"}, "when": {"type": "String"}}},
+  "@sharedLibrary_site_lastEdited": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_site_history": "سجل التعديلات",
   "sharedLibrary_site_addToLibrary": "إضافة إلى مكتبة المواقع المشتركة",
   "sharedLibrary_add_confirm_title": "إضافة {name} إلى {library}؟",
-  "@sharedLibrary_add_confirm_title": {"placeholders": {"name": {"type": "String"}, "library": {"type": "String"}}},
+  "@sharedLibrary_add_confirm_title": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "library": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_add_confirm_titleMany": "{count, plural, =1{إضافة موقع واحد إلى {library}؟} two{إضافة موقعين إلى {library}؟} few{إضافة {count} مواقع إلى {library}؟} many{إضافة {count} موقعًا إلى {library}؟} other{إضافة {count} موقع إلى {library}؟}}",
-  "@sharedLibrary_add_confirm_titleMany": {"placeholders": {"count": {"type": "int"}, "library": {"type": "String"}}},
+  "@sharedLibrary_add_confirm_titleMany": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "library": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_add_confirm_shared": "سيرى كل الأعضاء: الاسم والموقع والأعماق والوصف والمخاطر والوصول والدخول والخروج والرسو ومواقف السيارات وأنواع المواقع والوسوم والأنواع البحرية والمعالم.",
   "sharedLibrary_add_confirm_private": "يبقى لك: ملاحظاتك وتقييمك. لا تغادر الغطسات والصور مكتبتك الشخصية أبدًا.",
   "sharedLibrary_add_confirm_action": "إضافة",
   "sharedLibrary_site_chooseLibrary": "اختر مكتبة",
   "sharedLibrary_site_added": "تمت الإضافة إلى {name}",
-  "@sharedLibrary_site_added": {"placeholders": {"name": {"type": "String"}}},
+  "@sharedLibrary_site_added": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_site_notConnectedHere": "هذا الموقع في {name}، وهي غير متصلة على هذا الجهاز.",
-  "@sharedLibrary_site_notConnectedHere": {"placeholders": {"name": {"type": "String"}}},
+  "@sharedLibrary_site_notConnectedHere": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_site_connectHere": "توصيل على هذا الجهاز",
   "sharedLibrary_site_deleteFromLibrary_title": "حذف من مكتبة المواقع المشتركة؟",
   "sharedLibrary_site_deleteFromLibrary_body": "يحتفظ الأعضاء الذين تستخدم غوصاتهم هذا الموقع بنسخة شخصية.",
@@ -6171,12 +6543,27 @@
   "sharedLibrary_suggest_nothingChanged": "لم يتغير شيء.",
   "sharedLibrary_suggest_savedPrivate": "تم حفظ ملاحظاتك وتقييمك.",
   "sharedLibrary_suggest_pending": "{count, plural, =1{اقتراح واحد معلق} two{اقتراحان معلقان} few{{count} اقتراحات معلقة} many{{count} اقتراحًا معلقًا} other{{count} اقتراح معلق}}",
-  "@sharedLibrary_suggest_pending": {"placeholders": {"count": {"type": "int"}}},
+  "@sharedLibrary_suggest_pending": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "sharedLibrary_suggest_withdraw": "سحب",
   "sharedLibrary_inbox_title": "الاقتراحات",
   "sharedLibrary_inbox_empty": "لا توجد اقتراحات بانتظار المراجعة.",
   "sharedLibrary_inbox_from": "من {name}، {when}",
-  "@sharedLibrary_inbox_from": {"placeholders": {"name": {"type": "String"}, "when": {"type": "String"}}},
+  "@sharedLibrary_inbox_from": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_inbox_accept": "قبول",
   "sharedLibrary_inbox_dismiss": "تجاهل",
   "sharedLibrary_inbox_siteDeleted": "تم حذف هذا الموقع من المكتبة.",
@@ -6522,6 +6909,21 @@
   "settings_conflict_field_autoTagImports": "وسم الغوصات المستوردة",
   "settings_conflict_field_downloadsFollowComputerOwner": "إضافة التنزيلات إلى مالك الكمبيوتر",
   "settings_conflict_field_omitUnusedOcGases": "تخطي غازات الطوارئ غير المستخدمة",
+  "settings_conflict_field_diveListSort": "الغوصات: الترتيب",
+  "settings_conflict_field_divePlanListSort": "الخطط المحفوظة: الترتيب",
+  "settings_conflict_field_tripListSort": "الرحلات: الترتيب",
+  "settings_conflict_field_courseListSort": "الدورات: الترتيب",
+  "settings_conflict_field_buddyListSort": "زملاء الغوص: الترتيب",
+  "settings_conflict_field_diveCenterListSort": "مراكز الغوص: الترتيب",
+  "settings_conflict_field_siteListSort": "المواقع: الترتيب",
+  "settings_conflict_field_certificationListSort": "الشهادات: الترتيب",
+  "settings_conflict_field_equipmentListSort": "المعدات: الترتيب",
+  "settings_conflict_field_siteListGroupBy": "المواقع: التجميع",
+  "settings_conflict_field_certificationListGroupBy": "الشهادات: التجميع",
+  "settings_conflict_field_equipmentArrangement": "ترتيب المعدات",
+  "settings_conflict_field_equipmentGroupByLocation": "المعدات مجمعة حسب الموقع",
+  "settings_conflict_field_listArrangementHlc": "سجل ترتيب القوائم",
+  "settings_conflict_sortValue": "{field}، {direction}",
   "settings_conflict_field_avgSpeed": "متوسط السرعة",
   "settings_conflict_field_batteryReserveFraction": "احتياطي البطارية",
   "settings_conflict_field_bboxHeight": "ارتفاع الإطار",
@@ -6881,6 +7283,12 @@
   "settings_conflict_field_portName": "الميناء",
   "settings_conflict_field_ppO2Bottom": "ppO2 في القاع",
   "settings_conflict_field_ppO2Deco": "ppO2 لتخفيف الضغط",
+  "settings_conflict_field_ppO2DecoBand1": "ppO2 تخفيف الضغط حتى 28% أكسجين",
+  "settings_conflict_field_ppO2DecoBand2": "ppO2 تخفيف الضغط 28-45% أكسجين",
+  "settings_conflict_field_ppO2DecoBand3": "ppO2 تخفيف الضغط 45-99% أكسجين",
+  "settings_conflict_field_ppO2DecoBandsEnabled": "حدود ppO2 للديكو حسب نطاق الأكسجين",
+  "settings_conflict_field_maxO2DepthEnabled": "عمق أقصى صريح لـ 100% أكسجين",
+  "settings_conflict_field_maxO2DepthMeters": "العمق الأقصى لـ 100% أكسجين",
   "settings_conflict_field_ppO2MaxDeco": "أقصى ppO2 لتخفيف الضغط",
   "settings_conflict_field_ppO2MaxWorking": "أقصى ppO2 للعمل",
   "settings_conflict_field_preDiveChecklistTemplates_category": "الفئة",
@@ -6891,6 +7299,13 @@
   "settings_conflict_field_pressureBar": "الضغط",
   "settings_conflict_field_pressureUnit": "وحدة الضغط",
   "settings_conflict_field_priorDiveCount": "الغوصات قبل هذا السجل",
+  "settings_conflict_field_buddyCardShare": "مشاركة بطاقة الرفيق",
+  "settings_conflict_field_cardDiveCount": "الغطسات (من بطاقته)",
+  "settings_conflict_field_cardDivingSince": "يغطس منذ (من بطاقته)",
+  "settings_conflict_field_cardId": "بطاقة الرفيق",
+  "settings_conflict_field_cardLastDive": "آخر غطسة (من بطاقته)",
+  "settings_conflict_field_cardReceivedAt": "تاريخ استلام البطاقة",
+  "settings_conflict_field_socialHandle": "اسم المستخدم على مواقع التواصل",
   "settings_conflict_field_priorDiveTimeSeconds": "وقت الغوص قبل هذا السجل",
   "settings_conflict_field_problemSolvingMinutes": "وقت حل المشكلات",
   "settings_conflict_field_provider": "مقدم الخدمة",
@@ -7086,6 +7501,7 @@
   "settings_conflict_field_valueUnit": "الوحدة",
   "settings_conflict_field_verdict": "الحكم",
   "settings_conflict_field_verifyFactsHlc": "سجل التحقق",
+  "settings_conflict_field_videoPositionMs": "الوقت في الفيديو (مللي ثانية)",
   "settings_conflict_field_vesselName": "السفينة",
   "settings_conflict_field_vesselType": "نوع السفينة",
   "settings_conflict_field_viewMode": "العرض",
@@ -7307,6 +7723,21 @@
   "settings_decompression_ppO2LimitsTitle": "حدود الضغط الجزئي للأكسجين OC",
   "settings_decompression_ppO2LimitsSubtitle": "العمل {working} bar · الحد الأقصى {max} bar",
   "settings_decompression_ppO2Dialog_title": "حدود الضغط الجزئي للأكسجين OC",
+  "settings_decompression_ppO2BandsTitle": "حدود الديكو حسب نطاق الأكسجين",
+  "settings_decompression_ppO2BandsSubtitle": "حدود ppO2 اختيارية وأدق لمخطط الغوص",
+  "settings_decompression_ppO2BandsDialog_title": "ppO2 للديكو: حسب نطاق الأكسجين",
+  "settings_decompression_ppO2BandsDialog_bandsToggle": "استخدام حدود الديكو حسب نطاق الأكسجين",
+  "settings_decompression_ppO2BandsDialog_band1": "حتى 28% أكسجين",
+  "settings_decompression_ppO2BandsDialog_band2": "28–45% أكسجين",
+  "settings_decompression_ppO2BandsDialog_band3": "45–99% أكسجين",
+  "settings_decompression_ppO2BandsDialog_maxO2DepthToggle": "استخدام عمق أقصى صريح لـ 100% أكسجين",
+  "settings_decompression_ppO2BandsDialog_maxO2DepthLabel": "العمق الأقصى لـ 100% أكسجين",
+  "settings_decompression_hypercapniaTitle": "مرحلة فرط ثاني أكسيد الكربون أثناء الخروج الطارئ",
+  "settings_decompression_hypercapniaSubtitle": "معدل تنفس مرتفع اختياري في بداية الخروج الطارئ OC لأنظمة CCR/SCR",
+  "settings_decompression_hypercapniaDialog_title": "مرحلة فرط ثاني أكسيد الكربون أثناء الخروج الطارئ",
+  "settings_decompression_hypercapniaDialog_enabledToggle": "استخدام مرحلة فرط ثاني أكسيد الكربون للخروج الطارئ OC",
+  "settings_decompression_hypercapniaDialog_factorLabel": "معامل RMV",
+  "settings_decompression_hypercapniaDialog_minutesLabel": "المدة",
   "settings_decompression_ccrPpO2LimitsTitle": "حدود الضغط الجزئي للأكسجين CCR",
   "settings_decompression_ccrPpO2LimitsSubtitle": "نقطة الضبط المنخفضة {low} · المرتفعة {high} · MOD التخفيف {dil} بار",
   "settings_decompression_ccrDialog_info": "القيم الافتراضية لغطسات الدائرة المغلقة. يبدأ وضع CCR في حاسبة MOD من هذه القيم.",
@@ -8332,6 +8763,18 @@
   "insights_timePatterns_seasonal_error": "فشل تحميل البيانات الموسمية",
   "insights_timePatterns_seasonal_subtitle": "الغوصات حسب الشهر (جميع السنوات)",
   "insights_timePatterns_seasonal_title": "الأنماط الموسمية",
+  "insights_timePatterns_calendarDays_title": "أيام التقويم",
+  "insights_timePatterns_calendarDays_subtitle": "الغطسات في كل تاريخ من السنة (كل السنوات)",
+  "insights_timePatterns_calendarDays_coverage": "{covered} من {total} يومًا في التقويم ({percent})",
+  "insights_timePatterns_calendarDays_busiestMonth": "الشهر الأكثر غطسًا: {months}",
+  "insights_timePatterns_calendarDays_busiestDay": "يوم الشهر الأكثر غطسًا: {days}",
+  "insights_timePatterns_calendarDays_cellSemantics": "{date}، {count, plural, =0{لا غطسات} one{غطسة واحدة} two{غطستان} few{{count} غطسات} many{{count} غطسة} other{{count} غطسة}}",
+  "insights_timePatterns_calendarDays_totalSemantics": "{label}، المجموع {count, plural, =0{لا غطسات} one{غطسة واحدة} two{غطستان} few{{count} غطسات} many{{count} غطسة} other{{count} غطسة}}",
+  "insights_timePatterns_calendarDays_dayLabel": "اليوم {day}",
+  "insights_timePatterns_calendarDays_total": "كل التواريخ",
+  "insights_timePatterns_calendarDays_listSeparator": "، ",
+  "insights_timePatterns_calendarDays_empty": "لا توجد غطسات لعرضها في التقويم بعد",
+  "insights_timePatterns_calendarDays_error": "تعذر تحميل أيام التقويم",
   "insights_timePatterns_surfaceInterval_average": "المتوسط",
   "insights_timePatterns_surfaceInterval_empty": "لا توجد بيانات فترة السطح متاحة",
   "insights_timePatterns_surfaceInterval_error": "فشل تحميل بيانات فترة السطح",
@@ -8724,6 +9167,10 @@
   "trips_detail_dialog_cancel": "إلغاء",
   "trips_detail_dialog_deleteConfirm": "حذف",
   "trips_detail_dialog_deleteContent": "هل أنت متأكد أنك تريد حذف \"{name}\"؟ سيتم إزالة الرحلة مع الاحتفاظ بالغوصات.",
+  "trips_delete_sideTripsStandalone": "{count, plural, one{تصبح رحلتها الجانبية رحلة مستقلة.} two{تصبح رحلتاها الجانبيتان رحلتين مستقلتين.} few{تصبح رحلاتها الجانبية الـ {count} رحلات مستقلة.} many{تصبح رحلاتها الجانبية الـ {count} رحلات مستقلة.} other{تصبح رحلاتها الجانبية الـ {count} رحلات مستقلة.}}",
+  "trips_delete_divesReturnToParent": "تعود غطساتها إلى {name}.",
+  "trips_bulkDelete_sideTripsStandalone": "{count, plural, one{تصبح رحلة جانبية واحدة رحلة مستقلة.} two{تصبح رحلتان جانبيتان رحلتين مستقلتين.} few{تصبح {count} رحلات جانبية رحلات مستقلة.} many{تصبح {count} رحلة جانبية رحلات مستقلة.} other{تصبح {count} رحلة جانبية رحلات مستقلة.}}",
+  "trips_bulkDelete_divesReturnToParents": "تعود غطسات الرحلات الجانبية المحذوفة إلى رحلاتها الأكبر.",
   "trips_detail_dialog_deleteTitle": "حذف الرحلة؟",
   "trips_detail_dives_empty": "لا توجد غوصات في هذه الرحلة بعد",
   "trips_detail_dives_errorLoading": "تعذر تحميل الغوصات",
@@ -8870,6 +9317,9 @@
   "trips_edit_hint_operatorName": "مثال: Red Sea Divers",
   "trips_edit_hint_resortName": "مثال: مرسى شاجرة",
   "trips_edit_hint_tripName": "مثال: رحلة البحر الأحمر 2024",
+  "trips_edit_field_partOf": "جزء من",
+  "trips_edit_partOf_none": "لا شيء (رحلة مستقلة)",
+  "trips_edit_partOf_helper": "يجعل هذه رحلة جانبية ضمن رحلة أكبر",
   "trips_edit_hint_vesselName": "مثال: Ocean Explorer",
   "trips_edit_label_cabinType": "نوع المقصورة",
   "trips_edit_label_capacity": "سعة الركاب",
@@ -9372,6 +9822,10 @@
   "trips_list_pastSection": "الرحلات السابقة",
   "trips_list_sort_title": "ترتيب الرحلات",
   "trips_list_tile_diveCount": "{count, plural, =1{غوصة واحدة} two{غوصتان} few{{count} غوصات} many{{count} غوصة} other{{count} غوصة}}",
+  "trips_list_sideTripCount": "{count, plural, one{رحلة جانبية واحدة} two{رحلتان جانبيتان} few{{count} رحلات جانبية} many{{count} رحلة جانبية} other{{count} رحلة جانبية}}",
+  "trips_partOf": "جزء من {name}",
+  "trips_fromSelection_name": "{location}، {monthYear}",
+  "trips_fromSelection_nameNoLocation": "رحلة، {monthYear}",
   "trips_list_tooltip_addTrip": "إضافة رحلة",
   "trips_list_tooltip_search": "البحث في الرحلات",
   "trips_list_tooltip_sort": "ترتيب",
@@ -9821,6 +10275,7 @@
   "settings_homeChips_uploads": "رفع الوسائط",
   "settings_homeChips_backup": "عمر النسخ الاحتياطي",
   "settings_homeChips_sync": "حالة المزامنة",
+  "settings_homeChips_nearby": "الأجهزة القريبة",
   "settings_homeChips_dataQuality": "جودة البيانات",
   "dashboard_gauges_certsNeedAttention": "{count, plural, =1{شهادة واحدة تحتاج إلى انتباه} two{شهادتان تحتاجان إلى انتباه} few{{count} شهادات تحتاج إلى انتباه} many{{count} شهادة تحتاج إلى انتباه} other{{count} شهادة تحتاج إلى انتباه}}",
   "dashboard_gauges_tripCountdown": "{name} خلال {days} يوم",
@@ -9832,6 +10287,8 @@
   "dashboard_gauges_backupDays": "نسخ احتياطي منذ {days} يوم",
   "dashboard_gauges_syncPending": "{count} غير متزامنة",
   "dashboard_gauges_synced": "متزامن",
+  "dashboard_gauges_nearby": "قريب: {name} يحتاج إلى انتباه",
+  "dashboard_gauges_nearbyMore": "قريب: {name} وأجهزة أخرى تحتاج إلى انتباه",
   "dashboard_gauges_dataIssues": "{count, plural, =1{مشكلة واحدة في البيانات} two{مشكلتان في البيانات} few{{count} مشاكل في البيانات} many{{count} مشكلة في البيانات} other{{count} مشكلة في البيانات}}",
   "dashboard_gauges_retry": "الحالة غير متاحة - انقر لإعادة المحاولة",
   "dashboard_media_title": "أحدث الوسائط",
@@ -10158,9 +10615,9 @@
   "divers_delete_keptEquipment_toOne": "{count, plural, one{تم تسليم {count} قطعة معدات إلى {name}.} two{تم تسليم قطعتي معدات إلى {name}.} few{تم تسليم {count} قطع معدات إلى {name}.} many{تم تسليم {count} قطعة معدات إلى {name}.} other{تم تسليم {count} قطعة معدات إلى {name}.}}",
   "divers_delete_keptEquipment_toMany": "{count, plural, one{تم تسليم {count} قطعة معدات إلى ملفات الغوص التي تستخدمها.} two{تم تسليم قطعتي معدات إلى ملفات الغوص التي تستخدمهما.} few{تم تسليم {count} قطع معدات إلى ملفات الغوص التي تستخدمها.} many{تم تسليم {count} قطعة معدات إلى ملفات الغوص التي تستخدمها.} other{تم تسليم {count} قطعة معدات إلى ملفات الغوص التي تستخدمها.}}",
   "divers_delete_handedOver": "{count, plural, zero{لم تنتقل أي رحلة أو موقع مشترك.} one{انتقلت رحلة أو موقع مشترك واحد إلى الملف الذي شورك معه.} two{انتقلت رحلتان أو موقعان مشتركان إلى الملفات التي شوركت معها.} few{انتقلت {count} رحلات ومواقع مشتركة إلى الملفات التي شوركت معها.} many{انتقلت {count} رحلة وموقعًا مشتركًا إلى الملفات التي شوركت معها.} other{انتقلت {count} رحلة وموقع مشترك إلى الملفات التي شوركت معها.}}",
-  "settings_shareAllSites_confirm": "اختر من يرى كل {count} من مواقعك. لتغيير موقع واحد لاحقًا، افتحه واضغط على مُشارَك مع.",
+  "settings_shareAllSites_confirm": "اختر من يرى كل {count} من مواقعك. لتغيير موقع واحد لاحقًا، عدّله واضغط على مُشارَك مع.",
   "settings_shareAllSites_title": "مشاركة جميع مواقعي...",
-  "settings_shareAllTrips_confirm": "اختر من يرى كل {count} من رحلاتك. لتغيير رحلة واحدة لاحقًا، افتحها واضغط على مُشارَك مع.",
+  "settings_shareAllTrips_confirm": "اختر من يرى كل {count} من رحلاتك. لتغيير رحلة واحدة لاحقًا، عدّلها واضغط على مُشارَك مع.",
   "settings_shareAllTrips_title": "مشاركة جميع رحلاتي...",
   "settings_shareAll_noneToShare": "لا يوجد شيء لمشاركته.",
   "settings_shareByDefault_title": "مشاركة المواقع والرحلات الجديدة تلقائيًا",
@@ -10607,7 +11064,6 @@
   "settings_connectedAccounts_status_signedIn": "تم تسجيل الدخول",
   "settings_connectedAccounts_status_unavailable": "غير متاح على هذا الجهاز",
   "settings_connectedAccounts_disconnectDevice": "تسجيل الخروج على هذا الجهاز",
-
   "settings_connectedAccounts_rename": "إعادة التسمية",
   "settings_connectedAccounts_renameTitle": "إعادة تسمية الحساب",
   "settings_connectedAccounts_renameField": "الاسم",
@@ -10652,6 +11108,41 @@
   "settings_sync_notSetUp": "غير مُعد",
   "settings_sync_offCustomFolder": "متوقف أثناء وجود قاعدة البيانات في مجلد مخصص",
   "settings_sync_keepInStep": "إبقاء الأجهزة متزامنة تلقائيًا",
+  "settings_nearby_title": "الأجهزة القريبة",
+  "settings_nearby_auto_title": "المزامنة مع الأجهزة القريبة تلقائيًا",
+  "settings_nearby_auto_subtitle": "عندما يكون جهاز مقترن مفتوحًا بالقرب، عبر البلوتوث",
+  "settings_nearby_linuxNote": "لا يمكن للأجهزة الأخرى العثور على هذا الكمبيوتر، لذا يتزامن مع أي جهاز قريب باستثناء كمبيوتر لينكس آخر",
+  "settings_nearby_pair": "إقران جهاز",
+  "settings_nearby_status_synced": "تمت المزامنة {when}",
+  "settings_nearby_status_syncing": "جارٍ المزامنة: {done} من {total}",
+  "settings_nearby_status_never": "لم تتم المزامنة بعد",
+  "settings_nearby_status_notSeen": "لم يُشاهَد منذ {date}",
+  "settings_nearby_error_newerApp": "يحتاج هذا الجهاز إلى إصدار أحدث من التطبيق",
+  "settings_nearby_error_peerOlderApp": "يحتاج ذلك الجهاز إلى إصدار أحدث من التطبيق",
+  "settings_nearby_error_differentLibrary": "ليست المكتبة نفسها",
+  "settings_nearby_error_notPaired": "أُلغي الإقران على الجهاز الآخر",
+  "settings_nearby_error_applyFailed": "تعذّر تطبيق تغييراته",
+  "settings_nearby_error_bluetoothOff": "البلوتوث متوقف أو غير مسموح به",
+  "settings_nearby_error_unreachable": "تعذّر الاتصال",
+  "settings_nearby_sheet_rename": "إعادة تسمية",
+  "settings_nearby_sheet_unpair": "إلغاء الإقران",
+  "settings_nearby_unpair_confirm": "إلغاء إقران {name}؟ سيحتاج إلى إقران جديد للمزامنة القريبة.",
+  "settings_nearby_rename_title": "إعادة تسمية الجهاز",
+  "settings_nearby_notInRange": "{name} ليس قريبًا الآن",
+  "nearbyPair_looking": "جارٍ البحث عن أجهزة…",
+  "nearbyPair_hint": "افتح Submersion على الجهاز الآخر واضغط على إقران جهاز هناك أيضًا.",
+  "nearbyPair_found": "تم العثور على {name}. تحقّق من أنه يعرض هذا الرمز، ثم أكّد على الجهازين.",
+  "nearbyPair_sameCode": "الرمز نفسه",
+  "nearbyPair_notMine": "ليس جهازي",
+  "nearbyPair_waiting": "في انتظار تأكيد الجهاز الآخر…",
+  "nearbyPair_bothPopulated": "يحتوي الجهازان على غطسات. يدمجها الإقران في سجل واحد.",
+  "nearbyPair_differentLibrary": "ذلك الجهاز على مكتبة مختلفة، لذا لا يمكن إقرانه بهذا الجهاز.",
+  "nearbyPair_permissionDenied": "يحتاج Submersion إلى إذن البلوتوث للعثور على الأجهزة القريبة.",
+  "nearbyPair_bluetoothOff": "شغّل البلوتوث للعثور على الأجهزة القريبة.",
+  "nearbyPair_unsupported": "لا يحتوي هذا الجهاز على بلوتوث يمكن لـ Submersion استخدامه.",
+  "nearbyPair_openSettings": "فتح الإعدادات",
+  "nearbyPair_done": "تم الإقران مع {name}",
+  "nearbyPair_failed": "لم يكتمل الإقران. حاول مرة أخرى على الجهازين.",
   "settings_sync_alsoAtLaunch": "المزامنة أيضًا عند التشغيل",
   "settings_sync_alsoOnReturn": "المزامنة أيضًا عند العودة إلى التطبيق",
   "settings_sync_encryption": "التشفير",
@@ -14934,6 +15425,33 @@
   "media_species_otherSpecies": "أنواع أخرى...",
   "media_species_noDiveHint": "هذه الصورة غير مرتبطة بغوصة. ابحث عن نوع لوسمها.",
   "media_species_chipsLabel": "وسوم الأنواع",
+  "media_people_me": "أنا",
+  "media_people_chipsLabel": "وسوم الأشخاص",
+  "media_people_momentChip": "{name} · {time}",
+  "media_people_actionTooltip": "وسم الأشخاص",
+  "media_people_tagModeHint": "اضغط على شخص لوسمه",
+  "media_people_noSpotHint": "لا يمكن تحديد موضع هنا",
+  "media_people_withoutSpot": "وسم دون موضع",
+  "media_people_done": "تم",
+  "media_people_pickerTitle": "من هذا؟",
+  "media_people_searchHint": "البحث عن رفاق",
+  "media_people_onThisDive": "في هذه الغطسة",
+  "media_people_everyoneElse": "الآخرون",
+  "media_people_newBuddy": "رفيق جديد",
+  "media_people_newBuddyName": "الاسم",
+  "media_people_newBuddyAdd": "إضافة",
+  "media_people_changePerson": "تغيير الشخص",
+  "media_people_removeTag": "إزالة الوسم",
+  "media_people_resizeHint": "اسحب الزوايا للضبط",
+  "media_people_addToDiveOffer": "هل تريد إضافة {name} إلى رفاق هذه الغطسة؟",
+  "media_people_addToDiveAction": "إضافة",
+  "media_people_buddyPhotosTitle": "الصور ومقاطع الفيديو",
+  "media_people_buddyThumbnailLabel": "صورة أو فيديو مع هذا الرفيق",
+  "media_people_filterSection": "الأشخاص",
+  "media_people_removedBuddy": "رفيق محذوف",
+  "media_people_saveFailed": "تعذر حفظ الوسم. حاول مرة أخرى.",
+  "media_people_addToDiveFailed": "تعذرت إضافة الرفيق إلى هذه الغطسة. حاول مرة أخرى.",
+  "media_people_createBuddyFailed": "تعذر إنشاء الرفيق. حاول مرة أخرى.",
   "media_info_fileSection": "الملف",
   "media_info_filename": "اسم الملف",
   "media_info_type": "النوع",
@@ -15303,6 +15821,9 @@
   "startup_diveLogUnavailable_startNew_confirm": "بدء سجل غوص جديد",
   "backup_history_preDowngradeSubtitle": "قاعدة بيانات أحدث، محفوظة عند الرجوع - {size}",
   "backup_history_cloudOnlySubtitle": "في التخزين السحابي ({size})",
+  "backup_history_device_anotherDevice": "جهاز آخر",
+  "backup_history_device_thisDevice": "هذا الجهاز",
+  "backup_history_subtitleWithDevice": "{summary} · {device}",
   "backup_history_manualSubtitle": "{diveCount, plural, =1{غوصة واحدة} two{غوصتان} few{{diveCount} غوصات} many{{diveCount} غوصة} other{{diveCount} غوصة}}, {siteCount, plural, =1{موقع غوص واحد} two{موقعا غوص} few{{siteCount} مواقع غوص} many{{siteCount} موقع غوص} other{{siteCount} موقع غوص}} - {size}",
   "backup_history_manualSubtitleAuto": "{diveCount, plural, =1{غوصة واحدة} two{غوصتان} few{{diveCount} غوصات} many{{diveCount} غوصة} other{{diveCount} غوصة}}, {siteCount, plural, =1{موقع غوص واحد} two{موقعا غوص} few{{siteCount} مواقع غوص} many{{siteCount} موقع غوص} other{{siteCount} موقع غوص}} - {size} (تلقائي)",
   "settings_manage_transmitters": "أجهزة الإرسال",
@@ -15544,8 +16065,7 @@
   "diveDetailSection_navTrack_trackName": "مسار تحت الماء",
   "diveDetailSection_navTrack_trackDescription": "مسار تحت الماء تم قياسه من وحدة تحكم ملاحية",
   "navTrack_list_durationHours": "{hours} س {minutes} د",
-  "navTrack_list_durationMinutes": "{minutes}min"
-,
+  "navTrack_list_durationMinutes": "{minutes}min",
   "gasCalculators_mod_semanticsLabel": "أقصى عمق تشغيلي: {depth} {unit} عند {ppo2} بار ppO2 مع {o2}% أكسجين",
   "gasCalculators_blender_stepColumnAction": "الإجراء",
   "gasCalculators_blender_stepColumnAdded": "أضيف",
@@ -15755,6 +16275,8 @@
   "query_dives_weight": "الثقل",
   "query_dives_weights": "الأثقال",
   "query_dives_year": "السنة",
+  "query_dives_month": "الشهر",
+  "query_dives_day": "يوم الشهر",
   "query_entity_buddies": "رفاق الغوص",
   "query_entity_centers": "مراكز الغوص",
   "query_entity_certifications": "الشهادات",
@@ -15847,6 +16369,7 @@
   "query_tanks_volume": "الحجم",
   "query_trips_diveCount": "عدد الغطسات",
   "query_trips_dives": "الغطسات",
+  "query_trips_partOf": "جزء من",
   "query_trips_endDate": "تاريخ الانتهاء",
   "query_trips_liveaboardName": "سفينة غوص",
   "query_trips_location": "الموقع",
@@ -16172,6 +16695,7 @@
   "plannerCanvas_bailout_schedule": "الجدول من أسوأ حالة",
   "plannerCanvas_chartMode_bailout": "Bailout",
   "plannerCanvas_chartMode_ccr": "CCR",
+  "plannerCanvas_chartMode_scr": "SCR",
   "plannerCanvas_scrub_tts": "TTS {minutes}′",
   "plannerCanvas_table_end": "END",
   "plannerCanvas_table_ppO2": "PO2",
@@ -16263,6 +16787,8 @@
   "tags_manage_bulkDeleteMessage_several": "سيتم إزالة هذه الوسوم من:",
   "tags_manage_mergeAffected_several": "سيؤثر هذا على:",
   "tags_manage_cannotUndo": "لا يمكن التراجع عن هذا الإجراء.",
+  "tags_manage_rowScopes": "متاح لـ: {scopes}",
+  "tags_manage_rowUsage": "مستخدم في: {counts}",
   "tags_action_edit": "تعديل الوسوم",
   "media_info_tags": "الوسوم",
   "media_info_noTags": "لا توجد وسوم بعد",
@@ -16370,5 +16896,31 @@
   "settings_setUpDevice_done_title": "{device, select, phone{تم إعداد هذا الهاتف} tablet{تم إعداد هذا الجهاز اللوحي} computer{تم إعداد هذا الحاسوب} other{تم إعداد هذا الجهاز}}",
   "settings_setUpDevice_done_otherDevices": "على أجهزتك الأخرى، افتح Submersion واختر {account}، وستظهر المكتبة نفسها.",
   "settings_setUpDevice_sync_inStep": "الغطسات هنا متطابقة مع مكتبتك في {account}.",
-  "setup_syncPull_startFresh": "بدء سجل جديد"
+  "setup_syncPull_startFresh": "بدء سجل جديد",
+  "demo_welcome_title": "استكشف باستخدام بيانات تجريبية",
+  "demo_welcome_subtitle": "تصفح سجل غوص تجريبيًا كاملًا قبل إدخال سجلك",
+  "demo_settings_enter_title": "استكشف باستخدام بيانات تجريبية",
+  "demo_settings_enter_subtitle": "يُحفظ سجلك جانبًا دون أي تغيير حتى تخرج",
+  "demo_settings_exit_title": "الخروج من العرض التجريبي",
+  "demo_settings_exit_subtitle": "تجاهل السجل التجريبي والعودة إلى سجلك",
+  "demo_strip_label": "الوضع التجريبي: أنت تستكشف بيانات تجريبية",
+  "demo_strip_exit": "الخروج من العرض التجريبي",
+  "demo_exit_confirm_title": "الخروج من الوضع التجريبي؟",
+  "demo_exit_confirm_body": "سيتم تجاهل التغييرات التي أجريتها على السجل التجريبي.",
+  "demo_exit_confirm_action": "الخروج من العرض التجريبي",
+  "demo_enter_downloading": "جارٍ تنزيل السجل التجريبي",
+  "demo_enter_preparing": "جارٍ تجهيز السجل التجريبي",
+  "demo_enter_opening": "جارٍ فتح السجل التجريبي",
+  "demo_enter_failed": "تعذّر تنزيل السجل التجريبي. تحقّق من اتصالك وحاول مرة أخرى.",
+  "demo_enter_importRunning": "لا يزال الاستيراد قيد التشغيل. استكشف البيانات التجريبية بعد انتهائه.",
+  "demo_sealed_note": "غير متاح في الوضع التجريبي",
+  "demo_unavailable_title": "غير متاح في الوضع التجريبي",
+  "demo_unavailable_body": "يُبقي الوضع التجريبي السجل التجريبي منفصلًا عن بياناتك، لذا لا يمكن استيراد أي شيء أو تصديره أو نسخه احتياطيًا أو مزامنته.",
+  "demo_row_unavailable": "غير متاح في الوضع التجريبي",
+  "demo_enter_confirm_title": "الاستكشاف باستخدام بيانات تجريبية؟",
+  "demo_enter_confirm_body": "سيتم تنزيل سجل تجريبي ({size}) وفتحه بدلًا من سجلك. يُحفظ سجلك جانبًا دون أي تغيير حتى تخرج من الوضع التجريبي.",
+  "demo_enter_confirm_action": "تنزيل",
+  "demo_enter_confirm_body_firstRun": "سيتم تنزيل سجل تجريبي ({size}) لاستكشاف التطبيق. اخرج من الوضع التجريبي متى كنت مستعدًا لبدء سجلك الخاص.",
+  "demo_enter_changed_body": "تم تحديث السجل التجريبي وأصبح حجمه الآن {size}. هل تريد تنزيله؟",
+  "common_byteSize": "{value} {unit, select, B{B} KB{KB} MB{MB} GB{GB} TB{TB} other{{unit}}}"
 }

@@ -12,6 +12,8 @@ import 'package:submersion/features/media/presentation/helpers/video_share_timel
 import 'package:submersion/features/media/presentation/widgets/video_correction_failed_dialog.dart';
 import 'package:submersion/features/media/presentation/widgets/video_share_progress_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 
 /// Prepares share files for [items] and opens the platform share sheet.
 /// Photos go out with their colour correction, and a video with a
@@ -69,6 +71,9 @@ Future<bool> runShareFlow(
   Rect? anchor,
   bool systemStopsEncodes = true,
 }) async {
+  if (!demoSealGuard(context, DemoSealedFeature.share)) {
+    return false;
+  }
   final l10n = context.l10n;
   // Falls back to [context] so callers that only have a page or bar context
   // still anchor somewhere sensible instead of the middle of the screen.

@@ -665,11 +665,15 @@
   "backup_export_saveToFile_subtitle": "בחר היכן לשמור את קובץ הגיבוי",
   "backup_export_share": "שיתוף",
   "backup_export_share_subtitle": "שליחה דרך AirDrop, דוא\"ל או אפליקציות אחרות",
+  "backup_copySheet_deviceLocked": "עותק הבטיחות הזה נלקח ממסד הנתונים המוגן שלכם. אפשר לשחזר אותו רק במכשיר הזה.",
+  "backup_copySheet_title": "גיבוי מ-{dateTime}",
   "backup_frequency_daily": "יומי",
   "backup_frequency_monthly": "חודשי",
   "backup_frequency_weekly": "שבועי",
   "backup_history_action_delete": "מחיקה",
   "backup_history_action_restore": "שחזור",
+  "backup_history_action_saveCopy": "שמירת עותק",
+  "backup_history_action_share": "שיתוף",
   "backup_history_empty": "אין גיבויים",
   "backup_history_error": "שגיאה בטעינת היסטוריה: {error}",
   "backup_import_invalidFile": "נראה שקובץ זה אינו גיבוי תקין של Submersion",
@@ -732,6 +736,88 @@
   "buddies_action_add": "הוסף חבר צוללים",
   "buddies_action_addFirst": "הוסף את חבר הצוללים הראשון שלך",
   "buddies_action_addTooltip": "הוסף חבר צוללים חדש",
+  "buddyCard_preview_title": "כרטיס שותף",
+  "buddyCard_preview_addTitle": "הוספת {name} כשותף",
+  "buddyCard_preview_updateTitle": "עדכון {name}",
+  "buddyCard_preview_possibleTitle": "האם זה {name} מהשותפים שלך?",
+  "buddyCard_preview_trimmed": "חלק מהפרטים הושמטו כדי שייכנסו לקוד.",
+  "buddyCard_preview_newer": "הכרטיס הזה מגרסה חדשה יותר של Submersion. ייתכן שחלק מהפרטים חסרים.",
+  "buddyCard_preview_noChanges": "אין בכרטיס הזה שום דבר חדש.",
+  "buddyCard_preview_ownCard": "זה הכרטיס שלך. החלף עם שותף צלילה כדי לקבל את שלו.",
+  "buddyCard_preview_changed": "{to} (קודם {from})",
+  "buddyCard_action_add": "הוספת שותף",
+  "buddyCard_action_update": "עדכון שותף",
+  "buddyCard_action_addAsNew": "הוספה כשותף חדש",
+  "buddyCard_action_discard": "ביטול",
+  "buddyCard_field_name": "שם",
+  "buddyCard_field_phone": "טלפון",
+  "buddyCard_field_email": "אימייל",
+  "buddyCard_field_social": "שם משתמש ברשתות חברתיות",
+  "buddyCard_field_dives": "צלילות",
+  "buddyCard_field_divingSince": "צולל מאז",
+  "buddyCard_field_lastDive": "צלילה אחרונה",
+  "buddyCard_field_certifications": "הסמכות",
+  "buddyCard_saved_added": "{name} נוסף לשותפים שלך",
+  "buddyCard_saved_updated": "{name} עודכן",
+  "buddyCard_saved_view": "הצג",
+  "buddyCard_error_notACard": "זה לא כרטיס שותף של Submersion.",
+  "buddyCard_error_unreadable": "לא ניתן לקרוא את כרטיס השותף הזה.",
+  "buddySwap_title": "החלפה עם שותף",
+  "buddySwap_nearby_heading": "צוללים בקרבת מקום עם Submersion פתוח",
+  "buddySwap_nearby_tapToSwap": "הקש להחלפה",
+  "buddySwap_nearby_looking": "מחפש עוד…",
+  "buddySwap_nearby_failed": "לא ניתן היה לחפש צוללים בקרבת מקום. שאר דרכי ההחלפה למטה עדיין עובדות.",
+  "buddySwap_nearby_hint": "לא רואה את השותף שלך? שניכם צריכים שהמסך הזה יהיה פתוח ו-Submersion 1.8.4 ואילך.",
+  "buddySwap_sharing": "משותף: {summary}",
+  "buddySwap_sharing_change": "שינוי",
+  "buddySwap_dives": "{count, plural, =1{צלילה אחת} other{{count} צלילות}}",
+  "buddySwap_action_showCode": "הצג את הקוד שלי",
+  "buddySwap_action_scanCode": "סרוק קוד",
+  "buddySwap_action_sendFile": "שלח קובץ",
+  "buddySwap_action_openFile": "פתח קובץ כרטיס",
+  "buddySwap_action_writeSticker": "כתוב מדבקת NFC",
+  "buddySwap_action_tapAndroid": "הצמד טלפון אנדרואיד",
+  "buddySwap_action_receiveByTap": "קבל בהצמדה",
+  "buddySwap_tap_prompt": "קרב את הטלפון לטלפון השני או למדבקה",
+  "buddySwap_sticker_prompt": "קרב את הטלפון למדבקת NFC ריקה",
+  "buddySwap_sticker_written": "המדבקה נכתבה. כתוב אותה מחדש כשהפרטים שלך משתנים.",
+  "buddySwap_sticker_tooSmall": "המדבקה קטנה מדי לכרטיס שלך.",
+  "buddySwap_sticker_notWritable": "לא ניתן לכתוב על המדבקה הזו.",
+  "buddySwap_nfc_unavailable": "NFC אינו זמין במכשיר זה.",
+  "buddySwap_qr_title": "כרטיס השותף שלך",
+  "buddySwap_qr_hint": "בקש מהשותף לסרוק את זה עם Submersion או במצלמה.",
+  "buddySwap_request_title": "{name} רוצה להחליף כרטיסים",
+  "buddySwap_request_youSend": "תשלח: {summary}",
+  "buddySwap_request_swap": "החלף",
+  "buddySwap_request_decline": "דחה",
+  "buddySwap_waiting": "ממתין לתשובה של {name}",
+  "buddySwap_failed_declined": "{name} דחה את ההחלפה",
+  "buddySwap_failed_timedOut": "{name} לא ענה",
+  "buddySwap_failed_lost": "החיבור ל-{name} אבד",
+  "buddySwap_failed_newerApp": "{name} צריך גרסה חדשה יותר של Submersion",
+  "buddySwap_cardFailed": "לא ניתן ליצור את כרטיס השותף שלך.",
+  "buddySwap_qr_tooLarge": "הכרטיס שלך ארוך מדי לקוד. נסה במקום זאת לשלוח קובץ.",
+  "buddySwap_sendFailed": "לא ניתן לשתף את קובץ הכרטיס.",
+  "buddyCard_saveFailed": "לא ניתן לשמור את השותף.",
+  "buddyCard_field_photo": "תמונה",
+  "buddyCard_change_newPhoto": "תמונה חדשה",
+  "buddyShare_title": "מה אתה משתף",
+  "buddyShare_name": "שם",
+  "buddyShare_alwaysShared": "משותף תמיד",
+  "buddyShare_neverShared": "פרטים רפואיים, ביטוח ופרטי חירום לעולם אינם משותפים.",
+  "buddyShare_photo": "תמונה",
+  "buddyShare_phone": "טלפון",
+  "buddyShare_email": "אימייל",
+  "buddyShare_certifications": "הסמכות",
+  "buddyShare_cardDetails": "מספרי כרטיסים ותאריכים",
+  "buddyShare_diveCount": "מספר צלילות",
+  "buddyShare_divingSince": "צולל מאז",
+  "buddyShare_lastDive": "תאריך הצלילה האחרונה",
+  "buddyShare_social": "שם משתמש ברשתות חברתיות",
+  "buddyCard_detail_heading": "מהכרטיס של {name}",
+  "buddyCard_detail_since": "צולל מאז {year}",
+  "buddyCard_detail_last": "צלילה אחרונה {date}",
+  "buddyCard_detail_received": "התקבל ב-{date}",
   "buddies_action_clearSearch": "נקה חיפוש",
   "buddies_action_edit": "ערוך חבר צוללים",
   "buddies_action_importFromContacts": "ייבא מאנשי קשר",
@@ -1453,7 +1539,13 @@
   "connections_tab_view": "תצוגה",
   "connections_tab_filter": "סינון",
   "connections_tab_filterCount": "סינון ({count})",
-  "@connections_tab_filterCount": {"placeholders": {"count": {"type": "int"}}},
+  "@connections_tab_filterCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "connections_tab_details": "פרטים",
   "connections_presets_title": "הגדרות מוכנות",
   "connections_preset_circle": "מעגל הצלילה",
@@ -1470,16 +1562,37 @@
   "connections_editor_kinds": "סוגים",
   "connections_editor_links": "קישורים",
   "connections_editor_link": "{a} עם {b}",
-  "@connections_editor_link": {"placeholders": {"a": {"type": "String"}, "b": {"type": "String"}}},
+  "@connections_editor_link": {
+    "placeholders": {
+      "a": {
+        "type": "String"
+      },
+      "b": {
+        "type": "String"
+      }
+    }
+  },
   "connections_editor_minShared": "{count, plural, =1{לפחות צלילה משותפת אחת} other{לפחות {count} צלילות משותפות}}",
-  "@connections_editor_minShared": {"placeholders": {"count": {"type": "int"}}},
+  "@connections_editor_minShared": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "connections_editor_saveAsMap": "שמירה כמפה",
   "connections_savedMap_saveTitle": "שמירת מפה",
   "connections_savedMap_nameLabel": "שם",
   "connections_savedMap_rename": "שינוי שם",
   "connections_savedMap_update": "עדכון מהתצוגה הנוכחית",
   "connections_savedMap_deleted": "\"{name}\" נמחקה",
-  "@connections_savedMap_deleted": {"placeholders": {"name": {"type": "String"}}},
+  "@connections_savedMap_deleted": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "connections_savedMap_undo": "ביטול",
   "connections_savedMap_badge": "מפה שמורה",
   "connections_around_searchHint": "חיפוש שותפים, אתרים, טיולים ועוד",
@@ -1500,7 +1613,16 @@
   "connections_caption_around": "{hops, plural, =1{כל מה שחולק צלילה עם הפריט שבמרכז.} other{כל מה שנמצא עד {hops} צעדים מהפריט שבמרכז, מחובר בצלילות משותפות.}}",
   "connections_caption_thicker": "קווים עבים יותר פירושם יותר צלילות.",
   "connections_around_kindChip": "{kind} ({count})",
-  "@connections_around_kindChip": {"placeholders": {"kind": {"type": "String"}, "count": {"type": "int"}}},
+  "@connections_around_kindChip": {
+    "placeholders": {
+      "kind": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "connections_around_prompt": "חפשו שותף, אתר, טיול או כל דבר אחר כדי למרכז עליו את המפה.",
   "connections_around_noResults": "אין תוצאות",
   "connections_action_centreHere": "מרכוז כאן",
@@ -1572,10 +1694,28 @@
   "connections_share_allDives": "כל הצלילות, {first} עד {last}",
   "connections_share_details": "{range}. {counts}",
   "connections_summary_pairValue": "{count, plural, =1{{a} ו-{b}, צלילה אחת} other{{a} ו-{b}, {count} צלילות}}",
-  "@connections_summary_pairValue": {"placeholders": {"count": {"type": "int"}, "a": {"type": "String"}, "b": {"type": "String"}}},
+  "@connections_summary_pairValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "a": {
+        "type": "String"
+      },
+      "b": {
+        "type": "String"
+      }
+    }
+  },
   "connections_summary_closest": "הקרוב ביותר",
   "connections_summary_entitiesAround": "{count, plural, =1{פריט אחד} other{{count} פריטים}}",
-  "@connections_summary_entitiesAround": {"placeholders": {"count": {"type": "int"}}},
+  "@connections_summary_entitiesAround": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "connections_filter_allFilters": "כל המסננים",
   "connections_filter_clear": "ניקוי",
   "connections_filter_none": "אין מסננים פעילים.",
@@ -1583,20 +1723,50 @@
   "connections_tooltip_relayout": "סידור מחדש",
   "connections_tooltip_showWholeWeb": "חזרה למפה המלאה",
   "connections_filterBar_edges": "{count, plural, =1{קשר אחד} other{{count} קשרים}}",
-  "@connections_filterBar_edges": {"placeholders": {"count": {"type": "int"}}},
+  "@connections_filterBar_edges": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "connections_hiddenNodes": "{count, plural, =1{אחד נוסף לא מוצג} other{{count} נוספים לא מוצגים}}",
-  "@connections_hiddenNodes": {"placeholders": {"count": {"type": "int"}}},
+  "@connections_hiddenNodes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "connections_showAll": "הצגת הכול",
   "connections_showAll_confirmTitle": "להציג את כל הצמתים?",
   "connections_showAll_confirmBody": "סידור {count} צמתים עשוי להימשך רגע במכשיר זה.",
-  "@connections_showAll_confirmBody": {"placeholders": {"count": {"type": "int"}}},
+  "@connections_showAll_confirmBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "connections_action_open": "פתיחה",
   "connections_action_showDives": "הצגת צלילות",
   "connections_action_openInConnections": "פתיחה בקשרים",
   "connections_selection_divesTogether": "{count, plural, =1{צלילה אחת יחד} other{{count} צלילות יחד}}",
-  "@connections_selection_divesTogether": {"placeholders": {"count": {"type": "int"}}},
+  "@connections_selection_divesTogether": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "connections_selection_dives": "{count, plural, =1{צלילה אחת} other{{count} צלילות}}",
-  "@connections_selection_dives": {"placeholders": {"count": {"type": "int"}}},
+  "@connections_selection_dives": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "connections_selection_topConnections": "קשרים מובילים",
   "connections_selection_hint": "הקישו על צומת או על קו לפרטים.",
   "connections_details_dives": "צלילות",
@@ -1622,11 +1792,35 @@
   "connections_error_load": "לא ניתן לטעון את הקשרים.",
   "connections_legend_title": "מקרא",
   "connections_timeline_range": "{start} עד {end}",
-  "@connections_timeline_range": {"placeholders": {"start": {"type": "String"}, "end": {"type": "String"}}},
+  "@connections_timeline_range": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
   "connections_semantics_summary": "{nodes} צמתים ו-{edges} קשרים",
-  "@connections_semantics_summary": {"placeholders": {"nodes": {"type": "int"}, "edges": {"type": "int"}}},
+  "@connections_semantics_summary": {
+    "placeholders": {
+      "nodes": {
+        "type": "int"
+      },
+      "edges": {
+        "type": "int"
+      }
+    }
+  },
   "connections_semantics_selected": "נבחר: {label}",
-  "@connections_semantics_selected": {"placeholders": {"label": {"type": "String"}}},
+  "@connections_semantics_selected": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
   "connections_kind_buddy": "שותפים",
   "connections_kind_site": "אתרים",
   "connections_kind_trip": "טיולים",
@@ -1644,6 +1838,12 @@
   "common_label_error": "שגיאה",
   "common_label_loading": "טוען",
   "common_placeholder_noValue": "--",
+  "notesEditor_action_heading": "כותרת",
+  "notesEditor_action_bold": "מודגש",
+  "notesEditor_action_italic": "נטוי",
+  "notesEditor_action_bulletList": "רשימת תבליטים",
+  "notesEditor_action_numberedList": "רשימה ממוספרת",
+  "notesEditor_action_preview": "תצוגה מקדימה",
   "courses_action_add": "הוסף קורס",
   "courses_action_addFromTemplate": "הוסף מתבנית",
   "courses_action_addRequirement": "הוסף דרישה",
@@ -2923,6 +3123,7 @@
   "diveLog_search_section_organization": "ארגון",
   "diveLog_selection_tooltip_combine": "מזג",
   "diveLog_selection_tooltip_edit": "ערוך נבחרים",
+  "diveLog_selection_tooltip_newTrip": "טיול חדש מהבחירה",
   "diveLog_selection_tooltip_export": "ייצא נבחרים",
   "diveLog_selection_tooltip_selectDateRange": "בחירה לפי טווח תאריכים",
   "diveLog_sighting_add": "הוסף",
@@ -2977,15 +3178,16 @@
   "diveLog_tank_label_workingPressure": "לחץ עבודה",
   "diveLog_tank_mndHelper": "הגדר לחישוב אוטומטי של He%",
   "diveLog_tank_modMndInfo": "MOD: {mod} (ppO₂ {ppO2}) | MND: {mnd}",
-  "diveLog_cylinders_columnTank": "בלון",
-  "diveLog_cylinders_columnGas": "גז",
-  "diveLog_cylinders_columnStart": "התחלה",
-  "diveLog_cylinders_columnEnd": "סיום",
-  "diveLog_cylinders_columnUsed": "נוצל",
+  "diveLog_cylinders_figureStart": "התחלה {pressure}",
+  "diveLog_cylinders_figureEnd": "סיום {pressure}",
+  "diveLog_cylinders_figureUsed": "נוצל {pressure}",
+  "diveLog_cylinders_gasSemantics": "גז {mix}",
   "diveLog_cylinders_gasUsed": "גז שנוצל {amount}",
   "diveLog_cylinders_mod": "MOD {depth}",
   "diveLog_cylinders_mnd": "MND {depth}",
   "diveLog_cylinders_modNote": "MOD ב-ppO₂ {ppO2}",
+  "diveLog_cylinders_modLimit": "{ppO2} ({limit})",
+  "diveLog_cylinders_modLimitSeparator": ", ",
   "diveLog_tank_section_gasMix": "תערובת גזים",
   "diveLog_tank_computerMix_matches": "נרשם על ידי מחשב הצלילה שלך",
   "diveLog_tank_computerMix_differs": "מחשב הצלילה שלך רשם {mix}",
@@ -3123,6 +3325,12 @@
   "divePlanner_gasOptions_problemSolvingMinutes": "זמן לפתרון תקלה",
   "divePlanner_gasOptions_ppO2Bottom": "ppO₂ בקרקעית",
   "divePlanner_gasOptions_ppO2Deco": "ppO₂ דקו",
+  "divePlanner_gasOptions_ppO2DecoBand1": "ppO₂ דקו עד 28% חמצן",
+  "divePlanner_gasOptions_ppO2DecoBand2": "ppO₂ דקו 28-45% חמצן",
+  "divePlanner_gasOptions_ppO2DecoBand3": "ppO₂ דקו 45-99% חמצן",
+  "divePlanner_gasOptions_maxO2DepthMeters": "עומק מקס' ל-100% חמצן",
+  "divePlanner_gasOptions_hypercapniaAmv": "RMV היפרקפניה",
+  "divePlanner_gasOptions_hypercapniaMinutes": "משך",
   "divePlanner_gasOptions_bestMixEnd": "END לתערובת מיטבית",
   "divePlanner_gasOptions_o2Narcotic": "התייחס ל-O₂ כנרקוטי בתוכנית זו",
   "divePlanner_label_on": "פעיל",
@@ -4200,6 +4408,7 @@
   "cylinderConfigs_fromPreset": "מתבנית",
   "tankMod_label": "MOD",
   "tankMod_default": "ברירת מחדל ב-ppO2 {ppO2} ({limit})",
+  "tankMod_defaultDepth": "ברירת מחדל ב-{depth} ({limit})",
   "tankMod_limitBottom": "מגבלת קרקעית",
   "tankMod_limitDeco": "מגבלת דקו",
   "tankMod_limitDiluent": "MOD מדלל",
@@ -5559,6 +5768,7 @@
   "plannerCanvas_issue_gasDensityHigh": "צפיפות הגז {value} g/L מעל הגבול המומלץ",
   "plannerCanvas_issue_hypoxic": "גז היפוקסי ב-{depth} (ppO₂ {value} bar)",
   "plannerCanvas_issue_minGas": "המיכל מסתיים מתחת למינימום rock bottom של {pressure}",
+  "plannerCanvas_issue_noUsableGas": "מינימום rock bottom של {minGas} לא משאיר גז שמיש במילוי של {fill}",
   "plannerCanvas_issue_diluentModExceeded": "המדלל חורג מ-MOD מדלל ב-{depth} (ppO₂ {value} bar)",
   "plannerCanvas_issue_ceilingViolated": "הפרופיל חוצה את תקרת הדקומפרסיה של {ceiling} ומדלג על עצירות נדרשות",
   "plannerCanvas_issue_noBailout": "תוכנית דקומפרסיה CCR ללא גז חילוץ (bailout)",
@@ -6002,7 +6212,13 @@
   "sharedLibrary_connect_folderChars": "תיקיית ספרייה אינה יכולה להכיל *, ? או סימני דולר.",
   "sharedLibrary_setup_title": "איך להגדיר את האחסון",
   "sharedLibrary_setup_where": "הספרייה הזו נמצאת ב-{folder} בראש ה-bucket או השרת, לצד submersion-sync ו-submersion-media.",
-  "@sharedLibrary_setup_where": {"placeholders": {"folder": {"type": "String"}}},
+  "@sharedLibrary_setup_where": {
+    "placeholders": {
+      "folder": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_setup_keys": "תנו לבעלים ולעורכים מפתחות שקוראים וכותבים בתיקיית הספרייה. תנו לכל השאר מפתחות שקוראים אותה וכותבים רק ב-members/ וב-suggestions/. האחסון, ולא האפליקציה, הוא שמונע ממפתח לכתוב.",
   "sharedLibrary_setup_s3Full": "מדיניות S3 לבעלים ולעורכים",
   "sharedLibrary_setup_s3Reader": "מדיניות S3 לקוראים",
@@ -6017,22 +6233,52 @@
   "sharedLibrary_members_approve": "אישור",
   "sharedLibrary_members_reject": "דחייה",
   "sharedLibrary_members_fingerprint": "מפתח {fingerprint}",
-  "@sharedLibrary_members_fingerprint": {"placeholders": {"fingerprint": {"type": "String"}}},
+  "@sharedLibrary_members_fingerprint": {
+    "placeholders": {
+      "fingerprint": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_members_unsignedCard": "הכרטיס לא נחתם על ידי החבר",
   "sharedLibrary_members_rejectTitle": "לדחות את {name}?",
-  "@sharedLibrary_members_rejectTitle": {"placeholders": {"name": {"type": "String"}}},
+  "@sharedLibrary_members_rejectTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_members_rejectBody": "הכרטיס מוסר ושום דבר שייכתב לא ייחשב. רק מפתחות אחסון חדשים ימנעו כתיבת קבצים לגמרי.",
   "sharedLibrary_members_left": "עזבו את הספרייה",
   "sharedLibrary_members_removeRole": "הסרת תפקיד",
   "sharedLibrary_members_remove": "הסרה מהספרייה",
   "sharedLibrary_members_removeTitle": "להסיר את {name}?",
-  "@sharedLibrary_members_removeTitle": {"placeholders": {"name": {"type": "String"}}},
+  "@sharedLibrary_members_removeTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_members_removeBody": "{name} לא יוכל עוד לערוך אתרים או להציע שינויים. אתרים ועריכות שכבר תרם נשארים בספרייה.\n\nעדיין אפשר יהיה לקרוא את הספרייה עד שתחליף את מפתחות האחסון שלה, ואת משפט הסיסמה אם היא מוצפנת.",
-  "@sharedLibrary_members_removeBody": {"placeholders": {"name": {"type": "String"}}},
+  "@sharedLibrary_members_removeBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_members_removeConfirm": "הסרה",
   "sharedLibrary_members_removedHeader": "הוסרו",
   "sharedLibrary_members_removedOn": "הוסר ב-{date}",
-  "@sharedLibrary_members_removedOn": {"placeholders": {"date": {"type": "String"}}},
+  "@sharedLibrary_members_removedOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_members_allowBack": "החזרה",
   "sharedLibrary_owner_onlyOne": "יש רק בעלים אחד. אם הגישה תאבד, רק קוד השחזור יוכל להחזיר אותה.",
   "sharedLibrary_owner_addOwner": "בחירת בעלים נוסף",
@@ -6047,7 +6293,19 @@
   "sharedLibrary_owner_resetHelp": "רק אם לא נותרו בעלים וגם לא קוד שחזור. כל החברים חייבים לאשר זאת.",
   "sharedLibrary_owner_resetConfirm": "להפוך לבעלים היחידים? המכשיר של כל חבר אחר יבקש ממנו לאשר זאת, ויפסיק לכתוב לספרייה עד שיאשר.",
   "sharedLibrary_owner_resetPrompt": "הבעלות על {library} אופסה על ידי {name} (מפתח {fingerprint}). עד שתאשרו, המכשיר הזה רק קורא את הספרייה.",
-  "@sharedLibrary_owner_resetPrompt": {"placeholders": {"library": {"type": "String"}, "name": {"type": "String"}, "fingerprint": {"type": "String"}}},
+  "@sharedLibrary_owner_resetPrompt": {
+    "placeholders": {
+      "library": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      },
+      "fingerprint": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_owner_resetAccept": "אישור",
   "sharedLibrary_connect_untrusted": "התפקידים של הספרייה הזו אינם חתומים על ידי אחד מבעליה. בקשו מבעלים לבדוק זאת.",
   "sharedLibrary_retired": "הספרייה הזו נוצרה בגרסת ניסיון של Submersion. צרו אותה מחדש.",
@@ -6066,7 +6324,16 @@
   "sharedLibrary_backups_inStorage": "באחסון",
   "sharedLibrary_backups_both": "במכשיר הזה ובאחסון",
   "sharedLibrary_backups_summary": "אתרים: {sites} · {size}",
-  "@sharedLibrary_backups_summary": {"placeholders": {"sites": {"type": "int"}, "size": {"type": "String"}}},
+  "@sharedLibrary_backups_summary": {
+    "placeholders": {
+      "sites": {
+        "type": "int"
+      },
+      "size": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_backups_pin": "הצמדה",
   "sharedLibrary_backups_unpin": "ביטול הצמדה",
   "sharedLibrary_backups_delete": "מחיקה",
@@ -6075,7 +6342,13 @@
   "sharedLibrary_backups_export": "ייצוא",
   "sharedLibrary_backups_restore": "שחזור",
   "sharedLibrary_backups_restoreConfirm": "לשחזר את הספרייה למצבה ב-{date}? כל חבר יקבל גרסה זו בסנכרון הבא שלו. קודם נוצר גיבוי מוצמד של הספרייה במצבה הנוכחי.",
-  "@sharedLibrary_backups_restoreConfirm": {"placeholders": {"date": {"type": "String"}}},
+  "@sharedLibrary_backups_restoreConfirm": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_backups_restoreDone": "הספרייה שוחזרה",
   "sharedLibrary_backups_oldKey": "הגיבוי הזה נחתם במשפט סיסמה קודם. הזינו את משפט הסיסמה ההוא או את קוד השחזור מאותה עת.",
   "sharedLibrary_backups_empty": "אין עדיין גיבויים. מכשירי הבעלים יוצרים גיבוי בכל יום, ו״גיבוי עכשיו״ יוצר אחד מיד.",
@@ -6083,17 +6356,41 @@
   "sharedLibrary_backups_ownersOnly": "רק בעלים מנהלים גיבויים.",
   "sharedLibrary_backups_done": "הגיבוי נוצר",
   "sharedLibrary_library_myKey": "המפתח שלכם {fingerprint}",
-  "@sharedLibrary_library_myKey": {"placeholders": {"fingerprint": {"type": "String"}}},
+  "@sharedLibrary_library_myKey": {
+    "placeholders": {
+      "fingerprint": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_suggest_held": "{count, plural, =1{הצעה אחת ממתינה עד שתאשרו את הכותב שלה} other{{count} הצעות ממתינות עד שתאשרו את הכותבים שלהן}}",
-  "@sharedLibrary_suggest_held": {"placeholders": {"count": {"type": "int"}}},
+  "@sharedLibrary_suggest_held": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "sharedLibrary_restoreInto_action": "שחזור מקובץ גיבוי",
   "sharedLibrary_restoreInto_needsKey": "הגיבוי הזה מוצפן. הזינו את משפט הסיסמה או את קוד השחזור שלו.",
   "sharedLibrary_restoreInto_refused": "הקובץ הזה אינו גיבוי ספרייה שנוצר על ידי בעלים.",
   "sharedLibrary_restoreInto_oldStillThere": "הספרייה עדיין נמצאת גם בתיקייה הישנה. החברים שם ממשיכים להשתמש בעותק הזה עד שיתחברו לתיקייה הזו.",
   "sharedLibrary_encrypted_locked": "הזינו את משפט הסיסמה של {library}.",
-  "@sharedLibrary_encrypted_locked": {"placeholders": {"library": {"type": "String"}}},
+  "@sharedLibrary_encrypted_locked": {
+    "placeholders": {
+      "library": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_encrypted_changed": "משפט הסיסמה של {library} השתנה. הזינו את החדש.",
-  "@sharedLibrary_encrypted_changed": {"placeholders": {"library": {"type": "String"}}},
+  "@sharedLibrary_encrypted_changed": {
+    "placeholders": {
+      "library": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_encryption_title": "הצפנה",
   "sharedLibrary_encryption_statusOn": "מוצפנת במשפט סיסמה",
   "sharedLibrary_encryption_statusOff": "לא מוצפנת: כל מי שיש לו גישה לאחסון יכול לקרוא אותה",
@@ -6106,7 +6403,13 @@
   "sharedLibrary_encryption_passphrase": "משפט סיסמה",
   "sharedLibrary_encryption_confirm": "משפט הסיסמה שוב",
   "sharedLibrary_connect_join_action": "הצטרפות אל {name}",
-  "@sharedLibrary_connect_join_action": {"placeholders": {"name": {"type": "String"}}},
+  "@sharedLibrary_connect_join_action": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_connect_create_action": "יצירת ספרייה",
   "sharedLibrary_connect_create_name_label": "שם הספרייה",
   "sharedLibrary_connect_displayName_label": "השם שלך בספרייה זו",
@@ -6118,15 +6421,33 @@
   "sharedLibrary_role_owner": "בעלים",
   "sharedLibrary_library_members": "חברים",
   "sharedLibrary_library_memberCount": "{count, plural, =1{חבר אחד} other{{count} חברים}}",
-  "@sharedLibrary_library_memberCount": {"placeholders": {"count": {"type": "int"}}},
+  "@sharedLibrary_library_memberCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "sharedLibrary_library_syncNow": "סנכרון עכשיו",
   "sharedLibrary_library_lastSync": "סנכרון אחרון {when}",
-  "@sharedLibrary_library_lastSync": {"placeholders": {"when": {"type": "String"}}},
+  "@sharedLibrary_library_lastSync": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_library_neverSynced": "טרם סונכרן",
   "sharedLibrary_library_readOnlyBanner": "ההרשאות שלך מאפשרות קריאה בלבד. אפשר להציע שינויים ואחראי יחיל אותם.",
   "sharedLibrary_library_removedBanner": "אחראי הסיר אותך מהספרייה הזו. האתרים שלה נשארים במכשיר הזה, אבל אי אפשר עוד לשנות אותם. עזיבת הספרייה שומרת עותקים אישיים של האתרים שצללת בהם.",
   "sharedLibrary_library_errorBanner": "הסנכרון האחרון נכשל: {error}",
-  "@sharedLibrary_library_errorBanner": {"placeholders": {"error": {"type": "String"}}},
+  "@sharedLibrary_library_errorBanner": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_syncError_accountMissing": "החשבון של הספרייה הזו כבר לא נמצא במכשיר הזה. השתמשו בשינוי החיבור כדי לבחור אותו שוב.",
   "sharedLibrary_syncError_accountSignedOut": "המכשיר הזה מנותק מהחשבון של הספרייה. התחברו אליו שוב בחשבונות מחוברים, או השתמשו בשינוי החיבור.",
   "sharedLibrary_syncError_notALibrary": "אין ספרייה במיקום הזה.",
@@ -6135,7 +6456,13 @@
   "sharedLibrary_library_suggestions": "הצעות",
   "sharedLibrary_library_leave": "עזיבת הספרייה",
   "sharedLibrary_library_leaveConfirm_title": "לעזוב את {name}?",
-  "@sharedLibrary_library_leaveConfirm_title": {"placeholders": {"name": {"type": "String"}}},
+  "@sharedLibrary_library_leaveConfirm_title": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_library_leaveConfirm_body": "אתרים משותפים שהצלילות שלך משתמשות בהם נשארים כעותקים אישיים. אתרים משותפים אחרים יוסרו מהמכשיר הזה.",
   "sharedLibrary_library_rename_label": "שם תצוגה",
   "sharedLibrary_members_setRole": "שינוי תפקיד",
@@ -6147,23 +6474,68 @@
   "sharedLibrary_connect_exists": "מישהו יצר כאן ספרייה בינתיים. יש לבדוק שוב כדי להצטרף אליה.",
   "sharedLibrary_library_lastOwnerLeave": "יש להגדיר חבר אחר כבעלים לפני היציאה.",
   "sharedLibrary_site_badgeTooltip": "ב{name}",
-  "@sharedLibrary_site_badgeTooltip": {"placeholders": {"name": {"type": "String"}}},
+  "@sharedLibrary_site_badgeTooltip": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_site_lastEdited": "נערך לאחרונה על ידי {name}, {when}",
-  "@sharedLibrary_site_lastEdited": {"placeholders": {"name": {"type": "String"}, "when": {"type": "String"}}},
+  "@sharedLibrary_site_lastEdited": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_site_history": "היסטוריית עריכות",
   "sharedLibrary_site_addToLibrary": "הוספה לספריית האתרים המשותפת",
   "sharedLibrary_add_confirm_title": "להוסיף את {name} אל {library}?",
-  "@sharedLibrary_add_confirm_title": {"placeholders": {"name": {"type": "String"}, "library": {"type": "String"}}},
+  "@sharedLibrary_add_confirm_title": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "library": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_add_confirm_titleMany": "{count, plural, =1{להוסיף {count} אתר אל {library}?} other{להוסיף {count} אתרים אל {library}?}}",
-  "@sharedLibrary_add_confirm_titleMany": {"placeholders": {"count": {"type": "int"}, "library": {"type": "String"}}},
+  "@sharedLibrary_add_confirm_titleMany": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "library": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_add_confirm_shared": "כל החברים יראו: שם, מיקום, עומקים, תיאור, סכנות, גישה, כניסה ויציאה, עגינה, חניה, סוגי אתר, תגיות, מינים ומאפיינים.",
   "sharedLibrary_add_confirm_private": "נשאר שלך: ההערות והדירוג שלך. צלילות ותמונות אף פעם לא יוצאות מהספרייה האישית שלך.",
   "sharedLibrary_add_confirm_action": "הוספה",
   "sharedLibrary_site_chooseLibrary": "בחירת ספרייה",
   "sharedLibrary_site_added": "נוסף אל {name}",
-  "@sharedLibrary_site_added": {"placeholders": {"name": {"type": "String"}}},
+  "@sharedLibrary_site_added": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_site_notConnectedHere": "אתר זה נמצא ב{name}, שאינה מחוברת במכשיר הזה.",
-  "@sharedLibrary_site_notConnectedHere": {"placeholders": {"name": {"type": "String"}}},
+  "@sharedLibrary_site_notConnectedHere": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_site_connectHere": "חיבור במכשיר הזה",
   "sharedLibrary_site_deleteFromLibrary_title": "למחוק מספריית האתרים המשותפת?",
   "sharedLibrary_site_deleteFromLibrary_body": "חברים שהצלילות שלהם משתמשות באתר זה שומרים עותק אישי.",
@@ -6175,12 +6547,27 @@
   "sharedLibrary_suggest_nothingChanged": "שום דבר לא השתנה.",
   "sharedLibrary_suggest_savedPrivate": "ההערות והדירוג שלך נשמרו.",
   "sharedLibrary_suggest_pending": "{count, plural, =1{הצעה אחת ממתינה} other{{count} הצעות ממתינות}}",
-  "@sharedLibrary_suggest_pending": {"placeholders": {"count": {"type": "int"}}},
+  "@sharedLibrary_suggest_pending": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "sharedLibrary_suggest_withdraw": "משיכה",
   "sharedLibrary_inbox_title": "הצעות",
   "sharedLibrary_inbox_empty": "אין הצעות ממתינות.",
   "sharedLibrary_inbox_from": "מאת {name}, {when}",
-  "@sharedLibrary_inbox_from": {"placeholders": {"name": {"type": "String"}, "when": {"type": "String"}}},
+  "@sharedLibrary_inbox_from": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
   "sharedLibrary_inbox_accept": "אישור",
   "sharedLibrary_inbox_dismiss": "דחייה",
   "sharedLibrary_inbox_siteDeleted": "אתר זה נמחק מהספרייה.",
@@ -6526,6 +6913,21 @@
   "settings_conflict_field_autoTagImports": "תיוג צלילות מיובאות",
   "settings_conflict_field_downloadsFollowComputerOwner": "הוספת הורדות לבעלים של המחשב",
   "settings_conflict_field_omitUnusedOcGases": "דילוג על גזי חילוץ שלא נוצלו",
+  "settings_conflict_field_diveListSort": "צלילות: מיון",
+  "settings_conflict_field_divePlanListSort": "תוכניות שמורות: מיון",
+  "settings_conflict_field_tripListSort": "טיולים: מיון",
+  "settings_conflict_field_courseListSort": "קורסים: מיון",
+  "settings_conflict_field_buddyListSort": "שותפים: מיון",
+  "settings_conflict_field_diveCenterListSort": "מועדוני צלילה: מיון",
+  "settings_conflict_field_siteListSort": "אתרים: מיון",
+  "settings_conflict_field_certificationListSort": "הסמכות: מיון",
+  "settings_conflict_field_equipmentListSort": "ציוד: מיון",
+  "settings_conflict_field_siteListGroupBy": "אתרים: קיבוץ",
+  "settings_conflict_field_certificationListGroupBy": "הסמכות: קיבוץ",
+  "settings_conflict_field_equipmentArrangement": "סידור הציוד",
+  "settings_conflict_field_equipmentGroupByLocation": "ציוד מקובץ לפי מיקום",
+  "settings_conflict_field_listArrangementHlc": "יומן סידור הרשימות",
+  "settings_conflict_sortValue": "{field}, {direction}",
   "settings_conflict_field_avgSpeed": "מהירות ממוצעת",
   "settings_conflict_field_batteryReserveFraction": "עתודת סוללה",
   "settings_conflict_field_bboxHeight": "גובה המסגרת",
@@ -6885,6 +7287,12 @@
   "settings_conflict_field_portName": "נמל",
   "settings_conflict_field_ppO2Bottom": "ppO2 בקרקעית",
   "settings_conflict_field_ppO2Deco": "ppO2 בדקו",
+  "settings_conflict_field_ppO2DecoBand1": "ppO2 דקו עד 28% חמצן",
+  "settings_conflict_field_ppO2DecoBand2": "ppO2 דקו 28-45% חמצן",
+  "settings_conflict_field_ppO2DecoBand3": "ppO2 דקו 45-99% חמצן",
+  "settings_conflict_field_ppO2DecoBandsEnabled": "מגבלות ppO2 דקו לפי טווח חמצן",
+  "settings_conflict_field_maxO2DepthEnabled": "עומק מקסימלי מפורש ל-100% חמצן",
+  "settings_conflict_field_maxO2DepthMeters": "עומק מקסימלי ל-100% חמצן",
   "settings_conflict_field_ppO2MaxDeco": "ppO2 מרבי בדקו",
   "settings_conflict_field_ppO2MaxWorking": "ppO2 עבודה מרבי",
   "settings_conflict_field_preDiveChecklistTemplates_category": "קטגוריה",
@@ -6895,6 +7303,13 @@
   "settings_conflict_field_pressureBar": "לחץ",
   "settings_conflict_field_pressureUnit": "יחידת לחץ",
   "settings_conflict_field_priorDiveCount": "צלילות לפני היומן הזה",
+  "settings_conflict_field_buddyCardShare": "שיתוף כרטיס שותף",
+  "settings_conflict_field_cardDiveCount": "צלילות (מהכרטיס)",
+  "settings_conflict_field_cardDivingSince": "צולל מאז (מהכרטיס)",
+  "settings_conflict_field_cardId": "כרטיס שותף",
+  "settings_conflict_field_cardLastDive": "צלילה אחרונה (מהכרטיס)",
+  "settings_conflict_field_cardReceivedAt": "הכרטיס התקבל",
+  "settings_conflict_field_socialHandle": "שם משתמש ברשתות חברתיות",
   "settings_conflict_field_priorDiveTimeSeconds": "זמן צלילה לפני היומן הזה",
   "settings_conflict_field_problemSolvingMinutes": "זמן לפתרון בעיות",
   "settings_conflict_field_provider": "ספק",
@@ -7090,6 +7505,7 @@
   "settings_conflict_field_valueUnit": "יחידה",
   "settings_conflict_field_verdict": "הערכה",
   "settings_conflict_field_verifyFactsHlc": "יומן אימות",
+  "settings_conflict_field_videoPositionMs": "זמן בסרטון (אלפיות שנייה)",
   "settings_conflict_field_vesselName": "ספינה",
   "settings_conflict_field_vesselType": "סוג הספינה",
   "settings_conflict_field_viewMode": "תצוגה",
@@ -7311,6 +7727,21 @@
   "settings_decompression_ppO2LimitsTitle": "מגבלות ppO2 OC",
   "settings_decompression_ppO2LimitsSubtitle": "עבודה {working} bar · מקסימום {max} bar",
   "settings_decompression_ppO2Dialog_title": "מגבלות ppO2 OC",
+  "settings_decompression_ppO2BandsTitle": "מגבלות דקו לפי טווח חמצן",
+  "settings_decompression_ppO2BandsSubtitle": "מגבלות ppO2 דקו אופציונליות ומדויקות יותר למתכנן הצלילה",
+  "settings_decompression_ppO2BandsDialog_title": "ppO2 דקו: לפי טווח חמצן",
+  "settings_decompression_ppO2BandsDialog_bandsToggle": "השתמש במגבלות דקו לפי טווח חמצן",
+  "settings_decompression_ppO2BandsDialog_band1": "עד 28% חמצן",
+  "settings_decompression_ppO2BandsDialog_band2": "28–45% חמצן",
+  "settings_decompression_ppO2BandsDialog_band3": "45–99% חמצן",
+  "settings_decompression_ppO2BandsDialog_maxO2DepthToggle": "השתמש בעומק מקסימלי מפורש ל-100% חמצן",
+  "settings_decompression_ppO2BandsDialog_maxO2DepthLabel": "עומק מקסימלי ל-100% חמצן",
+  "settings_decompression_hypercapniaTitle": "שלב היפרקפניה ביציאת חירום",
+  "settings_decompression_hypercapniaSubtitle": "קצב נשימה מוגבר אופציונלי בתחילת יציאת חירום OC ב-CCR/SCR",
+  "settings_decompression_hypercapniaDialog_title": "שלב היפרקפניה ביציאת חירום",
+  "settings_decompression_hypercapniaDialog_enabledToggle": "השתמש בשלב ההיפרקפניה ליציאת חירום OC",
+  "settings_decompression_hypercapniaDialog_factorLabel": "מקדם RMV",
+  "settings_decompression_hypercapniaDialog_minutesLabel": "משך",
   "settings_decompression_ccrPpO2LimitsTitle": "מגבלות ppO2 CCR",
   "settings_decompression_ccrPpO2LimitsSubtitle": "Setpoint נמוך {low} · גבוה {high} · MOD מדלל {dil} בר",
   "settings_decompression_ccrDialog_info": "ערכי ברירת מחדל לצלילות במעגל סגור. מצב CCR במחשבון ה-MOD מתחיל מערכים אלה.",
@@ -8332,6 +8763,18 @@
   "insights_timePatterns_seasonal_error": "שגיאה בטעינת נתונים עונתיים",
   "insights_timePatterns_seasonal_subtitle": "צלילות לפי חודש (כל השנים)",
   "insights_timePatterns_seasonal_title": "דפוסים עונתיים",
+  "insights_timePatterns_calendarDays_title": "ימי לוח השנה",
+  "insights_timePatterns_calendarDays_subtitle": "צלילות בכל תאריך בשנה (כל השנים)",
+  "insights_timePatterns_calendarDays_coverage": "{covered} מתוך {total} ימים בלוח השנה ({percent})",
+  "insights_timePatterns_calendarDays_busiestMonth": "החודש העמוס ביותר: {months}",
+  "insights_timePatterns_calendarDays_busiestDay": "היום בחודש העמוס ביותר: {days}",
+  "insights_timePatterns_calendarDays_cellSemantics": "{date}, {count, plural, =0{אין צלילות} one{צלילה אחת} other{{count} צלילות}}",
+  "insights_timePatterns_calendarDays_totalSemantics": "{label}, סך הכול {count, plural, =0{אין צלילות} one{צלילה אחת} other{{count} צלילות}}",
+  "insights_timePatterns_calendarDays_dayLabel": "יום {day}",
+  "insights_timePatterns_calendarDays_total": "כל התאריכים",
+  "insights_timePatterns_calendarDays_listSeparator": ", ",
+  "insights_timePatterns_calendarDays_empty": "עדיין אין צלילות להצגה בלוח השנה",
+  "insights_timePatterns_calendarDays_error": "טעינת ימי לוח השנה נכשלה",
   "insights_timePatterns_surfaceInterval_average": "ממוצע",
   "insights_timePatterns_surfaceInterval_empty": "אין נתוני מרווח שטח זמינים",
   "insights_timePatterns_surfaceInterval_error": "שגיאה בטעינת נתוני מרווח שטח",
@@ -8724,6 +9167,10 @@
   "trips_detail_dialog_cancel": "ביטול",
   "trips_detail_dialog_deleteConfirm": "מחיקה",
   "trips_detail_dialog_deleteContent": "האם אתה בטוח שברצונך למחוק את \"{name}\"? פעולה זו תסיר את הטיול אך תשמור על הצלילות.",
+  "trips_delete_sideTripsStandalone": "{count, plural, one{טיול הצד שלו הופך לטיול עצמאי.} other{{count} טיולי הצד שלו הופכים לטיולים עצמאיים.}}",
+  "trips_delete_divesReturnToParent": "הצלילות שלו חוזרות אל {name}.",
+  "trips_bulkDelete_sideTripsStandalone": "{count, plural, one{טיול צד אחד הופך לטיול עצמאי.} other{{count} טיולי צד הופכים לטיולים עצמאיים.}}",
+  "trips_bulkDelete_divesReturnToParents": "הצלילות של טיולי הצד שנמחקו חוזרות לטיולים הגדולים שלהם.",
   "trips_detail_dialog_deleteTitle": "למחוק טיול?",
   "trips_detail_dives_empty": "אין עדיין צלילות בטיול זה",
   "trips_detail_dives_errorLoading": "לא ניתן לטעון צלילות",
@@ -8870,6 +9317,9 @@
   "trips_edit_hint_operatorName": "לדוגמה, Red Sea Divers",
   "trips_edit_hint_resortName": "לדוגמה, Marsa Shagra",
   "trips_edit_hint_tripName": "לדוגמה, ספארי ים סוף 2024",
+  "trips_edit_field_partOf": "חלק מ־",
+  "trips_edit_partOf_none": "ללא (טיול עצמאי)",
+  "trips_edit_partOf_helper": "הופך את הטיול לטיול צד בתוך טיול גדול יותר",
   "trips_edit_hint_vesselName": "לדוגמה, Ocean Explorer",
   "trips_edit_label_cabinType": "סוג תא",
   "trips_edit_label_capacity": "קיבולת נוסעים",
@@ -9372,6 +9822,10 @@
   "trips_list_pastSection": "טיולים קודמים",
   "trips_list_sort_title": "מיון טיולים",
   "trips_list_tile_diveCount": "{count, plural, =1{צלילה אחת} other{{count} צלילות}}",
+  "trips_list_sideTripCount": "{count, plural, one{טיול צד אחד} other{{count} טיולי צד}}",
+  "trips_partOf": "חלק מ־{name}",
+  "trips_fromSelection_name": "{location}, {monthYear}",
+  "trips_fromSelection_nameNoLocation": "טיול, {monthYear}",
   "trips_list_tooltip_addTrip": "הוסף טיול",
   "trips_list_tooltip_search": "חיפוש טיולים",
   "trips_list_tooltip_sort": "מיון",
@@ -9821,6 +10275,7 @@
   "settings_homeChips_uploads": "העלאות מדיה",
   "settings_homeChips_backup": "גיל הגיבוי",
   "settings_homeChips_sync": "מצב סנכרון",
+  "settings_homeChips_nearby": "מכשירים קרובים",
   "settings_homeChips_dataQuality": "איכות נתונים",
   "dashboard_gauges_certsNeedAttention": "{count, plural, =1{הסמכה אחת דורשת תשומת לב} other{{count} הסמכות דורשות תשומת לב}}",
   "dashboard_gauges_tripCountdown": "{name} בעוד {days} ימים",
@@ -9832,6 +10287,8 @@
   "dashboard_gauges_backupDays": "גיבוי לפני {days} ימים",
   "dashboard_gauges_syncPending": "{count} לא מסונכרנים",
   "dashboard_gauges_synced": "מסונכרן",
+  "dashboard_gauges_nearby": "קרוב: {name} דורש תשומת לב",
+  "dashboard_gauges_nearbyMore": "קרוב: {name} ומכשירים נוספים דורשים תשומת לב",
   "dashboard_gauges_dataIssues": "{count, plural, =1{בעיית נתונים אחת} other{{count} בעיות נתונים}}",
   "dashboard_gauges_retry": "הסטטוס אינו זמין - הקש לניסיון חוזר",
   "dashboard_media_title": "מדיה אחרונה",
@@ -10158,9 +10615,9 @@
   "divers_delete_keptEquipment_toOne": "{count, plural, one{פריט ציוד {count} הועבר אל {name}.} other{{count} פריטי ציוד הועברו אל {name}.}}",
   "divers_delete_keptEquipment_toMany": "{count, plural, one{פריט ציוד {count} הועבר לפרופילים שמשתמשים בו.} other{{count} פריטי ציוד הועברו לפרופילים שמשתמשים בהם.}}",
   "divers_delete_handedOver": "{count, plural, one{טיול או אתר משותף {count} עבר לפרופיל שאיתו שותף.} other{{count} טיולים ואתרים משותפים עברו לפרופילים שאיתם שותפו.}}",
-  "settings_shareAllSites_confirm": "בחר מי רואה את כל {count} האתרים שלך. כדי לשנות אתר אחד בהמשך, פתח אותו והקש על משותף עם.",
+  "settings_shareAllSites_confirm": "בחר מי רואה את כל {count} האתרים שלך. כדי לשנות אתר אחד בהמשך, ערוך אותו והקש על משותף עם.",
   "settings_shareAllSites_title": "שתף את כל האתרים שלי...",
-  "settings_shareAllTrips_confirm": "בחר מי רואה את כל {count} הטיולים שלך. כדי לשנות טיול אחד בהמשך, פתח אותו והקש על משותף עם.",
+  "settings_shareAllTrips_confirm": "בחר מי רואה את כל {count} הטיולים שלך. כדי לשנות טיול אחד בהמשך, ערוך אותו והקש על משותף עם.",
   "settings_shareAllTrips_title": "שתף את כל הטיולים שלי...",
   "settings_shareAll_noneToShare": "אין מה לשתף.",
   "settings_shareByDefault_title": "שתף אתרים וטיולים חדשים כברירת מחדל",
@@ -10607,7 +11064,6 @@
   "settings_connectedAccounts_status_signedIn": "מחובר",
   "settings_connectedAccounts_status_unavailable": "לא זמין במכשיר זה",
   "settings_connectedAccounts_disconnectDevice": "התנתק במכשיר זה",
-
   "settings_connectedAccounts_rename": "שינוי שם",
   "settings_connectedAccounts_renameTitle": "שינוי שם החשבון",
   "settings_connectedAccounts_renameField": "שם",
@@ -10652,6 +11108,41 @@
   "settings_sync_notSetUp": "לא מוגדר",
   "settings_sync_offCustomFolder": "כבוי כל עוד מסד הנתונים בתיקייה מותאמת אישית",
   "settings_sync_keepInStep": "שמירה על סנכרון אוטומטי בין המכשירים",
+  "settings_nearby_title": "מכשירים קרובים",
+  "settings_nearby_auto_title": "סנכרון אוטומטי עם מכשירים קרובים",
+  "settings_nearby_auto_subtitle": "כאשר מכשיר מותאם פתוח בקרבת מקום, דרך Bluetooth",
+  "settings_nearby_linuxNote": "מכשירים אחרים לא יכולים למצוא את המחשב הזה, ולכן הוא מסתנכרן עם כל מכשיר קרוב מלבד מחשב Linux אחר",
+  "settings_nearby_pair": "התאמת מכשיר",
+  "settings_nearby_status_synced": "סונכרן {when}",
+  "settings_nearby_status_syncing": "מסנכרן: {done} מתוך {total}",
+  "settings_nearby_status_never": "עדיין לא סונכרן",
+  "settings_nearby_status_notSeen": "לא נראה מאז {date}",
+  "settings_nearby_error_newerApp": "המכשיר הזה צריך גרסה חדשה יותר של האפליקציה",
+  "settings_nearby_error_peerOlderApp": "המכשיר השני צריך גרסה חדשה יותר של האפליקציה",
+  "settings_nearby_error_differentLibrary": "לא אותה ספרייה",
+  "settings_nearby_error_notPaired": "ההתאמה בוטלה במכשיר השני",
+  "settings_nearby_error_applyFailed": "לא ניתן היה להחיל את השינויים שלו",
+  "settings_nearby_error_bluetoothOff": "Bluetooth כבוי או לא מורשה",
+  "settings_nearby_error_unreachable": "לא ניתן להתחבר",
+  "settings_nearby_sheet_rename": "שינוי שם",
+  "settings_nearby_sheet_unpair": "ביטול התאמה",
+  "settings_nearby_unpair_confirm": "לבטל את ההתאמה של {name}? יהיה צורך להתאים אותו שוב כדי לסנכרן בקרבת מקום.",
+  "settings_nearby_rename_title": "שינוי שם המכשיר",
+  "settings_nearby_notInRange": "{name} לא נמצא בקרבת מקום כרגע",
+  "nearbyPair_looking": "מחפש מכשירים…",
+  "nearbyPair_hint": "פתחו את Submersion במכשיר השני והקישו גם שם על התאמת מכשיר.",
+  "nearbyPair_found": "נמצא {name}. ודאו שמוצג בו הקוד הזה, ואז אשרו בשני המכשירים.",
+  "nearbyPair_sameCode": "אותו קוד",
+  "nearbyPair_notMine": "לא שלי",
+  "nearbyPair_waiting": "ממתין לאישור מהמכשיר השני…",
+  "nearbyPair_bothPopulated": "בשני המכשירים יש צלילות. ההתאמה ממזגת אותן ליומן אחד.",
+  "nearbyPair_differentLibrary": "המכשיר הזה נמצא בספרייה אחרת, ולכן אי אפשר להתאים אותו למכשיר הזה.",
+  "nearbyPair_permissionDenied": "Submersion צריך הרשאת Bluetooth כדי למצוא מכשירים קרובים.",
+  "nearbyPair_bluetoothOff": "הפעילו Bluetooth כדי למצוא מכשירים קרובים.",
+  "nearbyPair_unsupported": "במכשיר הזה אין Bluetooth ש-Submersion יכול להשתמש בו.",
+  "nearbyPair_openSettings": "פתיחת ההגדרות",
+  "nearbyPair_done": "הותאם עם {name}",
+  "nearbyPair_failed": "ההתאמה לא הושלמה. נסו שוב בשני המכשירים.",
   "settings_sync_alsoAtLaunch": "סנכרון גם בהפעלה",
   "settings_sync_alsoOnReturn": "סנכרון גם בחזרה לאפליקציה",
   "settings_sync_encryption": "הצפנה",
@@ -14934,6 +15425,33 @@
   "media_species_otherSpecies": "מינים אחרים...",
   "media_species_noDiveHint": "התמונה אינה מקושרת לצלילה. חפשו מין כדי לתייג אותה.",
   "media_species_chipsLabel": "תגיות מינים",
+  "media_people_me": "אני",
+  "media_people_chipsLabel": "תגיות אנשים",
+  "media_people_momentChip": "{name} · {time}",
+  "media_people_actionTooltip": "תיוג אנשים",
+  "media_people_tagModeHint": "הקש על אדם כדי לתייג אותו",
+  "media_people_noSpotHint": "לא ניתן לסמן מיקום כאן",
+  "media_people_withoutSpot": "תיוג ללא מיקום",
+  "media_people_done": "סיום",
+  "media_people_pickerTitle": "מי זה?",
+  "media_people_searchHint": "חיפוש חברי צוללים",
+  "media_people_onThisDive": "בצלילה הזו",
+  "media_people_everyoneElse": "כל השאר",
+  "media_people_newBuddy": "חבר צוללים חדש",
+  "media_people_newBuddyName": "שם",
+  "media_people_newBuddyAdd": "הוסף",
+  "media_people_changePerson": "החלף אדם",
+  "media_people_removeTag": "הסר תיוג",
+  "media_people_resizeHint": "גרור את הפינות להתאמה",
+  "media_people_addToDiveOffer": "להוסיף את {name} לחברי הצוללים של צלילה זו?",
+  "media_people_addToDiveAction": "הוסף",
+  "media_people_buddyPhotosTitle": "תמונות וסרטונים",
+  "media_people_buddyThumbnailLabel": "תמונה או סרטון עם חבר הצוללים הזה",
+  "media_people_filterSection": "אנשים",
+  "media_people_removedBuddy": "חבר צוללים שהוסר",
+  "media_people_saveFailed": "לא ניתן לשמור את התיוג. נסה שוב.",
+  "media_people_addToDiveFailed": "לא ניתן להוסיף את חבר הצוללים לצלילה זו. נסה שוב.",
+  "media_people_createBuddyFailed": "לא ניתן ליצור את חבר הצוללים. נסה שוב.",
   "media_info_fileSection": "קובץ",
   "media_info_filename": "שם הקובץ",
   "media_info_type": "סוג",
@@ -15303,6 +15821,9 @@
   "startup_diveLogUnavailable_startNew_confirm": "התחלת יומן צלילה חדש",
   "backup_history_preDowngradeSubtitle": "מסד נתונים חדש יותר, נשמר בעת החזרה - {size}",
   "backup_history_cloudOnlySubtitle": "באחסון בענן ({size})",
+  "backup_history_device_anotherDevice": "מכשיר אחר",
+  "backup_history_device_thisDevice": "מכשיר זה",
+  "backup_history_subtitleWithDevice": "{summary} · {device}",
   "backup_history_manualSubtitle": "{diveCount, plural, =1{צלילה אחת} other{{diveCount} צלילות}}, {siteCount, plural, =1{אתר אחד} other{{siteCount} אתרים}} - {size}",
   "backup_history_manualSubtitleAuto": "{diveCount, plural, =1{צלילה אחת} other{{diveCount} צלילות}}, {siteCount, plural, =1{אתר אחד} other{{siteCount} אתרים}} - {size} (אוטומטי)",
   "settings_manage_transmitters": "משדרים",
@@ -15544,8 +16065,7 @@
   "diveDetailSection_navTrack_trackName": "מסלול תת-ימי",
   "diveDetailSection_navTrack_trackDescription": "מסלול תת-ימי שנמדד ממסוף ניווט",
   "navTrack_list_durationHours": "{hours} שע' {minutes} דק'",
-  "navTrack_list_durationMinutes": "{minutes}min"
-,
+  "navTrack_list_durationMinutes": "{minutes}min",
   "gasCalculators_mod_semanticsLabel": "עומק תפעול מרבי: {depth} {unit} ב-{ppo2} בר ppO2 עם {o2}% חמצן",
   "gasCalculators_blender_stepColumnAction": "פעולה",
   "gasCalculators_blender_stepColumnAdded": "נוסף",
@@ -15755,6 +16275,8 @@
   "query_dives_weight": "משקולת",
   "query_dives_weights": "משקולות",
   "query_dives_year": "שנה",
+  "query_dives_month": "חודש",
+  "query_dives_day": "יום בחודש",
   "query_entity_buddies": "שותפי צלילה",
   "query_entity_centers": "מרכזי צלילה",
   "query_entity_certifications": "הסמכות",
@@ -15847,6 +16369,7 @@
   "query_tanks_volume": "נפח",
   "query_trips_diveCount": "מספר צלילות",
   "query_trips_dives": "צלילות",
+  "query_trips_partOf": "חלק מ־",
   "query_trips_endDate": "תאריך סיום",
   "query_trips_liveaboardName": "ספינת צלילה",
   "query_trips_location": "מיקום",
@@ -16172,6 +16695,7 @@
   "plannerCanvas_bailout_schedule": "לוח זמנים מהמקרה הגרוע ביותר",
   "plannerCanvas_chartMode_bailout": "Bailout",
   "plannerCanvas_chartMode_ccr": "CCR",
+  "plannerCanvas_chartMode_scr": "SCR",
   "plannerCanvas_scrub_tts": "TTS {minutes}′",
   "plannerCanvas_table_end": "END",
   "plannerCanvas_table_ppO2": "PO2",
@@ -16263,6 +16787,8 @@
   "tags_manage_bulkDeleteMessage_several": "תגיות אלו יוסרו מ:",
   "tags_manage_mergeAffected_several": "פעולה זו תשפיע על:",
   "tags_manage_cannotUndo": "לא ניתן לבטל פעולה זו.",
+  "tags_manage_rowScopes": "עבור: {scopes}",
+  "tags_manage_rowUsage": "בשימוש: {counts}",
   "tags_action_edit": "עריכת תגיות",
   "media_info_tags": "תגיות",
   "media_info_noTags": "אין תגיות עדיין",
@@ -16370,5 +16896,31 @@
   "settings_setUpDevice_done_title": "{device, select, phone{הטלפון הזה מוגדר} tablet{הטאבלט הזה מוגדר} computer{המחשב הזה מוגדר} other{המכשיר הזה מוגדר}}",
   "settings_setUpDevice_done_otherDevices": "במכשירים האחרים שלך, פתחו את Submersion, בחרו {account}, ואותה ספרייה תופיע.",
   "settings_setUpDevice_sync_inStep": "הצלילות כאן מתואמות עם הספרייה שלך ב-{account}.",
-  "setup_syncPull_startFresh": "התחלת יומן חדש"
+  "setup_syncPull_startFresh": "התחלת יומן חדש",
+  "demo_welcome_title": "סיור עם נתוני דוגמה",
+  "demo_welcome_subtitle": "עיינו ביומן צלילות לדוגמה מלא לפני שתזינו את שלכם",
+  "demo_settings_enter_title": "סיור עם נתוני דוגמה",
+  "demo_settings_enter_subtitle": "היומן שלכם נשמר בצד, ללא שינוי, עד שתצאו",
+  "demo_settings_exit_title": "יציאה מההדגמה",
+  "demo_settings_exit_subtitle": "השלכת יומן הדוגמה וחזרה ליומן שלכם",
+  "demo_strip_label": "מצב הדגמה: אתם מעיינים בנתוני דוגמה",
+  "demo_strip_exit": "יציאה מההדגמה",
+  "demo_exit_confirm_title": "לצאת ממצב ההדגמה?",
+  "demo_exit_confirm_body": "השינויים שביצעתם ביומן הדוגמה יימחקו.",
+  "demo_exit_confirm_action": "יציאה מההדגמה",
+  "demo_enter_downloading": "מוריד את יומן הדוגמה",
+  "demo_enter_preparing": "מכין את יומן הדוגמה",
+  "demo_enter_opening": "פותח את יומן הדוגמה",
+  "demo_enter_failed": "לא ניתן היה להוריד את יומן הדוגמה. בדקו את החיבור ונסו שוב.",
+  "demo_enter_importRunning": "ייבוא עדיין פועל. גלו את נתוני הדוגמה לאחר שיסתיים.",
+  "demo_sealed_note": "לא זמין במצב הדגמה",
+  "demo_unavailable_title": "לא זמין במצב הדגמה",
+  "demo_unavailable_body": "מצב ההדגמה שומר את יומן הדוגמה בנפרד מהנתונים שלכם, ולכן אי אפשר לייבא, לייצא, לגבות או לסנכרן דבר.",
+  "demo_row_unavailable": "לא זמין במצב הדגמה",
+  "demo_enter_confirm_title": "לסייר עם נתוני דוגמה?",
+  "demo_enter_confirm_body": "פעולה זו תוריד יומן דוגמה ({size}) ותפתח אותו במקום היומן שלכם. היומן שלכם נשמר בצד, ללא שינוי, עד שתצאו ממצב ההדגמה.",
+  "demo_enter_confirm_action": "הורדה",
+  "demo_enter_confirm_body_firstRun": "פעולה זו תוריד יומן דוגמה ({size}) כדי להכיר את האפליקציה. צאו ממצב ההדגמה כשתהיו מוכנים להתחיל יומן משלכם.",
+  "demo_enter_changed_body": "יומן הדוגמה עודכן וגודלו כעת {size}. להוריד אותו?",
+  "common_byteSize": "{value} {unit, select, B{B} KB{KB} MB{MB} GB{GB} TB{TB} other{{unit}}}"
 }

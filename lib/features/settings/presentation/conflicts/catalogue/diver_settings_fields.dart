@@ -337,6 +337,75 @@ final Map<String, ConflictField> diverSettingsFields = {
     (l) => l.settings_conflict_field_groupTripsInDiveList,
     FieldKind.boolean,
   ),
+  // How the diver left each list (issue #3748), synced under
+  // listArrangementHlc.
+  'diveListSort': ConflictField(
+    (l) => l.settings_conflict_field_diveListSort,
+    FieldKind.enumValue,
+    enumLabel: diveListSortLabeler,
+  ),
+  'divePlanListSort': ConflictField(
+    (l) => l.settings_conflict_field_divePlanListSort,
+    FieldKind.enumValue,
+    enumLabel: divePlanListSortLabeler,
+  ),
+  'tripListSort': ConflictField(
+    (l) => l.settings_conflict_field_tripListSort,
+    FieldKind.enumValue,
+    enumLabel: tripListSortLabeler,
+  ),
+  'courseListSort': ConflictField(
+    (l) => l.settings_conflict_field_courseListSort,
+    FieldKind.enumValue,
+    enumLabel: courseListSortLabeler,
+  ),
+  'buddyListSort': ConflictField(
+    (l) => l.settings_conflict_field_buddyListSort,
+    FieldKind.enumValue,
+    enumLabel: buddyListSortLabeler,
+  ),
+  'diveCenterListSort': ConflictField(
+    (l) => l.settings_conflict_field_diveCenterListSort,
+    FieldKind.enumValue,
+    enumLabel: diveCenterListSortLabeler,
+  ),
+  'siteListSort': ConflictField(
+    (l) => l.settings_conflict_field_siteListSort,
+    FieldKind.enumValue,
+    enumLabel: siteListSortLabeler,
+  ),
+  'certificationListSort': ConflictField(
+    (l) => l.settings_conflict_field_certificationListSort,
+    FieldKind.enumValue,
+    enumLabel: certificationListSortLabeler,
+  ),
+  'equipmentListSort': ConflictField(
+    (l) => l.settings_conflict_field_equipmentListSort,
+    FieldKind.enumValue,
+    enumLabel: equipmentListSortLabeler,
+  ),
+  'siteListGroupBy': ConflictField(
+    (l) => l.settings_conflict_field_siteListGroupBy,
+    FieldKind.enumValue,
+    enumLabel: siteListGroupByLabeler,
+  ),
+  'certificationListGroupBy': ConflictField(
+    (l) => l.settings_conflict_field_certificationListGroupBy,
+    FieldKind.enumValue,
+    enumLabel: certificationListGroupByLabeler,
+  ),
+  'equipmentArrangement': ConflictField(
+    (l) => l.settings_conflict_field_equipmentArrangement,
+    FieldKind.opaque,
+  ),
+  'equipmentGroupByLocation': ConflictField(
+    (l) => l.settings_conflict_field_equipmentGroupByLocation,
+    FieldKind.boolean,
+  ),
+  'listArrangementHlc': ConflictField(
+    (l) => l.settings_conflict_field_listArrangementHlc,
+    FieldKind.opaque,
+  ),
   'gtrReservePressure': ConflictField(
     (l) => l.settings_conflict_field_gtrReservePressure,
     FieldKind.pressure,
@@ -377,6 +446,14 @@ final Map<String, ConflictField> diverSettingsFields = {
     (l) => l.settings_appearance_mapStyle,
     FieldKind.enumValue,
     enumLabel: mapStyleLabeler,
+  ),
+  'maxO2DepthEnabled': ConflictField(
+    (l) => l.settings_conflict_field_maxO2DepthEnabled,
+    FieldKind.boolean,
+  ),
+  'maxO2DepthMeters': ConflictField(
+    (l) => l.settings_conflict_field_maxO2DepthMeters,
+    FieldKind.depth,
   ),
   'noFlyPreset': ConflictField(
     (l) => l.settings_conflict_field_noFlyPreset,
@@ -441,6 +518,18 @@ final Map<String, ConflictField> diverSettingsFields = {
     (l) => l.divePlanner_gasOptions_gasSwitchStopSeconds,
     FieldKind.durationSeconds,
   ),
+  'plannerHypercapniaEnabled': ConflictField(
+    (l) => l.settings_decompression_hypercapniaDialog_enabledToggle,
+    FieldKind.boolean,
+  ),
+  'plannerHypercapniaFactor': ConflictField(
+    (l) => l.settings_decompression_hypercapniaDialog_factorLabel,
+    FieldKind.number,
+  ),
+  'plannerHypercapniaMinutes': ConflictField(
+    (l) => l.settings_decompression_hypercapniaDialog_minutesLabel,
+    FieldKind.durationMinutes,
+  ),
   'plannerIntermediateAscentRate': ConflictField(
     (l) => l.plannerCanvas_rates_intermediateAscent,
     FieldKind.ascentRate,
@@ -481,6 +570,22 @@ final Map<String, ConflictField> diverSettingsFields = {
   'plannerWalkSpeedMps': ConflictField(
     (l) => l.plannerMission_settings_walkSpeed,
     FieldKind.speed,
+  ),
+  'ppO2DecoBand1': ConflictField(
+    (l) => l.settings_conflict_field_ppO2DecoBand1,
+    FieldKind.partialPressure,
+  ),
+  'ppO2DecoBand2': ConflictField(
+    (l) => l.settings_conflict_field_ppO2DecoBand2,
+    FieldKind.partialPressure,
+  ),
+  'ppO2DecoBand3': ConflictField(
+    (l) => l.settings_conflict_field_ppO2DecoBand3,
+    FieldKind.partialPressure,
+  ),
+  'ppO2DecoBandsEnabled': ConflictField(
+    (l) => l.settings_conflict_field_ppO2DecoBandsEnabled,
+    FieldKind.boolean,
   ),
   'ppO2MaxDeco': ConflictField(
     (l) => l.settings_conflict_field_ppO2MaxDeco,

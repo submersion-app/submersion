@@ -501,6 +501,15 @@ void main() {
       expect(DiveField.notes.extractFromDive(testDive), 'Great visibility');
     });
 
+    test('notes returns Markdown notes as plain words', () {
+      expect(
+        DiveField.notes.extractFromDive(
+          testDive.copyWith(notes: '# Plan\n**Bring torch**'),
+        ),
+        'Plan\nBring torch',
+      );
+    });
+
     test('tags returns list of tag names', () {
       expect(DiveField.tags.extractFromDive(testDive), ['training', 'deep']);
     });

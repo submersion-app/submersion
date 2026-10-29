@@ -6,6 +6,10 @@ import 'package:submersion/core/database/database.dart';
 /// (tags/equipment/buddies/tanks/weights/sightings) are handled separately via
 /// [BulkCollectionType] + the engine's collection ops.
 enum BulkField {
+  /// The dive site. Applied by SiteOp rather than as a scalar column, since
+  /// the site's water type, entry/exit methods and dive types snap onto each
+  /// dive from that dive's own values (#3657).
+  site,
   diveCenter,
   diveOperator,
   boatName,
@@ -263,6 +267,8 @@ DivesCompanion buildScalarCompanion(
       ),
       // Rides DiverRolesOp: a role set lives in dive_diver_roles (#1221).
       BulkField.diverRole => c,
+      // Rides SiteOp, which snaps the site onto each dive (#3657).
+      BulkField.site => c,
       BulkField.notes => c.copyWith(notes: Value(i.notes ?? '')),
     };
   }

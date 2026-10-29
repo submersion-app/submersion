@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
+import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
 import 'package:submersion/features/dive_computer/presentation/navigation/dive_computer_location.dart';
 import 'package:submersion/core/router/section_navigation.dart';
 import 'package:submersion/core/text/blank_text.dart';
@@ -18,6 +20,7 @@ import 'package:submersion/features/dive_log/presentation/utils/dive_service_sta
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/features/equipment/presentation/widgets/observation_status_chip.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_chip.dart';
+import 'package:submersion/features/trips/presentation/widgets/part_of_trip_link.dart';
 import 'package:submersion/shared/widgets/profile_photo/profile_avatar.dart';
 import 'package:submersion/core/constants/dive_detail_layout.dart';
 import 'package:submersion/core/constants/dive_detail_section_pairs.dart';
@@ -172,6 +175,8 @@ import 'package:submersion/features/rules/presentation/run_rules_flow.dart';
 import 'package:submersion/features/rules/domain/rule_subject.dart';
 import 'package:submersion/shared/widgets/detail_row/detail_row_group.dart';
 import 'package:submersion/shared/widgets/detail_row/detail_row.dart';
+import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_view.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
 
 class DiveDetailPage extends ConsumerStatefulWidget {
   final String diveId;
@@ -2763,6 +2768,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
 
   /// Export the profile chart as a PNG image and share it
   Future<void> _exportProfileChart(Dive dive, Rect? shareAnchor) async {
+    if (!demoSealGuard(context, DemoSealedFeature.export)) return;
     // Show options bottom sheet
     final action = await showModalBottomSheet<_ProfileExportAction>(
       context: context,
@@ -2909,6 +2915,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
 
   /// Export the entire dive details page as a PNG image
   Future<void> _exportDiveDetailsPage(Dive dive, Rect? shareAnchor) async {
+    if (!demoSealGuard(context, DemoSealedFeature.export)) return;
     // Show options bottom sheet
     final action = await showModalBottomSheet<_ProfileExportAction>(
       context: context,
@@ -3055,6 +3062,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
 
   /// Export the dive as a PDF with save/share options
   Future<void> _exportDivePdf(Dive dive, Rect? shareAnchor) async {
+    if (!demoSealGuard(context, DemoSealedFeature.export)) return;
     // Show options bottom sheet
     final action = await showModalBottomSheet<_PdfExportAction>(
       context: context,
@@ -3175,6 +3183,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         diveRolesById: await diveRoleMapOrEmpty(
           ref.read(diveRoleMapProvider.future),
         ),
+        // The diver's own gear arrangement (#3748).
+        gearArrangement: await resolveEquipmentArrangement(ref.read),
       );
 
       // Close loading dialog BEFORE opening file picker to avoid navigator lock issues
@@ -3287,6 +3297,11 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 diveModeLabel(context.l10n, dive.diveMode),
               ),
               if (dive.trip != null) _buildTripRow(context, dive),
+              if (dive.trip != null)
+                PartOfTripLink(
+                  tripId: dive.trip!.id,
+                  padding: const EdgeInsets.only(bottom: 8),
+                ),
               if (dive.diveCenter != null) _buildDiveCenterRow(context, dive),
               // Free text from the editor or a MacDive/UDDF import (#3229).
               for (final (label, value) in [
@@ -4751,6 +4766,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     WidgetRef ref,
     Dive dive,
   ) async {
+    if (!demoSealGuard(context, DemoSealedFeature.mediaImport)) {
+      return;
+    }
     // Show loading
     showDialog(
       context: context,
@@ -4874,10 +4892,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             ),
             const Divider(),
             if (dive.notes.isNotEmpty)
-              SelectableText(
-                dive.notes,
-                style: Theme.of(context).textTheme.bodyMedium,
-              )
+              MarkdownNotesView(dive.notes)
             else
               Text(
                 context.l10n.diveLog_detail_noNotes,
@@ -5288,6 +5303,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     WidgetRef ref,
     Dive dive,
   ) async {
+    if (!demoSealGuard(context, DemoSealedFeature.diveComputerDownload)) return;
     final orchestrator = ref.read(diveResyncOrchestratorProvider);
     final l10n = context.l10n;
 

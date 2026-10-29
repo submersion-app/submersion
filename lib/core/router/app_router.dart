@@ -10,6 +10,9 @@ import 'package:submersion/core/router/nav_shortcut_pages.dart';
 
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/notification_service.dart';
+import 'package:submersion/features/buddies/domain/services/buddy_card_codec.dart';
+import 'package:submersion/features/buddies/presentation/pages/buddy_card_preview_page.dart';
+import 'package:submersion/features/buddies/presentation/pages/buddy_swap_page.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_list_page.dart';
 import 'package:submersion/features/cylinder_passports/presentation/pages/foreign_passport_page.dart';
 import 'package:submersion/features/cylinder_passports/presentation/pages/passport_page.dart';
@@ -52,6 +55,7 @@ import 'package:submersion/features/dive_centers/presentation/pages/dive_center_
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_list_page.dart';
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_map_page.dart';
 import 'package:submersion/features/dive_log/presentation/navigation/open_dive_list.dart';
+import 'package:submersion/features/trips/domain/services/trip_draft.dart';
 import 'package:submersion/features/trips/presentation/navigation/open_trip_list.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_list_page.dart';
 import 'package:submersion/features/data_quality/presentation/pages/data_quality_inbox_page.dart';
@@ -111,6 +115,7 @@ import 'package:submersion/features/backup/presentation/pages/backup_settings_pa
 import 'package:submersion/features/settings/presentation/pages/manage_currency_rules_page.dart';
 import 'package:submersion/features/settings/presentation/pages/hidden_items_page.dart';
 import 'package:submersion/features/settings/presentation/pages/cloud_sync_page.dart';
+import 'package:submersion/features/settings/presentation/pages/nearby_pair_page.dart';
 import 'package:submersion/features/shared_library/presentation/pages/change_library_connection_page.dart';
 import 'package:submersion/features/shared_library/presentation/pages/connect_shared_library_page.dart';
 import 'package:submersion/features/shared_library/presentation/pages/library_backups_page.dart';
@@ -243,6 +248,8 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/main_scaffold.dart';
 import 'package:submersion/features/certification_agencies/presentation/pages/certification_agencies_page.dart';
 import 'package:submersion/features/certification_agencies/presentation/pages/certification_agency_edit_page.dart';
+import 'package:submersion/features/demo_mode/presentation/demo_sealed_routes.dart';
+import 'package:submersion/features/demo_mode/presentation/pages/demo_unavailable_page.dart';
 
 /// Root navigator key, so app-wide modals (e.g. the replaced-library adopt
 /// dialog surfaced from the app root) can be shown above the shell.
@@ -257,6 +264,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       if (DatabaseService.instance.isMigrating) {
         return null;
       }
+
+      // Demo mode (issue #3708): a sealed screen explains itself instead.
+      final sealed = demoRedirect(state.uri.toString());
+      if (sealed != null) return sealed;
 
       final hasDivers = await ref.read(hasAnyDiversProvider.future);
       final isOnWelcome = state.matchedLocation == '/welcome';
@@ -295,6 +306,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           child: Focus(autofocus: true, child: MainScaffold(child: child)),
         ),
         routes: [
+          GoRoute(
+            path: demoUnavailableLocation,
+            name: 'demoUnavailable',
+            builder: (context, state) => DemoUnavailablePage(
+              feature: DemoUnavailablePage.featureFromQuery(
+                state.uri.queryParameters['feature'],
+              ),
+            ),
+          ),
           // Dashboard (Home)
           GoRoute(
             path: '/dashboard',
@@ -860,6 +880,25 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 },
               ),
               GoRoute(
+                path: 'swap',
+                name: 'buddySwap',
+                builder: (context, state) => const BuddySwapPage(),
+              ),
+              GoRoute(
+                path: 'card',
+                name: 'buddyCardPreview',
+                // A card can arrive from anywhere (a link, a file, a tap):
+                // on the root navigator it opens over whatever is showing.
+                parentNavigatorKey: rootNavigatorKey,
+                // Restored or typed without its card, there is nothing to
+                // preview.
+                redirect: (context, state) =>
+                    state.extra is BuddyCardDecoded ? null : '/buddies',
+                builder: (context, state) => BuddyCardPreviewPage(
+                  decoded: state.extra! as BuddyCardDecoded,
+                ),
+              ),
+              GoRoute(
                 path: ':buddyId',
                 name: 'buddyDetail',
                 builder: (context, state) =>
@@ -1063,7 +1102,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'new',
                 name: 'newTrip',
-                builder: (context, state) => const TripEditPage(),
+                // Selected dives can arrive as a prefilled draft (#3658).
+                builder: (context, state) =>
+                    TripEditPage(draft: state.extra as TripDraft?),
               ),
               GoRoute(
                 path: ':tripId',
@@ -1621,6 +1662,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'webdav-config',
                     redirect: (_, _) => '/settings/connected-accounts',
+                  ),
+                  // Pairing for nearby Bluetooth sync (issue #3731).
+                  GoRoute(
+                    path: 'nearby-pair',
+                    name: 'nearbyPair',
+                    builder: (context, state) => const NearbyPairPage(),
                   ),
                 ],
               ),

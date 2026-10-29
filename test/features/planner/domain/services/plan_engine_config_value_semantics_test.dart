@@ -28,6 +28,15 @@ final _testAirBreakPolicy = AirBreakPolicy(o2Seconds: 100, breakSeconds: 50);
 final Map<String, PlanEngineConfig> _oneFieldChanged = {
   'ppO2Working': PlanEngineConfig(ppO2Working: 1.2),
   'ppO2Deco': PlanEngineConfig(ppO2Deco: 1.5),
+  'ppO2DecoBandsEnabled': PlanEngineConfig(ppO2DecoBandsEnabled: true),
+  'ppO2DecoBand1': PlanEngineConfig(ppO2DecoBand1: 1.3),
+  'ppO2DecoBand2': PlanEngineConfig(ppO2DecoBand2: 1.25),
+  'ppO2DecoBand3': PlanEngineConfig(ppO2DecoBand3: 1.2),
+  'maxO2DepthEnabled': PlanEngineConfig(maxO2DepthEnabled: true),
+  'maxO2DepthMeters': PlanEngineConfig(maxO2DepthMeters: 4.5),
+  'hypercapniaEnabled': PlanEngineConfig(hypercapniaEnabled: true),
+  'hypercapniaFactor': PlanEngineConfig(hypercapniaFactor: 3.0),
+  'hypercapniaMinutes': PlanEngineConfig(hypercapniaMinutes: 3),
   'ccrDiluentModPpO2': PlanEngineConfig(ccrDiluentModPpO2: 1.5),
   'ccrSetpointLow': PlanEngineConfig(ccrSetpointLow: 0.6),
   'ccrSetpointHigh': PlanEngineConfig(ccrSetpointHigh: 1.2),
@@ -75,6 +84,15 @@ final Map<String, PlanEngineConfig> _oneFieldChanged = {
 final Map<String, PlanEngineConfig Function(PlanEngineConfig)> _copyOneField = {
   'ppO2Working': (c) => c.copyWith(ppO2Working: 1.2),
   'ppO2Deco': (c) => c.copyWith(ppO2Deco: 1.5),
+  'ppO2DecoBandsEnabled': (c) => c.copyWith(ppO2DecoBandsEnabled: true),
+  'ppO2DecoBand1': (c) => c.copyWith(ppO2DecoBand1: 1.3),
+  'ppO2DecoBand2': (c) => c.copyWith(ppO2DecoBand2: 1.25),
+  'ppO2DecoBand3': (c) => c.copyWith(ppO2DecoBand3: 1.2),
+  'maxO2DepthEnabled': (c) => c.copyWith(maxO2DepthEnabled: true),
+  'maxO2DepthMeters': (c) => c.copyWith(maxO2DepthMeters: 4.5),
+  'hypercapniaEnabled': (c) => c.copyWith(hypercapniaEnabled: true),
+  'hypercapniaFactor': (c) => c.copyWith(hypercapniaFactor: 3.0),
+  'hypercapniaMinutes': (c) => c.copyWith(hypercapniaMinutes: 3),
   'ccrDiluentModPpO2': (c) => c.copyWith(ccrDiluentModPpO2: 1.5),
   'ccrSetpointLow': (c) => c.copyWith(ccrSetpointLow: 0.6),
   'ccrSetpointHigh': (c) => c.copyWith(ccrSetpointHigh: 1.2),
@@ -127,6 +145,10 @@ final Map<String, PlanEngineConfig Function(PlanEngineConfig)> _copyOneField = {
 PlanEngineConfig _everyFieldChanged({
   double ppO2Working = 1.2,
   double ppO2Deco = 1.5,
+  double ppO2DecoBand1 = 1.3,
+  double ppO2DecoBand2 = 1.25,
+  double ppO2DecoBand3 = 1.2,
+  double maxO2DepthMeters = 4.5,
   bool o2Narcotic = false,
   double bestMixEndMeters = 35,
   double buddyFactor = 1.5,
@@ -135,6 +157,15 @@ PlanEngineConfig _everyFieldChanged({
 }) => PlanEngineConfig(
   ppO2Working: ppO2Working,
   ppO2Deco: ppO2Deco,
+  ppO2DecoBandsEnabled: true,
+  ppO2DecoBand1: ppO2DecoBand1,
+  ppO2DecoBand2: ppO2DecoBand2,
+  ppO2DecoBand3: ppO2DecoBand3,
+  maxO2DepthEnabled: true,
+  maxO2DepthMeters: maxO2DepthMeters,
+  hypercapniaEnabled: true,
+  hypercapniaFactor: 3.0,
+  hypercapniaMinutes: 3,
   ccrDiluentModPpO2: 1.5,
   ccrSetpointLow: 0.6,
   ccrSetpointHigh: 1.2,
@@ -181,6 +212,12 @@ PlanEngineConfig _everyFieldChanged({
 domain.DivePlan _plan({
   double? ppO2Bottom,
   double? ppO2Deco,
+  double? ppO2DecoBand1,
+  double? ppO2DecoBand2,
+  double? ppO2DecoBand3,
+  double? maxO2DepthMeters,
+  bool ppO2DecoBandsExplicitlyOff = false,
+  bool maxO2DepthExplicitlyOff = false,
   bool? o2Narcotic,
   double sacFactor = 2.0,
   double bestMixEndMeters = 30.0,
@@ -197,6 +234,12 @@ domain.DivePlan _plan({
     gfHigh: gfHigh,
     ppO2Bottom: ppO2Bottom,
     ppO2Deco: ppO2Deco,
+    ppO2DecoBand1: ppO2DecoBand1,
+    ppO2DecoBand2: ppO2DecoBand2,
+    ppO2DecoBand3: ppO2DecoBand3,
+    maxO2DepthMeters: maxO2DepthMeters,
+    ppO2DecoBandsExplicitlyOff: ppO2DecoBandsExplicitlyOff,
+    maxO2DepthExplicitlyOff: maxO2DepthExplicitlyOff,
     o2Narcotic: o2Narcotic,
     sacFactor: sacFactor,
     bestMixEndMeters: bestMixEndMeters,
@@ -317,6 +360,10 @@ void main() {
       final plan = _plan(
         ppO2Bottom: 1.3,
         ppO2Deco: 1.55,
+        ppO2DecoBand1: 1.35,
+        ppO2DecoBand2: 1.3,
+        ppO2DecoBand3: 1.25,
+        maxO2DepthMeters: 5.0,
         o2Narcotic: true,
         sacFactor: 1.8,
         bestMixEndMeters: 33,
@@ -329,6 +376,10 @@ void main() {
         _everyFieldChanged(
           ppO2Working: 1.3,
           ppO2Deco: 1.55,
+          ppO2DecoBand1: 1.35,
+          ppO2DecoBand2: 1.3,
+          ppO2DecoBand3: 1.25,
+          maxO2DepthMeters: 5.0,
           o2Narcotic: true,
           buddyFactor: 1.8,
           bestMixEndMeters: 33,
@@ -336,6 +387,57 @@ void main() {
           gfHigh: 82,
         ),
       );
+    });
+
+    // Regression for a Copilot review finding (issue #3580 follow-up): a
+    // plan's own Custom band/depth values must govern even when the
+    // diver's Settings toggle is off - "Custom" is a per-plan opt-in, not
+    // something the global switch can silently veto. The fixtures above
+    // always build with the toggle already on and never exercise this.
+    test('a plan with custom band/depth values enables them even when the '
+        'Settings toggle is off', () {
+      const config = PlanEngineConfig(
+        ppO2DecoBandsEnabled: false,
+        maxO2DepthEnabled: false,
+      );
+      final plan = _plan(ppO2DecoBand1: 1.35, maxO2DepthMeters: 5.0);
+
+      final resolved = config.resolvedFor(plan);
+
+      expect(resolved.ppO2DecoBandsEnabled, isTrue);
+      expect(resolved.maxO2DepthEnabled, isTrue);
+    });
+
+    test("a plan's explicit Off still wins even with a custom value set and "
+        'the Settings toggle on', () {
+      const config = PlanEngineConfig(
+        ppO2DecoBandsEnabled: true,
+        maxO2DepthEnabled: true,
+      );
+      final plan = _plan(
+        ppO2DecoBand1: 1.35,
+        maxO2DepthMeters: 5.0,
+        ppO2DecoBandsExplicitlyOff: true,
+        maxO2DepthExplicitlyOff: true,
+      );
+
+      final resolved = config.resolvedFor(plan);
+
+      expect(resolved.ppO2DecoBandsEnabled, isFalse);
+      expect(resolved.maxO2DepthEnabled, isFalse);
+    });
+
+    test('a plan with no override and the Settings toggle off stays off', () {
+      const config = PlanEngineConfig(
+        ppO2DecoBandsEnabled: false,
+        maxO2DepthEnabled: false,
+      );
+      final plan = _plan();
+
+      final resolved = config.resolvedFor(plan);
+
+      expect(resolved.ppO2DecoBandsEnabled, isFalse);
+      expect(resolved.maxO2DepthEnabled, isFalse);
     });
   });
 }

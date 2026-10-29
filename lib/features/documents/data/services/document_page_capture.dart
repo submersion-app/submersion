@@ -9,6 +9,8 @@ import 'package:submersion/core/services/files/picked_file_materializer.dart';
 import 'package:submersion/core/services/images/profile_photo_codec.dart';
 import 'package:submersion/features/documents/domain/document_file_gate.dart';
 import 'package:submersion/features/documents/domain/entities/document_page.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 
 typedef PickedBytes = ({Uint8List bytes, String name});
 typedef ImagePickFn = Future<PickedBytes?> Function(ImageSource source);
@@ -148,12 +150,14 @@ class DocumentPageCapture {
   /// No maxWidth / imageQuality: the desktop pickers ignore them, so the
   /// encoder does the sizing (as certification_edit_page.dart does).
   static Future<PickedBytes?> _platformPickImage(ImageSource source) async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.mediaImport);
     final picked = await ImagePicker().pickImage(source: source);
     if (picked == null) return null;
     return (bytes: await picked.readAsBytes(), name: picked.name);
   }
 
   static Future<PickedBytes?> _platformPickFile(List<String> extensions) async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.mediaImport);
     final result = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: extensions,

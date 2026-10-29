@@ -14,7 +14,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 /// holds the dives it counted. The list also shows any dives there that are
 /// excluded from statistics, which Insights leaves out of its counts.
 DiveFilterState countryDivesFilter(DiveFilterState scope, String country) =>
-    _withPlace(scope, [_site('country', StringValue(country))]);
+    _withConditions(scope, [_site('country', StringValue(country))]);
 
 /// The dives behind one row of the Insights region card (#2623). Regions are
 /// counted per country, so the row's [country] is pinned too, and a row
@@ -23,12 +23,36 @@ DiveFilterState regionDivesFilter(
   DiveFilterState scope, {
   required String region,
   required String? country,
-}) => _withPlace(scope, [
+}) => _withConditions(scope, [
   _site('region', StringValue(region)),
   if (country == null)
     ConditionNode(FieldPath(const ['site', 'country']), QueryOp.isEmpty, null)
   else
     _site('country', StringValue(country)),
+]);
+
+/// The dives behind one cell of the Time patterns calendar-days card
+/// (#3127): the Insights filter [scope], narrowed to dives logged on
+/// [month] / [day] in any year.
+///
+/// The `month` and `day` query fields read the same wall-clock date parts
+/// as `getCalendarDayMatrix`, so the list it opens holds the dives the cell
+/// counted (plus any excluded from statistics, as for the place rows).
+DiveFilterState calendarDayDivesFilter(
+  DiveFilterState scope, {
+  required int month,
+  required int day,
+}) => _withConditions(scope, [
+  ConditionNode(
+    FieldPath(const ['month']),
+    QueryOp.eq,
+    NumberValue(month.toDouble(), null),
+  ),
+  ConditionNode(
+    FieldPath(const ['day']),
+    QueryOp.eq,
+    NumberValue(day.toDouble(), null),
+  ),
 ]);
 
 /// Opens the dive list showing [filter], replacing its current filter so a
@@ -46,10 +70,13 @@ void openInsightsDives(
 ConditionNode _site(String column, StringValue value) =>
     ConditionNode(FieldPath(['site', column]), QueryOp.eq, value);
 
-/// ANDs [place] onto the scope's own advanced query, keeping every other
-/// axis of the scope as it is.
-DiveFilterState _withPlace(DiveFilterState scope, List<QueryNode> place) {
-  final parts = [?scope.query, ...place];
+/// ANDs [conditions] (a place, a calendar date) onto the scope's own
+/// advanced query, keeping every other axis of the scope as it is.
+DiveFilterState _withConditions(
+  DiveFilterState scope,
+  List<QueryNode> conditions,
+) {
+  final parts = [?scope.query, ...conditions];
   return scope.copyWith(
     query: parts.length == 1 ? parts.single : AndNode(parts),
   );

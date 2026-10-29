@@ -158,6 +158,13 @@ void main() {
     expect(find.text('Instructor'), findsNothing);
   });
 
+  testWidgets('the append dialog edits Markdown', (tester) async {
+    await pumpEditor(tester);
+    await addAction(tester, 'Append to notes');
+    expect(find.byTooltip('Bold'), findsOneWidget);
+    expect(find.text('Preview'), findsOneWidget);
+  });
+
   testWidgets('text typed into the append dialog survives a rebuild', (
     tester,
   ) async {

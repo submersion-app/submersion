@@ -170,6 +170,7 @@ import 'package:submersion/features/tides/data/services/dive_tide_recorder.dart'
 import 'package:submersion/features/dive_log/presentation/providers/shared_gear_overlap_providers.dart';
 import 'package:submersion/features/rules/presentation/run_rules_flow.dart';
 import 'package:submersion/features/rules/domain/rule_subject.dart';
+import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
 
 const _createNewDiveCenterSentinel = '__create_new_dive_center__';
 const _createNewTripSentinel = '__create_new_trip__';
@@ -1466,6 +1467,18 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             onToggle: null,
             children: [
               _gatedRow(
+                BulkField.site,
+                FormRow.picker(
+                  label: l10n.diveLog_edit_row_site,
+                  value: _selectedSite?.name,
+                  placeholder: l10n.diveLog_edit_row_notSet,
+                  onTap: _showBulkSitePicker,
+                  onClear: _selectedSite == null
+                      ? null
+                      : () => setState(() => _selectedSite = null),
+                ),
+              ),
+              _gatedRow(
                 BulkField.diveCenter,
                 FormRow.picker(
                   label: l10n.diveLog_edit_row_diveCenter,
@@ -1581,7 +1594,10 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                           setState(() => _bulkNotesAppend = s.first),
                     ),
                     const SizedBox(height: 8),
-                    TextField(controller: _notesController, maxLines: 4),
+                    MarkdownNotesField(
+                      controller: _notesController,
+                      maxLines: 4,
+                    ),
                   ],
                 ),
               ),
@@ -1967,8 +1983,28 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     );
   }
 
+  /// The bulk Site row's picker. Unlike [_showSitePicker] it only stages the
+  /// site: the snap onto water type, entry/exit and dive types happens per
+  /// dive in the bulk service, so the form's own rows keep what the diver
+  /// set (#3657).
+  Future<void> _showBulkSitePicker() async {
+    final site = await pickOrCreateSite(
+      context,
+      ref,
+      selectedSiteId: _selectedSite?.id,
+      currentLocation: _currentLocation,
+    );
+    if (site != null && mounted) {
+      _markDirty();
+      setState(() => _selectedSite = site);
+    }
+  }
+
   List<BulkCollectionOp> _collectCollectionOps() {
     final ops = <BulkCollectionOp>[];
+    if (_bulkEnabled.contains(BulkField.site)) {
+      ops.add(SiteOp(siteId: _selectedSite?.id));
+    }
     if (_bulkEnabled.contains(BulkField.diverRole)) {
       ops.add(DiverRolesOp(roleIds: _diverRoleIds));
     }
@@ -2446,9 +2482,11 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       return;
     }
 
-    // The My role gate rides DiverRolesOp (#1221), not a scalar column.
+    // The My role gate rides DiverRolesOp (#1221) and the Site gate SiteOp
+    // (#3657), not a scalar column.
     final scalarFields = Set<BulkField>.from(_bulkEnabled)
-      ..remove(BulkField.diverRole);
+      ..remove(BulkField.diverRole)
+      ..remove(BulkField.site);
     String? notesAppend;
     if (_bulkEnabled.contains(BulkField.notes) && _bulkNotesAppend) {
       scalarFields.remove(BulkField.notes);
@@ -3667,6 +3705,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             suggested: _suggestedTankIds.contains(_tanks[i].id),
             // A saved dive's tanks can show the mix their computer logged.
             diveId: _existingDive?.id,
+            // A diluent's MOD follows the Dil MOD limit on a rebreather
+            // dive only (issue #3752).
+            diveMode: _diveMode,
             onChanged: (updatedTank) {
               final before = _tanks[i];
               setState(() {
@@ -4948,7 +4989,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
               textCapitalization: TextCapitalization.words,
             ),
             const SizedBox(height: 12),
-            TextField(
+            MarkdownNotesField(
               controller: descriptionController,
               decoration: InputDecoration(
                 labelText:

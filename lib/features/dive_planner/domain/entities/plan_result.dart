@@ -614,6 +614,32 @@ class DivePlanState extends Equatable {
   /// use the app-wide setting. Mirrors [DivePlan.ppO2Deco].
   final double? ppO2Deco;
 
+  /// Per-O2-band deco ppO2 ceilings for this plan (issue #3580); null = use
+  /// the app-wide band. Mirrors [DivePlan.ppO2DecoBand1]/2/3.
+  final double? ppO2DecoBand1;
+  final double? ppO2DecoBand2;
+  final double? ppO2DecoBand3;
+
+  /// Mirrors [DivePlan.ppO2DecoBandsExplicitlyOff].
+  final bool ppO2DecoBandsExplicitlyOff;
+
+  /// Explicit MOD for 100% O2 for this plan (issue #3580); null = use the
+  /// app-wide value. Mirrors [DivePlan.maxO2DepthMeters].
+  final double? maxO2DepthMeters;
+
+  /// Mirrors [DivePlan.maxO2DepthExplicitlyOff].
+  final bool maxO2DepthExplicitlyOff;
+
+  /// Hypercapnia-bailout overrides for this plan (issue #3743); null =
+  /// derive from this plan's own base SAC and the diver's Settings
+  /// hypercapnia factor/duration. Mirrors
+  /// [DivePlan.hypercapniaAmv]/[DivePlan.hypercapniaMinutes].
+  final double? hypercapniaAmv;
+  final int? hypercapniaMinutes;
+
+  /// Mirrors [DivePlan.hypercapniaExplicitlyOff].
+  final bool hypercapniaExplicitlyOff;
+
   /// Equivalent narcotic depth target for best-mix suggestions. Null = use
   /// the diver's Settings default (issue #3552). Mirrors
   /// [DivePlan.bestMixEndMeters].
@@ -712,6 +738,15 @@ class DivePlanState extends Equatable {
     this.gasSwitchStopSeconds,
     this.ppO2Bottom,
     this.ppO2Deco,
+    this.ppO2DecoBand1,
+    this.ppO2DecoBand2,
+    this.ppO2DecoBand3,
+    this.ppO2DecoBandsExplicitlyOff = false,
+    this.maxO2DepthMeters,
+    this.maxO2DepthExplicitlyOff = false,
+    this.hypercapniaAmv,
+    this.hypercapniaMinutes,
+    this.hypercapniaExplicitlyOff = false,
     this.bestMixEndMeters,
     this.o2Narcotic,
     this.stopMinimums = const {},
@@ -821,6 +856,21 @@ class DivePlanState extends Equatable {
     bool clearPpO2Bottom = false,
     double? ppO2Deco,
     bool clearPpO2Deco = false,
+    double? ppO2DecoBand1,
+    bool clearPpO2DecoBand1 = false,
+    double? ppO2DecoBand2,
+    bool clearPpO2DecoBand2 = false,
+    double? ppO2DecoBand3,
+    bool clearPpO2DecoBand3 = false,
+    bool? ppO2DecoBandsExplicitlyOff,
+    double? maxO2DepthMeters,
+    bool clearMaxO2DepthMeters = false,
+    bool? maxO2DepthExplicitlyOff,
+    double? hypercapniaAmv,
+    bool clearHypercapniaAmv = false,
+    int? hypercapniaMinutes,
+    bool clearHypercapniaMinutes = false,
+    bool? hypercapniaExplicitlyOff,
     double? bestMixEndMeters,
     bool clearBestMixEndMeters = false,
     bool? o2Narcotic,
@@ -925,6 +975,30 @@ class DivePlanState extends Equatable {
           : (gasSwitchStopSeconds ?? this.gasSwitchStopSeconds),
       ppO2Bottom: clearPpO2Bottom ? null : (ppO2Bottom ?? this.ppO2Bottom),
       ppO2Deco: clearPpO2Deco ? null : (ppO2Deco ?? this.ppO2Deco),
+      ppO2DecoBand1: clearPpO2DecoBand1
+          ? null
+          : (ppO2DecoBand1 ?? this.ppO2DecoBand1),
+      ppO2DecoBand2: clearPpO2DecoBand2
+          ? null
+          : (ppO2DecoBand2 ?? this.ppO2DecoBand2),
+      ppO2DecoBand3: clearPpO2DecoBand3
+          ? null
+          : (ppO2DecoBand3 ?? this.ppO2DecoBand3),
+      ppO2DecoBandsExplicitlyOff:
+          ppO2DecoBandsExplicitlyOff ?? this.ppO2DecoBandsExplicitlyOff,
+      maxO2DepthMeters: clearMaxO2DepthMeters
+          ? null
+          : (maxO2DepthMeters ?? this.maxO2DepthMeters),
+      maxO2DepthExplicitlyOff:
+          maxO2DepthExplicitlyOff ?? this.maxO2DepthExplicitlyOff,
+      hypercapniaAmv: clearHypercapniaAmv
+          ? null
+          : (hypercapniaAmv ?? this.hypercapniaAmv),
+      hypercapniaMinutes: clearHypercapniaMinutes
+          ? null
+          : (hypercapniaMinutes ?? this.hypercapniaMinutes),
+      hypercapniaExplicitlyOff:
+          hypercapniaExplicitlyOff ?? this.hypercapniaExplicitlyOff,
       bestMixEndMeters: clearBestMixEndMeters
           ? null
           : (bestMixEndMeters ?? this.bestMixEndMeters),
@@ -989,6 +1063,15 @@ class DivePlanState extends Equatable {
     gasSwitchStopSeconds,
     ppO2Bottom,
     ppO2Deco,
+    ppO2DecoBand1,
+    ppO2DecoBand2,
+    ppO2DecoBand3,
+    ppO2DecoBandsExplicitlyOff,
+    maxO2DepthMeters,
+    maxO2DepthExplicitlyOff,
+    hypercapniaAmv,
+    hypercapniaMinutes,
+    hypercapniaExplicitlyOff,
     bestMixEndMeters,
     o2Narcotic,
     stopMinimums,

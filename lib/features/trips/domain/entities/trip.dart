@@ -30,6 +30,12 @@ class Trip extends Equatable {
   /// it from the itinerary, the expected dives or recent trips).
   final int diversSharingCylinders;
   final int? divesPerDayTarget;
+
+  /// The larger trip this one is a side trip of (issue #3658), or null for a
+  /// trip of its own. Read through `effectiveParentId`: a stored link can
+  /// name a trip that is gone or is itself a side trip, and that counts as
+  /// no parent.
+  final String? parentTripId;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -50,6 +56,7 @@ class Trip extends Equatable {
     this.expectedRuntimeMinutes,
     this.diversSharingCylinders = 1,
     this.divesPerDayTarget,
+    this.parentTripId,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -152,6 +159,7 @@ class Trip extends Equatable {
     Object? expectedRuntimeMinutes = _undefined,
     int? diversSharingCylinders,
     Object? divesPerDayTarget = _undefined,
+    Object? parentTripId = _undefined,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -185,6 +193,9 @@ class Trip extends Equatable {
       divesPerDayTarget: divesPerDayTarget == _undefined
           ? this.divesPerDayTarget
           : divesPerDayTarget as int?,
+      parentTripId: parentTripId == _undefined
+          ? this.parentTripId
+          : parentTripId as String?,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -208,6 +219,7 @@ class Trip extends Equatable {
     expectedRuntimeMinutes,
     diversSharingCylinders,
     divesPerDayTarget,
+    parentTripId,
     createdAt,
     updatedAt,
   ];

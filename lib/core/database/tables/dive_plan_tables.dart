@@ -127,6 +127,41 @@ class DivePlans extends Table {
   IntColumn get problemSolvingMinutes => integer().nullable()();
   RealColumn get ppO2Bottom => real().nullable()();
   RealColumn get ppO2Deco => real().nullable()();
+
+  /// Per-O2-band deco ppO2 ceilings for this plan (issue #3580, v319). Null
+  /// = use the diver's Settings band. A non-null value is itself a Custom
+  /// opt-in for this plan and takes effect even when the diver's Settings
+  /// band toggle is off (issue #3580 follow-up, see
+  /// `resolveDecoLayerEnabled`), unless [ppO2DecoBandsExplicitlyOff] forces
+  /// band mode off for this plan regardless.
+  RealColumn get ppO2DecoBand1 => real().nullable()();
+  RealColumn get ppO2DecoBand2 => real().nullable()();
+  RealColumn get ppO2DecoBand3 => real().nullable()();
+
+  /// True = this plan never uses per-band deco ppO2 limits, regardless of
+  /// the diver's Settings band toggle (issue #3580, v321).
+  BoolColumn get ppO2DecoBandsExplicitlyOff =>
+      boolean().withDefault(const Constant(false))();
+
+  /// Explicit MOD for 100% O2 for this plan (issue #3580, v319). Null = use
+  /// the diver's Settings value.
+  RealColumn get maxO2DepthMeters => real().nullable()();
+
+  /// True = this plan never uses an explicit MOD for 100% O2, regardless of
+  /// the diver's Settings toggle (issue #3580, v321).
+  BoolColumn get maxO2DepthExplicitlyOff =>
+      boolean().withDefault(const Constant(false))();
+
+  /// Hypercapnia-bailout overrides for this plan (issue #3743, v322). Null
+  /// = derive from this plan's own base SAC and the diver's Settings
+  /// hypercapnia factor/duration.
+  RealColumn get hypercapniaAmv => real().nullable()();
+  IntColumn get hypercapniaMinutes => integer().nullable()();
+
+  /// True = this plan's OC bailout never uses a hypercapnia phase,
+  /// regardless of the diver's Settings toggle (issue #3743, v322).
+  BoolColumn get hypercapniaExplicitlyOff =>
+      boolean().withDefault(const Constant(false))();
   RealColumn get bestMixEndMeters => real().nullable()();
   BoolColumn get o2Narcotic => boolean().nullable()();
 

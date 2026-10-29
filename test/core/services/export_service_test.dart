@@ -61,6 +61,27 @@ void main() {
   }
 
   group('CSV Injection Prevention', () {
+    test(
+      'exportTripsToCsv writes Markdown notes as plain words (#3683)',
+      () async {
+        final now = DateTime.now();
+        final trip = Trip(
+          id: 'test-md',
+          name: 'Bonaire',
+          startDate: DateTime(2024, 1, 1),
+          endDate: DateTime(2024, 1, 7),
+          notes: '# Plan\n**Bring torch**',
+          createdAt: now,
+          updatedAt: now,
+        );
+        final csvOutput = await readCsvFromPath(
+          await exportService.exportTripsToCsv([trip]),
+        );
+        expect(csvOutput, contains('Plan Bring torch'));
+        expect(csvOutput, isNot(contains('**')));
+      },
+    );
+
     test('exportTripsToCsv sanitizes formula injection in trip name', () async {
       // Create a trip with a malicious name starting with '='
       final now = DateTime.now();

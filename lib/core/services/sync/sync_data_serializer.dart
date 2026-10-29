@@ -394,6 +394,9 @@ class SyncData {
   /// #2567).
   final List<Map<String, dynamic>> librarySiteNotes;
   final List<Map<String, dynamic>> mediaSpecies;
+
+  /// People tagged on photos and videos (v326, issue #1745).
+  final List<Map<String, dynamic>> mediaPeople;
   final List<Map<String, dynamic>> siteFeatures;
   final List<Map<String, dynamic>> csvPresets;
   final List<Map<String, dynamic>> viewConfigs;
@@ -526,6 +529,7 @@ class SyncData {
     this.sharedLibraryMemberships = const [],
     this.librarySiteNotes = const [],
     this.mediaSpecies = const [],
+    this.mediaPeople = const [],
     this.siteFeatures = const [],
     this.csvPresets = const [],
     this.viewConfigs = const [],
@@ -657,6 +661,7 @@ class SyncData {
     'sharedLibraryMemberships': sharedLibraryMemberships,
     'librarySiteNotes': librarySiteNotes,
     'mediaSpecies': mediaSpecies,
+    'mediaPeople': mediaPeople,
     'siteFeatures': siteFeatures,
     'csvPresets': csvPresets,
     'viewConfigs': viewConfigs,
@@ -805,6 +810,7 @@ class SyncData {
       sharedLibraryMemberships: _parseList(json['sharedLibraryMemberships']),
       librarySiteNotes: _parseList(json['librarySiteNotes']),
       mediaSpecies: _parseList(json['mediaSpecies']),
+      mediaPeople: _parseList(json['mediaPeople']),
       siteFeatures: _parseList(json['siteFeatures']),
       csvPresets: _parseList(json['csvPresets']),
       viewConfigs: _parseList(json['viewConfigs']),
@@ -926,6 +932,11 @@ class SyncDataSerializer {
   /// Incremental delta: only rows changed since [hlcWatermark]. Mutable
   /// entities are filtered by their own hlc; write-once children are gathered
   /// by their HLC parent. Pass null to export everything.
+  ///
+  /// [childrenByOwnClock] also selects parent-gated children whose own clock
+  /// is above [hlcWatermark]. Nearby sync needs it: it has no changeset log,
+  /// so a child edit already published to the cloud has lost the pending
+  /// mark that carries it here (issue #3731).
   Future<SyncPayload> exportChangeset({
     required String deviceId,
     required String? hlcWatermark,
@@ -933,8 +944,12 @@ class SyncDataSerializer {
     int? seq,
     String? uploadNonce,
     String? epochId,
+    bool childrenByOwnClock = false,
   }) async {
-    final data = await _buildSyncData(hlcWatermark);
+    final data = await _buildSyncData(
+      hlcWatermark,
+      childrenByOwnClock: childrenByOwnClock,
+    );
     // A base (null watermark) carries the FULL deletion log so a cold-start
     // reader can never miss a tombstone. An incremental changeset carries only
     // tombstones newer than the watermark; a null/legacy hlc is always included
@@ -1445,6 +1460,7 @@ class SyncDataSerializer {
       full: null,
     ),
     (key: 'mediaSpecies', table: _db.mediaSpecies, blob: false, full: null),
+    (key: 'mediaPeople', table: _db.mediaPeople, blob: false, full: null),
     (key: 'siteFeatures', table: _db.siteFeatures, blob: false, full: null),
     (key: 'csvPresets', table: _db.csvPresets, blob: false, full: null),
     (key: 'viewConfigs', table: _db.viewConfigs, blob: false, full: null),
@@ -1892,6 +1908,7 @@ class SyncDataSerializer {
     'media',
     'mediaEnrichment',
     'mediaSpecies',
+    'mediaPeople',
     'mediaStores',
     'species',
     'importedFiles',
@@ -2203,6 +2220,44 @@ class SyncDataSerializer {
     return byType;
   }
 
+  /// Record ids of [parentGatedChildEntities] rows whose own clock is above
+  /// [hlc], by entity type. Tables a partial database lacks are skipped.
+  Future<Map<String, Set<String>>> _parentGatedChildIdsAbove(String hlc) async {
+    final present = {
+      for (final r
+          in await _db
+              .customSelect(
+                "SELECT name FROM sqlite_master WHERE type = 'table'",
+              )
+              .get())
+        r.read<String>('name'),
+    };
+    final byType = <String, Set<String>>{};
+    for (final entry in parentGatedTables.entries) {
+      if (!present.contains(entry.value)) continue;
+      final table = _db.allTables.firstWhere(
+        (t) => t.actualTableName == entry.value,
+      );
+      final rows = await _db
+          .customSelect(
+            'SELECT * FROM ${entry.value} WHERE hlc > ?',
+            variables: [Variable.withString(hlc)],
+            readsFrom: {table},
+          )
+          .get();
+      for (final row in rows) {
+        final data = table.map(row.data);
+        if (data is! DataClass) continue;
+        final id = parentGatedRecordId(
+          entry.key,
+          data.toJson(serializer: _syncBlobSerializer),
+        );
+        if (id != null) byType.putIfAbsent(entry.key, () => <String>{}).add(id);
+      }
+    }
+    return byType;
+  }
+
   /// [rows] from the parent-gated export plus every pending [entityType] row
   /// it did not already include. A pending id whose row is gone is skipped:
   /// its deletion travels as a tombstone.
@@ -2229,14 +2284,31 @@ class SyncDataSerializer {
   }
 
   /// Build the full SyncData, filtering by [hlcSince] (null = full export).
-  Future<SyncData> _buildSyncData(String? hlcSince) =>
-      _withLibrarySiteIdsMemo(() => _buildSyncDataUnmemoised(hlcSince));
+  Future<SyncData> _buildSyncData(
+    String? hlcSince, {
+    bool childrenByOwnClock = false,
+  }) => _withLibrarySiteIdsMemo(
+    () => _buildSyncDataUnmemoised(
+      hlcSince,
+      childrenByOwnClock: childrenByOwnClock,
+    ),
+  );
 
-  Future<SyncData> _buildSyncDataUnmemoised(String? hlcSince) async {
+  Future<SyncData> _buildSyncDataUnmemoised(
+    String? hlcSince, {
+    bool childrenByOwnClock = false,
+  }) async {
     // A base (null hlcSince) already carries every row.
-    final pendingChildren = hlcSince == null
+    final pending = hlcSince == null
         ? const <String, Set<String>>{}
         : await _pendingParentGatedChildIds();
+    final byOwnClock = hlcSince != null && childrenByOwnClock
+        ? await _parentGatedChildIdsAbove(hlcSince)
+        : const <String, Set<String>>{};
+    final pendingChildren = {
+      for (final type in {...pending.keys, ...byOwnClock.keys})
+        type: {...?pending[type], ...?byOwnClock[type]},
+    };
     return SyncData(
       divers: await _safeExport('divers', () => _exportDivers(hlcSince)),
       diverSettings: await _safeExport(
@@ -2845,6 +2917,10 @@ class SyncDataSerializer {
         'mediaSpecies',
         () => _exportMediaSpecies(hlcSince),
       ),
+      mediaPeople: await _safeExport(
+        'mediaPeople',
+        () => _exportMediaPeople(hlcSince),
+      ),
       siteFeatures: await _safeExport(
         'siteFeatures',
         () => _exportSiteFeatures(hlcSince),
@@ -2898,18 +2974,24 @@ class SyncDataSerializer {
   /// Verified over the data section as received ([SyncPayload.rawDataJson])
   /// so payloads written by builds with fewer/more entity keys still
   /// validate; falls back to re-serializing for locally built payloads.
-  bool validateChecksum(SyncPayload payload) {
+  bool validateChecksum(SyncPayload payload) => checksumIsValid(payload);
+
+  /// [validateChecksum] without an instance, for nearby sync's receiver.
+  static bool checksumIsValid(SyncPayload payload) {
     final dataJson = payload.rawDataJson ?? jsonEncode(payload.data.toJson());
-    final computed = _computeChecksum(dataJson);
-    return computed == payload.checksum;
+    return _sha256Hex(dataJson) == payload.checksum;
   }
 
   /// Compute SHA-256 checksum
-  String _computeChecksum(String data) {
-    final bytes = utf8.encode(data);
-    final digest = sha256.convert(bytes);
-    return digest.toString();
-  }
+  String _computeChecksum(String data) => _sha256Hex(data);
+
+  /// The checksum a payload carrying [data] must have, for a caller that
+  /// rebuilds a payload's data (nearby sync's per-writer filter).
+  static String checksumOf(SyncData data) =>
+      _sha256Hex(jsonEncode(data.toJson()));
+
+  static String _sha256Hex(String data) =>
+      sha256.convert(utf8.encode(data)).toString();
 
   // ============================================================================
   // Import / Apply Methods
@@ -3711,6 +3793,11 @@ class SyncDataSerializer {
           _db.mediaSpecies,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
         return row?.toJson();
+      case 'mediaPeople':
+        final row = await (_db.select(
+          _db.mediaPeople,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
       case 'siteFeatures':
         final row = await (_db.select(
           _db.siteFeatures,
@@ -3856,6 +3943,11 @@ class SyncDataSerializer {
       case 'mediaSpecies':
         final rows = await (_db.select(
           _db.mediaSpecies,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'mediaPeople':
+        final rows = await (_db.select(
+          _db.mediaPeople,
         )..where((t) => t.id.isIn(idList))).get();
         return {for (final r in rows) r.id: r.toJson()};
       case 'species':
@@ -5842,6 +5934,13 @@ class SyncDataSerializer {
               MediaSpecy.fromJson(_withTimestampDefaults(data)),
             );
         return;
+      case 'mediaPeople':
+        await _db
+            .into(_db.mediaPeople)
+            .insertOnConflictUpdate(
+              MediaPeopleData.fromJson(_withTimestampDefaults(data)),
+            );
+        return;
       case 'siteFeatures':
         await _db
             .into(_db.siteFeatures)
@@ -7554,6 +7653,16 @@ class SyncDataSerializer {
           ),
         );
         return;
+      case 'mediaPeople':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.mediaPeople,
+            records
+                .map((r) => MediaPeopleData.fromJson(_withTimestampDefaults(r)))
+                .toList(),
+          ),
+        );
+        return;
       case 'siteFeatures':
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
@@ -7952,6 +8061,8 @@ class SyncDataSerializer {
         return plain(_db.siteSpecies, _db.siteSpecies.id);
       case 'mediaSpecies':
         return plain(_db.mediaSpecies, _db.mediaSpecies.id);
+      case 'mediaPeople':
+        return plain(_db.mediaPeople, _db.mediaPeople.id);
       case 'siteFeatures':
         return plain(_db.siteFeatures, _db.siteFeatures.id);
       case 'csvPresets':
@@ -8477,6 +8588,8 @@ class SyncDataSerializer {
         return _db.siteSpecies;
       case 'mediaSpecies':
         return _db.mediaSpecies;
+      case 'mediaPeople':
+        return _db.mediaPeople;
       case 'siteFeatures':
         return _db.siteFeatures;
       case 'csvPresets':
@@ -9189,6 +9302,11 @@ class SyncDataSerializer {
           _db.mediaSpecies,
         )..where((t) => t.id.equals(recordId))).go();
         return;
+      case 'mediaPeople':
+        await (_db.delete(
+          _db.mediaPeople,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
       case 'siteFeatures':
         await (_db.delete(
           _db.siteFeatures,
@@ -9245,7 +9363,14 @@ class SyncDataSerializer {
   ) async {
     final query = _db.select(_db.diverSettings);
     if (hlcSince != null) {
-      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+      // A list arrangement change stamps its own clock, not the row clock
+      // (issue #3748), so a row is due when either has moved past the
+      // watermark.
+      query.where(
+        (t) =>
+            t.hlc.isBiggerThanValue(hlcSince) |
+            t.listArrangementHlc.isBiggerThanValue(hlcSince),
+      );
     }
     final rows = await query.get();
     return rows
@@ -11046,6 +11171,20 @@ class SyncDataSerializer {
     String? hlcSince,
   ) async {
     final query = _db.select(_db.mediaSpecies);
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+    }
+    final rows = await query.get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  /// `media_people` (v326, issue #1745) carries its own clock from its first
+  /// write, so an incremental export filters on the tag's `hlc` like
+  /// [_exportMediaSpecies]; a full export ships the table.
+  Future<List<Map<String, dynamic>>> _exportMediaPeople(
+    String? hlcSince,
+  ) async {
+    final query = _db.select(_db.mediaPeople);
     if (hlcSince != null) {
       query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
     }

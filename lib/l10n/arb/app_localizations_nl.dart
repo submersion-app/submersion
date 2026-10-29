@@ -2534,6 +2534,15 @@ class AppLocalizationsNl extends AppLocalizations {
       'Verzenden via AirDrop, e-mail of andere apps';
 
   @override
+  String get backup_copySheet_deviceLocked =>
+      'Deze veiligheidskopie komt uit je beveiligde database. Hij kan alleen op dit apparaat worden hersteld.';
+
+  @override
+  String backup_copySheet_title(String dateTime) {
+    return 'Back-up van $dateTime';
+  }
+
+  @override
   String get backup_frequency_daily => 'Dagelijks';
 
   @override
@@ -2547,6 +2556,12 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get backup_history_action_restore => 'Herstellen';
+
+  @override
+  String get backup_history_action_saveCopy => 'Kopie opslaan';
+
+  @override
+  String get backup_history_action_share => 'Delen';
 
   @override
   String get backup_history_empty => 'Geen back-ups';
@@ -2804,6 +2819,313 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get buddies_action_addTooltip => 'Nieuwe duikbuddy toevoegen';
+
+  @override
+  String get buddyCard_preview_title => 'Buddykaart';
+
+  @override
+  String buddyCard_preview_addTitle(String name) {
+    return '$name toevoegen als buddy';
+  }
+
+  @override
+  String buddyCard_preview_updateTitle(String name) {
+    return '$name bijwerken';
+  }
+
+  @override
+  String buddyCard_preview_possibleTitle(String name) {
+    return 'Is dit $name uit je buddy\'s?';
+  }
+
+  @override
+  String get buddyCard_preview_trimmed =>
+      'Sommige gegevens zijn weggelaten om in de code te passen.';
+
+  @override
+  String get buddyCard_preview_newer =>
+      'Deze kaart komt uit een nieuwere versie van Submersion. Sommige gegevens kunnen ontbreken.';
+
+  @override
+  String get buddyCard_preview_noChanges => 'Niets op deze kaart is nieuw.';
+
+  @override
+  String get buddyCard_preview_ownCard =>
+      'Dit is je eigen kaart. Wissel met een buddy om de zijne te krijgen.';
+
+  @override
+  String buddyCard_preview_changed(String from, String to) {
+    return '$to (was $from)';
+  }
+
+  @override
+  String get buddyCard_action_add => 'Buddy toevoegen';
+
+  @override
+  String get buddyCard_action_update => 'Buddy bijwerken';
+
+  @override
+  String get buddyCard_action_addAsNew => 'Toevoegen als nieuwe buddy';
+
+  @override
+  String get buddyCard_action_discard => 'Negeren';
+
+  @override
+  String get buddyCard_field_name => 'Naam';
+
+  @override
+  String get buddyCard_field_phone => 'Telefoon';
+
+  @override
+  String get buddyCard_field_email => 'E-mail';
+
+  @override
+  String get buddyCard_field_social => 'Socialemedianaam';
+
+  @override
+  String get buddyCard_field_dives => 'Duiken';
+
+  @override
+  String get buddyCard_field_divingSince => 'Duikt sinds';
+
+  @override
+  String get buddyCard_field_lastDive => 'Laatste duik';
+
+  @override
+  String get buddyCard_field_certifications => 'Brevetten';
+
+  @override
+  String buddyCard_saved_added(String name) {
+    return '$name toegevoegd aan je buddy\'s';
+  }
+
+  @override
+  String buddyCard_saved_updated(String name) {
+    return '$name bijgewerkt';
+  }
+
+  @override
+  String get buddyCard_saved_view => 'Bekijken';
+
+  @override
+  String get buddyCard_error_notACard => 'Dat is geen Submersion-buddykaart.';
+
+  @override
+  String get buddyCard_error_unreadable =>
+      'Deze buddykaart kon niet worden gelezen.';
+
+  @override
+  String get buddySwap_title => 'Ruilen met een buddy';
+
+  @override
+  String get buddySwap_nearby_heading =>
+      'Duikers in de buurt met Submersion open';
+
+  @override
+  String get buddySwap_nearby_tapToSwap => 'Tik om te ruilen';
+
+  @override
+  String get buddySwap_nearby_looking => 'Zoeken naar meer…';
+
+  @override
+  String get buddySwap_nearby_failed =>
+      'Kon niet naar duikers in de buurt zoeken. De andere manieren om te wisselen hieronder werken nog.';
+
+  @override
+  String get buddySwap_nearby_hint =>
+      'Zie je je buddy niet? Jullie hebben allebei dit scherm open nodig en Submersion 1.8.4 of nieuwer.';
+
+  @override
+  String buddySwap_sharing(String summary) {
+    return 'Gedeeld: $summary';
+  }
+
+  @override
+  String get buddySwap_sharing_change => 'Wijzigen';
+
+  @override
+  String buddySwap_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duiken',
+      one: '1 duik',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buddySwap_action_showCode => 'Mijn code tonen';
+
+  @override
+  String get buddySwap_action_scanCode => 'Code scannen';
+
+  @override
+  String get buddySwap_action_sendFile => 'Bestand verzenden';
+
+  @override
+  String get buddySwap_action_openFile => 'Kaartbestand openen';
+
+  @override
+  String get buddySwap_action_writeSticker => 'NFC-sticker schrijven';
+
+  @override
+  String get buddySwap_action_tapAndroid => 'Android-telefoon aantikken';
+
+  @override
+  String get buddySwap_action_receiveByTap => 'Ontvangen door aantikken';
+
+  @override
+  String get buddySwap_tap_prompt =>
+      'Houd je telefoon bij de andere telefoon of de sticker';
+
+  @override
+  String get buddySwap_sticker_prompt =>
+      'Houd je telefoon bij een lege NFC-sticker';
+
+  @override
+  String get buddySwap_sticker_written =>
+      'Sticker geschreven. Schrijf hem opnieuw als je gegevens veranderen.';
+
+  @override
+  String get buddySwap_sticker_tooSmall =>
+      'Die sticker is te klein voor je kaart.';
+
+  @override
+  String get buddySwap_sticker_notWritable =>
+      'Die sticker kan niet worden beschreven.';
+
+  @override
+  String get buddySwap_nfc_unavailable =>
+      'NFC is niet beschikbaar op dit apparaat.';
+
+  @override
+  String get buddySwap_qr_title => 'Je buddykaart';
+
+  @override
+  String get buddySwap_qr_hint =>
+      'Vraag je buddy dit te scannen met Submersion of de camera.';
+
+  @override
+  String buddySwap_request_title(String name) {
+    return '$name wil kaarten ruilen';
+  }
+
+  @override
+  String buddySwap_request_youSend(String summary) {
+    return 'Je verstuurt: $summary';
+  }
+
+  @override
+  String get buddySwap_request_swap => 'Ruilen';
+
+  @override
+  String get buddySwap_request_decline => 'Weigeren';
+
+  @override
+  String buddySwap_waiting(String name) {
+    return 'Wachten op antwoord van $name';
+  }
+
+  @override
+  String buddySwap_failed_declined(String name) {
+    return '$name heeft de ruil geweigerd';
+  }
+
+  @override
+  String buddySwap_failed_timedOut(String name) {
+    return '$name heeft niet geantwoord';
+  }
+
+  @override
+  String buddySwap_failed_lost(String name) {
+    return 'Verbinding met $name verbroken';
+  }
+
+  @override
+  String buddySwap_failed_newerApp(String name) {
+    return '$name heeft een nieuwere versie van Submersion nodig';
+  }
+
+  @override
+  String get buddySwap_cardFailed => 'Je buddykaart kon niet worden gemaakt.';
+
+  @override
+  String get buddySwap_qr_tooLarge =>
+      'Je kaart is te lang voor een code. Probeer in plaats daarvan Bestand verzenden.';
+
+  @override
+  String get buddySwap_sendFailed =>
+      'Het kaartbestand kon niet worden gedeeld.';
+
+  @override
+  String get buddyCard_saveFailed => 'De buddy kon niet worden opgeslagen.';
+
+  @override
+  String get buddyCard_field_photo => 'Foto';
+
+  @override
+  String get buddyCard_change_newPhoto => 'Nieuwe foto';
+
+  @override
+  String get buddyShare_title => 'Wat je deelt';
+
+  @override
+  String get buddyShare_name => 'Naam';
+
+  @override
+  String get buddyShare_alwaysShared => 'Altijd gedeeld';
+
+  @override
+  String get buddyShare_neverShared =>
+      'Medische, verzekerings- en noodgegevens worden nooit gedeeld.';
+
+  @override
+  String get buddyShare_photo => 'Foto';
+
+  @override
+  String get buddyShare_phone => 'Telefoon';
+
+  @override
+  String get buddyShare_email => 'E-mail';
+
+  @override
+  String get buddyShare_certifications => 'Brevetten';
+
+  @override
+  String get buddyShare_cardDetails => 'Kaartnummers en datums';
+
+  @override
+  String get buddyShare_diveCount => 'Aantal duiken';
+
+  @override
+  String get buddyShare_divingSince => 'Duikt sinds';
+
+  @override
+  String get buddyShare_lastDive => 'Datum laatste duik';
+
+  @override
+  String get buddyShare_social => 'Socialemedianaam';
+
+  @override
+  String buddyCard_detail_heading(String name) {
+    return 'Van de kaart van $name';
+  }
+
+  @override
+  String buddyCard_detail_since(String year) {
+    return 'Duikt sinds $year';
+  }
+
+  @override
+  String buddyCard_detail_last(String date) {
+    return 'Laatste duik $date';
+  }
+
+  @override
+  String buddyCard_detail_received(String date) {
+    return 'Ontvangen op $date';
+  }
 
   @override
   String get buddies_action_clearSearch => 'Zoekopdracht wissen';
@@ -5096,6 +5418,24 @@ class AppLocalizationsNl extends AppLocalizations {
   String get common_placeholder_noValue => '--';
 
   @override
+  String get notesEditor_action_heading => 'Kop';
+
+  @override
+  String get notesEditor_action_bold => 'Vet';
+
+  @override
+  String get notesEditor_action_italic => 'Cursief';
+
+  @override
+  String get notesEditor_action_bulletList => 'Opsomming';
+
+  @override
+  String get notesEditor_action_numberedList => 'Genummerde lijst';
+
+  @override
+  String get notesEditor_action_preview => 'Voorbeeld';
+
+  @override
   String get common_error_tryAgain =>
       'Er is iets misgegaan. Probeer het opnieuw.';
 
@@ -5897,6 +6237,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_homeChips_sync => 'Synchronisatiestatus';
 
   @override
+  String get settings_homeChips_nearby => 'Apparaten in de buurt';
+
+  @override
   String get settings_homeChips_dataQuality => 'Datakwaliteit';
 
   @override
@@ -5946,6 +6289,16 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get dashboard_gauges_synced => 'Gesynchroniseerd';
+
+  @override
+  String dashboard_gauges_nearby(String name) {
+    return 'In de buurt: $name vraagt aandacht';
+  }
+
+  @override
+  String dashboard_gauges_nearbyMore(String name) {
+    return 'In de buurt: $name en andere vragen aandacht';
+  }
 
   @override
   String dashboard_gauges_dataIssues(int count) {
@@ -9888,6 +10241,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_selection_tooltip_edit => 'Geselecteerde bewerken';
 
   @override
+  String get diveLog_selection_tooltip_newTrip => 'Nieuwe reis van selectie';
+
+  @override
   String get diveLog_selection_tooltip_export => 'Geselecteerde exporteren';
 
   @override
@@ -10078,19 +10434,24 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get diveLog_cylinders_columnTank => 'Fles';
+  String diveLog_cylinders_figureStart(String pressure) {
+    return 'Begin $pressure';
+  }
 
   @override
-  String get diveLog_cylinders_columnGas => 'Gas';
+  String diveLog_cylinders_figureEnd(String pressure) {
+    return 'Eind $pressure';
+  }
 
   @override
-  String get diveLog_cylinders_columnStart => 'Begin';
+  String diveLog_cylinders_figureUsed(String pressure) {
+    return 'Gebruikt $pressure';
+  }
 
   @override
-  String get diveLog_cylinders_columnEnd => 'Eind';
-
-  @override
-  String get diveLog_cylinders_columnUsed => 'Gebruikt';
+  String diveLog_cylinders_gasSemantics(String mix) {
+    return 'Gas $mix';
+  }
 
   @override
   String diveLog_cylinders_gasUsed(String amount) {
@@ -10111,6 +10472,14 @@ class AppLocalizationsNl extends AppLocalizations {
   String diveLog_cylinders_modNote(String ppO2) {
     return 'MOD bij ppO₂ $ppO2';
   }
+
+  @override
+  String diveLog_cylinders_modLimit(String ppO2, String limit) {
+    return '$ppO2 ($limit)';
+  }
+
+  @override
+  String get diveLog_cylinders_modLimitSeparator => ', ';
 
   @override
   String get diveLog_tank_section_gasMix => 'Gasmengsel';
@@ -10600,6 +10969,24 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get divePlanner_gasOptions_ppO2Deco => 'Deco-ppO₂';
+
+  @override
+  String get divePlanner_gasOptions_ppO2DecoBand1 => 'Deco-ppO₂ tot 28% O2';
+
+  @override
+  String get divePlanner_gasOptions_ppO2DecoBand2 => 'Deco-ppO₂ 28-45% O2';
+
+  @override
+  String get divePlanner_gasOptions_ppO2DecoBand3 => 'Deco-ppO₂ 45-99% O2';
+
+  @override
+  String get divePlanner_gasOptions_maxO2DepthMeters => 'Max. diepte 100% O2';
+
+  @override
+  String get divePlanner_gasOptions_hypercapniaAmv => 'Hypercapnie-RMV';
+
+  @override
+  String get divePlanner_gasOptions_hypercapniaMinutes => 'Duur';
 
   @override
   String get divePlanner_gasOptions_bestMixEnd => 'END voor beste mengsel';
@@ -14913,6 +15300,11 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String tankMod_default(String ppO2, String limit) {
     return 'Standaard bij ppO2 $ppO2 ($limit)';
+  }
+
+  @override
+  String tankMod_defaultDepth(String depth, String limit) {
+    return 'Standaard bij $depth ($limit)';
   }
 
   @override
@@ -19946,6 +20338,11 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String plannerCanvas_issue_noUsableGas(String minGas, String fill) {
+    return 'Rock-bottom-minimum van $minGas laat geen bruikbaar gas over in een vulling van $fill';
+  }
+
+  @override
   String plannerCanvas_issue_diluentModExceeded(String depth, String value) {
     return 'Diluent overschrijdt de Dil-MOD op $depth (ppO₂ $value bar)';
   }
@@ -20048,6 +20445,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get plannerCanvas_chartMode_ccr => 'CCR';
+
+  @override
+  String get plannerCanvas_chartMode_scr => 'SCR';
 
   @override
   String plannerCanvas_scrub_tts(String minutes) {
@@ -22749,6 +23149,62 @@ class AppLocalizationsNl extends AppLocalizations {
       'Ongebruikte bailoutgassen overslaan';
 
   @override
+  String get settings_conflict_field_diveListSort => 'Duiken: sortering';
+
+  @override
+  String get settings_conflict_field_divePlanListSort =>
+      'Opgeslagen plannen: sortering';
+
+  @override
+  String get settings_conflict_field_tripListSort => 'Reizen: sortering';
+
+  @override
+  String get settings_conflict_field_courseListSort => 'Cursussen: sortering';
+
+  @override
+  String get settings_conflict_field_buddyListSort => 'Buddy\'s: sortering';
+
+  @override
+  String get settings_conflict_field_diveCenterListSort =>
+      'Duikcentra: sortering';
+
+  @override
+  String get settings_conflict_field_siteListSort => 'Duikstekken: sortering';
+
+  @override
+  String get settings_conflict_field_certificationListSort =>
+      'Brevetten: sortering';
+
+  @override
+  String get settings_conflict_field_equipmentListSort =>
+      'Uitrusting: sortering';
+
+  @override
+  String get settings_conflict_field_siteListGroupBy =>
+      'Duikstekken: groepering';
+
+  @override
+  String get settings_conflict_field_certificationListGroupBy =>
+      'Brevetten: groepering';
+
+  @override
+  String get settings_conflict_field_equipmentArrangement =>
+      'Ordening van uitrusting';
+
+  @override
+  String get settings_conflict_field_equipmentGroupByLocation =>
+      'Uitrusting gegroepeerd op locatie';
+
+  @override
+  String get settings_conflict_field_listArrangementHlc =>
+      'Log van lijstordening';
+
+  @override
+  String settings_conflict_sortValue(String field, String direction) {
+    return '$field, $direction';
+  }
+
+  @override
   String get settings_conflict_field_avgSpeed => 'Gemiddelde snelheid';
 
   @override
@@ -23959,6 +24415,27 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_conflict_field_ppO2Deco => 'ppO2 tijdens deco';
 
   @override
+  String get settings_conflict_field_ppO2DecoBand1 => 'Deco-ppO2 tot 28% O2';
+
+  @override
+  String get settings_conflict_field_ppO2DecoBand2 => 'Deco-ppO2 28-45% O2';
+
+  @override
+  String get settings_conflict_field_ppO2DecoBand3 => 'Deco-ppO2 45-99% O2';
+
+  @override
+  String get settings_conflict_field_ppO2DecoBandsEnabled =>
+      'Deco-ppO2-limieten per O2-band';
+
+  @override
+  String get settings_conflict_field_maxO2DepthEnabled =>
+      'Expliciete maximale diepte voor 100% O2';
+
+  @override
+  String get settings_conflict_field_maxO2DepthMeters =>
+      'Maximale diepte voor 100% O2';
+
+  @override
   String get settings_conflict_field_ppO2MaxDeco => 'Hoogste ppO2 tijdens deco';
 
   @override
@@ -23989,6 +24466,29 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_conflict_field_priorDiveCount =>
       'Duiken voor dit logboek';
+
+  @override
+  String get settings_conflict_field_buddyCardShare => 'Delen van buddykaart';
+
+  @override
+  String get settings_conflict_field_cardDiveCount => 'Duiken (volgens kaart)';
+
+  @override
+  String get settings_conflict_field_cardDivingSince =>
+      'Duikt sinds (volgens kaart)';
+
+  @override
+  String get settings_conflict_field_cardId => 'Buddykaart';
+
+  @override
+  String get settings_conflict_field_cardLastDive =>
+      'Laatste duik (volgens kaart)';
+
+  @override
+  String get settings_conflict_field_cardReceivedAt => 'Kaart ontvangen';
+
+  @override
+  String get settings_conflict_field_socialHandle => 'Socialemedianaam';
 
   @override
   String get settings_conflict_field_priorDiveTimeSeconds =>
@@ -24651,6 +25151,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_conflict_field_verifyFactsHlc => 'Controlelog';
+
+  @override
+  String get settings_conflict_field_videoPositionMs => 'Tijd in video (ms)';
 
   @override
   String get settings_conflict_field_vesselName => 'Schip';
@@ -26058,6 +26561,62 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_decompression_ppO2Dialog_title => 'ppO2-limieten OC';
+
+  @override
+  String get settings_decompression_ppO2BandsTitle =>
+      'Deco-limieten per O2-band';
+
+  @override
+  String get settings_decompression_ppO2BandsSubtitle =>
+      'Optionele, fijnere deco-ppO2-limieten voor de Dive Planner';
+
+  @override
+  String get settings_decompression_ppO2BandsDialog_title =>
+      'Deco-ppO2: per O2-band';
+
+  @override
+  String get settings_decompression_ppO2BandsDialog_bandsToggle =>
+      'Deco-limieten per O2-band gebruiken';
+
+  @override
+  String get settings_decompression_ppO2BandsDialog_band1 => 'Tot 28% O2';
+
+  @override
+  String get settings_decompression_ppO2BandsDialog_band2 => '28–45% O2';
+
+  @override
+  String get settings_decompression_ppO2BandsDialog_band3 => '45–99% O2';
+
+  @override
+  String get settings_decompression_ppO2BandsDialog_maxO2DepthToggle =>
+      'Expliciete maximale diepte voor 100% O2 gebruiken';
+
+  @override
+  String get settings_decompression_ppO2BandsDialog_maxO2DepthLabel =>
+      'Maximale diepte voor 100% O2';
+
+  @override
+  String get settings_decompression_hypercapniaTitle =>
+      'Hypercapnie-bailoutfase';
+
+  @override
+  String get settings_decompression_hypercapniaSubtitle =>
+      'Optioneel verhoogde ademfrequentie bij het begin van een CCR/SCR OC-bailout';
+
+  @override
+  String get settings_decompression_hypercapniaDialog_title =>
+      'Hypercapnie-bailoutfase';
+
+  @override
+  String get settings_decompression_hypercapniaDialog_enabledToggle =>
+      'Hypercapniefase gebruiken voor OC-bailout';
+
+  @override
+  String get settings_decompression_hypercapniaDialog_factorLabel =>
+      'RMV-factor';
+
+  @override
+  String get settings_decompression_hypercapniaDialog_minutesLabel => 'Duur';
 
   @override
   String get settings_decompression_ccrPpO2LimitsTitle => 'ppO2-limieten CCR';
@@ -29833,6 +30392,81 @@ class AppLocalizationsNl extends AppLocalizations {
   String get insights_timePatterns_seasonal_title => 'Seizoenspatronen';
 
   @override
+  String get insights_timePatterns_calendarDays_title => 'Kalenderdagen';
+
+  @override
+  String get insights_timePatterns_calendarDays_subtitle =>
+      'Duiken op elke datum van het jaar (alle jaren)';
+
+  @override
+  String insights_timePatterns_calendarDays_coverage(
+    int covered,
+    int total,
+    String percent,
+  ) {
+    return '$covered van $total kalenderdagen ($percent)';
+  }
+
+  @override
+  String insights_timePatterns_calendarDays_busiestMonth(String months) {
+    return 'Drukste maand: $months';
+  }
+
+  @override
+  String insights_timePatterns_calendarDays_busiestDay(String days) {
+    return 'Drukste dag van de maand: $days';
+  }
+
+  @override
+  String insights_timePatterns_calendarDays_cellSemantics(
+    String date,
+    int count,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duiken',
+      one: '$count duik',
+      zero: 'geen duiken',
+    );
+    return '$date, $_temp0';
+  }
+
+  @override
+  String insights_timePatterns_calendarDays_totalSemantics(
+    String label,
+    int count,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duiken',
+      one: '$count duik',
+      zero: 'geen duiken',
+    );
+    return '$label, $_temp0 in totaal';
+  }
+
+  @override
+  String insights_timePatterns_calendarDays_dayLabel(int day) {
+    return 'Dag $day';
+  }
+
+  @override
+  String get insights_timePatterns_calendarDays_total => 'Alle datums';
+
+  @override
+  String get insights_timePatterns_calendarDays_listSeparator => ', ';
+
+  @override
+  String get insights_timePatterns_calendarDays_empty =>
+      'Nog geen duiken om op de kalender te zetten';
+
+  @override
+  String get insights_timePatterns_calendarDays_error =>
+      'Kalenderdagen konden niet worden geladen';
+
+  @override
   String get insights_timePatterns_surfaceInterval_average => 'Gemiddeld';
 
   @override
@@ -31235,6 +31869,37 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String trips_delete_sideTripsStandalone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'De $count zijreizen worden eigen reizen.',
+      one: 'De zijreis wordt een eigen reis.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_delete_divesReturnToParent(String name) {
+    return 'De duiken gaan terug naar $name.';
+  }
+
+  @override
+  String trips_bulkDelete_sideTripsStandalone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count zijreizen worden eigen reizen.',
+      one: '$count zijreis wordt een eigen reis.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_bulkDelete_divesReturnToParents =>
+      'Duiken van verwijderde zijreizen gaan terug naar hun grotere reizen.';
+
+  @override
   String get trips_detail_dialog_deleteTitle => 'Reis verwijderen?';
 
   @override
@@ -31464,6 +32129,16 @@ class AppLocalizationsNl extends AppLocalizations {
   String get trips_edit_hint_tripName => 'bijv. Rode Zee Safari 2024';
 
   @override
+  String get trips_edit_field_partOf => 'Onderdeel van';
+
+  @override
+  String get trips_edit_partOf_none => 'Geen (een eigen reis)';
+
+  @override
+  String get trips_edit_partOf_helper =>
+      'Maakt hiervan een zijreis binnen een grotere reis';
+
+  @override
   String get trips_edit_label_endDate => 'Einddatum';
 
   @override
@@ -31647,6 +32322,32 @@ class AppLocalizationsNl extends AppLocalizations {
       one: '$count duik',
     );
     return '$_temp0';
+  }
+
+  @override
+  String trips_list_sideTripCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count zijreizen',
+      one: '$count zijreis',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_partOf(String name) {
+    return 'Onderdeel van $name';
+  }
+
+  @override
+  String trips_fromSelection_name(String location, String monthYear) {
+    return '$location, $monthYear';
+  }
+
+  @override
+  String trips_fromSelection_nameNoLocation(String monthYear) {
+    return 'Reis, $monthYear';
   }
 
   @override
@@ -35856,12 +36557,12 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String settings_shareAllSites_confirm(int count) {
-    return 'Kies wie al je $count duikplekken ziet. Om één duikplek later te wijzigen, open je hem en tik je op Gedeeld met.';
+    return 'Kies wie al je $count duikplekken ziet. Om één duikplek later te wijzigen, bewerk je hem en tik je op Gedeeld met.';
   }
 
   @override
   String settings_shareAllTrips_confirm(int count) {
-    return 'Kies wie al je $count trips ziet. Om één trip later te wijzigen, open je hem en tik je op Gedeeld met.';
+    return 'Kies wie al je $count trips ziet. Om één trip later te wijzigen, bewerk je hem en tik je op Gedeeld met.';
   }
 
   @override
@@ -37210,6 +37911,142 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_sync_keepInStep => 'Apparaten automatisch gelijk houden';
+
+  @override
+  String get settings_nearby_title => 'Apparaten in de buurt';
+
+  @override
+  String get settings_nearby_auto_title =>
+      'Automatisch synchroniseren met apparaten in de buurt';
+
+  @override
+  String get settings_nearby_auto_subtitle =>
+      'Als een gekoppeld apparaat in de buurt open is, via Bluetooth';
+
+  @override
+  String get settings_nearby_linuxNote =>
+      'Andere apparaten kunnen deze computer niet vinden, dus synchroniseert hij met elk apparaat in de buurt behalve een andere Linux-computer';
+
+  @override
+  String get settings_nearby_pair => 'Apparaat koppelen';
+
+  @override
+  String settings_nearby_status_synced(String when) {
+    return 'Gesynchroniseerd $when';
+  }
+
+  @override
+  String settings_nearby_status_syncing(String done, String total) {
+    return 'Synchroniseren: $done van $total';
+  }
+
+  @override
+  String get settings_nearby_status_never => 'Nog niet gesynchroniseerd';
+
+  @override
+  String settings_nearby_status_notSeen(String date) {
+    return 'Niet gezien sinds $date';
+  }
+
+  @override
+  String get settings_nearby_error_newerApp =>
+      'Dit apparaat heeft een nieuwere app-versie nodig';
+
+  @override
+  String get settings_nearby_error_peerOlderApp =>
+      'Het andere apparaat heeft een nieuwere app-versie nodig';
+
+  @override
+  String get settings_nearby_error_differentLibrary =>
+      'Niet dezelfde bibliotheek';
+
+  @override
+  String get settings_nearby_error_notPaired =>
+      'Ontkoppeld op het andere apparaat';
+
+  @override
+  String get settings_nearby_error_applyFailed =>
+      'Kon de wijzigingen niet toepassen';
+
+  @override
+  String get settings_nearby_error_bluetoothOff =>
+      'Bluetooth staat uit of is niet toegestaan';
+
+  @override
+  String get settings_nearby_error_unreachable => 'Kon geen verbinding maken';
+
+  @override
+  String get settings_nearby_sheet_rename => 'Naam wijzigen';
+
+  @override
+  String get settings_nearby_sheet_unpair => 'Ontkoppelen';
+
+  @override
+  String settings_nearby_unpair_confirm(String name) {
+    return '$name ontkoppelen? Voor synchroniseren in de buurt moet het opnieuw gekoppeld worden.';
+  }
+
+  @override
+  String get settings_nearby_rename_title => 'Apparaat hernoemen';
+
+  @override
+  String settings_nearby_notInRange(String name) {
+    return '$name is nu niet in de buurt';
+  }
+
+  @override
+  String get nearbyPair_looking => 'Apparaten zoeken…';
+
+  @override
+  String get nearbyPair_hint =>
+      'Open Submersion op het andere apparaat en tik daar ook op Apparaat koppelen.';
+
+  @override
+  String nearbyPair_found(String name) {
+    return '$name gevonden. Controleer of het deze code toont en bevestig daarna op beide.';
+  }
+
+  @override
+  String get nearbyPair_sameCode => 'Zelfde code';
+
+  @override
+  String get nearbyPair_notMine => 'Niet van mij';
+
+  @override
+  String get nearbyPair_waiting =>
+      'Wachten op bevestiging van het andere apparaat…';
+
+  @override
+  String get nearbyPair_bothPopulated =>
+      'Beide apparaten bevatten duiken. Koppelen voegt ze samen tot één logboek.';
+
+  @override
+  String get nearbyPair_differentLibrary =>
+      'Dat apparaat gebruikt een andere bibliotheek en kan daarom niet aan dit apparaat gekoppeld worden.';
+
+  @override
+  String get nearbyPair_permissionDenied =>
+      'Submersion heeft Bluetooth-toestemming nodig om apparaten in de buurt te vinden.';
+
+  @override
+  String get nearbyPair_bluetoothOff =>
+      'Zet Bluetooth aan om apparaten in de buurt te vinden.';
+
+  @override
+  String get nearbyPair_unsupported =>
+      'Dit apparaat heeft geen Bluetooth die Submersion kan gebruiken.';
+
+  @override
+  String get nearbyPair_openSettings => 'Instellingen openen';
+
+  @override
+  String nearbyPair_done(String name) {
+    return 'Gekoppeld met $name';
+  }
+
+  @override
+  String get nearbyPair_failed =>
+      'Het koppelen is niet voltooid. Probeer het opnieuw op beide apparaten.';
 
   @override
   String get settings_sync_alsoAtLaunch => 'Ook synchroniseren bij het starten';
@@ -50150,6 +50987,94 @@ class AppLocalizationsNl extends AppLocalizations {
   String get media_species_chipsLabel => 'Soorttags';
 
   @override
+  String get media_people_me => 'Ik';
+
+  @override
+  String get media_people_chipsLabel => 'Personentags';
+
+  @override
+  String media_people_momentChip(String name, String time) {
+    return '$name · $time';
+  }
+
+  @override
+  String get media_people_actionTooltip => 'Personen taggen';
+
+  @override
+  String get media_people_tagModeHint => 'Tik op een persoon om die te taggen';
+
+  @override
+  String get media_people_noSpotHint => 'Hier kan geen plek worden gemarkeerd';
+
+  @override
+  String get media_people_withoutSpot => 'Taggen zonder plek';
+
+  @override
+  String get media_people_done => 'Gereed';
+
+  @override
+  String get media_people_pickerTitle => 'Wie is dit?';
+
+  @override
+  String get media_people_searchHint => 'Buddies zoeken';
+
+  @override
+  String get media_people_onThisDive => 'Bij deze duik';
+
+  @override
+  String get media_people_everyoneElse => 'Alle anderen';
+
+  @override
+  String get media_people_newBuddy => 'Nieuwe buddy';
+
+  @override
+  String get media_people_newBuddyName => 'Naam';
+
+  @override
+  String get media_people_newBuddyAdd => 'Toevoegen';
+
+  @override
+  String get media_people_changePerson => 'Persoon wijzigen';
+
+  @override
+  String get media_people_removeTag => 'Tag verwijderen';
+
+  @override
+  String get media_people_resizeHint => 'Sleep de hoeken om aan te passen';
+
+  @override
+  String media_people_addToDiveOffer(String name) {
+    return '$name toevoegen aan de buddies van deze duik?';
+  }
+
+  @override
+  String get media_people_addToDiveAction => 'Toevoegen';
+
+  @override
+  String get media_people_buddyPhotosTitle => 'Foto\'s en video\'s';
+
+  @override
+  String get media_people_buddyThumbnailLabel => 'Foto of video met deze buddy';
+
+  @override
+  String get media_people_filterSection => 'Personen';
+
+  @override
+  String get media_people_removedBuddy => 'Verwijderde buddy';
+
+  @override
+  String get media_people_saveFailed =>
+      'De tag kon niet worden opgeslagen. Probeer het opnieuw.';
+
+  @override
+  String get media_people_addToDiveFailed =>
+      'De buddy kon niet aan deze duik worden toegevoegd. Probeer het opnieuw.';
+
+  @override
+  String get media_people_createBuddyFailed =>
+      'De buddy kon niet worden aangemaakt. Probeer het opnieuw.';
+
+  @override
   String get media_info_fileSection => 'Bestand';
 
   @override
@@ -51535,6 +52460,17 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String backup_history_cloudOnlySubtitle(String size) {
     return 'In cloudopslag ($size)';
+  }
+
+  @override
+  String get backup_history_device_anotherDevice => 'Ander apparaat';
+
+  @override
+  String get backup_history_device_thisDevice => 'Dit apparaat';
+
+  @override
+  String backup_history_subtitleWithDevice(String summary, String device) {
+    return '$summary · $device';
   }
 
   @override
@@ -53080,6 +54016,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get query_dives_year => 'Jaar';
 
   @override
+  String get query_dives_month => 'Maand';
+
+  @override
+  String get query_dives_day => 'Dag van de maand';
+
+  @override
   String get query_entity_buddies => 'Buddy\'s';
 
   @override
@@ -53354,6 +54296,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get query_trips_dives => 'Duiken';
+
+  @override
+  String get query_trips_partOf => 'Onderdeel van';
 
   @override
   String get query_trips_endDate => 'Einddatum';
@@ -55046,6 +55991,16 @@ class AppLocalizationsNl extends AppLocalizations {
   String get tags_manage_cannotUndo => 'Dit kan niet ongedaan worden gemaakt.';
 
   @override
+  String tags_manage_rowScopes(String scopes) {
+    return 'Voor: $scopes';
+  }
+
+  @override
+  String tags_manage_rowUsage(String counts) {
+    return 'Gebruikt op: $counts';
+  }
+
+  @override
   String get tags_action_edit => 'Tags bewerken';
 
   @override
@@ -55569,4 +56524,105 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get setup_syncPull_startFresh => 'Een nieuw logboek beginnen';
+
+  @override
+  String get demo_welcome_title => 'Verkennen met voorbeeldgegevens';
+
+  @override
+  String get demo_welcome_subtitle =>
+      'Bekijk een volledig voorbeeldlogboek voordat je je eigen gegevens invoert';
+
+  @override
+  String get demo_settings_enter_title => 'Verkennen met voorbeeldgegevens';
+
+  @override
+  String get demo_settings_enter_subtitle =>
+      'Je logboek wordt onaangeroerd apart gezet tot je afsluit';
+
+  @override
+  String get demo_settings_exit_title => 'Demo afsluiten';
+
+  @override
+  String get demo_settings_exit_subtitle =>
+      'Voorbeeldlogboek weggooien en terug naar je eigen logboek';
+
+  @override
+  String get demo_strip_label => 'Demomodus: je verkent voorbeeldgegevens';
+
+  @override
+  String get demo_strip_exit => 'Demo afsluiten';
+
+  @override
+  String get demo_exit_confirm_title => 'Demomodus afsluiten?';
+
+  @override
+  String get demo_exit_confirm_body =>
+      'Wijzigingen in het voorbeeldlogboek gaan verloren.';
+
+  @override
+  String get demo_exit_confirm_action => 'Demo afsluiten';
+
+  @override
+  String get demo_enter_downloading => 'Voorbeeldlogboek downloaden';
+
+  @override
+  String get demo_enter_preparing => 'Voorbeeldlogboek voorbereiden';
+
+  @override
+  String get demo_enter_opening => 'Voorbeeldlogboek openen';
+
+  @override
+  String get demo_enter_failed =>
+      'Het voorbeeldlogboek kon niet worden gedownload. Controleer je verbinding en probeer het opnieuw.';
+
+  @override
+  String get demo_enter_importRunning =>
+      'Er loopt nog een import. Verken de voorbeeldgegevens zodra die klaar is.';
+
+  @override
+  String get demo_sealed_note => 'Niet beschikbaar in demomodus';
+
+  @override
+  String get demo_unavailable_title => 'Niet beschikbaar in demomodus';
+
+  @override
+  String get demo_unavailable_body =>
+      'De demomodus houdt het voorbeeldlogboek gescheiden van je gegevens, dus er kan niets worden geïmporteerd, geëxporteerd, geback-upt of gesynchroniseerd.';
+
+  @override
+  String get demo_row_unavailable => 'Niet beschikbaar in demomodus';
+
+  @override
+  String get demo_enter_confirm_title => 'Verkennen met voorbeeldgegevens?';
+
+  @override
+  String demo_enter_confirm_body(String size) {
+    return 'Er wordt een voorbeeldlogboek ($size) gedownload en geopend in plaats van het jouwe. Je logboek wordt onaangeroerd apart gezet tot je de demomodus afsluit.';
+  }
+
+  @override
+  String get demo_enter_confirm_action => 'Downloaden';
+
+  @override
+  String demo_enter_confirm_body_firstRun(String size) {
+    return 'Er wordt een voorbeeldlogboek ($size) gedownload om de app mee te verkennen. Sluit de demomodus af zodra je met je eigen logboek wilt beginnen.';
+  }
+
+  @override
+  String demo_enter_changed_body(String size) {
+    return 'Het voorbeeldlogboek is bijgewerkt en is nu $size. Downloaden?';
+  }
+
+  @override
+  String common_byteSize(String value, String unit) {
+    String _temp0 = intl.Intl.selectLogic(unit, {
+      'B': 'B',
+      'KB': 'KB',
+      'MB': 'MB',
+      'GB': 'GB',
+      'TB': 'TB',
+      'other': '$unit',
+    });
+    return '$value $_temp0';
+  }
 }

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
 import 'package:submersion/core/services/export/models/uddf_export_options.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
+import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/csv_unit_mode_selector.dart';
 
@@ -62,6 +64,11 @@ Future<ExportChoice?> showExportDestinationSheetWithOptions(
   CsvUnitMode initialCsvUnitMode = CsvUnitMode.myUnits,
   UddfExportOptions initialOptions = const UddfExportOptions(),
 }) {
+  // Every export and share in demo mode ends here with the note (#3708),
+  // rather than at the engine's refusal after a destination is chosen.
+  if (!demoSealGuard(context, DemoSealedFeature.export)) {
+    return Future<ExportChoice?>.value();
+  }
   var options = initialOptions;
   var csvUnitMode = initialCsvUnitMode;
 

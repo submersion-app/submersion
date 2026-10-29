@@ -358,6 +358,10 @@ jobs:
           fi
           bundle exec fastlane upload_testflight_beta_binary ipa:"$IPA_PATH"
 
+      # Retries a failed distribution, and passes with a warning when Apple's
+      # daily beta review submission limit refuses it: the build is uploaded,
+      # and the next beta after the limit clears goes to Public Beta (#3715).
+      # scripts/release/distribute_testflight_beta_test.sh covers it.
       - name: Distribute to Public Beta group
         working-directory: ios
         env:
@@ -367,31 +371,7 @@ jobs:
           BETA_CHANGELOG_FILE: ${{ github.workspace }}/beta-notes-apple.txt
           APP_VERSION: ${{ needs.precheck.outputs.semver }}
           BUILD_NUMBER: ${{ needs.precheck.outputs.build-number }}
-        run: |
-          set -o pipefail
-          LOG="$RUNNER_TEMP/distribute.log"
-          RECOVER="cd ios && bundle exec fastlane distribute_testflight_beta app_version:$APP_VERSION build_number:$BUILD_NUMBER"
-          for attempt in 1 2 3; do
-            if bundle exec fastlane distribute_testflight_beta \
-                 app_version:"$APP_VERSION" build_number:"$BUILD_NUMBER" 2>&1 | tee "$LOG"; then
-              exit 0
-            fi
-            # Apple meters beta review submissions per day, so this one does not
-            # clear in a minute; retrying only delays the same failure.
-            if grep -q "Submission limit has been reached" "$LOG"; then
-              echo "::error::Apple refused the beta review submission (submission limit reached)." \
-                "Build $APP_VERSION ($BUILD_NUMBER) is uploaded and processed but was not" \
-                "distributed to Public Beta. Re-run this job once the limit clears, or run: $RECOVER"
-              exit 1
-            fi
-            if [ "$attempt" -eq 3 ]; then
-              echo "::error::Distribution failed after 3 attempts. The binary is uploaded;" \
-                "re-run this job, or run: $RECOVER"
-              exit 1
-            fi
-            echo "Distribution attempt $attempt failed, retrying in 60s..."
-            sleep 60
-          done
+        run: ../scripts/release/distribute_testflight_beta.sh ios
 
       - name: Cleanup sensitive files
         if: always()
@@ -456,6 +436,8 @@ jobs:
           fi
           bundle exec fastlane upload_testflight_beta_binary pkg:"$PKG_PATH"
 
+      # The same script as the iOS job. macOS is the lane that hits Apple's
+      # daily submission limit, on busy merge days (#3715).
       - name: Distribute to Public Beta group
         working-directory: macos
         env:
@@ -465,31 +447,7 @@ jobs:
           BETA_CHANGELOG_FILE: ${{ github.workspace }}/beta-notes-apple.txt
           APP_VERSION: ${{ needs.precheck.outputs.semver }}
           BUILD_NUMBER: ${{ needs.precheck.outputs.build-number }}
-        run: |
-          set -o pipefail
-          LOG="$RUNNER_TEMP/distribute.log"
-          RECOVER="cd macos && bundle exec fastlane distribute_testflight_beta app_version:$APP_VERSION build_number:$BUILD_NUMBER"
-          for attempt in 1 2 3; do
-            if bundle exec fastlane distribute_testflight_beta \
-                 app_version:"$APP_VERSION" build_number:"$BUILD_NUMBER" 2>&1 | tee "$LOG"; then
-              exit 0
-            fi
-            # Apple meters beta review submissions per day, so this one does not
-            # clear in a minute; retrying only delays the same failure.
-            if grep -q "Submission limit has been reached" "$LOG"; then
-              echo "::error::Apple refused the beta review submission (submission limit reached)." \
-                "Build $APP_VERSION ($BUILD_NUMBER) is uploaded and processed but was not" \
-                "distributed to Public Beta. Re-run this job once the limit clears, or run: $RECOVER"
-              exit 1
-            fi
-            if [ "$attempt" -eq 3 ]; then
-              echo "::error::Distribution failed after 3 attempts. The binary is uploaded;" \
-                "re-run this job, or run: $RECOVER"
-              exit 1
-            fi
-            echo "Distribution attempt $attempt failed, retrying in 60s..."
-            sleep 60
-          done
+        run: ../scripts/release/distribute_testflight_beta.sh macos
 
       - name: Cleanup sensitive files
         if: always()

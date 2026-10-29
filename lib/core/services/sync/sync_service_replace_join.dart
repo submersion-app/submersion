@@ -201,6 +201,7 @@ extension SyncServiceReplaceJoin on SyncService {
     ReplaceJoinPrepared prepared, {
     void Function()? afterApplyForTest,
   }) async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.sync);
     final provider = _cloudProvider;
     if (provider == null) {
       await prepared.dispose();

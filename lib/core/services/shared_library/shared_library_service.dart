@@ -21,6 +21,8 @@ import 'package:submersion/core/services/shared_library/site_document.dart';
 import 'package:submersion/core/services/shared_library/site_document_bridge.dart';
 import 'package:submersion/core/services/shared_library/site_document_merge.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 
 part 'shared_library_sync_parts.dart';
 part 'shared_library_sync_removals.dart';
@@ -109,6 +111,7 @@ class SharedLibraryService {
     String libraryId, {
     required String diverId,
   }) async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.sharedLibrary);
     final previous = _gates[libraryId] ?? Future<void>.value();
     final completer = Completer<void>();
     _gates[libraryId] = previous.then((_) => completer.future);

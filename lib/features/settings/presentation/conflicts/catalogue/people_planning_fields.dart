@@ -58,13 +58,37 @@ final Map<String, ConflictField> peoplePlanningFields = {
     (l) => l.settings_conflict_field_bloodType,
     FieldKind.shortText,
   ),
+  'buddyCardShare': ConflictField(
+    (l) => l.settings_conflict_field_buddyCardShare,
+    FieldKind.opaque,
+  ),
   'builtinKey': ConflictField(
     (l) => l.settings_conflict_field_builtinKey,
     FieldKind.shortText,
   ),
+  'cardDiveCount': ConflictField(
+    (l) => l.settings_conflict_field_cardDiveCount,
+    FieldKind.number,
+  ),
+  'cardDivingSince': ConflictField(
+    (l) => l.settings_conflict_field_cardDivingSince,
+    FieldKind.number,
+  ),
+  'cardId': ConflictField(
+    (l) => l.settings_conflict_field_cardId,
+    FieldKind.opaque,
+  ),
+  'cardLastDive': ConflictField(
+    (l) => l.settings_conflict_field_cardLastDive,
+    FieldKind.utcDate,
+  ),
   'cardNumber': ConflictField(
     (l) => CertificationField.cardNumber.localizedDisplayName(l),
     FieldKind.shortText,
+  ),
+  'cardReceivedAt': ConflictField(
+    (l) => l.settings_conflict_field_cardReceivedAt,
+    FieldKind.dateTime,
   ),
   // A custom agency's card colour (issue #690); an ARGB integer means
   // nothing to a diver, so the dialog only says it changed.
@@ -197,6 +221,26 @@ final Map<String, ConflictField> peoplePlanningFields = {
     (l) => l.settings_conflict_field_heightCm,
     FieldKind.heightCm,
   ),
+  // Null = derive from this plan's own base SAC and the diver's Settings
+  // hypercapnia factor (issue #3743); the per-plan counterpart of
+  // plannerHypercapniaFactor.
+  'hypercapniaAmv': ConflictField(
+    (l) => l.divePlanner_gasOptions_hypercapniaAmv,
+    FieldKind.rmv,
+  ),
+  // True = this plan's OC bailout never uses a hypercapnia phase,
+  // regardless of the diver's Settings toggle (issue #3743). Labelled with
+  // the feature's name, like airBreaksExplicitlyOff, not the Settings
+  // "Use a hypercapnia phase" toggle, which a true (= off) value would read
+  // as the opposite of.
+  'hypercapniaExplicitlyOff': ConflictField(
+    (l) => l.settings_decompression_hypercapniaTitle,
+    FieldKind.boolean,
+  ),
+  'hypercapniaMinutes': ConflictField(
+    (l) => l.divePlanner_gasOptions_hypercapniaMinutes,
+    FieldKind.durationMinutes,
+  ),
   'instructorName': ConflictField(
     (l) => CourseField.instructorName.localizedDisplayName(l),
     FieldKind.shortText,
@@ -260,6 +304,13 @@ final Map<String, ConflictField> peoplePlanningFields = {
     (l) => CertificationField.level.localizedDisplayName(l),
     FieldKind.enumValue,
     enumLabel: certificationLevelLabeler,
+  ),
+  // True = this plan never uses an explicit MOD for 100% O2, regardless of
+  // the diver's Settings toggle (issue #3580); the per-plan counterpart of
+  // maxO2DepthMeters itself.
+  'maxO2DepthExplicitlyOff': ConflictField(
+    (l) => l.settings_conflict_field_maxO2DepthEnabled,
+    FieldKind.boolean,
   ),
   'measuredAt': ConflictField(
     (l) => l.settings_conflict_field_measuredAt,
@@ -325,6 +376,13 @@ final Map<String, ConflictField> peoplePlanningFields = {
   'ppO2Deco': ConflictField(
     (l) => l.settings_conflict_field_ppO2Deco,
     FieldKind.partialPressure,
+  ),
+  // True = this plan never uses per-band deco ppO2 limits, regardless of the
+  // diver's Settings band toggle (issue #3580); the per-plan counterpart of
+  // ppO2DecoBand1/2/3 themselves.
+  'ppO2DecoBandsExplicitlyOff': ConflictField(
+    (l) => l.settings_decompression_ppO2BandsTitle,
+    FieldKind.boolean,
   ),
   'priorDiveCount': ConflictField(
     (l) => l.settings_conflict_field_priorDiveCount,
@@ -401,6 +459,10 @@ final Map<String, ConflictField> peoplePlanningFields = {
   'shoreWalkM': ConflictField(
     (l) => l.settings_conflict_field_shoreWalkM,
     FieldKind.distance,
+  ),
+  'socialHandle': ConflictField(
+    (l) => l.settings_conflict_field_socialHandle,
+    FieldKind.shortText,
   ),
   'sourceItemId': ConflictField(
     (l) => l.settings_conflict_field_sourceItemId,

@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
@@ -111,46 +112,59 @@ void main() {
     });
     tearDown(() async => tearDownTestDatabase());
 
+    // Dive times are wall clocks flagged as UTC, so today's local date is
+    // stored with DateTime.utc. A local DateTime would land on the previous
+    // UTC day east of Greenwich and miss the month/day match. Today is
+    // pinned for two reasons. On a real 29 February, DateTime.utc for a
+    // non-leap prior year rolls over to 1 March, so no fixture would match
+    // the 29 February query. And a run across midnight would split the
+    // test's date from the one the provider reads.
+    final today = DateTime(2026, 7, 24, 12);
+
     test('hydrates dives from this date in prior years', () async {
-      final now = DateTime.now();
       await repository.createDive(
         Dive(
           id: 'two-years-ago',
-          dateTime: DateTime(now.year - 2, now.month, now.day, 10),
+          dateTime: DateTime.utc(today.year - 2, today.month, today.day, 10),
         ),
       );
       await repository.createDive(
         Dive(
           id: 'last-year',
-          dateTime: DateTime(now.year - 1, now.month, now.day, 10),
+          dateTime: DateTime.utc(today.year - 1, today.month, today.day, 10),
         ),
       );
       await repository.createDive(
         Dive(
           id: 'this-year',
-          dateTime: DateTime(now.year, now.month, now.day, 8),
+          dateTime: DateTime.utc(today.year, today.month, today.day, 8),
         ),
       );
 
-      final dives = await container.read(onThisDayProvider.future);
+      final dives = await withClock(
+        Clock.fixed(today),
+        () => container.read(onThisDayProvider.future),
+      );
       expect(dives.map((d) => d.id), ['last-year', 'two-years-ago']);
     });
 
     test('is empty when no prior-year dive shares the date', () async {
-      final now = DateTime.now();
       await repository.createDive(
         Dive(
           id: 'other-day',
-          dateTime: DateTime(
-            now.year - 1,
-            now.month,
-            now.day,
+          dateTime: DateTime.utc(
+            today.year - 1,
+            today.month,
+            today.day + 3,
             10,
-          ).add(const Duration(days: 3)),
+          ),
         ),
       );
 
-      final dives = await container.read(onThisDayProvider.future);
+      final dives = await withClock(
+        Clock.fixed(today),
+        () => container.read(onThisDayProvider.future),
+      );
       expect(dives, isEmpty);
     });
   });

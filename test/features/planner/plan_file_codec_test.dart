@@ -131,6 +131,38 @@ void main() {
     expect(b.stops.length, a.stops.length);
   });
 
+  test('round-trip preserves the per-plan deco ppO2 layers (#3580) and '
+      'hypercapnia phase (#3743)', () {
+    final original = _plan().copyWith(
+      ppO2DecoBand1: 1.4,
+      ppO2DecoBand2: 1.5,
+      ppO2DecoBand3: 1.6,
+      maxO2DepthMeters: 4.5,
+      maxO2DepthExplicitlyOff: true,
+      hypercapniaAmv: 70.0,
+      hypercapniaMinutes: 4,
+      hypercapniaExplicitlyOff: true,
+    );
+    final restored = subplanFromJson(planToSubplanJson(original));
+
+    expect(restored.ppO2DecoBand1, 1.4);
+    expect(restored.ppO2DecoBand2, 1.5);
+    expect(restored.ppO2DecoBand3, 1.6);
+    expect(restored.ppO2DecoBandsExplicitlyOff, isFalse);
+    expect(restored.maxO2DepthMeters, 4.5);
+    expect(restored.maxO2DepthExplicitlyOff, isTrue);
+    expect(restored.hypercapniaAmv, 70.0);
+    expect(restored.hypercapniaMinutes, 4);
+    expect(restored.hypercapniaExplicitlyOff, isTrue);
+
+    // A file from before these fields existed imports as "follow Settings".
+    final legacy = subplanFromJson(planToSubplanJson(_plan()));
+    expect(legacy.ppO2DecoBand1, isNull);
+    expect(legacy.maxO2DepthMeters, isNull);
+    expect(legacy.hypercapniaAmv, isNull);
+    expect(legacy.ppO2DecoBandsExplicitlyOff, isFalse);
+  });
+
   // Issue #3552: an unset field means "follow Settings". Importing a file
   // that never wrote a field (or wrote it as JSON null) must keep it unset
   // rather than coerce it to the old hardcoded planner constants - that

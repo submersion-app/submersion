@@ -53,6 +53,8 @@ import 'package:submersion/core/services/sync/crypto/sync_encryption_service.dar
 import 'package:submersion/core/services/sync/crypto/sync_envelope.dart';
 import 'package:submersion/core/services/sync/library_moved.dart';
 import 'package:submersion/core/services/sync/sync_clock.dart';
+import 'package:submersion/core/services/sync/sync_coordinator.dart';
+import 'package:submersion/core/services/nearby/nearby_peer_store.dart';
 import 'package:submersion/core/services/shared_library/library_site_notes.dart';
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
@@ -61,6 +63,8 @@ import 'package:submersion/core/services/sync/tag_fill_copy_merge.dart';
 import 'package:submersion/core/services/sync/sync_initializer.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 import 'package:uuid/uuid.dart';
 
 part 'sync_service_replace_join.dart';
@@ -167,6 +171,13 @@ class SyncStepException implements Exception {
 
 /// Progress callback for sync operations
 typedef SyncProgressCallback = void Function(SyncProgress progress);
+
+/// What a nearby apply merged (issue #3731).
+typedef NearbyApplyResult = ({
+  int recordsApplied,
+  int conflictsFound,
+  int recordsFailed,
+});
 
 /// Sync progress information
 class SyncProgress {
@@ -396,6 +407,47 @@ class SyncService {
     );
   }
 
+  /// Applies a payload a nearby peer sent (issue #3731) through the same
+  /// merge a cloud pull uses, queued behind any running sync. [lastSync] is
+  /// when this device last synced with that peer: it scopes the two-sided
+  /// edit conflict and the tombstone age guard to the peer, as the cloud
+  /// path scopes them to its backend.
+  Future<NearbyApplyResult> applyNearbyPayload(
+    SyncPayload payload, {
+    required DateTime? lastSync,
+  }) {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.sync);
+    return SyncCoordinator.run(() async {
+      final r = await _applyRemotePayload(payload, lastSync);
+      return (
+        recordsApplied: r.recordsApplied,
+        conflictsFound: r.conflictsFound,
+        recordsFailed: r.recordsFailed,
+      );
+    });
+  }
+
+  /// [applyNearbyPayload] for a full copy streamed to [filePath].
+  Future<NearbyApplyResult> applyNearbyBaseFile(
+    String filePath, {
+    required DateTime? lastSync,
+    void Function(double fraction)? onProgress,
+  }) {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.sync);
+    return SyncCoordinator.run(() async {
+      final r = await _applyRemoteBaseFile(
+        filePath,
+        lastSync,
+        onProgress: onProgress,
+      );
+      return (
+        recordsApplied: r.recordsApplied,
+        conflictsFound: r.conflictsFound,
+        recordsFailed: r.recordsFailed,
+      );
+    });
+  }
+
   void _reportProgress(SyncPhase phase, double progress, [String? message]) {
     _progressCallback?.call(
       SyncProgress(phase: phase, progress: progress, message: message),
@@ -566,6 +618,7 @@ class SyncService {
   /// One sync run. Whatever happens inside, deferred writes are pushed
   /// before it returns (see [_flushAfterRun]).
   Future<SyncResult> performSync() async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.sync);
     try {
       return await _performSyncRun();
     } finally {
@@ -927,6 +980,18 @@ class SyncService {
         selfDeviceId: deviceId,
         peerManifests: pullResult.peerManifests,
         retiredPeerIds: fencedPeerIds,
+        // Paired nearby devices hold tombstones back too (issue #3731).
+        nearbyPeers: [
+          for (final peer in await NearbyPeerStore(
+            DatabaseService.instance.database,
+          ).all())
+            NearbyTombstoneAck(
+              deviceId: peer.peerDeviceId,
+              ackedHlc: peer.peerAppliedHlcHigh,
+              lastSeenAt: peer.lastSeenAt ?? peer.pairedAt,
+            ),
+        ],
+        nowMillis: now.millisecondsSinceEpoch,
       );
       if (gc.allowed) {
         await _syncRepository.clearAcknowledgedDeletions(
@@ -1896,6 +1961,9 @@ class SyncService {
             records: data.mediaSpecies,
             hasUpdatedAt: false,
           ),
+          // After media, buddies and divers (v326, issue #1745). Edited rows,
+          // but clock-guarded like media: a moved box never raises a card.
+          (type: 'mediaPeople', records: data.mediaPeople, hasUpdatedAt: false),
           (
             type: 'siteFeatures',
             records: data.siteFeatures,
@@ -2894,6 +2962,7 @@ class SyncService {
     'equipmentLocations': true,
     'equipmentLocationMoves': false,
     'mediaSpecies': false,
+    'mediaPeople': false,
     'siteFeatures': true,
     'csvPresets': true,
     'viewConfigs': true,
@@ -3364,6 +3433,15 @@ class SyncService {
     'mediaSpecies': [
       (field: 'mediaId', parent: 'media', nullable: false),
       (field: 'speciesId', parent: 'species', nullable: false),
+    ],
+    // v326: people tagged on photos and videos (issue #1745). buddyId is
+    // nullable (a Me tag has none), so a tag whose buddy is gone arrives
+    // with the reference cleared; diverId is left to repairDanglingForeignKeys
+    // like every diver key. A row left naming nobody is never shown
+    // (MediaPeopleRepository reads only rows that name someone).
+    'mediaPeople': [
+      (field: 'mediaId', parent: 'media', nullable: false),
+      (field: 'buddyId', parent: 'buddies', nullable: true),
     ],
     'siteFeatures': [(field: 'siteId', parent: 'diveSites', nullable: false)],
     'liveaboardDetails': [(field: 'tripId', parent: 'trips', nullable: false)],
@@ -3897,6 +3975,56 @@ class SyncService {
             case null:
               break;
           }
+        }
+
+        // A row carrying fact groups (a diver's list arrangements, issue
+        // #3748) resolves its user fields by the row clock and each group by
+        // its own clock, exactly as the clock-guarded path above does for
+        // media: a stale row still hands over a newer sort, and a newer
+        // settings change does not take a stale one. An unorderable pending
+        // row keeps its own user fields, as the gate above intends, and
+        // opens only its groups to the peer. A row new here takes every
+        // group from the peer, and a peer too old to send a group clock
+        // hands over its row clock as that clock (mergeFactGroups), so a
+        // later local save cannot give its untouched groups a fresh clock.
+        if (factGroups.isNotEmpty &&
+            (local == null ||
+                pendingUnorderable ||
+                (localHlc != null && remoteHlc != null))) {
+          for (final g in factGroups) {
+            final factClock = _parseHlc(record[g.clockKey]);
+            if (factClock != null) SyncClock.instance.receive(factClock);
+          }
+          final rowFromRemote =
+              local == null ||
+              (!pendingUnorderable && remoteHlc!.compareTo(localHlc!) > 0);
+          final resolved = mergeFactGroups(
+            entityType: entityType,
+            base: rowFromRemote
+                ? overlayOntoLocal(entityType, recordToApply, local)
+                : local,
+            local: local,
+            remote: recordToApply,
+          );
+          if (rowFromRemote) {
+            toUpsert.add(resolved.row);
+            factWrites.add((
+              id: recordId,
+              row: resolved.row,
+              groups: factGroups,
+              inBatch: true,
+            ));
+            applied += 1;
+          } else if (resolved.fromRemote.isNotEmpty) {
+            factWrites.add((
+              id: recordId,
+              row: resolved.row,
+              groups: resolved.fromRemote,
+              inBatch: false,
+            ));
+            applied += 1;
+          }
+          continue;
         }
 
         // When BOTH sides carry an HLC it is the authoritative, deterministic

@@ -8,6 +8,8 @@ import 'package:share_plus/share_plus.dart';
 import 'package:submersion/core/utils/share_anchor.dart';
 import 'package:submersion/features/documents/domain/entities/document_page.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 
 // coverage:ignore-start
 // Shells out to Process.run / the platform share sheet, like
@@ -21,6 +23,9 @@ Future<void> openDocumentPageExternally(
   BuildContext context,
   DocumentPage page,
 ) async {
+  if (!demoSealGuard(context, DemoSealedFeature.share)) {
+    return;
+  }
   // Captured before the awaits: on iPad this anchors the share popover to
   // whatever the caller tapped.
   final anchor = shareAnchorFrom(context);

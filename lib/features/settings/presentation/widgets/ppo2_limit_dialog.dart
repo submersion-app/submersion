@@ -23,36 +23,30 @@ class PpO2LimitDialog extends StatefulWidget {
 }
 
 class _PpO2LimitDialogState extends State<PpO2LimitDialog> {
-  // Generated from the notifier's own bounds so the offered options can never
-  // drift from what setPpO2Limits will accept (0.1-bar grid).
-  static final List<double> _workingOptions = _tenths(
-    SettingsNotifier.ppO2WorkingMin,
-    SettingsNotifier.ppO2Ceiling,
-  );
-  static final List<double> _maxOptions = _tenths(
-    SettingsNotifier.ppO2MaxMin,
-    SettingsNotifier.ppO2Ceiling,
-  );
+  // Same 0.1 bar grid the picker always offered, now as a slider instead
+  // of a dropdown.
+  static const double _step = 0.1;
+  static const double _workingMin = SettingsNotifier.ppO2WorkingMin;
+  static const double _maxMin = SettingsNotifier.ppO2MaxMin;
+  static const double _ceiling = SettingsNotifier.ppO2Ceiling;
+  static final int _workingDivisions = ((_ceiling - _workingMin) / _step)
+      .round();
+  static final int _maxDivisions = ((_ceiling - _maxMin) / _step).round();
 
-  static List<double> _tenths(double min, double max) {
-    final lo = (min * 10).round();
-    final hi = (max * 10).round();
-    return [for (var i = lo; i <= hi; i++) i / 10.0];
-  }
+  /// [value] clamped to [min]..[_ceiling] and snapped to the [_step] grid,
+  /// so a stored value (float noise, or off-grid after a clamp) lands
+  /// exactly on a slider division.
+  static double _onGrid(double value, double min) =>
+      SettingsNotifier.onStepGrid(value.clamp(min, _ceiling), _step);
 
   late double _working;
   late double _max;
 
-  /// Snap a stored value (which may carry float noise or sit off the grid
-  /// after a clamp) to the nearest offered option.
-  static double _snap(double value, List<double> options) =>
-      options.reduce((a, b) => (a - value).abs() <= (b - value).abs() ? a : b);
-
   @override
   void initState() {
     super.initState();
-    _working = _snap(widget.initialWorking, _workingOptions);
-    _max = _snap(widget.initialMax, _maxOptions);
+    _working = _onGrid(widget.initialWorking, _workingMin);
+    _max = _onGrid(widget.initialMax, _maxMin);
     if (_max < _working) _max = _working;
   }
 
@@ -97,10 +91,13 @@ class _PpO2LimitDialogState extends State<PpO2LimitDialog> {
               label: context.l10n.settings_decompression_ppO2Dialog_working,
               hint: context.l10n.settings_decompression_ppO2Dialog_workingHint,
               value: _working,
-              options: _workingOptions,
+              min: _workingMin,
+              divisions: _workingDivisions,
+              // The slider interpolates its divisions, so snap what it
+              // reports onto the exact grid before it is saved.
               onChanged: (v) => setState(() {
-                _working = v;
-                if (_max < _working) _max = _snap(_working, _maxOptions);
+                _working = _onGrid(v, _workingMin);
+                if (_max < _working) _max = _onGrid(_working, _maxMin);
               }),
             ),
             const SizedBox(height: 12),
@@ -109,10 +106,11 @@ class _PpO2LimitDialogState extends State<PpO2LimitDialog> {
               label: context.l10n.settings_decompression_ppO2Dialog_max,
               hint: context.l10n.settings_decompression_ppO2Dialog_maxHint,
               value: _max,
-              options: _maxOptions,
+              min: _maxMin,
+              divisions: _maxDivisions,
               onChanged: (v) => setState(() {
-                _max = v;
-                if (_working > _max) _working = v;
+                _max = _onGrid(v, _maxMin);
+                if (_working > _max) _working = _max;
               }),
             ),
           ],
@@ -139,45 +137,47 @@ class _PpO2LimitDialogState extends State<PpO2LimitDialog> {
     required String label,
     required String hint,
     required double value,
-    required List<double> options,
+    required double min,
+    required int divisions,
     required ValueChanged<double> onChanged,
   }) {
     final textTheme = Theme.of(context).textTheme;
-    return Row(
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  Text(
+                    hint,
+                    style: textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
               ),
-              Text(
-                hint,
-                style: textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(width: 12),
-        DropdownButton<double>(
-          value: value,
-          onChanged: (v) {
-            if (v != null) onChanged(v);
-          },
-          items: [
-            for (final o in options)
-              DropdownMenuItem(
-                value: o,
-                child: Text('${formatRoundedForInput(o, 1)} bar'),
-              ),
+            ),
+            const SizedBox(width: 12),
+            Text('${formatRoundedForInput(value, 1)} bar'),
           ],
+        ),
+        Slider(
+          value: value,
+          min: min,
+          max: _ceiling,
+          divisions: divisions,
+          label: '${formatRoundedForInput(value, 1)} bar',
+          onChanged: onChanged,
         ),
       ],
     );

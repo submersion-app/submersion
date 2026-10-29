@@ -59,6 +59,9 @@ import 'package:submersion/features/shared_library/presentation/widgets/library_
 import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
 import 'package:submersion/shared/widgets/shared_items/item_bulk_share.dart';
 import 'package:submersion/core/data/visibility/item_sharing.dart';
+import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
+import 'package:submersion/features/settings/presentation/providers/list_arrangement_writes.dart';
 
 /// Content widget for the site list, used in master-detail layout.
 final _log = LoggerService.forClass(SiteListContent);
@@ -711,10 +714,9 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
       getFieldDisplayName: (field) => field.localizedName(context.l10n),
       getFieldIcon: (field) => field.icon,
       onSortChanged: (field, direction) {
-        ref.read(siteSortProvider.notifier).state = SortState(
-          field: field,
-          direction: direction,
-        );
+        ref
+            .read(settingsProvider.notifier)
+            .setSiteSort(SortState(field: field, direction: direction));
       },
       // Table mode keeps a flat grid; headers would cut across its columns.
       footer: ref.read(siteListViewModeProvider) == ListViewMode.table
@@ -984,8 +986,9 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
                           final mode = ListViewMode.fromName(
                             value.replaceFirst('view_', ''),
                           );
-                          ref.read(siteListViewModeProvider.notifier).state =
-                              mode;
+                          ref
+                              .read(settingsProvider.notifier)
+                              .setSiteListViewMode(mode);
                         }
                       },
                       itemBuilder: (context) {
@@ -1273,7 +1276,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
                 final mode = ListViewMode.fromName(
                   value.replaceFirst('view_', ''),
                 );
-                ref.read(siteListViewModeProvider.notifier).state = mode;
+                ref.read(settingsProvider.notifier).setSiteListViewMode(mode);
               }
             },
             itemBuilder: (context) {
@@ -1415,6 +1418,9 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
           true;
 
   Future<BulkActionOutcome> _addToLibrary() async {
+    if (!demoSealGuard(context, DemoSealedFeature.sharedLibrary)) {
+      return BulkActionOutcome.failed;
+    }
     final selected = await _readSelectedSites(_selectedIds.toList());
     if (selected == null) return BulkActionOutcome.failed;
     final personal = [
