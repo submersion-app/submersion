@@ -154,6 +154,9 @@ void main() {
     final before = AppDatabase(
       NativeDatabase(file, setup: registerAppSqlFunctions),
     );
+    // Closed below before the reopen; this covers a failure on the way
+    // there, so the temp directory is not left with an open handle.
+    addTearDown(before.close);
     await before
         .into(before.divers)
         .insert(

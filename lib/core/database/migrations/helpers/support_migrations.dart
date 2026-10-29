@@ -38,9 +38,18 @@ extension SupportMigrations on AppDatabase {
 
   /// Idempotent and a no-op when the table or column is absent, so it is
   /// safe to call from both onUpgrade and the beforeOpen backstop.
-  Future<void> _dropColumnIfExists(String table, String column) async {
-    if (!await _columnExists(table, column)) return;
-    await customStatement('ALTER TABLE $table DROP COLUMN $column');
+  Future<void> _dropColumnIfExists(String table, String column) =>
+      _dropColumnsIfExist(table, [column]);
+
+  /// [_dropColumnIfExists] for several columns of one table, reading the
+  /// table's columns once: cheap enough for a backstop that runs on every
+  /// open.
+  Future<void> _dropColumnsIfExist(String table, List<String> columns) async {
+    final rows = await customSelect("PRAGMA table_info('$table')").get();
+    final present = {for (final r in rows) r.read<String>('name')};
+    for (final column in columns.where(present.contains)) {
+      await customStatement('ALTER TABLE $table DROP COLUMN $column');
+    }
   }
 
   /// A stable id for a backfilled section row, derived from its parent and
