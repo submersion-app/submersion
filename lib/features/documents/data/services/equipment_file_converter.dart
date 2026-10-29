@@ -115,7 +115,10 @@ class EquipmentFileConverter {
           case _Outcome.swapped:
             // The rows read belong to a database no longer open. Its links
             // and skip list stay as they were for the next run there.
-            return EquipmentFileConversionResult(converted, rows.length);
+            return EquipmentFileConversionResult(
+              converted,
+              rows.length - converted,
+            );
           case _Outcome.converted:
             converted++;
           case _Outcome.tooLarge:
@@ -133,7 +136,15 @@ class EquipmentFileConverter {
         );
       }
     }
-    await _prefs.setStringList(skippedKey, tooLarge..sort());
+    // The skip list is shared by every database, so it is replaced only
+    // while the one these rows came from is still open.
+    final kept = await _onDatabase(startedOn, () async {
+      await _prefs.setStringList(skippedKey, tooLarge..sort());
+      return true;
+    });
+    if (kept == null) {
+      return EquipmentFileConversionResult(converted, rows.length - converted);
+    }
     if (converted > 0) SyncEventBus.notifyLocalChange();
     return EquipmentFileConversionResult(converted, remaining);
   }

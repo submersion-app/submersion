@@ -145,6 +145,27 @@ void main() {
     expect(prefs.getStringList(EquipmentFileConverter.skippedKey), isNull);
   });
 
+  test('a database swapped on a row that writes nothing still leaves the '
+      'skip list alone (issue #3798)', () async {
+    SharedPreferences.setMockInitialValues({
+      EquipmentFileConverter.skippedKey: ['kept-from-the-new-database'],
+    });
+    prefs = await SharedPreferences.getInstance();
+    final other = createTestDatabase();
+    addTearDown(db.close);
+    // The swap lands on a read that finds nothing, so no write is tried.
+    Future<Uint8List?> swappingReader(MediaItem item) async {
+      DatabaseService.instance.setTestDatabase(other);
+      return null;
+    }
+
+    await EquipmentFileConverter(readBytes: swappingReader, prefs: prefs).run();
+
+    expect(prefs.getStringList(EquipmentFileConverter.skippedKey), [
+      'kept-from-the-new-database',
+    ]);
+  });
+
   test('leaves what it cannot convert', () async {
     await converter().run();
     expect(await mediaIds(), containsAll(['m2', 'm3', 'm4', 'm5']));
