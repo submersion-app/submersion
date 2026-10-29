@@ -67,15 +67,31 @@ DemoDateUnit? _unitOf(String table, GeneratedColumn<Object> c) {
   return null;
 }
 
-/// How far to move the sample logbook so its latest dive lands 7 to 13
-/// calendar days before [now], in whole weeks so every weekday, interval and
-/// expiry keeps its relation to the others.
+/// How far to move the sample logbook, always in whole weeks so every
+/// weekday, interval and expiry keeps its relation to the others.
+///
+/// When whole 52-week years land the latest dive 7 to [demoSeasonSlackDays]
+/// calendar days before [now], the logbook moves by those years, so its
+/// seasons stay true (summer dives in summer, a 52-week year drifting by
+/// only a day or so). Otherwise it moves by the weeks that land the latest
+/// dive 7 to 13 days before [now], which keeps the service clocks on today
+/// at the cost of the seasons until the package is rebuilt.
 Duration demoShiftFor({required DateTime latestDive, required DateTime now}) {
   final days = DateTime.utc(now.year, now.month, now.day)
       .difference(
         DateTime.utc(latestDive.year, latestDive.month, latestDive.day),
       )
       .inDays;
+  if (days >= 7) {
+    final years = (days - 7) ~/ 364;
+    if (days - years * 364 <= demoSeasonSlackDays) {
+      return Duration(days: years * 364);
+    }
+  }
   final weeks = ((days - 13) / 7).ceil();
   return Duration(days: weeks * 7);
 }
+
+/// How long before today the latest dive may land when the logbook moves by
+/// whole years to keep its seasons.
+const demoSeasonSlackDays = 42;
