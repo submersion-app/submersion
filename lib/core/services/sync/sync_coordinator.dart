@@ -6,6 +6,11 @@ import 'package:flutter/foundation.dart';
 /// personal changeset sync and each shared site library sync wait for one another,
 /// so two merges never touch the database at once. Bodies run in the order
 /// they were queued; a throwing body releases the gate for the next.
+///
+/// Every swap of the open database (restore, reset, storage moves, the
+/// encryption toggle, demo mode) is a turn as well, so no merge runs across
+/// one, and work that writes outside a sync can take a turn to be sure the
+/// database it began on is still the open one (issue #3798).
 abstract final class SyncCoordinator {
   static Future<void> _tail = Future<void>.value();
   static int _depth = 0;
