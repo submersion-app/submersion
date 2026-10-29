@@ -916,6 +916,14 @@ abstract final class EquipmentAttributeCatalog {
   /// Definition for a curated key, or null for unknown/custom keys.
   static EquipmentAttributeDef? defFor(String key) => _byKey[key];
 
+  /// The curated keys whose values are dates ([AttributeKind.date], stored
+  /// as unix milliseconds in `value_num`), such as a fitted part's
+  /// `installed_date`.
+  static final Set<String> dateKeys = {
+    for (final def in _byKey.values)
+      if (def.kind == AttributeKind.date) def.key,
+  };
+
   /// Whether [key] is a curated attribute the app owns ([AttributeGroup.system],
   /// such as a cylinder's passport id). Such values are identities, never
   /// data to copy: exports leave them out and imports ignore them.
