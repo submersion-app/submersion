@@ -579,9 +579,7 @@ void main() {
       ..writeAsBytesSync([1, 2, 3]);
     final ancient = File(p.join(phone.temp.path, 'nearby-out-X-dead.gz'))
       ..writeAsBytesSync([1]);
-    ancient.setLastModifiedSync(
-      DateTime.now().subtract(const Duration(days: 3)),
-    );
+    ancient.setLastModifiedSync(phone.now.subtract(const Duration(days: 3)));
     await session(laptop, phone);
     expect(stale.existsSync(), isFalse);
     expect(ancient.existsSync(), isFalse);
