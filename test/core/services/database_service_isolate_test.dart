@@ -316,6 +316,32 @@ void main() {
     expect(await DatabaseService.instance.databasePath, otherPath);
   });
 
+  test('resetDatabase waits for a sync merging before it closes the '
+      'database (issue #3798)', () async {
+    addTearDown(SyncCoordinator.reset);
+    final defaultPath = p.join(tempDir.path, 'Submersion', 'submersion.db');
+    await DatabaseService.instance.initialize(
+      locationService: _FakeLocation(defaultPath),
+    );
+    final original = DatabaseService.instance.database;
+    final merging = Completer<void>();
+    final sync = SyncCoordinator.run(() => merging.future);
+
+    var reset = false;
+    final resetting = DatabaseService.instance
+        .resetDatabase(backupPath: p.join(tempDir.path, 'pre-reset.db'))
+        .then((_) => reset = true);
+    await Future<void>.delayed(const Duration(seconds: 1));
+
+    expect(reset, isFalse);
+    expect(DatabaseService.instance.databaseOrNull, same(original));
+
+    merging.complete();
+    await sync;
+    await resetting;
+    expect(DatabaseService.instance.databaseOrNull, isNot(same(original)));
+  });
+
   test('restore waits for a sync merging before it touches the live '
       'database (issue #3798)', () async {
     addTearDown(SyncCoordinator.reset);

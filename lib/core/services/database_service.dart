@@ -612,7 +612,7 @@ class DatabaseService {
   /// Runs as a [SyncCoordinator] turn: a sync still merging would otherwise
   /// carry its remaining steps into the newly opened file (issue #3798).
   Future<void> reinitializeAtPath(String newPath) =>
-      SyncCoordinator.run(() => _reinitializeAtPath(newPath));
+      SyncCoordinator.join(() => _reinitializeAtPath(newPath));
 
   Future<void> _reinitializeAtPath(String newPath) async {
     // Strict close: this method reopens immediately, so it must not race a
@@ -1047,7 +1047,7 @@ class DatabaseService {
     // Inside the async body, so a sealed restore fails the returned future
     // rather than throwing at the call.
     DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.restore);
-    return SyncCoordinator.run(
+    return SyncCoordinator.join(
       () => _restore(backupPath, onMigrationProgress: onMigrationProgress),
     );
   }
@@ -1353,8 +1353,15 @@ class DatabaseService {
   /// Throws if the backup step fails (reset is aborted to protect data).
   /// If file deletion or reinitialize fails after backup succeeds,
   /// the error propagates and the caller should handle recovery.
+  ///
+  /// Runs as a [SyncCoordinator] turn, so a sync still merging finishes
+  /// before the database closes (issue #3798).
   Future<void> resetDatabase({required String backupPath}) async {
     DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.databaseFile);
+    return SyncCoordinator.join(() => _resetDatabase(backupPath));
+  }
+
+  Future<void> _resetDatabase(String backupPath) async {
     final dbPath = await databasePath;
 
     // Step 1: Backup first (throws on failure, aborting the reset)

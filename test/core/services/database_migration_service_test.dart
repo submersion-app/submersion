@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:drift/native.dart';
@@ -9,6 +10,7 @@ import 'package:submersion/core/services/database_location_service.dart';
 import 'package:submersion/core/services/database_migration_service.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/security/database_security_sidecar.dart';
+import 'package:submersion/core/services/sync/sync_coordinator.dart';
 
 /// Minimal location-service fake: the migration methods drive real temp
 /// files for everything except configuration/bookmark bookkeeping, which we
@@ -152,6 +154,31 @@ void main() {
         .customSelect('SELECT 1 AS v')
         .getSingle();
     expect(one.read<int>('v'), 1);
+  });
+
+  test('migrateToCustomFolder waits for a sync merging before it closes the '
+      'database (issue #3798)', () async {
+    addTearDown(SyncCoordinator.reset);
+    final service = await initServiceAt(p.join(root.path, 'default'));
+    final original = DatabaseService.instance.database;
+    final targetDir = p.join(root.path, 'target');
+    await Directory(targetDir).create(recursive: true);
+    final merging = Completer<void>();
+    final sync = SyncCoordinator.run(() => merging.future);
+
+    var moved = false;
+    final moving = service
+        .migrateToCustomFolder(targetDir)
+        .then((_) => moved = true);
+    await Future<void>.delayed(const Duration(seconds: 1));
+
+    expect(moved, isFalse);
+    expect(DatabaseService.instance.databaseOrNull, same(original));
+
+    merging.complete();
+    await sync;
+    await moving;
+    expect(DatabaseService.instance.databaseOrNull, isNot(same(original)));
   });
 
   test('migrateToCustomFolder carries the security keyslot sidecar', () async {

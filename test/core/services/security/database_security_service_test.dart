@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:cryptography/cryptography.dart';
@@ -7,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/services/security/database_encryption_migrator.dart';
 import 'package:submersion/core/services/security/database_security_key_store.dart';
 import 'package:submersion/core/services/security/database_security_service.dart';
+import 'package:submersion/core/services/sync/sync_coordinator.dart';
 
 import '../../../helpers/security_test_kdf.dart';
 import '../../../support/fake_keychain_storage.dart';
@@ -217,6 +219,30 @@ void main() {
         skipReopenForTesting: true,
       );
       expect(calls, isEmpty);
+    });
+
+    test('enableEncryption waits for a sync merging before it starts '
+        '(issue #3798)', () async {
+      addTearDown(SyncCoordinator.reset);
+      await svc.enableSecurity(password: 'pw', dbPath: dbPath, kdf: testKdf);
+      File(dbPath).writeAsStringSync('PLAIN');
+      final phases = <String>[];
+      final merging = Completer<void>();
+      final sync = SyncCoordinator.run(() => merging.future);
+
+      final enabling = svc.enableEncryption(
+        migrator: fakeMigrator(<String>[]),
+        onPhase: phases.add,
+        dbPathOverride: dbPath,
+        skipReopenForTesting: true,
+      );
+      await pumpEventQueue();
+      expect(phases, isEmpty);
+
+      merging.complete();
+      await sync;
+      await enabling;
+      expect(phases, contains('backup'));
     });
 
     test('disableEncryption reverses and clears the derived key', () async {

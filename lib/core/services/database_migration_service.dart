@@ -9,6 +9,7 @@ import 'package:submersion/core/domain/entities/storage_config.dart';
 import 'package:submersion/core/services/database_location_service.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/security/database_security_sidecar.dart';
+import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 
@@ -78,6 +79,10 @@ class ExistingDatabaseInfo {
 }
 
 /// Service for safely migrating the database between storage locations
+///
+/// Each move runs as a [SyncCoordinator] turn, so a sync still merging
+/// finishes before the database closes rather than being cut off, or
+/// carrying on into the moved file (issue #3798).
 class DatabaseMigrationService {
   final DatabaseService _dbService;
   final DatabaseLocationService _locationService;
@@ -219,7 +224,10 @@ class DatabaseMigrationService {
   /// 3. Verify the copy's integrity
   /// 4. Update the storage configuration
   /// 5. Reinitialize the database from the new location
-  Future<MigrationResult> migrateToCustomFolder(String folderPath) async {
+  Future<MigrationResult> migrateToCustomFolder(String folderPath) =>
+      SyncCoordinator.join(() => _migrateToCustomFolder(folderPath));
+
+  Future<MigrationResult> _migrateToCustomFolder(String folderPath) async {
     DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.databaseFile);
     final currentPath = await _dbService.databasePath;
     final newPath = p.join(
@@ -328,7 +336,10 @@ class DatabaseMigrationService {
   }
 
   /// Migrate the database back to the default app location
-  Future<MigrationResult> migrateToDefault() async {
+  Future<MigrationResult> migrateToDefault() =>
+      SyncCoordinator.join(() => _migrateToDefault());
+
+  Future<MigrationResult> _migrateToDefault() async {
     DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.databaseFile);
     final currentPath = await _dbService.databasePath;
     final defaultDir = await _locationService.getDefaultDatabaseDirectory();
@@ -428,7 +439,10 @@ class DatabaseMigrationService {
   ///
   /// This does NOT copy the current database - it just switches to using
   /// the database that already exists at the target location.
-  Future<MigrationResult> switchToExistingDatabase(String folderPath) async {
+  Future<MigrationResult> switchToExistingDatabase(String folderPath) =>
+      SyncCoordinator.join(() => _switchToExistingDatabase(folderPath));
+
+  Future<MigrationResult> _switchToExistingDatabase(String folderPath) async {
     DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.databaseFile);
     final currentPath = await _dbService.databasePath;
     final newPath = p.join(
@@ -520,7 +534,10 @@ class DatabaseMigrationService {
   }
 
   /// Replace an existing database with the current database
-  Future<MigrationResult> replaceExistingDatabase(String folderPath) async {
+  Future<MigrationResult> replaceExistingDatabase(String folderPath) =>
+      SyncCoordinator.join(() => _replaceExistingDatabase(folderPath));
+
+  Future<MigrationResult> _replaceExistingDatabase(String folderPath) async {
     DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.databaseFile);
     // This is essentially the same as migrateToCustomFolder,
     // but it will overwrite the existing database

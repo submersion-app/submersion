@@ -14,6 +14,7 @@ import 'package:submersion/core/services/security/database_security_sidecar.dart
 import 'package:submersion/core/services/security/security_preferences.dart';
 import 'package:submersion/core/services/sync/crypto/keyslots.dart';
 import 'package:submersion/core/services/sync/crypto/recovery_code.dart';
+import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/core/services/sync/crypto/sync_encryption_service.dart'
     show WrongPassphraseException;
 import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
@@ -220,11 +221,28 @@ class DatabaseSecurityService {
   /// The flag flips only AFTER the file swap succeeded, so a crash mid-way
   /// leaves flag=off + plaintext file (consistent), or flag=off + encrypted
   /// file (header-probe self-heal at next startup flips the flag).
+  ///
+  /// Runs as a [SyncCoordinator] turn, so a sync still merging finishes
+  /// before the database closes (issue #3798); so does [disableEncryption].
   Future<void> enableEncryption({
     DatabaseEncryptionMigrator? migrator,
     void Function(String phase)? onPhase,
     @visibleForTesting String? dbPathOverride,
     @visibleForTesting bool skipReopenForTesting = false,
+  }) => SyncCoordinator.join(
+    () => _enableEncryption(
+      migrator: migrator,
+      onPhase: onPhase,
+      dbPathOverride: dbPathOverride,
+      skipReopenForTesting: skipReopenForTesting,
+    ),
+  );
+
+  Future<void> _enableEncryption({
+    DatabaseEncryptionMigrator? migrator,
+    void Function(String phase)? onPhase,
+    String? dbPathOverride,
+    bool skipReopenForTesting = false,
   }) async {
     DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.databaseFile);
     final mlk = _mlk;
@@ -270,6 +288,20 @@ class DatabaseSecurityService {
     void Function(String phase)? onPhase,
     @visibleForTesting String? dbPathOverride,
     @visibleForTesting bool skipReopenForTesting = false,
+  }) => SyncCoordinator.join(
+    () => _disableEncryption(
+      migrator: migrator,
+      onPhase: onPhase,
+      dbPathOverride: dbPathOverride,
+      skipReopenForTesting: skipReopenForTesting,
+    ),
+  );
+
+  Future<void> _disableEncryption({
+    DatabaseEncryptionMigrator? migrator,
+    void Function(String phase)? onPhase,
+    String? dbPathOverride,
+    bool skipReopenForTesting = false,
   }) async {
     DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.databaseFile);
     final mlk = _mlk;
