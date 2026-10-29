@@ -75,6 +75,7 @@ Dive loggedDive(
   String? name,
   bool isPlanned = false,
   List<DiveTank> tanks = const [],
+  DateTime? exitTime,
 }) {
   return Dive(
     id: id,
@@ -82,6 +83,7 @@ Dive loggedDive(
     name: name,
     dateTime: start,
     entryTime: start,
+    exitTime: exitTime,
     runtime: Duration(minutes: minutes),
     isPlanned: isPlanned,
     tanks: tanks,

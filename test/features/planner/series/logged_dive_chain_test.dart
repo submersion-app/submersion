@@ -44,6 +44,38 @@ void main() {
     });
   });
 
+  group('diveEnd', () {
+    test('is the recorded exit time, even when the runtime disagrees', () {
+      // An import whose runtime stops short of the recorded exit.
+      final exit = day.add(const Duration(minutes: 52));
+      final dive = loggedDive('d1', day, minutes: 45, exitTime: exit);
+
+      expect(diveEnd(dive), exit);
+    });
+
+    test('is the start plus the runtime without an exit time', () {
+      expect(
+        diveEnd(loggedDive('d1', day, minutes: 45)),
+        day.add(const Duration(minutes: 45)),
+      );
+    });
+
+    test('decides the 48-hour gap from the recorded exit', () {
+      final dives = [
+        loggedDive(
+          'd1',
+          day,
+          minutes: 45,
+          exitTime: day.add(const Duration(hours: 2)),
+        ),
+        // 48 h 15 min after d1's runtime ends, but 47 h after its exit.
+        loggedDive('d2', day.add(const Duration(hours: 49))),
+      ];
+
+      expect(loggedDiveChain(dives, 'd2').map((d) => d.id), ['d1', 'd2']);
+    });
+  });
+
   group('followSurfaceInterval', () {
     final end = DateTime(2026, 10, 25, 10);
 

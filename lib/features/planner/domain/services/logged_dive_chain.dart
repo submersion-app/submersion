@@ -5,8 +5,11 @@ import 'package:submersion/features/planner/domain/entities/series_follow.dart';
 /// When [dive] started: its entry time, else its logged date and time.
 DateTime diveStart(Dive dive) => dive.entryTime ?? dive.dateTime;
 
-/// When [dive] ended: its start plus its runtime.
+/// When [dive] ended: its recorded exit time, else its start plus its
+/// runtime. The same order as `DiveTimes.effectiveExitTime`, so an import
+/// whose runtime and exit disagree ends where the rest of the app says.
 DateTime diveEnd(Dive dive) =>
+    dive.exitTime ??
     diveStart(dive).add(dive.effectiveRuntime ?? Duration.zero);
 
 /// The logged dives a plan following [followedId] shows (issue #3565),
