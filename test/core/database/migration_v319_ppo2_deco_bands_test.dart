@@ -142,6 +142,48 @@ void main() {
     }
   });
 
+  test('upgrading from v318 adds every column through v322 with the type, '
+      'nullability and default Drift creates it with', () async {
+    // A fresh database's columns come from Drift's own DDL; the rungs'
+    // ALTERs run only on an upgrade, so that is the only place a column
+    // added under the right name but the wrong shape shows.
+    Future<Map<String, String>> shapes(AppDatabase db, String table) async {
+      final rows = await db.customSelect("PRAGMA table_info('$table')").get();
+      return {
+        for (final r in rows)
+          r.read<String>('name'):
+              '${r.read<String>('type')} '
+              'notnull=${r.read<int>('notnull')} '
+              'default=${r.data['dflt_value']}',
+      };
+    }
+
+    final fresh = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
+    addTearDown(fresh.close);
+    final upgraded = AppDatabase(strandedAt(318));
+    addTearDown(upgraded.close);
+    final tables = {
+      'diver_settings': [
+        ...diverSettingsColumnsV319,
+        ...diverSettingsColumnsV322,
+      ],
+      'dive_plans': [
+        ...divePlansColumnsV319,
+        ...divePlansColumnsV321,
+        ...divePlansColumnsV322,
+      ],
+    };
+    for (final table in tables.entries) {
+      final want = await shapes(fresh, table.key);
+      final got = await shapes(upgraded, table.key);
+      for (final column in table.value) {
+        expect(got[column], want[column], reason: '${table.key}.$column');
+      }
+    }
+  });
+
   test(
     'upgrading from v318 adds every column through v322, all off/flat',
     () async {

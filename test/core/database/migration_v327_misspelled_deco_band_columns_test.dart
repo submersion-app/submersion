@@ -114,32 +114,34 @@ void main() {
     expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(327));
   });
 
-  test(
-    'a v326 database the misspelled columns reached reads through Drift '
-    'again, keeping its settings, and loses the misspelled columns',
-    () async {
-      final file = await misspelledDatabaseAt(326);
+  for (final from in [320, 326]) {
+    test(
+      'a v$from database the misspelled columns reached reads through Drift '
+      'again, keeping its settings, and loses the misspelled columns',
+      () async {
+        final file = await misspelledDatabaseAt(from);
 
-      final after = AppDatabase(
-        NativeDatabase(file, setup: registerAppSqlFunctions),
-      );
-      addTearDown(after.close);
-      final row = await after.select(after.diverSettings).getSingle();
-      expect(row.depthUnit, 'feet');
-      expect(row.ppO2DecoBandsEnabled, isFalse);
-      expect(row.ppO2DecoBand1, 1.6);
-      final plan = await after.select(after.divePlans).getSingle();
-      expect(plan.ppO2DecoBand1, isNull);
-      expect(plan.ppO2DecoBandsExplicitlyOff, isFalse);
-      for (final table in misspelled.keys) {
-        expect(
-          (await columns(after, table)).where((c) => c.startsWith('ppo2_')),
-          isEmpty,
-          reason: '$table keeps a misspelled column',
+        final after = AppDatabase(
+          NativeDatabase(file, setup: registerAppSqlFunctions),
         );
-      }
-    },
-  );
+        addTearDown(after.close);
+        final row = await after.select(after.diverSettings).getSingle();
+        expect(row.depthUnit, 'feet');
+        expect(row.ppO2DecoBandsEnabled, isFalse);
+        expect(row.ppO2DecoBand1, 1.6);
+        final plan = await after.select(after.divePlans).getSingle();
+        expect(plan.ppO2DecoBand1, isNull);
+        expect(plan.ppO2DecoBandsExplicitlyOff, isFalse);
+        for (final table in misspelled.keys) {
+          expect(
+            (await columns(after, table)).where((c) => c.startsWith('ppo2_')),
+            isEmpty,
+            reason: '$table keeps a misspelled column',
+          );
+        }
+      },
+    );
+  }
 
   test('a database already at v327 is not checked again: the drop is a '
       'one-time rung, not a backstop', () async {

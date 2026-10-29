@@ -31,9 +31,13 @@ extension SupportMigrations on AppDatabase {
   /// True when [table] has a column named [column] right now. Self-guards
   /// when the table is absent (minimal migration-test fixtures), mirroring
   /// [_tableExists].
-  Future<bool> _columnExists(String table, String column) async {
+  Future<bool> _columnExists(String table, String column) async =>
+      (await _columnNames(table)).contains(column);
+
+  /// The names of [table]'s columns right now; empty when it is absent.
+  Future<Set<String>> _columnNames(String table) async {
     final cols = await customSelect("PRAGMA table_info('$table')").get();
-    return cols.any((c) => c.read<String>('name') == column);
+    return {for (final c in cols) c.read<String>('name')};
   }
 
   /// Idempotent and a no-op when the table or column is absent, so it is
@@ -42,11 +46,9 @@ extension SupportMigrations on AppDatabase {
       _dropColumnsIfExist(table, [column]);
 
   /// [_dropColumnIfExists] for several columns of one table, reading the
-  /// table's columns once: cheap enough for a backstop that runs on every
-  /// open.
+  /// table's columns once.
   Future<void> _dropColumnsIfExist(String table, List<String> columns) async {
-    final rows = await customSelect("PRAGMA table_info('$table')").get();
-    final present = {for (final r in rows) r.read<String>('name')};
+    final present = await _columnNames(table);
     for (final column in columns.where(present.contains)) {
       await customStatement('ALTER TABLE $table DROP COLUMN $column');
     }
