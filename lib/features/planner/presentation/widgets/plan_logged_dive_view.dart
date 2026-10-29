@@ -98,7 +98,10 @@ class PlanLoggedDiveView extends ConsumerWidget {
     final units = UnitFormatter(ref.watch(settingsProvider));
     final label = seriesLoggedDiveLabel(logged, units);
     final dive = ref.watch(diveProvider(logged.id));
-    final analysis = ref.watch(profileAnalysisProvider(logged.id)).valueOrNull;
+    // `.value` keeps the last analysis while a settings or dive log change
+    // reloads it; the `valueOrNull` polyfill would drop the facts until the
+    // reload lands.
+    final analysis = ref.watch(profileAnalysisProvider(logged.id)).value;
 
     // The dive after this one: the next logged dive, else the first planned.
     final index = follow.loggedDives.indexOf(logged);

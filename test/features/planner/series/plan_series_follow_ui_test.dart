@@ -1,8 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/map_style.dart';
+import 'package:submersion/core/deco/entities/o2_exposure.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
@@ -49,7 +53,10 @@ void main() {
     DatabaseService.instance.resetForTesting();
   });
 
-  Widget harness(List<Dive> dives) => testApp(
+  Widget harness(
+    List<Dive> dives, {
+    Future<ProfileAnalysis?> Function(Ref ref, String id)? analysis,
+  }) => testApp(
     overrides: [
       settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
       currentDiverIdProvider.overrideWith(
@@ -61,7 +68,7 @@ void main() {
       ),
       // No profiles: the follow carries no tissues, and the logged view
       // shows its placeholder rather than the full chart.
-      profileAnalysisProvider.overrideWith((ref, id) async => null),
+      profileAnalysisProvider.overrideWith(analysis ?? (ref, id) async => null),
     ],
     locale: const Locale('en'),
     child: const PlanCanvasPage(),
@@ -74,12 +81,13 @@ void main() {
     WidgetTester tester,
     List<Dive> dives, {
     Size size = const Size(1400, 900),
+    Future<ProfileAnalysis?> Function(Ref ref, String id)? analysis,
   }) async {
     tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
-    await tester.pumpWidget(harness(dives));
+    await tester.pumpWidget(harness(dives, analysis: analysis));
     containerOf(tester)
         .read(divePlanNotifierProvider.notifier)
         .addSimplePlan(maxDepth: 30, bottomTimeMinutes: 20);
@@ -267,6 +275,40 @@ void main() {
 
     expect(find.text('Carried into #42'), findsOneWidget);
     expect(find.text('Stop following'), findsNothing);
+  });
+
+  testWidgets('a logged dive keeps its CNS and OTU while its analysis '
+      'reloads', (tester) async {
+    // A settings or dive log change reloads the analysis. Held open so the
+    // reload spans frames.
+    final reload = StateProvider<int>((ref) => 0);
+    Completer<void>? gate;
+    await pumpPlan(
+      tester,
+      dayDives,
+      analysis: (ref, id) async {
+        if (ref.watch(reload) > 0) await gate!.future;
+        return ProfileAnalysis.empty().copyWith(
+          o2Exposure: const O2Exposure(cnsEnd: 12, otu: 34),
+        );
+      },
+    );
+    await follow(tester, 'd42');
+    await tester.tap(find.byTooltip('Logged dive #42'));
+    await tester.pumpAndSettle();
+    expect(find.text('12%'), findsOneWidget);
+    expect(find.text('34'), findsOneWidget);
+
+    gate = Completer<void>();
+    containerOf(tester).read(reload.notifier).state++;
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.text('12%'), findsOneWidget);
+    expect(find.text('34'), findsOneWidget);
+
+    gate.complete();
+    await tester.pumpAndSettle();
   });
 
   testWidgets('Stop following drops the logged dives', (tester) async {
