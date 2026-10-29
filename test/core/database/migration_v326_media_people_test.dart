@@ -5,7 +5,7 @@ import 'package:submersion/core/database/database.dart';
 
 /// Schema v326: the synced `media_people` table, people tagged on photos and
 /// videos (issue #1745). Renumbered from 323 and 324, which #3748 and
-/// #3728 took; 325 is held by PR #3786, and 319, 321 and 322 by PR #3726.
+/// #3728 took; 325 is #3786's; 319, 321 and 322 are held by PR #3726.
 void main() {
   /// A database at [version] with the parents the table references and no
   /// media_people table.

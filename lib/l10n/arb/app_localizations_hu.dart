@@ -10281,6 +10281,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_selection_tooltip_edit => 'Kiválasztottak szerkesztése';
 
   @override
+  String get diveLog_selection_tooltip_newTrip => 'Új út a kijelöltekből';
+
+  @override
   String get diveLog_selection_tooltip_export => 'Kiválasztottak exportálása';
 
   @override
@@ -31736,6 +31739,37 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String trips_delete_sideTripsStandalone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'A $count mellékútja önálló út lesz.',
+      one: 'A mellékútja önálló út lesz.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_delete_divesReturnToParent(String name) {
+    return 'A merülései visszakerülnek ide: $name.';
+  }
+
+  @override
+  String trips_bulkDelete_sideTripsStandalone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mellékút önálló út lesz.',
+      one: '$count mellékút önálló út lesz.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_bulkDelete_divesReturnToParents =>
+      'A törölt mellékutak merülései visszakerülnek a nagyobb útjaikhoz.';
+
+  @override
   String get trips_detail_dialog_deleteTitle => 'Út törlése?';
 
   @override
@@ -31958,6 +31992,16 @@ class AppLocalizationsHu extends AppLocalizations {
   String get trips_edit_hint_tripName => 'pl. Vörös-tengeri szafari 2024';
 
   @override
+  String get trips_edit_field_partOf => 'Nagyobb út része';
+
+  @override
+  String get trips_edit_partOf_none => 'Nincs (önálló út)';
+
+  @override
+  String get trips_edit_partOf_helper =>
+      'Ezt az utat egy nagyobb út mellékútjává teszi';
+
+  @override
   String get trips_edit_label_endDate => 'Befejezés dátuma';
 
   @override
@@ -32142,6 +32186,32 @@ class AppLocalizationsHu extends AppLocalizations {
       one: '$count merülés',
     );
     return '$_temp0';
+  }
+
+  @override
+  String trips_list_sideTripCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mellékút',
+      one: '$count mellékút',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_partOf(String name) {
+    return '$name része';
+  }
+
+  @override
+  String trips_fromSelection_name(String location, String monthYear) {
+    return '$location, $monthYear';
+  }
+
+  @override
+  String trips_fromSelection_nameNoLocation(String monthYear) {
+    return 'Út, $monthYear';
   }
 
   @override
@@ -54095,6 +54165,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get query_trips_dives => 'Merülések';
+
+  @override
+  String get query_trips_partOf => 'Nagyobb út része';
 
   @override
   String get query_trips_endDate => 'Záró dátum';

@@ -39,6 +39,7 @@ import 'package:submersion/features/divers/data/repositories/profile_hides_repos
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
 import 'package:submersion/features/documents/domain/document_ids.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
+import 'package:submersion/features/trips/data/repositories/side_trip_links.dart';
 
 /// Result returned by [DiverRepository.deleteDiverWithReassignment].
 ///
@@ -871,6 +872,15 @@ class DiverRepository {
         // being unshared. The schema does not cascade SET NULL on these
         // FKs, so without this step the upcoming DELETEs would violate the
         // foreign-key constraint.
+        // The diver's side trips hand surviving profiles' dives to their
+        // larger trips first, and surviving side trips of the diver's trips
+        // become trips of their own (issue #3658).
+        await detachSideTripsForDelete(
+          _db,
+          _syncRepository,
+          await _idsOf('SELECT id FROM trips WHERE diver_id = ?', [id]),
+          now: DateTime.now().millisecondsSinceEpoch,
+        );
         await clearDiveLinksToDiverRows(
           _db,
           _syncRepository,

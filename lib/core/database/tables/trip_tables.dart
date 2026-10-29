@@ -41,6 +41,11 @@ class Trips extends Table {
   IntColumn get diversSharingCylinders =>
       integer().withDefault(const Constant(1))();
   IntColumn get divesPerDayTarget => integer().nullable()();
+
+  /// v325: the larger trip this one is a side trip of (issue #3658). No
+  /// foreign key on purpose: a sync can deliver a side trip whose parent was
+  /// deleted on another device, and readers treat that as no parent.
+  TextColumn get parentTripId => text().nullable()();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 

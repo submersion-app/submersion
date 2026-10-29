@@ -545,6 +545,8 @@ String queryLabelForKey(AppLocalizations l10n, String key) {
       return l10n.query_trips_name;
     case 'query_trips_notes':
       return l10n.query_trips_notes;
+    case 'query_trips_partOf':
+      return l10n.query_trips_partOf;
     case 'query_trips_resortName':
       return l10n.query_trips_resortName;
     case 'query_trips_shared':

@@ -118,7 +118,7 @@ final mediaLibraryNotifierProvider =
 class MediaLibraryNotifier extends StateNotifier<MediaLibraryState> {
   MediaLibraryNotifier(this._repo, this._diverId, this._filter, this._sort)
     : super(const MediaLibraryState()) {
-    _changesSub = _repo.watchMediaChanges().listen((_) => loadFirstPage());
+    _changesSub = _repo.watchLibraryChanges().listen((_) => loadFirstPage());
     loadFirstPage();
   }
 

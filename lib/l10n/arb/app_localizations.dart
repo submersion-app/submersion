@@ -16357,6 +16357,12 @@ abstract class AppLocalizations {
   /// **'Edit Selected'**
   String get diveLog_selection_tooltip_edit;
 
+  /// Dive list selection action: make a new trip from the selected dives
+  ///
+  /// In en, this message translates to:
+  /// **'New Trip from Selection'**
+  String get diveLog_selection_tooltip_newTrip;
+
   /// No description provided for @diveLog_selection_tooltip_export.
   ///
   /// In en, this message translates to:
@@ -50840,6 +50846,30 @@ abstract class AppLocalizations {
   /// **'Are you sure you want to delete \"{name}\"? This will remove the trip but keep the dives.'**
   String trips_detail_dialog_deleteContent(Object name);
 
+  /// Delete confirmation line for a trip with side trips
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Its side trip becomes a trip of its own.} other{Its {count} side trips become trips of their own.}}'**
+  String trips_delete_sideTripsStandalone(int count);
+
+  /// Delete confirmation line for a side trip: where its dives go
+  ///
+  /// In en, this message translates to:
+  /// **'Its dives go back to {name}.'**
+  String trips_delete_divesReturnToParent(String name);
+
+  /// Bulk delete confirmation line: side trips of the deleted trips that are kept
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} side trip becomes a trip of its own.} other{{count} side trips become trips of their own.}}'**
+  String trips_bulkDelete_sideTripsStandalone(int count);
+
+  /// Delete confirmation line when side trips are deleted: their dives move to the larger trips
+  ///
+  /// In en, this message translates to:
+  /// **'Dives on deleted side trips go back to their larger trips.'**
+  String get trips_bulkDelete_divesReturnToParents;
+
   /// No description provided for @trips_detail_dialog_deleteTitle.
   ///
   /// In en, this message translates to:
@@ -51170,6 +51200,24 @@ abstract class AppLocalizations {
   /// **'e.g., Red Sea Safari 2024'**
   String get trips_edit_hint_tripName;
 
+  /// Trip form field: the larger trip this trip is a side trip of
+  ///
+  /// In en, this message translates to:
+  /// **'Part of'**
+  String get trips_edit_field_partOf;
+
+  /// Trip form Part of choice for a trip that is not a side trip
+  ///
+  /// In en, this message translates to:
+  /// **'None (a trip of its own)'**
+  String get trips_edit_partOf_none;
+
+  /// Explains the trip form Part of field
+  ///
+  /// In en, this message translates to:
+  /// **'Makes this a side trip within a larger trip'**
+  String get trips_edit_partOf_helper;
+
   /// No description provided for @trips_edit_label_endDate.
   ///
   /// In en, this message translates to:
@@ -51451,6 +51499,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{1 dive} other{{count} dives}}'**
   String trips_list_tile_diveCount(int count);
+
+  /// Trip list note on a larger trip: how many side trips are nested under it
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} side trip} other{{count} side trips}}'**
+  String trips_list_sideTripCount(int count);
+
+  /// Names the larger trip a side trip is part of
+  ///
+  /// In en, this message translates to:
+  /// **'Part of {name}'**
+  String trips_partOf(String name);
+
+  /// Suggested name for a trip made from selected dives: the shared location and the month it starts
+  ///
+  /// In en, this message translates to:
+  /// **'{location}, {monthYear}'**
+  String trips_fromSelection_name(String location, String monthYear);
+
+  /// Suggested name for a trip made from selected dives with no shared location
+  ///
+  /// In en, this message translates to:
+  /// **'Trip, {monthYear}'**
+  String trips_fromSelection_nameNoLocation(String monthYear);
 
   /// No description provided for @trips_list_tooltip_addTrip.
   ///
@@ -86308,6 +86380,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Dives'**
   String get query_trips_dives;
+
+  /// Relation label in the query builder: the larger trip a side trip is part of
+  ///
+  /// In en, this message translates to:
+  /// **'Part of'**
+  String get query_trips_partOf;
 
   /// Field label in the query builder
   ///

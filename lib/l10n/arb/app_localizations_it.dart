@@ -10308,6 +10308,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_selection_tooltip_edit => 'Modifica selezionati';
 
   @override
+  String get diveLog_selection_tooltip_newTrip =>
+      'Nuovo viaggio dalla selezione';
+
+  @override
   String get diveLog_selection_tooltip_export => 'Esporta selezionati';
 
   @override
@@ -31915,6 +31919,37 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String trips_delete_sideTripsStandalone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Le sue $count escursioni diventano viaggi a sé.',
+      one: 'La sua escursione diventa un viaggio a sé.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_delete_divesReturnToParent(String name) {
+    return 'Le sue immersioni tornano a $name.';
+  }
+
+  @override
+  String trips_bulkDelete_sideTripsStandalone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count escursioni diventano viaggi a sé.',
+      one: '$count escursione diventa un viaggio a sé.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_bulkDelete_divesReturnToParents =>
+      'Le immersioni delle escursioni eliminate tornano ai rispettivi viaggi principali.';
+
+  @override
   String get trips_detail_dialog_deleteTitle => 'Eliminare il viaggio?';
 
   @override
@@ -32147,6 +32182,16 @@ class AppLocalizationsIt extends AppLocalizations {
   String get trips_edit_hint_tripName => 'es. Safari Mar Rosso 2024';
 
   @override
+  String get trips_edit_field_partOf => 'Parte di';
+
+  @override
+  String get trips_edit_partOf_none => 'Nessuno (viaggio a sé)';
+
+  @override
+  String get trips_edit_partOf_helper =>
+      'Rende questo viaggio un\'escursione all\'interno di un viaggio più lungo';
+
+  @override
   String get trips_edit_label_endDate => 'Data di fine';
 
   @override
@@ -32330,6 +32375,32 @@ class AppLocalizationsIt extends AppLocalizations {
       one: '$count immersione',
     );
     return '$_temp0';
+  }
+
+  @override
+  String trips_list_sideTripCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count escursioni',
+      one: '$count escursione',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_partOf(String name) {
+    return 'Parte di $name';
+  }
+
+  @override
+  String trips_fromSelection_name(String location, String monthYear) {
+    return '$location, $monthYear';
+  }
+
+  @override
+  String trips_fromSelection_nameNoLocation(String monthYear) {
+    return 'Viaggio, $monthYear';
   }
 
   @override
@@ -54391,6 +54462,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get query_trips_dives => 'Immersioni';
+
+  @override
+  String get query_trips_partOf => 'Parte di';
 
   @override
   String get query_trips_endDate => 'Data di fine';

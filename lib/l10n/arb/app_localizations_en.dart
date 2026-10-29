@@ -10144,6 +10144,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_selection_tooltip_edit => 'Edit Selected';
 
   @override
+  String get diveLog_selection_tooltip_newTrip => 'New Trip from Selection';
+
+  @override
   String get diveLog_selection_tooltip_export => 'Export Selected';
 
   @override
@@ -31364,6 +31367,37 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String trips_delete_sideTripsStandalone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Its $count side trips become trips of their own.',
+      one: 'Its side trip becomes a trip of its own.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_delete_divesReturnToParent(String name) {
+    return 'Its dives go back to $name.';
+  }
+
+  @override
+  String trips_bulkDelete_sideTripsStandalone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count side trips become trips of their own.',
+      one: '$count side trip becomes a trip of its own.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_bulkDelete_divesReturnToParents =>
+      'Dives on deleted side trips go back to their larger trips.';
+
+  @override
   String get trips_detail_dialog_deleteTitle => 'Delete Trip?';
 
   @override
@@ -31589,6 +31623,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trips_edit_hint_tripName => 'e.g., Red Sea Safari 2024';
 
   @override
+  String get trips_edit_field_partOf => 'Part of';
+
+  @override
+  String get trips_edit_partOf_none => 'None (a trip of its own)';
+
+  @override
+  String get trips_edit_partOf_helper =>
+      'Makes this a side trip within a larger trip';
+
+  @override
   String get trips_edit_label_endDate => 'End Date';
 
   @override
@@ -31769,6 +31813,32 @@ class AppLocalizationsEn extends AppLocalizations {
       one: '1 dive',
     );
     return '$_temp0';
+  }
+
+  @override
+  String trips_list_sideTripCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count side trips',
+      one: '$count side trip',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_partOf(String name) {
+    return 'Part of $name';
+  }
+
+  @override
+  String trips_fromSelection_name(String location, String monthYear) {
+    return '$location, $monthYear';
+  }
+
+  @override
+  String trips_fromSelection_nameNoLocation(String monthYear) {
+    return 'Trip, $monthYear';
   }
 
   @override
@@ -53531,6 +53601,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get query_trips_dives => 'Dives';
+
+  @override
+  String get query_trips_partOf => 'Part of';
 
   @override
   String get query_trips_endDate => 'End date';

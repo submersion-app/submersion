@@ -40,6 +40,7 @@ import 'package:submersion/features/dive_log/presentation/helpers/dive_list_nav_
 import 'package:submersion/features/dive_log/presentation/widgets/dive_list_item.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_list_scrubber.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/trip_group_header.dart';
+import 'package:submersion/features/trips/presentation/helpers/new_trip_from_selection.dart';
 import 'package:submersion/shared/widgets/export_destination_sheet.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/keyboard_list_navigator.dart';
@@ -1208,6 +1209,33 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     }
   }
 
+  /// Open the new-trip form prefilled from the checked dives (issue #3658).
+  /// Backing out keeps the selection; a failed read says so and keeps it.
+  Future<BulkActionOutcome> _newTripFromSelection() async {
+    try {
+      final tripId = await newTripFromSelection(
+        context,
+        ref,
+        _selectedIds.toList(),
+      );
+      return tripId == null
+          ? BulkActionOutcome.cancelled
+          : BulkActionOutcome.completed;
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to start a trip from the selected dives',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n.common_error_tryAgain)),
+        );
+      }
+      return BulkActionOutcome.failed;
+    }
+  }
+
   /// Open the bulk edit form for the selected dives.
   ///
   /// Reports completed either way. The form leaves itself with
@@ -1924,6 +1952,15 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
         // useful with nothing checked.
         alwaysEnabled: true,
         onInvoke: () => _selectByDateRange(dives),
+      ),
+      // A new trip made from the checked dives (issue #3658). After the
+      // inline icons, so it sits in the overflow menu with its label and the
+      // phone bar keeps room for Deselect All.
+      BulkAction(
+        id: 'new_trip',
+        icon: Icons.card_travel,
+        label: context.l10n.diveLog_selection_tooltip_newTrip,
+        onInvoke: _newTripFromSelection,
       ),
       // Logbook rules on the checked dives, previewed first (#3513). Last,
       // so the existing inline actions keep their places.

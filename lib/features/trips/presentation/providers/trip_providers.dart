@@ -271,6 +271,9 @@ final diveIdsForTripProvider = FutureProvider.family<List<String>, String>((
   final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
 
   ref.invalidateSelfWhen(diveRepository.watchDivesChanges());
+  // A trip's dives include its side trips', so linking or unlinking one
+  // changes them without a dive row being written (issue #3658).
+  ref.invalidateSelfWhen(repository.watchTripsChanges());
 
   return repository.getDiveIdsForTrip(tripId, diverId: diverId);
 });
@@ -292,6 +295,8 @@ final divesForTripProvider = FutureProvider.family<List<domain.Dive>, String>((
   // buddy names, and a rename or a synced buddy link never restamps the dive
   // row (#1769, #3039).
   ref.invalidateSelfWhen(diveRepository.watchDivesChangesWithBuddyLinks());
+  // And a side trip linked or unlinked (issue #3658).
+  ref.invalidateSelfWhen(tripRepository.watchTripsChanges());
 
   final diveIds = await tripRepository.getDiveIdsForTrip(
     tripId,

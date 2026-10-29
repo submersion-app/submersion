@@ -10450,6 +10450,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_selection_tooltip_edit => 'تعديل المحدد';
 
   @override
+  String get diveLog_selection_tooltip_newTrip => 'رحلة جديدة من المحدد';
+
+  @override
   String get diveLog_selection_tooltip_export => 'تصدير المحدد';
 
   @override
@@ -32191,6 +32194,43 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String trips_delete_sideTripsStandalone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تصبح رحلاتها الجانبية الـ $count رحلات مستقلة.',
+      many: 'تصبح رحلاتها الجانبية الـ $count رحلات مستقلة.',
+      few: 'تصبح رحلاتها الجانبية الـ $count رحلات مستقلة.',
+      two: 'تصبح رحلتاها الجانبيتان رحلتين مستقلتين.',
+      one: 'تصبح رحلتها الجانبية رحلة مستقلة.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_delete_divesReturnToParent(String name) {
+    return 'تعود غطساتها إلى $name.';
+  }
+
+  @override
+  String trips_bulkDelete_sideTripsStandalone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تصبح $count رحلة جانبية رحلات مستقلة.',
+      many: 'تصبح $count رحلة جانبية رحلات مستقلة.',
+      few: 'تصبح $count رحلات جانبية رحلات مستقلة.',
+      two: 'تصبح رحلتان جانبيتان رحلتين مستقلتين.',
+      one: 'تصبح رحلة جانبية واحدة رحلة مستقلة.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_bulkDelete_divesReturnToParents =>
+      'تعود غطسات الرحلات الجانبية المحذوفة إلى رحلاتها الأكبر.';
+
+  @override
   String get trips_detail_dialog_deleteTitle => 'حذف الرحلة؟';
 
   @override
@@ -32432,6 +32472,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trips_edit_hint_tripName => 'مثال: رحلة البحر الأحمر 2024';
 
   @override
+  String get trips_edit_field_partOf => 'جزء من';
+
+  @override
+  String get trips_edit_partOf_none => 'لا شيء (رحلة مستقلة)';
+
+  @override
+  String get trips_edit_partOf_helper => 'يجعل هذه رحلة جانبية ضمن رحلة أكبر';
+
+  @override
   String get trips_edit_label_endDate => 'تاريخ الانتهاء';
 
   @override
@@ -32623,6 +32672,35 @@ class AppLocalizationsAr extends AppLocalizations {
       one: 'غوصة واحدة',
     );
     return '$_temp0';
+  }
+
+  @override
+  String trips_list_sideTripCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count رحلة جانبية',
+      many: '$count رحلة جانبية',
+      few: '$count رحلات جانبية',
+      two: 'رحلتان جانبيتان',
+      one: 'رحلة جانبية واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_partOf(String name) {
+    return 'جزء من $name';
+  }
+
+  @override
+  String trips_fromSelection_name(String location, String monthYear) {
+    return '$location، $monthYear';
+  }
+
+  @override
+  String trips_fromSelection_nameNoLocation(String monthYear) {
+    return 'رحلة، $monthYear';
   }
 
   @override
@@ -55020,6 +55098,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get query_trips_dives => 'الغطسات';
+
+  @override
+  String get query_trips_partOf => 'جزء من';
 
   @override
   String get query_trips_endDate => 'تاريخ الانتهاء';

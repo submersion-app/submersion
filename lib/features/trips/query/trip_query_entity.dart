@@ -4,6 +4,7 @@ import 'package:submersion/core/query/registry/query_entity.dart';
 import 'package:submersion/core/query/registry/query_field.dart';
 import 'package:submersion/core/query/registry/query_relation.dart';
 import 'package:submersion/features/dive_log/query/dive_aggregate_fields.dart';
+import 'package:submersion/features/trips/data/side_trip_sql.dart';
 
 QueryField _text(String key, String column) => QueryField(
   key: key,
@@ -62,16 +63,40 @@ final tripQueryEntity = QueryEntity(
       emptySql: '0',
       labelKey: 'query_trips_shared',
     ),
-    diveCountField('trips', 'ad.trip_id = {r}.id'),
+    // A trip counts its side trips' dives too (issue #3658), read through
+    // the trips table.
+    diveCountField(
+      'trips',
+      tripDivesScopeSql('ad', '{r}.id'),
+      tables: const ['trips'],
+    ),
   ],
-  relations: const [
+  relations: [
+    // A trip's dives take in its side trips' (issue #3658). As an IN list
+    // of the trip and its side trips, so the dives lookup keeps using
+    // idx_dives_trip_id.
     QueryRelation(
       key: 'dives',
       target: QuerySubject.dives,
-      shape: RelationShape.child,
-      joinSql: '{to}.trip_id = {from}.id',
+      // Custom, not child: the hop is an IN list, not one equality.
+      shape: RelationShape.custom,
+      joinSql:
+          '{to}.trip_id IN (SELECT {from}.id UNION ALL '
+          '${sideTripIdsSql('{from}.id')})',
       isMany: true,
       labelKey: 'query_trips_dives',
+      tables: const ['trips'],
+    ),
+    // The larger trip a side trip is part of (issue #3658). A link to a
+    // trip that is itself a side trip, or to the trip itself, is no link.
+    const QueryRelation(
+      key: 'partOf',
+      target: QuerySubject.trips,
+      shape: RelationShape.fk,
+      joinSql: '{to}.id = {from}.parent_trip_id',
+      targetFilterSql: '{to}.parent_trip_id IS NULL',
+      isMany: false,
+      labelKey: 'query_trips_partOf',
     ),
   ],
 );

@@ -148,6 +148,23 @@ class MediaLibraryRepository {
     ]);
   }
 
+  /// The ids of [tripId]'s valid side trips, whose photos the trip shows too
+  /// (issue #3658). The rule of `side_trip_sql.dart`: the parent has no
+  /// parent of its own and is not the side trip itself.
+  BaseSelectStatement _sideTripIds(String tripId) {
+    final side = _db.alias(_db.trips, 'side');
+    final parent = _db.alias(_db.trips, 'parent');
+    return (_db.selectOnly(side).join([
+        innerJoin(parent, parent.id.equalsExp(side.parentTripId)),
+      ])
+      ..addColumns([side.id])
+      ..where(
+        side.parentTripId.equals(tripId) &
+            parent.parentTripId.isNull() &
+            side.id.equalsExp(parent.id).not(),
+      ));
+  }
+
   Expression<bool> _baseWhere(String? diverId, MediaLibraryFilter filter) {
     final m = _db.media;
     final d = _db.dives;
@@ -167,7 +184,9 @@ class MediaLibraryRepository {
     }
     final tripId = filter.tripId;
     if (tripId != null) {
-      where = where & d.tripId.equals(tripId);
+      where =
+          where &
+          (d.tripId.equals(tripId) | d.tripId.isInQuery(_sideTripIds(tripId)));
     }
     final speciesId = filter.speciesId;
     if (speciesId != null) {
@@ -610,6 +629,15 @@ class MediaLibraryRepository {
           _db.mediaTags,
           _db.mediaPeople,
         ]),
+      )
+      .debounce(MediaRepository.changeTickDebounce);
+
+  /// [watchMediaChanges] plus the trips table, for the library grid: its trip
+  /// filter takes in the trip's side trips, so linking or unlinking one
+  /// changes the page without a media row being written (issue #3658).
+  Stream<void> watchLibraryChanges() => _db
+      .tableUpdates(
+        TableUpdateQuery.onAllTables([_db.media, _db.mediaTags, _db.trips]),
       )
       .debounce(MediaRepository.changeTickDebounce);
 }

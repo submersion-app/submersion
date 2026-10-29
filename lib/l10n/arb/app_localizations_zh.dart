@@ -9787,6 +9787,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_selection_tooltip_edit => '编辑所选';
 
   @override
+  String get diveLog_selection_tooltip_newTrip => '用所选潜水新建行程';
+
+  @override
   String get diveLog_selection_tooltip_export => '导出所选';
 
   @override
@@ -30068,6 +30071,34 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String trips_delete_sideTripsStandalone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '其 $count 个附属行程将成为独立行程。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_delete_divesReturnToParent(String name) {
+    return '其潜水将归回 $name。';
+  }
+
+  @override
+  String trips_bulkDelete_sideTripsStandalone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个附属行程将成为独立行程。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_bulkDelete_divesReturnToParents => '已删除附属行程中的潜水将归回其所属的大行程。';
+
+  @override
   String get trips_detail_dialog_deleteTitle => '删除旅行？';
 
   @override
@@ -30276,6 +30307,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_edit_hint_tripName => '例如：红海探险 2024';
 
   @override
+  String get trips_edit_field_partOf => '所属行程';
+
+  @override
+  String get trips_edit_partOf_none => '无（独立行程）';
+
+  @override
+  String get trips_edit_partOf_helper => '将此行程设为更大行程中的附属行程';
+
+  @override
   String get trips_edit_label_endDate => '结束日期';
 
   @override
@@ -30447,6 +30487,31 @@ class AppLocalizationsZh extends AppLocalizations {
       other: '$count 次潜水',
     );
     return '$_temp0';
+  }
+
+  @override
+  String trips_list_sideTripCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个附属行程',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_partOf(String name) {
+    return '属于 $name';
+  }
+
+  @override
+  String trips_fromSelection_name(String location, String monthYear) {
+    return '$location，$monthYear';
+  }
+
+  @override
+  String trips_fromSelection_nameNoLocation(String monthYear) {
+    return '行程，$monthYear';
   }
 
   @override
@@ -51029,6 +51094,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get query_trips_dives => '潜水';
+
+  @override
+  String get query_trips_partOf => '所属行程';
 
   @override
   String get query_trips_endDate => '结束日期';

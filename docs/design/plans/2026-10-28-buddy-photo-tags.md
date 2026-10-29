@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- Schema version **326** (v319, v321, v322 are held by open PR #3726 and v325 by #3786; planned as 323, renumbered at merge after #3748 took 323 and #3728 took 324). `minimumCompatibleSchemaVersion` stays 308: the change is additive.
+- Schema version **326** (v319, v321, v322 are held by open PR #3726 and v325 is #3786's; planned as 323, renumbered at merge after #3748 took 323 and #3728 took 324). `minimumCompatibleSchemaVersion` stays 308: the change is additive.
 - Tables go in `lib/core/database/tables/`, rungs and helpers in `lib/core/database/migrations/`; `database.dart` only gains the table in its `tables:` list, the version constant and the `migrationVersions` entry.
 - Exactly one of `buddy_id` / `diver_id` is set on a row; box columns are all set or all null; normalised 0 to 1 against the full image.
 - A profile sees only its own tags: buddy tags whose buddy has `buddies.diver_id` = the viewing diver, and Me tags whose `diver_id` = the viewing diver. A buddy's `linked_diver_id` is never treated as Me.

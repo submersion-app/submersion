@@ -20,9 +20,14 @@ class CompactTripListTile extends ConsumerWidget {
   final bool isChecked;
   final ValueChanged<bool>? onCheckChanged;
 
+  /// How the trip nests (issue #3658): its side trip count, or the larger
+  /// trip it is part of when that trip is not listed.
+  final String? nestingNote;
+
   const CompactTripListTile({
     super.key,
     required this.tripWithStats,
+    this.nestingNote,
     this.isSelected = false,
     this.onTap,
     this.showSharedBadge = false,
@@ -138,6 +143,18 @@ class CompactTripListTile extends ConsumerWidget {
                               tripWithStats.formattedRuntime,
                               style: textTheme.bodySmall?.copyWith(
                                 color: colorScheme.primary,
+                              ),
+                            ),
+                          ],
+                          if (nestingNote != null) ...[
+                            const SizedBox(width: 12),
+                            Flexible(
+                              child: Text(
+                                nestingNote!,
+                                style: textTheme.bodySmall?.copyWith(
+                                  color: secondaryTextColor,
+                                ),
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                           ],

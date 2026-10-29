@@ -55,6 +55,7 @@ import 'package:submersion/features/dive_centers/presentation/pages/dive_center_
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_list_page.dart';
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_map_page.dart';
 import 'package:submersion/features/dive_log/presentation/navigation/open_dive_list.dart';
+import 'package:submersion/features/trips/domain/services/trip_draft.dart';
 import 'package:submersion/features/trips/presentation/navigation/open_trip_list.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_list_page.dart';
 import 'package:submersion/features/data_quality/presentation/pages/data_quality_inbox_page.dart';
@@ -1101,7 +1102,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'new',
                 name: 'newTrip',
-                builder: (context, state) => const TripEditPage(),
+                // Selected dives can arrive as a prefilled draft (#3658).
+                builder: (context, state) =>
+                    TripEditPage(draft: state.extra as TripDraft?),
               ),
               GoRoute(
                 path: ':tripId',

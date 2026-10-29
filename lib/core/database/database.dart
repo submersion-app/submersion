@@ -1454,11 +1454,17 @@ class AppDatabase extends _$AppDatabase {
     // (issue #3728). Additive and nullable: an older peer drops the keys it
     // does not know, so the floor does not move.
     324,
+    // v325: trips.parent_trip_id, the larger trip a side trip is part of
+    // (issue #3658). Additive and nullable with no backfill: an older peer
+    // omits it and sees a side trip as a trip of its own, so the floor
+    // stays. Renumbered from 323, which #3748 shipped first; #3728 then
+    // shipped 324.
+    325,
     // v326: the synced media_people table, buddies and the diver tagged on
     // photos and videos (issue #1745). Additive only, so the floor does not
     // move: an older peer ignores the new payload key. Renumbered from 323
-    // and 324, which #3748 and #3728 took; 325 is held by PR #3786, and 319,
-    // 321 and 322 by PR #3726.
+    // and 324, which #3748 and #3728 took; 325 is #3786's; 319, 321 and 322
+    // are held by PR #3726.
     326,
   ];
 

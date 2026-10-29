@@ -10077,6 +10077,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_selection_tooltip_edit => 'ערוך נבחרים';
 
   @override
+  String get diveLog_selection_tooltip_newTrip => 'טיול חדש מהבחירה';
+
+  @override
   String get diveLog_selection_tooltip_export => 'ייצא נבחרים';
 
   @override
@@ -31096,6 +31099,37 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String trips_delete_sideTripsStandalone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count טיולי הצד שלו הופכים לטיולים עצמאיים.',
+      one: 'טיול הצד שלו הופך לטיול עצמאי.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_delete_divesReturnToParent(String name) {
+    return 'הצלילות שלו חוזרות אל $name.';
+  }
+
+  @override
+  String trips_bulkDelete_sideTripsStandalone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count טיולי צד הופכים לטיולים עצמאיים.',
+      one: 'טיול צד אחד הופך לטיול עצמאי.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_bulkDelete_divesReturnToParents =>
+      'הצלילות של טיולי הצד שנמחקו חוזרות לטיולים הגדולים שלהם.';
+
+  @override
   String get trips_detail_dialog_deleteTitle => 'למחוק טיול?';
 
   @override
@@ -31320,6 +31354,16 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_edit_hint_tripName => 'לדוגמה, ספארי ים סוף 2024';
 
   @override
+  String get trips_edit_field_partOf => 'חלק מ־';
+
+  @override
+  String get trips_edit_partOf_none => 'ללא (טיול עצמאי)';
+
+  @override
+  String get trips_edit_partOf_helper =>
+      'הופך את הטיול לטיול צד בתוך טיול גדול יותר';
+
+  @override
   String get trips_edit_label_endDate => 'תאריך סיום';
 
   @override
@@ -31499,6 +31543,32 @@ class AppLocalizationsHe extends AppLocalizations {
       one: 'צלילה אחת',
     );
     return '$_temp0';
+  }
+
+  @override
+  String trips_list_sideTripCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count טיולי צד',
+      one: 'טיול צד אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_partOf(String name) {
+    return 'חלק מ־$name';
+  }
+
+  @override
+  String trips_fromSelection_name(String location, String monthYear) {
+    return '$location, $monthYear';
+  }
+
+  @override
+  String trips_fromSelection_nameNoLocation(String monthYear) {
+    return 'טיול, $monthYear';
   }
 
   @override
@@ -53229,6 +53299,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get query_trips_dives => 'צלילות';
+
+  @override
+  String get query_trips_partOf => 'חלק מ־';
 
   @override
   String get query_trips_endDate => 'תאריך סיום';
