@@ -92,11 +92,15 @@ extension PpO2DecoBandMigrations on AppDatabase {
 
   /// Drops whichever misspelled band columns a database carries.
   /// Idempotent; called from the beforeOpen backstop, which reaches every
-  /// database the misspelled helpers did.
+  /// database the misspelled helpers did. Reads each table's columns once,
+  /// since this runs on every open.
   Future<void> _dropMisspelledPpO2DecoBandColumns() async {
-    for (final table in _misspelledColumns.entries) {
-      for (final column in table.value) {
-        await _dropColumnIfExists(table.key, column);
+    for (final MapEntry(key: table, value: misspelled)
+        in _misspelledColumns.entries) {
+      final rows = await customSelect("PRAGMA table_info('$table')").get();
+      final present = {for (final r in rows) r.read<String>('name')};
+      for (final column in misspelled.where(present.contains)) {
+        await customStatement('ALTER TABLE $table DROP COLUMN $column');
       }
     }
   }

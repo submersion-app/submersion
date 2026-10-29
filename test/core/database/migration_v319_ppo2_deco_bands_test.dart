@@ -206,13 +206,10 @@ void main() {
       },
     };
     for (final table in misspelled.entries) {
-      final existing = await columns(before, table.key);
       for (final column in table.value.entries) {
         await before.customStatement(
           'ALTER TABLE ${table.key} DROP COLUMN ${column.key}',
         );
-        final added = column.value.split(' ').first;
-        if (existing.contains(added)) continue;
         await before.customStatement(
           'ALTER TABLE ${table.key} ADD COLUMN ${column.value}',
         );
