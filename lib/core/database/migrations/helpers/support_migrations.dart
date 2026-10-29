@@ -2,15 +2,17 @@ part of '../app_database_migrations.dart';
 
 /// Schema probes shared by every other migration file.
 extension SupportMigrations on AppDatabase {
+  /// Idempotent, and tolerates another isolate adding the column between
+  /// the read and the add.
   Future<void> _addColumnIfMissing(
     String table,
     String column,
     String ddl,
   ) async {
-    final cols = await customSelect("PRAGMA table_info('$table')").get();
-    if (cols.isEmpty) return; // partial fixture database: table absent
-    if (cols.any((c) => c.read<String>('name') == column)) return;
-    await customStatement('ALTER TABLE $table ADD COLUMN $column $ddl');
+    final present = await _columnNames(table);
+    if (present.isEmpty) return; // partial fixture database: table absent
+    if (present.contains(column)) return;
+    await addColumnIfStillMissing(this, table, column, ddl);
   }
 
   /// True when [table] exists in this database right now.

@@ -34,6 +34,26 @@ void main() {
     expect(await tableColumnNames(db, 'scratch'), {'id'});
   });
 
+  test('addColumnIfStillMissing adds the column', () async {
+    await addColumnIfStillMissing(db, 'scratch', 'more', 'INTEGER');
+    expect(await tableColumnNames(db, 'scratch'), {'id', 'extra', 'more'});
+  });
+
+  test('addColumnIfStillMissing accepts a column another connection '
+      'already added', () async {
+    // The same race as the drop: both isolates read the column as missing
+    // and race to add it.
+    await addColumnIfStillMissing(db, 'scratch', 'extra', 'TEXT');
+    expect(await tableColumnNames(db, 'scratch'), {'id', 'extra'});
+  });
+
+  test('addColumnIfStillMissing still reports any other failure', () async {
+    await expectLater(
+      addColumnIfStillMissing(db, 'absent', 'more', 'INTEGER'),
+      throwsA(anything),
+    );
+  });
+
   test('dropColumnIfStillPresent still reports any other failure', () async {
     await expectLater(
       dropColumnIfStillPresent(db, 'absent', 'extra'),
