@@ -24,6 +24,7 @@ import 'package:submersion/core/services/restore_source_missing_exception.dart';
 import 'package:submersion/core/services/security/database_encryption_migrator.dart';
 import 'package:submersion/core/services/security/database_locked_exception.dart';
 import 'package:submersion/core/services/security/database_security_sidecar.dart';
+import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 
@@ -607,7 +608,13 @@ class DatabaseService {
   }
 
   /// Reinitialize the database at a specific path (used during migration)
-  Future<void> reinitializeAtPath(String newPath) async {
+  ///
+  /// Runs as a [SyncCoordinator] turn: a sync still merging would otherwise
+  /// carry its remaining steps into the newly opened file (issue #3798).
+  Future<void> reinitializeAtPath(String newPath) =>
+      SyncCoordinator.run(() => _reinitializeAtPath(newPath));
+
+  Future<void> _reinitializeAtPath(String newPath) async {
     // Strict close: this method reopens immediately, so it must not race a
     // background connection that timed out mid-close and is still holding
     // file locks. A stuck close throws here rather than being abandoned.
@@ -1029,11 +1036,26 @@ class DatabaseService {
   /// Throws [RestoreSourceMissingException] when [backupPath] does not exist.
   /// The live database is left open and untouched in that case; the throw is
   /// what lets callers tell "nothing happened" from a completed restore.
+  ///
+  /// Runs as a [SyncCoordinator] turn, so a sync still merging finishes on
+  /// the live database rather than carrying on into the restored one
+  /// (issue #3798).
   Future<void> restore(
     String backupPath, {
     void Function(int currentStep, int totalSteps)? onMigrationProgress,
   }) async {
+    // Inside the async body, so a sealed restore fails the returned future
+    // rather than throwing at the call.
     DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.restore);
+    return SyncCoordinator.run(
+      () => _restore(backupPath, onMigrationProgress: onMigrationProgress),
+    );
+  }
+
+  Future<void> _restore(
+    String backupPath, {
+    void Function(int currentStep, int totalSteps)? onMigrationProgress,
+  }) async {
     final backupFile = File(backupPath);
     final destinationPath = await databasePath;
 

@@ -49,4 +49,44 @@ void main() {
     hold.complete();
     await running;
   });
+
+  test('a body run inside a turn runs at once instead of waiting for its '
+      'own turn', () async {
+    final log = <String>[];
+    await SyncCoordinator.run(() async {
+      log.add('outer');
+      await SyncCoordinator.run(() async => log.add('inner'));
+      log.add('outer-end');
+    }).timeout(const Duration(seconds: 5));
+    expect(log, ['outer', 'inner', 'outer-end']);
+    expect(SyncCoordinator.busy, isFalse);
+  });
+
+  test('a callback that outlives its turn queues like any other run', () async {
+    final log = <String>[];
+    final fire = Completer<void>();
+    late Future<void> late_;
+    await SyncCoordinator.run(() async {
+      // Scheduled inside the turn, so it runs in the turn's zone, but only
+      // after the turn has ended.
+      unawaited(
+        fire.future.then(
+          (_) => late_ = SyncCoordinator.run(() async => log.add('late')),
+        ),
+      );
+    });
+    final hold = Completer<void>();
+    final holder = SyncCoordinator.run(() async {
+      log.add('holder');
+      await hold.future;
+      log.add('holder-end');
+    });
+    fire.complete();
+    await pumpEventQueue();
+    expect(log, ['holder'], reason: 'the late run must wait for the holder');
+    hold.complete();
+    await holder;
+    await late_;
+    expect(log, ['holder', 'holder-end', 'late']);
+  });
 }

@@ -24,16 +24,27 @@ abstract final class SyncCoordinator {
     return () => quietNow && !busy && _started == startedAt;
   }
 
+  /// Marks the zone of the turn running now. A run from inside that turn
+  /// (a database swap within demo mode's switch, say) cannot wait for the
+  /// turn it is part of, so it runs at once.
+  static final _turnKey = Object();
+
   static Future<T> run<T>(Future<T> Function() body) {
+    final turn = Zone.current[_turnKey];
+    if (turn is _Turn && turn.active) return body();
     final previous = _tail;
     final done = Completer<void>();
     _tail = done.future;
     _depth++;
     _started++;
     return previous.then((_) async {
+      final current = _Turn();
       try {
-        return await body();
+        return await runZoned(body, zoneValues: {_turnKey: current});
       } finally {
+        // A callback the body scheduled keeps its zone after the turn ends,
+        // and must then queue like any other run.
+        current.active = false;
         _depth--;
         done.complete();
       }
@@ -47,4 +58,8 @@ abstract final class SyncCoordinator {
     _depth = 0;
     _started = 0;
   }
+}
+
+class _Turn {
+  bool active = true;
 }
