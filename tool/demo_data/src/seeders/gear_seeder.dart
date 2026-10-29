@@ -31,7 +31,7 @@ const demoSets = <String, (String, List<String>)>{
     ],
   ),
   'lake': (
-    'Cold lake drysuit',
+    'Cold water drysuit',
     [
       'mask',
       'fins',
@@ -239,7 +239,7 @@ class GearSeeder implements DemoSeeder {
         latitude: home.latitude,
         longitude: home.longitude,
         radiusMeters: 30000,
-        label: 'Home lakes',
+        label: 'Jersey shore',
         createdAt: created,
         updatedAt: created,
       ),

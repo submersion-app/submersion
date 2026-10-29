@@ -72,8 +72,8 @@ class GearCylinderSeeder implements DemoSeeder {
     // air-integrated wrist computer.
     final transmitters = TransmitterRepository();
     for (final (n, gearKey, label, computer, cylinder, volume) in [
-      (1, 'transmitter-right', 'Doubles', 'tech', 'twin', 24.0),
-      (2, 'transmitter-cold', 'Lake single', 'ai', 'tank-12', 12.0),
+      (1, 'transmitter-right', 'Doubles', 'tech', 'twin', 25.8),
+      (2, 'transmitter-cold', 'Home single', 'ai', 'tank-12', 12.9),
     ]) {
       final when = ctx.timeline.boughtOn(gearKey)!;
       await transmitters.create(
@@ -85,7 +85,7 @@ class GearCylinderSeeder implements DemoSeeder {
           diveComputerId: ctx.computers[computer],
           role: TankRole.backGas,
           volumeL: volume,
-          workingPressureBar: 232,
+          workingPressureBar: 237.3,
           material: TankMaterial.steel,
           // The transmitter item, and the cylinder it lives on: the
           // registry links each tank the serial read to that cylinder.
@@ -101,12 +101,12 @@ class GearCylinderSeeder implements DemoSeeder {
     final presets = TankPresetRepository();
     await presets.createPreset(
       TankPresetEntity(
-        id: 'demo-tank-preset-twin12',
+        id: 'demo-tank-preset-double-hp100',
         diverId: DemoSeedContext.diverId,
-        name: 'twin12_steel',
-        displayName: 'Twin 12 L steel',
-        volumeLiters: 24,
-        workingPressureBar: 232,
+        name: 'double_hp100',
+        displayName: 'Double HP100s',
+        volumeLiters: 25.8,
+        workingPressureBar: 237.3,
         material: TankMaterial.steel,
         createdAt: when,
         updatedAt: when,
@@ -117,17 +117,27 @@ class GearCylinderSeeder implements DemoSeeder {
       diverId: DemoSeedContext.diverId,
       displayName: 'Warm water',
       entries: const [
-        (weightType: WeightType.belt, amountKg: 4, notes: '', label: 'Belt'),
+        (
+          weightType: WeightType.belt,
+          amountKg: 8 * _kgPerLb,
+          notes: '',
+          label: 'Belt',
+        ),
       ],
     );
     await weights.createPreset(
       diverId: DemoSeedContext.diverId,
-      displayName: 'Drysuit in the lake',
+      displayName: 'Drysuit at home',
       entries: const [
-        (weightType: WeightType.belt, amountKg: 6, notes: '', label: 'Belt'),
+        (
+          weightType: WeightType.belt,
+          amountKg: 14 * _kgPerLb,
+          notes: '',
+          label: 'Belt',
+        ),
         (
           weightType: WeightType.trimWeights,
-          amountKg: 2,
+          amountKg: 4 * _kgPerLb,
           notes: 'Tank band',
           label: 'Trim',
         ),
@@ -150,8 +160,8 @@ class GearCylinderSeeder implements DemoSeeder {
         id: 'demo-config-item-1',
         configId: configId,
         tankRole: TankRole.backGas,
-        volumeL: 24,
-        workingPressureBar: 232,
+        volumeL: 25.8,
+        workingPressureBar: 237.3,
         o2Percent: 21,
         hePercent: 35,
         createdAt: when,
@@ -161,7 +171,7 @@ class GearCylinderSeeder implements DemoSeeder {
         id: 'demo-config-item-2',
         configId: configId,
         tankRole: TankRole.deco,
-        volumeL: 7,
+        volumeL: 5.7,
         workingPressureBar: 207,
         o2Percent: 50,
         createdAt: when,
@@ -171,7 +181,7 @@ class GearCylinderSeeder implements DemoSeeder {
         id: 'demo-config-item-3',
         configId: configId,
         tankRole: TankRole.deco,
-        volumeL: 7,
+        volumeL: 5.7,
         workingPressureBar: 207,
         o2Percent: 100,
         createdAt: when,
@@ -190,3 +200,6 @@ class GearCylinderSeeder implements DemoSeeder {
     }
   }
 }
+
+/// Kilograms in a pound: the presets hold whole pounds of lead.
+const _kgPerLb = 0.45359237;

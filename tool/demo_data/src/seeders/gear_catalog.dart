@@ -272,14 +272,14 @@ final demoGear = <DemoGear>[
   ),
   const DemoGear(
     'tank-12',
-    'Steel 12 L',
+    'Steel HP100',
     EquipmentType.tank,
     brand: 'Faber',
-    model: 'FX 12 L 232 bar',
+    model: 'HP100 3442 psi',
     bought: StoryMilestone.ownRegulator,
     attributes: {
-      'volume_l': 12,
-      'working_pressure_bar': 232,
+      'volume_l': 12.9,
+      'working_pressure_bar': 237.3,
       'tank_material': 'steel',
     },
     uses: {KitUse.temperate, KitUse.cold},
@@ -302,7 +302,7 @@ final demoGear = <DemoGear>[
     model: 'Oxygen Analyser',
     bought: StoryMilestone.nitrox,
   ),
-  // Drysuit for the cold lakes.
+  // Drysuit for the cold Jersey water.
   const DemoGear(
     'drysuit',
     'Drysuit',

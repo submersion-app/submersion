@@ -41,6 +41,10 @@ Map<CertLevel, (int, int)> placeCourses(List<Slot> slots, int ccrCount) {
         return false;
       }
       if (run.last.start.difference(where.start).inDays > 14) return false;
+      // The home wrecks end at about 46 m; trimix training goes deeper.
+      if (level == CertLevel.trimix && where.destination.key == 'home') {
+        return false;
+      }
       final shallow = where.destination.maxDepthM;
       return level == CertLevel.openWater || shallow == null;
     }

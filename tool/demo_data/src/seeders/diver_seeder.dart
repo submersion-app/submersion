@@ -1,3 +1,4 @@
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/dive_roles/data/repositories/dive_role_repository.dart';
@@ -5,6 +6,7 @@ import 'package:submersion/features/divers/data/repositories/diver_repository.da
 import 'package:submersion/features/divers/data/repositories/diver_weight_entry_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/domain/entities/diver_weight_entry.dart';
+import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
 
 import '../story/story_plan.dart';
 import 'seed_context.dart';
@@ -31,7 +33,9 @@ class DiverSeeder implements DemoSeeder {
         email: 'alex.rivera@example.com',
         phone: '+1 555 0100',
         isDefault: true,
-        notes: 'Started in the lakes, hooked on wrecks, now on a rebreather.',
+        notes:
+            'Learned in the Caribbean, hooked on Jersey wrecks, now on a '
+            'rebreather.',
         emergencyContact: const EmergencyContact(
           name: 'Robin Rivera',
           phone: '+1 555 0199',
@@ -60,6 +64,28 @@ class DiverSeeder implements DemoSeeder {
     );
     await divers.setDefaultDiver(DemoSeedContext.diverId);
     await divers.setActiveDiverIdInSettings(DemoSeedContext.diverId);
+
+    // A New Jersey diver logs in feet, Fahrenheit, psi, pounds and cubic
+    // feet, with 12-hour times and month-first dates.
+    final settings = DiverSettingsRepository();
+    final current = await settings.getOrCreateSettingsForDiver(
+      DemoSeedContext.diverId,
+    );
+    await settings.updateSettingsForDiver(
+      DemoSeedContext.diverId,
+      current.copyWith(
+        depthUnit: DepthUnit.feet,
+        temperatureUnit: TemperatureUnit.fahrenheit,
+        pressureUnit: PressureUnit.psi,
+        volumeUnit: VolumeUnit.cubicFeet,
+        weightUnit: WeightUnit.pounds,
+        altitudeUnit: AltitudeUnit.feet,
+        distanceUnit: DistanceUnit.miles,
+        timeFormat: TimeFormat.twelveHour,
+        dateFormat: DateFormatPreference.mmmDYYYY,
+      ),
+      previous: current,
+    );
 
     final weights = DiverWeightEntryRepository();
     for (var i = 0; i < 6; i++) {

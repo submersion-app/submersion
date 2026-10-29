@@ -1,14 +1,43 @@
 /// Species from the app's bundled catalogue (`assets/data/species.json`) a
 /// diver plausibly meets at each destination, by destination key.
 const destinationSpecies = <String, List<String>>{
-  'home': ['Northern Pike', 'European Perch', 'Brown Trout', 'Noble Crayfish'],
-  'austria-lakes': [
-    'Northern Pike',
-    'European Perch',
-    'Brown Trout',
-    'Noble Crayfish',
+  'home': [
+    'Sand Tiger Shark',
+    'Spiny Dogfish',
+    "Lion's Mane Jellyfish",
+    'Moon Jellyfish',
+    'Loggerhead Sea Turtle',
   ],
-  'swiss-lakes': ['Northern Pike', 'European Perch', 'Brown Trout'],
+  'st-lawrence': [
+    'Muskellunge',
+    'Northern Pike',
+    'Smallmouth Bass',
+    'Yellow Perch',
+    'Lake Sturgeon',
+  ],
+  'bonaire': [
+    'Atlantic Tarpon',
+    'Queen Angelfish',
+    'French Angelfish',
+    'Stoplight Parrotfish',
+    'Caribbean Reef Squid',
+    'Hawksbill Sea Turtle',
+    'Spotted Moray Eel',
+  ],
+  'guadeloupe': [
+    'Hawksbill Sea Turtle',
+    'Green Sea Turtle',
+    'French Angelfish',
+    'Spotted Moray Eel',
+    'Caribbean Reef Squid',
+  ],
+  'santa-marta': [
+    'Queen Angelfish',
+    'Southern Stingray',
+    'Spotted Moray Eel',
+    'Great Barracuda',
+    'Caribbean Reef Squid',
+  ],
   'florida-springs': [
     'West Indian Manatee',
     'Florida Softshell Turtle',
@@ -195,9 +224,11 @@ const destinationSpecies = <String, List<String>>{
 
 /// The site types of the app's built-in list a destination's sites get.
 const destinationSiteTypes = <String, List<String>>{
-  'home': ['lake', 'quarry'],
-  'austria-lakes': ['lake'],
-  'swiss-lakes': ['lake'],
+  'home': ['wreck', 'reef'],
+  'st-lawrence': ['wreck'],
+  'bonaire': ['reef', 'wall', 'wreck'],
+  'guadeloupe': ['reef', 'wreck'],
+  'santa-marta': ['reef'],
   'florida-springs': ['spring', 'cavern'],
   'red-sea': ['reef', 'wall', 'wreck'],
   'sinai': ['reef', 'wall', 'wreck'],
@@ -230,4 +261,38 @@ const destinationSiteTypes = <String, List<String>>{
   'cyprus': ['wreck', 'reef'],
   'norway': ['kelp_forest', 'wall'],
   'scotland': ['wreck'],
+};
+
+/// How deep each home site goes, in metres, from the curated New Jersey
+/// sites (`scripts/dive_sites_curated.json`): a home dive goes to a site
+/// deep enough for it.
+const homeSiteDepthM = <String, double>{
+  'curated_nj_shark_river_inlet': 5.0,
+  'curated_nj_manasquan_inlet': 9.0,
+  'curated_nj_barnegat_inlet': 14.0,
+  'curated_nj_pocopson': 15.0,
+  'curated_nj_barnegat_light_reef': 17.0,
+  'curated_nj_vega': 17.0,
+  'curated_nj_barge_10': 18.0,
+  'curated_nj_sea_girt_reef': 20.0,
+  'curated_nj_axel_carlson_reef': 24.0,
+  'curated_nj_matt_turecamo': 24.0,
+  'curated_nj_mohawk': 24.0,
+  'curated_nj_pinta': 26.0,
+  'curated_nj_tolten': 29.0,
+  'curated_nj_coney_island': 38.0,
+  'curated_nj_shark_river_reef': 38.0,
+  'curated_nj_captain_bart': 40.0,
+  'curated_nj_stolt_dagali': 40.0,
+  'curated_nj_arundo': 43.0,
+  'curated_nj_uss_algol': 44.0,
+  'curated_nj_lillian': 46.0,
+};
+
+/// The home sites entered from the beach; every other home site is a wreck
+/// or reef dived from the boats.
+const homeShoreSites = {
+  'curated_nj_shark_river_inlet',
+  'curated_nj_manasquan_inlet',
+  'curated_nj_barnegat_inlet',
 };

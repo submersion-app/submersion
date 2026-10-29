@@ -94,8 +94,34 @@ diver has owned it for less than a year.
 
 ### Places (maintainer's choices, my proposal for the spread)
 
-The catalogue covers 101 countries. My proposal, for the builder to settle
-against the catalogue:
+**Revised after walking the first build (maintainer's choices):** the diver
+lives in Princeton, New Jersey, not Germany, and about half the trips go to
+the Caribbean.
+
+- **Home:** the central New Jersey coast, from Long Branch to Barnegat:
+  shore dives and boat dives to wrecks and artificial reefs, a summer
+  thermocline over cold bottom water, quiet in winter. The site catalogue,
+  harvested from OpenStreetMap, had no New Jersey ocean sites, so a curated
+  supplement (`scripts/dive_sites_curated.json`) adds about 20 researched
+  sites, and the harvester merges it on every harvest so they survive.
+  Positions come from public sources (NOAA wreck data, the New Jersey DEP
+  reef program), and the descriptions are our own words.
+- **Near home:** weekend trips to the St. Lawrence River wrecks at
+  Brockville, Ontario, replace the Austrian and Swiss lakes.
+- **The Caribbean, about half the trips:** Bonaire, Cozumel, Curaçao, Grand
+  Cayman, Guadeloupe, San Andrés, the Dominican Republic and Bocas del Toro,
+  as the catalogue has sites for them. The rest go worldwide as below.
+- **Units and kit:** the diver logs in feet, °F, psi, pounds and cubic feet,
+  and dives aluminium 80s on trips and steel HP100s at home.
+- **Fewer places, by design:** with half the trips revisiting seven islands
+  and a weekend near home each year, the story reaches about 20 to 24
+  destinations rather than 25 or more.
+- **Home dives by depth:** a home dive goes to a wreck, reef or inlet deep
+  enough for it, a quarter of the recreational days are beach dives at an
+  inlet, and technical dives at home are decompression dives on the wrecks
+  to about 46 m; the trimix course is taught away from home.
+
+The first proposal, kept for the record:
 
 - **Home:** the lake region, as now, dived all year, in every season.
 - **Other freshwater:** Austrian and Swiss lakes, a quarry or two, and

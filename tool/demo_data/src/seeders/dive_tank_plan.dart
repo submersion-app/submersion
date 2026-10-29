@@ -34,8 +34,8 @@ class PlannedTank {
 
 /// Chooses a dive's cylinders: the gases follow the diver's certifications
 /// (air until the nitrox card, then nitrox on shallower dives), the sizes
-/// follow the place (rental aluminium on trips, the diver's own steel at
-/// home), and technical and rebreather dives keep the gas plan of the real
+/// follow the place (rental aluminium 80s on trips, the diver's own steel
+/// HP100 at home), and technical and rebreather dives keep the gas plan of the real
 /// dive their shape came from.
 List<PlannedTank> planTanks(PlannedDive d, DiveShape shape, Random random) {
   final home = d.destination.key == 'home' || d.destination.nearHome;
@@ -50,11 +50,11 @@ List<PlannedTank> planTanks(PlannedDive d, DiveShape shape, Random random) {
         o2: nitrox ? 32 : 21,
         he: 0,
         role: TankRole.backGas,
-        volumeL: home ? 12 : 11.1,
-        workingBar: home ? 232 : 207,
-        startBar: home ? 220 : 200,
+        volumeL: home ? 12.9 : 11.1,
+        workingBar: home ? 237.3 : 207,
+        startBar: home ? 227.5 : 200,
         material: home ? TankMaterial.steel : TankMaterial.aluminum,
-        presetName: home ? null : 'al80',
+        presetName: home ? 'hp100' : 'al80',
       ),
     ];
   }
@@ -107,9 +107,9 @@ List<PlannedTank> planTanks(PlannedDive d, DiveShape shape, Random random) {
                   (shape.tanks[i].o2 > bottomO2
                       ? TankRole.deco
                       : TankRole.stage),
-        volumeL: i == 0 ? 24 : 7,
-        workingBar: i == 0 ? 232 : 207,
-        startBar: i == 0 ? 220 : 200,
+        volumeL: i == 0 ? 25.8 : 5.7,
+        workingBar: i == 0 ? 237.3 : 207,
+        startBar: i == 0 ? 227.5 : 200,
         material: i == 0 ? TankMaterial.steel : TankMaterial.aluminum,
       ),
   ];

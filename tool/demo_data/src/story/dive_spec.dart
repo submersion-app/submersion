@@ -119,7 +119,10 @@ DiveSpec diveSpecFor(
       }
       final trimixHeld = n > courses[CertLevel.trimix]!.$2;
       final deep = random.nextDouble();
-      if (deep < 0.4) {
+      // Most Jersey wreck dives are single-gas dives on the 25 to 40 m
+      // wrecks, with decompression dives the smaller share.
+      final singleGas = destination.key == 'home' ? 0.55 : 0.4;
+      if (deep < singleGas) {
         return (
           // A single-gas dive shallower than 40 m: the harvest calls those
           // recreational, and keeps deep for 40 m and beyond.
@@ -129,7 +132,9 @@ DiveSpec diveSpecFor(
           requires: CertLevel.deep,
         );
       }
-      if (deep < 0.9 || !trimixHeld) {
+      // At home the deepest wrecks lie at about 46 m, so technical dives
+      // there are decompression dives on them, never deeper trimix.
+      if (deep < 0.9 || !trimixHeld || destination.key == 'home') {
         return (
           kinds: {ShapeKind.multiGasDeco},
           depth: range(35, 45),

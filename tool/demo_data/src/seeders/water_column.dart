@@ -19,12 +19,13 @@ class WaterColumn {
 
   /// The water at [destination] on a day planned at [plannedC].
   ///
-  /// A lake's planned temperature is its deep water, which the summer sun
-  /// warms above the thermocline; a sea's is the water near the top, as
-  /// divers quote it, colder below. Lakes stratify strongly in summer and
-  /// turn over in winter; seas with seasons cool a few degrees at depth in
-  /// summer; tropical water is within a degree or so from top to bottom,
-  /// and a spring is the same all the way down.
+  /// Where the water [Destination.stratifies] (a lake, the New Jersey
+  /// coast), the planned temperature is the deep water, which the summer sun
+  /// warms above a sharp thermocline, and winter turns over; elsewhere it is
+  /// the water near the top, as divers quote it, colder below. Seas with
+  /// seasons cool a few degrees at depth in summer; tropical water is within
+  /// a degree or so from top to bottom, and a spring is the same all the way
+  /// down.
   factory WaterColumn.forDive(
     Destination destination,
     double plannedC,
@@ -37,19 +38,20 @@ class WaterColumn {
     final summer = seasonal
         ? ((plannedC - lo) / (hi - lo)).clamp(0.0, 1.0)
         : 0.0;
+    final stratified = seasonal && destination.stratifies;
     final (double layer, double depth, double width) = switch ((
       seasonal,
+      stratified,
       destination.freshwater,
     )) {
-      (true, true) => (0.3 + 9 * summer, between(5, 9), 1.5),
-      (true, false) => (0.5 + 5 * summer, between(10, 20), 3.0),
-      (false, true) => (0.2, 5.0, 2.0),
-      (false, false) => (between(0.3, 1.3), between(15, 30), 5.0),
+      (true, true, _) => (0.3 + 9 * summer, between(5, 9), 1.5),
+      (true, false, _) => (0.5 + 5 * summer, between(10, 20), 3.0),
+      (false, _, true) => (0.2, 5.0, 2.0),
+      (false, _, false) => (between(0.3, 1.3), between(15, 30), 5.0),
     };
-    final fresh = destination.freshwater;
     return WaterColumn(
-      surfaceC: fresh ? plannedC + layer : plannedC,
-      deepC: fresh ? plannedC : plannedC - layer,
+      surfaceC: stratified ? plannedC + layer : plannedC,
+      deepC: stratified ? plannedC : plannedC - layer,
       thermoclineM: depth,
       widthM: width,
     );

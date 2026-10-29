@@ -142,7 +142,7 @@ class TrainingSeeder implements DemoSeeder {
     final custom = CustomCertificationRepository();
     final club = await custom.createAgency(
       diverId: DemoSeedContext.diverId,
-      name: 'Lake Club Academy',
+      name: 'Shore Club Academy',
       colorArgb: 0xFF2E7D32,
       isShared: false,
     );
@@ -186,7 +186,7 @@ class TrainingSeeder implements DemoSeeder {
         eventType: CurrencyEventType.refresher,
         eventDate: refresher,
         ruleId: 'rebreather_currency',
-        provider: 'Lake Club Academy',
+        provider: 'Shore Club Academy',
         createdAt: refresher,
         updatedAt: refresher,
       ),

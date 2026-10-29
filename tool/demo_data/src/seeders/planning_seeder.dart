@@ -19,6 +19,7 @@ import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_template_section.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_session.dart';
 
+import '../story/destination_life.dart';
 import '../story/story_plan.dart';
 import 'demo_images.dart';
 import 'seed_context.dart';
@@ -40,19 +41,25 @@ class PlanningSeeder implements DemoSeeder {
 
   Future<void> _plans(DemoSeedContext ctx) async {
     final plans = DivePlanRepository();
-    final wreck = ctx.plan.dives.lastWhere((d) => d.destination.key == 'med');
+    // The deepest home wreck the diver has dived, planned again on trimix.
+    final wreck = ctx.plan.dives
+        .where((d) => d.destination.key == 'home')
+        .reduce(
+          (a, b) =>
+              homeSiteDepthM[a.siteId]! >= homeSiteDepthM[b.siteId]! ? a : b,
+        );
     final now = ctx.anchor;
     const back = DiveTank(
       id: 'demo-plan-tank-back',
-      volume: 24,
-      workingPressure: 232,
-      startPressure: 220,
+      volume: 25.8,
+      workingPressure: 237.3,
+      startPressure: 227.5,
       gasMix: GasMix(o2: 21, he: 35),
       role: TankRole.backGas,
     );
     const deco = DiveTank(
       id: 'demo-plan-tank-deco',
-      volume: 7,
+      volume: 5.7,
       workingPressure: 207,
       startPressure: 200,
       gasMix: GasMix(o2: 50),
@@ -62,7 +69,7 @@ class PlanningSeeder implements DemoSeeder {
     await plans.savePlan(
       DivePlan(
         id: 'demo-plan-wreck',
-        name: 'Wreck at 52 m, trimix',
+        name: 'Home wreck at 45 m, trimix',
         siteId: ctx.siteId(wreck.siteId),
         gfLow: 30,
         gfHigh: 75,
@@ -70,7 +77,7 @@ class PlanningSeeder implements DemoSeeder {
         segments: [
           PlanSegment(
             id: 'demo-seg-1',
-            targetDepth: 52,
+            targetDepth: 45,
             durationSeconds: 180,
             tankId: back.id,
             gasMix: back.gasMix,
@@ -78,7 +85,7 @@ class PlanningSeeder implements DemoSeeder {
           ),
           PlanSegment(
             id: 'demo-seg-2',
-            targetDepth: 52,
+            targetDepth: 45,
             durationSeconds: 1200,
             tankId: back.id,
             gasMix: back.gasMix,

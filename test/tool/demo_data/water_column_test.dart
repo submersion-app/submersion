@@ -61,21 +61,21 @@ void main() {
     }
   });
 
-  test('a summer lake dive crosses a thermocline', () {
+  test('a summer dive off New Jersey crosses a thermocline', () {
     for (final seed in seeds) {
       final trace = _trace('home', 15, _square(25), seed);
       expect(trace.first - trace.reduce(min), greaterThanOrEqualTo(6));
     }
   });
 
-  test('a winter lake is nearly the same from top to bottom', () {
+  test('winter water off New Jersey is nearly the same top to bottom', () {
     for (final seed in seeds) {
       final trace = _trace('home', 5, _square(25), seed);
       expect(trace.reduce(max) - trace.reduce(min), lessThanOrEqualTo(1.5));
     }
   });
 
-  test("a lake's planned temperature is its deep water", () {
+  test("stratified water's planned temperature is its deep water", () {
     for (final seed in seeds) {
       final trace = _trace('home', 12, _square(25), seed);
       expect((trace.reduce(min) - 12).abs(), lessThanOrEqualTo(0.35));

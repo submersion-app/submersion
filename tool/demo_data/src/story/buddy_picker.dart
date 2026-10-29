@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import '../shape/dive_shape.dart';
+import 'destinations.dart';
 import 'dive_spec.dart';
 import 'people.dart';
 import 'schedule.dart';
@@ -27,11 +28,14 @@ class BuddyPicker {
     regulars = [
       partner,
       for (var i = 0; i < 7; i++)
-        people.make(PersonRole.regular, nameRegion: 'de'),
+        people.make(PersonRole.regular, nameRegion: homeDestination.nameRegion),
     ];
     techTeam = [
       for (var i = 0; i < 3; i++)
-        people.make(PersonRole.techTeam, nameRegion: 'de'),
+        people.make(
+          PersonRole.techTeam,
+          nameRegion: homeDestination.nameRegion,
+        ),
     ];
   }
 
@@ -94,7 +98,8 @@ class BuddyPicker {
       }
       guides.add(guide.id);
     }
-    const travellers = ['en', 'de', 'fr', 'nl', 'it', 'es', 'no'];
+    // Mostly fellow North Americans, as on a Caribbean dive boat.
+    const travellers = ['en', 'en', 'en', 'es', 'fr', 'nl', 'de', 'it'];
     final guests = [
       if (random.nextDouble() < 0.5)
         for (var i = 0; i < 1 + random.nextInt(2); i++)

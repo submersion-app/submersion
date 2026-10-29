@@ -3,48 +3,91 @@ import 'dart:math';
 import 'catalog.dart';
 import 'story_plan.dart';
 
-/// Where the demo diver lives: a lake region dived all year.
+/// Where the demo diver lives: Princeton, New Jersey, diving the central
+/// Jersey shore, its wrecks and artificial reefs, from the shore and from
+/// the Manasquan and Point Pleasant boats. The sites are the catalogue's
+/// curated New Jersey supplement (`scripts/dive_sites_curated.json`).
+///
+/// Summer lays warm water over a cold bottom here, so its temperatures are
+/// quoted for the deep water, as for a lake.
 const homeDestination = Destination(
   key: 'home',
-  label: 'Lake diving',
-  country: 'Deutschland',
-  region: 'Bayern',
-  waterTempC: (5.0, 16.0),
-  freshwater: true,
-  nameRegion: 'de',
-  utcOffsetMinutes: 60,
+  label: 'Jersey shore',
+  country: 'United States',
+  region: 'New Jersey',
+  area: (lat: 40.05, lon: -74.0, km: 45.0),
+  waterTempC: (5.0, 14.0),
+  freshwater: false,
+  stratifies: true,
+  nameRegion: 'en',
+  utcOffsetMinutes: -300,
   daylightSaving: DaylightSaving.north,
 );
+
+/// The trip destinations in the Caribbean, where about half the trips go.
+const caribbeanDestinations = {
+  'bonaire',
+  'curacao',
+  'cozumel',
+  'dominican',
+  'guadeloupe',
+  'san-andres',
+  'santa-marta',
+};
 
 /// Every trip destination of the story, worldwide. Each one is a place in
 /// the app's public catalogue, chosen by country, region and, where those
 /// hold more than one place, a circle.
 const tripDestinations = <Destination>[
+  // The river's current mixes it, so it barely stratifies.
   Destination(
-    key: 'austria-lakes',
-    label: 'Salzkammergut lakes',
-    country: 'Österreich',
-    region: 'Oberösterreich',
-    waterTempC: (4.0, 18.0),
+    key: 'st-lawrence',
+    label: 'Kingston and the Thousand Islands',
+    country: 'Canada',
+    region: 'Ontario',
+    area: (lat: 44.35, lon: -76.1, km: 80.0),
+    waterTempC: (4.0, 22.0),
     freshwater: true,
-    nameRegion: 'de',
-    utcOffsetMinutes: 60,
+    nameRegion: 'en',
+    utcOffsetMinutes: -300,
     daylightSaving: DaylightSaving.north,
     nearHome: true,
-    resortNames: ['Seehof am Ufer', 'Gasthof Seeblick'],
+    resortNames: ['Riverside Inn', 'Limestone Harbour Motel'],
   ),
   Destination(
-    key: 'swiss-lakes',
-    label: 'Ticino lakes',
-    country: 'Schweiz/Suisse/Svizzera/Svizra',
-    region: 'Ticino',
-    waterTempC: (6.0, 19.0),
-    freshwater: true,
-    nameRegion: 'it',
-    utcOffsetMinutes: 60,
-    daylightSaving: DaylightSaving.north,
-    nearHome: true,
-    resortNames: ['Albergo Riva Chiara', 'Casa Lucerna'],
+    key: 'bonaire',
+    label: 'Bonaire',
+    country: 'Nederland',
+    region: null,
+    area: (lat: 12.17, lon: -68.28, km: 30.0),
+    waterTempC: (26.0, 29.0),
+    freshwater: false,
+    nameRegion: 'nl',
+    utcOffsetMinutes: -240,
+    resortNames: ['Kas Flamingo', 'Bon Kunuku Dive Lodge'],
+  ),
+  Destination(
+    key: 'guadeloupe',
+    label: 'Guadeloupe',
+    country: 'France',
+    region: 'Guadeloupe',
+    waterTempC: (26.0, 29.0),
+    freshwater: false,
+    nameRegion: 'fr',
+    utcOffsetMinutes: -240,
+    resortNames: ['Ti Kaz Corail', 'Résidence Anse Bleue'],
+  ),
+  Destination(
+    key: 'santa-marta',
+    label: 'Santa Marta and Taganga',
+    country: 'Colombia',
+    region: null,
+    area: (lat: 11.25, lon: -74.2, km: 40.0),
+    waterTempC: (24.0, 28.0),
+    freshwater: false,
+    nameRegion: 'es',
+    utcOffsetMinutes: -300,
+    resortNames: ['Posada Bahía Taganga', 'Casa Sierra Mar'],
   ),
   Destination(
     key: 'florida-springs',

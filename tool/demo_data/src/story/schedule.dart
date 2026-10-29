@@ -67,6 +67,13 @@ class StorySchedule {
   final _sites = <String, List<CatalogSite>>{};
   final _southern = <String, bool>{};
   final _recent = <String>[];
+
+  /// How many of the latest trips' places wait before a second visit.
+  static const _recentSize = 8;
+
+  /// Trips planned so far, and how many of them went to the Caribbean.
+  var _tripCount = 0;
+  var _caribbeanTrips = 0;
   final _used = <String>{};
 
   static const firstYearDives = 90;
@@ -93,7 +100,7 @@ class StorySchedule {
     double away(CatalogSite s) =>
         kmBetween(seed.latitude, seed.longitude, s.latitude, s.longitude);
     final cluster = around(seed)..sort((a, b) => away(a).compareTo(away(b)));
-    return cluster.take(d == homeDestination ? 8 : 7).toList();
+    return cluster.take(d == homeDestination ? 14 : 7).toList();
   });
 
   static const clusterKm = 25.0;
@@ -182,18 +189,48 @@ class StorySchedule {
         if (d.liveaboard && (liveaboards >= 2 || year == 0 && i < 2)) {
           return false;
         }
-        return !_recent.contains(d.key);
+        // A Caribbean regular goes back to the same islands, and a weekend
+        // place is driven to every year; elsewhere a place waits a while
+        // before a second visit.
+        final wait = caribbeanDestinations.contains(d.key) || d.nearHome
+            ? 3
+            : _recentSize;
+        return !_recent.reversed.take(wait).contains(d.key);
       }
 
-      final pool = tripDestinations.where(eligible).toList();
+      // About half the trips go to the Caribbean: likely while the trips so
+      // far fall short of half, unlikely once they are past it.
+      final behind = _caribbeanTrips * 2 < _tripCount + 1;
+      final caribbean = random.nextDouble() < (behind ? 0.85 : 0.15);
+      final eligibleAll = tripDestinations.where(eligible).toList();
+      // From the second year, one trip a year is a weekend drive near home.
+      final weekend = [
+        if (year >= 1 && i == count ~/ 2 && nearHome == 0)
+          for (final d in eligibleAll)
+            if (d.nearHome) d,
+      ];
+      final ofRegion = [
+        for (final d in eligibleAll)
+          if (caribbeanDestinations.contains(d.key) == caribbean) d,
+      ];
+      final pool = weekend.isNotEmpty
+          ? weekend
+          : ofRegion.isNotEmpty
+          ? ofRegion
+          : eligibleAll;
+      // Away from the Caribbean the diver mostly goes somewhere new; the
+      // islands are revisited as favourites.
       final fresh = pool.where((d) => !_used.contains(d.key)).toList();
-      final from = fresh.isNotEmpty && random.nextDouble() < 0.75
+      final from =
+          fresh.isNotEmpty && random.nextDouble() < (caribbean ? 0.6 : 0.95)
           ? fresh
           : pool;
       final dest = from[random.nextInt(from.length)];
       _used.add(dest.key);
       _recent.add(dest.key);
-      if (_recent.length > 8) _recent.removeAt(0);
+      if (_recent.length > _recentSize) _recent.removeAt(0);
+      _tripCount++;
+      if (caribbeanDestinations.contains(dest.key)) _caribbeanTrips++;
       if (dest.liveaboard) liveaboards++;
       if (dest.nearHome) nearHome++;
       plans.add(
@@ -251,8 +288,8 @@ class StorySchedule {
     return (start, end);
   }
 
-  /// Weekends at the home lakes between the trips: two dives on a Saturday,
-  /// now and then the Sunday as well.
+  /// Weekends on the Jersey shore between the trips, in the boat season: two
+  /// dives on a Saturday, now and then the Sunday as well.
   void _weekends(
     DateTime yearStart,
     double yearDays,
@@ -298,18 +335,29 @@ class StorySchedule {
       if (finalDays > 0 && !day.isBefore(finalFrom)) continue;
       if (notBefore != null && !day.isAfter(notBefore)) continue;
       if (warmOnly && (day.month < 5 || day.month > 9)) continue;
+      // The Jersey boats run from April to November.
+      if (day.month < 4 || day.month > 11) continue;
       final clash = busy.any(
         (b) => !day.isBefore(_day(b.$1, -2)) && !day.isAfter(_day(b.$2, 3)),
       );
       if (!clash) saturdays.add(day);
     }
+    // When the season's free Saturdays are too few, the Sundays dive too;
+    // each day is dived at most once.
     final days = (left / 2).ceil();
-    for (var k = 0; k < days && left > 0; k++) {
-      final day = saturdays[(k * saturdays.length / days).floor()];
+    final saturdaysOnly = days <= saturdays.length;
+    final pool = saturdaysOnly
+        ? saturdays
+        : [
+            for (final s in saturdays) ...[s, _day(s, 1)],
+          ];
+    final spread = min(days, pool.length);
+    for (var k = 0; k < spread && left > 0; k++) {
+      final day = pool[(k * pool.length / spread).floor()];
       final count = min(2, left);
       _dayAtHome(day, count, out);
       left -= count;
-      if (left > 0 && k % 4 == 3) {
+      if (saturdaysOnly && left > 0 && k % 4 == 3) {
         final sunday = min(2, left);
         _dayAtHome(_day(day, 1), sunday, out);
         left -= sunday;
@@ -335,6 +383,7 @@ class StorySchedule {
     for (var i = 0; i < count; i++) {
       final night = i == count - 1 && count > 1 && random.nextDouble() < 0.12;
       final (h, m) = night ? (19, 30) : starts[i];
+      final site = sites[random.nextInt(sites.length)];
       out.add(
         Slot(
           start: DateTime(
@@ -345,7 +394,7 @@ class StorySchedule {
             m + random.nextInt(20),
           ),
           destination: dest,
-          siteId: sites[random.nextInt(sites.length)].id,
+          siteId: site.id,
           tripId: tripId,
           night: night,
           centerId: centerId,

@@ -45,6 +45,6 @@ void main() {
     // Notes and names stay under the check: only fixed vocabulary is let
     // through.
     expect(demoPublicVocabulary, isNot(contains('Garage shelf')));
-    expect(demoPublicVocabulary, isNot(contains('Home lakes')));
+    expect(demoPublicVocabulary, isNot(contains('Jersey shore')));
   });
 }

@@ -77,8 +77,15 @@ The story:
 
 - About 700 dives: recreational, technical open circuit from dive 250, then a
   rebreather course and 15 rebreather dives at the end.
-- Weekends at the home lakes, and 6 to 8 trips a year to about 30
-  destinations worldwide, with their dive centres.
+- A diver from Princeton, New Jersey: weekends on the Jersey shore's wrecks,
+  reefs and inlets (curated sites, see below), a weekend on the St. Lawrence
+  each year, and 6 to 8 trips a year, about half of them to the Caribbean,
+  the rest worldwide, with their dive centres. The diver logs in US units.
+
+The New Jersey sites come from `scripts/dive_sites_curated.json`, which the
+site harvester merges into `assets/data/dive_sites.json` on every harvest
+(`scripts/curated_sites.py`), because OpenStreetMap has no New Jersey ocean
+sites.
 - 60 to 100 fictional people: home regulars, a technical team, guides, other
   guests and instructors.
 - A full kit bought as the story needs it, with regulators built from their

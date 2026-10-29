@@ -143,16 +143,55 @@ void main() {
     },
   );
 
-  test('winter air at the lakes is cold', () async {
-    final winter = await rows(
-      "SELECT air_temp AS a FROM dives WHERE site_id IN "
-      "(SELECT id FROM dive_sites WHERE region = 'Bayern') "
-      "AND strftime('%m', dive_date_time / 1000, 'unixepoch') IN ('01', '02')",
+  test('the diver logs in US units', () async {
+    final settings = await rows(
+      'SELECT depth_unit AS d, temperature_unit AS t, pressure_unit AS p, '
+      'volume_unit AS v, weight_unit AS w FROM diver_settings '
+      "WHERE diver_id = '${DemoSeedContext.diverId}'",
     );
-    expect(winter, isNotEmpty);
-    for (final w in winter) {
-      expect(w['a'] as double, lessThan(14));
+    expect(settings.single, {
+      'd': 'feet',
+      't': 'fahrenheit',
+      'p': 'psi',
+      'v': 'cubicFeet',
+      'w': 'pounds',
+    });
+  });
+
+  test('home recreational dives breathe from a steel HP100', () async {
+    final tanks = await rows(
+      'SELECT t.volume AS v, t.working_pressure AS wp FROM dive_tanks t '
+      'JOIN dives d ON d.id = t.dive_id WHERE d.trip_id IS NULL '
+      "AND d.dive_mode = 'oc' AND (SELECT COUNT(*) FROM dive_tanks x "
+      'WHERE x.dive_id = d.id) = 1',
+    );
+    expect(tanks, isNotEmpty);
+    for (final t in tanks) {
+      expect(t['v'] as double, closeTo(12.9, 0.05));
+      // 3442 psi.
+      expect(t['wp'] as double, closeTo(237.3, 0.1));
     }
+  });
+
+  test('spring air on the New Jersey coast is cool, summer air warm', () async {
+    // Home diving keeps to the boat season, April to November.
+    Future<List<double>> air(String month) async => [
+      for (final r in await rows(
+        "SELECT air_temp AS a FROM dives WHERE site_id IN "
+        "(SELECT id FROM dive_sites WHERE region = 'New Jersey') "
+        "AND strftime('%m', dive_date_time / 1000, 'unixepoch') = '$month'",
+      ))
+        r['a']! as double,
+    ];
+    final april = await air('04');
+    final august = await air('08');
+    expect(april, isNotEmpty);
+    expect(august, isNotEmpty);
+    for (final a in april) {
+      expect(a, lessThan(22));
+    }
+    double mean(List<double> xs) => xs.reduce((a, b) => a + b) / xs.length;
+    expect(mean(august) - mean(april), greaterThan(5));
   });
 
   test('dive centre notes vary', () async {

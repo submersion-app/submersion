@@ -4,6 +4,7 @@ import '../shape/dive_shape.dart';
 import 'buddy_picker.dart';
 import 'catalog.dart';
 import 'course_plan.dart';
+import 'destination_life.dart';
 import 'destinations.dart';
 import 'dive_spec.dart';
 import 'milestones.dart';
@@ -108,6 +109,25 @@ class StoryPlanner {
         random,
         courseRanges,
       );
+      // At home the dive picks the wreck, reef or beach for its depth, and
+      // the wrecks and reefs are boat dives.
+      final atHome = slot.destination.key == home.key;
+      // A quarter of the recreational days at home are beach dives at an
+      // inlet, as shallow as the inlet.
+      final beach =
+          atHome &&
+          phase == StoryPhase.recreational &&
+          course == null &&
+          random.nextDouble() < 0.25;
+      final siteId = beach
+          ? (homeShoreSites.toList()
+              ..sort())[random.nextInt(homeShoreSites.length)]
+          : atHome
+          ? _homeSiteFor(spec.depth)
+          : slot.siteId;
+      final depth = beach
+          ? min(spec.depth, homeSiteDepthM[siteId]!)
+          : spec.depth;
       final rebreather = phase == StoryPhase.rebreather;
       final scooter =
           n >= scooterDive &&
@@ -121,9 +141,9 @@ class StoryPlanner {
           start: slot.start,
           phase: phase,
           wantedKinds: spec.kinds,
-          siteId: slot.siteId,
+          siteId: siteId,
           destination: slot.destination,
-          targetMaxDepth: spec.depth,
+          targetMaxDepth: depth,
           diveMode: rebreather ? 'ccr' : 'oc',
           tankCount: spec.tanks,
           buddyIds: buddies.forDive(slot, spec.kinds, phase, course),
@@ -141,7 +161,7 @@ class StoryPlanner {
           night: slot.night,
           centerId: slot.centerId,
           scooter: scooter,
-          boat: slot.boat,
+          boat: atHome ? !homeShoreSites.contains(siteId) : slot.boat,
         ),
       );
     }
@@ -190,6 +210,20 @@ class StoryPlanner {
   /// Someone the dice left off every dive joins one where they belong: a
   /// guide or guest a dive of their trip, a regular a home weekend, a tech
   /// team member a technical dive. Nobody is in the logbook without a dive.
+  /// A home site that goes to [depth] and not far below it: a shallow dive
+  /// stays off the deep offshore wrecks, and the beaches take only shallow
+  /// dives.
+  String _homeSiteFor(double depth) {
+    List<String> within(double extra) => [
+      for (final MapEntry(key: id, value: bottom) in homeSiteDepthM.entries)
+        if (bottom >= depth && bottom <= depth + extra) id,
+    ];
+    final near = within(15);
+    final pool = near.isNotEmpty ? near : within(double.infinity);
+    if (pool.isEmpty) throw StateError('no home site goes to $depth m');
+    return pool[random.nextInt(pool.length)];
+  }
+
   void _placeUnseen(List<PlannedDive> dives, BuddyPicker buddies) {
     final seen = <String>{for (final d in dives) ...d.buddyIds};
     void join(String id, bool Function(PlannedDive d) fits) {

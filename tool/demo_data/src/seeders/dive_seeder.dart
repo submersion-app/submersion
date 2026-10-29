@@ -74,11 +74,12 @@ class DiveSeeder implements DemoSeeder {
         startBar: [for (final t in tanks) t.startBar],
         volumesL: [for (final t in tanks) t.volumeL],
       );
-      final temps = WaterColumn.forDive(
+      final water = WaterColumn.forDive(
         d.destination,
         d.waterTempC,
         ctx.random,
-      ).trace(shape.samples, ctx.random);
+      );
+      final temps = water.trace(shape.samples, ctx.random);
       if (d.scooter) ctx.scooterProfiles[d.number] = shape.samples;
       final id = ctx.diveId(d.number);
       final kit = kitFor(d, ctx.timeline, photo: isPhotoDive(d, ctx.timeline));
@@ -182,9 +183,10 @@ class DiveSeeder implements DemoSeeder {
             ),
         ],
         waterTemp: temps.reduce(min),
-        // Air follows the water through the seasons; in the tropics it is
+        // Air follows the surface water through the seasons, not the cold
+        // bottom water a stratified sea is quoted for; in the tropics it is
         // a little warmer than the sea.
-        airTemp: (d.waterTempC + ctx.between(_seasonal(d) ? -3 : 0, 5))
+        airTemp: (water.surfaceC + ctx.between(_seasonal(d) ? -3 : 0, 5))
             .roundToDouble(),
         visibilityMeters:
             (d.destination.freshwater

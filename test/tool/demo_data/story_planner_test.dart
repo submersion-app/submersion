@@ -129,10 +129,13 @@ void main() {
     }
   });
 
-  test('at least 25 destinations and 30 dive centres used', () {
+  test('at least 20 destinations and 30 dive centres used', () {
+    // Half the trips revisit seven Caribbean islands and one a year is a
+    // weekend near home (the maintainer's choices), which leaves about 16
+    // trips for somewhere new.
     expect(
       {for (final d in plan.dives) d.destination.key}.length,
-      greaterThanOrEqualTo(25),
+      greaterThanOrEqualTo(20),
     );
     expect(
       {for (final d in plan.dives) ?d.centerId}.length,
@@ -258,13 +261,14 @@ void main() {
       );
     }
     final home = plan.dives.where((d) => d.destination.key == 'home');
+    // Home diving keeps to the boat season, so April stands for the cold.
     final august = home
         .where((d) => d.start.month == 8)
         .map((d) => d.waterTempC);
-    final february = home
-        .where((d) => d.start.month == 2)
+    final april = home
+        .where((d) => d.start.month == 4)
         .map((d) => d.waterTempC);
-    expect(august.reduce(min), greaterThan(february.reduce(max)));
+    expect(august.reduce(min), greaterThan(april.reduce(max)));
   });
 
   test(

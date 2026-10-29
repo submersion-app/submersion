@@ -49,6 +49,7 @@ KitForDive kitFor(PlannedDive d, GearTimeline t, {required bool photo}) {
   if (technical) take('computer-tech');
 
   // Exposure.
+  // Lead in whole pounds, as a US diver weights.
   final double suitLead;
   if (dry) {
     for (final k in ['drysuit', 'undersuit', 'baselayer', 'socks']) {
@@ -56,23 +57,23 @@ KitForDive kitFor(PlannedDive d, GearTimeline t, {required bool photo}) {
     }
     take('dry-gloves');
     take('hood');
-    suitLead = 8;
+    suitLead = _lb(18);
   } else if (temp >= 26) {
     take('wetsuit-3');
     take('rash-guard');
     take('boots');
     take('snorkel');
-    suitLead = 2;
+    suitLead = _lb(4);
   } else if (temp >= 20 && has('wetsuit-5')) {
     take('wetsuit-5');
     take('boots');
-    suitLead = 4;
+    suitLead = _lb(8);
   } else {
     take('wetsuit-7');
     take('hood');
     take('gloves');
     take('boots');
-    suitLead = 6;
+    suitLead = _lb(14);
   }
 
   // Buoyancy and breathing.
@@ -156,21 +157,25 @@ KitForDive kitFor(PlannedDive d, GearTimeline t, {required bool photo}) {
 
   final List<KitWeight> weights;
   if (ccr) {
-    weights = const [
-      (weightType: WeightType.trimWeights, amountKg: 4, label: 'Trim'),
+    weights = [
+      (weightType: WeightType.trimWeights, amountKg: _lb(8), label: 'Trim'),
     ];
   } else if (doubles) {
     weights = [
       if (dry)
-        (weightType: WeightType.trimWeights, amountKg: 2.0, label: 'Trim'),
+        (weightType: WeightType.trimWeights, amountKg: _lb(4), label: 'Trim'),
     ];
   } else {
     // Steel at home sinks; rental aluminium on trips floats at the end.
-    final lead = suitLead + (local ? 0 : 2);
+    final lead = suitLead + (local ? 0 : _lb(4));
     weights = [
-      (weightType: WeightType.belt, amountKg: dry ? 6.0 : lead, label: 'Belt'),
+      (
+        weightType: WeightType.belt,
+        amountKg: dry ? _lb(14) : lead,
+        label: 'Belt',
+      ),
       if (dry)
-        (weightType: WeightType.trimWeights, amountKg: 2.0, label: 'Trim'),
+        (weightType: WeightType.trimWeights, amountKg: _lb(4), label: 'Trim'),
     ];
   }
 
@@ -187,3 +192,6 @@ KitForDive kitFor(PlannedDive d, GearTimeline t, {required bool photo}) {
 /// Whether the camera came on [d]: every third trip dive once it is owned.
 bool isPhotoDive(PlannedDive d, GearTimeline t) =>
     d.tripId != null && d.number % 3 == 0 && t.inUseOn('camera', d.start);
+
+/// [pounds] of lead, in kilograms.
+double _lb(double pounds) => pounds * 0.45359237;

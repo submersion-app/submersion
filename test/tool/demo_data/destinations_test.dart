@@ -7,6 +7,7 @@ import '../../../tool/demo_data/src/story/catalog.dart';
 import '../../../tool/demo_data/src/story/destination_life.dart';
 import '../../../tool/demo_data/src/story/destinations.dart';
 import '../../../tool/demo_data/src/story/name_regions.dart';
+import '../../../tool/demo_data/src/story/story_plan.dart';
 
 void main() {
   late Catalog catalog;
@@ -67,12 +68,66 @@ void main() {
   });
 
   test('freshwater beyond home, and no scooter where it would be a cave', () {
-    final fresh = all.where((d) => d.freshwater).toList();
-    expect(fresh.length, greaterThanOrEqualTo(3));
-    expect(fresh, contains(homeDestination));
+    final fresh = all.where((d) => d.freshwater).map((d) => d.key).toList();
+    expect(fresh, containsAll(['florida-springs', 'st-lawrence']));
     final springs = all.where((d) => d.key == 'florida-springs').single;
-    expect(springs.freshwater, isTrue);
     expect(springs.scooterOk, isFalse);
+  });
+
+  test('home is the New Jersey coast, dived at its curated sites', () {
+    expect(homeDestination.country, 'United States');
+    expect(homeDestination.region, 'New Jersey');
+    expect(homeDestination.freshwater, isFalse);
+    // A summer thermocline over cold bottom water, like a lake.
+    expect(homeDestination.stratifies, isTrue);
+    expect(homeDestination.utcOffsetMinutes, -300);
+    expect(homeDestination.daylightSaving, DaylightSaving.north);
+    final sites = catalogSitesFor(homeDestination, catalog);
+    expect(sites.length, greaterThanOrEqualTo(12));
+    for (final s in sites) {
+      expect(s.id, startsWith('curated_nj_'), reason: s.name);
+    }
+  });
+
+  test('the home site table matches the curated sites', () {
+    final curated =
+        (jsonDecode(File('scripts/dive_sites_curated.json').readAsStringSync())
+                as List)
+            .cast<Map<String, Object?>>()
+            .where((s) => (s['id']! as String).startsWith('curated_nj_'));
+    expect(homeSiteDepthM, {
+      for (final s in curated) s['id']: (s['depthM']! as num).toDouble(),
+    });
+    expect(homeShoreSites, {
+      for (final s in curated)
+        if (s['kind'] == 'shore') s['id'],
+    });
+  });
+
+  test('the near-home weekends are northeastern, not European', () {
+    final near = [
+      for (final d in tripDestinations)
+        if (d.nearHome) d.key,
+    ];
+    expect(near, ['st-lawrence']);
+    expect(
+      tripDestinations.map((d) => d.key),
+      isNot(anyOf(contains('austria-lakes'), contains('swiss-lakes'))),
+    );
+  });
+
+  test('seven Caribbean destinations, each a trip destination', () {
+    expect(caribbeanDestinations, {
+      'bonaire',
+      'curacao',
+      'cozumel',
+      'dominican',
+      'guadeloupe',
+      'san-andres',
+      'santa-marta',
+    });
+    final keys = {for (final d in tripDestinations) d.key};
+    expect(keys, containsAll(caribbeanDestinations));
   });
 
   test('every destination names known species and built-in site types', () {

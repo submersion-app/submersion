@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import '../../../tool/demo_data/src/shape/dive_shape.dart';
 import '../../../tool/demo_data/src/story/catalog.dart';
+import '../../../tool/demo_data/src/story/destination_life.dart';
 import '../../../tool/demo_data/src/story/destinations.dart';
 import '../../../tool/demo_data/src/story/story_plan.dart';
 import '../../../tool/demo_data/src/story/story_planner.dart';
@@ -53,6 +54,19 @@ void main() {
       }
     });
   });
+
+  test(
+    'the trimix course is taught away from home, past its deepest wreck',
+    () {
+      eachPlan((name, plan) {
+        final trimix = plan.dives.where((d) => d.courseId == 'course-trimix');
+        expect(trimix, isNotEmpty, reason: name);
+        for (final d in trimix) {
+          expect(d.destination.key, isNot('home'), reason: '$name ${d.number}');
+        }
+      });
+    },
+  );
 
   test('the Open Water course is the first four dives', () {
     eachPlan((name, plan) {
@@ -206,26 +220,14 @@ void main() {
     });
   });
 
-  test('the trips reach every part of the diving world', () {
-    const regions = {
-      'the Americas': {
+  test('about half the trips go to the Caribbean, the rest worldwide', () {
+    const elsewhere = {
+      'the rest of the Americas': {
         'florida-springs',
-        'curacao',
-        'dominican',
-        'san-andres',
         'galapagos',
-        'cozumel',
+        'st-lawrence',
       },
-      'Europe': {
-        'austria-lakes',
-        'swiss-lakes',
-        'med',
-        'croatia',
-        'malta',
-        'cyprus',
-        'norway',
-        'scotland',
-      },
+      'Europe': {'med', 'croatia', 'malta', 'cyprus', 'norway', 'scotland'},
       'the Red Sea and Indian Ocean': {
         'red-sea',
         'sinai',
@@ -246,18 +248,62 @@ void main() {
       },
       'the Pacific': {'chuuk', 'palau', 'bikini', 'nsw', 'polynesia', 'hawaii'},
     };
-    expect(regions.values.expand((r) => r).toSet(), {
-      for (final d in tripDestinations) d.key,
-    }, reason: 'every destination belongs to one region');
+    expect(
+      {...caribbeanDestinations, ...elsewhere.values.expand((r) => r)},
+      {for (final d in tripDestinations) d.key},
+      reason: 'every destination belongs to one region',
+    );
     eachPlan((name, plan) {
-      final tripDives = plan.dives.where((d) => d.tripId != null).toList();
-      for (final MapEntry(key: region, value: keys) in regions.entries) {
-        final there = tripDives.where((d) => keys.contains(d.destination.key));
-        expect(there, isNotEmpty, reason: '$name: no dives in $region');
+      final caribbean = plan.trips.where(
+        (t) => caribbeanDestinations.contains(t.destination.key),
+      );
+      expect(
+        caribbean.length / plan.trips.length,
+        inInclusiveRange(0.4, 0.6),
+        reason: name,
+      );
+      for (final MapEntry(key: region, value: keys) in elsewhere.entries) {
         expect(
-          there.length / tripDives.length,
-          lessThan(0.45),
-          reason: '$name: $region dominates',
+          plan.trips.where((t) => keys.contains(t.destination.key)),
+          isNotEmpty,
+          reason: '$name: no trips to $region',
+        );
+      }
+    });
+  });
+
+  test('a home dive goes to a site deep enough for it, by boat unless '
+      'from the shore', () {
+    eachPlan((name, plan) {
+      final home = plan.dives.where((d) => d.destination.key == 'home');
+      expect(home.length, greaterThan(100), reason: name);
+      for (final d in home) {
+        final siteDepth = homeSiteDepthM[d.siteId];
+        expect(siteDepth, isNotNull, reason: '$name ${d.number}');
+        expect(
+          d.targetMaxDepth,
+          lessThanOrEqualTo(siteDepth!),
+          reason: '$name ${d.number} at ${d.siteId}',
+        );
+        expect(
+          d.boat,
+          !homeShoreSites.contains(d.siteId),
+          reason: '$name ${d.number}',
+        );
+      }
+      // Shore and boat dives both happen at home.
+      expect(home.where((d) => !d.boat), isNotEmpty, reason: name);
+      expect(home.where((d) => d.boat), isNotEmpty, reason: name);
+    });
+  });
+
+  test('home dives keep to the Jersey boat season, April to November', () {
+    eachPlan((name, plan) {
+      for (final d in plan.dives.where((d) => d.destination.key == 'home')) {
+        expect(
+          d.start.month,
+          inInclusiveRange(4, 11),
+          reason: '$name ${d.number} on ${d.start}',
         );
       }
     });

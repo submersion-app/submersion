@@ -105,9 +105,13 @@ class MiscSeeder implements DemoSeeder {
       diverId: diver,
       equipmentId: ctx.equipment['reg-cold'],
     );
+    // A current dive from a boat: Cozumel's drifts, the Similans or the
+    // Maldives, else any trip's boat dive.
     final current = ctx.plan.dives.firstWhere(
-      (d) => d.destination.key == 'similan' || d.destination.key == 'maldives',
-      orElse: () => ctx.plan.dives[150],
+      (d) =>
+          const {'cozumel', 'similan', 'maldives'}.contains(d.destination.key),
+      orElse: () =>
+          ctx.plan.dives.firstWhere((d) => d.tripId != null && d.boat),
     );
     await incidents.createIncident(
       occurredAt: current.start.add(const Duration(minutes: 40)),
@@ -120,18 +124,15 @@ class MiscSeeder implements DemoSeeder {
       diverId: diver,
     );
 
-    final home = ctx.plan.sites.firstWhere(
-      (s) => ctx.plan.dives.any(
-        (d) => d.siteId == s.id && d.destination.key == 'home',
-      ),
-    );
+    // Inland of the home waters, whose sites lie offshore.
+    final home = ctx.plan.home;
     await EmergencyChamberRepository().createChamber(
       name: 'Regional hyperbaric unit (sample)',
-      country: home.country ?? 'Deutschland',
-      phone: '+49 000 0000000',
+      country: home.country,
+      phone: '+1 555 0123',
       city: home.region,
-      latitude: home.latitude + 0.2,
-      longitude: home.longitude + 0.2,
+      latitude: home.area!.lat + 0.2,
+      longitude: home.area!.lon - 0.25,
       notes: 'Call the dive emergency line first.',
       diverId: diver,
     );

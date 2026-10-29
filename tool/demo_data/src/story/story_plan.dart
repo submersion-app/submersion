@@ -61,6 +61,7 @@ class Destination {
     this.maxDepthM,
     this.boatNames = const [],
     this.resortNames = const [],
+    this.stratifies = false,
   });
 
   final String key;
@@ -102,10 +103,15 @@ class Destination {
   final List<String> boatNames;
   final List<String> resortNames;
 
-  /// (min, max) water temperature over the year: a lake's deep water, and
-  /// a sea's water near the top, as divers quote it.
+  /// (min, max) water temperature over the year: the deep water where the
+  /// water [stratifies], and elsewhere the water near the top, as divers
+  /// quote it.
   final (double, double) waterTempC;
   final bool freshwater;
+
+  /// Whether summer lays warm water over a cold bottom, as in a lake or off
+  /// the New Jersey coast, rather than warming a sea a few degrees on top.
+  final bool stratifies;
   final bool liveaboard;
 }
 
