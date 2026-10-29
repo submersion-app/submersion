@@ -688,5 +688,12 @@ extension RungsFromV231 on AppDatabase {
     // held by PR #3726.
     if (from < 326) await _assertMediaPeopleSchema();
     if (from < 326) await reportProgress();
+
+    // v327: drops the deco band columns the v319 and v321 rungs first added
+    // spelled `ppo2_*` (issue #3809). Every database that carries them is at
+    // v326 or below, so this runs once; the beforeOpen backstop adds the
+    // `pp_o2_*` columns Drift reads.
+    if (from < 327) await _dropMisspelledPpO2DecoBandColumns();
+    if (from < 327) await reportProgress();
   }
 }

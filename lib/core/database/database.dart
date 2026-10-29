@@ -299,7 +299,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 326;
+  static const int currentSchemaVersion = 327;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1479,6 +1479,11 @@ class AppDatabase extends _$AppDatabase {
     // and 324, which #3748 and #3728 took; 325 is #3786's; 319, 321 and 322
     // are held by PR #3726.
     326,
+    // v327: drops the deco band columns v319 and v321 first added spelled
+    // `ppo2_*`, beside which Drift's `pp_o2_*` columns were missing on an
+    // upgraded database (issue #3809). Drift never read or wrote them, and
+    // sync never carried them, so the floor does not move.
+    327,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

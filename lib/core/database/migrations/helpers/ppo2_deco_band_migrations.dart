@@ -90,9 +90,9 @@ extension PpO2DecoBandMigrations on AppDatabase {
     ],
   };
 
-  /// Drops whichever misspelled band columns a database carries.
-  /// Idempotent; called from the beforeOpen backstop, which reaches every
-  /// database the misspelled helpers did.
+  /// v327: drops whichever misspelled band columns a database carries.
+  /// Idempotent and a no-op on a table that is absent. Rung only: every
+  /// database the misspelled helpers reached is at v326 or below.
   Future<void> _dropMisspelledPpO2DecoBandColumns() async {
     for (final MapEntry(key: table, value: misspelled)
         in _misspelledColumns.entries) {
