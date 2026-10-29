@@ -48,7 +48,7 @@ extension SupportMigrations on AppDatabase {
   Future<void> _dropColumnsIfExist(String table, List<String> columns) async {
     final present = await _columnNames(table);
     for (final column in columns.where(present.contains)) {
-      await customStatement('ALTER TABLE $table DROP COLUMN $column');
+      await dropColumnIfStillPresent(this, table, column);
     }
   }
 
