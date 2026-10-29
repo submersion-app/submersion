@@ -9,7 +9,7 @@ extension SupportMigrations on AppDatabase {
     String column,
     String ddl,
   ) async {
-    final present = await _columnNames(table);
+    final present = await tableColumnNames(this, table);
     if (present.isEmpty) return; // partial fixture database: table absent
     if (present.contains(column)) return;
     await addColumnIfStillMissing(this, table, column, ddl);
@@ -34,11 +34,7 @@ extension SupportMigrations on AppDatabase {
   /// when the table is absent (minimal migration-test fixtures), mirroring
   /// [_tableExists].
   Future<bool> _columnExists(String table, String column) async =>
-      (await _columnNames(table)).contains(column);
-
-  /// The names of [table]'s columns right now; empty when it is absent.
-  Future<Set<String>> _columnNames(String table) =>
-      tableColumnNames(this, table);
+      (await tableColumnNames(this, table)).contains(column);
 
   /// Idempotent and a no-op when the table or column is absent, so it is
   /// safe to call from both onUpgrade and the beforeOpen backstop.
@@ -48,7 +44,7 @@ extension SupportMigrations on AppDatabase {
   /// [_dropColumnIfExists] for several columns of one table, reading the
   /// table's columns once.
   Future<void> _dropColumnsIfExist(String table, List<String> columns) async {
-    final present = await _columnNames(table);
+    final present = await tableColumnNames(this, table);
     for (final column in columns.where(present.contains)) {
       await dropColumnIfStillPresent(this, table, column);
     }

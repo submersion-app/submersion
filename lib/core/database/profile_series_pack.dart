@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:submersion/core/database/legacy_tank_orphan_adoption.dart';
 import 'package:submersion/core/database/profile_series_pack_coverage.dart';
 import 'package:submersion/core/database/profile_series_pack_rows.dart';
+import 'package:submersion/core/database/table_columns.dart';
 import 'package:submersion/core/services/sync/hlc.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_series_codec.dart';
@@ -102,13 +103,13 @@ Future<ProfilePackReport> packLegacyProfileRows(
   bool byGroupIdentity = false,
 }) async {
   final now = nowMs ?? DateTime.now().millisecondsSinceEpoch;
-  final profileColumns = await legacyColumnNames(db, profileTable);
+  final profileColumns = await tableColumnNames(db, profileTable);
   final canPackProfiles = profileColumns.containsAll(const {
     'dive_id',
     'timestamp',
     'depth',
   });
-  final tankColumns = await legacyColumnNames(db, tankTable);
+  final tankColumns = await tableColumnNames(db, tankTable);
   final canPackTanks = tankColumns.containsAll(const {
     'dive_id',
     'tank_id',

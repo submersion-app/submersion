@@ -21,7 +21,9 @@ Future<void> addColumnIfStillMissing(
   try {
     await db.customStatement('ALTER TABLE $table ADD COLUMN $column $ddl');
   } catch (e) {
-    if (!e.toString().contains('duplicate column name')) rethrow;
+    // Judged by the outcome, not the message: only a column that is now
+    // there means another connection won the race.
+    if (!(await tableColumnNames(db, table)).contains(column)) rethrow;
   }
 }
 
@@ -37,6 +39,10 @@ Future<void> dropColumnIfStillPresent(
   try {
     await db.customStatement('ALTER TABLE $table DROP COLUMN $column');
   } catch (e) {
-    if (!e.toString().contains('no such column')) rethrow;
+    // Judged by the outcome, not the message: SQLite also reports "no such
+    // column" when a view or trigger breaks the drop, and then the column
+    // is still there. An absent table is not a lost race either.
+    final present = await tableColumnNames(db, table);
+    if (present.isEmpty || present.contains(column)) rethrow;
   }
 }

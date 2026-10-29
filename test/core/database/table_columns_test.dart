@@ -54,6 +54,18 @@ void main() {
     );
   });
 
+  test('dropColumnIfStillPresent reports a drop a view blocks, though '
+      'SQLite words it as a missing column', () async {
+    await db.customStatement(
+      'CREATE VIEW scratch_view AS SELECT extra FROM scratch',
+    );
+    await expectLater(
+      dropColumnIfStillPresent(db, 'scratch', 'extra'),
+      throwsA(anything),
+    );
+    expect(await tableColumnNames(db, 'scratch'), {'id', 'extra'});
+  });
+
   test('dropColumnIfStillPresent still reports any other failure', () async {
     await expectLater(
       dropColumnIfStillPresent(db, 'absent', 'extra'),

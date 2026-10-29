@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 
 import 'package:submersion/core/database/imported_computer_identity.dart';
+import 'package:submersion/core/database/table_columns.dart';
 import 'package:submersion/features/dive_computer/domain/entities/dive_computer_connection.dart';
 
 /// Give every computer registered before connections existed the
@@ -23,10 +24,7 @@ import 'package:submersion/features/dive_computer/domain/entities/dive_computer_
 /// version derives the same rows from the same synced data and a fleet
 /// converges without sending them.
 Future<int> seedDiveComputerConnections(DatabaseConnectionUser db) async {
-  Future<Set<String>> columnsOf(String table) async {
-    final rows = await db.customSelect("PRAGMA table_info('$table')").get();
-    return rows.map((c) => c.read<String>('name')).toSet();
-  }
+  Future<Set<String>> columnsOf(String table) => tableColumnNames(db, table);
 
   final connectionCols = await columnsOf('dive_computer_connections');
   if (!connectionCols.containsAll({

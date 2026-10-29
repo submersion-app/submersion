@@ -38,12 +38,18 @@ void main() {
     'dive_profiles',
     // LocalCacheDatabase's, not this database's.
     'recent_queries',
+    'swiss_bathy_tile_cache',
   };
 
   final patterns = [
     RegExp(r"_addColumnIfMissing\(\s*'(\w+)',\s*'(\w+)'"),
+    RegExp(r"addColumnIfStillMissing\(\s*\w+,\s*'(\w+)',\s*'(\w+)'"),
     RegExp(r'ALTER TABLE (\w+) ADD COLUMN (\w+)'),
   ];
+
+  /// Joins adjacent single-quoted literals split across lines, so an
+  /// `'ALTER TABLE t '` / `'ADD COLUMN c ...'` pair reads as one statement.
+  final adjacentLiterals = RegExp(r"'\s*\n\s*'");
 
   test('every column a migration adds by name is one Drift reads', () async {
     final db = AppDatabase(NativeDatabase.memory());
@@ -61,7 +67,7 @@ void main() {
       if (!file.path.endsWith('.dart') || file.path.endsWith('.g.dart')) {
         continue;
       }
-      final source = file.readAsStringSync();
+      final source = file.readAsStringSync().replaceAll(adjacentLiterals, '');
       for (final pattern in patterns) {
         for (final match in pattern.allMatches(source)) {
           final table = match.group(1)!;
