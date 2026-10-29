@@ -17,11 +17,11 @@ Nothing here changes your dives. These settings only change how things are shown
 
 Open **Settings > Appearance**. The first group holds the settings that change the whole app.
 
-<!-- screenshot: images/how-to/customize-display/01-appearance.png: Settings > Appearance with Color Theme, the System default / Light / Dark rows and the Display size slider; mac; demo logbook -->
+![Settings > Appearance with Color Theme, the System default / Light / Dark rows and the Display size slider](images/how-to/customize-display/01-appearance.png)
 
 **Pick a colour theme.** Tap **Color Theme**. **Choose Theme** shows a preview of each theme: **Submersion** (the default), **Console**, **Tropical**, **Minimalist** and **Deep**. Tap one and the app changes straight away; go back when you are happy.
 
-<!-- screenshot: images/how-to/customize-display/02-themes.png: Choose Theme with the five theme previews and one selected; mac; demo logbook -->
+![Choose Theme with the five theme previews and one selected](images/how-to/customize-display/02-themes.png)
 
 **Choose light or dark.** Under the theme, tap **System default** to follow your device, or **Light** or **Dark** to fix it.
 
@@ -74,7 +74,7 @@ You can try a different layout straight from the dive list, then make your choic
 
 Put the places you use most where you can reach them. Open **Settings > Appearance** and tap **Navigation layout**.
 
-<!-- screenshot: images/how-to/customize-display/07-navigation-phone.png: Navigation layout on the Phone tab, with Home pinned, the divider marking the bottom bar and the More row; iphone; demo logbook -->
+![Navigation layout on the Phone tab, with Home pinned, the divider marking the bottom bar and the More row](images/how-to/customize-display/07-navigation-phone.png)
 
 Choose **Phone** or **Desktop** at the top; each has its own order.
 

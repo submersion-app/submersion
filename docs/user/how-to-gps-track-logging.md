@@ -21,13 +21,13 @@ You need:
 2. At the top of the list, tap **Start logging**.
 3. The first time, your phone asks to use your location. Allow it while using the app.
 
-<!-- screenshot: images/how-to/gps-track-logging/01-start-logging.png: the Tracks page with the recording card and its Start logging button at the top; iphone; no recording yet -->
+![The Tracks page with the recording card and its Start logging button at the top](images/how-to/gps-track-logging/01-start-logging.png)
 
 The card shows **Waiting for GPS fix** until the phone finds the sky, then **Recording** with the number of points so far, and how long ago the last position arrived.
 
 A red bar reading **Recording GPS track** stays at the bottom of every screen while it records; tap it to come back to **Tracks**. On Android a notification, **Submersion GPS Logger**, shows too.
 
-<!-- screenshot: images/how-to/gps-track-logging/02-recording.png: the recording card showing Recording with a point count and the Last fix line, and the red Recording GPS track bar; iphone; recording on a simulated boat route -->
+![The recording card showing Recording with a point count and the Last fix line, and the red Recording GPS track bar](images/how-to/gps-track-logging/02-recording.png)
 
 ## 2. Leave the phone on the boat
 
@@ -40,7 +40,7 @@ Put the phone somewhere dry on the boat with a view of the sky, and go diving. Y
 
 Back at the dock, open **Tracks** (or tap the red bar) and tap **Stop logging**. The track is saved, named after the time you started, and listed under **Tracks** with a **GPS** badge.
 
-<!-- screenshot: images/how-to/gps-track-logging/03-tracks-list.png: the Tracks list with the new track, its point count and duration, and the GPS badge; iphone; after Stop logging -->
+![The Tracks list with the new track, its point count and duration, and the GPS badge](images/how-to/gps-track-logging/03-tracks-list.png)
 
 ## 4. Download your dives
 
@@ -54,11 +54,11 @@ Downloaded while the phone was still recording? A track in progress is not used 
 
 Open one of the dives. Its **Surface GPS** section shows the **Entry** and **Exit** positions and a link to the track the positions came from. **Full track** switches the map between the part of the track around your dive and the whole day.
 
-<!-- screenshot: images/how-to/gps-track-logging/04-surface-gps.png: Dive Details showing the Surface GPS section with Entry, Exit, the track link and the Full track chip on a map; iphone; demo logbook dive matched to the simulated track -->
+![Dive Details showing the Surface GPS section with Entry, Exit, the track link and the Full track chip on a map](images/how-to/gps-track-logging/04-surface-gps.png)
 
-Open the track from **Tracks** to see the whole day: the route on a map, a pin for each dive, and **Distance**, **Duration** and **Dives** at the top. **Speed** and **Time** colour the route so you can see where the boat stopped.
+Open the track from **Tracks** to see the whole day: the route on a map, a pin for each dive, and **Distance**, **Duration**, **Avg speed**, **Max speed** and **Fixes** (the number of positions recorded) at the top. **Speed** and **Time** colour the route so you can see where the boat stopped.
 
-<!-- screenshot: images/how-to/gps-track-logging/05-track-detail.png: the GPS Track page with the route, dive pins, stats and the Plain / Speed / Time switch; iphone; simulated boat route -->
+![The GPS Track page with the route, dive pins, stats and the Plain / Speed / Time switch](images/how-to/gps-track-logging/05-track-detail.png)
 
 ## If something goes wrong
 

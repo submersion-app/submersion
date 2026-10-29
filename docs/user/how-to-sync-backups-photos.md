@@ -26,13 +26,13 @@ The first time you open Submersion, it walks you through a short setup. The four
 
 On **Welcome to Submersion**, tap **Set up a new profile**. Type your name in **Your Name** and tap **Next**. On **Units**, choose **Metric** or **Imperial** and tap **Next**.
 
-<!-- screenshot: images/how-to/sync-backups-photos/01-welcome.png: the Welcome to Submersion screen with Set up a new profile; iphone; fresh install -->
+![The Welcome to Submersion screen with Set up a new profile](images/how-to/sync-backups-photos/01-welcome.png)
 
 ### 2. Choose Google Drive
 
 The next screen asks **Where should Submersion keep your data?** Under **Add an account**, tap **Google Drive** (**Sign in with Google**).
 
-<!-- screenshot: images/how-to/sync-backups-photos/02-choose-account.png: Where should Submersion keep your data? with the Add an account list (Google Drive, Dropbox, My own server, Git and, on Apple devices, iCloud); iphone; fresh install -->
+![Where should Submersion keep your data? with the Add an account list (Google Drive, Dropbox, My own server, Git and, on Apple devices, iCloud)](images/how-to/sync-backups-photos/02-choose-account.png)
 
 Sign in with your Google account and allow Submersion to use its own space in your Drive.
 
