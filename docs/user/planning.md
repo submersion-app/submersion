@@ -154,7 +154,7 @@ From the menu you can also:
 - **Export slate (PDF):** a printable slate with the runtime table, gas plan,
   contingencies, range table and bailout. It is available once the plan has
   at least one segment, since an empty plan has no schedule to print.
-- **Share plan file:** a `.subplan` file another Submersion user can import.
+- **Export plan file:** a `.subplan` file another Submersion user can import.
 - **Reset Plan** or **Delete plan**.
 
 ### Plans and logged dives
