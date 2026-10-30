@@ -4,7 +4,7 @@ import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_copy_providers.dart';
 import 'package:submersion/features/settings/domain/data_health/feature_health.dart';
 import 'package:submersion/features/settings/presentation/providers/account_group_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
+import 'package:submersion/features/settings/presentation/widgets/accounts/account_sign_in.dart';
 
 /// The account Sign in again would run for [DataFeature], or null when there
 /// is none to offer (issue #3811): nothing uses an account for it, the system
@@ -25,13 +25,9 @@ final signInAgainGroupProvider = FutureProvider.autoDispose
         DataFeature.sharedLibraries || DataFeature.media => null,
       };
       if (group == null) return null;
-      final canSignIn = switch (group.kind) {
-        AccountKind.icloud || AccountKind.adobeLightroom => false,
-        AccountKind.googledrive => await ref.watch(
-          googleDriveAvailableProvider.future,
-        ),
-        AccountKind.dropbox => ref.watch(dropboxConfiguredProvider),
-        AccountKind.s3 || AccountKind.webdav || AccountKind.git => true,
-      };
+      final canSignIn =
+          group.kind != AccountKind.icloud &&
+          group.kind != AccountKind.adobeLightroom &&
+          await canSignInOnThisBuild(ref.read, group.kind);
       return canSignIn ? group : null;
     }, retry: (_, _) => null);

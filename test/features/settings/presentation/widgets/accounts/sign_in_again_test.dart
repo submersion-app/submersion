@@ -34,6 +34,7 @@ import 'package:submersion/features/settings/presentation/providers/data_health_
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sign_in_again_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
+import 'package:submersion/features/settings/presentation/widgets/accounts/account_sign_in.dart';
 import 'package:submersion/features/settings/presentation/widgets/accounts/sign_in_again.dart';
 import 'package:submersion/features/settings/presentation/widgets/accounts/sign_in_again_button.dart';
 import 'package:submersion/features/settings/presentation/widgets/data_health/data_health_strip.dart';
@@ -91,8 +92,10 @@ class _FakeSyncNotifier extends StateNotifier<SyncState>
     log.add('sync');
   }
 
+  int refreshStateCalls = 0;
+
   @override
-  Future<void> refreshState() async {}
+  Future<void> refreshState() async => refreshStateCalls++;
 
   @override
   Future<FirstSyncMergeInfo?> firstSyncMergeInfo() async => null;
@@ -438,6 +441,38 @@ void main() {
 
     await tester.tap(find.text('Not now'));
     await tester.pumpAndSettle();
+  });
+
+  testWidgets('a sign-in that never returns does not disable the action', (
+    tester,
+  ) async {
+    // The macOS loopback flow has no timeout and no cancel dialog, so closing
+    // the browser leaves it waiting for good.
+    authenticator.gate = Completer<void>();
+    final group = _group();
+    final host = await pumpHost(tester, group: group);
+
+    unawaited(signInAgain(host.$1, host.$2, group));
+    await tester.pump();
+    await tester.pump(const Duration(minutes: 6));
+    unawaited(signInAgain(host.$1, host.$2, group));
+    await tester.pump();
+
+    expect(authenticator.calls, 2);
+
+    authenticator.gate!.complete();
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('any sign-in tells sync it is signed in again', (tester) async {
+    final group = _group(syncs: false);
+    final host = await pumpHost(tester, group: group);
+
+    final done = signInToGroup(host.$1, host.$2, group);
+    await tester.pumpAndSettle();
+    await done;
+
+    expect(sync.refreshStateCalls, 1);
   });
 
   testWidgets('a second tap while one runs starts no second sign-in', (

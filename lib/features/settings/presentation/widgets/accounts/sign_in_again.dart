@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
@@ -12,6 +14,11 @@ import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Set while [signInAgain] runs: two OAuth flows at once would race.
 bool _running = false;
+
+/// How long a sign-in may hold [_running]. The macOS loopback flow has no
+/// timeout and no cancel dialog, so one abandoned in the browser never
+/// returns, and the button must not stay dead until the app restarts.
+const _abandonedAfter = Duration(minutes: 5);
 
 /// Runs [group]'s sign-in from a sync or backup error, then retries what the
 /// account was failing (issue #3811): a sync when sync uses it, then a backup
@@ -28,6 +35,7 @@ Future<void> signInAgain(
 ) async {
   if (_running) return;
   _running = true;
+  final abandoned = Timer(_abandonedAfter, () => _running = false);
   try {
     // Read before signing in: the sign-in refreshes both.
     final syncGroup = (await ref.read(accountGroupsProvider.future)).syncing;
@@ -44,13 +52,13 @@ Future<void> signInAgain(
       await ref
           .read(syncFailureProvider.notifier)
           .clearFor(ref.read(cloudStorageProviderProvider)?.providerId);
-      await ref.read(syncStateProvider.notifier).refreshState();
       if (context.mounted) await runSyncNow(context, ref);
     }
     if (copyMissing && copyGroup?.key == group.key && context.mounted) {
       await ref.read(backupOperationProvider.notifier).performBackup();
     }
   } finally {
+    abandoned.cancel();
     _running = false;
   }
 }

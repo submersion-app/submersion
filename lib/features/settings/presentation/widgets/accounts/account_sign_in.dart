@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show ProviderListenable;
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/providers/account_providers.dart';
@@ -25,15 +26,14 @@ final _log = LoggerService.forClass(OwnServerForm);
 
 /// Whether this build can run [kind]'s sign-in at all: one with no Google
 /// client, or no Dropbox app key, cannot, and offers none (the account page
-/// applies the same rule to Sign in again).
+/// applies the same rule to Sign in again). [read] is a container's or a
+/// ref's.
 Future<bool> canSignInOnThisBuild(
-  ProviderContainer container,
+  T Function<T>(ProviderListenable<T>) read,
   AccountKind kind,
 ) async => switch (kind) {
-  AccountKind.googledrive => await container.read(
-    googleDriveAvailableProvider.future,
-  ),
-  AccountKind.dropbox => container.read(dropboxConfiguredProvider),
+  AccountKind.googledrive => await read(googleDriveAvailableProvider.future),
+  AccountKind.dropbox => read(dropboxConfiguredProvider),
   _ => true,
 };
 
@@ -105,7 +105,11 @@ Future<bool> signInToGroup(
     case AccountKind.icloud || AccountKind.adobeLightroom:
       ok = false;
   }
-  if (ok) _refresh(container);
+  if (ok) {
+    _refresh(container);
+    // Sync's own idea of being signed in, which Data health reads.
+    await container.read(syncStateProvider.notifier).refreshState();
+  }
   return ok;
 }
 
