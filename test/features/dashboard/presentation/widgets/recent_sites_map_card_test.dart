@@ -200,6 +200,19 @@ void main() {
       expect(camera.center.longitude, lessThan(-80));
     });
 
+    testWidgets('reordered pins keep the map', (tester) async {
+      // A new dive at a site already shown moves its pin to the front of the
+      // newest-first list, and the fit is the same whatever the order.
+      var pins = greece;
+      final container = await pumpLive(tester, () => pins);
+      final state = tester.state(find.byType(FlutterMap));
+
+      pins = greece.reversed.toList();
+      await refresh(tester, container);
+
+      expect(tester.state(find.byType(FlutterMap)), same(state));
+    });
+
     testWidgets('a refresh with the same pins keeps the map', (tester) async {
       final container = await pumpLive(tester, () => greece);
       final state = tester.state(find.byType(FlutterMap));

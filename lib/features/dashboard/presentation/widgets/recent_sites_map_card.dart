@@ -83,8 +83,9 @@ class RecentSitesMapCard extends ConsumerWidget {
                     child: FlutterMap(
                       // The camera fit runs once per mount, so new pins need a
                       // new map or they land outside the old framing. Keyed by
-                      // value: a refresh with the same pins keeps this one.
-                      key: ValueKey(Object.hashAll(points)),
+                      // the set of pins: a refresh with the same ones, in any
+                      // order, frames the same and keeps this map.
+                      key: ValueKey(Object.hashAllUnordered(points)),
                       options: MapOptions(
                         initialCenter: points.first,
                         initialZoom: 11,
