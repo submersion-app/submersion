@@ -11,6 +11,7 @@ import 'package:submersion/features/dive_log/query/dive_child_query_entities.dar
 import 'package:submersion/features/dive_types/query/dive_type_text_search.dart';
 import 'package:submersion/features/equipment/data/repositories/tank_regulator_sql.dart';
 import 'package:submersion/features/insights/data/dive_filter_sql.dart';
+import 'package:submersion/features/insights/data/repositories/site_entry_method_sql.dart';
 
 /// Every field and relation a dive query can name (#2365). This file is
 /// the ONLY place a dive filter axis is defined: the paginated list, its
@@ -57,6 +58,14 @@ final kDiveGearJoinSql =
 const _effectiveWaterType =
     "COALESCE(NULLIF({r}.water_type, ''), "
     "(SELECT NULLIF(s.water_type, '') FROM dive_sites s "
+    'WHERE s.id = {r}.site_id))';
+
+/// A dive's effective entry method: its own, else its site's when the site
+/// lists exactly one (issue #3806). The SQL twin of
+/// `Dive.effectiveEntryMethod`, matching the insights entry method chart.
+final _effectiveEntryMethod =
+    "COALESCE(NULLIF({r}.entry_method, ''), "
+    "(SELECT ${singleSiteEntryMethodSql('s.entry_method')} FROM dive_sites s "
     'WHERE s.id = {r}.site_id))';
 
 List<String> _names<T extends Enum>(List<T> values) => [
@@ -481,7 +490,15 @@ final QueryEntity diveQueryEntity = QueryEntity(
       enumValues: _names(WaterType.values),
       tables: const ['dive_sites'],
     ),
-    _enum('entryMethod', 'entry_method', _names(EntryMethod.values)),
+    QueryField(
+      key: 'entryMethod',
+      type: FieldType.enumName,
+      sql: _effectiveEntryMethod,
+      emptySql: '$_effectiveEntryMethod IS NULL',
+      labelKey: _label('entryMethod'),
+      enumValues: _names(EntryMethod.values),
+      tables: const ['dive_sites'],
+    ),
     _enum('exitMethod', 'exit_method', _names(EntryMethod.values)),
     _enum('diveMode', 'dive_mode', _names(DiveMode.values)),
     _bool('favorite', 'is_favorite'),

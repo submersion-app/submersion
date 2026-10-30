@@ -140,6 +140,20 @@ void main() {
     expect(labels(f).single.label, 'Fresh Water');
   });
 
+  test('not recorded alone names what is missing and clears', () {
+    const f = DiveFilterState(noWaterType: true);
+    final chip = labels(f).single;
+    expect(chip.label, 'No Water Type');
+    expect(chip.clear(f).hasActiveFilters, isFalse);
+  });
+
+  test('a listed type with not recorded counts both and clears both', () {
+    const f = DiveFilterState(waterTypes: [WaterType.fresh], noWaterType: true);
+    final chip = labels(f).single;
+    expect(chip.label, '2 water types');
+    expect(chip.clear(f).hasActiveFilters, isFalse);
+  });
+
   test('an empty filter produces no chips', () {
     expect(labels(const DiveFilterState()), isEmpty);
   });

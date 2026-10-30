@@ -92,13 +92,16 @@ List<ActiveFilterChip> activeFilterChipLabels(
       ),
     );
   }
-  if (f.waterTypes.isNotEmpty) {
+  final waterChoices = f.waterTypes.length + (f.noWaterType == true ? 1 : 0);
+  if (waterChoices > 0) {
     chips.add(
       ActiveFilterChip(
-        f.waterTypes.length == 1
-            ? f.waterTypes.single.localizedName(l10n)
-            : l10n.diveLog_filterChip_waterTypeCount(f.waterTypes.length),
-        (x) => x.copyWith(clearWaterTypes: true),
+        waterChoices > 1
+            ? l10n.diveLog_filterChip_waterTypeCount(waterChoices)
+            : f.noWaterType == true
+            ? l10n.diveLog_filterChip_noWaterType
+            : f.waterTypes.single.localizedName(l10n),
+        (x) => x.copyWith(clearWaterTypes: true, clearNoWaterType: true),
       ),
     );
   }

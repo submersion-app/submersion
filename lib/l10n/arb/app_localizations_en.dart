@@ -8518,7 +8518,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_filterChip_noBuddy => 'No Buddy';
 
   @override
+  String get diveLog_filterChip_noEntryMethod => 'No Entry Method';
+
+  @override
   String get diveLog_filterChip_noRole => 'No Role';
+
+  @override
+  String get diveLog_filterChip_noWaterType => 'No Water Type';
 
   @override
   String diveLog_filterChip_until(Object date) {
@@ -8583,6 +8589,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_filter_noBuddyOnly => 'No Buddy Assigned';
 
   @override
+  String get diveLog_filter_noEntryMethodOnly => 'No entry method recorded';
+
+  @override
   String get diveLog_filter_noRoleOnly => 'No Role Assigned';
 
   @override
@@ -8642,6 +8651,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get diveLog_filter_showOnlyNoBuddy =>
       'Show only dives without a buddy';
+
+  @override
+  String get diveLog_filter_showOnlyNoEntryMethod =>
+      'Show only dives with no known entry method';
 
   @override
   String get diveLog_filter_showOnlyNoRole =>

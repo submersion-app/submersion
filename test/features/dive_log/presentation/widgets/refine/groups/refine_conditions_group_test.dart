@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/refine/groups/refine_conditions_group.dart';
@@ -95,6 +96,34 @@ void main() {
     expect(h.draft.waterTypes, isEmpty);
   });
 
+  testWidgets('the not recorded chip toggles beside the water types', (
+    tester,
+  ) async {
+    final h = await pump(tester);
+    final chip = find.widgetWithText(FilterChip, 'Not recorded');
+    await tester.tap(chip);
+    await tester.pump();
+    expect(h.draft.noWaterType, isTrue);
+    await tester.tap(find.widgetWithText(FilterChip, 'Salt Water'));
+    await tester.pump();
+    expect(h.draft.waterTypes, [WaterType.salt]);
+    expect(h.draft.noWaterType, isTrue, reason: 'the chips combine');
+    await tester.tap(chip);
+    await tester.pump();
+    expect(h.draft.noWaterType, isNull);
+    expect(h.draft.waterTypes, [WaterType.salt]);
+  });
+
+  testWidgets('the no entry method switch writes and clears', (tester) async {
+    final h = await pump(tester);
+    await tester.tap(find.byKey(kRefineNoEntryMethodSwitchKey));
+    await tester.pump();
+    expect(h.draft.noEntryMethodOnly, isTrue);
+    await tester.tap(find.byKey(kRefineNoEntryMethodSwitchKey));
+    await tester.pump();
+    expect(h.draft.noEntryMethodOnly, isNull);
+  });
+
   // Review Focus 1: seeding the fields in display units never writes back,
   // so untouched bounds keep their exact metric values.
   testWidgets('untouched bounds do not drift through display units', (
@@ -127,12 +156,25 @@ void main() {
       'minVisibility',
       'maxVisibility',
       'waterTypes',
+      'noWaterType',
+      'noEntryMethodOnly',
     });
     expect(
       RefineConditionsGroup.activeCount(
         const DiveFilterState(minDepth: 1, maxDepth: 2, decoOnly: false),
       ),
       2,
+    );
+    expect(
+      RefineConditionsGroup.activeCount(
+        const DiveFilterState(
+          waterTypes: [WaterType.salt],
+          noWaterType: true,
+          noEntryMethodOnly: true,
+        ),
+      ),
+      2,
+      reason: 'water types and their not recorded chip are one axis',
     );
   });
 
