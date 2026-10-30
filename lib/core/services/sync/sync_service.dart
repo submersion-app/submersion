@@ -3424,6 +3424,11 @@ class SyncService {
     'equipmentOwnershipEvents': [
       (field: 'equipmentId', parent: 'equipment', nullable: false),
     ],
+    // v328: the saved center behind a Dive center place (issue #3623).
+    // Cleared, not skipped: the place outlives its center.
+    'equipmentLocations': [
+      (field: 'diveCenterId', parent: 'diveCenters', nullable: true),
+    ],
     // v268: an item's location log. The place reference is cleared, not
     // skipped, when the place is gone: the move then reads "No location".
     'equipmentLocationMoves': [

@@ -148,13 +148,11 @@ older device retyped to Other (see below) keeps showing its gear.
 ## Sync
 
 - The column travels in the row's `toJson`.
-- **Older devices.** Both apply paths for `equipmentLocations` in
-  `sync_data_serializer.dart` (the single-record `insertOnConflictUpdate` and the
-  batched `insertAllOnConflictUpdate`) build a companion with
-  `toCompanion(false)`, so a record from an older build, which has no
-  `diveCenterId` key, would write null over the link. When the incoming record
-  has no `diveCenterId` key, both paths keep the local value. A key present with
-  a null value is a real unlink and is applied.
+- **Older devices.** A record from an older build has no `diveCenterId` key, and
+  that must not read as an unlink. `upsertRecord` and `upsertRecords` already
+  handle this through `_withLocalForOmitted` (#2553): an omitted key keeps the
+  local value, and a key present with a null value is a real unlink. No new code
+  is needed; tests pin the behaviour for this column.
 - Older builds read `diveCenter` as Other through `fromName`. If a diver edits
   such a place on an older build, its kind is written back as Other. That cannot
   be fixed from this side; the link survives, and the diver can set the type
