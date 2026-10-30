@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:drift/drift.dart' show Value;
+import 'package:drift/drift.dart' show Value, Variable;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -608,6 +608,61 @@ void main() {
         expect(await statementsForTrip(many.id), oneCost);
       },
     );
+
+    test('an install date edit reaches an open trip', () async {
+      // An attribute write touches no equipment row, so only the attribute
+      // stream can tell the alert a part now owns different dives.
+      final reg = await gear('Reg', EquipmentType.regulator);
+      final part = await gear(
+        'First stage',
+        EquipmentType.regulator,
+        parentId: reg.id,
+        installed: DateTime.utc(2026, 6, 1),
+      );
+      final schedule = await ServiceScheduleRepository().createSchedule(
+        ServiceSchedule(
+          id: '',
+          equipmentId: part.id,
+          serviceKindId: 'regulator-service',
+          intervalDays: 36500,
+          intervalDives: 1,
+          anchorDate: DateTime(2025),
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+        ),
+      );
+      await insertDive('d1', DateTime.utc(2026, 1, 10));
+      await link('d1', reg.id);
+      final trip = await upcomingTrip();
+      await TripEquipmentRepository().pack(trip.id, [reg.id]);
+      final container = makeContainer();
+      final sub = container.listen(
+        tripServiceAlertsProvider(trip.id),
+        (_, _) {},
+      );
+      addTearDown(sub.close);
+      Future<int> alerts() async => (await container.read(
+        tripServiceAlertsProvider(trip.id).future,
+      )).where((a) => a.status.schedule.id == schedule.id).length;
+      expect(await alerts(), 0);
+
+      await db.customUpdate(
+        'UPDATE equipment_attributes SET value_num = ? WHERE equipment_id = ?',
+        variables: [
+          Variable.withReal(
+            DateTime.utc(2025, 6, 1).millisecondsSinceEpoch.toDouble(),
+          ),
+          Variable.withString(part.id),
+        ],
+        updates: {db.equipmentAttributes},
+      );
+      var now = await alerts();
+      for (var i = 0; i < 50 && now != 1; i++) {
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+        now = await alerts();
+      }
+      expect(now, 1);
+    });
 
     test('agrees with the single-item provider on packed gear', () async {
       final seeded = await seedEveryShape();

@@ -1208,6 +1208,8 @@ final tripServiceAlertsProvider = FutureProvider.family<List<DueClock>, String>(
     ref.invalidateSelfWhen(
       ref.read(equipmentShareRepositoryProvider).watchChanges(),
     );
+    // As for the active locker: a part's install date decides its dives.
+    ref.invalidateSelfWhen(repository.watchAttributeChanges());
     _invalidateOnServiceLedgerChanges(ref);
 
     final items = await repository.getActiveEquipment(
