@@ -402,7 +402,9 @@ Run before and after on the same machine.
 
 **AOT component runs** with `dart compile exe`, using the production classes:
 
-- Flows: upload, download, skipped-part resume, with a no-op transport.
+- Flows: upload and skipped-part resume, with a no-op transport. Download is
+  measured in the macOS profile build instead, because `BasePartFileSink` reaches
+  `path_provider` and so cannot compile with `dart compile exe`.
 - Modes: plain, encrypted. Under `dart compile exe` no plugin registers, so the
   encrypted run takes the `DartAesGcm` path, which is the Windows and Linux path.
 - Providers: `SigV4Signer` on a part, `writePack` on a part, and `readSpooledPack`
