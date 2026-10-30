@@ -537,6 +537,7 @@ class CourseRequirementRepository {
   /// The dives of [course]'s diver not yet credited to any of its
   /// requirements. Binds ?1 to the course and ?2 to the diver; [window] and
   /// [orderAndLimit] number their own [variables] from ?3.
+  // stats-scope-exempt: course credit is deliberate, not descriptive
   Future<List<RequirementDiveSummary>> _selectCandidates(
     Course course, {
     String window = '',
