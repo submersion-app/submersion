@@ -579,6 +579,9 @@ void main() {
       ..writeAsBytesSync([1, 2, 3]);
     final ancient = File(p.join(phone.temp.path, 'nearby-out-X-dead.gz'))
       ..writeAsBytesSync([1]);
+    // Aged against the session's clock, not the wall clock: the sweep's
+    // cutoff comes from phone.now, fixed at 2026-10-27, so a wall-clock age
+    // stopped reaching past it once the real date passed 2026-10-29.
     ancient.setLastModifiedSync(phone.now.subtract(const Duration(days: 3)));
     await session(laptop, phone);
     expect(stale.existsSync(), isFalse);

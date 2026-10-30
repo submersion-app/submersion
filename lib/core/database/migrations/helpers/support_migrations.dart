@@ -2,15 +2,17 @@ part of '../app_database_migrations.dart';
 
 /// Schema probes shared by every other migration file.
 extension SupportMigrations on AppDatabase {
+  /// Idempotent, and tolerates another isolate adding the column between
+  /// the read and the add.
   Future<void> _addColumnIfMissing(
     String table,
     String column,
     String ddl,
   ) async {
-    final cols = await customSelect("PRAGMA table_info('$table')").get();
-    if (cols.isEmpty) return; // partial fixture database: table absent
-    if (cols.any((c) => c.read<String>('name') == column)) return;
-    await customStatement('ALTER TABLE $table ADD COLUMN $column $ddl');
+    final present = await tableColumnNames(this, table);
+    if (present.isEmpty) return; // partial fixture database: table absent
+    if (present.contains(column)) return;
+    await addColumnIfStillMissing(this, table, column, ddl);
   }
 
   /// True when [table] exists in this database right now.
@@ -31,16 +33,21 @@ extension SupportMigrations on AppDatabase {
   /// True when [table] has a column named [column] right now. Self-guards
   /// when the table is absent (minimal migration-test fixtures), mirroring
   /// [_tableExists].
-  Future<bool> _columnExists(String table, String column) async {
-    final cols = await customSelect("PRAGMA table_info('$table')").get();
-    return cols.any((c) => c.read<String>('name') == column);
-  }
+  Future<bool> _columnExists(String table, String column) async =>
+      (await tableColumnNames(this, table)).contains(column);
 
   /// Idempotent and a no-op when the table or column is absent, so it is
   /// safe to call from both onUpgrade and the beforeOpen backstop.
-  Future<void> _dropColumnIfExists(String table, String column) async {
-    if (!await _columnExists(table, column)) return;
-    await customStatement('ALTER TABLE $table DROP COLUMN $column');
+  Future<void> _dropColumnIfExists(String table, String column) =>
+      _dropColumnsIfExist(table, [column]);
+
+  /// [_dropColumnIfExists] for several columns of one table, reading the
+  /// table's columns once.
+  Future<void> _dropColumnsIfExist(String table, List<String> columns) async {
+    final present = await tableColumnNames(this, table);
+    for (final column in columns.where(present.contains)) {
+      await dropColumnIfStillPresent(this, table, column);
+    }
   }
 
   /// A stable id for a backfilled section row, derived from its parent and

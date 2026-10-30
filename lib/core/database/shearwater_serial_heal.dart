@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 
 import 'package:submersion/core/database/computer_serial_identity.dart';
+import 'package:submersion/core/database/table_columns.dart';
 
 /// Connection types a download writes, the provenance that marks a stored
 /// serial as libdivecomputer's decimal.
@@ -41,10 +42,7 @@ Future<int> healShearwaterDownloadSerials(
 }) async {
   // PRAGMA-guarded like every other self-heal: beforeOpen also runs on
   // minimal old-schema fixtures and databases caught mid-upgrade.
-  Future<Set<String>> columnsOf(String table) async {
-    final rows = await db.customSelect("PRAGMA table_info('$table')").get();
-    return rows.map((c) => c.read<String>('name')).toSet();
-  }
+  Future<Set<String>> columnsOf(String table) => tableColumnNames(db, table);
 
   final computerCols = await columnsOf('dive_computers');
   if (!computerCols.containsAll({
