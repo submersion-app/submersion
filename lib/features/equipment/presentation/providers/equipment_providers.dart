@@ -405,6 +405,26 @@ final equipmentDiveCountProvider = FutureProvider.family<int, String>((
   return repository.getDiveCountForEquipment(equipmentId, diverId: diverId);
 });
 
+/// Total seconds of the dives [equipmentDiveCountProvider] counts, for the
+/// item page's Dive Time row. Refreshes with that count, and for the same
+/// tables, so the two rows never show different sets of dives.
+final equipmentDiveTimeProvider = FutureProvider.family<int, String>((
+  ref,
+  equipmentId,
+) async {
+  final repository = ref.watch(equipmentRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchEquipmentChanges());
+  ref.invalidateSelfWhen(
+    ref.read(diveRepositoryProvider).watchTables(const {
+      'dives',
+      'dive_equipment',
+      'dive_tanks',
+    }),
+  );
+  final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+  return repository.getDiveTimeForEquipment(equipmentId, diverId: diverId);
+});
+
 /// Trip count for equipment provider.
 ///
 /// Reaches trips through the equipment's dives, so it takes the trips tick as

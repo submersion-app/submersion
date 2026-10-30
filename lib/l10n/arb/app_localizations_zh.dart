@@ -14491,6 +14491,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_detail_detailsTitle => '详情';
 
   @override
+  String get equipment_detail_diveTimeLabel => '潜水时间';
+
+  @override
   String equipment_detail_divesCountPlural(Object count) {
     return '$count 次潜水';
   }
