@@ -136,6 +136,39 @@ void main() {
       );
     });
 
+    test('discards an export left by an identity given up since', () async {
+      final path = await writeExport('old-identity.json', 50);
+      final old = record(dataPath: path, byteLength: 50, deviceId: 'old-id');
+      await store.save(old);
+      await File(
+        old.sidecarPath,
+      ).setLastModified(DateTime.now().subtract(const Duration(hours: 1)));
+
+      expect(await store.find(providerId: 'fake', deviceId: 'new-id'), isNull);
+      expect(
+        await File(path).exists(),
+        isFalse,
+        reason:
+            'no later attempt publishes under the old id, and this directory '
+            'is one nothing else reclaims (issue #3822)',
+      );
+    });
+
+    test('spares another id\'s export young enough to be in flight', () async {
+      final path = await writeExport('in-flight.json', 50);
+      await store.save(
+        record(dataPath: path, byteLength: 50, deviceId: 'other-id'),
+      );
+
+      await store.find(providerId: 'fake', deviceId: 'this-id');
+
+      expect(
+        await File(path).exists(),
+        isTrue,
+        reason: 'deleting it would fail that publish mid-upload',
+      );
+    });
+
     test('keeps only the newest of several attempts', () async {
       final oldPath = await writeExport('old.json', 50);
       final newPath = await writeExport('new.json', 50);
@@ -463,6 +496,80 @@ void main() {
         await store.find(providerId: provider.providerId, deviceId: deviceId),
         isNull,
       );
+    });
+
+    test('a resumed publish reports the nonce its manifest carries', () async {
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'd1', diveNumber: 1),
+      );
+      final deviceId = await SyncRepository().getDeviceId();
+      final reported = <String>[];
+      var manifestInCloudWhenReported = false;
+
+      Future<ChangesetWriteResult> attempt(String nonce) => writer.publish(
+        provider: provider,
+        deviceId: deviceId,
+        folderId: folder,
+        deletions: const [],
+        uploadNonce: nonce,
+        onManifestNonce: (n) async {
+          reported.add(n);
+          manifestInCloudWhenReported =
+              await download(ChangesetLogLayout.manifestName(deviceId)) != null;
+        },
+      );
+
+      provider.failUploadsAfter = 0;
+      await expectLater(attempt('first-attempt'), throwsA(anything));
+      expect(
+        reported,
+        isEmpty,
+        reason: 'nothing reached a manifest, so there is nothing to claim',
+      );
+
+      provider.failUploadsAfter = null;
+      await attempt('second-attempt');
+
+      expect(
+        reported,
+        ['first-attempt'],
+        reason:
+            'the nonce is baked into the export, so the resume publishes the '
+            'first attempt\'s, not the one it was handed',
+      );
+      expect(
+        manifestInCloudWhenReported,
+        isFalse,
+        reason:
+            'reported before the upload, or a lost response leaves a manifest '
+            'this install has never heard of',
+      );
+      final manifest = SyncManifest.fromBytes(
+        (await download(ChangesetLogLayout.manifestName(deviceId)))!,
+      );
+      expect(manifest.uploadNonce, 'first-attempt');
+    });
+
+    test('a publish with nothing to say reports no nonce', () async {
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'd1', diveNumber: 1),
+      );
+      await publish();
+      final repo = SyncRepository();
+      await repo.clearPendingRecords();
+      final reported = <String>[];
+
+      final result = await writer.publish(
+        provider: provider,
+        deviceId: await repo.getDeviceId(),
+        folderId: folder,
+        deletions: const [],
+        uploadNonce: 'unused',
+        onManifestNonce: (n) async => reported.add(n),
+      );
+
+      expect(result.kind, ChangesetWriteKind.noop);
+      expect(reported, isEmpty);
     });
 
     test('a resumed manifest is dated by its export, not the retry', () async {
