@@ -32,6 +32,7 @@ import 'package:submersion/features/dive_import/presentation/dive_resync_failure
 import 'package:submersion/features/dive_import/presentation/providers/dive_resync_providers.dart';
 import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_mirror_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/highlight_providers.dart';
@@ -186,7 +187,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
   );
 
   /// Navigate to an adjacent dive. Embedded (master-detail) swaps the selected
-  /// query param -- the DetailScrollRetainer then keeps the scroll offset, so
+  /// query param; the DetailScrollRetainer then keeps the scroll offset, so
   /// the same section stays in view. Standalone replaces the route so stepping
   /// through dives does not pile up the back stack.
   ///
@@ -254,6 +255,11 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
     final diveAsync = ref.watch(
       diveProvider(diveId).select(_withoutRefreshFlag),
     );
+
+    // Which sources are overlaid on the chart lasts as long as the page, but
+    // the only widgets watching it are in the profile card, and in the list
+    // layout that card is unmounted while it is folded.
+    ref.listen(overlaySourcesProvider(diveId), (_, _) {});
 
     return diveAsync.when(
       data: (dive) {
@@ -339,8 +345,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
             // Fixed: Header
             DiveDetailHeroSection(dive: dive, embedded: widget.embedded),
             SizedBox(height: layout.headerGap),
-            // Configurable sections in user-defined order -- the dive profile
-            // chart among them -- with the card pairs (Deco+Tissue,
+            // Configurable sections in user-defined order, the dive profile
+            // chart among them, with the card pairs (Deco+Tissue,
             // Cylinders+Gas consumption, Details+Conditions, GPS+Tide,
             // Weights+Buoyancy, Buddies+Signatures) laid out side by side
             // when the pane is wide enough. Gauge dives hide
@@ -377,9 +383,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
     }
 
     // Standalone mode: Full Scaffold with AppBar. On a phone-width window
-    // the title has no room beside five action icons, so the favorite toggle
-    // -- the one action that reads as well from a menu -- moves into the
-    // overflow.
+    // the title has no room beside five action icons, so the favorite toggle,
+    // the one action that reads as well from a menu, moves into the overflow.
     final compactActions =
         MediaQuery.sizeOf(context).width < _kCompactAppBarWidth;
     final favoriteLabel = dive.isFavorite

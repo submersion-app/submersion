@@ -206,8 +206,8 @@ class DiveDetailSectionList extends ConsumerWidget {
       case DiveDetailSectionId.safetyReview:
         // The review and the incidents chip collapse independently, so
         // neither alone can tell whether the pair has anything to show;
-        // DiveSafetySummarySection decides that -- and so owns the one gap
-        // above it -- before either half builds.
+        // DiveSafetySummarySection decides that, and so owns the one gap
+        // above it, before either half builds.
         return DiveSafetySummarySection(
           key: safetyReviewKey,
           diveId: dive.id,
@@ -225,7 +225,7 @@ class DiveDetailSectionList extends ConsumerWidget {
       case DiveDetailSectionId.altitude:
         if (dive.altitude == null || dive.altitude! <= 0) {
           // Safety phase 2: the site is at altitude but the dive was not
-          // altitude-adjusted -- surface an informational note instead of
+          // altitude-adjusted: surface an informational note instead of
           // silently hiding the section.
           if (needsAltitudeAdjustmentFlag(
             diveAltitude: dive.altitude,
@@ -295,7 +295,7 @@ class DiveDetailSectionList extends ConsumerWidget {
   }
 
   /// Sections that decide whether they render from data that arrives after
-  /// build -- a tide model, sightings, safety findings.
+  /// build: a tide model, sightings, safety findings.
   ///
   /// Their builders always return a widget, so [_buildOrderedSections] cannot
   /// tell an empty one from a full one and must not put a gap above it; the
@@ -347,7 +347,7 @@ class DiveDetailSectionList extends ConsumerWidget {
   }
 
   /// The bare cards for [pair] in left-then-right order, or null when either
-  /// half has nothing to show -- in which case both sections fall back to
+  /// half has nothing to show, in which case both sections fall back to
   /// rendering full-width in their own slots.
   ///
   /// The presence gates mirror what each section builder would decide for
@@ -372,8 +372,8 @@ class DiveDetailSectionList extends ConsumerWidget {
           decoColumn(stretch: true),
           tissueCard(expand: true),
           // Stacked in a narrow pane there is no shared height to fill, and
-          // the stretching variants would collapse their flexible parts --
-          // the deco card, the heat map -- to nothing. The combined panel
+          // the stretching variants would collapse their flexible parts,
+          // the deco card, the heat map, to nothing. The combined panel
           // stacked its natural-height cards for the same reason.
           stackedFirst: decoColumn(stretch: false),
           stackedSecond: tissueCard(expand: false),

@@ -172,8 +172,8 @@ class DiveDetailOverflowMenu extends ConsumerWidget {
 
   /// Overflow entry for the pre-dive checklist link (#1066). PR #913 removed
   /// the dive-detail pre-dive card, and with it the only way to attach a run
-  /// completed the evening before -- outside the auto-linker's three-hour
-  /// window -- to the dive it was run for. The label doubles as the indicator:
+  /// completed the evening before, outside the auto-linker's three-hour
+  /// window, to the dive it was run for. The label doubles as the indicator:
   /// "Unlink" only appears when something is attached.
   PopupMenuItem<String> _preDiveLinkMenuItem(
     BuildContext context,

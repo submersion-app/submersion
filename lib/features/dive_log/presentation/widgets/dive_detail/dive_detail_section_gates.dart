@@ -134,10 +134,10 @@ bool watchHasTide(WidgetRef ref, Dive dive) {
 ///
 /// Mirrors the card's own gate, including its last-good fallback, so a
 /// transient null analysis cannot split the pair while the card stays.
-/// The read is narrowed to that answer, so the page rebuilds only when it
+/// The read is narrowed to that answer, so the list rebuilds only when it
 /// flips. It goes through the built-in [AsyncValue.value], which keeps the
 /// previous analysis while a reload is in flight; the valueOrNull polyfill
-/// reads null there, which would rebuild the whole page into the same
+/// reads null there, which would rebuild the list into the same
 /// layout on every reload.
 bool watchHasSacSegments(
   WidgetRef ref,

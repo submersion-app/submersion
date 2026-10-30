@@ -72,7 +72,7 @@ mixin _DiveDetailPageExports on ConsumerState<DiveDetailPage> {
 
     if (action == null) return;
 
-    setState(() => _isExportingProfile = true);
+    _isExportingProfile = true;
 
     try {
       // Wait for the next frame to ensure the chart is fully rendered
@@ -156,9 +156,7 @@ mixin _DiveDetailPageExports on ConsumerState<DiveDetailPage> {
         );
       }
     } finally {
-      if (mounted) {
-        setState(() => _isExportingProfile = false);
-      }
+      _isExportingProfile = false;
     }
   }
 
@@ -219,7 +217,7 @@ mixin _DiveDetailPageExports on ConsumerState<DiveDetailPage> {
 
     if (action == null) return;
 
-    setState(() => _isExportingPage = true);
+    _isExportingPage = true;
 
     try {
       // Wait for the next frame to ensure the content is fully rendered
@@ -303,9 +301,7 @@ mixin _DiveDetailPageExports on ConsumerState<DiveDetailPage> {
         );
       }
     } finally {
-      if (mounted) {
-        setState(() => _isExportingPage = false);
-      }
+      _isExportingPage = false;
     }
   }
 

@@ -285,17 +285,18 @@ void main() {
   // field the chart reads and DiveChartInputs does not compare would show its
   // old value until something else changes.
   test('DiveChartInputs compares every dive field the chart reads', () {
-    final widgets = p.join('lib', 'features', 'dive_log', 'presentation');
+    final widgets = p.join(
+      'lib',
+      'features',
+      'dive_log',
+      'presentation',
+      'widgets',
+    );
     final section = File(
-      p.join(
-        widgets,
-        'widgets',
-        'dive_detail',
-        'dive_detail_profile_section.dart',
-      ),
+      p.join(widgets, 'dive_detail', 'dive_detail_profile_section.dart'),
     ).readAsStringSync();
     final host = File(
-      p.join(widgets, 'widgets', 'dive_profile_chart_host.dart'),
+      p.join(widgets, 'dive_profile_chart_host.dart'),
     ).readAsStringSync();
     final inputs = RegExp(
       r'get props => \[(.*?)\];',
@@ -311,6 +312,36 @@ void main() {
       fieldsReadIn(section + host).difference(fieldsReadIn(inputs)),
       isEmpty,
     );
+  });
+
+  testWidgets('folding the profile card keeps the overlaid sources', (
+    tester,
+  ) async {
+    final container = await pumpDetail(
+      tester,
+      initialSettings: const AppSettings(
+        hasAcceptedPlanningDisclaimer: true,
+        diveDetailLayout: DiveDetailLayout.list,
+      ),
+    );
+    await settings.setDiveDetailSectionExpanded(
+      DiveDetailSectionId.profile,
+      true,
+    );
+    await settle(tester);
+    container.read(overlaySourcesProvider(current.id).notifier).state = {
+      'source-2',
+    };
+    await settle(tester);
+
+    await settings.setDiveDetailSectionExpanded(
+      DiveDetailSectionId.profile,
+      false,
+    );
+    await settle(tester);
+
+    expect(find.byType(DiveProfileChart), findsNothing);
+    expect(container.read(overlaySourcesProvider(current.id)), {'source-2'});
   });
 
   testWidgets('a tank edit does rebuild the chart', (tester) async {

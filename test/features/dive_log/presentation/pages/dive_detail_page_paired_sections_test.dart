@@ -347,7 +347,7 @@ void main() {
       await tester.binding.setSurfaceSize(const Size(1000, 2000));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
-      // Empty dive => _hasEnvironmentData is false, Environment renders nothing.
+      // Empty dive => watchHasEnvironmentData is false, Environment renders nothing.
       final dive = Dive(id: 'no-cond', dateTime: DateTime(2026, 3, 15, 10, 0));
       final settings = _settingsWithVisibleSections([
         DiveDetailSectionId.details,

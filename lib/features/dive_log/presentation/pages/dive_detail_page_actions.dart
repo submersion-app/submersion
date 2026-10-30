@@ -370,7 +370,7 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
     if (context.mounted) {
       if (errors.isEmpty) {
         // A combined dive's profile is user-authored, so re-parse refreshes
-        // only the source provenance and says so -- otherwise the action
+        // only the source provenance and says so; otherwise the action
         // looks like an unexplained no-op (#1164).
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -460,7 +460,7 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
                   // In embedded mode, call the callback to clear selection
                   widget.onDeleted!();
                 } else if (context.canPop()) {
-                  // The dive is gone, so this page has to go too -- but pop
+                  // The dive is gone, so this page has to go too, but pop
                   // back to whoever pushed it rather than `go`ing to the list,
                   // which would discard the section the user came from.
                   context.pop();

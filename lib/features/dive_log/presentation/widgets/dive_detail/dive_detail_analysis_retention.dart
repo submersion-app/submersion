@@ -4,8 +4,8 @@ import 'package:submersion/features/dive_log/data/services/profile_analysis_serv
 /// The last usable profile analyses the page's analysis cards rendered, each
 /// paired with the dive it belongs to.
 ///
-/// A transient null from [profileAnalysisProvider] -- e.g. a mid-sync
-/// `getDiveById` reading the dive while its profile rows are being rewritten --
+/// A transient null from [profileAnalysisProvider], e.g. a mid-sync
+/// `getDiveById` reading the dive while its profile rows are being rewritten,
 /// must keep those cards visible rather than collapsing them. A dive that has
 /// genuinely never produced an analysis never populates this, so it still
 /// shows nothing. The `watchDiveDetailChanges` debounce makes transient nulls

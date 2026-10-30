@@ -1,5 +1,5 @@
-import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
+import 'package:equatable/equatable.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_3d/presentation/pages/dive_3d_page.dart';
