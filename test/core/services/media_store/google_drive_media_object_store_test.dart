@@ -607,6 +607,18 @@ void main() {
     });
   });
 
+  test('the same client looks the media folder up once', () async {
+    final store = build();
+
+    await store.head('smv1/objects/aa/x.jpg');
+    await store.head('smv1/objects/aa/y.jpg');
+
+    final folderLookups = server.captured.where(
+      (r) => (r.url.queryParameters['q'] ?? '').contains('mimeType'),
+    );
+    expect(folderLookups, hasLength(1));
+  });
+
   test('a client from a new sign-in looks the media folder up again', () async {
     // A dropped grant leaves this store in place, and the diver may then pick
     // another account, whose appDataFolder does not hold the cached folder.

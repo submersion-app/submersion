@@ -27,13 +27,13 @@ class GoogleDriveMediaObjectStore
   /// throws "Client is already closed". Null means no Google session is
   /// available right now.
   ///
-  /// [onAuthRejected] is told which client Drive answered 401 to, so its
-  /// owner can refresh the token; it answers whether a fresh client is now
-  /// available, and the request is then retried once. Without it an expired
-  /// token failed every transfer as an auth error until something else
-  /// replaced the client (#3602). It also hears of a client refused for
-  /// lacking the Drive scope, so that grant is dropped, but that request is
-  /// not retried: a refresh cannot add a scope.
+  /// [onAuthRejected] is told which client Drive answered 401 to, or whose
+  /// refresh Google refused, so its owner can refresh the token; it answers
+  /// whether a fresh client is now available, and the request is then
+  /// retried once. Without it an expired token failed every transfer as an
+  /// auth error until something else replaced the client (#3602). It also
+  /// hears of a client refused for lacking the Drive scope, so that grant is
+  /// dropped, but that request is not retried: a refresh cannot add a scope.
   GoogleDriveMediaObjectStore({
     required Future<http.Client?> Function() clientSupplier,
     Future<bool> Function(http.Client rejected)? onAuthRejected,
