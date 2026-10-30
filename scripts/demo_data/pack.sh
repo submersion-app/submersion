@@ -23,12 +23,8 @@ out="$(abs "$3")"
 
 cd "$repo"
 # Start from the published manifest, so the merge keeps the packages older
-# apps still need. A first build, before the release exists, starts empty.
-if [[ ! -f "$out/demo-manifest.json" ]]; then
-  gh release download demo-data --repo submersion-app/submersion \
-    --pattern demo-manifest.json --dir "$out" 2>/dev/null \
-    || echo "no published demo-manifest.json yet; starting a new one" >&2
-fi
+# apps still need. A failed fetch stops the build.
+python3 scripts/demo_data/fetch_published_manifest.py "$out"
 DEMO_PACK_SHAPES="$shapes" \
 DEMO_PACK_PHOTOS="$photos" \
 DEMO_PACK_OUT="$out" \

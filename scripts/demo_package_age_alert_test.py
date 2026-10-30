@@ -10,9 +10,12 @@ issue for it, and close that issue once a rebuild is published.
 
 import datetime
 import importlib.util
+import io
 import json
 import os
+import re
 import unittest
+from unittest import mock
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _spec = importlib.util.spec_from_file_location(
@@ -67,13 +70,38 @@ class AgeTest(unittest.TestCase):
             ),
         )
 
-    def test_a_package_older_than_six_weeks_is_stale(self):
-        fresh = datetime.datetime(2026, 11, 9, tzinfo=datetime.timezone.utc)
-        old = datetime.datetime(2026, 11, 7, tzinfo=datetime.timezone.utc)
+    def test_a_package_older_than_five_weeks_is_stale(self):
+        fresh = datetime.datetime(2026, 11, 16, tzinfo=datetime.timezone.utc)
+        old = datetime.datetime(2026, 11, 14, tzinfo=datetime.timezone.utc)
 
         self.assertFalse(alert.is_stale(fresh, NOW))
         self.assertTrue(alert.is_stale(old, NOW))
-        self.assertEqual(alert.MAX_AGE_DAYS, 42)
+
+    def test_the_limit_leaves_the_newest_dive_inside_the_apps_window(self):
+        # The app keeps the seasons while the newest dive is within
+        # demoSeasonSlackDays, and that dive falls in the week before the
+        # build, so the package must be a week younger than the window.
+        path = os.path.join(
+            _HERE, "..", "lib", "features", "demo_mode", "data",
+            "demo_date_columns.dart",
+        )
+        with open(path, encoding="utf-8") as f:
+            slack = re.search(r"demoSeasonSlackDays = (\d+);", f.read())
+
+        self.assertEqual(alert.MAX_AGE_DAYS, int(slack.group(1)) - 7)
+
+    def test_a_stamp_without_a_zone_reads_as_utc(self):
+        manifest = _manifest("2026-10-29T06:34:03")
+
+        newest = alert.newest_generated_at(manifest)
+
+        self.assertEqual(
+            newest,
+            datetime.datetime(
+                2026, 10, 29, 6, 34, 3, tzinfo=datetime.timezone.utc
+            ),
+        )
+        self.assertTrue(alert.is_stale(newest, NOW))
 
     def test_a_manifest_without_packages_is_an_error(self):
         with self.assertRaises(ValueError):
@@ -130,6 +158,40 @@ class RunTest(unittest.TestCase):
         self._run(_manifest("2026-10-29T06:34:03Z"), gh)
 
         self.assertIn(["issue", "create"], gh.commands())
+
+
+class PlumbingTest(unittest.TestCase):
+    def test_main_runs_for_the_repository_it_is_given(self):
+        gh = FakeGh()
+
+        code = alert.main(
+            {"GITHUB_REPOSITORY": "owner/repo"},
+            fetch=lambda: _manifest("2026-12-01T00:00:00Z"),
+            gh=gh,
+            now=NOW,
+        )
+
+        self.assertEqual(code, 0)
+        self.assertIn("owner/repo", gh.calls[0])
+
+    def test_fetch_manifest_reads_the_published_json(self):
+        response = mock.MagicMock()
+        response.__enter__.return_value = io.BytesIO(b'{"packages": []}')
+        with mock.patch.object(
+            alert.urllib.request, "urlopen", return_value=response
+        ) as urlopen:
+            self.assertEqual(alert.fetch_manifest(), {"packages": []})
+
+        self.assertEqual(urlopen.call_args.args[0], alert.MANIFEST_URL)
+
+    def test_gh_cli_returns_stdout(self):
+        done = mock.Mock(stdout="out")
+        with mock.patch.object(
+            alert.subprocess, "run", return_value=done
+        ) as run:
+            self.assertEqual(alert.gh_cli(["issue", "list"]), "out")
+
+        self.assertEqual(run.call_args.args[0], ["gh", "issue", "list"])
 
 
 class WorkflowTest(unittest.TestCase):

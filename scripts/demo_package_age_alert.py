@@ -6,8 +6,9 @@ private harvest) and published to the `demo-data` release. The app moves its
 dates so the newest dive lands just before the day it is opened, by whole
 years while that keeps the newest dive within six weeks, so the seasons stay
 true; past that it moves by weeks, which keeps the service clocks on today
-but carries summer dives into winter. A package younger than six weeks keeps
-both, so this alert asks for a rebuild once the newest package is older.
+but carries summer dives into winter. The newest dive falls in the week before
+the build, so a package younger than five weeks keeps both, and this alert
+asks for a rebuild once the newest package is older.
 
 Run weekly by `.github/workflows/demo-package-age.yml`: one open issue while
 the package is stale, closed once a newer package is published.
@@ -25,8 +26,10 @@ MANIFEST_URL = (
     "demo-data/demo-manifest.json"
 )
 
-# Matches demoSeasonSlackDays in lib/features/demo_mode/data/demo_date_columns.dart.
-MAX_AGE_DAYS = 42
+# A week less than demoSeasonSlackDays in
+# lib/features/demo_mode/data/demo_date_columns.dart: that window runs from the
+# newest dive, which falls in the week before the build. A test ties the two.
+MAX_AGE_DAYS = 35
 
 MARKER = "<!-- demo-package-age-alert -->"
 TITLE = "Rebuild the demo-mode sample logbook"
@@ -44,7 +47,10 @@ def newest_generated_at(manifest):
 
 
 def _parse(stamp):
-    return datetime.datetime.fromisoformat(stamp.replace("Z", "+00:00"))
+    parsed = datetime.datetime.fromisoformat(stamp.replace("Z", "+00:00"))
+    if parsed.tzinfo is None:
+        return parsed.replace(tzinfo=datetime.timezone.utc)
+    return parsed
 
 
 def is_stale(generated, now):

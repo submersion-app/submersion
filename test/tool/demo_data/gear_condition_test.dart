@@ -48,6 +48,27 @@ void main() {
       expect(await ruleIds(), containsAll(_planned));
     });
 
+    test('findings ship with a logbook opened soon after its build', () async {
+      // Within six weeks the dates stay as built, so the findings pass would
+      // see no change and write nothing: the shipped findings must survive.
+      final before = await ctx.db
+          .customSelect('SELECT MAX(dive_date_time) AS m FROM dives')
+          .getSingle();
+
+      await DemoDatabasePreparer().prepare(
+        ctx.db,
+        now: ctx.anchor.add(const Duration(days: 23)),
+        photosDir: ctx.photosDir,
+        deviceId: null,
+      );
+
+      final after = await ctx.db
+          .customSelect('SELECT MAX(dive_date_time) AS m FROM dives')
+          .getSingle();
+      expect(after.read<int>('m'), before.read<int>('m'));
+      expect(await ruleIds(), containsAll(_planned));
+    });
+
     /// Opens the logbook on [now], then raises the findings afresh.
     Future<void> openOn(DateTime now) async {
       await DemoDatabasePreparer().prepare(

@@ -108,7 +108,6 @@ class DemoDatabasePreparer {
   /// inspection. Custom attributes carry no kind and stay as they are.
   Future<void> _shiftDateAttributes(GeneratedDatabase db, int millis) async {
     final keys = EquipmentAttributeCatalog.dateKeys.toList()..sort();
-    if (keys.isEmpty) return;
     await db.customUpdate(
       'UPDATE equipment_attributes SET value_num = value_num + ? '
       'WHERE is_custom = 0 AND value_num IS NOT NULL '
