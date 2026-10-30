@@ -42,23 +42,9 @@ Map<ConnectionKind, Set<String>> idsByKind(Iterable<ConnectionNode> nodes) {
   return out;
 }
 
-/// [graph] with the nodes of [all] that the budget cut before the edge
-/// queries (those not in [kept]) added to its hidden counts.
-ConnectionGraph withDropped(
-  ConnectionGraph graph,
-  List<ConnectionNode> all,
-  List<ConnectionNode> kept,
-) {
-  final totals = <ConnectionKind, int>{};
-  for (final n in all) {
-    totals[n.ref.kind] = (totals[n.ref.kind] ?? 0) + 1;
-  }
-  return withDroppedCounts(graph, totals, kept);
-}
-
-/// [withDropped] for a load that read only the top of each kind: [totals]
-/// holds each kind's full entity count, and whatever [kept] does not hold
-/// is added to the hidden counts.
+/// [graph] with what the budget cut before the edge queries added to its
+/// hidden counts: [totals] holds each kind's full entity count, and whatever
+/// [kept] does not hold is hidden.
 ConnectionGraph withDroppedCounts(
   ConnectionGraph graph,
   Map<ConnectionKind, int> totals,

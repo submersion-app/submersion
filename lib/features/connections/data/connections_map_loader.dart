@@ -60,15 +60,23 @@ class MapLoader {
     final edges = <ConnectionEdge>[
       for (final l in links)
         if (keptIds[l.a] != null && keptIds[l.b] != null)
-          ...await _reader.edges(
-            l.a,
-            l.b,
-            diverId: diverId,
-            filter: filter,
-            restrictA: keptIds[l.a],
-            restrictB: keptIds[l.b],
-            minShared: spec.minSharedDives,
-          ),
+          ...l.a == l.b
+              ? await _reader.edgesAmong(
+                  l.a,
+                  keptIds[l.a]!,
+                  diverId: diverId,
+                  filter: filter,
+                  minShared: spec.minSharedDives,
+                )
+              : await _reader.edges(
+                  l.a,
+                  l.b,
+                  diverId: diverId,
+                  filter: filter,
+                  restrictA: keptIds[l.a],
+                  restrictB: keptIds[l.b],
+                  minShared: spec.minSharedDives,
+                ),
     ];
     final graph = ConnectionGraph(
       nodes: kept,

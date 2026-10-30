@@ -45,6 +45,33 @@ class ConnectionsReader {
       excludeB: excludeB,
       minShared: minShared,
     );
+    return _edgeRows(kindA, kindB, q);
+  }
+
+  /// [edges] between entities of [kind] that are all in [ids], for a pair
+  /// that may be dense (see buildSameKindEdgeSql).
+  Future<List<ConnectionEdge>> edgesAmong(
+    ConnectionKind kind,
+    Iterable<String> ids, {
+    required String? diverId,
+    required DiveFilterState filter,
+    int minShared = 1,
+  }) {
+    final q = buildSameKindEdgeSql(
+      kind: kind,
+      ids: ids,
+      diverId: diverId,
+      filter: filter,
+      minShared: minShared,
+    );
+    return _edgeRows(kind, kind, q);
+  }
+
+  Future<List<ConnectionEdge>> _edgeRows(
+    ConnectionKind kindA,
+    ConnectionKind kindB,
+    ({String sql, List<Object?> params}) q,
+  ) async {
     final rows = await _db
         .customSelect(q.sql, variables: q.params.map(Variable.new).toList())
         .get();
@@ -69,6 +96,7 @@ class ConnectionsReader {
     int? limit,
     bool byRank = false,
     ConnectionKind? sharedWith,
+    NeighboursOf? neighboursOf,
   }) async {
     final q = buildNodeSql(
       kind: kind,
@@ -79,6 +107,7 @@ class ConnectionsReader {
       limit: limit,
       byRank: byRank,
       sharedWith: sharedWith,
+      neighboursOf: neighboursOf,
     );
     final rows = await _db
         .customSelect(q.sql, variables: q.params.map(Variable.new).toList())
@@ -116,12 +145,14 @@ class ConnectionsReader {
     required String? diverId,
     required DiveFilterState filter,
     ConnectionKind? sharedWith,
+    NeighboursOf? neighboursOf,
   }) async {
     final q = buildNodeCountSql(
       kind: kind,
       diverId: diverId,
       filter: filter,
       sharedWith: sharedWith,
+      neighboursOf: neighboursOf,
     );
     final row = await _db
         .customSelect(q.sql, variables: q.params.map(Variable.new).toList())
