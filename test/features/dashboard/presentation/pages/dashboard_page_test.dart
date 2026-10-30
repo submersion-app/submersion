@@ -421,6 +421,27 @@ void main() {
         expect(find.byType(MediaRibbonCard), findsOneWidget);
       });
 
+      testWidgets('a pull-to-refresh leaves the mounted map alone', (
+        tester,
+      ) async {
+        final media = await pumpWithLatePhotos(tester);
+        media.complete([photo]);
+        await settle(tester);
+        final state = tester.state(find.byType(FlutterMap));
+
+        // Photos reload here, but the earlier result is still on hand, so
+        // the hold for a first result must not take the map off the page.
+        unawaited(
+          tester
+              .state<RefreshIndicatorState>(find.byType(RefreshIndicator))
+              .show(),
+        );
+        await settle(tester);
+        await settle(tester);
+
+        expect(tester.state(find.byType(FlutterMap)), same(state));
+      });
+
       testWidgets('no photos still leaves the map on its own row', (
         tester,
       ) async {
