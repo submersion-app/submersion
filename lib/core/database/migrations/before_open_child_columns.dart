@@ -37,5 +37,9 @@ extension BeforeOpenChildColumns on AppDatabase {
     // v325: trips.parent_trip_id (issue #3658). Every trip read selects the
     // whole row, for the same reason as the tank columns.
     await _assertTripParentColumn();
+
+    // v330: buddies.excluded_from_rankings (issue #3624). Every buddy read
+    // selects the whole row, for the same reason as the tank columns.
+    await _assertBuddyExcludedFromRankingsColumn();
   }
 }

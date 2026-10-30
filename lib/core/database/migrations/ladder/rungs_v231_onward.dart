@@ -701,5 +701,11 @@ extension RungsFromV231 on AppDatabase {
       await _dropMisspelledPpO2DecoBandColumns();
     }
     if (from < 327) await reportProgress();
+
+    // v330: buddies.excluded_from_rankings (issue #3624). Column only, no
+    // backfill; re-asserted in beforeOpen. 328 and 329 are claimed by PR
+    // #3869 and #3889's branch.
+    if (from < 330) await _assertBuddyExcludedFromRankingsColumn();
+    if (from < 330) await reportProgress();
   }
 }
