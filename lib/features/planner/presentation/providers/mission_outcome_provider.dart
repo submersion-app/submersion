@@ -49,17 +49,10 @@ final missionSettleDelayProvider = Provider<Duration>(
   (ref) => const Duration(milliseconds: 150),
 );
 
-final _epoch = DateTime.utc(2000);
-
-/// What the engine reads: the plan without its name, notes and timestamps,
-/// which change on a rename or a save and never change the outcome.
 (domain.DivePlan?, DpvMission?) _missionInputs(DivePlanState s) {
   final mission = s.mission;
   if (mission == null) return (null, null);
-  final plan = divePlanFromState(
-    s,
-  ).copyWith(name: '', notes: '', createdAt: _epoch, updatedAt: _epoch);
-  return (plan, mission);
+  return (planForEngine(s), mission);
 }
 
 /// The failure-scenario outcome of the plan's DPV mission, or null when the

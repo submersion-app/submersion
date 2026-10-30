@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_background_results.dart';
 
-typedef _Result = AsyncValue<PlanResult<int>>;
+typedef _Result = AsyncValue<PlanBackgroundResult<int>>;
 
 /// A real provider whose dependency moves, the only way to reach the states
 /// that hold a previous value: `copyWithPrevious` is internal to Riverpod.
@@ -16,9 +16,9 @@ class _Harness {
 
   final container = ProviderContainer();
   final _trigger = StateProvider<int>((ref) => 0);
-  var _next = Completer<PlanResult<int>>();
+  var _next = Completer<PlanBackgroundResult<int>>();
 
-  late final result = FutureProvider<PlanResult<int>>((ref) {
+  late final result = FutureProvider<PlanBackgroundResult<int>>((ref) {
     ref.watch(_trigger);
     return _next.future;
   }, retry: (_, _) => null);
@@ -27,12 +27,12 @@ class _Harness {
 
   /// Starts a newer run that stays pending.
   void reload() {
-    _next = Completer<PlanResult<int>>();
+    _next = Completer<PlanBackgroundResult<int>>();
     container.read(_trigger.notifier).state++;
     container.read(result);
   }
 
-  Future<void> landValue(PlanResult<int> value) async {
+  Future<void> landValue(PlanBackgroundResult<int> value) async {
     _next.complete(value);
     await container.read(result.future);
   }
@@ -56,7 +56,9 @@ void main() {
   group('planResultView', () {
     test('a finished result for this plan is current', () async {
       final harness = _Harness();
-      await harness.landValue(const PlanResult(planId: 'p', value: 1));
+      await harness.landValue(
+        const PlanBackgroundResult(planId: 'p', value: 1),
+      );
 
       expectView(
         planResultView(harness.state, 'p'),
@@ -67,7 +69,9 @@ void main() {
 
     test('a newer run keeps the last value and says it is updating', () async {
       final harness = _Harness();
-      await harness.landValue(const PlanResult(planId: 'p', value: 1));
+      await harness.landValue(
+        const PlanBackgroundResult(planId: 'p', value: 1),
+      );
       harness.reload();
 
       expectView(
@@ -89,7 +93,9 @@ void main() {
 
     test('a pending run never shows another plan\'s value', () async {
       final harness = _Harness();
-      await harness.landValue(const PlanResult(planId: 'other', value: 1));
+      await harness.landValue(
+        const PlanBackgroundResult(planId: 'other', value: 1),
+      );
       harness.reload();
 
       expectView(
@@ -101,7 +107,9 @@ void main() {
 
     test('a finished result for another plan is not this plan\'s', () async {
       final harness = _Harness();
-      await harness.landValue(const PlanResult(planId: 'other', value: 1));
+      await harness.landValue(
+        const PlanBackgroundResult(planId: 'other', value: 1),
+      );
 
       expectView(
         planResultView(harness.state, 'p'),
@@ -123,7 +131,9 @@ void main() {
 
     test('a failure keeps the last value and says so', () async {
       final harness = _Harness();
-      await harness.landValue(const PlanResult(planId: 'p', value: 1));
+      await harness.landValue(
+        const PlanBackgroundResult(planId: 'p', value: 1),
+      );
       harness.reload();
       await harness.landError();
 
@@ -136,7 +146,9 @@ void main() {
 
     test('a failure does not outlast the next run', () async {
       final harness = _Harness();
-      await harness.landValue(const PlanResult(planId: 'p', value: 1));
+      await harness.landValue(
+        const PlanBackgroundResult(planId: 'p', value: 1),
+      );
       harness.reload();
       await harness.landError();
       harness.reload();

@@ -67,6 +67,62 @@ domain.DivePlan _plan({
 void main() {
   const solver = BailoutSolver();
 
+  group('planMayHaveBailout', () {
+    domain.DivePlan withoutSegments() => domain.DivePlan(
+      id: 'plan-1',
+      name: 'No segments',
+      mode: domain.PlanMode.ccr,
+      tanks: [_diluentTank, _bailout()],
+      segments: const [],
+      createdAt: DateTime(2026, 7, 5),
+      updatedAt: DateTime(2026, 7, 5),
+    );
+
+    domain.DivePlan neverLeavesTheSurface() => _plan().copyWith(
+      segments: [
+        PlanSegment.hold(
+          id: 'seg-1',
+          depth: 0,
+          durationMinutes: 10,
+          tankId: 'dil',
+          gasMix: _diluent,
+          order: 0,
+        ),
+      ],
+    );
+
+    test('is true for a loop plan carrying a bailout tank', () {
+      expect(planMayHaveBailout(_plan()), isTrue);
+      expect(planMayHaveBailout(_plan(mode: domain.PlanMode.scr)), isTrue);
+    });
+
+    test('rejects open circuit, no bailout tank and no segments', () {
+      expect(planMayHaveBailout(_plan(mode: domain.PlanMode.oc)), isFalse);
+      expect(planMayHaveBailout(_plan(tanks: const [_diluentTank])), isFalse);
+      expect(planMayHaveBailout(withoutSegments()), isFalse);
+    });
+
+    test('the solver returns null for every plan the gate rejects', () {
+      for (final plan in [
+        _plan(mode: domain.PlanMode.oc),
+        _plan(tanks: const [_diluentTank]),
+        withoutSegments(),
+      ]) {
+        expect(planMayHaveBailout(plan), isFalse);
+        expect(solver.solve(plan), isNull);
+      }
+    });
+
+    test('a loop plan that never leaves the surface passes the gate and '
+        'solves to null', () {
+      // One way on purpose: predicting this needs the tissue walk itself,
+      // which is the expensive work the gate exists to avoid.
+      final plan = neverLeavesTheSurface();
+      expect(planMayHaveBailout(plan), isTrue);
+      expect(solver.solve(plan), isNull);
+    });
+  });
+
   test('returns null for OC plans and when no bailout tanks are carried', () {
     expect(solver.solve(_plan(mode: domain.PlanMode.oc)), isNull);
     expect(solver.solve(_plan(tanks: const [_diluentTank])), isNull);

@@ -9,8 +9,8 @@ import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 /// A background result and the plan it was computed for. A provider keeps its
 /// previous value through a reload, which is what an edit to one plan wants
 /// and what opening another plan must not show (see [planResultView]).
-class PlanResult<T> {
-  const PlanResult({required this.planId, required this.value});
+class PlanBackgroundResult<T> {
+  const PlanBackgroundResult({required this.planId, required this.value});
 
   final String planId;
   final T value;
@@ -51,7 +51,7 @@ class PlanResultView<T> {
 /// Loading is checked before the error: a provider keeps a failure through a
 /// reload, and a run already under way supersedes it.
 PlanResultView<T> planResultView<T>(
-  AsyncValue<PlanResult<T>> result,
+  AsyncValue<PlanBackgroundResult<T>> result,
   String planId,
 ) {
   final held = result.value;
