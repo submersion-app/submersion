@@ -2,7 +2,6 @@ import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
-import 'package:submersion/core/services/notification_service.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_share_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
@@ -12,31 +11,7 @@ import 'package:submersion/features/notifications/data/services/notification_sch
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../helpers/test_database.dart';
-
-/// Records the kind of every service reminder; every other member no-ops.
-class _FakeNotificationService implements NotificationService {
-  final reminderKinds = <String>[];
-
-  @override
-  Future<int> scheduleServiceReminder({
-    required String scheduleId,
-    required String equipmentId,
-    required String equipmentName,
-    required String kindName,
-    required String? brandModel,
-    required DateTime scheduledDate,
-    required int daysBefore,
-  }) async {
-    reminderKinds.add(kindName);
-    return 1;
-  }
-
-  @override
-  Future<Set<String>> pendingDocumentReminderIds() async => const {};
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => Future.value();
-}
+import 'helpers/recording_notification_service.dart';
 
 /// A shared item's clock can use its owner's custom service kind (issue
 /// #2046). The sharee's reminders must still include it.
@@ -106,7 +81,7 @@ void main() {
         actingDiverId: 'owner',
       );
 
-      final fake = _FakeNotificationService();
+      final fake = RecordingNotificationService();
       await NotificationScheduler(
         notificationService: fake,
       ).scheduleAll(settings: const AppSettings(), diverId: 'wife');

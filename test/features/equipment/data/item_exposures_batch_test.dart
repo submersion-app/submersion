@@ -14,7 +14,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 
 /// [EquipmentRepository.getItemExposures] is [getItemExposure] for many
 /// items at once. It must agree with the single-item lookup on every join
-/// path, because the service clocks read one and the reminders the other.
+/// path, because an item's page reads one and every list-wide surface the other.
 void main() {
   late AppDatabase db;
   late EquipmentRepository repo;

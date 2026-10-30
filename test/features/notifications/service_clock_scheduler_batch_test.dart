@@ -6,7 +6,6 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
-import 'package:submersion/core/services/notification_service.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -14,30 +13,7 @@ import 'package:submersion/features/equipment/domain/entities/service_schedule.d
 import 'package:submersion/features/notifications/data/services/notification_scheduler.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
-/// Records the kind of every service reminder; every other member no-ops.
-class _FakeNotificationService implements NotificationService {
-  final reminderKinds = <String>[];
-
-  @override
-  Future<int> scheduleServiceReminder({
-    required String scheduleId,
-    required String equipmentId,
-    required String equipmentName,
-    required String kindName,
-    required String? brandModel,
-    required DateTime scheduledDate,
-    required int daysBefore,
-  }) async {
-    reminderKinds.add(kindName);
-    return 1;
-  }
-
-  @override
-  Future<Set<String>> pendingDocumentReminderIds() async => const {};
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => Future.value();
-}
+import 'helpers/recording_notification_service.dart';
 
 /// A reminder run reads the locker's schedules and records once, not once
 /// per item (issue #3830).
@@ -78,7 +54,7 @@ void main() {
     final logged = <String>[];
     await runZoned(
       () => NotificationScheduler(
-        notificationService: _FakeNotificationService(),
+        notificationService: RecordingNotificationService(),
       ).scheduleAll(settings: const AppSettings()),
       zoneSpecification: ZoneSpecification(
         print: (self, parent, zone, line) => logged.add(line),
@@ -127,7 +103,7 @@ void main() {
       final fins = await EquipmentRepository().createEquipment(
         const EquipmentItem(id: '', name: 'Fins', type: EquipmentType.fins),
       );
-      final fake = _FakeNotificationService();
+      final fake = RecordingNotificationService();
       final scheduler = NotificationScheduler(notificationService: fake);
 
       await scheduler.updateForEquipment(

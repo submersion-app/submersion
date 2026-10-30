@@ -4,15 +4,10 @@ import 'package:submersion/features/equipment/data/repositories/equipment_reposi
 import 'package:submersion/features/equipment/data/repositories/service_kind_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/service_record_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
+import 'package:submersion/features/equipment/data/services/loaded_service_clocks.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
-import 'package:submersion/features/equipment/domain/entities/service_record.dart';
-import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
-import 'package:submersion/core/constants/enums.dart';
-import 'package:submersion/features/equipment/domain/services/battery_cycles.dart';
-import 'package:submersion/features/equipment/domain/services/exposure_classifier.dart';
-import 'package:submersion/features/equipment/domain/services/service_due_engine.dart';
 import 'package:submersion/features/equipment/presentation/providers/exposure_thresholds_provider.dart';
 import 'package:submersion/features/notifications/data/repositories/scheduled_notification_repository.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -90,10 +85,8 @@ class NotificationScheduler {
       kindsById: kindsById,
       settings: settings,
     );
-    final statusesByItem = <String, List<ServiceClockStatus>>{};
     for (final item in items) {
       final statuses = evaluated[item.id] ?? const <ServiceClockStatus>[];
-      statusesByItem[item.id] = statuses;
       await _reconcileUsageReminders(item: item, statuses: statuses);
       for (final status in statuses) {
         await _scheduleForClock(
@@ -106,7 +99,7 @@ class NotificationScheduler {
 
     await _scheduleTripReminders(
       items: items,
-      statusesByItem: statusesByItem,
+      statusesByItem: evaluated,
       settings: settings,
       diverId: diverId,
     );
@@ -135,55 +128,24 @@ class NotificationScheduler {
     // reminder fires on exactly the usage the clock shows: fitted parts
     // only, and a replaced part's dives stop at its successor.
     final exposures = await _equipmentRepository.getItemExposures(scheduled);
-    return {
-      for (final item in scheduled)
-        item.id: _evaluateLoaded(
-          item: item,
-          schedules: schedulesById[item.id]!,
-          records: recordsById[item.id] ?? const [],
-          exposure: exposures[item.id]!,
-          kindsById: kindsById,
-          settings: settings,
-        ),
-    };
-  }
-
-  /// Evaluate one item's loaded inputs with the shared engine.
-  List<ServiceClockStatus> _evaluateLoaded({
-    required EquipmentItem item,
-    required List<ServiceSchedule> schedules,
-    required List<ServiceRecord> records,
-    required ItemExposure exposure,
-    required Map<String, ServiceKind> kindsById,
-    required AppSettings settings,
-  }) {
-    final usage = exposure.samples;
-    final classifier = ExposureClassifier(
-      thresholds: exposureThresholdsFromSettings(settings),
-      loopTimeOnly: exposure.isRebreather,
-      countsCycles: accruesBatteryCycles(
-        type: item.type,
-        schedules: schedules,
-        kindsById: kindsById,
-      ),
-      hasBatteryChild: exposure.fittedChildren.any(
-        (c) => c.type == EquipmentType.battery,
-      ),
-    );
+    final thresholds = exposureThresholdsFromSettings(settings);
     final window = settings.serviceReminderDays.isEmpty
         ? 30
         : settings.serviceReminderDays.reduce((a, b) => a > b ? a : b);
-    return const ServiceDueEngine().evaluate(
-      schedules: schedules,
-      kindsById: kindsById,
-      records: records,
-      usage: usage,
-      classifier: classifier,
-      purchaseDate: item.purchaseDate,
-      equipmentCreatedAt: item.createdAt ?? DateTime.now(),
-      dueSoonWindowDays: window,
-      now: DateTime.now(),
-    );
+    final now = DateTime.now();
+    return {
+      for (final item in scheduled)
+        item.id: evaluateLoadedServiceClocks(
+          item,
+          schedules: schedulesById[item.id]!,
+          kindsById: kindsById,
+          records: recordsById[item.id] ?? const [],
+          exposure: exposures[item.id]!,
+          thresholds: thresholds,
+          dueSoonWindowDays: window,
+          now: now,
+        ),
+    };
   }
 
   /// Schedule per-reminder-day notifications for one clock's date trigger.

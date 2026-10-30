@@ -16,17 +16,14 @@ import 'package:submersion/features/equipment/data/repositories/service_kind_rep
 import 'package:submersion/features/equipment/data/repositories/service_record_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_field.dart';
+import 'package:submersion/features/equipment/data/services/loaded_service_clocks.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
-import 'package:submersion/features/equipment/domain/entities/exposure_thresholds.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
 import 'package:submersion/features/equipment/domain/entities/service_record.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_filter_state.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_picker_filter.dart';
-import 'package:submersion/features/equipment/domain/services/battery_cycles.dart';
-import 'package:submersion/features/equipment/domain/services/exposure_classifier.dart';
-import 'package:submersion/features/equipment/domain/services/service_due_engine.dart';
 import 'package:submersion/features/equipment/presentation/providers/exposure_thresholds_provider.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_share_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_tag_providers.dart';
@@ -977,7 +974,7 @@ Future<List<ServiceClockStatus>> _evaluateClocksFor(
       .watch(equipmentRepositoryProvider)
       .getItemExposure(item);
   final window = await ref.watch(serviceDueSoonWindowDaysProvider.future);
-  return _evaluateLoaded(
+  return evaluateLoadedServiceClocks(
     item,
     schedules: schedules,
     kindsById: {for (final k in allKinds) k.id: k},
@@ -986,44 +983,6 @@ Future<List<ServiceClockStatus>> _evaluateClocksFor(
     thresholds: ref.watch(exposureThresholdsProvider),
     dueSoonWindowDays: window,
     now: DateTime.now(),
-  );
-}
-
-/// Runs the engine over one item's already loaded inputs. The single-item
-/// and the batched evaluation both end here, so the classifier is wired
-/// once.
-List<ServiceClockStatus> _evaluateLoaded(
-  EquipmentItem item, {
-  required List<ServiceSchedule> schedules,
-  required Map<String, ServiceKind> kindsById,
-  required List<ServiceRecord> records,
-  required ItemExposure exposure,
-  required ExposureThresholds thresholds,
-  required int dueSoonWindowDays,
-  required DateTime now,
-}) {
-  final classifier = ExposureClassifier(
-    thresholds: thresholds,
-    loopTimeOnly: exposure.isRebreather,
-    countsCycles: accruesBatteryCycles(
-      type: item.type,
-      schedules: schedules,
-      kindsById: kindsById,
-    ),
-    hasBatteryChild: exposure.fittedChildren.any(
-      (c) => c.type == EquipmentType.battery,
-    ),
-  );
-  return const ServiceDueEngine().evaluate(
-    schedules: schedules,
-    kindsById: kindsById,
-    records: records,
-    usage: exposure.samples,
-    classifier: classifier,
-    purchaseDate: item.purchaseDate,
-    equipmentCreatedAt: item.createdAt ?? now,
-    dueSoonWindowDays: dueSoonWindowDays,
-    now: now,
   );
 }
 
@@ -1065,7 +1024,7 @@ Future<Map<String, List<ServiceClockStatus>>> _evaluateScheduledItems(
 
   return {
     for (final item in scheduled)
-      item.id: _evaluateLoaded(
+      item.id: evaluateLoadedServiceClocks(
         item,
         schedules: schedulesById[item.id]!,
         kindsById: kindsById,
